@@ -33,6 +33,7 @@ function SignupForm() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
   const [resent, setResent] = useState(false);
   const [hasOnboardingPrefs, setHasOnboardingPrefs] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
@@ -339,8 +340,21 @@ function SignupForm() {
       });
       if (error) throw error;
       setResent(true);
-    } catch {
-      // Silently handle — don't expose whether email exists
+    } catch (err) {
+      // Do NOT swallow this.
+      //
+      // The old comment here was "Silently handle - don't expose whether email
+      // exists". Enumeration is a real concern on a LOGIN form; it is not one
+      // here, because this screen only renders after we have just created that
+      // exact account. What the silence actually hid was the auth rate limit:
+      // the user pressed a button, nothing happened, and no message explained
+      // why. 36 of 181 email signups (19.9%) never confirmed.
+      const msg = err instanceof Error ? err.message : "";
+      setResendError(
+        /rate|429|too many/i.test(msg)
+          ? t("resendRateLimited")
+          : t("resendFailed")
+      );
     } finally {
       setResending(false);
     }
@@ -409,6 +423,11 @@ function SignupForm() {
                     ? t("resendingEmail")
                     : t("resendEmail")}
                 </button>
+                {resendError && (
+                  <p className="text-sm text-red-600 text-center" role="alert">
+                    {resendError}
+                  </p>
+                )}
               </div>
             </div>
           </div>

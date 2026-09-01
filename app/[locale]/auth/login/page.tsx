@@ -23,6 +23,11 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
+  // Resend-confirmation flow, shown only when sign-in failed BECAUSE the
+  // address was never confirmed. See handleResendConfirmation.
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const locale = useLocale();
@@ -55,6 +60,8 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setResent(false);
+    setResendError(null);
 
     // Client-side validation first
     const validationError = validateLoginForm(email, password);
@@ -129,6 +136,53 @@ function LoginForm() {
       }
       router.push(redirect);
       router.refresh();
+    }
+  };
+
+  /**
+   * Send a fresh confirmation link to someone who never confirmed.
+   *
+   * WHY THIS LIVES ON THE LOGIN PAGE
+   * Measured 2026-09-01: 36 of 181 email signups (19.9%) have
+   * email_confirmed_at IS NULL. Every one had a confirmation email SENT, none
+   * ever signed in, and all hold zero trips — hard-locked out of accounts they
+   * created. Still accruing: 9 in the last 30 days.
+   *
+   * They were told "check your inbox for the confirmation email", which is a
+   * dead end when that message is weeks old and the link has expired. The only
+   * resend button in the app was on the signup SUCCESS screen — ephemeral, gone
+   * the moment they navigated away, and unreachable on a return visit. The
+   * login page is the one place they come back to.
+   *
+   * Errors are SURFACED, not swallowed. The signup page's version swallows
+   * everything in an empty catch commented "Silently handle", which hides the
+   * auth rate limit — so a throttled user sees a button that does nothing.
+   */
+  const handleResendConfirmation = async () => {
+    setResending(true);
+    setResendError(null);
+    try {
+      const supabase = createClient();
+      const { error: resendErr } = await supabase.auth.resend({
+        type: "signup",
+        email,
+      });
+      if (resendErr) {
+        // Rate limiting is the failure a real person is most likely to hit,
+        // and the least self-explanatory. Name it.
+        const msg = resendErr.message ?? "";
+        setResendError(
+          /rate|429|too many/i.test(msg)
+            ? t("resendRateLimited")
+            : t("resendFailed")
+        );
+        return;
+      }
+      setResent(true);
+    } catch {
+      setResendError(t("resendFailed"));
+    } finally {
+      setResending(false);
     }
   };
 
@@ -228,6 +282,33 @@ function LoginForm() {
                   <Link href="/auth/forgot-password" className="text-sm text-[var(--primary-ink)] font-medium hover:underline mt-2 inline-block">
                     {t("forgotPasswordLink")}
                   </Link>
+                )}
+
+                {/* The account exists and the password was right — the address
+                    was simply never confirmed. Give them the fix here rather
+                    than sending them to look for an expired email. Gated on the
+                    stable code, not on message text, so translations cannot
+                    silently switch it off. */}
+                {error?.code === "email_not_confirmed" && (
+                  <div className="mt-3">
+                    {resent ? (
+                      <p className="text-sm text-green-700 font-medium">
+                        {t("resendSent")}
+                      </p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleResendConfirmation}
+                        disabled={resending || !email}
+                        className="text-sm font-semibold text-[var(--primary-ink)] underline underline-offset-2 hover:no-underline disabled:opacity-60 disabled:no-underline"
+                      >
+                        {resending ? t("resendSending") : t("resendConfirmation")}
+                      </button>
+                    )}
+                    {resendError && (
+                      <p className="text-sm text-red-600 mt-1">{resendError}</p>
+                    )}
+                  </div>
                 )}
               </div>
             )}

@@ -11,6 +11,18 @@ export interface AuthError {
   message: string;
   field?: 'email' | 'password' | 'general';
   suggestion?: string;
+  /**
+   * Stable machine code, so a caller can OFFER A FIX rather than only phrase
+   * the failure. Currently only `email_not_confirmed`, which the login page
+   * uses to show a resend button.
+   *
+   * Why it exists: 36 of 181 email signups (19.9%) never confirmed. Every one
+   * of them had a confirmation email SENT, never signed in, and holds zero
+   * trips. Telling them "check your inbox" is a dead end when the message is
+   * weeks old and the link has expired, and the only resend button in the app
+   * lived on the signup success screen — gone the moment they navigated away.
+   */
+  code?: 'email_not_confirmed';
 }
 
 // Map of Supabase error messages to user-friendly messages
@@ -29,12 +41,14 @@ const ERROR_MAP: Record<string, AuthError> = {
   'Email not confirmed': {
     message: 'Your email address has not been verified yet.',
     field: 'email',
-    suggestion: 'Please check your inbox for the confirmation email.',
+    suggestion: 'Your last confirmation link may have expired — send a new one below.',
+    code: 'email_not_confirmed',
   },
   'email_not_confirmed': {
     message: 'Your email address has not been verified yet.',
     field: 'email',
-    suggestion: 'Please check your inbox for the confirmation email.',
+    suggestion: 'Your last confirmation link may have expired — send a new one below.',
+    code: 'email_not_confirmed',
   },
 
   // Signup errors
