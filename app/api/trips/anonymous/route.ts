@@ -91,9 +91,15 @@ export async function POST(request: NextRequest) {
         start_date: trip.startDate,
         end_date: trip.endDate,
         status: "planning",
-        // Stays private: readability comes from share_token via
-        // trips_select_consolidated, NOT from visibility. An anonymous trip
-        // must never become eligible for the /explore feed.
+        // Stays private, and must never become eligible for the /explore feed.
+        //
+        // Readability comes from HOLDING the share_token, checked server-side
+        // by a service-role read keyed on the exact token
+        // (app/[locale]/shared/[token]/page.tsx). It used to come from a bare
+        // `OR (share_token IS NOT NULL)` in trips_select_consolidated, which
+        // meant every row with a token was world-readable through the public
+        // anon key: 118 trips, 42 of them private, 39 live claim_tokens.
+        // Removed in 20260901090000_close_share_token_read_hole.sql.
         visibility: "private",
         itinerary: trip.itinerary,
         cover_image_url: trip.coverImageUrl,
