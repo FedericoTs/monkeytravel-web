@@ -910,15 +910,9 @@ function getCountryName(code: string): string {
 async function fetchGeoMetrics(
   supabase: SupabaseClient,
 ): Promise<Omit<AdminStats["geo"], "deltaPctWoW">> {
-  const now = new Date();
-  const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-
   // Use parallel queries with proper COUNT to avoid 1000 row limit
   const [
-    totalCountResult,
-    last7DaysResult,
-    last30DaysResult,
+    totalsResult,
     uniqueVisitorsResult,
     byCountryResult,
     byCityResult,
@@ -927,20 +921,17 @@ async function fetchGeoMetrics(
     bySectionResult,
     conversionFunnelResult,
   ] = await Promise.all([
-    // Total page views count
-    supabase.from("page_views").select("id", { count: "exact", head: true }),
-
-    // Last 7 days count
-    supabase
-      .from("page_views")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", day7Ago),
-
-    // Last 30 days count
-    supabase
-      .from("page_views")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", day30Ago),
+    // Total / 7d / 30d page views.
+    //
+    // These were three count(*) scans over page_views. Measured uncontended on
+    // production at 673,909 rows: the all-time count alone took 7,047ms -- at
+    // the 8s statement_timeout on its own -- and the 7-day count 2,668ms, both
+    // inside this same Promise.all. They now read the daily rollup.
+    //
+    // The 7d/30d windows are CALENDAR days now, not rolling 168/720-hour
+    // windows; a daily rollup has no sub-day resolution. The all-time total is
+    // unchanged and exact.
+    supabase.rpc("get_page_view_totals"),
 
     // Unique visitors (fingerprint-based approximation)
     supabase.rpc("count_unique_visitors"),
@@ -981,6 +972,7 @@ async function fetchGeoMetrics(
   // can say "unavailable" instead of drawing a confident zero.
   const degraded: string[] = [];
   for (const [name, result] of [
+    ["page_view_totals", totalsResult],
     ["unique_visitors", uniqueVisitorsResult],
     ["by_country", byCountryResult],
     ["by_city", byCityResult],
@@ -1008,9 +1000,31 @@ async function fetchGeoMetrics(
       .catch(() => {});
   }
 
-  const totalPageViews = totalCountResult.count || 0;
-  const last7Days = last7DaysResult.count || 0;
-  const last30Days = last30DaysResult.count || 0;
+  const totalsRow = Array.isArray(totalsResult.data) ? totalsResult.data[0] : undefined;
+  const totalPageViews = Number(totalsRow?.total_views) || 0;
+  const last7Days = Number(totalsRow?.last_7_days) || 0;
+  const last30Days = Number(totalsRow?.last_30_days) || 0;
+
+  // Pre-aggregation adds a failure mode the live queries never had: if the
+  // nightly pg_cron job stops, every geo number keeps rendering at full
+  // confidence while quietly ageing. Same class of bug as a timed-out query
+  // returning [] -- which is what this dashboard did for months.
+  //
+  // The job runs daily at 02:40 UTC and rebuilds 3 days each time, so one
+  // missed night self-heals and is not worth alarming about. Two consecutive
+  // misses is a real outage.
+  const refreshedAt = totalsRow?.refreshed_at ? new Date(totalsRow.refreshed_at) : null;
+  const rollupAgeHours = refreshedAt
+    ? (Date.now() - refreshedAt.getTime()) / 36e5
+    : Number.POSITIVE_INFINITY;
+  if (rollupAgeHours > 36) {
+    degraded.push("page_view_rollup_stale");
+    console.error(
+      `[admin/stats] PAGE VIEW ROLLUP STALE - last refreshed ${
+        refreshedAt ? refreshedAt.toISOString() : "never"
+      } (${Math.round(rollupAgeHours)}h ago); check: SELECT * FROM cron.job_run_details ORDER BY start_time DESC`
+    );
+  }
 
   // Extract unique visitors from RPC result (returns array with {count: number})
   let uniqueVisitors = 0;
