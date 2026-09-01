@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import { logSharedTripVisit, CRAWLER_UA_RE } from "@/lib/analytics/funnel-events";
 import { captureServerEvent } from "@/lib/posthog/server";
@@ -35,11 +36,32 @@ interface PageProps {
  * shared-trip view (a top-traffic surface).
  */
 const getSharedTrip = cache(async (token: string) => {
-  const supabase = await createClient();
+  // Service-role, keyed on the EXACT token — not the anon client.
+  //
+  // This page used to read through RLS, which worked only because the trips
+  // SELECT policy carried a bare `OR (share_token IS NOT NULL)`. That clause
+  // has no comparison against a caller-supplied token, so it made EVERY row
+  // that merely HAS a share_token world-readable: measured 2026-09-01, an
+  // unauthenticated caller holding the public browser key could list 118 trips,
+  // 42 of them visibility='private', with full itinerary, notes, budget and
+  // emergency_contacts. The anonymous-share loop shipped 2026-08-18 grew that
+  // from 1 trip in March to 82 in August.
+  //
+  // Anonymous shared trips are deliberately visibility='private' (see
+  // app/api/trips/anonymous/route.ts) — their readability comes from holding
+  // the token, which is exactly what this function checks. Doing that check
+  // here rather than in a policy predicate is what lets the policy drop the
+  // blanket clause. Same pattern as app/api/calendar/trip/[id]/route.ts.
+  //
+  // `deleted_at IS NULL` is re-asserted explicitly: the policy used to supply
+  // it, and service-role bypasses RLS entirely, so dropping it here would
+  // resurrect deleted trips on a public URL.
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("trips")
     .select("*")
     .eq("share_token", token)
+    .is("deleted_at", null)
     .single();
   if (error) return null;
   return data;
