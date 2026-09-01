@@ -267,11 +267,42 @@ export async function GET(request: Request) {
         );
       }
 
-      // Track whether this is a new user (signup) or returning user (login)
+      // Track whether this is a new user (signup) or returning user (login).
+      //
+      // IN PRODUCTION THIS IS ALWAYS FALSE, AND THAT IS FINE.
+      //
+      // `on_auth_user_created` is AFTER INSERT ON auth.users and its
+      // handle_new_user() inserts the public.users row in the SAME
+      // transaction, so the row always exists by the time this route reads it.
+      // Measured across all users: max lag between auth.users.created_at and
+      // public.users.created_at is 0.000000s. The block below has therefore
+      // never executed for a real signup.
+      //
+      // That is why 317 Google users were stored with their email local-part
+      // as display_name while a perfectly good full_name sat in their OAuth
+      // claims: the derivation ten lines down is correct and simply never ran.
+      // Fixed at the source instead, in
+      // 20260901160000_display_name_from_oauth_name.sql — the trigger now
+      // reads full_name/name, which fixes every signup path at once rather
+      // than only the ones that come through here.
+      //
+      // KEPT DELIBERATELY, NOT DELETED: this is the fallback for any
+      // environment where that trigger is absent (a fresh local database, a
+      // branch DB restored without it). Without it those environments would
+      // leave an authenticated user with no profile row at all.
+      //
+      // AND DELIBERATELY NOT MADE REACHABLE: the obvious "fix" is to key on
+      // `login_count === 0` instead. Do not. 126 existing users have
+      // login_count 0, and this upsert writes `preferences: {}` and a fresh
+      // trial_ends_at — so flipping the test would wipe real preferences for
+      // all of them. The comment above about a transient failure "silently
+      // flipping a returning user into the new-user upsert branch" is a
+      // record of that exact hazard.
       const isNewUser = !existingProfile;
 
       if (isNewUser) {
-        // Create profile for OAuth user
+        // Create profile for OAuth user. Mirrors the trigger's COALESCE chain
+        // so both paths produce the same name.
         const displayName =
           data.user.user_metadata?.full_name ||
           data.user.user_metadata?.name ||
