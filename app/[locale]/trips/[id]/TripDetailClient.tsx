@@ -560,8 +560,17 @@ export default function TripDetailClient({
   }, [trip.endDate]);
   const now = new Date();
 
-  // Pre-trip: Trip is confirmed and start date is in the future
-  const isPreTripPhase = trip.status === "confirmed" && tripStartDate > now;
+  // Pre-trip: the trip simply has not started yet.
+  //
+  // This used to also require status === "confirmed", which limited the
+  // countdown and the pre-trip checklist to 25 of 443 trips (5.6%) - Confirm
+  // is a 17% action, so the gate was hiding the surface from the 183 people
+  // who have an upcoming trip and never pressed it. Measured 2026-09-01:
+  // 25 trips qualified before, 208 after.
+  //
+  // Cancelled trips are still excluded: counting down to a trip someone
+  // called off is worse than showing nothing.
+  const isPreTripPhase = trip.status !== "cancelled" && tripStartDate > now;
 
   // Active trip: Between start and end dates
   const isActiveTripPhase = trip.status === "active" ||
@@ -1880,11 +1889,26 @@ export default function TripDetailClient({
         {/* Pre-Trip Phase - Countdown Hero and Checklist */}
         {isPreTripPhase && (
           <div className="space-y-4 mb-6">
+            {/* coverImageUrl is passed deliberately: CountdownHero renders a
+                full-bleed photo when it has one and a flat gradient when it
+                does not, and this call site was omitting it - so the most
+                screenshot-shaped surface in the product was shipping as a
+                coral rectangle while 184 of the 208 trips that reach it have
+                a cover photo.
+
+                weatherForecast is still NOT passed. The component wants
+                {temp, condition, icon}, but /api/weather returns HISTORICAL
+                seasonal averages (30-day cache, "historical weather data
+                doesn't change"), not a forecast. Labelling a 20-year average
+                as the forecast for someone's trip would be a lie in the one
+                place they are most likely to screenshot. Needs a real
+                forecast source before it can be wired. */}
             <CountdownHero
               destination={destination}
               startDate={tripStartDate}
               tripDays={tripDaysCount}
               activitiesCount={totalActivities}
+              coverImageUrl={coverImageUrl ?? undefined}
             />
             <PreTripChecklist
               items={checklist.items}

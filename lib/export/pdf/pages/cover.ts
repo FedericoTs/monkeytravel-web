@@ -120,12 +120,31 @@ export function renderCoverPage(
   doc.setFontSize(TYPOGRAPHY.coverTitle.size);
   doc.setFont(config.fonts.display, "bold");
 
-  // Main title
-  const title = trip.title;
-  doc.text(title, margin, titleY);
+  // Main title.
+  //
+  // Titles are overwhelmingly generated boilerplate - "Tokyo Trip", "London
+  // Trip", "Chicago Trip" - so printing trip.title verbatim made the single
+  // best-composed artifact in the product say "Tokyo Trip" across a full-bleed
+  // photo of Tokyo. The destination alone reads better, and a title the user
+  // actually chose ("Honeymoon 2027") is better still.
+  //
+  // So: lead with the user's own title when they wrote one, otherwise the
+  // destination; then show the destination underneath only when it is not
+  // already the headline.
+  const isBoilerplateTitle =
+    !!trip.destination &&
+    trip.title.trim().replace(/\s+Trip$/i, "").toLowerCase() ===
+      trip.destination.trim().toLowerCase();
 
-  // Destination subtitle if different from title
-  if (trip.destination && trip.destination !== trip.title.replace(/ Trip$/, "")) {
+  const headline =
+    !isBoilerplateTitle && trip.title.trim()
+      ? trip.title.trim()
+      : (trip.destination || trip.title).trim();
+
+  doc.text(headline, margin, titleY);
+
+  // Destination subtitle, only when it adds something the headline does not
+  if (trip.destination && trip.destination.trim().toLowerCase() !== headline.toLowerCase()) {
     doc.setFontSize(18);
     doc.setFont(config.fonts.body, "normal");
     doc.text(trip.destination, margin, titleY + 12);

@@ -143,8 +143,15 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
           </span>
         </div>
 
-        {/* Engagement counts */}
+        {/* Engagement counts.
+            Each counter renders ONLY when it is non-zero. Across all 443
+            trips the product totals are: 1 like, 0 saves, 2 forks - so this
+            row was rendering "0  0  0" on essentially every card. A zero is
+            not neutral social proof, it is negative: it tells the viewer
+            nobody cared, on the very surface meant to make a trip look worth
+            opening. Absent is better than zero until these numbers are real. */}
         <div className="flex items-center gap-3 text-xs text-slate-500">
+          {trip.likeCount > 0 && (
           <span className="inline-flex items-center gap-1" title={t("likesTitle")}>
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -155,12 +162,16 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
             </svg>
             {trip.likeCount}
           </span>
+          )}
+          {trip.saveCount > 0 && (
           <span className="inline-flex items-center gap-1" title={t("savesTitle")}>
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
               <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
             </svg>
             {trip.saveCount}
           </span>
+          )}
+          {trip.forkCount > 0 && (
           <span className="inline-flex items-center gap-1" title={t("forksTitle")}>
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
               <path
@@ -175,6 +186,7 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
             </svg>
             {trip.forkCount}
           </span>
+          )}
           {!isCompact && (
             <span className="ml-auto text-[var(--primary-ink)] font-medium group-hover:underline">
               {t("viewAction")}
