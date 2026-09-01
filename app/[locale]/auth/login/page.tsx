@@ -27,11 +27,20 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const locale = useLocale();
   const t = useTranslations("auth.login");
+  const tLink = useTranslations("auth.linkErrors");
   // Reject absolute/protocol-relative URLs in `?redirect=` so attackers
   // can't dress a phishing target as a monkeytravel.app login link.
   // See lib/security/safe-next.ts.
   const redirect = safeNextOrDefault(searchParams.get("redirect"), "/trips");
   const errorParam = searchParams.get("error");
+  // /auth/callback now sends a stable code instead of prose. The most common
+  // one by far is link_wrong_device_or_expired: a signup confirmation opened on
+  // a different device than the one that started it, where PKCE has no
+  // code_verifier to redeem. Those users used to be shown the untranslated
+  // string "Could not authenticate" and simply left. Unknown/legacy values fall
+  // through and render as before.
+  const KNOWN_LINK_ERRORS = ["link_wrong_device_or_expired", "auth_incomplete"];
+  const linkError = errorParam && KNOWN_LINK_ERRORS.includes(errorParam) ? errorParam : null;
 
   // Helper to get locale-prefixed URL for OAuth redirects
   const getLocaleUrl = (path: string) => {
@@ -204,10 +213,17 @@ function LoginForm() {
 
             {(error || errorParam) && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert">
-                <p className="font-medium">{error?.message || errorParam}</p>
-                {error?.suggestion && (
+                <p className="font-medium">
+                  {error?.message ||
+                    (linkError ? tLink(`${linkError}.message`) : errorParam)}
+                </p>
+                {error?.suggestion ? (
                   <p className="text-sm text-red-600 mt-1">{error.suggestion}</p>
-                )}
+                ) : linkError ? (
+                  <p className="text-sm text-red-600 mt-1">
+                    {tLink(`${linkError}.suggestion`)}
+                  </p>
+                ) : null}
                 {error?.message?.includes("incorrect") && (
                   <Link href="/auth/forgot-password" className="text-sm text-[var(--primary-ink)] font-medium hover:underline mt-2 inline-block">
                     {t("forgotPasswordLink")}

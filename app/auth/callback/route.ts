@@ -206,9 +206,32 @@ export async function GET(request: Request) {
     return noIndexRedirect(`${origin}${getLocalePath(redirectPath)}`);
   }
 
-  // Handle OAuth code exchange
+  // Handle OAuth / email-confirmation code exchange.
+  //
+  // This is PKCE: the code can only be redeemed with the `code_verifier`
+  // cookie that @supabase/ssr wrote in the browser that STARTED the flow.
+  // Open the confirmation email on your phone after signing up on a laptop and
+  // that cookie is not there, so the exchange fails — while Supabase has
+  // ALREADY stamped email_confirmed_at server-side before redirecting here.
+  //
+  // Measured 2026-09-01: of 95 users who signed up since 2026-07-01 and never
+  // created a trip, 41 had no authenticated page view at all. 40 of them had
+  // `user_confirmation_requested`, 21 have `email_confirmed_at` set, and only 4
+  // ever produced a `login` event. They clicked the link, got confirmed, and
+  // were handed "Could not authenticate" on the login page — a dead end that
+  // reads as though the account is broken.
   if (code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+    // Previously this error was discarded entirely and the request fell
+    // through to the generic failure at the bottom, so the single most common
+    // auth failure in production was invisible in logs.
+    if (error) {
+      console.error(
+        "[Auth Callback] PKCE code exchange failed (likely opened on a different device than signup):",
+        error.message
+      );
+    }
 
     if (!error && data.user) {
       // Check if user profile exists, if not create one (for OAuth users)
@@ -401,8 +424,16 @@ export async function GET(request: Request) {
     }
   }
 
-  // Return the user to an error page with instructions
-  return noIndexRedirect(`${origin}${getLocalePath("/auth/login?error=Could not authenticate")}`);
+  // Return the user to the login page with an actionable reason.
+  //
+  // A stable CODE rather than prose: the login page localises it and adds a
+  // suggestion. The old value was the literal string "Could not authenticate",
+  // rendered raw and untranslated, which told the user nothing they could act
+  // on — and is what the confirm-on-another-device cohort above was shown.
+  const failureCode = code ? "link_wrong_device_or_expired" : "auth_incomplete";
+  return noIndexRedirect(
+    `${origin}${getLocalePath(`/auth/login?error=${failureCode}`)}`
+  );
 }
 
 /**
