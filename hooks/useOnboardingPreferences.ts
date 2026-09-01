@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { safeGet, safeRemove, safeSet } from "@/lib/safe-storage";
 
 /**
  * Onboarding preferences stored locally before signup.
@@ -43,7 +44,7 @@ export function useOnboardingPreferences() {
   useEffect(() => {
     const loadPreferences = () => {
       try {
-        const stored = localStorage.getItem(STORAGE_KEY);
+        const stored = safeGet(STORAGE_KEY);
         if (stored) {
           const parsed: LocalOnboardingPreferences = JSON.parse(stored);
 
@@ -53,7 +54,7 @@ export function useOnboardingPreferences() {
 
           if (now - savedAt > EXPIRY_MS) {
             // Expired - clear and use defaults
-            localStorage.removeItem(STORAGE_KEY);
+            safeRemove(STORAGE_KEY);
             setPreferences(DEFAULT_PREFERENCES);
           } else {
             setPreferences(parsed);
@@ -61,7 +62,7 @@ export function useOnboardingPreferences() {
         }
       } catch {
         // Invalid data - use defaults
-        localStorage.removeItem(STORAGE_KEY);
+        safeRemove(STORAGE_KEY);
       }
       setIsLoaded(true);
     };
@@ -79,7 +80,7 @@ export function useOnboardingPreferences() {
       };
 
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        safeSet(STORAGE_KEY, JSON.stringify(updated));
       } catch {
         // Storage full or blocked - continue without persistence
         console.warn("Failed to save onboarding preferences to localStorage");
@@ -99,7 +100,7 @@ export function useOnboardingPreferences() {
   // Clear all preferences (after account creation)
   const clearPreferences = useCallback(() => {
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      safeRemove(STORAGE_KEY);
     } catch {
       // Ignore errors
     }
@@ -150,7 +151,7 @@ export function hasLocalOnboardingPreferences(): boolean {
   if (typeof window === "undefined") return false;
 
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = safeGet(STORAGE_KEY);
     if (!stored) return false;
 
     const parsed: LocalOnboardingPreferences = JSON.parse(stored);
@@ -158,7 +159,7 @@ export function hasLocalOnboardingPreferences(): boolean {
     // Check expiry
     const savedAt = new Date(parsed.savedAt).getTime();
     if (Date.now() - savedAt > EXPIRY_MS) {
-      localStorage.removeItem(STORAGE_KEY);
+      safeRemove(STORAGE_KEY);
       return false;
     }
 
@@ -176,7 +177,7 @@ export function getLocalOnboardingPreferences(): LocalOnboardingPreferences | nu
   if (typeof window === "undefined") return null;
 
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = safeGet(STORAGE_KEY);
     if (!stored) return null;
 
     const parsed: LocalOnboardingPreferences = JSON.parse(stored);
@@ -184,7 +185,7 @@ export function getLocalOnboardingPreferences(): LocalOnboardingPreferences | nu
     // Check expiry
     const savedAt = new Date(parsed.savedAt).getTime();
     if (Date.now() - savedAt > EXPIRY_MS) {
-      localStorage.removeItem(STORAGE_KEY);
+      safeRemove(STORAGE_KEY);
       return null;
     }
 
@@ -202,7 +203,7 @@ export function clearLocalOnboardingPreferences(): void {
   if (typeof window === "undefined") return;
 
   try {
-    localStorage.removeItem(STORAGE_KEY);
+    safeRemove(STORAGE_KEY);
   } catch {
     // Ignore errors
   }

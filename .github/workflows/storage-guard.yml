@@ -1,0 +1,34 @@
+# Does every browser-storage access survive a browser that blocks storage?
+#
+# Sentry JAVASCRIPT-NEXTJS-28 was a login-page crash for Safari users with
+# "block all cookies": that setting makes the `localStorage` IDENTIFIER
+# unresolvable, so a bare access throws a ReferenceError rather than returning
+# nothing. The code that broke was guarded — with `typeof window !==
+# "undefined"`, which passes, because `window` resolves fine. That is exactly
+# why this needs a machine check: the wrong guard reads as the right one.
+#
+# Static analysis only — no secrets, no network, no database. Safe on PRs from
+# forks, and it fails the build on a NEW unguarded access rather than waiting
+# for the next person on a locked-down browser to hit it.
+name: Storage guard
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # The audit parses TypeScript with the compiler API, so it needs the
+      # dev dependencies. `npm ci` keeps it pinned to the lockfile.
+      - run: npm ci
+      - name: Every localStorage/sessionStorage access is guarded
+        run: npm run audit:storage

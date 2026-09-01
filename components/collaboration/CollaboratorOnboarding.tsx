@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { safeGet, safeSet } from "@/lib/safe-storage";
 
 const STORAGE_KEY = "monkeytravel_collab_onboarding_seen";
 
@@ -26,7 +27,7 @@ export default function CollaboratorOnboarding({ isOwner }: CollaboratorOnboardi
     if (isOwner) return;
     if (typeof window === "undefined") return;
 
-    const seen = localStorage.getItem(STORAGE_KEY) === "true";
+    const seen = safeGet(STORAGE_KEY) === "true";
     if (!seen) {
       // Small delay so the page renders first
       const timer = setTimeout(() => setIsOpen(true), 800);
@@ -36,7 +37,7 @@ export default function CollaboratorOnboarding({ isOwner }: CollaboratorOnboardi
 
   const handleClose = () => {
     setIsOpen(false);
-    localStorage.setItem(STORAGE_KEY, "true");
+    safeSet(STORAGE_KEY, "true");
   };
 
   const handleNext = () => {

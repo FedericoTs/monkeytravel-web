@@ -99,6 +99,7 @@ import {
 
 // Google Places-based hotel recommendations
 import HotelRecommendations from "@/components/trip/HotelRecommendations";
+import { safeGet, safeSet } from "@/lib/safe-storage";
 
 // Dynamic import for TripMap to avoid SSR issues with Google Maps
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -375,7 +376,7 @@ export default function TripDetailClient({
     if (typeof window === "undefined") return;
     try {
       setCrewCtaDismissed(
-        localStorage.getItem(`crewCtaDismissed:${trip.id}`) === "1"
+        safeGet(`crewCtaDismissed:${trip.id}`) === "1"
       );
     } catch {
       // storage unavailable (private mode) — leave the CTA hidden
@@ -385,7 +386,7 @@ export default function TripDetailClient({
   const dismissCrewCta = useCallback(() => {
     setCrewCtaDismissed(true);
     try {
-      localStorage.setItem(`crewCtaDismissed:${trip.id}`, "1");
+      safeSet(`crewCtaDismissed:${trip.id}`, "1");
     } catch {
       // best-effort — session-only dismissal is fine
     }
@@ -420,7 +421,7 @@ export default function TripDetailClient({
   const [hasSeenAssistant, setHasSeenAssistant] = useState<boolean>(true);
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const seenAt = localStorage.getItem("mt_ai_assistant_seen");
+    const seenAt = safeGet("mt_ai_assistant_seen");
     if (!seenAt) {
       // First-time visitor to any trip — surface the assistant after a brief
       // delay so they've had a moment to scan the itinerary first.
@@ -432,7 +433,7 @@ export default function TripDetailClient({
   // Mark as seen whenever the assistant opens — both auto-open and manual.
   useEffect(() => {
     if (isAIAssistantOpen && typeof window !== "undefined") {
-      localStorage.setItem("mt_ai_assistant_seen", String(Date.now()));
+      safeSet("mt_ai_assistant_seen", String(Date.now()));
       setHasSeenAssistant(true);
     }
   }, [isAIAssistantOpen]);

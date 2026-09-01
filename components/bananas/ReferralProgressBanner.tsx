@@ -12,6 +12,7 @@ import {
   getConversionsToNextTier,
 } from "@/lib/bananas/config";
 import type { ReferralTierLevel } from "@/types/bananas";
+import { safeGet, safeSet } from "@/lib/safe-storage";
 
 // Map tier level to translation key
 const TIER_NAME_KEYS: Record<ReferralTierLevel, string> = {
@@ -65,7 +66,7 @@ export default function ReferralProgressBanner({
 
   // Check localStorage on mount
   useEffect(() => {
-    const dismissed = localStorage.getItem(STORAGE_KEY);
+    const dismissed = safeGet(STORAGE_KEY);
     setIsDismissed(dismissed === "true");
   }, []);
 
@@ -89,7 +90,7 @@ export default function ReferralProgressBanner({
   if (isDismissed || currentTier === 3) return null;
 
   const handleDismiss = () => {
-    localStorage.setItem(STORAGE_KEY, "true");
+    safeSet(STORAGE_KEY, "true");
     setIsDismissed(true);
   };
 

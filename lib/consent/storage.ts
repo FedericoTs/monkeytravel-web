@@ -13,12 +13,25 @@ import {
   CONSENT_STORAGE_KEY,
   CONSENT_VERSION,
 } from "./types";
+import { safeGet, safeSet, safeRemove } from "@/lib/safe-storage";
 
 /**
- * Check if we're in a browser environment
+ * Check if we're in a browser environment.
+ *
+ * `typeof localStorage` covers Safari with "block all cookies", where the
+ * identifier is unresolvable (Sentry JAVASCRIPT-NEXTJS-28). It does NOT cover
+ * the other blocked-storage shape, where the property exists but its getter
+ * throws — `typeof` evaluates the getter there and throws with it. This
+ * function is called OUTSIDE the try blocks below, so that throw escaped as an
+ * unhandled rejection on every page mount. Hence the try/catch, and hence the
+ * reads and writes below go through lib/safe-storage.
  */
 function isBrowser(): boolean {
-  return typeof window !== "undefined" && typeof localStorage !== "undefined";
+  try {
+    return typeof window !== "undefined" && typeof localStorage !== "undefined";
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -28,7 +41,7 @@ export function loadLocalConsent(): ConsentRecord | null {
   if (!isBrowser()) return null;
 
   try {
-    const stored = localStorage.getItem(CONSENT_STORAGE_KEY);
+    const stored = safeGet(CONSENT_STORAGE_KEY);
     if (!stored) return null;
 
     const record = JSON.parse(stored) as ConsentRecord;
@@ -42,7 +55,7 @@ export function loadLocalConsent(): ConsentRecord | null {
       typeof record.consent.marketing !== "boolean"
     ) {
       console.warn("[Consent] Invalid consent record in localStorage, clearing");
-      localStorage.removeItem(CONSENT_STORAGE_KEY);
+      safeRemove(CONSENT_STORAGE_KEY);
       return null;
     }
 
@@ -52,7 +65,7 @@ export function loadLocalConsent(): ConsentRecord | null {
     return record;
   } catch (error) {
     console.error("[Consent] Failed to load consent from localStorage:", error);
-    localStorage.removeItem(CONSENT_STORAGE_KEY);
+    safeRemove(CONSENT_STORAGE_KEY);
     return null;
   }
 }
@@ -73,7 +86,7 @@ export function saveLocalConsent(
 
   if (isBrowser()) {
     try {
-      localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(record));
+      safeSet(CONSENT_STORAGE_KEY, JSON.stringify(record));
     } catch (error) {
       console.error("[Consent] Failed to save consent to localStorage:", error);
     }
@@ -87,7 +100,7 @@ export function saveLocalConsent(
  */
 export function clearLocalConsent(): void {
   if (isBrowser()) {
-    localStorage.removeItem(CONSENT_STORAGE_KEY);
+    safeRemove(CONSENT_STORAGE_KEY);
   }
 }
 

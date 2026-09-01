@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { safeGet, safeSet } from "@/lib/safe-storage";
 
 interface ValuePropositionBannerProps {
   onSave: () => void;
@@ -51,7 +52,7 @@ export default function ValuePropositionBanner({
 
   // Check if user has dismissed this banner before
   useEffect(() => {
-    const dismissed = localStorage.getItem("value-banner-dismissed");
+    const dismissed = safeGet("value-banner-dismissed");
     if (dismissed) {
       setIsDismissed(true);
       setIsVisible(false);
@@ -60,7 +61,7 @@ export default function ValuePropositionBanner({
 
   const handleDismiss = () => {
     setIsVisible(false);
-    localStorage.setItem("value-banner-dismissed", "true");
+    safeSet("value-banner-dismissed", "true");
     setIsDismissed(true);
   };
 

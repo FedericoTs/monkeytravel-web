@@ -12,6 +12,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { reportBoundaryError } from "@/lib/observability/report-boundary-error";
 import { useEffect } from "react";
+import { safeGet, safeSet } from "@/lib/safe-storage";
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -51,10 +52,10 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
     // unmounted on success. The 5-minute TTL is enough for one cycle.
     if (isChunkLoadError(error) && typeof window !== "undefined") {
       const RELOAD_KEY = "mt:chunk-reload-at";
-      const last = sessionStorage.getItem(RELOAD_KEY);
+      const last = safeGet(RELOAD_KEY, "session");
       const fiveMinAgo = Date.now() - 5 * 60 * 1000;
       if (!last || parseInt(last, 10) < fiveMinAgo) {
-        sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+        safeSet(RELOAD_KEY, String(Date.now()), "session");
         Sentry.captureMessage("ChunkLoadError auto-recovered via reload", {
           level: "warning",
           tags: { digest: error.digest, errorType: "chunk-load-recovery" },

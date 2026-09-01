@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, Link } from "@/lib/i18n/routing";
 import Image from "next/image";
 import { Gift, Sparkles, MapPin, Calendar, Zap, Check, ChevronRight } from "lucide-react";
+import { safeSet } from "@/lib/safe-storage";
 
 interface ReferralLandingClientProps {
   code: string;
@@ -38,7 +39,7 @@ export default function ReferralLandingClient({
         });
 
         // Store referral code in localStorage for signup
-        localStorage.setItem("referral_code", code);
+        safeSet("referral_code", code);
       } catch (error) {
         console.error("Failed to track referral click:", error);
       } finally {
@@ -51,7 +52,7 @@ export default function ReferralLandingClient({
 
   const handleGetStarted = () => {
     // Store referral code and redirect to signup
-    localStorage.setItem("referral_code", code);
+    safeSet("referral_code", code);
     router.push(`/auth/signup?ref=${code}`);
   };
 

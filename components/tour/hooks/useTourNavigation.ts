@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { safeGet, safeSet } from "@/lib/safe-storage";
 
 // 5 content slides + 1 CTA slide. Must match ProductTour.tsx's TOTAL_SLIDES.
 // (Bug 2026-05-02: hook had 5 here, ProductTour had 6 — capped at index 4
@@ -39,7 +40,7 @@ export function useTourNavigation(
   // Check if tour was previously completed
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const completed = localStorage.getItem(TOUR_COMPLETED_KEY) === "true";
+      const completed = safeGet(TOUR_COMPLETED_KEY) === "true";
       setHasCompletedTour(completed);
     }
   }, []);
@@ -116,7 +117,7 @@ export function useTourNavigation(
 
   const completeTour = useCallback(() => {
     if (typeof window !== "undefined") {
-      localStorage.setItem(TOUR_COMPLETED_KEY, "true");
+      safeSet(TOUR_COMPLETED_KEY, "true");
       setHasCompletedTour(true);
     }
   }, []);

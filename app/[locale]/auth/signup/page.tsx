@@ -21,6 +21,7 @@ import {
   type AuthError,
 } from "@/lib/auth-errors";
 import { safeNextOrDefault } from "@/lib/security/safe-next";
+import { safeGet, safeSet } from "@/lib/safe-storage";
 
 function SignupForm() {
   const [email, setEmail] = useState("");
@@ -60,15 +61,23 @@ function SignupForm() {
   useEffect(() => {
     setHasOnboardingPrefs(hasLocalOnboardingPreferences());
 
-    // Get referral code from URL or localStorage
+    // Get referral code from URL or localStorage.
+    //
+    // safeGet/safeSet, not bare access: Safari with "block all cookies" makes
+    // the localStorage identifier unresolvable, so this throws inside an
+    // effect — the same ReferenceError that took the LOGIN page down
+    // (JAVASCRIPT-NEXTJS-28). Signup is the page where that matters most: a
+    // visitor who cannot create an account cannot do anything at all.
+    //
+    // Degrading to "no stored code" is correct. The ?ref= URL still works, and
+    // eligibility is verified server-side regardless.
     const urlRef = searchParams.get("ref");
-    const storedRef = localStorage.getItem("referral_code");
+    const storedRef = safeGet("referral_code");
     const code = urlRef || storedRef;
 
     if (code) {
       setReferralCode(code);
-      // Store in localStorage for persistence across page reloads
-      localStorage.setItem("referral_code", code);
+      safeSet("referral_code", code);
     }
   }, [searchParams]);
 
