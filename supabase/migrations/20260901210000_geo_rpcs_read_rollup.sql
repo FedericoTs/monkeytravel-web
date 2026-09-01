@@ -234,12 +234,24 @@ $function$;
 
 -- Admin-only metrics reached exclusively via service_role. Nothing else should
 -- be able to call them.
-REVOKE EXECUTE ON FUNCTION public.count_unique_visitors()        FROM anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.get_conversion_funnel()        FROM anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.get_page_views_by_section()    FROM anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.get_page_views_daily_trend()   FROM anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.get_top_pages()                FROM anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.get_page_views_by_country()    FROM anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.get_page_views_by_city()       FROM anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.get_page_view_totals()         FROM anon, authenticated;
-REVOKE EXECUTE ON FUNCTION public.refresh_page_view_rollup(integer) FROM anon, authenticated;
+--
+-- FROM PUBLIC is load-bearing, not belt-and-braces. Postgres grants EXECUTE to
+-- PUBLIC by default on every new function, and anon/authenticated inherit
+-- through it -- they are never granted explicitly. So "REVOKE ... FROM anon,
+-- authenticated" revokes a grant that does not exist: it succeeds, prints no
+-- warning, and leaves the function callable by anon. Measured on production
+-- after the function bodies above had been applied: signed-out anon could still
+-- read get_top_pages (20 rows), get_page_views_by_section (7) and
+-- get_page_view_totals (674,610 views), and could call refresh_page_view_rollup
+-- (a SECURITY DEFINER function that DELETEs and re-INSERTs rollup rows).
+-- by_country/by_city were the only two already closed -- their ACL had no "=X"
+-- PUBLIC entry, which is what a real revoke looks like.
+REVOKE EXECUTE ON FUNCTION public.count_unique_visitors()        FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_conversion_funnel()        FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_page_views_by_section()    FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_page_views_daily_trend()   FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_top_pages()                FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_page_views_by_country()    FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_page_views_by_city()       FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_page_view_totals()         FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.refresh_page_view_rollup(integer) FROM PUBLIC, anon, authenticated;
