@@ -106,6 +106,30 @@ export function trackPageView(request: NextRequest, userId?: string): string | n
   return sessionId;
 }
 
+/**
+ * The `sub` claim (the user id) out of a Supabase access token, decoded
+ * locally without verifying the signature.
+ *
+ * Deliberately unverified: the only callers are a redirect decision that the
+ * destination page re-validates, and page-view attribution. Never use this to
+ * make an authorization decision — /admin calls getUser() for that.
+ *
+ * Takes the token from getSession() rather than parsing cookies directly, so
+ * this does not depend on @supabase/ssr's cookie name, chunking or encoding.
+ */
+function subjectFromAccessToken(accessToken: string | undefined): string | null {
+  if (!accessToken) return null;
+  const payload = accessToken.split(".")[1];
+  if (!payload) return null;
+  try {
+    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    const sub = JSON.parse(json)?.sub;
+    return typeof sub === "string" && sub ? sub : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function updateSession(request: NextRequest, baseResponse?: NextResponse) {
   // Use the base response if provided (from chained middleware), otherwise create new
   let supabaseResponse = baseResponse || NextResponse.next({
@@ -143,10 +167,80 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
     }
   );
 
-  // Refresh session if expired
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // ONE network auth verification per request, not two.
+  //
+  // This used to call getUser(), which is a round trip to Supabase Auth. Every
+  // page that needs identity then calls getUser() AGAIN in its own Server
+  // Component (app/[locale]/trips/page.tsx:32, profile/page.tsx:27,
+  // saved/page.tsx:133, trips/[id]/page.tsx:70), so a signed-in request paid
+  // the same verification twice, serially. Measured on production: a request
+  // carrying a session cookie was ~138ms slower than an anonymous control,
+  // interleaved, n=6. Supabase is in us-west-1 and these functions run in
+  // iad1, so that is mostly distance.
+  //
+  // WHY NOT JUST A COOKIE-PRESENCE CHECK: this call is also the session
+  // REFRESH mechanism. auth-js refreshes inside a 90s expiry margin
+  // (EXPIRY_MARGIN_MS = AUTO_REFRESH_TICK_THRESHOLD * 30_000) and the ssr
+  // cookie handler above writes the rotated tokens back. Replace it with a
+  // presence check and every session silently dies at token expiry.
+  //
+  // getSession() keeps that refresh and drops the round trip: __loadSession
+  // returns the stored session with NO network call while the access token is
+  // still valid, and only calls _callRefreshToken (network) inside the same
+  // 90s margin. So the refresh behaviour is unchanged; the redundant
+  // verification is what goes away.
+  //
+  // The session it returns is NOT verified — it is decoded from the cookie.
+  // That is sound here because middleware only ever REDIRECTS on it, and the
+  // pages it redirects to re-validate with a real getUser() before rendering
+  // anything. A forged cookie gets you as far as /trips, which then bounces
+  // you to /auth/login. It is NOT sound for /admin, where isAdmin() reads
+  // user.email to make an authorization decision — that branch still verifies.
+
+  // Strip locale prefix for path matching. Computed here, before the auth
+  // call, because which paths need a VERIFIED user decides which call we make.
+  const locales = ["en", "es", "it", "pt"];
+  let pathWithoutLocale = request.nextUrl.pathname;
+  for (const locale of locales) {
+    if (pathWithoutLocale.startsWith(`/${locale}/`)) {
+      pathWithoutLocale = pathWithoutLocale.slice(locale.length + 1);
+      break;
+    } else if (pathWithoutLocale === `/${locale}`) {
+      pathWithoutLocale = "/";
+      break;
+    }
+  }
+
+  const isAdminPath = request.nextUrl.pathname.startsWith("/admin");
+  const authPaths = ["/auth/login", "/auth/signup"];
+  const isAuthPath = authPaths.some((path) => pathWithoutLocale.startsWith(path));
+
+  let user: { id: string; email?: string } | null = null;
+
+  // /auth/* MUST verify, and this is not a theoretical nicety - it was caught
+  // by scripts/probe-single-auth-verification.mjs as ERR_TOO_MANY_REDIRECTS.
+  // The auth-path rule below redirects a signed-in visitor away to /trips. If
+  // that fires on an UNVERIFIED session, a cookie that parses locally but the
+  // server rejects (revoked session, deleted user, rotated JWT secret, a token
+  // from another project) loops forever: /auth/login -> /trips -> the page's
+  // real getUser() rejects it -> /auth/login. That is a login lockout for a
+  // real user, not just a forged cookie.
+  //
+  // The cost is close to nothing: visitors to /auth/login are overwhelmingly
+  // signed OUT, and getUser() makes no network call without a session cookie.
+  if (isAdminPath || isAuthPath) {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } else {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    // Read the id from the access token rather than session.user: on the
+    // server auth-js wraps session.user in a proxy that console.warns on first
+    // property access, which would be a log line on every signed-in request.
+    user = session ? { id: subjectFromAccessToken(session.access_token) ?? "" } : null;
+    if (user && !user.id) user = null;
+  }
 
   // Track page view with geo data (non-blocking).
   // Returns the session_id (existing-or-fresh) so we can persist it as a cookie
@@ -180,19 +274,6 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
   const UUID_RE =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-  // Strip locale prefix from pathname for path matching
-  const locales = ["en", "es", "it", "pt"];
-  let pathWithoutLocale = request.nextUrl.pathname;
-  for (const locale of locales) {
-    if (pathWithoutLocale.startsWith(`/${locale}/`)) {
-      pathWithoutLocale = pathWithoutLocale.slice(locale.length + 1);
-      break;
-    } else if (pathWithoutLocale === `/${locale}`) {
-      pathWithoutLocale = "/";
-      break;
-    }
-  }
-
   const isProtectedPath = protectedPaths.some((path) =>
     pathWithoutLocale.startsWith(path)
   );
@@ -211,9 +292,12 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
     return NextResponse.redirect(url);
   }
 
-  // Admin routes - require authentication AND admin email
-  const isAdminPath = request.nextUrl.pathname.startsWith("/admin");
-
+  // Admin routes - require authentication AND admin email.
+  //
+  // isAdminPath is computed ABOVE, where it also selects the verified
+  // getUser() path. Deliberately one variable and not two: the check below is
+  // only safe while `user` came from a real verification, so if these ever
+  // drift apart this block starts trusting a cookie-derived email.
   if (isAdminPath) {
     if (!user) {
       // Not logged in - redirect to login
@@ -231,12 +315,11 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
     }
   }
 
-  // Redirect logged in users away from auth pages
-  const authPaths = ["/auth/login", "/auth/signup"];
-  const isAuthPath = authPaths.some((path) =>
-    pathWithoutLocale.startsWith(path)
-  );
-
+  // Redirect logged in users away from auth pages.
+  //
+  // isAuthPath is computed above, where it also forces the verified getUser()
+  // path. Same rule as isAdminPath: one variable, because this redirect is
+  // only safe on a verified user.
   if (isAuthPath && user) {
     const url = request.nextUrl.clone();
     url.pathname = "/trips";
