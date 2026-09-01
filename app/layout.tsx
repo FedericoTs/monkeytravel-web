@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Source_Sans_3, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { GoogleAnalytics } from "@next/third-parties/google";
 import { LocaleProvider } from "@/lib/locale";
 import { PlaceCacheProvider } from "@/lib/context/PlaceCacheContext";
 import { getLocale } from "next-intl/server";
@@ -29,9 +28,6 @@ const AcquisitionCapture = dynamic(
 // Self-gates inside the Capacitor shell and on /trips/* paths — safe to
 // always mount, costs ~0 on marketing pages.
 const NativeBoot = dynamic(() => import("@/components/NativeBoot"));
-// AffiliateScript: interaction-gated loader for the Travelpayouts script
-// (was contributing to scroll-renderer-hang per LIVE_AUDIT F7).
-const AffiliateScript = dynamic(() => import("@/components/AffiliateScript"));
 import { PostHogProviderWrapper } from "./providers";
 import {
   generateOrganizationSchema,
@@ -40,6 +36,7 @@ import {
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
 import "./globals.css";
+import { ConsentGatedTags } from "@/components/analytics/ConsentGatedTags";
 
 // Display font for headings — warm editorial serif (variable font)
 // Fraunces ships as a single woff2 covering 400/500/600/700 via the variable
@@ -237,20 +234,15 @@ export default async function RootLayout({
         <AcquisitionCapture />
         {/* Service worker (offline trips) + Android back-button handler */}
         <NativeBoot />
-        {/* Google Analytics 4 - only load if measurement ID is configured.
-            The `nonce` prop is forwarded to GA's inline gtag init script +
-            the external gtag.js loader so both satisfy the nonce-based CSP. */}
-        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-          <GoogleAnalytics
-            gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
-            nonce={nonce}
-          />
-        )}
-        {/* Travelpayouts Affiliate Network — interaction-gated loader.
-            Was contributing to the deep-scroll renderer hang in
-            LIVE_AUDIT F7 because long pages never go truly idle and
-            lazyOnload would fire mid-scroll. */}
-        <AffiliateScript nonce={nonce} />
+        {/* GA4 + the Travelpayouts affiliate loader, neither of which fires
+            until the visitor has actually agreed to that category.
+            Both used to mount here unconditionally: measured 2026-09-01, GA
+            wrote `_ga` and sent 3 hits BEFORE any consent choice and kept
+            sending after "Essential Only", and the affiliate loader fired 7
+            requests despite marketing:false. See the component for the full
+            measurement and for why Sentry is deliberately NOT gated.
+            The `nonce` is forwarded so both satisfy the nonce-based CSP. */}
+        <ConsentGatedTags nonce={nonce} />
         {/* BuildHop feedback widget — see components/BuildHopFeedbackWidget.tsx */}
         <BuildHopFeedbackWidget nonce={nonce} />
       </body>
