@@ -88,9 +88,16 @@ export interface AdminStats {
     topPages: { path: string; count: number }[];
     uniqueVisitors: number;
     deltaPctWoW: number;       // page-view delta, last 7d vs prior 7d
+    /**
+     * Metrics whose query FAILED for this response. Non-empty means the zeros
+     * on screen are missing data, not an absence of traffic — the distinction
+     * that was impossible to make while every result was read as
+     * `(x.data || [])`.
+     */
+    degraded: string[];
     traffic: {
       daily: { date: string; views: number; uniqueVisitors: number }[];
-      bySection: { section: string; count: number; uniqueVisitors: number }[];
+      bySection: { section: string; count: number }[];
       conversionFunnel: { step: string; count: number }[];
     };
   };
@@ -408,6 +415,9 @@ export async function GET() {
           byCity: [],
           topPages: [],
           uniqueVisitors: 0,
+          // The whole geo fetch failed, so every zero below is missing data.
+          // Saying so is the entire point of this field.
+          degraded: ["geo_metrics_unavailable"],
           traffic: {
             daily: [],
             bySection: [],
@@ -954,6 +964,50 @@ async function fetchGeoMetrics(
     supabase.rpc("get_conversion_funnel"),
   ]);
 
+  // A metric reading zero must never be indistinguishable from a failed query.
+  //
+  // Every consumer below reads `(x.data || [])`, so a timed-out RPC silently
+  // became an empty array and the dashboard rendered "no traffic". That is how
+  // four analytics RPCs sat past the 8s statement_timeout unnoticed while
+  // activation decisions were being made from this screen:
+  //   get_page_views_by_section  25,499 ms
+  //   get_page_views_daily_trend 23,523 ms
+  //   get_page_views_by_country  15,035 ms
+  //   get_page_views_by_city     14,337 ms
+  // PostgREST connects as `authenticator`, which carries statement_timeout=8s,
+  // so no amount of global timeout helps.
+  //
+  // Name every failure loudly, and hand the caller a `degraded` list so the UI
+  // can say "unavailable" instead of drawing a confident zero.
+  const degraded: string[] = [];
+  for (const [name, result] of [
+    ["unique_visitors", uniqueVisitorsResult],
+    ["by_country", byCountryResult],
+    ["by_city", byCityResult],
+    ["top_pages", topPagesResult],
+    ["daily_trend", dailyTrendResult],
+    ["by_section", bySectionResult],
+    ["conversion_funnel", conversionFunnelResult],
+  ] as const) {
+    const err = (result as { error?: { message?: string; code?: string } }).error;
+    if (!err) continue;
+    degraded.push(name);
+    // 57014 is the statement timeout. Call it out by name: it means the query
+    // needs bounding, not retrying.
+    console.error(
+      `[admin/stats] GEO METRIC FAILED - ${name}: ${err.code ?? "?"} ${err.message ?? "unknown"}` +
+        (err.code === "57014" ? " (statement timeout - the query exceeded 8s)" : "")
+    );
+    import("@sentry/nextjs")
+      .then((Sentry) =>
+        Sentry.captureMessage?.(`admin stats geo metric failed: ${name}`, {
+          level: "error",
+          tags: { source: "admin-stats", metric: name, pg_code: err.code },
+        })
+      )
+      .catch(() => {});
+  }
+
   const totalPageViews = totalCountResult.count || 0;
   const last7Days = last7DaysResult.count || 0;
   const last30Days = last30DaysResult.count || 0;
@@ -999,12 +1053,16 @@ async function fetchGeoMetrics(
       uniqueVisitors: Number(d.unique_visitors),
     }));
 
-  // Process section breakdown
+  // Process section breakdown.
+  //
+  // `unique_visitors` was dropped from get_page_views_by_section: nothing ever
+  // rendered it (TrafficOverview reads only `count`), and computing it forced
+  // a COUNT(DISTINCT) whose sort spilled 23MB to disk and took the RPC to
+  // 25.5s -- past the 8s statement_timeout, so the panel showed nothing at all.
   const bySection: AdminStats["geo"]["traffic"]["bySection"] = (bySectionResult.data || [])
-    .map((s: { section: string; count: number; unique_visitors: number }) => ({
+    .map((s: { section: string; count: number }) => ({
       section: s.section,
       count: Number(s.count),
-      uniqueVisitors: Number(s.unique_visitors),
     }));
 
   // Process conversion funnel
@@ -1022,6 +1080,7 @@ async function fetchGeoMetrics(
     byCity,
     topPages,
     uniqueVisitors,
+    degraded,
     traffic: {
       daily,
       bySection,

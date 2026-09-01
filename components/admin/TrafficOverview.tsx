@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 
 interface TrafficData {
   daily: { date: string; views: number; uniqueVisitors: number }[];
-  bySection: { section: string; count: number; uniqueVisitors: number }[];
+  bySection: { section: string; count: number }[];
   conversionFunnel: { step: string; count: number }[];
 }
 
@@ -12,7 +12,12 @@ interface TrafficOverviewProps {
   data: TrafficData;
 }
 
-type TimeRange = "7d" | "30d" | "90d";
+// 90d was removed: get_page_views_daily_trend only returns 30 days now.
+// A 90-day aggregate over page_views does not fit behind the 8s PostgREST
+// statement_timeout (measured 7.2-11.1s, i.e. it blanked intermittently), so
+// the option would have rendered an empty or partial chart. An honest 30-day
+// chart beats a 90-day one that sometimes shows nothing.
+type TimeRange = "7d" | "30d";
 
 const SECTION_COLORS: Record<string, string> = {
   landing: "#0A4B73",
@@ -51,7 +56,7 @@ export default function TrafficOverview({ data }: TrafficOverviewProps) {
 
   // Filter daily data based on time range
   const filteredDaily = useMemo(() => {
-    const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
+    const days = timeRange === "7d" ? 7 : 30;
     return data.daily.slice(-days);
   }, [data.daily, timeRange]);
 
@@ -187,7 +192,7 @@ export default function TrafficOverview({ data }: TrafficOverviewProps) {
 
           {/* Time Range Pills */}
           <div className="flex items-center bg-slate-100 rounded-lg p-0.5">
-            {(["7d", "30d", "90d"] as TimeRange[]).map((range) => (
+            {(["7d", "30d"] as TimeRange[]).map((range) => (
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
@@ -394,6 +399,7 @@ export default function TrafficOverview({ data }: TrafficOverviewProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
               </svg>
               Traffic by Section
+              <span className="text-xs font-normal text-slate-400">(30 days)</span>
             </h3>
             <div className="space-y-3">
               {data.bySection.map((section) => {
