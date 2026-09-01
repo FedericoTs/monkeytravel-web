@@ -196,6 +196,7 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
   // anything. A forged cookie gets you as far as /trips, which then bounces
   // you to /auth/login. It is NOT sound for /admin, where isAdmin() reads
   // user.email to make an authorization decision — that branch still verifies.
+
   // Strip locale prefix for path matching. Computed here, before the auth
   // call, because which paths need a VERIFIED user decides which call we make.
   const locales = ["en", "es", "it", "pt"];
