@@ -127,8 +127,15 @@ try {
     ok(`trip row exists: ${trip.id} "${trip.title}" save_arm=${trip.trip_meta?.save_arm ?? "?"}`);
     if (trip.trip_meta?.save_arm !== "auto") fail(`expected save_arm=auto, got ${trip.trip_meta?.save_arm}`);
   }
-  const { data: ev } = await db.from("wizard_step_events").select("step").eq("user_id", uid);
-  const steps = (ev ?? []).map((r) => r.step);
+  // The `saved` row is a fire-and-forget keepalive POST from the browser; it
+  // can land a beat after the trips row is visible. Poll briefly.
+  let steps = [];
+  for (let i = 0; i < 8; i++) {
+    const { data: ev } = await db.from("wizard_step_events").select("step").eq("user_id", uid);
+    steps = (ev ?? []).map((r) => r.step);
+    if (steps.includes("saved") || steps.includes("save_failed")) break;
+    await new Promise((r) => setTimeout(r, 2000));
+  }
   note(`wizard_step_events for the probe user: ${[...new Set(steps)].join(", ")}`);
   if (!steps.includes("saved")) fail("no `saved` funnel row was written");
   else ok("`saved` funnel row written");
