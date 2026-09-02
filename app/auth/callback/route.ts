@@ -1,10 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { getTrialEndDate } from "@/lib/trial";
 import { safeNextOrDefault } from "@/lib/security/safe-next";
 import { isFirstLogin, resolveAuthLanding } from "@/lib/auth/first-login";
+import { logWizardStepServer } from "@/lib/analytics/wizard-event-server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 
 const SAVER_COOKIE_NAME = "mt_saver_cookie";
@@ -38,6 +39,31 @@ function noIndexRedirect(url: string): NextResponse {
  *
  * Middleware sets the cookie via captureUtmCookies (middleware.ts).
  */
+/**
+ * Record that an emailed auth link was actually redeemed.
+ *
+ * The consent-free funnel could see the Save click and the eventual sign-in
+ * and nothing in between, so 99 sessions a month that clicked Save and never
+ * signed in were one undifferentiated number. This is the last of the three
+ * steps that split it (auth_modal_shown, otp_requested, otp_link_opened).
+ *
+ * It reads the cookie of the browser that opened the LINK. Request the link on
+ * a laptop and open it on a phone and this row lands under a different session
+ * and will not join — which is the cross-device case (#86), and why
+ * otp_requested minus otp_link_opened is an UPPER bound on "asked and never
+ * opened" rather than an exact count. Better an honest upper bound than a
+ * number that looks exact and is not.
+ */
+async function recordOtpLinkOpened(userId: string | null): Promise<void> {
+  try {
+    const store = await cookies();
+    const sessionId = store.get("mt_session_id")?.value ?? null;
+    await logWizardStepServer({ step: "otp_link_opened", sessionId, userId });
+  } catch {
+    // never break the callback
+  }
+}
+
 async function readUtmSource(): Promise<string | null> {
   try {
     const store = await cookies();
@@ -101,6 +127,12 @@ export async function GET(request: Request) {
     });
 
     if (!error && data.user) {
+      // after(), not a bare void: this route redirects immediately, and a
+      // fire-and-forget insert can be frozen before it lands (the trip_claimed
+      // row went missing in production exactly that way, fixed in #94).
+      const redeemedBy = data.user.id;
+      after(() => recordOtpLinkOpened(redeemedBy));
+
       // SPECIAL CASE: Password recovery - redirect to reset password page
       // The user is now authenticated with a session, so they can set a new password
       if (type === "recovery") {

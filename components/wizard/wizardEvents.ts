@@ -55,7 +55,16 @@ export type WizardEventStep =
   // A generation that reached the server and came back an error (2026-09-02).
   // `abandoned` cannot follow `generating`, so without this a failure and a
   // closed tab were the same row: nothing.
-  | "generation_failed";
+  | "generation_failed"
+  // The save-click-to-account step, which the funnel could not see at all
+  // (2026-09-02). 186 sessions clicked Save signed out, 87 ended signed in,
+  // and the 99 that did not left no trace of WHY: never typed an address,
+  // asked for a link that never arrived, or opened it and still got nothing
+  // are three different problems that were one number.
+  | "auth_modal_shown"
+  | "otp_requested"
+  // Written server-side by the auth callback — see lib/analytics/wizard-event-server.ts.
+  | "otp_link_opened";
 
 /**
  * Fire-and-forget POST to /api/wizard-event. Never awaited from a render path,
