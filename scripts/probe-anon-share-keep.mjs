@@ -72,7 +72,15 @@ let anonTripId = null;
 const browser = await chromium.launch();
 const consoleErrors = [];
 try {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: "en-US" });
+  // A normal desktop user agent: the middleware's crawler filter matches
+  // "headless", and a filtered visitor never gets an mt_session_id cookie,
+  // which would make the share_link_created session check fail for the
+  // probe alone.
+  const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 900 },
+    locale: "en-US",
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+  });
   const page = await ctx.newPage();
   page.on("console", (msg) => { if (msg.type() === "error") consoleErrors.push(msg.text().slice(0, 160)); });
 
@@ -200,10 +208,11 @@ try {
   await page.waitForSelector("h1", { timeout: 60000 }).catch(() => {});
   // If the draft-recovery banner offers to restore the itinerary, take it: that
   // is the path where auto-save and the claim would have collided.
-  const restore = page.getByRole("button", { name: /restore|resume|continue where/i }).first();
-  if (await restore.isVisible({ timeout: 4000 }).catch(() => false)) {
+  await page.screenshot({ path: `${SHOTS}/after-signin-landing.png` });
+  const restore = page.getByRole("button", { name: /restore trip|restore|resume|continue where/i }).first();
+  if (await restore.isVisible({ timeout: 8000 }).catch(() => false)) {
     await restore.click().catch(() => {});
-    note("restored the draft (adoption path)");
+    note("restored the draft (adoption path: auto-save must adopt, not insert)");
   } else note("no draft-restore offer (claim-only path)");
 
   const claimed = await poll(async () => {
