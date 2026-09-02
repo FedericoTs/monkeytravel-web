@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
@@ -68,6 +69,15 @@ export async function POST(request: NextRequest) {
       return apiSuccess({ claimed: false, tripId: null });
     }
 
+    // Consent-free record of the conversion. The RPC also stamps
+    // trip_meta.claimed_at; this row carries the user for cohort joins.
+    // Fire-and-forget: telemetry must never fail a claim that succeeded.
+    void logFunnelEventServer({
+      event_type: "trip_claimed",
+      trip_id: row?.trip_id ?? null,
+      user_id: user.id,
+      metadata: { source: "anonymous_share" },
+    });
     return apiSuccess({ claimed: true, tripId: row?.trip_id ?? null });
   } catch (err) {
     console.error("[trip-claim] unexpected error:", err);

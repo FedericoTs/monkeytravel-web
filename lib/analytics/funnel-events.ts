@@ -20,7 +20,11 @@ export type FunnelEventType =
   | "share_link_created"
   | "share_link_visited"
   | "vote_cast"
-  | "plan_own_clicked";
+  | "plan_own_clicked"
+  // 2026-09-02: an anonymous trip taken over by a signup (app/api/trips/claim).
+  // The claim RPC also stamps trip_meta.claimed_at, so the count survives
+  // funnel_events retention; this row carries the user for cohort joins.
+  | "trip_claimed";
 
 export interface FunnelEventInput {
   event_type: FunnelEventType;
