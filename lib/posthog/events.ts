@@ -712,6 +712,29 @@ export async function captureClaimedTripBanner(event: ClaimedTripBannerEvent) {
   ph.capture("claimed_trip_banner", event);
 }
 
+export interface AnonShareKeepClickedEvent {
+  destination?: string;
+  duration_days?: number;
+}
+
+/** "Keep this trip" beside a freshly minted signed-out share link (2026-09-02). */
+export async function captureAnonShareKeepClicked(event: AnonShareKeepClickedEvent) {
+  const ph = await getPosthog();
+  ph.capture("anon_share_keep_clicked", event);
+}
+
+export interface PendingClaimBannerEvent {
+  action: "surfaced" | "keep" | "open_link" | "dismissed";
+  destination?: string;
+  trip_id?: string;
+}
+
+/** Return-visit reminder for a browser still holding an unclaimed shared trip. */
+export async function capturePendingClaimBanner(event: PendingClaimBannerEvent) {
+  const ph = await getPosthog();
+  ph.capture("pending_claim_banner", event);
+}
+
 export async function captureAutoSaveSkipped(event: AutoSaveSkippedEvent) {
   const ph = await getPosthog();
   ph.capture("auto_save_skipped", event);
@@ -858,6 +881,8 @@ export async function capture(eventName: string, properties?: Record<string, unk
  */
 export type AuthPromptLocation =
   | "wizard_save"
+  | "anon_share_keep"
+  | "pending_claim"
   | "explore_like"
   | "explore_fork"
   | "shared_vote"
@@ -961,7 +986,7 @@ export interface SaveFailedEvent {
  * users in 30 days (2026-09) lost generations with no event of any kind.
  */
 export interface AutoSaveSkippedEvent {
-  reason: "not_authenticated" | "disabled" | "auth_pending";
+  reason: "not_authenticated" | "disabled" | "auth_pending" | "pending_claim";
   destination?: string;
 }
 

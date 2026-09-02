@@ -119,6 +119,7 @@ const SessionTripsTray = dynamic(() => import("@/components/trip/SessionTripsTra
 const ValuePropositionBanner = dynamic(() => import("@/components/trip/ValuePropositionBanner"), { ssr: false });
 const ShareAfterSaveModal = dynamic(() => import("@/components/trip/ShareAfterSaveModal"), { ssr: false });
 const AuthPromptModal = dynamic(() => import("@/components/ui/AuthPromptModal"), { ssr: false });
+const PendingClaimBanner = dynamic(() => import("@/components/wizard/PendingClaimBanner"), { ssr: false });
 // Anonymous share loop (hop one). Only ever rendered for signed-out planners,
 // so it stays out of the bundle for the authenticated majority path.
 const AnonymousShareButton = dynamic(
@@ -178,11 +179,16 @@ import {
 import { FLAG_WIZARD_STEP1_EDITORIAL } from "@/lib/posthog/flags";
 import {
   captureClaimedTripBanner,
+  captureAnonShareKeepClicked,
+  capturePendingClaimBanner,
+  type AuthPromptLocation,
   captureWizardFirstRunViewed,
   captureWizardOneTapStart,
   captureAutoSaveSkipped,
 } from "@/lib/posthog/events";
 import { clearClaimedTrip, onClaimedTrip, readClaimedTrip } from "@/lib/trips/claimed-trip-signal";
+import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim-client";
+import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
 // Save Sprint: session generation counter + per-session trip stack (T1/T4).
 import { useSessionTripStack } from "@/hooks/useSessionTripStack";
 import { useCurrency } from "@/lib/locale";
@@ -1629,10 +1635,131 @@ export default function NewTripPage({
     void captureAutoSaveSkipped({ reason, destination });
   };
 
+  // -- Pending anonymous share (2026-09-02) ---------------------------------
+  // A signed-out planner who shared this itinerary minted an ownerless trip
+  // row, and this browser holds its claim token. On sign-in TWO things would
+  // persist the same itinerary: AuthProvider claims that row, and the
+  // auto-save hook inserts a fresh one. Measured before this landed: 56
+  // signed-out shares in 30 days and 0 claims, so the collision had never
+  // been observed; the keep-it nudge on the share row makes it routine.
+  // Rule (lib/trips/pending-claim.ts): while the draft on screen matches the
+  // shared trip and the claim is unresolved, auto-save waits; a claimed id is
+  // adopted as THE saved trip; a released claim (expired, taken, no token)
+  // hands persistence back to auto-save.
+  const [pendingClaim, setPendingClaim] = useState<PendingClaim | null>(null);
+  const [claimResolution, setClaimResolution] = useState<ClaimResolution>("none");
+  const [adoptedTripId, setAdoptedTripId] = useState<string | null>(null);
+  const [pendingClaimDismissed, setPendingClaimDismissed] = useState(false);
+  const [authPromptLocation, setAuthPromptLocation] = useState<AuthPromptLocation>("wizard_save");
+  useEffect(() => {
+    let alive = true;
+    void readPendingClaim().then((p) => {
+      if (!alive || !p) return;
+      setPendingClaim(p);
+      setClaimResolution("unresolved");
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const pendingMatchesDraft = pendingClaimMatchesDraft(pendingClaim, { destination, startDate, endDate });
+  const deferAutoSave = shouldDeferAutoSave({ matches: pendingMatchesDraft, resolution: claimResolution });
+  const adoptClaimedTrip = useCallback((id: string) => {
+    setAdoptedTripId(id);
+    setSavedTripId(id);
+    setClaimedTripId(id);
+    setClaimResolution("adopted");
+    setPendingClaim(null);
+  }, []);
+  // The claim can complete on either side (AuthProvider publishes the signal;
+  // the wizard asks directly below). Whichever reports first wins.
+  useEffect(() => {
+    if (claimResolution !== "unresolved" || !pendingClaim || !pendingMatchesDraft) return;
+    if (claimedTripId === pendingClaim.tripId) adoptClaimedTrip(claimedTripId);
+  }, [claimedTripId, pendingClaim, pendingMatchesDraft, claimResolution, adoptClaimedTrip]);
+  useEffect(() => {
+    if (claimResolution !== "unresolved" || !pendingClaim || !pendingMatchesDraft || isAuthenticated !== true) return;
+    let alive = true;
+    const tripId = pendingClaim.tripId;
+    if (readClaimedTrip() === tripId) {
+      adoptClaimedTrip(tripId);
+      return;
+    }
+    void import("@/lib/trips/anonymous-claim-client")
+      .then(({ claimPendingTrip }) => claimPendingTrip())
+      .then((id) => {
+        if (!alive) return;
+        if (id) adoptClaimedTrip(id);
+        else if (readClaimedTrip() === tripId) adoptClaimedTrip(tripId);
+        else {
+          setClaimResolution("released");
+          setPendingClaim(null);
+        }
+      })
+      .catch(() => {
+        if (!alive) return;
+        setClaimResolution("released");
+        setPendingClaim(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [claimResolution, pendingClaim, pendingMatchesDraft, isAuthenticated, adoptClaimedTrip]);
+  const handleAnonShared = (pending: PendingClaim) => {
+    setPendingClaim(pending);
+    setClaimResolution("unresolved");
+    setPendingClaimDismissed(false);
+  };
+  // The same door the Save button opens for a signed-out planner (46% of
+  // them sign in, 92% within ten minutes), with the draft parked first so
+  // the itinerary is on screen again after the auth round-trip.
+  const openKeepAuth = (location: AuthPromptLocation) => {
+    if (generatedItinerary) {
+      saveDraft({
+        generatedItinerary,
+        destination,
+        startDate,
+        endDate,
+        pace,
+        vibes: selectedVibes,
+        budgetTier,
+        travelStyle,
+        mustDos,
+        anchors,
+        tripIntent,
+      });
+    }
+    setAuthPromptLocation(location);
+    setShowAuthModal(true);
+  };
+  const handleKeepSharedTrip = () => {
+    void trackWizardEvent("save_clicked", {
+      destination,
+      group_size: tripIntent,
+      backpacker_mode: travelStyle === "backpacker",
+      locale,
+    }, arm);
+    openKeepAuth("anon_share_keep");
+  };
+  const showPendingClaimBanner =
+    isAuthenticated === false && !!pendingClaim && !pendingClaimDismissed && !generatedItinerary && step === 1;
+  const pendingSurfacedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!showPendingClaimBanner || !pendingClaim || pendingSurfacedRef.current === pendingClaim.tripId) return;
+    pendingSurfacedRef.current = pendingClaim.tripId;
+    void capturePendingClaimBanner({ action: "surfaced", destination: pendingClaim.destination, trip_id: pendingClaim.tripId });
+  }, [showPendingClaimBanner, pendingClaim]);
+  const handlePendingClaimAction = (action: "keep" | "open_link" | "dismissed") => {
+    void capturePendingClaimBanner({ action, destination: pendingClaim?.destination, trip_id: pendingClaim?.tripId });
+    if (action === "keep") openKeepAuth("pending_claim");
+    if (action === "dismissed") setPendingClaimDismissed(true);
+  };
   const autoSave = useAutoSaveTrip({
     itinerary: generatedItinerary,
     isAuthenticated,
     enabled: autoSaveEnabled,
+    deferred: deferAutoSave,
+    adoptedTripId,
     formState: autoSaveFormState,
     saveTrip: autoSaveTrip,
     updateTrip: autoUpdateTrip,
@@ -3051,8 +3178,8 @@ export default function NewTripPage({
         <AuthPromptModal
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
-          destination={destination}
-        />
+          destination={destination}          
+location={authPromptLocation}                  />
 
         {/* Hero with Cover Image */}
         <DestinationHero
@@ -3255,6 +3382,8 @@ export default function NewTripPage({
                   owner-based share flow is the right one. */}
               {isAuthenticated === false && !savedTripId && generatedItinerary && (
                 <AnonymousShareButton
+                  onShared={handleAnonShared}
+                  onKeep={handleKeepSharedTrip}
                   trip={{
                     title: `${generatedItinerary.destination.name} Trip`,
                     description: generatedItinerary.destination.description,
@@ -3299,6 +3428,8 @@ export default function NewTripPage({
               flash a share button at someone who turns out to be signed in. */}
           {!savedTripId && (isAuthenticated === false && generatedItinerary ? (
             <AnonymousShareButton
+              onShared={handleAnonShared}
+              onKeep={handleKeepSharedTrip}
               className="mb-2"
               trip={{
                 title: `${generatedItinerary.destination.name} Trip`,
@@ -3999,8 +4130,8 @@ export default function NewTripPage({
       <AuthPromptModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        destination={destination}
-      />
+        destination={destination}        
+location={authPromptLocation}              />
 
       {/* Early Access Modal - for gated AI features */}
       <EarlyAccessModal
@@ -4166,6 +4297,14 @@ export default function NewTripPage({
                 onOpen={() => dismissClaimedTrip("opened")}
                 onPlanAnother={() => dismissClaimedTrip("plan_another")}
                 onDismiss={() => dismissClaimedTrip("dismissed")}
+              />
+            )}
+            {showPendingClaimBanner && pendingClaim && (
+              <PendingClaimBanner
+                pending={pendingClaim}
+                onKeep={() => handlePendingClaimAction("keep")}
+                onOpenLink={() => handlePendingClaimAction("open_link")}
+                onDismiss={() => handlePendingClaimAction("dismissed")}
               />
             )}
             {/* Returning-visitor draft recovery. A valid unsaved draft exists

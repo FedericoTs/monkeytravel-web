@@ -233,7 +233,7 @@ export default function ActivationFunnelPanel({ funnel }: { funnel: ActivationFu
           <Step
             label="Claimed at signup"
             value={loop.claimed}
-            sub={`${ratio(loop.claimed, loop.anonCreated)} · ${loop.unclaimedLive} still claimable · ${loop.expired} expired`}
+            sub={`${ratio(loop.claimed, loop.anonCreated)} · ${loop.sharerSignedIn} sharers signed in later · ${loop.unclaimedLive} still claimable`}
             share={pct(loop.claimed, loop.anonCreated)}
             emphasis={loop.claimed > 0}
           />

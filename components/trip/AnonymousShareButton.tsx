@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { shareAnonymousTrip } from "@/lib/trips/anonymous-claim-client";
+import { buildPendingClaim, shareAnonymousTrip, type PendingClaim } from "@/lib/trips/anonymous-claim-client";
 import {
   captureAnonShareClicked,
   captureAnonShareCreated,
   captureAnonShareFailed,
   captureAnonShareCopied,
+  captureAnonShareKeepClicked,
 } from "@/lib/posthog/events";
 
 /**
@@ -40,11 +41,13 @@ interface Props {
     coverImageUrl?: string | null;
   };
   /** Fired with the share URL once minted, so the parent can log conversion. */
-  onShared?: (shareUrl: string) => void;
+  onShared?: (pending: PendingClaim) => void;
+  /** "Keep this trip, free": opens the sign-up path. The row renders only when provided. */
+  onKeep?: () => void;
   className?: string;
 }
 
-export default function AnonymousShareButton({ trip, onShared, className = "" }: Props) {
+export default function AnonymousShareButton({ trip, onShared, onKeep, className = "" }: Props) {
   const t = useTranslations("trips");
   const [state, setState] = useState<"idle" | "creating" | "ready" | "error">("idle");
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -76,7 +79,7 @@ export default function AnonymousShareButton({ trip, onShared, className = "" }:
       setShareUrl(result.shareUrl);
       setState("ready");
       void captureAnonShareCreated({ ...analyticsBase, trip_id: result.tripId });
-      onShared?.(result.shareUrl);
+      onShared?.(buildPendingClaim(result, trip));
       void copy(result.shareUrl, "auto");
     } catch (err) {
       setState("error");
@@ -120,6 +123,27 @@ export default function AnonymousShareButton({ trip, onShared, className = "" }:
           </button>
         </div>
         <p className="text-xs text-slate-500">{t("wizard.result.shareAnonHint")}</p>
+        {/* The ask that was missing: 56 signed-out shares in 30 days, 0 ever
+            kept (2026-09-02). Same sign-up path as the Save button, which
+            converts 46% of the signed-out planners who reach it. */}
+        {onKeep && (
+          <div
+            className="mt-1 flex flex-col gap-2 rounded-xl border border-[var(--primary)]/20 bg-[var(--background-warm)] px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
+            data-anon-share-keep
+          >
+            <p className="text-sm text-slate-700">{t("wizard.result.shareAnonKeepPrompt")}</p>
+            <button
+              type="button"
+              onClick={() => {
+                void captureAnonShareKeepClicked(analyticsBase);
+                onKeep();
+              }}
+              className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-xl bg-[var(--primary)] px-4 text-sm font-semibold text-white transition-colors hover:bg-[var(--primary)]/90"
+            >
+              {t("wizard.result.shareAnonKeepCta")}
+            </button>
+          </div>
+        )}
       </div>
     );
   }

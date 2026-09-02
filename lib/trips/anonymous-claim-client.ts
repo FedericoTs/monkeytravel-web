@@ -1,6 +1,7 @@
 "use client";
 
 import { prefs } from "@/lib/platform/storage";
+import { publishClaimedTrip } from "@/lib/trips/claimed-trip-signal";
 
 /**
  * Client half of the anonymous share loop.
@@ -17,6 +18,71 @@ import { prefs } from "@/lib/platform/storage";
  */
 
 const CLAIM_TOKEN_KEY = "mt_pending_claim_token";
+// What the trip was, so the UI can say "your Lisbon trip is still here" and
+// the wizard can tell whether the draft on screen IS the shared trip. Stored
+// beside the token, only meaningful while the token exists, cleared with it.
+const PENDING_CLAIM_META_KEY = "mt_pending_claim_meta";
+
+export interface PendingClaim {
+  tripId: string;
+  shareToken: string;
+  shareUrl: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  days: number;
+  createdAt: string;
+}
+
+export function buildPendingClaim(
+  result: { tripId: string; shareToken: string; shareUrl: string },
+  payload: { destination: string; startDate: string; endDate: string; itinerary: unknown[] },
+): PendingClaim {
+  return {
+    tripId: result.tripId,
+    shareToken: result.shareToken,
+    shareUrl: result.shareUrl,
+    destination: payload.destination,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+    days: Array.isArray(payload.itinerary) ? payload.itinerary.length : 0,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+/** The trip this browser could still claim, or null. Requires the token; the metadata alone is nothing. */
+export async function readPendingClaim(): Promise<PendingClaim | null> {
+  try {
+    const token = await prefs.get(CLAIM_TOKEN_KEY);
+    if (!token) return null;
+    const raw = await prefs.get(PENDING_CLAIM_META_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw) as Partial<PendingClaim>;
+    if (typeof p.tripId !== "string" || typeof p.shareToken !== "string" || typeof p.shareUrl !== "string") {
+      return null;
+    }
+    return {
+      tripId: p.tripId,
+      shareToken: p.shareToken,
+      shareUrl: p.shareUrl,
+      destination: typeof p.destination === "string" ? p.destination : "",
+      startDate: typeof p.startDate === "string" ? p.startDate : "",
+      endDate: typeof p.endDate === "string" ? p.endDate : "",
+      days: Number(p.days) || 0,
+      createdAt: typeof p.createdAt === "string" ? p.createdAt : "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Forget the pending claim: token and metadata together. Never throws. */
+export async function clearPendingClaim(): Promise<void> {
+  await Promise.all([
+    prefs.remove(CLAIM_TOKEN_KEY).catch(() => {}),
+    prefs.remove(PENDING_CLAIM_META_KEY).catch(() => {}),
+  ]);
+}
 
 export interface AnonymousShareResult {
   tripId: string;
@@ -65,6 +131,7 @@ export async function shareAnonymousTrip(payload: {
 
   try {
     await prefs.set(CLAIM_TOKEN_KEY, json.claimToken);
+    await prefs.set(PENDING_CLAIM_META_KEY, JSON.stringify(buildPendingClaim(json, payload)));
   } catch {
     /* private mode / storage disabled — the link still works */
   }
@@ -92,7 +159,7 @@ export async function hasPendingClaim(): Promise<boolean> {
  * not break someone's ability to sign in — the worst case is that the trip
  * stays anonymous until the sweeper expires it.
  */
-export async function claimPendingTrip(): Promise<string | null> {
+async function claimPendingTripOnce(): Promise<string | null> {
   let claimToken: string | null = null;
   try {
     claimToken = await prefs.get(CLAIM_TOKEN_KEY);
@@ -124,9 +191,14 @@ export async function claimPendingTrip(): Promise<string | null> {
     // future login of every future account on this device.
     if (res.status === 401) return null;
 
-    await prefs.remove(CLAIM_TOKEN_KEY).catch(() => {});
+    await clearPendingClaim();
 
-    return json?.claimed ? json.tripId ?? null : null;
+    const claimedId = json?.claimed ? json.tripId ?? null : null;
+    // Announce before resolving, so a caller that lost the in-flight race
+    // (below) can still find the id in the signal rather than reading
+    // "nothing to claim" as "auto-save a fresh copy".
+    if (claimedId) publishClaimedTrip(claimedId);
+    return claimedId;
   } catch {
     // Network failure — leave the token in place and try again next time.
     return null;
@@ -135,3 +207,22 @@ export async function claimPendingTrip(): Promise<string | null> {
 
 /** Exported for tests and for the rare case a caller must clear state by hand. */
 export const PENDING_CLAIM_STORAGE_KEY = CLAIM_TOKEN_KEY;
+
+// Two callers race the claim on sign-in: AuthProvider on SIGNED_IN and the
+// wizard once it knows the draft on screen is the shared trip. Sent twice,
+// the second request would answer `claimed:false` and the wizard would read
+// that as "released" and auto-save a duplicate. One in-flight promise, shared.
+let claimInFlight: Promise<string | null> | null = null;
+
+/**
+ * Attach a previously shared anonymous trip to the now-signed-in user.
+ * Concurrent calls share one request. See claimPendingTripOnce for the
+ * contract: never throws, returns the claimed trip id or null.
+ */
+export function claimPendingTrip(): Promise<string | null> {
+  if (claimInFlight) return claimInFlight;
+  claimInFlight = claimPendingTripOnce().finally(() => {
+    claimInFlight = null;
+  });
+  return claimInFlight;
+}

@@ -57,6 +57,8 @@ export interface AnonymousLoopWindow {
   claimed: number;
   /** Claims that happened in the window, whatever the trip's age. */
   claimedAny: number;
+  /** Of those, trips whose minting session later carried a signed-in wizard row: the sharer came back signed in. */
+  sharerSignedIn: number;
   unclaimedLive: number;
   expired: number;
 }
@@ -160,6 +162,7 @@ export function loopFromRpc(days: number, raw: unknown): AnonymousLoopWindow {
     planOwnClicks: num(o.plan_own_clicks),
     claimed: num(o.claimed),
     claimedAny: num(o.claimed_any),
+    sharerSignedIn: num(o.sharer_signed_in),
     unclaimedLive: num(o.unclaimed_live),
     expired: num(o.expired),
   };

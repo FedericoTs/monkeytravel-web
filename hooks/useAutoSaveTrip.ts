@@ -48,7 +48,7 @@ export type AutoSaveStatus = "idle" | "saving" | "saved" | "error";
  * of these was a silent early return, which is how six signed-in users lost
  * generations in a month with no event of any kind.
  */
-export type AutoSaveSkipReason = "not_authenticated" | "disabled" | "auth_pending";
+export type AutoSaveSkipReason = "not_authenticated" | "disabled" | "auth_pending" | "pending_claim";
 
 /** Backoff between attempts. Three attempts total, ~5.5s worst case. */
 export const DEFAULT_RETRY_DELAYS_MS: readonly number[] = [1500, 4000];
@@ -60,6 +60,18 @@ export interface UseAutoSaveTripOptions {
   isAuthenticated: boolean | null;
   /** Master kill-switch. When false the hook is inert. */
   enabled: boolean;
+  /**
+   * The itinerary on screen already exists as an anonymous trip this browser
+   * shared, and its claim has not reported yet (lib/trips/pending-claim.ts).
+   * Parks the hook with skip reason "pending_claim"; flip back once the
+   * claim is adopted (pass adoptedTripId) or released.
+   */
+  deferred?: boolean;
+  /**
+   * A trip row that already holds this itinerary: a claimed anonymous share.
+   * Adopted as the saved trip - no insert; later edits update that row.
+   */
+  adoptedTripId?: string | null;
   /** Form state needed to build the trip row. Read via ref so the hook
    *  doesn't re-run on every keystroke. */
   formState: TripFormState;
@@ -122,6 +134,8 @@ export function useAutoSaveTrip({
   onPersisted,
   onError,
   onSkipped,
+  deferred = false,
+  adoptedTripId = null,
   retryDelaysMs = DEFAULT_RETRY_DELAYS_MS,
 }: UseAutoSaveTripOptions): UseAutoSaveTripReturn {
   const [status, setStatus] = useState<AutoSaveStatus>("idle");
@@ -249,12 +263,26 @@ export function useAutoSaveTrip({
   // Every early return below used to be silent. Report a skipped save once per
   // itinerary identity so "rendered a result, never attempted a save" is
   // visible — the signature six signed-in users left in 30 days (2026-09).
+  // Adopt a row that already holds this itinerary (a claimed anonymous
+  // share). Declared before the persist effect below so that, in the render
+  // where the deferral lifts and the id arrives together, adoption runs
+  // first and the persist effect sees "already attempted" instead of inserting.
+  useEffect(() => {
+    if (!adoptedTripId || savedTripIdRef.current === adoptedTripId) return;
+    savedTripIdRef.current = adoptedTripId;
+    setSavedTripId(adoptedTripId);
+    setStatus("saved");
+    setError(null);
+    lastAttemptedItineraryRef.current = itinerary;
+  }, [adoptedTripId, itinerary]);
   const skipReportedForRef = useRef<GeneratedItinerary | null>(null);
   useEffect(() => {
     if (!itinerary) return;
     const skipReason: AutoSaveSkipReason | null = !enabled
       ? "disabled"
-      : isAuthenticated === null
+      : deferred
+        ? "pending_claim"
+        : isAuthenticated === null
         ? "auth_pending"
         : !isAuthenticated
           ? "not_authenticated"
@@ -277,7 +305,7 @@ export function useAutoSaveTrip({
       if (pendingSaveRef.current === chained) pendingSaveRef.current = null;
     });
     pendingSaveRef.current = chained;
-  }, [enabled, isAuthenticated, itinerary, persist]);
+  }, [enabled, deferred, isAuthenticated, itinerary, persist]);
 
   const retry = useCallback(async () => {
     if (!itinerary) return;

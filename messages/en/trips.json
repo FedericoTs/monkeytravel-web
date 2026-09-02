@@ -242,7 +242,9 @@
       "shareAnonCopy": "Copy",
       "shareAnonCopied": "Copied",
       "shareAnonError": "Couldn't create the link. Please try again.",
-      "shareAnonHint": "Anyone with the link can view and vote. Sign up to keep and edit it."
+      "shareAnonHint": "Anyone with the link can view and vote.",
+      "shareAnonKeepPrompt": "Want to keep editing it?",
+      "shareAnonKeepCta": "Keep this trip, free"
     },
     "anchors": {
       "cta": "I have fixed plans (flight, wedding, hotel…)",
@@ -291,6 +293,14 @@
       "body": "The itinerary you built before signing up is now saved in My Trips.",
       "open": "Open my trip",
       "planAnother": "Plan another trip",
+      "dismiss": "Dismiss"
+    },
+    "pendingClaim": {
+      "title": "Your {destination} trip is still here",
+      "titleGeneric": "Your shared trip is still here",
+      "body": "You shared it without an account. Sign up free to keep editing it, or open the link you sent.",
+      "keep": "Keep this trip",
+      "openLink": "Open the link",
       "dismiss": "Dismiss"
     }
   },
