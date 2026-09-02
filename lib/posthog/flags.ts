@@ -104,23 +104,42 @@ export type FrontDoorVariant = "wizard" | "decision";
  * different "baselines" for the same product, and picking among them decides
  * the verdict by itself.
  *
- * They are NOT bots, which was the first (wrong) guess. Only 31 of 912 carry a
- * bot-flagged page_view, the user agents are ordinary browsers, they average
- * 3.3 page views, and 898 of 934 actually reach /trips/new. They are people
- * who leave inside 10 seconds, and they are overwhelmingly non-English:
+ * WHAT THAT TRAFFIC ACTUALLY IS (settled on the third attempt — the first two
+ * guesses were wrong and are recorded here so nobody repeats them):
  *
- *   en  761 step-1 sessions   22.5% single-event   556 engaged
- *   es  367                   82.3%                 49
- *   it  324                   84.0%                 41
- *   pt  208                   90.9%                 10
+ *   guess 1 "bots"    — right conclusion, no evidence behind it.
+ *   guess 2 "people"  — the UA strings look like ordinary browsers, the
+ *                       sessions average 3.3 page views, and 898 of 934 reach
+ *                       /trips/new. All true, and all consistent with a
+ *                       headless browser. Not evidence of a human.
+ *   guess 3, settled  — geography and UA diversity settle it.
  *
- * Entry path decides it: sessions landing DIRECTLY on a localized /trips/new
- * bounce 91% of the time, and /destinations 88.5%, while es/it/pt sessions
- * arriving from a blog article bounce 5.3%. That is search-intent mismatch on
- * newly indexed localized pages (19 translations shipped around 2026-08-17),
- * not a broken wizard - the es wizard renders and its autocomplete works,
- * verified by hand on production. And when localized users DO engage they
- * convert like everyone else (67-80% step 2 vs 74.8% for en).
+ * Bounce and engagement by country, localized step-1 sessions, 14 days:
+ *
+ *   CN  374 bouncing   0 engaged   95.9%
+ *   SG  109            0           92.4%
+ *   HK   65            0           91.5%
+ *   US  107            1           96.4%
+ *   IT   47           33           58.0%
+ *   ES    6           30           16.7%
+ *
+ * CN + SG + HK is 629 sessions sharing only 29 distinct user agents, 0.0% of
+ * them flagged by the is_bot regex, and ZERO that ever dwell 10 seconds. The
+ * real markets show MORE user-agent diversity across FEWER sessions. That is
+ * automation from cloud regions hitting localized URLs, and the `locale`
+ * column records the URL's locale, not a person's language — which is what
+ * made it look like a Spanish-speaker problem.
+ *
+ * THERE IS NO LOCALIZED LANDING PROBLEM. Real Spanish traffic bounces at
+ * 16.7%, BETTER than English at 22.5%, and localized visitors who engage
+ * convert like everyone else (67-80% reach step 2 against 74.8% for en).
+ * Do not build a localized landing fix for this; it would be solving nothing.
+ *
+ * What IS broken is the filter: is_bot catches 0.0% of these 629 sessions, so
+ * they land in the denominator of every raw wizard-funnel rate. That is the
+ * whole reason the 36.0% baseline moved without the product changing, and the
+ * reason the dwell-qualified query above is the one to trust — a headless
+ * visitor never emits step1_heartbeat.
  *
  * Read the dwell-qualified rate instead — sessions with a step1_heartbeat:
  *
