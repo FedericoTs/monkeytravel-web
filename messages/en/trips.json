@@ -67,7 +67,8 @@
       "justNow": "just now",
       "minutesAgo": "{minutes}m ago",
       "hoursAgo": "{hours}h ago",
-      "yesterday": "yesterday"
+      "yesterday": "yesterday",
+      "expired": "The plan you made here has expired. Start a new one — it only takes about 30 seconds."
     },
     "multiCity": {
       "toggleTitle": "Plan multiple cities",

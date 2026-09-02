@@ -67,7 +67,8 @@
       "justNow": "proprio ora",
       "minutesAgo": "{minutes} min fa",
       "hoursAgo": "{hours} h fa",
-      "yesterday": "ieri"
+      "yesterday": "ieri",
+      "expired": "Il piano che avevi creato qui è scaduto. Creane uno nuovo: bastano circa 30 secondi."
     },
     "multiCity": {
       "toggleTitle": "Pianifica più città",

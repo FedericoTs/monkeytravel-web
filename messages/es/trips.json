@@ -67,7 +67,8 @@
       "justNow": "ahora mismo",
       "minutesAgo": "hace {minutes} min",
       "hoursAgo": "hace {hours} h",
-      "yesterday": "ayer"
+      "yesterday": "ayer",
+      "expired": "El plan que hiciste aquí ha caducado. Empieza uno nuevo: solo toma unos 30 segundos."
     },
     "multiCity": {
       "toggleTitle": "Planifica varias ciudades",

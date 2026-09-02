@@ -45,7 +45,13 @@ export type WizardEventStep =
   | "save_blocked_anon"
   | "save_failed"
   | "saved"
-  | "abandoned";
+  | "abandoned"
+  // Draft recovery (2026-09-02). The generated itinerary lives in a
+  // localStorage draft, and until now it auto-restored ONLY on the Save-modal
+  // path; every other way back into an account met a blank wizard. Nothing
+  // server-side recorded a restore, so the loss was invisible.
+  | "draft_restored"
+  | "draft_expired";
 
 /**
  * Fire-and-forget POST to /api/wizard-event. Never awaited from a render path,
