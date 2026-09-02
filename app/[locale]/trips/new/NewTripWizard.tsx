@@ -1682,6 +1682,9 @@ export default function NewTripPage({
   const [claimResolution, setClaimResolution] = useState<ClaimResolution>("none");
   const [adoptedTripId, setAdoptedTripId] = useState<string | null>(null);
   const [pendingClaimDismissed, setPendingClaimDismissed] = useState(false);
+  // A share link minted in THIS session, shared by every AnonymousShareButton
+  // on screen so only one ownerless trip is ever created.
+  const [sessionShareUrl, setSessionShareUrl] = useState<string | null>(null);
   const [authPromptLocation, setAuthPromptLocation] = useState<AuthPromptLocation>("wizard_save");
   useEffect(() => {
     let alive = true;
@@ -1738,6 +1741,11 @@ export default function NewTripPage({
     };
   }, [claimResolution, pendingClaim, pendingMatchesDraft, isAuthenticated, adoptClaimedTrip]);
   const handleAnonShared = (pending: PendingClaim) => {
+    // Every share button on screen adopts this one link. Minting twice would
+    // create a second ownerless trip whose claim token the browser has
+    // already overwritten, stranding the first and inflating the
+    // anonymous-share counts the /admin panel reads.
+    setSessionShareUrl(pending.shareUrl);
     setPendingClaim(pending);
     setClaimResolution("unresolved");
     setPendingClaimDismissed(false);
@@ -3225,8 +3233,9 @@ export default function NewTripPage({
         <AuthPromptModal
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
-          destination={destination}          
-location={authPromptLocation}                  />
+          destination={destination}
+          location={authPromptLocation}
+        />
 
         {/* Hero with Cover Image */}
         <DestinationHero
@@ -3431,6 +3440,7 @@ location={authPromptLocation}                  />
                 <AnonymousShareButton
                   onShared={handleAnonShared}
                   onKeep={handleKeepSharedTrip}
+                  existingShareUrl={sessionShareUrl}
                   trip={{
                     title: `${generatedItinerary.destination.name} Trip`,
                     description: generatedItinerary.destination.description,
@@ -3477,6 +3487,7 @@ location={authPromptLocation}                  />
             <AnonymousShareButton
               onShared={handleAnonShared}
               onKeep={handleKeepSharedTrip}
+              existingShareUrl={sessionShareUrl}
               className="mb-2"
               trip={{
                 title: `${generatedItinerary.destination.name} Trip`,
@@ -3621,6 +3632,28 @@ location={authPromptLocation}                  />
                       void handleSaveTrip();
                     }
                   : undefined
+              }
+              // The deliverable half of the bridge. A share link needs no
+              // account, and #93's "Keep this trip, free" row rides on it, so
+              // the refiner can leave holding the plan instead of only being
+              // asked to sign up. Signed-out and unsaved only — for everyone
+              // else the owner-based share flow is the right one.
+              shareSlot={
+                isAuthenticated === false && !savedTripId && generatedItinerary ? (
+                  <AnonymousShareButton
+                    trip={{
+                      title: `${generatedItinerary.destination.name} Trip`,
+                      description: generatedItinerary.destination.description,
+                      destination,
+                      startDate,
+                      endDate,
+                      itinerary: generatedItinerary.days,
+                    }}
+                    onShared={handleAnonShared}
+                    onKeep={handleKeepSharedTrip}
+                    existingShareUrl={sessionShareUrl}
+                  />
+                ) : undefined
               }
             />
           </div>
@@ -4177,8 +4210,9 @@ location={authPromptLocation}                  />
       <AuthPromptModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        destination={destination}        
-location={authPromptLocation}              />
+        destination={destination}
+        location={authPromptLocation}
+      />
 
       {/* Early Access Modal - for gated AI features */}
       <EarlyAccessModal

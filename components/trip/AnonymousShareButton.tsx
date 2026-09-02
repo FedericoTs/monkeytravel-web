@@ -44,14 +44,30 @@ interface Props {
   onShared?: (pending: PendingClaim) => void;
   /** "Keep this trip, free": opens the sign-up path. The row renders only when provided. */
   onKeep?: () => void;
+  /**
+   * A link already minted in THIS session. More than one of these buttons can
+   * be on screen at once (the header action and the assistant bridge), and
+   * each mint creates a real ownerless trip row while the browser keeps only
+   * the LAST claim token — so a second mint would strand the first trip and
+   * inflate the anonymous-share counts. Given this, the button skips straight
+   * to its ready state and shows the same link.
+   */
+  existingShareUrl?: string | null;
   className?: string;
 }
 
-export default function AnonymousShareButton({ trip, onShared, onKeep, className = "" }: Props) {
+export default function AnonymousShareButton({ trip, onShared, onKeep, existingShareUrl, className = "" }: Props) {
   const t = useTranslations("trips");
   const [state, setState] = useState<"idle" | "creating" | "ready" | "error">("idle");
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Adopt a link another instance already minted — DERIVED, not synced into
+  // state: an effect that mirrors a prop into state is a second source of
+  // truth that renders one frame stale, and here it also trips the
+  // set-state-in-effect rule.
+  const effectiveUrl = shareUrl ?? existingShareUrl ?? null;
+  const effectiveState = state === "creating" ? "creating" : effectiveUrl ? "ready" : state;
 
   // Shared shape for every event in this loop, so click / mint / send are
   // directly comparable in a funnel without re-deriving properties per call.
@@ -103,20 +119,20 @@ export default function AnonymousShareButton({ trip, onShared, onKeep, className
     }
   }
 
-  if (state === "ready" && shareUrl) {
+  if (effectiveState === "ready" && effectiveUrl) {
     return (
       <div className={`flex flex-col gap-2 ${className}`}>
         <div className="flex items-center gap-2">
           <input
             readOnly
-            value={shareUrl}
+            value={effectiveUrl}
             onFocus={(e) => e.currentTarget.select()}
             aria-label={t("wizard.result.shareAnonCta")}
             className="flex-1 min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700"
           />
           <button
             type="button"
-            onClick={() => copy(shareUrl, "manual")}
+            onClick={() => copy(effectiveUrl, "manual")}
             className="shrink-0 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
           >
             {copied ? t("wizard.result.shareAnonCopied") : t("wizard.result.shareAnonCopy")}
@@ -153,10 +169,10 @@ export default function AnonymousShareButton({ trip, onShared, onKeep, className
       <button
         type="button"
         onClick={handleShare}
-        disabled={state === "creating"}
+        disabled={effectiveState === "creating"}
         className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-2.5 font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
       >
-        {state === "creating" ? (
+        {effectiveState === "creating" ? (
           <>
             <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -178,7 +194,7 @@ export default function AnonymousShareButton({ trip, onShared, onKeep, className
           </>
         )}
       </button>
-      {state === "error" && (
+      {effectiveState === "error" && (
         <p role="alert" className="text-xs text-rose-600">
           {t("wizard.result.shareAnonError")}
         </p>

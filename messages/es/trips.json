@@ -20,7 +20,9 @@
       "noFood": "Nada para comer el día {day} — ¿añado un sitio?",
       "lightDay": "El día {day} solo tiene {count, plural, one {# parada} other {# paradas}} — ¿añado más?",
       "longGap": "El día {day} tiene un hueco de {hours} horas — ¿lo llenamos?"
-    }
+    },
+    "keepPlanPrompt": "Este plan solo existe en este navegador.",
+    "keepPlanButton": "Guarda este viaje, gratis"
   },
   "daySummary": {
     "title": "Día {day}",
