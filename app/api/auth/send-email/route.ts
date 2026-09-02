@@ -219,6 +219,32 @@ export async function POST(request: Request) {
 
     verifyUrl = cb.toString();
   } else {
+    // SILENT-REGRESSION ALARM.
+    //
+    // This branch is correct for email_change and reauthentication, which are
+    // deliberately excluded above. It is NOT correct for a VERIFY_OTP_SAFE
+    // type: reaching it means Supabase stopped sending token_hash, and every
+    // signup confirmation silently reverts to a PKCE link — which cannot be
+    // completed on a second device, because the code_verifier lives in the
+    // browser that started the flow. That is the exact failure #86 fixed, and
+    // without this alarm it would come back with no signal at all: the mail
+    // still sends, the user still clicks, and the only trace is a slow trickle
+    // of accounts that confirm and never get a session (27 of them in the 90
+    // days before #86).
+    if (VERIFY_OTP_SAFE.has(data.email_action_type)) {
+      console.error(
+        `[auth/send-email] token_hash MISSING for ${data.email_action_type} — ` +
+          "falling back to a PKCE link, which breaks cross-device confirmation"
+      );
+      import("@sentry/nextjs")
+        .then((Sentry) =>
+          Sentry.captureMessage?.("auth email fell back to a PKCE link (token_hash absent)", {
+            level: "error",
+            tags: { source: "auth-send-email", action_type: data.email_action_type },
+          })
+        )
+        .catch(() => {});
+    }
     // Unchanged fallback, including when token_hash is absent - better a PKCE
     // link than a link with an empty token.
     verifyUrl =
