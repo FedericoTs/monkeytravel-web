@@ -160,6 +160,7 @@ function preloadResultViewChunks(): void {
 }
 // Note: useOnboardingPreferences removed - personalization moved to profile settings
 import { useEarlyAccess } from "@/lib/hooks/useEarlyAccess";
+import * as Sentry from "@sentry/nextjs";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
 // Step-1 entry rework (2026-09-02) — see lib/wizard/entry-state.ts for the
 // arrival model and lib/posthog/flags.ts FLAG_WIZARD_STEP1_EDITORIAL for the
@@ -179,6 +180,7 @@ import {
   captureClaimedTripBanner,
   captureWizardFirstRunViewed,
   captureWizardOneTapStart,
+  captureAutoSaveSkipped,
 } from "@/lib/posthog/events";
 import { clearClaimedTrip, onClaimedTrip, readClaimedTrip } from "@/lib/trips/claimed-trip-signal";
 // Save Sprint: session generation counter + per-session trip stack (T1/T4).
@@ -221,7 +223,7 @@ import { useFlag, useExperiment, usePostHog } from "@/lib/posthog";
 import { FLAG_AUTO_SAVE_V1, FLAG_FRONT_DOOR } from "@/lib/posthog/flags";
 import DecisionIntake from "@/components/wizard/DecisionIntake";
 import { trackWizardEvent, type WizardEventStep, type FrontDoorArm } from "@/components/wizard/wizardEvents";
-import { useAutoSaveTrip } from "@/hooks/useAutoSaveTrip";
+import { useAutoSaveTrip, type AutoSaveSkipReason } from "@/hooks/useAutoSaveTrip";
 import { isSameDestination } from "@/lib/trips/sameDestination";
 import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate";
 import { safeGet, safeSet } from "@/lib/safe-storage";
@@ -1405,7 +1407,10 @@ export default function NewTripPage({
   // lib/trips/autoSaveGate.vitest.ts. Keeping both sides of the decision in one
   // tested module is what stops the two gates drifting apart again.
   const { enabled: autoSaveEnabledRaw } = useFlag(FLAG_AUTO_SAVE_V1);
-  const autoSaveEnabled = shouldAutoSave(autoSaveEnabledRaw);
+  // 2026-09-02: the flag no longer decides anything (see autoSaveGate.ts —
+  // a stale cached `false` in one browser switched auto-save off for that
+  // browser for good, invisibly). The kill switch is the env variable.
+  const autoSaveEnabled = shouldAutoSave(autoSaveEnabledRaw, process.env.NEXT_PUBLIC_AUTO_SAVE_FORCE);
   // The Explore-UGC gate now arrives as a prop, resolved server-side from
   // EXPLORE_UGC_ENABLED (see this route's page.tsx). It used to be read from
   // the PostHog flag FLAG_EXPLORE_UGC, which was never created — so the CTA
@@ -1454,9 +1459,13 @@ export default function NewTripPage({
 
   const autoSaveTrip = useCallback(async (input: PersistInput) => {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Not authenticated");
-    return persistInsertTrip(supabase, input, user.id, {
+    // Local session read, not a network getUser() (2026-09-02): the RPC
+    // enforces auth.uid() under RLS regardless, and a network pre-check
+    // turned any auth hiccup into a hard failure of the save that nobody
+    // could see. The error names its cause so Sentry can group it.
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) throw new Error("auto-save: no client session");
+    return persistInsertTrip(supabase, input, session.user.id, {
       arm: "auto",
       mountId: wizardMountIdRef.current,
     });
@@ -1574,6 +1583,52 @@ export default function NewTripPage({
     [destination, budgetTier, clearDraft],
   );
 
+  // Auto-save observability (2026-09-02). A failure used to end in a
+  // console.error nobody could see, and a skipped save ended nowhere — which
+  // is how six signed-in users lost generations in a month with no event of
+  // any kind. Sentry is unconditional (no consent gate), the server row is
+  // consent-free, PostHog is the sliceable mirror. Same error bucketing as the
+  // manual Save path so dashboards chart both arms together.
+  const reportAutoSaveFailure = (err: Error, info: { attempts: number }) => {
+    const errMsg = err.message ?? "";
+    const errorClass: "network" | "rls" | "validation" | "rate_limit" | "unknown" =
+      /network|fetch|ECONN|timeout|no client session/i.test(errMsg)
+        ? "network"
+        : /rls|row-level|policy|permission|authenticated caller/i.test(errMsg)
+          ? "rls"
+          : /rate.?limit|429/i.test(errMsg)
+            ? "rate_limit"
+            : /invalid|required|missing|validation/i.test(errMsg)
+              ? "validation"
+              : "unknown";
+    Sentry.withScope((scope) => {
+      scope.setTag("feature", "auto_save");
+      scope.setTag("arm", "auto");
+      scope.setTag("error_class", errorClass);
+      scope.setExtra("attempts", info.attempts);
+      scope.setExtra("destination", destination);
+      Sentry.captureException(err);
+    });
+    void trackWizardEvent(
+      "save_failed",
+      { destination, group_size: tripIntent, backpacker_mode: travelStyle === "backpacker", locale },
+      arm
+    );
+    void captureSaveFailed({
+      destination,
+      group_size: tripIntent,
+      backpacker_mode: travelStyle === "backpacker",
+      error_class: errorClass,
+      error_message: errMsg.slice(0, 80) || undefined,
+      arm: "auto",
+      attempts: info.attempts,
+    });
+    console.error(`[auto-save] failed after ${info.attempts} attempt(s):`, err);
+  };
+  const reportAutoSaveSkipped = (reason: AutoSaveSkipReason) => {
+    void captureAutoSaveSkipped({ reason, destination });
+  };
+
   const autoSave = useAutoSaveTrip({
     itinerary: generatedItinerary,
     isAuthenticated,
@@ -1584,6 +1639,8 @@ export default function NewTripPage({
     deleteTrip: autoDeleteTrip,
     attachCoverImage: autoAttachCoverImage,
     onPersisted: handlePersisted,
+    onError: reportAutoSaveFailure,
+    onSkipped: reportAutoSaveSkipped,
   });
 
   // Mirror the auto-save trip id into the existing savedTripId state so
@@ -2753,7 +2810,7 @@ export default function NewTripPage({
     // The complement of shouldAutoSave: this runs exactly when the hook is
     // inert. Unresolved (undefined) now belongs to the hook, not to a wait
     // that never ends.
-    if (!shouldRedeemSaveIntent(autoSaveEnabledRaw)) return;
+    if (!shouldRedeemSaveIntent(autoSaveEnabledRaw, process.env.NEXT_PUBLIC_AUTO_SAVE_FORCE)) return;
     if (!draftAutoRestored || !generatedItinerary) return;
     if (savedTripId || autoSave.savedTripId) return; // already persisted
     if (savingTripRef.current) return; // a save is already in flight

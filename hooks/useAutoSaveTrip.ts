@@ -40,6 +40,19 @@ type AttachCoverFn = (tripId: string, destination: string) => Promise<void>;
 
 export type AutoSaveStatus = "idle" | "saving" | "saved" | "error";
 
+/**
+ * Why an itinerary was NOT auto-saved. `not_authenticated` is the ordinary
+ * anonymous case; `auth_pending` means the result landed before the client
+ * resolved auth (the save runs once it does); `disabled` is the env kill
+ * switch. Reported once per itinerary identity — until 2026-09-02 every one
+ * of these was a silent early return, which is how six signed-in users lost
+ * generations in a month with no event of any kind.
+ */
+export type AutoSaveSkipReason = "not_authenticated" | "disabled" | "auth_pending";
+
+/** Backoff between attempts. Three attempts total, ~5.5s worst case. */
+export const DEFAULT_RETRY_DELAYS_MS: readonly number[] = [1500, 4000];
+
 export interface UseAutoSaveTripOptions {
   /** The latest generated itinerary, or null when wizard is pre-generation. */
   itinerary: GeneratedItinerary | null;
@@ -63,8 +76,19 @@ export interface UseAutoSaveTripOptions {
     durationDays: number,
     mode: "insert" | "update",
   ) => void;
-  /** Called once when an error occurs. Defaults to console.error. */
-  onError?: (error: Error) => void;
+  /**
+   * Called ONCE, after every retry has failed. Defaults to console.error —
+   * callers that want to see failures in production must pass their own
+   * (the wizard reports to Sentry, PostHog and the server funnel).
+   */
+  onError?: (error: Error, info: { attempts: number }) => void;
+  /**
+   * Called once per itinerary identity when a rendered itinerary is NOT
+   * auto-saved and why. See AutoSaveSkipReason.
+   */
+  onSkipped?: (reason: AutoSaveSkipReason) => void;
+  /** Backoff schedule between attempts; tests pass [0, 0]. */
+  retryDelaysMs?: readonly number[];
 }
 
 export interface UseAutoSaveTripReturn {
@@ -97,6 +121,8 @@ export function useAutoSaveTrip({
   attachCoverImage,
   onPersisted,
   onError,
+  onSkipped,
+  retryDelaysMs = DEFAULT_RETRY_DELAYS_MS,
 }: UseAutoSaveTripOptions): UseAutoSaveTripReturn {
   const [status, setStatus] = useState<AutoSaveStatus>("idle");
   const [savedTripId, setSavedTripId] = useState<string | null>(null);
@@ -116,6 +142,7 @@ export function useAutoSaveTrip({
     attachCoverImage,
     onPersisted,
     onError,
+    onSkipped,
   });
   useEffect(() => {
     callbacksRef.current = {
@@ -125,8 +152,13 @@ export function useAutoSaveTrip({
       attachCoverImage,
       onPersisted,
       onError,
+      onSkipped,
     };
-  }, [saveTrip, updateTrip, deleteTrip, attachCoverImage, onPersisted, onError]);
+  }, [saveTrip, updateTrip, deleteTrip, attachCoverImage, onPersisted, onError, onSkipped]);
+  const retryDelaysRef = useRef(retryDelaysMs);
+  useEffect(() => {
+    retryDelaysRef.current = retryDelaysMs;
+  }, [retryDelaysMs]);
 
   // Synchronous mirror of savedTripId for use inside the persist
   // function; setState is async so reading it directly would race.
@@ -153,33 +185,50 @@ export function useAutoSaveTrip({
 
       setStatus("saving");
       setError(null);
-      try {
-        if (savedTripIdRef.current) {
-          // UPDATE path — preserve trip id across regenerations.
-          const id = savedTripIdRef.current;
-          await cbs.updateTrip(id, input);
-          const durationDays = computeDurationDaysLocal(form);
-          cbs.onPersisted?.(id, durationDays, "update");
-          setStatus("saved");
-        } else {
-          // INSERT path — first-time save.
-          const result = await cbs.saveTrip(input);
-          savedTripIdRef.current = result.tripId;
-          setSavedTripId(result.tripId);
-          cbs.onPersisted?.(result.tripId, result.durationDays, "insert");
-          setStatus("saved");
+      // Retry with backoff (2026-09-02). One transient network or PostgREST
+      // error used to be terminal: a single throw, a console.error nobody
+      // could see, and the itinerary was never attempted again. Each attempt
+      // re-reads savedTripIdRef, so a retry after an INSERT that succeeded
+      // server-side but failed to report becomes an UPDATE, never a second
+      // INSERT (the insert_trip_dedup advisory lock backstops that too).
+      const delays = retryDelaysRef.current;
+      let attempt = 0;
+      for (;;) {
+        attempt += 1;
+        try {
+          if (savedTripIdRef.current) {
+            // UPDATE path — preserve trip id across regenerations.
+            const id = savedTripIdRef.current;
+            await cbs.updateTrip(id, input);
+            const durationDays = computeDurationDaysLocal(form);
+            cbs.onPersisted?.(id, durationDays, "update");
+            setStatus("saved");
+          } else {
+            // INSERT path — first-time save.
+            const result = await cbs.saveTrip(input);
+            savedTripIdRef.current = result.tripId;
+            setSavedTripId(result.tripId);
+            cbs.onPersisted?.(result.tripId, result.durationDays, "insert");
+            setStatus("saved");
 
-          // Fire-and-forget cover image fetch. Doesn't block the
-          // "saved" state transition or further regenerations.
-          if (cbs.attachCoverImage) {
-            void cbs.attachCoverImage(result.tripId, form.destination);
+            // Fire-and-forget cover image fetch. Doesn't block the
+            // "saved" state transition or further regenerations.
+            if (cbs.attachCoverImage) {
+              void cbs.attachCoverImage(result.tripId, form.destination);
+            }
           }
+          return;
+        } catch (err) {
+          const e = err instanceof Error ? err : new Error(String(err));
+          if (attempt <= delays.length) {
+            await new Promise((resolve) => setTimeout(resolve, delays[attempt - 1]));
+            continue;
+          }
+          setError(e);
+          setStatus("error");
+          (cbs.onError ?? defaultOnError)(e, { attempts: attempt });
+          return;
         }
-      } catch (err) {
-        const e = err instanceof Error ? err : new Error(String(err));
-        setError(e);
-        setStatus("error");
-        (cbs.onError ?? defaultOnError)(e);
       }
     },
     [],
@@ -197,10 +246,26 @@ export function useAutoSaveTrip({
   // becomes an UPDATE with the latest content. The server-side advisory-lock
   // RPC (insert_trip_dedup) backstops paths this ref can't see (two tabs,
   // remounts).
+  // Every early return below used to be silent. Report a skipped save once per
+  // itinerary identity so "rendered a result, never attempted a save" is
+  // visible — the signature six signed-in users left in 30 days (2026-09).
+  const skipReportedForRef = useRef<GeneratedItinerary | null>(null);
   useEffect(() => {
-    if (!enabled) return;
-    if (!isAuthenticated) return;
     if (!itinerary) return;
+    const skipReason: AutoSaveSkipReason | null = !enabled
+      ? "disabled"
+      : isAuthenticated === null
+        ? "auth_pending"
+        : !isAuthenticated
+          ? "not_authenticated"
+          : null;
+    if (skipReason) {
+      if (skipReportedForRef.current !== itinerary) {
+        skipReportedForRef.current = itinerary;
+        callbacksRef.current.onSkipped?.(skipReason);
+      }
+      return;
+    }
     if (lastAttemptedItineraryRef.current === itinerary) return;
     lastAttemptedItineraryRef.current = itinerary;
 
@@ -261,7 +326,7 @@ export function useAutoSaveTrip({
     } catch (err) {
       // Surface but don't block reset — the user wanted to start over.
       const e = err instanceof Error ? err : new Error(String(err));
-      (callbacksRef.current.onError ?? defaultOnError)(e);
+      (callbacksRef.current.onError ?? defaultOnError)(e, { attempts: 1 });
     } finally {
       savedTripIdRef.current = null;
       setSavedTripId(null);
@@ -287,6 +352,6 @@ function computeDurationDaysLocal(form: TripFormState): number {
   return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 }
 
-function defaultOnError(err: Error): void {
-  console.error("[useAutoSaveTrip] save error:", err);
+function defaultOnError(err: Error, info: { attempts: number }): void {
+  console.error(`[useAutoSaveTrip] save error after ${info.attempts} attempt(s):`, err);
 }
