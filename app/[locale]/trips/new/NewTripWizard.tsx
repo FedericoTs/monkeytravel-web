@@ -190,6 +190,7 @@ import { clearClaimedTrip, onClaimedTrip, readClaimedTrip } from "@/lib/trips/cl
 import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim-client";
 import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
 import { decideDraftRestore } from "@/lib/wizard/draft-restore";
+import { classifyGenerationFailure } from "@/lib/wizard/generation-failure";
 // Save Sprint: session generation counter + per-session trip stack (T1/T4).
 import { useSessionTripStack } from "@/hooks/useSessionTripStack";
 import { useCurrency } from "@/lib/locale";
@@ -395,6 +396,15 @@ function seasonalPopular(month: number, limit = 6): SeasonalPopular[] {
 // Exact copy of DESTINATION_ALLOWLIST in lib/gemini.ts — letters, spaces,
 // hyphens, commas, dots, parentheses, apostrophes, &, /, digits.
 const DESTINATION_ALLOWLIST = /^[\p{L}\p{M}\s\-,.'()&/0-9]+$/u;
+// The server's OTHER destination rule (lib/gemini.ts validateTripParams), and
+// the one the client never mirrored. A pasted prompt sails through the gate,
+// fires `generating`, and bounces off the server with an untranslated
+// "Destination name too long" behind a Retry button that resends the same text.
+// Measured 30 days to 2026-09-02: destinations over 100 chars reached a result
+// 33.3% of the time (12 sessions) against 98.5% at <=60 and 100% at 61-100 — so
+// the bound belongs at 100, exactly where the server puts it, and NOT at a
+// friendlier-sounding 60, which would nag 19 sessions/month that are succeeding.
+const DESTINATION_MAX_LENGTH = 100;
 
 // Day-inclusive trip span, matching the server's math (ceil(diff/day) + 1).
 // Returns 0 for missing/unparseable dates.
@@ -2109,7 +2119,11 @@ export default function NewTripPage({
         //   - both dates parseable ("Invalid date format" guard)
         //   - end strictly after start (server rejects end <= start)
         //   - span within MAX_TRIP_DAYS (day-inclusive, same math as server)
-        if (destination.length < 2 || !DESTINATION_ALLOWLIST.test(destination)) {
+        if (
+          destination.length < 2 ||
+          destination.length > DESTINATION_MAX_LENGTH ||
+          !DESTINATION_ALLOWLIST.test(destination)
+        ) {
           return false;
         }
         const span = tripSpanDaysInclusive(startDate, endDate);
@@ -2186,6 +2200,7 @@ export default function NewTripPage({
     editorialStep1 &&
     step === 1 &&
     destination.length >= 2 &&
+    destination.length <= DESTINATION_MAX_LENGTH &&
     DESTINATION_ALLOWLIST.test(destination) &&
     !(startDate && endDate) &&
     !(MULTI_CITY_ENABLED && multiCityMode);
@@ -2212,6 +2227,15 @@ export default function NewTripPage({
     const plannedSpan = tripSpanDaysInclusive(startDate, endDate);
     if (plannedSpan > effectiveMaxTripDays) {
       setError(t("wizard.datePicker.maxDaysLimit", { days: effectiveMaxTripDays }));
+      setStep(1);
+      return;
+    }
+    // Same reasoning as the date guard above, for the rule the client used to
+    // skip. Returning HERE — before bumpGenCount and before the `generating`
+    // row — is the point: a doomed attempt should cost no round-trip and leave
+    // no phantom "generating" that reads as a dead end in the funnel.
+    if (destination.length > DESTINATION_MAX_LENGTH) {
+      setError(t("wizard.step1.destinationTooLong"));
       setStep(1);
       return;
     }
@@ -2256,7 +2280,15 @@ export default function NewTripPage({
     // signup modal at Save time.
     if (destination && startDate && endDate) {
       saveDraft({
-        generatedItinerary: null as unknown as GeneratedItinerary,
+        // Was `null`, unconditionally. That emptied a perfectly good draft the
+        // moment the user pressed Generate, so anyone returning mid-wait — or
+        // whose generation failed — found a blank form where their itinerary
+        // had been. Keep it for the SAME destination (a re-generate with dates
+        // or length tweaked); drop it when the destination changed, because
+        // Rome's itinerary under Lisbon's name is worse than nothing.
+        generatedItinerary: (isSameDestination(draft?.destination, destination)
+          ? draft?.generatedItinerary ?? null
+          : null) as unknown as GeneratedItinerary,
         destination,
         startDate,
         endDate,
@@ -2570,6 +2602,17 @@ export default function NewTripPage({
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
+      // Until now a failed generation left NOTHING server-side: `abandoned`
+      // cannot follow `generating` (wizardCompletedRef is set before the
+      // request fires), and no failure step existed — so the 22 sessions in 30
+      // days that reached `generating` and never reached `result` were
+      // indistinguishable from someone closing the tab. The code separates the
+      // buckets without anyone reading a stack trace.
+      void trackWizardEvent("generation_failed", {
+        destination,
+        locale,
+        failure_code: classifyGenerationFailure(err),
+      }, arm);
       captureTripGenerationCompleted({
         destination,
         duration_days: startDate && endDate
@@ -4697,6 +4740,17 @@ export default function NewTripPage({
                 </p>
               )}
 
+              {/* Too long is the other half of the same server rule.
+                  Deliberately NOT a maxLength on the input: silent truncation
+                  would pass both the allowlist and the bound, and generate a
+                  confident itinerary for whatever the first 100 characters
+                  happened to spell. */}
+              {destination.length > DESTINATION_MAX_LENGTH && (
+                <p role="alert" className="mt-2 text-xs font-medium text-red-600">
+                  {t("wizard.step1.destinationTooLong")}
+                </p>
+              )}
+
               {/* Popular destinations — real demand-ranked (distinct planning
                   sessions, season-reordered) + an honest aggregate proof line. */}
               {!destination && (editorialStep1 ? (
@@ -5121,6 +5175,8 @@ export default function NewTripPage({
                 ? t("wizard.step1.hintFlexibleDefault", { days: 5 })
                 : destination.length < 2
                 ? t("wizard.step1.hintNeedDestination")
+                : destination.length > DESTINATION_MAX_LENGTH
+                ? t("wizard.step1.destinationTooLong")
                 : !DESTINATION_ALLOWLIST.test(destination)
                 ? t("wizard.step1.destinationInvalidChars")
                 : tripSpanDaysInclusive(startDate, endDate) > effectiveMaxTripDays

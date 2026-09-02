@@ -176,7 +176,8 @@
       },
       "useFlexibleDates": "Usa date flessibili",
       "hintFlexibleDefault": "Ancora senza date? Metteremo per ora {days} giorni tra circa tre settimane — puoi cambiarle quando vuoi.",
-      "freeReassuranceSignedIn": "Gratis — il tuo viaggio giorno per giorno completo, pronto da salvare con un tocco"
+      "freeReassuranceSignedIn": "Gratis — il tuo viaggio giorno per giorno completo, pronto da salvare con un tocco",
+      "destinationTooLong": "Sembra una richiesta più che un luogo. Scrivi qui la destinazione (max 100 caratteri) e aggiungi i dettagli nel passaggio successivo."
     },
     "returningUser": {
       "welcomeBack": "Bentornato!",

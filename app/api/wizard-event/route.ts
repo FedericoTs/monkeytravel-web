@@ -51,6 +51,7 @@ const STEP_VALUES = [
   // Draft recovery (2026-09-02) — see components/wizard/wizardEvents.ts.
   "draft_restored",
   "draft_expired",
+  "generation_failed",
 ] as const;
 
 const BodySchema = z.object({
@@ -63,6 +64,14 @@ const BodySchema = z.object({
   // Which front-door arm fired this event (front-door A/B). Nullable for the
   // pre-experiment wizard baseline; the decision arm always sends it.
   front_door: z.enum(["wizard", "decision"]).optional(),
+  // Why a generation failed, for `generation_failed` rows only. The vocabulary
+  // is closed on purpose: an open string would fill with model prose and stop
+  // being groupable, which is the entire reason this column exists. Kept in
+  // lockstep with GenerationFailureCode in lib/wizard/generation-failure.ts
+  // and the CHECK constraint in the migration.
+  failure_code: z
+    .enum(["validation", "rate_limit", "timeout", "network", "upstream", "unknown"])
+    .optional(),
 });
 
 // Day-4 bug fix (P2.5): composite IP + session rate limit.
@@ -195,6 +204,7 @@ export async function POST(request: NextRequest) {
     backpacker_mode: body.backpacker_mode ?? null,
     locale: body.locale ?? null,
     front_door: body.front_door ?? null,
+    failure_code: body.failure_code ?? null,
   });
 
   if (error) {

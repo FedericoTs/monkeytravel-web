@@ -51,7 +51,11 @@ export type WizardEventStep =
   // path; every other way back into an account met a blank wizard. Nothing
   // server-side recorded a restore, so the loss was invisible.
   | "draft_restored"
-  | "draft_expired";
+  | "draft_expired"
+  // A generation that reached the server and came back an error (2026-09-02).
+  // `abandoned` cannot follow `generating`, so without this a failure and a
+  // closed tab were the same row: nothing.
+  | "generation_failed";
 
 /**
  * Fire-and-forget POST to /api/wizard-event. Never awaited from a render path,
