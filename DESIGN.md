@@ -59,14 +59,20 @@ in both directions:
 | token | hex | role |
 |---|---|---|
 | `--primary` | `#FF6B6B` | decoration: gradients, borders, focus rings, glows, illustration |
-| `--primary-ink` | `#C93232` | **all coral text**, and coral fills under a white label |
+| `--primary-ink` | `#FF6B6B` | coral text — **decorative only** since 2026-08-26 (see correction below); text that must be read uses `--foreground` / `--foreground-muted` |
 | `--secondary` | `#00B4A6` | decoration |
 | `--secondary-ink` | `#00786F` | all teal text and teal fills |
 | `--accent` | `#FFD93D` | gold fills — **charcoal text only**, never red, never white |
 
-`--primary-ink` measures 4.94:1 on `--background`, 5.27:1 on white, 4.76:1 on the
-`--background-cream` tint (the tightest surface, and the one that set the value),
-and 5.27:1 under a white label. `--secondary-ink` is 4.94 / 5.36 / 4.84 / 5.36.
+**Correction (2026-09-02).** The paragraph this replaced described `--primary-ink`
+as `#C93232` at 4.94:1. That value was folded back to the brand coral (`#FF6B6B`)
+on 2026-08-26 in `f939625`, and `app/ink-tokens-contrast.vitest.ts` now **pins
+`--primary-ink === --primary`** at ~2.68:1 on `--background` as an accepted
+exception. So coral text is decoration at every size, exactly like coral fills:
+anything a person must read is set in `--foreground` or `--foreground-muted`,
+and a new surface must not reach for `text-[var(--primary-ink)]` to carry
+meaning. `--secondary-ink` was not part of that change; check `app/globals.css`
+for its current value before relying on the teal ratios.
 
 ### The dark-surface trap
 
