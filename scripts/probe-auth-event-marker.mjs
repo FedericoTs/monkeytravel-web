@@ -39,11 +39,13 @@ let failures = 0;
 const fail = (m) => { console.log(`  *** FAIL - ${m}`); failures++; };
 const ok = (m) => console.log(`  ok   ${m}`);
 
-async function redeem(tokenHash, type) {
-  const target = `${BASE}/auth/callback?token_hash=${encodeURIComponent(tokenHash)}&type=${type}&locale=en`;
+async function redeem(tokenHash, type, next) {
+  const nextParam = next ? `&next=${encodeURIComponent(next)}` : "";
+  const target = `${BASE}/auth/callback?token_hash=${encodeURIComponent(tokenHash)}&type=${type}&locale=en${nextParam}`;
   const res = await fetch(target, { redirect: "manual" });
   const loc = res.headers.get("location") || "";
-  return { status: res.status, location: loc, authEvent: new URL(loc, BASE).searchParams.get("auth_event") };
+  const u = new URL(loc, BASE);
+  return { status: res.status, location: loc, path: u.pathname, authEvent: u.searchParams.get("auth_event") };
 }
 
 const email = `mt-probe+marker-${Date.now()}@test.local`;
@@ -74,6 +76,47 @@ try {
     if (r.authEvent === "email_confirmed") ok("returning login keeps auth_event=email_confirmed");
     else fail(`returning login carried auth_event=${r.authEvent}`);
   }
+  console.log("");
+  console.log("=== 3. a first arrival bound for the empty trip list goes to the wizard ===");
+  // The regression this now guards (2026-09-02): the login page defaults
+  // next=/trips, and until #87 /trips redirected zero-trip users onward. The
+  // callback has to make that call itself. This exercises the same helper the
+  // Google branch uses; that branch cannot be probed here because it needs a
+  // real Google sign-in.
+  const email2 = `mt-probe+landing-${Date.now()}@test.local`;
+  const { data: created2, error: ce2 } = await db.auth.admin.createUser({ email: email2, password, email_confirm: false });
+  if (ce2) fail(`could not create the landing probe user: ${ce2.message}`);
+  else {
+    try {
+      const { data: l3, error: e3 } = await db.auth.admin.generateLink({ type: "signup", email: email2, password });
+      if (e3 || !l3?.properties?.hashed_token) fail(`could not mint a signup link: ${e3?.message}`);
+      else {
+        const r = await redeem(l3.properties.hashed_token, "signup", "/trips");
+        console.log(`     ${r.status} -> ${r.location.replace(BASE, "")}`);
+        if (r.path.endsWith("/trips/new")) ok("first arrival with next=/trips lands on the wizard");
+        else fail(`first arrival with next=/trips landed on ${r.path}`);
+        if (r.authEvent === "signup_email") ok("...and still carries auth_event=signup_email");
+        else fail(`the landing rewrite changed the marker to ${r.authEvent}`);
+      }
+      const { data: l4, error: e4 } = await db.auth.admin.generateLink({ type: "magiclink", email: email2 });
+      if (e4 || !l4?.properties?.hashed_token) fail(`could not mint a magic link: ${e4?.message}`);
+      else {
+        const r = await redeem(l4.properties.hashed_token, "magiclink", "/trips");
+        console.log(`     ${r.status} -> ${r.location.replace(BASE, "")}`);
+        // The email branch rewrites /trips -> /trips/new for EVERYONE (route.ts
+        // ~162, "Prefer trips/new for new users"), returning logins included.
+        // That predates this probe and is left alone; pinned here so a change
+        // to it is deliberate. The first-arrival-only rule added for the OAuth
+        // branch lives in lib/auth/first-login.ts and is covered by unit tests,
+        // since driving a real Google sign-in here is not possible.
+        if (r.path.endsWith("/trips/new")) ok("returning email login also lands on the wizard (long-standing email-branch rule)");
+        else fail(`returning email login went to ${r.path}, not the wizard the email branch has always chosen`);
+      }
+    } finally {
+      await db.auth.admin.deleteUser(created2.user.id).catch(() => {});
+    }
+  }
+
 } finally {
   await db.auth.admin.deleteUser(created.user.id).catch(() => {});
   console.log("\n  probe user deleted");

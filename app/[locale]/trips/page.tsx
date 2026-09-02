@@ -71,11 +71,17 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
   // trips" secondary - which a zero-trip user had never once seen, because
   // this line sent them away before it could render.
   //
-  // Activation intent is unaffected: the post-signup landing does not pass
-  // through here. app/auth/callback/route.ts rewrites next="/trips" to
-  // "/trips/new" itself, so new users still arrive at the wizard directly.
-  // This only changes what happens when someone deliberately navigates to
-  // their trip list - and trapping them there was never the intent.
+  // Post-signup landing is handled in the callback, NOT here. The first
+  // version of this comment claimed app/auth/callback/route.ts rewrites
+  // next="/trips" to "/trips/new" itself. It does not: that rewrite lives
+  // inside the callback's `isNewUser` block, which cannot run because
+  // handle_new_user creates public.users in the same transaction. Removing
+  // the redirect therefore dropped fresh Google signups (42 of every 100,
+  // the ones who use the login page) onto this empty list. The callback now
+  // decides that itself — see lib/auth/first-login.ts — which is where the
+  // decision belongs, since only the callback knows the account is new.
+  // This page only changes what happens when someone deliberately navigates
+  // to their trip list, and trapping them there was never the intent.
 
   const { data: profile } = profileResult;
 
