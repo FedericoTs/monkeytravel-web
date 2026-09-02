@@ -8,6 +8,8 @@ import dynamic from "next/dynamic";
 import type { ItineraryDay, TripMeta, CachedDayTravelData } from "@/types";
 import { trackShareLinkClicked } from "@/lib/analytics";
 import { getTripDestination } from "@/lib/trips/destination";
+import { readPendingClaim } from "@/lib/trips/anonymous-claim-client";
+import { onClaimedTrip, readClaimedTrip } from "@/lib/trips/claimed-trip-signal";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import DestinationHero from "@/components/DestinationHero";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -132,6 +134,30 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [showSaveModal, setShowSaveModal] = useState(false);
+  // The sharer opening their own link (2026-09-02): this browser still holds
+  // the claim token for THIS trip. "Save to My Trips" would duplicate their
+  // own itinerary, so the strip offers the claim instead, and once the claim
+  // lands (AuthProvider, on SIGNED_IN) the page moves them onto the trip they
+  // now own.
+  const [ownerPending, setOwnerPending] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    void readPendingClaim().then((p) => {
+      if (alive) setOwnerPending(!!p && p.shareToken === shareToken);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [shareToken]);
+  useEffect(() => {
+    if (!ownerPending) return;
+    const go = (id: string) => {
+      if (id === trip.id) window.location.assign(`/trips/${id}`);
+    };
+    const already = readClaimedTrip();
+    if (already) go(already);
+    return onClaimedTrip(go);
+  }, [ownerPending, trip.id]);
 
   // Anonymous vote state — see /api/shared/[token]/vote and /votes.
   // Tallies are keyed by activity.id (the per-activity nanoid in the itinerary).
@@ -813,9 +839,28 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             to them (the viral loop). Stacked on mobile, side-by-side ≥sm. */}
         <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100">
           <div className="max-w-2xl mx-auto">
+            {ownerPending ? (
+              <div
+                className="flex flex-col gap-3 rounded-xl border border-[var(--primary)]/20 bg-[var(--background-warm)] px-4 py-3 sm:flex-row sm:items-center"
+                data-owner-claim-strip
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-[var(--foreground)]">{t("share.ownerClaim.title")}</p>
+                  <p className="text-xs text-slate-600">{t("share.ownerClaim.body")}</p>
+                </div>
+                <Link
+                  href={`/auth/signup?redirect=${encodeURIComponent(`/shared/${shareToken}`)}`}
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-[var(--primary)] px-5 text-sm font-semibold text-white transition-colors hover:bg-[var(--primary)]/90"
+                >
+                  {t("share.ownerClaim.cta")}
+                </Link>
+              </div>
+            ) : (
+            <>
             <div className="flex flex-col sm:flex-row gap-3">
               <button
-                onClick={() => setShowSaveModal(true)}
+
+onClick={() => setShowSaveModal(true)}
                 className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
               >
                 <Sparkles className="w-5 h-5" />
@@ -834,6 +879,8 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             <p className="text-center text-xs text-slate-500 mt-2">
               {t("share.savedHero.saveSubtitle")}
             </p>
+            </>
+            )}
           </div>
         </div>
 

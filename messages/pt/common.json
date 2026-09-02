@@ -1221,6 +1221,11 @@
         "cta": "Copiar link",
         "linkReady": "Seu link"
       }
+    },
+    "ownerClaim": {
+      "title": "Esta é a sua viagem",
+      "body": "Partilhou-a sem conta. Registe-se grátis e poderá editá-la.",
+      "cta": "Registe-se para a guardar"
     }
   },
   "proposals": {

@@ -242,7 +242,9 @@
       "shareAnonCopy": "Copiar",
       "shareAnonCopied": "Copiado",
       "shareAnonError": "No se pudo crear el enlace. Inténtalo de nuevo.",
-      "shareAnonHint": "Cualquiera con el enlace puede verlo y votar. Regístrate para guardarlo y editarlo."
+      "shareAnonHint": "Cualquiera con el enlace puede verlo y votar.",
+      "shareAnonKeepPrompt": "¿Quieres seguir editándolo?",
+      "shareAnonKeepCta": "Guardar este viaje, gratis"
     },
     "anchors": {
       "cta": "Tengo planes fijos (vuelo, boda, hotel…)",
@@ -291,6 +293,14 @@
       "body": "El itinerario que creaste antes de registrarte ya está guardado en Mis Viajes.",
       "open": "Abrir mi viaje",
       "planAnother": "Planificar otro viaje",
+      "dismiss": "Cerrar"
+    },
+    "pendingClaim": {
+      "title": "Tu viaje a {destination} sigue aquí",
+      "titleGeneric": "Tu viaje compartido sigue aquí",
+      "body": "Lo compartiste sin cuenta. Regístrate gratis para seguir editándolo, o abre el enlace que enviaste.",
+      "keep": "Guardar este viaje",
+      "openLink": "Abrir el enlace",
       "dismiss": "Cerrar"
     }
   },

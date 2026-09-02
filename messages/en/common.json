@@ -1221,6 +1221,11 @@
         "cta": "Copy link",
         "linkReady": "Your link"
       }
+    },
+    "ownerClaim": {
+      "title": "This is your trip",
+      "body": "You shared it without an account. Sign up free and it becomes yours to edit.",
+      "cta": "Sign up to keep it"
     }
   },
   "proposals": {

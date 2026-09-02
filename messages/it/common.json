@@ -1221,6 +1221,11 @@
         "cta": "Copia link",
         "linkReady": "Il tuo link"
       }
+    },
+    "ownerClaim": {
+      "title": "Questo è il tuo viaggio",
+      "body": "L'hai condiviso senza un account. Registrati gratis e potrai modificarlo.",
+      "cta": "Registrati per tenerlo"
     }
   },
   "proposals": {

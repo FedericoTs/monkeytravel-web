@@ -58,7 +58,7 @@ describe("ActivationFunnelPanel", () => {
     expect(screen.getByText("Someone opened it").nextElementSibling?.textContent).toBe("33");
     expect(screen.getByText("72 human visits")).toBeTruthy();
     expect(screen.getByText("Claimed at signup").nextElementSibling?.textContent).toBe("0");
-    expect(screen.getByText("0% · 55 still claimable · 0 expired")).toBeTruthy();
+    expect(screen.getByText("0% · 0 sharers signed in later · 55 still claimable")).toBeTruthy();
     expect(screen.getByText("Prior 30 days: 0 shared, 0 claimed")).toBeTruthy();
   });
 

@@ -242,7 +242,9 @@
       "shareAnonCopy": "Copiar",
       "shareAnonCopied": "Copiado",
       "shareAnonError": "Não foi possível criar a ligação. Tente novamente.",
-      "shareAnonHint": "Qualquer pessoa com a ligação pode ver e votar. Crie conta para guardar e editar."
+      "shareAnonHint": "Qualquer pessoa com o link pode ver e votar.",
+      "shareAnonKeepPrompt": "Quer continuar a editá-lo?",
+      "shareAnonKeepCta": "Guardar esta viagem, grátis"
     },
     "anchors": {
       "cta": "Tenho planos fixos (voo, casamento, hotel…)",
@@ -291,6 +293,14 @@
       "body": "O roteiro que você criou antes de se cadastrar já está salvo em Minhas Viagens.",
       "open": "Abrir minha viagem",
       "planAnother": "Planejar outra viagem",
+      "dismiss": "Fechar"
+    },
+    "pendingClaim": {
+      "title": "A sua viagem a {destination} ainda está aqui",
+      "titleGeneric": "A sua viagem partilhada ainda está aqui",
+      "body": "Partilhou-a sem conta. Registe-se grátis para continuar a editá-la, ou abra o link que enviou.",
+      "keep": "Guardar esta viagem",
+      "openLink": "Abrir o link",
       "dismiss": "Fechar"
     }
   },
