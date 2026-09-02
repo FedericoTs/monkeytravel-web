@@ -151,7 +151,29 @@
       "flexibleDatesActive": "Date flessibili — puoi modificarle quando vuoi",
       "backpackerMode": "Modalità Backpacker",
       "backpackerModeOn": "Modalità Backpacker — ATTIVA",
-      "backpackerModeSubtitle": "Ostelli, consigli per il budget, multi-città"
+      "backpackerModeSubtitle": "Ostelli, consigli per il budget, multi-città",
+      "editorial": {
+        "title": "Il tuo viaggio, giorno per giorno.",
+        "deck": "Dicci dove e più o meno quando. In circa 30 secondi avrai l'itinerario completo — gratis e senza account per vederlo."
+      },
+      "firstRun": {
+        "title": "Sei dentro. Pianifichiamo il tuo primo viaggio.",
+        "deck": "Scegli un posto qui sotto o scrivi il tuo. L'itinerario richiede circa 30 secondi, e salvarlo nel tuo account è un solo tocco."
+      },
+      "prefill": {
+        "title": "Pianifichiamo {destination}.",
+        "deck": "Abbiamo ripreso il viaggio dall'articolo. Cambia quello che vuoi e continua."
+      },
+      "picks": {
+        "inSeason": "In stagione",
+        "chipAria": "Inizia un viaggio a {city}, {country} — imposta il luogo e date flessibili"
+      },
+      "oneTap": {
+        "datesPencilled": "Abbiamo messo per ora {days} giorni tra circa tre settimane — tocca una durata o apri il calendario per cambiarli."
+      },
+      "useFlexibleDates": "Usa date flessibili",
+      "hintFlexibleDefault": "Ancora senza date? Metteremo per ora {days} giorni tra circa tre settimane — puoi cambiarle quando vuoi.",
+      "freeReassuranceSignedIn": "Gratis — il tuo viaggio giorno per giorno completo, pronto da salvare con un tocco"
     },
     "returningUser": {
       "welcomeBack": "Bentornato!",
@@ -263,6 +285,13 @@
         "skipped": "{count, plural, =1 {1 saltato:} other {# saltati:}}",
         "undated": "{count, plural, =1 {1 idea senza data è finita nelle richieste speciali} other {# idee senza data sono finite nelle richieste speciali}}"
       }
+    },
+    "claimedTrip": {
+      "title": "Il tuo viaggio è venuto con te",
+      "body": "L'itinerario che hai creato prima di registrarti è ora salvato in I miei viaggi.",
+      "open": "Apri il mio viaggio",
+      "planAnother": "Pianifica un altro viaggio",
+      "dismiss": "Chiudi"
     }
   },
   "vibes": {

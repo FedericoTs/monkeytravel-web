@@ -103,3 +103,6 @@ marketing/**/*.mp4
 marketing/*.mp4
 marketing/sample-clip.log
 .gstack/
+
+# Playwright probe screenshots (scripts/probe-*.mjs)
+.probe-shots/

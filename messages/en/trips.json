@@ -151,7 +151,29 @@
       "flexibleDatesActive": "Flexible dates — you can fine-tune anytime",
       "backpackerMode": "Backpacker mode",
       "backpackerModeOn": "Backpacker mode — ON",
-      "backpackerModeSubtitle": "Hostels, budget tips, multi-city friendly"
+      "backpackerModeSubtitle": "Hostels, budget tips, multi-city friendly",
+      "editorial": {
+        "title": "Your trip, planned day by day.",
+        "deck": "Say where and roughly when. About 30 seconds later you'll have a full itinerary — free, no account needed to see it."
+      },
+      "firstRun": {
+        "title": "You're in. Let's plan your first trip.",
+        "deck": "Pick a place below or type your own. Your itinerary takes about 30 seconds, and saving it to your account is one tap."
+      },
+      "prefill": {
+        "title": "Let's plan {destination}.",
+        "deck": "We carried the trip over from the article. Change anything you like, then continue."
+      },
+      "picks": {
+        "inSeason": "In season",
+        "chipAria": "Start a trip to {city}, {country} — sets the place and flexible dates"
+      },
+      "oneTap": {
+        "datesPencilled": "We pencilled in {days} days about three weeks out — tap a length or open the calendar to change it."
+      },
+      "useFlexibleDates": "Use flexible dates",
+      "hintFlexibleDefault": "No dates yet? We'll pencil in {days} days about three weeks out — you can change them anytime.",
+      "freeReassuranceSignedIn": "Free — your full day-by-day trip, ready to save in one tap"
     },
     "returningUser": {
       "welcomeBack": "Welcome back!",
@@ -263,6 +285,13 @@
         "skipped": "{count, plural, =1 {1 skipped:} other {# skipped:}}",
         "undated": "{count, plural, =1 {1 idea with no day went into your special requests} other {# ideas with no day went into your special requests}}"
       }
+    },
+    "claimedTrip": {
+      "title": "Your trip came with you",
+      "body": "The itinerary you built before signing up is now saved in My Trips.",
+      "open": "Open my trip",
+      "planAnother": "Plan another trip",
+      "dismiss": "Dismiss"
     }
   },
   "vibes": {

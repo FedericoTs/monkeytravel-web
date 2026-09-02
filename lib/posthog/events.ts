@@ -270,6 +270,10 @@ export interface TripWizardStepCompletedEvent {
   step_name: "destination" | "dates" | "vibes" | "preferences" | "destination_dates" | "vibes_preferences";
   /** Time spent on this step in seconds */
   time_on_step_seconds?: number;
+  /** Step 1 only: were the dates chosen, or the pencilled flexible default? */
+  dates_mode?: "exact" | "flexible";
+  /** Step 1 only: did a popular-pick one-tap fill the destination? */
+  one_tap?: boolean;
 }
 
 export interface TripWizardAbandonedEvent {
@@ -665,6 +669,47 @@ export async function captureTripWizardAbandoned(event: TripWizardAbandonedEvent
 export async function captureTripWizardFieldInteracted(event: TripWizardFieldInteractedEvent) {
   const ph = await getPosthog();
   ph.capture("trip_wizard_field_interacted", event);
+}
+
+// ── Step-1 entry rework (2026-09-02) ─────────────────────────────────────────
+// Sliced by the super-properties step1_variant + wizard_entry that
+// NewTripWizard registers, so the week-one read needs no per-call edits.
+
+/** A popular pick set the destination (and, when no dates existed, pencilled flexible dates). */
+export interface WizardOneTapStartEvent {
+  destination: string;
+  in_season: boolean;
+  dates_autofilled: boolean;
+  first_run: boolean;
+  step1_variant: "editorial" | "classic";
+  /** 0-based position in the six-chip grid. */
+  position: number;
+}
+
+export async function captureWizardOneTapStart(event: WizardOneTapStartEvent) {
+  const ph = await getPosthog();
+  ph.capture("wizard_one_tap_start", event);
+}
+
+/** A brand-new account landed on step 1 (latched ?auth_event=signup_email|signup_google). */
+export interface WizardFirstRunViewedEvent {
+  auth_event: string;
+}
+
+export async function captureWizardFirstRunViewed(event: WizardFirstRunViewedEvent) {
+  const ph = await getPosthog();
+  ph.capture("wizard_first_run_viewed", event);
+}
+
+/** The "Your trip came with you" banner — surfaced once, then what the person did with it. */
+export interface ClaimedTripBannerEvent {
+  action: "surfaced" | "opened" | "plan_another" | "dismissed";
+  trip_id: string;
+}
+
+export async function captureClaimedTripBanner(event: ClaimedTripBannerEvent) {
+  const ph = await getPosthog();
+  ph.capture("claimed_trip_banner", event);
 }
 
 export async function captureTripGenerationStarted(event: TripGenerationStartedEvent) {

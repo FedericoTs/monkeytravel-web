@@ -1867,7 +1867,10 @@ nav[data-monkey-nav].monkey-nav-scrolled {
   .animate-float-slow-reverse,
   .animate-pulse-glow,
   .animate-bounce-subtle,
-  .animate-ping {
+  .animate-ping,
+  /* Entrance slide used by the wizard banners (draft recovery, first run).
+     It was the one entrance animation missing from this block. */
+  .animate-fade-in-up {
     animation: none !important;
   }
 }

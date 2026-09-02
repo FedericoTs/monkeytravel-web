@@ -21,7 +21,18 @@ export default function CompleteProfilePage() {
   // Belt-and-suspenders: even though /auth/callback already validates the
   // upstream `next`, anyone can hit /auth/complete-profile?redirect=...
   // directly once signed in. See lib/security/safe-next.ts.
-  const redirectUrl = safeNextOrDefault(searchParams.get("redirect"), "/trips/new");
+  const safeRedirect = safeNextOrDefault(searchParams.get("redirect"), "/trips/new");
+  // The callback puts auth_event on THIS page's URL, not on the inner
+  // redirect, so a Google signup that passed through here reached /trips/new
+  // with no auth_event at all — indistinguishable from a cold visit, and
+  // invisible to the wizard's first-run treatment. Carry it across. The
+  // value is constrained to the callback's own vocabulary so nothing
+  // user-controlled is appended to a path we then navigate to.
+  const authEvent = searchParams.get("auth_event");
+  const redirectUrl =
+    authEvent && /^[a-z_]{1,32}$/.test(authEvent)
+      ? `${safeRedirect}${safeRedirect.includes("?") ? "&" : "?"}auth_event=${authEvent}`
+      : safeRedirect;
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("Setting up your personalized profile...");
 

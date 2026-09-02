@@ -161,6 +161,24 @@ export async function GET(request: Request) {
       // IMPORTANT: Preserve the original redirect URL so user returns to their intended destination
       const finalRedirect = next !== "/trips" ? next : "/trips/new"; // Prefer trips/new for new users
 
+      // A profile exists for a brand-new email signup too (the signup trigger
+      // creates it), so `existingProfile` alone cannot separate a FIRST
+      // confirmation from a returning magic-link login — and this branch used
+      // to stamp both with auth_event=email_confirmed. login_count can tell
+      // them apart: it is still 0 the first time anyone arrives here. The
+      // wizard keys its first-run treatment on signup_email, so a returning
+      // login must never carry it.
+      // login_count alone is not enough: accounts from before the counter
+      // existed still sit at 0, and a magic-link login from one of them must
+      // not read as a first signup. A first confirmation happens within hours
+      // of the account being created; anything older is a returning login.
+      const accountAgeMs = Date.now() - new Date(data.user.created_at).getTime();
+      const isFirstConfirmation =
+        (!existingProfile ||
+          ((existingProfile as { login_count?: number }).login_count || 0) === 0) &&
+        accountAgeMs < 7 * 24 * 60 * 60 * 1000;
+      const authEvent = isFirstConfirmation ? "signup_email" : "email_confirmed";
+
       if (existingProfile) {
         // Increment login_count for returning users (email confirmation/magic link)
         const { error: updateError } = await supabase
@@ -183,12 +201,12 @@ export async function GET(request: Request) {
 
         // Skip welcome and onboarding — go straight to intended destination
         const separator = finalRedirect.includes("?") ? "&" : "?";
-        return noIndexRedirect(`${origin}${getLocalePath(finalRedirect)}${separator}auth_event=email_confirmed`);
+        return noIndexRedirect(`${origin}${getLocalePath(finalRedirect)}${separator}auth_event=${authEvent}`);
       }
 
       // Fallback: profile doesn't exist yet (edge case) - go straight to trips/new
       await mergeAnonymousSaves(data.user.id);
-      return noIndexRedirect(`${origin}${getLocalePath(`${finalRedirect}?auth_event=email_confirmed`)}`);
+      return noIndexRedirect(`${origin}${getLocalePath(`${finalRedirect}?auth_event=${authEvent}`)}`);
     }
 
     // Token verification failed

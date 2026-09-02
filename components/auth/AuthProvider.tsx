@@ -158,6 +158,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // auth transition. A failed claim must not be able to break signing in.
         void import("@/lib/trips/anonymous-claim-client")
           .then(({ claimPendingTrip }) => claimPendingTrip())
+          .then(async (tripId) => {
+            // The claim used to resolve here and be thrown away, so the person
+            // sat on a bare wizard while the trip they had just built moved
+            // silently into their account. Announce it instead; the wizard
+            // turns it into "your trip came with you — open it".
+            if (!tripId) return;
+            const { publishClaimedTrip } = await import("@/lib/trips/claimed-trip-signal");
+            publishClaimedTrip(tripId);
+          })
           .catch(() => undefined);
       }
     });

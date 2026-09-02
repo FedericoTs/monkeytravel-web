@@ -68,7 +68,8 @@ const REQUIREMENTS_MAX = 500;
 // reach the result view have CLS p75 1.091 / median 0.509, against 0.023 for
 // step-1-only sessions — and 50 of the 52 rage clicks on this page happen in
 // that same view. Two defences, in order:
-//   1. preloadResultViewChunks() spends the ~60s of generation fetching these
+//   1. preloadResultViewChunks() spends the ~30s of generation (p50 27.9s /
+//      p75 33.4s, measured 2026-09-02 on $ai_generation) fetching these
 //      so they are already warm when the result renders (the real fix);
 //   2. the two that dominate the shift carry a correctly-sized `loading` box,
 //      so a slow network degrades to a skeleton instead of a jump.
@@ -160,6 +161,26 @@ function preloadResultViewChunks(): void {
 // Note: useOnboardingPreferences removed - personalization moved to profile settings
 import { useEarlyAccess } from "@/lib/hooks/useEarlyAccess";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
+// Step-1 entry rework (2026-09-02) — see lib/wizard/entry-state.ts for the
+// arrival model and lib/posthog/flags.ts FLAG_WIZARD_STEP1_EDITORIAL for the
+// kill switch.
+import WizardMasthead from "@/components/wizard/WizardMasthead";
+import OneTapStarts, { type OneTapPlace } from "@/components/wizard/OneTapStarts";
+import ClaimedTripBanner from "@/components/wizard/ClaimedTripBanner";
+import { useCssVarHeight } from "@/hooks/useCssVarHeight";
+import {
+  deriveEntryState,
+  isFirstRunAuthEvent,
+  pickMastheadVariant,
+  resolveEditorialStep1,
+} from "@/lib/wizard/entry-state";
+import { FLAG_WIZARD_STEP1_EDITORIAL } from "@/lib/posthog/flags";
+import {
+  captureClaimedTripBanner,
+  captureWizardFirstRunViewed,
+  captureWizardOneTapStart,
+} from "@/lib/posthog/events";
+import { clearClaimedTrip, onClaimedTrip, readClaimedTrip } from "@/lib/trips/claimed-trip-signal";
 // Save Sprint: session generation counter + per-session trip stack (T1/T4).
 import { useSessionTripStack } from "@/hooks/useSessionTripStack";
 import { useCurrency } from "@/lib/locale";
@@ -435,6 +456,36 @@ export default function NewTripPage({
 }: NewTripWizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  // Snapshot ?auth_event on the FIRST render. AuthEventTracker strips it with
+  // history.replaceState as soon as auth resolves, and useSearchParams follows
+  // — so a live read a few hundred milliseconds later sees nothing and a
+  // brand-new account is indistinguishable from a cold visit. A useState
+  // initialiser runs exactly once, before the tracker's effect.
+  const [authEventAtMount] = useState<string | null>(() =>
+    searchParams?.get("auth_event") ?? null
+  );
+  // Same latch for "did an article carry a destination in": the prefill
+  // effects below fill the field a tick later, so a live `destination` read
+  // cannot tell a prefill from a typed one.
+  const [prefillAtMount] = useState<boolean>(() =>
+    Boolean(prefilledDestination || searchParams?.get("destination"))
+  );
+  const isFreshSignup = isFirstRunAuthEvent(authEventAtMount);
+  const mastheadVariant = pickMastheadVariant({ authEventAtMount, prefillAtMount });
+  // Step-1 editorial entry: ?step1=classic|editorial (QA) > env force >
+  // PostHog, where an UNRESOLVED flag is ON. A kill switch, not a gate — see
+  // FLAG_WIZARD_STEP1_EDITORIAL. Resolved here, above the effects that read
+  // it, so it is never referenced before its declaration.
+  const step1Override = searchParams?.get("step1") ?? null;
+  const { enabled: step1FlagRaw } = useFlag(FLAG_WIZARD_STEP1_EDITORIAL);
+  const editorialStep1 = resolveEditorialStep1({
+    queryOverride: step1Override,
+    envForce: process.env.NEXT_PUBLIC_WIZARD_STEP1_FORCE,
+    flagValue: step1FlagRaw,
+  });
+  // The trip a signup claimed (see lib/trips/claimed-trip-signal.ts). State
+  // lives up here because the PostHog super-property effect reads it.
+  const [claimedTripId, setClaimedTripId] = useState<string | null>(null);
   const t = useTranslations("trips");
   // Locale is forwarded into the wizard_step_events rows so the funnel
   // can be sliced by language without joining back to URL paths. See
@@ -569,11 +620,63 @@ export default function NewTripPage({
     // Same reason as armResolved above: registering the loading default would
     // tag every PostHog event of a decision-arm session as "wizard".
     if (!armResolved) return;
-    posthog.register({ front_door: arm });
-  }, [posthog, arm, armResolved]);
+    // step1_variant + wizard_entry (2026-09-02): every capture becomes
+    // sliceable by the step-1 kill switch and by how the person arrived, so
+    // the week-one read needs no per-call edits.
+    posthog.register({
+      front_door: arm,
+      step1_variant: editorialStep1 ? "editorial" : "classic",
+      wizard_entry: deriveEntryState({ authEventAtMount, prefillAtMount, claimedTripId, isAuthenticated }),
+    });
+  }, [posthog, arm, armResolved, editorialStep1, authEventAtMount, prefillAtMount, claimedTripId, isAuthenticated]);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [hasExistingTrips, setHasExistingTrips] = useState(false);
   const [showReturningUserBanner, setShowReturningUserBanner] = useState(true);
+
+  // ── Claimed trip (2026-09-02) ─────────────────────────────────────────────
+  // AuthProvider claims a pending anonymous trip on SIGNED_IN and publishes
+  // the id (lib/trips/claimed-trip-signal.ts). The two sides race — SIGNED_IN
+  // usually fires during hydration, before this effect subscribes — so read
+  // the stored id AND subscribe. Whether the post-callback landing emits
+  // SIGNED_IN or INITIAL_SESSION has never been proven live, so a fresh
+  // signup also claims directly, once: claimPendingTrip is idempotent (the
+  // token is removed on any terminal outcome, kept only on 401).
+  useEffect(() => {
+    const stored = readClaimedTrip();
+    if (stored) setClaimedTripId(stored);
+    return onClaimedTrip((id) => setClaimedTripId(id));
+  }, []);
+  const directClaimFiredRef = useRef(false);
+  useEffect(() => {
+    if (!isFreshSignup || authLoading || !authUser || directClaimFiredRef.current) return;
+    directClaimFiredRef.current = true;
+    void import("@/lib/trips/anonymous-claim-client")
+      .then(({ claimPendingTrip }) => claimPendingTrip())
+      .then((id) => {
+        if (id) setClaimedTripId(id);
+      })
+      .catch(() => undefined);
+  }, [isFreshSignup, authLoading, authUser]);
+  const claimedSurfacedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!claimedTripId || claimedSurfacedRef.current === claimedTripId) return;
+    claimedSurfacedRef.current = claimedTripId;
+    void captureClaimedTripBanner({ action: "surfaced", trip_id: claimedTripId });
+  }, [claimedTripId]);
+  const dismissClaimedTrip = (action: "opened" | "plan_another" | "dismissed") => {
+    if (claimedTripId) void captureClaimedTripBanner({ action, trip_id: claimedTripId });
+    clearClaimedTrip();
+    setClaimedTripId(null);
+  };
+
+  // First-run view, once per mount. Keyed on the latched param, not on auth
+  // state, so it fires for exactly the ~93/month who just created an account.
+  const firstRunViewedRef = useRef(false);
+  useEffect(() => {
+    if (!isFreshSignup || firstRunViewedRef.current) return;
+    firstRunViewedRef.current = true;
+    void captureWizardFirstRunViewed({ auth_event: authEventAtMount ?? "" });
+  }, [isFreshSignup, authEventAtMount]);
 
   // Note: Onboarding/personalization preferences are now managed in profile settings
   // The AI generation API fetches user preferences from the database instead
@@ -622,8 +725,13 @@ export default function NewTripPage({
     () => SEASONAL_POPULAR.slice(0, 6)
   );
   const [plannedStat, setPlannedStat] = useState<number | null>(null);
+  // null on the server and first client paint; set in the same effect that
+  // reorders the picks, so the "In season" badge is never a hydration diff.
+  const [inSeasonMonth, setInSeasonMonth] = useState<number | null>(null);
   useEffect(() => {
-    setPopularPicks(seasonalPopular(new Date().getMonth() + 1));
+    const month = new Date().getMonth() + 1;
+    setPopularPicks(seasonalPopular(month));
+    setInSeasonMonth(month);
     let alive = true;
     fetch("/api/wizard/planning-stats")
       .then((r) => (r.ok ? r.json() : null))
@@ -1789,6 +1897,59 @@ export default function NewTripPage({
     setFlexibleDates(true);
     trackFieldInteraction("flexible_dates");
   };
+
+  // ── One-tap starts (2026-09-02) ───────────────────────────────────────────
+  // A popular pick used to set the destination and nothing else, leaving
+  // Continue disabled and the visitor facing the date field. Now, when no
+  // dates exist, it also pencils in the same flexible default the "I'm
+  // flexible" link uses (~3 weeks out, 5 days), so Continue lights and the
+  // reassurance line appears. It does NOT advance: step 2 needs a vibe and
+  // the seasonal seed is rarely loaded 100ms after a tap, so an auto-advance
+  // would land on a second disabled button. Dates the person already chose
+  // are never overwritten. Focus moves to the date trigger because the chip
+  // that had focus unmounts (the `!destination` guard) — a keyboard or
+  // screen-reader user must land on the field the tap just filled.
+  const [datesPencilled, setDatesPencilled] = useState(false);
+  const dateTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const handleOneTapStart = (place: OneTapPlace, index: number) => {
+    trackFieldInteraction("destination_pill");
+    setDestination(place.name);
+    setDestinationCoords(place.coords);
+    trackDestinationSelected({ destination: place.name, source: "popular" });
+    let datesAutofilled = false;
+    if (!startDate && !endDate && !(MULTI_CITY_ENABLED && multiCityMode)) {
+      handleFlexibleDates();
+      setDatesPencilled(true);
+      datesAutofilled = true;
+    }
+    void captureWizardOneTapStart({
+      destination: place.name,
+      in_season: inSeasonMonth !== null && place.season.includes(inSeasonMonth),
+      dates_autofilled: datesAutofilled,
+      first_run: isFreshSignup,
+      step1_variant: editorialStep1 ? "editorial" : "classic",
+      position: index,
+    });
+    requestAnimationFrame(() => dateTriggerRef.current?.focus());
+  };
+
+  // The sticky footer publishes its height so the cookie banner can sit just
+  // above it on this route (components/consent/CookieConsentBanner.tsx).
+  const footerRef = useRef<HTMLDivElement | null>(null);
+  useCssVarHeight(footerRef, "--mt-footer-h");
+
+  // Footer state B: a valid destination with no dates. Under the editorial
+  // entry the slot offers an ENABLED "Use flexible dates" instead of a
+  // disabled Continue with a hint — the biggest remaining disabled-button
+  // moment on the step where most abandons happen. Label deliberately does
+  // not match /continue|next/i so the e2e specs keep selecting the real one.
+  const footerStateB =
+    editorialStep1 &&
+    step === 1 &&
+    destination.length >= 2 &&
+    DESTINATION_ALLOWLIST.test(destination) &&
+    !(startDate && endDate) &&
+    !(MULTI_CITY_ENABLED && multiCityMode);
 
   // Handle destination selection from autocomplete
   const handleDestinationSelect = (prediction: PlacePrediction) => {
@@ -3775,7 +3936,7 @@ export default function NewTripPage({
 
   // Wizard form
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+    <div className={editorialStep1 ? "min-h-screen bg-[var(--background)]" : "min-h-screen bg-gradient-to-br from-slate-50 to-white"}>
       <WizardReplay />
       {/* Auth Prompt Modal - for gradual engagement */}
       <AuthPromptModal
@@ -3838,7 +3999,11 @@ export default function NewTripPage({
       {/* Form Content — extra bottom padding on mobile for sticky nav */}
       <main className="max-w-2xl mx-auto px-4 py-6 sm:py-8 pb-28 sm:pb-8">
         {/* Returning User Banner - shows on step 1 for authenticated users with trips */}
-        {isAuthenticated && hasExistingTrips && showReturningUserBanner && step === 1 && (
+        {/* Suppressed for a fresh signup and while a claimed trip is shown: a
+            claim flips hasExistingTrips to true one tick later and "Welcome
+            back — you already have trips" would contradict "your trip came
+            with you" for someone who created the account a minute ago. */}
+        {isAuthenticated && hasExistingTrips && showReturningUserBanner && step === 1 && !claimedTripId && !isFreshSignup && (
           <div className="mb-6 p-4 bg-gradient-to-r from-[var(--primary)]/5 to-[var(--secondary)]/5 border border-[var(--primary)]/20 rounded-xl">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
@@ -3935,6 +4100,17 @@ export default function NewTripPage({
             (and, being lowest, sat under the first-visit cookie banner). */}
         {step === 1 && (
           <div className="flex flex-col gap-6">
+            {/* The trip a signup claimed — above draft recovery (a finished
+                trip outranks an unsaved one), above the masthead. Not
+                flag-gated: it is a bug fix for a measured dead end. */}
+            {claimedTripId && (
+              <ClaimedTripBanner
+                tripId={claimedTripId}
+                onOpen={() => dismissClaimedTrip("opened")}
+                onPlanAnother={() => dismissClaimedTrip("plan_another")}
+                onDismiss={() => dismissClaimedTrip("dismissed")}
+              />
+            )}
             {/* Returning-visitor draft recovery. A valid unsaved draft exists
                 within the 24h window — mount the (previously built but never
                 rendered) banner so the user recovers straight into the Save
@@ -3947,14 +4123,23 @@ export default function NewTripPage({
                 onDiscard={handleDiscardDraft}
               />
             )}
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
-                {t("wizard.step1.title")}
-              </h1>
-              <p className="text-slate-600">
-                {t("wizard.step1.subtitle")}
-              </p>
-            </div>
+            {editorialStep1 ? (
+              <WizardMasthead
+                variant={mastheadVariant}
+                destination={prefilledDestination?.name ?? searchParams?.get("destination") ?? null}
+                plannedStat={plannedStat}
+                locale={locale}
+              />
+            ) : (
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
+                  {t("wizard.step1.title")}
+                </h1>
+                <p className="text-slate-600">
+                  {t("wizard.step1.subtitle")}
+                </p>
+              </div>
+            )}
 
             {/* Backpacker Mode — shipped 2026-05-28.
                 Strategic wedge for partner conversations (Hostelworld in
@@ -4149,35 +4334,10 @@ export default function NewTripPage({
             />
             </div>
 
-            {/* Multi-city toggle (wedge) — gated by NEXT_PUBLIC_MULTI_CITY_ENABLED */}
-            {MULTI_CITY_ENABLED && (
-              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <div>
-                  <div className="text-sm font-medium text-slate-800">
-                    {t("wizard.multiCity.toggleTitle")}
-                  </div>
-                  <div className="text-xs text-slate-500">
-                    {t("wizard.multiCity.toggleDescription")}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={multiCityMode}
-                  aria-label={t("wizard.multiCity.toggleAria")}
-                  onClick={() => setMultiCityMode((m) => !m)}
-                  className={`relative inline-flex h-6 w-11 flex-none items-center rounded-full transition-colors ${
-                    multiCityMode ? "bg-[var(--primary)]" : "bg-slate-300"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                      multiCityMode ? "translate-x-5" : "translate-x-0.5"
-                    }`}
-                  />
-                </button>
-              </div>
-            )}
+            {/* Multi-city toggle — MOVED (2026-09-02) from here, where an
+                advanced option led the form, to directly after the
+                destination block. The deep link (?multi=1) and the sync
+                effect key off state, not DOM position. */}
 
             {/* 12+-day single-city sessions are usually multi-city trips the
                 input didn't invite (326 sessions pinned the 14-day cap in 45
@@ -4254,7 +4414,13 @@ export default function NewTripPage({
 
               {/* Popular destinations — real demand-ranked (distinct planning
                   sessions, season-reordered) + an honest aggregate proof line. */}
-              {!destination && (
+              {!destination && (editorialStep1 ? (
+                <OneTapStarts
+                  picks={popularPicks}
+                  inSeasonMonth={inSeasonMonth}
+                  onPick={handleOneTapStart}
+                />
+              ) : (
                 <div className="mt-3">
                   <div className="mb-2 text-xs font-medium text-slate-500">
                     {t("wizard.step1.popularNow")}
@@ -4290,8 +4456,47 @@ export default function NewTripPage({
                     </p>
                   )}
                 </div>
-              )}
+              ))}
             </div>
+
+            {/* Multi-city toggle (wedge) — gated by NEXT_PUBLIC_MULTI_CITY_ENABLED.
+                Sits directly after the destination block in both states: when
+                on, the route builder above replaces the destination field, so
+                the switch stays adjacent to what it controls. */}
+            {MULTI_CITY_ENABLED && (
+              <div
+                className={
+                  editorialStep1
+                    ? "flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--primary)]/15 bg-[var(--background-warm)] px-4 py-3"
+                    : "flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                }
+              >
+                <div>
+                  <div className="text-sm font-medium text-slate-800">
+                    {t("wizard.multiCity.toggleTitle")}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    {t("wizard.multiCity.toggleDescription")}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={multiCityMode}
+                  aria-label={t("wizard.multiCity.toggleAria")}
+                  onClick={() => setMultiCityMode((m) => !m)}
+                  className={`relative inline-flex h-6 w-11 flex-none items-center rounded-full transition-colors ${
+                    multiCityMode ? "bg-[var(--primary)]" : "bg-slate-300"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                      multiCityMode ? "translate-x-5" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+            )}
 
             {/* Dates — shown immediately below destination */}
             <div>
@@ -4333,14 +4538,17 @@ export default function NewTripPage({
                 <DateRangePicker
                   startDate={startDate}
                   endDate={endDate}
+                  triggerRef={dateTriggerRef}
                   onStartDateChange={(d) => {
                     trackFieldInteraction("start_date");
                     setFlexibleDates(false);
+                    setDatesPencilled(false);
                     setStartDate(d);
                   }}
                   onEndDateChange={(d) => {
                     trackFieldInteraction("end_date");
                     setFlexibleDates(false);
+                    setDatesPencilled(false);
                     setEndDate(d);
                   }}
                   maxDays={effectiveMaxTripDays}
@@ -4359,12 +4567,24 @@ export default function NewTripPage({
               {!(MULTI_CITY_ENABLED && multiCityMode) && (
                 <div className="mt-2">
                   {flexibleDates ? (
-                    <p className="flex items-center gap-1.5 text-xs font-medium text-[var(--primary-ink)]">
-                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      {t("wizard.step1.flexibleDatesActive")}
-                    </p>
+                    editorialStep1 && datesPencilled ? (
+                      // Announced, not just shown: the one-tap moved focus here
+                      // and this is the sentence that explains what it assumed.
+                      // slate-600, not coral — --primary-ink is 2.68:1.
+                      <p aria-live="polite" className="flex items-center gap-1.5 text-xs text-slate-600">
+                        <svg className="h-3.5 w-3.5 shrink-0 text-[var(--primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {t("wizard.step1.oneTap.datesPencilled", { days: 5 })}
+                      </p>
+                    ) : (
+                      <p className="flex items-center gap-1.5 text-xs font-medium text-[var(--primary-ink)]">
+                        <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {t("wizard.step1.flexibleDatesActive")}
+                      </p>
+                    )
                   ) : (
                     !(startDate && endDate) && (
                       <button
@@ -4602,14 +4822,19 @@ export default function NewTripPage({
         )}
 
         {/* Navigation — sticky on mobile so users always see the CTA */}
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-4 py-3 sm:relative sm:bg-transparent sm:border-t-slate-200 sm:px-0 sm:py-0 sm:mt-8 sm:pt-6 sm:z-auto">
+        <div
+          ref={footerRef}
+          className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-4 py-3 sm:relative sm:bg-transparent sm:border-t-slate-200 sm:px-0 sm:py-0 sm:mt-8 sm:pt-6 sm:z-auto"
+        >
           {/* Missing-field hint — directly attacks the step-1 cliff: the
               Continue button is disabled with no visible reason, so users
               who don't realize what unlocks it just leave. Name the first
               blocker so the path forward is always obvious. */}
           {step === 1 && !canProceed() && (
-            <p className="mb-2 text-center text-xs font-medium text-slate-500 sm:text-left">
-              {destination.length < 2
+            <p aria-live="polite" className="mb-2 text-center text-xs font-medium text-slate-500 sm:text-left">
+              {footerStateB
+                ? t("wizard.step1.hintFlexibleDefault", { days: 5 })
+                : destination.length < 2
                 ? t("wizard.step1.hintNeedDestination")
                 : !DESTINATION_ALLOWLIST.test(destination)
                 ? t("wizard.step1.destinationInvalidChars")
@@ -4628,7 +4853,9 @@ export default function NewTripPage({
               <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              {t("wizard.step1.freeReassurance")}
+              {isAuthenticated
+                ? t("wizard.step1.freeReassuranceSignedIn")
+                : t("wizard.step1.freeReassurance")}
             </p>
           )}
           <div className="flex items-center justify-between">
@@ -4647,11 +4874,29 @@ export default function NewTripPage({
           )}
 
           {step < TOTAL_STEPS ? (
+            footerStateB ? (
+              // State B: a valid destination, no dates. The same slot, the
+              // same coral, an ENABLED button — one tap pencils in the
+              // flexible default and the slot re-renders as Continue.
+              <button
+                type="button"
+                onClick={() => {
+                  handleFlexibleDates();
+                  setDatesPencilled(true);
+                }}
+                className="bg-[var(--primary)] text-white px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 active:bg-[var(--primary)]/80 transition-colors min-h-[48px] sm:min-h-0"
+              >
+                {t("wizard.step1.useFlexibleDates")}
+              </button>
+            ) : (
             <button
               onClick={() => {
                 captureTripWizardStepCompleted({
                   step_number: step,
                   step_name: STEP_NAMES_CONST[step - 1],
+                  ...(step === 1
+                    ? { dates_mode: flexibleDates ? "flexible" : "exact", one_tap: datesPencilled }
+                    : {}),
                 });
                 // Per LIVE_AUDIT F2: pre-apply seasonal vibe suggestions
                 // when advancing into step 2. Previously the suggestions
@@ -4707,6 +4952,7 @@ export default function NewTripPage({
             >
               {t("wizard.step1.continue")} →
             </button>
+            )
           ) : (
             <button
               onClick={handleGenerate}

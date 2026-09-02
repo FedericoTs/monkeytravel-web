@@ -151,7 +151,29 @@
       "flexibleDatesActive": "Datas flexíveis — ajuste quando quiser",
       "backpackerMode": "Modo mochileiro",
       "backpackerModeOn": "Modo mochileiro — ATIVO",
-      "backpackerModeSubtitle": "Hostels, dicas de economia, ideal para multi-cidades"
+      "backpackerModeSubtitle": "Hostels, dicas de economia, ideal para multi-cidades",
+      "editorial": {
+        "title": "Sua viagem, dia a dia.",
+        "deck": "Diga para onde e mais ou menos quando. Em cerca de 30 segundos você terá o roteiro completo — grátis e sem conta para vê-lo."
+      },
+      "firstRun": {
+        "title": "Você entrou. Vamos planejar sua primeira viagem.",
+        "deck": "Escolha um lugar abaixo ou digite o seu. Seu roteiro leva cerca de 30 segundos, e salvá-lo na sua conta é um toque."
+      },
+      "prefill": {
+        "title": "Vamos planejar {destination}.",
+        "deck": "Trouxemos a viagem do artigo. Mude o que quiser e continue."
+      },
+      "picks": {
+        "inSeason": "Na época",
+        "chipAria": "Começar uma viagem para {city}, {country} — define o lugar e datas flexíveis"
+      },
+      "oneTap": {
+        "datesPencilled": "Colocamos por agora {days} dias daqui a cerca de três semanas — toque numa duração ou abra o calendário para mudar."
+      },
+      "useFlexibleDates": "Usar datas flexíveis",
+      "hintFlexibleDefault": "Ainda sem datas? Colocaremos por agora {days} dias daqui a cerca de três semanas — você pode mudá-las quando quiser.",
+      "freeReassuranceSignedIn": "Grátis — sua viagem dia a dia completa, pronta para salvar com um toque"
     },
     "returningUser": {
       "welcomeBack": "Bem-vindo de volta!",
@@ -263,6 +285,13 @@
         "skipped": "{count, plural, =1 {1 ignorado:} other {# ignorados:}}",
         "undated": "{count, plural, =1 {1 ideia sem data foi para seus pedidos especiais} other {# ideias sem data foram para seus pedidos especiais}}"
       }
+    },
+    "claimedTrip": {
+      "title": "Sua viagem veio com você",
+      "body": "O roteiro que você criou antes de se cadastrar já está salvo em Minhas Viagens.",
+      "open": "Abrir minha viagem",
+      "planAnother": "Planejar outra viagem",
+      "dismiss": "Fechar"
     }
   },
   "vibes": {
