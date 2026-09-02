@@ -3,6 +3,7 @@
 import { useState, useCallback, type ReactNode } from "react";
 import type { AdminStats } from "@/app/api/admin/stats/route";
 import type { Ux10xBaseline } from "@/app/api/admin/ux10x-baseline/route";
+import ActivationFunnelPanel from "@/components/admin/ActivationFunnelPanel";
 import {
   LazyUserGrowthChart,
   LazyTrafficOverview,
@@ -248,6 +249,7 @@ function AnalyticsBody({ stats }: { stats: AdminStats }) {
         activation={stats.activation}
         engagement={stats.engagement}
         users={stats.users}
+        funnel={stats.activationFunnel}
       />
 
       {/* 4. Traffic Overview (chart + section + funnel) — kept, mobile-tuned by component */}
@@ -540,10 +542,12 @@ function ActivationCard({
   activation,
   engagement,
   users,
+  funnel,
 }: {
   activation: AdminStats["activation"];
   engagement: AdminStats["engagement"];
   users: AdminStats["users"];
+  funnel?: AdminStats["activationFunnel"];
 }) {
   const ttt = engagement.timeToFirstTrip;
   const medianFormatted = formatHours(ttt.medianHours);
@@ -614,6 +618,7 @@ function ActivationCard({
           tooltip="Signed up, never made a trip, last seen >7 days ago"
         />
       </div>
+      {funnel && <ActivationFunnelPanel funnel={funnel} />}
     </div>
   );
 }

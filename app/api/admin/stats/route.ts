@@ -1,6 +1,7 @@
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchActivationFunnel, type ActivationFunnelStats } from "@/lib/admin/activation-funnel";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Cohort retention data for matrix visualization
@@ -32,6 +33,9 @@ export interface AdminStats {
     sharedTripPct: number;           // % of trips that have a share_token
     atRiskUsers: number;             // signed up but no trip + signed in >7d ago
   };
+  // Consent-free cohort funnel by signup provider (2026-09-02), plus the
+  // signed-out share loop. Definitions in lib/admin/activation-funnel.ts.
+  activationFunnel: ActivationFunnelStats;
   // Churn Metrics
   churn: {
     neverCreatedTrip: number;
@@ -337,9 +341,10 @@ export async function GET() {
     // Compute week-over-week deltas + activation block in parallel.
     // Both are read-only count queries off the same tables we already
     // hit above, so no schema change required.
-    const [deltas, activation] = await Promise.all([
+    const [deltas, activation, activationFunnel] = await Promise.all([
       fetchWoWDeltas(supabase),
       fetchActivation(supabase, totalUsers, usersWithTripsCount, tripMetrics.total || 0, tripMetrics.sharedTrips || 0, activeUserIds7d),
+      fetchActivationFunnel(supabase),
     ]);
 
     // Build response
@@ -354,6 +359,7 @@ export async function GET() {
         deltaPctWoW: deltas.users,
       },
       activation,
+      activationFunnel,
       churn: {
         neverCreatedTrip,
         inactiveLast30Days,
