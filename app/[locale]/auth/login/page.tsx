@@ -284,26 +284,44 @@ function LoginForm() {
                   </Link>
                 )}
 
-                {/* The account exists and the password was right — the address
-                    was simply never confirmed. Give them the fix here rather
-                    than sending them to look for an expired email. Gated on the
-                    stable code, not on message text, so translations cannot
-                    silently switch it off. */}
-                {error?.code === "email_not_confirmed" && (
+                {/* Offer a fresh link in BOTH dead ends, not just one.
+                    Originally this was gated only on email_not_confirmed,
+                    which Supabase returns after a password attempt with the
+                    CORRECT password — so it never rendered for the people who
+                    arrive here from a broken confirmation link, who are the
+                    larger group. Measured 2026-09-02: of the users who
+                    confirmed and still could not get a session, 18 of 18 had
+                    requested another confirmation link, 5 tried signing up
+                    again and 3 tried a password reset. Every one of them was
+                    looking for this button and could not see it.
+
+                    Gated on stable codes, never on message text, so a
+                    translation cannot silently switch it off. */}
+                {(error?.code === "email_not_confirmed" || linkError) && (
                   <div className="mt-3">
                     {resent ? (
                       <p className="text-sm text-green-700 font-medium">
                         {t("resendSent")}
                       </p>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={handleResendConfirmation}
-                        disabled={resending || !email}
-                        className="text-sm font-semibold text-[var(--primary-ink)] underline underline-offset-2 hover:no-underline disabled:opacity-60 disabled:no-underline"
-                      >
-                        {resending ? t("resendSending") : t("resendConfirmation")}
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          onClick={handleResendConfirmation}
+                          disabled={resending || !email}
+                          className="text-sm font-semibold text-[var(--primary-ink)] underline underline-offset-2 hover:no-underline disabled:opacity-60 disabled:no-underline"
+                        >
+                          {resending ? t("resendSending") : t("resendConfirmation")}
+                        </button>
+                        {/* Arriving from a dead link means the form is empty,
+                            so the button is disabled with no explanation
+                            unless we say why. */}
+                        {!email && (
+                          <p className="text-sm text-red-600 mt-1">
+                            {t("resendNeedsEmail")}
+                          </p>
+                        )}
+                      </>
                     )}
                     {resendError && (
                       <p className="text-sm text-red-600 mt-1">{resendError}</p>
