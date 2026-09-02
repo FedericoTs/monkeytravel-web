@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getTrialEndDate } from "@/lib/trial";
 import { safeNextOrDefault } from "@/lib/security/safe-next";
+import { isFirstLogin, resolveAuthLanding } from "@/lib/auth/first-login";
 import type { EmailOtpType } from "@supabase/supabase-js";
 
 const SAVER_COOKIE_NAME = "mt_saver_cookie";
@@ -172,11 +173,10 @@ export async function GET(request: Request) {
       // existed still sit at 0, and a magic-link login from one of them must
       // not read as a first signup. A first confirmation happens within hours
       // of the account being created; anything older is a returning login.
-      const accountAgeMs = Date.now() - new Date(data.user.created_at).getTime();
-      const isFirstConfirmation =
-        (!existingProfile ||
-          ((existingProfile as { login_count?: number }).login_count || 0) === 0) &&
-        accountAgeMs < 7 * 24 * 60 * 60 * 1000;
+      const isFirstConfirmation = isFirstLogin({
+        loginCount: (existingProfile as { login_count?: number } | null)?.login_count,
+        accountCreatedAt: data.user.created_at,
+      });
       const authEvent = isFirstConfirmation ? "signup_email" : "email_confirmed";
 
       if (existingProfile) {
@@ -467,9 +467,22 @@ export async function GET(request: Request) {
       // back in). Merge those into their account.
       await mergeAnonymousSaves(data.user.id);
 
-      const separator = next.includes("?") ? "&" : "?";
-      const trackingParam = "auth_event=login_google";
-      return noIndexRedirect(`${origin}${getLocalePath(next)}${separator}${trackingParam}`);
+      // A fresh Google account arrives HERE, not in the isNewUser block
+      // above: handle_new_user has already created public.users, so
+      // `isNewUser` is always false in production (see lib/auth/first-login.ts).
+      // Until this line existed, every Google signup was sent to `next`
+      // verbatim — "/trips" for anyone who used the login page — and announced
+      // to the wizard as a returning login, so the first-run masthead and
+      // signup_google analytics never fired for them. /trips used to redirect
+      // zero-trip users onward and hid it; #87 removed that redirect.
+      const firstLogin = isFirstLogin({
+        loginCount: (existingProfile as { login_count?: number }).login_count,
+        accountCreatedAt: data.user.created_at,
+      });
+      const landing = resolveAuthLanding(next, firstLogin);
+      const separator = landing.includes("?") ? "&" : "?";
+      const trackingParam = firstLogin ? "auth_event=signup_google" : "auth_event=login_google";
+      return noIndexRedirect(`${origin}${getLocalePath(landing)}${separator}${trackingParam}`);
     }
   }
 
