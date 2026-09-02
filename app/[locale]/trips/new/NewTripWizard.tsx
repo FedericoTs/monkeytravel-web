@@ -189,6 +189,7 @@ import {
 import { clearClaimedTrip, onClaimedTrip, readClaimedTrip } from "@/lib/trips/claimed-trip-signal";
 import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim-client";
 import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
+import { decideDraftRestore } from "@/lib/wizard/draft-restore";
 // Save Sprint: session generation counter + per-session trip stack (T1/T4).
 import { useSessionTripStack } from "@/hooks/useSessionTripStack";
 import { useCurrency } from "@/lib/locale";
@@ -782,7 +783,7 @@ export default function NewTripPage({
   const [authedDisplayName, setAuthedDisplayName] = useState<string>("");
 
   // LocalStorage draft persistence
-  const { draft, saveDraft, clearDraft, hasDraft } = useItineraryDraft();
+  const { draft, saveDraft, clearDraft, hasDraft, isExpired } = useItineraryDraft();
 
   // Save Sprint T1: session generation counter + session trip stack
   // (sessionStorage-backed; all callbacks referentially stable).
@@ -1293,6 +1294,13 @@ export default function NewTripPage({
   // so we don't set state after unmount / dep change.
   useEffect(() => {
     if (!hasDraft || !draft || generatedItinerary || draftAutoRestored) return;
+    // Auth is tri-state and is null on every first render. Returning here
+    // rather than falling through is what makes the rest of this effect work:
+    // isAuthenticated is in the dep array, so this re-runs the moment auth
+    // resolves. Without the early return the first pass would latch
+    // showDraftRecovery for a user who IS signed in, and the auto-restore
+    // below would never get a turn — the whole change would no-op silently.
+    if (isAuthenticated === null) return;
 
     let cancelled = false;
 
@@ -1301,7 +1309,24 @@ export default function NewTripPage({
       const hasPendingGeneration = (await prefs.get("pendingTripGeneration")) === "true";
       if (cancelled) return;
 
-      if (hasPendingGeneration) {
+      // Decision in lib/wizard/draft-restore.ts, with the tri-state auth trap
+      // pinned by unit tests. Restores for ANYONE signed in holding an unsaved
+      // itinerary, not only the Save-modal path: `pendingTripGeneration` is
+      // written in exactly four places, all inside AuthPromptModal, so a
+      // planner who signed in through the header, the login page or a magic
+      // link used to come back to a blank wizard with their itinerary unread
+      // in localStorage.
+      const decision = decideDraftRestore({
+        hasDraft,
+        hasItineraryInDraft: !!draft.generatedItinerary,
+        alreadyRestored: draftAutoRestored,
+        itineraryOnScreen: !!generatedItinerary,
+        isAuthenticated,
+        savedTripId,
+        pendingTripGeneration: hasPendingGeneration,
+      });
+
+      if (decision === "auto-restore") {
         // Auto-restore the draft silently (no banner) for seamless post-auth experience.
         // **2026-05-25 P0 fix**: previously only restored form state and dropped
         // `draft.generatedItinerary`, then the useEffect at line ~380 would see
@@ -1348,9 +1373,16 @@ export default function NewTripPage({
         }
         // Don't restore coordinates - they'll be re-fetched if needed
         setDraftAutoRestored(true);
-        // Don't show the banner since we're auto-restoring
-      } else {
-        // Normal draft recovery - show banner to let user choose
+        // Don't show the banner since we're auto-restoring — and close it if a
+        // pass before auth resolved had already opened it.
+        setShowDraftRecovery(false);
+        void trackWizardEvent("draft_restored", {
+          destination: draft.destination,
+          duration_days: draft.generatedItinerary?.days.length,
+          locale,
+        });
+      } else if (decision === "offer-banner") {
+        // Signed out: let them choose rather than restoring under them.
         setShowDraftRecovery(true);
       }
     })();
@@ -1358,7 +1390,7 @@ export default function NewTripPage({
     return () => {
       cancelled = true;
     };
-  }, [hasDraft, draft, generatedItinerary, draftAutoRestored, registerSessionRestore]);
+  }, [hasDraft, draft, generatedItinerary, draftAutoRestored, registerSessionRestore, isAuthenticated, savedTripId, locale]);
 
   // Auto-save draft when itinerary is generated
   useEffect(() => {
@@ -1909,8 +1941,23 @@ export default function NewTripPage({
         });
       }
       setShowDraftRecovery(false);
+      void trackWizardEvent("draft_restored", {
+        destination: draft.destination,
+        duration_days: draft.generatedItinerary?.days.length,
+        locale,
+      });
     }
   };
+
+  // An expired draft is reported once per mount. useItineraryDraft has already
+  // deleted it by the time this flag is readable, so this row is the only
+  // record that a plan was lost to the TTL rather than abandoned.
+  const draftExpiredReportedRef = useRef(false);
+  useEffect(() => {
+    if (!isExpired || draftExpiredReportedRef.current) return;
+    draftExpiredReportedRef.current = true;
+    void trackWizardEvent("draft_expired", { locale });
+  }, [isExpired, locale]);
 
   // Handle draft discard
   const handleDiscardDraft = () => {
@@ -4312,6 +4359,14 @@ location={authPromptLocation}              />
                 rendered) banner so the user recovers straight into the Save
                 moment instead of re-running the wizard and burning another
                 scarce anon generation. Funnel audit Rank 4a. */}
+            {/* A draft that aged out. useItineraryDraft deletes it on read and
+                returns isExpired — a flag nothing had ever read, so an expired
+                plan disappeared without a word. Say so once, plainly. */}
+            {isExpired && !draft && !generatedItinerary && (
+              <p className="mb-2 text-sm text-slate-600" role="status" data-draft-expired>
+                {t("wizard.draftRecovery.expired")}
+              </p>
+            )}
             {showDraftRecovery && draft && (
               <DraftRecoveryBanner
                 draft={draft}

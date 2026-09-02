@@ -48,6 +48,9 @@ const STEP_VALUES = [
   "save_failed",
   "saved",
   "abandoned",
+  // Draft recovery (2026-09-02) — see components/wizard/wizardEvents.ts.
+  "draft_restored",
+  "draft_expired",
 ] as const;
 
 const BodySchema = z.object({
