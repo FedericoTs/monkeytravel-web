@@ -30,6 +30,12 @@ interface DateRangePickerProps {
    * Wizard step 1 sets this to true (dates are required to continue).
    */
   ariaRequired?: boolean;
+  /**
+   * Lets a parent move focus to the range trigger — the wizard's one-tap
+   * start unmounts the chip that was focused, and a keyboard or screen-reader
+   * user must land on the field the tap just filled, not on <body>.
+   */
+  triggerRef?: { current: HTMLButtonElement | null };
 }
 
 // Helper functions
@@ -142,6 +148,7 @@ export default function DateRangePicker({
   minDate,
   className = "",
   ariaRequired,
+  triggerRef,
 }: DateRangePickerProps) {
   // **2026-05-25**: localized to IT + ES. Pre-fix, every label, the
   // placeholder, the calendar header caption, the months and weekday
@@ -155,6 +162,10 @@ export default function DateRangePicker({
   const emptyDateLabel = t("selectDate");
 
   const [isOpen, setIsOpen] = useState(false);
+  // Open the calendar ABOVE the field when there is no room below it. On
+  // desktop the cookie banner sits fixed at the bottom edge and the ~400px
+  // dropdown opened straight under it; on short laptops it was unusable.
+  const [openAbove, setOpenAbove] = useState(false);
   const [selectingStart, setSelectingStart] = useState(true);
   const [viewDate, setViewDate] = useState(() => {
     const start = parseDate(startDate);
@@ -416,8 +427,11 @@ export default function DateRangePicker({
           of separate Check-in / Check-out buttons. Fewer taps and less visual
           weight on the step where most abandons happen. */}
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => {
+          const rect = containerRef.current?.getBoundingClientRect();
+          if (rect) setOpenAbove(window.innerHeight - rect.bottom < 420 && rect.top > 420);
           setIsOpen((o) => !o);
           if (!startDate) setSelectingStart(true);
         }}
@@ -505,7 +519,11 @@ export default function DateRangePicker({
 
       {/* Calendar Dropdown */}
       {isOpen && (
-        <div className="absolute left-0 right-0 sm:left-auto sm:right-auto sm:w-[340px] mt-3 p-4 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 animate-fade-in-up">
+        <div
+          className={`absolute left-0 right-0 sm:left-auto sm:right-auto sm:w-[340px] ${
+            openAbove ? "bottom-full mb-3" : "mt-3"
+          } p-4 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 animate-fade-in-up`}
+        >
           {/* Header — « ‹ jump a year / a month, month+year caption, › » */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">

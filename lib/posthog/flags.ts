@@ -70,6 +70,38 @@ export const FLAG_AUTO_SAVE_V1 = "auto-save-v1";
 export const FLAG_FRONT_DOOR = "front-door";
 export type FrontDoorVariant = "wizard" | "decision";
 
+/**
+ * Wizard step-1 editorial entry (shipped 2026-09-02)
+ *
+ * Gates the visual half of the /trips/new step-1 rework: the masthead that
+ * names the output ("Your trip, planned day by day." + about 30 seconds,
+ * free, no account to see it), the six popular picks as one-tap starts that
+ * also pencil in flexible dates, the multi-city switch demoted below the
+ * destination, the footer's enabled "Use flexible dates" state, and the cream
+ * ground. The unflagged half (claimed-trip banner, first-run suppression of
+ * "Welcome back", signed-in reassurance copy, cookie-banner scoping, the
+ * date-picker flip) ships as bug fixes and is reverted by commit, not flag.
+ *
+ * This is a KILL SWITCH at 90/10, not an experiment — ~96 trip-holders a
+ * month cannot power one. Resolution in NewTripWizard, most specific first:
+ *   ?step1=classic|editorial          QA override
+ *   NEXT_PUBLIC_WIZARD_STEP1_FORCE     env force (covers ad-blocked browsers)
+ *   PostHog value                      an UNRESOLVED flag is ON; only an
+ *                                      explicit false renders classic
+ * Levers: set the flag to 0% in PostHog (no deploy), or the env force
+ * (redeploy). The 10% holdout is a live proof the kill path works and a
+ * sanity reference; it is NOT a control arm — read results pre/post against
+ * the trailing 30 days in wizard_step_events.
+ *
+ * REVIEW BY 2026-09-09 — see FLAG_REVIEW_DATES; flag-review-dates.vitest.ts
+ * goes red a week after that. Ramp to 100% and delete the classic branches,
+ * or set 0% and revert. Never left at 90/10: front-door ran unwatched for
+ * six weeks.
+ *
+ * Read by: app/[locale]/trips/new/NewTripWizard.tsx
+ */
+export const FLAG_WIZARD_STEP1_EDITORIAL = "wizard-step1-editorial-v1";
+
 // ============================================================================
 // NOT WIRED — declared, no consumer. Reading these returns the default.
 // ============================================================================
@@ -204,6 +236,7 @@ export const FLAG_DEFAULTS: Record<string, boolean | string> = {
   [FLAG_ENHANCED_BOOKING]: false, // Start disabled, enable via PostHog
   [FLAG_AUTO_SAVE_V1]: false,
   [FLAG_FRONT_DOOR]: "wizard",
+  [FLAG_WIZARD_STEP1_EDITORIAL]: true, // fail-open: unresolved = on, only explicit false kills
   [FLAG_AUTH_WALL_VARIANT]: "magic-link-primary",
   [FLAG_CONCIERGE_SURFACE]: "always",
   [FLAG_EXPLORE_ANON_ENGAGEMENT]: "auth-gated",
@@ -211,6 +244,16 @@ export const FLAG_DEFAULTS: Record<string, boolean | string> = {
   [FLAG_WIZARD_UX_V2]: false,
   [FLAG_WIZARD_PERF_V2]: false,
   [FLAG_LISTICLE_CTA_V1]: false,
+};
+
+/**
+ * Review dates for rollout flags, ISO YYYY-MM-DD, set to ship date + 7.
+ * lib/posthog/flag-review-dates.vitest.ts fails once today is more than a
+ * week past a date here, so a flag cannot sit at 90/10 with nobody watching.
+ * Remove the entry when the flag is ramped to 100% or reverted.
+ */
+export const FLAG_REVIEW_DATES: Record<string, string> = {
+  [FLAG_WIZARD_STEP1_EDITORIAL]: "2026-09-09",
 };
 
 /**

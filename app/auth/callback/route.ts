@@ -168,9 +168,15 @@ export async function GET(request: Request) {
       // them apart: it is still 0 the first time anyone arrives here. The
       // wizard keys its first-run treatment on signup_email, so a returning
       // login must never carry it.
+      // login_count alone is not enough: accounts from before the counter
+      // existed still sit at 0, and a magic-link login from one of them must
+      // not read as a first signup. A first confirmation happens within hours
+      // of the account being created; anything older is a returning login.
+      const accountAgeMs = Date.now() - new Date(data.user.created_at).getTime();
       const isFirstConfirmation =
-        !existingProfile ||
-        ((existingProfile as { login_count?: number }).login_count || 0) === 0;
+        (!existingProfile ||
+          ((existingProfile as { login_count?: number }).login_count || 0) === 0) &&
+        accountAgeMs < 7 * 24 * 60 * 60 * 1000;
       const authEvent = isFirstConfirmation ? "signup_email" : "email_confirmed";
 
       if (existingProfile) {

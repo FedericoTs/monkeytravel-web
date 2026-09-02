@@ -48,12 +48,19 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
 import { useConsent } from "@/lib/consent";
 
 export function CookieConsentBanner() {
   const t = useTranslations("consent");
   const { bannerStatus, acceptAll, acceptEssentialOnly, openSettings } =
     useConsent();
+  // /trips/new publishes its own fixed footer's height as --mt-footer-h (see
+  // hooks/useCssVarHeight.ts). Only there can the mobile card sit ABOVE that
+  // footer instead of over the heading; every other route keeps the top pin,
+  // which exists precisely because their fixed-bottom bars publish nothing.
+  const pathname = usePathname();
+  const onWizard = /\/trips\/new(\/|$)/.test(pathname ?? "");
   // Defer the visible mount so the hero LCP finishes first. Without this
   // the banner competes with the hero phone image for main-thread + paint
   // priority and visibly delays both. 1.5s is long enough for typical
@@ -72,10 +79,23 @@ export function CookieConsentBanner() {
 
   return (
     // On mobile pin to TOP — many pages have a fixed-bottom action bar
-    // (wizard Continue, save bar, sticky CTAs) that this banner used to
-    // cover at z-9999. Top is reachable without obstructing primary
-    // actions. On desktop keep at bottom (no fixed-bottom action bars).
-    <div className="fixed top-0 left-0 right-0 sm:top-auto sm:bottom-0 z-[9999] p-3 sm:p-4 pointer-events-none animate-in slide-in-from-top sm:slide-in-from-bottom duration-300">
+    // (save bar, sticky CTAs) that this banner used to cover at z-9999. Top
+    // is reachable without obstructing primary actions. On desktop keep at
+    // bottom (no fixed-bottom action bars).
+    //
+    // EXCEPT the wizard: there the top pin covered the heading and the
+    // "what does this page make" line for every cold visitor at 375px. The
+    // wizard publishes its footer height, so the card sits just above the
+    // Continue button — over the chips, never over the masthead, the input
+    // or the primary action. Still position:fixed, so nothing shifts when
+    // it mounts 1.5s after load.
+    <div
+      className={
+        onWizard
+          ? "fixed left-0 right-0 max-sm:bottom-[var(--mt-footer-h,96px)] sm:bottom-0 z-[9999] p-3 sm:p-4 pointer-events-none animate-in slide-in-from-bottom duration-300"
+          : "fixed top-0 left-0 right-0 sm:top-auto sm:bottom-0 z-[9999] p-3 sm:p-4 pointer-events-none animate-in slide-in-from-top sm:slide-in-from-bottom duration-300"
+      }
+    >
       <div className="max-w-5xl mx-auto pointer-events-auto">
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-slate-200 p-3 sm:p-4 md:flex md:items-center md:gap-5">
           {/* Message */}
