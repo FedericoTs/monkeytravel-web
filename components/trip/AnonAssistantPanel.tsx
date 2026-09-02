@@ -15,6 +15,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { deriveRefineSuggestions } from "@/lib/trip/refine-suggestions";
+import { decideAssistantBridge } from "@/lib/trip/assistant-bridge";
 import { captureRefineSuggestionClicked } from "@/lib/posthog/events";
 import { capture } from "@/lib/posthog/events";
 import type { Activity, ItineraryDay } from "@/types";
@@ -41,6 +42,14 @@ interface AnonAssistantPanelProps {
    * persisted (either save arm), which also hides the bridge retroactively.
    */
   onRequestSave?: () => void;
+  /**
+   * The deliverable. Rendered inside the post-conversation bridge so the
+   * refiner can walk away WITH the plan (a share link needs no account)
+   * rather than only being asked to create one. Composition, not a new
+   * dependency — the parent owns the share machinery. Same pattern as
+   * SharedTripView's engagementSlot.
+   */
+  shareSlot?: React.ReactNode;
 }
 
 interface Msg {
@@ -58,6 +67,7 @@ export default function AnonAssistantPanel({
   endDate,
   onApplyDay,
   onRequestSave,
+  shareSlot,
 }: AnonAssistantPanelProps) {
   const t = useTranslations("trips");
   const locale = useLocale();
@@ -157,6 +167,30 @@ export default function AnonAssistantPanel({
   // generation vs 26.3% at three), so the chip has to earn the first tap by
   // being an observation about the plan on screen, not a generic offer.
   // Falls back rather than inventing a flaw the itinerary doesn't have.
+  // The bridge shows once the assistant has actually answered — that is the
+  // moment of investment, whether or not the exchange produced an edit. It
+  // stays hidden after the trip is persisted, because the parent then passes
+  // neither onRequestSave nor a shareSlot.
+  const {
+    show: showBridge,
+    mode: bridgeMode,
+    source: bridgeSource,
+  } = decideAssistantBridge({
+    messages,
+    canSave: !!onRequestSave,
+    canShare: !!shareSlot,
+  });
+
+  // Report the bridge once per mode. Firing it where the edit is applied (as
+  // the old code did) missed the Q&A-only half entirely, which is exactly the
+  // population that was never asked.
+  const bridgeShownRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!showBridge || bridgeShownRef.current === bridgeMode) return;
+    bridgeShownRef.current = bridgeMode;
+    capture("save_nudge_shown", { source: bridgeSource });
+  }, [showBridge, bridgeMode, bridgeSource]);
+
   const derived = useMemo(() => deriveRefineSuggestions(days), [days]);
   const suggestions: { label: string; prompt: string; source: string }[] =
     derived.length > 0
@@ -239,7 +273,6 @@ export default function AnonAssistantPanel({
                           // shown-event per applied edit, only when the
                           // bridge will actually render (trip still unsaved).
                           if (onRequestSave) {
-                            capture("save_nudge_shown", { source: "post_edit" });
                           }
                           setEditState(i, "applied");
                         }}
@@ -272,31 +305,6 @@ export default function AnonAssistantPanel({
                           ? `✓ ${t("assistant.applied")}`
                           : t("assistant.discard")}
                       </p>
-                      {/* Save Sprint T5: post-edit save bridge — peak-investment
-                          moment. The user just shaped this draft by hand; remind
-                          them it's ephemeral and offer the save in one tap.
-                          Hidden once the trip is persisted (parent passes
-                          onRequestSave: undefined). */}
-                      {m.editState === "applied" && onRequestSave && (
-                        <div className="mt-2 flex flex-wrap items-center gap-2">
-                          <p className="text-xs text-slate-500">
-                            {t("assistant.keepEditsPrompt")}
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              capture("save_nudge_action", {
-                                source: "post_edit",
-                                action: "save_click",
-                              });
-                              onRequestSave();
-                            }}
-                            className="rounded-lg bg-[var(--secondary-ink)] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[var(--secondary-ink)]/90"
-                          >
-                            {t("assistant.keepEditsButton")}
-                          </button>
-                        </div>
-                      )}
                     </>
                   )}
                 </div>
@@ -308,6 +316,44 @@ export default function AnonAssistantPanel({
               <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-500">
                 {t("assistant.thinking")}
               </div>
+            </div>
+          )}
+
+          {/* One bridge, below the whole conversation, for BOTH halves.
+              It used to live inside the edit card and fire only on
+              editState === "applied", so a session that just ASKED questions
+              was never offered anything at all. Measured 30 days to 2026-09-02:
+              70 sessions proposed an edit and clicked Save 57.1% of the time;
+              50 asked questions only, saw nothing, and clicked Save 34.0%.
+              The share slot comes first deliberately — a link is a deliverable
+              they can keep with no account, and #93's keep-it nudge rides on
+              it; the save ask is the secondary path, not the only one. */}
+          {showBridge && (
+            <div
+              className="mt-1 rounded-xl border border-[var(--primary)]/20 bg-[var(--background-warm)] p-3"
+              data-assistant-bridge
+              data-bridge-mode={bridgeMode}
+            >
+              <p className="text-xs text-slate-600">
+                {bridgeMode === "edit_applied"
+                  ? t("assistant.keepEditsPrompt")
+                  : t("assistant.keepPlanPrompt")}
+              </p>
+              {shareSlot && <div className="mt-2">{shareSlot}</div>}
+              {onRequestSave && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    capture("save_nudge_action", { source: bridgeSource, action: "save_click" });
+                    onRequestSave();
+                  }}
+                  className="mt-2 rounded-lg bg-[var(--secondary-ink)] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[var(--secondary-ink)]/90"
+                >
+                  {bridgeMode === "edit_applied"
+                    ? t("assistant.keepEditsButton")
+                    : t("assistant.keepPlanButton")}
+                </button>
+              )}
             </div>
           )}
         </div>

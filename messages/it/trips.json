@@ -20,7 +20,9 @@
       "noFood": "Niente da mangiare il giorno {day} — aggiungo una tappa?",
       "lightDay": "Il giorno {day} ha solo {count, plural, one {# tappa} other {# tappe}} — aggiungo altro?",
       "longGap": "Il giorno {day} ha un buco di {hours} ore — lo riempiamo?"
-    }
+    },
+    "keepPlanPrompt": "Questo piano esiste solo in questo browser.",
+    "keepPlanButton": "Tieni questo viaggio, gratis"
   },
   "daySummary": {
     "title": "Giorno {day}",

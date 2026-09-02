@@ -20,7 +20,9 @@
       "noFood": "Nothing to eat on day {day} — add a food stop?",
       "lightDay": "Day {day} has only {count, plural, one {# stop} other {# stops}} — add more?",
       "longGap": "Day {day} has a {hours}-hour gap — fill it?"
-    }
+    },
+    "keepPlanPrompt": "This plan lives only in this browser.",
+    "keepPlanButton": "Keep this trip, free"
   },
   "daySummary": {
     "title": "Day {day}",
