@@ -99,10 +99,28 @@ export type FrontDoorVariant = "wizard" | "decision";
  * sessions emitting ONE event and nothing else (no 10s dwell heartbeat, no
  * step 2) jumped from ~5-17% to ~51-58%, and step-1 "sessions" roughly doubled
  * from ~340/week to ~800. Genuinely engaged sessions stayed FLAT at ~300/week
- * throughout. So the denominator filled with non-humans and every rate built
- * on it fell mechanically: 35.9% (trailing 30d) / 30.4% (14d) / 27.3% (7d) are
- * three different "baselines" for the same product, and picking among them
- * decides the verdict by itself.
+ * throughout, so the denominator filled and every rate built on it fell
+ * mechanically: 35.9% (trailing 30d) / 30.4% (14d) / 27.3% (7d) are three
+ * different "baselines" for the same product, and picking among them decides
+ * the verdict by itself.
+ *
+ * They are NOT bots, which was the first (wrong) guess. Only 31 of 912 carry a
+ * bot-flagged page_view, the user agents are ordinary browsers, they average
+ * 3.3 page views, and 898 of 934 actually reach /trips/new. They are people
+ * who leave inside 10 seconds, and they are overwhelmingly non-English:
+ *
+ *   en  761 step-1 sessions   22.5% single-event   556 engaged
+ *   es  367                   82.3%                 49
+ *   it  324                   84.0%                 41
+ *   pt  208                   90.9%                 10
+ *
+ * Entry path decides it: sessions landing DIRECTLY on a localized /trips/new
+ * bounce 91% of the time, and /destinations 88.5%, while es/it/pt sessions
+ * arriving from a blog article bounce 5.3%. That is search-intent mismatch on
+ * newly indexed localized pages (19 translations shipped around 2026-08-17),
+ * not a broken wizard - the es wizard renders and its autocomplete works,
+ * verified by hand on production. And when localized users DO engage they
+ * convert like everyone else (67-80% step 2 vs 74.8% for en).
  *
  * Read the dwell-qualified rate instead — sessions with a step1_heartbeat:
  *
