@@ -160,25 +160,78 @@ export async function POST(request: Request) {
     captureToSentry(new Error("NEXT_PUBLIC_SUPABASE_URL missing"), "build_url");
     return jsonError("server misconfigured", 500);
   }
-  const redirectTo =
-    data.redirect_to ||
-    process.env.NEXT_PUBLIC_APP_URL ||
-    "https://monkeytravel.app";
-  const verifyUrl =
-    `${supabaseUrl}/auth/v1/verify` +
-    `?token=${encodeURIComponent(data.token_hash ?? "")}` +
-    `&type=${encodeURIComponent(data.email_action_type)}` +
-    `&redirect_to=${encodeURIComponent(redirectTo)}`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
+  const redirectTo = data.redirect_to || appUrl;
+
+  // Email in the language the user uses the site in. Computed here (rather
+  // than further down) because the confirmation link carries it.
+  const locale = normalizeEmailLocale(payload.user?.user_metadata?.locale);
+
+  // WHY THIS LINKS TO OUR OWN CALLBACK AND NOT GoTrue's /auth/v1/verify
+  //
+  // The old link was `${supabaseUrl}/auth/v1/verify?token=...&redirect_to=...`.
+  // GoTrue stamps email_confirmed_at and THEN redirects back with a PKCE
+  // `?code=`, which can only be exchanged by the browser holding the
+  // code_verifier that started the signup. Confirm on your phone after
+  // signing up on your laptop - or in any browser that dropped the verifier -
+  // and you end up confirmed with no session and no way in.
+  //
+  // That is not hypothetical. Measured 2026-09-02 over 60 days: email signup
+  // lost 41.3% of users before their first session (92 signups, 20 never
+  // confirmed, 18 confirmed-then-stuck) against 0.5% for Google. And the 18
+  // were not drifters - 18 of 18 requested another confirmation link, 5 tried
+  // signing up again, 3 tried a password reset. They fought to get in.
+  //
+  // token_hash + verifyOtp has no browser-bound secret, so any device can
+  // complete it. app/auth/callback/route.ts:96-98 already implements exactly
+  // that path, including the type === "recovery" special case that hands the
+  // user a live session on /auth/reset-password.
+  //
+  // Deliberately NOT applied to every type: email_change carries two tokens
+  // with their own semantics, and reauthentication is a 6-digit code rather
+  // than a link. Those keep the GoTrue URL.
+  const VERIFY_OTP_SAFE = new Set(["signup", "recovery", "magiclink", "invite"]);
+
+  let verifyUrl: string;
+  if (VERIFY_OTP_SAFE.has(data.email_action_type) && data.token_hash) {
+    const cb = new URL("/auth/callback", appUrl);
+    cb.searchParams.set("token_hash", data.token_hash);
+    cb.searchParams.set("type", data.email_action_type);
+    cb.searchParams.set("locale", locale);
+
+    // Carry the signup page's intent through. redirect_to is a full URL; the
+    // callback wants a path for `next` and reads `ref` at the top level.
+    try {
+      const target = new URL(redirectTo, appUrl);
+      if (target.origin === new URL(appUrl).origin) {
+        const ref = target.searchParams.get("ref");
+        if (ref) cb.searchParams.set("ref", ref);
+        target.searchParams.delete("ref");
+        const qs = target.searchParams.toString();
+        const path = target.pathname + (qs ? `?${qs}` : "");
+        // "/" carries no intent, and the callback already routes brand-new
+        // users to /trips/new on its own.
+        if (path && path !== "/") cb.searchParams.set("next", path);
+      }
+    } catch {
+      // A malformed redirect_to must not cost the user their email.
+    }
+
+    verifyUrl = cb.toString();
+  } else {
+    // Unchanged fallback, including when token_hash is absent - better a PKCE
+    // link than a link with an empty token.
+    verifyUrl =
+      `${supabaseUrl}/auth/v1/verify` +
+      `?token=${encodeURIComponent(data.token_hash ?? "")}` +
+      `&type=${encodeURIComponent(data.email_action_type)}` +
+      `&redirect_to=${encodeURIComponent(redirectTo)}`;
+  }
 
   const name =
     (payload.user?.user_metadata?.display_name as string | undefined) ||
     (payload.user?.user_metadata?.full_name as string | undefined) ||
     undefined;
-
-  // Email in the language the user uses the site in. We stamp `locale` into
-  // auth user_metadata at signup (signup page + OAuth callback). Falls back
-  // to English for any account created before that wiring existed.
-  const locale = normalizeEmailLocale(payload.user?.user_metadata?.locale);
 
   let subject: string;
   let html: string;
