@@ -37,6 +37,10 @@
     "app/api/cron/*/route.ts": {
       "maxDuration": 60,
       "memory": 256
+    },
+    "app/api/og/*/route.tsx": {
+      "maxDuration": 15,
+      "memory": 1024
     }
   },
   "regions": [

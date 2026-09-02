@@ -100,19 +100,37 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     alternates: {
       canonical,
     },
+    // The preview card is now GENERATED from the trip rather than being the
+    // raw cover photo. The photo alone said nothing about the trip: 43% of
+    // shared trips carry a stock Pexels image, so the card that circulated in
+    // a group chat was indistinguishable from any other travel link. The
+    // generated one carries the same stat row the page hero shows - the
+    // destination, the dates, "7D / 6N", the activity count and the budget -
+    // which is the part worth sending.
+    //
+    // Unconditional on purpose: /api/og/trip always returns an image, falling
+    // back to a brand card when the token resolves to nothing, so there is no
+    // path where og:image disappears. That matters here because declaring an
+    // openGraph block REPLACES the root layout's, and the old spread meant a
+    // trip with no cover_image_url silently had no og:image at all.
     openGraph: {
       title: trip.title,
       description: trip.description || `Check out this travel itinerary on MonkeyTravel`,
       type: "website",
-      ...(trip.cover_image_url && {
-        images: [{ url: trip.cover_image_url, width: 1200, height: 630, alt: trip.title }],
-      }),
+      images: [
+        {
+          url: `https://monkeytravel.app/api/og/trip?token=${encodeURIComponent(token)}`,
+          width: 1200,
+          height: 630,
+          alt: trip.title ?? "Trip itinerary",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: trip.title,
       description: trip.description || `Check out this travel itinerary on MonkeyTravel`,
-      ...(trip.cover_image_url && { images: [trip.cover_image_url] }),
+      images: [`https://monkeytravel.app/api/og/trip?token=${encodeURIComponent(token)}`],
     },
   };
 }
