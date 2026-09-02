@@ -176,7 +176,8 @@
       },
       "useFlexibleDates": "Use flexible dates",
       "hintFlexibleDefault": "No dates yet? We'll pencil in {days} days about three weeks out — you can change them anytime.",
-      "freeReassuranceSignedIn": "Free — your full day-by-day trip, ready to save in one tap"
+      "freeReassuranceSignedIn": "Free — your full day-by-day trip, ready to save in one tap",
+      "destinationTooLong": "That looks like a request rather than a place. Put the destination here (max 100 characters) and add the details on the next step."
     },
     "returningUser": {
       "welcomeBack": "Welcome back!",
