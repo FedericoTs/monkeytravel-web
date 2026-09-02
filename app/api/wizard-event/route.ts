@@ -52,6 +52,9 @@ const STEP_VALUES = [
   "draft_restored",
   "draft_expired",
   "generation_failed",
+  "auth_modal_shown",
+  "otp_requested",
+  "otp_link_opened",
 ] as const;
 
 const BodySchema = z.object({

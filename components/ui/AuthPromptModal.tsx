@@ -26,6 +26,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { prefs } from "@/lib/platform/storage";
 import { createClient } from "@/lib/supabase/client";
+import { trackWizardEvent } from "@/components/wizard/wizardEvents";
 import BaseModal from "@/components/ui/BaseModal";
 import {
   captureAuthPromptShown,
@@ -99,6 +100,13 @@ export default function AuthPromptModal({
       location,
       destination: destination || undefined,
     });
+    // The consent-free twin. captureAuthPromptShown only reaches PostHog for
+    // visitors who accepted analytics cookies, which is a minority and is
+    // biased towards the ones who convert — so it cannot describe the 99
+    // sessions a month that click Save and never sign in. This row is keyed to
+    // the same mt_session_id the save_clicked row carries, so the drop splits
+    // by subtraction.
+    void trackWizardEvent("auth_modal_shown", { destination: destination || undefined });
   }, [isOpen, location, destination]);
 
   // Fire auth_prompt_dismissed when the user closes WITHOUT having
@@ -151,6 +159,9 @@ export default function AuthPromptModal({
 
       if (otpError) throw otpError;
       setLinkSent(true);
+      // They typed an address and asked for a link. Everything after this is
+      // deliverability or the redemption path, not copy.
+      void trackWizardEvent("otp_requested", { destination: destination || undefined });
       // Hash the domain only — never the address. PostHog dashboards
       // segment magic-link conversion by gmail/icloud/work-domains
       // without exposing user identities in the event stream.
