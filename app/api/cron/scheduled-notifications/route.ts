@@ -131,6 +131,19 @@ const PRE_TRIP_OFFSET_DAYS: Record<string, number> = {
  * was live on 2026-08-31 — a `morning_of` for a trip that had started the day
  * before.
  *
+ * That hold was RELEASED on 2026-09-02 (migration 20260902170100), for future
+ * rows on live trips only — 606 rows, 129 trips, 106 users who had been
+ * getting no pre-trip mail at all. Rows whose moment had already passed were
+ * deliberately left suppressed, which is exactly what this guard is for.
+ *
+ * HOLDING THE QUEUE AGAIN: suppressing rows is fine, but until
+ * 20260902170000 it was a ONE-WAY door — enqueue_trip_notifications deletes
+ * only `pending` rows before re-inserting, and the unique index on
+ * (trip_id, slot) covers every status, so a suppressed row silently blocked
+ * its own trip's re-enqueue forever. The RPC now revives a suppressed row on
+ * conflict (never a `sent` one). Prefer TRIP_NOTIFICATIONS_SEND_CAP=0 for a
+ * short pause: it leaves rows `pending` and needs no repair afterwards.
+ *
  * TOLERANCE IS PER SLOT, because grace is only defensible while the copy stays
  * TRUE. The cron runs once daily at 07:00 UTC against slots stamped 06:00, so
  * a single missed run puts a row 24h behind — and whether that matters depends
