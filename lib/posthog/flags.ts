@@ -90,8 +90,37 @@ export type FrontDoorVariant = "wizard" | "decision";
  *                                      explicit false renders classic
  * Levers: set the flag to 0% in PostHog (no deploy), or the env force
  * (redeploy). The 10% holdout is a live proof the kill path works and a
- * sanity reference; it is NOT a control arm — read results pre/post against
- * the trailing 30 days in wizard_step_events.
+ * sanity reference; it is NOT a control arm.
+ *
+ * HOW TO READ IT — and the trap, found 2026-09-02 while checking early:
+ *
+ * Do NOT compare against the recorded 36.0% step1->2 baseline. That number is
+ * real but no longer means what it did: on 2026-08-17 the share of step-1
+ * sessions emitting ONE event and nothing else (no 10s dwell heartbeat, no
+ * step 2) jumped from ~5-17% to ~51-58%, and step-1 "sessions" roughly doubled
+ * from ~340/week to ~800. Genuinely engaged sessions stayed FLAT at ~300/week
+ * throughout. So the denominator filled with non-humans and every rate built
+ * on it fell mechanically: 35.9% (trailing 30d) / 30.4% (14d) / 27.3% (7d) are
+ * three different "baselines" for the same product, and picking among them
+ * decides the verdict by itself.
+ *
+ * Read the dwell-qualified rate instead — sessions with a step1_heartbeat:
+ *
+ *   with s as (
+ *     select session_id, min(created_at) as first_at,
+ *            bool_or(step='step1_heartbeat')      as dwelled,
+ *            bool_or(step='step_2_vibes')         as s2
+ *     from wizard_step_events
+ *     where created_at >= now() - interval '45 days' and session_id <> 'no_session'
+ *     group by session_id having bool_or(step='step_1_destination_dates'))
+ *   select count(*) filter (where dwelled) as n,
+ *          round(100.0*count(*) filter (where dwelled and s2)
+ *                /nullif(count(*) filter (where dwelled),0),1) as step2_pct
+ *   from s where first_at >= '<ship or window start>';
+ *
+ * On that metric the pre-ship regime since 2026-08-17 is 74.5% (n=745). The
+ * first ~10 hours post-ship read 76.0% (n=25) — i.e. nothing yet, and NOT the
+ * +11 points a naive trailing-30d comparison appears to show.
  *
  * REVIEW BY 2026-09-09 — see FLAG_REVIEW_DATES; flag-review-dates.vitest.ts
  * goes red a week after that. Ramp to 100% and delete the classic branches,
