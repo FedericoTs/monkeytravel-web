@@ -712,6 +712,11 @@ export async function captureClaimedTripBanner(event: ClaimedTripBannerEvent) {
   ph.capture("claimed_trip_banner", event);
 }
 
+export async function captureAutoSaveSkipped(event: AutoSaveSkippedEvent) {
+  const ph = await getPosthog();
+  ph.capture("auto_save_skipped", event);
+}
+
 export async function captureTripGenerationStarted(event: TripGenerationStartedEvent) {
   const ph = await getPosthog();
   ph.capture("trip_generation_started", event);
@@ -942,6 +947,22 @@ export interface SaveFailedEvent {
   error_class: "network" | "rls" | "validation" | "rate_limit" | "unknown";
   /** Truncated error message — never raw PII. */
   error_message?: string;
+  /** Which path failed: the silent auto-save, or a Save click. */
+  arm?: "auto" | "manual";
+  /** Auto-save only: how many attempts were made before giving up. */
+  attempts?: number;
+}
+
+/**
+ * A signed-in-or-not user has a rendered itinerary and auto-save did NOT run.
+ * `not_authenticated` is the normal anonymous case; `disabled` means the env
+ * kill switch; `auth_pending` means the client had not resolved auth when the
+ * result landed. Emitted once per itinerary. Exists because six signed-in
+ * users in 30 days (2026-09) lost generations with no event of any kind.
+ */
+export interface AutoSaveSkippedEvent {
+  reason: "not_authenticated" | "disabled" | "auth_pending";
+  destination?: string;
 }
 
 // Save-funnel captures race the modal-open + window.location.assign that

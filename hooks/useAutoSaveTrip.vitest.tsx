@@ -75,6 +75,13 @@ function makeMocks(): MockHandles {
 }
 
 interface RenderOpts {
+  /**
+   * These tests predate the retry loop (2026-09-02) and assert a single
+   * failure surfaces as `error` before a manual retry; default to no
+   * internal retries so their semantics are unchanged. The retry behaviour
+   * has its own file: useAutoSaveTrip.resilience.vitest.tsx.
+   */
+  retryDelaysMs?: readonly number[];
   itinerary?: GeneratedItinerary | null;
   isAuthenticated?: boolean | null;
   enabled?: boolean;
@@ -97,6 +104,7 @@ function renderAutoSaveHook(initial: RenderOpts = {}) {
         attachCoverImage: mocks.attachCoverImage,
         onPersisted: mocks.onPersisted,
         onError: mocks.onError,
+        retryDelaysMs: props.retryDelaysMs ?? [],
       }),
     { initialProps: initial },
   );

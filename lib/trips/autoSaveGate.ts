@@ -1,61 +1,53 @@
 /**
- * Who persists a generated trip? Exactly one owner, for every flag state.
+ * Who persists a signed-in user's generated itinerary?
  *
- * WHY THIS EXISTS
- * ---------------
- * /trips/new has two persistence paths and a three-state flag:
+ * History, because this gate has already lost trips twice:
  *
- *   auto-save-v1 = true       the useAutoSaveTrip hook persists every generation
- *   auto-save-v1 = false      the hook is inert; the post-auth redemption effect
- *                             replays the Save the user already clicked
- *   auto-save-v1 = undefined  PostHog has not resolved the flag
+ *   - Originally the PostHog flag `auto-save-v1` gated auto-save AND the
+ *     post-auth "redeem the Save click" effect was gated on the flag being
+ *     false. An UNRESOLVED flag (consent declined, ad blocker, failed
+ *     request) satisfied neither, so nothing persisted — 30 users, 44 burned
+ *     generations, zero trips (fixed 20b5760: undefined → auto-save).
  *
- * The third state is not a transient. Analytics consent declined, an ad
- * blocker, or a failed PostHog request leave it undefined FOREVER - there is no
- * later evaluation to wait for.
+ *   - Then, 2026-09-02: six more signed-in users in 30 days reached a
+ *     rendered result and no save was ever ATTEMPTED — Supabase edge logs
+ *     show their browsers authenticated before and after, and not one
+ *     getUser or insert_trip_dedup call in between. The flag has been at
+ *     rollout 100% since 2026-07-02, and every browser PostHog could see
+ *     received `true` (225/225 in 30 days). The browsers it could NOT see
+ *     are the point: posthog-js caches flags in localStorage, and a
+ *     returning browser whose cached set predates the flag, with the
+ *     /flags refresh blocked, evaluates `isFeatureEnabled` to a hard
+ *     `false` — which a "kill switch that only honours explicit false"
+ *     obeys. That population never reaches PostHog, so it was invisible by
+ *     construction.
  *
- * The original code asked `=== true` for the hook and `=== false` for the
- * redemption effect. undefined satisfied NEITHER, so for that cohort a signed-in
- * user generated an itinerary and nothing persisted it. The trip was silently
- * dropped unless they found the manual Save button.
- *
- * Measured 2026-09-01, before the fix: 30 users burned 44 successful AI
- * generations and finished with zero trips. Among users who reached generation
- * at all, those who ended with nothing were half as likely to have analytics
- * consent (36.7% vs 69.9%) - the signature of an unresolved flag, not of a
- * user who changed their mind.
- *
- * auto-save-v1 has been at rollout_percentage 100 since 2026-07-02, so ON is
- * the intended behaviour for everyone. Unresolved therefore fails OPEN. That is
- * also the safe direction: persisting a trip the user asked for is never the
- * harmful outcome; losing it is.
- *
- * These two predicates are deliberately kept together, and the test asserts
- * they are never both true and never both false for the same input. That
- * mutual exclusivity is the real invariant - split across two files it drifted
- * once already, and the failure was invisible because both sides "looked" safe.
+ * Decision: saving what a signed-in user asked for is product behaviour,
+ * not a rollout. The flag is no longer consulted. The kill switch is an
+ * environment variable (NEXT_PUBLIC_AUTO_SAVE_FORCE=off) — a redeploy, but
+ * one that cannot be spoofed by a stale cache in one visitor's browser.
+ * `flag` stays in the signature so call sites and the invariants below keep
+ * compiling; it is intentionally ignored.
  */
 
-/** Flag value as `useFlag` reports it: resolved true/false, or unresolved. */
 export type FlagState = boolean | undefined;
 
+/** Value of NEXT_PUBLIC_AUTO_SAVE_FORCE that turns auto-save off. */
+export const AUTO_SAVE_FORCE_OFF = "off";
+
 /**
- * Should the useAutoSaveTrip hook persist generations?
- *
- * True unless the flag RESOLVED to false (the kill-switch). Unresolved fails
- * open - see the module docblock.
+ * Should the wizard auto-persist a signed-in user's itinerary?
+ * Always — unless the environment kill switch is set. `flag` is ignored.
  */
-export function shouldAutoSave(flag: FlagState): boolean {
-  return flag !== false;
+export function shouldAutoSave(_flag: FlagState, envForce?: string | null): boolean {
+  return envForce !== AUTO_SAVE_FORCE_OFF;
 }
 
 /**
  * Should the post-auth redemption effect replay the user's Save click?
- *
- * Only when the flag RESOLVED to false, i.e. exactly when the hook above is
- * inert. This is the complement of shouldAutoSave, which is what guarantees no
- * path is ever left without an owner and no trip is ever saved twice.
+ * Only when auto-save is off — the two are complements, and exactly one of
+ * them must own persistence in every state (proven in autoSaveGate.vitest.ts).
  */
-export function shouldRedeemSaveIntent(flag: FlagState): boolean {
-  return flag === false;
+export function shouldRedeemSaveIntent(_flag: FlagState, envForce?: string | null): boolean {
+  return envForce === AUTO_SAVE_FORCE_OFF;
 }
