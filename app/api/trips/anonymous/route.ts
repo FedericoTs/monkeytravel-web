@@ -136,16 +136,18 @@ export async function POST(request: NextRequest) {
     //    fallback: reuse the first real activity photo. Enrichment runs first so
     //    the image chosen is an upgraded photo rather than a placeholder, and it
     //    costs no extra API call because the URL is already in the itinerary.
-    // Consent-free record of the mint, keyed by the sharer's session, so the
-    // loop can tell "the sharer never signed in again" from "the claim is
-    // broken" (get_anonymous_loop.sharer_signed_in). Fire-and-forget.
-    void logFunnelEventServer({
-      event_type: "share_link_created",
-      trip_id: data.id as string,
-      session_id: request.cookies.get("mt_session_id")?.value ?? null,
-      metadata: { anonymous: true, destination: trip.destination },
-    });
+    const sharerSessionId = request.cookies.get("mt_session_id")?.value ?? null;
     after(async () => {
+      // Consent-free record of the mint, keyed by the sharer's session, so the
+      // loop can tell "the sharer never signed in again" from "the claim is
+      // broken" (get_anonymous_loop.sharer_signed_in). Inside after() so the
+      // write survives the response; logFunnelEventServer never throws.
+      await logFunnelEventServer({
+        event_type: "share_link_created",
+        trip_id: data.id as string,
+        session_id: sharerSessionId,
+        metadata: { anonymous: true, destination: trip.destination },
+      });
       await enrichTripByIdAdmin(data.id as string, "share");
       await backfillCoverFromItinerary(data.id as string);
     });

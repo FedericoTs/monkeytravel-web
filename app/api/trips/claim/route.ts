@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
@@ -71,13 +71,19 @@ export async function POST(request: NextRequest) {
 
     // Consent-free record of the conversion. The RPC also stamps
     // trip_meta.claimed_at; this row carries the user for cohort joins.
-    // Fire-and-forget: telemetry must never fail a claim that succeeded.
-    void logFunnelEventServer({
-      event_type: "trip_claimed",
-      trip_id: row?.trip_id ?? null,
-      user_id: user.id,
-      metadata: { source: "anonymous_share" },
-    });
+    // Scheduled with after(): a bare `void` insert here was dropped on
+    // production (verified 2026-09-02) because the function returns
+    // immediately and can be frozen before the write lands. Telemetry must
+    // never fail a claim that succeeded, and logFunnelEventServer never throws.
+    const claimedTripId = (row?.trip_id as string | undefined) ?? null;
+    after(() =>
+      logFunnelEventServer({
+        event_type: "trip_claimed",
+        trip_id: claimedTripId,
+        user_id: user.id,
+        metadata: { source: "anonymous_share" },
+      }),
+    );
     return apiSuccess({ claimed: true, tripId: row?.trip_id ?? null });
   } catch (err) {
     console.error("[trip-claim] unexpected error:", err);
