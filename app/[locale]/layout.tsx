@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import AuthEventTracker from "@/components/analytics/AuthEventTracker";
+import EngagementBeacon from "@/components/analytics/EngagementBeacon";
 import { ToastProvider } from "@/components/ui/Toast";
 import MaintenanceWrapper from "@/components/MaintenanceWrapper";
 import { ProfileCompletionProvider } from "@/components/profile";
@@ -53,6 +54,10 @@ export default async function LocaleLayout({
          */}
         <Suspense fallback={null}>
           <AuthEventTracker />
+          {/* Counts a session as a visit after a few visible seconds. The
+              only signal that separates a reader from a fetcher outside the
+              wizard — see components/analytics/EngagementBeacon.tsx. */}
+          <EngagementBeacon />
         </Suspense>
         <ConsentWrapper>
           <ToastProvider>
