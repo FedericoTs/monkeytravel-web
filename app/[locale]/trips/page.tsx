@@ -41,9 +41,8 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
   // (27ms from a co-located region), so a needless second await is ~118ms of
   // pure waiting.
   //
-  // The zero-trip redirect below still fires correctly; it just means the
-  // profile query was issued and discarded for brand-new users. That costs no
-  // extra time, because it ran alongside the trips query rather than after it.
+  // Both results are always used now that the zero-trip redirect is gone, so
+  // there is no longer a discarded-query case to caveat.
   const [tripsResult, profileResult] = await Promise.all([
     supabase
       .from("trips")
@@ -60,10 +59,23 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
 
   const { data: trips } = tripsResult;
 
-  // Auto-redirect new users with 0 trips straight to trip creation
-  if (!trips || trips.length === 0) {
-    redirect("/trips/new");
-  }
+  // NO auto-redirect for zero-trip users. This used to be
+  // `if (!trips?.length) redirect("/trips/new")`, which made the browser Back
+  // button a trap: /trips/new -> Back -> /trips -> server redirect -> straight
+  // back to /trips/new. A user with no trips could not leave the wizard by the
+  // one control every browser gives them.
+  //
+  // It also hid a page that already exists and is better than the redirect.
+  // TripsPageClient renders a full empty state - illustration, "plan your
+  // first trip" as the primary CTA, and a low-friction "browse community
+  // trips" secondary - which a zero-trip user had never once seen, because
+  // this line sent them away before it could render.
+  //
+  // Activation intent is unaffected: the post-signup landing does not pass
+  // through here. app/auth/callback/route.ts rewrites next="/trips" to
+  // "/trips/new" itself, so new users still arrive at the wizard directly.
+  // This only changes what happens when someone deliberately navigates to
+  // their trip list - and trapping them there was never the intent.
 
   const { data: profile } = profileResult;
 
