@@ -165,6 +165,14 @@ export default function DecisionIntake({ locale, onPick, generateError }: Decisi
   useEffect(() => {
     if (step1FiredRef.current) return;
     step1FiredRef.current = true;
+    // Deliberately WITHOUT step1Variant. That arm label belongs to
+    // FLAG_WIZARD_STEP1_EDITORIAL, which governs the classic wizard's step 1 —
+    // a surface this component replaces outright. Labelling a decision-intake
+    // session "editorial" or "classic" would put a third experience into a
+    // two-armed comparison. `npm run flags:review` filters its by-arm slice to
+    // non-null rows, so these sessions are excluded there by construction;
+    // they still count in the pre/post denominator, which is correct and
+    // currently ~zero (the front door has been 100% wizard since 2026-08-17).
     void trackWizardEvent("step_1_destination_dates", { locale }, DECISION_ARM);
   }, [locale]);
 
