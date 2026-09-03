@@ -248,7 +248,10 @@
       "shareAnonError": "Non è stato possibile creare il link. Riprova.",
       "shareAnonHint": "Chiunque abbia il link può vederlo e votare.",
       "shareAnonKeepPrompt": "Vuoi continuare a modificarlo?",
-      "shareAnonKeepCta": "Tieni questo viaggio, gratis"
+      "shareAnonKeepCta": "Tieni questo viaggio, gratis",
+      "shareCrewCta": "Chiedi al gruppo di votare",
+      "shareCrewHint": "Manda questo link: possono votare senza registrarsi.",
+      "shareCrewVotes": "{count, plural, =1 {# voto finora: guarda cosa hanno scelto} other {# voti finora: guarda cosa hanno scelto}}"
     },
     "anchors": {
       "cta": "Ho già impegni fissi (volo, matrimonio, hotel…)",

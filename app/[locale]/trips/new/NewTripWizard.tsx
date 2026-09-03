@@ -3371,7 +3371,10 @@ export default function NewTripPage({
                   mobile sticky bar; that surface was fixed first and this desktop
                   twin was missed, so the trap survived on desktop. Authenticated
                   users (and anyone who has saved) keep it — for them it routes to
-                  the collaboration prompt, which is the right destination. */}
+                  the collaboration prompt, which is the right destination.
+                  The vote ask is not lost for them: on a group-intent trip the
+                  AnonymousShareButton below runs in "crew" mode and IS the vote
+                  ask, minus the account. */}
               {!(isAuthenticated === false && !savedTripId) && (
               <button
                 type="button"
@@ -3483,6 +3486,7 @@ export default function NewTripPage({
                 <AnonymousShareButton
                   onShared={handleAnonShared}
                   onKeep={handleKeepSharedTrip}
+                  mode={tripIntent === "group" ? "crew" : "share"}
                   existingShareUrl={sessionShareUrl}
                   trip={{
                     title: `${generatedItinerary.destination.name} Trip`,
@@ -3530,6 +3534,7 @@ export default function NewTripPage({
             <AnonymousShareButton
               onShared={handleAnonShared}
               onKeep={handleKeepSharedTrip}
+              mode={tripIntent === "group" ? "crew" : "share"}
               existingShareUrl={sessionShareUrl}
               className="mb-2"
               trip={{
@@ -3694,6 +3699,7 @@ export default function NewTripPage({
                     }}
                     onShared={handleAnonShared}
                     onKeep={handleKeepSharedTrip}
+                    mode={tripIntent === "group" ? "crew" : "share"}
                     existingShareUrl={sessionShareUrl}
                   />
                 ) : undefined

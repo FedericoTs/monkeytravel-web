@@ -10,6 +10,8 @@
  * is a thin shell around `validateAnonymousTripPayload`.
  */
 
+import { generateActivityId } from "@/lib/utils/activity-id";
+
 /** Mirrors the multi-city trip-length cap enforced elsewhere in the wizard. */
 export const MAX_TRIP_DAYS = 21;
 
@@ -105,10 +107,51 @@ export function validateAnonymousTripPayload(body: unknown): ValidationResult {
       destination,
       startDate: start,
       endDate: end,
-      itinerary: b.itinerary,
+      itinerary: withActivityIds(b.itinerary),
       coverImageUrl: sanitizeCoverImageUrl(b.coverImageUrl),
     },
   };
+}
+
+/**
+ * Stamp every activity with a stable id BEFORE the itinerary is stored.
+ *
+ * WHY THIS IS NOT OPTIONAL
+ * ------------------------
+ * Stored without ids, the itinerary is rendered by /shared/[token], which
+ * calls `ensureActivityIds` — and that mints a fresh random id for any
+ * activity missing one. So the server render and the client hydration
+ * disagree (a real hydration mismatch on that page), and worse, EVERY page
+ * load invents a new id for the same activity. Votes are keyed on that id, so
+ * a vote is written against something nobody will ever look up again.
+ *
+ * Measured 2026-09-03: 78.1% of activities on anonymous trips had no stored
+ * id, and 13 of the 51 anonymous votes ever cast (25%) already point at an
+ * activity id that exists nowhere in their trip.
+ *
+ * Deliberately NOT `ensureActivityIds` from lib/utils/activity-id: that helper
+ * assumes a well-formed ItineraryDay[] and throws on a day with no
+ * `activities` array. This input is attacker-controlled JSON that has passed
+ * only a length check, and days without activities are explicitly accepted
+ * here — so anything it does not recognise is passed through untouched rather
+ * than coerced or rejected. An existing id is never replaced: overwriting one
+ * would orphan the votes already cast against it.
+ */
+function withActivityIds(itinerary: unknown[]): unknown[] {
+  return itinerary.map((day) => {
+    if (!day || typeof day !== "object" || Array.isArray(day)) return day;
+    const activities = (day as { activities?: unknown }).activities;
+    if (!Array.isArray(activities)) return day;
+    return {
+      ...(day as Record<string, unknown>),
+      activities: activities.map((activity) => {
+        if (!activity || typeof activity !== "object" || Array.isArray(activity)) return activity;
+        const existing = (activity as { id?: unknown }).id;
+        if (typeof existing === "string" && existing.length > 0) return activity;
+        return { ...(activity as Record<string, unknown>), id: generateActivityId() };
+      }),
+    };
+  });
 }
 
 /** Expiry stamp for a freshly minted anonymous trip. */

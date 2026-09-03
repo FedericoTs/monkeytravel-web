@@ -63,6 +63,13 @@ export async function POST(request: NextRequest) {
       return errors.badRequest("Invalid JSON body.");
     }
 
+    // Read before validation: the validator returns a fixed trip shape and
+    // deliberately drops anything it does not know about.
+    const intent =
+      typeof (parsed as { intent?: unknown } | null)?.intent === "string" &&
+      (parsed as { intent: string }).intent === "crew"
+        ? "crew"
+        : "share";
     const result = validateAnonymousTripPayload(parsed);
     if (!result.ok) return errors.badRequest(result.error);
     const trip = result.value;
@@ -146,7 +153,7 @@ export async function POST(request: NextRequest) {
         event_type: "share_link_created",
         trip_id: data.id as string,
         session_id: sharerSessionId,
-        metadata: { anonymous: true, destination: trip.destination },
+        metadata: { anonymous: true, destination: trip.destination, intent },
       });
       await enrichTripByIdAdmin(data.id as string, "share");
       await backfillCoverFromItinerary(data.id as string);

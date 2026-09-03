@@ -1226,6 +1226,10 @@
       "title": "Esta é a sua viagem",
       "body": "Partilhou-a sem conta. Registe-se grátis e poderá editá-la.",
       "cta": "Registe-se para a guardar"
+    },
+    "crewPrompt": {
+      "title": "O seu amigo quer o seu voto",
+      "body": "Vote em cada ideia com gosto ou não gosto — sem criar conta."
     }
   },
   "proposals": {

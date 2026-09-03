@@ -153,3 +153,54 @@ describe("claimExpiryFrom", () => {
     expect(claimExpiryFrom(now)).toBe("2026-09-16T00:00:00.000Z");
   });
 });
+
+describe("activity ids are stamped before storage", () => {
+  const base = {
+    title: "Trip",
+    destination: "Lisbon",
+    startDate: "2026-10-01",
+    endDate: "2026-10-03",
+  };
+  const ok = (body: unknown) => {
+    const r = validateAnonymousTripPayload(body);
+    if (!r.ok) throw new Error(`expected valid payload, got: ${r.error}`);
+    return r.value;
+  };
+
+  it("gives every activity an id so votes survive a reload", () => {
+    // Stored without ids, /shared mints a fresh random one on EVERY render —
+    // so a vote is keyed to something that never appears again. 13 of the 51
+    // votes ever cast were already orphaned this way.
+    const value = ok({
+      ...base,
+      itinerary: [{ day: 1, activities: [{ name: "Castle" }, { name: "Market" }] }],
+    });
+    const activities = (value.itinerary[0] as { activities: { id: string }[] }).activities;
+    expect(activities[0].id).toMatch(/^act_[0-9a-f]{12}$/);
+    expect(activities[1].id).toMatch(/^act_[0-9a-f]{12}$/);
+    expect(activities[0].id).not.toBe(activities[1].id);
+  });
+
+  it("never replaces an id that already exists", () => {
+    // Overwriting one would orphan every vote already cast against it.
+    const value = ok({
+      ...base,
+      itinerary: [{ day: 1, activities: [{ name: "Castle", id: "act_keepthisone" }] }],
+    });
+    const activities = (value.itinerary[0] as { activities: { id: string }[] }).activities;
+    expect(activities[0].id).toBe("act_keepthisone");
+  });
+
+  it("passes through anything it does not recognise", () => {
+    // The payload is attacker-controlled JSON that has passed only a length
+    // check; a day with no activities array must not throw a 500.
+    const value = ok({
+      ...base,
+      itinerary: [{ day: 1 }, { day: 2, activities: "not-an-array" }, null, { day: 4, activities: [7, null] }],
+    });
+    expect(value.itinerary[0]).toEqual({ day: 1 });
+    expect(value.itinerary[1]).toEqual({ day: 2, activities: "not-an-array" });
+    expect(value.itinerary[2]).toBeNull();
+    expect((value.itinerary[3] as { activities: unknown[] }).activities).toEqual([7, null]);
+  });
+});

@@ -1226,6 +1226,10 @@
       "title": "Questo è il tuo viaggio",
       "body": "L'hai condiviso senza un account. Registrati gratis e potrai modificarlo.",
       "cta": "Registrati per tenerlo"
+    },
+    "crewPrompt": {
+      "title": "Il tuo amico vuole il tuo voto",
+      "body": "Vota ogni idea con un pollice su o giù, senza registrarti."
     }
   },
   "proposals": {
