@@ -51,6 +51,8 @@ Noviembre es el mes en que Tailandia exhala. El monzón del noreste retira la ll
 
 El monzón del suroeste ya ha pasado en noviembre y Kerala está en su mejor momento: los backwaters llenos y verdes, días de 28–31°C con la humedad por fin levantada y las colinas de té de los Ghats Occidentales, alrededor de Munnar, en su punto más caminable. Es el frente de la larga y cómoda estación seca del sur de India: ciudades-templo, casas flotantes y estaciones de montaña, todas en su ventana a la vez.
 
+El Diwali cae el [8 de noviembre en 2026](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html), y la fiesta completa se extiende más o menos del 5 al 11 de noviembre: lámparas de aceite a lo largo de los remansos, fuegos artificiales sobre las ciudades-templo y el país entero en movimiento a la vez.
+
 **Coste real:** $30–55/día — una de las regiones con mejor relación calidad-precio de toda esta lista; una noche en una casa flotante por los backwaters es el capricho y aun así sale modesta.
 **La contrapartida:** el extremo sureste — la costa de Tamil Nadu en torno a Chennai — recibe el monzón del *noreste* en noviembre, así que la lluvia simplemente se cambia de costa. Quédate del lado de Kerala y en los Ghats.
 
@@ -129,7 +131,7 @@ Cambia de hemisferio. Noviembre es primavera tardía en Nueva Zelanda — vuelve
 - **Este es el mes del valor: aprovéchalo.** Sin ninguna fiesta del hemisferio norte que lo ancle, noviembre tiene los precios de vuelo y hotel más blandos de la segunda mitad del año, justo antes del pico de diciembre. Si tus fechas son flexibles, este es el mes en que gastarlas.
 - **Sigue el giro del monzón, no el folleto.** Noviembre parte Asia en dos con limpieza: la costa de Andamán tailandesa, Kerala y el sur de Vietnam se secan, mientras las islas del Golfo tailandés, Tamil Nadu y el centro de Vietnam reciben lluvia. Nuestra [guía de la estación del monzón](/blog/monsoon-season-where-to-go-and-avoid) mapea el calendario completo para que aterrices en el lado seco.
 - **Oriente Medio y el norte de África están ahora en su pico.** Egipto, Jordania, Omán y Marruecos pasan de insoportables a ideales en noviembre — la mejor ventana del año antes de que llegue el frío del invierno. Lleva capas, porque las noches del desierto se enfrían rápido aunque los días sean cálidos.
-- **Reserva las fechas del festival, improvisa el resto.** El Día de Muertos de Oaxaca (1 y 2 de noviembre) y los festivales de farolillos de Tailandia son lo único que se agota pronto este mes; todo lo demás sigue abierto y asequible bien entrado noviembre.
+- **Reserva las fechas del festival, improvisa el resto.** Tres cosas se agotan pronto este mes: el Día de Muertos de Oaxaca (1 y 2 de noviembre), el [Diwali en toda la India](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html) (8 de noviembre en 2026, y la semana de viajes internos más intensa del año indio) y los festivales de farolillos de Tailandia son lo único que se agota pronto este mes; todo lo demás sigue abierto y asequible bien entrado noviembre.
 - **Compáralo con la temporada alta y no volverás atrás.** Las mismas latitudes que cuestan una fortuna en [agosto](/blog/where-to-go-in-august) están ahora tranquilas y baratas — y si puedes empujar el viaje un mes más, los precios suben, así que mira cómo queda el [calendario de viajes 2026](/blog/2026-travel-calendar) antes de fijar fechas.
 
 ## Planifica tu viaje de noviembre en 30 segundos
@@ -153,3 +155,9 @@ Es una de las ventanas más baratas del año. Encajado entre los picos de otoño
 ### ¿Qué destinos debería evitar en noviembre?
 
 Cualquiera que siga recibiendo un monzón: las islas del Golfo de Tailandia (Koh Samui, Koh Phangan), el centro de Vietnam (Hoi An, Hue, que pueden inundarse) y la costa india de Tamil Nadu reciben lluvia mientras el tiempo cambia de bando. Sáltate también la Patagonia de temporada temprana — algunos senderos y refugios no están del todo abiertos hasta diciembre. Las alternativas en estación seca son la costa de Andamán tailandesa, el sur de Vietnam y Kerala.
+
+---
+
+*Cómo leer las cifras: las temperaturas son medias mensuales típicas de cada destino, no pronósticos — los días concretos varían mucho. Los presupuestos diarios son estimaciones editoriales de gama media por persona que cubren alojamiento, comida, transporte local y actividades; son una guía de planificación, no datos encuestados, y se mueven con la temporada, la antelación de la reserva y el tipo de cambio. Las fechas de festivales y temporadas se citan abajo y se verificaron para 2026.*
+
+*Fuentes / Fonti / Fontes: [Drik Panchang — Diwali 2026](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html), [NZ Department of Conservation — Great Walks](https://www.doc.govt.nz/parks-and-recreation/things-to-do/walking-and-tramping/great-walks/), [Incredible India](https://www.incredibleindia.gov.in/en).*

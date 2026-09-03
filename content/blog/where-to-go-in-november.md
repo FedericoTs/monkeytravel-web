@@ -42,7 +42,7 @@ But November isn't just a cheaper version of Europe. It's the pivot month of the
 
 ## 1. Thailand — The Cool Dry Season Opens
 
-November is the month Thailand exhales. The northeast monsoon pulls the rain off the Andaman coast, so Phuket, Krabi, and the Phi Phi islands dry out and the sea clears, while Bangkok settles to a merely-warm 32°C with the humidity finally broken and Chiang Mai's nights turn cool. It's also festival season: the Loy Krathong river lights and Chiang Mai's Yi Peng sky-lantern release both fall in late November this year.
+November is the month Thailand exhales. The northeast monsoon pulls the rain off the Andaman coast, so Phuket, Krabi, and the Phi Phi islands dry out and the sea clears, while Bangkok settles to a merely-warm 32°C with the humidity finally broken and Chiang Mai's nights turn cool. It's also festival season: the Loy Krathong river lights and Chiang Mai's Yi Peng sky-lantern release both fall in late November — 23–25 November in 2026, on the twelfth-month full moon.
 
 **Cost reality:** $40–70/day mid-range — the islands cost more than the north, and prices climb all month as high season ramps toward December.
 **The trade-off:** the Gulf islands (Koh Samui, Koh Phangan, Koh Tao) run the opposite rain calendar and are still catching the tail of their wet season in November. Go Andaman side, not Gulf side, and book festival-week beds in Chiang Mai well ahead.
@@ -51,7 +51,9 @@ November is the month Thailand exhales. The northeast monsoon pulls the rain off
 
 The southwest monsoon has cleared by November, and Kerala is at its best: backwaters full and green, 28–31°C days with the humidity finally lifting, and the Western Ghats' tea hills around Munnar at their most walkable. This is the front edge of South India's long, comfortable dry season — temple towns, houseboats, and hill stations all in their window at once.
 
-**Cost reality:** $30–55/day — one of the best-value regions on this entire list; a night on a backwater houseboat is the splurge and still modest.
+Diwali falls on [8 November in 2026](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html), with the wider festival running roughly 5–11 November — oil lamps along the backwaters, fireworks over the temple towns, and every city in the country busy at once.
+
+**Cost reality:** $30–55/day — one of the best-value regions on this entire list; a night on a backwater houseboat is the splurge and still modest. Expect domestic flights and trains to spike hard in the Diwali week.
 **The trade-off:** the far southeast — the Tamil Nadu coast around Chennai — catches the *northeast* monsoon in November, so the rain simply shifts to the opposite coast. Stay on the Kerala side and in the Ghats.
 
 ## 3. Oman — The Furnace Switches Off
@@ -129,7 +131,7 @@ Flip the hemisphere. November is late spring in New Zealand — fifteen-hour day
 - **This is the value month — use it.** With no Northern Hemisphere holiday anchoring it, November has the softest flight and hotel prices of the second half of the year, right before December's spike. If your dates are flexible, this is the month to spend them.
 - **Follow the monsoon flip, not the brochure.** November splits Asia cleanly: Thailand's Andaman coast, Kerala, and southern Vietnam dry out, while the Thai Gulf islands, Tamil Nadu, and central Vietnam catch rain. Our [monsoon-season guide](/blog/monsoon-season-where-to-go-and-avoid) maps the whole calendar so you land on the dry side.
 - **The Middle East and North Africa are at their peak now.** Egypt, Jordan, Oman, and Morocco all switch from unbearable to ideal in November — the single best window before winter cold arrives. Pack layers, because desert nights get cold fast even when the days are warm.
-- **Book the festival dates, wing the rest.** Oaxaca's Día de Muertos (Nov 1–2) and Thailand's lantern festivals are the only things that sell out early this month; everything else stays open and affordable well into November.
+- **Book the festival dates, wing the rest.** Three things sell out early this month: Oaxaca's Día de Muertos (Nov 1–2), [Diwali across India](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html) (8 November in 2026, and the busiest domestic travel week of the Indian year), and Thailand's lantern festivals in late November. Everything else stays open and affordable.
 - **Compare it against peak season and you'll never go back.** The same latitudes that cost a fortune in [August](/blog/where-to-go-in-august) are calm and cheap now — and if you can push a trip one more month, prices climb, so see how the [2026 travel calendar](/blog/2026-travel-calendar) stacks up before you lock dates.
 
 ## Plan Your November Trip in 30 Seconds
@@ -153,3 +155,9 @@ It's one of the cheapest windows of the year. Wedged between the autumn and Chri
 ### Which destinations should I avoid in November?
 
 Anywhere still catching a monsoon: Thailand's Gulf islands (Koh Samui, Koh Phangan), central Vietnam (Hoi An, Hue, which can flood), and India's Tamil Nadu coast all see rain as the weather flips. Skip early-season Patagonia too — some trails and huts aren't fully open until December. The dry-season alternatives are the Thai Andaman coast, southern Vietnam, and Kerala.
+
+---
+
+*How to read the numbers: temperatures are typical monthly averages for each destination, not forecasts — individual days vary widely. Daily budgets are mid-range, per-person editorial estimates covering accommodation, food, local transport and activities; they are a planning guide, not surveyed data, and move with season, booking window and exchange rate. Festival and season dates are sourced below and were verified for 2026.*
+
+*Sources: [Drik Panchang — Diwali 2026 calendar](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html), [New Zealand Department of Conservation — Great Walks](https://www.doc.govt.nz/parks-and-recreation/things-to-do/walking-and-tramping/great-walks/), [Incredible India](https://www.incredibleindia.gov.in/en).*

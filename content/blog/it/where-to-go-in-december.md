@@ -155,3 +155,9 @@ Solo se viaggi nelle due settimane sbagliate. Dal 20 dicembre al 2 gennaio è la
 ### Dove costa poco viaggiare a dicembre?
 
 Il Sud-est asiatico e l'Asia meridionale danno il valore migliore: il Kerala ($40–70 al giorno), il Vietnam del sud e Phu Quoc ($45–75 al giorno) e la costa sud dello Sri Lanka ($45–75 al giorno) sono tutti in piena stagione con pochissima spesa. Città del Capo ($80–130 al giorno) è il miglior valore tra le città dell'emisfero in estate. Evita il supplemento della settimana di feste e questi budget si allungano ancora di più.
+
+---
+
+*Come leggere i numeri: le temperature sono medie mensili tipiche di ogni meta, non previsioni — i singoli giorni variano molto. I budget giornalieri sono stime editoriali di fascia media a persona che coprono alloggio, cibo, trasporti locali e attività; sono una guida alla pianificazione, non dati rilevati, e cambiano con la stagione, l'anticipo della prenotazione e il cambio. Le date di festival e stagioni sono citate qui sotto e verificate per il 2026.*
+
+*Fuentes / Fonti / Fontes: [Vienna Tourist Board](https://www.wien.info/en).*

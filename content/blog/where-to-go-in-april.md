@@ -299,6 +299,6 @@ Sakura-window Japan (March 28-April 7): yes, immediately — flights and hotels 
 - [Japan Meteorological Corporation — 2026 Cherry Blossom Forecast](https://sakura.weathermap.jp/en.php)
 - [Keukenhof Gardens — 2026 Season Dates](https://keukenhof.nl/en/)
 - [Whistler Blackcomb — Season Operating Dates 2025-2026](https://www.whistlerblackcomb.com/)
-- [Visit Petra — Visitor Information](https://visitpetra.jo/)
+- [Visit Petra — Visitor Information](https://visitpetra.jo/en)
 - [World Weather Online — Historical Climate Data](https://www.worldweatheronline.com/)
 - [Numbeo — Cost of Living Database](https://www.numbeo.com/cost-of-living/)

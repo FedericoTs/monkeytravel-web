@@ -155,3 +155,9 @@ Only if you travel in the wrong two weeks. December 20 to January 2 is the year'
 ### Where is it cheap to travel in December?
 
 Southeast and South Asia deliver the best value: Kerala ($40–70/day), southern Vietnam and Phu Quoc ($45–75/day), and Sri Lanka's south coast ($45–75/day) are all in prime season for little money. Cape Town ($80–130/day) is the strongest value among the summer-hemisphere cities. Avoid the holiday-week surcharge and these stretch even further.
+
+---
+
+*How to read the numbers: temperatures are typical monthly averages for each destination, not forecasts — individual days vary widely. Daily budgets are mid-range, per-person editorial estimates covering accommodation, food, local transport and activities; they are a planning guide, not surveyed data, and move with season, booking window and exchange rate. Festival and season dates are sourced below and were verified for 2026.*
+
+*Sources: [Vienna Tourist Board](https://www.wien.info/en).*
