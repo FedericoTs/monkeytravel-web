@@ -61,9 +61,24 @@ const nextConfig: NextConfig = {
   async redirects() {
     const redirectMap: Array<[string, string]> = [
       // 12 monthly listicles → 2026 travel calendar pillar (anchored per month)
-      ["where-to-go-in-january",   "2026-travel-calendar#january"],
-      ["where-to-go-in-february",  "2026-travel-calendar#february"],
-      ["where-to-go-in-march",     "2026-travel-calendar#march"],
+      // 2026-09-03: january, february and march redirects REMOVED (April
+      // playbook, third application). Standalone posts now live at
+      // content/blog/{,es/,it/,pt/}where-to-go-in-{january,february,march}.md.
+      //
+      // The pillar is not earning these queries and is barely earning any:
+      // over the last 90 days 2026-travel-calendar took 6,234 impressions for
+      // 27 clicks — a 0.43% CTR — and month-named queries reaching it totalled
+      // FIFTEEN impressions (january 4, february 4, march 7). Standalone month
+      // posts are the opposite: where-to-go-in-november alone took 11,602
+      // impressions and 311 clicks at 2.68% CTR in FOURTEEN days, and
+      // where-to-go-in-december 2.70%, against a 1.11% site average.
+      //
+      // Unlike April and August, these three were not removed on demonstrated
+      // leakage — measured in September, january demand has not started. They
+      // are removed on LEAD TIME: GSC shows demand running one to three months
+      // ahead and peaking at +2 (measured 2026-08-19..09-01: november 3,244
+      // impressions +76%, october 2,090 +149%, january 31), so a page has to
+      // exist through October-December to be ranking when the queries fire.
       // 2026-05-30: where-to-go-in-april redirect REMOVED.
       // GSC showed 50k impressions/qtr leaking through the 308 chain to
       // /blog/2026-travel-calendar#april. The standalone post at
