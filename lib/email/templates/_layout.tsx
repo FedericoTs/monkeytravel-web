@@ -76,6 +76,37 @@ const RAINBOW = [
   BRAND.indigo,
 ] as const;
 
+/**
+ * The six-digit code block. Shared because BOTH auth emails now show a code —
+ * AuthAction (existing addresses) and ConfirmSignup (new ones) — and a code
+ * that looks different depending on which email you happened to get is a
+ * needless reason to distrust it.
+ */
+export const otpCodeBox: React.CSSProperties = {
+  backgroundColor: "#FFFAF5",
+  border: "1px solid #F0E6DC",
+  borderRadius: "12px",
+  padding: "16px",
+  margin: "8px 0 24px",
+  textAlign: "center",
+};
+
+export const otpCodeLabel: React.CSSProperties = {
+  fontSize: "12px",
+  color: "#6B6B6B",
+  margin: "0 0 6px",
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+};
+
+export const otpCodeText: React.CSSProperties = {
+  fontSize: "28px",
+  fontWeight: 800,
+  letterSpacing: "6px",
+  color: "#1A1A1A",
+  margin: 0,
+};
+
 export function EmailLayout({
   preview,
   unsubscribeUrl,

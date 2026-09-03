@@ -2016,7 +2016,15 @@
       "sentTitle": "Controlla la tua casella",
       "sentSubtitle": "Abbiamo inviato un link a {email}",
       "checkInbox": "Clicca il link nell'email per salvare il viaggio. Nessuna password necessaria.",
-      "useDifferent": "Usa un'altra email"
+      "useDifferent": "Usa un'altra email",
+      "codePrompt": "Oppure inserisci il codice a 6 cifre dell'email",
+      "codeSubmit": "Verifica",
+      "codeVerifying": "Controllo…",
+      "codeInvalid": "Il codice non corrisponde. Controlla le cifre e riprova.",
+      "codeExpired": "Il codice è scaduto. Invia una nuova email per riceverne uno.",
+      "codeRateLimited": "Troppi tentativi. Aspetta un momento e riprova.",
+      "codeNetwork": "Problema di connessione. Controlla la rete e riprova.",
+      "codeFailed": "Non siamo riusciti a verificare il codice. Usa il link nell'email."
     },
     "trust": {
       "secure": "Sicuro",

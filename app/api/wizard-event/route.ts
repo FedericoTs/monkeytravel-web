@@ -55,6 +55,8 @@ const STEP_VALUES = [
   "auth_modal_shown",
   "otp_requested",
   "otp_link_opened",
+  "otp_code_submitted",
+  "otp_code_verified",
 ] as const;
 
 const BodySchema = z.object({

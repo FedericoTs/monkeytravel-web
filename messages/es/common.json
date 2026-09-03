@@ -2016,7 +2016,15 @@
       "sentTitle": "Revisa tu bandeja",
       "sentSubtitle": "Enviamos un enlace a {email}",
       "checkInbox": "Haz clic en el enlace del correo para guardar tu viaje. No hace falta contraseña.",
-      "useDifferent": "Usar otro correo"
+      "useDifferent": "Usar otro correo",
+      "codePrompt": "O introduce el código de 6 dígitos del email",
+      "codeSubmit": "Verificar",
+      "codeVerifying": "Comprobando…",
+      "codeInvalid": "Ese código no coincide. Revisa los dígitos e inténtalo de nuevo.",
+      "codeExpired": "Ese código ha caducado. Envía otro email para obtener uno nuevo.",
+      "codeRateLimited": "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
+      "codeNetwork": "Problema de conexión. Revisa tu red e inténtalo de nuevo.",
+      "codeFailed": "No hemos podido verificar el código. Usa el enlace del email."
     },
     "trust": {
       "secure": "Seguro",

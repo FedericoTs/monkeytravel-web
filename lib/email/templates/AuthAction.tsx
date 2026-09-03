@@ -8,7 +8,7 @@
  */
 
 import { Button, Heading, Section, Text } from "@react-email/components";
-import { EmailLayout } from "./_layout";
+import { EmailLayout, otpCodeBox, otpCodeLabel, otpCodeText } from "./_layout";
 import {
   authActionCopy,
   authSharedCopy,
@@ -55,9 +55,9 @@ export default function AuthActionEmail({
       </Section>
 
       {token && (
-        <Section style={codeBox}>
-          <Text style={codeLabel}>{shared.codeLabel}</Text>
-          <Text style={codeText}>{token}</Text>
+        <Section style={otpCodeBox}>
+          <Text style={otpCodeLabel}>{shared.codeLabel}</Text>
+          <Text style={otpCodeText}>{token}</Text>
         </Section>
       )}
 
@@ -140,25 +140,3 @@ const button: React.CSSProperties = {
   boxShadow: "0 4px 12px rgba(255,107,107,0.35)",
 };
 
-const codeBox: React.CSSProperties = {
-  backgroundColor: "#FFFAF5",
-  border: "1px solid #F0E6DC",
-  borderRadius: "12px",
-  padding: "16px",
-  margin: "8px 0 24px",
-  textAlign: "center",
-};
-
-const codeLabel: React.CSSProperties = {
-  fontSize: "12px",
-  color: "#888888",
-  margin: "0 0 6px",
-};
-
-const codeText: React.CSSProperties = {
-  fontSize: "28px",
-  fontWeight: 800,
-  letterSpacing: "6px",
-  color: "#1A1A1A",
-  margin: 0,
-};
