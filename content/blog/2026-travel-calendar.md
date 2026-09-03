@@ -30,6 +30,8 @@ Most "best time to visit" advice is useless. It averages a country into a single
 
 This is the alternative. One pillar, twelve months, and for each month the two or three destinations that are demonstrably at their peak — not "good," not "fine," but the right place to be in that exact window. Everything below is built on five years of chasing seasonal travel deliberately: northern lights in Tromsø in February 2025, fall foliage along Vermont's Route 100 in October 2024, the Kerala backwaters during the southwest monsoon in July 2023, sakura in Kyoto in early April 2022. I keep a spreadsheet. The spreadsheet has columns for actual sky cover, sea temperature, hotel-rate spike percentages, and how many cruise ships docked the day I walked the city walls. It's not glamorous. It's the only way I know to make these recommendations honest.
 
+**Looking for season dates rather than a month-by-month guide?** If the question is when high season starts and ends and why prices jump, [the high and low season calendar](/blog/alta-e-bassa-stagione-2026) answers that directly — this page is about where to go, not what it costs by week.
+
 A few principles before the calendar starts.
 
 **Picks are conditions-driven, not popularity-driven.** Tokyo is on this calendar four times because the city does four genuinely different things across the year — sakura in early April, hydrangeas and Sanno Matsuri in June, koyo foliage in November, illuminations and seasonal sashimi in December. Bali appears five times because dry season and wet season produce two different islands at very different prices. I trimmed each month from twelve destinations down to two or three because the listicle format hides the trade-offs. Two strong picks are more useful than ten generic ones.
