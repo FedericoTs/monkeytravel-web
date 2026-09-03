@@ -159,6 +159,35 @@ export type FrontDoorVariant = "wizard" | "decision";
  * first ~10 hours post-ship read 76.0% (n=25) — i.e. nothing yet, and NOT the
  * +11 points a naive trailing-30d comparison appears to show.
  *
+ * DO NOT RE-DERIVE ANY OF THIS BY HAND — run it:
+ *
+ *     npm run flags:review
+ *
+ * That prints both metrics with a confidence interval on every rate, the
+ * two-sided p, a verdict, and how many more sessions the question needs. The
+ * query above is what it runs; this comment is now the explanation, not the
+ * procedure.
+ *
+ * TWO THINGS THAT SCRIPT WILL TELL YOU, RECORDED HERE SO THEY ARE NOT A
+ * SURPRISE ON REVIEW DAY (measured 2026-09-03):
+ *
+ * 1. THE DATA CANNOT ANSWER THE QUESTION BY 2026-09-09. Dwell-qualified reads
+ *    74.4% [71.2-77.4] (n=763) pre-ship against 68.2% [53.4-80.0] (n=44)
+ *    post-ship, p=0.36 — inconclusive, and the intervals overlap almost
+ *    entirely. Resolving a 5pp move against that baseline needs ~598 dwelled
+ *    post-ship sessions; they arrive at ~42/day, i.e. ~14 days from ship, so
+ *    09-09 lands at roughly 280 — enough for ~7pp and no finer. Decide on the
+ *    merits, or move this date deliberately. Do not split the difference by
+ *    leaving the flag at 90/10.
+ *
+ * 2. THE ARMS ARE NOT COMPARABLE POPULATIONS. resolveEditorialStep1 returns
+ *    `flagValue !== false` — it FAILS OPEN, so every session where PostHog
+ *    does not resolve (consent declined, script blocked) is counted as
+ *    editorial. "classic" therefore means "PostHog resolved and said no",
+ *    which selects for consenting, unblocked users. Since 2026-09-03 the arm
+ *    is also recorded server-side in wizard_step_events.step1_variant, which
+ *    makes the split measurable for the first time — measurable, not unbiased.
+ *
  * REVIEW BY 2026-09-09 — see FLAG_REVIEW_DATES; flag-review-dates.vitest.ts
  * goes red a week after that. Ramp to 100% and delete the classic branches,
  * or set 0% and revert. Never left at 90/10: front-door ran unwatched for

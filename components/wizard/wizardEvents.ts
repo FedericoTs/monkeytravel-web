@@ -27,6 +27,25 @@
  */
 export type FrontDoorArm = "wizard" | "decision";
 
+/**
+ * Which step-1 arm the session saw (FLAG_WIZARD_STEP1_EDITORIAL).
+ *
+ * Threaded server-side because it previously existed ONLY as a PostHog
+ * property, and PostHog captures ~59% of sessions and skews to converters —
+ * so the single number the 2026-09-09 flag review turns on was missing for
+ * about four sessions in ten, non-randomly.
+ *
+ * Caveat worth carrying to the review: assignment FAILS OPEN (see
+ * resolveEditorialStep1 — `flagValue !== false`), so every session where the
+ * flag does not resolve is counted as "editorial". The arms are not
+ * comparable populations; this makes the split measurable, not unbiased.
+ *
+ * Same closed-vocabulary rule as FrontDoorArm: the DB CHECK accepts only
+ * ('editorial' | 'classic'), and any other value fails the insert with a
+ * non-23505 error the route does NOT swallow → 500.
+ */
+export type Step1Variant = "editorial" | "classic";
+
 export type WizardEventStep =
   | "step_1_destination_dates"
   // UX10X Phase 0.3: 10s dwell heartbeat while a session sits on step 1.
@@ -80,15 +99,19 @@ export type WizardEventStep =
 export async function trackWizardEvent(
   step: WizardEventStep,
   extra: Record<string, unknown> = {},
-  frontDoor?: FrontDoorArm
+  frontDoor?: FrontDoorArm,
+  step1Variant?: Step1Variant
 ): Promise<void> {
   try {
     await fetch("/api/wizard-event", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(
-        frontDoor ? { step, front_door: frontDoor, ...extra } : { step, ...extra }
-      ),
+      body: JSON.stringify({
+        step,
+        ...(frontDoor ? { front_door: frontDoor } : {}),
+        ...(step1Variant ? { step1_variant: step1Variant } : {}),
+        ...extra,
+      }),
       keepalive: true,
     });
   } catch {
