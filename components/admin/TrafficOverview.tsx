@@ -3,7 +3,13 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 
 interface TrafficData {
-  daily: { date: string; views: number; uniqueVisitors: number }[];
+  daily: {
+    date: string;
+    views: number;
+    uniqueVisitors: number;
+    /** Absent for days before the engagement beacon existed (2026-09-02). */
+    engagedSessions?: number;
+  }[];
   bySection: { section: string; count: number }[];
   conversionFunnel: { step: string; count: number }[];
 }
@@ -69,7 +75,10 @@ export default function TrafficOverview({ data }: TrafficOverviewProps) {
     const chartHeight = height - padding.top - padding.bottom;
 
     if (filteredDaily.length === 0) {
-      return { width, height, padding, chartWidth, chartHeight, points: [], uniquePoints: [], maxValue: 0 };
+      return {
+        width, height, padding, chartWidth, chartHeight,
+        points: [], uniquePoints: [], engagedPoints: [], maxValue: 0,
+      };
     }
 
     const maxValue = Math.max(...filteredDaily.map((d) => d.views), 1);
@@ -86,7 +95,20 @@ export default function TrafficOverview({ data }: TrafficOverviewProps) {
       return { x, y, ...d };
     });
 
-    return { width, height, padding, chartWidth, chartHeight, points, uniquePoints, maxValue };
+    // Engaged sessions. Only days carrying the signal produce a point, so the
+    // line begins where measurement began instead of running along zero — the
+    // x position still comes from the day's index in the full series, so the
+    // partial line stays aligned with the other two.
+    const engagedPoints = filteredDaily
+      .map((d, i) => ({ d, i }))
+      .filter(({ d }) => typeof d.engagedSessions === "number")
+      .map(({ d, i }) => {
+        const x = padding.left + (i / (filteredDaily.length - 1 || 1)) * chartWidth;
+        const y = padding.top + chartHeight - ((d.engagedSessions as number) / maxValue) * chartHeight;
+        return { x, y, ...d };
+      });
+
+    return { width, height, padding, chartWidth, chartHeight, points, uniquePoints, engagedPoints, maxValue };
   }, [filteredDaily]);
 
   // Bezier curve path generator
@@ -105,6 +127,7 @@ export default function TrafficOverview({ data }: TrafficOverviewProps) {
 
   const viewsPath = useMemo(() => generatePath(chartConfig.points), [chartConfig.points]);
   const uniquePath = useMemo(() => generatePath(chartConfig.uniquePoints), [chartConfig.uniquePoints]);
+  const engagedPath = useMemo(() => generatePath(chartConfig.engagedPoints), [chartConfig.engagedPoints]);
 
   // Area path for views gradient fill
   const areaPath = useMemo(() => {
@@ -245,6 +268,17 @@ export default function TrafficOverview({ data }: TrafficOverviewProps) {
               <span className="w-3 h-0.5 bg-emerald-400 rounded-full" style={{ opacity: 0.7 }} />
               <span className="text-xs text-slate-500">Unique Visitors</span>
             </div>
+            {chartConfig.engagedPoints.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-0.5 bg-amber-500 rounded-full" />
+                <span
+                  className="text-xs text-slate-500"
+                  title="Sessions that kept a page visible for at least a few seconds. Measured from 2026-09-02 — earlier days are not drawn because the signal did not exist, not because it was zero. Of non-bot sessions, 18.9% engage; engaged sessions reach the wizard at 14.7% against 1.3% for the rest."
+                >
+                  Engaged Sessions
+                </span>
+              </div>
+            )}
           </div>
           <svg
             ref={chartRef}
@@ -316,6 +350,20 @@ export default function TrafficOverview({ data }: TrafficOverviewProps) {
               opacity={0.7}
               className={`transition-opacity duration-1000 ${isAnimated ? "opacity-100" : "opacity-0"}`}
             />
+
+            {/* Engaged sessions line. Rendered only where the signal exists —
+                18.9% of non-bot sessions, and the ones that reach the wizard
+                at 14.7% against 1.3% for the rest. */}
+            {chartConfig.engagedPoints.length > 1 && (
+              <path
+                d={engagedPath}
+                fill="none"
+                stroke="#f59e0b"
+                strokeWidth="2"
+                strokeLinecap="round"
+                className={`transition-opacity duration-1000 ${isAnimated ? "opacity-100" : "opacity-0"}`}
+              />
+            )}
 
             {/* Page views line */}
             <path
