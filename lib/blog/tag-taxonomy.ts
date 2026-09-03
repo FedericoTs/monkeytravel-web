@@ -190,6 +190,7 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
   "2026-travel-calendar":                  { c: ["seasonal", "monthly-guide", "trip-planning"] },
   "alta-e-bassa-stagione-2026":            { c: ["seasonal", "monthly-guide", "italy", "europe", "trip-planning"] },
   "best-fall-foliage-destinations":        { c: ["seasonal", "autumn-travel", "nature-travel", "best-destinations"] },
+  "best-christmas-markets-europe-2026":     { c: ["seasonal", "winter-travel", "europe", "best-destinations", "trip-planning"] },
   "best-places-to-see-northern-lights":    { c: ["seasonal", "winter-travel", "nature-travel", "best-destinations", "europe"] },
   "great-migration-africa-when-and-where": { c: ["seasonal", "nature-travel", "best-destinations"] },
   "japan-cherry-blossom-season-guide":     { c: ["seasonal", "spring-travel", "japan", "asia"], d: ["tokyo", "kyoto"] },
