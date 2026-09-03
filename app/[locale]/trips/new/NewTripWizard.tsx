@@ -230,7 +230,7 @@ import { claimTripCreatedEmit } from "@/lib/analytics/tripCreatedDedup";
 import { useFlag, useExperiment, usePostHog } from "@/lib/posthog";
 import { FLAG_AUTO_SAVE_V1, FLAG_FRONT_DOOR } from "@/lib/posthog/flags";
 import DecisionIntake from "@/components/wizard/DecisionIntake";
-import { trackWizardEvent, type WizardEventStep, type FrontDoorArm } from "@/components/wizard/wizardEvents";
+import { trackWizardEvent, type WizardEventStep, type FrontDoorArm, type Step1Variant } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip, type AutoSaveSkipReason } from "@/hooks/useAutoSaveTrip";
 import { isSameDestination } from "@/lib/trips/sameDestination";
 import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate";
@@ -502,6 +502,10 @@ export default function NewTripPage({
     envForce: process.env.NEXT_PUBLIC_WIZARD_STEP1_FORCE,
     flagValue: step1FlagRaw,
   });
+  // Server-side arm label. Mirrors the PostHog `step1_variant` property, but
+  // reaches wizard_step_events too — PostHog sees ~59% of sessions and skews
+  // to converters, which is not a population the flag review can be decided on.
+  const step1Variant: Step1Variant = editorialStep1 ? "editorial" : "classic";
   // The trip a signup claimed (see lib/trips/claimed-trip-signal.ts). State
   // lives up here because the PostHog super-property effect reads it.
   const [claimedTripId, setClaimedTripId] = useState<string | null>(null);
@@ -859,7 +863,9 @@ export default function NewTripPage({
     }
     trackedStepsRef.current.add(step);
     if (step === 1) {
-      void trackWizardEvent("step_1_destination_dates", { locale }, arm);
+      // step1Variant rides these two events specifically: they are the rows
+      // the dwell-qualified review query groups by (denominator + qualifier).
+      void trackWizardEvent("step_1_destination_dates", { locale }, arm, step1Variant);
     } else if (step === 2) {
       void trackWizardEvent("step_2_vibes", {
         destination: destinationFieldRef.current || undefined,
@@ -914,7 +920,7 @@ export default function NewTripPage({
       if (typeof document !== "undefined" && document.visibilityState !== "visible") {
         return;
       }
-      void trackWizardEvent("step1_heartbeat", { locale }, arm);
+      void trackWizardEvent("step1_heartbeat", { locale }, arm, step1Variant);
       if (++beats >= MAX_BEATS) clearInterval(id);
     }, 10000);
     return () => clearInterval(id);

@@ -75,6 +75,11 @@ const BodySchema = z.object({
   failure_code: z
     .enum(["validation", "rate_limit", "timeout", "network", "upstream", "unknown"])
     .optional(),
+  // Which step-1 arm the session saw. MUST be declared here: zod strips keys
+  // it does not know, so omitting this field would leave the column NULL
+  // forever while every client dutifully sent the value — exactly how
+  // failure_code was lost the first time.
+  step1_variant: z.enum(["editorial", "classic"]).optional(),
 });
 
 // Day-4 bug fix (P2.5): composite IP + session rate limit.
@@ -208,6 +213,7 @@ export async function POST(request: NextRequest) {
     locale: body.locale ?? null,
     front_door: body.front_door ?? null,
     failure_code: body.failure_code ?? null,
+    step1_variant: body.step1_variant ?? null,
   });
 
   if (error) {
