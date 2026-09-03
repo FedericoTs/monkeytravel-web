@@ -219,14 +219,18 @@ try {
   if (!db) {
     note("no service-role creds — skipping the funnel assertion");
   } else {
+    // Scoped to THIS mint's trip_id. Matching on "a recent Lisbon row"
+    // passed against a stale row written by an earlier local run — the probe
+    // reported the deployed build as correct when it was not.
     const { data: rows } = await db
       .from("funnel_events")
-      .select("event_type, metadata, created_at")
+      .select("event_type, metadata, trip_id")
       .eq("event_type", "share_link_created")
-      .order("created_at", { ascending: false })
-      .limit(25);
-    const mine = (rows ?? []).find((r) => r?.metadata?.destination === "Lisbon" && r?.metadata?.intent);
-    if (!mine) fail("no share_link_created row carrying an intent — the crew loop is unmeasurable");
+      .eq("trip_id", share.tripId)
+      .limit(5);
+    const mine = (rows ?? [])[0];
+    if (!mine) fail(`no share_link_created row for trip ${share.tripId}`);
+    else if (!mine.metadata?.intent) fail("the share row carries no intent — the crew loop is unmeasurable");
     else if (mine.metadata.intent !== "crew") fail(`share recorded as intent=${mine.metadata.intent}, expected crew`);
     else ok("share recorded server-side as intent=crew");
   }
