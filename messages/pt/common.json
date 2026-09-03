@@ -2016,7 +2016,15 @@
       "sentTitle": "Verifique sua caixa de entrada",
       "sentSubtitle": "Enviamos um link de um toque para {email}",
       "checkInbox": "Clique no link do e-mail para salvar sua viagem. Sem senha.",
-      "useDifferent": "Usar outro e-mail"
+      "useDifferent": "Usar outro e-mail",
+      "codePrompt": "Ou introduza o código de 6 dígitos do email",
+      "codeSubmit": "Verificar",
+      "codeVerifying": "A verificar…",
+      "codeInvalid": "Esse código não corresponde. Verifique os dígitos e tente novamente.",
+      "codeExpired": "Esse código expirou. Envie um novo email para receber outro.",
+      "codeRateLimited": "Demasiadas tentativas. Aguarde um momento e tente novamente.",
+      "codeNetwork": "Problema de ligação. Verifique a sua rede e tente novamente.",
+      "codeFailed": "Não conseguimos verificar esse código. Use o link do email."
     },
     "trust": {
       "secure": "Seguro",

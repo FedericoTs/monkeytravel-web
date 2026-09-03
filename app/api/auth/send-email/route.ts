@@ -86,10 +86,14 @@ function buildEmail(
 ): { subject: string; element: React.ReactElement; text: string } {
   switch (actionType) {
     case "signup":
+      // `token` is the six-digit code. It reaches this hook on every auth
+      // email and AuthAction has always printed it; signup did not, which
+      // meant NEW addresses — the ones the funnel loses — got a link and
+      // nothing else.
       return {
         subject: confirmSignupSubject(locale),
-        element: ConfirmSignupEmail({ name, confirmUrl: verifyUrl, locale }),
-        text: confirmSignupEmailText({ name, confirmUrl: verifyUrl, locale }),
+        element: ConfirmSignupEmail({ name, confirmUrl: verifyUrl, token, locale }),
+        text: confirmSignupEmailText({ name, confirmUrl: verifyUrl, token, locale }),
       };
     case "recovery":
     case "magiclink":

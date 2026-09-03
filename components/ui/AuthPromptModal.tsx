@@ -27,6 +27,15 @@ import { useTranslations, useLocale } from "next-intl";
 import { prefs } from "@/lib/platform/storage";
 import { createClient } from "@/lib/supabase/client";
 import { trackWizardEvent } from "@/components/wizard/wizardEvents";
+import {
+  OTP_CODE_LENGTH,
+  OTP_VERIFY_TYPES,
+  normalizeOtpCode,
+  isCompleteOtpCode,
+  classifyOtpError,
+  shouldTryNextType,
+  otpErrorMessageKey,
+} from "@/lib/auth/otp-code";
 import BaseModal from "@/components/ui/BaseModal";
 import {
   captureAuthPromptShown,
@@ -77,6 +86,13 @@ export default function AuthPromptModal({
   const [error, setError] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  // The in-tab alternative to following the link. The same email carries a
+  // six-digit code; typing it here avoids the app switch that loses 37% of
+  // magic-link sign-ups (63.0% reach a session against Google's 99.0%,
+  // n=142, p=1.8e-9).
+  const [code, setCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [codeError, setCodeError] = useState<string | null>(null);
 
   // Funnel tracking — task 2026-06-06 PostHog refresh.
   // Refs make the captures fire-and-forget without re-rendering on every
@@ -189,6 +205,56 @@ export default function AuthPromptModal({
     }
   };
 
+  /**
+   * Redeem the six-digit code without leaving the tab.
+   *
+   * Supabase types a code by the email that carried it, and the client cannot
+   * know which was sent — signInWithOtp({ shouldCreateUser: true }) produces a
+   * `signup` confirmation for a new address and a `magiclink` for an existing
+   * one. So the types are tried in order, and only a failure that looks like a
+   * wrong type is retried as the next; an expired code is expired under all of
+   * them, and retrying a rate limit just reaches the same wall sooner.
+   */
+  const handleVerifyCode = async () => {
+    const token = normalizeOtpCode(code);
+    if (!isCompleteOtpCode(token) || verifying) return;
+
+    setVerifying(true);
+    setCodeError(null);
+    void trackWizardEvent("otp_code_submitted", { destination: destination || undefined });
+
+    try {
+      const supabase = createClient();
+      let lastKind: ReturnType<typeof classifyOtpError> = "unknown";
+
+      for (const type of OTP_VERIFY_TYPES) {
+        const { error: vErr } = await supabase.auth.verifyOtp({
+          email: emailRef.current.trim(),
+          token,
+          type,
+        });
+        if (!vErr) {
+          void trackWizardEvent("otp_code_verified", { destination: destination || undefined });
+          // Converge on exactly the state the emailed link produces rather
+          // than inventing a second post-auth path: a full navigation lets
+          // the server see the new session cookie and remounts the wizard,
+          // which reads `pendingTripGeneration` and resumes the save. Set
+          // before the email went out, so it is already there.
+          window.location.assign(redirectPath);
+          return;
+        }
+        lastKind = classifyOtpError(vErr.message);
+        if (!shouldTryNextType(lastKind)) break;
+      }
+
+      setCodeError(t(otpErrorMessageKey(lastKind)));
+    } catch (err) {
+      setCodeError(t(otpErrorMessageKey(classifyOtpError(err instanceof Error ? err.message : null))));
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   // Legacy paths — kept as escape hatches for users who insist on
   // password auth or already have an account they want to sign into
   // without waiting for an email.
@@ -285,19 +351,71 @@ export default function AuthPromptModal({
         {linkSent ? (
           // Success state — no benefits, no extra CTAs. Just confirm + offer
           // a "use a different email" escape if they typo'd.
-          <div className="text-center space-y-4">
-            <p className="text-slate-600 text-sm">{t("magicLink.checkInbox")}</p>
-            <button
-              type="button"
-              onClick={() => {
-                setLinkSent(false);
-                setEmail("");
-                setError(null);
-              }}
-              className="text-sm text-[var(--primary-ink)] hover:underline"
-            >
-              {t("magicLink.useDifferent")}
-            </button>
+          <div className="space-y-4">
+            <p className="text-slate-600 text-sm text-center">{t("magicLink.checkInbox")}</p>
+
+            {/* The in-tab path. The same email carries a six-digit code, so
+                someone who would otherwise leave for their mail app and not
+                come back can finish right here. */}
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 space-y-2.5">
+              <label htmlFor="otp-code" className="block text-sm font-medium text-slate-700">
+                {t("magicLink.codePrompt")}
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="otp-code"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]*"
+                  maxLength={OTP_CODE_LENGTH}
+                  value={code}
+                  onChange={(e) => {
+                    setCode(normalizeOtpCode(e.target.value));
+                    if (codeError) setCodeError(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      void handleVerifyCode();
+                    }
+                  }}
+                  placeholder={"0".repeat(OTP_CODE_LENGTH)}
+                  aria-invalid={codeError ? true : undefined}
+                  aria-describedby={codeError ? "otp-code-error" : undefined}
+                  className="flex-1 min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-center text-lg font-semibold tracking-[0.4em] text-slate-900 tabular-nums focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleVerifyCode()}
+                  disabled={!isCompleteOtpCode(code) || verifying}
+                  className="min-h-[44px] shrink-0 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {verifying ? t("magicLink.codeVerifying") : t("magicLink.codeSubmit")}
+                </button>
+              </div>
+              {codeError && (
+                <p id="otp-code-error" role="alert" className="text-xs text-rose-600">
+                  {codeError}
+                </p>
+              )}
+            </div>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setLinkSent(false);
+                  setEmail("");
+                  setError(null);
+                  setCode("");
+                  setCodeError(null);
+                }}
+                className="text-sm text-slate-600 underline hover:text-slate-900"
+              >
+                {t("magicLink.useDifferent")}
+              </button>
+            </div>
           </div>
         ) : (
           <>

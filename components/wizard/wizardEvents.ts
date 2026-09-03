@@ -83,7 +83,14 @@ export type WizardEventStep =
   | "auth_modal_shown"
   | "otp_requested"
   // Written server-side by the auth callback — see lib/analytics/wizard-event-server.ts.
-  | "otp_link_opened";
+  | "otp_link_opened"
+  // The in-tab redemption (2026-09-03). Magic-link sign-ups reach a session
+  // 63.0% of the time against Google's 99.0% (n=142, p=1.8e-9) because the
+  // link means leaving the browser. These two split "typed the code" from
+  // "the code worked", so a failure to redeem is never mistaken for someone
+  // who simply walked away.
+  | "otp_code_submitted"
+  | "otp_code_verified";
 
 /**
  * Fire-and-forget POST to /api/wizard-event. Never awaited from a render path,

@@ -169,7 +169,7 @@ const pre = sessions.filter((s) => s.firstAt < ship);
 const post = sessions.filter((s) => s.firstAt >= ship);
 
 h1(`Flag review: ${REVIEW.flag}`);
-const daysLeft = Math.round((new Date(`${REVIEW.reviewBy}T00:00:00Z`) - Date.now()) / 86_400_000);
+const daysLeft = Math.round((new Date(`${REVIEW.reviewBy}T00:00:00Z`).getTime() - Date.now()) / 86_400_000);
 line("review by", `${REVIEW.reviewBy} (${daysLeft >= 0 ? `${daysLeft} day(s) away` : `${-daysLeft} day(s) OVERDUE`})`);
 line("shipped", REVIEW.shippedAt);
 line("baseline window opens", `${REVIEW.baselineFrom} (traffic shift; nothing earlier is comparable)`);
@@ -202,7 +202,7 @@ line("verdict", v.toUpperCase());
 if (v === "inconclusive") {
   const need5 = requiredN(preS.dwellQualified.point, 0.05);
   const have = postS.dwellQualified.n;
-  const perDay = have / Math.max(0.5, (Date.now() - new Date(ship)) / 86_400_000);
+  const perDay = have / Math.max(0.5, (Date.now() - new Date(ship).getTime()) / 86_400_000);
   const daysNeeded = perDay > 0 ? Math.ceil((need5 - have) / perDay) : Infinity;
   console.log(
     `\n  Not distinguishable from noise. To resolve a 5pp move against a ` +

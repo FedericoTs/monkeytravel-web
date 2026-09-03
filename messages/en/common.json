@@ -2016,7 +2016,15 @@
       "sentTitle": "Check your inbox",
       "sentSubtitle": "We sent a one-tap link to {email}",
       "checkInbox": "Click the link in the email to save your trip. No password needed.",
-      "useDifferent": "Use a different email"
+      "useDifferent": "Use a different email",
+      "codePrompt": "Or enter the 6-digit code from the email",
+      "codeSubmit": "Verify",
+      "codeVerifying": "Checking…",
+      "codeInvalid": "That code doesn't match. Check the digits and try again.",
+      "codeExpired": "That code has expired. Send a new email to get a fresh one.",
+      "codeRateLimited": "Too many attempts. Wait a moment and try again.",
+      "codeNetwork": "Connection problem. Check your network and try again.",
+      "codeFailed": "We couldn't verify that code. Try the link in the email instead."
     },
     "trust": {
       "secure": "Secure",
