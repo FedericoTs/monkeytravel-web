@@ -299,6 +299,6 @@ Japón en la ventana del sakura (28 de marzo-7 de abril): sí, ya mismo; los vue
 - [Japan Meteorological Corporation — Previsión de la floración de los cerezos 2026](https://sakura.weathermap.jp/en.php)
 - [Jardines de Keukenhof — Fechas de la temporada 2026](https://keukenhof.nl/en/)
 - [Whistler Blackcomb — Fechas de apertura de la temporada 2025-2026](https://www.whistlerblackcomb.com/)
-- [Visit Petra — Información para visitantes](https://visitpetra.jo/)
+- [Visit Petra — Información para visitantes](https://visitpetra.jo/en)
 - [World Weather Online — Datos climáticos históricos](https://www.worldweatheronline.com/)
 - [Numbeo — Base de datos de coste de vida](https://www.numbeo.com/cost-of-living/)

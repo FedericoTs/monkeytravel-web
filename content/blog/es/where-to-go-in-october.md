@@ -1,7 +1,7 @@
 ---
 title: "Dónde viajar en octubre 2026: 12 destinos en plena temporada media"
 slug: "where-to-go-in-october"
-description: "Octubre es el mes en que las multitudes se van a casa y viajar se pone bien: el follaje en su punto álgido por todo el hemisferio norte, los desiertos enfriándose hasta la perfección, el Mediterráneo cálido y vacío, el monzón despejándose sobre India y el Sudeste Asiático, el Diwali encendiendo Rajastán y la primavera llegando a la Patagonia. Doce destinos donde octubre sí es la elección correcta, con costes diarios reales y las contrapartidas que nadie cuenta."
+description: "Octubre es el mes en que las multitudes se van a casa y viajar se pone bien: el follaje en su punto álgido por todo el hemisferio norte, los desiertos enfriándose hasta la perfección, el Mediterráneo cálido y vacío, el monzón despejándose sobre India y el Sudeste Asiático, Rajastán verde antes del Diwali y la primavera llegando a la Patagonia. Doce destinos donde octubre sí es la elección correcta, con costes diarios reales y las contrapartidas que nadie cuenta."
 author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-08-17"
@@ -12,7 +12,7 @@ imageAlt: "Arces dorados de otoño enmarcando el sendero de un templo en Kioto b
 readingTime: 12
 seo:
   title: "Dónde viajar en octubre 2026: 12 destinos que funcionan"
-  description: "Viajar en octubre, bien hecho. El follaje de Nueva Inglaterra, Petra con clima de desierto perfecto, playas vacías en el Algarve, el Diwali en Rajastán, los cielos más limpios de Nepal para el trekking. Doce destinos con costes, clima y multitudes reales de octubre, sin listas genéricas."
+  description: "Viajar en octubre, bien hecho. El follaje de Nueva Inglaterra, Petra con clima de desierto perfecto, playas vacías en el Algarve, Rajastán posmonzón, los cielos más limpios de Nepal para el trekking. Doce destinos con costes, clima y multitudes reales de octubre, sin listas genéricas."
   keywords: ["dónde ir en octubre", "dónde viajar en octubre", "destinos octubre 2026", "mejores lugares para visitar en octubre", "vacaciones en octubre ideas", "destinos otoño 2026"]
 schema: "Article"
 ---
@@ -21,7 +21,7 @@ schema: "Article"
 
 Octubre es el mes en que casi todo el mundo deja de prestar atención: el curso ya ha empezado, el verano está archivado y el siguiente hito viajero que se le pasa a alguien por la cabeza es la Navidad. Esa desatención es justo lo que convierte a octubre en uno de los mejores meses del año para irse de verdad a algún sitio. Las multitudes de temporada alta se han ido a casa, los precios se han relajado y el clima en franjas enormes del planeta ha llegado discretamente a su mejor momento. Es la definición de temporada media, y en la temporada media es donde vive el buen viaje.
 
-Mira todo lo que hace octubre a la vez. El follaje de otoño alcanza su pico en Nueva Inglaterra, en las montañas japonesas y en Europa central. Los grandes desiertos — Marruecos, Jordania, Capadocia, Rajastán — pasan de insoportables a impecables. El Mediterráneo conserva el calor del verano en el agua mientras vacía sus playas. El monzón se levanta de la India y de buena parte del Sudeste Asiático, y el Diwali enciende el subcontinente. Y por debajo del ecuador, la Patagonia se inclina hacia la primavera. No existe un único "clima de octubre", y ese es precisamente el punto. Octubre es el mes en el que puedes perseguir la versión de lo perfecto que te apetezca. Aquí van doce, con costes reales y contrapartidas honestas.
+Mira todo lo que hace octubre a la vez. El follaje de otoño alcanza su pico en Nueva Inglaterra, en las montañas japonesas y en Europa central. Los grandes desiertos — Marruecos, Jordania, Capadocia, Rajastán — pasan de insoportables a impecables. El Mediterráneo conserva el calor del verano en el agua mientras vacía sus playas. El monzón se levanta de la India y de buena parte del Sudeste Asiático, y Rajastán reverdece antes del Diwali. Y por debajo del ecuador, la Patagonia se inclina hacia la primavera. No existe un único "clima de octubre", y ese es precisamente el punto. Octubre es el mes en el que puedes perseguir la versión de lo perfecto que te apetezca. Aquí van doce, con costes reales y contrapartidas honestas.
 
 ## Comparativa rápida: 12 destinos para octubre
 
@@ -34,7 +34,7 @@ Mira todo lo que hace octubre a la vez. El follaje de otoño alcanza su pico en 
 | Capadocia, Turquía | Temporada de globos, días suaves | $50–90 | Moderadas–altas |
 | Algarve y Lisboa, Portugal | Mar cálido, playas vacías | $70–110 | Bajas–moderadas |
 | Andalucía, España | Por fin cede el calor | $80–120 | Moderadas |
-| Rajastán, India | Posmonzón + Diwali | $35–60 | Bajas–moderadas |
+| Rajastán, India | Posmonzón verde, pre-Diwali | $35–60 | Bajas–moderadas |
 | Annapurna y Everest, Nepal | Los cielos más limpios para el trekking | $40–70 | Altas |
 | Patagonia, Chile y Argentina | Primavera austral, casi vacía | $120–180 | Bajas |
 | Bali, Indonesia | La estación seca aguanta | $45–75 | Moderadas |
@@ -89,9 +89,9 @@ Andalucía en pleno verano es un sitio que se aguanta; en octubre es un sitio qu
 **Coste real:** $80–120/día en gama media — tarifas de después del verano con clima de pleno verano.
 **La contrapartida:** las entradas con hora de la Alhambra se agotan con días de antelación todo el año; reserva en cuanto tengas las fechas cerradas y apunta a los primeros o últimos turnos para esquivar la avalancha de grupos organizados.
 
-## 8. Rajastán, India — Verde posmonzón y la fiesta de las luces
+## 8. Rajastán, India — Verde posmonzón, antes de la avalancha del Diwali
 
-Octubre es cuando el monzón se marcha por fin del norte de la India y Rajastán se pone brevemente, inesperadamente verde antes de la estación seca. Las temperaturas se relajan hasta unos caminables 30–33°C, las ciudades-fortaleza — Jaipur, Jodhpur, Udaipur — están en su punto más fotogénico y el Diwali (hacia principios de noviembre, aunque los preparativos llenan el final de octubre) empieza a iluminar cada azotea, cada mercado y cada palacio del estado. Es el momento más atmosférico del año para estar allí.
+Octubre es cuando el monzón se marcha por fin del norte de la India y Rajastán se pone brevemente, inesperadamente verde antes de la estación seca. Las temperaturas se relajan hasta unos caminables 30–33°C, las ciudades-fortaleza — Jaipur, Jodhpur, Udaipur — están en su punto más fotogénico y la antesala del Diwali — que en 2026 cae el [8 de noviembre](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html) — empieza a iluminar cada azotea, cada mercado y cada palacio del estado. Es el momento más atmosférico del año para estar allí.
 
 **Coste real:** $35–60/día — un valor extraordinario; los havelis históricos con patio se quedan muy por debajo de $50.
 **La contrapartida:** sigue haciendo calor y puede haber humedad a principios de mes, justo después de las lluvias; comprueba las fechas, porque la retirada exacta del monzón se mueve de un año a otro. Nuestra [guía del monzón](/blog/monsoon-season-where-to-go-and-avoid) desglosa las ventanas seguras en toda la región.
@@ -129,7 +129,7 @@ Por confuso que suene, el Oktoberfest transcurre casi entero en septiembre, pero
 - **Octubre es el gemelo sin multitudes de tu viaje de verano favorito.** El Mediterráneo, Marruecos, Japón y Portugal ofrecen condiciones casi de verano a precios de temporada media. Si tenías el ojo puesto en un [destino de agosto](/blog/where-to-go-in-august), comprueba antes si su versión de octubre es más tranquila y más barata.
 - **Persigue la línea del follaje, no la juegues a los dados.** El color de otoño alcanza su pico según un calendario que se mueve de norte a sur y de arriba abajo a lo largo del mes. Nuestra [guía del follaje de otoño](/blog/best-fall-foliage-destinations) enseña las fechas para que no llegues una semana antes de tiempo y te encuentres las ramas peladas.
 - **Ojo al relevo del monzón.** Octubre es el mes bisagra de los trópicos: la estación húmeda se está despejando de la India y aguanta en partes del Sudeste Asiático. La [guía de la estación del monzón](/blog/monsoon-season-where-to-go-and-avoid) mapea quién está seco y quién no.
-- **Reserva alrededor de las fiestas, no dentro de ellas.** El Diwali en India, los últimos días del Oktoberfest en Múnich y el pico del follaje en Nueva Inglaterra disparan los precios y llenan las camas en fechas muy concretas. Muévete unos días fuera del pico y el mismo sitio se abarata radicalmente.
+- **Reserva alrededor de las fiestas, no dentro de ellas.** El [Oktoberfest](https://www.oktoberfest.de/en) va del 19 de septiembre al 4 de octubre en 2026, y el pico del follaje en Nueva Inglaterra cae en fechas muy concretas: ambos disparan los precios y llenan las camas. El Diwali cae el 8 de noviembre, así que pertenece a un [viaje de noviembre](/blog/where-to-go-in-november), no a este mes. Muévete unos días fuera del pico y el mismo sitio se abarata radicalmente.
 - **Haz la maleta para todo el rango.** El atractivo entero de octubre es la variedad, y eso significa tiempo de verdad variable: desiertos cálidos con noches frías, primavera patagónica cambiante, Portugal atlántico. Las capas le ganan siempre a una maleta pensada para un solo clima. Para planificar mes a mes, nuestro [calendario de viajes 2026](/blog/2026-travel-calendar) despliega el año entero.
 
 ## Planifica tu viaje de octubre en 30 segundos
@@ -140,7 +140,7 @@ Elige uno de los doce destinos de arriba y el [planificador de viajes con AI gra
 
 ### ¿Cuál es el mejor destino para viajar en octubre de 2026?
 
-Depende de lo que persigas. Para el follaje de otoño, Nueva Inglaterra y las montañas japonesas alcanzan su pico en octubre. Para clima de desierto perfecto, Jordania (Petra y Wadi Rum) y Marruecos son los destacados. Para valor más ambiente, Rajastán en torno al Diwali es difícil de superar. Y para las vistas de montaña más nítidas del año, la temporada de trekking de Nepal está en su mejor momento absoluto.
+Depende de lo que persigas. Para el follaje de otoño, Nueva Inglaterra y las montañas japonesas alcanzan su pico en octubre. Para clima de desierto perfecto, Jordania (Petra y Wadi Rum) y Marruecos son los destacados. Para valor más ambiente, Rajastán en las semanas verdes del posmonzón, antes del Diwali, es difícil de superar. Y para las vistas de montaña más nítidas del año, la temporada de trekking de Nepal está en su mejor momento absoluto.
 
 ### ¿Dónde encuentro buen tiempo cálido en octubre?
 
@@ -157,3 +157,9 @@ Rajastán, en India ($35–60/día), y Nepal ($40–70/día en ruta) ofrecen el 
 ### ¿Qué destinos debería evitar en octubre?
 
 El Caribe y la costa del Golfo de Estados Unidos siguen en temporada de huracanes, y partes del Sudeste Asiático — buena parte de Vietnam, la costa del golfo de Tailandia y Filipinas — están en lo más espeso de la estación húmeda. Si el objetivo es una playa tropical, tira hacia Bali o consulta la [guía de la estación del monzón](/blog/monsoon-season-where-to-go-and-avoid) antes de reservar.
+
+---
+
+*Cómo leer las cifras: las temperaturas son medias mensuales típicas de cada destino, no pronósticos — los días concretos varían mucho. Los presupuestos diarios son estimaciones editoriales de gama media por persona que cubren alojamiento, comida, transporte local y actividades; son una guía de planificación, no datos encuestados, y se mueven con la temporada, la antelación de la reserva y el tipo de cambio. Las fechas de festivales y temporadas se citan abajo y se verificaron para 2026.*
+
+*Fuentes / Fonti / Fontes: [Oktoberfest](https://www.oktoberfest.de/en), [Drik Panchang — Diwali 2026](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html), [Incredible India](https://www.incredibleindia.gov.in/en).*

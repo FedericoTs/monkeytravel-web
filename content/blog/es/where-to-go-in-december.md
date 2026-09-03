@@ -155,3 +155,9 @@ Solo si viajas en las dos semanas equivocadas. Del 20 de diciembre al 2 de enero
 ### ¿Dónde es barato viajar en diciembre?
 
 El Sudeste Asiático y el sur de Asia dan el mejor valor: Kerala ($40–70/día), el sur de Vietnam y Phu Quoc ($45–75/día) y la costa sur de Sri Lanka ($45–75/día) están en plena temporada por muy poco dinero. Ciudad del Cabo ($80–130/día) es el mejor valor entre las ciudades del hemisferio en verano. Esquiva el recargo de la semana de fiestas y estos presupuestos estiran aún más.
+
+---
+
+*Cómo leer las cifras: las temperaturas son medias mensuales típicas de cada destino, no pronósticos — los días concretos varían mucho. Los presupuestos diarios son estimaciones editoriales de gama media por persona que cubren alojamiento, comida, transporte local y actividades; son una guía de planificación, no datos encuestados, y se mueven con la temporada, la antelación de la reserva y el tipo de cambio. Las fechas de festivales y temporadas se citan abajo y se verificaron para 2026.*
+
+*Fuentes / Fonti / Fontes: [Vienna Tourist Board](https://www.wien.info/en).*

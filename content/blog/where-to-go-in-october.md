@@ -1,7 +1,7 @@
 ---
 title: "Where to Go in October 2026: 12 Destinations at Peak Shoulder Season"
 slug: "where-to-go-in-october"
-description: "October is the month the crowds go home and the travel gets good — foliage peaking across the Northern Hemisphere, deserts cooling to perfect, the Mediterranean warm and empty, monsoons clearing over India and Southeast Asia, Diwali lighting up Rajasthan, and spring arriving in Patagonia. Twelve destinations where October is genuinely the right call, with real daily costs and the trade-offs no one writes about."
+description: "October is the month the crowds go home and the travel gets good — foliage peaking across the Northern Hemisphere, deserts cooling to perfect, the Mediterranean warm and empty, monsoons clearing over India and Southeast Asia, Rajasthan green before the Diwali rush, and spring arriving in Patagonia. Twelve destinations where October is genuinely the right call, with real daily costs and the trade-offs no one writes about."
 author: "Emanuela P."
 publishedAt: "2026-07-27"
 updatedAt: "2026-07-27"
@@ -12,7 +12,7 @@ imageAlt: "Golden autumn maples framing a temple path in Kyoto under soft Octobe
 readingTime: 12
 seo:
   title: "Where to Go in October 2026: 12 Destinations That Work"
-  description: "October travel done right. New England foliage, Petra in perfect desert weather, empty Algarve beaches, Diwali in Rajasthan, Nepal's clearest trekking skies. Twelve destinations with real October costs, weather, and crowd reality — not generic top-10 noise."
+  description: "October travel done right. New England foliage, Petra in perfect desert weather, empty Algarve beaches, post-monsoon Rajasthan, Nepal's clearest trekking skies. Twelve destinations with real October costs, weather, and crowd reality — not generic top-10 noise."
   keywords: ["where to go in october", "october travel destinations 2026", "best places to visit in october", "best countries to visit in october", "october vacation ideas", "fall travel destinations 2026"]
 schema: "Article"
 ---
@@ -21,7 +21,7 @@ schema: "Article"
 
 October is the month most people stop paying attention — school is back in, summer is filed away, and the next travel milestone anyone thinks about is Christmas. That inattention is exactly why October is one of the best months of the year to actually go somewhere. The peak-season crowds have gone home, the prices have softened, and the weather across huge swaths of the planet has quietly arrived at its best. It is the definition of shoulder season, and shoulder season is where good travel lives.
 
-Look at what October does at once. Fall foliage peaks across New England, the Japanese mountains, and central Europe. The great deserts — Morocco, Jordan, Cappadocia, Rajasthan — cool from unbearable to flawless. The Mediterranean holds summer's warmth in the water while emptying its beaches. The monsoon lifts off India and much of Southeast Asia, and Diwali lights up the subcontinent. And below the equator, Patagonia tips into spring. There is no single "October climate" — that's the point. October is the month you can chase whichever version of perfect you want. Here are twelve of them, with real costs and honest trade-offs.
+Look at what October does at once. Fall foliage peaks across New England, the Japanese mountains, and central Europe. The great deserts — Morocco, Jordan, Cappadocia, Rajasthan — cool from unbearable to flawless. The Mediterranean holds summer's warmth in the water while emptying its beaches. The monsoon lifts off India and much of Southeast Asia, and Rajasthan turns green in the run-up to Diwali. And below the equator, Patagonia tips into spring. There is no single "October climate" — that's the point. October is the month you can chase whichever version of perfect you want. Here are twelve of them, with real costs and honest trade-offs.
 
 ## Quick-Pick Comparison: 12 October Destinations
 
@@ -34,7 +34,7 @@ Look at what October does at once. Fall foliage peaks across New England, the Ja
 | Cappadocia, Turkey | Balloon season, mild days | $50–90 | Moderate–high |
 | Algarve & Lisbon, Portugal | Warm sea, empty beaches | $70–110 | Low–moderate |
 | Andalusia, Spain | The heat finally breaks | $80–120 | Moderate |
-| Rajasthan, India | Post-monsoon + Diwali | $35–60 | Low–moderate |
+| Rajasthan, India | Post-monsoon green, pre-Diwali | $35–60 | Low–moderate |
 | Annapurna & Everest, Nepal | Clearest trekking skies | $40–70 | High |
 | Patagonia, Chile & Argentina | Southern spring, near-empty | $120–180 | Low |
 | Bali, Indonesia | Dry season holding | $45–75 | Moderate |
@@ -89,9 +89,9 @@ Andalusia in high summer is a place you endure; in October it's a place you savo
 **Cost reality:** $80–120/day mid-range — post-summer rates with full-summer weather.
 **The trade-off:** the Alhambra's timed tickets sell out days ahead year-round; reserve the moment your dates are firm, and aim for the earliest or latest slots to dodge the tour-group crush.
 
-## 8. Rajasthan, India — Post-Monsoon Green and the Festival of Lights
+## 8. Rajasthan, India — Post-Monsoon Green, Before the Diwali Rush
 
-October is when the monsoon finally clears out of northern India and Rajasthan turns briefly, unexpectedly green before the dry season. Temperatures ease to a walkable 30–33°C, the fort cities — Jaipur, Jodhpur, Udaipur — are at their photogenic best, and Diwali (early November-ish, but the run-up fills late October) starts lighting every rooftop, market, and palace across the state. It's the year's most atmospheric moment to be there.
+October is when the monsoon finally clears out of northern India and Rajasthan turns briefly, unexpectedly green before the dry season. Temperatures ease to a walkable 30–33°C, the fort cities — Jaipur, Jodhpur, Udaipur — are at their photogenic best, and the run-up to Diwali — which falls on [8 November in 2026](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html) — starts lighting rooftops, markets, and palaces across the state through late October. It's the year's most atmospheric moment to be there.
 
 **Cost reality:** $35–60/day — extraordinary value; heritage-haveli stays with courtyards run well under $50.
 **The trade-off:** it's still warm and can be humid early in the month right after the rains; check the timing, because the exact monsoon retreat shifts year to year. Our [monsoon guide](/blog/monsoon-season-where-to-go-and-avoid) breaks down the safe windows across the region.
@@ -129,7 +129,7 @@ Oktoberfest confusingly runs mostly in September, but its final days spill into 
 - **October is the un-crowded twin of your favourite summer trip.** The Mediterranean, Morocco, Japan, and Portugal all deliver near-summer conditions at shoulder-season prices. If you were eyeing an [August destination](/blog/where-to-go-in-august), check whether its October version is quieter and cheaper first.
 - **Chase the foliage line, don't gamble on it.** Fall color peaks on a schedule that moves north-to-south and high-to-low through the month. Our [fall foliage guide](/blog/best-fall-foliage-destinations) shows the timing so you don't arrive a week early to bare branches.
 - **Mind the monsoon hand-off.** October is the pivot month for the tropics: the wet season is clearing India and holding on in parts of Southeast Asia. The [monsoon-season guide](/blog/monsoon-season-where-to-go-and-avoid) maps who's dry and who isn't.
-- **Book around the festivals, not into them.** Diwali in India, Oktoberfest's final days in Munich, and peak foliage in New England all spike prices and fill beds on specific dates. Shift a few days off the peak and the same place gets dramatically cheaper.
+- **Book around the festivals, not into them.** [Oktoberfest](https://www.oktoberfest.de/en) runs 19 September to 4 October in 2026, and peak foliage in New England lands on specific dates — both spike prices and fill beds. Diwali itself falls on 8 November, so it belongs to a [November trip](/blog/where-to-go-in-november), not this month. Shift a few days off the peak and the same place gets dramatically cheaper.
 - **Pack for range.** October's whole appeal is variety, and that means genuinely variable weather — warm deserts with cold nights, changeable Patagonian spring, Atlantic Portugal. Layers beat a single-climate packing list every time. For month-by-month planning, our [2026 travel calendar](/blog/2026-travel-calendar) lays out the full year.
 
 ## Plan Your October Trip in 30 Seconds
@@ -140,7 +140,7 @@ Pick one of the twelve above, and [MonkeyTravel's free AI trip planner](/trips/n
 
 ### Where is the best place to go in October 2026?
 
-It depends on what you're chasing. For fall foliage, New England and the Japanese mountains peak in October. For perfect desert weather, Jordan (Petra and Wadi Rum) and Morocco are the standouts. For value plus atmosphere, Rajasthan around Diwali is hard to beat. And for the clearest mountain views of the year, Nepal's trekking season is at its absolute best.
+It depends on what you're chasing. For fall foliage, New England and the Japanese mountains peak in October. For perfect desert weather, Jordan (Petra and Wadi Rum) and Morocco are the standouts. For value plus atmosphere, Rajasthan in the green post-monsoon weeks before Diwali is hard to beat. And for the clearest mountain views of the year, Nepal's trekking season is at its absolute best.
 
 ### Where can I get warm-weather travel in October?
 
@@ -157,3 +157,9 @@ Rajasthan, India ($35–60/day) and Nepal ($40–70/day on the trail) offer the 
 ### Which destinations should I avoid in October?
 
 The Caribbean and the US Gulf coast are still in hurricane season, and parts of Southeast Asia — much of Vietnam, Thailand's Gulf coast, and the Philippines — are in the thick of the wet season. If a tropical beach is the goal, lean toward Bali or check the [monsoon-season guide](/blog/monsoon-season-where-to-go-and-avoid) before booking.
+
+---
+
+*How to read the numbers: temperatures are typical monthly averages for each destination, not forecasts — individual days vary widely. Daily budgets are mid-range, per-person editorial estimates covering accommodation, food, local transport and activities; they are a planning guide, not surveyed data, and move with season, booking window and exchange rate. Festival and season dates are sourced below and were verified for 2026.*
+
+*Sources: [Oktoberfest official site](https://www.oktoberfest.de/en), [Drik Panchang — Diwali 2026 calendar](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html), [Incredible India](https://www.incredibleindia.gov.in/en).*

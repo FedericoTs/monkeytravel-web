@@ -299,6 +299,6 @@ Giappone nella finestra del sakura (28 marzo-7 aprile): sì, subito; voli e hote
 - [Japan Meteorological Corporation — Previsione fioritura dei ciliegi 2026](https://sakura.weathermap.jp/en.php)
 - [Giardini di Keukenhof — Date della stagione 2026](https://keukenhof.nl/en/)
 - [Whistler Blackcomb — Date di apertura della stagione 2025-2026](https://www.whistlerblackcomb.com/)
-- [Visit Petra — Informazioni per i visitatori](https://visitpetra.jo/)
+- [Visit Petra — Informazioni per i visitatori](https://visitpetra.jo/en)
 - [World Weather Online — Dati climatici storici](https://www.worldweatheronline.com/)
 - [Numbeo — Database del costo della vita](https://www.numbeo.com/cost-of-living/)

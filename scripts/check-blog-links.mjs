@@ -18,8 +18,8 @@
  *   node scripts/check-blog-links.mjs                 # every post
  *   node scripts/check-blog-links.mjs where-to-go     # only matching posts
  */
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { join, relative, sep } from "node:path";
 
 const DIR = join(import.meta.dirname, "..", "content", "blog");
 const filter = process.argv[2] ?? "";
@@ -29,9 +29,23 @@ const CONCURRENCY = 8;
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
 
-const files = readdirSync(DIR)
-  .filter((f) => f.endsWith(".md"))
-  .filter((f) => (filter ? f.includes(filter) : true));
+/**
+ * Walk subdirectories too. content/blog/{es,it,pt}/ hold the localized bodies,
+ * and they are three quarters of the posts — a checker that only reads the top
+ * level declares the blog healthy while every translated citation goes
+ * unexamined. Locale-only link defects have shipped here before.
+ */
+function walk(dir) {
+  const out = [];
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) out.push(...walk(full));
+    else if (entry.endsWith(".md")) out.push(relative(DIR, full).split(sep).join("/"));
+  }
+  return out;
+}
+
+const files = walk(DIR).filter((f) => (filter ? f.includes(filter) : true));
 
 /** Collect every external link, remembering which post and line it came from. */
 const links = new Map(); // url -> [{ file, line, label }]

@@ -300,6 +300,6 @@ Japão na janela da sakura (28 de março a 7 de abril): sim, imediatamente — v
 - [Japan Meteorological Corporation — Previsão das Cerejeiras 2026](https://sakura.weathermap.jp/en.php)
 - [Jardins Keukenhof — Datas da Temporada 2026](https://keukenhof.nl/en/)
 - [Whistler Blackcomb — Datas de Funcionamento da Temporada 2025-2026](https://www.whistlerblackcomb.com/)
-- [Visit Petra — Informações ao Visitante](https://visitpetra.jo/)
+- [Visit Petra — Informações ao Visitante](https://visitpetra.jo/en)
 - [World Weather Online — Dados Climáticos Históricos](https://www.worldweatheronline.com/)
 - [Numbeo — Banco de Dados de Custo de Vida](https://www.numbeo.com/cost-of-living/)
