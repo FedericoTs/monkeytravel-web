@@ -115,6 +115,11 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   // (b) carry it on the "Plan your own trip" CTA below.
   const referralCode = searchParams?.get("ref")?.trim() || null;
 
+  // ?vote=1 means the planner sent this specifically to ask for votes (the
+  // crew-mode share). Everyone gets the vote invitation; this makes it read
+  // as the personal ask it actually was.
+  const crewAsk = searchParams?.get("vote") === "1";
+
   // Persist ?ref the same way /join/[code] does (localStorage key
   // "referral_code") so a visitor who signs up via the normal nav — not
   // the CTA — is still attributed to the owner. The signup page reads this
@@ -437,8 +442,12 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
         <div className="mb-6 flex items-center gap-3 rounded-2xl border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 px-4 py-3">
           <span className="text-2xl leading-none" aria-hidden>🗳️</span>
           <div>
-            <p className="font-semibold text-slate-800">{t('shared.voteInviteTitle')}</p>
-            <p className="text-sm text-slate-600">{t('shared.voteInviteBody')}</p>
+            <p className="font-semibold text-slate-800">
+              {crewAsk ? t('share.crewPrompt.title') : t('shared.voteInviteTitle')}
+            </p>
+            <p className="text-sm text-slate-600">
+              {crewAsk ? t('share.crewPrompt.body') : t('shared.voteInviteBody')}
+            </p>
           </div>
         </div>
 

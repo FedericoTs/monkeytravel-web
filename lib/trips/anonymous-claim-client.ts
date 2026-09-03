@@ -108,6 +108,14 @@ export async function shareAnonymousTrip(payload: {
   endDate: string;
   itinerary: unknown[];
   coverImageUrl?: string | null;
+  /**
+   * "crew" when the planner is asking friends to vote rather than just
+   * sharing a link. Recorded on the server's share_link_created row so the
+   * crew loop can be measured separately from a plain share — 531 wizard
+   * sessions a month say they are planning with friends and, before this,
+   * three trips in the product's history ever had a second person on them.
+   */
+   intent?: "share" | "crew";
 }): Promise<AnonymousShareResult> {
   const res = await fetch("/api/trips/anonymous", {
     method: "POST",

@@ -1226,6 +1226,10 @@
       "title": "This is your trip",
       "body": "You shared it without an account. Sign up free and it becomes yours to edit.",
       "cta": "Sign up to keep it"
+    },
+    "crewPrompt": {
+      "title": "Your friend wants your vote",
+      "body": "Give each idea a thumbs up or down — no account needed."
     }
   },
   "proposals": {
