@@ -95,6 +95,13 @@ try {
     // Stay VISIBLE past one heartbeat (10s) — the heartbeat deliberately skips
     // a hidden tab, and it is the review query's dwell qualifier.
     await sleep(13000);
+    // Capture the session BEFORE closing the context: in production the
+    // middleware mints a real mt_session_id, so these rows land in the step-1
+    // funnel that `npm run flags:review` reads. A probe must not leave fake
+    // sessions in the metric it exists to protect.
+    const sid = (await ctx.cookies()).find((c) => c.name === "mt_session_id")?.value ?? null;
+    if (sid) probeSessions.push(sid);
+    else note(`${arm}: no session cookie (dev) — nothing to clean up`);
     await ctx.close();
 
     const denom = posted.filter((b) => b.step === "step_1_destination_dates");
