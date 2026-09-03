@@ -100,7 +100,18 @@ export interface AdminStats {
      */
     degraded: string[];
     traffic: {
-      daily: { date: string; views: number; uniqueVisitors: number }[];
+      daily: {
+        date: string;
+        views: number;
+        uniqueVisitors: number;
+        /**
+         * Sessions that kept a page visible past the engagement threshold.
+         * OPTIONAL on purpose: session_engagement is forward-only from
+         * 2026-09-02, so earlier days have no value and MUST render as absent.
+         * A 0 here would draw a collapse that never happened.
+         */
+        engagedSessions?: number;
+      }[];
       bySection: { section: string; count: number }[];
       conversionFunnel: { step: string; count: number }[];
     };
@@ -926,6 +937,7 @@ async function fetchGeoMetrics(
     dailyTrendResult,
     bySectionResult,
     conversionFunnelResult,
+    engagedDailyResult,
   ] = await Promise.all([
     // Total / 7d / 30d page views.
     //
@@ -959,6 +971,12 @@ async function fetchGeoMetrics(
 
     // Conversion funnel
     supabase.rpc("get_conversion_funnel"),
+
+    // Engaged sessions per day. Sits beside uniqueVisitors because 81% of the
+    // sessions counted there never keep a page visible for four seconds, and
+    // the two groups reach the wizard at 14.7% vs 1.3% — the raw line
+    // overstates plausible prospects by roughly 5x.
+    supabase.rpc("get_engaged_sessions_daily"),
   ]);
 
   // A metric reading zero must never be indistinguishable from a failed query.
@@ -986,6 +1004,7 @@ async function fetchGeoMetrics(
     ["daily_trend", dailyTrendResult],
     ["by_section", bySectionResult],
     ["conversion_funnel", conversionFunnelResult],
+    ["engaged_sessions_daily", engagedDailyResult],
   ] as const) {
     const err = (result as { error?: { message?: string; code?: string } }).error;
     if (!err) continue;
@@ -1065,12 +1084,24 @@ async function fetchGeoMetrics(
       count: Number(p.count),
     }));
 
-  // Process daily traffic trend
+  // Process daily traffic trend.
+  //
+  // The engaged series is merged by date and deliberately left UNDEFINED for
+  // days the beacon did not cover. Defaulting it to 0 would draw a cliff on
+  // 2026-09-02 that is an artefact of when measurement started, not of
+  // anything that happened to the traffic.
+  const engagedByDate = new Map<string, number>(
+    (engagedDailyResult.data || []).map((e: { date: string; engaged_sessions: number }) => [
+      e.date,
+      Number(e.engaged_sessions),
+    ])
+  );
   const daily: AdminStats["geo"]["traffic"]["daily"] = (dailyTrendResult.data || [])
     .map((d: { date: string; views: number; unique_visitors: number }) => ({
       date: d.date,
       views: Number(d.views),
       uniqueVisitors: Number(d.unique_visitors),
+      ...(engagedByDate.has(d.date) ? { engagedSessions: engagedByDate.get(d.date) } : {}),
     }));
 
   // Process section breakdown.
