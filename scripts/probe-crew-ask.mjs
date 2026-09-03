@@ -63,15 +63,36 @@ const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
 
 let failures = 0;
+let rateLimited = false;
 const fail = (m) => {
   console.log(`  *** FAIL - ${m}`);
   failures++;
+};
+/**
+ * A 429 means this probe could not test, which is NOT the same as the product
+ * being broken — the anonymous mint allows 5 per hour per connection and this
+ * probe uses one of them. Reported as its own outcome so a rate limit can
+ * never read as a green run or be mistaken for a real defect.
+ */
+const limited = (m) => {
+  console.log(`  ~~   RATE LIMITED - ${m}`);
+  rateLimited = true;
 };
 const ok = (m) => console.log(`  ok   ${m}`);
 const note = (m) => console.log(`  ..   ${m}`);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** A minimal but valid anonymous trip payload, minted the way the button does. */
+/**
+ * An anonymous trip payload shaped like REAL wizard output — note that the
+ * activities carry no `id`.
+ *
+ * This matters more than it looks. Earlier versions of this probe supplied
+ * their own ids and therefore could not see the defect that made the whole
+ * crew loop hollow: stored without ids, /shared minted a fresh random one on
+ * every render, so each vote was written against a value that existed for one
+ * page view. Minting exactly what the wizard sends is what makes every step
+ * below a test of the real path.
+ */
 function tripPayload(destination) {
   const start = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
   const end = new Date(Date.now() + 33 * 86400000).toISOString().slice(0, 10);
@@ -85,8 +106,8 @@ function tripPayload(destination) {
         day: 1,
         date: start,
         activities: [
-          { id: "11111111-aaaa-4bbb-8ccc-111111111111", name: "Probe activity one", time: "10:00" },
-          { id: "22222222-aaaa-4bbb-8ccc-222222222222", name: "Probe activity two", time: "14:00" },
+          { name: "Probe activity one", time: "10:00" },
+          { name: "Probe activity two", time: "14:00" },
         ],
       },
     ],
@@ -145,6 +166,10 @@ try {
   }, payload);
 
   const share = mint.json?.data ?? mint.json ?? {};
+  if (mint.status === 429) {
+    limited("the anonymous mint allows 5/hour per connection and this run is over it");
+    throw new Error("rate limited before a link could be minted");
+  }
   if (mint.status !== 200 || !share.shareUrl || !share.shareToken) {
     fail(`mint failed: HTTP ${mint.status} ${JSON.stringify(mint.json).slice(0, 300)}`);
     throw new Error("cannot continue without a link");
@@ -185,6 +210,13 @@ try {
   // ---------------------------------------------------------------- 4
   console.log("");
   console.log("=== 4. the recipient can vote with no account ===");
+  // The id comes off the RENDERED page, not from the payload — the payload
+  // had none. If the page were still minting ids per render, the vote would
+  // land on something the next load cannot resolve, which is exactly the bug
+  // step 7 checks for.
+  const renderedIds = await friendPage.$$eval("[data-activity-name]", (els) => els.map((e) => e.id));
+  const votableId = (renderedIds[0] || "").replace(/^activity-/, "");
+  if (!votableId) fail("no activity card rendered — cannot vote on anything");
   const vote = await friendPage.evaluate(async ({ token, activityId }) => {
     const res = await fetch(`/api/shared/${token}/vote`, {
       method: "POST",
@@ -193,7 +225,7 @@ try {
       body: JSON.stringify({ activity_id: activityId, vote_type: "up" }),
     });
     return { status: res.status, body: await res.text() };
-  }, { token: share.shareToken, activityId: "11111111-aaaa-4bbb-8ccc-111111111111" });
+  }, { token: share.shareToken, activityId: votableId });
 
   if (vote.status !== 200) fail(`vote rejected: HTTP ${vote.status} ${vote.body.slice(0, 200)}`);
   else ok("vote accepted from a signed-out visitor");
@@ -243,58 +275,54 @@ try {
   // page mints a fresh random id on every render — so a vote is written
   // against something nobody will ever look up again. 13 of the 51 votes ever
   // cast were already orphaned this way before the fix.
-  const noIds = tripPayload("Porto");
-  for (const day of noIds.itinerary) for (const a of day.activities) delete a.id;
+  // No second mint: the trip above was already sent with NO activity ids, so
+  // it IS the test case. The anonymous mint allows only 5 per hour per
+  // connection, and a probe that spends two of them rate-limits itself out of
+  // its own last step — which is how this step first failed.
+  const reload = async () => {
+    await friendPage.goto(crewUrl, { waitUntil: "domcontentloaded", timeout: 120000 });
+    await friendPage.waitForLoadState("networkidle", { timeout: 60000 }).catch(() => {});
+    return friendPage.$$eval("[data-activity-name]", (els) => els.map((e) => e.id));
+  };
+  const firstLoad = await reload();
+  const secondLoad = await reload();
 
-  const mint2 = await page.evaluate(async (body) => {
-    const res = await fetch("/api/trips/anonymous", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...body, intent: "crew" }),
-    });
-    return { status: res.status, json: await res.json().catch(() => null) };
-  }, noIds);
-
-  const share2 = mint2.json?.data ?? mint2.json ?? {};
-  if (mint2.status !== 200 || !share2.shareToken) {
-    fail(`mint without ids failed: HTTP ${mint2.status}`);
+  if (!firstLoad.length) {
+    fail("no activity cards rendered — cannot check id stability");
+  } else if (JSON.stringify(firstLoad) !== JSON.stringify(secondLoad)) {
+    fail(`activity ids change between page loads — every vote would be orphaned. ${firstLoad[0]} then ${secondLoad[0]}`);
   } else {
-    createdTripIds.push(share2.tripId);
-    const url2 = `${share2.shareUrl.replace(/^https?:\/\/[^/]+/, BASE.replace(/\/$/, ""))}?vote=1`;
-    const idsOf = async (p) => {
-      await p.goto(url2, { waitUntil: "domcontentloaded", timeout: 120000 });
-      await p.waitForLoadState("networkidle", { timeout: 60000 }).catch(() => {});
-      return p.$$eval("[data-activity-name]", (els) => els.map((e) => e.id));
-    };
-    const firstLoad = await idsOf(friendPage);
-    const secondLoad = await idsOf(friendPage);
+    ok(`activity ids identical across two loads (${firstLoad.length} cards)`);
+  }
 
-    if (!firstLoad.length) {
-      fail("no activity cards rendered — cannot check id stability");
-    } else if (JSON.stringify(firstLoad) !== JSON.stringify(secondLoad)) {
-      fail(`activity ids change between page loads — every vote would be orphaned. ${firstLoad[0]} then ${secondLoad[0]}`);
-    } else {
-      ok(`activity ids identical across two loads (${firstLoad.length} cards)`);
+  if (db) {
+    const { data: row } = await db.from("trips").select("itinerary").eq("share_token", share.shareToken).single();
+    const stored = (row?.itinerary ?? []).flatMap((d) => d?.activities ?? []).map((a) => a?.id);
+    const missing = stored.filter((id) => !id).length;
+    if (missing) fail(`${missing} of ${stored.length} stored activities have no id`);
+    else ok(`all ${stored.length} activities stored with an id — the payload had none`);
+    if (stored.length && firstLoad.length && !firstLoad.includes(`activity-${stored[0]}`)) {
+      fail("the rendered id is not the stored one — the page is still minting its own");
+    } else if (stored.length) {
+      ok("the page renders the STORED id, not a fresh one");
     }
-
-    if (db) {
-      const { data: row } = await db.from("trips").select("itinerary").eq("share_token", share2.shareToken).single();
-      const stored = (row?.itinerary ?? []).flatMap((d) => d?.activities ?? []).map((a) => a?.id);
-      const missing = stored.filter((id) => !id).length;
-      if (missing) fail(`${missing} of ${stored.length} stored activities have no id`);
-      else ok(`all ${stored.length} activities stored with an id`);
-      if (stored.length && firstLoad.length && !firstLoad.includes(`activity-${stored[0]}`)) {
-        fail("the rendered id is not the stored one — the page is still minting its own");
-      } else if (stored.length) {
-        ok("the page renders the STORED id, not a fresh one");
-      }
+    // The vote in step 4 must still be resolvable — that is the whole point.
+    if (votableId && stored.length && !stored.includes(votableId)) {
+      fail(`the id voted on (${votableId}) is not in the stored itinerary — the vote is orphaned`);
+    } else if (votableId) {
+      ok("the vote cast in step 4 still resolves to a stored activity");
     }
   }
 
   await friend.close();
   await ctx.close();
 } catch (err) {
-  fail(`unexpected error: ${err.message}`);
+  // A rate limit already reported itself as INCONCLUSIVE; the throw that
+  // followed it is control flow, not a defect. Reporting it again as a
+  // failure would make an untestable run indistinguishable from a broken
+  // product, which is the exact confusion the limited() path exists to stop.
+  if (!rateLimited) fail(`unexpected error: ${err.message}`);
+  else note(`stopped after the rate limit: ${err.message}`);
 } finally {
   await browser.close();
   if (db && createdTripIds.length) {
@@ -308,5 +336,14 @@ try {
   }
 }
 
-console.log(failures === 0 ? "\n  PASS\n" : `\n  *** ${failures} FAILURE(S) ***\n`);
-process.exit(failures === 0 ? 0 : 2);
+if (failures > 0) {
+  console.log(`\n  *** ${failures} FAILURE(S) ***\n`);
+  process.exit(2);
+} else if (rateLimited) {
+  // Exit 3, not 0: nothing was disproved, but nothing was proved either.
+  console.log("\n  INCONCLUSIVE - rate limited, not a product failure. Retry in an hour.\n");
+  process.exit(3);
+} else {
+  console.log("\n  PASS\n");
+  process.exit(0);
+}
