@@ -124,7 +124,7 @@ Each phase lists **entry gate → workstreams (numbered, in build order) → tes
 | 0.1 | **Make `trip_views` real** | Call `POST /api/trips/[id]/view` from all three renderers on mount: `SharedTripView.tsx` (covers `/shared/[token]` and `/trip/[slug]`, which imports it) and `TripDetailClient.tsx`. Payload: `source ∈ {shared, public, owner}`, `session_id` (existing cookie), `viewer_id` (null when anon). Dedupe one row per session per trip per day server-side. Verify rows land from all three surfaces in production before closing. |
 | 0.2 | **Human view over `page_views`** — *SHIPPED 2026-09-05* | Do **not** widen `bot-detection.ts` (it is correctly UA-only and documents why). `page_views_human` already existed (`is_bot = false`) and the rollup already read it; it now also excludes sessions in a new label table `page_view_session_labels`, rebuilt nightly by `label_automation_sessions()` (pg_cron 02:20, ahead of the 02:40 rollup). Rules were **measured before being written**, and the plan's original thresholds were wrong: engagement *rises* with view count (0.4% of 1–2-view sessions engaged vs 33.9% of 50+), so a per-session volume rule would mislabel real heavy users. Shipped rules: `heavy_unengaged` (≥50 views, never fired the engagement beacon), `ua_city_sweep` (a day×city×UA group with ≥15 sessions, ≥100 views, ≤3% engaged — only its unengaged members), `legacy_sweep` (days before `session_engagement` existed, 2026-09-02: ≥100 sessions in one group at ≥5 views each). **An engaged session is never labelled.** No country lists. Labelling only — no request is ever refused. No dashboard code changed: everything reads the view or the rollup. Measured effect: 13.5% of `is_bot=false` views over 7 days; Sept 1 human total 20,600 → 10,003. |
 | 0.3 | **Retire `collaborator_ids`** — *SHIPPED 2026-09-05* | Measured before dropping: **0** references in code, generated types, scripts or migrations; **0** in RLS policies, functions, views, triggers or indexes; populated on **0** trips. Every `trips` policy already grants collaborator access through `trip_collaborators` (`user_is_trip_owner` / `user_is_trip_collaborator`), so that table was the source of truth all along. Dropped in migration `20260905120000` rather than deferred to Phase 2 as first written: with zero references there was nothing to bundle, and a dead column that looks like a source of truth is worse than none. The RLS baseline was refreshed in the same PR (it had drifted since `session_engagement` landed on 2026-09-02, and again with 0.2's label table). |
-| 0.4 | **Freeze baselines** | Append a `## Baseline 2026-09-08` block to this doc: TODT (first 7 days of 0.1 data), edited-during 5.3%, return-once 7.4%, share 30%, recipient→participant 0, participants/trip 0, K 0.011, human recipient sessions/28d, wizard step-1→2 (from `wizard_step_events`). |
+| 0.4 | **Freeze baselines** — *SHIPPED 2026-09-05* | The baseline is a function, not a paste: `get_live_trip_baseline(p_days)` (migration `20260905150000`, service-role only, every figure from labelled human data, definitions shared with `get_ux10x_rates`) and `scripts/baseline-snapshot.mts`, which prints the block and `--append`s it above the decisions log. The frozen block is below, dated 2026-09-05 (the plan said 09-08; Phase 0 finished early). **TODT reads 0.0% with measurement starting 2026-09-05** — every trip that completed in the window ended before `trip_views` existed, so the first clean TODT read is due 2026-10-03. Re-run the same command for the weekly ritual; never hand-edit the numbers. |
 | 0.5 | **Correct the analytics narrative** | `docs/` note: GA4 is consent-gated (fires post-consent only) and had a Sept 1 reporting bug; `page_views_human` is the traffic source of truth; the "−84.57%" was a bot-inflated day compared to a normal one. Prevents the next false alarm. |
 
 **Tests:** vitest for the dedupe rule; a `scripts/trip-views-probe.mts` that hits all three surfaces and asserts rows.
@@ -335,6 +335,32 @@ Each phase lists **entry gate → workstreams (numbered, in build order) → tes
 ## Appendix C — What carries over from UX10X unchanged
 
 Operating principles 1–5 · the cut list (C1, C2, C7, C8, C9 as decided) · measurement doctrine · "live-test via UI" rule · Phase 4.2 trip-detail diet (now Phase 5.4) · the Mindtrip-copies-us defence (speed + own the phrase, now "the plan that's with you on the trip").
+
+## Baseline 2026-09-05 (28 full UTC days, 2026-08-08 → 2026-09-05 exclusive)
+
+*Produced by `scripts/baseline-snapshot.mts` from `get_live_trip_baseline(28)` at 2026-09-05T15:24Z. Every figure reads labelled human data (`page_views_human`, automation labels applied to wizard sessions). Re-run the same command for the weekly ritual; never hand-edit these numbers.*
+
+| Area | Metric | Value |
+|---|---|---|
+| North Star | **TODT** — trips with ≥1 human open on a day inside their dates, of trips completed in the window | **0%** (96 trips) — trip_views began on 2026-09-05; trips that completed before that date cannot have been observed, so this reads low until a full window of measurement exists (first clean read: 28 days after 2026-09-05) |
+| Live trip | trips in progress today / opened today | 22 / 0 |
+| Live trip | edited during the trip (trips travelled since 2026-05-01) | 5.3% of 171 |
+| Live trip | trip_views rows in window by source | none in window |
+| Recipients | human recipient sessions (`/shared/*`, `/trip/*`) | 1642 (410.5/week) |
+| Recipients | recipient → wizard / → auth | 29.8% / 11.9% |
+| Recipients | **recipient → participant** (Phase 2 metric) | — — not yet built |
+| Sharing | trips created / shared / share rate | 194 (6.9/day) / 42 / 19.6% |
+| Sharing | recipient sessions per shared trip | 39.1 |
+| Sharing | **participants per shared trip** (Phase 2 metric) | — — not yet built |
+| K | new users / via invite / referred / **K** | 134 / 2 / 1 / **0.022** |
+| Retention | cohort return ≥2 logins | 8.2% of 134 |
+| Retention | post-trip 7-day return (owner opened anything within 7 days after end_date) | 10.7% of 84 trips |
+| Wizard | step-1 → step-2 (wizard arm, as `get_ux10x_rates`) | 37.4% (812 of 2174) |
+| Wizard | step-1 → result / result → saved | 33.3% / 14.2% |
+| Guardrail | saves per day (investigate if < 1 for 3 days) | 5.6 |
+| Guardrail | human recipient sessions per week (investigate if < 100) | 410.5 |
+| Guardrail | human page views per day | 5029 |
+| Guardrail | automation share of `is_bot=false` views | 9.1% |
 
 ## Decisions log
 
