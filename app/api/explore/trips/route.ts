@@ -2,6 +2,16 @@ import { createClient } from "@/lib/supabase/server";
 import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
+import { dedupeFeedRows, durationDaysOf } from "@/lib/explore/dedupe";
+import { asBudgetTier } from "@/lib/explore/budget-tier";
+
+/**
+ * How many ranked rows to pull before deduping and cutting the page.
+ * The feed is 55 trips today (2026-09-05); the window is a bound, not a
+ * target. Deduping needs the ranked list, not one DB page of it — a fork
+ * and its parent can land on different pages.
+ */
+const FEED_WINDOW = 400;
 
 /**
  * GET /api/explore/trips
@@ -70,6 +80,8 @@ export async function GET(request: NextRequest) {
       shared_at: string | null;
       public_slug: string | null;
       user_id: string | null;
+      // Lineage — set on forks (POST /api/trips/[id]/fork). Feeds the dedupe.
+      parent_trip_id?: string | null;
       trending_score: number | null;
       view_count: number | null;
       template_copy_count: number | null;
@@ -104,8 +116,8 @@ export async function GET(request: NextRequest) {
         // /creator/{username}). user_id feeds a batched, privacy-safe
         // username lookup below (never exposes email/payment handles).
         ugcOn
-          ? "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta, like_count, save_count, fork_count, author_display_name, author_note, is_editors_pick, travel_style"
-          : "id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta",
+          ? "id, parent_trip_id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta, like_count, save_count, fork_count, author_display_name, author_note, is_editors_pick, travel_style"
+          : "id, parent_trip_id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta",
         { count: "exact" }
       )
       .eq("visibility", "public")
@@ -170,11 +182,12 @@ export async function GET(request: NextRequest) {
       query = query.eq("travel_style", "backpacker");
     }
 
-    // Pagination
+    // Pagination happens AFTER the dedupe below, on the ranked window —
+    // a DB-side range would cut before duplicates are known (Phase 1.4).
     const start = (page - 1) * perPage;
-    query = query.range(start, start + perPage - 1);
+    query = query.limit(FEED_WINDOW);
 
-    const { data: trips, error, count } = await query;
+    const { data: trips, error } = await query;
 
     if (error) {
       console.error("[Explore] Query error:", error);
@@ -219,10 +232,14 @@ export async function GET(request: NextRequest) {
     // Post-process trips to extract relevant info. Cast to the loose
     // TripRow because the SELECT shape depends on `ugcOn` at runtime —
     // Supabase's TS plugin can't infer a union across both branches.
-    const processedTrips = ((trips ?? []) as unknown as TripRow[]).map((trip) => {
-      const startDate = new Date(trip.start_date);
-      const endDate = new Date(trip.end_date);
-      const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    //
+    // Dedupe first (lib/explore/dedupe.ts): one trip per lineage — the
+    // original beats its fork — and one per (title, author, duration).
+    // Measured 2026-09-05: 1 fork beside its parent + 8 same-title copies
+    // in a 55-trip feed.
+    const rankedRows = dedupeFeedRows((trips ?? []) as unknown as TripRow[]);
+    const processedTrips = rankedRows.map((trip) => {
+      const durationDays = durationDaysOf(trip);
 
       // 2026-05-29 FIX #188 — itinerary fallback scan removed along
       // with the JSONB column SELECT. Every published trip in prod has
@@ -243,7 +260,9 @@ export async function GET(request: NextRequest) {
         durationDays,
         coverImage,
         tags: trip.tags || [],
-        budgetTier: meta.budget_tier || "balanced",
+        // null when unknown — the card hides the pill rather than invent
+        // "$$" (it was null on every feed trip on 2026-09-05).
+        budgetTier: asBudgetTier(meta.budget_tier),
         trendingScore: trip.trending_score,
         viewCount: trip.view_count || 0,
         // copyCount kept for backward compat; forkCount is the new
@@ -276,12 +295,14 @@ export async function GET(request: NextRequest) {
       filteredTrips = filteredTrips.filter(t => t.durationDays <= parseInt(durationMax));
     }
 
+    // Cut the page from the deduped, filtered, ranked list.
+    const total = filteredTrips.length;
     return apiSuccess({
-      trips: filteredTrips,
-      total: count || 0,
+      trips: filteredTrips.slice(start, start + perPage),
+      total,
       page,
       perPage,
-      totalPages: Math.ceil((count || 0) / perPage),
+      totalPages: Math.ceil(total / perPage),
     });
   } catch (error) {
     console.error("[Explore] Unexpected error:", error);

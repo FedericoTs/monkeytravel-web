@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/routing";
 import type { ExploreTripCard } from "@/lib/explore/types";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { BUDGET_TIER_LABEL } from "@/lib/explore/budget-tier";
 
 interface TripCardProps {
   trip: ExploreTripCard;
@@ -99,10 +100,13 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
             </div>
           )}
         </div>
-        {/* Budget pill */}
-        <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white text-xs font-medium">
-          {trip.budgetTier === "budget" ? "$" : trip.budgetTier === "premium" ? "$$$" : "$$"}
-        </div>
+        {/* Budget pill — only when the tier is actually known. Unknown used
+            to render as "$$", a price signal the data never carried. */}
+        {trip.budgetTier && (
+          <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-black/40 backdrop-blur-sm text-white text-xs font-medium">
+            {BUDGET_TIER_LABEL[trip.budgetTier]}
+          </div>
+        )}
       </div>
 
       {/* Body */}
