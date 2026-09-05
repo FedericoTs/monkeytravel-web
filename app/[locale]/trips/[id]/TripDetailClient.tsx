@@ -10,6 +10,8 @@ import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, Collaborato
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
+import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
+import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import DownloadIcsButton from "@/components/calendar/DownloadIcsButton";
 // TravelAdvisoryBanner / ExpenseLedger / TripConciergeChat are pulled in
 // dynamically below — see the next/dynamic block. They were imported
@@ -305,6 +307,8 @@ export default function TripDetailClient({
   // Fire-and-forget — if the PATCH fails the in-memory state still keeps
   // the hero visible for this session.
   const isOwner = userRole === "owner";
+  // Live Trip Phase 2.4: the owner sees who said they're going.
+  const participantsEnabled = isLiveTripParticipantsEnabled();
   const handleCoverImageFetched = useCallback(
     (fetchedUrl: string) => {
       if (!isOwner) return;
@@ -1800,6 +1804,12 @@ export default function TripDetailClient({
       </DestinationHero>
 
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+        {/* Live Trip Phase 2.4: who said they're going — count, names, join
+            times, remove. The share ask is "send it to the people coming",
+            not "get votes". */}
+        {isOwner && participantsEnabled && !isEditMode && (
+          <WhoIsGoingCard tripId={trip.id} onShare={openCrewShareModal} className="mb-6" />
+        )}
         {/* Backpacker Mode — Hostelworld CTA. Renders only when the
             trip was generated as backpacker (trip_meta.travel_style).
             Placed above the engagement bar so it's the first thing

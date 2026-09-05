@@ -2177,6 +2177,26 @@
     "rls_enabled": true
   },
   {
+    "table": "trip_participants",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
     "table": "trip_reports",
     "grants": {
       "anon": [

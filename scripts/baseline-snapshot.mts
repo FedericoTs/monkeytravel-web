@@ -46,6 +46,11 @@ if (error || !data) {
   process.exit(1);
 }
 const b = data as J;
+// Phase 2 metrics live in their own function so the frozen baseline stays
+// what it was (see migration 20260905230000_trip_participants.sql).
+const { data: pdata, error: perror } = await admin.rpc("get_live_trip_participant_metrics", { p_days: DAYS });
+if (perror) console.error("get_live_trip_participant_metrics failed:", perror.message);
+const pm = (pdata ?? {}) as J;
 const w = b.window as J, wz = b.wizard as J, rc = b.recipients as J, sh = b.sharing as J,
   rt = b.retention as J, lt = b.live_trip as J, g = b.guardrails as J;
 
@@ -73,10 +78,10 @@ const block = `## Baseline ${stamp} (${w.days} full UTC days, ${w.from} → ${w.
 | Live trip | trip_views rows in window by source | ${views} |
 | Recipients | human recipient sessions (\`/shared/*\`, \`/trip/*\`) | ${v(rc.recipient_sessions)} (${v(rc.recipient_sessions_per_week)}/week) |
 | Recipients | recipient → wizard / → auth | ${pct(rc.recipient_to_wizard_pct)} / ${pct(rc.recipient_to_auth_pct)} |
-| Recipients | **recipient → participant** (Phase 2 metric) | ${pct(sh.recipient_to_participant_pct)} — not yet built |
+| Recipients | **recipient → participant** — people who tapped *I'm going* ÷ human recipient sessions (a rate of people over sessions, like K) | ${pct(pm.recipient_to_participant_pct)} (${v(pm.tappers_in_window)} of ${v(pm.recipient_sessions)}; measured since ${v(pm.measured_since)}) |
 | Sharing | trips created / shared / share rate | ${v(sh.trips_created)} (${v(sh.trips_created_per_day)}/day) / ${v(sh.trips_shared)} / ${pct(sh.share_rate_pct)} |
 | Sharing | recipient sessions per shared trip | ${v(sh.recipients_per_share)} |
-| Sharing | **participants per shared trip** (Phase 2 metric) | ${v(sh.participants_per_shared_trip)} — not yet built |
+| Sharing | **participants per shared trip** — taps in window ÷ trips shared in window; name / email capture; with account (participant → own trip is not linkable yet) | ${v(pm.participants_per_shared_trip)} (${v(pm.taps_in_window)} / ${v(pm.trips_shared_in_window)}); ${pct(pm.name_capture_pct)} / ${pct(pm.email_capture_pct)}; ${v(pm.with_account)} |
 | K | new users / via invite / referred / **K** | ${v(sh.new_users)} / ${v(sh.signups_via_invite)} / ${v(sh.signups_referred)} / **${v(sh.k_factor)}** |
 | Retention | cohort return ≥2 logins | ${pct(rt.return_once_pct)} of ${v(rt.cohort_users)} |
 | Retention | post-trip 7-day return (owner opened anything within 7 days after end_date) | ${pct(rt.post_trip_return_7d_pct)} of ${v(rt.trips_ended)} trips |

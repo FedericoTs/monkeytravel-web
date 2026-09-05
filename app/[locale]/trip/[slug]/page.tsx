@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta } from "@/types";
 import SharedTripView from "../../shared/[token]/SharedTripView";
@@ -237,6 +238,20 @@ export default async function PublicTripPage({ params }: PageProps) {
 
   const isPublic = trip.visibility === "public" && !trip.is_hidden;
 
+  // Live Trip Phase 2.4: an owner opening their own public trip sees "Who's
+  // going", not the recipient bar. getUser() is a local no-op for anon
+  // visitors (the common case on this indexable page).
+  let isOwner = false;
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    isOwner = !!user && user.id === trip.user_id;
+  } catch {
+    isOwner = false;
+  }
+
   const nonce = await getNonce();
 
   return (
@@ -247,6 +262,7 @@ export default async function PublicTripPage({ params }: PageProps) {
 
       <SharedTripView
         viewSource="public"
+        isOwner={isOwner}
         trip={{
           id: trip.id,
           title: trip.title,
