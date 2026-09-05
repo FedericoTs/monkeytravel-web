@@ -146,6 +146,15 @@ $$;
 comment on function public.label_automation_sessions(integer) is
   'Rebuilds page_view_session_labels for the last p_days. Rules: heavy_unengaged, ua_city_sweep (both need session_engagement, i.e. days >= 2026-09-02), legacy_sweep (strict volume rule for earlier days). Engaged sessions are never labelled.';
 
+-- SECURITY DEFINER + mutates ⇒ nobody but the scheduler may call it. Supabase
+-- grants EXECUTE on new public functions to PUBLIC by default, which would let
+-- anon rebuild the labels over PostgREST at will (tenant-guard: definer-grants).
+-- pg_cron runs the job as the function's owner; the service role keeps EXECUTE
+-- for manual backfills. REVOKE FROM PUBLIC is the one that matters — the anon
+-- and authenticated grants derive from it.
+revoke execute on function public.label_automation_sessions(integer) from public, anon, authenticated;
+grant execute on function public.label_automation_sessions(integer) to service_role;
+
 -- The view keeps its exact column list and security_invoker semantics; it
 -- gains one predicate.
 create or replace view public.page_views_human
