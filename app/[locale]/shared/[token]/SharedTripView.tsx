@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useCssVarHeight } from "@/hooks/useCssVarHeight";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/lib/i18n/routing";
 import Image from "next/image";
@@ -131,6 +132,13 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   // has to fire once per mount. Fire-and-forget with keepalive, like the
   // funnel-event beacon below. Never blocks render, never throws.
   const viewRecordedFor = useRef<string | null>(null);
+  // The fixed "Save this trip" bar at the bottom publishes its height as
+  // --mt-bottom-bar-h, so the global cookie banner can sit ABOVE it instead
+  // of on it (hooks/useCssVarHeight — same mechanism as the wizard footer).
+  // Before this, at 1280x800 the banner covered 26,400px² of the save button
+  // on every recipient's first visit until they scrolled.
+  const bottomBarRef = useRef<HTMLDivElement | null>(null);
+  useCssVarHeight(bottomBarRef, "--mt-bottom-bar-h");
   useEffect(() => {
     if (!viewSource) return;
     const key = `${trip.id}:${viewSource}`;
@@ -874,7 +882,11 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             the owner's itinerary; "Plan your own trip" sends the visitor to
             the wizard with the owner's ?ref so a fresh signup is attributed
             to them (the viral loop). Stacked on mobile, side-by-side ≥sm. */}
-        <div className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100">
+        <div
+          ref={bottomBarRef}
+          data-testid="trip-bottom-bar"
+          className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100"
+        >
           <div className="max-w-2xl mx-auto">
             {ownerPending ? (
               <div

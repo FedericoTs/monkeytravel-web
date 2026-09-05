@@ -7,7 +7,8 @@
     "essentialOnly": "Essential Only",
     "customize": "Customize",
     "privacyNote": "For more details, see our",
-    "privacyPolicy": "Privacy Policy"
+    "privacyPolicy": "Privacy Policy",
+    "pill": "Cookie settings"
   },
   "settings": {
     "title": "Cookie Settings",
