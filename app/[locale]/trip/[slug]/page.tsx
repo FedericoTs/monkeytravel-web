@@ -246,6 +246,7 @@ export default async function PublicTripPage({ params }: PageProps) {
       {authorSchema && <script {...jsonLdScriptProps(authorSchema, nonce)} />}
 
       <SharedTripView
+        viewSource="public"
         trip={{
           id: trip.id,
           title: trip.title,

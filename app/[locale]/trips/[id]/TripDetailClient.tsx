@@ -831,6 +831,20 @@ export default function TripDetailClient({
       daysSinceCreation: Math.abs(daysSinceCreation),
       activitiesCount: totalActivities,
     });
+
+    // Phase 0.1 (docs/LIVE_TRIP_MASTER_PLAN.md): the North Star's row.
+    // Collaborators reach this page too (userRole), whatever the comment
+    // above says, so the source says which. Fire-and-forget, keepalive.
+    try {
+      void fetch(`/api/trips/${trip.id}/view`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source: userRole === "owner" ? "owner" : "collaborator" }),
+        keepalive: true,
+      });
+    } catch {
+      // analytics must never affect the page
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trip.id]); // Only track once per trip view
 
