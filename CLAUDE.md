@@ -829,3 +829,23 @@ This repo uses [gstack](https://github.com/garrytan/gstack) — a shared toolkit
 **Available skills** (invoke with `/<name>`):
 
 `/office-hours` · `/plan-ceo-review` · `/plan-eng-review` · `/plan-design-review` · `/design-consultation` · `/design-shotgun` · `/design-html` · `/review` · `/ship` · `/land-and-deploy` · `/canary` · `/benchmark` · `/browse` · `/connect-chrome` · `/qa` · `/qa-only` · `/design-review` · `/setup-browser-cookies` · `/setup-deploy` · `/setup-gbrain` · `/retro` · `/investigate` · `/document-release` · `/document-generate` · `/codex` · `/cso` · `/autoplan` · `/plan-devex-review` · `/devex-review` · `/careful` · `/freeze` · `/guard` · `/unfreeze` · `/gstack-upgrade` · `/learn`
+
+## Traffic Numbers Discipline (MANDATORY)
+
+Before quoting, comparing or reacting to ANY traffic number (visitors, sessions,
+page views, a "drop", a "spike"), read `docs/ANALYTICS_SOURCES_OF_TRUTH.md`.
+The short version:
+
+- **`page_views_human` (via `page_view_rollup` and the admin RPCs) is the only
+  source for "how many people".** Raw `page_views` is inflated 10–40% by
+  crawlers and automation; GA4 is consent-gated and measures a minority sample,
+  and it had a platform-wide reporting bug on 2026-09-01.
+- **Search Console is the tie-breaker.** `npx tsx scripts/gsc-daily.mts` shares
+  nothing with anything we run. If organic clicks are flat, traffic did not move.
+- **Compare a day to the previous week's range, not to the day before it.** The
+  "−84.57% on Sept 2" was a bot-inflated Sept 1 (612 sessions, one user-agent,
+  0.0% engaged) compared to a normal day. Human visitors moved −19%.
+- **Never block traffic in response to a number. Label it.** The labelling rules
+  live in migration `20260905090000`; an engaged session is never labelled.
+- **Do not touch tracking, tags or middleware** until steps 1–5 of §4 in that
+  document are done.
