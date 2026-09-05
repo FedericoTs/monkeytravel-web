@@ -107,6 +107,8 @@ export async function shareAnonymousTrip(payload: {
   startDate: string;
   endDate: string;
   itinerary: unknown[];
+  /** Language of the itinerary text; the server stores it as trip_meta.locale. */
+  locale?: string;
   coverImageUrl?: string | null;
   /**
    * "crew" when the planner is asking friends to vote rather than just

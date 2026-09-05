@@ -543,7 +543,8 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess({
       success: true,
-      itinerary: sanitizedItinerary,
+      // Phase 1.3: the save arms read this into trip_meta.locale.
+      itinerary: { ...sanitizedItinerary, language: userLanguage },
       meta: {
         generationTimeMs: generationTime,
         model: cacheHit ? "cache" : usedMapsGrounding ? "maps-grounding" : getModelForPurpose("trip-generation"),

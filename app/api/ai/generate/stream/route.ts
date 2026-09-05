@@ -477,7 +477,8 @@ export async function POST(request: NextRequest) {
       yield {
         type: "complete",
         data: {
-          itinerary: sanitized,
+          // Phase 1.3: the save arms read this into trip_meta.locale.
+          itinerary: { ...sanitized, language: userLanguage },
           meta: {
             generationTimeMs,
             model: cacheHit ? "cache" : getModelForPurpose("trip-generation"),

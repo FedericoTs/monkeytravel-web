@@ -17,6 +17,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { GeneratedItinerary, TripAnchor, TripVibe } from "@/types";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import { splitCities } from "@/lib/ai/multi-city-core";
+import { isSupportedLanguage, resolveAiLanguage } from "@/lib/ai/language";
 
 export interface TripFormState {
   destination: string;
@@ -34,6 +35,11 @@ export interface TripFormState {
    * for backwards compat — old drafts have no value.
    */
   travelStyle?: "classic" | "backpacker";
+  /**
+   * The UI locale the trip was made from (next-intl). Fallback only: the
+   * itinerary carries the language it was generated in and that wins.
+   */
+  locale?: string;
   /**
    * Fixed commitments the traveller pinned on step 1 (a booked flight, a
    * wedding, dinner with a named friend).
@@ -141,6 +147,13 @@ function buildTripRow(
   origin?: SaveOrigin,
 ) {
   const { itinerary, formState } = input;
+  // Language the text is written in (Phase 1.3): the generate routes stamp
+  // it on the itinerary; the UI locale covers responses from before that.
+  const generationLocale = isSupportedLanguage(itinerary.language)
+    ? itinerary.language
+    : formState.locale
+      ? resolveAiLanguage(formState.locale)
+      : undefined;
   const tripMeta = {
     // Provenance. See SaveOrigin — cheap to write, and it is what turns the
     // next duplicate-trip report into a query instead of an investigation.
@@ -182,6 +195,9 @@ function buildTripRow(
     // always written — the feasibility strip on the detail/share views reads
     // it to pick the day-time budget; absent (older rows) reads as moderate.
     pace: formState.pace,
+    // Every later AI edit reads this before the visitor's cookie, so the
+    // trip stays one language. Absent only when neither source knew.
+    ...(generationLocale ? { locale: generationLocale } : {}),
     // Only written when the user actually picked, so `trip_intent is not null`
     // reads as "answered" and the untouched-default case stays distinguishable
     // from a deliberate choice.

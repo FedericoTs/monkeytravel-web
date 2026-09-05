@@ -40,6 +40,8 @@ interface Props {
     endDate: string;
     itinerary: unknown[];
     coverImageUrl?: string | null;
+    /** Language the itinerary was generated in — stored as trip_meta.locale (Phase 1.3). */
+    locale?: string;
   };
   /** Fired with the share URL once minted, so the parent can log conversion. */
   onShared?: (pending: PendingClaim) => void;
@@ -158,6 +160,7 @@ export default function AnonymousShareButton({ trip, onShared, onKeep, existingS
         endDate: trip.endDate,
         itinerary: trip.itinerary,
         coverImageUrl: trip.coverImageUrl ?? null,
+        locale: trip.locale,
       });
       setShareUrl(result.shareUrl);
       setState("ready");

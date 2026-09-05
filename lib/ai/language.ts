@@ -45,3 +45,14 @@ export function resolveAiLanguage(raw: unknown): SupportedLanguage {
   const base = raw.trim().toLowerCase().split(/[-_]/)[0];
   return isSupportedLanguage(base) ? base : DEFAULT_LANGUAGE;
 }
+
+/**
+ * The language a trip's text is written in, from trip_meta.locale — or null
+ * when the trip predates the stamp (Phase 1.3). Callers fall back to the
+ * visitor's cookie/profile; the point is that an existing trip's own
+ * language wins over where the owner happens to be browsing from.
+ */
+export function tripLocale(tripMeta: unknown): SupportedLanguage | null {
+  const raw = (tripMeta as { locale?: unknown } | null | undefined)?.locale;
+  return isSupportedLanguage(raw) ? raw : null;
+}

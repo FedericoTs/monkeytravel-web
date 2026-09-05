@@ -243,6 +243,7 @@ import {
   type TripFormState as PersistTripFormState,
   type PersistInput,
 } from "@/lib/trips/persistTrip";
+import { resolveAiLanguage } from "@/lib/ai/language";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
 const MAX_TRIP_START_DATE = maxTripStartDate();
@@ -1479,6 +1480,8 @@ export default function NewTripPage({
     vibes: selectedVibes,
     derivedInterests: deriveInterestsFromVibes(),
     travelStyle,
+    // Fallback for trip_meta.locale; the itinerary's own language wins.
+    locale,
     anchors,
     mustDos,
     // "Who's coming?" has been asked on step 1 since the Phase-1 collab audit
@@ -2826,6 +2829,10 @@ export default function NewTripPage({
         highlights: generatedItinerary.trip_summary.highlights,
         booking_links: generatedItinerary.booking_links,
         destination_best_for: generatedItinerary.destination.best_for,
+        // Phase 1.3: the language the text was generated in (stamped by the
+        // generate routes; the UI locale covers older responses). Every later
+        // AI edit reads this before the visitor's cookie.
+        locale: generatedItinerary.language ?? resolveAiLanguage(locale),
         packing_suggestions: generatedItinerary.trip_summary.packing_suggestions,
         // F1 anchors: persist the fixed commitments this trip was built
         // around so regeneration/editing keeps honouring them.
@@ -3511,6 +3518,7 @@ export default function NewTripPage({
                     startDate,
                     endDate,
                     itinerary: generatedItinerary.days,
+                    locale: generatedItinerary.language ?? locale,
                   }}
                 />
               )}
@@ -3560,6 +3568,7 @@ export default function NewTripPage({
                 startDate,
                 endDate,
                 itinerary: generatedItinerary.days,
+                locale: generatedItinerary.language ?? locale,
               }}
             />
           ) : (
@@ -3683,6 +3692,7 @@ export default function NewTripPage({
               destination={fullDestination}
               tripTitle={`${generatedItinerary.destination.name} Trip`}
               days={generatedItinerary.days}
+              language={generatedItinerary.language}
               startDate={startDate}
               endDate={endDate}
               onApplyDay={handleApplyDayEdit}
@@ -3712,6 +3722,7 @@ export default function NewTripPage({
                       startDate,
                       endDate,
                       itinerary: generatedItinerary.days,
+                      locale: generatedItinerary.language ?? locale,
                     }}
                     onShared={handleAnonShared}
                     onKeep={handleKeepSharedTrip}

@@ -95,7 +95,12 @@ export async function POST(request: NextRequest) {
         // the trip_meta JSONB, which is where persistTrip writes it and where
         // every reader (destination helper, /explore filters, analytics) looks
         // for it. Passing it at top level makes PostgREST reject the insert.
-        trip_meta: { destination: trip.destination },
+        trip_meta: {
+          destination: trip.destination,
+          // Phase 1.3: the language the text is in, so a later edit by the
+          // claimer keeps it (the validator only lets a supported one through).
+          ...(trip.locale ? { locale: trip.locale } : {}),
+        },
         start_date: trip.startDate,
         end_date: trip.endDate,
         status: "planning",

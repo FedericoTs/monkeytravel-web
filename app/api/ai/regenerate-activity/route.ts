@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { resolveAiLanguage, type SupportedLanguage } from "@/lib/ai/language";
+import { resolveAiLanguage, tripLocale, type SupportedLanguage } from "@/lib/ai/language";
 import { cookies } from "next/headers";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { regenerateSingleActivity } from "@/lib/gemini";
@@ -132,7 +132,8 @@ export async function POST(request: NextRequest) {
     const budgetTier = trip.budget?.tier || "balanced";
 
     // Get user language for localized output
-    const language = await getUserLanguage();
+    // Phase 1.3: the trip's own language first, the visitor's cookie after.
+    const language = tripLocale(trip.trip_meta) ?? (await getUserLanguage());
 
     // Read the trip's travel style so the suggested replacement matches
     // the rest of the trip. Bug fix 2026-05-28: without this, the

@@ -18,7 +18,7 @@
  */
 
 import { NextRequest } from "next/server";
-import { resolveAiLanguage, type SupportedLanguage } from "@/lib/ai/language";
+import { resolveAiLanguage, tripLocale, type SupportedLanguage } from "@/lib/ai/language";
 import { cookies } from "next/headers";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { regenerateSingleDay } from "@/lib/gemini";
@@ -159,7 +159,8 @@ export async function POST(request: NextRequest) {
     // quality (Gemini gets confused about which city to plan for).
     const destination = getTripDestination(trip as { title?: string; trip_meta?: unknown });
 
-    const language = await getUserLanguage();
+    // Phase 1.3: the trip's own language first, the visitor's cookie after.
+    const language = tripLocale(trip!.trip_meta) ?? (await getUserLanguage());
 
     // The surrounding days are everything except the one we're replacing.
     const surroundingDays = itinerary.filter((_, i) => i !== dayIndex);

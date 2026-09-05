@@ -33,6 +33,12 @@ interface AnonAssistantPanelProps {
   days: ItineraryDay[];
   startDate?: string;
   endDate?: string;
+  /**
+   * Language the itinerary was generated in. Sent instead of the UI locale
+   * so an edit never answers in a different language than the plan
+   * (Phase 1.3). Undefined for older drafts → UI locale.
+   */
+  language?: string;
   /** Apply a proposed day revision to the in-memory itinerary. */
   onApplyDay: (dayNumber: number, activities: Activity[], theme?: string) => void;
   /**
@@ -65,6 +71,7 @@ export default function AnonAssistantPanel({
   days,
   startDate,
   endDate,
+  language,
   onApplyDay,
   onRequestSave,
   shareSlot,
@@ -126,7 +133,7 @@ export default function AnonAssistantPanel({
           days,
           startDate,
           endDate,
-          locale,
+          locale: language ?? locale,
         }),
       });
       const data = await res.json().catch(() => ({}));
