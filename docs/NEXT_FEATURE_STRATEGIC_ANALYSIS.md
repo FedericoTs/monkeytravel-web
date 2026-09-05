@@ -163,7 +163,7 @@ ACTIVITY TIMELINE ✅ COMPLETE
 └── OngoingTripView component
 
 DATABASE SCHEMA ⚠️ PARTIAL
-├── trips.collaborator_ids (UUID[]) - EXISTS but unused
+├── trip_collaborators (table) - the crew; trips.collaborator_ids was dropped 2026-09-05 (never written)
 ├── trips.visibility (private/shared/public)
 ├── trips.user_id (owner)
 └── NO collaborator management API
@@ -334,7 +334,7 @@ FUTURE: EMAIL IMPORT (Premium Feature)
 
 | Metric | Target | How to Measure |
 |--------|--------|----------------|
-| Trips with 2+ collaborators | 30% | `trips.collaborator_ids` array length |
+| Trips with 2+ collaborators | 30% | `count(*) from trip_collaborators group by trip_id` — `trips.collaborator_ids` was never written and was dropped 2026-09-05 |
 | K-Factor | 0.8+ | Invites sent / new signups from invites |
 | Invite acceptance rate | 50%+ | Accepted / sent invites |
 | Real-time sync latency | <500ms | Supabase metrics |

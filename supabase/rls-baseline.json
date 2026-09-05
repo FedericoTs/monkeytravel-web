@@ -1262,6 +1262,31 @@
     "rls_enabled": true
   },
   {
+    "table": "page_view_session_labels",
+    "grants": {
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "labels readable by authenticated",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
     "table": "page_views",
     "grants": {
       "anon": [
@@ -1571,6 +1596,13 @@
         "with_check": null
       }
     ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "session_engagement",
+    "grants": {},
+    "policies": [],
     "rls_forced": false,
     "rls_enabled": true
   },
