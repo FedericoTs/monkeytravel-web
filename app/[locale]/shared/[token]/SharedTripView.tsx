@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/lib/i18n/routing";
 import Image from "next/image";
@@ -102,9 +102,15 @@ interface SharedTripViewProps {
    * **2026-05-25 (/explore Week 3)**
    */
   engagementSlot?: React.ReactNode;
+  /**
+   * Which surface this render is, for the trip_views beacon (Phase 0.1 of
+   * docs/LIVE_TRIP_MASTER_PLAN.md). Undefined means do not record — the
+   * only two callers that should count are /shared/[token] and /trip/[slug].
+   */
+  viewSource?: "shared" | "public";
 }
 
-export default function SharedTripView({ trip, shareToken, dateRange, coverImageUrl, engagementSlot }: SharedTripViewProps) {
+export default function SharedTripView({ trip, shareToken, dateRange, coverImageUrl, engagementSlot, viewSource }: SharedTripViewProps) {
   const t = useTranslations('common');
   const { addToast } = useToast();
   const searchParams = useSearchParams();
@@ -119,6 +125,28 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   // crew-mode share). Everyone gets the vote invitation; this makes it read
   // as the personal ask it actually was.
   const crewAsk = searchParams?.get("vote") === "1";
+
+  // Phase 0.1: record the open. One row per session per trip per UTC day is
+  // the database's rule (UNIQUE trip_id, session_id, viewed_on); this only
+  // has to fire once per mount. Fire-and-forget with keepalive, like the
+  // funnel-event beacon below. Never blocks render, never throws.
+  const viewRecordedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!viewSource) return;
+    const key = `${trip.id}:${viewSource}`;
+    if (viewRecordedFor.current === key) return;
+    viewRecordedFor.current = key;
+    try {
+      void fetch(`/api/trips/${trip.id}/view`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ source: viewSource }),
+        keepalive: true,
+      });
+    } catch {
+      // analytics must never affect the visitor
+    }
+  }, [trip.id, viewSource]);
 
   // Persist ?ref the same way /join/[code] does (localStorage key
   // "referral_code") so a visitor who signs up via the normal nav — not

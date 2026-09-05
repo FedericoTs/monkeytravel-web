@@ -264,6 +264,7 @@ export default async function SharedTripPage({ params }: PageProps) {
       <script {...jsonLdScriptProps(breadcrumbSchema, nonce)} />
 
       <SharedTripView
+        viewSource="shared"
         trip={{
           id: trip.id,
           title: trip.title,
