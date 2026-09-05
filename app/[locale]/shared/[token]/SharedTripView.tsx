@@ -12,6 +12,9 @@ import { getTripDestination } from "@/lib/trips/destination";
 import { readPendingClaim } from "@/lib/trips/anonymous-claim-client";
 import { onClaimedTrip, readClaimedTrip } from "@/lib/trips/claimed-trip-signal";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
+import ParticipantsBar from "@/components/trip/ParticipantsBar";
+import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
+import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import DestinationHero from "@/components/DestinationHero";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ActivityCard from "@/components/ActivityCard";
@@ -109,9 +112,17 @@ interface SharedTripViewProps {
    * only two callers that should count are /shared/[token] and /trip/[slug].
    */
   viewSource?: "shared" | "public";
+  /**
+   * True when the signed-in viewer owns this trip. Resolved server-side in
+   * both page.tsx callers. The owner of a shared trip is redirected here
+   * from /trips/[id] (the canonical-shared redirect), so this is the only
+   * surface where they can be shown "Who's going" — and where the
+   * recipient's "I'm going" bar must NOT appear. Live Trip Phase 2.4.
+   */
+  isOwner?: boolean;
 }
 
-export default function SharedTripView({ trip, shareToken, dateRange, coverImageUrl, engagementSlot, viewSource }: SharedTripViewProps) {
+export default function SharedTripView({ trip, shareToken, dateRange, coverImageUrl, engagementSlot, viewSource, isOwner = false }: SharedTripViewProps) {
   const t = useTranslations('common');
   const { addToast } = useToast();
   const searchParams = useSearchParams();
@@ -126,6 +137,9 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   // crew-mode share). Everyone gets the vote invitation; this makes it read
   // as the personal ask it actually was.
   const crewAsk = searchParams?.get("vote") === "1";
+  // Live Trip Phase 2: the recipient page is built around "I'm going". Off
+  // (NEXT_PUBLIC_LIVE_TRIP_PARTICIPANTS=off) returns the browse layout.
+  const participantsEnabled = isLiveTripParticipantsEnabled() && !!shareToken;
 
   // Phase 0.1: record the open. One row per session per trip per UTC day is
   // the database's rule (UNIQUE trip_id, session_id, viewed_on); this only
@@ -172,7 +186,9 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   }, [referralCode]);
 
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
-  const [showMap, setShowMap] = useState(true);
+  // Phase 2.3: a recipient lands on title · dates · going → Day 1. The map
+  // is one tap away ("Show map") instead of 400px above the first activity.
+  const [showMap, setShowMap] = useState(!participantsEnabled);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [showSaveModal, setShowSaveModal] = useState(false);
   // The sharer opening their own link (2026-09-02): this browser still holds
@@ -471,21 +487,35 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
       </DestinationHero>
 
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
-        {/* Collaborative framing — recipients previously saw an unlabeled
-            thumbs/count bar that reads as a passive like-counter. Make the
-            vote invitation explicit at the top of the shared itinerary so
-            the crew loop is discoverable (share+vote audit, 2026-07-03). */}
-        <div className="mb-6 flex items-center gap-3 rounded-2xl border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 px-4 py-3">
-          <span className="text-2xl leading-none" aria-hidden>🗳️</span>
-          <div>
-            <p className="font-semibold text-slate-800">
-              {crewAsk ? t('share.crewPrompt.title') : t('shared.voteInviteTitle')}
-            </p>
-            <p className="text-sm text-slate-600">
-              {crewAsk ? t('share.crewPrompt.body') : t('shared.voteInviteBody')}
-            </p>
+        {/* Live Trip Phase 2.2: title · dates · N going · [I'm going] · [Share] ·
+            [More]. The vote invitation is the secondary line under the button.
+            The old banner stays as the flag-off layout. */}
+        {participantsEnabled && isOwner ? (
+          // The owner landed here via the canonical-shared redirect from
+          // /trips/[id]; show them who's going, not an "I'm going" button.
+          <WhoIsGoingCard tripId={trip.id} className="mb-6" />
+        ) : participantsEnabled ? (
+          <ParticipantsBar
+            shareToken={shareToken}
+            source={crewAsk ? "crew_ask" : viewSource === "public" ? "public" : "shared"}
+            crewAsk={crewAsk}
+            tripTitle={trip.title}
+            onSaveForLater={() => setShowSaveModal(true)}
+            className="mb-6"
+          />
+        ) : (
+          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 px-4 py-3">
+            <span className="text-2xl leading-none" aria-hidden>🗳️</span>
+            <div>
+              <p className="font-semibold text-slate-800">
+                {crewAsk ? t('share.crewPrompt.title') : t('shared.voteInviteTitle')}
+              </p>
+              <p className="text-sm text-slate-600">
+                {crewAsk ? t('share.crewPrompt.body') : t('shared.voteInviteBody')}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Backpacker Mode — Hostelworld CTA. Only renders when the
             trip was generated in Backpacker Mode (trip_meta.travel_style).
@@ -579,7 +609,9 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             Server-rendered slot — empty when the explore flag is off
             or the trip isn't public yet. Sits right above the map so
             it's reachable without scrolling on mobile. */}
-        {engagementSlot && (
+        {/* Phase 2.2 removed the like/save/fork trio and its zeros from the
+            recipient header; Save for later lives under More. */}
+        {!participantsEnabled && engagementSlot && (
           <div className="mb-6 flex items-center justify-start">
             {engagementSlot}
           </div>
@@ -856,39 +888,40 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
           </div>
         </div>
 
-        {/* Shared Notice - Updated messaging for duplication */}
-        <div className="mt-6 p-5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl">
-          <div className="flex gap-4">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
+        {/* Phase 2.3: the mid-page Save hero is gone for recipients; the
+            flag-off layout keeps it. */}
+        {!participantsEnabled && (
+          <div className="mt-6 p-5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl">
+            <div className="flex gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-semibold text-purple-900 mb-1">
+                  {t("share.savedHero.loveTitle")}
+                </h4>
+                <p className="text-sm text-purple-800">
+                  {t("share.savedHero.loveDescription")}
+                </p>
               </div>
             </div>
-            <div>
-              <h4 className="font-semibold text-purple-900 mb-1">
-                {t("share.savedHero.loveTitle")}
-              </h4>
-              <p className="text-sm text-purple-800">
-                {t("share.savedHero.loveDescription")}
-              </p>
-            </div>
           </div>
-        </div>
+        )}
 
-        {/* Floating CTA — Sticky at bottom for easy access.
-            ref-on-share: two co-equal converts. "Save this trip" duplicates
-            the owner's itinerary; "Plan your own trip" sends the visitor to
-            the wizard with the owner's ?ref so a fresh signup is attributed
-            to them (the viral loop). Stacked on mobile, side-by-side ≥sm. */}
-        <div
-          ref={bottomBarRef}
-          data-testid="trip-bottom-bar"
-          className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100"
-        >
-          <div className="max-w-2xl mx-auto">
-            {ownerPending ? (
+        {/* Phase 2.3: "Plan your own trip" at the very bottom only, in flow. The
+            owner-claim strip keeps its fixed bar untouched; the flag-off layout
+            keeps the old two-button bar. */}
+        {ownerPending ? (
+          <div
+            ref={bottomBarRef}
+            data-testid="trip-bottom-bar"
+            className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100"
+          >
+            <div className="max-w-2xl mx-auto">
               <div
                 className="flex flex-col gap-3 rounded-xl border border-[var(--primary)]/20 bg-[var(--background-warm)] px-4 py-3 sm:flex-row sm:items-center"
                 data-owner-claim-strip
@@ -904,34 +937,88 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
                   {t("share.ownerClaim.cta")}
                 </Link>
               </div>
-            ) : (
-            <>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-
-onClick={() => setShowSaveModal(true)}
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
-              >
-                <Sparkles className="w-5 h-5" />
-                {t("share.savedHero.saveButton")}
-              </button>
+            </div>
+          </div>
+        ) : participantsEnabled && isOwner ? (
+          // The owner sees "Who's going" at the top; no recipient CTA here.
+          null
+        ) : participantsEnabled ? (
+          <section
+            data-testid="recipient-footer-cta"
+            className="mt-10 rounded-2xl border border-slate-200 bg-[var(--background-warm)] p-5 text-center"
+          >
+            <p className="mb-3 text-sm text-slate-600">{t("share.participants.planOwnLead")}</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href={planOwnHref}
                 onClick={firePlanOwnClicked}
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 text-center"
+                className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 text-sm font-semibold text-white shadow-lg hover:from-amber-600 hover:to-orange-600 transition-all"
               >
                 {destination
                   ? t("share.savedHero.planOwnButton", { destination })
                   : t("share.savedHero.planOwnButtonGeneric")}
               </Link>
+              <button
+                type="button"
+                onClick={() => setShowSaveModal(true)}
+                className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                {t("share.participants.saveForLater")}
+              </button>
             </div>
-            <p className="text-center text-xs text-slate-500 mt-2">
-              {t("share.savedHero.saveSubtitle")}
-            </p>
-            </>
-            )}
+          </section>
+        ) : (
+          <div
+            ref={bottomBarRef}
+            data-testid="trip-bottom-bar"
+            className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100"
+          >
+            <div className="max-w-2xl mx-auto">
+              {ownerPending ? (
+                <div
+                  className="flex flex-col gap-3 rounded-xl border border-[var(--primary)]/20 bg-[var(--background-warm)] px-4 py-3 sm:flex-row sm:items-center"
+                  data-owner-claim-strip
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[var(--foreground)]">{t("share.ownerClaim.title")}</p>
+                    <p className="text-xs text-slate-600">{t("share.ownerClaim.body")}</p>
+                  </div>
+                  <Link
+                    href={`/auth/signup?redirect=${encodeURIComponent(`/shared/${shareToken}`)}`}
+                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-[var(--primary)] px-5 text-sm font-semibold text-white transition-colors hover:bg-[var(--primary)]/90"
+                  >
+                    {t("share.ownerClaim.cta")}
+                  </Link>
+                </div>
+              ) : (
+              <>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+
+  onClick={() => setShowSaveModal(true)}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  {t("share.savedHero.saveButton")}
+                </button>
+                <Link
+                  href={planOwnHref}
+                  onClick={firePlanOwnClicked}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 text-center"
+                >
+                  {destination
+                    ? t("share.savedHero.planOwnButton", { destination })
+                    : t("share.savedHero.planOwnButtonGeneric")}
+                </Link>
+              </div>
+              <p className="text-center text-xs text-slate-500 mt-2">
+                {t("share.savedHero.saveSubtitle")}
+              </p>
+              </>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Save Trip Modal */}
         <SaveTripModal

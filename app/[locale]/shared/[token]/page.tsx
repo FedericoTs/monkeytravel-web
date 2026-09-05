@@ -255,6 +255,21 @@ export default async function SharedTripPage({ params }: PageProps) {
   // public yet (private trips don't get the engagement UI exposed).
   const isPublic = trip.visibility === "public" && !trip.is_hidden;
 
+  // Live Trip Phase 2.4: the owner is redirected here from /trips/[id] (the
+  // canonical-shared redirect), so this is where they must see "Who's going".
+  // getUser() is a local no-op without a session cookie, so anon viewers pay
+  // nothing. Read from the RLS client, compared to the service-role trip row.
+  let isOwner = false;
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    isOwner = !!user && user.id === trip.user_id;
+  } catch {
+    isOwner = false;
+  }
+
   const nonce = await getNonce();
 
   return (
@@ -265,6 +280,7 @@ export default async function SharedTripPage({ params }: PageProps) {
 
       <SharedTripView
         viewSource="shared"
+        isOwner={isOwner}
         trip={{
           id: trip.id,
           title: trip.title,

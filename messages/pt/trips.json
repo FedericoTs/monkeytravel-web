@@ -238,7 +238,7 @@
       "dailyBudget": "Orçamento Est.",
       "mobileSaveNudge": "{count, plural, one {# dia} other {# dias}} — salvo só neste navegador até você guardar",
       "saveHeaderNudge": "{count, plural, one {# dia} other {# dias}} — só neste navegador",
-      "shareForVotes": "Peça votos ao seu grupo",
+      "shareForVotes": "Envie para quem vai",
       "notSavedPill": "Não salvo",
       "sessionTrayTitle": "{count} viagens nesta sessão — nenhuma salva ainda",
       "shareAnonCta": "Partilhar esta viagem",
@@ -510,8 +510,8 @@
     "crewVotesSummary": "🗳️ {count, plural, one {# voto} other {# votos}} do seu grupo",
     "crewVotesVoters": "De {names}",
     "crewVotesShare": "Compartilhar link de votação",
-    "crewCtaText": "Planejando com amigos? Receba votos neste roteiro — sem precisar de conta",
-    "crewCtaButton": "Receber votos do grupo",
+    "crewCtaText": "Vai viajar com amigos? Envie o plano para eles: podem dizer que vão, sem conta.",
+    "crewCtaButton": "Envie para quem vai",
     "crewCtaDismiss": "Dispensar"
   },
   "editActivity": {

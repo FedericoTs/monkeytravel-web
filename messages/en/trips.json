@@ -238,7 +238,7 @@
       "dailyBudget": "Est. Budget",
       "mobileSaveNudge": "{count, plural, one {# day} other {# days}} planned — saved only on this browser until you keep it",
       "saveHeaderNudge": "{count, plural, one {# day} other {# days}} planned — only on this browser",
-      "shareForVotes": "Ask your crew to vote",
+      "shareForVotes": "Send it to the people coming",
       "notSavedPill": "Not saved",
       "sessionTrayTitle": "{count} trips this session — none saved yet",
       "shareAnonCta": "Share this trip",
@@ -510,8 +510,8 @@
     "crewVotesSummary": "🗳️ {count, plural, one {# vote} other {# votes}} from your crew",
     "crewVotesVoters": "From {names}",
     "crewVotesShare": "Share voting link",
-    "crewCtaText": "Planning with friends? Get votes on this plan — no accounts needed",
-    "crewCtaButton": "Get crew votes",
+    "crewCtaText": "Going with friends? Send them the plan: they can say they're in, no account needed.",
+    "crewCtaButton": "Send it to the people coming",
     "crewCtaDismiss": "Dismiss"
   },
   "editActivity": {
