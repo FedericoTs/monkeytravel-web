@@ -2197,6 +2197,16 @@ export default function NewTripPage({
   const footerRef = useRef<HTMLDivElement | null>(null);
   useCssVarHeight(footerRef, "--mt-footer-h");
 
+  // The BuildHop feedback launcher (mounted in the root layout) is
+  // position:fixed bottom-right at z-index 2147483000 — above this page's
+  // fixed footer, i.e. on top of Continue at phone widths. Flag the document
+  // while the wizard is mounted; app/globals.css hides the launcher below sm
+  // on that flag. Every other route keeps it.
+  useEffect(() => {
+    document.documentElement.setAttribute("data-wizard-open", "");
+    return () => document.documentElement.removeAttribute("data-wizard-open");
+  }, []);
+
   // Footer state B: a valid destination with no dates. Under the editorial
   // entry the slot offers an ENABLED "Use flexible dates" instead of a
   // disabled Continue with a hint — the biggest remaining disabled-button
@@ -5243,6 +5253,7 @@ export default function NewTripPage({
               </button>
             ) : (
             <button
+              data-testid="wizard-continue"
               onClick={() => {
                 captureTripWizardStepCompleted({
                   step_number: step,

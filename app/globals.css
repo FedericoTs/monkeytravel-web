@@ -1874,3 +1874,16 @@ nav[data-monkey-nav].monkey-nav-scrolled {
     animation: none !important;
   }
 }
+
+/* Wizard, phone widths: hide the BuildHop feedback launcher.
+   The launcher (components/BuildHopFeedbackWidget.tsx) is a closed-shadow
+   host, position:fixed bottom-right at z-index 2147483000 — above the
+   wizard's fixed footer, which puts it on top of Continue at 390px.
+   app/[locale]/trips/new/NewTripWizard.tsx sets data-wizard-open on <html>
+   while mounted. Outer-document rules beat the shadow's :host styles, and
+   !important makes that unconditional. Every other route keeps the launcher. */
+@media (max-width: 639px) {
+  html[data-wizard-open] [data-buildhop-feedback-widget] {
+    display: none !important;
+  }
+}

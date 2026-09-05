@@ -1105,9 +1105,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 <p className="text-lg sm:text-xl text-white/70 mb-4 max-w-2xl mx-auto leading-relaxed">
                   {t('cta.subtitle')}
                 </p>
-                <p className="text-base text-white/55 mb-10 max-w-2xl mx-auto">
-                  {t('cta.referral')}
-                </p>
 
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">

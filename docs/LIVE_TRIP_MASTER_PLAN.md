@@ -137,11 +137,11 @@ Each phase lists **entry gate → workstreams (numbered, in build order) → tes
 
 | # | Workstream | Detail |
 |---|---|---|
-| 1.1 | **Cookie banner off the CTA** | `components/consent/CookieConsentBanner.tsx`: on `/trips/new`, `/shared/*`, `/trip/*` render as a compact single-row bottom bar (≤ 72px), `z-index` below the wizard footer, auto-minimise to a pill after the first scroll or first interaction. "Essential only" stays one tap (privacy rule: most privacy-preserving choice remains equally easy). Verify at 1280×800 and 390×844: **zero overlap with any primary CTA**. |
-| 1.2 | **Wizard mobile overlap** | Floating help button hidden on wizard steps, or docked top-right; *Continue* fully visible at 390×844 with the keyboard closed. |
+| 1.1 | **Cookie banner off the CTA** — *SHIPPED 2026-09-05* | `components/consent/CookieConsentBanner.tsx`: on `/trips/new`, `/shared/*`, `/trip/*` render as a compact single-row bottom bar (≤ 72px), `z-index` below the wizard footer, auto-minimise to a pill after the first scroll or first interaction. "Essential only" stays one tap (privacy rule: most privacy-preserving choice remains equally easy). Verify at 1280×800 and 390×844: **zero overlap with any primary CTA**. |
+| 1.2 | **Wizard mobile overlap** — *SHIPPED 2026-09-05* | Floating help button hidden on wizard steps, or docked top-right; *Continue* fully visible at 390×844 with the keyboard closed. |
 | 1.3 | **Locale-consistent itineraries** | Store `trip_meta.locale` at creation (from the generating locale). Every agent edit and regeneration passes it, so a Day 5 edited from `/it` on an English trip stays English. Backfill: script that detects mixed-language days on the 55 public trips (language-detect per activity description) and flags them in admin for one-click regenerate-in-trip-locale. Target: **0 mixed-language public trips.** |
 | 1.4 | **Explore hygiene** | Hero ≤ 240px; trips above the fold at 1280×800; dedupe by `parent_trip_id` and `(title, user_id, duration)`; hide "$$" when budget tier is unknown. Hygiene, not growth — Explore's traffic is mostly automation. |
-| 1.5 | **Homepage contradiction** | Remove "invite friends and earn free premium features". Keep "no paywall". No other homepage change yet (Phase 5 does the rewrite once there is data to write from). |
+| 1.5 | **Homepage contradiction** — *SHIPPED 2026-09-05* | Remove "invite friends and earn free premium features". Keep "no paywall". No other homepage change yet (Phase 5 does the rewrite once there is data to write from). |
 
 **Tests:** Playwright viewport specs asserting no element overlaps `[data-testid=wizard-continue]` at both viewports; language-detect unit test on the backfill script.
 **Exit gate:** screenshots of the four core surfaces at both viewports attached to the PR with zero overlap; mixed-language public trips = 0; homepage contradiction gone in all four locales.
