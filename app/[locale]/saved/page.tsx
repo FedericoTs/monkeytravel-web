@@ -10,6 +10,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import TripCard from "@/components/explore/TripCard";
 import type { ExploreTripCard } from "@/lib/explore/types";
+import { asBudgetTier } from "@/lib/explore/budget-tier";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 
 const BASE_URL = "https://monkeytravel.app";
@@ -95,7 +96,7 @@ function mapRowToCard(t: TripRow): ExploreTripCard {
     durationDays,
     coverImage: t.cover_image_url,
     tags: t.tags ?? [],
-    budgetTier: (meta.budget_tier as string) ?? "balanced",
+    budgetTier: asBudgetTier(meta.budget_tier),
     trendingScore: t.trending_score ?? 0,
     viewCount: t.view_count ?? 0,
     copyCount: t.template_copy_count ?? 0,

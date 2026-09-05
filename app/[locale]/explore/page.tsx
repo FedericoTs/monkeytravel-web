@@ -223,6 +223,12 @@ export default async function ExplorePage({
 
         Stays SSR-only (no client component needed) by leaning on plain
         Tailwind + next-intl rich-text for the bold highlight.
+
+        Shrunk 2026-09-05 (Live Trip plan, Phase 1.4): the hero was ~440px
+        at 1280x800, so the first trip card sat below the fold on the one
+        page whose job is to show trips. Padding halved, headline one step
+        smaller, tighter margins; same copy, same structure. Target <= 240px
+        with the first row of cards visible at 1280x800.
       */}
       <section className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-rose-50 to-amber-50">
         {/* Decorative blurred gradient blobs. Pointer-events-none so
@@ -241,10 +247,10 @@ export default async function ExplorePage({
           className="pointer-events-none absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-rose-200/30 blur-3xl"
         />
 
-        <div className="relative max-w-7xl mx-auto px-4 py-14 sm:py-20 lg:py-24">
+        <div className="relative max-w-7xl mx-auto px-4 py-7 sm:py-8">
           <div className="max-w-3xl">
             {/* Status pill — pulse dot signals "live community feed" */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/70 backdrop-blur-sm border border-[var(--primary)]/20 mb-6 shadow-sm">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/70 backdrop-blur-sm border border-[var(--primary)]/20 mb-3 shadow-sm">
               <span className="relative flex w-2 h-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -256,7 +262,7 @@ export default async function ExplorePage({
 
             {/* Headline — final line wraps in a gradient accent span to
                 echo the homepage hero's "in 30 Secondi" treatment. */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 mb-5 leading-[1.1]">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 mb-2 leading-[1.1]">
               {t("heroLine1")}{" "}
               <span className="bg-gradient-to-r from-[var(--primary)] via-rose-500 to-orange-400 bg-clip-text text-transparent">
                 {t("heroLine2Accent")}
@@ -265,7 +271,7 @@ export default async function ExplorePage({
 
             {/* Subtitle — next-intl rich text turns <b>…</b> chunks into
                 a bolded slate-900 span so the key value-prop pops. */}
-            <p className="text-slate-600 text-base sm:text-lg max-w-2xl leading-relaxed mb-7">
+            <p className="text-slate-600 text-sm sm:text-base max-w-2xl leading-snug mb-4">
               {t.rich("heroSubtitle", {
                 b: (chunks) => (
                   <strong className="text-slate-900 font-semibold">

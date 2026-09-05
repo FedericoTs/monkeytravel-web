@@ -28,7 +28,8 @@ export interface ExploreTripCard {
   durationDays: number;
   coverImage: string | null;
   tags: string[];
-  budgetTier: BudgetTier | string;
+  /** null when `trip_meta.budget_tier` is missing or not a known tier — the card then shows no price pill. */
+  budgetTier: BudgetTier | null;
   trendingScore: number;
   viewCount: number;
   copyCount: number;
