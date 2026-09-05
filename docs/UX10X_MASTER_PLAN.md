@@ -1,6 +1,6 @@
 # MonkeyTravel — UX 10X Master Plan
 
-**Date:** 2026-07-03 · **Status:** ACTIVE — this is the single operating plan
+**Date:** 2026-07-03 · **Status:** SUPERSEDED on 2026-09-04 by [LIVE_TRIP_MASTER_PLAN.md](./LIVE_TRIP_MASTER_PLAN.md) — its Phase 3 kill criterion fired (friends open, don't vote: 53 anon votes / 0 auth votes / 3 collaborators lifetime). Kept for history; operating principles, cut list and measurement doctrine carry over
 **Inputs:** production Supabase forensics (2026-07-03), full UX surface inventory, live competitor teardown (2026-07-02), reconciled funnel history (docs + memory), power analysis for low-volume experimentation.
 
 ---
