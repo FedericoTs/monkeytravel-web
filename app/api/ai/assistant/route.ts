@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { resolveAiLanguage, type SupportedLanguage } from "@/lib/ai/language";
+import { resolveAiLanguage, tripLocale, type SupportedLanguage } from "@/lib/ai/language";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -975,7 +975,9 @@ export async function POST(request: NextRequest) {
     if (errorResponse) return errorResponse;
 
     // Get user's preferred language for AI content localization
-    const userLanguage = await getUserLanguage(supabase, user.id);
+    // Where the visitor is browsing from; replaced by the trip's own language
+    // once the trip is loaded (Phase 1.3).
+    let userLanguage = await getUserLanguage(supabase, user.id);
     console.log(`[AI Assistant] User language: ${userLanguage}`);
 
     // Check early access (during early access period)
@@ -1032,6 +1034,11 @@ export async function POST(request: NextRequest) {
     if (tripError || !trip) {
       return errors.notFound("Trip not found");
     }
+
+    // Phase 1.3: an existing trip is edited in ITS language, not the
+    // language of the tab the owner opened it from. Older trips without
+    // the stamp keep the cookie/profile resolution above.
+    userLanguage = tripLocale(trip.trip_meta) ?? userLanguage;
 
     // Use client itinerary if provided (for real-time edits), otherwise use DB
     const itinerary = (clientItinerary || trip.itinerary || []) as ItineraryDay[];

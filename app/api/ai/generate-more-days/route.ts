@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { resolveAiLanguage, type SupportedLanguage } from "@/lib/ai/language";
+import { resolveAiLanguage, tripLocale, type SupportedLanguage } from "@/lib/ai/language";
 import { cookies } from "next/headers";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { generateMoreDays, INITIAL_DAYS_TO_GENERATE } from "@/lib/gemini";
@@ -136,8 +136,19 @@ export async function POST(request: NextRequest) {
       console.warn("[AI Generate More] Could not fetch user preferences:", err);
     }
 
-    // Get user language for localized output
-    const language = await getUserLanguage();
+    // Phase 1.3: when the days extend an existing trip, that trip's own
+    // language wins over the visitor's cookie.
+    let tripLanguage: SupportedLanguage | null = null;
+    if (tripId) {
+      const { data: owned } = await supabase
+        .from("trips")
+        .select("trip_meta")
+        .eq("id", tripId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      tripLanguage = tripLocale(owned?.trip_meta);
+    }
+    const language = tripLanguage ?? (await getUserLanguage());
 
     const newDays = await generateMoreDays({
       destination,

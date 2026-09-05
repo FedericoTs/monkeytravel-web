@@ -11,6 +11,7 @@
  */
 
 import { generateActivityId } from "@/lib/utils/activity-id";
+import { isSupportedLanguage, type SupportedLanguage } from "@/lib/ai/language";
 
 /** Mirrors the multi-city trip-length cap enforced elsewhere in the wizard. */
 export const MAX_TRIP_DAYS = 21;
@@ -32,6 +33,8 @@ export interface AnonymousTripInput {
   endDate: string;
   itinerary: unknown[];
   coverImageUrl: string | null;
+  /** Only ever a supported language; anything else is dropped, not rejected. */
+  locale?: SupportedLanguage;
 }
 
 export type ValidationResult =
@@ -109,6 +112,7 @@ export function validateAnonymousTripPayload(body: unknown): ValidationResult {
       endDate: end,
       itinerary: withActivityIds(b.itinerary),
       coverImageUrl: sanitizeCoverImageUrl(b.coverImageUrl),
+      ...(isSupportedLanguage(b.locale) ? { locale: b.locale } : {}),
     },
   };
 }

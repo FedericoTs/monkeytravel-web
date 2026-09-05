@@ -1,3 +1,4 @@
+import type { SupportedLanguage } from "@/lib/ai/language";
 // Bananas currency system types
 export * from './bananas';
 
@@ -176,6 +177,12 @@ export interface GeneratedItinerary {
     weather_note: string;
   };
   days: ItineraryDay[];
+  /**
+   * Language the generate routes produced this in (Phase 1.3). Stamped on
+   * the response so the save arms can write trip_meta.locale without the
+   * client guessing from its UI locale.
+   */
+  language?: SupportedLanguage;
   trip_summary: {
     total_estimated_cost: number;
     currency: string;
@@ -252,6 +259,15 @@ export interface TripMeta {
    * different and the share prompt branches on that distinction.
    */
   trip_intent?: "solo" | "group";
+  /**
+   * Language the itinerary text is written in (Live Trip plan, Phase 1.3).
+   * Stamped from the generation language at creation; every route that
+   * writes AI text into an existing trip reads this BEFORE the visitor's
+   * cookie, so a trip generated in English is never edited into Italian
+   * because the owner opened it from /it. Older rows are backfilled from
+   * their content by scripts/backfill-trip-locale.mts.
+   */
+  locale?: SupportedLanguage;
   weather_note?: string;           // Weather info for the destination
   highlights?: string[];           // Trip highlights (3-5 bullet points)
   booking_links?: {                // Affiliate booking links
