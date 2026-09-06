@@ -1037,6 +1037,33 @@
     "shared": "Shared"
   },
   "today": {
+    "owner": "The owner",
+    "someActivity": "an activity",
+    "feed": {
+      "runningLate": "is running {minutes}m late",
+      "skip": "skipped {activity}",
+      "swap": "suggested {to} instead of {activity}",
+      "swapNoName": "wants to swap {activity}",
+      "doneActivity": "finished {activity}",
+      "doneDay": "called it a day"
+    },
+    "chips": {
+      "runningLate": "Running late",
+      "runningLateUndo": "Running late ✓",
+      "skip": "Skip this",
+      "skipUndo": "Skipped ✓",
+      "swap": "Swap nearby",
+      "swapping": "Finding…",
+      "swapUndo": "Suggested ✓",
+      "done": "Done for today",
+      "shiftedBy": "shifted {minutes}m later",
+      "skippedBy": "Skipped by {name}",
+      "doneMark": "Done",
+      "swapPrefix": "{name} suggested:",
+      "dayComplete": "Day complete — enjoy the evening.",
+      "reopenDay": "Reopen today"
+    },
+    "someone": "someone",
     "title": "Today",
     "dayOf": "Day {day} of {total}",
     "viewFull": "View full itinerary",

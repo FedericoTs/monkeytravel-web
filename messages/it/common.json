@@ -1037,6 +1037,33 @@
     "shared": "Condiviso"
   },
   "today": {
+    "owner": "Il proprietario",
+    "someActivity": "un'attività",
+    "feed": {
+      "runningLate": "è in ritardo di {minutes}m",
+      "skip": "ha saltato {activity}",
+      "swap": "suggerisce {to} invece di {activity}",
+      "swapNoName": "vuole cambiare {activity}",
+      "doneActivity": "ha finito {activity}",
+      "doneDay": "ha concluso la giornata"
+    },
+    "chips": {
+      "runningLate": "Sono in ritardo",
+      "runningLateUndo": "In ritardo ✓",
+      "skip": "Salta questa",
+      "skipUndo": "Saltata ✓",
+      "swap": "Cambia vicino",
+      "swapping": "Cerco…",
+      "swapUndo": "Suggerito ✓",
+      "done": "Finito per oggi",
+      "shiftedBy": "{minutes}m più tardi",
+      "skippedBy": "Saltata da {name}",
+      "doneMark": "Fatto",
+      "swapPrefix": "{name} suggerisce:",
+      "dayComplete": "Giornata completa — goditi la sera.",
+      "reopenDay": "Riapri oggi"
+    },
+    "someone": "qualcuno",
     "title": "Oggi",
     "dayOf": "Giorno {day} di {total}",
     "viewFull": "Vedi itinerario completo",

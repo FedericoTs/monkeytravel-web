@@ -101,7 +101,24 @@ test.describe("Today mode", () => {
       await back.waitFor({ state: "visible", timeout: 10_000 });
       await back.click();
       await today.waitFor({ state: "visible", timeout: 10_000 });
+
+      // Phase 3.3: tap "Skip this" on the highlighted activity; the overlay
+      // shows it struck. A double-tap is a no-op then a toggle-off, so tap once.
+      const skipChip = page.getByTestId("today-highlight").getByTestId("chip-skip");
+      await skipChip.click();
+      const struck = page.getByTestId("today-highlight").locator(".line-through");
+      await struck.waitFor({ state: "visible", timeout: 15_000 });
+
+      // The change is shared and server-side, not local component state: after a
+      // full reload the skip is still there (it lives in trip_today_actions, read
+      // on load — the owner's itinerary is untouched). This is what every other
+      // viewer sees; realtime just delivers it without the reload.
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await declineConsent(page);
+      await page.getByTestId("today-view").waitFor({ state: "visible", timeout: 30_000 });
+      await page.getByTestId("today-highlight").locator(".line-through").waitFor({ state: "visible", timeout: 15_000 });
     } finally {
+      await admin.from("trip_today_actions").delete().eq("trip_id", TRIP_ID!);
       await admin
         .from("trips")
         .update({

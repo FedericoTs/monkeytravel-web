@@ -552,6 +552,8 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             currency={trip.budget?.currency}
             weatherNote={trip.meta?.weather_note}
             onViewFullItinerary={() => setTodayMode(false)}
+            tripId={trip.id}
+            shareToken={shareToken}
             className="mb-6"
           />
         )}
