@@ -25,6 +25,7 @@ import {
   summarizeDefects,
 } from "@/lib/email/verify-render";
 import { isTripNotificationsEnabled } from "@/lib/notifications/scheduling";
+import { parseDigestDay, digestStaleReason } from "@/lib/notifications/digest";
 import { resolveLocale, formatDateRange } from "@/lib/email/reminder-locale";
 
 /**
@@ -91,6 +92,13 @@ const REMINDER_NS = "common.tripReminderEmail";
  * rule — so the `common.` prefix is just as load-bearing here.
  */
 const FOLLOWUP_NS = "common.tripFollowupEmail";
+
+/**
+ * In-trip evening-before digest copy (Phase 4.1). One namespace, not per-slot
+ * — the digest is one template parameterised by day number. Same `common.`
+ * mounting rule.
+ */
+const DIGEST_NS = "common.tripDayDigestEmail";
 
 /**
  * Headings for the per-trip enrichment blocks. Shared by both families —
@@ -268,7 +276,8 @@ function assertTranslated(values: Record<string, string>): string | null {
     // silent way the reminders did.
     if (
       value.includes("tripReminderEmail.") ||
-      value.includes("tripFollowupEmail.")
+      value.includes("tripFollowupEmail.") ||
+      value.includes("tripDayDigestEmail.")
     ) {
       return `${key} did not resolve (got "${value.slice(0, 80)}")`;
     }
@@ -276,8 +285,9 @@ function assertTranslated(values: Record<string, string>): string | null {
   return null;
 }
 
-/** Every slot the queue can hold — both lifecycle halves. */
-type QueueSlot = TripReminderSlot | TripFollowupSlot;
+/** Every slot the queue can hold — the pre-trip cascade, the post-trip
+ * followups, and the in-trip per-day digests (in_trip_day_<K>). */
+type QueueSlot = TripReminderSlot | TripFollowupSlot | `in_trip_day_${number}`;
 
 /**
  * Shape of the trip row this route selects.
@@ -528,7 +538,13 @@ async function processRow(
   // See staleReason() for the reasoning and the tolerance. This cannot fire
   // while the queue is punctual; it exists for the release of a held or
   // backed-up batch, which has already happened once here.
-  const stale = staleReason(row.slot, trip.start_date, new Date());
+  // The in-trip digest is a per-day slot, so its moment ("Tomorrow: Day K") is
+  // relative to day K, not to the trip start — it needs its own guard.
+  const digestDay = parseDigestDay(row.slot);
+  const stale =
+    digestDay !== null
+      ? digestStaleReason(digestDay, trip.start_date, new Date())
+      : staleReason(row.slot, trip.start_date, new Date());
   if (stale) {
     console.warn("[cron/scheduled-notifs] suppressing a reminder whose moment passed", {
       id: row.id,
@@ -634,6 +650,15 @@ async function processRow(
   // app/api/tools/packing-list/route.ts, which correctly uses
   // "tools.packingList.categories".)
   const locale = resolveLocale(user.preferred_language);
+
+  // In-trip day digest (Phase 4.1): its content is tomorrow's plan pulled
+  // straight from this trip's itinerary, its copy is one namespace (not
+  // per-slot), and its template is trip_day_digest. Self-contained — returns
+  // before the reminder/followup rendering below.
+  if (digestDay !== null) {
+    return await dispatchDayDigest(svc, row, trip, user.email, locale, digestDay);
+  }
+
   const followup = isFollowupSlot(row.slot);
   const rootNs = followup ? FOLLOWUP_NS : REMINDER_NS;
 
@@ -903,6 +928,134 @@ async function processRow(
     }
     // skipped_disabled / skipped_suppressed / skipped_duplicate /
     // skipped_no_key — all map to 'suppressed' with reason = status.
+    await persistOutcome(svc, row.id, "suppressed", result.status);
+    return "skipped";
+  }
+
+  await persistOutcome(svc, row.id, "failed", "dispatch_error", result.error);
+  return "failed";
+}
+
+/**
+ * Render + dispatch one in-trip day digest (Phase 4.1).
+ *
+ * Content is tomorrow's plan read straight from THIS trip's itinerary day K,
+ * so cross-trip contamination is structurally impossible — but it still runs
+ * the same verify gate (with the day's own strings as the corpus) so a future
+ * refactor can't quietly reintroduce it. The "+N more" line is UI copy, not
+ * trip data, so it is passed OUTSIDE the context block the gate inspects.
+ */
+async function dispatchDayDigest(
+  svc: ReturnType<typeof serviceClient>,
+  row: SlotRow,
+  trip: TripEmailRow,
+  recipientEmail: string,
+  locale: Awaited<ReturnType<typeof resolveLocale>>,
+  day: number
+): Promise<"sent" | "skipped" | "failed"> {
+  const destination = (trip.title || "").replace(/\s+Trip\s*$/i, "").trim() || "your trip";
+
+  // Pull day K out of the itinerary.
+  const days = Array.isArray(trip.itinerary) ? (trip.itinerary as unknown[]) : [];
+  const dayObj = days.find(
+    (d): d is Record<string, unknown> =>
+      !!d && typeof d === "object" && Number((d as Record<string, unknown>).day_number) === day
+  );
+  const dayTitle =
+    dayObj && typeof dayObj.title === "string" && dayObj.title.trim() ? dayObj.title.trim() : "";
+  const rawActs = dayObj && Array.isArray(dayObj.activities) ? (dayObj.activities as unknown[]) : [];
+  const acts = rawActs
+    .filter((a): a is Record<string, unknown> => !!a && typeof a === "object")
+    .map((a) => ({
+      name: typeof a.name === "string" ? a.name.trim() : "",
+      time:
+        typeof a.start_time === "string"
+          ? a.start_time.trim()
+          : typeof a.time_slot === "string"
+            ? a.time_slot.trim()
+            : "",
+    }))
+    .filter((a) => a.name);
+
+  const MAX_ACTIVITIES = 5;
+  const shown = acts.slice(0, MAX_ACTIVITIES);
+  const moreCount = acts.length - shown.length;
+
+  let t: Awaited<ReturnType<typeof getTranslations>>;
+  try {
+    t = await getTranslations({ locale, namespace: DIGEST_NS });
+  } catch (err) {
+    await persistOutcome(svc, row.id, "failed", "i18n_load_error", err instanceof Error ? err.message : String(err));
+    return "failed";
+  }
+
+  const heading = t("heading", { day });
+  const intro = t("intro");
+  const ctaLabel = t("cta");
+  const emptyLine = acts.length === 0 ? t("empty", { day }) : undefined;
+  const andMore = moreCount > 0 ? t("andMore", { count: moreCount }) : undefined;
+
+  const unresolved = assertTranslated({
+    heading,
+    intro,
+    ctaLabel,
+    ...(emptyLine ? { emptyLine } : {}),
+    ...(andMore ? { andMore } : {}),
+  });
+  if (unresolved) {
+    await persistOutcome(svc, row.id, "failed", "i18n_load_error", unresolved);
+    return "failed";
+  }
+
+  // Tomorrow's plan as ONE context block: label = the day's title (not checked
+  // by the containment gate), items = activities (name + time, which ARE
+  // checked — and come from this trip, so they pass).
+  const blocks: ContextBlock[] =
+    shown.length > 0
+      ? [{ label: dayTitle || heading, items: shown.map((a) => ({ text: a.name, meta: a.time || undefined })) }]
+      : [];
+
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
+  const tripUrl = `${APP_URL}/trips/${trip.id}?slot=${row.slot}`;
+
+  const ownStrings = [dayTitle, ...acts.flatMap((a) => [a.name, a.time])].filter(Boolean);
+
+  const template: EmailTemplate = {
+    id: "trip_day_digest",
+    props: { day, destination, heading, intro, blocks, emptyLine, andMore, ctaLabel, tripUrl, locale },
+  };
+
+  const result = await dispatchEmail({
+    recipientEmail,
+    recipientUserId: row.user_id,
+    idempotencyKey: `${template.id}:${row.trip_id}:${row.slot}`,
+    locale,
+    template,
+    metadata: { scheduled_notification_id: row.id, slot: row.slot, trip_id: row.trip_id },
+    verify: ({ html, subject }) => {
+      const defects = blockingDefects(
+        verifyRenderedEmail({ subject, html, destination, ctaUrl: tripUrl, contextBlocks: blocks, ownStrings })
+      );
+      return defects.length ? { ok: false, reason: summarizeDefects(defects) } : { ok: true };
+    },
+  });
+
+  if (result.ok) {
+    if (result.status === "sent") {
+      const { data: marked, error: markError } = await svc
+        .from("scheduled_notifications")
+        .update({ status: "sent", sent_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq("id", row.id)
+        .select("id");
+      if (markError || !marked?.length) {
+        console.error("[cron/scheduled-notifs] DIGEST SENT BUT NOT MARKED — this row will resend", {
+          id: row.id,
+          slot: row.slot,
+          error: markError?.message ?? "matched no rows",
+        });
+      }
+      return "sent";
+    }
     await persistOutcome(svc, row.id, "suppressed", result.status);
     return "skipped";
   }

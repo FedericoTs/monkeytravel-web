@@ -109,6 +109,9 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     // idempotent (wipes pending → re-inserts), so this is safe to
     // call on every change without risking duplicates.
     const startDateChanged = body.start_date !== undefined;
+    // end_date moves the trip's duration, which is what the in-trip day digests
+    // (Phase 4.1) are counted from — so a change to it must re-enqueue too.
+    const endDateChanged = body.end_date !== undefined;
     const muteChanged = body.reminders_muted !== undefined;
 
     // Update trip
@@ -130,7 +133,7 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     // calendar-export env flag and fail-closed against the user via
     // logging only (never re-throws). See
     // lib/notifications/scheduling.ts for details.
-    if (startDateChanged || muteChanged) {
+    if (startDateChanged || endDateChanged || muteChanged) {
       void scheduleTripNotifications({ tripId: id, userId: user.id });
     }
 

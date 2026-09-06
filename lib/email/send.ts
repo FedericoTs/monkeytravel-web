@@ -42,6 +42,11 @@ import TripFollowupEmail, {
   tripFollowupSubject,
   type TripFollowupEmailProps,
 } from "./templates/TripFollowup";
+import TripDayDigestEmail, {
+  tripDayDigestEmailText,
+  tripDayDigestSubject,
+  type TripDayDigestEmailProps,
+} from "./templates/TripDayDigest";
 import { buildUnsubscribeUrl, type UnsubKey } from "./unsubscribe";
 import { normalizeEmailLocale, type EmailLocale } from "./copy";
 
@@ -50,6 +55,7 @@ export type EmailTemplate =
   | { id: "vote_cast"; props: VoteCastEmailProps }
   | { id: "trip_reminder"; props: TripReminderEmailProps }
   | { id: "trip_followup"; props: TripFollowupEmailProps }
+  | { id: "trip_day_digest"; props: TripDayDigestEmailProps }
   | { id: "feedback_outreach"; props: FeedbackOutreachEmailProps };
 
 /** Stable outcome shape. */
@@ -167,6 +173,10 @@ const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null> = {
   // after it ends. Gating both on tripReminders would quietly convert a
   // transactional consent into a marketing one.
   trip_followup: "marketingNotifications",
+  // In-trip day digest — transactional, same category as the pre-trip
+  // cascade: the owner created the trip and is ON it. tripReminders, never
+  // marketing (see 20260906160000).
+  trip_day_digest: "tripReminders",
   // Feedback outreach is research/marketing — gated by emailNotifications +
   // marketingNotifications so an in-app marketing opt-out always suppresses
   // it. NOT transactional: the recipient didn't trigger this send.
@@ -185,6 +195,7 @@ const UNSUB_KEY: Record<EmailTemplate["id"], UnsubKey | null> = {
   vote_cast: "collabVotes",
   trip_reminder: "tripReminders",
   trip_followup: "marketingNotifications",
+  trip_day_digest: "tripReminders",
   feedback_outreach: "marketingNotifications",
 };
 
@@ -697,6 +708,17 @@ async function renderTemplate(
         heading: template.props.heading,
         destination: template.props.destination,
         slot: template.props.slot,
+      });
+      return { html, text, subject };
+    }
+    case "trip_day_digest": {
+      // "Tomorrow: Day 3 — Lisbon". Same destination-dedupe rule as the
+      // pre-trip reminder subject.
+      const html = await render(TripDayDigestEmail(template.props));
+      const text = tripDayDigestEmailText(template.props);
+      const subject = tripDayDigestSubject({
+        heading: template.props.heading,
+        destination: template.props.destination,
       });
       return { html, text, subject };
     }

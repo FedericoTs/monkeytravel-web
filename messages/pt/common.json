@@ -2551,5 +2551,12 @@
     "savesTitle": "Salvos"
   },
   "lockedActivity": "Plano fixo",
-  "lastUpdated": "Atualizado em {date}"
+  "lastUpdated": "Atualizado em {date}",
+  "tripDayDigestEmail": {
+    "heading": "Amanhã: Dia {day}",
+    "intro": "Veja como será o seu amanhã.",
+    "cta": "Ver o plano de amanhã",
+    "andMore": "+{count} mais",
+    "empty": "Ainda nada planejado para o dia {day} — abra sua viagem para preencher."
+  }
 }
