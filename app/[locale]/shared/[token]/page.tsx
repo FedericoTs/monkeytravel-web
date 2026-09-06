@@ -9,6 +9,7 @@ import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta } from "@/types";
 import type { Metadata } from "next";
 import SharedTripView from "./SharedTripView";
+import { computeTripDayState } from "@/lib/trip/live";
 import TripEngagementSection from "@/components/explore/TripEngagementSection";
 import { getTripDestination } from "@/lib/trips/destination";
 import { refreshTripItinerary } from "@/lib/places/refreshItineraryPhotos";
@@ -281,6 +282,11 @@ export default async function SharedTripPage({ params }: PageProps) {
       <SharedTripView
         viewSource="shared"
         isOwner={isOwner}
+        liveState={computeTripDayState({
+          startDate: trip.start_date,
+          endDate: trip.end_date,
+          timeZone: tripMeta.timezone ?? null,
+        })}
         trip={{
           id: trip.id,
           title: trip.title,

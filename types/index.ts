@@ -183,6 +183,12 @@ export interface GeneratedItinerary {
    * client guessing from its UI locale.
    */
   language?: SupportedLanguage;
+  /**
+   * IANA timezone derived from the itinerary coordinates by the generate
+   * routes (Phase 3.1). Stamped on the response so the client save path
+   * writes trip_meta.timezone without importing the coordinate table.
+   */
+  timezone?: string;
   trip_summary: {
     total_estimated_cost: number;
     currency: string;
@@ -268,6 +274,13 @@ export interface TripMeta {
    * their content by scripts/backfill-trip-locale.mts.
    */
   locale?: SupportedLanguage;
+  /**
+   * IANA timezone of the trip (e.g. "Europe/Lisbon"), derived from the first
+   * activity's coordinates at save time (Live Trip plan, Phase 3.1). Decides
+   * which calendar day is "today" for the trip in Today mode, independent of
+   * where the viewer is. Absent on trips created before 3.1 until backfilled.
+   */
+  timezone?: string;
   weather_note?: string;           // Weather info for the destination
   highlights?: string[];           // Trip highlights (3-5 bullet points)
   booking_links?: {                // Affiliate booking links

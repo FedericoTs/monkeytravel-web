@@ -5,6 +5,7 @@ import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta, CollaboratorRole } from "@/types";
 import type { Metadata } from "next";
 import TripDetailClient from "./TripDetailClient";
+import { computeTripDayState } from "@/lib/trip/live";
 import TripEngagementSection from "@/components/explore/TripEngagementSection";
 import { refreshTripItinerary } from "@/lib/places/refreshItineraryPhotos";
 
@@ -169,6 +170,11 @@ export default async function TripDetailPage({
         cachedTravelHash,
       }}
       dateRange={formatDateRange(trip.start_date, trip.end_date, locale)}
+      liveState={computeTripDayState({
+        startDate: trip.start_date,
+        endDate: trip.end_date,
+        timeZone: tripMeta.timezone ?? null,
+      })}
       // The publish tick on the share prompt: only when /explore is
       // reachable AND the trip is not already public. Resolved here because
       // the flag is a server-only env read.

@@ -1036,6 +1036,19 @@
     "share": "Share",
     "shared": "Shared"
   },
+  "today": {
+    "title": "Today",
+    "dayOf": "Day {day} of {total}",
+    "viewFull": "View full itinerary",
+    "backToToday": "Back to Today",
+    "deviceTzNote": "Times shown in your device's timezone.",
+    "now": "Now",
+    "next": "Next",
+    "restOfDay": "Rest of today",
+    "tomorrow": "Tomorrow",
+    "yesterday": "Yesterday",
+    "nothingToday": "Nothing planned for today."
+  },
   "share": {
     "title": "Share Trip",
     "titleWithInvite": "Share & Invite",
