@@ -1037,6 +1037,21 @@
     "shared": "Condiviso"
   },
   "today": {
+    "expenses": {
+      "title": "Spese",
+      "whoPaid": "Chi ha pagato?",
+      "amountPlaceholder": "Importo",
+      "save": "Salva",
+      "cancel": "Annulla",
+      "spentSoFar": "Speso finora",
+      "youAreOwed": "Ti devono {amount}",
+      "youOwe": "Devi {amount}",
+      "settledUp": "Tutto saldato",
+      "paid": "ha pagato",
+      "splitAcross": "diviso in {count}",
+      "remove": "Rimuovi",
+      "empty": "Ancora nessuna spesa. Tocca “Chi ha pagato?” su un’attività per dividere un costo."
+    },
     "packing": {
       "title": "Valigia pronta?",
       "progress": "{done}/{total} in valigia"

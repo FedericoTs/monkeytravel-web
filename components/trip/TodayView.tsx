@@ -22,7 +22,10 @@ import type { Activity, ItineraryDay } from "@/types";
 import type { TripDayState } from "@/lib/trip/live";
 import ActivityCard from "@/components/ActivityCard";
 import TodayPacking from "@/components/trip/TodayPacking";
+import TodayExpenses from "@/components/trip/TodayExpenses";
+import ExpenseQuickAdd from "@/components/trip/ExpenseQuickAdd";
 import { useTodayActions } from "@/lib/today/useTodayActions";
+import { useTripExpenses } from "@/lib/expenses/useTripExpenses";
 import {
   activeActions,
   feedDescriptor,
@@ -82,6 +85,13 @@ export default function TodayView({
   // Phase 3.3 overlay (realtime). Enabled only when we have a share token.
   const chipsEnabled = !!shareToken && !!tripId;
   const { actions, busy, error, apply, undo } = useTodayActions(shareToken ?? "", tripId ?? "", chipsEnabled);
+  // Phase 3.4 expenses: "Who paid?" on the live trip, split across participants.
+  const expenses = useTripExpenses(shareToken ?? "", chipsEnabled);
+  const activityNameOf = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const d of itinerary) for (const a of d.activities ?? []) if (a?.id) map.set(a.id, a.name);
+    return (id: string | null) => (id ? map.get(id) ?? null : null);
+  }, [itinerary]);
 
   const [nowMin, setNowMin] = useState<number | null>(() => (dayState.timeZone ? toMinutes(nowHHMMInZone(dayState.timeZone)) : null));
   useEffect(() => {
@@ -165,26 +175,35 @@ export default function TodayView({
             {o.swap.why ? ` — ${o.swap.why}` : ""}
           </p>
         )}
-        {canActOn && chipsEnabled && (
+        {chipsEnabled && (
           <div className="mt-1.5 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => toggle("skip", activity)}
-              disabled={busy}
-              data-testid="chip-skip"
-              className={chipClass(!!mySkip)}
-            >
-              {mySkip ? t("today.chips.skipUndo") : t("today.chips.skip")}
-            </button>
-            <button
-              type="button"
-              onClick={() => toggle("swap", activity)}
-              disabled={busy}
-              data-testid="chip-swap"
-              className={chipClass(!!mySwap)}
-            >
-              {busy && !mySwap ? t("today.chips.swapping") : mySwap ? t("today.chips.swapUndo") : t("today.chips.swap")}
-            </button>
+            {canActOn && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => toggle("skip", activity)}
+                  disabled={busy}
+                  data-testid="chip-skip"
+                  className={chipClass(!!mySkip)}
+                >
+                  {mySkip ? t("today.chips.skipUndo") : t("today.chips.skip")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toggle("swap", activity)}
+                  disabled={busy}
+                  data-testid="chip-swap"
+                  className={chipClass(!!mySwap)}
+                >
+                  {busy && !mySwap ? t("today.chips.swapping") : mySwap ? t("today.chips.swapUndo") : t("today.chips.swap")}
+                </button>
+              </>
+            )}
+            {/* Phase 3.4: "Who paid?" on each activity. */}
+            <ExpenseQuickAdd
+              onAdd={(amt) => expenses.add({ amount: amt, activityId: activity.id ?? null })}
+              busy={expenses.busy}
+            />
           </div>
         )}
       </div>
@@ -262,6 +281,20 @@ export default function TodayView({
             </li>
           ))}
         </ul>
+      )}
+
+      {/* Expenses — "Who paid?" split across participants (Phase 3.4). */}
+      {chipsEnabled && (
+        <TodayExpenses
+          expenses={expenses.expenses}
+          summary={expenses.summary}
+          busy={expenses.busy}
+          error={expenses.error}
+          onAdd={(amt) => expenses.add({ amount: amt })}
+          onRemove={expenses.remove}
+          activityName={activityNameOf}
+          className="mb-4"
+        />
       )}
 
       {dayDone ? (

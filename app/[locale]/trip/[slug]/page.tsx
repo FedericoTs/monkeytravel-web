@@ -194,8 +194,13 @@ export default async function PublicTripPage({ params }: PageProps) {
 
   const budget = trip.budget as { total: number; currency: string } | null;
   const tripMeta = (trip.trip_meta as TripMeta) || {};
+  // An EMPTY packing_list array is truthy, so a bare `||` never reached the
+  // trip_meta fallback — a trip with packing_list=[] showed no packing at all
+  // (same bug fixed in trips/[id]/page.tsx). Prefer a non-empty column, else
+  // the suggestions.
+  const packingColumn = trip.packing_list as string[] | null | undefined;
   const packingList =
-    (trip.packing_list as string[]) || tripMeta.packing_suggestions || [];
+    (Array.isArray(packingColumn) && packingColumn.length > 0 ? packingColumn : tripMeta.packing_suggestions) || [];
   const cachedTravelDistances = tripMeta.travel_distances;
   const cachedTravelHash = tripMeta.travel_distances_hash;
 

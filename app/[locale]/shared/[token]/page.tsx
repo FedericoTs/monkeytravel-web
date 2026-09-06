@@ -222,7 +222,11 @@ export default async function SharedTripPage({ params }: PageProps) {
   const itinerary = await refreshTripItinerary(rawItinerary);
   const budget = trip.budget as { total: number; currency: string } | null;
   const tripMeta = (trip.trip_meta as TripMeta) || {};
-  const packingList = (trip.packing_list as string[]) || tripMeta.packing_suggestions || [];
+  // An EMPTY packing_list array is truthy, so a bare `||` never reached the
+  // trip_meta fallback (same bug fixed in trips/[id]/page.tsx).
+  const packingColumn = trip.packing_list as string[] | null | undefined;
+  const packingList =
+    (Array.isArray(packingColumn) && packingColumn.length > 0 ? packingColumn : tripMeta.packing_suggestions) || [];
 
   // Extract cached travel distances from trip_meta (calculated locally, no API cost)
   const cachedTravelDistances = tripMeta.travel_distances;

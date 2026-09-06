@@ -1037,6 +1037,21 @@
     "shared": "Compartido"
   },
   "today": {
+    "expenses": {
+      "title": "Gastos",
+      "whoPaid": "¿Quién pagó?",
+      "amountPlaceholder": "Importe",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "spentSoFar": "Gastado hasta ahora",
+      "youAreOwed": "Te deben {amount}",
+      "youOwe": "Debes {amount}",
+      "settledUp": "Todo saldado",
+      "paid": "pagó",
+      "splitAcross": "dividido entre {count}",
+      "remove": "Quitar",
+      "empty": "Aún no hay gastos. Toca “¿Quién pagó?” en una actividad para dividir un gasto."
+    },
     "packing": {
       "title": "¿Equipaje listo?",
       "progress": "{done}/{total} en la maleta"

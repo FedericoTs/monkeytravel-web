@@ -1037,6 +1037,21 @@
     "shared": "Shared"
   },
   "today": {
+    "expenses": {
+      "title": "Expenses",
+      "whoPaid": "Who paid?",
+      "amountPlaceholder": "Amount",
+      "save": "Save",
+      "cancel": "Cancel",
+      "spentSoFar": "Spent so far",
+      "youAreOwed": "You're owed {amount}",
+      "youOwe": "You owe {amount}",
+      "settledUp": "All settled up",
+      "paid": "paid",
+      "splitAcross": "split {count} ways",
+      "remove": "Remove",
+      "empty": "No expenses yet. Tap “Who paid?” on an activity to split a cost."
+    },
     "packing": {
       "title": "Packed?",
       "progress": "{done}/{total} packed"
