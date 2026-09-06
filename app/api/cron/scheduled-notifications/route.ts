@@ -820,7 +820,11 @@ async function processRow(
   // Bound to a local so the type guard narrows it — narrowing a property
   // access across the object literal below is fragile, and getting it
   // wrong here means the wrong consent key gates the send.
-  const slot = row.slot;
+  //
+  // Digest slots (`in_trip_day_<K>`) are handled and returned far above, so by
+  // here the slot is only ever pre-trip or followup. TS can't infer that from
+  // the separate `digestDay` early-return, so restate the invariant in the type.
+  const slot = row.slot as TripReminderSlot | TripFollowupSlot;
   const template: EmailTemplate = isFollowupSlot(slot)
     ? {
         id: "trip_followup",
