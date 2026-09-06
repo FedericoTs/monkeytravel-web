@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta } from "@/types";
 import SharedTripView from "../../shared/[token]/SharedTripView";
+import { computeTripDayState } from "@/lib/trip/live";
 import TripEngagementSection from "@/components/explore/TripEngagementSection";
 import { getTripDestination } from "@/lib/trips/destination";
 import { refreshTripItinerary } from "@/lib/places/refreshItineraryPhotos";
@@ -263,6 +264,11 @@ export default async function PublicTripPage({ params }: PageProps) {
       <SharedTripView
         viewSource="public"
         isOwner={isOwner}
+        liveState={computeTripDayState({
+          startDate: trip.start_date,
+          endDate: trip.end_date,
+          timeZone: tripMeta.timezone ?? null,
+        })}
         trip={{
           id: trip.id,
           title: trip.title,

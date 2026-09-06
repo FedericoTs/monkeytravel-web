@@ -18,6 +18,7 @@ import type { GeneratedItinerary, TripAnchor, TripVibe } from "@/types";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import { splitCities } from "@/lib/ai/multi-city-core";
 import { isSupportedLanguage, resolveAiLanguage } from "@/lib/ai/language";
+import { isValidTimeZone } from "@/lib/trip/live";
 
 export interface TripFormState {
   destination: string;
@@ -198,6 +199,12 @@ function buildTripRow(
     // Every later AI edit reads this before the visitor's cookie, so the
     // trip stays one language. Absent only when neither source knew.
     ...(generationLocale ? { locale: generationLocale } : {}),
+    // IANA timezone (Live Trip Phase 3.1), so Today mode opens on the correct
+    // day wherever the viewer is. Derived server-side by the generate routes
+    // from the itinerary coordinates and carried on the itinerary — the same
+    // path as `language`. persistTrip runs client-side, so it must never pull
+    // in the coordinate table itself; it just reads the resolved string.
+    ...(isValidTimeZone(itinerary.timezone) ? { timezone: itinerary.timezone } : {}),
     // Only written when the user actually picked, so `trip_intent is not null`
     // reads as "answered" and the untouched-default case stays distinguishable
     // from a deliberate choice.

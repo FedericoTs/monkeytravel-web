@@ -1036,6 +1036,19 @@
     "share": "Condividi",
     "shared": "Condiviso"
   },
+  "today": {
+    "title": "Oggi",
+    "dayOf": "Giorno {day} di {total}",
+    "viewFull": "Vedi itinerario completo",
+    "backToToday": "Torna a Oggi",
+    "deviceTzNote": "Orari nel fuso orario del tuo dispositivo.",
+    "now": "Ora",
+    "next": "Prossima",
+    "restOfDay": "Resto della giornata",
+    "tomorrow": "Domani",
+    "yesterday": "Ieri",
+    "nothingToday": "Niente in programma per oggi."
+  },
   "share": {
     "title": "Condividi Viaggio",
     "titleWithInvite": "Condividi e Invita",

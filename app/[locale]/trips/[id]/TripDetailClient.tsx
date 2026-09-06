@@ -11,6 +11,9 @@ import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
+import TodayView from "@/components/trip/TodayView";
+import { useLiveTripState } from "@/lib/trip/useLiveTripState";
+import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import DownloadIcsButton from "@/components/calendar/DownloadIcsButton";
 // TravelAdvisoryBanner / ExpenseLedger / TripConciergeChat are pulled in
@@ -222,6 +225,8 @@ interface TripDetailClientProps {
   canPublish?: boolean;
   /** Prefills the /explore author byline on the share prompt's publish tick. */
   ownerDisplayName?: string | null;
+  /** Server-computed live day-state (Phase 3.2). */
+  liveState?: TripDayState;
 }
 
 export default function TripDetailClient({
@@ -233,10 +238,18 @@ export default function TripDetailClient({
   userRole = "owner",
   collaboratorCount = 0,
   engagementSlot,
+  liveState,
 }: TripDetailClientProps) {
   const t = useTranslations('trips');
   const tTrips = useTranslations('common.trips');
   const tButtons = useTranslations('common.buttons');
+  // Live Trip Phase 3.2: a live trip opens on Today for the owner too.
+  const fallbackDayState = useMemo<TripDayState>(
+    () => liveState ?? computeTripDayState({ startDate: trip.startDate, endDate: trip.endDate, timeZone: null }),
+    [liveState, trip.startDate, trip.endDate],
+  );
+  const dayState = useLiveTripState(fallbackDayState, trip.startDate, trip.endDate);
+  const [todayMode, setTodayMode] = useState(true);
   // 'common' is the namespace that holds calendar.* and addFromEmail.*
   // — added with the calendar-export + email-parse rollout. We don't
   // want to re-namespace the existing tButtons / tTrips translators
@@ -444,6 +457,8 @@ export default function TripDetailClient({
 
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState(false);
+  // Today mode (Phase 3.2) shows only outside the editor, on a live trip.
+  const showToday = dayState.isLive && todayMode && !isEditMode;
   const [editedItinerary, setEditedItinerary] = useState<ItineraryDay[]>(() =>
     ensureActivityIds(trip.itinerary)
   );
@@ -2461,6 +2476,29 @@ export default function TripDetailClient({
             </div>
           )}
 
+        {showToday && (
+          <TodayView
+            itinerary={displayItinerary}
+            dayState={dayState}
+            currency={trip.budget?.currency}
+            weatherNote={trip.meta?.weather_note}
+            onViewFullItinerary={() => setTodayMode(false)}
+            className="mb-6"
+          />
+        )}
+
+        {!showToday && (
+        <>
+        {dayState.isLive && !todayMode && !isEditMode && (
+          <button
+            type="button"
+            onClick={() => setTodayMode(true)}
+            data-testid="back-to-today"
+            className="mb-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm font-medium text-[var(--primary-ink)] hover:bg-[var(--primary)]/15"
+          >
+            <span aria-hidden>←</span> {tCommon("today.backToToday")}
+          </button>
+        )}
         {/* Day Filter Slider - Mobile optimized */}
         <DaySlider
           days={displayItinerary}
@@ -2862,6 +2900,9 @@ export default function TripDetailClient({
             <h3 className="text-lg font-medium text-slate-900 mb-2">{t('detail.noItinerary')}</h3>
             <p className="text-slate-600">{t('detail.noItineraryMessage')}</p>
           </div>
+        )}
+
+        </>
         )}
 
         {/* Journey Essentials - Premium Packing List */}

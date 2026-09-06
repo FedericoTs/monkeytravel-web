@@ -1,4 +1,5 @@
 {
+  "today": { "tomorrowSummary": "{count, plural, =0 {No activities} =1 {{first} and 0 more} other {{first} and # more}}" },
   "assistant": {
     "title": "Ask or tweak your trip",
     "note": "Ask a question, or tell me what to change — preview and apply edits before you save.",

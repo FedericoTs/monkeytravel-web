@@ -1,3 +1,4 @@
+import { deriveTimezoneFromItinerary } from "@/lib/trip/timezone";
 import { NextRequest } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import { errors } from "@/lib/api/response-wrapper";
@@ -478,7 +479,8 @@ export async function POST(request: NextRequest) {
         type: "complete",
         data: {
           // Phase 1.3: the save arms read this into trip_meta.locale.
-          itinerary: { ...sanitized, language: userLanguage },
+          // Phase 1.3 language + Phase 3.1 timezone (derived server-side).
+          itinerary: { ...sanitized, language: userLanguage, timezone: deriveTimezoneFromItinerary(sanitized.days) ?? undefined },
           meta: {
             generationTimeMs,
             model: cacheHit ? "cache" : getModelForPurpose("trip-generation"),

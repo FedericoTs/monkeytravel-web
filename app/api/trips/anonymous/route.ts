@@ -1,3 +1,5 @@
+import { deriveTimezoneFromItinerary } from "@/lib/trip/timezone";
+import type { ItineraryDay } from "@/types";
 import { NextRequest, after } from "next/server";
 import { randomBytes, randomUUID } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -100,6 +102,11 @@ export async function POST(request: NextRequest) {
           // Phase 1.3: the language the text is in, so a later edit by the
           // claimer keeps it (the validator only lets a supported one through).
           ...(trip.locale ? { locale: trip.locale } : {}),
+          // Phase 3.1: IANA timezone from the itinerary coordinates, so a
+          // claimed anon trip opens on the right day in Today mode.
+          ...(deriveTimezoneFromItinerary(trip.itinerary as unknown as ItineraryDay[])
+            ? { timezone: deriveTimezoneFromItinerary(trip.itinerary as unknown as ItineraryDay[]) as string }
+            : {}),
         },
         start_date: trip.startDate,
         end_date: trip.endDate,

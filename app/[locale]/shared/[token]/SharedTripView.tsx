@@ -14,6 +14,9 @@ import { onClaimedTrip, readClaimedTrip } from "@/lib/trips/claimed-trip-signal"
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import ParticipantsBar from "@/components/trip/ParticipantsBar";
 import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
+import TodayView from "@/components/trip/TodayView";
+import { useLiveTripState } from "@/lib/trip/useLiveTripState";
+import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import DestinationHero from "@/components/DestinationHero";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -120,10 +123,20 @@ interface SharedTripViewProps {
    * recipient's "I'm going" bar must NOT appear. Live Trip Phase 2.4.
    */
   isOwner?: boolean;
+  /** Server-computed live day-state (Phase 3.2). Refined on the client with the viewer tz. */
+  liveState?: TripDayState;
 }
 
-export default function SharedTripView({ trip, shareToken, dateRange, coverImageUrl, engagementSlot, viewSource, isOwner = false }: SharedTripViewProps) {
+export default function SharedTripView({ trip, shareToken, dateRange, coverImageUrl, engagementSlot, viewSource, isOwner = false, liveState }: SharedTripViewProps) {
   const t = useTranslations('common');
+  // Live Trip Phase 3.2: a live trip opens on Today (owner + participants).
+  const fallbackDayState = useMemo<TripDayState>(
+    () => liveState ?? computeTripDayState({ startDate: trip.startDate, endDate: trip.endDate, timeZone: null }),
+    [liveState, trip.startDate, trip.endDate],
+  );
+  const dayState = useLiveTripState(fallbackDayState, trip.startDate, trip.endDate);
+  const [todayMode, setTodayMode] = useState(true);
+  const showToday = dayState.isLive && todayMode;
   const { addToast } = useToast();
   const searchParams = useSearchParams();
 
@@ -532,6 +545,29 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
           />
         )}
 
+        {showToday && (
+          <TodayView
+            itinerary={displayItinerary}
+            dayState={dayState}
+            currency={trip.budget?.currency}
+            weatherNote={trip.meta?.weather_note}
+            onViewFullItinerary={() => setTodayMode(false)}
+            className="mb-6"
+          />
+        )}
+
+        {!showToday && (
+        <>
+        {dayState.isLive && !todayMode && (
+          <button
+            type="button"
+            onClick={() => setTodayMode(true)}
+            data-testid="back-to-today"
+            className="mb-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm font-medium text-[var(--primary-ink)] hover:bg-[var(--primary)]/15"
+          >
+            <span aria-hidden>←</span> {t("today.backToToday")}
+          </button>
+        )}
         {/* Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6">
           {/* Left side - Back to home */}
@@ -857,6 +893,9 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             <h3 className="text-lg font-medium text-slate-900 mb-2">No Itinerary Yet</h3>
             <p className="text-slate-600">This trip doesn't have any activities planned yet.</p>
           </div>
+        )}
+
+        </>
         )}
 
         {/* Journey Essentials - Premium Packing List */}
