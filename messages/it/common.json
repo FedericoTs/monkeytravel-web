@@ -1064,7 +1064,12 @@
       "swap": "suggerisce {to} invece di {activity}",
       "swapNoName": "vuole cambiare {activity}",
       "doneActivity": "ha finito {activity}",
-      "doneDay": "ha concluso la giornata"
+      "doneDay": "ha concluso la giornata",
+      "title": "Attività recente",
+      "join": "partecipa",
+      "expense": "ha pagato {amount}",
+      "expenseActivity": "ha pagato {amount} · {activity}",
+      "justNow": "proprio ora"
     },
     "chips": {
       "runningLate": "Sono in ritardo",

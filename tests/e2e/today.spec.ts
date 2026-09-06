@@ -137,6 +137,13 @@ test.describe("Today mode", () => {
       await page.getByTestId("expense-save").click();
       await expect(page.getByTestId("expense-summary")).toBeVisible({ timeout: 15_000 });
       await expect(page.getByTestId("expense-list")).toContainText(/30/);
+
+      // Phase 3.5: the merged activity feed reflects the shared actions. It reads
+      // the same rows the chips and expenses wrote (server-merged, newest-first)
+      // and refetches when they change, so the €30 expense row surfaces here too.
+      const feed = page.getByTestId("today-feed");
+      await feed.waitFor({ state: "visible", timeout: 15_000 });
+      await expect(page.getByTestId("today-feed-list")).toContainText(/30/, { timeout: 15_000 });
     } finally {
       await admin.from("trip_expenses").delete().eq("trip_id", TRIP_ID!);
       await admin.from("trip_today_actions").delete().eq("trip_id", TRIP_ID!);

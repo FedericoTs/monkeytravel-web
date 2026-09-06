@@ -1064,7 +1064,12 @@
       "swap": "suggested {to} instead of {activity}",
       "swapNoName": "wants to swap {activity}",
       "doneActivity": "finished {activity}",
-      "doneDay": "called it a day"
+      "doneDay": "called it a day",
+      "title": "Recent activity",
+      "join": "is going",
+      "expense": "paid {amount}",
+      "expenseActivity": "paid {amount} · {activity}",
+      "justNow": "just now"
     },
     "chips": {
       "runningLate": "Running late",
