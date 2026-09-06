@@ -127,7 +127,18 @@ test.describe("Today mode", () => {
       await firstItem.waitFor({ state: "visible", timeout: 5_000 });
       await firstItem.click();
       await expect(page.getByTestId("today-packing-progress")).toContainText(/1\s*\/\s*3/);
+
+      // Phase 3.4 expenses: add one via the day-level "Who paid?"; the summary
+      // then shows the amount split across the cohort (here: owner + this payer).
+      const panel = page.getByTestId("today-expenses");
+      await panel.waitFor({ state: "visible", timeout: 10_000 });
+      await panel.getByTestId("expense-add-open").click();
+      await page.getByTestId("expense-amount").fill("30");
+      await page.getByTestId("expense-save").click();
+      await expect(page.getByTestId("expense-summary")).toBeVisible({ timeout: 15_000 });
+      await expect(page.getByTestId("expense-list")).toContainText(/30/);
     } finally {
+      await admin.from("trip_expenses").delete().eq("trip_id", TRIP_ID!);
       await admin.from("trip_today_actions").delete().eq("trip_id", TRIP_ID!);
       await admin
         .from("trips")
