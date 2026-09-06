@@ -2431,8 +2431,8 @@
   "tripFollowupEmail": {
     "followup_return_3d": {
       "heading": "Como foi {destination}?",
-      "body": "Você voltou faz alguns dias. Seu roteiro dia a dia continua salvo — útil se alguém perguntar por onde você andou. E se alguma coisa não bateu na prática, nos conte: é o jeito mais rápido de a gente melhorar.",
-      "cta": "Abrir sua viagem"
+      "body": "Você voltou faz alguns dias. Adoraríamos saber como foi — o que o roteiro acertou e o que não bateu na prática. Leva um minuto e é o jeito mais rápido de a gente melhorar.",
+      "cta": "Conte como foi"
     },
     "followup_next_21d": {
       "heading": "Pensando na próxima?",

@@ -2431,8 +2431,8 @@
   "tripFollowupEmail": {
     "followup_return_3d": {
       "heading": "How was {destination}?",
-      "body": "You got back a few days ago. Your day-by-day plan is still saved — handy if someone asks where you went. And if anything in it turned out wrong on the ground, tell us: that's the fastest way we get better.",
-      "cta": "Open your trip"
+      "body": "You got back a few days ago. We’d love to hear how it went — what the plan got right, and anything that turned out wrong on the ground. It takes a minute, and it’s the fastest way we get better.",
+      "cta": "Share your feedback"
     },
     "followup_next_21d": {
       "heading": "Thinking about the next one?",

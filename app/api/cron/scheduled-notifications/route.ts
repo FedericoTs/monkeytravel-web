@@ -26,6 +26,7 @@ import {
 } from "@/lib/email/verify-render";
 import { isTripNotificationsEnabled } from "@/lib/notifications/scheduling";
 import { parseDigestDay, digestStaleReason } from "@/lib/notifications/digest";
+import { postTripCtaUrl } from "@/lib/email/followup-cta";
 import { resolveLocale, formatDateRange } from "@/lib/email/reminder-locale";
 
 /**
@@ -687,17 +688,13 @@ async function processRow(
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
   const tripUrl = `${APP_URL}/trips/${trip.id}?slot=${row.slot}`;
 
-  // Where the post-trip CTA points. Only the +3d "How was X?" mail sends
-  // them back to the trip itself; the later ones exist to start a NEW
-  // trip, so pointing at the finished one would be a dead end.
-  //
-  // `slot` and not `utm_source`: a utm_* param on an internal link
-  // overwrites the stored acquisition source, which is how you end up
-  // attributing organic users to your own email.
+  // Where the CTA points. Reminders → the trip; the post-trip family →
+  // postTripCtaUrl (Phase 4.3: followup_return_3d → the feedback survey, the
+  // later slots → the wizard) — shared with the audit + test-send scripts so
+  // the three can't drift. `slot`, not `utm_source`: a utm_* param on an
+  // internal link overwrites the stored acquisition source.
   const ctaUrl = followup
-    ? row.slot === "followup_return_3d"
-      ? tripUrl
-      : `${APP_URL}/trips/new?slot=${row.slot}`
+    ? postTripCtaUrl(row.slot as TripFollowupSlot, { tripUrl, appUrl: APP_URL, userId: row.user_id, locale })
     : tripUrl;
 
   // Resolve the copy BEFORE handing it to the mailer, so an unresolved key

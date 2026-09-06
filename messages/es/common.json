@@ -2431,8 +2431,8 @@
   "tripFollowupEmail": {
     "followup_return_3d": {
       "heading": "¿Qué tal {destination}?",
-      "body": "Volviste hace unos días. Tu plan día a día sigue guardado — útil si alguien te pregunta dónde estuviste. Y si algo no encajó sobre el terreno, cuéntanoslo: es la forma más rápida de que mejoremos.",
-      "cta": "Abre tu viaje"
+      "body": "Volviste hace unos días. Nos encantaría saber cómo fue — qué acertó el plan y qué no encajó sobre el terreno. Es un minuto, y es la forma más rápida de que mejoremos.",
+      "cta": "Cuéntanos tu experiencia"
     },
     "followup_next_21d": {
       "heading": "¿Pensando en el próximo?",
