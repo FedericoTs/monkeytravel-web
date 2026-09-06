@@ -1064,7 +1064,12 @@
       "swap": "sugeriu {to} em vez de {activity}",
       "swapNoName": "quer trocar {activity}",
       "doneActivity": "terminou {activity}",
-      "doneDay": "encerrou o dia"
+      "doneDay": "encerrou o dia",
+      "title": "Atividade recente",
+      "join": "vai também",
+      "expense": "pagou {amount}",
+      "expenseActivity": "pagou {amount} · {activity}",
+      "justNow": "agora mesmo"
     },
     "chips": {
       "runningLate": "Estou atrasado",

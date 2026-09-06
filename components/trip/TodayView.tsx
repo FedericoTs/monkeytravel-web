@@ -23,12 +23,13 @@ import type { TripDayState } from "@/lib/trip/live";
 import ActivityCard from "@/components/ActivityCard";
 import TodayPacking from "@/components/trip/TodayPacking";
 import TodayExpenses from "@/components/trip/TodayExpenses";
+import TodayFeed from "@/components/trip/TodayFeed";
 import ExpenseQuickAdd from "@/components/trip/ExpenseQuickAdd";
 import { useTodayActions } from "@/lib/today/useTodayActions";
 import { useTripExpenses } from "@/lib/expenses/useTripExpenses";
+import { useTripFeed } from "@/lib/feed/useTripFeed";
 import {
   activeActions,
-  feedDescriptor,
   isDayDone,
   overlayFor,
   runningLateMinutes,
@@ -87,6 +88,13 @@ export default function TodayView({
   const { actions, busy, error, apply, undo } = useTodayActions(shareToken ?? "", tripId ?? "", chipsEnabled);
   // Phase 3.4 expenses: "Who paid?" on the live trip, split across participants.
   const expenses = useTripExpenses(shareToken ?? "", chipsEnabled);
+  // Phase 3.5 activity feed: joins + chip actions + expenses, merged server-side.
+  // No channel of its own — refetch when the realtime chip actions change or an
+  // expense is added (both re-identify the arrays below), reusing one channel.
+  const { events: feedEvents, refetch: refetchFeed } = useTripFeed(shareToken ?? "", chipsEnabled);
+  useEffect(() => {
+    refetchFeed();
+  }, [actions, expenses.expenses, refetchFeed]);
   const activityNameOf = useMemo(() => {
     const map = new Map<string, string>();
     for (const d of itinerary) for (const a of d.activities ?? []) if (a?.id) map.set(a.id, a.name);
@@ -210,25 +218,6 @@ export default function TodayView({
     );
   };
 
-  // The activity feed: recent active actions, newest first, localized.
-  const feed = useMemo(() => {
-    const nameOf = (id: string | null) => activities.find((a) => a.id === id)?.name ?? null;
-    return activeActions(actions, dayNumber)
-      .slice()
-      .reverse()
-      .slice(0, 5)
-      .map((a) => {
-        const d = feedDescriptor(a, nameOf(a.activity_id));
-        const who = d.who.kind === "name" ? d.who.name ?? t("today.someone") : d.who.kind === "owner" ? t("today.owner") : t("today.someone");
-        const what = t(`today.feed.${d.key}`, {
-          activity: d.params.activity ?? t("today.someActivity"),
-          minutes: d.params.minutes ?? 0,
-          to: d.params.to ?? "",
-        });
-        return { id: a.id, who, what };
-      });
-  }, [actions, dayNumber, activities, t]);
-
   const myRunningLate = myActive("running_late", null);
   const myDayDone = myActive("done", null);
 
@@ -272,16 +261,8 @@ export default function TodayView({
       )}
       {error && <p className="mb-3 text-xs text-red-600" role="alert">{error}</p>}
 
-      {/* Feed */}
-      {feed.length > 0 && (
-        <ul className="mb-4 space-y-1" data-testid="today-feed">
-          {feed.map((f) => (
-            <li key={f.id} className="text-xs text-slate-500">
-              <span className="font-semibold text-slate-700">{f.who}</span> {f.what}
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* Feed — participant joins + chip actions + expenses, merged (Phase 3.5) */}
+      {chipsEnabled && <TodayFeed events={feedEvents} className="mb-4" />}
 
       {/* Expenses — "Who paid?" split across participants (Phase 3.4). */}
       {chipsEnabled && (
