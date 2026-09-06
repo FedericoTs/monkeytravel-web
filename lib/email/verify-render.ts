@@ -78,6 +78,7 @@ export interface VerifyRenderInput {
 const POISON = [
   "tripReminderEmail.",
   "tripFollowupEmail.",
+  "tripDayDigestEmail.",
   "emailContext.",
   "{destination}",
   "undefined",

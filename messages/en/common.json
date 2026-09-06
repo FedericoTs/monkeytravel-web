@@ -2551,5 +2551,12 @@
     "savesTitle": "Saves"
   },
   "lockedActivity": "Fixed plan",
-  "lastUpdated": "Last updated {date}"
+  "lastUpdated": "Last updated {date}",
+  "tripDayDigestEmail": {
+    "heading": "Tomorrow: Day {day}",
+    "intro": "Here's what tomorrow looks like.",
+    "cta": "See tomorrow's plan",
+    "andMore": "+{count} more",
+    "empty": "Nothing planned for day {day} yet — open your trip to fill it in."
+  }
 }

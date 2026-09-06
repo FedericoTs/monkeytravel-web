@@ -125,6 +125,29 @@ export async function scheduleTripNotifications(
     }
 
     const count = typeof data === "number" ? data : 0;
+
+    // Phase 4.1: also (re-)enqueue the in-trip evening-before digests. The
+    // AFTER INSERT trigger already does this on create; this covers the
+    // re-enqueue paths (PATCH start/end-date change, fork, duplicate). Both are
+    // idempotent, and this is best-effort — a digest failure must never undo
+    // the pre-trip cascade enqueued just above.
+    const { error: digestErr } = await admin.rpc("enqueue_trip_day_digests", {
+      p_trip_id: args.tripId,
+      p_user_id: args.userId,
+    });
+    if (digestErr) {
+      console.error("[notifications/scheduling] digest enqueue RPC failed", {
+        tripId: args.tripId,
+        userId: args.userId,
+        error: digestErr.message,
+      });
+      void captureSchedulingError(digestErr, {
+        stage: "digest_rpc_call",
+        tripId: args.tripId,
+        userId: args.userId,
+      });
+    }
+
     return { ok: true, scheduledCount: count };
   } catch (err) {
     console.error("[notifications/scheduling] enqueue exception", {
