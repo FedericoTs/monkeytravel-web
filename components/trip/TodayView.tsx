@@ -21,6 +21,7 @@ import { useTranslations } from "next-intl";
 import type { Activity, ItineraryDay } from "@/types";
 import type { TripDayState } from "@/lib/trip/live";
 import ActivityCard from "@/components/ActivityCard";
+import TodayPacking from "@/components/trip/TodayPacking";
 import { useTodayActions } from "@/lib/today/useTodayActions";
 import {
   activeActions,
@@ -41,6 +42,8 @@ interface TodayViewProps {
   /** Trip id + share token enable the chips (Phase 3.3); omit to show a read-only Today. */
   tripId?: string;
   shareToken?: string;
+  /** The trip's packing list, for the "Packed?" checklist (Phase 3.4). */
+  packingItems?: string[];
   className?: string;
 }
 
@@ -65,6 +68,7 @@ export default function TodayView({
   onViewFullItinerary,
   tripId,
   shareToken,
+  packingItems,
   className = "",
 }: TodayViewProps) {
   const t = useTranslations("common");
@@ -228,6 +232,11 @@ export default function TodayView({
           <span aria-hidden>☀️</span>
           <p className="text-sm text-amber-900">{weatherNote}</p>
         </div>
+      )}
+
+      {/* Packed? — day 1 open, later days collapsed (Phase 3.4). */}
+      {tripId && packingItems && packingItems.length > 0 && (
+        <TodayPacking items={packingItems} tripId={tripId} defaultOpen={dayNumber <= 1} className="mb-4" />
       )}
 
       {/* Day-level chips + status */}

@@ -15,6 +15,7 @@ import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import ParticipantsBar from "@/components/trip/ParticipantsBar";
 import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
 import TodayView from "@/components/trip/TodayView";
+import TodayPacking from "@/components/trip/TodayPacking";
 import { useLiveTripState } from "@/lib/trip/useLiveTripState";
 import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
@@ -554,9 +555,20 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             onViewFullItinerary={() => setTodayMode(false)}
             tripId={trip.id}
             shareToken={shareToken}
+            packingItems={trip.packingList}
             className="mb-6"
           />
         )}
+
+        {/* "Packed?" the day before the trip — Today mode isn't shown yet
+            (the trip isn't live), so surface the checklist on its own. */}
+        {!showToday &&
+          dayState.phase === "upcoming" &&
+          dayState.daysUntilStart !== null &&
+          dayState.daysUntilStart <= 1 &&
+          (trip.packingList?.length ?? 0) > 0 && (
+            <TodayPacking items={trip.packingList!} tripId={trip.id} defaultOpen className="mb-6" />
+          )}
 
         {!showToday && (
         <>

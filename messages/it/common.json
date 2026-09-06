@@ -1037,6 +1037,10 @@
     "shared": "Condiviso"
   },
   "today": {
+    "packing": {
+      "title": "Valigia pronta?",
+      "progress": "{done}/{total} in valigia"
+    },
     "owner": "Il proprietario",
     "someActivity": "un'attività",
     "feed": {

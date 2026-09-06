@@ -1037,6 +1037,10 @@
     "shared": "Compartilhado"
   },
   "today": {
+    "packing": {
+      "title": "Mala pronta?",
+      "progress": "{done}/{total} na mala"
+    },
     "owner": "O proprietário",
     "someActivity": "uma atividade",
     "feed": {
