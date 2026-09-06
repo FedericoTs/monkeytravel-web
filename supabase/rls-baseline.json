@@ -2268,6 +2268,37 @@
     "rls_enabled": true
   },
   {
+    "table": "trip_today_actions",
+    "grants": {
+      "anon": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "authenticated": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ]
+    },
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "name": "Anyone can read today actions",
+        "roles": [
+          "public"
+        ],
+        "using": "true",
+        "permissive": true,
+        "with_check": null
+      }
+    ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
     "table": "trip_views",
     "grants": {
       "anon": [

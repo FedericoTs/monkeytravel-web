@@ -1037,6 +1037,33 @@
     "shared": "Compartilhado"
   },
   "today": {
+    "owner": "O proprietário",
+    "someActivity": "uma atividade",
+    "feed": {
+      "runningLate": "está {minutes}m atrasado",
+      "skip": "pulou {activity}",
+      "swap": "sugeriu {to} em vez de {activity}",
+      "swapNoName": "quer trocar {activity}",
+      "doneActivity": "terminou {activity}",
+      "doneDay": "encerrou o dia"
+    },
+    "chips": {
+      "runningLate": "Estou atrasado",
+      "runningLateUndo": "Atrasado ✓",
+      "skip": "Pular esta",
+      "skipUndo": "Pulada ✓",
+      "swap": "Trocar por perto",
+      "swapping": "Procurando…",
+      "swapUndo": "Sugerido ✓",
+      "done": "Terminei por hoje",
+      "shiftedBy": "{minutes}m mais tarde",
+      "skippedBy": "Pulada por {name}",
+      "doneMark": "Feito",
+      "swapPrefix": "{name} sugeriu:",
+      "dayComplete": "Dia completo — aproveite a noite.",
+      "reopenDay": "Reabrir hoje"
+    },
+    "someone": "alguém",
     "title": "Hoje",
     "dayOf": "Dia {day} de {total}",
     "viewFull": "Ver itinerário completo",
