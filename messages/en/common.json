@@ -1037,6 +1037,10 @@
     "shared": "Shared"
   },
   "today": {
+    "packing": {
+      "title": "Packed?",
+      "progress": "{done}/{total} packed"
+    },
     "owner": "The owner",
     "someActivity": "an activity",
     "feed": {

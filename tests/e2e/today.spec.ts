@@ -72,7 +72,7 @@ test.describe("Today mode", () => {
     expect(error, error?.message).toBeNull();
 
     const token = (original!.share_token as string) ?? randomUUID();
-    const meta = { ...((original!.trip_meta as Record<string, unknown>) ?? {}), timezone: "UTC", destination: "Lisbon" };
+    const meta = { ...((original!.trip_meta as Record<string, unknown>) ?? {}), timezone: "UTC", destination: "Lisbon", packing_suggestions: ["Passport", "Charger", "Sunscreen"] };
     const { error: upErr } = await admin
       .from("trips")
       .update({ start_date: iso(-1), end_date: iso(1), itinerary: liveItinerary(), trip_meta: meta, share_token: token })
@@ -117,6 +117,16 @@ test.describe("Today mode", () => {
       await declineConsent(page);
       await page.getByTestId("today-view").waitFor({ state: "visible", timeout: 30_000 });
       await page.getByTestId("today-highlight").locator(".line-through").waitFor({ state: "visible", timeout: 15_000 });
+
+      // Phase 3.4: the "Packed?" checklist is present (collapsed on day 2);
+      // expanding it reveals the trip's packing items, and ticking one persists.
+      const packing = page.getByTestId("today-packing");
+      await packing.waitFor({ state: "visible", timeout: 10_000 });
+      await packing.getByRole("button").first().click(); // expand
+      const firstItem = page.getByTestId("today-packing-item").first();
+      await firstItem.waitFor({ state: "visible", timeout: 5_000 });
+      await firstItem.click();
+      await expect(page.getByTestId("today-packing-progress")).toContainText(/1\s*\/\s*3/);
     } finally {
       await admin.from("trip_today_actions").delete().eq("trip_id", TRIP_ID!);
       await admin
