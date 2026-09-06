@@ -53,6 +53,7 @@ import * as ForecastMod from "../lib/email/trip-forecast";
 import * as CoordMod from "../lib/email/trip-coordinates";
 import * as LocaleMod from "../lib/email/reminder-locale";
 import * as VerifyMod from "../lib/email/verify-render";
+import * as FollowupCtaMod from "../lib/email/followup-cta";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const TR = (TripReminderMod as any).default;
@@ -75,6 +76,7 @@ const tripStartCoordinate = CO.tripStartCoordinate;
 const VF = (VerifyMod as any).default ?? VerifyMod;
 const verifyRenderedEmail = VF.verifyRenderedEmail;
 const contextLines = VF.contextLines;
+const FC = (FollowupCtaMod as any).default ?? FollowupCtaMod;
 const LC = (LocaleMod as any).default ?? LocaleMod;
 const resolveLocale = LC.resolveLocale;
 const formatDateRange = LC.formatDateRange;
@@ -389,10 +391,10 @@ async function main() {
     if (blocks.length) stats.withEnrichment++;
 
     const tripUrl = `${APP}/trips/${trip.id}?slot=${row.slot}`;
+    // The SHARED builder, not a copy — the same one the cron uses, so this
+    // audit vets the URL that will actually ship (Phase 4.3: return → feedback).
     const ctaUrl = isFollowup(row.slot)
-      ? row.slot === "followup_return_3d"
-        ? tripUrl
-        : `${APP}/trips/new?slot=${row.slot}`
+      ? FC.postTripCtaUrl(row.slot, { tripUrl, appUrl: APP, userId: row.user_id, locale })
       : tripUrl;
 
     const props: any = isFollowup(row.slot)

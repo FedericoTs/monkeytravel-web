@@ -2430,9 +2430,9 @@
   },
   "tripFollowupEmail": {
     "followup_return_3d": {
-      "heading": "Com'è andata a {destination}?",
-      "body": "Sei tornato qualche giorno fa. Il tuo piano giorno per giorno è ancora salvato — comodo se qualcuno ti chiede dove sei stato. E se qualcosa non ha funzionato sul posto, faccelo sapere: è il modo più rapido per migliorare.",
-      "cta": "Apri il tuo viaggio"
+      "heading": "Com’è andata a {destination}?",
+      "body": "Sei tornato qualche giorno fa. Ci piacerebbe sapere com’è andata — cosa ha funzionato nel piano e cosa no sul posto. Bastano un paio di minuti, ed è il modo più rapido per migliorare.",
+      "cta": "Lascia un feedback"
     },
     "followup_next_21d": {
       "heading": "Stai pensando al prossimo?",

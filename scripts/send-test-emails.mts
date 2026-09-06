@@ -17,6 +17,7 @@ import * as InviteMod from "../lib/email/templates/Invite";
 import * as VoteCastMod from "../lib/email/templates/VoteCast";
 import * as TripReminderMod from "../lib/email/templates/TripReminder";
 import * as TripFollowupMod from "../lib/email/templates/TripFollowup";
+import * as FollowupCtaMod from "../lib/email/followup-cta";
 import * as TripContextMod from "../lib/email/trip-context";
 import * as ConfirmSignupMod from "../lib/email/templates/ConfirmSignup";
 import * as AuthActionMod from "../lib/email/templates/AuthAction";
@@ -41,6 +42,7 @@ const TripReminderEmail = TripReminder.default;
 const tripReminderEmailText = TripReminder.tripReminderEmailText;
 const tripReminderSubject = TripReminder.tripReminderSubject;
 const TripFollowup = (TripFollowupMod as any).default;
+const FollowupCta = (FollowupCtaMod as any).default ?? FollowupCtaMod;
 const TripFollowupEmail = TripFollowup.default;
 const tripFollowupEmailText = TripFollowup.tripFollowupEmailText;
 const TERMINAL_FOLLOWUP_SLOTS = TripFollowup.TERMINAL_FOLLOWUP_SLOTS;
@@ -237,7 +239,7 @@ const FOLLOWUP_SLOTS = [
   "followup_next_21d",
   "followup_final_45d",
   "followup_dormant",
-];
+] as const;
 
 const reminderJobs: Job[] = REMINDER_SLOTS.map((slot) => {
   const props = {
@@ -273,11 +275,8 @@ const followupJobs: Job[] = FOLLOWUP_SLOTS.map((slot) => {
     body: fill(followupCopy[slot].body),
     // Per-slot here, unlike the reminders.
     ctaLabel: followupCopy[slot].cta,
-    // Matches the cron: only the +3d mail returns to the finished trip.
-    ctaUrl:
-      slot === "followup_return_3d"
-        ? `${APP}/trips/SAMPLE`
-        : `${APP}/trips/new?slot=${slot}`,
+    // The SHARED builder, not a copy (Phase 4.3: return → feedback survey).
+    ctaUrl: FollowupCta.postTripCtaUrl(slot, { tripUrl: `${APP}/trips/SAMPLE`, appUrl: APP, userId: "sample-user", locale: L }),
     finalNote: isTerminal ? followupCopy.finalNote : undefined,
     locale: L,
     contextBlocks: ctxFor(slot),
