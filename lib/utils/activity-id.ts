@@ -329,13 +329,41 @@ export function moveActivityInDay(
   );
 }
 
+function timeToMinutes(time: string | undefined): number | null {
+  const m = typeof time === "string" ? time.match(/^(\d{1,2}):(\d{2})/) : null;
+  return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+}
+
 /**
- * Move an activity to a different day
+ * The slot in `day` where an activity starting at `startTime` keeps its
+ * place in the day's chronological order: before the first activity that
+ * starts later, else at the end. A morning museum moved to another day stays
+ * a morning museum instead of being tacked onto the evening.
+ */
+export function chronologicalInsertIndex(day: ItineraryDay, startTime: string | undefined): number {
+  const minutes = timeToMinutes(startTime);
+  if (minutes === null) return day.activities.length;
+  const idx = day.activities.findIndex((a) => {
+    const other = timeToMinutes(a.start_time);
+    return other !== null && other > minutes;
+  });
+  return idx === -1 ? day.activities.length : idx;
+}
+
+/**
+ * Move an activity to a different day.
+ *
+ * `targetIndex` decides where it lands in the target day:
+ *   - omitted → appended (legacy behaviour, used by the assistant route)
+ *   - a number → inserted at that index (clamped), e.g. a drag drop position
+ *   - "auto"   → its chronological slot by start time (the "Move to day"
+ *                sheet), so it keeps the same part of the day
  */
 export function moveActivityToDay(
   itinerary: ItineraryDay[],
   activityId: string,
-  targetDayIndex: number
+  targetDayIndex: number,
+  targetIndex?: number | "auto"
 ): ItineraryDay[] {
   const location = findActivityById(itinerary, activityId);
   if (!location) return itinerary;
@@ -350,6 +378,14 @@ export function moveActivityToDay(
     return itinerary;
   }
 
+  const targetDay = itinerary[targetDayIndex];
+  const insertAt =
+    targetIndex === undefined
+      ? targetDay.activities.length
+      : targetIndex === "auto"
+        ? chronologicalInsertIndex(targetDay, activity.start_time)
+        : Math.max(0, Math.min(targetIndex, targetDay.activities.length));
+
   return itinerary.map((day, i) => {
     if (i === sourceDayIndex) {
       // Remove from source day
@@ -359,11 +395,10 @@ export function moveActivityToDay(
       };
     }
     if (i === targetDayIndex) {
-      // Add to target day
-      return {
-        ...day,
-        activities: [...day.activities, activity],
-      };
+      // Insert into target day
+      const activities = [...day.activities];
+      activities.splice(insertAt, 0, activity);
+      return { ...day, activities };
     }
     return day;
   });
@@ -563,7 +598,7 @@ export function recalculateActivityTimes(
       // Apply type-aware timing for first activity
       // This ensures a dinner restaurant moved to first position
       // gets scheduled at breakfast time, not its original dinner time
-      let firstActivityMinutes = adjustToPreferredTime(defaultDayStart, activity.type);
+      const firstActivityMinutes = adjustToPreferredTime(defaultDayStart, activity.type);
 
       // Format the time
       const time = formatMinutesToTime(firstActivityMinutes);

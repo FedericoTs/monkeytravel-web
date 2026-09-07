@@ -94,8 +94,8 @@
     "less": "Meno"
   },
   "drag": {
-    "title": "Tieni premuto e trascina per riordinare",
-    "ariaLabel": "Maniglia di trascinamento - tieni premuto e trascina per riordinare le attività",
+    "title": "Tieni premuto e trascina per riordinare o spostare in un altro giorno",
+    "ariaLabel": "Maniglia: tieni premuto e trascina per riordinare o spostare in un altro giorno",
     "hint": "Trascina"
   },
   "validation": {

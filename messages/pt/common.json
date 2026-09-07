@@ -94,8 +94,8 @@
     "less": "Menos"
   },
   "drag": {
-    "title": "Segure e arraste para reordenar",
-    "ariaLabel": "Alça de arraste - segure e arraste para reordenar atividades",
+    "title": "Segure e arraste para reordenar ou mover para outro dia",
+    "ariaLabel": "Alça: segure e arraste para reordenar ou mover para outro dia",
     "hint": "Arrastar"
   },
   "validation": {

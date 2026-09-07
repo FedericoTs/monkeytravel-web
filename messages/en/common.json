@@ -94,8 +94,8 @@
     "less": "Less"
   },
   "drag": {
-    "title": "Hold and drag to reorder",
-    "ariaLabel": "Drag handle - hold and drag to reorder activities",
+    "title": "Hold and drag to reorder or move to another day",
+    "ariaLabel": "Drag handle — hold and drag to reorder or move to another day",
     "hint": "Drag"
   },
   "validation": {

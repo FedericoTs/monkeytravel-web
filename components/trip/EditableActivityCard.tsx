@@ -12,6 +12,9 @@ import {
 } from "@/lib/utils/pricing";
 import { getActivityTypeColors } from "@/lib/constants/activityColors";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { CalendarDays, Pencil, Sparkles, Trash2 } from "lucide-react";
+import TripActionsMenu, { TripActionsMenuItem } from "./TripActionsMenu";
+import MoveToDaySheet, { type MoveToDayOption } from "./MoveToDaySheet";
 
 interface EditableActivityCardProps {
   activity: Activity;
@@ -25,6 +28,11 @@ interface EditableActivityCardProps {
   onRegenerate: () => void;
   availableDays: number[];
   currentDayIndex: number;
+  /**
+   * Days as the "Move to another day" sheet shows them (date, city, how
+   * many activities). Falls back to bare day numbers from `availableDays`.
+   */
+  dayOptions?: MoveToDayOption[];
   isRegenerating?: boolean;
   /**
    * When true, photos will NOT be fetched automatically.
@@ -61,6 +69,7 @@ function EditableActivityCard({
   onRegenerate,
   availableDays,
   currentDayIndex,
+  dayOptions,
   isRegenerating = false,
   disableAutoFetch = false,
   onPhotoCapture,
@@ -79,7 +88,7 @@ function EditableActivityCard({
   const tc = useTranslations('common');
   const [expanded, setExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showMoveToDay, setShowMoveToDay] = useState(false);
+  const [showMoveSheet, setShowMoveSheet] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editValues, setEditValues] = useState({
     start_time: activity.start_time,
@@ -151,10 +160,8 @@ function EditableActivityCard({
   //   fetchVerifiedPrice();
   // }, [activityKey, activity.name, activity.address, activity.location, activity.type]);
 
-  // Always show AI estimate instead - no API call needed
-  useEffect(() => {
-    setPriceLoading(false);
-  }, []);
+  // Always show AI estimate instead - no API call needed (priceLoading stays
+  // at its initial false; the old reset-effect was a no-op).
 
   // Generate URLs
   const mapSearchQuery = encodeURIComponent(
@@ -224,79 +231,56 @@ function EditableActivityCard({
           : "rounded-xl"
       }`}
     >
-      {/* Edit Mode Actions Bar - Top of card */}
+      {/*
+        Edit-mode actions — Edit plus a ⋯ menu holding Move to another day /
+        Regenerate / Delete. Both triggers are 44px (DESIGN.md touch minimum)
+        and sit INSIDE the card: the old bar floated at -top-2/-right-2 as four
+        32px icon-only circles, which the sortable wrapper's overflow clipped
+        and which had no label on touch screens — "Move to day" was the
+        ambiguous ⇄ glyph nobody found.
+      */}
       {isEditMode && !isEditing && (
-        <div className="absolute -top-2 -right-2 flex items-center gap-1 z-10">
-          {/* Move to Day */}
-          <div className="relative">
-            <button
-              onClick={() => setShowMoveToDay(!showMoveToDay)}
-              className="w-8 h-8 rounded-full bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center shadow-lg transition-all"
-              title={t('editActivity.moveToDay')}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-              </svg>
-            </button>
-
-            {showMoveToDay && (
-              <div className="absolute top-full right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20 min-w-[120px]">
-                {availableDays.map((dayNum) => (
-                  <button
-                    key={dayNum}
-                    onClick={() => {
-                      onMoveToDay(dayNum - 1);
-                      setShowMoveToDay(false);
-                    }}
-                    disabled={dayNum - 1 === currentDayIndex}
-                    className={`w-full px-3 py-1.5 text-sm text-left ${
-                      dayNum - 1 === currentDayIndex
-                        ? "text-slate-500 cursor-not-allowed bg-slate-50"
-                        : "text-slate-700 hover:bg-slate-100"
-                    }`}
-                  >
-                    {t('day.label', { number: dayNum })}
-                    {dayNum - 1 === currentDayIndex && ` ${t('day.current')}`}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Edit */}
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5" data-testid="activity-actions">
           <button
+            type="button"
             onClick={() => setIsEditing(true)}
-            className="w-8 h-8 rounded-full bg-white hover:bg-blue-50 text-blue-600 flex items-center justify-center shadow-lg transition-all"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-slate-700 shadow-md transition-colors hover:bg-slate-50"
             title={t('editActivity.editActivity')}
+            aria-label={t('editActivity.editActivity')}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
+            <Pencil className="h-4 w-4" aria-hidden="true" />
           </button>
-
-          {/* Regenerate */}
-          <button
-            onClick={onRegenerate}
-            className="w-8 h-8 rounded-full bg-white hover:bg-purple-50 text-purple-600 flex items-center justify-center shadow-lg transition-all"
-            title={t('editActivity.regenerateWithAI')}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </button>
-
-          {/* Delete */}
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="w-8 h-8 rounded-full bg-white hover:bg-red-50 text-red-500 flex items-center justify-center shadow-lg transition-all"
-            title={t('editActivity.deleteActivity')}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
+          <TripActionsMenu label={t('editActivity.moreActions')} iconOnly closeOnItemClick>
+            <TripActionsMenuItem onClick={() => setShowMoveSheet(true)} icon={<CalendarDays className="h-4 w-4" aria-hidden="true" />}>
+              {t('editActivity.moveToAnotherDay')}
+            </TripActionsMenuItem>
+            <TripActionsMenuItem onClick={onRegenerate} icon={<Sparkles className="h-4 w-4" aria-hidden="true" />}>
+              {t('editActivity.regenerateWithAI')}
+            </TripActionsMenuItem>
+            <TripActionsMenuItem
+              onClick={() => setShowDeleteConfirm(true)}
+              icon={<Trash2 className="h-4 w-4" aria-hidden="true" />}
+              tone="danger"
+            >
+              {t('editActivity.deleteActivity')}
+            </TripActionsMenuItem>
+          </TripActionsMenu>
         </div>
       )}
+
+      {/* "Move to another day" picker — portalled, so it can live here safely */}
+      <MoveToDaySheet
+        isOpen={showMoveSheet}
+        onClose={() => setShowMoveSheet(false)}
+        activityName={activity.name}
+        days={dayOptions ?? availableDays.map((dayNumber) => ({ dayNumber }))}
+        currentDayNumber={availableDays[currentDayIndex] ?? currentDayIndex + 1}
+        onPick={(dayNumber) => {
+          setShowMoveSheet(false);
+          const idx = availableDays.indexOf(dayNumber);
+          onMoveToDay(idx === -1 ? dayNumber - 1 : idx);
+        }}
+      />
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
@@ -728,6 +712,9 @@ export default memo(EditableActivityCard, (prevProps, nextProps) => {
   if (prevProps.isEditMode !== nextProps.isEditMode) return false;
   if (prevProps.isRegenerating !== nextProps.isRegenerating) return false;
   if (prevProps.currentDayIndex !== nextProps.currentDayIndex) return false;
+  // Memoized upstream on the itinerary, so identity changes only when a day's
+  // contents change — exactly when the move sheet's counts would go stale.
+  if (prevProps.dayOptions !== nextProps.dayOptions) return false;
   if (prevProps.currency !== nextProps.currency) return false;
 
   // Check key activity properties that affect rendering

@@ -485,7 +485,7 @@
     "estBudget": "Orçamento Est.",
     "noItinerary": "Nenhum Roteiro Ainda",
     "noItineraryMessage": "Esta viagem ainda não tem atividades planejadas.",
-    "reorderActivities": "Reordenar atividades",
+    "reorderActivities": "Arraste para reordenar, ou solte em outro dia. Use ⋯ para mover com precisão.",
     "unsavedChanges": "Alterações não salvas",
     "discardChanges": "Descartar Alterações",
     "saveChanges": "Salvar Alterações",
@@ -521,6 +521,26 @@
   },
   "editActivity": {
     "moveToDay": "Mover para o dia",
+
+    "moveToAnotherDay": "Mover para outro dia…",
+
+    "moveSheetTitle": "Para qual dia?",
+
+    "currentDay": "Dia atual",
+
+    "emptyDay": "Nada planejado ainda",
+
+    "activityCount": "{count, plural, one {# atividade} other {# atividades}}",
+
+    "movedToDay": "Movida para o dia {day}",
+
+    "dropHere": "Solte aqui → início do dia {day}",
+
+    "dropIntoEmptyDay": "Solte uma atividade aqui",
+
+    "dropAtEnd": "Solte aqui → fim do dia",
+
+    "moreActions": "Mais ações",
     "editActivity": "Editar atividade",
     "regenerateWithAI": "Gerar novamente com AI",
     "deleteActivity": "Excluir atividade",

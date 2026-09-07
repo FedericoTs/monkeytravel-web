@@ -7,6 +7,7 @@ import { GripVertical } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { Activity, VoteType, ActivityVote, ConsensusResult, ActivityVotingStatus } from "@/types";
 import EditableActivityCard from "./EditableActivityCard";
+import type { MoveToDayOption } from "./MoveToDaySheet";
 
 interface SortableActivityCardProps {
   activity: Activity;
@@ -20,6 +21,8 @@ interface SortableActivityCardProps {
   onRegenerate: () => void;
   availableDays: number[];
   currentDayIndex: number;
+  /** Days for the "Move to another day" sheet (passed through). */
+  dayOptions?: MoveToDayOption[];
   isRegenerating?: boolean;
   disableAutoFetch?: boolean;
   onPhotoCapture?: (activityId: string, photoUrl: string) => void;
@@ -45,7 +48,6 @@ function SortableActivityCard({
     listeners,
     setNodeRef,
     transform,
-    transition,
     isDragging,
     isSorting,
   } = useSortable({
@@ -57,8 +59,13 @@ function SortableActivityCard({
     ? "none" // No transition while actively dragging
     : "transform 350ms cubic-bezier(0.32, 0.72, 0, 1), opacity 200ms ease, box-shadow 200ms ease";
 
+  // The card that follows the pointer is the DragOverlay ghost (see
+  // ItineraryDnd.tsx) — it can cross day boundaries and auto-scroll without
+  // being clipped or re-parented. So the sortable item itself stays put as a
+  // faded placeholder while dragging; only its siblings translate to make
+  // room.
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
     transition: springTransition,
     zIndex: isDragging ? 100 : isSorting ? 10 : undefined,
   };
@@ -70,10 +77,11 @@ function SortableActivityCard({
       className={`
         relative transition-all
         ${isDragging
-          ? "scale-[1.02] opacity-95"
+          ? "opacity-40"
           : "scale-100 opacity-100"
         }
       `}
+      data-testid={`activity-card-${activity.id ?? props.index}`}
     >
       {/* Floating elevation shadow layer - iOS style depth */}
       <div
@@ -90,7 +98,7 @@ function SortableActivityCard({
       {/* Main card container with drag handle */}
       <div
         className={`
-          relative flex items-stretch rounded-xl overflow-hidden
+          relative flex items-stretch rounded-xl overflow-visible
           transition-all duration-200
           ${isDragging
             ? "ring-2 ring-[var(--primary)] ring-offset-2 bg-white"
@@ -120,6 +128,7 @@ function SortableActivityCard({
           }}
           title={t("title")}
           aria-label={t("ariaLabel")}
+          data-testid="drag-handle"
         >
           {/* Grip icon with subtle animation */}
           <div className={`

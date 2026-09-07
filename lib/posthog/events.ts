@@ -410,11 +410,15 @@ export interface ActivityModifiedEvent {
   trip_id: string;
   activity_id: string;
   /** Type of modification */
-  modification_type: "reorder" | "delete" | "add" | "edit_details" | "regenerate";
+  modification_type: "reorder" | "delete" | "add" | "edit_details" | "regenerate" | "move_day";
   /** Is this the user's first modification ever */
   is_first_modification: boolean;
-  /** Day number in the trip */
+  /** Day number in the trip (the destination day for move_day) */
   day_number: number;
+  /** move_day only: dragged across days, or picked in the "Move to day" sheet */
+  method?: "drag" | "menu";
+  /** move_day only: the day the activity came from */
+  from_day_number?: number;
 }
 
 export interface ReturnVisitEvent {
