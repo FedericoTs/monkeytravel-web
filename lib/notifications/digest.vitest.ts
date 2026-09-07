@@ -6,6 +6,7 @@ import {
   digestScheduledForUtc,
   plannedDigests,
   digestStaleReason,
+  digestParticipantRecipients,
   DIGEST_MAX_DAY,
 } from "./digest";
 
@@ -78,5 +79,38 @@ describe("digestStaleReason", () => {
   it("suppresses once day K has arrived", () => {
     expect(digestStaleReason(3, start, new Date("2026-09-12T07:00:00Z"))).toMatch(/stale_in_trip_day_3_0d_late/);
     expect(digestStaleReason(3, start, new Date("2026-09-14T07:00:00Z"))).toMatch(/stale_in_trip_day_3_2d_late/);
+  });
+});
+
+describe("digestParticipantRecipients", () => {
+  const rows = (xs: Array<[string | null, string | null, string | null]>) =>
+    xs.map(([email, user_id, participant_cookie_id]) => ({ email, user_id, participant_cookie_id }));
+
+  it("keeps emailed participants, carries user id + a stable key", () => {
+    const out = digestParticipantRecipients(
+      rows([["ana@x.com", "u-1", "c-1"], ["bob@x.com", null, "c-2"]]),
+      "owner@x.com",
+    );
+    expect(out).toEqual([
+      { email: "ana@x.com", userId: "u-1", key: "c-1" },
+      { email: "bob@x.com", userId: null, key: "c-2" },
+    ]);
+  });
+
+  it("drops the owner even if a participant joined with the owner's address", () => {
+    const out = digestParticipantRecipients(rows([["Owner@X.com", null, "c-1"], ["ana@x.com", null, "c-2"]]), "owner@x.com");
+    expect(out.map((r) => r.email)).toEqual(["ana@x.com"]);
+  });
+
+  it("lowercases + dedupes by email (two cookies, one address)", () => {
+    const out = digestParticipantRecipients(rows([["Ana@X.com", null, "c-1"], ["ana@x.com", "u-9", "c-2"]]), "owner@x.com");
+    expect(out).toHaveLength(1);
+    expect(out[0].email).toBe("ana@x.com");
+    expect(out[0].key).toBe("c-1"); // first wins
+  });
+
+  it("skips rows with no email; falls back key cookie→user→email", () => {
+    const out = digestParticipantRecipients(rows([[null, "u-1", "c-1"], ["  ", null, "c-2"], ["cara@x.com", "u-3", null]]), "owner@x.com");
+    expect(out).toEqual([{ email: "cara@x.com", userId: "u-3", key: "u-3" }]);
   });
 });
