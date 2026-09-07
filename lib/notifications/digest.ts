@@ -124,3 +124,38 @@ export function digestStaleReason(day: number, startDate: string, now: Date): st
   }
   return null;
 }
+
+/** A participant the digest fan-out (Phase 4.2) will email. */
+export interface DigestRecipient {
+  email: string;
+  /** Non-null only for a signed-in participant — then dispatchEmail honours
+   * their tripReminders opt-out; anonymous participants have none. */
+  userId: string | null;
+  /** Stable id for the per-recipient idempotency key. */
+  key: string;
+}
+
+/**
+ * The emailed participants of a trip who should also receive the in-trip
+ * digest (Phase 4.2, "in-trip digest only" + "fan out at send time").
+ *
+ * Pure so the selection is tested without the cron: from the trip's active
+ * participants, take those who gave an email, lowercase + dedupe by email, and
+ * drop the owner (a participant may have joined with the owner's own address —
+ * the owner is emailed directly, never twice). The caller passes only rows it
+ * already filtered to active (left_at IS NULL); this is the recipient policy.
+ */
+export function digestParticipantRecipients(
+  rows: { email: string | null; user_id: string | null; participant_cookie_id: string | null }[],
+  ownerEmail: string,
+): DigestRecipient[] {
+  const seen = new Set<string>([ownerEmail.trim().toLowerCase()]);
+  const out: DigestRecipient[] = [];
+  for (const r of rows) {
+    const email = (r.email ?? "").trim().toLowerCase();
+    if (!email || seen.has(email)) continue;
+    seen.add(email);
+    out.push({ email, userId: r.user_id ?? null, key: r.participant_cookie_id ?? r.user_id ?? email });
+  }
+  return out;
+}

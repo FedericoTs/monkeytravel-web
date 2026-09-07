@@ -247,6 +247,17 @@ async function main() {
       continue;
     }
 
+    // In-trip day digests (in_trip_day_<K>, Phase 4.1/4.2) render from the
+    // trip's itinerary via the trip_day_digest template, not the reminder/
+    // followup copy this audit vets. They are gated at SEND time by the same
+    // verify-render check, so count and skip them here rather than mis-render
+    // them as reminders. (Pre-deploy digest coverage would need a shared
+    // render helper the cron and this script both call.)
+    if (row.slot.startsWith("in_trip_day_")) {
+      stats.bySlot[row.slot] = (stats.bySlot[row.slot] ?? 0) + 1;
+      continue;
+    }
+
     // Consent, mirrored from lib/email/send.ts. Reported, not failed: a
     // suppressed row is correct behaviour, not a rendering defect.
     const ns = (user.notification_settings ?? {}) as Record<string, unknown>;

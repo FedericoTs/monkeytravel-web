@@ -25,7 +25,7 @@ import {
   summarizeDefects,
 } from "@/lib/email/verify-render";
 import { isTripNotificationsEnabled } from "@/lib/notifications/scheduling";
-import { parseDigestDay, digestStaleReason } from "@/lib/notifications/digest";
+import { parseDigestDay, digestStaleReason, digestParticipantRecipients } from "@/lib/notifications/digest";
 import { postTripCtaUrl } from "@/lib/email/followup-cta";
 import { resolveLocale, formatDateRange } from "@/lib/email/reminder-locale";
 
@@ -100,6 +100,18 @@ const FOLLOWUP_NS = "common.tripFollowupEmail";
  * mounting rule.
  */
 const DIGEST_NS = "common.tripDayDigestEmail";
+
+/**
+ * Phase 4.2: also send the in-trip digest to the trip's emailed participants,
+ * OFF by default. A separate switch from the owner cascade so the participant
+ * fan-out is a deliberate, watchable rollout (its sends are not counted by
+ * TRIP_NOTIFICATIONS_SEND_CAP, which counts owner queue rows). Server-only —
+ * only this cron reads it. Suppression + any signed-in participant's opt-out
+ * are still honoured per send inside dispatchEmail.
+ */
+function isParticipantDigestEnabled(): boolean {
+  return process.env.PARTICIPANT_DIGEST_ENABLED === "true";
+}
 
 /**
  * Headings for the per-trip enrichment blocks. Shared by both families —
@@ -313,6 +325,10 @@ type TripEmailRow = {
   highlights: unknown;
   packing_suggestions: unknown;
   day1: unknown;
+  // Phase 4.2: fan the in-trip digest out to participants — they access the
+  // trip at /shared/<token>, and their language is best-guessed from the trip.
+  share_token: string | null;
+  trip_locale: string | null;
 };
 
 type SlotRow = {
@@ -481,10 +497,11 @@ async function processRow(
   const { data: tripRow, error: tripErr } = await svc
     .from("trips")
     .select(
-      "id, title, start_date, end_date, reminders_muted, status, itinerary, " +
+      "id, title, start_date, end_date, reminders_muted, status, itinerary, share_token, " +
         "weather_note:trip_meta->>weather_note, " +
         "highlights:trip_meta->highlights, " +
         "packing_suggestions:trip_meta->packing_suggestions, " +
+        "trip_locale:trip_meta->>locale, " +
         "day1:itinerary->0"
     )
     .eq("id", row.trip_id)
@@ -982,64 +999,103 @@ async function dispatchDayDigest(
   const shown = acts.slice(0, MAX_ACTIVITIES);
   const moreCount = acts.length - shown.length;
 
-  let t: Awaited<ReturnType<typeof getTranslations>>;
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
+  // The day plan is trip data — locale-independent — so it and the containment
+  // corpus are built once; only the copy, CTA target and recipient vary below.
+  const ownStrings = [dayTitle, ...acts.flatMap((a) => [a.name, a.time])].filter(Boolean);
+
+  // Render + dispatch one digest for a recipient/locale/CTA. Reused for the
+  // owner and (Phase 4.2) each emailed participant. Returns the dispatch
+  // outcome, or a synthetic failure when a string won't resolve (the same
+  // assertTranslated guard the owner path always had).
+  const sendDigest = async (
+    email: string,
+    userId: string | null,
+    loc: Awaited<ReturnType<typeof resolveLocale>>,
+    tr: Awaited<ReturnType<typeof getTranslations>>,
+    ctaUrl: string,
+    idemSuffix: string,
+  ): Promise<Awaited<ReturnType<typeof dispatchEmail>> | { ok: false; status: "failed"; error: string; i18n: true }> => {
+    const heading = tr("heading", { day });
+    const intro = tr("intro");
+    const ctaLabel = tr("cta");
+    const emptyLine = acts.length === 0 ? tr("empty", { day }) : undefined;
+    const andMore = moreCount > 0 ? tr("andMore", { count: moreCount }) : undefined;
+    const unresolved = assertTranslated({ heading, intro, ctaLabel, ...(emptyLine ? { emptyLine } : {}), ...(andMore ? { andMore } : {}) });
+    if (unresolved) return { ok: false, status: "failed", error: unresolved, i18n: true };
+    // Tomorrow's plan as ONE context block: label = the day's title (not
+    // containment-checked), items = activities (name + time, which ARE — and
+    // come from this trip, so they pass).
+    const blocks: ContextBlock[] =
+      shown.length > 0
+        ? [{ label: dayTitle || heading, items: shown.map((a) => ({ text: a.name, meta: a.time || undefined })) }]
+        : [];
+    const template: EmailTemplate = {
+      id: "trip_day_digest",
+      props: { day, destination, heading, intro, blocks, emptyLine, andMore, ctaLabel, tripUrl: ctaUrl, locale: loc },
+    };
+    return dispatchEmail({
+      recipientEmail: email,
+      recipientUserId: userId,
+      idempotencyKey: `${template.id}:${row.trip_id}:${row.slot}${idemSuffix}`,
+      locale: loc,
+      template,
+      metadata: { scheduled_notification_id: row.id, slot: row.slot, trip_id: row.trip_id, ...(idemSuffix ? { participant_key: idemSuffix.slice(1) } : {}) },
+      verify: ({ html, subject }) => {
+        const defects = blockingDefects(
+          verifyRenderedEmail({ subject, html, destination, ctaUrl, contextBlocks: blocks, ownStrings })
+        );
+        return defects.length ? { ok: false, reason: summarizeDefects(defects) } : { ok: true };
+      },
+    });
+  };
+
+  // Owner send — drives the queue row's status (unchanged from Phase 4.1).
+  let ownerT: Awaited<ReturnType<typeof getTranslations>>;
   try {
-    t = await getTranslations({ locale, namespace: DIGEST_NS });
+    ownerT = await getTranslations({ locale, namespace: DIGEST_NS });
   } catch (err) {
     await persistOutcome(svc, row.id, "failed", "i18n_load_error", err instanceof Error ? err.message : String(err));
     return "failed";
   }
+  const result = await sendDigest(recipientEmail, row.user_id, locale, ownerT, `${APP_URL}/trips/${trip.id}?slot=${row.slot}`, "");
 
-  const heading = t("heading", { day });
-  const intro = t("intro");
-  const ctaLabel = t("cta");
-  const emptyLine = acts.length === 0 ? t("empty", { day }) : undefined;
-  const andMore = moreCount > 0 ? t("andMore", { count: moreCount }) : undefined;
-
-  const unresolved = assertTranslated({
-    heading,
-    intro,
-    ctaLabel,
-    ...(emptyLine ? { emptyLine } : {}),
-    ...(andMore ? { andMore } : {}),
-  });
-  if (unresolved) {
-    await persistOutcome(svc, row.id, "failed", "i18n_load_error", unresolved);
-    return "failed";
+  // Participant fan-out (Phase 4.2, off by default): also email the trip's
+  // emailed participants. Best-effort and INDEPENDENT of the owner outcome
+  // (owner may be suppressed while participants aren't). Resolved fresh from
+  // trip_participants so a mid-trip joiner is covered; one trip-locale
+  // translator for all of them; deep-linked to /shared/<token>. Suppression +
+  // any signed-in participant's opt-out are enforced per send by dispatchEmail.
+  if (isParticipantDigestEnabled() && trip.share_token) {
+    try {
+      const { data: parts } = await svc
+        .from("trip_participants")
+        .select("email, user_id, participant_cookie_id")
+        .eq("trip_id", row.trip_id)
+        .is("left_at", null)
+        .not("email", "is", null);
+      const recipients = digestParticipantRecipients(parts ?? [], recipientEmail);
+      if (recipients.length > 0) {
+        const partLocale = resolveLocale(trip.trip_locale);
+        const partT = await getTranslations({ locale: partLocale, namespace: DIGEST_NS });
+        const shareUrl = `${APP_URL}/shared/${trip.share_token}?slot=${row.slot}`;
+        let sent = 0, skipped = 0, failed = 0;
+        for (const r of recipients) {
+          const pr = await sendDigest(r.email, r.userId, partLocale, partT, shareUrl, `:${r.key}`);
+          if (pr.ok && pr.status === "sent") sent++;
+          else if (pr.ok) skipped++;
+          else failed++;
+        }
+        console.log("[cron/scheduled-notifs] digest fan-out to participants", {
+          trip: row.trip_id, slot: row.slot, recipients: recipients.length, sent, skipped, failed,
+        });
+      }
+    } catch (err) {
+      console.warn("[cron/scheduled-notifs] digest participant fan-out failed", {
+        id: row.id, error: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
-
-  // Tomorrow's plan as ONE context block: label = the day's title (not checked
-  // by the containment gate), items = activities (name + time, which ARE
-  // checked — and come from this trip, so they pass).
-  const blocks: ContextBlock[] =
-    shown.length > 0
-      ? [{ label: dayTitle || heading, items: shown.map((a) => ({ text: a.name, meta: a.time || undefined })) }]
-      : [];
-
-  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
-  const tripUrl = `${APP_URL}/trips/${trip.id}?slot=${row.slot}`;
-
-  const ownStrings = [dayTitle, ...acts.flatMap((a) => [a.name, a.time])].filter(Boolean);
-
-  const template: EmailTemplate = {
-    id: "trip_day_digest",
-    props: { day, destination, heading, intro, blocks, emptyLine, andMore, ctaLabel, tripUrl, locale },
-  };
-
-  const result = await dispatchEmail({
-    recipientEmail,
-    recipientUserId: row.user_id,
-    idempotencyKey: `${template.id}:${row.trip_id}:${row.slot}`,
-    locale,
-    template,
-    metadata: { scheduled_notification_id: row.id, slot: row.slot, trip_id: row.trip_id },
-    verify: ({ html, subject }) => {
-      const defects = blockingDefects(
-        verifyRenderedEmail({ subject, html, destination, ctaUrl: tripUrl, contextBlocks: blocks, ownStrings })
-      );
-      return defects.length ? { ok: false, reason: summarizeDefects(defects) } : { ok: true };
-    },
-  });
 
   if (result.ok) {
     if (result.status === "sent") {
@@ -1061,7 +1117,7 @@ async function dispatchDayDigest(
     return "skipped";
   }
 
-  await persistOutcome(svc, row.id, "failed", "dispatch_error", result.error);
+  await persistOutcome(svc, row.id, "failed", "i18n" in result ? "i18n_load_error" : "dispatch_error", result.error);
   return "failed";
 }
 
