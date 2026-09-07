@@ -1,5 +1,7 @@
 {
-  "today": { "tomorrowSummary": "{count, plural, =0 {Nessuna attività} =1 {{first} e altri 0} other {{first} e altri #}}" },
+  "today": {
+    "tomorrowSummary": "{count, plural, =0 {Nessuna attività} =1 {{first} e altri 0} other {{first} e altri #}}"
+  },
   "assistant": {
     "title": "Chiedi o modifica il viaggio",
     "note": "Fai una domanda o dimmi cosa cambiare — vedi l'anteprima e applica le modifiche prima di salvare.",
@@ -513,7 +515,9 @@
     "crewVotesShare": "Condividi link di voto",
     "crewCtaText": "Parti con amici? Manda loro il piano: possono dire che ci sono, senza account.",
     "crewCtaButton": "Mandalo a chi viene",
-    "crewCtaDismiss": "Nascondi"
+    "crewCtaDismiss": "Nascondi",
+    "editWithAi": "Modifica con IA",
+    "more": "Altro"
   },
   "editActivity": {
     "moveToDay": "Sposta al giorno",

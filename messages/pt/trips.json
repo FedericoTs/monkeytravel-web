@@ -1,5 +1,7 @@
 {
-  "today": { "tomorrowSummary": "{count, plural, =0 {Sem atividades} =1 {{first} e mais 0} other {{first} e mais #}}" },
+  "today": {
+    "tomorrowSummary": "{count, plural, =0 {Sem atividades} =1 {{first} e mais 0} other {{first} e mais #}}"
+  },
   "assistant": {
     "title": "Pergunte ou ajuste a viagem",
     "note": "Faça uma pergunta ou diga o que mudar — veja a prévia e aplique alterações antes de salvar.",
@@ -513,7 +515,9 @@
     "crewVotesShare": "Compartilhar link de votação",
     "crewCtaText": "Vai viajar com amigos? Envie o plano para eles: podem dizer que vão, sem conta.",
     "crewCtaButton": "Envie para quem vai",
-    "crewCtaDismiss": "Dispensar"
+    "crewCtaDismiss": "Dispensar",
+    "editWithAi": "Editar com IA",
+    "more": "Mais"
   },
   "editActivity": {
     "moveToDay": "Mover para o dia",
