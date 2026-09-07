@@ -5,7 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Undo2, Redo2, RefreshCw } from "lucide-react";
+import { Undo2, Redo2, RefreshCw, Sparkles } from "lucide-react";
+import TripActionsMenu, { TripActionsMenuItem, TripActionsMenuSlot } from "@/components/trip/TripActionsMenu";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType, ProposalVoteType, ProposalWithVotes } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
@@ -2119,54 +2120,60 @@ export default function TripDetailClient({
               />
             )}
 
-            {/* Export Menu */}
+            {/* Edit with AI — the primary edit path surfaced (the assistant is
+                the killer feature). Opens the same AIAssistant the floating
+                trigger does. Phase 5.4. */}
             {!isEditMode && (
-              <ExportMenu
-                trip={{
-                  title: trip.title,
-                  description: trip.description,
-                  startDate: trip.startDate,
-                  endDate: trip.endDate,
-                  budget: trip.budget,
-                  itinerary: displayItinerary,
-                }}
-                destination={destination}
-                meta={trip.meta}
-              />
+              <button
+                onClick={() => setIsAIAssistantOpen(true)}
+                className="flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium bg-[var(--accent)] text-slate-900 hover:bg-[var(--accent)]/90 transition-colors"
+                title={t('detail.editWithAi')}
+              >
+                <Sparkles className="w-5 h-5 sm:w-4 sm:h-4" aria-hidden="true" />
+                <span className="hidden sm:inline">{t('detail.editWithAi')}</span>
+              </button>
             )}
 
-            {/* Add to Calendar (.ics download). Self-gates on
-                NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED — renders nothing
-                when the flag is off, so the wrapper is safe to leave
-                unconditional alongside the other action buttons. */}
-            {!isEditMode && <DownloadIcsButton tripId={trip.id} showSubtext={false} />}
-
-            {/* Add from email (paste booking → Gemini parse). Gated
-                in TWO places: the trigger button below (so the chunk
-                doesn't even load when off) AND the modal itself (so
-                if any caller forgets the env guard, nothing renders). */}
-            {!isEditMode && emailParseEnabled && (
-              <button
-                onClick={() => setIsPasteBookingOpen(true)}
-                className="flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
-                title={tCommon('addFromEmail.button')}
-              >
-                <svg
-                  className="w-5 h-5 sm:w-4 sm:h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            {/* More — the trip-detail diet (Phase 5.4): the secondary export
+                utilities collapse into one ⋯ menu so the bar reads
+                Share · Edit with AI · More. Each keeps its own component. */}
+            {!isEditMode && (
+              <TripActionsMenu label={t('detail.more')}>
+                <TripActionsMenuSlot>
+                  <ExportMenu
+                    trip={{
+                      title: trip.title,
+                      description: trip.description,
+                      startDate: trip.startDate,
+                      endDate: trip.endDate,
+                      budget: trip.budget,
+                      itinerary: displayItinerary,
+                    }}
+                    destination={destination}
+                    meta={trip.meta}
                   />
-                </svg>
-                <span className="hidden sm:inline">{tCommon('addFromEmail.button')}</span>
-              </button>
+                </TripActionsMenuSlot>
+
+                {/* Add to Calendar (.ics). Self-gates on the calendar flag —
+                    renders nothing when off, so the slot is safe unconditionally. */}
+                <TripActionsMenuSlot>
+                  <DownloadIcsButton tripId={trip.id} showSubtext={false} />
+                </TripActionsMenuSlot>
+
+                {/* Add from email (paste booking → Gemini parse). Flag-gated. */}
+                {emailParseEnabled && (
+                  <TripActionsMenuItem
+                    onClick={() => setIsPasteBookingOpen(true)}
+                    icon={
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    }
+                  >
+                    {tCommon('addFromEmail.button')}
+                  </TripActionsMenuItem>
+                )}
+              </TripActionsMenu>
             )}
 
             {/* Editing controls. Ambient (solo) owners edit inline with

@@ -1,5 +1,7 @@
 {
-  "today": { "tomorrowSummary": "{count, plural, =0 {No activities} =1 {{first} and 0 more} other {{first} and # more}}" },
+  "today": {
+    "tomorrowSummary": "{count, plural, =0 {No activities} =1 {{first} and 0 more} other {{first} and # more}}"
+  },
   "assistant": {
     "title": "Ask or tweak your trip",
     "note": "Ask a question, or tell me what to change — preview and apply edits before you save.",
@@ -513,7 +515,9 @@
     "crewVotesShare": "Share voting link",
     "crewCtaText": "Going with friends? Send them the plan: they can say they're in, no account needed.",
     "crewCtaButton": "Send it to the people coming",
-    "crewCtaDismiss": "Dismiss"
+    "crewCtaDismiss": "Dismiss",
+    "editWithAi": "Edit with AI",
+    "more": "More"
   },
   "editActivity": {
     "moveToDay": "Move to day",
