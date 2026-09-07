@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getTripDestination } from "@/lib/trips/destination";
+import { computeTripDayState } from "@/lib/trip/live";
 
 /**
  * The social preview card for a shared trip.
@@ -41,6 +42,7 @@ const CORAL = "#FF6B6B";
 const PAPER = "#FFFFFF";
 
 type TripRow = {
+  id: string;
   title: string | null;
   trip_meta: unknown;
   start_date: string | null;
@@ -108,7 +110,7 @@ export async function GET(request: Request) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("trips")
-    .select("title, trip_meta, start_date, end_date, cover_image_url, itinerary, budget")
+    .select("id, title, trip_meta, start_date, end_date, cover_image_url, itinerary, budget")
     // share_token is uuid, and deleted_at is re-asserted because service_role
     // bypasses RLS entirely — without it this would render deleted trips.
     .eq("share_token", token)
@@ -157,6 +159,57 @@ export async function GET(request: Request) {
 
   const cover = absolutise(data.cover_image_url, url.origin);
 
+  // Phase 5.2 — the link sells participation. Two signals turn the preview into
+  // an invitation: how many people are going, and (while the trip is live) what
+  // is on today. Both are read from the row/table, never the caller.
+  //
+  // "N going" = active participants (the same count /shared shows). A HEAD count
+  // query — no rows pulled — so it adds negligible cost to the unfurl.
+  let goingCount = 0;
+  {
+    const { count } = await supabase
+      .from("trip_participants")
+      .select("*", { count: "exact", head: true })
+      .eq("trip_id", data.id)
+      .is("left_at", null);
+    goingCount = count ?? 0;
+  }
+
+  // Live state, in the trip's OWN timezone (Phase 3.1), so the card matches
+  // what a viewer would see on Today. No viewer tz at unfurl time, so a trip
+  // without a stored zone simply reads as not-live and shows the normal card.
+  const meta = (data.trip_meta ?? null) as Record<string, unknown> | null;
+  const tripTimeZone = typeof meta?.timezone === "string" ? meta.timezone : null;
+  const dayState =
+    data.start_date && data.end_date
+      ? computeTripDayState({ startDate: data.start_date, endDate: data.end_date, timeZone: tripTimeZone })
+      : null;
+  const isLive = dayState?.isLive ?? false;
+
+  // Today's headline activity, when live: the first named activity of today's
+  // itinerary day, else that day's title. Kept to one line for the card.
+  let todayActivity: string | null = null;
+  if (isLive && dayState?.dayNumber) {
+    const day = itinerary.find(
+      (d) => !!d && typeof d === "object" && Number((d as { day_number?: unknown }).day_number) === dayState.dayNumber,
+    ) as { title?: unknown; activities?: unknown } | undefined;
+    const acts = Array.isArray(day?.activities) ? (day!.activities as unknown[]) : [];
+    const named = acts.find(
+      (a) => !!a && typeof a === "object" && typeof (a as { name?: unknown }).name === "string" && (a as { name: string }).name.trim(),
+    ) as { name?: string } | undefined;
+    const raw = named?.name?.trim() || (typeof day?.title === "string" && day.title.trim() ? day.title.trim() : null);
+    // Satori does not shrink or ellipsize, so cap the activity to keep the live
+    // line inside the 1200px canvas.
+    todayActivity = raw ? (raw.length > 34 ? `${raw.slice(0, 33).trimEnd()}…` : raw) : null;
+  }
+
+  // A live trip advertises its NOW (Day K of N + today's plan); an upcoming/past
+  // one advertises its dates. The eyebrow gets a LIVE chip either way it's live.
+  const liveLine =
+    isLive && dayState?.dayNumber
+      ? `Day ${dayState.dayNumber} of ${dayState.totalDays}${todayActivity ? ` · Today: ${todayActivity}` : ""}`
+      : null;
+
   return new ImageResponse(
     (
       <div style={{ display: "flex", position: "relative", width: "100%", height: "100%", background: INK }}>
@@ -200,6 +253,22 @@ export async function GET(request: Request) {
             <div style={{ display: "flex", fontSize: 22, color: "#E6EAEE", letterSpacing: 1.5 }}>
               MONKEYTRAVEL
             </div>
+            {isLive ? (
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 20,
+                  letterSpacing: 1.5,
+                  color: PAPER,
+                  background: CORAL,
+                  borderRadius: 999,
+                  padding: "4px 16px",
+                  marginLeft: 16,
+                }}
+              >
+                LIVE
+              </div>
+            ) : null}
           </div>
 
           <div
@@ -219,15 +288,35 @@ export async function GET(request: Request) {
             {destination}
           </div>
 
-          {dates ? (
+          {liveLine ? (
+            <div style={{ display: "flex", fontSize: 30, color: PAPER, marginTop: 12 }}>{liveLine}</div>
+          ) : dates ? (
             <div style={{ display: "flex", fontSize: 30, color: "#D2D8DE", marginTop: 12 }}>{dates}</div>
           ) : null}
 
           {/* flexWrap + flexShrink below: Satori defaults flexShrink to 0, not
               the CSS default of 1, so a wide pill row silently overflows the
               1200x630 canvas instead of shrinking. */}
-          {stats.length > 0 ? (
+          {goingCount > 0 || stats.length > 0 ? (
             <div style={{ display: "flex", marginTop: 26, flexWrap: "wrap" }}>
+              {/* "N going" leads, in solid coral — this is the invitation
+                  (Phase 5.2). The neutral stat pills follow. */}
+              {goingCount > 0 ? (
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 27,
+                    color: PAPER,
+                    background: CORAL,
+                    borderRadius: 999,
+                    padding: "12px 24px",
+                    marginRight: 14,
+                    flexShrink: 1,
+                  }}
+                >
+                  {goingCount} going
+                </div>
+              ) : null}
               {stats.map((s, i) => (
                 <div
                   key={i}
