@@ -41,9 +41,9 @@ export default function ImageCarousel({
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
   const lastTouchRef = useRef({ x: 0, y: 0 });
   const velocityRef = useRef(0);
-  // imageRef is declared further down (line 45) — useImageLoaded is
-  // invoked after currentImage is resolved (around line 256). See the
-  // bottom of this hook block.
+  // useImageLoaded is invoked lower down, once currentImage is resolved —
+  // but still above every early return, because the reset effect below
+  // closes over its setter.
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const thumbnailContainerRef = useRef<HTMLDivElement>(null);
@@ -253,13 +253,20 @@ export default function ImageCarousel({
     }
   };
 
-  if (!mounted) return null;
-
   const currentImage = images[currentIndex];
   // Cached-image race shim — see lib/hooks/useImageLoaded.ts. Without it,
   // navigating to an image the browser already has cached left the slide
   // at opacity:0 until the next swipe.
+  //
+  // This MUST stay above the `!mounted` early return. It is a hook (so it
+  // cannot be called conditionally), and the reset effect near the top of
+  // this component calls `setImageLoaded` — on the first render `mounted`
+  // is false, so an early return here left that const in its temporal dead
+  // zone while React still mounted the effect: "Cannot access ... before
+  // initialization" (Sentry JAVASCRIPT-NEXTJS-2N / -23).
   const [imageLoaded, setImageLoaded] = useImageLoaded(imageRef, currentImage?.url);
+
+  if (!mounted) return null;
 
   const carouselContent = (
     <div
