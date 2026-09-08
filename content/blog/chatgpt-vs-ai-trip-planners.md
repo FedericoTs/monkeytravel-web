@@ -7,7 +7,7 @@ description: >-
   and fails.
 author: Riccardo P.
 publishedAt: '2026-04-15'
-updatedAt: '2026-04-15'
+updatedAt: '2026-09-08'
 category: AI Travel
 tags: ["ai trip planner", "comparison", "travel technology"]
 image: /images/blog/chatgpt-vs-ai-trip-planners.jpg
@@ -18,9 +18,7 @@ readingTime: 9
 seo:
   title: 'ChatGPT vs AI Trip Planners 2026: Honest Comparison | MonkeyTravel'
   description: >-
-    ChatGPT is great for brainstorming, but it fails at complex itineraries 90%
-    of the time. We tested it against dedicated AI trip planners. Here's what
-    actually works.
+    ChatGPT brainstorms well, but in the TravelPlanner benchmark even GPT-4 built a fully valid complex itinerary just 0.6% of the time. Tested against dedicated planners.
   keywords:
     - chatgpt vs ai trip planner
     - chatgpt travel planning
@@ -35,9 +33,9 @@ You've probably tried it already. You opened ChatGPT, typed "plan me a 7-day tri
 
 Then you started checking the details. That ramen shop in Shinjuku? Closed two years ago. The "15-minute walk" between two attractions? It's actually 45 minutes by train. The boutique hotel with "great reviews"? It doesn't exist.
 
-You're not alone. According to HuffPost reporting on AI travel tools, roughly 90% of complex itinerary requests to general-purpose chatbots contain at least one significant error — hallucinated venues, wrong opening hours, impossible transit connections, or outdated pricing. That doesn't mean ChatGPT is useless for travel. It means you need to understand what it's good at and where dedicated AI trip planners do the job better.
+You're not alone. In the TravelPlanner benchmark (Xie et al., ICML 2024 — 1,225 real-world planning tasks; arxiv.org/abs/2402.01622), even GPT-4 produced a plan that satisfied every constraint only 0.6% of the time. The failures are the ones anyone who has tried it will recognise: hallucinated venues, wrong opening hours, impossible transit connections, outdated pricing. That doesn't mean ChatGPT is useless for travel. It means you need to understand what it's good at and where dedicated AI trip planners do the job better.
 
-This is that comparison.
+This is that comparison. One disclosure first: MonkeyTravel is our own product, so weigh our verdict on it accordingly.
 
 ## The Test: Same Trip, Different Tools
 
@@ -63,7 +61,7 @@ Then we started fact-checking.
 - **Impossible timing.** Day 3 included Sintra's Pena Palace, Quinta da Regaleira, and Monserrate Palace, plus travel from Lisbon and back. That's a 14-hour day minimum, and the last train back would require leaving Monserrate by 4 PM — which isn't enough time.
 - **No real prices.** Budget estimates were vague ("around $20-30 for lunch") with no connection to actual menu prices at the recommended venues.
 - **Outdated information.** One suggested museum had changed its hours significantly since 2024, and the "free entry on Sundays" tip was no longer accurate.
-- **No maps, no links, no booking path.** Just text. If you wanted to actually execute this plan, you'd need to open Google Maps, Booking.com, and at least three other tabs to verify and book everything.
+- **A basic map, but no booking path from Europe.** ChatGPT shows a simple map view on local searches, and the Expedia and Booking.com apps inside ChatGPT can add a booking path — but as of September 2026 those apps aren't available in the EEA, UK or Switzerland. To actually execute this plan from Europe, you'd still need to open Google Maps, Booking.com, and at least three other tabs to verify and book everything.
 
 To be fair, when we pointed out the timing issue with Sintra, ChatGPT corrected itself and produced a more reasonable plan. But you had to catch the error first.
 
@@ -85,15 +83,15 @@ None of these tools wrote as engagingly as ChatGPT. The prose was functional, no
 |---|---|---|
 | **Conversational flexibility** | Excellent — ask anything, refine endlessly | Limited to trip planning scope |
 | **Venue accuracy** | Low — frequent hallucinations | High — verified databases |
-| **Real-time pricing** | None | Yes (Layla, Mindtrip) |
-| **Map integration** | None | Yes (most tools) |
-| **Booking integration** | None (or limited via plugins) | Yes (Layla, Mindtrip) |
+| **Real-time pricing** | Only via apps in ChatGPT (Expedia, Booking.com) — not in the EEA, UK or Switzerland as of Sep 2026 | Yes (Layla, Mindtrip) |
+| **Map integration** | Basic map view on local searches | Yes (most tools) |
+| **Booking integration** | Via apps in ChatGPT (Expedia, Booking.com); same regional limit | Yes (Layla, Mindtrip) |
 | **Day-by-day structure** | Generated but unverified | Generated with logistics checked |
 | **Group collaboration** | None | Yes (MonkeyTravel voting, Mindtrip sharing) |
 | **Budget tracking** | Rough estimates | Connected to real data |
 | **Itinerary saving** | Copy/paste from chat | Built-in save and share |
 | **Mobile experience** | Chat interface | Purpose-built apps |
-| **Language support** | Many languages | Varies (MonkeyTravel: EN/ES/IT) |
+| **Language support** | Many languages | Varies (MonkeyTravel: EN/ES/IT/PT; Mindtrip: 8 languages) |
 | **Creative suggestions** | Strong — can surprise you | More conventional |
 | **Follow-up questions** | Unlimited | Limited or structured |
 | **Offline access** | No | Some tools offer it |
@@ -120,7 +118,7 @@ Let's be honest about ChatGPT's genuine strengths for travel, because they're re
 
 **Budget reality.** Tools like Layla AI show you what a hotel actually costs tonight, not what hotels in that area "typically" cost. When you're planning within a budget, the difference between an estimate and a price is everything.
 
-**Booking integration.** The whole point of planning is to eventually book something. Dedicated tools let you go from itinerary to reservation in the same interface. With ChatGPT, the plan is the starting point of another hour of research.
+**Booking integration.** The whole point of planning is to eventually book something. Dedicated tools let you go from itinerary to reservation in the same interface. With ChatGPT, the plan is usually the starting point of another hour of research — the Expedia and Booking.com apps inside ChatGPT narrow that gap, but as of September 2026 they aren't available in the EEA, UK or Switzerland.
 
 **Collaboration.** If you're traveling with other people, you need a way to share plans, collect votes, and make decisions together. MonkeyTravel has a voting system for groups. Mindtrip has collaborative boards. ChatGPT has... a shared chat link.
 
@@ -140,9 +138,9 @@ This isn't a workaround — it's using each tool for what it's built to do. Chat
 
 If you've decided to use a dedicated tool (smart move), here's a quick breakdown:
 
-- **MonkeyTravel** — Best for groups, multilingual travelers (EN/ES/IT), and getting a solid itinerary fast with no signup. The voting system for group planning solves a real pain point. [Try it free](/trips/new).
-- **Layla AI** — Best for solo travelers and couples who want live pricing integrated into the itinerary. The Skyscanner and Booking.com integration means you can go from plan to booked quickly.
-- **Mindtrip** — Best for deep research. Its database of 11M+ points of interest means it surfaces things other tools miss.
+- **MonkeyTravel** — Best for groups and getting a solid itinerary fast with no signup; it works in EN/ES/IT/PT, as does Mindtrip among others. The voting system for group planning solves a real pain point. [Try it free](/trips/new).
+- **Layla AI** — Best for solo travelers and couples who want live pricing integrated into the itinerary. The Skyscanner and Booking.com integration means you can go from plan to booked quickly. Note that Expedia Group acquired Layla on 31 July 2026, so it is now a planner owned by an online travel agency — one with an interest in where your bookings land.
+- **Mindtrip** — Best for deep research. Mindtrip says its database covers over 11 million points of interest, which helps it surface things other tools miss.
 - **Wonderplan** — Best for quick, budget-focused plans when you don't need the depth of a full platform.
 
 For our full analysis of all the major tools, read our [comparison of the best AI trip planners in 2026](/blog/best-ai-trip-planners-2026-compared).
@@ -153,6 +151,6 @@ ChatGPT changed how people think about trip planning. It made the idea of "AI he
 
 When you need inspiration, ChatGPT is hard to beat. When you need an itinerary you can follow without a backup browser tab open for fact-checking, dedicated AI trip planners are where the industry has moved — and for good reason.
 
-The 90% error rate on complex itineraries isn't a knock on ChatGPT's intelligence. It's a reflection of the fact that accurate trip planning requires real-time data, verified venue information, and logistics awareness that a general-purpose chatbot isn't designed to provide. Dedicated tools are.
+That 0.6% isn't a knock on ChatGPT's intelligence. It's a reflection of the fact that accurate trip planning requires verified venue information and logistics awareness that a general-purpose chatbot isn't designed to provide, even with web search switched on by default. Dedicated tools are.
 
 Use ChatGPT to dream. Use a dedicated planner to go.

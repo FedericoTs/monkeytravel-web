@@ -8,7 +8,7 @@ description: >-
   alternatives.
 author: Riccardo P.
 publishedAt: '2026-07-27'
-updatedAt: '2026-07-27'
+updatedAt: '2026-09-08'
 category: AI Travel
 tags: ["ai trip planner", "review", "comparison", "travel technology"]
 image: /images/blog/how-to-plan-a-trip-with-ai.jpg
@@ -32,11 +32,11 @@ schema: Article
 
 # Wonderplan Review 2026: Free AI Trip Planner Tested (+ Alternatives)
 
-Wonderplan is one of the genuinely free AI trip planners in 2026 — no paywall, clean calendar interface, PDF export. For a quick single-destination budget trip, it does the job with very little friction. But how good is the actual output, and is it the best free option for you?
+Wonderplan is one of the genuinely free AI trip planners in 2026 — no paywall, a simple form, PDF export. For a quick single-destination budget trip, it does the job with very little friction. But how good is the actual output, and is it the best free option for you?
 
 We tested Wonderplan on real trips. Here's the honest read — what it's good at, where it feels thin, and the free alternatives worth comparing before you commit.
 
-We're not affiliated with Wonderplan. MonkeyTravel is one of the alternatives below, and we'll say plainly where Wonderplan holds its own.
+We're not affiliated with Wonderplan. MonkeyTravel is our own product and one of the alternatives below, and we'll say plainly where Wonderplan holds its own.
 
 ## Quick Verdict
 
@@ -46,7 +46,7 @@ Its limit is depth. Reviewers commonly describe it as more of a **template gener
 
 ## Is Wonderplan Free? (2026)
 
-Yes — Wonderplan is free to use, with no premium paywall on its core features. You enter your destination, dates, budget, and interests, and it generates a personalized itinerary you can adjust and export as a PDF. It also surfaces accommodation recommendations and travel deals.
+Yes — Wonderplan is free to use, with no premium paywall on its core features. You enter your destination, dates, budget, and interests, and it generates a personalized itinerary you can adjust and export as a PDF. Its "find a place to stay" button is a plain link to Booking.com's homepage rather than built-in accommodation recommendations.
 
 | Plan | Price | Notes |
 |---|---|---|
@@ -60,13 +60,13 @@ Yes — Wonderplan is free to use, with no premium paywall on its core features.
 
 **Budget-first and clear.** Cost information isn't buried — for budget-conscious single-destination trips, that clarity is useful.
 
-**Simple chat refinement.** You can nudge the plan through a chat interface, which feels more natural than filling out endless forms.
+**Simple form, simple edits.** There's no chat or free-text prompt — it's a form with dropdowns and a submit button — but you can reorder, add, and remove locations once the plan is generated.
 
 ## Where Wonderplan Falls Short
 
 **Weak personalization.** The most common criticism in reviews is that different inputs produce essentially the same base itinerary with minor reshuffling. If you want a plan that meaningfully changes with your budget and style, that's a real limitation.
 
-**Narrow scope.** No flights, no rental cars, limited multi-country support. It's built for simple, single-destination trips.
+**Narrow scope.** It doesn't offer flight or car-rental booking, and in testing it planned one city at a time. It's built for simple, single-destination trips.
 
 **English-only, no group features.** No multilingual support and no way to plan collaboratively or vote as a group.
 
@@ -77,8 +77,8 @@ If Wonderplan's output feels too generic — or you're planning a group trip or 
 | Alternative | Price | Real personalization | Group | Languages |
 |---|---|---|---|---|
 | **MonkeyTravel** | Free | ✅ 3 distinct budget tiers | ✅ Voting | EN, ES, IT, PT |
-| **Mindtrip** | Free | ✅ 11M+ POIs | Co-editing | EN |
-| **Layla** | Free / $49/yr | ✅ (daily detail paywalled) | Limited | EN |
+| **Mindtrip** | Free | ✅ 11M+ POIs (Mindtrip's own figure) | Co-editing | 8, incl. ES, IT, PT |
+| **Layla** (Expedia Group) | Free / ~$49/yr | ✅ (free vs paid line has moved in 2026) | Limited | EN |
 
 ### 1. MonkeyTravel — free, but more personalized
 
@@ -86,11 +86,11 @@ If Wonderplan's output feels too generic — or you're planning a group trip or 
 
 ### 2. Mindtrip — free, with the deepest data
 
-If you want richer, more accurate recommendations grounded in an 11-million-point database — plus in-app booking — Mindtrip is the most complete free option. English-only. See the [full comparison](/blog/best-ai-trip-planners-2026-compared).
+If you want richer, more accurate recommendations grounded in what Mindtrip says is a database of over 11 million points of interest — plus in-app flight and hotel booking — Mindtrip is the most complete free option. It's available in eight languages, including Spanish, Italian, and Portuguese. See the [full comparison](/blog/best-ai-trip-planners-2026-compared).
 
 ### 3. Layla — if you want live pricing
 
-Layla adds live flight and hotel pricing, though its day-by-day detail sits behind a $49/year premium plan. Details in our [Layla review](/blog/layla-ai-review-2026).
+Layla adds live flight and hotel pricing from Skyscanner, Booking.com, and GetYourGuide. Where its free tier ends has moved during 2026 — early-2026 reviews put the day-by-day detail behind Premium (about $49/year), while Layla's own June 2026 copy says free covers full itinerary generation and Premium covers live pricing — so check before you rely on it. Layla has been owned by Expedia Group since 31 July 2026, which matters when a planner owned by a booking company suggests where to book. Details in our [Layla review](/blog/layla-ai-review-2026).
 
 ## Who Should Use Wonderplan
 
@@ -124,4 +124,4 @@ No — Wonderplan is English-only with no collaborative or voting features. If y
 
 - Wonderplan features and pricing — wonderplan.ai (accessed July 2026)
 - Wonderplan review and "template generator" critique — aichief.com, aitravel.tools (2026)
-- Mindtrip and Layla details — mindtrip.ai, layla.ai (2026)
+- Mindtrip and Layla details — mindtrip.ai, layla.ai (2026); Mindtrip languages — Apple App Store listing (September 2026); Layla acquisition — Expedia Group investor relations (31 July 2026)

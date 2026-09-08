@@ -7,7 +7,7 @@ description: >-
   tantos bloqueiam.
 author: Emanuela P.
 publishedAt: '2026-08-24'
-updatedAt: '2026-08-24'
+updatedAt: '2026-09-08'
 category: AI Travel
 tags: ["planejador de viagens com ia", "avaliação", "comparação", "tecnologia de viagens"]
 image: /images/blog/plan-trip-with-ai.jpg
@@ -38,7 +38,7 @@ Passamos pelas principais ferramentas em 2026 verificando uma coisa específica:
 
 Não é cinismo, é economia. Entender o motivo mostra quais barreiras vão piorar.
 
-**Reservar é o modelo de negócio.** A maioria dessas ferramentas ganha dinheiro quando você reserva um hotel ou um passeio por elas. Um visitante anônimo não pode ser atribuído a uma reserva, então a conta é como a ferramenta é paga. O Mindtrip é o caso mais claro: desde meados de 2026 o planejador fica atrás de um acesso com Google ou Apple e o fluxo aponta para reservar dentro do app.
+**Reservar é o modelo de negócio.** A maioria dessas ferramentas é construída para que você reserve um hotel ou um passeio por elas (quanto cada uma ganha com isso raramente é documentado). Um visitante anônimo não pode ser atribuído a uma reserva, então a conta é como a ferramenta vincula você a uma. O Mindtrip é o caso mais claro: desde meados de 2026 o planejador fica atrás de um acesso com Google ou Apple e o fluxo aponta para reservar dentro do app, com reservas processadas por parceiros terceiros.
 
 **Gerar custa dinheiro de verdade.** Cada roteiro custa ao fornecedor chamadas ao modelo e consultas de dados de lugares. Uma conta é um limitador natural.
 
@@ -52,17 +52,19 @@ Nenhum desses motivos é desonesto. Mas eles explicam por que a barreira costuma
 |---|---|---|
 | **MonkeyTravel** | **Sim, inteiro** | Plano dia a dia completo, sem conta em momento algum |
 | Wonderplan | Quase | Pouco atrito, gera rápido |
-| iPlan.ai | Quase | Simples, bloqueios mínimos |
-| ChatGPT | Não | Existe um nível gratuito mas exige conta |
+| iPlan.ai | Quase | Bloqueios mínimos, mas só app móvel e o gerador de roteiros com IA é uma compra dentro do app (cerca de US$ 3,99) |
+| ChatGPT | Sim, limitado | Funciona sem conta onde disponível (sessão limitada, sem histórico salvo); os apps da Expedia e Booking.com exigem login |
 | Wanderlog | Parcial | Dá para navegar livremente, mas a otimização de rota é Pro a US$ 39,99/ano |
 | Mindtrip | Não | Login com Google ou Apple antes do planejador |
-| Layla | Não | Conta primeiro, ferramenta paga |
+| Layla | Não | Conta primeiro; nível gratuito mais Premium a cerca de US$ 49/ano; propriedade do Expedia Group desde julho de 2026 |
 
-Duas ressalvas, porque a tabela achata uma coisa.
+Três ressalvas, porque a tabela achata uma coisa.
 
 A barreira do Wanderlog não é um cadastro obrigatório, é um **paywall sobre a função útil**. Você pode olhar de graça. O otimizador de rota, que é o motivo pelo qual as pessoas o recomendam, é Pro.
 
 O ChatGPT não é um planejador de viagens que resolveu se bloquear; é um assistente geral que exige conta para tudo. Situação diferente, mesmo resultado prático.
+
+O Layla não é mais independente: o Expedia Group o comprou em 31 de julho de 2026. Um planejador que pertence a uma agência de viagens online tem interesse em onde suas reservas vão parar, e vale saber disso antes de entregar suas datas.
 
 ## O teste para fazer, escolha o que escolher
 
@@ -87,7 +89,7 @@ E para registrar o que não somos: o Wanderlog nos ganha em colaboração e em l
 
 ## A resposta curta
 
-Se você quer ver um roteiro completo antes de dar seu e-mail para alguém, a lista em 2026 é curta: **MonkeyTravel**, com Wonderplan e iPlan.ai como opções mais leves.
+Se você quer ver um roteiro completo antes de dar seu e-mail para alguém, a lista em 2026 é curta: **MonkeyTravel**, com Wonderplan e iPlan.ai como opções mais leves (o iPlan.ai é só para celular e cobra pelo gerador com IA).
 
 Se estiver disposto a criar uma conta, o campo se abre bastante e tanto Wanderlog quanto Mindtrip são realmente bons no que fazem.
 
@@ -96,10 +98,10 @@ Só saiba qual troca você está fazendo, e faça antes de digitar suas datas, n
 ## Perguntas frequentes
 
 **Existe um planejador de viagens com IA realmente grátis e sem cadastro?**
-Sim, embora a lista seja curta. O MonkeyTravel gera um roteiro dia a dia completo sem conta em momento algum. Wonderplan e iPlan.ai bloqueiam menos que a média. Mindtrip e Layla exigem conta antes de você ver o resultado.
+Sim, embora a lista seja curta. O MonkeyTravel gera um roteiro dia a dia completo sem conta em momento algum. Wonderplan e iPlan.ai bloqueiam menos que a média, embora o iPlan.ai seja só para celular e seu gerador de roteiros com IA seja uma compra dentro do app de cerca de US$ 3,99. Mindtrip e Layla exigem conta antes de você ver o resultado.
 
 **Por que planejadores gratuitos pedem que eu crie uma conta?**
-Três motivos, todos econômicos: a maioria ganha com reservas e não consegue atribuir uma reserva a um visitante anônimo; cada roteiro gerado custa dinheiro real em chamadas ao modelo e a dados de mapas, então a conta funciona como limitador; e um e-mail é a única forma de te trazerem de volta.
+Três motivos, todos econômicos: a maioria gira em torno de reservas e não consegue atribuir uma reserva a um visitante anônimo; cada roteiro gerado custa dinheiro real em chamadas ao modelo e a dados de mapas, então a conta funciona como limitador; e um e-mail é a única forma de te trazerem de volta.
 
 **É seguro usar um planejador sem conta?**
 Costuma ser mais seguro, não mais arriscado. Sem conta não há perfil guardado, nem senha que possa vazar, nem lista de marketing. A contrapartida é que nada é salvo automaticamente, então guarde ou exporte o plano você mesmo.
@@ -119,7 +121,7 @@ Normalmente uma de três: um paywall sobre a função realmente útil (o Wanderl
 
 ## Fontes
 
-- [7 Best Mindtrip Alternatives in 2026](https://monkeyeatingmango.com/blog/mindtrip-alternatives-2026/) — muro de login do Mindtrip e fluxo voltado a reservas
-- [Wanderlog Pro Cost 2026](https://monkeyeatingmango.com/blog/wanderlog-pricing-2026/) — divisão de recursos grátis versus Pro
+- Mindtrip — página do app e comunicados à imprensa (mindtrip.ai/press; Apple App Store) — muro de login do Mindtrip e fluxo voltado a reservas
+- Wanderlog Pro — wanderlog.com/pro, consultado em setembro de 2026 — divisão de recursos grátis versus Pro
 - [Best AI Trip Planners 2026: 10 Honest Tools Tested](https://aitravel.tools/best-ai-trip-planner/) — análise comparativa de capacidades
 - Os preços refletem os níveis publicados em agosto de 2026 e mudam sem aviso: confirme antes de assinar.

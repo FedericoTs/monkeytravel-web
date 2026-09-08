@@ -8,7 +8,7 @@ description: >-
   fa bene, dove è scarno e alternative gratuite più forti.
 author: Riccardo P.
 publishedAt: '2026-07-27'
-updatedAt: '2026-07-27'
+updatedAt: '2026-09-08'
 category: AI Travel
 tags: ["pianificatore di viaggio ai", "recensione", "confronto", "tecnologia di viaggio"]
 image: /images/blog/how-to-plan-a-trip-with-ai.jpg
@@ -33,11 +33,11 @@ schema: Article
 
 # Recensione Wonderplan 2026: pianificatore di viaggio con AI gratis alla prova (+ alternative)
 
-Wonderplan è uno dei pianificatori di viaggio con AI davvero gratuiti nel 2026 — nessun paywall, un'interfaccia a calendario pulita, esportazione PDF. Per un viaggio rapido in una singola destinazione con budget ridotto, fa il suo lavoro con pochissimo attrito. Ma quanto è valido il risultato vero e proprio, ed è la migliore opzione gratuita per te?
+Wonderplan è uno dei pianificatori di viaggio con AI davvero gratuiti nel 2026 — nessun paywall, un modulo semplice, esportazione PDF. Per un viaggio rapido in una singola destinazione con budget ridotto, fa il suo lavoro con pochissimo attrito. Ma quanto è valido il risultato vero e proprio, ed è la migliore opzione gratuita per te?
 
 Abbiamo testato Wonderplan su viaggi reali. Ecco la lettura onesta — in cosa è bravo, dove sembra scarno e le alternative gratuite che vale la pena confrontare prima di decidere.
 
-Non siamo affiliati a Wonderplan. MonkeyTravel è una delle alternative qui sotto, e diremo chiaramente dove Wonderplan tiene testa.
+Non siamo affiliati a Wonderplan. MonkeyTravel è il nostro prodotto ed è una delle alternative qui sotto, e diremo chiaramente dove Wonderplan tiene testa.
 
 ## Verdetto rapido
 
@@ -47,7 +47,7 @@ Il suo limite è la profondità. I recensori lo descrivono comunemente come più
 
 ## Wonderplan è gratis? (2026)
 
-Sì — Wonderplan è gratuito da usare, senza paywall premium sulle sue funzioni base. Inserisci destinazione, date, budget e interessi, e genera un itinerario personalizzato che puoi modificare ed esportare in PDF. Propone anche suggerimenti di alloggio e offerte di viaggio.
+Sì — Wonderplan è gratuito da usare, senza paywall premium sulle sue funzioni base. Inserisci destinazione, date, budget e interessi, e genera un itinerario personalizzato che puoi modificare ed esportare in PDF. Il suo pulsante «trova un alloggio» è un semplice link alla home page di Booking.com, non un sistema integrato di suggerimenti di alloggio.
 
 | Piano | Prezzo | Note |
 |---|---|---|
@@ -61,13 +61,13 @@ Sì — Wonderplan è gratuito da usare, senza paywall premium sulle sue funzion
 
 **Orientato al budget e chiaro.** Le informazioni sui costi non sono nascoste — per viaggi in una singola destinazione con attenzione al budget, quella chiarezza è utile.
 
-**Perfezionamento semplice via chat.** Puoi ritoccare il piano attraverso un'interfaccia di chat, che risulta più naturale rispetto a compilare moduli infiniti.
+**Modulo semplice, modifiche semplici.** Non c'è chat né campo di testo libero — è un modulo con menu a tendina e un pulsante di invio — ma puoi riordinare, aggiungere e rimuovere luoghi una volta generato il piano.
 
 ## Dove Wonderplan è carente
 
 **Personalizzazione debole.** La critica più comune nelle recensioni è che input diversi producono essenzialmente lo stesso itinerario di base con un minimo rimescolamento. Se vuoi un piano che cambi in modo significativo con il tuo budget e il tuo stile, è un limite reale.
 
-**Portata ristretta.** Niente voli, niente noleggio auto, supporto limitato per viaggi in più paesi. È costruito per viaggi semplici in una singola destinazione.
+**Portata ristretta.** Non offre prenotazione di voli né di auto a noleggio, e nei test ha pianificato una città alla volta. È costruito per viaggi semplici in una singola destinazione.
 
 **Solo in inglese, senza funzioni di gruppo.** Nessun supporto multilingue e nessun modo di pianificare in modo collaborativo o di votare come gruppo.
 
@@ -78,8 +78,8 @@ Se il risultato di Wonderplan ti sembra troppo generico — o stai pianificando 
 | Alternativa | Prezzo | Personalizzazione reale | Gruppo | Lingue |
 |---|---|---|---|---|
 | **MonkeyTravel** | Gratis | ✅ 3 livelli di budget distinti | ✅ Votazioni | EN, ES, IT, PT |
-| **Mindtrip** | Gratis | ✅ Oltre 11M di POI | Co-modifica | EN |
-| **Layla** | Gratis / $49/anno | ✅ (dettaglio giornaliero dietro paywall) | Limitato | EN |
+| **Mindtrip** | Gratis | ✅ Oltre 11M di POI (cifra dichiarata da Mindtrip) | Co-modifica | 8, incl. ES, IT, PT |
+| **Layla** (Expedia Group) | Gratis / ~$49/anno | ✅ (la linea gratis/a pagamento è cambiata nel 2026) | Limitato | EN |
 
 ### 1. MonkeyTravel — gratuito, ma più personalizzato
 
@@ -87,11 +87,11 @@ Anche [MonkeyTravel](/trips/new) è gratuito e anch'esso ti dà un piano complet
 
 ### 2. Mindtrip — gratuito, con i dati più profondi
 
-Se vuoi suggerimenti più ricchi e accurati, ancorati a un database di 11 milioni di punti — più la prenotazione integrata nell'app — Mindtrip è l'opzione gratuita più completa. Solo in inglese. Vedi il [confronto completo](/blog/best-ai-trip-planners-2026-compared).
+Se vuoi suggerimenti più ricchi e accurati, ancorati a quello che Mindtrip dichiara essere un database di oltre 11 milioni di punti di interesse — più la prenotazione di voli e hotel integrata nell'app — Mindtrip è l'opzione gratuita più completa. È disponibile in otto lingue, tra cui spagnolo, italiano e portoghese. Vedi il [confronto completo](/blog/best-ai-trip-planners-2026-compared).
 
 ### 3. Layla — se vuoi i prezzi live
 
-Layla aggiunge prezzi live di voli e hotel, anche se il suo dettaglio giorno per giorno è dietro un piano premium da 49 $/anno. Dettagli nella nostra [recensione di Layla](/blog/layla-ai-review-2026).
+Layla aggiunge prezzi live di voli e hotel da Skyscanner, Booking.com e GetYourGuide. Dove finisce il suo livello gratuito è cambiato nel corso del 2026 — le recensioni di inizio 2026 mettevano il dettaglio giorno per giorno dietro il Premium (circa 49 $/anno), mentre i testi di Layla di giugno 2026 dicono che il gratuito copre la generazione completa dell'itinerario e il Premium i prezzi live — quindi controlla prima di farci affidamento. Layla appartiene a Expedia Group dal 31 luglio 2026, un dettaglio che conta quando un pianificatore di proprietà di un'azienda di prenotazioni ti suggerisce dove prenotare. Dettagli nella nostra [recensione di Layla](/blog/layla-ai-review-2026).
 
 ## Chi dovrebbe usare Wonderplan
 
@@ -125,4 +125,4 @@ No — Wonderplan è solo in inglese, senza funzioni collaborative o di votazion
 
 - Funzioni e prezzi di Wonderplan — wonderplan.ai (consultato a luglio 2026)
 - Recensione di Wonderplan e critica del "generatore di template" — aichief.com, aitravel.tools (2026)
-- Dettagli su Mindtrip e Layla — mindtrip.ai, layla.ai (2026)
+- Dettagli su Mindtrip e Layla — mindtrip.ai, layla.ai (2026); lingue di Mindtrip — scheda sull'App Store di Apple (settembre 2026); acquisizione di Layla — investor relations di Expedia Group (31 luglio 2026)

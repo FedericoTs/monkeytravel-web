@@ -7,7 +7,7 @@ description: >-
   e onde os dois deixam o trabalho para você.
 author: Riccardo P.
 publishedAt: '2026-08-24'
-updatedAt: '2026-08-24'
+updatedAt: '2026-09-08'
 category: AI Travel
 tags: ["planejador de viagens com ia", "avaliação", "comparação", "tecnologia de viagens"]
 image: /images/blog/best-ai-trip-planners-2026-compared.jpg
@@ -46,14 +46,14 @@ A linha divisória é se a pesquisa está feita. Organizador ou gerador. Quase t
 
 | | Nível gratuito | Pago |
 |---|---|---|
-| **Wanderlog** | Marcadores, dias, colaboração, orçamentos manuais | **Pro US$ 39,99/ano** — acesso off-line, assistente de IA, otimização de rota, ofertas de reserva, anexos ilimitados, exportação para o Google Maps, varredura do Gmail, tema escuro |
-| **Mindtrip** | O planejamento básico é grátis | O negócio é a reserva, não uma assinatura |
+| **Wanderlog** | Marcadores, dias, colaboração, orçamentos manuais, um assistente de IA com limite de mensagens | **Pro US$ 39,99/ano** — acesso off-line, assistente de IA ilimitado, otimização de rota, ofertas de reserva, anexos ilimitados, exportação para o Google Maps, varredura do Gmail, tema escuro |
+| **Mindtrip** | O planejamento básico é grátis | Sem nível pago; as reservas são feitas por parceiros terceiros |
 
 Duas coisas que vale notar nessa tabela.
 
 Primeiro, o Wanderlog põe a **otimização de rota atrás do paywall**. É a coisa mais útil que o produto faz, e é o motivo pelo qual quase todo mundo acaba pagando os US$ 39,99. É legítimo, mas entre sabendo: o nível gratuito é o caderno, não o otimizador.
 
-Segundo, o nível gratuito do Mindtrip é genuinamente grátis no sentido que importa, mas desde meados de 2026 o planejador fica atrás de um muro de acesso com Google ou Apple. Você cria uma conta antes de ver um único roteiro. E o fluxo é construído para te direcionar a reservar dentro do app, que é onde está o dinheiro.
+Segundo, o nível gratuito do Mindtrip é genuinamente grátis no sentido que importa, mas desde meados de 2026 o planejador fica atrás de um muro de acesso com Google ou Apple. Você cria uma conta antes de ver um único roteiro. E o fluxo é construído para te direcionar a reservar dentro do app — voos desde maio de 2026, hotéis desde julho de 2026 — com as reservas feitas por parceiros terceiros.
 
 ## Onde o Wanderlog ganha
 
@@ -83,7 +83,7 @@ A outra lacuna comum é o muro da conta. O Mindtrip pede login antes de mostrar 
 
 Nós fazemos o [MonkeyTravel](/), que é uma terceira opção, então trate esta seção com o ceticismo que ela merece.
 
-A aposta específica que fizemos é diferente: nenhuma conta, nunca, e o programa é o resultado em vez do mapa. Você recebe um plano dia a dia com lugares reais, preços atuais e três níveis de orçamento, em cerca de trinta segundos, e pode ler tudo antes de decidir se valemos o seu tempo.
+A aposta específica que fizemos é diferente: nenhuma conta, nunca, e o programa é o resultado em vez do mapa. Você recebe um plano dia a dia com lugares reais, preços estimados e três níveis de orçamento, em cerca de trinta segundos, e pode ler tudo antes de decidir se valemos o seu tempo.
 
 Somos piores que o Wanderlog em colaboração e piores que o Mindtrip em descoberta aberta. Somos melhores em te dar uma terça-feira que funciona.
 
@@ -105,14 +105,14 @@ Os dois se mexeram, e em direções opostas.
 
 O Wanderlog empurrou mais para a **utilidade paga**. O nível Pro ganhou acesso off-line e varredura do Gmail, o que o torna mais valioso para quem viaja com frequência e menos útil no nível gratuito do que era dois anos atrás. Está virando um produto de assinatura que por acaso tem uma porta de entrada gratuita.
 
-O Mindtrip empurrou mais para a **reserva**. A exigência de login e o fluxo de reserva no app não são acidentes; são o modelo de negócio ficando visível. Espere que a distância entre «planeje aqui» e «reserve aqui» continue encolhendo.
+O Mindtrip empurrou mais para a **reserva**. O Mindtrip Flights foi lançado em maio de 2026 e o Mindtrip Stays, para hotéis, em julho de 2026, com as reservas feitas por parceiros terceiros. A exigência de login e o fluxo de reserva no app não são acidentes. Espere que a distância entre «planeje aqui» e «reserve aqui» continue encolhendo.
 
-A consequência prática para você: a resposta do Wanderlog para «como ganhamos dinheiro» são os seus US$ 39,99. A do Mindtrip é uma comissão sobre o seu hotel. Nenhuma está errada, mas elas puxam os produtos em direções diferentes, e isso aparece no que cada um te empurra a fazer.
+A consequência prática para você: a resposta do Wanderlog para «como ganhamos dinheiro» são os seus US$ 39,99. O Mindtrip não te cobra nada, deixa as reservas com parceiros terceiros e não publica como ganha dinheiro — então não vamos chutar. Ainda assim, os dois modelos puxam os produtos em direções diferentes, e isso aparece no que cada um te empurra a fazer.
 
 ## Perguntas frequentes
 
 **O Wanderlog é grátis?**
-Existe um nível gratuito real cobrindo marcadores, dias, colaboração e orçamentos manuais. Otimização de rota, acesso off-line, varredura do Gmail e exportação para o Google Maps são Pro, a US$ 39,99 por ano. Quase todo mundo que recomenda o Wanderlog está descrevendo o Pro.
+Existe um nível gratuito real cobrindo marcadores, dias, colaboração, orçamentos manuais e um assistente de IA com limite de mensagens. IA ilimitada, otimização de rota, acesso off-line, varredura do Gmail e exportação para o Google Maps são Pro, a US$ 39,99 por ano. Quase todo mundo que recomenda o Wanderlog está descrevendo o Pro.
 
 **O Mindtrip exige conta?**
 Sim. Desde meados de 2026 o planejador fica atrás de um login Google ou Apple, então você cria uma conta antes de ver um roteiro. O planejamento básico é grátis depois que você entra.
@@ -135,7 +135,6 @@ Pronto para ver a diferença? [Planeje uma viagem no MonkeyTravel](/trips/new) �
 
 ## Fontes
 
-- [Wanderlog Pro Cost 2026](https://monkeyeatingmango.com/blog/wanderlog-pricing-2026/) — preços e divisão de recursos grátis versus Pro
-- [Best AI Travel Planner 2026: Wanderlog vs Layla and 8 more](https://voyaige.to/blog/best-ai-travel-planner-2026) — análise comparativa de capacidades
-- [7 Best Mindtrip Alternatives in 2026](https://monkeyeatingmango.com/blog/mindtrip-alternatives-2026/) — muro de login do Mindtrip e fluxo voltado a reservas
-- Os preços refletem os níveis publicados em agosto de 2026 e mudam sem aviso: confirme antes de assinar.
+- [Wanderlog Pro](https://wanderlog.com/pro) — preço do Pro e limite de IA do nível gratuito (consultado em setembro de 2026)
+- Anúncios de lançamento do Mindtrip Flights (6 de maio de 2026) e do Mindtrip Stays (15 de julho de 2026) — Sabre newsroom / PR Newswire
+- Os preços refletem os níveis publicados em setembro de 2026 e mudam sem aviso: confirme antes de assinar.

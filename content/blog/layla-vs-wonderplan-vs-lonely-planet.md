@@ -7,7 +7,7 @@ description: >-
   genuinely the right answer to.
 author: Riccardo P.
 publishedAt: '2026-08-25'
-updatedAt: '2026-08-25'
+updatedAt: '2026-09-08'
 category: AI Travel
 tags: ["ai trip planner", "review", "comparison", "travel technology"]
 image: /images/blog/best-ai-trip-planners-2026-compared.jpg
@@ -40,7 +40,7 @@ Two of them are AI generators. The third is a publisher with eighty million guid
 
 **Wonderplan** is a free AI generator. Fill in a short form, get a day-by-day plan, download a PDF. No account gymnastics, no upsell.
 
-**Layla** is a paid AI generator. The free tier shows you an overview, a map and a total price; the day-by-day detail and live pricing sit behind Premium at about $49 a year.
+**Layla** is a freemium AI generator, owned by Expedia Group since 31 July 2026. Where the free tier ends has moved during 2026: early-2026 reviews described free as an overview, a map and a total price with the day-by-day detail behind Premium, while Layla's own June 2026 copy says free covers full itinerary generation and Premium — about $49 a year — covers live pricing and fare tracking. Check before you rely on either.
 
 **Lonely Planet** does not generate anything. It sells editorial: guidebooks, and **Journeys** — multi-day itineraries built by their own experts and bookable as trips. Its sister company **Elsewhere** goes further, pairing you with a local expert who plans the trip around your dates and budget.
 
@@ -62,11 +62,13 @@ It is also browser-only in 2026 — no native app, and the mobile experience is 
 
 Layla is the polished one, and the polish is mostly on the money side.
 
-The free tier is a real preview rather than a full plan: you get an overview, a map and a total price. The **day-by-day detail, PDF export, unlimited trips and live pricing are Premium, roughly $49 a year.** Layla exposes the day-by-day view through a short trial, so you can see what you would be buying.
+What the free tier includes has moved during 2026. Early-2026 reviews described it as a preview rather than a full plan — an overview, a map and a total price — with the **day-by-day detail, PDF export, unlimited trips and live pricing on Premium, roughly $49 a year** (Layla's website quotes $49/year; the iOS app lists $49.99/year or $9.99/month). Layla's own June 2026 copy instead says free covers full itinerary generation and Premium covers live pricing and PriceLock fare tracking. If Layla offers you a trial (early-2026 reviews described a three-day one), note that Premium auto-renews.
 
-**What the money actually buys:** live prices pulled from Skyscanner and Booking.com sit inside the plan, so the number next to a flight or a hotel is a real one rather than a model's guess. Premium also includes a price-drop alert on routes you are watching. If you have ever been caught out by an AI confidently inventing a €90 room rate, that is the problem being solved.
+**What the money actually buys:** live prices pulled from Skyscanner, Booking.com and GetYourGuide sit inside the plan, so the number next to a flight or a hotel is a real one rather than a model's guess. Premium also includes PriceLock, a fare-tracking alert on routes you are watching. If you have ever been caught out by an AI confidently inventing a €90 room rate, that is the problem being solved.
 
-**Pick it if:** bookable, accurate prices inside the itinerary are the point, and $49 a year reads as fair for a finished plan. Budget for Premium — the free tier is a shop window.
+**One more thing to know:** Expedia Group acquired Layla on 31 July 2026. A planner owned by a booking company has an interest in where your bookings land, so read its flight and hotel suggestions with that in mind.
+
+**Pick it if:** bookable, accurate prices inside the itinerary are the point, and $49 a year reads as fair for a finished plan. Budget for Premium if live prices are what you are after — and check what the free tier includes on the day, because it has changed during 2026.
 
 ## Lonely Planet — the one that is not a robot
 
@@ -88,11 +90,11 @@ Lonely Planet is not selling you a generator. It sells:
 
 | | Wonderplan | Layla | Lonely Planet |
 |---|---|---|---|
-| **What it is** | Free AI generator | Paid AI generator | Editorial + human-planned trips |
+| **What it is** | Free AI generator | Freemium AI generator (Expedia-owned since July 2026) | Editorial + human-planned trips |
 | **Cost** | Free | Free tier; **~$49/yr Premium** | Quoted per trip; guidebooks priced individually |
-| **Day-by-day plan** | Yes, free | Premium (trial preview) | Yes — written by people |
+| **Day-by-day plan** | Yes, free | Free or Premium — the line has moved in 2026; check | Yes — written by people |
 | **Live prices in the plan** | No | Yes, Premium | Not applicable — it is booked for you |
-| **PDF / offline** | Yes | Premium | Print, obviously |
+| **PDF / offline** | Yes | Premium, per early-2026 reviews | Print, obviously |
 | **Adapts to your brief** | Weakly — reviews report similar output across inputs | Yes | Yes, if a human is doing it |
 | **Best for** | A quick free draft | Accurate prices in a finished plan | Trips that matter, or pure inspiration |
 
@@ -130,7 +132,7 @@ Whichever you pick, run the same test on the output: take day one and trace the 
 Yes. Itinerary generation and PDF download are free, with no subscription. The trade-off reviewers report is that the output varies less with your inputs than you would expect, so treat it as a draft to edit rather than a finished plan.
 
 **How much is Layla?**
-Layla's own FAQ states a free tier plus Premium at about $49 a year. Free gives you an overview, a map and a total price; Premium unlocks the day-by-day detail, PDF export, unlimited trips and live pricing from Skyscanner and Booking.com.
+Layla's website quotes Premium at $49 a year; the iOS app lists $49.99/year or $9.99/month, and Premium auto-renews. What free includes has moved during 2026: early-2026 reviews described free as an overview, a map and a total price with the day-by-day detail, PDF export and unlimited trips on Premium, while Layla's June 2026 copy says free covers full itinerary generation and Premium covers live pricing (Skyscanner, Booking.com, GetYourGuide) and PriceLock fare tracking. Check the current terms before you pay.
 
 **Does Lonely Planet have an AI trip planner?**
 No. Lonely Planet sells guidebooks and Journeys — itineraries built by its own experts and bookable as trips — while its sister company Elsewhere pairs you with a local expert. There is no AI generator to compare against Layla or Wonderplan.
@@ -148,7 +150,9 @@ Then Wonderplan is the closest of these three, and tools that show a full day-by
 
 - [Layla FAQ](https://layla.ai/faq) — free tier and Premium at $49/year, stated by Layla (accessed August 2026)
 - [Layla](https://layla.ai/) — booking integrations and what Premium unlocks
+- Expedia Group investor relations — acquisition of Layla, 31 July 2026
+- Layla Premium pricing ($49.99/year or $9.99/month) — Apple App Store listing, read September 2026
 - [Wonderplan review](https://aitravel.tools/wonderplan-review/) — independent testing, including the repeated finding that output varies little across inputs
 - [Lonely Planet Journeys](https://www.lonelyplanet.com/journeys) — "travel itineraries crafted by locals", expert-built and bookable; no price published on the page
 - [Elsewhere by Lonely Planet](https://www.elsewhere.io/) — local-expert planning, customised to dates and budget
-- Prices reflect what each company published in August 2026 and change without notice. Confirm before you buy.
+- Prices reflect what each company published as of September 2026 and change without notice. Confirm before you buy.
