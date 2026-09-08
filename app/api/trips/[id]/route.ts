@@ -62,8 +62,16 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     );
     if (tripError) return tripError;
 
-    // Parse request body
-    const body = await request.json();
+    // Parse request body. An empty or truncated body is a client-side event
+    // (a save superseded mid-upload by a newer one, or a tab closed while the
+    // debounced PATCH was in flight) — answer 400, not a 500 that reads as a
+    // server failure in the logs and in Sentry.
+    let body: Record<string, unknown>;
+    try {
+      body = await request.json();
+    } catch {
+      return errors.badRequest("Invalid or empty JSON body");
+    }
 
     // Build update object
     const updates: Record<string, unknown> = {
