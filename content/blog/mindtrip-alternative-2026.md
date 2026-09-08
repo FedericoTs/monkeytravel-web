@@ -7,7 +7,7 @@ description: >-
   which ones let you see the output first.
 author: Riccardo P.
 publishedAt: '2026-08-24'
-updatedAt: '2026-08-24'
+updatedAt: '2026-09-08'
 category: AI Travel
 tags: ["ai trip planner", "review", "comparison", "travel technology"]
 image: /images/blog/how-ai-is-changing-travel-planning.jpg
@@ -48,7 +48,7 @@ If those matter more to you than seeing output before signing up, stay. The rest
 
 The strongest organiser of the group. You have a list of places from friends, Instagram and a spreadsheet; Wanderlog turns it into a map, a route and a structured day.
 
-**Cost:** free tier covers pins, days, collaboration and manual budgets. **Pro is $39.99/yr** and adds offline access, route optimisation, Gmail scanning, Google Maps export and an AI assistant.
+**Cost:** free tier covers pins, days, collaboration and manual budgets. **Pro is $39.99/yr** (annual only) and adds offline access, route optimisation, Gmail scanning, Google Maps export and unlimited AI assistance — the free tier's AI assistant is capped (a February 2026 hands-on counted about five AI messages per trip).
 
 **The catch:** route optimisation is the best thing it does and it lives behind the paywall. Budget for Pro or you are using a very good notepad.
 
@@ -56,9 +56,9 @@ The strongest organiser of the group. You have a list of places from friends, In
 
 ## 2. Layla — if you want the trip to look good
 
-Formerly Roam Around. Leans visual and aspirational, strong on photogenic cafés and viewpoints, and it produces itineraries that look like something you would post.
+Formerly Roam Around. Leans visual and aspirational, strong on photogenic cafés and viewpoints, and it produces itineraries that look like something you would post. Since 31 July 2026 it belongs to Expedia Group, which is worth knowing: a planner owned by a booking company has an interest in where your bookings land.
 
-**Pick it if:** aesthetics drive your trips and you want a single paid tool that covers inspiration through booking.
+**Pick it if:** aesthetics drive your trips and you want a single tool (free tier, Premium about $49 a year) that covers inspiration through booking.
 
 **Skip it if:** you want a dense, efficient day. The visual bias is a real editorial choice and it shows up in what gets recommended.
 
@@ -72,13 +72,13 @@ A no-frills generator. Fewer features, less polish, no real collaboration layer,
 
 Enormous flexibility. You can ask follow-up questions no purpose-built tool anticipates, and it will restructure on request.
 
-**The catch, and it is a real one:** it invents things. Restaurants that closed, opening hours that were never true, and a confident tone throughout. It also has no map, so "these three are near each other" is a claim you have to verify yourself.
+**The catch, and it is a real one:** it invents things. Restaurants that closed, opening hours that were never true, and a confident tone throughout. It also has only a basic map view on local searches, so "these three are near each other" is still a claim you have to verify yourself.
 
 **Pick it if:** you enjoy the back-and-forth and you will fact-check the output.
 
 ## 5. iPlan.ai — if you are new to this
 
-Deliberately simple. Fewer options, less to learn, a reasonable first itinerary. Best described as training wheels: useful at the start, and most people move on.
+Deliberately simple. Fewer options, less to learn, a reasonable first itinerary. Best described as training wheels: useful at the start, and most people move on. It is free to download, but the AI itinerary builder is an in-app purchase (about $3.99) and Pro membership is $9.99.
 
 **Pick it if:** this is your first time letting software plan a trip.
 
@@ -86,7 +86,7 @@ Deliberately simple. Fewer options, less to learn, a reasonable first itinerary.
 
 This is ours, so weigh it accordingly.
 
-We made the opposite bet to Mindtrip on exactly the point that brought you here: **no account, ever.** You get a day-by-day schedule with real venues and current prices, at three budget levels, in about thirty seconds, and you can read all of it before deciding whether we deserve an email address.
+We made the opposite bet to Mindtrip on exactly the point that brought you here: **no account, ever.** You get a day-by-day schedule with real venues and estimated prices, at three budget levels, in about thirty seconds, and you can read all of it before deciding whether we deserve an email address.
 
 The other difference is what comes out. Most of this list gives you a map and a list of places. We give you a schedule — stops grouped by day, ordered so the day is walkable, with the travel between them accounted for.
 
@@ -100,10 +100,10 @@ The other difference is what comes out. Most of this list gives you a map and a 
 |---|---|---|---|
 | Mindtrip | Yes, login wall | Free core | Screenshots, curated guides |
 | Wanderlog | Partial | Free / $39.99yr Pro | Multi-stop logistics, groups |
-| Layla | Yes | Paid | Visual, aspirational trips |
+| Layla | Yes | Free / ~$49yr Premium | Visual, aspirational trips |
 | Wonderplan | Light | Free | A fast rough draft |
 | ChatGPT | Account needed | Free / paid tiers | Open-ended questions |
-| iPlan.ai | Light | Free | First-timers |
+| iPlan.ai | Light | Free download; AI builder ~$3.99 in-app, Pro $9.99 | First-timers |
 | MonkeyTravel | **No** | Free | A day-by-day schedule you can walk |
 
 ## How to actually choose
@@ -142,6 +142,6 @@ Yes, in practice. None of these tools import from each other. If you have signif
 
 ## Sources
 
-- [7 Best Mindtrip Alternatives in 2026](https://monkeyeatingmango.com/blog/mindtrip-alternatives-2026/) — Mindtrip login wall and booking-led flow
-- [Wanderlog Pro Cost 2026](https://monkeyeatingmango.com/blog/wanderlog-pricing-2026/) — free vs Pro feature split
-- [Best AI Travel Planner 2026](https://voyaige.to/blog/best-ai-travel-planner-2026) — comparative review of Layla, Wanderlog and others
+- [Wanderlog Pro](https://wanderlog.com/pro) — free vs Pro feature split and price (read September 2026)
+- Expedia Group's acquisition of Layla (31 July 2026) — Expedia Group investor relations
+- iPlan.ai pricing — Apple App Store listing (read September 2026)

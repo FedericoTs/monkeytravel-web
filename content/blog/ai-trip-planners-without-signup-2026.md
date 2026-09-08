@@ -7,7 +7,7 @@ description: >-
   of them gate it.
 author: Emanuela P.
 publishedAt: '2026-08-24'
-updatedAt: '2026-08-24'
+updatedAt: '2026-09-08'
 category: AI Travel
 tags: ["ai trip planner", "review", "comparison", "travel technology"]
 image: /images/blog/plan-trip-with-ai.jpg
@@ -38,7 +38,7 @@ We went through the main tools in 2026 and checked one specific thing: **can you
 
 Not cynicism, economics. Understanding the reason tells you which gates will get worse.
 
-**Booking is the business model.** Most of these tools make money when you book a hotel or a tour through them. An anonymous visitor cannot be attributed to a booking, so the account is how the tool gets paid. Mindtrip is the clearest example: the planner sits behind a Google or Apple login as of mid-2026 and the flow points toward booking inside the app.
+**Booking is the business model.** Most of these tools are built around you booking a hotel or a tour through them (how much each one earns from that is rarely documented). An anonymous visitor cannot be attributed to a booking, so the account is how the tool ties you to one. Mindtrip is the clearest example: the planner sits behind a Google or Apple login as of mid-2026 and the flow points toward booking inside the app, with reservations handled by third-party partners.
 
 **Generation costs real money.** Every itinerary costs the provider in model calls and places-data lookups. An account is a natural throttle.
 
@@ -52,17 +52,19 @@ None of those are dishonest. But they explain why the gate usually sits exactly 
 |---|---|---|
 | **MonkeyTravel** | **Yes, fully** | Whole day-by-day plan, no account at any point |
 | Wonderplan | Mostly | Light friction, generates quickly |
-| iPlan.ai | Mostly | Simple, minimal gating |
-| ChatGPT | No | Free tier exists but needs an account |
+| iPlan.ai | Mostly | Minimal gating, but mobile-only and the AI itinerary builder is a paid in-app purchase (about $3.99) |
+| ChatGPT | Yes, limited | Works without an account where available (a capped session, no saved history); the Expedia and Booking.com apps need a login |
 | Wanderlog | Partial | Browse freely, but route optimisation is Pro at $39.99/yr |
 | Mindtrip | No | Google or Apple login before the planner |
-| Layla | No | Account-first, paid tool |
+| Layla | No | Account-first; free tier plus Premium at about $49/year; owned by Expedia Group since July 2026 |
 
-Two clarifications, because the table flattens something.
+Three clarifications, because the table flattens something.
 
 Wanderlog's gate is not a signup wall, it is a **paywall on the useful feature**. You can look around for free. The route optimiser, which is the thing people actually recommend it for, is Pro.
 
 ChatGPT is not a trip planner that decided to gate itself; it is a general assistant that requires an account for everything. Different situation, same practical outcome.
+
+Layla is no longer independent: Expedia Group acquired it on 31 July 2026. A planner owned by an online travel agency has an interest in where your bookings land, which is worth knowing before you hand it your dates.
 
 ## The test to run, whatever you pick
 
@@ -87,7 +89,7 @@ For the record on what we are not: Wanderlog beats us on collaboration and multi
 
 ## The short answer
 
-If you want to see a full itinerary before giving anyone your email, the list in 2026 is short: **MonkeyTravel**, with Wonderplan and iPlan.ai as lighter options.
+If you want to see a full itinerary before giving anyone your email, the list in 2026 is short: **MonkeyTravel**, with Wonderplan and iPlan.ai as lighter options (iPlan.ai is mobile-only and charges for its AI builder).
 
 If you are willing to create an account, the field opens considerably and Wanderlog and Mindtrip are both genuinely good at their respective jobs.
 
@@ -96,10 +98,10 @@ Just know which trade you are making, and make it before you have typed in your 
 ## Frequently asked questions
 
 **Is there a genuinely free AI trip planner with no signup?**
-Yes, though the list is short. MonkeyTravel generates a full day-by-day itinerary with no account at any point. Wonderplan and iPlan.ai are lighter on gating than most. Mindtrip and Layla both require an account before you see output.
+Yes, though the list is short. MonkeyTravel generates a full day-by-day itinerary with no account at any point. Wonderplan and iPlan.ai are lighter on gating than most, though iPlan.ai is mobile-only and its AI itinerary builder is a paid in-app purchase of about $3.99. Mindtrip and Layla both require an account before you see output.
 
 **Why do free trip planners ask me to create an account?**
-Three reasons, all economic: most make money on bookings and cannot attribute a booking to an anonymous visitor; every generated itinerary costs them real money in model and map-data calls, so the account acts as a throttle; and an email address is the only way they can bring you back.
+Three reasons, all economic: most are built around bookings and cannot attribute a booking to an anonymous visitor; every generated itinerary costs them real money in model and map-data calls, so the account acts as a throttle; and an email address is the only way they can bring you back.
 
 **Is it safe to use a trip planner without an account?**
 It is generally safer, not riskier. No account means no stored profile, no password to leak, and no marketing list. The trade is that nothing is saved for you automatically, so keep or export the plan yourself.
@@ -119,6 +121,6 @@ Usually one of three: a paywall on the genuinely useful feature (Wanderlog puts 
 
 ## Sources
 
-- [7 Best Mindtrip Alternatives in 2026](https://monkeyeatingmango.com/blog/mindtrip-alternatives-2026/) — Mindtrip login wall and booking-led flow
-- [Wanderlog Pro Cost 2026](https://monkeyeatingmango.com/blog/wanderlog-pricing-2026/) — free vs Pro feature split
+- Mindtrip — app listing and press releases (mindtrip.ai/press; Apple App Store) — login wall and booking-led flow
+- Wanderlog Pro — wanderlog.com/pro, read September 2026 — free vs Pro feature split
 - [Best AI Trip Planners 2026: 10 Honest Tools Tested](https://aitravel.tools/best-ai-trip-planner/) — comparative capability review

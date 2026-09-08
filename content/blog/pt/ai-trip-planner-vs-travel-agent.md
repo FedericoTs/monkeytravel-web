@@ -7,7 +7,7 @@ description: >-
   deixaram passar e qual realmente economizou mais dinheiro.
 author: Riccardo P.
 publishedAt: '2026-02-18'
-updatedAt: '2026-02-18'
+updatedAt: '2026-09-08'
 category: "AI Travel"
 tags: ["planejador de viagens com ia", "comparação", "tecnologia de viagens", "planejamento de viagem"]
 image: /images/blog/ai-vs-travel-agent.jpg
@@ -43,7 +43,7 @@ Veja o que aconteceu.
 
 **A viagem:** 7 dias em Portugal — Lisboa, Sintra e Porto. Dois viajantes, orçamento intermediário, interessados em gastronomia, cultura e experiências locais. Datas da viagem: outubro de 2026.
 
-**A AI:** Um [planejador de viagens com AI](/trips/new) dedicado (como o MonkeyTravel) que gera roteiros personalizados com base em preferências, orçamento e dados reais sobre os estabelecimentos.
+**A AI:** Um [planejador de viagens com AI](/trips/new) dedicado (como o MonkeyTravel) que gera roteiros personalizados com base em preferências, orçamento e dados reais sobre os estabelecimentos. Transparência: o MonkeyTravel é o nosso próprio produto.
 
 **O agente:** Um consultor de viagens independente com boas avaliações (não uma agência de descontos, não um concierge de luxo — um profissional padrão que cobra uma taxa de planejamento de $150).
 
@@ -150,7 +150,7 @@ Depende do que você valoriza:
 
 ## Experimente Você Mesmo
 
-A AI do MonkeyTravel monta roteiros personalizados com estabelecimentos reais verificados pelo Google, preços reais e organização inteligente das rotas — em cerca de 30 segundos. Sem taxa de planejamento, sem barreira de cadastro, sem conselhos genéricos do tipo "visite os pontos turísticos famosos".
+A AI do MonkeyTravel monta roteiros personalizados com estabelecimentos reais verificados pelo Google, estimativas de custo e organização inteligente das rotas — em cerca de 30 segundos. Sem taxa de planejamento, sem barreira de cadastro, sem conselhos genéricos do tipo "visite os pontos turísticos famosos".
 
 Veja o que a AI planeja para a sua próxima viagem e depois decida se você precisa de um agente por cima disso.
 
@@ -162,11 +162,11 @@ Veja o que a AI planeja para a sua próxima viagem e depois decida se você prec
 
 ### A AI pode realmente substituir um agente de viagens?
 
-Para 80% das viagens, sim. Os [planejadores de viagens com AI](/trips/new) agora usam dados de estabelecimentos em tempo real, avaliações e otimização de orçamento para criar roteiros detalhados. Veja nossa [comparação dos melhores planejadores de viagens com AI de 2026](/blog/best-ai-trip-planners-2026-compared) para uma análise completa. Para viagens de luxo complexas, logística de vários países ou destinos com informações online limitadas, um agente de viagens ainda agrega valor.
+Para a maioria das viagens comuns, sim. Os [planejadores de viagens com AI](/trips/new) agora usam dados de estabelecimentos em tempo real, avaliações e otimização de orçamento para criar roteiros detalhados. Veja nossa [comparação dos melhores planejadores de viagens com AI de 2026](/blog/best-ai-trip-planners-2026-compared) para uma análise completa. Para viagens de luxo complexas, logística de vários países ou destinos com informações online limitadas, um agente de viagens ainda agrega valor.
 
 ### Quão precisas são as recomendações de um planejador de viagens com AI?
 
-Os planejadores de viagens com AI dedicados (não o ChatGPT) extraem dados do Google Places, avaliações verificadas e dados de preços reais. A precisão costuma ser de 90%+ para restaurantes e atividades, mas verifique sempre os horários de funcionamento e fechamentos recentes antes da sua viagem.
+Os planejadores de viagens com AI dedicados (não o ChatGPT) extraem dados do Google Places, avaliações verificadas e, em algumas ferramentas, dados de preços em tempo real. Nomes e localizações dos lugares costumam estar certos, mas verifique sempre os horários de funcionamento e fechamentos recentes antes da sua viagem.
 
 ### Vale a pena pagar um agente de viagens em 2026?
 

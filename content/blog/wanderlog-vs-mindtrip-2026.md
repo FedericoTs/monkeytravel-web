@@ -7,7 +7,7 @@ description: >-
   what they cost, and where both leave you doing the work.
 author: Riccardo P.
 publishedAt: '2026-08-24'
-updatedAt: '2026-08-24'
+updatedAt: '2026-09-08'
 category: AI Travel
 tags: ["ai trip planner", "review", "comparison", "travel technology"]
 image: /images/blog/best-ai-trip-planners-2026-compared.jpg
@@ -46,14 +46,14 @@ The dividing line is whether the research is done. Organiser or generator. Almos
 
 | | Free tier | Paid |
 |---|---|---|
-| **Wanderlog** | Pins, days, collaboration, manual budgets | **Pro $39.99/yr** — offline access, AI assistant, route optimisation, booking deals, unlimited attachments, Google Maps export, Gmail scanning, dark mode |
-| **Mindtrip** | Core planning is free | Booking is the business model rather than a subscription |
+| **Wanderlog** | Pins, days, collaboration, manual budgets, a capped AI assistant | **Pro $39.99/yr** — offline access, unlimited AI assistant, route optimisation, booking deals, unlimited attachments, Google Maps export, Gmail scanning, dark mode |
+| **Mindtrip** | Core planning is free | No paid tier; reservations are handled by third-party partners |
 
 Two things worth noticing in that table.
 
 First, Wanderlog puts **route optimisation behind the paywall**. That is the single most useful thing the product does, and it is the reason most people eventually pay the $39.99. Fair enough, but know that going in: the free tier is the notepad, not the optimiser.
 
-Second, Mindtrip's free tier is genuinely free in the sense that matters, but as of mid-2026 the planner sits behind a Google or Apple login wall. You create an account before you see a single itinerary. And the flow is built to steer toward booking inside the app, which is where the money is.
+Second, Mindtrip's free tier is genuinely free in the sense that matters, but as of mid-2026 the planner sits behind a Google or Apple login wall. You create an account before you see a single itinerary. And the flow is built to steer toward booking inside the app — flights since May 2026, hotels since July 2026 — with reservations handled by third-party partners.
 
 ## Where Wanderlog wins
 
@@ -83,7 +83,7 @@ The other shared gap is the account wall. Mindtrip asks you to log in before you
 
 We build [MonkeyTravel](/), which is a third option, so treat this section with the scepticism it deserves.
 
-The specific bet we made is different: no account at all, ever, and the schedule is the output rather than the map. You get a day-by-day plan with real venues, current prices, three budget levels, in about thirty seconds, and you can read the whole thing before deciding whether we are worth your time.
+The specific bet we made is different: no account at all, ever, and the schedule is the output rather than the map. You get a day-by-day plan with real venues, estimated prices, three budget levels, in about thirty seconds, and you can read the whole thing before deciding whether we are worth your time.
 
 We are worse than Wanderlog at collaboration and worse than Mindtrip at open-ended discovery. We are better at handing you a Tuesday that works.
 
@@ -105,14 +105,14 @@ Both tools moved, and in opposite directions.
 
 Wanderlog pushed further into **paid utility**. The Pro tier picked up offline access and Gmail scanning, which makes it more valuable to frequent travellers and less useful on the free tier than it was two years ago. It is becoming a subscription product that happens to have a free entry point.
 
-Mindtrip pushed further into **booking**. The login requirement and the in-app booking flow are not accidents; they are the business model becoming visible. Expect the gap between "plan here" and "book here" to keep narrowing.
+Mindtrip pushed further into **booking**. Mindtrip Flights launched in May 2026 and Mindtrip Stays, for hotels, in July 2026, with reservations handled by third-party partners. The login requirement and the in-app booking flow are not accidents. Expect the gap between "plan here" and "book here" to keep narrowing.
 
-The practical consequence for you: Wanderlog's answer to "how do we make money" is your $39.99. Mindtrip's answer is a commission on your hotel. Neither is wrong, but they pull the products in different directions, and it shows up in what each one nudges you toward.
+The practical consequence for you: Wanderlog's answer to "how do we make money" is your $39.99. Mindtrip charges you nothing, hands reservations to third-party partners, and does not publish how it makes money — so we will not guess. The two models still pull the products in different directions, and it shows up in what each one nudges you toward.
 
 ## Frequently asked questions
 
 **Is Wanderlog free?**
-There is a real free tier covering pins, days, collaboration and manual budgets. Route optimisation, offline access, Gmail scanning and Google Maps export are Pro, at $39.99 per year. Most people who recommend Wanderlog are describing Pro.
+There is a real free tier covering pins, days, collaboration, manual budgets and a capped AI assistant. Unlimited AI, route optimisation, offline access, Gmail scanning and Google Maps export are Pro, at $39.99 per year. Most people who recommend Wanderlog are describing Pro.
 
 **Does Mindtrip require an account?**
 Yes. As of mid-2026 the planner sits behind a Google or Apple login, so you create an account before seeing an itinerary. Core planning is free once you are in.
@@ -135,6 +135,5 @@ Ready to see the difference? [Plan a trip on MonkeyTravel](/trips/new) — no ac
 
 ## Sources
 
-- [Wanderlog Pro Cost 2026](https://monkeyeatingmango.com/blog/wanderlog-pricing-2026/) — pricing and free-vs-Pro feature split
-- [Best AI Travel Planner 2026: Wanderlog vs Layla and 8 more](https://voyaige.to/blog/best-ai-travel-planner-2026) — comparative capability review
-- [7 Best Mindtrip Alternatives in 2026](https://monkeyeatingmango.com/blog/mindtrip-alternatives-2026/) — Mindtrip login wall and booking-led flow
+- [Wanderlog Pro](https://wanderlog.com/pro) — Pro pricing and the free-tier AI cap (read September 2026)
+- Mindtrip Flights (6 May 2026) and Mindtrip Stays (15 July 2026) launch announcements — Sabre newsroom / PR Newswire

@@ -6,7 +6,7 @@ description: >-
   cada um entrega, quanto custa e a qual pergunta cada um responde de verdade.
 author: Riccardo P.
 publishedAt: '2026-08-25'
-updatedAt: '2026-08-25'
+updatedAt: '2026-09-08'
 category: AI Travel
 tags: ["planejador de viagens com ia", "avaliação", "comparação", "tecnologia de viagens"]
 image: /images/blog/best-ai-trip-planners-2026-compared.jpg
@@ -39,7 +39,7 @@ Dois são geradores com IA. O terceiro é uma editora com oitenta milhões de gu
 
 **Wonderplan** é um gerador com IA gratuito. Você preenche um formulário curto, sai um plano dia a dia, baixa em PDF. Sem cerimônia, sem empurrar upgrade.
 
-**Layla** é um gerador com IA pago. O nível gratuito mostra uma visão geral, um mapa e um preço total; o detalhe dia a dia e os preços ao vivo ficam no Premium, cerca de US$ 49 por ano.
+**Layla** é um gerador com IA freemium, de propriedade do Expedia Group desde 31 de julho de 2026. Onde termina o nível gratuito mudou ao longo de 2026: análises do início de 2026 descreviam o grátis como uma visão geral, um mapa e um preço total, com o detalhe dia a dia no Premium, enquanto os próprios textos do Layla de junho de 2026 dizem que o grátis cobre a geração completa do roteiro e o Premium — cerca de US$ 49 por ano — os preços ao vivo e o rastreamento de tarifas. Confira antes de confiar em qualquer uma das duas versões.
 
 **Lonely Planet** não gera nada. Vende conteúdo editorial: guias, e **Journeys** — roteiros de vários dias criados pelos próprios especialistas e reserváveis como viagem. A empresa irmã **Elsewhere** vai além: conecta você a um especialista local que planeja a viagem em torno das suas datas e do seu orçamento.
 
@@ -61,11 +61,13 @@ Além disso, em 2026 ele segue só no navegador: sem app nativo, e a experiênci
 
 O Layla é o mais polido, e o polimento está sobretudo no lado do dinheiro.
 
-O nível gratuito é uma prévia de verdade, não um plano completo: você recebe visão geral, mapa e preço total. O **detalhe dia a dia, a exportação em PDF, viagens ilimitadas e os preços ao vivo são Premium, cerca de US$ 49 por ano.** O Layla mostra o dia a dia por um teste curto, então você vê o que estaria comprando.
+O que o nível gratuito inclui mudou ao longo de 2026. Análises do início de 2026 o descreviam como uma prévia, não um plano completo — visão geral, mapa e preço total — com o **detalhe dia a dia, a exportação em PDF, viagens ilimitadas e os preços ao vivo no Premium, cerca de US$ 49 por ano** (o site do Layla informa US$ 49/ano; o app para iOS lista US$ 49,99/ano ou US$ 9,99/mês). Os próprios textos do Layla de junho de 2026 dizem, em vez disso, que o grátis cobre a geração completa do roteiro e o Premium, os preços ao vivo e o rastreamento de tarifas PriceLock. Se o Layla te oferecer um teste (análises do início de 2026 descreviam um de três dias), lembre que o Premium renova automaticamente.
 
-**O que o dinheiro compra:** preços ao vivo puxados do Skyscanner e do Booking.com dentro do plano, então o número ao lado de um voo ou hotel é real e não a estimativa de um modelo. O Premium ainda inclui um alerta de queda de preço nas rotas que você acompanha. Se você já levou um susto com uma IA inventando com convicção uma diária de € 90, é esse o problema resolvido.
+**O que o dinheiro compra:** preços ao vivo puxados do Skyscanner, do Booking.com e da GetYourGuide dentro do plano, então o número ao lado de um voo ou hotel é real e não a estimativa de um modelo. O Premium ainda inclui o PriceLock, um alerta de rastreamento de tarifas nas rotas que você acompanha. Se você já levou um susto com uma IA inventando com convicção uma diária de € 90, é esse o problema resolvido.
 
-**Escolha se:** preços reserváveis dentro do roteiro são o ponto e US$ 49 por ano parecem justos por um plano pronto. Conte com o Premium: o nível gratuito é uma vitrine.
+**Mais uma coisa para saber:** o Expedia Group comprou o Layla em 31 de julho de 2026. Um planejador de propriedade de uma empresa de reservas tem interesse em onde suas reservas vão parar, então leia as sugestões de voos e hotéis dele com isso em mente.
+
+**Escolha se:** preços reserváveis dentro do roteiro são o ponto e US$ 49 por ano parecem justos por um plano pronto. Conte com o Premium se o que você busca são preços ao vivo — e confira o que o nível gratuito inclui no dia, porque isso mudou ao longo de 2026.
 
 ## Lonely Planet — o que não é um robô
 
@@ -87,11 +89,11 @@ A Lonely Planet não te vende um gerador. Ela vende:
 
 | | Wonderplan | Layla | Lonely Planet |
 |---|---|---|---|
-| **O que é** | Gerador com IA grátis | Gerador com IA pago | Editorial + viagens planejadas por pessoas |
+| **O que é** | Gerador com IA grátis | Gerador com IA freemium (do Expedia desde julho de 2026) | Editorial + viagens planejadas por pessoas |
 | **Custo** | Grátis | Nível gratuito; **~US$ 49/ano Premium** | Orçado por viagem; guias com preço próprio |
-| **Plano dia a dia** | Sim, grátis | Premium (prévia no teste) | Sim — escrito por pessoas |
+| **Plano dia a dia** | Sim, grátis | Grátis ou Premium — a linha mudou em 2026; confira | Sim — escrito por pessoas |
 | **Preços ao vivo no plano** | Não | Sim, no Premium | Não se aplica: reservam para você |
-| **PDF / off-line** | Sim | Premium | Papel, claro |
+| **PDF / off-line** | Sim | Premium, segundo análises do início de 2026 | Papel, claro |
 | **Adapta-se ao seu briefing** | Pouco — análises relatam resultados parecidos | Sim | Sim, se for uma pessoa fazendo |
 | **Melhor para** | Um rascunho rápido e grátis | Preços exatos num plano pronto | Viagens que importam, ou pura inspiração |
 
@@ -129,7 +131,7 @@ Escolha qual escolher, faça o mesmo teste no resultado: pegue o dia um e trace 
 Sim. Gerar o roteiro e baixar em PDF é gratuito, sem assinatura. A contrapartida relatada nas análises é que o resultado varia menos com os seus dados do que você esperaria, então trate como rascunho para editar.
 
 **Quanto custa o Layla?**
-O próprio FAQ do Layla informa um nível gratuito mais o Premium por cerca de US$ 49 por ano. O grátis dá visão geral, mapa e preço total; o Premium libera o detalhe dia a dia, a exportação em PDF, viagens ilimitadas e preços ao vivo do Skyscanner e do Booking.com.
+O site do Layla informa o Premium a US$ 49 por ano; o app para iOS lista US$ 49,99/ano ou US$ 9,99/mês, e o Premium renova automaticamente. O que o grátis inclui mudou ao longo de 2026: análises do início de 2026 descreviam o grátis como visão geral, mapa e preço total, com o detalhe dia a dia, a exportação em PDF e as viagens ilimitadas no Premium, enquanto os textos do Layla de junho de 2026 dizem que o grátis cobre a geração completa do roteiro e o Premium, os preços ao vivo (Skyscanner, Booking.com, GetYourGuide) e o rastreamento de tarifas PriceLock. Confira as condições vigentes antes de pagar.
 
 **A Lonely Planet tem um planejador com IA?**
 Não. A Lonely Planet vende guias e Journeys — roteiros criados por seus especialistas e reserváveis como viagem — enquanto a empresa irmã Elsewhere conecta você a um especialista local. Não há um gerador com IA para comparar com Layla ou Wonderplan.
@@ -147,7 +149,9 @@ Aí o Wonderplan é o mais próximo dos três, e as ferramentas que mostram um r
 
 - [FAQ do Layla](https://layla.ai/faq) — nível gratuito e Premium por US$ 49/ano, segundo o próprio Layla (acessado em agosto de 2026)
 - [Layla](https://layla.ai/) — integrações de reserva e o que o Premium libera
+- Relações com investidores do Expedia Group — aquisição do Layla, 31 de julho de 2026
+- Preço do Layla Premium (US$ 49,99/ano ou US$ 9,99/mês) — ficha na App Store da Apple, consultada em setembro de 2026
 - [Análise do Wonderplan](https://aitravel.tools/wonderplan-review/) — testes independentes, incluindo a constatação recorrente de que o resultado varia pouco entre entradas
 - [Lonely Planet Journeys](https://www.lonelyplanet.com/journeys) — «roteiros criados por locais», feitos por especialistas e reserváveis; sem preço publicado na página
 - [Elsewhere, da Lonely Planet](https://www.elsewhere.io/) — planejamento com especialista local, adaptado a datas e orçamento
-- Os preços refletem o publicado por cada empresa em agosto de 2026 e mudam sem aviso. Confirme antes de comprar.
+- Os preços refletem o publicado por cada empresa até setembro de 2026 e mudam sem aviso. Confirme antes de comprar.

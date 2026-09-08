@@ -2,13 +2,13 @@
 title: 'Avaliação do Mindtrip 2026: recursos, preços e as melhores alternativas'
 slug: mindtrip-review-2026
 description: >-
-  Uma avaliação honesta do Mindtrip em 2026 — o planejador de viagens com AI de
-  11 milhões de pontos que é grátis porque ganha com as reservas. O que ele faz
-  brilhantemente, onde deixa a desejar e as melhores alternativas para viajantes
-  multilíngues e viagens em grupo.
+  Uma avaliação honesta do Mindtrip em 2026 — o planejador de viagens com AI
+  grátis que diz ter 11 milhões de pontos e reserva integrada com parceiros. O
+  que ele faz brilhantemente, onde deixa a desejar e as melhores alternativas
+  para viagens em grupo e planejar sem cadastro.
 author: Riccardo P.
 publishedAt: '2026-07-27'
-updatedAt: '2026-07-27'
+updatedAt: '2026-09-08'
 category: AI Travel
 tags: ["planejador de viagens com ia", "avaliação", "comparação", "tecnologia de viagens"]
 image: /images/blog/plan-trip-with-ai.jpg
@@ -18,9 +18,8 @@ seo:
   title: 'Avaliação do Mindtrip 2026: preços, recursos + melhores alternativas'
   description: >-
     O Mindtrip é realmente grátis? Testamos em 2026. Veja o que o Mindtrip faz de
-    melhor, seus limites (só em inglês, sem votação em grupo) e as melhores
-    alternativas para viagens em grupo e para quem planeja em espanhol, italiano
-    ou português.
+    melhor, seus limites (conta obrigatória, sem votação em grupo) e as melhores
+    alternativas para viagens em grupo e para planejar sem cadastro.
   keywords:
     - mindtrip avaliação
     - alternativa ao mindtrip
@@ -33,33 +32,33 @@ schema: Article
 
 # Avaliação do Mindtrip 2026: recursos, preços e as melhores alternativas
 
-No papel, o Mindtrip é uma das ferramentas de viagem com AI mais completas de 2026 — um banco de dados de 11 milhões de pontos, reserva dentro do app, um prêmio "Most Innovative" da Fast Company e uma integração com mapas que a maioria dos concorrentes ainda erra. E é grátis. Então qual é a pegadinha, e será que é a ferramenta certa para *você*?
+No papel, o Mindtrip é uma das ferramentas de viagem com AI mais completas de 2026 — um banco de dados que, segundo o Mindtrip, passa de 11 milhões de pontos de interesse, reserva dentro do app, um lugar na lista das empresas mais inovadoras da Fast Company de 2025 e uma integração com mapas que a maioria dos concorrentes ainda erra. E é grátis. Então qual é a pegadinha, e será que é a ferramenta certa para *você*?
 
-Testamos o Mindtrip em viagens reais, em cenários solo, de casal e de grupo. Aqui vai a leitura honesta — o que ele faz realmente bem, onde frustra e as melhores alternativas se você planeja em grupo ou em um idioma que não seja o inglês.
+Testamos o Mindtrip em viagens reais, em cenários solo, de casal e de grupo. Aqui vai a leitura honesta — o que ele faz realmente bem, onde frustra e as melhores alternativas se você planeja em grupo ou prefere não criar conta.
 
 Não somos afiliados ao Mindtrip e não ganhamos nada com ele. O MonkeyTravel é uma das alternativas abaixo, e vamos ser diretos sobre onde o Mindtrip é melhor que a gente.
 
 ## Veredito rápido
 
-O Mindtrip é a ferramenta de viagem com AI grátis mais completa se você quer pesquisar, planejar e reservar em uma só interface — e está planejando em inglês. O banco de dados de mais de 11 milhões de pontos e os mapas são de primeira, e não há paywall porque o Mindtrip ganha com as reservas que você faz dentro do app.
+O Mindtrip é a ferramenta de viagem com AI grátis mais completa se você quer pesquisar, planejar e reservar em uma só interface. O banco de dados de mais de 11 milhões de pontos (o número é do próprio Mindtrip) e os mapas são de primeira, e não há paywall no planejamento — as reservas passam para parceiros externos dentro do app.
 
-Seus limites são específicos: é **só em inglês**, alguns avaliadores observam que os filtros de hotéis podem ser inconsistentes e — como a maioria das ferramentas por aqui — foi construído em torno do planejamento solo e de casal, com edição colaborativa em vez de uma forma de um grupo realmente *decidir*.
+Seus limites são específicos: você cria uma conta antes de planejar e — como a maioria das ferramentas por aqui — foi construído em torno do planejamento solo e de casal, com edição colaborativa em vez de uma forma de um grupo realmente *decidir*.
 
 ## O Mindtrip é grátis? (Preços 2026)
 
-Sim — de verdade. O Mindtrip **não tem nível premium, não tem limite de mensagens e não bloqueia recursos essenciais**. Ele monetiza no modelo pague-conforme-reserva por meio de parceiros como Priceline e Viator: você planeja de graça, e o Mindtrip só ganha comissão se você reservar por ele.
+Sim — de verdade. O Mindtrip **não tem nível premium, não tem limite de mensagens e não bloqueia recursos essenciais**. Você planeja de graça; quando reserva, a reserva é feita por parceiros externos como Priceline e Viator. Como o Mindtrip ganha com essas reservas não está documentado, então não vamos chutar.
 
 | Plano | Preço | Observações |
 |---|---|---|
-| Mindtrip | Grátis | Sem paywall nos recursos de planejamento; ganha com reservas dentro do app (Priceline, Viator) |
+| Mindtrip | Grátis | Sem paywall nos recursos de planejamento; as reservas são feitas por parceiros externos (Priceline, Viator) |
 
-*Os preços e recursos refletem as informações divulgadas publicamente pelo Mindtrip em julho de 2026 e podem mudar — confira em [mindtrip.ai](https://mindtrip.ai) as informações mais recentes.*
+*Os preços e recursos refletem as informações divulgadas publicamente pelo Mindtrip em setembro de 2026 e podem mudar — confira em [mindtrip.ai](https://mindtrip.ai) as informações mais recentes.*
 
-Esse é um ponto forte de verdade. Onde a Layla bloqueia o dia a dia atrás de US$ 49/ano, a experiência de planejamento completa do Mindtrip é grátis.
+Esse é um ponto forte de verdade. Enquanto a linha entre grátis e pago da Layla se moveu ao longo de 2026 (avaliações do início de 2026 colocavam o dia a dia atrás do premium de ~US$ 49/ano; os textos da própria Layla de junho de 2026 dizem que a geração é grátis e que o premium adiciona preços ao vivo), a experiência de planejamento completa do Mindtrip é simplesmente grátis.
 
 ## Onde o Mindtrip se destaca
 
-**A profundidade dos dados.** Um banco de dados de 11 milhões de pontos de interesse, somado ao conhecimento de dezenas de milhares de especialistas locais, faz com que as recomendações do Mindtrip se baseiem em lugares reais, não apenas em palpites do modelo. Em precisão sobre o que de fato existe e onde, ele está entre os melhores da categoria.
+**A profundidade dos dados.** O Mindtrip diz que seu banco de dados passa de 11 milhões de pontos de interesse, somado ao conhecimento de dezenas de milhares de especialistas locais, e na prática as recomendações se baseiam em lugares reais, não apenas em palpites do modelo. Em precisão sobre o que de fato existe e onde, ele está entre os melhores da categoria.
 
 **Pesquisa e reserva no mesmo lugar.** Você vai de "para onde eu devo ir" a um hotel reservado sem sair do app — as integrações com Priceline e Viator mantêm confirmações e recibos organizados em um só lugar.
 
@@ -69,15 +68,13 @@ Esse é um ponto forte de verdade. Onde a Layla bloqueia o dia a dia atrás de U
 
 ## Onde o Mindtrip deixa a desejar
 
-**Só em inglês.** O Mindtrip não planeja em espanhol, italiano ou português. Para uma enorme fatia de viajantes, só isso já o descarta.
-
-**Os filtros de hotéis podem ser inconsistentes.** Alguns avaliadores relatam que os filtros de orçamento nem sempre se sustentam — você pode ver resultados acima do seu limite. Vale conferir com atenção na hora de fechar a hospedagem.
+**Uma conta antes de planejar.** O Mindtrip pede login antes de mostrar um roteiro. Se você prefere ver o resultado primeiro e decidir depois, é um atrito real.
 
 **Colaboração, não tomada de decisão.** Várias pessoas podem editar uma viagem juntas, mas não há uma forma estruturada de um grupo *votar* e resolver as divergências. Para um grupo de amigos em que cada um quer uma coisa diferente, coeditar um documento não é o mesmo que decidir.
 
 ## As melhores alternativas ao Mindtrip em 2026
 
-É difícil superar o Mindtrip em dados e reservas. Mas se a sua prioridade é planejar no seu próprio idioma, planejar com um grupo ou simplesmente obter um plano sem criar conta, olhe para cá.
+É difícil superar o Mindtrip em dados e reservas. Mas se a sua prioridade é planejar com um grupo ou simplesmente obter um plano sem criar conta, olhe para cá.
 
 | Alternativa | Preço | Idiomas | Grupo | Ideal para |
 |---|---|---|---|---|
@@ -87,9 +84,9 @@ Esse é um ponto forte de verdade. Onde a Layla bloqueia o dia a dia atrás de U
 
 ### 1. MonkeyTravel — para grupos e viajantes multilíngues
 
-O [MonkeyTravel](/trips/new) empata com o Mindtrip naquilo que a maioria das pessoas realmente quer — um roteiro dia a dia completo e grátis, com nomes reais de locais e níveis de orçamento — e acrescenta as duas coisas que o Mindtrip não tem:
+O [MonkeyTravel](/trips/new) empata com o Mindtrip naquilo que a maioria das pessoas realmente quer — um roteiro dia a dia completo e grátis, com nomes reais de locais e níveis de orçamento — e acrescenta a única coisa que o Mindtrip não tem: um jeito de o grupo *decidir*.
 
-- **Quatro idiomas.** Planeje em inglês, espanhol, italiano ou português. O Mindtrip é só em inglês.
+- **Quatro idiomas.** Planeje em inglês, espanhol, italiano ou português. O Mindtrip também cobre esses (o app dele lista oito idiomas), então aqui é empate, não vantagem.
 - **Votação em grupo.** Quando seus companheiros de viagem não chegam a um acordo, todo mundo vota nas opções e o plano se resolve sozinho. O Mindtrip deixa você coeditar; o MonkeyTravel deixa você *decidir*. Veja como funciona no nosso guia de [planejador de viagens em grupo](/group-trip-planner).
 
 E não há barreira de cadastro — você gera um plano completo em cerca de 30 segundos sem conta.
@@ -98,7 +95,7 @@ Onde o Mindtrip ainda vence: profundidade de dados em tempo real e reserva dentr
 
 ### 2. Layla — se você quer preços ao vivo
 
-Se aproveitar uma queda de tarifa importa mais do que abrangência, o nível premium da Layla (US$ 49/ano) oferece preços ao vivo do Skyscanner e do Booking.com, além de alertas de queda. Só saiba que o detalhamento dia a dia fica atrás desse paywall — a análise completa está na nossa [avaliação da Layla AI](/blog/layla-ai-review-2026).
+Se aproveitar uma queda de tarifa importa mais do que abrangência, o nível premium da Layla (cerca de US$ 49/ano) oferece preços ao vivo do Skyscanner e do Booking.com, além de alertas de queda PriceLock. Duas coisas para saber: onde o nível gratuito da Layla termina mudou ao longo de 2026 (avaliações do início de 2026 colocavam o dia a dia atrás do paywall; os textos da própria Layla de junho de 2026 dizem que a geração é grátis), então confira antes de contar com isso — e a Expedia Group comprou a Layla em 31 de julho de 2026, ou seja, um planejador que pertence a uma empresa de reservas agora tem interesse em onde suas reservas terminam. A análise completa está na nossa [avaliação da Layla AI](/blog/layla-ai-review-2026).
 
 ### 3. Wonderplan — para um plano econômico rápido
 
@@ -106,9 +103,9 @@ Grátis, com foco em orçamento e exportação em PDF. É mais modelo pronto do 
 
 ## Quem realmente deve usar o Mindtrip
 
-Use o Mindtrip se você planeja em inglês e quer pesquisa e reserva sob o mesmo teto, com os melhores dados da categoria. É uma excelente escolha para viajantes nos EUA que preferem não fazer malabarismo com quatro abas.
+Use o Mindtrip se você quer pesquisa e reserva sob o mesmo teto, com os melhores dados da categoria. É uma excelente escolha para viajantes nos EUA que preferem não fazer malabarismo com quatro abas.
 
-Escolha uma alternativa como o [MonkeyTravel](/trips/new) se você planeja em espanhol, italiano ou português, se está coordenando um grupo que precisa votar em vez de coeditar, ou se você só quer um roteiro completo sem criar conta.
+Escolha uma alternativa como o [MonkeyTravel](/trips/new) se você está coordenando um grupo que precisa votar em vez de coeditar, ou se você só quer um roteiro completo sem criar conta.
 
 **Quer testar a alternativa multilíngue e ideal para grupos?** [Planeje sua viagem com o MonkeyTravel](/trips/new) — grátis, sem cadastro, em quatro idiomas.
 
@@ -118,27 +115,29 @@ Escolha uma alternativa como o [MonkeyTravel](/trips/new) se você planeja em es
 
 ### O Mindtrip é realmente grátis?
 
-Sim. O Mindtrip não tem nível premium nem bloqueia recursos essenciais de planejamento. Ele só ganha dinheiro quando você reserva hotéis, atividades ou voos pelos parceiros dentro do app (Priceline, Viator).
+Sim. O Mindtrip não tem nível premium nem bloqueia recursos essenciais de planejamento. Hotéis, atividades e — desde maio de 2026 — voos são reservados por parceiros externos dentro do app (Priceline, Viator e, para voos, Sabre com PayPal); como o Mindtrip ganha com isso não está documentado.
 
 ### Qual é a melhor alternativa ao Mindtrip?
 
-Para viagens em grupo e planejamento fora do inglês, o [MonkeyTravel](/trips/new) é a alternativa grátis mais forte — ele soma votação em grupo e suporte a espanhol, italiano e português. Para preços ao vivo de voos e hotéis, a Layla. Para um plano econômico rápido, o Wonderplan.
+Para viagens em grupo e planejar sem cadastro, o [MonkeyTravel](/trips/new) é a alternativa grátis mais forte — ele soma votação em grupo e funciona sem conta (planeja em inglês, espanhol, italiano e português, como o Mindtrip também faz). Para preços ao vivo de voos e hotéis, a Layla. Para um plano econômico rápido, o Wonderplan.
 
 ### Mindtrip ou Layla: qual é melhor?
 
-O Mindtrip é grátis e mais forte em abrangência de dados e reserva dentro do app; a Layla é mais forte em preços ao vivo e alertas de queda de tarifa, mas coloca o detalhamento dia a dia atrás de um paywall de ~US$ 49/ano. Se você não quer pagar, Mindtrip (ou MonkeyTravel). Se quer acompanhar tarifas, o premium da Layla.
+O Mindtrip é grátis e mais forte em abrangência de dados e reserva dentro do app; a Layla é mais forte em preços ao vivo e alertas de queda de tarifa, embora onde o nível gratuito dela termina tenha mudado ao longo de 2026 (o premium custa ~US$ 49/ano), e desde 31 de julho de 2026 ela pertence à Expedia Group. Se você não quer pagar, Mindtrip (ou MonkeyTravel). Se quer acompanhar tarifas, o premium da Layla.
 
 ### O Mindtrip funciona em outros idiomas?
 
-Não — o Mindtrip é só em inglês em 2026. Se você quer planejar em espanhol, italiano ou português, o MonkeyTravel dá suporte aos quatro idiomas.
+Sim. Em setembro de 2026, o app do Mindtrip lista oito idiomas — inglês, holandês, francês, alemão, italiano, norueguês bokmål, português e espanhol — então espanhol, italiano e português estão cobertos. O MonkeyTravel planeja em inglês, espanhol, italiano e português.
 
 ### O Mindtrip exige conta?
 
-O Mindtrip normalmente espera que você faça login para salvar e reservar. Se você quer gerar um roteiro completo sem conta nenhuma, o MonkeyTravel deixa você planejar anonimamente primeiro.
+Sim — o Mindtrip pede login antes de planejar, não só para salvar e reservar. Se você quer gerar um roteiro completo sem conta nenhuma, o MonkeyTravel deixa você planejar anonimamente primeiro.
 
 ## Fontes
 
-- Recursos do Mindtrip, banco de dados de POIs e modelo pague-conforme-reserva — mindtrip.ai (acesso em julho de 2026)
-- Visitantes mensais do Mindtrip e prêmio "Most Innovative" — Similarweb; Fast Company Most Innovative Companies 2025
+- Recursos do Mindtrip e "mais de 11 milhões de pontos de interesse" (número do próprio Mindtrip, novembro de 2025) — mindtrip.ai (acesso em setembro de 2026); lista de idiomas — página na App Store da Apple (lida em setembro de 2026)
+- Lançamentos do Mindtrip Flights (maio de 2026, Sabre/PayPal) e do Mindtrip Stays (julho de 2026) — newsroom da Sabre; PR Newswire
+- Mindtrip incluído na lista World's Most Innovative Companies 2025 da Fast Company — Fast Company
+- Aquisição da Layla pela Expedia Group (31 de julho de 2026) — relações com investidores da Expedia Group
 - Detalhes da avaliação do Mindtrip — aitravel.tools, aiagentslist.com (2026)
 - Preços da Layla e do Wonderplan — layla.ai, wonderplan.ai (2026)

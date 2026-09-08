@@ -7,7 +7,7 @@ description: >-
   e as melhores alternativas grátis se você não quer um paywall no seu roteiro.
 author: Riccardo P.
 publishedAt: '2026-07-27'
-updatedAt: '2026-07-27'
+updatedAt: '2026-09-08'
 category: AI Travel
 tags: ["planejador de viagens com ia", "avaliação", "comparação", "tecnologia de viagens"]
 image: /images/blog/ai-travel-planning-2026.jpg
@@ -31,27 +31,27 @@ schema: Article
 
 # Avaliação da Layla AI 2026: preços, recursos e as melhores alternativas grátis
 
-A Layla é um dos planejadores de viagens com AI mais comentados de 2026 — avaliação de 4,9 estrelas, mais de um milhão de viagens planejadas e uma interface elegante que aposta em vídeo para inspirar destinos. Mas a pergunta que mais recebemos é mais simples do que qualquer lista de recursos: *ela é realmente grátis ou você esbarra num paywall no momento em que quer os detalhes?*
+A Layla é um dos planejadores de viagens com AI mais comentados de 2026 — 4,6 estrelas na App Store do iOS e 4,7 no Google Play (em setembro de 2026), um contador no site que passa de 2,35 milhões de viagens planejadas, uma interface elegante que aposta em vídeo para inspirar destinos e, desde 31 de julho de 2026, uma nova dona: a Expedia Group. Mas a pergunta que mais recebemos é mais simples do que qualquer lista de recursos: *ela é realmente grátis ou você esbarra num paywall no momento em que quer os detalhes?*
 
 Comparamos a versão gratuita da Layla e o plano premium. Esta é a versão honesta — o que a Layla faz realmente bem, onde fica o paywall, o que verificar antes de inserir um cartão e as melhores alternativas se você preferir não pagar para ver o seu próprio roteiro.
 
-Não somos afiliados à Layla e não ganhamos comissão com ela. O MonkeyTravel é uma das alternativas abaixo, e vamos dizer com clareza onde a Layla é melhor que a gente.
+Não somos afiliados à Layla e não ganhamos comissão com ela. A própria Layla já não é independente — a Expedia Group a comprou em 31 de julho de 2026, e um planejador que pertence a uma empresa de reservas tem interesse em onde suas reservas terminam. O MonkeyTravel é uma das alternativas abaixo, e vamos dizer com clareza onde a Layla é melhor que a gente.
 
 ## Veredito rápido
 
 A Layla é uma ferramenta bem construída, com uma das poucas integrações de preços ao vivo dessa categoria que realmente funciona. Se você viaja com frequência e tem flexibilidade nas datas, o premium de US$ 49/ano pode se pagar só com a economia nas passagens.
 
-Mas a versão gratuita é mais limitada do que parece. Você recebe uma visão geral da viagem e um preço total — mas o **detalhamento dia a dia fica bloqueado** atrás de um teste de 3 dias ou do plano premium anual. Se você só quer um roteiro completo para consultar e compartilhar sem pagar, a Layla não é o caminho mais rápido para isso.
+Mas onde a versão gratuita termina mudou ao longo de 2026. Avaliações do início de 2026 encontraram uma visão geral da viagem e um preço total, com o **detalhamento dia a dia bloqueado** atrás de um teste de três dias ou do plano premium anual; os textos da própria Layla de junho de 2026 dizem que o gratuito agora cobre a geração completa do roteiro e que o premium adiciona preços ao vivo e PriceLock. Se você só quer um roteiro completo para consultar e compartilhar sem pagar, confira o que a versão gratuita da Layla mostra hoje antes de contar com isso.
 
 ## Preços da Layla AI (2026)
 
 | Plano | Preço | O que você recebe |
 |---|---|---|
-| Grátis | US$ 0 | Visão geral da viagem, preço total estimado, geração e revisão de roteiros — mas não o detalhamento dia a dia completo |
-| Premium | ~US$ 49/ano (alguns planos listam ~US$ 9,99/mês) | Roteiros dia a dia completos, preços ao vivo do Skyscanner e do Booking.com, alertas de queda de preço PriceLock, exportação em PDF, suporte prioritário |
-| Teste | 3 dias | Acesso temporário aos recursos premium |
+| Grátis | US$ 0 | Visão geral da viagem e preço total estimado; se o dia a dia completo está incluído mudou ao longo de 2026 (os textos da Layla de junho de 2026 dizem que sim) — confira |
+| Premium | ~US$ 49/ano no site da Layla (US$ 49,99/ano ou US$ 9,99/mês no iOS) | Preços ao vivo do Skyscanner, Booking.com e GetYourGuide, acompanhamento e alertas de tarifa PriceLock, exportação em PDF, suporte prioritário — e o dia a dia completo onde a versão gratuita fica aquém |
+| Teste | Se for oferecido | Avaliações do início de 2026 descreviam um de três dias; o premium renova automaticamente ao final |
 
-*Os preços e recursos refletem as informações divulgadas publicamente pela Layla em julho de 2026 e podem mudar — confira em [layla.ai](https://layla.ai) as informações mais recentes.*
+*Os preços e recursos refletem as informações divulgadas publicamente pela Layla em setembro de 2026 e podem mudar — confira em [layla.ai](https://layla.ai) as informações mais recentes.*
 
 A etapa de finalização por um especialista humano está incluída nos dois casos, o que é um toque realmente bacana — você não fica totalmente à mercê do algoritmo.
 
@@ -65,11 +65,11 @@ A etapa de finalização por um especialista humano está incluída nos dois cas
 
 ## Onde a Layla deixa a desejar
 
-**O paywall está justamente na parte que você quer.** Uma visão geral da viagem e um preço total não são um plano. O cronograma dia a dia — o motivo pelo qual você abre a ferramenta — exige o teste ou o premium de US$ 49/ano. Para uma categoria em que "planejador de viagens com AI grátis" é a expressão mais buscada de todas, essa é uma lacuna relevante.
+**O paywall já esteve justamente na parte que você quer.** Uma visão geral da viagem e um preço total não são um plano. Avaliações do início de 2026 colocavam o cronograma dia a dia — o motivo pelo qual você abre a ferramenta — atrás do teste ou do premium de ~US$ 49/ano; os textos da própria Layla de junho de 2026 dizem que a geração agora é grátis e que o premium adiciona preços ao vivo. Confira qual é o seu caso. Para uma categoria em que "planejador de viagens com AI grátis" é a expressão mais buscada de todas, essa é uma lacuna relevante.
 
-**A renovação é automática.** Como a maioria dos testes de assinatura, o premium costuma ser renovado automaticamente quando o período de teste acaba. Se você está só testando, marque um lembrete no calendário para cancelar antes da renovação, para não ser cobrado por um plano que não pretendia manter.
+**A renovação é automática.** O premium renova automaticamente, inclusive depois de qualquer teste que a Layla ofereça a você (avaliações do início de 2026 descreviam um de três dias). Se você está só testando, marque um lembrete no calendário para cancelar antes da renovação, para não ser cobrado por um plano que não pretendia manter.
 
-**Só em inglês.** Se você planeja em espanhol, italiano ou português, a Layla não foi feita para você.
+**O suporte a idiomas não é claro.** A página da Layla na App Store indica inglês, enquanto o site afirma oferecer 16 idiomas: se você planeja em espanhol, italiano ou português, confira o que realmente recebe antes de confiar.
 
 ## As melhores alternativas à Layla em 2026
 
@@ -85,13 +85,13 @@ Se os preços ao vivo da Layla não são a sua prioridade — e, para a maioria 
 
 Onde a Layla bloqueia o dia a dia, o [MonkeyTravel](/trips/new) entrega tudo de graça — nomes reais de locais, preços estimados, três níveis de orçamento realmente diferentes e roteirização inteligente do dia — sem criar conta. Você vai do destino a um plano compartilhável em cerca de 30 segundos.
 
-Duas coisas que a Layla simplesmente não faz: o MonkeyTravel planeja em **inglês, espanhol, italiano e português** e tem um sistema de **votação em grupo** integrado para quando seus companheiros de viagem não conseguem decidir o que fazer. Se você planeja com amigos ou em um idioma que não seja o inglês, nem tem comparação.
+Uma coisa que a Layla simplesmente não faz: o MonkeyTravel tem um sistema de **votação em grupo** integrado para quando seus companheiros de viagem não conseguem decidir o que fazer. Ele também planeja em **inglês, espanhol, italiano e português**; o suporte a idiomas da Layla não é claro (a página na App Store indica inglês e o site afirma 16 idiomas), então confira antes de contar com isso. Se você planeja com amigos, nem tem comparação.
 
 Onde a Layla ainda vence: preços ao vivo de voos e hotéis. O MonkeyTravel foca no roteiro, não na reserva — você vai abrir outra aba para reservar. Se aproveitar uma queda de tarifa é o objetivo central da sua busca, o premium da Layla é a melhor escolha.
 
 ### 2. Mindtrip — se você quer reservar no mesmo lugar
 
-O Mindtrip é grátis, sem paywall, e reúne a reserva (Priceline, Viator) na mesma interface, além de um grande banco de dados de pontos de interesse e mapas robustos. É só em inglês, e alguns avaliadores observam que os filtros de hotéis podem ser inconsistentes, mas, para pesquisar e reservar sem ficar trocando de aba, é a opção grátis mais completa. Saiba mais na nossa [comparação completa dos melhores planejadores de viagens com AI](/blog/best-ai-trip-planners-2026-compared).
+O Mindtrip é grátis, sem paywall, e reúne a reserva (Priceline, Viator) na mesma interface, além de um grande banco de dados de pontos de interesse e mapas robustos. Ele pede que você crie uma conta antes de planejar, mas, para pesquisar e reservar sem ficar trocando de aba, é a opção grátis mais completa. Saiba mais na nossa [comparação completa dos melhores planejadores de viagens com AI](/blog/best-ai-trip-planners-2026-compared).
 
 ### 3. Wonderplan — para viagens econômicas e rápidas
 
@@ -109,27 +109,28 @@ Para todos os outros — quem quer principalmente um roteiro dia a dia completo 
 
 ### A Layla AI é grátis?
 
-Em parte. A versão gratuita da Layla gera e revisa roteiros e mostra uma visão geral da viagem com um preço total, mas o detalhamento dia a dia completo fica bloqueado atrás de um teste de 3 dias ou do plano premium de ~US$ 49/ano. Ferramentas como MonkeyTravel, Mindtrip e Wonderplan entregam o roteiro completo de graça.
+Em parte — e a linha mudou ao longo de 2026. Avaliações do início de 2026 encontraram que a versão gratuita para numa visão geral da viagem com um preço total, com o detalhamento dia a dia completo atrás de um teste de três dias ou do plano premium de ~US$ 49/ano; os textos da própria Layla de junho de 2026 dizem que o gratuito cobre a geração completa do roteiro e que o premium adiciona preços ao vivo e PriceLock. Confira antes de confiar em qualquer uma das versões. Ferramentas como MonkeyTravel, Mindtrip e Wonderplan entregam o roteiro completo de graça.
 
 ### Quanto custa a Layla AI?
 
-O plano premium custa cerca de US$ 49/ano (alguns planos listam por volta de US$ 9,99/mês). Ele desbloqueia roteiros dia a dia completos, preços ao vivo do Skyscanner e do Booking.com, alertas de queda de preço PriceLock e exportação em PDF.
+O plano premium custa cerca de US$ 49/ano no site da Layla (US$ 49,99/ano ou US$ 9,99/mês no iOS). Ele inclui preços ao vivo do Skyscanner, Booking.com e GetYourGuide, acompanhamento e alertas de tarifa PriceLock, exportação em PDF — e, dependendo de onde a linha entre grátis e pago da Layla estiver quando você olhar, o roteiro dia a dia completo.
 
 ### Qual é a melhor alternativa grátis à Layla?
 
-Para um roteiro dia a dia completo sem paywall, o [MonkeyTravel](/trips/new) é a alternativa grátis mais próxima — e ainda soma votação em grupo e suporte a espanhol, italiano e português, que a Layla não tem. O Mindtrip é a melhor opção grátis se você também quiser reservar dentro do app.
+Para um roteiro dia a dia completo sem paywall, o [MonkeyTravel](/trips/new) é a alternativa grátis mais próxima — e ainda soma votação em grupo, e planeja em espanhol, italiano e português (o suporte a idiomas da Layla não é claro: a página na App Store indica inglês e o site afirma 16 idiomas). O Mindtrip é a melhor opção grátis se você também quiser reservar dentro do app.
 
 ### Layla ou Mindtrip: qual é melhor?
 
-A Layla é mais forte em preços ao vivo e acompanhamento de tarifas; o Mindtrip é mais forte em abrangência (mais de 11 milhões de pontos de interesse) e em reserva dentro do app, e é totalmente grátis. Se você quer um plano sem pagar, Mindtrip ou MonkeyTravel; se quer alertas de queda de tarifa, o premium da Layla.
+A Layla é mais forte em preços ao vivo e acompanhamento de tarifas (e desde 31 de julho de 2026 pertence à Expedia Group); o Mindtrip é mais forte em abrangência (mais de 11 milhões de pontos de interesse, segundo o próprio Mindtrip) e em reserva dentro do app, e é totalmente grátis. Se você quer um plano sem pagar, Mindtrip ou MonkeyTravel; se quer alertas de queda de tarifa, o premium da Layla.
 
 ### A Layla AI renova automaticamente após o teste gratuito?
 
-O plano premium da Layla costuma ser renovado automaticamente quando o teste acaba, como acontece com a maioria dos testes de assinatura. Se você está só testando o premium, marque um lembrete para cancelar antes da renovação, para não ser cobrado automaticamente.
+Sim. O plano premium da Layla renova automaticamente, inclusive depois de qualquer teste que ela ofereça a você (avaliações do início de 2026 descreviam um de três dias). Se você está só testando o premium, marque um lembrete para cancelar antes da renovação, para não ser cobrado automaticamente.
 
 ## Fontes
 
-- Contagem de viagens, avaliação e recursos da Layla — layla.ai (acesso em julho de 2026)
+- Contador de viagens, preços e recursos da Layla — layla.ai (acesso em setembro de 2026); avaliações do app — App Store da Apple e Google Play (lidas em setembro de 2026)
+- Aquisição da Layla pela Expedia Group (31 de julho de 2026) — relações com investidores da Expedia Group
 - Avaliação e detalhes de preços da Layla AI — aitravel.tools, futurepedia.io, toolworthy.ai (2026)
-- Recursos e preços do Mindtrip — mindtrip.ai; Similarweb (2026)
+- Recursos e preços do Mindtrip — mindtrip.ai (2026)
 - Recursos do Wonderplan — wonderplan.ai (2026)

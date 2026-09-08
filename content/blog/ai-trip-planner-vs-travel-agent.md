@@ -7,7 +7,7 @@ description: >-
   which actually saved more money.
 author: Riccardo P.
 publishedAt: '2026-02-18'
-updatedAt: '2026-02-18'
+updatedAt: '2026-09-08'
 category: AI Travel
 tags: ["ai trip planner", "comparison", "travel technology", "trip planning"]
 image: /images/blog/ai-vs-travel-agent.jpg
@@ -42,7 +42,7 @@ Here's what happened.
 
 **The trip:** 7 days in Portugal — Lisbon, Sintra, and Porto. Two travelers, mid-range budget, interested in food, culture, and local experiences. Travel dates: October 2026.
 
-**The AI:** A dedicated [AI trip planner](/trips/new) (like MonkeyTravel) that generates personalized itineraries based on preferences, budget, and real venue data.
+**The AI:** A dedicated [AI trip planner](/trips/new) (like MonkeyTravel) that generates personalized itineraries based on preferences, budget, and real venue data. Disclosure: MonkeyTravel is our own product.
 
 **The agent:** A well-reviewed independent travel advisor (not a discount agency, not a luxury concierge — a standard professional who charges a $150 planning fee).
 
@@ -149,7 +149,7 @@ It depends on what you value:
 
 ## Try It Yourself
 
-MonkeyTravel's AI builds personalized itineraries with real Google-verified venues, actual prices, and smart routing — in about 30 seconds. No planning fee, no sign-up wall, no generic "visit the famous landmarks" advice.
+MonkeyTravel's AI builds personalized itineraries with real Google-verified venues, cost estimates, and smart routing — in about 30 seconds. No planning fee, no sign-up wall, no generic "visit the famous landmarks" advice.
 
 See what AI plans for your next trip, then decide if you need an agent on top of it.
 
@@ -161,11 +161,11 @@ See what AI plans for your next trip, then decide if you need an agent on top of
 
 ### Can AI really replace a travel agent?
 
-For 80% of trips, yes. [AI trip planners](/trips/new) now use real-time venue data, ratings, and budget optimization to create detailed itineraries. See our [comparison of the best AI trip planners for 2026](/blog/best-ai-trip-planners-2026-compared) for a full breakdown. For complex luxury trips, multi-country logistics, or destinations with limited online information, a travel agent still adds value.
+For most standard trips, yes. [AI trip planners](/trips/new) now use real-time venue data, ratings, and budget optimization to create detailed itineraries. See our [comparison of the best AI trip planners for 2026](/blog/best-ai-trip-planners-2026-compared) for a full breakdown. For complex luxury trips, multi-country logistics, or destinations with limited online information, a travel agent still adds value.
 
 ### How accurate are AI trip planner recommendations?
 
-Dedicated AI trip planners (not ChatGPT) pull from Google Places, verified reviews, and real pricing data. Accuracy is typically 90%+ for restaurants and activities, but always verify opening hours and recent closures before your trip.
+Dedicated AI trip planners (not ChatGPT) pull from Google Places, verified reviews, and, in some tools, live pricing data. Venue names and locations are usually right, but always verify opening hours and recent closures before your trip.
 
 ### Is it worth paying a travel agent in 2026?
 

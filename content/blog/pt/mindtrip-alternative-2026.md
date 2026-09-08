@@ -7,7 +7,7 @@ description: >-
   deixam você ver o resultado primeiro.
 author: Riccardo P.
 publishedAt: '2026-08-24'
-updatedAt: '2026-08-24'
+updatedAt: '2026-09-08'
 category: AI Travel
 tags: ["planejador de viagens com ia", "avaliação", "comparação", "tecnologia de viagens"]
 image: /images/blog/how-ai-is-changing-travel-planning.jpg
@@ -48,7 +48,7 @@ Se isso importa mais para você do que ver o resultado antes de se cadastrar, fi
 
 O melhor organizador do grupo. Você tem uma lista de lugares vinda de amigos, do Instagram e de uma planilha; o Wanderlog transforma essa pilha num mapa, numa rota e num dia estruturado.
 
-**Custo:** o nível gratuito cobre marcadores, dias, colaboração e orçamentos manuais. **O Pro é US$ 39,99/ano** e acrescenta acesso off-line, otimização de rota, varredura do Gmail, exportação para o Google Maps e um assistente de IA.
+**Custo:** o nível gratuito cobre marcadores, dias, colaboração e orçamentos manuais. **O Pro é US$ 39,99/ano** (só anual) e acrescenta acesso off-line, otimização de rota, varredura do Gmail, exportação para o Google Maps e assistência de IA ilimitada — o assistente de IA do nível gratuito tem limite (um teste prático de fevereiro de 2026 contou cerca de cinco mensagens de IA por viagem).
 
 **O porém:** a otimização de rota é a melhor coisa que ele faz e vive atrás do paywall. Orce o Pro ou você estará usando um caderno muito bom.
 
@@ -56,9 +56,9 @@ O melhor organizador do grupo. Você tem uma lista de lugares vinda de amigos, d
 
 ## 2. Layla — se você quer que a viagem fique bonita
 
-Antes Roam Around. Puxa para o visual e o aspiracional, forte em cafés fotogênicos e mirantes, e produz roteiros que parecem algo que você postaria.
+Antes Roam Around. Puxa para o visual e o aspiracional, forte em cafés fotogênicos e mirantes, e produz roteiros que parecem algo que você postaria. Desde 31 de julho de 2026 ele pertence à Expedia Group, e vale saber: um planejador que pertence a uma empresa de reservas tem interesse em onde suas reservas terminam.
 
-**Escolha se:** a estética guia suas viagens e você quer uma única ferramenta paga que cubra da inspiração à reserva.
+**Escolha se:** a estética guia suas viagens e você quer uma única ferramenta (nível gratuito mais um Premium de cerca de US$ 49 por ano) que cubra da inspiração à reserva.
 
 **Pule se:** você quer um dia denso e eficiente. O viés visual é uma escolha editorial real e aparece no que é recomendado.
 
@@ -72,13 +72,13 @@ Um gerador sem firulas. Menos recursos, menos acabamento, sem camada real de col
 
 Flexibilidade enorme. Dá para fazer perguntas de acompanhamento que nenhuma ferramenta dedicada prevê, e ele reestrutura quando você pede.
 
-**O porém, e é real:** ele inventa coisas. Restaurantes que fecharam, horários que nunca existiram, e um tom seguro o tempo todo. Também não tem mapa, então «estes três são perto» é uma afirmação que você precisa verificar.
+**O porém, e é real:** ele inventa coisas. Restaurantes que fecharam, horários que nunca existiram, e um tom seguro o tempo todo. Também só mostra um mapa básico em buscas locais, então «estes três são perto» continua sendo uma afirmação que você precisa verificar.
 
 **Escolha se:** você gosta do vai e vem e vai conferir os dados.
 
 ## 5. iPlan.ai — se você é novo nisso
 
-Deliberadamente simples. Menos opções, menos a aprender, um primeiro roteiro razoável. Descreve-se melhor como rodinhas de bicicleta: útil no começo, e quase todo mundo segue adiante.
+Deliberadamente simples. Menos opções, menos a aprender, um primeiro roteiro razoável. Descreve-se melhor como rodinhas de bicicleta: útil no começo, e quase todo mundo segue adiante. É grátis para baixar, mas o gerador de roteiros com IA é uma compra dentro do app (cerca de US$ 3,99) e a assinatura Pro custa US$ 9,99.
 
 **Escolha se:** é a primeira vez que você deixa um software planejar uma viagem.
 
@@ -86,7 +86,7 @@ Deliberadamente simples. Menos opções, menos a aprender, um primeiro roteiro r
 
 Este é nosso, então pese de acordo.
 
-Fizemos a aposta oposta à do Mindtrip exatamente no ponto que trouxe você até aqui: **sem conta, nunca.** Você recebe um programa dia a dia com lugares reais e preços atuais, em três níveis de orçamento, em cerca de trinta segundos, e pode ler tudo antes de decidir se merecemos um endereço de e-mail.
+Fizemos a aposta oposta à do Mindtrip exatamente no ponto que trouxe você até aqui: **sem conta, nunca.** Você recebe um programa dia a dia com lugares reais e preços estimados, em três níveis de orçamento, em cerca de trinta segundos, e pode ler tudo antes de decidir se merecemos um endereço de e-mail.
 
 A outra diferença é o que sai. Quase toda esta lista te dá um mapa e uma lista de lugares. Nós damos um programa — paradas agrupadas por dia, ordenadas para que o dia seja caminhável, com os deslocamentos entre elas contabilizados.
 
@@ -100,10 +100,10 @@ A outra diferença é o que sai. Quase toda esta lista te dá um mapa e uma list
 |---|---|---|---|
 | Mindtrip | Sim, muro de login | Núcleo grátis | Capturas, guias curados |
 | Wanderlog | Parcial | Grátis / Pro US$ 39,99/ano | Logística de várias paradas, grupos |
-| Layla | Sim | Pago | Viagens visuais e aspiracionais |
+| Layla | Sim | Grátis / Premium ~US$ 49/ano | Viagens visuais e aspiracionais |
 | Wonderplan | Leve | Grátis | Um rascunho rápido |
 | ChatGPT | Precisa de conta | Grátis / níveis pagos | Perguntas abertas |
-| iPlan.ai | Leve | Grátis | Iniciantes |
+| iPlan.ai | Leve | Download grátis; gerador de IA ~US$ 3,99 no app, Pro US$ 9,99 | Iniciantes |
 | MonkeyTravel | **Não** | Grátis | Um programa dia a dia caminhável |
 
 ## Como escolher de verdade
@@ -142,7 +142,7 @@ Sim, na prática. Nenhuma dessas ferramentas importa das outras. Se você tem tr
 
 ## Fontes
 
-- [7 Best Mindtrip Alternatives in 2026](https://monkeyeatingmango.com/blog/mindtrip-alternatives-2026/) — muro de login do Mindtrip e fluxo voltado a reservas
-- [Wanderlog Pro Cost 2026](https://monkeyeatingmango.com/blog/wanderlog-pricing-2026/) — divisão de recursos grátis versus Pro
-- [Best AI Travel Planner 2026](https://voyaige.to/blog/best-ai-travel-planner-2026) — análise comparativa de Layla, Wanderlog e outros
-- Os preços refletem os níveis publicados em agosto de 2026 e mudam sem aviso: confirme antes de assinar.
+- [Wanderlog Pro](https://wanderlog.com/pro) — divisão de recursos grátis versus Pro e preço (acesso em setembro de 2026)
+- Aquisição da Layla pela Expedia Group (31 de julho de 2026) — relações com investidores da Expedia Group
+- Preços do iPlan.ai — página na App Store da Apple (lida em setembro de 2026)
+- Os preços refletem os níveis publicados em setembro de 2026 e mudam sem aviso: confirme antes de assinar.
