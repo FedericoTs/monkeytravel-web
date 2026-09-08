@@ -94,8 +94,8 @@
     "less": "Menos"
   },
   "drag": {
-    "title": "Mantener y arrastrar para reordenar",
-    "ariaLabel": "Control de arrastre - mantener y arrastrar para reordenar actividades",
+    "title": "Mantén pulsado y arrastra para reordenar o mover a otro día",
+    "ariaLabel": "Tirador: mantén pulsado y arrastra para reordenar o mover a otro día",
     "hint": "Arrastrar"
   },
   "validation": {

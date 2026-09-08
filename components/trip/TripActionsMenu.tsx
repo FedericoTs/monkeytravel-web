@@ -22,9 +22,26 @@ interface TripActionsMenuProps {
   /** Menu rows — buttons, or self-contained controls like ExportMenu. */
   children: ReactNode;
   className?: string;
+  /**
+   * A round, icon-only 44px trigger (DESIGN.md touch minimum) for compact
+   * hosts such as an activity card, where the text label has no room.
+   */
+  iconOnly?: boolean;
+  /**
+   * Close the panel when a `role="menuitem"` row is clicked. Off by default
+   * because the trip bar hosts ExportMenu, whose own submenu lives inside
+   * this panel; on for simple menus whose rows open a sheet or act at once.
+   */
+  closeOnItemClick?: boolean;
 }
 
-export default function TripActionsMenu({ label, children, className = "" }: TripActionsMenuProps) {
+export default function TripActionsMenu({
+  label,
+  children,
+  className = "",
+  iconOnly = false,
+  closeOnItemClick = false,
+}: TripActionsMenuProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -53,26 +70,35 @@ export default function TripActionsMenu({ label, children, className = "" }: Tri
         aria-expanded={open}
         aria-label={label}
         title={label}
-        className={`flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium transition-colors ${
-          open ? "bg-slate-200 text-slate-800" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-        }`}
+        className={
+          iconOnly
+            ? `flex h-11 w-11 items-center justify-center rounded-full shadow-md transition-colors ${
+                open ? "bg-slate-200 text-slate-800" : "bg-white text-slate-700 hover:bg-slate-50"
+              }`
+            : `flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium transition-colors ${
+                open ? "bg-slate-200 text-slate-800" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`
+        }
       >
         <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="5" cy="12" r="2" />
           <circle cx="12" cy="12" r="2" />
           <circle cx="19" cy="12" r="2" />
         </svg>
-        <span className="hidden sm:inline">{label}</span>
+        {!iconOnly && <span className="hidden sm:inline">{label}</span>}
       </button>
 
       {open ? (
         <div
           role="menu"
           aria-label={label}
-          // No auto-close on inner click: one of the rows is ExportMenu, whose
-          // own submenu renders inside this panel, so collapsing on click would
-          // fight it. Outside-click and Escape close the menu; simple rows that
-          // open a modal are covered by it and dismissed with the next click.
+          // By default no auto-close on inner click: in the trip bar one of the
+          // rows is ExportMenu, whose own submenu renders inside this panel, so
+          // collapsing on click would fight it. Outside-click and Escape close
+          // the menu. Simple menus opt into closeOnItemClick.
+          onClick={(e) => {
+            if (closeOnItemClick && (e.target as HTMLElement).closest('[role="menuitem"]')) setOpen(false);
+          }}
           className="absolute right-0 z-30 mt-2 min-w-[220px] rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-900/10"
         >
           {children}
@@ -91,19 +117,25 @@ export function TripActionsMenuItem({
   onClick,
   icon,
   children,
+  tone = "default",
 }: {
   onClick: () => void;
   icon?: ReactNode;
   children: ReactNode;
+  /** `danger` for destructive rows (delete) — red text, red hover. */
+  tone?: "default" | "danger";
 }) {
+  const toneClasses =
+    tone === "danger" ? "text-red-600 hover:bg-red-50" : "text-slate-700 hover:bg-slate-50";
+  const iconClasses = tone === "danger" ? "text-red-500" : "text-slate-500";
   return (
     <button
       type="button"
       role="menuitem"
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+      className={`flex w-full min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium ${toneClasses}`}
     >
-      {icon ? <span className="flex h-5 w-5 shrink-0 items-center justify-center text-slate-500">{icon}</span> : null}
+      {icon ? <span className={`flex h-5 w-5 shrink-0 items-center justify-center ${iconClasses}`}>{icon}</span> : null}
       <span className="min-w-0 flex-1">{children}</span>
     </button>
   );

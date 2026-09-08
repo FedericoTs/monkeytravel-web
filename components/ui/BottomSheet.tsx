@@ -11,6 +11,14 @@ interface BottomSheetProps {
   children: React.ReactNode;
   title?: string;
   showCloseButton?: boolean;
+  /**
+   * On `sm+` render as a centered floating panel (max-w-md, lifted off the
+   * bottom edge, fully rounded) instead of a full-width sheet — for short
+   * pickers that would look stretched across a desktop viewport. Mobile is
+   * unchanged. Centering uses margins, not transforms, so it doesn't fight
+   * framer-motion's `y` animation.
+   */
+  desktopCentered?: boolean;
 }
 
 export default function BottomSheet({
@@ -19,6 +27,7 @@ export default function BottomSheet({
   children,
   title,
   showCloseButton = true,
+  desktopCentered = false,
 }: BottomSheetProps) {
   const dragControls = useDragControls();
 
@@ -138,14 +147,15 @@ export default function BottomSheet({
             aria-modal="true"
             aria-labelledby={title ? sheetTitleId : undefined}
             tabIndex={-1}
-            className="
+            className={`
               fixed bottom-0 left-0 right-0 z-[101]
               bg-white rounded-t-3xl
               max-h-[90vh] overflow-hidden
               shadow-2xl
               flex flex-col
               focus:outline-none
-            "
+              ${desktopCentered ? "sm:bottom-8 sm:mx-auto sm:w-full sm:max-w-md sm:rounded-3xl" : ""}
+            `}
             style={{ touchAction: "none" }}
           >
             {/* Drag Handle */}

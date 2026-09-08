@@ -2,16 +2,23 @@
 
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
 
+/** An inline action on a toast — e.g. "Undo" after a move. */
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 interface Toast {
   id: string;
   message: string;
   type: "success" | "error" | "info" | "warning";
   duration?: number;
+  action?: ToastAction;
 }
 
 interface ToastContextType {
   toasts: Toast[];
-  addToast: (message: string, type?: Toast["type"], duration?: number) => void;
+  addToast: (message: string, type?: Toast["type"], duration?: number, action?: ToastAction) => void;
   removeToast: (id: string) => void;
 }
 
@@ -25,11 +32,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addToast = useCallback(
-    (message: string, type: Toast["type"] = "info", duration?: number) => {
+    (message: string, type: Toast["type"] = "info", duration?: number, action?: ToastAction) => {
       const defaultDuration = type === "error" || type === "warning" ? 5000 : 3000;
       duration = duration ?? defaultDuration;
       const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      setToasts((prev) => [...prev, { id, message, type, duration }]);
+      setToasts((prev) => [...prev, { id, message, type, duration, action }]);
 
       // Auto remove after duration
       if (duration > 0) {
@@ -152,6 +159,18 @@ function ToastItem({
     >
       {icons[toast.type]}
       <p className="flex-1 text-sm font-medium text-slate-800">{toast.message}</p>
+      {toast.action && (
+        <button
+          type="button"
+          onClick={() => {
+            toast.action?.onClick();
+            handleRemove();
+          }}
+          className="min-h-11 shrink-0 rounded-lg px-3 text-sm font-semibold text-[var(--primary-ink)] hover:bg-white/70 transition-colors"
+        >
+          {toast.action.label}
+        </button>
+      )}
       <button
         onClick={handleRemove}
         className="text-slate-500 hover:text-slate-600 transition-colors"
