@@ -1942,7 +1942,18 @@ export default function TripDetailClient({
         </div>
       </DestinationHero>
 
-      <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+      {/*
+        On lg+ the assistant is a 420px panel docked to the right. Make room
+        for it instead of letting it cover the plan: a right margin equal to
+        the panel width lets the content column shrink (or slide left on wide
+        screens) so the cards' actions, prices and drag handles stay reachable
+        while the chat is open.
+      */}
+      <main
+        className={`max-w-6xl mx-auto px-4 py-6 sm:py-8 transition-[margin] duration-300 ease-out ${
+          isAIAssistantOpen ? "lg:mr-[420px]" : ""
+        }`}
+      >
         {/* Live Trip Phase 2.4: who said they're going — count, names, join
             times, remove. The share ask is "send it to the people coming",
             not "get votes". */}

@@ -783,7 +783,7 @@ ${t("notAppliedBody")}`,
       <div
         className={`
           fixed z-[70] bg-white shadow-2xl
-          lg:right-0 lg:top-0 lg:h-full lg:w-[420px] lg:border-l lg:border-slate-200
+          lg:left-auto lg:bottom-auto lg:right-0 lg:top-0 lg:h-full lg:w-[420px] lg:border-l lg:border-slate-200
           bottom-0 left-0 right-0 h-[85vh] rounded-t-3xl lg:rounded-none
           flex flex-col overflow-hidden
           transform transition-transform duration-300 ease-out
