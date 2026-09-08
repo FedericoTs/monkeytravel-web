@@ -449,7 +449,12 @@ function EditableActivityCard({
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
+            {/* Reserve room for the Edit/⋯ cluster when it sits over text (no image to float over) */}
+            <div
+              className={`flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4 ${
+                isEditMode && !isEditing && !activity.image_url ? "pr-[6.5rem]" : ""
+              }`}
+            >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   {isEditing ? (

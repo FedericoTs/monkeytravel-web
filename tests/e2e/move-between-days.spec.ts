@@ -5,21 +5,23 @@
  *   2. dragging a card onto another day's header (pointer devices)
  *
  * Both must land the card in the other day, confirm with a toast that offers
- * Undo, undo cleanly, and survive a reload (auto-save on solo trips, the
- * legacy Save button on collaborative ones).
+ * Undo, undo cleanly, and survive a reload through the ambient auto-save.
  *
- * Self-contained like today.spec.ts: the service role pins a known 3-day
- * planning itinerary on the fixture trip (dates in the future, so the owner
- * gets the editor), then restores the row. Needs the owner's storage state
- * (npx tsx scripts/e2e-login.mts) and the fixture trip id. Run with ONE
- * worker — both projects share the same trip row.
+ * Isolation: every test creates its OWN throwaway trip for the e2e owner
+ * (same shape as scripts/e2e-fixtures.mts, no collaborators — so it gets the
+ * ambient editor that solo owners have, which is ~99% of trips) and deletes
+ * it afterwards. Nothing on the shared fixture trip is touched, and the two
+ * projects can run in parallel. Needs the owner's storage state
+ * (npx tsx scripts/e2e-login.mts) and the fixture trip id (only to find the
+ * owner's user id).
  *
  *   KEY_FLOWS_AUTH_STATE=.auth/owner.json KEY_FLOWS_TRIP_ID=<manifest tripId> \
  *   BASE_URL=http://localhost:3001 \
- *     npx playwright test tests/e2e/move-between-days.spec.ts --workers=1
+ *     npx playwright test tests/e2e/move-between-days.spec.ts
  */
 import { test, expect, type Page } from "@playwright/test";
 import { existsSync, readFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const env: Record<string, string> = {};
@@ -32,7 +34,7 @@ if (existsSync(".env.local")) {
 const need = (k: string) => process.env[k] ?? env[k] ?? "";
 const SUPA_URL = need("NEXT_PUBLIC_SUPABASE_URL");
 const SERVICE_KEY = need("SUPABASE_SERVICE_ROLE_KEY");
-const TRIP_ID = process.env.KEY_FLOWS_TRIP_ID;
+const FIXTURE_TRIP_ID = process.env.KEY_FLOWS_TRIP_ID;
 const AUTH_STATE = process.env.KEY_FLOWS_AUTH_STATE;
 
 function iso(offsetDays: number): string {
@@ -83,19 +85,19 @@ async function declineConsent(page: Page) {
 }
 
 /**
- * Solo owners get the editor ambiently. A collaborative fixture (the e2e trip
- * has a mate and a voter) keeps the legacy "Edit Trip" toggle — flip it.
+ * A solo owner gets the editor ambiently; if a trip ever lands in the legacy
+ * mode (collaborative), flip the "Edit Trip" toggle.
  */
 async function ensureEditing(page: Page) {
   const actions = page.getByTestId("activity-actions").first();
   try {
-    await actions.waitFor({ state: "visible", timeout: 8000 });
+    await actions.waitFor({ state: "visible", timeout: 15_000 });
     return;
   } catch {
     /* legacy mode */
   }
   await page.getByTitle(/edit trip/i).first().click();
-  await actions.waitFor({ state: "visible", timeout: 10000 });
+  await actions.waitFor({ state: "visible", timeout: 10_000 });
 }
 
 /**
@@ -105,7 +107,7 @@ async function ensureEditing(page: Page) {
 async function persist(page: Page, tripId: string) {
   const patch = page.waitForResponse(
     (r) => r.url().includes(`/api/trips/${tripId}`) && r.request().method() === "PATCH",
-    { timeout: 20000 },
+    { timeout: 20_000 },
   );
   const save = page.getByRole("button", { name: /^save( changes)?$/i }).first();
   if (await save.isVisible().catch(() => false)) await save.click();
@@ -122,8 +124,8 @@ const dayOrder = (page: Page, dayNumber: number) =>
     .locator('[data-testid^="activity-card-"]')
     .evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
 
-async function openTrip(page: Page) {
-  await page.goto(`/en/trips/${TRIP_ID}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+async function openTrip(page: Page, tripId: string) {
+  await page.goto(`/en/trips/${tripId}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
   await declineConsent(page);
   await ensureEditing(page);
   await expect(cardIn(page, 1, "m-d1a1")).toBeVisible({ timeout: 30_000 });
@@ -131,43 +133,46 @@ async function openTrip(page: Page) {
 
 test.describe("Move an activity between days", () => {
   test.skip(
-    !SUPA_URL || !SERVICE_KEY || !TRIP_ID || !AUTH_STATE,
+    !SUPA_URL || !SERVICE_KEY || !FIXTURE_TRIP_ID || !AUTH_STATE,
     "set SUPABASE_SERVICE_ROLE_KEY, KEY_FLOWS_TRIP_ID and KEY_FLOWS_AUTH_STATE",
   );
   test.use({ storageState: AUTH_STATE });
-  test.describe.configure({ timeout: 150_000, mode: "serial" });
+  test.describe.configure({ timeout: 150_000 });
 
   let admin: SupabaseClient;
-  let original: Record<string, unknown>;
+  let ownerId: string;
+  let tripId: string;
 
   test.beforeAll(async () => {
     admin = createClient(SUPA_URL, SERVICE_KEY, { auth: { persistSession: false } });
-    const { data, error } = await admin
-      .from("trips")
-      .select("start_date, end_date, itinerary, trip_meta, status")
-      .eq("id", TRIP_ID!)
-      .single();
+    const { data, error } = await admin.from("trips").select("user_id").eq("id", FIXTURE_TRIP_ID!).single();
     if (error) throw error;
-    original = data as Record<string, unknown>;
+    ownerId = data.user_id as string;
   });
 
   test.beforeEach(async () => {
-    const patch: Record<string, unknown> = {
+    tripId = randomUUID();
+    const { error } = await admin.from("trips").insert({
+      id: tripId,
+      user_id: ownerId,
+      title: "E2E move-between-days (safe to delete)",
+      description: "Automated E2E fixture. Safe to delete.",
       start_date: iso(30),
       end_date: iso(32),
+      status: "planning",
+      visibility: "private",
       itinerary: planningItinerary(),
-      ...(original.status === "active" ? { status: "planning" } : {}),
-    };
-    const { error } = await admin.from("trips").update(patch).eq("id", TRIP_ID!);
+      trip_meta: { destination: "Lisbon", e2e_fixture: true },
+    });
     if (error) throw error;
   });
 
-  test.afterAll(async () => {
-    if (admin && original) await admin.from("trips").update(original).eq("id", TRIP_ID!);
+  test.afterEach(async () => {
+    if (tripId) await admin.from("trips").delete().eq("id", tripId);
   });
 
   test("⋯ → Move to another day lands the card in its time slot, and Undo brings it back", async ({ page }) => {
-    await openTrip(page);
+    await openTrip(page, tripId);
 
     const card = cardIn(page, 1, "m-d1a2");
     await card.getByRole("button", { name: /more actions/i }).click();
@@ -183,7 +188,7 @@ test.describe("Move an activity between days", () => {
     await expect(cardIn(page, 1, "m-d1a2")).toHaveCount(0);
     expect(await dayOrder(page, 3)).toEqual(["activity-card-m-d3a1", "activity-card-m-d1a2"]);
 
-    // Confirmed, with a way back.
+    // Confirmed, with a way back — the toast's Undo.
     await expect(page.getByText(/moved to day 3/i)).toBeVisible();
     const undo = page.getByRole("button", { name: /^undo$/i }).last();
     await expect(undo).toBeVisible();
@@ -193,13 +198,13 @@ test.describe("Move an activity between days", () => {
   });
 
   test("a move survives a reload", async ({ page }) => {
-    await openTrip(page);
+    await openTrip(page, tripId);
 
     await cardIn(page, 1, "m-d1a1").getByRole("button", { name: /more actions/i }).click();
     await page.getByRole("menuitem", { name: /move to another day/i }).click();
     await page.getByTestId("move-to-day-2").click();
     await expect(cardIn(page, 2, "m-d1a1")).toBeVisible({ timeout: 10_000 });
-    await persist(page, TRIP_ID!);
+    await persist(page, tripId);
 
     await page.reload({ waitUntil: "domcontentloaded" });
     await declineConsent(page);
@@ -210,23 +215,42 @@ test.describe("Move an activity between days", () => {
 
   test("dragging a card onto another day's header puts it at the start of that day", async ({ page, isMobile }) => {
     test.skip(isMobile, "pointer drag — on touch the sheet is the path");
-    // Tall viewport: the whole plan on screen, so the drag needs no auto-scroll.
-    await page.setViewportSize({ width: 1280, height: 2400 });
-    await openTrip(page);
+    // A viewport taller than the whole page: nothing can scroll, so dnd-kit's
+    // edge auto-scroll (bottom 20% of the viewport) can't slide the target
+    // away from a resting pointer, and no coordinate goes stale.
+    const viewport = { width: 1280, height: 6000 };
+    await page.setViewportSize(viewport);
+    await openTrip(page, tripId);
+    await page.evaluate(() => window.scrollTo(0, 0));
 
     const handle = cardIn(page, 1, "m-d1a1").getByTestId("drag-handle");
     const header = page.getByTestId("day-drop-header-3");
+    await handle.scrollIntoViewIfNeeded();
     const from = await handle.boundingBox();
     const to = await header.boundingBox();
     expect(from && to, "handle and target header must be on screen").toBeTruthy();
+    expect(to!.y + to!.height, "day 3 header must be inside the viewport").toBeLessThan(viewport.height);
+    expect(from!.y, "day 1 handle must be inside the viewport").toBeGreaterThanOrEqual(0);
 
     const startX = from!.x + from!.width / 2;
     const startY = from!.y + from!.height / 2;
     await page.mouse.move(startX, startY);
     await page.mouse.down();
     await page.mouse.move(startX + 12, startY + 12, { steps: 4 }); // past the 5px activation distance
-    await page.mouse.move(to!.x + to!.width / 2, to!.y + to!.height / 2, { steps: 25 });
-    await expect(header).toHaveAttribute("data-drop-over", "true");
+    // The plan reflows live while a card crosses days (the preview moves it),
+    // so measure the destination header AFTER the drag is under way, then go.
+    await page.mouse.move(to!.x + to!.width / 2, to!.y - 40, { steps: 15 });
+    await page.waitForTimeout(150);
+    const live = await header.boundingBox();
+    expect(live, "day 3 header still on screen mid-drag").toBeTruthy();
+    const endX = live!.x + live!.width / 2;
+    const endY = live!.y + live!.height / 2;
+    await page.mouse.move(endX, endY, { steps: 10 });
+    // The header highlight is a one-frame state by design: as soon as the
+    // pointer crosses it, the preview inserts the card at the top of Day 3
+    // and the header slides up, leaving the pointer over the card itself.
+    // The outcome after release is what matters.
+    await page.waitForTimeout(250);
     await page.mouse.up();
 
     await expect(cardIn(page, 3, "m-d1a1")).toBeVisible({ timeout: 10_000 });

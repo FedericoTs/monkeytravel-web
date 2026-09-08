@@ -71,7 +71,11 @@ interface DayDropHeaderProps {
 
 export function DayDropHeader({ dayNumber, dragging, children }: DayDropHeaderProps) {
   const t = useTranslations("trips");
-  const { setNodeRef, isOver } = useDroppable({ id: dayHeaderId(dayNumber), disabled: !dragging });
+  // Always registered: dnd-kit measures droppable rects when a drag STARTS,
+  // so a droppable that is disabled until then has no rect and can never be
+  // "over". Collisions only run during a drag, so there is nothing to gate;
+  // `dragging` drives the visual cues only.
+  const { setNodeRef, isOver } = useDroppable({ id: dayHeaderId(dayNumber) });
 
   return (
     <div
@@ -110,10 +114,15 @@ interface DayDropListProps {
 
 export function DayDropList({ dayNumber, dragging, isEmpty, children }: DayDropListProps) {
   const t = useTranslations("trips");
-  const { setNodeRef, isOver } = useDroppable({ id: dayDropId(dayNumber), disabled: !dragging });
+  const { setNodeRef, isOver } = useDroppable({ id: dayDropId(dayNumber) }); // see DayDropHeader
 
   return (
-    <div ref={setNodeRef} data-testid={`day-drop-list-${dayNumber}`} className="relative">
+    <div
+      ref={setNodeRef}
+      data-testid={`day-drop-list-${dayNumber}`}
+      data-drop-over={isOver ? "true" : undefined}
+      className="relative"
+    >
       {children}
       {dragging && (
         <div

@@ -145,7 +145,11 @@ function InlineProposalCardComponent({
   const userVoteInfo = userVote ? VOTE_INFO[userVote as VoteType] : null;
 
   // Format time
-  const formatTime = (time: string) => {
+  const formatTime = (time?: string) => {
+    // A proposal without a start time (or a malformed one) must not take the
+    // whole trip page down: the merged timeline renders every proposal, and
+    // this threw on undefined, blanking the page for collaborators.
+    if (!time || !time.includes(":")) return time ?? "";
     const [hours, minutes] = time.split(':');
     const h = parseInt(hours, 10);
     const ampm = h >= 12 ? 'PM' : 'AM';
@@ -352,7 +356,7 @@ function InlineProposalCardComponent({
         {/* Note (if present and short) */}
         {proposal.note && proposal.note.length < 80 && isActive && (
           <div className="mt-2 text-xs text-gray-600 italic bg-white/50 rounded-lg px-2 py-1">
-            "{proposal.note}"
+            &ldquo;{proposal.note}&rdquo;
           </div>
         )}
       </div>

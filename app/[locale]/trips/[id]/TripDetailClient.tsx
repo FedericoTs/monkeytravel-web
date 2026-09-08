@@ -91,6 +91,7 @@ import {
   DragOverlay,
   DragStartEvent,
   KeyboardSensor,
+  MeasuringStrategy,
   PointerSensor,
   TouchSensor,
   useSensor,
@@ -901,6 +902,13 @@ export default function TripDetailClient({
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const dragStartRef = useRef<ItineraryDay[] | null>(null);
   const collisionDetection = useMemo(() => makeItineraryCollisionDetection(), []);
+  // Re-measure every droppable on each move. dnd-kit measures droppables once
+  // when a drag starts and only re-measures sortable ITEMS when a list
+  // changes — the day headers and lists are not sortable items, so anything
+  // that shifts the page mid-drag (the preview moving a card between days,
+  // the map or an image loading) left their rects stale and a drop over a
+  // header landed somewhere else. ~15 rects per move is negligible.
+  const dndMeasuring = useMemo(() => ({ droppable: { strategy: MeasuringStrategy.Always } }), []);
 
   // Drag-and-drop sensors for reordering activities
   // Optimized for premium iOS-like touch experience
@@ -1718,6 +1726,15 @@ export default function TripDetailClient({
   // toast that offers Undo — the visible undo mobile never had.
   const firstModificationRef = useRef(true);
 
+  // The toast's Undo fires seconds after the move, from a callback created
+  // BEFORE pushUndo/setEditedItinerary landed — so a captured `undo` would
+  // close over the stack without the move and undo nothing. Always call the
+  // latest one.
+  const undoRef = useRef(undo);
+  useEffect(() => {
+    undoRef.current = undo;
+  }, [undo]);
+
   const commitMove = useCallback(
     (
       next: ItineraryDay[],
@@ -1735,7 +1752,7 @@ export default function TripDetailClient({
       handleFocusDayCard(targetDayNumber);
       addToast(t("editActivity.movedToDay", { day: targetDayNumber }), "success", 6000, {
         label: t("detail.undo"),
-        onClick: undo,
+        onClick: () => undoRef.current(),
       });
       captureActivityModified({
         trip_id: trip.id,
@@ -1748,7 +1765,7 @@ export default function TripDetailClient({
       });
       firstModificationRef.current = false;
     },
-    [pushUndo, handleFocusDayCard, addToast, t, undo, trip.id],
+    [pushUndo, handleFocusDayCard, addToast, t, trip.id],
   );
 
   // The sheet path: land in the chronological slot of the chosen day, so a
@@ -2629,6 +2646,7 @@ export default function TripDetailClient({
           <DndContext
             sensors={sensors}
             collisionDetection={collisionDetection}
+            measuring={dndMeasuring}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
