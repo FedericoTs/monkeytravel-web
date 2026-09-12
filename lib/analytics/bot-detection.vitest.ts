@@ -54,6 +54,8 @@ const KNOWN_BOTS = [
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 HeadlessChrome/128.0.0.0 Safari/537.36",
   "Mozilla/5.0 (Macintosh) Chrome-Lighthouse",
   "UptimeRobot/2.0",
+  // Our own prod sweeps self-identify; 1,244 rows in 48s on 2026-09-12.
+  "monkeytravel-sitemap-health/1 (+internal)",
 ];
 
 describe("isAnalyticsBot — real browsers are never misclassified", () => {

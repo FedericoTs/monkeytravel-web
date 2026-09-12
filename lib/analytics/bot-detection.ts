@@ -105,6 +105,14 @@ const BOT_SIGNATURES: readonly string[] = [
   "amazonbot",
   "meta-externalagent",
   "diffbot",
+  // Our own tooling. Anything we run against prod announces itself with a
+  // "monkeytravel-<tool>/<n> (+internal)" UA. Measured 2026-09-12: one
+  // sitemap-health sweep wrote 1,244 rows in 48 seconds, all from one city,
+  // none matching a signature above — it showed up as Italy's biggest
+  // "audience" of the day. Label at write time so it never reaches
+  // page_views_human.
+  "monkeytravel-",
+  "(+internal)",
 ];
 
 /**
