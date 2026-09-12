@@ -20,6 +20,7 @@ import { apiGateway, CircuitOpenError } from "@/lib/api-gateway";
 import { createAdminClient } from "@/lib/supabase/admin";
 import crypto from "crypto";
 import { getHistoricalDateRange } from "@/lib/weather/historical-range";
+import { isPlausibleTripRange } from "@/lib/dates/iso-date";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
 // Lazy service-role client for the RLS-locked weather_cache table. The weather
@@ -184,6 +185,29 @@ export async function GET(request: NextRequest) {
 
     if (!latitude || !longitude || !startDate || !endDate) {
       return errors.badRequest("Missing required parameters: latitude, longitude, startDate, endDate");
+    }
+
+    // Shape check before any I/O. The wizard's date field reports partial
+    // years while they are typed ("0201-10-30" is a valid date to the input),
+    // and each one used to become a cache miss, an Open-Meteo request for the
+    // year 201 (HTTP 400: 82 of 626 calls in the fortnight to 2026-09-12), an
+    // api_request_logs row and a 500 to the client. Answer 400 and touch
+    // nothing. SeasonalContextCard carries the same guard, so a request that
+    // trips this one was not sent by the wizard.
+    const latNum = Number(latitude);
+    const lngNum = Number(longitude);
+    if (
+      !Number.isFinite(latNum) ||
+      !Number.isFinite(lngNum) ||
+      Math.abs(latNum) > 90 ||
+      Math.abs(lngNum) > 180
+    ) {
+      return errors.badRequest("latitude/longitude must be numbers within range");
+    }
+    if (!isPlausibleTripRange(startDate, endDate)) {
+      return errors.badRequest(
+        "startDate/endDate must be YYYY-MM-DD, near the present, and in order"
+      );
     }
 
     // Edge CDN cache headers — only set when no Authorization header is present.
