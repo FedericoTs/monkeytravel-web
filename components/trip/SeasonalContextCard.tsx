@@ -11,6 +11,7 @@ import {
   SeasonalVibeSuggestion,
 } from "@/lib/seasonal";
 import { useLocale, formatTemperatureRange } from "@/lib/locale";
+import { isPlausibleTripRange } from "@/lib/dates/iso-date";
 
 // The seasonal lib emits English `reason` strings (it's a pure-data lib with
 // no i18n coupling). We map those well-known strings back to translation keys
@@ -34,6 +35,11 @@ function intlLocaleTag(locale: string): string {
   if (locale === "it") return "it-IT";
   return "en-US";
 }
+
+// One weather request per settled edit, not one per keystroke. The day digits
+// of a valid date are valid dates too (2026-10-03 on the way to 2026-10-30);
+// the plausibility guard in the effect only removes the impossible ones.
+const WEATHER_FETCH_DEBOUNCE_MS = 400;
 
 interface WeatherData {
   temperature: {
@@ -90,6 +96,11 @@ export default function SeasonalContextCard({
       setWeatherData(null);
       return;
     }
+    // Partial years ("0201-10-30") and reversed ranges are what the date
+    // fields report mid-edit. They are not a forecast request: skip them and
+    // keep whatever is on screen, so the card does not flicker while someone
+    // types the year.
+    if (!isPlausibleTripRange(startDate, endDate)) return;
 
     const controller = new AbortController();
     let cancelled = false;
@@ -129,10 +140,11 @@ export default function SeasonalContextCard({
       }
     };
 
-    fetchWeather();
+    const timer = setTimeout(fetchWeather, WEATHER_FETCH_DEBOUNCE_MS);
 
     return () => {
       cancelled = true;
+      clearTimeout(timer);
       controller.abort();
     };
   }, [coordinates, startDate, endDate]);

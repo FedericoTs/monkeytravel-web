@@ -50,3 +50,48 @@ export function maxTripStartDate(now: Date = new Date()): string {
   d.setUTCFullYear(d.getUTCFullYear() + MAX_YEARS_AHEAD);
   return d.toISOString().slice(0, 10);
 }
+
+/**
+ * How far back a trip may start and still be a trip rather than a typo. One
+ * year keeps "editing last summer's trip" possible.
+ */
+const MAX_YEARS_BACK = 1;
+
+/**
+ * A real calendar date whose year is near the present.
+ *
+ * `isValidIsoDate` accepts "0201-10-30": four digits, a real month, a real
+ * day. That is exactly what `<input type="date">` reports while someone is
+ * still typing the year of 2026 (0002 → 0020 → 0202 → 2026), and each of those
+ * keystrokes reached /api/weather, which asked Open-Meteo for the weather of
+ * the year 201 and got HTTP 400 — 82 of the 626 weather calls in the fortnight
+ * to 2026-09-12 were that. The sanitiser above cannot reject them: they ARE
+ * valid dates. This guard adds the one thing that separates a typed year from
+ * a real one: it is within a year behind, or MAX_YEARS_AHEAD ahead, of today.
+ */
+export function isPlausibleTripDate(
+  value: string,
+  now: Date = new Date()
+): boolean {
+  if (!isValidIsoDate(value)) return false;
+  const year = Number(value.slice(0, 4));
+  const thisYear = now.getUTCFullYear();
+  return year >= thisYear - MAX_YEARS_BACK && year <= thisYear + MAX_YEARS_AHEAD;
+}
+
+/**
+ * Both ends plausible, and the trip does not end before it starts. The second
+ * half catches the other mid-edit shape: a new start typed after the old end.
+ * YYYY-MM-DD compares correctly as text.
+ */
+export function isPlausibleTripRange(
+  start: string,
+  end: string,
+  now: Date = new Date()
+): boolean {
+  return (
+    isPlausibleTripDate(start, now) &&
+    isPlausibleTripDate(end, now) &&
+    start <= end
+  );
+}

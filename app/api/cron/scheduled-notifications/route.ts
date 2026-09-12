@@ -213,6 +213,44 @@ export function staleReason(
   return `stale_${slot}_${daysLate}d_late`;
 }
 
+/**
+ * The order rows are processed in when a run may not reach them all.
+ *
+ * TRIP_NOTIFICATIONS_SEND_CAP stops a run after N real sends and leaves the
+ * rest `pending` for the next morning. Oldest-first was the only order, and
+ * under a cap it is the wrong one: the rows that can wait a day ("One week
+ * out" is still true at six days) went first, and the rows that cannot —
+ * "Tomorrow — final checks", "Travel day", the evening-before digest — were
+ * pushed to the next run, where staleReason correctly refused them. On
+ * 2026-09-12 two `morning_of` rows were suppressed as stale_morning_of_1d_late
+ * exactly this way, in a run that had spent its cap of 10 on pre-trip mails
+ * with days of slack.
+ *
+ * So: rows with no grace first (they are wrong tomorrow), then the rest, each
+ * group oldest-first. Post-trip followups make no claim about WHEN and go
+ * last. Pure and stable, so a cap of N always lands on the N rows that would
+ * otherwise be lost.
+ */
+export function prioritizeDueRows<
+  T extends { slot: string; scheduled_for: string },
+>(rows: T[]): T[] {
+  const urgency = (slot: string): number => {
+    if (slot.startsWith("followup_")) return 2;
+    // An evening-before digest is wrong by the next evening: zero grace.
+    if (parseDigestDay(slot) !== null) return 0;
+    return STALE_GRACE_DAYS[slot] ?? 1;
+  };
+  return rows
+    .map((row, index) => ({ row, index, urgency: urgency(row.slot) }))
+    .sort(
+      (a, b) =>
+        a.urgency - b.urgency ||
+        a.row.scheduled_for.localeCompare(b.row.scheduled_for) ||
+        a.index - b.index
+    )
+    .map((entry) => entry.row);
+}
+
 /** A queue row belongs to the post-trip family iff its slot says so. */
 function isFollowupSlot(slot: QueueSlot): slot is TripFollowupSlot {
   return slot.startsWith("followup_");
@@ -320,6 +358,7 @@ type TripEmailRow = {
   end_date: string;
   reminders_muted: boolean | null;
   status: string | null;
+  deleted_at: string | null;
   itinerary: unknown;
   weather_note: string | null;
   highlights: unknown;
@@ -376,7 +415,9 @@ export async function GET(request: NextRequest) {
   const startedAt = Date.now();
 
   // 1. Fetch due rows. ORDER BY scheduled_for keeps the oldest-first;
-  //    LIMIT caps the per-run blast radius.
+  //    LIMIT caps the per-run blast radius. prioritizeDueRows() then moves
+  //    the rows that cannot wait a day to the front: the order matters once
+  //    a send cap is in play (see its note).
   const { data: dueRowsRaw, error: dueErr } = await svc
     .from("scheduled_notifications")
     .select("id, user_id, trip_id, slot, scheduled_for")
@@ -393,7 +434,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const dueRows = (dueRowsRaw ?? []) as SlotRow[];
+  const dueRows = prioritizeDueRows((dueRowsRaw ?? []) as SlotRow[]);
   if (dueRows.length === 0) {
     return NextResponse.json({
       success: true,
@@ -497,7 +538,7 @@ async function processRow(
   const { data: tripRow, error: tripErr } = await svc
     .from("trips")
     .select(
-      "id, title, start_date, end_date, reminders_muted, status, itinerary, share_token, " +
+      "id, title, start_date, end_date, reminders_muted, status, deleted_at, itinerary, share_token, " +
         "weather_note:trip_meta->>weather_note, " +
         "highlights:trip_meta->highlights, " +
         "packing_suggestions:trip_meta->packing_suggestions, " +
@@ -524,6 +565,16 @@ async function processRow(
     // Trip got deleted between enqueue and now (FK CASCADE should have
     // killed the row but if we got here, treat as suppressed).
     await persistOutcome(svc, row.id, "suppressed", "trip_missing");
+    return "skipped";
+  }
+
+  if (trip.deleted_at) {
+    // Trips are soft-deleted (2026-06-07): the row stays, so the CASCADE the
+    // comment above relies on never fires. Until 2026-09-12 a tombstoned trip
+    // was read like any other and "One week out" went to people who had
+    // deleted it: 5 sent, 158 queued. soft_delete_trip() now parks the trip's
+    // pending rows at delete time; this is the belt for those braces.
+    await persistOutcome(svc, row.id, "suppressed", "trip_deleted");
     return "skipped";
   }
 

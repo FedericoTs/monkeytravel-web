@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { isValidIsoDate, sanitizeIsoDate, maxTripStartDate } from "./iso-date";
+import {
+  isValidIsoDate,
+  sanitizeIsoDate,
+  maxTripStartDate,
+  isPlausibleTripDate,
+  isPlausibleTripRange,
+} from "./iso-date";
 import { addDaysISO } from "@/lib/ai/multi-city-core";
 
 /**
@@ -68,5 +74,49 @@ describe("maxTripStartDate", () => {
     const yearsAhead =
       (max.getTime() - now.getTime()) / (365.25 * 24 * 3600 * 1000);
     expect(yearsAhead).toBeGreaterThan(4);
+  });
+});
+
+describe("isPlausibleTripDate", () => {
+  const NOW = new Date("2026-09-12T08:00:00Z");
+
+  it("rejects the partial years a date field reports while the year is typed", () => {
+    // 0002 → 0020 → 0202 → 2026: every step is a valid date to the input and
+    // to isValidIsoDate, and each one reached Open-Meteo as an HTTP 400.
+    for (const v of ["0002-10-30", "0020-10-30", "0202-10-30", "0201-11-06"]) {
+      expect(isValidIsoDate(v), `${v} is a valid date shape`).toBe(true);
+      expect(isPlausibleTripDate(v, NOW), `${v} is not a plausible trip date`).toBe(false);
+    }
+  });
+
+  it("accepts dates from a year back to five years ahead", () => {
+    expect(isPlausibleTripDate("2025-09-12", NOW)).toBe(true);
+    expect(isPlausibleTripDate("2026-10-30", NOW)).toBe(true);
+    expect(isPlausibleTripDate("2031-01-01", NOW)).toBe(true);
+  });
+
+  it("rejects dates outside that window and anything malformed", () => {
+    expect(isPlausibleTripDate("2024-12-31", NOW)).toBe(false);
+    expect(isPlausibleTripDate("2032-01-01", NOW)).toBe(false);
+    expect(isPlausibleTripDate("20220-05-01", NOW)).toBe(false);
+    expect(isPlausibleTripDate("", NOW)).toBe(false);
+  });
+});
+
+describe("isPlausibleTripRange", () => {
+  const NOW = new Date("2026-09-12T08:00:00Z");
+
+  it("accepts an ordered pair of plausible dates", () => {
+    expect(isPlausibleTripRange("2026-10-30", "2026-11-06", NOW)).toBe(true);
+    expect(isPlausibleTripRange("2026-10-30", "2026-10-30", NOW)).toBe(true);
+  });
+
+  it("rejects a range that ends before it starts (the Paris 400 on 2026-09-12)", () => {
+    expect(isPlausibleTripRange("2026-03-20", "2026-03-19", NOW)).toBe(false);
+  });
+
+  it("rejects a range with a partial year at either end", () => {
+    expect(isPlausibleTripRange("0202-10-30", "2026-11-06", NOW)).toBe(false);
+    expect(isPlausibleTripRange("2026-10-30", "0202-11-06", NOW)).toBe(false);
   });
 });
