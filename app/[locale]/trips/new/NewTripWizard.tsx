@@ -3940,12 +3940,16 @@ export default function NewTripPage({
                 {resultViewMode === "cards" ? (
                   <div className="grid gap-4">
                     {day.activities.map((activity, idx) => (
+                      // disableAutoFetch: the result view was the one screen that still
+                      // paid a Text Search Pro per expanded card (2026-09-13). Photos
+                      // load on tap here, as on the detail and shared views.
                       <ActivityCard
                         key={idx}
                         activity={activity}
                         index={idx}
                         currency={generatedItinerary.trip_summary.currency}
                         showGallery={true}
+                        disableAutoFetch={true}
                       />
                     ))}
                   </div>

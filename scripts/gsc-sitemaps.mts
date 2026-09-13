@@ -75,10 +75,12 @@ if (!siteUrl) {
   console.error("✗ SA has access to no property");
   process.exit(1);
 }
-console.log(`property: ${siteUrl}  (SA ${keyJson.client_email})\n`);
+// Narrowed once here: the closures below cannot see the guard above.
+const site: string = siteUrl;
+console.log(`property: ${site}  (SA ${keyJson.client_email})\n`);
 
 async function printList(): Promise<string[]> {
-  const list = (await searchconsole.sitemaps.list({ siteUrl })).data.sitemap ?? [];
+  const list = (await searchconsole.sitemaps.list({ siteUrl: site })).data.sitemap ?? [];
   if (list.length === 0) console.log("(no sitemaps known to Search Console for this property)");
   for (const s of list) {
     console.log(`${s.path}`);
@@ -103,7 +105,7 @@ if (SUBMIT) {
   console.log("\n=== submitting ===");
   for (const feedpath of targets) {
     try {
-      await searchconsole.sitemaps.submit({ siteUrl, feedpath });
+      await searchconsole.sitemaps.submit({ siteUrl: site, feedpath });
       console.log(`  ✓ ${feedpath}${known.includes(feedpath) ? "" : "   (new to Search Console)"}`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
