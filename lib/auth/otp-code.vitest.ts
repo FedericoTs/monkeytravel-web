@@ -6,6 +6,7 @@ import {
   isCompleteOtpCode,
   classifyOtpError,
   shouldTryNextType,
+  shouldRetrySameType,
   otpErrorMessageKey,
 } from "./otp-code";
 
@@ -68,6 +69,19 @@ describe("classifyOtpError", () => {
     expect(classifyOtpError("network error")).toBe("network");
   });
 
+  it("reads a 5xx as the gateway, not the code", () => {
+    // Live 2026-09-13: /auth/v1/verify answered 504 in 66 ms on a correct
+    // code. Whatever the body says, a 5xx never judged the digits.
+    expect(classifyOtpError("Gateway Timeout", 504)).toBe("network");
+    expect(classifyOtpError("<html>502 Bad Gateway</html>", 502)).toBe("network");
+    expect(classifyOtpError("Token has expired or is invalid", 503)).toBe("network");
+    expect(classifyOtpError("upstream request timeout")).toBe("network");
+    expect(classifyOtpError("Service unavailable")).toBe("network");
+    expect(classifyOtpError("Request failed with status 504")).toBe("network");
+    // A 4xx verdict is still the code's verdict.
+    expect(classifyOtpError("Token has expired or is invalid", 403)).toBe("expired");
+  });
+
   it("falls back rather than guessing", () => {
     expect(classifyOtpError("")).toBe("unknown");
     expect(classifyOtpError(undefined)).toBe("unknown");
@@ -93,6 +107,19 @@ describe("shouldTryNextType", () => {
     expect(shouldTryNextType("rate_limit")).toBe(false);
     expect(shouldTryNextType("network")).toBe(false);
     expect(shouldTryNextType("unknown")).toBe(false);
+  });
+});
+
+describe("shouldRetrySameType", () => {
+  it("retries once only when the request never reached a verdict", () => {
+    expect(shouldRetrySameType("network")).toBe(true);
+  });
+
+  it("never re-spends a verdict the server actually gave", () => {
+    expect(shouldRetrySameType("invalid")).toBe(false);
+    expect(shouldRetrySameType("expired")).toBe(false);
+    expect(shouldRetrySameType("rate_limit")).toBe(false);
+    expect(shouldRetrySameType("unknown")).toBe(false);
   });
 });
 

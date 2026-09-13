@@ -68,10 +68,27 @@ export type OtpErrorKind = "invalid" | "expired" | "rate_limit" | "network" | "u
  * dressed up as a wrong code, or the user will sit there retyping a code that
  * was right the whole time.
  */
-export function classifyOtpError(message: string | undefined | null): OtpErrorKind {
+export function classifyOtpError(
+  message: string | undefined | null,
+  status?: number | null,
+): OtpErrorKind {
+  // A 5xx never looked at the code. Seen live 2026-09-13: POST /auth/v1/verify
+  // answered 504 in 66 ms while the instance was swapping; the correct code
+  // was reported as a generic failure, the user fell back to the emailed link
+  // in another browser, and the trip they had just built was never claimed.
+  if (typeof status === "number" && status >= 500) return "network";
   const m = (message ?? "").toLowerCase();
   if (!m) return "unknown";
   if (m.includes("expired") || m.includes("has expired")) return "expired";
+  if (
+    m.includes("gateway") ||
+    m.includes("timeout") ||
+    m.includes("timed out") ||
+    m.includes("unavailable") ||
+    /\b50[0-4]\b/.test(m)
+  ) {
+    return "network";
+  }
   // "For security purposes, you can only request this after 60 seconds" is
   // GoTrue's own throttle wording and carries none of the obvious tokens.
   // Users hit it routinely — the project-wide auth-email cap is small — and
@@ -113,6 +130,20 @@ export type OtpVerifyType = (typeof OTP_VERIFY_TYPES)[number];
  */
 export function shouldTryNextType(kind: OtpErrorKind): boolean {
   return kind === "invalid";
+}
+
+/**
+ * Whether a failure is worth one more attempt under the SAME type.
+ *
+ * ONLY on "network" — the request never reached a verdict, so the code is
+ * still good and nothing has been spent. One retry, not a loop: if the
+ * gateway is down for longer than a beat, the emailed link is the real
+ * fallback and the user should be told, not kept waiting on a spinner.
+ */
+export const OTP_TRANSIENT_RETRY_DELAY_MS = 1500;
+
+export function shouldRetrySameType(kind: OtpErrorKind): boolean {
+  return kind === "network";
 }
 
 /**

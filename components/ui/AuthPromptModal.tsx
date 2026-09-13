@@ -34,6 +34,8 @@ import {
   isCompleteOtpCode,
   classifyOtpError,
   shouldTryNextType,
+  shouldRetrySameType,
+  OTP_TRANSIENT_RETRY_DELAY_MS,
   otpErrorMessageKey,
 } from "@/lib/auth/otp-code";
 import BaseModal from "@/components/ui/BaseModal";
@@ -228,11 +230,23 @@ export default function AuthPromptModal({
       let lastKind: ReturnType<typeof classifyOtpError> = "unknown";
 
       for (const type of OTP_VERIFY_TYPES) {
-        const { error: vErr } = await supabase.auth.verifyOtp({
+        let { error: vErr } = await supabase.auth.verifyOtp({
           email: emailRef.current.trim(),
           token,
           type,
         });
+        // A 5xx from the auth gateway never judged the code. Retry the same
+        // type once after a beat before telling the user anything — a stale
+        // "code failed" here sends them to the emailed link, often in another
+        // browser, where the pending save cannot follow.
+        if (vErr && shouldRetrySameType(classifyOtpError(vErr.message, vErr.status))) {
+          await new Promise((r) => setTimeout(r, OTP_TRANSIENT_RETRY_DELAY_MS));
+          ({ error: vErr } = await supabase.auth.verifyOtp({
+            email: emailRef.current.trim(),
+            token,
+            type,
+          }));
+        }
         if (!vErr) {
           void trackWizardEvent("otp_code_verified", { destination: destination || undefined });
           // Converge on exactly the state the emailed link produces rather
@@ -243,7 +257,7 @@ export default function AuthPromptModal({
           window.location.assign(redirectPath);
           return;
         }
-        lastKind = classifyOtpError(vErr.message);
+        lastKind = classifyOtpError(vErr.message, vErr.status);
         if (!shouldTryNextType(lastKind)) break;
       }
 
