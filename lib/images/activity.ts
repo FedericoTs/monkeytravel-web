@@ -296,9 +296,14 @@ async function searchPlaceId(query: string): Promise<PlaceRecord | null> {
  * and build the proxy photo URL. Split out from the search so callers that
  * already have the place cached (by place_id, incl. trip-backfilled rows) can
  * SKIP this paid call entirely — the core of the place_id dedup.
+ *
+ * `endpointLabel` lets a caller attribute the spend (the render-time self-heal
+ * in /api/places/photo passes its own) so api_request_logs can tell heals from
+ * enrichment passes. The apiName and the cost never change.
  */
 export async function fetchPlacePhoto(
-  placeId: string
+  placeId: string,
+  opts: { endpointLabel?: string } = {}
 ): Promise<{ photo_resource_name: string; photo_url: string } | null> {
   if (!GOOGLE_PLACES_API_KEY) {
     return null;
@@ -368,7 +373,7 @@ export async function fetchPlacePhoto(
   } finally {
     void logApiCall({
       apiName: "google_places_details",
-      endpoint: "places/{id}:photos (activity)",
+      endpoint: opts.endpointLabel ?? "places/{id}:photos (activity)",
       status: httpStatus || 500,
       responseTimeMs: Date.now() - startedAt,
       cacheHit: false,
