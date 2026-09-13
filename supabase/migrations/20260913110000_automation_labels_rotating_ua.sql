@@ -40,6 +40,10 @@
 --                         session span six seconds. Labelled regardless of
 --                         engagement; signed-in sessions are exempt as a
 --                         guard.
+--   heavy_unengaged       also gains the signed-in guard. A signed-in session is
+--                         a known account, not anonymous automation: 2026-09-03
+--                         had one real account with 66 views and no beacon (an
+--                         ad blocker or consent choice can silence the beacon).
 --
 -- "An engaged session is never labelled" therefore gains two documented
 -- exceptions, family_conversionless and stale_chrome, both of which require
@@ -111,7 +115,7 @@ begin
   candidates as (
     select session_id, day, views, 'heavy_unengaged'::text as reason, 1 as pri
     from base
-    where day >= v_engaged_from and views >= 50 and not engaged
+    where day >= v_engaged_from and views >= 50 and not engaged and not signed_in
     union all
     select b.session_id, b.day, b.views, 'ua_city_sweep', 2
     from base b
@@ -163,7 +167,7 @@ end
 $$;
 
 comment on function public.label_automation_sessions(integer) is
-  'Rebuilds page_view_session_labels for the last p_days. Rules, first match wins: heavy_unengaged, ua_city_sweep, ua_family_sweep (version-stripped UA groups), family_conversionless (a 15+ session group with no signed-in member and no wizard event, all members), stale_chrome (Chrome major < 120), legacy_sweep (strict volume rule for days before session_engagement, 2026-09-02). Engaged sessions are labelled only by family_conversionless and stale_chrome.';
+  'Rebuilds page_view_session_labels for the last p_days. Rules, first match wins: heavy_unengaged, ua_city_sweep, ua_family_sweep (version-stripped UA groups), family_conversionless (a 15+ session group with no signed-in member and no wizard event, all members), stale_chrome (Chrome major < 120), legacy_sweep (strict volume rule for days before session_engagement, 2026-09-02). Engaged sessions are labelled only by family_conversionless and stale_chrome; a signed-in session is never labelled.';
 
 comment on table public.page_view_session_labels is
   'One row per (session, UTC day) judged to be automation presenting as a browser. Rebuilt nightly by label_automation_sessions(); page_views_human excludes these. reason ∈ heavy_unengaged | ua_city_sweep | ua_family_sweep | family_conversionless | stale_chrome | legacy_sweep. Labelling only — nothing is blocked.';
