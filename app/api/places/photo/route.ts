@@ -2,6 +2,13 @@ import { NextRequest } from "next/server";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { curatedFor, fetchPlacePhoto, readActivityTypeHint } from "@/lib/images/activity";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logApiCall } from "@/lib/api-gateway";
+import {
+  InFlight,
+  reusableFreshRef,
+  type CachedPhotoRow,
+  type FreshPhoto,
+} from "@/lib/places/heal-dedupe";
 
 // Abuse ceiling, not a UX cap: a trip page loads ~15-30 photos, so 600/h/IP
 // never touches real browsing but stops scripted hammering of a route that
@@ -36,6 +43,25 @@ const photoLimiter = createRateLimiter("places-photo", 600, 60 * 60 * 1000);
  */
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
+
+// Concurrent heals for one place share a single Google call. The measurements
+// behind this live in lib/places/heal-dedupe.ts.
+const healsInFlight = new InFlight<FreshPhoto | null>();
+
+/** The cached row for a place, or null when it is missing or the read fails. */
+async function readCachedPhoto(placeId: string): Promise<CachedPhotoRow | null> {
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase
+      .from("places_v2")
+      .select("photo_resource_name, photo_url, updated_at")
+      .eq("place_id", placeId)
+      .maybeSingle();
+    return (data as CachedPhotoRow | null) ?? null;
+  } catch {
+    return null;
+  }
+}
 
 // Validate the photo name shape so we can't be used as an open proxy.
 // Google emits names like: `places/ChIJ.../photos/Ab43m-...` with
@@ -197,6 +223,13 @@ export async function GET(request: NextRequest) {
       // This repairs already-persisted itineraries, not just future ones —
       // the stored URL keeps working, it just resolves through a fresh token.
       //
+      // Cost was meant to be one Place Details call per dead ref. Measured
+      // 2026-09-13 it was not: the CDN pins bytes per URL and per region, so
+      // one page load at several sizes, and later views from other regions,
+      // re-healed the same place (four heals in one second for one place;
+      // 20 heals for 6 places in a two-hour window). healExpiredPhoto now
+      // dedupes before paying: in-flight sharing plus a free places_v2 re-read.
+      //
       // Cost is bounded and self-limiting: one Place Details call per dead
       // ref, and because a success is streamed back with the same immutable
       // cache header as the happy path, the CDN pins the bytes and that URL
@@ -289,7 +322,29 @@ async function healExpiredPhoto(
   h: number
 ): Promise<Response | null> {
   try {
-    const fresh = await fetchPlacePhoto(placeId);
+    // Dedupe before paying (2026-09-13): 772 of a fortnight's 2,268 photo
+    // detail calls were heals, and the same place was healed up to four times
+    // in one second. Concurrent heals share one call, and a ref that a
+    // save-time pass or an earlier heal already refreshed is reused straight
+    // from places_v2 at no cost. The heal's own cache write below is what
+    // makes that reuse true for every later request from every region.
+    const fresh = await healsInFlight.run(placeId, async () => {
+      const reusable = reusableFreshRef(await readCachedPhoto(placeId), deadName);
+      if (reusable) {
+        void logApiCall({
+          apiName: "google_places_details",
+          endpoint: "places/{id}:photos (render self-heal, reused fresh cache)",
+          status: 200,
+          responseTimeMs: 0,
+          cacheHit: true,
+          costUsd: 0,
+        });
+        return reusable;
+      }
+      return fetchPlacePhoto(placeId, {
+        endpointLabel: "places/{id}:photos (render self-heal)",
+      });
+    });
     // No photo at all, or Google handed back the same dead ref — nothing to do.
     if (!fresh || fresh.photo_resource_name === deadName) return null;
 
