@@ -5,7 +5,6 @@ import {
   deriveEntryState,
   isFirstRunAuthEvent,
   pickMastheadVariant,
-  resolveEditorialStep1,
 } from "./entry-state";
 
 describe("first-run detection keys on the callback's vocabulary", () => {
@@ -48,22 +47,6 @@ describe("entry state (PostHog super-property)", () => {
     expect(deriveEntryState({ ...base, isAuthenticated: true })).toBe("authed");
     expect(deriveEntryState({ ...base, isAuthenticated: null })).toBe("cold_anon");
     expect(deriveEntryState(base)).toBe("cold_anon");
-  });
-});
-
-describe("editorial step-1 resolution is a kill switch, not a gate", () => {
-  it("an unresolved flag is ON (blocked SDK, slow fetch, consent declined)", () => {
-    expect(resolveEditorialStep1({ queryOverride: null, envForce: undefined, flagValue: undefined })).toBe(true);
-    expect(resolveEditorialStep1({ queryOverride: null, envForce: undefined, flagValue: true })).toBe(true);
-  });
-  it("only an explicit false turns the classic branch on", () => {
-    expect(resolveEditorialStep1({ queryOverride: null, envForce: undefined, flagValue: false })).toBe(false);
-  });
-  it("query override beats env force beats flag", () => {
-    expect(resolveEditorialStep1({ queryOverride: "classic", envForce: undefined, flagValue: true })).toBe(false);
-    expect(resolveEditorialStep1({ queryOverride: "editorial", envForce: "classic", flagValue: false })).toBe(true);
-    expect(resolveEditorialStep1({ queryOverride: null, envForce: "classic", flagValue: true })).toBe(false);
-    expect(resolveEditorialStep1({ queryOverride: "garbage", envForce: undefined, flagValue: undefined })).toBe(true);
   });
 });
 

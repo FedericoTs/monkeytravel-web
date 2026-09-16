@@ -59,22 +59,3 @@ export function deriveEntryState(input: {
   if (input.isAuthenticated) return "authed";
   return "cold_anon";
 }
-
-/**
- * Resolve the step-1 variant from its three levers, most specific first:
- * a ?step1= query override (QA), the env force (covers ad-blocked browsers,
- * needs a redeploy), then the PostHog flag — where an UNRESOLVED value is ON.
- * The flag is a kill switch: only an explicit false turns the classic branch
- * on, so a blocked SDK or a slow flag fetch never flashes the old layout at
- * the 90%.
- */
-export function resolveEditorialStep1(input: {
-  queryOverride: string | null;
-  envForce: string | undefined;
-  flagValue: boolean | undefined;
-}): boolean {
-  if (input.queryOverride === "classic") return false;
-  if (input.queryOverride === "editorial") return true;
-  if (input.envForce === "classic") return false;
-  return input.flagValue !== false;
-}

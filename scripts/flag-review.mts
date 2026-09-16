@@ -1,6 +1,11 @@
 /**
  * The flag review, as a command instead of an archaeology exercise.
  *
+ * CONCLUDED 2026-09-16: wizard-step1-editorial-v1 was ramped to 100% and the
+ * classic step 1 deleted, so step1_variant stops accumulating from that
+ * deploy on (the column keeps its history). Kept as the template for the
+ * next rollout with a review date: point REVIEW at the new flag and steps.
+ *
  * WHY
  * ---
  * FLAG_REVIEW_DATES turns CI red a week after a rollout's review date, so the
@@ -28,7 +33,7 @@
  *      arm data starts accumulating from that date, so any by-arm split here
  *      covers only sessions after it.
  *
- *   2. Assignment FAILS OPEN — resolveEditorialStep1 returns
+ *   2. Assignment FAILED OPEN — resolveEditorialStep1 (deleted 2026-09-16) returned
  *      `flagValue !== false`, so every session where PostHog does not resolve
  *      is counted as "editorial". "classic" therefore means "PostHog resolved
  *      and said no", which selects for consenting, unblocked users. The arms

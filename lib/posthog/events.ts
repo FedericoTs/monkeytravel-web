@@ -676,8 +676,9 @@ export async function captureTripWizardFieldInteracted(event: TripWizardFieldInt
 }
 
 // ── Step-1 entry rework (2026-09-02) ─────────────────────────────────────────
-// Sliced by the super-properties step1_variant + wizard_entry that
-// NewTripWizard registers, so the week-one read needs no per-call edits.
+// Sliced by the wizard_entry super-property NewTripWizard registers, so a
+// read needs no per-call edits. (step1_variant rode alongside it until the
+// editorial step 1 went to 100% on 2026-09-16.)
 
 /** A popular pick set the destination (and, when no dates existed, pencilled flexible dates). */
 export interface WizardOneTapStartEvent {
@@ -685,7 +686,6 @@ export interface WizardOneTapStartEvent {
   in_season: boolean;
   dates_autofilled: boolean;
   first_run: boolean;
-  step1_variant: "editorial" | "classic";
   /** 0-based position in the six-chip grid. */
   position: number;
 }

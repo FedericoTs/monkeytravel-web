@@ -70,133 +70,6 @@ export const FLAG_AUTO_SAVE_V1 = "auto-save-v1";
 export const FLAG_FRONT_DOOR = "front-door";
 export type FrontDoorVariant = "wizard" | "decision";
 
-/**
- * Wizard step-1 editorial entry (shipped 2026-09-02)
- *
- * Gates the visual half of the /trips/new step-1 rework: the masthead that
- * names the output ("Your trip, planned day by day." + about 30 seconds,
- * free, no account to see it), the six popular picks as one-tap starts that
- * also pencil in flexible dates, the multi-city switch demoted below the
- * destination, the footer's enabled "Use flexible dates" state, and the cream
- * ground. The unflagged half (claimed-trip banner, first-run suppression of
- * "Welcome back", signed-in reassurance copy, cookie-banner scoping, the
- * date-picker flip) ships as bug fixes and is reverted by commit, not flag.
- *
- * This is a KILL SWITCH at 90/10, not an experiment — ~96 trip-holders a
- * month cannot power one. Resolution in NewTripWizard, most specific first:
- *   ?step1=classic|editorial          QA override
- *   NEXT_PUBLIC_WIZARD_STEP1_FORCE     env force (covers ad-blocked browsers)
- *   PostHog value                      an UNRESOLVED flag is ON; only an
- *                                      explicit false renders classic
- * Levers: set the flag to 0% in PostHog (no deploy), or the env force
- * (redeploy). The 10% holdout is a live proof the kill path works and a
- * sanity reference; it is NOT a control arm.
- *
- * HOW TO READ IT — and the trap, found 2026-09-02 while checking early:
- *
- * Do NOT compare against the recorded 36.0% step1->2 baseline. That number is
- * real but no longer means what it did: on 2026-08-17 the share of step-1
- * sessions emitting ONE event and nothing else (no 10s dwell heartbeat, no
- * step 2) jumped from ~5-17% to ~51-58%, and step-1 "sessions" roughly doubled
- * from ~340/week to ~800. Genuinely engaged sessions stayed FLAT at ~300/week
- * throughout, so the denominator filled and every rate built on it fell
- * mechanically: 35.9% (trailing 30d) / 30.4% (14d) / 27.3% (7d) are three
- * different "baselines" for the same product, and picking among them decides
- * the verdict by itself.
- *
- * WHAT THAT TRAFFIC ACTUALLY IS (settled on the third attempt — the first two
- * guesses were wrong and are recorded here so nobody repeats them):
- *
- *   guess 1 "bots"    — right conclusion, no evidence behind it.
- *   guess 2 "people"  — the UA strings look like ordinary browsers, the
- *                       sessions average 3.3 page views, and 898 of 934 reach
- *                       /trips/new. All true, and all consistent with a
- *                       headless browser. Not evidence of a human.
- *   guess 3, settled  — geography and UA diversity settle it.
- *
- * Bounce and engagement by country, localized step-1 sessions, 14 days:
- *
- *   CN  374 bouncing   0 engaged   95.9%
- *   SG  109            0           92.4%
- *   HK   65            0           91.5%
- *   US  107            1           96.4%
- *   IT   47           33           58.0%
- *   ES    6           30           16.7%
- *
- * CN + SG + HK is 629 sessions sharing only 29 distinct user agents, 0.0% of
- * them flagged by the is_bot regex, and ZERO that ever dwell 10 seconds. The
- * real markets show MORE user-agent diversity across FEWER sessions. That is
- * automation from cloud regions hitting localized URLs, and the `locale`
- * column records the URL's locale, not a person's language — which is what
- * made it look like a Spanish-speaker problem.
- *
- * THERE IS NO LOCALIZED LANDING PROBLEM. Real Spanish traffic bounces at
- * 16.7%, BETTER than English at 22.5%, and localized visitors who engage
- * convert like everyone else (67-80% reach step 2 against 74.8% for en).
- * Do not build a localized landing fix for this; it would be solving nothing.
- *
- * What IS broken is the filter: is_bot catches 0.0% of these 629 sessions, so
- * they land in the denominator of every raw wizard-funnel rate. That is the
- * whole reason the 36.0% baseline moved without the product changing, and the
- * reason the dwell-qualified query above is the one to trust — a headless
- * visitor never emits step1_heartbeat.
- *
- * Read the dwell-qualified rate instead — sessions with a step1_heartbeat:
- *
- *   with s as (
- *     select session_id, min(created_at) as first_at,
- *            bool_or(step='step1_heartbeat')      as dwelled,
- *            bool_or(step='step_2_vibes')         as s2
- *     from wizard_step_events
- *     where created_at >= now() - interval '45 days' and session_id <> 'no_session'
- *     group by session_id having bool_or(step='step_1_destination_dates'))
- *   select count(*) filter (where dwelled) as n,
- *          round(100.0*count(*) filter (where dwelled and s2)
- *                /nullif(count(*) filter (where dwelled),0),1) as step2_pct
- *   from s where first_at >= '<ship or window start>';
- *
- * On that metric the pre-ship regime since 2026-08-17 is 74.5% (n=745). The
- * first ~10 hours post-ship read 76.0% (n=25) — i.e. nothing yet, and NOT the
- * +11 points a naive trailing-30d comparison appears to show.
- *
- * DO NOT RE-DERIVE ANY OF THIS BY HAND — run it:
- *
- *     npm run flags:review
- *
- * That prints both metrics with a confidence interval on every rate, the
- * two-sided p, a verdict, and how many more sessions the question needs. The
- * query above is what it runs; this comment is now the explanation, not the
- * procedure.
- *
- * TWO THINGS THAT SCRIPT WILL TELL YOU, RECORDED HERE SO THEY ARE NOT A
- * SURPRISE ON REVIEW DAY (measured 2026-09-03):
- *
- * 1. THE DATA CANNOT ANSWER THE QUESTION BY 2026-09-09. Dwell-qualified reads
- *    74.4% [71.2-77.4] (n=763) pre-ship against 68.2% [53.4-80.0] (n=44)
- *    post-ship, p=0.36 — inconclusive, and the intervals overlap almost
- *    entirely. Resolving a 5pp move against that baseline needs ~598 dwelled
- *    post-ship sessions; they arrive at ~42/day, i.e. ~14 days from ship, so
- *    09-09 lands at roughly 280 — enough for ~7pp and no finer. Decide on the
- *    merits, or move this date deliberately. Do not split the difference by
- *    leaving the flag at 90/10.
- *
- * 2. THE ARMS ARE NOT COMPARABLE POPULATIONS. resolveEditorialStep1 returns
- *    `flagValue !== false` — it FAILS OPEN, so every session where PostHog
- *    does not resolve (consent declined, script blocked) is counted as
- *    editorial. "classic" therefore means "PostHog resolved and said no",
- *    which selects for consenting, unblocked users. Since 2026-09-03 the arm
- *    is also recorded server-side in wizard_step_events.step1_variant, which
- *    makes the split measurable for the first time — measurable, not unbiased.
- *
- * REVIEW BY 2026-09-09 — see FLAG_REVIEW_DATES; flag-review-dates.vitest.ts
- * goes red a week after that. Ramp to 100% and delete the classic branches,
- * or set 0% and revert. Never left at 90/10: front-door ran unwatched for
- * six weeks.
- *
- * Read by: app/[locale]/trips/new/NewTripWizard.tsx
- */
-export const FLAG_WIZARD_STEP1_EDITORIAL = "wizard-step1-editorial-v1";
-
 // ============================================================================
 // NOT WIRED — declared, no consumer. Reading these returns the default.
 // ============================================================================
@@ -301,6 +174,18 @@ export const FLAG_LISTICLE_CTA_V1 = "listicle-cta-v1";
  */
 export const FLAG_EXPLORE_UGC = "explore-ugc-v1";
 
+/*
+ * RETIRED — no constant, nothing to re-wire.
+ *
+ * wizard-step1-editorial-v1: shipped 2026-09-02 at 90/10 as a kill switch
+ * (an unresolved flag was ON), ramped to 100% and the classic step 1 deleted
+ * on 2026-09-16. The review could not separate the arms on step-1→2
+ * conversion (dwell-qualified 74.6% before, 75.8% after, p=0.60) and 99.9% of
+ * armed sessions were already editorial, so the call was made on the merits.
+ * History lives in wizard_step_events.step1_variant and scripts/flag-review.mts.
+ * The PostHog flag can be archived; nothing reads it any more.
+ */
+
 // ============================================================================
 // FLAG CONFIGURATION
 // ============================================================================
@@ -331,7 +216,6 @@ export const FLAG_DEFAULTS: Record<string, boolean | string> = {
   [FLAG_ENHANCED_BOOKING]: false, // Start disabled, enable via PostHog
   [FLAG_AUTO_SAVE_V1]: false,
   [FLAG_FRONT_DOOR]: "wizard",
-  [FLAG_WIZARD_STEP1_EDITORIAL]: true, // fail-open: unresolved = on, only explicit false kills
   [FLAG_AUTH_WALL_VARIANT]: "magic-link-primary",
   [FLAG_CONCIERGE_SURFACE]: "always",
   [FLAG_EXPLORE_ANON_ENGAGEMENT]: "auth-gated",
@@ -348,7 +232,7 @@ export const FLAG_DEFAULTS: Record<string, boolean | string> = {
  * Remove the entry when the flag is ramped to 100% or reverted.
  */
 export const FLAG_REVIEW_DATES: Record<string, string> = {
-  [FLAG_WIZARD_STEP1_EDITORIAL]: "2026-09-09",
+  // Empty since 2026-09-16: wizard-step1-editorial-v1 was ramped to 100%.
 };
 
 /**
