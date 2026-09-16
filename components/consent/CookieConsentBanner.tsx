@@ -72,10 +72,12 @@
  * both viewports.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useConsent } from "@/lib/consent";
+import { bannerVariantFor } from "@/lib/consent/consent-event-schema";
+import { buildConsentEvent, sendConsentEvent } from "@/lib/consent/consent-event-client";
 
 // Keys that move focus or modify other keys. A keyboard user tabbing towards
 // the card's buttons must not dismiss the card on the way there.
@@ -99,6 +101,10 @@ export function CookieConsentBanner() {
   // the primary action of a recipient's first visit (2026-09-05, Phase 1.1;
   // measured 26,400px² of card-over-button at 1280x800 before this).
   const onTripView = /\/(trip|shared)\/[^/]+/.test(pathname ?? "");
+  // On the wizard, a trip or a shared trip the visitor is holding a plan, so
+  // the card can say what the consent is FOR. Logged with every consent event
+  // (consent_events.variant) so the two copies can be compared.
+  const contextual = bannerVariantFor(pathname) === "contextual";
   // Defer the visible mount so the hero LCP finishes first. Without this
   // the banner competes with the hero phone image for main-thread + paint
   // priority and visibly delays both. 1.5s is long enough for typical
@@ -112,14 +118,30 @@ export function CookieConsentBanner() {
   // Minimised = the visitor has moved on (scrolled, or interacted with the
   // page outside the card) without choosing. Desktop shows a pill, mobile
   // shows nothing until the next navigation. See the header comment.
-  const [minimized, setMinimized] = useState(false);
+  // Keyed on the path, so a new page view asks again until a choice is made
+  // without an effect that resets state on navigation.
+  const [minimizedOnPath, setMinimizedOnPath] = useState<string | null>(null);
+  const minimized = minimizedOnPath !== null && minimizedOnPath === (pathname ?? "");
+  const setMinimized = useCallback(
+    (value: boolean) => setMinimizedOnPath(value ? (pathname ?? "") : null),
+    [pathname]
+  );
   const cardRef = useRef<HTMLDivElement | null>(null);
+  // One `shown` and at most one `minimized` per page view, whatever the card
+  // does in between (the pill can bring it back).
+  const shownForPath = useRef<string | null>(null);
+  const minimizedForPath = useRef<string | null>(null);
   useEffect(() => {
-    // A new page view asks again, until a choice is made.
-    setMinimized(false);
-  }, [pathname]);
+    if (!minimized || minimizedForPath.current === pathname) return;
+    minimizedForPath.current = pathname;
+    sendConsentEvent(buildConsentEvent("minimized", null));
+  }, [minimized, pathname]);
   useEffect(() => {
     if (bannerStatus !== "visible" || !readyToShow || minimized) return;
+    if (shownForPath.current !== pathname) {
+      shownForPath.current = pathname;
+      sendConsentEvent(buildConsentEvent("shown", null));
+    }
     const startY = window.scrollY;
     const onScroll = () => {
       if (Math.abs(window.scrollY - startY) > SCROLL_THRESHOLD_PX) {
@@ -140,7 +162,7 @@ export function CookieConsentBanner() {
       document.removeEventListener("pointerdown", onInteract, true);
       document.removeEventListener("keydown", onInteract, true);
     };
-  }, [bannerStatus, readyToShow, minimized]);
+  }, [bannerStatus, readyToShow, minimized, pathname, setMinimized]);
 
   // Don't render if banner should be hidden, or while we're still in
   // the LCP-protection window.
@@ -228,10 +250,10 @@ export function CookieConsentBanner() {
 
             <div className="min-w-0">
               <h3 className="text-sm sm:text-base font-bold text-[var(--foreground)] mb-0.5">
-                {t("banner.title")}
+                {t(contextual ? "banner.contextualTitle" : "banner.title")}
               </h3>
               <p className="text-xs sm:text-sm text-slate-600 leading-snug line-clamp-2">
-                {t("banner.description")}
+                {t(contextual ? "banner.contextualDescription" : "banner.description")}
               </p>
               {/* Kept OUT of the clamped paragraph above: clipped text would
                   make the privacy link unreachable, which is the opposite of

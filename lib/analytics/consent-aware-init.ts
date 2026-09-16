@@ -3,6 +3,11 @@
  *
  * Initializes analytics services only when user has given consent.
  * Listens for consent changes and starts/stops tracking accordingly.
+ *
+ * NOTE (2026-09-16): nothing calls the PostHog helpers in this file any more.
+ * PostHog is initialised for everyone in instrumentation-client.ts with
+ * cookieless_mode 'on_reject' and switches modes on mt_consent_change. Kept
+ * for the Sentry helpers and as reference.
  */
 
 import { ConsentState, CONSENT_CHANGE_EVENT } from "@/lib/consent";

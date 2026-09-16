@@ -22,6 +22,7 @@ import {
   ConsentCategory,
   DEFAULT_CONSENT_STATE,
   FULL_CONSENT_STATE,
+  CONSENT_CHANGE_EVENT,
 } from "./types";
 import {
   loadLocalConsent,
@@ -30,6 +31,7 @@ import {
   syncConsentToSupabase,
   loadConsentFromSupabase,
 } from "./storage";
+import { buildConsentEvent, sendConsentEvent } from "./consent-event-client";
 
 /**
  * Consent context with default values
@@ -46,10 +48,8 @@ const ConsentContext = createContext<ConsentContextValue>({
   resetConsent: () => {},
 });
 
-/**
- * Custom event for consent changes
- */
-const CONSENT_CHANGE_EVENT = "mt_consent_change";
+// CONSENT_CHANGE_EVENT is defined in ./types (so instrumentation-client.ts
+// can subscribe without React) and re-exported at the bottom of this file.
 
 /**
  * Dispatch consent change event for analytics listeners
@@ -143,6 +143,7 @@ export function ConsentProvider({ children, userId }: ConsentProviderProps) {
     setBannerStatus("hidden");
     saveLocalConsent(newConsent, "banner_accept_all");
     dispatchConsentChange(newConsent);
+    sendConsentEvent(buildConsentEvent("accept_all", newConsent));
 
     // Sync to Supabase if logged in
     if (userId) {
@@ -158,6 +159,7 @@ export function ConsentProvider({ children, userId }: ConsentProviderProps) {
     setBannerStatus("hidden");
     saveLocalConsent(newConsent, "banner_essential_only");
     dispatchConsentChange(newConsent);
+    sendConsentEvent(buildConsentEvent("essential_only", newConsent));
 
     // Sync to Supabase if logged in
     if (userId) {
@@ -172,6 +174,7 @@ export function ConsentProvider({ children, userId }: ConsentProviderProps) {
         const newConsent = { ...prev, [category]: enabled };
         saveLocalConsent(newConsent, "settings_modal");
         dispatchConsentChange(newConsent);
+        sendConsentEvent(buildConsentEvent("settings_saved", newConsent));
 
         // Sync to Supabase if logged in
         if (userId) {

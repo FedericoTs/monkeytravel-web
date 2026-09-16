@@ -3,13 +3,16 @@
  *
  * This file initializes client-side monitoring tools:
  * - Sentry: Error tracking (essential) - always on for error reporting
- * - PostHog: Analytics (optional) - only initialized with user consent
+ * - PostHog: Analytics - loads for everyone, captures nothing until the
+ *   banner is answered, cookieless after "Essential Only" (see below)
  *
  * PERFORMANCE: Both libraries are dynamically imported and deferred to after
  * initial paint via requestIdleCallback. This removes ~150-200 KB from the
  * initial JS bundle while still loading on every page visit.
  *
- * GDPR Compliance: Analytics tracking requires user consent.
+ * GDPR Compliance: PostHog captures nothing until the banner is answered;
+ * "Essential Only" switches it to cookieless mode (no cookie, no storage, a
+ * daily-rotating hash computed on PostHog's servers), "Accept" to normal mode.
  * Sentry error tracking is essential for site functionality.
  * Session replay requires explicit sessionRecording consent.
  *
@@ -18,6 +21,9 @@
  * @see https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
  * @see https://posthog.com/docs/libraries/next-js
  */
+
+import { posthogActionFor, POSTHOG_COOKIELESS_MODE } from "@/lib/analytics/posthog-consent";
+import { CONSENT_CHANGE_EVENT } from "@/lib/consent/types";
 
 // Helper to check consent from localStorage (runs before React)
 function getStoredConsent(): { analytics: boolean; sessionRecording: boolean } | null {
@@ -32,6 +38,33 @@ function getStoredConsent(): { analytics: boolean; sessionRecording: boolean } |
   } catch {
     return null;
   }
+}
+
+type StoredConsent = { analytics: boolean; sessionRecording: boolean } | null;
+type PosthogConsentSurface = {
+  opt_in_capturing: (opts?: { captureEventName?: string | null | false }) => void;
+  opt_out_capturing: () => void;
+  set_config: (config: Record<string, unknown>) => void;
+};
+
+/**
+ * Apply a consent state to the loaded SDK. Pending = do nothing: with
+ * cookieless_mode 'on_reject' the SDK captures nothing until a choice.
+ */
+function applyPosthogConsent(ph: PosthogConsentSurface, consent: StoredConsent) {
+  switch (posthogActionFor(consent)) {
+    case "opt_in":
+      ph.opt_in_capturing({ captureEventName: false });
+      break;
+    case "opt_out_cookieless":
+      ph.opt_out_capturing();
+      break;
+    default:
+      break;
+  }
+  ph.set_config({
+    disable_session_recording: !(consent?.analytics && consent?.sessionRecording),
+  });
 }
 
 // Sentry router transition tracking — populated after Sentry loads
@@ -219,16 +252,20 @@ function initMonitoring() {
   });
 
   /**
-   * PostHog Initialization
+   * PostHog Initialization (2026-09-16: cookieless_mode 'on_reject')
    *
-   * GDPR: Only initialize if user has given analytics consent.
-   * PostHog will be initialized later via consent-aware-init.ts if consent is given.
+   * The SDK loads for everyone but captures NOTHING until the banner is
+   * answered (consent pending). "Accept" → opt_in_capturing: cookies as
+   * usual. "Essential Only" → opt_out_capturing: cookieless mode, nothing
+   * stored on the device, identity is a daily-rotating hash computed on
+   * PostHog's servers, every event carries $cookieless_mode. REQUIRES the
+   * project setting "Cookieless server hash mode" (Project settings → Web
+   * analytics); without it PostHog drops those events on ingestion. The
+   * mapping lives in lib/analytics/posthog-consent.ts; a choice made after
+   * load arrives on the mt_consent_change event below. identify() and
+   * alias() stay gated on analytics consent (lib/posthog/identify.ts).
    */
-  if (
-    process.env.NEXT_PUBLIC_POSTHOG_KEY &&
-    process.env.NEXT_PUBLIC_POSTHOG_HOST &&
-    hasAnalyticsConsent // Only init with consent
-  ) {
+  if (process.env.NEXT_PUBLIC_POSTHOG_KEY && process.env.NEXT_PUBLIC_POSTHOG_HOST) {
     import("posthog-js").then(({ default: posthog }) => {
       // ╔══════════════════════════════════════════════════════════════╗
       // ║ ATT-COMPLIANCE GUARDRAIL — DO NOT ADD IDFA / DEVICE-ID OPTS  ║
@@ -261,18 +298,30 @@ function initMonitoring() {
         debug: process.env.NODE_ENV === "development",
         // Disable session recording unless explicitly consented
         disable_session_recording: !hasSessionRecordingConsent,
+        // Cookieless until told otherwise (see the note above). Not a device
+        // identifier in the ATT sense: the hash is computed server-side from
+        // the request and rotates daily.
+        cookieless_mode: POSTHOG_COOKIELESS_MODE,
+        person_profiles: "identified_only",
         loaded: (ph) => {
           if (typeof window !== "undefined") {
             (window as typeof window & { posthog: typeof posthog }).posthog = ph;
           }
-          console.log("[PostHog] Initialized with consent, distinct_id:", ph.get_distinct_id());
+          applyPosthogConsent(ph, initialConsent);
+          console.log("[PostHog] Initialized, consent:", posthogActionFor(initialConsent));
         },
       });
 
       (window as typeof window & { posthog: typeof posthog }).posthog = posthog;
+
+      // The banner answered, or the choice changed, after load: switch modes
+      // in place instead of waiting for the next page load.
+      window.addEventListener(CONSENT_CHANGE_EVENT, ((event: CustomEvent<StoredConsent>) => {
+        applyPosthogConsent(posthog, event.detail ?? getStoredConsent());
+      }) as EventListener);
     });
   } else if (typeof window !== "undefined") {
-    console.log("[PostHog] Skipped - waiting for analytics consent");
+    console.log("[PostHog] Skipped - NEXT_PUBLIC_POSTHOG_KEY / _HOST not set");
   }
 }
 

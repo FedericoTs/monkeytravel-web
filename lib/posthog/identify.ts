@@ -1,6 +1,7 @@
 "use client";
 
 import type { User } from "@supabase/supabase-js";
+import { hasAnalyticsConsent } from "@/lib/consent/storage";
 
 /**
  * User properties for PostHog identification
@@ -46,6 +47,10 @@ const getPosthog = () => import("posthog-js").then((m) => m.default);
  */
 export async function identifyUser(user: User, properties?: PostHogUserProperties) {
   if (typeof window === "undefined") return;
+  // A persistent distinct id is personal data. Visitors on "Essential Only"
+  // are tracked cookielessly (instrumentation-client.ts) and must never be
+  // tied to an account; alias() is dropped in that mode anyway.
+  if (!hasAnalyticsConsent()) return;
 
   const posthog = await getPosthog();
   posthog.identify(user.id, {
@@ -126,6 +131,7 @@ export async function resetUser() {
  */
 export async function aliasUser(userId: string) {
   if (typeof window === "undefined") return;
+  if (!hasAnalyticsConsent()) return;
 
   const posthog = await getPosthog();
   posthog.alias(userId);
@@ -149,6 +155,7 @@ export async function aliasUser(userId: string) {
  */
 export async function aliasAnonToUser(userId: string) {
   if (typeof window === "undefined") return;
+  if (!hasAnalyticsConsent()) return;
 
   const posthog = await getPosthog();
   // Only alias if the current distinct_id is NOT already the target user
@@ -189,6 +196,7 @@ export interface IdentifyProperties {
 
 export async function identify(userId: string, properties: IdentifyProperties = {}) {
   if (typeof window === "undefined") return;
+  if (!hasAnalyticsConsent()) return;
 
   const posthog = await getPosthog();
   const { signupMethod, ...rest } = properties;

@@ -8,7 +8,9 @@
     "customize": "Personalizar",
     "privacyNote": "Para mais detalhes, consulte nossa",
     "privacyPolicy": "Política de Privacidade",
-    "pill": "Definições de cookies"
+    "pill": "Definições de cookies",
+    "contextualTitle": "Ajude-nos a melhorar seus roteiros",
+    "contextualDescription": "Com a sua permissão medimos quais planos são usados e onde as pessoas travam. Nada é carregado até você escolher."
   },
   "settings": {
     "title": "Configurações de cookies",

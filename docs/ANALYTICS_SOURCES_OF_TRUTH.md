@@ -30,7 +30,7 @@ Two rules follow from the table:
 
 ## 2. Why GA4 cannot measure our traffic
 
-GA4 is loaded only after the visitor accepts cookies (`components/consent/*`; the consent fix of 2026-08 gates the *mount*, not just Consent Mode). Most visitors never accept, so GA4 sees a **minority sample** whose size depends on the consent rate that day, the locale mix and the device mix. Its absolute numbers are small and its day-to-day swings are dominated by who happened to click "Accept".
+GA4 runs in Google Consent Mode v2 *advanced* since 2026-09-16 (`components/analytics/ConsentGatedTags.tsx`, `lib/analytics/ga-consent.ts`): gtag.js loads with every storage type denied and sends cookieless pings until the visitor accepts, so Google can *model* the non-consented majority in its own reports; `NEXT_PUBLIC_GA_CONSENT_MODE=gated` restores the 2026-09-02 behaviour of not mounting GA4 at all before acceptance. Modelled numbers are Google's estimate, never ours. Most visitors never accept, so GA4 sees a **minority sample** whose size depends on the consent rate that day, the locale mix and the device mix. Its absolute numbers are small and its day-to-day swings are dominated by who happened to click "Accept".
 
 On top of that, GA4's standard reports had a **platform-wide processing bug from 2026-09-01** that showed sharply reduced or zero traffic while collection continued (acknowledged by Google; Realtime kept working). So on the one day it mattered, GA4 was both structurally partial and actually broken.
 
@@ -88,6 +88,7 @@ One more thing the raw data revealed: the sweep came from **Cittadella**, and so
 - **React StrictMode double-fires mount beacons in dev.** Two POSTs 72 ms apart are not a bug; the database dedupes.
 - **PostgREST RPCs time out at 8 seconds.** A query that runs in a direct session proves nothing about a script. `page_views` heap is scattered (a 315k-row backfill), so window scans must go through `idx_page_views_human_cover` (index-only) or they cost ~4 s each.
 - **`trip_views` counts opens of a trip, per visitor, per day** — the same person opening `/trip/x` and then `/shared/x` on the same day is one row. That is the intended meaning of "open".
+- **The consent rate itself is measured in `consent_events`** (banner `shown` / `minimized` / `accept_all` / `essential_only` / `settings_saved`, with the banner variant and the page; `get_consent_funnel(from, to)` returns acceptance per variant). Before 2026-09-16 only signed-in users' choices were stored (`users.cookie_consent`), so the anonymous acceptance rate was unknowable. PostHog runs `cookieless_mode: 'on_reject'` since the same date: "Essential Only" visitors are counted cookielessly (nothing stored on the device, daily-rotating server-side hash) once the project setting "Cookieless server hash mode" is on; before any choice PostHog captures nothing.
 - **Consent means GA4 and PostHog are both partial.** PostHog's signup tracking, for example, once captured 2.7% of signups for an unrelated reason; the point is the same — read activation from the database (`/admin`'s DB panel), not from a consent-gated tool.
 
 ---

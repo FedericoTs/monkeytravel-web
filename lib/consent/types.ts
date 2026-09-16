@@ -119,6 +119,13 @@ export const CONSENT_VERSION = 1;
 export const CONSENT_STORAGE_KEY = "mt_cookie_consent";
 
 /**
+ * DOM event the provider dispatches whenever consent changes. Defined here,
+ * not in context.tsx, so non-React code (instrumentation-client.ts) can
+ * subscribe without pulling React in.
+ */
+export const CONSENT_CHANGE_EVENT = "mt_consent_change";
+
+/**
  * Category metadata for UI display
  */
 export interface ConsentCategoryInfo {
