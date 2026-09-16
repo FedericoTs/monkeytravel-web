@@ -12,6 +12,7 @@ const MILESTONES = [25, 50, 75, 100] as const;
 export default function ReadingProgress({ slug }: ReadingProgressProps) {
   const [progress, setProgress] = useState(0);
   const firedMilestones = useRef<Set<number>>(new Set());
+  const lastProgress = useRef(0);
 
   const checkMilestones = useCallback(
     (pct: number) => {
@@ -40,7 +41,14 @@ export default function ReadingProgress({ slug }: ReadingProgressProps) {
         document.documentElement.scrollHeight - window.innerHeight;
       const pct =
         docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
-      setProgress(pct);
+      // Whole-percent steps: Samsung Internet's toolbar collapse re-fires scroll
+      // on every frame with a slightly different innerHeight, and a fresh float
+      // each time tripped React's nested-update cap (Sentry JAVASCRIPT-NEXTJS-2S).
+      const rounded = Math.round(pct);
+      if (rounded !== lastProgress.current) {
+        lastProgress.current = rounded;
+        setProgress(rounded);
+      }
       checkMilestones(pct);
     }
 
