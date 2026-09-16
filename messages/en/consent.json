@@ -8,7 +8,9 @@
     "customize": "Customize",
     "privacyNote": "For more details, see our",
     "privacyPolicy": "Privacy Policy",
-    "pill": "Cookie settings"
+    "pill": "Cookie settings",
+    "contextualTitle": "Help us improve your itineraries",
+    "contextualDescription": "With your OK we measure which plans get used and where people get stuck. Nothing loads until you choose."
   },
   "settings": {
     "title": "Cookie Settings",

@@ -37,6 +37,7 @@ import {
 } from "@/lib/seo/structured-data";
 import "./globals.css";
 import { ConsentGatedTags } from "@/components/analytics/ConsentGatedTags";
+import { gaConsentDefaultScriptProps } from "@/lib/analytics/ga-consent";
 
 // Display font for headings — warm editorial serif (variable font)
 // Fraunces ships as a single woff2 covering 400/500/600/700 via the variable
@@ -199,6 +200,11 @@ export default async function RootLayout({
   // them in production. Undefined in dev (where CSP is not enforced) and
   // during static generation.
   const nonce = await getNonce();
+  // Consent Mode v2 default (everything denied) must be on the dataLayer
+  // before gtag.js loads; see lib/analytics/ga-consent.ts and
+  // components/analytics/ConsentGatedTags.tsx. Null when GA4 is unset or
+  // NEXT_PUBLIC_GA_CONSENT_MODE=gated.
+  const gaConsentDefault = gaConsentDefaultScriptProps(nonce);
 
   // data-brand drives the doodle theme in globals.css: one attribute restyles
   // buttons, fields, pills and cards everywhere, so no component carries
@@ -210,6 +216,7 @@ export default async function RootLayout({
         <script {...jsonLdScriptProps(organizationSchema, nonce)} />
         <script {...jsonLdScriptProps(webSiteSchema, nonce)} />
         <script {...jsonLdScriptProps(softwareApplicationSchema, nonce)} />
+        {gaConsentDefault ? <script {...gaConsentDefault} /> : null}
 
         {/* DNS prefetch for deferred third-party origins (preconnect removed —
             both scripts load after idle, so early connections expire unused) */}
