@@ -28,6 +28,7 @@ import { isTripNotificationsEnabled } from "@/lib/notifications/scheduling";
 import { parseDigestDay, digestStaleReason, digestParticipantRecipients } from "@/lib/notifications/digest";
 import { postTripCtaUrl } from "@/lib/email/followup-cta";
 import { resolveLocale, formatDateRange } from "@/lib/email/reminder-locale";
+import { retryTransient } from "@/lib/notifications/retry";
 
 /**
  * Pre-trip reminder cron — sweeps `scheduled_notifications` and
@@ -240,15 +241,37 @@ export function prioritizeDueRows<
     if (parseDigestDay(slot) !== null) return 0;
     return STALE_GRACE_DAYS[slot] ?? 1;
   };
+  // On the departure morning `morning_of` and `in_trip_day_2` are due at the
+  // same minute, and the one-email-per-trip-per-day rule lets only one out.
+  // "Travel day" carries the day-1 plan the traveller needs first; the day-2
+  // digest yields. Without this tie-break the winner was insertion order.
+  const digest = (slot: string): number => (parseDigestDay(slot) !== null ? 1 : 0);
   return rows
-    .map((row, index) => ({ row, index, urgency: urgency(row.slot) }))
+    .map((row, index) => ({ row, index, urgency: urgency(row.slot), digest: digest(row.slot) }))
     .sort(
       (a, b) =>
         a.urgency - b.urgency ||
         a.row.scheduled_for.localeCompare(b.row.scheduled_for) ||
+        a.digest - b.digest ||
         a.index - b.index
     )
     .map((entry) => entry.row);
+}
+
+/**
+ * The rate limit is one email per trip per CALENDAR DAY (UTC), not per
+ * rolling 24 hours. The cron runs once a day at 07:00 UTC, so a rolling
+ * window saw yesterday's send (07:00:30) from today's run (07:00:20) as
+ * "within 24h" and suppressed today's row. Measured 2026-09-13..16: 31 of
+ * the 37 rate_limit suppressions were exactly that, and 28 of them were
+ * in-trip digests, which are daily by design. Stale rows are still refused
+ * by staleReason; this only stops a send from being refused for being on
+ * schedule.
+ */
+export function rateLimitWindowStart(now: Date): string {
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  ).toISOString();
 }
 
 /** A queue row belongs to the post-trip family iff its slot says so. */
@@ -418,13 +441,23 @@ export async function GET(request: NextRequest) {
   //    LIMIT caps the per-run blast radius. prioritizeDueRows() then moves
   //    the rows that cannot wait a day to the front: the order matters once
   //    a send cap is in play (see its note).
-  const { data: dueRowsRaw, error: dueErr } = await svc
-    .from("scheduled_notifications")
-    .select("id, user_id, trip_id, slot, scheduled_for")
-    .eq("status", "pending")
-    .lte("scheduled_for", new Date().toISOString())
-    .order("scheduled_for", { ascending: true })
-    .limit(MAX_ROWS_PER_RUN);
+  //    Retried on a transient failure (2026-09-14: one Gateway Timeout on this
+  //    SELECT ended the run with 500 and cost 39 emails to staleness the next
+  //    morning). See lib/notifications/retry.ts.
+  const { data: dueRowsRaw, error: dueErr } = await retryTransient(
+    () =>
+      svc
+        .from("scheduled_notifications")
+        .select("id, user_id, trip_id, slot, scheduled_for")
+        .eq("status", "pending")
+        .lte("scheduled_for", new Date().toISOString())
+        .order("scheduled_for", { ascending: true })
+        .limit(MAX_ROWS_PER_RUN),
+    {
+      onRetry: (failedAttempt, message) =>
+        console.warn("[cron/scheduled-notifs] due-select retry", { failedAttempt, message }),
+    }
+  );
 
   if (dueErr) {
     console.error("[cron/scheduled-notifs] due-select failed:", dueErr);
@@ -666,10 +699,11 @@ async function processRow(
     }
   }
 
-  // 2b. Rate limit: 1 email per trip per 24h. We check sibling rows on
-  //     the same trip whose status='sent' AND sent_at within the last
-  //     24h. PRD §"Resend complaint rate spike from too many emails".
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  // 2b. Rate limit: 1 email per trip per calendar day (UTC). We check
+  //     sibling rows on the same trip whose status='sent' AND sent_at is
+  //     today. PRD §"Resend complaint rate spike from too many emails".
+  //     Calendar day, not rolling 24h: see rateLimitWindowStart.
+  const since = rateLimitWindowStart(new Date());
   const { data: recent, error: recentErr } = await svc
     .from("scheduled_notifications")
     .select("id")
@@ -689,7 +723,7 @@ async function processRow(
     return "failed";
   }
   if (recent && recent.length > 0) {
-    await persistOutcome(svc, row.id, "suppressed", "rate_limit_sibling_24h");
+    await persistOutcome(svc, row.id, "suppressed", "rate_limit_sibling_same_day");
     return "skipped";
   }
 

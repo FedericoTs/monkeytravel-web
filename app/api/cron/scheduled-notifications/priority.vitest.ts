@@ -50,14 +50,28 @@ describe("prioritizeDueRows", () => {
     ]);
   });
 
-  it("is stable for equal keys and does not mutate its input", () => {
+  it("lets the pre-trip slot beat the digest due the same minute, then keeps insertion order", () => {
+    // Departure morning: "Travel day" and the day-2 digest are both due at
+    // 06:00 and the one-per-day rule lets only one out. The digest yields.
     const rows = [
-      row("morning_of", "2026-09-12T06:00:00Z"),
       row("in_trip_day_2", "2026-09-12T06:00:00Z"),
+      row("morning_of", "2026-09-12T06:00:00Z"),
       row("confirm_1d", "2026-09-12T06:00:00Z"),
     ];
     const snapshot = rows.map((r) => r.id);
-    expect(prioritizeDueRows(rows).map((r) => r.id)).toEqual(snapshot);
+    expect(prioritizeDueRows(rows).map((r) => r.slot)).toEqual([
+      "morning_of",
+      "confirm_1d",
+      "in_trip_day_2",
+    ]);
     expect(rows.map((r) => r.id)).toEqual(snapshot);
+  });
+
+  it("is stable for rows that tie on every key", () => {
+    const rows = [
+      row("confirm_1d", "2026-09-12T06:00:00Z"),
+      row("morning_of", "2026-09-12T06:00:00Z"),
+    ];
+    expect(prioritizeDueRows(rows).map((r) => r.slot)).toEqual(["confirm_1d", "morning_of"]);
   });
 });
