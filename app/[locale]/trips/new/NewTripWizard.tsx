@@ -163,9 +163,8 @@ function preloadResultViewChunks(): void {
 import { useEarlyAccess } from "@/lib/hooks/useEarlyAccess";
 import * as Sentry from "@sentry/nextjs";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
-// Step-1 entry rework (2026-09-02) — see lib/wizard/entry-state.ts for the
-// arrival model and lib/posthog/flags.ts FLAG_WIZARD_STEP1_EDITORIAL for the
-// kill switch.
+// Step-1 editorial entry (2026-09-02; ramped to 100% and the classic branch
+// deleted 2026-09-16) — see lib/wizard/entry-state.ts for the arrival model.
 import WizardMasthead from "@/components/wizard/WizardMasthead";
 import OneTapStarts, { type OneTapPlace } from "@/components/wizard/OneTapStarts";
 import ClaimedTripBanner from "@/components/wizard/ClaimedTripBanner";
@@ -174,9 +173,7 @@ import {
   deriveEntryState,
   isFirstRunAuthEvent,
   pickMastheadVariant,
-  resolveEditorialStep1,
 } from "@/lib/wizard/entry-state";
-import { FLAG_WIZARD_STEP1_EDITORIAL } from "@/lib/posthog/flags";
 import {
   captureClaimedTripBanner,
   captureAnonShareKeepClicked,
@@ -230,7 +227,7 @@ import { claimTripCreatedEmit } from "@/lib/analytics/tripCreatedDedup";
 import { useFlag, useExperiment, usePostHog } from "@/lib/posthog";
 import { FLAG_AUTO_SAVE_V1, FLAG_FRONT_DOOR } from "@/lib/posthog/flags";
 import DecisionIntake from "@/components/wizard/DecisionIntake";
-import { trackWizardEvent, type WizardEventStep, type FrontDoorArm, type Step1Variant } from "@/components/wizard/wizardEvents";
+import { trackWizardEvent, type WizardEventStep, type FrontDoorArm } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip, type AutoSaveSkipReason } from "@/hooks/useAutoSaveTrip";
 import { isSameDestination } from "@/lib/trips/sameDestination";
 import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate";
@@ -492,21 +489,6 @@ export default function NewTripPage({
   );
   const isFreshSignup = isFirstRunAuthEvent(authEventAtMount);
   const mastheadVariant = pickMastheadVariant({ authEventAtMount, prefillAtMount });
-  // Step-1 editorial entry: ?step1=classic|editorial (QA) > env force >
-  // PostHog, where an UNRESOLVED flag is ON. A kill switch, not a gate — see
-  // FLAG_WIZARD_STEP1_EDITORIAL. Resolved here, above the effects that read
-  // it, so it is never referenced before its declaration.
-  const step1Override = searchParams?.get("step1") ?? null;
-  const { enabled: step1FlagRaw } = useFlag(FLAG_WIZARD_STEP1_EDITORIAL);
-  const editorialStep1 = resolveEditorialStep1({
-    queryOverride: step1Override,
-    envForce: process.env.NEXT_PUBLIC_WIZARD_STEP1_FORCE,
-    flagValue: step1FlagRaw,
-  });
-  // Server-side arm label. Mirrors the PostHog `step1_variant` property, but
-  // reaches wizard_step_events too — PostHog sees ~59% of sessions and skews
-  // to converters, which is not a population the flag review can be decided on.
-  const step1Variant: Step1Variant = editorialStep1 ? "editorial" : "classic";
   // The trip a signup claimed (see lib/trips/claimed-trip-signal.ts). State
   // lives up here because the PostHog super-property effect reads it.
   const [claimedTripId, setClaimedTripId] = useState<string | null>(null);
@@ -644,15 +626,14 @@ export default function NewTripPage({
     // Same reason as armResolved above: registering the loading default would
     // tag every PostHog event of a decision-arm session as "wizard".
     if (!armResolved) return;
-    // step1_variant + wizard_entry (2026-09-02): every capture becomes
-    // sliceable by the step-1 kill switch and by how the person arrived, so
-    // the week-one read needs no per-call edits.
+    // wizard_entry (2026-09-02): every capture becomes sliceable by how the
+    // person arrived, so a read needs no per-call edits. step1_variant rode
+    // here too until the editorial step 1 went to 100% (2026-09-16).
     posthog.register({
       front_door: arm,
-      step1_variant: editorialStep1 ? "editorial" : "classic",
       wizard_entry: deriveEntryState({ authEventAtMount, prefillAtMount, claimedTripId, isAuthenticated }),
     });
-  }, [posthog, arm, armResolved, editorialStep1, authEventAtMount, prefillAtMount, claimedTripId, isAuthenticated]);
+  }, [posthog, arm, armResolved, authEventAtMount, prefillAtMount, claimedTripId, isAuthenticated]);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [hasExistingTrips, setHasExistingTrips] = useState(false);
   const [showReturningUserBanner, setShowReturningUserBanner] = useState(true);
@@ -864,9 +845,7 @@ export default function NewTripPage({
     }
     trackedStepsRef.current.add(step);
     if (step === 1) {
-      // step1Variant rides these two events specifically: they are the rows
-      // the dwell-qualified review query groups by (denominator + qualifier).
-      void trackWizardEvent("step_1_destination_dates", { locale }, arm, step1Variant);
+      void trackWizardEvent("step_1_destination_dates", { locale }, arm);
     } else if (step === 2) {
       void trackWizardEvent("step_2_vibes", {
         destination: destinationFieldRef.current || undefined,
@@ -921,7 +900,7 @@ export default function NewTripPage({
       if (typeof document !== "undefined" && document.visibilityState !== "visible") {
         return;
       }
-      void trackWizardEvent("step1_heartbeat", { locale }, arm, step1Variant);
+      void trackWizardEvent("step1_heartbeat", { locale }, arm);
       if (++beats >= MAX_BEATS) clearInterval(id);
     }, 10000);
     return () => clearInterval(id);
@@ -2189,7 +2168,6 @@ export default function NewTripPage({
       in_season: inSeasonMonth !== null && place.season.includes(inSeasonMonth),
       dates_autofilled: datesAutofilled,
       first_run: isFreshSignup,
-      step1_variant: editorialStep1 ? "editorial" : "classic",
       position: index,
     });
     requestAnimationFrame(() => dateTriggerRef.current?.focus());
@@ -2210,13 +2188,12 @@ export default function NewTripPage({
     return () => document.documentElement.removeAttribute("data-wizard-open");
   }, []);
 
-  // Footer state B: a valid destination with no dates. Under the editorial
-  // entry the slot offers an ENABLED "Use flexible dates" instead of a
-  // disabled Continue with a hint — the biggest remaining disabled-button
-  // moment on the step where most abandons happen. Label deliberately does
-  // not match /continue|next/i so the e2e specs keep selecting the real one.
+  // Footer state B: a valid destination with no dates. The slot offers an
+  // ENABLED "Use flexible dates" instead of a disabled Continue with a hint —
+  // the biggest remaining disabled-button moment on the step where most
+  // abandons happen. Label deliberately does not match /continue|next/i so
+  // the e2e specs keep selecting the real one.
   const footerStateB =
-    editorialStep1 &&
     step === 1 &&
     destination.length >= 2 &&
     destination.length <= DESTINATION_MAX_LENGTH &&
@@ -4284,7 +4261,7 @@ export default function NewTripPage({
 
   // Wizard form
   return (
-    <div className={editorialStep1 ? "min-h-screen bg-[var(--background)]" : "min-h-screen bg-gradient-to-br from-slate-50 to-white"}>
+    <div className="min-h-screen bg-[var(--background)]">
       <WizardReplay />
       {/* Auth Prompt Modal - for gradual engagement */}
       <AuthPromptModal
@@ -4488,23 +4465,12 @@ export default function NewTripPage({
                 onDiscard={handleDiscardDraft}
               />
             )}
-            {editorialStep1 ? (
-              <WizardMasthead
-                variant={mastheadVariant}
-                destination={prefilledDestination?.name ?? searchParams?.get("destination") ?? null}
-                plannedStat={plannedStat}
-                locale={locale}
-              />
-            ) : (
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1 sm:mb-2">
-                  {t("wizard.step1.title")}
-                </h1>
-                <p className="text-slate-600">
-                  {t("wizard.step1.subtitle")}
-                </p>
-              </div>
-            )}
+            <WizardMasthead
+              variant={mastheadVariant}
+              destination={prefilledDestination?.name ?? searchParams?.get("destination") ?? null}
+              plannedStat={plannedStat}
+              locale={locale}
+            />
 
             {/* Backpacker Mode — shipped 2026-05-28.
                 Strategic wedge for partner conversations (Hostelworld in
@@ -4790,49 +4756,13 @@ export default function NewTripPage({
 
               {/* Popular destinations — real demand-ranked (distinct planning
                   sessions, season-reordered) + an honest aggregate proof line. */}
-              {!destination && (editorialStep1 ? (
+              {!destination && (
                 <OneTapStarts
                   picks={popularPicks}
                   inSeasonMonth={inSeasonMonth}
                   onPick={handleOneTapStart}
                 />
-              ) : (
-                <div className="mt-3">
-                  <div className="mb-2 text-xs font-medium text-slate-500">
-                    {t("wizard.step1.popularNow")}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {popularPicks.map((place) => (
-                      <button
-                        key={place.name}
-                        onClick={() => {
-                          trackFieldInteraction("destination_pill");
-                          setDestination(place.name);
-                          setDestinationCoords(place.coords);
-                          trackDestinationSelected({
-                            destination: place.name,
-                            source: "popular",
-                          });
-                        }}
-                        className="px-3 py-2 sm:px-4 sm:py-2 rounded-full border border-slate-200 text-sm text-slate-700
-                                   hover:border-[var(--primary)] hover:text-[var(--primary-ink)]
-                                   active:bg-[var(--primary)]/10
-                                   hover:bg-[var(--primary)]/5 transition-all duration-200
-                                   flex items-center gap-1.5 min-h-[40px]"
-                      >
-                        <span>{place.flag}</span>
-                        <span>{place.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                  {plannedStat !== null && (
-                    <p className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-500">
-                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
-                      {t("wizard.step1.planningStat", { count: plannedStat.toLocaleString(locale) })}
-                    </p>
-                  )}
-                </div>
-              ))}
+              )}
             </div>
 
             {/* Multi-city toggle (wedge) — gated by NEXT_PUBLIC_MULTI_CITY_ENABLED.
@@ -4841,11 +4771,7 @@ export default function NewTripPage({
                 the switch stays adjacent to what it controls. */}
             {MULTI_CITY_ENABLED && (
               <div
-                className={
-                  editorialStep1
-                    ? "flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--primary)]/15 bg-[var(--background-warm)] px-4 py-3"
-                    : "flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
-                }
+                className="flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--primary)]/15 bg-[var(--background-warm)] px-4 py-3"
               >
                 <div>
                   <div className="text-sm font-medium text-slate-800">
@@ -4943,7 +4869,7 @@ export default function NewTripPage({
               {!(MULTI_CITY_ENABLED && multiCityMode) && (
                 <div className="mt-2">
                   {flexibleDates ? (
-                    editorialStep1 && datesPencilled ? (
+                    datesPencilled ? (
                       // Announced, not just shown: the one-tap moved focus here
                       // and this is the sentence that explains what it assumed.
                       // slate-600, not coral — --primary-ink is 2.68:1.

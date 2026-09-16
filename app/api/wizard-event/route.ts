@@ -81,6 +81,9 @@ const BodySchema = z.object({
   // it does not know, so omitting this field would leave the column NULL
   // forever while every client dutifully sent the value — exactly how
   // failure_code was lost the first time.
+  // Retired 2026-09-16 (wizard-step1-editorial-v1 ramped to 100%): nothing
+  // sends it any more, but bundles cached from before the ramp still do, so
+  // it stays accepted rather than turning those posts into 400s.
   step1_variant: z.enum(["editorial", "classic"]).optional(),
 });
 
