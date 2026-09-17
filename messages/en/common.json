@@ -1,4 +1,8 @@
 {
+  "languageAlternates": {
+    "label": "Also available in",
+    "aria": "This page in other languages"
+  },
   "feedbackSurvey": {
     "title": "Help shape MonkeyTravel",
     "subtitle": "You've planned real trips with us. A minute of honest feedback would mean a lot.",

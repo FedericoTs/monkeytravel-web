@@ -1,3 +1,4 @@
+import LanguageAlternates, { localizedPath } from "@/components/i18n/LanguageAlternates";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
@@ -185,6 +186,11 @@ export default async function BlogIndexPage({ params }: PageProps) {
                 <p className="mt-3 text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
                   {t("index.subtitle")}
                 </p>
+                <LanguageAlternates
+                  locale={locale}
+                  hrefFor={(l) => localizedPath(l, "/blog")}
+                  className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500"
+                />
               </div>
               <p className="hidden md:block text-sm font-semibold uppercase tracking-wider text-[var(--primary-ink)]">
                 {allFrontmatter.length}{" "}
