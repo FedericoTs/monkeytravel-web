@@ -1,3 +1,4 @@
+import { classifyPageViewRequest } from "@/lib/analytics/page-view-classifier";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdmin } from "@/lib/admin";
@@ -13,37 +14,30 @@ import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
 // NOTHING in the codebase ever SET that cookie — so 100% of inserts had
 // session_id=null. GSC + Supabase analytics couldn't count unique sessions.
 // Now generates a UUID on first visit and the caller persists it as a cookie.
-export function trackPageView(request: NextRequest, userId?: string): string | null {
-  // Skip tracking for API routes, static assets, and admin pages
+/**
+ * Records one page_views row per page view and returns the session id
+ * (existing or freshly minted) plus a label naming what was decided, which
+ * updateSession() exposes as the x-mt-pv response header.
+ *
+ * What counts as a page view lives in lib/analytics/page-view-classifier.ts
+ * (and its tests). History: the 2026-06-07 prefetch guard checked
+ * next-router-prefetch, a header that never reaches the middleware on Vercel,
+ * so until 2026-09-17 every Link prefetch was a "view" (~3x inflation of
+ * views in multi-page sessions; sessions unaffected).
+ */
+export function trackPageView(
+  request: NextRequest,
+  userId?: string
+): { sessionId: string | null; label: string } {
+  const verdict = classifyPageViewRequest({
+    method: request.method,
+    pathname: request.nextUrl.pathname,
+    headers: request.headers,
+  });
+  if (verdict !== "counted") {
+    return { sessionId: null, label: verdict };
+  }
   const path = request.nextUrl.pathname;
-  if (
-    path.startsWith("/api/") ||
-    path.startsWith("/_next/") ||
-    path.startsWith("/admin") ||
-    path.includes(".")
-  ) {
-    return null;
-  }
-
-  // **2026-06-07 fix**: skip Next.js Link prefetch requests. The
-  // BottomNav (task #270) holds 4 always-visible Links; Next prefetches
-  // every visible Link on mount and again on hover. Each prefetch
-  // hits middleware, which was firing a page_views POST — david
-  // cassoni's session showed 15 page-view rows in 30s across 4 paths
-  // with sub-100ms gaps and the SAME referrer (impossible for human
-  // taps). Funnels and "top landings" charts went wildly off.
-  //
-  // Next sets `next-router-prefetch: 1` for App-Router prefetches and
-  // `purpose: prefetch` for older Pages-Router-style; we check both
-  // so future-Next changes and any partner crawler that copies the
-  // standard purpose header both get filtered.
-  if (
-    request.headers.get("next-router-prefetch") === "1" ||
-    request.headers.get("purpose") === "prefetch" ||
-    request.headers.get("sec-purpose")?.includes("prefetch")
-  ) {
-    return null;
-  }
 
   // **2026-06-04 fix**: dev environment was POSTing to the prod page_views
   // table because middleware ran against prod Supabase from `npm run dev`.
@@ -53,7 +47,7 @@ export function trackPageView(request: NextRequest, userId?: string): string | n
   // Vercel deployments ('production' | 'preview' | 'development'), so a
   // missing/non-production value catches both local dev and preview builds.
   if (process.env.VERCEL_ENV !== "production") {
-    return null;
+    return { sessionId: null, label: "counted;dry" };
   }
 
   // Read existing session_id or mint a fresh one for first-time visitors.
@@ -103,7 +97,7 @@ export function trackPageView(request: NextRequest, userId?: string): string | n
     // Silently ignore errors
   }
 
-  return sessionId;
+  return { sessionId, label: "counted" };
 }
 
 /**
@@ -245,7 +239,10 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
   // Track page view with geo data (non-blocking).
   // Returns the session_id (existing-or-fresh) so we can persist it as a cookie
   // for subsequent requests in the same session. 30-day sliding expiry.
-  const sessionId = trackPageView(request, user?.id);
+  const { sessionId, label: pageViewLabel } = trackPageView(request, user?.id);
+  // The verdict rides on every response so a PREVIEW deployment, which never
+  // inserts, can be probed with curl: counted | counted;dry | skip:<why>.
+  supabaseResponse.headers.set("x-mt-pv", pageViewLabel);
   if (sessionId && !request.cookies.get("mt_session_id")) {
     supabaseResponse.cookies.set("mt_session_id", sessionId, {
       httpOnly: true,
