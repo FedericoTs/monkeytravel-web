@@ -12,9 +12,12 @@ import type { ApiCostConfig, RateLimitConfig, RetryConfig, CircuitBreakerConfig 
  */
 export const API_COSTS: ApiCostConfig = {
   // Google APIs
-  google_places_search: 0.017,
+  // Fallbacks only: every live Places call passes its own tier price from
+  // lib/api-gateway/places-sku.ts. Search defaults to the Pro tier, details to
+  // Essentials, because those are the only shapes the code makes.
+  google_places_search: 0.032,
   google_places_autocomplete: 0.00283,
-  google_places_details: 0.017,
+  google_places_details: 0.005,
   google_places_nearby: 0.032,
   google_geocoding: 0.005,
   google_distance_matrix: 0.005, // per element
