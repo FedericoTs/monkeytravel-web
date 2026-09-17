@@ -20,10 +20,13 @@ import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
  * updateSession() exposes as the x-mt-pv response header.
  *
  * What counts as a page view lives in lib/analytics/page-view-classifier.ts
- * (and its tests). History: the 2026-06-07 prefetch guard checked
- * next-router-prefetch, a header that never reaches the middleware on Vercel,
- * so until 2026-09-17 every Link prefetch was a "view" (~3x inflation of
- * views in multi-page sessions; sessions unaffected).
+ * (and its tests): browser navigations only. Next strips every Flight header
+ * (rsc, next-router-*) before middleware runs, so the 2026-06-07 prefetch
+ * guard on next-router-prefetch never fired and until 2026-09-17 every Link
+ * prefetch was a "view" (~3x inflation in multi-page sessions; sessions
+ * unaffected). In-app navigations are recorded by
+ * components/analytics/PageViewBeacon.tsx through /api/page-view, which
+ * builds the same row.
  */
 export function trackPageView(
   request: NextRequest,
@@ -111,7 +114,7 @@ export function trackPageView(
  * Takes the token from getSession() rather than parsing cookies directly, so
  * this does not depend on @supabase/ssr's cookie name, chunking or encoding.
  */
-function subjectFromAccessToken(accessToken: string | undefined): string | null {
+export function subjectFromAccessToken(accessToken: string | undefined): string | null {
   if (!accessToken) return null;
   const payload = accessToken.split(".")[1];
   if (!payload) return null;

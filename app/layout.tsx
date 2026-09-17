@@ -37,6 +37,7 @@ import {
 } from "@/lib/seo/structured-data";
 import "./globals.css";
 import { ConsentGatedTags } from "@/components/analytics/ConsentGatedTags";
+import PageViewBeacon from "@/components/analytics/PageViewBeacon";
 import { gaConsentDefaultScriptProps } from "@/lib/analytics/ga-consent";
 
 // Display font for headings — warm editorial serif (variable font)
@@ -237,6 +238,7 @@ export default async function RootLayout({
         <SpeedInsights />
         {/* Session tracking for retention analytics */}
         <SessionTracker />
+        <PageViewBeacon />
         {/* First-touch acquisition channel (organic/referral/direct) */}
         <AcquisitionCapture />
         {/* Service worker (offline trips) + Android back-button handler */}
