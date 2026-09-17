@@ -1,3 +1,4 @@
+import LanguageAlternates, { localizedPath } from "@/components/i18n/LanguageAlternates";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
@@ -274,6 +275,11 @@ export default async function DestinationDetailPage({ params }: PageProps) {
               </p>
               <ShareRow url={pageUrl} title={cityName} />
             </div>
+            <LanguageAlternates
+              locale={loc}
+              hrefFor={(l) => localizedPath(l, `/destinations/${slug}`)}
+              className="mb-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[var(--foreground-muted)]"
+            />
             <p className="text-lg text-[var(--foreground)] leading-relaxed">
               {destination.content.description[loc]}
             </p>

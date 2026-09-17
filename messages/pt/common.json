@@ -1,4 +1,8 @@
 {
+  "languageAlternates": {
+    "label": "Também disponível em",
+    "aria": "Esta página em outros idiomas"
+  },
   "feedbackSurvey": {
     "title": "Ajude a melhorar o MonkeyTravel",
     "subtitle": "Você planejou viagens de verdade com a gente. Um minuto de opinião sincera valeria muito.",

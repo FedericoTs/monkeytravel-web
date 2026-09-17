@@ -1,3 +1,4 @@
+import LanguageAlternates, { localizedPath } from "@/components/i18n/LanguageAlternates";
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
@@ -201,6 +202,11 @@ export default async function DestinationsIndexPage({ params }: PageProps) {
                   ),
                 })}
               </p>
+              <LanguageAlternates
+                locale={locale}
+                hrefFor={(l) => localizedPath(l, "/destinations")}
+                className="mb-7 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500"
+              />
 
               {/* Trust signals — three short pills with check icons,
                   same visual rhythm as the homepage / explore hero. */}

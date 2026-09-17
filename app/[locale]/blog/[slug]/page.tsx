@@ -1,3 +1,4 @@
+import LanguageAlternates, { localizedPath } from "@/components/i18n/LanguageAlternates";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import ImageWithFallback from "@/components/ui/ImageWithFallback";
@@ -423,6 +424,11 @@ export default async function BlogDetailPage({ params }: PageProps) {
                 <div className="sm:hidden -mt-4 mb-6">
                   <ShareRow url={pageUrl} title={seoTitle} />
                 </div>
+                <LanguageAlternates
+                  locale={locale}
+                  hrefFor={(l) => (hasLocaleTranslation(slug, l) ? localizedPath(l, `/blog/${slug}`) : null)}
+                  className="mb-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[var(--foreground-muted)]"
+                />
                 <BlogContent
                   html={html}
                   tocLabel={t("detail.tableOfContents")}
