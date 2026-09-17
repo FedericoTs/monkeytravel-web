@@ -1,3 +1,8 @@
+import { placesCostForCall } from "@/lib/api-gateway/places-sku";
+// The field masks drive Google's SKU (lib/api-gateway/places-sku.ts): the
+// activity lookup is Text Search Pro, the photo fetch is Details Essentials.
+const ACTIVITY_SEARCH_FIELD_MASK = "places.id,places.displayName,places.location,places.formattedAddress";
+const PHOTOS_FIELD_MASK = "photos";
 /**
  * Server-side activity image fetching
  * Used by AI generate API to fetch images before returning to client
@@ -240,8 +245,7 @@ async function searchPlaceId(query: string): Promise<PlaceRecord | null> {
         headers: {
           "Content-Type": "application/json",
           "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
-          "X-Goog-FieldMask":
-            "places.id,places.displayName,places.location,places.formattedAddress",
+          "X-Goog-FieldMask": ACTIVITY_SEARCH_FIELD_MASK,
         },
         body: JSON.stringify({
           textQuery: query,
@@ -271,7 +275,7 @@ async function searchPlaceId(query: string): Promise<PlaceRecord | null> {
       status: httpStatus || 500,
       responseTimeMs: Date.now() - startedAt,
       cacheHit: false,
-      costUsd: 0.005,
+      costUsd: placesCostForCall({ kind: "textSearch", fieldMask: ACTIVITY_SEARCH_FIELD_MASK }).usd,
     });
   }
 
@@ -319,7 +323,7 @@ export async function fetchPlacePhoto(
         method: "GET",
         headers: {
           "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
-          "X-Goog-FieldMask": "photos",
+          "X-Goog-FieldMask": PHOTOS_FIELD_MASK,
         },
       }
     );
@@ -377,7 +381,7 @@ export async function fetchPlacePhoto(
       status: httpStatus || 500,
       responseTimeMs: Date.now() - startedAt,
       cacheHit: false,
-      costUsd: 0.017,
+      costUsd: placesCostForCall({ kind: "details", fieldMask: PHOTOS_FIELD_MASK }).usd,
     });
   }
 }

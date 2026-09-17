@@ -1,3 +1,11 @@
+import { placesCostForCall } from "@/lib/api-gateway/places-sku";
+// Field masks drive Google's SKU (lib/api-gateway/places-sku.ts). The gallery
+// search asks for rating, hours, price and website because PlaceGallery renders
+// them (Enterprise tier); the destination cover search stays on Pro.
+const GALLERY_SEARCH_FIELD_MASK =
+  "places.id,places.displayName,places.formattedAddress,places.location,places.photos,places.rating,places.userRatingCount,places.websiteUri,places.googleMapsUri,places.priceLevel,places.priceRange,places.currentOpeningHours";
+const DESTINATION_SEARCH_FIELD_MASK =
+  "places.id,places.displayName,places.formattedAddress,places.location,places.photos";
 import { NextRequest } from "next/server";
 import { cacheAdminDb } from "@/lib/supabase/cache-admin";
 import { createClient } from "@/lib/supabase/server";
@@ -153,9 +161,11 @@ async function logPlacesApiRequest(
     error?: string;
     responseTimeMs?: number;
     userId?: string;
+    /** The X-Goog-FieldMask of the call; decides the SKU. Defaults to the gallery search. */
+    fieldMask?: string;
   } = {}
 ): Promise<void> {
-  const { cacheHit = false, status = 200, error, responseTimeMs = 0, userId } = options;
+  const { cacheHit = false, status = 200, error, responseTimeMs = 0, userId, fieldMask = GALLERY_SEARCH_FIELD_MASK } = options;
 
   await logApiCall({
     apiName: "google_places_search",
@@ -163,7 +173,7 @@ async function logPlacesApiRequest(
     status,
     responseTimeMs,
     cacheHit,
-    costUsd: cacheHit || status >= 400 ? 0 : 0.032, // Places Text Search Pro costs ~$32 per 1000
+    costUsd: cacheHit || status >= 400 ? 0 : placesCostForCall({ kind: "textSearch", fieldMask }).usd,
     error,
     userId,
   });
@@ -240,8 +250,7 @@ export async function POST(request: NextRequest) {
           headers: {
             "Content-Type": "application/json",
             "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
-            "X-Goog-FieldMask":
-              "places.id,places.displayName,places.formattedAddress,places.location,places.photos,places.rating,places.userRatingCount,places.websiteUri,places.googleMapsUri,places.priceLevel,places.priceRange,places.currentOpeningHours",
+            "X-Goog-FieldMask": GALLERY_SEARCH_FIELD_MASK,
           },
           body: JSON.stringify({
             textQuery: query,
@@ -377,6 +386,7 @@ export async function GET(request: NextRequest) {
     const access = await checkApiAccess("google_places_search");
     if (!access.allowed) {
       await logPlacesApiRequest("/places:searchText (destination)", {
+        fieldMask: DESTINATION_SEARCH_FIELD_MASK,
         status: 503,
         error: `BLOCKED: ${access.message}`,
         userId: user?.id,
@@ -397,6 +407,7 @@ export async function GET(request: NextRequest) {
 
     if (!GOOGLE_PLACES_API_KEY || !access.shouldPassKey) {
       await logPlacesApiRequest("/places:searchText (destination)", {
+        fieldMask: DESTINATION_SEARCH_FIELD_MASK,
         status: 500,
         error: "API key not configured or blocked",
         userId: user?.id,
@@ -423,7 +434,8 @@ export async function GET(request: NextRequest) {
 
     if (cachedResult) {
       console.log("[Places Destination] Cache HIT for:", destination);
-      await logPlacesApiRequest("/places:searchText (destination)", { cacheHit: true, userId: user?.id });
+      await logPlacesApiRequest("/places:searchText (destination)", {
+        fieldMask: DESTINATION_SEARCH_FIELD_MASK, cacheHit: true, userId: user?.id });
       return apiSuccess(cachedResult);
     }
 
@@ -446,8 +458,7 @@ export async function GET(request: NextRequest) {
             // consumer, DestinationHero, reads only coverImageUrl + galleryPhotos.
             // Dropped to keep this call on the cheaper Pro tier. `photos` (Pro)
             // stays — it powers the cover + gallery.
-            "X-Goog-FieldMask":
-              "places.id,places.displayName,places.formattedAddress,places.location,places.photos",
+            "X-Goog-FieldMask": DESTINATION_SEARCH_FIELD_MASK,
           },
           body: JSON.stringify({
             textQuery: destination,
@@ -531,6 +542,7 @@ export async function GET(request: NextRequest) {
     // the response.
     await saveToCache(cacheKey, "destination", result);
     await logPlacesApiRequest("/places:searchText (destination)", {
+        fieldMask: DESTINATION_SEARCH_FIELD_MASK,
       responseTimeMs: Date.now() - startTime,
       userId: user?.id,
     });
@@ -546,6 +558,7 @@ export async function GET(request: NextRequest) {
 
     // Log the failure (user may be undefined if auth failed)
     await logPlacesApiRequest("/places:searchText (destination)", {
+        fieldMask: DESTINATION_SEARCH_FIELD_MASK,
       status: 500,
       error: error instanceof Error ? error.message : String(error),
       responseTimeMs: Date.now() - startTime,
