@@ -342,7 +342,8 @@ export async function middleware(request: NextRequest) {
     // so calling it here restores tracking WITHOUT giving back the perf win
     // this branch was added for. Views land with user_id=null; these are
     // public pages, so anonymous attribution is the honest value anyway.
-    const publicSessionId = trackPageView(request);
+    const { sessionId: publicSessionId, label: publicPageViewLabel } = trackPageView(request);
+    intlResponse.headers.set("x-mt-pv", publicPageViewLabel);
     if (publicSessionId && !request.cookies.get("mt_session_id")) {
       intlResponse.cookies.set("mt_session_id", publicSessionId, {
         httpOnly: true,
