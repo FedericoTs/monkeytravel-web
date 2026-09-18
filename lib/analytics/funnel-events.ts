@@ -13,7 +13,7 @@
 // depend on the anon INSERT policy (that policy is only for the one
 // client-fired event, plan_own_clicked, added in PR2c).
 
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type FunnelEventType =
@@ -54,26 +54,21 @@ export async function logFunnelEventServer(
   }
 }
 
-// Obvious crawlers / link-unfurlers only. Deliberately does NOT match
-// "whatsapp"/"telegram" — a human tapping a shared link opens it in the app's
-// in-app browser with a normal Chrome/Safari UA; the "WhatsApp"/"TelegramBot"
-// UA is the preview crawler. We accept a little unfurl inflation rather than
-// risk dropping the exact humans (chat-app openers) the crew loop targets.
-// Exported so the shared page's crew_link_visited PostHog capture applies the
-// SAME filter — keeps the two visit counters comparable.
-export const CRAWLER_UA_RE =
-  /(bot\b|crawl|spider|slurp|facebookexternalhit|bingpreview|headless|python-requests|curl\/|wget|lighthouse|monitoring|uptime)/i;
+// The crawler / link-unfurler pattern lives with the visit classifier
+// (share-visit-classifier.ts); re-exported here for existing imports.
+export { CRAWLER_UA_RE } from "./share-visit-classifier";
 
 /**
- * Record a real human visit to /shared/[token]. Fired from the shared page's
- * server render (once per render, AFTER the notFound guard). Skips crawlers so
- * the share-visit funnel isn't inflated by link-preview bots.
+ * Record a recipient visit to /shared/[token] — funnel_events.share_link_visited.
+ * The CALLER decides whether the render is a visit (classifySharedVisit in
+ * share-visit-classifier.ts: a document navigation, not a crawler, not the
+ * owner, on a trip that has an owner) and calls this only for "counted";
+ * the same verdict gates the PostHog twin so the two counters stay
+ * comparable. Before 2026-09-18 every render that passed the UA test was a
+ * row: router fetches, owners and fleets on the demo trips included.
  */
 export async function logSharedTripVisit(tripId: string): Promise<void> {
   try {
-    const h = await headers();
-    const ua = h.get("user-agent") || "";
-    if (CRAWLER_UA_RE.test(ua)) return;
     const c = await cookies();
     const sessionId = c.get("mt_session_id")?.value ?? null;
     await logFunnelEventServer({

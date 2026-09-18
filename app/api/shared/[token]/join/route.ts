@@ -117,13 +117,21 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     }
 
     // A signed-in recipient is linked to their account; anonymous stays anonymous.
+    // Their account email doubles as the notification email unless they type
+    // another one: the digest fan-out only mails rows with an email, and until
+    // 2026-09-18 a signed-in joiner who skipped the optional email step was
+    // never mailed at all.
     let userId: string | null = null;
+    let accountEmail: string | null = null;
     try {
       const supabase = await createClient();
       const { data } = await supabase.auth.getUser();
       userId = data.user?.id ?? null;
+      const candidate = normalizeEmail(data.user?.email);
+      accountEmail = typeof candidate === "string" ? candidate : null;
     } catch {
       userId = null;
+      accountEmail = null;
     }
 
     const { data: existing } = await admin
@@ -141,7 +149,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
           participant_cookie_id: cookieId,
           user_id: userId,
           display_name: displayName,
-          email: email ?? null,
+          email: email ?? accountEmail,
           source,
         });
         if (error) {
@@ -153,6 +161,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         const patch: Record<string, unknown> = { left_at: null };
         if (displayName) patch.display_name = displayName;
         if (email) patch.email = email;
+        else if (accountEmail && !existing.email) patch.email = accountEmail;
         if (userId) patch.user_id = userId;
         const { error } = await admin.from("trip_participants").update(patch).eq("id", existing.id);
         if (error) {
@@ -168,6 +177,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       const patch: Record<string, unknown> = {};
       if (displayName) patch.display_name = displayName;
       if (email) patch.email = email;
+      else if (accountEmail && !existing.email) patch.email = accountEmail;
       if (userId) patch.user_id = userId;
       if (Object.keys(patch).length > 0) {
         const { error } = await admin.from("trip_participants").update(patch).eq("id", existing.id);

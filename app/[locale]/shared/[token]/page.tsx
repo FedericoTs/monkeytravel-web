@@ -3,7 +3,8 @@ import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
-import { logSharedTripVisit, CRAWLER_UA_RE } from "@/lib/analytics/funnel-events";
+import { logSharedTripVisit } from "@/lib/analytics/funnel-events";
+import { classifySharedVisit } from "@/lib/analytics/share-visit-classifier";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta } from "@/types";
@@ -144,15 +145,50 @@ export default async function SharedTripPage({ params }: PageProps) {
     notFound();
   }
 
-  // UX10X Phase 0.3: record a real human visit to the shared link (once per
-  // server render, crawler-filtered inside the helper). This is the viral
-  // loop's first measured hop — funnel_events.share_link_visited. NOT fired in
-  // generateMetadata (which shares the same React.cache'd getSharedTrip and
-  // would double-count). Fire-and-forget; never blocks the render.
-  void logSharedTripVisit(trip.id as string);
+  // Live Trip Phase 2.4: the owner is redirected here from /trips/[id] (the
+  // canonical-shared redirect), so this is where they must see "Who's going".
+  // getUser() is a local no-op without a session cookie, so anon viewers pay
+  // nothing. Read from the RLS client, compared to the service-role trip row.
+  // Resolved up here because the visit telemetry below must not count the
+  // owner, and the PostHog twin reuses the id instead of a second getUser().
+  let isOwner = false;
+  let viewerUserId: string | null = null;
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    viewerUserId = user?.id ?? null;
+    isOwner = !!user && user.id === trip.user_id;
+  } catch {
+    isOwner = false;
+    viewerUserId = null;
+  }
 
-  // Crew Loop PostHog twin of the funnel event above — same crawler filter so
-  // the two counters stay comparable. Distinct id preference: authed user id
+  // UX10X Phase 0.3: record a recipient visit to the shared link — the viral
+  // loop's first measured hop (funnel_events.share_link_visited, and the
+  // PostHog crew_link_visited twin below). One verdict feeds both sinks so
+  // they stay comparable. Read of 2026-09-18: 1,494 rows in 30 days were 946
+  // cookieless non-document renders of one trip in one hour, ~70 fleet hits
+  // on the ownerless demo trips and 27 sessions of owners opening their own
+  // link; the classifier skips all three. NOT fired in generateMetadata
+  // (which shares the React.cache'd getSharedTrip and would double-count).
+  // Fire-and-forget; never blocks the render.
+  const visitHeaders = await headers();
+  const visitVerdict = classifySharedVisit({
+    userAgent: visitHeaders.get("user-agent"),
+    secFetchDest: visitHeaders.get("sec-fetch-dest"),
+    purpose: visitHeaders.get("purpose"),
+    secPurpose: visitHeaders.get("sec-purpose"),
+    isOwner,
+    tripHasOwner: !!trip.user_id,
+  });
+  if (visitVerdict === "counted") {
+    void logSharedTripVisit(trip.id as string);
+  }
+
+  // Crew Loop PostHog twin of the funnel event above — gated by the same
+  // verdict so the two counters stay comparable. Distinct id preference: authed user id
   // (rare on this anon-first page; getUser() is a local no-op without a
   // session cookie) → mt_anon_voter cookie (ties the visit to later
   // crew_vote_cast events) → a per-visit random id.
@@ -179,10 +215,8 @@ export default async function SharedTripPage({ params }: PageProps) {
   //
   // Fire-and-forget like logSharedTripVisit; never blocks or breaks render.
   void (async () => {
+    if (visitVerdict !== "counted") return;
     try {
-      const h = await headers();
-      const ua = h.get("user-agent") || "";
-      if (CRAWLER_UA_RE.test(ua)) return;
       const cookieStore = await cookies();
       const anonVoterId = cookieStore.get("mt_anon_voter")?.value;
       // `visitor_scope` says how much this row's distinct_id can be trusted,
@@ -192,17 +226,9 @@ export default async function SharedTripPage({ params }: PageProps) {
       let visitorScope: "user" | "cookie" | "per-visit" = anonVoterId
         ? "cookie"
         : "per-visit";
-      try {
-        const supabase = await createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user?.id) {
-          distinctId = user.id;
-          visitorScope = "user";
-        }
-      } catch {
-        // stay anonymous
+      if (viewerUserId) {
+        distinctId = viewerUserId;
+        visitorScope = "user";
       }
       await captureServerEvent(distinctId, "crew_link_visited", {
         tripId: trip.id,
@@ -259,21 +285,6 @@ export default async function SharedTripPage({ params }: PageProps) {
   // The component no-ops if the explore flag is off OR the trip isn't
   // public yet (private trips don't get the engagement UI exposed).
   const isPublic = trip.visibility === "public" && !trip.is_hidden;
-
-  // Live Trip Phase 2.4: the owner is redirected here from /trips/[id] (the
-  // canonical-shared redirect), so this is where they must see "Who's going".
-  // getUser() is a local no-op without a session cookie, so anon viewers pay
-  // nothing. Read from the RLS client, compared to the service-role trip row.
-  let isOwner = false;
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    isOwner = !!user && user.id === trip.user_id;
-  } catch {
-    isOwner = false;
-  }
 
   const nonce = await getNonce();
 

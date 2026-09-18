@@ -111,3 +111,7 @@ One more thing the raw data revealed: the sweep came from **Cittadella**, and so
 | Label integrity probe | `scripts/automation-labels-probe.mts` |
 | Admin dashboard reads | `app/api/admin/stats/route.ts` → `get_page_views_*` (rollup), `get_engagement_metrics`, `get_referrer_breakdown` (view) |
 | GA4 configuration | `docs/GA4_SETUP_GUIDE.md` |
+
+## share_link_visited (funnel_events) — corrected 2026-09-18
+
+Before 2026-09-18 the row was written on every server render of `/shared/[token]` that passed the crawler user-agent test: React Server Components fetches (a router refresh renders the page again), the owner opening their own link, and fleets crawling the ownerless demo trips all counted. The 30-day read that day found 1,494 rows of which about 65 were recipients. From 2026-09-18 a row means a document navigation by someone other than the owner to a trip that has an owner (`lib/analytics/share-visit-classifier.ts`); the PostHog `crew_link_visited` twin follows the same verdict. Rows before that date need the same exclusions applied in SQL: owner sessions, trips without an owner, trips no longer present in `trips`.
