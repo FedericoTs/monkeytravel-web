@@ -3,7 +3,7 @@
  * ANONYMOUS generation-result view (pre-save, no auth, no persisted trip).
  *
  * Supersedes /api/ai/concierge-anon (read-only). Same unauthenticated, no-DB
- * model with identical abuse guards (mirrored from /api/ai/decide): per-IP +
+ * model with identical abuse guards (mirrored from the since-retired /api/ai/decide): per-IP +
  * burst limiters (fail-open), prompt-injection scan, shared Gemini kill-switch,
  * cost logging, NO user quota. The client applies any proposed edit to the
  * in-memory itinerary on confirm — the server never mutates anything.

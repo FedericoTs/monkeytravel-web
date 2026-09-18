@@ -1,6 +1,6 @@
 /**
- * Resilient Gemini call for the small structured endpoints (decide,
- * packing-list, …). UX10X Master Plan Phase 0.1.
+ * Resilient Gemini call for the small structured endpoints (packing-list, …;
+ * decide, until its 2026-09-18 retirement). UX10X Master Plan Phase 0.1.
  *
  * Why this exists: api_request_logs (2026-06-19 → 2026-07-03) showed
  * /api/ai/decide failing 25% and /api/tools/packing-list 58% — every

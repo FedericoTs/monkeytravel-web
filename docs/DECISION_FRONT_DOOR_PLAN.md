@@ -1,5 +1,12 @@
 # Decision-First Front Door — Experiment & Build Plan
 
+> **RETIRED 2026-09-18.** The experiment concluded on 2026-08-17 — the wizard won
+> (save rate 11.8% vs 5.4%, result rate 51% vs 35%, n=3,067 anonymous sessions) —
+> and the decision arm's code was deleted: `components/wizard/DecisionIntake.tsx`,
+> `/api/ai/decide`, `lib/ai/decide.ts`, the `front-door` flag constant and the
+> `trips.decision` strings. `wizard_step_events.front_door` keeps its rows and is
+> still stamped `wizard`. This document is history.
+
 **Status:** planned, not built. **Author:** cost/strategy session 2026-06-30.
 **One-liner:** A/B a new front door where an anonymous user types one open prompt and gets **2–3 destination/trip-shape proposals to choose from** (a *decision*), instead of filling a multi-step form to get an itinerary (a *document*). Test whether repositioning the value moment from "itinerary" to "decision" survives the step-1 cliff.
 

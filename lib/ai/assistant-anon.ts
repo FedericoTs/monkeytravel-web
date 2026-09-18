@@ -10,7 +10,7 @@
  * Day-scoped (not whole-trip) revision keeps the blast radius small and the
  * schema contained; the defensive normalizer guarantees every revised activity
  * has the fields the result view needs, so a partial model response never breaks
- * the render. Mirrors lib/ai/decide.ts's Gemini call pattern.
+ * the render. Same Gemini call pattern as the decide endpoint had (retired 2026-09-18).
  */
 
 import { GoogleGenerativeAI } from "@google/generative-ai";

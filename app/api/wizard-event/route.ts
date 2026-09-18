@@ -39,7 +39,7 @@ const STEP_VALUES = [
   "step_2_vibes",
   "generating",
   "result",
-  // Decision-first front-door arm (docs/DECISION_FRONT_DOOR_PLAN.md):
+  // Decision-first arm (2026-07 → 2026-08-17 experiment; retired 2026-09-18,
   "options_requested", // decide LLM call dispatched (≈ generating)
   "options_shown", // 2-3 proposals rendered (the decision arm's first-value)
   "first_value", // shared cross-arm "first magical output" (wizard fires alongside result)
@@ -66,8 +66,9 @@ const BodySchema = z.object({
   group_size: z.string().trim().min(1).max(32).optional(),
   backpacker_mode: z.boolean().optional(),
   locale: z.string().trim().min(2).max(8).optional(),
-  // Which front-door arm fired this event (front-door A/B). Nullable for the
-  // pre-experiment wizard baseline; the decision arm always sends it.
+  // Which front-door arm fired this event. NULL = pre-experiment baseline,
+  // "decision" = the retired 2026-07 → 2026-08 arm, "wizard" = everything
+  // the wizard has sent since (still sent, so the funnel SQL's filter holds).
   front_door: z.enum(["wizard", "decision"]).optional(),
   // Why a generation failed, for `generation_failed` rows only. The vocabulary
   // is closed on purpose: an open string would fill with model prose and stop

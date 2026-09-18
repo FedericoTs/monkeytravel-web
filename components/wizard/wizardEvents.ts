@@ -1,12 +1,10 @@
 // components/wizard/wizardEvents.ts
 //
 // Shared, module-scoped wizard funnel telemetry. Hoisted OUT of
-// NewTripWizard.tsx (was its lines 165-190) so BOTH the classic wizard and
-// the decision-first arm (components/wizard/DecisionIntake.tsx) fire the exact
-// same server-side funnel events into wizard_step_events. Placed here (not in
-// the [locale] route dir) so both consumers import it without a bracketed
-// path: the wizard via "@/components/wizard/wizardEvents", DecisionIntake via
-// "./wizardEvents".
+// NewTripWizard.tsx (was its lines 165-190) when the decision-first arm
+// shared the funnel (2026-07 → 2026-08; the arm was deleted 2026-09-18). It
+// stays here because the wizard and components/ui/AuthPromptModal.tsx both
+// import it without a bracketed [locale] path.
 //
 // MUST stay module-scoped (never nested in a component) — the wizard's
 // step-view effect relies on a stable function identity so it doesn't
@@ -15,17 +13,17 @@
 //
 // The step union + the /api/wizard-event zod enum + the
 // wizard_step_events_step_check CHECK constraint are THREE copies of one list.
-// Adding a step means editing all three. As of Phase 0 (front-door A/B) all
-// three already carry the decision-arm values below; this file mirrors them.
+// Adding a step means editing all three. The decision-arm values below stay in
+// all three for the rows written during the 2026-07 → 2026-08 experiment.
 
-/**
- * The front-door A/B arm that produced an event. Threaded through every call so
- * the funnel is sliceable by arm in SQL (the wizard_step_events.front_door
- * column) and in PostHog (super-property; see NewTripWizard posthog.register).
- * The DB CHECK is only ('wizard' | 'decision') — never send another value or
- * the insert fails with a non-23505 error (NOT swallowed as dedupe) → 500.
- */
-export type FrontDoorArm = "wizard" | "decision";
+// front_door: every row is stamped "wizard". The value dates from the
+// front-door A/B (wizard vs decision-first, 2026-07-01 → 2026-08-17; the
+// decision arm was deleted 2026-09-18) and stays because the funnel SQL
+// (get_ux10x_rates, get_live_trip_baseline) and the experiment-era PostHog
+// insights filter on it. The DB CHECK only allows ('wizard' | 'decision') —
+// never send another value or the insert fails with a non-23505 error (NOT
+// swallowed as dedupe) → 500.
+const FRONT_DOOR = "wizard" as const;
 
 // step1_variant (2026-09-03 → 2026-09-16) rode step_1_destination_dates and
 // step1_heartbeat while wizard-step1-editorial-v1 was split; the editorial
@@ -42,7 +40,7 @@ export type WizardEventStep =
   | "step_2_vibes"
   | "generating"
   | "result"
-  // Decision-first front-door arm (docs/DECISION_FRONT_DOOR_PLAN.md):
+  // Decision-first arm (retired 2026-09-18; kept for its rows + the DB CHECK):
   | "options_requested" // decide-LLM call dispatched (≈ generating)
   | "options_shown" // 2-3 proposals rendered (decision arm's first value)
   | "first_value" // shared cross-arm "first magical output"
@@ -83,16 +81,13 @@ export type WizardEventStep =
  * never surfaces its result, swallows every throw. keepalive:true so the
  * "abandoned" event survives a tab close.
  *
- * `frontDoor` is a first-class OPTIONAL 3rd param (not buried in `extra`) so
- * every call site declares which arm it belongs to, and the server contract is
- * matched (front_door is a top-level body field, sibling of `step`). When
- * omitted it is simply not sent (column stays NULL = pre-experiment baseline).
- * Keep `extra` small — keepalive requests are capped at ~64 KB.
+ * front_door is a top-level body field (sibling of `step`) and is always
+ * "wizard" now — see FRONT_DOOR above. Keep `extra` small — keepalive
+ * requests are capped at ~64 KB.
  */
 export async function trackWizardEvent(
   step: WizardEventStep,
-  extra: Record<string, unknown> = {},
-  frontDoor?: FrontDoorArm
+  extra: Record<string, unknown> = {}
 ): Promise<void> {
   try {
     await fetch("/api/wizard-event", {
@@ -100,7 +95,7 @@ export async function trackWizardEvent(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         step,
-        ...(frontDoor ? { front_door: frontDoor } : {}),
+        front_door: FRONT_DOOR,
         ...extra,
       }),
       keepalive: true,

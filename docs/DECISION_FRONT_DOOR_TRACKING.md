@@ -1,5 +1,12 @@
 # Decision-First Front Door — Tracking & Go-Live Runbook
 
+> **RETIRED 2026-09-18.** The experiment concluded on 2026-08-17 — the wizard won
+> (save rate 11.8% vs 5.4%, result rate 51% vs 35%, n=3,067 anonymous sessions) —
+> and the decision arm's code was deleted: `components/wizard/DecisionIntake.tsx`,
+> `/api/ai/decide`, `lib/ai/decide.ts`, the `front-door` flag constant and the
+> `trips.decision` strings. `wizard_step_events.front_door` keeps its rows and is
+> still stamped `wizard`. This document is history.
+
 Companion to `docs/DECISION_FRONT_DOOR_PLAN.md`. Everything you need to (1) turn the
 experiment on, (2) read it, (3) decide. The code is shipped **dark** (flag `front-door`
 defaults to `wizard`); nothing below affects users until you create + flip the flag.
