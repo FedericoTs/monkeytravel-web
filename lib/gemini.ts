@@ -386,7 +386,7 @@ export function logCacheMetrics(
 
 // Model configurations
 // NOTE: kept for backward compat with callers that still import MODELS
-// (e.g. lib/email-parse/extract.ts, lib/gemini-vision.ts). New code should
+// (e.g. lib/email-parse/extract.ts). New code should
 // route through `getModelForPurpose(...)` in `lib/ai/model-router.ts` so
 // the routing matrix + env override (GEMINI_MODEL_OVERRIDE) live in one
 // place.

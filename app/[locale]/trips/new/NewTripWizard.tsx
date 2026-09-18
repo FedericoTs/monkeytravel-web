@@ -41,7 +41,6 @@ import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import DestinationAutocomplete, { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import AnchorEditor from "@/components/trip/AnchorEditor";
-import StartAnywhereSection from "@/components/trip/StartAnywhereSection";
 import { buildSeasonalContext, getSeasonalVibeSuggestions } from "@/lib/seasonal";
 import { streamGeneration } from "@/lib/streaming/client";
 import { MultiCityRouteBuilder, type RouteStop } from "@/components/trips/MultiCityRouteBuilder";
@@ -4597,72 +4596,6 @@ export default function NewTripPage({
                   generate the trip.
                 </p>
               )}
-            </div>
-
-            {/* "Start Anywhere" — Gemini-Vision-powered prefill from image/URL.
-                Moved below the primary inputs (order-last) in the step-1
-                reprioritization — it's an opt-in power shortcut, so Destination
-                + Dates lead. Opt-in (collapsed by default). */}
-            <div className="order-last">
-            <StartAnywhereSection
-              onExtracted={(fields, ctx) => {
-                if (fields.destination) {
-                  setDestination(fields.destination);
-                  // **2026-05-24 live-test fix:** previously this just
-                  // nulled `destinationCoords`, which meant the
-                  // SeasonalContextCard never updated its weather data
-                  // (it depends on coords). The user would see Kyoto's
-                  // weather on a Lisbon trip if they pivoted via Start
-                  // Anywhere. Now we kick off a Places lookup in the
-                  // background to populate coords → triggers the weather
-                  // refresh.
-                  setDestinationCoords(null);
-                  (async () => {
-                    try {
-                      const r = await fetch(
-                        `/api/places?destination=${encodeURIComponent(fields.destination!)}`
-                      );
-                      if (!r.ok) return;
-                      const j = await r.json();
-                      const loc = j?.location;
-                      if (
-                        loc &&
-                        typeof loc.latitude === "number" &&
-                        typeof loc.longitude === "number"
-                      ) {
-                        setDestinationCoords({
-                          latitude: loc.latitude,
-                          longitude: loc.longitude,
-                        });
-                      }
-                    } catch {
-                      // Non-fatal — wizard still works without coords;
-                      // user just won't get the destination-specific
-                      // seasonal weather refresh.
-                    }
-                  })();
-                  trackDestinationSelected({
-                    destination: fields.destination,
-                    // "manual" is the closest existing source label until the
-                    // analytics enum is widened to include "start_anywhere".
-                    source: "manual",
-                  });
-                }
-                if (fields.vibes.length > 0) {
-                  setSelectedVibes(fields.vibes);
-                }
-                if (fields.suggestedStartDate && fields.suggestedEndDate) {
-                  setStartDate(fields.suggestedStartDate);
-                  setEndDate(fields.suggestedEndDate);
-                }
-                // Tracking is emitted server-side by /api/ai/extract-trip-context
-                // (logApiCall with destination_confidence + identified_destination
-                // metadata). Skip client-side trackFieldInteraction since the
-                // existing field-interaction enum doesn't include this source.
-                setError(null);
-                console.log("[StartAnywhere] extracted:", ctx);
-              }}
-            />
             </div>
 
             {/* Multi-city toggle — MOVED (2026-09-02) from here, where an

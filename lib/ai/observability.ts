@@ -45,9 +45,7 @@ export type AiEndpoint =
   | "regenerate-activity"
   | "regenerate-day"
   | "assistant"
-  | "extract-trip-context"
   | "packing-list"
-  | "start-anywhere"
   | "import-plan";
 
 /**
