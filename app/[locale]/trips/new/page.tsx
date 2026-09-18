@@ -1,5 +1,4 @@
 import { getDestinationBySlug } from "@/lib/destinations/data";
-import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import type { Locale } from "@/lib/destinations/types";
 import NewTripWizard, { type PrefilledDestination } from "./NewTripWizard";
 
@@ -128,7 +127,6 @@ export default async function NewTripPage({
     <NewTripWizard
       prefilledDestination={prefilledDestination}
       prefilledTripShape={parseTripShape(sp)}
-      exploreUgcEnabled={isExploreUgcEnabled()}
     />
   );
 }

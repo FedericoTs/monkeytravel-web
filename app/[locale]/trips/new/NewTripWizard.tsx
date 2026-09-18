@@ -116,7 +116,6 @@ const AnonAssistantPanel = dynamic(() => import("@/components/trip/AnonAssistant
 // same code-splitting pattern as the rest of the post-generation UI.
 const SessionTripsTray = dynamic(() => import("@/components/trip/SessionTripsTray"), { ssr: false });
 const ValuePropositionBanner = dynamic(() => import("@/components/trip/ValuePropositionBanner"), { ssr: false });
-const ShareAfterSaveModal = dynamic(() => import("@/components/trip/ShareAfterSaveModal"), { ssr: false });
 const AuthPromptModal = dynamic(() => import("@/components/ui/AuthPromptModal"), { ssr: false });
 const PendingClaimBanner = dynamic(() => import("@/components/wizard/PendingClaimBanner"), { ssr: false });
 // Anonymous share loop (hop one). Only ever rendered for signed-out planners,
@@ -211,8 +210,6 @@ import {
   captureTripIntentSelected,
   captureFirstTripSaved,
   captureAnchorsGenerated,
-  captureExploreTripPublished,
-  captureExploreTripPublishFailed,
 } from "@/lib/posthog/events";
 import type { TripWizardFieldInteractedEvent, TripIntent } from "@/lib/posthog/events";
 import {
@@ -448,27 +445,11 @@ interface NewTripWizardProps {
    * lib/blog/trip-prefill.ts and the parser in ./page.tsx.
    */
   prefilledTripShape?: PrefilledTripShape;
-  /**
-   * Whether the /explore publish surface is reachable. Resolved server-side
-   * from EXPLORE_UGC_ENABLED and passed down.
-   *
-   * This used to be read from the PostHog flag `explore-ugc-v1` instead. That
-   * flag was never created, so `useFlag` returned nothing, `onPublish` was
-   * always undefined, and the post-save publish CTA has been invisible in
-   * production since it shipped — which is the real reason 261 saved trips
-   * produced only 14 public ones. The 14 came from the /trips/[id] toggle,
-   * which gates on the env flag and was live the whole time.
-   *
-   * Now both surfaces read the same switch. EXPLORE_UGC_ENABLED=false in
-   * Vercel is the kill switch for both.
-   */
-  exploreUgcEnabled: boolean;
 }
 
 export default function NewTripPage({
   prefilledDestination,
   prefilledTripShape,
-  exploreUgcEnabled,
 }: NewTripWizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -700,9 +681,7 @@ export default function NewTripPage({
   const [draftAutoRestored, setDraftAutoRestored] = useState(false);
 
   // Post-save sharing modal state (critical for virality)
-  const [showShareAfterSaveModal, setShowShareAfterSaveModal] = useState(false);
   const [savedTripId, setSavedTripId] = useState<string | null>(null);
-  const [authedDisplayName, setAuthedDisplayName] = useState<string>("");
 
   // LocalStorage draft persistence
   const { draft, saveDraft, clearDraft, hasDraft, isExpired } = useItineraryDraft();
@@ -1513,15 +1492,8 @@ export default function NewTripPage({
         if (typeof window !== "undefined") {
           safeSet("profile_modal_shown", "true", "session");
         }
-        // Post-save virality prompt. The manual-save trigger
-        // (setShowShareAfterSaveModal at ~1581) lives inside the AUTHED branch
-        // of handleSaveTrip, which the anon->activated cohort never reaches:
-        // they hit the auth wall, sign up, and return to be persisted HERE by
-        // the auto-save effect — so the whole invite/publish loop was dead for
-        // exactly the cohort we want to activate. Open it on first insert. Set
-        // savedTripId directly so the modal's redirects have it immediately
-        // (the mirror effect at ~894 also sets it). Guard to once/session so a
-        // Start-Over -> new insert doesn't nag.
+        // Set savedTripId directly so the sticky bar and the post-save
+        // redirects have it immediately (the mirror effect below also sets it).
         setSavedTripId(tripId);
         // The share ask no longer fires here. It used to open the instant the
         // row was inserted — before the user had read the itinerary they were
@@ -1733,9 +1705,9 @@ export default function NewTripPage({
     onSkipped: reportAutoSaveSkipped,
   });
 
-  // Mirror the auto-save trip id into the existing savedTripId state so
-  // ShareAfterSaveModal + Sticky Bottom Bar continue to read it from one
-  // place. setState is a no-op when values are equal.
+  // Mirror the auto-save trip id into the existing savedTripId state so the
+  // Sticky Bottom Bar and the post-save redirects read it from one place.
+  // setState is a no-op when values are equal.
   useEffect(() => {
     if (autoSave.savedTripId && autoSave.savedTripId !== savedTripId) {
       setSavedTripId(autoSave.savedTripId);
@@ -2849,20 +2821,6 @@ export default function NewTripPage({
         safeSet("profile_modal_shown", "true", "session");
       }
 
-      // Capture display name for the Publish-to-Explore prefill (best-
-      // effort: user_metadata > email local-part > empty). Falls back to
-      // "Anonymous traveler" inside PublishTripModal if both miss.
-      try {
-        const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
-        const candidate =
-          (typeof meta.full_name === "string" && meta.full_name) ||
-          (typeof meta.name === "string" && meta.name) ||
-          (user.email ? user.email.split("@")[0] : "");
-        if (candidate) setAuthedDisplayName(String(candidate).slice(0, 80));
-      } catch {
-        /* non-fatal */
-      }
-
       // Go straight to the trip. The share ask used to interrupt here; it now
       // waits until the user has actually looked at the itinerary, on the trip
       // page itself (components/trip/SharePromptOnTrip.tsx, spec C1). The
@@ -3099,74 +3057,11 @@ export default function NewTripPage({
           wasAutoSaved={autoSaveEnabled && Boolean(autoSave.savedTripId)}
         />
 
-        {/* Share After Save Modal - Critical for virality */}
-        <ShareAfterSaveModal
-          // Branches the copy: only a user who said "with friends" gets the
-          // crew/voting pitch. 71% do — and until now all of them got the same
-          // generic ask as everyone else.
-          tripIntent={tripIntent}
-          isOpen={showShareAfterSaveModal}
-          onClose={() => {
-            setShowShareAfterSaveModal(false);
-            if (savedTripId) {
-              router.push(`/trips/${savedTripId}`);
-            }
-          }}
-          onInvite={() => {
-            setShowShareAfterSaveModal(false);
-            if (savedTripId) {
-              // Redirect with query param to auto-open share modal
-              router.push(`/trips/${savedTripId}?share=invite`);
-            }
-          }}
-          // Only expose the publish tick when /explore is reachable for this
-          // user — the flag mirrors the server gate, so hiding it avoids an
-          // affordance that would 404 on submit.
-          //
-          // Publishes inline instead of chaining into PublishTripModal. The
-          // author note that modal collects is optional and almost nobody was
-          // reaching it; the full form still lives on /trips/[id] for anyone
-          // who wants to write one.
-          onPublish={
-            exploreUgcEnabled && savedTripId
-              ? async () => {
-                  const res = await fetch(`/api/trips/${savedTripId}/publish`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      authorDisplayName: authedDisplayName || undefined,
-                    }),
-                  });
-                  if (!res.ok) {
-                    const data = await res.json().catch(() => ({}));
-                    void captureExploreTripPublishFailed({
-                      trip_id: savedTripId,
-                      reason: String(data?.reason || data?.error || res.status).slice(0, 80),
-                    }).catch(() => {});
-                    return;
-                  }
-                  void captureExploreTripPublished({
-                    trip_id: savedTripId,
-                    has_author_name: Boolean(authedDisplayName),
-                    has_author_note: false,
-                  }).catch(() => {});
-                }
-              : undefined
-          }
-          // Anchored trips carry pinned real-world commitments, so the
-          // opt-out default is suppressed. The publish route enforces the
-          // same rule server-side.
-          isAnchored={anchors.length > 0}
-          tripId={savedTripId || ""}
-          tripTitle={`${generatedItinerary.destination.name} Trip`}
-          tripDays={generatedItinerary.days.length}
-          destination={fullDestination}
-        />
-
-        {/* PublishTripModal used to be chained off this flow. It now lives
-            only on /trips/[id] (see PublishToggle), where a user who wants to
-            write an author note goes deliberately. The post-save path
-            publishes inline from the share modal's checkbox instead. */}
+        {/* The post-save share ask lives on /trips/[id] (SharePromptOnTrip,
+            spec C1) behind an engagement gate; the ShareAfterSaveModal this
+            wizard mounted here had no opener left (2026-09-18 read: 43 of 43
+            shares came from the trip page). PublishTripModal likewise lives
+            only on /trips/[id] (see PublishToggle). */}
 
         {/* Auth Prompt Modal — anonymous user clicks Save Trip on the
             generated itinerary.
