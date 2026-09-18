@@ -132,7 +132,11 @@ async function loadEvents() {
   const rows = [];
   for (;;) {
     const { data, error } = await db
-      .from("wizard_step_events")
+      // wizard_step_events_human: minus sessions labelled as automation, the
+      // same exclusion page_views_human applies (2026-09-18). A JS-executing
+      // fleet fires step_1 and heartbeats like anyone else; on 2026-09-17 it
+      // was 371 of 457 step-1 sessions.
+      .from("wizard_step_events_human")
       .select(cols)
       .gte("created_at", REVIEW.baselineFrom)
       .neq("session_id", "no_session")
