@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { crewShareUrl, shareTokenFromUrl, totalVotes } from "./crew-share";
+import { crewShareUrl, defaultShareFraming, framedShareUrl, shareTokenFromUrl, totalVotes } from "./crew-share";
 
 const URL_BASE = "https://monkeytravel.app/en/shared/11111111-2222-3333-4444-555555555555";
 
@@ -84,5 +84,25 @@ describe("shareTokenFromUrl — the hostname trap", () => {
     expect(shareTokenFromUrl("https://monkeytravel.app/")).toBeNull();
     expect(shareTokenFromUrl("https://monkeytravel.app/en/shared")).toBeNull();
     expect(shareTokenFromUrl("https://monkeytravel.app/en/shared/not-a-uuid")).toBeNull();
+  });
+});
+
+describe("defaultShareFraming", () => {
+  it("opens on the crew ask for a trip planned with friends", () => {
+    expect(defaultShareFraming("group")).toBe("crew");
+  });
+
+  it("keeps the plain link for solo trips and for an unanswered intent", () => {
+    expect(defaultShareFraming("solo")).toBe("plain");
+    expect(defaultShareFraming(undefined)).toBe("plain");
+    expect(defaultShareFraming(null)).toBe("plain");
+  });
+});
+
+describe("framedShareUrl", () => {
+  it("marks the crew framing and leaves the plain one alone", () => {
+    expect(framedShareUrl(`${URL_BASE}?ref=ABC`, "crew")).toBe(`${URL_BASE}?ref=ABC&vote=1`);
+    expect(framedShareUrl(`${URL_BASE}?ref=ABC`, "plain")).toBe(`${URL_BASE}?ref=ABC`);
+    expect(framedShareUrl(null, "crew")).toBeNull();
   });
 });

@@ -66,8 +66,14 @@ export { CRAWLER_UA_RE } from "./share-visit-classifier";
  * the same verdict gates the PostHog twin so the two counters stay
  * comparable. Before 2026-09-18 every render that passed the UA test was a
  * row: router fetches, owners and fleets on the demo trips included.
+ *
+ * `crewAsk` records how the link was framed (?vote=1 = the crew ask) as
+ * metadata.crew_ask, so recipients per shared trip can be read by framing.
  */
-export async function logSharedTripVisit(tripId: string): Promise<void> {
+export async function logSharedTripVisit(
+  tripId: string,
+  opts: { crewAsk: boolean } = { crewAsk: false }
+): Promise<void> {
   try {
     const c = await cookies();
     const sessionId = c.get("mt_session_id")?.value ?? null;
@@ -75,6 +81,7 @@ export async function logSharedTripVisit(tripId: string): Promise<void> {
       event_type: "share_link_visited",
       trip_id: tripId,
       session_id: sessionId,
+      metadata: { crew_ask: opts.crewAsk },
     });
   } catch {
     // never break the render

@@ -24,6 +24,7 @@ import { buildAlternates } from "@/lib/seo/canonical";
 
 interface PageProps {
   params: Promise<{ locale: string; token: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }
 
 /**
@@ -137,8 +138,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function SharedTripPage({ params }: PageProps) {
+export default async function SharedTripPage({ params, searchParams }: PageProps) {
   const { token } = await params;
+  // ?vote=1 is the crew ask (lib/trips/crew-share.ts): the recipient page
+  // leads with the vote, and the visit row records the framing it arrived
+  // with so recipients can be read per framing.
+  const query = (await searchParams) ?? {};
+  const crewAsk = query.vote === "1";
   const trip = await getSharedTrip(token);
 
   if (!trip) {
@@ -184,7 +190,7 @@ export default async function SharedTripPage({ params }: PageProps) {
     tripHasOwner: !!trip.user_id,
   });
   if (visitVerdict === "counted") {
-    void logSharedTripVisit(trip.id as string);
+    void logSharedTripVisit(trip.id as string, { crewAsk });
   }
 
   // Crew Loop PostHog twin of the funnel event above — gated by the same
@@ -234,6 +240,7 @@ export default async function SharedTripPage({ params }: PageProps) {
         tripId: trip.id,
         shareToken: token,
         visitor_scope: visitorScope,
+        crew_ask: crewAsk,
       });
     } catch {
       // never break the render for telemetry

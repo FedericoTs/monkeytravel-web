@@ -16,6 +16,7 @@ import BottomSheet from "@/components/ui/BottomSheet";
 import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { openExternal } from "@/lib/native/external-link";
+import { defaultShareFraming, framedShareUrl, type ShareFraming } from "@/lib/trips/crew-share";
 import type { TripCollaborator, TripInvite, CollaboratorRole } from "@/types";
 
 type TabType = "share" | "invite";
@@ -27,6 +28,12 @@ interface ShareAndInviteModalProps {
   tripTitle: string;
   // Share props
   shareUrl: string;
+  /**
+   * From trip_meta.trip_intent. "group" opens the share tab on the crew ask
+   * (the link carries ?vote=1 and the recipient page leads with the vote);
+   * anything else opens on the plain link. Both stay one tap away.
+   */
+  tripIntent?: "solo" | "group" | null;
   isShared: boolean;
   isInTrending?: boolean;
   onStopSharing: () => void;
@@ -43,6 +50,7 @@ export default function ShareAndInviteModal({
   tripId,
   tripTitle,
   shareUrl,
+  tripIntent,
   isShared,
   isInTrending = false,
   onStopSharing,
@@ -57,6 +65,15 @@ export default function ShareAndInviteModal({
   const tb = (key: string) => t(`buttons.${key}`);
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [copied, setCopied] = useState(false);
+  // Share framing (2026-09-18): which link the owner hands out. Defaults from
+  // the trip's intent (lib/trips/crew-share.ts); the owner can flip it.
+  // Re-derived when the modal is reused for another trip.
+  const [framing, setFraming] = useState<ShareFraming>(() => defaultShareFraming(tripIntent));
+  useEffect(() => {
+    setFraming(defaultShareFraming(tripIntent));
+  }, [tripIntent, tripId]);
+  const framedUrl = framedShareUrl(shareUrl, framing) ?? shareUrl;
+  const crew = framing === "crew";
   const [showStopConfirm, setShowStopConfirm] = useState(false);
   const [trendingEnabled, setTrendingEnabled] = useState(isInTrending);
   const [trendingLoading, setTrendingLoading] = useState(false);
@@ -167,7 +184,7 @@ export default function ShareAndInviteModal({
   // Copy share URL
   const handleCopyShareUrl = async () => {
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(framedUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       addToast(ts("toast.viewOnlyCopied"), "success");
@@ -185,21 +202,21 @@ export default function ShareAndInviteModal({
   // native. openExternal() routes through @capacitor/browser
   // (SFSafariViewController) on native, falls back to window.open on web.
   const handleShareTwitter = () => {
-    const text = encodeURIComponent(ts("socialText.twitterShare", { tripTitle }));
-    const url = encodeURIComponent(shareUrl);
+    const text = encodeURIComponent(ts(crew ? "socialText.twitterCrew" : "socialText.twitterShare", { tripTitle }));
+    const url = encodeURIComponent(framedUrl);
     void openExternal(`https://twitter.com/intent/tweet?text=${text}&url=${url}`);
     trackTripShared({ tripId, shareMethod: "social" });
   };
 
   const handleShareWhatsApp = () => {
-    const text = encodeURIComponent(`${ts("socialText.whatsappShare", { tripTitle })}\n${shareUrl}`);
+    const text = encodeURIComponent(`${ts(crew ? "socialText.whatsappCrew" : "socialText.whatsappShare", { tripTitle })}\n${framedUrl}`);
     void openExternal(`https://wa.me/?text=${text}`);
     trackTripShared({ tripId, shareMethod: "social" });
   };
 
   const handleShareEmail = () => {
-    const subject = encodeURIComponent(ts("socialText.emailSubject", { tripTitle }));
-    const body = encodeURIComponent(`${ts("socialText.emailBody")}\n\n${shareUrl}`);
+    const subject = encodeURIComponent(ts(crew ? "socialText.emailSubjectCrew" : "socialText.emailSubject", { tripTitle }));
+    const body = encodeURIComponent(`${ts(crew ? "socialText.emailBodyCrew" : "socialText.emailBody")}\n\n${framedUrl}`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
     trackTripShared({ tripId, shareMethod: "email" });
   };
@@ -429,13 +446,41 @@ export default function ShareAndInviteModal({
                 {isShared && (
                   <>
                     <div>
+                      {/* Share framing (2026-09-18): the crew ask opens the
+                          recipient page on the vote, the plain link on the
+                          itinerary. Group-intent trips default to the ask
+                          (lib/trips/crew-share.ts, defaultShareFraming). */}
+                      <div
+                        role="radiogroup"
+                        aria-label={ts("framing.label")}
+                        className="mb-3 grid grid-cols-2 gap-2"
+                      >
+                        {(["crew", "plain"] as const).map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            role="radio"
+                            aria-checked={framing === option}
+                            data-testid={`share-framing-${option}`}
+                            onClick={() => setFraming(option)}
+                            className={cn(
+                              "rounded-lg border px-3 py-2 text-left text-sm font-medium transition-colors",
+                              framing === option
+                                ? "border-[var(--primary)] bg-[var(--primary)]/5 text-slate-900"
+                                : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                            )}
+                          >
+                            {ts(`framing.${option}`)}
+                          </button>
+                        ))}
+                      </div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">
                         {ts("invite.publicLink")}
                       </label>
                       <div className="flex items-center gap-2">
                         <input
                           type="text"
-                          value={shareUrl}
+                          value={framedUrl}
                           readOnly
                           className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 truncate"
                         />
@@ -453,7 +498,7 @@ export default function ShareAndInviteModal({
                         </button>
                       </div>
                       <p className="mt-2 text-xs text-slate-500">
-                        {ts("invite.readOnlyNote")}
+                        {crew ? ts("framing.crewHint") : ts("framing.plainHint")}
                       </p>
                     </div>
 
@@ -662,12 +707,12 @@ export default function ShareAndInviteModal({
                     </p>
                     {emailOutcome === "sent" && (
                       <p className="text-xs text-green-700 mb-3">
-                        ✓ Email delivered. They'll get a notification.
+                        ✓ Email delivered. They&apos;ll get a notification.
                       </p>
                     )}
                     {emailOutcome === "skipped_no_key" && (
                       <p className="text-xs text-amber-700 mb-3">
-                        Email delivery isn't enabled yet — share this link manually for now.
+                        Email delivery isn&apos;t enabled yet — share this link manually for now.
                       </p>
                     )}
                     {emailOutcome === "skipped_suppressed" && (
