@@ -82,26 +82,32 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       return errors.internal("Failed to enable sharing", "Share");
     }
 
-    // UX10X Phase 0.3: count exactly one share-link mint per trip (the
-    // already-shared branch above returns early and never reaches here).
-    // Fire-and-forget — a telemetry failure must never fail the share.
-    void logFunnelEventServer({
-      event_type: "share_link_created",
-      trip_id: id,
-      user_id: user.id,
-      metadata: { share_token: shareToken },
+    // Everything that must survive the response runs inside after(): the
+    // function is frozen once the response is sent, so a bare fire-and-forget
+    // promise here was cut off about half the time — 43 share_link_created
+    // rows for 82 shares in the 90 days to 2026-09-18 (the anonymous route,
+    // which already used after(), matched its trips one to one). Telemetry
+    // first because it is cheap; a telemetry failure must never fail the
+    // share, and logFunnelEventServer never throws.
+    after(async () => {
+      // UX10X Phase 0.3: count exactly one share-link mint per trip (the
+      // already-shared branch above returns early and never reaches here).
+      await logFunnelEventServer({
+        event_type: "share_link_created",
+        trip_id: id,
+        user_id: user.id,
+        metadata: { share_token: shareToken },
+      });
+      // Crew Loop PostHog: mirror of the funnel event above (new-mint branch
+      // only, so it fires at most once per trip).
+      await captureServerEvent(user.id, "crew_link_created", {
+        tripId: id,
+      }).catch(() => {});
+      // First share is the moment voters start arriving: upgrade curated
+      // fallback images to real place photos (full-trip budget). See
+      // lib/images/enrichTrip.ts for the cost model.
+      await enrichTripByIdAdmin(id, "share");
     });
-
-    // Crew Loop PostHog: mirror of the funnel event above (new-mint branch
-    // only, so it fires at most once per trip). Fire-and-forget.
-    captureServerEvent(user.id, "crew_link_created", {
-      tripId: id,
-    }).catch(() => {});
-
-    // First share is the moment voters start arriving: upgrade curated
-    // fallback images to real place photos (full-trip budget) after the
-    // response returns. See lib/images/enrichTrip.ts for the cost model.
-    after(() => enrichTripByIdAdmin(id, "share"));
 
     const shareUrl = await buildShareUrl(user.id, shareToken);
 
