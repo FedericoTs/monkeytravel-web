@@ -16,6 +16,8 @@ interface ShareButtonProps {
   showNewBadge?: boolean;
   /** Auto-open the modal on mount (used after trip save) */
   autoOpen?: boolean;
+  /** trip_meta.trip_intent — "group" opens the share tab on the crew ask. */
+  tripIntent?: "solo" | "group" | null;
 }
 
 export default function ShareButton({
@@ -25,6 +27,7 @@ export default function ShareButton({
   initialTab = "share",
   showNewBadge = true,
   autoOpen = false,
+  tripIntent,
 }: ShareButtonProps) {
   const t = useTranslations("common.shareButton");
   const [isModalOpen, setIsModalOpen] = useState(autoOpen);
@@ -167,6 +170,7 @@ export default function ShareButton({
           tripId={tripId}
           tripTitle={tripTitle}
           shareUrl={shareUrl || ""}
+          tripIntent={tripIntent}
           isShared={isShared}
           isInTrending={isInTrending}
           onStopSharing={handleStopSharing}
@@ -245,6 +249,7 @@ export default function ShareButton({
         tripId={tripId}
         tripTitle={tripTitle}
         shareUrl={shareUrl || ""}
+        tripIntent={tripIntent}
         isShared={isShared}
         isInTrending={isInTrending}
         onStopSharing={handleStopSharing}

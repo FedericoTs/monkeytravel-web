@@ -2243,6 +2243,7 @@ export default function TripDetailClient({
                 key={`share-${crewShareRequest}`}
                 tripId={trip.id}
                 tripTitle={trip.title}
+                tripIntent={trip.meta?.trip_intent}
                 autoOpen={shouldAutoOpenShareModal || crewShareRequest > 0}
                 initialTab={
                   crewShareRequest > 0

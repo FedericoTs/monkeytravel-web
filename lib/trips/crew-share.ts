@@ -41,6 +41,27 @@ export function crewShareUrl(rawUrl: string | null | undefined, mode: "share" | 
   return `${base}${joiner}vote=1${hash ? `#${hash}` : ""}`;
 }
 
+/** How a share link is framed for the recipient. */
+export type ShareFraming = "crew" | "plain";
+
+/**
+ * The framing a signed-in owner's share modal opens on.
+ *
+ * Read of 2026-09-18 (30 days): the anonymous crew ask, whose link opens on
+ * the vote, reached a real recipient on 28 of 76 trips; the generic link a
+ * signed-in owner copies reached one on 8 of 43, and on 0 of 3 solo trips.
+ * So a trip whose planner said "with friends" at step 1 opens on the crew
+ * ask; everyone else keeps the plain link. Both stay one tap away.
+ */
+export function defaultShareFraming(tripIntent: "solo" | "group" | null | undefined): ShareFraming {
+  return tripIntent === "group" ? "crew" : "plain";
+}
+
+/** The link to hand out for a framing — the crew ask carries ?vote=1. */
+export function framedShareUrl(rawUrl: string | null | undefined, framing: ShareFraming): string | null {
+  return crewShareUrl(rawUrl, framing === "crew" ? "crew" : "share");
+}
+
 /**
  * The share token out of a share URL.
  *

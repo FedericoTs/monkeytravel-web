@@ -364,6 +364,7 @@ Operating principles 1–5 · the cut list (C1, C2, C7, C8, C9 as decided) · me
 
 ## Decisions log
 
+- 2026-09-18 · Group-intent shares open on the crew ask. The share-moment read (30 days): 35 of 117 signed-in creators shared, 43 of 154 trips, 36 of them within ten minutes of creation and all from the trip page — the share moment already fires. The framing is what differs: the anonymous crew ask, whose link opens on the vote, reached a real recipient on 28 of 76 trips; the signed-in generic link on 8 of 43; solo links on 0 of 3. So the owner's share modal now opens on the crew ask when the trip was planned "with friends" (plain link one tap away), and every share visit records its framing (`funnel_events.share_link_visited.metadata.crew_ask`). Measure: recipients per shared group-intent trip by framing, decided after four weeks or 40 shared group trips, whichever first. Owner: Claude, with Federico.
 - 2026-09-18 · Plan status synced to the code: 3.5, 5.2 and 5.4 were shipped but never marked. What remains is gated by the plan's own entry conditions: 5.1 (homepage rewrite) waits for two weeks of Phase 2–3 data, Phase 6 (PWA) waits for one measured Today-mode cohort (first TODT read due 2026-10-03), and the morning-of nudge ships off by design until the digest read of ~2026-09-27. Evidence: code inspection of `TripDetailClient.tsx` and `app/api/og/trip/route.tsx`; PR #132 for the feed. Owner: Claude, with Federico.
 
 *(append weekly: date · decision · evidence · owner)*

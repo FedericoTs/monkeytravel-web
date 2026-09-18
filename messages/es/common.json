@@ -1230,7 +1230,11 @@
       "twitterShare": "¡Mira mi viaje a {tripTitle} en MonkeyTravel!",
       "whatsappShare": "Mira mi viaje: {tripTitle}",
       "emailSubject": "Mira mi viaje: {tripTitle}",
-      "emailBody": "Planifiqué este increíble viaje usando MonkeyTravel. ¡Échale un vistazo!"
+      "emailBody": "Planifiqué este increíble viaje usando MonkeyTravel. ¡Échale un vistazo!",
+      "twitterCrew": "Ayúdame a elegir: vota las ideas para {tripTitle} en MonkeyTravel",
+      "whatsappCrew": "Ayúdame a elegir: vota las ideas para {tripTitle} (sin crear cuenta):",
+      "emailSubjectCrew": "Vota nuestro viaje: {tripTitle}",
+      "emailBodyCrew": "He reunido ideas para nuestro viaje en MonkeyTravel. Vota cada una con un pulgar arriba o abajo, sin crear cuenta."
     },
     "invite": {
       "viewOnlyLink": "Enlace de Votación Grupal",
@@ -1323,6 +1327,13 @@
       "title": "Este es tu viaje",
       "body": "Lo compartiste sin cuenta. Regístrate gratis y podrás editarlo.",
       "cta": "Regístrate para guardarlo"
+    },
+    "framing": {
+      "label": "Cómo se abre el enlace",
+      "crew": "Pide a tu grupo que vote",
+      "plain": "Solo enviar el plan",
+      "crewHint": "Se abre en la votación: cada uno vota cada idea con un pulgar arriba o abajo, sin crear cuenta. Solo lectura para todo lo demás.",
+      "plainHint": "Se abre en el itinerario. Cualquiera con el enlace puede verlo (solo lectura)."
     },
     "crewPrompt": {
       "title": "Tu amigo quiere tu voto",
