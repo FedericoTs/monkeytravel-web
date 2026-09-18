@@ -16,7 +16,6 @@
  *   concierge                   | gemini-2.5-flash       | Conversational, needs context
  *   packing-list                | gemini-2.5-flash-lite  | Deterministic list, cheap
  *   email-parser                | gemini-2.5-flash-lite  | Structured extraction, low temp
- *   photo-extract               | gemini-2.5-flash       | Multimodal vision required
  *   trip-title                  | gemini-2.5-flash-lite  | One-shot string, cheapest
  *   activity-bank               | gemini-2.5-flash       | Batch list generation
  *   mcp-trip                    | gemini-2.5-flash       | External MCP/ChatGPT endpoint
@@ -38,7 +37,6 @@ export type GeminiPurpose =
   | "concierge"
   | "packing-list"
   | "email-parser"
-  | "photo-extract"
   | "trip-title"
   | "activity-bank"
   | "mcp-trip"
@@ -78,7 +76,6 @@ const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
   concierge: "gemini-2.5-flash",
   "packing-list": "gemini-2.5-flash-lite",
   "email-parser": "gemini-2.5-flash-lite",
-  "photo-extract": "gemini-2.5-flash",
   "trip-title": "gemini-2.5-flash-lite",
   "activity-bank": "gemini-2.5-flash",
   "mcp-trip": "gemini-2.5-flash",
