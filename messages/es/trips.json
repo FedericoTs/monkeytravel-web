@@ -33,30 +33,6 @@
     "ofBudget": "de ~{time}",
     "overpacked": "Día cargado"
   },
-  "decision": {
-    "promptLabel": "Cuéntanos sobre tu viaje",
-    "promptSubtitle": "Describe el viaje que sueñas: un ambiente, un presupuesto, una temporada, lo que tengas en mente. Te sugeriremos algunos destinos entre los que elegir.",
-    "promptPlaceholder": "Una semana tranquila en un lugar cálido en marzo, presupuesto medio, me encanta la comida y los cascos antiguos…",
-    "propose": "Proponer opciones",
-    "loading": "Pensando en tus opciones…",
-    "optionsTitle": "Algunas ideas que vale la pena considerar",
-    "whyThis": "Por qué esta",
-    "tradeoff": "La contrapartida",
-    "budgetDatesLine": "{budget} · {dateRange}",
-    "tiers": {
-      "budget": "Económico",
-      "balanced": "Equilibrado",
-      "premium": "Premium"
-    },
-    "chooseThis": "Elegir este viaje",
-    "startOver": "Empezar de nuevo",
-    "confirmDatesSubtitle": "Elige tus fechas y crearemos el itinerario completo.",
-    "confirmDates": "Confirmar fechas",
-    "backToOptions": "Volver a las opciones",
-    "error": "Algo salió mal al buscar opciones. Inténtalo de nuevo.",
-    "generateError": "No hemos podido crear ese itinerario. Inténtalo de nuevo.",
-    "useClassicPlanner": "Usar el planificador clásico"
-  },
   "wizard": {
     "back": "Atrás",
     "unlockAiFeatures": "Desbloquea las funciones de AI",

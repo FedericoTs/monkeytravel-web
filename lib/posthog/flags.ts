@@ -48,28 +48,6 @@ export const FLAG_ENHANCED_BOOKING = "enhanced-booking-panel";
  */
 export const FLAG_AUTO_SAVE_V1 = "auto-save-v1";
 
-/**
- * Front door: wizard vs. decision-first (2026-06-30)
- *
- * Tests replacing the multi-step wizard with a single open prompt that
- * returns 2-3 destination/trip-shape PROPOSALS (a decision) before any full
- * itinerary is generated. Hypothesis: repositioning the value moment from
- * "here's your itinerary" to "here's the trip you should take" survives the
- * step-1 cliff. Once an option is picked the EXISTING generator + result page
- * run unchanged.
- *
- * Variants:
- *  - wizard:   current multi-step form → itinerary (control)
- *  - decision: open prompt → 2-3 proposals → pick → itinerary
- *
- * CONCLUDED 2026-08-17: wizard won (saves 11.8% vs 5.4%); flag set to wizard
- * at 100%. Still read by code, so it stays here rather than moving down.
- *
- * Read by: app/[locale]/trips/new/NewTripWizard.tsx
- */
-export const FLAG_FRONT_DOOR = "front-door";
-export type FrontDoorVariant = "wizard" | "decision";
-
 // ============================================================================
 // NOT WIRED — declared, no consumer. Reading these returns the default.
 // ============================================================================
@@ -186,6 +164,18 @@ export const FLAG_EXPLORE_UGC = "explore-ugc-v1";
  * The PostHog flag can be archived; nothing reads it any more.
  */
 
+/*
+ * RETIRED — no constant, nothing to re-wire.
+ *
+ * front-door: wizard vs decision-first, 50/50 from 2026-07-01 (a local coin
+ * for PostHog-blocked browsers). Concluded 2026-08-17 — the wizard won on
+ * every measure (save rate 11.8% vs 5.4%, result rate 51% vs 35%, n=3,067
+ * anon sessions); the flag served wizard 100% from that day and the decision
+ * arm (DecisionIntake, /api/ai/decide, lib/ai/decide.ts) was deleted on
+ * 2026-09-18. Rows keep front_door = 'wizard'. The PostHog flag can be
+ * archived; nothing reads it any more.
+ */
+
 // ============================================================================
 // FLAG CONFIGURATION
 // ============================================================================
@@ -215,7 +205,6 @@ export const UNWIRED_FLAGS: readonly string[] = [
 export const FLAG_DEFAULTS: Record<string, boolean | string> = {
   [FLAG_ENHANCED_BOOKING]: false, // Start disabled, enable via PostHog
   [FLAG_AUTO_SAVE_V1]: false,
-  [FLAG_FRONT_DOOR]: "wizard",
   [FLAG_AUTH_WALL_VARIANT]: "magic-link-primary",
   [FLAG_CONCIERGE_SURFACE]: "always",
   [FLAG_EXPLORE_ANON_ENGAGEMENT]: "auth-gated",

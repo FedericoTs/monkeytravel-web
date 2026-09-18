@@ -44,7 +44,6 @@ export type GeminiPurpose =
   | "assistant-suggest"
   | "assistant-optimize"
   | "generate-more-days"
-  | "decide"
   | "anchor-import";
 
 export type GeminiModelId =
@@ -83,10 +82,6 @@ const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
   "assistant-suggest": "gemini-2.5-flash",
   "assistant-optimize": "gemini-2.5-flash",
   "generate-more-days": "gemini-2.5-flash",
-  // Decision-first front door (docs/DECISION_FRONT_DOOR_PLAN.md): short
-  // structured reasoning over a free-text prompt → 2-3 proposals. Cheapest tier,
-  // like packing-list / trip-title. No grounding, no Places — pure model output.
-  decide: "gemini-2.5-flash-lite",
   // Paste-a-plan import (docs/CONSTRAINT_PLANNER_PLAN.md F2): pasted text →
   // a small array of dated commitments. Same shape of work as email-parser,
   // and responseSchema carries the contract, so the cheapest tier is enough.
