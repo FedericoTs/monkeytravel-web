@@ -175,7 +175,7 @@ Each phase lists **entry gate → workstreams (numbered, in build order) → tes
 | 3.2 | **Today view** — *SHIPPED 2026-09-05* | For owner *and* participants, a live trip opens on **Today**: date header · weather (existing) · **the current/next activity** with time, walking time, address, Maps/Website/Booking · the rest of today · tomorrow preview · yesterday collapsed. Reuse `TripDetailClient`'s renderers; add a `mode=today` entry state rather than a new page. Same view on `/shared` and `/trip` for participants. |
 | 3.3 | **Four in-trip chips** — *SHIPPED 2026-09-05* | Above today's list: **Running late · Skip this · Swap nearby · Done for today**. Each sends a structured message to the existing AI agent with trip + day context; the result is applied to today for everyone via the existing real-time sync, with a one-tap undo. This is the 3,121-line editor's four-button front door. Participants can use them; changes carry the participant's name. |
 | 3.4 | **Checklist and expenses inside Today** — *SHIPPED 2026-09-06* | "Packed?" (personal, per-device) shows the day before + day 1 then collapses; "Who paid?" on each activity splits across participants (trip_expenses/trip_expense_splits extended for anonymous participants; authed Settle Up isolated). No new tables. |
-| 3.5 | **Activity feed** | "Marco marked lunch done · Anna swapped dinner": a small feed on Today built from `activity_status` + the chip actions. This is what makes N people open it. |
+| 3.5 | **Activity feed** — *SHIPPED 2026-09-06 (#132)* | "Marco marked lunch done · Anna swapped dinner": a small feed on Today built from `activity_status` + the chip actions. This is what makes N people open it. |
 | 3.6 | **Four locales** — *Today + chip strings SHIPPED 2026-09-05* | Today strings and chip labels in all four. |
 
 **Tests:** timezone unit tests (DST edge, date-line trips) · e2e: participant opens a live trip → lands on Today → taps *Skip this* → owner sees the change · chip actions idempotent under double-tap.
@@ -205,9 +205,9 @@ Each phase lists **entry gate → workstreams (numbered, in build order) → tes
 | # | Workstream | Detail |
 |---|---|---|
 | 5.1 | **Homepage middle third** | Rewrite around the live trip ("the plan that's with you on the trip"); demote "Democratic trip planning" until participants/trip > 1 is common. Same for `/group-trip-planner` and siblings, in it/es/pt with native-quality copy. |
-| 5.2 | **The link sells participation** | `/api/og/trip` image shows "N going" and today's plan when live. The shared link becomes the invitation. |
+| 5.2 | **The link sells participation** — *SHIPPED (verified in code 2026-09-18: `/api/og/trip` reads `trip_participants` and the live day state)* | `/api/og/trip` image shows "N going" and today's plan when live. The shared link becomes the invitation. |
 | 5.3 | **Comparison content** | Refresh `best-ai-trip-planners-2026-compared` (four locales) with fetched-and-verified competitor facts only (Mindtrip Flights May 2026; Wanderlog $39.99/yr; Layla gating; Gemini free) and honest MonkeyTravel positioning (live trip, no signup, no booking yet). Target the ~22k-impression cluster at positions 9–17. Retarget `blog.json` titles to the searched phrasing. IndexNow on the apex after deploy. |
-| 5.4 | **Trip detail diet (UX10X 4.2, carried)** | Owner action bar → Share / Edit with AI / More. |
+| 5.4 | **Trip detail diet (UX10X 4.2, carried)** — *SHIPPED (verified in code 2026-09-18: owner bar is Share · Edit with AI · More)* | Owner action bar → Share / Edit with AI / More. |
 
 **Tests:** visual regression on the four core surfaces; link check 0 broken / 0 redirected on the comparison post.
 **Exit gate:** every homepage claim maps to a measured number; comparison post live in four locales and submitted.
@@ -363,5 +363,7 @@ Operating principles 1–5 · the cut list (C1, C2, C7, C8, C9 as decided) · me
 | Guardrail | automation share of `is_bot=false` views | 9.1% |
 
 ## Decisions log
+
+- 2026-09-18 · Plan status synced to the code: 3.5, 5.2 and 5.4 were shipped but never marked. What remains is gated by the plan's own entry conditions: 5.1 (homepage rewrite) waits for two weeks of Phase 2–3 data, Phase 6 (PWA) waits for one measured Today-mode cohort (first TODT read due 2026-10-03), and the morning-of nudge ships off by design until the digest read of ~2026-09-27. Evidence: code inspection of `TripDetailClient.tsx` and `app/api/og/trip/route.tsx`; PR #132 for the feed. Owner: Claude, with Federico.
 
 *(append weekly: date · decision · evidence · owner)*
