@@ -2424,7 +2424,8 @@
     "cta": "Abre tu viaje",
     "pack_early_14d": {
       "heading": "Dos semanas para el viaje",
-      "body": "Tu viaje a {destination} es en dos semanas. Buen momento para revisar el pasaporte, esbozar la lista de equipaje y reservar los vuelos u hoteles que tenías en mente."
+      "body": "Tu viaje a {destination} es en dos semanas. Buen momento para revisar el pasaporte, esbozar la lista de equipaje y reservar los vuelos u hoteles que tenías en mente.",
+      "bodyDomestic": "Tu viaje a {destination} es en dos semanas. Buen momento para esbozar la lista de equipaje, reservar los alojamientos que tenías en mente y revisar los días de apertura de lo que no te quieres perder."
     },
     "visa_check_7d": {
       "heading": "Una semana — revisa el visado",
@@ -2436,7 +2437,8 @@
     },
     "confirm_1d": {
       "heading": "Mañana — últimos detalles",
-      "body": "Mañana sales hacia {destination}. Checklist rápido: tarjetas de embarque descargadas, alojamientos confirmados, cargadores en la maleta, pasaporte contigo. Buen viaje."
+      "body": "Mañana sales hacia {destination}. Checklist rápido: tarjetas de embarque descargadas, alojamientos confirmados, cargadores en la maleta, pasaporte contigo. Buen viaje.",
+      "bodyDomestic": "Mañana sales hacia {destination}. Checklist rápido: entradas y reservas confirmadas, cargadores en la maleta, documento de identidad contigo. Buen viaje."
     },
     "morning_of": {
       "heading": "Día de viaje",

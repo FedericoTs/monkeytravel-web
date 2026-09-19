@@ -2424,7 +2424,8 @@
     "cta": "Abrir sua viagem",
     "pack_early_14d": {
       "heading": "Faltam duas semanas",
-      "body": "Sua viagem para {destination} está a duas semanas. Um ótimo momento para garantir que seu passaporte esteja válido, montar sua lista de bagagem e fechar os voos ou hotéis que você vinha namorando."
+      "body": "Sua viagem para {destination} está a duas semanas. Um ótimo momento para garantir que seu passaporte esteja válido, montar sua lista de bagagem e fechar os voos ou hotéis que você vinha namorando.",
+      "bodyDomestic": "Sua viagem para {destination} está a duas semanas. Um ótimo momento para montar sua lista de bagagem, fechar as hospedagens que você vinha namorando e conferir os dias de funcionamento do que você não quer perder."
     },
     "visa_check_7d": {
       "heading": "Falta uma semana — verificação de visto",
@@ -2436,7 +2437,8 @@
     },
     "confirm_1d": {
       "heading": "Amanhã — checagens finais",
-      "body": "Você parte para {destination} amanhã. Checklist rápido: cartões de embarque baixados, hospedagens confirmadas, carregadores na mala, passaporte com você. Tenha uma viagem incrível."
+      "body": "Você parte para {destination} amanhã. Checklist rápido: cartões de embarque baixados, hospedagens confirmadas, carregadores na mala, passaporte com você. Tenha uma viagem incrível.",
+      "bodyDomestic": "Você parte para {destination} amanhã. Checklist rápido: ingressos e reservas confirmados, carregadores na mala, documento com você. Tenha uma viagem incrível."
     },
     "morning_of": {
       "heading": "Dia da viagem",
