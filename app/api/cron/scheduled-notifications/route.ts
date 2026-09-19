@@ -29,6 +29,7 @@ import { parseDigestDay, digestStaleReason, digestParticipantRecipients } from "
 import { postTripCtaUrl } from "@/lib/email/followup-cta";
 import { resolveLocale, formatDateRange } from "@/lib/email/reminder-locale";
 import { retryTransient } from "@/lib/notifications/retry";
+import { domesticTripVerdict } from "@/lib/notifications/domestic-trip";
 
 /**
  * Pre-trip reminder cron — sweeps `scheduled_notifications` and
@@ -727,6 +728,48 @@ async function processRow(
     return "skipped";
   }
 
+  // 2b-bis. The visa check is for leaving the country. A trip inside the
+  // traveller's own country gets no such reminder (2026-09-19: a recipient
+  // replied that he was travelling inside Minnesota; 41 of the 167 visa
+  // reminders pending or sent in the 60 days before were domestic).
+  //
+  // Where the person is: the country on their most recent page view — the
+  // profile home-country field is empty for 593 of 601 users. Where they
+  // are going: the country at the end of the itinerary's activity addresses,
+  // written by Google Places. Decided at dispatch, not at enqueue, because
+  // the itinerary and the viewer's country are both known only here.
+  //
+  // FAIL OPEN: domesticTripVerdict says domestic only when every readable
+  // address is in the viewer's country; an unknown viewer, an unreadable
+  // itinerary or a read error sends the reminder exactly as before.
+  if (row.slot === "visa_check_7d") {
+    let viewerCountry: string | null = null;
+    try {
+      const { data: lastView } = await svc
+        .from("page_views")
+        .select("country_code")
+        .eq("user_id", row.user_id)
+        .not("country_code", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      viewerCountry = (lastView as { country_code?: string | null } | null)?.country_code ?? null;
+    } catch {
+      viewerCountry = null;
+    }
+    const verdict = domesticTripVerdict(viewerCountry, trip.itinerary);
+    if (verdict.domestic) {
+      console.log("[cron/scheduled-notifs] visa check skipped: trip is inside the traveller's country", {
+        id: row.id,
+        trip_id: row.trip_id,
+        country: verdict.viewerCountry,
+        addresses: verdict.addresses,
+        resolved: verdict.resolved,
+      });
+      await persistOutcome(svc, row.id, "suppressed", `domestic_trip:${verdict.viewerCountry}`);
+      return "skipped";
+    }
+  }
   // 2c. Load the recipient — need email + preferred_language.
   const { data: user, error: userErr } = await svc
     .from("users")

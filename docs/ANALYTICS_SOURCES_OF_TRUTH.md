@@ -115,3 +115,7 @@ One more thing the raw data revealed: the sweep came from **Cittadella**, and so
 ## share_link_visited (funnel_events) — corrected 2026-09-18
 
 Before 2026-09-18 the row was written on every server render of `/shared/[token]` that passed the crawler user-agent test: React Server Components fetches (a router refresh renders the page again), the owner opening their own link, and fleets crawling the ownerless demo trips all counted. The 30-day read that day found 1,494 rows of which about 65 were recipients. From 2026-09-18 a row means a document navigation by someone other than the owner to a trip that has an owner (`lib/analytics/share-visit-classifier.ts`); the PostHog `crew_link_visited` twin follows the same verdict. Rows before that date need the same exclusions applied in SQL: owner sessions, trips without an owner, trips no longer present in `trips`. Rows also carry `metadata.crew_ask` (true when the link had `?vote=1`, the crew ask) so recipients per shared trip can be read per framing; rows before then have no metadata.
+
+## scheduled_notifications.skipped_reason = domestic_trip:<CC> — since 2026-09-19
+
+The `visa_check_7d` slot is suppressed at dispatch when the trip is inside the traveller's own country: every readable activity address in the itinerary resolves to the country on the traveller's most recent page view (`lib/notifications/domestic-trip.ts`, fail-open). The reason carries the country. Count these to see how many visa reminders were redundant; before 2026-09-19 they were sent.
