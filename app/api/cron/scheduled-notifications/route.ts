@@ -122,6 +122,14 @@ function isParticipantDigestEnabled(): boolean {
 const CONTEXT_NS = "common.emailContext";
 
 /**
+ * Slots whose copy depends on whether the trip leaves the traveller's
+ * country (lib/notifications/domestic-trip.ts). visa_check_7d is skipped
+ * outright on a domestic trip; the other two swap to a body that does not
+ * mention the passport.
+ */
+const DOMESTIC_AWARE_SLOTS = new Set<string>(["visa_check_7d", "pack_early_14d", "confirm_1d"]);
+
+/**
  * How many days before departure each pre-trip slot is meant to arrive.
  *
  * Mirrors the enqueue offsets in
@@ -742,7 +750,13 @@ async function processRow(
   // FAIL OPEN: domesticTripVerdict says domestic only when every readable
   // address is in the viewer's country; an unknown viewer, an unreadable
   // itinerary or a read error sends the reminder exactly as before.
-  if (row.slot === "visa_check_7d") {
+  //
+  // Two more slots read the same verdict: "Two weeks to go" tells everyone
+  // to check their passport is valid and "Tomorrow" lists "passport on you".
+  // Inside the traveller's own country those lines are the same mistake in
+  // a quieter voice, so both slots carry a domestic body without them.
+  let domestic = false;
+  if (DOMESTIC_AWARE_SLOTS.has(row.slot)) {
     let viewerCountry: string | null = null;
     try {
       const { data: lastView } = await svc
@@ -758,7 +772,8 @@ async function processRow(
       viewerCountry = null;
     }
     const verdict = domesticTripVerdict(viewerCountry, trip.itinerary);
-    if (verdict.domestic) {
+    domestic = verdict.domestic;
+    if (verdict.domestic && row.slot === "visa_check_7d") {
       console.log("[cron/scheduled-notifs] visa check skipped: trip is inside the traveller's country", {
         id: row.id,
         trip_id: row.trip_id,
@@ -854,7 +869,10 @@ async function processRow(
   // moving {destination} into another heading cannot break the mail; unused
   // values are ignored.
   const heading = t("heading", { destination });
-  const body = t("body", { destination });
+  // A domestic trip reads the slot's bodyDomestic when the copy has one
+  // (pack_early_14d and confirm_1d do); every other case reads body.
+  const body =
+    domestic && t.has("bodyDomestic") ? t("bodyDomestic", { destination }) : t("body", { destination });
   // The reminder family shares ONE cta across all five slots, so it sits
   // at the namespace root. The followup family needs a different verb per
   // slot ("Open your trip" vs "Plan your next trip"), so its cta lives

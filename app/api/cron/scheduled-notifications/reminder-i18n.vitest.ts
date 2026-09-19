@@ -96,6 +96,19 @@ describe("trip reminder copy resolves at the path the cron uses", () => {
       expect((cta as string).trim().length).toBeGreaterThan(0);
     });
 
+    it(`${locale} domestic bodies exist for the two passport slots and mention no passport`, () => {
+      // Inside the traveller's own country the route reads bodyDomestic on
+      // these two slots (lib/notifications/domestic-trip.ts). The whole
+      // point is that the passport line is gone, so pin that too.
+      const passport = /passport|pasaporte|passaporto|passaporte/i;
+      for (const slot of ["pack_early_14d", "confirm_1d"] as const) {
+        const node = resolve(messagesFor(locale), `common.tripReminderEmail.${slot}`) as Record<string, string>;
+        expect(node.bodyDomestic, `${slot}.bodyDomestic missing`).toBeTypeOf("string");
+        expect(node.bodyDomestic).toContain("{destination}");
+        expect(node.bodyDomestic).not.toMatch(passport);
+        expect(node.body, `${slot}.body should still address the international case`).toMatch(passport);
+      }
+    });
     it(`${locale} body interpolates {destination}`, () => {
       // The route calls t("body", { destination }). If a translation drops the
       // placeholder the mail silently loses the destination.
