@@ -28,6 +28,15 @@ const REAL_BROWSERS = [
 
 const KNOWN_BOTS = [
   "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+  // Tools that named themselves but not with the monkeytravel- convention
+  // (2026-09-21): each was a single-view, referrer-less session counted as
+  // a person.
+  "undici",
+  "vibecheck/0.1 (+github.com/FedericoTs/vibecheck)",
+  "Mozilla/5.0 (compatible; FreeScan.app favicon proxy)",
+  "Mozilla/5.0 BuildHopFrameCheck/1.0",
+  // The bare product token: an exact match, so it cannot touch a real UA.
+  "Mozilla/5.0",
   "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)",
   "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)",
   "Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)",
@@ -96,6 +105,9 @@ describe("isAnalyticsBot — edge cases", () => {
     // Guard against over-broad signatures. These are contrived, but a token
     // like "bot" is broad enough that the risk is real.
     expect(isAnalyticsBot("Mozilla/5.0 (Windows NT 10.0) Chrome/128.0 Safari/537.36")).toBe(false);
+    // The bare-token rule is exact: one extra character and it is a browser again.
+    expect(isAnalyticsBot("Mozilla/5.0 ")).toBe(false);
+    expect(isAnalyticsBot("Mozilla/5.0 (Linux; U; Android 4.0)")).toBe(false);
     expect(isAnalyticsBot("Mozilla/5.0 (Linux; Android 14; Robot Phone) Chrome/128.0")).toBe(true);
     // ^ documents a KNOWN false positive: a device literally named "Robot"
     // matches "bot". Accepted — it is vanishingly rare next to the 23% of

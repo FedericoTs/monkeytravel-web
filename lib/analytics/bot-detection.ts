@@ -113,6 +113,15 @@ const BOT_SIGNATURES: readonly string[] = [
   // page_views_human.
   "monkeytravel-",
   "(+internal)",
+  // Third-party checkers and our own scripts that name themselves but
+  // not with the convention above. Measured 2026-09-21 (Aug 20 - Sep 21):
+  // undici 331 sessions, vibecheck 78, FreeScan favicon proxy 16,
+  // BuildHopFrameCheck 6 - every one a single view with no referrer and
+  // no sign-in, all still counted as people at the time.
+  "undici",
+  "vibecheck",
+  "freescan",
+  "buildhopframecheck",
 ];
 
 /**
@@ -148,6 +157,12 @@ const BOT_SIGNATURES: readonly string[] = [
  */
 const AUTOMATION_EXACT_UA: readonly string[] = [
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+  // The bare product token with nothing after it. No browser sends this;
+  // HTTP libraries whose default UA was trimmed do. Measured 2026-09-21
+  // (Aug 20 - Sep 21): 241 sessions, 241 single-view, 0 signed in, 1 with a
+  // referrer. 89 of them hit the homepage in 100 minutes on Aug 26 right
+  // after a deploy and read as a traffic spike.
+  "Mozilla/5.0",
 ];
 
 /**
