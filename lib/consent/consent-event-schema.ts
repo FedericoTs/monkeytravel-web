@@ -1,3 +1,5 @@
+import { CONSENT_ORIGINS, type ConsentOrigin } from "./types";
+
 /**
  * Consent events: the one thing about the cookie banner nobody measured.
  *
@@ -36,6 +38,12 @@ export interface ConsentEventPayload {
   /** Pathname only, never a query string. */
   path: string | null;
   locale: string | null;
+  /**
+   * Which surface the decision was taken on. Coerced like `variant` rather
+   * than rejected: during a deploy an older client still posts payloads
+   * without it, and those rows must stay countable.
+   */
+  origin: ConsentOrigin | null;
 }
 
 /**
@@ -56,6 +64,12 @@ function safePath(raw: unknown): string | null {
 
 function safeLocale(raw: unknown): string | null {
   return typeof raw === "string" && /^[a-z]{2}(-[A-Z]{2})?$/.test(raw) ? raw : null;
+}
+
+function safeOrigin(raw: unknown): ConsentOrigin | null {
+  return typeof raw === "string" && (CONSENT_ORIGINS as readonly string[]).includes(raw)
+    ? (raw as ConsentOrigin)
+    : null;
 }
 
 function boolOrNull(raw: unknown): boolean | null {
@@ -83,5 +97,6 @@ export function parseConsentEvent(body: unknown): ConsentEventPayload | null {
     sessionRecording: boolOrNull(b.sessionRecording),
     path: safePath(b.path),
     locale: safeLocale(b.locale),
+    origin: safeOrigin(b.origin),
   };
 }

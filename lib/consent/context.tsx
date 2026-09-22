@@ -23,7 +23,18 @@ import {
   DEFAULT_CONSENT_STATE,
   FULL_CONSENT_STATE,
   CONSENT_CHANGE_EVENT,
+  CONSENT_ORIGINS,
+  type ConsentOrigin,
 } from "./types";
+
+/**
+ * Validate before use: a missed call site should degrade to "card", not
+ * serialise a MouseEvent into the column (every handler here is also a
+ * plausible onClick target).
+ */
+function asOrigin(value: unknown): ConsentOrigin {
+  return CONSENT_ORIGINS.includes(value as ConsentOrigin) ? (value as ConsentOrigin) : "card";
+}
 import {
   loadLocalConsent,
   saveLocalConsent,
@@ -43,6 +54,7 @@ const ConsentContext = createContext<ConsentContextValue>({
   acceptAll: () => {},
   acceptEssentialOnly: () => {},
   updateCategory: () => {},
+  saveSettings: () => {},
   openSettings: () => {},
   closeSettings: () => {},
   resetConsent: () => {},
@@ -136,14 +148,14 @@ export function ConsentProvider({ children, userId }: ConsentProviderProps) {
   }, [userId]);
 
   // Accept all cookies
-  const acceptAll = useCallback(() => {
+  const acceptAll = useCallback((origin?: ConsentOrigin) => {
     const newConsent = FULL_CONSENT_STATE;
     setConsent(newConsent);
     setHasConsented(true);
     setBannerStatus("hidden");
     saveLocalConsent(newConsent, "banner_accept_all");
     dispatchConsentChange(newConsent);
-    sendConsentEvent(buildConsentEvent("accept_all", newConsent));
+    sendConsentEvent(buildConsentEvent("accept_all", newConsent, { origin: asOrigin(origin) }));
 
     // Sync to Supabase if logged in
     if (userId) {
@@ -152,14 +164,14 @@ export function ConsentProvider({ children, userId }: ConsentProviderProps) {
   }, [userId]);
 
   // Accept essential only
-  const acceptEssentialOnly = useCallback(() => {
+  const acceptEssentialOnly = useCallback((origin?: ConsentOrigin) => {
     const newConsent = DEFAULT_CONSENT_STATE;
     setConsent(newConsent);
     setHasConsented(true);
     setBannerStatus("hidden");
     saveLocalConsent(newConsent, "banner_essential_only");
     dispatchConsentChange(newConsent);
-    sendConsentEvent(buildConsentEvent("essential_only", newConsent));
+    sendConsentEvent(buildConsentEvent("essential_only", newConsent, { origin: asOrigin(origin) }));
 
     // Sync to Supabase if logged in
     if (userId) {
@@ -172,9 +184,11 @@ export function ConsentProvider({ children, userId }: ConsentProviderProps) {
     (category: Exclude<ConsentCategory, "essential">, enabled: boolean) => {
       setConsent((prev) => {
         const newConsent = { ...prev, [category]: enabled };
+        // Persist the toggle so a reload keeps it, but do NOT record a
+        // decision here: one event per toggle is why settings_saved read as
+        // 2 in seven days and meant nothing. The decision is saveSettings().
         saveLocalConsent(newConsent, "settings_modal");
         dispatchConsentChange(newConsent);
-        sendConsentEvent(buildConsentEvent("settings_saved", newConsent));
 
         // Sync to Supabase if logged in
         if (userId) {
@@ -186,6 +200,27 @@ export function ConsentProvider({ children, userId }: ConsentProviderProps) {
     },
     [userId]
   );
+
+  /**
+   * Commit the granular choice. Before 2026-09-22 "Save Settings" only closed
+   * the modal, and closeSettings falls back to "visible" while hasConsented
+   * is false — so switching everything off and pressing Save brought the
+   * banner straight back, for ever, while Accept All was one click and gone.
+   * Refusal cannot cost more than acceptance.
+   */
+  const saveSettings = useCallback(() => {
+    setConsent((current) => {
+      saveLocalConsent(current, "settings_modal");
+      dispatchConsentChange(current);
+      sendConsentEvent(buildConsentEvent("settings_saved", current, { origin: "settings" }));
+      if (userId) {
+        syncConsentToSupabase(userId, current);
+      }
+      return current;
+    });
+    setHasConsented(true);
+    setBannerStatus("hidden");
+  }, [userId]);
 
   // Open settings modal
   const openSettings = useCallback(() => {
@@ -215,6 +250,7 @@ export function ConsentProvider({ children, userId }: ConsentProviderProps) {
     acceptAll,
     acceptEssentialOnly,
     updateCategory,
+    saveSettings,
     openSettings,
     closeSettings,
     resetConsent,

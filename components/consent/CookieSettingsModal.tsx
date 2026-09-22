@@ -10,6 +10,16 @@
 import { useTranslations } from "next-intl";
 import { useConsent, CONSENT_CATEGORIES, ConsentCategory } from "@/lib/consent";
 
+/**
+ * The two blanket choices share one class, for the same reason the banner
+ * card's pair does: EDPB 03/2022 treats a highlighted Accept beside a flat
+ * Reject as a dark pattern, and this modal is where a visitor who wanted
+ * control ends up. One string, so neither can drift.
+ */
+const MODAL_DECISION_BTN =
+  "flex-1 px-4 py-2.5 rounded-xl font-medium text-[var(--foreground)] bg-slate-100 " +
+  "border border-slate-300 hover:bg-slate-200 transition-colors text-sm";
+
 export function CookieSettingsModal() {
   const t = useTranslations("consent");
   const {
@@ -18,6 +28,7 @@ export function CookieSettingsModal() {
     updateCategory,
     acceptAll,
     acceptEssentialOnly,
+    saveSettings,
     closeSettings,
   } = useConsent();
 
@@ -26,9 +37,15 @@ export function CookieSettingsModal() {
     return null;
   }
 
+  // Saving the granular choice is a DECISION: it stores the state, closes
+  // the banner for good and records one event. Before 2026-09-22 it was
+  // `closeSettings()` alone, and closeSettings falls back to "visible" while
+  // hasConsented is false — so a visitor who switched everything off and
+  // pressed Save got the banner straight back, for ever, while Accept All
+  // was one click and gone. That is refusal costing more than acceptance,
+  // which is the one thing the law is unambiguous about.
   const handleSaveSettings = () => {
-    // Settings are already saved on toggle, just close
-    closeSettings();
+    saveSettings();
   };
 
   return (
@@ -122,7 +139,7 @@ export function CookieSettingsModal() {
             {t("settings.moreInfo")}{" "}
             <a
               href="/privacy"
-              className="text-[var(--primary-ink)] hover:underline"
+              className="text-[var(--foreground)] underline underline-offset-2"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -133,21 +150,28 @@ export function CookieSettingsModal() {
 
         {/* Footer */}
         <div className="flex flex-col sm:flex-row gap-3 p-5 border-t border-slate-200 bg-slate-50">
+          {/* Same rule as the banner card: the two blanket choices are one
+              constant, so neither can drift ahead of the other. Save Settings
+              keeps its own outline — it is the granular path, not a third
+              blanket option competing with them. */}
           <button
-            onClick={acceptEssentialOnly}
-            className="flex-1 px-4 py-2.5 rounded-xl font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 transition-colors text-sm"
+            onClick={() => acceptEssentialOnly("settings")}
+            data-testid="consent-modal-reject"
+            className={MODAL_DECISION_BTN}
           >
             {t("settings.rejectAll")}
           </button>
           <button
             onClick={handleSaveSettings}
-            className="flex-1 px-4 py-2.5 rounded-xl font-medium text-[var(--primary-ink)] border-2 border-[var(--primary)]/30 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors text-sm"
+            data-testid="consent-modal-save"
+            className="flex-1 px-4 py-2.5 rounded-xl font-medium text-[var(--foreground)] border-2 border-[var(--primary)]/30 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 transition-colors text-sm"
           >
             {t("settings.saveSettings")}
           </button>
           <button
-            onClick={acceptAll}
-            className="flex-1 px-4 py-2.5 rounded-xl font-medium text-white bg-[var(--primary)] hover:bg-[var(--primary-dark)] transition-colors text-sm"
+            onClick={() => acceptAll("settings")}
+            data-testid="consent-modal-accept"
+            className={MODAL_DECISION_BTN}
           >
             {t("settings.acceptAll")}
           </button>
