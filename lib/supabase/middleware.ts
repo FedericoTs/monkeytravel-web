@@ -256,6 +256,31 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
     });
   }
 
+  /**
+   * Every `return NextResponse.redirect(...)` below builds a FRESH response,
+   * which carries none of supabaseResponse's cookies and not the x-mt-pv
+   * header. trackPageView() has already written the row by then, so without
+   * this the view lands under a session id that is never persisted: the
+   * visitor's next request mints another one, and that request carries a
+   * same-origin Referer. Measured 2026-09-18 to 21, before the fix: 56
+   * anonymous views across 54 distinct sessions on redirect-prone /trips*
+   * paths plus one signed-in /auth/* view (~14/day, 0.4% of raw sessions).
+   *
+   * Small, but it is the one part of the "22% of sessions have an internal
+   * referrer" finding that was genuinely ours, and a label that hid it would
+   * have been the wrong fix. The auth cookies matter too: supabaseResponse may
+   * carry a refreshed Supabase token, and dropping it on a redirect makes the
+   * visitor re-authenticate on the very next request.
+   */
+  const carryAnalytics = (redirect: NextResponse): NextResponse => {
+    for (const cookie of supabaseResponse.cookies.getAll()) {
+      redirect.cookies.set(cookie);
+    }
+    const pv = supabaseResponse.headers.get("x-mt-pv");
+    if (pv) redirect.headers.set("x-mt-pv", pv);
+    return redirect;
+  };
+
   // Protected routes - redirect to login if not authenticated
   // Note: /trips/new is excluded to allow gradual engagement (users can fill form before signup)
   // Note: /trips/template/* is public so curated escapes can drive traffic & conversions
@@ -289,7 +314,7 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     url.searchParams.set("redirect", request.nextUrl.pathname);
-    return NextResponse.redirect(url);
+    return carryAnalytics(NextResponse.redirect(url));
   }
 
   // Admin routes - require authentication AND admin email.
@@ -304,14 +329,14 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
       const url = request.nextUrl.clone();
       url.pathname = "/auth/login";
       url.searchParams.set("redirect", request.nextUrl.pathname);
-      return NextResponse.redirect(url);
+      return carryAnalytics(NextResponse.redirect(url));
     }
 
     if (!isAdmin(user.email)) {
       // Logged in but not an admin - redirect to home
       const url = request.nextUrl.clone();
       url.pathname = "/";
-      return NextResponse.redirect(url);
+      return carryAnalytics(NextResponse.redirect(url));
     }
   }
 
@@ -323,7 +348,7 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
   if (isAuthPath && user) {
     const url = request.nextUrl.clone();
     url.pathname = "/trips";
-    return NextResponse.redirect(url);
+    return carryAnalytics(NextResponse.redirect(url));
   }
 
   // GRADUAL ENGAGEMENT: No forced onboarding redirect
