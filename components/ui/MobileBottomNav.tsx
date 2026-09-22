@@ -1,7 +1,10 @@
 "use client";
 
+import { useRef } from "react";
+
 import { Link } from "@/lib/i18n/routing";
 import { useTranslations } from "next-intl";
+import { useCssVarHeight } from "@/hooks/useCssVarHeight";
 
 interface MobileBottomNavProps {
   // Added "explore" 2026-05-30 (Phase B3 mobile): Booking/Airbnb both
@@ -20,6 +23,13 @@ interface MobileBottomNavProps {
 }
 
 export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
+  const navRef = useRef<HTMLElement | null>(null);
+  // The nav is fixed bottom-0 on explore, profile, saved, templates, trip
+  // detail and /shared, and published nothing — so a z-9999 consent bar
+  // would land on the Home tab. sm:hidden means display:none at desktop and
+  // the property resolves to 0px there.
+  useCssVarHeight(navRef, "--mt-nav-h");
+
   const t = useTranslations("common.bottomNav");
   // /saved is reachable from the bottom nav (via Profile) and the Navbar,
   // but it isn't one of the 5 primary tabs. Render the nav with NO
@@ -32,7 +42,11 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 sm:hidden z-50 pb-safe">
+      <nav
+        ref={navRef}
+        data-testid="mobile-bottom-nav"
+        className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 sm:hidden z-50 pb-safe"
+      >
         {/* 5-tab layout matching Booking + Airbnb conventions:
             Home / Trips / [FAB Plan] / Explore / Profile.
             FAB stays centered (between Trips and Explore — index 2 of 5).

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "@/lib/i18n/routing";
 import { useTranslations } from "next-intl";
+import { useCssVarHeight } from "@/hooks/useCssVarHeight";
 
 interface StickyBlogCtaProps {
   ctaHref?: string;
@@ -16,6 +17,12 @@ interface StickyBlogCtaProps {
 export default function StickyBlogCta({ ctaHref = "/trips/new" }: StickyBlogCtaProps = {}) {
   const t = useTranslations("blog.detail");
   const [visible, setVisible] = useState(false);
+  const ctaRef = useRef<HTMLDivElement | null>(null);
+  // Publish the bar's height so the consent bar can sit above it. The hook
+  // call must come BEFORE the early return, and it takes `visible` because
+  // the element does not exist until 400px of scroll — which is precisely
+  // the state in which the consent card has already minimised.
+  useCssVarHeight(ctaRef, "--mt-sticky-cta-h", visible);
 
   useEffect(() => {
     function handleScroll() {
@@ -39,7 +46,11 @@ export default function StickyBlogCta({ ctaHref = "/trips/new" }: StickyBlogCtaP
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden animate-in slide-in-from-bottom-4 duration-300">
+    <div
+      ref={ctaRef}
+      data-testid="blog-sticky-cta"
+      className="fixed bottom-0 left-0 right-0 z-50 sm:hidden animate-in slide-in-from-bottom-4 duration-300"
+    >
       <div className="bg-white/95 backdrop-blur-sm border-t border-slate-200 px-4 py-3 shadow-lg pb-safe">
         <Link
           href={ctaHref}

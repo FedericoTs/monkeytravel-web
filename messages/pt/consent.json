@@ -10,7 +10,11 @@
     "privacyPolicy": "Política de Privacidade",
     "pill": "Definições de cookies",
     "contextualTitle": "Ajude-nos a melhorar seus roteiros",
-    "contextualDescription": "Com a sua permissão medimos quais planos são usados e onde as pessoas travam. Nada é carregado até você escolher."
+    "contextualDescription": "Com a sua permissão medimos quais planos são usados e onde as pessoas travam. Nada é carregado até você escolher.",
+    "miniTitle": "A sua escolha sobre cookies",
+    "miniPurposes": "Aceitar tudo acrescenta análise, gravação de sessão e publicidade. Nada é carregado até escolher.",
+    "miniOptions": "Opções",
+    "miniAria": "Escolhas de cookies"
   },
   "settings": {
     "title": "Configurações de cookies",

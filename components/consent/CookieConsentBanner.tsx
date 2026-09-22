@@ -70,6 +70,21 @@
  * ignored so keyboard users can reach the buttons without dismissing them.
  * tests/e2e/consent-overlap.spec.ts guards all of this on four surfaces at
  * both viewports.
+ *
+ * THE MINIMISED STATE WAS A DEAD END (2026-09-22)
+ * -----------------------------------------------
+ * Stepping out of the way was right; leaving nothing behind was not. Seven
+ * days of consent_events to 2026-09-22: 4,636 impressions, 3,215 (69%)
+ * minimised without deciding, 1,193 (26%) gone without touching it, 228
+ * decisions — a 4.9% decision rate. Blog alone was 2,375 impressions and
+ * 1,718 minimisations, because a reader scrolls past 40px within a second.
+ * Desktop kept a pill that cost a click before a choice was visible; below
+ * 640px there was nothing at all until the next navigation.
+ *
+ * The state machine above is unchanged — threshold, listeners, path keying,
+ * dedupe refs. Only what the minimised branch RENDERS changed: ConsentMiniBar
+ * carries both decisions at equal weight, at every width. See that file for
+ * what must not be "tidied up" (the buttons are unfilled on purpose).
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -78,6 +93,7 @@ import { usePathname } from "next/navigation";
 import { useConsent } from "@/lib/consent";
 import { bannerVariantFor } from "@/lib/consent/consent-event-schema";
 import { buildConsentEvent, sendConsentEvent } from "@/lib/consent/consent-event-client";
+import { ConsentMiniBar } from "./ConsentMiniBar";
 
 // Keys that move focus or modify other keys. A keyboard user tabbing towards
 // the card's buttons must not dismiss the card on the way there.
@@ -195,34 +211,7 @@ export function CookieConsentBanner() {
   }
 
   if (minimized) {
-    // Desktop only (hidden below sm): a pill in the one corner nothing else
-    // uses, which brings the card back. Mobile renders nothing here.
-    return (
-      <div className="hidden sm:block fixed bottom-[calc(var(--mt-bottom-bar-h,0px)_+_1rem)] left-4 z-[9999]">
-        <button
-          type="button"
-          onClick={() => setMinimized(false)}
-          data-testid="consent-pill"
-          className="flex items-center gap-2 rounded-full bg-white border border-slate-200 shadow-lg px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-        >
-          <svg
-            className="w-4 h-4 text-[var(--primary-ink)]"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-            />
-          </svg>
-          <span>{t("banner.pill")}</span>
-        </button>
-      </div>
-    );
+    return <ConsentMiniBar onWizard={onWizard} />;
   }
 
   return (

@@ -10,11 +10,16 @@
  *      the form's last row until the first scroll; that overlap is measured
  *      and recorded as an annotation, not asserted away;
  *   2. after the visitor's first scroll (or first interaction outside the
- *      card) the card is gone: on desktop a bottom-left pill remains that
- *      reopens it, on mobile it is hidden for this page view; neither
- *      intersects the CTA;
- *   3. "Essential only" stays reachable — the pill reopens the card on
- *      desktop, and the footer's cookie-settings control exists on mobile.
+ *      card) the card is gone and the mini bar is in its place — at EVERY
+ *      viewport since 2026-09-22, where before it was a desktop-only pill
+ *      and nothing at all on mobile; it must not intersect the CTA, nor any
+ *      fixed bottom bar the page publishes;
+ *   3. BOTH decisions stay reachable in ZERO further clicks, and the two
+ *      buttons are provably equal — same box, same computed style, refusal
+ *      first. That is the assertion the law actually cares about: EDPB
+ *      03/2022 and the January 2022 CNIL decisions turn on refusal costing
+ *      more than acceptance, and a test is the only thing that stops a
+ *      later "the accept button lost its primary fill" from undoing it.
  *
  * A click *inside* the card never minimises it, so the other specs' first
  * action (`declineConsent`) is unaffected.
@@ -139,31 +144,68 @@ for (const vp of VIEWPORTS) {
         await firstInteraction(page);
         await expect(card).toBeHidden({ timeout: 3_000 });
 
-        const pill = page.getByTestId("consent-pill");
+        const mini = page.getByTestId("consent-mini");
         const ctaAfter = (await firstVisible(surface.cta(page))) ?? cta!;
-        if (vp.name === "desktop") {
-          await expect(pill).toBeVisible();
-          expect(overlapArea(await pill.boundingBox(), await ctaAfter.boundingBox())).toBe(0);
-          // 3. Essential only is one click away again.
-          await pill.click();
-          await expect(card).toBeVisible();
-          await expect(page.getByRole("button", { name: /essential only/i })).toBeVisible();
-        } else {
-          // 3. Mobile keeps nothing on screen; the card returns on the next
-          // navigation until a choice is made (pathname effect in the banner).
-          await expect(pill).toBeHidden();
+
+        // The bar is present at BOTH viewports now, and clears the CTA.
+        await expect(mini).toBeVisible();
+        expect(overlapArea(await mini.boundingBox(), await ctaAfter.boundingBox())).toBe(0);
+
+        // 3. Both decisions are reachable with no further click. Scoped to
+        // the bar: a page-wide /essential only/i also matches the modal's
+        // own reject label.
+        const miniReject = mini.getByTestId("consent-mini-reject");
+        const miniAccept = mini.getByTestId("consent-mini-accept");
+        await expect(miniReject).toBeVisible();
+        await expect(miniAccept).toBeVisible();
+        await expect(mini.getByTestId("consent-mini-options")).toBeVisible();
+
+        // Equal weight, measured rather than asserted in prose. Geometry
+        // alone would pass a coral-filled Accept beside a flat slate reject,
+        // which is the exact pattern being guarded against — so compare the
+        // computed paint properties too.
+        const rejectBox = await miniReject.boundingBox();
+        const acceptBox = await miniAccept.boundingBox();
+        expect(rejectBox).not.toBeNull();
+        expect(acceptBox).not.toBeNull();
+        expect(Math.abs(rejectBox!.width - acceptBox!.width)).toBeLessThanOrEqual(1);
+        expect(Math.abs(rejectBox!.height - acceptBox!.height)).toBeLessThanOrEqual(1);
+        // Refusal is first; a layout tweak must not quietly reorder them.
+        expect(rejectBox!.x).toBeLessThan(acceptBox!.x);
+
+        const paintOf = (el: Locator) =>
+          el.evaluate((node) => {
+            const s = getComputedStyle(node as HTMLElement);
+            return [s.backgroundColor, s.color, s.fontSize, s.fontWeight, s.borderStyle, s.borderWidth, s.boxShadow].join("|");
+          });
+        expect(await paintOf(miniReject)).toBe(await paintOf(miniAccept));
+
+        // The bar must also clear every fixed bottom element the page owns.
+        for (const testId of ["trip-bottom-bar", "mobile-bottom-nav", "blog-sticky-cta"]) {
+          const bar = page.locator(`[data-testid="${testId}"]`);
+          if ((await bar.count()) > 0 && (await bar.first().isVisible())) {
+            expect(
+              overlapArea(await mini.boundingBox(), await bar.first().boundingBox()),
+              `consent bar overlaps ${testId}`
+            ).toBe(0);
+          }
         }
 
         // Phase 1.2: the third-party feedback launcher (fixed bottom-right,
         // z-index 2147483000) must not sit on Continue either. It is hidden
         // on the wizard below sm; elsewhere it must simply not intersect.
-        if (surface.name === "wizard") {
+        {
           const launcher = page.locator("[data-buildhop-feedback-widget]");
-          if ((await launcher.count()) > 0) {
-            if (vp.name === "mobile") {
+          if ((await launcher.count()) > 0 && (await launcher.isVisible())) {
+            if (vp.name === "mobile" && surface.name === "wizard") {
               await expect(launcher).toBeHidden();
             } else {
               expect(overlapArea(await launcher.boundingBox(), await ctaAfter.boundingBox())).toBe(0);
+              // The consent bar's 92px right gutter exists for exactly this.
+              expect(
+                overlapArea(await launcher.boundingBox(), await mini.boundingBox()),
+                "consent bar overlaps the third-party launcher"
+              ).toBe(0);
             }
           } else {
             test.info().annotations.push({

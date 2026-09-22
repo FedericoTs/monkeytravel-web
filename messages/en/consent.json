@@ -10,7 +10,11 @@
     "privacyPolicy": "Privacy Policy",
     "pill": "Cookie settings",
     "contextualTitle": "Help us improve your itineraries",
-    "contextualDescription": "With your OK we measure which plans get used and where people get stuck. Nothing loads until you choose."
+    "contextualDescription": "With your OK we measure which plans get used and where people get stuck. Nothing loads until you choose.",
+    "miniTitle": "Your cookie choice",
+    "miniPurposes": "Accept all adds analytics, session recording and advertising. Nothing loads until you choose.",
+    "miniOptions": "Options",
+    "miniAria": "Cookie choices"
   },
   "settings": {
     "title": "Cookie Settings",
