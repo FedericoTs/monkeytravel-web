@@ -2,7 +2,21 @@
 
 interface AcquisitionEngagementProps {
   acquisition: {
-    referrers: { source: string; count: number }[];
+    /**
+     * Entry channel of each SESSION, from our own page views — not GA4, and
+     * not page views. Since 2026-09-01 (c17abc3) the GA tags obey the cookie
+     * banner and only ~3% of visitors accept, so GA4's channel report shows a
+     * collapse that did not happen. This is consent-free: first-party,
+     * cookieless, aggregate.
+     */
+    channels: {
+      channel: string;
+      entrySessions: number;
+      reachedWizard: number;
+      wizardPct: number;
+      sharePct: number;
+    }[];
+    windowDays: number;
   };
   engagement: {
     dau: number;
@@ -22,7 +36,13 @@ interface AcquisitionEngagementProps {
 
 const SOURCE_LABELS: Record<string, string> = {
   direct: "Direct",
-  internal: "Internal Navigation",
+  ai_assistant: "AI Assistant",
+  other_search: "Other Search",
+  social: "Social",
+  // A session whose FIRST recorded view already carries a monkeytravel
+  // referrer — i.e. we missed its real entry. Shown rather than folded into
+  // Direct, which it would inflate by about a fifth.
+  internal: "Continuation (unattributed)",
   dev: "Dev/Preview",
   google: "Google",
   bing: "Bing",
@@ -38,6 +58,9 @@ const SOURCE_LABELS: Record<string, string> = {
 
 const SOURCE_COLORS: Record<string, string> = {
   direct: "#0A4B73",
+  ai_assistant: "#7c3aed",
+  other_search: "#0891b2",
+  social: "#db2777",
   internal: "#64748b",
   dev: "#94a3b8",
   google: "#4285f4",
@@ -53,12 +76,11 @@ const SOURCE_COLORS: Record<string, string> = {
 };
 
 export default function AcquisitionEngagement({ acquisition, engagement }: AcquisitionEngagementProps) {
-  // Filter out internal/dev for the external-only view
-  const externalSources = acquisition.referrers.filter(
-    (r) => r.source !== "internal" && r.source !== "dev"
-  );
-  const totalExternal = externalSources.reduce((sum, r) => sum + r.count, 0);
-  const maxSourceCount = Math.max(...externalSources.map((r) => r.count), 1);
+  // Dev/preview traffic is ours; "internal" stays visible because it is a
+  // measurement gap worth seeing, not a channel to hide.
+  const channels = acquisition.channels.filter((c) => c.channel !== "dev");
+  const totalSessions = channels.reduce((sum, c) => sum + c.entrySessions, 0);
+  const maxSessions = Math.max(...channels.map((c) => c.entrySessions), 1);
 
   const { timeToFirstTrip: ttt } = engagement;
 
@@ -73,30 +95,42 @@ export default function AcquisitionEngagement({ acquisition, engagement }: Acqui
             </svg>
           </span>
           <div>
-            <h2 className="text-lg font-semibold text-[var(--foreground)]">Traffic Sources</h2>
-            <p className="text-xs text-slate-500">{totalExternal.toLocaleString()} external page views</p>
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Acquisition</h2>
+            <p className="text-xs text-slate-500">
+              {totalSessions.toLocaleString("en-US")} sessions, last {acquisition.windowDays} days · first-party, no consent gate
+            </p>
           </div>
         </div>
 
-        {externalSources.length === 0 ? (
-          <div className="text-center py-8 text-slate-500 text-sm">No referrer data</div>
+        {channels.length === 0 ? (
+          <div className="text-center py-8 text-slate-500 text-sm">No acquisition data yet</div>
         ) : (
-          <div className="space-y-3">
-            {externalSources.map((source) => {
-              const pct = totalExternal > 0 ? ((source.count / totalExternal) * 100).toFixed(1) : "0";
-              const barWidth = (source.count / maxSourceCount) * 100;
-              const color = SOURCE_COLORS[source.source] || SOURCE_COLORS.other;
+          <div className="space-y-3" data-testid="acquisition-channels">
+            {channels.map((c) => {
+              const barWidth = (c.entrySessions / maxSessions) * 100;
+              const color = SOURCE_COLORS[c.channel] || SOURCE_COLORS.other;
               return (
-                <div key={source.source}>
+                <div key={c.channel}>
                   <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                       <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                      <span className="text-sm text-slate-700 font-medium">
-                        {SOURCE_LABELS[source.source] || source.source}
+                      <span className="text-sm text-slate-700 font-medium truncate">
+                        {SOURCE_LABELS[c.channel] || c.channel}
                       </span>
                     </div>
-                    <span className="text-xs text-slate-500">
-                      {source.count.toLocaleString()} ({pct}%)
+                    <span className="text-xs text-slate-500 flex-shrink-0">
+                      {c.entrySessions.toLocaleString("en-US")} ({c.sharePct}%)
+                      {c.entrySessions >= 30 && (
+                        <>
+                          {" · "}
+                          <span
+                            className="font-medium text-slate-600"
+                            title="Share of these sessions that reached the wizard"
+                          >
+                            {c.wizardPct}% to wizard
+                          </span>
+                        </>
+                      )}
                     </span>
                   </div>
                   <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -108,6 +142,12 @@ export default function AcquisitionEngagement({ acquisition, engagement }: Acqui
                 </div>
               );
             })}
+            {/* The intent signal is the point of this panel: it is the one
+                acquisition question GA4 cannot answer at a 3% consent rate. */}
+            <p className="text-[11px] text-slate-400 pt-1 leading-snug">
+              &ldquo;To wizard&rdquo; is the share of arrivals that reached /trips/new in the same
+              session. Hidden below 30 sessions, where the percentage says nothing.
+            </p>
           </div>
         )}
       </div>

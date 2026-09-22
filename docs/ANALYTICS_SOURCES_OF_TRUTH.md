@@ -110,8 +110,20 @@ One more thing the raw data revealed: the sweep came from **Cittadella**, and so
 | Baseline | `supabase/migrations/20260905160200_live_trip_baseline_retention_window.sql` (current body), `scripts/baseline-snapshot.mts` |
 | Independent check | `scripts/gsc-daily.mts` |
 | Label integrity probe | `scripts/automation-labels-probe.mts` |
-| Admin dashboard reads | `app/api/admin/stats/route.ts` → `get_page_views_*` (rollup), `get_engagement_metrics`, `get_referrer_breakdown` (view) |
+| Admin dashboard reads | `app/api/admin/stats/route.ts` → `get_page_views_*` (rollup), `get_engagement_metrics`, `get_acquisition_breakdown` (sessions, 28 d) |
 | GA4 configuration | `docs/GA4_SETUP_GUIDE.md` |
+
+## acquisition: entry channel per session — since 2026-09-22
+
+GA4 stopped being a usable acquisition view on 2026-09-01, when c17abc3 made the tags obey the cookie banner. In the seven days to 2026-09-22, of 4,636 banner impressions 141 accepted (3.0%), 85 chose essential only (1.8%) and 3,215 (69%) minimised without deciding — so GA4 sees about three visitors in a hundred and its channel chart shows a collapse that did not happen. First-party human sessions were flat across the same period (600–850/day) and Google-referred sessions rose to 241–245/day on 20–21 September.
+
+The replacement is `page_view_rollup.dimension = 'entry_channel'`, written nightly by `refresh_page_view_rollup` from the FIRST view of each session: `key_1` = channel (`acquisition_channel(referrer)`), `key_2` = entry section, `views` = sessions that entered there (the one dimension in that table where the column counts sessions), `unique_visitors` = those that reached `/trips/new` in the same session. Read it with `get_acquisition_breakdown(p_days)` for composition and `get_acquisition_trend(p_days)` for movement.
+
+Three things to know before quoting it:
+
+- **`internal` is a measurement gap, not a channel.** 21–23% of entry sessions carry a monkeytravel referrer on their first RECORDED view, meaning the real entry was missed. It is shown as "Continuation (unattributed)" rather than folded into Direct, which it would inflate by about a fifth. Worth chasing: the likely causes are the session cookie being reissued mid-visit and the first view of a session not reaching `trackPageView`.
+- **Do not compare two windows.** The definition of a human session changed four times between 27 Aug and 21 Sep 2026 (fc2b4b6, 3ac47c4, #149, #168), and `page_views_human` is recomputed with today's rules whenever the rollup is rebuilt. A first draft of this RPC returned a previous-window delta and claimed Google entry sessions were up 1,162%; they are not, and the RPC no longer offers the number. Read movement from the daily series, where a definition change appears as a visible step.
+- **`ai_assistant` is tested before `google`/`bing`** in `acquisition_channel`, because Gemini and Copilot referrals carry those hosts. It was 0.2–0.4% of sessions at launch but reached the wizard at 48.5%, against Google's 38.8% and Direct's 12.8% — the highest-intent channel on the site, and one GA4 could not have shown at a 3% consent rate.
 
 ## share_link_visited (funnel_events) — corrected 2026-09-18
 

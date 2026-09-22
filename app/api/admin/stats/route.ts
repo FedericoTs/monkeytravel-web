@@ -116,9 +116,16 @@ export interface AdminStats {
       conversionFunnel: { step: string; count: number }[];
     };
   };
-  // Acquisition - Traffic Sources
+  // Acquisition - entry channel per SESSION, from our own page views
   acquisition: {
-    referrers: { source: string; count: number }[];
+    channels: {
+      channel: string;
+      entrySessions: number;
+      reachedWizard: number;
+      wizardPct: number;
+      sharePct: number;
+    }[];
+    windowDays: number;
   };
   // Engagement Metrics
   engagement: {
@@ -154,6 +161,11 @@ export interface AdminStats {
     };
   };
 }
+
+// 28 days matches the window GA4 defaults to, so the two can be read
+// side by side while GA4 still exists. Kept in one place because the API and
+// the panel label must never disagree about what the number covers.
+const ACQUISITION_WINDOW_DAYS = 28;
 
 export async function GET() {
   try {
@@ -278,8 +290,11 @@ export async function GET() {
         }),
       // Geo metrics from page_views
       fetchGeoMetrics(supabase),
-      // Referrer breakdown
-      supabase.rpc("get_referrer_breakdown"),
+      // Acquisition: entry channel per session, windowed. Replaces
+      // get_referrer_breakdown, which had no date window (it summed the
+      // rollup from the beginning of time) and counted views, so a reader
+      // working through twelve blog pages outweighed twelve arrivals.
+      supabase.rpc("get_acquisition_breakdown", { p_days: ACQUISITION_WINDOW_DAYS }),
       // Engagement metrics (DAU/WAU/MAU)
       supabase.rpc("get_engagement_metrics"),
       // Time to first trip
@@ -311,7 +326,15 @@ export async function GET() {
     const generationCostsResult = safe(10, { data: { totalCostUsd: 0, generateCount: 0, regenerateCount: 0 } });
     const topDestinationsResult = safe(11, [] as { destination: string; count: number }[]);
     const geoMetricsResult = safe(12, null);
-    const referrerResult = safe(13, { data: [] as { source: string; count: number }[] });
+    const acquisitionResult = safe(13, {
+      data: [] as {
+        channel: string;
+        entry_sessions: number;
+        reached_wizard: number;
+        wizard_pct: number;
+        share_pct: number;
+      }[],
+    });
     const engagementResult = safe(14, { data: [{ dau: 0, wau: 0, mau: 0, stickiness_pct: 0, users_with_trips: 0, total_users: 0 }] });
     const timeToTripResult = safe(15, { data: [{ avg_hours: 0, median_hours: 0, users_count: 0, within_1h: 0, within_24h: 0, within_7d: 0 }] });
     const recentActivityResult = safe(16, [] as AdminStats["recentActivity"]);
@@ -444,10 +467,22 @@ export async function GET() {
         deltaPctWoW: deltas.pageViews,
       },
       acquisition: {
-        referrers: (referrerResult.data || []).map((r: { source: string; count: number }) => ({
-          source: r.source,
-          count: Number(r.count),
-        })),
+        channels: (acquisitionResult.data || []).map(
+          (r: {
+            channel: string;
+            entry_sessions: number;
+            reached_wizard: number;
+            wizard_pct: number;
+            share_pct: number;
+          }) => ({
+            channel: r.channel,
+            entrySessions: Number(r.entry_sessions),
+            reachedWizard: Number(r.reached_wizard),
+            wizardPct: Number(r.wizard_pct ?? 0),
+            sharePct: Number(r.share_pct ?? 0),
+          })
+        ),
+        windowDays: ACQUISITION_WINDOW_DAYS,
       },
       engagement: (() => {
         const eng = engagementResult.data?.[0] || { dau: 0, wau: 0, mau: 0, stickiness_pct: 0 };
