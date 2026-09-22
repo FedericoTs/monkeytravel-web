@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
       session_recording: payload.sessionRecording,
       path: payload.path,
       locale: payload.locale,
+      origin: payload.origin,
     });
   } catch {
     // Telemetry must never surface to the visitor.

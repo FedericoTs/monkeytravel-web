@@ -27,6 +27,7 @@ describe("parseConsentEvent", () => {
         sessionRecording: false,
         path: "/it/trips/new?destination=tokyo#x",
         locale: "it",
+        origin: "card",
       })
     ).toEqual({
       event: "accept_all",
@@ -36,6 +37,7 @@ describe("parseConsentEvent", () => {
       sessionRecording: false,
       path: "/it/trips/new",
       locale: "it",
+      origin: "card",
     });
   });
 
@@ -52,8 +54,19 @@ describe("parseConsentEvent", () => {
   });
 
   it("coerces bad optional fields instead of failing", () => {
-    const parsed = parseConsentEvent({ event: "minimized", variant: "weird", analytics: "yes", path: "javascript:alert(1)", locale: "IT" });
-    expect(parsed).toEqual({ event: "minimized", variant: "generic", analytics: null, marketing: null, sessionRecording: null, path: null, locale: null });
+    const parsed = parseConsentEvent({ event: "minimized", variant: "weird", analytics: "yes", path: "javascript:alert(1)", locale: "IT", origin: "billboard" });
+    // An unknown origin coerces to null rather than rejecting the row: an
+    // older client mid-deploy posts no origin at all, and those rows must
+    // stay countable.
+    expect(parsed).toEqual({ event: "minimized", variant: "generic", analytics: null, marketing: null, sessionRecording: null, path: null, locale: null, origin: null });
+  });
+
+  it("keeps each known origin and drops anything else", () => {
+    for (const origin of ["card", "mini", "settings"]) {
+      expect(parseConsentEvent({ event: "accept_all", origin })?.origin).toBe(origin);
+    }
+    expect(parseConsentEvent({ event: "accept_all" })?.origin).toBeNull();
+    expect(parseConsentEvent({ event: "accept_all", origin: 42 })?.origin).toBeNull();
   });
 
   it("caps the path length", () => {

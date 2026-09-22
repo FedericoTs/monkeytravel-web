@@ -65,6 +65,17 @@ export interface ConsentChangeEvent {
 }
 
 /**
+ * Where a decision was taken. Recorded on the event so a change to one
+ * surface can be told apart from a change to another — without it, "more
+ * people decided" cannot be attributed to the thing that was built.
+ *
+ * Not called "surface": that word already means blog/home/wizard in every
+ * read of this data.
+ */
+export type ConsentOrigin = "card" | "mini" | "settings";
+export const CONSENT_ORIGINS = ["card", "mini", "settings"] as const;
+
+/**
  * Consent context value for React context
  */
 export interface ConsentContextValue {
@@ -75,11 +86,13 @@ export interface ConsentContextValue {
   /** Banner visibility status */
   bannerStatus: ConsentBannerStatus;
   /** Accept all cookies */
-  acceptAll: () => void;
+  acceptAll: (origin?: ConsentOrigin) => void;
   /** Accept essential cookies only */
-  acceptEssentialOnly: () => void;
+  acceptEssentialOnly: (origin?: ConsentOrigin) => void;
   /** Update specific category */
   updateCategory: (category: Exclude<ConsentCategory, "essential">, enabled: boolean) => void;
+  /** Commit the granular choice: stores it, closes the banner, records one event */
+  saveSettings: () => void;
   /** Open settings modal */
   openSettings: () => void;
   /** Close settings modal */

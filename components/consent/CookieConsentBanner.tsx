@@ -70,6 +70,21 @@
  * ignored so keyboard users can reach the buttons without dismissing them.
  * tests/e2e/consent-overlap.spec.ts guards all of this on four surfaces at
  * both viewports.
+ *
+ * THE MINIMISED STATE WAS A DEAD END (2026-09-22)
+ * -----------------------------------------------
+ * Stepping out of the way was right; leaving nothing behind was not. Seven
+ * days of consent_events to 2026-09-22: 4,636 impressions, 3,215 (69%)
+ * minimised without deciding, 1,193 (26%) gone without touching it, 228
+ * decisions — a 4.9% decision rate. Blog alone was 2,375 impressions and
+ * 1,718 minimisations, because a reader scrolls past 40px within a second.
+ * Desktop kept a pill that cost a click before a choice was visible; below
+ * 640px there was nothing at all until the next navigation.
+ *
+ * The state machine above is unchanged — threshold, listeners, path keying,
+ * dedupe refs. Only what the minimised branch RENDERS changed: ConsentMiniBar
+ * carries both decisions at equal weight, at every width. See that file for
+ * what must not be "tidied up" (the buttons are unfilled on purpose).
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -78,12 +93,37 @@ import { usePathname } from "next/navigation";
 import { useConsent } from "@/lib/consent";
 import { bannerVariantFor } from "@/lib/consent/consent-event-schema";
 import { buildConsentEvent, sendConsentEvent } from "@/lib/consent/consent-event-client";
+import { ConsentMiniBar } from "./ConsentMiniBar";
 
 // Keys that move focus or modify other keys. A keyboard user tabbing towards
 // the card's buttons must not dismiss the card on the way there.
 const NAVIGATION_KEYS = new Set(["Tab", "Shift", "Control", "Alt", "Meta", "CapsLock"]);
 // How far the page has to move before the card counts as "scrolled past".
 const SCROLL_THRESHOLD_PX = 40;
+
+/**
+ * ONE constant for both decisions, and it is a legal requirement rather than
+ * a style preference.
+ *
+ * Until 2026-09-22 "Accept All" was coral-filled with a shadow and "Essential
+ * Only" was flat slate. That is the highlighted-button pattern EDPB
+ * Guidelines 03/2022 names directly, and it is what the January 2022 CNIL
+ * decisions against Google (EUR 150M) and Meta (EUR 60M) turned on: refusal
+ * must be as easy — and as visible — as acceptance. 226 of the 228 decisions
+ * recorded in the seven days to 2026-09-22 were made on this pair, so this is
+ * where the asymmetry actually mattered.
+ *
+ * Keeping it as ONE string is the point: a single diffable constant is what
+ * makes "the two buttons are identical" auditable, and it is the thing a
+ * well-meaning future change ("the accept button lost its primary fill")
+ * would otherwise quietly undo. Padding, radius, font-size and font-weight
+ * are unchanged from the old pair, so the card's rendered height does not
+ * move and tests/e2e/consent-overlap.spec.ts assertion 1 is unaffected.
+ */
+const CARD_DECISION_BTN =
+  "flex-1 md:flex-none px-3 sm:px-4 py-2.5 rounded-lg sm:rounded-xl border border-slate-300 " +
+  "bg-slate-100 hover:bg-slate-200 transition-colors font-semibold text-xs sm:text-sm " +
+  "text-[var(--foreground)] whitespace-nowrap";
 
 export function CookieConsentBanner() {
   const t = useTranslations("consent");
@@ -171,34 +211,7 @@ export function CookieConsentBanner() {
   }
 
   if (minimized) {
-    // Desktop only (hidden below sm): a pill in the one corner nothing else
-    // uses, which brings the card back. Mobile renders nothing here.
-    return (
-      <div className="hidden sm:block fixed bottom-[calc(var(--mt-bottom-bar-h,0px)_+_1rem)] left-4 z-[9999]">
-        <button
-          type="button"
-          onClick={() => setMinimized(false)}
-          data-testid="consent-pill"
-          className="flex items-center gap-2 rounded-full bg-white border border-slate-200 shadow-lg px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-        >
-          <svg
-            className="w-4 h-4 text-[var(--primary-ink)]"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-            />
-          </svg>
-          <span>{t("banner.pill")}</span>
-        </button>
-      </div>
-    );
+    return <ConsentMiniBar onWizard={onWizard} />;
   }
 
   return (
@@ -261,14 +274,14 @@ export function CookieConsentBanner() {
               <p className="text-[11px] sm:text-xs text-slate-500 mt-1">
                 <button
                   onClick={openSettings}
-                  className="text-[var(--primary-ink)] hover:underline font-medium"
+                  className="text-[var(--foreground)] underline underline-offset-2 font-medium"
                 >
                   {t("banner.learnMore")}
                 </button>
                 <span className="mx-1.5 text-slate-300">·</span>
                 <a
                   href="/privacy"
-                  className="text-[var(--primary-ink)] hover:underline"
+                  className="text-[var(--foreground)] underline underline-offset-2"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -281,20 +294,23 @@ export function CookieConsentBanner() {
           {/* Actions — inline with the message on md+, stacked below on mobile */}
           <div className="flex flex-row gap-2 mt-3 md:mt-0 md:flex-shrink-0">
             <button
-              onClick={acceptEssentialOnly}
-              className="flex-1 md:flex-none px-3 sm:px-4 py-2.5 rounded-lg sm:rounded-xl font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors text-xs sm:text-sm whitespace-nowrap"
+              onClick={() => acceptEssentialOnly("card")}
+              data-testid="consent-reject"
+              className={CARD_DECISION_BTN}
             >
               {t("banner.essentialOnly")}
             </button>
             <button
               onClick={openSettings}
-              className="flex flex-1 md:flex-none px-3 sm:px-4 py-2.5 rounded-lg sm:rounded-xl font-semibold text-[var(--primary-ink)] border-2 border-[var(--primary)]/20 hover:border-[var(--primary)]/40 hover:bg-[var(--primary)]/5 transition-colors text-xs sm:text-sm items-center justify-center whitespace-nowrap"
+              data-testid="consent-customize"
+              className="flex flex-1 md:flex-none px-3 sm:px-4 py-2.5 rounded-lg sm:rounded-xl font-semibold text-[var(--foreground)] border-2 border-[var(--primary)]/20 hover:border-[var(--primary)]/40 hover:bg-[var(--primary)]/5 transition-colors text-xs sm:text-sm items-center justify-center whitespace-nowrap"
             >
               {t("banner.customize")}
             </button>
             <button
-              onClick={acceptAll}
-              className="flex-1 md:flex-none px-3 sm:px-4 py-2.5 rounded-lg sm:rounded-xl font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary-dark)] transition-colors text-xs sm:text-sm shadow-lg shadow-[var(--primary)]/25 whitespace-nowrap"
+              onClick={() => acceptAll("card")}
+              data-testid="consent-accept"
+              className={CARD_DECISION_BTN}
             >
               {t("banner.acceptAll")}
             </button>

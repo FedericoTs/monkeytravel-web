@@ -10,7 +10,11 @@
     "privacyPolicy": "Informativa sulla Privacy",
     "pill": "Impostazioni cookie",
     "contextualTitle": "Aiutaci a migliorare i tuoi itinerari",
-    "contextualDescription": "Con il tuo consenso misuriamo quali piani vengono usati e dove le persone si bloccano. Non carichiamo nulla finché non scegli."
+    "contextualDescription": "Con il tuo consenso misuriamo quali piani vengono usati e dove le persone si bloccano. Non carichiamo nulla finché non scegli.",
+    "miniTitle": "La tua scelta sui cookie",
+    "miniPurposes": "Accetta tutto aggiunge analisi, registrazione della sessione e pubblicità. Non si carica nulla finché non scegli.",
+    "miniOptions": "Opzioni",
+    "miniAria": "Scelte sui cookie"
   },
   "settings": {
     "title": "Impostazioni cookie",
