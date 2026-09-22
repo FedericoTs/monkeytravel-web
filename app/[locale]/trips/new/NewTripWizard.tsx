@@ -1674,6 +1674,26 @@ export default function NewTripPage({
       backpacker_mode: travelStyle === "backpacker",
       locale,
     });
+    // Every call site of this handler is gated on isAuthenticated === false,
+    // so a Keep tap here is the auth wall by definition — the same terminal
+    // event handleSaveTrip fires when it bounces an anon saver. Without it
+    // this path emitted save_clicked with no outcome, and the 2h funnel
+    // accounting (save_clicked minus saved/blocked/failed) read that silence
+    // as a React crash mid-save. Surfaced 2026-09-22 by the health watcher.
+    void trackWizardEvent("save_blocked_anon", {
+      destination,
+      group_size: tripIntent,
+      backpacker_mode: travelStyle === "backpacker",
+      locale,
+    });
+    // PostHog mirror, sync/nav-safe, for the same reason as the main path:
+    // the auth modal opens immediately after and an async capture loses the race.
+    captureSaveBlockedAnon({
+      destination,
+      group_size: tripIntent,
+      backpacker_mode: travelStyle === "backpacker",
+      modal_shown: true,
+    });
     openKeepAuth("anon_share_keep");
   };
   const showPendingClaimBanner =
