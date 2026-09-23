@@ -39,7 +39,9 @@
 import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { addBananas } from "@/lib/bananas/transactions";
+import { isValidAwardReference } from "@/lib/bananas/award-reference";
 import type { BananaTransactionType } from "@/types/bananas";
 
 // Per-event award rates. Kept here (not in lib/bananas/config.ts) so the
@@ -101,7 +103,7 @@ export async function POST(request: NextRequest) {
   // account by spamming any random trip id" attacks.
   const { data: trip, error: tripErr } = await supabase
     .from("trips")
-    .select("id, user_id")
+    .select("id, user_id, itinerary")
     .eq("id", tripId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -112,6 +114,12 @@ export async function POST(request: NextRequest) {
   }
   if (!trip) {
     return errors.forbidden("That trip doesn't belong to you");
+  }
+
+  // The reference must be the one the client sends for this award, or every
+  // new string would be a new credit (lib/bananas/award-reference.ts).
+  if (!isValidAwardReference(type as AwardType, tripId, referenceId, trip.itinerary)) {
+    return errors.badRequest("referenceId does not match this award");
   }
 
   // Idempotency check: have we already credited this (user, type, reference_id)?
@@ -149,8 +157,10 @@ export async function POST(request: NextRequest) {
 
   const amount = AWARD_AMOUNTS[type as AwardType];
 
+  // add_bananas is service-role only (20260924122000); the user is the
+  // signed-in one and every check above has passed.
   const result = await addBananas(
-    supabase,
+    createAdminClient(),
     user.id,
     amount,
     type as BananaTransactionType,

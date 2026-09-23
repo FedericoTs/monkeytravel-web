@@ -6,6 +6,7 @@
 
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import {
   type SubscriptionTier,
@@ -477,27 +478,18 @@ export async function incrementUsage(
   amount: number = 1
 ): Promise<number> {
   try {
-    const supabase = await createClient();
+    // Service role (2026-09-23): increment_usage is closed to signed-in
+    // callers (20260924122000). It took any column name and any amount, so a
+    // user could call it on their own row with a negative amount and reset
+    // their AI quota. userId is always the caller's own, from the route's
+    // session. The upsert that used to precede this call was dead — RLS gives
+    // users no INSERT on user_usage — and the function creates the row itself.
+    const supabase = createAdminClient();
     const periodType = LIMIT_TYPE_TO_PERIOD[limitType];
     const periodKey = getCurrentPeriodKey(periodType);
     const columnName = LIMIT_TYPE_TO_COLUMN[limitType];
 
-    // Use upsert for atomic increment
-    // First, ensure the row exists
-    await supabase.from("user_usage").upsert(
-      {
-        user_id: userId,
-        period_type: periodType,
-        period_key: periodKey,
-      },
-      {
-        onConflict: "user_id,period_type,period_key",
-        ignoreDuplicates: true,
-      }
-    );
-
-    // Then increment the specific column
-    // We use RPC for atomic increment
+    // Atomic increment through the RPC.
     const { data, error } = await supabase.rpc("increment_usage", {
       p_user_id: userId,
       p_period_type: periodType,

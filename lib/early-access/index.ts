@@ -6,6 +6,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 
 export type EarlyAccessAction = "generation" | "regeneration" | "assistant";
@@ -215,8 +216,13 @@ export async function redeemTesterCode(
     };
   }
 
-  // Create user access record
-  const { error: insertError } = await supabase.from("user_tester_access").insert({
+  // Create user access record. Service role (2026-09-23): users can no
+  // longer write their own user_tester_access row (20260924122000) — the
+  // self INSERT/UPDATE policies let anyone give themselves any AI limit and
+  // reset its used counts. The code was validated above; userId comes from
+  // the route's session.
+  const admin = createAdminClient();
+  const { error: insertError } = await admin.from("user_tester_access").insert({
     user_id: userId,
     code_id: testerCode.id,
     code_used: normalizedCode,
@@ -237,11 +243,9 @@ export async function redeemTesterCode(
     };
   }
 
-  // Increment code usage
-  await supabase
-    .from("tester_codes")
-    .update({ current_uses: testerCode.current_uses + 1 })
-    .eq("id", testerCode.id);
+  // The code's use count is bumped by the definer trigger on
+  // user_tester_access (increment_tester_code_usage). The update that stood
+  // here ran on the user's client, which tester_codes RLS silently rejected.
 
   // Return new access status
   const access = await getEarlyAccessStatus(userId);

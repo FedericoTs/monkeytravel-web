@@ -87,10 +87,12 @@ export async function POST(request: NextRequest) {
     //  (a) was racy under concurrent clicks, dropping increments
     //  (b) had a `x || 0 + 1` precedence bug that froze the count
     //      at 1 indefinitely
-    // The RPC's UPDATE is single-statement-atomic and runs as
-    // SECURITY DEFINER so it bypasses RLS for the counter bump
-    // without needing the service-role key here.
-    const { error: rpcError } = await supabase.rpc(
+    // The RPC's UPDATE is single-statement-atomic. It runs through the
+    // service role (2026-09-23): the function takes any code id and checks
+    // nothing, so it is closed to anon/authenticated (20260924122000). On
+    // the visitor's own client it never counted anonymous clicks anyway —
+    // anon could not execute it — which is most of this route's traffic.
+    const { error: rpcError } = await createAdminClient().rpc(
       "increment_referral_clicks",
       { code_id: referralCode.id }
     );
