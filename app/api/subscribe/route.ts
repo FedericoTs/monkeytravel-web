@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { errors, apiSuccess } from '@/lib/api/response-wrapper'
 import { isValidEmail, normalizeEmail } from '@/lib/validation'
 import { createRateLimiter } from '@/lib/api/rate-limit'
@@ -42,8 +42,11 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     }
 
-    // Insert into Supabase
-    const { data, error } = await supabase
+    // Insert through the service role (2026-09-23). The read-back below used
+    // to run on the anon client and needed a SELECT policy that let the
+    // public anon key list every subscriber's email; that policy goes in
+    // 20260924123000.
+    const { data, error } = await createAdminClient()
       .from('email_subscribers')
       .insert({
         email: normalizeEmail(email),

@@ -6,6 +6,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 
 export type EarlyAccessAction = "generation" | "regeneration" | "assistant";
@@ -181,8 +182,12 @@ export async function redeemTesterCode(
     };
   }
 
-  // Look up the code
-  const { data: testerCode, error: codeError } = await supabase
+  // Look up the code. Service role (2026-09-23): tester_codes is no longer
+  // readable by signed-in users (20260924122000) — every active code was
+  // listable with the public anon key, and a code is the only thing standing
+  // between a user and its AI limits.
+  const admin = createAdminClient();
+  const { data: testerCode, error: codeError } = await admin
     .from("tester_codes")
     .select("*")
     .eq("code", normalizedCode)
@@ -215,8 +220,12 @@ export async function redeemTesterCode(
     };
   }
 
-  // Create user access record
-  const { error: insertError } = await supabase.from("user_tester_access").insert({
+  // Create user access record. Service role (2026-09-23): users can no
+  // longer write their own user_tester_access row (20260924122000) — the
+  // self INSERT/UPDATE policies let anyone give themselves any AI limit and
+  // reset its used counts. The code was validated above; userId comes from
+  // the route's session.
+  const { error: insertError } = await admin.from("user_tester_access").insert({
     user_id: userId,
     code_id: testerCode.id,
     code_used: normalizedCode,
@@ -237,11 +246,9 @@ export async function redeemTesterCode(
     };
   }
 
-  // Increment code usage
-  await supabase
-    .from("tester_codes")
-    .update({ current_uses: testerCode.current_uses + 1 })
-    .eq("id", testerCode.id);
+  // The code's use count is bumped by the definer trigger on
+  // user_tester_access (increment_tester_code_usage). The update that stood
+  // here ran on the user's client, which tester_codes RLS silently rejected.
 
   // Return new access status
   const access = await getEarlyAccessStatus(userId);
@@ -249,42 +256,5 @@ export async function redeemTesterCode(
     success: true,
     access,
   };
-}
-
-/**
- * Validate a code without redeeming it
- */
-export async function validateCode(
-  code: string
-): Promise<{ valid: boolean; error?: string }> {
-  const supabase = await createClient();
-  const normalizedCode = code.trim().toUpperCase();
-
-  const { data: testerCode, error } = await supabase
-    .from("tester_codes")
-    .select("expires_at, max_uses, current_uses, is_active")
-    .eq("code", normalizedCode)
-    .single();
-
-  if (error || !testerCode) {
-    return { valid: false, error: "Invalid code" };
-  }
-
-  if (!testerCode.is_active) {
-    return { valid: false, error: "Code is no longer active" };
-  }
-
-  if (testerCode.expires_at && new Date(testerCode.expires_at) < new Date()) {
-    return { valid: false, error: "Code has expired" };
-  }
-
-  if (
-    testerCode.max_uses !== null &&
-    testerCode.current_uses >= testerCode.max_uses
-  ) {
-    return { valid: false, error: "Code has reached max uses" };
-  }
-
-  return { valid: true };
 }
 

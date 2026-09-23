@@ -111,6 +111,10 @@ export async function completeReferralIfEligible(
 
     const now = new Date().toISOString();
 
+    // Privileged-write client, created up front. The claim below and the
+    // reward path both go through it (see the notes at each step).
+    const adminDb = createAdminClient();
+
     // 1. Grant reward to referee (current user)
     // Note: free_trips_remaining column was deprecated 2026-05-31 — it was
     // written here but never read anywhere (checkUsageLimit ignores it and
@@ -125,7 +129,14 @@ export async function completeReferralIfEligible(
     // index on referral_events(referee_id) WHERE event_type='conversion'
     // (migration 20260531_atomic_referral_conversion.sql) which makes the
     // conversion-row insert race-safe at the DB layer too.
-    const { data: claimedRows, error: refereeError } = await supabase
+    //
+    // The claim runs on the service role (2026-09-23). users guard
+    // 20260924116000 keeps referral_completed_at at its stored value for any
+    // write from the user's own client, so on `supabase` this UPDATE would
+    // still match and return the row while leaving the column NULL: every
+    // later call would "win" again and pay the referrer again. userId is
+    // always the session user of the calling route.
+    const { data: claimedRows, error: refereeError } = await adminDb
       .from("users")
       .update({
         referral_completed_at: now,
@@ -166,8 +177,10 @@ export async function completeReferralIfEligible(
     // below), which IS read by checkUsageLimit.
     const referrerRewarded = true;
 
-    // 3. Record conversion event
-    const { data: eventData, error: eventError } = await supabase
+    // 3. Record conversion event. Service role: users have no INSERT on
+    // referral_events, so on `supabase` this insert always failed and the
+    // unique conversion-per-referee index never got to act as a backstop.
+    const { data: eventData, error: eventError } = await adminDb
       .from("referral_events")
       .insert({
         referral_code_id: referralCode.id,
@@ -183,7 +196,7 @@ export async function completeReferralIfEligible(
       console.error("[Referral Complete] Error recording event:", eventError);
     }
 
-    // Privileged-write client. The reward path acts on the REFERRER's rows
+    // The reward path acts on the REFERRER's rows
     // (a different user than the referee whose session is active here), so it
     // legitimately needs to cross the RLS/ownership boundary. The underlying
     // RPCs (increment_referral_conversions / add_bananas / check_and_unlock_tier)
@@ -193,8 +206,6 @@ export async function completeReferralIfEligible(
     // server-trusted path; everything else in this function stays on the
     // user-scoped `supabase` client so RLS still applies to the referee's
     // own rows. See the migration's guard for the matching role check.
-    const adminDb = createAdminClient();
-
     // 4. Update conversion count in referral_codes (atomic RPC — replaces
     //    racy read-modify-write closed by 2026-05-31 audit Task #318).
     const { data: rpcCount, error: rpcErr } = await adminDb
@@ -221,7 +232,9 @@ export async function completeReferralIfEligible(
       const bananaResult = await addReferralBananas(
         adminDb,
         referralCode.user_id,
-        eventData?.id,
+        // Never null: add_bananas' idempotency index only covers non-null
+        // references, so a null here credited the referrer on every repeat.
+        eventData?.id ?? `referee:${userId}`,
         referrerTier
       );
 

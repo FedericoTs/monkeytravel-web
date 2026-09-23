@@ -1,0 +1,24 @@
+-- Stop the public read of trip_views. Applied to production on 2026-09-23,
+-- before merge, because it was an active exposure of the same kind as
+-- page_views_human (20260924110000).
+--
+-- The policy "Public can read trip views for public trips" applied to every
+-- role (PUBLIC), so with the public anon key anyone could list, for any
+-- public trip, who opened it (viewer_id, which public_profiles maps to a
+-- name), when, and their analytics session id (session_id is the
+-- mt_session_id cookie value).
+--
+-- No reader needs it: app/api/admin/growth reads trip_views through the
+-- service role, the metrics functions are postgres-owned SECURITY DEFINER,
+-- and scripts use the service key.
+--
+-- Only the policy goes here. The insert policy and the table grants stay
+-- until app/api/trips/[id]/view writes through the service role
+-- (20260924121000, applied after that code is live): the AFTER INSERT
+-- trigger update_trip_view_count() is SECURITY INVOKER and counts rows as
+-- the inserting role, so revoking SELECT now would make every view insert
+-- fail. With the policy gone that count simply sees no rows; it only ever
+-- wrote for an owner or editor opening their own trip, and it now writes 0
+-- there. Nothing renders view_count.
+
+drop policy if exists "Public can read trip views for public trips" on public.trip_views;

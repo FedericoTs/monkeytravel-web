@@ -127,87 +127,14 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
 }
 
 /**
- * POST /api/trips/[id]/collaborators - Add a collaborator (internal, called after invite accept)
+ * POST /api/trips/[id]/collaborators — retired 2026-09-23.
+ *
+ * Nothing called it: collaborators join by accepting an invite
+ * (app/api/invites/[token] -> accept_trip_invite, service role). It inserted
+ * any userId the body named, which the "Trip owners can insert collaborators"
+ * policy allowed, so an owner could put any account on their trip without
+ * consent. That policy is gone (20260924114000) and this answers 410.
  */
-export async function POST(request: NextRequest, context: TripRouteContext) {
-  try {
-    const { id: tripId } = await context.params;
-    const { user, supabase, errorResponse } = await getAuthenticatedUser();
-    if (errorResponse) return errorResponse;
-
-    const body = await request.json();
-    const { userId, role, invitedBy } = body as {
-      userId: string;
-      role: CollaboratorRole;
-      invitedBy?: string;
-    };
-
-    if (!userId || !role) {
-      return errors.badRequest("userId and role are required");
-    }
-
-    // Verify the requester has permission to add collaborators
-    const { data: trip } = await supabase
-      .from("trips")
-      .select("id, user_id")
-      .eq("id", tripId)
-      .single();
-
-    if (!trip) {
-      return errors.notFound("Trip not found");
-    }
-
-    const isOwner = trip.user_id === user.id;
-
-    // Check if requester is an editor
-    const { data: requesterCollab } = await supabase
-      .from("trip_collaborators")
-      .select("role")
-      .eq("trip_id", tripId)
-      .eq("user_id", user.id)
-      .single();
-
-    const canAddCollaborators = isOwner || requesterCollab?.role === "editor";
-
-    if (!canAddCollaborators) {
-      return errors.forbidden("You don't have permission to add collaborators");
-    }
-
-    // Check if user is already a collaborator
-    const { data: existingCollab } = await supabase
-      .from("trip_collaborators")
-      .select("id")
-      .eq("trip_id", tripId)
-      .eq("user_id", userId)
-      .single();
-
-    if (existingCollab) {
-      return errors.conflict("User is already a collaborator");
-    }
-
-    // Add the collaborator
-    const { data: newCollab, error } = await supabase
-      .from("trip_collaborators")
-      .insert({
-        trip_id: tripId,
-        user_id: userId,
-        role: role === "owner" ? "editor" : role, // Can't add someone as owner
-        invited_by: invitedBy || user.id,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("[Collaborators] Error adding collaborator:", error);
-      return errors.internal("Failed to add collaborator", "Collaborators");
-    }
-
-    return apiSuccess({
-      success: true,
-      collaborator: newCollab,
-    });
-  } catch (error) {
-    console.error("[Collaborators] Error adding collaborator:", error);
-    return errors.internal("Failed to add collaborator", "Collaborators");
-  }
+export async function POST() {
+  return errors.gone("Collaborators are added by accepting an invite", "COLLABORATOR_ADD_RETIRED");
 }

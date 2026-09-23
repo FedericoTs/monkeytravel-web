@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { errors, apiSuccess } from '@/lib/api/response-wrapper';
 import { getAuthenticatedUser } from '@/lib/api/auth';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { spendBananas, getAvailableBalance } from '@/lib/bananas';
 import type { RedeemResponse, RedemptionCatalogRow } from '@/types/bananas';
 import { catalogRowToApi } from '@/types/bananas';
@@ -12,6 +13,9 @@ export async function POST(request: NextRequest) {
   try {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
+    // The balance and spend functions are service-role only (20260924122000):
+    // both took any user id. The user is always the signed-in one.
+    const admin = createAdminClient();
 
     const body = await request.json();
     const { catalogItemId } = body;
@@ -38,7 +42,7 @@ export async function POST(request: NextRequest) {
     if (item.stock_limit !== null && item.stock_used >= item.stock_limit) {
       const response: RedeemResponse = {
         success: false,
-        newBalance: await getAvailableBalance(supabase, user.id),
+        newBalance: await getAvailableBalance(admin, user.id),
         errorCode: 'OUT_OF_STOCK',
         error: 'This item is out of stock',
       };
@@ -56,7 +60,7 @@ export async function POST(request: NextRequest) {
       if (count !== null && count >= item.per_user_limit) {
         const response: RedeemResponse = {
           success: false,
-          newBalance: await getAvailableBalance(supabase, user.id),
+          newBalance: await getAvailableBalance(admin, user.id),
           errorCode: 'LIMIT_REACHED',
           error: 'You have reached the limit for this item',
         };
@@ -83,7 +87,7 @@ export async function POST(request: NextRequest) {
         if (cooldownEnd > new Date()) {
           const response: RedeemResponse = {
             success: false,
-            newBalance: await getAvailableBalance(supabase, user.id),
+            newBalance: await getAvailableBalance(admin, user.id),
             errorCode: 'COOLDOWN_ACTIVE',
             error: `Please wait until ${cooldownEnd.toLocaleString()} to redeem this item again`,
           };
@@ -93,7 +97,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check balance
-    const currentBalance = await getAvailableBalance(supabase, user.id);
+    const currentBalance = await getAvailableBalance(admin, user.id);
     if (currentBalance < item.banana_cost) {
       const response: RedeemResponse = {
         success: false,
@@ -123,7 +127,7 @@ export async function POST(request: NextRequest) {
 
     // Spend bananas
     const spendResult = await spendBananas(
-      supabase,
+      admin,
       user.id,
       item.banana_cost,
       'spend',

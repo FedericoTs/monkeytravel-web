@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
-import { redeemTesterCode, validateCode } from "@/lib/early-access";
+import { redeemTesterCode } from "@/lib/early-access";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 
@@ -48,20 +48,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Validate a code without redeeming
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const code = searchParams.get("code");
-
-    if (!code) {
-      return errors.badRequest("No code provided");
-    }
-
-    const result = await validateCode(code);
-    return apiSuccess(result);
-  } catch (error) {
-    console.error("[Early Access] Error validating code:", error);
-    return errors.internal("Failed to validate code", "Early Access");
-  }
-}
+// GET (validate a code without redeeming) was removed 2026-09-23. Nothing
+// called it (BetaCodeInput and useEarlyAccess POST), it had no auth and no
+// rate limit, and once code lookups moved to the service role it would have
+// told an anonymous caller which strings are real codes and whether each is
+// inactive, expired or used up.
