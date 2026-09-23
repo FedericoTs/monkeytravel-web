@@ -30,6 +30,7 @@ import { postTripCtaUrl } from "@/lib/email/followup-cta";
 import { resolveLocale, formatDateRange } from "@/lib/email/reminder-locale";
 import { retryTransient } from "@/lib/notifications/retry";
 import { domesticTripVerdict } from "@/lib/notifications/domestic-trip";
+import { normalizeTripTitle, twinDecision, type TwinCandidate } from "@/lib/notifications/twin-trips";
 
 /**
  * Pre-trip reminder cron — sweeps `scheduled_notifications` and
@@ -495,19 +496,19 @@ export async function GET(request: NextRequest) {
 
   const cap = sendCap();
 
-  for (const row of dueRows) {
-    // Canary cap. Counts ACTUAL sends, not rows examined, so suppressions and
-    // failures do not consume the budget — a cap of 5 means five real emails.
-    // Remaining rows are left `pending` and untouched, so they go out on a
-    // later run with no state to repair.
-    if (cap !== null && sent >= cap) {
-      deferredByCap = dueRows.length - (sent + skipped + failed);
-      break;
-    }
+  // Rows that are a twin copy of a trip whose chosen copy has not sent yet.
+  // They are left untouched in the first pass and decided in a second, once
+  // the chosen copy has sent (duplicate: suppress) or failed (send this one).
+  // See lib/notifications/twin-trips.ts: a lost reminder is worse than a
+  // duplicate, so no copy is suppressed before another has actually sent.
+  const waitingTwins: SlotRow[] = [];
+
+  const runRow = async (row: SlotRow, finalPass: boolean): Promise<void> => {
     try {
-      const outcome = await processRow(svc, row);
+      const outcome = await processRow(svc, row, finalPass);
       if (outcome === "sent") sent++;
       else if (outcome === "skipped") skipped++;
+      else if (outcome === "deferred") waitingTwins.push(row);
       else failed++;
     } catch (err) {
       failed++;
@@ -528,6 +529,29 @@ export async function GET(request: NextRequest) {
         })
         .eq("id", row.id);
     }
+  };
+
+  for (const row of dueRows) {
+    // Canary cap. Counts ACTUAL sends, not rows examined, so suppressions and
+    // failures do not consume the budget — a cap of 5 means five real emails.
+    // Remaining rows are left `pending` and untouched, so they go out on a
+    // later run with no state to repair.
+    if (cap !== null && sent >= cap) {
+      deferredByCap = dueRows.length - (sent + skipped + failed + waitingTwins.length);
+      break;
+    }
+    await runRow(row, false);
+  }
+
+  // Final pass over the twins that waited. Same cap: a waiting row the cap
+  // cuts stays pending, exactly like any other row the cap leaves behind.
+  const waiting = waitingTwins.splice(0, waitingTwins.length);
+  for (const row of waiting) {
+    if (cap !== null && sent >= cap) {
+      deferredByCap += 1;
+      continue;
+    }
+    await runRow(row, true);
   }
 
   const durationMs = Date.now() - startedAt;
@@ -566,8 +590,9 @@ export async function GET(request: NextRequest) {
  */
 async function processRow(
   svc: ReturnType<typeof serviceClient>,
-  row: SlotRow
-): Promise<"sent" | "skipped" | "failed"> {
+  row: SlotRow,
+  finalPass = false
+): Promise<"sent" | "skipped" | "failed" | "deferred"> {
   // 2a. Load the trip — needed for destination + start_date + mute.
   //     We re-check `reminders_muted` here even though the enqueue RPC
   //     already gates: the user could have muted between enqueue and
@@ -667,6 +692,38 @@ async function processRow(
     return "skipped";
   }
 
+  // 2a-twin. One reminder per real trip, not per saved copy.
+  //
+  // People regenerate a trip and save the result without deleting the first,
+  // so the same trip (owner, title, start date) exists two or three times,
+  // each with its own cascade — and the per-trip rate limit below cannot see
+  // the siblings. 19 of 217 sends from 16-23 Sep were extra copies (Sedona
+  // three times in eight seconds; Bari's in-trip digest twice a day for six
+  // days). See lib/notifications/twin-trips.ts for which copy wins.
+  //
+  // FAIL OPEN: a read error sends exactly as before. A duplicate is a
+  // nuisance; a lost reminder is the thing this whole loop exists to prevent.
+  // The trips that count as "this trip" for the one-email-a-day limit below:
+  // the whole twin set when there is one. Found in review: on departure
+  // morning "Travel day" (morning_of) and the day-2 digest are due at the
+  // same moment on every copy. The chosen copy sent "Travel day" and its own
+  // digest was rate-limited; the older copy's digest then became the chosen
+  // one for that slot, and a limit counted per trip id let it through — two
+  // emails that morning, one built from the abandoned copy.
+  let rateLimitTripIds: string[] = [row.trip_id];
+  if (trip.start_date) {
+    const twins = await loadTwins(svc, row, trip);
+    if (twins) {
+      rateLimitTripIds = twins.map((t) => t.id);
+      const decision = twinDecision(row.trip_id, twins, row.scheduled_for, finalPass);
+      if (decision.action === "suppress") {
+        await persistOutcome(svc, row.id, "suppressed", `twin_trip:${decision.keeperId}`);
+        return "skipped";
+      }
+      if (decision.action === "wait") return "deferred";
+    }
+  }
+
   // 2a-bis. EXIT CONDITION for the post-trip sequence.
   //
   // Loop 2 exists to re-engage people who planned one trip and went
@@ -712,11 +769,12 @@ async function processRow(
   //     sibling rows on the same trip whose status='sent' AND sent_at is
   //     today. PRD §"Resend complaint rate spike from too many emails".
   //     Calendar day, not rolling 24h: see rateLimitWindowStart.
+  //     Twin copies of one trip share the limit (rateLimitTripIds, above).
   const since = rateLimitWindowStart(new Date());
   const { data: recent, error: recentErr } = await svc
     .from("scheduled_notifications")
     .select("id")
-    .eq("trip_id", row.trip_id)
+    .in("trip_id", rateLimitTripIds)
     .eq("status", "sent")
     .gte("sent_at", since)
     .limit(1);
@@ -1267,6 +1325,55 @@ async function dispatchDayDigest(
   return "failed";
 }
 
+/**
+ * The owner's live twins of this trip (same normalized title and start date,
+ * this trip included) with each one's row status for the slot, or null when
+ * there are no twins or a read failed (caller sends as before). Two small
+ * reads, and only for trips with a start date.
+ */
+async function loadTwins(
+  svc: ReturnType<typeof serviceClient>,
+  row: SlotRow,
+  trip: { title: string | null; start_date: string | null }
+): Promise<TwinCandidate[] | null> {
+  const { data: sameDay, error: tripsErr } = await svc
+    .from("trips")
+    .select("id, title, updated_at, status")
+    .eq("user_id", row.user_id)
+    .eq("start_date", trip.start_date as string)
+    .is("deleted_at", null)
+    .limit(20);
+  if (tripsErr) {
+    console.warn("[cron/scheduled-notifs] twin read failed, sending", { id: row.id, error: tripsErr.message });
+    return null;
+  }
+  const key = normalizeTripTitle(trip.title);
+  const twins = ((sameDay ?? []) as { id: string; title: string | null; updated_at: string | null; status: string | null }[])
+    .filter((t) => t.status !== "cancelled" && normalizeTripTitle(t.title) === key);
+  if (twins.length < 2) return null;
+
+  const { data: slotRows, error: slotErr } = await svc
+    .from("scheduled_notifications")
+    .select("trip_id, status, sent_at")
+    .in("trip_id", twins.map((t) => t.id))
+    .eq("slot", row.slot);
+  if (slotErr) {
+    console.warn("[cron/scheduled-notifs] twin slot read failed, sending", { id: row.id, error: slotErr.message });
+    return null;
+  }
+  const rowByTrip = new Map<string, { status: string; sent_at: string | null }>();
+  for (const r of (slotRows ?? []) as { trip_id: string; status: string; sent_at: string | null }[]) {
+    // A trip holds one row per slot; if it somehow holds more, "sent" wins.
+    if (rowByTrip.get(r.trip_id)?.status !== "sent") rowByTrip.set(r.trip_id, r);
+  }
+  return twins.map((t) => ({
+    id: t.id,
+    updatedAt: t.updated_at,
+    slotStatus: rowByTrip.get(t.id)?.status ?? null,
+    slotSentAt: rowByTrip.get(t.id)?.sent_at ?? null,
+  }));
+}
+
 async function persistOutcome(
   svc: ReturnType<typeof serviceClient>,
   id: string,
@@ -1284,10 +1391,16 @@ async function persistOutcome(
     patch.skipped_reason = reason.slice(0, 200);
     if (error) patch.last_error = error.slice(0, 500);
   }
+  // A sent row is final. Without this guard, a second overlapping cron run
+  // that reached the same row got "skipped_duplicate" back from the email
+  // idempotency check and rewrote the row from 'sent' to 'suppressed' — and a
+  // twin copy waiting on that row then saw no sent copy and sent the email
+  // again under its own idempotency key (found in review, 2026-09-23).
   const { error: updErr } = await svc
     .from("scheduled_notifications")
     .update(patch)
-    .eq("id", id);
+    .eq("id", id)
+    .neq("status", "sent");
   if (updErr) {
     console.error(
       "[cron/scheduled-notifs] outcome-update failed",

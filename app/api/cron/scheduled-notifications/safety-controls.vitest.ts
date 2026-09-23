@@ -73,9 +73,41 @@ describe("canary send cap", () => {
     // goes out on a later run with no state to repair. A `continue` that
     // persisted an outcome would strand them.
     const loop = SRC.slice(SRC.indexOf("for (const row of dueRows)"));
-    const capBlock = loop.slice(0, loop.indexOf("try {"));
+    const capBlock = loop.slice(0, loop.indexOf("await runRow(row, false)"));
     expect(capBlock).toContain("break");
     expect(capBlock).not.toContain("persistOutcome");
+  });
+
+  it("the final pass over waiting twin copies obeys the cap the same way", () => {
+    // Twin copies that waited for their chosen copy (lib/notifications/twin-trips.ts)
+    // are decided in a second pass. A capped one must stay pending too.
+    const pass = SRC.slice(SRC.indexOf("for (const row of waiting)"));
+    const capBlock = pass.slice(0, pass.indexOf("await runRow(row, true)"));
+    expect(capBlock).toContain("sent >= cap");
+    expect(capBlock).toContain("continue");
+    expect(capBlock).not.toContain("persistOutcome");
+  });
+});
+
+describe("twin copies of one trip", () => {
+  it("share the one-email-a-day limit", () => {
+    // On departure morning "Travel day" and the day-2 digest are due at the
+    // same moment on every copy. A limit counted per trip id let an older
+    // copy's digest out after the chosen copy had already sent that morning.
+    const block = SRC.slice(SRC.indexOf("const since = rateLimitWindowStart"));
+    const query = block.slice(0, block.indexOf(".limit(1)"));
+    expect(query).toContain('.in("trip_id", rateLimitTripIds)');
+    expect(query).not.toContain('.eq("trip_id", row.trip_id)');
+    expect(SRC).toContain("rateLimitTripIds = twins.map((t) => t.id)");
+  });
+
+  it("never see a sent row rewritten as suppressed", () => {
+    // An overlapping run that hits the email idempotency check must not turn
+    // the chosen copy's 'sent' into 'suppressed' — a waiting twin would then
+    // send the same email again under its own idempotency key.
+    const fn = SRC.slice(SRC.indexOf("async function persistOutcome("));
+    const update = fn.slice(0, fn.indexOf("if (updErr)"));
+    expect(update).toContain('.neq("status", "sent")');
   });
 });
 

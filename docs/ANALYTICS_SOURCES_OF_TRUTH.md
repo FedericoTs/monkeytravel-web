@@ -113,6 +113,12 @@ One more thing the raw data revealed: the sweep came from **Cittadella**, and so
 | Admin dashboard reads | `app/api/admin/stats/route.ts` → `get_page_views_*` (rollup), `get_engagement_metrics`, `get_acquisition_breakdown` (sessions, 28 d) |
 | GA4 configuration | `docs/GA4_SETUP_GUIDE.md` |
 
+## entry_burst_fleet label — since 2026-09-24 (the sixth definition change)
+
+A burst sitemap crawler: one page view per session, no referrer, never signed in, desktop Chrome 5+ majors behind the day's newest, spread over 21-27 exact user-agent strings so no single string reaches ua_lagging_fleet's 100-session bar. On 2026-09-23 it arrived in four bursts on a ~3-hour cadence and was about 1,136 of that day's sessions. The rule labels such sessions when 60+ open inside one 15-minute window on 95%+ distinct paths. The path test is the separator: every crawl bucket on 23 Sep was 99-100% distinct paths; the only other 60+ bucket (18 Sep 18:30) was 74% distinct and led by /trips/new — real people, left alone. Rehearsed and applied over 17-23 Sep: it fires only on 23 Sep.
+
+Sixth change to the definition of a human session since 27 August (fc2b4b6, 3ac47c4, #149, #168, #173, this). It moves only 23 Sep.
+
 ## cookieless_internal_entry label — since 2026-09-23 (the fifth definition change)
 
 A session-day whose ONLY row is a single anonymous page view with a monkeytravel.app referrer, that never left a `session_engagement`, `consent_events`, `wizard_step_events` or `funnel_events` row, is labelled `cookieless_internal_entry` (priority 10, last) and leaves `page_views_human`. These are one-shot requests that arrive with no cookie and a same-origin Referer for a page the client never fetched: on 2026-09-20, 1 of 168 had another session view the referring page with the same user-agent in the preceding 30 minutes, against 145 of 161 genuine internal navigations. They are not cookie-blocked people — those still run our JavaScript and write engagement and consent rows.

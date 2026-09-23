@@ -1579,6 +1579,17 @@ async function regenerateSingleDayInternal(
       topK: 40,
       maxOutputTokens: 2048, // One day is ~500-800 tokens; this leaves headroom.
       responseMimeType: "application/json",
+      // Thinking OFF, as on the trip-generation paths (line ~1051). 2.5-flash
+      // thinks by default and thinking tokens count against maxOutputTokens,
+      // so the 2048 cap was spent thinking and ~120 visible tokens of JSON came
+      // out, cut mid-object. PostHog $ai_generation, 60 days to 2026-09-23:
+      // 23 of 23 first attempts on gemini-2.5-flash failed with "JSON parse
+      // error" (avg 10.4 s, 118 output tokens); every one then succeeded on the
+      // flash-lite retry (3.4 s, ~960 tokens). The last successful first
+      // attempt was in May. So every "regenerate this day" since June cost a
+      // wasted flash call, ~10 s of waiting, and the weaker model's day.
+      // The retry stays: it is still the right answer to a genuine bad output.
+      ...({ thinkingConfig: { thinkingBudget: 0 } } as Record<string, unknown>),
     },
   });
 
@@ -1732,6 +1743,11 @@ Rules:
       console.error(
         `Day regeneration JSON parse error (attempt ${retryCount + 1}):`,
         parseError instanceof Error ? parseError.message : "Unknown",
+        // MAX_TOKENS here means the output cap was hit — the thinking-budget
+        // failure mode. Logged so the next truncation is diagnosable from the
+        // logs instead of inferred from a 165-character preview.
+        "\nfinishReason:",
+        response.candidates?.[0]?.finishReason ?? "unknown",
         "\nResponse preview:",
         text.substring(0, 500)
       );
