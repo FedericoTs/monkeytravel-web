@@ -94,6 +94,15 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       return errors.badRequest(`Invalid role. Must be one of: ${ASSIGNABLE_ROLES.join(", ")}`);
     }
 
+    // Bounds match the insert policy (20260924114000): 1-100 uses, and at
+    // most the ~10-year default. Nothing in the UI sends either today.
+    if (!Number.isInteger(maxUses) || maxUses < 1 || maxUses > 100) {
+      return errors.badRequest("maxUses must be a whole number from 1 to 100");
+    }
+    if (!Number.isInteger(expiresInDays) || expiresInDays < 1 || expiresInDays > 3650) {
+      return errors.badRequest("expiresInDays must be a whole number from 1 to 3650");
+    }
+
     // Validate new optional fields
     const normalizedEmail = recipientEmail?.trim().toLowerCase();
     if (normalizedEmail !== undefined && normalizedEmail !== "") {

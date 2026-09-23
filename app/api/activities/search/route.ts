@@ -91,7 +91,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body: SearchRequest = await request.json();
-    const { destination, query = "", types = [], limit = 10, includeGoogle: requestedIncludeGoogle = true } = body;
+    const { destination, query = "", types = [], limit: requestedLimit = 10, includeGoogle: requestedIncludeGoogle = true } = body;
+    // Capped: the body is caller-controlled and this route is open to anon,
+    // so an uncapped limit was a cheap way to page through the whole index
+    // on a Nano database. The UI asks for 10.
+    const limit = Math.min(Math.max(Math.trunc(Number(requestedLimit)) || 10, 1), 25);
 
     if (!destination) {
       return errors.badRequest("Destination is required");
