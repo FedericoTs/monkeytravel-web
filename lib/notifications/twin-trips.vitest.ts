@@ -143,3 +143,52 @@ describe("the cron over a twin set (first pass + final pass)", () => {
     expect(twinDecision("solo", [t("solo", "2026-09-01T00:00:00Z", "pending")], DUE, false)).toEqual({ action: "send" });
   });
 });
+
+/**
+ * Departure morning, as the second review traced it: "Travel day" (morning_of)
+ * and the day-2 digest are due at the same moment on every copy, and the
+ * cron allows one email per trip per day. The limit must span the twin set:
+ * counted per trip id, the older copy's digest went out after the chosen
+ * copy had already sent "Travel day" — two emails that morning.
+ */
+function simulateMorning(sharedLimit: boolean): string[] {
+  const updated: Record<string, string> = { A: "2026-09-01T00:00:00Z", B: "2026-09-10T00:00:00Z" };
+  const status = new Map<string, string>([
+    ["A:morning_of", "pending"], ["B:morning_of", "pending"],
+    ["A:day2", "pending"], ["B:day2", "pending"],
+  ]);
+  const sentAt = new Map<string, string>();
+  const emails: string[] = [];
+  const view = (slot: string) =>
+    ["A", "B"].map((id) => t(id, updated[id], status.get(id + ":" + slot) ?? null, sentAt.get(id + ":" + slot) ?? null));
+  const sentToday = (ids: string[]) =>
+    [...status].some(([key, st]) => st === "sent" && ids.includes(key.split(":")[0]));
+  const process = (id: string, slot: string, finalPass: boolean): "waited" | "done" => {
+    const key = id + ":" + slot;
+    if (status.get(key) !== "pending") return "done";
+    const d = twinDecision(id, view(slot), DUE, finalPass);
+    if (d.action === "wait") return "waited";
+    if (d.action === "suppress") { status.set(key, "suppressed"); return "done"; }
+    // The rate limit runs AFTER the twin decision, as in the route.
+    if (sentToday(sharedLimit ? ["A", "B"] : [id])) { status.set(key, "suppressed"); return "done"; }
+    status.set(key, "sent");
+    sentAt.set(key, "2026-09-23T06:00:30Z");
+    emails.push(key);
+    return "done";
+  };
+  // prioritizeDueRows puts morning_of before the digest; within a slot the
+  // older copy happens to come first — the order the review used.
+  const order: [string, string][] = [["A", "morning_of"], ["B", "morning_of"], ["A", "day2"], ["B", "day2"]];
+  const waiting = order.filter(([id, slot]) => process(id, slot, false) === "waited");
+  for (const [id, slot] of waiting) process(id, slot, true);
+  return emails;
+}
+
+describe("departure morning with two copies", () => {
+  it("sends exactly one email when the daily limit spans the twin set", () => {
+    expect(simulateMorning(true)).toEqual(["B:morning_of"]);
+  });
+  it("(the defect) a per-trip limit lets the abandoned copy's digest out too", () => {
+    expect(simulateMorning(false)).toEqual(["B:morning_of", "A:day2"]);
+  });
+});

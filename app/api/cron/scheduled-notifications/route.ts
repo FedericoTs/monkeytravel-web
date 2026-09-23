@@ -703,9 +703,18 @@ async function processRow(
   //
   // FAIL OPEN: a read error sends exactly as before. A duplicate is a
   // nuisance; a lost reminder is the thing this whole loop exists to prevent.
+  // The trips that count as "this trip" for the one-email-a-day limit below:
+  // the whole twin set when there is one. Found in review: on departure
+  // morning "Travel day" (morning_of) and the day-2 digest are due at the
+  // same moment on every copy. The chosen copy sent "Travel day" and its own
+  // digest was rate-limited; the older copy's digest then became the chosen
+  // one for that slot, and a limit counted per trip id let it through — two
+  // emails that morning, one built from the abandoned copy.
+  let rateLimitTripIds: string[] = [row.trip_id];
   if (trip.start_date) {
     const twins = await loadTwins(svc, row, trip);
     if (twins) {
+      rateLimitTripIds = twins.map((t) => t.id);
       const decision = twinDecision(row.trip_id, twins, row.scheduled_for, finalPass);
       if (decision.action === "suppress") {
         await persistOutcome(svc, row.id, "suppressed", `twin_trip:${decision.keeperId}`);
@@ -760,11 +769,12 @@ async function processRow(
   //     sibling rows on the same trip whose status='sent' AND sent_at is
   //     today. PRD §"Resend complaint rate spike from too many emails".
   //     Calendar day, not rolling 24h: see rateLimitWindowStart.
+  //     Twin copies of one trip share the limit (rateLimitTripIds, above).
   const since = rateLimitWindowStart(new Date());
   const { data: recent, error: recentErr } = await svc
     .from("scheduled_notifications")
     .select("id")
-    .eq("trip_id", row.trip_id)
+    .in("trip_id", rateLimitTripIds)
     .eq("status", "sent")
     .gte("sent_at", since)
     .limit(1);
@@ -1381,10 +1391,16 @@ async function persistOutcome(
     patch.skipped_reason = reason.slice(0, 200);
     if (error) patch.last_error = error.slice(0, 500);
   }
+  // A sent row is final. Without this guard, a second overlapping cron run
+  // that reached the same row got "skipped_duplicate" back from the email
+  // idempotency check and rewrote the row from 'sent' to 'suppressed' — and a
+  // twin copy waiting on that row then saw no sent copy and sent the email
+  // again under its own idempotency key (found in review, 2026-09-23).
   const { error: updErr } = await svc
     .from("scheduled_notifications")
     .update(patch)
-    .eq("id", id);
+    .eq("id", id)
+    .neq("status", "sent");
   if (updErr) {
     console.error(
       "[cron/scheduled-notifs] outcome-update failed",

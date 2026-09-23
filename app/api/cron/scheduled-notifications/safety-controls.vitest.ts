@@ -89,6 +89,28 @@ describe("canary send cap", () => {
   });
 });
 
+describe("twin copies of one trip", () => {
+  it("share the one-email-a-day limit", () => {
+    // On departure morning "Travel day" and the day-2 digest are due at the
+    // same moment on every copy. A limit counted per trip id let an older
+    // copy's digest out after the chosen copy had already sent that morning.
+    const block = SRC.slice(SRC.indexOf("const since = rateLimitWindowStart"));
+    const query = block.slice(0, block.indexOf(".limit(1)"));
+    expect(query).toContain('.in("trip_id", rateLimitTripIds)');
+    expect(query).not.toContain('.eq("trip_id", row.trip_id)');
+    expect(SRC).toContain("rateLimitTripIds = twins.map((t) => t.id)");
+  });
+
+  it("never see a sent row rewritten as suppressed", () => {
+    // An overlapping run that hits the email idempotency check must not turn
+    // the chosen copy's 'sent' into 'suppressed' — a waiting twin would then
+    // send the same email again under its own idempotency key.
+    const fn = SRC.slice(SRC.indexOf("async function persistOutcome("));
+    const update = fn.slice(0, fn.indexOf("if (updErr)"));
+    expect(update).toContain('.neq("status", "sent")');
+  });
+});
+
 describe("a cancelled trip must never generate mail", () => {
   it("suppresses a queued row whose trip has since been cancelled", () => {
     // Checked at DISPATCH, not only at enqueue, because cancelling happens
