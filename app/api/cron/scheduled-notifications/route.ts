@@ -30,7 +30,7 @@ import { postTripCtaUrl } from "@/lib/email/followup-cta";
 import { resolveLocale, formatDateRange } from "@/lib/email/reminder-locale";
 import { retryTransient } from "@/lib/notifications/retry";
 import { domesticTripVerdict } from "@/lib/notifications/domestic-trip";
-import { normalizeTripTitle, twinKeeper, type TwinCandidate } from "@/lib/notifications/twin-trips";
+import { normalizeTripTitle, twinDecision, type TwinCandidate } from "@/lib/notifications/twin-trips";
 
 /**
  * Pre-trip reminder cron — sweeps `scheduled_notifications` and
@@ -496,19 +496,19 @@ export async function GET(request: NextRequest) {
 
   const cap = sendCap();
 
-  for (const row of dueRows) {
-    // Canary cap. Counts ACTUAL sends, not rows examined, so suppressions and
-    // failures do not consume the budget — a cap of 5 means five real emails.
-    // Remaining rows are left `pending` and untouched, so they go out on a
-    // later run with no state to repair.
-    if (cap !== null && sent >= cap) {
-      deferredByCap = dueRows.length - (sent + skipped + failed);
-      break;
-    }
+  // Rows that are a twin copy of a trip whose chosen copy has not sent yet.
+  // They are left untouched in the first pass and decided in a second, once
+  // the chosen copy has sent (duplicate: suppress) or failed (send this one).
+  // See lib/notifications/twin-trips.ts: a lost reminder is worse than a
+  // duplicate, so no copy is suppressed before another has actually sent.
+  const waitingTwins: SlotRow[] = [];
+
+  const runRow = async (row: SlotRow, finalPass: boolean): Promise<void> => {
     try {
-      const outcome = await processRow(svc, row);
+      const outcome = await processRow(svc, row, finalPass);
       if (outcome === "sent") sent++;
       else if (outcome === "skipped") skipped++;
+      else if (outcome === "deferred") waitingTwins.push(row);
       else failed++;
     } catch (err) {
       failed++;
@@ -529,6 +529,29 @@ export async function GET(request: NextRequest) {
         })
         .eq("id", row.id);
     }
+  };
+
+  for (const row of dueRows) {
+    // Canary cap. Counts ACTUAL sends, not rows examined, so suppressions and
+    // failures do not consume the budget — a cap of 5 means five real emails.
+    // Remaining rows are left `pending` and untouched, so they go out on a
+    // later run with no state to repair.
+    if (cap !== null && sent >= cap) {
+      deferredByCap = dueRows.length - (sent + skipped + failed + waitingTwins.length);
+      break;
+    }
+    await runRow(row, false);
+  }
+
+  // Final pass over the twins that waited. Same cap: a waiting row the cap
+  // cuts stays pending, exactly like any other row the cap leaves behind.
+  const waiting = waitingTwins.splice(0, waitingTwins.length);
+  for (const row of waiting) {
+    if (cap !== null && sent >= cap) {
+      deferredByCap += 1;
+      continue;
+    }
+    await runRow(row, true);
   }
 
   const durationMs = Date.now() - startedAt;
@@ -567,8 +590,9 @@ export async function GET(request: NextRequest) {
  */
 async function processRow(
   svc: ReturnType<typeof serviceClient>,
-  row: SlotRow
-): Promise<"sent" | "skipped" | "failed"> {
+  row: SlotRow,
+  finalPass = false
+): Promise<"sent" | "skipped" | "failed" | "deferred"> {
   // 2a. Load the trip — needed for destination + start_date + mute.
   //     We re-check `reminders_muted` here even though the enqueue RPC
   //     already gates: the user could have muted between enqueue and
@@ -680,10 +704,14 @@ async function processRow(
   // FAIL OPEN: a read error sends exactly as before. A duplicate is a
   // nuisance; a lost reminder is the thing this whole loop exists to prevent.
   if (trip.start_date) {
-    const twin = await findTwinKeeper(svc, row, trip);
-    if (twin && twin !== row.trip_id) {
-      await persistOutcome(svc, row.id, "suppressed", `twin_trip:${twin}`);
-      return "skipped";
+    const twins = await loadTwins(svc, row, trip);
+    if (twins) {
+      const decision = twinDecision(row.trip_id, twins, row.scheduled_for, finalPass);
+      if (decision.action === "suppress") {
+        await persistOutcome(svc, row.id, "suppressed", `twin_trip:${decision.keeperId}`);
+        return "skipped";
+      }
+      if (decision.action === "wait") return "deferred";
     }
   }
 
@@ -1288,15 +1316,16 @@ async function dispatchDayDigest(
 }
 
 /**
- * The trip that should send this slot among the owner's live twins of this
- * trip, or null when there are none or the read failed (caller sends). Two
- * small reads, and only for trips with a start date.
+ * The owner's live twins of this trip (same normalized title and start date,
+ * this trip included) with each one's row status for the slot, or null when
+ * there are no twins or a read failed (caller sends as before). Two small
+ * reads, and only for trips with a start date.
  */
-async function findTwinKeeper(
+async function loadTwins(
   svc: ReturnType<typeof serviceClient>,
   row: SlotRow,
   trip: { title: string | null; start_date: string | null }
-): Promise<string | null> {
+): Promise<TwinCandidate[] | null> {
   const { data: sameDay, error: tripsErr } = await svc
     .from("trips")
     .select("id, title, updated_at, status")
@@ -1315,24 +1344,24 @@ async function findTwinKeeper(
 
   const { data: slotRows, error: slotErr } = await svc
     .from("scheduled_notifications")
-    .select("trip_id, status")
+    .select("trip_id, status, sent_at")
     .in("trip_id", twins.map((t) => t.id))
     .eq("slot", row.slot);
   if (slotErr) {
     console.warn("[cron/scheduled-notifs] twin slot read failed, sending", { id: row.id, error: slotErr.message });
     return null;
   }
-  const statusByTrip = new Map<string, string>();
-  for (const r of (slotRows ?? []) as { trip_id: string; status: string }[]) {
+  const rowByTrip = new Map<string, { status: string; sent_at: string | null }>();
+  for (const r of (slotRows ?? []) as { trip_id: string; status: string; sent_at: string | null }[]) {
     // A trip holds one row per slot; if it somehow holds more, "sent" wins.
-    if (statusByTrip.get(r.trip_id) !== "sent") statusByTrip.set(r.trip_id, r.status);
+    if (rowByTrip.get(r.trip_id)?.status !== "sent") rowByTrip.set(r.trip_id, r);
   }
-  const candidates: TwinCandidate[] = twins.map((t) => ({
+  return twins.map((t) => ({
     id: t.id,
     updatedAt: t.updated_at,
-    slotStatus: statusByTrip.get(t.id) ?? null,
+    slotStatus: rowByTrip.get(t.id)?.status ?? null,
+    slotSentAt: rowByTrip.get(t.id)?.sent_at ?? null,
   }));
-  return twinKeeper(row.trip_id, candidates);
 }
 
 async function persistOutcome(

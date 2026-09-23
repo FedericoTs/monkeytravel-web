@@ -1,11 +1,57 @@
 import { describe, it, expect } from "vitest";
-import { normalizeTripTitle, twinKeeper, type TwinCandidate } from "./twin-trips";
+import { normalizeTripTitle, twinDecision, twinKeeper, type TwinCandidate } from "./twin-trips";
 
-const t = (id: string, updatedAt: string | null, slotStatus: string | null): TwinCandidate => ({
-  id,
-  updatedAt,
-  slotStatus,
-});
+const DUE = "2026-09-23T06:00:00Z";
+
+const t = (
+  id: string,
+  updatedAt: string | null,
+  slotStatus: string | null,
+  slotSentAt: string | null = null
+): TwinCandidate => ({ id, updatedAt, slotStatus, slotSentAt });
+
+/**
+ * Simulates the cron over one slot for a twin set: a first pass in the given
+ * row order, then a final pass over the rows that waited — exactly the shape
+ * of the GET handler. `sendOutcome` decides whether a copy's own send
+ * succeeds (a real send can fail on its own gates or on Resend).
+ */
+function simulateRun(
+  set: { id: string; updatedAt: string; status?: string }[],
+  order: string[],
+  sendOutcome: (id: string) => "sent" | "failed" = () => "sent"
+): { sent: string[]; statuses: Map<string, string> } {
+  const statuses = new Map(set.map((s) => [s.id, s.status ?? "pending"]));
+  const sentAt = new Map<string, string>();
+  const updated = new Map(set.map((s) => [s.id, s.updatedAt]));
+  const view = () => [...statuses].map(([id, st]) => t(id, updated.get(id) ?? null, st, sentAt.get(id) ?? null));
+  const sent: string[] = [];
+  const process = (id: string, finalPass: boolean): "waited" | "done" => {
+    if (statuses.get(id) !== "pending") return "done";
+    const d = twinDecision(id, view(), DUE, finalPass);
+    if (d.action === "wait") return "waited";
+    if (d.action === "suppress") {
+      statuses.set(id, "suppressed");
+      return "done";
+    }
+    const outcome = sendOutcome(id);
+    statuses.set(id, outcome);
+    if (outcome === "sent") {
+      sent.push(id);
+      sentAt.set(id, "2026-09-23T07:01:00Z");
+    }
+    return "done";
+  };
+  const waiting = order.filter((id) => process(id, false) === "waited");
+  for (const id of waiting) process(id, true);
+  return { sent, statuses };
+}
+
+const SEDONA = [
+  { id: "sedona-1", updatedAt: "2026-09-10T08:00:00Z" },
+  { id: "sedona-2", updatedAt: "2026-09-14T08:00:00Z" },
+  { id: "sedona-3", updatedAt: "2026-09-20T08:00:00Z" },
+];
 
 describe("normalizeTripTitle", () => {
   it("ignores case and whitespace", () => {
@@ -19,85 +65,81 @@ describe("normalizeTripTitle", () => {
 
 describe("twinKeeper", () => {
   it("a lone trip always sends", () => {
-    expect(twinKeeper("a", [t("a", "2026-09-20T00:00:00Z", "pending")])).toBe("a");
-    expect(twinKeeper("a", [])).toBe("a");
-  });
-
-  // The measured case: three live copies of Sedona, all pending for
-  // pack_early_14d, dispatched one after another in the same cron run
-  // (07:00:59, 07:01:00, 07:01:08 on 2026-09-23). Exactly one may send.
-  it("Sedona x3 in one run: only the newest copy sends, whichever row comes first", () => {
-    const run = [
-      t("sedona-1", "2026-09-10T08:00:00Z", "pending"),
-      t("sedona-2", "2026-09-14T08:00:00Z", "pending"),
-      t("sedona-3", "2026-09-20T08:00:00Z", "pending"),
-    ];
-    const statuses = new Map(run.map((r) => [r.id, r.slotStatus]));
-    const senders: string[] = [];
-    for (const current of ["sedona-1", "sedona-2", "sedona-3"]) {
-      const view = run.map((r) => ({ ...r, slotStatus: statuses.get(r.id) ?? null }));
-      const keeper = twinKeeper(current, view);
-      if (keeper === current) {
-        senders.push(current);
-        statuses.set(current, "sent");
-      } else {
-        statuses.set(current, "suppressed");
-      }
-    }
-    expect(senders).toEqual(["sedona-3"]);
-  });
-
-  it("same outcome when the rows arrive newest-first", () => {
-    const statuses = new Map<string, string>([
-      ["sedona-1", "pending"],
-      ["sedona-2", "pending"],
-      ["sedona-3", "pending"],
-    ]);
-    const updated: Record<string, string> = {
-      "sedona-1": "2026-09-10T08:00:00Z",
-      "sedona-2": "2026-09-14T08:00:00Z",
-      "sedona-3": "2026-09-20T08:00:00Z",
-    };
-    const senders: string[] = [];
-    for (const current of ["sedona-3", "sedona-2", "sedona-1"]) {
-      const view = [...statuses].map(([id, s]) => t(id, updated[id], s));
-      if (twinKeeper(current, view) === current) {
-        senders.push(current);
-        statuses.set(current, "sent");
-      } else {
-        statuses.set(current, "suppressed");
-      }
-    }
-    expect(senders).toEqual(["sedona-3"]);
-  });
-
-  // Bari: two copies, in-trip digests went out twice a day for six days.
-  it("Bari x2: the twin that already sent this slot wins, even if it is older", () => {
-    const view = [t("bari-old", "2026-09-01T00:00:00Z", "sent"), t("bari-new", "2026-09-05T00:00:00Z", "pending")];
-    expect(twinKeeper("bari-new", view)).toBe("bari-old");
+    expect(twinKeeper("a", [t("a", "2026-09-20T00:00:00Z", "pending")], DUE)).toBe("a");
+    expect(twinKeeper("a", [], DUE)).toBe("a");
   });
 
   it("a copy that cannot send the slot never wins, so the email is not lost", () => {
-    // The newest copy has no row for this slot (or it was suppressed): the
-    // older copy with a pending row must still send.
+    expect(twinKeeper("older", [t("older", "2026-09-01T00:00:00Z", "pending"), t("newest", "2026-09-22T00:00:00Z", null)], DUE)).toBe("older");
     expect(
-      twinKeeper("older", [t("older", "2026-09-01T00:00:00Z", "pending"), t("newest", "2026-09-22T00:00:00Z", null)])
-    ).toBe("older");
-    expect(
-      twinKeeper("older", [
-        t("older", "2026-09-01T00:00:00Z", "pending"),
-        t("newest", "2026-09-22T00:00:00Z", "suppressed"),
-      ])
+      twinKeeper("older", [t("older", "2026-09-01T00:00:00Z", "pending"), t("newest", "2026-09-22T00:00:00Z", "suppressed")], DUE)
     ).toBe("older");
   });
 
   it("ties on updated_at break the same way for every caller", () => {
     const view = [t("b", "2026-09-10T00:00:00Z", "pending"), t("a", "2026-09-10T00:00:00Z", "pending")];
-    expect(twinKeeper("a", view)).toBe(twinKeeper("b", view));
+    expect(twinKeeper("a", view, DUE)).toBe(twinKeeper("b", view, DUE));
   });
 
-  it("a missing updated_at loses to a known one", () => {
-    const view = [t("x", null, "pending"), t("y", "2026-09-10T00:00:00Z", "pending")];
-    expect(twinKeeper("x", view)).toBe("y");
+  // Review finding: a "sent" row left over from before a trip's dates moved
+  // must not make the person miss the reminder for the new dates.
+  it("a send from before the trip's dates moved does not count", () => {
+    const view = [t("moved", "2026-09-22T00:00:00Z", "sent", "2026-08-01T06:00:00Z"), t("fresh", "2026-09-01T00:00:00Z", "pending")];
+    expect(twinKeeper("fresh", view, DUE)).toBe("fresh");
+  });
+});
+
+describe("the cron over a twin set (first pass + final pass)", () => {
+  // The measured case: three live copies of Sedona, all pending for
+  // pack_early_14d, dispatched in one run (07:00:59, 07:01:00, 07:01:08 on
+  // 2026-09-23). Exactly one may send, whatever the row order.
+  it("Sedona x3: exactly one email, the newest copy, in either order", () => {
+    expect(simulateRun(SEDONA, ["sedona-1", "sedona-2", "sedona-3"]).sent).toEqual(["sedona-3"]);
+    expect(simulateRun(SEDONA, ["sedona-3", "sedona-2", "sedona-1"]).sent).toEqual(["sedona-3"]);
+    expect(simulateRun(SEDONA, ["sedona-2", "sedona-3", "sedona-1"]).sent).toEqual(["sedona-3"]);
+  });
+
+  it("the duplicates end up suppressed only after the chosen copy sent", () => {
+    const { statuses } = simulateRun(SEDONA, ["sedona-1", "sedona-2", "sedona-3"]);
+    expect(statuses.get("sedona-3")).toBe("sent");
+    expect(statuses.get("sedona-1")).toBe("suppressed");
+    expect(statuses.get("sedona-2")).toBe("suppressed");
+  });
+
+  // THE review finding. The first version suppressed the older copies up
+  // front; if the chosen copy then failed its own send, nobody got the email,
+  // and whether that happened depended on the row order.
+  it("if the chosen copy fails, another copy still sends — in either order", () => {
+    const newestFails = (id: string) => (id === "sedona-3" ? "failed" : "sent");
+    for (const order of [
+      ["sedona-1", "sedona-2", "sedona-3"],
+      ["sedona-3", "sedona-1", "sedona-2"],
+      ["sedona-2", "sedona-3", "sedona-1"],
+    ]) {
+      const { sent } = simulateRun(SEDONA, order, newestFails);
+      expect(sent).toHaveLength(1);
+      expect(sent[0]).not.toBe("sedona-3");
+    }
+  });
+
+  it("a waiting copy never waits into a lost email: on the final pass it sends", () => {
+    // The chosen copy is still pending on the final pass (the send cap or
+    // the row limit cut it): the waiting copy sends rather than go stale.
+    const view = [t("chosen", "2026-09-22T00:00:00Z", "pending"), t("waiting", "2026-09-01T00:00:00Z", "pending")];
+    expect(twinDecision("waiting", view, DUE, false)).toEqual({ action: "wait", keeperId: "chosen" });
+    expect(twinDecision("waiting", view, DUE, true)).toEqual({ action: "send" });
+    // ...and when the chosen copy's own turn comes, it yields to the one that sent.
+    const later = [t("chosen", "2026-09-22T00:00:00Z", "pending"), t("waiting", "2026-09-01T00:00:00Z", "sent", "2026-09-23T07:01:00Z")];
+    expect(twinDecision("chosen", later, DUE, false)).toEqual({ action: "suppress", keeperId: "waiting" });
+  });
+
+  // Bari: two copies, in-trip digests went out twice a day for six days.
+  it("Bari x2: a copy that already sent this slot today wins, and the other is suppressed", () => {
+    const view = [t("bari-old", "2026-09-01T00:00:00Z", "sent", "2026-09-23T06:00:30Z"), t("bari-new", "2026-09-05T00:00:00Z", "pending")];
+    expect(twinDecision("bari-new", view, DUE, false)).toEqual({ action: "suppress", keeperId: "bari-old" });
+  });
+
+  it("a lone trip is never held back", () => {
+    expect(twinDecision("solo", [t("solo", "2026-09-01T00:00:00Z", "pending")], DUE, false)).toEqual({ action: "send" });
   });
 });
