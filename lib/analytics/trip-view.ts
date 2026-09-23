@@ -45,6 +45,40 @@ export function parseTripViewSource(value: unknown): TripViewSource | null {
     : null;
 }
 
+/** The trips columns the route reads to decide whether a view counts. */
+export interface ViewedTrip {
+  visibility: string | null;
+  share_token: string | null;
+  is_hidden: boolean | null;
+}
+
+/** Anyone may open it: published, or reachable through a share link. */
+export function isOpenTrip(trip: ViewedTrip): boolean {
+  if (trip.is_hidden) return false;
+  return trip.visibility === "public" || !!trip.share_token;
+}
+
+/**
+ * The renderers send owner/collaborator from TripDetailClient and
+ * public/shared from SharedTripView. The last two are taken as sent — they
+ * claim nothing. The first two are only kept when true; otherwise the view is
+ * recorded as what the visitor could actually have opened. Before 2026-09-23
+ * the source was written as sent, so any visitor could log an "owner" open.
+ */
+export function verifiedSource(
+  claimed: TripViewSource,
+  trip: ViewedTrip,
+  isOwner: boolean,
+  isCollaborator: boolean,
+): TripViewSource {
+  if (claimed === "owner" && isOwner) return "owner";
+  if (claimed === "collaborator" && (isCollaborator || isOwner)) return "collaborator";
+  if (claimed === "owner" || claimed === "collaborator") {
+    return trip.visibility === "public" ? "public" : "shared";
+  }
+  return claimed;
+}
+
 /** YYYY-MM-DD in UTC — the same day the column default computes. */
 export function utcDay(now: Date = new Date()): string {
   return now.toISOString().slice(0, 10);

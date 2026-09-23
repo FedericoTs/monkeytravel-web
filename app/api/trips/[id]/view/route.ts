@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { apiSuccess, errors } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
@@ -9,8 +10,10 @@ import {
   clientIp,
   isUuid,
   parseTripViewSource,
+  isOpenTrip,
   resolveViewSessionId,
   utcDay,
+  verifiedSource,
 } from "@/lib/analytics/trip-view";
 
 /**
@@ -29,10 +32,19 @@ import {
  * page_views uses, so the two tables join — or a one-way daily digest when
  * the cookie is absent (see lib/analytics/trip-view).
  *
- * Writes go through the user-scoped client so RLS stays in the path:
- * policy trip_views_anon_insert allows anon/authenticated inserts with a
- * non-null trip_id, and the FK rejects unknown trips. viewer_id is whoever is
- * signed in, or null.
+ * Writes go through the service role (since 2026-09-23). The table used to
+ * take inserts from the anon key directly, with only `trip_id IS NOT NULL`
+ * checked, so anyone could write rows for any trip with any viewer_id,
+ * source, day or bot flag and forge the North Star. 20260924121000 closes
+ * the table to anon/authenticated, which makes this route the only writer,
+ * so the checks the policy never made happen here:
+ *   - the trip must exist and not be deleted;
+ *   - a private trip with no share link only counts for its owner or a
+ *     collaborator;
+ *   - "owner" and "collaborator" are only accepted when true; a stranger
+ *     claiming them is recorded as what they are (public or shared).
+ * viewer_id is whoever is signed in, or null. Every rejection answers the
+ * same way as an unknown trip, so this is not an existence oracle.
  *
  * Never throws at the client. Analytics must not affect the visitor.
  */
@@ -80,10 +92,34 @@ export async function POST(
       data: { user },
     } = await supabase.auth.getUser();
 
-    const { error } = await supabase.from("trip_views").insert({
+    const admin = createAdminClient();
+    const { data: trip } = await admin
+      .from("trips")
+      .select("id, user_id, visibility, share_token, is_hidden, deleted_at")
+      .eq("id", id)
+      .maybeSingle();
+    if (!trip || trip.deleted_at) {
+      return apiSuccess({ recorded: false, fromCookie });
+    }
+
+    const isOwner = !!user && trip.user_id === user.id;
+    let isCollaborator = false;
+    if (user && !isOwner && (source === "collaborator" || !isOpenTrip(trip))) {
+      const { count } = await admin
+        .from("trip_collaborators")
+        .select("id", { count: "exact", head: true })
+        .eq("trip_id", id)
+        .eq("user_id", user.id);
+      isCollaborator = (count ?? 0) > 0;
+    }
+    if (!isOpenTrip(trip) && !isOwner && !isCollaborator) {
+      return apiSuccess({ recorded: false, fromCookie });
+    }
+
+    const { error } = await admin.from("trip_views").insert({
       trip_id: id,
       viewer_id: user?.id ?? null,
-      source,
+      source: verifiedSource(source, trip, isOwner, isCollaborator),
       session_id: sessionId,
       viewed_on: utcDay(),
       is_bot: isAnalyticsBot(userAgent),

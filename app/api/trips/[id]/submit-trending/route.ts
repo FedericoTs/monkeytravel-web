@@ -2,6 +2,7 @@ import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { runTripCounter } from "@/lib/explore/counters";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
  * POST /api/trips/[id]/submit-trending
@@ -39,8 +40,11 @@ export async function POST(
       });
     }
 
-    // Submit to trending
-    const { error: updateError } = await supabase
+    // Submit to trending. Written through the service role: trending_approved
+    // is a moderation column the trips guard (20260924120000) keeps out of
+    // reach of the signed-in user's own client, and ownership was verified
+    // above.
+    const { error: updateError } = await createAdminClient()
       .from("trips")
       .update({
         visibility: "public",
@@ -88,8 +92,9 @@ export async function DELETE(
     );
     if (tripError) return tripError;
 
-    // Remove from trending
-    const { error: updateError } = await supabase
+    // Remove from trending. Service role for the same reason as POST:
+    // trending_approved and trending_score are guarded columns.
+    const { error: updateError } = await createAdminClient()
       .from("trips")
       .update({
         visibility: "shared", // Keep shared but not public

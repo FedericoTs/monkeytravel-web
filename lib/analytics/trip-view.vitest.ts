@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   TRIP_VIEW_SOURCES,
   clientIp,
+  isOpenTrip,
   isUuid,
   parseTripViewSource,
   resolveViewSessionId,
   utcDay,
+  verifiedSource,
 } from "./trip-view";
 
 /**
@@ -90,5 +92,45 @@ describe("isUuid / clientIp", () => {
     expect(clientIp("198.51.100.7, 10.0.0.1")).toBe("198.51.100.7");
     expect(clientIp(undefined)).toBeNull();
     expect(clientIp("")).toBeNull();
+  });
+});
+
+/**
+ * Since 2026-09-23 the route writes through the service role and is the only
+ * writer, so it makes the checks the old insert policy never made. A view on
+ * a trip nobody can open is dropped; "owner"/"collaborator" are only kept
+ * when true, because they feed the North Star's "opened during travel".
+ */
+describe("isOpenTrip", () => {
+  it("a public or link-shared trip is open to anyone", () => {
+    expect(isOpenTrip({ visibility: "public", share_token: "t", is_hidden: false })).toBe(true);
+    expect(isOpenTrip({ visibility: "private", share_token: "t", is_hidden: false })).toBe(true);
+    expect(isOpenTrip({ visibility: "shared", share_token: "t", is_hidden: null })).toBe(true);
+  });
+
+  it("a private trip with no link, or a hidden trip, is not", () => {
+    expect(isOpenTrip({ visibility: "private", share_token: null, is_hidden: false })).toBe(false);
+    expect(isOpenTrip({ visibility: "public", share_token: "t", is_hidden: true })).toBe(false);
+  });
+});
+
+describe("verifiedSource", () => {
+  const pub = { visibility: "public", share_token: "t", is_hidden: false };
+  const linkOnly = { visibility: "shared", share_token: "t", is_hidden: false };
+
+  it("keeps owner and collaborator when they are true", () => {
+    expect(verifiedSource("owner", pub, true, false)).toBe("owner");
+    expect(verifiedSource("collaborator", pub, false, true)).toBe("collaborator");
+  });
+
+  it("records a stranger claiming owner or collaborator as what they could open", () => {
+    expect(verifiedSource("owner", pub, false, false)).toBe("public");
+    expect(verifiedSource("collaborator", linkOnly, false, false)).toBe("shared");
+    expect(verifiedSource("owner", linkOnly, false, true)).toBe("shared");
+  });
+
+  it("takes public and shared as sent — they claim nothing", () => {
+    expect(verifiedSource("shared", pub, false, false)).toBe("shared");
+    expect(verifiedSource("public", linkOnly, true, false)).toBe("public");
   });
 });
