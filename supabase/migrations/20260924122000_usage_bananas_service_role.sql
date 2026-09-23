@@ -114,6 +114,18 @@ create policy user_tester_access_insert
   to authenticated
   with check (is_admin_user() or ((select auth.role()) = 'service_role'));
 
+-- tester_codes: the select policy also let anyone (the public anon key
+-- included) list every ACTIVE code with its limits, and a code is the only
+-- thing between a user and those limits. redeemTesterCode / validateCode
+-- now look codes up through the service role; admins keep their read.
+-- (The early-access gate has been off since 2026-05-23, so this is hygiene
+-- today, not an open quota bypass.)
+drop policy if exists tester_codes_select on public.tester_codes;
+create policy tester_codes_select
+  on public.tester_codes
+  for select
+  using (is_admin_user() or ((select auth.role()) = 'service_role'));
+
 drop policy if exists user_tester_access_update on public.user_tester_access;
 create policy user_tester_access_update
   on public.user_tester_access

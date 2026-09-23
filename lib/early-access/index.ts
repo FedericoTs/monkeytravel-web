@@ -182,8 +182,12 @@ export async function redeemTesterCode(
     };
   }
 
-  // Look up the code
-  const { data: testerCode, error: codeError } = await supabase
+  // Look up the code. Service role (2026-09-23): tester_codes is no longer
+  // readable by signed-in users (20260924122000) — every active code was
+  // listable with the public anon key, and a code is the only thing standing
+  // between a user and its AI limits.
+  const admin = createAdminClient();
+  const { data: testerCode, error: codeError } = await admin
     .from("tester_codes")
     .select("*")
     .eq("code", normalizedCode)
@@ -221,7 +225,6 @@ export async function redeemTesterCode(
   // self INSERT/UPDATE policies let anyone give themselves any AI limit and
   // reset its used counts. The code was validated above; userId comes from
   // the route's session.
-  const admin = createAdminClient();
   const { error: insertError } = await admin.from("user_tester_access").insert({
     user_id: userId,
     code_id: testerCode.id,
@@ -261,10 +264,10 @@ export async function redeemTesterCode(
 export async function validateCode(
   code: string
 ): Promise<{ valid: boolean; error?: string }> {
-  const supabase = await createClient();
+  // Service role: see redeemTesterCode.
   const normalizedCode = code.trim().toUpperCase();
 
-  const { data: testerCode, error } = await supabase
+  const { data: testerCode, error } = await createAdminClient()
     .from("tester_codes")
     .select("expires_at, max_uses, current_uses, is_active")
     .eq("code", normalizedCode)
