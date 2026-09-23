@@ -206,6 +206,14 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
       // A day of 3-5 full activity objects + the reply can run long; give it
       // headroom so the JSON isn't truncated mid-object (which would 500 on parse).
       maxOutputTokens: 4096,
+      // Thinking OFF. The "concierge" purpose resolves to gemini-2.5-flash,
+      // which thinks by default, and thinking tokens count against the 4096
+      // cap above — the headroom that comment asked for was being spent
+      // thinking. api_request_logs, 7 days to 2026-09-23: 67 calls, 4 HTTP 500
+      // "non-JSON output" (each after ~40 s, i.e. both attempts), 12 of 67
+      // over 15 s, p95 37.9 s — against the signed-in concierge's p95 5.0 s
+      // with 0 errors. Same fix as the trip-generation paths (lib/gemini.ts).
+      ...({ thinkingConfig: { thinkingBudget: 0 } } as Record<string, unknown>),
     },
   });
 
@@ -223,6 +231,13 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
     try {
       parsed = JSON.parse(response.response.text());
     } catch {
+      // MAX_TOKENS means the cap was hit (the thinking-budget failure mode);
+      // STOP means the model really did answer in prose. Logged so the two
+      // are told apart from the logs rather than guessed.
+      console.warn(
+        `assistant-anon: non-JSON output (attempt ${attempt + 1}), finishReason:`,
+        response.response.candidates?.[0]?.finishReason ?? "unknown"
+      );
       if (attempt === 1) {
         throw new Error("assistant-anon: model returned non-JSON output");
       }
