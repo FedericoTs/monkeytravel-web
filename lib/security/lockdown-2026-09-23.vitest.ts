@@ -41,10 +41,21 @@ describe("writers moved to the service role", () => {
     expect(fn).not.toContain("await createClient()");
   });
 
-  it("the banana award route validates the reference and credits on the service role", () => {
+  it("the banana award route validates the reference, caps, and credits on the service role", () => {
     const src = read("app/api/bananas/award/route.ts");
-    expect(src).toContain("isValidAwardReference(type as AwardType, tripId, referenceId, trip.itinerary)");
-    expect(src).toMatch(/addBananas\(\s*createAdminClient\(\),/);
+    expect(src).toContain("storedAwardReference(type as AwardType, tripId, referenceId)");
+    expect(src).toMatch(/addBananas\(\s*createAdminClient\(\),[\s\S]*?storedReference,/);
+    expect(src).toContain("itineraryActivityCount(trip.itinerary)");
+    expect(src).toContain("DAILY_GAMEPLAY_AWARD_CAP");
+  });
+
+  it("referral completion claims and records on the service role", () => {
+    // The users guard keeps referral_completed_at for the user's own client,
+    // so a user-client claim would never stick and every call would pay.
+    const src = read("lib/referral/completion.ts");
+    expect(src).toMatch(/await adminDb\s*\.from\("users"\)\s*\.update\(\{\s*referral_completed_at: now,/);
+    expect(src).toMatch(/await adminDb\s*\.from\("referral_events"\)\s*\.insert\(/);
+    expect(src).toContain("eventData?.id ?? `referee:${userId}`");
   });
 
   it("the banana spend route runs the balance and spend functions on the service role", () => {
@@ -124,7 +135,11 @@ describe("the guards are shaped so they actually run", () => {
     const sql = migration("20260924113000_drop_trip_view_count_trigger.sql");
     expect(sql).toContain("drop trigger if exists trigger_update_trip_view_count on public.trip_views;");
     const scoring = migration("20260924120000_trips_protected_columns.sql");
-    expect(scoring).toMatch(/from public\.trip_views\s+where trip_id = p_trip_id and not is_bot;/);
+    // Trending counts distinct signed-in viewers other than the owner — raw
+    // rows keyed on a client cookie would be free to forge.
+    expect(scoring).toContain("select count(distinct v.viewer_id) into v_views");
+    expect(scoring).toContain("and v.viewer_id is distinct from v_owner;");
+    expect(scoring).toContain("new.created_at := old.created_at;");
   });
 });
 
@@ -163,6 +178,36 @@ describe("the closed functions and tables", () => {
     const sql = migration("20260924121000_trip_views_service_role_only.sql");
     expect(sql).toContain("drop policy if exists trip_views_anon_insert on public.trip_views;");
     expect(sql).toContain("revoke all on public.trip_views from public, anon, authenticated;");
+  });
+
+  it("the destination leaderboard holds its 4-trip floor whatever the caller asks", () => {
+    const sql = migration("20260924117000_destination_leaderboard_min_trips.sql");
+    expect(sql).toContain("where c.trips_all >= greatest(coalesce(p_min_trips, 4), 4)");
+    expect(sql).toContain("limit least(greatest(coalesce(p_limit, 6), 1), 50);");
+  });
+
+  it("proposals, expenses, votes and conversations stay on their trip", () => {
+    const sql = migration("20260924118000_trip_children_keep_trip_id.sql");
+    expect(sql).toMatch(/create or replace function public\.keep_trip_id_fixed\(\)[\s\S]*?security invoker/);
+    for (const t of ["activity_proposals", "trip_expenses", "activity_votes", "ai_conversations"]) {
+      expect(sql).toMatch(new RegExp(`before update on public\\.${t}\\s+for each row execute function public\\.keep_trip_id_fixed\\(\\)`));
+    }
+  });
+
+  it("the waitlist is written by the server and closed to anon afterwards", () => {
+    const src = read("app/api/subscribe/route.ts");
+    expect(src).toMatch(/await createAdminClient\(\)\s*\.from\('email_subscribers'\)/);
+    expect(src).not.toContain("from '@/lib/supabase'");
+    const sql = migration("20260924123000_email_subscribers_service_role_only.sql");
+    expect(sql).toContain("revoke all on public.email_subscribers from public, anon, authenticated;");
+  });
+
+  it("tester codes are looked up through the service role and no longer publicly listable", () => {
+    const src = read("lib/early-access/index.ts");
+    expect(src).toMatch(/await admin\s*\.from\("tester_codes"\)/);
+    expect(src).toMatch(/await createAdminClient\(\)\s*\.from\("tester_codes"\)/);
+    const sql = migration("20260924122000_usage_bananas_service_role.sql");
+    expect(sql).toMatch(/create policy tester_codes_select[\s\S]*?using \(is_admin_user\(\) or \(\(select auth\.role\(\)\) = 'service_role'\)\);/);
   });
 
   it("activity_index only indexes published trips", () => {

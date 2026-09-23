@@ -108,9 +108,13 @@ describe("isOpenTrip", () => {
     expect(isOpenTrip({ visibility: "shared", share_token: "t", is_hidden: null })).toBe(true);
   });
 
-  it("a private trip with no link, or a hidden trip, is not", () => {
+  it("a private trip with no link, or a hidden public trip with no link, is not", () => {
     expect(isOpenTrip({ visibility: "private", share_token: null, is_hidden: false })).toBe(false);
-    expect(isOpenTrip({ visibility: "public", share_token: "t", is_hidden: true })).toBe(false);
+    expect(isOpenTrip({ visibility: "public", share_token: null, is_hidden: true })).toBe(false);
+  });
+
+  it("a hidden trip still counts through its share link, which still opens it", () => {
+    expect(isOpenTrip({ visibility: "public", share_token: "t", is_hidden: true })).toBe(true);
   });
 });
 

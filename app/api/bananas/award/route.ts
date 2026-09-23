@@ -41,7 +41,11 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { addBananas } from "@/lib/bananas/transactions";
-import { isValidAwardReference } from "@/lib/bananas/award-reference";
+import {
+  DAILY_GAMEPLAY_AWARD_CAP,
+  itineraryActivityCount,
+  storedAwardReference,
+} from "@/lib/bananas/award-reference";
 import type { BananaTransactionType } from "@/types/bananas";
 
 // Per-event award rates. Kept here (not in lib/bananas/config.ts) so the
@@ -104,6 +108,7 @@ export async function POST(request: NextRequest) {
   const { data: trip, error: tripErr } = await supabase
     .from("trips")
     .select("id, user_id, itinerary")
+    .is("deleted_at", null)
     .eq("id", tripId)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -116,9 +121,10 @@ export async function POST(request: NextRequest) {
     return errors.forbidden("That trip doesn't belong to you");
   }
 
-  // The reference must be the one the client sends for this award, or every
-  // new string would be a new credit (lib/bananas/award-reference.ts).
-  if (!isValidAwardReference(type as AwardType, tripId, referenceId, trip.itinerary)) {
+  // The reference must be one this award accepts, or every new string would
+  // be a new credit (lib/bananas/award-reference.ts).
+  const storedReference = storedAwardReference(type as AwardType, tripId, referenceId);
+  if (!storedReference) {
     return errors.badRequest("referenceId does not match this award");
   }
 
@@ -130,7 +136,7 @@ export async function POST(request: NextRequest) {
     .select("id, balance_after")
     .eq("user_id", user.id)
     .eq("transaction_type", type)
-    .eq("reference_id", referenceId)
+    .eq("reference_id", storedReference)
     .limit(1)
     .maybeSingle();
 
@@ -157,6 +163,54 @@ export async function POST(request: NextRequest) {
 
   const amount = AWARD_AMOUNTS[type as AwardType];
 
+  // Caps (2026-09-23). A trip earns at most one activity credit per activity
+  // it holds, and one person at most DAILY_GAMEPLAY_AWARD_CAP a day from
+  // gameplay. An award over a cap is not an error: the client's animation
+  // already played, so answer like a duplicate with nothing credited.
+  const capped = async () => {
+    const { data: userRow } = await supabase
+      .from("users")
+      .select("banana_balance")
+      .eq("id", user.id)
+      .maybeSingle();
+    return apiSuccess({
+      ok: true,
+      awarded: 0,
+      newBalance: (userRow as { banana_balance?: number } | null)?.banana_balance ?? 0,
+      duplicate: false,
+      capped: true,
+    });
+  };
+
+  if (type === "activity_completion") {
+    const { count: creditedOnTrip } = await supabase
+      .from("banana_transactions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("transaction_type", "activity_completion")
+      .like("reference_id", `${tripId}:%`);
+    if ((creditedOnTrip ?? 0) >= itineraryActivityCount(trip.itinerary)) {
+      return capped();
+    }
+  }
+
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data: recentAwards } = await supabase
+    .from("banana_transactions")
+    .select("amount")
+    .eq("user_id", user.id)
+    .in("transaction_type", [...VALID_TYPES])
+    .gt("amount", 0)
+    .gte("created_at", since)
+    .limit(1000);
+  const awardedToday = (recentAwards ?? []).reduce(
+    (sum, row) => sum + ((row as { amount?: number }).amount ?? 0),
+    0
+  );
+  if (awardedToday + amount > DAILY_GAMEPLAY_AWARD_CAP) {
+    return capped();
+  }
+
   // add_bananas is service-role only (20260924122000); the user is the
   // signed-in one and every check above has passed.
   const result = await addBananas(
@@ -164,7 +218,7 @@ export async function POST(request: NextRequest) {
     user.id,
     amount,
     type as BananaTransactionType,
-    referenceId,
+    storedReference,
     description ?? defaultDescriptionFor(type as AwardType)
   );
 

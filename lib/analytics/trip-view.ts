@@ -52,10 +52,14 @@ export interface ViewedTrip {
   is_hidden: boolean | null;
 }
 
-/** Anyone may open it: published, or reachable through a share link. */
+/**
+ * Anyone may open it: reachable through a share link, or published and not
+ * hidden. A hidden trip still opens at /shared/<token> (hiding only takes it
+ * off /explore), so its link views still count.
+ */
 export function isOpenTrip(trip: ViewedTrip): boolean {
-  if (trip.is_hidden) return false;
-  return trip.visibility === "public" || !!trip.share_token;
+  if (trip.share_token) return true;
+  return trip.visibility === "public" && !trip.is_hidden;
 }
 
 /**

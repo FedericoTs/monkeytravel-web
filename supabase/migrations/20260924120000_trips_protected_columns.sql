@@ -45,9 +45,12 @@
 -- table owner.
 --
 -- Also in here, because the guard needs it and view_count is protected:
--- update_trip_trending_score() now recounts view_count from trip_views
--- (bots excluded) before scoring. The trigger that used to maintain it is
--- gone (20260924113000).
+-- update_trip_trending_score() now sets view_count to the number of
+-- distinct signed-in viewers other than the owner (bots excluded) before
+-- scoring. The trigger that used to maintain it is gone (20260924113000).
+-- The guard also keeps created_at and holds shared_at at or before now():
+-- the score's freshness term counts from them, and a future date would pin
+-- it at its maximum.
 --
 -- Not covered, and noted for later: an owner can still set visibility,
 -- share_token, author_* through the API directly, which skips the publish
@@ -100,6 +103,10 @@ begin
     new.is_hidden := false;
     new.reported_count := 0;
     new.is_template := false;
+    -- The trending freshness term counts from shared_at / created_at; a
+    -- date in the future would hold it at its maximum forever.
+    new.created_at := case when new.created_at is null or new.created_at > now() then now() else new.created_at end;
+    new.shared_at := case when new.shared_at > now() then now() else new.shared_at end;
     if new.parent_trip_id is not null and not public.trip_is_forkable(new.parent_trip_id) then
       raise exception 'trips.parent_trip_id must name a public trip'
         using errcode = '42501';
@@ -127,6 +134,10 @@ begin
   new.is_hidden := old.is_hidden;
   new.reported_count := old.reported_count;
   new.is_template := old.is_template;
+  new.created_at := old.created_at;
+  if new.shared_at > now() then
+    new.shared_at := now();
+  end if;
   return new;
 end;
 $function$;
@@ -143,12 +154,24 @@ create or replace function public.update_trip_trending_score(p_trip_id uuid)
  set search_path to 'public'
 as $function$
 declare
+  v_owner uuid;
   v_views integer;
   v_score integer;
 begin
-  select count(*) into v_views
-    from public.trip_views
-   where trip_id = p_trip_id and not is_bot;
+  -- Views that count toward trending: distinct signed-in people other than
+  -- the owner. Raw rows would not do: the view route keys a visit on the
+  -- mt_session_id cookie, which a script can mint freshly on every request,
+  -- so rows are cheap to forge; accounts are not. Before this, view_count
+  -- was only ever written for an owner or editor opening their own trip,
+  -- so views added next to nothing to the score, and this keeps it that
+  -- way for anonymous traffic.
+  select user_id into v_owner from public.trips where id = p_trip_id;
+  select count(distinct v.viewer_id) into v_views
+    from public.trip_views v
+   where v.trip_id = p_trip_id
+     and not v.is_bot
+     and v.viewer_id is not null
+     and v.viewer_id is distinct from v_owner;
 
   update public.trips
      set view_count = v_views,
