@@ -4,6 +4,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { runTripCounter } from "@/lib/explore/counters";
 import { randomBytes } from "node:crypto";
 
 /**
@@ -98,9 +99,21 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
     return errors.internal("Failed to save trip", "trip_saves.insert");
   }
 
-  const { data: newCount } = await supabase.rpc("increment_trip_save_count", {
-    p_trip_id: tripId,
-  });
+  // Only signed-in saves move the counter. An anonymous save is keyed by a
+  // cookie the visitor controls: drop the cookie and the next request mints a
+  // fresh one, so counting those would let anyone push any public trip's
+  // save_count (and trending score) up without limit. They were never
+  // counted in practice either: until 2026-09-23 this call ran on the
+  // visitor's own client, and the anon role cannot execute the counter.
+  let newCount: number | null = null;
+  if (user) {
+    newCount = await runTripCounter("increment_trip_save_count", tripId, "trip-save");
+  } else {
+    // The visitor sees their own save in the number next to the button they
+    // just pressed; the stored count, which everyone else sees, leaves it out.
+    const cur = await currentSaveCount(supabase, tripId);
+    newCount = cur === null ? null : cur + 1;
+  }
 
   void captureServerEvent(
     user?.id ?? "anon",
@@ -146,22 +159,30 @@ export async function DELETE(request: NextRequest, { params }: RouteCtx) {
     }
   }
 
+  // Mirror of POST: only a signed-in save was ever counted, so only a
+  // signed-in unsave takes one off. Decrementing for an anonymous unsave
+  // would subtract a save that someone signed in made.
   let count = 0;
-  if (deletedCount > 0) {
-    const { data: c } = await supabase.rpc("decrement_trip_save_count", {
-      p_trip_id: tripId,
-    });
+  if (deletedCount > 0 && user) {
+    const c = await runTripCounter("decrement_trip_save_count", tripId, "trip-unsave");
     count = c ?? 0;
   } else {
-    const { data: cur } = await supabase
-      .from("trips")
-      .select("save_count")
-      .eq("id", tripId)
-      .single();
-    count = cur?.save_count ?? 0;
+    count = (await currentSaveCount(supabase, tripId)) ?? 0;
   }
 
   return apiSuccess({ saved: false, count });
+}
+
+async function currentSaveCount(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  tripId: string
+): Promise<number | null> {
+  const { data: cur } = await supabase
+    .from("trips")
+    .select("save_count")
+    .eq("id", tripId)
+    .single();
+  return cur?.save_count ?? null;
 }
 
 function maybeSetCookie(res: NextResponse, cookieIdToSet: string | null) {

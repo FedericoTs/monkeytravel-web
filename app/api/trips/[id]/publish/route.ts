@@ -5,6 +5,7 @@ import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import { enrichTripByIdAdmin } from "@/lib/images/enrichTrip";
+import { runTripCounter } from "@/lib/explore/counters";
 import { randomUUID } from "node:crypto";
 
 /**
@@ -226,8 +227,9 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
   }
 
   // Kick the trending score so the new trip can appear immediately
-  // (recency boost starts at +100 now that shared_at is set).
-  await supabase.rpc("update_trip_trending_score", { p_trip_id: tripId });
+  // (recency boost starts at +100 now that shared_at is set). Service role;
+  // the ownership check above is the gate.
+  await runTripCounter("update_trip_trending_score", tripId, "trip-publish");
 
   void captureServerEvent(user.id, "explore_trip_published", {
     trip_id: tripId,
