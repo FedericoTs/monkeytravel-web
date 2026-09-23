@@ -6,6 +6,7 @@ import { captureServerEvent } from "@/lib/posthog/server";
 import { generateActivityId } from "@/lib/utils/activity-id";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import { completeReferralIfEligible } from "@/lib/referral/completion";
+import { runTripCounter } from "@/lib/explore/counters";
 import type { ItineraryDay, Activity } from "@/types";
 
 /**
@@ -143,13 +144,10 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
     return errors.internal("Failed to fork trip", "trips.insert");
   }
 
-  // Bump the source's fork counter + trending score (atomic RPC).
-  const { error: rpcErr } = await supabase.rpc("increment_trip_fork_count", {
-    p_trip_id: src.id,
-  });
-  if (rpcErr) {
-    console.error("[trip-fork] counter drift after insert:", rpcErr);
-  }
+  // Bump the source's fork counter + trending score (atomic RPC), as the
+  // service role: the public/not-hidden check and the insert above are the
+  // gate, and the counter itself is closed to direct calls.
+  await runTripCounter("increment_trip_fork_count", src.id, "trip-fork");
 
   void captureServerEvent(user.id, "explore_trip_forked", {
     source_trip_id: src.id,

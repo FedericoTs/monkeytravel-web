@@ -1,6 +1,7 @@
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { runTripCounter } from "@/lib/explore/counters";
 
 /**
  * POST /api/trips/[id]/submit-trending
@@ -53,8 +54,8 @@ export async function POST(
       return errors.internal("Failed to submit to trending", "Submit Trending");
     }
 
-    // Update trending score
-    await supabase.rpc("update_trip_trending_score", { p_trip_id: id });
+    // Update trending score (service role; the ownership check above is the gate)
+    await runTripCounter("update_trip_trending_score", id, "submit-trending");
 
     return apiSuccess({
       success: true,

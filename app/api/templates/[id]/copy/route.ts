@@ -1,10 +1,11 @@
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { generateActivityId } from "@/lib/utils/activity-id";
 import type { ItineraryDay, Activity } from "@/types";
 import { completeReferralIfEligible } from "@/lib/referral/completion";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { incrementTemplateCopyCount } from "@/lib/explore/counters";
 
 /**
  * POST /api/templates/[id]/copy
@@ -116,23 +117,12 @@ export async function POST(
     // Increment the template's copy count atomically via RPC.
     // Bug-bounty 2026-05-24 P1: previously read-modify-write — two
     // simultaneous "Use this template" clicks dropped one increment.
-    // Migration 20260524_atomic_counters.sql defines the RPC.
-    void (async () => {
-      try {
-        const { error: rpcError } = await supabase.rpc(
-          "increment_template_copy_count",
-          { template_id: templateId }
-        );
-        if (rpcError) {
-          console.error(
-            "[Template Copy] increment RPC failed:",
-            rpcError.message
-          );
-        }
-      } catch (err) {
-        console.error("[Template Copy] Failed to increment copy count:", err);
-      }
-    })();
+    // Migration 20260524_atomic_counters.sql defines the RPC. It runs as the
+    // service role (lib/explore/counters.ts); the template lookup and the
+    // insert above are the gate. Never throws. In after(), not a floating
+    // promise: the function can be frozen once the response is sent, and a
+    // floating write is lost with it.
+    after(() => incrementTemplateCopyCount(templateId, "Template Copy"));
 
     // Complete referral if this is user's first trip (fire and forget)
     void (async () => {

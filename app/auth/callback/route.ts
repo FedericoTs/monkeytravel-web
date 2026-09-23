@@ -6,6 +6,7 @@ import { getTrialEndDate } from "@/lib/trial";
 import { safeNextOrDefault } from "@/lib/security/safe-next";
 import { isFirstLogin, resolveAuthLanding } from "@/lib/auth/first-login";
 import { logWizardStepServer } from "@/lib/analytics/wizard-event-server";
+import { runTripCounter } from "@/lib/explore/counters";
 import type { EmailOtpType } from "@supabase/supabase-js";
 
 const SAVER_COOKIE_NAME = "mt_saver_cookie";
@@ -598,10 +599,32 @@ async function mergeAnonymousSaves(userId: string): Promise<void> {
     }
 
     // 3. Re-key remaining cookie rows to the user.
-    await admin
+    const { data: rekeyed } = await admin
       .from("trip_saves")
       .update({ user_id: userId, saver_cookie_id: null })
-      .eq("saver_cookie_id", cookieValue);
+      .eq("saver_cookie_id", cookieValue)
+      .select("trip_id");
+
+    // 3b. A cookie save was never in trips.save_count; now it is an
+    //     account's save, so it counts. Recount those trips after the
+    //     redirect goes out (lib/explore/counters.ts). Without this the
+    //     number left it out until the next like or save on the trip, and
+    //     while the counter stepped by one (before 2026-09-23) the account's
+    //     later unsave took off a save somebody else had made.
+    const rekeyedTripIds = [
+      ...new Set(
+        (rekeyed ?? []).map((r) => (r as { trip_id: string }).trip_id).filter(Boolean)
+      ),
+    ];
+    if (rekeyedTripIds.length > 0) {
+      after(() =>
+        Promise.all(
+          rekeyedTripIds.map((id) =>
+            runTripCounter("increment_trip_save_count", id, "auth-callback-save-merge")
+          )
+        )
+      );
+    }
 
     // 4. Cookie no longer needed. Best-effort — Next strict mode may
     //    reject cookie writes from a request handler in some paths.

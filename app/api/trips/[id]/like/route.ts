@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { runTripCounter } from "@/lib/explore/counters";
 
 /**
  * Trip-level Likes — POST = like, DELETE = unlike.
@@ -67,16 +68,10 @@ export async function POST(_req: NextRequest, { params }: RouteCtx) {
     return errors.internal("Failed to record like", "trip_likes.insert");
   }
 
-  // RPC handles the +1 + trending_score recompute in one statement.
-  const { data: newCount, error: rpcErr } = await supabase.rpc(
-    "increment_trip_like_count",
-    { p_trip_id: tripId }
-  );
-
-  if (rpcErr) {
-    // Counter is now drifted by 1; logged for the daily reconcile job.
-    console.error("[trip-like] counter drift after insert:", rpcErr);
-  }
+  // RPC handles the +1 + trending_score recompute in one statement. It runs
+  // as the service role (lib/explore/counters.ts): the insert above is the
+  // check, so the counter itself is closed to direct calls.
+  const newCount = await runTripCounter("increment_trip_like_count", tripId, "trip-like");
 
   void captureServerEvent(user.id, "explore_trip_liked", { trip_id: tripId });
 
@@ -106,9 +101,7 @@ export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
   // Only decrement if we actually deleted a row.
   let newCount = 0;
   if (deleted && deleted.length > 0) {
-    const { data: c } = await supabase.rpc("decrement_trip_like_count", {
-      p_trip_id: tripId,
-    });
+    const c = await runTripCounter("decrement_trip_like_count", tripId, "trip-unlike");
     newCount = c ?? 0;
   } else {
     // No row deleted — return the current count without changing it.
