@@ -73,8 +73,18 @@ describe("canary send cap", () => {
     // goes out on a later run with no state to repair. A `continue` that
     // persisted an outcome would strand them.
     const loop = SRC.slice(SRC.indexOf("for (const row of dueRows)"));
-    const capBlock = loop.slice(0, loop.indexOf("try {"));
+    const capBlock = loop.slice(0, loop.indexOf("await runRow(row, false)"));
     expect(capBlock).toContain("break");
+    expect(capBlock).not.toContain("persistOutcome");
+  });
+
+  it("the final pass over waiting twin copies obeys the cap the same way", () => {
+    // Twin copies that waited for their chosen copy (lib/notifications/twin-trips.ts)
+    // are decided in a second pass. A capped one must stay pending too.
+    const pass = SRC.slice(SRC.indexOf("for (const row of waiting)"));
+    const capBlock = pass.slice(0, pass.indexOf("await runRow(row, true)"));
+    expect(capBlock).toContain("sent >= cap");
+    expect(capBlock).toContain("continue");
     expect(capBlock).not.toContain("persistOutcome");
   });
 });
