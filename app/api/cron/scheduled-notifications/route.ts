@@ -30,6 +30,7 @@ import { postTripCtaUrl } from "@/lib/email/followup-cta";
 import { resolveLocale, formatDateRange } from "@/lib/email/reminder-locale";
 import { retryTransient } from "@/lib/notifications/retry";
 import { domesticTripVerdict } from "@/lib/notifications/domestic-trip";
+import { normalizeTripTitle, twinKeeper, type TwinCandidate } from "@/lib/notifications/twin-trips";
 
 /**
  * Pre-trip reminder cron — sweeps `scheduled_notifications` and
@@ -667,6 +668,25 @@ async function processRow(
     return "skipped";
   }
 
+  // 2a-twin. One reminder per real trip, not per saved copy.
+  //
+  // People regenerate a trip and save the result without deleting the first,
+  // so the same trip (owner, title, start date) exists two or three times,
+  // each with its own cascade — and the per-trip rate limit below cannot see
+  // the siblings. 19 of 217 sends from 16-23 Sep were extra copies (Sedona
+  // three times in eight seconds; Bari's in-trip digest twice a day for six
+  // days). See lib/notifications/twin-trips.ts for which copy wins.
+  //
+  // FAIL OPEN: a read error sends exactly as before. A duplicate is a
+  // nuisance; a lost reminder is the thing this whole loop exists to prevent.
+  if (trip.start_date) {
+    const twin = await findTwinKeeper(svc, row, trip);
+    if (twin && twin !== row.trip_id) {
+      await persistOutcome(svc, row.id, "suppressed", `twin_trip:${twin}`);
+      return "skipped";
+    }
+  }
+
   // 2a-bis. EXIT CONDITION for the post-trip sequence.
   //
   // Loop 2 exists to re-engage people who planned one trip and went
@@ -1265,6 +1285,54 @@ async function dispatchDayDigest(
 
   await persistOutcome(svc, row.id, "failed", "i18n" in result ? "i18n_load_error" : "dispatch_error", result.error);
   return "failed";
+}
+
+/**
+ * The trip that should send this slot among the owner's live twins of this
+ * trip, or null when there are none or the read failed (caller sends). Two
+ * small reads, and only for trips with a start date.
+ */
+async function findTwinKeeper(
+  svc: ReturnType<typeof serviceClient>,
+  row: SlotRow,
+  trip: { title: string | null; start_date: string | null }
+): Promise<string | null> {
+  const { data: sameDay, error: tripsErr } = await svc
+    .from("trips")
+    .select("id, title, updated_at, status")
+    .eq("user_id", row.user_id)
+    .eq("start_date", trip.start_date as string)
+    .is("deleted_at", null)
+    .limit(20);
+  if (tripsErr) {
+    console.warn("[cron/scheduled-notifs] twin read failed, sending", { id: row.id, error: tripsErr.message });
+    return null;
+  }
+  const key = normalizeTripTitle(trip.title);
+  const twins = ((sameDay ?? []) as { id: string; title: string | null; updated_at: string | null; status: string | null }[])
+    .filter((t) => t.status !== "cancelled" && normalizeTripTitle(t.title) === key);
+  if (twins.length < 2) return null;
+
+  const { data: slotRows, error: slotErr } = await svc
+    .from("scheduled_notifications")
+    .select("trip_id, status")
+    .in("trip_id", twins.map((t) => t.id))
+    .eq("slot", row.slot);
+  if (slotErr) {
+    console.warn("[cron/scheduled-notifs] twin slot read failed, sending", { id: row.id, error: slotErr.message });
+    return null;
+  }
+  const statusByTrip = new Map<string, string>();
+  for (const r of (slotRows ?? []) as { trip_id: string; status: string }[]) {
+    // A trip holds one row per slot; if it somehow holds more, "sent" wins.
+    if (statusByTrip.get(r.trip_id) !== "sent") statusByTrip.set(r.trip_id, r.status);
+  }
+  const candidates: TwinCandidate[] = twins.map((t) => ({
+    id: t.id,
+    updatedAt: t.updated_at,
+    slotStatus: statusByTrip.get(t.id) ?? null,
+  }));
+  return twinKeeper(row.trip_id, candidates);
 }
 
 async function persistOutcome(
