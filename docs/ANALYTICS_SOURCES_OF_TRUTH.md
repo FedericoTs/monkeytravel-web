@@ -113,6 +113,16 @@ One more thing the raw data revealed: the sweep came from **Cittadella**, and so
 | Admin dashboard reads | `app/api/admin/stats/route.ts` → `get_page_views_*` (rollup), `get_engagement_metrics`, `get_acquisition_breakdown` (sessions, 28 d) |
 | GA4 configuration | `docs/GA4_SETUP_GUIDE.md` |
 
+## cookieless_internal_entry label — since 2026-09-23 (the fifth definition change)
+
+A session-day whose ONLY row is a single anonymous page view with a monkeytravel.app referrer, that never left a `session_engagement`, `consent_events`, `wizard_step_events` or `funnel_events` row, is labelled `cookieless_internal_entry` (priority 10, last) and leaves `page_views_human`. These are one-shot requests that arrive with no cookie and a same-origin Referer for a page the client never fetched: on 2026-09-20, 1 of 168 had another session view the referring page with the same user-agent in the preceding 30 minutes, against 145 of 161 genuine internal navigations. They are not cookie-blocked people — those still run our JavaScript and write engagement and consent rows.
+
+**The 18 September step is ours, not growth.** `phantom_prefetch` already covered this shape and is fenced to rows before the #149 prefetch fix (2026-09-17 17:10:36 UTC): 216 / 624 / 299 / 575 sessions labelled on 14-17 Sep, then 0. So roughly 150 sessions/day re-entered the human series on 18 Sep because a rule expired. This label restores the pre-18-Sep definition; any read of 18-22 Sep made before 2026-09-23 overstated sessions by 19-31%.
+
+Guards: protected `/trips*` and `/auth/login|signup` paths are exempt, because until #172 (2026-09-22) a middleware redirect dropped the Set-Cookie there and those orphans must stay visible rather than be labelled away; a session seen on an earlier day in the window is exempt. The rule does not fire on a day with fewer than 30 candidates.
+
+This is the fifth change to the definition of a human session since 27 August (fc2b4b6, 3ac47c4, #149, #168, this). Windows either side of any of them are not comparable. Read movement from the daily series.
+
 ## acquisition: entry channel per session — since 2026-09-22
 
 GA4 stopped being a usable acquisition view on 2026-09-01, when c17abc3 made the tags obey the cookie banner. In the seven days to 2026-09-22, of 4,636 banner impressions 141 accepted (3.0%), 85 chose essential only (1.8%) and 3,215 (69%) minimised without deciding — so GA4 sees about three visitors in a hundred and its channel chart shows a collapse that did not happen. First-party human sessions were flat across the same period (600–850/day) and Google-referred sessions rose to 241–245/day on 20–21 September.
