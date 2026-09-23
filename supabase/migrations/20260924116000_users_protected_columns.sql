@@ -25,7 +25,8 @@
 -- (current_user other than postgres / service_role / supabase_admin):
 --   - the protected columns keep their stored values on UPDATE, and start at
 --     their defaults on INSERT, silently (the signup page and auth callback
---     send is_pro: false, which stays false);
+--     send is_pro: false, which stays false). The exception is
+--     referral_completed_at, where a change raises 42501 (see the body);
 --   - email may only be set to the caller's own sign-in email (the JWT's).
 -- Every legitimate writer is trusted: add_bananas / spend_bananas /
 -- check_and_unlock_tier / attach_referral_on_signup / the referral
@@ -72,6 +73,18 @@ begin
     return new;
   end if;
 
+  -- referral_completed_at raises rather than being kept: it is the one-time
+  -- claim that stops a referral paying twice. The code before 2026-09-23
+  -- made that claim from the user's own client and treated "a row came
+  -- back" as winning it; a silently kept NULL would have let every call win
+  -- and pay the referrer again (found in review). An error makes the old
+  -- code stop before paying, so this migration is safe with either version
+  -- of lib/referral/completion.ts, and after a rollback.
+  if new.referral_completed_at is distinct from old.referral_completed_at then
+    raise exception 'users.referral_completed_at is set by the server'
+      using errcode = '42501';
+  end if;
+
   new.subscription_tier := old.subscription_tier;
   new.subscription_expires_at := old.subscription_expires_at;
   new.stripe_customer_id := old.stripe_customer_id;
@@ -81,7 +94,6 @@ begin
   new.referral_tier := old.referral_tier;
   new.lifetime_referral_conversions := old.lifetime_referral_conversions;
   new.referred_by_code := old.referred_by_code;
-  new.referral_completed_at := old.referral_completed_at;
   new.signed_up_via_trip_invite := old.signed_up_via_trip_invite;
   if new.email is distinct from old.email
      and (v_jwt_email = '' or lower(new.email) is distinct from lower(v_jwt_email)) then

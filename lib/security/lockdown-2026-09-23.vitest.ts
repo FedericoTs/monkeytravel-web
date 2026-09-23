@@ -41,12 +41,19 @@ describe("writers moved to the service role", () => {
     expect(fn).not.toContain("await createClient()");
   });
 
-  it("the banana award route validates the reference, caps, and credits on the service role", () => {
+  it("the banana award route validates the reference and credits through the locked function", () => {
     const src = read("app/api/bananas/award/route.ts");
     expect(src).toContain("storedAwardReference(type as AwardType, tripId, referenceId)");
-    expect(src).toMatch(/addBananas\(\s*createAdminClient\(\),[\s\S]*?storedReference,/);
-    expect(src).toContain("itineraryActivityCount(trip.itinerary)");
-    expect(src).toContain("DAILY_GAMEPLAY_AWARD_CAP");
+    expect(src).toMatch(/createAdminClient\(\)\.rpc\("award_gameplay_bananas"/);
+    expect(src).toContain("p_activity_cap: itineraryActivityCount(trip.itinerary)");
+    expect(src).toContain("p_daily_cap: DAILY_GAMEPLAY_AWARD_CAP");
+    // Caps checked with plain reads in the route were racy.
+    expect(src).not.toContain("addBananas(");
+    const sql = migration("20260924119000_award_gameplay_bananas.sql");
+    expect(sql).toMatch(/from public\.users where id = p_user_id\s+for update;/);
+    expect(sql).toContain(
+      "revoke execute on function public.award_gameplay_bananas(uuid, text, text, integer, uuid, integer, integer, text) from public, anon, authenticated;"
+    );
   });
 
   it("referral completion claims and records on the service role", () => {
@@ -123,11 +130,13 @@ describe("the guards are shaped so they actually run", () => {
     for (const col of [
       "subscription_tier", "subscription_expires_at", "stripe_customer_id",
       "stripe_subscription_id", "is_pro", "banana_balance", "referral_tier",
-      "lifetime_referral_conversions", "referred_by_code", "referral_completed_at",
-      "signed_up_via_trip_invite",
+      "lifetime_referral_conversions", "referred_by_code", "signed_up_via_trip_invite",
     ]) {
       expect(sql).toContain(`new.${col} := old.${col};`);
     }
+    // The one-time referral claim raises instead of being kept, so the old
+    // user-client claim stops before paying (safe with either code version).
+    expect(sql).toMatch(/if new\.referral_completed_at is distinct from old\.referral_completed_at then\s+raise exception/);
     expect(sql).toMatch(/lower\(new\.email\) is distinct from lower\(v_jwt_email\)/);
   });
 
@@ -140,6 +149,7 @@ describe("the guards are shaped so they actually run", () => {
     expect(scoring).toContain("select count(distinct v.viewer_id) into v_views");
     expect(scoring).toContain("and v.viewer_id is distinct from v_owner;");
     expect(scoring).toContain("new.created_at := old.created_at;");
+    expect(scoring).toContain("new.created_at := now();");
   });
 });
 
@@ -182,7 +192,9 @@ describe("the closed functions and tables", () => {
 
   it("the destination leaderboard holds its 4-trip floor whatever the caller asks", () => {
     const sql = migration("20260924117000_destination_leaderboard_min_trips.sql");
-    expect(sql).toContain("where c.trips_all >= greatest(coalesce(p_min_trips, 4), 4)");
+    // Owners, not trips: duplicates or padding trips of one account don't count.
+    expect(sql).toContain("where c.owners >= greatest(coalesce(p_min_trips, 4), 4)");
+    expect(sql).toContain("having count(distinct owner_key) >= 2");
     expect(sql).toContain("limit least(greatest(coalesce(p_limit, 6), 1), 50);");
   });
 
@@ -205,7 +217,10 @@ describe("the closed functions and tables", () => {
   it("tester codes are looked up through the service role and no longer publicly listable", () => {
     const src = read("lib/early-access/index.ts");
     expect(src).toMatch(/await admin\s*\.from\("tester_codes"\)/);
-    expect(src).toMatch(/await createAdminClient\(\)\s*\.from\("tester_codes"\)/);
+    expect(src).not.toContain("export async function validateCode(");
+    // The unauthenticated GET validator is gone: on the service role it would
+    // tell anyone which strings are real codes.
+    expect(read("app/api/early-access/redeem/route.ts")).not.toMatch(/export async function GET/);
     const sql = migration("20260924122000_usage_bananas_service_role.sql");
     expect(sql).toMatch(/create policy tester_codes_select[\s\S]*?using \(is_admin_user\(\) or \(\(select auth\.role\(\)\) = 'service_role'\)\);/);
   });

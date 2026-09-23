@@ -40,13 +40,11 @@ import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { addBananas } from "@/lib/bananas/transactions";
 import {
   DAILY_GAMEPLAY_AWARD_CAP,
   itineraryActivityCount,
   storedAwardReference,
 } from "@/lib/bananas/award-reference";
-import type { BananaTransactionType } from "@/types/bananas";
 
 // Per-event award rates. Kept here (not in lib/bananas/config.ts) so the
 // server-side authoritative numbers can't be tampered with from client.
@@ -128,144 +126,55 @@ export async function POST(request: NextRequest) {
     return errors.badRequest("referenceId does not match this award");
   }
 
-  // Idempotency check: have we already credited this (user, type, reference_id)?
-  // The combo is the natural unique key — each activity checks once per trip,
-  // each achievement unlocks once per trip, each trip completes once.
-  const { data: existing, error: existingErr } = await supabase
-    .from("banana_transactions")
-    .select("id, balance_after")
-    .eq("user_id", user.id)
-    .eq("transaction_type", type)
-    .eq("reference_id", storedReference)
-    .limit(1)
-    .maybeSingle();
-
-  if (existingErr) {
-    // Don't fail the request just because the check errored — log and continue.
-    // Worst case we award twice on a transient DB blip; that's recoverable.
-    console.warn("[/api/bananas/award] idempotency check failed (non-fatal):", existingErr.message);
-  }
-  if (existing) {
-    // Already credited. Return current balance for client UI sync.
-    const { data: userRow } = await supabase
-      .from("users")
-      .select("banana_balance")
-      .eq("id", user.id)
-      .maybeSingle();
-    const balance = (userRow as { banana_balance?: number } | null)?.banana_balance ?? existing.balance_after;
-    return apiSuccess({
-      ok: true,
-      awarded: 0,
-      newBalance: balance,
-      duplicate: true,
-    });
-  }
-
   const amount = AWARD_AMOUNTS[type as AwardType];
 
-  // Caps (2026-09-23). A trip earns at most one activity credit per activity
-  // it holds, and one person at most DAILY_GAMEPLAY_AWARD_CAP a day from
-  // gameplay. An award over a cap is not an error: the client's animation
-  // already played, so answer like a duplicate with nothing credited.
-  const capped = async () => {
-    const { data: userRow } = await supabase
-      .from("users")
-      .select("banana_balance")
-      .eq("id", user.id)
-      .maybeSingle();
-    return apiSuccess({
-      ok: true,
-      awarded: 0,
-      newBalance: (userRow as { banana_balance?: number } | null)?.banana_balance ?? 0,
-      duplicate: false,
-      capped: true,
-    });
-  };
+  // Duplicate check, caps and credit happen in one transaction that locks
+  // the user's row (award_gameplay_bananas, 20260924119000): a trip earns at
+  // most one activity credit per activity it holds, and a person at most
+  // DAILY_GAMEPLAY_AWARD_CAP a day. Checked here with plain reads, a burst
+  // of parallel requests all saw the same totals and all got credited.
+  // Service role: the function takes any user id; this is the session user.
+  const { data: rows, error: awardErr } = await createAdminClient().rpc("award_gameplay_bananas", {
+    p_user_id: user.id,
+    p_type: type,
+    p_reference: storedReference,
+    p_amount: amount,
+    p_trip_id: tripId,
+    p_activity_cap: itineraryActivityCount(trip.itinerary),
+    p_daily_cap: DAILY_GAMEPLAY_AWARD_CAP,
+    p_description: description ?? defaultDescriptionFor(type as AwardType),
+  });
 
-  if (type === "activity_completion") {
-    const { count: creditedOnTrip } = await supabase
-      .from("banana_transactions")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("transaction_type", "activity_completion")
-      .like("reference_id", `${tripId}:%`);
-    if ((creditedOnTrip ?? 0) >= itineraryActivityCount(trip.itinerary)) {
-      return capped();
+  if (awardErr) {
+    // The unique index on (user_id, transaction_type, reference_id) can still
+    // fire for a request that raced past the duplicate check before the lock
+    // existed on this row; treat it like the duplicate it is.
+    if (/duplicate key|already exists|23505|uniq_banana_tx_credit_idempotency/i.test(awardErr.message)) {
+      return apiSuccess({ ok: true, awarded: 0, newBalance: await balanceOf(supabase, user.id), duplicate: true });
     }
+    console.error("[/api/bananas/award] award_gameplay_bananas failed:", awardErr.message);
+    return errors.internal("Award failed", "BananasAward");
   }
 
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const { data: recentAwards } = await supabase
-    .from("banana_transactions")
-    .select("amount")
-    .eq("user_id", user.id)
-    .in("transaction_type", [...VALID_TYPES])
-    .gt("amount", 0)
-    .gte("created_at", since)
-    .limit(1000);
-  const awardedToday = (recentAwards ?? []).reduce(
-    (sum, row) => sum + ((row as { amount?: number }).amount ?? 0),
-    0
-  );
-  if (awardedToday + amount > DAILY_GAMEPLAY_AWARD_CAP) {
-    return capped();
-  }
-
-  // add_bananas is service-role only (20260924122000); the user is the
-  // signed-in one and every check above has passed.
-  const result = await addBananas(
-    createAdminClient(),
-    user.id,
-    amount,
-    type as BananaTransactionType,
-    storedReference,
-    description ?? defaultDescriptionFor(type as AwardType)
-  );
-
-  if (!result.success) {
-    // The 2026-05-30 migration added a DB-level UNIQUE constraint on
-    // (user_id, transaction_type, reference_id) WHERE amount > 0 — so
-    // concurrent races between the SELECT-then-INSERT pre-check above
-    // and this RPC will surface here as a Postgres 23505. Map it to
-    // the same idempotent-success response the pre-check returns so
-    // the client UX is consistent regardless of which guard fired.
-    //
-    // Substring match because the supabase-js error doesn't always
-    // preserve the code field — we look for the unique-violation
-    // signature OR the index name directly. Anything else is a real
-    // failure and should still 500.
-    const errMsg = result.error ?? "Award failed";
-    const isDupRace =
-      /duplicate key|already exists|23505|uniq_banana_tx_credit_idempotency/i.test(
-        errMsg
-      );
-
-    if (isDupRace) {
-      const { data: userRow } = await supabase
-        .from("users")
-        .select("banana_balance")
-        .eq("id", user.id)
-        .maybeSingle();
-      const balance =
-        (userRow as { banana_balance?: number } | null)?.banana_balance ?? 0;
-      return apiSuccess({
-        ok: true,
-        awarded: 0,
-        newBalance: balance,
-        duplicate: true,
-      });
-    }
-
-    console.error("[/api/bananas/award] addBananas failed:", errMsg);
-    return errors.internal(errMsg, "BananasAward");
-  }
-
+  const row = (Array.isArray(rows) ? rows[0] : rows) as { outcome?: string; new_balance?: number } | null;
+  const outcome = row?.outcome ?? "credited";
+  // Over a cap is not an error: the client's animation already played, so it
+  // answers like a duplicate with nothing credited.
   return apiSuccess({
     ok: true,
-    awarded: amount,
-    newBalance: result.newBalance,
-    duplicate: false,
+    awarded: outcome === "credited" ? amount : 0,
+    newBalance: row?.new_balance ?? 0,
+    duplicate: outcome === "duplicate",
+    ...(outcome === "capped" ? { capped: true } : {}),
   });
+}
+
+async function balanceOf(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<number> {
+  const { data } = await supabase.from("users").select("banana_balance").eq("id", userId).maybeSingle();
+  return (data as { banana_balance?: number } | null)?.banana_balance ?? 0;
 }
 
 function defaultDescriptionFor(type: AwardType): string {

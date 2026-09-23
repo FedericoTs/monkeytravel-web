@@ -103,9 +103,11 @@ begin
     new.is_hidden := false;
     new.reported_count := 0;
     new.is_template := false;
-    -- The trending freshness term counts from shared_at / created_at; a
-    -- date in the future would hold it at its maximum forever.
-    new.created_at := case when new.created_at is null or new.created_at > now() then now() else new.created_at end;
+    -- The trending freshness term counts from shared_at / created_at, and
+    -- the editors-pick cron requires created_at at least 7 days back: a
+    -- future date would hold freshness at its maximum forever, a past one
+    -- would skip the age gate. A trip is created now.
+    new.created_at := now();
     new.shared_at := case when new.shared_at > now() then now() else new.shared_at end;
     if new.parent_trip_id is not null and not public.trip_is_forkable(new.parent_trip_id) then
       raise exception 'trips.parent_trip_id must name a public trip'
