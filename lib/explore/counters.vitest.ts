@@ -144,6 +144,29 @@ describe("counter functions are only called through lib/explore/counters.ts", ()
     expect(offenders).toEqual([]);
   });
 
+  it("an anonymous save merged at sign-in is recounted as the account's save", () => {
+    const src = readFileSync(path.join(ROOT, "app", "auth", "callback", "route.ts"), "utf8");
+    const merge = src.slice(src.indexOf("async function mergeAnonymousSaves"));
+    expect(merge).toMatch(/\.update\(\{ user_id: userId, saver_cookie_id: null \}\)[\s\S]*?\.select\("trip_id"\)/);
+    expect(merge).toContain('runTripCounter("increment_trip_save_count"');
+  });
+
+  it("the like, save and fork counters recount rows instead of stepping by one", () => {
+    const sql = readFileSync(
+      path.join(ROOT, "supabase", "migrations", "20260924100000_counter_rpcs_service_role.sql"),
+      "utf8"
+    ).replace(/\r/g, "");
+    expect(sql).toContain("select count(*) into v_count from public.trip_likes where trip_id = p_trip_id;");
+    expect(sql).toMatch(/from public\.trip_saves\s+where trip_id = p_trip_id and user_id is not null;/);
+    expect(sql).toMatch(/count\(distinct c\.user_id\)[\s\S]*?c\.user_id is distinct from v_owner;/);
+    for (const fn of ["increment_trip_like_count", "increment_trip_save_count", "increment_trip_fork_count"]) {
+      const body = sql.slice(sql.indexOf(`create or replace function public.${fn}`));
+      const end = body.indexOf("$function$;");
+      expect(body.slice(0, end)).toContain("for update;");
+      expect(body.slice(0, end)).not.toMatch(/_count, 0\) [+-] 1/);
+    }
+  });
+
   it("the migration closes every one of them to everyone but the service role", () => {
     const sql = readFileSync(
       path.join(ROOT, "supabase", "migrations", "20260924100000_counter_rpcs_service_role.sql"),

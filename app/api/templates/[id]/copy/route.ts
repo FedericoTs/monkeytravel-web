@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { generateActivityId } from "@/lib/utils/activity-id";
@@ -119,8 +119,10 @@ export async function POST(
     // simultaneous "Use this template" clicks dropped one increment.
     // Migration 20260524_atomic_counters.sql defines the RPC. It runs as the
     // service role (lib/explore/counters.ts); the template lookup and the
-    // insert above are the gate. Never throws.
-    void incrementTemplateCopyCount(templateId, "Template Copy");
+    // insert above are the gate. Never throws. In after(), not a floating
+    // promise: the function can be frozen once the response is sent, and a
+    // floating write is lost with it.
+    after(() => incrementTemplateCopyCount(templateId, "Template Copy"));
 
     // Complete referral if this is user's first trip (fire and forget)
     void (async () => {

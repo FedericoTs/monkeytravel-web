@@ -87,30 +87,30 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
 
   if (insertErr) {
     if (insertErr.code === "23505") {
-      // Duplicate save — idempotent. Return current count.
-      const { data: cur } = await supabase
-        .from("trips")
-        .select("save_count")
-        .eq("id", tripId)
-        .single();
-      const res = apiSuccess({ saved: true, count: cur?.save_count ?? 0 });
+      // Duplicate save — idempotent. Return current count, with an
+      // anonymous visitor's own save added as on a first save below.
+      const cur = (await currentSaveCount(supabase, tripId)) ?? 0;
+      const res = apiSuccess({ saved: true, count: user ? cur : cur + 1 });
       return maybeSetCookie(res, cookieIdToSet);
     }
     return errors.internal("Failed to save trip", "trip_saves.insert");
   }
 
-  // Only signed-in saves move the counter. An anonymous save is keyed by a
-  // cookie the visitor controls: drop the cookie and the next request mints a
-  // fresh one, so counting those would let anyone push any public trip's
-  // save_count (and trending score) up without limit. They were never
-  // counted in practice either: until 2026-09-23 this call ran on the
-  // visitor's own client, and the anon role cannot execute the counter.
+  // save_count counts signed-in saves only: the counter recounts the
+  // trip_saves rows that have a user_id (migration 20260924100000). An
+  // anonymous save is keyed by a cookie the visitor controls: drop it and the
+  // next request mints a fresh one, so counting those would let anyone push
+  // any public trip up /explore. They never counted in production either
+  // (the anon role could not execute the counter). One starts counting when
+  // sign-in re-keys it to the account (mergeAnonymousSaves in
+  // app/auth/callback/route.ts).
   let newCount: number | null = null;
   if (user) {
     newCount = await runTripCounter("increment_trip_save_count", tripId, "trip-save");
   } else {
     // The visitor sees their own save in the number next to the button they
-    // just pressed; the stored count, which everyone else sees, leaves it out.
+    // just pressed; the stored count, which everyone else sees, leaves it
+    // out. Page loads do the same (TripEngagementSection).
     const cur = await currentSaveCount(supabase, tripId);
     newCount = cur === null ? null : cur + 1;
   }
@@ -159,9 +159,8 @@ export async function DELETE(request: NextRequest, { params }: RouteCtx) {
     }
   }
 
-  // Mirror of POST: only a signed-in save was ever counted, so only a
-  // signed-in unsave takes one off. Decrementing for an anonymous unsave
-  // would subtract a save that someone signed in made.
+  // Signed-in: recount now the row is gone. Anonymous: the row was never
+  // counted, so there is nothing to recount.
   let count = 0;
   if (deletedCount > 0 && user) {
     const c = await runTripCounter("decrement_trip_save_count", tripId, "trip-unsave");

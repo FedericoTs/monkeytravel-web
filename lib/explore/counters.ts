@@ -19,6 +19,18 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * The functions do not read auth.uid(), so running them as the service role
  * changes nothing about what they compute.
  *
+ * WHAT THEY COUNT (same migration)
+ * The like, save and fork functions recount from the rows instead of adding
+ * or taking one: people can add and remove their own trip_likes / trip_saves
+ * rows directly, so a counter that stepped by one could be walked up or down
+ * through the routes. increment_* and decrement_* now do the same recount
+ * (the names are kept):
+ *   like_count = trip_likes rows
+ *   save_count = trip_saves rows with a user_id (cookie saves left out)
+ *   fork_count = distinct accounts, owner excluded, that forked the trip
+ * increment_template_copy_count still steps by one: a copy keeps no link to
+ * its template, so there are no rows to count.
+ *
  * Never throws. A counter that fails to move is logged as drift and the
  * person's action (the like, the fork) still succeeds, as before.
  */

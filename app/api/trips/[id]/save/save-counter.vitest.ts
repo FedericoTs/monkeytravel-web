@@ -22,12 +22,17 @@ vi.mock("@/lib/explore/counters", () => ({
 vi.mock("@/lib/explore/flag", () => ({ isExploreUgcEnabled: () => true }));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: async () => {} }));
 
-type Opts = { user: { id: string } | null; saveCount: number; deletedRows: number };
+type Opts = {
+  user: { id: string } | null;
+  saveCount: number;
+  deletedRows: number;
+  duplicate?: boolean;
+};
 let opts: Opts;
 
 function tripSavesTable() {
   return {
-    insert: async () => ({ error: null }),
+    insert: async () => ({ error: opts.duplicate ? { code: "23505" } : null }),
     delete: () => ({
       eq: () => ({
         eq: () => ({
@@ -101,6 +106,25 @@ describe("POST /api/trips/[id]/save", () => {
     const res = await POST(req("POST"), ctx);
     expect(runTripCounter).not.toHaveBeenCalled();
     expect(await res.json()).toMatchObject({ saved: true, count: 4 });
+  });
+
+  it("a repeated anonymous save shows the same number as the first one", async () => {
+    opts.duplicate = true;
+    const { POST } = await import("./route");
+
+    const res = await POST(req("POST", "abc123"), ctx);
+    expect(runTripCounter).not.toHaveBeenCalled();
+    expect(await res.json()).toMatchObject({ saved: true, count: 4 });
+  });
+
+  it("a repeated signed-in save shows the stored count and does not count again", async () => {
+    opts.user = { id: "u1" };
+    opts.duplicate = true;
+    const { POST } = await import("./route");
+
+    const res = await POST(req("POST"), ctx);
+    expect(runTripCounter).not.toHaveBeenCalled();
+    expect(await res.json()).toMatchObject({ saved: true, count: 3 });
   });
 });
 

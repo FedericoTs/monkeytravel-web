@@ -58,7 +58,10 @@ export default async function TripEngagementSection({
       <EngagementBar
         tripId={tripId}
         likeCount={likeCount}
-        saveCount={saveCount}
+        // trips.save_count leaves out anonymous (cookie) saves, so an
+        // anonymous visitor who saved this trip gets their own save added,
+        // the same number the save API returned when they pressed the button.
+        saveCount={!isAuthenticated && viewerState.hasSaved ? saveCount + 1 : saveCount}
         forkCount={forkCount}
         initialLiked={viewerState.hasLiked}
         initialSaved={viewerState.hasSaved}
