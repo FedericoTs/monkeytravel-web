@@ -28,9 +28,13 @@ type World = {
   role: string | null; // the caller's trip_collaborators.role, null if none
   tripVisible: boolean; // whether RLS lets the caller see the trip at all
   updateError?: { code: string; message?: string } | null;
+  itinerary?: unknown[]; // stored itinerary, for the activity-photo path
+  casMisses?: number; // compare-and-swap writes that should match 0 rows
 };
 let world: World;
 const updates: Array<{ values: Record<string, unknown>; filters: Array<[string, unknown]> }> = [];
+const reads: string[] = [];
+const STORED_AT = "2026-09-24T10:00:00.000001+00:00";
 
 function fakeSupabase() {
   return {
@@ -45,13 +49,16 @@ function fakeSupabase() {
       }
       if (table === "trips") {
         return {
-          select: () => {
+          select: (cols: string) => {
+            reads.push(cols);
             const q = {
               eq: () => q,
               single: async () =>
-                world.tripVisible
-                  ? { data: { id: TRIP, user_id: OWNER }, error: null }
-                  : { data: null, error: { code: "PGRST116" } },
+                !world.tripVisible
+                  ? { data: null, error: { code: "PGRST116" } }
+                  : cols.includes("itinerary")
+                    ? { data: { itinerary: world.itinerary ?? [], updated_at: STORED_AT }, error: null }
+                    : { data: { id: TRIP, user_id: OWNER }, error: null },
             };
             return q;
           },
@@ -68,6 +75,14 @@ function fakeSupabase() {
                 world.updateError
                   ? { data: null, error: world.updateError }
                   : { data: { id: TRIP, user_id: OWNER, ...values }, error: null },
+              // Awaited without .single(): the activity-photo compare-and-swap.
+              then: (resolve: (v: unknown) => void) => {
+                if ((world.casMisses ?? 0) > 0) {
+                  world.casMisses = (world.casMisses ?? 0) - 1;
+                  return resolve({ data: [], error: null });
+                }
+                return resolve({ data: [{ id: TRIP }], error: null });
+              },
             };
             return q;
           },
@@ -106,6 +121,7 @@ const itinerary = [{ day_number: 1, activities: [{ id: "a1", name: "Museum" }] }
 beforeEach(() => {
   vi.clearAllMocks();
   updates.length = 0;
+  reads.length = 0;
   world = { caller: "editor-1", role: "editor", tripVisible: true, updateError: null };
 });
 
@@ -182,5 +198,77 @@ describe("the owner", () => {
     expect(res.status).toBe(200);
     expect(scheduleTripNotifications).toHaveBeenCalledTimes(1);
     expect(scheduleTripNotifications).toHaveBeenCalledWith({ tripId: TRIP, userId: OWNER });
+  });
+});
+
+/**
+ * A photo found in PlaceGallery. It used to go out as the WHOLE itinerary from
+ * the tab's copy, in the background, which on a shared trip reverted whatever
+ * anyone else had saved since the page loaded. Now only the one photo is sent
+ * and set on the stored itinerary, guarded by updated_at.
+ */
+describe("saving one activity's photo", () => {
+  const stored = () => [
+    {
+      day_number: 1,
+      activities: [
+        { id: "a1", name: "Museum" },
+        { id: "a2", name: "Cafe", image_url: "https://old/x.jpg" },
+      ],
+    },
+    { day_number: 2, activities: [{ id: "b1", name: "Edited by someone else" }] },
+  ];
+  const photo = (activityId: string, imageUrl = "https://new/p.jpg") => patch({ activityPhoto: { activityId, imageUrl } });
+
+  it("sets just that photo on the CURRENT itinerary, compare-and-swap on updated_at", async () => {
+    world.itinerary = stored();
+    const res = await photo("a1", "https://new/a1.jpg");
+    expect(res.status).toBe(200);
+    expect(updates).toHaveLength(1);
+    const written = updates[0].values.itinerary as Array<{ activities: Array<Record<string, unknown>> }>;
+    expect(written[0].activities[0].image_url).toBe("https://new/a1.jpg");
+    // Everything else is the stored copy, untouched, including another person's edit.
+    expect(written[0].activities[1].image_url).toBe("https://old/x.jpg");
+    expect(written[1].activities[0].name).toBe("Edited by someone else");
+    expect(updates[0].filters).toContainEqual(["updated_at", STORED_AT]);
+  });
+
+  it("never replaces a photo that is already there", async () => {
+    world.itinerary = stored();
+    expect((await photo("a2")).status).toBe(200);
+    expect(updates).toHaveLength(0);
+  });
+
+  it("skips an activity that was deleted meanwhile", async () => {
+    world.itinerary = stored();
+    expect((await photo("gone")).status).toBe(200);
+    expect(updates).toHaveLength(0);
+  });
+
+  it("re-reads and retries once when someone saved in between", async () => {
+    world.itinerary = stored();
+    world.casMisses = 1;
+    expect((await photo("a1")).status).toBe(200);
+    expect(updates).toHaveLength(2);
+    expect(reads.filter((c) => c.includes("itinerary"))).toHaveLength(2);
+  });
+
+  it("works for the owner too", async () => {
+    world.caller = OWNER;
+    world.role = null;
+    world.itinerary = stored();
+    expect((await photo("a1")).status).toBe(200);
+    expect(updates).toHaveLength(1);
+  });
+
+  it("refuses a voter, and a malformed body", async () => {
+    world.itinerary = stored();
+    world.role = "voter";
+    expect((await photo("a1")).status).toBe(403);
+    world.role = "editor";
+    expect((await photo("")).status).toBe(400);
+    expect((await photo("a1", "")).status).toBe(400);
+    expect((await patch({ activityPhoto: "nope" })).status).toBe(400);
+    expect(updates).toHaveLength(0);
   });
 });

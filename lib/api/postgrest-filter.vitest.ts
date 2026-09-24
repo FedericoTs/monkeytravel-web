@@ -28,6 +28,14 @@ describe("destinationCityTerm", () => {
     expect(destinationCityTerm(", India")).toBe("");
     expect(destinationCityTerm("")).toBe("");
   });
+
+  it("does not pick one city out of a multi-city route", () => {
+    // joinCities labels: the first city's coordinates would pin every other
+    // city's activities there.
+    expect(destinationCityTerm("London & Paris")).toBe("");
+    expect(destinationCityTerm("Osaka, Kyoto & Nagoya")).toBe("");
+    expect(destinationCityTerm("Madrid, Valencia, grenada, marbella & malaga")).toBe("");
+  });
 });
 
 describe("ilikeOrTerm", () => {
@@ -43,9 +51,11 @@ describe("ilikeOrTerm", () => {
 });
 
 describe("the assistant route", () => {
-  it("builds its destination or() from the escaped city term", () => {
+  it("builds its destination or() from the escaped city term, matched exactly", () => {
     const src = readFileSync(join(process.cwd(), "app/api/ai/assistant/route.ts"), "utf8");
     expect(src).toMatch(/destinationCityTerm\(destinationName\)/);
     expect(src).not.toMatch(/\.or\(`name\.ilike\.%\$\{destinationName\}%/);
+    // No wildcards around the city: "%Nice%" matches "Venice".
+    expect(src).toMatch(/\.or\(`name\.ilike\.\$\{cityTerm\},city\.ilike\.\$\{cityTerm\}`\)/);
   });
 });

@@ -68,7 +68,7 @@ export default async function ProfilePage() {
     // reports as a 406 error rather than null.
     supabase
       .from("user_tester_access")
-      .select("code_used, redeemed_at")
+      .select("code_used, redeemed_at, expires_at, ai_generations_limit, ai_regenerations_limit, ai_assistant_limit")
       .eq("user_id", user.id)
       .maybeSingle(),
   ]);
@@ -136,12 +136,23 @@ export default async function ProfilePage() {
     last_sign_in_at: profile?.last_sign_in_at || null,
   };
 
-  // Beta access info
-  const betaAccessInfo = betaAccess
+  // Beta access info. Active only while unexpired, the same rule
+  // lib/early-access and lib/usage-limits enforce: an expired row gives no
+  // extra access, so the card must not say it does (17 of 18 rows had expired
+  // when this section first became reachable, 2026-09-24). Limits are shown
+  // as stored; a null limit means the normal tier limit, not unlimited.
+  const betaActive =
+    !!betaAccess && (!betaAccess.expires_at || new Date(betaAccess.expires_at) > new Date());
+  const betaAccessInfo = betaActive
     ? {
         hasBetaAccess: true,
         codeUsed: betaAccess.code_used,
         activatedAt: betaAccess.redeemed_at,
+        limits: {
+          generations: betaAccess.ai_generations_limit,
+          regenerations: betaAccess.ai_regenerations_limit,
+          assistant: betaAccess.ai_assistant_limit,
+        },
       }
     : {
         hasBetaAccess: false,

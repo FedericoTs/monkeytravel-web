@@ -109,6 +109,14 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
       }
     }
 
+    // A photo found for one activity (PlaceGallery). Applied to the CURRENT
+    // stored itinerary, never by sending the whole itinerary from the tab:
+    // that used to overwrite whatever anyone else had saved since the page
+    // loaded, which became reachable once editors could save.
+    if (body.activityPhoto !== undefined) {
+      return applyActivityPhoto(supabase, id, body.activityPhoto);
+    }
+
     // Build update object
     const updates: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
@@ -198,6 +206,65 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     console.error("[Trips] Error updating trip:", error);
     return errors.internal("Failed to update trip", "Trips");
   }
+}
+
+/**
+ * Set one activity's image_url on the trip's current itinerary.
+ *
+ * Read, change one field, write back only if the row has not moved in
+ * between (updated_at as the compare-and-swap token), retrying once. A photo
+ * never replaces one that is already there, and an activity someone deleted
+ * meanwhile is simply skipped. Access was checked by the caller (owner or
+ * editor); RLS applies to both the read and the write.
+ */
+async function applyActivityPhoto(
+  supabase: Awaited<ReturnType<typeof getAuthenticatedUser>>["supabase"],
+  tripId: string,
+  raw: unknown
+) {
+  const input = raw as { activityId?: unknown; imageUrl?: unknown } | null;
+  const activityId = typeof input?.activityId === "string" ? input.activityId : "";
+  const imageUrl = typeof input?.imageUrl === "string" ? input.imageUrl : "";
+  // eslint-disable-next-line no-control-regex
+  if (!activityId || activityId.length > 200 || !imageUrl || imageUrl.length > 2048 || /[\x00-\x1F]/.test(imageUrl)) {
+    return errors.badRequest("Invalid activityPhoto");
+  }
+  if (!supabase) return errors.internal("Failed to update trip", "Trips");
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const { data: current, error: readError } = await supabase
+      .from("trips")
+      .select("itinerary, updated_at")
+      .eq("id", tripId)
+      .single();
+    if (readError || !current) return errors.notFound("Trip not found");
+
+    const itinerary = (Array.isArray(current.itinerary) ? current.itinerary : []) as ItineraryDay[];
+    let applied = false;
+    const next = itinerary.map((day) => ({
+      ...day,
+      activities: (day.activities ?? []).map((activity) => {
+        if (activity.id !== activityId || activity.image_url) return activity;
+        applied = true;
+        return { ...activity, image_url: imageUrl };
+      }),
+    }));
+    if (!applied) return apiSuccess({ success: true, applied: false });
+
+    const { data: written, error: writeError } = await supabase
+      .from("trips")
+      .update({ itinerary: next })
+      .eq("id", tripId)
+      .eq("updated_at", current.updated_at)
+      .select("id");
+    if (writeError) {
+      console.error("[Trips] Error saving activity photo:", writeError);
+      return errors.internal("Failed to update trip", "Trips");
+    }
+    if (written && written.length > 0) return apiSuccess({ success: true, applied: true });
+    // Someone saved in between: re-read and try once more.
+  }
+  return apiSuccess({ success: true, applied: false });
 }
 
 /**

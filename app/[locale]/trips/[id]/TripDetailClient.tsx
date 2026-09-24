@@ -1095,18 +1095,16 @@ export default function TripDetailClient({
       setEditedItinerary((prev) => updateActivity(prev, activityId, { image_url: photoUrl }));
       setSavedItinerary((prev) => updateActivity(prev, activityId, { image_url: photoUrl }));
 
-      // Persist to database in background (don't await, fire-and-forget).
-      // Owner only. This sends the whole itinerary from this tab's copy
-      // without the user doing anything, so from a collaborator's tab it
-      // could silently overwrite edits the owner saved meanwhile. A
-      // collaborator's photo still lands with their next explicit Save.
-      if (!isOwner) return;
+      // Persist in the background (fire-and-forget) for those who may edit.
+      // Only this one photo is sent; the server sets it on the CURRENT stored
+      // itinerary. This used to send the whole itinerary from this tab's copy,
+      // with no user action, so on a shared trip it silently reverted whatever
+      // someone else had saved since the page loaded.
+      if (!canEdit) return;
       fetch(`/api/trips/${trip.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          itinerary: updateActivity(editedItinerary, activityId, { image_url: photoUrl }),
-        }),
+        body: JSON.stringify({ activityPhoto: { activityId, imageUrl: photoUrl } }),
       }).catch((error) => {
         console.error("[Photo Capture] Failed to persist photo:", error);
         // Don't show error to user - photo is still displayed from local state
@@ -1114,7 +1112,7 @@ export default function TripDetailClient({
 
       console.log(`[Photo Capture] Captured Places photo for activity ${activityId}`);
     },
-    [trip.id, editedItinerary, isOwner]
+    [trip.id, canEdit]
   );
 
   const handleActivityRegenerate = useCallback(
