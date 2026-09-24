@@ -105,9 +105,17 @@ describe("locale prefix", () => {
 
 describe("safety", () => {
   it("still refuses an off-site next, nested or not", async () => {
-    for (const next of ["https://evil.com", `/auth/callback?next=${encodeURIComponent("//evil.com")}`]) {
+    // The origin is always the callback's own, so assert the path: a refused
+    // next falls back to /trips rather than carrying the payload along.
+    for (const next of [
+      "https://evil.com",
+      `/auth/callback?next=${encodeURIComponent("//evil.com")}`,
+      `/pt/auth/callback?next=${encodeURIComponent("https://evil.com")}`,
+    ]) {
       const url = await landing(`code=c&locale=en&next=${encodeURIComponent(next)}`);
       expect(url.origin).toBe(APP);
+      expect(url.pathname).toMatch(/^(\/pt)?\/trips$/);
+      expect(url.href).not.toContain("evil");
     }
   });
 });
