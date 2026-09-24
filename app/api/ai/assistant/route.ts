@@ -44,6 +44,7 @@ import {
   type Coordinates,
 } from "@/lib/utils/geo";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { destinationCityTerm } from "@/lib/api/postgrest-filter";
 import { formatMinutesToTime } from "@/lib/datetime/format";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
@@ -1051,14 +1052,24 @@ export async function POST(request: NextRequest) {
     const destinationName = getTripDestination(trip);
     let destinationCoords: Coordinates | undefined;
 
-    const { data: destData } = await supabase
-      .from("destinations")
-      .select("latitude, longitude")
-      .or(`name.ilike.%${destinationName}%,city.ilike.%${destinationName}%`)
-      .not("latitude", "is", null)
-      .not("longitude", "is", null)
-      .limit(1)
-      .single();
+    // City part only, escaped, matched EXACTLY (case-insensitive, no
+    // wildcards). The raw "Chennai, India" put a comma inside or(), which
+    // PostgREST read as a second condition and answered 400, so the assistant
+    // got no coordinates for any "City, Country" destination. A %city% match
+    // would be worse than none: "Nice" is inside "Venice". Multi-city labels
+    // yield no term (lib/api/postgrest-filter.ts). maybeSingle: no match is a
+    // normal outcome, not a 406.
+    const cityTerm = destinationCityTerm(destinationName);
+    const { data: destData } = cityTerm
+      ? await supabase
+          .from("destinations")
+          .select("latitude, longitude")
+          .or(`name.ilike.${cityTerm},city.ilike.${cityTerm}`)
+          .not("latitude", "is", null)
+          .not("longitude", "is", null)
+          .limit(1)
+          .maybeSingle()
+      : { data: null };
 
     if (destData?.latitude && destData?.longitude) {
       destinationCoords = { lat: destData.latitude, lng: destData.longitude };

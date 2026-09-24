@@ -1246,6 +1246,7 @@
       "enableSharing": "Habilita compartir para obtener un enlace público para este viaje",
       "enabling": "Habilitando...",
       "enableSharingButton": "Habilitar Compartir",
+      "ownerOnly": "Solo el propietario del viaje puede activar el enlace para compartir.",
       "publicLink": "Enlace Público",
       "readOnlyNote": "Cualquier persona con este enlace puede ver tu viaje (solo lectura)",
       "collaborateLabel": "Colaborar",

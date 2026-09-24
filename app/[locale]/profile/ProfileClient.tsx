@@ -62,6 +62,12 @@ interface BetaAccessInfo {
   hasBetaAccess: boolean;
   codeUsed?: string;
   activatedAt?: string;
+  /** Per-feature limits from user_tester_access; null = normal tier limit. */
+  limits?: {
+    generations: number | null;
+    regenerations: number | null;
+    assistant: number | null;
+  };
 }
 
 interface ProfileClientProps {
@@ -936,19 +942,35 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                         {betaAccess.codeUsed && t("profile.betaSection.code", { code: betaAccess.codeUsed })}
                         {betaAccess.activatedAt && (
                           <span className="ml-2 text-emerald-600">
-                            ({t("profile.betaSection.activated", { date: new Date(betaAccess.activatedAt).toLocaleDateString() })})
+                            ({t("profile.betaSection.activated", {
+                              // Page locale and UTC, so the server render and
+                              // the browser agree (no hydration mismatch, no
+                              // day shift across timezones).
+                              date: new Date(betaAccess.activatedAt).toLocaleDateString(locale, {
+                                timeZone: "UTC",
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              }),
+                            })})
                           </span>
                         )}
                       </p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 mt-4">
+                    {/* Only limits the code actually sets. These used to say
+                        "Unlimited" for everyone, but a null limit falls back
+                        to the normal tier limit (lib/usage-limits/check.ts). */}
                     {[
-                      { label: t("profile.betaSection.benefits.generations"), value: t("profile.betaSection.unlimited") },
-                      { label: t("profile.betaSection.benefits.regenerations"), value: t("profile.betaSection.unlimited") },
-                      { label: t("profile.betaSection.benefits.assistant"), value: t("profile.betaSection.unlimited") },
-                      { label: t("profile.betaSection.benefits.support"), value: t("profile.betaSection.activeBadge") },
-                    ].map((item, i) => (
+                      { label: t("profile.betaSection.benefits.generations"), limit: betaAccess.limits?.generations },
+                      { label: t("profile.betaSection.benefits.regenerations"), limit: betaAccess.limits?.regenerations },
+                      { label: t("profile.betaSection.benefits.assistant"), limit: betaAccess.limits?.assistant },
+                    ]
+                      .filter((item) => typeof item.limit === "number")
+                      .map((item) => ({ label: item.label, value: String(item.limit) }))
+                      .concat([{ label: t("profile.betaSection.benefits.support"), value: t("profile.betaSection.activeBadge") }])
+                      .map((item, i) => (
                       <div key={i} className="flex items-center gap-2">
                         <svg className="w-4 h-4 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />

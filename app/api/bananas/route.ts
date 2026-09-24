@@ -26,18 +26,27 @@ export async function GET() {
       getReferralBananasEarned(supabase, user.id),
     ]);
 
-    // Get referral stats
+    // Referral stats, both from the code's own counters.
+    //
+    // "Pending" used to be a count on referral_events filtered by
+    // referrer_id and status. Neither column exists (the referrer is reached
+    // through referral_code_id, and the status column is reward_status), so
+    // the query failed with 42703 on every call and the dashboard always
+    // showed 0 pending. Counting events would still be wrong: before
+    // 2026-09-23 the conversion-event insert ran on the user's client, which
+    // cannot insert there, so conversions are missing from referral_events
+    // while total_conversions has them. Signed up but not yet converted is
+    // total_signups - total_conversions; attach_referral_on_signup and
+    // increment_referral_conversions keep both counters atomically.
+    // maybeSingle: an account with no code yet is not an error.
     const { data: referralCode } = await supabase
       .from('referral_codes')
-      .select('total_conversions')
+      .select('total_signups, total_conversions')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    const { count: pendingCount } = await supabase
-      .from('referral_events')
-      .select('*', { count: 'exact', head: true })
-      .eq('referrer_id', user.id)
-      .eq('status', 'pending');
+    const conversions = referralCode?.total_conversions ?? 0;
+    const signups = referralCode?.total_signups ?? 0;
 
     const response: BananasDashboardResponse = {
       balance,
@@ -45,8 +54,8 @@ export async function GET() {
       badges,
       recentTransactions,
       referralStats: {
-        totalReferrals: referralCode?.total_conversions ?? 0,
-        pendingReferrals: pendingCount ?? 0,
+        totalReferrals: conversions,
+        pendingReferrals: Math.max(0, signups - conversions),
         bananasEarned,
       },
     };

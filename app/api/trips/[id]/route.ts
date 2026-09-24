@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
+import { getAuthenticatedUser, verifyTripAccess, verifyTripOwnership } from "@/lib/api/auth";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
@@ -46,7 +46,28 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
 }
 
 /**
+ * Fields an invited editor may change. The rest of the PATCH surface
+ * (status, dates, the reminders mute) stays with the owner: dates and the
+ * mute re-plan the OWNER's reminder emails, and status is the trip's
+ * lifecycle. Mirrors what the trips_update RLS policy already lets an editor
+ * do at the row level, narrowed to the product's intent.
+ */
+const EDITOR_FIELDS = new Set([
+  "itinerary",
+  "title",
+  "description",
+  "tags",
+  "budget",
+  "cover_image_url",
+]);
+const OWNER_ONLY_FIELDS = ["status", "start_date", "end_date", "reminders_muted"] as const;
+
+/**
  * PATCH /api/trips/[id] - Update trip (supports itinerary updates)
+ *
+ * Owner, or an invited EDITOR (trip_collaborators.role = 'editor'). Until
+ * 2026-09-24 this was owner-only while the trip page showed editors an
+ * "Edit trip" button, so an editor's Save answered 404 "Trip not found".
  */
 export async function PATCH(request: NextRequest, context: TripRouteContext) {
   try {
@@ -54,11 +75,15 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // Verify trip ownership
-    const { errorResponse: tripError } = await verifyTripOwnership(
+    // Owner or editor. Voters, viewers and non-members get 403; a trip the
+    // caller cannot see at all gets 404. user_id must be in the select:
+    // verifyTripAccess decides ownership from it.
+    const { trip, isOwner, errorResponse: tripError } = await verifyTripAccess(
       supabase,
       id,
-      user.id
+      user.id,
+      "id, user_id",
+      ["editor"]
     );
     if (tripError) return tripError;
 
@@ -71,6 +96,25 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
       body = await request.json();
     } catch {
       return errors.badRequest("Invalid or empty JSON body");
+    }
+
+    // An editor asking for an owner-only change is refused outright rather
+    // than having the field dropped: a 200 for a change that never happened
+    // is the silent-write-failure shape tests/e2e/silent-write-failures.spec.ts
+    // exists to catch. The trip page never sends these for an editor.
+    if (!isOwner) {
+      const refused = OWNER_ONLY_FIELDS.filter((f) => body[f] !== undefined);
+      if (refused.length > 0) {
+        return errors.forbidden(`Only the trip owner can change: ${refused.join(", ")}`);
+      }
+    }
+
+    // A photo found for one activity (PlaceGallery). Applied to the CURRENT
+    // stored itinerary, never by sending the whole itinerary from the tab:
+    // that used to overwrite whatever anyone else had saved since the page
+    // loaded, which became reachable once editors could save.
+    if (body.activityPhoto !== undefined) {
+      return applyActivityPhoto(supabase, id, body.activityPhoto);
     }
 
     // Build update object
@@ -106,7 +150,7 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
       "reminders_muted",
     ];
     for (const field of allowedFields) {
-      if (body[field] !== undefined) {
+      if (body[field] !== undefined && (isOwner || EDITOR_FIELDS.has(field))) {
         updates[field] = body[field];
       }
     }
@@ -122,16 +166,22 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     const endDateChanged = body.end_date !== undefined;
     const muteChanged = body.reminders_muted !== undefined;
 
-    // Update trip
+    // Update trip. Filtered by id only: the trips_update RLS policy admits the
+    // owner and editors, and the trips_guard_protected_columns trigger still
+    // keeps user_id, counters and flags out of reach of both.
     const { data: updatedTrip, error: updateError } = await supabase
       .from("trips")
       .update(updates)
       .eq("id", id)
-      .eq("user_id", user.id)
       .select()
       .single();
 
     if (updateError) {
+      // Zero rows: the policy refused the write, e.g. the editor was removed
+      // between the access check and the update.
+      if (updateError.code === "PGRST116") {
+        return errors.forbidden("Access denied");
+      }
       console.error("[Trips] Error updating trip:", updateError);
       return errors.internal("Failed to update trip", "Trips");
     }
@@ -141,8 +191,14 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     // calendar-export env flag and fail-closed against the user via
     // logging only (never re-throws). See
     // lib/notifications/scheduling.ts for details.
+    //
+    // Always the OWNER's id, from the checked row. enqueue_trip_notifications
+    // looks the trip up by (id, user_id): given anyone else's id it finds no
+    // trip, deletes every pending row for it and inserts nothing, wiping the
+    // owner's schedule. Only owners reach this today (dates and the mute are
+    // owner-only above); this keeps it right if that ever changes.
     if (startDateChanged || endDateChanged || muteChanged) {
-      void scheduleTripNotifications({ tripId: id, userId: user.id });
+      void scheduleTripNotifications({ tripId: id, userId: trip.user_id });
     }
 
     return apiSuccess({ success: true, trip: updatedTrip });
@@ -150,6 +206,65 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     console.error("[Trips] Error updating trip:", error);
     return errors.internal("Failed to update trip", "Trips");
   }
+}
+
+/**
+ * Set one activity's image_url on the trip's current itinerary.
+ *
+ * Read, change one field, write back only if the row has not moved in
+ * between (updated_at as the compare-and-swap token), retrying once. A photo
+ * never replaces one that is already there, and an activity someone deleted
+ * meanwhile is simply skipped. Access was checked by the caller (owner or
+ * editor); RLS applies to both the read and the write.
+ */
+async function applyActivityPhoto(
+  supabase: Awaited<ReturnType<typeof getAuthenticatedUser>>["supabase"],
+  tripId: string,
+  raw: unknown
+) {
+  const input = raw as { activityId?: unknown; imageUrl?: unknown } | null;
+  const activityId = typeof input?.activityId === "string" ? input.activityId : "";
+  const imageUrl = typeof input?.imageUrl === "string" ? input.imageUrl : "";
+  // eslint-disable-next-line no-control-regex
+  if (!activityId || activityId.length > 200 || !imageUrl || imageUrl.length > 2048 || /[\x00-\x1F]/.test(imageUrl)) {
+    return errors.badRequest("Invalid activityPhoto");
+  }
+  if (!supabase) return errors.internal("Failed to update trip", "Trips");
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const { data: current, error: readError } = await supabase
+      .from("trips")
+      .select("itinerary, updated_at")
+      .eq("id", tripId)
+      .single();
+    if (readError || !current) return errors.notFound("Trip not found");
+
+    const itinerary = (Array.isArray(current.itinerary) ? current.itinerary : []) as ItineraryDay[];
+    let applied = false;
+    const next = itinerary.map((day) => ({
+      ...day,
+      activities: (day.activities ?? []).map((activity) => {
+        if (activity.id !== activityId || activity.image_url) return activity;
+        applied = true;
+        return { ...activity, image_url: imageUrl };
+      }),
+    }));
+    if (!applied) return apiSuccess({ success: true, applied: false });
+
+    const { data: written, error: writeError } = await supabase
+      .from("trips")
+      .update({ itinerary: next })
+      .eq("id", tripId)
+      .eq("updated_at", current.updated_at)
+      .select("id");
+    if (writeError) {
+      console.error("[Trips] Error saving activity photo:", writeError);
+      return errors.internal("Failed to update trip", "Trips");
+    }
+    if (written && written.length > 0) return apiSuccess({ success: true, applied: true });
+    // Someone saved in between: re-read and try once more.
+  }
+  return apiSuccess({ success: true, applied: false });
 }
 
 /**

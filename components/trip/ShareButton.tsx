@@ -18,6 +18,8 @@ interface ShareButtonProps {
   autoOpen?: boolean;
   /** trip_meta.trip_intent — "group" opens the share tab on the crew ask. */
   tripIntent?: "solo" | "group" | null;
+  /** False for collaborators: turning the link on/off is the owner's. */
+  canManageSharing?: boolean;
 }
 
 export default function ShareButton({
@@ -28,6 +30,7 @@ export default function ShareButton({
   showNewBadge = true,
   autoOpen = false,
   tripIntent,
+  canManageSharing = true,
 }: ShareButtonProps) {
   const t = useTranslations("common.shareButton");
   const [isModalOpen, setIsModalOpen] = useState(autoOpen);
@@ -178,6 +181,7 @@ export default function ShareButton({
           onTrendingChange={handleTrendingChange}
           isLoading={isLoading}
           initialTab={openTab}
+          canManageSharing={canManageSharing}
         />
       </>
     );
@@ -257,6 +261,7 @@ export default function ShareButton({
         onTrendingChange={handleTrendingChange}
         isLoading={isLoading}
         initialTab={openTab}
+        canManageSharing={canManageSharing}
       />
     </>
   );
