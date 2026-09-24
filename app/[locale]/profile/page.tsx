@@ -62,11 +62,15 @@ export default async function ProfilePage() {
       .select("id, start_date, end_date, status, itinerary")
       .eq("user_id", user.id)
       .or("is_archived.is.null,is_archived.eq.false"),
+    // redeemed_at, not created_at: the table has no created_at, so this select
+    // failed with 42703 on every profile load and the beta section never
+    // showed. maybeSingle because most accounts have no row, which .single()
+    // reports as a 406 error rather than null.
     supabase
       .from("user_tester_access")
-      .select("code_used, created_at")
+      .select("code_used, redeemed_at")
       .eq("user_id", user.id)
-      .single(),
+      .maybeSingle(),
   ]);
 
   const { data: profile } = profileResult;
@@ -137,7 +141,7 @@ export default async function ProfilePage() {
     ? {
         hasBetaAccess: true,
         codeUsed: betaAccess.code_used,
-        activatedAt: betaAccess.created_at,
+        activatedAt: betaAccess.redeemed_at,
       }
     : {
         hasBetaAccess: false,
