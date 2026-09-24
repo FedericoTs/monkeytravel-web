@@ -5,6 +5,8 @@ import { setRequestLocale } from "next-intl/server";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { validateInvite, type InviteData } from "@/lib/api/invite-validation";
 import InviteAcceptClient from "./InviteAcceptClient";
+import InviteRecipientGate from "./InviteRecipientGate";
+import { maskEmail } from "@/lib/invites/recipient";
 
 interface PageProps {
   params: Promise<{ token: string; locale: string }>;
@@ -92,9 +94,14 @@ async function getInviteData(token: string) {
     }
     const expected = String(invite.recipient_email).toLowerCase().trim();
     if (!viewerEmail || viewerEmail !== expected) {
+      // Rendered as InviteRecipientGate, which signs the visitor in as the
+      // invited address (until 2026-09-24 this was an error screen with no
+      // way to sign in). Only a masked hint of that address goes to the page.
       return {
         error: "RECIPIENT_MISMATCH" as const,
         tripTitle: trip.title as string,
+        maskedRecipient: maskEmail(String(invite.recipient_email)),
+        signedInEmail: viewerEmail,
       };
     }
   }
@@ -177,6 +184,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Root layout's title.template appends " | MonkeyTravel" — page-level
   // titles must NOT include the suffix themselves, or we render the
   // duplicated "X | MonkeyTravel | MonkeyTravel" caught in COLLAB_AUDIT B2.
+  // An emailed invite opened signed out (or as another account) is not
+  // invalid: it is waiting for the right sign-in. It used to be titled
+  // "Invalid Invite", which is also what link previews of the invite showed.
+  // Title only; the trip's details stay private until then.
+  if ("error" in data && data.error === "RECIPIENT_MISMATCH") {
+    return {
+      title: `Join ${data.tripTitle}`,
+      robots: { index: false, follow: false },
+    };
+  }
+
   if ("error" in data) {
     return {
       title: "Invalid Invite",
@@ -199,6 +217,17 @@ export default async function JoinPage({ params }: PageProps) {
   setRequestLocale(locale);
   const t = await getTranslations("common.invitePage");
   const data = await getInviteData(token);
+
+  if ("error" in data && data.error === "RECIPIENT_MISMATCH") {
+    return (
+      <InviteRecipientGate
+        token={token}
+        tripTitle={data.tripTitle}
+        maskedRecipient={data.maskedRecipient}
+        signedInEmail={data.signedInEmail}
+      />
+    );
+  }
 
   if ("error" in data) {
     const errorMap: Record<string, string> = {

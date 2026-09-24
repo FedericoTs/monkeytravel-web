@@ -2229,6 +2229,17 @@
     "alreadyHaveAccount": "Already have an account?",
     "signIn": "Sign in",
     "createYourOwnTrip": "Create Your Own Trip",
+    "gate": {
+      "title": "Join {trip}",
+      "sentTo": "This invite was sent to {email}. Sign in with that email to see the trip and join it.",
+      "emailMeALink": "Email me a sign-in link",
+      "sending": "Sending…",
+      "sent": "We sent a sign-in link to {email}. Open it on any device to see the trip and join.",
+      "googleHint": "Use Google only if {email} is your Google account.",
+      "wrongAccount": "You're signed in as {current}, but this invite was sent to {invited}.",
+      "switchAccount": "Sign out and switch account",
+      "sendFailed": "We couldn't send the email. Please try again in a moment."
+    },
     "errors": {
       "invalidToken": "Invalid Invite Link",
       "revoked": "Invite Revoked",

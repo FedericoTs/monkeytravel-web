@@ -420,7 +420,10 @@ export default function InviteAcceptClient({
                 {t("continueWithGoogle")}
               </button>
 
-              {/* Apple */}
+              {/* Apple: same gate as the login page (NEXT_PUBLIC_APPLE_AUTH_ENABLED).
+                  Until the Apple provider is configured in Supabase, the
+                  button was a click that could only fail. */}
+              {process.env.NEXT_PUBLIC_APPLE_AUTH_ENABLED === "true" && (
               <button
                 onClick={() => handleSignIn("apple")}
                 disabled={isLoading}
@@ -431,6 +434,7 @@ export default function InviteAcceptClient({
                 </svg>
                 {t("continueWithApple")}
               </button>
+              )}
 
               {/* Divider */}
               <div className="relative py-2">
