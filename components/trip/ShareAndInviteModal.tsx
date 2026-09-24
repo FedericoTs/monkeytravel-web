@@ -42,6 +42,13 @@ interface ShareAndInviteModalProps {
   isLoading: boolean;
   // Initial tab (for opening directly to invite tab)
   initialTab?: TabType;
+  /**
+   * Whether this viewer may turn the link on or off and list the trip in
+   * Explore. Only the owner may (POST/DELETE /share and /submit-trending are
+   * owner-only), so a collaborator's click used to fail silently. Defaults
+   * to true: the owner's view is unchanged.
+   */
+  canManageSharing?: boolean;
 }
 
 export default function ShareAndInviteModal({
@@ -58,6 +65,7 @@ export default function ShareAndInviteModal({
   onTrendingChange,
   isLoading,
   initialTab = "share",
+  canManageSharing = true,
 }: ShareAndInviteModalProps) {
   const t = useTranslations("common");
   // Helper to access share translations with proper prefix
@@ -426,8 +434,15 @@ export default function ShareAndInviteModal({
                   </p>
                 </div>
 
+                {/* Not shared and not ours to share: say who can. */}
+                {!isShared && !canManageSharing && (
+                  <p className="text-sm text-slate-600 text-center py-4">
+                    {ts("invite.ownerOnly")}
+                  </p>
+                )}
+
                 {/* Enable sharing if not shared */}
-                {!isShared && (
+                {!isShared && canManageSharing && (
                   <div className="text-center py-4">
                     <p className="text-sm text-slate-600 mb-4">
                       {ts("invite.enableSharing")}
@@ -546,6 +561,9 @@ export default function ShareAndInviteModal({
                       </div>
                     </div>
 
+                    {/* Listing in Explore and stopping the link: owner only. */}
+                    {canManageSharing && (
+                    <>
                     {/* Submit to Trending */}
                     <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100">
                       <div className="flex items-center justify-between">
@@ -598,6 +616,8 @@ export default function ShareAndInviteModal({
                         </div>
                       )}
                     </div>
+                    </>
+                    )}
                   </>
                 )}
               </div>

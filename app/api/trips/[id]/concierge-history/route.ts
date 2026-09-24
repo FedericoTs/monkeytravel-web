@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
+import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { TripRouteContext } from "@/lib/api/route-context";
@@ -18,11 +18,15 @@ import type { TripRouteContext } from "@/lib/api/route-context";
  *
  * Access control:
  *   - 401 if not authenticated.
- *   - 404 if the user doesn't own the trip (or doesn't have collaborator
- *     access). Enforced by `verifyTripOwnership`, which itself uses RLS
- *     on the trips table — soft-deleted trips return 404 just like
- *     non-existent ones (intentional: deleted trips shouldn't surface
- *     their old chats either).
+ *   - 404 if the trip is not visible to the user; 403 if they can see it
+ *     but are not the owner or a collaborator. Enforced by
+ *     `verifyTripAccess`, which reads through RLS on the trips table, so
+ *     soft-deleted trips return 404 just like non-existent ones
+ *     (intentional: deleted trips shouldn't surface their old chats either).
+ *     This used to be verifyTripOwnership, which 404'd every collaborator
+ *     although they can ask the Concierge on the same page.
+ *   - Each person only ever sees their OWN turns (`.eq("user_id", ...)`
+ *     below), collaborators included.
  *   - Service-role client to READ ai_conversations because the table is
  *     RLS-locked to service_role. The ownership check above is the
  *     real gate; service-role here just bypasses the missing read
@@ -56,11 +60,11 @@ export async function GET(_req: NextRequest, context: TripRouteContext) {
     // implicitly enforces the soft-delete filter (RLS on trips hides
     // tombstoned rows), so a user querying a deleted trip's history
     // gets the same 404 as a non-existent trip — no information leak.
-    const { errorResponse: tripError } = await verifyTripOwnership(
+    const { errorResponse: tripError } = await verifyTripAccess(
       supabase,
       tripId,
       user.id,
-      "id"
+      "id, user_id"
     );
     if (tripError) return tripError;
 

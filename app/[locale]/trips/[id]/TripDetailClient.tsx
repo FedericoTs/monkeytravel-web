@@ -611,8 +611,10 @@ export default function TripDetailClient({
   const tripDaysCount = trip.itinerary.length;
   const totalActivities = editedItinerary.reduce((acc, day) => acc + day.activities.length, 0);
 
-  // Pre-trip checklist (only load when in pre-trip phase)
-  const checklist = useChecklist(trip.id);
+  // Pre-trip checklist (only load when in pre-trip phase). Owner only: the
+  // checklist routes and their RLS admit only the owner, so loading it for a
+  // collaborator was a guaranteed 404 on every visit.
+  const checklist = useChecklist(trip.id, { enabled: isOwner });
 
   // Toast notifications
   const { addToast } = useToast();
@@ -1093,7 +1095,12 @@ export default function TripDetailClient({
       setEditedItinerary((prev) => updateActivity(prev, activityId, { image_url: photoUrl }));
       setSavedItinerary((prev) => updateActivity(prev, activityId, { image_url: photoUrl }));
 
-      // Persist to database in background (don't await, fire-and-forget)
+      // Persist to database in background (don't await, fire-and-forget).
+      // Owner only. This sends the whole itinerary from this tab's copy
+      // without the user doing anything, so from a collaborator's tab it
+      // could silently overwrite edits the owner saved meanwhile. A
+      // collaborator's photo still lands with their next explicit Save.
+      if (!isOwner) return;
       fetch(`/api/trips/${trip.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -1107,7 +1114,7 @@ export default function TripDetailClient({
 
       console.log(`[Photo Capture] Captured Places photo for activity ${activityId}`);
     },
-    [trip.id, editedItinerary]
+    [trip.id, editedItinerary, isOwner]
   );
 
   const handleActivityRegenerate = useCallback(
@@ -1869,7 +1876,10 @@ export default function TripDetailClient({
   // Uses local Haversine calculation - NO external API calls!
   // Cached results from trip_meta are used if available and hash matches
   const { travelData, isLoading: travelLoading } = useTravelDistances(displayItinerary, {
-    tripId: trip.id,
+    // tripId turns on persisting the cache, which /travel-cache allows only
+    // for the owner. Distances are computed locally either way; a
+    // collaborator's reorder is cached on the owner's next visit.
+    tripId: isOwner ? trip.id : undefined,
     cachedTravelData: trip.cachedTravelDistances,
     cachedHash: trip.cachedTravelHash,
   });
@@ -1985,8 +1995,10 @@ export default function TripDetailClient({
           </div>
         )}
 
-        {/* Planning Phase - Confirm Trip Action */}
-        {currentStatus === "planning" && (
+        {/* Planning Phase - Confirm Trip Action. Owner only: confirming or
+            cancelling is the trip's lifecycle, and PATCH /status admits only
+            the owner, so a collaborator's click was a silent 404. */}
+        {currentStatus === "planning" && isOwner && (
           <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-start gap-4">
@@ -2084,13 +2096,15 @@ export default function TripDetailClient({
               activitiesCount={totalActivities}
               coverImageUrl={coverImageUrl ?? undefined}
             />
-            <PreTripChecklist
-              items={checklist.items}
-              onToggle={checklist.toggleItem}
-              onAdd={checklist.addItem}
-              onDelete={checklist.deleteItem}
-              isLoading={checklist.isLoading}
-            />
+            {isOwner && (
+              <PreTripChecklist
+                items={checklist.items}
+                onToggle={checklist.toggleItem}
+                onAdd={checklist.addItem}
+                onDelete={checklist.deleteItem}
+                isLoading={checklist.isLoading}
+              />
+            )}
           </div>
         )}
 
@@ -2244,6 +2258,7 @@ export default function TripDetailClient({
                 tripId={trip.id}
                 tripTitle={trip.title}
                 tripIntent={trip.meta?.trip_intent}
+                canManageSharing={isOwner}
                 autoOpen={shouldAutoOpenShareModal || crewShareRequest > 0}
                 initialTab={
                   crewShareRequest > 0
@@ -2385,6 +2400,10 @@ export default function TripDetailClient({
                   )}
                 </button>
               </div>
+            ) : !isEditMode && !canEdit ? (
+              // Voters and viewers get no edit entry point: PATCH admits the
+              // owner and editors only, so their Save would be refused.
+              null
             ) : !isEditMode ? (
               <button
                 onClick={handleEnterEditMode}

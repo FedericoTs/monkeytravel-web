@@ -134,3 +134,54 @@ describe("ShareAndInviteModal framing", () => {
     await waitFor(() => expect(writeText).toHaveBeenLastCalledWith(SHARE_URL));
   });
 });
+
+/**
+ * Collaborators (2026-09-24). Turning the link on or off and listing the trip
+ * in Explore are the owner's (POST/DELETE /share and /submit-trending admit
+ * only the owner), so an editor's click there used to fail silently. The
+ * trip page passes canManageSharing={isOwner}; the default keeps the owner's
+ * view exactly as before.
+ */
+describe("sharing controls for someone who is not the owner", () => {
+  function renderAs(canManageSharing: boolean | undefined, isShared: boolean) {
+    return render(
+      <ShareAndInviteModal
+        isOpen
+        onClose={vi.fn()}
+        tripId="trip-1"
+        tripTitle="Lisbon Trip"
+        shareUrl={isShared ? SHARE_URL : ""}
+        isShared={isShared}
+        onStopSharing={vi.fn()}
+        onEnableSharing={vi.fn(async () => undefined)}
+        isLoading={false}
+        {...(canManageSharing === undefined ? {} : { canManageSharing })}
+      />
+    );
+  }
+
+  it("shows a note instead of Enable Sharing", () => {
+    renderAs(false, false);
+    expect(screen.queryByText("share.invite.enableSharingButton")).toBeNull();
+    expect(screen.getByText("share.invite.ownerOnly")).toBeTruthy();
+  });
+
+  it("still offers the existing link, without Explore or Stop Sharing", () => {
+    renderAs(false, true);
+    expect(offeredLink()).toContain(TOKEN);
+    expect(screen.queryByText("share.stopSharing.button")).toBeNull();
+    expect(screen.queryByText("share.explore.submitTo")).toBeNull();
+  });
+
+  it("leaves the owner's view unchanged by default", () => {
+    renderAs(undefined, false);
+    expect(screen.getByText("share.invite.enableSharingButton")).toBeTruthy();
+    expect(screen.queryByText("share.invite.ownerOnly")).toBeNull();
+  });
+
+  it("leaves the owner's Stop Sharing and Explore in place", () => {
+    renderAs(undefined, true);
+    expect(screen.getByText("share.stopSharing.button")).toBeTruthy();
+    expect(screen.getByText("share.explore.submitTo")).toBeTruthy();
+  });
+});

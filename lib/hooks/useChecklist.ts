@@ -13,12 +13,22 @@ interface UseChecklistReturn {
   refresh: () => Promise<void>;
 }
 
-export function useChecklist(tripId: string): UseChecklistReturn {
+/**
+ * @param options.enabled - false skips the fetch entirely. The checklist is
+ *   the owner's: its API routes and the trip_checklists RLS policies admit
+ *   only the trip owner, so a collaborator's page load used to fire a GET
+ *   that always 404'd.
+ */
+export function useChecklist(
+  tripId: string,
+  { enabled = true }: { enabled?: boolean } = {}
+): UseChecklistReturn {
   const [items, setItems] = useState<ChecklistItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
 
   const fetchItems = useCallback(async () => {
+    if (!enabled) return;
     try {
       setError(null);
       const response = await fetch(`/api/trips/${tripId}/checklist`);
@@ -35,7 +45,7 @@ export function useChecklist(tripId: string): UseChecklistReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [tripId]);
+  }, [tripId, enabled]);
 
   useEffect(() => {
     fetchItems();

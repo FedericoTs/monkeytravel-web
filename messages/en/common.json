@@ -1246,6 +1246,7 @@
       "enableSharing": "Enable sharing to get a public link for this trip",
       "enabling": "Enabling...",
       "enableSharingButton": "Enable Sharing",
+      "ownerOnly": "Only the trip owner can turn on the share link.",
       "publicLink": "Public Link",
       "readOnlyNote": "Anyone with this link can view your trip (read-only)",
       "collaborateLabel": "Collaborate",
