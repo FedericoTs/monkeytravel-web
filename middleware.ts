@@ -4,6 +4,7 @@ import { updateSession, trackPageView } from "@/lib/supabase/middleware";
 import { routing } from "@/lib/i18n/routing";
 import { buildCspHeader, shouldEnforceCsp, allowsThirdPartyFraming } from "@/lib/security/csp";
 import { generateNonce } from "@/lib/security/nonce";
+import { unprefixedCallbackUrl } from "@/lib/auth/callback-url";
 
 // Create the i18n middleware
 const intlMiddleware = createIntlMiddleware(routing);
@@ -250,6 +251,19 @@ export async function middleware(request: NextRequest) {
   // Declared here rather than at the isPublicOnly block further down because
   // the feedback exemption needs it too — see below.
   const pathNoLocale = pathname.replace(/^\/(en|es|it|pt)(?=\/|$)/, "") || "/";
+
+  // /pt/auth/callback does not exist: the route is unprefixed and takes the
+  // language as ?locale=. The save prompt built the prefixed form for every
+  // non-English sign-in from 2026-06-04 to 2026-09-24, and all of them 404'd
+  // with the auth code unredeemed. Send any such link, including ones still
+  // sitting in an inbox, to the real route with every param kept
+  // (lib/auth/callback-url.ts).
+  const callbackTarget = unprefixedCallbackUrl(new URL(request.url));
+  if (callbackTarget) {
+    const response = NextResponse.redirect(callbackTarget, 307);
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+    return attachSecurityHeaders(response);
+  }
 
   const shouldSkipIntl =
     pathname.startsWith("/api/") ||

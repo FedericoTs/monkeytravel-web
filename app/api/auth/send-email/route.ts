@@ -37,6 +37,7 @@ import AuthActionEmail, {
   type AuthActionKind,
 } from "@/lib/email/templates/AuthAction";
 import { normalizeEmailLocale, type EmailLocale } from "@/lib/email/copy";
+import { callbackIntentFromRedirect } from "@/lib/auth/callback-url";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -167,9 +168,16 @@ export async function POST(request: Request) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
   const redirectTo = data.redirect_to || appUrl;
 
+  // What the sign-in asked to come back to. redirect_to is often a callback
+  // URL itself (the save prompt, the signup page with a referral), so read
+  // the destination out of it rather than nesting it (lib/auth/callback-url.ts).
+  const intent = callbackIntentFromRedirect(redirectTo, appUrl);
+
   // Email in the language the user uses the site in. Computed here (rather
-  // than further down) because the confirmation link carries it.
-  const locale = normalizeEmailLocale(payload.user?.user_metadata?.locale);
+  // than further down) because the confirmation link carries it. The account's
+  // own locale wins; the page the sign-in started on is the fallback, for an
+  // existing account that never stored one.
+  const locale = normalizeEmailLocale(payload.user?.user_metadata?.locale ?? intent.locale);
 
   // WHY THIS LINKS TO OUR OWN CALLBACK AND NOT GoTrue's /auth/v1/verify
   //
@@ -201,25 +209,17 @@ export async function POST(request: Request) {
     const cb = new URL("/auth/callback", appUrl);
     cb.searchParams.set("token_hash", data.token_hash);
     cb.searchParams.set("type", data.email_action_type);
-    cb.searchParams.set("locale", locale);
+    // The landing page's language: where the sign-in started, else the
+    // email's.
+    cb.searchParams.set("locale", intent.locale ?? locale);
 
-    // Carry the signup page's intent through. redirect_to is a full URL; the
-    // callback wants a path for `next` and reads `ref` at the top level.
-    try {
-      const target = new URL(redirectTo, appUrl);
-      if (target.origin === new URL(appUrl).origin) {
-        const ref = target.searchParams.get("ref");
-        if (ref) cb.searchParams.set("ref", ref);
-        target.searchParams.delete("ref");
-        const qs = target.searchParams.toString();
-        const path = target.pathname + (qs ? `?${qs}` : "");
-        // "/" carries no intent, and the callback already routes brand-new
-        // users to /trips/new on its own.
-        if (path && path !== "/") cb.searchParams.set("next", path);
-      }
-    } catch {
-      // A malformed redirect_to must not cost the user their email.
-    }
+    // Carry the sign-in's intent through. The callback wants a path for
+    // `next` and reads `ref` at the top level. This used to copy the whole
+    // redirect path into `next`, so a redirect_to that was itself
+    // /auth/callback?next=/trips/new sent the user through the callback twice
+    // and out to /auth/login?error=auth_incomplete while signed in.
+    if (intent.ref) cb.searchParams.set("ref", intent.ref);
+    if (intent.next) cb.searchParams.set("next", intent.next);
 
     verifyUrl = cb.toString();
   } else {

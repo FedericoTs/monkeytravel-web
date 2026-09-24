@@ -7,6 +7,7 @@ import { safeNextOrDefault } from "@/lib/security/safe-next";
 import { isFirstLogin, resolveAuthLanding } from "@/lib/auth/first-login";
 import { logWizardStepServer } from "@/lib/analytics/wizard-event-server";
 import { runTripCounter } from "@/lib/explore/counters";
+import { localizePath, normalizeAuthLocale, unwrapCallbackNext } from "@/lib/auth/callback-url";
 import type { EmailOtpType } from "@supabase/supabase-js";
 
 const SAVER_COOKIE_NAME = "mt_saver_cookie";
@@ -88,10 +89,23 @@ export async function GET(request: Request) {
   // backslash variants, and CR/LF injection — the OAuth callback is a
   // post-auth surface where an open-redirect equals high-trust phishing.
   // See lib/security/safe-next.ts.
-  const next = safeNextOrDefault(searchParams.get("next"), "/trips");
+  //
+  // A `next` can itself be a callback URL (/auth/callback?next=/trips/new,
+  // or the 404ing /pt/auth/callback?...). The send-email hook used to nest the
+  // whole redirect URL that way, so this callback signed the user in and then
+  // sent them to a second callback with no code, which bounced a signed-in
+  // user to /auth/login?error=auth_incomplete. Unwrap to the real destination;
+  // every hop is re-checked by isSafeNext (lib/auth/callback-url.ts).
+  const unwrapped = unwrapCallbackNext(safeNextOrDefault(searchParams.get("next"), "/trips"));
+  const next = unwrapped.next ?? "/trips";
   const fromOnboarding = searchParams.get("from_onboarding") === "true";
   const referralCode = searchParams.get("ref");
-  const locale = searchParams.get("locale") || "en";
+  // The language of the page being returned to, when `next` names one (a
+  // /pt/... path, or a nested callback's locale), beats the link's own param:
+  // the send-email hook filled that param from the account's stored locale,
+  // which is "en" for everyone who never stored one. Only supported values;
+  // the raw param used to go straight into the path.
+  const locale = unwrapped.locale ?? normalizeAuthLocale(searchParams.get("locale")) ?? "en";
 
   /**
    * Accept a locale from auth user_metadata only if it is one we actually
@@ -110,13 +124,10 @@ export async function GET(request: Request) {
     return SUPPORTED_SIGNUP_LOCALES.has(base) ? base : undefined;
   };
 
-  // Helper to build locale-prefixed URLs
-  const getLocalePath = (path: string) => {
-    if (locale === "en") {
-      return path;
-    }
-    return `/${locale}${path}`;
-  };
+  // Locale-prefix a landing path, at most once. A `next` that already has a
+  // prefix, like the invite page's /pt/invite/<token>, used to become
+  // /pt/pt/invite/<token> when the locale param was pt too.
+  const getLocalePath = (path: string) => localizePath(path, locale);
 
   const supabase = await createClient();
 

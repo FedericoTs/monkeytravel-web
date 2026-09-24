@@ -26,6 +26,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { prefs } from "@/lib/platform/storage";
 import { createClient } from "@/lib/supabase/client";
+import { buildAuthCallbackUrl, localizePath } from "@/lib/auth/callback-url";
 import { trackWizardEvent } from "@/components/wizard/wizardEvents";
 import {
   OTP_CODE_LENGTH,
@@ -161,17 +162,23 @@ export default function AuthPromptModal({
 
       const supabase = createClient();
       // emailRedirectTo must be an absolute URL — Supabase rejects paths.
-      // We rebuild from window.origin (client-side only) and inject the
-      // locale prefix so /auth/callback runs in the right locale shell.
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const localePrefix = locale === "en" ? "" : `/${locale}`;
-      const callbackUrl = `${origin}${localePrefix}/auth/callback?next=${encodeURIComponent(redirectPath)}`;
+      // The callback route is unprefixed; the language rides in ?locale= and
+      // the callback puts it back on the landing page. This used to build
+      // /pt/auth/callback, which does not exist (lib/auth/callback-url.ts).
+      const callbackUrl = buildAuthCallbackUrl(window.location.origin, {
+        next: redirectPath,
+        locale,
+      });
 
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: trimmed,
         options: {
           emailRedirectTo: callbackUrl,
           shouldCreateUser: true,
+          // Only read when this creates the account. The send-email hook
+          // picks the email's language from user_metadata.locale, so without
+          // it a brand-new es/it/pt user got the link in English.
+          data: { locale },
         },
       });
 
@@ -253,8 +260,10 @@ export default function AuthPromptModal({
           // than inventing a second post-auth path: a full navigation lets
           // the server see the new session cookie and remounts the wizard,
           // which reads `pendingTripGeneration` and resumes the save. Set
-          // before the email went out, so it is already there.
-          window.location.assign(redirectPath);
+          // before the email went out, so it is already there. Prefixed here
+          // for the same reason the callback prefixes: an unprefixed path
+          // means English unless a NEXT_LOCALE cookie happens to say otherwise.
+          window.location.assign(localizePath(redirectPath, locale));
           return;
         }
         lastKind = classifyOtpError(vErr.message, vErr.status);
@@ -279,7 +288,7 @@ export default function AuthPromptModal({
       to: "password_signup",
     });
     await prefs.set("pendingTripGeneration", "true");
-    router.push(`/auth/signup?redirect=${encodeURIComponent(redirectPath)}`);
+    router.push(localizePath(`/auth/signup?redirect=${encodeURIComponent(redirectPath)}`, locale));
   };
 
   const handleLogin = async () => {
@@ -289,7 +298,7 @@ export default function AuthPromptModal({
       to: "password_login",
     });
     await prefs.set("pendingTripGeneration", "true");
-    router.push(`/auth/login?redirect=${encodeURIComponent(redirectPath)}`);
+    router.push(localizePath(`/auth/login?redirect=${encodeURIComponent(redirectPath)}`, locale));
   };
 
   // Google one-tap — the fastest path at peak intent. Magic-link forces an
@@ -307,9 +316,10 @@ export default function AuthPromptModal({
     try {
       await prefs.set("pendingTripGeneration", "true");
       const supabase = createClient();
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const localePrefix = locale === "en" ? "" : `/${locale}`;
-      const callbackUrl = `${origin}${localePrefix}/auth/callback?next=${encodeURIComponent(redirectPath)}`;
+      const callbackUrl = buildAuthCallbackUrl(window.location.origin, {
+        next: redirectPath,
+        locale,
+      });
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: callbackUrl },
