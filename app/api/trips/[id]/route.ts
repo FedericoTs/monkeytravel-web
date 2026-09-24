@@ -182,6 +182,12 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
       if (updateError.code === "PGRST116") {
         return errors.forbidden("Access denied");
       }
+      // The trips guard refusing a column this caller may not change
+      // (20260924124000). The checks above should always get there first;
+      // if they drift from the database's list, answer 403, not a 500.
+      if (updateError.code === "42501") {
+        return errors.forbidden("You can't change that on this trip");
+      }
       console.error("[Trips] Error updating trip:", updateError);
       return errors.internal("Failed to update trip", "Trips");
     }
