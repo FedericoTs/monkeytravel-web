@@ -16,17 +16,20 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 const signInWithOtp = vi.fn();
 const verifyOtp = vi.fn();
+const signInWithOAuth = vi.fn();
+const push = vi.fn();
 const assign = vi.fn();
+const ui = vi.hoisted(() => ({ locale: "en" }));
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
-  useLocale: () => "en",
+  useLocale: () => ui.locale,
 }));
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  useRouter: () => ({ push, refresh: vi.fn() }),
 }));
 vi.mock("@/lib/supabase/client", () => ({
-  createClient: () => ({ auth: { signInWithOtp, verifyOtp, signInWithOAuth: vi.fn() } }),
+  createClient: () => ({ auth: { signInWithOtp, verifyOtp, signInWithOAuth } }),
 }));
 vi.mock("@/lib/platform/storage", () => ({
   prefs: { set: vi.fn().mockResolvedValue(undefined), get: vi.fn().mockResolvedValue(null) },
@@ -57,6 +60,8 @@ async function reachCodeEntry() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  ui.locale = "en";
+  signInWithOAuth.mockResolvedValue({ error: null });
   signInWithOtp.mockResolvedValue({ error: null });
   verifyOtp.mockResolvedValue({ error: null, data: { session: { access_token: "t" } } });
   Object.defineProperty(window, "location", {
@@ -154,5 +159,65 @@ describe("redeeming", () => {
     await waitFor(() => expect(screen.getByRole("alert")).toBeTruthy());
     expect(screen.getByRole("alert").textContent).toBe("magicLink.codeRateLimited");
     expect(verifyOtp).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * Every way out of the prompt has to keep the user's language, and none of
+ * them may point at /pt/auth/callback. That route does not exist, and from
+ * 2026-06-04 to 2026-09-24 every es/it/pt sign-in started here hit its 404.
+ */
+describe("sign-in from a Portuguese page", () => {
+  beforeEach(() => {
+    ui.locale = "pt";
+  });
+
+  it("emails a link back to the real callback, language in ?locale=", async () => {
+    await reachCodeEntry();
+    const { emailRedirectTo, data } = signInWithOtp.mock.calls[0][0].options;
+    const url = new URL(emailRedirectTo);
+    expect(url.pathname).toBe("/auth/callback");
+    expect(url.searchParams.get("locale")).toBe("pt");
+    expect(url.searchParams.get("next")).toBe("/trips/new");
+    // A brand-new account gets its email (and its locale) in Portuguese.
+    expect(data).toEqual({ locale: "pt" });
+  });
+
+  it("sends Google back to the real callback too", async () => {
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisboa" redirectPath="/trips/new" />);
+    fireEvent.click(screen.getByRole("button", { name: "googleButton" }));
+    await waitFor(() => expect(signInWithOAuth).toHaveBeenCalled());
+    const url = new URL(signInWithOAuth.mock.calls[0][0].options.redirectTo);
+    expect(url.pathname).toBe("/auth/callback");
+    expect(url.searchParams.get("locale")).toBe("pt");
+    expect(url.searchParams.get("next")).toBe("/trips/new");
+  });
+
+  it("lands the in-tab code on the Portuguese wizard", async () => {
+    await reachCodeEntry();
+    fireEvent.change(screen.getByLabelText("magicLink.codePrompt"), { target: { value: "123456" } });
+    fireEvent.click(screen.getByRole("button", { name: "magicLink.codeSubmit" }));
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/pt/trips/new"));
+  });
+
+  it("keeps the password signup page in Portuguese", async () => {
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisboa" redirectPath="/trips/new" />);
+    fireEvent.click(screen.getByRole("button", { name: "preferPassword" }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/pt/auth/signup?redirect=%2Ftrips%2Fnew"));
+  });
+
+  it("keeps the login page in Portuguese", async () => {
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisboa" redirectPath="/trips/new" />);
+    fireEvent.click(screen.getByRole("button", { name: "hasAccount" }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/pt/auth/login?redirect=%2Ftrips%2Fnew"));
+  });
+});
+
+describe("sign-in from an English page", () => {
+  it("is unchanged: no prefix anywhere", async () => {
+    await reachCodeEntry();
+    const url = new URL(signInWithOtp.mock.calls[0][0].options.emailRedirectTo);
+    expect(url.pathname).toBe("/auth/callback");
+    expect(url.searchParams.get("locale")).toBe("en");
   });
 });
