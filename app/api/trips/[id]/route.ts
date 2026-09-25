@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getAuthenticatedUser, verifyTripAccess, verifyTripOwnership } from "@/lib/api/auth";
+import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { errors, apiSuccess, apiError } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
@@ -17,12 +17,16 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // Fetch trip with ownership verification
-    const { trip, errorResponse: tripError } = await verifyTripOwnership(
+    // The owner and the trip's members may read it (RLS already lets them;
+    // the trip page reads it for them too). Owner-only until 2026-09-25, so an
+    // invited editor's assistant change was saved and then the page's re-read
+    // answered 404: an error banner and a stale plan.
+    const { trip, errorResponse: tripError } = await verifyTripAccess(
       supabase,
       id,
       user.id,
-      "*"
+      "*",
+      ["editor", "voter", "viewer"]
     );
     if (tripError) return tripError;
 

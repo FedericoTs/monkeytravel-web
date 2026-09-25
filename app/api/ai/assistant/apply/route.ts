@@ -2,6 +2,12 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { ItineraryDay, Activity } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import {
+  resolveAssistantRole,
+  DATE_CHANGING_ASSISTANT_CHANGES,
+  ASSISTANT_FORBIDDEN_MESSAGE,
+  ASSISTANT_DATES_OWNER_ONLY_MESSAGE,
+} from "@/lib/ai/assistant-access";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { isLockedActivity, lockedActivityNames } from "@/lib/ai/anchors-core";
@@ -97,16 +103,27 @@ export async function POST(request: NextRequest) {
       return errors.badRequest("shiftByDays must be an integer between 1 and 7");
     }
 
-    // Fetch current trip
+    // Fetch current trip. The owner and invited editors may apply
+    // (lib/ai/assistant-access.ts); this was owner-only until 2026-09-25.
     const { data: trip, error: tripError } = await supabase
       .from("trips")
       .select("*")
       .eq("id", tripId)
-      .eq("user_id", user.id)
       .single();
 
     if (tripError || !trip) {
       return errors.notFound("Trip not found");
+    }
+
+    const assistantRole = await resolveAssistantRole(supabase, trip, user.id);
+    if (!assistantRole) {
+      return errors.forbidden(ASSISTANT_FORBIDDEN_MESSAGE);
+    }
+    // Adding days or shifting them moves the trip's dates, which stay with
+    // the owner (as on PATCH /api/trips/[id]). Checked before any work, so
+    // an editor never gets as far as a write the database would refuse.
+    if (assistantRole !== "owner" && DATE_CHANGING_ASSISTANT_CHANGES.has(changeType)) {
+      return errors.forbidden(ASSISTANT_DATES_OWNER_ONLY_MESSAGE);
     }
 
     const itinerary = (trip.itinerary || []) as ItineraryDay[];

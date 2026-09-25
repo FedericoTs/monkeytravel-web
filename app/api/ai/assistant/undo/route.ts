@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { ItineraryDay } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { resolveAssistantRole, ASSISTANT_FORBIDDEN_MESSAGE } from "@/lib/ai/assistant-access";
 import { recordAiOutcome } from "@/lib/ai/observability";
 
 interface UndoRequest {
@@ -33,16 +34,21 @@ export async function POST(request: NextRequest) {
         ? previousEndDate.slice(0, 10)
         : null;
 
-    // Verify the trip belongs to the user
+    // The owner and invited editors may undo an assistant change
+    // (lib/ai/assistant-access.ts); this was owner-only until 2026-09-25.
     const { data: trip, error: tripError } = await supabase
       .from("trips")
       .select("id, user_id")
       .eq("id", tripId)
-      .eq("user_id", user.id)
       .single();
 
     if (tripError || !trip) {
       return errors.notFound("Trip not found");
+    }
+
+    const assistantRole = await resolveAssistantRole(supabase, trip, user.id);
+    if (!assistantRole) {
+      return errors.forbidden(ASSISTANT_FORBIDDEN_MESSAGE);
     }
 
     // Restore the previous itinerary (and, for add_day undos, the end date)
@@ -50,7 +56,9 @@ export async function POST(request: NextRequest) {
       .from("trips")
       .update({
         itinerary: previousItinerary,
-        ...(restoreEndDate ? { end_date: restoreEndDate } : {}),
+        // Only the owner's undo restores the end date: an editor's change never
+        // moved it (add_day is owner-only in /apply).
+        ...(restoreEndDate && assistantRole === "owner" ? { end_date: restoreEndDate } : {}),
         updated_at: new Date().toISOString(),
       })
       .eq("id", tripId);

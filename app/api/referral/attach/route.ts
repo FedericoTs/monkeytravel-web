@@ -17,6 +17,14 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
  * referral_event, and grants the referee's 30🍌 welcome gift. Self-referral
  * and unknown codes return { attributed: false } and write nothing.
  */
+/** An account this young is still in its signup flow. */
+const NEW_ACCOUNT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+function isNewAccount(createdAt: string | undefined, now = Date.now()): boolean {
+  const created = createdAt ? Date.parse(createdAt) : NaN;
+  return Number.isFinite(created) && now - created < NEW_ACCOUNT_MAX_AGE_MS;
+}
+
 export async function POST(request: Request) {
   const { user, errorResponse } = await getAuthenticatedUser();
   if (errorResponse || !user) {
@@ -30,6 +38,15 @@ export async function POST(request: Request) {
     return apiSuccess({ attributed: false });
   }
   if (!code || typeof code !== "string") {
+    return apiSuccess({ attributed: false });
+  }
+
+  // A referral credits a NEW account. The RPC allows one attribution per
+  // account but never looked at its age, so any signed-in account that was
+  // never referred could credit itself to a code (30 bananas, plus a signup
+  // on the code) whenever it liked. Every legitimate caller runs right after
+  // the account is created.
+  if (!isNewAccount(user.created_at)) {
     return apiSuccess({ attributed: false });
   }
 

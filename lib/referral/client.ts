@@ -147,3 +147,41 @@ export function mightBeEligibleForReferralReward(): boolean {
   // right degradation: the server verifies eligibility anyway.
   return !!safeGet("referral_code");
 }
+
+/**
+ * Put the referral code this browser is holding (from a friend's shared trip,
+ * /join/<code> or a ?ref link: all store "referral_code") on an auth callback
+ * URL, so a new account made through it is credited to that friend. The
+ * callback only attaches on the account's first arrival, so a returning user
+ * signing in through the same URL is never made "referred".
+ */
+export function withStoredReferral(callbackUrl: string): string {
+  const code = safeGet("referral_code");
+  if (!code) return callbackUrl;
+  try {
+    const url = new URL(callbackUrl);
+    url.searchParams.set("ref", code);
+    return url.toString();
+  } catch {
+    return callbackUrl;
+  }
+}
+
+/**
+ * Credit a friend for an account created in this browser without passing
+ * through /auth/callback (a sign-in code typed in the tab). keepalive: the
+ * caller navigates away right after. The server attaches only for new
+ * accounts, once.
+ */
+export function attachStoredReferral(): void {
+  const code = safeGet("referral_code");
+  if (!code) return;
+  void fetch("/api/referral/attach", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code }),
+    keepalive: true,
+  }).catch(() => {
+    /* best-effort: never blocks signing in */
+  });
+}

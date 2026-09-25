@@ -151,21 +151,6 @@ export async function GET(request: Request) {
         return noIndexRedirect(`${origin}${getLocalePath("/auth/reset-password")}`);
       }
 
-      // Validated referral attribution for confirm-email signups: the signup
-      // page forwards ?ref via emailRedirectTo, so a code present here is a new
-      // referred signup (returning-user magic links carry no ?ref). The RPC is
-      // idempotent + self-referral-guarded; never blocks auth.
-      if (referralCode) {
-        try {
-          await createAdminClient().rpc("attach_referral_on_signup", {
-            p_user_id: data.user.id,
-            p_code: referralCode,
-          });
-        } catch (e) {
-          console.error("[Auth Callback] referral attach failed (PKCE):", e);
-        }
-      }
-
       // Check if user profile exists
       // NOTE: capture `error` here. On a transient Supabase failure we
       // previously silently treated the returning user as a brand-new
@@ -222,6 +207,23 @@ export async function GET(request: Request) {
         accountCreatedAt: data.user.created_at,
       });
       const authEvent = isFirstConfirmation ? "signup_email" : "email_confirmed";
+
+      // Validated referral attribution for a NEW account's first arrival: the
+      // signup page and the wizard's sign-in prompt forward the stored ?ref
+      // through the emailed link. Only on the first confirmation, because a
+      // returning user's magic link can carry a code too (from a friend's
+      // shared trip they looked at) and must not make them "referred". The RPC
+      // is idempotent + self-referral-guarded; never blocks auth.
+      if (referralCode && isFirstConfirmation) {
+        try {
+          await createAdminClient().rpc("attach_referral_on_signup", {
+            p_user_id: data.user.id,
+            p_code: referralCode,
+          });
+        } catch (e) {
+          console.error("[Auth Callback] referral attach failed (PKCE):", e);
+        }
+      }
 
       if (existingProfile) {
         // Increment login_count for returning users (email confirmation/magic link)
@@ -523,6 +525,22 @@ export async function GET(request: Request) {
         loginCount: (existingProfile as { login_count?: number }).login_count,
         accountCreatedAt: data.user.created_at,
       });
+
+      // Referral attribution for a fresh Google/Apple account. The attach in
+      // the isNewUser block above never runs (see the comment above), so until
+      // 2026-09-25 no Google signup was ever credited to the friend whose link
+      // brought them. First arrival only, like the email branch.
+      if (referralCode && firstLogin) {
+        try {
+          await createAdminClient().rpc("attach_referral_on_signup", {
+            p_user_id: data.user.id,
+            p_code: referralCode,
+          });
+        } catch (e) {
+          console.error("[Auth Callback] referral attach failed (OAuth first login):", e);
+        }
+      }
+
       const landing = resolveAuthLanding(next, firstLogin);
       const separator = landing.includes("?") ? "&" : "?";
       const trackingParam = firstLogin ? "auth_event=signup_google" : "auth_event=login_google";

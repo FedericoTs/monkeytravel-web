@@ -44,6 +44,7 @@ import {
   type Coordinates,
 } from "@/lib/utils/geo";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { resolveAssistantRole, ASSISTANT_FORBIDDEN_MESSAGE } from "@/lib/ai/assistant-access";
 import { destinationCityTerm } from "@/lib/api/postgrest-filter";
 import { formatMinutesToTime } from "@/lib/datetime/format";
 
@@ -988,12 +989,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body: AssistantRequest = await request.json();
-    const { tripId, message, conversationId, itinerary: clientItinerary, previewMode = false } = body;
+    const { tripId, message, conversationId, itinerary: clientItinerary, previewMode: requestedPreviewMode = false } = body;
 
     console.log(`[AI Assistant] Message: "${message}"`);
     console.log(`[AI Assistant] Trip ID: ${tripId}`);
     console.log(`[AI Assistant] Client itinerary provided: ${!!clientItinerary}`);
-    console.log(`[AI Assistant] Preview mode: ${previewMode}`);
+    console.log(`[AI Assistant] Preview mode requested: ${requestedPreviewMode}`);
 
     if (!tripId || !message) {
       return errors.badRequest("Missing tripId or message");
@@ -1024,17 +1025,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch trip data
+    // Fetch trip data. RLS decides whether the caller can see it; the owner
+    // and invited editors may use the assistant (lib/ai/assistant-access.ts).
+    // This used to filter on user_id = caller, so every collaborator's first
+    // message answered "Trip not found".
     const { data: trip, error: tripError } = await supabase
       .from("trips")
       .select("*")
       .eq("id", tripId)
-      .eq("user_id", user.id)
       .single();
 
     if (tripError || !trip) {
       return errors.notFound("Trip not found");
     }
+
+    const assistantRole = await resolveAssistantRole(supabase, trip, user.id);
+    if (!assistantRole) {
+      return errors.forbidden(ASSISTANT_FORBIDDEN_MESSAGE);
+    }
+    // An editor's changes are always proposals: they land only through
+    // /apply, which keeps the trip's dates with the owner. The direct-write
+    // (non-preview) paths below may move end_date.
+    const previewMode = requestedPreviewMode || assistantRole !== "owner";
 
     // Phase 1.3: an existing trip is edited in ITS language, not the
     // language of the tab the owner opened it from. Older trips without
@@ -1718,7 +1730,12 @@ Return ONLY a JSON array with the optimal order of activity indices:
       const currentDayCount = modifiedItinerary.length;
       const requestedTotal = structuralIntent.requestedTotalDays;
 
-      if (currentDayCount === 0) {
+      if (assistantRole !== "owner") {
+        // Adding a day moves the trip's end date, which stays with the owner
+        // (lib/ai/assistant-access.ts): /apply would refuse the proposal, so
+        // say so now instead of generating a day nobody can apply.
+        structuralNote = `The user is an editor of this trip, not its owner. Only the trip owner can add days or change the trip's dates. NO change was made. Explain that kindly and suggest asking the trip owner to add the day.`;
+      } else if (currentDayCount === 0) {
         replacementError = "This trip has no itinerary days yet, so there is nothing to extend";
       } else if (
         currentDayCount >= MAX_TRIP_DAYS ||
