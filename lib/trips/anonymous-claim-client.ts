@@ -2,6 +2,7 @@
 
 import { prefs } from "@/lib/platform/storage";
 import { publishClaimedTrip } from "@/lib/trips/claimed-trip-signal";
+import { CLAIM_TOKEN_KEY } from "@/lib/trips/claim-trigger";
 
 /**
  * Client half of the anonymous share loop.
@@ -17,7 +18,6 @@ import { publishClaimedTrip } from "@/lib/trips/claimed-trip-signal";
  * exactly the "real data, not decoration" case that wrapper exists for.
  */
 
-const CLAIM_TOKEN_KEY = "mt_pending_claim_token";
 // What the trip was, so the UI can say "your Lisbon trip is still here" and
 // the wizard can tell whether the draft on screen IS the shared trip. Stored
 // beside the token, only meaningful while the token exists, cleared with it.

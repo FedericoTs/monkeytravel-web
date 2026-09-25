@@ -33,6 +33,8 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { identify } from "@/lib/posthog/identify";
+import { prefs } from "@/lib/platform/storage";
+import { CLAIM_TOKEN_KEY, shouldTryClaim } from "@/lib/trips/claim-trigger";
 
 /**
  * Module-level set of user.ids we've already PostHog-identified on this
@@ -143,21 +145,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
             .then(({ initPushOnce }) => initPushOnce())
             .catch(() => undefined);
         }
+      }
 
-        // Anonymous share loop: if this browser shared a trip while signed
-        // out, hand that trip to the account that just appeared. Dynamically
-        // imported for the same reason as push above — the vast majority of
-        // sign-ins have no pending claim and shouldn't pay for the chunk.
-        //
-        // SIGNED_IN only, deliberately. It covers both signup and login, which
-        // is every path that turns an anonymous planner into an owner. A user
-        // who signed up in a *different* tab won't claim until their next
-        // sign-in, which is fine: the claim token is valid for 30 days.
-        //
-        // Fire-and-forget: claimPendingTrip never throws and never blocks the
-        // auth transition. A failed claim must not be able to break signing in.
-        void import("@/lib/trips/anonymous-claim-client")
-          .then(({ claimPendingTrip }) => claimPendingTrip())
+      // Anonymous share loop: if this browser shared a trip while signed out,
+      // hand that trip to the account that is now signed in. On SIGNED_IN and
+      // on INITIAL_SESSION (lib/trips/claim-trigger.ts): OAuth and emailed
+      // links finish signing in on the server, so their landing page only
+      // hears INITIAL_SESSION. A cheap storage read first; the claim module
+      // is dynamically imported only when a token is actually waiting, since
+      // almost no page load has anything to claim.
+      //
+      // Fire-and-forget: claimPendingTrip never throws and never blocks the
+      // auth transition. A failed claim must not be able to break signing in.
+      if (shouldTryClaim(event, !!session?.user)) {
+        void prefs
+          .get(CLAIM_TOKEN_KEY)
+          .then((token) =>
+            token
+              ? import("@/lib/trips/anonymous-claim-client").then(({ claimPendingTrip }) => claimPendingTrip())
+              : null,
+          )
           .then(async (tripId) => {
             // The claim used to resolve here and be thrown away, so the person
             // sat on a bare wizard while the trip they had just built moved

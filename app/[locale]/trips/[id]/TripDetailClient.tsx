@@ -346,6 +346,11 @@ export default function TripDetailClient({
   // Fire-and-forget — if the PATCH fails the in-memory state still keeps
   // the hero visible for this session.
   const isOwner = userRole === "owner";
+  // The trip assistant changes the trip, so it is for the people who can:
+  // the owner and editors (the API answers 403 to anyone else). Voters and
+  // viewers used to see it, have it open by itself on a first visit, and get
+  // "Trip not found" for their first message.
+  const canUseAssistant = ROLE_PERMISSIONS[userRole]?.canEdit ?? false;
   // Live Trip Phase 2.4: the owner sees who said they're going.
   const participantsEnabled = isLiveTripParticipantsEnabled();
   const handleCoverImageFetched = useCallback(
@@ -463,7 +468,7 @@ export default function TripDetailClient({
   // has interacted with it at least once. After that, no nags.
   const [hasSeenAssistant, setHasSeenAssistant] = useState<boolean>(true);
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !canUseAssistant) return;
     const seenAt = safeGet("mt_ai_assistant_seen");
     if (!seenAt) {
       // First-time visitor to any trip — surface the assistant after a brief
@@ -472,7 +477,7 @@ export default function TripDetailClient({
       const t = setTimeout(() => setIsAIAssistantOpen(true), 2500);
       return () => clearTimeout(t);
     }
-  }, []);
+  }, [canUseAssistant]);
   // Mark as seen whenever the assistant opens — both auto-open and manual.
   useEffect(() => {
     if (isAIAssistantOpen && typeof window !== "undefined") {
@@ -2564,7 +2569,7 @@ export default function TripDetailClient({
             {/* Edit with AI — the primary edit path surfaced (the assistant is
                 the killer feature). Opens the same AIAssistant the floating
                 trigger does. Phase 5.4. */}
-            {!isEditMode && (
+            {!isEditMode && canUseAssistant && (
               <button
                 onClick={() => setIsAIAssistantOpen(true)}
                 className="flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium bg-[var(--accent)] text-slate-900 hover:bg-[var(--accent)]/90 transition-colors"
@@ -3507,7 +3512,7 @@ export default function TripDetailClient({
       {/* AI Assistant Floating Button — primary CTA. Bigger + accented +
           pulses for first-time visitors so the killer feature is impossible
           to miss. Previously: muted white pill that 95% of users ignored. */}
-      {!isEditMode && (
+      {!isEditMode && canUseAssistant && (
         <button
           onClick={() => setIsAIAssistantOpen(true)}
           className={`fixed bottom-24 sm:bottom-6 left-6 lg:bottom-8 lg:left-8 z-40 group ${!hasSeenAssistant ? "animate-pulse" : ""}`}
@@ -3541,7 +3546,7 @@ export default function TripDetailClient({
       )}
 
       {/* Edit mode AI button - compact version above save bar */}
-      {isEditMode && (
+      {isEditMode && canUseAssistant && (
         <button
           onClick={() => setIsAIAssistantOpen(true)}
           className="fixed bottom-24 left-6 z-40 group"
@@ -3562,19 +3567,21 @@ export default function TripDetailClient({
       )}
 
       {/* AI Assistant Sidebar/Bottom Sheet */}
-      <AIAssistant
-        tripId={trip.id}
-        tripTitle={trip.title}
-        itinerary={displayItinerary}
-        isOpen={isAIAssistantOpen}
-        onClose={() => setIsAIAssistantOpen(false)}
-        onAction={handleAIAction}
-        onRefetchTrip={async () => {
-          await handleRefetchTrip();
-        }}
-        onFocusDay={handleFocusDayCard}
-        runItineraryWrite={runItineraryWrite}
-      />
+      {canUseAssistant && (
+        <AIAssistant
+          tripId={trip.id}
+          tripTitle={trip.title}
+          itinerary={displayItinerary}
+          isOpen={isAIAssistantOpen}
+          onClose={() => setIsAIAssistantOpen(false)}
+          onAction={handleAIAction}
+          onRefetchTrip={async () => {
+            await handleRefetchTrip();
+          }}
+          onFocusDay={handleFocusDayCard}
+          runItineraryWrite={runItineraryWrite}
+        />
+      )}
 
       {/* The trip was changed elsewhere (a trip mate, another tab) after this
           page loaded: the save was refused rather than overwrite it. */}

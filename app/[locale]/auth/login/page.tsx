@@ -17,6 +17,7 @@ import {
 import { safeNextOrDefault } from "@/lib/security/safe-next";
 import { returnsToPage } from "@/lib/auth/first-login";
 import { splitLocalePrefix } from "@/lib/auth/callback-url";
+import { withStoredReferral } from "@/lib/referral/client";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -205,7 +206,9 @@ function LoginForm() {
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}&locale=${locale}`,
+        // Google/Apple create the account when there is none: a friend's
+        // stored referral rides along (credited on a first arrival only).
+        redirectTo: withStoredReferral(`${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}&locale=${locale}`),
       },
     });
 
@@ -237,7 +240,9 @@ function LoginForm() {
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "apple",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}&locale=${locale}`,
+        // Google/Apple create the account when there is none: a friend's
+        // stored referral rides along (credited on a first arrival only).
+        redirectTo: withStoredReferral(`${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}&locale=${locale}`),
       },
     });
 

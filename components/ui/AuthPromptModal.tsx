@@ -27,6 +27,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { prefs } from "@/lib/platform/storage";
 import { createClient } from "@/lib/supabase/client";
 import { buildAuthCallbackUrl, localizePath } from "@/lib/auth/callback-url";
+import { withStoredReferral, attachStoredReferral } from "@/lib/referral/client";
 import { trackWizardEvent } from "@/components/wizard/wizardEvents";
 import {
   OTP_CODE_LENGTH,
@@ -173,7 +174,9 @@ export default function AuthPromptModal({
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: trimmed,
         options: {
-          emailRedirectTo: callbackUrl,
+          // The friend whose link brought them gets the credit for a new
+          // account (the callback checks it is one).
+          emailRedirectTo: withStoredReferral(callbackUrl),
           shouldCreateUser: true,
           // Only read when this creates the account. The send-email hook
           // picks the email's language from user_metadata.locale, so without
@@ -256,6 +259,9 @@ export default function AuthPromptModal({
         }
         if (!vErr) {
           void trackWizardEvent("otp_code_verified", { destination: destination || undefined });
+          // A typed code never reaches /auth/callback, where the emailed link
+          // credits the referring friend: credit them from here instead.
+          attachStoredReferral();
           // Converge on exactly the state the emailed link produces rather
           // than inventing a second post-auth path: a full navigation lets
           // the server see the new session cookie and remounts the wizard,
@@ -322,7 +328,7 @@ export default function AuthPromptModal({
       });
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: callbackUrl },
+        options: { redirectTo: withStoredReferral(callbackUrl) },
       });
       // On success the browser is already redirecting to Google — leave the
       // loading state up. Only reset it if Supabase returned an error inline.
