@@ -37,13 +37,21 @@ export async function generateMetadata({
   };
 }
 
-export default async function PaymentHandlesPage() {
+export default async function PaymentHandlesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/auth/login?next=/settings/payment-handles");
+    // `redirect`, not `next`: the login page reads `redirect` and comes back
+    // here after sign-in.
+    const localePrefix = locale === "en" ? "" : `/${locale}`;
+    redirect(`${localePrefix}/auth/login?redirect=${encodeURIComponent("/settings/payment-handles")}`);
   }
 
   return <PaymentHandlesClient />;

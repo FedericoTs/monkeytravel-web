@@ -19,13 +19,22 @@ export const metadata = {
  *   - "Manage preferences" footer in every email
  *   - Direct nav to /profile/notifications
  */
-export default async function NotificationPreferencesPage() {
+export default async function NotificationPreferencesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/auth/login?next=/profile/notifications");
+    // `redirect` is the parameter the login page reads. It used to get
+    // `next`, which it ignores, so signed-out readers of an email's "Manage
+    // preferences" link signed in and landed on My Trips instead of here.
+    const localePrefix = locale === "en" ? "" : `/${locale}`;
+    redirect(`${localePrefix}/auth/login?redirect=${encodeURIComponent("/profile/notifications")}`);
   }
 
   return <NotificationPreferencesClient />;
