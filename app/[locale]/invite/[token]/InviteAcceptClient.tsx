@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { ROLE_INFO, type CollaboratorRole } from "@/types";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { formatDateRange } from "@/lib/datetime";
 
 interface InviteAcceptClientProps {
   invite: {
@@ -186,15 +187,6 @@ export default function InviteAcceptClient({
     }
   };
 
-  // Format date using current locale
-  const formatDate = (dateStr: string) => {
-    const localeMap: Record<string, string> = { en: "en-US", es: "es-ES", it: "it-IT" };
-    return new Date(dateStr).toLocaleDateString(localeMap[locale] || "en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
 
   // Get translated role permissions from common.roles namespace
   const roleKey = invite.role as "editor" | "voter" | "viewer";
@@ -291,7 +283,11 @@ export default function InviteAcceptClient({
               <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span>{formatDate(trip.startDate)} - {formatDate(trip.endDate)}</span>
+              {/* UTC, like every other trip date: the dates are calendar days
+                  ("2026-11-24"), which new Date() reads as UTC midnight. Formatted
+                  in the viewer's zone they showed the day before to anyone west
+                  of UTC, and the server (UTC) and browser disagreed: React #418. */}
+              <span>{formatDateRange(trip.startDate, trip.endDate, locale)}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
