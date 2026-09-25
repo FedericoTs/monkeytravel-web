@@ -894,6 +894,9 @@ export type AuthPromptLocation =
   | "invite_accept"
   | "publish_trip"
   | "concierge_quota"
+  // The anonymous free-generation cap, asked in the wizard (#189 made the
+  // wizard's stream count against it).
+  | "wizard_generation_limit"
   | "other";
 
 export interface AuthPromptShownEvent {
