@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/routing";
 
 interface UnsubscribeConfirmButtonProps {
   token: string;
-  /** Human-readable label for what is being unsubscribed (e.g. "vote notifications"). */
+  /**
+   * What is being unsubscribed, already in the page's language and shaped to
+   * fit "Stop receiving {what}?" (e.g. "trip reminders", "i promemoria di
+   * viaggio"). From profile.unsubscribe.what.
+   */
   what: string;
 }
 
@@ -13,7 +18,7 @@ type State =
   | { kind: "idle" }
   | { kind: "loading" }
   | { kind: "done"; applied: boolean }
-  | { kind: "error"; message: string };
+  | { kind: "error"; reason: "generic" | "network" };
 
 /**
  * Client-side Confirm button. POSTs to /api/unsubscribe with the token
@@ -25,7 +30,14 @@ export function UnsubscribeConfirmButton({
   token,
   what,
 }: UnsubscribeConfirmButtonProps) {
+  const t = useTranslations("profile.unsubscribe");
   const [state, setState] = useState<State>({ kind: "idle" });
+
+  const settingsLink = (chunks: ReactNode) => (
+    <Link href="/profile/notifications" className="text-[var(--primary-ink)] underline">
+      {chunks}
+    </Link>
+  );
 
   async function handleClick() {
     setState({ kind: "loading" });
@@ -36,22 +48,14 @@ export function UnsubscribeConfirmButton({
         body: JSON.stringify({ token }),
       });
       const body = await res.json().catch(() => ({}));
+      // The API's own error text is English and technical: show ours.
       if (!res.ok) {
-        setState({
-          kind: "error",
-          message:
-            typeof body?.error === "string"
-              ? body.error
-              : "We couldn't update your preferences. Please try again.",
-        });
+        setState({ kind: "error", reason: "generic" });
         return;
       }
       setState({ kind: "done", applied: Boolean(body?.applied) });
     } catch {
-      setState({
-        kind: "error",
-        message: "Network error. Please try again.",
-      });
+      setState({ kind: "error", reason: "network" });
     }
   }
 
@@ -73,21 +77,10 @@ export function UnsubscribeConfirmButton({
             />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">
-          You&apos;re unsubscribed
-        </h1>
-        <p className="text-slate-600 mb-6">
-          We&apos;ll stop sending you {what}. Sorry for the noise.
-        </p>
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">{t("doneTitle")}</h1>
+        <p className="text-slate-600 mb-6">{t("doneBody", { what })}</p>
         <p className="text-sm text-slate-500">
-          Changed your mind? You can fine-tune your preferences in{" "}
-          <Link
-            href="/profile/notifications"
-            className="text-[var(--primary-ink)] underline"
-          >
-            notification settings
-          </Link>
-          .
+          {t.rich("doneChangedMind", { link: settingsLink })}
         </p>
       </>
     );
@@ -96,32 +89,24 @@ export function UnsubscribeConfirmButton({
   return (
     <>
       <h1 className="text-2xl font-bold text-slate-900 mb-2">
-        Unsubscribe from {what}?
+        {t("confirmTitle", { what })}
       </h1>
-      <p className="text-slate-600 mb-6">
-        Click confirm and we&apos;ll stop sending you {what}. You can re-enable
-        them any time from your notification settings.
-      </p>
+      <p className="text-slate-600 mb-6">{t("confirmBody", { what })}</p>
       <button
         type="button"
         onClick={handleClick}
         disabled={state.kind === "loading"}
         className="inline-block px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white font-semibold hover:bg-[var(--primary)]/90 disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {state.kind === "loading" ? "Unsubscribing…" : "Confirm unsubscribe"}
+        {state.kind === "loading" ? t("confirming") : t("confirm")}
       </button>
       {state.kind === "error" && (
-        <p className="mt-4 text-sm text-rose-600">{state.message}</p>
+        <p className="mt-4 text-sm text-rose-600">
+          {state.reason === "network" ? t("errorNetwork") : t("errorGeneric")}
+        </p>
       )}
       <p className="mt-6 text-sm text-slate-500">
-        Or go straight to{" "}
-        <Link
-          href="/profile/notifications"
-          className="text-[var(--primary-ink)] underline"
-        >
-          notification settings
-        </Link>{" "}
-        to fine-tune everything.
+        {t.rich("orSettings", { link: settingsLink })}
       </p>
     </>
   );

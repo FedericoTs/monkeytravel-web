@@ -1,13 +1,23 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import type { Metadata } from "next";
 import NotificationPreferencesClient from "./NotificationPreferencesClient";
 
-export const metadata = {
-  // Strip brand suffix — root layout's title.template adds it.
-  title: "Notification Preferences",
-  description: "Manage which emails and in-app notifications you receive.",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "profile.notificationSettings" });
+  return {
+    // Strip brand suffix — root layout's title.template adds it.
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+    robots: { index: false, follow: false },
+  };
+}
 
 /**
  * Notification preferences page. Server component does the auth gate;

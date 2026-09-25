@@ -81,5 +81,95 @@
     "saving": "Salvando...",
     "saved": "Alterações salvas",
     "error": "Falha ao salvar as alterações"
+  },
+  "notificationSettings": {
+    "metaTitle": "Preferências de notificação",
+    "metaDescription": "Escolha quais e-mails o MonkeyTravel envia para você.",
+    "breadcrumbProfile": "Perfil",
+    "breadcrumbCurrent": "Notificações",
+    "title": "Preferências de notificação",
+    "intro": "Escolha quais e-mails enviamos para você. As notificações dentro do app (o sino) não mudam.",
+    "loading": "Carregando suas preferências…",
+    "badgeMaster": "Chave geral",
+    "badgeMarketing": "Marketing",
+    "toggles": {
+      "emailNotifications": {
+        "label": "Receber e-mails",
+        "description": "Desative para parar de receber todos os e-mails abaixo. E-mails de login e convites que alguém enviar para você continuam chegando."
+      },
+      "tripReminders": {
+        "label": "Lembretes de viagem",
+        "description": "Lembretes quando uma viagem se aproxima e um aviso sobre o dia seguinte enquanto você viaja."
+      },
+      "collabVotes": {
+        "label": "Votos nas minhas viagens",
+        "description": "Um e-mail quando alguém vota em uma atividade de uma das suas viagens."
+      },
+      "marketingNotifications": {
+        "label": "Novidades e atualizações",
+        "description": "De vez em quando: novidades do MonkeyTravel, uma mensagem depois de uma viagem ou um pedido de opinião."
+      }
+    },
+    "save": "Salvar preferências",
+    "saving": "Salvando…",
+    "saved": "Salvo",
+    "saveFailed": "Não conseguimos salvar suas preferências. Tente novamente.",
+    "activity": {
+      "title": "E-mails recentes",
+      "intro": "Os últimos 20 e-mails que tentamos enviar para você. \"Não enviado\" significa que não enviamos, pelo motivo indicado.",
+      "empty": "Nenhum e-mail ainda.",
+      "status": {
+        "sent": "Enviado",
+        "queued": "Na fila",
+        "skipped_no_key": "Não enviado — o e-mail ainda não estava ativado",
+        "skipped_disabled": "Não enviado — preferência desativada",
+        "skipped_suppressed": "Não enviado — e-mails para este endereço já foram devolvidos",
+        "skipped_duplicate": "Não enviado — duplicado",
+        "failed": "Falhou",
+        "bounced": "Devolvido",
+        "complained": "Marcado como spam"
+      },
+      "template": {
+        "invite": "Convite para uma viagem",
+        "vote_cast": "Voto na sua viagem",
+        "trip_reminder": "Lembrete de viagem",
+        "trip_day_digest": "Plano do dia seguinte",
+        "trip_followup": "Depois da sua viagem",
+        "feedback_outreach": "Pedido de opinião",
+        "share_fix_notice": "Novidade sobre viagens compartilhadas",
+        "stranded_recovery": "Conclua seu cadastro",
+        "other": "E-mail"
+      }
+    }
+  },
+  "unsubscribe": {
+    "metaTitle": "Cancelar inscrição",
+    "metaDescription": "Pare de receber um e-mail do MonkeyTravel.",
+    "what": {
+      "all": "os e-mails do MonkeyTravel",
+      "tripReminders": "os lembretes de viagem",
+      "collabVotes": "as notificações de votos",
+      "marketingNotifications": "as novidades e atualizações",
+      "collabProposals": "os e-mails sobre atividades propostas",
+      "collabComments": "os e-mails sobre comentários",
+      "inviteAccepted": "os e-mails sobre convites aceitos",
+      "weeklyDigest": "o resumo semanal",
+      "fallback": "estes e-mails"
+    },
+    "confirmTitle": "Parar de receber {what}?",
+    "confirmBody": "Confirme e vamos parar de enviar {what} para você. Você pode mudar de ideia quando quiser nas configurações de notificação.",
+    "confirm": "Confirmar",
+    "confirming": "Cancelando…",
+    "orSettings": "Ou abra as <link>configurações de notificação</link> para escolher exatamente o que receber.",
+    "doneTitle": "Inscrição cancelada",
+    "doneBody": "Vamos parar de enviar {what} para você. Desculpe o incômodo.",
+    "doneChangedMind": "Mudou de ideia? Você pode reativar nas <link>configurações de notificação</link>.",
+    "errorGeneric": "Não conseguimos atualizar suas preferências. Tente novamente.",
+    "errorNetwork": "Erro de rede. Tente novamente.",
+    "expiredTitle": "Link expirado",
+    "expiredBody": "Este link para cancelar a inscrição expirou. Você pode gerenciar todas as suas preferências aqui:",
+    "invalidTitle": "Não conseguimos verificar este link",
+    "invalidBody": "Este link para cancelar a inscrição parece inválido ou incompleto. Entre na sua conta para gerenciar suas preferências diretamente:",
+    "openSettings": "Abrir configurações de notificação"
   }
 }

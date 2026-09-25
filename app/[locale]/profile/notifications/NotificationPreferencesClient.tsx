@@ -8,32 +8,23 @@
  * happens client-side because /api/profile replaces the whole JSON object
  * — we always send the full settings.
  *
+ * The switches are EMAIL_PREFERENCES (lib/email/preferences.ts): the ones
+ * the email pipeline actually reads. Every string comes from
+ * profile.notificationSettings, in the page's language: this is where the
+ * "Manage preferences" link of every email lands.
+ *
  * Also shows the last 20 entries from email_log so the user can see what
  * we've actually tried to send them (useful for debugging "where's my
  * invite email?" and for trust — they can see we're not spamming).
  */
 
 import { useEffect, useState, useCallback } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/routing";
+import { EMAIL_PREFERENCES, type EmailPreferenceKey } from "@/lib/email/preferences";
 
-interface NotificationSettings {
-  emailNotifications?: boolean;
-  pushNotifications?: boolean;
-  // Per-category toggles. Defaults applied client-side when missing.
-  collabVotes?: boolean;
-  collabProposals?: boolean;
-  collabComments?: boolean;
-  inviteAccepted?: boolean;
-  weeklyDigest?: boolean;
-  // Pre-existing keys (kept untouched but exposed in preview so the
-  // user sees the full state).
-  dealAlerts?: boolean;
-  tripReminders?: boolean;
-  socialNotifications?: boolean;
-  marketingNotifications?: boolean;
-  quietHoursStart?: number;
-  quietHoursEnd?: number;
-}
+type NotificationSettings = Partial<Record<EmailPreferenceKey, boolean>> &
+  Record<string, unknown>;
 
 interface EmailLogEntry {
   id: string;
@@ -45,115 +36,49 @@ interface EmailLogEntry {
   created_at: string;
 }
 
-// Defaults — applied when the corresponding key is missing from the
-// stored settings. Matches the values in app/auth/callback/route.ts and
-// the GDPR posture (digest defaults OFF; transactional defaults ON).
-const DEFAULTS: Required<
-  Pick<
-    NotificationSettings,
-    | "emailNotifications"
-    | "collabVotes"
-    | "collabProposals"
-    | "collabComments"
-    | "inviteAccepted"
-    | "weeklyDigest"
-  >
-> = {
+// Applied when a key is missing from the stored settings: the signup
+// defaults (app/auth/callback/route.ts), and what the pipeline does with a
+// missing key — only an explicit false opts out.
+const DEFAULTS: Record<EmailPreferenceKey, boolean> = {
   emailNotifications: true,
+  tripReminders: true,
   collabVotes: true,
-  collabProposals: true,
-  collabComments: true,
-  inviteAccepted: true,
-  weeklyDigest: false,
+  marketingNotifications: true,
 };
 
-const TOGGLES: Array<{
-  key: keyof typeof DEFAULTS;
-  label: string;
-  description: string;
-  category: "master" | "transactional" | "marketing";
-}> = [
-  {
-    key: "emailNotifications",
-    label: "Send me emails",
-    description:
-      "Master switch. Turn off to stop ALL email — even invites and collaboration alerts.",
-    category: "master",
-  },
-  {
-    key: "collabVotes",
-    label: "Votes on my trips",
-    description:
-      "Get an email when a collaborator votes love / no / concerns on an activity.",
-    category: "transactional",
-  },
-  {
-    key: "collabProposals",
-    label: "Proposed activities",
-    description:
-      "Get an email when a collaborator suggests a new activity for one of your trips.",
-    category: "transactional",
-  },
-  {
-    key: "collabComments",
-    label: "Comments on activities",
-    description:
-      "Get an email when a collaborator adds a comment. (Comment feature coming soon.)",
-    category: "transactional",
-  },
-  {
-    key: "inviteAccepted",
-    label: "Invite accepted",
-    description:
-      "Get an email when someone you invited joins one of your trips.",
-    category: "transactional",
-  },
-  {
-    key: "weeklyDigest",
-    label: "Weekly digest",
-    description:
-      "Optional weekly recap of trip activity, deals, and travel inspiration.",
-    category: "marketing",
-  },
-];
-
-const STATUS_LABEL: Record<string, { label: string; color: string }> = {
-  sent: { label: "Sent", color: "bg-emerald-100 text-emerald-700" },
-  queued: { label: "Queued", color: "bg-amber-100 text-amber-700" },
-  skipped_no_key: {
-    label: "Skipped — email not yet enabled",
-    color: "bg-slate-100 text-slate-600",
-  },
-  skipped_disabled: {
-    label: "Skipped — preference off",
-    color: "bg-slate-100 text-slate-600",
-  },
-  skipped_suppressed: {
-    label: "Skipped — previous bounce",
-    color: "bg-orange-100 text-orange-700",
-  },
-  skipped_duplicate: {
-    label: "Skipped — duplicate",
-    color: "bg-slate-100 text-slate-500",
-  },
-  failed: { label: "Failed", color: "bg-red-100 text-red-700" },
-  bounced: { label: "Bounced", color: "bg-red-100 text-red-700" },
-  complained: { label: "Marked as spam", color: "bg-red-100 text-red-700" },
+const STATUS_COLOR: Record<string, string> = {
+  sent: "bg-emerald-100 text-emerald-700",
+  queued: "bg-amber-100 text-amber-700",
+  skipped_no_key: "bg-slate-100 text-slate-600",
+  skipped_disabled: "bg-slate-100 text-slate-600",
+  skipped_suppressed: "bg-orange-100 text-orange-700",
+  skipped_duplicate: "bg-slate-100 text-slate-500",
+  failed: "bg-red-100 text-red-700",
+  bounced: "bg-red-100 text-red-700",
+  complained: "bg-red-100 text-red-700",
 };
 
-const TEMPLATE_LABEL: Record<string, string> = {
-  invite: "Trip invite",
-  vote_cast: "Vote notification",
-  comment_added: "Comment",
-  weekly_digest: "Weekly digest",
-};
+// Template ids with a name in profile.notificationSettings.activity.template.
+// Anything else (retired or unknown ids) shows as "Email".
+const NAMED_TEMPLATES = new Set([
+  "invite",
+  "vote_cast",
+  "trip_reminder",
+  "trip_day_digest",
+  "trip_followup",
+  "feedback_outreach",
+  "share_fix_notice",
+  "stranded_recovery",
+]);
 
 export default function NotificationPreferencesClient() {
+  const t = useTranslations("profile.notificationSettings");
+  const locale = useLocale();
   const [settings, setSettings] = useState<NotificationSettings | null>(null);
   const [emailLog, setEmailLog] = useState<EmailLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
 
   const load = useCallback(async () => {
@@ -188,19 +113,19 @@ export default function NotificationPreferencesClient() {
     load();
   }, [load]);
 
-  const toggle = (key: keyof typeof DEFAULTS) => {
-    setSettings((prev) => {
-      const next = { ...(prev ?? {}) };
-      const current = next[key] ?? DEFAULTS[key];
-      next[key] = !current;
-      return next;
-    });
+  const isOn = (from: NotificationSettings | null, key: EmailPreferenceKey) => {
+    const stored = from?.[key];
+    return typeof stored === "boolean" ? stored : DEFAULTS[key];
+  };
+
+  const toggle = (key: EmailPreferenceKey) => {
+    setSettings((prev) => ({ ...(prev ?? {}), [key]: !isOn(prev, key) }));
   };
 
   const save = async () => {
     if (!settings) return;
     setSaving(true);
-    setSaveError(null);
+    setSaveFailed(false);
     try {
       const res = await fetch("/api/profile", {
         method: "PATCH",
@@ -208,18 +133,25 @@ export default function NotificationPreferencesClient() {
         credentials: "include",
         body: JSON.stringify({ notification_settings: settings }),
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.error || "Save failed");
-      }
+      if (!res.ok) throw new Error(`save failed: ${res.status}`);
       setSavedFlash(true);
       setTimeout(() => setSavedFlash(false), 2500);
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Save failed");
+      // The server's own message is English and technical; the user gets
+      // the translated one.
+      console.error("[notifications] save failed", err);
+      setSaveFailed(true);
     } finally {
       setSaving(false);
     }
   };
+
+  const formatWhen = (iso: string) =>
+    new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(
+      new Date(iso)
+    );
+
+  const masterOn = isOn(settings, "emailNotifications");
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -227,67 +159,58 @@ export default function NotificationPreferencesClient() {
         {/* Breadcrumb */}
         <div className="text-sm text-slate-500 mb-6">
           <Link href="/profile" className="hover:text-slate-700">
-            Profile
+            {t("breadcrumbProfile")}
           </Link>
           <span className="mx-2">›</span>
-          <span className="text-slate-700">Notifications</span>
+          <span className="text-slate-700">{t("breadcrumbCurrent")}</span>
         </div>
 
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">
-          Notification preferences
-        </h1>
-        <p className="text-slate-600 mb-8">
-          Choose what we email you about. In-app notifications (the bell)
-          are always on for collaboration events — only email is opt-out-able.
-        </p>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">{t("title")}</h1>
+        <p className="text-slate-600 mb-8">{t("intro")}</p>
 
         {loading ? (
           <div className="bg-white rounded-2xl p-8 shadow-sm text-center text-slate-500">
-            Loading your preferences…
+            {t("loading")}
           </div>
         ) : (
           <>
             {/* Preference toggles */}
             <div className="bg-white rounded-2xl shadow-sm divide-y divide-slate-100">
-              {TOGGLES.map((t) => {
-                const value =
-                  settings?.[t.key] ?? DEFAULTS[t.key];
-                const isDisabled =
-                  t.key !== "emailNotifications" &&
-                  (settings?.emailNotifications ?? true) === false;
+              {EMAIL_PREFERENCES.map(({ key, kind }) => {
+                const value = isOn(settings, key);
+                const isDisabled = kind !== "master" && !masterOn;
+                const label = t(`toggles.${key}.label`);
                 return (
                   <div
-                    key={t.key}
+                    key={key}
                     className={`px-5 sm:px-6 py-4 flex items-start gap-4 ${
                       isDisabled ? "opacity-50" : ""
                     }`}
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold text-slate-900">
-                          {t.label}
-                        </p>
-                        {t.category === "marketing" && (
+                        <p className="font-semibold text-slate-900">{label}</p>
+                        {kind === "marketing" && (
                           <span className="text-[10px] uppercase tracking-wide bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
-                            Marketing
+                            {t("badgeMarketing")}
                           </span>
                         )}
-                        {t.category === "master" && (
+                        {kind === "master" && (
                           <span className="text-[10px] uppercase tracking-wide bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded">
-                            Master switch
+                            {t("badgeMaster")}
                           </span>
                         )}
                       </div>
                       <p className="text-sm text-slate-600 mt-1">
-                        {t.description}
+                        {t(`toggles.${key}.description`)}
                       </p>
                     </div>
                     <button
                       type="button"
                       role="switch"
                       aria-checked={value}
-                      aria-label={t.label}
-                      onClick={() => !isDisabled && toggle(t.key)}
+                      aria-label={label}
+                      onClick={() => !isDisabled && toggle(key)}
                       disabled={isDisabled}
                       className={`shrink-0 mt-1 relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                         value
@@ -313,40 +236,40 @@ export default function NotificationPreferencesClient() {
                 disabled={saving}
                 className="px-5 py-2.5 rounded-xl bg-[var(--primary)] text-white font-semibold hover:bg-[var(--primary)]/90 disabled:opacity-50 transition-colors"
               >
-                {saving ? "Saving…" : "Save preferences"}
+                {saving ? t("saving") : t("save")}
               </button>
               {savedFlash && (
                 <span className="text-sm text-emerald-700 font-medium">
-                  ✓ Saved
+                  ✓ {t("saved")}
                 </span>
               )}
-              {saveError && (
-                <span className="text-sm text-red-600">{saveError}</span>
+              {saveFailed && (
+                <span className="text-sm text-red-600">{t("saveFailed")}</span>
               )}
             </div>
 
             {/* Email history */}
             <h2 className="text-xl font-bold text-slate-900 mt-12 mb-3">
-              Recent email activity
+              {t("activity.title")}
             </h2>
-            <p className="text-sm text-slate-600 mb-4">
-              The last 20 emails we've tried to send you. "Skipped" means we
-              respected a preference or that email isn't enabled yet.
-            </p>
+            <p className="text-sm text-slate-600 mb-4">{t("activity.intro")}</p>
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               {emailLog.length === 0 ? (
                 <div className="px-6 py-10 text-center text-slate-500 text-sm">
-                  No emails yet.
+                  {t("activity.empty")}
                 </div>
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {emailLog.map((entry) => {
-                    const status = STATUS_LABEL[entry.status] ?? {
-                      label: entry.status,
-                      color: "bg-slate-100 text-slate-600",
-                    };
-                    const template =
-                      TEMPLATE_LABEL[entry.template_id] ?? entry.template_id;
+                    const statusKnown = entry.status in STATUS_COLOR;
+                    const statusLabel = statusKnown
+                      ? t(`activity.status.${entry.status}`)
+                      : entry.status;
+                    const statusColor =
+                      STATUS_COLOR[entry.status] ?? "bg-slate-100 text-slate-600";
+                    const template = NAMED_TEMPLATES.has(entry.template_id)
+                      ? t(`activity.template.${entry.template_id}`)
+                      : t("activity.template.other");
                     return (
                       <li
                         key={entry.id}
@@ -357,13 +280,13 @@ export default function NotificationPreferencesClient() {
                             {template}
                           </p>
                           <p className="text-xs text-slate-500">
-                            {new Date(entry.created_at).toLocaleString()}
+                            {formatWhen(entry.created_at)}
                           </p>
                         </div>
                         <span
-                          className={`shrink-0 text-xs font-medium px-2 py-1 rounded-full ${status.color}`}
+                          className={`shrink-0 text-xs font-medium px-2 py-1 rounded-full ${statusColor}`}
                         >
-                          {status.label}
+                          {statusLabel}
                         </span>
                       </li>
                     );
