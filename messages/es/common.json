@@ -2229,6 +2229,17 @@
     "alreadyHaveAccount": "¿Ya tienes una cuenta?",
     "signIn": "Iniciar sesión",
     "createYourOwnTrip": "Crea Tu Propio Viaje",
+    "gate": {
+      "title": "Únete a {trip}",
+      "sentTo": "Esta invitación se envió a {email}. Inicia sesión con ese correo para ver el viaje y unirte.",
+      "emailMeALink": "Envíame un enlace para iniciar sesión",
+      "sending": "Enviando…",
+      "sent": "Enviamos un enlace de inicio de sesión a {email}. Ábrelo en cualquier dispositivo para ver el viaje y unirte.",
+      "googleHint": "Usa Google solo si {email} es tu cuenta de Google.",
+      "wrongAccount": "Has iniciado sesión como {current}, pero esta invitación se envió a {invited}.",
+      "switchAccount": "Cerrar sesión y cambiar de cuenta",
+      "sendFailed": "No pudimos enviar el correo. Inténtalo de nuevo en un momento."
+    },
     "errors": {
       "invalidToken": "Enlace de Invitación Inválido",
       "revoked": "Invitación Revocada",

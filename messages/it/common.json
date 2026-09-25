@@ -2229,6 +2229,17 @@
     "alreadyHaveAccount": "Hai già un account?",
     "signIn": "Accedi",
     "createYourOwnTrip": "Crea il Tuo Viaggio",
+    "gate": {
+      "title": "Unisciti a {trip}",
+      "sentTo": "Questo invito è stato inviato a {email}. Accedi con quell'email per vedere il viaggio e unirti.",
+      "emailMeALink": "Inviami un link di accesso",
+      "sending": "Invio in corso…",
+      "sent": "Abbiamo inviato un link di accesso a {email}. Aprilo su qualsiasi dispositivo per vedere il viaggio e unirti.",
+      "googleHint": "Usa Google solo se {email} è il tuo account Google.",
+      "wrongAccount": "Hai effettuato l'accesso come {current}, ma questo invito è stato inviato a {invited}.",
+      "switchAccount": "Esci e cambia account",
+      "sendFailed": "Non siamo riusciti a inviare l'email. Riprova tra un momento."
+    },
     "errors": {
       "invalidToken": "Link di Invito Non Valido",
       "revoked": "Invito Revocato",

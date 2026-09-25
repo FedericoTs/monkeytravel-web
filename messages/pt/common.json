@@ -2229,6 +2229,17 @@
     "alreadyHaveAccount": "Já tem uma conta?",
     "signIn": "Entrar",
     "createYourOwnTrip": "Crie Sua Própria Viagem",
+    "gate": {
+      "title": "Participe de {trip}",
+      "sentTo": "Este convite foi enviado para {email}. Entre com esse e-mail para ver a viagem e participar.",
+      "emailMeALink": "Enviar um link de acesso por e-mail",
+      "sending": "Enviando…",
+      "sent": "Enviamos um link de acesso para {email}. Abra-o em qualquer dispositivo para ver a viagem e participar.",
+      "googleHint": "Use o Google apenas se {email} for a sua conta Google.",
+      "wrongAccount": "Você entrou como {current}, mas este convite foi enviado para {invited}.",
+      "switchAccount": "Sair e trocar de conta",
+      "sendFailed": "Não conseguimos enviar o e-mail. Tente novamente em instantes."
+    },
     "errors": {
       "invalidToken": "Link de Convite Inválido",
       "revoked": "Convite Revogado",
