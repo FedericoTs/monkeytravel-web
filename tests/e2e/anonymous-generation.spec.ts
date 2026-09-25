@@ -59,6 +59,10 @@ test.describe("anonymous trip generation @prod", () => {
         startDate: daysFromNow(60),
         endDate: daysFromNow(61),
         vibes: ["cultural"],
+        // Only a real generation counts against the quota (cache hits are
+        // free and set no cookie), and Rome was always cached. A must-do
+        // makes the request personalized, which skips the cache both ways.
+        mustDos: ["the Pantheon at opening time"],
       },
     });
     expect(res.status()).toBe(200);

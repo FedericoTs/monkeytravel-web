@@ -21,6 +21,13 @@ test.describe("save → auth wall @prod @slow", () => {
     page,
   }) => {
     await page.goto("/trips/new");
+    // The consent banner mounts ~1.5 s after load, bottom-left, over the
+    // lower part of the wizard: answer it like a visitor would.
+    const essentialOnly = page.getByRole("button", { name: /essential only/i });
+    await essentialOnly
+      .waitFor({ state: "visible", timeout: 4_000 })
+      .then(() => essentialOnly.click())
+      .catch(() => {});
 
     // Step 1: destination + dates
     // The DestinationAutocomplete uses a textbox; type something common
@@ -29,9 +36,10 @@ test.describe("save → auth wall @prod @slow", () => {
     // getByRole("textbox") has never matched it.
     const destInput = page.getByRole("combobox").first();
     await destInput.fill("Lisbon");
-    await page.waitForTimeout(800); // let autocomplete settle
-    // Press Enter or click the first suggestion if visible
-    await page.keyboard.press("Enter");
+    // Pick the suggestion as a visitor does. Enter selects nothing (the rows
+    // carry no option role to highlight), so the list stayed open over the
+    // date presets and the "5 days" click below was intercepted until timeout.
+    await page.getByText("Lisbon", { exact: true }).first().click();
 
     // Dates. The wizard offers one-tap DURATION PRESETS (Weekend / 5 days /
     // 1 week / 10 days / 2 weeks) behind an "Add your travel dates" control —
@@ -58,14 +66,20 @@ test.describe("save → auth wall @prod @slow", () => {
       await continueBtn.click();
     }
 
-    // Step 2: select a vibe
-    const vibeFoodie = page.getByText(/foodie/i).first();
-    if (await vibeFoodie.isVisible()) {
-      await vibeFoodie.click();
-    }
+    // Step 2: select a vibe — Generate stays disabled until one is picked.
+    // (getByText(/foodie/i).first() matched an invisible element, so no vibe
+    // was ever selected and the test timed out on a disabled Generate.) The
+    // cards animate in, and a click landing mid-entrance is lost: click until
+    // the pick registers, as a person clicks again.
+    await page.getByRole("heading", { name: /set your travel style/i }).waitFor();
+    const foodie = page.getByText("Foodie Journey", { exact: true }).filter({ visible: true }).first();
+    const generateBtn = page.getByRole("button", { name: /generate|create/i }).first();
+    await expect(async () => {
+      if (await generateBtn.isDisabled()) await foodie.click();
+      await expect(generateBtn).toBeEnabled({ timeout: 1_500 });
+    }).toPass({ timeout: 15_000 });
 
     // Generate
-    const generateBtn = page.getByRole("button", { name: /generate|create/i }).first();
     await generateBtn.click();
 
     // Wait for the itinerary to render (up to ~50s for Gemini)

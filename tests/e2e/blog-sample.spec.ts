@@ -57,8 +57,21 @@ test.describe("blog post sample (rotates daily) @prod", () => {
         ""
       );
 
-      // Give lazy images a moment to load before sampling.
-      await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
+      // Lazy images (loading="lazy") only load near the viewport: scroll the
+      // whole page first. Without this, the footer logo at the very bottom was
+      // still unloaded and every sampled post was reported "broken".
+      await page.evaluate(async () => {
+        for (let y = 0; y <= document.body.scrollHeight; y += 700) {
+          window.scrollTo(0, y);
+          await new Promise((r) => setTimeout(r, 120));
+        }
+      });
+      // networkidle alone is not a wait here: once the page has been idle it
+      // resolves at once, before the images the scroll just triggered land.
+      // Give them up to 10 s; whatever is still unfinished after that is real.
+      await page
+        .waitForFunction(() => [...document.images].every((img) => img.complete), null, { timeout: 10_000 })
+        .catch(() => {});
 
       // Inspect every <img> on the page for natural dimensions.
       const broken = await page.locator("img").evaluateAll((imgs) => {
