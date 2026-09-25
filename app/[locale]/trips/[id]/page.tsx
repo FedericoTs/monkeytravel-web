@@ -8,6 +8,7 @@ import TripDetailClient from "./TripDetailClient";
 import { computeTripDayState } from "@/lib/trip/live";
 import TripEngagementSection from "@/components/explore/TripEngagementSection";
 import { refreshTripItinerary } from "@/lib/places/refreshItineraryPhotos";
+import { publicNameOrNull } from "@/lib/profile/public-name";
 
 export async function generateMetadata(): Promise<Metadata> {
   // Title is intentionally generic — pulling the actual trip title here
@@ -92,11 +93,12 @@ export default async function TripDetailPage({
     notFound();
   }
 
-  // Fetch collaborator count for voting quorum
-  const { count: collaboratorCount } = await supabase
-    .from("trip_collaborators")
-    .select("*", { count: "exact", head: true })
-    .eq("trip_id", id);
+  // Collaborator count for voting quorum, and the viewer's public name (the
+  // byline if they publish), in one round trip.
+  const [{ count: collaboratorCount }, { data: viewerProfile }] = await Promise.all([
+    supabase.from("trip_collaborators").select("*", { count: "exact", head: true }).eq("trip_id", id),
+    supabase.from("users").select("display_name").eq("id", user.id).maybeSingle(),
+  ]);
 
   // Total voters = collaborators + owner
   const totalVoters = (collaboratorCount || 0) + 1;
@@ -131,10 +133,12 @@ export default async function TripDetailPage({
   // explore feature at all.
   const isOwnerView = userRole === "owner";
   const isPublic = trip.visibility === "public" && !trip.is_hidden;
+  // The profile's name (name-first since 2026-09-01), never the email's local
+  // part: this is the Explore byline the share prompt publishes with. It used
+  // to read the sign-in metadata, which has no display_name for Google
+  // accounts, and fall back to the email's local part (lib/profile/public-name.ts).
   const ownerName =
-    typeof user.user_metadata?.display_name === "string"
-      ? (user.user_metadata.display_name as string)
-      : (user.email?.split("@")[0] ?? undefined);
+    publicNameOrNull((viewerProfile as { display_name?: string | null } | null)?.display_name, user.email) ?? undefined;
 
   return (
     <TripDetailClient

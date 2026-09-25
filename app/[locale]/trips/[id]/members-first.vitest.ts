@@ -41,8 +41,10 @@ type World = {
   shareToken: string | null;
   visibility: "private" | "public";
   isHidden?: boolean;
+  displayName?: string | null; // the viewer's public.users.display_name
 };
 let world: World;
+let lastByline: string | undefined;
 
 const trip = () => ({
   id: TRIP,
@@ -80,6 +82,7 @@ function fakeSupabase() {
           return q;
         },
         maybeSingle: async () => {
+          if (table === "users") return { data: { display_name: world.displayName ?? null }, error: null };
           if (table === "trips") {
             if (!canSee()) return { data: null, error: null };
             if ("user_id" in filters && filters.user_id !== OWNER) return { data: null, error: null };
@@ -108,8 +111,9 @@ async function visit(locale = "en") {
   const { default: TripDetailPage } = await import("./page");
   try {
     const el = (await TripDetailPage({ params: Promise.resolve({ id: TRIP, locale }) })) as {
-      props: { userRole: string };
+      props: { userRole: string; ownerDisplayName?: string };
     };
+    lastByline = el.props.ownerDisplayName;
     return { editor: el.props.userRole };
   } catch (e) {
     if (e instanceof Redirect) return { redirect: e.url };
@@ -144,6 +148,26 @@ describe("members always get the editor, shared or not", () => {
     world.user = "mate-2";
     world.collaborators = { "mate-2": "voter" };
     expect(await visit()).toEqual({ editor: "voter" });
+  });
+});
+
+describe("the byline the owner would publish with", () => {
+  // The viewer here signs in as a@test.local.
+  it("is the profile's name", async () => {
+    world.user = OWNER;
+    world.displayName = "Ana Lopez";
+    await visit();
+    expect(lastByline).toBe("Ana Lopez");
+  });
+
+  it("is never the email's local part (62 of 70 public trips showed it)", async () => {
+    world.user = OWNER;
+    world.displayName = "A";
+    await visit();
+    expect(lastByline).toBeUndefined();
+    world.displayName = null;
+    await visit();
+    expect(lastByline).toBeUndefined();
   });
 });
 
