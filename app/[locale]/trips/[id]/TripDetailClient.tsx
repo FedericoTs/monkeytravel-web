@@ -1806,6 +1806,13 @@ export default function TripDetailClient({
   // Handle AI assistant suggested actions
   const handleAIAction = useCallback(
     (action: string, data?: Record<string, unknown>) => {
+      // A proposal still waiting for Apply changes nothing here. Acting on it
+      // deleted a proposed removal before it was confirmed: an ambient owner's
+      // autosave stored it at once, and an editor's page went into edit mode
+      // with an unsaved deletion that then blocked Apply. The confirmed change
+      // arrives through handleRefetchTrip.
+      if (data?.pending === true) return;
+
       // For actions that were already applied by the AI (replace_activity, add_activity),
       // the refetch has already updated the itinerary - don't overwrite it!
       const actionWasApplied = data?.applied === true;

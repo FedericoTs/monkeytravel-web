@@ -1730,7 +1730,12 @@ Return ONLY a JSON array with the optimal order of activity indices:
       const currentDayCount = modifiedItinerary.length;
       const requestedTotal = structuralIntent.requestedTotalDays;
 
-      if (currentDayCount === 0) {
+      if (assistantRole !== "owner") {
+        // Adding a day moves the trip's end date, which stays with the owner
+        // (lib/ai/assistant-access.ts): /apply would refuse the proposal, so
+        // say so now instead of generating a day nobody can apply.
+        structuralNote = `The user is an editor of this trip, not its owner. Only the trip owner can add days or change the trip's dates. NO change was made. Explain that kindly and suggest asking the trip owner to add the day.`;
+      } else if (currentDayCount === 0) {
         replacementError = "This trip has no itinerary days yet, so there is nothing to extend";
       } else if (
         currentDayCount >= MAX_TRIP_DAYS ||
