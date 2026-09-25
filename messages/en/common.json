@@ -255,6 +255,11 @@
   },
   "shared": {
     "sharedTrip": "Shared Trip",
+    "backpackerRoute": "Backpacker route",
+    "estBudget": "Est. Budget",
+    "noItinerary": "No Itinerary Yet",
+    "noItineraryDesc": "This trip doesn't have any activities planned yet.",
+    "footerTagline": "AI-powered travel planning made simple",
     "sharedBy": "Shared by {name}",
     "voteInviteTitle": "You've been invited to vote",
     "voteInviteBody": "Tap 👍 or 👎 on any activity below to help shape this trip.",
@@ -436,6 +441,8 @@
     "happeningNow": "Happening Now",
     "upcoming": "Upcoming",
     "pastAdventures": "Past Adventures",
+    "sharedWithYou": "Shared with you",
+    "sharedWithYouHint": "Trips you've been invited to",
     "yourTrips": "Your Trips",
     "manageItineraries": "Plan and manage your AI-powered itineraries",
     "planNewTrip": "Plan New Trip",
@@ -1281,7 +1288,6 @@
       "publishOptInAnchored": "This trip has plans you pinned, so it stays private unless you choose to share it.",
       "done": "Done",
       "maybeLater": "Maybe Later",
-      "collaboratorStats": "Trips with collaborators have 3x more activities planned",
       "copy": "Copy",
       "copied": "Copied",
       "shareVia": "Share…",
@@ -1328,6 +1334,31 @@
       "title": "This is your trip",
       "body": "You shared it without an account. Sign up free and it becomes yours to edit.",
       "cta": "Sign up to keep it"
+    },
+    "memberEdit": {
+      "note": "You're seeing what people with the link see.",
+      "cta": "Edit this trip"
+    },
+    "inviteEmail": {
+      "sendTo": "Send to (optional)",
+      "leaveBlank": "Leave blank for a shareable link.",
+      "noteLabel": "Personal note (optional)",
+      "notePlaceholder": "Hey! Want to help me plan this?",
+      "send": "Send invite email",
+      "outcomeSent": "✓ Email delivered. They'll get a notification.",
+      "outcomeNoKey": "Email delivery isn't enabled yet — share this link manually for now.",
+      "outcomeSuppressed": "That address previously bounced — share the link manually.",
+      "outcomeFailed": "Email delivery failed — share the link manually.",
+      "toastSent": "Invite emailed to {email}",
+      "toastNoKey": "Invite link ready — email delivery not yet enabled. Share manually.",
+      "toastSuppressed": "Invite link ready — that address previously bounced, share manually.",
+      "toastFailed": "Invite created but email delivery failed. Share the link manually."
+    },
+    "a11y": {
+      "whatsapp": "Share on WhatsApp",
+      "twitter": "Share on Twitter / X",
+      "email": "Share via email",
+      "close": "Close share dialog"
     },
     "framing": {
       "label": "How the link opens",

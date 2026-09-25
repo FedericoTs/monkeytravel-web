@@ -225,7 +225,7 @@ export async function POST(request: NextRequest, context: TripActivityRouteConte
           type: "collab_vote",
           data: {
             message: `${voterName} ${voteLabel} an activity in your trip`,
-            href: `/trips/${tripId}/edit`,
+            href: `/trips/${tripId}`,
             trip_id: tripId,
             voter_name: voterName,
             activity_label: activityId,

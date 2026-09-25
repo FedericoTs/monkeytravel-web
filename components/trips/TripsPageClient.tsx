@@ -90,8 +90,20 @@ interface Trip {
   is_archived?: boolean;
 }
 
+/** A trip someone else owns and invited this user to (trip_collaborators). */
+interface SharedTrip {
+  id: string;
+  title: string;
+  start_date: string;
+  end_date: string;
+  cover_image_url?: string;
+  role: string;
+}
+
 interface TripsPageClientProps {
   trips: Trip[];
+  /** Trips the user was invited to; no owner actions (archive/delete) on these. */
+  sharedTrips?: SharedTrip[];
   displayName: string;
   lifetimeConversions: number;
   blogPosts?: BlogFrontmatter[];
@@ -524,8 +536,9 @@ function TripCard({ trip, t, locale, getStatusLabel, onAction }: TripCardProps) 
   );
 }
 
-export default function TripsPageClient({ trips, displayName, lifetimeConversions, blogPosts = [] }: TripsPageClientProps) {
+export default function TripsPageClient({ trips, sharedTrips = [], displayName, lifetimeConversions, blogPosts = [] }: TripsPageClientProps) {
   const t = useTranslations('common.trips');
+  const tRoles = useTranslations('common.roles');
   // i18n: pass current locale to date formatters so trip cards show
   // "24-29 mag 2026" on /it/ instead of "May 24-29, 2026". Caught
   // 2026-05-29 audit.
@@ -818,6 +831,37 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
     );
   };
 
+  // Trips other people invited this user to. They have no owner actions
+  // (archive/delete). Shown after the user's own trips, or first when the user
+  // has none (someone who signed up to join a friend's trip).
+  const sharedSection =
+    sharedTrips.length > 0 ? (
+      <section className="my-8 sm:my-12" data-testid="shared-with-you">
+        <h2 className="text-lg sm:text-xl font-bold text-slate-900">{t('sharedWithYou')}</h2>
+        <p className="text-sm text-slate-600 mb-4">{t('sharedWithYouHint')}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {sharedTrips.map((shared) => (
+            <Link
+              key={shared.id}
+              href={`/trips/${shared.id}`}
+              data-testid="shared-trip-card"
+              className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 transition-colors hover:border-slate-300 hover:bg-slate-50"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-slate-900 truncate">{shared.title}</p>
+                <p className="text-sm text-slate-600 truncate">{formatDateRange(shared.start_date, shared.end_date, locale)}</p>
+              </div>
+              {(["editor", "voter", "viewer"] as const).includes(shared.role as "editor" | "voter" | "viewer") && (
+                <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                  {tRoles(`${shared.role as "editor" | "voter" | "viewer"}.label`)}
+                </span>
+              )}
+            </Link>
+          ))}
+        </div>
+      </section>
+    ) : null;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white overflow-x-hidden">
       {/* Pull-to-refresh indicator — fixed-position spinner that translates
@@ -979,6 +1023,9 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
           className="mb-6 sm:mb-8"
           onInvite={() => setReferralModalOpen(true)}
         />
+
+        {/* Someone who only has trips they were invited to sees those first. */}
+        {activeTrips.length === 0 && sharedSection}
 
         {/* For new users: Show templates first for inspiration */}
         {activeTrips.length === 0 && archivedTrips.length === 0 && <CuratedEscapes />}
@@ -1293,6 +1340,8 @@ export default function TripsPageClient({ trips, displayName, lifetimeConversion
             </div>
           </div>
         )}
+
+        {activeTrips.length > 0 && sharedSection}
 
         {/* Archived Trips Section */}
         {archivedTrips.length > 0 && (

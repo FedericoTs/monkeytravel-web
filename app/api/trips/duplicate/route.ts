@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { shareToken, startDate } = body;
 
-    if (!shareToken) {
+    if (!shareToken || typeof shareToken !== "string" || shareToken.length > 100) {
       return errors.badRequest("Share token is required");
     }
 
@@ -53,12 +53,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Fetch the source trip by share token
-    const { data: sourceTrip, error: fetchError } = await supabase
+    // Fetch the source trip by share token, with the service role, the way
+    // /shared/[token] itself reads it: holding the token IS the permission to
+    // open (and so to copy) the trip. The signed-in user's own client can't
+    // see it: since 20260901090000 RLS hides non-public trips from
+    // non-members, so "Save to My Trips" answered 404 for every trip shared
+    // by link, i.e. for exactly the people a share link reaches. Same filter
+    // as getSharedTrip in app/[locale]/shared/[token]/page.tsx: an exact
+    // token match and not deleted (the service role bypasses the policy that
+    // used to assert deleted_at).
+    const { data: sourceTrip, error: fetchError } = await createAdminClient()
       .from("trips")
       .select("*")
       .eq("share_token", shareToken)
-      .single();
+      .is("deleted_at", null)
+      .maybeSingle();
 
     if (fetchError || !sourceTrip) {
       return errors.notFound("Shared trip not found");

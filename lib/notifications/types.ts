@@ -22,7 +22,7 @@ export type NotificationType =
 interface BasePayload {
   /** Short human-readable line. ~80 chars max. */
   message: string;
-  /** Path to open when the user clicks the row. e.g. "/trips/abc/edit". */
+  /** Path to open when the user clicks the row. e.g. "/trips/abc" (old "/trips/abc/edit" links redirect there). */
   href?: string;
   /** Trip this notification belongs to (optional — system messages omit). */
   trip_id?: string;

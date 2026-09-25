@@ -138,7 +138,7 @@ async function dispatchEmailForNotification(args: {
                 ? "no"
                 : "love",
           activityLabel: data.activity_label,
-          tripUrl: `${APP_URL}${data.href || `/trips/${data.trip_id}/edit`}`,
+          tripUrl: `${APP_URL}${data.href || `/trips/${data.trip_id}`}`,
         },
       },
       metadata: { notification_id: args.notificationId },
@@ -195,7 +195,7 @@ async function dispatchPushForNotification(args: {
           body: `${d.vote_type === "up" ? "👍" : "👎"} on "${d.activity_label}"`,
           sound: "default",
           data: {
-            url: d.href ?? `/trips/${d.trip_id}/edit`,
+            url: d.href ?? `/trips/${d.trip_id}`,
             tripId: d.trip_id,
           },
         };
@@ -209,7 +209,7 @@ async function dispatchPushForNotification(args: {
           body: `Day ${d.day_number}: ${d.proposed_activity}`,
           sound: "default",
           data: {
-            url: d.href ?? `/trips/${d.trip_id}/edit`,
+            url: d.href ?? `/trips/${d.trip_id}`,
             tripId: d.trip_id,
           },
         };

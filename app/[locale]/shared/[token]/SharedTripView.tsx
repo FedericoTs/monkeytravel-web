@@ -54,14 +54,19 @@ interface VotesHydrationResponse {
   myVotes: Record<string, "up" | "down">;
 }
 
+function MapLoading() {
+  const t = useTranslations("common");
+  return (
+    <div className="h-[400px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
+      <span className="text-slate-500">{t("map.loading")}</span>
+    </div>
+  );
+}
+
 // Dynamic import for TripMap to avoid SSR issues with Google Maps
 const TripMap = dynamic(() => import("@/components/TripMap"), {
   ssr: false,
-  loading: () => (
-    <div className="h-[400px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
-      <span className="text-slate-500">Loading map...</span>
-    </div>
-  ),
+  loading: () => <MapLoading />,
 });
 
 // ExportMenu only matters once the user opens its dropdown — defer to keep its
@@ -118,17 +123,21 @@ interface SharedTripViewProps {
   viewSource?: "shared" | "public";
   /**
    * True when the signed-in viewer owns this trip. Resolved server-side in
-   * both page.tsx callers. The owner of a shared trip is redirected here
-   * from /trips/[id] (the canonical-shared redirect), so this is the only
-   * surface where they can be shown "Who's going" — and where the
+   * both page.tsx callers. Here the owner is shown "Who's going", and the
    * recipient's "I'm going" bar must NOT appear. Live Trip Phase 2.4.
    */
   isOwner?: boolean;
+  /**
+   * Set when the viewer is the owner or a collaborator: the link back to the
+   * editor. They reach this view through their own share link; until
+   * 2026-09-25 /trips/[id] also sent them here, with no way to edit at all.
+   */
+  editorHref?: string;
   /** Server-computed live day-state (Phase 3.2). Refined on the client with the viewer tz. */
   liveState?: TripDayState;
 }
 
-export default function SharedTripView({ trip, shareToken, dateRange, coverImageUrl, engagementSlot, viewSource, isOwner = false, liveState }: SharedTripViewProps) {
+export default function SharedTripView({ trip, shareToken, dateRange, coverImageUrl, engagementSlot, viewSource, isOwner = false, editorHref, liveState }: SharedTripViewProps) {
   const t = useTranslations('common');
   // Live Trip Phase 3.2: a live trip opens on Today (owner + participants).
   const fallbackDayState = useMemo<TripDayState>(
@@ -494,19 +503,34 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
           {trip.meta?.travel_style === "backpacker" && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-500 text-white">
               <span aria-hidden>🎒</span>
-              Backpacker route
+              {t('shared.backpackerRoute')}
             </span>
           )}
         </div>
       </DestinationHero>
 
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+        {editorHref && (
+          <div
+            data-testid="member-edit-bar"
+            className="mb-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <p className="text-sm text-slate-700">{t("share.memberEdit.note")}</p>
+            <Link
+              href={editorHref}
+              data-testid="member-edit-link"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+            >
+              {t("share.memberEdit.cta")}
+            </Link>
+          </div>
+        )}
         {/* Live Trip Phase 2.2: title · dates · N going · [I'm going] · [Share] ·
             [More]. The vote invitation is the secondary line under the button.
             The old banner stays as the flag-off layout. */}
         {participantsEnabled && isOwner ? (
-          // The owner landed here via the canonical-shared redirect from
-          // /trips/[id]; show them who's going, not an "I'm going" button.
+          // The owner (e.g. opening their own share link): show them who's
+          // going, not an "I'm going" button.
           <WhoIsGoingCard tripId={trip.id} className="mb-6" />
         ) : participantsEnabled ? (
           <ParticipantsBar
@@ -734,7 +758,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
                     </div>
                     {day.daily_budget && (
                       <div className="ml-auto text-right">
-                        <div className="text-sm text-slate-500">Est. Budget</div>
+                        <div className="text-sm text-slate-500">{t('shared.estBudget')}</div>
                         <div className="font-semibold text-slate-900">
                           {formatDayBudget(day)}
                         </div>
@@ -904,8 +928,8 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <h3 className="text-lg font-medium text-slate-900 mb-2">No Itinerary Yet</h3>
-            <p className="text-slate-600">This trip doesn't have any activities planned yet.</p>
+            <h3 className="text-lg font-medium text-slate-900 mb-2">{t('shared.noItinerary')}</h3>
+            <p className="text-slate-600">{t('shared.noItineraryDesc')}</p>
           </div>
         )}
 
@@ -1099,7 +1123,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
               <span className="font-semibold text-slate-900">MonkeyTravel</span>
             </Link>
             <p className="text-sm text-slate-500">
-              AI-powered travel planning made simple
+              {t('shared.footerTagline')}
             </p>
             <Link
               href={planOwnHref}

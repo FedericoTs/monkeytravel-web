@@ -584,11 +584,6 @@ export default function ShareAfterSaveModal({
                     : ts("afterSave.maybeLater")}
                 </button>
               </div>
-
-              {/* Social proof hint */}
-              <p className="text-center text-xs text-slate-500 mt-4">
-                {ts("afterSave.collaboratorStats")}
-              </p>
             </div>
           </motion.div>
         </motion.div>

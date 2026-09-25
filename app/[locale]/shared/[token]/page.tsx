@@ -159,6 +159,9 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
   // owner, and the PostHog twin reuses the id instead of a second getUser().
   let isOwner = false;
   let viewerUserId: string | null = null;
+  // Owner or collaborator: the shared view offers them the way back to the
+  // editor (/trips/[id], which always opens for members since 2026-09-25).
+  let isMember = false;
   try {
     const supabase = await createClient();
     const {
@@ -166,8 +169,19 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
     } = await supabase.auth.getUser();
     viewerUserId = user?.id ?? null;
     isOwner = !!user && user.id === trip.user_id;
+    isMember = isOwner;
+    if (user && !isOwner) {
+      const { data: membership } = await supabase
+        .from("trip_collaborators")
+        .select("role")
+        .eq("trip_id", trip.id as string)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      isMember = !!membership;
+    }
   } catch {
     isOwner = false;
+    isMember = false;
     viewerUserId = null;
   }
 
@@ -304,6 +318,7 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
       <SharedTripView
         viewSource="shared"
         isOwner={isOwner}
+        editorHref={isMember ? `/trips/${trip.id}` : undefined}
         liveState={computeTripDayState({
           startDate: trip.start_date,
           endDate: trip.end_date,

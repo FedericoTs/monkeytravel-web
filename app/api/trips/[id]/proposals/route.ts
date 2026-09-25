@@ -409,7 +409,7 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
           type: "collab_proposal",
           data: {
             message: `${proposerName} proposed "${activityWithId.name}" for day ${targetDay + 1}`,
-            href: `/trips/${tripId}/edit`,
+            href: `/trips/${tripId}`,
             trip_id: tripId,
             proposer_name: proposerName,
             proposed_activity: activityWithId.name,

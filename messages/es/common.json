@@ -255,6 +255,11 @@
   },
   "shared": {
     "sharedTrip": "Viaje Compartido",
+    "backpackerRoute": "Ruta mochilera",
+    "estBudget": "Presupuesto est.",
+    "noItinerary": "Aún no hay itinerario",
+    "noItineraryDesc": "Este viaje aún no tiene actividades planificadas.",
+    "footerTagline": "Planifica tus viajes con IA, así de fácil",
     "sharedBy": "Compartido por {name}",
     "voteInviteTitle": "Te han invitado a votar",
     "voteInviteBody": "Toca 👍 o 👎 en cualquier actividad para ayudar a definir este viaje.",
@@ -436,6 +441,8 @@
     "happeningNow": "En Curso",
     "upcoming": "Próximos",
     "pastAdventures": "Aventuras Pasadas",
+    "sharedWithYou": "Compartidos contigo",
+    "sharedWithYouHint": "Viajes a los que te han invitado",
     "yourTrips": "Tus Viajes",
     "manageItineraries": "Planifica y gestiona tus itinerarios con AI",
     "planNewTrip": "Planificar Viaje",
@@ -1281,7 +1288,6 @@
       "publishOptInAnchored": "Este viaje incluye planes que fijaste, así que sigue siendo privado a menos que decidas compartirlo.",
       "done": "Listo",
       "maybeLater": "Quizás Después",
-      "collaboratorStats": "Los viajes con colaboradores tienen 3 veces más actividades planificadas",
       "copy": "Copiar",
       "copied": "Copiado",
       "shareVia": "Compartir…",
@@ -1328,6 +1334,31 @@
       "title": "Este es tu viaje",
       "body": "Lo compartiste sin cuenta. Regístrate gratis y podrás editarlo.",
       "cta": "Regístrate para guardarlo"
+    },
+    "memberEdit": {
+      "note": "Estás viendo lo que ven quienes tienen el enlace.",
+      "cta": "Editar este viaje"
+    },
+    "inviteEmail": {
+      "sendTo": "Enviar a (opcional)",
+      "leaveBlank": "Déjalo en blanco para obtener un enlace para compartir.",
+      "noteLabel": "Nota personal (opcional)",
+      "notePlaceholder": "¡Hola! ¿Me ayudas a planearlo?",
+      "send": "Enviar invitación por email",
+      "outcomeSent": "✓ Email enviado. Recibirá una notificación.",
+      "outcomeNoKey": "El envío de emails aún no está activado: por ahora, comparte este enlace tú mismo.",
+      "outcomeSuppressed": "Los emails a esa dirección han rebotado antes: comparte el enlace tú mismo.",
+      "outcomeFailed": "No se pudo enviar el email: comparte el enlace tú mismo.",
+      "toastSent": "Invitación enviada a {email}",
+      "toastNoKey": "Enlace de invitación listo. El envío de emails aún no está activado: compártelo tú mismo.",
+      "toastSuppressed": "Enlace de invitación listo. Los emails a esa dirección han rebotado antes: compártelo tú mismo.",
+      "toastFailed": "Invitación creada, pero no se pudo enviar el email. Comparte el enlace tú mismo."
+    },
+    "a11y": {
+      "whatsapp": "Compartir en WhatsApp",
+      "twitter": "Compartir en Twitter / X",
+      "email": "Compartir por email",
+      "close": "Cerrar la ventana de compartir"
     },
     "framing": {
       "label": "Cómo se abre el enlace",
