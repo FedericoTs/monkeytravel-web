@@ -143,13 +143,16 @@ export async function enrichTripRecord(
     return { skipped: null, before, after };
   }
 
-  // The photos found, by activity id: the url before and after.
+  // The photos found, by activity id: the url before and after. An activity
+  // read without an id (trips stored before ids were stamped at creation; the
+  // trip page may store ids meanwhile) is keyed by its place and name instead.
+  const byPlace = (d: number, a: number, name: string | undefined) => `@${d}:${a}:${name ?? ""}`;
   const resolved = new Map<string, { before: string | null; after: string }>();
   original.forEach((day, d) =>
     (day.activities ?? []).forEach((activity, a) => {
       const found = itinerary[d]?.activities?.[a]?.image_url;
-      if (activity.id && found && found !== activity.image_url) {
-        resolved.set(activity.id, { before: activity.image_url ?? null, after: found });
+      if (found && found !== activity.image_url) {
+        resolved.set(activity.id || byPlace(d, a, activity.name), { before: activity.image_url ?? null, after: found });
       }
     })
   );
@@ -168,10 +171,10 @@ export async function enrichTripRecord(
       if (attempt === 0) return { itinerary, extra };
       let applied = 0;
       const current = (Array.isArray(row.itinerary) ? row.itinerary : []) as ItineraryDay[];
-      const next = current.map((day) => ({
+      const next = current.map((day, d) => ({
         ...day,
-        activities: (day.activities ?? []).map((activity) => {
-          const r = activity.id ? resolved.get(activity.id) : undefined;
+        activities: (day.activities ?? []).map((activity, a) => {
+          const r = (activity.id ? resolved.get(activity.id) : undefined) ?? resolved.get(byPlace(d, a, activity.name));
           if (!r || (activity.image_url ?? null) !== r.before) return activity;
           applied += 1;
           return { ...activity, image_url: r.after };

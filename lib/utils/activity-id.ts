@@ -262,12 +262,53 @@ export function generateActivityId(): string {
  * Preserves existing IDs and only generates new ones where missing
  */
 export function ensureActivityIds(itinerary: ItineraryDay[]): ItineraryDay[] {
+  // Tolerant of a day without an activities array: this runs on trip
+  // inserts, where a throw would lose the save.
   return itinerary.map((day) => ({
     ...day,
-    activities: day.activities.map((activity) => ({
-      ...activity,
-      id: activity.id || generateActivityId(),
-    })),
+    activities: Array.isArray(day.activities)
+      ? day.activities.map((activity) => ({
+          ...activity,
+          id: activity.id || generateActivityId(),
+        }))
+      : day.activities,
+  }));
+}
+
+// FNV-1a, 32 bit.
+function fnv1a(input: string, seed: number): number {
+  let hash = seed >>> 0;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash >>> 0;
+}
+
+/** Same shape as generateActivityId, derived from the activity's place in the trip. */
+export function stableActivityId(tripId: string, dayIndex: number, activityIndex: number, name: string | undefined): string {
+  const key = `${tripId}|${dayIndex}|${activityIndex}|${name ?? ""}`;
+  const hex = fnv1a(key, 0x811c9dc5).toString(16).padStart(8, "0") + fnv1a(key, 0x9747b28c).toString(16).padStart(8, "0");
+  return `act_${hex.substring(0, 12)}`;
+}
+
+/**
+ * ensureActivityIds for a STORED trip: an activity stored without an id gets
+ * one derived from the trip, its position and its name, so every render of
+ * the same stored copy mints the same ids (the trip page can mount several
+ * times per load, be restored from the router cache, refetch). Random ids
+ * made two renders of one stored copy look like different content: a phantom
+ * edit, then a false "changed somewhere else" conflict.
+ */
+export function ensureActivityIdsStable(itinerary: ItineraryDay[], tripId: string): ItineraryDay[] {
+  return itinerary.map((day, dayIndex) => ({
+    ...day,
+    activities: Array.isArray(day.activities)
+      ? day.activities.map((activity, activityIndex) => ({
+          ...activity,
+          id: activity.id || stableActivityId(tripId, dayIndex, activityIndex, activity.name),
+        }))
+      : day.activities,
   }));
 }
 

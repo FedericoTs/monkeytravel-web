@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { v4 as uuidv4 } from "uuid";
 import type { ItineraryDay, Activity } from "@/types";
-import { generateActivityId } from "@/lib/utils/activity-id";
+import { ensureActivityIds, generateActivityId } from "@/lib/utils/activity-id";
 import { completeReferralIfEligible } from "@/lib/referral/completion";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
@@ -125,7 +125,9 @@ export async function POST(request: NextRequest) {
       status: "planning", // New trips start as planning
       budget: sourceTrip.budget,
       tags: sourceTrip.tags,
-      itinerary: adjustedItinerary,
+      // Same dates keep the source's activities as they are; stamp any missing
+      // id so the copy is stored with ids like every new trip.
+      itinerary: Array.isArray(adjustedItinerary) ? ensureActivityIds(adjustedItinerary as ItineraryDay[]) : adjustedItinerary,
       trip_meta: sourceTrip.trip_meta,
       packing_list: sourceTrip.packing_list,
       visibility: "private", // Duplicated trips are private

@@ -100,11 +100,23 @@ describe("the save paths use it", () => {
     }
   });
 
-  it("no phantom first-render edit: both copies come from ONE ensureActivityIds call", () => {
+  it("no phantom first-render edit: one copy for both states, with ids derived from the stored trip", () => {
     const page = read("app/[locale]/trips/[id]/TripDetailClient.tsx");
-    // ensureActivityIds mints random ids: two calls made the page look edited.
-    expect(page).toContain("const [initialItinerary] = useState(() => ensureActivityIds(trip.itinerary));");
+    // ensureActivityIds mints random ids: two calls made the page look edited,
+    // and each mount / router-cache restore minted different ids.
+    expect(page).toContain("const [initialItinerary] = useState(() => ensureActivityIdsStable(trip.itinerary, trip.id));");
     expect(page).not.toMatch(/useState<ItineraryDay\[\]>\(\(\) =>\s*ensureActivityIds\(trip\.itinerary\)/);
+    // Every read of a stored copy uses the derived ids; only a regenerated
+    // day (ids stamped by the server) goes through the random variant.
+    const code = page.split("\n").filter((line) => !line.trim().startsWith("//")).join("\n");
+    expect(code.match(/ensureActivityIds\(/g)?.length).toBe(1);
+  });
+
+  it("new trips are stored with activity ids, in every creation path that can store id-less days", () => {
+    expect(read("app/[locale]/trips/new/NewTripWizard.tsx")).toContain("itinerary: ensureActivityIds(generatedItinerary.days),");
+    expect(read("lib/trips/persistTrip.ts")).toContain("itinerary: ensureActivityIds(itinerary.days),");
+    expect(read("app/api/trips/anonymous/route.ts")).toMatch(/itinerary: Array\.isArray\(trip\.itinerary\) \? ensureActivityIds\(/);
+    expect(read("app/api/trips/duplicate/route.ts")).toMatch(/itinerary: Array\.isArray\(adjustedItinerary\) \? ensureActivityIds\(/);
   });
 
   it("only real editing blocks a server write, and a view-only regenerate shows the stored copy", () => {

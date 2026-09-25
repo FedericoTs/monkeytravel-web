@@ -66,6 +66,7 @@ import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import { getCoordinatesForNewActivity, type Coordinates } from "@/lib/utils/geo";
 import {
   ensureActivityIds,
+  ensureActivityIdsStable,
   findActivityById,
   moveActivityInDay,
   moveActivityToDay,
@@ -484,12 +485,13 @@ export default function TripDetailClient({
   const [isEditMode, setIsEditMode] = useState(false);
   // Today mode (Phase 3.2) shows only outside the editor, on a live trip.
   const showToday = dayState.isLive && todayMode && !isEditMode;
-  // One ensureActivityIds call for both copies: activities stored without an
-  // id get a random one here, and two separate calls minted DIFFERENT ids, so
-  // the page looked edited on its first render (a phantom autosave, and on a
-  // router-cache restore a false conflict). Minted ids are now persisted
-  // explicitly (see the effect after ambientEdit).
-  const [initialItinerary] = useState(() => ensureActivityIds(trip.itinerary));
+  // One copy for both states, with ids derived from the stored trip for any
+  // activity stored without one. Two random-id calls made the page look
+  // edited on its first render (a phantom autosave, and on a router-cache
+  // restore a false conflict), and every mount minted different ids. New
+  // trips are stored with ids; older ones are stored once by the effect after
+  // ambientEdit.
+  const [initialItinerary] = useState(() => ensureActivityIdsStable(trip.itinerary, trip.id));
   const [editedItinerary, setEditedItinerary] = useState<ItineraryDay[]>(() =>
     JSON.parse(JSON.stringify(initialItinerary))
   );
@@ -929,14 +931,15 @@ export default function TripDetailClient({
   useEffect(() => {
     ambientEditRef.current = ambientEdit;
   }, [ambientEdit]);
-  // Activities stored without an id got one on this load (initialItinerary).
-  // Solo owners store them once, as the phantom first-render autosave used
-  // to: photos, crew asks and votes refer to activities by id. Not on a page
-  // restored from the router cache, whose fresh copy (ids included) is coming.
+  // Activities stored without an id (trips from before ids were stamped at
+  // creation) got derived ids on this load. Solo owners store them once, as
+  // the phantom first-render autosave used to: photos, crew asks and votes
+  // refer to activities by id. Safe on every mount: the ids are the same for
+  // the same stored copy, so a sibling mount's save that landed first counts
+  // as this one (409 with equal content = saved), and a stale copy (router
+  // cache) gets a 409 and takes the stored copy when nothing is edited.
   useEffect(() => {
     if (!ambientEdit || propsVersion === null) return;
-    const known = latestKnownVersion(trip.id);
-    if (known !== null && known > propsVersion) return;
     const payload = JSON.stringify(initialItinerary);
     if (payload === JSON.stringify(trip.itinerary)) return; // nothing minted
     const base = sync.baseVersion();
@@ -948,7 +951,7 @@ export default function TripDetailClient({
       } else if (result.kind === "conflict" && !pendingSaveRef.current && !hasChangesRef.current) {
         // Changed since this page loaded, and nothing is edited here yet: no
         // choice to make, take the stored copy.
-        const fresh = ensureActivityIds(result.server.itinerary);
+        const fresh = ensureActivityIdsStable(result.server.itinerary, trip.id);
         sync.reset(result.server.version);
         setSavedItinerary(fresh);
         setEditedItinerary(JSON.parse(JSON.stringify(fresh)));
@@ -1412,11 +1415,21 @@ export default function TripDetailClient({
               pendingSaveRef.current = JSON.stringify(splice(JSON.parse(pendingSaveRef.current) as ItineraryDay[]));
               pendingEpochRef.current = sync.epoch();
             }
-          } else if (!ambientEditRef.current && !isEditModeRef.current) {
-            // Someone else wrote first and this page is only viewing, with no
-            // edits of its own: show the stored copy (the new day, and what
-            // changed since the page loaded) instead of a hidden local splice.
-            await refetchTripRef.current?.();
+          } else if (
+            (!ambientEditRef.current && !isEditModeRef.current) ||
+            (pendingSaveRef.current === null && !hasChangesRef.current)
+          ) {
+            // Someone else wrote first and this page has no edits of its own
+            // (or is only viewing): show the stored copy, the new day and what
+            // changed since the page loaded, instead of a local splice whose
+            // next save is sure to be refused. The day is stored either way:
+            // if the read fails, fall back to a server refresh of the props.
+            try {
+              await refetchTripRef.current?.();
+            } catch (err) {
+              console.warn("[regenerate-day] stored, but the page could not re-read the trip", err);
+              router.refresh();
+            }
             return;
           } else {
             // Kept on top of this page's own edits; the next save carries the
@@ -1439,7 +1452,7 @@ export default function TripDetailClient({
         setRegeneratingDayNumber(null);
       }
     },
-    [trip.id, pushUndo, addToast, runItineraryWrite, sync]
+    [trip.id, pushUndo, addToast, runItineraryWrite, sync, router]
   );
 
   // The explicit Save (editors, and owners of trips with collaborators),
@@ -1501,7 +1514,7 @@ export default function TripDetailClient({
   const handleLoadLatest = useCallback(() => {
     const c = conflictRef.current;
     if (!c) return;
-    const fresh = ensureActivityIds(c.server.itinerary);
+    const fresh = ensureActivityIdsStable(c.server.itinerary, trip.id);
     sync.reset(c.server.version);
     setSavedItinerary(fresh);
     setEditedItinerary(JSON.parse(JSON.stringify(fresh)));
@@ -1523,7 +1536,7 @@ export default function TripDetailClient({
     const c = conflictRef.current;
     if (!c) return;
     sync.reset(c.server.version);
-    setSavedItinerary(ensureActivityIds(c.server.itinerary));
+    setSavedItinerary(ensureActivityIdsStable(c.server.itinerary, trip.id));
     setConflict(null);
     lastFailedSaveRef.current = null;
     const payload = JSON.stringify(editedItinerary);
@@ -1716,7 +1729,7 @@ export default function TripDetailClient({
       const base = sync.baseVersion();
       if (base === null || propsVersion <= base) return;
       if (pendingSaveRef.current || hasChangesRef.current || conflictRef.current) return;
-      const fresh = ensureActivityIds(itinerary);
+      const fresh = ensureActivityIdsStable(itinerary, trip.id);
       sync.reset(propsVersion);
       setSavedItinerary(fresh);
       setEditedItinerary(JSON.parse(JSON.stringify(fresh)));
@@ -1874,7 +1887,7 @@ export default function TripDetailClient({
       if (data.trip?.itinerary) {
         // Deep clone to ensure we're working with fresh data
         const freshItinerary = JSON.parse(JSON.stringify(data.trip.itinerary));
-        const processedItinerary = ensureActivityIds(freshItinerary);
+        const processedItinerary = ensureActivityIdsStable(freshItinerary, trip.id);
 
         console.log("[TripDetailClient] Processed itinerary:", {
           days: processedItinerary.length,
@@ -2323,7 +2336,7 @@ export default function TripDetailClient({
               // adopt it as BOTH edited and saved state, with the version it
               // was written at (runs inside the save queue), so the ambient
               // auto-save doesn't immediately re-PATCH an identical body.
-              const withIds = ensureActivityIds(next);
+              const withIds = ensureActivityIdsStable(next, trip.id);
               if (serverVersion != null) sync.reset(serverVersion);
               setEditedItinerary(withIds);
               setSavedItinerary(JSON.parse(JSON.stringify(withIds)));

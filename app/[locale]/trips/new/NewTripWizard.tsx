@@ -236,6 +236,7 @@ import {
   type PersistInput,
 } from "@/lib/trips/persistTrip";
 import { resolveAiLanguage } from "@/lib/ai/language";
+import { ensureActivityIds } from "@/lib/utils/activity-id";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
 const MAX_TRIP_START_DATE = maxTripStartDate();
@@ -2733,7 +2734,10 @@ export default function NewTripPage({
             end_date: endDate,
             status: "planning",
             visibility: "private",
-            itinerary: generatedItinerary.days,
+            // Stored with activity ids: the photo enrichment fired right after
+            // this insert merges by id, and an id-less trip made the trip page
+            // mint and save ids of its own, racing it.
+            itinerary: ensureActivityIds(generatedItinerary.days),
             cover_image_url: coverImageUrl,
             budget: {
               total: generatedItinerary.trip_summary.total_estimated_cost,
