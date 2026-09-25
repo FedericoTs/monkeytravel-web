@@ -768,7 +768,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
                       </div>
                       <div>
                         <h2 className="font-bold text-xl text-slate-900">
-                          Day {day.day_number}
+                          {t("trip.dayLabel", { number: day.day_number })}
                         </h2>
                         {day.theme && (
                           <p className="text-slate-500 text-sm">{day.theme}</p>
