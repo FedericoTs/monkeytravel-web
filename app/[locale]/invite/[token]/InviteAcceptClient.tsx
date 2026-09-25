@@ -469,7 +469,10 @@ export default function InviteAcceptClient({
               {/* Already have account */}
               <p className="text-center text-sm text-slate-500 pt-2">
                 {t("alreadyHaveAccount")}{" "}
-                <Link href="/auth/login" className="text-[var(--primary-ink)] hover:underline font-medium">
+                <Link
+                  href={`/auth/login?redirect=${encodeURIComponent(`/invite/${invite.token}`)}`}
+                  className="text-[var(--primary-ink)] hover:underline font-medium"
+                >
                   {t("signIn")}
                 </Link>
               </p>

@@ -29,6 +29,8 @@
  * created, so age is the second half of the test.
  */
 
+import { splitLocalePrefix } from "@/lib/auth/callback-url";
+
 /** An account older than this is a returning login however low its login_count. */
 export const FIRST_LOGIN_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -73,4 +75,15 @@ export function resolveAuthLanding(next: string, firstLogin: boolean): string {
   if (!firstLogin) return next;
   const path = next.split(/[?#]/)[0].replace(/\/+$/, "") || "/";
   return path === TRIP_LIST_PATH ? WIZARD_PATH : next;
+}
+
+/**
+ * Whether a sign-in's requested destination is a page to come back to (a trip,
+ * an invite, a shared trip) rather than nothing, the trip list or the wizard,
+ * which for an account without trips all mean the wizard. The login and
+ * signup pages skip their first-visit detours only for a real destination.
+ */
+export function returnsToPage(next: string): boolean {
+  const path = splitLocalePrefix(next).rest.split(/[?#]/)[0].replace(/\/+$/, "");
+  return path !== "" && path !== TRIP_LIST_PATH && path !== WIZARD_PATH;
 }

@@ -27,7 +27,8 @@ import DaySlider from "@/components/ui/DaySlider";
 import TravelConnector from "@/components/trip/TravelConnector";
 import DaySummary from "@/components/trip/DaySummary";
 import HotelRecommendations from "@/components/trip/HotelRecommendations";
-import SaveTripModal from "@/components/ui/SaveTripModal";
+import SaveTripModal, { usePendingSaveTripAction } from "@/components/ui/SaveTripModal";
+import { useAuth } from "@/components/auth/AuthProvider";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import {
   AnonymousActivityVoteBar,
@@ -214,6 +215,24 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   const [showMap, setShowMap] = useState(!participantsEnabled);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [showSaveModal, setShowSaveModal] = useState(false);
+  // Back from signing in to save this trip: the save dialog stored what it was
+  // doing before sending the visitor to sign in. Reopen it, date and all.
+  const { user: viewer, loading: viewerLoading } = useAuth();
+  const { getPending, clearPending } = usePendingSaveTripAction();
+  const [resumedStartDate, setResumedStartDate] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    if (viewerLoading || !viewer) return;
+    let cancelled = false;
+    void getPending().then(async (pending) => {
+      if (cancelled || !pending || pending.shareToken !== shareToken) return;
+      await clearPending();
+      setResumedStartDate(pending.startDate);
+      setShowSaveModal(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [viewerLoading, viewer, shareToken, getPending, clearPending]);
   // The sharer opening their own link (2026-09-02): this browser still holds
   // the claim token for THIS trip. "Save to My Trips" would duplicate their
   // own itinerary, so the strip offers the claim instead, and once the claim
@@ -1105,6 +1124,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
           tripTitle={trip.title}
           tripDestination={destination}
           durationDays={nights + 1}
+          initialStartDate={resumedStartDate}
         />
       </main>
 

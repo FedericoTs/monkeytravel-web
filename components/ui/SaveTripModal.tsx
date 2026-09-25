@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -24,6 +24,8 @@ interface SaveTripModalProps {
   durationDays: number;
   /** Optional callback after successful save */
   onSuccess?: (newTripId: string) => void;
+  /** The date picked before signing in, when resuming a save (YYYY-MM-DD). */
+  initialStartDate?: string;
 }
 
 // Storage key for pending save action
@@ -68,6 +70,7 @@ export default function SaveTripModal({
   tripCountryCode,
   durationDays,
   onSuccess,
+  initialStartDate,
 }: SaveTripModalProps) {
   const router = useRouter();
   const t = useTranslations("common.saveTrip");
@@ -88,16 +91,16 @@ export default function SaveTripModal({
   const [error, setError] = useState<string | null>(null);
   const [startDate, setStartDate] = useState("");
 
-  // Set default date to tomorrow
+  // Set default date to tomorrow (or the one picked before signing in)
   useEffect(() => {
     if (isOpen) {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      setStartDate(tomorrow.toISOString().split("T")[0]);
+      setStartDate(initialStartDate || tomorrow.toISOString().split("T")[0]);
       setError(null);
       setSaveSuccess(false);
     }
-  }, [isOpen]);
+  }, [isOpen, initialStartDate]);
 
   // Parse YYYY-MM-DD strings as LOCAL midnight (not UTC midnight) so
   // toLocaleDateString below renders the day the user actually picked.
@@ -449,7 +452,7 @@ export default function SaveTripModal({
  * await. The native backend is async-only.
  */
 export function usePendingSaveTripAction() {
-  const getPending = async (): Promise<PendingSave | null> => {
+  const getPending = useCallback(async (): Promise<PendingSave | null> => {
     try {
       const stored = await prefs.get(PENDING_SAVE_KEY);
       if (!stored) return null;
@@ -466,11 +469,11 @@ export function usePendingSaveTripAction() {
     } catch {
       return null;
     }
-  };
+  }, []);
 
-  const clearPending = async (): Promise<void> => {
+  const clearPending = useCallback(async (): Promise<void> => {
     await prefs.remove(PENDING_SAVE_KEY);
-  };
+  }, []);
 
   return { getPending, clearPending };
 }
