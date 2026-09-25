@@ -237,6 +237,7 @@ import {
 } from "@/lib/trips/persistTrip";
 import { resolveAiLanguage } from "@/lib/ai/language";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
+import { mergeDayEditActivities } from "@/lib/trips/day-edit-merge";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
 const MAX_TRIP_START_DATE = maxTripStartDate();
@@ -2974,25 +2975,9 @@ export default function NewTripPage({
       setGeneratedItinerary((prev) => {
         if (!prev) return prev;
         const target = prev.days.find((d) => d.day_number === dayNumber);
-        const byName = new Map(
-          (target?.activities ?? []).map((a) => [a.name.trim().toLowerCase(), a])
-        );
-        const merged: Activity[] = newActivities.map((a, i) => {
-          const match = byName.get(a.name.trim().toLowerCase());
-          return {
-            ...a,
-            id:
-              match?.id ??
-              a.id ??
-              `edit-${dayNumber}-${i}-${a.name
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, "-")
-                .slice(0, 40)}`,
-            coordinates: a.coordinates ?? match?.coordinates,
-            address: a.address ?? match?.address,
-            image_url: a.image_url ?? match?.image_url,
-          };
-        });
+        // Ids, coordinates and photos carried over by name, each existing
+        // activity at most once (lib/trips/day-edit-merge.ts).
+        const merged: Activity[] = mergeDayEditActivities(prev.days, dayNumber, newActivities);
         const sum = (acts: Activity[]) =>
           acts.reduce((s, a) => s + (a.estimated_cost?.amount || 0), 0);
         const prevTotal = prev.trip_summary?.total_estimated_cost || 0;

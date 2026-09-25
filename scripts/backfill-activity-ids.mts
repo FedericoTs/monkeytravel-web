@@ -8,9 +8,12 @@
  * The ids are ensureActivityIdsStable's: exactly the ids the trip page already
  * derives for those activities on every load, so nothing a page shows or has
  * keyed (votes, proposals, done-marks) changes. Existing ids are never
- * touched. Each trip is written compare-and-set on itinerary_version, so a
- * save that lands meanwhile is never overwritten (that trip is reported and
- * skipped; run again). The write moves itinerary_version (ids are content).
+ * touched. Trips in the trash are left alone. Each trip is written
+ * compare-and-set on itinerary_version AND updated_at: the version ignores
+ * photo-only writes (photo enrichment), updated_at moves on every write, so
+ * nothing that lands meanwhile is overwritten (that trip is reported and
+ * skipped; run again until the dry run says 0). The write moves
+ * itinerary_version (ids are content). Avoid 05:17 UTC (photo cron).
  */
 import { createClient } from "@supabase/supabase-js";
 import { existsSync, readFileSync } from "node:fs";
@@ -53,6 +56,7 @@ const missingIds = (itinerary: unknown): number => {
 const PAGE = 200;
 let from = 0;
 let trips = 0;
+let trashed = 0;
 let activities = 0;
 let written = 0;
 const moved: string[] = [];
@@ -60,14 +64,20 @@ const moved: string[] = [];
 for (;;) {
   const { data, error } = await db
     .from("trips")
-    .select("id, itinerary, itinerary_version")
+    .select("id, itinerary, itinerary_version, updated_at, deleted_at")
     .order("created_at", { ascending: true })
     .range(from, from + PAGE - 1);
   if (error) throw error;
   if (!data || data.length === 0) break;
-  for (const row of data as Array<{ id: string; itinerary: unknown; itinerary_version: number }>) {
+  // Filtered in code, not in the query: an offset scan over a filter shifts
+  // (and skips a row) when a trip is deleted mid-run.
+  for (const row of data as Array<{ id: string; itinerary: unknown; itinerary_version: number; updated_at: string; deleted_at: string | null }>) {
     const n = missingIds(row.itinerary);
     if (n === 0) continue;
+    if (row.deleted_at) {
+      trashed++;
+      continue;
+    }
     trips++;
     activities += n;
     if (!apply) continue;
@@ -77,6 +87,8 @@ for (;;) {
       .update({ itinerary: next })
       .eq("id", row.id)
       .eq("itinerary_version", row.itinerary_version)
+      .eq("updated_at", row.updated_at)
+      .is("deleted_at", null)
       .select("id");
     if (writeError) throw writeError;
     if (out && out.length === 1) written++;
@@ -85,7 +97,7 @@ for (;;) {
   from += PAGE;
 }
 
-console.log(`${apply ? "APPLY" : "DRY RUN"}: ${trips} trips with ${activities} activities without an id`);
+console.log(`${apply ? "APPLY" : "DRY RUN"}: ${trips} live trips with ${activities} activities without an id (${trashed} more in the trash, left alone)`);
 if (apply) {
   console.log(`written: ${written}`);
   if (moved.length) console.log(`changed meanwhile, skipped (run again): ${moved.join(", ")}`);
