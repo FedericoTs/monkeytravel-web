@@ -31,14 +31,33 @@ describe("mergeDayEditActivities", () => {
     expect(ids(out)).toEqual(["X1", "X2", "X3"]);
   });
 
-  it("a revisit (the same place twice in the new day) gets a fresh id the second time", () => {
+  it("a revisit (the same place twice in the new day) gets its own id but keeps the place's photo and pin", () => {
     const out = mergeDayEditActivities(days(), 2, [act("Orsay"), act("Lunch"), act("Orsay")]);
     expect(out[0].id).toBe("X2");
     expect(new Set(ids(out)).size).toBe(3);
     expect(out[2].id).toMatch(/^edit-2-2-orsay/);
+    expect(out[2].image_url).toBe("/api/places/photo?ref=orsay");
   });
 
-  it("carries coordinates and photos over from the matched activity only", () => {
+  it("dropping the earlier of two same-named activities keeps the later one's id and place (closest start time)", () => {
+    const d = [
+      {
+        day_number: 1,
+        date: "2027-01-01",
+        activities: [
+          act("Free time", { id: "F1", start_time: "10:00", coordinates: { lat: 48.86, lng: 2.36 } as never }),
+          act("Louvre", { id: "L" }),
+          act("Free time", { id: "F2", start_time: "17:00", coordinates: { lat: 48.88, lng: 2.34 } as never }),
+        ],
+      },
+    ] as unknown as ItineraryDay[];
+    const out = mergeDayEditActivities(d, 1, [act("Cafe X", { start_time: "09:00" }), act("Louvre"), act("Free time", { start_time: "17:00" })]);
+    expect(out[2].id).toBe("F2");
+    expect(out[2].coordinates).toEqual({ lat: 48.88, lng: 2.34 });
+    expect(out[1].id).toBe("L");
+  });
+
+  it("carries coordinates and photos over from the same-named activity", () => {
     const out = mergeDayEditActivities(days(), 2, [act("Orsay"), act("Free time")]);
     expect(out[0].image_url).toBe("/api/places/photo?ref=orsay");
     expect(out[1].coordinates).toEqual({ lat: 1, lng: 1 });
