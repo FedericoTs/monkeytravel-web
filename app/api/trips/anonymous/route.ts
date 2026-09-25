@@ -1,6 +1,5 @@
 import { deriveTimezoneFromItinerary } from "@/lib/trip/timezone";
 import type { ItineraryDay } from "@/types";
-import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { NextRequest, after } from "next/server";
 import { randomBytes, randomUUID } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -122,8 +121,9 @@ export async function POST(request: NextRequest) {
         // anon key: 118 trips, 42 of them private, 39 live claim_tokens.
         // Removed in 20260901090000_close_share_token_read_hole.sql.
         visibility: "private",
-        // Stored with activity ids, like every new trip (kept when claimed).
-        itinerary: Array.isArray(trip.itinerary) ? ensureActivityIds(trip.itinerary as unknown as ItineraryDay[]) : trip.itinerary,
+        // Already stamped with activity ids by validateAnonymousTripPayload
+        // (withActivityIds), which also passes malformed days through as is.
+        itinerary: trip.itinerary,
         cover_image_url: trip.coverImageUrl,
         share_token: shareToken,
         claim_token: claimToken,

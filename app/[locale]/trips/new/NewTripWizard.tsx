@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type SetStateAction } from "react";
 import { sanitizeIsoDate, maxTripStartDate } from "@/lib/dates/iso-date";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -482,7 +482,22 @@ export default function NewTripPage({
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [generatedItinerary, setGeneratedItinerary] = useState<GeneratedItinerary | null>(null);
+  const [generatedItinerary, setGeneratedItineraryRaw] = useState<GeneratedItinerary | null>(null);
+  // Activity ids are given here, once, so the auto-save insert, every later
+  // update and the share link carry the SAME ids. (A fresh random set on each
+  // update moved itinerary_version and cut off anything keyed by id.) The
+  // object is only rebuilt when an id is actually missing, so a no-op set
+  // does not look like a new itinerary to the auto-save.
+  const setGeneratedItinerary = useCallback((next: SetStateAction<GeneratedItinerary | null>) => {
+    setGeneratedItineraryRaw((prev) => {
+      const value = typeof next === "function" ? next(prev) : next;
+      if (!value || !Array.isArray(value.days)) return value;
+      const missing = value.days.some(
+        (d) => Array.isArray(d?.activities) && d.activities.some((a) => a && typeof a === "object" && !a.id)
+      );
+      return missing ? { ...value, days: ensureActivityIds(value.days) } : value;
+    });
+  }, []);
   // Result-view UX state (parity with /trips/template/[id]).
   // **2026-05-24 live-test:** the result view had no map toggle and no
   // Cards/Timeline switcher. Added so users can hide the map (mobile

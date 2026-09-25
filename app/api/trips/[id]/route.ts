@@ -6,6 +6,7 @@ import type { TripRouteContext } from "@/lib/api/route-context";
 import type { ItineraryDay } from "@/types";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import { refreshItineraryPhotos } from "@/lib/places/refreshItineraryPhotos";
+import { keepStoredPlacePhotos } from "@/lib/trips/keep-place-photos";
 
 /**
  * GET /api/trips/[id] - Fetch a single trip
@@ -149,6 +150,20 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
 
       // Ensure all activities have IDs
       updates.itinerary = ensureActivityIds(itinerary);
+
+      // A page that loaded before the save-time photo enrichment landed would
+      // put the curated fallbacks back over the real place photos (photo-only
+      // writes don't move itinerary_version, so the check can't see it). Keep
+      // a stored place photo on the same activity. lib/trips/keep-place-photos.ts
+      // Best effort: a failed read never fails the save.
+      try {
+        const { data: storedRow } = await supabase.from("trips").select("itinerary").eq("id", id).maybeSingle();
+        if (storedRow) {
+          updates.itinerary = keepStoredPlacePhotos(updates.itinerary as ItineraryDay[], (storedRow as { itinerary?: unknown }).itinerary).itinerary;
+        }
+      } catch (photoReadError) {
+        console.warn("[Trips] could not read stored photos before the save", photoReadError);
+      }
     }
 
     // Handle other allowed fields. `start_date` and `end_date` are

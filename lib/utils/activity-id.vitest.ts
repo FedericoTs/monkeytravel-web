@@ -26,10 +26,22 @@ describe("ensureActivityIdsStable", () => {
     expect(JSON.stringify(ensureActivityIds(stored()))).not.toBe(JSON.stringify(ensureActivityIds(stored())));
   });
 
-  it("tolerates a day without activities (it runs on trip inserts)", () => {
-    const odd = [{ day_number: 1, date: "2027-01-01" }] as unknown as ItineraryDay[];
-    expect(() => ensureActivityIds(odd)).not.toThrow();
-    expect(() => ensureActivityIdsStable(odd, "t")).not.toThrow();
+  it("passes days and activities that are not plain objects through untouched (it runs on trip inserts)", () => {
+    const odd = [
+      { day_number: 1, date: "2027-01-01" },
+      null,
+      { day_number: 3, activities: "not-an-array" },
+      { day_number: 4, activities: [7, null, { name: "Real" }] },
+    ] as unknown as ItineraryDay[];
+    for (const out of [ensureActivityIds(odd), ensureActivityIdsStable(odd, "t")]) {
+      expect(out[0]).toEqual(odd[0]);
+      expect(out[1]).toBeNull();
+      expect(out[2]).toEqual(odd[2]);
+      const acts = (out[3] as unknown as { activities: unknown[] }).activities;
+      expect(acts[0]).toBe(7);
+      expect(acts[1]).toBeNull();
+      expect((acts[2] as { id: string }).id).toMatch(/^act_/);
+    }
   });
 });
 

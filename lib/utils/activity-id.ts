@@ -261,18 +261,22 @@ export function generateActivityId(): string {
  * Ensure all activities in an itinerary have unique IDs
  * Preserves existing IDs and only generates new ones where missing
  */
+// Days and activities that are not plain objects pass through untouched:
+// these helpers run on trip inserts, where a throw would lose the save.
+const isPlainObject = (v: unknown): v is Record<string, unknown> =>
+  typeof v === "object" && v !== null && !Array.isArray(v);
+
 export function ensureActivityIds(itinerary: ItineraryDay[]): ItineraryDay[] {
-  // Tolerant of a day without an activities array: this runs on trip
-  // inserts, where a throw would lose the save.
-  return itinerary.map((day) => ({
-    ...day,
-    activities: Array.isArray(day.activities)
-      ? day.activities.map((activity) => ({
-          ...activity,
-          id: activity.id || generateActivityId(),
-        }))
-      : day.activities,
-  }));
+  return itinerary.map((day) =>
+    isPlainObject(day) && Array.isArray(day.activities)
+      ? {
+          ...day,
+          activities: day.activities.map((activity) =>
+            isPlainObject(activity) ? { ...activity, id: activity.id || generateActivityId() } : activity
+          ),
+        }
+      : day
+  );
 }
 
 // FNV-1a, 32 bit.
@@ -301,15 +305,18 @@ export function stableActivityId(tripId: string, dayIndex: number, activityIndex
  * edit, then a false "changed somewhere else" conflict.
  */
 export function ensureActivityIdsStable(itinerary: ItineraryDay[], tripId: string): ItineraryDay[] {
-  return itinerary.map((day, dayIndex) => ({
-    ...day,
-    activities: Array.isArray(day.activities)
-      ? day.activities.map((activity, activityIndex) => ({
-          ...activity,
-          id: activity.id || stableActivityId(tripId, dayIndex, activityIndex, activity.name),
-        }))
-      : day.activities,
-  }));
+  return itinerary.map((day, dayIndex) =>
+    isPlainObject(day) && Array.isArray(day.activities)
+      ? {
+          ...day,
+          activities: day.activities.map((activity, activityIndex) =>
+            isPlainObject(activity)
+              ? { ...activity, id: activity.id || stableActivityId(tripId, dayIndex, activityIndex, activity.name) }
+              : activity
+          ),
+        }
+      : day
+  );
 }
 
 /**

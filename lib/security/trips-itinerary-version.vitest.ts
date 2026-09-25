@@ -115,14 +115,26 @@ describe("the save paths use it", () => {
   it("new trips are stored with activity ids, in every creation path that can store id-less days", () => {
     expect(read("app/[locale]/trips/new/NewTripWizard.tsx")).toContain("itinerary: ensureActivityIds(generatedItinerary.days),");
     expect(read("lib/trips/persistTrip.ts")).toContain("itinerary: ensureActivityIds(itinerary.days),");
-    expect(read("app/api/trips/anonymous/route.ts")).toMatch(/itinerary: Array\.isArray\(trip\.itinerary\) \? ensureActivityIds\(/);
+    // Anonymous shares are stamped by their validator (which also lets odd shapes through).
+    expect(read("lib/trips/anonymous-share.ts")).toContain("itinerary: withActivityIds(b.itinerary),");
     expect(read("app/api/trips/duplicate/route.ts")).toMatch(/itinerary: Array\.isArray\(adjustedItinerary\) \? ensureActivityIds\(/);
+    // The wizard gives its own copy ids once, so its insert and every later update carry the same ids.
+    const wizard = read("app/[locale]/trips/new/NewTripWizard.tsx");
+    expect(wizard).toContain("return missing ? { ...value, days: ensureActivityIds(value.days) } : value;");
+    expect(wizard).toContain("const [generatedItinerary, setGeneratedItineraryRaw] = useState<GeneratedItinerary | null>(null);");
+  });
+
+  it("a whole-itinerary save keeps stored place photos (enrichment vs a page loaded before it)", () => {
+    const route = read("app/api/trips/[id]/route.ts");
+    expect(route).toContain("updates.itinerary = keepStoredPlacePhotos(");
   });
 
   it("only real editing blocks a server write, and a view-only regenerate shows the stored copy", () => {
     const page = read("app/[locale]/trips/[id]/TripDetailClient.tsx");
     expect(page).toContain("(!ambientEditRef.current && isEditModeRef.current && hasChangesRef.current)");
-    expect(page).toContain("await refetchTripRef.current?.();");
+    // ...taken only if no edit arrived while re-reading; otherwise spliced on top of it.
+    expect(page).toContain("await refetchTripRef.current?.({ onlyIfUnedited: true })");
+    expect(page).toContain("if (options?.onlyIfUnedited && (pendingSaveRef.current !== null || hasChangesRef.current)) return false;");
   });
 
   it("a page restored from the router cache catches up instead of 409ing on its own saves", () => {

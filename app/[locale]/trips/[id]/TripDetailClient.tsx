@@ -600,7 +600,7 @@ export default function TripDetailClient({
   }, [isEditMode]);
   const ambientEditRef = useRef(false);
   // handleRefetchTrip is declared further down; callbacks above reach it here.
-  const refetchTripRef = useRef<(() => Promise<void>) | null>(null);
+  const refetchTripRef = useRef<((options?: { onlyIfUnedited?: boolean }) => Promise<boolean>) | null>(null);
 
   // A save landed: the payload is the saved copy at `version` (null from an
   // older server). Replies arrive in queue order, so an older version can only
@@ -1424,13 +1424,18 @@ export default function TripDetailClient({
             // changed since the page loaded, instead of a local splice whose
             // next save is sure to be refused. The day is stored either way:
             // if the read fails, fall back to a server refresh of the props.
+            let tookStored = false;
             try {
-              await refetchTripRef.current?.();
+              tookStored = (await refetchTripRef.current?.({ onlyIfUnedited: true })) ?? false;
             } catch (err) {
               console.warn("[regenerate-day] stored, but the page could not re-read the trip", err);
               router.refresh();
+              return;
             }
-            return;
+            if (tookStored) return;
+            // An edit arrived while re-reading: keep it, with the day spliced
+            // in; its save gets the conflict choice (below).
+            hasChangesRef.current = true;
           } else {
             // Kept on top of this page's own edits; the next save carries the
             // older base and gets the conflict choice. Marked now, before
@@ -1856,7 +1861,10 @@ export default function TripDetailClient({
   // the page through handleRefetchTrip, inside the save queue.)
 
   // Refetch trip data from the database (called after AI modifications)
-  const handleRefetchTrip = useCallback(async () => {
+  // Resolves true when the stored copy was taken. With onlyIfUnedited it is
+  // not taken if an edit arrived while reading (a regenerate's re-read must
+  // not drop it).
+  const handleRefetchTrip = useCallback(async (options?: { onlyIfUnedited?: boolean }): Promise<boolean> => {
     console.log("[TripDetailClient] Refetching trip data from database...");
     try {
       // The write before this already landed: without this read the page
@@ -1885,6 +1893,7 @@ export default function TripDetailClient({
       });
 
       if (data.trip?.itinerary) {
+        if (options?.onlyIfUnedited && (pendingSaveRef.current !== null || hasChangesRef.current)) return false;
         // Deep clone to ensure we're working with fresh data
         const freshItinerary = JSON.parse(JSON.stringify(data.trip.itinerary));
         const processedItinerary = ensureActivityIdsStable(freshItinerary, trip.id);
@@ -1956,8 +1965,10 @@ export default function TripDetailClient({
         }, 2000);
 
         console.log("[TripDetailClient] State update complete - UI should re-render now");
+        return true;
       } else {
         console.error("[TripDetailClient] No itinerary in response:", data);
+        return false;
       }
     } catch (error) {
       console.error("[TripDetailClient] Failed to refetch trip:", error);
@@ -2802,9 +2813,12 @@ export default function TripDetailClient({
               // assistant uses after autonomous edits. Keeps the
               // itinerary state in sync without a hard page reload.
               // Returned so the modal awaits it inside the save queue.
-              return handleRefetchTrip().catch((err) => {
-                console.error("[PasteBookingModal] Refetch failed:", err);
-              });
+              return handleRefetchTrip().then(
+                () => undefined,
+                (err) => {
+                  console.error("[PasteBookingModal] Refetch failed:", err);
+                }
+              );
             }}
           />
         )}
@@ -3555,7 +3569,9 @@ export default function TripDetailClient({
         isOpen={isAIAssistantOpen}
         onClose={() => setIsAIAssistantOpen(false)}
         onAction={handleAIAction}
-        onRefetchTrip={handleRefetchTrip}
+        onRefetchTrip={async () => {
+          await handleRefetchTrip();
+        }}
         onFocusDay={handleFocusDayCard}
         runItineraryWrite={runItineraryWrite}
       />

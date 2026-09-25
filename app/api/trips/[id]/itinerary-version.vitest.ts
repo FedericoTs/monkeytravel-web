@@ -151,6 +151,17 @@ describe("a save that carries the version it was based on", () => {
   });
 });
 
+describe("photos enriched after the page loaded", () => {
+  it("a save from that page keeps the stored place photo instead of its stale fallback", async () => {
+    stored = { itinerary: [{ day_number: 1, activities: [{ id: "a1", name: "Their edit", image_url: "/api/places/photo?ref=x" }] }], itinerary_version: 4 };
+    const stale = [{ day_number: 1, activities: [{ id: "a1", name: "Their edit", image_url: "https://images.example/curated.jpg", start_time: "10:00" }] }];
+    const r = await patch({ itinerary: stale, baseItineraryVersion: 4 });
+    expect(r.status).toBe(200);
+    const written = writes[0].values.itinerary as Array<{ activities: Array<{ image_url: string; start_time: string }> }>;
+    expect(written[0].activities[0]).toMatchObject({ image_url: "/api/places/photo?ref=x", start_time: "10:00" });
+  });
+});
+
 describe("saves without a version", () => {
   it("an itinerary from a tab opened before this shipped: last-write-wins as before", async () => {
     const r = await patch({ itinerary: mine });
