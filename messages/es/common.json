@@ -1287,7 +1287,7 @@
       "publishOptIn": "Comparte este viaje en Explore",
       "publishOptInHelp": "Otros viajeros podrán verlo y copiarlo. Puedes dejar de publicarlo cuando quieras.",
       "publishOptInAnchored": "Este viaje incluye planes que fijaste, así que sigue siendo privado a menos que decidas compartirlo.",
-      "done": "Listo",
+      "publishAndClose": "Publicar en Explore",
       "maybeLater": "Quizás Después",
       "copy": "Copiar",
       "copied": "Copiado",
