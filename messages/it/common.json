@@ -1274,7 +1274,8 @@
       "roleUpdated": "Ruolo aggiornato a {role}",
       "roleUpdateFailed": "Impossibile aggiornare il ruolo",
       "memberRemoved": "Membro del team rimosso",
-      "memberRemoveFailed": "Impossibile rimuovere il membro"
+      "memberRemoveFailed": "Impossibile rimuovere il membro",
+      "linksReset": "I vecchi link di invito sono stati disattivati. Creane uno nuovo per chi deve ancora unirsi."
     },
     "afterSave": {
       "tripSaved": "Viaggio Salvato!",

@@ -1274,7 +1274,8 @@
       "roleUpdated": "Rol actualizado a {role}",
       "roleUpdateFailed": "Error al actualizar el rol",
       "memberRemoved": "Miembro del equipo eliminado",
-      "memberRemoveFailed": "Error al eliminar el miembro"
+      "memberRemoveFailed": "Error al eliminar el miembro",
+      "linksReset": "Los enlaces de invitación anteriores se han desactivado. Crea uno nuevo para quien aún tenga que unirse."
     },
     "afterSave": {
       "tripSaved": "¡Viaje Guardado!",

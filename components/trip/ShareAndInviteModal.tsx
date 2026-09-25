@@ -316,6 +316,15 @@ export default function ShareAndInviteModal({
     }
   };
 
+  // Removing someone or lowering their role switches off the trip's open
+  // invite links on the server, so the link on screen no longer works: clear
+  // it and say so.
+  const noteInvitesReset = (count: number | undefined) => {
+    if (!count) return;
+    setInviteUrl(null);
+    addToast(ts("toast.linksReset"), "info");
+  };
+
   // Update collaborator role
   const handleRoleChange = async (userId: string, newRole: CollaboratorRole) => {
     try {
@@ -326,8 +335,10 @@ export default function ShareAndInviteModal({
       });
 
       if (response.ok) {
+        const data = (await response.json().catch(() => null)) as { invitesReset?: number } | null;
         await fetchCollaborators();
         addToast(ts("toast.roleUpdated", { role: newRole }), "success");
+        noteInvitesReset(data?.invitesReset);
       } else {
         addToast(ts("toast.roleUpdateFailed"), "error");
       }
@@ -345,8 +356,10 @@ export default function ShareAndInviteModal({
       });
 
       if (response.ok) {
+        const data = (await response.json().catch(() => null)) as { invitesReset?: number } | null;
         await fetchCollaborators();
         addToast(ts("toast.memberRemoved"), "success");
+        noteInvitesReset(data?.invitesReset);
       } else {
         addToast(ts("toast.memberRemoveFailed"), "error");
       }

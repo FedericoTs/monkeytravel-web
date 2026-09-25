@@ -9,7 +9,7 @@ import dynamic from "next/dynamic";
 import type { ItineraryDay, TripMeta, CachedDayTravelData } from "@/types";
 import { trackShareLinkClicked } from "@/lib/analytics";
 import { getTripDestination } from "@/lib/trips/destination";
-import { readPendingClaim } from "@/lib/trips/anonymous-claim-client";
+import { readPendingClaim, claimPendingTrip } from "@/lib/trips/anonymous-claim-client";
 import { onClaimedTrip, readClaimedTrip } from "@/lib/trips/claimed-trip-signal";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import ParticipantsBar from "@/components/trip/ParticipantsBar";
@@ -257,6 +257,16 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
     if (already) go(already);
     return onClaimedTrip(go);
   }, [ownerPending, trip.id]);
+  // Signed in with this trip's claim still waiting: claim it from here. Signing
+  // up by email from the strip below comes back to this page (it used to end
+  // in the wizard, which claimed as a backup), and a sign-in finished on the
+  // server only ever says INITIAL_SESSION, which AuthProvider did not claim on.
+  // claimPendingTrip shares one request with any other caller and announces
+  // the result, which moves the page onto the trip (above).
+  useEffect(() => {
+    if (!ownerPending || viewerLoading || !viewer) return;
+    void claimPendingTrip();
+  }, [ownerPending, viewerLoading, viewer]);
 
   // Anonymous vote state — see /api/shared/[token]/vote and /votes.
   // Tallies are keyed by activity.id (the per-activity nanoid in the itinerary).

@@ -160,8 +160,13 @@ describe("non-members", () => {
   });
 
   it("a signed-out visitor on a private trip is sent to sign in and back to this trip", async () => {
+    // The language on the login page, the destination unprefixed: the login
+    // page's router adds the language, so a prefixed one became /it/it/...
     expect(await visit("it")).toEqual({
-      redirect: `/auth/login?redirect=${encodeURIComponent(`/it/trips/${TRIP}`)}`,
+      redirect: `/it/auth/login?redirect=${encodeURIComponent(`/trips/${TRIP}`)}`,
+    });
+    expect(await visit("en")).toEqual({
+      redirect: `/auth/login?redirect=${encodeURIComponent(`/trips/${TRIP}`)}`,
     });
   });
 

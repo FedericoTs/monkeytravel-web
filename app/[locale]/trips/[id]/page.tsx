@@ -84,7 +84,10 @@ export default async function TripDetailPage({
     }
     if (!user) {
       // Back here after signing in (it used to land on /trips and lose the trip).
-      redirect(`/auth/login?redirect=${encodeURIComponent(`${localePrefix}/trips/${id}`)}`);
+      // The language goes on the login page and the destination stays
+      // unprefixed: the login page's router adds the language itself, so a
+      // prefixed redirect became /it/it/trips/<id>, a 404.
+      redirect(`${localePrefix}/auth/login?redirect=${encodeURIComponent(`/trips/${id}`)}`);
     }
     notFound();
   }

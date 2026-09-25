@@ -3,6 +3,8 @@ import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripCollaboratorRouteContext } from "@/lib/api/route-context";
 import type { CollaboratorRole } from "@/types";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { isDemotion, resetInviteLinks } from "@/lib/invites/links";
 
 /**
  * PATCH /api/trips/[id]/collaborators/[userId] - Update a collaborator's role
@@ -57,6 +59,16 @@ export async function PATCH(request: NextRequest, context: TripCollaboratorRoute
       return errors.badRequest("Cannot transfer ownership. This feature is not yet available.");
     }
 
+    // The role before the change: lowering it switches off the trip's open
+    // invite links (lib/invites/links.ts), or a demoted editor could leave and
+    // rejoin as an editor through one.
+    const { data: previousCollab } = await supabase
+      .from("trip_collaborators")
+      .select("role")
+      .eq("trip_id", tripId)
+      .eq("user_id", targetUserId)
+      .maybeSingle();
+
     // Update the collaborator's role
     const { data: updatedCollab, error } = await supabase
       .from("trip_collaborators")
@@ -75,9 +87,12 @@ export async function PATCH(request: NextRequest, context: TripCollaboratorRoute
       return errors.notFound("Collaborator not found");
     }
 
+    const invitesReset = isDemotion(previousCollab?.role, role) ? await resetInviteLinks(supabase, tripId) : 0;
+
     return apiSuccess({
       success: true,
       collaborator: updatedCollab,
+      invitesReset,
     });
   } catch (error) {
     console.error("[Collaborators] Error updating collaborator role:", error);
@@ -140,9 +155,25 @@ export async function DELETE(request: NextRequest, context: TripCollaboratorRout
       return errors.internal("Failed to remove collaborator", "Collaborators");
     }
 
+    // Someone the owner removed must not walk back in through an open invite
+    // link, or an unused email invite to them (lib/invites/links.ts). Leaving
+    // on your own does not reset the group's links.
+    let invitesReset = 0;
+    if (!isSelfRemove) {
+      let removedEmail: string | null = null;
+      try {
+        const { data: removed } = await createAdminClient().auth.admin.getUserById(targetUserId);
+        removedEmail = removed?.user?.email ?? null;
+      } catch (err) {
+        console.error("[Collaborators] Could not read the removed member's email:", err);
+      }
+      invitesReset = await resetInviteLinks(supabase, tripId, removedEmail);
+    }
+
     return apiSuccess({
       success: true,
       message: isSelfRemove ? "You have left the trip" : "Collaborator removed",
+      invitesReset,
     });
   } catch (error) {
     console.error("[Collaborators] Error removing collaborator:", error);

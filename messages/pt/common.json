@@ -1274,7 +1274,8 @@
       "roleUpdated": "Função atualizada para {role}",
       "roleUpdateFailed": "Falha ao atualizar a função",
       "memberRemoved": "Membro da equipe removido",
-      "memberRemoveFailed": "Falha ao remover o membro"
+      "memberRemoveFailed": "Falha ao remover o membro",
+      "linksReset": "Os links de convite antigos foram desativados. Crie um novo para quem ainda vai entrar."
     },
     "afterSave": {
       "tripSaved": "Viagem Salva!",

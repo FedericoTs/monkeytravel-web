@@ -21,7 +21,7 @@ import {
   type AuthError,
 } from "@/lib/auth-errors";
 import { safeNextOrDefault } from "@/lib/security/safe-next";
-import { buildAuthCallbackUrl } from "@/lib/auth/callback-url";
+import { buildAuthCallbackUrl, splitLocalePrefix } from "@/lib/auth/callback-url";
 import { returnsToPage } from "@/lib/auth/first-login";
 import { safeGet, safeSet } from "@/lib/safe-storage";
 
@@ -335,7 +335,9 @@ function SignupForm() {
           /* non-blocking — the confirm-email path attaches via the callback */
         });
       }
-      router.push(hasDestination ? redirectUrl : "/trips/new?auth_event=signup_email");
+      // This router adds the page's language itself; strip one already on the
+      // destination or it doubles (/it/it/..., a 404).
+      router.push(hasDestination ? splitLocalePrefix(redirectUrl).rest : "/trips/new?auth_event=signup_email");
       router.refresh();
     }
   };

@@ -16,6 +16,7 @@ import {
 } from "@/lib/auth-errors";
 import { safeNextOrDefault } from "@/lib/security/safe-next";
 import { returnsToPage } from "@/lib/auth/first-login";
+import { splitLocalePrefix } from "@/lib/auth/callback-url";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -142,7 +143,9 @@ function LoginForm() {
           return;
         }
       }
-      router.push(redirect);
+      // This router adds the page's language itself: a redirect that already
+      // carries one (/it/trips/<id>) would become /it/it/..., a 404.
+      router.push(splitLocalePrefix(redirect).rest);
       router.refresh();
     }
   };

@@ -1274,7 +1274,8 @@
       "roleUpdated": "Role updated to {role}",
       "roleUpdateFailed": "Failed to update role",
       "memberRemoved": "Team member removed",
-      "memberRemoveFailed": "Failed to remove member"
+      "memberRemoveFailed": "Failed to remove member",
+      "linksReset": "Old invite links were switched off. Create a new one for anyone still joining."
     },
     "afterSave": {
       "tripSaved": "Trip Saved!",

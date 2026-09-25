@@ -17,7 +17,7 @@ const OWNER = "owner-1";
 const SAVER = "saver-1";
 const TOKEN = "tok-abcdef";
 
-type SourceTrip = { id: string; user_id: string; share_token: string; deleted_at: string | null; visibility: string };
+type SourceTrip = { id: string; user_id: string; share_token: string; deleted_at: string | null; visibility: string; is_hidden?: boolean | null };
 let caller: string | null;
 let stored: SourceTrip[];
 const inserted: Array<Record<string, unknown>> = [];
@@ -36,7 +36,7 @@ const source = (over: Partial<SourceTrip> = {}): SourceTrip & Record<string, unk
   budget: null,
   tags: [],
   itinerary: [{ day_number: 1, date: "2026-10-01", activities: [{ id: "a1", name: "Tram 28" }] }],
-  trip_meta: {},
+  trip_meta: { locale: "en", claimed_at: "2026-09-01T00:00:00Z", claimed_from: "anonymous_share", packing_checked: ["Passport"] },
   packing_list: [],
   ...over,
 });
@@ -56,6 +56,12 @@ function fakeAdmin() {
         is: (c: string, v: unknown) => {
           adminFilters.push(["is", c, v]);
           conds.push((t) => (t as Record<string, unknown>)[c] === v);
+          return q;
+        },
+        not: (c: string, op: string, v: unknown) => {
+          adminFilters.push(["not", c, v]);
+          // .not(c, "is", true): anything but true (false or null passes).
+          conds.push((t) => (t as Record<string, unknown>)[c] !== v);
           return q;
         },
         maybeSingle: async () => ({ data: stored.find((t) => conds.every((ok) => ok(t))) ?? null, error: null }),
@@ -137,7 +143,20 @@ describe("saving a trip someone shared by link", () => {
     expect(adminFilters).toEqual([
       ["eq", "share_token", TOKEN],
       ["is", "deleted_at", null],
+      ["not", "is_hidden", true],
     ]);
+  });
+
+  it("a trip moderation has hidden cannot be saved", async () => {
+    stored = [source({ is_hidden: true })];
+    const { status } = await save({ shareToken: TOKEN });
+    expect(status).toBe(404);
+    expect(inserted).toHaveLength(0);
+  });
+
+  it("the copy leaves behind the source owner's claim stamp and packed items", async () => {
+    await save({ shareToken: TOKEN });
+    expect(inserted[0].trip_meta).toEqual({ locale: "en" });
   });
 
   it("a deleted trip cannot be saved", async () => {

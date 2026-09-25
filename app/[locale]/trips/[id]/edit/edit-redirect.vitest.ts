@@ -59,8 +59,9 @@ describe("no code builds /trips/<id>/edit links any more", () => {
     expect(files.length).toBeGreaterThan(100);
   });
 
+  // Reads every source file: give it room when the whole suite runs at once.
   it("no template builds a /trips/${...}/edit path", () => {
     const offenders = files.filter((f) => /\/trips\/\$\{[^}]+\}\/edit/.test(readFileSync(f, "utf8")));
     expect(offenders).toEqual([]);
-  });
+  }, 30_000);
 });
