@@ -1,111 +1,28 @@
 "use client";
 
-import { type ReactNode, useEffect, useState, type ComponentType } from "react";
+import type { ReactNode } from "react";
 
 interface ProvidersProps {
   children: ReactNode;
 }
 
 /**
- * PostHog Provider Wrapper
+ * No PostHog provider is needed, and mounting one late remounted the app.
  *
- * PERFORMANCE: PostHog is NOT imported statically to avoid adding ~80-120 KB
- * to the initial JS bundle. Instead, both posthog-js and PostHogProvider are
- * dynamically imported after the page becomes idle.
+ * posthog-js/react's hooks (lib/posthog/hooks.ts: useFlag, useExperiment,
+ * usePostHog...) read a context whose DEFAULT value is the global posthog-js
+ * instance, the same one instrumentation-client.ts initialises (no bootstrap).
+ * So they work without a <PostHogProvider>, and they always did: until
+ * 2026-09-25 this wrapper rendered plain children first and swapped in
+ * <PostHogProvider client={posthog}> once PostHog had loaded, which handed the
+ * hooks that very same instance. The swap changed the element at the root of
+ * the app, so React unmounted and remounted EVERYTHING ~1-2 s into every page
+ * load: local state lost, every mount effect run twice (on the trip page: 4
+ * mounts per load together with the consent provider's own late wrap).
  *
- * Children render immediately without PostHog context. Once PostHog loads,
- * the provider wraps children and React hooks (usePostHog, useFlag, etc.)
- * become functional. Components that use PostHog hooks handle the undefined
- * state gracefully via their isLoading checks.
- *
- * @see /instrumentation-client.ts for PostHog initialization
+ * Kept as a pass-through so the root layout's tree keeps one stable shape.
+ * Do not reintroduce a provider that appears after the first render.
  */
 export function PostHogProviderWrapper({ children }: ProvidersProps) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [provider, setProvider] = useState<{
-    Component: ComponentType<any>;
-    client: any;
-  } | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    let pollInterval: ReturnType<typeof setInterval> | undefined;
-    // Track the 15s stop-polling timer so we can clear it on unmount —
-    // previously it leaked (the closure referenced the inner pollInterval
-    // for up to 15s even after the component unmounted). Caught via audit
-    // 2026-05-28.
-    let stopPollTimer: ReturnType<typeof setTimeout> | undefined;
-
-    const loadPostHog = async () => {
-      try {
-        const [{ default: posthog }, { PostHogProvider }] = await Promise.all([
-          import("posthog-js"),
-          import("posthog-js/react"),
-        ]);
-
-        if (cancelled) return;
-
-        // If PostHog is already initialized (by instrumentation-client.ts), mount immediately
-        if (posthog.__loaded) {
-          setProvider({ Component: PostHogProvider, client: posthog });
-          return;
-        }
-
-        // Poll until initialized (instrumentation-client.ts defers init via requestIdleCallback)
-        pollInterval = setInterval(() => {
-          if (posthog.__loaded && !cancelled) {
-            clearInterval(pollInterval);
-            setProvider({ Component: PostHogProvider, client: posthog });
-          }
-        }, 200);
-
-        // Stop polling after 15s (user may not have given consent).
-        // Stored in stopPollTimer so the outer cleanup can cancel it on
-        // unmount instead of waiting up to 15s for it to fire on a stale
-        // closure.
-        stopPollTimer = setTimeout(() => {
-          if (pollInterval) clearInterval(pollInterval);
-        }, 15000);
-      } catch (err) {
-        console.warn("[PostHog] Failed to load provider:", err);
-      }
-    };
-
-    // Defer loading to after initial paint
-    if ("requestIdleCallback" in window) {
-      const idleId = requestIdleCallback(() => loadPostHog(), { timeout: 4000 });
-      return () => {
-        cancelled = true;
-        cancelIdleCallback(idleId);
-        if (pollInterval) clearInterval(pollInterval);
-        if (stopPollTimer) clearTimeout(stopPollTimer);
-      };
-    } else {
-      const timeout = setTimeout(loadPostHog, 2000);
-      return () => {
-        cancelled = true;
-        clearTimeout(timeout);
-        if (pollInterval) clearInterval(pollInterval);
-        if (stopPollTimer) clearTimeout(stopPollTimer);
-      };
-    }
-  }, []);
-
-  // Render with PostHog provider once loaded, plain children until then
-  if (provider) {
-    const { Component, client } = provider;
-    return <Component client={client}>{children}</Component>;
-  }
-
   return <>{children}</>;
-}
-
-/**
- * Combined providers for the application
- *
- * Wraps all third-party providers in a single component for cleaner layout.
- * Add new providers here as needed.
- */
-export default function Providers({ children }: ProvidersProps) {
-  return <PostHogProviderWrapper>{children}</PostHogProviderWrapper>;
 }
