@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { isMarketingOptedOut } from "@/lib/email/preferences";
 
 /**
  * Weekly cron — incremental sync of new Supabase users into the Resend
@@ -151,10 +152,10 @@ export async function GET(request: NextRequest) {
     if (!u.email) continue;
     const email = String(u.email).trim().toLowerCase();
     if (!email || isExcluded(email)) continue;
-    // Marketing opt-out lives in users.notification_settings.marketingNotifications.
+    // Marketing opt-out lives in users.notification_settings: either the
+    // marketing switch or the master "Send me emails" switch turned off.
     // Only an explicit `false` is an opt-out; a missing key defaults to opted-in.
-    const ns = (u.notification_settings ?? {}) as Record<string, unknown>;
-    const optedOut = ns.marketingNotifications === false;
+    const optedOut = isMarketingOptedOut(u.notification_settings);
     // users overrides waitlist (richer profile data).
     byEmail.set(email, {
       email,
