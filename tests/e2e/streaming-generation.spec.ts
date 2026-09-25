@@ -81,7 +81,11 @@ test.describe("Streaming generation — live Gemini stream @prod @slow", () => {
     // from the same machine it'll 429 — that's expected, and tests above
     // cover the 429 path. We just need ONE successful trip per test run.
     const res = await request.post("/api/ai/generate/stream", {
-      data: VALID_BODY,
+      // A must-do makes the request personalized, and personalized requests
+      // skip the shared cache both ways: a real generation every run (this
+      // test asserts cached:false), and nothing left behind for real users.
+      // Without it, Lisbon was answered from the cache and this went red.
+      data: { ...VALID_BODY, mustDos: ["a walk through Alfama"] },
       // 90s budget — generation usually completes in 30-40s.
       timeout: 90_000,
     });
@@ -96,6 +100,12 @@ test.describe("Streaming generation — live Gemini stream @prod @slow", () => {
     expect(res.status()).toBe(200);
     expect(res.headers()["content-type"]).toMatch(/text\/event-stream/);
     expect(res.headers()["cache-control"]).toMatch(/no-cache|no-transform/);
+    // The anonymous quota cookie rides on the stream's headers. It used to be
+    // set after the stream ended, when headers were long gone, so the wizard
+    // (this endpoint) never counted against the 5-a-day cap.
+    const setCookie = res.headers()["set-cookie"] ?? "";
+    expect(setCookie, "mt_anon is set before the stream starts").toMatch(/mt_anon=/);
+    expect(setCookie).toMatch(/HttpOnly/i);
 
     // Parse the SSE wire format. The endpoint emits ASCII so naive
     // text decoding is fine.
