@@ -16,6 +16,7 @@ import {
   captureConciergeProposalShown,
   captureConciergeProposalApplied,
 } from "@/lib/posthog/events";
+import { ItineraryWriteBlockedError } from "@/lib/trips/itinerary-sync";
 
 /**
  * In-trip AI Concierge — context-aware chat modal (F4 / task #242, upgraded
@@ -50,7 +51,9 @@ interface TripConciergeChatProps {
    * `modifiedItinerary` — proof of write, never the model's claim) so the
    * page can update its rendered state without a reload.
    */
-  onItineraryChange?: (itinerary: ItineraryDay[]) => void;
+  onItineraryChange?: (itinerary: ItineraryDay[], serverVersion?: number) => void;
+  /** The trip page's itinerary save queue (see AIAssistantEnhanced). */
+  runItineraryWrite?: <T>(task: () => Promise<T>) => Promise<T>;
   className?: string;
 }
 
@@ -74,6 +77,7 @@ function TripConciergeChatInner({
   tripId,
   canEdit = false,
   onItineraryChange,
+  runItineraryWrite,
   className = "",
 }: TripConciergeChatProps) {
   const t = useTranslations("common.concierge");
@@ -322,25 +326,36 @@ function TripConciergeChatInner({
         body.shiftByDays = proposal.shiftByDays;
       }
 
-      const res = await fetch("/api/ai/assistant/apply", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+      // In the trip page's save queue: its pending edits are saved first, and
+      // it adopts the reply's itinerary together with its version.
+      const run = runItineraryWrite ?? (<T,>(task: () => Promise<T>) => task());
+      const applied = await run(async () => {
+        const res = await fetch("/api/ai/assistant/apply", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = (await res.json().catch(() => ({}))) as {
+          modifiedItinerary?: ItineraryDay[];
+          itineraryVersion?: number;
+          action?: { applied?: boolean };
+          error?: string;
+        };
+
+        const verified =
+          res.ok && data.action?.applied === true && Array.isArray(data.modifiedItinerary);
+        if (!verified) {
+          addToast(data.error || t("applyError"), "error");
+          return false;
+        }
+
+        onItineraryChange?.(
+          data.modifiedItinerary as ItineraryDay[],
+          typeof data.itineraryVersion === "number" ? data.itineraryVersion : undefined
+        );
+        return true;
       });
-      const data = (await res.json().catch(() => ({}))) as {
-        modifiedItinerary?: ItineraryDay[];
-        action?: { applied?: boolean };
-        error?: string;
-      };
-
-      const verified =
-        res.ok && data.action?.applied === true && Array.isArray(data.modifiedItinerary);
-      if (!verified) {
-        addToast(data.error || t("applyError"), "error");
-        return;
-      }
-
-      onItineraryChange?.(data.modifiedItinerary as ItineraryDay[]);
+      if (!applied) return;
       setItineraryVersion((v) => v + 1); // bust the server trip-context cache
       void captureConciergeProposalApplied({
         trip_id: tripId,
@@ -351,11 +366,11 @@ function TripConciergeChatInner({
       addToast(t("proposalApplied"), "success");
     } catch (err) {
       console.error("[concierge] apply failed", err);
-      addToast(t("applyError"), "error");
+      addToast(err instanceof ItineraryWriteBlockedError ? err.message : t("applyError"), "error");
     } finally {
       setIsApplying(false);
     }
-  }, [proposal, isApplying, tripId, onItineraryChange, addToast, t]);
+  }, [proposal, isApplying, tripId, onItineraryChange, addToast, t, runItineraryWrite]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Enter to send, Shift+Enter for newline — standard chat convention.

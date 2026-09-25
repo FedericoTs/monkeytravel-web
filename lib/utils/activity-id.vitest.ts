@@ -1,6 +1,49 @@
 import { describe, it, expect } from "vitest";
 import type { ItineraryDay, Activity } from "@/types";
-import { moveActivityToDay } from "./activity-id";
+import { ensureActivityIds, ensureActivityIdsStable, moveActivityToDay, stableActivityId } from "./activity-id";
+
+describe("ensureActivityIdsStable", () => {
+  const stored = () =>
+    [
+      { day_number: 1, date: "2027-01-01", activities: [{ name: "Alpha" }, { id: "act_kept", name: "Bravo" }, { name: "Alpha" }] },
+      { day_number: 2, date: "2027-01-02", activities: [{ name: "Alpha" }] },
+    ] as unknown as ItineraryDay[];
+
+  it("mints the same ids for the same stored copy, every time (page mounts, restores, refetches)", () => {
+    expect(JSON.stringify(ensureActivityIdsStable(stored(), "trip-1"))).toBe(JSON.stringify(ensureActivityIdsStable(stored(), "trip-1")));
+  });
+
+  it("keeps stored ids, and gives each place its own id", () => {
+    const out = ensureActivityIdsStable(stored(), "trip-1");
+    const all = out.flatMap((d) => d.activities.map((a) => a.id));
+    expect(all[1]).toBe("act_kept");
+    expect(new Set(all).size).toBe(all.length);
+    for (const id of all) expect(id).toMatch(/^act_[0-9a-z]{4,12}$/);
+    expect(stableActivityId("trip-2", 0, 0, "Alpha")).not.toBe(stableActivityId("trip-1", 0, 0, "Alpha"));
+  });
+
+  it("the random variant still differs per call (why the page no longer uses it on a stored copy)", () => {
+    expect(JSON.stringify(ensureActivityIds(stored()))).not.toBe(JSON.stringify(ensureActivityIds(stored())));
+  });
+
+  it("passes days and activities that are not plain objects through untouched (it runs on trip inserts)", () => {
+    const odd = [
+      { day_number: 1, date: "2027-01-01" },
+      null,
+      { day_number: 3, activities: "not-an-array" },
+      { day_number: 4, activities: [7, null, { name: "Real" }] },
+    ] as unknown as ItineraryDay[];
+    for (const out of [ensureActivityIds(odd), ensureActivityIdsStable(odd, "t")]) {
+      expect(out[0]).toEqual(odd[0]);
+      expect(out[1]).toBeNull();
+      expect(out[2]).toEqual(odd[2]);
+      const acts = (out[3] as unknown as { activities: unknown[] }).activities;
+      expect(acts[0]).toBe(7);
+      expect(acts[1]).toBeNull();
+      expect((acts[2] as { id: string }).id).toMatch(/^act_/);
+    }
+  });
+});
 
 const act = (id: string, start: string): Activity =>
   ({ id, name: id, type: "attraction", start_time: start, duration_minutes: 60 }) as unknown as Activity;

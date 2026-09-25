@@ -19,6 +19,7 @@ import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import { splitCities } from "@/lib/ai/multi-city-core";
 import { isSupportedLanguage, resolveAiLanguage } from "@/lib/ai/language";
 import { isValidTimeZone } from "@/lib/trip/live";
+import { ensureActivityIds } from "@/lib/utils/activity-id";
 
 export interface TripFormState {
   destination: string;
@@ -221,7 +222,9 @@ function buildTripRow(
     end_date: formState.endDate,
     status: "planning" as const,
     visibility: "private" as const,
-    itinerary: itinerary.days,
+    // Stored with activity ids (as the wizard's insert): photo enrichment and
+    // the trip page's saves refer to activities by id.
+    itinerary: ensureActivityIds(itinerary.days),
     cover_image_url: coverImageUrl,
     budget: {
       total: itinerary.trip_summary.total_estimated_cost,

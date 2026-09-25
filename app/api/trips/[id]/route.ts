@@ -1,11 +1,12 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripAccess, verifyTripOwnership } from "@/lib/api/auth";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
-import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { errors, apiSuccess, apiError } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import type { ItineraryDay } from "@/types";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import { refreshItineraryPhotos } from "@/lib/places/refreshItineraryPhotos";
+import { keepStoredPlacePhotos } from "@/lib/trips/keep-place-photos";
 
 /**
  * GET /api/trips/[id] - Fetch a single trip
@@ -117,6 +118,22 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
       return applyActivityPhoto(supabase, id, body.activityPhoto);
     }
 
+    // Optimistic concurrency for the itinerary (20260924125000). The tab sends
+    // the itinerary_version its copy was read at; the write only lands if the
+    // stored version is still that one, else 409 with the current itinerary.
+    // Optional: a tab opened before this shipped sends none and keeps
+    // last-write-wins until it reloads (logged, to know when to require it).
+    let baseItineraryVersion: number | null = null;
+    if (body.itinerary !== undefined && body.baseItineraryVersion != null) {
+      const raw = body.baseItineraryVersion;
+      if (typeof raw !== "number" || !Number.isInteger(raw) || raw < 0) {
+        return errors.badRequest("Invalid baseItineraryVersion");
+      }
+      baseItineraryVersion = raw;
+    } else if (body.itinerary !== undefined) {
+      console.info("[Trips] itinerary save without baseItineraryVersion", { tripId: id });
+    }
+
     // Build update object
     const updates: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
@@ -133,6 +150,20 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
 
       // Ensure all activities have IDs
       updates.itinerary = ensureActivityIds(itinerary);
+
+      // A page that loaded before the save-time photo enrichment landed would
+      // put the curated fallbacks back over the real place photos (photo-only
+      // writes don't move itinerary_version, so the check can't see it). Keep
+      // a stored place photo on the same activity. lib/trips/keep-place-photos.ts
+      // Best effort: a failed read never fails the save.
+      try {
+        const { data: storedRow } = await supabase.from("trips").select("itinerary").eq("id", id).maybeSingle();
+        if (storedRow) {
+          updates.itinerary = keepStoredPlacePhotos(updates.itinerary as ItineraryDay[], (storedRow as { itinerary?: unknown }).itinerary).itinerary;
+        }
+      } catch (photoReadError) {
+        console.warn("[Trips] could not read stored photos before the save", photoReadError);
+      }
     }
 
     // Handle other allowed fields. `start_date` and `end_date` are
@@ -168,18 +199,22 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
 
     // Update trip. Filtered by id only: the trips_update RLS policy admits the
     // owner and editors, and the trips_guard_protected_columns trigger still
-    // keeps user_id, counters and flags out of reach of both.
-    const { data: updatedTrip, error: updateError } = await supabase
-      .from("trips")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
+    // keeps user_id, counters and flags out of reach of both. With a base
+    // version, also by itinerary_version (compare-and-set).
+    let write = supabase.from("trips").update(updates).eq("id", id);
+    if (baseItineraryVersion !== null) write = write.eq("itinerary_version", baseItineraryVersion);
+    const { data: updatedTrip, error: updateError } = await write.select().single();
 
     if (updateError) {
-      // Zero rows: the policy refused the write, e.g. the editor was removed
-      // between the access check and the update.
+      // Zero rows: either the itinerary moved on since this tab read it (a
+      // stale save: 409 with the current one, so the tab can choose), or the
+      // policy refused the write, e.g. the editor was removed between the
+      // access check and the update (403).
       if (updateError.code === "PGRST116") {
+        if (baseItineraryVersion !== null) {
+          const conflict = await itineraryConflict(supabase, id, baseItineraryVersion);
+          if (conflict) return conflict;
+        }
         return errors.forbidden("Access denied");
       }
       // The trips guard refusing a column this caller may not change
@@ -212,6 +247,37 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     console.error("[Trips] Error updating trip:", error);
     return errors.internal("Failed to update trip", "Trips");
   }
+}
+
+/**
+ * The 409 for a stale itinerary save, or null when the zero-row write was not
+ * a version mismatch (row not visible, or same version: RLS refused it).
+ *
+ * The body carries the CURRENT itinerary and its version. It has to: GET is
+ * owner-only, so for an editor this is the only way to load the latest.
+ */
+async function itineraryConflict(
+  supabase: Awaited<ReturnType<typeof getAuthenticatedUser>>["supabase"],
+  tripId: string,
+  base: number
+) {
+  if (!supabase) return null;
+  const { data: current } = await supabase
+    .from("trips")
+    .select("itinerary, itinerary_version")
+    .eq("id", tripId)
+    .maybeSingle();
+  if (!current || current.itinerary_version === base) return null;
+  const itinerary = Array.isArray(current.itinerary)
+    ? await refreshItineraryPhotos(current.itinerary as Array<{ activities?: Array<{ image_url?: string | null }> }>)
+    : [];
+  console.warn("[Trips] stale itinerary save refused", { tripId, base, current: current.itinerary_version });
+  return apiError("This trip was changed after you opened it.", {
+    status: 409,
+    code: "ITINERARY_CONFLICT",
+    log: false,
+    context: { itinerary, itineraryVersion: current.itinerary_version },
+  });
 }
 
 /**

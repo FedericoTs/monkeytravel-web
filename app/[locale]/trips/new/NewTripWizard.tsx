@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, type SetStateAction } from "react";
 import { sanitizeIsoDate, maxTripStartDate } from "@/lib/dates/iso-date";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -236,6 +236,8 @@ import {
   type PersistInput,
 } from "@/lib/trips/persistTrip";
 import { resolveAiLanguage } from "@/lib/ai/language";
+import { ensureActivityIds } from "@/lib/utils/activity-id";
+import { mergeDayEditActivities } from "@/lib/trips/day-edit-merge";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
 const MAX_TRIP_START_DATE = maxTripStartDate();
@@ -481,7 +483,22 @@ export default function NewTripPage({
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [generatedItinerary, setGeneratedItinerary] = useState<GeneratedItinerary | null>(null);
+  const [generatedItinerary, setGeneratedItineraryRaw] = useState<GeneratedItinerary | null>(null);
+  // Activity ids are given here, once, so the auto-save insert, every later
+  // update and the share link carry the SAME ids. (A fresh random set on each
+  // update moved itinerary_version and cut off anything keyed by id.) The
+  // object is only rebuilt when an id is actually missing, so a no-op set
+  // does not look like a new itinerary to the auto-save.
+  const setGeneratedItinerary = useCallback((next: SetStateAction<GeneratedItinerary | null>) => {
+    setGeneratedItineraryRaw((prev) => {
+      const value = typeof next === "function" ? next(prev) : next;
+      if (!value || !Array.isArray(value.days)) return value;
+      const missing = value.days.some(
+        (d) => Array.isArray(d?.activities) && d.activities.some((a) => a && typeof a === "object" && !a.id)
+      );
+      return missing ? { ...value, days: ensureActivityIds(value.days) } : value;
+    });
+  }, []);
   // Result-view UX state (parity with /trips/template/[id]).
   // **2026-05-24 live-test:** the result view had no map toggle and no
   // Cards/Timeline switcher. Added so users can hide the map (mobile
@@ -2733,7 +2750,10 @@ export default function NewTripPage({
             end_date: endDate,
             status: "planning",
             visibility: "private",
-            itinerary: generatedItinerary.days,
+            // Stored with activity ids: the photo enrichment fired right after
+            // this insert merges by id, and an id-less trip made the trip page
+            // mint and save ids of its own, racing it.
+            itinerary: ensureActivityIds(generatedItinerary.days),
             cover_image_url: coverImageUrl,
             budget: {
               total: generatedItinerary.trip_summary.total_estimated_cost,
@@ -2955,25 +2975,9 @@ export default function NewTripPage({
       setGeneratedItinerary((prev) => {
         if (!prev) return prev;
         const target = prev.days.find((d) => d.day_number === dayNumber);
-        const byName = new Map(
-          (target?.activities ?? []).map((a) => [a.name.trim().toLowerCase(), a])
-        );
-        const merged: Activity[] = newActivities.map((a, i) => {
-          const match = byName.get(a.name.trim().toLowerCase());
-          return {
-            ...a,
-            id:
-              match?.id ??
-              a.id ??
-              `edit-${dayNumber}-${i}-${a.name
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, "-")
-                .slice(0, 40)}`,
-            coordinates: a.coordinates ?? match?.coordinates,
-            address: a.address ?? match?.address,
-            image_url: a.image_url ?? match?.image_url,
-          };
-        });
+        // Ids, coordinates and photos carried over by name, each existing
+        // activity at most once (lib/trips/day-edit-merge.ts).
+        const merged: Activity[] = mergeDayEditActivities(prev.days, dayNumber, newActivities);
         const sum = (acts: Activity[]) =>
           acts.reduce((s, a) => s + (a.estimated_cost?.amount || 0), 0);
         const prevTotal = prev.trip_summary?.total_estimated_cost || 0;

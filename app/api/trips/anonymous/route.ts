@@ -121,6 +121,8 @@ export async function POST(request: NextRequest) {
         // anon key: 118 trips, 42 of them private, 39 live claim_tokens.
         // Removed in 20260901090000_close_share_token_read_hole.sql.
         visibility: "private",
+        // Already stamped with activity ids by validateAnonymousTripPayload
+        // (withActivityIds), which also passes malformed days through as is.
         itinerary: trip.itinerary,
         cover_image_url: trip.coverImageUrl,
         share_token: shareToken,

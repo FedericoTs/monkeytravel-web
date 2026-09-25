@@ -3,6 +3,7 @@ import type { ItineraryDay } from "@/types";
 import { fetchActivityImages, SAVE_TIME_PAID_LOOKUPS } from "@/lib/images/activity";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { casUpdateItinerary } from "@/lib/trips/itinerary-cas";
 
 /**
  * Shared photo-enrichment core (2026-08 co-creation plan, P1).
@@ -61,6 +62,8 @@ interface TripRecordForEnrich {
   title?: string | null;
   itinerary: unknown;
   trip_meta: unknown;
+  /** Compare-and-set token (20260924125000). Callers select it. */
+  itinerary_version?: number | null;
 }
 
 /** Real place photos are served through our proxy; everything else (Pexels
@@ -117,6 +120,9 @@ export async function enrichTripRecord(
     trip.title?.replace(/ Trip$/, "") ||
     "";
 
+  // The copy as read, before fetchActivityImages mutates it in place.
+  const original = structuredClone(itinerary);
+
   // Mutates each activity's image_url in place; existing real proxy URLs are
   // preserved (reresolveCurated only re-resolves the curated fallbacks).
   await fetchActivityImages(itinerary, destination, {
@@ -125,17 +131,65 @@ export async function enrichTripRecord(
   });
 
   const after = countRealPhotos(itinerary);
+  const stamp = new Date().toISOString();
 
-  const { error } = await db
-    .from("trips")
-    .update({
-      itinerary,
-      trip_meta: { ...meta, photos_enriched_at: new Date().toISOString() },
+  // Older callers without the version: the previous blind write.
+  if (typeof trip.itinerary_version !== "number") {
+    const { error } = await db
+      .from("trips")
+      .update({ itinerary, trip_meta: { ...meta, photos_enriched_at: stamp } })
+      .eq("id", trip.id);
+    if (error) throw error;
+    return { skipped: null, before, after };
+  }
+
+  // The photos found, by activity id: the url before and after. An activity
+  // read without an id (trips stored before ids were stamped at creation; the
+  // trip page may store ids meanwhile) is keyed by its place and name instead.
+  const byPlace = (d: number, a: number, name: string | undefined) => `@${d}:${a}:${name ?? ""}`;
+  const resolved = new Map<string, { before: string | null; after: string }>();
+  original.forEach((day, d) =>
+    (day.activities ?? []).forEach((activity, a) => {
+      const found = itinerary[d]?.activities?.[a]?.image_url;
+      if (found && found !== activity.image_url) {
+        resolved.set(activity.id || byPlace(d, a, activity.name), { before: activity.image_url ?? null, after: found });
+      }
     })
-    .eq("id", trip.id);
-  if (error) throw error;
+  );
 
-  return { skipped: null, before, after };
+  // Compare-and-set. Enrichment waits on Places lookups for seconds, and the
+  // wizard's save triggers it right as the owner starts editing: a blind write
+  // of the copy read before the lookups overwrote their first edit. On a
+  // miss, the photos are applied by activity id to the fresh itinerary, only
+  // where the photo is still the one this run replaced. Photo-only, so the
+  // write does not move itinerary_version.
+  const outcome = await casUpdateItinerary(db, {
+    tripId: trip.id,
+    from: { itinerary: original, itinerary_version: trip.itinerary_version, trip_meta: trip.trip_meta },
+    change: (row, attempt) => {
+      const extra = { trip_meta: { ...((row.trip_meta ?? {}) as Record<string, unknown>), photos_enriched_at: stamp } };
+      if (attempt === 0) return { itinerary, extra };
+      let applied = 0;
+      const current = (Array.isArray(row.itinerary) ? row.itinerary : []) as ItineraryDay[];
+      const next = current.map((day, d) => ({
+        ...day,
+        activities: (day.activities ?? []).map((activity, a) => {
+          const r = (activity.id ? resolved.get(activity.id) : undefined) ?? resolved.get(byPlace(d, a, activity.name));
+          if (!r || (activity.image_url ?? null) !== r.before) return activity;
+          applied += 1;
+          return { ...activity, image_url: r.after };
+        }),
+      }));
+      if (applied > 0) return { itinerary: next, extra };
+      // Nothing left to apply: still stamp the run (cooldown-gated triggers
+      // and the cron would otherwise pay for the same lookups again). The
+      // itinerary is written back unchanged, so the version does not move.
+      return Array.isArray(row.itinerary) ? { itinerary: current, extra } : null;
+    },
+  });
+
+  if (outcome.status !== "written") return { skipped: null, before, after: before };
+  return { skipped: null, before, after: countRealPhotos(outcome.itinerary) };
 }
 
 /**
@@ -162,7 +216,7 @@ export async function enrichTripByIdAdmin(
     const admin = createAdminClient();
     const { data: trip, error } = await admin
       .from("trips")
-      .select("id, user_id, title, itinerary, trip_meta")
+      .select("id, user_id, title, itinerary, trip_meta, itinerary_version")
       .eq("id", tripId)
       .is("deleted_at", null)
       .single();

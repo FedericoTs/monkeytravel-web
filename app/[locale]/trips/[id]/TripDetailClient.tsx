@@ -66,6 +66,7 @@ import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import { getCoordinatesForNewActivity, type Coordinates } from "@/lib/utils/geo";
 import {
   ensureActivityIds,
+  ensureActivityIdsStable,
   findActivityById,
   moveActivityInDay,
   moveActivityToDay,
@@ -117,6 +118,14 @@ import {
 // Google Places-based hotel recommendations
 import HotelRecommendations from "@/components/trip/HotelRecommendations";
 import { safeGet, safeSet } from "@/lib/safe-storage";
+import {
+  createItinerarySync,
+  ItineraryWriteBlockedError,
+  latestKnownVersion,
+  readItineraryVersion,
+  type ServerItinerary,
+} from "@/lib/trips/itinerary-sync";
+import ItineraryConflictBanner from "@/components/trip/ItineraryConflictBanner";
 
 // Dynamic import for TripMap to avoid SSR issues with Google Maps
 const TripMap = dynamic(() => import("@/components/TripMap"), {
@@ -221,6 +230,11 @@ interface TripDetailClientProps {
     cachedTravelDistances?: CachedDayTravelData[];
     /** Hash of itinerary when travel distances were calculated */
     cachedTravelHash?: string;
+    /**
+     * trips.itinerary_version the itinerary above was read at (20260924125000).
+     * Read ONCE, into the save queue; never again from props (see sync below).
+     */
+    itineraryVersion?: number | null;
   };
   dateRange: string;
   // Collaboration props (optional - only passed for collaborative trips)
@@ -471,20 +485,52 @@ export default function TripDetailClient({
   const [isEditMode, setIsEditMode] = useState(false);
   // Today mode (Phase 3.2) shows only outside the editor, on a live trip.
   const showToday = dayState.isLive && todayMode && !isEditMode;
+  // One copy for both states, with ids derived from the stored trip for any
+  // activity stored without one. Two random-id calls made the page look
+  // edited on its first render (a phantom autosave, and on a router-cache
+  // restore a false conflict), and every mount minted different ids. New
+  // trips are stored with ids; older ones are stored once by the effect after
+  // ambientEdit.
+  const [initialItinerary] = useState(() => ensureActivityIdsStable(trip.itinerary, trip.id));
   const [editedItinerary, setEditedItinerary] = useState<ItineraryDay[]>(() =>
-    ensureActivityIds(trip.itinerary)
+    JSON.parse(JSON.stringify(initialItinerary))
   );
   // Track the last saved state (so we can detect changes and revert without page reload)
-  const [savedItinerary, setSavedItinerary] = useState<ItineraryDay[]>(() =>
-    ensureActivityIds(trip.itinerary)
-  );
+  const [savedItinerary, setSavedItinerary] = useState<ItineraryDay[]>(initialItinerary);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  // Ambient-edit auto-save status ('idle' | 'saving' | 'saved' | 'error').
-  // Drives the small status pill that replaces the Modifica/Save/Discard
-  // cluster for solo owners (see ambientEdit below).
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  // Ambient-edit auto-save status ('idle' | 'saving' | 'saved' | 'error' |
+  // 'conflict'). Drives the small status pill that replaces the
+  // Modifica/Save/Discard cluster for solo owners (see ambientEdit below).
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error" | "conflict">("idle");
+
+  // Itinerary save queue + base version (lib/trips/itinerary-sync.ts,
+  // 20260924125000). Every itinerary PATCH, and every server write this tab
+  // starts, goes through it one at a time, so the tab never 409s on itself.
+  // INVARIANT: savedItinerary and sync.baseVersion() only ever change
+  // together. The version is read from props only here: router.refresh()
+  // re-renders props with a newer version while this state keeps the older
+  // content, and a base taken from props alone would then pass the check
+  // while reverting someone else's work. (Newer props are adopted as a pair,
+  // content and version together: see the router-cache effect below.)
+  const propsVersion = readItineraryVersion(trip.itineraryVersion);
+  const [sync] = useState(() => createItinerarySync({ tripId: trip.id, initialVersion: propsVersion }));
+  // A save refused because the trip changed elsewhere (a trip mate, another
+  // tab). The ref mirrors the state for code running inside the queue.
+  const [conflict, setConflictState] = useState<{ server: ServerItinerary; source: "save" | "autosave" } | null>(null);
+  const conflictRef = useRef<typeof conflict>(null);
+  const setConflict = useCallback((next: typeof conflict) => {
+    conflictRef.current = next;
+    setConflictState(next);
+  }, []);
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
   // Guard against auto-save retry storms: when a PATCH fails we record the
   // exact payload that failed so the debounced effect doesn't hammer the
   // server with the identical body. A NEW edit changes the payload and clears
@@ -495,9 +541,16 @@ export default function TripDetailClient({
   // edit made within the debounce window isn't lost to a client-side
   // navigation (beforeunload doesn't fire on SPA route changes).
   const pendingSaveRef = useRef<string | null>(null);
-  // Serializes auto-save writes: a newer save aborts the previous in-flight
-  // PATCH so two overlapping writes can't land out of order (last-write-wins).
-  const saveAbortRef = useRef<AbortController | null>(null);
+  // sync.epoch() when that pending payload was built (see sendPendingInline).
+  const pendingEpochRef = useRef(0);
+  // Server itinerary writes this tab started and that have not finished
+  // (regenerate a day, assistant, concierge, add from email). The explicit
+  // Save waits for them: a Save clicked mid-write would send a copy without
+  // the write's result.
+  const [itineraryWritesInFlight, setItineraryWritesInFlight] = useState(0);
+  // (Auto-saves used to abort the previous in-flight PATCH. They are now
+  // queued instead: an aborted fetch does not stop a PATCH the server already
+  // received, and the next save would then carry an outdated base version.)
   // Fire the manual-edit adoption metric (captureEditModeSaved) at most once
   // per page-view, not once per debounced flush — otherwise the ambient cohort
   // inflates edit_mode_saved relative to the AI-agent comparison metric.
@@ -528,13 +581,121 @@ export default function TripDetailClient({
   const { enabled: useEnhancedBooking } = useFlag(FLAG_ENHANCED_BOOKING);
 
   // Version counter to force re-render after AI updates
-  const [itineraryVersion, setItineraryVersion] = useState(0);
+  const [renderEpoch, setRenderEpoch] = useState(0);
 
   // Ref to track if we just updated from AI (for animations)
   const aiUpdateRef = useRef<{ dayIndex: number; activityId: string } | null>(null);
 
   // Track if there are unsaved changes (compare against saved state, not prop)
   const hasChanges = JSON.stringify(editedItinerary) !== JSON.stringify(savedItinerary);
+  // For code running inside the save queue. (ambientEdit is computed further
+  // down; its ref is kept in step right after it.)
+  const hasChangesRef = useRef(hasChanges);
+  useEffect(() => {
+    hasChangesRef.current = hasChanges;
+  }, [hasChanges]);
+  const isEditModeRef = useRef(isEditMode);
+  useEffect(() => {
+    isEditModeRef.current = isEditMode;
+  }, [isEditMode]);
+  const ambientEditRef = useRef(false);
+  // handleRefetchTrip is declared further down; callbacks above reach it here.
+  const refetchTripRef = useRef<((options?: { onlyIfUnedited?: boolean }) => Promise<boolean>) | null>(null);
+
+  // A save landed: the payload is the saved copy at `version` (null from an
+  // older server). Replies arrive in queue order, so an older version can only
+  // show up after a reset (Load latest); ignore it then.
+  const adoptSaved = useCallback(
+    (payload: string, version: number | null) => {
+      const base = sync.baseVersion();
+      if (version !== null && base !== null && version < base) return;
+      if (version !== null) sync.adopt(version);
+      setSavedItinerary(JSON.parse(payload));
+    },
+    [sync]
+  );
+
+  // Send the pending ambient auto-save, if any. Runs INSIDE the queue only
+  // (flushPendingSave / runItineraryWrite); never enqueue from in here.
+  const sendPendingInline = useCallback(async () => {
+    const payload = pendingSaveRef.current;
+    if (!payload || payload === lastFailedSaveRef.current || conflictRef.current) return;
+    // Built before the base moved to content this edit does not contain (a
+    // day regeneration this tab started landed while the save waited in the
+    // queue, or a server copy was loaded) and React has not re-rendered the
+    // edit on top of it yet. Sent now it would revert that content; the effect
+    // re-builds it from the new state. (A base moved by this tab's own earlier
+    // autosave keeps the epoch: the pending edit is built on top of it.)
+    if (pendingEpochRef.current !== sync.epoch()) return;
+    const base = sync.baseVersion();
+    const result = await sync.send(payload, base);
+    if (result.kind === "saved") {
+      if (pendingSaveRef.current === payload) pendingSaveRef.current = null;
+      adoptSaved(payload, result.version);
+      lastFailedSaveRef.current = null;
+      if (!pendingSaveRef.current) setSaveStatus("saved");
+      // Manual-edit adoption metric: ONCE per page-view, not per debounced
+      // flush, so the ambient cohort stays comparable to ai_assistant_used.
+      if (!editCapturedRef.current) {
+        editCapturedRef.current = true;
+        const snapshot = JSON.parse(payload) as ItineraryDay[];
+        void captureEditModeSaved({
+          trip_id: trip.id,
+          days_count: snapshot.length,
+          activities_count: snapshot.reduce((acc, day) => acc + day.activities.length, 0),
+        });
+      }
+    } else if (result.kind === "conflict") {
+      setConflict({ server: result.server, source: "autosave" });
+      setSaveStatus("conflict");
+      if (!mountedRef.current) {
+        console.warn("[trip-autosave] an edit was not saved: the trip was changed elsewhere");
+      }
+    } else {
+      console.warn("[trip-autosave] failed", result.status);
+      lastFailedSaveRef.current = payload;
+      setSaveStatus("error");
+    }
+  }, [sync, adoptSaved, setConflict, trip.id]);
+
+  const flushPendingSave = useCallback(() => sync.enqueue(sendPendingInline), [sync, sendPendingInline]);
+
+  // A server-side itinerary write started from this tab (regenerate a day,
+  // assistant apply/undo, concierge apply, add from email). Pending edits are
+  // saved first and the task runs alone, so the version it returns is the one
+  // this tab can adopt.
+  // Most of these writes start from the server's copy and the page then takes
+  // the result as its own copy, so they must not start over unsaved edits.
+  // `keepsLocalEdits`: the result is merged into the page's copy instead
+  // (regenerate a day splices one day in), so unsaved edits elsewhere survive.
+  const runItineraryWrite = useCallback(
+    <T,>(task: () => Promise<T>, options?: { keepsLocalEdits?: boolean }): Promise<T> => {
+      setItineraryWritesInFlight((n) => n + 1);
+      return sync
+        .enqueue(async () => {
+          // One more try for an autosave that failed: this write starts from
+          // the stored copy (and a retry adopts a save whose reply was lost).
+          lastFailedSaveRef.current = null;
+          await sendPendingInline();
+          // Edits held by a conflict: the write and the refetch after it would
+          // silently replace them and dismiss the choice. The user picks first.
+          if (conflictRef.current) throw new ItineraryWriteBlockedError(t("detail.writeBlockedConflict"));
+          // Still unsaved: the autosave failed, or is being re-built on a copy
+          // that just changed, or an editor in edit mode has not saved yet.
+          // (Only real editing counts: outside edit mode there is nothing the
+          // person could save, so it must never block.)
+          const unsavedEdit =
+            pendingSaveRef.current !== null ||
+            (!ambientEditRef.current && isEditModeRef.current && hasChangesRef.current);
+          if (!options?.keepsLocalEdits && unsavedEdit) {
+            throw new ItineraryWriteBlockedError(t("detail.writeBlockedUnsaved"));
+          }
+          return task();
+        })
+        .finally(() => setItineraryWritesInFlight((n) => n - 1));
+    },
+    [sync, sendPendingInline, t]
+  );
 
   // Undo/Redo history for edit mode
   interface HistoryEntry {
@@ -767,6 +928,40 @@ export default function TripDetailClient({
   // phase (that renders OngoingTripView, not the itinerary). Gated on isOwner
   // because auto-save PATCHes /api/trips/[id] which is owner-only (user_id eq).
   const ambientEdit = isOwner && !votingEnabled && !isActiveTripPhase;
+  useEffect(() => {
+    ambientEditRef.current = ambientEdit;
+  }, [ambientEdit]);
+  // Activities stored without an id (trips from before ids were stamped at
+  // creation) got derived ids on this load. Solo owners store them once, as
+  // the phantom first-render autosave used to: photos, crew asks and votes
+  // refer to activities by id. Safe on every mount: the ids are the same for
+  // the same stored copy, so a sibling mount's save that landed first counts
+  // as this one (409 with equal content = saved), and a stale copy (router
+  // cache) gets a 409 and takes the stored copy when nothing is edited.
+  useEffect(() => {
+    if (!ambientEdit || propsVersion === null) return;
+    const payload = JSON.stringify(initialItinerary);
+    if (payload === JSON.stringify(trip.itinerary)) return; // nothing minted
+    const base = sync.baseVersion();
+    void sync.enqueue(async () => {
+      if (sync.baseVersion() !== base || conflictRef.current) return;
+      const result = await sync.send(payload, base);
+      if (result.kind === "saved") {
+        adoptSaved(payload, result.version);
+      } else if (result.kind === "conflict" && !pendingSaveRef.current && !hasChangesRef.current) {
+        // Changed since this page loaded, and nothing is edited here yet: no
+        // choice to make, take the stored copy.
+        const fresh = ensureActivityIdsStable(result.server.itinerary, trip.id);
+        sync.reset(result.server.version);
+        setSavedItinerary(fresh);
+        setEditedItinerary(JSON.parse(JSON.stringify(fresh)));
+        clearHistory();
+        setRenderEpoch((v) => v + 1);
+      }
+    });
+    // Mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Affordances/rendering are "on" whenever we're ambient OR the legacy mode
   // is toggled (collaborative trips still use isEditMode).
   const editingActive = ambientEdit || isEditMode;
@@ -1175,34 +1370,83 @@ export default function TripDetailClient({
       pushUndo(`Regenerate Day ${dayNumber}`);
       setRegeneratingDayNumber(dayNumber);
       try {
-        const response = await fetch("/api/ai/regenerate-day", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tripId: trip.id, dayNumber }),
-        });
+        // In the queue: pending edits are saved first, and the version the
+        // server returns is adoptable only if nothing else wrote in between.
+        await runItineraryWrite(async () => {
+          const response = await fetch("/api/ai/regenerate-day", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tripId: trip.id, dayNumber }),
+          });
 
-        if (!response.ok) {
-          let msg = "Failed to regenerate day";
-          try {
-            const errBody = await response.json();
-            if (errBody?.error?.message) msg = errBody.error.message;
-            else if (typeof errBody?.error === "string") msg = errBody.error;
-          } catch {
-            /* ignore parse error */
+          if (!response.ok) {
+            let msg = "Failed to regenerate day";
+            try {
+              const errBody = await response.json();
+              if (errBody?.error?.message) msg = errBody.error.message;
+              else if (typeof errBody?.error === "string") msg = errBody.error;
+            } catch {
+              /* ignore parse error */
+            }
+            throw new Error(msg);
           }
-          throw new Error(msg);
-        }
 
-        const data = await response.json();
-        // apiSuccess wraps payloads as { data: {...} } in some helpers; tolerate both.
-        const newDay = (data?.day ?? data?.data?.day) as ItineraryDay | undefined;
-        if (!newDay) throw new Error("Empty response from server");
+          const data = await response.json();
+          // apiSuccess wraps payloads as { data: {...} } in some helpers; tolerate both.
+          const payload = data?.day ? data : data?.data ?? {};
+          const newDay = payload.day as ItineraryDay | undefined;
+          if (!newDay) throw new Error("Empty response from server");
 
-        setEditedItinerary((prev) =>
-          prev.map((d) => (d.day_number === dayNumber ? ensureActivityIds([newDay])[0] : d))
-        );
+          const day = ensureActivityIds([newDay])[0];
+          const splice = (it: ItineraryDay[]) => it.map((d) => (d.day_number === dayNumber ? day : d));
+          const from = readItineraryVersion(payload.fromVersion);
+          const to = readItineraryVersion(payload.itineraryVersion);
+          // The day is already stored. When the server wrote it on top of the
+          // version this tab holds, it is part of the saved copy too; if
+          // someone else wrote in between, the next save correctly gets a 409.
+          if (from !== null && to !== null && from === sync.baseVersion()) {
+            const epoch = sync.epoch();
+            sync.adoptWrite(to);
+            setSavedItinerary(splice);
+            // Move an edit pending since before this write onto it now (the
+            // same string the effect will build), so it is still sent if the
+            // page unmounts before React re-renders.
+            if (pendingSaveRef.current && pendingEpochRef.current === epoch) {
+              pendingSaveRef.current = JSON.stringify(splice(JSON.parse(pendingSaveRef.current) as ItineraryDay[]));
+              pendingEpochRef.current = sync.epoch();
+            }
+          } else if (
+            (!ambientEditRef.current && !isEditModeRef.current) ||
+            (pendingSaveRef.current === null && !hasChangesRef.current)
+          ) {
+            // Someone else wrote first and this page has no edits of its own
+            // (or is only viewing): show the stored copy, the new day and what
+            // changed since the page loaded, instead of a local splice whose
+            // next save is sure to be refused. The day is stored either way:
+            // if the read fails, fall back to a server refresh of the props.
+            let tookStored = false;
+            try {
+              tookStored = (await refetchTripRef.current?.({ onlyIfUnedited: true })) ?? false;
+            } catch (err) {
+              console.warn("[regenerate-day] stored, but the page could not re-read the trip", err);
+              router.refresh();
+              return;
+            }
+            if (tookStored) return;
+            // An edit arrived while re-reading: keep it, with the day spliced
+            // in; its save gets the conflict choice (below).
+            hasChangesRef.current = true;
+          } else {
+            // Kept on top of this page's own edits; the next save carries the
+            // older base and gets the conflict choice. Marked now, before
+            // React renders, so a queued adoption of newer props does not
+            // replace it.
+            hasChangesRef.current = true;
+          }
+          setEditedItinerary(splice);
+        }, { keepsLocalEdits: true });
         // Bump the version counter so the day's children re-mount cleanly.
-        setItineraryVersion((v) => v + 1);
+        setRenderEpoch((v) => v + 1);
         addToast(`Day ${dayNumber} regenerated`, "success");
       } catch (error) {
         console.error("Error regenerating day:", error);
@@ -1213,58 +1457,119 @@ export default function TripDetailClient({
         setRegeneratingDayNumber(null);
       }
     },
-    [trip.id, pushUndo, addToast]
+    [trip.id, pushUndo, addToast, runItineraryWrite, sync, router]
+  );
+
+  // The explicit Save (editors, and owners of trips with collaborators),
+  // through the queue with the base version. A stale save stays in edit mode
+  // and shows the conflict choice instead of overwriting.
+  const saveExplicit = useCallback(
+    async (payload: string, snapshot: ItineraryDay[], base: number | null) => {
+      setIsSaving(true);
+      setSaveError(null);
+      setSaveSuccess(false);
+      try {
+        const result = await sync.enqueue(() => sync.send(payload, base));
+        if (result.kind === "conflict") {
+          setConflict({ server: result.server, source: "save" });
+          return;
+        }
+        if (result.kind === "failed") throw new Error(`Failed to save changes (${result.status ?? "network"})`);
+
+        adoptSaved(payload, result.version);
+        // Exit edit mode on success. The ref now too: a write queued behind
+        // this save runs before React re-renders and must not see "editing
+        // with unsaved changes" from the render before.
+        isEditModeRef.current = false;
+        setIsEditMode(false);
+        // Instrument a completed manual edit — the head-to-head counterpart to
+        // ai_assistant_used, so we can compare who edits via the drag-and-drop
+        // editor vs the AI agent.
+        void captureEditModeSaved({
+          trip_id: trip.id,
+          days_count: snapshot.length,
+          activities_count: snapshot.reduce((acc, day) => acc + day.activities.length, 0),
+        });
+        // Show success feedback, auto-hidden after 3 seconds
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } catch (error) {
+        console.error("Error saving changes:", error);
+        setSaveError("Failed to save changes. Please try again.");
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [sync, adoptSaved, setConflict, trip.id]
   );
 
   const handleSaveChanges = useCallback(async () => {
-    setIsSaving(true);
-    setSaveError(null);
-    setSaveSuccess(false);
-
-    try {
-      const response = await fetch(`/api/trips/${trip.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ itinerary: editedItinerary }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to save changes");
-      }
-
-      // Update saved state to match current edited state (deep clone to avoid reference issues)
-      setSavedItinerary(JSON.parse(JSON.stringify(editedItinerary)));
-      // Exit edit mode on success
+    if (conflictRef.current || itineraryWritesInFlight > 0) return;
+    // "Done" with nothing changed: nothing to send. (It used to PATCH the
+    // unchanged itinerary, which on a stale tab would now be a false 409.)
+    if (!hasChanges) {
       setIsEditMode(false);
-      // Instrument a completed manual edit — the head-to-head counterpart to
-      // ai_assistant_used, so we can compare who edits via the drag-and-drop
-      // editor vs the AI agent.
-      void captureEditModeSaved({
-        trip_id: trip.id,
-        days_count: editedItinerary.length,
-        activities_count: editedItinerary.reduce((acc, day) => acc + day.activities.length, 0),
-      });
-      // Show success feedback
-      setSaveSuccess(true);
-      // Auto-hide success message after 3 seconds
-      setTimeout(() => setSaveSuccess(false), 3000);
-      // NO window.location.reload() - seamless update!
-    } catch (error) {
-      console.error("Error saving changes:", error);
-      setSaveError("Failed to save changes. Please try again.");
-    } finally {
-      setIsSaving(false);
+      return;
     }
-  }, [trip.id, editedItinerary]);
+    // The base is taken with the content it belongs to.
+    await saveExplicit(JSON.stringify(editedItinerary), editedItinerary, sync.baseVersion());
+  }, [hasChanges, editedItinerary, saveExplicit, itineraryWritesInFlight, sync]);
+
+  // Conflict choice 1: take the version saved elsewhere, drop local changes.
+  const handleLoadLatest = useCallback(() => {
+    const c = conflictRef.current;
+    if (!c) return;
+    const fresh = ensureActivityIdsStable(c.server.itinerary, trip.id);
+    sync.reset(c.server.version);
+    setSavedItinerary(fresh);
+    setEditedItinerary(JSON.parse(JSON.stringify(fresh)));
+    pendingSaveRef.current = null;
+    lastFailedSaveRef.current = null;
+    // Undo snapshots predate the adopted version; replaying one would
+    // silently revert the changes just loaded.
+    clearHistory();
+    setConflict(null);
+    if (!ambientEdit) setIsEditMode(false);
+    setSaveStatus("saved");
+    setRenderEpoch((v) => v + 1);
+    addToast(t("detail.conflictLoadedLatest"), "success");
+  }, [sync, clearHistory, setConflict, ambientEdit, addToast, t]);
+
+  // Conflict choice 2: keep my version, saved on top of the newer one (a
+  // rebase: the base becomes the server's version, the content stays mine).
+  const handleKeepMine = useCallback(() => {
+    const c = conflictRef.current;
+    if (!c) return;
+    sync.reset(c.server.version);
+    setSavedItinerary(ensureActivityIdsStable(c.server.itinerary, trip.id));
+    setConflict(null);
+    lastFailedSaveRef.current = null;
+    const payload = JSON.stringify(editedItinerary);
+    if (c.source === "autosave") {
+      pendingSaveRef.current = payload;
+      pendingEpochRef.current = sync.epoch();
+      setSaveStatus("saving");
+      void flushPendingSave();
+    } else {
+      void saveExplicit(payload, editedItinerary, c.server.version);
+    }
+  }, [sync, setConflict, editedItinerary, flushPendingSave, saveExplicit]);
 
   const handleDiscardChanges = useCallback(() => {
+    // With a conflict pending, "discard" means the version saved elsewhere,
+    // not this tab's stale copy.
+    if (conflictRef.current) {
+      handleLoadLatest();
+      void captureEditModeDiscarded({ trip_id: trip.id });
+      return;
+    }
     // Revert to last saved state (not trip.itinerary prop, which may be stale)
     setEditedItinerary(JSON.parse(JSON.stringify(savedItinerary)));
     setIsEditMode(false);
     setSaveError(null);
     clearHistory(); // Clear undo/redo stacks
     void captureEditModeDiscarded({ trip_id: trip.id });
-  }, [savedItinerary, clearHistory, trip.id]);
+  }, [savedItinerary, clearHistory, trip.id, handleLoadLatest]);
 
   const handleEnterEditMode = useCallback(() => {
     // Start editing from the last saved state
@@ -1383,7 +1688,7 @@ export default function TripDetailClient({
       // and pop a redundant success toast next to the status pill.
       if (cmd && e.key === 's') {
         e.preventDefault();
-        if (!ambientEdit && hasChanges && !isSaving) {
+        if (!ambientEdit && hasChanges && !isSaving && !conflict && itineraryWritesInFlight === 0) {
           handleSaveChanges();
         }
       }
@@ -1395,7 +1700,7 @@ export default function TripDetailClient({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [editingActive, ambientEdit, hasChanges, isSaving, undo, redo, handleSaveChanges]);
+  }, [editingActive, ambientEdit, hasChanges, isSaving, conflict, itineraryWritesInFlight, undo, redo, handleSaveChanges]);
 
   // Warn user about unsaved changes when navigating away
   useEffect(() => {
@@ -1410,6 +1715,34 @@ export default function TripDetailClient({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [hasChanges]);
 
+  // A page restored from the client router cache (browser Back/Forward)
+  // starts from the props it was first rendered with, which can be older than
+  // this tab's own later saves; its first save would then be refused against
+  // this person's own work. Ask the server for fresh props...
+  useEffect(() => {
+    const known = latestKnownVersion(trip.id);
+    if (known !== null && propsVersion !== null && known > propsVersion) router.refresh();
+    // Mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // ...and take newer props (content and version together, in the queue) as
+  // long as nothing on the page is edited, waiting to save, or in conflict.
+  useEffect(() => {
+    if (propsVersion === null) return;
+    const itinerary = trip.itinerary;
+    void sync.enqueue(async () => {
+      const base = sync.baseVersion();
+      if (base === null || propsVersion <= base) return;
+      if (pendingSaveRef.current || hasChangesRef.current || conflictRef.current) return;
+      const fresh = ensureActivityIdsStable(itinerary, trip.id);
+      sync.reset(propsVersion);
+      setSavedItinerary(fresh);
+      setEditedItinerary(JSON.parse(JSON.stringify(fresh)));
+      clearHistory();
+      setRenderEpoch((v) => v + 1);
+    });
+  }, [propsVersion, trip.itinerary, sync, clearHistory]);
+
   // Ambient auto-save (2026-07-03 moat). For solo owners there's no Save
   // button — every drag/delete/edit/add persists in the background after a
   // short debounce. Collaborative trips (ambientEdit=false) keep their
@@ -1418,12 +1751,12 @@ export default function TripDetailClient({
     if (!ambientEdit) return;
     // In sync with the server (a save just landed, OR the user undid back to
     // the saved baseline). Nothing to persist: drop the pending marker, clear
-    // any stale failed-payload guard, and reconcile the pill to "saved" so it
-    // never falsely lingers on "error"/"saving" once we're back in sync.
+    // any stale failed-payload guard, and reconcile the pill so it never
+    // falsely lingers on "error"/"saving" once we're back in sync.
     if (!hasChanges) {
       pendingSaveRef.current = null;
       lastFailedSaveRef.current = null;
-      setSaveStatus((prev) => (prev === "saved" ? prev : "saved"));
+      setSaveStatus(conflictRef.current ? "conflict" : "saved");
       return;
     }
     const payload = JSON.stringify(editedItinerary);
@@ -1431,70 +1764,39 @@ export default function TripDetailClient({
     // edit (undo/redo also clears the guard so history navigation retries).
     if (payload === lastFailedSaveRef.current) return;
     pendingSaveRef.current = payload;
+    // Effects run after a commit, and every epoch change is made together
+    // with the content it belongs to, so this is the payload's own epoch.
+    pendingEpochRef.current = sync.epoch();
+    // The trip changed elsewhere: hold every save until the user chooses
+    // (Load latest / Keep mine), or each would 409 again.
+    if (conflictRef.current) {
+      setSaveStatus("conflict");
+      return;
+    }
     setSaveStatus("saving");
-    const snapshot = editedItinerary;
-    const timer = setTimeout(async () => {
-      // Supersede any still-in-flight save so two overlapping writes can't land
-      // out of order (server PATCH is unconditional last-write-wins).
-      saveAbortRef.current?.abort();
-      const controller = new AbortController();
-      saveAbortRef.current = controller;
-      try {
-        const res = await fetch(`/api/trips/${trip.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ itinerary: snapshot }),
-          signal: controller.signal,
-        });
-        if (!res.ok) throw new Error(`save failed: ${res.status}`);
-        // Mark exactly what we persisted as the new saved baseline.
-        if (pendingSaveRef.current === payload) pendingSaveRef.current = null;
-        setSavedItinerary(JSON.parse(payload));
-        lastFailedSaveRef.current = null;
-        setSaveStatus("saved");
-        // Manual-edit adoption metric — fire ONCE per page-view, not per
-        // debounced flush, so the ambient cohort stays comparable to the
-        // AI-agent metric (ai_assistant_used).
-        if (!editCapturedRef.current) {
-          editCapturedRef.current = true;
-          void captureEditModeSaved({
-            trip_id: trip.id,
-            days_count: snapshot.length,
-            activities_count: snapshot.reduce((acc, day) => acc + day.activities.length, 0),
-          });
-        }
-      } catch (err) {
-        // A newer save aborted this one — not a real failure, don't surface it.
-        if (err && (err as { name?: string }).name === "AbortError") return;
-        console.warn("[trip-autosave] failed", err);
-        lastFailedSaveRef.current = payload;
-        setSaveStatus("error");
-      }
+    // Queued, never aborted: see flushPendingSave / lib/trips/itinerary-sync.ts.
+    const timer = setTimeout(() => {
+      void flushPendingSave();
     }, 1000);
     return () => clearTimeout(timer);
-  }, [ambientEdit, hasChanges, editedItinerary, trip.id]);
+  }, [ambientEdit, hasChanges, editedItinerary, conflict, flushPendingSave, sync]);
 
   // Flush a pending ambient auto-save on unmount. Client-side (SPA) navigation
   // — the back-to-trips <Link>, the bottom-nav tabs — does NOT fire the
   // beforeunload guard above, so an edit made inside the 1s debounce window
-  // would otherwise be silently dropped. The JS realm survives an SPA nav, so a
-  // plain fetch here completes in the background; hard document unloads are
-  // still covered by the beforeunload warning.
+  // would otherwise be silently dropped. The JS realm survives an SPA nav, so
+  // the queued save completes in the background; hard document unloads are
+  // still covered by the beforeunload warning. Queued behind any save in
+  // flight, so the same payload is never sent twice.
+  const flushRef = useRef(flushPendingSave);
+  useEffect(() => {
+    flushRef.current = flushPendingSave;
+  }, [flushPendingSave]);
   useEffect(() => {
     return () => {
-      const pending = pendingSaveRef.current;
-      if (!pending) return;
-      try {
-        void fetch(`/api/trips/${trip.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ itinerary: JSON.parse(pending) }),
-        }).catch(() => {});
-      } catch {
-        /* best-effort flush; nothing to do if it throws synchronously */
-      }
+      void flushRef.current();
     };
-  }, [trip.id]);
+  }, []);
 
   // Handle AI assistant suggested actions
   const handleAIAction = useCallback(
@@ -1508,7 +1810,9 @@ export default function TripDetailClient({
       // is the live source of truth — resetting it to the SSR prop would wipe
       // unsaved local edits, so skip this branch entirely for them.
       if (!actionWasApplied && !isEditMode && !ambientEdit) {
-        setEditedItinerary(ensureActivityIds(trip.itinerary));
+        // From the last SAVED copy, not the page's first render: that one is
+        // stale after any save, and editing from it silently reverted them.
+        setEditedItinerary(JSON.parse(JSON.stringify(savedItinerary)));
         setIsEditMode(true);
       }
 
@@ -1549,61 +1853,35 @@ export default function TripDetailClient({
           break;
       }
     },
-    [isEditMode, ambientEdit, trip.itinerary, handleActivityDelete, handleActivityMove, handleActivityRegenerate]
+    [isEditMode, ambientEdit, savedItinerary, handleActivityDelete, handleActivityMove, handleActivityRegenerate]
   );
 
-  // Handle itinerary updates from AI assistant (autonomous changes)
-  const handleItineraryUpdate = useCallback((newItinerary: ItineraryDay[]) => {
-    // Deep clone and ensure IDs
-    const processedItinerary = ensureActivityIds(
-      JSON.parse(JSON.stringify(newItinerary))
-    );
-
-    // Find the changed activity for animation
-    for (let dayIdx = 0; dayIdx < processedItinerary.length; dayIdx++) {
-      const newDay = processedItinerary[dayIdx];
-      const oldDay = editedItinerary[dayIdx];
-      if (oldDay) {
-        for (let actIdx = 0; actIdx < newDay.activities.length; actIdx++) {
-          const newAct = newDay.activities[actIdx];
-          const oldAct = oldDay.activities[actIdx];
-          if (!oldAct || newAct.id !== oldAct.id || newAct.name !== oldAct.name) {
-            aiUpdateRef.current = { dayIndex: dayIdx, activityId: newAct.id || "" };
-            break;
-          }
-        }
-      }
-    }
-
-    // Update state - use functional updates to avoid stale closures.
-    // Ambient trips are always editing, so don't flip the (hidden) mode on —
-    // doing so would hide the Share/Export/nav buttons that gate on !isEditMode.
-    // The debounced auto-save picks up the new editedItinerary either way.
-    setEditedItinerary(processedItinerary);
-    // Ambient: the assistant already persisted this server-side, so treat it as
-    // the saved baseline (keeps hasChanges false → no redundant auto-save
-    // PATCH). Legacy (collaborative): flip the mode on so the user can confirm
-    // the AI change via Save.
-    if (ambientEdit) setSavedItinerary(processedItinerary);
-    else setIsEditMode(true);
-    setItineraryVersion((v) => v + 1);
-
-    // Clear the AI update ref after animation time
-    setTimeout(() => {
-      aiUpdateRef.current = null;
-    }, 2000);
-  }, [editedItinerary, ambientEdit]);
+  // (handleItineraryUpdate was removed 2026-09-24: it adopted an itinerary
+  // with no version, and nothing called it. Changes from the assistant reach
+  // the page through handleRefetchTrip, inside the save queue.)
 
   // Refetch trip data from the database (called after AI modifications)
-  const handleRefetchTrip = useCallback(async () => {
+  // Resolves true when the stored copy was taken. With onlyIfUnedited it is
+  // not taken if an edit arrived while reading (a regenerate's re-read must
+  // not drop it).
+  const handleRefetchTrip = useCallback(async (options?: { onlyIfUnedited?: boolean }): Promise<boolean> => {
     console.log("[TripDetailClient] Refetching trip data from database...");
     try {
-      const response = await fetch(`/api/trips/${trip.id}`, {
-        cache: 'no-store', // Ensure we get fresh data
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      });
+      // The write before this already landed: without this read the page
+      // keeps an older copy and version, and its next save is refused against
+      // this person's own change. One retry for a blip.
+      const read = () =>
+        fetch(`/api/trips/${trip.id}`, {
+          cache: 'no-store', // Ensure we get fresh data
+          headers: {
+            'Cache-Control': 'no-cache',
+          },
+        });
+      let response = await read().catch(() => null);
+      if (!response?.ok) {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        response = await read();
+      }
       if (!response.ok) {
         throw new Error(`Failed to fetch trip: ${response.status}`);
       }
@@ -1615,9 +1893,10 @@ export default function TripDetailClient({
       });
 
       if (data.trip?.itinerary) {
+        if (options?.onlyIfUnedited && (pendingSaveRef.current !== null || hasChangesRef.current)) return false;
         // Deep clone to ensure we're working with fresh data
         const freshItinerary = JSON.parse(JSON.stringify(data.trip.itinerary));
-        const processedItinerary = ensureActivityIds(freshItinerary);
+        const processedItinerary = ensureActivityIdsStable(freshItinerary, trip.id);
 
         console.log("[TripDetailClient] Processed itinerary:", {
           days: processedItinerary.length,
@@ -1658,20 +1937,23 @@ export default function TripDetailClient({
         // Force update by creating new array reference
         console.log("[TripDetailClient] Updating state with new itinerary...");
         const freshCopy = [...processedItinerary];
+        // The change is already stored (assistant apply/undo, add from email):
+        // this copy IS the saved one, at the version it was read with, in both
+        // modes. (Legacy mode used to keep savedItinerary stale and reopen the
+        // editor so the user "confirmed" a change that was already saved.)
+        // Runs only inside runItineraryWrite, so nothing else writes between
+        // the server write and this read.
+        const version = readItineraryVersion(data.trip?.itinerary_version);
+        if (version !== null) sync.reset(version);
         setEditedItinerary(freshCopy);
-        // Legacy (collaborative) flow: keep savedItinerary stale so hasChanges
-        // stays true and the user can click "Save Changes" to confirm the AI
-        // edit. Ambient (solo owner): there is no Save button and the AI already
-        // persisted this to the DB — mark it as the saved baseline (prevents the
-        // auto-save effect firing a redundant/racy PATCH) and DON'T flip the
-        // hidden mode on (that would hide the Share/Export/Calendar/nav buttons
-        // that gate on !isEditMode until a full page reload).
-        if (ambientEdit) {
-          setSavedItinerary(freshCopy);
-        } else {
-          setIsEditMode(true);
-        }
-        setItineraryVersion((v) => {
+        setSavedItinerary(JSON.parse(JSON.stringify(freshCopy)));
+        pendingSaveRef.current = null;
+        lastFailedSaveRef.current = null;
+        if (conflictRef.current) setConflict(null);
+        // Undo snapshots predate this copy (which may hold a trip mate's
+        // changes too): replaying one would pass the version check and revert them.
+        clearHistory();
+        setRenderEpoch((v) => {
           const newVersion = v + 1;
           console.log("[TripDetailClient] Itinerary version bumped to:", newVersion);
           return newVersion;
@@ -1683,14 +1965,19 @@ export default function TripDetailClient({
         }, 2000);
 
         console.log("[TripDetailClient] State update complete - UI should re-render now");
+        return true;
       } else {
         console.error("[TripDetailClient] No itinerary in response:", data);
+        return false;
       }
     } catch (error) {
       console.error("[TripDetailClient] Failed to refetch trip:", error);
       throw error;
     }
-  }, [trip.id, editedItinerary, ambientEdit]);
+  }, [trip.id, editedItinerary, sync, setConflict, clearHistory]);
+  useEffect(() => {
+    refetchTripRef.current = handleRefetchTrip;
+  }, [handleRefetchTrip]);
 
   // APPLY → SEE loop (transcripts: "I don't see the updates on the webpage" /
   // "where to see the updated version?"): after the AI assistant applies a
@@ -2054,14 +2341,20 @@ export default function TripDetailClient({
           <TripConciergeChat
             tripId={trip.id}
             canEdit={isOwner}
-            onItineraryChange={(next) => {
+            runItineraryWrite={runItineraryWrite}
+            onItineraryChange={(next, serverVersion) => {
               // The /apply endpoint already persisted this itinerary —
-              // adopt it as BOTH edited and saved state so the ambient
+              // adopt it as BOTH edited and saved state, with the version it
+              // was written at (runs inside the save queue), so the ambient
               // auto-save doesn't immediately re-PATCH an identical body.
-              const withIds = ensureActivityIds(next);
+              const withIds = ensureActivityIdsStable(next, trip.id);
+              if (serverVersion != null) sync.reset(serverVersion);
               setEditedItinerary(withIds);
-              setSavedItinerary(withIds);
-              setItineraryVersion((v) => v + 1);
+              setSavedItinerary(JSON.parse(JSON.stringify(withIds)));
+              if (conflictRef.current) setConflict(null);
+              // As in handleRefetchTrip: older undo snapshots would revert it.
+              clearHistory();
+              setRenderEpoch((v) => v + 1);
             }}
           />
           {/* Past Q+A pairs for THIS trip (david-cassoni follow-up).
@@ -2368,12 +2661,22 @@ export default function TripDetailClient({
                   className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     saveStatus === "error"
                       ? "bg-red-50 text-red-700 hover:bg-red-100 cursor-pointer"
-                      : saveStatus === "saving"
-                        ? "bg-slate-100 text-slate-500"
-                        : "bg-emerald-50 text-emerald-700"
+                      : saveStatus === "conflict"
+                        ? "bg-amber-50 text-amber-800"
+                        : saveStatus === "saving"
+                          ? "bg-slate-100 text-slate-500"
+                          : "bg-emerald-50 text-emerald-700"
                   }`}
                 >
-                  {saveStatus === "saving" ? (
+                  {saveStatus === "conflict" ? (
+                    // The choice itself is in the conflict banner.
+                    <>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.71-3l-6.93-12a2 2 0 00-3.42 0l-6.93 12a2 2 0 001.71 3z" />
+                      </svg>
+                      <span>{t('detail.conflictPill')}</span>
+                    </>
+                  ) : saveStatus === "saving" ? (
                     <>
                       <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -2430,7 +2733,7 @@ export default function TripDetailClient({
                 {/* Save & Close button - Primary action */}
                 <button
                   onClick={handleSaveChanges}
-                  disabled={isSaving}
+                  disabled={isSaving || itineraryWritesInFlight > 0}
                   className={`flex items-center gap-2 p-2 sm:px-4 sm:py-2 rounded-lg text-sm font-medium transition-all ${
                     hasChanges
                       ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg shadow-green-600/25 animate-pulse-subtle'
@@ -2504,13 +2807,18 @@ export default function TripDetailClient({
             tripId={trip.id}
             isOpen={isPasteBookingOpen}
             onClose={() => setIsPasteBookingOpen(false)}
+            runItineraryWrite={runItineraryWrite}
             onBookingAdded={() => {
               // Re-pull the trip from the server — same hook the AI
               // assistant uses after autonomous edits. Keeps the
               // itinerary state in sync without a hard page reload.
-              handleRefetchTrip().catch((err) => {
-                console.error("[PasteBookingModal] Refetch failed:", err);
-              });
+              // Returned so the modal awaits it inside the save queue.
+              return handleRefetchTrip().then(
+                () => undefined,
+                (err) => {
+                  console.error("[PasteBookingModal] Refetch failed:", err);
+                }
+              );
             }}
           />
         )}
@@ -2681,12 +2989,12 @@ export default function TripDetailClient({
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
           >
-          <div className="space-y-8" key={`itinerary-v${itineraryVersion}`}>
+          <div className="space-y-8" key={`itinerary-v${renderEpoch}`}>
             {(dragPreview ?? displayItinerary)
               .filter((day) => selectedDay === null || day.day_number === selectedDay)
               .map((day, dayIndex) => (
                 <div
-                  key={`day-${day.day_number}-v${itineraryVersion}`}
+                  key={`day-${day.day_number}-v${renderEpoch}`}
                   // Stable per-day anchor for the assistant's APPLY → SEE loop
                   // (scroll target + flash highlight, see handleFocusDayCard).
                   id={`trip-day-${day.day_number}`}
@@ -2819,7 +3127,7 @@ export default function TripDetailClient({
                                 );
 
                                 return (
-                                  <div key={`${activity.id || idx}-v${itineraryVersion}`}>
+                                  <div key={`${activity.id || idx}-v${renderEpoch}`}>
                                     {/* Crew Loop: anon share-link tally */}
                                     {renderCrewVotePill(activity.id)}
                                     <div
@@ -2886,7 +3194,7 @@ export default function TripDetailClient({
                               );
 
                               return (
-                                <div key={`activity-${activity.id || idx}-v${itineraryVersion}`}>
+                                <div key={`activity-${activity.id || idx}-v${renderEpoch}`}>
                                   {/* Crew Loop: anon share-link tally */}
                                   {renderCrewVotePill(activity.id)}
                                   <div
@@ -3261,10 +3569,23 @@ export default function TripDetailClient({
         isOpen={isAIAssistantOpen}
         onClose={() => setIsAIAssistantOpen(false)}
         onAction={handleAIAction}
-        onItineraryUpdate={handleItineraryUpdate}
-        onRefetchTrip={handleRefetchTrip}
+        onRefetchTrip={async () => {
+          await handleRefetchTrip();
+        }}
         onFocusDay={handleFocusDayCard}
+        runItineraryWrite={runItineraryWrite}
       />
+
+      {/* The trip was changed elsewhere (a trip mate, another tab) after this
+          page loaded: the save was refused rather than overwrite it. */}
+      {conflict && (
+        <ItineraryConflictBanner
+          canKeepMine={hasChanges}
+          onLoadLatest={handleLoadLatest}
+          onKeepMine={handleKeepMine}
+          busy={isSaving}
+        />
+      )}
 
       {/* Success Toast Notification */}
       {saveSuccess && (

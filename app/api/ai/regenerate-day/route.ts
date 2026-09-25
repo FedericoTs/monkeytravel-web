@@ -29,8 +29,9 @@ import { sanitizeItinerary } from "@/lib/utils/sanitize";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
-import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { errors, apiSuccess, apiError } from "@/lib/api/response-wrapper";
 import { getTripDestination } from "@/lib/trips/destination";
+import { casUpdateItinerary, type CasOutcome } from "@/lib/trips/itinerary-cas";
 import type { ItineraryDay, TripVibe } from "@/types";
 
 
@@ -46,6 +47,27 @@ async function getUserLanguage(): Promise<SupportedLanguage> {
 }
 
 const MAX_INSTRUCTIONS_LEN = 500;
+
+/**
+ * F1 anchored trips: locked activities are user-fixed commitments (wedding,
+ * flight, booked night). A whole-day regen must never silently delete them:
+ * carry them over from the day being replaced and keep the day sorted by
+ * slot/time. The user can still remove their own anchor by editing. Returns a
+ * new day; `generated` is not mutated (a retry recomputes from it).
+ */
+function withLockedActivities(generated: ItineraryDay, previous: ItineraryDay): ItineraryDay {
+  const locked = (previous.activities ?? []).filter((a) => a.locked);
+  if (locked.length === 0) return { ...generated, activities: [...generated.activities] };
+  const slotOrder: Record<string, number> = { morning: 0, afternoon: 1, evening: 2 };
+  return {
+    ...generated,
+    activities: [...generated.activities, ...locked].sort(
+      (a, b) =>
+        (slotOrder[a.time_slot] ?? 0) - (slotOrder[b.time_slot] ?? 0) ||
+        (a.start_time ?? "").localeCompare(b.start_time ?? "")
+    ),
+  };
+}
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -95,7 +117,7 @@ export async function POST(request: NextRequest) {
       supabase,
       tripId,
       user.id,
-      "id, user_id, title, itinerary, budget, tags, trip_meta"
+      "id, user_id, title, itinerary, budget, tags, trip_meta, itinerary_version"
     );
     if (ownershipError) return ownershipError;
 
@@ -239,32 +261,42 @@ export async function POST(request: NextRequest) {
     const sanitizedWrapper = sanitizeItinerary({ days: [newDay] } as { days: ItineraryDay[] });
     const sanitizedDay = sanitizedWrapper.days[0];
 
-    // F1 anchored trips: locked activities are user-fixed commitments
-    // (wedding, flight, booked night). A whole-day regen must never
-    // silently delete them — carry them over from the old day and keep
-    // the day sorted by slot/time. The user can still remove their own
-    // anchor via manual editing.
-    const lockedActivities = (oldDay.activities ?? []).filter((a) => a.locked);
-    if (lockedActivities.length > 0) {
-      const slotOrder: Record<string, number> = { morning: 0, afternoon: 1, evening: 2 };
-      sanitizedDay.activities = [...sanitizedDay.activities, ...lockedActivities].sort(
-        (a, b) =>
-          (slotOrder[a.time_slot] ?? 0) - (slotOrder[b.time_slot] ?? 0) ||
-          (a.start_time ?? "").localeCompare(b.start_time ?? "")
-      );
-    }
-
-    // Splice the new day back into the itinerary and persist.
-    const updatedItinerary = itinerary.slice();
-    updatedItinerary[dayIndex] = sanitizedDay;
-
-    const { error: updateError } = await supabase
-      .from("trips")
-      .update({ itinerary: updatedItinerary })
-      .eq("id", tripId)
-      .eq("user_id", user.id);
-
-    if (updateError) {
+    // Splice the new day into the CURRENT itinerary and persist, compare-and-
+    // set on itinerary_version. Generation takes seconds; a blind write of the
+    // copy read before it would overwrite anything saved meanwhile, and would
+    // move the version under the user's own tab (a false 409 on their next
+    // save). The day is found by day_number on the row being written, and its
+    // locked activities are taken from that same row.
+    // Assigned inside the change callback; the cast keeps TS from narrowing
+    // it to null for the rest of the function.
+    let written = null as { day: ItineraryDay; dayIndex: number } | null;
+    let outcome: CasOutcome;
+    try {
+      outcome = await casUpdateItinerary(supabase, {
+        tripId,
+        ownerId: user.id,
+        from: { itinerary, itinerary_version: Number(trip!.itinerary_version ?? 0) },
+        change: (row) => {
+          const current = (Array.isArray(row.itinerary) ? row.itinerary : []) as ItineraryDay[];
+          const idx = current.findIndex((d) => d.day_number === dayNumber);
+          if (idx === -1) return null;
+          // The day's place in the trip comes from the row being written, not
+          // the read before generation: a date shift saved meanwhile stays.
+          const stored = current[idx];
+          const day: ItineraryDay = {
+            ...withLockedActivities(sanitizedDay, stored),
+            day_number: stored.day_number,
+            date: stored.date,
+            ...(stored.city !== undefined ? { city: stored.city } : {}),
+          };
+          written = { day, dayIndex: idx };
+          const next = current.slice();
+          next[idx] = day;
+          return { itinerary: next };
+        },
+      });
+    } catch (updateError) {
+      const message = updateError instanceof Error ? updateError.message : String((updateError as { message?: string })?.message ?? updateError);
       console.error("[AI Regenerate Day] DB update failed:", updateError);
       await logApiCall({
         apiName: "gemini",
@@ -273,11 +305,37 @@ export async function POST(request: NextRequest) {
         responseTimeMs: Date.now() - startTime,
         cacheHit: false,
         costUsd: 0.0015,
-        error: `DB update failed: ${updateError.message}`,
+        error: `DB update failed: ${message}`,
         metadata: { user_id: user.id, trip_id: tripId, day_number: dayNumber },
       });
       return errors.internal("Failed to save regenerated day", "Day Regeneration");
     }
+    if (outcome.status !== "written") {
+      // The generation ran (and cost) even though nothing was stored.
+      await logApiCall({
+        apiName: "gemini",
+        endpoint: "/api/ai/regenerate-day",
+        status: outcome.status === "missing" ? 404 : 409,
+        responseTimeMs: Date.now() - startTime,
+        cacheHit: false,
+        costUsd: 0.0015,
+        error: `not written: ${outcome.status}`,
+        metadata: { user_id: user.id, trip_id: tripId, day_number: dayNumber },
+      });
+    }
+    if (outcome.status === "skipped") {
+      return errors.conflict(`Day ${dayNumber} was removed while it was being regenerated.`);
+    }
+    if (outcome.status === "busy") {
+      return apiError("This trip is being edited right now. Please try again.", {
+        status: 409,
+        code: "ITINERARY_BUSY",
+      });
+    }
+    if (outcome.status !== "written" || !written) {
+      return errors.notFound("Trip not found");
+    }
+    const { day: writtenDay, dayIndex: writtenIndex } = written;
 
     const generationTime = Date.now() - startTime;
 
@@ -293,7 +351,7 @@ export async function POST(request: NextRequest) {
         trip_id: tripId,
         day_number: dayNumber,
         destination,
-        activities_count: sanitizedDay.activities.length,
+        activities_count: writtenDay.activities.length,
       },
     });
 
@@ -309,8 +367,13 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess({
       success: true,
-      day: sanitizedDay,
-      dayIndex,
+      day: writtenDay,
+      dayIndex: writtenIndex,
+      // The tab adopts itineraryVersion only if fromVersion is the version it
+      // holds; otherwise someone else wrote in between and its next save
+      // correctly gets a 409.
+      fromVersion: outcome.fromVersion,
+      itineraryVersion: outcome.itineraryVersion,
       meta: {
         generationTimeMs: generationTime,
         model: getModelForPurpose("day-regenerate"),
