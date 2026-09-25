@@ -52,6 +52,50 @@ function anonCreds() {
   return { url, key };
 }
 
+/**
+ * Service credentials, for cleanup only. The anonymous trip this spec mints
+ * has no owner, so nothing else ever deletes it: each run used to leave one
+ * "E2E share lockdown probe" row in production, inflating the anonymous-trip
+ * count (10 found on 2026-09-02, another on 2026-09-25).
+ */
+function serviceCreds(): { url: string; key: string } | null {
+  let url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  let key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+  if ((!url || !key) && existsSync(".env.local")) {
+    for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
+      const m = line.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/);
+      if (!m) continue;
+      const v = m[2].trim().replace(/^["']|["']$/g, "");
+      if (m[1] === "NEXT_PUBLIC_SUPABASE_URL" && !url) url = v;
+      if (m[1] === "SUPABASE_SERVICE_ROLE_KEY" && !key) key = v;
+    }
+  }
+  return url && key ? { url, key } : null;
+}
+
+/** Deletes the probe trip: matched on its token, no owner, and its title. */
+async function deleteProbeTrip(token: string): Promise<boolean> {
+  const creds = serviceCreds();
+  if (!creds) return false;
+  const api = await pwRequest.newContext({
+    extraHTTPHeaders: { apikey: creds.key, Authorization: `Bearer ${creds.key}` },
+  });
+  try {
+    const match =
+      `share_token=eq.${encodeURIComponent(token)}&user_id=is.null` +
+      `&title=eq.${encodeURIComponent("E2E share lockdown probe")}`;
+    const found = await api.get(`${creds.url}/rest/v1/trips?select=id&${match}`);
+    const rows = found.ok() ? ((await found.json()) as Array<{ id: string }>) : [];
+    for (const { id } of rows) {
+      await api.delete(`${creds.url}/rest/v1/trip_views?trip_id=eq.${id}`);
+      await api.delete(`${creds.url}/rest/v1/trips?id=eq.${id}`);
+    }
+    return rows.length > 0;
+  } finally {
+    await api.dispose();
+  }
+}
+
 test.describe("trips share_token lockdown — anonymous @prod", () => {
   test("anon cannot read a single private trip", async () => {
     const { url, key } = anonCreds();
@@ -177,15 +221,24 @@ test.describe("the anonymous share loop still works @prod", () => {
     const token = payload.shareToken ?? null;
     expect(token, "anonymous trip response carried no share token").toBeTruthy();
 
-    const res = await page.goto(`/shared/${token}`, {
-      waitUntil: "domcontentloaded",
-    });
-    expect(res?.status(), "the share page must not 404").toBe(200);
+    try {
+      const res = await page.goto(`/shared/${token}`, {
+        waitUntil: "domcontentloaded",
+      });
+      expect(res?.status(), "the share page must not 404").toBe(200);
 
-    // Assert on CONTENT: a 200 that renders "Trip Not Found" would pass a
-    // status check and still mean the share loop is broken.
-    const text = await page.locator("body").innerText();
-    expect(text).not.toMatch(/trip not found/i);
-    expect(text).toMatch(/Lisbon/i);
+      // Assert on CONTENT: a 200 that renders "Trip Not Found" would pass a
+      // status check and still mean the share loop is broken.
+      const text = await page.locator("body").innerText();
+      expect(text).not.toMatch(/trip not found/i);
+      expect(text).toMatch(/Lisbon/i);
+    } finally {
+      if (!(await deleteProbeTrip(token as string))) {
+        test.info().annotations.push({
+          type: "warning",
+          description: "probe trip left in the database (no service credentials to delete it)",
+        });
+      }
+    }
   });
 });

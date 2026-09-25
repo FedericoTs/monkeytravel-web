@@ -21,8 +21,11 @@ test.describe("SEO / routing regressions @prod", () => {
     const ok = await request.get("/es/blog/tag/japon");
     expect(ok.status(), "/es/blog/tag/japon should resolve").toBe(200);
 
-    const ko = await request.get("/es/blog/tag/japn");
-    expect(ko.status(), "old broken slug must 404").toBe(404);
+    // The old broken slug must not render a duplicate page. Unknown tags now
+    // redirect to the blog index (since the tag taxonomy clean-up) instead of
+    // answering 404; either way nothing indexable is served at it.
+    const ko = await request.get("/es/blog/tag/japn", { maxRedirects: 0 });
+    expect([301, 308, 404], "old broken slug must not render a page").toContain(ko.status());
   });
 
   test("thin tag page emits noindex,follow", async ({ page }) => {
@@ -84,7 +87,10 @@ test.describe("SEO / routing regressions @prod", () => {
   });
 
   test("merged monthly URLs 301/308 to pillar+anchor", async ({ request }) => {
-    const res = await request.get("/blog/where-to-go-in-april", {
+    // May–July are still merged into the pillar. The other months became
+    // standalone posts on purpose (next.config.ts: April on 2026-05-30, then
+    // August, September–December and January–March), so April is a 200 now.
+    const res = await request.get("/blog/where-to-go-in-may", {
       maxRedirects: 0,
     });
     expect([301, 308]).toContain(res.status());

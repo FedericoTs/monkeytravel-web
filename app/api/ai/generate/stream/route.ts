@@ -460,13 +460,11 @@ export async function POST(request: NextRequest) {
                 streamed: true,
               },
             });
-            if (!cacheHit) {
-              if (user) {
-                await incrementUsage(user.id, "aiGenerations", 1);
-                await incrementEarlyAccessUsage(user.id, "generation");
-              } else {
-                await recordAnonymousGeneration();
-              }
+            // Anonymous generations are counted before the stream starts
+            // (9b): once it is under way a cookie can no longer be set.
+            if (!cacheHit && user) {
+              await incrementUsage(user.id, "aiGenerations", 1);
+              await incrementEarlyAccessUsage(user.id, "generation");
             }
           } catch (err) {
             console.error("[AI Generate Stream] post-stream cleanup error:", err);
@@ -529,6 +527,23 @@ export async function POST(request: NextRequest) {
       };
     }
   };
+
+  // 9b. Count an anonymous generation NOW, while the response headers can
+  //     still carry the cookie. recordAnonymousGeneration() sets mt_anon
+  //     through cookies(); it used to run after the stream (in the
+  //     waitUntil above), when the headers were long sent, so the cookie
+  //     never reached the browser and the 5-a-day anonymous cap never
+  //     applied to the wizard (verified on production 2026-09-25: a fresh
+  //     14-day generation left no mt_anon). Cache hits stay free, with the
+  //     generator's own short-circuit predicate. A generation that then
+  //     fails still counts: one of five, against no cap at all.
+  const willHitCache =
+    !isPersonalized &&
+    !!preflightCachedItinerary &&
+    preflightCachedItinerary.days.length >= totalDays;
+  if (isAnonymous && !willHitCache) {
+    await recordAnonymousGeneration();
+  }
 
   // 10. Build the SSE response.
   const stream = eventStreamFromGenerator(sseGenerator());
