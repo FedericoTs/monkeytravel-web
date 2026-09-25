@@ -47,6 +47,11 @@ import TripDayDigestEmail, {
   tripDayDigestSubject,
   type TripDayDigestEmailProps,
 } from "./templates/TripDayDigest";
+import ShareFixNoticeEmail, {
+  shareFixNoticeText,
+  shareFixSubject,
+  type ShareFixNoticeProps,
+} from "./templates/ShareFixNotice";
 import { buildUnsubscribeUrl, type UnsubKey } from "./unsubscribe";
 import { normalizeEmailLocale, type EmailLocale } from "./copy";
 
@@ -56,7 +61,8 @@ export type EmailTemplate =
   | { id: "trip_reminder"; props: TripReminderEmailProps }
   | { id: "trip_followup"; props: TripFollowupEmailProps }
   | { id: "trip_day_digest"; props: TripDayDigestEmailProps }
-  | { id: "feedback_outreach"; props: FeedbackOutreachEmailProps };
+  | { id: "feedback_outreach"; props: FeedbackOutreachEmailProps }
+  | { id: "share_fix_notice"; props: ShareFixNoticeProps };
 
 /** Stable outcome shape. */
 export interface SendOutcome {
@@ -181,6 +187,10 @@ const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null> = {
   // marketingNotifications so an in-app marketing opt-out always suppresses
   // it. NOT transactional: the recipient didn't trigger this send.
   feedback_outreach: "marketingNotifications",
+  // One-off notice (2026-09-25) to owners of shared trips that sharing no
+  // longer locks them out. About their own trips, but they didn't trigger
+  // it: same gate as feedback_outreach.
+  share_fix_notice: "marketingNotifications",
 };
 
 /**
@@ -197,6 +207,7 @@ const UNSUB_KEY: Record<EmailTemplate["id"], UnsubKey | null> = {
   trip_followup: "marketingNotifications",
   trip_day_digest: "tripReminders",
   feedback_outreach: "marketingNotifications",
+  share_fix_notice: "marketingNotifications",
 };
 
 /**
@@ -729,6 +740,12 @@ async function renderTemplate(
         template.props.locale,
         template.props.firstName
       );
+      return { html, text, subject };
+    }
+    case "share_fix_notice": {
+      const html = await render(ShareFixNoticeEmail(template.props));
+      const text = shareFixNoticeText(template.props);
+      const subject = shareFixSubject(template.props.locale);
       return { html, text, subject };
     }
   }
