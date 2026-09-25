@@ -1287,7 +1287,7 @@
       "publishOptIn": "Share this trip on Explore",
       "publishOptInHelp": "Other travelers can see and copy it. You can unpublish anytime.",
       "publishOptInAnchored": "This trip has plans you pinned, so it stays private unless you choose to share it.",
-      "done": "Done",
+      "publishAndClose": "Publish to Explore",
       "maybeLater": "Maybe Later",
       "copy": "Copy",
       "copied": "Copied",

@@ -1287,7 +1287,7 @@
       "publishOptIn": "Compartilhe esta viagem no Explore",
       "publishOptInHelp": "Outros viajantes poderão vê-la e copiá-la. Você pode cancelar a publicação quando quiser.",
       "publishOptInAnchored": "Esta viagem tem compromissos que você fixou, então ela continua privada a menos que você escolha compartilhá-la.",
-      "done": "Concluído",
+      "publishAndClose": "Publicar no Explore",
       "maybeLater": "Talvez Depois",
       "copy": "Copiar",
       "copied": "Copiado",

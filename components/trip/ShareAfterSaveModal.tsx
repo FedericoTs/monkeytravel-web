@@ -579,8 +579,10 @@ export default function ShareAfterSaveModal({
                   onClick={handleDone}
                   className="w-full py-3 px-4 text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-xl font-medium transition-colors text-sm"
                 >
+                  {/* Says what it does: with the box ticked this button publishes
+                      the trip to Explore. It read "Done" until 2026-09-25. */}
                   {publishChecked && onPublish
-                    ? ts("afterSave.done")
+                    ? ts("afterSave.publishAndClose")
                     : ts("afterSave.maybeLater")}
                 </button>
               </div>
