@@ -7,6 +7,7 @@ import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import { enrichTripByIdAdmin } from "@/lib/images/enrichTrip";
 import { runTripCounter } from "@/lib/explore/counters";
 import { randomUUID } from "node:crypto";
+import { publicNameOrNull } from "@/lib/profile/public-name";
 
 /**
  * POST /api/trips/[id]/publish — owner opts a trip into the public
@@ -103,9 +104,11 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
   if (errorResponse) return errorResponse;
 
   const body = await request.json().catch(() => ({}));
+  // Never the email's local part (lib/profile/public-name.ts): the byline is
+  // public on Explore and the trip's public page.
   const authorDisplayName =
     typeof body?.authorDisplayName === "string"
-      ? body.authorDisplayName.trim().slice(0, MAX_AUTHOR_NAME) || null
+      ? publicNameOrNull(body.authorDisplayName.slice(0, MAX_AUTHOR_NAME), user.email)
       : null;
   const authorNote =
     typeof body?.authorNote === "string"

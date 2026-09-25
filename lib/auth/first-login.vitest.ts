@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { FIRST_LOGIN_MAX_AGE_MS, isFirstLogin, resolveAuthLanding } from "./first-login";
+import { FIRST_LOGIN_MAX_AGE_MS, isFirstLogin, resolveAuthLanding, returnsToPage } from "./first-login";
 
 const NOW = new Date("2026-09-02T12:00:00.000Z").getTime();
 const ago = (ms: number) => new Date(NOW - ms).toISOString();
@@ -62,5 +62,24 @@ describe("resolveAuthLanding", () => {
     expect(resolveAuthLanding("/trips?from=email", true)).toBe("/trips/new");
     expect(resolveAuthLanding("/trips#top", true)).toBe("/trips/new");
     expect(resolveAuthLanding("/trips/xyz?tab=map", true)).toBe("/trips/xyz?tab=map");
+  });
+});
+
+describe("returnsToPage", () => {
+  // The login and signup pages skip their first-visit detours (the retired
+  // /welcome, onboarding, the wizard) only when the sign-in was asked for on
+  // the way to a real page. 93% of accounts still have welcome_completed =
+  // false, so until 2026-09-25 signing in from an invite, a shared trip or a
+  // trip link ended in the wizard.
+  it("is true for a page to come back to, with or without a locale prefix", () => {
+    for (const next of ["/trips/abc-123", "/it/trips/abc-123", "/invite/tok", "/pt/invite/tok", "/shared/tok?ref=X", "/profile"]) {
+      expect(returnsToPage(next)).toBe(true);
+    }
+  });
+
+  it("is false for nothing, the trip list or the wizard", () => {
+    for (const next of ["", "/trips", "/trips/", "/trips?x=1", "/trips/new", "/trips/new?auth_event=signup_email", "/es/trips", "/it/trips/new"]) {
+      expect(returnsToPage(next)).toBe(false);
+    }
   });
 });

@@ -43,7 +43,7 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
   //
   // Both results are always used now that the zero-trip redirect is gone, so
   // there is no longer a discarded-query case to caveat.
-  const [tripsResult, profileResult] = await Promise.all([
+  const [tripsResult, profileResult, sharedResult] = await Promise.all([
     supabase
       .from("trips")
       .select("*")
@@ -55,9 +55,32 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
       .select("display_name, avatar_url, lifetime_referral_conversions")
       .eq("id", user.id)
       .single(),
+    // Trips someone invited this user to. Until 2026-09-25 they appeared
+    // nowhere here: after accepting an invite, the only way back to the trip
+    // was the original link or a notification.
+    supabase
+      .from("trip_collaborators")
+      .select("role, trips(id, title, start_date, end_date, cover_image_url, deleted_at)")
+      .eq("user_id", user.id)
+      .neq("role", "owner"),
   ]);
 
   const { data: trips } = tripsResult;
+  type SharedRow = {
+    role: string;
+    trips: { id: string; title: string; start_date: string; end_date: string; cover_image_url: string | null; deleted_at: string | null } | null;
+  };
+  const sharedTrips = ((sharedResult.data ?? []) as unknown as SharedRow[])
+    .filter((row) => row.trips && !row.trips.deleted_at)
+    .map((row) => ({
+      id: row.trips!.id,
+      title: row.trips!.title,
+      start_date: row.trips!.start_date,
+      end_date: row.trips!.end_date,
+      cover_image_url: row.trips!.cover_image_url ?? undefined,
+      role: row.role,
+    }))
+    .sort((a, b) => (b.start_date ?? "").localeCompare(a.start_date ?? ""));
 
   // NO auto-redirect for zero-trip users. This used to be
   // `if (!trips?.length) redirect("/trips/new")`, which made the browser Back
@@ -99,6 +122,7 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
   return (
     <TripsPageClient
       trips={trips || []}
+      sharedTrips={sharedTrips}
       displayName={displayName}
       lifetimeConversions={lifetimeConversions}
       blogPosts={blogPosts}

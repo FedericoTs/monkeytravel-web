@@ -10,6 +10,21 @@ import { captureServerEvent } from "@/lib/posthog/server";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 
 /**
+ * The source's trip_meta without what belongs to the source's owner and
+ * history: claimed_at / claimed_from mark a trip that began signed-out (read
+ * by get_anonymous_loop, so a copy would count as another claim), and
+ * packing_checked is what that owner already packed.
+ */
+function copyableTripMeta(meta: unknown): unknown {
+  if (!meta || typeof meta !== "object" || Array.isArray(meta)) return meta;
+  const { claimed_at, claimed_from, packing_checked, ...rest } = meta as Record<string, unknown>;
+  void claimed_at;
+  void claimed_from;
+  void packing_checked;
+  return rest;
+}
+
+/**
  * POST /api/trips/duplicate - Duplicate a shared trip to user's account
  *
  * This endpoint allows authenticated users to copy a shared trip to their own account.
@@ -28,7 +43,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { shareToken, startDate } = body;
 
-    if (!shareToken) {
+    if (!shareToken || typeof shareToken !== "string" || shareToken.length > 100) {
       return errors.badRequest("Share token is required");
     }
 
@@ -53,12 +68,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Fetch the source trip by share token
-    const { data: sourceTrip, error: fetchError } = await supabase
+    // Fetch the source trip by share token, with the service role, the way
+    // /shared/[token] itself reads it: holding the token IS the permission to
+    // open (and so to copy) the trip. The signed-in user's own client can't
+    // see it: since 20260901090000 RLS hides non-public trips from
+    // non-members, so "Save to My Trips" answered 404 for every trip shared
+    // by link, i.e. for exactly the people a share link reaches. Same filter
+    // as getSharedTrip in app/[locale]/shared/[token]/page.tsx: an exact
+    // token match and not deleted (the service role bypasses the policy that
+    // used to assert deleted_at). Not a trip moderation has hidden either: the
+    // user-client read refused those, and so does fork.
+    const { data: sourceTrip, error: fetchError } = await createAdminClient()
       .from("trips")
       .select("*")
       .eq("share_token", shareToken)
-      .single();
+      .is("deleted_at", null)
+      .not("is_hidden", "is", true)
+      .maybeSingle();
 
     if (fetchError || !sourceTrip) {
       return errors.notFound("Shared trip not found");
@@ -128,7 +154,7 @@ export async function POST(request: NextRequest) {
       // Same dates keep the source's activities as they are; stamp any missing
       // id so the copy is stored with ids like every new trip.
       itinerary: Array.isArray(adjustedItinerary) ? ensureActivityIds(adjustedItinerary as ItineraryDay[]) : adjustedItinerary,
-      trip_meta: sourceTrip.trip_meta,
+      trip_meta: copyableTripMeta(sourceTrip.trip_meta),
       packing_list: sourceTrip.packing_list,
       visibility: "private", // Duplicated trips are private
       share_token: null, // No share token for duplicates

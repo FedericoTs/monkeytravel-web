@@ -255,6 +255,11 @@
   },
   "shared": {
     "sharedTrip": "Viaggio Condiviso",
+    "backpackerRoute": "Itinerario zaino in spalla",
+    "estBudget": "Budget stimato",
+    "noItinerary": "Ancora nessun itinerario",
+    "noItineraryDesc": "Questo viaggio non ha ancora attività in programma.",
+    "footerTagline": "Organizzare viaggi con l'IA, in modo semplice",
     "sharedBy": "Condiviso da {name}",
     "voteInviteTitle": "Sei stato invitato a votare",
     "voteInviteBody": "Tocca 👍 o 👎 su qualsiasi attività per contribuire a definire questo viaggio.",
@@ -436,6 +441,8 @@
     "happeningNow": "In Corso",
     "upcoming": "In Arrivo",
     "pastAdventures": "Avventure Passate",
+    "sharedWithYou": "Condivisi con te",
+    "sharedWithYouHint": "Viaggi a cui ti hanno invitato",
     "yourTrips": "I Tuoi Viaggi",
     "manageItineraries": "Pianifica e gestisci i tuoi itinerari con AI",
     "planNewTrip": "Pianifica Viaggio",
@@ -1267,7 +1274,8 @@
       "roleUpdated": "Ruolo aggiornato a {role}",
       "roleUpdateFailed": "Impossibile aggiornare il ruolo",
       "memberRemoved": "Membro del team rimosso",
-      "memberRemoveFailed": "Impossibile rimuovere il membro"
+      "memberRemoveFailed": "Impossibile rimuovere il membro",
+      "linksReset": "I vecchi link di invito sono stati disattivati. Creane uno nuovo per chi deve ancora unirsi."
     },
     "afterSave": {
       "tripSaved": "Viaggio Salvato!",
@@ -1281,7 +1289,6 @@
       "publishOptInAnchored": "Questo viaggio contiene impegni che hai fissato, quindi resta privato a meno che tu non scelga di condividerlo.",
       "done": "Fatto",
       "maybeLater": "Forse Dopo",
-      "collaboratorStats": "I viaggi con collaboratori hanno 3 volte più attività pianificate",
       "copy": "Copia",
       "copied": "Copiato",
       "shareVia": "Condividi…",
@@ -1328,6 +1335,31 @@
       "title": "Questo è il tuo viaggio",
       "body": "L'hai condiviso senza un account. Registrati gratis e potrai modificarlo.",
       "cta": "Registrati per tenerlo"
+    },
+    "memberEdit": {
+      "note": "Stai vedendo quello che vede chi ha il link.",
+      "cta": "Modifica questo viaggio"
+    },
+    "inviteEmail": {
+      "sendTo": "Invia a (facoltativo)",
+      "leaveBlank": "Lascia vuoto per avere un link da condividere.",
+      "noteLabel": "Nota personale (facoltativa)",
+      "notePlaceholder": "Ciao! Mi aiuti a organizzarlo?",
+      "send": "Invia l'invito via email",
+      "outcomeSent": "✓ Email inviata. Riceverà una notifica.",
+      "outcomeNoKey": "L'invio delle email non è ancora attivo: per ora condividi tu questo link.",
+      "outcomeSuppressed": "Le email a quell'indirizzo sono già tornate indietro: condividi tu il link.",
+      "outcomeFailed": "Invio dell'email non riuscito: condividi tu il link.",
+      "toastSent": "Invito inviato a {email}",
+      "toastNoKey": "Link di invito pronto. L'invio delle email non è ancora attivo: condividilo tu.",
+      "toastSuppressed": "Link di invito pronto. Le email a quell'indirizzo sono già tornate indietro: condividilo tu.",
+      "toastFailed": "Invito creato, ma l'invio dell'email non è riuscito. Condividi tu il link."
+    },
+    "a11y": {
+      "whatsapp": "Condividi su WhatsApp",
+      "twitter": "Condividi su Twitter / X",
+      "email": "Condividi via email",
+      "close": "Chiudi la finestra di condivisione"
     },
     "framing": {
       "label": "Come si apre il link",

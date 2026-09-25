@@ -257,22 +257,13 @@ export default function ShareAndInviteModal({
         if (data.emailOutcome) {
           setEmailOutcome(data.emailOutcome);
           if (data.emailOutcome === "sent") {
-            addToast(`Invite emailed to ${trimmedEmail}`, "success");
+            addToast(ts("inviteEmail.toastSent", { email: trimmedEmail }), "success");
           } else if (data.emailOutcome === "skipped_no_key") {
-            addToast(
-              "Invite link ready — email delivery not yet enabled. Share manually.",
-              "info"
-            );
+            addToast(ts("inviteEmail.toastNoKey"), "info");
           } else if (data.emailOutcome === "skipped_suppressed") {
-            addToast(
-              "Invite link ready — that address previously bounced, share manually.",
-              "warning"
-            );
+            addToast(ts("inviteEmail.toastSuppressed"), "warning");
           } else if (data.emailOutcome === "failed") {
-            addToast(
-              "Invite created but email delivery failed. Share the link manually.",
-              "warning"
-            );
+            addToast(ts("inviteEmail.toastFailed"), "warning");
           } else {
             addToast(ts("toast.inviteCreated"), "success");
           }
@@ -325,6 +316,15 @@ export default function ShareAndInviteModal({
     }
   };
 
+  // Removing someone or lowering their role switches off the trip's open
+  // invite links on the server, so the link on screen no longer works: clear
+  // it and say so.
+  const noteInvitesReset = (count: number | undefined) => {
+    if (!count) return;
+    setInviteUrl(null);
+    addToast(ts("toast.linksReset"), "info");
+  };
+
   // Update collaborator role
   const handleRoleChange = async (userId: string, newRole: CollaboratorRole) => {
     try {
@@ -335,8 +335,10 @@ export default function ShareAndInviteModal({
       });
 
       if (response.ok) {
+        const data = (await response.json().catch(() => null)) as { invitesReset?: number } | null;
         await fetchCollaborators();
         addToast(ts("toast.roleUpdated", { role: newRole }), "success");
+        noteInvitesReset(data?.invitesReset);
       } else {
         addToast(ts("toast.roleUpdateFailed"), "error");
       }
@@ -354,8 +356,10 @@ export default function ShareAndInviteModal({
       });
 
       if (response.ok) {
+        const data = (await response.json().catch(() => null)) as { invitesReset?: number } | null;
         await fetchCollaborators();
         addToast(ts("toast.memberRemoved"), "success");
+        noteInvitesReset(data?.invitesReset);
       } else {
         addToast(ts("toast.memberRemoveFailed"), "error");
       }
@@ -532,8 +536,8 @@ export default function ShareAndInviteModal({
                       <div className="flex items-center gap-3">
                         <button
                           onClick={handleShareWhatsApp}
-                          aria-label="Share on WhatsApp"
-                          title="Share on WhatsApp"
+                          aria-label={ts("a11y.whatsapp")}
+                          title={ts("a11y.whatsapp")}
                           className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
                         >
                           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -542,8 +546,8 @@ export default function ShareAndInviteModal({
                         </button>
                         <button
                           onClick={handleShareTwitter}
-                          aria-label="Share on Twitter / X"
-                          title="Share on Twitter / X"
+                          aria-label={ts("a11y.twitter")}
+                          title={ts("a11y.twitter")}
                           className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
                         >
                           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -552,8 +556,8 @@ export default function ShareAndInviteModal({
                         </button>
                         <button
                           onClick={handleShareEmail}
-                          aria-label="Share via email"
-                          title="Share via email"
+                          aria-label={ts("a11y.email")}
+                          title={ts("a11y.email")}
                           className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
                         >
                           <Mail className="w-5 h-5" aria-hidden="true" />
@@ -649,7 +653,7 @@ export default function ShareAndInviteModal({
                       htmlFor="invite-email"
                       className="block text-sm font-medium text-slate-700 mb-1.5"
                     >
-                      Send to (optional)
+                      {ts("inviteEmail.sendTo")}
                     </label>
                     <div className="relative">
                       <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -665,7 +669,7 @@ export default function ShareAndInviteModal({
                       />
                     </div>
                     <p className="text-xs text-slate-500 mt-1">
-                      Leave blank for a shareable link.
+                      {ts("inviteEmail.leaveBlank")}
                     </p>
                   </div>
                   {emailRecipient.trim() && (
@@ -674,13 +678,13 @@ export default function ShareAndInviteModal({
                         htmlFor="invite-message"
                         className="block text-sm font-medium text-slate-700 mb-1.5"
                       >
-                        Personal note (optional)
+                        {ts("inviteEmail.noteLabel")}
                       </label>
                       <textarea
                         id="invite-message"
                         rows={3}
                         maxLength={500}
-                        placeholder="Hey! Want to help me plan this?"
+                        placeholder={ts("inviteEmail.notePlaceholder")}
                         value={emailMessage}
                         onChange={(e) => setEmailMessage(e.target.value)}
                         disabled={isGeneratingInvite}
@@ -711,7 +715,7 @@ export default function ShareAndInviteModal({
                     ) : emailRecipient.trim() ? (
                       <>
                         <Mail className="w-5 h-5" />
-                        Send invite email
+                        {ts("inviteEmail.send")}
                       </>
                     ) : (
                       <>
@@ -727,22 +731,22 @@ export default function ShareAndInviteModal({
                     </p>
                     {emailOutcome === "sent" && (
                       <p className="text-xs text-green-700 mb-3">
-                        ✓ Email delivered. They&apos;ll get a notification.
+                        {ts("inviteEmail.outcomeSent")}
                       </p>
                     )}
                     {emailOutcome === "skipped_no_key" && (
                       <p className="text-xs text-amber-700 mb-3">
-                        Email delivery isn&apos;t enabled yet — share this link manually for now.
+                        {ts("inviteEmail.outcomeNoKey")}
                       </p>
                     )}
                     {emailOutcome === "skipped_suppressed" && (
                       <p className="text-xs text-orange-700 mb-3">
-                        That address previously bounced — share the link manually.
+                        {ts("inviteEmail.outcomeSuppressed")}
                       </p>
                     )}
                     {emailOutcome === "failed" && (
                       <p className="text-xs text-red-700 mb-3">
-                        Email delivery failed — share the link manually.
+                        {ts("inviteEmail.outcomeFailed")}
                       </p>
                     )}
                     {!emailOutcome && <div className="mb-3" />}
@@ -891,8 +895,8 @@ export default function ShareAndInviteModal({
               accessible name. */}
           <button
             onClick={onClose}
-            aria-label="Close share dialog"
-            title="Close"
+            aria-label={ts("a11y.close")}
+            title={tb("close")}
             className="absolute top-4 right-4 z-10 text-slate-500 hover:text-slate-600 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

@@ -21,6 +21,8 @@ import {
   type AuthError,
 } from "@/lib/auth-errors";
 import { safeNextOrDefault } from "@/lib/security/safe-next";
+import { buildAuthCallbackUrl, splitLocalePrefix } from "@/lib/auth/callback-url";
+import { returnsToPage } from "@/lib/auth/first-login";
 import { safeGet, safeSet } from "@/lib/safe-storage";
 
 function SignupForm() {
@@ -47,6 +49,9 @@ function SignupForm() {
   // /auth/signup?redirect=https://evil.com would walk the user onto an
   // attacker clone immediately after the OAuth round-trip.
   const redirectUrl = safeNextOrDefault(searchParams.get("redirect"), "/trips/new");
+  // Signing up on the way to a page (an invite, a shared trip) comes back
+  // there; a plain signup lands in the wizard.
+  const hasDestination = returnsToPage(safeNextOrDefault(searchParams.get("redirect"), ""));
   const fromOnboarding = searchParams.get("from") === "onboarding";
 
   // Helper to get locale-prefixed URL for OAuth redirects
@@ -166,10 +171,15 @@ function SignupForm() {
         },
         // When a referral is present, forward it through the confirm-email
         // round-trip so the PKCE callback can attribute the signup server-side
-        // (validated). Only set for referred signups so the default redirect
-        // is untouched for everyone else.
-        ...(referralCode && {
-          emailRedirectTo: `${window.location.origin}/auth/callback?ref=${encodeURIComponent(referralCode)}&locale=${locale}`,
+        // (validated). A destination (an invite, a shared trip) travels the
+        // same way: until 2026-09-25 the confirmation link always ended in
+        // the wizard. Plain signups keep the default redirect.
+        ...((referralCode || hasDestination) && {
+          emailRedirectTo: (() => {
+            const cb = new URL(buildAuthCallbackUrl(window.location.origin, { next: redirectUrl, locale }));
+            if (referralCode) cb.searchParams.set("ref", referralCode);
+            return cb.toString();
+          })(),
         }),
       },
     });
@@ -325,7 +335,9 @@ function SignupForm() {
           /* non-blocking — the confirm-email path attaches via the callback */
         });
       }
-      router.push("/trips/new?auth_event=signup_email");
+      // This router adds the page's language itself; strip one already on the
+      // destination or it doubles (/it/it/..., a 404).
+      router.push(hasDestination ? splitLocalePrefix(redirectUrl).rest : "/trips/new?auth_event=signup_email");
       router.refresh();
     }
   };

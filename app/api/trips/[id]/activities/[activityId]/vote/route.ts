@@ -2,9 +2,10 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripActivityRouteContext } from "@/lib/api/route-context";
-import type { VoteType, ActivityVote } from "@/types";
+import type { VoteType, ActivityVote, ItineraryDay } from "@/types";
 import { enqueueNotification } from "@/lib/notifications/service";
 import { batchFetchUserProfiles } from "@/lib/api/batch-users";
+import { findActivityById } from "@/lib/utils/activity-id";
 
 /**
  * GET /api/trips/[id]/activities/[activityId]/vote
@@ -211,6 +212,22 @@ export async function POST(request: NextRequest, context: TripActivityRouteConte
         .eq("id", user.id)
         .maybeSingle();
       const voterName = voterProfile?.display_name || "A collaborator";
+      // The owner reads this label in the push and the email. It was the
+      // activity's id until 2026-09-25 ("👍 on \"act_…\""); now its name,
+      // falling back to the id only if the activity is gone.
+      let activityLabel = activityId;
+      try {
+        const { data: votedTrip } = await supabase
+          .from("trips")
+          .select("itinerary")
+          .eq("id", tripId)
+          .maybeSingle();
+        const itinerary = votedTrip?.itinerary;
+        const found = Array.isArray(itinerary) ? findActivityById(itinerary as ItineraryDay[], activityId) : null;
+        if (found?.activity?.name) activityLabel = found.activity.name;
+      } catch {
+        // Best-effort, like the notification itself.
+      }
       const voteLabel =
         voteType === "love"
           ? "loved"
@@ -225,10 +242,10 @@ export async function POST(request: NextRequest, context: TripActivityRouteConte
           type: "collab_vote",
           data: {
             message: `${voterName} ${voteLabel} an activity in your trip`,
-            href: `/trips/${tripId}/edit`,
+            href: `/trips/${tripId}`,
             trip_id: tripId,
             voter_name: voterName,
-            activity_label: activityId,
+            activity_label: activityLabel,
             vote_type: voteType === "love" ? "up" : "down",
           },
         },

@@ -15,6 +15,8 @@ import {
   type AuthError,
 } from "@/lib/auth-errors";
 import { safeNextOrDefault } from "@/lib/security/safe-next";
+import { returnsToPage } from "@/lib/auth/first-login";
+import { splitLocalePrefix } from "@/lib/auth/callback-url";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -37,6 +39,9 @@ function LoginForm() {
   // can't dress a phishing target as a monkeytravel.app login link.
   // See lib/security/safe-next.ts.
   const redirect = safeNextOrDefault(searchParams.get("redirect"), "/trips");
+  // Signing in on the way to a page (a trip, an invite, a shared trip) goes
+  // back there, skipping the first-visit detours below.
+  const hasDestination = returnsToPage(safeNextOrDefault(searchParams.get("redirect"), ""));
   const errorParam = searchParams.get("error");
   // /auth/callback now sends a stable code instead of prose. The most common
   // one by far is link_wrong_device_or_expired: a signup confirmation opened on
@@ -120,21 +125,27 @@ function LoginForm() {
             .eq("id", user.id);
         }
 
-        // New users need to see welcome page first (to enter beta code / join waitlist)
-        if (profile && !profile.welcome_completed) {
+        // New users need to see welcome page first (to enter beta code / join waitlist).
+        // /welcome is retired (it redirects to the wizard) but 93% of accounts
+        // still have welcome_completed = false, so until 2026-09-25 signing in
+        // from a trip, an invite or a shared trip dropped nearly everyone in
+        // the wizard and lost where they were going.
+        if (profile && !profile.welcome_completed && !hasDestination) {
           router.push("/welcome");
           router.refresh();
           return;
         }
 
         // Users who completed welcome but not onboarding
-        if (profile && !profile.onboarding_completed) {
+        if (profile && !profile.onboarding_completed && !hasDestination) {
           router.push(`/onboarding?redirect=${encodeURIComponent(redirect)}`);
           router.refresh();
           return;
         }
       }
-      router.push(redirect);
+      // This router adds the page's language itself: a redirect that already
+      // carries one (/it/trips/<id>) would become /it/it/..., a 404.
+      router.push(splitLocalePrefix(redirect).rest);
       router.refresh();
     }
   };
@@ -194,7 +205,7 @@ function LoginForm() {
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${redirect}&locale=${locale}`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}&locale=${locale}`,
       },
     });
 
@@ -226,7 +237,7 @@ function LoginForm() {
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "apple",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${redirect}&locale=${locale}`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(redirect)}&locale=${locale}`,
       },
     });
 

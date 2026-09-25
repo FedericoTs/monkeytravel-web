@@ -8,6 +8,7 @@ import TripDetailClient from "./TripDetailClient";
 import { computeTripDayState } from "@/lib/trip/live";
 import TripEngagementSection from "@/components/explore/TripEngagementSection";
 import { refreshTripItinerary } from "@/lib/places/refreshItineraryPhotos";
+import { publicNameOrNull } from "@/lib/profile/public-name";
 
 export async function generateMetadata(): Promise<Metadata> {
   // Title is intentionally generic — pulling the actual trip title here
@@ -31,86 +32,73 @@ export default async function TripDetailPage({
   const { id, locale } = await params;
   const supabase = await createClient();
 
-  // **2026-06-09 fix — recovery for Google organic traffic on /trips/[id].**
-  // Before this change, anon visitors arriving from Google on a /trips/[id]
-  // URL hit `redirect("/auth/login")` immediately, and authenticated
-  // non-owners hit `notFound()` after both owner + collaborator checks
-  // failed — even for published trips with valid share_tokens. Today's
-  // daily analysis caught 6 rageclicks on /trips/b7049d13 (Taipei Trip,
-  // 8 organic clicks/14d) — confused visitors hitting 404 from search
-  // results.
-  //
-  // Order of operations is now:
-  //   1. If the trip has a share_token (= published), redirect to the
-  //      public /shared/[token] surface — works for anon AND authed
-  //      non-owners. Same URL we send share-prompt traffic to anyway,
-  //      so the experience is consistent + canonical.
-  //   2. Only if NO share_token, require auth and run the original
-  //      owner/collaborator check.
-  //
-  // RLS permits the share_token lookup for anon (the SELECT policy has
-  // a `share_token IS NOT NULL` branch), so this works without a
-  // service-role escape hatch. The query is one row by primary key —
-  // microseconds, no measurable cost.
-  const { data: publishedTrip } = await supabase
-    .from("trips")
-    .select("share_token, visibility, is_hidden")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (publishedTrip?.share_token && !publishedTrip.is_hidden) {
-    // Preserve the locale prefix in the redirect so /it/trips/... sends
-    // the user to /it/shared/[token], not the en root. `locale === "en"`
-    // → no prefix (next-intl convention for the default locale).
-    const localePrefix = locale === "en" ? "" : `/${locale}`;
-    redirect(`${localePrefix}/shared/${publishedTrip.share_token}`);
-  }
+  // `locale === "en"` → no prefix (next-intl convention for the default locale).
+  const localePrefix = locale === "en" ? "" : `/${locale}`;
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/auth/login");
-  }
-
-  // First, try to fetch as owner
-  let { data: trip, error } = await supabase
-    .from("trips")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
-
+  // Members first: the owner and anyone invited ALWAYS get the editor here,
+  // whether or not the trip has a share link.
+  //
+  // Until 2026-09-25 the share-link redirect below ran before this check, for
+  // everyone: once a trip had a share_token (the "Share" button, the share
+  // prompt, publishing, a signed-out share that was later claimed), its owner
+  // and collaborators were sent to the read-only /shared view on every visit
+  // and could never edit it again — nor stop sharing, whose only button lives
+  // in this editor. 109 live trips were in that state.
+  const owned = user
+    ? await supabase.from("trips").select("*").eq("id", id).eq("user_id", user.id).maybeSingle()
+    : null;
+  let trip = owned?.data ?? null;
   let userRole: CollaboratorRole = "owner";
-  let isCollaborator = false;
 
-  // If not found as owner, check if user is a collaborator
-  if (error || !trip) {
+  if (user && !trip) {
     const { data: collaborator } = await supabase
       .from("trip_collaborators")
       .select("role, trips(*)")
       .eq("trip_id", id)
       .eq("user_id", user.id)
-      .single();
-
+      .maybeSingle();
     if (collaborator?.trips) {
       trip = collaborator.trips as typeof trip;
       userRole = collaborator.role as CollaboratorRole;
-      isCollaborator = true;
-      error = null;
     }
   }
 
-  if (error || !trip) {
+  if (!trip || !user) {
+    // **2026-06-09 — recovery for Google organic traffic on /trips/[id].**
+    // A visitor who is not a member of a trip that has a share link is sent
+    // to the /shared/[token] view (search traffic landed here and hit a login
+    // wall or a 404). RLS decides who can see the token: since 2026-09-01
+    // only members, and anyone for a PUBLIC trip, so a non-member only ever
+    // gets here for public trips. Never widen this with a service-role read:
+    // the token is the capability to open the trip.
+    const { data: publishedTrip } = await supabase
+      .from("trips")
+      .select("share_token, is_hidden")
+      .eq("id", id)
+      .maybeSingle();
+    if (publishedTrip?.share_token && !publishedTrip.is_hidden) {
+      redirect(`${localePrefix}/shared/${publishedTrip.share_token}`);
+    }
+    if (!user) {
+      // Back here after signing in (it used to land on /trips and lose the trip).
+      // The language goes on the login page and the destination stays
+      // unprefixed: the login page's router adds the language itself, so a
+      // prefixed redirect became /it/it/trips/<id>, a 404.
+      redirect(`${localePrefix}/auth/login?redirect=${encodeURIComponent(`/trips/${id}`)}`);
+    }
     notFound();
   }
 
-  // Fetch collaborator count for voting quorum
-  const { count: collaboratorCount } = await supabase
-    .from("trip_collaborators")
-    .select("*", { count: "exact", head: true })
-    .eq("trip_id", id);
+  // Collaborator count for voting quorum, and the viewer's public name (the
+  // byline if they publish), in one round trip.
+  const [{ count: collaboratorCount }, { data: viewerProfile }] = await Promise.all([
+    supabase.from("trip_collaborators").select("*", { count: "exact", head: true }).eq("trip_id", id),
+    supabase.from("users").select("display_name").eq("id", user.id).maybeSingle(),
+  ]);
 
   // Total voters = collaborators + owner
   const totalVoters = (collaboratorCount || 0) + 1;
@@ -145,10 +133,12 @@ export default async function TripDetailPage({
   // explore feature at all.
   const isOwnerView = userRole === "owner";
   const isPublic = trip.visibility === "public" && !trip.is_hidden;
+  // The profile's name (name-first since 2026-09-01), never the email's local
+  // part: this is the Explore byline the share prompt publishes with. It used
+  // to read the sign-in metadata, which has no display_name for Google
+  // accounts, and fall back to the email's local part (lib/profile/public-name.ts).
   const ownerName =
-    typeof user.user_metadata?.display_name === "string"
-      ? (user.user_metadata.display_name as string)
-      : (user.email?.split("@")[0] ?? undefined);
+    publicNameOrNull((viewerProfile as { display_name?: string | null } | null)?.display_name, user.email) ?? undefined;
 
   return (
     <TripDetailClient

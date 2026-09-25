@@ -8,6 +8,9 @@ import type { CollaboratorRole, TripInvite } from "@/types";
 import { dispatchEmail } from "@/lib/email/send";
 import { normalizeEmailLocale } from "@/lib/email/copy";
 
+/** Uses allowed on an open (no-recipient) invite link: enough for any travel group. */
+const DEFAULT_LINK_MAX_USES = 20;
+
 // RFC 5322 / WHATWG-compatible loose email regex. Strict-enough to reject
 // obvious typos ("not an email") without rejecting legitimate addresses
 // that look unusual (plus tags, subdomains, single-character TLDs, etc).
@@ -72,7 +75,12 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     const body = await request.json();
     const {
       role = "voter",
-      maxUses = 1,
+      // An open link goes to a group chat: it must let the whole group in.
+      // Until 2026-09-25 it defaulted to 1 and the UI never sent another
+      // value, so only the first person to tap "Invite link" could join and
+      // everyone else hit "Invite Already Used". Email invites stay
+      // single-use (below).
+      maxUses = DEFAULT_LINK_MAX_USES,
       expiresInDays = 3650, // ~10 years, effectively never expires
       recipientEmail,
       recipientLocale,
