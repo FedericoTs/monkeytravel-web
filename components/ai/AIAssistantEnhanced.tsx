@@ -11,6 +11,7 @@ import MatchConfirmationDialog, { type MatchOption } from "./MatchConfirmationDi
 import UndoToast, { useUndoState, type UndoState } from "./UndoToast";
 import { trackAIAssistantMessage } from "@/lib/analytics";
 import { captureAIAssistantUsed } from "@/lib/posthog/events";
+import { ItineraryWriteBlockedError } from "@/lib/trips/itinerary-sync";
 
 interface Message {
   role: "user" | "assistant";
@@ -46,8 +47,13 @@ interface AIAssistantEnhancedProps {
   isOpen: boolean;
   onClose: () => void;
   onAction?: (action: string, data?: Record<string, unknown>) => void;
-  onItineraryUpdate?: (newItinerary: ItineraryDay[]) => void;
   onRefetchTrip?: () => Promise<void>;
+  /**
+   * The trip page's itinerary save queue. Apply and undo run inside it so the
+   * page's pending edits are saved first and it can adopt the new version.
+   * Without it (other hosts), tasks just run.
+   */
+  runItineraryWrite?: <T>(task: () => Promise<T>) => Promise<T>;
   // APPLY → SEE loop: scroll + flash the affected day card in the itinerary
   // (transcripts: "I don't see the updates on the webpage"). Called after an
   // applied action refetches, and when the user taps the action badge.
@@ -170,10 +176,14 @@ export default function AIAssistantEnhanced({
   isOpen,
   onClose,
   onAction,
-  onItineraryUpdate,
   onRefetchTrip,
   onFocusDay,
+  runItineraryWrite,
 }: AIAssistantEnhancedProps) {
+  const run = useCallback(
+    <T,>(task: () => Promise<T>): Promise<T> => (runItineraryWrite ? runItineraryWrite(task) : task()),
+    [runItineraryWrite]
+  );
   const t = useTranslations("common.ai.assistant");
   const tCommon = useTranslations("common");
 
@@ -446,8 +456,9 @@ ${t("notAppliedBody")}`,
 
           if (verifiedApplied) {
             // Refetch trip data so the itinerary UI re-renders the change
+            // (in the page's save queue, like every itinerary write).
             if (onRefetchTrip) {
-              await onRefetchTrip();
+              await run(() => onRefetchTrip());
             }
             // APPLY → SEE: anchor the user on the day that changed.
             if (typeof data.message.action?.dayNumber === "number") {
@@ -494,6 +505,9 @@ ${t("notAppliedBody")}`,
     setIsApplyingChange(true);
 
     try {
+      // In the trip page's save queue: its pending edits are saved first, and
+      // the refetch below adopts the new itinerary with its version.
+      await run(async () => {
       // Save current state for undo
       const previousItinerary = JSON.parse(JSON.stringify(itinerary));
 
@@ -647,12 +661,13 @@ ${t("notAppliedBody")}`,
       // (transcripts: "I don't see it on the right"). For apply_draft this
       // is the FIRST changed day; for add_day the freshly appended one.
       onFocusDay?.(confirmedDayNumber);
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to apply change");
     } finally {
       setIsApplyingChange(false);
     }
-  }, [pendingChange, isApplyingChange, tripId, itinerary, pushUndo, onRefetchTrip, onFocusDay, conversationId]);
+  }, [pendingChange, isApplyingChange, tripId, itinerary, pushUndo, onRefetchTrip, onFocusDay, conversationId, run]);
 
   useEffect(() => {
     applyPendingRef.current = handleApplyChange;
@@ -702,26 +717,29 @@ ${t("notAppliedBody")}`,
     if (!currentUndo) return;
 
     try {
-      const res = await fetch("/api/ai/assistant/undo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tripId,
-          previousItinerary: currentUndo.previousItinerary,
-          // add_day undos also roll trips.end_date back (see /undo route)
-          previousEndDate: currentUndo.previousEndDate,
-        }),
+      // In the trip page's save queue, like apply.
+      await run(async () => {
+        const res = await fetch("/api/ai/assistant/undo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tripId,
+            previousItinerary: currentUndo.previousItinerary,
+            // add_day undos also roll trips.end_date back (see /undo route)
+            previousEndDate: currentUndo.previousEndDate,
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to undo");
+        }
+
+        // Clear undo and refetch
+        clearUndo();
+        if (onRefetchTrip) {
+          await onRefetchTrip();
+        }
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to undo");
-      }
-
-      // Clear undo and refetch
-      clearUndo();
-      if (onRefetchTrip) {
-        await onRefetchTrip();
-      }
 
       // Add confirmation message
       const undoMessage: Message = {
@@ -740,9 +758,9 @@ ${t("notAppliedBody")}`,
       };
       setMessages((prev) => [...prev, undoMessage]);
     } catch (err) {
-      setError("Failed to undo change");
+      setError(err instanceof ItineraryWriteBlockedError ? err.message : "Failed to undo change");
     }
-  }, [currentUndo, tripId, clearUndo, onRefetchTrip]);
+  }, [currentUndo, tripId, clearUndo, onRefetchTrip, run]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

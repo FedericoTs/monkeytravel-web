@@ -385,7 +385,9 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", tripId)
-      .select("id");
+      // itinerary_version: the concierge adopts this reply without a refetch,
+      // so it needs the version its new copy was written at.
+      .select("id, itinerary_version");
 
     if (updateError) {
       console.error("[AI Assistant Apply] Database update failed:", updateError);
@@ -437,6 +439,7 @@ export async function POST(request: NextRequest) {
     return apiSuccess({
       success: true,
       modifiedItinerary,
+      itineraryVersion: (written[0] as { itinerary_version?: number }).itinerary_version,
       // add_day / shift_days: the persisted trip window, so the client can report it.
       ...(newEndDate ? { newEndDate } : {}),
       ...(newStartDate ? { newStartDate } : {}),

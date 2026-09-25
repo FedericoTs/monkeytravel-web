@@ -168,6 +168,9 @@ export default async function TripDetailPage({
         coverImageUrl: trip.cover_image_url,
         cachedTravelDistances,
         cachedTravelHash,
+        // Read in the same SELECT as the itinerary above, so the two agree.
+        // The page seeds its save queue with it once (20260924125000).
+        itineraryVersion: typeof trip.itinerary_version === "number" ? trip.itinerary_version : null,
       }}
       dateRange={formatDateRange(trip.start_date, trip.end_date, locale)}
       liveState={computeTripDayState({

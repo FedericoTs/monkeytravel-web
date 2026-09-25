@@ -37,7 +37,7 @@ export async function POST(
       supabase,
       tripId,
       user.id,
-      "id, user_id, itinerary, title, trip_meta"
+      "id, user_id, itinerary, title, trip_meta, itinerary_version"
     );
     if (tripError) return tripError;
 
@@ -51,6 +51,7 @@ export async function POST(
         title: trip.title as string | null,
         itinerary: trip.itinerary,
         trip_meta: trip.trip_meta,
+        itinerary_version: trip.itinerary_version as number | null,
       },
       { maxPaidLookups: SAVE_TIME_PAID_LOOKUPS, respectCooldown: false }
     );

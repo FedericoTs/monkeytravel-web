@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import BaseModal from "@/components/ui/BaseModal";
 import { useToast } from "@/components/ui/Toast";
 import type { ParsedBooking } from "@/lib/email-parse/extract";
+import { ItineraryWriteBlockedError } from "@/lib/trips/itinerary-sync";
 
 /**
  * Minimum email body length we'll bother sending to Gemini. Anything
@@ -124,7 +125,9 @@ interface PasteBookingModalProps {
   /** Close handler. The modal calls this on cancel, success, and Esc. */
   onClose: () => void;
   /** Called after a successful add — parent can refetch the itinerary. */
-  onBookingAdded?: () => void;
+  onBookingAdded?: () => void | Promise<void>;
+  /** The trip page's itinerary save queue (see AIAssistantEnhanced). */
+  runItineraryWrite?: <T>(task: () => Promise<T>) => Promise<T>;
 }
 
 /**
@@ -151,6 +154,7 @@ export default function PasteBookingModal({
   isOpen,
   onClose,
   onBookingAdded,
+  runItineraryWrite,
 }: PasteBookingModalProps) {
   // Flag check first — keep the early return BEFORE any hooks that
   // would only matter when the modal is renderable. We still call the
@@ -167,6 +171,7 @@ export default function PasteBookingModal({
       isOpen={isOpen}
       onClose={onClose}
       onBookingAdded={onBookingAdded}
+      runItineraryWrite={runItineraryWrite}
     />
   );
 }
@@ -176,6 +181,7 @@ function PasteBookingModalInner({
   isOpen,
   onClose,
   onBookingAdded,
+  runItineraryWrite,
 }: PasteBookingModalProps) {
   const t = useTranslations("common.addFromEmail");
   const tButtons = useTranslations("common.buttons");
@@ -280,30 +286,37 @@ function PasteBookingModalInner({
     setErrorMessage(null);
     setIsConfirming(true);
     try {
-      // Server expects { parsed, day_id?, day_number?, time_slot? } —
-      // matches the `parsed` key used by the parse-confirmation response.
-      const res = await fetch(`/api/trips/${tripId}/activities/from-booking`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parsed: toParsed(preview) }),
+      // In the trip page's save queue: its pending edits are saved first, and
+      // the refetch in onBookingAdded adopts the new itinerary with its version.
+      const run = runItineraryWrite ?? (<T,>(task: () => Promise<T>) => task());
+      const added = await run(async () => {
+        // Server expects { parsed, day_id?, day_number?, time_slot? } —
+        // matches the `parsed` key used by the parse-confirmation response.
+        const res = await fetch(`/api/trips/${tripId}/activities/from-booking`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ parsed: toParsed(preview) }),
+        });
+        if (!res.ok) return false;
+        await onBookingAdded?.();
+        return true;
       });
 
-      if (!res.ok) {
+      if (!added) {
         setErrorMessage(t("errorParseFailed"));
         setIsConfirming(false);
         return;
       }
 
       addToast(t("toastAdded"), "success");
-      onBookingAdded?.();
       resetState();
       onClose();
     } catch (err) {
       console.error("[PasteBookingModal] Confirm failed:", err);
-      setErrorMessage(t("errorParseFailed"));
+      setErrorMessage(err instanceof ItineraryWriteBlockedError ? err.message : t("errorParseFailed"));
       setIsConfirming(false);
     }
-  }, [preview, tripId, addToast, t, onBookingAdded, onClose, resetState]);
+  }, [preview, tripId, addToast, t, onBookingAdded, onClose, resetState, runItineraryWrite]);
 
   return (
     <BaseModal
