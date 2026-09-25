@@ -81,5 +81,95 @@
     "saving": "Salvataggio...",
     "saved": "Modifiche salvate",
     "error": "Errore nel salvare le modifiche"
+  },
+  "notificationSettings": {
+    "metaTitle": "Preferenze di notifica",
+    "metaDescription": "Scegli quali email ti invia MonkeyTravel.",
+    "breadcrumbProfile": "Profilo",
+    "breadcrumbCurrent": "Notifiche",
+    "title": "Preferenze di notifica",
+    "intro": "Scegli quali email ti inviamo. Le notifiche nell'app (la campanella) non cambiano.",
+    "loading": "Caricamento delle preferenze…",
+    "badgeMaster": "Interruttore generale",
+    "badgeMarketing": "Marketing",
+    "toggles": {
+      "emailNotifications": {
+        "label": "Inviami email",
+        "description": "Spegnilo per non ricevere nessuna delle email qui sotto. Le email di accesso e gli inviti che qualcuno ti manda arrivano comunque."
+      },
+      "tripReminders": {
+        "label": "Promemoria di viaggio",
+        "description": "Promemoria quando un viaggio si avvicina e un'anteprima del giorno dopo mentre sei in viaggio."
+      },
+      "collabVotes": {
+        "label": "Voti sui miei viaggi",
+        "description": "Un'email quando qualcuno vota un'attività in uno dei tuoi viaggi."
+      },
+      "marketingNotifications": {
+        "label": "Novità e aggiornamenti",
+        "description": "Ogni tanto: le novità di MonkeyTravel, un messaggio dopo un viaggio o una richiesta di feedback."
+      }
+    },
+    "save": "Salva preferenze",
+    "saving": "Salvataggio…",
+    "saved": "Salvato",
+    "saveFailed": "Non siamo riusciti a salvare le preferenze. Riprova.",
+    "activity": {
+      "title": "Email recenti",
+      "intro": "Le ultime 20 email che abbiamo provato a inviarti. «Non inviata» vuol dire che non l'abbiamo mandata, per il motivo indicato.",
+      "empty": "Ancora nessuna email.",
+      "status": {
+        "sent": "Inviata",
+        "queued": "In coda",
+        "skipped_no_key": "Non inviata — le email non erano ancora attive",
+        "skipped_disabled": "Non inviata — preferenza disattivata",
+        "skipped_suppressed": "Non inviata — le email a questo indirizzo venivano respinte",
+        "skipped_duplicate": "Non inviata — doppione",
+        "failed": "Non riuscita",
+        "bounced": "Respinta",
+        "complained": "Segnalata come spam"
+      },
+      "template": {
+        "invite": "Invito a un viaggio",
+        "vote_cast": "Voto su un tuo viaggio",
+        "trip_reminder": "Promemoria di viaggio",
+        "trip_day_digest": "Programma del giorno dopo",
+        "trip_followup": "Dopo il viaggio",
+        "feedback_outreach": "Richiesta di feedback",
+        "share_fix_notice": "Aggiornamento sui viaggi condivisi",
+        "stranded_recovery": "Completa la registrazione",
+        "other": "Email"
+      }
+    }
+  },
+  "unsubscribe": {
+    "metaTitle": "Annulla iscrizione",
+    "metaDescription": "Smetti di ricevere un'email di MonkeyTravel.",
+    "what": {
+      "all": "le email di MonkeyTravel",
+      "tripReminders": "i promemoria di viaggio",
+      "collabVotes": "le notifiche sui voti",
+      "marketingNotifications": "le novità e gli aggiornamenti",
+      "collabProposals": "le email sulle attività proposte",
+      "collabComments": "le email sui commenti",
+      "inviteAccepted": "le email sugli inviti accettati",
+      "weeklyDigest": "il riepilogo settimanale",
+      "fallback": "queste email"
+    },
+    "confirmTitle": "Vuoi smettere di ricevere {what}?",
+    "confirmBody": "Conferma e non ti invieremo più {what}. Puoi cambiare idea quando vuoi dalle impostazioni delle notifiche.",
+    "confirm": "Conferma",
+    "confirming": "Annullamento in corso…",
+    "orSettings": "Oppure apri le <link>impostazioni delle notifiche</link> per scegliere esattamente cosa ricevere.",
+    "doneTitle": "Iscrizione annullata",
+    "doneBody": "Non ti invieremo più {what}. Scusa per il disturbo.",
+    "doneChangedMind": "Hai cambiato idea? Puoi riattivare tutto dalle <link>impostazioni delle notifiche</link>.",
+    "errorGeneric": "Non siamo riusciti ad aggiornare le preferenze. Riprova.",
+    "errorNetwork": "Errore di rete. Riprova.",
+    "expiredTitle": "Link scaduto",
+    "expiredBody": "Questo link per annullare l'iscrizione è scaduto. Puoi gestire tutte le preferenze qui:",
+    "invalidTitle": "Non riusciamo a verificare questo link",
+    "invalidBody": "Questo link per annullare l'iscrizione non sembra valido o è incompleto. Accedi per gestire direttamente le preferenze:",
+    "openSettings": "Apri le impostazioni delle notifiche"
   }
 }

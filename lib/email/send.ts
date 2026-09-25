@@ -161,7 +161,7 @@ interface DispatchOptions {
   }) => { ok: boolean; reason?: string };
 }
 
-const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null> = {
+export const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null> = {
   // Invites are transactional — no opt-out. The user being invited didn't
   // sign up for our notification settings UI; they should always get the
   // first invite.

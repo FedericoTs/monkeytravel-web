@@ -47,6 +47,22 @@ export type UnsubKey =
   // notification_settings.tripReminders key already populated at signup.
   | "tripReminders";
 
+/**
+ * Every UnsubKey, at runtime. A Record so that a key added to the type fails
+ * the type check until it is listed here, and then a test until the
+ * unsubscribe page has a phrase for it in every language.
+ */
+export const UNSUB_KEYS: Record<UnsubKey, true> = {
+  all: true,
+  collabVotes: true,
+  collabProposals: true,
+  collabComments: true,
+  inviteAccepted: true,
+  weeklyDigest: true,
+  marketingNotifications: true,
+  tripReminders: true,
+};
+
 interface UnsubPayload {
   u: string; // user_id
   k: UnsubKey;

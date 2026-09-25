@@ -81,5 +81,95 @@
     "saving": "Saving...",
     "saved": "Changes saved",
     "error": "Failed to save changes"
+  },
+  "notificationSettings": {
+    "metaTitle": "Notification preferences",
+    "metaDescription": "Choose which emails MonkeyTravel sends you.",
+    "breadcrumbProfile": "Profile",
+    "breadcrumbCurrent": "Notifications",
+    "title": "Notification preferences",
+    "intro": "Choose which emails we send you. Notifications inside the app (the bell) aren't affected.",
+    "loading": "Loading your preferences…",
+    "badgeMaster": "Master switch",
+    "badgeMarketing": "Marketing",
+    "toggles": {
+      "emailNotifications": {
+        "label": "Send me emails",
+        "description": "Turn off to stop all the emails below. Sign-in emails and invitations someone sends you still arrive."
+      },
+      "tripReminders": {
+        "label": "Trip reminders",
+        "description": "Reminders as a trip gets close, and a heads-up about the next day while you're travelling."
+      },
+      "collabVotes": {
+        "label": "Votes on my trips",
+        "description": "An email when someone votes on an activity in one of your trips."
+      },
+      "marketingNotifications": {
+        "label": "News and updates",
+        "description": "Now and then: what's new on MonkeyTravel, a note after a trip, or a request for feedback."
+      }
+    },
+    "save": "Save preferences",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "saveFailed": "Couldn't save your preferences. Please try again.",
+    "activity": {
+      "title": "Recent email activity",
+      "intro": "The last 20 emails we tried to send you. \"Skipped\" means we didn't send it, for the reason shown.",
+      "empty": "No emails yet.",
+      "status": {
+        "sent": "Sent",
+        "queued": "Queued",
+        "skipped_no_key": "Skipped — email wasn't set up yet",
+        "skipped_disabled": "Skipped — preference off",
+        "skipped_suppressed": "Skipped — emails to this address bounced",
+        "skipped_duplicate": "Skipped — duplicate",
+        "failed": "Failed",
+        "bounced": "Bounced",
+        "complained": "Marked as spam"
+      },
+      "template": {
+        "invite": "Trip invitation",
+        "vote_cast": "Vote on your trip",
+        "trip_reminder": "Trip reminder",
+        "trip_day_digest": "Next day of your trip",
+        "trip_followup": "After your trip",
+        "feedback_outreach": "Feedback request",
+        "share_fix_notice": "Shared trips update",
+        "stranded_recovery": "Finishing your sign-up",
+        "other": "Email"
+      }
+    }
+  },
+  "unsubscribe": {
+    "metaTitle": "Unsubscribe",
+    "metaDescription": "Stop an email from MonkeyTravel.",
+    "what": {
+      "all": "emails from MonkeyTravel",
+      "tripReminders": "trip reminders",
+      "collabVotes": "vote notifications",
+      "marketingNotifications": "news and updates",
+      "collabProposals": "activity proposal emails",
+      "collabComments": "comment emails",
+      "inviteAccepted": "invite-accepted emails",
+      "weeklyDigest": "the weekly digest",
+      "fallback": "these emails"
+    },
+    "confirmTitle": "Stop receiving {what}?",
+    "confirmBody": "Confirm and we'll stop sending you {what}. You can change your mind any time in your notification settings.",
+    "confirm": "Confirm",
+    "confirming": "Unsubscribing…",
+    "orSettings": "Or open your <link>notification settings</link> to choose exactly what you get.",
+    "doneTitle": "You're unsubscribed",
+    "doneBody": "We'll stop sending you {what}. Sorry for the noise.",
+    "doneChangedMind": "Changed your mind? You can switch it back on in <link>notification settings</link>.",
+    "errorGeneric": "We couldn't update your preferences. Please try again.",
+    "errorNetwork": "Network error. Please try again.",
+    "expiredTitle": "Link expired",
+    "expiredBody": "This unsubscribe link has expired. You can manage all your preferences here:",
+    "invalidTitle": "Couldn't verify this link",
+    "invalidBody": "This unsubscribe link looks invalid or incomplete. Sign in to manage your preferences directly:",
+    "openSettings": "Open notification settings"
   }
 }

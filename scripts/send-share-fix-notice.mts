@@ -12,11 +12,12 @@
  * bounce/complaint list, and idempotency — one send per user, ever. Re-running
  * only reaches the owners not sent yet. Every attempt lands in email_log.
  *
- * Resend's free plan caps transactional mail at 100 a day (UTC calendar day),
- * shared with invites, votes and reminders: --limit keeps a batch inside it.
+ * DONE 2026-09-25: sent to 83 owners (50 at 16:10 UTC, 33 at 19:40 UTC), all
+ * delivered. Sending is now closed, because the audience is computed at run
+ * time: every re-run would email whoever has shared a trip since, about a
+ * bug they never had. The dry run still works, as a record.
  *
  *   npx tsx scripts/send-share-fix-notice.mts                    # dry run
- *   npx tsx scripts/send-share-fix-notice.mts --send --limit 50  # send
  */
 
 import fs from "node:fs";
@@ -109,9 +110,15 @@ async function recipients(db: any, normalizeEmailLocale: (v: unknown) => Locale)
 
 async function main() {
   const send = process.argv.includes("--send");
+  if (send) {
+    console.error(
+      `${CAMPAIGN} is complete: 83 owners, all delivered on 2026-09-25. Sending is closed; ` +
+        "a re-run would email people who shared a trip after the fix. Run without --send for the dry run.",
+    );
+    process.exit(1);
+  }
   const limitArg = process.argv.indexOf("--limit");
   const limit = limitArg > -1 ? Number(process.argv[limitArg + 1]) : Infinity;
-  if (send && !(limit > 0)) throw new Error("--send needs --limit N (the Resend daily cap is shared with the app's own mail)");
 
   const supabase: any = await import("@supabase/supabase-js");
   const createClient = supabase.createClient ?? supabase.default?.createClient;

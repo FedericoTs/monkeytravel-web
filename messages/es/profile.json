@@ -81,5 +81,95 @@
     "saving": "Guardando...",
     "saved": "Cambios guardados",
     "error": "Error al guardar los cambios"
+  },
+  "notificationSettings": {
+    "metaTitle": "Preferencias de notificaciones",
+    "metaDescription": "Elige qué correos te envía MonkeyTravel.",
+    "breadcrumbProfile": "Perfil",
+    "breadcrumbCurrent": "Notificaciones",
+    "title": "Preferencias de notificaciones",
+    "intro": "Elige qué correos te enviamos. Las notificaciones dentro de la app (la campana) no cambian.",
+    "loading": "Cargando tus preferencias…",
+    "badgeMaster": "Interruptor general",
+    "badgeMarketing": "Marketing",
+    "toggles": {
+      "emailNotifications": {
+        "label": "Enviarme correos",
+        "description": "Desactívalo para dejar de recibir todos los correos de abajo. Los correos de inicio de sesión y las invitaciones que alguien te envíe siguen llegando."
+      },
+      "tripReminders": {
+        "label": "Recordatorios de viaje",
+        "description": "Recordatorios cuando se acerca un viaje y un aviso sobre el día siguiente mientras viajas."
+      },
+      "collabVotes": {
+        "label": "Votos en mis viajes",
+        "description": "Un correo cuando alguien vota una actividad de uno de tus viajes."
+      },
+      "marketingNotifications": {
+        "label": "Novedades y actualizaciones",
+        "description": "De vez en cuando: novedades de MonkeyTravel, un mensaje después de un viaje o una petición de opinión."
+      }
+    },
+    "save": "Guardar preferencias",
+    "saving": "Guardando…",
+    "saved": "Guardado",
+    "saveFailed": "No pudimos guardar tus preferencias. Inténtalo de nuevo.",
+    "activity": {
+      "title": "Correos recientes",
+      "intro": "Los últimos 20 correos que intentamos enviarte. «No enviado» significa que no lo enviamos, por el motivo indicado.",
+      "empty": "Todavía no hay correos.",
+      "status": {
+        "sent": "Enviado",
+        "queued": "En cola",
+        "skipped_no_key": "No enviado — el correo aún no estaba activado",
+        "skipped_disabled": "No enviado — preferencia desactivada",
+        "skipped_suppressed": "No enviado — los correos a esta dirección rebotaban",
+        "skipped_duplicate": "No enviado — duplicado",
+        "failed": "Error",
+        "bounced": "Rebotado",
+        "complained": "Marcado como spam"
+      },
+      "template": {
+        "invite": "Invitación a un viaje",
+        "vote_cast": "Voto en tu viaje",
+        "trip_reminder": "Recordatorio de viaje",
+        "trip_day_digest": "Plan del día siguiente",
+        "trip_followup": "Después de tu viaje",
+        "feedback_outreach": "Petición de opinión",
+        "share_fix_notice": "Novedad sobre viajes compartidos",
+        "stranded_recovery": "Completa tu registro",
+        "other": "Correo"
+      }
+    }
+  },
+  "unsubscribe": {
+    "metaTitle": "Darse de baja",
+    "metaDescription": "Deja de recibir un correo de MonkeyTravel.",
+    "what": {
+      "all": "los correos de MonkeyTravel",
+      "tripReminders": "los recordatorios de viaje",
+      "collabVotes": "las notificaciones de votos",
+      "marketingNotifications": "las novedades y actualizaciones",
+      "collabProposals": "los correos sobre actividades propuestas",
+      "collabComments": "los correos sobre comentarios",
+      "inviteAccepted": "los correos sobre invitaciones aceptadas",
+      "weeklyDigest": "el resumen semanal",
+      "fallback": "estos correos"
+    },
+    "confirmTitle": "¿Dejar de recibir {what}?",
+    "confirmBody": "Confirma y dejaremos de enviarte {what}. Puedes cambiar de opinión cuando quieras en la configuración de notificaciones.",
+    "confirm": "Confirmar",
+    "confirming": "Dándote de baja…",
+    "orSettings": "O abre la <link>configuración de notificaciones</link> para elegir exactamente qué recibes.",
+    "doneTitle": "Te has dado de baja",
+    "doneBody": "Dejaremos de enviarte {what}. Perdona las molestias.",
+    "doneChangedMind": "¿Cambiaste de opinión? Puedes volver a activarlo en la <link>configuración de notificaciones</link>.",
+    "errorGeneric": "No pudimos actualizar tus preferencias. Inténtalo de nuevo.",
+    "errorNetwork": "Error de red. Inténtalo de nuevo.",
+    "expiredTitle": "Enlace caducado",
+    "expiredBody": "Este enlace para darte de baja ha caducado. Puedes gestionar todas tus preferencias aquí:",
+    "invalidTitle": "No pudimos verificar este enlace",
+    "invalidBody": "Este enlace para darte de baja no parece válido o está incompleto. Inicia sesión para gestionar tus preferencias directamente:",
+    "openSettings": "Abrir la configuración de notificaciones"
   }
 }
