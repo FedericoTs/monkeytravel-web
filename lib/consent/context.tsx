@@ -89,7 +89,6 @@ export function ConsentProvider({ children, userId }: ConsentProviderProps) {
   const [consent, setConsent] = useState<ConsentState>(DEFAULT_CONSENT_STATE);
   const [hasConsented, setHasConsented] = useState(false);
   const [bannerStatus, setBannerStatus] = useState<ConsentBannerStatus>("hidden");
-  const [isInitialized, setIsInitialized] = useState(false);
 
   // Load consent on mount
   useEffect(() => {
@@ -137,7 +136,6 @@ export function ConsentProvider({ children, userId }: ConsentProviderProps) {
         cleanups.push(() => clearTimeout(t));
       }
 
-      setIsInitialized(true);
     }
 
     const cleanups: Array<() => void> = [];
@@ -256,12 +254,12 @@ export function ConsentProvider({ children, userId }: ConsentProviderProps) {
     resetConsent,
   };
 
-  // Don't render children until consent is initialized
-  // This prevents flash of analytics before consent check
-  if (!isInitialized) {
-    return <>{children}</>;
-  }
-
+  // Always the same element. This used to return <>{children}</> until the
+  // stored consent had loaded and the Provider after: the tree changed shape on
+  // every page load, so React unmounted and remounted the whole page below it
+  // (all local state lost, every mount effect run again). Until loading
+  // finishes the state is the conservative default (nothing consented, banner
+  // hidden), so there is still no analytics flash and no banner flash.
   return (
     <ConsentContext.Provider value={value}>{children}</ConsentContext.Provider>
   );
