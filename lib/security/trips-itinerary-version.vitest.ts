@@ -100,6 +100,19 @@ describe("the save paths use it", () => {
     }
   });
 
+  it("no phantom first-render edit: both copies come from ONE ensureActivityIds call", () => {
+    const page = read("app/[locale]/trips/[id]/TripDetailClient.tsx");
+    // ensureActivityIds mints random ids: two calls made the page look edited.
+    expect(page).toContain("const [initialItinerary] = useState(() => ensureActivityIds(trip.itinerary));");
+    expect(page).not.toMatch(/useState<ItineraryDay\[\]>\(\(\) =>\s*ensureActivityIds\(trip\.itinerary\)/);
+  });
+
+  it("only real editing blocks a server write, and a view-only regenerate shows the stored copy", () => {
+    const page = read("app/[locale]/trips/[id]/TripDetailClient.tsx");
+    expect(page).toContain("(!ambientEditRef.current && isEditModeRef.current && hasChangesRef.current)");
+    expect(page).toContain("await refetchTripRef.current?.();");
+  });
+
   it("a page restored from the router cache catches up instead of 409ing on its own saves", () => {
     const page = read("app/[locale]/trips/[id]/TripDetailClient.tsx");
     expect(page).toContain("if (known !== null && propsVersion !== null && known > propsVersion) router.refresh();");

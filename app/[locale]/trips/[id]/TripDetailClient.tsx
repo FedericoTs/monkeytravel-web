@@ -484,13 +484,17 @@ export default function TripDetailClient({
   const [isEditMode, setIsEditMode] = useState(false);
   // Today mode (Phase 3.2) shows only outside the editor, on a live trip.
   const showToday = dayState.isLive && todayMode && !isEditMode;
+  // One ensureActivityIds call for both copies: activities stored without an
+  // id get a random one here, and two separate calls minted DIFFERENT ids, so
+  // the page looked edited on its first render (a phantom autosave, and on a
+  // router-cache restore a false conflict). Minted ids are now persisted
+  // explicitly (see the effect after ambientEdit).
+  const [initialItinerary] = useState(() => ensureActivityIds(trip.itinerary));
   const [editedItinerary, setEditedItinerary] = useState<ItineraryDay[]>(() =>
-    ensureActivityIds(trip.itinerary)
+    JSON.parse(JSON.stringify(initialItinerary))
   );
   // Track the last saved state (so we can detect changes and revert without page reload)
-  const [savedItinerary, setSavedItinerary] = useState<ItineraryDay[]>(() =>
-    ensureActivityIds(trip.itinerary)
-  );
+  const [savedItinerary, setSavedItinerary] = useState<ItineraryDay[]>(initialItinerary);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -588,7 +592,13 @@ export default function TripDetailClient({
   useEffect(() => {
     hasChangesRef.current = hasChanges;
   }, [hasChanges]);
+  const isEditModeRef = useRef(isEditMode);
+  useEffect(() => {
+    isEditModeRef.current = isEditMode;
+  }, [isEditMode]);
   const ambientEditRef = useRef(false);
+  // handleRefetchTrip is declared further down; callbacks above reach it here.
+  const refetchTripRef = useRef<(() => Promise<void>) | null>(null);
 
   // A save landed: the payload is the saved copy at `version` (null from an
   // older server). Replies arrive in queue order, so an older version can only
@@ -661,15 +671,21 @@ export default function TripDetailClient({
       setItineraryWritesInFlight((n) => n + 1);
       return sync
         .enqueue(async () => {
-          // One more try for an autosave that failed: this write needs it saved.
-          if (!options?.keepsLocalEdits) lastFailedSaveRef.current = null;
+          // One more try for an autosave that failed: this write starts from
+          // the stored copy (and a retry adopts a save whose reply was lost).
+          lastFailedSaveRef.current = null;
           await sendPendingInline();
           // Edits held by a conflict: the write and the refetch after it would
           // silently replace them and dismiss the choice. The user picks first.
           if (conflictRef.current) throw new ItineraryWriteBlockedError(t("detail.writeBlockedConflict"));
           // Still unsaved: the autosave failed, or is being re-built on a copy
-          // that just changed, or an explicit-Save editor has not saved yet.
-          if (!options?.keepsLocalEdits && (pendingSaveRef.current || (!ambientEditRef.current && hasChangesRef.current))) {
+          // that just changed, or an editor in edit mode has not saved yet.
+          // (Only real editing counts: outside edit mode there is nothing the
+          // person could save, so it must never block.)
+          const unsavedEdit =
+            pendingSaveRef.current !== null ||
+            (!ambientEditRef.current && isEditModeRef.current && hasChangesRef.current);
+          if (!options?.keepsLocalEdits && unsavedEdit) {
             throw new ItineraryWriteBlockedError(t("detail.writeBlockedUnsaved"));
           }
           return task();
@@ -913,6 +929,36 @@ export default function TripDetailClient({
   useEffect(() => {
     ambientEditRef.current = ambientEdit;
   }, [ambientEdit]);
+  // Activities stored without an id got one on this load (initialItinerary).
+  // Solo owners store them once, as the phantom first-render autosave used
+  // to: photos, crew asks and votes refer to activities by id. Not on a page
+  // restored from the router cache, whose fresh copy (ids included) is coming.
+  useEffect(() => {
+    if (!ambientEdit || propsVersion === null) return;
+    const known = latestKnownVersion(trip.id);
+    if (known !== null && known > propsVersion) return;
+    const payload = JSON.stringify(initialItinerary);
+    if (payload === JSON.stringify(trip.itinerary)) return; // nothing minted
+    const base = sync.baseVersion();
+    void sync.enqueue(async () => {
+      if (sync.baseVersion() !== base || conflictRef.current) return;
+      const result = await sync.send(payload, base);
+      if (result.kind === "saved") {
+        adoptSaved(payload, result.version);
+      } else if (result.kind === "conflict" && !pendingSaveRef.current && !hasChangesRef.current) {
+        // Changed since this page loaded, and nothing is edited here yet: no
+        // choice to make, take the stored copy.
+        const fresh = ensureActivityIds(result.server.itinerary);
+        sync.reset(result.server.version);
+        setSavedItinerary(fresh);
+        setEditedItinerary(JSON.parse(JSON.stringify(fresh)));
+        clearHistory();
+        setRenderEpoch((v) => v + 1);
+      }
+    });
+    // Mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Affordances/rendering are "on" whenever we're ambient OR the legacy mode
   // is toggled (collaborative trips still use isEditMode).
   const editingActive = ambientEdit || isEditMode;
@@ -1366,6 +1412,18 @@ export default function TripDetailClient({
               pendingSaveRef.current = JSON.stringify(splice(JSON.parse(pendingSaveRef.current) as ItineraryDay[]));
               pendingEpochRef.current = sync.epoch();
             }
+          } else if (!ambientEditRef.current && !isEditModeRef.current) {
+            // Someone else wrote first and this page is only viewing, with no
+            // edits of its own: show the stored copy (the new day, and what
+            // changed since the page loaded) instead of a hidden local splice.
+            await refetchTripRef.current?.();
+            return;
+          } else {
+            // Kept on top of this page's own edits; the next save carries the
+            // older base and gets the conflict choice. Marked now, before
+            // React renders, so a queued adoption of newer props does not
+            // replace it.
+            hasChangesRef.current = true;
           }
           setEditedItinerary(splice);
         }, { keepsLocalEdits: true });
@@ -1401,7 +1459,10 @@ export default function TripDetailClient({
         if (result.kind === "failed") throw new Error(`Failed to save changes (${result.status ?? "network"})`);
 
         adoptSaved(payload, result.version);
-        // Exit edit mode on success
+        // Exit edit mode on success. The ref now too: a write queued behind
+        // this save runs before React re-renders and must not see "editing
+        // with unsaved changes" from the render before.
+        isEditModeRef.current = false;
         setIsEditMode(false);
         // Instrument a completed manual edit — the head-to-head counterpart to
         // ai_assistant_used, so we can compare who edits via the drag-and-drop
@@ -1890,6 +1951,9 @@ export default function TripDetailClient({
       throw error;
     }
   }, [trip.id, editedItinerary, sync, setConflict, clearHistory]);
+  useEffect(() => {
+    refetchTripRef.current = handleRefetchTrip;
+  }, [handleRefetchTrip]);
 
   // APPLY → SEE loop (transcripts: "I don't see the updates on the webpage" /
   // "where to see the updated version?"): after the AI assistant applies a
