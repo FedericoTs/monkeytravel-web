@@ -47,6 +47,12 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { resolveAssistantRole, ASSISTANT_FORBIDDEN_MESSAGE } from "@/lib/ai/assistant-access";
 import { destinationCityTerm } from "@/lib/api/postgrest-filter";
 import { formatMinutesToTime } from "@/lib/datetime/format";
+import { withDayTarget } from "@/lib/ai/assistant/day-target";
+import {
+  claimsItineraryChange,
+  nothingChangedReply,
+  pendingChangeReply,
+} from "@/lib/ai/assistant/honesty";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -102,6 +108,12 @@ function getLanguageInstruction(language: SupportedLanguage): string {
 interface AssistantMessage {
   role: "user" | "assistant";
   content: string;
+  /**
+   * The model's reply claimed a change that was not saved, and the honesty
+   * guard replaced it (lib/ai/assistant/honesty.ts). Kept so the rate can be
+   * read back from ai_conversations.
+   */
+  guarded?: boolean;
   cards?: AssistantCard[];
   action?: {
     type: string;
@@ -173,8 +185,14 @@ function parseDuration(text: string): number | null {
   return totalMinutes > 0 ? Math.round(totalMinutes) : null;
 }
 
-// Detect if user wants to replace/add an activity
-function detectActionIntent(message: string): {
+// Detect if user wants to replace/add an activity. The day comes from
+// anywhere in the message, and "day N" / pronouns are taken out of the name
+// (lib/ai/assistant/day-target.ts).
+function detectActionIntent(message: string): ReturnType<typeof detectActionIntentRaw> {
+  return withDayTarget(detectActionIntentRaw(message), message);
+}
+
+function detectActionIntentRaw(message: string): {
   type: "replace" | "add" | "remove" | "adjust_duration" | "reorder" | "none";
   activityName?: string;
   dayNumber?: number;
@@ -369,7 +387,9 @@ function detectActionIntent(message: string): {
 // Find activity by name (improved fuzzy match)
 function findActivityByName(
   itinerary: ItineraryDay[],
-  searchName: string
+  searchName: string,
+  /** Search only this day when the user named one. */
+  dayNumber?: number
 ): { activity: Activity; dayIndex: number; activityIndex: number } | null {
   const lowerSearch = searchName.toLowerCase().trim();
 
@@ -386,6 +406,7 @@ function findActivityByName(
 
   for (let dayIdx = 0; dayIdx < itinerary.length; dayIdx++) {
     const day = itinerary[dayIdx];
+    if (dayNumber !== undefined && (day.day_number ?? dayIdx + 1) !== dayNumber) continue;
     for (let actIdx = 0; actIdx < day.activities.length; actIdx++) {
       const activity = day.activities[actIdx];
       const activityName = activity.name.toLowerCase();
@@ -1117,7 +1138,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Deep clone the itinerary to avoid reference issues
-    let modifiedItinerary: ItineraryDay[] = JSON.parse(JSON.stringify(itinerary));
+    const modifiedItinerary: ItineraryDay[] = JSON.parse(JSON.stringify(itinerary));
     let actionTaken: StructuredAssistantResponse["action"] | undefined;
     let replacementCard: AssistantCard | undefined;
     let replacementError: string | undefined;
@@ -1127,7 +1148,7 @@ export async function POST(request: NextRequest) {
     if (actionIntent.type === "replace" && actionIntent.activityName) {
       console.log(`[AI Assistant] Attempting to replace activity: "${actionIntent.activityName}"`);
 
-      const found = findActivityByName(itinerary, actionIntent.activityName);
+      const found = findActivityByName(itinerary, actionIntent.activityName, actionIntent.dayNumber);
 
       if (found && isLockedActivity(found.activity)) {
         // F1 anchors are user-owned. The panel promises "they never move", so
@@ -1220,15 +1241,23 @@ export async function POST(request: NextRequest) {
         }
       } else {
         console.log(`[AI Assistant] Could not find activity matching "${actionIntent.activityName}"`);
-        replacementError = `Could not find an activity matching "${actionIntent.activityName}" in your itinerary`;
+        replacementError = `Could not find an activity matching "${actionIntent.activityName}" ${actionIntent.dayNumber ? `on Day ${actionIntent.dayNumber}` : "in your itinerary"}`;
       }
+    }
+
+    // A removal with no activity to match ("delete it day 5", "clear day 5"):
+    // ask, rather than hand the fuzzy matcher a pronoun.
+    if (actionIntent.type === "remove" && !actionIntent.activityName) {
+      replacementError = actionIntent.dayNumber
+        ? `I can't clear a whole day at once. Tell me which activity on Day ${actionIntent.dayNumber} to remove, and I'll take it off.`
+        : "Tell me which activity to remove, and on which day.";
     }
 
     // Handle autonomous activity ADD
     // Handle activity removal
     if (actionIntent.type === "remove" && actionIntent.activityName) {
       console.log(`[AI Assistant] Attempting to remove activity: "${actionIntent.activityName}"`);
-      const found = findActivityByName(itinerary, actionIntent.activityName);
+      const found = findActivityByName(itinerary, actionIntent.activityName, actionIntent.dayNumber);
 
       if (found && isLockedActivity(found.activity)) {
         replacementError = `"${found.activity.name}" is a fixed plan, so I won't remove it. If it really changed, edit it in the trip's fixed plans first.`;
@@ -1271,7 +1300,7 @@ export async function POST(request: NextRequest) {
           }
         }
       } else {
-        replacementError = `Could not find an activity matching "${actionIntent.activityName}" in your itinerary`;
+        replacementError = `Could not find an activity matching "${actionIntent.activityName}" ${actionIntent.dayNumber ? `on Day ${actionIntent.dayNumber}` : "in your itinerary"}`;
       }
     }
 
@@ -1279,14 +1308,18 @@ export async function POST(request: NextRequest) {
       console.log(`[AI Assistant] Attempting to add activity: "${actionIntent.preference}"`);
 
       try {
-        // Determine which day to add to (default to day 1 if not specified)
-        const targetDayNumber = actionIntent.dayNumber || 1;
-        const targetDayIndex = Math.min(targetDayNumber - 1, modifiedItinerary.length - 1);
-        const targetDay = modifiedItinerary[targetDayIndex];
+        // The day the user named. It used to default to Day 1, which is how a
+        // Day 5 cruise-port stop landed on Day 1 (2026-09-20); a one-day trip
+        // is the only case where there is nothing to ask.
+        const targetDayNumber = actionIntent.dayNumber ?? (modifiedItinerary.length === 1 ? 1 : undefined);
+        const targetDayIndex = targetDayNumber === undefined ? -1 : targetDayNumber - 1;
+        const targetDay = targetDayIndex >= 0 ? modifiedItinerary[targetDayIndex] : undefined;
 
-        if (!targetDay) {
+        if (targetDayNumber === undefined) {
+          replacementError = `Which day should it go on? This trip has ${modifiedItinerary.length} days. Say, for example, "add it to day 3".`;
+        } else if (!targetDay) {
           console.error(`[AI Assistant] Day ${targetDayNumber} not found in itinerary`);
-          replacementError = `Day ${targetDayNumber} not found in your itinerary`;
+          replacementError = `There is no Day ${targetDayNumber}: this trip has ${modifiedItinerary.length} days.`;
         } else {
           // Determine time slot based on existing activities
           const existingSlots = new Set(targetDay.activities.map(a => a.time_slot));
@@ -1407,7 +1440,7 @@ export async function POST(request: NextRequest) {
     if (actionIntent.type === "adjust_duration" && actionIntent.activityName) {
       console.log(`[AI Assistant] Attempting to adjust duration for: "${actionIntent.activityName}"`);
 
-      const found = findActivityByName(itinerary, actionIntent.activityName);
+      const found = findActivityByName(itinerary, actionIntent.activityName, actionIntent.dayNumber);
 
       if (found && isLockedActivity(found.activity)) {
         // A wedding doesn't become 30 minutes shorter because the AI said so.
@@ -1488,7 +1521,7 @@ export async function POST(request: NextRequest) {
           }
         }
       } else {
-        replacementError = `Could not find an activity matching "${actionIntent.activityName}" in your itinerary`;
+        replacementError = `Could not find an activity matching "${actionIntent.activityName}" ${actionIntent.dayNumber ? `on Day ${actionIntent.dayNumber}` : "in your itinerary"}`;
       }
     }
 
@@ -1497,17 +1530,26 @@ export async function POST(request: NextRequest) {
       console.log(`[AI Assistant] Attempting to reorder/optimize schedule`);
 
       try {
-        // Determine which day to optimize (default to day 1 or use specified day)
-        const targetDayNumber = actionIntent.dayNumber || 1;
-        const targetDayIndex = Math.min(targetDayNumber - 1, modifiedItinerary.length - 1);
-        const targetDay = modifiedItinerary[targetDayIndex];
+        // The day the user named, else the day the named activity is on; a
+        // one-day trip needs no asking. (It used to default to Day 1 and
+        // clamp any number to the last day.)
+        let targetDayNumber = actionIntent.dayNumber;
+        if (targetDayNumber === undefined && actionIntent.activityName) {
+          const where = findActivityByName(modifiedItinerary, actionIntent.activityName);
+          if (where) targetDayNumber = where.dayIndex + 1;
+        }
+        if (targetDayNumber === undefined && modifiedItinerary.length === 1) targetDayNumber = 1;
+        const targetDayIndex = (targetDayNumber ?? 0) - 1;
+        const targetDay = targetDayIndex >= 0 ? modifiedItinerary[targetDayIndex] : undefined;
 
         const lockedOnDay = lockedActivityNames(targetDay);
 
-        if (!targetDay || targetDay.activities.length < 2) {
-          replacementError = targetDay?.activities.length < 2
-            ? `Day ${targetDayNumber} has only ${targetDay?.activities.length || 0} activities - nothing to reorder`
-            : `Day ${targetDayNumber} not found in your itinerary`;
+        if (targetDayNumber === undefined) {
+          replacementError = `Which day should I reorganize? This trip has ${modifiedItinerary.length} days. Say, for example, "reorganize day 3".`;
+        } else if (!targetDay || targetDay.activities.length < 2) {
+          replacementError = targetDay
+            ? `Day ${targetDayNumber} has only ${targetDay.activities.length} activities - nothing to reorder`
+            : `There is no Day ${targetDayNumber}: this trip has ${modifiedItinerary.length} days.`;
         } else if (lockedOnDay.length > 0) {
           // Guarded at DAY level, not just the named activity: reordering
           // shuffles start times across the whole day, so a pinned commitment
@@ -2166,6 +2208,21 @@ Respond with valid JSON only.`;
       parsedResponse.cards = [replacementCard, ...(parsedResponse.cards || [])];
     }
 
+    // The words as well as the cards. Nothing was saved on this turn, so the
+    // reply may not say otherwise, whatever the prompt got out of the model:
+    // one user got eight such replies in three days (2026-09-20..22) with the
+    // prompt rule in place, and deleted the trip. lib/ai/assistant/honesty.ts.
+    let honestyGuarded = false;
+    if (!changeWasSaved && claimsItineraryChange(parsedResponse.summary)) {
+      console.warn(
+        `[AI Assistant] honesty guard replaced a change claim (${actionTaken ? "change pending" : "nothing prepared"}): "${String(parsedResponse.summary).slice(0, 120)}"`
+      );
+      parsedResponse.summary = actionTaken
+        ? pendingChangeReply(userLanguage, applyButtonLabel(userLanguage))
+        : nothingChangedReply(userLanguage);
+      honestyGuarded = true;
+    }
+
     // The action metadata is the SERVER's, unconditionally — including when
     // the server did nothing, in which case it is `undefined` and the model's
     // own claim is discarded.
@@ -2226,6 +2283,7 @@ Respond with valid JSON only.`;
         dayNumber: parsedResponse.action.dayNumber,
         dayCount: parsedResponse.action.dayCount,
       } : undefined,
+      ...(honestyGuarded ? { guarded: true } : {}),
       timestamp: new Date().toISOString(),
     };
 
