@@ -75,6 +75,18 @@ const BENEFITS = [
   { icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", key: "realTime" },
 ] as const;
 
+/**
+ * What analytics may record about a failed magic-link request: Supabase's error
+ * code (e.g. "over_email_send_rate_limit") or the error's name. Never the
+ * message, which can quote the email address.
+ */
+function magicLinkFailureReason(err: unknown): string {
+  const { code, name } = (err ?? {}) as { code?: unknown; name?: unknown };
+  if (typeof code === "string" && code) return code.slice(0, 80);
+  if (typeof name === "string" && name) return name.slice(0, 80);
+  return "unknown";
+}
+
 export default function AuthPromptModal({
   isOpen,
   onClose,
@@ -212,17 +224,7 @@ export default function AuthPromptModal({
     } catch (err) {
       const message = err instanceof Error ? err.message : t("magicLink.failed");
       setError(message);
-      // Best-effort classification of the Supabase error so the
-      // dashboard can distinguish rate-limit vs invalid-email vs
-      // network errors. The full message is captured client-side only;
-      // PostHog gets the bucket label.
-      captureMagicLinkRequestFailed({
-        location,
-        reason:
-          err instanceof Error
-            ? err.message.slice(0, 80)
-            : "unknown",
-      });
+      captureMagicLinkRequestFailed({ location, reason: magicLinkFailureReason(err) });
     } finally {
       setIsSending(false);
     }
