@@ -28,7 +28,7 @@ import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
-import { findMatchingActivity, populateActivityBank, isActivityBankPopulated, saveToActivityBank } from "@/lib/activity-bank";
+import { findMatchingActivity, isRelevantBankMatch, populateActivityBank, isActivityBankPopulated, saveToActivityBank } from "@/lib/activity-bank";
 import { getTripDestination } from "@/lib/trips/destination";
 import type {
   ItineraryDay,
@@ -735,11 +735,18 @@ async function generateNewActivity(
   const existingActivityNames = sameDayActivities.map(a => a.name).filter(Boolean);
   const activityType = detectActivityType(preference);
 
-  const cachedActivity = await findMatchingActivity(destination, preference, {
+  const bankHit = await findMatchingActivity(destination, preference, {
     type: activityType,
     timeSlot: timeSlot,
     existingActivityNames,
   });
+  // Only when it answers the request: the bank matches on any one shared word,
+  // which offered an aperitivo for "add the part where we go to Civitavecchia
+  // port" (lib/activity-bank isRelevantBankMatch).
+  const cachedActivity = bankHit && isRelevantBankMatch(bankHit.name, preference) ? bankHit : null;
+  if (bankHit && !cachedActivity) {
+    console.log(`[AI Assistant] Bank match "${bankHit.name}" doesn't answer "${preference.slice(0, 80)}"; generating instead`);
+  }
 
   if (cachedActivity) {
     console.log(`[AI Assistant] CACHE HIT: Found "${cachedActivity.name}" in activity bank (FREE)`);

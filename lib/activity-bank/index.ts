@@ -280,6 +280,26 @@ export async function findMatchingActivity(
 }
 
 /**
+ * Is a bank activity actually an answer to what was asked?
+ *
+ * findMatchingActivity takes any activity sharing ONE keyword with the whole
+ * request, so a long message matches almost anything. "okay everything is
+ * messed up. I need to get rid of day 5 info and add the part where we go to
+ * civitavecchia port" was answered with "Traditional Roman Aperitivo in Monti":
+ * the assistant offered a cocktail stop for a cruise-port transfer (2026-09-20,
+ * reproduced on production 2026-09-26). A match counts only when the request is
+ * short enough to be a preference rather than a story, and the activity's own
+ * name carries one of its words. Anything else goes to the model, which reads
+ * the whole request.
+ */
+export function isRelevantBankMatch(activityName: string | undefined, userRequest: string): boolean {
+  const keywords = extractKeywords(userRequest);
+  if (!activityName || keywords.length === 0 || keywords.length > 5) return false;
+  const name = activityName.toLowerCase();
+  return keywords.some((k) => name.includes(k));
+}
+
+/**
  * Extract keywords from user request for search
  */
 function extractKeywords(text: string): string[] {
