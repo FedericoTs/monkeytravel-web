@@ -31,6 +31,10 @@ interface DestinationHeroProps {
   tags?: string[];
   showBackButton?: boolean;
   onBack?: () => void;
+  /** Makes the date chip a button that changes the trip's dates. */
+  onEditDates?: () => void;
+  /** Accessible name for that button ("Change dates"). */
+  editDatesLabel?: string;
   children?: React.ReactNode;
   /** Pre-fetched cover image URL from saved trip - skips Places API call */
   coverImageUrl?: string | null;
@@ -120,6 +124,8 @@ export default function DestinationHero({
   tags,
   showBackButton = true,
   onBack,
+  onEditDates,
+  editDatesLabel,
   children,
   coverImageUrl,
   onCoverImageFetched,
@@ -316,7 +322,25 @@ export default function DestinationHero({
               {/* Meta info chips - Trip stats */}
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
                 {/* Date Range */}
-                {dateRange && (
+                {dateRange && onEditDates && (
+                  <button
+                    type="button"
+                    onClick={onEditDates}
+                    aria-label={editDatesLabel ? `${editDatesLabel}: ${dateRange}` : undefined}
+                    title={editDatesLabel}
+                    className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full ring-1 ring-white/30 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  >
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="truncate max-w-[120px] sm:max-w-none">{dateRange}</span>
+                    {/* pencil: the dates can be changed */}
+                    <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.232-6.232a2.5 2.5 0 113.536 3.536L12.536 16.536 9 17l.464-3.536z" />
+                    </svg>
+                  </button>
+                )}
+                {dateRange && !onEditDates && (
                   <div className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

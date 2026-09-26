@@ -3611,6 +3611,9 @@ export default function TripDetailClient({
       <BaseModal
         isOpen={confirmCancelTrip}
         onClose={() => setConfirmCancelTrip(false)}
+        // Above the page's sticky bars (z-50), like every dialog here.
+        usePortal
+        zIndex={100}
         title={t('detail.cancelTrip.title')}
       >
         <p className="text-sm text-slate-600">{t('detail.cancelTrip.body')}</p>
@@ -3639,6 +3642,8 @@ export default function TripDetailClient({
       <BaseModal
         isOpen={dayRegenPrompt !== null}
         onClose={() => setDayRegenPrompt(null)}
+        usePortal
+        zIndex={100}
         title={dayRegenPrompt ? t('detail.regenerateDay.title', { number: dayRegenPrompt.dayNumber }) : ""}
       >
         {dayRegenPrompt && (

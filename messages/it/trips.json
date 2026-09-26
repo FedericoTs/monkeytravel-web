@@ -39,6 +39,26 @@
     "overpacked": "Giornata piena"
   },
   "wizard": {
+    "changeDates": {
+      "button": "Cambia date",
+      "title": "Cambia le date",
+      "start": "Inizio",
+      "end": "Fine",
+      "cancel": "Annulla",
+      "confirm": "Cambia date",
+      "unchanged": "Scegli le nuove date del viaggio.",
+      "same": "Il piano si sposta su queste date. Non cambia nient'altro.",
+      "shorter": "Il viaggio diventa di {count, plural, one {# giorno} other {# giorni}}: restano i primi giorni, gli altri vengono tolti.",
+      "longer": "Il viaggio diventa di {count, plural, one {# giorno} other {# giorni}}. I tuoi giorni restano come sono e l'assistente pianifica quelli nuovi dal giorno {from}.",
+      "endBeforeStart": "La data di fine è prima di quella di inizio.",
+      "tooLong": "I viaggi possono durare fino a {max} giorni.",
+      "pickBoth": "Scegli una data di inizio e una di fine.",
+      "pencilled": "Abbiamo messo delle date indicative: {range}.",
+      "setYourDates": "Scegli le tue date",
+      "planning": "Sto pianificando i giorni in più…",
+      "partlyPlanned": "L'assistente ha pianificato il viaggio fino al giorno {count}. Chiedigli il resto o cambia di nuovo le date.",
+      "extraFailed": "Il piano si è spostato sulle nuove date, ma i giorni in più non si possono pianificare in questo momento. Per ora il viaggio ha {count, plural, one {# giorno} other {# giorni}}: chiedi all'assistente di aggiungere il resto."
+    },
     "back": "Indietro",
     "regenerateConfirm": {
       "title": "Rigenerare tutto il viaggio?",

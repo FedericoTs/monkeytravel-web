@@ -39,6 +39,26 @@
     "overpacked": "Día cargado"
   },
   "wizard": {
+    "changeDates": {
+      "button": "Cambiar fechas",
+      "title": "Cambia tus fechas",
+      "start": "Inicio",
+      "end": "Fin",
+      "cancel": "Cancelar",
+      "confirm": "Cambiar fechas",
+      "unchanged": "Elige las nuevas fechas de tu viaje.",
+      "same": "Tu plan se mueve a estas fechas. No cambia nada más.",
+      "shorter": "Tu viaje pasa a tener {count, plural, one {# día} other {# días}}: se quedan los primeros días y se quitan los demás.",
+      "longer": "Tu viaje pasa a tener {count, plural, one {# día} other {# días}}. Tus días se quedan como están y el asistente planifica los nuevos a partir del día {from}.",
+      "endBeforeStart": "La fecha de fin es anterior a la de inicio.",
+      "tooLong": "Los viajes pueden durar hasta {max} días.",
+      "pickBoth": "Elige una fecha de inicio y una de fin.",
+      "pencilled": "Te hemos puesto fechas provisionales: {range}.",
+      "setYourDates": "Pon tus fechas",
+      "planning": "Planificando tus días extra…",
+      "partlyPlanned": "El asistente ha planificado tu viaje hasta el día {count}. Pídele el resto o vuelve a cambiar las fechas.",
+      "extraFailed": "Tu plan se ha movido a las nuevas fechas, pero ahora mismo no se han podido planificar los días extra. Por ahora tu viaje tiene {count, plural, one {# día} other {# días}}: pídele al asistente que añada el resto."
+    },
     "back": "Atrás",
     "regenerateConfirm": {
       "title": "¿Regenerar todo el viaje?",

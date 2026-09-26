@@ -39,6 +39,26 @@
     "overpacked": "Dia cheio"
   },
   "wizard": {
+    "changeDates": {
+      "button": "Alterar datas",
+      "title": "Altere suas datas",
+      "start": "Início",
+      "end": "Fim",
+      "cancel": "Cancelar",
+      "confirm": "Alterar datas",
+      "unchanged": "Escolha as novas datas da viagem.",
+      "same": "Seu plano passa para estas datas. Nada mais muda.",
+      "shorter": "A viagem passa a ter {count, plural, one {# dia} other {# dias}}: ficam os primeiros dias e os outros são removidos.",
+      "longer": "A viagem passa a ter {count, plural, one {# dia} other {# dias}}. Seus dias ficam como estão e o assistente planeja os novos a partir do dia {from}.",
+      "endBeforeStart": "A data de fim é anterior à de início.",
+      "tooLong": "As viagens podem ter até {max} dias.",
+      "pickBoth": "Escolha uma data de início e uma de fim.",
+      "pencilled": "Colocamos datas provisórias para você: {range}.",
+      "setYourDates": "Defina suas datas",
+      "planning": "Planejando seus dias extras…",
+      "partlyPlanned": "O assistente planejou a viagem até o dia {count}. Peça o resto ou altere as datas de novo.",
+      "extraFailed": "Seu plano passou para as novas datas, mas não foi possível planejar os dias extras agora. Por enquanto a viagem tem {count, plural, one {# dia} other {# dias}}: peça ao assistente para adicionar o resto."
+    },
     "back": "Voltar",
     "regenerateConfirm": {
       "title": "Gerar a viagem inteira de novo?",

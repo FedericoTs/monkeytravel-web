@@ -105,6 +105,7 @@ const ActivityCard = dynamic(() => import("@/components/ActivityCard"), {
 const GenerationProgress = dynamic(() => import("@/components/trip/GenerationProgress"), { ssr: false });
 const StartOverModal = dynamic(() => import("@/components/trip/StartOverModal"), { ssr: false });
 const BaseModal = dynamic(() => import("@/components/ui/BaseModal"), { ssr: false });
+const ChangeDatesModal = dynamic(() => import("@/components/trip/ChangeDatesModal"), { ssr: false });
 const RegenerateButton = dynamic(() => import("@/components/trip/RegenerateButton"), { ssr: false });
 // Export (PDF / iCal) on the anonymous result view. Client-only, no auth — works
 // on the in-memory generatedItinerary. Discoverability audit 2026-07-01: the
@@ -240,6 +241,7 @@ import {
 import { resolveAiLanguage } from "@/lib/ai/language";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { applyAssistantEdits, type AssistantDayEdit } from "@/lib/trips/day-edit-merge";
+import { planDateChange, moveItineraryDates } from "@/lib/trips/change-dates";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
 const MAX_TRIP_START_DATE = maxTripStartDate();
@@ -867,6 +869,12 @@ export default function NewTripPage({
   // edits without a word (2026-09-26).
   const editsSinceGenerationRef = useRef<boolean>(false);
   const [confirmRegenerate, setConfirmRegenerate] = useState(false);
+  // Changing the dates on the result, instead of starting over
+  // (lib/trips/change-dates.ts). `datesNotice` reports a longer trip whose
+  // extra days could not be planned.
+  const [showChangeDates, setShowChangeDates] = useState(false);
+  const [planningExtraDays, setPlanningExtraDays] = useState(false);
+  const [datesNotice, setDatesNotice] = useState<string | null>(null);
   // Once-per-pagehide-sequence guard for result_exit_unsaved (reset on
   // pageshow when the page comes back out of the bfcache).
   const resultExitFiredRef = useRef<boolean>(false);
@@ -3090,6 +3098,83 @@ export default function NewTripPage({
     []
   );
 
+  // New dates for the generated trip, from the hero's date chip or from Start
+  // Over's "wrong dates". "Wrong dates" was the top reason people threw a plan
+  // away (16 of 40 in 60 days, 2026-09-26), often dates "I'm flexible" had
+  // pencilled in. The plan moves with the dates; a shorter trip keeps its first
+  // days; a longer one gets its new days from the assistant (only the new
+  // days: the ones already planned stay exactly as they are).
+  const handleChangeDates = async (start: string, end: string) => {
+    const itinerary = generatedItinerary;
+    if (!itinerary) return;
+    const current = itinerary.days.length;
+    const change = planDateChange(current, start, end, effectiveMaxTripDays);
+    if (change.kind === "invalid") return;
+    setShowChangeDates(false);
+    setDatesNotice(null);
+    const keep = Math.min(current, change.length);
+    const moved = moveItineraryDates(itinerary.days, start, keep);
+    setGeneratedItinerary((prev) => {
+      if (!prev) return prev;
+      const sum = (ds: ItineraryDay[]) =>
+        ds.reduce((t, d) => t + (d.activities ?? []).reduce((s, a) => s + (a.estimated_cost?.amount || 0), 0), 0);
+      const prevTotal = prev.trip_summary?.total_estimated_cost || 0;
+      return {
+        ...prev,
+        days: moveItineraryDates(prev.days, start, keep),
+        trip_summary: {
+          ...prev.trip_summary,
+          total_estimated_cost: Math.max(0, Math.round(prevTotal - sum(prev.days) + sum(moved))),
+        },
+      };
+    });
+    setStartDate(start);
+    setEndDate(addDaysISO(start, keep - 1));
+    // The traveller chose these dates: they are no longer pencilled in.
+    setFlexibleDates(false);
+    setDatesPencilled(false);
+    posthog.capture("wizard_dates_changed", { from_days: current, to_days: change.length, kind: change.kind });
+    if (change.kind !== "longer") return;
+
+    const extra = change.length - current;
+    setPlanningExtraDays(true);
+    try {
+      const res = await fetch("/api/ai/assistant-anon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `Add ${extra} more ${extra === 1 ? "day" : "days"} at the end of the trip (${
+            extra === 1 ? `Day ${current + 1}` : `Days ${current + 1} to ${change.length}`
+          }), planned like the other days, and set trip_length to ${change.length}. Leave the existing days as they are.`,
+          destination: `${itinerary.destination.name}, ${itinerary.destination.country}`,
+          tripTitle: `${itinerary.destination.name} Trip`,
+          days: moved,
+          startDate: start,
+          endDate: addDaysISO(start, current - 1),
+          locale: itinerary.language ?? locale,
+          history: [],
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      const payload = data?.data ?? data ?? {};
+      const planned = Math.min(typeof payload.tripLength === "number" ? payload.tripLength : 0, change.length);
+      // Only the new days: the plan the traveller already has is not the ask.
+      const newDays: AssistantDayEdit[] = (Array.isArray(payload.edits) ? payload.edits : []).filter(
+        (e: AssistantDayEdit) => e && e.day_number > current && e.day_number <= planned
+      );
+      if (res.ok && planned > current && newDays.length > 0) {
+        handleApplyAssistantEdits(newDays, planned);
+        if (planned < change.length) setDatesNotice(t("wizard.changeDates.partlyPlanned", { count: planned }));
+      } else {
+        setDatesNotice(t("wizard.changeDates.extraFailed", { count: current }));
+      }
+    } catch {
+      setDatesNotice(t("wizard.changeDates.extraFailed", { count: current }));
+    } finally {
+      setPlanningExtraDays(false);
+    }
+  };
+
   // Save Sprint T4: flip the result view to an earlier generation from the
   // session tray. Refreshes the currently displayed trip into the stack
   // first (so applied assistant edits survive the swap), then restores the
@@ -3153,10 +3238,26 @@ export default function NewTripPage({
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white pb-24 sm:pb-8">
+        <ChangeDatesModal
+          isOpen={showChangeDates}
+          onClose={() => setShowChangeDates(false)}
+          startDate={startDate}
+          endDate={endDate}
+          currentDays={generatedItinerary.days.length}
+          maxDays={effectiveMaxTripDays}
+          minDate={new Date().toISOString().split("T")[0]}
+          maxStartDate={MAX_TRIP_START_DATE}
+          onConfirm={(start, end) => void handleChangeDates(start, end)}
+        />
+
         {/* A full regenerate replaces the assistant's edits: ask first. */}
         <BaseModal
           isOpen={confirmRegenerate}
           onClose={() => setConfirmRegenerate(false)}
+          // Above the sticky result bar (also z-50, later in the page), which
+          // otherwise covered the dialog and swallowed clicks on its buttons.
+          usePortal
+          zIndex={100}
           title={t("wizard.regenerateConfirm.title")}
         >
           <p className="text-sm text-slate-600">{t("wizard.regenerateConfirm.body")}</p>
@@ -3190,6 +3291,15 @@ export default function NewTripPage({
           tripDays={generatedItinerary.days.length}
           activitiesCount={totalActivities}
           wasAutoSaved={autoSaveEnabled && Boolean(autoSave.savedTripId)}
+          onChangeDatesInstead={
+            mcStops.length > 1
+              ? undefined
+              : () => {
+                  posthog.capture("wizard_start_over_changed_dates_instead");
+                  setShowStartOverModal(false);
+                  setShowChangeDates(true);
+                }
+          }
         />
 
         {/* The post-save share ask lives on /trips/[id] (SharePromptOnTrip,
@@ -3220,6 +3330,8 @@ export default function NewTripPage({
           title={fullDestination}
           subtitle={generatedItinerary.destination.description}
           dateRange={formatDateRangeLocalized(startDate, endDate, locale)}
+          onEditDates={planningExtraDays || mcStops.length > 1 ? undefined : () => setShowChangeDates(true)}
+          editDatesLabel={t("wizard.changeDates.button")}
           budget={{
             total: generatedItinerary.trip_summary.total_estimated_cost,
             currency: generatedItinerary.trip_summary.currency,
@@ -3228,6 +3340,32 @@ export default function NewTripPage({
           tags={generatedItinerary.destination.best_for}
           showBackButton={false}
         />
+
+        {/* Dates: pencilled in for the traveller, being extended, or a longer
+            trip whose extra days could not be planned. Multi-city dates come
+            from per-city nights, so the change control stays out of it. */}
+        {mcStops.length <= 1 && (flexibleDates || planningExtraDays || datesNotice) && (
+          <div className="max-w-6xl mx-auto px-4 pt-4">
+            <div aria-live="polite" className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+              {planningExtraDays ? (
+                <span>{t("wizard.changeDates.planning")}</span>
+              ) : datesNotice ? (
+                <span>{datesNotice}</span>
+              ) : (
+                <>
+                  <span>{t("wizard.changeDates.pencilled", { range: formatDateRangeLocalized(startDate, endDate, locale) })}</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowChangeDates(true)}
+                    className="font-semibold text-slate-900 underline underline-offset-2 hover:text-slate-700"
+                  >
+                    {t("wizard.changeDates.setYourDates")}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Multi-city: the Journey ribbon hero (only when the trip spans >1 city) */}
         {mcStops.length > 1 && (

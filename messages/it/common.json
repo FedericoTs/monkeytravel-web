@@ -933,6 +933,8 @@
     }
   },
   "startOver": {
+    "changeDatesHint": "Puoi cambiare le date e tenere questo piano.",
+    "changeDatesInstead": "Cambia solo le date",
     "title": "Ricominciare?",
     "warning": "Questa azione non può essere annullata",
     "discardMessage": "Stai per eliminare il tuo itinerario generato per {destination}.",
