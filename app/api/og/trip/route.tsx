@@ -136,11 +136,10 @@ export async function GET(request: Request) {
   const budgetTotal = typeof data.budget?.total === "number" ? data.budget.total : null;
   const currency = data.budget?.currency || "USD";
 
-  // Nights is a DATE DIFF, not days - 1. The page derives it that way
-  // (SharedTripView.tsx:356-360, ceil((end - start) / 86400000)) while days
-  // comes from itinerary.length, and the two disagree on 22.8% of trips. A
-  // card that contradicts the page it advertises is worse than one with a
-  // missing pill, so this mirrors the page's formula exactly.
+  // Nights is a date difference, not days - 1: SharedTripView's `nights` is
+  // ceil((end - start) / 86400000), while days come from itinerary.length and
+  // the two can disagree. A card that contradicts the page it advertises is
+  // worse than one with a missing pill, so this mirrors the page's formula.
   let nights: number | null = null;
   if (data.start_date && data.end_date) {
     const st = new Date(`${data.start_date}T00:00:00Z`).getTime();

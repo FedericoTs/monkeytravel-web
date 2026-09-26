@@ -120,9 +120,6 @@ export default async function NewTripPage({
     }
   }
 
-  // Resolved server-side and handed down, because the client can't read
-  // EXPLORE_UGC_ENABLED. This is the SAME gate TripEngagementSection uses on
-  // /trips/[id], so both publish surfaces now answer to one switch.
   return (
     <NewTripWizard
       prefilledDestination={prefilledDestination}

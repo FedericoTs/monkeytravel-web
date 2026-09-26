@@ -67,10 +67,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       siteName: 'MonkeyTravel',
       locale: ogLocale,
       alternateLocale,
-      // MUST be repeated here. A page-level `openGraph` REPLACES the root
-      // layout's block, it does not deep-merge — so omitting images left the
-      // homepage, the most-shared URL on the site, with no og:image at all.
-      // (Verified missing in production HTML before this was added.)
+      // Must be repeated here: a page-level `openGraph` replaces the root
+      // layout's block instead of deep-merging, so without `images` the
+      // homepage, the most-shared URL on the site, has no og:image.
       images: [
         {
           url: `${BASE_URL}/og-image.png`,
@@ -86,9 +85,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 /* ============================================================================
    APP SCREENSHOTS CONFIGURATION
    ----------------------------------------------------------------------------
-   Re-encoded from PNG → WebP (q=80) via sharp on 2026-05-29 to shed
-   ~85% of the LCP byte weight (task #161). The original PNGs are kept
-   alongside as fallback / source-of-truth for regeneration.
+   WebP (q=80, encoded with sharp) to keep the LCP image light. The PNGs
+   beside them, written by scripts/capture-screenshots.py, are the sources
+   to re-encode from; the page does not use them.
    ============================================================================ */
 const APP_SCREENSHOTS = {
   hero: '/screenshots/trip-barcelona-hero.webp' as string | undefined,
@@ -107,19 +106,17 @@ const FAQ_KEYS = ['free', 'noApp', 'howAiWorks', 'editItinerary', 'destinations'
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
 
-  // NOTE: the logged-in → /trips redirect moved to middleware.ts (a cookie-
-  // presence check) so this marketing homepage renders statically/ISR instead
-  // of reading auth cookies on every request. See static-rendering Phase 1b.
+  // The logged-in → /trips redirect lives in middleware.ts (a cookie-presence
+  // check), so this page never reads auth cookies. It still renders
+  // dynamically: the root layout reads the CSP nonce from headers().
 
   // Get translations for landing page
   const t = await getTranslations('landing');
   const tDest = await getTranslations('destinations');
 
-  // Live destination leaderboard, built from real trips. Cached for an hour
-  // and fetched with a cookie-free anon client precisely so it does NOT opt
-  // this page out of static/ISR rendering (see the note above). Returns []
-  // on any failure, in which case the hand-maintained grid below renders
-  // instead — the section never disappears.
+  // Destination leaderboard ranked from real trips, fetched with a cookie-free
+  // anon client so unstable_cache can hold it for an hour. Returns [] on any
+  // failure, and the hand-maintained grid below renders instead.
   const leaderboard = await getDestinationLeaderboard(6);
 
   // Build FAQ data from translations for both display and structured data (SEO)
@@ -143,9 +140,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             1. HERO SECTION - Group Planning Angle
             ================================================================ */}
         <section className="relative min-h-screen pt-20 pb-12 overflow-hidden hero-gradient hero-stage">
-          {/* Decorative layer. The doodle brand swaps the gradient orbs for the
-              illustrated scene; everything else about this hero is unchanged and
-              restyled from globals.css. */}
+          {/* Decorative layer. The doodle brand swaps the grid and gradient orbs
+              for the illustrated scene; the rest of the hero is shared markup,
+              restyled by the [data-brand="doodle"] rules in globals.css. */}
           {HERO_DOODLE_ENABLED ? (
             <HeroDoodleBackground />
           ) : (
@@ -187,11 +184,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   {t('hero.subtitleStart')} <span className="text-[var(--foreground)] font-medium">{t('hero.subtitleHighlight')}</span> {t('hero.subtitleEnd')}
                 </p>
 
-                {/* Primary action — a real destination input that carries the
-                    first keystroke into the wizard (?destination=). Replaces the
-                    old JS-button CTA that forced a full route hop before the
-                    visitor could type anything, and demotes Sign In to a
-                    secondary text link. Funnel audit Rank 7 (fd-01/fd-02/fd-07). */}
+                {/* Primary action: a destination input, so visitors start typing
+                    right here and land in the wizard prefilled (?destination=)
+                    instead of taking a route hop first. Sign In is a
+                    secondary text link. */}
                 <div className="mb-8 max-w-xl mx-auto lg:mx-0">
                   <HeroTripInput
                     placeholder={t('hero.inputPlaceholder')}
@@ -283,7 +279,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* ================================================================
-            2. SOCIAL PROOF - Quick Stats (4th stat added)
+            2. SOCIAL PROOF - Quick Stats
             ================================================================ */}
         <section className="py-8 bg-white border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -368,7 +364,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* ================================================================
-            4. AI CHAT DEMO — NEW SECTION
+            4. AI CHAT DEMO
             ================================================================ */}
         <section className="py-20 bg-[var(--background-alt)]">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -531,7 +527,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* ================================================================
-            6. COLLABORATION SECTION - Expanded (moved up from position 8)
+            6. COLLABORATION SECTION
             ================================================================ */}
         <section className="py-20 bg-gradient-to-b from-[var(--primary-light)]/15 to-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -697,7 +693,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* ================================================================
-            9. WHAT YOU WON'T FIND HERE — NEW SECTION (Anti-Features)
+            9. WHAT YOU WON'T FIND HERE (Anti-Features)
             ================================================================ */}
         <section className="py-20 bg-[var(--background-alt)]">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -859,13 +855,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             ================================================================ */}
         <section className="py-20 bg-[var(--background-alt)]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* The leaderboard is real demand, ranked from actual trips. The
-                grid below it was `destinations.slice(0, 6)` — the first six
-                of a hand-maintained array under a "Popular Destinations"
-                heading that encoded no popularity whatsoever. It survives as
-                the fallback: if the leaderboard query returns nothing, this
-                section still renders six destination cards, so the internal
-                links it exists to carry are never lost. */}
+            {/* The leaderboard ranks destinations by real trips. When it
+                returns nothing, the first six hand-maintained destinations
+                (not ranked by popularity) render instead, so the section and
+                the internal links it carries are always there. */}
             {leaderboard.length > 0 ? (
               <DestinationLeaderboard
                 entries={leaderboard}
@@ -927,10 +920,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </section>
 
         {/* ================================================================
-            11.5 FREE TOOLS — discovery surface for /tools/*
-            **2026-05-25**: Tools were live but orphaned. Added this
-            section to give them a homepage entry-point alongside the
-            destinations + blog links.
+            11.5 FREE TOOLS — homepage entry point for /tools/*
             ================================================================ */}
         <section className="py-20 bg-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -966,12 +956,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 </span>
               </Link>
 
-              {/* The visa checker shipped — it covers 199 passports off
-                  lib/visa/matrix.json. This card was still wearing the
-                  pre-launch "Coming Soon" pill and the muted inactive
-                  styling, which told every homepage visitor a live tool
-                  did not exist. Now styled identically to the packing-list
-                  card above it. */}
               <Link
                 href="/tools/visa-checker"
                 className="group rounded-2xl border border-slate-200 bg-white p-6 sm:p-7 hover:border-[var(--primary)] hover:shadow-lg transition-all"

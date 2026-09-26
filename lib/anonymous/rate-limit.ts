@@ -1,26 +1,19 @@
 /**
  * Anonymous AI rate limiting
  *
- * Anonymous visitors can generate trips without signing up — this is the
- * single highest-impact conversion lever per the 2026-05-23 audit (the
- * "no signup" promise on landing pages was lying; users hit a wall at the
- * moment of peak engagement).
+ * Anonymous visitors can generate trips without signing up, so the landing
+ * pages' "no signup" promise holds at the moment of peak interest.
  *
- * To prevent abuse we cap anonymous usage with a cookie-keyed counter.
- * Bots can clear cookies, so this is best-effort — for serious abuse we'd
- * add IP-based limits or hCaptcha. For now it's enough.
- *
- * Limits are deliberately generous to maximize the "try → save → sign up"
- * funnel: 2 generations per 24h per cookie. After that we ask the user to
- * sign up (which moves them into the authenticated, unlimited tier).
+ * A cookie-keyed counter allows MAX_GENERATIONS_PER_WINDOW per 24h, then asks
+ * the visitor to sign up. Clearing cookies resets it, which is why the
+ * generate routes also apply a per-IP limit.
  */
 import { cookies } from "next/headers";
 
 const COOKIE_NAME = "mt_anon";
-// 2026-07-24: raised 2 → 5 (founder free-tier decision). 5/24h covers a real
-// multi-destination exploration session in one sitting while still nudging
-// signup. The user-facing "you've used your N free trips" copy interpolates
-// this constant, so it stays truthful automatically.
+// Enough for a multi-destination exploration session in one sitting while
+// still nudging signup. The "you've used your N free trips" copy reads this
+// constant, so changing it keeps the message true.
 const MAX_GENERATIONS_PER_WINDOW = 5;
 const WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
 

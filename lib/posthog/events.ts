@@ -8,50 +8,19 @@
  * - Documentation for tracking purpose
  * - Alignment with GA4 events where applicable
  *
- * BUNDLE NOTE (perf task #179, 2026-05-29): posthog-js is lazy-loaded via
- * `getPosthog()` instead of a top-level import. Many components import the
- * `captureXxx` helpers below (booking surfaces, wizard, content tracker,
- * referral client), and a static import here would drag the full ~120 KB
- * posthog-js SDK into the shared chunk of every route those components
- * touch. SDK init still happens once in `instrumentation-client.ts`; this
- * file just needs the same module instance to call `.capture()` on, which
- * `import('posthog-js')` resolves to the already-loaded copy after the
- * idle-callback init fires.
+ * posthog-js is loaded through `getPosthog()`, not a top-level import: many
+ * components import these helpers, and a static import would pull the whole
+ * SDK into the shared chunk of every route they touch. The SDK is initialized
+ * once, on idle, in `instrumentation-client.ts`, which also applies the
+ * consent choice (these helpers never check consent); the dynamic import
+ * resolves to that same instance.
  *
- * Each capture function is fire-and-forget: callers can either `await` it
- * or ignore the returned promise — events that race ahead of the SDK init
- * are dropped silently (matches prior behavior when posthog wasn't loaded
- * yet) but most call sites fire from user interactions that happen well
- * after the idle-callback bootstrap.
+ * Every capture is fire-and-forget. An event fired before the SDK initializes
+ * is dropped; most fire from user interactions, well after the idle init.
  */
 
 const getPosthog = () => import("posthog-js").then((m) => m.default);
 
-/**
- * Sync handle to the already-initialized PostHog client.
- *
- * **Why this exists (2026-06-09):** the async `getPosthog()` helper fires
- * `import("posthog-js")` then `.capture()`. For events that race a
- * navigation (the auth modal opens then redirects, the save flow then
- * pushes to /trips/[id], etc.), the async resolution can lose to the
- * navigation and the event is dropped before the SDK's batch flushes.
- *
- * The daily routine on 2026-06-09 showed exactly this pattern:
- * `save_blocked_anon = 1` in Supabase but `0` in PostHog for the same
- * user session. The Supabase write is a server-side fetch that survives
- * navigation; PostHog's client-side capture didn't.
- *
- * `window.posthog` is populated by `instrumentation-client.ts` right
- * after the consent-gated init. Once init has run (which is by the time
- * any user-interaction handler fires), reading from `window.posthog`
- * gives us a synchronous reference to the same SDK instance — capture
- * fires immediately into the SDK's queue, then PostHog's own
- * `XHR` + `sendBeacon` fallback flushes it across navigation boundaries.
- *
- * Returns `null` before init or on the server. Callers must handle
- * that — the sync path is best-effort, fall through to the async path
- * if the SDK isn't ready yet.
- */
 // `unknown` for the props arg so we accept any typed event shape without
 // requiring every event interface to declare an index signature. PostHog's
 // own .capture() accepts any object; we cast at the boundary.
@@ -59,6 +28,13 @@ type WindowPosthog = {
   capture: (event: string, props?: unknown) => void;
 };
 
+/**
+ * Sync handle to the initialized PostHog client (`window.posthog`, set by
+ * `instrumentation-client.ts` at init), or `null` before init and on the
+ * server. The async `getPosthog()` import can lose to a navigation and drop
+ * the event; capturing through this handle queues it at once, and PostHog's
+ * unload flush (sendBeacon) carries it across the page change.
+ */
 function getPosthogSync(): WindowPosthog | null {
   if (typeof window === "undefined") return null;
   const ph = (window as typeof window & { posthog?: WindowPosthog }).posthog;
@@ -67,16 +43,11 @@ function getPosthogSync(): WindowPosthog | null {
 }
 
 /**
- * Fire-and-forget capture that prefers the sync path when the SDK is
- * already initialized. Used by events that race navigation. Falls
- * through to the existing async path if window.posthog isn't ready.
- *
- * Don't use this from server components or route handlers — it's
- * client-only. The sync check short-circuits to the async path
- * (which is itself a no-op on the server) if window is undefined.
- *
- * Generic over the event shape so callers keep their type-safe event
- * interface; we widen to `unknown` only at the SDK boundary.
+ * Fire-and-forget capture for events that race a navigation: the sync handle
+ * when the SDK is ready, else the async path. Client-only; on the server it
+ * falls to the async path, which captures nothing there.
+ * Generic over the event shape so callers keep their typed interface; props
+ * widen to `unknown` only at the SDK boundary.
  */
 function captureNavSafe<T>(event: string, props?: T): void {
   const sync = getPosthogSync();
@@ -129,11 +100,10 @@ export interface TripCreatedEvent {
 
 export interface UserSignedUpEvent {
   /**
-   * `magic-link` added 2026-06-04 alongside the AuthPromptModal redesign
-   * (commit 9350871). `apple` added 2026-06-01 for the iOS Capacitor
-   * Sign in with Apple flow (task #268). When extending here, also
-   * extend the auth_event router in app/auth/callback/route.ts so
-   * OAuth providers fire the correct PostHog event.
+   * Callers send only `email` and `google`: app/auth/callback/route.ts tags
+   * every OAuth arrival signup_google, which AuthEventTracker reports as
+   * `google`, Apple included. A new method needs its own auth_event there
+   * and a branch in AuthEventTracker.
    */
   method: "email" | "google" | "apple" | "magic-link";
   referral_code?: string;
@@ -160,7 +130,7 @@ export interface SharePromptShownEvent {
   trip_destination: string;
   trip_days: number;
   location: "post_save" | "trip_detail" | "share_button";
-  /** A/B test variant (for share-modal-timing-exp) */
+  /** Arm of the retired share-modal-timing-exp; callers always send "control". */
   experiment_variant?: "control" | "delayed-2s" | "delayed-5s";
   /** Delay in milliseconds before modal was shown */
   delay_ms?: number;
@@ -169,12 +139,12 @@ export interface SharePromptShownEvent {
 export interface SharePromptActionEvent {
   trip_id: string;
   /**
-   * "publish" added 2026-05-28 for the post-save Publish-to-Explore CTA.
-   * Surfaces in the same share_prompt funnel so we can A/B compare
-   * collaboration intent vs publish intent in the same chart.
+   * `publish` is the share prompt's Publish-to-Explore option. It rides the
+   * share_prompt funnel so collaboration and publish intent compare in one
+   * chart.
    */
   action: "invite" | "skip" | "later" | "publish";
-  /** A/B test variant (for share-modal-timing-exp) */
+  /** Arm of the retired share-modal-timing-exp; callers always send "control". */
   experiment_variant?: "control" | "delayed-2s" | "delayed-5s";
 }
 
@@ -284,8 +254,8 @@ export interface TripWizardAbandonedEvent {
   /**
    * The field the user touched immediately before abandoning. Lets us
    * distinguish "didn't engage at all" from "stuck on the date picker"
-   * from "filled everything but didn't submit". Values match the
-   * `wizard_field_interacted.field` taxonomy.
+   * from "filled everything but didn't submit". Values match
+   * `TripWizardFieldInteractedEvent.field`.
    */
   last_touched_field?:
     | "destination_autocomplete"
@@ -324,11 +294,9 @@ export interface TripWizardFieldInteractedEvent {
 }
 
 /**
- * Who is the trip being planned for/with. Captured on wizard step 1 by
- * the solo/group toggle (added 2026-05-24 as a measurement experiment —
- * see docs/COLLAB_AUDIT.md "Phase 1: validate the bet"). No flow change
- * yet; pure signal to decide whether to invest in a full group-first
- * restructure.
+ * Who the trip is planned for: the solo/group toggle on wizard step 1,
+ * "unspecified" until the user picks. Saved trips keep it in
+ * trip_meta.trip_intent, which shapes the share prompt.
  */
 export type TripIntent = "solo" | "group" | "unspecified";
 
@@ -342,7 +310,7 @@ export interface TripGenerationStartedEvent {
   destination: string;
   duration_days: number;
   budget_tier: string;
-  /** Optional — present when the user interacted with the solo/group toggle. */
+  /** The solo/group toggle answer; "unspecified" when the user did not pick. */
   trip_intent?: TripIntent;
 }
 
@@ -354,12 +322,12 @@ export interface TripGenerationCompletedEvent {
   generation_time_seconds: number;
   success: boolean;
   error_type?: string;
-  /** Optional — same as TripGenerationStartedEvent.trip_intent. */
+  /** Same as TripGenerationStartedEvent.trip_intent. */
   trip_intent?: TripIntent;
 }
 
 // ============================================================================
-// AHA MOMENT & RETENTION EVENTS (Sean Ellis Framework)
+// AHA MOMENT & RETENTION EVENTS
 // ============================================================================
 
 export interface AhaMomentReachedEvent {
@@ -392,15 +360,13 @@ export interface FirstTripSavedEvent {
   trip_id: string;
   destination: string;
   duration_days: number;
-  /** Time from signup to first trip save in minutes */
+  /** Minutes from signup to this save; the wizard always sends 0 (it has no signup time). */
   time_to_value_minutes: number;
   /** Was this from a template */
   from_template: boolean;
   /**
-   * F1 anchors: did this trip carry user-declared fixed commitments?
-   * The whole bet is that constraint-shaped plans get SAVED more than
-   * generic ones (the measured 74% never-saved leak) — this flag is what
-   * makes that comparable in the funnel. Absent on pre-F1 events.
+   * Did this trip carry user-declared fixed commitments (anchors)? Lets the
+   * funnel compare save rates of anchored and generic plans.
    */
   is_anchored?: boolean;
   anchor_count?: number;
@@ -445,17 +411,14 @@ export interface AIAssistantUsedEvent {
   trip_id?: string;
   message_length: number;
   /**
-   * Where the editing assistant is mounted. `trip_detail` = the saved-trip
-   * page agent (the one users lean on to rearrange/add/remove — see the
-   * 2026-07-02 session-recording finding). Lets us split agent usage from
-   * the anon pre-save panel in the same event.
+   * Where the editing assistant is mounted: `trip_detail` is the saved-trip
+   * page agent, `wizard_anon` the anonymous pre-save panel (no caller sends
+   * it).
    */
   surface?: "trip_detail" | "wizard_anon";
   /**
-   * Did the assistant autonomously apply a change to the itinerary this
-   * turn? This is the value moment — a message that actually edited the
-   * plan, not just chatted. Was previously invisible: `ai_assistant_used`
-   * only went to GA4 via trackAIAssistantMessage(), never to PostHog.
+   * Did the assistant apply a change to the itinerary this turn? That is the
+   * value moment: a message that edited the plan, not one that only chatted.
    */
   action_applied?: boolean;
   /** The kind of action the assistant returned (add/remove/replace/reorder/...), if any. */
@@ -585,10 +548,9 @@ export async function captureTripWizardFieldInteracted(event: TripWizardFieldInt
   ph.capture("trip_wizard_field_interacted", event);
 }
 
-// ── Step-1 entry rework (2026-09-02) ─────────────────────────────────────────
-// Sliced by the wizard_entry super-property NewTripWizard registers, so a
-// read needs no per-call edits. (step1_variant rode alongside it until the
-// editorial step 1 went to 100% on 2026-09-16.)
+// ── Step-1 entry ─────────────────────────────────────────────────────────────
+// Sliced by the wizard_entry super-property NewTripWizard registers, so no
+// call here passes the entry state itself.
 
 /** A popular pick set the destination (and, when no dates existed, pencilled flexible dates). */
 export interface WizardOneTapStartEvent {
@@ -631,7 +593,7 @@ export interface AnonShareKeepClickedEvent {
   duration_days?: number;
 }
 
-/** "Keep this trip" beside a freshly minted signed-out share link (2026-09-02). */
+/** "Keep this trip" beside a freshly minted signed-out share link. */
 export async function captureAnonShareKeepClicked(event: AnonShareKeepClickedEvent) {
   const ph = await getPosthog();
   ph.capture("anon_share_keep_clicked", event);
@@ -661,10 +623,8 @@ export async function captureTripGenerationStarted(event: TripGenerationStartedE
 
 /**
  * Fires when the user picks "Just me" or "With friends" on wizard step 1.
- * Drives the Phase-1 measurement that gates the full group-first
- * restructure. PostHog funnel: count distinct users per intent value,
- * then check what % of "group" pickers actually share the trip after
- * generation.
+ * Read it as distinct users per intent, then the share rate of "group"
+ * pickers after generation.
  */
 export async function captureTripIntentSelected(event: TripIntentSelectedEvent) {
   const ph = await getPosthog();
@@ -672,22 +632,9 @@ export async function captureTripIntentSelected(event: TripIntentSelectedEvent) 
 }
 
 /**
- * Fires when the user actually puts a share link somewhere — clipboard or the
- * native share sheet.
- *
- * Distinct from the mint itself, which is recorded as
- * share_prompt_action { action: 'invite' }. Minting a link and SENDING it
- * are different acts, and the 2026-08-04 audit could not tell them apart:
- * 7 people had ever minted, and we had no idea how many of those links were
- * ever pasted anywhere. Without this the funnel stops one step short of the
- * only thing that matters.
- */
-/**
- * Which copy branch the share prompt actually rendered, and where.
- *
- * The prompt now branches on trip_intent (71% of users say "with friends").
- * Without recording the branch we would see the outcome but not which ask
- * produced it, making the group-vs-solo framing unmeasurable.
+ * Which copy branch the share prompt rendered, and where. The copy branches
+ * on trip_intent, so recording the branch ties each outcome to the ask that
+ * produced it.
  */
 export async function captureSharePromptVariantShown(event: {
   trip_id: string;
@@ -698,6 +645,11 @@ export async function captureSharePromptVariantShown(event: {
   ph.capture("share_prompt_variant_shown", event);
 }
 
+/**
+ * Fires when the user puts a share link somewhere: the clipboard or a
+ * completed native share sheet. Minting is a separate act, recorded as
+ * share_prompt_action { action: 'invite' }; this event is the send.
+ */
 export async function captureShareLinkCopied(event: {
   trip_id: string;
   method: "copy" | "native_share";
@@ -716,13 +668,10 @@ export async function captureTripGenerationCompleted(event: TripGenerationComple
 // ============================================================================
 
 /**
- * Capture first trip saved (critical aha moment candidate).
- *
- * Switched to sync nav-safe path 2026-06-09 — this event fires inside
- * the manual + auto-save handlers, immediately before a router.push
- * to /trips/[id]. The async dynamic-import-then-capture used to lose
- * to the navigation; this lands the event in the SDK queue before
- * the route change.
+ * Despite the name, fires once for every trip the wizard saves, not only a
+ * user's first. The manual save calls router.push to /trips/[id] right after,
+ * so this takes the nav-safe path: the async import would lose to the route
+ * change.
  */
 export function captureFirstTripSaved(event: FirstTripSavedEvent) {
   captureNavSafe("first_trip_saved", event);
@@ -737,7 +686,8 @@ export async function captureActivityModified(event: ActivityModifiedEvent) {
 }
 
 /**
- * Generic event capture with type safety
+ * Untyped escape hatch: any event name with any properties. Prefer a typed
+ * helper above.
  */
 export async function capture(eventName: string, properties?: Record<string, unknown>) {
   const ph = await getPosthog();
@@ -745,13 +695,13 @@ export async function capture(eventName: string, properties?: Record<string, unk
 }
 
 // ============================================================================
-// AUTH-WALL FUNNEL EVENTS (added 2026-06-06 — tracking refresh)
+// AUTH-WALL FUNNEL EVENTS
 // ============================================================================
 
 /**
- * Where the AuthPromptModal opened. Drives funnel segmentation: the
- * post-result-save trigger is the highest-intent path; nav and explore
- * triggers are lower intent. We want to see them in separate funnels.
+ * Where the AuthPromptModal opened. Intent differs by trigger (a wizard save
+ * is the highest-intent path, explore triggers are lower), so each location
+ * gets its own funnel.
  */
 export type AuthPromptLocation =
   | "wizard_save"
@@ -764,8 +714,8 @@ export type AuthPromptLocation =
   | "invite_accept"
   | "publish_trip"
   | "concierge_quota"
-  // The anonymous free-generation cap, asked in the wizard (#189 made the
-  // wizard's stream count against it).
+  // The anonymous free-generation cap, reached from the wizard (the stream
+  // and its JSON fallback both enforce it).
   | "wizard_generation_limit"
   | "other";
 
@@ -779,13 +729,13 @@ export interface AuthPromptShownEvent {
 
 export interface MagicLinkRequestedEvent {
   location: AuthPromptLocation;
-  /** Hash of the email domain (e.g. "gmail.com"). Never the address itself. */
+  /** The plain lowercased domain (e.g. "gmail.com"), never the address itself. */
   email_domain?: string;
 }
 
 export interface MagicLinkRequestFailedEvent {
   location: AuthPromptLocation;
-  /** Supabase error code if available, else "unknown". */
+  /** The error message cut to 80 characters, or "unknown". */
   reason: string;
 }
 
@@ -801,10 +751,9 @@ export interface AuthPromptDismissedEvent {
   had_email_entered: boolean;
 }
 
-// Auth-wall captures all race a router.push or window.location change.
-// Use the sync window.posthog handle so the event lands BEFORE navigation
-// has a chance to abort the in-flight async getPosthog() dynamic import.
-// See `captureNavSafe` for the rationale (2026-06-09).
+// Auth-wall captures race a router.push or window.location change, so they
+// take the nav-safe path: the event lands in the SDK queue before navigation
+// can abort the async getPosthog() import.
 export function captureAuthPromptShown(event: AuthPromptShownEvent) {
   captureNavSafe("auth_prompt_shown", event);
 }
@@ -826,11 +775,11 @@ export function captureAuthPromptDismissed(event: AuthPromptDismissedEvent) {
 }
 
 // ============================================================================
-// WIZARD-SAVE GAP EVENTS (added 2026-06-06)
+// WIZARD-SAVE EVENTS
 //
-// The save_blocked_anon + save_failed events are also written to the
-// Supabase `wizard_step_events` table for the database funnel, but
-// PostHog needs them too so they appear in funnel charts there.
+// save_blocked_anon and save_failed are also written to the Supabase
+// `wizard_step_events` table for the database funnel; PostHog gets them for
+// its own funnel charts.
 // ============================================================================
 
 export interface SaveBlockedAnonEvent {
@@ -856,22 +805,20 @@ export interface SaveFailedEvent {
 }
 
 /**
- * A signed-in-or-not user has a rendered itinerary and auto-save did NOT run.
- * `not_authenticated` is the normal anonymous case; `disabled` means the env
- * kill switch; `auth_pending` means the client had not resolved auth when the
- * result landed. Emitted once per itinerary. Exists because six signed-in
- * users in 30 days (2026-09) lost generations with no event of any kind.
+ * Auto-save did NOT run for a rendered itinerary; reported once per itinerary
+ * so a lost signed-in generation still leaves an event. `not_authenticated`:
+ * anonymous. `disabled`: the env kill switch. `auth_pending`: auth unresolved
+ * when the result landed. `pending_claim`: the itinerary is an anonymous
+ * shared trip whose claim has not resolved.
  */
 export interface AutoSaveSkippedEvent {
   reason: "not_authenticated" | "disabled" | "auth_pending" | "pending_claim";
   destination?: string;
 }
 
-// Save-funnel captures race the modal-open + window.location.assign that
-// the save flow triggers immediately after. Sync handle keeps the event
-// from being dropped (see 2026-06-09 daily routine — save_blocked_anon
-// was hitting Supabase wizard_step_events but never landing in PostHog
-// because the async dynamic import lost to navigation).
+// Save-funnel captures race what follows them (the auth modal and its
+// redirects, or the user leaving after an error), so they take the nav-safe
+// path.
 export function captureSaveBlockedAnon(event: SaveBlockedAnonEvent) {
   captureNavSafe("save_blocked_anon", event);
 }
@@ -881,11 +828,10 @@ export function captureSaveFailed(event: SaveFailedEvent) {
 }
 
 /**
- * Save Sprint (2026-07-20): fired on pagehide when the user leaves the
- * result view with an UNSAVED generated itinerary. Closes the telemetry
- * blind spot where post-generation exits emitted nothing (the wizard's
- * trip_wizard_abandoned listener is deliberately disarmed once generation
- * starts). PostHog only — NOT mirrored into wizard_step_events.
+ * Fires on pagehide when the user leaves the result view with an UNSAVED
+ * generated itinerary. trip_wizard_abandoned cannot cover this exit: its
+ * listener is disarmed once generation starts. PostHog only, NOT mirrored
+ * into wizard_step_events.
  */
 export interface ResultExitUnsavedEvent {
   /** mt_gen_count — generations attempted this browser session. */
@@ -894,15 +840,14 @@ export interface ResultExitUnsavedEvent {
   edits_applied: boolean;
 }
 
-// Fired from a pagehide handler — must use the sync/sendBeacon-safe path
-// (same rationale as save_blocked_anon above): the async dynamic import
-// always loses to a page teardown.
+// Fired from a pagehide handler, so it must take the sync nav-safe path: the
+// async dynamic import always loses to a page teardown.
 export function captureResultExitUnsaved(event: ResultExitUnsavedEvent) {
   captureNavSafe("result_exit_unsaved", event);
 }
 
 // ============================================================================
-// CONCIERGE EVENTS (F4, task #242) — added 2026-06-06
+// CONCIERGE EVENTS
 // ============================================================================
 
 export interface ConciergeOpenedEvent {
@@ -955,8 +900,7 @@ export async function captureConciergeQuotaBlocked(event: ConciergeQuotaBlockedE
   ph.capture("concierge_quota_blocked", event);
 }
 
-// P2 Stage B (concierge edit channel): proposal funnel — shown → applied is
-// the plan's success metric ("% of concierge proposals applied").
+// Concierge edit proposals: the shown → applied rate is the success metric.
 interface ConciergeProposalShownEvent {
   trip_id: string;
   proposal_type: string;
@@ -989,7 +933,7 @@ export async function captureConciergeError(event: ConciergeErrorEvent) {
 }
 
 // ============================================================================
-// EXPENSE LEDGER EVENTS (task #220) — added 2026-06-06
+// EXPENSE LEDGER EVENTS
 // ============================================================================
 
 export interface ExpenseAddedEvent {
@@ -1026,7 +970,7 @@ export async function captureExpenseDeleted(event: ExpenseDeletedEvent) {
 }
 
 // ============================================================================
-// /EXPLORE ENGAGEMENT EVENTS (tasks #118/#119) — added 2026-06-06
+// /EXPLORE ENGAGEMENT EVENTS
 // ============================================================================
 
 export type ExploreSurface = "explore_feed" | "trip_detail" | "shared" | "saved";
@@ -1041,7 +985,7 @@ export interface ExploreTripLikedEvent {
 export interface ExploreTripSavedEvent {
   trip_id: string;
   surface: ExploreSurface;
-  /** Anon saves go to a cookie-keyed list; auth saves to DB. */
+  /** Anon saves are stored against a browser cookie, signed-in saves against the account. */
   was_anon: boolean;
 }
 
@@ -1096,16 +1040,11 @@ export async function captureExploreTripPublishFailed(event: ExploreTripPublishF
 }
 
 // ============================================================================
-// MANUAL EDITOR EVENTS — added 2026-07-02
+// MANUAL EDITOR EVENTS
 // ============================================================================
 //
-// WHY: the 2026-07-02 shared session recording (Taipei trip) showed a user
-// making ~all itinerary changes through the AI assistant and touching the
-// manual drag-and-drop editor exactly once. But the manual editor emitted NO
-// analytics at all — so "is anyone using the editor?" was unanswerable from
-// data. These three lifecycle events (enter / save / discard) let us measure
-// manual-editor adoption and compare it head-to-head against `ai_assistant_used`
-// (now also dual-written to PostHog) in the same funnel.
+// Enter / save / discard for the manual drag-and-drop editor, so its adoption
+// can be compared with `ai_assistant_used` in the same funnel.
 
 export interface EditModeEnteredEvent {
   trip_id: string;
@@ -1140,17 +1079,15 @@ export async function captureEditModeDiscarded(event: EditModeDiscardedEvent) {
 }
 
 // ============================================================================
-// ANCHOR EVENTS (F1 constraint-aware planning) — added 2026-08-01
+// ANCHOR EVENTS (constraint-aware planning)
 // ----------------------------------------------------------------------------
-// The feature exists to attack the measured 74% never-saved leak: the bet is
-// that a plan built around YOUR wedding is worth keeping, a generic one isn't.
-// These three events make that bet falsifiable —
-//   anchor_panel_opened  → does anyone even find the collapsed CTA?
-//   anchors_generated    → of those, who actually generates with anchors?
-//   first_trip_saved.is_anchored → do anchored trips save above the 26% base?
-// Panel-opened is deliberately separate from generated: if opens are high and
-// generations low, the panel is confusing, not unwanted. Opposite pattern =
-// discovery problem. Same reasoning shape as the crew-loop instrumentation.
+// Test whether a plan built around the user's fixed commitments gets saved
+// more often than a generic one:
+//   anchor_panel_opened          → does anyone find the collapsed CTA?
+//   anchors_generated            → of those, who generates with anchors?
+//   first_trip_saved.is_anchored → do anchored trips save more often?
+// Opened and generated stay separate: many opens with few generations means
+// the panel confuses; few opens means people can't find it.
 // ============================================================================
 
 export interface AnchorPanelOpenedEvent {
@@ -1176,30 +1113,28 @@ export async function captureAnchorPanelOpened(event: AnchorPanelOpenedEvent) {
 }
 
 /**
- * Fired at Generate when the request carries anchors. Sync/nav-safe because
- * generation immediately swaps the view and can navigate — same lesson as
- * save_blocked_anon (async dynamic import loses the race).
+ * Fired at Generate when the request carries anchors. Nav-safe because
+ * generation swaps the view at once and can navigate, a race the async
+ * import loses.
  */
 export function captureAnchorsGenerated(event: AnchorsGeneratedEvent) {
   captureNavSafe("anchors_generated", event);
 }
 
 export interface RefineSuggestionClickedEvent {
-  /** "busyDay" | "noFood" | "lightDay" for derived chips, "static1..3" otherwise. */
+  /**
+   * A derived chip's RefineSuggestion key (lib/trip/refine-suggestions.ts),
+   * else "static1".."static3".
+   */
   source: string;
   /** True when the chips were derived from this itinerary rather than static. */
   derived: boolean;
 }
 
 /**
- * Fired when a result-page assistant chip is tapped.
- *
- * This is the falsifiable half of the 2026-08-01 bet: sessions that refine save
- * at 26.3% vs 9.7% for one-and-done, and the static chips never moved
- * result→save_clicked (24.9% → 24.7%). `derived` splits taps by whether the
- * chip described THIS trip, so we can tell whether specificity is what earned
- * the tap — or whether chips simply aren't the lever and we should stop
- * building them.
+ * Fired when a result-page assistant chip is tapped. `derived` splits taps by
+ * whether the chip described THIS trip, to tell whether specificity earns the
+ * tap or whether chips are not a lever at all.
  */
 export async function captureRefineSuggestionClicked(event: RefineSuggestionClickedEvent) {
   const ph = await getPosthog();
@@ -1218,7 +1153,7 @@ export interface PlanImportedEvent {
 }
 
 /**
- * Fired after a successful paste-a-plan import (F2). Stays async — the panel
+ * Fired after a successful paste-a-plan import. Stays async — the panel
  * doesn't navigate, so there's no race to lose. A high dropped_count relative
  * to anchor_count is the signal that the extraction prompt needs work.
  */
@@ -1229,16 +1164,9 @@ export async function capturePlanImported(event: PlanImportedEvent) {
 
 /**
  * The assistant told the user it changed their plan, and the server did not
- * confirm a write.
- *
- * This was the product's loudest complaint and its least visible one: the
- * model's claim was persisted with applied:true, so every dashboard read
- * "success" while users typed "i really can't see any changes". 14 user turns
- * against 1 real action in a single measured session (2026-08-04).
- *
- * Watch this rate. It is the honest denominator for "does the agent actually
- * do what it says" — and the thing to drive toward zero by widening intent
- * coverage, not by hiding the message.
+ * confirm a write. The model's own claim is not evidence, so this rate is the
+ * honest measure of whether the agent does what it says. Drive it toward zero
+ * by widening intent coverage, not by hiding the message.
  */
 export async function captureAssistantClaimUnverified(props: {
   trip_id: string;
@@ -1252,20 +1180,11 @@ export async function captureAssistantClaimUnverified(props: {
 // ============================================================================
 
 /**
- * The anonymous share loop shipped 2026-08-18 with no instrumentation at all.
- * Its first real use — a 9-day Lisbon trip minted at 00:22 UTC on 08-19 — was
- * only discovered by querying Postgres directly, because not one event reached
- * PostHog. That is the whole growth loop running blind.
- *
- * These fire client-side, deliberately: the question worth answering is what
- * fraction of anonymous result-viewers share, which requires the events to sit
- * on the same person as `itinerary_generated` and `save_nudge_shown`. A
- * server-side capture from /api/trips/anonymous has no reliable distinct_id
- * for a signed-out visitor, so it would land unjoined and could not answer it.
- *
- * Four events, because minting is not sharing. `crew_link_created` already
- * conflates the two for authenticated users and the 2026-08-04 audit could not
- * tell them apart; this loop keeps click / mint / send separate from the start.
+ * These fire client-side on purpose: the share rate of anonymous result-viewers
+ * needs them on the same person as `itinerary_generated` and `save_nudge_shown`.
+ * A server-side capture from /api/trips/anonymous has no reliable distinct_id
+ * for a signed-out visitor, so it would land unjoined. Click, mint, failure and
+ * copy are separate events because minting a link is not sharing it.
  */
 // A `type` rather than an `interface` on purpose: capture() takes
 // Record<string, unknown>, and TypeScript treats an interface as having no
@@ -1288,10 +1207,8 @@ export async function captureAnonShareCreated(event: AnonShareEvent) {
 }
 
 /**
- * The mint failed. Worth its own event rather than a property: the three
- * production bugs on this route (missing `destination` column, uuid
- * share_token, flat apiSuccess payload) all returned a broken experience while
- * every dashboard stayed silent. A visible failure rate is the alarm.
+ * The mint failed. Its own event rather than a property, so the failure rate
+ * is directly visible: a broken route otherwise leaves every dashboard silent.
  */
 export async function captureAnonShareFailed(event: AnonShareEvent & { reason: string }) {
   return capture("anon_share_failed", event);

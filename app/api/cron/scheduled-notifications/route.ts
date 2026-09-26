@@ -33,61 +33,55 @@ import { domesticTripVerdict } from "@/lib/notifications/domestic-trip";
 import { normalizeTripTitle, twinDecision, type TwinCandidate } from "@/lib/notifications/twin-trips";
 
 /**
- * Pre-trip reminder cron — sweeps `scheduled_notifications` and
- * dispatches the slot-specific email for any row whose
- * `scheduled_for <= NOW()` and `status='pending'`.
+ * Trip email cron: sweeps `scheduled_notifications` and dispatches the
+ * slot's email (pre-trip reminder, in-trip day digest or post-trip followup)
+ * for every row with `status='pending'` and `scheduled_for <= NOW()`.
  *
- * Schedule: every 15 minutes via Vercel cron (see vercel.json). This
- * cadence is fine-grained enough to land each slot within 15 min of
- * its intended time without ever sending early, and coarse enough that
- * the queue (4-5 rows per trip × 1K trips/mo) drains comfortably under
- * the 60s function cap.
+ * Schedule: once a day at 07:00 UTC (vercel.json). Every slot is stamped
+ * 06:00 UTC so it is due at that day's run. The run must finish inside the
+ * 60s function limit.
  *
- * Auth: CRON_SECRET via Bearer header — mirrors the existing
- * /api/cron/refresh-activity-index pattern. Without a secret env set
- * the route 401s defensively.
+ * Auth: CRON_SECRET as a Bearer token, as in /api/cron/refresh-activity-index.
+ * With no secret set the route 401s.
  *
- * Rate limit (PRD §"Resend complaint rate spike"): we cap to 1 email
- * per trip per 24h by suppressing a slot when ANY sibling slot for
- * the same trip went out in the last 24h. The first slot scheduled
- * out of order (e.g. trip booked T-2d → only `confirm_1d` +
- * `morning_of` get enqueued) still flows because no sibling has been
- * sent yet.
+ * Rate limit: one email per trip per UTC calendar day, to keep the Resend
+ * complaint rate down. A slot is suppressed when any row of the same trip
+ * (or of its twin copies) was sent today; see rateLimitWindowStart.
  *
- * Localisation (POST-MORTEM AWARENESS): the cron route lives outside
- * [locale]/, so request-bound next-intl helpers don't have a locale.
- * We resolve the recipient's preferred_language explicitly and pass
- * it to `getTranslations({ locale, namespace })`, mirroring the
- * pattern used by the static page builders.
+ * Localisation: the route lives outside [locale]/, so request-bound next-intl
+ * helpers have no locale. The recipient's preferred_language is resolved
+ * explicitly and passed to `getTranslations({ locale, namespace })`, as the
+ * static page builders do.
  *
- * Failure mode: per-row failures are captured + the row flipped to
- * 'failed' with `last_error`. We never re-throw to Vercel — a single
- * failed dispatch must not skip the rest of the batch.
+ * Failure mode: a failing row is flipped to 'failed' with `last_error`.
+ * Nothing is re-thrown to Vercel: one failed dispatch must not skip the rest
+ * of the batch.
  *
  * CAUSALITY
  * ---------
- * - Enqueue: lib/notifications/scheduling.ts ← persistTrip.insertTrip
- *   + PATCH /api/trips/[id] (start_date change) + fork/duplicate.
- * - Email: lib/email/send.ts ← cycle-5 #206 + cycle-7 #216 hardening.
- * - Settings: users.notification_settings.tripReminders is the per-user
- *   per-type gate (fail-closed inside dispatchEmail).
- * - Per-trip mute: trips.reminders_muted blocks enqueue at the RPC
- *   layer; an already-pending row whose trip later gets muted is
- *   still picked up here — we re-check the flag below to be safe.
+ * - Enqueue: the trips_enqueue_notifications AFTER INSERT trigger for every
+ *   new trip with a user_id, plus lib/notifications/scheduling.ts from PATCH
+ *   /api/trips/[id] (date or mute change), fork and duplicate.
+ * - Email: lib/email/send.ts (dispatchEmail).
+ * - Settings: users.notification_settings gates each send inside
+ *   dispatchEmail (tripReminders for reminders and digests,
+ *   marketingNotifications for followups), fail-closed on a read error.
+ * - Per-trip mute: trips.reminders_muted blocks enqueue at the RPC layer; a
+ *   row already pending when the trip is muted still reaches this route, so
+ *   the flag is re-checked below.
  */
 
-// Maximum rows to process per invocation. With 5 slots/trip and
-// 1K trips/mo, the queue rarely exceeds 30-40 due rows in a 15-min
-// window. 200 leaves headroom for backlog after a cron outage.
+// Rows one run may process: bounds the work against the 60s function limit
+// while leaving room for a backlog after a missed run.
 const MAX_ROWS_PER_RUN = 200;
 
 /**
- * Where the reminder copy actually lives in the assembled message tree.
+ * Where the reminder copy lives in the assembled message tree.
  *
- * i18n.ts mounts each file under its own namespace, so common.json becomes
- * `common` and these strings sit at common.tripReminderEmail.*. Kept as one
- * constant because it is needed in two places and getting it wrong is silent
- * — see assertTranslated below for why that mattered.
+ * i18n.ts mounts each messages file under its own namespace, so common.json
+ * becomes `common` and these strings sit at common.tripReminderEmail.*. One
+ * constant because two lookups need it and a wrong path fails silently (see
+ * assertTranslated).
  */
 const REMINDER_NS = "common.tripReminderEmail";
 
@@ -98,19 +92,18 @@ const REMINDER_NS = "common.tripReminderEmail";
 const FOLLOWUP_NS = "common.tripFollowupEmail";
 
 /**
- * In-trip evening-before digest copy (Phase 4.1). One namespace, not per-slot
- * — the digest is one template parameterised by day number. Same `common.`
- * mounting rule.
+ * In-trip evening-before digest copy. One namespace, not per-slot: the digest
+ * is one template parameterised by day number. Same `common.` mounting rule.
  */
 const DIGEST_NS = "common.tripDayDigestEmail";
 
 /**
- * Phase 4.2: also send the in-trip digest to the trip's emailed participants,
- * OFF by default. A separate switch from the owner cascade so the participant
+ * Also send the in-trip digest to the trip's emailed participants. OFF by
+ * default, and a separate switch from the owner cascade so the participant
  * fan-out is a deliberate, watchable rollout (its sends are not counted by
- * TRIP_NOTIFICATIONS_SEND_CAP, which counts owner queue rows). Server-only —
- * only this cron reads it. Suppression + any signed-in participant's opt-out
- * are still honoured per send inside dispatchEmail.
+ * TRIP_NOTIFICATIONS_SEND_CAP, which counts owner queue rows). Server-only:
+ * only this cron reads it. Suppression and any signed-in participant's
+ * opt-out are still honoured per send inside dispatchEmail.
  */
 function isParticipantDigestEnabled(): boolean {
   return process.env.PARTICIPANT_DIGEST_ENABLED === "true";
@@ -133,8 +126,8 @@ const DOMESTIC_AWARE_SLOTS = new Set<string>(["visa_check_7d", "pack_early_14d",
 /**
  * How many days before departure each pre-trip slot is meant to arrive.
  *
- * Mirrors the enqueue offsets in
- * supabase/migrations/20260827120000_fix_reminder_timing_and_enqueue_trigger.sql.
+ * Mirrors the offsets in enqueue_trip_notifications (latest definition:
+ * supabase/migrations/20260902170000_enqueue_revives_suppressed_rows.sql).
  * The post-trip family is absent on purpose: those fire AFTER the trip and
  * cannot be overtaken by it.
  */
@@ -147,39 +140,11 @@ const PRE_TRIP_OFFSET_DAYS: Record<string, number> = {
 };
 
 /**
- * Is this row's moment gone?
- *
- * Every pre-trip subject line makes a claim about WHEN: "Two weeks to go",
- * "One week out", "Three days to Palermo", "Tomorrow — final checks",
- * "Travel day". Those are true only near the offset they were queued for. A
- * row that goes out late does not merely arrive late — it arrives WRONG, and
- * confidently: "Three days to Palermo" landing the day after someone got home
- * reads as the product having no idea what it is talking about.
- *
- * The queue is normally punctual, so this cannot fire in ordinary operation.
- * It exists for the case that has already happened here twice: the queue was
- * paused (670 rows held under `manual_hold_2026_08_27`), and a cron outage or
- * a second hold would release a batch whose moments had passed. One such row
- * was live on 2026-08-31 — a `morning_of` for a trip that had started the day
- * before.
- *
- * That hold was RELEASED on 2026-09-02 (migration 20260902170100), for future
- * rows on live trips only — 606 rows, 129 trips, 106 users who had been
- * getting no pre-trip mail at all. Rows whose moment had already passed were
- * deliberately left suppressed, which is exactly what this guard is for.
- *
- * HOLDING THE QUEUE AGAIN: suppressing rows is fine, but until
- * 20260902170000 it was a ONE-WAY door — enqueue_trip_notifications deletes
- * only `pending` rows before re-inserting, and the unique index on
- * (trip_id, slot) covers every status, so a suppressed row silently blocked
- * its own trip's re-enqueue forever. The RPC now revives a suppressed row on
- * conflict (never a `sent` one). Prefer TRIP_NOTIFICATIONS_SEND_CAP=0 for a
- * short pause: it leaves rows `pending` and needs no repair afterwards.
- *
- * TOLERANCE IS PER SLOT, because grace is only defensible while the copy stays
- * TRUE. The cron runs once daily at 07:00 UTC against slots stamped 06:00, so
- * a single missed run puts a row 24h behind — and whether that matters depends
- * entirely on what the row says:
+ * How many days late each pre-trip slot may still go out. TOLERANCE IS PER
+ * SLOT, because grace is only defensible while the copy stays TRUE. The cron
+ * runs once daily at 07:00 UTC against slots stamped 06:00, so a single missed
+ * run puts a row 24h behind, and whether that matters depends on what the row
+ * says:
  *
  *   "Two weeks to go"          at 13 days   still true enough      -> 1 day
  *   "One week out"             at 6 days    still true enough      -> 1 day
@@ -187,12 +152,9 @@ const PRE_TRIP_OFFSET_DAYS: Record<string, number> = {
  *   "Tomorrow - final checks"  at 0 days    the trip is TODAY      -> 0 days
  *   "Travel day"               at -1 day    they already left      -> 0 days
  *
- * The last two name a specific imminent day, so a day's slip makes them
- * false rather than merely loose. A single global tolerance got this wrong in
- * the first draft of this function: it forgave a "Travel day" mail sent the
- * morning after departure, which is the exact row that prompted the guard.
- *
- * Returns a reason string when the row should be suppressed, or null to send.
+ * The last two name a specific imminent day, so a day's slip makes them false
+ * rather than merely loose. A single global tolerance of one day would send
+ * "Travel day" the morning after departure.
  */
 const STALE_GRACE_DAYS: Record<string, number> = {
   pack_early_14d: 1,
@@ -202,6 +164,23 @@ const STALE_GRACE_DAYS: Record<string, number> = {
   morning_of: 0,
 };
 
+/**
+ * Is this row's moment gone?
+ *
+ * Every pre-trip subject line makes a claim about WHEN ("Two weeks to go",
+ * "Three days to Palermo", "Travel day"), true only near the offset it was
+ * queued for. A row that goes out late arrives WRONG, and confidently: "Three
+ * days to Palermo" landing the day after someone got home.
+ *
+ * Silent while the queue is punctual; it catches rows released late after a
+ * cron outage or a queue hold. To hold the queue, prefer
+ * TRIP_NOTIFICATIONS_SEND_CAP=0: rows stay `pending` and need no repair
+ * afterwards. A suppressed row comes back only when enqueue_trip_notifications
+ * re-runs for its trip, which revives a suppressed row on conflict, never a
+ * `sent` one (migration 20260902170000).
+ *
+ * Returns a reason string when the row should be suppressed, or null to send.
+ */
 export function staleReason(
   slot: string,
   tripStartDate: string,
@@ -228,19 +207,16 @@ export function staleReason(
  * The order rows are processed in when a run may not reach them all.
  *
  * TRIP_NOTIFICATIONS_SEND_CAP stops a run after N real sends and leaves the
- * rest `pending` for the next morning. Oldest-first was the only order, and
- * under a cap it is the wrong one: the rows that can wait a day ("One week
- * out" is still true at six days) went first, and the rows that cannot —
- * "Tomorrow — final checks", "Travel day", the evening-before digest — were
- * pushed to the next run, where staleReason correctly refused them. On
- * 2026-09-12 two `morning_of` rows were suppressed as stale_morning_of_1d_late
- * exactly this way, in a run that had spent its cap of 10 on pre-trip mails
- * with days of slack.
+ * rest `pending` for the next morning. Oldest-first is the wrong order under a
+ * cap: rows that can wait a day ("One week out" is still true at six days)
+ * would go first, and rows that cannot ("Tomorrow — final checks", "Travel
+ * day", the evening-before digest) would be pushed to the next run, where
+ * staleReason refuses them.
  *
  * So: rows with no grace first (they are wrong tomorrow), then the rest, each
  * group oldest-first. Post-trip followups make no claim about WHEN and go
- * last. Pure and stable, so a cap of N always lands on the N rows that would
- * otherwise be lost.
+ * last. Pure and stable, so a capped run spends its sends on the rows that
+ * cannot wait.
  */
 export function prioritizeDueRows<
   T extends { slot: string; scheduled_for: string },
@@ -254,7 +230,7 @@ export function prioritizeDueRows<
   // On the departure morning `morning_of` and `in_trip_day_2` are due at the
   // same minute, and the one-email-per-trip-per-day rule lets only one out.
   // "Travel day" carries the day-1 plan the traveller needs first; the day-2
-  // digest yields. Without this tie-break the winner was insertion order.
+  // digest yields. Without this tie-break the winner would be insertion order.
   const digest = (slot: string): number => (parseDigestDay(slot) !== null ? 1 : 0);
   return rows
     .map((row, index) => ({ row, index, urgency: urgency(row.slot), digest: digest(row.slot) }))
@@ -271,12 +247,9 @@ export function prioritizeDueRows<
 /**
  * The rate limit is one email per trip per CALENDAR DAY (UTC), not per
  * rolling 24 hours. The cron runs once a day at 07:00 UTC, so a rolling
- * window saw yesterday's send (07:00:30) from today's run (07:00:20) as
- * "within 24h" and suppressed today's row. Measured 2026-09-13..16: 31 of
- * the 37 rate_limit suppressions were exactly that, and 28 of them were
- * in-trip digests, which are daily by design. Stale rows are still refused
- * by staleReason; this only stops a send from being refused for being on
- * schedule.
+ * window would see yesterday's send (07:00:30) from today's run (07:00:20) as
+ * "within 24h" and suppress today's row, starving the in-trip digests, which
+ * are daily by design. Stale rows are still refused by staleReason.
  */
 export function rateLimitWindowStart(now: Date): string {
   return new Date(
@@ -318,12 +291,9 @@ function ownEnrichmentStrings(trip: TripEmailRow): string[] {
 /**
  * Optional cap on how many emails ONE cron run may actually send.
  *
- * This is the canary control. The cascade has never run at volume — before
- * this week it reached 5 trips; it now covers 150 — so the first live run is
- * the first time this copy meets real inboxes at scale. Setting
- * TRIP_NOTIFICATIONS_SEND_CAP=5 lets that run land in a handful of inboxes,
- * be read, and either continue or be stopped, instead of committing to
- * everything due that morning.
+ * The canary control: TRIP_NOTIFICATIONS_SEND_CAP=5 lets a run land in a
+ * handful of inboxes, be read, and either continue or be stopped, instead of
+ * committing to everything due that morning.
  *
  * Rows over the cap stay `pending` and untouched, so they simply go out on a
  * later run — nothing is dropped, and no state has to be repaired afterwards.
@@ -343,11 +313,9 @@ function sendCap(): number | null {
  * Reject a string that is really an unresolved message key.
  *
  * next-intl does NOT throw on a missing message. Its default onError logs and
- * getMessageFallback substitutes the full key path, so the mail still sends
- * with "tripReminderEmail.morning_of.heading" where the sentence should be.
- * That is exactly what reached real inboxes from 2026-06 until 2026-08-19,
- * subject line included, and two of those were opened. The try/catch above
- * never fired because nothing ever threw; the rows were marked `sent`.
+ * getMessageFallback substitutes the full key path, so the mail would still
+ * send with "tripReminderEmail.morning_of.heading" where the sentence should
+ * be, and the try/catch around getTranslations would never fire.
  *
  * So the send path cannot trust the translator. A value still carrying
  * "tripReminderEmail." is a fallback, never copy — no real sentence contains
@@ -355,9 +323,8 @@ function sendCap(): number | null {
  */
 function assertTranslated(values: Record<string, string>): string | null {
   for (const [key, value] of Object.entries(values)) {
-    // Both families are checked: the post-trip copy is loaded through the
-    // same fallback-instead-of-throw translator, so it can fail the same
-    // silent way the reminders did.
+    // All three families are checked: each is loaded through the same
+    // fallback-instead-of-throw translator.
     if (
       value.includes("tripReminderEmail.") ||
       value.includes("tripFollowupEmail.") ||
@@ -376,12 +343,11 @@ type QueueSlot = TripReminderSlot | TripFollowupSlot | `in_trip_day_${number}`;
 /**
  * Shape of the trip row this route selects.
  *
- * Declared by hand because the generated Database types cannot describe a
- * select containing JSON paths (`trip_meta->>weather_note`, `itinerary->0`):
- * supabase-js falls back to GenericStringError for the whole row, and every
- * field access becomes an error. The jsonb-derived fields are `unknown` on
- * purpose — they are model-generated and lib/email/trip-context.ts validates
- * them rather than trusting a declaration.
+ * Declared by hand because the select string in processRow is built by
+ * concatenation, so supabase-js sees a plain `string`, cannot parse it, and
+ * types the whole row as GenericStringError. The JSON-valued fields are
+ * `unknown` on purpose — they are model-generated and
+ * lib/email/trip-context.ts validates them rather than trusting a declaration.
  */
 type TripEmailRow = {
   id: string;
@@ -397,8 +363,8 @@ type TripEmailRow = {
   highlights: unknown;
   packing_suggestions: unknown;
   day1: unknown;
-  // Phase 4.2: fan the in-trip digest out to participants — they access the
-  // trip at /shared/<token>, and their language is best-guessed from the trip.
+  // For the participant digest fan-out: participants open the trip at
+  // /shared/<token>, and their language is best-guessed from the trip.
   share_token: string | null;
   trip_locale: string | null;
 };
@@ -430,12 +396,11 @@ export async function GET(request: NextRequest) {
   if (!secret) return unauthorized();
   if (auth !== `Bearer ${secret}`) return unauthorized();
 
-  // Skip the entire sweep when the feature is disabled — protects
-  // against accidental dispatches during a soft-launch / kill-switch
-  // event. The RPC is also gated, so the queue will be empty anyway,
-  // but the extra defence-in-depth is cheap. Reads
-  // NEXT_PUBLIC_TRIP_NOTIFICATIONS_ENABLED (decoupled from the
-  // calendar-export flag per F1 spec) with back-compat fallback.
+  // Kill switch: skip the whole sweep when the feature is disabled. This is
+  // the switch that controls sending: the AFTER INSERT trigger fills the queue
+  // whatever the flag says, and rows stay `pending` while it is off. Reads
+  // NEXT_PUBLIC_TRIP_NOTIFICATIONS_ENABLED, falling back to
+  // NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED when unset.
   if (!isTripNotificationsEnabled()) {
     return NextResponse.json({
       success: true,
@@ -451,9 +416,9 @@ export async function GET(request: NextRequest) {
   //    LIMIT caps the per-run blast radius. prioritizeDueRows() then moves
   //    the rows that cannot wait a day to the front: the order matters once
   //    a send cap is in play (see its note).
-  //    Retried on a transient failure (2026-09-14: one Gateway Timeout on this
-  //    SELECT ended the run with 500 and cost 39 emails to staleness the next
-  //    morning). See lib/notifications/retry.ts.
+  //    Retried on a transient failure: the cron runs once a day, so a failed
+  //    SELECT loses the whole run, and by the next run many rows are stale.
+  //    See lib/notifications/retry.ts.
   const { data: dueRowsRaw, error: dueErr } = await retryTransient(
     () =>
       svc
@@ -597,11 +562,11 @@ async function processRow(
   //     We re-check `reminders_muted` here even though the enqueue RPC
   //     already gates: the user could have muted between enqueue and
   //     dispatch, and that mute must still be honoured.
-  // The enrichment fields are selected as JSON PATHS, not whole columns.
-  // trip_meta carries travel_distances (large, per-segment) and itinerary is
-  // the entire multi-day plan; pulling either whole would move megabytes per
-  // run for four short strings. `itinerary->0` is day one, which is the only
-  // day any slot needs.
+  // trip_meta is selected as JSON PATHS, not whole: it carries
+  // travel_distances (large, per-segment) and only a few short strings are
+  // needed. The whole itinerary is selected because the domestic check, the
+  // forecast coordinate and the day digest read it; `itinerary->0` (day one)
+  // feeds the enrichment blocks.
   const { data: tripRow, error: tripErr } = await svc
     .from("trips")
     .select(
@@ -624,7 +589,7 @@ async function processRow(
     return "failed";
   }
 
-  // See TripEmailRow: the JSON-path select defeats the generated types, so
+  // See TripEmailRow: the concatenated select defeats type inference, so
   // the shape is asserted here, once, rather than at every field access.
   const trip = tripRow as unknown as TripEmailRow | null;
 
@@ -636,11 +601,10 @@ async function processRow(
   }
 
   if (trip.deleted_at) {
-    // Trips are soft-deleted (2026-06-07): the row stays, so the CASCADE the
-    // comment above relies on never fires. Until 2026-09-12 a tombstoned trip
-    // was read like any other and "One week out" went to people who had
-    // deleted it: 5 sent, 158 queued. soft_delete_trip() now parks the trip's
-    // pending rows at delete time; this is the belt for those braces.
+    // Trips are soft-deleted: the row stays, so the CASCADE above never fires,
+    // and the service client bypasses the RLS that hides tombstones.
+    // soft_delete_trip() parks the trip's pending rows at delete time; this
+    // catches any row that slips past it.
     await persistOutcome(svc, row.id, "suppressed", "trip_deleted");
     return "skipped";
   }
@@ -651,31 +615,22 @@ async function processRow(
   }
 
   // A cancelled trip must never generate mail — not a countdown to it, and
-  // not a "How was it?" afterwards.
-  //
-  // Checked HERE and not only at enqueue for the same reason reminders_muted
-  // is: cancelling happens AFTER the trip was created and its cascade queued.
-  // Measured on the live queue 2026-08-28: five cancelled trips still held 23
-  // scheduled rows between them, every one with a future start date and none
-  // muted — including a Sicily trip cancelled on 27 Jul that would have sent
-  // "Three days to Palermo" on 29 Aug.
+  // not a "How was it?" afterwards. Checked HERE and not only at enqueue for
+  // the same reason reminders_muted is: cancelling happens AFTER the trip was
+  // created and its cascade queued.
   //
   // Only 'cancelled' is treated as a stop signal. 'planning' is the DEFAULT
-  // status (302 of 394 live trips) and means only that nobody touched a
-  // control most users never see; gating on 'confirmed' would silence ~84%
-  // of legitimate reminders.
+  // status and means only that nobody touched a control most users never
+  // see; gating on 'confirmed' would silence most legitimate reminders.
   if (trip.status === "cancelled") {
     await persistOutcome(svc, row.id, "suppressed", "trip_cancelled");
     return "skipped";
   }
 
-  // A reminder whose moment has passed is not late, it is WRONG.
-  //
-  // See staleReason() for the reasoning and the tolerance. This cannot fire
-  // while the queue is punctual; it exists for the release of a held or
-  // backed-up batch, which has already happened once here.
-  // The in-trip digest is a per-day slot, so its moment ("Tomorrow: Day K") is
-  // relative to day K, not to the trip start — it needs its own guard.
+  // A reminder whose moment has passed is not late, it is WRONG. See
+  // staleReason() for the reasoning and the tolerance. The in-trip digest is a
+  // per-day slot, so its moment ("Tomorrow: Day K") is relative to day K, not
+  // to the trip start — it needs its own guard.
   const digestDay = parseDigestDay(row.slot);
   const stale =
     digestDay !== null
@@ -695,21 +650,16 @@ async function processRow(
   // 2a-twin. One reminder per real trip, not per saved copy.
   //
   // People regenerate a trip and save the result without deleting the first,
-  // so the same trip (owner, title, start date) exists two or three times,
-  // each with its own cascade — and the per-trip rate limit below cannot see
-  // the siblings. 19 of 217 sends from 16-23 Sep were extra copies (Sedona
-  // three times in eight seconds; Bari's in-trip digest twice a day for six
-  // days). See lib/notifications/twin-trips.ts for which copy wins.
+  // so the same trip (owner, title, start date) can exist two or three times,
+  // each with its own cascade. See lib/notifications/twin-trips.ts for which
+  // copy wins. FAIL OPEN: a read error sends as if there were no twins. A
+  // duplicate is a nuisance; a lost reminder is what this loop exists to
+  // prevent.
   //
-  // FAIL OPEN: a read error sends exactly as before. A duplicate is a
-  // nuisance; a lost reminder is the thing this whole loop exists to prevent.
-  // The trips that count as "this trip" for the one-email-a-day limit below:
-  // the whole twin set when there is one. Found in review: on departure
-  // morning "Travel day" (morning_of) and the day-2 digest are due at the
-  // same moment on every copy. The chosen copy sent "Travel day" and its own
-  // digest was rate-limited; the older copy's digest then became the chosen
-  // one for that slot, and a limit counted per trip id let it through — two
-  // emails that morning, one built from the abandoned copy.
+  // The one-email-a-day limit below counts the whole twin set, not just this
+  // trip id: on departure morning "Travel day" and the day-2 digest are due at
+  // once on every copy, and a per-id limit would let an abandoned copy's
+  // digest out after the chosen copy sent "Travel day".
   let rateLimitTripIds: string[] = [row.trip_id];
   if (trip.start_date) {
     const twins = await loadTwins(svc, row, trip);
@@ -726,17 +676,16 @@ async function processRow(
 
   // 2a-bis. EXIT CONDITION for the post-trip sequence.
   //
-  // Loop 2 exists to re-engage people who planned one trip and went
+  // The sequence exists to re-engage people who planned one trip and went
   // quiet. The moment they plan another, it has done its job and every
   // remaining slot becomes noise — "Thinking about the next one?" landing
-  // on someone who booked it last week is the single most obvious way
-  // this feature could embarrass us.
+  // on someone who booked it last week.
   //
   // Checked at dispatch rather than at enqueue because the second trip
   // usually appears AFTER the sequence is queued; enqueue-time filtering
   // would miss exactly the case that matters.
   //
-  // This doubles as the cross-trip rate limit: the per-trip 24h check
+  // This doubles as the cross-trip rate limit: the per-trip daily check
   // below cannot see siblings on a DIFFERENT trip, so without this a
   // two-trip user could receive a pre-trip reminder for one and a
   // post-trip followup for the other on the same morning.
@@ -767,8 +716,7 @@ async function processRow(
 
   // 2b. Rate limit: 1 email per trip per calendar day (UTC). We check
   //     sibling rows on the same trip whose status='sent' AND sent_at is
-  //     today. PRD §"Resend complaint rate spike from too many emails".
-  //     Calendar day, not rolling 24h: see rateLimitWindowStart.
+  //     today. Calendar day, not rolling 24h: see rateLimitWindowStart.
   //     Twin copies of one trip share the limit (rateLimitTripIds, above).
   const since = rateLimitWindowStart(new Date());
   const { data: recent, error: recentErr } = await svc
@@ -795,19 +743,17 @@ async function processRow(
   }
 
   // 2b-bis. The visa check is for leaving the country. A trip inside the
-  // traveller's own country gets no such reminder (2026-09-19: a recipient
-  // replied that he was travelling inside Minnesota; 41 of the 167 visa
-  // reminders pending or sent in the 60 days before were domestic).
+  // traveller's own country gets no such reminder.
   //
-  // Where the person is: the country on their most recent page view — the
-  // profile home-country field is empty for 593 of 601 users. Where they
-  // are going: the country at the end of the itinerary's activity addresses,
-  // written by Google Places. Decided at dispatch, not at enqueue, because
-  // the itinerary and the viewer's country are both known only here.
+  // Where the person is: the country on their most recent page view (the
+  // profile home-country field is almost always empty). Where they are going:
+  // the country at the end of the itinerary's activity addresses, written by
+  // Google Places. Decided at dispatch, against the itinerary and the latest
+  // page view as they are when the email goes out.
   //
   // FAIL OPEN: domesticTripVerdict says domestic only when every readable
   // address is in the viewer's country; an unknown viewer, an unreadable
-  // itinerary or a read error sends the reminder exactly as before.
+  // itinerary or a read error sends the reminder.
   //
   // Two more slots read the same verdict: "Two weeks to go" tells everyone
   // to check their passport is valid and "Tomorrow" lists "passport on you".
@@ -863,17 +809,14 @@ async function processRow(
   //
   // The namespace MUST carry the `common.` prefix. i18n.ts assembles messages
   // keyed by FILE — `messages/<locale>/common.json` is mounted as the `common`
-  // namespace — and tripReminderEmail lives at the top level of that file, so
-  // the real path is common.tripReminderEmail.<slot>. Asking for
-  // `tripReminderEmail.<slot>` resolves to nothing. (Compare
-  // app/api/tools/packing-list/route.ts, which correctly uses
-  // "tools.packingList.categories".)
+  // namespace — so the real path is common.tripReminderEmail.<slot>. Asking
+  // for `tripReminderEmail.<slot>` resolves to nothing.
   const locale = resolveLocale(user.preferred_language);
 
-  // In-trip day digest (Phase 4.1): its content is tomorrow's plan pulled
-  // straight from this trip's itinerary, its copy is one namespace (not
-  // per-slot), and its template is trip_day_digest. Self-contained — returns
-  // before the reminder/followup rendering below.
+  // In-trip day digest: its content is tomorrow's plan pulled straight from
+  // this trip's itinerary, its copy is one namespace (not per-slot), and its
+  // template is trip_day_digest. Self-contained — returns before the
+  // reminder/followup rendering below.
   if (digestDay !== null) {
     return await dispatchDayDigest(svc, row, trip, user.email, locale, digestDay);
   }
@@ -907,10 +850,10 @@ async function processRow(
   const tripUrl = `${APP_URL}/trips/${trip.id}?slot=${row.slot}`;
 
   // Where the CTA points. Reminders → the trip; the post-trip family →
-  // postTripCtaUrl (Phase 4.3: followup_return_3d → the feedback survey, the
-  // later slots → the wizard) — shared with the audit + test-send scripts so
-  // the three can't drift. `slot`, not `utm_source`: a utm_* param on an
-  // internal link overwrites the stored acquisition source.
+  // postTripCtaUrl (followup_return_3d → the feedback survey, the later slots
+  // → the wizard) — shared with the audit + test-send scripts so the three
+  // can't drift. `slot`, not `utm_source`: a utm_* param on an internal link
+  // overwrites the stored acquisition source.
   const ctaUrl = followup
     ? postTripCtaUrl(row.slot as TripFollowupSlot, { tripUrl, appUrl: APP_URL, userId: row.user_id, locale })
     : tripUrl;
@@ -919,13 +862,11 @@ async function processRow(
   // can be caught while it is still just a string in memory.
   //
   // `destination` goes to BOTH, even though most slots only reference it in
-  // the body. weather_3d is the exception — its heading is "Three days to
-  // {destination}" in all four locales — and next-intl falls back to the key
-  // path when a referenced placeholder is not supplied, so calling
-  // t("heading") bare silently broke that one slot on its own, independently
-  // of the namespace bug. Passing it unconditionally also means a translator
-  // moving {destination} into another heading cannot break the mail; unused
-  // values are ignored.
+  // the body: weather_3d's heading is "Three days to {destination}", and
+  // next-intl falls back to the key path when a referenced placeholder is not
+  // supplied. Passing it unconditionally also means a translator moving
+  // {destination} into another heading cannot break the mail; unused values
+  // are ignored.
   const heading = t("heading", { destination });
   // A domestic trip reads the slot's bodyDomestic when the copy has one
   // (pack_early_14d and confirm_1d do); every other case reads body.
@@ -1039,7 +980,7 @@ async function processRow(
   // access across the object literal below is fragile, and getting it
   // wrong here means the wrong consent key gates the send.
   //
-  // Digest slots (`in_trip_day_<K>`) are handled and returned far above, so by
+  // Digest slots (`in_trip_day_<K>`) are handled and returned above, so by
   // here the slot is only ever pre-trip or followup. TS can't infer that from
   // the separate `digestDay` early-return, so restate the invariant in the type.
   const slot = row.slot as TripReminderSlot | TripFollowupSlot;
@@ -1080,7 +1021,7 @@ async function processRow(
     // can never collide on the same key.
     idempotencyKey: `${template.id}:${row.trip_id}:${slot}`,
     // Already resolved above for the translated body — pass it so the shared
-    // shell (header/footer) matches and dispatchEmail skips the re-lookup.
+    // shell (header/footer) renders in the same language.
     locale,
     template,
     metadata: {
@@ -1097,8 +1038,8 @@ async function processRow(
           subject,
           html,
           destination,
-          // The real CTA target: the trip for reminders and the +3d
-          // followup, the wizard for the later followup slots.
+          // The real CTA target: the trip for reminders, the feedback survey
+          // for followup_return_3d, the wizard for the later followup slots.
           ctaUrl,
           contextBlocks,
           // This trip's own enrichment values — the corpus containment is
@@ -1107,8 +1048,7 @@ async function processRow(
           // The forecast line must be included or containment blocks it: it
           // is derived from this trip's coordinates and dates, but it does
           // not appear anywhere in the trip row. Omitting it here would make
-          // the gate reject every weather-bearing email — the same
-          // over-blocking failure that twice held back correct mail.
+          // the gate reject every weather-bearing email.
           ownStrings: [
             ...ownEnrichmentStrings(trip),
             ...(forecastLine ? [forecastLine] : []),
@@ -1127,9 +1067,9 @@ async function processRow(
   if (result.ok) {
     if (result.status === "sent") {
       // The email HAS gone out by this point. If this flip does not land the
-      // row stays `pending` and the next run sends the same email again — the
-      // one failure here that a recipient actually experiences. It was
-      // previously not even destructured.
+      // row stays `pending` and the next run retries it; only dispatchEmail's
+      // idempotency key (email_log) then stands between the recipient and a
+      // second copy. So the result is checked and logged loudly.
       const { data: marked, error: markError } = await svc
         .from("scheduled_notifications")
         .update({
@@ -1159,12 +1099,12 @@ async function processRow(
 }
 
 /**
- * Render + dispatch one in-trip day digest (Phase 4.1).
+ * Render + dispatch one in-trip day digest.
  *
  * Content is tomorrow's plan read straight from THIS trip's itinerary day K,
  * so cross-trip contamination is structurally impossible — but it still runs
  * the same verify gate (with the day's own strings as the corpus) so a future
- * refactor can't quietly reintroduce it. The "+N more" line is UI copy, not
+ * refactor can't quietly introduce it. The "+N more" line is UI copy, not
  * trip data, so it is passed OUTSIDE the context block the gate inspects.
  */
 async function dispatchDayDigest(
@@ -1209,9 +1149,8 @@ async function dispatchDayDigest(
   const ownStrings = [dayTitle, ...acts.flatMap((a) => [a.name, a.time])].filter(Boolean);
 
   // Render + dispatch one digest for a recipient/locale/CTA. Reused for the
-  // owner and (Phase 4.2) each emailed participant. Returns the dispatch
-  // outcome, or a synthetic failure when a string won't resolve (the same
-  // assertTranslated guard the owner path always had).
+  // owner and each emailed participant. Returns the dispatch outcome, or a
+  // synthetic failure when a string won't resolve (assertTranslated).
   const sendDigest = async (
     email: string,
     userId: string | null,
@@ -1254,7 +1193,7 @@ async function dispatchDayDigest(
     });
   };
 
-  // Owner send — drives the queue row's status (unchanged from Phase 4.1).
+  // Owner send — drives the queue row's status.
   let ownerT: Awaited<ReturnType<typeof getTranslations>>;
   try {
     ownerT = await getTranslations({ locale, namespace: DIGEST_NS });
@@ -1264,7 +1203,7 @@ async function dispatchDayDigest(
   }
   const result = await sendDigest(recipientEmail, row.user_id, locale, ownerT, `${APP_URL}/trips/${trip.id}?slot=${row.slot}`, "");
 
-  // Participant fan-out (Phase 4.2, off by default): also email the trip's
+  // Participant fan-out (off by default): also email the trip's
   // emailed participants. Best-effort and INDEPENDENT of the owner outcome
   // (owner may be suppressed while participants aren't). Resolved fresh from
   // trip_participants so a mid-trip joiner is covered; one trip-locale
@@ -1328,8 +1267,8 @@ async function dispatchDayDigest(
 /**
  * The owner's live twins of this trip (same normalized title and start date,
  * this trip included) with each one's row status for the slot, or null when
- * there are no twins or a read failed (caller sends as before). Two small
- * reads, and only for trips with a start date.
+ * there are no twins or a read failed (caller sends as if there were no
+ * twins). Two small reads, and only for trips with a start date.
  */
 async function loadTwins(
   svc: ReturnType<typeof serviceClient>,
@@ -1392,10 +1331,10 @@ async function persistOutcome(
     if (error) patch.last_error = error.slice(0, 500);
   }
   // A sent row is final. Without this guard, a second overlapping cron run
-  // that reached the same row got "skipped_duplicate" back from the email
-  // idempotency check and rewrote the row from 'sent' to 'suppressed' — and a
-  // twin copy waiting on that row then saw no sent copy and sent the email
-  // again under its own idempotency key (found in review, 2026-09-23).
+  // that reaches the same row gets "skipped_duplicate" back from the email
+  // idempotency check and rewrites the row from 'sent' to 'suppressed' — and
+  // a twin copy waiting on that row then sees no sent copy and sends the
+  // email again under its own idempotency key.
   const { error: updErr } = await svc
     .from("scheduled_notifications")
     .update(patch)
