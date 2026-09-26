@@ -71,7 +71,6 @@ describe("the entry points actually use it", () => {
   const ENTRY_POINTS = [
     "lib/ai/user-context.ts",
     "app/api/ai/assistant/route.ts",
-    "app/api/ai/generate-more-days/route.ts",
     "app/api/ai/regenerate-activity/route.ts",
     "app/api/ai/regenerate-day/route.ts",
   ];

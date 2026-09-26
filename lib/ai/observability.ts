@@ -41,7 +41,6 @@ export type AiOutcome = "success" | "failure";
  */
 export type AiEndpoint =
   | "generate"
-  | "generate-more-days"
   | "regenerate-activity"
   | "regenerate-day"
   | "assistant"

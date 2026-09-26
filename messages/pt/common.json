@@ -1937,45 +1937,6 @@
       "valueProposition": "Essas preferências nos ajudam a criar um roteiro personalizado só para você"
     }
   },
-  "tour": {
-    "skip": "Pular",
-    "seeHowItWorks": "Veja Como Funciona",
-    "newBadge": "Novo",
-    "aiChat": {
-      "header": {
-        "title": "MonkeyTravel AI",
-        "status": "Online • Pronto para planejar"
-      },
-      "messages": {
-        "greeting": "Oi! 👋 Sou seu assistente de viagens com AI. Para onde você gostaria de ir?",
-        "userRequest": "Quero visitar Barcelona por 5 dias!",
-        "aiResponse": "Ótima escolha! 🇪🇸 Barcelona é incrível. Deixe-me fazer algumas perguntas para personalizar sua viagem...",
-        "userSelection": "Cultura e História, por favor!"
-      },
-      "tags": {
-        "culture": "Cultura e História",
-        "food": "Comida e Vinho",
-        "beach": "Praia e Relaxamento"
-      },
-      "actions": {
-        "creating": "Criando seu roteiro personalizado..."
-      },
-      "inputPlaceholder": "Pergunte qualquer coisa..."
-    },
-    "aiModify": {
-      "header": {
-        "dayTitle": "Dia 1 • Barcelona",
-        "activitiesCount": "4 atividades planejadas",
-        "aiAssistant": "✨ Assistente de AI"
-      },
-      "messages": {
-        "userRequest": "Você pode adicionar um tour gastronômico depois do Park Güell?",
-        "aiResponse": "Claro! 🍴 Vou adicionar o \"Tour Gastronômico de Barcelona\" às 12h30, logo após o Park Güell...",
-        "success": "Pronto! Ajustei os horários para você."
-      },
-      "inputPlaceholder": "Peça à AI para modificar seu plano..."
-    }
-  },
   "referral": {
     "title": "Convide amigos e ganhe bananas",
     "subtitle": "50 bananas para cada amigo que entrar",

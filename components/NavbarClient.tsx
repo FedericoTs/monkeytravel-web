@@ -6,13 +6,6 @@ import { isAdmin } from '@/lib/admin';
 import { useAuth } from '@/components/auth/AuthProvider';
 import ReferralModal from '@/components/referral/ReferralModal';
 import { Gift } from 'lucide-react';
-// Deep import (not the `@/components/tour` barrel) so the rest of the tour
-// surface — ProductTour, slides, animations.ts and the framer-motion they
-// pull in — does not get dragged into the Navbar's chunk. Navbar renders on
-// every route, so the barrel was shipping ~50 KB gz of framer-motion to /,
-// /trips/new, /trips/[id], etc., even though TOUR_ENABLED is false and the
-// click handler short-circuits to router.push('/trips/new'). See task #146.
-import TourTrigger from '@/components/tour/TourTrigger';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { useTranslations } from 'next-intl';
@@ -149,13 +142,12 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
             >
               {t('navigation.signIn')}
             </Link>
-            <TourTrigger
-              variant="custom"
-              skipToAuthIfCompleted={true}
-              className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md"
+            <Link
+              href="/trips/new"
+              className="inline-flex items-center px-5 py-2.5 rounded-full bg-[var(--primary)] text-white font-medium text-sm hover:bg-[var(--primary-light)] transition-colors shadow-md transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]"
             >
               {t('buttons.getStarted')}
-            </TourTrigger>
+            </Link>
           </>
         )}
       </div>
@@ -256,13 +248,12 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                     {t('navigation.signIn')}
                   </Link>
                   <div onClick={() => setMobileMenuOpen(false)}>
-                    <TourTrigger
-                      variant="custom"
-                      skipToAuthIfCompleted={true}
-                      className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium w-full"
+                    <Link
+                      href="/trips/new"
+                      className="mt-2 inline-flex items-center justify-center px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-medium w-full transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]"
                     >
                       {t('buttons.getStarted')}
-                    </TourTrigger>
+                    </Link>
                   </div>
                 </>
               )}

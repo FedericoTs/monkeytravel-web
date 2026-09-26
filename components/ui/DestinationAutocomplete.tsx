@@ -241,7 +241,7 @@ export default function DestinationAutocomplete({
   // Wraps the request in an AbortController so rapid typing can't land a
   // stale "Bar" response on top of a newer "Barcelona" one (P0 funnel bug —
   // direct conversion hit on the wizard's #1 input). Mirrors the canonical
-  // pattern from components/trip/SeasonalContextCard.tsx + lib/hooks/useFetch.ts:
+  // pattern from components/trip/SeasonalContextCard.tsx:
   // cleanup aborts the in-flight fetch and flips a cancelled flag that
   // covers the gap between response arrival and abort being observable.
   useEffect(() => {

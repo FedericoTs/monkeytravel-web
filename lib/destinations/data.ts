@@ -2976,10 +2976,6 @@ export function getAllSlugs(): string[] {
   return destinations.map((d) => d.slug);
 }
 
-export function getDestinationsByContinent(continent: string): Destination[] {
-  return destinations.filter((d) => d.continent === continent);
-}
-
 export function getRelatedDestinations(
   slug: string,
   limit = 6

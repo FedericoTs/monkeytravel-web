@@ -27,7 +27,6 @@ import { recordUsage } from "@/lib/ai/usage";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { recordAiOutcome } from "@/lib/ai/observability";
-import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import { findMatchingActivity, isRelevantBankMatch, populateActivityBank, isActivityBankPopulated, saveToActivityBank } from "@/lib/activity-bank";
 import { getTripDestination } from "@/lib/trips/destination";
 import type {
@@ -1009,12 +1008,6 @@ export async function POST(request: NextRequest) {
     // once the trip is loaded (Phase 1.3).
     let userLanguage = await getUserLanguage(supabase, user.id);
     console.log(`[AI Assistant] User language: ${userLanguage}`);
-
-    // Check early access (during early access period)
-    const earlyAccess = await checkEarlyAccess(user.id, "assistant", user.email);
-    if (!earlyAccess.allowed) {
-      return errors.forbidden(earlyAccess.message || "Early access required", earlyAccess.error);
-    }
 
     const body: AssistantRequest = await request.json();
     const { tripId, message, conversationId, itinerary: clientItinerary, previewMode: requestedPreviewMode = false } = body;
@@ -2264,8 +2257,6 @@ Respond with valid JSON only.`;
 
     // Increment usage counter in new tier-based system
     await incrementUsage(user.id, "aiAssistantMessages", 1);
-    // Also increment early access usage
-    await incrementEarlyAccessUsage(user.id, "assistant");
 
     // Save messages
     const userMessage: AssistantMessage = {

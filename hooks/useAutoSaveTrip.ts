@@ -2,7 +2,7 @@
 
 /**
  * Auto-save the most recent generated trip itinerary as soon as it
- * appears, gated by the `auto-save-v1` PostHog feature flag.
+ * appears (switched off only by NEXT_PUBLIC_AUTO_SAVE_FORCE=off).
  *
  * Why this lives in a hook (not inline in /trips/new/page.tsx):
  * Two failure modes were the highest-risk parts of this change —

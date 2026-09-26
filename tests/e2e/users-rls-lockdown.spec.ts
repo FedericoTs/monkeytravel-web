@@ -326,7 +326,6 @@ test.describe("users lockdown — admin gate holds for a NON-admin", () => {
 
   for (const route of [
     "/api/admin/costs",
-    "/api/admin/google-metrics",
     "/api/admin/stats",
   ]) {
     test(`${route} refuses a signed-in non-admin`, async ({ request }) => {
@@ -359,11 +358,11 @@ test.describe("users lockdown — admin surfaces", () => {
   );
   test.use({ storageState: ADMIN_STATE });
 
-  // These two moved from the cookie client to the service client. Admin-ness
+  // This one moved from the cookie client to the service client. Admin-ness
   // is an allowlist in lib/admin.ts that Postgres knows nothing about, so
   // under id = auth.uid() the cookie client would return the admin's own row
   // and the dashboards would quietly render empty.
-  for (const route of ["/api/admin/costs", "/api/admin/google-metrics"]) {
+  for (const route of ["/api/admin/costs"]) {
     test(`${route} returns data, not an empty shell`, async ({ request }) => {
       const res = await request.get(route);
       expect(res.status(), `${route} should be reachable by an admin`).toBe(

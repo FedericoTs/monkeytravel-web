@@ -1,15 +1,12 @@
 /**
- * Early Access Gate System
- *
- * Controls access to AI features during the early access period.
- * Users need to redeem a tester code to use AI features.
+ * Tester codes. Redeeming a code gives the user custom AI limits (stored in
+ * user_tester_access and applied by lib/usage-limits). There is no access
+ * gate: every signed-in user can use every AI feature.
  */
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
-
-export type EarlyAccessAction = "generation" | "regeneration" | "assistant";
 
 export interface EarlyAccessStatus {
   hasAccess: boolean;
@@ -26,15 +23,6 @@ export interface EarlyAccessStatus {
   redeemedAt?: string;
 }
 
-export interface EarlyAccessCheckResult {
-  allowed: boolean;
-  remaining: number | null; // null = unlimited
-  error?: "NO_ACCESS" | "CODE_EXPIRED" | "LIMIT_REACHED";
-  message?: string;
-  accessType?: "admin" | "tester" | "free_trip"; // How access was granted
-  freeTripsRemaining?: number; // For free trip users
-}
-
 export interface RedeemCodeResult {
   success: boolean;
   error?: string;
@@ -44,7 +32,7 @@ export interface RedeemCodeResult {
 /**
  * Get early access status for a user
  */
-export async function getEarlyAccessStatus(
+async function getEarlyAccessStatus(
   userId: string,
   userEmail?: string | null
 ): Promise<EarlyAccessStatus> {
@@ -108,54 +96,6 @@ export async function getEarlyAccessStatus(
     expiresAt: access.expires_at,
     redeemedAt: access.redeemed_at,
   };
-}
-
-/**
- * Check if a user can perform an AI action.
- *
- * **2026-05-23 PRODUCT DECISION**: The closed-beta gate has been removed —
- * the app is fully free with no paywall. Every authenticated user can use
- * every AI feature without limit. This function now returns `allowed: true`
- * unconditionally; the original gate logic is kept commented below in case
- * we ever need to reintroduce a beta or paywall flow.
- *
- * Anonymous-user limits (e.g. "1 free generation, then sign up to save") are
- * handled separately in `lib/anonymous/rate-limit.ts` — not in this file,
- * which only sees authenticated users.
- */
-export async function checkEarlyAccess(
-  _userId: string,
-  _action: EarlyAccessAction,
-  userEmail?: string | null
-): Promise<EarlyAccessCheckResult> {
-  // Admin remains admin (mostly cosmetic — every user is now effectively
-  // unlimited anyway, but keeping the accessType for analytics/debug).
-  if (userEmail && isAdmin(userEmail)) {
-    return { allowed: true, remaining: null, accessType: "admin" };
-  }
-
-  // Everyone else is also unlimited. accessType="free_trip" preserves the
-  // legacy enum; downstream callers don't make decisions based on the value.
-  return {
-    allowed: true,
-    remaining: null,
-    accessType: "free_trip",
-  };
-}
-
-/**
- * Increment usage after a successful AI action.
- *
- * No-op since the beta gate was removed 2026-05-23 — we no longer cap usage,
- * so there's nothing to count. Kept as a function (rather than deleted) to
- * preserve the call sites in /api/ai/* routes without churn. If a paywall
- * ever lands, restore the original increment logic from git history.
- */
-export async function incrementEarlyAccessUsage(
-  _userId: string,
-  _action: EarlyAccessAction
-): Promise<boolean> {
-  return true;
 }
 
 /**

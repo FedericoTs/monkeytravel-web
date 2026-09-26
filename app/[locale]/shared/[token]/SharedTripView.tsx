@@ -26,7 +26,6 @@ import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import DaySlider from "@/components/ui/DaySlider";
 import TravelConnector from "@/components/trip/TravelConnector";
 import DaySummary from "@/components/trip/DaySummary";
-import HotelRecommendations from "@/components/trip/HotelRecommendations";
 import SaveTripModal, { usePendingSaveTripAction } from "@/components/ui/SaveTripModal";
 import { useAuth } from "@/components/auth/AuthProvider";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
@@ -745,15 +744,6 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             </ErrorBoundary>
           </div>
         )}
-
-        {/* Hotel Recommendations - DISABLED for shared trips - No external API costs */}
-        <HotelRecommendations
-          destination={destination}
-          itinerary={displayItinerary}
-          startDate={trip.startDate}
-          endDate={trip.endDate}
-          disableApiCalls={true}
-        />
 
         {/* Day Filter Slider - Mobile optimized */}
         <DaySlider

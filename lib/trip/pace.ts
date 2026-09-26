@@ -34,7 +34,7 @@ export const PACE_BUDGETS: Record<TripPace, PaceBudget> = {
 
 /**
  * Coerce anything the DB or an older interface hands us into a TripPace.
- * Legacy "packed" (GenerateMoreDaysParams still declares it) reads as
+ * Legacy "packed" (an old pace value) reads as
  * "active"; everything unknown — including trips saved before trip_meta.pace
  * existed — defaults to "moderate".
  */

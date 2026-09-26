@@ -24,7 +24,7 @@ export interface UseModalBehaviorOptions {
  * - Body scroll locking
  *
  * Used by: BottomSheet, BaseModal, ActivityDetailSheet, ImageCarousel,
- *          ShareModal, ReferralModal, StartOverModal, ProductTour
+ *          ShareModal, ReferralModal, StartOverModal
  *
  * @example
  * ```tsx

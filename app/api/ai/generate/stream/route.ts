@@ -18,9 +18,6 @@ import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { isAdmin } from "@/lib/admin";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
-import {
-  incrementEarlyAccessUsage,
-} from "@/lib/early-access";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
 import {
@@ -500,7 +497,6 @@ export async function POST(request: NextRequest) {
             // (9b): once it is under way a cookie can no longer be set.
             if (!cacheHit && user) {
               await incrementUsage(user.id, "aiGenerations", 1);
-              await incrementEarlyAccessUsage(user.id, "generation");
             }
           } catch (err) {
             console.error("[AI Generate Stream] post-stream cleanup error:", err);

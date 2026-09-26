@@ -7,7 +7,6 @@
  * Used across 7+ API routes:
  * - trips/[id]/collaborators
  * - trips/[id]/votes
- * - referral/history
  * - trips/[id]/proposals
  *
  * READS public_profiles, NOT public.users.

@@ -6,9 +6,6 @@ import CuratedEscapes from '@/components/templates/CuratedEscapes';
 import { Link } from '@/lib/i18n/routing';
 import { generateFAQSchema, jsonLdScriptProps } from '@/lib/seo/structured-data';
 import { getNonce } from '@/lib/security/nonce';
-// Deep import (not the `@/components/tour` barrel) to keep framer-motion
-// out of the homepage First Load JS — see task #146 / NavbarClient.tsx.
-import TourTrigger from '@/components/tour/TourTrigger';
 import HeroTripInput from '@/components/home/HeroTripInput';
 import DestinationLeaderboard from '@/components/home/DestinationLeaderboard';
 import { getDestinationLeaderboard } from '@/lib/leaderboard/destinations';
@@ -419,16 +416,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             </div>
 
             <div className="text-center">
-              <TourTrigger
-                variant="custom"
-                skipToAuthIfCompleted={true}
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg cursor-pointer"
+              <Link
+                href="/trips/new"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg cursor-pointer transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]"
               >
                 {t('aiChatDemo.cta')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
-              </TourTrigger>
+              </Link>
             </div>
           </div>
         </section>
@@ -588,16 +584,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
             {/* CTA */}
             <div className="text-center">
-              <TourTrigger
-                variant="custom"
-                skipToAuthIfCompleted={true}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary)] text-white rounded-xl font-bold text-lg hover:bg-[var(--primary-dark)] transition-all shadow-lg hover:shadow-xl cursor-pointer"
+              <Link
+                href="/trips/new"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary)] text-white rounded-xl font-bold text-lg hover:bg-[var(--primary-dark)] transition-all shadow-lg hover:shadow-xl cursor-pointer transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]"
               >
                 {t('collaboration.cta')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-              </TourTrigger>
+              </Link>
               <p className="mt-4 text-sm text-[var(--foreground-muted)]">
                 {t('collaboration.subtitle')}
               </p>
@@ -679,16 +674,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
             {/* CTA */}
             <div className="text-center mt-16">
-              <TourTrigger
-                variant="custom"
-                skipToAuthIfCompleted={true}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-xl hover:bg-[var(--primary-dark)] transition-colors shadow-lg cursor-pointer"
+              <Link
+                href="/trips/new"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-xl hover:bg-[var(--primary-dark)] transition-colors shadow-lg cursor-pointer transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]"
               >
                 {t('howItWorks.cta')}
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
-              </TourTrigger>
+              </Link>
             </div>
           </div>
         </section>
@@ -846,16 +840,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   ))}
                 </ul>
 
-                <TourTrigger
-                  variant="custom"
-                  skipToAuthIfCompleted={true}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--foreground)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30 cursor-pointer"
+                <Link
+                  href="/trips/new"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--foreground)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30 cursor-pointer transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {t('appPreview.cta')}
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
-                </TourTrigger>
+                </Link>
               </div>
             </div>
           </div>
@@ -1108,16 +1101,15 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-                  <TourTrigger
-                    variant="custom"
-                    skipToAuthIfCompleted={true}
-                    className="group px-8 py-4 bg-[var(--accent)] text-[var(--foreground)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  <Link
+                    href="/trips/new"
+                    className="group px-8 py-4 bg-[var(--accent)] text-[var(--foreground)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all flex items-center justify-center gap-2 cursor-pointer transition-transform duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <span>{t('cta.button')}</span>
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
-                  </TourTrigger>
+                  </Link>
                   <Link
                     href="/auth/login"
                     className="px-8 py-4 bg-white/10 border border-white/20 text-white font-semibold rounded-xl hover:bg-white/20 transition-all flex items-center justify-center"

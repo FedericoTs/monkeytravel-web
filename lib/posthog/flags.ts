@@ -38,16 +38,6 @@
  */
 export const FLAG_ENHANCED_BOOKING = "enhanced-booking-panel";
 
-/**
- * Auto-save trip v1 (2026-05-02)
- * Gates the auto-save-on-generation-complete flow inside /trips/new.
- * Roll out 0% → 10% → 50% → 100% while watching the trip_created event
- * rate and the auto_save_failed Sentry tag.
- *
- * Read by: app/[locale]/trips/new/NewTripWizard.tsx
- */
-export const FLAG_AUTO_SAVE_V1 = "auto-save-v1";
-
 // ============================================================================
 // NOT WIRED — declared, no consumer. Reading these returns the default.
 // ============================================================================
@@ -160,7 +150,7 @@ export const FLAG_EXPLORE_UGC = "explore-ugc-v1";
  * on 2026-09-16. The review could not separate the arms on step-1→2
  * conversion (dwell-qualified 74.6% before, 75.8% after, p=0.60) and 99.9% of
  * armed sessions were already editorial, so the call was made on the merits.
- * History lives in wizard_step_events.step1_variant and scripts/flag-review.mts.
+ * History lives in wizard_step_events.step1_variant.
  * The PostHog flag can be archived; nothing reads it any more.
  */
 
@@ -204,7 +194,6 @@ export const UNWIRED_FLAGS: readonly string[] = [
  */
 export const FLAG_DEFAULTS: Record<string, boolean | string> = {
   [FLAG_ENHANCED_BOOKING]: false, // Start disabled, enable via PostHog
-  [FLAG_AUTO_SAVE_V1]: false,
   [FLAG_AUTH_WALL_VARIANT]: "magic-link-primary",
   [FLAG_CONCIERGE_SURFACE]: "always",
   [FLAG_EXPLORE_ANON_ENGAGEMENT]: "auth-gated",
@@ -223,10 +212,3 @@ export const FLAG_DEFAULTS: Record<string, boolean | string> = {
 export const FLAG_REVIEW_DATES: Record<string, string> = {
   // Empty since 2026-09-16: wizard-step1-editorial-v1 was ramped to 100%.
 };
-
-/**
- * Get default value for a flag
- */
-export function getDefaultFlagValue(flagKey: string): boolean | string {
-  return FLAG_DEFAULTS[flagKey] ?? false;
-}

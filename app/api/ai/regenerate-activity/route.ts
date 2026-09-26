@@ -8,7 +8,6 @@ import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { findActivityById, getAllActivityNames } from "@/lib/utils/activity-id";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
-import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import type { ItineraryDay } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { recordAiOutcome } from "@/lib/ai/observability";
@@ -33,12 +32,6 @@ export async function POST(request: NextRequest) {
   try {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
-
-    // Check early access (during early access period)
-    const earlyAccess = await checkEarlyAccess(user.id, "regeneration", user.email);
-    if (!earlyAccess.allowed) {
-      return errors.forbidden(earlyAccess.message || "Early access required", earlyAccess.error);
-    }
 
     // Parse request body
     const body = await request.json();
@@ -179,8 +172,6 @@ export async function POST(request: NextRequest) {
 
     // Increment usage counter
     await incrementUsage(user.id, "aiRegenerations", 1);
-    // Also increment early access usage
-    await incrementEarlyAccessUsage(user.id, "regeneration");
 
     // Update usage info for response
     const updatedUsage = {

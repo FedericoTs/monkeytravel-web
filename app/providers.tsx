@@ -9,7 +9,7 @@ interface ProvidersProps {
 /**
  * No PostHog provider is needed, and mounting one late remounted the app.
  *
- * posthog-js/react's hooks (lib/posthog/hooks.ts: useFlag, useExperiment,
+ * posthog-js/react's hooks (lib/posthog/hooks.ts: useFlag,
  * usePostHog...) read a context whose DEFAULT value is the global posthog-js
  * instance, the same one instrumentation-client.ts initialises (no bootstrap).
  * So they work without a <PostHogProvider>, and they always did: until
