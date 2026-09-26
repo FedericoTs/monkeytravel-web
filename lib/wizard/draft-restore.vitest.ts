@@ -10,6 +10,7 @@ const base: DraftRestoreInput = {
   isAuthenticated: false,
   savedTripId: null,
   pendingTripGeneration: false,
+  draftIsSavedTrip: false,
 };
 const decide = (over: Partial<DraftRestoreInput> = {}) => decideDraftRestore({ ...base, ...over });
 
@@ -65,6 +66,29 @@ describe("a spent or absent draft is left alone", () => {
   });
 });
 
+describe("a draft that is already one of the user's trips is never inserted again", () => {
+  // The cruise planner, 2026-09-20: 80 minutes of wizard edits after the trip
+  // auto-saved kept re-writing the draft; reopening the wizard restored it and
+  // the auto-save arm inserted a second copy.
+  it("waits for the check before restoring for a signed-in user", () => {
+    expect(decide({ isAuthenticated: true, draftIsSavedTrip: null })).toBe("wait");
+  });
+
+  it("discards it once the check says it is saved, and restores when it is not", () => {
+    expect(decide({ isAuthenticated: true, draftIsSavedTrip: true })).toBe("discard");
+    expect(decide({ isAuthenticated: true, draftIsSavedTrip: false })).toBe("auto-restore");
+  });
+
+  it("does not hold up the Save-modal path, but a known answer still wins", () => {
+    expect(decide({ isAuthenticated: true, pendingTripGeneration: true, draftIsSavedTrip: null })).toBe("auto-restore");
+    expect(decide({ isAuthenticated: true, pendingTripGeneration: true, draftIsSavedTrip: true })).toBe("discard");
+  });
+
+  it("leaves signed-out visitors on the banner: the check never runs for them", () => {
+    expect(decide({ isAuthenticated: false, draftIsSavedTrip: null })).toBe("offer-banner");
+  });
+});
+
 describe("exhaustive: no state can produce a banner while auth is unknown", () => {
   it("holds across every combination", () => {
     const bools = [true, false];
@@ -73,13 +97,14 @@ describe("exhaustive: no state can produce a banner while auth is unknown", () =
         for (const alreadyRestored of bools)
           for (const itineraryOnScreen of bools)
             for (const pendingTripGeneration of bools)
-              for (const savedTripId of [null, "t1"]) {
-                const d = decideDraftRestore({
-                  hasDraft, hasItineraryInDraft, alreadyRestored, itineraryOnScreen,
-                  pendingTripGeneration, savedTripId, isAuthenticated: null,
-                });
-                expect(d, JSON.stringify({ hasDraft, alreadyRestored, itineraryOnScreen })).not.toBe("offer-banner");
-                expect(["wait", "idle"]).toContain(d);
-              }
+              for (const savedTripId of [null, "t1"])
+                for (const draftIsSavedTrip of [null, true, false]) {
+                  const d = decideDraftRestore({
+                    hasDraft, hasItineraryInDraft, alreadyRestored, itineraryOnScreen,
+                    pendingTripGeneration, savedTripId, draftIsSavedTrip, isAuthenticated: null,
+                  });
+                  expect(d, JSON.stringify({ hasDraft, alreadyRestored, itineraryOnScreen })).not.toBe("offer-banner");
+                  expect(["wait", "idle"]).toContain(d);
+                }
   });
 });

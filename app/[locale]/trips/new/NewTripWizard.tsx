@@ -185,6 +185,7 @@ import { clearClaimedTrip, onClaimedTrip, readClaimedTrip } from "@/lib/trips/cl
 import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim-client";
 import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
 import { decideDraftRestore } from "@/lib/wizard/draft-restore";
+import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
 import { classifyGenerationFailure } from "@/lib/wizard/generation-failure";
 // Save Sprint: session generation counter + per-session trip stack (T1/T4).
 import { useSessionTripStack } from "@/hooks/useSessionTripStack";
@@ -1206,6 +1207,28 @@ export default function NewTripPage({
     };
   }, [destination, startDate, endDate, destinationCoords]);
 
+  // Is the draft's itinerary already one of this user's trips? Asked once per
+  // draft, only while it could still be restored (signed in, nothing on
+  // screen yet). decideDraftRestore waits for the answer and discards a draft
+  // that is already saved instead of restoring it into a second insert.
+  const draftCheckKey =
+    isAuthenticated === true && authUser && draft?.generatedItinerary && !generatedItinerary && !draftAutoRestored
+      ? `${authUser.id}:${draft.savedAt}`
+      : null;
+  const [draftSavedCheck, setDraftSavedCheck] = useState<{ key: string; saved: boolean } | null>(null);
+  useEffect(() => {
+    if (!draftCheckKey || !authUser || !draft?.generatedItinerary) return;
+    let alive = true;
+    void isItinerarySaved(createClient(), authUser.id, draft.generatedItinerary).then((saved) => {
+      if (alive) setDraftSavedCheck({ key: draftCheckKey, saved });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [draftCheckKey, authUser, draft]);
+  const draftIsSavedTrip =
+    draftSavedCheck && draftSavedCheck.key === draftCheckKey ? draftSavedCheck.saved : null;
+
   // Check for unsaved draft on mount - AUTO-RESTORE if coming back from auth.
   // The `pendingTripGeneration` flag lives in `prefs` (async on native
   // Capacitor) — wrap the read in an inner async fn and use `cancelled`
@@ -1242,8 +1265,14 @@ export default function NewTripPage({
         isAuthenticated,
         savedTripId,
         pendingTripGeneration: hasPendingGeneration,
+        draftIsSavedTrip,
       });
 
+      if (decision === "discard") {
+        // Already one of their trips: restoring it would insert it again.
+        clearDraft();
+        return;
+      }
       if (decision === "auto-restore") {
         // Auto-restore the draft silently (no banner) for seamless post-auth experience.
         // **2026-05-25 P0 fix**: previously only restored form state and dropped
@@ -1308,30 +1337,41 @@ export default function NewTripPage({
     return () => {
       cancelled = true;
     };
-  }, [hasDraft, draft, generatedItinerary, draftAutoRestored, registerSessionRestore, isAuthenticated, savedTripId, locale]);
+  }, [hasDraft, draft, generatedItinerary, draftAutoRestored, registerSessionRestore, isAuthenticated, savedTripId, locale, draftIsSavedTrip, clearDraft]);
 
-  // Auto-save draft when itinerary is generated
+  // Keep a draft of the itinerary until the trip is saved, then none.
+  //
+  // Once the trip exists, the row is the copy that survives: the auto-save arm
+  // UPDATEs it on every edit. A draft written after that has no link to the
+  // row, and this effect used to write one on every post-save edit. A later
+  // visit to the wizard then auto-restored it, and the auto-save arm inserted
+  // it as a second trip: five duplicates since 2026-08-26, one of them a
+  // cruise planner who edited in the wizard for 80 minutes after the save and
+  // found a copy on the next visit. So a saved trip clears the draft instead.
   useEffect(() => {
-    if (generatedItinerary) {
-      saveDraft({
-        generatedItinerary,
-        destination,
-        startDate,
-        endDate,
-        pace,
-        vibes: selectedVibes,
-        budgetTier,
-        travelStyle,
-        anchors,
-        mustDos,
-        tripIntent,
-      });
+    if (!generatedItinerary) return;
+    if (savedTripId) {
+      clearDraft();
+      return;
     }
+    saveDraft({
+      generatedItinerary,
+      destination,
+      startDate,
+      endDate,
+      pace,
+      vibes: selectedVibes,
+      budgetTier,
+      travelStyle,
+      anchors,
+      mustDos,
+      tripIntent,
+    });
     // tripIntent belongs here: without it the effect doesn't re-run when the
     // user changes "Who's coming?" after generating, and the draft keeps the
     // stale answer — which would quietly corrupt the very measurement this
     // field exists to produce. Same for mustDos (P3a).
-  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, tripIntent, saveDraft]);
+  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, tripIntent, saveDraft, savedTripId, clearDraft]);
 
   // ── Auto-save trip orchestration (gated by auto-save-v1 PostHog flag) ────
   // The hook owns the save state machine — INSERT-or-UPDATE decision,
@@ -2217,8 +2257,10 @@ export default function NewTripPage({
     // requests rate-limited by cookie (2/24h). Persisting the form draft to
     // localStorage stays — it lets us recover gracefully if the visitor
     // closes the tab mid-generation, AND it's what survives the eventual
-    // signup modal at Save time.
-    if (destination && startDate && endDate) {
+    // signup modal at Save time. Not once the trip is saved: the saved row is
+    // then the copy that survives, and a draft beside it restores later as a
+    // duplicate (see the draft effect above).
+    if (destination && startDate && endDate && !savedTripId) {
       saveDraft({
         // Was `null`, unconditionally. That emptied a perfectly good draft the
         // moment the user pressed Generate, so anyone returning mid-wait — or

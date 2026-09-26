@@ -26,6 +26,8 @@ export type DraftRestoreDecision =
   | "auto-restore"
   /** Signed out: offer recovery and let them choose. */
   | "offer-banner"
+  /** The draft's itinerary is already one of the user's trips: clear it, restore nothing. */
+  | "discard"
   /** Nothing to recover, or it is already handled. */
   | "idle";
 
@@ -44,6 +46,18 @@ export interface DraftRestoreInput {
   savedTripId: string | null;
   /** AuthPromptModal's flag: the user came back specifically to finish a save. */
   pendingTripGeneration: boolean;
+  /**
+   * Whether the draft's itinerary already lives in one of the user's trips
+   * (lib/wizard/draft-saved-check.ts). null until that check has answered;
+   * it only runs for a signed-in user.
+   *
+   * Restoring such a draft is how duplicates were made: the wizard used to
+   * keep re-writing the draft after its trip was saved, a later visit
+   * restored it, and the auto-save arm inserted it as a second trip (five
+   * since 2026-08-26). The wizard no longer writes those drafts, but ones
+   * written before the fix can sit in a browser for up to 7 days.
+   */
+  draftIsSavedTrip: boolean | null;
 }
 
 export function decideDraftRestore(input: DraftRestoreInput): DraftRestoreDecision {
@@ -55,6 +69,7 @@ export function decideDraftRestore(input: DraftRestoreInput): DraftRestoreDecisi
     isAuthenticated,
     savedTripId,
     pendingTripGeneration,
+    draftIsSavedTrip,
   } = input;
 
   if (!hasDraft || alreadyRestored || itineraryOnScreen) return "idle";
@@ -63,15 +78,21 @@ export function decideDraftRestore(input: DraftRestoreInput): DraftRestoreDecisi
   if (isAuthenticated === null) return "wait";
 
   // The Save-modal path restores even a form-only draft, because the user
-  // explicitly asked to save and is mid-flow.
-  if (pendingTripGeneration) return "auto-restore";
+  // explicitly asked to save and is mid-flow. It does not wait for the
+  // saved-trip check (that draft was parked moments ago, unsaved), but a
+  // known answer still wins: a saved itinerary is never inserted twice.
+  if (pendingTripGeneration) return draftIsSavedTrip === true ? "discard" : "auto-restore";
 
   // Everyone else needs something worth putting back on screen.
   if (!hasItineraryInDraft) return isAuthenticated ? "idle" : "offer-banner";
 
   // Signed in with an unsaved itinerary in hand: put it back, no clicks. A
-  // saved trip means the draft is spent and must never resurrect.
-  if (isAuthenticated && !savedTripId) return "auto-restore";
+  // saved trip means the draft is spent and must never resurrect — whether
+  // this mount saved it (savedTripId) or an earlier visit did (the check).
+  if (isAuthenticated && !savedTripId) {
+    if (draftIsSavedTrip === null) return "wait";
+    return draftIsSavedTrip ? "discard" : "auto-restore";
+  }
 
   return isAuthenticated ? "idle" : "offer-banner";
 }
