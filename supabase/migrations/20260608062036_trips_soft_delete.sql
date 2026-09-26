@@ -1,5 +1,5 @@
 -- Soft-delete pattern for trips. Prior to 2026-06-07 the DELETE handler hard-deleted
--- rows, losing all activity / conversation / share-link context. The "david cassoni"
+-- rows, losing all activity / conversation / share-link context. The June 2026
 -- incident (signup 16:21, trip + 7 Concierge questions over 17 min, then trip
 -- vanished) made the cost concrete. Soft-delete keeps the row + lets us restore.
 

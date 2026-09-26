@@ -1,4 +1,4 @@
--- Capture WHY users discard a trip / start over. The david-cassoni incident
+-- Capture WHY users discard a trip / start over. A June 2026 incident
 -- showed that we had zero visibility into why a freshly-generated trip got
 -- discarded -- was the destination wrong? Dates? Suggestions? Made-by-mistake?
 -- Without this signal we can't tell which generation-quality dimension to

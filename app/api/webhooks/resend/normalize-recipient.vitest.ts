@@ -13,7 +13,7 @@ import { normalizeRecipient } from "./route";
  *   lib/email/send.ts     .eq("recipient_email", recipient)
  *   optOutMarketing       .ilike("email", e)
  *
- * so "ann bernier <ann.bernier@gmail.com>" matched neither. Production held
+ * so "jane doe <jane.doe@example.com>" matched neither. Production held
  * exactly one such row (fixed 2026-08-27): a hard bounce for a registered
  * user that had never suppressed a single send. The row LOOKED right in the
  * table, which is why nothing surfaced it.
@@ -25,21 +25,21 @@ import { normalizeRecipient } from "./route";
 
 describe("normalizeRecipient", () => {
   it("extracts the address from a display-name form", () => {
-    // The exact production row.
-    expect(normalizeRecipient("ann bernier <ann.bernier@gmail.com>")).toBe(
-      "ann.bernier@gmail.com"
+    // The shape of the production row.
+    expect(normalizeRecipient("jane doe <jane.doe@example.com>")).toBe(
+      "jane.doe@example.com"
     );
   });
 
   it("handles a quoted display name", () => {
-    expect(normalizeRecipient('"Bernier, Ann" <Ann.Bernier@Gmail.com>')).toBe(
-      "ann.bernier@gmail.com"
+    expect(normalizeRecipient('"Doe, Jane" <Jane.Doe@Example.com>')).toBe(
+      "jane.doe@example.com"
     );
   });
 
   it("leaves a bare address alone apart from case and space", () => {
-    expect(normalizeRecipient("  Ann.Bernier@Gmail.com  ")).toBe(
-      "ann.bernier@gmail.com"
+    expect(normalizeRecipient("  Jane.Doe@Example.com  ")).toBe(
+      "jane.doe@example.com"
     );
   });
 
@@ -75,7 +75,7 @@ describe("normalizeRecipient", () => {
   it("is idempotent — normalising twice changes nothing", () => {
     // The backfill ran this transformation over stored rows; re-running the
     // webhook over an already-clean value must not corrupt it.
-    const once = normalizeRecipient("Ann Bernier <ann.bernier@gmail.com>");
+    const once = normalizeRecipient("Jane Doe <jane.doe@example.com>");
     expect(normalizeRecipient(once)).toBe(once);
   });
 });

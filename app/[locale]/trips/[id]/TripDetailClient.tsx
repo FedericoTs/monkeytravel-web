@@ -201,7 +201,7 @@ const TripConciergeChat = dynamic(
   { ssr: false }
 );
 
-// Concierge conversation history (post-david-cassoni). Renders a
+// Concierge conversation history (added after a June 2026 incident). Renders a
 // collapsible list of past Q+A pairs for this trip. Same lazy / no-SSR
 // pattern as the launcher — the history fetch is gated on the expand
 // click so this dynamic-import is a near-free add to the trip-detail
@@ -2400,7 +2400,7 @@ export default function TripDetailClient({
               setRenderEpoch((v) => v + 1);
             }}
           />
-          {/* Past Q+A pairs for THIS trip (david-cassoni follow-up).
+          {/* Past Q+A pairs for THIS trip (a June 2026 follow-up).
               Lazy expand-to-fetch; renders nothing when the Concierge
               env-flag is off. */}
           <ConciergeHistory tripId={trip.id} />
