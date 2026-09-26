@@ -9,6 +9,7 @@
  * in-memory itinerary on confirm — the server never mutates anything.
  */
 import { NextRequest } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
@@ -16,6 +17,7 @@ import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { assistTrip } from "@/lib/ai/assistant-anon";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import type { ItineraryDay } from "@/types";
 
 // Fire-and-forget observability write (anon_assistant_logs, service-role
@@ -24,6 +26,10 @@ import type { ItineraryDay } from "@/types";
 // session replays, 2026-07-03 diagnosis) were invisible in our data while
 // the authed assistant persists to ai_conversations. Never blocks or fails
 // the response.
+//
+// waitUntil, not a dangling promise (2026-09-26): the insert used to land only
+// if the instance happened to serve another request, so ~15% of turns (23 of
+// 156 in 14 days) never reached the table, the monitoring's main lens on it.
 function logAnonExchange(row: {
   session_id?: string;
   locale?: string;
@@ -35,14 +41,13 @@ function logAnonExchange(row: {
 }) {
   try {
     const admin = createAdminClient();
-    void admin
-      .from("anon_assistant_logs")
-      .insert(row)
-      .then(({ error }) => {
+    waitUntil(
+      Promise.resolve(admin.from("anon_assistant_logs").insert(row)).then(({ error }) => {
         if (error) {
           console.warn("[assistant-anon] log insert failed:", error.message);
         }
-      });
+      })
+    );
   } catch (e) {
     console.warn(
       "[assistant-anon] log skipped:",
@@ -61,15 +66,27 @@ export const maxDuration = 60;
 // because an edit round-trip is a bit pricier (~$0.0006) and produces content.
 const assistIpLimiter = createRateLimiter("anon-assistant", 30, 24 * 60 * 60 * 1000);
 const assistBurstLimiter = createRateLimiter("anon-assistant-burst", 5, 60 * 1000);
+// Signed-in travellers use this same assistant in the wizard, and heavy
+// editors send a dozen or more messages a trip (one did 16 in 20 minutes,
+// 2026-09-26). They were capped per IP like strangers and told to "sign up
+// (it's free)". Their own allowance, keyed by account, with a true message.
+const assistUserLimiter = createRateLimiter("assistant-signed-in", 150, 24 * 60 * 60 * 1000);
+const assistUserBurstLimiter = createRateLimiter("assistant-signed-in-burst", 12, 60 * 1000);
 
 const BodySchema = z.object({
-  message: z.string().trim().min(3).max(500),
+  // People paste a whole day's plan ("day 3 - Route Quito → Cotopaxi…").
+  message: z.string().trim().min(3).max(1500),
   destination: z.string().trim().min(1).max(120),
   tripTitle: z.string().trim().min(1).max(160),
   days: z.array(z.unknown()).min(1).max(20),
   startDate: z.string().trim().max(10).optional(),
   endDate: z.string().trim().max(10).optional(),
   locale: z.string().trim().max(10).optional(),
+  // The conversation so far, so "yes" and "No I mean…" can be understood.
+  history: z
+    .array(z.object({ role: z.enum(["user", "assistant"]), text: z.string().max(2000) }))
+    .max(12)
+    .optional(),
 });
 
 const INJECTION_RE =
@@ -105,19 +122,50 @@ export async function POST(request: NextRequest) {
   }
 
   const sessionId = request.cookies.get("mt_session_id")?.value || undefined;
-  const ipOk = await assistIpLimiter
-    .check(request)
-    .catch(() => ({ allowed: true, remaining: 0 }));
-  if (!ipOk.allowed) {
-    return errors.rateLimit(
-      "You've done a lot today — sign up (it's free) to keep the assistant going."
+  const userId = await signedInUserId();
+  const limited = (reason: string) => {
+    // Logged, so a traveller hitting the cap is visible in monitoring.
+    waitUntil(
+      logApiCall({
+        apiName: "gemini",
+        endpoint: "/api/ai/assistant-anon",
+        status: 429,
+        responseTimeMs: Date.now() - startedAt,
+        cacheHit: false,
+        costUsd: 0,
+        exactCost: true,
+        error: reason,
+        userId: userId ?? undefined,
+      }).catch(() => undefined)
     );
-  }
-  const burstOk = await assistBurstLimiter
-    .check(request, sessionId)
-    .catch(() => ({ allowed: true, remaining: 0 }));
-  if (!burstOk.allowed) {
-    return errors.rateLimit("One sec — try that again in a moment.");
+  };
+  if (userId) {
+    const dayOk = await assistUserLimiter.check(request, userId).catch(() => ({ allowed: true, remaining: 0 }));
+    if (!dayOk.allowed) {
+      limited("daily cap (signed in)");
+      // "reason" picks the panel's localized message (the text is for logs).
+      return errors.rateLimit("Daily assistant limit reached (signed in).", { reason: "daily_user" });
+    }
+    const burstOk = await assistUserBurstLimiter.check(request, userId).catch(() => ({ allowed: true, remaining: 0 }));
+    if (!burstOk.allowed) {
+      limited("burst (signed in)");
+      return errors.rateLimit("Too many messages in a minute.", { reason: "burst" });
+    }
+  } else {
+    const ipOk = await assistIpLimiter
+      .check(request)
+      .catch(() => ({ allowed: true, remaining: 0 }));
+    if (!ipOk.allowed) {
+      limited("daily cap (per IP)");
+      return errors.rateLimit("Daily assistant limit reached (per IP).", { reason: "daily_anon" });
+    }
+    const burstOk = await assistBurstLimiter
+      .check(request, sessionId)
+      .catch(() => ({ allowed: true, remaining: 0 }));
+    if (!burstOk.allowed) {
+      limited("burst");
+      return errors.rateLimit("Too many messages in a minute.", { reason: "burst" });
+    }
   }
 
   // Both attempts are billed, including a failed pair (non-JSON twice).
@@ -132,9 +180,10 @@ export async function POST(request: NextRequest) {
         startDate: body.startDate,
         endDate: body.endDate,
         locale: body.locale,
+        history: body.history,
       })
     );
-    void logApiCall({
+    waitUntil(logApiCall({
       apiName: "gemini",
       endpoint: "/api/ai/assistant-anon",
       status: 200,
@@ -142,16 +191,25 @@ export async function POST(request: NextRequest) {
       cacheHit: false,
       costUsd: geminiCost.usd,
       exactCost: true,
-    });
+      userId: userId ?? undefined,
+    }).catch(() => undefined));
     logAnonExchange({
       session_id: sessionId,
       locale: body.locale,
       destination: body.destination,
       user_message: body.message,
       reply: result.reply,
-      edit: result.edit ?? undefined,
+      // day_number stays the first edited day, so existing queries still read it.
+      edit:
+        result.edits.length > 0 || result.tripLength !== undefined
+          ? {
+              day_number: result.edits[0]?.day_number ?? null,
+              days: result.edits.map((e) => e.day_number),
+              trip_length: result.tripLength ?? null,
+            }
+          : undefined,
     });
-    return apiSuccess({ reply: result.reply, edit: result.edit });
+    return apiSuccess({ reply: result.reply, edits: result.edits, tripLength: result.tripLength, edit: result.edit });
   } catch (err) {
     console.error("[assistant-anon] error:", err);
     logAnonExchange({
@@ -161,7 +219,7 @@ export async function POST(request: NextRequest) {
       user_message: body.message,
       error: err instanceof Error ? err.message : "unknown",
     });
-    void logApiCall({
+    waitUntil(logApiCall({
       apiName: "gemini",
       endpoint: "/api/ai/assistant-anon",
       status: 500,
@@ -170,7 +228,21 @@ export async function POST(request: NextRequest) {
       costUsd: geminiCost.usd,
       exactCost: true,
       error: err instanceof Error ? err.message : "unknown",
-    });
-    return errors.internal("Couldn't do that just now — mind trying again?", "assistant-anon");
+      userId: userId ?? undefined,
+    }).catch(() => undefined));
+    // The panel shows its own localized text for a 500 (big multi-day asks
+    // are the ones that fail, so it suggests one or two days at a time).
+    return errors.internal("Assistant request failed.", "assistant-anon");
+  }
+}
+
+/** The signed-in account, if any. The assistant works for both; this only picks the allowance. */
+async function signedInUserId(): Promise<string | null> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    return data.user?.id ?? null;
+  } catch {
+    return null;
   }
 }

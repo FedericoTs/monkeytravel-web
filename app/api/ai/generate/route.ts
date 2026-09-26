@@ -170,6 +170,9 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // (same reasoning as the anchored branch below), and a wish-tailored
     // itinerary must not poison the generic pool for everyone else.
     const isPersonalized = Boolean(params.mustDos?.length);
+    // "Try Different Version": skip the cache READ so the traveller gets a new
+    // plan, not the one on screen (same rule as the stream route).
+    const wantsFresh = body.fresh === true;
 
 
     // Multi-city: when the client sends a `destinations` array of >1 leg, route
@@ -329,6 +332,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       }
     } else if (
       !isPersonalized &&
+      !wantsFresh &&
       cachedItinerary &&
       cachedItinerary.days.length >= totalDays
     ) {
@@ -411,7 +415,11 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       // results now have their own cache pool (Tier 1.2 migration
       // 2026-05-28), so the previous skip-cache hack is gone.
       // Personalized (must-do) results never enter the shared pool.
-      if (!isPartialGeneration && !isPersonalized) {
+      // A fresh regenerate never replaces a LONGER entry (same rule as the
+      // stream route).
+      const shorterThanCached =
+        wantsFresh && (cachedItinerary?.days.length ?? 0) > itinerary.days.length;
+      if (!isPartialGeneration && !isPersonalized && !shorterThanCached) {
         await cacheItinerary(
           supabase,
           params.destination,
@@ -501,6 +509,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         is_partial: isPartialGeneration,
         is_admin: userIsAdmin,
         used_maps_grounding: usedMapsGrounding,
+        // "Try Different Version": a regenerate that skipped the cache.
+        fresh: wantsFresh,
       },
     });
 

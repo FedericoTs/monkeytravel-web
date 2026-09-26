@@ -34,7 +34,7 @@ export interface PrefilledTripShape {
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { prefs } from "@/lib/platform/storage";
-import type { Activity, GeneratedItinerary, TripAnchor, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
+import type { GeneratedItinerary, ItineraryDay, TripAnchor, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
 // Step-1 components (above-the-fold) stay eager.
 import VibeSelector from "@/components/trip/VibeSelector";
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
@@ -104,6 +104,7 @@ const ActivityCard = dynamic(() => import("@/components/ActivityCard"), {
 });
 const GenerationProgress = dynamic(() => import("@/components/trip/GenerationProgress"), { ssr: false });
 const StartOverModal = dynamic(() => import("@/components/trip/StartOverModal"), { ssr: false });
+const BaseModal = dynamic(() => import("@/components/ui/BaseModal"), { ssr: false });
 const RegenerateButton = dynamic(() => import("@/components/trip/RegenerateButton"), { ssr: false });
 // Export (PDF / iCal) on the anonymous result view. Client-only, no auth — works
 // on the in-memory generatedItinerary. Discoverability audit 2026-07-01: the
@@ -238,7 +239,7 @@ import {
 } from "@/lib/trips/persistTrip";
 import { resolveAiLanguage } from "@/lib/ai/language";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
-import { mergeDayEditActivities } from "@/lib/trips/day-edit-merge";
+import { applyAssistantEdits, type AssistantDayEdit } from "@/lib/trips/day-edit-merge";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
 const MAX_TRIP_START_DATE = maxTripStartDate();
@@ -860,6 +861,12 @@ export default function NewTripPage({
   // sessionStorage ("mt_edits_applied") so the flag survives the post-auth
   // full-page round trip; the ref is the fast path + private-mode fallback.
   const editsAppliedRef = useRef<boolean>(false);
+  // Assistant edits applied to the itinerary now on screen (reset by every
+  // generation). A full regenerate replaces them, so it asks first: one
+  // traveller regenerated a minute after a half-done swap and lost a dozen
+  // edits without a word (2026-09-26).
+  const editsSinceGenerationRef = useRef<boolean>(false);
+  const [confirmRegenerate, setConfirmRegenerate] = useState(false);
   // Once-per-pagehide-sequence guard for result_exit_unsaved (reset on
   // pageshow when the page comes back out of the bfcache).
   const resultExitFiredRef = useRef<boolean>(false);
@@ -1955,6 +1962,15 @@ export default function NewTripPage({
     setShowDraftRecovery(false);
   };
 
+  // Regenerate, asking first when the assistant has changed this itinerary.
+  const requestRegenerate = () => {
+    if (editsSinceGenerationRef.current) {
+      setConfirmRegenerate(true);
+      return;
+    }
+    void handleRegenerate();
+  };
+
   // Regenerate itinerary with same preferences
   const handleRegenerate = async () => {
     if (isRegenerating || generating) return;
@@ -1971,8 +1987,8 @@ export default function NewTripPage({
     // Small delay for visual feedback
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    // Re-trigger generation
-    await handleGenerate();
+    // Re-trigger generation: a DIFFERENT version, so skip the shared cache.
+    await handleGenerate({ fresh: true });
     setIsRegenerating(false);
   };
 
@@ -2197,7 +2213,9 @@ export default function NewTripPage({
     });
   };
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (opts: { fresh?: boolean } = {}) => {
+    // A new itinerary replaces the one the edits were applied to.
+    editsSinceGenerationRef.current = false;
     // Date guard. canProceed() only validates the span on step 1, but the span
     // can outlive the mode that allowed it: handleSessionTrayRestore forces
     // multiCityMode off (see its comment) and a route can drop to one filled
@@ -2366,6 +2384,8 @@ export default function NewTripPage({
         // multi-city mode, and this guard keeps stale state out of the call.
         ...(!isMultiCity && anchors.length > 0 ? { anchors } : {}),
       };
+      // Regenerate asks for a different plan: the server then skips its cache.
+      const requestBody = opts.fresh ? { ...params, fresh: true } : params;
 
       // Reset stream progress for this generation.
       setStreamedDayCount(0);
@@ -2410,7 +2430,7 @@ export default function NewTripPage({
       }
       if (!isMultiCity && !isAnchored) try {
         await streamGeneration(
-          params,
+          requestBody,
           {
             onMetadata: (meta) => {
               setStreamedTotalDays(meta.totalDays);
@@ -2459,7 +2479,7 @@ export default function NewTripPage({
         const response = await fetch("/api/ai/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(params),
+          body: JSON.stringify(requestBody),
         });
         data = await response.json();
 
@@ -3025,41 +3045,39 @@ export default function NewTripPage({
     autoSave.savedTripId,
   ]);
 
-  // Apply an anonymous-assistant day edit to the in-memory itinerary. Recomputes
-  // the trip total (delta) so hero/sticky/overview/export/saved-budget stay in
-  // sync, carries map data + stable ids over by name-match, and scrolls the
-  // changed day into view. Nothing is persisted until the user saves.
-  const handleApplyDayEdit = useCallback(
-    (dayNumber: number, newActivities: Activity[], theme?: string) => {
+  // Apply one assistant reply to the in-memory itinerary: every day it changes
+  // and, when it adds or removes days, the trip's new length (the end date
+  // follows, so a saved trip's auto-save writes it too). Recomputes the trip
+  // total so hero/sticky/overview/export/saved-budget stay in sync, carries
+  // ids, map data and photos over by name across all the edited days (so a
+  // moved activity keeps its photo; lib/trips/day-edit-merge.ts), and scrolls
+  // the first changed day into view.
+  const handleApplyAssistantEdits = useCallback(
+    (edits: AssistantDayEdit[], tripLength?: number) => {
       // Save Sprint T3: remember that this session applied an assistant edit
       // (forwarded on result_exit_unsaved as edits_applied).
       editsAppliedRef.current = true;
+      editsSinceGenerationRef.current = true;
       // Best-effort mirror for the post-auth round trip. When storage is
       // blocked safeSet just returns false; the ref covers this page's life.
       safeSet("mt_edits_applied", "1", "session");
+      const start = startDateRef.current;
       setGeneratedItinerary((prev) => {
         if (!prev) return prev;
-        const target = prev.days.find((d) => d.day_number === dayNumber);
-        // Ids, coordinates and photos carried over by name, each existing
-        // activity at most once (lib/trips/day-edit-merge.ts).
-        const merged: Activity[] = mergeDayEditActivities(prev.days, dayNumber, newActivities);
-        const sum = (acts: Activity[]) =>
-          acts.reduce((s, a) => s + (a.estimated_cost?.amount || 0), 0);
+        const days = applyAssistantEdits(prev.days, edits, { tripLength, startDate: start || undefined });
+        const sum = (ds: ItineraryDay[]) =>
+          ds.reduce((t, d) => t + (d.activities ?? []).reduce((s, a) => s + (a.estimated_cost?.amount || 0), 0), 0);
         const prevTotal = prev.trip_summary?.total_estimated_cost || 0;
-        const newTotal = Math.max(
-          0,
-          Math.round(prevTotal - (target ? sum(target.activities) : 0) + sum(merged))
-        );
+        // Delta on the activities, so any non-activity share of the total stays.
+        const newTotal = Math.max(0, Math.round(prevTotal - sum(prev.days) + sum(days)));
         return {
           ...prev,
-          days: prev.days.map((d) =>
-            d.day_number === dayNumber
-              ? { ...d, activities: merged, ...(theme ? { theme } : {}) }
-              : d
-          ),
+          days,
           trip_summary: { ...prev.trip_summary, total_estimated_cost: newTotal },
         };
       });
+      if (tripLength !== undefined && start) setEndDate(addDaysISO(start, tripLength - 1));
+      const dayNumber = edits[0]?.day_number ?? tripLength ?? 1;
       setTimeout(() => {
         const el = document.getElementById(`day-${dayNumber}`);
         if (el) {
@@ -3135,6 +3153,34 @@ export default function NewTripPage({
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white pb-24 sm:pb-8">
+        {/* A full regenerate replaces the assistant's edits: ask first. */}
+        <BaseModal
+          isOpen={confirmRegenerate}
+          onClose={() => setConfirmRegenerate(false)}
+          title={t("wizard.regenerateConfirm.title")}
+        >
+          <p className="text-sm text-slate-600">{t("wizard.regenerateConfirm.body")}</p>
+          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => setConfirmRegenerate(false)}
+              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+            >
+              {t("wizard.regenerateConfirm.keep")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmRegenerate(false);
+                void handleRegenerate();
+              }}
+              className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--primary-light)]"
+            >
+              {t("wizard.regenerateConfirm.regenerate")}
+            </button>
+          </div>
+        </BaseModal>
+
         {/* Start Over Modal */}
         <StartOverModal
           isOpen={showStartOverModal}
@@ -3241,7 +3287,7 @@ export default function NewTripPage({
                 />
               )}
               <RegenerateButton
-                onRegenerate={handleRegenerate}
+                onRegenerate={requestRegenerate}
                 isRegenerating={isRegenerating || generating}
                 variant="compact"
               />
@@ -3461,7 +3507,7 @@ export default function NewTripPage({
 
             {/* Regenerate - Mobile */}
             <RegenerateButton
-              onRegenerate={handleRegenerate}
+              onRegenerate={requestRegenerate}
               isRegenerating={isRegenerating || generating}
               variant="icon-only"
               className="flex-shrink-0"
@@ -3560,7 +3606,7 @@ export default function NewTripPage({
               language={generatedItinerary.language}
               startDate={startDate}
               endDate={endDate}
-              onApplyDay={handleApplyDayEdit}
+              onApplyEdits={handleApplyAssistantEdits}
               // Save Sprint T5: post-edit save bridge. Only offered while the
               // trip is unsaved AND the manual save arm owns persistence —
               // when the auto-save arm is active the edit is already being
@@ -3965,7 +4011,7 @@ export default function NewTripPage({
               {t("wizard.result.notQuiteRight")}
             </div>
             <RegenerateButton
-              onRegenerate={handleRegenerate}
+              onRegenerate={requestRegenerate}
               isRegenerating={isRegenerating || generating}
               variant="default"
             />
@@ -5037,7 +5083,7 @@ export default function NewTripPage({
             )
           ) : (
             <button
-              onClick={handleGenerate}
+              onClick={() => void handleGenerate()}
               disabled={!canProceed()}
               className="bg-[var(--accent)] text-slate-900 px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--accent)]/90 active:bg-[var(--accent)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-h-[48px] sm:min-h-0"
             >

@@ -51,6 +51,12 @@ interface Props {
   authorDisplayName?: string | null;
   isAnchored?: boolean;
   onManageCollaborators: () => void;
+  /**
+   * Another dialog on the page is open (a day-regenerate wish being typed,
+   * the cancel-trip confirmation, a booking drawer). The prompt waits for it
+   * to close instead of opening on top of it.
+   */
+  paused?: boolean;
 }
 
 export default function SharePromptOnTrip({
@@ -64,6 +70,7 @@ export default function SharePromptOnTrip({
   authorDisplayName,
   isAnchored = false,
   onManageCollaborators,
+  paused = false,
 }: Props) {
   const [eligible, setEligible] = useState(false);
   const [engaged, setEngaged] = useState(false);
@@ -122,7 +129,7 @@ export default function SharePromptOnTrip({
   // Derived, not mirrored into state: setting `open` from an effect trips
   // react-hooks/set-state-in-effect and buys nothing — visibility is a pure
   // function of "engaged and not yet dismissed".
-  const open = engaged && !dismissed;
+  const open = engaged && !dismissed && !paused;
 
   useEffect(() => {
     if (!open || reportedRef.current) return;
