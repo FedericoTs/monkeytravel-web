@@ -156,6 +156,16 @@ describe("destination field (WAI-ARIA combobox)", () => {
     expect(await searchResults()).toBeTruthy();
   });
 
+  it("Escape on the no-results panel closes it and keeps focus in the field", async () => {
+    RESULTS["Zzyzy"] = [];
+    const { input } = renderField();
+    await type(input, "Zzyzy");
+    await screen.findByText("noResultsExciting");
+    fireEvent.keyDown(input, { key: "Escape" });
+    expect(screen.queryByText("noResultsExciting")).toBeNull();
+    expect(document.activeElement).toBe(input);
+  });
+
   it("no match: Enter continues with what was typed, like the panel's button", async () => {
     RESULTS["Zzyzx"] = [];
     const { input, onSelect } = renderField();

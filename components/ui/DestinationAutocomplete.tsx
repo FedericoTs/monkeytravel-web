@@ -402,7 +402,11 @@ export default function DestinationAutocomplete({
         e.preventDefault();
         handleSelect(createManualPrediction(value));
       } else if (e.key === "Escape") {
-        inputRef.current?.blur();
+        // Close whatever is open (the no-results panel too) and keep focus
+        // in the field: blurring here dropped keyboard users at the top of
+        // the page. A search still in flight stays closed.
+        dismissedRef.current = true;
+        setIsOpen(false);
       }
       return;
     }
