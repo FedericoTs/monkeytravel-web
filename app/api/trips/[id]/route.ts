@@ -348,7 +348,7 @@ async function applyActivityPhoto(
  *
  * Changed from hard DELETE to UPDATE deleted_at = NOW() on 2026-06-07.
  *
- * Why: the david-cassoni incident showed how lossy hard-delete is. He
+ * Why: a June 2026 incident showed how lossy hard-delete is. He
  * signed up, generated a trip, chatted with the Concierge 7 times over
  * 17 minutes, then the trip disappeared (likely a misclick or UI
  * confusion). With hard-delete we lost the row, the conversation

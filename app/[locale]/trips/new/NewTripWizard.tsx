@@ -2003,7 +2003,7 @@ export default function NewTripPage({
   // Handle start over - confirmed discard.
   //
   // 2026-06-07: signature changed to accept the reason + optional custom
-  // text from the StartOverModal (the david-cassoni postmortem). We POST
+  // text from the StartOverModal (a June 2026 postmortem). We POST
   // the feedback to /api/trips/[id]/deletion-feedback BEFORE the
   // soft-delete so we still capture the WHY even if the discard itself
   // hiccups. The feedback row is independently useful — even without a

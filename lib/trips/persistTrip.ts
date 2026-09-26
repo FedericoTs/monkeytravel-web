@@ -353,7 +353,7 @@ export async function updateTrip(
  *
  * Switched from hard DELETE to UPDATE deleted_at = NOW() on 2026-06-07
  * alongside the trips_soft_delete migration. See
- * `app/api/trips/[id]/route.ts` for the full rationale (david-cassoni
+ * `app/api/trips/[id]/route.ts` for the full rationale (the June 2026
  * incident: trip + 7 Concierge questions lost when the row vanished).
  *
  * RLS hides tombstoned rows from every read path, so even if the user

@@ -150,7 +150,7 @@ interface ResendWebhookPayload {
  * Reduce a recipient from Resend's payload to a bare, comparable address.
  *
  * `payload.data.to` carries whatever was on the original envelope, and that
- * is RFC 5322 — "Ann Bernier <ann@example.com>" is as valid there as a bare
+ * is RFC 5322 — "Jane Doe <jane@example.com>" is as valid there as a bare
  * address. Lowercasing alone keeps the display name, and every consumer of
  * this value compares by exact bare address:
  *

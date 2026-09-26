@@ -49,7 +49,7 @@ import {
  *
  * The F4 v1 spec called for "no persistence" (the chat UI is single-turn,
  * not threaded). But that left us paying Gemini for answers we couldn't
- * see — the david-cassoni incident (7 questions over 17 min, all lost
+ * see — a June 2026 incident (7 questions over 17 min, all lost
  * when the trip got deleted) made the cost concrete. We now log every
  * turn so we can:
  *   - audit which questions drive the most quota usage

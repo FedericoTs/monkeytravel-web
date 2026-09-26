@@ -63,7 +63,7 @@ function fakeSupabase() {
 }
 vi.mock("@/lib/api/auth", () => ({
   getAuthenticatedUser: async () => ({
-    user: { id: OWNER, email: "ana.lopez1985@gmail.com", created_at: "2025-01-01T00:00:00Z" },
+    user: { id: OWNER, email: "ana.lopez1985@example.com", created_at: "2025-01-01T00:00:00Z" },
     supabase: fakeSupabase(),
     errorResponse: null,
   }),
@@ -94,7 +94,7 @@ describe("publish byline", () => {
   });
 
   it("never stores an address", async () => {
-    expect(await publish("ana.lopez1985@gmail.com")).toBe(200);
+    expect(await publish("ana.lopez1985@example.com")).toBe(200);
     expect(updates[0]).not.toHaveProperty("author_display_name");
   });
 });

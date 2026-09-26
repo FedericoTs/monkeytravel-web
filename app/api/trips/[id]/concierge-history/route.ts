@@ -11,7 +11,7 @@ import type { TripRouteContext } from "@/lib/api/route-context";
  * newest first. Powers the `<ConciergeHistory>` collapsible section on
  * the trip-detail page.
  *
- * Why this exists: the david-cassoni postmortem (2026-06-07) showed that
+ * Why this exists: a June 2026 postmortem (2026-06-07) showed that
  * Concierge ran 7 times with no UI trail. The Q&A pairs were paid for
  * but invisible to both the user and us. We now persist via
  * `persistConciergeTurn` in /api/ai/concierge; this route surfaces them.

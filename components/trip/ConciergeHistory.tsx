@@ -11,7 +11,7 @@ import { Compass, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
  * inside a collapsible section that sits below the Concierge launcher
  * on the trip-detail page.
  *
- * Why this exists: the david-cassoni postmortem revealed that the
+ * Why this exists: a June 2026 postmortem revealed that the
  * Concierge persisted no chat history. The Q&A pairs were paid for
  * (Gemini tokens) but invisible — the user couldn't refer back, and
  * we couldn't mine common asks for FAQ / template work. Persistence

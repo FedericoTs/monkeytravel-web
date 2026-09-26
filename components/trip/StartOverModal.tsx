@@ -169,7 +169,7 @@ export default function StartOverModal({
         </div>
 
         {/* Reason picker — required.
-            Why this exists: the david-cassoni incident (2026-06-07) showed
+            Why this exists: a 2026-06-07 incident showed
             us we had zero visibility into WHY a freshly-generated trip
             got discarded. Knowing whether it's destination vs dates vs
             suggestion quality directly maps to where to invest. */}
