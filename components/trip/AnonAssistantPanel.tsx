@@ -4,10 +4,11 @@
  * AI assistant on the ANONYMOUS generation-result view (pre-save).
  *
  * Talks to POST /api/ai/assistant-anon (unauthenticated, rate-limited). It can
- * answer questions AND propose a day-scoped edit ("make day 2 cheaper"). Edits
- * are never auto-applied: the panel renders a preview card and, on confirm,
- * calls `onApplyDay` so the parent swaps that day into the in-memory itinerary.
- * Nothing is persisted until the user saves the trip.
+ * answer questions AND propose edits ("make day 2 cheaper", "swap days 2 and
+ * 5", "add a day in Lyngen"). One reply can change several days and the trip's
+ * length. Edits are never auto-applied: the panel renders a preview card and,
+ * on confirm, calls `onApplyEdits` so the parent swaps those days into the
+ * in-memory itinerary (which the wizard's auto-save persists for a saved trip).
  *
  * Discoverability audit 2026-07-01, Tier 3-B1 (Q&A) + B2 (editing).
  */
@@ -25,6 +26,7 @@ interface AnonEdit {
   summary: string;
   activities: Activity[];
   theme?: string;
+  city?: string;
 }
 
 interface AnonAssistantPanelProps {
@@ -39,8 +41,8 @@ interface AnonAssistantPanelProps {
    * (Phase 1.3). Undefined for older drafts → UI locale.
    */
   language?: string;
-  /** Apply a proposed day revision to the in-memory itinerary. */
-  onApplyDay: (dayNumber: number, activities: Activity[], theme?: string) => void;
+  /** Apply one reply's day revisions (and new trip length, if any) to the in-memory itinerary. */
+  onApplyEdits: (edits: AnonEdit[], tripLength?: number) => void;
   /**
    * Save Sprint T5: when provided, an applied edit renders a save bridge
    * ("these edits live only in this draft → save to keep them") that invokes
@@ -61,7 +63,10 @@ interface AnonAssistantPanelProps {
 interface Msg {
   role: "user" | "assistant";
   text: string;
-  edit?: AnonEdit;
+  /** Every day the reply changes. */
+  edits?: AnonEdit[];
+  /** The trip's new length, when the reply adds or removes days. */
+  tripLength?: number;
   editState?: "pending" | "applied" | "discarded";
 }
 
@@ -72,7 +77,7 @@ export default function AnonAssistantPanel({
   startDate,
   endDate,
   language,
-  onApplyDay,
+  onApplyEdits,
   onRequestSave,
   shareSlot,
 }: AnonAssistantPanelProps) {
@@ -119,6 +124,9 @@ export default function AnonAssistantPanel({
     if (!q || loading) return;
     setError(null);
     setInput("");
+    // The conversation so far, so "yes" or "No I mean…" can be understood
+    // (the model used to see only this one message).
+    const history = messages.slice(-6).map((m) => ({ role: m.role, text: m.text.slice(0, 1500) }));
     setMessages((m) => [...m, { role: "user", text: q }]);
     capture("anon_assistant_question_asked", { destination, message_length: q.length });
     setLoading(true);
@@ -134,26 +142,52 @@ export default function AnonAssistantPanel({
           startDate,
           endDate,
           locale: language ?? locale,
+          history,
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data?.error?.message || data?.message || t("assistant.errorMsg"));
+        // The server's text is English and never reached the reader (its
+        // `error` is a string); a daily cap read "try again in a moment".
+        const reason = typeof data?.reason === "string" ? data.reason : "";
+        setError(
+          res.status === 429 && reason === "daily_anon"
+            ? t("assistant.limitDailyAnon")
+            : res.status === 429 && reason === "daily_user"
+              ? t("assistant.limitDailyUser")
+              : res.status >= 500
+                ? t("assistant.errorBig")
+                : t("assistant.errorMsg")
+        );
         return;
       }
       const payload = data?.data ?? data ?? {};
       const reply: string = payload.reply ?? "";
-      const edit: AnonEdit | undefined =
-        payload.edit && Array.isArray(payload.edit.activities) && payload.edit.activities.length
-          ? (payload.edit as AnonEdit)
-          : undefined;
-      if (reply || edit) {
+      // "edits" (several days) or the older single "edit".
+      const rawEdits: unknown[] = Array.isArray(payload.edits) ? payload.edits : payload.edit ? [payload.edit] : [];
+      const edits = rawEdits.filter(
+        (e): e is AnonEdit => !!e && Array.isArray((e as AnonEdit).activities) && (e as AnonEdit).activities.length > 0
+      );
+      const tripLength: number | undefined = typeof payload.tripLength === "number" ? payload.tripLength : undefined;
+      const changes = edits.length > 0 || tripLength !== undefined;
+      if (reply || changes) {
         setMessages((m) => [
           ...m,
-          { role: "assistant", text: reply, edit, editState: edit ? "pending" : undefined },
+          {
+            role: "assistant",
+            text: reply,
+            edits: changes ? edits : undefined,
+            tripLength,
+            editState: changes ? "pending" : undefined,
+          },
         ]);
-        if (edit) {
-          capture("anon_assistant_edit_proposed", { destination, day_number: edit.day_number });
+        if (changes) {
+          capture("anon_assistant_edit_proposed", {
+            destination,
+            day_number: edits[0]?.day_number,
+            day_count: edits.length,
+            trip_length: tripLength,
+          });
         }
       } else {
         setError(t("assistant.errorMsg"));
@@ -250,30 +284,51 @@ export default function AnonAssistantPanel({
                 </div>
               </div>
 
-              {/* Edit preview / confirm card */}
-              {m.edit && (
+              {/* Edit preview / confirm card: every day the reply changes */}
+              {m.editState && (m.edits?.length || m.tripLength !== undefined) && (
                 <div className="mt-2 rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 p-3">
-                  <p className="text-sm font-semibold text-slate-900">
-                    {t("assistant.editPreview", { number: m.edit.day_number })}
-                  </p>
-                  <p className="mt-0.5 text-sm text-slate-600">{m.edit.summary}</p>
-                  <ul className="mt-2 space-y-1">
-                    {m.edit.activities.map((a, j) => (
-                      <li key={j} className="flex items-center gap-2 text-sm text-slate-700">
-                        <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[var(--primary)]" />
-                        {a.name}
-                      </li>
-                    ))}
-                  </ul>
+                  {m.edits && m.edits.length > 0 && (
+                    <p className="text-sm font-semibold text-slate-900">
+                      {m.edits.length === 1
+                        ? t("assistant.editPreview", { number: m.edits[0].day_number })
+                        : t("assistant.editPreviewDays", { days: m.edits.map((e) => e.day_number).join(", ") })}
+                    </p>
+                  )}
+                  {m.tripLength !== undefined && (
+                    <p className="mt-0.5 text-sm font-medium text-slate-800">
+                      {t("assistant.tripLength", { count: m.tripLength, date: endOfTrip(startDate, m.tripLength, locale) })}
+                    </p>
+                  )}
+                  {(m.edits ?? []).map((e) => (
+                    <div key={e.day_number} className="mt-2">
+                      {(m.edits?.length ?? 0) > 1 && (
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          {t("day.label", { number: e.day_number })}
+                          {e.city ? ` · ${e.city}` : ""}
+                        </p>
+                      )}
+                      {e.summary && <p className="mt-0.5 text-sm text-slate-600">{e.summary}</p>}
+                      <ul className="mt-1 space-y-1">
+                        {e.activities.map((a, j) => (
+                          <li key={j} className="flex items-center gap-2 text-sm text-slate-700">
+                            <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[var(--primary)]" />
+                            {a.name}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
                   {m.editState === "pending" ? (
                     <div className="mt-3 flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => {
-                          onApplyDay(m.edit!.day_number, m.edit!.activities, m.edit!.theme);
+                          onApplyEdits(m.edits ?? [], m.tripLength);
                           capture("anon_assistant_edit_applied", {
                             destination,
-                            day_number: m.edit!.day_number,
+                            day_number: m.edits?.[0]?.day_number,
+                            day_count: m.edits?.length ?? 0,
+                            trip_length: m.tripLength,
                           });
                           // Save Sprint T5: the keep-your-edits save bridge
                           // renders with the "applied" state below — one
@@ -292,7 +347,8 @@ export default function AnonAssistantPanel({
                         onClick={() => {
                           capture("anon_assistant_edit_discarded", {
                             destination,
-                            day_number: m.edit!.day_number,
+                            day_number: m.edits?.[0]?.day_number,
+                            day_count: m.edits?.length ?? 0,
                           });
                           setEditState(i, "discarded");
                         }}
@@ -415,4 +471,13 @@ export default function AnonAssistantPanel({
       </form>
     </section>
   );
+}
+
+/** The trip's last day for a new length, in the reader's format ("14 Nov"). */
+function endOfTrip(startDate: string | undefined, days: number, locale: string): string {
+  if (!startDate) return "";
+  const d = new Date(`${startDate}T00:00:00Z`);
+  if (Number.isNaN(d.getTime())) return "";
+  d.setUTCDate(d.getUTCDate() + days - 1);
+  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", timeZone: "UTC" }).format(d);
 }

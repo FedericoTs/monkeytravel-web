@@ -151,6 +151,7 @@ const BookingDrawer = dynamic(() => import("@/components/booking/BookingDrawer")
 // silently mutating the plan. Kept the `AIAssistant` local name so the render
 // site is unchanged.
 const AIAssistant = dynamic(() => import("@/components/ai/AIAssistantEnhanced"), { ssr: false });
+const BaseModal = dynamic(() => import("@/components/ui/BaseModal"), { ssr: false });
 const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: false });
 const OngoingTripView = dynamic(() => import("@/components/trip/OngoingTripView"), { ssr: false });
 const CollaboratorOnboarding = dynamic(() => import("@/components/collaboration/CollaboratorOnboarding"), { ssr: false });
@@ -268,7 +269,6 @@ export default function TripDetailClient({
 }: TripDetailClientProps) {
   const t = useTranslations('trips');
   const tTrips = useTranslations('common.trips');
-  const tButtons = useTranslations('common.buttons');
   // Live Trip Phase 3.2: a live trip opens on Today for the owner too.
   const fallbackDayState = useMemo<TripDayState>(
     () => liveState ?? computeTripDayState({ startDate: trip.startDate, endDate: trip.endDate, timeZone: null }),
@@ -278,7 +278,7 @@ export default function TripDetailClient({
   const [todayMode, setTodayMode] = useState(true);
   // 'common' is the namespace that holds calendar.* and addFromEmail.*
   // — added with the calendar-export + email-parse rollout. We don't
-  // want to re-namespace the existing tButtons / tTrips translators
+  // want to re-namespace the existing tTrips translator
   // because that would force a sweep through every existing call site.
   const tCommon = useTranslations('common');
 
@@ -563,6 +563,14 @@ export default function TripDetailClient({
   const [regeneratingActivityId, setRegeneratingActivityId] = useState<string | null>(null);
   // Per-day regeneration: tracks which day_number is currently being replaced.
   const [regeneratingDayNumber, setRegeneratingDayNumber] = useState<number | null>(null);
+  // The day-regeneration dialog: which day, and what the traveller wants it to
+  // be about. The button used to regenerate blind (an English window.confirm,
+  // no way to say what you wanted), so a cruise planner pressed it four times
+  // for "Day 5 = boarding the cruise" and got Rome sightseeing each time.
+  const [dayRegenPrompt, setDayRegenPrompt] = useState<{ dayNumber: number; text: string } | null>(null);
+  // "Cancel Trip" asks first: it turns off the countdown, checklist and
+  // reminders (31 trips were cancelled, 17 in the last 60 days, one click each).
+  const [confirmCancelTrip, setConfirmCancelTrip] = useState(false);
 
   // Status management
   const router = useRouter();
@@ -793,7 +801,7 @@ export default function TripDetailClient({
   // gcalSync* translation keys at the same time.
 
   // Handle status update
-  const handleStatusUpdate = async (newStatus: "confirmed" | "cancelled") => {
+  const handleStatusUpdate = async (newStatus: "confirmed" | "cancelled" | "planning") => {
     setIsUpdatingStatus(true);
     try {
       const response = await fetch(`/api/trips/${trip.id}/status`, {
@@ -803,24 +811,23 @@ export default function TripDetailClient({
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update status");
+        throw new Error(`status ${response.status}`);
       }
 
       setCurrentStatus(newStatus);
       addToast(
         newStatus === "confirmed"
           ? tTrips("tripConfirmed")
-          : tTrips("tripCancelled"),
+          : newStatus === "planning"
+            ? tTrips("tripRestored")
+            : tTrips("tripCancelled"),
         "success"
       );
       router.refresh();
     } catch (error) {
       console.error("Error updating status:", error);
-      addToast(
-        error instanceof Error ? error.message : "Failed to update status",
-        "error"
-      );
+      // The server's text is English (and sometimes an object).
+      addToast(t('detail.cancelTrip.failed'), "error");
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -1361,17 +1368,12 @@ export default function TripDetailClient({
   );
 
   // Per-day regeneration: replaces all activities of a single day with a
-  // fresh generation that takes the surrounding days as context. Confirms
-  // first (destructive), pushes to undo stack, then swaps in the response.
+  // fresh generation that takes the surrounding days as context, steered by
+  // what the traveller wrote in the dialog (the API has always accepted
+  // `instructions`; nothing sent them). Confirmed in the dialog, pushed to
+  // the undo stack, then swapped in.
   const handleDayRegenerate = useCallback(
-    async (dayNumber: number) => {
-      if (typeof window !== "undefined") {
-        const ok = window.confirm(
-          `Replace Day ${dayNumber} with a new generated day? Activities in this day will be lost.`
-        );
-        if (!ok) return;
-      }
-
+    async (dayNumber: number, instructions?: string) => {
       pushUndo(`Regenerate Day ${dayNumber}`);
       setRegeneratingDayNumber(dayNumber);
       try {
@@ -1381,7 +1383,11 @@ export default function TripDetailClient({
           const response = await fetch("/api/ai/regenerate-day", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ tripId: trip.id, dayNumber }),
+            body: JSON.stringify({
+              tripId: trip.id,
+              dayNumber,
+              ...(instructions?.trim() ? { instructions: instructions.trim().slice(0, 500) } : {}),
+            }),
           });
 
           if (!response.ok) {
@@ -1393,7 +1399,8 @@ export default function TripDetailClient({
             } catch {
               /* ignore parse error */
             }
-            throw new Error(msg);
+            // The server's text is English; the status picks the message shown.
+            throw Object.assign(new Error(msg), { status: response.status });
           }
 
           const data = await response.json();
@@ -1452,17 +1459,23 @@ export default function TripDetailClient({
         }, { keepsLocalEdits: true });
         // Bump the version counter so the day's children re-mount cleanly.
         setRenderEpoch((v) => v + 1);
-        addToast(`Day ${dayNumber} regenerated`, "success");
+        addToast(t('detail.regenerateDay.done', { number: dayNumber }), "success");
       } catch (error) {
         console.error("Error regenerating day:", error);
-        const msg = error instanceof Error ? error.message : "Failed to regenerate day. Please try again.";
+        const status = (error as { status?: number } | null)?.status;
+        const msg =
+          status === 429
+            ? t('detail.regenerateDay.limit')
+            : status === 409
+              ? t('detail.regenerateDay.busy')
+              : t('detail.regenerateDay.failed', { number: dayNumber });
         setSaveError(msg);
         addToast(msg, "error");
       } finally {
         setRegeneratingDayNumber(null);
       }
     },
-    [trip.id, pushUndo, addToast, runItineraryWrite, sync, router]
+    [trip.id, pushUndo, addToast, runItineraryWrite, sync, router, t]
   );
 
   // The explicit Save (editors, and owners of trips with collaborators),
@@ -2312,12 +2325,14 @@ export default function TripDetailClient({
                 </div>
               </div>
               <div className="flex gap-3 w-full sm:w-auto">
+                {/* Said "Cancel" and cancelled the trip in one click (it read
+                    like "dismiss"), with no way back in the app. */}
                 <button
-                  onClick={() => handleStatusUpdate("cancelled")}
+                  onClick={() => setConfirmCancelTrip(true)}
                   disabled={isUpdatingStatus}
                   className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
                 >
-                  {tButtons("cancel")}
+                  {tTrips("cancelTrip")}
                 </button>
                 <button
                   onClick={() => handleStatusUpdate("confirmed")}
@@ -2340,6 +2355,22 @@ export default function TripDetailClient({
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* A cancelled trip can come back (the API always allowed it; the
+            page had no control for it). */}
+        {currentStatus === "cancelled" && isOwner && (
+          <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-slate-700">{t('detail.cancelTrip.cancelledNote')}</p>
+            <button
+              type="button"
+              onClick={() => handleStatusUpdate("planning")}
+              disabled={isUpdatingStatus}
+              className="flex-shrink-0 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-100 disabled:opacity-50"
+            >
+              {tTrips("restoreTrip")}
+            </button>
           </div>
         )}
 
@@ -3056,14 +3087,14 @@ export default function TripDetailClient({
                       {userRole === "owner" && (
                         <button
                           type="button"
-                          onClick={() => handleDayRegenerate(day.day_number)}
+                          onClick={() => setDayRegenPrompt({ dayNumber: day.day_number, text: "" })}
                           disabled={regeneratingDayNumber !== null}
                           className="flex items-center justify-center w-8 h-8 rounded-lg
                                      text-slate-500 hover:text-[var(--primary-ink)] hover:bg-slate-100
                                      disabled:opacity-50 disabled:cursor-not-allowed
                                      transition-colors"
-                          title={`Regenerate Day ${day.day_number} — replace all activities with a fresh AI suggestion`}
-                          aria-label={`Regenerate Day ${day.day_number}`}
+                          title={t('detail.regenerateDay.button', { number: day.day_number })}
+                          aria-label={t('detail.regenerateDay.button', { number: day.day_number })}
                         >
                           <RefreshCw
                             className={`w-4 h-4 ${regeneratingDayNumber === day.day_number ? "animate-spin" : ""}`}
@@ -3271,12 +3302,16 @@ export default function TripDetailClient({
                       )}
                       {/* Add Activity Button - shown whenever editing is active */}
                       {editingActive && (
-                        <AddActivityButton
-                          dayIndex={dayIndex}
-                          destination={destination}
-                          onAdd={(partialActivity) => handleAddActivity(dayIndex, partialActivity)}
-                          className="mt-4 ml-6"
-                        />
+                        // The indent lives on a wrapper: on the button itself,
+                        // ml-6 plus its w-full made every trip page 8px wider
+                        // than a phone screen (it scrolled sideways).
+                        <div className="mt-4 ml-6">
+                          <AddActivityButton
+                            dayIndex={dayIndex}
+                            destination={destination}
+                            onAdd={(partialActivity) => handleAddActivity(dayIndex, partialActivity)}
+                          />
+                        </div>
                       )}
                       {/* Suggest Activity Button - View Mode Only, Collaborative Trips */}
                       {!isEditMode && votingEnabled && canPropose && (
@@ -3573,6 +3608,80 @@ export default function TripDetailClient({
         </button>
       )}
 
+      <BaseModal
+        isOpen={confirmCancelTrip}
+        onClose={() => setConfirmCancelTrip(false)}
+        title={t('detail.cancelTrip.title')}
+      >
+        <p className="text-sm text-slate-600">{t('detail.cancelTrip.body')}</p>
+        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={() => setConfirmCancelTrip(false)}
+            className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+          >
+            {t('detail.cancelTrip.keep')}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setConfirmCancelTrip(false);
+              void handleStatusUpdate("cancelled");
+            }}
+            className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
+          >
+            {t('detail.cancelTrip.confirm')}
+          </button>
+        </div>
+      </BaseModal>
+
+      {/* Regenerate one day, optionally steered ("boarding the cruise"). */}
+      <BaseModal
+        isOpen={dayRegenPrompt !== null}
+        onClose={() => setDayRegenPrompt(null)}
+        title={dayRegenPrompt ? t('detail.regenerateDay.title', { number: dayRegenPrompt.dayNumber }) : ""}
+      >
+        {dayRegenPrompt && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const { dayNumber, text } = dayRegenPrompt;
+              setDayRegenPrompt(null);
+              void handleDayRegenerate(dayNumber, text);
+            }}
+          >
+            <p className="text-sm text-slate-600">{t('detail.regenerateDay.body')}</p>
+            <label htmlFor="day-regen-instructions" className="mt-4 block text-sm font-medium text-slate-800">
+              {t('detail.regenerateDay.label')}
+            </label>
+            <textarea
+              id="day-regen-instructions"
+              value={dayRegenPrompt.text}
+              onChange={(e) => setDayRegenPrompt({ ...dayRegenPrompt, text: e.target.value })}
+              maxLength={500}
+              rows={3}
+              placeholder={t('detail.regenerateDay.placeholder')}
+              className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-[var(--primary)] focus:outline-none"
+            />
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setDayRegenPrompt(null)}
+                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                {t('detail.regenerateDay.cancel')}
+              </button>
+              <button
+                type="submit"
+                className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--primary-light)]"
+              >
+                {t('detail.regenerateDay.confirm')}
+              </button>
+            </div>
+          </form>
+        )}
+      </BaseModal>
+
       {/* AI Assistant Sidebar/Bottom Sheet */}
       {canUseAssistant && (
         <AIAssistant
@@ -3691,6 +3800,7 @@ export default function TripDetailClient({
         authorDisplayName={ownerDisplayName}
         isAnchored={(trip.meta?.anchors?.length ?? 0) > 0}
         onManageCollaborators={openCrewShareModal}
+        paused={dayRegenPrompt !== null || confirmCancelTrip || isBookingDrawerOpen || isPasteBookingOpen}
       />
 
       {/* Mobile Bottom Navigation - hidden during edit mode */}

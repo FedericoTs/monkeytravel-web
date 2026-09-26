@@ -33,6 +33,17 @@ const otherLanguageClaims = [
   "A viagem de comboio foi adicionada ao dia 1.",
 ];
 
+// The wizard assistant reshapes whole trips; the first is a live reply
+// (2026-09-26) for an edit that still waited for Apply.
+const restructuringClaims = [
+  "No problem! I've condensed your Rome trip into 3 exciting days.",
+  "I rearranged Days 1 and 2 so the Vatican comes first.",
+  "He reorganizado los días 1 y 2.",
+  "Ho accorciato il viaggio a 3 giorni.",
+  "Ho scambiato il giorno 1 e il giorno 2.",
+  "Encurtei a viagem para 3 dias.",
+];
+
 const honest = [
   "Your Rome itinerary would be updated to include the Monument to Victor Emmanuel II on Day 3.",
   "I can add a boat tour to day 5 if you like.",
@@ -46,6 +57,11 @@ const honest = [
   "No he cambiado nada todavía.",
   "Non ho modificato nulla.",
   "Não alterei nada.",
+  // "Reviewed" is not "revised": these only say the plan was checked.
+  "I've reviewed your plan and it looks balanced.",
+  "He revisado tu plan y está muy bien equilibrado.",
+  "Ho rivisto il tuo piano: è ben bilanciato.",
+  "Revisei o seu plano e está equilibrado.",
 ];
 
 describe("claimsItineraryChange", () => {
@@ -54,6 +70,10 @@ describe("claimsItineraryChange", () => {
   });
 
   it.each(otherLanguageClaims)("catches the same claim in es/it/pt: %s", (text) => {
+    expect(claimsItineraryChange(text)).toBe(true);
+  });
+
+  it.each(restructuringClaims)("catches a restructuring claim: %s", (text) => {
     expect(claimsItineraryChange(text)).toBe(true);
   });
 

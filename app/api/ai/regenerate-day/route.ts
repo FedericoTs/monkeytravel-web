@@ -364,6 +364,8 @@ async function regenerateDay(request: NextRequest, geminiCost: GeminiCostMeter) 
         day_number: dayNumber,
         destination,
         activities_count: writtenDay.activities.length,
+        // Whether the traveller said what the day should be about.
+        has_instructions: typeof instructions === "string" && instructions.trim().length > 0,
       },
     });
 

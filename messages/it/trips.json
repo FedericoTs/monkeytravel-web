@@ -9,6 +9,9 @@
     "ask": "Invia",
     "thinking": "Sto pensando…",
     "errorMsg": "Non ci sono riuscito — riprova tra un momento.",
+    "limitDailyAnon": "Hai raggiunto il limite di oggi dell'assistente su questa connessione. Accedi (è gratis) per continuare.",
+    "limitDailyUser": "Sono tante modifiche per un giorno. Torna domani per continuare.",
+    "errorBig": "Non ci sono riuscito proprio ora. Riprova, oppure chiedimi uno o due giorni alla volta.",
     "suggest1": "Questo itinerario è troppo intenso?",
     "suggest2": "Rendi il giorno 1 più rilassato",
     "suggest3": "Aggiungi più cibo locale",
@@ -16,6 +19,8 @@
     "discard": "Mantieni originale",
     "applied": "Applicato",
     "editPreview": "Aggiornare il giorno {number}?",
+    "editPreviewDays": "Aggiornare i giorni {days}?",
+    "tripLength": "Il tuo viaggio diventa di {count, plural, one {# giorno} other {# giorni}} e finisce il {date}.",
     "keepEditsPrompt": "Queste modifiche esistono solo in questa bozza",
     "keepEditsButton": "Salva il viaggio per conservarle",
     "dyn": {
@@ -35,6 +40,12 @@
   },
   "wizard": {
     "back": "Indietro",
+    "regenerateConfirm": {
+      "title": "Rigenerare tutto il viaggio?",
+      "body": "Questo sostituisce ogni giorno, comprese le modifiche che hai fatto con l'assistente.",
+      "keep": "Mantieni le mie modifiche",
+      "regenerate": "Rigenera comunque"
+    },
     "unlockAiFeatures": "Sblocca le funzionalità AI",
     "usageLimitReached": "Limite di utilizzo raggiunto",
     "usageLimitDefault": "Hai esaurito le tue generazioni AI gratuite.",
@@ -425,6 +436,27 @@
     "venueTierEstimate": "Stima categoria"
   },
   "detail": {
+    "cancelTrip": {
+      "title": "Annullare questo viaggio?",
+      "body": "Verrà segnato come annullato: niente conto alla rovescia, niente lista di preparativi e niente promemoria del viaggio. L'itinerario resta e puoi ripristinare il viaggio quando vuoi.",
+      "keep": "Mantieni il viaggio",
+      "confirm": "Annulla il viaggio",
+      "cancelledNote": "Questo viaggio è annullato. Ripristinalo per riavere il conto alla rovescia, la lista di preparativi e i promemoria.",
+      "failed": "Non è stato possibile aggiornare il viaggio. Riprova tra poco."
+    },
+    "regenerateDay": {
+      "button": "Rigenera il giorno {number}",
+      "title": "Rigenerare il giorno {number}?",
+      "body": "Le attività di questo giorno verranno sostituite con altre nuove. Puoi annullare.",
+      "label": "Di cosa vuoi che parli questo giorno? (facoltativo)",
+      "placeholder": "es. imbarco sulla crociera a Civitavecchia, o una giornata più tranquilla con un pranzo lungo",
+      "cancel": "Annulla",
+      "confirm": "Rigenera il giorno",
+      "done": "Giorno {number} rigenerato",
+      "failed": "Non è stato possibile rigenerare il giorno {number}. Riprova tra poco.",
+      "limit": "Hai raggiunto il limite di rigenerazioni di questo mese. Il giorno non è cambiato.",
+      "busy": "Qualcuno sta modificando questo viaggio in questo momento. Riprova tra poco."
+    },
     "regeneratingDay": "Rigenerazione Giorno {number}…",
     "backToTrips": "Torna ai Viaggi",
     "cards": "Schede",

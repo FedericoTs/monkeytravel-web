@@ -189,6 +189,12 @@ export async function POST(request: NextRequest) {
   // a cached generic itinerary would ignore the wishes, and a wish-tailored
   // result must not poison the shared pool (same rule as the JSON route).
   const isPersonalized = Boolean(params.mustDos?.length);
+  // "Try Different Version" (the wizard's Regenerate) asks for a NEW plan.
+  // The shared cache would hand back the very one on screen: 23 of 51
+  // identical re-generations in 14 days came back in under 3 s (2026-09-26).
+  // So the cache is not READ for it; the fresh result is still written, and
+  // replaces the entry.
+  const wantsFresh = body.fresh === true;
 
   const validation = validateTripParams(params);
   if (!validation.valid) {
@@ -274,7 +280,7 @@ export async function POST(request: NextRequest) {
       // PERF (#190): the cache read was hoisted out of the SSE generator
       // and is now part of the pre-flight Promise.all above. We just
       // consume the pre-resolved value here.
-      const cached = isPersonalized ? null : preflightCachedItinerary;
+      const cached = isPersonalized || wantsFresh ? null : preflightCachedItinerary;
       // `>= totalDays`, not `>= 1`. The cache key omits trip length, so a
       // 5-day entry used to answer a 14-day request and the user silently got
       // 5 days. adjustItineraryDates slices a LONGER entry down to fit, so
@@ -436,7 +442,13 @@ export async function POST(request: NextRequest) {
       // migration). Fire-and-forget via waitUntil so it never blocks
       // the complete event. Personalized (must-do) results never enter
       // the shared pool.
-      if (!cacheHit && !isPersonalized) {
+      // A fresh regenerate never replaces a LONGER entry: that entry still
+      // answers requests up to its length (a 3-day redo would otherwise cost
+      // every later 7-day request for the city a new generation).
+      const shorterThanCached =
+        wantsFresh &&
+        (preflightCachedItinerary?.days.length ?? 0) > finalItinerary.days.length;
+      if (!cacheHit && !isPersonalized && !shorterThanCached) {
         const cacheWriteItinerary = finalItinerary;
         waitUntil(
           cacheItinerary(
@@ -480,6 +492,8 @@ export async function POST(request: NextRequest) {
                 generated_days: generatedDays,
                 is_admin: userIsAdmin,
                 streamed: true,
+                // "Try Different Version": a regenerate that skipped the cache.
+                fresh: wantsFresh,
               },
             });
             // Anonymous generations are counted before the stream starts
@@ -562,6 +576,7 @@ export async function POST(request: NextRequest) {
   //     fails still counts: one of five, against no cap at all.
   const willHitCache =
     !isPersonalized &&
+    !wantsFresh &&
     !!preflightCachedItinerary &&
     preflightCachedItinerary.days.length >= totalDays;
   if (isAnonymous && !willHitCache) {
