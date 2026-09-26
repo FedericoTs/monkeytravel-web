@@ -735,7 +735,7 @@ export interface MagicLinkRequestedEvent {
 
 export interface MagicLinkRequestFailedEvent {
   location: AuthPromptLocation;
-  /** The error message cut to 80 characters, or "unknown". */
+  /** Supabase's error code or the error's name, or "unknown"; never the message. */
   reason: string;
 }
 

@@ -46,6 +46,7 @@ vi.mock("@/lib/posthog/events", () => ({
 }));
 
 import AuthPromptModal from "./AuthPromptModal";
+import { captureMagicLinkRequestFailed } from "@/lib/posthog/events";
 
 /** Get to the state where the code input exists: request the link first. */
 async function reachCodeEntry() {
@@ -79,6 +80,21 @@ describe("the code input appears once the email is on its way", () => {
   it("keeps the emailed link working too — this is an addition", async () => {
     await reachCodeEntry();
     expect(screen.getByText("magicLink.checkInbox")).toBeTruthy();
+  });
+});
+
+describe("a failed request", () => {
+  it("tells analytics the error code, never a message that quotes the address", async () => {
+    signInWithOtp.mockResolvedValueOnce({
+      error: { name: "AuthApiError", code: "email_address_invalid", message: 'Email address "planner@example.com" is invalid' },
+    });
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="" redirectPath="/trips/new" />);
+    fireEvent.change(screen.getByPlaceholderText("magicLink.emailPlaceholder"), { target: { value: "planner@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "magicLink.send" }));
+    await waitFor(() => expect(captureMagicLinkRequestFailed).toHaveBeenCalledOnce());
+    const [event] = vi.mocked(captureMagicLinkRequestFailed).mock.calls[0];
+    expect(event.reason).toBe("email_address_invalid");
+    expect(JSON.stringify(event)).not.toContain("planner@example.com");
   });
 });
 
