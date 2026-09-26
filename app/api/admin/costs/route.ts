@@ -132,6 +132,7 @@ const API_DISPLAY_CONFIG: Record<string, { name: string; color: string }> = {
   google_places_search: { name: "Places Search", color: "#4285F4" },
   google_places_autocomplete: { name: "Autocomplete", color: "#34A853" },
   google_places_details: { name: "Place Details", color: "#FBBC05" },
+  google_places_photo: { name: "Place Photos", color: "#0F9D58" },
   google_places_nearby: { name: "Nearby Search", color: "#EA4335" },
   google_geocoding: { name: "Geocoding", color: "#7B1FA2" },
   google_distance_matrix: { name: "Distance Matrix", color: "#00ACC1" },

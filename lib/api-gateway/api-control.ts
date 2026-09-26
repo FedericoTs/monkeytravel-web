@@ -88,6 +88,12 @@ export interface LogApiCallParams {
   responseTimeMs: number;
   cacheHit: boolean;
   costUsd: number;
+  /**
+   * costUsd was measured (Gemini tokens, a priced Google call), so log it as
+   * is, even at 0. Without this a 0 means "look up api_config's flat
+   * cost_per_request", which books $0.003 for a Gemini call that never ran.
+   */
+  exactCost?: boolean;
   error?: string | null;
   userId?: string;
   metadata?: Record<string, unknown>;
@@ -244,7 +250,7 @@ export async function logApiCall(params: LogApiCallParams): Promise<void> {
     if (!supabase) return;
 
     // Get cost from config if not provided
-    const cost = params.costUsd > 0
+    const cost = params.exactCost || params.costUsd > 0
       ? params.costUsd
       : await getApiCostFromConfig(params.apiName);
 

@@ -186,7 +186,7 @@ export async function generatePackingList(
   // of requests in api_request_logs (GoogleGenerativeAI 500/503). Same
   // retry + sibling-model fallback treatment as ai.decide.
   // packing-list → gemini-2.5-flash-lite (deterministic list, cheap).
-  const { result: response } = await generateContentResilient({
+  const { result: response, modelUsed } = await generateContentResilient({
     purpose: "packing-list",
     generationConfig: {
       // 2026-05-31: lowered from 0.4 → 0.2 (deterministic utility task).
@@ -207,7 +207,7 @@ export async function generatePackingList(
   // Without this, silent regressions on the packing-list prompt prefix
   // (e.g. a future timestamp injection) would burn input-token cost
   // invisibly. Cheap call — just emits to console + rolling Sentry alert.
-  logCacheMetrics("tools.packing-list", response.response.usageMetadata);
+  logCacheMetrics("tools.packing-list", response.response.usageMetadata, modelUsed);
 
   const raw = response.response.text();
   let parsed: unknown;

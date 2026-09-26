@@ -18,7 +18,8 @@
  *
  * Prices are Google's LIST prices in USD per 1,000 requests. Google also
  * grants a free monthly allowance per SKU tier (published as 10,000 Essentials,
- * 5,000 Pro, 1,000 Enterprise, 1,000 Enterprise + Atmosphere). A per-call log
+ * 5,000 Pro, 1,000 Enterprise, 1,000 Enterprise + Atmosphere, and 1,000 photo
+ * downloads — see PLACE_PHOTO_USD_PER_CALL below). A per-call log
  * cannot know where the month stands, so cost_usd stays list price; the bill
  * (Cloud console → Billing → Reports, filter Places API (New), group by SKU) is
  * the source of truth, and `verified` says which prices were checked against
@@ -113,3 +114,11 @@ export function placesCostForCall(input: { kind: PlacesCallKind; fieldMask: stri
   const sku = placesSkuFor(input.kind, input.fieldMask);
   return { sku, usd: PLACES_SKU_LIST_PRICE[sku].usdPer1000 / 1000 };
 }
+
+/**
+ * List price of one photo download: a `/media` request (New API) or a legacy
+ * `maps/api/place/photo` request, both made only by /api/places/photo. Google
+ * bills it as "Place Details Photos", $7 per 1,000 with 1,000 free a month,
+ * per request whatever the size. Unlike the tiers above it has no field mask.
+ */
+export const PLACE_PHOTO_USD_PER_CALL = 7 / 1000;

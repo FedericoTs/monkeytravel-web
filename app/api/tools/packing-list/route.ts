@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { logApiCall } from "@/lib/api-gateway";
+import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import {
   generatePackingList,
   type PackingCategoryId,
@@ -153,15 +154,17 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // What the Gemini calls cost, retries included (lib/ai/gemini-cost.ts).
+  const geminiCost = new GeminiCostMeter();
   try {
-    const list = await generatePackingList({
+    const list = await geminiCost.run(() => generatePackingList({
       destination,
       startDate,
       endDate,
       travelStyle: travelStyle as "city" | "beach" | "adventure" | "business" | "wellness" | "mixed",
       activities,
       locale: locale as "en" | "it" | "es",
-    });
+    }));
 
     // Localize category display labels server-side so the client doesn't
     // need to re-derive them from the English id. Each id maps to a
@@ -185,7 +188,8 @@ export async function POST(request: NextRequest) {
       status: 200,
       responseTimeMs: Date.now() - startTime,
       cacheHit: false,
-      costUsd: 0.0002,
+      costUsd: geminiCost.usd,
+      exactCost: true,
       metadata: {
         user_id: user?.id ?? "anonymous",
         is_anonymous: isAnonymous,
@@ -207,7 +211,8 @@ export async function POST(request: NextRequest) {
       status: 503,
       responseTimeMs: Date.now() - startTime,
       cacheHit: false,
-      costUsd: 0,
+      costUsd: geminiCost.usd,
+      exactCost: true,
       error: message,
       metadata: { user_id: user?.id ?? "anonymous", is_anonymous: isAnonymous },
     });

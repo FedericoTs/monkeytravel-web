@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { logApiCall } from "@/lib/api-gateway";
+import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { checkExtractRateLimit, recordExtract } from "@/lib/anonymous/rate-limit-extract";
 import { createClient } from "@/lib/supabase/server";
@@ -49,6 +50,8 @@ import { MAX_ANCHORED_TRIP_DAYS, assertISODate, inclusiveDaySpan } from "@/lib/a
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
+  // What the Gemini call cost, from its tokens (lib/ai/gemini-cost.ts).
+  const geminiCost = new GeminiCostMeter();
 
   try {
     const supabase = await createClient();
@@ -105,12 +108,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const extracted = await extractPlan(text, {
-      startDate,
-      endDate,
-      totalDays,
-      destination,
-    });
+    const extracted = await geminiCost.run(() =>
+      extractPlan(text, {
+        startDate,
+        endDate,
+        totalDays,
+        destination,
+      })
+    );
 
     if (isPlanExtractError(extracted)) {
       const durationMs = Date.now() - startTime;
@@ -120,7 +125,8 @@ export async function POST(request: NextRequest) {
         status: extracted.error === "extract_failed" ? 503 : 400,
         responseTimeMs: durationMs,
         cacheHit: false,
-        costUsd: 0,
+        costUsd: geminiCost.usd,
+        exactCost: true,
         error: extracted.error,
         metadata: { user_id: user?.id ?? "anonymous", is_anonymous: isAnonymous },
       });
@@ -161,7 +167,8 @@ export async function POST(request: NextRequest) {
       status: 200,
       responseTimeMs: Date.now() - startTime,
       cacheHit: false,
-      costUsd: 0.0002, // flash-lite, one short structured call
+      costUsd: geminiCost.usd,
+      exactCost: true,
       metadata: {
         user_id: user?.id ?? "anonymous",
         is_anonymous: isAnonymous,

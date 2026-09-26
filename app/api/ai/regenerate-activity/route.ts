@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { regenerateSingleActivity } from "@/lib/gemini";
 import { getModelForPurpose } from "@/lib/ai/model-router";
+import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { findActivityById, getAllActivityNames } from "@/lib/utils/activity-id";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
@@ -26,6 +27,8 @@ async function getUserLanguage(): Promise<SupportedLanguage> {
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
+  // What the Gemini call cost, from its tokens (lib/ai/gemini-cost.ts).
+  const geminiCost = new GeminiCostMeter();
 
   try {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
@@ -144,7 +147,7 @@ export async function POST(request: NextRequest) {
       tripMeta.travel_style === "backpacker" ? "backpacker" : "classic";
 
     // Generate new activity
-    const newActivity = await regenerateSingleActivity({
+    const newActivity = await geminiCost.run(() => regenerateSingleActivity({
       destination,
       activityToReplace,
       dayContext,
@@ -153,7 +156,7 @@ export async function POST(request: NextRequest) {
       preferences,
       travelStyle,
       language,
-    });
+    }));
 
     const generationTime = Date.now() - startTime;
 
@@ -164,7 +167,8 @@ export async function POST(request: NextRequest) {
       status: 200,
       responseTimeMs: generationTime,
       cacheHit: false,
-      costUsd: 0.001,
+      costUsd: geminiCost.usd,
+      exactCost: true,
       metadata: {
         user_id: user.id,
         trip_id: tripId,
@@ -204,7 +208,8 @@ export async function POST(request: NextRequest) {
       status: 500,
       responseTimeMs: Date.now() - startTime,
       cacheHit: false,
-      costUsd: 0,
+      costUsd: geminiCost.usd,
+      exactCost: true,
       error: error instanceof Error ? error.message : "Unknown error",
     });
 

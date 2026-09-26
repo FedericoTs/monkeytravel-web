@@ -5,6 +5,7 @@ import { generateActivityId } from "./utils/activity-id";
 import { getPrompt, DEFAULT_PROMPTS } from "./prompts";
 import { captureLLMGeneration, type GeminiUsageMetadata } from "./posthog/llm-analytics";
 import { getModelForPurpose, getSiblingModel } from "./ai/model-router";
+import { recordGeminiUsage } from "./ai/gemini-cost";
 import type { SupportedLanguage } from "./ai/language";
 import {
   withDeduplication,
@@ -276,6 +277,10 @@ const lastCacheAlertAt = new Map<string, number>();
  * Call this AFTER any `model.generateContent(...)` /
  * `model.generateContentStream(...)` and pass `response.usageMetadata`
  * along with a stable route label (e.g. "concierge", "assistant.new_activity").
+ *
+ * Call it exactly once per response: it is also what adds the response's cost
+ * to the request's GeminiCostMeter (lib/ai/gemini-cost.ts), the figure the
+ * routes log to api_request_logs.
  */
 export function logCacheMetrics(
   endpoint: string,
@@ -285,11 +290,13 @@ export function logCacheMetrics(
     cachedContentTokenCount?: number;
     totalTokenCount?: number;
   },
-  /** Model id, so the materiality gate can price the miss with real rates.
+  /** Model id: prices the response, and the materiality gate's miss.
    *  Optional: callers that omit it fall back to the flash tier. */
   model: string = "gemini-2.5-flash"
 ) {
   if (!usageMetadata) return;
+
+  recordGeminiUsage(model, usageMetadata);
 
   const {
     promptTokenCount = 0,
@@ -1386,7 +1393,7 @@ Return ONLY the JSON object, no extra text.`;
     const latencyMs = performance.now() - startTime;
 
     // Log cache metrics for monitoring
-    logCacheMetrics("regenerateSingleActivity", response.usageMetadata);
+    logCacheMetrics("regenerateSingleActivity", response.usageMetadata, modelName);
 
     try {
       const activity = JSON.parse(text) as Activity;
@@ -1695,7 +1702,7 @@ Rules:
     const text = response.text();
     const latencyMs = performance.now() - startTime;
 
-    logCacheMetrics("regenerateSingleDay", response.usageMetadata);
+    logCacheMetrics("regenerateSingleDay", response.usageMetadata, modelName);
 
     try {
       // Gemini occasionally wraps the day in an array even when asked not to.
@@ -2161,7 +2168,7 @@ Rules:
     const latencyMs = performance.now() - startTime;
 
     // Log cache metrics for monitoring
-    logCacheMetrics("generateMoreDays", response.usageMetadata);
+    logCacheMetrics("generateMoreDays", response.usageMetadata, modelName);
 
     try {
       const days = JSON.parse(text) as ItineraryDay[];
