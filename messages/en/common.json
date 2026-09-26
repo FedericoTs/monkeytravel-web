@@ -2230,6 +2230,7 @@
     "alreadyHaveAccount": "Already have an account?",
     "signIn": "Sign in",
     "createYourOwnTrip": "Create Your Own Trip",
+    "alreadyOnTrip": "Already on this trip?",
     "gate": {
       "title": "Join {trip}",
       "sentTo": "This invite was sent to {email}. Sign in with that email to see the trip and join it.",
