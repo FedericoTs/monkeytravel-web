@@ -2230,6 +2230,7 @@
     "alreadyHaveAccount": "Hai già un account?",
     "signIn": "Accedi",
     "createYourOwnTrip": "Crea il Tuo Viaggio",
+    "alreadyOnTrip": "Fai già parte di questo viaggio?",
     "gate": {
       "title": "Unisciti a {trip}",
       "sentTo": "Questo invito è stato inviato a {email}. Accedi con quell'email per vedere il viaggio e unirti.",

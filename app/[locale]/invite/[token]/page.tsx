@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { getTranslations } from "next-intl/server";
 import { setRequestLocale } from "next-intl/server";
@@ -53,9 +54,8 @@ async function getInviteData(token: string) {
     }
     const validation = validateInvite(statusInvite as InviteData);
     if (!validation.valid && validation.errorCode && validation.errorCode !== "NOT_FOUND") {
-      // Stripped tripTitle so the error screen can stay generic but
-      // we expose just enough for "Trip name was X" in future copy.
-      return { error: validation.errorCode };
+      // The trip id lets the page send someone already on the trip there.
+      return { error: validation.errorCode, tripId: String(statusInvite.trip_id) };
     }
     // Edge case: status RPC returned a row but it actually IS still
     // usable (race condition / clock skew between RPCs). Fall through
@@ -177,6 +177,34 @@ async function getInviteData(token: string) {
   };
 }
 
+/** Whether the signed-in viewer owns or has joined the trip; null when signed out. */
+async function viewerOnTrip(tripId: string): Promise<boolean | null> {
+  let userId: string | null = null;
+  try {
+    const serverClient = await createServerSupabase();
+    const { data: { user } } = await serverClient.auth.getUser();
+    userId = user?.id ?? null;
+  } catch {
+    return null;
+  }
+  if (!userId) return null;
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+  const [{ data: trip }, { data: collaborator }] = await Promise.all([
+    supabase.from("trips").select("user_id").eq("id", tripId).maybeSingle(),
+    supabase
+      .from("trip_collaborators")
+      .select("id")
+      .eq("trip_id", tripId)
+      .eq("user_id", userId)
+      .maybeSingle(),
+  ]);
+  return trip?.user_id === userId || Boolean(collaborator);
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { token } = await params;
   const data = await getInviteData(token);
@@ -230,6 +258,15 @@ export default async function JoinPage({ params }: PageProps) {
   }
 
   if ("error" in data) {
+    // A used, expired or revoked link still belongs to people already on the
+    // trip: send them to it, and offer signed-out visitors a way to sign in.
+    const localePrefix = locale === "en" ? "" : `/${locale}`;
+    const tripId = "tripId" in data ? data.tripId : undefined;
+    const onTrip = tripId ? await viewerOnTrip(tripId) : false;
+    if (onTrip) {
+      redirect(`${localePrefix}/trips/${tripId}`);
+    }
+
     const errorMap: Record<string, string> = {
       INVALID_TOKEN: "invalidToken",
       REVOKED: "revoked",
@@ -263,6 +300,17 @@ export default async function JoinPage({ params }: PageProps) {
             </svg>
             {t("createYourOwnTrip")}
           </a>
+          {onTrip === null && (
+            <p className="mt-6 text-sm text-slate-600">
+              {t("alreadyOnTrip")}{" "}
+              <a
+                href={`${localePrefix}/auth/login?redirect=${encodeURIComponent(`/invite/${token}`)}`}
+                className="font-medium text-[var(--primary-ink)] underline underline-offset-2"
+              >
+                {t("signIn")}
+              </a>
+            </p>
+          )}
         </div>
       </div>
     );
