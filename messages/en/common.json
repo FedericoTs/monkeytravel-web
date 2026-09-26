@@ -1011,6 +1011,8 @@
     "suggestionsLabel": "Destination suggestions"
   },
   "startOver": {
+    "changeDatesHint": "You can change the dates and keep this plan.",
+    "changeDatesInstead": "Change the dates instead",
     "title": "Start Over?",
     "warning": "This action cannot be undone",
     "discardMessage": "You're about to discard your generated itinerary for {destination}.",

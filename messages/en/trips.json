@@ -39,6 +39,26 @@
     "overpacked": "Packed day"
   },
   "wizard": {
+    "changeDates": {
+      "button": "Change dates",
+      "title": "Change your dates",
+      "start": "Start",
+      "end": "End",
+      "cancel": "Cancel",
+      "confirm": "Change dates",
+      "unchanged": "Pick new dates for your trip.",
+      "same": "Your plan moves to these dates. Nothing else changes.",
+      "shorter": "Your trip becomes {count, plural, one {# day} other {# days}}: the first days stay, the rest are removed.",
+      "longer": "Your trip becomes {count, plural, one {# day} other {# days}}. Your days stay as they are, and the assistant plans the new ones from Day {from}.",
+      "endBeforeStart": "The end date is before the start date.",
+      "tooLong": "Trips can be up to {max} days.",
+      "pickBoth": "Pick a start and an end date.",
+      "pencilled": "We pencilled in {range} for you.",
+      "setYourDates": "Set your dates",
+      "planning": "Planning your extra days…",
+      "partlyPlanned": "The assistant planned your trip up to Day {count}. Ask it for the rest, or change the dates again.",
+      "extraFailed": "Your plan moved to the new dates, but the extra days couldn't be planned just now. Your trip has {count, plural, one {# day} other {# days}} for now: ask the assistant to add the rest."
+    },
     "back": "Back",
     "regenerateConfirm": {
       "title": "Regenerate the whole trip?",

@@ -46,6 +46,8 @@ interface StartOverModalProps {
   /** When true, surface the fact that confirming will DELETE an
    *  already-auto-saved trip from the user's dashboard. */
   wasAutoSaved?: boolean;
+  /** Offered when the reason is "wrong dates": keep the plan, change the dates. */
+  onChangeDatesInstead?: () => void;
 }
 
 export default function StartOverModal({
@@ -56,6 +58,7 @@ export default function StartOverModal({
   tripDays,
   activitiesCount,
   wasAutoSaved = false,
+  onChangeDatesInstead,
 }: StartOverModalProps) {
   const t = useTranslations("common.startOver");
 
@@ -194,6 +197,22 @@ export default function StartOverModal({
             ))}
           </select>
         </div>
+
+        {/* "Wrong dates" was the top reason for starting over (16 of 40 in
+            60 days): the plan was fine, only the dates were not. Say that
+            the dates can change and the plan can stay. */}
+        {reason === "wrong_dates" && onChangeDatesInstead && (
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm text-slate-700">{t("changeDatesHint")}</p>
+            <button
+              type="button"
+              onClick={onChangeDatesInstead}
+              className="mt-2 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-900 ring-1 ring-slate-300 hover:bg-slate-100"
+            >
+              {t("changeDatesInstead")}
+            </button>
+          </div>
+        )}
 
         {/* Optional free-text. Always shown — surfacing the textarea only
             when reason==="other" hides the affordance for users who picked

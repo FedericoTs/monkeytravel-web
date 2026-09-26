@@ -1011,6 +1011,8 @@
     "suggestionsLabel": "Sugerencias de destino"
   },
   "startOver": {
+    "changeDatesHint": "Puedes cambiar las fechas y quedarte con este plan.",
+    "changeDatesInstead": "Cambiar solo las fechas",
     "title": "¿Empezar de Nuevo?",
     "warning": "Esta acción no se puede deshacer",
     "discardMessage": "Estás a punto de descartar tu itinerario generado para {destination}.",
