@@ -20,6 +20,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, act } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import SharePromptOnTrip from "./SharePromptOnTrip";
 
 // next/dynamic would resolve the real modal (and its i18n + BaseModal tree).
@@ -91,7 +92,7 @@ function scrollTo(y: number) {
  *
  * Awaiting a 0ms async advance lets the fetch + json chain settle inside act().
  */
-async function renderReady(overrides: Partial<typeof BASE> = {}) {
+async function renderReady(overrides: Partial<ComponentProps<typeof SharePromptOnTrip>> = {}) {
   const utils = render(<SharePromptOnTrip {...BASE} {...overrides} />);
   await act(async () => {
     await vi.advanceTimersByTimeAsync(0);

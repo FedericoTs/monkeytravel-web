@@ -42,6 +42,9 @@ describe("stripDayMention / isUsableActivityName", () => {
   });
 });
 
+/** An intent as the parser returns it: the day and the name may be missing. */
+type Intent = { type: string; preference?: string; activityName?: string; dayNumber?: number };
+
 describe("withDayTarget", () => {
   it("'Can we delete it day 5': a remove on Day 5 with nothing to match, not Day 6's 'Cruise Day'", () => {
     expect(withDayTarget({ type: "remove", activityName: "it day 5" }, "Can we delete it day 5")).toEqual({
@@ -53,7 +56,7 @@ describe("withDayTarget", () => {
 
   it("an add keeps the day the user gave, wherever they gave it", () => {
     const msg = "okay everything is messed up. I need to get rid of day 5 info and add the part where we go to civiavecchia port";
-    expect(withDayTarget({ type: "add", preference: msg }, msg).dayNumber).toBe(5);
+    expect(withDayTarget<Intent>({ type: "add", preference: msg }, msg).dayNumber).toBe(5);
   });
 
   it("does not override a day the parser already read", () => {
@@ -61,7 +64,7 @@ describe("withDayTarget", () => {
   });
 
   it("leaves the day empty when none was named, so the handler can ask", () => {
-    expect(withDayTarget({ type: "add" }, "add a coffee stop").dayNumber).toBeUndefined();
+    expect(withDayTarget<Intent>({ type: "add" }, "add a coffee stop").dayNumber).toBeUndefined();
   });
 
   it("keeps a real name, minus its day", () => {

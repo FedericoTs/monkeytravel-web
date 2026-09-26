@@ -85,7 +85,7 @@ describe("mergeCityItineraries + transfer legs", () => {
     expect(transfer.transport_mode).toBe("train");
     expect(transfer.name).toBe("Treno per Florence");
     expect(transfer.start_time).toBe("08:30");
-    expect(transfer.estimated_cost.currency).toBe("EUR");
+    expect(transfer.estimated_cost?.currency).toBe("EUR");
     // No transfer before the first city.
     expect(merged.days[0].activities.every((a) => a.type !== "transport")).toBe(true);
   });

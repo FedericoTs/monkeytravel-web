@@ -19,7 +19,7 @@ const itineraryB = { destination: { name: "Lisbon" }, days: [{}, {}, {}] } as un
 
 function harness(overrides: Partial<UseAutoSaveTripOptions> = {}) {
   const saveTrip = vi.fn(async () => ({ tripId: "inserted-1", durationDays: 2 }));
-  const updateTrip = vi.fn(async () => undefined);
+  const updateTrip = vi.fn<UseAutoSaveTripOptions["updateTrip"]>(async () => undefined);
   const deleteTrip = vi.fn(async () => undefined);
   const onSkipped = vi.fn();
   const base: UseAutoSaveTripOptions = {

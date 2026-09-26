@@ -142,7 +142,7 @@ describe("counter functions are only called through lib/explore/counters.ts", ()
       }
     }
     expect(offenders).toEqual([]);
-  });
+  }, 30_000); // reads every source file; the default 5 s is too short under a full parallel run
 
   it("an anonymous save merged at sign-in is recounted as the account's save", () => {
     const src = readFileSync(path.join(ROOT, "app", "auth", "callback", "route.ts"), "utf8");

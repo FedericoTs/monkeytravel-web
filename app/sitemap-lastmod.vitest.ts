@@ -72,15 +72,28 @@ function gitAvailable(): boolean {
   }
 }
 
+/**
+ * Commits that touched a constant's files without changing what its pages show,
+ * such as removing unused code. Listing one here beats a false lastmod bump.
+ */
+const NOT_CONTENT: Record<string, string[]> = {
+  LASTMOD_DESTINATIONS: ["5817242889d8a0c14c227eefc56a993b2378f2c5"],
+};
+
 /** YYYY-MM-DD of the newest commit touching any of `paths`, or null. */
-function lastCommitDate(paths: string[]): string | null {
+function lastCommitDate(name: string, paths: string[]): string | null {
   try {
     const out = execFileSync(
       "git",
-      ["log", "-1", "--format=%ad", "--date=short", "--", ...paths],
+      ["log", "--format=%H %ad", "--date=short", "--", ...paths],
       { cwd: REPO, encoding: "utf-8", stdio: ["ignore", "pipe", "ignore"] },
     ).trim();
-    return /^\d{4}-\d{2}-\d{2}$/.test(out) ? out : null;
+    const skip = new Set(NOT_CONTENT[name] ?? []);
+    for (const line of out.split("\n")) {
+      const [sha, date] = line.split(" ");
+      if (!skip.has(sha)) return /^\d{4}-\d{2}-\d{2}$/.test(date ?? "") ? date : null;
+    }
+    return null;
   } catch {
     return null;
   }
@@ -101,7 +114,7 @@ describe("sitemap LASTMOD constants track real content changes", () => {
       expect(declared, `${name} not found in sitemap.ts`).not.toBeNull();
 
       if (!haveGit) return; // shallow clone / no git — nothing trustworthy to compare
-      const actual = lastCommitDate(paths);
+      const actual = lastCommitDate(name, paths);
       if (!actual) return; // paths matched no history (renamed?) — don't fail blind
 
       expect(

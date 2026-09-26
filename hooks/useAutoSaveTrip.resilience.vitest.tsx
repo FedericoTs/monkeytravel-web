@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, type Mock } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { useAutoSaveTrip, type AutoSaveSkipReason } from "./useAutoSaveTrip";
+import { useAutoSaveTrip, type AutoSaveSkipReason, type UseAutoSaveTripOptions } from "./useAutoSaveTrip";
 import type { GeneratedItinerary } from "@/types";
 import type { TripFormState } from "@/lib/trips/persistTrip";
 
@@ -39,9 +39,9 @@ function harness(opts: {
   itinerary?: GeneratedItinerary | null;
   isAuthenticated?: boolean | null;
   enabled?: boolean;
-  saveTrip?: ReturnType<typeof vi.fn>;
+  saveTrip?: Mock<UseAutoSaveTripOptions["saveTrip"]>;
 }) {
-  const saveTrip = opts.saveTrip ?? vi.fn(async () => ({ tripId: "trip-1", durationDays: 5 }));
+  const saveTrip = opts.saveTrip ?? vi.fn<UseAutoSaveTripOptions["saveTrip"]>(async () => ({ tripId: "trip-1", durationDays: 5 }));
   const onPersisted = vi.fn();
   const onError = vi.fn();
   const onSkipped = vi.fn<(reason: AutoSaveSkipReason) => void>();
