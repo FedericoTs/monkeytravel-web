@@ -1,0 +1,39 @@
+# Types, lint (errors only) and unit tests: the same commands as local development.
+# npm 11 because it maintains package-lock.json; npm 10, bundled with Node 22,
+# reads that lockfile differently and refuses to install it.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: types, lint, tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci --no-audit --no-fund
+      - name: Generate Next.js types
+        run: npx next typegen
+      - name: Type-check app and tests
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint -- --quiet
+      - name: Unit tests
+        run: npm test

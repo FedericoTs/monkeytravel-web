@@ -207,6 +207,15 @@ export default function TripPackingEssentials({
       .sort((a, b) => b[1].length - a[1].length) as [CategoryKey, string[]][];
   }, [items]);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
+
   if (!items || items.length === 0) {
     return null;
   }
@@ -228,15 +237,6 @@ export default function TripPackingEssentials({
       saveToDatabase(newChecked);
     }, 500); // 500ms debounce
   };
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const toggleCategory = (category: string) => {
     const newExpanded = new Set(expandedCategories);

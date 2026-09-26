@@ -1,851 +1,252 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for anyone, human or AI, changing code in this repository.
 
-## Project Overview
+## Project
 
-**MonkeyTravel** - AI-powered travel planning app landing page and waitlist.
+**MonkeyTravel** is an AI travel planner at https://monkeytravel.app. A visitor plans
+a trip in the wizard without an account, Gemini writes the itinerary, and signed-in
+users save it, edit it with the assistant, share it and plan it with friends.
 
-- **Live URL**: https://monkeytravel.app
-- **GitHub**: https://github.com/FedericoTs/monkeytravel-web
-- **Vercel Project**: travel-app-web
+- Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4
+- Supabase (Postgres, auth, row-level security), hosted on Vercel
+- Gemini for itineraries and the assistants
+- next-intl with four locales: `en` (no URL prefix), `es`, `it`, `pt`
+- The GitHub repo is **public**: https://github.com/FedericoTs/monkeytravel-web.
+  `master` deploys to production; every pull request gets a Vercel preview.
 
 ## Commands
 
 ```bash
-npm run dev      # Start development server (http://localhost:3000)
-npm run build    # Build for production
-npm run start    # Start production server
-npm run lint     # Run ESLint
+npm run dev                  # dev server, http://localhost:3000
+npm run build                # production build
+npm run typecheck            # app + test files (tsconfig.json, tsconfig.test.json)
+npm run lint -- --quiet      # ESLint, errors only
+npm test                     # Vitest unit tests (*.vitest.ts / *.vitest.tsx)
+npm run test:e2e             # Playwright, tests/e2e/
+npm run test:e2e:prod        # the @prod subset against https://monkeytravel.app
 ```
 
-## Tech Stack
+CI (`.github/workflows/ci.yml`) runs `typecheck`, `lint -- --quiet` and `test` on every
+pull request and every push to `master`. Run the same three before you push.
 
-- **Framework**: Next.js 16 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS 4
-- **Backend**: Supabase (database)
-- **Hosting**: Vercel
-- **Fonts**: Geist Sans and Geist Mono via next/font
+## How to change this codebase (MANDATORY)
 
-## Brand Colors
+Unneeded changes, old code left behind and history written into comments are what
+make each following session slower and riskier. Every change follows these rules:
 
-Defined in `app/globals.css`:
-- **Primary**: `#FF6B6B` (coral) - `var(--primary)` — scale: `--primary-light` `#FFB4B4`, `--primary-dark` `#E85555`, `--primary-deeper` `#D94444`, `--primary-vivid` `#FF5252`
-- **Secondary**: `#00B4A6` (teal) - `var(--secondary)` — `--secondary-light` `#B2F5EA`, `--secondary-dark` `#008B80`
-- **Accent**: `#FFD93D` (warm yellow) - `var(--accent)` — `--accent-light` `#FFF3B8`, `--accent-dark` `#E5C235`
-- **Navy / ink**: `#2D3436` (charcoal — body text + footer/CTA) - `var(--navy)`
-- **Backgrounds**: warm, not white — `--background` `#FFFAF5`, `--background-warm` `#FFF5EB`, `--background-cream` `#FFF0F0`
-- Palette is **warm coral + teal + yellow on cream**. Always use CSS variables for colors.
-- ⚠️ **A11y:** white text on coral `#FF6B6B` is 2.76:1 — **fails WCAG AA**. Use charcoal (`#2D3436`) text on coral for normal-size text (4.75:1).
+1. **Make the smallest change that solves the problem.** No drive-by refactors,
+   renames or reformatting. If you notice something else, tell the user instead.
+2. **One concern per pull request.** A fix, a feature and a refactor are three PRs.
+3. **Extend the module that owns the behaviour** (see *Module owners*). Search before
+   writing a helper; a near-duplicate module is how this repo ended up with two date
+   modules and two assistants.
+4. **Delete, don't disable.** When a feature is retired, remove its code, routes,
+   translations and tests in the same PR. No `ENABLED = false`, no commented-out code.
+5. **Comments say why the code is shaped this way, in five lines or fewer.** No
+   dates, metrics, PR numbers, names or incident stories: those go in the commit
+   message and the PR description.
+6. **The repo is public.** Never put a real person's name, email address or data in
+   code, tests, fixtures, comments or docs. Use made-up names and `example.com`.
+7. **Every user-facing string exists in all four locales** (see *Internationalization*).
+8. **Verify in the running app, not only in tests.** Drive the real flow in a browser
+   on the dev server, and on production after the deploy, including one non-English
+   locale. Test with throwaway accounts, never a real user's.
+9. **Merge only when the user explicitly says so.**
 
-## Project Structure
+## Module owners
 
-```
-app/
-├── api/subscribe/route.ts  # Email subscription API endpoint
-├── layout.tsx              # Root layout with metadata
-├── page.tsx                # Main landing page
-├── privacy/page.tsx        # Privacy Policy
-├── terms/page.tsx          # Terms of Service
-└── globals.css             # Global styles, CSS variables
+Add to these; do not start a parallel version.
 
-components/
-├── Navbar.tsx              # Fixed navigation with mobile menu
-├── Footer.tsx              # Dark navy footer with links
-├── EmailSubscribe.tsx      # Email capture form (hero/dark variants)
-├── PhoneMockup.tsx         # iPhone mockup with screenshot support
-├── Badge.tsx               # Pill-style labels
-├── Button.tsx              # Multi-variant button
-├── FeatureCard.tsx         # Feature showcase cards
-├── TestimonialCard.tsx     # Review cards with star ratings
-└── StoreButton.tsx         # App Store / Play Store buttons
+| Area | Owner |
+|---|---|
+| Itinerary generation (prompt, parsing) | `lib/gemini.ts`, `app/api/ai/generate/` (incl. `stream/`) |
+| Wizard assistant (before the trip is saved) | `lib/ai/assistant-anon.ts`, `app/api/ai/assistant-anon/` |
+| Trip-page assistant | `app/api/ai/assistant/route.ts` |
+| Shared assistant rules (honest replies, day targeting) | `lib/ai/assistant/` |
+| Saving a trip | `lib/trips/persistTrip.ts`; wizard auto-save `hooks/useAutoSaveTrip.ts`, gated by `lib/trips/autoSaveGate.ts` |
+| Concurrent itinerary writes | client queue `lib/trips/itinerary-sync.ts`, server compare-and-set `lib/trips/itinerary-cas.ts` |
+| Changing trip dates | `lib/trips/change-dates.ts` |
+| Dates | `lib/datetime/` for display formatting, `lib/dates/iso-date.ts` for `YYYY-MM-DD` input |
+| Trip-page helpers (live trip, time zones, drag and drop) | `lib/trip/` |
+| API route responses | `lib/api/response-wrapper.ts` (`apiError`, `errors`, `apiSuccess`); errors are `{ error: string, code?, ... }` |
+| Paid-API usage and cost logging | `lib/api-gateway/api-control.ts` |
+| Supabase clients | `lib/supabase/server.ts`, `client.ts`; `admin.ts` is service-role and server-only |
+| Modals | `components/ui/BaseModal.tsx`; over a sticky bar pass `usePortal zIndex={100}` |
+| Product analytics | `lib/posthog/` (events, `useFlag`), `lib/analytics.ts` |
+| Email | `lib/email/` |
+| Translations | `messages/{en,es,it,pt}/*.json`, routing in `lib/i18n/routing.ts` |
 
-lib/
-└── supabase.ts             # Supabase client instance
+## Tests
 
-public/
-├── images/logo.png         # MonkeyTravel logo
-└── screenshots/            # App screenshots for phone mockups
-```
+- Unit tests sit next to the code as `*.vitest.ts(x)` (Vitest, jsdom). The main
+  `tsconfig.json` excludes them; `tsconfig.test.json` type-checks them.
+- Playwright specs live in `tests/e2e/`. `npm run e2e:fixtures` and `npm run e2e:login`
+  work against the **production** database: remove whatever you create.
+- CI fails on ESLint **errors**. Style rules and React Compiler advice are warnings
+  (`eslint.config.mjs`); fix those in code you are already changing, not in bulk.
 
-## Key Features
+## Design
 
-### Email Subscription System
+**Read `DESIGN.md` before any visual or UI decision.** It records the colour system,
+the type stack, the touch-target rule and the reasoning behind them. Two points are
+easy to get wrong:
 
-The waitlist form saves emails to Supabase:
-
-```typescript
-// API endpoint: POST /api/subscribe
-// Body: { email: string, source: string }
-// Response: { message: string, id?: string }
-```
-
-Database table: `email_subscribers`
-- `email` (unique, validated)
-- `source` (hero, cta, footer)
-- `subscribed_at`
-- `metadata` (user agent, referer, timestamp)
-
-### Screenshot Configuration
-
-Replace phone mockup placeholders with real screenshots in `app/page.tsx`:
-
-```typescript
-const APP_SCREENSHOTS = {
-  hero: '/screenshots/home-screen.png',        // or undefined for placeholder
-  preview: {
-    left: '/screenshots/discover.png',
-    center: '/screenshots/itinerary.png',
-    right: '/screenshots/trip-detail.png',
-  },
-};
-```
-
-Recommended size: 1170 x 2532 pixels (iPhone 14 Pro)
-
-### EmailSubscribe Component
-
-```tsx
-<EmailSubscribe
-  variant="hero"           // 'hero' | 'dark' | 'footer' | 'inline'
-  source="hero"            // tracking source for analytics
-  className="mb-6"
-/>
-```
-
-## Design Patterns
-
-**Read `DESIGN.md` before any visual or UI decision.** It records the colour
-system, the type stack, the touch-target rule, and the reasoning behind them.
-Two things there are easy to get wrong and expensive to get wrong:
-
-- `--primary` (#FF6B6B) and `--secondary` (#00B4A6) are **decoration only** — they
-  fail WCAG AA as text at every size. Text and fills-under-white-labels use
+- `--primary` (#FF6B6B) and `--secondary` (#00B4A6) are **decoration only**: they fail
+  WCAG AA as text at every size. Text, and fills under white labels, use
   `--primary-ink` / `--secondary-ink`.
-- That inverts on dark surfaces: on `--navy` the bright token passes and the ink
-  token fails. Never blanket-swap a colour token without checking for dark surfaces.
-
-Coral primary buttons are a **known, accepted** AA exception — see DESIGN.md before
-"fixing" them. Do not deviate from DESIGN.md without explicit approval; flag
-mismatches in QA.
-
-- All colors use CSS variables from globals.css
-- Components use Tailwind with `var(--color-name)` pattern
-- Animation classes: `animate-float`, `animate-pulse-glow`
-- Background patterns: `bg-grid-pattern`, `gradient-warm`, `mesh-gradient`
-- Glassmorphism: `glass` class for frosted glass effect
-- Gradient text: `gradient-text`, `gradient-text-blue`
-
-## Environment Variables
-
-Required in `.env.local` and Vercel:
-
-```bash
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-
-# PostHog (Analytics, Feature Flags, A/B Testing)
-NEXT_PUBLIC_POSTHOG_KEY=phc_xxxxxxxxxxxxx
-NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
-```
-
-## PostHog (Analytics & Feature Flags)
-
-PostHog provides analytics, feature flags, and A/B testing.
-
-### Architecture (Next.js 15.3+)
-
-PostHog is initialized in `instrumentation-client.ts` using the official Next.js pattern:
-
-```
-instrumentation-client.ts  # PostHog + Sentry init (auto-loaded by Next.js)
-
-lib/posthog/
-├── client.ts      # PostHog instance export + legacy init fallback
-├── server.ts      # Server-side (API routes, RSC)
-├── identify.ts    # User identification
-├── events.ts      # Type-safe event capture
-├── flags.ts       # Feature flag definitions
-├── hooks.ts       # React hooks (useFlag, useExperiment)
-└── index.ts       # Main exports
-```
-
-### Usage Examples
-
-**Feature Flags:**
-```tsx
-import { useFlag, useExperiment } from '@/lib/posthog'
-
-function Component() {
-  const { enabled } = useFlag('new-feature')
-  const { variant } = useExperiment('pricing-test')
-
-  return enabled ? <NewFeature /> : <OldFeature />
-}
-```
-
-**Event Tracking:**
-```tsx
-import { captureTripCreated } from '@/lib/posthog/events'
-
-captureTripCreated({
-  trip_id: tripId,
-  destination: 'Paris',
-  duration_days: 5,
-  budget_tier: 'balanced',
-})
-```
-
-**User Identification:**
-```tsx
-import { identifyUser } from '@/lib/posthog'
-
-identifyUser(user, {
-  subscription_tier: 'free',
-  trips_created: 3,
-})
-```
-
-### Current Experiments
-
-| Flag | Purpose |
-|------|---------|
-| `share-modal-delay` | Test modal timing (immediate/delayed/on-scroll) |
-| `pricing-tier-test` | Test price points ($29/$39/$49) |
-| `trial-duration` | Test trial length (3/7/14 days) |
-
-## MCP Servers
-
-This project uses MCP servers for AI-assisted development:
-
-- **`supabase-monkey` (HTTP, OAuth)** — production DB for monkeytravel.app
-  (project_ref `sevfbahwmlbdlnbhqwyi`). Project-local in `.mcp.json`.
-  One-time browser OAuth on first invocation; persists thereafter.
-- **`supabase-rysk` (HTTP, OAuth)** — the second Supabase account
-  (ryskmanagement26@gmail.com, project_ref `oipwlrhyzayuxgcabsvu`).
-  Also project-local. The reason BOTH live here: managing multiple
-  Supabase accounts without re-authentication. Call the relevant one
-  by namespace (`mcp__supabase-monkey__*` vs `mcp__supabase-rysk__*`).
-- **n8n-mcp** — workflow automation server (auth via bearer in URL).
-
-### Local-dev secrets pattern
-
-`.envrc.example` documents the per-project token pattern for the
-Supabase CLI and Vercel CLI. To use:
-
-```bash
-cp .envrc.example .envrc
-# edit .envrc — paste real PAT/token values
-direnv allow
-```
-
-After that, `cd` into this directory auto-loads `SUPABASE_ACCESS_TOKEN`
-(monkeytravel-scoped) and `VERCEL_TOKEN` (also monkeytravel-scoped).
-`cd` away → tokens unload. This prevents accidentally running
-`supabase db push` or `vercel --prod` against the wrong account.
-
-`.envrc` is gitignored. Get the values from:
-- Supabase PAT: https://supabase.com/dashboard/account/tokens
-- Vercel token: https://vercel.com/account/tokens
-
-For multi-project setups, each project gets its own `.envrc` with its
-own PATs. The global Supabase / Vercel CLIs read whichever env is
-active when you invoke them.
-
-## Deployment
-
-Auto-deploys from `master` branch via Vercel GitHub integration.
-
-Manual deploy:
-```bash
-npx vercel --prod
-```
-
-## Supabase
-
-```typescript
-import { supabase } from '@/lib/supabase'
-
-// Example: Insert email subscriber
-const { data, error } = await supabase
-  .from('email_subscribers')
-  .insert({ email, source, metadata })
-```
-
-## Pages
-
-| Route | Description |
-|-------|-------------|
-| `/` | Main landing page with waitlist |
-| `/privacy` | Privacy Policy (App Store requirement) |
-| `/terms` | Terms of Service (App Store requirement) |
-| `/api/subscribe` | POST endpoint for email subscription |
-
-## Internationalization (i18n)
-
-> **MANDATORY**: All new features MUST be built with translations from the start.
-> Never hardcode user-facing strings. Use translation keys immediately.
-
-MonkeyTravel supports multiple languages using `next-intl`:
-
-### Supported Languages
-- **English** (default) - no URL prefix (`/`)
-- **Spanish** - URL prefix `/es/*`
-- **Italian** - URL prefix `/it/*`
-
-### File Structure
-
-```
-i18n.ts                    # Main i18n configuration
-lib/i18n/routing.ts        # Locale routing config
-middleware.ts              # Locale detection middleware
-app/[locale]/              # All pages under locale dynamic route
-
-messages/
-├── en/                    # English translations
-│   ├── common.json        # Shared UI strings
-│   ├── auth.json          # Auth forms and errors
-│   ├── trips.json         # Trip wizard strings
-│   ├── landing.json       # Landing page copy
-│   └── profile.json       # Profile page strings
-├── es/                    # Spanish translations
-│   └── (same structure)
-└── it/                    # Italian translations
-    └── (same structure)
-```
-
-### How to Add Translations
-
-**1. Server Components (async functions):**
-```tsx
-import { getTranslations } from 'next-intl/server';
-
-export default async function Page() {
-  const t = await getTranslations('landing');
-
-  return <h1>{t('hero.title')}</h1>;
-}
-```
-
-**2. Client Components ('use client'):**
-```tsx
-'use client';
-import { useTranslations } from 'next-intl';
-
-export default function Component() {
-  const t = useTranslations('common');
-
-  return <button>{t('save')}</button>;
-}
-```
-
-### Adding New Translations
-
-1. Add keys to all language files (`messages/{en,es,it}/namespace.json`)
-2. Use `t('key.path')` in components
-3. For nested keys: `t('hero.trustSignals.free')`
-
-### Translation File Example
-
-```json
-// messages/en/landing.json
-{
-  "hero": {
-    "title": "The AI Travel Planner That Actually Works",
-    "subtitle": "Drop a destination. Get a personalized itinerary.",
-    "cta": "Plan My Trip Free"
-  }
-}
-
-// messages/it/landing.json
-{
-  "hero": {
-    "title": "Il Pianificatore di Viaggi con IA Che Funziona Davvero",
-    "subtitle": "Scegli una destinazione. Ottieni un itinerario personalizzato.",
-    "cta": "Pianifica il Mio Viaggio Gratis"
-  }
-}
-```
-
-### AI Content Localization
-
-AI-generated itineraries are localized via language instruction in `lib/gemini.ts`:
-
-```typescript
-// The AI receives language instructions to respond in the user's locale
-function getLanguageInstruction(language: 'en' | 'es' | 'it'): string {
-  // Returns Spanish/Italian instruction for non-English locales
-}
-```
-
-### Database Schema
-
-```sql
--- User's preferred UI language
-users.preferred_language TEXT DEFAULT 'en' CHECK (preferred_language IN ('en', 'es', 'it'))
-
--- Cache entries are language-specific
-destination_activity_cache.language VARCHAR(5) DEFAULT 'en'
-```
-
-### Best Practices
-
-1. **Always use translation keys** - Never hardcode user-facing strings
-2. **Namespace by feature** - Use `common.json` for shared strings, feature-specific files otherwise
-3. **Test all locales** - Visit `/es` and `/it` after adding translations
-4. **Keep keys consistent** - Same key structure across all language files
-
-### Development Rules (MANDATORY)
-
-When creating any new component or feature:
-
-1. **Start with translation keys** - Before writing any UI text, add keys to all 3 language files
-2. **Use the pattern**:
-   ```tsx
-   // Client component
-   const t = useTranslations("common.featureName");
-   return <h1>{t("title")}</h1>;
-
-   // Server component
-   const t = await getTranslations("common.featureName");
-   ```
-3. **For config-driven UI** (arrays, options):
-   ```tsx
-   // WRONG - hardcoded text
-   const OPTIONS = [{ label: "Option 1" }];
-
-   // CORRECT - translation keys
-   const OPTIONS = [{ labelKey: "option1" }];
-   // Then: {t(option.labelKey)}
-   ```
-4. **Always add to ALL 3 files** - `en`, `es`, and `it` must have the same keys
-5. **ICU format for plurals/variables**:
-   ```json
-   {
-     "items": "{count, plural, =1 {1 item} other {# items}}"
-   }
-   ```
-
-### Admin Translation Editor
-
-Admins can edit translations at `/admin/translations`:
-- View all translation keys across languages
-- Edit values inline
-- Search by key or value
-- Changes are saved to JSON files immediately
-
-### AI Response Language
-
-The AI generates content in the user's selected language:
-- `lib/gemini.ts` contains `getLanguageInstruction()`
-- Append language instruction to prompts for non-English locales
-- Activity descriptions, tips, and summaries are localized
-
-## SEO & SSR Discipline (MANDATORY)
-
-> **Why this section exists**: in April 2026 we discovered ~75 URLs stuck in
-> Google Search Console's "Discovered — currently not indexed" cohort and ~80
-> in "Crawled — currently not indexed". Root cause: server-side HTML delivered
-> to Googlebot was a blank loading spinner with zero internal links, even
-> though every page rendered fine in the browser. Several traps below all had
-> to be hit at once. Every new feature must respect these rules.
-
-### Crawler-Visible HTML — the only thing that matters for indexing
-
-Googlebot's first-pass crawl reads the **initial SSR HTML response**. It does
-NOT execute JavaScript on every URL. If your page's important content (text
-headings, internal links, article body) is not in that initial HTML, Google
-treats the page as thin/empty and parks it in "Discovered/Crawled — not
-indexed". The browser DevTools "view rendered DOM" is a LIE for SEO purposes —
-only the raw HTTP response counts.
-
-**Verify any new page with this curl recipe before considering it shipped:**
+- That inverts on dark surfaces: on `--navy` the bright token passes and the ink token
+  fails. Never blanket-swap a colour token without checking for dark surfaces.
+
+Coral primary buttons are a known, accepted AA exception; see DESIGN.md before
+"fixing" them. Colours always come from the CSS variables in `app/globals.css`.
+
+## Internationalization
+
+- Pages live under `app/[locale]/`. Routing is in `lib/i18n/routing.ts`; request config
+  is `i18n.ts`; locale detection is in `middleware.ts`.
+- Strings live in `messages/{en,es,it,pt}/<namespace>.json`, with the same keys in all
+  four files. Never hardcode user-facing text, including in config arrays (store a
+  `labelKey` and call `t(option.labelKey)`).
+- Server components use `getTranslations()`; client components use `useTranslations()`.
+- Use ICU for plurals and variables: `"{count, plural, =1 {1 item} other {# items}}"`.
+- AI output follows the user's language through the language instruction in
+  `lib/gemini.ts`; cached AI content is stored per language.
+- After adding strings, open the page in `/es`, `/it` and `/pt` as well as English.
+
+## SEO and server rendering (MANDATORY)
+
+Googlebot indexes the **initial server HTML**, not the DOM a browser builds after
+JavaScript runs. A page whose content or links only appear client-side is treated as
+thin and left unindexed. Verify every new public page:
 
 ```bash
 UA='Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
 curl -sL --compressed --max-time 30 -A "$UA" "https://monkeytravel.app/<path>" -o /tmp/p.html
-
-# Structural HTML present?
-grep -ocE '<h1|<h2|<h3' /tmp/p.html        # expect ≥ 1 each
-grep -oc '<a [^>]*href' /tmp/p.html         # expect ≥ 30 on indexable pages
-grep -oc '<footer' /tmp/p.html              # expect 1 (sitewide footer)
-
-# Locale signals correct?
-grep -oE '<html[^>]*lang="[a-z-]+"' /tmp/p.html       # must match URL locale
-grep -oE '<link rel="canonical" href="[^"]+"' /tmp/p.html  # must be self-referential per locale
-grep -oE '<link rel="alternate" hrefLang' /tmp/p.html | wc -l  # expect 4 (en/es/it/x-default)
-
-# Indexability correct?
-grep -oE '<meta name="robots" content="[^"]+"' /tmp/p.html
-# - public pages: "index, follow"
-# - auth/admin/shared: "noindex, nofollow"
+grep -ocE '<h1|<h2|<h3' /tmp/p.html                          # headings present
+grep -oc '<a [^>]*href' /tmp/p.html                          # ≥ 30 links on indexable pages
+grep -oE '<html[^>]*lang="[a-z-]+"' /tmp/p.html              # matches the URL locale
+grep -oE '<link rel="canonical" href="[^"]+"' /tmp/p.html    # self-referencing per locale
+grep -oE '<link rel="alternate" hrefLang' /tmp/p.html | wc -l
+grep -oE '<meta name="robots" content="[^"]+"' /tmp/p.html   # index for public pages only
 ```
 
-If `<h2>` count is 0 or `<a href>` count is < 20 on a page meant to rank, the
-page tree is being delivered via React Server Components streaming chunks
-instead of static HTML. Diagnose with the rules below.
+The traps that have broken indexing before:
 
-### The traps that bit us — never repeat them
+1. **Client wrappers that start in a loading state.** A `"use client"` wrapper that
+   shows a spinner until an effect finishes serves that spinner to crawlers on every
+   page. Render children eagerly and switch to a blocking view only when a check
+   decides to block; for auth or maintenance gates prefer middleware or a server-side
+   check. Also keep the wrapper's element tree the same shape before and after the
+   check, or every descendant remounts and flashes.
+2. **Client siblings pulling server content into the RSC stream.** Put server-rendered
+   content first and wrap client siblings in `<Suspense fallback={null}>`, as
+   `BlogContent` does.
+3. **Client-only navbar or footer.** They carry the sitewide link graph, so they are
+   server components with small `*Client.tsx` islands for interactivity. New sitewide
+   layout components default to server.
+4. **Async server components inside client trees** fail the build. Keep a server
+   `Foo.tsx` for public pages and a `FooClient.tsx` for client trees.
+5. **`Link` from `@/lib/i18n/routing` is a client component.** The `<a href>` still
+   renders server-side, but its children travel as RSC payload; plain `next/link` avoids
+   that where no locale handling is needed.
+6. **Double brand in titles.** The root layout's template appends `| MonkeyTravel`, so
+   titles passed through it must not already end with it.
+7. **`<html lang>`** comes from `getLocale()` in the root layout, never a constant.
+8. **Private share links stay out of search.** `/shared/<token>` is `noindex, nofollow`
+   and in no sitemap. The indexable user content is published trips and creator
+   profiles, which have their own sitemaps (`app/sitemap-trips.xml/`,
+   `app/sitemap-creators.xml/`).
+9. **Sitemap `lastModified`** uses real content dates, never the build time.
+10. **Never robots-block a noindexed page.** Google must crawl it to see the noindex;
+    a blocked URL stays indexed. `app/robots.ts` blocks only endpoints, auth and
+    one-time-token pages (`/api/`, `/auth/`, `/admin`, `/invite/`, `/join/`, ...).
 
-#### Trap 1: Client wrappers with `checking=true` initial state
+`noindex, nofollow` routes: `[locale]/auth/**` (its layout), `[locale]/trips/**`,
+`[locale]/onboarding/**`, `[locale]/shared/[token]` (`generateMetadata`).
 
-A client component (`"use client"`) that returns `<Spinner />` while
-`checking` is true and renders `children` only after a `useEffect` async
-check **delivers a blank spinner to crawlers on every page**. We had this in
-`MaintenanceWrapper` for months. Pattern that broke us:
+Choosing server or client: default to a server component, and extract only the part
+that needs state, effects or browser APIs into a `*Client.tsx` island.
+`getTranslations()` and the server Supabase client (`@/lib/supabase/server`, which
+reads cookies and makes the route dynamic) never go into a `"use client"` file.
 
-```tsx
-// 🚫 SSR-poisoning pattern — every page becomes a spinner for Googlebot
-const [checking, setChecking] = useState(true);
-useEffect(() => { fetch('/api/...').then(...).finally(() => setChecking(false)); }, []);
-if (checking) return <Spinner />;
-return <>{children}</>;
-```
+## After every push to master (MANDATORY)
 
-```tsx
-// ✅ Render children eagerly; transition state only when blocking is needed
-const [isBlocked, setIsBlocked] = useState(false);
-useEffect(() => { fetch('/api/...').then(r => { if (r.shouldBlock) setIsBlocked(true); }); }, []);
-if (isBlocked) return <BlockingPage />;
-return <>{children}</>;
-```
+Run `./scripts/verify-deploy.sh` (it checks the latest commit on `origin`) and do not
+call anything deployed until it exits 0. Vercel keeps serving the previous build when
+a new one fails, so production looks fine while your change is not live. Exit codes:
+0 success, 1 failed, 2 still pending at timeout, 3 tool problem.
 
-Any wrapper that gates SSR output on a client-side check is suspect. If you
-need to block content (auth, maintenance, geo-restriction) prefer:
-1. **Middleware** (runs on every request, before render — can redirect/rewrite)
-2. **Server-side check in a layout/page** (read cookies/session in a server
-   component and conditionally render or redirect)
-3. **Eager-render client wrapper** (default to children, swap to blocking UI
-   only when an async check decides to block — accepts a brief flash for the
-   rare blocking case in exchange for SEO-correct first paint)
+If it fails: reproduce with `npm run build` (the build validates more than `tsc`), fix,
+push, and run the script again. For changes that affect server-rendered output, re-run
+the curl checks above on production.
 
-**Sub-trap of Trap 1 — tree-shape switching on async resolve:** even if you
-render children eagerly, do NOT change the *outer wrapper shape* between
-SSR/initial-render and post-async-check. Code like this:
+## Content sourcing (MANDATORY)
 
-```tsx
-// 🚫 Children remount when isLoaded flips → every descendant flashes
-if (!isLoaded) return <>{children}</>;
-return <Provider>{children}<Banner /></Provider>;
-```
+**Every statistic in published content needs a source you have opened and read, or it
+does not ship.** That rules out invented figures, figures attributed to a named company
+without a source, and citations that point at a homepage or a 404.
 
-React sees the slot's type change (Fragment vs Provider) and unmounts and
-remounts every descendant. Client children below (Navbar auth state,
-loading skeletons, etc.) re-enter their initial loading state → visible
-flash on every page load. Always render the same shape; conditionally
-render only cheap descendants (e.g. a banner that self-hides with
-`return null`):
-
-```tsx
-// ✅ Stable tree shape; banner self-hides when not needed
-return (
-  <Provider userId={userId}>
-    {children}
-    <Banner />  {/* returns null when bannerStatus !== "visible" */}
-  </Provider>
-);
-```
-
-We hit this in May 2026 with `ConsentWrapper` — fixed in commit `541c1cd`.
-
-#### Trap 2: Server component wrapping client siblings — RSC streaming pollution
-
-When a page tree mixes server and client components, large parts of the tree
-can stream via `__next_f.push(...)` chunks instead of being emitted as
-static HTML. The blog article body (`<article class="blog-prose">`) was
-absent from initial HTML for weeks because `<BlogContentClient>` (a client
-sibling of the article inside `<BlogContent>`) pulled the article into the
-streaming bucket.
-
-**Pattern fix:** put server-rendered content **first**, wrap the client
-sibling in `<Suspense fallback={null}>`:
-
-```tsx
-// ✅ Server component — article emits in static HTML, client child is isolated
-import { Suspense } from "react";
-export default function BlogContent({ html }) {
-  return (
-    <>
-      <article className="blog-prose" dangerouslySetInnerHTML={{ __html: html }} />
-      <Suspense fallback={null}>
-        <BlogContentClient html={html} />  {/* "use client" sibling */}
-      </Suspense>
-    </>
-  );
-}
-```
-
-#### Trap 3: Client `Navbar` / `Footer` — sitewide PageRank starvation
-
-`Navbar` and `Footer` are on every page. If they're `"use client"`, every
-page sitewide loses the internal link graph for crawlers. We restructured
-both as **server-with-client-islands**:
-
-- `Navbar.tsx` (server) — renders the `<nav>` shell with all primary links
-  in static HTML
-- `NavbarClient.tsx` (client island) — handles auth state, mobile menu
-  toggle, scroll-based background
-- `Footer.tsx` (server) — renders all sitewide links, plus a "Popular
-  Destinations" + "Featured Articles" section that emits ~14 internal links
-  to top content on every page (sitewide PageRank multiplier)
-- `CookieSettingsButton` — small client island imported normally inside the
-  server Footer (this is fine; client components CAN render inside server
-  parents)
-
-When you create a new sitewide layout component, default to **server**.
-Extract the interactive bits into named `*Client.tsx` islands and import
-them as small leaves of the server tree.
-
-#### Trap 4: Server async component imported by a client tree
-
-`CuratedEscapes` was made an async server component for SEO, but
-`TripsPageClient` (a `"use client"` component) also imported it for the
-authenticated dashboard. The Vercel build failed because async components
-cannot be rendered inside client trees. **Solution:** keep two variants —
-`Foo.tsx` (server, used by public pages) and `FooClient.tsx` (client, used
-by client trees). Document which is which in a JSDoc comment.
-
-#### Trap 5: `next-intl` `Link` is a client component
-
-`Link` from `@/lib/i18n/routing` is a client component (it depends on
-`createNavigation`'s client hooks). Wrapping a region of a server component
-in this `Link` does NOT poison the server render — Next.js still emits
-the `<a href>` in static HTML — but it does mean the link's children are
-delivered as RSC payload. For pure SSR-link emission with no client
-interactivity, plain `next/link` works too and avoids any streaming concern.
-
-#### Trap 6: Title template double-brand
-
-Root layout sets `title.template = "%s | MonkeyTravel"`. If a child page's
-metadata returns `title: "Foo | MonkeyTravel"`, the template appends
-" | MonkeyTravel" again, producing `Foo | MonkeyTravel | MonkeyTravel` in
-the rendered title. Always strip any `| MonkeyTravel` suffix from values
-that flow through the template (translations, dynamic titles).
-
-#### Trap 7: `<html lang>` hardcoded in root layout
-
-The root layout (`app/layout.tsx`) is the only component that can render
-`<html>`. It doesn't know the URL locale unless told. Use:
-
-```tsx
-import { getLocale } from "next-intl/server";
-export default async function RootLayout({ children }) {
-  const locale = await getLocale();
-  return <html lang={locale}>...</html>;
-}
-```
-
-#### Trap 8: User-generated `/shared/{uuid}` flooding the sitemap
-
-Public sitemaps must list only canonical, evergreen pages. UGC like trip
-shares should be `noindex, nofollow` and excluded from `app/sitemap.ts`.
-We had ~6 trip-share URLs in the sitemap actively dragging site-quality
-score for the rest of the property. `public/robots.txt` should also
-`Disallow: /shared/` for belt-and-braces.
-
-#### Trap 9: Sitemap `lastModified: new Date()` on every entry
-
-If every URL's `lastmod` is the build date, you're telling Google "the
-entire site changed at once, every build, please ignore the lastmod
-signal". Use **realistic dates**: hardcoded constants per content type
-(static pages, landing pages), the post's `updatedAt` for blogs, and the
-newest post's date for the blog index.
-
-### noindex routes — keep this list current
-
-| Route | `robots: { index: false, follow: false }` |
-|---|---|
-| `/[locale]/auth/**` | ✅ via `app/[locale]/auth/layout.tsx` |
-| `/[locale]/trips/**` | ✅ via `app/[locale]/trips/page.tsx` |
-| `/[locale]/onboarding/**` | ✅ via `app/[locale]/onboarding/layout.tsx` |
-| `/[locale]/shared/[token]` | ✅ via `generateMetadata` |
-| `/admin/**` | (not under [locale]; not crawled per `robots.txt`) |
-
-`public/robots.txt` should `Disallow: /admin`, `/api/`, `/auth/callback`,
-`/shared/`.
-
-### When to spin up the Server vs Client checklist
-
-For any new page or component:
-
-1. Does it need `useState` / `useEffect` / browser APIs / event handlers?
-   - **No** → server component (default).
-   - **Yes** → consider whether the *whole* component needs client, or just
-     a small bit. Extract the interactive part as `*Client.tsx`.
-
-2. Will it render on a public/indexable page?
-   - **Yes** → must emit its content in static SSR HTML. Verify with the
-     curl recipe above.
-   - **No (auth/admin/UGC)** → set `robots: { index: false, follow: false }`
-     in metadata.
-
-3. Does it use `getTranslations()`?
-   - That's a server-only API — fine in server components, will fail in
-     client components. Use `useTranslations()` in client components.
-
-4. Does it use Supabase server client (`createClient` from
-   `@/lib/supabase/server`)?
-   - Forces dynamic rendering (uses `cookies()`).
-   - Cannot be imported into a `"use client"` component (async server only).
-   - Build will fail if you try.
-
-### CI/CD verification is MANDATORY after every push
-
-**The rule:** after every `git push origin master`, run
-`./scripts/verify-deploy.sh` (no args = checks HEAD on origin). Do not
-declare "deployed" or move to other tasks until it returns exit code 0.
-
-This caught a Vercel build failure on 2026-05-23 that would otherwise
-have left the production deploy stuck on a previous commit for hours.
-Vercel keeps serving the last successful build when the latest one fails
-— so the API silently keeps the old behavior and there is **no runtime
-signal** that your code didn't actually ship. The only honest signal is
-the GitHub status API, which the script polls.
-
-The script (`scripts/verify-deploy.sh`):
-- Uses the unauthenticated GitHub statuses endpoint (works on the public
-  monkeytravel-web repo with no token).
-- Polls every 20s up to a 6-minute default timeout.
-- Exit 0 = success, 1 = failure (then go fix it), 2 = timeout (still
-  pending — usually safe to wait, but worth eyeballing), 3 = tool/setup
-  problem.
-- On failure prints the `vercel inspect` command so you can pull build
-  logs immediately.
-
-If the script reports failure, the playbook:
-1. Run `npm run build` locally to reproduce — `tsc --noEmit` alone
-   misses build-only failures (Next.js does extra route validation
-   beyond TS, e.g. union narrowing on route handlers).
-2. Fix the error.
-3. Commit + push the fix.
-4. Re-run `verify-deploy.sh` to confirm the new commit deploys cleanly.
-
-A passing build on a *later* commit retroactively makes the live state
-correct (Git is linear — the deployed tree contains every prior change),
-but the intermediate "failed" commits will permanently show ✗ in the
-GitHub UI. That's expected; what matters is that the LATEST commit's
-status is `success`.
-
-### Post-deploy verification (content/SSR)
-
-A weekly health-check routine (`trig_01Q8z36rfyz9S8jbxQtYLwWe`) runs every
-Monday 09:00 UTC and validates the curl recipe across 5 representative URLs
-plus the `/shared/{uuid}` noindex check and sitemap hygiene. If you ship
-changes that affect SSR output, manually re-run the recipe before declaring
-done.
-
-## Content Sourcing Discipline (MANDATORY)
-
-Added 2026-08-24, after an audit found 72 of 88 EN posts carried percentage
-claims while only 2 cited anything, and 36 citations were dead or fabricated.
-
-### The rule
-
-**Every statistic in published content needs a source you have actually opened,
-or it does not ship.** Not a plausible-sounding source. Not a company homepage
-with a report title attached. A URL you fetched and read.
-
-Three failure modes, all of which we shipped:
-
-1. **Bare invented figures.** "42% of travelers used AI in 2025." Sounds
-   researched, wasn't. The real figures are 37% (Allianz Partners, 2026) and
-   close to 40% (Phocuswright, 2025).
-2. **Named-company attribution with nothing behind it.** "A 2023 Skyscanner
-   survey found that 49% of travelers say..." This is the worst kind: it puts
-   words in a real company's mouth, and one click disproves it.
-3. **Decorative citations.** A named report title pointing at a homepage —
-   `[Skyscanner — Cheapest Days to Fly Report 2026](https://www.skyscanner.com/)` —
-   or at a 404. Worse than no citation, because it *looks* like sourcing.
-
-### Before publishing any post containing a number
-
-- **Fetch every cited URL and check the status code.** 404s and bare-homepage
-  links get removed, not reworded.
-- **Confirm the page actually contains the claim.** A resolving URL is not
-  evidence. `booking.com/articles/travel-predictions.html` returns 200 and says
-  nothing about 72% of travelers valuing spontaneity.
-- **Open primary sources, never search summaries.** During this audit a summary
-  offered "24% of AI itineraries recommend a closed venue." The primary source
-  said 24% of *tourists use AI for trip planning* — a completely different
-  statistic. The summary had conflated two findings.
-- **If you cannot verify a figure, remove the precision and keep the point.**
-  An argument that only works with an invented number was never a good argument.
-  Never swap one unverified number for another.
-- **Prefer our own data.** `how-many-activities-per-day-itinerary`,
-  `group-travel-statistics-2026`, `travel-moods-2026` and
-  `ai-trip-planner-accuracy-2026` are the model: a `*Data:` footer carrying
-  sample size, date range and a privacy statement. Competitors cannot copy it,
-  and it is the most citable shape for AI Overviews.
-- **First-party numbers go stale too.** Recompute before re-dating. Our
-  free-activity share moved 13.8% → 23.8% between analyses.
-
-### Dates
-
-`updatedAt` moves only when the content actually changed. Fixing a defect —
-removing a dead citation, correcting a typo — is not a content update.
-
-This is **not** because date manipulation is a Google spam policy. It is not:
-the official spam policy list contains no date or freshness policy. It is
-because Google detects whether content really changed, so a fake bump is inert,
-and because claiming a freshness you don't have is dishonest to readers. Do not
-avoid *legitimate* date bumps out of misplaced fear.
-
-### What is NOT a problem — do not "fix" these
-
-- **Ordinary travel-guide ranges.** "Riad prices crater 40-60% versus spring",
-  "65-75% aurora visibility". Genre estimates, not claims about the world.
-- **Repeating structure.** The `where-to-go-in-*` family shares a template and
-  is fine: 0 of 15 pairs exceed 10% prose overlap. Measure prose; never judge by
-  slug pattern. Consolidating a templated family on pattern alone is the most
-  expensive mistake available here.
-- **A cluster of identical dates.** Check `publishedAt == updatedAt` first. Ours
-  was a creation batch (23 posts on 2026-02-20), not a freshness bump.
-- **Losing AI Overview citations.** That is a retrieval system, not a spam
-  signal.
-
-### Verification
+- Fetch every cited URL, check the status, and confirm the page contains the claim.
+  Read primary sources, not search summaries.
+- If a figure cannot be verified, drop the precision and keep the point. Never swap one
+  unverified number for another.
+- Prefer first-party data with a `*Data:` footer (sample size, date range, privacy
+  note), and recompute it before re-dating a post.
+- `updatedAt` changes only when the content changed. Fixing a typo or a dead link is
+  not a content update.
+- Not problems, so leave them alone: ordinary travel-guide ranges ("40-60% cheaper
+  than spring"), posts that share a template (measure prose overlap, never judge by
+  slug), and batches of posts created on the same day.
+- Apply every content fix to all four locales: `content/blog/` and
+  `content/blog/{es,it,pt}/`.
 
 ```bash
-# every external citation, deduped — check the suspicious ones resolve
+# every external citation, deduplicated
 grep -rhoE "\[[^]]*\]\(https?://[^)]*\)" content/blog/ | grep -v monkeytravel | sort -u
-
-# unsourced named-company claims
+# claims attributed to a named company
 grep -rnoE "(Skyscanner|Booking\.com|Tripadvisor|Hostelworld|Kayak)[^.]{0,40}(survey|study) found" content/blog/
 ```
 
-**Every fix must be applied to all four locales** — `content/blog/` plus
-`content/blog/{es,it,pt}/`. Fixing EN only leaves three languages wrong, which
-is worse than not starting. Two locale copies of one post were also found
-serving *English* meta descriptions; check those when touching frontmatter.
+## Traffic numbers (MANDATORY)
+
+Before quoting or reacting to any traffic number, read
+`docs/ANALYTICS_SOURCES_OF_TRUTH.md`. In short:
+
+- `page_views_human` (via `page_view_rollup` and the admin RPCs) is the only source for
+  how many people visited. Raw `page_views` includes crawlers and automation; GA4 is
+  consent-gated and sees a minority sample.
+- Search Console (`npx tsx scripts/gsc-daily.mts`) is the independent tie-breaker.
+- Compare a day with the previous week's range, not with the day before.
+- **Never block or rate-limit bot traffic in response to a number. Label it.**
+- Do not change tracking, tags or middleware before following that document.
+
+## Local setup
+
+- Environment variables: copy `.env.example` to `.env.local`. Never print or commit
+  secret values.
+- `.mcp.json` configures two Supabase MCP servers: `supabase-monkey` is this app's
+  production database (project `sevfbahwmlbdlnbhqwyi`); `supabase-rysk` belongs to a
+  different project. Check which one you are calling.
+- `.envrc.example` documents per-project `SUPABASE_ACCESS_TOKEN` and `VERCEL_TOKEN` for
+  direnv, so the CLIs cannot act on the wrong account. `.envrc` is gitignored.
+- Manual production deploy, rarely needed: `npx vercel --prod`.
 
 ## gstack
 
-This repo uses [gstack](https://github.com/garrytan/gstack) — a shared toolkit of Claude Code skills. Teammates install it once with `git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup`.
+This repo uses [gstack](https://github.com/garrytan/gstack), a shared toolkit of Claude
+Code skills. Install it once with `git clone --single-branch --depth 1
+https://github.com/garrytan/gstack.git ~/.claude/skills/gstack && cd
+~/.claude/skills/gstack && ./setup`.
 
-**Web browsing:** Use the **`/browse`** skill (gstack) for ALL web browsing, QA, and live-site dogfooding. Do **NOT** use the `mcp__claude-in-chrome__*` tools.
+**Web browsing:** use the **`/browse`** skill for all web browsing, QA and live-site
+checks. Do **not** use the `mcp__claude-in-chrome__*` tools.
 
-**Available skills** (invoke with `/<name>`):
-
-`/office-hours` · `/plan-ceo-review` · `/plan-eng-review` · `/plan-design-review` · `/design-consultation` · `/design-shotgun` · `/design-html` · `/review` · `/ship` · `/land-and-deploy` · `/canary` · `/benchmark` · `/browse` · `/connect-chrome` · `/qa` · `/qa-only` · `/design-review` · `/setup-browser-cookies` · `/setup-deploy` · `/setup-gbrain` · `/retro` · `/investigate` · `/document-release` · `/document-generate` · `/codex` · `/cso` · `/autoplan` · `/plan-devex-review` · `/devex-review` · `/careful` · `/freeze` · `/guard` · `/unfreeze` · `/gstack-upgrade` · `/learn`
-
-## Traffic Numbers Discipline (MANDATORY)
-
-Before quoting, comparing or reacting to ANY traffic number (visitors, sessions,
-page views, a "drop", a "spike"), read `docs/ANALYTICS_SOURCES_OF_TRUTH.md`.
-The short version:
-
-- **`page_views_human` (via `page_view_rollup` and the admin RPCs) is the only
-  source for "how many people".** Raw `page_views` is inflated 10–40% by
-  crawlers and automation; GA4 is consent-gated and measures a minority sample,
-  and it had a platform-wide reporting bug on 2026-09-01.
-- **Search Console is the tie-breaker.** `npx tsx scripts/gsc-daily.mts` shares
-  nothing with anything we run. If organic clicks are flat, traffic did not move.
-- **Compare a day to the previous week's range, not to the day before it.** The
-  "−84.57% on Sept 2" was a bot-inflated Sept 1 (612 sessions, one user-agent,
-  0.0% engaged) compared to a normal day. Human visitors moved −19%.
-- **Never block traffic in response to a number. Label it.** The labelling rules
-  live in migration `20260905090000`; an engaged session is never labelled.
-- **Do not touch tracking, tags or middleware** until steps 1–5 of §4 in that
-  document are done.
+**Skills** (invoke with `/<name>`): `/office-hours` · `/plan-ceo-review` ·
+`/plan-eng-review` · `/plan-design-review` · `/design-consultation` · `/design-shotgun` ·
+`/design-html` · `/review` · `/ship` · `/land-and-deploy` · `/canary` · `/benchmark` ·
+`/browse` · `/connect-chrome` · `/qa` · `/qa-only` · `/design-review` ·
+`/setup-browser-cookies` · `/setup-deploy` · `/setup-gbrain` · `/retro` · `/investigate` ·
+`/document-release` · `/document-generate` · `/codex` · `/cso` · `/autoplan` ·
+`/plan-devex-review` · `/devex-review` · `/careful` · `/freeze` · `/guard` · `/unfreeze` ·
+`/gstack-upgrade` · `/learn`

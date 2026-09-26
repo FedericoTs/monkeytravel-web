@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false
+  },
+  "include": ["next-env.d.ts", "types/**/*.d.ts", "lib/**/*.d.ts", "**/*.vitest.ts", "**/*.vitest.tsx"],
+  "exclude": ["node_modules", "supabase/functions/**"]
+}

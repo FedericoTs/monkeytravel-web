@@ -105,7 +105,7 @@ describe("resolveConciergeProposal", () => {
     expect(np.name).toBe("Palazzo Madama");
     expect(np.start_time).toBe("10:00"); // inherited
     expect(np.duration_minutes).toBe(480); // clamped
-    expect(np.estimated_cost.currency).toBe("EUR"); // trip currency default
+    expect(np.estimated_cost?.currency).toBe("EUR"); // trip currency default
     expect(np.id).toMatch(/^act_/); // stamped
   });
 

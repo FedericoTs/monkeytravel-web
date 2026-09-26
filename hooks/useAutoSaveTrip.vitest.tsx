@@ -14,9 +14,9 @@
  * — no Supabase, no network. Each test runs in <50ms.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { useAutoSaveTrip } from "./useAutoSaveTrip";
+import { useAutoSaveTrip, type UseAutoSaveTripOptions } from "./useAutoSaveTrip";
 import type { GeneratedItinerary } from "@/types";
 import type { TripFormState } from "@/lib/trips/persistTrip";
 
@@ -54,23 +54,25 @@ const FORM: TripFormState = {
   derivedInterests: ["culture"],
 };
 
+type Opts = Required<UseAutoSaveTripOptions>;
+
 interface MockHandles {
-  saveTrip: ReturnType<typeof vi.fn>;
-  updateTrip: ReturnType<typeof vi.fn>;
-  deleteTrip: ReturnType<typeof vi.fn>;
-  attachCoverImage: ReturnType<typeof vi.fn>;
-  onPersisted: ReturnType<typeof vi.fn>;
-  onError: ReturnType<typeof vi.fn>;
+  saveTrip: Mock<Opts["saveTrip"]>;
+  updateTrip: Mock<Opts["updateTrip"]>;
+  deleteTrip: Mock<Opts["deleteTrip"]>;
+  attachCoverImage: Mock<Opts["attachCoverImage"]>;
+  onPersisted: Mock<Opts["onPersisted"]>;
+  onError: Mock<Opts["onError"]>;
 }
 
 function makeMocks(): MockHandles {
   return {
-    saveTrip: vi.fn(async () => ({ tripId: "trip-1", durationDays: 5 })),
-    updateTrip: vi.fn(async () => undefined),
-    deleteTrip: vi.fn(async () => undefined),
-    attachCoverImage: vi.fn(async () => undefined),
-    onPersisted: vi.fn(),
-    onError: vi.fn(),
+    saveTrip: vi.fn<Opts["saveTrip"]>(async () => ({ tripId: "trip-1", durationDays: 5 })),
+    updateTrip: vi.fn<Opts["updateTrip"]>(async () => undefined),
+    deleteTrip: vi.fn<Opts["deleteTrip"]>(async () => undefined),
+    attachCoverImage: vi.fn<Opts["attachCoverImage"]>(async () => undefined),
+    onPersisted: vi.fn<Opts["onPersisted"]>(),
+    onError: vi.fn<Opts["onError"]>(),
   };
 }
 

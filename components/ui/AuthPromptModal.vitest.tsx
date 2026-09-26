@@ -49,7 +49,7 @@ import AuthPromptModal from "./AuthPromptModal";
 
 /** Get to the state where the code input exists: request the link first. */
 async function reachCodeEntry() {
-  render(<AuthPromptModal isOpen onClose={() => {}} redirectPath="/trips/new" />);
+  render(<AuthPromptModal isOpen onClose={() => {}} destination="" redirectPath="/trips/new" />);
   // The translator is mocked to echo keys, so the placeholder IS the key.
   const email = screen.getByPlaceholderText("magicLink.emailPlaceholder");
   fireEvent.change(email, { target: { value: "planner@example.com" } });

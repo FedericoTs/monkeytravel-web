@@ -14,7 +14,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const verifyOtp = vi.fn();
 const exchangeCodeForSession = vi.fn();
-const rpc = vi.fn(async () => ({ data: [{ attributed: true }], error: null }));
+const rpc = vi.fn<(fn: string, params?: unknown) => Promise<unknown>>(async () => ({ data: [{ attributed: true }], error: null }));
 let profile: Record<string, unknown>;
 
 function usersTable() {

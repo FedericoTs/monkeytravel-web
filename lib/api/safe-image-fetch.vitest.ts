@@ -21,7 +21,7 @@ const SUFFIX = (h: string) =>
 
 /** Build a fake fetch that walks a scripted chain of responses by URL. */
 function scriptedFetch(chain: Record<string, { status: number; location?: string }>) {
-  return vi.fn(async (url: string) => {
+  return vi.fn<(url: string, init: RequestInit) => Promise<Response>>(async (url) => {
     const hop = chain[url];
     if (!hop) throw new Error(`unscripted url: ${url}`);
     return new Response(hop.status >= 300 && hop.status < 400 ? null : "bytes", {
