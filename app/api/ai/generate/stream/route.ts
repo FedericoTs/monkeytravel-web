@@ -14,6 +14,7 @@ import {
   validateTripParams,
 } from "@/lib/gemini";
 import { getModelForPurpose } from "@/lib/ai/model-router";
+import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { isAdmin } from "@/lib/admin";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
@@ -259,6 +260,8 @@ export async function POST(request: NextRequest) {
     let generatedDays = 0;
     let cacheHit = false;
     let finalItinerary: GeneratedItinerary | null = null;
+    // What the model call cost, from its token counts (set once it answers).
+    let generationCost = 0;
 
     try {
       // 3a. Cache short-circuit (2026-05-28 — the "10-line patch" the
@@ -335,6 +338,10 @@ export async function POST(request: NextRequest) {
       for await (const chunk of stream) {
         if (chunk.done) {
           fullText = chunk.fullText;
+          generationCost = geminiCostUsd(
+            getModelForPurpose("trip-generation"),
+            chunk.usageMetadata
+          );
           break;
         }
         const newDays = feedChunk(parser, chunk.text);
@@ -358,6 +365,21 @@ export async function POST(request: NextRequest) {
           finalItinerary = rescued as GeneratedItinerary;
         } else {
           const msg = err instanceof Error ? err.message : String(err);
+          // The model answered, so Google billed it: log the failure and
+          // its cost (this return used to skip logging altogether).
+          waitUntil(
+            logApiCall({
+              apiName: "gemini",
+              endpoint: "/api/ai/generate/stream",
+              status: 500,
+              responseTimeMs: Date.now() - startTime,
+              cacheHit: false,
+              costUsd: generationCost,
+              exactCost: true,
+              error: `unparseable output: ${msg}`,
+              metadata: { user_id: user?.id ?? "anonymous" },
+            }).catch(() => undefined)
+          );
           yield {
             type: "error",
             data: {
@@ -434,7 +456,6 @@ export async function POST(request: NextRequest) {
       // 7. Sanitize before sending the canonical itinerary in `complete`.
       const sanitized = sanitizeItinerary(finalItinerary);
 
-      const generationCost = cacheHit ? 0 : 0.003;
       const generationTimeMs = Date.now() - startTime;
 
       // 8. Log + increment counters — happens in waitUntil so the stream
@@ -449,6 +470,7 @@ export async function POST(request: NextRequest) {
               responseTimeMs: generationTimeMs,
               cacheHit,
               costUsd: generationCost,
+              exactCost: true,
               metadata: {
                 user_id: user?.id ?? "anonymous",
                 is_anonymous: isAnonymous,
@@ -503,7 +525,8 @@ export async function POST(request: NextRequest) {
           status: 500,
           responseTimeMs: Date.now() - startTime,
           cacheHit: false,
-          costUsd: 0,
+          costUsd: generationCost,
+          exactCost: true,
           error: msg,
           metadata: { user_id: user?.id ?? "anonymous" },
         }).catch(() => undefined)

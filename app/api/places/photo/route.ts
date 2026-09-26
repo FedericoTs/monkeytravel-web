@@ -1,8 +1,10 @@
 import { NextRequest } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { curatedFor, fetchPlacePhoto, readActivityTypeHint } from "@/lib/images/activity";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logApiCall } from "@/lib/api-gateway";
+import { PLACE_PHOTO_USD_PER_CALL } from "@/lib/api-gateway/places-sku";
 import {
   InFlight,
   reusableFreshRef,
@@ -61,6 +63,40 @@ async function readCachedPhoto(placeId: string): Promise<CachedPhotoRow | null> 
   } catch {
     return null;
   }
+}
+
+/**
+ * Record one photo download from Google in api_request_logs.
+ *
+ * A request that reaches this function (a CDN miss) and passes validation
+ * downloads the photo from Google, which bills each download ("Place Details
+ * Photos", see PLACE_PHOTO_USD_PER_CALL). Until 2026-09-26 these were the one
+ * Google call nobody logged, and by Vercel's counts (~400-480 invocations a
+ * day) they are the likely bulk of the Google bill, while everything the log
+ * did show sat inside Google's free allowances. `place` and the size make
+ * repeat downloads of one photo countable.
+ *
+ * Priced only on a 2xx. A 4xx (an expired photo name) is logged at $0: whether
+ * Google bills those is unverified, and the bill settles it.
+ */
+function logPhotoDownload(
+  endpoint: string,
+  status: number,
+  startedAt: number,
+  metadata: Record<string, unknown>
+): void {
+  waitUntil(
+    logApiCall({
+      apiName: "google_places_photo",
+      endpoint,
+      status,
+      responseTimeMs: Date.now() - startedAt,
+      cacheHit: false,
+      costUsd: status >= 200 && status < 300 ? PLACE_PHOTO_USD_PER_CALL : 0,
+      exactCost: true,
+      metadata,
+    })
+  );
 }
 
 // Validate the photo name shape so we can't be used as an open proxy.
@@ -177,6 +213,11 @@ export async function GET(request: NextRequest) {
     : `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${w}&maxheight=${h}` +
       `&photo_reference=${encodeURIComponent(ref!)}&key=${GOOGLE_PLACES_API_KEY}`;
 
+  // The place a New-API name belongs to: logged with each download, and what
+  // the self-heal below re-resolves.
+  const namePlaceId = name ? /^places\/([^/]+)\/photos\//.exec(name)?.[1] : undefined;
+
+  const startedAt = Date.now();
   let res: Response;
   try {
     res = await fetchWithRetry(upstream, {
@@ -189,6 +230,12 @@ export async function GET(request: NextRequest) {
   } catch {
     return new Response("Upstream fetch failed", { status: 502 });
   }
+  logPhotoDownload(
+    name ? "places/{id}/photos/{photo}/media (render)" : "maps/api/place/photo (render, legacy ref)",
+    res.status,
+    startedAt,
+    name ? { place: namePlaceId, w, h } : { legacy: true, w, h }
+  );
 
   // **2026-06-04 fix:** on a 4xx from Google's /media endpoint (most
   // often happens when the photo resource name points at a deleted /
@@ -237,9 +284,7 @@ export async function GET(request: NextRequest) {
       // excluded — re-resolving during a quota spike would burn MORE quota
       // for nothing.
       const transient = res.status === 429 || res.status === 403;
-      const placeId = !transient && name
-        ? /^places\/([^/]+)\/photos\//.exec(name)?.[1]
-        : undefined;
+      const placeId = !transient ? namePlaceId : undefined;
 
       if (placeId) {
         const healed = await healExpiredPhoto(placeId, name!, w, h);
@@ -348,10 +393,16 @@ async function healExpiredPhoto(
     // No photo at all, or Google handed back the same dead ref — nothing to do.
     if (!fresh || fresh.photo_resource_name === deadName) return null;
 
+    const startedAt = Date.now();
     const res = await fetchWithRetry(
       `https://places.googleapis.com/v1/${fresh.photo_resource_name}/media?maxHeightPx=${h}&maxWidthPx=${w}`,
       { headers: { "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY }, redirect: "follow" }
     );
+    logPhotoDownload("places/{id}/photos/{photo}/media (render self-heal)", res.status, startedAt, {
+      place: placeId,
+      w,
+      h,
+    });
     if (!res.ok || !res.body) {
       try { await res.arrayBuffer(); } catch { /* ignore */ }
       return null;

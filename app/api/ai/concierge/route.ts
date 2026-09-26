@@ -27,6 +27,7 @@ import { NextRequest } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { logCacheMetrics } from "@/lib/gemini";
 import { getModelForPurpose } from "@/lib/ai/model-router";
+import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
@@ -457,6 +458,8 @@ export async function POST(request: NextRequest) {
           // marker split across chunk boundaries).
           let accumulated = "";
           let emitted = 0;
+          // What the answer cost, from its tokens (lib/ai/gemini-cost.ts).
+          let costUsd = 0;
           try {
             const result = await model.generateContentStream({
               contents: promptContents,
@@ -500,7 +503,8 @@ export async function POST(request: NextRequest) {
             // best-effort, never block the user's "done" event on it.
             try {
               const finalResponse = await result.response;
-              logCacheMetrics("ai.concierge.stream", finalResponse.usageMetadata);
+              logCacheMetrics("ai.concierge.stream", finalResponse.usageMetadata, conciergeModel);
+              costUsd = geminiCostUsd(conciergeModel, finalResponse.usageMetadata);
             } catch {
               /* usageMetadata is best-effort — don't fail the request */
             }
@@ -519,7 +523,8 @@ export async function POST(request: NextRequest) {
               status: 200,
               responseTimeMs: Date.now() - startTime,
               cacheHit: false,
-              costUsd: 0.0005,
+              costUsd,
+              exactCost: true,
               metadata: {
                 user_id: user.id,
                 trip_id: tripId,
@@ -604,6 +609,7 @@ export async function POST(request: NextRequest) {
 
     // NON-STREAMING fallback path (callers without Accept: text/event-stream).
     let responseText: string;
+    let costUsd = 0;
     try {
       const result = await model.generateContent({
         contents: promptContents,
@@ -614,7 +620,8 @@ export async function POST(request: NextRequest) {
       // The concierge SYSTEM_PROMPT is a stable prefix — should see a
       // high implicit-cache-hit rate. If this drops, we've added a
       // non-cacheable prefix and are silently leaking money.
-      logCacheMetrics("ai.concierge", result.response.usageMetadata);
+      logCacheMetrics("ai.concierge", result.response.usageMetadata, conciergeModel);
+      costUsd = geminiCostUsd(conciergeModel, result.response.usageMetadata);
     } catch (err) {
       console.error("[concierge] Gemini call failed", err);
 
@@ -670,7 +677,8 @@ export async function POST(request: NextRequest) {
       status: 200,
       responseTimeMs: Date.now() - startTime,
       cacheHit: false,
-      costUsd: 0.0005, // rough estimate — concierge calls are tiny
+      costUsd,
+      exactCost: true,
       metadata: {
         user_id: user.id,
         trip_id: tripId,

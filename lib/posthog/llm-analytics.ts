@@ -12,30 +12,7 @@
  */
 
 import { captureServerEvent } from "./server";
-
-/**
- * Gemini model pricing (as of 2025)
- * Prices in USD per 1M tokens
- */
-const MODEL_PRICING = {
-  "gemini-2.5-flash-lite": {
-    input: 0.075,        // $0.075 per 1M input tokens
-    output: 0.30,        // $0.30 per 1M output tokens
-    cachedInput: 0.01875, // 75% discount for cached tokens
-  },
-  "gemini-2.5-flash": {
-    input: 0.15,
-    output: 0.60,
-    cachedInput: 0.0375,
-  },
-  "gemini-2.5-pro": {
-    input: 1.25,
-    output: 5.00,
-    cachedInput: 0.3125,
-  },
-} as const;
-
-type GeminiModel = keyof typeof MODEL_PRICING;
+import { GEMINI_PRICE_PER_1M, geminiCostUsd } from "@/lib/ai/gemini-cost";
 
 /**
  * Usage metadata from Gemini API response
@@ -44,6 +21,7 @@ export interface GeminiUsageMetadata {
   promptTokenCount?: number;
   candidatesTokenCount?: number;
   cachedContentTokenCount?: number;
+  thoughtsTokenCount?: number;
   totalTokenCount?: number;
 }
 
@@ -69,38 +47,12 @@ export interface LLMGenerationParams {
   properties?: Record<string, unknown>;
 }
 
-/**
- * Calculate cost for Gemini API call
- * Accounts for cached token discount (75% cheaper)
- */
+/** List price of the call; the prices live in lib/ai/gemini-cost.ts. */
 function calculateCost(
   model: string,
   usageMetadata?: GeminiUsageMetadata
 ): number {
-  if (!usageMetadata) return 0;
-
-  const pricing = MODEL_PRICING[model as GeminiModel];
-  if (!pricing) {
-    console.warn(`[LLM Analytics] Unknown model pricing: ${model}`);
-    return 0;
-  }
-
-  const {
-    promptTokenCount = 0,
-    candidatesTokenCount = 0,
-    cachedContentTokenCount = 0,
-  } = usageMetadata;
-
-  // Calculate input cost (cached tokens at discount)
-  const regularInputTokens = promptTokenCount - cachedContentTokenCount;
-  const inputCost =
-    (regularInputTokens * pricing.input) / 1_000_000 +
-    (cachedContentTokenCount * pricing.cachedInput) / 1_000_000;
-
-  // Calculate output cost (no caching for output)
-  const outputCost = (candidatesTokenCount * pricing.output) / 1_000_000;
-
-  return inputCost + outputCost;
+  return geminiCostUsd(model, usageMetadata);
 }
 
 /**
@@ -244,8 +196,7 @@ export function estimateCost(
   outputTokens: number,
   cachedInputTokens = 0
 ): number {
-  const pricing = MODEL_PRICING[model as GeminiModel];
-  if (!pricing) return 0;
+  if (!(model in GEMINI_PRICE_PER_1M)) return 0;
 
   return calculateCost(model, {
     promptTokenCount: inputTokens,

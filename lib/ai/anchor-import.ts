@@ -24,6 +24,7 @@
  */
 import { GoogleGenerativeAI, SchemaType, type ResponseSchema } from "@google/generative-ai";
 import { getModelForPurpose } from "@/lib/ai/model-router";
+import { recordGeminiUsage } from "@/lib/ai/gemini-cost";
 import type { RawImportedAnchor } from "./anchor-import-core";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
@@ -195,6 +196,7 @@ export async function extractPlan(
         { role: "user", parts: [{ text: context }] },
       ],
     });
+    recordGeminiUsage(getModelForPurpose("anchor-import"), result.response.usageMetadata);
     raw = result.response.text();
   } catch (err) {
     console.error("[anchor-import] Gemini call failed:", err);

@@ -13,6 +13,7 @@ import {
   INCREMENTAL_GENERATION_THRESHOLD,
 } from "@/lib/gemini";
 import { getModelForPurpose } from "@/lib/ai/model-router";
+import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import {
   canGroundDestination,
   generateItineraryWithMapsGrounding,
@@ -61,6 +62,13 @@ const anonGenIpLimiter = createRateLimiter("anon-generate", 40, 24 * 60 * 60 * 1
 // shape + idempotency guarantees.
 
 export async function POST(request: NextRequest) {
+  // Sums every Gemini response this request pays for: a multi-city trip makes
+  // one call per city, and a retry is billed like the first attempt.
+  const geminiCost = new GeminiCostMeter();
+  return geminiCost.run(() => generate(request, geminiCost));
+}
+
+async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
   const startTime = Date.now();
 
   try {
@@ -467,14 +475,12 @@ export async function POST(request: NextRequest) {
     // continuation path is plain-single-city only (and would ignore anchors).
     const hasMoreDays = !isMultiCity && !isAnchored && generatedDays < totalDays;
 
-    // Calculate cost: Cache hit = $0, Maps Grounding = $0.025, Gemini partial = $0.002, Gemini full = $0.003
+    // Cost: the Gemini tokens this request paid for (lib/ai/gemini-cost.ts),
+    // plus the per-request Maps Grounding price when grounding answered. A
+    // cache hit made no model call.
     const generationCost = cacheHit
       ? 0
-      : usedMapsGrounding
-        ? getMapsGroundingCost()
-        : isPartialGeneration
-          ? 0.002
-          : 0.003;
+      : geminiCost.usd + (usedMapsGrounding ? getMapsGroundingCost() : 0);
 
     // Log the request using centralized gateway
     await logApiCall({
@@ -484,6 +490,7 @@ export async function POST(request: NextRequest) {
       responseTimeMs: generationTime,
       cacheHit,
       costUsd: generationCost,
+      exactCost: true,
       metadata: {
         user_id: user?.id ?? "anonymous",
         is_anonymous: isAnonymous,
@@ -569,14 +576,16 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[AI Generate] Generation error:", error);
 
-    // Log error using centralized gateway
+    // Log error using centralized gateway. Attempts the model answered before
+    // the failure (a retried parse error) were billed all the same.
     await logApiCall({
       apiName: "gemini",
       endpoint: "/api/ai/generate",
       status: 500,
       responseTimeMs: Date.now() - startTime,
       cacheHit: false,
-      costUsd: 0,
+      costUsd: geminiCost.usd,
+      exactCost: true,
       error: error instanceof Error ? error.message : "Unknown error",
     });
 

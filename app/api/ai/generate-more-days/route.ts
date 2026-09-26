@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { generateMoreDays, INITIAL_DAYS_TO_GENERATE } from "@/lib/gemini";
 import { getModelForPurpose } from "@/lib/ai/model-router";
+import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
@@ -30,6 +31,8 @@ async function getUserLanguage(): Promise<SupportedLanguage> {
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
+  // What the Gemini call cost, from its tokens (lib/ai/gemini-cost.ts).
+  const geminiCost = new GeminiCostMeter();
 
   try {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
@@ -150,7 +153,7 @@ export async function POST(request: NextRequest) {
     }
     const language = tripLanguage ?? (await getUserLanguage());
 
-    const newDays = await generateMoreDays({
+    const newDays = await geminiCost.run(() => generateMoreDays({
       destination,
       startDate,
       endDate,
@@ -162,7 +165,7 @@ export async function POST(request: NextRequest) {
       daysToGenerate,
       profilePreferences,
       language,
-    });
+    }));
 
     const generationTime = Date.now() - startTime;
 
@@ -173,7 +176,8 @@ export async function POST(request: NextRequest) {
       status: 200,
       responseTimeMs: generationTime,
       cacheHit: false,
-      costUsd: 0.002, // Slightly less than full generation since it's fewer days
+      costUsd: geminiCost.usd,
+      exactCost: true,
       metadata: {
         user_id: user.id,
         trip_id: tripId,
@@ -260,7 +264,8 @@ export async function POST(request: NextRequest) {
       status: 500,
       responseTimeMs: Date.now() - startTime,
       cacheHit: false,
-      costUsd: 0,
+      costUsd: geminiCost.usd,
+      exactCost: true,
       error: error instanceof Error ? error.message : "Unknown error",
     });
 

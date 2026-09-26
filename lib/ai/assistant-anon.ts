@@ -16,6 +16,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { logCacheMetrics } from "@/lib/gemini";
 import { getModelForPurpose } from "@/lib/ai/model-router";
+import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import type { Activity, ItineraryDay } from "@/types";
 
@@ -223,11 +224,13 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
   // 500ing into the generic "Couldn't do that" toast that session replays show
   // users hammering (replay 019f24bf).
   let parsed: unknown | undefined;
+  let costUsd = 0;
   for (let attempt = 0; attempt < 2 && parsed === undefined; attempt++) {
     const response = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: buildPrompt(input) }] }],
     });
-    logCacheMetrics("ai.assistant-anon", response.response.usageMetadata);
+    logCacheMetrics("ai.assistant-anon", response.response.usageMetadata, modelId);
+    costUsd += geminiCostUsd(modelId, response.response.usageMetadata);
     try {
       parsed = JSON.parse(response.response.text());
     } catch {
@@ -288,6 +291,6 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
   return {
     reply: finalReply,
     edit,
-    meta: { model: modelId, costUsd: 0.0006, generationTimeMs: Date.now() - startedAt },
+    meta: { model: modelId, costUsd, generationTimeMs: Date.now() - startedAt },
   };
 }

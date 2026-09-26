@@ -23,6 +23,7 @@ import { cookies } from "next/headers";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { regenerateSingleDay } from "@/lib/gemini";
 import { getModelForPurpose } from "@/lib/ai/model-router";
+import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
@@ -70,6 +71,12 @@ function withLockedActivities(generated: ItineraryDay, previous: ItineraryDay): 
 }
 
 export async function POST(request: NextRequest) {
+  // What this request's Gemini calls cost, retries included (lib/ai/gemini-cost.ts).
+  const geminiCost = new GeminiCostMeter();
+  return geminiCost.run(() => regenerateDay(request, geminiCost));
+}
+
+async function regenerateDay(request: NextRequest, geminiCost: GeminiCostMeter) {
   const startTime = Date.now();
 
   try {
@@ -219,7 +226,8 @@ export async function POST(request: NextRequest) {
         status: 500,
         responseTimeMs: Date.now() - startTime,
         cacheHit: false,
-        costUsd: 0,
+        costUsd: geminiCost.usd,
+        exactCost: true,
         error: geminiError instanceof Error ? geminiError.message : "Unknown Gemini error",
         metadata: { user_id: user.id, trip_id: tripId, day_number: dayNumber },
       });
@@ -238,7 +246,8 @@ export async function POST(request: NextRequest) {
         status: 500,
         responseTimeMs: Date.now() - startTime,
         cacheHit: false,
-        costUsd: 0,
+        costUsd: geminiCost.usd,
+        exactCost: true,
         error: "Empty day returned",
         metadata: { user_id: user.id, trip_id: tripId, day_number: dayNumber },
       });
@@ -304,7 +313,8 @@ export async function POST(request: NextRequest) {
         status: 500,
         responseTimeMs: Date.now() - startTime,
         cacheHit: false,
-        costUsd: 0.0015,
+        costUsd: geminiCost.usd,
+        exactCost: true,
         error: `DB update failed: ${message}`,
         metadata: { user_id: user.id, trip_id: tripId, day_number: dayNumber },
       });
@@ -318,7 +328,8 @@ export async function POST(request: NextRequest) {
         status: outcome.status === "missing" ? 404 : 409,
         responseTimeMs: Date.now() - startTime,
         cacheHit: false,
-        costUsd: 0.0015,
+        costUsd: geminiCost.usd,
+        exactCost: true,
         error: `not written: ${outcome.status}`,
         metadata: { user_id: user.id, trip_id: tripId, day_number: dayNumber },
       });
@@ -345,7 +356,8 @@ export async function POST(request: NextRequest) {
       status: 200,
       responseTimeMs: generationTime,
       cacheHit: false,
-      costUsd: 0.0015, // ~50% more than a single-activity regen; one day = ~3-5 activities
+      costUsd: geminiCost.usd,
+      exactCost: true,
       metadata: {
         user_id: user.id,
         trip_id: tripId,
@@ -388,7 +400,8 @@ export async function POST(request: NextRequest) {
       status: 500,
       responseTimeMs: Date.now() - startTime,
       cacheHit: false,
-      costUsd: 0,
+      costUsd: geminiCost.usd,
+      exactCost: true,
       error: error instanceof Error ? error.message : "Unknown error",
     });
     // Capture to Sentry alongside DB log (task #223).

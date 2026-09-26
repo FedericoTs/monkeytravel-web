@@ -14,6 +14,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { assistTrip } from "@/lib/ai/assistant-anon";
+import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ItineraryDay } from "@/types";
 
@@ -119,23 +120,28 @@ export async function POST(request: NextRequest) {
     return errors.rateLimit("One sec — try that again in a moment.");
   }
 
+  // Both attempts are billed, including a failed pair (non-JSON twice).
+  const geminiCost = new GeminiCostMeter();
   try {
-    const result = await assistTrip({
-      message: body.message,
-      destination: body.destination,
-      tripTitle: body.tripTitle,
-      days: body.days as ItineraryDay[],
-      startDate: body.startDate,
-      endDate: body.endDate,
-      locale: body.locale,
-    });
+    const result = await geminiCost.run(() =>
+      assistTrip({
+        message: body.message,
+        destination: body.destination,
+        tripTitle: body.tripTitle,
+        days: body.days as ItineraryDay[],
+        startDate: body.startDate,
+        endDate: body.endDate,
+        locale: body.locale,
+      })
+    );
     void logApiCall({
       apiName: "gemini",
       endpoint: "/api/ai/assistant-anon",
       status: 200,
       responseTimeMs: Date.now() - startedAt,
       cacheHit: false,
-      costUsd: result.meta.costUsd,
+      costUsd: geminiCost.usd,
+      exactCost: true,
     });
     logAnonExchange({
       session_id: sessionId,
@@ -161,7 +167,8 @@ export async function POST(request: NextRequest) {
       status: 500,
       responseTimeMs: Date.now() - startedAt,
       cacheHit: false,
-      costUsd: 0,
+      costUsd: geminiCost.usd,
+      exactCost: true,
       error: err instanceof Error ? err.message : "unknown",
     });
     return errors.internal("Couldn't do that just now — mind trying again?", "assistant-anon");
