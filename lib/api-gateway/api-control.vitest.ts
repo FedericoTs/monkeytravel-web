@@ -8,13 +8,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const inserts: Record<string, unknown>[] = [];
 const configReads: string[] = [];
+/** Scripted results for the next insert calls; an Error is thrown. Default: stored. */
+const insertResults: Array<{ error: unknown; status: number } | Error> = [];
+let insertCalls = 0;
 
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
     from: () => ({
       insert: async (row: Record<string, unknown>) => {
-        inserts.push(row);
-        return { error: null };
+        insertCalls++;
+        const next = insertResults.shift() ?? { error: null, status: 201 };
+        if (next instanceof Error) throw next;
+        if (!next.error) inserts.push(row);
+        return next;
       },
     }),
   }),
@@ -52,6 +58,9 @@ const base = { apiName: "gemini", endpoint: "/api/ai/generate", status: 500, res
 beforeEach(() => {
   inserts.length = 0;
   configReads.length = 0;
+  insertResults.length = 0;
+  insertCalls = 0;
+  vi.restoreAllMocks();
 });
 
 describe("logApiCall cost", () => {
@@ -75,5 +84,45 @@ describe("logApiCall cost", () => {
   it("books a cache hit at $0 whatever the cost says", async () => {
     await logApiCall({ ...base, status: 200, cacheHit: true, costUsd: 0.0174, exactCost: true });
     expect(inserts[0].cost_usd).toBe(0);
+  });
+});
+
+describe("logApiCall on a dropped connection", () => {
+  const dropped = { error: { message: "TypeError: fetch failed" }, status: 0 };
+  const measured = { ...base, status: 200, costUsd: 0.0174, exactCost: true };
+
+  it("retries once when supabase-js returns the failure, and keeps the row", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    insertResults.push(dropped);
+    await logApiCall(measured);
+    expect(insertCalls).toBe(2);
+    expect(inserts).toHaveLength(1);
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+
+  it("retries once when the failure is thrown", async () => {
+    insertResults.push(new TypeError("fetch failed"));
+    await logApiCall(measured);
+    expect(insertCalls).toBe(2);
+    expect(inserts).toHaveLength(1);
+  });
+
+  it("gives up after the retry with a warning, not an error", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    insertResults.push(dropped, dropped);
+    await logApiCall(measured);
+    expect(insertCalls).toBe(2);
+    expect(inserts).toHaveLength(0);
+    expect(consoleWarn).toHaveBeenCalledOnce();
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+
+  it("does not retry an error the database answered with", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    insertResults.push({ error: { message: "column does not exist", code: "42703" }, status: 400 });
+    await logApiCall(measured);
+    expect(insertCalls).toBe(1);
+    expect(consoleError).toHaveBeenCalledOnce();
   });
 });

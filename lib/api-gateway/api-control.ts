@@ -267,19 +267,24 @@ export async function logApiCall(params: LogApiCallParams): Promise<void> {
       timestamp: new Date().toISOString(),
     };
 
-    let error;
-    try {
-      ({ error } = await supabase.from("api_request_logs").insert(row));
-    } catch {
-      // Dominant failure mode on Vercel: stale keep-alive socket reused for
-      // the first fetch after idle (UND_ERR_SOCKET / ECONNRESET). One retry
-      // on a fresh connection clears it; if not, telemetry loss is warn-level,
-      // not an app error.
-      await new Promise((r) => setTimeout(r, 300));
+    // A dropped connection (a keep-alive socket gone stale while the function
+    // idled) gets no HTTP response. supabase-js usually returns that as an error
+    // with status 0 rather than throwing, so both shapes get one retry.
+    const insert = async (): Promise<{ error: unknown; status: number }> => {
       try {
-        ({ error } = await supabase.from("api_request_logs").insert(row));
-      } catch (retryErr) {
-        console.warn("[ApiControl] API-call log dropped after retry:", retryErr);
+        const { error, status } = await supabase.from("api_request_logs").insert(row);
+        return { error, status };
+      } catch (thrown) {
+        return { error: thrown, status: 0 };
+      }
+    };
+
+    let { error, status } = await insert();
+    if (error && status === 0) {
+      await new Promise((r) => setTimeout(r, 300));
+      ({ error, status } = await insert());
+      if (error && status === 0) {
+        console.warn("[ApiControl] API-call log dropped after retry:", error);
         return;
       }
     }
