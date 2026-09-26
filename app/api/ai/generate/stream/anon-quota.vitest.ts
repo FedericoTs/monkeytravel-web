@@ -40,7 +40,6 @@ vi.mock("@/lib/usage-limits", () => ({
   checkUsageLimit: async () => ({ allowed: true, used: 0, remaining: 10, limit: 10 }),
   incrementUsage: async () => {},
 }));
-vi.mock("@/lib/early-access", () => ({ incrementEarlyAccessUsage: async () => {} }));
 vi.mock("@/lib/ai/cache", () => ({
   getCachedItinerary: async () => cached,
   cacheItinerary: async () => {},

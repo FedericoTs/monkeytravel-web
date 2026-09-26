@@ -29,7 +29,6 @@ import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
-import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import { errors, apiSuccess, apiError } from "@/lib/api/response-wrapper";
 import { getTripDestination } from "@/lib/trips/destination";
 import { casUpdateItinerary, type CasOutcome } from "@/lib/trips/itinerary-cas";
@@ -82,15 +81,6 @@ async function regenerateDay(request: NextRequest, geminiCost: GeminiCostMeter) 
   try {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
-
-    // Early-access gate (same surface as regenerate-activity)
-    const earlyAccess = await checkEarlyAccess(user.id, "regeneration", user.email);
-    if (!earlyAccess.allowed) {
-      return errors.forbidden(
-        earlyAccess.message || "Early access required",
-        earlyAccess.error
-      );
-    }
 
     // Parse + validate body
     const body = await request.json().catch(() => null);
@@ -371,7 +361,6 @@ async function regenerateDay(request: NextRequest, geminiCost: GeminiCostMeter) 
 
     // Bump usage counters
     await incrementUsage(user.id, "aiRegenerations", 1);
-    await incrementEarlyAccessUsage(user.id, "regeneration");
 
     const updatedUsage = {
       ...usageCheck,

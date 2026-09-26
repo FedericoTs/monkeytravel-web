@@ -17,12 +17,6 @@ import {
 import { paceBudgetPromptClause } from "./trip/pace";
 
 // Threshold for incremental generation (days)
-// NOTE: Incremental generation is disabled (threshold set to 99) because:
-// 1. The frontend never implemented the handler for loading remaining days
-// 2. Users were only getting 3 days for 7+ day trips
-// 3. Full generation with increased token limit is more reliable
-export const INCREMENTAL_GENERATION_THRESHOLD = 99; // Effectively disabled
-export const INITIAL_DAYS_TO_GENERATE = 14; // Max trip length
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -519,8 +513,6 @@ function buildSchedulingPreferencesSection(profilePreferences?: UserProfilePrefe
 }
 
 interface BuildPromptOptions {
-  maxDays?: number; // Limit days to generate (for incremental generation)
-  isPartial?: boolean; // Indicates this is a partial generation
   language?: SupportedLanguage; // Language for AI response
   /**
    * Anchored-trip segment brief (F1, lib/ai/anchors-core.buildSegmentBrief):
@@ -802,7 +794,7 @@ function buildUserPrompt(params: TripCreationParams, options?: BuildPromptOption
     ) + 1;
 
   // For partial generation, only generate up to maxDays
-  const duration = options?.maxDays ? Math.min(options.maxDays, totalDuration) : totalDuration;
+  const duration = totalDuration;
 
   // Pre-compute URL-safe destination for booking links
   const destEncoded = encodeURIComponent(params.destination);
@@ -873,11 +865,6 @@ Consider these seasonal factors when selecting activities and timing. Include se
 `
     : "";
 
-  // Partial generation note
-  const partialNote = options?.isPartial && options.maxDays && options.maxDays < totalDuration
-    ? `\n\nNOTE: This is a PARTIAL generation. Only generate days 1-${duration} (of ${totalDuration} total). The remaining days will be generated separately.`
-    : "";
-
   // Language instruction for non-English responses
   const languageSection = getLanguageInstruction(options?.language);
 
@@ -895,11 +882,11 @@ ${options.anchorBrief}
   // Language header intentionally at the END (see tail of this template):
   // it is the most cache-hostile token span (varies per locale), and the
   // shared-prefix cache only covers the identical head of the request.
-  return `Plan a ${duration}-day trip to ${params.destination}.${partialNote}
+  return `Plan a ${duration}-day trip to ${params.destination}.
 
 ## Travel Details
 - Dates: ${params.startDate} to ${params.endDate}
-- Duration: ${duration} days${options?.isPartial ? ` (partial - generating first ${duration} of ${totalDuration})` : ""}
+- Duration: ${duration} days
 - Budget Tier: ${params.budgetTier}
 - Travel Pace: ${params.pace} — ${paceBudgetPromptClause(params.pace)}
 
@@ -931,27 +918,6 @@ Generate the itinerary now, following the system rules and the Required Output s
  */
 export interface GenerationOptions extends BuildPromptOptions {
   retryCount?: number;
-}
-
-/**
- * Partial itinerary result - returned when generating incrementally
- */
-export interface PartialItineraryResult {
-  itinerary: GeneratedItinerary;
-  isPartial: boolean;
-  generatedDays: number;
-  totalDays: number;
-  hasMoreDays: boolean;
-}
-
-/**
- * Check if a trip requires incremental generation based on duration
- */
-export function shouldUseIncrementalGeneration(startDate: string, endDate: string): boolean {
-  const duration = Math.ceil(
-    (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
-  ) + 1;
-  return duration > INCREMENTAL_GENERATION_THRESHOLD;
 }
 
 export async function generateItinerary(
@@ -1996,278 +1962,6 @@ export function validateTripParams(
   }
 
   return { valid: true };
-}
-
-/**
- * Parameters for generating additional days of an itinerary
- */
-export interface GenerateMoreDaysParams {
-  destination: string;
-  startDate: string; // Original trip start date
-  endDate: string;   // Original trip end date
-  budgetTier: "budget" | "balanced" | "premium";
-  pace: "relaxed" | "moderate" | "packed";
-  vibes: string[];
-  existingDays: ItineraryDay[]; // Days already generated
-  startFromDay: number; // Day number to start generating (1-indexed)
-  daysToGenerate: number; // Number of days to generate
-  profilePreferences?: UserProfilePreferences;
-  language?: SupportedLanguage;
-}
-
-// Continue generation prompt - now loaded from database via getPrompt()
-// See lib/prompts.ts for default values
-
-/**
- * Generate additional days for an existing itinerary
- * Used for incremental loading of long trips (5+ days)
- */
-export async function generateMoreDays(
-  params: GenerateMoreDaysParams & { userId?: string },
-  retryCount = 0
-): Promise<ItineraryDay[]> {
-  // Generate deduplication key - note: only first call gets deduplicated, retries bypass
-  if (retryCount === 0) {
-    const dedupKey = getMoreDaysDedupKey({
-      destination: params.destination,
-      startFromDay: params.startFromDay,
-      daysToGenerate: params.daysToGenerate,
-      budgetTier: params.budgetTier,
-      pace: params.pace,
-    });
-
-    return withDeduplication(dedupKey, () =>
-      generateMoreDaysInternal(params, retryCount)
-    );
-  }
-
-  // Retries bypass deduplication
-  return generateMoreDaysInternal(params, retryCount);
-}
-
-/**
- * Internal more days generation function (without deduplication wrapper)
- */
-async function generateMoreDaysInternal(
-  params: GenerateMoreDaysParams & { userId?: string },
-  retryCount = 0
-): Promise<ItineraryDay[]> {
-  const MAX_RETRIES = 1;
-  const startTime = performance.now();
-  // generate-more-days → gemini-2.5-flash (continuation; needs context coherence).
-  const modelName = getModelForPurpose("generate-more-days");
-
-  const model = genAI.getGenerativeModel({
-    model: modelName,
-    generationConfig: {
-      temperature: retryCount > 0 ? 0.7 : 1.0,
-      topP: 0.95,
-      topK: 40,
-      maxOutputTokens: 8192, // Increased to support longer trips
-      responseMimeType: "application/json",
-    },
-  });
-
-  // Build context from existing days
-  const existingContext = params.existingDays
-    .slice(-2) // Last 2 days for context
-    .map(d => `Day ${d.day_number} (${d.date}): ${d.theme} - ${d.activities.map(a => a.name).join(", ")}`)
-    .join("\n");
-
-  // List all existing activity names to avoid repetition
-  const existingActivities = params.existingDays
-    .flatMap(d => d.activities.map(a => a.name))
-    .join(", ");
-
-  // Calculate the date for the first day to generate
-  const startDateObj = new Date(params.startDate);
-  startDateObj.setDate(startDateObj.getDate() + params.startFromDay - 1);
-  const generationStartDate = startDateObj.toISOString().split("T")[0];
-
-  const languageInstruction = getLanguageInstruction(params.language);
-
-  // Build profile preferences sections for the prompt
-  const profileSection = buildProfilePreferencesSection(params.profilePreferences);
-  const schedulingSection = buildSchedulingPreferencesSection(params.profilePreferences);
-
-  const userPrompt = `${languageInstruction}Continue the itinerary for ${params.destination}.
-
-## Existing Days (for context)
-${existingContext}
-
-## Do NOT include these places (already visited):
-${existingActivities}
-${profileSection}${schedulingSection}
-## Generate Days ${params.startFromDay} to ${params.startFromDay + params.daysToGenerate - 1}
-- First day date: ${generationStartDate}
-- Number of days: ${params.daysToGenerate}
-- Budget Tier: ${params.budgetTier}
-- Travel Pace: ${params.pace}
-- Vibes: ${params.vibes.join(", ")}
-
-## Required JSON Output
-
-Return an array of days:
-[
-  {
-    "day_number": ${params.startFromDay},
-    "date": "${generationStartDate}",
-    "theme": "Day theme (e.g., Beach Day)",
-    "activities": [
-      {
-        "time_slot": "morning",
-        "start_time": "09:00",
-        "duration_minutes": 120,
-        "name": "Real Place Name",
-        "type": "attraction",
-        "description": "What to do here",
-        "location": "Neighborhood",
-        "address": "Full street address",
-        "coordinates": {
-          "lat": 48.858370,
-          "lng": 2.294481
-        },
-        "official_website": null,
-        "estimated_cost": {
-          "amount": 25,
-          "currency": "USD",
-          "tier": "moderate"
-        },
-        "tips": ["Tip"],
-        "booking_required": false
-      }
-    ]
-  }
-]
-
-Rules:
-1. Return ONLY valid JSON array, no markdown
-2. Match the ${params.pace} pace: ${paceBudgetPromptClause(params.pace)}
-3. Avoid ALL places already visited
-4. Use PRECISE coordinates with 6 decimal places (e.g., 48.858370) for exact locations
-5. Dates increment from ${generationStartDate}`;
-
-  // Fetch continue generation prompt from database (with caching and fallback)
-  const continueSystemPrompt = await getPrompt("continue_generation");
-
-  try {
-    const result = await withTimeout(
-      model.generateContent({
-        contents: [
-          { role: "user", parts: [{ text: continueSystemPrompt }] },
-          { role: "model", parts: [{ text: "Understood. I will generate continuation days as a valid JSON array." }] },
-          { role: "user", parts: [{ text: userPrompt }] },
-        ],
-      }),
-      AI_REQUEST_TIMEOUT_MS,
-      "More days generation"
-    );
-
-    const response = result.response;
-    const text = response.text();
-    const latencyMs = performance.now() - startTime;
-
-    // Log cache metrics for monitoring
-    logCacheMetrics("generateMoreDays", response.usageMetadata, modelName);
-
-    try {
-      const days = JSON.parse(text) as ItineraryDay[];
-
-      // Validate it's an array with days
-      if (!Array.isArray(days) || days.length === 0) {
-        throw new Error("Invalid days array structure");
-      }
-
-      // Validate each day has required fields
-      for (const day of days) {
-        if (!day.day_number || !day.date || !day.activities) {
-          throw new Error("Invalid day structure");
-        }
-      }
-
-      // Validate and fix coordinates for all activities
-      const validatedDays = validateAndFixCoordinates(days, params.destination);
-
-      // Capture LLM analytics (fire and forget)
-      captureLLMGeneration({
-        distinctId: params.userId || "anonymous",
-        model: modelName,
-        endpoint: "generateMoreDays",
-        usageMetadata: response.usageMetadata as GeminiUsageMetadata,
-        latencyMs,
-        success: true,
-        properties: {
-          destination: params.destination,
-          days_generated: days.length,
-          start_from_day: params.startFromDay,
-          budget_tier: params.budgetTier,
-          pace: params.pace,
-          retry_count: retryCount,
-        },
-      }).catch(() => {});
-
-      return validatedDays;
-    } catch (parseError) {
-      console.error(
-        `JSON parse error in generateMoreDays (attempt ${retryCount + 1}):`,
-        parseError instanceof Error ? parseError.message : "Unknown",
-        "\nResponse preview:",
-        text.substring(0, 500)
-      );
-
-      // Capture failed attempt analytics
-      captureLLMGeneration({
-        distinctId: params.userId || "anonymous",
-        model: modelName,
-        endpoint: "generateMoreDays",
-        usageMetadata: response.usageMetadata as GeminiUsageMetadata,
-        latencyMs,
-        success: false,
-        error: "JSON parse error",
-        properties: {
-          destination: params.destination,
-          retry_count: retryCount,
-        },
-      }).catch(() => {});
-
-      if (retryCount < MAX_RETRIES) {
-        console.log(`Retrying generateMoreDays (attempt ${retryCount + 2})...`);
-        return generateMoreDaysInternal(params, retryCount + 1);
-      }
-
-      throw new Error("Failed to generate more days after retries");
-    }
-  } catch (error) {
-    const latencyMs = performance.now() - startTime;
-
-    if (error instanceof Error && error.message.includes("after retries")) {
-      throw error;
-    }
-
-    console.error("Gemini API error in generateMoreDays:", error);
-
-    // Capture API error analytics
-    captureLLMGeneration({
-      distinctId: params.userId || "anonymous",
-      model: modelName,
-      endpoint: "generateMoreDays",
-      latencyMs,
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown API error",
-      properties: {
-        destination: params.destination,
-        retry_count: retryCount,
-      },
-    }).catch(() => {});
-
-    if (retryCount < MAX_RETRIES) {
-      console.log(`Retrying after API error (attempt ${retryCount + 2})...`);
-      await new Promise((resolve) => setTimeout(resolve, 1000 * (retryCount + 1)));
-      return generateMoreDaysInternal(params, retryCount + 1);
-    }
-
-    throw new Error("Failed to generate more days: AI service unavailable");
-  }
 }
 
 // ============================================================================

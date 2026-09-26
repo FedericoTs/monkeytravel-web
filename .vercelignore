@@ -1,4 +1,3 @@
-activation-fix/
 scripts/*
 !scripts/destination-covers.mjs
 video/

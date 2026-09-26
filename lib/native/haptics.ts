@@ -120,25 +120,6 @@ export async function hapticMedium(): Promise<void> {
 }
 
 /**
- * Heavy impact. Use sparingly. Only for:
- *   - Trip published to /explore (one-shot, high-commitment)
- *   - Major XP milestone unlocked
- *
- * On iOS this is the same haptic as triggering a 3D-touch peek.
- * Users notice. Save for moments worth noticing.
- */
-export async function hapticHeavy(): Promise<void> {
-  const haptics = await getHaptics();
-  if (!haptics) return;
-  try {
-    const { Haptics, ImpactStyle } = haptics;
-    await Haptics.impact({ style: ImpactStyle.Heavy });
-  } catch {
-    /* swallow */
-  }
-}
-
-/**
  * Success notification haptic. Two quick taps. Use for:
  *   - Trip generation complete (most natural fit — user just waited)
  *   - Email confirmation received
@@ -154,25 +135,6 @@ export async function hapticSuccess(): Promise<void> {
   try {
     const { Haptics, NotificationType } = haptics;
     await Haptics.notification({ type: NotificationType.Success });
-  } catch {
-    /* swallow */
-  }
-}
-
-/**
- * Warning notification haptic. Use sparingly for:
- *   - Action that succeeded but with a caveat (e.g. trip saved
- *     but offline-cached only)
- *   - Quota approaching limit
- *
- * Don't use for validation errors — those should use hapticError.
- */
-export async function hapticWarning(): Promise<void> {
-  const haptics = await getHaptics();
-  if (!haptics) return;
-  try {
-    const { Haptics, NotificationType } = haptics;
-    await Haptics.notification({ type: NotificationType.Warning });
   } catch {
     /* swallow */
   }

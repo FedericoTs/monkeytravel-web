@@ -13,7 +13,6 @@ import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import DaySlider from "@/components/ui/DaySlider";
 import TravelConnector from "@/components/trip/TravelConnector";
 import DaySummary from "@/components/trip/DaySummary";
-import HotelRecommendations from "@/components/trip/HotelRecommendations";
 import SaveTripModal from "@/components/ui/SaveTripModal";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
@@ -304,15 +303,6 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
             />
           </div>
         )}
-
-        {/* Hotel Recommendations - Disabled for preview */}
-        <HotelRecommendations
-          destination={template.destination}
-          itinerary={displayItinerary}
-          startDate=""
-          endDate=""
-          disableApiCalls={true}
-        />
 
         {/* Day Filter Slider */}
         <DaySlider

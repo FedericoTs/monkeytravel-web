@@ -305,17 +305,6 @@ export function trackEarlyAccessRedeemed(params: {
   });
 }
 
-/**
- * Track trial started
- */
-export function trackTrialStarted(params: {
-  trialDays: number;
-}): void {
-  trackEvent("trial_started", {
-    trial_duration_days: params.trialDays,
-  });
-}
-
 // ============================================================================
 // ENGAGEMENT EVENTS - User behavior tracking
 // ============================================================================
@@ -360,34 +349,6 @@ export function trackAIAssistantMessage(params: {
   trackEvent("ai_assistant_used", {
     trip_id: params.tripId,
     message_length: params.messageLength,
-  });
-}
-
-/**
- * Track hotel search
- */
-export function trackHotelSearch(params: {
-  tripId: string;
-  destination: string;
-}): void {
-  trackEvent("hotel_search", {
-    trip_id: params.tripId,
-    destination: params.destination,
-  });
-}
-
-/**
- * Track flight search
- */
-export function trackFlightSearch(params: {
-  tripId: string;
-  origin: string;
-  destination: string;
-}): void {
-  trackEvent("flight_search", {
-    trip_id: params.tripId,
-    origin: params.origin,
-    destination: params.destination,
   });
 }
 
@@ -473,58 +434,9 @@ export function setUserId(userId: string): void {
     });
 }
 
-/**
- * Clear user identification on logout
- */
-export function clearUserId(): void {
-  // Clear in GA4
-  if (isAnalyticsAvailable()) {
-    window.gtag!("set", "user_properties", {
-      user_id: null,
-    });
-  }
-
-  // Clear in Sentry
-  sentry()
-    .then((S) => S.setUser(null))
-    .catch(() => {
-      /* SDK not loaded yet — nothing to clear */
-    });
-}
-
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
-
-/**
- * Set user properties for segmentation
- */
-export function setUserProperties(properties: {
-  subscriptionTier?: "free" | "premium" | "enterprise";
-  tripsCreated?: number;
-  accountAgeDays?: number;
-}): void {
-  if (isAnalyticsAvailable()) {
-    window.gtag!("set", "user_properties", properties);
-  }
-}
-
-/**
- * Track timing (for performance monitoring)
- */
-export function trackTiming(params: {
-  category: string;
-  variable: string;
-  value: number;
-  label?: string;
-}): void {
-  trackEvent("timing_complete", {
-    event_category: params.category,
-    name: params.variable,
-    value: params.value,
-    event_label: params.label,
-  });
-}
 
 // ============================================================================
 // RETENTION EVENTS - Critical for growth measurement
@@ -625,19 +537,6 @@ export function trackAchievementUnlocked(params: {
 // ============================================================================
 
 /**
- * Track referral code generated
- */
-export function trackReferralCodeGenerated(params: {
-  code: string;
-  userId: string;
-}): void {
-  trackEvent("referral_code_generated", {
-    referral_code: params.code,
-    user_id: params.userId,
-  });
-}
-
-/**
  * Track referral link clicked
  */
 export function trackReferralLinkClicked(params: {
@@ -647,36 +546,6 @@ export function trackReferralLinkClicked(params: {
   trackEvent("referral_link_clicked", {
     referral_code: params.code,
     share_medium: params.medium,
-  });
-}
-
-/**
- * Track signup from referral
- */
-export function trackReferralSignup(params: {
-  referralCode: string;
-  referrerId: string;
-}): void {
-  trackEvent("referral_signup", {
-    referral_code: params.referralCode,
-    referrer_id: params.referrerId,
-  });
-}
-
-/**
- * Track referral conversion (when referee creates first trip)
- */
-export function trackReferralConversion(params: {
-  referralCode: string;
-  rewardAmount: number;
-  referrerId: string;
-  refereeId: string;
-}): void {
-  trackEvent("referral_conversion", {
-    referral_code: params.referralCode,
-    reward_amount: params.rewardAmount,
-    referrer_id: params.referrerId,
-    referee_id: params.refereeId,
   });
 }
 
@@ -728,64 +597,6 @@ export function trackSharePromptAction(params: {
 // ============================================================================
 
 /**
- * Track upgrade prompt shown
- */
-export function trackUpgradePromptShown(params: {
-  trigger: "limit_reached" | "feature_gate" | "trial_ending" | "upsell";
-  limitType?: string;
-  location: string;
-}): void {
-  trackEvent("upgrade_prompt_shown", {
-    trigger: params.trigger,
-    limit_type: params.limitType,
-    location: params.location,
-  });
-}
-
-/**
- * Track upgrade prompt action
- */
-export function trackUpgradePromptAction(params: {
-  trigger: string;
-  action: "clicked" | "dismissed" | "later";
-}): void {
-  trackEvent("upgrade_prompt_action", {
-    trigger: params.trigger,
-    action: params.action,
-  });
-}
-
-/**
- * Track limit reached
- */
-export function trackLimitReached(params: {
-  limitType: "generation" | "regeneration" | "assistant";
-  currentUsage: number;
-  limit: number;
-}): void {
-  trackEvent("limit_reached", {
-    limit_type: params.limitType,
-    current_usage: params.currentUsage,
-    limit: params.limit,
-    utilization_percent: Math.round((params.currentUsage / params.limit) * 100),
-  });
-}
-
-/**
- * Track free trip used
- */
-export function trackFreeTripUsed(params: {
-  tripsRemaining: number;
-  tripId: string;
-}): void {
-  trackEvent("free_trip_used", {
-    trips_remaining: params.tripsRemaining,
-    trip_id: params.tripId,
-    is_last_free: params.tripsRemaining === 0,
-  });
-}
-
-/**
  * Track beta code attempt (success or failure)
  */
 export function trackBetaCodeAttempt(params: {
@@ -801,19 +612,6 @@ export function trackBetaCodeAttempt(params: {
 }
 
 /**
- * Track welcome page viewed
- */
-export function trackWelcomePageViewed(params: {
-  hasBetaAccess: boolean;
-  hasCompletedOnboarding: boolean;
-}): void {
-  trackEvent("welcome_page_viewed", {
-    has_beta_access: params.hasBetaAccess,
-    has_completed_onboarding: params.hasCompletedOnboarding,
-  });
-}
-
-/**
  * Track destination selected (trip creation flow)
  */
 export function trackDestinationSelected(params: {
@@ -823,19 +621,6 @@ export function trackDestinationSelected(params: {
   trackEvent("destination_selected", {
     destination: params.destination,
     selection_source: params.source,
-  });
-}
-
-/**
- * Track email subscription
- */
-export function trackEmailSubscribed(params: {
-  source: "hero" | "footer" | "cta" | "modal";
-  email?: string;
-}): void {
-  trackEvent("email_subscribed", {
-    subscription_source: params.source,
-    // Don't track actual email for privacy
   });
 }
 

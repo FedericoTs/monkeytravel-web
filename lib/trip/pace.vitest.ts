@@ -19,7 +19,7 @@ describe("normalizePace", () => {
     expect(normalizePace("banana")).toBe("moderate");
   });
 
-  it('maps the legacy "packed" value (GenerateMoreDaysParams) to active', () => {
+  it('maps the legacy "packed" value to active', () => {
     expect(normalizePace("packed")).toBe("active");
   });
 });

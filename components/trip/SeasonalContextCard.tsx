@@ -87,7 +87,7 @@ export default function SeasonalContextCard({
   // Fetch weather data from API.
   // Wizard date edits fire rapid useEffect runs — without an AbortController,
   // out-of-order responses race and stale temps land in state. Mirror the
-  // canonical pattern in lib/hooks/useFetch.ts: abort the in-flight request
+  // usual pattern: abort the in-flight request
   // on cleanup, then short-circuit any post-cleanup setState via a cancelled
   // flag (covers the window between the response arriving and aborted being
   // observable).

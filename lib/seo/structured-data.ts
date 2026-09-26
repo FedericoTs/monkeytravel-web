@@ -644,15 +644,6 @@ export function generatePersonSchema(input: PersonSchemaInput) {
 // Combined Schema for Homepage
 // ============================================================================
 
-export function generateHomepageSchemas(faqs: FAQItem[]) {
-  return [
-    generateOrganizationSchema(),
-    generateWebSiteSchema(),
-    generateSoftwareApplicationSchema(),
-    generateFAQSchema(faqs),
-  ];
-}
-
 // ============================================================================
 // JSON-LD Script Component Helper
 // ============================================================================

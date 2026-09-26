@@ -49,13 +49,6 @@ const PushOptInSheet = dynamic(
   { ssr: false, loading: () => null }
 );
 
-// Demand-discovery survey (office-hours design doc 2026-06-21). Client-only +
-// self-gating like PushOptInSheet; no SEO value rendering it server-side.
-const FeedbackSurveyModal = dynamic(
-  () => import("@/components/feedback/FeedbackSurveyModal"),
-  { ssr: false, loading: () => null }
-);
-
 type TFn = (key: string) => string;
 
 // Gradient fallbacks for loading states - Fresh Voyager theme
@@ -140,7 +133,7 @@ interface TripCardProps {
  * The destination-image fetch carries its own AbortController so any
  * remount that does happen (cover_image_url flip, route refresh) cancels
  * the in-flight request instead of racing. Mirrors the canonical pattern
- * in lib/hooks/useFetch.ts and components/trip/SeasonalContextCard.tsx.
+ * in components/trip/SeasonalContextCard.tsx.
  */
 function TripCard({ trip, t, locale, getStatusLabel, onAction }: TripCardProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(trip.cover_image_url || null);
@@ -879,13 +872,6 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
           recently dismissed. See PushOptInSheet.tsx for full gating
           logic. */}
       <PushOptInSheet />
-
-      {/* Demand-discovery survey — DEACTIVATED 2026-08-26 (2 responses total,
-          1 in the last 30 days). eligible={false} keeps the component and
-          its /feedback/[token] outreach-page sibling intact; this is the
-          one place to flip back to `trips.length > 0` if it's revisited.
-          Self-gates on localStorage; see FeedbackSurveyModal.tsx. */}
-      <FeedbackSurveyModal eligible={false} />
 
       {/* AuthEventTracker used to be mounted here. It now lives in
           app/[locale]/layout.tsx so it sees the auth_event param on every

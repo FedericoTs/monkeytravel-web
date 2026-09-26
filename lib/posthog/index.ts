@@ -27,12 +27,8 @@
  * ```
  */
 
-// Client-side exports
-// Note: bare `posthog` instance is no longer re-exported (perf task #179)
-// — it leaked the SDK into the shared chunk. Use the lazy `capture()` /
-// `captureXxx()` helpers from ./events, or grab `window.posthog` at the
-// rare call site that genuinely needs the raw client.
-export { initPostHog, isPostHogInitialized } from "./client";
+// Client-side exports. The raw `posthog` instance is not re-exported (it
+// pulls the SDK into the shared chunk); use the lazy helpers from ./events.
 export {
   identifyUser,
   resetUser,
@@ -47,15 +43,7 @@ export {
 } from "./identify";
 
 // Hooks
-export {
-  useFlag,
-  useExperiment,
-  useFlagWithFallback,
-  useTrack,
-  useIdentify,
-  useActiveFlags,
-  useUserSegment,
-} from "./hooks";
+export { useFlag } from "./hooks";
 
 // Events
 export * from "./events";

@@ -145,16 +145,6 @@ export async function getAuthenticatedAdmin(): Promise<AuthResult> {
 }
 
 /**
- * Get user ID from session (for routes that just need the ID)
- *
- * @returns User ID or null if not authenticated
- */
-export async function getAuthenticatedUserId(): Promise<string | null> {
-  const { user } = await getAuthenticatedUser();
-  return user?.id ?? null;
-}
-
-/**
  * Trip ownership verification result - success case
  */
 export interface TripOwnershipSuccess {

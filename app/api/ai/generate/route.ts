@@ -5,13 +5,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createClient } from "@/lib/supabase/server";
 import { checkAnonymousRateLimit, recordAnonymousGeneration } from "@/lib/anonymous/rate-limit";
 import type { User } from "@supabase/supabase-js";
-import {
-  generateItinerary,
-  validateTripParams,
-  shouldUseIncrementalGeneration,
-  INITIAL_DAYS_TO_GENERATE,
-  INCREMENTAL_GENERATION_THRESHOLD,
-} from "@/lib/gemini";
+import { generateItinerary, validateTripParams } from "@/lib/gemini";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import {
@@ -23,7 +17,6 @@ import {
 import { isAdmin } from "@/lib/admin";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
-import { checkEarlyAccess, incrementEarlyAccessUsage } from "@/lib/early-access";
 import { isActivityBankPopulated, populateActivityBank } from "@/lib/activity-bank";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
@@ -259,9 +252,6 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
             (1000 * 60 * 60 * 24)
         ) + 1;
 
-    // Determine if we should use incremental generation for long trips
-    const useIncremental = shouldUseIncrementalGeneration(params.startDate, params.endDate);
-
     const userIsAdmin = user ? isAdmin(user.email) : false;
 
     // 2026-05-28 follow-up: the cache now keys on travel_style (Tier 1.2
@@ -300,7 +290,6 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // This can reduce AI costs by 40-60% for popular destinations
     let itinerary: GeneratedItinerary;
     let cacheHit = false;
-    let isPartialGeneration = false;
     let usedMapsGrounding = false;
 
     if (isMultiCity) {
@@ -385,41 +374,19 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         } catch (mapsError) {
           console.error(`[AI Generate] Maps Grounding failed, falling back to Gemini:`, mapsError);
           // Fall through to traditional generation
-          if (useIncremental) {
-            console.log(`[AI Generate] Using incremental generation: first ${INITIAL_DAYS_TO_GENERATE} of ${totalDays} days`);
-            itinerary = await generateItinerary(params, {
-              maxDays: INITIAL_DAYS_TO_GENERATE,
-              isPartial: true,
-              language: userLanguage,
-            });
-            isPartialGeneration = true;
-          } else {
-            itinerary = await generateItinerary(params, { language: userLanguage });
-          }
+          itinerary = await generateItinerary(params, { language: userLanguage });
         }
-      } else if (useIncremental) {
-        // For long trips (>5 days), only generate the first 3 days initially
-        console.log(`[AI Generate] Using incremental generation: first ${INITIAL_DAYS_TO_GENERATE} of ${totalDays} days`);
-        itinerary = await generateItinerary(params, {
-          maxDays: INITIAL_DAYS_TO_GENERATE,
-          isPartial: true,
-          language: userLanguage,
-        });
-        isPartialGeneration = true;
       } else {
-        // For short trips, generate the full itinerary
         itinerary = await generateItinerary(params, { language: userLanguage });
       }
 
-      // Only cache full itineraries (not partial ones). Backpacker
-      // results now have their own cache pool (Tier 1.2 migration
-      // 2026-05-28), so the previous skip-cache hack is gone.
-      // Personalized (must-do) results never enter the shared pool.
+      // Backpacker results have their own cache pool. Personalized
+      // (must-do) results never enter the shared pool.
       // A fresh regenerate never replaces a LONGER entry (same rule as the
       // stream route).
       const shorterThanCached =
         wantsFresh && (cachedItinerary?.days.length ?? 0) > itinerary.days.length;
-      if (!isPartialGeneration && !isPersonalized && !shorterThanCached) {
+      if (!isPersonalized && !shorterThanCached) {
         await cacheItinerary(
           supabase,
           params.destination,
@@ -478,10 +445,6 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
 
     const generationTime = Date.now() - startTime;
     const generatedDays = sanitizedItinerary.days.length;
-    // Multi-city and anchored trips are generated whole (no incremental
-    // continuation), so never advertise "more days" to fetch — the
-    // continuation path is plain-single-city only (and would ignore anchors).
-    const hasMoreDays = !isMultiCity && !isAnchored && generatedDays < totalDays;
 
     // Cost: the Gemini tokens this request paid for (lib/ai/gemini-cost.ts),
     // plus the per-request Maps Grounding price when grounding answered. A
@@ -506,7 +469,6 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         vibes: params.vibes,
         duration: totalDays,
         generated_days: generatedDays,
-        is_partial: isPartialGeneration,
         is_admin: userIsAdmin,
         used_maps_grounding: usedMapsGrounding,
         // "Try Different Version": a regenerate that skipped the cache.
@@ -533,7 +495,6 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         destination: params.destination,
         duration_days: totalDays,
         generated_days: generatedDays,
-        is_partial: isPartialGeneration,
       },
     });
 
@@ -542,10 +503,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     if (!cacheHit) {
       if (user) {
         // Authenticated path: track usage in the per-user tier counter.
-        // The early-access counters are no-ops now (see lib/early-access)
-        // but kept in case a paywall ever lands.
         await incrementUsage(user.id, "aiGenerations", 1);
-        await incrementEarlyAccessUsage(user.id, "generation");
 
         updatedUsage = {
           ...usageCheck,
@@ -569,13 +527,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         generationTimeMs: generationTime,
         model: cacheHit ? "cache" : usedMapsGrounding ? "maps-grounding" : getModelForPurpose("trip-generation"),
         cached: cacheHit,
-        // Incremental generation metadata
-        isPartial: isPartialGeneration,
         generatedDays,
         totalDays,
-        hasMoreDays,
-        nextStartDay: hasMoreDays ? generatedDays + 1 : null,
-        remainingDays: hasMoreDays ? totalDays - generatedDays : 0,
         // Cost tracking
         costUsd: generationCost,
         usedMapsGrounding,

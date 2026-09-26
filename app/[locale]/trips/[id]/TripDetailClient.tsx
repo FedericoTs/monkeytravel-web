@@ -116,7 +116,6 @@ import {
 // import HotelSearch from "@/components/booking/HotelSearch";
 
 // Google Places-based hotel recommendations
-import HotelRecommendations from "@/components/trip/HotelRecommendations";
 import { safeGet, safeSet } from "@/lib/safe-storage";
 import {
   createItinerarySync,
@@ -2910,16 +2909,6 @@ export default function TripDetailClient({
           tripId={trip.id}
           defaultCurrency={trip.budget?.currency || "EUR"}
           className="mb-8"
-        />
-
-        {/* Hotel Recommendations - After Map */}
-        {/* DISABLED for saved trips - Hotels API calls are expensive */}
-        <HotelRecommendations
-          destination={destination}
-          itinerary={displayItinerary}
-          startDate={trip.startDate}
-          endDate={trip.endDate}
-          disableApiCalls={true}
         />
 
         {/* Crew Loop: owner-side crew-votes summary strip. Appears once the

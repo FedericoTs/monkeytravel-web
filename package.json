@@ -26,8 +26,7 @@
     "audit:storage": "tsx scripts/audit-unguarded-storage.mts",
     "e2e:fixtures": "tsx scripts/e2e-fixtures.mts",
     "e2e:login": "tsx scripts/e2e-login.mts",
-    "rls:baseline": "tsx scripts/rls-baseline.mts --write",
-    "flags:review": "tsx scripts/flag-review.mts"
+    "rls:baseline": "tsx scripts/rls-baseline.mts --write"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.0",

@@ -542,78 +542,6 @@ export async function captureReferralConverted(event: ReferralConvertedEvent) {
 }
 
 /**
- * Capture limit reached
- */
-export async function captureLimitReached(event: LimitReachedEvent) {
-  const ph = await getPosthog();
-  ph.capture("limit_reached", event);
-}
-
-/**
- * Capture upgrade prompt shown
- */
-export async function captureUpgradePromptShown(event: UpgradePromptShownEvent) {
-  const ph = await getPosthog();
-  ph.capture("upgrade_prompt_shown", event);
-}
-
-/**
- * Capture upgrade prompt action
- */
-export async function captureUpgradePromptAction(event: UpgradePromptActionEvent) {
-  const ph = await getPosthog();
-  ph.capture("upgrade_prompt_action", event);
-}
-
-/**
- * Capture trial started
- */
-export async function captureTrialStarted(event: TrialStartedEvent) {
-  const ph = await getPosthog();
-  ph.capture("trial_started", event);
-}
-
-/**
- * Capture subscription started
- */
-export async function captureSubscriptionStarted(event: SubscriptionStartedEvent) {
-  const ph = await getPosthog();
-  ph.capture("subscription_started", event);
-}
-
-/**
- * Capture onboarding step viewed
- */
-export async function captureOnboardingStepViewed(event: OnboardingStepViewedEvent) {
-  const ph = await getPosthog();
-  ph.capture("onboarding_step_viewed", event);
-}
-
-/**
- * Capture onboarding step completed
- */
-export async function captureOnboardingStepCompleted(event: OnboardingStepCompletedEvent) {
-  const ph = await getPosthog();
-  ph.capture("onboarding_step_completed", event);
-}
-
-/**
- * Capture onboarding completed
- */
-export async function captureOnboardingCompleted(event: OnboardingCompletedEvent) {
-  const ph = await getPosthog();
-  ph.capture("onboarding_completed", event);
-}
-
-/**
- * Capture activity completed
- */
-export async function captureActivityCompleted(event: ActivityCompletedEvent) {
-  const ph = await getPosthog();
-  ph.capture("activity_completed", event);
-}
-
-/**
  * Capture AI assistant usage
  */
 export async function captureAIAssistantUsed(event: AIAssistantUsedEvent) {
@@ -633,27 +561,9 @@ export async function captureContentViewed(event: ContentViewedEvent) {
   ph.capture("content_viewed", event);
 }
 
-/**
- * Capture a content interaction (filter, paginate, scroll milestone)
- */
-export async function captureContentInteraction(event: ContentInteractionEvent) {
-  const ph = await getPosthog();
-  ph.capture("content_interaction", event);
-}
-
 // ============================================================================
 // ACTIVATION FUNNEL CAPTURE FUNCTIONS
 // ============================================================================
-
-export async function captureWelcomePageViewed(event: WelcomePageViewedEvent) {
-  const ph = await getPosthog();
-  ph.capture("welcome_page_viewed", event);
-}
-
-export async function captureWelcomeCompleted(event: WelcomeCompletedEvent) {
-  const ph = await getPosthog();
-  ph.capture("welcome_completed", event);
-}
 
 export async function captureTripWizardStepViewed(event: TripWizardStepViewedEvent) {
   const ph = await getPosthog();
@@ -788,20 +698,6 @@ export async function captureSharePromptVariantShown(event: {
   ph.capture("share_prompt_variant_shown", event);
 }
 
-/**
- * The share/invite modal opened on the trip page.
- *
- * 81 people reached trip detail in 60 days and what they did with the share
- * button was entirely invisible — there was no event for it at all.
- */
-export async function captureShareModalOpened(event: {
-  trip_id: string;
-  source: "prompt" | "trip_detail";
-}) {
-  const ph = await getPosthog();
-  ph.capture("share_modal_opened", event);
-}
-
 export async function captureShareLinkCopied(event: {
   trip_id: string;
   method: "copy" | "native_share";
@@ -818,24 +714,6 @@ export async function captureTripGenerationCompleted(event: TripGenerationComple
 // ============================================================================
 // AHA MOMENT & RETENTION CAPTURE FUNCTIONS
 // ============================================================================
-
-/**
- * Capture when user reaches an aha moment
- * Key for understanding what drives retention
- */
-export async function captureAhaMomentReached(event: AhaMomentReachedEvent) {
-  const ph = await getPosthog();
-  ph.capture("aha_moment_reached", event);
-}
-
-/**
- * Capture retention checkpoint (D1, D7, D30)
- * Used for cohort analysis
- */
-export async function captureRetentionCheckpoint(event: RetentionCheckpointEvent) {
-  const ph = await getPosthog();
-  ph.capture("retention_checkpoint", event);
-}
 
 /**
  * Capture first trip saved (critical aha moment candidate).
@@ -856,14 +734,6 @@ export function captureFirstTripSaved(event: FirstTripSavedEvent) {
 export async function captureActivityModified(event: ActivityModifiedEvent) {
   const ph = await getPosthog();
   ph.capture("activity_modified", event);
-}
-
-/**
- * Capture return visit (retention signal)
- */
-export async function captureReturnVisit(event: ReturnVisitEvent) {
-  const ph = await getPosthog();
-  ph.capture("return_visit", event);
 }
 
 /**
@@ -1155,11 +1025,6 @@ export async function captureExpenseDeleted(event: ExpenseDeletedEvent) {
   ph.capture("expense_deleted", event);
 }
 
-export async function captureSettleUpViewed(event: SettleUpViewedEvent) {
-  const ph = await getPosthog();
-  ph.capture("settle_up_viewed", event);
-}
-
 // ============================================================================
 // /EXPLORE ENGAGEMENT EVENTS (tasks #118/#119) — added 2026-06-06
 // ============================================================================
@@ -1218,11 +1083,6 @@ export async function captureExploreTripSaved(event: ExploreTripSavedEvent) {
 export async function captureExploreTripForked(event: ExploreTripForkedEvent) {
   const ph = await getPosthog();
   ph.capture("explore_trip_forked", event);
-}
-
-export async function captureExploreFilterApplied(event: ExploreFilterAppliedEvent) {
-  const ph = await getPosthog();
-  ph.capture("explore_filter_applied", event);
 }
 
 export async function captureExploreTripPublished(event: ExploreTripPublishedEvent) {

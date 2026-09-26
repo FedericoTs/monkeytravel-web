@@ -104,8 +104,8 @@ function logPhotoDownload(
 // alphanumerics + a small set of separators.
 const NAME_RE = /^places\/[A-Za-z0-9_-]+\/photos\/[A-Za-z0-9_-]+$/;
 
-// LEGACY Places API photo references. /api/activities/search and
-// /api/hotels/places still call the old `maps/api/place/photo` endpoint,
+// LEGACY Places API photo references. /api/activities/search still
+// calls the old `maps/api/place/photo` endpoint,
 // which is keyed by an opaque `photo_reference` rather than a New-API
 // resource name, so NAME_RE rejects them. Before 2026-07-21 those two
 // routes worked around that by embedding GOOGLE_PLACES_API_KEY directly

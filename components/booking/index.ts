@@ -8,4 +8,3 @@ export { default as PartnerButton } from "./PartnerButton";
 export { default as EnhancedBookingPanel } from "./EnhancedBookingPanel";
 export { default as PostConfirmationBanner } from "./PostConfirmationBanner";
 export { default as BookingDrawer } from "./BookingDrawer";
-export { default as ActivityBookingCTA } from "./ActivityBookingCTA";

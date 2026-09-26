@@ -132,17 +132,6 @@ export function getHotelSearchCenter(itinerary: ItineraryDay[]): GeoCenter | nul
 }
 
 /**
- * Calculate distance from a hotel to the activity center
- * Useful for displaying proximity information on hotel cards
- */
-export function getDistanceFromCenter(
-  hotelCoordinates: Coordinates,
-  center: Coordinates
-): number {
-  return calculateDistance(hotelCoordinates, center);
-}
-
-/**
  * Format distance for display
  */
 export function formatDistance(km: number): string {

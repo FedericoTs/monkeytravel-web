@@ -126,9 +126,6 @@ const AnonymousShareButton = dynamic(
   () => import("@/components/trip/AnonymousShareButton"),
   { ssr: false }
 );
-const EarlyAccessModal = dynamic(() => import("@/components/ui/EarlyAccessModal"), { ssr: false });
-const BetaCodeInput = dynamic(() => import("@/components/beta").then((m) => m.BetaCodeInput), { ssr: false });
-const WaitlistSignup = dynamic(() => import("@/components/beta").then((m) => m.WaitlistSignup), { ssr: false });
 
 /**
  * Warm the result-view chunks while the itinerary is being generated.
@@ -160,7 +157,6 @@ function preloadResultViewChunks(): void {
   warm(import("@/components/trip/AnonymousShareButton"));
 }
 // Note: useOnboardingPreferences removed - personalization moved to profile settings
-import { useEarlyAccess } from "@/lib/hooks/useEarlyAccess";
 import * as Sentry from "@sentry/nextjs";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
 // Step-1 editorial entry (2026-09-02; ramped to 100% and the classic branch
@@ -197,8 +193,6 @@ import {
   trackItineraryGenerated,
   trackTripCreated,
   trackDestinationSelected,
-  trackUpgradePromptShown,
-  trackLimitReached,
 } from "@/lib/analytics";
 import {
   captureTripCreated,
@@ -223,8 +217,7 @@ import {
 } from "@/lib/posthog/events";
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
 import { claimTripCreatedEmit } from "@/lib/analytics/tripCreatedDedup";
-import { useFlag, usePostHog } from "@/lib/posthog";
-import { FLAG_AUTO_SAVE_V1 } from "@/lib/posthog/flags";
+import { usePostHog } from "@/lib/posthog";
 import { trackWizardEvent, type WizardEventStep } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip, type AutoSaveSkipReason } from "@/hooks/useAutoSaveTrip";
 import { isSameDestination } from "@/lib/trips/sameDestination";
@@ -614,17 +607,6 @@ export default function NewTripPage({
   // Note: Onboarding/personalization preferences are now managed in profile settings
   // The AI generation API fetches user preferences from the database instead
 
-  // Early access gate
-  const {
-    showModal: showEarlyAccessModal,
-    setShowModal: setShowEarlyAccessModal,
-    redeemCode,
-    error: earlyAccessError,
-    refresh: refreshEarlyAccess,
-  } = useEarlyAccess();
-  const [pendingGeneration, setPendingGeneration] = useState(false);
-  const [showInlineLimitPrompt, setShowInlineLimitPrompt] = useState(false);
-  const [limitReachedMessage, setLimitReachedMessage] = useState<string | null>(null);
 
   // Form state
   const [destination, setDestination] = useState("");
@@ -1388,40 +1370,12 @@ export default function NewTripPage({
     // field exists to produce. Same for mustDos (P3a).
   }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, tripIntent, saveDraft, savedTripId, clearDraft]);
 
-  // ── Auto-save trip orchestration (gated by auto-save-v1 PostHog flag) ────
-  // The hook owns the save state machine — INSERT-or-UPDATE decision,
-  // the in-flight save promise (so regenerate can await it), error
-  // surfacing, and the discard path. See hooks/useAutoSaveTrip.ts.
-  // useFlag returns `boolean | undefined`. undefined means PostHog has not
-  // resolved the flag — and for a large cohort it NEVER will: analytics
-  // consent declined, an ad blocker, or a failed network call all leave it
-  // permanently undefined. There is no later evaluation to wait for.
-  //
-  // This used to read `=== true`, which meant those users got no auto-save.
-  // The redemption fallback below could not cover them either, because it
-  // requires `=== false` (a RESOLVED off). undefined satisfies NEITHER, so a
-  // signed-in user generated an itinerary and nothing persisted it — their
-  // trip was silently dropped unless they found the manual Save button.
-  //
-  // Measured 2026-09-01: 30 users burned 44 successful generations and ended
-  // with zero trips. Among users who DID generate, those who lost the trip
-  // were half as likely to have analytics consent (36.7% vs 69.9%) - the
-  // signature of the flag never resolving rather than of disinterest.
-  //
-  // auto-save-v1 has been at rollout_percentage 100 since 2026-07-02, so ON
-  // is the intended behaviour for everyone. Failing OPEN is also the safe
-  // direction: saving a trip the user asked for is never the harmful outcome,
-  // losing it is. An explicit `false` (kill-switch flipped to 0%) still turns
-  // auto-save off and still hands the post-auth path to the redemption effect
-  // below, so exactly one owner persists in every case.
-  // shouldAutoSave / shouldRedeemSaveIntent are complements, proven so by
-  // lib/trips/autoSaveGate.vitest.ts. Keeping both sides of the decision in one
-  // tested module is what stops the two gates drifting apart again.
-  const { enabled: autoSaveEnabledRaw } = useFlag(FLAG_AUTO_SAVE_V1);
-  // 2026-09-02: the flag no longer decides anything (see autoSaveGate.ts —
-  // a stale cached `false` in one browser switched auto-save off for that
-  // browser for good, invisibly). The kill switch is the env variable.
-  const autoSaveEnabled = shouldAutoSave(autoSaveEnabledRaw, process.env.NEXT_PUBLIC_AUTO_SAVE_FORCE);
+  // ── Auto-save trip orchestration ────
+  // The hook owns the save state machine: INSERT-or-UPDATE, the in-flight save
+  // (so regenerate can await it), errors and discard (hooks/useAutoSaveTrip.ts).
+  // Always on, unless NEXT_PUBLIC_AUTO_SAVE_FORCE=off (lib/trips/autoSaveGate.ts);
+  // then the redemption effect below owns the post-auth save instead.
+  const autoSaveEnabled = shouldAutoSave(process.env.NEXT_PUBLIC_AUTO_SAVE_FORCE);
   // The Explore-UGC gate now arrives as a prop, resolved server-side from
   // EXPLORE_UGC_ENABLED (see this route's page.tsx). It used to be read from
   // the PostHog flag FLAG_EXPLORE_UGC, which was never created — so the CTA
@@ -1822,7 +1776,7 @@ export default function NewTripPage({
 
   // ── Save Sprint: unsaved-state derivation + nudge/exit instrumentation ────
   // "Unsaved" respects BOTH save arms: the legacy manual flow (savedTripId)
-  // and the auto-save-v1 flow (autoSave.savedTripId).
+  // and the auto-save flow (autoSave.savedTripId).
   const isUnsaved = !savedTripId && !autoSave.savedTripId;
   const hasResult = Boolean(generatedItinerary);
   // The tray's restore-swap must never run while the auto-save arm is live:
@@ -2504,24 +2458,6 @@ export default function NewTripPage({
             setGenerating(false);
             return;
           }
-          // Check for early access gate
-          if (data.code === "NO_ACCESS" || data.code === "LIMIT_REACHED") {
-            setPendingGeneration(true);
-            setShowInlineLimitPrompt(true);
-            setLimitReachedMessage(data.error || "You've reached your usage limit");
-            trackLimitReached({
-              limitType: "generation",
-              currentUsage: data.usage?.used || 0,
-              limit: data.usage?.limit || 3,
-            });
-            trackUpgradePromptShown({
-              trigger: "limit_reached",
-              limitType: "generation",
-              location: "trip_creation",
-            });
-            setGenerating(false);
-            return;
-          }
           // If the stream errored AND the JSON fallback also failed,
           // surface the stream error message (more specific) when
           // available, otherwise fall back to the JSON error.
@@ -3008,15 +2944,13 @@ export default function NewTripPage({
   // An anonymous user who clicks Save hits the auth wall, signs up via magic
   // link, and returns to /trips/new with the itinerary silently restored
   // (draftAutoRestored === true — set ONLY on that pending-save path, never on
-  // ordinary draft recovery). In the auto-save-v1 flag-OFF cohort nothing then
-  // persists that trip: the user must click Save a SECOND time, and many drop
-  // off there (the dominant save_clicked → saved leak). Here we honor the click
-  // they already made by auto-invoking the same tested handleSaveTrip once.
+  // ordinary draft recovery). With auto-save switched off nothing then persists
+  // that trip, so this honours the Save click they already made by invoking the
+  // same tested handleSaveTrip once.
   //
   // Safety / no double-save:
-  //  - Gated on autoSaveEnabledRaw === false (flag RESOLVED off). The v1 auto-
-  //    save hook owns the ON cohort; while the flag is still loading (undefined)
-  //    we wait — so we never race the v1 INSERT.
+  //  - Runs only when auto-save is off (shouldRedeemSaveIntent), so it never
+  //    races the auto-save hook.
   //  - draftAutoRestored is true only on the silent post-auth restore, so this
   //    never fires for normal draft recovery or a normal authed generation.
   //  - Idempotent: one-shot ref + savedTripId / autoSave.savedTripId checks;
@@ -3025,10 +2959,7 @@ export default function NewTripPage({
   useEffect(() => {
     if (saveIntentRedeemedRef.current) return;
     if (!isAuthenticated) return;
-    // The complement of shouldAutoSave: this runs exactly when the hook is
-    // inert. Unresolved (undefined) now belongs to the hook, not to a wait
-    // that never ends.
-    if (!shouldRedeemSaveIntent(autoSaveEnabledRaw, process.env.NEXT_PUBLIC_AUTO_SAVE_FORCE)) return;
+    if (!shouldRedeemSaveIntent(process.env.NEXT_PUBLIC_AUTO_SAVE_FORCE)) return;
     if (!draftAutoRestored || !generatedItinerary) return;
     if (savedTripId || autoSave.savedTripId) return; // already persisted
     if (savingTripRef.current) return; // a save is already in flight
@@ -3046,7 +2977,6 @@ export default function NewTripPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isAuthenticated,
-    autoSaveEnabledRaw,
     draftAutoRestored,
     generatedItinerary,
     savedTripId,
@@ -4159,119 +4089,6 @@ export default function NewTripPage({
     );
   }
 
-  // Inline limit prompt - shown instead of modal when user hits usage limit
-  if (showInlineLimitPrompt) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30">
-        {/* Header */}
-        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200">
-          <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-            <button
-              onClick={() => {
-                setShowInlineLimitPrompt(false);
-                setPendingGeneration(false);
-                setLimitReachedMessage(null);
-              }}
-              className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900 px-2 py-1.5 -ml-2 rounded-lg hover:bg-slate-100 transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              <span className="hidden sm:inline">{t("wizard.back")}</span>
-            </button>
-            <span className="font-semibold text-slate-900">{t("wizard.unlockAiFeatures")}</span>
-            <div className="w-16" />
-          </div>
-        </header>
-
-        <main className="max-w-lg mx-auto px-4 py-10">
-          {/* Alert */}
-          <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-amber-800">{t("wizard.usageLimitReached")}</h3>
-                <p className="text-sm text-amber-700 mt-1">
-                  {limitReachedMessage || t("wizard.usageLimitDefault")}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Destination Preview */}
-          {destination && (
-            <div className="mb-6 p-4 bg-white border border-slate-200 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">{t("wizard.yourTripTo")}</p>
-                  <p className="font-bold text-slate-900">{destination}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Beta Code Input */}
-          <BetaCodeInput
-            variant="default"
-            showBenefits={true}
-            onSuccess={async () => {
-              // Refresh early access status
-              await refreshEarlyAccess();
-              // Hide prompt and retry generation
-              setShowInlineLimitPrompt(false);
-              setLimitReachedMessage(null);
-              // Retry generation after short delay
-              setTimeout(() => {
-                setPendingGeneration(false);
-                handleGenerate();
-              }, 500);
-            }}
-            className="mb-6"
-          />
-
-          {/* Waitlist Option */}
-          <div className="mb-8">
-            <WaitlistSignup
-              variant="default"
-              source="trip_generation_limit"
-            />
-          </div>
-
-          {/* Alternative Actions */}
-          <div className="border-t border-slate-200 pt-6">
-            <p className="text-sm text-slate-500 text-center mb-4">
-              While you wait for beta access:
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                href="/templates"
-                className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-center font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                Browse Templates
-              </Link>
-              <Link
-                href="/trips"
-                className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-center font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                View My Trips
-              </Link>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   // Generating state - use premium progress component
   if (generating) {
     return (
@@ -4296,29 +4113,6 @@ export default function NewTripPage({
         location={authPromptLocation}
         reason={authPromptReason}
         redirectPath={limitRedirectPath}
-      />
-
-      {/* Early Access Modal - for gated AI features */}
-      <EarlyAccessModal
-        isOpen={showEarlyAccessModal}
-        onClose={() => {
-          setShowEarlyAccessModal(false);
-          setPendingGeneration(false);
-        }}
-        onRedeemCode={async (code) => {
-          const success = await redeemCode(code);
-          if (success) {
-            // Refresh status and retry generation
-            await refreshEarlyAccess();
-            if (pendingGeneration) {
-              setPendingGeneration(false);
-              // Small delay to ensure state is updated
-              setTimeout(() => handleGenerate(), 100);
-            }
-          }
-          return success;
-        }}
-        error={earlyAccessError}
       />
 
       {/* Header */}
