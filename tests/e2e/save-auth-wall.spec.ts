@@ -36,10 +36,13 @@ test.describe("save → auth wall @prod @slow", () => {
     // getByRole("textbox") has never matched it.
     const destInput = page.getByRole("combobox").first();
     await destInput.fill("Lisbon");
-    // Pick the suggestion as a visitor does. Enter selects nothing (the rows
-    // carry no option role to highlight), so the list stayed open over the
-    // date presets and the "5 days" click below was intercepted until timeout.
-    await page.getByText("Lisbon", { exact: true }).first().click();
+    // From the keyboard: once the search results are in, Enter takes the top
+    // one (the field is a WAI-ARIA combobox; it used to select nothing, and
+    // the open list then covered the date presets below).
+    await page.getByRole("option", { name: /Lisbon/ }).first().waitFor();
+    await destInput.press("Enter");
+    await expect(destInput).toHaveValue(/^Lisbon, /);
+    await expect(page.getByRole("listbox")).toHaveCount(0);
 
     // Dates. The wizard offers one-tap DURATION PRESETS (Weekend / 5 days /
     // 1 week / 10 days / 2 weeks) behind an "Add your travel dates" control —

@@ -1007,7 +1007,8 @@
     "fromCuratedList": "De nuestra lista seleccionada",
     "noResultsExciting": "Buena elección — planificamos viajes a cualquier lugar",
     "noResultsSupported": "Toca abajo para continuar. Sin límites — cualquier ciudad, pueblo o aldea funciona.",
-    "continueWith": "Continuar con {destination} →"
+    "continueWith": "Continuar con {destination} →",
+    "suggestionsLabel": "Sugerencias de destino"
   },
   "startOver": {
     "title": "¿Empezar de Nuevo?",

@@ -13,14 +13,17 @@
  * - Client-side caching to avoid repeat searches
  * - Minimum 3 characters to trigger search (reduces API calls)
  * - Debounced search (300ms)
- * - Keyboard navigation (↑↓ Enter Esc)
+ * - Keyboard navigation (↑↓ Enter Esc), as a WAI-ARIA combobox: the list is a
+ *   listbox of options, the input points at it (aria-controls) and at the
+ *   highlighted row (aria-activedescendant), so screen readers follow along.
+ *   Enter with nothing highlighted takes the top search result.
  * - Country flags and structured display
  * - Smooth animations
  * - Mobile-friendly touch targets
  * - Loading and empty states
  */
 
-import { useState, useEffect, useRef, useCallback, KeyboardEvent } from "react";
+import { useState, useEffect, useRef, useCallback, useId, KeyboardEvent } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import * as Sentry from "@sentry/nextjs";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -179,11 +182,17 @@ export default function DestinationAutocomplete({
   const [searchSource, setSearchSource] = useState<"local" | "popular">("local");
   const [showPopular, setShowPopular] = useState(false);
 
+  const listboxId = `${useId()}-listbox`;
+  const optionId = (index: number) => `${listboxId}-option-${index}`;
+
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const isSelectingRef = useRef(false); // Prevent double-click selection
   const justSelectedRef = useRef(false); // Prevent search after selection
+  // Escape closed the list: a search still in flight must not reopen it.
+  // Cleared by typing, focusing again, or ArrowDown.
+  const dismissedRef = useRef(false);
 
   // Increased debounce to 300ms to reduce API calls
   const debouncedValue = useDebounce(value, 300);
@@ -251,9 +260,11 @@ export default function DestinationAutocomplete({
       // destination pill in the parent, or a ?destination= deeplink) used
       // to trigger the search and pop a "no results" overlay over the rest
       // of the form. (Bug verified 2026-05-03 via Playwright mobile run.)
-      const inputFocused =
+      // ...and not after Escape closed it for this query.
+      const mayOpen =
         typeof document !== "undefined" &&
-        document.activeElement === inputRef.current;
+        document.activeElement === inputRef.current &&
+        !dismissedRef.current;
 
       // Show popular destinations when input is empty or very short
       if (!debouncedValue || debouncedValue.length < 3) {
@@ -261,7 +272,7 @@ export default function DestinationAutocomplete({
           // Show popular destinations (from database, no Google API call)
           setPredictions(popularDestinations);
           setSearchSource("popular");
-          setIsOpen(inputFocused);
+          setIsOpen(mayOpen);
           setHighlightedIndex(-1);
         } else {
           setPredictions([]);
@@ -276,7 +287,7 @@ export default function DestinationAutocomplete({
         console.log("[Autocomplete] Using cached results for:", debouncedValue);
         setPredictions(cachedResults);
         setSearchSource("local");
-        setIsOpen(inputFocused && cachedResults.length > 0);
+        setIsOpen(mayOpen && cachedResults.length > 0);
         setHighlightedIndex(-1);
         return;
       }
@@ -295,7 +306,7 @@ export default function DestinationAutocomplete({
           setPredictions(localResults);
           setSearchSource("local");
           setCachedResults(debouncedValue, localResults);
-          setIsOpen(inputFocused);
+          setIsOpen(mayOpen);
           setHighlightedIndex(-1);
         } else {
           // No local results - show empty state with helpful message
@@ -305,7 +316,7 @@ export default function DestinationAutocomplete({
           // pop an overlay over the rest of the form.
           setPredictions([]);
           setSearchSource("local");
-          setIsOpen(inputFocused);
+          setIsOpen(mayOpen);
           setHighlightedIndex(-1);
         }
       } catch (error) {
@@ -370,10 +381,27 @@ export default function DestinationAutocomplete({
     [onChange, onSelect]
   );
 
+  // The listbox is on screen (the no-results panel is not a listbox).
+  const listShown = isOpen && predictions.length > 0;
+  // The results answer what is typed right now: no pending debounce, no
+  // search in flight. Only then may Enter pick a row nobody highlighted, or
+  // an old "Lis" row could land for "Lisbon".
+  const resultsAreCurrent = !isLoading && debouncedValue === value && value.length >= 3;
+
   // Keyboard navigation
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (!isOpen || predictions.length === 0) {
-      if (e.key === "Escape") {
+    if (!listShown) {
+      if (e.key === "ArrowDown" && predictions.length > 0) {
+        // Down opens a closed list (WAI-ARIA combobox).
+        e.preventDefault();
+        dismissedRef.current = false;
+        setIsOpen(true);
+        setHighlightedIndex(0);
+      } else if (e.key === "Enter" && isOpen && resultsAreCurrent && predictions.length === 0) {
+        // No match in our list: Enter does what the panel's button does.
+        e.preventDefault();
+        handleSelect(createManualPrediction(value));
+      } else if (e.key === "Escape") {
         inputRef.current?.blur();
       }
       return;
@@ -396,10 +424,16 @@ export default function DestinationAutocomplete({
         e.preventDefault();
         if (highlightedIndex >= 0 && predictions[highlightedIndex]) {
           handleSelect(predictions[highlightedIndex]);
+        } else if (searchSource === "local" && resultsAreCurrent) {
+          // Nothing highlighted: take the top search result, which is what
+          // someone who typed "Lisbon" and pressed Enter means. Never the
+          // popular list: it doesn't answer what was typed ("Ro" → Paris).
+          handleSelect(predictions[0]);
         }
         break;
       case "Escape":
         e.preventDefault();
+        dismissedRef.current = true;
         setIsOpen(false);
         setHighlightedIndex(-1);
         break;
@@ -437,6 +471,7 @@ export default function DestinationAutocomplete({
 
   // Clear input
   const handleClear = () => {
+    dismissedRef.current = false;
     onChange("");
     // Show popular destinations after clearing
     setPredictions(popularDestinations);
@@ -477,9 +512,13 @@ export default function DestinationAutocomplete({
           id={inputId}
           type="text"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            dismissedRef.current = false;
+            onChange(e.target.value);
+          }}
           onKeyDown={handleKeyDown}
           onFocus={() => {
+            dismissedRef.current = false;
             // Show popular destinations when focusing on empty input
             if (!value || value.length < 3) {
               setShowPopular(true);
@@ -505,7 +544,11 @@ export default function DestinationAutocomplete({
           aria-labelledby={ariaLabelledBy}
           aria-required={ariaRequired || undefined}
           aria-autocomplete="list"
-          aria-expanded={isOpen}
+          aria-expanded={listShown}
+          aria-controls={listShown ? listboxId : undefined}
+          aria-activedescendant={
+            listShown && highlightedIndex >= 0 ? optionId(highlightedIndex) : undefined
+          }
           role="combobox"
           className="w-full pl-12 pr-12 py-4 text-lg rounded-xl border border-slate-300 bg-white
                      focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20
@@ -543,14 +586,25 @@ export default function DestinationAutocomplete({
                      shadow-xl shadow-slate-200/50 overflow-hidden
                      animate-in fade-in slide-in-from-top-2 duration-150"
         >
-          <div className="max-h-[320px] overflow-y-auto overscroll-contain">
+          <div
+            id={listboxId}
+            role="listbox"
+            aria-label={t("suggestionsLabel")}
+            className="max-h-[320px] overflow-y-auto overscroll-contain"
+          >
             {predictions.map((prediction, index) => (
               <button
                 key={prediction.placeId}
                 ref={(el) => {
                   itemRefs.current[index] = el;
                 }}
+                id={optionId(index)}
                 type="button"
+                role="option"
+                aria-selected={highlightedIndex === index}
+                // Focus stays in the input (aria-activedescendant); Tab leaves
+                // the field instead of walking through every suggestion.
+                tabIndex={-1}
                 onClick={() => handleSelect(prediction)}
                 onMouseEnter={() => setHighlightedIndex(index)}
                 className={`w-full px-4 py-3.5 flex items-center gap-3 text-left
@@ -561,8 +615,9 @@ export default function DestinationAutocomplete({
                                : "hover:bg-slate-50"
                            }`}
               >
-                {/* Flag */}
-                <span className="text-2xl flex-shrink-0" role="img" aria-label="Country flag">
+                {/* Flag — decorative: the country is in the text below, and
+                    an English "Country flag" made every option's name noisy. */}
+                <span className="text-2xl flex-shrink-0" aria-hidden="true">
                   {prediction.flag}
                 </span>
 
@@ -578,8 +633,11 @@ export default function DestinationAutocomplete({
                   )}
                 </div>
 
-                {/* City Badge */}
-                <span className="flex-shrink-0 px-2 py-0.5 rounded-full bg-slate-100 text-xs font-medium text-slate-500">
+                {/* City Badge — the same on every row, so not part of its name */}
+                <span
+                  aria-hidden="true"
+                  className="flex-shrink-0 px-2 py-0.5 rounded-full bg-slate-100 text-xs font-medium text-slate-500"
+                >
                   {t("cityBadge")}
                 </span>
               </button>
