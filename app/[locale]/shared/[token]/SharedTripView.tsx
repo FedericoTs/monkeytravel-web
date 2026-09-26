@@ -95,51 +95,42 @@ interface SharedTripViewProps {
   shareToken: string;
   dateRange: string;
   /**
-   * Persisted cover image URL (column `trips.cover_image_url`). When set,
-   * the hero renders this directly — no Google Places call from anon
-   * viewers, no gradient fallback. Threaded through from page.tsx; the
-   * trips row already has it populated for every published trip (see
-   * the explore TripCard for the same trip ID — same column).
-   *
-   * 2026-05-30: caught via live UI verify. /shared was passing
-   * disableApiCalls={true} to DestinationHero without forwarding the
-   * cover URL, so the component went straight to gradient even though
-   * the data was already in the DB.
+   * Persisted cover image URL (column `trips.cover_image_url`). The hero runs
+   * with disableApiCalls (no Google Places calls from anonymous viewers), so
+   * this is its only photo source; without it the hero shows the gradient.
    */
   coverImageUrl?: string | null;
   /**
-   * Optional server-rendered engagement bar (like + save + fork).
-   * Passed from /shared/[token]/page.tsx so the auth + flag + counts
-   * can resolve server-side without prop drilling DB state into a
-   * client component. Renders directly under the page header.
-   * **2026-05-25 (/explore Week 3)**
+   * Optional server-rendered engagement bar (like + save + fork), passed in by
+   * the page so auth, flag and counts resolve server-side instead of drilling
+   * DB state into this client component. Renders above the map, and only when
+   * the participants flag is off.
    */
   engagementSlot?: React.ReactNode;
   /**
-   * Which surface this render is, for the trip_views beacon (Phase 0.1 of
-   * docs/LIVE_TRIP_MASTER_PLAN.md). Undefined means do not record — the
-   * only two callers that should count are /shared/[token] and /trip/[slug].
+   * Which surface this render is, for the trip_views beacon. Undefined means
+   * do not record: the only callers that should count are /shared/[token]
+   * and /trip/[slug].
    */
   viewSource?: "shared" | "public";
   /**
    * True when the signed-in viewer owns this trip. Resolved server-side in
    * both page.tsx callers. Here the owner is shown "Who's going", and the
-   * recipient's "I'm going" bar must NOT appear. Live Trip Phase 2.4.
+   * recipient's "I'm going" bar must NOT appear.
    */
   isOwner?: boolean;
   /**
    * Set when the viewer is the owner or a collaborator: the link back to the
-   * editor. They reach this view through their own share link; until
-   * 2026-09-25 /trips/[id] also sent them here, with no way to edit at all.
+   * editor, since members also reach this view through their own share link.
    */
   editorHref?: string;
-  /** Server-computed live day-state (Phase 3.2). Refined on the client with the viewer tz. */
+  /** Server-computed live day-state. Refined on the client with the viewer tz. */
   liveState?: TripDayState;
 }
 
 export default function SharedTripView({ trip, shareToken, dateRange, coverImageUrl, engagementSlot, viewSource, isOwner = false, editorHref, liveState }: SharedTripViewProps) {
   const t = useTranslations('common');
-  // Live Trip Phase 3.2: a live trip opens on Today (owner + participants).
+  // A live trip opens on Today, for every viewer.
   const fallbackDayState = useMemo<TripDayState>(
     () => liveState ?? computeTripDayState({ startDate: trip.startDate, endDate: trip.endDate, timeZone: null }),
     [liveState, trip.startDate, trip.endDate],
@@ -150,30 +141,27 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   const { addToast } = useToast();
   const searchParams = useSearchParams();
 
-  // ref-on-share virality: the owner's referral code rides on the share
-  // link as ?ref=OWNERCODE (the share API now appends it). Capture it on
-  // the client so we can (a) persist it for a later nav-driven signup and
-  // (b) carry it on the "Plan your own trip" CTA below.
+  // The share API appends the owner's referral code to the link as
+  // ?ref=OWNERCODE. Capture it so we can (a) persist it for a later
+  // nav-driven signup and (b) carry it on the "Plan your own trip" CTA below.
   const referralCode = searchParams?.get("ref")?.trim() || null;
 
   // ?vote=1 means the planner sent this specifically to ask for votes (the
   // crew-mode share). Everyone gets the vote invitation; this makes it read
   // as the personal ask it actually was.
   const crewAsk = searchParams?.get("vote") === "1";
-  // Live Trip Phase 2: the recipient page is built around "I'm going". Off
+  // The recipient page is built around "I'm going". Off
   // (NEXT_PUBLIC_LIVE_TRIP_PARTICIPANTS=off) returns the browse layout.
   const participantsEnabled = isLiveTripParticipantsEnabled() && !!shareToken;
 
-  // Phase 0.1: record the open. One row per session per trip per UTC day is
-  // the database's rule (UNIQUE trip_id, session_id, viewed_on); this only
-  // has to fire once per mount. Fire-and-forget with keepalive, like the
+  // Record the open. One row per session per trip per UTC day is the
+  // database's rule (UNIQUE trip_id, session_id, viewed_on); this only has to
+  // fire once per mount. Fire-and-forget with keepalive, like the
   // funnel-event beacon below. Never blocks render, never throws.
   const viewRecordedFor = useRef<string | null>(null);
-  // The fixed "Save this trip" bar at the bottom publishes its height as
-  // --mt-bottom-bar-h, so the global cookie banner can sit ABOVE it instead
-  // of on it (hooks/useCssVarHeight — same mechanism as the wizard footer).
-  // Before this, at 1280x800 the banner covered 26,400px² of the save button
-  // on every recipient's first visit until they scrolled.
+  // The fixed bar at the bottom publishes its height as --mt-bottom-bar-h, so
+  // the global cookie banner can sit ABOVE it instead of on it
+  // (hooks/useCssVarHeight — same mechanism as the wizard footer).
   const bottomBarRef = useRef<HTMLDivElement | null>(null);
   useCssVarHeight(bottomBarRef, "--mt-bottom-bar-h");
   useEffect(() => {
@@ -209,8 +197,9 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   }, [referralCode]);
 
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
-  // Phase 2.3: a recipient lands on title · dates · going → Day 1. The map
-  // is one tap away ("Show map") instead of 400px above the first activity.
+  // With participants on, a recipient lands on title · dates · going → Day 1:
+  // the map is one tap away ("Show map") rather than 400px above the first
+  // activity.
   const [showMap, setShowMap] = useState(!participantsEnabled);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -232,11 +221,11 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
       cancelled = true;
     };
   }, [viewerLoading, viewer, shareToken, getPending, clearPending]);
-  // The sharer opening their own link (2026-09-02): this browser still holds
-  // the claim token for THIS trip. "Save to My Trips" would duplicate their
-  // own itinerary, so the strip offers the claim instead, and once the claim
-  // lands (AuthProvider, on SIGNED_IN) the page moves them onto the trip they
-  // now own.
+  // The sharer opening their own link: this browser still holds the claim
+  // token for THIS trip. "Save to My Trips" would duplicate their own
+  // itinerary, so the strip offers the claim instead, and once the claim lands
+  // (announced by claimPendingTrip, whoever called it) the page moves them onto
+  // the claimed trip in their account.
   const [ownerPending, setOwnerPending] = useState(false);
   useEffect(() => {
     let alive = true;
@@ -256,19 +245,18 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
     if (already) go(already);
     return onClaimedTrip(go);
   }, [ownerPending, trip.id]);
-  // Signed in with this trip's claim still waiting: claim it from here. Signing
-  // up by email from the strip below comes back to this page (it used to end
-  // in the wizard, which claimed as a backup), and a sign-in finished on the
-  // server only ever says INITIAL_SESSION, which AuthProvider did not claim on.
-  // claimPendingTrip shares one request with any other caller and announces
-  // the result, which moves the page onto the trip (above).
+  // Signed in with this trip's claim still waiting: claim it from here too.
+  // Signing up by email from the strip below comes back to this page, and
+  // AuthProvider also claims on sign-in; claimPendingTrip shares one request
+  // with any other caller and announces the result, which moves the page onto
+  // the trip (above).
   useEffect(() => {
     if (!ownerPending || viewerLoading || !viewer) return;
     void claimPendingTrip();
   }, [ownerPending, viewerLoading, viewer]);
 
   // Anonymous vote state — see /api/shared/[token]/vote and /votes.
-  // Tallies are keyed by activity.id (the per-activity nanoid in the itinerary).
+  // Tallies are keyed by activity.id (the per-activity id in the itinerary).
   // myVotes is the current viewer's own votes, resolved server-side via the
   // mt_anon_voter httpOnly cookie. hasDisplayName tracks whether the viewer
   // has already typed a name this session, so we only show the inline prompt once.
@@ -337,12 +325,11 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
         }),
       });
       if (!res.ok) {
-        // Differentiated feedback so the user knows the vote didn't land.
-        // 429 path is the recent 20/min rate-limit — phrase it as a retry,
-        // not a failure. 5xx is a real backend miss. Anything else is
-        // bucketed into the generic save-failed message.
-        // Pair toasts with hapticError so Capacitor users feel the miss
-        // without needing to look at the screen.
+        // Tell the user the vote didn't land. 429 is the vote route's 20/min
+        // rate limit, so phrase it as a retry, not a failure; every other
+        // status gets the generic vote-failed message. Pair toasts with
+        // hapticError so Capacitor users feel the miss without needing to
+        // look at the screen.
         if (res.status === 429) {
           addToast(t("shared.rateLimit"), "warning");
         } else if (res.status >= 500) {
@@ -370,9 +357,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
       // Either we just collected a name, or the user skipped — either way
       // they've been through the prompt and shouldn't see it again.
       setHasDisplayName(true);
-      // Capacitor-only haptic confirmation. Closes the day-2 audit gap
-      // where /shared/[token] anon voting (this surface) was missed by
-      // the original VotingBottomSheet-only haptic landing in 8088b82.
+      // Capacitor-only haptic confirmation; a no-op on the web.
       hapticMedium();
     } catch {
       // Network failure (offline, DNS, CORS) — surface it instead of
@@ -395,23 +380,13 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
     return converted.formatted;
   };
 
-  // P1 bug fix (currency conversion): compute the day's "Est. Budget" by
-  // summing the FX-converted activity costs. The persisted
-  // `day.daily_budget.total` is denominated in the activities' source
-  // currency (e.g. JPY) but the legacy code treated it as
-  // `trip.budget?.currency || "USD"`, which is wrong whenever the AI
-  // generated the trip in a different currency (and `trips.budget` is
-  // usually NULL for older trips). Summing the converted per-activity
-  // amounts guarantees the day card matches the rows below it (single
-  // source of truth — eliminates the entire bug class).
-  // Day-9 SSR-null fix: on initial server-render exchangeRates is null
-  // (loaded in a client useEffect). convertCurrency() then returns the
-  // unconverted source-currency value but the OLD code formatted that
-  // raw integer in `preferredCurrency` — producing €27,600 (raw JPY
-  // with EUR symbol) for a Tokyo trip. Track the currency the converter
-  // ACTUALLY returns and format in that, so SSR shows ¥27,600 (correct)
-  // and client-after-hydration shows €178 (converted). First activity's
-  // returned currency wins for the day total.
+  // The day's "Est. Budget" sums the FX-converted activity costs so it matches
+  // the rows below it: `day.daily_budget.total` is in the activities' source
+  // currency (e.g. JPY), not `trip.budget.currency`. Until exchangeRates loads
+  // (client-side), convertCurrency returns the source amount and currency, so
+  // format in the currency it ACTUALLY returns, never `preferredCurrency`
+  // (¥27,600 on the server, €178 after hydration, never €27,600). The first
+  // costed activity's currency wins for the day total.
   const formatDayBudget = (day: ItineraryDay): string => {
     let total = 0;
     let displayCurrency = preferredCurrency;
@@ -449,11 +424,11 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
     return qs ? `/trips/new?${qs}` : "/trips/new";
   }, [destination, referralCode]);
 
-  // UX10X Phase 0.3: the crew loop's last measured hop — a /shared visitor
-  // converting to plan their OWN trip. Fire-and-forget with keepalive so the
-  // event survives the same-origin navigation the <Link> triggers (same
-  // pattern as trackWizardEvent). Wired to both plan-own CTAs (sticky bar +
-  // footer). Never blocks navigation.
+  // The crew loop's last measured hop — a /shared visitor converting to plan
+  // their OWN trip. Fire-and-forget with keepalive so the event survives the
+  // same-origin navigation the <Link> triggers (same pattern as
+  // trackWizardEvent). Wired to every plan-own link (the bottom CTA or sticky
+  // bar, and the footer). Never blocks navigation.
   const firePlanOwnClicked = () => {
     try {
       void fetch("/api/funnel-event", {
@@ -519,11 +494,8 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
         coverImageUrl={coverImageUrl}
         disableApiCalls={true}
       >
-        {/* Shared + Backpacker badge stack — top-right of hero.
-            Phase B2 (2026-05-28): public viewers see a "Backpacker
-            route" emerald pill for trips generated in Backpacker Mode.
-            This is the badge we'll point Hostelworld at when sharing
-            sample trip URLs. */}
+        {/* Shared + Backpacker badge stack — top-right of hero. Trips
+            generated in Backpacker Mode get a "Backpacker route" pill. */}
         <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
           <span className="px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-purple-100 text-purple-700">
             {t('shared.sharedTrip')}
@@ -553,9 +525,9 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             </Link>
           </div>
         )}
-        {/* Live Trip Phase 2.2: title · dates · N going · [I'm going] · [Share] ·
+        {/* Participants layout: title · dates · N going · [I'm going] · [Share] ·
             [More]. The vote invitation is the secondary line under the button.
-            The old banner stays as the flag-off layout. */}
+            The vote banner is the flag-off layout. */}
         {participantsEnabled && isOwner ? (
           // The owner (e.g. opening their own share link): show them who's
           // going, not an "I'm going" button.
@@ -585,9 +557,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
 
         {/* Backpacker Mode — Hostelworld CTA. Only renders when the
             trip was generated in Backpacker Mode (trip_meta.travel_style).
-            This is the revenue-signal piece of the Hostelworld
-            partnership wedge: show "we drove N clicks" when the time
-            comes to formalise. */}
+            Its logged clicks are the evidence for a Hostelworld partnership. */}
         {trip.meta?.travel_style === "backpacker" && (
           <BackpackerHostelCta
             tripId={trip.id}
@@ -707,12 +677,11 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
           </div>
         </div>
 
-        {/* /explore Week 3 (2026-05-25): like / save / fork action bar.
-            Server-rendered slot — empty when the explore flag is off
-            or the trip isn't public yet. Sits right above the map so
-            it's reachable without scrolling on mobile. */}
-        {/* Phase 2.2 removed the like/save/fork trio and its zeros from the
-            recipient header; Save for later lives under More. */}
+        {/* Like / save / fork action bar. Server-rendered slot — empty when
+            the explore flag is off or the trip isn't public. Sits right above
+            the map so it's reachable without scrolling on mobile. Flag-off
+            layout only: with participants on, ParticipantsBar replaces it and
+            Save for later lives under More. */}
         {!participantsEnabled && engagementSlot && (
           <div className="mb-6 flex items-center justify-start">
             {engagementSlot}
@@ -723,9 +692,9 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
         {showMap && displayItinerary.length > 0 && (
           <div className="mb-8">
             {/* The map is decorative here — a shared trip must still render
-                its itinerary if Google Maps throws. Sentry -26/-27: a null
-                map ref on iOS Safari took the whole page to the route-level
-                error boundary. See components/ErrorBoundary.tsx. */}
+                its itinerary if Google Maps throws (e.g. a null map ref on iOS
+                Safari) instead of falling to the route-level error boundary.
+                See components/ErrorBoundary.tsx. */}
             <ErrorBoundary
               errorType="shared-trip-map"
               fallback={
@@ -883,10 +852,9 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
                                     </div>
                                     <div className="text-right">
                                       <div className="font-medium text-slate-900">
-                                        {/* Gemini omits estimated_cost often enough that this
-                                            crashed the page (Sentry JAVASCRIPT-NEXTJS-12).
-                                            Render nothing when it is missing — defaulting to 0
-                                            would print "Free", inventing a claim about price. */}
+                                        {/* Gemini often omits estimated_cost. Render nothing
+                                            when it is missing — defaulting to 0 would print
+                                            "Free", inventing a claim about price. */}
                                         {activity.estimated_cost
                                           ? formatPrice(
                                               activity.estimated_cost.amount,
@@ -984,8 +952,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
           </div>
         </div>
 
-        {/* Phase 2.3: the mid-page Save hero is gone for recipients; the
-            flag-off layout keeps it. */}
+        {/* The mid-page Save hero shows only in the flag-off layout. */}
         {!participantsEnabled && (
           <div className="mt-6 p-5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl">
             <div className="flex gap-4">
@@ -1008,9 +975,9 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
           </div>
         )}
 
-        {/* Phase 2.3: "Plan your own trip" at the very bottom only, in flow. The
-            owner-claim strip keeps its fixed bar untouched; the flag-off layout
-            keeps the old two-button bar. */}
+        {/* With participants on, "Plan your own trip" sits in flow at the very
+            bottom only. The owner-claim strip and the flag-off two-button bar
+            are fixed bars. */}
         {ownerPending ? (
           <div
             ref={bottomBarRef}

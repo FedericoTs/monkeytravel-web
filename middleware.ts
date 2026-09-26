@@ -9,68 +9,32 @@ import { unprefixedCallbackUrl } from "@/lib/auth/callback-url";
 // Create the i18n middleware
 const intlMiddleware = createIntlMiddleware(routing);
 
-// AI training scrapers and content-resellers we don't want crawling the
-// site. Each blocked request saves a function invocation + Supabase
-// page_view write + bandwidth. Verified search engines (googlebot,
-// bingbot, applebot, duckduckbot) are NOT in this list — we want their
-// crawls. Update this list rather than touching middleware logic.
+// User agents that get a 403 before any other work runs: training-only
+// scrapers, content resellers and SEO-tool crawlers. None of them brings
+// citation surface, and each blocked request saves a function invocation, a
+// page_views write and bandwidth. Change this list rather than the middleware
+// logic, and keep it in sync with app/robots.ts.
 //
-// Sourced from https://platform.openai.com/docs/bots and the public
-// Common Crawl / Anthropic / Perplexity user-agent strings (2026-05).
-// LOAD-BEARING ALLOWLIST: the Capacitor mobile shell ships with the UA
-// suffix "MonkeyTravelApp/1.0" (see capacitor.config.ts → ios/android
-// appendUserAgent). No pattern below matches it. If you add a new pattern
-// later, sanity-check against `Mozilla/5.0 (iPhone; ...) ... MonkeyTravelApp/1.0`
-// and `Mozilla/5.0 (Linux; Android ...) ... MonkeyTravelApp/1.0` — a
-// regression here = the mobile app gets 403 on every request.
-// E2E coverage: tests/e2e/mobile-webview.spec.ts
-// 2026-07-12 GSC-audit decision: AI *citation/search* agents (ChatGPT-User,
-// OAI-SearchBot, Claude-Web, PerplexityBot, Perplexity-User) removed from the
-// block — they power in-answer recommendations, and our fastest-growing query
-// cluster is "which AI is best for travel planning" asked inside those
-// assistants; blocked assistants recommend competitors they CAN read.
-// Keep in sync with app/robots.ts.
+// Deliberately NOT blocked:
+//   - Search engines: Googlebot, Bingbot, Applebot (Siri/Spotlight), DuckDuckBot.
+//   - AI citation/search agents: ChatGPT-User, OAI-SearchBot, Claude-Web,
+//     PerplexityBot, Perplexity-User. People ask assistants which travel
+//     planner to use, and an assistant that cannot read us recommends a
+//     competitor it can read.
+//   - GPTBot and ClaudeBot: they also build the retrieval indexes behind
+//     ChatGPT Search and Claude's web search, and blocking them keeps the site
+//     out of those indexes.
+//   - Google-Extended and Applebot-Extended: besides training, they gate
+//     grounding in the Gemini app and Vertex AI, and in Apple Intelligence.
+//     That grounding is worth more to us than the training opt-out, so their
+//     training use is accepted. Google-Extended does not affect AI Overviews
+//     or AI Mode either way: Googlebot serves those, governed by nosnippet /
+//     max-snippet / noindex.
 //
-// 2026-08-11 revision: GPTBot and ClaudeBot unblocked too. Since the July
-// decision both stopped being training-only — they build the retrieval
-// indexes behind ChatGPT Search and Claude's web search, so blocking them
-// kept monkeytravel.app OUT of those indexes while the data-report series
-// is exactly the kind of first-party content those engines cite. Training
-// opt-out signals (Google-Extended, Applebot-Extended, CCBot, Meta) stay.
-//
-// 2026-08-21 correction — what Google-Extended actually costs.
-//
-// This list used to annotate it "Google AI training (separate from
-// googlebot)". That is incomplete, and the missing half is the part that
-// matters: Google-Extended is ALSO the gate for Gemini app grounding and
-// Vertex AI grounding. It is a retrieval control as much as a training one,
-// so the same test applied to GPTBot and ClaudeBot above applies here —
-// it just reaches a less comfortable answer.
-//
-// To be precise about the tradeoff, because the name invites the wrong guess:
-//   - Does NOT affect AI Overviews or AI Mode. Those are served by Googlebot
-//     and governed by nosnippet / max-snippet / noindex. Blocking
-//     Google-Extended costs us nothing there.
-//   - DOES cost grounding in the Gemini consumer app, and Applebot-Extended
-//     does the same for Apple Intelligence.
-//
-// DECISION 2026-08-21: Google-Extended is now UNBLOCKED. Having seen the
-// full tradeoff, Federico chose grounding in the Gemini consumer app over
-// the training opt-out — the same call already made for GPTBot and ClaudeBot
-// in August, and consistent with the strategy behind those: our fastest
-// growing query cluster is people asking assistants which travel planner to
-// use, and an assistant that cannot read us recommends someone it can.
-//
-// What this does NOT change: AI Overviews and AI Mode were never affected
-// either way (Googlebot serves those). So this is a pure addition of Gemini
-// grounding, not a change to Google Search behaviour.
-//
-// Applebot-Extended is deliberately still blocked. It is the same shape of
-// decision for Apple Intelligence and simply has not been made yet — do not
-// assume it was an oversight, and do not "tidy" it to match.
-//
-// The remaining entries are training or SEO-tool crawlers and cost no
-// citation surface. Source: docs/GEO-REMEDIATION-PLAN.md, Wave 5.
+// The Capacitor app appends "MonkeyTravelApp/1.0" to the WebView user agent
+// (capacitor.config.ts). A pattern that matches an iPhone or Android WebView
+// UA carrying that suffix 403s the app on every request, so check new
+// patterns against both. tests/e2e/mobile-webview.spec.ts covers this.
 const BLOCKED_BOT_PATTERNS = [
   /anthropic-ai/i,
   /CCBot/i, // Common Crawl
@@ -78,10 +42,6 @@ const BLOCKED_BOT_PATTERNS = [
   /Amazonbot/i,
   /FacebookBot/i,
   /Meta-ExternalAgent/i,
-  // Google-Extended was removed 2026-08-21 — see the note above.
-  // Applebot-Extended removed 2026-08-25: it gates Apple Intelligence
-  // grounding, so blocking it cost retrieval surface, not just training. Same
-  // call as Google-Extended. Plain Applebot (Siri/Spotlight) was never blocked.
   /Diffbot/i,
   /SemrushBot/i,
   /AhrefsBot/i,
@@ -94,10 +54,8 @@ function isBlockedBot(userAgent: string | null): boolean {
   return BLOCKED_BOT_PATTERNS.some((re) => re.test(userAgent));
 }
 
-// Posts deleted 2026-05-06 as part of the indexing-recovery work. We respond
-// 410 Gone (not 404) so Google removes them from its index aggressively
-// rather than periodically re-checking. Each appears at /blog/{slug} and
-// /{locale}/blog/{slug} for es/it.
+// Deleted blog posts, served 410 Gone rather than 404 so Google drops them
+// from its index instead of re-checking them periodically.
 const GONE_BLOG_SLUGS = new Set([
   "pianificatore-viaggio-ai-2026",
   "us-tariffs-impact-travel-costs-2026",
@@ -112,21 +70,11 @@ function isGoneBlogPath(pathname: string): boolean {
 }
 
 /**
- * UTM attribution cookie — first-touch wins.
- *
- * When a request arrives with `?utm_source=…`, persist it as
- * `mt_utm_source` cookie (60-day TTL) and `mt_utm_medium` /
- * `mt_utm_campaign` siblings. On subsequent signup the auth callback
- * reads these and stamps `users.acquisition_source` for partner
- * reporting (e.g. "how many users came from Hostelworld").
- *
- * First-touch (not last-touch): once the cookie is set, subsequent
- * UTM-tagged hits don't overwrite it. This matches the partnership
- * mental model — credit the first surface that captured the user.
- * Re-tagging would require explicit cookie clear.
- *
- * 60-day TTL because that's our typical "consider → sign up" window
- * for inspiration-led traffic. Tunable.
+ * First-touch UTM attribution. The first request carrying `?utm_source=` sets
+ * mt_utm_source (plus mt_utm_medium / mt_utm_campaign) for 60 days, the usual
+ * consider-to-signup window for inspiration-led traffic. Later UTM-tagged hits
+ * never overwrite it, so a partner gets credit for the first surface that
+ * captured the user. Signup copies it into users.acquisition_source.
  */
 const UTM_COOKIE_NAMES = {
   source: "mt_utm_source",
@@ -177,27 +125,22 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  // Generate a fresh per-request nonce for the nonce-based CSP. We attach
-  // it to the request headers so server components / layouts can read it
-  // via headers().get('x-nonce') and stamp it on inline <script> tags
-  // (JSON-LD, etc.). The CSP response header is set at the bottom of the
-  // middleware on whichever response we ultimately return.
-  //
-  // We compute the nonce even in dev (cheap — 16 random bytes) so the
-  // request-header contract stays consistent, but the CSP itself is only
-  // attached in production (see attachSecurityHeaders below). Without
-  // that gate, React Fast Refresh + Turbopack's runtime would break on
-  // first dev save.
+  // Per-request nonce for the nonce-based CSP. Server components read it with
+  // getNonce() (the x-nonce request header) to stamp inline <script> tags such
+  // as JSON-LD; attachSecurityHeaders puts the CSP on each returned response.
+  // The nonce is generated in dev too (16 random bytes, cheap) so that contract
+  // always holds, but no CSP is sent in dev, where it would break React Fast
+  // Refresh and Turbopack's runtime.
   const nonce = generateNonce();
-  // Mutating request.headers in middleware propagates to downstream
-  // route handlers / RSC layouts via Next's edge runtime — this is the
-  // documented pattern for forwarding request metadata.
+  // Set in place, before intlMiddleware and updateSession() run: both build
+  // their response from request.headers (NextResponse.next/rewrite with
+  // `request`), and that is what forwards x-nonce to server components.
   request.headers.set("x-nonce", nonce);
 
   /**
-   * Attach the nonce-based CSP header to the response we're about to
-   * return. Gated on shouldEnforceCsp() so dev / static asset paths are
-   * untouched. Returns the same response for chaining.
+   * Adds X-Frame-Options (except on third-party-framable pages) and, where
+   * shouldEnforceCsp() allows, the nonce-based CSP to a response about to be
+   * returned. Returns the same response for chaining.
    */
   const attachSecurityHeaders = (response: NextResponse): NextResponse => {
     // X-Frame-Options is set OUTSIDE the CSP gate on purpose: shouldEnforceCsp()
@@ -218,10 +161,9 @@ export async function middleware(request: NextRequest) {
     return response;
   };
 
-  // www → apex redirect is handled at the Vercel edge by a domain-level
-  // 308 redirect (configured 2026-05-02). The redirect fires before this
-  // middleware ever runs, so removing the previous in-code redirect saves
-  // one edge-middleware invocation per www request.
+  // www → apex is a Vercel domain-level 308 that fires before middleware runs,
+  // so there is no redirect for it here: doing it in code would cost a
+  // middleware invocation per www request.
 
   const { pathname } = request.nextUrl;
 
@@ -243,21 +185,13 @@ export async function middleware(request: NextRequest) {
     );
   }
 
-  // Skip i18n for API routes, static files, and special paths
-  // .well-known/* serves Universal Links / Android App Links manifests —
-  // Apple + Google fetch these unauthenticated and DO NOT follow locale
-  // redirects, so they MUST bypass i18n entirely.
-  // Locale-stripped path, so route tests below match on /pt/x as well as /x.
-  // Declared here rather than at the isPublicOnly block further down because
-  // the feedback exemption needs it too — see below.
+  // Locale-stripped path, for the /feedback/ exemption in shouldSkipIntl.
   const pathNoLocale = pathname.replace(/^\/(en|es|it|pt)(?=\/|$)/, "") || "/";
 
-  // /pt/auth/callback does not exist: the route is unprefixed and takes the
-  // language as ?locale=. The save prompt built the prefixed form for every
-  // non-English sign-in from 2026-06-04 to 2026-09-24, and all of them 404'd
-  // with the auth code unredeemed. Send any such link, including ones still
-  // sitting in an inbox, to the real route with every param kept
-  // (lib/auth/callback-url.ts).
+  // /{locale}/auth/callback does not exist: the route is unprefixed and takes
+  // the language as ?locale=. Redirect prefixed callback links, including ones
+  // still sitting in inboxes, to the real route with every param kept so the
+  // auth code is still redeemed (lib/auth/callback-url.ts).
   const callbackTarget = unprefixedCallbackUrl(new URL(request.url));
   if (callbackTarget) {
     const response = NextResponse.redirect(callbackTarget, 307);
@@ -265,22 +199,19 @@ export async function middleware(request: NextRequest) {
     return attachSecurityHeaders(response);
   }
 
+  // Skip i18n for API routes, static files and special paths. .well-known/*
+  // serves the Universal Links / App Links manifests, which Apple and Google
+  // fetch without following locale redirects, so it must bypass i18n.
   const shouldSkipIntl =
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/.well-known/") ||
-    // The "." catch skips static assets, but signed feedback tokens contain a
-    // "." (payload.hmac) — exempt /feedback/ so it still gets i18n routing
-    // instead of 404ing.
-    //
-    // Tested on the LOCALE-STRIPPED path. The original check used `pathname`,
-    // which only exempts the unprefixed default-locale URL: /pt/feedback/<token>
-    // does not start with "/feedback/", so it fell into the static-asset skip,
-    // intlMiddleware never ran, no locale was set, and getMessages() fell back
-    // to English. `params.locale` still came from the URL segment, so the page
-    // <title> localized correctly while the entire form rendered in English —
-    // which is exactly how it went unnoticed.
+    // The "." test skips static assets, but signed feedback tokens contain a
+    // "." (payload.hmac), so /feedback/ is exempt and still gets i18n routing
+    // instead of a 404. Test the locale-stripped path: skipping intlMiddleware
+    // on /pt/feedback/<token> sets no locale, so the form renders in English
+    // while the <title> (from params.locale) still looks localized.
     (pathname.includes(".") && !pathNoLocale.startsWith("/feedback/")) ||
     pathname.startsWith("/auth/callback") ||
     pathname.startsWith("/auth/signout");
@@ -302,12 +233,11 @@ export async function middleware(request: NextRequest) {
     return attachSecurityHeaders(intlResponse);
   }
 
-  // Logged-in users skip the marketing homepage. PRESENCE check only — we look
-  // for the Supabase auth cookie, NOT validate it (validation = a network call
-  // we must not add to the hot path). A stale cookie sends them to /trips, where
-  // the real auth guard bounces them to /auth/login if needed. Loop-safe:
-  // /trips is never the homepage, so this only fires when the stripped path is
-  // '/'. This is what lets the homepage render statically (Phase 1b).
+  // Logged-in users skip the marketing homepage. PRESENCE check only: validating
+  // the Supabase auth cookie is a network call that must stay off this hot path,
+  // and a stale cookie lands on /trips, whose auth guard redirects to
+  // /auth/login. Loop-safe, since it fires only when the stripped path is '/'.
+  // Doing it here keeps auth-cookie reads out of the homepage render.
   const strippedForHome = pathname.replace(/^\/(en|es|it|pt)/, '') || '/';
   if (strippedForHome === '/') {
     const hasSession = request.cookies
@@ -341,21 +271,10 @@ export async function middleware(request: NextRequest) {
     strippedPath.startsWith('/ai-itinerary-generator');
 
   if (isPublicOnly) {
-    // **2026-08-23 fix**: this early return exists to skip the Supabase
-    // session round-trip on pages that never need auth state — but
-    // trackPageView() lives inside updateSession(), so returning here also
-    // skipped page-view tracking entirely. Result: `page_views` has NEVER
-    // recorded a single hit on `/`, `/blog/*`, `/destinations/*`,
-    // `/templates/*` or any of the *-trip-planner landing pages — i.e. every
-    // acquisition surface on the site. Verified: 0 rows matching '%blog%'
-    // across 10 weeks and 360k+ tracked views, while /about/authors/* (not in
-    // this list) tracked fine. That blackout is why the daily SEO pass reports
-    // no organic blog landings.
-    //
-    // trackPageView takes userId as OPTIONAL and does not touch Supabase auth,
-    // so calling it here restores tracking WITHOUT giving back the perf win
-    // this branch was added for. Views land with user_id=null; these are
-    // public pages, so anonymous attribution is the honest value anyway.
+    // Page views are normally recorded inside updateSession(), which this
+    // branch skips, so record them here. trackPageView() takes an optional
+    // userId and makes no Supabase auth call, so the auth round-trip stays
+    // skipped. Views land with user_id=null, the honest value on public pages.
     const { sessionId: publicSessionId, label: publicPageViewLabel } = trackPageView(request);
     intlResponse.headers.set("x-mt-pv", publicPageViewLabel);
     if (publicSessionId && !request.cookies.get("mt_session_id")) {
@@ -376,20 +295,12 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     * - api routes (except protected ones)
-     */
-    // `manifest.json` and `sw.js` are STATIC files in public/. They were not
-    // in the exclusion list because it only names image extensions, so every
-    // fetch of them ran middleware — which calls updateSession (a Supabase
-    // round-trip) and sets cookies. 2026-07-21 production logs: 344
-    // middleware invocations/day for manifest.json alone, all of them for a
-    // file that could have come straight off the CDN.
+    // Every path except Next internals (_next/static, _next/image), static
+    // files (favicon.ico, manifest.json, sw.js, /images, /screenshots, /geo)
+    // and image files by extension. API routes are matched. Keep static files
+    // out: middleware runs updateSession (a Supabase round-trip) and sets
+    // cookies, so a matched file costs an invocation instead of coming
+    // straight off the CDN.
     "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js|images|screenshots|geo|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

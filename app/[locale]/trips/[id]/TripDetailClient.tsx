@@ -17,11 +17,8 @@ import { useLiveTripState } from "@/lib/trip/useLiveTripState";
 import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import DownloadIcsButton from "@/components/calendar/DownloadIcsButton";
-// TravelAdvisoryBanner / ExpenseLedger / TripConciergeChat are pulled in
-// dynamically below — see the next/dynamic block. They were imported
-// eagerly when first wired (commit dd6ff90); moving them here keeps
-// the initial trip-page chunk lean (perf task #244, follows the same
-// pattern as #180 for the other deferred components).
+// TravelAdvisoryBanner / ExpenseLedger / TripConciergeChat are loaded with
+// next/dynamic further down, which keeps the initial trip-page chunk lean.
 import { useActivityVotes } from "@/lib/hooks/useActivityVotes";
 import { useProposals } from "@/lib/hooks/useProposals";
 import { InlineProposalCard } from "@/components/collaboration/proposals";
@@ -33,12 +30,11 @@ import { BookingPanel, EnhancedBookingPanel, PostConfirmationBanner } from "@/co
 import { useFlag } from "@/lib/posthog/hooks";
 import { FLAG_ENHANCED_BOOKING } from "@/lib/posthog/flags";
 
-// Bookings/flights monetization surfaces are HIDDEN for now (2026-07-03,
-// founder decision): the Amadeus flight search hangs to a 300s Vercel
-// FUNCTION_INVOCATION_TIMEOUT in prod (sandbox env / no app timeout), and
-// affiliate bookings are the future monetization — not the current focus.
-// Default-off env gate: flip NEXT_PUBLIC_BOOKINGS_ENABLED=true to bring the
-// whole surface back once flights work and monetization is on.
+// Bookings/flights monetization surfaces stay hidden behind a default-off env
+// gate: the Amadeus flight search (sandbox env, no app-side timeout) hangs
+// until Vercel's 300s FUNCTION_INVOCATION_TIMEOUT in prod, and affiliate
+// bookings are not the current focus. NEXT_PUBLIC_BOOKINGS_ENABLED=true shows
+// the whole surface once flights work.
 const BOOKINGS_ENABLED = process.env.NEXT_PUBLIC_BOOKINGS_ENABLED === "true";
 import {
   captureEditModeEntered,
@@ -111,11 +107,7 @@ import {
   dayOptionsOf,
   makeItineraryCollisionDetection,
 } from "@/components/trip/ItineraryDnd";
-// Amadeus booking components - kept for future use
-// import FlightSearch from "@/components/booking/FlightSearch";
-// import HotelSearch from "@/components/booking/HotelSearch";
 
-// Google Places-based hotel recommendations
 import { safeGet, safeSet } from "@/lib/safe-storage";
 import {
   createItinerarySync,
@@ -136,19 +128,16 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
   ),
 });
 
-// Lazy-load 8 components that are hidden behind state/conditions on first paint.
+// Lazy-load components that are hidden behind state/conditions on first paint.
 // Modals (BookingDrawer, AIAssistant, RouteOptimizationModal, VotingBottomSheet,
 // ProposeActivitySheet, ActivityRatingModal) are closed by default — no SSR
-// benefit, defer to interaction. OngoingTripView only renders for active trips
-// (a small subset). CollaboratorOnboarding only renders for collaborative trips.
-// ExportMenu ships heavy PDF/iCal libraries and only matters once the user opens
-// its dropdown — defer.
+// benefit, defer to interaction. OngoingTripView only renders for active trips,
+// CollaboratorOnboarding only for collaborative ones, and ExportMenu only
+// matters once the user opens its dropdown.
 const BookingDrawer = dynamic(() => import("@/components/booking/BookingDrawer"), { ssr: false });
-// Confirm-first assistant (Phase 2 "living workspace"): AIAssistantEnhanced is
-// prop-compatible with the old direct-apply AIAssistant but previews each edit
-// in a PreviewChangeCard and waits for the user to Apply (+ undo), instead of
-// silently mutating the plan. Kept the `AIAssistant` local name so the render
-// site is unchanged.
+// Confirm-first assistant: AIAssistantEnhanced previews each edit in a
+// PreviewChangeCard and changes the plan only when the user applies it (with
+// undo).
 const AIAssistant = dynamic(() => import("@/components/ai/AIAssistantEnhanced"), { ssr: false });
 const BaseModal = dynamic(() => import("@/components/ui/BaseModal"), { ssr: false });
 const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: false });
@@ -169,10 +158,9 @@ const ProposeActivitySheet = dynamic(
   () => import("@/components/collaboration/proposals/ProposeActivitySheet").then((m) => ({ default: m.ProposeActivitySheet })),
   { ssr: false }
 );
-// Hidden by default — only mounts once the user clicks "Add from email".
-// Flag-gated internally; the dynamic import still happens on chunk load
-// when the trigger button is rendered, but next/dynamic + ssr:false means
-// it's never in the initial server payload.
+// Hidden by default — only mounts once the user clicks "Add from email", so
+// its chunk loads on that click and is never in the initial server payload.
+// Also flag-gated internally.
 const PasteBookingModal = dynamic(() => import("@/components/trip/PasteBookingModal"), {
   ssr: false,
 });
@@ -180,31 +168,30 @@ const PasteBookingModal = dynamic(() => import("@/components/trip/PasteBookingMo
 // Travel advisory banner — async-fetches the FCDO data on mount. No reason
 // to ship the component JS in the initial chunk; it self-hides when there
 // is no advisory anyway, so a brief tick-after-hydrate is invisible to the
-// user. (perf task #244)
+// user.
 const TravelAdvisoryBanner = dynamic(
   () => import("@/components/trip/TravelAdvisoryBanner"),
   { ssr: false }
 );
 
 // Expense ledger — flag-gated (renders null when off) and renders below
-// the booking panel, well below the fold for first paint. (perf task #244)
+// the booking panel, well below the fold for first paint.
 const ExpenseLedger = dynamic(
   () => import("@/components/trip/ExpenseLedger"),
   { ssr: false }
 );
 
 // Concierge chat — flag-gated + only useful after the user clicks the
-// trigger pill. Same lazy pattern as AIAssistant above. (perf task #244)
+// trigger pill. Same lazy pattern as AIAssistant above.
 const TripConciergeChat = dynamic(
   () => import("@/components/trip/TripConciergeChat"),
   { ssr: false }
 );
 
-// Concierge conversation history (added after a June 2026 incident). Renders a
-// collapsible list of past Q+A pairs for this trip. Same lazy / no-SSR
-// pattern as the launcher — the history fetch is gated on the expand
-// click so this dynamic-import is a near-free add to the trip-detail
-// bundle for users who never expand it.
+// Concierge conversation history: a collapsible list of past Q+A pairs for
+// this trip. Same lazy / no-SSR pattern as the launcher; the history fetch
+// waits for the expand click, so it costs almost nothing for users who never
+// expand it.
 const ConciergeHistory = dynamic(
   () => import("@/components/trip/ConciergeHistory"),
   { ssr: false }
@@ -231,8 +218,9 @@ interface TripDetailClientProps {
     /** Hash of itinerary when travel distances were calculated */
     cachedTravelHash?: string;
     /**
-     * trips.itinerary_version the itinerary above was read at (20260924125000).
-     * Read ONCE, into the save queue; never again from props (see sync below).
+     * trips.itinerary_version the itinerary above was read at. Seeds the save
+     * queue; a newer one is adopted only together with its itinerary (see
+     * sync below).
      */
     itineraryVersion?: number | null;
   };
@@ -242,16 +230,16 @@ interface TripDetailClientProps {
   userRole?: CollaboratorRole;
   collaboratorCount?: number;
   /**
-   * /explore Week 3 (2026-05-25): server-rendered EngagementBar +
-   * PublishToggle. Server component computes auth + flag state + counts;
-   * we just render the ReactNode in the action toolbar.
+   * Server-rendered /explore EngagementBar + PublishToggle. The server
+   * component computes auth + flag state + counts; this only renders the
+   * ReactNode in the action toolbar.
    */
   engagementSlot?: React.ReactNode;
   /** Server-resolved: explore on, viewer is owner, trip not already public. */
   canPublish?: boolean;
   /** Prefills the /explore author byline on the share prompt's publish tick. */
   ownerDisplayName?: string | null;
-  /** Server-computed live day-state (Phase 3.2). */
+  /** Server-computed live day-state. */
   liveState?: TripDayState;
 }
 
@@ -268,39 +256,29 @@ export default function TripDetailClient({
 }: TripDetailClientProps) {
   const t = useTranslations('trips');
   const tTrips = useTranslations('common.trips');
-  // Live Trip Phase 3.2: a live trip opens on Today for the owner too.
+  // A live trip opens on Today, for the owner too.
   const fallbackDayState = useMemo<TripDayState>(
     () => liveState ?? computeTripDayState({ startDate: trip.startDate, endDate: trip.endDate, timeZone: null }),
     [liveState, trip.startDate, trip.endDate],
   );
   const dayState = useLiveTripState(fallbackDayState, trip.startDate, trip.endDate);
   const [todayMode, setTodayMode] = useState(true);
-  // 'common' is the namespace that holds calendar.* and addFromEmail.*
-  // — added with the calendar-export + email-parse rollout. We don't
-  // want to re-namespace the existing tTrips translator
-  // because that would force a sweep through every existing call site.
+  // A separate translator for the 'common' namespace (activity.*,
+  // addFromEmail.*, today.*): re-namespacing tTrips would mean touching
+  // every one of its call sites.
   const tCommon = useTranslations('common');
 
   // Currency conversion hook — converts source-currency activity costs into
   // the user's preferred currency. Backs formatDayBudget below.
   const { convert: convertCurrency, format: formatCurrency, preferredCurrency } = useCurrency();
 
-  // P1 bug fix (currency conversion): compute the day's "Est. Budget" by
-  // summing the FX-converted activity costs. Mirrors the Day-6 fix already
-  // shipped in SharedTripView.tsx — the persisted `day.daily_budget.total`
-  // is denominated in the activities' source currency (e.g. JPY) but the
-  // legacy code treated it as `trip.budget?.currency || "USD"`, producing
-  // 100x+ inflated values whenever the AI generated the trip in a different
-  // currency. Summing the converted per-activity amounts is the single
-  // source of truth — eliminates the entire bug class.
-  // Day-9 SSR-null fix: on initial server-render exchangeRates is null
-  // (loaded in a client useEffect). convertCurrency() then returns the
-  // unconverted source-currency value but the OLD code formatted that
-  // raw integer in `preferredCurrency` — producing €27,600 (raw JPY
-  // with EUR symbol) for a Tokyo trip. Track the currency the converter
-  // ACTUALLY returns and format in that, so SSR shows ¥27,600 (correct
-  // source currency) and client-after-hydration shows €178 (converted).
-  // First activity's returned currency wins for consistency.
+  // The day's "Est. Budget" is the sum of the FX-converted activity costs
+  // (same logic as SharedTripView.tsx): the stored `day.daily_budget.total` is
+  // in the activities' source currency (e.g. JPY), not the trip's. Exchange
+  // rates load in a client effect, so until then (always on the server render)
+  // convertCurrency() returns the unconverted source amount: format in the
+  // currency it ACTUALLY returns, not preferredCurrency. The first activity's
+  // returned currency wins.
   const formatDayBudget = (day: ItineraryDay): string => {
     let total = 0;
     let displayCurrency = preferredCurrency;
@@ -339,18 +317,15 @@ export default function TripDetailClient({
   useEffect(() => {
     setCoverImageUrl(trip.coverImageUrl);
   }, [trip.coverImageUrl, trip.id]);
-  // Persist a freshly-resolved cover image back to the trip row so we
-  // never re-fetch Google Places on subsequent visits — cost + reliability
-  // win (task #252). Owner-only to respect the PATCH /api/trips/[id] RLS.
-  // Fire-and-forget — if the PATCH fails the in-memory state still keeps
-  // the hero visible for this session.
+  // Persist a freshly-resolved cover image back to the trip row so later
+  // visits skip the Google Places fetch (cost and reliability). Only the
+  // owner persists it. Fire-and-forget — if the PATCH fails the in-memory
+  // state still keeps the hero visible for this session.
   const isOwner = userRole === "owner";
   // The trip assistant changes the trip, so it is for the people who can:
-  // the owner and editors (the API answers 403 to anyone else). Voters and
-  // viewers used to see it, have it open by itself on a first visit, and get
-  // "Trip not found" for their first message.
+  // the owner and editors (the API answers 403 to anyone else).
   const canUseAssistant = ROLE_PERMISSIONS[userRole]?.canEdit ?? false;
-  // Live Trip Phase 2.4: the owner sees who said they're going.
+  // The owner sees who said they're going.
   const participantsEnabled = isLiveTripParticipantsEnabled();
   const handleCoverImageFetched = useCallback(
     (fetchedUrl: string) => {
@@ -372,11 +347,11 @@ export default function TripDetailClient({
     [isOwner, trip.id]
   );
 
-  // ---- Crew Loop (2026-07): owner-side visibility of anonymous crew votes ----
+  // ---- Crew Loop: owner-side visibility of anonymous crew votes ----
   // The share link lets friends vote with NO account (POST
-  // /api/shared/[token]/vote → anonymous_activity_votes), but those votes were
-  // invisible on this page. For the owner we fetch share status once on mount
-  // and, when sharing is on, the aggregated crew votes.
+  // /api/shared/[token]/vote → anonymous_activity_votes). For the owner, fetch
+  // the share status once on mount and, when sharing is on, the aggregated
+  // crew votes.
   const [crewVotes, setCrewVotes] = useState<{
     total: number;
     voters: string[];
@@ -460,11 +435,9 @@ export default function TripDetailClient({
     );
   };
   // ---- end Crew Loop ----
-  // **2026-05-23**: Foreground the AI assistant — it's the killer feature
-  // (the "make Day 2 cheaper" loop) and was previously hidden behind a small
-  // floating pill that most users never noticed. We now auto-open it on
-  // first visit to a trip, and visually pulse the trigger until the user
-  // has interacted with it at least once. After that, no nags.
+  // The AI assistant is the core feature (the "make Day 2 cheaper" loop), so
+  // it auto-opens on the user's first trip visit and its trigger pulses until
+  // it has been opened once. After that, no nags.
   const [hasSeenAssistant, setHasSeenAssistant] = useState<boolean>(true);
   useEffect(() => {
     if (typeof window === "undefined" || !canUseAssistant) return;
@@ -487,14 +460,13 @@ export default function TripDetailClient({
 
   // Edit mode state
   const [isEditMode, setIsEditMode] = useState(false);
-  // Today mode (Phase 3.2) shows only outside the editor, on a live trip.
+  // Today mode shows only outside the editor, on a live trip.
   const showToday = dayState.isLive && todayMode && !isEditMode;
   // One copy for both states, with ids derived from the stored trip for any
-  // activity stored without one. Two random-id calls made the page look
-  // edited on its first render (a phantom autosave, and on a router-cache
-  // restore a false conflict), and every mount minted different ids. New
-  // trips are stored with ids; older ones are stored once by the effect after
-  // ambientEdit.
+  // activity stored without one. Random ids would differ between the two
+  // states and between mounts, so the page would look edited on its first
+  // render (a phantom autosave, or a false conflict on a router-cache
+  // restore). For solo owners the effect after ambientEdit stores them once.
   const [initialItinerary] = useState(() => ensureActivityIdsStable(trip.itinerary, trip.id));
   const [editedItinerary, setEditedItinerary] = useState<ItineraryDay[]>(() =>
     JSON.parse(JSON.stringify(initialItinerary))
@@ -509,15 +481,15 @@ export default function TripDetailClient({
   // Modifica/Save/Discard cluster for solo owners (see ambientEdit below).
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error" | "conflict">("idle");
 
-  // Itinerary save queue + base version (lib/trips/itinerary-sync.ts,
-  // 20260924125000). Every itinerary PATCH, and every server write this tab
-  // starts, goes through it one at a time, so the tab never 409s on itself.
+  // Itinerary save queue + base version (lib/trips/itinerary-sync.ts). Every
+  // itinerary PATCH, and every server write this tab starts, goes through it
+  // one at a time, so the tab never 409s on itself.
   // INVARIANT: savedItinerary and sync.baseVersion() only ever change
-  // together. The version is read from props only here: router.refresh()
-  // re-renders props with a newer version while this state keeps the older
-  // content, and a base taken from props alone would then pass the check
-  // while reverting someone else's work. (Newer props are adopted as a pair,
-  // content and version together: see the router-cache effect below.)
+  // together. router.refresh() re-renders props with a newer version while
+  // this state keeps the older content, and a base taken from props alone
+  // would then pass the check while reverting someone else's work. Props seed
+  // the queue here; newer props are adopted only as a pair, content and
+  // version together (see the router-cache effect below).
   const propsVersion = readItineraryVersion(trip.itineraryVersion);
   const [sync] = useState(() => createItinerarySync({ tripId: trip.id, initialVersion: propsVersion }));
   // A save refused because the trip changed elsewhere (a trip mate, another
@@ -552,9 +524,9 @@ export default function TripDetailClient({
   // Save waits for them: a Save clicked mid-write would send a copy without
   // the write's result.
   const [itineraryWritesInFlight, setItineraryWritesInFlight] = useState(0);
-  // (Auto-saves used to abort the previous in-flight PATCH. They are now
-  // queued instead: an aborted fetch does not stop a PATCH the server already
-  // received, and the next save would then carry an outdated base version.)
+  // Auto-saves are queued, never aborted: an aborted fetch does not stop a
+  // PATCH the server already received, and the next save would then carry an
+  // outdated base version.
   // Fire the manual-edit adoption metric (captureEditModeSaved) at most once
   // per page-view, not once per debounced flush — otherwise the ambient cohort
   // inflates edit_mode_saved relative to the AI-agent comparison metric.
@@ -563,12 +535,10 @@ export default function TripDetailClient({
   // Per-day regeneration: tracks which day_number is currently being replaced.
   const [regeneratingDayNumber, setRegeneratingDayNumber] = useState<number | null>(null);
   // The day-regeneration dialog: which day, and what the traveller wants it to
-  // be about. The button used to regenerate blind (an English window.confirm,
-  // no way to say what you wanted), so a cruise planner pressed it four times
-  // for "Day 5 = boarding the cruise" and got Rome sightseeing each time.
+  // be about, so a regeneration can be steered instead of rerolled blind.
   const [dayRegenPrompt, setDayRegenPrompt] = useState<{ dayNumber: number; text: string } | null>(null);
   // "Cancel Trip" asks first: it turns off the countdown, checklist and
-  // reminders (31 trips were cancelled, 17 in the last 60 days, one click each).
+  // reminders.
   const [confirmCancelTrip, setConfirmCancelTrip] = useState(false);
 
   // Status management
@@ -580,12 +550,10 @@ export default function TripDetailClient({
   const [isBookingDrawerOpen, setIsBookingDrawerOpen] = useState(false);
 
   // "Add from email" modal — flag-gated paste-confirmation flow.
-  // The PasteBookingModal early-returns null when
-  // NEXT_PUBLIC_EMAIL_PARSE_ENABLED !== "true", but we also avoid
-  // rendering the trigger button (and therefore the dynamic chunk
-  // load) when the flag is off so the action bar stays tidy. The
-  // flag is inlined at build time on Vercel — toggling it is a
-  // 60-second redeploy.
+  // PasteBookingModal returns null when NEXT_PUBLIC_EMAIL_PARSE_ENABLED !==
+  // "true", and the trigger is not rendered either when the flag is off, so
+  // the action bar stays tidy. The flag is inlined at build time, so toggling
+  // it takes a redeploy.
   const emailParseEnabled = process.env.NEXT_PUBLIC_EMAIL_PARSE_ENABLED === "true";
   const [isPasteBookingOpen, setIsPasteBookingOpen] = useState(false);
 
@@ -719,37 +687,23 @@ export default function TripDetailClient({
   const [undoStack, setUndoStack] = useState<HistoryEntry[]>([]);
   const [redoStack, setRedoStack] = useState<HistoryEntry[]>([]);
 
-  // REMOVED: Auto-backfill coordinates for legacy trips
-  // Saved trips should NEVER call any external API.
-  // Legacy trips without coordinates will simply show markers only for
-  // activities that already have coordinates. No API calls on view.
+  // Viewing a trip never pays for an external API to backfill coordinates:
+  // only activities that already have coordinates get a map marker.
 
-  // REMOVED: handleCoverImageFetched callback
-  // Saved trips should use existing cover image or show gradient fallback.
-  // No Places API calls allowed when viewing saved trips.
-
-  // Prefer trip_meta.destination (canonical) over title-strip — see
-  // lib/trips/destination.ts. Fixes non-English / renamed trips.
+  // Prefer trip_meta.destination (canonical) over stripping the title, which
+  // fails for non-English or renamed trips (see lib/trips/destination.ts).
   const destination = getTripDestination(trip);
 
-  // P4 transport spine: multi-city route stops for the Journey ribbon —
-  // trip detail is the LAST surface to get it (wizard + ongoing view had it
-  // since the wedge; the plan flagged the gap). Empty on single-city trips.
+  // Multi-city route stops for the Journey ribbon, as in the wizard and the
+  // ongoing view. The ribbon renders only with two or more stops.
   const locale = useLocale();
   const journeyStops = buildJourneyStops(editedItinerary, locale);
 
   // Trip phase detection for Timeline feature.
-  //
-  // **2026-05-31 P0 fix**: trip.startDate / trip.endDate come from the DB as
-  // YYYY-MM-DD strings. `new Date("2026-05-31")` parses that as UTC midnight
-  // — which in any negative-UTC zone (Americas) resolves to the PREVIOUS DAY
-  // local time. User reported: trip set for May 31–Jun 1 in San Antonio
-  // (CDT = UTC-5) displayed as "planning starts May 30" AND was treated as
-  // already in-progress on May 31, so OngoingTripView rendered and the
-  // share button vanished.
-  //
-  // Mirrors the parseLocal helper in components/ui/SaveTripModal.tsx
-  // (added 2026-05-24 for the same root cause on the save side).
+  // trip.startDate / trip.endDate come from the DB as YYYY-MM-DD strings, and
+  // `new Date("YYYY-MM-DD")` parses that as UTC midnight, which in any
+  // negative-UTC zone (the Americas) is the PREVIOUS DAY local time. So they
+  // are parsed as local dates, like parseLocal in components/ui/SaveTripModal.tsx.
   const tripStartDate = useMemo(() => {
     const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(trip.startDate);
     return m
@@ -764,16 +718,10 @@ export default function TripDetailClient({
   }, [trip.endDate]);
   const now = new Date();
 
-  // Pre-trip: the trip simply has not started yet.
-  //
-  // This used to also require status === "confirmed", which limited the
-  // countdown and the pre-trip checklist to 25 of 443 trips (5.6%) - Confirm
-  // is a 17% action, so the gate was hiding the surface from the 183 people
-  // who have an upcoming trip and never pressed it. Measured 2026-09-01:
-  // 25 trips qualified before, 208 after.
-  //
-  // Cancelled trips are still excluded: counting down to a trip someone
-  // called off is worse than showing nothing.
+  // Pre-trip: the trip simply has not started yet. Confirmed status is not
+  // required: most people with an upcoming trip never press Confirm, and the
+  // countdown and checklist are for them too. Cancelled trips are excluded:
+  // counting down to a trip someone called off is worse than showing nothing.
   const isPreTripPhase = trip.status !== "cancelled" && tripStartDate > now;
 
   // Active trip: Between start and end dates
@@ -784,20 +732,12 @@ export default function TripDetailClient({
   const tripDaysCount = trip.itinerary.length;
   const totalActivities = editedItinerary.reduce((acc, day) => acc + day.activities.length, 0);
 
-  // Pre-trip checklist (only load when in pre-trip phase). Owner only: the
-  // checklist routes and their RLS admit only the owner, so loading it for a
-  // collaborator was a guaranteed 404 on every visit.
+  // Pre-trip checklist. Owner only: the checklist routes and their RLS admit
+  // only the owner, so loading it for a collaborator would always 404.
   const checklist = useChecklist(trip.id, { enabled: isOwner });
 
   // Toast notifications
   const { addToast } = useToast();
-
-  // Google Calendar OAuth sync was removed in cleanup #224 (callback
-  // route at app/api/calendar/google/callback was deleted along with
-  // the whole F1 OAuth workflow). The toast handler that read
-  // ?gcal_sync= here was orphaned and is gone too. If we ever bring
-  // back a calendar-subscription feature, restore the effect + the
-  // gcalSync* translation keys at the same time.
 
   // Handle status update
   const handleStatusUpdate = async (newStatus: "confirmed" | "cancelled" | "planning") => {
@@ -928,27 +868,23 @@ export default function TripDetailClient({
   const canEdit = ROLE_PERMISSIONS[userRole]?.canEdit ?? false;
   const canPropose = ROLE_PERMISSIONS[userRole]?.canSuggest ?? false; // canSuggest = canPropose
 
-  // **Ambient editing (2026-07-03 moat).** The full manual editor (drag,
-  // delete, move-to-day, add, regenerate, undo/redo) already existed but was
-  // trapped behind an `isEditMode` toggle most users never found — so people
-  // never realised they could edit the plan by hand. For a solo owner we drop
-  // the mode entirely: the editable cards are ALWAYS live and changes
-  // auto-save (see the debounced effect + saveStatus pill). We keep the exact
-  // old mode-based flow for collaborative/voting trips (proposals interleave
-  // by time and would break under a drag context) and for the active-trip
-  // phase (that renders OngoingTripView, not the itinerary). Gated on isOwner
-  // because auto-save PATCHes /api/trips/[id] which is owner-only (user_id eq).
+  // **Ambient editing.** A solo owner has no edit mode: the editable cards
+  // (drag, delete, move-to-day, add, regenerate, undo/redo) are ALWAYS live
+  // and changes auto-save (see the debounced effect + saveStatus pill), so the
+  // manual editor needs no toggle to be found. Collaborative/voting trips keep
+  // the isEditMode flow (proposals interleave by time and would break under a
+  // drag context); the active-trip phase renders OngoingTripView, not the
+  // itinerary. Owner only: editors use edit mode and the explicit Save.
   const ambientEdit = isOwner && !votingEnabled && !isActiveTripPhase;
   useEffect(() => {
     ambientEditRef.current = ambientEdit;
   }, [ambientEdit]);
-  // Activities stored without an id (trips from before ids were stamped at
-  // creation) got derived ids on this load. Solo owners store them once, as
-  // the phantom first-render autosave used to: photos, crew asks and votes
-  // refer to activities by id. Safe on every mount: the ids are the same for
-  // the same stored copy, so a sibling mount's save that landed first counts
-  // as this one (409 with equal content = saved), and a stale copy (router
-  // cache) gets a 409 and takes the stored copy when nothing is edited.
+  // Activities stored without an id got derived ids on this load. Solo owners
+  // store them once, because photos, crew asks and votes refer to activities
+  // by id. Safe on every mount: the ids are the same for the same stored copy,
+  // so a sibling mount's save that landed first counts as this one (409 with
+  // equal content = saved), and a stale copy (router cache) gets a 409 and
+  // takes the stored copy when nothing is edited.
   useEffect(() => {
     if (!ambientEdit || propsVersion === null) return;
     const payload = JSON.stringify(initialItinerary);
@@ -973,8 +909,8 @@ export default function TripDetailClient({
     // Mount only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  // Affordances/rendering are "on" whenever we're ambient OR the legacy mode
-  // is toggled (collaborative trips still use isEditMode).
+  // Affordances/rendering are "on" whenever we're ambient OR isEditMode is
+  // toggled (the flow collaborative trips use).
   const editingActive = ambientEdit || isEditMode;
 
   // Proposal modal state
@@ -1065,15 +1001,15 @@ export default function TripDetailClient({
 
     trackTripViewed({
       tripId: trip.id,
-      isOwnTrip: true, // This page is only accessible by the trip owner
+      isOwnTrip: true, // sent for collaborators too; the view row below tells them apart
       tripStatus: trip.status,
       daysSinceCreation: Math.abs(daysSinceCreation),
       activitiesCount: totalActivities,
     });
 
-    // Phase 0.1 (docs/LIVE_TRIP_MASTER_PLAN.md): the North Star's row.
-    // Collaborators reach this page too (userRole), whatever the comment
-    // above says, so the source says which. Fire-and-forget, keepalive.
+    // The trip_views row the North Star counts (docs/LIVE_TRIP_MASTER_PLAN.md).
+    // Collaborators reach this page too (userRole), so the source says which.
+    // Fire-and-forget, keepalive.
     try {
       void fetch(`/api/trips/${trip.id}/view`, {
         method: "POST",
@@ -1114,8 +1050,8 @@ export default function TripDetailClient({
   // when a drag starts and only re-measures sortable ITEMS when a list
   // changes — the day headers and lists are not sortable items, so anything
   // that shifts the page mid-drag (the preview moving a card between days,
-  // the map or an image loading) left their rects stale and a drop over a
-  // header landed somewhere else. ~15 rects per move is negligible.
+  // the map or an image loading) would leave their rects stale and a drop over
+  // a header would land somewhere else. ~15 rects per move is negligible.
   const dndMeasuring = useMemo(() => ({ droppable: { strategy: MeasuringStrategy.Always } }), []);
 
   // Drag-and-drop sensors for reordering activities
@@ -1303,9 +1239,8 @@ export default function TripDetailClient({
 
       // Persist in the background (fire-and-forget) for those who may edit.
       // Only this one photo is sent; the server sets it on the CURRENT stored
-      // itinerary. This used to send the whole itinerary from this tab's copy,
-      // with no user action, so on a shared trip it silently reverted whatever
-      // someone else had saved since the page loaded.
+      // itinerary. Sending this tab's whole copy would silently revert whatever
+      // someone else saved since the page loaded.
       if (!canEdit) return;
       fetch(`/api/trips/${trip.id}`, {
         method: "PATCH",
@@ -1368,9 +1303,8 @@ export default function TripDetailClient({
 
   // Per-day regeneration: replaces all activities of a single day with a
   // fresh generation that takes the surrounding days as context, steered by
-  // what the traveller wrote in the dialog (the API has always accepted
-  // `instructions`; nothing sent them). Confirmed in the dialog, pushed to
-  // the undo stack, then swapped in.
+  // what the traveller wrote in the dialog (sent as `instructions`). Confirmed
+  // in the dialog, pushed to the undo stack, then swapped in.
   const handleDayRegenerate = useCallback(
     async (dayNumber: number, instructions?: string) => {
       pushUndo(`Regenerate Day ${dayNumber}`);
@@ -1522,8 +1456,8 @@ export default function TripDetailClient({
 
   const handleSaveChanges = useCallback(async () => {
     if (conflictRef.current || itineraryWritesInFlight > 0) return;
-    // "Done" with nothing changed: nothing to send. (It used to PATCH the
-    // unchanged itinerary, which on a stale tab would now be a false 409.)
+    // "Done" with nothing changed: nothing to send. PATCHing the unchanged
+    // itinerary from a stale tab would get a false 409.
     if (!hasChanges) {
       setIsEditMode(false);
       return;
@@ -1593,7 +1527,7 @@ export default function TripDetailClient({
     setEditedItinerary(JSON.parse(JSON.stringify(savedItinerary)));
     setIsEditMode(true);
     clearHistory(); // Start fresh undo/redo stacks
-    // Instrument manual-editor adoption (was previously invisible in PostHog).
+    // Instrument manual-editor adoption.
     void captureEditModeEntered({ trip_id: trip.id, days_count: savedItinerary.length });
   }, [savedItinerary, clearHistory, trip.id]);
 
@@ -1760,10 +1694,10 @@ export default function TripDetailClient({
     });
   }, [propsVersion, trip.itinerary, sync, clearHistory]);
 
-  // Ambient auto-save (2026-07-03 moat). For solo owners there's no Save
-  // button — every drag/delete/edit/add persists in the background after a
-  // short debounce. Collaborative trips (ambientEdit=false) keep their
-  // explicit Save via handleSaveChanges and never enter this effect.
+  // Ambient auto-save. For solo owners there's no Save button — every
+  // drag/delete/edit/add persists in the background after a short debounce.
+  // Collaborative trips (ambientEdit=false) keep their explicit Save via
+  // handleSaveChanges and never enter this effect.
   useEffect(() => {
     if (!ambientEdit) return;
     // In sync with the server (a save just landed, OR the user undid back to
@@ -1819,10 +1753,10 @@ export default function TripDetailClient({
   const handleAIAction = useCallback(
     (action: string, data?: Record<string, unknown>) => {
       // A proposal still waiting for Apply changes nothing here. Acting on it
-      // deleted a proposed removal before it was confirmed: an ambient owner's
-      // autosave stored it at once, and an editor's page went into edit mode
-      // with an unsaved deletion that then blocked Apply. The confirmed change
-      // arrives through handleRefetchTrip.
+      // would delete a proposed removal before it is confirmed: an ambient
+      // owner's autosave would store it at once, and an editor's page would go
+      // into edit mode with an unsaved deletion that blocks Apply. The
+      // confirmed change arrives through handleRefetchTrip.
       if (data?.pending === true) return;
 
       // For actions that were already applied by the AI (replace_activity, add_activity),
@@ -1835,7 +1769,7 @@ export default function TripDetailClient({
       // unsaved local edits, so skip this branch entirely for them.
       if (!actionWasApplied && !isEditMode && !ambientEdit) {
         // From the last SAVED copy, not the page's first render: that one is
-        // stale after any save, and editing from it silently reverted them.
+        // stale after any save, and editing from it would silently revert them.
         setEditedItinerary(JSON.parse(JSON.stringify(savedItinerary)));
         setIsEditMode(true);
       }
@@ -1880,9 +1814,8 @@ export default function TripDetailClient({
     [isEditMode, ambientEdit, savedItinerary, handleActivityDelete, handleActivityMove, handleActivityRegenerate]
   );
 
-  // (handleItineraryUpdate was removed 2026-09-24: it adopted an itinerary
-  // with no version, and nothing called it. Changes from the assistant reach
-  // the page through handleRefetchTrip, inside the save queue.)
+  // Changes from the assistant reach the page through handleRefetchTrip,
+  // inside the save queue.
 
   // Refetch trip data from the database (called after AI modifications)
   // Resolves true when the stored copy was taken. With onlyIfUnedited it is
@@ -1963,8 +1896,7 @@ export default function TripDetailClient({
         const freshCopy = [...processedItinerary];
         // The change is already stored (assistant apply/undo, add from email):
         // this copy IS the saved one, at the version it was read with, in both
-        // modes. (Legacy mode used to keep savedItinerary stale and reopen the
-        // editor so the user "confirmed" a change that was already saved.)
+        // modes, so nobody has to "confirm" a change that is already saved.
         // Runs only inside runItineraryWrite, so nothing else writes between
         // the server write and this read.
         const version = readItineraryVersion(data.trip?.itinerary_version);
@@ -2003,11 +1935,10 @@ export default function TripDetailClient({
     refetchTripRef.current = handleRefetchTrip;
   }, [handleRefetchTrip]);
 
-  // APPLY → SEE loop (transcripts: "I don't see the updates on the webpage" /
-  // "where to see the updated version?"): after the AI assistant applies a
-  // change — or when the user taps the action badge in the chat — scroll the
-  // affected day card into view and flash-highlight it for ~2s so the change
-  // has a visible anchor in the plan.
+  // APPLY → SEE loop: after the AI assistant applies a change — or when the
+  // user taps the action badge in the chat — scroll the affected day card into
+  // view and flash-highlight it for ~2s so the change has a visible anchor in
+  // the plan.
   const [aiFocusDay, setAiFocusDay] = useState<{ day: number; pulse: boolean } | null>(null);
   const aiFocusTimerRef = useRef<number | null>(null);
   const handleFocusDayCard = useCallback((dayNumber: number) => {
@@ -2016,9 +1947,8 @@ export default function TripDetailClient({
     setSelectedDay((prev) => (prev !== null && prev !== dayNumber ? null : prev));
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     // Below lg the assistant is an 85vh bottom sheet that fully covers the
-    // plan — close it, otherwise "scroll into view" is invisible (the exact
-    // mobile complaint in the transcripts). On lg+ it's a 420px side panel,
-    // so the plan stays visible and the chat stays open.
+    // plan — close it, otherwise "scroll into view" is invisible. On lg+ it's
+    // a 420px side panel, so the plan stays visible and the chat stays open.
     if (window.innerWidth < 1024) {
       setIsAIAssistantOpen(false);
     }
@@ -2039,7 +1969,7 @@ export default function TripDetailClient({
   // on drop) or pick a day in the card's "Move to another day" sheet. Both
   // recalculate the times of the source and destination days, push a single
   // undo entry, scroll to and flash the destination day, and confirm with a
-  // toast that offers Undo — the visible undo mobile never had.
+  // toast that offers Undo.
   const firstModificationRef = useRef(true);
 
   // The toast's Undo fires seconds after the move, from a callback created
@@ -2167,18 +2097,11 @@ export default function TripDetailClient({
     return loc ? source[loc.dayIndex].activities[loc.index] : null;
   }, [activeDragId, dragPreview, editedItinerary]);
 
-  // Memoize ensureActivityIds to prevent generating new UUIDs on every render
-  // This is CRITICAL - without memoization, new IDs are generated each render,
-  // causing itineraryHash to change, triggering useTravelDistances to refetch,
-  // which causes state updates and re-renders = infinite loop
-  //
-  // Trust-loop fix (transcripts: "I don't see the updates on the webpage"):
-  // outside edit mode this previously rendered ensureActivityIds(trip.itinerary)
-  // — the SSR-time prop — so an AI-applied edit VANISHED from the page the
-  // moment the user hit Save/Done (edit mode exits but the server prop never
-  // updates client-side). savedItinerary is seeded from that same prop, is a
-  // stable state reference (so the memo concern above still holds), and is
-  // updated on every successful save — render that instead.
+  // Render from state, not trip.itinerary: the prop is the server-rendered
+  // copy and goes stale after any save, so an applied edit would vanish the
+  // moment edit mode exits. State is also a stable reference, which this needs:
+  // a fresh array each render (e.g. new ids from ensureActivityIds) changes
+  // itineraryHash, makes useTravelDistances refetch, and loops re-rendering.
   const displayItinerary = editingActive ? editedItinerary : savedItinerary;
 
   // Fetch travel distances between activities
@@ -2232,18 +2155,15 @@ export default function TripDetailClient({
         coverImageUrl={coverImageUrl}
         // When the trip has a persisted cover URL, skip the Places API
         // entirely. Without one, allow ONE fetch + persist it via the
-        // callback below so subsequent visits read straight from the DB.
-        // This was the gradient-on-old-trips bug — pre-#188 trips had
-        // null cover_image_url and the previous unconditional
-        // disableApiCalls=true left them looking forever broken.
+        // callback below (owner only) so later visits read straight from
+        // the DB. Disabling the API unconditionally would leave trips with
+        // no stored cover on the gradient fallback forever.
         disableApiCalls={!!coverImageUrl}
         onCoverImageFetched={handleCoverImageFetched}
       >
         {/* Status Badge + Backpacker badge stack — top-right of hero.
-            Phase B2 (2026-05-28): Backpacker badge renders for trips
-            generated in Backpacker Mode. Visible signal for partner
-            demos + a self-evident "this is what backpacker mode looks
-            like" cue for the trip owner. */}
+            The Backpacker badge renders for trips generated in Backpacker
+            Mode: a visible cue of what backpacker mode looks like. */}
         <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
           <span
             className={`px-3 py-1.5 rounded-full text-sm font-medium shadow-lg ${
@@ -2273,17 +2193,17 @@ export default function TripDetailClient({
           isAIAssistantOpen ? "lg:mr-[420px]" : ""
         }`}
       >
-        {/* Live Trip Phase 2.4: who said they're going — count, names, join
-            times, remove. The share ask is "send it to the people coming",
-            not "get votes". */}
+        {/* Who said they're going — count, names, join times, remove.
+            The share ask is "send it to the people coming", not "get
+            votes". */}
         {isOwner && participantsEnabled && !isEditMode && (
           <WhoIsGoingCard tripId={trip.id} onShare={openCrewShareModal} className="mb-6" />
         )}
         {/* Backpacker Mode — Hostelworld CTA. Renders only when the
             trip was generated as backpacker (trip_meta.travel_style).
-            Placed above the engagement bar so it's the first thing
-            the owner sees on a backpacker trip — that's the surface
-            we want CTR on for the Hostelworld partnership signal. */}
+            Placed above the engagement bar, near the top of the page,
+            because that's the surface we want CTR on for the
+            Hostelworld partnership signal. */}
         {trip.meta?.travel_style === "backpacker" && (
           <BackpackerHostelCta
             tripId={trip.id}
@@ -2294,10 +2214,10 @@ export default function TripDetailClient({
           />
         )}
 
-        {/* /explore Week 3 (2026-05-25): owner-side engagement bar +
-            Publish-to-Explore toggle. Null when the explore flag is
-            off. Sits at the top of <main> so the owner sees their
-            counts + publish state immediately on page load. */}
+        {/* Owner-side /explore engagement bar + Publish-to-Explore
+            toggle. Null when the explore flag is off. Sits near the top
+            of <main> so the owner sees their counts + publish state
+            immediately on page load. */}
         {engagementSlot && (
           <div className="mb-6 flex items-center gap-3">
             {engagementSlot}
@@ -2306,7 +2226,7 @@ export default function TripDetailClient({
 
         {/* Planning Phase - Confirm Trip Action. Owner only: confirming or
             cancelling is the trip's lifecycle, and PATCH /status admits only
-            the owner, so a collaborator's click was a silent 404. */}
+            the owner, so a collaborator's click would be a silent 404. */}
         {currentStatus === "planning" && isOwner && (
           <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -2324,8 +2244,8 @@ export default function TripDetailClient({
                 </div>
               </div>
               <div className="flex gap-3 w-full sm:w-auto">
-                {/* Said "Cancel" and cancelled the trip in one click (it read
-                    like "dismiss"), with no way back in the app. */}
+                {/* Asks before cancelling: a bare "Cancel" reads like
+                    "dismiss". */}
                 <button
                   onClick={() => setConfirmCancelTrip(true)}
                   disabled={isUpdatingStatus}
@@ -2357,8 +2277,7 @@ export default function TripDetailClient({
           </div>
         )}
 
-        {/* A cancelled trip can come back (the API always allowed it; the
-            page had no control for it). */}
+        {/* A cancelled trip can be restored to planning. */}
         {currentStatus === "cancelled" && isOwner && (
           <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-slate-700">{t('detail.cancelTrip.cancelledNote')}</p>
@@ -2373,12 +2292,11 @@ export default function TripDetailClient({
           </div>
         )}
 
-        {/* In-trip Concierge (F4 / task #242, edit channel P2 2026-08-16).
-            Rendered in EVERY phase — before P2 it lived inside the
-            !isActiveTripPhase branch, i.e. the one chat that vanished
-            exactly while the user was ON the trip. Flag-gated; renders
-            null when the env flag is off. Owner-only apply: /apply is
-            owner-scoped server-side, canEdit only gates the UI. */}
+        {/* In-trip Concierge. Rendered in EVERY phase, outside the
+            !isActiveTripPhase branch, so the chat is there while the user
+            is ON the trip. Flag-gated; renders null when the env flag is
+            off. Apply is offered to the owner only; canEdit gates just the
+            UI (the /apply route checks access itself). */}
         <div className="mb-4 space-y-2">
           <TripConciergeChat
             tripId={trip.id}
@@ -2399,9 +2317,8 @@ export default function TripDetailClient({
               setRenderEpoch((v) => v + 1);
             }}
           />
-          {/* Past Q+A pairs for THIS trip (a June 2026 follow-up).
-              Lazy expand-to-fetch; renders nothing when the Concierge
-              env-flag is off. */}
+          {/* Past Q+A pairs for THIS trip. Lazy expand-to-fetch; renders
+              nothing when the Concierge env-flag is off. */}
           <ConciergeHistory tripId={trip.id} />
         </div>
 
@@ -2410,18 +2327,14 @@ export default function TripDetailClient({
           <div className="space-y-4 mb-6">
             {/* coverImageUrl is passed deliberately: CountdownHero renders a
                 full-bleed photo when it has one and a flat gradient when it
-                does not, and this call site was omitting it - so the most
-                screenshot-shaped surface in the product was shipping as a
-                coral rectangle while 184 of the 208 trips that reach it have
-                a cover photo.
+                does not.
 
-                weatherForecast is still NOT passed. The component wants
+                weatherForecast is NOT passed. The component wants
                 {temp, condition, icon}, but /api/weather returns HISTORICAL
-                seasonal averages (30-day cache, "historical weather data
-                doesn't change"), not a forecast. Labelling a 20-year average
-                as the forecast for someone's trip would be a lie in the one
-                place they are most likely to screenshot. Needs a real
-                forecast source before it can be wired. */}
+                weather (the same dates in a past year), not a forecast, and
+                labelling it as the forecast would mislead on the surface
+                people are most likely to screenshot. Needs a real forecast
+                source. */}
             <CountdownHero
               destination={destination}
               startDate={tripStartDate}
@@ -2500,12 +2413,12 @@ export default function TripDetailClient({
         {/* Planning/Confirmed Phase - Full Itinerary View */}
         {!isActiveTripPhase && (
           <>
-        {/* Travel advisory banner — sourced from UK FCDO (task #222).
+        {/* Travel advisory banner — sourced from UK FCDO.
             Hides itself entirely when the destination has no active alert,
             so it never adds visual noise to safe-destination trips. */}
         <TravelAdvisoryBanner country={destination} className="mb-4" />
 
-        {/* Multi-city Journey ribbon with P4 transit labels ("TRENO · 4h") */}
+        {/* Multi-city Journey ribbon with transit labels ("TRENO · 4h") */}
         {journeyStops.length > 1 && (
           <JourneyRibbon stops={journeyStops} className="mb-4" />
         )}
@@ -2603,9 +2516,8 @@ export default function TripDetailClient({
               />
             )}
 
-            {/* Edit with AI — the primary edit path surfaced (the assistant is
-                the killer feature). Opens the same AIAssistant the floating
-                trigger does. Phase 5.4. */}
+            {/* Edit with AI — the primary edit path, surfaced in the bar.
+                Opens the same AIAssistant the floating trigger does. */}
             {!isEditMode && canUseAssistant && (
               <button
                 onClick={() => setIsAIAssistantOpen(true)}
@@ -2617,9 +2529,9 @@ export default function TripDetailClient({
               </button>
             )}
 
-            {/* More — the trip-detail diet (Phase 5.4): the secondary export
-                utilities collapse into one ⋯ menu so the bar reads
-                Share · Edit with AI · More. Each keeps its own component. */}
+            {/* More — the secondary export utilities collapse into one ⋯
+                menu so the bar reads Share · Edit with AI · More. Each keeps
+                its own component. */}
             {!isEditMode && (
               <TripActionsMenu label={t('detail.more')}>
                 <TripActionsMenuSlot>
@@ -2661,7 +2573,7 @@ export default function TripDetailClient({
 
             {/* Editing controls. Ambient (solo) owners edit inline with
                 auto-save — no mode toggle, just undo/redo + a status pill.
-                Collaborative/active trips keep the classic Modifica flow. */}
+                Other editors use the explicit edit mode. */}
             {ambientEdit ? (
               <div className="flex items-center gap-1.5">
                 <button
@@ -2808,8 +2720,8 @@ export default function TripDetailClient({
         </div>
 
         {/* Ambient-edit hint — one subtle line telling solo owners the plan
-            is directly editable and saves itself. This is the whole point of
-            the moat: making the (previously hidden) manual editor discoverable. */}
+            is directly editable and saves itself, so the manual editor is
+            discoverable. */}
         {ambientEdit && displayItinerary.length > 0 && (
           <p className="-mt-2 mb-6 flex items-center gap-1.5 text-xs text-slate-500">
             <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -2901,10 +2813,9 @@ export default function TripDetailClient({
             />
           ))}
 
-        {/* Post-booking expense tracking (task #220). Behind
+        {/* Post-booking expense tracking. Behind the
             NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED flag — renders null when off,
-            so the existing layout is unchanged for environments that
-            haven't opted in yet. */}
+            so the layout is unchanged where it isn't enabled. */}
         <ExpenseLedger
           tripId={trip.id}
           defaultCurrency={trip.budget?.currency || "EUR"}
@@ -2914,8 +2825,8 @@ export default function TripDetailClient({
         {/* Crew Loop: owner-side crew-votes summary strip. Appears once the
             share link has collected anonymous votes — shows voter names when
             they gave one, and jumps back into the share tab to rally more
-            voters. Hidden during legacy edit mode (ShareButton unmounts
-            there, so the button would have nothing to open). */}
+            voters. Hidden during edit mode (ShareButton unmounts there, so
+            the button would have nothing to open). */}
         {!isEditMode && isOwner && crewVotes !== null && crewVotes.total > 0 && (
           <div className="mb-6 p-4 bg-gradient-to-r from-violet-50 to-blue-50 border border-violet-200 rounded-xl">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -3009,9 +2920,9 @@ export default function TripDetailClient({
         {/* Itinerary */}
         {displayItinerary.length > 0 ? (
           // One drag context for the whole plan, so a card can be dragged from
-          // any day to any other (before: one context per day, and a drag past
-          // the day boundary silently snapped back). Inert when nothing is
-          // sortable (view mode / read-only), so it wraps unconditionally.
+          // any day to any other (with one context per day, a drag past the
+          // day boundary snaps back). Inert when nothing is sortable (view
+          // mode / read-only), so it wraps unconditionally.
           <DndContext
             sensors={sensors}
             collisionDetection={collisionDetection}
@@ -3292,8 +3203,8 @@ export default function TripDetailClient({
                       {/* Add Activity Button - shown whenever editing is active */}
                       {editingActive && (
                         // The indent lives on a wrapper: on the button itself,
-                        // ml-6 plus its w-full made every trip page 8px wider
-                        // than a phone screen (it scrolled sideways).
+                        // ml-6 plus its w-full makes the page wider than a
+                        // phone screen (it scrolls sideways).
                         <div className="mt-4 ml-6">
                           <AddActivityButton
                             dayIndex={dayIndex}
@@ -3363,9 +3274,8 @@ export default function TripDetailClient({
                                     </div>
                                     <div className="text-right">
                                       <div className="font-medium text-slate-900">
-                                        {/* THE crash site for Sentry JAVASCRIPT-NEXTJS-12
-                                            (17 occurrences): estimated_cost is model-generated
-                                            and frequently absent. Only "Free" when the model
+                                        {/* estimated_cost is model-generated and frequently
+                                            absent, so guard it. Only "Free" when the model
                                             actually said 0 — a missing block means unknown,
                                             not free. */}
                                         {!activity.estimated_cost
@@ -3541,8 +3451,7 @@ export default function TripDetailClient({
       {isEditMode && <div className="h-20" />}
 
       {/* AI Assistant Floating Button — primary CTA. Bigger + accented +
-          pulses for first-time visitors so the killer feature is impossible
-          to miss. Previously: muted white pill that 95% of users ignored. */}
+          pulses for first-time visitors so the assistant is hard to miss. */}
       {!isEditMode && canUseAssistant && (
         <button
           onClick={() => setIsAIAssistantOpen(true)}
@@ -3774,15 +3683,11 @@ export default function TripDetailClient({
         <CollaboratorOnboarding isOwner={userRole === "owner"} />
       )}
 
-      {/* The share ask (spec C1). Renders null until the owner has actually
-          engaged with the trip, and only when no link exists yet — it used to
-          fire in the wizard the moment the row was inserted, before the user
-          had read what they were being asked to send.
-
-          Deliberately OUTSIDE the isCollaborativeTrip gate: the whole point is
-          to reach owners of trips that have no collaborators yet. Gating it on
-          "already collaborative" would only ever ask people who had already
-          done the thing being asked for. */}
+      {/* The share ask. Renders null until the owner has actually engaged
+          with the trip (so they have read what they are asked to send), and
+          only when no link exists yet. Deliberately OUTSIDE the
+          isCollaborativeTrip gate: it exists to reach owners of trips that
+          have no collaborators yet. */}
       <SharePromptOnTrip
         tripId={trip.id}
         tripTitle={trip.title}

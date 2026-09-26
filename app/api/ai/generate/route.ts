@@ -50,9 +50,8 @@ const USE_MAPS_GROUNDING = process.env.USE_MAPS_GROUNDING === "true";
 // routes count against one bucket.
 const anonGenIpLimiter = createRateLimiter("anon-generate", 40, 24 * 60 * 60 * 1000);
 
-// Cache helpers extracted to lib/ai/cache.ts (2026-05-28) so the
-// streaming route can share them. See that file for the unique-key
-// shape + idempotency guarantees.
+// Cache helpers live in lib/ai/cache.ts, shared with the streaming route. See
+// that file for the unique-key shape + idempotency guarantees.
 
 export async function POST(request: NextRequest) {
   // Sums every Gemini response this request pays for: a multi-city trip makes
@@ -65,34 +64,19 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
   const startTime = Date.now();
 
   try {
-    // **2026-05-23**: Anonymous generation enabled (per conversion audit).
-    // Visitors can generate one trip without signing up — the auth wall
-    // fires at Save instead. This is the single biggest conversion lift
-    // available (75% of generators previously never reached trip_created
-    // because of the post-fill signup modal).
-    //
-    // Auth flow: try to get the user; if absent, we're in anonymous mode.
-    // Rate-limit anonymous users via cookie to prevent obvious abuse.
+    // Anonymous generation is allowed: visitors generate without signing up and
+    // the auth wall fires at Save, because a signup wall before the result
+    // loses most generators. No user means anonymous mode, capped per cookie
+    // (lib/anonymous/rate-limit) and per IP below.
     const supabase = await createClient();
     const { data: { user: maybeUser } } = await supabase.auth.getUser();
     const user: User | null = maybeUser ?? null;
     const isAnonymous = user === null;
 
-    // PERF (#190): Fan out the independent pre-Gemini reads.
-    //
-    // Previously these ran serially:
-    //   anon rate-limit → SELECT users(preferences,notification) →
-    //     cookie read → SELECT users(preferred_language) →
-    //     request.json → checkApiAccess
-    //
-    // None of them depend on each other (the request body parse is pure
-    // I/O, and the users-table reads were a duplicate). Promise.all
-    // collapses ~5 sequential RTTs into one parallel batch.
-    //
-    // Error semantics preserved: each member resolves to a result we
-    // inspect in the original priority order below (anon rate-limit →
-    // body validity → access kill-switch → quota). A rejection from
-    // request.json is caught and surfaced as a 400.
+    // The pre-Gemini reads are independent, so they run in parallel; their
+    // results are checked below in priority order: anon cookie limit → per-IP
+    // limit → body validity → (param validation) → access kill-switch.
+    // A rejection from request.json resolves to null and becomes a 400.
     const [anonLimit, body, userContext, access, anonIpLimit] = await Promise.all([
       isAnonymous ? checkAnonymousRateLimit() : Promise.resolve(null),
       request.json().catch(() => null as Record<string, unknown> | null),
@@ -143,7 +127,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       seasonalContext: body.seasonalContext as TripCreationParams["seasonalContext"],
       interests: (body.interests as string[]) || [],
       requirements: body.requirements as TripCreationParams["requirements"],
-      // Must-do wishlist (P3a). Trim + drop empties client-shape-agnostically;
+      // Must-do wishlist. Trim + drop empties client-shape-agnostically;
       // validateTripParams enforces count/length/injection limits below.
       ...(Array.isArray(body.mustDos) && body.mustDos.length > 0
         ? {
@@ -168,12 +152,11 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     const wantsFresh = body.fresh === true;
 
 
-    // Multi-city: when the client sends a `destinations` array of >1 leg, route
-    // to the per-city PARALLEL generator (lib/ai/multi-city) instead of single-
-    // city generation. Backward-compatible — requests without `destinations`
-    // (the overwhelming majority) take the untouched single-city path below.
-    // The client still sends destination/startDate/endDate (combined label +
-    // whole-trip range) so usage limits, validation, and logging are unchanged.
+    // Multi-city: a `destinations` array of >1 leg routes to the per-city
+    // PARALLEL generator (lib/ai/multi-city); requests without it take the
+    // single-city path below. The client still sends destination/startDate/
+    // endDate (combined label + whole-trip range), which usage limits,
+    // validation, and logging read.
     let legs: CityLeg[] | null = null;
     if (Array.isArray(body.destinations) && body.destinations.length > 0) {
       legs = (body.destinations as Array<{ city?: unknown; nights?: unknown }>).map((d) => ({
@@ -190,11 +173,10 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       }
     }
 
-    // Anchored trips (F1, docs/CONSTRAINT_PLANNER_PLAN.md): fixed commitments
-    // the plan must honour — a wedding, a flight, a night that must end in a
-    // specific town. Backward-compatible: requests without `anchors` are
-    // untouched. Mutually exclusive with multi-city in v1 (the anchored
-    // planner derives its own geography from the anchors themselves).
+    // Anchored trips (docs/CONSTRAINT_PLANNER_PLAN.md): fixed commitments the
+    // plan must honour — a wedding, a flight, a night that must end in a
+    // specific town. Not combinable with multi-city: the anchored planner
+    // derives its own geography from the anchors themselves.
     if (Array.isArray(body.anchors) && body.anchors.length > 0) {
       if (isMultiCity) {
         return errors.badRequest("anchors cannot be combined with multi-city trips yet");
@@ -231,17 +213,11 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       return errors.serviceUnavailable(access.message || "AI generation is currently disabled");
     }
 
-    // Authenticated-tier usage limits (anonymous is rate-limited above via
-    // cookie). NOTE: authenticated free users are NOT unlimited — this route
-    // enforces the free monthly cap via checkUsageLimit → TIER_LIMITS and
-    // returns 429 below when over. (Corrected 2026-07-24; the prior comment
-    // claimed unlimited, which was never true for the code path directly
-    // below. Free cap was raised 3→30/mo the same day.)
-    //
-    // PERF (#190): Run checkUsageLimit alongside the cross-user cache read.
-    // They hit different tables (usage_limits vs activity_cache) and share
-    // no state — running them sequentially was the single biggest avoidable
-    // wait in the cache-hit path.
+    // Authenticated-tier usage limits (anonymous is rate-limited above by
+    // cookie and IP). Free users are NOT unlimited: checkUsageLimit →
+    // TIER_LIMITS enforces the monthly cap, and the route returns 429 below
+    // when over. checkUsageLimit runs alongside the cross-user cache read:
+    // different tables (user_usage vs destination_activity_cache), no shared state.
 
     // Calculate total trip duration (multi-city: the sum of per-city nights,
     // which is authoritative; single-city: derived from the date range).
@@ -254,9 +230,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
 
     const userIsAdmin = user ? isAdmin(user.email) : false;
 
-    // 2026-05-28 follow-up: the cache now keys on travel_style (Tier 1.2
-    // migration), so backpacker hits its own cache pool — no leak into
-    // classic results and vice versa. The skip-cache hack is removed.
+    // The cache keys on travel_style, so backpacker and classic trips never
+    // share a cache pool.
     const [usageCheck, cachedItinerary] = await Promise.all([
       user
         ? checkUsageLimit(user.id, "aiGenerations", user.email)
@@ -327,12 +302,9 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     ) {
       // Cache hit - adjust dates and sanitize (defense-in-depth: treat cached data as untrusted)
       //
-      // The guard was `>= 1`, which accepted ANY cached itinerary however
-      // short. Combined with a cache key that omits trip length, a 5-day entry
-      // answered a 14-day request and the user silently got 5 days. Measured
-      // 2026-09-01 across 428 saved trips: 93 (21.7%) hold fewer days than
-      // their own date range, 0 hold more. `>= totalDays` is the invariant;
-      // adjustItineraryDates then slices a longer entry down to fit.
+      // The cache key omits trip length, so `>= totalDays` is the invariant
+      // that stops a shorter entry answering a longer trip;
+      // adjustItineraryDates slices a longer entry down to fit.
       itinerary = sanitizeItinerary(adjustItineraryDates(cachedItinerary, params.startDate, params.endDate));
       cacheHit = true;
       console.log(`[AI Generate] Using cached itinerary for ${params.destination}`);
@@ -344,9 +316,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       // Falls back to traditional Gemini if Maps Grounding fails or is disabled
       // canGroundDestination: skip the whole call when the coordinate table does
       // not know this place. Otherwise grounding falls back to PARIS
-      // coordinates, spends 40s+, grounds zero places, and we fall through to
-      // the normal generator anyway -- turning a working request into a
-      // timeout. Measured on a 14-day Valencia request: 44s wasted, then 500.
+      // coordinates, spends 40s+ grounding nothing, and falls through to the
+      // normal generator anyway -- turning a working request into a timeout.
       if (
         USE_MAPS_GROUNDING &&
         isMapsGroundingAvailable() &&
@@ -355,15 +326,11 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         try {
           console.log(`[AI Generate] Using Maps Grounding for ${params.destination}...`);
           itinerary = await generateItineraryWithMapsGrounding(params);
-          // A short result is a FAILURE, not a success.
-          //
-          // parseGroundedItinerary builds days by regex-matching "Day N"
-          // headers in the model's prose and `continue`s past any it cannot
-          // find, so a truncated response yields fewer days with no error --
-          // and this branch used to log "SUCCESS: 8 days" for a 14-day trip.
-          // Throwing here routes it into the catch below, which already falls
-          // back to generateItinerary. That fallback is the whole reason this
-          // is wrapped in a try.
+          // A short result is a FAILURE, not a success: parseGroundedItinerary
+          // builds days by regex-matching "Day N" headers in the model's prose
+          // and `continue`s past any it cannot find, so a truncated response
+          // yields fewer days with no error. Throwing routes it into the catch
+          // below, which falls back to generateItinerary.
           if (itinerary.days.length < totalDays) {
             throw new Error(
               `Maps Grounding returned ${itinerary.days.length}/${totalDays} days`
@@ -424,12 +391,12 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       );
     }
 
-    // Assign activity images server-side (prevents a client race). COST PASS
-    // 2026-06-30: maxPaidLookups:0 → ZERO paid Google calls here. Every activity
-    // still gets an image — a FREE cache-hit real photo or a type-relevant
-    // curated fallback — so the pre-save result page is never broken/empty.
-    // Real Google photos are resolved later, only for trips that are actually
-    // SAVED, via /api/trips/[id]/enrich-photos (the small fraction that convert).
+    // Assign activity images server-side (prevents a client race).
+    // maxPaidLookups:0 → ZERO paid Google calls here. Every activity still gets
+    // an image — a FREE cache-hit real photo or a type-relevant curated
+    // fallback — so the pre-save result page is never broken/empty. Real Google
+    // photos are resolved only for SAVED trips (most generations never are),
+    // via /api/trips/[id]/enrich-photos.
     if (!cacheHit) {
       try {
         await fetchActivityImages(itinerary.days, params.destination, { maxPaidLookups: 0 });
@@ -478,7 +445,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
 
     // Fire-and-forget Sentry breadcrumb for the success rate dashboard.
     // The success-rate denominator needs both successes and failures, and
-    // logApiCall above only writes to api_calls_log — Sentry would
+    // logApiCall above only writes to api_request_logs — Sentry would
     // otherwise only see failures, making the rate calc meaningless.
     void recordAiOutcome({
       endpoint: "generate",
@@ -519,9 +486,9 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
 
     return apiSuccess({
       success: true,
-      // Phase 1.3: the save arms read this into trip_meta.locale.
-      // Phase 1.3 language + Phase 3.1 timezone (derived server-side from the
-      // itinerary coordinates); both are read into trip_meta by the save arms.
+      // The save arms read language into trip_meta.locale and timezone
+      // (derived server-side from the itinerary coordinates) into
+      // trip_meta.timezone.
       itinerary: { ...sanitizedItinerary, language: userLanguage, timezone: deriveTimezoneFromItinerary(sanitizedItinerary.days) ?? undefined },
       meta: {
         generationTimeMs: generationTime,
@@ -552,8 +519,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       error: error instanceof Error ? error.message : "Unknown error",
     });
 
-    // Capture to Sentry. Previously this only hit console + DB —
-    // generation failures were invisible to alerting (task #223).
+    // Capture to Sentry too: console + DB logs alone never alert.
     void recordAiOutcome({
       endpoint: "generate",
       outcome: "failure",

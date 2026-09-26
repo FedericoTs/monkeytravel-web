@@ -16,52 +16,25 @@ import {
 } from "./gemini-dedup";
 import { paceBudgetPromptClause } from "./trip/pace";
 
-// Threshold for incremental generation (days)
-
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
-// Per-attempt timeout for AI requests.
-//
-// 2026-05-31 P1 FIX: was 120_000ms (120s). With MAX_RETRIES=2 that would
-// IMPLY a worst-case of 360s — but Vercel's app/api/ai/generate route
-// caps the whole serverless invocation at maxDuration=120 (vercel.json).
-// In practice: attempt 1 burned the entire 120s budget, retries never
-// fired, users waited 120s for a 500. Observed prod (last 24h):
-// 21% failure rate, P95 latency 134s on failures, P95 25s on successes.
-//
-// 2026-06-01 launch-day rework: 30s/3-attempts → 50s/2-attempts.
-//
-// History: commit c0388c9 raised non-streaming maxOutputTokens
-// 6000 → 8000 (to stop 5-day trips truncating). That pushed P95 latency
-// from ~25s to ~32s and P99 to ~45s. The old 30s budget tripped on
-// legitimate responses; Sentry 124184403 fired during launch-broadcast
-// traffic. A 35s interim bump (commit 1072951) bought 3s headroom but
-// left no buffer for the P99 tail.
-//
-// Permanent budget: 50s × (1 + MAX_RETRIES=1 attempts) + 3s inter-retry
-// = 103s worst case, comfortably under the 120s Vercel maxDuration.
-// 50s covers P99 of 8K-token calls (~45s) with 5s headroom.
-//
-// Why drop retries 2 → 1: when attempt 1 hits the wrapper timeout,
-// Gemini is almost certainly stuck on this prompt — re-issuing the
-// exact same prompt rarely recovers. The 2nd retry was burning 30+
-// seconds of user-perceived latency for marginal recovery rate.
-// One retry with lower temperature (existing logic) still catches
-// transient Gemini blips; a 3rd attempt was redundant.
+// Per-attempt timeout for AI requests. 50s covers the P99 latency of an
+// 8K-token response (~45s); itineraryTimeoutMs raises it for trips over 7 days.
+// At most two attempts (MAX_RETRIES = 1, 1s pause after an API error), so at
+// 50s the worst case, 50 + 1 + 50 = 101s, fits the generate route's 120s
+// maxDuration (vercel.json). One retry only: a timed-out attempt usually means
+// Gemini is stuck on that prompt and re-sending it rarely recovers; the
+// lower-temperature retry still catches transient blips.
 const AI_REQUEST_TIMEOUT_MS = 50_000;
 
 /**
  * How long to allow ONE itinerary generation, scaled by trip length.
  *
- * 50s is a sensible guard for the median 3-5 day trip. It is the wrong guard
- * for a 14-day trip, which emits roughly three times the tokens and needs
- * proportionally longer: measured 2026-09-01, a 14-day request timed out at
- * 50s, retried, timed out again and returned a 500 -- while the same length
- * for another city completed in 26s. A fixed ceiling turns "slow" into
- * "broken" for exactly the trips that are hardest to produce.
- *
- * Capped at 90s so a single attempt still fits inside the route's 120s Vercel
- * maxDuration with room for the surrounding work.
+ * 50s suits the median 3-5 day trip, but a 14-day trip emits roughly three
+ * times the tokens, and a fixed ceiling turns "slow" into "broken" for exactly
+ * the trips that are hardest to produce. Capped at 90s so a single attempt
+ * still fits inside the route's 120s Vercel maxDuration with room for the
+ * surrounding work.
  */
 export function itineraryTimeoutMs(days?: number): number {
   if (!days || days <= 7) return AI_REQUEST_TIMEOUT_MS;
@@ -80,16 +53,12 @@ function tripDayCount(p: { startDate: string; endDate: string }): number {
 
 /**
  * Backfill a missing or partial trip_summary so downstream consumers
- * (wizard render, persistTrip, banana cost calc) don't crash when the
- * model truncates the response before emitting the summary block.
+ * (wizard render, persistTrip) don't crash when the model truncates the
+ * response before emitting the summary block: tryRepairTruncatedJSON can
+ * recover valid `days` with no trailing trip_summary. Safe defaults let the
+ * UI render; users can edit the budget after save.
  *
- * Sentry JAVASCRIPT-NEXTJS-Z fired with "Cannot read properties of
- * undefined (reading 'total_estimated_cost')" on /:locale after the
- * JSON-repair landed: the repaired itinerary had valid `days` but lost
- * the trailing trip_summary entirely. We synthesize safe defaults so
- * the UI renders; users can edit the budget after save.
- *
- * Mutates the input for ergonomics (matches validateAndFixCoordinates).
+ * Mutates the input and returns it.
  */
 function ensureTripSummary(itinerary: GeneratedItinerary): GeneratedItinerary {
   const existing = (itinerary as { trip_summary?: Partial<GeneratedItinerary["trip_summary"]> })
@@ -109,22 +78,20 @@ function ensureTripSummary(itinerary: GeneratedItinerary): GeneratedItinerary {
 /**
  * Attempt to repair truncated/malformed JSON from Gemini.
  *
- * Why this exists: Sentry JAVASCRIPT-NEXTJS-V "Failed to generate valid
- * itinerary after retries" fires when the model's 8K-token output cap is
- * hit mid-string or mid-array, leaving syntactically broken JSON. Retries
- * don't help — same prompt + same cap = same truncation. Better to recover
- * a shorter-but-valid itinerary than 500 the user.
+ * A response that hits maxOutputTokens mid-string or mid-array is broken
+ * JSON, and retries don't help — same prompt + same cap = same truncation.
+ * Better to recover a shorter-but-valid itinerary than 500 the user.
  *
  * Strategy: walk char-by-char tracking string state and bracket depth.
  * If we end inside a string or with unclosed structures, close them in
- * reverse order. Returns null when input is already valid (no repair
- * needed) or when structure is too broken to safely recover (mismatched
- * brackets etc).
+ * reverse order. Returns null when the brackets already balance (the parse
+ * error is something else) or when structure is too broken to safely
+ * recover (mismatched brackets etc).
  *
  * Trade-off: a "repaired" itinerary may be missing the last day(s) or
- * have a truncated final activity. validateAndFixCoordinates() backfills
- * defaults gracefully. Worst case: user gets a 5-day trip when they
- * asked for 7 (we'll log a warning to Sentry so we can monitor frequency).
+ * have a truncated final activity; validateAndFixCoordinates() and
+ * ensureTripSummary() backfill defaults. Callers log a Sentry breadcrumb
+ * per repair so the frequency stays visible.
  */
 function tryRepairTruncatedJSON(raw: string): string | null {
   // Strip markdown code fences if Gemini added them despite our instructions.
@@ -198,32 +165,12 @@ const CACHE_HIT_RATE_MIN_SAMPLES = 20; // don't alert until we have a real signa
 const CACHE_HIT_RATE_ALERT_COOLDOWN_MS = 60 * 60 * 1000; // 1 alert/hour max
 
 /**
- * Materiality gate — the alert must be worth a human's attention.
- *
- * MEASURED 2026-08-21. generateItinerary alerted at 0.0% and the message
- * asserted "this is a real regression … audit lib/prompts.ts". Both halves were
- * wrong, and chasing them cost hours:
- *
- *   - The prefix is NOT dynamic. buildStaticChatHistory is byte-identical by
- *     construction (cached system prompt + constant spec + constant ack).
- *   - It is not call spacing either: three real production generations fired
- *     17-40s apart all returned cached=0.
- *     16:49:52 prompt=1761 cached=0 · 16:50:32 prompt=1761 cached=0 ·
- *     16:50:49 prompt=1760 cached=0
- *   - So implicit caching simply never engages here. It is not a regression;
- *     it has never worked.
- *
- * And the prize is tiny. With this repo's own pricing (gemini-2.5-flash:
- * $0.15/1M in, $0.0375/1M cached), input is only ~11.6% of a call's cost and
- * caching discounts 75% of that. Best case for the ~1,260-token prefix:
- *
- *   $0.00014/call -> ~$1.55/year at today's ~30 generations/day
- *                    ~$15/year even at 10x the traffic
- *
- * An alert that fires repeatedly, names the wrong cause, and points at a
- * rounding error is worse than no alert: it burns the attention a real
- * regression needs. So the hit-rate threshold alone is no longer enough —
- * the projected annual waste must also clear this bar.
+ * Materiality gate: a low hit rate alerts only when the projected annual waste
+ * also clears this bar. Implicit caching does not engage on generateItinerary's
+ * prefix even though buildStaticChatHistory keeps it byte-identical, so a 0%
+ * rate there is not a regression; and caching discounts only input tokens, a
+ * small share of a call's cost. An alert over a rounding error burns the
+ * attention a real regression needs.
  */
 const CACHE_ALERT_MIN_ANNUAL_USD = 50;
 
@@ -246,27 +193,20 @@ type CacheSample = { pct: number; ts: number; missedUsd: number };
  * Gemini implicit caching only engages once the prompt clears a model-specific
  * floor (1,024 tokens on the 2.5 Flash tier, 2,048 on Pro). Below it,
  * `cachedContentTokenCount` is ALWAYS 0 — no prompt reordering can change
- * that. Feeding those calls into the rolling average produced a permanent
- * false alarm (Sentry JAVASCRIPT-NEXTJS-1P fired on ai.assistant-anon, whose
- * whole prompt template is only ~540 tokens — structurally uncacheable, and
- * worth ~$0.0001/call even if it weren't). Skip them so the metric measures
- * only calls where caching is actually possible.
+ * that — so small-prompt endpoints (e.g. ai.assistant-anon) would make the
+ * rolling average a permanent false alarm. Skip them.
  */
 const CACHE_MIN_ELIGIBLE_PROMPT_TOKENS = 1024;
 
-// Per-endpoint windows. Previously ONE module-level array pooled every
-// endpoint together, so a high-traffic small-prompt surface could drag the
-// global average under the threshold and mask a real cache regression on a
-// big-prompt endpoint (trip generation), or vice versa. Keyed by the same
-// label callers already pass in.
+// One window per endpoint, keyed by the label callers pass in: a pooled
+// average lets a high-traffic endpoint fake a cache regression, or hide a real
+// one on a big-prompt endpoint (trip generation).
 const cacheHitRolling = new Map<string, CacheSample[]>(); // endpoint -> samples
 const lastCacheAlertAt = new Map<string, number>();
 
 /**
- * Exported so every API route that calls Gemini can wire the same
- * rolling cache-hit metric, instead of each route reinventing its own
- * (or — as was the case before 2026-05-31 — silently skipping it and
- * letting prompt-cache regressions burn money invisibly).
+ * Exported so every API route that calls Gemini wires the same rolling
+ * cache-hit metric instead of reinventing its own or skipping it.
  *
  * Call this AFTER any `model.generateContent(...)` /
  * `model.generateContentStream(...)` and pass `response.usageMetadata`
@@ -357,9 +297,8 @@ export function logCacheMetrics(
           CACHE_HIT_RATE_ALERT_COOLDOWN_MS
       ) {
         lastCacheAlertAt.set(endpoint, now);
-        // State what was measured; do not assert a cause. The last time this
-        // message guessed ("non-cacheable prefix … audit lib/prompts.ts") the
-        // guess was wrong and the investigation cost hours.
+        // State what was measured; do not assert a cause: a guessed cause
+        // sends the investigation down the wrong path.
         const msg =
           `[Gemini Cache] ${endpoint}: cache-hit rate ${avg.toFixed(1)}% over ` +
           `${window.length} eligible calls (threshold ${CACHE_HIT_RATE_ALERT_THRESHOLD}%), ` +
@@ -385,21 +324,18 @@ export function logCacheMetrics(
   }
 }
 
-// Model configurations
-// NOTE: kept for backward compat with callers that still import MODELS
-// (e.g. lib/email-parse/extract.ts). New code should
-// route through `getModelForPurpose(...)` in `lib/ai/model-router.ts` so
-// the routing matrix + env override (GEMINI_MODEL_OVERRIDE) live in one
-// place.
+// Model configurations. Nothing imports MODELS: route model choice through
+// `getModelForPurpose(...)` in `lib/ai/model-router.ts`, where the routing
+// matrix + env override (GEMINI_MODEL_OVERRIDE) live.
 // See: https://developers.googleblog.com/en/gemini-2-5-models-now-support-implicit-caching/
 export const MODELS = {
-  fast: "gemini-2.5-flash-lite",      // Cheapest with implicit caching ($0.10/1M → $0.025 with cache)
+  fast: "gemini-2.5-flash-lite",      // Cheapest with implicit caching (prices: lib/ai/gemini-cost.ts)
   thinking: "gemini-2.5-pro",          // Best for complex reasoning
   premium: "gemini-2.5-flash",         // Best price/performance ratio
 } as const;
 
-// System prompt for trip generation - now loaded from database via getPrompt()
-// See lib/prompts.ts for default values and database integration
+// The trip-generation system prompt loads from the database via getPrompt();
+// lib/prompts.ts holds the defaults and the database integration.
 
 /**
  * Build profile preferences section for the prompt
@@ -515,7 +451,7 @@ function buildSchedulingPreferencesSection(profilePreferences?: UserProfilePrefe
 interface BuildPromptOptions {
   language?: SupportedLanguage; // Language for AI response
   /**
-   * Anchored-trip segment brief (F1, lib/ai/anchors-core.buildSegmentBrief):
+   * Anchored-trip segment brief (lib/ai/anchors-core.buildSegmentBrief):
    * a deterministic constraint block — fixed commitments, start/end-near
    * context — appended as its own prompt section. Internal only: set by
    * lib/ai/anchored.ts, never by API clients.
@@ -681,13 +617,11 @@ export function validateAndFixCoordinates(days: ItineraryDay[], destination: str
 
 // Static output spec, part of the SHARED CHAT PREFIX (see buildStaticChatHistory).
 //
+// It lives in the static history, not the per-request user prompt, because
 // Gemini implicit caching only engages when requests share an identical token
-// prefix of >=1024 tokens (2.5 Flash). The system prompt + ack alone is ~750
-// tokens, so the cache could never engage and the rolling hit rate sat at
-// 0.0% (Sentry JAVASCRIPT-NEXTJS-1P). Moving this ~600-token block out of the
-// per-request user prompt into the static history pushes the shared prefix
-// past the threshold — and because the blocking and streaming call sites both
-// use buildStaticChatHistory, they share one cache entry.
+// prefix of >=1024 tokens (2.5 Flash) and the system prompt + ack alone is ~750
+// tokens. The blocking and streaming call sites both use
+// buildStaticChatHistory, so they share one cache entry.
 //
 // Everything here MUST stay request-independent: the four booking-link URLs
 // use {DEST_SLUG}/{DEST_ENCODED}/{START_DATE}/{END_DATE} template tokens whose
@@ -793,7 +727,6 @@ function buildUserPrompt(params: TripCreationParams, options?: BuildPromptOption
         (1000 * 60 * 60 * 24)
     ) + 1;
 
-  // For partial generation, only generate up to maxDays
   const duration = totalDuration;
 
   // Pre-compute URL-safe destination for booking links
@@ -827,15 +760,11 @@ IMPORTANT: Blend these vibes throughout the itinerary. For fantasy vibes (wonder
 `
     : "";
 
-  // Backpacker Mode — added 2026-05-28.
-  //
-  // When the traveller picked "Backpacker mode" in the wizard, inject a
+  // Backpacker Mode: when the traveller picked it in the wizard, inject a
   // strong directive so Gemini optimises the entire itinerary for the
   // budget / multi-city / social demographic — not just the budget tier.
-  // This is the strategic wedge for the Hostelworld partnership: the
-  // generated trips have to *look* like backpacker plans (hostels,
-  // walking tours, public transit, social food spots) for the partner
-  // demo to land.
+  // The trips have to *look* like backpacker plans (hostels, walking tours,
+  // public transit, social food spots).
   const travelStyleSection = params.travelStyle === "backpacker"
     ? `## Travel Style: BACKPACKER MODE
 This traveller is a budget-conscious backpacker. Optimise the itinerary accordingly:
@@ -868,10 +797,10 @@ Consider these seasonal factors when selecting activities and timing. Include se
   // Language instruction for non-English responses
   const languageSection = getLanguageInstruction(options?.language);
 
-  // Anchored-trip constraints (F1): deterministic brief from
-  // lib/ai/anchors-core — fixed commitments + where this stretch must start
-  // and end. Placed late in the prompt (near the other per-trip values) so
-  // the cache-friendly head of the request stays untouched.
+  // Anchored-trip constraints: deterministic brief from lib/ai/anchors-core —
+  // fixed commitments + where this stretch must start and end. Placed late in
+  // the prompt (near the other per-trip values) so the cache-friendly head of
+  // the request stays untouched.
   const anchorSection = options?.anchorBrief
     ? `## Fixed Commitments (plan around these — they are non-negotiable)
 ${options.anchorBrief}
@@ -954,73 +883,28 @@ async function generateItineraryInternal(
   const startTime = performance.now();
 
   // Route through model-router so the routing matrix lives in one place.
-  // trip-generation → gemini-2.5-pro (full itinerary, quality matters).
+  // trip-generation → gemini-2.5-flash.
   const modelName = getModelForPurpose("trip-generation");
 
-  // maxOutputTokens: lowered from 8192 → 6000 per the 2026-05-31 API
-  // audit. ~25% output cost savings on the long tail (Gemini bills for
-  // the cap, not the actual emitted tokens, on certain configurations).
-  // Median trip is 3-5 days @ ~750 tokens/day = ~3k tokens — well under
-  // the new ceiling. The 1% tail of 12-14 day trips that would exceed
-  // 6000 tokens will truncate the final day's tips/cost block; the
-  // post-process coordinate fixer + JSON.parse failure path will retry
-  // with the lower-temperature branch which produces tighter output.
-  // 2026-06-01 P0 FIX: disable thinking on gemini-2.5-pro for the
-  // trip-generation call. Pro is a thinking model and the legacy
-  // @google/generative-ai SDK (0.24.x) doesn't expose thinkingConfig
-  // in its TS types — but the underlying REST endpoint accepts it.
-  // We pass it through via type-cast.
-  //
-  // Why this matters: Sentry issue 123983732 (2026-06-01 03:35 UTC)
-  // showed 'AI service unavailable' in prod. Direct REST test against
-  // 2.5-pro showed 1433 *thoughts* tokens for a 1-CHAR prompt taking
-  // 14s. For a real itinerary prompt (1500-3000 input tokens, 6000
-  // output cap), default thinking blows past AI_REQUEST_TIMEOUT_MS
-  // (30s) — every attempt times out, retries fire, route returns 500
-  // after ~93s.
-  //
-  // thinkingBudget=0 → no extended thinking → response time matches
-  // 2.5-flash (~10-25s for a full itinerary). Same model quality for
-  // structured JSON output where deep reasoning isn't needed.
+  // Thinking is off (thinkingConfig below). gemini-2.5-flash thinks by
+  // default: thinking tokens count against maxOutputTokens and, on a full
+  // itinerary prompt, can push every attempt past its timeout. Structured JSON
+  // output does not need deep reasoning. 2.5-pro rejects thinkingBudget 0
+  // ("only works in thinking mode"), so this purpose must stay on a flash model.
   const model = genAI.getGenerativeModel({
     model: modelName,
     generationConfig: {
       temperature: retryCount > 0 ? 0.7 : 1.0, // Lower temperature on retry
       topP: 0.95,
       topK: 40,
-      // 2026-06-01 parity bump: streaming gen was raised 6000 → 8000
-      // (commit 368a5da) after live verification showed 5-day trips
-      // truncating at ~7K tokens. Non-streaming path uses the same
-      // model + same prompt shape — any 5-7 day trip is at the same
-      // risk here. Output is billed per emitted tokens (not the cap),
-      // so the only cost on the rare 12-14 day overlong-output tail
-      // is ~33% on those specific calls. Median trip stays cheaper
-      // because it never hits the cap.
-      //
-      // Why this matters less than the streaming path: this internal
-      // entry point is used by the mobile cache warmer + the MCP
-      // (external ChatGPT) bridge. Lower volume than the wizard, but
-      // the same truncation failure mode and the user has even less
-      // visibility into the partial result. Parity is the safer call.
-      // 2026-09-01: 8000 -> 16000. MEASURED across 428 saved trips: 93 (21.7%)
-      // hold fewer days than their own date range and 0 hold more, scaling hard
-      // with length -- 7d 6% short, 10d 70%, 14d 90%. A fresh 14-day generation
-      // (cache forced to miss) returned 8 days. MAX_TRIP_DAYS is 14 and a day
-      // costs ~750 output tokens, so the honest budget is ~10.5k; 8000 could
-      // never fit the longest trip the wizard offers as a one-tap preset.
-      //
-      // On cost: the comment below this one claimed the cap itself is billed.
-      // It is not -- Gemini bills EMITTED output tokens, which the sibling
-      // comment on the non-streaming path already states ("Output is billed
-      // per emitted tokens (not the cap)"). Those two notes contradicted each
-      // other and the pessimistic one set the cap. A 3-day trip emits ~2.2k
-      // either way and pays exactly the same after this change; only the long
-      // trips that are currently BROKEN cost more, which is the point.
+      // A day costs ~750 output tokens and the wizard's MAX_TRIP_DAYS is 14
+      // (~10.5k), so a lower cap cuts the longest trips short. Gemini bills
+      // EMITTED output tokens, not the cap, so shorter trips cost the same.
+      // Keep in sync with generateItineraryStream (same model, same prompt).
       maxOutputTokens: 16000,
       responseMimeType: "application/json",
-      // Cast: legacy SDK types lack `thinkingConfig`; the REST API has
-      // accepted it since 2025-Q2. If a future SDK upgrade exposes it
-      // natively, drop the cast.
+      // Cast: legacy SDK types lack `thinkingConfig`; the REST API accepts
+      // it. If a future SDK upgrade exposes it natively, drop the cast.
       ...({ thinkingConfig: { thinkingBudget: 0 } } as Record<string, unknown>),
     },
   });
@@ -1035,7 +919,7 @@ async function generateItineraryInternal(
     history: buildStaticChatHistory(systemPrompt),
   });
 
-  // Pass options to buildUserPrompt for partial generation support
+  // options carries the response language and the anchored-trip brief.
   const userPrompt = buildUserPrompt(params, options);
 
   try {
@@ -1052,7 +936,7 @@ async function generateItineraryInternal(
     logCacheMetrics("generateItinerary", response.usageMetadata, modelName);
 
     // Try to parse JSON, with a defensive repair pass for truncated output
-    // (Sentry JAVASCRIPT-NEXTJS-V — model hits maxOutputTokens mid-string).
+    // (the model can hit maxOutputTokens mid-string).
     const parseAttempt = (source: string): GeneratedItinerary => {
       const itinerary = JSON.parse(source) as GeneratedItinerary;
       if (!itinerary.destination || !itinerary.days || itinerary.days.length === 0) {
@@ -1076,7 +960,7 @@ async function generateItineraryInternal(
         }
       }
       if (!itinerary) {
-        // Original behaviour: log + retry-then-throw.
+        // Unrepairable: log, then retry or throw.
         console.error(
           `JSON parse error (attempt ${retryCount + 1}):`,
           firstParseError instanceof Error ? firstParseError.message : "Unknown",
@@ -1135,7 +1019,7 @@ async function generateItineraryInternal(
 
     // If we needed to repair, log a breadcrumb (NOT a Sentry issue) so we can
     // still see repair frequency in Sentry tags/breadcrumbs without polluting
-    // the issue stream. Earlier "warning" severity surfaced these as issues.
+    // the issue stream ("warning" severity would surface each one as an issue).
     if (repairUsed) {
       const days = itinerary.days.length;
       const msg =
@@ -1185,10 +1069,9 @@ async function generateItineraryInternal(
       return generateItineraryInternal(params, { ...options, retryCount: retryCount + 1 });
     }
 
-    // 2026-06-01: surface the underlying error so Sentry sees WHY we
-    // failed — previously the wrapper masked the Google response (403
-    // key-banned, 429 quota, 503 outage, etc.) making prod debugging
-    // impossible. Preserve `cause` so the original stack survives.
+    // Surface the underlying error so Sentry sees WHY we failed (403
+    // key-banned, 429 quota, 503 outage, etc.). Preserve `cause` so the
+    // original stack survives.
     const rootMsg =
       error instanceof Error ? error.message : String(error ?? "unknown");
     const wrapped = new Error(
@@ -1218,16 +1101,15 @@ export interface RegenerateActivityParams {
   language?: SupportedLanguage;
   /**
    * Trip's travel style — when "backpacker", the replacement is biased
-   * toward hostel-friendly / budget / social options. Read from
-   * trip_meta.travel_style at the call site. Defaults to "classic".
-   * Bug fix 2026-05-28: without this, the assistant would replace a
-   * backpacker hostel recommendation with e.g. a boutique hotel.
+   * toward hostel-friendly / budget / social options, so a hostel is not
+   * swapped for, e.g., a boutique hotel. Read from trip_meta.travel_style
+   * at the call site. Defaults to "classic".
    */
   travelStyle?: "classic" | "backpacker";
 }
 
-// Activity regeneration prompt - now loaded from database via getPrompt()
-// See lib/prompts.ts for default values
+// The activity regeneration prompt loads from the database via getPrompt();
+// lib/prompts.ts holds the defaults.
 
 export async function regenerateSingleActivity(
   params: RegenerateActivityParams & { userId?: string },
@@ -1267,12 +1149,9 @@ async function regenerateSingleActivityInternal(
   const model = genAI.getGenerativeModel({
     model: modelName,
     generationConfig: {
-      // 2026-05-31: lowered from 1.2/0.8 → 0.5/0.3 (deterministic utility task).
-      // Single-activity regenerate is a utility call — users want the swap to
-      // be reproducible enough that two clicks on the same activity surface
-      // similar shapes, and prompt-cache hits go up materially as the sampling
-      // distribution narrows. Creative variety is still preserved via the
-      // exclusion list of existing activity names in the prompt itself.
+      // Low temperature: single-activity regenerate is a utility call, and two
+      // clicks on the same activity should surface similar shapes. Variety
+      // comes from the exclusion list of existing activity names in the prompt.
       temperature: retryCount > 0 ? 0.3 : 0.5,
       topP: 0.95,
       topK: 40,
@@ -1491,11 +1370,9 @@ export interface RegenerateDayParams {
   language?: SupportedLanguage;
   /**
    * Trip's travel style — pass "backpacker" so the regenerated day
-   * matches the rest of the trip (hostels, free activities, social).
-   * Read from trip_meta.travel_style at the call site. Defaults to
-   * "classic" when omitted. Bug fix 2026-05-28: without this, "regen
-   * day 3" on a backpacker trip returned classic content and the
-   * itinerary became internally inconsistent.
+   * matches the rest of the trip (hostels, free activities, social);
+   * without it a backpacker trip gets a classic day. Read from
+   * trip_meta.travel_style at the call site. Defaults to "classic".
    */
   travelStyle?: "classic" | "backpacker";
 }
@@ -1526,12 +1403,9 @@ async function regenerateSingleDayInternal(
   const MAX_RETRIES = 1;
   const startTime = performance.now();
   // day-regenerate → gemini-2.5-flash (balanced quality/cost for a single day).
-  // UX10X Phase 0.1: the FINAL retry switches to the sibling model. The old
-  // behavior retried the SAME model with LOWER temperature (0.3 below),
-  // which on JSON-parse failures deterministically reproduced the same
-  // malformed output — api_request_logs showed 3/3 "Failed to regenerate
-  // day after retries". A different model breaks that repro loop and also
-  // dodges model-specific 5xx outages.
+  // The FINAL retry switches to the sibling model: the SAME model at a LOWER
+  // temperature tends to reproduce the same malformed JSON, and a different
+  // model also dodges model-specific 5xx outages.
   const modelName =
     retryCount >= MAX_RETRIES
       ? getSiblingModel(getModelForPurpose("day-regenerate"))
@@ -1540,28 +1414,20 @@ async function regenerateSingleDayInternal(
   const model = genAI.getGenerativeModel({
     model: modelName,
     generationConfig: {
-      // 2026-05-31: lowered from 1.1/0.8 → 0.5/0.3 (deterministic utility task).
-      // Day-regenerate is a utility call — the "different shape than the day
-      // being replaced" pressure is already supplied by the surrounding-days
-      // context + existing-places exclusion list, so the temperature lift was
-      // double-counting it. Lower temp → better prompt-cache reuse on the
-      // common case (same trip, same day, retry) and reproducible behavior
-      // for debugging / E2E tests.
+      // Low temperature: day-regenerate is a utility call. The surrounding-days
+      // context + existing-places exclusion list already push the new day away
+      // from the one being replaced, and a low temperature keeps behavior
+      // reproducible for debugging / E2E tests.
       temperature: retryCount > 0 ? 0.3 : 0.5,
       topP: 0.95,
       topK: 40,
       maxOutputTokens: 2048, // One day is ~500-800 tokens; this leaves headroom.
       responseMimeType: "application/json",
-      // Thinking OFF, as on the trip-generation paths (line ~1051). 2.5-flash
-      // thinks by default and thinking tokens count against maxOutputTokens,
-      // so the 2048 cap was spent thinking and ~120 visible tokens of JSON came
-      // out, cut mid-object. PostHog $ai_generation, 60 days to 2026-09-23:
-      // 23 of 23 first attempts on gemini-2.5-flash failed with "JSON parse
-      // error" (avg 10.4 s, 118 output tokens); every one then succeeded on the
-      // flash-lite retry (3.4 s, ~960 tokens). The last successful first
-      // attempt was in May. So every "regenerate this day" since June cost a
-      // wasted flash call, ~10 s of waiting, and the weaker model's day.
-      // The retry stays: it is still the right answer to a genuine bad output.
+      // Thinking OFF, as in generateItineraryInternal and generateItineraryStream.
+      // 2.5-flash thinks by default and thinking tokens count against
+      // maxOutputTokens, so with thinking on the 2048 cap is spent thinking and
+      // the visible JSON comes out cut mid-object. The sibling-model retry
+      // handles genuinely bad output.
       ...({ thinkingConfig: { thinkingBudget: 0 } } as Record<string, unknown>),
     },
   });
@@ -1716,9 +1582,9 @@ Rules:
       console.error(
         `Day regeneration JSON parse error (attempt ${retryCount + 1}):`,
         parseError instanceof Error ? parseError.message : "Unknown",
-        // MAX_TOKENS here means the output cap was hit — the thinking-budget
-        // failure mode. Logged so the next truncation is diagnosable from the
-        // logs instead of inferred from a 165-character preview.
+        // MAX_TOKENS here means the output cap was hit (e.g. spent on
+        // thinking). Logged so a truncation is diagnosable from the logs
+        // instead of inferred from the preview.
         "\nfinishReason:",
         response.candidates?.[0]?.finishReason ?? "unknown",
         "\nResponse preview:",
@@ -1818,7 +1684,7 @@ export function validateTripParams(
   params: TripCreationParams,
   // maxDays: multi-city trips generate per-city in parallel, so the whole-trip
   // ceiling can safely exceed the single-city generation limit (14). The
-  // /api/ai/generate route passes 21 when a destinations[] payload is present.
+  // /api/ai/generate route passes 21 when destinations[] has more than one leg.
   opts?: { maxDays?: number }
 ): { valid: boolean; error?: string } {
   const maxDays = opts?.maxDays ?? 14;
@@ -1894,14 +1760,11 @@ export function validateTripParams(
 
   // Date validation
   //
-  // Strict YYYY-MM-DD shape check FIRST. `new Date("20220-08-11")` (5-digit
-  // year, reachable because <input type="date"> accepts years up to 275760)
-  // parses fine under the lenient legacy parser, so it used to sail through
-  // this function — then blew up downstream in addDaysISO(), which appends
-  // "T00:00:00Z" and hits the STRICT ISO parser where a 5-digit year is
-  // Invalid Date (Sentry JAVASCRIPT-NEXTJS-1J, multi-city generation).
-  // Anchoring the format here closes that asymmetry for every caller and
-  // returns a clean 400 instead of a crash mid-generation.
+  // Strict YYYY-MM-DD shape check FIRST. <input type="date"> accepts years up
+  // to 275760; the lenient legacy parser takes `new Date("20220-08-11")`, but
+  // addDaysISO() downstream appends "T00:00:00Z", and the STRICT ISO parser
+  // rejects a 5-digit year mid-generation. Anchoring the format here returns a
+  // clean 400 for every caller instead.
   const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
   if (!ISO_DATE.test(params.startDate ?? "") || !ISO_DATE.test(params.endDate ?? "")) {
     return { valid: false, error: "Invalid date format" };
@@ -1965,7 +1828,7 @@ export function validateTripParams(
 }
 
 // ============================================================================
-// STREAMING ITINERARY GENERATION (Phase 2F)
+// STREAMING ITINERARY GENERATION
 // ============================================================================
 
 /**
@@ -2028,62 +1891,18 @@ export async function* generateItineraryStream(
       temperature: 1.0,
       topP: 0.95,
       topK: 40,
-      // 2026-06-01: raised 6000 → 8000 after the thinkingConfig fix
-      // below landed. Live test with that fix in place: 3-day
-      // Reykjavik completed cleanly (26s, ~5300 tokens), but 5-day
-      // Porto truncated at position 21102 (~7000 tokens). The
-      // 2026-05-31 audit assumed 6000 was the right cap because of
-      // implicit-thinking inflation; with thinking off, the cap can
-      // float back up to give 5-7 day trips room to finish without
-      // re-introducing the silent truncation. Output is billed per
-      // actual emitted tokens, not per cap, so steady-state cost is
-      // unchanged. The 8000 ceiling supports trips up to ~10 days
-      // (the 14-day max would still risk truncation; revisit only if
-      // 8-14 day trip volume becomes material).
-      // 2026-09-01: 8000 -> 16000. MEASURED across 428 saved trips: 93 (21.7%)
-      // hold fewer days than their own date range and 0 hold more, scaling hard
-      // with length -- 7d 6% short, 10d 70%, 14d 90%. A fresh 14-day generation
-      // (cache forced to miss) returned 8 days. MAX_TRIP_DAYS is 14 and a day
-      // costs ~750 output tokens, so the honest budget is ~10.5k; 8000 could
-      // never fit the longest trip the wizard offers as a one-tap preset.
-      //
-      // On cost: the comment below this one claimed the cap itself is billed.
-      // It is not -- Gemini bills EMITTED output tokens, which the sibling
-      // comment on the non-streaming path already states ("Output is billed
-      // per emitted tokens (not the cap)"). Those two notes contradicted each
-      // other and the pessimistic one set the cap. A 3-day trip emits ~2.2k
-      // either way and pays exactly the same after this change; only the long
-      // trips that are currently BROKEN cost more, which is the point.
+      // A day costs ~750 output tokens and the wizard's MAX_TRIP_DAYS is 14
+      // (~10.5k), so a lower cap cuts the longest trips short. Gemini bills
+      // EMITTED output tokens, not the cap, so shorter trips cost the same.
+      // Keep in sync with generateItineraryInternal (same model, same prompt).
       maxOutputTokens: 16000,
       responseMimeType: "application/json",
-      // 2026-06-01 P0 FIX: disable extended thinking on the streaming
-      // path, matching the non-streaming path's fix from commit 83eaf7f.
-      //
-      // Symptom: live-reproduced 2026-06-01 ~05:55 UTC — Buenos Aires
-      // 6-day Scoperta Urbana request returned "Unterminated string in
-      // JSON at position 733 (line 13 column 25)" to the wizard.
-      // Retried; failed identically with truncation at a different
-      // offset. NEVER reached the result page → fetchActivityImages
-      // never ran → the perf(places) SKU split could not be verified.
-      //
-      // Root cause: gemini-2.5-flash defaults to extended thinking ON.
-      // Thinking tokens count against `maxOutputTokens` (the 6000 cap
-      // above). For a 6-day trip with 4+ activities/day the answer
-      // alone is ~4500-5500 tokens — any thinking budget at all
-      // pushes the answer past the cap and the SSE stream emits a
-      // valid prefix of an invalid JSON. `JSON.parse(fullText)` then
-      // throws "Unterminated string at position N" downstream in
-      // parseStreamedItinerary.
-      //
-      // The non-streaming generateItineraryInternal (line 687-700)
-      // already disables thinking via this same cast. This restores
-      // parity. The legacy @google/generative-ai SDK (0.24.x) lacks
-      // thinkingConfig in its TS types; the REST API has accepted it
-      // since 2025-Q2.
-      //
-      // Why not raise maxOutputTokens instead? Output tokens are
-      // billed; the 6000 cap is what cut output cost ~25% in the
-      // 2026-05-31 audit. Killing thinking is free.
+      // Thinking OFF, as in generateItineraryInternal. gemini-2.5-flash thinks
+      // by default and thinking tokens count against `maxOutputTokens`, so any
+      // thinking budget can push the answer past the cap: the SSE stream then
+      // emits a valid prefix of an invalid JSON ("Unterminated string" in
+      // parseStreamedItinerary). The legacy @google/generative-ai SDK (0.24.x)
+      // lacks thinkingConfig in its TS types; the REST API accepts it.
       ...({ thinkingConfig: { thinkingBudget: 0 } } as Record<string, unknown>),
     },
   });
@@ -2123,10 +1942,7 @@ export async function* generateItineraryStream(
   // Aggregate final response. CRITICAL: the canonical text is
   // finalResponse.text(), NOT the accumulated `fullText` from deltas.
   // The async-iter `for await` can silently drop chunks under back-
-  // pressure (observed live: a 4-day Lisbon trip produced ~13KB of
-  // delta'd text but truncated mid-property at position 13018, while
-  // finalResponse.text() returned the complete 14KB JSON). Use the
-  // final aggregate as truth.
+  // pressure, while the final aggregate is complete. Use it as truth.
   const finalResponse = await result.response;
   const canonicalText = finalResponse.text();
   const latencyMs = performance.now() - startTime;
@@ -2186,9 +2002,9 @@ export function parseStreamedItinerary(
           `[gemini.streamed] tryRepairTruncatedJSON recovered a ${obj.days.length}-day ` +
           `itinerary for "${params.destination}" (stream ${fullText.length} chars).`;
         console.warn(msg);
-        // Breadcrumb only — captureMessage(warning) was creating noisy
-        // Sentry issues (JAVASCRIPT-NEXTJS-10, -Y). We still want the
-        // signal in attached events but not as standalone issues.
+        // Breadcrumb only — captureMessage(warning) creates noisy Sentry
+        // issues. We want the signal in attached events but not as
+        // standalone issues.
         import("@sentry/nextjs")
           .then((Sentry) => {
             Sentry.addBreadcrumb?.({

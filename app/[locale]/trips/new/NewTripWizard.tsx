@@ -7,14 +7,10 @@ import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import dynamic from "next/dynamic";
 
-// Bundle-size note (task #152/#167): we used to import
-// `getDestinationBySlug` from `@/lib/destinations/data`, which dragged the
-// full ~477 KB curated destinations dataset into the /trips/new client
-// chunk just to resolve the optional `?destination=<slug>` deeplink on
-// mount. The page now sits behind a server component (./page.tsx) that
-// resolves the slug server-side and passes the minimal
-// `{ name, latitude, longitude }` payload in as `prefilledDestination`.
-// Keep this file free of any import that pulls `lib/destinations/data`.
+// ./page.tsx resolves the optional `?destination=<slug>` deeplink server-side
+// and passes only this payload in as `prefilledDestination`. Keep this file
+// free of any import that pulls `lib/destinations/data`: it would drag the
+// whole curated destinations dataset into the /trips/new client chunk.
 export interface PrefilledDestination {
   name: string;
   latitude: number;
@@ -48,40 +44,30 @@ import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
 import { joinCities, splitCities, addDaysISO } from "@/lib/ai/multi-city-core";
 
-// Multi-city wedge (docs/MULTI_CITY_PLAN.md §2.5/§3.2). Env-gated so the default
-// single-city funnel stays byte-for-byte unchanged until we flip the flag on.
+// Multi-city planning (docs/MULTI_CITY_PLAN.md §2.5/§3.2). Env-gated so the
+// single-city funnel is unchanged while the flag is off.
 const MULTI_CITY_ENABLED = process.env.NEXT_PUBLIC_MULTI_CITY_ENABLED === "true";
 
-// Mirrors the server-side cap in validateTripParams (lib/gemini.ts). Over the
-// limit the API 400s with "Requirements text too long" and the wizard surfaces
-// only a generic error — on 2026-08-23 a session burned 7 generate attempts in
-// 3 minutes against this wall and left with nothing.
+// Keep in sync with the server-side cap in validateTripParams (lib/gemini.ts).
+// Over the limit the API 400s with "Requirements text too long" and the wizard
+// can only show a generic error, so the field enforces the cap client-side.
 const REQUIREMENTS_MAX = 500;
 
-// Post-generation + modal UI is gated by user action / state — split it
-// out of the initial wizard chunk so the form paints faster (P10).
-//
-// CLS NOTE (2026-08-19): splitting these out was right for step 1, but the
-// chunks land AFTER the itinerary renders and every component pops in from
-// zero height, shoving the page down. Measured on production: sessions that
-// reach the result view have CLS p75 1.091 / median 0.509, against 0.023 for
-// step-1-only sessions — and 50 of the 52 rage clicks on this page happen in
-// that same view. Two defences, in order:
-//   1. preloadResultViewChunks() spends the ~30s of generation (p50 27.9s /
-//      p75 33.4s, measured 2026-09-02 on $ai_generation) fetching these
-//      so they are already warm when the result renders (the real fix);
-//   2. the two that dominate the shift carry a correctly-sized `loading` box,
+// Post-generation and modal UI depends on user action or state, so it is split
+// out of the initial wizard chunk to make the form paint faster. Those chunks
+// would then land after the itinerary renders and pop in from zero height,
+// shifting the page. Two defences, in order:
+//   1. preloadResultViewChunks() fetches them during generation so they are
+//      already warm when the result renders (the real fix);
+//   2. the two that dominate the shift carry a correctly sized `loading` box,
 //      so a slow network degrades to a skeleton instead of a jump.
-// Heights are measured off the live components on production, not guessed
-// (17 real cards, same selector at both widths):
+// Heights are measured off the live components, not guessed:
 //   hero  — 400px at every width (the component hard-codes h-[400px])
 //   card  — 363px at 375w, 324px at 1280w
-// Note the card is SHORTER on desktop despite its taller image (h-40 vs
-// h-32), because the description wraps to fewer lines. That is counter-
-// intuitive enough to be worth stating: an earlier draft of this assumed
-// desktop was taller and would have injected ~69px of shift per card across
-// 27 cards. Re-measure before touching either number — a placeholder of the
-// WRONG height creates a shift instead of preventing one.
+// The card is SHORTER on desktop despite its taller image (h-40 vs h-32)
+// because the description wraps to fewer lines. Re-measure before touching
+// either number: a placeholder of the WRONG height creates a shift instead of
+// preventing one.
 const HeroSkeleton = () => (
   <div
     className="h-[400px] w-full rounded-xl bg-slate-100 animate-pulse"
@@ -107,21 +93,19 @@ const StartOverModal = dynamic(() => import("@/components/trip/StartOverModal"),
 const BaseModal = dynamic(() => import("@/components/ui/BaseModal"), { ssr: false });
 const ChangeDatesModal = dynamic(() => import("@/components/trip/ChangeDatesModal"), { ssr: false });
 const RegenerateButton = dynamic(() => import("@/components/trip/RegenerateButton"), { ssr: false });
-// Export (PDF / iCal) on the anonymous result view. Client-only, no auth — works
-// on the in-memory generatedItinerary. Discoverability audit 2026-07-01: the
-// pre-save result had no export at all; only the saved trip page did.
+// Export (PDF / iCal) on the result view, rendered only once the trip is saved.
+// Client-only, no auth: it works on the in-memory generatedItinerary.
 const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: false });
-// Read-only AI Q&A on the anonymous result (Tier 3-B1). Anon users at peak
-// intent previously had no assistant — that lived only on the saved trip page.
+// AI Q&A and day-scoped edits on the wizard's result view.
 const AnonAssistantPanel = dynamic(() => import("@/components/trip/AnonAssistantPanel"), { ssr: false });
-// Session trips tray (Save Sprint T4) — result-view only, so it follows the
-// same code-splitting pattern as the rest of the post-generation UI.
+// Session trips tray: result-view only, so it is code-split like the rest of
+// the post-generation UI.
 const SessionTripsTray = dynamic(() => import("@/components/trip/SessionTripsTray"), { ssr: false });
 const ValuePropositionBanner = dynamic(() => import("@/components/trip/ValuePropositionBanner"), { ssr: false });
 const AuthPromptModal = dynamic(() => import("@/components/ui/AuthPromptModal"), { ssr: false });
 const PendingClaimBanner = dynamic(() => import("@/components/wizard/PendingClaimBanner"), { ssr: false });
-// Anonymous share loop (hop one). Only ever rendered for signed-out planners,
-// so it stays out of the bundle for the authenticated majority path.
+// Share button for signed-out planners only, so it stays out of the bundle for
+// signed-in users.
 const AnonymousShareButton = dynamic(
   () => import("@/components/trip/AnonymousShareButton"),
   { ssr: false }
@@ -130,14 +114,12 @@ const AnonymousShareButton = dynamic(
 /**
  * Warm the result-view chunks while the itinerary is being generated.
  *
- * Generation takes ~60s, and for all of it the visitor is looking at
- * GenerationProgress while the network sits idle. Fetching the post-generation
- * components during that window means they resolve instantly when the result
- * mounts, so nothing pops in from zero height — which is what produced a
- * median CLS of 0.509 on this view. It costs no extra bytes overall: these
- * chunks were going to be downloaded a moment later regardless. It is only
- * called from handleGenerate, so step-1-only visitors (the majority, and the
- * reason this UI is split out at all) still never fetch any of it.
+ * During generation the visitor watches GenerationProgress while the network
+ * sits idle. Fetching the post-generation components in that window means they
+ * resolve instantly when the result mounts, so nothing pops in from zero
+ * height. It costs no extra bytes: these chunks download a moment later
+ * anyway. Only handleGenerate calls it, so step-1-only visitors (the reason
+ * this UI is split out at all) never fetch any of it.
  *
  * Deliberately fire-and-forget. Each rejection is swallowed because a failed
  * prefetch must be a non-event: dynamic() will simply load the chunk the
@@ -156,11 +138,9 @@ function preloadResultViewChunks(): void {
   warm(import("@/components/trip/ExportMenu"));
   warm(import("@/components/trip/AnonymousShareButton"));
 }
-// Note: useOnboardingPreferences removed - personalization moved to profile settings
 import * as Sentry from "@sentry/nextjs";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
-// Step-1 editorial entry (2026-09-02; ramped to 100% and the classic branch
-// deleted 2026-09-16) — see lib/wizard/entry-state.ts for the arrival model.
+// Step-1 editorial entry; see lib/wizard/entry-state.ts for the arrival model.
 import WizardMasthead from "@/components/wizard/WizardMasthead";
 import OneTapStarts, { type OneTapPlace } from "@/components/wizard/OneTapStarts";
 import ClaimedTripBanner from "@/components/wizard/ClaimedTripBanner";
@@ -185,7 +165,7 @@ import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } f
 import { decideDraftRestore } from "@/lib/wizard/draft-restore";
 import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
 import { classifyGenerationFailure } from "@/lib/wizard/generation-failure";
-// Save Sprint: session generation counter + per-session trip stack (T1/T4).
+// Session generation counter + per-session trip stack.
 import { useSessionTripStack } from "@/hooks/useSessionTripStack";
 import { useCurrency } from "@/lib/locale";
 import WizardReplay from "@/components/trip/WizardReplay";
@@ -241,8 +221,8 @@ const MAX_TRIP_START_DATE = maxTripStartDate();
 
 // Localized loading fallback for the lazy map. It renders inside the
 // NextIntlClientProvider tree (it replaces TripMap in place while the chunk
-// loads), so useTranslations resolves — unlike an inline literal at module
-// scope, which can't reach the translation context and shipped raw English.
+// loads), so useTranslations resolves; an inline literal at module scope
+// can't reach the translation context and would render raw English.
 function MapLoadingFallback() {
   const t = useTranslations("trips");
   return (
@@ -260,7 +240,7 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
 
 // Localized, human date range for the result hero. Parses the ISO strings as
 // LOCAL midnight (no trailing Z) to avoid an off-by-one, and joins with an
-// en-dash so no English "to" (and no raw "2026-08-01") leaks on /it /es /pt.
+// en-dash so no English "to" (and no raw ISO date) leaks on /it /es /pt.
 // Falls back to the raw range if either date is unparseable.
 function formatDateRangeLocalized(startISO: string, endISO: string, locale: string): string {
   try {
@@ -289,9 +269,9 @@ function isCapacitorNative(): boolean {
   return Boolean(cap?.isNativePlatform?.());
 }
 
-// Save Sprint T2: small amber "● Not saved" pill rendered next to the Save
-// button (desktop sticky header + mobile bottom bar) while the displayed
-// itinerary is unsaved in BOTH save arms. Subtle pulse on the dot only.
+// Small amber "● Not saved" pill rendered next to the Save button (desktop
+// sticky header + mobile bottom bar) while the displayed itinerary is unsaved,
+// in both the manual and the auto-save arm. Subtle pulse on the dot only.
 function NotSavedPill({ className = "" }: { className?: string }) {
   const t = useTranslations("trips");
   return (
@@ -339,24 +319,21 @@ const BUDGET_TIER_IDS = ["budget", "balanced", "premium"] as const;
 const PACE_OPTION_IDS = ["relaxed", "moderate", "active"] as const;
 
 // ── Inline mirrors of lib/gemini.ts validateTripParams ──────────────────────
-// Wave-1 session-replay finding: "Maximum trip duration is 14 days" and
-// "Destination contains invalid characters" only fired server-side AT GENERATE
-// TIME, after the user had filled the whole form — a late-validation kickback.
-// The wizard now enforces the same rules inline; the lib checks stay as the
-// server backstop. Keep BOTH in lockstep with lib/gemini.ts.
+// The wizard enforces the server's rules inline so a bad duration or
+// destination is flagged while the form is being filled, not at generate time;
+// the lib checks stay as the server backstop. Keep BOTH in lockstep with
+// lib/gemini.ts.
 const MAX_TRIP_DAYS = 14;
 // Multi-city ceiling: per-city parallel generation keeps each leg small, so
 // the WHOLE-TRIP span may exceed the single-city limit. Server mirror:
 // /api/ai/generate passes maxDays 21 to validateTripParams for multi-city.
 const MAX_TRIP_DAYS_MULTI = 21;
 
-// Popular-destination pills for step 1. Ranked by REAL platform demand —
-// distinct planning sessions over the last 60 days (Tokyo, Paris, London, Rome,
-// Bangkok, Bali, New York, Barcelona lead) plus two seasonal favourites
-// (Santorini, Lisbon). These ARE the most-planned destinations on the platform
-// — no fabricated ranking. Each carries coords so tapping a pill skips a
-// geocode. `season` = months where a spot is a standout; seasonalPopular()
-// surfaces in-season picks first.
+// Popular-destination pills for step 1: the most-planned destinations on the
+// platform plus two seasonal favourites (Santorini, Lisbon). Keep the list
+// sourced from real planning demand, never a fabricated ranking. Each carries
+// coords so tapping a pill skips a geocode. `season` = months where a spot is
+// a standout; seasonalPopular() surfaces in-season picks first.
 type SeasonalPopular = {
   name: string;
   flag: string;
@@ -388,14 +365,11 @@ function seasonalPopular(month: number, limit = 6): SeasonalPopular[] {
 // Exact copy of DESTINATION_ALLOWLIST in lib/gemini.ts — letters, spaces,
 // hyphens, commas, dots, parentheses, apostrophes, &, /, digits.
 const DESTINATION_ALLOWLIST = /^[\p{L}\p{M}\s\-,.'()&/0-9]+$/u;
-// The server's OTHER destination rule (lib/gemini.ts validateTripParams), and
-// the one the client never mirrored. A pasted prompt sails through the gate,
-// fires `generating`, and bounces off the server with an untranslated
-// "Destination name too long" behind a Retry button that resends the same text.
-// Measured 30 days to 2026-09-02: destinations over 100 chars reached a result
-// 33.3% of the time (12 sessions) against 98.5% at <=60 and 100% at 61-100 — so
-// the bound belongs at 100, exactly where the server puts it, and NOT at a
-// friendlier-sounding 60, which would nag 19 sessions/month that are succeeding.
+// The server's destination length rule (lib/gemini.ts validateTripParams).
+// Unmirrored, a pasted prompt passes the gate, starts generating, and bounces
+// off the server with an untranslated "Destination name too long" behind a
+// Retry button that resends the same text. Keep it at 100, exactly where the
+// server puts it: a lower bound would block names that generate fine.
 const DESTINATION_MAX_LENGTH = 100;
 
 // Day-inclusive trip span, matching the server's math (ceil(diff/day) + 1).
@@ -408,23 +382,18 @@ function tripSpanDaysInclusive(startISO: string, endISO: string): number {
   return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 }
 
-// LOAD-BEARING: hoisted OUT of the component so the array identity is
-// stable across renders. Was previously declared inside the component
-// → new reference every render → trackFieldInteraction's [STEP_NAMES_CONST]
-// dep changed every render → its useCallback recreated → handleVibesChange
-// (which depends on it) recreated → VibeSelector's React.memo broken
-// → step-2 vibe clicks tanked the renderer. Plus the abandonment-
-// listener effect's [STEP_NAMES_CONST] dep re-fired on every render, tearing
-// down + re-attaching window event listeners.
-// Caught in docs/JOURNEY_AUDIT.md after the third-round live test.
+// LOAD-BEARING: declared OUTSIDE the component so the array identity is stable
+// across renders. A new reference per render would recreate
+// trackFieldInteraction and handleVibesChange (breaking VibeSelector's
+// React.memo, which stalls step-2 vibe clicks) and re-fire the abandonment
+// effect, tearing down and re-attaching its window listeners every render.
 const STEP_NAMES_CONST = ["destination_dates", "vibes_preferences"] as const;
 
 // Server-side funnel mirror (trackWizardEvent + WizardEventStep) lives in
-// @/components/wizard/wizardEvents. Every row is stamped front_door = "wizard":
-// the decision-first arm that once shared this funnel was deleted on
-// 2026-09-18 (experiment concluded 2026-08-17) and the funnel SQL filters on
-// that value. See app/api/wizard-event/route.ts + the 20260531 / 20260630
-// migrations. Imported at the top of this file.
+// @/components/wizard/wizardEvents. Every row is stamped front_door = "wizard"
+// because the funnel SQL filters on that value. See
+// app/api/wizard-event/route.ts and the wizard_step_events /
+// wizard_event_front_door migrations.
 
 interface NewTripWizardProps {
   /**
@@ -482,8 +451,8 @@ export default function NewTripPage({
   const [error, setError] = useState<string | null>(null);
   const [generatedItinerary, setGeneratedItineraryRaw] = useState<GeneratedItinerary | null>(null);
   // Activity ids are given here, once, so the auto-save insert, every later
-  // update and the share link carry the SAME ids. (A fresh random set on each
-  // update moved itinerary_version and cut off anything keyed by id.) The
+  // update and the share link carry the SAME ids; fresh random ids on each
+  // update would move itinerary_version and cut off anything keyed by id. The
   // object is only rebuilt when an id is actually missing, so a no-op set
   // does not look like a new itinerary to the auto-save.
   const setGeneratedItinerary = useCallback((next: SetStateAction<GeneratedItinerary | null>) => {
@@ -496,10 +465,8 @@ export default function NewTripPage({
       return missing ? { ...value, days: ensureActivityIds(value.days) } : value;
     });
   }, []);
-  // Result-view UX state (parity with /trips/template/[id]).
-  // **2026-05-24 live-test:** the result view had no map toggle and no
-  // Cards/Timeline switcher. Added so users can hide the map (mobile
-  // screen real estate) and pick the view they prefer.
+  // Result-view UX state (parity with /trips/template/[id]): users can hide
+  // the map (mobile screen real estate) and pick Cards or Timeline.
   const [showMap, setShowMap] = useState(true);
   const [resultViewMode, setResultViewMode] = useState<"cards" | "timeline">("cards");
   // Streaming progress — set by the SSE consumer in handleGenerate. The
@@ -508,37 +475,26 @@ export default function NewTripPage({
   const [streamedDayCount, setStreamedDayCount] = useState(0);
   const [streamedTotalDays, setStreamedTotalDays] = useState(0);
 
-  // Solo vs Group intent — pure measurement experiment added 2026-05-24
-  // (docs/COLLAB_AUDIT.md "Phase 1: validate the bet"). Does NOT change
-  // the wizard flow today. PostHog `trip_intent_selected` + the same
-  // value forwarded on `trip_generation_started` / `_completed` tells
-  // us:
-  //   1. How many users actually want collab vs solo (raw distribution)
-  //   2. Of group-intent users, what % go on to share/invite after save
-  //
-  // If <15% pick group, the homepage promise is over-claimed and we
-  // should refocus on solo polish. If >30% pick group AND >50% share,
-  // we have the signal to invest in the full group-first restructure.
+  // Solo vs group intent. Captured as PostHog `trip_intent_selected`,
+  // forwarded as group_size / trip_intent on later events and saved with the
+  // trip, so collab demand is measurable. Group intent also shows an invite
+  // hint in step 1 and puts the anonymous share button in crew mode.
   // "unspecified" = user clicked Continue without touching the toggle.
   const [tripIntent, setTripIntent] = useState<TripIntent>("unspecified");
 
-  // Auth state for gradual engagement — task #181: read auth from the
-  // single AuthProvider instead of running our own getUser() listener.
-  // isAuthenticated keeps its existing tri-state shape (null=loading,
-  // true/false otherwise) so the downstream JSX gating doesn't change.
+  // Auth state comes from the single AuthProvider, not a local getUser()
+  // listener. isAuthenticated is tri-state (null = loading, then true/false);
+  // the JSX gating relies on null meaning "not known yet".
   const { user: authUser, loading: authLoading } = useAuth();
   const isAuthenticated: boolean | null = authLoading ? null : !!authUser;
 
-  // Front-door A/B (flag "front-door", 2026-07-01 → 2026-08-17): the wizard won
-  // (save rate 11.8% vs 5.4%, result rate 51% vs 35%, n=3,067 anon sessions)
-  // and the decision arm was deleted on 2026-09-18. Every event is still
-  // stamped front_door = "wizard" — in wizard_step_events via wizardEvents.ts
-  // and in PostHog via the super-property below — because the funnel SQL and
-  // the experiment-era insights filter on it.
+  // Every event is stamped front_door = "wizard" (in wizard_step_events via
+  // wizardEvents.ts and in PostHog via the super-property below) because the
+  // funnel SQL and existing insights filter on it.
   //
   // Nothing fires before the auth state is known: wizard_entry (registered
-  // below) derives from it, and a step-1 view that fired on mount used to
-  // stamp a placeholder — measured 2026-08-04, that skewed the recorded split.
+  // below) derives from it, so an event fired on mount would record a
+  // placeholder and skew the split.
   const entryResolved = isAuthenticated !== null;
   // Super-properties on every PostHog capture() + $pageview, so the funnel is
   // sliceable with no per-call edits. posthog may be undefined before init
@@ -547,9 +503,8 @@ export default function NewTripPage({
   useEffect(() => {
     if (!posthog) return;
     if (!entryResolved) return;
-    // wizard_entry (2026-09-02): every capture becomes sliceable by how the
-    // person arrived, so a read needs no per-call edits. step1_variant rode
-    // here too until the editorial step 1 went to 100% (2026-09-16).
+    // wizard_entry makes every capture sliceable by how the person arrived,
+    // with no per-call edits.
     posthog.register({
       front_door: "wizard",
       wizard_entry: deriveEntryState({ authEventAtMount, prefillAtMount, claimedTripId, isAuthenticated }),
@@ -559,14 +514,14 @@ export default function NewTripPage({
   const [hasExistingTrips, setHasExistingTrips] = useState(false);
   const [showReturningUserBanner, setShowReturningUserBanner] = useState(true);
 
-  // ── Claimed trip (2026-09-02) ─────────────────────────────────────────────
+  // ── Claimed trip ──────────────────────────────────────────────────────────
   // AuthProvider claims a pending anonymous trip on SIGNED_IN and publishes
   // the id (lib/trips/claimed-trip-signal.ts). The two sides race — SIGNED_IN
   // usually fires during hydration, before this effect subscribes — so read
-  // the stored id AND subscribe. Whether the post-callback landing emits
-  // SIGNED_IN or INITIAL_SESSION has never been proven live, so a fresh
-  // signup also claims directly, once: claimPendingTrip is idempotent (the
-  // token is removed on any terminal outcome, kept only on 401).
+  // the stored id AND subscribe. The post-callback landing may emit SIGNED_IN
+  // or INITIAL_SESSION, so a fresh signup also claims directly, once:
+  // claimPendingTrip is idempotent (the token is removed on any terminal
+  // outcome, kept only on 401).
   useEffect(() => {
     const stored = readClaimedTrip();
     if (stored) setClaimedTripId(stored);
@@ -596,7 +551,7 @@ export default function NewTripPage({
   };
 
   // First-run view, once per mount. Keyed on the latched param, not on auth
-  // state, so it fires for exactly the ~93/month who just created an account.
+  // state, so it fires only for someone who just created an account.
   const firstRunViewedRef = useRef(false);
   useEffect(() => {
     if (!isFreshSignup || firstRunViewedRef.current) return;
@@ -604,14 +559,14 @@ export default function NewTripPage({
     void captureWizardFirstRunViewed({ auth_event: authEventAtMount ?? "" });
   }, [isFreshSignup, authEventAtMount]);
 
-  // Note: Onboarding/personalization preferences are now managed in profile settings
-  // The AI generation API fetches user preferences from the database instead
+  // Personalization preferences live in profile settings; the AI generation
+  // API reads them from the database, so the wizard does not send them.
 
 
   // Form state
   const [destination, setDestination] = useState("");
   const [destinationCoords, setDestinationCoords] = useState<{ latitude: number; longitude: number } | null>(null);
-  // Multi-city wedge: a route of city+nights rows. Only surfaced in step 1 when
+  // Multi-city: a route of city+nights rows. Only surfaced in step 1 when
   // MULTI_CITY_ENABLED; a sync effect below keeps `destination`/`endDate`
   // consistent so the rest of the wizard flow is untouched.
   const [multiCityMode, setMultiCityMode] = useState(false);
@@ -619,12 +574,10 @@ export default function NewTripPage({
     { city: "", nights: 3 },
     { city: "", nights: 2 },
   ]);
-  // F1 anchored trips: fixed commitments (flights, weddings, booked nights)
-  // the generated plan must build around. Collapsed AnchorEditor on step 1;
-  // sent to /api/ai/generate, and carried into trip_meta.anchors at save via
-  // autoSaveFormState. (That last part was only a comment until 2026-08-04 —
-  // TripFormState had no anchors field, so every saved trip landed without
-  // them. Found by querying prod: 0 of 261 rows had trip_meta.anchors.)
+  // Anchored trips: fixed commitments (flights, weddings, booked nights) the
+  // generated plan must build around. Collapsed AnchorEditor on step 1; sent
+  // to /api/ai/generate, and carried into trip_meta.anchors at save via
+  // autoSaveFormState, which must list them or saved trips lose them.
   const [anchors, setAnchors] = useState<TripAnchor[]>([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -661,16 +614,15 @@ export default function NewTripPage({
     };
   }, []);
   const [budgetTier, setBudgetTier] = useState<"budget" | "balanced" | "premium">("balanced");
-  // Backpacker Mode — shipped 2026-05-28. Default "classic" matches all
-  // existing flows; when toggled to "backpacker" we (a) auto-set budget
-  // to "budget" if it's not already, (b) pass travelStyle through to the
-  // generate API so Gemini gets the backpacker directive, (c) persist
-  // travel_style into trip_meta. See docs and Hostelworld partnership wedge.
+  // Backpacker Mode. Default "classic"; "backpacker" (a) passes travelStyle to
+  // the generate API so Gemini gets the backpacker directive, (b) persists
+  // travel_style into trip_meta. It arrives with a restored draft or
+  // session-tray snapshot; the step-1 toggle only shows while it is active.
   const [travelStyle, setTravelStyle] = useState<"classic" | "backpacker">("classic");
   const [pace, setPace] = useState<"relaxed" | "moderate" | "active">("moderate");
   const [selectedVibes, setSelectedVibes] = useState<TripVibe[]>([]);
   const [requirements, setRequirements] = useState("");
-  // Must-do wishlist (P3a): undated wishes ("Great Wall", "eat Peking duck")
+  // Must-do wishlist: undated wishes ("Great Wall", "eat Peking duck")
   // entered as chips on step 2. Distinct from anchors (date-pinned) and from
   // the requirements prose. Caps mirror validateTripParams (10 × 80 chars).
   const [mustDos, setMustDos] = useState<string[]>([]);
@@ -683,14 +635,15 @@ export default function NewTripPage({
   const [showDraftRecovery, setShowDraftRecovery] = useState(false);
   const [draftAutoRestored, setDraftAutoRestored] = useState(false);
 
-  // Post-save sharing modal state (critical for virality)
+  // Id of the trip once either save arm has stored it (or a claimed trip is
+  // adopted); null while the result is unsaved.
   const [savedTripId, setSavedTripId] = useState<string | null>(null);
 
   // LocalStorage draft persistence
   const { draft, saveDraft, clearDraft, hasDraft, isExpired } = useItineraryDraft();
 
-  // Save Sprint T1: session generation counter + session trip stack
-  // (sessionStorage-backed; all callbacks referentially stable).
+  // Session generation counter + session trip stack (sessionStorage-backed;
+  // all callbacks referentially stable).
   const {
     trips: sessionTrips,
     currentId: sessionTripCurrentId,
@@ -705,8 +658,7 @@ export default function NewTripPage({
   // Currency conversion hook - converts prices to user's preferred currency
   const { convert: convertCurrency } = useCurrency();
 
-  // Streamlined 2-step wizard: Destination+Dates -> Vibes+Preferences
-  // Reduced from 4 steps to cut drop-off by 50% (PostHog data: 76% activation drop-off)
+  // 2-step wizard: Destination+Dates -> Vibes+Preferences.
   const TOTAL_STEPS = 2;
 
   // STEP_NAMES_CONST is hoisted to module scope above the component
@@ -714,15 +666,11 @@ export default function NewTripPage({
 
   // Collapsible preferences state (budget/pace/requirements shown on demand in step 2)
   const [showAdvancedPrefs, setShowAdvancedPrefs] = useState(false);
-  // Day-4 bug fix (P2.6): trackWizardEvent was firing 2-3× per page
-  // load because the dep-only-[step] effect re-runs on React 19 dev
-  // StrictMode double-mount AND on any client-side remount (back nav,
-  // Start Over, draft-recovery setState). PostHog dedupes server-side
-  // so captureTripWizardStepViewed was clean, but Supabase has no
-  // dedupe → wizard_step_events accumulated 2-3 rows per actual step
-  // view, inflating step_1 by ~3× and under-stating funnel conversion.
-  // Mirrors the ref-guard pattern already used for abandonedFiredRef
-  // and wizardCompletedRef below.
+  // The step-view effect re-runs on React 19 dev StrictMode double-mount and
+  // on back nav, Start Over and draft-recovery setState. PostHog dedupes
+  // server-side but wizard_step_events does not, so without this guard one
+  // step view writes several rows and understates funnel conversion. Same
+  // ref-guard pattern as abandonedFiredRef and wizardCompletedRef below.
   const trackedStepsRef = useRef<Set<number>>(new Set());
   useEffect(() => {
     // Wait for the auth state before EITHER sink fires. Placed above the
@@ -736,17 +684,15 @@ export default function NewTripPage({
       step_number: step,
       step_name: STEP_NAMES_CONST[step - 1],
     });
-    // Mirror the step view into Supabase. Step 1 fires `step_1_*`,
-    // step 2 fires `step_2_vibes`. This is the entry-point event for
-    // each step — downstream events (generating/result/save_clicked/
-    // saved/abandoned) are fired from their own handlers. `locale` is
-    // included on step 1 only because it's the only field guaranteed
-    // to be meaningful at that point.
+    // Mirror the step view into Supabase. Step 1 fires
+    // `step_1_destination_dates`, step 2 fires `step_2_vibes`. This is the
+    // entry-point event for each step — downstream events (generating/result/
+    // save_clicked/saved/abandoned) are fired from their own handlers. Step 1
+    // sends only `locale`, the one field guaranteed to be meaningful then.
     //
-    // Gate on trackedStepsRef so we fire exactly once per step per
-    // wizard mount lifetime. Step transitions (1→2→1) still re-fire
-    // because the Set is per-component-instance; a true full remount
-    // (route nav) resets the ref, which is correct — that's a new
+    // Gate on trackedStepsRef so we fire exactly once per step per wizard
+    // mount lifetime: going back to a step (1→2→1) does not re-fire. A full
+    // remount (route nav) resets the ref, which is correct — that's a new
     // session view.
     if (trackedStepsRef.current.has(step)) {
       return;
@@ -775,29 +721,22 @@ export default function NewTripPage({
     }
     // entryResolved is a REQUIRED dep: it flips false->true once the auth state
     // resolves and that flip is what actually fires the step view.
-    // exhaustive-deps is disabled here, so it would not have been caught.
+    // exhaustive-deps is disabled here, so the linter won't catch its removal.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, entryResolved]);
 
-  // ── Step-1 dwell heartbeat (UX10X Phase 0.3) ─────────────────────────────
-  // 56% of anon step-1 abandoner sessions log exactly ONE event, so their
-  // dwell (bounce in <2s vs deliberate struggle) is unmeasurable. A 10s
-  // heartbeat while the session sits on step 1 turns single-event sessions
-  // into a measurable time series. Fire-and-forget via the existing
+  // ── Step-1 dwell heartbeat ───────────────────────────────────────────────
+  // Many step-1 abandoners log a single event, so their dwell (bounce in <2s
+  // vs deliberate struggle) is unmeasurable. A 10s heartbeat while the session
+  // sits on step 1 turns them into a time series. Fire-and-forget via the
   // wizard-event sink; the 10s spacing never collides with the 1s dedupe
   // bucket (distinct rows = the dwell signal we want).
   //
-  // **2026-07-24 cap.** Left uncapped, this beacon was 89% of ALL wizard-event
-  // traffic (measured: 21,842 rows / 7d across only 288 sessions — ~76 beats
-  // each) because a backgrounded tab kept firing every 10s all night (max
-  // observed: a 12.8h parked tab). The dwell signal saturates long before
-  // that: median deliberating session is ~9 beats, and past ~3 min it's a
-  // parked tab, not a struggling user. So (1) skip the beat while the tab is
+  // Capped, because a backgrounded tab would otherwise beat every 10s for
+  // hours and swamp wizard-event traffic: (1) skip the beat while the tab is
   // hidden — a backgrounded wizard is not "dwelling" — and (2) stop after 18
-  // *visible* beats (~3 min), which collapses ">3 min" into a single bucket
-  // (exactly the noise the metric should exclude). Beats now track visible
-  // dwell time, capped; this cuts ~5,400 function+middleware invocations/day
-  // with zero loss to the bounce-vs-struggle signal the metric exists for.
+  // *visible* beats (~3 min). Past that it's a parked tab, not a struggling
+  // user, so ">3 min" collapses into one bucket with no loss of signal.
   useEffect(() => {
     if (step !== 1) return;
     const MAX_BEATS = 18; // ~3 min of visible dwell, then the signal is saturated
@@ -816,11 +755,9 @@ export default function NewTripPage({
   }, [step]);
 
   // ── Wizard funnel diagnostics ────────────────────────────────────────────
-  // Goal: pinpoint which field on /trips/new is killing the funnel. Today
-  // we know 96% of sessions that view step 1 never complete it. We don't
-  // know if they (a) didn't engage at all, (b) typed a destination but
-  // bailed on the date picker, (c) etc. These refs + the abandonment
-  // listener give us the answer.
+  // These refs + the abandonment listener record how far an abandoning
+  // session got (no engagement at all, a destination typed but no dates,
+  // etc.) to pinpoint which field on /trips/new loses the funnel.
 
   const wizardMountedAtRef = useRef<number>(Date.now());
   const stepStartedAtRef = useRef<number>(Date.now());
@@ -832,23 +769,20 @@ export default function NewTripPage({
   // — between click and re-render, a second click can fire before the button
   // is visibly disabled, producing duplicate trip rows. A ref check is
   // synchronous and catches the race regardless of React render timing.
-  // (Surfaced 2026-06-01 from paul.harrington@hostelworld.com — 2 identical
-  // Warsaw trips saved 4 seconds apart on signup.)
   const savingTripRef = useRef<boolean>(false);
 
-  // One-shot guard for the Rank-2 post-auth save-intent redemption (see the
+  // One-shot guard for the post-auth save-intent redemption (see the
   // effect just below handleSaveTrip). After a magic-link return we auto-
   // complete the Save the user already clicked before signing up. At most once.
   const saveIntentRedeemedRef = useRef<boolean>(false);
 
-  // Save Sprint T3: has the user applied ≥1 anon-assistant edit? Mirrored to
+  // Has the user applied ≥1 anon-assistant edit? Mirrored to
   // sessionStorage ("mt_edits_applied") so the flag survives the post-auth
   // full-page round trip; the ref is the fast path + private-mode fallback.
   const editsAppliedRef = useRef<boolean>(false);
-  // Assistant edits applied to the itinerary now on screen (reset by every
-  // generation). A full regenerate replaces them, so it asks first: one
-  // traveller regenerated a minute after a half-done swap and lost a dozen
-  // edits without a word (2026-09-26).
+  // Assistant edits applied to the itinerary on screen (reset by every
+  // generation). A full regenerate replaces them, so it asks first instead of
+  // silently discarding them.
   const editsSinceGenerationRef = useRef<boolean>(false);
   const [confirmRegenerate, setConfirmRegenerate] = useState(false);
   // Changing the dates on the result, instead of starting over
@@ -917,13 +851,9 @@ export default function NewTripPage({
   // Pre-fill destination from ?destination=<slug> deeplink (e.g. coming from
   // a /destinations/* page or a blog post CTA). Runs once on mount; if the
   // user already started typing/restored a draft we don't clobber that.
-  //
-  // **Refactored (task #152/#167):** slug resolution against the curated
-  // destinations dataset (`lib/destinations/data.ts`, ~477 KB) now happens
-  // server-side in `page.tsx`. If the slug matched a known destination we
-  // receive `prefilledDestination` already resolved; otherwise we fall
-  // back to the raw `?destination=` value as free text (capitalize +
-  // pass-through, coords filled in by autocomplete on confirm).
+  // page.tsx resolves the slug server-side: a known destination arrives as
+  // `prefilledDestination`; otherwise the raw `?destination=` value is used as
+  // free text (capitalized, coords filled in by autocomplete on confirm).
   useEffect(() => {
     if (destinationFieldRef.current) return;
 
@@ -946,11 +876,9 @@ export default function NewTripPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Pre-fill the SHAPE of the trip (length, budget, vibes) from a blog CTA.
-  //
-  // WHY: a reader arriving from "3-day Paris itinerary" was landing on a
-  // wizard that knew the city and nothing else, and had to retype the trip the
-  // article had just described. The params are derived from what the post
+  // Pre-fill the SHAPE of the trip (length, budget, vibes) from a blog CTA, so
+  // a reader arriving from "3-day Paris itinerary" doesn't have to retype the
+  // trip the article described. The params are derived from what the post
   // itself declares (lib/blog/trip-prefill.ts) and validated in page.tsx, so by
   // the time they get here they are already known-good or absent.
   //
@@ -1017,10 +945,9 @@ export default function NewTripPage({
     [STEP_NAMES_CONST]
   );
 
-  // Memoized VibeSelector handler so the child's React.memo can actually
-  // short-circuit. Caught in LIVE_AUDIT B5 — without this the new
-  // function identity on every parent render bust memoization and made
-  // step 2 expensive to re-render.
+  // Memoized VibeSelector handler so the child's React.memo can short-circuit;
+  // a new function identity on every parent render would bust memoization and
+  // make step 2 expensive to re-render.
   const handleVibesChange = useCallback(
     (v: TripVibe[]) => {
       trackFieldInteraction("vibe");
@@ -1054,7 +981,7 @@ export default function NewTripPage({
       // Supabase funnel mirror — terminal `abandoned` state. We use
       // the same step-name vocabulary as the other wizard events so
       // SQL funnel queries can self-join the table on
-      // (session_id, step) without name translation. Task #293.
+      // (session_id, step) without name translation.
       // keepalive=true on the fetch is what makes this survive the
       // beforeunload / pagehide path on most browsers.
       const lastStepName: WizardEventStep =
@@ -1102,9 +1029,9 @@ export default function NewTripPage({
     };
   }, [STEP_NAMES_CONST]);
 
-  // Existing-trips check — task #181: auth state itself flows from the
-  // central AuthProvider above. We only need this effect for the trips
-  // count, which gets re-evaluated whenever the user resolves or changes.
+  // Existing-trips check. Auth state itself flows from the central
+  // AuthProvider above; this effect only fetches the trips count, which gets
+  // re-evaluated whenever the user resolves or changes.
   useEffect(() => {
     if (authLoading) return;
     if (!authUser) {
@@ -1123,10 +1050,10 @@ export default function NewTripPage({
   }, [authLoading, authUser]);
 
   // Handle pending generation after signup (when draft is restored).
-  // The `pendingTripGeneration` flag now lives in `prefs` (durable on
-  // iOS WebView, was getting evicted under ITP / storage pressure as
-  // plain localStorage) — read is async, so we wrap in an inner fn
-  // and gate the side effect on the still-current cleanup state.
+  // The `pendingTripGeneration` flag lives in `prefs` because plain
+  // localStorage gets evicted on iOS WebView under ITP / storage pressure.
+  // The read is async, so we wrap it in an inner fn and gate the side
+  // effect on the still-current cleanup state.
   useEffect(() => {
     // Only run if authenticated AND draft has been auto-restored
     if (!isAuthenticated || !draftAutoRestored) return;
@@ -1166,23 +1093,12 @@ export default function NewTripPage({
   }, [generatedItinerary]);
 
   // Build seasonal context when destination and dates are set.
-  // Uses latitude for accurate hemisphere detection (fixes Southern Hemisphere bug).
+  // Uses latitude for accurate (Southern Hemisphere) season detection.
   //
-  // **Bug #294 (2026-05-31)** — investigated as the suspected cause of the
-  // wizard freeze on autocomplete destination select. Verdict: NOT the cause.
-  // `buildSeasonalContext` is pure-synchronous regex + ~50-entry table lookup,
-  // runs in well under 1ms; live repro on /trips/new clocked the entire
-  // autocomplete-click handler chain at 68ms sync + one 159ms long task,
-  // with no `buildSeasonalContext` call at all on the click path (this effect
-  // short-circuits to setSeasonalContext(null) when startDate is empty, which
-  // it always is at autocomplete-select time).
-  //
-  // **Defensive change kept from the investigation:** defer the synchronous
-  // setState into a microtask via queueMicrotask. The seasonal context only
-  // feeds non-critical UI (the post-dates SeasonalContextCard + the vibe-
-  // suggestion seed on Continue) — never block an interaction frame on it.
-  // If the lib ever grows (e.g. fetched holidays, weather lookup) this guard
-  // keeps the interaction handler responsive.
+  // The build is deferred into a microtask: seasonal context only feeds
+  // non-critical UI (the post-dates SeasonalContextCard + the vibe-suggestion
+  // seed on Continue), so it must never block an interaction frame, even if
+  // the lib grows (e.g. fetched holidays, weather lookup).
   useEffect(() => {
     if (!destination || !startDate) {
       setSeasonalContext(null);
@@ -1226,7 +1142,7 @@ export default function NewTripPage({
   const draftIsSavedTrip =
     draftSavedCheck && draftSavedCheck.key === draftCheckKey ? draftSavedCheck.saved : null;
 
-  // Check for unsaved draft on mount - AUTO-RESTORE if coming back from auth.
+  // Check for unsaved draft on mount - AUTO-RESTORE it for a signed-in user.
   // The `pendingTripGeneration` flag lives in `prefs` (async on native
   // Capacitor) — wrap the read in an inner async fn and use `cancelled`
   // so we don't set state after unmount / dep change.
@@ -1237,7 +1153,7 @@ export default function NewTripPage({
     // isAuthenticated is in the dep array, so this re-runs the moment auth
     // resolves. Without the early return the first pass would latch
     // showDraftRecovery for a user who IS signed in, and the auto-restore
-    // below would never get a turn — the whole change would no-op silently.
+    // below would never get a turn.
     if (isAuthenticated === null) return;
 
     let cancelled = false;
@@ -1250,10 +1166,9 @@ export default function NewTripPage({
       // Decision in lib/wizard/draft-restore.ts, with the tri-state auth trap
       // pinned by unit tests. Restores for ANYONE signed in holding an unsaved
       // itinerary, not only the Save-modal path: `pendingTripGeneration` is
-      // written in exactly four places, all inside AuthPromptModal, so a
-      // planner who signed in through the header, the login page or a magic
-      // link used to come back to a blank wizard with their itinerary unread
-      // in localStorage.
+      // only written inside AuthPromptModal, so a planner who signed in through
+      // the header, the login page or a magic link would otherwise come back
+      // to a blank wizard with their itinerary unread in localStorage.
       const decision = decideDraftRestore({
         hasDraft,
         hasItineraryInDraft: !!draft.generatedItinerary,
@@ -1272,13 +1187,9 @@ export default function NewTripPage({
       }
       if (decision === "auto-restore") {
         // Auto-restore the draft silently (no banner) for seamless post-auth experience.
-        // **2026-05-25 P0 fix**: previously only restored form state and dropped
-        // `draft.generatedItinerary`, then the useEffect at line ~380 would see
-        // !generatedItinerary and re-call handleGenerate(), producing a DIFFERENT
-        // itinerary than the one the user just saw and clicked Save on. Result:
-        // the trip the user intended to save was silently replaced. Now we
-        // restore the itinerary too so handleGenerate is NOT re-run and the
-        // post-auth Save Trip click persists the original itinerary.
+        // Restore the itinerary too, not just the form: with no itinerary on
+        // screen the pending-generation effect above re-runs handleGenerate()
+        // and silently replaces the itinerary the user clicked Save on.
         setDestination(draft.destination);
         setStartDate(draft.startDate);
         setEndDate(draft.endDate);
@@ -1286,23 +1197,23 @@ export default function NewTripPage({
         setSelectedVibes(draft.vibes as TripVibe[]);
         setBudgetTier(draft.budgetTier as "budget" | "balanced" | "premium");
         if (Array.isArray(draft.mustDos)) setMustDos(draft.mustDos as string[]);
-        // travelStyle may be undefined on pre-2026-05-28 drafts → "classic"
+        // travelStyle may be missing from a stored draft → stays "classic"
         if (draft.travelStyle === "backpacker") {
           setTravelStyle("backpacker");
         }
         if (draft.anchors && draft.anchors.length > 0) {
           setAnchors(draft.anchors);
         }
-        // Restore the "Who's coming?" answer. Absent on pre-2026-08-04 drafts,
-        // in which case the wizard keeps its "unspecified" default.
+        // Restore the "Who's coming?" answer. When a stored draft lacks it,
+        // the wizard keeps its "unspecified" default.
         if (draft.tripIntent === "solo" || draft.tripIntent === "group") {
           setTripIntent(draft.tripIntent);
         }
         if (draft.generatedItinerary) {
           setGeneratedItinerary(draft.generatedItinerary);
-          // Save Sprint T1: the restored trip becomes the session stack's
-          // current entry (adopting a pre-auth entry from this same tab when
-          // one matches, so the OAuth round trip doesn't duplicate a chip).
+          // The restored trip becomes the session stack's current entry
+          // (adopting a pre-auth entry from this same tab when one matches,
+          // so the OAuth round trip doesn't duplicate a chip).
           registerSessionRestore({
             destination: draft.destination,
             startDate: draft.startDate,
@@ -1340,11 +1251,9 @@ export default function NewTripPage({
   //
   // Once the trip exists, the row is the copy that survives: the auto-save arm
   // UPDATEs it on every edit. A draft written after that has no link to the
-  // row, and this effect used to write one on every post-save edit. A later
-  // visit to the wizard then auto-restored it, and the auto-save arm inserted
-  // it as a second trip: five duplicates since 2026-08-26, one of them a
-  // cruise planner who edited in the wizard for 80 minutes after the save and
-  // found a copy on the next visit. So a saved trip clears the draft instead.
+  // row, so a later visit to the wizard would auto-restore it and the
+  // auto-save arm would insert it as a second trip. So a saved trip clears the
+  // draft instead.
   useEffect(() => {
     if (!generatedItinerary) return;
     if (savedTripId) {
@@ -1367,7 +1276,7 @@ export default function NewTripPage({
     // tripIntent belongs here: without it the effect doesn't re-run when the
     // user changes "Who's coming?" after generating, and the draft keeps the
     // stale answer — which would quietly corrupt the very measurement this
-    // field exists to produce. Same for mustDos (P3a).
+    // field exists to produce. Same for mustDos.
   }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, tripIntent, saveDraft, savedTripId, clearDraft]);
 
   // ── Auto-save trip orchestration ────
@@ -1376,10 +1285,6 @@ export default function NewTripPage({
   // Always on, unless NEXT_PUBLIC_AUTO_SAVE_FORCE=off (lib/trips/autoSaveGate.ts);
   // then the redemption effect below owns the post-auth save instead.
   const autoSaveEnabled = shouldAutoSave(process.env.NEXT_PUBLIC_AUTO_SAVE_FORCE);
-  // The Explore-UGC gate now arrives as a prop, resolved server-side from
-  // EXPLORE_UGC_ENABLED (see this route's page.tsx). It used to be read from
-  // the PostHog flag FLAG_EXPLORE_UGC, which was never created — so the CTA
-  // was dead in production from the day it shipped.
 
   const autoSaveFormState: PersistTripFormState = {
     destination,
@@ -1394,22 +1299,16 @@ export default function NewTripPage({
     locale,
     anchors,
     mustDos,
-    // "Who's coming?" has been asked on step 1 since the Phase-1 collab audit
-    // and captured to PostHog, but never written to the trip — so the answer
-    // was unqueryable from the database and effectively unavailable (reading
-    // PostHog needs a personal API key). Persisting it is what turns the
-    // toggle into evidence for the group-vs-solo decision.
+    // "Who's coming?" is written to the trip so the answer is queryable from
+    // the database (reading it from PostHog needs a personal API key). That
+    // is what makes the toggle evidence for the group-vs-solo decision.
     tripIntent,
   };
 
-  // One id per wizard MOUNT, written into every trip this mount inserts.
-  //
-  // This is the fact forensics could not recover. Both Dubrovnik rows on
-  // 2026-08-25 came from the auto arm (proved via trip_meta.destination), so
-  // savedTripIdRef was null on the second insert — but nothing in the row said
-  // whether that was a remount (reload/second tab, where null is correct) or
-  // the ref being lost inside one mount (a real bug). Same mount id on both
-  // rows means the latter.
+  // One id per wizard MOUNT, written into every trip this mount inserts, so a
+  // duplicate insert can be diagnosed: different mount ids mean a remount
+  // (reload/second tab, where a fresh insert is correct); the same mount id
+  // means the saved-trip ref was lost inside one mount (a real bug).
   //
   // useRef, not useState: it must never trigger a render, and it must survive
   // every re-render of this very large component without changing.
@@ -1426,10 +1325,10 @@ export default function NewTripPage({
 
   const autoSaveTrip = useCallback(async (input: PersistInput) => {
     const supabase = createClient();
-    // Local session read, not a network getUser() (2026-09-02): the RPC
-    // enforces auth.uid() under RLS regardless, and a network pre-check
-    // turned any auth hiccup into a hard failure of the save that nobody
-    // could see. The error names its cause so Sentry can group it.
+    // Local session read, not a network getUser(): the RPC enforces
+    // auth.uid() under RLS regardless, and a network pre-check would turn any
+    // auth hiccup into a hard failure of the save that nobody could see. The
+    // error names its cause so Sentry can group it.
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) throw new Error("auto-save: no client session");
     return persistInsertTrip(supabase, input, session.user.id, {
@@ -1458,16 +1357,14 @@ export default function NewTripPage({
   const handlePersisted = useCallback(
     (tripId: string, durationDays: number, mode: "insert" | "update") => {
       if (mode === "insert") {
-        // GA4 + referral + bananas + side-effects (mirrors the legacy
+        // GA4 + referral + bananas + side-effects (mirrors the manual
         // handleSaveTrip post-insert block).
         //
-        // Idempotency guard (2026-07-02): on the login-return remount this
-        // insert block can run 2-3x for ONE trip (row reused by the 60s
-        // dedup, but the analytics fired every time -> trip_created x3 in a
-        // real session). Gate the WHOLE emit group on the durable, trip-id-
-        // keyed guard so each event fires exactly once per trip. Does not gate
-        // clearDraft / setSavedTripId / the modal below — those have their own
-        // guards and must still run.
+        // On the login-return remount this insert block can run several times
+        // for ONE trip (the row is reused by the 60s dedup, but the analytics
+        // would fire every time). Gate the WHOLE emit group on the durable,
+        // trip-id-keyed guard so each event fires exactly once per trip. It
+        // does not gate clearDraft / setSavedTripId below, which must still run.
         if (claimTripCreatedEmit(tripId)) {
           trackTripCreated({
             tripId,
@@ -1479,7 +1376,6 @@ export default function NewTripPage({
           // Supabase funnel mirror — `saved` terminal state for the
           // auto-save path. Only on insert (first save), so we don't
           // double-count regenerates as separate funnel completions.
-          // Task #293.
           void trackWizardEvent("saved", {
             destination,
             duration_days: durationDays,
@@ -1487,10 +1383,10 @@ export default function NewTripPage({
             backpacker_mode: travelStyle === "backpacker",
             locale,
           });
-          // Fire first_trip_saved unconditionally — same rationale as the
-          // manual handleSaveTrip path (Task #319, 2026-05-31). Both save
-          // paths emit the event so cohort math works regardless of which
-          // flow the user falls through.
+          // Fire first_trip_saved for organic and referred users alike, as
+          // the manual handleSaveTrip path does. Both save paths emit the
+          // event so cohort math works regardless of which flow the user
+          // falls through.
           try {
             captureFirstTripSaved({
               trip_id: tripId,
@@ -1521,11 +1417,9 @@ export default function NewTripPage({
         // Set savedTripId directly so the sticky bar and the post-save
         // redirects have it immediately (the mirror effect below also sets it).
         setSavedTripId(tripId);
-        // The share ask no longer fires here. It used to open the instant the
-        // row was inserted — before the user had read the itinerary they were
-        // being asked to send. 82 of 100 savers saw it and 85% skipped.
-        // It now lives on /trips/[id] behind an engagement gate; see
-        // components/trip/SharePromptOnTrip.tsx (spec C1).
+        // No share ask here: at insert time the user hasn't read the
+        // itinerary they'd be asked to send. It lives on /trips/[id] behind an
+        // engagement gate; see components/trip/SharePromptOnTrip.tsx.
       } else {
         // Don't re-fire referral/bananas on regen — only count the
         // first save. Just emit the distinct trip_updated event for
@@ -1543,12 +1437,11 @@ export default function NewTripPage({
     [destination, budgetTier, clearDraft],
   );
 
-  // Auto-save observability (2026-09-02). A failure used to end in a
-  // console.error nobody could see, and a skipped save ended nowhere — which
-  // is how six signed-in users lost generations in a month with no event of
-  // any kind. Sentry is unconditional (no consent gate), the server row is
-  // consent-free, PostHog is the sliceable mirror. Same error bucketing as the
-  // manual Save path so dashboards chart both arms together.
+  // Auto-save observability: every failure and every skip leaves an event, so
+  // a lost generation is never silent. Sentry is unconditional (no consent
+  // gate), the server row is consent-free, PostHog is the sliceable mirror.
+  // Same error bucketing as the manual Save path so dashboards chart both
+  // arms together.
   const reportAutoSaveFailure = (err: Error, info: { attempts: number }) => {
     const errMsg = err.message ?? "";
     const errorClass: "network" | "rls" | "validation" | "rate_limit" | "unknown" =
@@ -1588,13 +1481,12 @@ export default function NewTripPage({
     void captureAutoSaveSkipped({ reason, destination });
   };
 
-  // -- Pending anonymous share (2026-09-02) ---------------------------------
+  // -- Pending anonymous share ----------------------------------------------
   // A signed-out planner who shared this itinerary minted an ownerless trip
   // row, and this browser holds its claim token. On sign-in TWO things would
   // persist the same itinerary: AuthProvider claims that row, and the
-  // auto-save hook inserts a fresh one. Measured before this landed: 56
-  // signed-out shares in 30 days and 0 claims, so the collision had never
-  // been observed; the keep-it nudge on the share row makes it routine.
+  // auto-save hook inserts a fresh one; the keep-it nudge on the share row
+  // makes that collision routine.
   // Rule (lib/trips/pending-claim.ts): while the draft on screen matches the
   // shared trip and the claim is unresolved, auto-save waits; a claimed id is
   // adopted as THE saved trip; a released claim (expired, taken, no token)
@@ -1680,9 +1572,9 @@ export default function NewTripPage({
     setClaimResolution("unresolved");
     setPendingClaimDismissed(false);
   };
-  // The same door the Save button opens for a signed-out planner (46% of
-  // them sign in, 92% within ten minutes), with the draft parked first so
-  // the itinerary is on screen again after the auth round-trip.
+  // The same door the Save button opens for a signed-out planner, with the
+  // draft parked first so the itinerary is on screen again after the auth
+  // round-trip.
   const openKeepAuth = (location: AuthPromptLocation) => {
     if (generatedItinerary) {
       saveDraft({
@@ -1713,9 +1605,9 @@ export default function NewTripPage({
     // Every call site of this handler is gated on isAuthenticated === false,
     // so a Keep tap here is the auth wall by definition — the same terminal
     // event handleSaveTrip fires when it bounces an anon saver. Without it
-    // this path emitted save_clicked with no outcome, and the 2h funnel
-    // accounting (save_clicked minus saved/blocked/failed) read that silence
-    // as a React crash mid-save. Surfaced 2026-09-22 by the health watcher.
+    // this path would emit save_clicked with no outcome, and the funnel
+    // accounting (save_clicked minus saved/blocked/failed) reads that silence
+    // as a React crash mid-save.
     void trackWizardEvent("save_blocked_anon", {
       destination,
       group_size: tripIntent,
@@ -1774,9 +1666,9 @@ export default function NewTripPage({
     }
   }, [autoSave.savedTripId, savedTripId, autoSaveEnabled]);
 
-  // ── Save Sprint: unsaved-state derivation + nudge/exit instrumentation ────
-  // "Unsaved" respects BOTH save arms: the legacy manual flow (savedTripId)
-  // and the auto-save flow (autoSave.savedTripId).
+  // ── Unsaved-state derivation + nudge/exit instrumentation ────────────────
+  // "Unsaved" respects BOTH save arms: the manual flow (savedTripId) and the
+  // auto-save flow (autoSave.savedTripId).
   const isUnsaved = !savedTripId && !autoSave.savedTripId;
   const hasResult = Boolean(generatedItinerary);
   // The tray's restore-swap must never run while the auto-save arm is live:
@@ -1788,14 +1680,14 @@ export default function NewTripPage({
   const sessionTrayVisible =
     hasResult && isUnsaved && !autoSaveArmActive && sessionTrips.length >= 2;
 
-  // T2: save_nudge_shown for the "Not saved" pill — once per session
+  // save_nudge_shown for the "Not saved" pill — once per session
   // (sessionStorage once-flag; desktop + mobile pills share this one effect).
   useEffect(() => {
     if (!hasResult || !isUnsaved) return;
     if (safeGet("mt_save_nudge_pill_captured", "session") === "1") return;
     // A blocked store cannot dedupe, and safeSet reports that instead of
     // throwing. Skip rather than spam this once-per-session event on every
-    // remount — which is what the old try/catch achieved by catching.
+    // remount.
     if (!safeSet("mt_save_nudge_pill_captured", "1", "session")) return;
     void capture("save_nudge_shown", {
       source: "unsaved_pill",
@@ -1803,7 +1695,7 @@ export default function NewTripPage({
     });
   }, [hasResult, isUnsaved, getGenCount]);
 
-  // T4: save_nudge_shown for the session tray — once per session.
+  // save_nudge_shown for the session tray — once per session.
   useEffect(() => {
     if (!sessionTrayVisible) return;
     if (safeGet("mt_save_nudge_tray_captured", "session") === "1") return;
@@ -1815,14 +1707,13 @@ export default function NewTripPage({
     });
   }, [sessionTrayVisible, getGenCount]);
 
-  // T3a: native leave-guard. SEPARATE from the fireAbandoned analytics
-  // listener above — that handler's semantics stay untouched. While an
-  // UNSAVED result is on screen, tab-close/back/external nav triggers the
-  // browser's native "leave site?" dialog. Disarmed when saved (either arm),
-  // while the auth modal is open (the Google OAuth full-page redirect starts
-  // from inside it and must not be interrupted), and inside the Capacitor
-  // shell (beforeunload dialogs are broken in WebViews). SPA navigations
-  // never fire beforeunload, so in-app moves are unaffected.
+  // Native leave-guard, SEPARATE from the fireAbandoned analytics listener
+  // above. While an UNSAVED result is on screen, tab-close/back/external nav
+  // triggers the browser's native "leave site?" dialog. Disarmed when saved
+  // (either arm), while the auth modal is open (the Google OAuth full-page
+  // redirect starts from inside it and must not be interrupted), and inside
+  // the Capacitor shell (beforeunload dialogs are broken in WebViews). SPA
+  // navigations never fire beforeunload, so in-app moves are unaffected.
   useEffect(() => {
     if (!hasResult || !isUnsaved || showAuthModal) return;
     if (isCapacitorNative()) return;
@@ -1834,7 +1725,7 @@ export default function NewTripPage({
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [hasResult, isUnsaved, showAuthModal]);
 
-  // T3b: exit telemetry. pagehide with an unsaved result → nav-safe
+  // Exit telemetry. pagehide with an unsaved result → nav-safe
   // result_exit_unsaved (sync SDK queue + sendBeacon flush — the same
   // mechanism as captureSaveBlockedAnon). At most once per pagehide sequence
   // (ref guard, reset when the page returns from the bfcache) and never
@@ -1883,7 +1774,7 @@ export default function NewTripPage({
         setTripIntent(draft.tripIntent);
       }
       setGeneratedItinerary(draft.generatedItinerary);
-      // Save Sprint T1: mirror the restore into the session stack so the
+      // Mirror the restore into the session stack so the
       // banner-restored trip is durable in the tray (and not re-pushed as a
       // duplicate if it already came from this session).
       if (draft.generatedItinerary) {
@@ -1954,14 +1845,12 @@ export default function NewTripPage({
     setIsRegenerating(false);
   };
 
-  // Handle start over - confirmed discard.
-  //
-  // 2026-06-07: signature changed to accept the reason + optional custom
-  // text from the StartOverModal (a June 2026 postmortem). We POST
-  // the feedback to /api/trips/[id]/deletion-feedback BEFORE the
-  // soft-delete so we still capture the WHY even if the discard itself
-  // hiccups. The feedback row is independently useful — even without a
-  // matching tombstone we learn what drove regret.
+  // Handle start over - confirmed discard, with the reason + optional custom
+  // text from the StartOverModal. We POST the feedback to
+  // /api/trips/[id]/deletion-feedback BEFORE the soft-delete so we still
+  // capture the WHY even if the discard itself hiccups. The feedback row is
+  // independently useful — even without a matching tombstone we learn what
+  // drove regret.
   const handleStartOver = async (
     reason: string,
     customReason: string | null,
@@ -1993,15 +1882,15 @@ export default function NewTripPage({
       }
     })();
 
-    // If auto-save persisted a row, soft-delete it (post commit 8d8f591:
-    // UPDATE deleted_at) before resetting state so the user doesn't end
-    // up with an orphaned trip in their dashboard. The row stays in the
-    // DB tombstoned — recoverable for 7 days via SQL.
+    // If auto-save persisted a row, soft-delete it (sets deleted_at) before
+    // resetting state so the user doesn't end up with an orphaned trip in
+    // their dashboard. The row stays in the DB tombstoned, recoverable via
+    // SQL (UPDATE deleted_at = NULL).
     if (wasAutoSaved) {
       await autoSave.discard();
     }
     clearDraft();
-    // Save Sprint T1: nothing is displayed after Start Over — drop the
+    // Nothing is displayed after Start Over — drop the
     // session stack's current pointer. The stacked snapshots themselves
     // survive (that's the tray's whole point across generations).
     clearSessionTripCurrent();
@@ -2020,8 +1909,8 @@ export default function NewTripPage({
     setMustDos([]);
     setMustDoInput("");
     setSeasonalContext(null);
-    // Multi-city rows survived Start Over, and the sync effect would
-    // rebuild destination/endDate from the stale route on its next run.
+    // Reset the multi-city rows too, or the sync effect rebuilds
+    // destination/endDate from the stale route on its next run.
     // Restore the exact initial state from the useState declarations.
     setMultiCityMode(false);
     setCityRows([
@@ -2047,10 +1936,9 @@ export default function NewTripPage({
   // The 21-day ceiling only holds when the request ACTUALLY fans out per city.
   // /api/ai/generate keys its cap off `legs.length > 1` (isMultiCity), so a
   // multi-city route with a single filled row is validated as a SINGLE-city
-  // trip and a 21-day span 400s with "Maximum trip duration is 14 days".
-  // Observed 2026-08-24: one filled row / 21 nights -> 4 doomed generate calls
-  // in 23s (the error banner's Retry button re-fires the same request). Keep
-  // this predicate in lockstep with app/api/ai/generate/route.ts.
+  // trip and a 21-day span 400s with "Maximum trip duration is 14 days" (and
+  // the error banner's Retry button re-fires the same request). Keep this
+  // predicate in lockstep with app/api/ai/generate/route.ts.
   const multiCityLegCount =
     MULTI_CITY_ENABLED && multiCityMode
       ? cityRows.filter((r) => r.city.trim() && r.nights > 0).length
@@ -2064,11 +1952,11 @@ export default function NewTripPage({
         // Step 1: Destination + Dates combined.
         // Mirrors lib/gemini.ts validateTripParams so nothing that passes
         // this gate can bounce off the server's destination/date checks at
-        // generate time (Wave-1 late-validation kickback). Rules:
-        //   - destination >= 2 chars AND only allowlisted characters
+        // generate time. Rules:
+        //   - destination 2..DESTINATION_MAX_LENGTH chars, allowlisted only
         //   - both dates parseable ("Invalid date format" guard)
         //   - end strictly after start (server rejects end <= start)
-        //   - span within MAX_TRIP_DAYS (day-inclusive, same math as server)
+        //   - span within effectiveMaxTripDays (day-inclusive, same math as server)
         if (
           destination.length < 2 ||
           destination.length > DESTINATION_MAX_LENGTH ||
@@ -2087,10 +1975,9 @@ export default function NewTripPage({
     }
   };
 
-  // Many step-1 visitors know WHERE but not exactly WHEN — dates being a hard
-  // gate to advance is a prime suspect for the step-1 drop-off (the biggest
-  // funnel leak). One tap fills a sensible default (start ~3 weeks out, 5-day
-  // trip) so they can reach a generated trip and fine-tune dates anytime.
+  // Many step-1 visitors know WHERE but not exactly WHEN, and dates are a hard
+  // gate to advance. One tap fills a sensible default (start ~3 weeks out,
+  // 5-day trip) so they can reach a generated trip and fine-tune dates anytime.
   const handleFlexibleDates = () => {
     const today = new Date().toISOString().split("T")[0];
     const start = addDaysISO(today, 21);
@@ -2101,13 +1988,12 @@ export default function NewTripPage({
     trackFieldInteraction("flexible_dates");
   };
 
-  // ── One-tap starts (2026-09-02) ───────────────────────────────────────────
-  // A popular pick used to set the destination and nothing else, leaving
-  // Continue disabled and the visitor facing the date field. Now, when no
-  // dates exist, it also pencils in the same flexible default the "I'm
-  // flexible" link uses (~3 weeks out, 5 days), so Continue lights and the
-  // reassurance line appears. It does NOT advance: step 2 needs a vibe and
-  // the seasonal seed is rarely loaded 100ms after a tap, so an auto-advance
+  // ── One-tap starts ────────────────────────────────────────────────────────
+  // A popular pick sets the destination and, when no dates exist, pencils in
+  // the same flexible default the "I'm flexible" link uses (~3 weeks out, 5
+  // days), so Continue lights and the reassurance line appears instead of a
+  // disabled Continue. It does NOT advance: step 2 needs a vibe and the
+  // seasonal seed is rarely loaded 100ms after a tap, so an auto-advance
   // would land on a second disabled button. Dates the person already chose
   // are never overwritten. Focus moves to the date trigger because the chip
   // that had focus unmounts (the `!destination` guard) — a keyboard or
@@ -2151,10 +2037,9 @@ export default function NewTripPage({
   }, []);
 
   // Footer state B: a valid destination with no dates. The slot offers an
-  // ENABLED "Use flexible dates" instead of a disabled Continue with a hint —
-  // the biggest remaining disabled-button moment on the step where most
-  // abandons happen. Label deliberately does not match /continue|next/i so
-  // the e2e specs keep selecting the real one.
+  // ENABLED "Use flexible dates" instead of a disabled Continue with a hint,
+  // on the step where most abandons happen. Label deliberately does not
+  // match /continue|next/i so the e2e specs keep selecting the real one.
   const footerStateB =
     step === 1 &&
     destination.length >= 2 &&
@@ -2190,8 +2075,8 @@ export default function NewTripPage({
       setStep(1);
       return;
     }
-    // Same reasoning as the date guard above, for the rule the client used to
-    // skip. Returning HERE — before bumpGenCount and before the `generating`
+    // Same reasoning as the date guard above, for the destination length
+    // rule. Returning HERE — before bumpGenCount and before the `generating`
     // row — is the point: a doomed attempt should cost no round-trip and leave
     // no phantom "generating" that reads as a dead end in the funnel.
     if (destination.length > DESTINATION_MAX_LENGTH) {
@@ -2201,20 +2086,15 @@ export default function NewTripPage({
     }
 
     // Re-generating the SAME destination updates the saved row instead of
-    // adding a second one.
-    //
-    // The Regenerate button already did this by calling autoSave.regenerate().
-    // Back-navigation did not: the user returned to step 1, changed the length
-    // or the dates, and generated again — a path that called neither
-    // regenerate() nor discard(), so the previous trip stayed saved and a
-    // second one appeared. Measured 2026-08-25: 31 pairs across 24 distinct
-    // users, mean gap ~11 minutes. The server-side dedupe cannot catch these —
-    // insert_trip_dedup locks on (user, lower(title), start_date) and the whole
-    // point of the edit is that one of those changed.
+    // adding a second one. The Regenerate button calls autoSave.regenerate()
+    // itself; this covers going back to step 1, changing the length or the
+    // dates, and generating again. The server-side dedupe cannot catch that —
+    // insert_trip_dedup locks on (user, lower(title), start_date) and the
+    // whole point of the edit is that one of those changed.
     //
     // Gated on the destination being UNCHANGED. If you go back and plan a
     // different city, that is a different trip and must not overwrite the one
-    // already saved — updating there would turn this fix into data loss.
+    // already saved — updating there would be data loss.
     if (
       autoSaveEnabled &&
       autoSave.savedTripId &&
@@ -2227,27 +2107,26 @@ export default function NewTripPage({
       await autoSave.regenerate();
     }
 
-    // Save Sprint T1: count every generation attempt of this browser session
-    // (mt_gen_count). handleGenerate is the single choke point for ALL
-    // generations — classic wizard, decision arm, regenerate, post-auth
-    // resume — so this is the one increment site.
+    // Count every generation attempt of this browser session (mt_gen_count).
+    // handleGenerate is the single choke point for ALL generations — the
+    // Generate button, the error Retry, regenerate, post-auth resume — so
+    // this is the one increment site.
     bumpGenCount();
-    // **2026-05-23**: Anonymous generation enabled. Visitors generate first,
-    // sign up later (at Save). The /api/ai/generate route accepts anonymous
-    // requests rate-limited by cookie (2/24h). Persisting the form draft to
-    // localStorage stays — it lets us recover gracefully if the visitor
-    // closes the tab mid-generation, AND it's what survives the eventual
-    // signup modal at Save time. Not once the trip is saved: the saved row is
-    // then the copy that survives, and a draft beside it restores later as a
-    // duplicate (see the draft effect above).
+    // Visitors generate first and sign up later (at Save). /api/ai/generate
+    // accepts anonymous requests, rate-limited per cookie
+    // (lib/anonymous/rate-limit.ts) with a per-IP backstop. The form draft is
+    // persisted to localStorage so we can recover if the visitor closes the
+    // tab mid-generation, AND it's what survives the signup modal at Save
+    // time. Not once the trip is saved: the saved row is then the copy that
+    // survives, and a draft beside it restores later as a duplicate (see the
+    // draft effect above).
     if (destination && startDate && endDate && !savedTripId) {
       saveDraft({
-        // Was `null`, unconditionally. That emptied a perfectly good draft the
-        // moment the user pressed Generate, so anyone returning mid-wait — or
-        // whose generation failed — found a blank form where their itinerary
-        // had been. Keep it for the SAME destination (a re-generate with dates
-        // or length tweaked); drop it when the destination changed, because
-        // Rome's itinerary under Lisbon's name is worse than nothing.
+        // Keep the draft's itinerary for the SAME destination (a re-generate
+        // with dates or length tweaked), so anyone returning mid-wait — or
+        // whose generation fails — doesn't find a blank form. Drop it when
+        // the destination changed, because Rome's itinerary under Lisbon's
+        // name is worse than nothing.
         generatedItinerary: (isSameDestination(draft?.destination, destination)
           ? draft?.generatedItinerary ?? null
           : null) as unknown as GeneratedItinerary,
@@ -2267,9 +2146,9 @@ export default function NewTripPage({
     setGenerating(true);
     setError(null);
 
-    // Start fetching the result-view chunks now, not when the result mounts.
+    // Start fetching the result-view chunks here, not when the result mounts.
     // handleGenerate is the single choke point for every generation path, so
-    // this one call covers the classic wizard, the decision arm, regenerate
+    // this one call covers the Generate button, the error Retry, regenerate
     // and post-auth resume alike. See preloadResultViewChunks for why.
     preloadResultViewChunks();
 
@@ -2287,13 +2166,13 @@ export default function NewTripPage({
         ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))
         : 0,
       budget_tier: budgetTier,
-      // Forward the Phase-1 intent signal so PostHog funnels can filter
+      // Forward the intent signal so PostHog funnels can filter
       // "started generation" by intent (solo vs group) and downstream
       // share/save rates.
       trip_intent: tripIntent,
     });
     // Supabase mirror — fired alongside the PostHog event so the funnel
-    // is queryable in SQL. Task #293.
+    // is queryable in SQL.
     void trackWizardEvent("generating", {
       destination,
       duration_days:
@@ -2336,13 +2215,13 @@ export default function NewTripPage({
         seasonalContext: seasonalContext || undefined,
         interests: derivedInterests, // Auto-derived from vibes
         requirements: requirements || undefined,
-        // Must-do wishlist (P3a) — undated wishes the plan must schedule.
+        // Must-do wishlist — undated wishes the plan must schedule.
         // Presence bypasses the cross-user cache server-side.
         ...(mustDos.length > 0 ? { mustDos } : {}),
         travelStyle,
         ...(isMultiCity ? { destinations: mcLegs! } : {}),
-        // Anchored trips (F1): fixed commitments the plan must build around.
-        // Mutually exclusive with multi-city in v1 — the panel is hidden in
+        // Anchored trips: fixed commitments the plan must build around.
+        // Mutually exclusive with multi-city — the panel is hidden in
         // multi-city mode, and this guard keeps stale state out of the call.
         ...(!isMultiCity && anchors.length > 0 ? { anchors } : {}),
       };
@@ -2366,7 +2245,7 @@ export default function NewTripPage({
       // carry `destinations`/`anchors`.
       const isAnchored = !isMultiCity && anchors.length > 0;
 
-      // F1 telemetry: how constrained is this trip? Fired at Generate (not at
+      // Anchor telemetry: how constrained is this trip? Fired at Generate (not at
       // panel-add) so it counts intent that actually reached generation.
       if (isAnchored) {
         const tripDays =
@@ -2385,7 +2264,7 @@ export default function NewTripPage({
         });
       }
 
-      // P3a telemetry: fired at Generate (like anchors above) so it counts
+      // Must-do telemetry: fired at Generate (like anchors above) so it counts
       // wishes that actually reached generation, not abandoned chips.
       if (mustDos.length > 0) {
         void capture("must_dos_generated", { must_do_count: mustDos.length });
@@ -2421,19 +2300,17 @@ export default function NewTripPage({
       }
 
       // 2. Fallback to the classic JSON endpoint if streaming didn't
-      //    deliver a final itinerary. Three cases get us here:
+      //    deliver a final itinerary. Four cases get us here:
       //      (a) streamGeneration() threw before any events (rate-limit,
       //          dev-key revoked, network 5xx) — caught above.
       //      (b) it completed without a `complete` event (rare).
       //      (c) the server emitted HTTP 200 then an SSE `error` event
       //          mid-flight (transient Gemini upstream blip, parser
-      //          exception, model overload). 2026-05-31 audit fix
-      //          (Task #310): previously we threw on `streamError`
-      //          BEFORE this fallback, hard-failing every transient
-      //          upstream blip even though the JSON route has cache
-      //          hits + a graceful LIMIT_REACHED UI gate. Now we let
-      //          the fallback run; only re-throw if the JSON path
+      //          exception, model overload). Don't throw on `streamError`
+      //          before this fallback: the JSON route has cache hits + a
+      //          graceful LIMIT_REACHED UI gate, so only re-throw if it
       //          ALSO fails to produce an itinerary.
+      //      (d) multi-city and anchored trips skip streaming entirely.
       let data: { itinerary?: GeneratedItinerary; usage?: { used?: number; limit?: number }; code?: string; error?: string };
       if (streamedItinerary) {
         data = { itinerary: streamedItinerary };
@@ -2447,10 +2324,9 @@ export default function NewTripPage({
 
         if (!response.ok) {
           // The anonymous free-generation cap (RATE_LIMIT from both
-          // endpoints: the stream refused, and so did this fallback). Since
-          // #189 it applies to the wizard; ask for a free account, with the
-          // destination kept for the way back, instead of throwing the
-          // server's English error.
+          // endpoints: the stream refused, and so did this fallback). Ask
+          // for a free account, with the destination kept for the way back,
+          // instead of throwing the server's English error.
           if (response.status === 429 && data.code === "RATE_LIMIT" && !authUser) {
             setAuthPromptLocation("wizard_generation_limit");
             setAuthPromptReason("generation_limit");
@@ -2469,7 +2345,7 @@ export default function NewTripPage({
       // already has image_url populated on each activity.
       setGeneratedItinerary(data.itinerary || null);
 
-      // Save Sprint T1: push the successful generation onto the session trip
+      // Push the successful generation onto the session trip
       // stack. This is the ONLY generation success site — the streaming path
       // funnels into `data.itinerary` via streamedItinerary above, and the
       // JSON fallback lands here too. Restores (draft/tray) never push from
@@ -2490,7 +2366,7 @@ export default function NewTripPage({
       }
 
       // Supabase funnel mirror — fired only when we actually have an
-      // itinerary to render. Task #293.
+      // itinerary to render.
       if (data.itinerary) {
         const durationDaysResult =
           startDate && endDate
@@ -2519,12 +2395,9 @@ export default function NewTripPage({
         });
       }
 
-      // Track successful itinerary generation.
-      // Bug-bounty 2026-05-24 P1: previously `Date.now() - performance.now()`
-      // which is Unix-epoch minus page-life-ms — a giant nonsense
-      // number (~1.7 trillion). All historical generation_time_ms
-      // analytics through GA4 + PostHog have been wrong since launch.
-      // Use the actual start time of THIS generation request.
+      // Track successful itinerary generation, timed from the start of THIS
+      // request (`Date.now() - performance.now()` would be Unix-epoch minus
+      // page-life-ms, a meaningless number).
       const generationTime = Date.now() - generationStartTime;
       const durationDaysGenerated = Math.ceil(
         (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
@@ -2557,12 +2430,10 @@ export default function NewTripPage({
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
-      // Until now a failed generation left NOTHING server-side: `abandoned`
-      // cannot follow `generating` (wizardCompletedRef is set before the
-      // request fires), and no failure step existed — so the 22 sessions in 30
-      // days that reached `generating` and never reached `result` were
-      // indistinguishable from someone closing the tab. The code separates the
-      // buckets without anyone reading a stack trace.
+      // `abandoned` cannot follow `generating` (wizardCompletedRef is set
+      // before the request fires), so without this row a failed generation
+      // is indistinguishable from someone closing the tab. The failure_code
+      // separates the buckets without anyone reading a stack trace.
       void trackWizardEvent("generation_failed", {
         destination,
         locale,
@@ -2588,8 +2459,8 @@ export default function NewTripPage({
     if (!generatedItinerary) return;
     // No-op when the auto-save flow has already persisted the trip.
     // Defense in depth — the UI hides this button when autoSave.savedTripId
-    // is set, but a child component (DestinationHero onSave at line 1200)
-    // could still invoke it.
+    // is set, but a child component (ValuePropositionBanner's onSave, the
+    // assistant's save bridge) could still invoke it.
     if (autoSaveEnabled && autoSave.savedTripId) return;
     // Synchronous re-entry guard: setLoading(true) below is async, and a
     // user can click a second time in the gap before React re-renders the
@@ -2599,7 +2470,7 @@ export default function NewTripPage({
 
     // Supabase funnel mirror — fired on the user's Save tap regardless
     // of auth state. This captures the "peak intent" event before the
-    // auth modal potentially intercepts. Task #293.
+    // auth modal potentially intercepts.
     void trackWizardEvent("save_clicked", {
       destination,
       duration_days:
@@ -2620,19 +2491,19 @@ export default function NewTripPage({
 
     setLoading(true);
     try {
-      // Task #181: read auth from the central AuthProvider rather than
-      // firing another getUser() round-trip. The subsequent supabase
-      // INSERT below still goes through the per-request client (RLS will
-      // re-verify the session on the wire).
+      // Read auth from the central AuthProvider rather than firing another
+      // getUser() round-trip. The subsequent supabase INSERT below still
+      // goes through the per-request client (RLS will re-verify the session
+      // on the wire).
       const user = authUser;
       const supabase = createClient();
 
       if (!user) {
-        // **2026-05-23**: This is now the auth wall (moved from Generate).
-        // The user just saw their generated itinerary and clicked Save —
-        // peak motivation, the right moment to ask for an account. The
-        // existing draft logic (saveDraft + pendingTripGeneration flag)
-        // already persists the trip so it'll be restored after signup.
+        // This is the auth wall; generating needs no account (up to the
+        // anonymous cap). The user just saw their generated itinerary and
+        // clicked Save — peak motivation, the right moment to ask for an
+        // account. The draft logic (saveDraft + pendingTripGeneration flag)
+        // persists the trip so it'll be restored after signup.
         if (generatedItinerary) {
           saveDraft({
             generatedItinerary,
@@ -2642,24 +2513,22 @@ export default function NewTripPage({
             pace,
             vibes: selectedVibes,
             budgetTier,
-            // Backpacker mode must survive the auth round trip — the
-            // generate-time draft write includes it, but this path didn't,
-            // so the flag was silently dropped on the post-signup restore.
+            // Backpacker mode must survive the auth round trip, like the
+            // generate-time draft write; without it the post-signup restore
+            // silently drops the flag.
             travelStyle,
-            // Same for the P3a must-do wishlist.
+            // Same for the must-do wishlist.
             mustDos,
-            // Same lesson for F1 anchors: without this, the post-signup save
-            // would silently drop trip_meta.anchors.
+            // Same for anchors: without this, the post-signup save would
+            // silently drop trip_meta.anchors.
             anchors,
             // ...and the same for the "Who's coming?" answer.
             tripIntent,
           });
         }
-        // Funnel disambiguation: save_clicked > saved is the dominant
-        // "lost intent" leak. Without this event we can't tell "user
-        // bounced at auth wall" from "save genuinely errored". Surfaced
-        // 2026-06-02 — 1 save_clicked, 0 saved, 0 signups in one day made
-        // the gap invisible until manual investigation.
+        // Funnel disambiguation: without this event we can't tell "user
+        // bounced at auth wall" from "save genuinely errored" in the
+        // save_clicked → saved gap.
         void trackWizardEvent("save_blocked_anon", {
           destination,
           group_size: tripIntent,
@@ -2716,23 +2585,19 @@ export default function NewTripPage({
       const tripMeta = {
         // Provenance - the same two keys the auto arm writes via SaveOrigin,
         // so a duplicate pair states which arm produced each row and whether
-        // they came from the same wizard mount. Deliberately no longer
-        // inferred from trip_meta.destination's absence here — and as of
-        // 2026-08-30 that inference would be actively wrong, since this arm
-        // now writes that key too (see below).
+        // they came from the same wizard mount. Never infer the arm from
+        // trip_meta.destination's absence: both arms write that key (see
+        // below).
         save_arm: "manual" as const,
         ...(wizardMountIdRef.current
           ? { wizard_mount_id: wizardMountIdRef.current }
           : {}),
-        // Canonical user-specified destination + structured route legs. The
-        // auto arm (lib/trips/persistTrip.ts buildTripRow) has always written
-        // these; this arm never did, so getTripDestination() fell back to
-        // stripping " Trip" off the title for every manually saved trip —
-        // which is exactly the case that fallback is documented to break on
-        // (non-English, renamed, and multi-city titles). Measured 2026-08-30:
-        // 8 of 10 trips saved that day had no trip_meta.destination, all of
-        // them from this arm. `destination` holds joinCities(...) for
-        // multi-city, so `cities` is derivable the same way the auto arm
+        // Canonical user-specified destination + structured route legs, as
+        // the auto arm (lib/trips/persistTrip.ts buildTripRow) writes them.
+        // Without them getTripDestination() falls back to stripping " Trip"
+        // off the title, which is documented to break on non-English,
+        // renamed, and multi-city titles. `destination` holds joinCities(...)
+        // for multi-city, so `cities` is derivable the same way the auto arm
         // derives it. Gated on a non-empty value so we never store "".
         ...(destination.trim()
           ? {
@@ -2746,29 +2611,29 @@ export default function NewTripPage({
         highlights: generatedItinerary.trip_summary.highlights,
         booking_links: generatedItinerary.booking_links,
         destination_best_for: generatedItinerary.destination.best_for,
-        // Phase 1.3: the language the text was generated in (stamped by the
-        // generate routes; the UI locale covers older responses). Every later
+        // The language the text was generated in (stamped by the generate
+        // routes; the UI locale covers responses without it). Every later
         // AI edit reads this before the visitor's cookie.
         locale: generatedItinerary.language ?? resolveAiLanguage(locale),
         packing_suggestions: generatedItinerary.trip_summary.packing_suggestions,
-        // F1 anchors: persist the fixed commitments this trip was built
+        // Anchors: persist the fixed commitments this trip was built
         // around so regeneration/editing keeps honouring them.
         ...(anchors.length > 0 ? { anchors } : {}),
-        // P3a must-dos: same source-of-truth reasoning as anchors.
+        // Must-dos: same source-of-truth reasoning as anchors.
         ...(mustDos.length > 0 ? { must_dos: mustDos } : {}),
-        // P3b: pace the trip was generated at — the feasibility strip on the
+        // Pace the trip was generated at — the feasibility strip on the
         // detail/share views reads it to pick the day-time budget.
         pace,
       };
 
-      // Atomic server-side dedupe: the previous check-then-insert here (31e1d41)
-      // caught slow double-clicks but not concurrency — this path racing the
-      // auto-save arm produced a mixed-arm duplicate pair on 2026-07-02. The
-      // insert_trip_dedup RPC advisory-locks (user, title, start_date), runs
-      // the same 60s-window reuse check, and inserts — atomically. Also still
-      // catches cross-tab double-save, hard-refresh-then-resave, and any
-      // client guard regression. RLS applies (SECURITY INVOKER); user_id is
-      // taken from auth.uid() server-side.
+      // Atomic server-side dedupe: a client check-then-insert catches slow
+      // double-clicks but not concurrency (e.g. this path racing the
+      // auto-save arm). The insert_trip_dedup RPC advisory-locks (user,
+      // title, start_date), runs the 60s-window reuse check, and inserts —
+      // atomically. It also catches cross-tab double-save,
+      // hard-refresh-then-resave, and any client guard regression. RLS
+      // applies (SECURITY INVOKER); user_id is taken from auth.uid()
+      // server-side.
       const tripTitle = `${generatedItinerary.destination.name} Trip`;
       const { data: dedupSave, error: tripError } = await supabase
         .rpc("insert_trip_dedup", {
@@ -2780,8 +2645,8 @@ export default function NewTripPage({
             status: "planning",
             visibility: "private",
             // Stored with activity ids: the photo enrichment fired right after
-            // this insert merges by id, and an id-less trip made the trip page
-            // mint and save ids of its own, racing it.
+            // this insert merges by id, and an id-less trip would make the
+            // trip page mint and save ids of its own, racing it.
             itinerary: ensureActivityIds(generatedItinerary.days),
             cover_image_url: coverImageUrl,
             budget: {
@@ -2802,9 +2667,8 @@ export default function NewTripPage({
       const trip: { id: string } = { id: dedupRow.trip_id };
 
       // Upgrade curated activity images to real place photos for the KEPT
-      // trip (P1 of the co-creation plan). The autosave arm already does this
-      // via persistTrip; the manual-save path never did, so most saved trips
-      // kept their generation-time thematic fallbacks. Fire-and-forget with
+      // trip, as the autosave arm does via persistTrip; otherwise saved trips
+      // keep their generation-time thematic fallbacks. Fire-and-forget with
       // keepalive so it survives the same-tab navigation to /trips/[id].
       if (!dedupRow.reused) {
         try {
@@ -2823,12 +2687,12 @@ export default function NewTripPage({
       ) + 1;
 
       // Analytics emission — gated on the durable, trip-id-keyed idempotency
-      // guard (2026-07-02). handleSaveTrip can run 2-3x for ONE trip on the
+      // guard. handleSaveTrip can run several times for ONE trip on the
       // login-return remount (auto-invoked by the save-intent effect on each
       // mount, plus a possible manual re-click); the 60s dedup reuses the row
-      // (existingTrip above) but these captures sit OUTSIDE that branch, so a
-      // real session emitted trip_created x3 / first_trip_saved x3, inflating
-      // activation metrics. The guard makes each fire exactly once per trip.
+      // (dedupRow.reused above) but these captures don't check that, so they
+      // would inflate activation metrics. The guard makes each fire exactly
+      // once per trip.
       if (claimTripCreatedEmit(trip.id)) {
         // Track trip creation (GA4)
         trackTripCreated({
@@ -2841,7 +2705,7 @@ export default function NewTripPage({
 
         // Supabase funnel mirror — fired on successful manual-save INSERT.
         // The auto-save path fires its own `saved` event in handlePersisted
-        // below so both flows reach this terminal funnel state. Task #293.
+        // above so both flows reach this terminal funnel state.
         void trackWizardEvent("saved", {
           destination,
           duration_days: durationDays,
@@ -2850,11 +2714,9 @@ export default function NewTripPage({
           locale,
         });
 
-        // Fire first_trip_saved (organic + referred). Was gated inside
-        // handleTripCreatedWithReferral on wasReferred — so organic users
-        // (the bulk of saves) never produced the event. Now dedupes on
-        // trip.id via the guard above rather than dup-firing (Task #319,
-        // 2026-05-31; guard added 2026-07-02).
+        // Fire first_trip_saved here for organic and referred users alike
+        // (handleTripCreatedWithReferral does not fire it). Deduped on
+        // trip.id by the guard above.
         try {
           captureFirstTripSaved({
             trip_id: trip.id,
@@ -2890,17 +2752,16 @@ export default function NewTripPage({
         safeSet("profile_modal_shown", "true", "session");
       }
 
-      // Go straight to the trip. The share ask used to interrupt here; it now
-      // waits until the user has actually looked at the itinerary, on the trip
-      // page itself (components/trip/SharePromptOnTrip.tsx, spec C1). The
-      // redirect that the modal's onClose used to perform happens directly.
+      // Go straight to the trip. The share ask waits until the user has
+      // actually looked at the itinerary, on the trip page itself
+      // (components/trip/SharePromptOnTrip.tsx).
       setSavedTripId(trip.id);
       router.push(`/trips/${trip.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save trip");
       // Funnel marker: this is the AUTHED-save genuine-failure path
       // (INSERT errored, RLS rejected, network died, etc). Distinct from
-      // save_blocked_anon (anon user dismissed auth modal). If this fires
+      // save_blocked_anon (anon user hit the auth wall). If this fires
       // even once in a 2h watcher window we want to wake up — it means
       // a real user lost a real trip after a real save click.
       void trackWizardEvent("save_failed", {
@@ -2940,19 +2801,20 @@ export default function NewTripPage({
     }
   };
 
-  // ── Rank-2 activation fix: redeem the pre-signup Save intent ──────────────
+  // ── Redeem the pre-signup Save intent ─────────────────────────────────────
   // An anonymous user who clicks Save hits the auth wall, signs up via magic
   // link, and returns to /trips/new with the itinerary silently restored
-  // (draftAutoRestored === true — set ONLY on that pending-save path, never on
-  // ordinary draft recovery). With auto-save switched off nothing then persists
-  // that trip, so this honours the Save click they already made by invoking the
-  // same tested handleSaveTrip once.
+  // (draftAutoRestored === true). With auto-save switched off nothing then
+  // persists that trip, so this honours the Save click they already made by
+  // invoking the same tested handleSaveTrip once.
   //
   // Safety / no double-save:
   //  - Runs only when auto-save is off (shouldRedeemSaveIntent), so it never
   //    races the auto-save hook.
-  //  - draftAutoRestored is true only on the silent post-auth restore, so this
-  //    never fires for normal draft recovery or a normal authed generation.
+  //  - draftAutoRestored is set only by the silent auto-restore of a signed-in
+  //    user's draft (lib/wizard/draft-restore.ts), never by banner recovery or
+  //    a normal authed generation. That restore also runs for a signed-in
+  //    return that never clicked Save, and this saves those drafts too.
   //  - Idempotent: one-shot ref + savedTripId / autoSave.savedTripId checks;
   //    handleSaveTrip's own re-entry guard (savingTripRef) and the 60s server-
   //    side dedupe are the backstops against a duplicate row.
@@ -2992,7 +2854,7 @@ export default function NewTripPage({
   // the first changed day into view.
   const handleApplyAssistantEdits = useCallback(
     (edits: AssistantDayEdit[], tripLength?: number) => {
-      // Save Sprint T3: remember that this session applied an assistant edit
+      // Remember that this session applied an assistant edit
       // (forwarded on result_exit_unsaved as edits_applied).
       editsAppliedRef.current = true;
       editsSinceGenerationRef.current = true;
@@ -3029,11 +2891,11 @@ export default function NewTripPage({
   );
 
   // New dates for the generated trip, from the hero's date chip or from Start
-  // Over's "wrong dates". "Wrong dates" was the top reason people threw a plan
-  // away (16 of 40 in 60 days, 2026-09-26), often dates "I'm flexible" had
-  // pencilled in. The plan moves with the dates; a shorter trip keeps its first
-  // days; a longer one gets its new days from the assistant (only the new
-  // days: the ones already planned stay exactly as they are).
+  // Over's "wrong dates" (often dates "I'm flexible" pencilled in), so wrong
+  // dates don't cost the whole plan. The plan moves with the dates; a shorter
+  // trip keeps its first days; a longer one gets its new days from the
+  // assistant (only the new days: the ones already planned stay exactly as
+  // they are).
   const handleChangeDates = async (start: string, end: string) => {
     const itinerary = generatedItinerary;
     if (!itinerary) return;
@@ -3060,7 +2922,7 @@ export default function NewTripPage({
     });
     setStartDate(start);
     setEndDate(addDaysISO(start, keep - 1));
-    // The traveller chose these dates: they are no longer pencilled in.
+    // The traveller chose these dates, so they are not pencilled in.
     setFlexibleDates(false);
     setDatesPencilled(false);
     posthog.capture("wizard_dates_changed", { from_days: current, to_days: change.length, kind: change.kind });
@@ -3105,13 +2967,12 @@ export default function NewTripPage({
     }
   };
 
-  // Save Sprint T4: flip the result view to an earlier generation from the
-  // session tray. Refreshes the currently displayed trip into the stack
-  // first (so applied assistant edits survive the swap), then restores the
-  // clicked snapshot via the SAME state operations as the post-auth
-  // draft-restore path (the effect around line ~950): destination/dates/
-  // pace/vibes/budgetTier/travelStyle + setGeneratedItinerary. Two deliberate
-  // differences, both documented for the next reader:
+  // Flip the result view to an earlier generation from the session tray.
+  // Refreshes the currently displayed trip into the stack first (so applied
+  // assistant edits survive the swap), then restores the clicked snapshot via
+  // the SAME state operations as the post-auth draft-restore effect above:
+  // destination/dates/pace/vibes/budgetTier/travelStyle +
+  // setGeneratedItinerary. Two deliberate differences:
   //   - travelStyle is set BOTH ways (the draft path only upgrades a fresh
   //     form to backpacker; a swap can also go backpacker → classic).
   //   - coords cleared (the draft path never restores them either) and
@@ -3158,7 +3019,7 @@ export default function NewTripPage({
   // Show generated itinerary
   if (generatedItinerary) {
     const fullDestination = `${generatedItinerary.destination.name}, ${generatedItinerary.destination.country}`;
-    // Multi-city: route stops (city + consecutive nights + P4 transit labels
+    // Multi-city: route stops (city + consecutive nights + transit labels
     // from the merged transfer legs) for the Journey ribbon. Empty on
     // single-city trips.
     const mcStops = buildJourneyStops(generatedItinerary.days, locale);
@@ -3185,7 +3046,7 @@ export default function NewTripPage({
           isOpen={confirmRegenerate}
           onClose={() => setConfirmRegenerate(false)}
           // Above the sticky result bar (also z-50, later in the page), which
-          // otherwise covered the dialog and swallowed clicks on its buttons.
+          // would otherwise cover the dialog and swallow clicks on its buttons.
           usePortal
           zIndex={100}
           title={t("wizard.regenerateConfirm.title")}
@@ -3232,19 +3093,15 @@ export default function NewTripPage({
           }
         />
 
-        {/* The post-save share ask lives on /trips/[id] (SharePromptOnTrip,
-            spec C1) behind an engagement gate; the ShareAfterSaveModal this
-            wizard mounted here had no opener left (2026-09-18 read: 43 of 43
-            shares came from the trip page). PublishTripModal likewise lives
-            only on /trips/[id] (see PublishToggle). */}
+        {/* No share or publish modal here: the post-save share ask lives on
+            /trips/[id] (SharePromptOnTrip) behind an engagement gate, and
+            PublishTripModal lives only on /trips/[id] (see PublishToggle). */}
 
         {/* Auth Prompt Modal — anonymous user clicks Save Trip on the
-            generated itinerary.
-            **2026-05-24 P0**: Previously only rendered in the wizard-form
-            return block (line ~1574), so setShowAuthModal(true) from
-            handleSaveTrip set state on a modal that was never mounted.
-            Result: anonymous Save Trip click was a dead button — peak
-            conversion moment, completely broken. */}
+            generated itinerary. It must be mounted in this result-view
+            return as well as the form view's: without it,
+            setShowAuthModal(true) from handleSaveTrip opens nothing and
+            Save is a dead button. */}
         <AuthPromptModal
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
@@ -3333,10 +3190,9 @@ export default function NewTripPage({
 
             {/* Actions */}
             <div className="flex items-center gap-3">
-              {/* Export (PDF / iCal) — desktop sticky header only.
-                  Kill-list 2026-07-03: only AFTER save. Pre-save export was a
-                  "take the plan and leave" escape hatch at the exact moment
-                  75% of result-viewers never click Save. */}
+              {/* Export (PDF / iCal) — desktop sticky header only, and only
+                  AFTER save: a pre-save export is a "take the plan and leave"
+                  escape hatch at the exact moment the user should save. */}
               {savedTripId && (
                 <ExportMenu
                   trip={{
@@ -3360,23 +3216,18 @@ export default function NewTripPage({
                 variant="compact"
               />
               {/* Ask your crew to vote — surfaces the crew-input intent at the
-                  peak moment. The anonymous result page previously had NO share
-                  affordance at all (crew-loop hop-one gap, share+vote audit
-                  2026-07-03). Saved trip → deep-link to the vote/invite tab;
-                  unsaved → the normal save/auth path, which lands on the
-                  ShareAfterSave collaboration prompt. */}
+                  peak moment. Saved trip → deep-link to the vote/invite tab;
+                  unsaved → handleSaveTrip, which saves and opens the trip
+                  page. */}
               {/* Hidden for a signed-out planner with nothing saved yet: in that
                   state this button's else-branch calls handleSaveTrip(), i.e. the
-                  auth wall — and AnonymousShareButton is already rendered a few
-                  lines below offering the no-signup path. Showing both would put
-                  the walled door next to the open one. Same reasoning as the
-                  mobile sticky bar; that surface was fixed first and this desktop
-                  twin was missed, so the trap survived on desktop. Authenticated
-                  users (and anyone who has saved) keep it — for them it routes to
-                  the collaboration prompt, which is the right destination.
-                  The vote ask is not lost for them: on a group-intent trip the
-                  AnonymousShareButton below runs in "crew" mode and IS the vote
-                  ask, minus the account. */}
+                  auth wall — and AnonymousShareButton, rendered a few lines
+                  below, offers the no-signup path. Showing both would put the
+                  walled door next to the open one (the mobile sticky bar follows
+                  the same rule). Authenticated users (and anyone who has saved)
+                  keep it. Signed-out planners keep the vote ask: on a
+                  group-intent trip the AnonymousShareButton below runs in "crew"
+                  mode and IS the vote ask, minus the account. */}
               {!(isAuthenticated === false && !savedTripId) && (
               <button
                 type="button"
@@ -3397,13 +3248,12 @@ export default function NewTripPage({
               </button>
               )}
               {/* Save motivation at the PERSISTENT save point. The desktop
-                  ValuePropositionBanner sits once above the schedule (line ~2306)
-                  and scrolls away, leaving this sticky-header Save button with no
-                  "why" as the user reads a long itinerary — the desktop twin of
-                  the mobile nudge (PR #27). 75% of result-viewers never click Save
-                  (163-session leak); a concise free/benefit line at the always-
-                  visible save moment targets that. Hidden once saved; lg+ only so
-                  it doesn't crowd the header on narrow desktops. */}
+                  ValuePropositionBanner sits once above the schedule and
+                  scrolls away, leaving this sticky-header Save button with no
+                  "why" as the user reads a long itinerary; this concise
+                  free/benefit line is the desktop twin of the mobile nudge.
+                  Hidden once saved; lg+ only so it doesn't crowd the header on
+                  narrow desktops. */}
               {!savedTripId && (
                 <span className="hidden lg:flex items-center gap-1.5 text-xs font-medium text-emerald-600 whitespace-nowrap">
                   <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -3414,7 +3264,7 @@ export default function NewTripPage({
                   })}
                 </span>
               )}
-              {/* Save Sprint T2: unsaved-state pill (both save arms). */}
+              {/* Unsaved-state pill (both save arms). */}
               {isUnsaved && <NotSavedPill />}
               {autoSaveEnabled && autoSave.savedTripId && autoSave.status !== "saving" ? (
                 // Auto-save flow: trip already persisted. Repurpose the
@@ -3448,7 +3298,8 @@ export default function NewTripPage({
                   {t("result.retrySave")}
                 </button>
               ) : (
-                // Legacy flow (flag off): manual Save Trip button.
+                // Manual Save Trip button: auto-save is off, or has nothing
+                // persisted yet (e.g. a signed-out planner).
                 <button
                   onClick={handleSaveTrip}
                   disabled={loading}
@@ -3473,11 +3324,10 @@ export default function NewTripPage({
                 </button>
               )}
 
-              {/* Anonymous share loop, hop one. Signed-out planners had no way
-                  to send a trip to anyone: minting a link required an
-                  authenticated owner, so only 17% of trips were ever shared.
-                  This mints an ownerless, read-only link and keeps a claim
-                  token so the trip follows them into the account they create.
+              {/* Anonymous share: lets a signed-out planner send the trip
+                  without an account. It mints an ownerless, read-only link and
+                  keeps a claim token so the trip follows them into the account
+                  they create.
 
                   isAuthenticated === false, not !isAuthenticated: the flag is
                   tri-state and `null` means still resolving. Rendering on null
@@ -3508,10 +3358,9 @@ export default function NewTripPage({
         {/* Mobile Sticky Bottom Bar */}
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 px-4 py-3 sm:hidden pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
           {/* Mobile save motivation — the desktop ValuePropositionBanner is
-              hidden sm:block, so mobile got a bare Save button with no "why".
-              A compact free/benefit line at the always-visible save moment,
-              to lift the result -> save rate (75% never click Save). Hides
-              once the trip is saved. */}
+              hidden sm:block, so without this mobile gets a bare Save button
+              with no "why". A compact free/benefit line at the always-visible
+              save moment. Hides once the trip is saved. */}
           {!savedTripId && (
             <p className="mb-2 flex items-center justify-center gap-1.5 text-[11px] font-medium text-emerald-600">
               <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -3525,12 +3374,10 @@ export default function NewTripPage({
           {/* Ask your crew to vote — mobile, full-width above the save row.
               Shown pre-save (the peak share-intent moment).
 
-              For a SIGNED-OUT planner this button used to call handleSaveTrip(),
-              i.e. route straight into the auth wall — the exact wall the
-              anonymous share loop exists to remove, on the surface where most
-              of the traffic actually is. Signed-out planners now get the
-              anonymous share button; everyone else keeps the save/auth route to
-              the collaboration prompt. isAuthenticated is tri-state, so only an
+              A SIGNED-OUT planner gets the anonymous share button: the
+              handleSaveTrip() route would put them straight into the auth
+              wall the anonymous share exists to remove. Everyone else keeps
+              the save route. isAuthenticated is tri-state, so only an
               explicit `false` swaps — `null` means still resolving and must not
               flash a share button at someone who turns out to be signed in. */}
           {!savedTripId && (isAuthenticated === false && generatedItinerary ? (
@@ -3581,7 +3428,7 @@ export default function NewTripPage({
               className="flex-shrink-0"
             />
 
-            {/* Save Sprint T2: unsaved-state pill, next to the Save button. */}
+            {/* Unsaved-state pill, next to the Save button. */}
             {isUnsaved && <NotSavedPill />}
 
             {/* Save - Mobile (Full Width) */}
@@ -3642,11 +3489,11 @@ export default function NewTripPage({
         </div>
 
         <main className="max-w-6xl mx-auto px-4 py-8">
-          {/* Save Sprint T4: session trips tray — the sampler fix. Sits at
-              the top of the scrollable result content (directly under the
-              sticky header) so it never disturbs the hero or sticky layers.
-              Visibility gated on sessionTrayVisible: ≥2 stacked trips,
-              current trip unsaved, auto-save arm not active. */}
+          {/* Session trips tray. Sits at the top of the scrollable result
+              content (directly under the sticky header) so it never disturbs
+              the hero or sticky layers. Visibility gated on
+              sessionTrayVisible: ≥2 stacked trips, current trip unsaved,
+              auto-save arm not active. */}
           {sessionTrayVisible && (
             <SessionTripsTray
               trips={sessionTrips}
@@ -3654,9 +3501,9 @@ export default function NewTripPage({
               onRestore={handleSessionTrayRestore}
             />
           )}
-          {/* Save/generation error — previously rendered only in the form view,
-              so an authed Save failure looked like a dead button here. Restores
-              feedback at peak intent (enhancement hunt). */}
+          {/* Save/generation error, shown here as well as in the form view:
+              without it an authed Save failure on the result looks like a
+              dead button. */}
           {error && (
             <div
               role="alert"
@@ -3665,7 +3512,7 @@ export default function NewTripPage({
               {error}
             </div>
           )}
-          {/* AI assistant — Q&A + day-scoped edits at peak intent (Tier 3-B1/B2). */}
+          {/* AI assistant — Q&A + day-scoped edits at peak intent. */}
           <div className="mb-8">
             <AnonAssistantPanel
               destination={fullDestination}
@@ -3675,7 +3522,7 @@ export default function NewTripPage({
               startDate={startDate}
               endDate={endDate}
               onApplyEdits={handleApplyAssistantEdits}
-              // Save Sprint T5: post-edit save bridge. Only offered while the
+              // Post-edit save bridge. Only offered while the
               // trip is unsaved AND the manual save arm owns persistence —
               // when the auto-save arm is active the edit is already being
               // persisted, so the ask would be false.
@@ -3687,7 +3534,7 @@ export default function NewTripPage({
                   : undefined
               }
               // The deliverable half of the bridge. A share link needs no
-              // account, and #93's "Keep this trip, free" row rides on it, so
+              // account, and the "Keep this trip, free" row rides on it, so
               // the refiner can leave holding the plan instead of only being
               // asked to sign up. Signed-out and unsaved only — for everyone
               // else the owner-based share flow is the right one.
@@ -3719,20 +3566,16 @@ export default function NewTripPage({
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg font-semibold text-slate-900">{t("wizard.result.tripOverview")}</h2>
                 {/*
-                  The subtitle used to be destination.weather_note — model prose
-                  presented with no label and no source, in a slot the eye reads
-                  as a fact about the trip. Measured across 279 trips it
-                  contradicts itself: Kyoto in September appears as both
-                  "10-18°C" and "27-32°C", and a user was emailed "10-18°C" for
-                  Los Angeles when the real forecast was 22-32°C.
-                  The emails now carry a real Open-Meteo forecast. This view has
-                  none — the trip is not saved yet and is usually months out,
-                  beyond any forecast horizon — so it states nothing rather than
-                  stating something invented.
+                  No subtitle: destination.weather_note is unsourced model prose
+                  that contradicts itself across trips, and this slot reads as a
+                  fact about the trip. There is no real forecast to show either —
+                  the trip is not saved yet and is usually months out, beyond any
+                  forecast horizon — so it states nothing rather than stating
+                  something invented.
                 */}
               </div>
 
-              {/* View-mode + map toggles — added 2026-05-24 for parity with
+              {/* View-mode + map toggles, for parity with
                   /trips/template/[id]. Cards is the dense rich view; Timeline
                   is a vertical-rail compact view for skim-reading. */}
               <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
@@ -3781,10 +3624,9 @@ export default function NewTripPage({
                 destination={fullDestination}
                 className="h-[350px]"
                 onActivityClick={(activity) => {
-                  // **2026-05-24 live-test fix:** map pin click → scroll
-                  // to the matching activity card. The InfoWindow "View
-                  // Details" button calls this; ActivityCard exposes a
-                  // stable `id` attribute we target here.
+                  // Map pin click → scroll to the matching activity card. The
+                  // InfoWindow "View Details" button calls this; ActivityCard
+                  // exposes a stable `id` attribute we target here.
                   const slug =
                     activity.id
                       ? `activity-${activity.id}`
@@ -3919,9 +3761,9 @@ export default function NewTripPage({
                 {resultViewMode === "cards" ? (
                   <div className="grid gap-4">
                     {day.activities.map((activity, idx) => (
-                      // disableAutoFetch: the result view was the one screen that still
-                      // paid a Text Search Pro per expanded card (2026-09-13). Photos
-                      // load on tap here, as on the detail and shared views.
+                      // disableAutoFetch: auto-fetch pays a Text Search Pro call per
+                      // expanded card. Photos load on tap here, as on the detail and
+                      // shared views.
                       <ActivityCard
                         key={idx}
                         activity={activity}
@@ -3933,9 +3775,9 @@ export default function NewTripPage({
                     ))}
                   </div>
                 ) : (
-                  // Compact vertical-rail Timeline view (ported from
-                  // /trips/template/[id] for parity). Easier to skim than
-                  // full Cards — no images, just time/title/location.
+                  // Compact vertical-rail Timeline view (parity with
+                  // /trips/template/[id]). Easier to skim than full Cards —
+                  // no images, just time/title/location.
                   <div className="relative pl-8 border-l-2 border-slate-200 space-y-2">
                     {day.activities.map((activity, idx) => {
                       const activityDomId = activity.id
@@ -4200,16 +4042,15 @@ export default function NewTripPage({
               <div className="flex-1">
                 <p className="text-red-700 font-medium">
                   {/*
-                    2026-05-31 launch-readiness UX: detect server-busy
-                    error patterns (5xx from /api/ai/generate) and show a
-                    user-friendly message instead of the raw "Failed to
-                    generate valid itinerary after retries" / "AI service
-                    unavailable" string. These error strings can leak
-                    when the upstream Gemini API is rate-limited, the key
-                    is revoked, or any other 5xx fires after the retry
-                    budget is exhausted — none of which the user can act
-                    on. The friendly message + retry button gives them a
-                    concrete next step.
+                    Detect server-busy error patterns (5xx from
+                    /api/ai/generate) and show a user-friendly message
+                    instead of the raw "Failed to generate valid itinerary
+                    after retries" / "AI service unavailable" string. These
+                    error strings can leak when the upstream Gemini API is
+                    rate-limited, the key is revoked, or any other 5xx fires
+                    after the retry budget is exhausted — none of which the
+                    user can act on. The friendly message + retry button
+                    gives them a concrete next step.
                   */}
                   {error.includes("timed out")
                     ? t("generation.errorTimeout")
@@ -4240,16 +4081,15 @@ export default function NewTripPage({
 
         {/* Step 1: Destination + Dates (combined for fewer drop-offs).
             Layout uses flex+order so the PRIMARY inputs (Destination + Dates)
-            lead, and the optional sections (Backpacker / Who's-coming /
-            Start-Anywhere, each marked order-last) fall below them. Attacks the
-            biggest funnel leak: 53% of anon entrants abandon on this screen, and
-            the required inputs were previously buried under 4 optional cards
-            (and, being lowest, sat under the first-visit cookie banner). */}
+            lead, and the optional sections (Backpacker / Who's-coming, each
+            marked order-last) fall below them. This is the highest-abandon
+            screen: required inputs buried under optional cards would also sit
+            under the first-visit cookie banner. */}
         {step === 1 && (
           <div className="flex flex-col gap-6">
             {/* The trip a signup claimed — above draft recovery (a finished
                 trip outranks an unsaved one), above the masthead. Not
-                flag-gated: it is a bug fix for a measured dead end. */}
+                flag-gated: without it a claimed trip is a dead end. */}
             {claimedTripId && (
               <ClaimedTripBanner
                 tripId={claimedTripId}
@@ -4267,13 +4107,13 @@ export default function NewTripPage({
               />
             )}
             {/* Returning-visitor draft recovery. A valid unsaved draft exists
-                within the 24h window — mount the (previously built but never
-                rendered) banner so the user recovers straight into the Save
-                moment instead of re-running the wizard and burning another
-                scarce anon generation. Funnel audit Rank 4a. */}
+                within the draft TTL (useItineraryDraft) — the banner lets the
+                user recover straight into the Save moment instead of
+                re-running the wizard and burning another scarce anon
+                generation. */}
             {/* A draft that aged out. useItineraryDraft deletes it on read and
-                returns isExpired — a flag nothing had ever read, so an expired
-                plan disappeared without a word. Say so once, plainly. */}
+                returns isExpired; say so once, plainly, rather than let the
+                plan disappear without a word. */}
             {isExpired && !draft && !generatedItinerary && (
               <p className="mb-2 text-sm text-slate-600" role="status" data-draft-expired>
                 {t("wizard.draftRecovery.expired")}
@@ -4293,17 +4133,10 @@ export default function NewTripPage({
               locale={locale}
             />
 
-            {/* Backpacker Mode — shipped 2026-05-28.
-                Strategic wedge for partner conversations (Hostelworld in
-                particular — backpackers are their core demo). Toggle is
-                deliberately compact / unobtrusive: classic users see one
-                extra line, backpackers light up the whole AI plan.
-                Auto-bumps budget to "budget" when activated; user can
-                still override the budget tier in step 2. */}
-            {/* Kill-list 2026-07-03: toggle hidden unless already active —
-                7.1% of sessions used it while it was the biggest block on the
-                highest-abandon screen. /backpacker deep-links still activate
-                the mode (and can switch it off here). */}
+            {/* Backpacker Mode toggle, shown only while the mode is already
+                active: few sessions use it, and on the highest-abandon screen
+                it would be the biggest block. The mode arrives with a restored
+                draft or session-tray snapshot; here it can be switched off. */}
             {travelStyle === "backpacker" && (
             <div className="order-last">
               <button
@@ -4311,10 +4144,10 @@ export default function NewTripPage({
                 onClick={() => {
                   const next = travelStyle === "backpacker" ? "classic" : "backpacker";
                   setTravelStyle(next);
-                  // Auto-align budget with the preset, unless the user
-                  // has already explicitly picked a different tier in
-                  // this session. We keep this lightweight (no warning)
-                  // because step 2 still lets them override.
+                  // Switching the mode on aligns budget with the preset,
+                  // overriding any tier already picked. We keep this
+                  // lightweight (no warning) because step 2 still lets them
+                  // override.
                   if (next === "backpacker" && budgetTier !== "budget") {
                     setBudgetTier("budget");
                   }
@@ -4350,14 +4183,11 @@ export default function NewTripPage({
             </div>
             )}
 
-            {/* Who's coming? — Phase-1 measurement toggle.
-                See docs/COLLAB_AUDIT.md "Phase 1: validate the bet".
-                NO functional change today — just captures whether the
-                user is planning solo or with friends so we can decide
-                whether to invest in a full group-first restructure.
-                **2026-05-24 i18n fix:** labels now read from messages
-                so /it and /es see localized copy. Previously all
-                hardcoded English on every locale. */}
+            {/* Who's coming? — captures whether the user is planning solo or
+                with friends, the evidence for the group-vs-solo decision.
+                Group also shows the invite hint below and puts the anonymous
+                share button in crew mode. Option labels come from messages so
+                every locale gets localized copy. */}
             <div className="order-last">
               <div className="text-sm font-medium text-slate-700 mb-2">
                 {t("wizard.step1.whosComing")}
@@ -4384,10 +4214,9 @@ export default function NewTripPage({
                           changed,
                         });
                       }}
-                      // Per LIVE_AUDIT F4: previous selected-state used
-                      // bg-[var(--primary)]/5 which was barely visible.
-                      // Bumped to /10 fill + primary-colored text for
-                      // clearer "this is picked" affordance.
+                      // Selected state: /10 fill + primary-colored text, a
+                      // clear "this is picked" affordance (a /5 fill is
+                      // barely visible).
                       className={`relative flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                         isSelected
                           ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary-ink)]"
@@ -4395,9 +4224,7 @@ export default function NewTripPage({
                       }`}
                       aria-pressed={isSelected}
                     >
-                      {/* Per LIVE_AUDIT F5: icon now adopts the selected
-                          color (brand pink) or slate (unselected) — was
-                          dark navy in both states (off-brand). */}
+                      {/* The emoji is dimmed (opacity-70) when unselected. */}
                       <span
                         className={`text-lg ${isSelected ? "" : "opacity-70"}`}
                         aria-hidden
@@ -4411,23 +4238,16 @@ export default function NewTripPage({
               </div>
               {tripIntent === "group" && (
                 <p className="text-xs text-slate-500 mt-2">
-                  {/* Per LIVE_AUDIT P1: "coming soon" was misleading —
-                      invite-after-generation already works today. Honest
-                      framing of what happens next. */}
+                  {/* Say what happens next, never "coming soon":
+                      invite-after-generation already works. */}
                   You&rsquo;ll be able to invite friends to vote after we
                   generate the trip.
                 </p>
               )}
             </div>
 
-            {/* Multi-city toggle — MOVED (2026-09-02) from here, where an
-                advanced option led the form, to directly after the
-                destination block. The deep link (?multi=1) and the sync
-                effect key off state, not DOM position. */}
-
             {/* 12+-day single-city sessions are usually multi-city trips the
-                input didn't invite (326 sessions pinned the 14-day cap in 45
-                days, most with ONE city). One tap converts them. */}
+                input didn't invite. One tap converts them. */}
             {MULTI_CITY_ENABLED &&
               !multiCityMode &&
               startDate &&
@@ -4473,25 +4293,22 @@ export default function NewTripPage({
                   handleDestinationSelect(p);
                 }}
                 placeholder={t("wizard.step1.placeholder")}
-                // A11y (task #193): wire visible "Destination" header to the
+                // A11y: wire visible "Destination" header to the
                 // <input> so screen readers announce "Destination, edit" with
                 // context instead of bare "edit". aria-required reflects that
                 // this is a required wizard field.
                 ariaLabelledBy="wizard-destination-label"
                 ariaRequired
-                // autoFocus removed (2026-05-03) — on mobile it auto-opened
-                // the suggestions dropdown which covered the popular-
-                // destination pills below. Users tapping a pill ended up
-                // hitting "Santorini" / "Tokyo" instead. Without autoFocus,
-                // the pills are visible by default; users can still tap
-                // the input to reveal the autocomplete dropdown when they
-                // want it.
+                // No autoFocus: on mobile it auto-opens the suggestions
+                // dropdown over the popular-destination pills below, so a tap
+                // meant for a pill lands on a suggestion. Users can still tap
+                // the input to reveal the autocomplete dropdown.
               />
 
               {/* Inline allowlist warning — same character set the server
                   enforces (lib/gemini.ts DESTINATION_ALLOWLIST). Shown the
                   moment the input goes invalid instead of letting the user
-                  fill the whole form and fail at generate (Wave-1 kickback). */}
+                  fill the whole form and fail at generate. */}
               {destination.length >= 2 && !DESTINATION_ALLOWLIST.test(destination) && (
                 <p role="alert" className="mt-2 text-xs font-medium text-red-600">
                   {t("wizard.step1.destinationInvalidChars")}
@@ -4510,7 +4327,7 @@ export default function NewTripPage({
               )}
 
               {/* Popular destinations — real demand-ranked (distinct planning
-                  sessions, season-reordered) + an honest aggregate proof line. */}
+                  sessions), season-reordered. */}
               {!destination && (
                 <OneTapStarts
                   picks={popularPicks}
@@ -4520,10 +4337,12 @@ export default function NewTripPage({
               )}
             </div>
 
-            {/* Multi-city toggle (wedge) — gated by NEXT_PUBLIC_MULTI_CITY_ENABLED.
-                Sits directly after the destination block in both states: when
-                on, the route builder above replaces the destination field, so
-                the switch stays adjacent to what it controls. */}
+            {/* Multi-city toggle — gated by NEXT_PUBLIC_MULTI_CITY_ENABLED.
+                Sits directly after the destination block in both states, so
+                an advanced option never leads the form: when on, the route
+                builder above replaces the destination field, so the switch
+                stays adjacent to what it controls. The ?multi=1 deep link and
+                the sync effect key off state, not DOM position. */}
             {MULTI_CITY_ENABLED && (
               <div
                 className="flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--primary)]/15 bg-[var(--background-warm)] px-4 py-3"
@@ -4568,12 +4387,10 @@ export default function NewTripPage({
                     min={new Date().toISOString().split("T")[0]}
                     // Bounded on BOTH ends. Without a max, a typed year of
                     // "20220" is a perfectly acceptable <input type="date">
-                    // value (the spec allows years to 275760), and it flowed
-                    // into multi-city generation where addDaysISO threw
-                    //   MultiCityError: addDaysISO: invalid date "20220-05-01"
-                    // because ISO 8601 needs a sign for extended years
-                    // (+020220-05-01), so new Date() returns NaN. Sentry
-                    // JAVASCRIPT-NEXTJS-1J, 5 occurrences.
+                    // value (the spec allows years to 275760), and in
+                    // multi-city generation addDaysISO throws on it
+                    // ("invalid date"): ISO 8601 needs a sign for extended
+                    // years (+020220-05-01), so new Date() returns NaN.
                     max={MAX_TRIP_START_DATE}
                     onChange={(e) => {
                       trackFieldInteraction("start_date");
@@ -4610,7 +4427,7 @@ export default function NewTripPage({
                   }}
                   maxDays={effectiveMaxTripDays}
                   minDate={new Date().toISOString().split("T")[0]}
-                  // A11y (task #193): dates required to advance the wizard.
+                  // A11y: dates required to advance the wizard.
                   ariaRequired
                 />
               )}
@@ -4618,8 +4435,7 @@ export default function NewTripPage({
               {/* "I'm flexible" escape hatch — dates are a hard gate to advance,
                   but many visitors know WHERE, not WHEN. One tap fills a sensible
                   default (~3 weeks out, 5 days) so they can reach a generated trip
-                  and fine-tune later. Directly attacks the step-1 drop-off (the
-                  biggest funnel leak). Hidden in multi-city mode (per-city nights
+                  and fine-tune later. Hidden in multi-city mode (per-city nights
                   model owns dates there). */}
               {!(MULTI_CITY_ENABLED && multiCityMode) && (
                 <div className="mt-2">
@@ -4657,11 +4473,10 @@ export default function NewTripPage({
               )}
             </div>
 
-            {/* F1 anchored trips: "I have fixed plans" — collapsed by default
+            {/* Anchored trips: "I have fixed plans" — collapsed by default
                 to a single small text link (step-1→2 conversion is the fragile
-                guardrail metric, task #371). Needs dates (anchors are
-                date-specific); hidden in multi-city mode (v1 exclusivity,
-                mirrors the API guard). */}
+                guardrail metric). Needs dates (anchors are date-specific);
+                hidden in multi-city mode (mirrors the API guard). */}
             {!(MULTI_CITY_ENABLED && multiCityMode) && startDate && endDate && (
               <AnchorEditor
                 anchors={anchors}
@@ -4676,10 +4491,10 @@ export default function NewTripPage({
                   setRequirements((prev) => {
                     const addition = items.join(". ");
                     const merged = prev.trim() ? `${prev.trim()}. ${addition}` : addition;
-                    // validateTripParams rejects >500 chars with a bare 400.
-                    // A big paste used to blow the cap silently — the textarea
-                    // lives in a collapsed section, so the user never saw the
-                    // overflow and just watched generate fail on repeat.
+                    // validateTripParams rejects >500 chars with a bare 400,
+                    // and the textarea lives in a collapsed section, so an
+                    // unclamped big paste would make generate fail on repeat
+                    // with the overflow out of sight.
                     return merged.slice(0, REQUIREMENTS_MAX);
                   })
                 }
@@ -4720,9 +4535,9 @@ export default function NewTripPage({
               maxVibes={3}
             />
 
-            {/* Must-do wishlist (P3a) — visible, first-class, on step 2 ON
-                PURPOSE: step 1 is the fragile funnel gate (task #371), step 2
-                is past it. Undated wishes, unlike the date-pinned anchors. */}
+            {/* Must-do wishlist — visible, first-class, on step 2 ON
+                PURPOSE: step 1 is the fragile funnel gate, step 2 is past
+                it. Undated wishes, unlike the date-pinned anchors. */}
             <div>
               <label htmlFor="must-do-input" className="block text-sm font-medium text-slate-700 mb-1">
                 {t("wizard.step2.mustDos.title")}{" "}
@@ -4958,13 +4773,10 @@ export default function NewTripPage({
                     ? { dates_mode: flexibleDates ? "flexible" : "exact", one_tap: datesPencilled }
                     : {}),
                 });
-                // Per LIVE_AUDIT F2: pre-apply seasonal vibe suggestions
-                // when advancing into step 2. Previously the suggestions
-                // were shown on step 1 ("SUGGESTED VIBES: Adventure")
-                // but the user had to manually pick them on step 2 —
-                // an obvious lost flow. Only seeds if the user hasn't
-                // already picked vibes (don't clobber their choices)
-                // AND only when there's no Saved draft to restore.
+                // Pre-apply seasonal vibe suggestions when advancing into
+                // step 2, so the user doesn't have to re-pick by hand what
+                // step 1 suggested. Only seeds if the user hasn't already
+                // picked vibes (don't clobber their choices).
                 if (
                   step === 1 &&
                   seasonalContext &&
@@ -5001,7 +4813,7 @@ export default function NewTripPage({
                     }
                   } catch (err) {
                     // Non-fatal: if the helper throws, step 2 just
-                    // starts empty (existing behaviour).
+                    // starts empty.
                     console.warn("[wizard] seasonal vibe seed failed:", err);
                   }
                 }
@@ -5030,10 +4842,9 @@ export default function NewTripPage({
       </main>
 
       {/*
-        MobileBottomNav was previously rendered here but it sits at fixed
-        bottom-0 / z-50 on mobile, which completely covered the wizard's
-        own sticky Continue/Generate button (z-40). Step 1 → step 2 was
-        unreachable on mobile.
+        No MobileBottomNav here: it sits at fixed bottom-0 / z-50 on mobile
+        and would cover the wizard's own sticky Continue/Generate button
+        (z-40), making step 2 unreachable on mobile.
 
         The wizard is a focused flow: the user is already on /trips/new
         (so the "New" tab in MobileBottomNav points to themselves), and

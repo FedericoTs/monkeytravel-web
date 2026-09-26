@@ -1,16 +1,15 @@
 /**
- * Supabase-side wrappers for persisting a generated trip. Pulled out of
- * `app/[locale]/trips/new/page.tsx`'s old monolithic `handleSaveTrip` so
- * the orchestration hook (`useAutoSaveTrip`) can sequence INSERT / UPDATE
- * / DELETE without re-implementing the row shape, and so callers in
- * tests can swap the implementation behind a clean signature.
+ * Supabase-side wrappers for persisting a generated trip, so the wizard's
+ * auto-save hook (`useAutoSaveTrip`) can sequence INSERT / UPDATE / DELETE
+ * without re-implementing the row shape, and so tests can swap the
+ * implementation behind a clean signature. Called from the browser.
  *
  * Conventions:
  * - All functions throw on Supabase errors; callers translate to UI state.
  * - `attachCoverImage` is fire-and-forget; never throws back to the caller
  *   because a missing cover image must not block save.
  * - Column names match the live `public.trips` schema (`cover_image_url`,
- *   not `cover_image`; verified 2026-05-02).
+ *   not `cover_image`).
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -54,7 +53,7 @@ export interface TripFormState {
    */
   anchors?: TripAnchor[];
   /**
-   * Must-do wishlist from wizard step 2 (P3a). Persisted so post-save
+   * Must-do wishlist from wizard step 2. Persisted so post-save
    * surfaces (assistant, regeneration) can keep honouring the traveller's
    * explicit wishes — the same "source of truth vs projection" reasoning
    * as anchors above: an assistant edit can drop the generated activity
@@ -65,14 +64,10 @@ export interface TripFormState {
    * Whether the user said they were travelling solo or with others, from the
    * "Who's coming?" toggle on wizard step 1.
    *
-   * The toggle has existed since the Phase-1 collab audit and fires a PostHog
-   * event, but the answer was never written to the trip — so the question
-   * "do our users actually travel in groups?" could not be answered from the
-   * database, and PostHog needs a personal API key to query. That matters a
-   * lot right now: the whole invite / crew / voting / expense-split surface
-   * assumes group travel, and as of 2026-08-04 it had produced 4 invites and
-   * 1 collaborator across 370 users. Either the group thesis is wrong, or the
-   * loop is broken — and stated intent is the cheapest way to tell them apart.
+   * Written to the trip so "do our users actually travel in groups?" can be
+   * answered from the database (PostHog needs a personal API key to query).
+   * The invite / crew / voting / expense-split surface assumes group travel,
+   * and stated intent is the cheapest check of that assumption.
    *
    * "unspecified" is not persisted (the key stays absent), so a row carrying
    * trip_intent means the user actively chose.
@@ -84,16 +79,13 @@ export interface TripFormState {
  * Which code path created a trip row, and which wizard mount it came from.
  *
  * Written into trip_meta so a duplicate pair is self-diagnosing instead of
- * needing forensics. Until now the arm was INFERRED from whether
- * trip_meta.destination happened to be present (the auto arm writes it, the
- * manual arm does not) — that worked, but it is an accident of two unrelated
- * objects rather than a fact either arm states, and it silently breaks the
- * moment someone adds `destination` to the manual arm's metadata.
+ * needing forensics. The arm is stated rather than inferred from other keys:
+ * both arms write trip_meta.destination, so its presence says nothing about
+ * which arm saved the row.
  *
- * `mountId` is the piece that could not be inferred at all: it distinguishes
- * "two inserts from ONE wizard mount" (the auto-save ref was cleared — a code
- * bug) from "two inserts from DIFFERENT mounts" (reload or second tab, where
- * the ref legitimately starts null).
+ * `mountId` distinguishes "two inserts from ONE wizard mount" (the auto-save
+ * ref was cleared — a code bug) from "two inserts from DIFFERENT mounts"
+ * (reload or second tab, where the ref legitimately starts null).
  */
 export interface SaveOrigin {
   arm: "auto" | "manual";
@@ -130,17 +122,13 @@ export function pickFallbackCoverImage(
 
 /**
  * Compute trip duration in days, inclusive of the end date (matches the
- * existing handleSaveTrip math at app/[locale]/trips/new/page.tsx).
+ * handleSaveTrip math in app/[locale]/trips/new/NewTripWizard.tsx).
  */
 export function computeDurationDays(formState: TripFormState): number {
   const start = new Date(formState.startDate).getTime();
   const end = new Date(formState.endDate).getTime();
   return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 }
-
-// splitCities moved to lib/ai/multi-city-core.ts (next to its inverse
-// joinCities) as part of the P4 regex fix — the local copy had an unescaped
-// \s that ate trailing "s" characters ("Paris, Rome & Milan" → "Pari").
 
 function buildTripRow(
   input: PersistInput,
@@ -149,8 +137,8 @@ function buildTripRow(
   origin?: SaveOrigin,
 ) {
   const { itinerary, formState } = input;
-  // Language the text is written in (Phase 1.3): the generate routes stamp
-  // it on the itinerary; the UI locale covers responses from before that.
+  // Language the text is written in: the generate routes stamp it on the
+  // itinerary; the UI locale covers an itinerary without the stamp.
   const generationLocale = isSupportedLanguage(itinerary.language)
     ? itinerary.language
     : formState.locale
@@ -163,15 +151,12 @@ function buildTripRow(
     ...(origin?.mountId ? { wizard_mount_id: origin.mountId } : {}),
     // Canonical user-specified destination. getTripDestination() prefers this
     // over title-stripping (which breaks on non-English / renamed / multi-city
-    // titles). It was previously NEVER written here — a latent bug, despite the
-    // comment in lib/trips/destination.ts claiming the wizard sets it — so the
-    // helper always fell back to the title strip. Mirrors the value already
-    // used for the cover-image lookup (attachCoverImage(formState.destination)).
-    // For multi-city this carries the user's full route string ("A & B").
+    // titles). Same value as the cover-image lookup
+    // (attachCoverImage(formState.destination)). For multi-city this carries
+    // the user's full route string ("A & B").
     destination: formState.destination,
-    // Structured route legs (2026-07-06). Titles like "Tokyo & Osaka Trip" are
-    // display strings; this is the only machine-readable record of the route —
-    // it feeds /explore filtering, route landing pages, and analytics.
+    // Structured route legs. Titles like "Tokyo & Osaka Trip" are display
+    // strings; this is the only machine-readable record of the route.
     ...(splitCities(formState.destination).length > 1
       ? { cities: splitCities(formState.destination) }
       : {}),
@@ -191,20 +176,20 @@ function buildTripRow(
     // (rather than an empty array) on the overwhelming majority of rows — the
     // publish guard reads it with `Array.isArray`, which treats both alike.
     ...(formState.anchors?.length ? { anchors: formState.anchors } : {}),
-    // Same absent-when-empty convention for the must-do wishlist (P3a).
+    // Same absent-when-empty convention for the must-do wishlist.
     ...(formState.mustDos?.length ? { must_dos: formState.mustDos } : {}),
-    // Pace the trip was generated at (P3b). Always present on the form, so
+    // Pace the trip was generated at. Always present on the form, so
     // always written — the feasibility strip on the detail/share views reads
     // it to pick the day-time budget; absent (older rows) reads as moderate.
     pace: formState.pace,
     // Every later AI edit reads this before the visitor's cookie, so the
     // trip stays one language. Absent only when neither source knew.
     ...(generationLocale ? { locale: generationLocale } : {}),
-    // IANA timezone (Live Trip Phase 3.1), so Today mode opens on the correct
-    // day wherever the viewer is. Derived server-side by the generate routes
-    // from the itinerary coordinates and carried on the itinerary — the same
-    // path as `language`. persistTrip runs client-side, so it must never pull
-    // in the coordinate table itself; it just reads the resolved string.
+    // IANA timezone, so Today mode opens on the correct day wherever the
+    // viewer is. Derived server-side by the generate routes from the itinerary
+    // coordinates and carried on the itinerary — the same path as `language`.
+    // persistTrip runs client-side, so it must never pull in the coordinate
+    // table itself; it just reads the resolved string.
     ...(isValidTimeZone(itinerary.timezone) ? { timezone: itinerary.timezone } : {}),
     // Only written when the user actually picked, so `trip_intent is not null`
     // reads as "answered" and the untouched-default case stays distinguishable
@@ -233,10 +218,10 @@ function buildTripRow(
     },
     tags: formState.derivedInterests,
     trip_meta: tripMeta,
-    // 2026-05-28 — Tier 1.1 migration promoted travel_style from JSONB
-    // to a real column. We write to BOTH (above + here) during the
-    // transition so any existing reader keeps working. trip_meta can
-    // be cleaned up in a later pass once no reader references it.
+    // travel_style is also a real column (migration
+    // 20260528_trips_travel_style_column.sql). Written to BOTH (above + here)
+    // so readers of either keep working. TODO: drop trip_meta.travel_style
+    // once no reader references it.
     travel_style: formState.travelStyle === "backpacker" ? "backpacker" as const : "classic" as const,
     packing_list: itinerary.trip_summary.packing_suggestions,
   };
@@ -246,11 +231,11 @@ function buildTripRow(
  * Fire-and-forget: ask the server to upgrade a KEPT trip's curated activity
  * photos to real Google Place photos (budget-capped, server-side, owner-only).
  *
- * Trip generation now runs with ZERO paid Places lookups (cost control) — only
- * trips that are actually saved reach this enrichment, which is where the
- * saving comes from. Never throws; a saved trip already has good type-relevant
- * curated images if this no-ops. keepalive so the request survives the same-tab
- * navigation to /trips/[id] right after save (mirrors `attachCoverImage`).
+ * Trip generation runs with ZERO paid Places lookups (cost control), so only
+ * trips that are actually saved pay for real photos. Never throws; a saved trip
+ * already has good type-relevant curated images if this no-ops. keepalive so the
+ * request survives the same-tab navigation to /trips/[id] right after save
+ * (mirrors `attachCoverImage`).
  */
 function enrichTripPhotos(tripId: string): void {
   try {
@@ -278,13 +263,10 @@ export async function insertTrip(
   const fallback = pickFallbackCoverImage(input.itinerary);
   const row = buildTripRow(input, userId, fallback, origin);
 
-  // Atomic server-side dedupe. The previous check-then-insert here (added
-  // 2026-06-01 after paul.harrington@hostelworld.com landed 2 identical
-  // Warsaw trips 4s apart) killed slow double-clicks but not concurrency:
-  // two saves 0.0-0.35s apart both passed the SELECT before either INSERT
-  // committed (19 duplicate pairs measured 2026-08-10, median gap 0s). The
+  // Atomic server-side dedupe. A client-side check-then-insert cannot stop
+  // concurrent saves: both pass the SELECT before either INSERT commits. The
   // insert_trip_dedup RPC takes a pg_advisory_xact_lock on (user, title,
-  // start_date) so concurrent saves serialize, then runs the same 60s-window
+  // start_date) so concurrent saves serialize, then runs a 60s-window reuse
   // check, then inserts — one round-trip, no race. SECURITY INVOKER, so RLS
   // still applies and user_id comes from auth.uid() server-side.
   const { data, error } = await supabase
@@ -296,24 +278,20 @@ export async function insertTrip(
   if (!result?.trip_id) throw new Error("Trip insert returned no id");
 
   if (result.reused) {
-    // The concurrent first save already ran the side effects below —
-    // re-running them would double-enqueue reminders.
+    // The concurrent first save already ran the side effects below.
     return {
       tripId: result.trip_id,
       durationDays: computeDurationDays(input.formState),
     };
   }
 
-  // Fire-and-forget enqueue of the pre-trip reminder cascade. Internally
-  // gated by NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED; a failed enqueue logs
-  // + Sentry-captures but never re-throws — saving a trip must NEVER
-  // fail because the reminder queue is sick. See
-  // lib/notifications/scheduling.ts for the full contract.
+  // A no-op in the browser, where the wizard calls this: the AFTER INSERT
+  // trigger on trips (trips_enqueue_notifications) enqueues the trip's
+  // reminders. Elsewhere it is gated by isTripNotificationsEnabled() and never
+  // re-throws — saving a trip must NEVER fail because the reminder queue is
+  // sick. See lib/notifications/scheduling.ts.
   void scheduleTripNotifications({ tripId: result.trip_id, userId });
 
-  // Upgrade this kept trip's curated activity photos → real Google photos
-  // (server-side, budget-capped). Generation runs with zero paid lookups now,
-  // so this is where saved trips get their real photos. Fire-and-forget.
   enrichTripPhotos(result.trip_id);
 
   return {
@@ -351,24 +329,17 @@ export async function updateTrip(
 /**
  * Soft-delete a trip row — used by Start Over / Discard after auto-save.
  *
- * Switched from hard DELETE to UPDATE deleted_at = NOW() on 2026-06-07
- * alongside the trips_soft_delete migration. See
- * `app/api/trips/[id]/route.ts` for the full rationale (the June 2026
- * incident: trip + 7 Concierge questions lost when the row vanished).
+ * Soft, not a hard DELETE, so a discarded trip and the data hanging off it
+ * (Concierge conversations, activity timeline) stay recoverable. RLS hides
+ * tombstoned rows from every read path, so the discarded autosave doesn't
+ * surface anywhere, even in a new wizard run. Recovery is a manual UPDATE
+ * deleted_at = NULL from the Supabase SQL editor.
  *
- * RLS hides tombstoned rows from every read path, so even if the user
- * immediately starts a new wizard run the discarded autosave doesn't
- * surface anywhere. Recovery is a manual UPDATE deleted_at = NULL from
- * the Supabase SQL editor.
- *
- * 2026-08-19 — goes through soft_delete_trip() for the same reason the
- * DELETE route does. The direct UPDATE this replaced could never succeed
- * from a user-scoped client: a tombstone satisfies no branch of
- * trips_select_consolidated (`deleted_at IS NULL AND ...`), so RLS rejects
- * the new row with 42501. Callers here pass createClient(), the browser
- * client, so Start Over / Discard was throwing for every user since
- * 2026-06-08 just like the API route was 500ing. See
- * `app/api/trips/[id]/route.ts` for the full analysis.
+ * Goes through soft_delete_trip(), as the DELETE route in
+ * `app/api/trips/[id]/route.ts` does: a direct UPDATE from a user-scoped
+ * client (callers here pass the browser client) can never succeed, because
+ * a tombstone satisfies no branch of trips_select_consolidated
+ * (`deleted_at IS NULL AND ...`), so RLS rejects the new row with 42501.
  */
 export async function deleteTrip(
   supabase: SupabaseClient,
@@ -386,7 +357,7 @@ export async function deleteTrip(
 /**
  * Asynchronously fetch a high-quality cover image for the trip and
  * attach it via UPDATE. Fire-and-forget: never throws, never returns
- * meaningful errors to the caller. Logs to console + Sentry on failure.
+ * meaningful errors to the caller. Logs to the console on failure.
  *
  * Uses fetch keepalive so the request survives a same-tab navigation
  * to /trips/[id] right after save.
@@ -405,15 +376,13 @@ export async function attachCoverImage(
     const data = await response.json();
     if (!data?.url) return;
 
-    // Never persist the generic fallback. The route returns a stock
-    // aeroplane-wing photo when it can match neither a curated destination nor
-    // a Pexels result, and writing that to the row makes it permanent: every
-    // such trip then shows the SAME picture forever, even once the destination
-    // becomes matchable. A live audit found 8 of 27 published trips sharing
-    // that one image — Benidorm, Grand Baie, Kruger, Montreal, Prague, Puglia,
-    // Scottsdale and Torremolinos. Leaving the column NULL is better: the card
-    // falls back to its own gradient, which at least differs per card and is
-    // re-resolved on the next attempt.
+    // Never persist the generic fallback. The route returns one stock photo
+    // when it can match neither a curated destination nor a Pexels result, and
+    // writing that to the row makes it permanent: every such trip then shows
+    // the SAME picture forever, even once the destination becomes matchable.
+    // Leaving the column NULL is better: the card falls back to its own
+    // gradient, which at least differs per card and is re-resolved on the
+    // next attempt.
     if (data.source === "fallback") return;
 
     await supabase
@@ -422,6 +391,7 @@ export async function attachCoverImage(
       .eq("id", tripId);
   } catch (err) {
     console.error("[trips/persistTrip] attachCoverImage failed:", err);
-    // Sentry capture handled by the global instrumentation. Don't rethrow.
+    // Don't rethrow. Console only: a caught error never reaches Sentry's
+    // global handlers.
   }
 }

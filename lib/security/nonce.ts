@@ -48,12 +48,11 @@ export function generateNonce(): string {
  * Read the per-request nonce from request headers.
  *
  * Must be called from a server component (or anything that can call
- * `next/headers#headers()`). Returns `undefined` in dev mode (no nonce
- * is set in dev) or if the middleware didn't run (e.g. on a static
- * export with no edge function).
+ * `next/headers#headers()`). The middleware sets a nonce in dev too; this
+ * returns `undefined` only when the middleware didn't run (e.g. outside a
+ * request, during static generation).
  *
- * Callers should treat `undefined` as "skip the nonce attribute" — when
- * CSP is not enforced (dev), browsers don't need a nonce.
+ * Callers should treat `undefined` as "skip the nonce attribute".
  */
 export async function getNonce(): Promise<string | undefined> {
   try {

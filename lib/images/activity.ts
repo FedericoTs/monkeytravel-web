@@ -4,34 +4,13 @@ import { placesCostForCall } from "@/lib/api-gateway/places-sku";
 const ACTIVITY_SEARCH_FIELD_MASK = "places.id,places.displayName,places.location,places.formattedAddress";
 const PHOTOS_FIELD_MASK = "photos";
 /**
- * Server-side activity image fetching
- * Used by AI generate API to fetch images before returning to client
- * This prevents the race condition where users save before images load
+ * Server-side activity image fetching. The generate routes call it before
+ * responding, so images are in the itinerary before the user can save it.
  *
- * 2026-05-31 dedup pass (task #339):
- * - Migrated the ad-hoc memory + DB cache to `cache.withDatabase('place_search', ...)`.
- * - Per-trip dedup by normalized name across all days.
- * - TTL extended from 30 days to 365 days.
- *
- * 2026-06-01 cost-reduction pass (task #367):
- * - NEW: place_id-keyed cache via places_v2 + places_v2_lookup tables. The
- *   normalized-name cache from 2026-05-31 only collapsed identical names
- *   ("Colosseum" + "Colosseum"). Real activity names drift between trips
- *   ("Colosseum" / "Il Colosseo" / "The Roman Colosseum" / "Coliseum"). Each
- *   variant was a fresh Places API call at $32/1K Pro SKU + $7/1K photo.
- * - The new layer adds a many-to-one mapping: every name variant ever seen
- *   resolves to a single Google place_id, and place_ids cache indefinitely
- *   (Google TOS exempts them from the cache-expiry rule).
- * - Field mask expanded from `places.photos` only → `places.id,
- *   places.displayName,places.location,places.formattedAddress,places.photos`.
- *   Same Pro SKU billing on the fresh call but ~4× more useful data — we now
- *   get real Google coordinates that future work can use to override Gemini's
- *   hallucinated lat/lng.
- * - Expected steady-state cost reduction: 60-80% depending on traffic mix
- *   (higher for repeat-destination users, lower for unique-place foodie trips).
- * - Backward compatible: old `place_search` / `activity_image` cache rows still
- *   serve traffic until they expire; new lookups populate places_v2 in
- *   parallel. No migration of historical rows.
+ * Results are cached per Google place_id in places_v2 (Google's terms allow
+ * storing place_ids indefinitely), and places_v2_lookup maps each normalized
+ * spelling of a name ("Colosseum", "Il Colosseo") to its place_id. The older
+ * name-keyed `place_search` / `activity_image` cache remains as a fallback.
  */
 
 import { cache } from "@/lib/cache";
@@ -40,93 +19,46 @@ import { logApiCall } from "@/lib/api-gateway";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
-// 365 days — Places metadata for popular tourist sites is effectively immutable.
-//
-// **2026-07-21 correction.** This constant used to be justified with "photo
-// reference names from the new Places API are stable, so a stale ref still
-// works." That is FALSE, and it was the root cause of a silent, months-long
-// image regression: Google expires photo resource names, so a ref cached for
-// up to a year is frequently dead by the time it is served. Measured on
-// 2026-07-21: all 4,920 cached refs predated Google's current token
-// generation, and refs for places whose photos Google still serves happily
-// were 4xx-ing. /api/places/photo masked it by redirecting to a curated
-// Pexels photo, so the cards looked fine and nobody noticed.
-//
-// The TTL stays at 365 days ON PURPOSE — the non-photo fields (id, name,
-// location, address) really are stable, and shortening it would multiply the
-// paid Places calls this cache exists to avoid. The photo ref is now
-// self-healed at render time instead: /api/places/photo re-resolves from the
-// place_id embedded in the dead ref and refreshes this row. See that route.
+// TTL of the legacy name-keyed cache in resolveActivityImage. The photo names
+// in its URLs expire far sooner (see PHOTO_REF_MAX_AGE_DAYS); keep it long
+// anyway: /api/places/photo self-heals a dead name at render from the place_id
+// inside it, and a shorter TTL would multiply the paid Places calls this cache
+// exists to avoid.
 const ACTIVITY_IMAGE_CACHE_DAYS = 365;
 
-// Per-trip cap on PAID Google Places resolutions (cost control, 2026-06-24).
-// Each "resolution" is one fresh cache-MISS activity and may issue 1-3 billed
-// Google calls (Text Search +/- a name-only retry, then Place Details Pro), so
-// this bounds — but is not exactly equal to — the billed-call count per trip.
-// Google Places was ~97% of API spend and scaled ~1:1 with trip size at
-// ~$0.10/trip — unbounded growth with signups. Cache HITS stay free +
-// unlimited (real photos); only fresh cache-MISS resolutions consume this budget.
-// Once a trip exhausts it, remaining fresh activities get a curated fallback
-// image (zero Google cost) instead of a real place photo. Tune this knob:
-// lower = cheaper but more stock photos, higher = more real photos but pricier.
+// Cost control: default cap on paid Places resolutions per fetchActivityImages
+// call (callers can pass maxPaidLookups). One resolution is one cache-miss
+// activity: up to two Text Searches and a Place Details. Cache hits don't
+// count, and the legacy fallback in resolveActivityImage can pay without
+// counting. Once spent, the remaining fresh activities get curated fallbacks:
+// lower is cheaper, higher gives more real photos.
 const MAX_PAID_PLACE_LOOKUPS_PER_TRIP = 4;
 
-// Save-time enrichment budget (2026-06-30 cost pass). Trip GENERATION now runs
-// with ZERO paid lookups — every activity gets a free cache-hit real photo or a
-// type-relevant curated fallback at $0 Google cost (see the generate routes).
-// Real Google photos are resolved ONCE, later, when a trip is actually SAVED
-// (the small fraction of generations that convert), via the fire-and-forget
-// /api/trips/[id]/enrich-photos endpoint. Saves are rare, so we can afford a
-// more generous budget here than at generation — kept trips end up with MORE
-// real photos than the old eager path, not fewer — while bounced generations
-// (the overwhelming majority) now cost nothing.
+// Paid-lookup budget for save-time enrichment (/api/trips/[id]/enrich-photos,
+// lib/images/enrichTrip.ts). Trip generation makes no paid lookups: each
+// activity gets a free cache-hit photo or a curated fallback. Real photos are
+// resolved once a trip is saved, so generations nobody saves cost nothing.
 export const SAVE_TIME_PAID_LOOKUPS = 8;
 
-// Google expires photo resource names after ~29 days. MEASURED 2026-07-21:
-// 164 live probes, zero misclassifications, with an hour-resolution boundary
-// between 2026-06-22 21:09Z (dead) and 23:43Z (alive) — a ~693h lifetime.
-//
-// 21 days leaves a ~8-day safety margin under that. Refreshing sooner would
-// spend Places quota on refs that still work; later risks handing a brand-new
-// trip a ref that is already dead.
+// Google expires photo resource names after about 29 days (measured). 21 days
+// leaves about a week of margin: refreshing sooner spends Places quota on refs
+// that still work; later risks handing a new trip a ref that is already dead.
 const PHOTO_REF_MAX_AGE_DAYS = 21;
 
-// Cache rows are kept for a YEAR (ACTIVITY_IMAGE_CACHE_DAYS) because the
-// non-photo fields really are stable, so a cache hit routinely carries a photo
-// ref far past 21 days. Refreshing every stale ref we touch would put an
-// unbounded number of paid Google calls on the trip-generation critical path —
-// which already has a timeout history (task #353) — so each trip may refresh
-// at most this many. Anything beyond the cap keeps its stale ref and is
-// repaired lazily by /api/places/photo's self-heal on first view.
-//
-// 2 is deliberately small: the point is to stop the cache rotting, not to
-// repair it in one pass. Every generation heals a little, and the heal path
-// covers whatever this misses at zero generation-time cost.
+// places_v2 rows never expire, so cache hits often carry photo refs older than
+// PHOTO_REF_MAX_AGE_DAYS. Refreshing all of them would add unbounded paid calls
+// to one request, so each fetchActivityImages call refreshes at most this many
+// and /api/places/photo self-heals the rest on first view. Deliberately small:
+// the aim is to keep the cache from rotting, not to repair it in one pass.
 const PHOTO_REFRESH_PER_TRIP = 2;
 
-// COST KILL-SWITCH (2026-07-02). Per api_request_logs, ACTIVITY place/photo
-// resolution is the #1 Google Places line: Place Details Pro ($0.017, ~$23.5/30d)
-// + Text Search Essentials ($0.005, ~$9.3/30d) per fresh place, both at ~0% cache
-// hit. Crucially, the real Google COORDS this resolves are never applied to the
-// itinerary (activities keep the synthetic coords baked at generation) — the ONLY
-// used output is the thumbnail photo. Generated (unsaved) trips already run
-// `maxPaidLookups:0` → curated-by-type thumbnails, which users convert from just
-// fine. So default this OFF: activity thumbnails use the curated fallback and make
-// ZERO paid Places calls. The destination HERO cover (a separate cache in
-// /api/places) stays a real photo. Flip PLACES_ACTIVITY_PHOTOS_ENABLED=true in the
-// Vercel env to restore real activity photos — no redeploy needed.
-// 2026-07-22: default flipped ON (=== "true" → !== "false") at Federico's
-// request, via code rather than the Vercel env because that is the lever this
-// repo controls. The kill switch keeps working in the opposite direction: set
-// PLACES_ACTIVITY_PHOTOS_ENABLED=false to turn activity photos off again.
-// Safe to re-enable now — and only now — because both staleness guards exist:
-// the 21-day refresh on the save-time enrich path stops newly saved trips
-// baking in expired refs, and /api/places/photo self-heals whatever slips
-// through. Re-enabling without those would have resumed persisting refs up to
-// 365 days stale (82% of which were measured dead on 2026-07-21).
-// Generation itself STAYS free: it runs with maxPaidLookups:0, so the flag
-// only re-opens spend on the save-time enrich path (~8 lookups per SAVED
-// trip), which scales with saves, not generations.
+// Kill switch for activity photo lookups: on unless
+// PLACES_ACTIVITY_PHOTOS_ENABLED is "false". Off, activities get curated
+// fallbacks and lose nothing else (resolved coords never reach the itinerary);
+// the destination hero in /api/places is separate. Generation is free either
+// way (maxPaidLookups: 0), so the spend it gates is enrichment and day
+// regeneration. Keep it on only while both staleness guards exist: the
+// PHOTO_REF_MAX_AGE_DAYS refresh and the /api/places/photo self-heal.
 const RESOLVE_ACTIVITY_PHOTOS =
   process.env.PLACES_ACTIVITY_PHOTOS_ENABLED !== "false";
 
@@ -170,54 +102,17 @@ interface PlaceRecord {
 }
 
 /**
- * Resolve a query string into a full PlaceRecord via the cheapest
- * possible Google Places API combination.
+ * Text Search for one activity: place_id, name, address and coords, but no
+ * photo. The photo is a separate Place Details call by place_id
+ * (fetchPlacePhoto), so a place already cached under another name skips it and
+ * a stale photo ref is refreshed without searching again. Unique activities
+ * resolve in parallel, so the extra roundtrip adds latency once per trip, not
+ * once per activity.
  *
- * 2026-06-01 SKU optimization (task #367 phase 2):
+ * An ID-only Text Search plus Details may be cheaper; see the
+ * text_search_essentials note in places-sku.ts before changing the masks.
  *
- * Previously this was ONE call to Text Search with `places.photos` in
- * the field mask — which forces Google to bill the call as "Text Search
- * Pro" ($32/1K). That was the simplest path but the most expensive.
- *
- * The new 2-call sequence is ~26% cheaper per fresh lookup:
- *
- *   Step 1: Text Search **Essentials** (id + displayName + location +
- *           formattedAddress; NO photos). Billed as the Essentials SKU
- *           at $5/1K — 6.4× cheaper than Pro for the same identity fields.
- *
- *   Step 2: Place **Details Pro** by place_id, asking ONLY for `photos`.
- *           Billed at $17/1K. Required because the Photos endpoint needs
- *           a photo_resource_name, and the only way to get one (without
- *           paying for Pro Text Search) is via Place Details Pro.
- *
- *   Step 3 (out of band, on render): Place **Photos** at $7/1K — handled
- *           by the existing `/api/places/photo` proxy. Cached by Vercel
- *           edge for 1 year.
- *
- *   Total fresh lookup: $5 + $17 = $22/1K + $7/1K photo = $29/1K
- *   vs. old single call: $32 + $7 = $39/1K
- *   → 26% saving per fresh lookup, on top of the variant-dedup savings
- *     from the place_id cache.
- *
- * Why not skip Place Details and use Text Search IDs-Only ($1/1K)?
- *   IDs-Only returns ONLY place_id — no name, no coords. We'd still need
- *   Place Details Essentials ($5/1K) to get name+coords, then Place
- *   Details Pro ($17/1K) for photos. Net: $1 + $5 + $17 = $23/1K, only
- *   $1/1K better than the current path, and adds another roundtrip. Not
- *   worth the latency budget.
- *
- * Latency trade-off:
- *   +1 roundtrip per FRESH lookup (~150-250ms server-to-server inside
- *   GCP). CACHE-HIT lookups still pay 0 roundtrips. Per-trip impact is
- *   bounded by `Promise.all` in `fetchActivityImages` — every unique
- *   activity in a trip runs in parallel.
- *
- * Error handling:
- *   If Step 1 fails or returns no match → return null (caller falls back
- *   to legacy cache + curated images). If Step 1 succeeds but Step 2
- *   fails → return the PlaceRecord with `photo_resource_name: null` and
- *   `photo_url: null`. The place is still cached (id + name + coords);
- *   the photo can be re-fetched on a future trip.
+ * Returns null on failure or no match.
  */
 async function searchPlaceId(query: string): Promise<PlaceRecord | null> {
   if (!GOOGLE_PLACES_API_KEY) {
@@ -233,10 +128,9 @@ async function searchPlaceId(query: string): Promise<PlaceRecord | null> {
   const startedAt = Date.now();
   let httpStatus = 0;
 
-  // ---------- Text Search Essentials ($5/1K) ----------
-  // Field mask deliberately EXCLUDES `places.photos` to stay on the
-  // Essentials SKU. Adding any Pro-tier field (photos, rating, etc.)
-  // bumps the whole call to Pro pricing.
+  // ---------- Text Search ----------
+  // No photos in this mask: fetchPlacePhoto gets them, only when needed. The
+  // priciest field sets the SKU of the whole call (see places-sku.ts).
   try {
     const searchResponse = await fetch(
       "https://places.googleapis.com/v1/places:searchText",
@@ -264,11 +158,8 @@ async function searchPlaceId(query: string): Promise<PlaceRecord | null> {
   } catch {
     return null;
   } finally {
-    // Every call here is a paid Essentials miss — the cache hit short-circuits
-    // upstream in getOrFetchPlace before we ever reach this function. Fire-and-
-    // forget so logging never adds latency to the generation path (the request
-    // stays alive through Gemini, so the insert lands). Previously these calls
-    // were a raw fetch with no gateway wrapper — invisible to the cost dashboard.
+    // Every call here is paid: cache hits return before this function is
+    // reached. Fire-and-forget so logging never adds latency to the lookup.
     void logApiCall({
       apiName: "google_places_search",
       endpoint: "places:searchText (activity)",
@@ -283,7 +174,7 @@ async function searchPlaceId(query: string): Promise<PlaceRecord | null> {
     return null;
   }
 
-  // Partial record — place_id + metadata, no photo yet (Step 2 / cache fills it).
+  // Partial record — place_id + metadata, no photo yet (the caller fills it).
   return {
     place_id: place.id,
     display_name: place.displayName?.text ?? query,
@@ -296,10 +187,10 @@ async function searchPlaceId(query: string): Promise<PlaceRecord | null> {
 }
 
 /**
- * Step 2 — Place Details Pro ($17/1K). Given a known place_id, fetch its photos
- * and build the proxy photo URL. Split out from the search so callers that
- * already have the place cached (by place_id, incl. trip-backfilled rows) can
- * SKIP this paid call entirely — the core of the place_id dedup.
+ * Place Details for a known place_id, asking only for photos, and the proxy
+ * URL for the first usable one. Separate from the search so a place already
+ * cached by place_id skips this paid call, and a stale photo ref can be
+ * refreshed by place_id alone.
  *
  * `endpointLabel` lets a caller attribute the spend (the render-time self-heal
  * in /api/places/photo passes its own) so api_request_logs can tell heals from
@@ -334,15 +225,10 @@ export async function fetchPlacePhoto(
     }
 
     const detailsData = await detailsResponse.json();
-    // Walk the photos array (not just [0]) and pick the first one with
-    // a resource name long enough to be a real Google photo token.
-    // **2026-06-04 fix:** Google's Place Details Pro sometimes returns
-    // photo entries whose `name` is shorter than the typical 300+ char
-    // hash. Those names cause Google's /media endpoint to respond 400,
-    // which streams down as a broken-image icon. Skipping short entries
-    // and trying the next one (Google returns up to 10 photos) gets a
-    // usable photo for nearly every place — at zero additional Places
-    // API spend (the field mask already included all photos).
+    // Take the first photo whose name is long enough to be a real token, not
+    // just [0]: Place Details sometimes returns short names that /media
+    // rejects with a 400, which renders as a broken image. The response holds
+    // up to 10 photos, so skipping costs no extra Places call.
     const photos: Array<{ name?: string }> = Array.isArray(detailsData.photos)
       ? detailsData.photos
       : [];
@@ -358,11 +244,9 @@ export async function fetchPlacePhoto(
       return null;
     }
 
-    // **2026-05-24 live-test fix (revision 2):** raw
-    // `places.googleapis.com/v1/.../media?key=...` AND resolved
-    // `lh3.googleusercontent.com/place-photos/...` URLs both 504 from
-    // direct browser loads. Our `/api/places/photo` proxy fetches them
-    // server-side and streams back with CDN-friendly cache headers.
+    // Browsers can't load Google's /media URLs or the lh3.googleusercontent.com
+    // URLs they redirect to (both return 504), so photos go through our
+    // proxy, which fetches server-side and sets CDN cache headers.
     return {
       photo_resource_name: photoResourceName,
       photo_url: `/api/places/photo?name=${encodeURIComponent(photoResourceName)}&w=600&h=400`,
@@ -413,12 +297,13 @@ async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> 
  *   - `places_v2` — one row per Google place_id (full data; the row we want)
  *
  * Cache HIT path: 1 DB roundtrip via a single SELECT joining both tables,
- * then a fire-and-forget hit_count++ UPDATE. 0 Places API spend.
+ * then fire-and-forget hit_count updates. No Places spend unless the photo
+ * ref is stale (step 1b).
  *
- * Cache MISS path: 2 Places API calls billed at ($5 + $17)/1K = $22/1K
- * (Text Search Essentials + Place Details Pro, see `fetchPlaceFromGoogle`
- * for the SKU rationale), then upsert into both tables. Subsequent
- * lookups for ANY name variant resolving to the same place_id are free.
+ * Cache MISS path: Text Search (then name-only if that finds nothing), plus
+ * Place Details for the photo unless places_v2 already has this place_id with
+ * a photo (step 2b), then upsert the new rows. A repeat of the same name is a
+ * cache hit; a new spelling of a known place pays only for the Text Search.
  *
  * In-flight dedup: handled at the `fetchActivityImages` group layer (same
  * normalizedKey resolves once per request) — we don't re-implement it here.
@@ -476,16 +361,12 @@ async function getOrFetchPlace(
         costUsd: 0,
       });
 
-      // ---------- 1b. Photo-ref freshness (2026-07-21) ----------
-      // The rest of this row stays valid for a year, but the photo ref dies at
-      // ~29 days (see PHOTO_REF_MAX_AGE_DAYS). Without this check a cache hit
-      // happily hands a brand-new trip a ref that expired weeks ago — which is
-      // how 82% of stored activity photos ended up dead.
-      //
-      // NOTE this makes a *small number* of cache hits paid, which the comment
-      // on the budget gate below ("cache HITS are free + unlimited") no longer
-      // covers unconditionally. It is capped per trip and never touches the
-      // resolution budget, so it cannot starve genuinely-new activities.
+      // ---------- 1b. Photo-ref freshness ----------
+      // The row never expires, but its photo ref dies after about 29 days (see
+      // PHOTO_REF_MAX_AGE_DAYS); without this check a cache hit hands a new
+      // trip a dead ref. This makes a few cache hits paid, capped by
+      // photoRefreshBudget, which is separate from paidBudget so refreshes
+      // never starve new activities.
       const refAgeMs = cached.updated_at
         ? Date.now() - Date.parse(cached.updated_at)
         : Number.POSITIVE_INFINITY;
@@ -513,21 +394,18 @@ async function getOrFetchPlace(
     }
   }
 
-  // ---------- 2. Cache MISS path — resolve place_id cheaply first ----------
-  // Per-trip paid-call budget gate. Cache HITS above are free + unlimited;
-  // only fresh (cache-miss) lookups are paid, so we cap how many a single trip
-  // makes. Once exhausted, return null → the caller serves a curated fallback
-  // (zero Google cost). We check-then-decrement synchronously (no await between
-  // the two), so even under Promise.all the budget is consumed atomically and
-  // exactly N activities ever reach the paid path.
+  // ---------- 2. Cache MISS path: resolve the place_id first ----------
+  // Paid-lookup budget gate; cache hits above never spend it. Once exhausted,
+  // return null so the caller serves a curated fallback. Check-then-decrement
+  // is synchronous (no await between them), so under Promise.all at most N
+  // activities get past this gate.
   if (paidBudget.remaining <= 0) {
     return null;
   }
   paidBudget.remaining--;
 
-  // Text Search Essentials ($5/1K) gives us the canonical place_id. Query
-  // order: `${name} ${destination}` first (matches local landmarks better),
-  // then name-only fallback.
+  // Text Search gives the canonical place_id. Query `${name} ${destination}`
+  // first (matches local landmarks better), then the name alone.
   let partial: PlaceRecord | null = null;
   if (destination) {
     partial = await searchPlaceId(`${name} ${destination}`);
@@ -540,13 +418,11 @@ async function getOrFetchPlace(
   }
 
   // ---------- 2b. place_id dedup ----------
-  // Many activity-name variants ("Colosseum" / "Il Colosseo" / "The Roman
-  // Colosseum") collapse to one Google place_id. The normalized-name lookup
-  // above only catches IDENTICAL normalized names; a fresh variant misses it
-  // even when the place is already cached. Now that Text Search has revealed
-  // the canonical place_id, check places_v2 directly: if it's already cached
-  // WITH a photo (incl. rows backfilled from historical trips), skip the
-  // $17/1K Place Details Pro call entirely and just record the new lookup.
+  // Name variants ("Colosseum" / "Il Colosseo" / "The Roman Colosseum") share
+  // one place_id, but the lookup above only matches identical normalized
+  // names. With the place_id from Text Search, check places_v2 directly: if
+  // it already has a photo, skip the Place Details call and just record the
+  // new lookup.
   const { data: existingRow } = await supabase
     .from("places_v2")
     .select("*")
@@ -611,9 +487,9 @@ async function getOrFetchPlace(
 }
 
 /**
- * Backward-compat wrapper preserving the old `fetchFromGooglePlaces(query)`
- * surface. Callers that only need a photo URL keep working; the underlying
- * call now extracts more data and caches by place_id.
+ * Photo URL for a free-text query via Text Search + Place Details, without
+ * reading or writing places_v2. Only the legacy fallback in
+ * resolveActivityImage uses it.
  *
  * @deprecated Prefer `getOrFetchPlace(name, destination, normalizedKey)`.
  */
@@ -622,31 +498,21 @@ async function fetchFromGooglePlaces(query: string): Promise<string | null> {
   return place?.photo_url ?? null;
 }
 
-// Curated fallback images by activity type
 // Curated fallback images by activity type.
 //
-// SOURCING RULE (2026-08-04). Every id below was pulled from the Pexels search
-// API and then LOOKED AT in a contact sheet before landing here. That second
-// step is not optional: see the note in app/api/images/destination/route.ts —
-// a 2026-07-21 audit of the destination map found 20 of 73 images showed the
-// wrong place and one was Pexels' own grey "missing image" placeholder, which
-// is served with HTTP 200. Resolution checks pass all of those.
+// Look at every image before adding it; a resolution check is not enough:
+// Pexels search returns wrong places, and its grey "missing image" placeholder
+// is served with HTTP 200, so both pass such checks (see the note in
+// app/api/images/destination/route.ts).
 //
-// SECOND RULE, learned in the same pass: a generic type fallback must NOT be a
-// recognisable landmark. The first `attraction` harvest returned the Eiffel
-// Tower, the Colosseum (twice), Red Square and Pisa — which would have put the
-// Colosseum next to "Belfry of Bruges" on every Belgian itinerary. Anonymous
-// old-town streets and architectural detail are the correct register here;
-// famous monuments belong only in the per-destination map.
+// A type fallback must not be a recognisable landmark, or a Belgian itinerary
+// can show the Colosseum next to the Belfry of Bruges. Use anonymous old-town
+// streets and architectural detail; famous monuments belong only in the
+// per-destination map.
 //
-// As of the second pass every type carries its own reviewed pool (7-11), so
-// the small-pool rescue in getCuratedImage is now a dormant safety net rather
-// than the mechanism the fallbacks actually rely on.
-//
-// Pool depth is the point. Before this change `restaurant` had 2 own images,
-// widened to 5 by the union below, spread across 205 activities in 10 days —
-// a 41x reuse factor, so a single 5-day trip showed the same photo three
-// times. Depth, not just breadth of type coverage, is what stops that.
+// Pool depth matters as much as type coverage: a shallow pool repeats the
+// same photo within one trip. Every type has its own reviewed pool of at least
+// MIN_POOL, so the widening in getCuratedImage is only a safety net.
 const CURATED_BY_TYPE: Record<string, string[]> = {
   restaurant: [
     "https://images.pexels.com/photos/10135114/pexels-photo-10135114.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
@@ -746,8 +612,8 @@ const CURATED_BY_TYPE: Record<string, string[]> = {
     "https://images.pexels.com/photos/18911914/pexels-photo-18911914.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
     "https://images.pexels.com/photos/18936011/pexels-photo-18936011.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
   ],
-  // Aliases for type strings the generator actually emits; these
-  // matched no key before and fell through to the generic widening.
+  // Type strings the generator emits that reuse another type's pool; without
+  // a key they would fall through to the generic widening.
   nature_attraction: [],   // filled below from `nature`
   cultural_attraction: [], // filled below from `cultural`
   food: [
@@ -896,19 +762,11 @@ const FALLBACK_IMAGES = [
 const MIN_POOL = 6;
 
 function getCuratedImage(type: string, index: number = 0): string {
-  // Widening is now a SMALL-POOL RESCUE, not the default.
-  //
-  // It used to run unconditionally: every type was unioned with `attraction` +
-  // FALLBACK_IMAGES because the per-type pools were 1-2 images deep. Now that
-  // every reviewed type carries 7-11 of its own, doing that everywhere would be
-  // actively harmful — it would splice generic old-town streets into `spa` and
-  // `nightlife`, making those types LESS relevant than they already are.
-  //
-  // So: use the type's own pool when it's deep enough. As of the second review
-  // pass all 21 known types clear MIN_POOL, so this rescue now only fires for
-  // an UNKNOWN type string (a new activity type the generator starts emitting
-  // before anyone curates a pool for it) — which is exactly the case where
-  // falling back to generic scenery is the right answer.
+  // Use the type's own pool when it is deep enough. Only a small pool is
+  // widened with `attraction` + FALLBACK_IMAGES: widening every type would
+  // splice generic old-town streets into `spa` or `nightlife`. Every known
+  // type clears MIN_POOL, so in practice this widens only an unknown type
+  // string, where generic scenery is the right answer.
   const own = CURATED_BY_TYPE[type.toLowerCase()] ?? [];
   const pool =
     own.length >= MIN_POOL
@@ -926,18 +784,11 @@ function getCuratedImage(type: string, index: number = 0): string {
  * for the same name+type combo so a fallback hit is deterministic.
  */
 export function curatedFor(name: string, type: string): string {
-  // djb2 rather than a plain char-code SUM. The sum collides badly on the
-  // inputs this actually receives: real activity names within one trip share
-  // prefixes and length ("Osteria da Fortunata", "Osteria Mario", …), so their
-  // sums land in a narrow band and collapse onto the same few slots mod a
-  // small pool. Measured on a simulated 10-restaurant trip against the new
-  // 11-image pool: char-sum gave 5 distinct, djb2 gives 6 — which is the
-  // expected value for 10 random draws from 11 (6.8), i.e. djb2 reaches the
-  // ceiling for a stateless picker.
-  //
-  // Doing better means assigning distinct images ACROSS a trip, which needs
-  // trip context this function doesn't have. Left deliberately: the remaining
-  // repeats are now birthday-problem collisions, not a 41x pool shortage.
+  // djb2, not a plain char-code sum: names in one trip share prefixes and
+  // lengths ("Osteria da Fortunata", "Osteria Mario"), so their sums cluster
+  // and collide on the same few slots of a small pool. Fewer repeats would
+  // need distinct images assigned across a trip, which needs trip context
+  // this function doesn't have.
   let hash = 5381;
   for (let i = 0; i < name.length; i++) {
     hash = ((hash * 33) ^ name.charCodeAt(i)) >>> 0;
@@ -998,7 +849,7 @@ export function withActivityTypeHint(url: string, type: string): string {
  *
  * Lives here rather than at the call site so all three hint operations share
  * one definition of what a hint looks like. No-op when the old URL has no hint
- * (everything written before 2026-08-04), when the replacement already carries
+ * (URLs written before hints existed), when the replacement already carries
  * one, or when the replacement isn't our proxy.
  */
 export function carryTypeHint(oldUrl: string | undefined | null, fresh: string): string {
@@ -1019,20 +870,18 @@ interface CachedActivityImage {
 }
 
 /**
- * Resolve a single unique activity to a photo URL.
+ * Resolve a single unique activity to a photo URL, or null for the caller's
+ * curated fallback.
  *
- * 2026-06-01 cache pipeline (cost-reduction pass):
- *   1. NEW: place_id-keyed cache via `getOrFetchPlace`. Many name variants
- *      collapse to one paid Places call ever. This is the primary path.
- *   2. LEGACY fallback: old `place_search`/`activity_image` cache wrapped via
- *      `cache.withDatabase`. Kept hot so historical rows continue serving
- *      until they age out (TTL 365d). Only invoked when the new path
- *      returns null (i.e. Places API truly couldn't find the place).
+ *   1. place_id-keyed cache via `getOrFetchPlace`. This is the primary path.
+ *   2. LEGACY fallback: the name-keyed `place_search`/`activity_image` cache
+ *      via `cache.withDatabase`, tried when the primary path yields no photo
+ *      and paid budget remains.
  *
- * The in-memory + in-flight dedup of `cache.withDatabase` still applies to
- * the legacy fallback. The new path doesn't need it because the per-request
- * dedup happens upstream in `fetchActivityImages` (same normalizedKey is
- * resolved once per call to `Promise.all`).
+ * `cache.withDatabase` gives the legacy fallback in-memory + in-flight dedup.
+ * The primary path doesn't need it because the per-request dedup happens
+ * upstream in `fetchActivityImages` (same normalizedKey is resolved once per
+ * call to `Promise.all`).
  */
 async function resolveActivityImage(
   name: string,
@@ -1041,12 +890,10 @@ async function resolveActivityImage(
   paidBudget: { remaining: number },
   photoRefreshBudget: { remaining: number }
 ): Promise<string | null> {
-  // Cost kill-switch (2026-07-02): when activity photos are disabled, resolve to
-  // the curated-by-type fallback (the caller applies it when this returns null)
-  // and make ZERO paid Places calls. All paid activity paths — the place_id cache
-  // MISS and the legacy fallback below — flow through here, so this single guard
-  // fully stops activity Places spend. Already-enriched trips are unaffected:
-  // their activities already carry a good image_url and never reach this resolver.
+  // Kill switch: return null so the caller applies the curated fallback. Every
+  // paid lookup fetchActivityImages makes passes through here. Activities that
+  // already have a proxy URL never reach this function and keep it; rendering
+  // them still bills downloads and self-heals in /api/places/photo.
   if (!RESOLVE_ACTIVITY_PHOTOS) {
     return null;
   }
@@ -1069,8 +916,10 @@ async function resolveActivityImage(
   }
 
   // ---------- Legacy fallback path ----------
-  // Preserves the 30d-cached historical "no photo found" misses + serves
-  // rows from before places_v2 existed. Will quietly retire as TTLs expire.
+  // Serves name-keyed rows, including ones from before places_v2 existed and
+  // cached "no photo" misses. On a miss its fetcher pays for Text Search +
+  // Place Details without spending paidBudget, and caches the result (even a
+  // null) for ACTIVITY_IMAGE_CACHE_DAYS.
   const { data } = await cache.withDatabase<CachedActivityImage>(
     "place_search",
     `activity_img:${normalizedKey}`,
@@ -1101,28 +950,22 @@ export interface ActivityWithImage {
 
 /**
  * Fetch images for all activities in an itinerary.
- * Used by AI generate API to populate images before returning.
+ * Used by the generate routes to populate images before responding.
  *
- * Dedup strategy (2026-05-31):
+ * Dedup strategy:
  *   1. Flatten every activity across every day.
  *   2. Skip any that already have a KNOWN-GOOD `image_url`.
  *   3. Group by normalized key — same key → same Places lookup.
  *   4. Resolve each UNIQUE key exactly once in parallel.
  *   5. Fan the resolved URL back out to every activity that shared that key.
  *
- * "Known-good" guard (2026-06-06): Gemini sometimes hallucinates raw Google
- * URLs (`places.googleapis.com/v1/...`, `maps.googleapis.com/maps/api/place/photo`)
- * into its structured output. Those URLs lack auth headers and 404/403 from
- * the browser, leaking through to broken-image icons. Production audit found
- * 249 broken activity image URLs across 23 trips — half the corpus.
+ * Known-good means our `/api/places/photo` proxy or a curated Pexels/Unsplash
+ * URL. Gemini sometimes writes raw Google photo URLs (places.googleapis.com,
+ * maps.googleapis.com) into its output, and those fail (403/404) in the
+ * browser, so anything else is stripped and re-resolved.
  *
- * Fix: only trust `image_url` if it's our `/api/places/photo` proxy URL or a
- * curated Pexels/Unsplash URL. Anything else (raw Google, expired, foreign)
- * is treated as missing — we strip it and re-resolve through the resolver
- * pipeline, which produces a guaranteed-good proxy URL or a curated fallback.
- *
- * A trip with "Colosseum" on day 2 and day 5 makes one Places call, not two.
- * Across trips, the place_search DB cache ensures the second trip pays nothing.
+ * A trip with "Colosseum" on day 2 and day 5 makes one lookup, not two; a
+ * later trip with the same name and destination hits places_v2_lookup.
  *
  * @param days - Array of itinerary days with activities
  * @param destination - Trip destination for context
@@ -1144,8 +987,8 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
   const reresolveCurated = opts.reresolveCurated ?? false;
 
   // ---------- Step 1+2: collect activities needing resolution. ----------
-  // We track each occurrence by its (day, index) so we can write the URL
-  // back to the exact reference later.
+  // Each occurrence keeps a reference to its activity object so the URL is
+  // written back in place.
   type Pending = {
     activity: ActivityWithImage;
     normalizedKey: string;
@@ -1206,16 +1049,11 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
   // MAX_PAID_PLACE_LOOKUPS_PER_TRIP). Cache hits don't consume it; once it's
   // spent, the rest of this trip's fresh activities get curated fallbacks.
   const paidBudget = { remaining: maxPaidLookups };
-  // Separate from paidBudget on purpose: a photo-ref refresh must never eat
-  // the budget that resolves genuinely-new activities.
-  //
-  // Gated on maxPaidLookups > 0: trip GENERATION calls this with
-  // maxPaidLookups:0 as a hard "this request costs zero Google dollars"
-  // invariant (2026-06-30 cost pass), and a stale-ref refresh is a PAID call
-  // — allowing it here would quietly bill every generation. Generations keep
-  // whatever the cache has (stale refs are repaired at render by the
-  // /api/places/photo self-heal, for free from this path's perspective);
-  // refreshes only happen on the save-time enrich path, which already pays.
+  // Separate from paidBudget so a photo-ref refresh never eats the budget that
+  // resolves new activities. Zero when maxPaidLookups is 0: trip generation
+  // relies on that to cost nothing, and a refresh is a paid call. Zero-budget
+  // calls keep whatever ref the cache has; /api/places/photo self-heals stale
+  // ones at render.
   const photoRefreshBudget = {
     remaining: maxPaidLookups > 0 ? PHOTO_REFRESH_PER_TRIP : 0,
   };
@@ -1242,8 +1080,8 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
           occ.activity.image_url = withActivityTypeHint(url, occ.type);
         }
       } else {
-        // Places returned nothing — fall back to curated per-activity.
-        // Each occurrence keeps the same fallback because its name+type match.
+        // No photo resolved: the whole group gets one curated fallback, picked
+        // from the first occurrence's name and type.
         fallbackHits++;
         const fallback = curatedFor(first.name, first.type);
         for (const occ of occurrences) {

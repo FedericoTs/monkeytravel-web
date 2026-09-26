@@ -28,37 +28,20 @@ interface PageProps {
 }
 
 /**
- * Request-scoped cache for the trip lookup. Both `generateMetadata` and
- * the page render need the same row; without the cache wrapper Next.js
- * runs them as two separate Supabase queries per request. React's
- * `cache()` memoizes by the token argument for the lifetime of a single
- * request, so the second call resolves from the cached promise.
- *
- * 2026-05-30 perf pass: previously was generateMetadata SELECT (3 cols) +
- * page SELECT * (all cols), now one SELECT * shared. Net: -1 DB RTT per
- * shared-trip view (a top-traffic surface).
+ * Request-scoped cache for the trip lookup: `generateMetadata` and the page
+ * render need the same row, and React's `cache()` memoizes by token for the
+ * lifetime of one request, so both share a single query.
  */
 const getSharedTrip = cache(async (token: string) => {
-  // Service-role, keyed on the EXACT token — not the anon client.
+  // Service role keyed on the EXACT token, never the anon client: an RLS
+  // policy cannot compare a caller-supplied token, so one that opened shared
+  // rows would make every shared trip readable with the public key, private
+  // ones included (anonymous shares are visibility='private' on purpose, see
+  // app/api/trips/anonymous/route.ts). Holding the token is the access check;
+  // same pattern as app/api/calendar/trip/[id]/route.ts.
   //
-  // This page used to read through RLS, which worked only because the trips
-  // SELECT policy carried a bare `OR (share_token IS NOT NULL)`. That clause
-  // has no comparison against a caller-supplied token, so it made EVERY row
-  // that merely HAS a share_token world-readable: measured 2026-09-01, an
-  // unauthenticated caller holding the public browser key could list 118 trips,
-  // 42 of them visibility='private', with full itinerary, notes, budget and
-  // emergency_contacts. The anonymous-share loop shipped 2026-08-18 grew that
-  // from 1 trip in March to 82 in August.
-  //
-  // Anonymous shared trips are deliberately visibility='private' (see
-  // app/api/trips/anonymous/route.ts) — their readability comes from holding
-  // the token, which is exactly what this function checks. Doing that check
-  // here rather than in a policy predicate is what lets the policy drop the
-  // blanket clause. Same pattern as app/api/calendar/trip/[id]/route.ts.
-  //
-  // `deleted_at IS NULL` is re-asserted explicitly: the policy used to supply
-  // it, and service-role bypasses RLS entirely, so dropping it here would
-  // resurrect deleted trips on a public URL.
+  // `deleted_at IS NULL` is asserted here because the service role bypasses
+  // RLS; without it deleted trips would render on a public URL.
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("trips")
@@ -103,19 +86,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     alternates: {
       canonical,
     },
-    // The preview card is now GENERATED from the trip rather than being the
-    // raw cover photo. The photo alone said nothing about the trip: 43% of
-    // shared trips carry a stock Pexels image, so the card that circulated in
-    // a group chat was indistinguishable from any other travel link. The
-    // generated one carries the same stat row the page hero shows - the
-    // destination, the dates, "7D / 6N", the activity count and the budget -
-    // which is the part worth sending.
-    //
-    // Unconditional on purpose: /api/og/trip always returns an image, falling
-    // back to a brand card when the token resolves to nothing, so there is no
-    // path where og:image disappears. That matters here because declaring an
-    // openGraph block REPLACES the root layout's, and the old spread meant a
-    // trip with no cover_image_url silently had no og:image at all.
+    // The card is generated from the trip (/api/og/trip): destination, dates,
+    // length, activity count and budget, not just a cover photo that is often
+    // a stock image. Unconditional on purpose: declaring openGraph replaces the
+    // root layout's block, and the route always returns an image (a brand card
+    // when the token resolves to nothing), so og:image never goes missing.
     openGraph: {
       title: trip.title,
       description: trip.description || `Check out this travel itinerary on MonkeyTravel`,
@@ -151,16 +126,15 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
     notFound();
   }
 
-  // Live Trip Phase 2.4: the owner is redirected here from /trips/[id] (the
-  // canonical-shared redirect), so this is where they must see "Who's going".
-  // getUser() is a local no-op without a session cookie, so anon viewers pay
-  // nothing. Read from the RLS client, compared to the service-role trip row.
-  // Resolved up here because the visit telemetry below must not count the
-  // owner, and the PostHog twin reuses the id instead of a second getUser().
+  // The owner reaches this page through their own share link and must see
+  // "Who's going" here, not the recipient bar. getUser() is a local no-op
+  // without a session cookie, so anonymous viewers pay nothing. Resolved up
+  // here because the visit telemetry below must not count the owner, and the
+  // PostHog twin reuses the id instead of a second getUser().
   let isOwner = false;
   let viewerUserId: string | null = null;
   // Owner or collaborator: the shared view offers them the way back to the
-  // editor (/trips/[id], which always opens for members since 2026-09-25).
+  // editor (/trips/[id], which always opens for members).
   let isMember = false;
   try {
     const supabase = await createClient();
@@ -185,15 +159,12 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
     viewerUserId = null;
   }
 
-  // UX10X Phase 0.3: record a recipient visit to the shared link — the viral
-  // loop's first measured hop (funnel_events.share_link_visited, and the
-  // PostHog crew_link_visited twin below). One verdict feeds both sinks so
-  // they stay comparable. Read of 2026-09-18: 1,494 rows in 30 days were 946
-  // cookieless non-document renders of one trip in one hour, ~70 fleet hits
-  // on the ownerless demo trips and 27 sessions of owners opening their own
-  // link; the classifier skips all three. NOT fired in generateMetadata
-  // (which shares the React.cache'd getSharedTrip and would double-count).
-  // Fire-and-forget; never blocks the render.
+  // Record a recipient visit, the share loop's first measured hop
+  // (funnel_events.share_link_visited + the PostHog crew_link_visited twin
+  // below). One verdict feeds both sinks so they stay comparable; it skips
+  // crawlers, prefetches, non-document renders, the ownerless demo trips and
+  // owners. NOT fired in generateMetadata, which runs on the same request and
+  // would double-count. Fire-and-forget; never blocks the render.
   const visitHeaders = await headers();
   const visitVerdict = classifySharedVisit({
     userAgent: visitHeaders.get("user-agent"),
@@ -207,31 +178,18 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
     void logSharedTripVisit(trip.id as string, { crewAsk });
   }
 
-  // Crew Loop PostHog twin of the funnel event above — gated by the same
-  // verdict so the two counters stay comparable. Distinct id preference: authed user id
-  // (rare on this anon-first page; getUser() is a local no-op without a
-  // session cookie) → mt_anon_voter cookie (ties the visit to later
-  // crew_vote_cast events) → a per-visit random id.
+  // PostHog twin of the funnel event above, gated by the same verdict.
+  // Distinct id: the signed-in user id, else the mt_anon_voter cookie (ties
+  // the visit to later crew_vote_cast events), else a per-visit random id.
+  // Never a shared constant like "anonymous": it merges unrelated strangers
+  // into one PostHog person and collapses uniques. The cost is deliberate: a
+  // returning visitor without the vote cookie gets a new id each visit, so
+  // uniques over-count; visit and funnel-step counts are unaffected.
   //
-  // WHY NOT A SHARED "anonymous" CONSTANT (the previous behaviour)
-  //
-  // Measured 2026-08-21: 189 of 251 visits in 30 days (75%) carried the
-  // literal distinct_id "anonymous". That did two bad things at once — it
-  // made uniq(person_id) report 19 for what was really hundreds of people,
-  // and it merged unrelated strangers into a single PostHog person profile
-  // that accumulated all of their properties.
-  //
-  // A per-visit random id fixes both. The tradeoff is deliberate and worth
-  // stating: a returning visitor without the vote cookie now counts as a new
-  // id each time, so uniques are an OVER-count where they used to be a wild
-  // under-count. Visit and funnel-step counts are unaffected.
-  //
-  // The alternative — minting a stable visitor cookie on view — was rejected
-  // on purpose. mt_anon_voter is a FUNCTIONAL cookie (one vote per browser);
-  // setting an identifier merely to watch someone read a page makes it an
-  // analytics cookie, and consent lives in localStorage (see
-  // lib/consent/storage.ts), which the server cannot read. So there is no way
-  // to honour a refusal here. Fewer stable ids is the correct default.
+  // Never mint a stable visitor cookie for this: mt_anon_voter is FUNCTIONAL
+  // (one vote per browser), an id set only to watch someone read a page is an
+  // analytics cookie, and consent lives in localStorage (lib/consent/storage.ts),
+  // which the server cannot read, so it could not honour a refusal.
   //
   // Fire-and-forget like logSharedTripVisit; never blocks or breaks render.
   void (async () => {
@@ -261,16 +219,15 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
     }
   })();
 
-  // Read-time refresh of activity photo URLs from places_v2. Public
-  // /shared/* surfaces had broken activity-card images when URLs baked
-  // into trip.itinerary went stale — places_v2 has the canonical URL.
-  // See lib/places/refreshItineraryPhotos.ts.
+  // Refresh activity photo URLs from places_v2 at read time: URLs baked into
+  // trip.itinerary go stale, and places_v2 holds the current one. See
+  // lib/places/refreshItineraryPhotos.ts.
   const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
   const itinerary = await refreshTripItinerary(rawItinerary);
   const budget = trip.budget as { total: number; currency: string } | null;
   const tripMeta = (trip.trip_meta as TripMeta) || {};
-  // An EMPTY packing_list array is truthy, so a bare `||` never reached the
-  // trip_meta fallback (same bug fixed in trips/[id]/page.tsx).
+  // An EMPTY packing_list array is truthy, so a bare `||` would never reach the
+  // trip_meta fallback. trips/[id] and trip/[slug] use the same fallback.
   const packingColumn = trip.packing_list as string[] | null | undefined;
   const packingList =
     (Array.isArray(packingColumn) && packingColumn.length > 0 ? packingColumn : tripMeta.packing_suggestions) || [];
@@ -301,10 +258,8 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
     { name: trip.title, url: tripUrl },
   ]);
 
-  // **2026-05-25 (/explore Week 3)**: render the engagement bar above
-  // the trip view so anon visitors can like/save/fork without scrolling.
-  // The component no-ops if the explore flag is off OR the trip isn't
-  // public yet (private trips don't get the engagement UI exposed).
+  // The like/save/fork bar renders nothing unless the explore flag is on AND
+  // the trip is public, so private trips never expose the engagement UI.
   const isPublic = trip.visibility === "public" && !trip.is_hidden;
 
   const nonce = await getNonce();
@@ -342,10 +297,8 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
         }}
         shareToken={token}
         dateRange={formatDateRange(trip.start_date, trip.end_date)}
-        // Forward the persisted cover image so the hero renders the
-        // actual photo for anon viewers instead of the gradient fallback.
-        // The OpenGraph tag above already reads this — it's been in the
-        // DB the whole time, just never threaded down to the client.
+        // The hero makes no Places calls here, so the persisted cover image is
+        // its only photo; without it viewers get the gradient fallback.
         coverImageUrl={trip.cover_image_url ?? null}
         engagementSlot={
           <TripEngagementSection
