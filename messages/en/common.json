@@ -1007,7 +1007,8 @@
     "fromCuratedList": "From our curated list",
     "noResultsExciting": "Great pick — we plan trips anywhere",
     "noResultsSupported": "Tap below to keep going. We don't limit destinations — any city, town, or village works.",
-    "continueWith": "Continue with {destination} →"
+    "continueWith": "Continue with {destination} →",
+    "suggestionsLabel": "Destination suggestions"
   },
   "startOver": {
     "title": "Start Over?",
