@@ -61,6 +61,12 @@ interface AuthPromptModalProps {
    * `wizard_save` since that's the original / current caller.
    */
   location?: AuthPromptLocation;
+  /**
+   * Why we're asking. `save` (default): an anonymous visitor wants to keep a
+   * trip. `generation_limit`: they have used the day's free generations and
+   * need an account to keep planning — same sign-up, different words.
+   */
+  reason?: "save" | "generation_limit";
 }
 
 const BENEFITS = [
@@ -75,10 +81,15 @@ export default function AuthPromptModal({
   destination,
   redirectPath = "/trips/new",
   location = "wizard_save",
+  reason = "save",
 }: AuthPromptModalProps) {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("common.authPrompt");
+  const atLimit = reason === "generation_limit";
+  const title = atLimit ? t("generationLimit.title") : t("title");
+  const subtitle = atLimit ? t("generationLimit.subtitle") : t("subtitle", { destination });
+  const checkInbox = atLimit ? t("generationLimit.checkInbox") : t("magicLink.checkInbox");
   const tButtons = useTranslations("common.buttons");
   // Reuse the login page's already-translated OAuth strings (en/es/it/pt)
   // so the save wall stays localized without new message keys.
@@ -349,7 +360,7 @@ export default function AuthPromptModal({
       showCloseButton={false}
       noPadding
       animation="scale"
-      ariaLabel={t("title")}
+      ariaLabel={title}
       className="shadow-2xl"
     >
       {/* Gradient header */}
@@ -367,12 +378,12 @@ export default function AuthPromptModal({
           </svg>
         </div>
         <h2 className="text-2xl font-bold mb-2">
-          {linkSent ? t("magicLink.sentTitle") : t("title")}
+          {linkSent ? t("magicLink.sentTitle") : title}
         </h2>
         <p className="text-white/80">
           {linkSent
             ? t("magicLink.sentSubtitle", { email })
-            : t("subtitle", { destination })}
+            : subtitle}
         </p>
       </div>
 
@@ -382,7 +393,7 @@ export default function AuthPromptModal({
           // Success state — no benefits, no extra CTAs. Just confirm + offer
           // a "use a different email" escape if they typo'd.
           <div className="space-y-4">
-            <p className="text-slate-600 text-sm text-center">{t("magicLink.checkInbox")}</p>
+            <p className="text-slate-600 text-sm text-center">{checkInbox}</p>
 
             {/* The in-tab path. The same email carries a six-digit code, so
                 someone who would otherwise leave for their mail app and not

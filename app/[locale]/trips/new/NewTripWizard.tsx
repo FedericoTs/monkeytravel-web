@@ -1598,6 +1598,15 @@ export default function NewTripPage({
   // on screen so only one ownerless trip is ever created.
   const [sessionShareUrl, setSessionShareUrl] = useState<string | null>(null);
   const [authPromptLocation, setAuthPromptLocation] = useState<AuthPromptLocation>("wizard_save");
+  // Save (default) or the anonymous free-generation cap: same sign-up, the
+  // modal words it for why we're asking.
+  const [authPromptReason, setAuthPromptReason] = useState<"save" | "generation_limit">("save");
+  // After signing up at the cap, come back to the wizard with the destination
+  // filled in (the ?destination= deep link). Save keeps the modal's default.
+  const limitRedirectPath =
+    authPromptReason === "generation_limit" && destination
+      ? `/trips/new?destination=${encodeURIComponent(destination)}`
+      : undefined;
   useEffect(() => {
     let alive = true;
     void readPendingClaim().then((p) => {
@@ -1682,6 +1691,7 @@ export default function NewTripPage({
       });
     }
     setAuthPromptLocation(location);
+    setAuthPromptReason("save");
     setShowAuthModal(true);
   };
   const handleKeepSharedTrip = () => {
@@ -2412,6 +2422,18 @@ export default function NewTripPage({
         data = await response.json();
 
         if (!response.ok) {
+          // The anonymous free-generation cap (RATE_LIMIT from both
+          // endpoints: the stream refused, and so did this fallback). Since
+          // #189 it applies to the wizard; ask for a free account, with the
+          // destination kept for the way back, instead of throwing the
+          // server's English error.
+          if (response.status === 429 && data.code === "RATE_LIMIT" && !authUser) {
+            setAuthPromptLocation("wizard_generation_limit");
+            setAuthPromptReason("generation_limit");
+            setShowAuthModal(true);
+            setGenerating(false);
+            return;
+          }
           // Check for early access gate
           if (data.code === "NO_ACCESS" || data.code === "LIMIT_REACHED") {
             setPendingGeneration(true);
@@ -2651,6 +2673,7 @@ export default function NewTripPage({
         });
         setLoading(false);
         savingTripRef.current = false;
+        setAuthPromptReason("save");
         setShowAuthModal(true);
         return;
       }
@@ -3099,6 +3122,8 @@ export default function NewTripPage({
           onClose={() => setShowAuthModal(false)}
           destination={destination}
           location={authPromptLocation}
+          reason={authPromptReason}
+          redirectPath={limitRedirectPath}
         />
 
         {/* Hero with Cover Image */}
@@ -4043,6 +4068,8 @@ export default function NewTripPage({
         onClose={() => setShowAuthModal(false)}
         destination={destination}
         location={authPromptLocation}
+        reason={authPromptReason}
+        redirectPath={limitRedirectPath}
       />
 
       {/* Early Access Modal - for gated AI features */}

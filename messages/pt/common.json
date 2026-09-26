@@ -2171,6 +2171,11 @@
       "secure": "Seguro",
       "free": "Grátis para começar",
       "quick": "Leva 30 segundos"
+    },
+    "generationLimit": {
+      "title": "Você usou as viagens grátis de hoje",
+      "subtitle": "Crie uma conta grátis para continuar planejando. Leva um instante e suas viagens ficam salvas nela.",
+      "checkInbox": "Clique no link do e-mail para continuar planejando. Sem senha."
     }
   },
   "saveTrip": {

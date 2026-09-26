@@ -221,3 +221,58 @@ describe("sign-in from an English page", () => {
     expect(url.searchParams.get("locale")).toBe("en");
   });
 });
+
+/**
+ * At the anonymous free-generation cap (#189 made the wizard count against
+ * it) the wizard opens this same sign-up, worded for why: keep planning, not
+ * save. Before this the visitor got the server's English error string.
+ */
+describe("at the free-generation cap", () => {
+  function renderAtLimit() {
+    render(
+      <AuthPromptModal
+        isOpen
+        onClose={() => {}}
+        destination="Kutaisi"
+        reason="generation_limit"
+        location="wizard_generation_limit"
+        redirectPath="/trips/new?destination=Kutaisi"
+      />
+    );
+  }
+
+  it("asks for an account to keep planning, not to save a trip", () => {
+    renderAtLimit();
+    expect(screen.getByRole("heading", { name: "generationLimit.title" })).toBeTruthy();
+    expect(screen.getByText("generationLimit.subtitle")).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "title" })).toBeNull();
+  });
+
+  it("says so again once the link is on its way, and comes back to the wizard with the destination", async () => {
+    renderAtLimit();
+    fireEvent.change(screen.getByPlaceholderText("magicLink.emailPlaceholder"), {
+      target: { value: "planner@example.com" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "magicLink.send" }));
+    await waitFor(() => expect(screen.getByText("generationLimit.checkInbox")).toBeTruthy());
+    const url = new URL(signInWithOtp.mock.calls[0][0].options.emailRedirectTo);
+    expect(url.searchParams.get("next")).toBe("/trips/new?destination=Kutaisi");
+  });
+
+  it("the save wording is unchanged without a reason", () => {
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisboa" />);
+    expect(screen.getByRole("heading", { name: "title" })).toBeTruthy();
+  });
+});
+
+describe("the cap copy exists in every language", () => {
+  it.each(["en", "es", "it", "pt"])("%s", async (locale) => {
+    const messages = (await import(`../../messages/${locale}/common.json`)).default as {
+      authPrompt: { generationLimit?: Record<string, string> };
+    };
+    const copy = messages.authPrompt.generationLimit ?? {};
+    for (const key of ["title", "subtitle", "checkInbox"]) {
+      expect(copy[key]?.trim(), `${locale} ${key}`).toBeTruthy();
+    }
+  });
+});

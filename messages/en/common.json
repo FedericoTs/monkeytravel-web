@@ -2171,6 +2171,11 @@
       "secure": "Secure",
       "free": "Free to start",
       "quick": "Takes 30 seconds"
+    },
+    "generationLimit": {
+      "title": "You've used today's free trips",
+      "subtitle": "Create a free account to keep planning. It takes a moment, and your trips are saved to it.",
+      "checkInbox": "Click the link in the email to keep planning. No password needed."
     }
   },
   "saveTrip": {
