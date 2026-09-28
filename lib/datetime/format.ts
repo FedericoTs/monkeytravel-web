@@ -152,67 +152,6 @@ export function formatDateTime(datetime: string | Date): string {
 }
 
 /**
- * Format ISO 8601 duration string: "PT12H30M" → "12h 30m"
- * Use for flight durations from Amadeus API
- */
-export function formatISODuration(duration: string): string {
-  if (!duration) return "";
-
-  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
-  if (!match) return duration;
-
-  const hours = match[1] ? `${match[1]}h` : "";
-  const minutes = match[2] ? `${match[2]}m` : "";
-
-  return [hours, minutes].filter(Boolean).join(" ");
-}
-
-/**
- * Format minutes to duration: 150 → "2h 30m"
- * Use for activity durations, layovers
- */
-export function formatMinutesToDuration(minutes: number): string {
-  if (minutes <= 0) return "";
-
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-
-  if (hours === 0) return `${mins}m`;
-  if (mins === 0) return `${hours}h`;
-  return `${hours}h ${mins}m`;
-}
-
-/**
- * Format seconds to duration: 5400 → "1h 30m" or 300 → "5 min"
- * Use for travel time estimates
- */
-export function formatSecondsToDuration(seconds: number): string {
-  if (seconds <= 0) return "";
-
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) {
-    return `${minutes} min`;
-  }
-  const hours = Math.floor(minutes / 60);
-  const remainingMins = minutes % 60;
-  return remainingMins > 0 ? `${hours} hr ${remainingMins} min` : `${hours} hr`;
-}
-
-/**
- * Format layover duration with label: 150 → "2h 30m layover"
- */
-export function formatLayover(minutes: number): string {
-  if (minutes <= 0) return "";
-
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-
-  if (hours === 0) return `${mins}m layover`;
-  if (mins === 0) return `${hours}h layover`;
-  return `${hours}h ${mins}m layover`;
-}
-
-/**
  * Format Date object to ISO date string: YYYY-MM-DD
  */
 export function formatDateToISO(date: Date): string {
