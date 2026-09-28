@@ -19,7 +19,6 @@ import {
   generateBreadcrumbSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
-import { getNonce } from "@/lib/security/nonce";
 import { buildAlternates } from "@/lib/seo/canonical";
 
 interface PageProps {
@@ -262,13 +261,12 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
   // the trip is public, so private trips never expose the engagement UI.
   const isPublic = trip.visibility === "public" && !trip.is_hidden;
 
-  const nonce = await getNonce();
 
   return (
     <>
       {/* Structured Data for SEO */}
-      <script {...jsonLdScriptProps(tripSchema, nonce)} />
-      <script {...jsonLdScriptProps(breadcrumbSchema, nonce)} />
+      <script {...jsonLdScriptProps(tripSchema)} />
+      <script {...jsonLdScriptProps(breadcrumbSchema)} />
 
       <SharedTripView
         viewSource="shared"

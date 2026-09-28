@@ -13,7 +13,6 @@ import {
   generateWebPageSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
-import { getNonce } from "@/lib/security/nonce";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { PullToRefreshWrapper } from "@/components/ui/PullToRefreshWrapper";
@@ -43,6 +42,10 @@ const SITE_URL = "https://monkeytravel.app";
  *   - When EXPLORE_UGC_ENABLED is OFF, fetchExploreFeed returns null;
  *     we fall back to a "coming soon" block so the route stays linkable
  */
+
+// Rendered per request: the feed is live community data, and a prerendered
+// copy would be a snapshot from the deploy.
+export const dynamic = "force-dynamic";
 
 // Locale-aware metadata generator. The previous static export hardcoded
 // English titles, breaking SEO + hreflang signals for /it /es. Localized
@@ -197,7 +200,6 @@ export default async function ExplorePage({
     { name: "MonkeyTravel", url: `https://monkeytravel.app${schemaPrefix}` },
     { name: "Explore Trips", url: `https://monkeytravel.app${schemaPrefix}/explore` },
   ];
-  const nonce = await getNonce();
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -209,7 +211,7 @@ export default async function ExplorePage({
             url: breadcrumbItems[breadcrumbItems.length - 1].url,
             dateModified: CONTENT_UPDATED,
           }),
-        ], nonce)}
+        ])}
       />
       <Navbar />
 
@@ -480,7 +482,7 @@ async function fetchExploreFeedWithStyle(
   travelStyle?: string
 ) {
   if (travelStyle !== "backpacker") {
-    return fetchExploreFeed(filters);
+    return fetchExploreFeed(filters, { revalidate: 60 });
   }
   // Manual fetch with travel_style appended. Same host + 60s revalidate
   // to stay consistent with the wrapper.

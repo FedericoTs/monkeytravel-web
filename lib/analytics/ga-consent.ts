@@ -85,14 +85,16 @@ export function gaConsentDefaultScript(): string {
   );
 }
 
-/** Props for a server-rendered <script>; null when GA4 is not configured. */
+/**
+ * Props for a server-rendered <script>; null when GA4 is not configured.
+ * It carries no nonce: the CSP admits it by hash (lib/security/csp.ts).
+ */
 export function gaConsentDefaultScriptProps(
-  nonce: string | undefined,
   env: { measurementId?: string; mode?: string } = {
     measurementId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
     mode: process.env.NEXT_PUBLIC_GA_CONSENT_MODE,
   }
-): { nonce?: string; dangerouslySetInnerHTML: { __html: string } } | null {
+): { dangerouslySetInnerHTML: { __html: string } } | null {
   if (!env.measurementId || gaConsentModeFromEnv(env.mode) !== "advanced") return null;
-  return { nonce, dangerouslySetInnerHTML: { __html: gaConsentDefaultScript() } };
+  return { dangerouslySetInnerHTML: { __html: gaConsentDefaultScript() } };
 }

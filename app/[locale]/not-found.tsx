@@ -1,6 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 
+// Keep this free of request-time reads: Next renders the not-found boundary
+// into every page of the tree, so one here would make all of them dynamic.
+// Unknown URLs reach it through app/[locale]/[...rest]/page.tsx per request.
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col">

@@ -10,7 +10,6 @@ import {
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
 import { buildAlternates } from "@/lib/seo/canonical";
-import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
@@ -35,9 +34,13 @@ const SITE_URL = "https://monkeytravel.app";
  *
  * Only the public-safe column allowlist is ever selected — NEVER email or
  * payment handles.
+ *
+ * Rendered per request: the profile changes after the deploy, and a page
+ * regenerated later would no longer match the inline-script hashes the CSP
+ * pins at build time (scripts/csp-manifest.mjs).
  */
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ locale: string; username: string }>;
@@ -206,12 +209,11 @@ export default async function CreatorPage({ params }: PageProps) {
     { name, url: profileUrl },
   ]);
 
-  const nonce = await getNonce();
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <script {...jsonLdScriptProps(personSchema, nonce)} />
-      <script {...jsonLdScriptProps(breadcrumbSchema, nonce)} />
+      <script {...jsonLdScriptProps(personSchema)} />
+      <script {...jsonLdScriptProps(breadcrumbSchema)} />
 
       <Navbar />
       <main className="flex-1 w-full">

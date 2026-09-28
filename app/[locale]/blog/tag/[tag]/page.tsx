@@ -10,7 +10,6 @@ import { landingPageForTag } from "@/lib/blog/landing-page-links";
 import type { Locale } from "@/lib/blog/tag-taxonomy";
 import { tOr } from "@/lib/blog/api";
 import { generateBreadcrumbSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
-import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BlogCard } from "@/components/blog";
@@ -23,17 +22,15 @@ const SITE_URL = "https://monkeytravel.app";
 // Static params + ISR — every (locale, tag) combination
 // ============================================================================
 
+// Every valid param is listed below; anything else is a 404, never a render.
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return routing.locales.flatMap((locale) =>
     getAllTagSlugs(locale).map((tag) => ({ locale, tag }))
   );
 }
 
-// Same rationale as /blog index: tag archives derive from MDX frontmatter,
-// only change on commits, 1h is conservative. See note in ../page.tsx — the
-// `headers()` call inside `getNonce()` currently forces dynamic rendering and
-// neutralises this directive. Kept for forward-compat with future CSP wiring.
-export const revalidate = 3600;
 
 // ============================================================================
 // Metadata
@@ -156,11 +153,10 @@ export default async function BlogTagPage({ params }: PageProps) {
 
   const plannerLink = landingPageForTag(tag, locale);
 
-  const nonce = await getNonce();
 
   return (
     <>
-      <script {...jsonLdScriptProps(breadcrumbSchema, nonce)} />
+      <script {...jsonLdScriptProps(breadcrumbSchema)} />
 
       <Navbar />
 

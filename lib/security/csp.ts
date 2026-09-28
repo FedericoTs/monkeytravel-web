@@ -2,14 +2,19 @@
  * Content-Security-Policy header builder.
  *
  * Single source of truth for the CSP string we send. Called from
- * `middleware.ts` per request with a freshly-generated nonce.
+ * `middleware.ts` per request. Two script policies, one per rendering mode:
+ *
+ * - Pages rendered per request get a fresh nonce plus 'strict-dynamic'.
+ *   Next stamps the nonce on its own scripts, and trust flows from those to
+ *   whatever they load, so no host allowlist is needed on modern browsers.
+ * - Prerendered pages are served from the CDN, where no per-request nonce
+ *   can exist. Every inline script in their HTML is pinned by its SHA-256
+ *   (computed from the built HTML by scripts/csp-manifest.mjs) and external
+ *   scripts must come from 'self' or a listed host.
+ *
+ * Neither policy carries 'unsafe-inline' or 'unsafe-eval' for scripts.
  *
  * Design notes:
- * - script-src uses nonce + 'strict-dynamic' so Next.js's framework
- *   scripts (RSC payloads, route prefetch, hydration) inherit trust from
- *   the nonce-tagged bootstrap script. This lets us drop `'unsafe-inline'`
- *   and `'unsafe-eval'` in production without breaking Next's runtime.
- *   See https://web.dev/articles/strict-csp.
  * - style-src keeps 'unsafe-inline' because Next + Tailwind + framer-motion
  *   inject computed inline styles all over the place (style={{...}} and
  *   animated styles). Removing this would be a much larger refactor than
@@ -17,10 +22,12 @@
  * - connect-src enumerates every backend the app talks to (Supabase auth +
  *   storage, Sentry ingest, PostHog, Vercel Insights, frankfurter FX,
  *   Pexels, Stripe, Google Maps APIs, open-meteo weather).
- * - dev mode (NODE_ENV !== "production") returns `null` so middleware
- *   doesn't attach the header at all. React Refresh + Turbopack rely on
+ * - dev mode (NODE_ENV !== "production"): shouldEnforceCsp() is false, so
+ *   middleware attaches no header. React Refresh + Turbopack rely on
  *   `eval()` and `new Function()` which would be blocked.
  */
+
+import { gaConsentDefaultScriptProps } from "@/lib/analytics/ga-consent";
 
 /**
  * The four locale homepages (`localePrefix: "as-needed"` — see
@@ -54,35 +61,54 @@ export function allowsThirdPartyFraming(pathname: string): boolean {
  */
 const BUILDHOP_FRAME_ANCESTORS = ["https://buildhop.io", "https://www.buildhop.io"];
 
-export function buildCspHeader(nonce: string, pathname: string): string {
+/**
+ * Hosts external scripts may load from. The only script source for
+ * prerendered pages; on nonce pages a fallback for browsers without
+ * 'strict-dynamic' support (Safari < 15.4), which modern browsers ignore.
+ */
+const SCRIPT_HOSTS = [
+  "https://*.posthog.com",
+  "https://*.google-analytics.com",
+  "https://*.googletagmanager.com",
+  "https://*.sentry.io",
+  "https://*.vercel-scripts.com",
+  "https://*.vercel-insights.com",
+  "https://www.googleadservices.com",
+  "https://cdn.travelpayouts.com",
+  "https://emrldco.com",
+  "https://maps.googleapis.com",
+  "https://maps.gstatic.com",
+  "https://js.stripe.com",
+  // BuildHop feedback widget — see components/BuildHopFeedbackWidget.tsx.
+  "https://buildhop.io",
+];
+
+/**
+ * Which scripts a response may run: a per-request nonce, the hashes of its
+ * inline scripts, or — only when a prerendered page could not be read back
+ * to hash it — any inline script, so the page still works.
+ */
+export type ScriptPolicy =
+  | { nonce: string; hashes?: readonly string[] }
+  | { nonce?: undefined; hashes: readonly string[] }
+  | { nonce?: undefined; hashes?: undefined; unsafeInline: true };
+
+function scriptSrc(scripts: ScriptPolicy): string[] {
+  if ("unsafeInline" in scripts) return ["'self'", "'unsafe-inline'", ...SCRIPT_HOSTS];
+  const hashes = (scripts.hashes ?? []).map((h) => `'${h}'`);
+  if (scripts.nonce) {
+    // 'strict-dynamic' lets nonce-trusted scripts (Next's bootstrap) load
+    // additional scripts without each needing the nonce or being in an
+    // allowlist. Hashed inline scripts are trusted the same way.
+    return ["'self'", `'nonce-${scripts.nonce}'`, "'strict-dynamic'", ...hashes, ...SCRIPT_HOSTS];
+  }
+  return ["'self'", ...hashes, ...SCRIPT_HOSTS];
+}
+
+export function buildCspHeader(pathname: string, scripts: ScriptPolicy): string {
   const directives: Record<string, string[]> = {
     "default-src": ["'self'"],
-    "script-src": [
-      "'self'",
-      `'nonce-${nonce}'`,
-      // 'strict-dynamic' lets nonce-trusted scripts (Next's bootstrap)
-      // load additional scripts without each needing the nonce or being
-      // in an allowlist. Modern browsers ignore the host allowlist when
-      // 'strict-dynamic' is present.
-      "'strict-dynamic'",
-      // Fallback host allowlist for browsers without 'strict-dynamic'
-      // support (Safari < 15.4). Modern Chrome / Firefox / Safari ignore
-      // these in favor of nonce + strict-dynamic.
-      "https://*.posthog.com",
-      "https://*.google-analytics.com",
-      "https://*.googletagmanager.com",
-      "https://*.sentry.io",
-      "https://*.vercel-scripts.com",
-      "https://*.vercel-insights.com",
-      "https://www.googleadservices.com",
-      "https://cdn.travelpayouts.com",
-      "https://emrldco.com",
-      "https://maps.googleapis.com",
-      "https://maps.gstatic.com",
-      "https://js.stripe.com",
-      // BuildHop feedback widget — see components/BuildHopFeedbackWidget.tsx.
-      "https://buildhop.io",
-    ],
+    "script-src": scriptSrc(scripts),
     "style-src": [
       "'self'",
       // Required for inline styles emitted by Tailwind, framer-motion,
@@ -104,17 +130,12 @@ export function buildCspHeader(nonce: string, pathname: string): string {
       // GA4 with Google Signals beacons page_view/events to these hosts
       // too — NOT covered by *.google-analytics.com. Without them the CSP
       // blocks the core collect call (analytics.google.com/g/collect) and
-      // we silently lose GA measurement. Verified blocked in prod 2026-07-02.
+      // we silently lose GA measurement.
       "https://analytics.google.com",
       // ...and GA4 routes EU/UK traffic through REGIONAL subdomains
       // (region1.analytics.google.com, region2., ...), which the apex entry
       // above does not cover — a CSP `*.host` wildcard matches subdomains
       // only, and a bare `host` matches only the apex, so BOTH are required.
-      // The 2026-07-02 fix restored measurement for US traffic and left every
-      // EU hit still blocked; observed again in prod 2026-08-19 on /pt with
-      // "Refused to connect to region1.analytics.google.com". That silently
-      // dropped pageviews from Italy, Spain and Portugal — the markets the
-      // localized content exists to reach.
       "https://*.analytics.google.com",
       "https://stats.g.doubleclick.net",
       "https://www.google.com",
@@ -123,8 +144,7 @@ export function buildCspHeader(nonce: string, pathname: string): string {
       "https://*.googleapis.com",
       // Weather
       "https://*.open-meteo.com",
-      // FX rates (in-app currency converter — see prior CSP comment about
-      // "Failed to fetch" on /it/trips, 2026-05-28)
+      // FX rates (in-app currency converter)
       "https://api.frankfurter.dev",
       // Stripe (Checkout / Elements XHR — kept allowlisted for the
       // upcoming payments work even though no inline Stripe script ships
@@ -132,25 +152,17 @@ export function buildCspHeader(nonce: string, pathname: string): string {
       "https://api.stripe.com",
       // Travelpayouts/Emerald affiliate loader. Its script is already trusted
       // in script-src, but it fetches https://emrldco.com/entrypoint_config
-      // before it will render any affiliate link — and that fetch was blocked
-      // here, so the script loaded, failed with "config is not valid", and
-      // produced nothing. Observed on production 2026-08-19.
-      //
-      // components/AffiliateScript.tsx attributed that error to the loader
-      // 403ing on non-whitelisted hosts and states "prod is unaffected"; that
-      // is true of localhost but was NOT true of production, where our own CSP
-      // was the cause. Allowing connect to a host we already execute scripts
-      // from is a strictly smaller grant than the script-src entry it needs.
+      // before it will render any affiliate link; without this entry the
+      // script loads, fails with "config is not valid" and produces nothing.
       //
       // Deliberately NOT allowing sentry.avs.io: that is the affiliate
       // script's own error reporting to a third party, it is not needed for
       // affiliate links to work, and it would ship page URLs off-site.
       "https://emrldco.com",
-      // BuildHop feedback widget's own submit/config calls. Added proactively
-      // rather than after the fact: script-src alone was exactly the emrldco.com
-      // bug above — the script loads and runs, but any fetch() it makes gets
-      // silently refused without a matching connect-src entry, and the failure
-      // is invisible from the server (see the note above this list).
+      // BuildHop feedback widget's own submit/config calls. script-src alone
+      // is exactly the emrldco.com bug above: the script loads and runs, but
+      // any fetch() it makes gets silently refused without a matching
+      // connect-src entry, and the failure is invisible from the server.
       "https://buildhop.io",
     ],
     "frame-src": [
@@ -161,8 +173,7 @@ export function buildCspHeader(nonce: string, pathname: string): string {
       // injects an iframe at buildhop.io/embed/feedback/<id> — a THIRD
       // directive this one integration needs, after script-src (load the
       // script) and connect-src (its session POST). Without this the launcher
-      // renders, the click registers, and the panel opens blank, which is the
-      // same silent-failure shape as the emrldco.com connect-src bug.
+      // renders, the click registers, and the panel opens blank.
       "https://buildhop.io",
     ],
     "frame-ancestors": allowsThirdPartyFraming(pathname)
@@ -192,4 +203,28 @@ export function shouldEnforceCsp(pathname: string): boolean {
   if (pathname.startsWith("/_next/static")) return false;
   if (pathname.startsWith("/_next/image")) return false;
   return true;
+}
+
+export async function sha256Source(script: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(script));
+  let binary = "";
+  for (const byte of new Uint8Array(digest)) binary += String.fromCharCode(byte);
+  return `sha256-${btoa(binary)}`;
+}
+
+let layoutScriptHashes: Promise<readonly string[]> | undefined;
+
+/**
+ * Hashes of the inline scripts the layout renders on every page (today: the
+ * GA consent default). They carry no nonce, so the nonce policy admits them
+ * by hash; prerendered pages get them from the manifest instead.
+ */
+export function layoutInlineScriptHashes(): Promise<readonly string[]> {
+  if (!layoutScriptHashes) {
+    const consent = gaConsentDefaultScriptProps();
+    layoutScriptHashes = consent
+      ? sha256Source(consent.dangerouslySetInnerHTML.__html).then((h) => [h])
+      : Promise.resolve([]);
+  }
+  return layoutScriptHashes;
 }

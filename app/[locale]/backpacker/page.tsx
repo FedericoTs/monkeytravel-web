@@ -1,4 +1,3 @@
-import { headers } from "next/headers";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Link } from "@/lib/i18n/routing";
@@ -9,7 +8,6 @@ import {
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
 import LastUpdated from "@/components/seo/LastUpdated";
-import { getNonce } from "@/lib/security/nonce";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 // /explore Week 3 (2026-05-29): surface real backpacker trips on the
@@ -28,12 +26,15 @@ import type { Metadata } from "next";
 import TripCard from "@/components/explore/TripCard";
 import type { ExploreFeedResponse } from "@/lib/explore/types";
 
+// Fixed origin, not the request's host: the page prerenders, so these fetches
+// run once at build time against production's public API and the page shows
+// that snapshot until the next deploy.
+const API_BASE = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "https://monkeytravel.app";
+
 /**
  * Server-side fetch for the 30-day Hostelworld click stats.
  *
- * Powers the social-proof counter below the hero. Caches at the Vercel
- * edge for 1h via the route handler — this fetch reuses that cache so
- * /backpacker page generation stays sub-100ms even under burst load.
+ * Powers the social-proof counter below the hero.
  *
  * Returns null (and the page renders without the block) when stats
  * aren't meaningful yet (zero traffic, env missing, fetch failed). We
@@ -45,13 +46,8 @@ async function fetchHostelworldStats(): Promise<{
   uniqueTrips30d: number;
   uniqueVisitors30d: number;
 } | null> {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "monkeytravel.app";
-  const proto = h.get("x-forwarded-proto") ?? "https";
   try {
-    const res = await fetch(`${proto}://${host}/api/affiliates/hostelworld/stats`, {
-      next: { revalidate: 3600 },
-    });
+    const res = await fetch(`${API_BASE}/api/affiliates/hostelworld/stats`);
     if (!res.ok) return null;
     const data = await res.json();
     if (typeof data?.clicks30d !== "number") return null;
@@ -67,16 +63,12 @@ async function fetchHostelworldStats(): Promise<{
  * Mirrors the helper in app/[locale]/explore/page.tsx — the typed
  * fetchExploreFeed wrapper doesn't expose travel_style on its Filters
  * interface (it's a UI-layer concept) but the API route reads it
- * from the URL. Same host + 60s revalidate so this stays consistent
- * with the cached default-filter path on the /explore page.
+ * from the URL.
  */
 async function fetchBackpackerTrips(): Promise<ExploreFeedResponse | null> {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "monkeytravel.app";
-  const proto = h.get("x-forwarded-proto") ?? "https";
-  const url = `${proto}://${host}/api/explore/trips?travel_style=backpacker&page=1`;
+  const url = `${API_BASE}/api/explore/trips?travel_style=backpacker&page=1`;
   try {
-    const res = await fetch(url, { next: { revalidate: 60 } });
+    const res = await fetch(url);
     if (!res.ok) return null;
     const json = await res.json();
     if (!Array.isArray(json?.trips)) return null;
@@ -259,7 +251,6 @@ export default async function BackpackerLandingPage({
   const numberLocale =
     locale === "es" ? "es-ES" : locale === "it" ? "it-IT" : "en-US";
 
-  const nonce = await getNonce();
 
   return (
     <>
@@ -272,7 +263,7 @@ export default async function BackpackerLandingPage({
             url: breadcrumbItems[breadcrumbItems.length - 1].url,
             dateModified: CONTENT_UPDATED,
           }),
-        ], nonce)}
+        ])}
       />
 
       <Navbar />

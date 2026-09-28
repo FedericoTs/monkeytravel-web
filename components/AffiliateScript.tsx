@@ -22,16 +22,6 @@
 import { useEffect, useState } from "react";
 import Script from "next/script";
 
-interface AffiliateScriptProps {
-  /**
-   * Per-request CSP nonce. Forwarded from the server `RootLayout` (which
-   * reads it via `getNonce()`). Required when the nonce-based CSP is
-   * enforced in production — without it the browser refuses to execute
-   * the Travelpayouts loader script.
-   */
-  nonce?: string;
-}
-
 // The Travelpayouts loader only whitelists production hosts (marker 483997 =
 // monkeytravel.app). On localhost / preview it 403s its entrypoint_config fetch
 // and logs "config is not valid" ×4 on every page load — harmless but it
@@ -47,7 +37,7 @@ interface AffiliateScriptProps {
 // connect-src now allows it; see the note in lib/security/csp.ts.
 const AFFILIATE_ENABLED = process.env.NODE_ENV === "production";
 
-export default function AffiliateScript({ nonce }: AffiliateScriptProps) {
+export default function AffiliateScript() {
   const [shouldLoad, setShouldLoad] = useState(false);
 
   useEffect(() => {
@@ -81,11 +71,7 @@ export default function AffiliateScript({ nonce }: AffiliateScriptProps) {
 
   if (!shouldLoad) return null;
 
-  return (
-    <Script
-      src="https://emrldco.com/NDgzOTk3.js?t=483997"
-      strategy="lazyOnload"
-      nonce={nonce}
-    />
-  );
+  // No nonce: next/script inserts the tag from Next's own (trusted) runtime,
+  // and prerendered pages admit the host directly.
+  return <Script src="https://emrldco.com/NDgzOTk3.js?t=483997" strategy="lazyOnload" />;
 }

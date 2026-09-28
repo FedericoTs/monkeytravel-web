@@ -651,27 +651,13 @@ export function generatePersonSchema(input: PersonSchemaInput) {
 /**
  * Build the props bag for a JSON-LD <script> tag.
  *
- * @param schema   Single schema or array of schemas to inline.
- * @param nonce    Optional CSP nonce — pass the value returned from
- *                 `getNonce()` (see `lib/security/nonce.ts`) so the script
- *                 satisfies the strict, nonce-based Content-Security-Policy
- *                 enforced in production. Omit in dev / when CSP is not
- *                 set; modern browsers treat a missing nonce attribute as
- *                 "no nonce required" when the CSP allows other sources.
- *
- * Note: while CSP's spec applies `script-src` to *all* `<script>` tags,
- * Chrome 90+ exempts `type="application/ld+json"`. Firefox / Safari still
- * block them under strict CSP — passing the nonce keeps the JSON-LD
- * payload (which Google Search relies on for rich results) renderable
- * everywhere.
+ * No nonce: a `type="application/ld+json"` block is data the browser never
+ * executes, so script-src does not apply to it, and a nonce would tie the
+ * page to a per-request render (lib/security/csp.ts).
  */
-export function jsonLdScriptProps(
-  schema: object | object[],
-  nonce?: string,
-) {
+export function jsonLdScriptProps(schema: object | object[]) {
   return {
     type: "application/ld+json" as const,
-    ...(nonce ? { nonce } : {}),
     dangerouslySetInnerHTML: {
       __html: JSON.stringify(schema),
     },

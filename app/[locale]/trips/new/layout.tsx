@@ -30,6 +30,10 @@ export async function generateMetadata({
   };
 }
 
+// Rendered per request: the wizard reads the query string on the client and
+// its page is a client component, which cannot opt itself out of prerendering.
+export const dynamic = "force-dynamic";
+
 export default function TripsNewLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

@@ -10,7 +10,6 @@ import {
   generateWebPageSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
-import { getNonce } from "@/lib/security/nonce";
 import Footer from "@/components/Footer";
 import { Link } from "@/lib/i18n/routing";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -132,7 +131,6 @@ export default async function ToolsLandingPage({
     { name: "MonkeyTravel", url: `https://monkeytravel.app${schemaPrefix}` },
     { name: "Travel Tools", url: `https://monkeytravel.app${schemaPrefix}/tools` },
   ];
-  const nonce = await getNonce();
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -144,7 +142,7 @@ export default async function ToolsLandingPage({
             url: breadcrumbItems[breadcrumbItems.length - 1].url,
             dateModified: CONTENT_UPDATED,
           }),
-        ], nonce)}
+        ])}
       />
       <Navbar />
       <main className="flex-1 max-w-5xl mx-auto px-4 py-12 sm:py-16 w-full">

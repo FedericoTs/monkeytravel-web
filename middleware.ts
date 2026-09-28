@@ -2,7 +2,14 @@ import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { updateSession, trackPageView } from "@/lib/supabase/middleware";
 import { routing } from "@/lib/i18n/routing";
-import { buildCspHeader, shouldEnforceCsp, allowsThirdPartyFraming } from "@/lib/security/csp";
+import {
+  buildCspHeader,
+  layoutInlineScriptHashes,
+  shouldEnforceCsp,
+  allowsThirdPartyFraming,
+} from "@/lib/security/csp";
+import { isStaticPagePath } from "@/lib/security/static-routes";
+import { pageScriptHashes, PROBE_HEADER } from "@/lib/security/page-hashes";
 import { generateNonce } from "@/lib/security/nonce";
 import { isBlockedBotUserAgent } from "@/lib/security/bots";
 import { unprefixedCallbackUrl } from "@/lib/auth/callback-url";
@@ -109,24 +116,27 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  // Per-request nonce for the nonce-based CSP. Server components read it with
-  // getNonce() (the x-nonce request header) to stamp inline <script> tags such
-  // as JSON-LD; attachSecurityHeaders puts the CSP on each returned response.
-  // The nonce is generated in dev too (16 random bytes, cheap) so that contract
-  // always holds, but no CSP is sent in dev, where it would break React Fast
-  // Refresh and Turbopack's runtime.
+  // This middleware reading a prerendered page back to hash its inline
+  // scripts (lib/security/page-hashes.ts): serve it bare, no tracking.
+  if (request.headers.get(PROBE_HEADER)) {
+    return intlMiddleware(request);
+  }
+
+  // Prerendered pages are served from the CDN, so their CSP pins the inline
+  // scripts of the served HTML by hash. Every other page renders per request
+  // with a fresh nonce, which Next stamps on the scripts it emits. No CSP is
+  // sent in dev, where it would break React Fast Refresh and Turbopack's
+  // runtime.
+  const { pathname } = request.nextUrl;
+  const isStaticPage = isStaticPagePath(pathname);
   const nonce = generateNonce();
-  // Set in place, before intlMiddleware and updateSession() run: both build
-  // their response from request.headers (NextResponse.next/rewrite with
-  // `request`), and that is what forwards x-nonce to server components.
-  request.headers.set("x-nonce", nonce);
 
   /**
    * Adds X-Frame-Options (except on third-party-framable pages) and, where
-   * shouldEnforceCsp() allows, the nonce-based CSP to a response about to be
-   * returned. Returns the same response for chaining.
+   * shouldEnforceCsp() allows, the CSP to a response about to be returned.
+   * Returns the same response for chaining.
    */
-  const attachSecurityHeaders = (response: NextResponse): NextResponse => {
+  const attachSecurityHeaders = async (response: NextResponse): Promise<NextResponse> => {
     // X-Frame-Options is set OUTSIDE the CSP gate on purpose: shouldEnforceCsp()
     // is false in dev, and clickjacking protection should not depend on
     // NODE_ENV. Omitted entirely on the pages BuildHop is allowed to frame —
@@ -137,8 +147,29 @@ export async function middleware(request: NextRequest) {
       response.headers.set("X-Frame-Options", "SAMEORIGIN");
     }
 
-    if (!shouldEnforceCsp(request.nextUrl.pathname)) return response;
-    response.headers.set("Content-Security-Policy", buildCspHeader(nonce, request.nextUrl.pathname));
+    if (!shouldEnforceCsp(pathname)) return response;
+    if (isStaticPage) {
+      try {
+        const hashes = await pageScriptHashes(request);
+        if (hashes) {
+          response.headers.set("Content-Security-Policy", buildCspHeader(pathname, { hashes }));
+          return response;
+        }
+        // null: the path renders per request after all (a 404), so the nonce
+        // policy below is the right one.
+      } catch (err) {
+        // The page could not be read back. A policy that blocks its scripts
+        // would take the page down, so this response allows inline scripts
+        // and the failure is logged; the next request probes again.
+        console.error("[csp] could not hash the page's inline scripts:", err);
+        response.headers.set("Content-Security-Policy", buildCspHeader(pathname, { unsafeInline: true }));
+        return response;
+      }
+    }
+    response.headers.set(
+      "Content-Security-Policy",
+      buildCspHeader(pathname, { nonce, hashes: await layoutInlineScriptHashes() })
+    );
     // Echo the nonce on the response too so Vercel's edge logging /
     // debugging surfaces can see which nonce was issued for this request.
     response.headers.set("x-nonce", nonce);
@@ -148,8 +179,6 @@ export async function middleware(request: NextRequest) {
   // www → apex is a Vercel domain-level 308 that fires before middleware runs,
   // so there is no redirect for it here: doing it in code would cost a
   // middleware invocation per www request.
-
-  const { pathname } = request.nextUrl;
 
   // 410 Gone for deliberately-deleted blog posts. Tells Google to drop
   // these URLs from the index immediately (vs the slower 404 trickle).
@@ -238,9 +267,11 @@ export async function middleware(request: NextRequest) {
   captureUtmCookies(request, intlResponse);
 
   // Skip Supabase session refresh for public-only pages (saves serverless compute)
-  // These pages never need auth state — no point refreshing tokens for anonymous visitors
+  // These pages never need auth state — no point refreshing tokens for anonymous visitors.
+  // Every prerendered page is public by construction: it was built without a request.
   const strippedPath = pathname.replace(/^\/(en|es|it|pt)/, '') || '/';
   const isPublicOnly =
+    isStaticPage ||
     strippedPath === '/' ||
     strippedPath.startsWith('/blog') ||
     strippedPath.startsWith('/destinations') ||

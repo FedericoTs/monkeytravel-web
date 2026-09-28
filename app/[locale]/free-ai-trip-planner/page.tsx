@@ -12,7 +12,6 @@ import {
 } from '@/lib/seo/structured-data';
 import PhoneMockup from '@/components/PhoneMockup';
 import LastUpdated from '@/components/seo/LastUpdated';
-import { getNonce } from '@/lib/security/nonce';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
 
@@ -215,7 +214,6 @@ export default async function FreeTripPlannerPage({
     },
   ];
 
-  const nonce = await getNonce();
 
   return (
     <>
@@ -228,7 +226,7 @@ export default async function FreeTripPlannerPage({
             url: breadcrumbItems[breadcrumbItems.length - 1].url,
             dateModified: CONTENT_UPDATED,
           }),
-        ], nonce)}
+        ])}
       />
 
       <Navbar />
