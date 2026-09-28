@@ -46,10 +46,7 @@ export async function initPostHogWithConsent(): Promise<void> {
       debug: process.env.NODE_ENV === "development",
       // Disable session recording unless explicitly consented
       disable_session_recording: !consent.sessionRecording,
-      loaded: (ph) => {
-        if (typeof window !== "undefined") {
-          (window as typeof window & { posthog: typeof posthog }).posthog = ph;
-        }
+      loaded: () => {
         console.log("[PostHog] Initialized with consent");
       },
     });
