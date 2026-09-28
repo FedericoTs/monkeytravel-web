@@ -73,7 +73,9 @@ export function apiError(
 
   if (log) {
     const prefix = category ? `[${category}]` : "[API]";
-    console.error(`${prefix} Error (${status}):`, message);
+    // A 4xx describes the client's state (signed out, not found, over a
+    // limit); only a 5xx is a failure of ours, so only that is an error.
+    (status >= 500 ? console.error : console.warn)(`${prefix} Error (${status}):`, message);
   }
 
   const body: Record<string, unknown> = { error: message };

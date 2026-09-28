@@ -27,17 +27,17 @@ describe("validateInvite", () => {
     ["EXPIRED", { ...base, expires_at: "2020-01-01T00:00:00Z" }, 410],
     ["NOT_FOUND", null, 404],
   ] as const)("reports %s and builds its response only when asked", async (code, invite, status) => {
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const result = validateInvite(invite);
     expect(result.valid).toBe(false);
     expect(result.errorCode).toBe(code);
-    // Reading the code, as the invite page does, must not log an API error.
-    expect(consoleError).not.toHaveBeenCalled();
+    // Reading the code, as the invite page does, must log nothing.
+    expect(consoleWarn).not.toHaveBeenCalled();
 
     const response = result.errorResponse!();
     expect(response.status).toBe(status);
-    expect(consoleError).toHaveBeenCalledOnce();
+    expect(consoleWarn).toHaveBeenCalledOnce();
   });
 
   it("calls a used-up invite used, even when it was also revoked", () => {
