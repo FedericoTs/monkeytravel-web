@@ -953,12 +953,6 @@ export interface ExpenseDeletedEvent {
   was_self: boolean;
 }
 
-export interface SettleUpViewedEvent {
-  trip_id: string;
-  /** How many settlement edges came back. 0 = "nothing to settle". */
-  settlement_count: number;
-}
-
 export async function captureExpenseAdded(event: ExpenseAddedEvent) {
   const ph = await getPosthog();
   ph.capture("expense_added", event);
