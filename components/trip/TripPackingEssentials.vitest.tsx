@@ -2,6 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({ from: () => ({}) }) }));
+// The translator echoes keys, so "packed" below is the key of the "Packed" label.
+vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key }));
 
 import TripPackingEssentials from "./TripPackingEssentials";
 
@@ -15,15 +17,15 @@ describe("TripPackingEssentials", () => {
     // Once ticked, the row also reads "Packed", so keep the element rather than its name.
     const passport = checkbox("Passport");
     expect(passport.checked).toBe(false);
-    expect(screen.queryByText("Packed")).toBeNull();
+    expect(screen.queryByText("packed")).toBeNull();
 
     fireEvent.click(screen.getByText("Passport"));
     expect(passport.checked).toBe(true);
-    expect(screen.getByText("Packed")).toBeTruthy();
+    expect(screen.getByText("packed")).toBeTruthy();
 
     fireEvent.click(screen.getByText("Passport"));
     expect(passport.checked).toBe(false);
-    expect(screen.queryByText("Packed")).toBeNull();
+    expect(screen.queryByText("packed")).toBeNull();
   });
 
   it("is a real checkbox, so it can be reached and toggled from the keyboard", () => {

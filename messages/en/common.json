@@ -699,10 +699,13 @@
   },
   "packing": {
     "title": "Packing List",
-    "packed": "{checked} of {total} packed",
-    "items": "{count} items",
-    "showLess": "Show less",
-    "showMoreCategories": "Show {count} more categories",
+    "subtitle": "Pack smart for {destination}",
+    "itemsPacked": "Items packed",
+    "packed": "Packed",
+    "hint": "Tap items to mark them as packed.",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "saveFailed": "Failed to save",
     "categories": {
       "clothing": "Clothing",
       "electronics": "Electronics",

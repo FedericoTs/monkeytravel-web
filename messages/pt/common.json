@@ -699,10 +699,13 @@
   },
   "packing": {
     "title": "Lista de Bagagem",
-    "packed": "{checked} de {total} arrumados",
-    "items": "{count} itens",
-    "showLess": "Ver menos",
-    "showMoreCategories": "Ver mais {count} categorias",
+    "subtitle": "Faça as malas para {destination}",
+    "itemsPacked": "Itens arrumados",
+    "packed": "Arrumado",
+    "hint": "Toque nos itens para marcá-los como arrumados.",
+    "saving": "Salvando…",
+    "saved": "Salvo",
+    "saveFailed": "Não foi possível salvar",
     "categories": {
       "clothing": "Roupas",
       "electronics": "Eletrônicos",
