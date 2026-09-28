@@ -1,5 +1,5 @@
 import "server-only";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import type { Activity } from "@/types";
 

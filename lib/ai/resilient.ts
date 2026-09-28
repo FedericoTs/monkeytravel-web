@@ -24,7 +24,7 @@ import {
   type Content,
   type GenerationConfig,
   type GenerateContentResult,
-} from "@google/generative-ai";
+} from "@/lib/ai/genai-compat";
 import {
   getModelForPurpose,
   getSiblingModel,

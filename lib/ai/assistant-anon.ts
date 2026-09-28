@@ -17,7 +17,7 @@
  * never breaks the render.
  */
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import { logCacheMetrics } from "@/lib/gemini";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
@@ -340,7 +340,7 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
       // ~40 s, i.e. both attempts), 12 of 67 over 15 s, p95 37.9 s — against
       // the signed-in concierge's p95 5.0 s with 0 errors. Same fix as the
       // trip-generation paths (lib/gemini.ts).
-      ...({ thinkingConfig: { thinkingBudget: 0 } } as Record<string, unknown>),
+      thinkingConfig: { thinkingBudget: 0 },
     },
   });
 
