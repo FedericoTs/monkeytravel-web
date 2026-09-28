@@ -69,7 +69,7 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
     // get_invite_by_token, so we must surface the precise error_code.
     const validation = validateInvite(invite as InviteData);
     if (!validation.valid) {
-      return validation.errorResponse!;
+      return validation.errorResponse!();
     }
 
     // Day-2 audit Bug 3 (P3, info-leak): when the invite was sent to a
