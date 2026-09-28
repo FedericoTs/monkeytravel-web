@@ -4401,8 +4401,6 @@ export default function NewTripPage({
                   }}
                   maxDays={effectiveMaxTripDays}
                   minDate={new Date().toISOString().split("T")[0]}
-                  // A11y: dates required to advance the wizard.
-                  ariaRequired
                 />
               )}
 

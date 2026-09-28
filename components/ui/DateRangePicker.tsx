@@ -26,11 +26,6 @@ interface DateRangePickerProps {
   minDate?: string;
   className?: string;
   /**
-   * A11y: marks the range trigger as required for assistive tech.
-   * Wizard step 1 sets this to true (dates are required to continue).
-   */
-  ariaRequired?: boolean;
-  /**
    * Lets a parent move focus to the range trigger — the wizard's one-tap
    * start unmounts the chip that was focused, and a keyboard or screen-reader
    * user must land on the field the tap just filled, not on <body>.
@@ -147,7 +142,6 @@ export default function DateRangePicker({
   maxDays = 14,
   minDate,
   className = "",
-  ariaRequired,
   triggerRef,
 }: DateRangePickerProps) {
   // **2026-05-25**: localized to IT + ES. Pre-fix, every label, the
@@ -443,7 +437,6 @@ export default function DateRangePicker({
         }`}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
-        aria-required={ariaRequired || undefined}
         className={`
           w-full group relative flex items-center gap-3 p-4 rounded-2xl border-2 text-left
           transition-all duration-300 bg-white
