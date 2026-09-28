@@ -10,6 +10,16 @@ updates:
       # One PR for routine minor/patch bumps; majors and security fixes come alone.
       minor-and-patch:
         update-types: ["minor", "patch"]
+        # Their minor releases change public types and need a code change
+        # alongside, so they get their own PR rather than blocking the group.
+        exclude-patterns: ["@supabase/*", "posthog-js"]
+    ignore:
+      # Types follow the runtime: the app runs on Node 24 (Vercel and CI).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # eslint-config-next 16 requires ESLint 9.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
