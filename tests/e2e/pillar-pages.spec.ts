@@ -26,18 +26,15 @@ test.describe("pillar landing pages @prod", () => {
     }) => {
       const consoleErrors: string[] = [];
       page.on("console", (msg) => {
-        if (msg.type() === "error") {
-          const text = msg.text();
-          // Filter out the noise: failed third-party trackers, Sentry,
-          // CSP report-only violations — none of those are our bugs.
-          if (
-            !/sentry|posthog|google-analytics|gtm|tagmanager|hotjar|csp/i.test(
-              text
-            )
-          ) {
-            consoleErrors.push(text);
-          }
-        }
+        if (msg.type() !== "error") return;
+        const text = msg.text();
+        // Filter out the noise: failed third-party trackers, Sentry,
+        // CSP report-only violations — none of those are our bugs.
+        if (/sentry|posthog|google-analytics|gtm|tagmanager|hotjar|csp/i.test(text)) return;
+        // Nor is a third-party embed refusing this origin (localhost in CI).
+        const from = msg.location().url;
+        if (from && new URL(from).origin !== new URL(page.url()).origin) return;
+        consoleErrors.push(text);
       });
 
       const res = await page.goto(path);

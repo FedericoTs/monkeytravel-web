@@ -234,8 +234,13 @@ export default async function RootLayout({
             </PlaceCacheProvider>
           </LocaleProvider>
         </PostHogProviderWrapper>
-        <Analytics />
-        <SpeedInsights />
+        {/* Their scripts are served by Vercel only; elsewhere they 404. */}
+        {process.env.VERCEL === "1" && (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        )}
         {/* Session tracking for retention analytics */}
         <SessionTracker />
         <PageViewBeacon />
