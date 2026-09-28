@@ -4141,17 +4141,7 @@ export default function NewTripPage({
             <div className="order-last">
               <button
                 type="button"
-                onClick={() => {
-                  const next = travelStyle === "backpacker" ? "classic" : "backpacker";
-                  setTravelStyle(next);
-                  // Switching the mode on aligns budget with the preset,
-                  // overriding any tier already picked. We keep this
-                  // lightweight (no warning) because step 2 still lets them
-                  // override.
-                  if (next === "backpacker" && budgetTier !== "budget") {
-                    setBudgetTier("budget");
-                  }
-                }}
+                onClick={() => setTravelStyle("classic")}
                 aria-pressed={travelStyle === "backpacker"}
                 className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
                   travelStyle === "backpacker"

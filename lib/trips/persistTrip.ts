@@ -14,7 +14,6 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { GeneratedItinerary, TripAnchor, TripVibe } from "@/types";
-import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import { splitCities } from "@/lib/ai/multi-city-core";
 import { isSupportedLanguage, resolveAiLanguage } from "@/lib/ai/language";
 import { isValidTimeZone } from "@/lib/trip/live";
@@ -284,13 +283,6 @@ export async function insertTrip(
       durationDays: computeDurationDays(input.formState),
     };
   }
-
-  // A no-op in the browser, where the wizard calls this: the AFTER INSERT
-  // trigger on trips (trips_enqueue_notifications) enqueues the trip's
-  // reminders. Elsewhere it is gated by isTripNotificationsEnabled() and never
-  // re-throws — saving a trip must NEVER fail because the reminder queue is
-  // sick. See lib/notifications/scheduling.ts.
-  void scheduleTripNotifications({ tripId: result.trip_id, userId });
 
   enrichTripPhotos(result.trip_id);
 

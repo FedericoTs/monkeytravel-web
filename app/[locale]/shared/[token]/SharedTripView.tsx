@@ -1037,28 +1037,9 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100"
           >
             <div className="max-w-2xl mx-auto">
-              {ownerPending ? (
-                <div
-                  className="flex flex-col gap-3 rounded-xl border border-[var(--primary)]/20 bg-[var(--background-warm)] px-4 py-3 sm:flex-row sm:items-center"
-                  data-owner-claim-strip
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-[var(--foreground)]">{t("share.ownerClaim.title")}</p>
-                    <p className="text-xs text-slate-600">{t("share.ownerClaim.body")}</p>
-                  </div>
-                  <Link
-                    href={`/auth/signup?redirect=${encodeURIComponent(`/shared/${shareToken}`)}`}
-                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-[var(--primary)] px-5 text-sm font-semibold text-white transition-colors hover:bg-[var(--primary)]/90"
-                  >
-                    {t("share.ownerClaim.cta")}
-                  </Link>
-                </div>
-              ) : (
-              <>
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
-
-  onClick={() => setShowSaveModal(true)}
+                  onClick={() => setShowSaveModal(true)}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
                 >
                   <Sparkles className="w-5 h-5" />
@@ -1077,8 +1058,6 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
               <p className="text-center text-xs text-slate-500 mt-2">
                 {t("share.savedHero.saveSubtitle")}
               </p>
-              </>
-              )}
             </div>
           </div>
         )}

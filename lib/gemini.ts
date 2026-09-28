@@ -324,16 +324,6 @@ export function logCacheMetrics(
   }
 }
 
-// Model configurations. Nothing imports MODELS: route model choice through
-// `getModelForPurpose(...)` in `lib/ai/model-router.ts`, where the routing
-// matrix + env override (GEMINI_MODEL_OVERRIDE) live.
-// See: https://developers.googleblog.com/en/gemini-2-5-models-now-support-implicit-caching/
-export const MODELS = {
-  fast: "gemini-2.5-flash-lite",      // Cheapest with implicit caching (prices: lib/ai/gemini-cost.ts)
-  thinking: "gemini-2.5-pro",          // Best for complex reasoning
-  premium: "gemini-2.5-flash",         // Best price/performance ratio
-} as const;
-
 // The trip-generation system prompt loads from the database via getPrompt();
 // lib/prompts.ts holds the defaults and the database integration.
 
