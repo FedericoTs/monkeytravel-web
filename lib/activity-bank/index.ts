@@ -34,7 +34,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 function bankDb() {
   return createAdminClient();
 }
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import crypto from "crypto";
 import type { Activity } from "@/types";
 import type { Coordinates } from "@/lib/utils/geo";

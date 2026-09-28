@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import type { GeneratedItinerary, TripCreationParams, Activity, ItineraryDay, UserProfilePreferences } from "@/types";
 import { estimateCost } from "@/lib/posthog/llm-analytics";
 import { generateActivityId } from "./utils/activity-id";
@@ -893,9 +893,7 @@ async function generateItineraryInternal(
       // Keep in sync with generateItineraryStream (same model, same prompt).
       maxOutputTokens: 16000,
       responseMimeType: "application/json",
-      // Cast: legacy SDK types lack `thinkingConfig`; the REST API accepts
-      // it. If a future SDK upgrade exposes it natively, drop the cast.
-      ...({ thinkingConfig: { thinkingBudget: 0 } } as Record<string, unknown>),
+      thinkingConfig: { thinkingBudget: 0 },
     },
   });
 
@@ -1418,7 +1416,7 @@ async function regenerateSingleDayInternal(
       // maxOutputTokens, so with thinking on the 2048 cap is spent thinking and
       // the visible JSON comes out cut mid-object. The sibling-model retry
       // handles genuinely bad output.
-      ...({ thinkingConfig: { thinkingBudget: 0 } } as Record<string, unknown>),
+      thinkingConfig: { thinkingBudget: 0 },
     },
   });
 
@@ -1891,9 +1889,8 @@ export async function* generateItineraryStream(
       // by default and thinking tokens count against `maxOutputTokens`, so any
       // thinking budget can push the answer past the cap: the SSE stream then
       // emits a valid prefix of an invalid JSON ("Unterminated string" in
-      // parseStreamedItinerary). The legacy @google/generative-ai SDK (0.24.x)
-      // lacks thinkingConfig in its TS types; the REST API accepts it.
-      ...({ thinkingConfig: { thinkingBudget: 0 } } as Record<string, unknown>),
+      // parseStreamedItinerary).
+      thinkingConfig: { thinkingBudget: 0 },
     },
   });
 

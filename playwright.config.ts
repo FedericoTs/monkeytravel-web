@@ -54,7 +54,8 @@ export default defineConfig({
   webServer: IS_PROD_TARGET
     ? undefined
     : {
-        command: "npm run dev",
+        // CI tests the production build it has just made; locally, the dev server.
+        command: process.env.CI ? "npm run start" : "npm run dev",
         url: BASE_URL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
