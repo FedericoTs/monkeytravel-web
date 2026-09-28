@@ -1,0 +1,58 @@
+# Browser tests of the public pages against a production build of the PR.
+# Only specs that need no account, no fixtures and no paid API run here; they
+# read public data with the anon key, so the job needs no secret.
+name: E2E public pages
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: e2e-public-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Build
+        run: npm run build
+      - name: Test the public pages
+        env:
+          BASE_URL: http://localhost:3000
+        run: >
+          npx playwright test --project=chromium
+          tests/e2e/static-pages.spec.ts
+          tests/e2e/pillar-pages.spec.ts
+          tests/e2e/blog-sample.spec.ts
+          tests/e2e/seo-and-routing.spec.ts
+          tests/e2e/footer-link-integrity.spec.ts
+          tests/e2e/wizard-locale-deeplink.spec.ts
+          tests/e2e/tools-packing-list.spec.ts
+          tests/e2e/mobile-webview.spec.ts
+          tests/e2e/service-worker.spec.ts
+          tests/e2e/consent-overlap.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7
