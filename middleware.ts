@@ -8,7 +8,8 @@ import {
   shouldEnforceCsp,
   allowsThirdPartyFraming,
 } from "@/lib/security/csp";
-import { hasStaticManifest, staticPageHashes } from "@/lib/security/csp-manifest";
+import { isStaticPagePath } from "@/lib/security/static-routes";
+import { pageScriptHashes, PROBE_HEADER } from "@/lib/security/page-hashes";
 import { generateNonce } from "@/lib/security/nonce";
 import { isBlockedBotUserAgent } from "@/lib/security/bots";
 import { unprefixedCallbackUrl } from "@/lib/auth/callback-url";
@@ -115,13 +116,19 @@ export async function middleware(request: NextRequest) {
     });
   }
 
+  // This middleware reading a prerendered page back to hash its inline
+  // scripts (lib/security/page-hashes.ts): serve it bare, no tracking.
+  if (request.headers.get(PROBE_HEADER)) {
+    return intlMiddleware(request);
+  }
+
   // Prerendered pages are served from the CDN, so their CSP pins the inline
-  // scripts of the built HTML by hash (scripts/csp-manifest.mjs). Every other
-  // page renders per request with a fresh nonce, which Next stamps on the
-  // scripts it emits. No CSP is sent in dev, where it would break React Fast
-  // Refresh and Turbopack's runtime.
+  // scripts of the served HTML by hash. Every other page renders per request
+  // with a fresh nonce, which Next stamps on the scripts it emits. No CSP is
+  // sent in dev, where it would break React Fast Refresh and Turbopack's
+  // runtime.
   const { pathname } = request.nextUrl;
-  const staticHashes = staticPageHashes(pathname);
+  const isStaticPage = isStaticPagePath(pathname);
   const nonce = generateNonce();
 
   /**
@@ -141,14 +148,23 @@ export async function middleware(request: NextRequest) {
     }
 
     if (!shouldEnforceCsp(pathname)) return response;
-    if (staticHashes) {
-      response.headers.set("Content-Security-Policy", buildCspHeader(pathname, { hashes: staticHashes }));
-      return response;
-    }
-    if (!hasStaticManifest()) {
-      // A production build that skipped `postbuild` has no manifest, so its
-      // prerendered pages would get a nonce policy their HTML cannot satisfy.
-      console.error("[csp] no hash manifest embedded: run scripts/csp-manifest.mjs after next build");
+    if (isStaticPage) {
+      try {
+        const hashes = await pageScriptHashes(request);
+        if (hashes) {
+          response.headers.set("Content-Security-Policy", buildCspHeader(pathname, { hashes }));
+          return response;
+        }
+        // null: the path renders per request after all (a 404), so the nonce
+        // policy below is the right one.
+      } catch (err) {
+        // The page could not be read back. A policy that blocks its scripts
+        // would take the page down, so this response allows inline scripts
+        // and the failure is logged; the next request probes again.
+        console.error("[csp] could not hash the page's inline scripts:", err);
+        response.headers.set("Content-Security-Policy", buildCspHeader(pathname, { unsafeInline: true }));
+        return response;
+      }
     }
     response.headers.set(
       "Content-Security-Policy",
@@ -255,7 +271,7 @@ export async function middleware(request: NextRequest) {
   // Every prerendered page is public by construction: it was built without a request.
   const strippedPath = pathname.replace(/^\/(en|es|it|pt)/, '') || '/';
   const isPublicOnly =
-    staticHashes !== undefined ||
+    isStaticPage ||
     strippedPath === '/' ||
     strippedPath.startsWith('/blog') ||
     strippedPath.startsWith('/destinations') ||

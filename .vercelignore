@@ -1,6 +1,6 @@
 scripts/*
 !scripts/destination-covers.mjs
-!scripts/csp-manifest.mjs
+!scripts/check-static-routes.mjs
 video/
 CLAUDE.md
 .claude/

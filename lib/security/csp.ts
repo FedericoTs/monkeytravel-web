@@ -83,12 +83,18 @@ const SCRIPT_HOSTS = [
   "https://buildhop.io",
 ];
 
-/** Which scripts a response may run: a per-request nonce, or the hashes of its inline scripts. */
+/**
+ * Which scripts a response may run: a per-request nonce, the hashes of its
+ * inline scripts, or — only when a prerendered page could not be read back
+ * to hash it — any inline script, so the page still works.
+ */
 export type ScriptPolicy =
   | { nonce: string; hashes?: readonly string[] }
-  | { nonce?: undefined; hashes: readonly string[] };
+  | { nonce?: undefined; hashes: readonly string[] }
+  | { nonce?: undefined; hashes?: undefined; unsafeInline: true };
 
 function scriptSrc(scripts: ScriptPolicy): string[] {
+  if ("unsafeInline" in scripts) return ["'self'", "'unsafe-inline'", ...SCRIPT_HOSTS];
   const hashes = (scripts.hashes ?? []).map((h) => `'${h}'`);
   if (scripts.nonce) {
     // 'strict-dynamic' lets nonce-trusted scripts (Next's bootstrap) load

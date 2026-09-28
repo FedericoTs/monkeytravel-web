@@ -6,7 +6,7 @@
     "dev": "next dev",
     "prebuild": "node scripts/destination-covers.mjs --check",
     "build": "next build",
-    "postbuild": "node scripts/csp-manifest.mjs",
+    "postbuild": "node scripts/check-static-routes.mjs",
     "start": "next start",
     "covers:check": "node scripts/destination-covers.mjs --check",
     "covers:backfill": "node scripts/destination-covers.mjs",

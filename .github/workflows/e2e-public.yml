@@ -50,6 +50,7 @@ jobs:
           tests/e2e/mobile-webview.spec.ts
           tests/e2e/service-worker.spec.ts
           tests/e2e/consent-overlap.spec.ts
+          tests/e2e/csp-policy.spec.ts
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
