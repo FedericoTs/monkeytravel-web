@@ -31,10 +31,8 @@ export default async function ProfilePage() {
   }
 
   // Profile, trips and beta access are independent - each needs only user.id -
-  // so they run concurrently instead of stacked. Supabase is in us-west-1 and
-  // these functions run in iad1: one round trip measured 118ms median against
-  // production, so three stacked awaits were ~350ms of waiting where one
-  // group's worth will do.
+  // so they run concurrently instead of stacked: three round trips in a row
+  // were three network hops of waiting where one will do.
   const [profileResult, tripsResult, betaAccessResult] = await Promise.all([
     supabase
       .from("users")

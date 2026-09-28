@@ -3,7 +3,7 @@
  *
  * WHY THIS EXISTS
  * ---------------
- * Supabase is in us-west-1 while Vercel functions run in iad1. A single
+ * Supabase is in us-west-1 while Vercel functions ran in iad1 (now sfo1). A single
  * trivial round trip measured 118ms median from production (27ms from a
  * co-located preview, so ~91ms of it is pure distance). Several authed pages
  * awaited independent queries one after another, paying that toll per query.
