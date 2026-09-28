@@ -9,7 +9,7 @@
  * enough to learn someone else's.
  */
 
-/** "federico@gmail.com" → "f•••o@gmail.com"; "ab@x.io" → "a•••@x.io". */
+/** "federico@example.com" → "f•••o@example.com"; "ab@x.io" → "a•••@x.io". */
 export function maskEmail(email: string): string {
   const trimmed = email.trim();
   const at = trimmed.lastIndexOf("@");

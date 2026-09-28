@@ -24,7 +24,7 @@ import { buildAuthCallbackUrl } from "@/lib/auth/callback-url";
 interface InviteRecipientGateProps {
   token: string;
   tripTitle: string;
-  /** "f•••o@gmail.com": enough to recognise your inbox, not to learn it. */
+  /** "f•••o@example.com": enough to recognise your inbox, not to learn it. */
   maskedRecipient: string;
   /** The account currently signed in, when it is not the invited one. */
   signedInEmail: string | null;
