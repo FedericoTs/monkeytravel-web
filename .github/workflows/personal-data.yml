@@ -25,6 +25,6 @@ jobs:
       - name: No personal email addresses in tracked files
         run: node scripts/check-personal-data.mjs
       - name: No secrets in the commits
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
