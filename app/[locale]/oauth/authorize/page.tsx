@@ -97,6 +97,12 @@ export default async function OAuthAuthorizePage({ searchParams }: PageProps) {
     );
   }
 
+  // Consent already on file: Supabase answers with the redirect instead of
+  // the details, and the user goes straight back to the app.
+  if ("redirect_url" in authDetails) {
+    redirect(String(authDetails.redirect_url));
+  }
+
   // Parse scope string to array (OAuth 2.1 uses space-separated scopes)
   const scopeString = authDetails.scope || "";
   const scopesArray = scopeString ? scopeString.split(" ").filter(Boolean) : [];

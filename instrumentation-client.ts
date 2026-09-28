@@ -304,9 +304,6 @@ function initMonitoring() {
         cookieless_mode: POSTHOG_COOKIELESS_MODE,
         person_profiles: "identified_only",
         loaded: (ph) => {
-          if (typeof window !== "undefined") {
-            (window as typeof window & { posthog: typeof posthog }).posthog = ph;
-          }
           applyPosthogConsent(ph, initialConsent);
           console.log("[PostHog] Initialized, consent:", posthogActionFor(initialConsent));
         },
