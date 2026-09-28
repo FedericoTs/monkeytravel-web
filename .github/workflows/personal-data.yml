@@ -1,0 +1,30 @@
+# The repository is public. Two checks on every change: no real email
+# addresses in tracked files, and no secrets in the commits.
+name: Personal data and secrets
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # gitleaks scans the pushed commits
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: No personal email addresses in tracked files
+        run: node scripts/check-personal-data.mjs
+      - name: No secrets in the commits
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

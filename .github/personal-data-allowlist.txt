@@ -1,0 +1,11 @@
+# Addresses scripts/check-personal-data.mjs accepts in tracked files.
+# Only the owner's own addresses and the admin accounts the owner chose to
+# hardcode (lib/admin.ts, migrations); never a user's or a contact's.
+federicosciuca@gmail.com
+federicosciuca@droplab.com
+federicosciuca@droplab.io
+azzolina.francesca@gmail.com
+marinoenrico3@gmail.com
+# Placeholders in old migration comments and docs.
+foo@gmail.com
+user@gmail.com

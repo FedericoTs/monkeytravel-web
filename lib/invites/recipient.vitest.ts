@@ -5,7 +5,7 @@ import { maskEmail, sameEmail } from "./recipient";
 
 describe("maskEmail", () => {
   it("keeps enough to recognise your own inbox", () => {
-    expect(maskEmail("federico@gmail.com")).toBe("f•••o@gmail.com");
+    expect(maskEmail("federico@example.com")).toBe("f•••o@example.com");
     expect(maskEmail("  Ana.Lopez@Example.org ")).toBe("A•••z@Example.org");
   });
 
