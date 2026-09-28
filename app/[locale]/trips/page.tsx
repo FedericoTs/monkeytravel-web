@@ -36,10 +36,8 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
   }
 
   // Trips and profile are independent - both need only user.id - so they run
-  // concurrently rather than stacked. Supabase is in us-west-1 while these
-  // functions run in iad1: a round trip measured 118ms median in production
-  // (27ms from a co-located region), so a needless second await is ~118ms of
-  // pure waiting.
+  // concurrently rather than stacked: every Supabase round trip is a network
+  // hop, so a needless second await is pure waiting.
   //
   // Both results are always used now that the zero-trip redirect is gone, so
   // there is no longer a discarded-query case to caveat.

@@ -17,11 +17,8 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
     // Two queries, not three, and concurrent rather than stacked.
     //
     // This route used to await the trip, then a "am I a collaborator?" probe,
-    // then the collaborator list - three round trips in a row. Supabase is in
-    // us-west-1 and these functions run in iad1, so a round trip measured
-    // 118ms median from production (27ms from a co-located region). Three
-    // stacked awaits that each need only tripId and user.id were costing
-    // ~350ms of pure waiting.
+    // then the collaborator list - three round trips in a row, each a network
+    // hop to Supabase, for queries that only need tripId and user.id.
     //
     // The membership probe is dropped entirely because the list already
     // answers it. RLS on trip_collaborators is:

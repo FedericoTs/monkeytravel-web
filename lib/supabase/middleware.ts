@@ -172,8 +172,7 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
   // saved/page.tsx:133, trips/[id]/page.tsx:70), so a signed-in request paid
   // the same verification twice, serially. Measured on production: a request
   // carrying a session cookie was ~138ms slower than an anonymous control,
-  // interleaved, n=6. Supabase is in us-west-1 and these functions run in
-  // iad1, so that is mostly distance.
+  // interleaved, n=6 - mostly the network hop to Supabase Auth.
   //
   // WHY NOT JUST A COOKIE-PRESENCE CHECK: this call is also the session
   // REFRESH mechanism. auth-js refreshes inside a 90s expiry margin

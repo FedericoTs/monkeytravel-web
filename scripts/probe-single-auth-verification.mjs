@@ -5,7 +5,7 @@
  * WHAT CHANGED
  * ------------
  * lib/supabase/middleware.ts called supabase.auth.getUser() on every request —
- * a round trip to Supabase Auth in us-west-1 from functions in iad1, measured
+ * a round trip to Supabase Auth in us-west-1 from functions then in iad1, measured
  * at ~138ms. Every page that needs identity then called getUser() AGAIN, so a
  * signed-in request verified the same session twice, serially. Middleware now
  * uses getSession(), which reads the session locally, and only /admin still
