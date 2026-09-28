@@ -142,9 +142,9 @@
       "freeReassurance": "Gratis: mira tu viaje día a día completo antes de registrarte",
       "flexibleDatesCta": "¿Aún no sabes las fechas? Usa fechas flexibles",
       "flexibleDatesActive": "Fechas flexibles — puedes ajustarlas cuando quieras",
-      "backpackerMode": "Modo Mochilero",
       "backpackerModeOn": "Modo Mochilero — ACTIVO",
-      "backpackerModeSubtitle": "Albergues, consejos de presupuesto, multi-ciudad",
+      "backpackerModeSummary": "Albergues · Presupuesto · Social",
+      "backpackerModeNote": "Daremos prioridad a albergues, free tours a pie, comida callejera y transporte público.",
       "editorial": {
         "title": "Tu viaje, día a día.",
         "deck": "Dinos dónde y más o menos cuándo. En unos 30 segundos tendrás el itinerario completo — gratis y sin cuenta para verlo."

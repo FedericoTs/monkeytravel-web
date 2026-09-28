@@ -4142,34 +4142,18 @@ export default function NewTripPage({
               <button
                 type="button"
                 onClick={() => setTravelStyle("classic")}
-                aria-pressed={travelStyle === "backpacker"}
-                className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                  travelStyle === "backpacker"
-                    ? "border-emerald-500 bg-emerald-50 text-emerald-800"
-                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
-                }`}
+                aria-pressed
+                className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-800 text-sm font-medium transition-all"
               >
                 <span className="flex items-center gap-2">
                   <span className="text-lg" aria-hidden>🎒</span>
-                  <span>
-                    {travelStyle === "backpacker"
-                      ? t("wizard.step1.backpackerModeOn")
-                      : t("wizard.step1.backpackerMode")}
-                  </span>
+                  <span>{t("wizard.step1.backpackerModeOn")}</span>
                 </span>
-                <span className="text-xs opacity-80">
-                  {travelStyle === "backpacker"
-                    ? "Hostels · Budget · Social"
-                    : t("wizard.step1.backpackerModeSubtitle")}
-                </span>
+                <span className="text-xs opacity-80">{t("wizard.step1.backpackerModeSummary")}</span>
               </button>
-              {travelStyle === "backpacker" && (
-                <p className="text-xs text-emerald-700 mt-2 pl-1">
-                  We&rsquo;ll favour hostels, free walking tours, street food,
-                  and public transit. Budget tier set to &quot;budget&quot; — you
-                  can change it in the next step.
-                </p>
-              )}
+              <p className="text-xs text-emerald-700 mt-2 pl-1">
+                {t("wizard.step1.backpackerModeNote")}
+              </p>
             </div>
             )}
 

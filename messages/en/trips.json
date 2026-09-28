@@ -142,9 +142,9 @@
       "freeReassurance": "Free — see your full day-by-day trip before signing up",
       "flexibleDatesCta": "Not sure about dates yet? Use flexible dates",
       "flexibleDatesActive": "Flexible dates — you can fine-tune anytime",
-      "backpackerMode": "Backpacker mode",
       "backpackerModeOn": "Backpacker mode — ON",
-      "backpackerModeSubtitle": "Hostels, budget tips, multi-city friendly",
+      "backpackerModeSummary": "Hostels · Budget · Social",
+      "backpackerModeNote": "We'll favour hostels, free walking tours, street food and public transit.",
       "editorial": {
         "title": "Your trip, planned day by day.",
         "deck": "Say where and roughly when. About 30 seconds later you'll have a full itinerary — free, no account needed to see it."

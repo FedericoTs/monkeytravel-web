@@ -699,10 +699,13 @@
   },
   "packing": {
     "title": "Lista de Equipaje",
-    "packed": "{checked} de {total} empacados",
-    "items": "{count} artículos",
-    "showLess": "Ver menos",
-    "showMoreCategories": "Ver {count} categorías más",
+    "subtitle": "Prepara bien tu equipaje para {destination}",
+    "itemsPacked": "Artículos preparados",
+    "packed": "Listo",
+    "hint": "Toca los artículos para marcarlos como preparados.",
+    "saving": "Guardando…",
+    "saved": "Guardado",
+    "saveFailed": "No se pudo guardar",
     "categories": {
       "clothing": "Ropa",
       "electronics": "Electrónica",

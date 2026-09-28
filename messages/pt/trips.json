@@ -142,9 +142,9 @@
       "freeReassurance": "Grátis: veja sua viagem dia a dia completa antes de se cadastrar",
       "flexibleDatesCta": "Ainda não sabe as datas? Use datas flexíveis",
       "flexibleDatesActive": "Datas flexíveis — ajuste quando quiser",
-      "backpackerMode": "Modo mochileiro",
       "backpackerModeOn": "Modo mochileiro — ATIVO",
-      "backpackerModeSubtitle": "Hostels, dicas de economia, ideal para multi-cidades",
+      "backpackerModeSummary": "Hostels · Economia · Social",
+      "backpackerModeNote": "Vamos dar preferência a hostels, free walking tours, comida de rua e transporte público.",
       "editorial": {
         "title": "Sua viagem, dia a dia.",
         "deck": "Diga para onde e mais ou menos quando. Em cerca de 30 segundos você terá o roteiro completo — grátis e sem conta para vê-lo."

@@ -699,10 +699,13 @@
   },
   "packing": {
     "title": "Lista Bagagli",
-    "packed": "{checked} di {total} preparati",
-    "items": "{count} articoli",
-    "showLess": "Mostra meno",
-    "showMoreCategories": "Mostra {count} altre categorie",
+    "subtitle": "Prepara la valigia per {destination}",
+    "itemsPacked": "Articoli pronti",
+    "packed": "Pronto",
+    "hint": "Tocca un articolo per segnarlo come pronto.",
+    "saving": "Salvataggio…",
+    "saved": "Salvato",
+    "saveFailed": "Salvataggio non riuscito",
     "categories": {
       "clothing": "Abbigliamento",
       "electronics": "Elettronica",

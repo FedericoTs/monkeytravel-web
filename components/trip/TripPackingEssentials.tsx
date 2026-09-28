@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useTranslations } from "next-intl";
 
 interface TripPackingEssentialsProps {
   items: string[];
@@ -14,7 +15,6 @@ interface TripPackingEssentialsProps {
 // Category configuration with icons and styling
 const CATEGORIES = {
   clothing: {
-    label: "Wardrobe",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
@@ -25,7 +25,6 @@ const CATEGORIES = {
     keywords: ["jacket", "coat", "shirt", "pants", "dress", "sweater", "shoes", "boots", "sandals", "socks", "underwear", "hat", "scarf", "gloves", "swimsuit", "swimwear", "layers", "clothing", "wear", "attire", "outfit", "shorts", "jeans", "t-shirt", "hoodie"],
   },
   electronics: {
-    label: "Tech & Gear",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
@@ -36,7 +35,6 @@ const CATEGORIES = {
     keywords: ["camera", "charger", "phone", "laptop", "adapter", "converter", "battery", "power bank", "headphone", "earphone", "cable", "tripod", "drone", "tablet"],
   },
   documents: {
-    label: "Documents",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
@@ -47,7 +45,6 @@ const CATEGORIES = {
     keywords: ["passport", "visa", "id", "ticket", "insurance", "document", "reservation", "confirmation", "copy", "license", "itinerary", "booking"],
   },
   health: {
-    label: "Health & Care",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
@@ -58,7 +55,6 @@ const CATEGORIES = {
     keywords: ["sunscreen", "medication", "medicine", "first aid", "toiletries", "toothbrush", "shampoo", "hand sanitizer", "mask", "sanitizer", "lotion", "sunglasses", "moisturizer", "vitamins", "prescription"],
   },
   accessories: {
-    label: "Accessories",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
@@ -69,7 +65,6 @@ const CATEGORIES = {
     keywords: ["umbrella", "bag", "backpack", "daypack", "luggage", "suitcase", "lock", "water bottle", "bottle", "rain", "gear", "wallet", "watch", "jewelry", "belt"],
   },
   other: {
-    label: "Essentials",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
@@ -113,6 +108,7 @@ export default function TripPackingEssentials({
   tripId,
   initialChecked = [],
 }: TripPackingEssentialsProps) {
+  const t = useTranslations("common.packing");
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set(initialChecked));
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(["clothing", "documents"]));
   const [isSaving, setIsSaving] = useState(false);
@@ -170,13 +166,13 @@ export default function TripPackingEssentials({
 
     } catch (error) {
       console.error("Failed to save packing progress:", error);
-      setSaveError("Failed to save");
+      setSaveError(t("saveFailed"));
       // Clear error after 3 seconds
       setTimeout(() => setSaveError(null), 3000);
     } finally {
       setIsSaving(false);
     }
-  }, [tripId]);
+  }, [tripId, t]);
 
   // Sync initial checked items when they change (e.g., page reload)
   useEffect(() => {
@@ -286,10 +282,10 @@ export default function TripPackingEssentials({
 
             <div>
               <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                Journey Essentials
+                {t("title")}
               </h3>
               <p className="text-slate-500 text-sm mt-0.5">
-                Pack smart for {destination}
+                {t("subtitle", { destination })}
               </p>
             </div>
           </div>
@@ -333,7 +329,7 @@ export default function TripPackingEssentials({
                 {packedCount}<span className="text-slate-500 font-normal">/{items.length}</span>
               </div>
               <div className="text-xs text-slate-500 uppercase tracking-wider">
-                Items Packed
+                {t("itemsPacked")}
               </div>
             </div>
           </div>
@@ -369,7 +365,7 @@ export default function TripPackingEssentials({
                 {/* Category info */}
                 <div className="flex-1 text-left">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-semibold text-slate-900">{config.label}</h4>
+                    <h4 className="font-semibold text-slate-900">{t(`categories.${category}`)}</h4>
                     <span className="text-xs text-slate-500">
                       {categoryChecked}/{categoryItems.length}
                     </span>
@@ -460,7 +456,7 @@ export default function TripPackingEssentials({
                         {/* Subtle check indicator on the right */}
                         {isChecked && (
                           <span className={`text-xs font-medium ${accent.text} opacity-60`}>
-                            Packed
+                            {t("packed")}
                           </span>
                         )}
                       </label>
@@ -479,9 +475,7 @@ export default function TripPackingEssentials({
               <svg className="w-4 h-4 text-[var(--accent)] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
-              <p>
-                Tap items to mark them as packed.
-              </p>
+              <p>{t("hint")}</p>
             </div>
             {/* Save status indicator */}
             {tripId && (
@@ -492,7 +486,7 @@ export default function TripPackingEssentials({
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Saving...
+                    {t("saving")}
                   </span>
                 )}
                 {saveError && (
@@ -508,7 +502,7 @@ export default function TripPackingEssentials({
                     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    Saved
+                    {t("saved")}
                   </span>
                 )}
               </div>
