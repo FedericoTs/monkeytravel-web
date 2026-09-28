@@ -7,7 +7,6 @@ import {
   generateBreadcrumbSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
-import { getNonce } from "@/lib/security/nonce";
 import { lookupVisaRequirement, getDatasetSize } from "@/lib/visa/lookup";
 import { getCountryOptions, getCountryName, iso2ToFlag } from "@/lib/visa/countries";
 import { buildIvisaAffiliateUrl, shouldShowIvisaCta } from "@/lib/visa/ivisa";
@@ -178,11 +177,10 @@ export default async function VisaCheckerPage({
   // Today as ISO date for the "data refreshed" credit.
   const refreshedDate = new Date().toISOString().split("T")[0];
 
-  const nonce = await getNonce();
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <script {...jsonLdScriptProps(breadcrumbSchema, nonce)} />
+      <script {...jsonLdScriptProps(breadcrumbSchema)} />
       {/* Day-4 bug fix #10: when the SSR result renders for a shared
           ?from=XX&to=YY link, the form's onSubmit never fires, so the
           tools_visa_checker_query event was missing the shared-link

@@ -20,7 +20,6 @@ import {
   generateItemListSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
-import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BlogContent, BlogByline, BlogCard, BlogDestinationPicks, BlogInlineAiCta, BlogPlanThisCta, BlogPrevNext, BlogSidebar, ReadingProgress } from "@/components/blog";
@@ -37,6 +36,9 @@ const SITE_URL = "https://monkeytravel.app";
 // ============================================================================
 // Static params — all slug × locale combinations
 // ============================================================================
+
+// Every valid param is listed below; anything else is a 404, never a render.
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   const slugs = getAllSlugs();
@@ -296,11 +298,10 @@ export default async function BlogDetailPage({ params }: PageProps) {
         })
       : null;
 
-  const nonce = await getNonce();
 
   return (
     <>
-      <script {...jsonLdScriptProps(schemas, nonce)} />
+      <script {...jsonLdScriptProps(schemas)} />
 
       <ContentTracker
         contentType="blog_post"

@@ -34,8 +34,7 @@ function allows(directive: string[], url: string): boolean {
 /** Any non-landing path — connect-src doesn't vary by route, so the exact value is arbitrary. */
 const A_ROUTE = "/trips/new";
 
-function directive(name: string, pathname: string = A_ROUTE): string[] {
-  const header = buildCspHeader("test-nonce", pathname);
+function directive(name: string, pathname: string = A_ROUTE, header = buildCspHeader(pathname, { nonce: "test-nonce" })): string[] {
   const line = header.split(";").map((d) => d.trim()).find((d) => d.startsWith(name));
   expect(line, `${name} missing from the CSP`).toBeTruthy();
   return line!.split(/\s+/).slice(1);
@@ -136,8 +135,8 @@ describe("CSP frame-ancestors: BuildHop is scoped to the homepage only", () => {
   });
 
   it("touches only frame-ancestors — every other directive is identical on and off the homepage", () => {
-    const home = buildCspHeader("test-nonce", "/");
-    const other = buildCspHeader("test-nonce", A_ROUTE);
+    const home = buildCspHeader("/", { nonce: "test-nonce" });
+    const other = buildCspHeader(A_ROUTE, { nonce: "test-nonce" });
     const stripLine = (h: string, name: string) =>
       h.split(";").map((d) => d.trim()).filter((d) => !d.startsWith(name)).join("; ");
     expect(stripLine(home, "frame-ancestors")).toBe(stripLine(other, "frame-ancestors"));
@@ -178,6 +177,47 @@ describe("X-Frame-Options and frame-ancestors cannot disagree", () => {
     for (const p of ["/", "/es", "/it", "/pt"]) {
       expect(allowsThirdPartyFraming(p)).toBe(true);
     }
+  });
+});
+
+/**
+ * Prerendered pages cannot carry a nonce, so their policy pins inline scripts
+ * by hash and admits external scripts by host. Both policies stay free of
+ * 'unsafe-inline' and 'unsafe-eval' for scripts.
+ */
+describe("CSP script-src: nonce policy for rendered pages, hash policy for prerendered ones", () => {
+  const HASHES = ["sha256-AAAA", "sha256-BBBB"];
+
+  it("pins prerendered pages by hash, with no nonce and no strict-dynamic", () => {
+    const src = directive("script-src", "/blog", buildCspHeader("/blog", { hashes: HASHES }));
+    expect(src).toContain("'sha256-AAAA'");
+    expect(src).toContain("'sha256-BBBB'");
+    expect(src).toContain("'self'");
+    expect(src.some((s) => s.startsWith("'nonce-"))).toBe(false);
+    expect(src).not.toContain("'strict-dynamic'");
+    // Host allowlist is what admits gtag.js, PostHog and the rest on these pages.
+    expect(allows(src, "https://www.googletagmanager.com/gtag/js?id=G-X")).toBe(true);
+  });
+
+  it("gives rendered pages the nonce, strict-dynamic and the layout's inline hashes", () => {
+    const src = directive("script-src", A_ROUTE, buildCspHeader(A_ROUTE, { nonce: "n0nce", hashes: HASHES }));
+    expect(src).toContain("'nonce-n0nce'");
+    expect(src).toContain("'strict-dynamic'");
+    expect(src).toContain("'sha256-AAAA'");
+  });
+
+  it("never allows unsafe-inline or unsafe-eval for scripts", () => {
+    for (const header of [buildCspHeader("/", { hashes: HASHES }), buildCspHeader("/", { nonce: "n" })]) {
+      const src = directive("script-src", "/", header);
+      expect(src).not.toContain("'unsafe-inline'");
+      expect(src).not.toContain("'unsafe-eval'");
+    }
+  });
+
+  it("changes nothing but script-src between the two policies", () => {
+    const strip = (h: string) =>
+      h.split(";").map((d) => d.trim()).filter((d) => !d.startsWith("script-src")).join("; ");
+    expect(strip(buildCspHeader("/blog", { hashes: HASHES }))).toBe(strip(buildCspHeader("/blog", { nonce: "n" })));
   });
 });
 

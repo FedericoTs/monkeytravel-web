@@ -10,12 +10,14 @@ import {
   generateBreadcrumbSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
-import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BlogCard } from "@/components/blog";
 
 const SITE_URL = "https://monkeytravel.app";
+
+// Every valid param is listed below; anything else is a 404, never a render.
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return routing.locales.flatMap((locale) =>
@@ -91,11 +93,10 @@ export default async function AuthorPage({ params }: PageProps) {
     { name: author.name, url },
   ]);
 
-  const nonce = await getNonce();
 
   return (
     <>
-      <script {...jsonLdScriptProps([personSchema, breadcrumbSchema], nonce)} />
+      <script {...jsonLdScriptProps([personSchema, breadcrumbSchema])} />
 
       <Navbar />
 

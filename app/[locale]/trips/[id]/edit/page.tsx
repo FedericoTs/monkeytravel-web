@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation";
 
+// A redirect, so never prerendered or cached.
+export const dynamic = "force-dynamic";
+
 /**
  * Old notification links (vote and proposal notifications, the email/push
  * fallback) pointed at /trips/<id>/edit, a page that never existed: they

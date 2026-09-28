@@ -18,7 +18,6 @@ import {
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
 import { buildAlternates } from "@/lib/seo/canonical";
-import { getNonce } from "@/lib/security/nonce";
 
 const SITE_URL = "https://monkeytravel.app";
 
@@ -43,10 +42,10 @@ const SITE_URL = "https://monkeytravel.app";
  *   AND deleted_at IS NULL AND public_slug IS NOT NULL
  */
 
-// ISR: revalidate hourly. Community trips change rarely once published, but
-// engagement counts + itinerary photo refresh benefit from periodic
-// regeneration. Matches the 3600s cache cadence used by the feeds/blog.
-export const revalidate = 3600;
+// Rendered per request: engagement counts and photos change after the
+// deploy, and a page regenerated later would no longer match the inline-script
+// hashes the CSP pins at build time (scripts/csp-manifest.mjs).
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>;
@@ -258,13 +257,12 @@ export default async function PublicTripPage({ params }: PageProps) {
     isOwner = false;
   }
 
-  const nonce = await getNonce();
 
   return (
     <>
-      <script {...jsonLdScriptProps(tripSchema, nonce)} />
-      <script {...jsonLdScriptProps(breadcrumbSchema, nonce)} />
-      {authorSchema && <script {...jsonLdScriptProps(authorSchema, nonce)} />}
+      <script {...jsonLdScriptProps(tripSchema)} />
+      <script {...jsonLdScriptProps(breadcrumbSchema)} />
+      {authorSchema && <script {...jsonLdScriptProps(authorSchema)} />}
 
       <SharedTripView
         viewSource="public"

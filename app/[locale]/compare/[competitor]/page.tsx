@@ -11,7 +11,6 @@ import {
   jsonLdScriptProps,
 } from '@/lib/seo/structured-data';
 import LastUpdated from '@/components/seo/LastUpdated';
-import { getNonce } from '@/lib/security/nonce';
 import { setRequestLocale } from 'next-intl/server';
 import {
   COMPETITORS,
@@ -54,6 +53,9 @@ function asCompareLocale(locale: string): CompareLocale {
 }
 
 /** Pre-render locale × competitor at build time. */
+// Every valid param is listed below; anything else is a 404, never a render.
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return routing.locales.flatMap((locale) =>
     COMPETITORS.map((c) => ({ locale, competitor: c.slug }))
@@ -269,7 +271,6 @@ export default async function ComparePage({
   const ui = UI[l];
   const prefix = locale === 'en' ? '' : `/${locale}`;
   const path = `/compare/${c.slug}`;
-  const nonce = await getNonce();
 
   const faqItems = c.faqs[l].map((f) => ({ question: f.q, answer: f.a }));
   const breadcrumbItems = [
@@ -296,9 +297,7 @@ export default async function ComparePage({
             url: breadcrumbItems[breadcrumbItems.length - 1].url,
             dateModified: CONTENT_UPDATED,
           }),
-          ],
-          nonce
-        )}
+          ])}
       />
 
       <Navbar />

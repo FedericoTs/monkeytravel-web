@@ -13,7 +13,6 @@ import {
   generateFAQSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
-import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareRow from "@/components/ShareRow";
@@ -43,6 +42,9 @@ const SITE_URL = "https://monkeytravel.app";
 // ============================================================================
 // Static params — generates all slug × locale combinations at build time
 // ============================================================================
+
+// Every valid param is listed below; anything else is a 404, never a render.
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   const slugs = getAllSlugs();
@@ -210,11 +212,10 @@ export default async function DestinationDetailPage({ params }: PageProps) {
     .filter((tl) => tl.destinations.length >= 2)
     .slice(0, 2);
 
-  const nonce = await getNonce();
 
   return (
     <>
-      <script {...jsonLdScriptProps([touristSchema, breadcrumbSchema, faqSchema], nonce)} />
+      <script {...jsonLdScriptProps([touristSchema, breadcrumbSchema, faqSchema])} />
 
       <ContentTracker
         contentType="destination"

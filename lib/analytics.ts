@@ -395,8 +395,7 @@ export function trackError(params: {
 
 /**
  * Track page view (called on route change)
- * Note: GA4 with @next/third-parties handles this automatically,
- * but this can be used for custom tracking.
+ * Note: gtag.js sends page_view on load by itself; this is for custom tracking.
  */
 export function trackPageView(params: {
   pagePath: string;

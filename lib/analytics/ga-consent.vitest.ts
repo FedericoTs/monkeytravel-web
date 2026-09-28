@@ -67,9 +67,11 @@ describe("gaConsentDefaultScript", () => {
 });
 
 describe("gaConsentDefaultScriptProps", () => {
-  it("returns a nonced script only when GA4 is configured in advanced mode", () => {
-    expect(gaConsentDefaultScriptProps("n0nce", { measurementId: "G-X", mode: undefined })?.nonce).toBe("n0nce");
-    expect(gaConsentDefaultScriptProps("n0nce", { measurementId: "G-X", mode: "gated" })).toBeNull();
-    expect(gaConsentDefaultScriptProps("n0nce", { measurementId: undefined, mode: "advanced" })).toBeNull();
+  it("returns the script only when GA4 is configured in advanced mode", () => {
+    expect(gaConsentDefaultScriptProps({ measurementId: "G-X", mode: undefined })?.dangerouslySetInnerHTML.__html).toBe(
+      gaConsentDefaultScript()
+    );
+    expect(gaConsentDefaultScriptProps({ measurementId: "G-X", mode: "gated" })).toBeNull();
+    expect(gaConsentDefaultScriptProps({ measurementId: undefined, mode: "advanced" })).toBeNull();
   });
 });

@@ -60,7 +60,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import Script from "next/script";
 import { CONSENT_CHANGE_EVENT } from "@/lib/consent";
 import { loadLocalConsent } from "@/lib/consent/storage";
 import type { ConsentState } from "@/lib/consent";
@@ -137,7 +137,22 @@ function clearGoogleCookies() {
   }
 }
 
-export function ConsentGatedTags({ nonce }: { nonce?: string }) {
+/**
+ * gtag.js plus the two calls Google's snippet makes before it loads. They run
+ * from bundled code rather than an inline script, so the tag needs no nonce
+ * and no hash under either CSP; the dataLayer order (consent default, js,
+ * config) is the same as with the snippet.
+ */
+function GaTag({ gaId }: { gaId: string }) {
+  useEffect(() => {
+    const gtag = gtagOn(window as GtagWindow);
+    gtag("js", new Date());
+    gtag("config", gaId);
+  }, [gaId]);
+  return <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />;
+}
+
+export function ConsentGatedTags() {
   // null = not read yet. In gated mode nothing renders in that state, which
   // also keeps the server and first client paint identical.
   const [consent, setConsent] = useState<ConsentState | null>(null);
@@ -167,12 +182,12 @@ export function ConsentGatedTags({ nonce }: { nonce?: string }) {
 
   return (
     <>
-      {mountGa && gaId ? <GoogleAnalytics gaId={gaId} nonce={nonce} /> : null}
+      {mountGa && gaId ? <GaTag gaId={gaId} /> : null}
       {/* Affiliate beacons are marketing, not analytics. Note the measured
           context: all four Travelpayouts services are disabled at account
           level, so these requests currently carry privacy exposure and page
           weight for zero revenue. */}
-      {consent?.marketing ? <AffiliateScript nonce={nonce} /> : null}
+      {consent?.marketing ? <AffiliateScript /> : null}
     </>
   );
 }

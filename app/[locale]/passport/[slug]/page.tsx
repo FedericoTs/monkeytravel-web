@@ -8,7 +8,6 @@ import {
   generateBreadcrumbSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
-import { getNonce } from "@/lib/security/nonce";
 import { routing } from "@/lib/i18n/routing";
 import {
   PASSPORT_PAGE_CODES,
@@ -37,6 +36,9 @@ const BASE_URL = "https://monkeytravel.app";
  * Only the 20 passports with measured Search Console demand get a page — see
  * lib/visa/passport-pages.ts for why the list stops there.
  */
+
+// Every valid param is listed below; anything else is a 404, never a render.
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return routing.locales.flatMap((locale) =>
@@ -122,7 +124,6 @@ export default async function PassportPage({ params }: PageProps) {
   if (!summary) notFound();
 
   const t = await getTranslations("passport");
-  const nonce = await getNonce();
   const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
 
   const breadcrumb = generateBreadcrumbSchema([
@@ -136,7 +137,7 @@ export default async function PassportPage({ params }: PageProps) {
 
   return (
     <>
-      <script {...jsonLdScriptProps(breadcrumb, nonce)} />
+      <script {...jsonLdScriptProps(breadcrumb)} />
       <Navbar />
 
       <main className="min-h-screen bg-white">

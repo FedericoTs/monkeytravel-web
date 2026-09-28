@@ -6,7 +6,6 @@ import { routing } from "@/lib/i18n/routing";
 import { destinations } from "@/lib/destinations/data";
 import type { Locale } from "@/lib/destinations/types";
 import { generateBreadcrumbSchema, generateFAQSchema, jsonLdScriptProps } from "@/lib/seo/structured-data";
-import { getNonce } from "@/lib/security/nonce";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { DestinationGrid } from "@/components/destinations";
@@ -22,6 +21,9 @@ const STYLE_TAGS = [
   "beach", "nightlife", "adventure", "nature", "wellness",
   "shopping", "offbeat",
 ] as const;
+
+// Every valid param is listed below; anything else is a 404, never a render.
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return routing.locales.flatMap((locale) =>
@@ -115,11 +117,10 @@ export default async function DestinationStylePage({ params }: PageProps) {
   const faqSchema = generateFAQSchema(faqItems);
   const topPicks = matched.slice(0, 3);
 
-  const nonce = await getNonce();
 
   return (
     <>
-      <script {...jsonLdScriptProps([breadcrumbSchema, faqSchema], nonce)} />
+      <script {...jsonLdScriptProps([breadcrumbSchema, faqSchema])} />
 
       <Navbar />
 

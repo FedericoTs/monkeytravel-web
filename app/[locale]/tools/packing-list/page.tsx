@@ -8,7 +8,6 @@ import {
   generateBreadcrumbSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
-import { getNonce } from "@/lib/security/nonce";
 import { ogImages } from "@/lib/seo/og-image";
 
 const BASE_URL = "https://monkeytravel.app";
@@ -97,11 +96,10 @@ export default async function PackingListPage({
     },
   ]);
 
-  const nonce = await getNonce();
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <script {...jsonLdScriptProps(breadcrumbSchema, nonce)} />
+      <script {...jsonLdScriptProps(breadcrumbSchema)} />
       <Navbar />
       <main className="flex-1 max-w-3xl mx-auto px-4 py-8 sm:py-12 w-full">
         <nav className="text-sm text-slate-500 mb-4" aria-label="Breadcrumb">

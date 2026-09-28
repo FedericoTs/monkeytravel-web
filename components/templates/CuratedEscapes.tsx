@@ -6,7 +6,7 @@ import { Link } from "@/lib/i18n/routing";
 import Image from "next/image";
 import { Sparkles, ChevronRight, Users, ArrowRight, MapPin } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface TemplateTrip {
@@ -67,7 +67,12 @@ function getGradient(destination: string) {
 
 async function fetchTemplates(limit = 6): Promise<TemplateTrip[]> {
   try {
-    const supabase = await createClient();
+    // Cookie-free anon client: public templates need no session, and reading
+    // cookies would pin the homepage to a per-request render.
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !key) return [];
+    const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
     const { data, error } = await supabase
       .from("trips")
       .select(`

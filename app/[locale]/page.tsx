@@ -5,13 +5,12 @@ import Footer from '@/components/Footer';
 import CuratedEscapes from '@/components/templates/CuratedEscapes';
 import { Link } from '@/lib/i18n/routing';
 import { generateFAQSchema, jsonLdScriptProps } from '@/lib/seo/structured-data';
-import { getNonce } from '@/lib/security/nonce';
 import HeroTripInput from '@/components/home/HeroTripInput';
 import DestinationLeaderboard from '@/components/home/DestinationLeaderboard';
 import { getDestinationLeaderboard } from '@/lib/leaderboard/destinations';
 import HeroDoodleBackground from '@/components/marketing/HeroDoodleBackground';
 import { HERO_DOODLE_ENABLED } from '@/components/marketing/doodle';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { destinations } from '@/lib/destinations/data';
 import { DestinationCard } from '@/components/destinations';
 import type { Locale } from '@/lib/destinations/types';
@@ -105,10 +104,9 @@ const FAQ_KEYS = ['free', 'noApp', 'howAiWorks', 'editItinerary', 'destinations'
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-
   // The logged-in → /trips redirect lives in middleware.ts (a cookie-presence
-  // check), so this page never reads auth cookies. It still renders
-  // dynamically: the root layout reads the CSP nonce from headers().
+  // check), so this page never reads auth cookies and prerenders.
+  setRequestLocale(locale);
 
   // Get translations for landing page
   const t = await getTranslations('landing');
@@ -125,13 +123,12 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     answer: t(`faq.items.${key}.answer`),
   }));
   const faqSchema = generateFAQSchema(faqs);
-  const nonce = await getNonce();
 
   // New/anonymous user - show landing page
   return (
     <>
       {/* FAQ Structured Data (Organization + WebSite + SoftwareApp rendered by root layout) */}
-      <script {...jsonLdScriptProps(faqSchema, nonce)} />
+      <script {...jsonLdScriptProps(faqSchema)} />
 
       <Navbar />
 

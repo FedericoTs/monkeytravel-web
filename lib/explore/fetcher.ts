@@ -9,10 +9,10 @@ import type { ExploreFeedResponse, ExploreFilters } from "./types";
  * statically renderable / ISR-able (no headers() read). Tradeoff: preview
  * deploys fetch PRODUCTION's public explore feed instead of their own host.
  *
- * Caching: explicitly opts into Next's default 60-second revalidate
- * so a brief burst of /explore visits doesn't fan out to the API
- * route. Page-level fetchers can override by passing
- * `revalidate: 0` to force fresh data after a publish/like.
+ * Caching: none unless the caller passes `revalidate`. A prerendered page
+ * (destinations) fetches once at build time and ships that snapshot; the
+ * per-request explore page passes a short revalidate so a burst of visits
+ * doesn't fan out to the API route.
  */
 export async function fetchExploreFeed(
   filters: ExploreFilters = {},
@@ -37,9 +37,10 @@ export async function fetchExploreFeed(
   const url = `${base}/api/explore/trips?${params.toString()}`;
 
   try {
-    const res = await fetch(url, {
-      next: { revalidate: options.revalidate ?? 60 },
-    });
+    const res = await fetch(
+      url,
+      options.revalidate === undefined ? undefined : { next: { revalidate: options.revalidate } }
+    );
     if (!res.ok) {
       // 404 is the expected return when EXPLORE_UGC_ENABLED is unset
       // (Week 1-2 dark launch). Treat as "no feed" so the page can

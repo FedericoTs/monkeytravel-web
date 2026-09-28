@@ -1,6 +1,5 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
-import { unstable_cache } from "next/cache";
 
 /**
  * Homepage destination leaderboard — what people actually plan here, and the
@@ -12,11 +11,9 @@ import { unstable_cache } from "next/cache";
  * sit near the top on 30-day movement, not lifetime volume).
  *
  * WHY A PLAIN ANON CLIENT, NOT lib/supabase/server.ts
- * That helper reads cookies(), which opts the caller into dynamic rendering
- * and makes the result uncacheable. This query needs no session — the RPC is
- * granted to `anon` and returns only aggregates — so a cookie-free client
- * lets unstable_cache actually hold the result. Without that, the heaviest
- * query on the site would run on every homepage render.
+ * That helper reads cookies(), which opts the caller into dynamic rendering.
+ * This query needs no session — the RPC is granted to `anon` and returns only
+ * aggregates — so a cookie-free client keeps the homepage prerenderable.
  *
  * WHY THERE ARE NO HOTELS HERE
  * Not because the itineraries are wrong — they are not. An earlier reading of
@@ -56,9 +53,13 @@ interface RpcRow {
   top_activities: LeaderboardActivity[] | null;
 }
 
-const REVALIDATE_SECONDS = 3600;
-
-async function fetchLeaderboard(limit: number): Promise<LeaderboardEntry[]> {
+/**
+ * Runs when the homepage is built, four times (once per locale), and the
+ * result ships in the static HTML until the next deploy. No runtime cache:
+ * Vercel's Data Cache survives deployments, and an entry written by an older
+ * RPC used to outlive the fix that replaced it.
+ */
+export async function getDestinationLeaderboard(limit: number): Promise<LeaderboardEntry[]> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   // Missing env is a deploy problem, not a reason to break the homepage —
@@ -93,22 +94,3 @@ async function fetchLeaderboard(limit: number): Promise<LeaderboardEntry[]> {
     // change loosening that.
     .filter((r) => r.topActivities.length > 0);
 }
-
-/**
- * Cached for an hour. The underlying query walks every trip's itinerary JSON,
- * which is cheap at today's volume but grows with the table — and the
- * homepage is the highest-traffic page on the site, so it must not run
- * per-request. An hour is far shorter than the rate at which this ordering
- * actually changes.
- */
-export const getDestinationLeaderboard = unstable_cache(
-  fetchLeaderboard,
-  // The trailing version is load-bearing. Vercel's Data Cache SURVIVES a
-  // deployment, so shipping a corrected RPC does not invalidate entries the
-  // old logic wrote — the 20260826231948 attribution fix went live while the
-  // homepage kept serving the pre-fix board for the rest of the hour. Bump
-  // this whenever the shape or meaning of the result changes, so the new code
-  // reads a new key instead of inheriting stale rows.
-  ["destination-leaderboard", "v2-per-day-city-attribution"],
-  { revalidate: REVALIDATE_SECONDS, tags: ["destination-leaderboard"] },
-);
