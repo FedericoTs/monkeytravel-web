@@ -25,7 +25,9 @@
 
 import { NextResponse } from "next/server";
 import { render } from "@react-email/render";
+import { createHash } from "node:crypto";
 import { sendEmail } from "@/lib/email/client";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyHookSignature } from "@/lib/email/verify-hook";
 import ConfirmSignupEmail, {
   confirmSignupEmailText,
@@ -304,6 +306,17 @@ export async function POST(request: Request) {
     // go out. Surface as an error so it's visible (in prod the key is set).
     console.error("[auth/send-email] RESEND_API_KEY missing; email not sent");
     return jsonError("email provider not configured", 500);
+  }
+
+  // Which auth emails go out, for the password-reset health check
+  // (app/api/cron/auth-health). No address is stored, only a hash.
+  try {
+    const recipientHash = createHash("sha256").update(recipient.toLowerCase()).digest("hex");
+    await createAdminClient()
+      .from("auth_email_events")
+      .insert({ action: data.email_action_type, recipient_hash: recipientHash });
+  } catch (err) {
+    console.warn("[auth/send-email] could not record the email event:", err);
   }
 
   return NextResponse.json({}, { status: 200 });

@@ -15,6 +15,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const sendEmail = vi.fn();
 vi.mock("@/lib/email/client", () => ({ sendEmail: (...a: unknown[]) => sendEmail(...a) }));
 vi.mock("@/lib/email/verify-hook", () => ({ verifyHookSignature: () => ({ ok: true }) }));
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({ from: () => ({ insert: async () => ({ error: null }) }) }),
+}));
 vi.mock("@react-email/render", () => ({ render: async () => "<html></html>" }));
 
 import { POST } from "./route";

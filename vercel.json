@@ -70,6 +70,14 @@
     {
       "path": "/api/cron/audit-account-deletion",
       "schedule": "12 5 * * *"
+    },
+    {
+      "path": "/api/cron/spend-alert",
+      "schedule": "20 6 * * *"
+    },
+    {
+      "path": "/api/cron/auth-health",
+      "schedule": "40 6 * * 1"
     }
   ],
   "redirects": [
