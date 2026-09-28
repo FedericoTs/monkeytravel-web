@@ -394,10 +394,10 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       inviteId: result.invite_id,
     }).catch(() => {});
 
-    // Award bananas to the inviter (collaborator referral reward).
-    // Same logic as before — runs OUTSIDE the atomic tx because it's
-    // best-effort and shouldn't block the join if banana bookkeeping
-    // fails. The invite seat is already consumed.
+    // Award bananas to the inviter, once per friend who joins: the award is
+    // keyed by the new collaborator row, so a multi-use link rewards every
+    // join and a retried join is not paid twice. Runs outside the atomic
+    // transaction because bookkeeping must never fail the join.
     let bananasAwarded = false;
     let tierUnlocked = false;
     let newTier = 0;
@@ -409,7 +409,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         const bananaResult = await addCollaborationBananas(
           supabaseAdmin,
           result.created_by,
-          result.invite_id,
+          result.collaborator_id ?? result.invite_id,
           inviterTier
         );
 

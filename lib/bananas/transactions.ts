@@ -51,6 +51,12 @@ export async function addBananas(
   });
 
   if (error) {
+    // A credit with this reference already exists (unique index on
+    // user_id, transaction_type, reference_id): a repeat of an award that
+    // was paid, not a failure.
+    if (error.code === '23505') {
+      return { success: false, newBalance: 0, transactionId: null, error: 'already_awarded' };
+    }
     console.error('Error adding bananas:', error);
     return {
       success: false,
@@ -184,12 +190,13 @@ export async function addReferralBananas(
 }
 
 /**
- * Add bananas for a collaborator joining via invite
+ * Add bananas for a friend joining a trip through an invite. `joinId` is the
+ * friend's trip_collaborators row, so each friend is rewarded once.
  */
 export async function addCollaborationBananas(
   supabase: SupabaseClient,
   userId: string,
-  inviteId: string,
+  joinId: string,
   userTier: ReferralTierLevel = 0
 ): Promise<AddBananasResult> {
   const { BANANA_EARNING_RATES } = await import('./config');
@@ -202,7 +209,7 @@ export async function addCollaborationBananas(
     userId,
     amount,
     'collaboration',
-    inviteId,
+    joinId,
     `Friend joined your trip${userTier > 0 ? ` (Tier ${userTier} bonus)` : ''}`
   );
 }
