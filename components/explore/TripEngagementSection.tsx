@@ -2,10 +2,11 @@ import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { getTripViewerState } from "@/lib/explore/viewer-state";
 import EngagementBar from "./EngagementBar";
 import PublishToggle from "./PublishToggle";
-import { createClient } from "@/lib/supabase/server";
 
 interface TripEngagementSectionProps {
   tripId: string;
+  /** The signed-in viewer's id, or null: resolved once by the page. */
+  viewerId: string | null;
   /** Server-rendered initial counts read from the trips row. */
   likeCount: number;
   saveCount: number;
@@ -21,8 +22,8 @@ interface TripEngagementSectionProps {
 }
 
 /**
- * Server component that prepares the engagement-bar state + auth check
- * + flag check, then renders the client EngagementBar.
+ * Server component that prepares the engagement-bar state + flag check,
+ * then renders the client EngagementBar. The viewer comes from the page.
  *
  * If the explore feature flag is off, or the trip isn't public yet,
  * returns null — no UI is shown. This is intentional: we don't want
@@ -30,6 +31,7 @@ interface TripEngagementSectionProps {
  */
 export default async function TripEngagementSection({
   tripId,
+  viewerId,
   likeCount,
   saveCount,
   forkCount,
@@ -43,14 +45,10 @@ export default async function TripEngagementSection({
   if (!isExploreUgcEnabled()) return null;
   if (!isPublic && !isOwner) return null;
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const isAuthenticated = !!user;
+  const isAuthenticated = viewerId !== null;
 
   const viewerState = isPublic
-    ? await getTripViewerState(tripId)
+    ? await getTripViewerState(tripId, viewerId)
     : { hasLiked: false, hasSaved: false };
 
   return (

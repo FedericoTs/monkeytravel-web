@@ -31,3 +31,18 @@ export async function createClient() {
     }
   );
 }
+
+/**
+ * The signed-in user's id, or null. Without a session cookie auth-js answers
+ * locally, so anonymous visitors pay no round trip. Never throws: a page that
+ * only needs to know who is looking must not fail on an auth hiccup.
+ */
+export async function signedInUserId(): Promise<string | null> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    return data.user?.id ?? null;
+  } catch {
+    return null;
+  }
+}

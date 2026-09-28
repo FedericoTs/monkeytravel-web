@@ -93,24 +93,21 @@ export default async function TripDetailPage({
     notFound();
   }
 
-  // Collaborator count for voting quorum, and the viewer's public name (the
-  // byline if they publish), in one round trip.
-  const [{ count: collaboratorCount }, { data: viewerProfile }] = await Promise.all([
+  // Collaborator count for voting quorum, the viewer's public name (the byline
+  // if they publish) and the activity photo refresh (places_v2 is the source
+  // of truth, see lib/places/refreshItineraryPhotos.ts) need only the trip
+  // and the viewer, so they go out in one round trip.
+  const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
+  const [{ count: collaboratorCount }, { data: viewerProfile }, itinerary] = await Promise.all([
     supabase.from("trip_collaborators").select("*", { count: "exact", head: true }).eq("trip_id", id),
     supabase.from("users").select("display_name").eq("id", user.id).maybeSingle(),
+    refreshTripItinerary(rawItinerary),
   ]);
 
   // Total voters = collaborators + owner
   const totalVoters = (collaboratorCount || 0) + 1;
   const isCollaborativeTrip = totalVoters > 1;
 
-  // Read-time refresh of activity photo URLs from places_v2. Fixes drift
-  // when image_urls baked into trip.itinerary at generation time have
-  // since gone stale (truncated photo_resource_name, Google rotation,
-  // etc.) — places_v2 is the source of truth. See
-  // lib/places/refreshItineraryPhotos.ts for the why.
-  const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
-  const itinerary = await refreshTripItinerary(rawItinerary);
   const budget = trip.budget as { total: number; currency: string } | null;
   const tripMeta = (trip.trip_meta as TripMeta) || {};
   // An EMPTY ARRAY is truthy, so `||` never reached the fallback: a trip whose
@@ -179,6 +176,7 @@ export default async function TripDetailPage({
       engagementSlot={
         <TripEngagementSection
           tripId={trip.id}
+          viewerId={user.id}
           likeCount={trip.like_count ?? 0}
           saveCount={trip.save_count ?? 0}
           forkCount={trip.fork_count ?? 0}

@@ -10,7 +10,7 @@
 import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+import { signedInUserId } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
@@ -25,23 +25,15 @@ export async function GET(_request: NextRequest, context: InviteTokenRouteContex
     if (!token || !isUuid(token)) return errors.badRequest("Invalid share token");
 
     const admin = createAdminClient();
-    const { data: trip, error } = await admin
-      .from("trips")
-      .select("id, user_id, itinerary")
-      .eq("share_token", token)
-      .single();
+    // The trip lookup, the participant cookie and the viewer are independent.
+    const [{ data: trip, error }, cookieStore, userId] = await Promise.all([
+      admin.from("trips").select("id, user_id, itinerary").eq("share_token", token).single(),
+      cookies(),
+      signedInUserId(),
+    ]);
     if (error || !trip) return errors.notFound("Shared trip not found");
 
-    const cookieId = (await cookies()).get(PARTICIPANT_COOKIE)?.value;
-    let userId: string | null = null;
-    try {
-      const supabase = await createClient();
-      const { data } = await supabase.auth.getUser();
-      userId = data.user?.id ?? null;
-    } catch {
-      userId = null;
-    }
-
+    const cookieId = cookieStore.get(PARTICIPANT_COOKIE)?.value;
     const events = await feedSnapshot(
       admin,
       {

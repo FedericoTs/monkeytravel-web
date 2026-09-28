@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+import { signedInUserId } from "@/lib/supabase/server";
 import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta } from "@/types";
 import SharedTripView from "../../shared/[token]/SharedTripView";
@@ -187,9 +187,11 @@ export default async function PublicTripPage({ params }: PageProps) {
   const { trip, author } = result;
 
   // Read-time itinerary photo refresh (same as /shared) — replaces stale
-  // baked-in activity image URLs with the canonical ones from places_v2.
+  // baked-in activity image URLs with the canonical ones from places_v2 — and
+  // the viewer lookup need only the trip, so they run together. getUser() is
+  // a local no-op for anonymous visitors, the common case on this page.
   const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
-  const itinerary = await refreshTripItinerary(rawItinerary);
+  const [itinerary, viewerUserId] = await Promise.all([refreshTripItinerary(rawItinerary), signedInUserId()]);
 
   const budget = trip.budget as { total: number; currency: string } | null;
   const tripMeta = (trip.trip_meta as TripMeta) || {};
@@ -244,19 +246,8 @@ export default async function PublicTripPage({ params }: PageProps) {
   const isPublic = trip.visibility === "public" && !trip.is_hidden;
 
   // Live Trip Phase 2.4: an owner opening their own public trip sees "Who's
-  // going", not the recipient bar. getUser() is a local no-op for anon
-  // visitors (the common case on this indexable page).
-  let isOwner = false;
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    isOwner = !!user && user.id === trip.user_id;
-  } catch {
-    isOwner = false;
-  }
-
+  // going", not the recipient bar.
+  const isOwner = viewerUserId !== null && viewerUserId === trip.user_id;
 
   return (
     <>
@@ -297,6 +288,7 @@ export default async function PublicTripPage({ params }: PageProps) {
         engagementSlot={
           <TripEngagementSection
             tripId={trip.id}
+            viewerId={viewerUserId}
             likeCount={trip.like_count ?? 0}
             saveCount={trip.save_count ?? 0}
             forkCount={trip.fork_count ?? 0}

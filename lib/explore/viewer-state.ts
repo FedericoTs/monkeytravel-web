@@ -14,33 +14,33 @@ const SAVER_COOKIE = "mt_saver_cookie";
  *   - Service-role unavailable for anon save check (returns false)
  *
  * Called from server components that render EngagementBar so we can
- * hydrate the initial state without a client-side fetch round-trip.
+ * hydrate the initial state without a client-side fetch round-trip. The
+ * viewer is resolved once by the page, so this costs no auth call of its own.
  */
-export async function getTripViewerState(tripId: string): Promise<{
+export async function getTripViewerState(
+  tripId: string,
+  viewerUserId: string | null
+): Promise<{
   hasLiked: boolean;
   hasSaved: boolean;
 }> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   let hasLiked = false;
   let hasSaved = false;
 
-  if (user) {
+  if (viewerUserId) {
+    const supabase = await createClient();
     // Two parallel lookups for auth viewers.
     const [likeR, saveR] = await Promise.all([
       supabase
         .from("trip_likes")
         .select("trip_id", { head: true, count: "exact" })
         .eq("trip_id", tripId)
-        .eq("user_id", user.id),
+        .eq("user_id", viewerUserId),
       supabase
         .from("trip_saves")
         .select("id", { head: true, count: "exact" })
         .eq("trip_id", tripId)
-        .eq("user_id", user.id),
+        .eq("user_id", viewerUserId),
     ]);
     hasLiked = (likeR.count ?? 0) > 0;
     hasSaved = (saveR.count ?? 0) > 0;

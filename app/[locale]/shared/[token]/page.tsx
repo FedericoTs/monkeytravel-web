@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { cookies, headers } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, signedInUserId } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import { logSharedTripVisit } from "@/lib/analytics/funnel-events";
@@ -51,6 +51,33 @@ const getSharedTrip = cache(async (token: string) => {
   if (error) return null;
   return data;
 });
+
+/**
+ * Who is looking: the owner sees "Who's going", and owner or collaborator get
+ * the way back to the editor (/trips/[id], which always opens for members).
+ * getUser() is a local no-op without a session cookie, so anonymous viewers
+ * pay nothing. Never throws: neither telemetry nor the render depend on it.
+ */
+async function resolveViewer(tripId: string, ownerId: string | null) {
+  const viewerUserId = await signedInUserId();
+  const isOwner = viewerUserId !== null && viewerUserId === ownerId;
+  let isMember = isOwner;
+  if (viewerUserId && !isOwner) {
+    try {
+      const supabase = await createClient();
+      const { data: membership } = await supabase
+        .from("trip_collaborators")
+        .select("role")
+        .eq("trip_id", tripId)
+        .eq("user_id", viewerUserId)
+        .maybeSingle();
+      isMember = !!membership;
+    } catch {
+      isMember = false;
+    }
+  }
+  return { isOwner, isMember, viewerUserId };
+}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, token } = await params;
@@ -125,38 +152,16 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
     notFound();
   }
 
-  // The owner reaches this page through their own share link and must see
-  // "Who's going" here, not the recipient bar. getUser() is a local no-op
-  // without a session cookie, so anonymous viewers pay nothing. Resolved up
-  // here because the visit telemetry below must not count the owner, and the
-  // PostHog twin reuses the id instead of a second getUser().
-  let isOwner = false;
-  let viewerUserId: string | null = null;
-  // Owner or collaborator: the shared view offers them the way back to the
-  // editor (/trips/[id], which always opens for members).
-  let isMember = false;
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    viewerUserId = user?.id ?? null;
-    isOwner = !!user && user.id === trip.user_id;
-    isMember = isOwner;
-    if (user && !isOwner) {
-      const { data: membership } = await supabase
-        .from("trip_collaborators")
-        .select("role")
-        .eq("trip_id", trip.id as string)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      isMember = !!membership;
-    }
-  } catch {
-    isOwner = false;
-    isMember = false;
-    viewerUserId = null;
-  }
+  // The viewer is resolved up here because the visit telemetry below must not
+  // count the owner, and the PostHog twin reuses the id instead of a second
+  // getUser(). The activity photo refresh needs only the trip (places_v2 holds
+  // the current URLs, see lib/places/refreshItineraryPhotos.ts), so it runs
+  // alongside.
+  const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
+  const [itinerary, { isOwner, isMember, viewerUserId }] = await Promise.all([
+    refreshTripItinerary(rawItinerary),
+    resolveViewer(trip.id as string, (trip.user_id as string | null) ?? null),
+  ]);
 
   // Record a recipient visit, the share loop's first measured hop
   // (funnel_events.share_link_visited + the PostHog crew_link_visited twin
@@ -218,11 +223,6 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
     }
   })();
 
-  // Refresh activity photo URLs from places_v2 at read time: URLs baked into
-  // trip.itinerary go stale, and places_v2 holds the current one. See
-  // lib/places/refreshItineraryPhotos.ts.
-  const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
-  const itinerary = await refreshTripItinerary(rawItinerary);
   const budget = trip.budget as { total: number; currency: string } | null;
   const tripMeta = (trip.trip_meta as TripMeta) || {};
   // An EMPTY packing_list array is truthy, so a bare `||` would never reach the
@@ -301,6 +301,7 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
         engagementSlot={
           <TripEngagementSection
             tripId={trip.id}
+            viewerId={viewerUserId}
             likeCount={trip.like_count ?? 0}
             saveCount={trip.save_count ?? 0}
             forkCount={trip.fork_count ?? 0}
