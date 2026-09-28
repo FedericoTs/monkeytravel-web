@@ -266,7 +266,6 @@ export default function PackingListClient({ locale }: Props) {
             onEndDateChange={setEndDate}
             minDate={todayIso}
             maxDays={30}
-            ariaRequired
           />
           {/*
             The custom picker covers a11y labels via the wizard
