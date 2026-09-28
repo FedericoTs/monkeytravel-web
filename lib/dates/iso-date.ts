@@ -44,6 +44,18 @@ export function sanitizeIsoDate(value: string): string {
   return isValidIsoDate(value) ? value : "";
 }
 
+/**
+ * `iso` shifted by `days` (positive = later) as YYYY-MM-DD, or null when
+ * `iso` is not a real date. The arithmetic is in UTC, so a shift never lands
+ * on a daylight-saving gap in the caller's zone.
+ */
+export function addIsoDays(iso: string, days: number): string | null {
+  if (!isValidIsoDate(iso) || !Number.isFinite(days)) return null;
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + Math.trunc(days));
+  return d.toISOString().slice(0, 10);
+}
+
 /** Upper bound for the wizard's start-date input, as YYYY-MM-DD. */
 export function maxTripStartDate(now: Date = new Date()): string {
   const d = new Date(now);

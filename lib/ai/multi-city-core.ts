@@ -12,6 +12,7 @@
  */
 import type { GeneratedItinerary, ItineraryDay } from "@/types";
 import { buildTransferActivity } from "./transfer-legs";
+import { addIsoDays } from "@/lib/dates/iso-date";
 
 /** Max cities per trip in v1 (caps complexity + generation quality). */
 export const MAX_CITIES = 5;
@@ -55,14 +56,13 @@ export function splitCities(label: string): string[] {
     .filter(Boolean);
 }
 
-/** Add `days` to a YYYY-MM-DD date (UTC), returning YYYY-MM-DD. */
+/** Add `days` to a YYYY-MM-DD date, or throw when the date is not real. */
 export function addDaysISO(startISO: string, days: number): string {
-  const d = new Date(`${startISO}T00:00:00Z`);
-  if (Number.isNaN(d.getTime())) {
+  const shifted = addIsoDays(startISO, days);
+  if (shifted === null) {
     throw new MultiCityError(`addDaysISO: invalid date "${startISO}"`);
   }
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
+  return shifted;
 }
 
 function dedupeStrings(arr: string[]): string[] {

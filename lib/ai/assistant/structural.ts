@@ -18,6 +18,7 @@
 
 import type { ItineraryDay, Activity } from "@/types";
 import { generateActivityId } from "@/lib/utils/activity-id";
+import { addIsoDays } from "@/lib/dates/iso-date";
 
 /**
  * Platform-wide trip length ceiling. Matches the generation-side limit
@@ -198,10 +199,7 @@ export function addDaysISO(
   days: number
 ): string | null {
   const iso = toISODate(date);
-  if (!iso || !Number.isFinite(days)) return null;
-  const d = new Date(`${iso}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + Math.trunc(days));
-  return d.toISOString().slice(0, 10);
+  return iso ? addIsoDays(iso, days) : null;
 }
 
 /**
