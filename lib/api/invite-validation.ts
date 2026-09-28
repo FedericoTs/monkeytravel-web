@@ -28,7 +28,12 @@ export interface InviteData {
  */
 export interface InviteValidationResult {
   valid: boolean;
-  errorResponse?: Response;
+  /**
+   * Builds the API response for the failure. Building one logs an API error,
+   * so it is a function: the invite page only reads errorCode, and an opened
+   * used or expired link is not an error.
+   */
+  errorResponse?: () => Response;
   errorCode?: "MAX_USES" | "REVOKED" | "EXPIRED" | "NOT_FOUND";
 }
 
@@ -46,14 +51,14 @@ export interface InviteValidationResult {
  * @example
  * const validation = validateInvite(invite);
  * if (!validation.valid) {
- *   return validation.errorResponse;
+ *   return validation.errorResponse();
  * }
  */
 export function validateInvite(invite: InviteData | null): InviteValidationResult {
   if (!invite) {
     return {
       valid: false,
-      errorResponse: errors.notFound("Invalid invite link"),
+      errorResponse: () => errors.notFound("Invalid invite link"),
       errorCode: "NOT_FOUND",
     };
   }
@@ -63,7 +68,7 @@ export function validateInvite(invite: InviteData | null): InviteValidationResul
   if (invite.max_uses > 0 && invite.use_count >= invite.max_uses) {
     return {
       valid: false,
-      errorResponse: errors.gone("This invite link has already been used", "MAX_USES"),
+      errorResponse: () => errors.gone("This invite link has already been used", "MAX_USES"),
       errorCode: "MAX_USES",
     };
   }
@@ -71,7 +76,7 @@ export function validateInvite(invite: InviteData | null): InviteValidationResul
   if (!invite.is_active) {
     return {
       valid: false,
-      errorResponse: errors.gone("This invite has been revoked by the trip owner", "REVOKED"),
+      errorResponse: () => errors.gone("This invite has been revoked by the trip owner", "REVOKED"),
       errorCode: "REVOKED",
     };
   }
@@ -79,7 +84,7 @@ export function validateInvite(invite: InviteData | null): InviteValidationResul
   if (new Date(invite.expires_at) < new Date()) {
     return {
       valid: false,
-      errorResponse: errors.gone("This invite has expired", "EXPIRED"),
+      errorResponse: () => errors.gone("This invite has expired", "EXPIRED"),
       errorCode: "EXPIRED",
     };
   }
