@@ -414,17 +414,20 @@ export default function TripPackingEssentials({
                             : "hover:bg-slate-50/60"
                         }`}
                       >
-                        {/* Custom checkbox */}
-                        <div
-                          className={`relative w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${
+                        {/* The real control: the whole label toggles it, and it takes keyboard focus. */}
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
+                          checked={isChecked}
+                          onChange={() => toggleItem(item)}
+                        />
+                        <span
+                          aria-hidden
+                          className={`relative w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all duration-300 peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 ${accent.ring} ${
                             isChecked
                               ? `${accent.check} border-transparent scale-110`
                               : `border-slate-300 group-hover:border-slate-400 group-hover:scale-105`
                           }`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            toggleItem(item);
-                          }}
                         >
                           <svg
                             className={`w-3 h-3 text-white transition-all duration-200 ${
@@ -441,7 +444,7 @@ export default function TripPackingEssentials({
                               d="M5 13l4 4L19 7"
                             />
                           </svg>
-                        </div>
+                        </span>
 
                         {/* Item text */}
                         <span
