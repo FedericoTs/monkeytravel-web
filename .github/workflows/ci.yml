@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 20
     steps:
       # Full history (without file contents) for the git-based sitemap test.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           filter: blob:none
