@@ -4,6 +4,7 @@ import { updateSession, trackPageView } from "@/lib/supabase/middleware";
 import { routing } from "@/lib/i18n/routing";
 import { buildCspHeader, shouldEnforceCsp, allowsThirdPartyFraming } from "@/lib/security/csp";
 import { generateNonce } from "@/lib/security/nonce";
+import { isBlockedBotUserAgent } from "@/lib/security/bots";
 import { unprefixedCallbackUrl } from "@/lib/auth/callback-url";
 
 // Create the i18n middleware
@@ -12,8 +13,8 @@ const intlMiddleware = createIntlMiddleware(routing);
 // User agents that get a 403 before any other work runs: training-only
 // scrapers, content resellers and SEO-tool crawlers. None of them brings
 // citation surface, and each blocked request saves a function invocation, a
-// page_views write and bandwidth. Change this list rather than the middleware
-// logic, and keep it in sync with app/robots.ts.
+// page_views write and bandwidth. The list is BLOCKED_BOT_AGENTS in
+// lib/security/bots.ts, and robots.txt is generated from the same list.
 //
 // Deliberately NOT blocked:
 //   - Search engines: Googlebot, Bingbot, Applebot (Siri/Spotlight), DuckDuckBot.
@@ -34,25 +35,8 @@ const intlMiddleware = createIntlMiddleware(routing);
 // The Capacitor app appends "MonkeyTravelApp/1.0" to the WebView user agent
 // (capacitor.config.ts). A pattern that matches an iPhone or Android WebView
 // UA carrying that suffix 403s the app on every request, so check new
-// patterns against both. tests/e2e/mobile-webview.spec.ts covers this.
-const BLOCKED_BOT_PATTERNS = [
-  /anthropic-ai/i,
-  /CCBot/i, // Common Crawl
-  /Bytespider/i, // ByteDance/TikTok
-  /Amazonbot/i,
-  /FacebookBot/i,
-  /Meta-ExternalAgent/i,
-  /Diffbot/i,
-  /SemrushBot/i,
-  /AhrefsBot/i,
-  /MJ12bot/i,
-  /DotBot/i,
-];
-
-function isBlockedBot(userAgent: string | null): boolean {
-  if (!userAgent) return false;
-  return BLOCKED_BOT_PATTERNS.some((re) => re.test(userAgent));
-}
+// names against both. lib/security/bots.vitest.ts and
+// tests/e2e/mobile-webview.spec.ts cover this.
 
 // Deleted blog posts, served 410 Gone rather than 404 so Google drops them
 // from its index instead of re-checking them periodically.
@@ -115,7 +99,7 @@ export async function middleware(request: NextRequest) {
   // Real users and verified search bots (googlebot/bingbot/applebot)
   // pass through untouched.
   const userAgent = request.headers.get("user-agent");
-  if (isBlockedBot(userAgent)) {
+  if (isBlockedBotUserAgent(userAgent)) {
     return new NextResponse(null, {
       status: 403,
       headers: {
