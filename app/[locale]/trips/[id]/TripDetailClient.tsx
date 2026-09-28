@@ -30,11 +30,8 @@ import { BookingPanel, EnhancedBookingPanel, PostConfirmationBanner } from "@/co
 import { useFlag } from "@/lib/posthog/hooks";
 import { FLAG_ENHANCED_BOOKING } from "@/lib/posthog/flags";
 
-// Bookings/flights monetization surfaces stay hidden behind a default-off env
-// gate: the Amadeus flight search (sandbox env, no app-side timeout) hangs
-// until Vercel's 300s FUNCTION_INVOCATION_TIMEOUT in prod, and affiliate
-// bookings are not the current focus. NEXT_PUBLIC_BOOKINGS_ENABLED=true shows
-// the whole surface once flights work.
+// Affiliate booking surfaces stay hidden behind a default-off env gate; they
+// are not the current focus. NEXT_PUBLIC_BOOKINGS_ENABLED=true shows them.
 const BOOKINGS_ENABLED = process.env.NEXT_PUBLIC_BOOKINGS_ENABLED === "true";
 import {
   captureEditModeEntered,

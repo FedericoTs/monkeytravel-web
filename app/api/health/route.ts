@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { getCacheStats } from "@/lib/cache";
-import { getCacheStats as getAmadeusCacheStats } from "@/lib/amadeus/cache";
 import { circuitBreakerManager } from "@/lib/api-gateway/interceptors/circuit-breaker";
 
 const startedAt = Date.now();
@@ -74,12 +73,7 @@ export async function GET() {
 
   // 2. Cache health
   const cacheStats = getCacheStats();
-  const amadeusCacheStats = getAmadeusCacheStats();
-  const totalCacheEntries = cacheStats.memorySize + amadeusCacheStats.size;
-  const cacheStatus: "ok" | "degraded" =
-    cacheStats.memorySize > 900 || amadeusCacheStats.size > 900
-      ? "degraded"
-      : "ok";
+  const cacheStatus: "ok" | "degraded" = cacheStats.memorySize > 900 ? "degraded" : "ok";
 
   if (cacheStatus === "degraded" && overallStatus === "healthy") {
     overallStatus = "degraded";
@@ -88,7 +82,7 @@ export async function GET() {
   checks.push({
     name: "cache",
     status: cacheStatus,
-    message: `${totalCacheEntries} entries (unified: ${cacheStats.memorySize}, amadeus: ${amadeusCacheStats.size})`,
+    message: `${cacheStats.memorySize} entries`,
   });
 
   // 3. Circuit breaker status

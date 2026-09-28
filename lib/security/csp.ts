@@ -16,7 +16,7 @@
  *   the CSP migration. Pragmatic compromise — styles can't `<script>`-XSS.
  * - connect-src enumerates every backend the app talks to (Supabase auth +
  *   storage, Sentry ingest, PostHog, Vercel Insights, frankfurter FX,
- *   Pexels, Amadeus, Stripe, Google Maps APIs, open-meteo weather).
+ *   Pexels, Stripe, Google Maps APIs, open-meteo weather).
  * - dev mode (NODE_ENV !== "production") returns `null` so middleware
  *   doesn't attach the header at all. React Refresh + Turbopack rely on
  *   `eval()` and `new Function()` which would be blocked.

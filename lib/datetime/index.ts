@@ -19,9 +19,5 @@ export {
   formatDateRangeWithWeekdays,
   formatTime24h,
   formatDateTime,
-  formatISODuration,
-  formatMinutesToDuration,
-  formatSecondsToDuration,
-  formatLayover,
   formatDateToISO,
 } from "./format";

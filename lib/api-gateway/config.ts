@@ -26,11 +26,6 @@ export const API_COSTS: ApiCostConfig = {
   gemini_generate: 0.003,
   gemini_regenerate: 0.002,
 
-  // Amadeus APIs (estimates based on usage tier)
-  amadeus_flights: 0.01,
-  amadeus_hotels: 0.01,
-  amadeus_locations: 0, // Free tier
-
   // Free APIs (track for analytics)
   open_meteo: 0,
   pexels: 0,
@@ -43,7 +38,6 @@ export const RATE_LIMITS: Record<string, RateLimitConfig> = {
   google_places: { perMinute: 100, perDay: 5000 },
   google_geocoding: { perMinute: 50, perDay: 2500 },
   google_distance: { perMinute: 100, perDay: 5000 },
-  amadeus: { perMinute: 10, perDay: 2000 },
   gemini: { perMinute: 15, perDay: 1500 },
   pexels: { perMinute: 200, perDay: 20000 },
   open_meteo: { perMinute: 100, perDay: 10000 },
@@ -103,9 +97,6 @@ export function getRateLimit(apiName: string): RateLimitConfig | null {
     google_distance_matrix: "google_distance",
     gemini_generate: "gemini",
     gemini_regenerate: "gemini",
-    amadeus_flights: "amadeus",
-    amadeus_hotels: "amadeus",
-    amadeus_locations: "amadeus",
   };
 
   const category = categoryMap[apiName] || apiName;
