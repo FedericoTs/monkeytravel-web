@@ -33,12 +33,14 @@ export async function feedSnapshot(
   const nameOf = activityNameResolver(trip.itinerary);
   const events: FeedEvent[] = [];
 
+  // The three sources are independent, so they are read together.
+  const [{ data: parts, error: pErr }, actions, { expenses }] = await Promise.all([
+    admin.from("trip_participants").select("id, display_name, joined_at").eq("trip_id", trip.id).is("left_at", null),
+    todayActionsSnapshot(admin, trip.id, viewerCookieId, viewerUserId),
+    expensesSnapshot(admin, trip.id, trip.user_id, viewerUserId, viewerCookieId),
+  ]);
+
   // 1. Participant joins — named only ("someone is going" is noise, not signal).
-  const { data: parts, error: pErr } = await admin
-    .from("trip_participants")
-    .select("id, display_name, joined_at")
-    .eq("trip_id", trip.id)
-    .is("left_at", null);
   if (pErr) console.error("[feed] participants read failed:", pErr);
   for (const p of parts ?? []) {
     const name = (p.display_name as string | null)?.trim();
@@ -54,7 +56,6 @@ export async function feedSnapshot(
   }
 
   // 2. Chip actions — reuse the Today snapshot (active only, no cookie ids).
-  const actions = await todayActionsSnapshot(admin, trip.id, viewerCookieId, viewerUserId);
   for (const a of actions) {
     if (a.action_type === "running_late") {
       events.push({
@@ -91,7 +92,6 @@ export async function feedSnapshot(
 
   // 3. Expenses — reuse the ledger snapshot (authed + anonymous; paidByIsOwner
   //    already resolved). The viewer summary it also computes is ignored here.
-  const { expenses } = await expensesSnapshot(admin, trip.id, trip.user_id, viewerUserId, viewerCookieId);
   for (const e of expenses) {
     events.push({
       id: `exp:${e.id}`,

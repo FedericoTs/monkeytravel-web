@@ -80,18 +80,6 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // Owner or editor. Voters, viewers and non-members get 403; a trip the
-    // caller cannot see at all gets 404. user_id must be in the select:
-    // verifyTripAccess decides ownership from it.
-    const { trip, isOwner, errorResponse: tripError } = await verifyTripAccess(
-      supabase,
-      id,
-      user.id,
-      "id, user_id",
-      ["editor"]
-    );
-    if (tripError) return tripError;
-
     // Parse request body. An empty or truncated body is a client-side event
     // (a save superseded mid-upload by a newer one, or a tab closed while the
     // debounced PATCH was in flight) — answer 400, not a 500 that reads as a
@@ -102,6 +90,19 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     } catch {
       return errors.badRequest("Invalid or empty JSON body");
     }
+
+    // Owner or editor. Voters, viewers and non-members get 403; a trip the
+    // caller cannot see at all gets 404. user_id must be in the select:
+    // verifyTripAccess decides ownership from it. An itinerary save reads the
+    // stored itinerary in the same round trip, for keepStoredPlacePhotos below.
+    const { trip, isOwner, errorResponse: tripError } = await verifyTripAccess(
+      supabase,
+      id,
+      user.id,
+      body.itinerary !== undefined ? "id, user_id, itinerary" : "id, user_id",
+      ["editor"]
+    );
+    if (tripError) return tripError;
 
     // An editor asking for an owner-only change is refused outright rather
     // than having the field dropped: a 200 for a change that never happened
@@ -159,15 +160,7 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
       // put the curated fallbacks back over the real place photos (photo-only
       // writes don't move itinerary_version, so the check can't see it). Keep
       // a stored place photo on the same activity. lib/trips/keep-place-photos.ts
-      // Best effort: a failed read never fails the save.
-      try {
-        const { data: storedRow } = await supabase.from("trips").select("itinerary").eq("id", id).maybeSingle();
-        if (storedRow) {
-          updates.itinerary = keepStoredPlacePhotos(updates.itinerary as ItineraryDay[], (storedRow as { itinerary?: unknown }).itinerary).itinerary;
-        }
-      } catch (photoReadError) {
-        console.warn("[Trips] could not read stored photos before the save", photoReadError);
-      }
+      updates.itinerary = keepStoredPlacePhotos(updates.itinerary as ItineraryDay[], trip.itinerary).itinerary;
     }
 
     // Handle other allowed fields. `start_date` and `end_date` are

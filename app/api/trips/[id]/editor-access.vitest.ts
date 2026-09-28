@@ -56,9 +56,14 @@ function fakeSupabase() {
               single: async () =>
                 !world.tripVisible
                   ? { data: null, error: { code: "PGRST116" } }
-                  : cols.includes("itinerary")
-                    ? { data: { itinerary: world.itinerary ?? [], updated_at: STORED_AT }, error: null }
-                    : { data: { id: TRIP, user_id: OWNER }, error: null },
+                  : {
+                      data: {
+                        id: TRIP,
+                        user_id: OWNER,
+                        ...(cols.includes("itinerary") ? { itinerary: world.itinerary ?? [], updated_at: STORED_AT } : {}),
+                      },
+                      error: null,
+                    },
             };
             return q;
           },

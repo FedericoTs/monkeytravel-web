@@ -40,7 +40,7 @@ function fakeSupabase() {
           reads.push(cols);
           const q = {
             eq: () => q,
-            single: async () => ({ data: { id: TRIP, user_id: OWNER }, error: null }),
+            single: async () => ({ data: { id: TRIP, user_id: OWNER, ...stored }, error: null }),
             maybeSingle: async () => (hideOnReread ? { data: null, error: null } : { data: { ...stored }, error: null }),
           };
           return q;
@@ -176,11 +176,11 @@ describe("saves without a version", () => {
 });
 
 describe("not members", () => {
-  it("a voter is refused before any read of the itinerary", async () => {
+  it("a voter is refused after the one access read, and nothing is written", async () => {
     caller = "voter-1";
     role = "voter";
     expect((await patch({ itinerary: mine, baseItineraryVersion: 4 })).status).toBe(403);
-    expect(reads.filter((c) => c.includes("itinerary"))).toHaveLength(0);
+    expect(reads).toHaveLength(1);
     expect(writes).toHaveLength(0);
   });
 });
