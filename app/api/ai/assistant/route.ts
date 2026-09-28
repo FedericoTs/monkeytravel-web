@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { resolveAiLanguage, tripLocale, type SupportedLanguage } from "@/lib/ai/language";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import {
   logCacheMetrics,
   regenerateSingleDay,

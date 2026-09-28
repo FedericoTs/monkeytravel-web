@@ -12,8 +12,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const generateContent = vi.fn();
 
-vi.mock("@google/generative-ai", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@google/generative-ai")>();
+vi.mock("@/lib/ai/genai-compat", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/ai/genai-compat")>();
   return {
     ...actual,
     GoogleGenerativeAI: class {

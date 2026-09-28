@@ -5,7 +5,7 @@
  * IMPORTANT: This is a NEW file - reuses but does not modify existing code
  */
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import type {

@@ -22,7 +22,7 @@
  * structured JSON via responseSchema), including its rule that transient
  * failures return typed errors rather than throwing.
  */
-import { GoogleGenerativeAI, SchemaType, type ResponseSchema } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { recordGeminiUsage } from "@/lib/ai/gemini-cost";
 import type { RawImportedAnchor } from "./anchor-import-core";

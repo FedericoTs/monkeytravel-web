@@ -25,7 +25,7 @@
  * rewrites is saved first under --backup-dir (default: OS temp).
  */
 import { createClient } from "@supabase/supabase-js";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "../lib/ai/genai-compat";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";

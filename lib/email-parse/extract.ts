@@ -21,7 +21,7 @@
  * Activity.type at insert time.
  */
 
-import { GoogleGenerativeAI, SchemaType, type ResponseSchema } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
