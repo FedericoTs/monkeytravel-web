@@ -199,7 +199,7 @@ import {
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
 import { claimTripCreatedEmit } from "@/lib/analytics/tripCreatedDedup";
 import { usePostHog } from "@/lib/posthog";
-import { trackWizardEvent, type WizardEventStep } from "@/components/wizard/wizardEvents";
+import { landingAttribution, trackWizardEvent, type WizardEventStep } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip, type AutoSaveSkipReason } from "@/hooks/useAutoSaveTrip";
 import { isSameDestination } from "@/lib/trips/sameDestination";
 import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate";
@@ -701,7 +701,7 @@ export default function NewTripPage({
     }
     trackedStepsRef.current.add(step);
     if (step === 1) {
-      void trackWizardEvent("step_1_destination_dates", { locale });
+      void trackWizardEvent("step_1_destination_dates", { locale, ...landingAttribution() });
     } else if (step === 2) {
       void trackWizardEvent("step_2_vibes", {
         destination: destinationFieldRef.current || undefined,
