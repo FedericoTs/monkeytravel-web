@@ -1,0 +1,400 @@
+{
+  "days": [
+    {
+      "title": "Seminyak e Bali del Sud",
+      "theme": "Arrivo e Atmosfera da Spiaggia",
+      "activities": [
+        {
+          "name": "Check-in e Sistemazione",
+          "description": "Arriva alla tua villa o hotel a Seminyak. Rinfrescati dopo il volo e preparati per la magia di Bali.",
+          "tips": [
+            "La maggior parte degli hotel offre il check-in anticipato",
+            "Cambia un po' di valuta in aeroporto"
+          ]
+        },
+        {
+          "name": "Pranzo Tardo al Sisterfields",
+          "description": "Famoso caffè in stile australiano con ottimo caffè e opzioni di brunch salutari. Famoso su Instagram.",
+          "tips": [
+            "Le acai bowl sono fantastiche",
+            "Ottimo caffè - tra i migliori di Bali"
+          ]
+        },
+        {
+          "name": "Passeggiata sulla Spiaggia di Seminyak",
+          "description": "Passeggia lungo la spiaggia di sabbia dorata di Seminyak mentre il sole inizia la sua discesa. Vivace scena di bar sulla spiaggia.",
+          "tips": [
+            "Disponibili pouf sulla spiaggia",
+            "Ottimo per la fotografia"
+          ]
+        },
+        {
+          "name": "Tramonto al Ku De Ta",
+          "description": "Il beach club più iconico di Bali. Cocktail di classe mondiale con viste mozzafiato sul tramonto sull'Oceano Indiano.",
+          "tips": [
+            "Prenota un tavolo fronte mare per il tramonto",
+            "Il codice di abbigliamento è smart casual"
+          ]
+        },
+        {
+          "name": "Cena al Mama San",
+          "description": "Cucina asiatica sofisticata con piatti creativi del sud-est asiatico in un bellissimo ambiente industriale.",
+          "tips": [
+            "Prenota in anticipo",
+            "Prova i piatti a base di anatra e i dim sum"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Ubud: Arte e Cultura",
+      "theme": "Il Cuore della Cultura Balinese",
+      "activities": [
+        {
+          "name": "Viaggio a Ubud",
+          "description": "Un viaggio panoramico attraverso villaggi e risaie fino al cuore culturale di Bali. Noleggia un autista per la giornata.",
+          "tips": [
+            "Noleggia un autista per maggiore flessibilità",
+            "Fermati ai punti panoramici lungo il percorso"
+          ]
+        },
+        {
+          "name": "Terrazze di Riso di Tegallalang",
+          "description": "Iconiche risaie a terrazze scavate nelle colline. Passeggia tra le terrazze e vivi l'anima agricola di Bali.",
+          "tips": [
+            "Vai presto per evitare la folla",
+            "Le foto sull'altalena costano extra"
+          ]
+        },
+        {
+          "name": "Pranzo al Sari Organik",
+          "description": "Ristorante biologico 'dalla fattoria alla tavola' raggiungibile camminando attraverso le risaie. Viste spettacolari e cibo fresco.",
+          "tips": [
+            "La passeggiata attraverso le risaie fa parte dell'esperienza",
+            "Ordina il nasi campur"
+          ]
+        },
+        {
+          "name": "Santuario della Foresta delle Scimmie Sacre",
+          "description": "Antico complesso di templi in una giungla lussureggiante con centinaia di macachi balinesi dalla coda lunga. Atmosfera mistica.",
+          "tips": [
+            "Metti al sicuro i tuoi effetti personali - le scimmie afferrano tutto",
+            "Non stabilire contatto visivo o sorridere"
+          ]
+        },
+        {
+          "name": "Mercato dell'Arte di Ubud",
+          "description": "Mercato tradizionale che vende artigianato balinese, tessuti, dipinti e souvenir. La contrattazione è prevista.",
+          "tips": [
+            "Inizia a contrattare al 50% del prezzo richiesto",
+            "Prezzi migliori nel tardo pomeriggio"
+          ]
+        },
+        {
+          "name": "Danza Tradizionale Balinese",
+          "description": "Assisti alla famosa danza del fuoco Kecak al Palazzo di Ubud. Canti ipnotizzanti e narrazione drammatica.",
+          "tips": [
+            "Arriva presto per buoni posti",
+            "Diverse danze in diverse serate"
+          ]
+        },
+        {
+          "name": "Cena al Locavore",
+          "description": "Il ristorante più acclamato di Bali. Menu degustazione a più portate utilizzando il 95% di ingredienti indonesiani. Di classe mondiale.",
+          "tips": [
+            "Prenota con settimane di anticipo",
+            "Uno dei 50 migliori ristoranti dell'Asia"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Bali Spirituale",
+      "theme": "Templi e Purificazione",
+      "activities": [
+        {
+          "name": "Tempio dell'Acqua Tirta Empul",
+          "description": "Tempio sacro dell'acqua dove gli indù balinesi vengono per la purificazione rituale. Partecipa alla cerimonia di purificazione.",
+          "tips": [
+            "Porta un cambio di vestiti",
+            "Noleggio sarong disponibile - rispetta il sito sacro"
+          ]
+        },
+        {
+          "name": "Tempio Gunung Kawi",
+          "description": "Templi scavati nella roccia dell'XI secolo, scolpiti nelle pareti delle scogliere. 300 gradini che scendono attraverso le risaie. Mistico.",
+          "tips": [
+            "Molti gradini - è richiesta una buona forma fisica",
+            "Meno affollato rispetto ad altri templi"
+          ]
+        },
+        {
+          "name": "Pranzo al Warung Tepi Sawah",
+          "description": "Semplice warung con vista sulle risaie. Autentica cucina casalinga balinese a prezzi locali.",
+          "tips": [
+            "Prova il nasi campur Bali",
+            "Solo contanti"
+          ]
+        },
+        {
+          "name": "Spa Pomeridiana al Karsa Spa",
+          "description": "Spa boutique con vista sulle risaie. Massaggi balinesi tradizionali e trattamenti con bagno di fiori.",
+          "tips": [
+            "Il bagno di fiori è un must",
+            "Prenota in anticipo per una stanza con vista sulle risaie"
+          ]
+        },
+        {
+          "name": "Passeggiata sul Campuhan Ridge al Tramonto",
+          "description": "Facile passeggiata panoramica lungo un crinale tra due valli fluviali con viste mozzafiato. Un'esperienza iconica di Ubud.",
+          "tips": [
+            "Meglio all'alba o al tramonto",
+            "Circa 2 km a tratta"
+          ]
+        },
+        {
+          "name": "Cena all'Hujan Locale",
+          "description": "La celebrazione della cucina indonesiana di Will Meyrick. Piatti straordinari ispirati allo street food e alla cucina casalinga.",
+          "tips": [
+            "Prova il menu degustazione",
+            "Splendida ambientazione in un vecchio edificio olandese"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Alba sul Monte Batur e Sorgenti Termali",
+      "theme": "Avventura e Relax",
+      "activities": [
+        {
+          "name": "Trekking all'Alba sul Monte Batur",
+          "description": "Sali sul vulcano attivo per ammirare l'alba sopra le nuvole. Colazione cucinata sul vapore vulcanico in cima.",
+          "tips": [
+            "Guide obbligatorie - prenota in anticipo",
+            "Porta strati caldi per la cima"
+          ]
+        },
+        {
+          "name": "Sorgenti Termali Toya Devasya",
+          "description": "Sorgenti termali naturali con vista sul Monte Batur e sul Lago Batur. Perfetto recupero dopo il trekking mattutino.",
+          "tips": [
+            "Diverse piscine a diverse temperature",
+            "Porta il costume da bagno"
+          ]
+        },
+        {
+          "name": "Pranzo al Lakeview Restaurant",
+          "description": "Pranzo a buffet con viste spettacolari sul Lago Batur e sulla caldera. Piatti indonesiani e internazionali.",
+          "tips": [
+            "Richiedi un posto vicino alla finestra",
+            "Le viste sono il punto forte"
+          ]
+        },
+        {
+          "name": "Riposo Pomeridiano a Ubud",
+          "description": "Ritorna al tuo alloggio e riposa dopo la sveglia presto. Tempo in piscina o pisolino prima delle attività serali.",
+          "tips": [
+            "Avrai bisogno di riposare dopo la sveglia alle 2 del mattino",
+            "La maggior parte delle ville ha bellissime piscine"
+          ]
+        },
+        {
+          "name": "Yoga al Tramonto allo Yoga Barn",
+          "description": "Lo studio di yoga più famoso di Bali. Diverse lezioni giornaliere in padiglioni di bambù immersi nella natura.",
+          "tips": [
+            "Lezioni 'drop-in' benvenute",
+            "Controlla l'orario per la varietà delle lezioni"
+          ]
+        },
+        {
+          "name": "Cena al Mozaic",
+          "description": "Cucina raffinata in un'ambientazione romantica nel giardino. Fusione franco-asiatica utilizzando ingredienti indonesiani locali. Di classe mondiale.",
+          "tips": [
+            "Il menu degustazione è eccezionale",
+            "I tavoli in giardino sono i più romantici"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Tesori di Bali Est",
+      "theme": "Villaggi Autentici e Palazzo sull'Acqua",
+      "activities": [
+        {
+          "name": "Palazzo sull'Acqua Tirta Gangga",
+          "description": "Ex palazzo reale sull'acqua con piscine ornate, fontane e uno splendido sfondo montano. Eleganza balinese.",
+          "tips": [
+            "Cammina sui trampolini attraverso gli stagni di carpe koi",
+            "Meno affollato al mattino presto"
+          ]
+        },
+        {
+          "name": "Cascata Tukad Cepung",
+          "description": "Cascata nascosta all'interno di una grotta. Magica quando la luce del sole filtra. Uno dei luoghi più fotogenici di Bali.",
+          "tips": [
+            "Meglio dalle 9 alle 10 del mattino quando la luce entra nella grotta",
+            "Sono richiesti scale e attraversamento del fiume"
+          ]
+        },
+        {
+          "name": "Pranzo al Villaggio Tradizionale di Tenganan",
+          "description": "Visita uno dei villaggi originali di Bali. Ammira la tradizionale tessitura ikat e le antiche usanze ancora praticate.",
+          "tips": [
+            "Il tessuto double-ikat Geringsing è prodotto solo qui",
+            "Gli abitanti del villaggio sono felici di spiegare le tradizioni"
+          ]
+        },
+        {
+          "name": "Tempio di Lempuyang (Porte del Paradiso)",
+          "description": "Antico tempio con il famoso portale che incornicia il Monte Agung. L'iconica opportunità fotografica 'da Instagram' di Bali.",
+          "tips": [
+            "Lunghe code per le foto - è richiesta pazienza",
+            "Il riflesso a specchio è creato digitalmente"
+          ]
+        },
+        {
+          "name": "Viaggio a Sanur",
+          "description": "Un viaggio panoramico attraverso Bali Est per tornare alla costa sud. Fermati ai punti panoramici lungo il percorso.",
+          "tips": [
+            "Il tuo autista può suggerire percorsi panoramici",
+            "Splendide viste sulle risaie"
+          ]
+        },
+        {
+          "name": "Tramonto e Cena al The Lawn Canggu",
+          "description": "Ristorante e bar fronte mare sulla sabbia. Rilassati sui lettini, guarda il tramonto e gusta pesce fresco.",
+          "tips": [
+            "Prenota un lettino per il tramonto",
+            "Ottimi cocktail e pesce fresco"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Uluwatu e Beach Club",
+      "theme": "Templi sulla Scogliera e Magia del Tramonto",
+      "activities": [
+        {
+          "name": "Lezione di Surf Mattutina a Padang Padang",
+          "description": "Impara a fare surf in una delle spiagge più famose di Bali. Acqua calda, onde dolci per i principianti.",
+          "tips": [
+            "Le sessioni mattutine hanno le onde migliori",
+            "Attrezzatura e istruttore inclusi"
+          ]
+        },
+        {
+          "name": "Colazione al The Shady Shack",
+          "description": "Caffè salutare famoso per le smoothie bowl e i piatti a base vegetale. Popolare tra surfisti e appassionati di salute.",
+          "tips": [
+            "Le smoothie bowl sono famose su Instagram",
+            "Può essere affollato - arriva presto"
+          ]
+        },
+        {
+          "name": "Sundays Beach Club",
+          "description": "Esclusivo beach club sulla scogliera con accesso tramite funivia a una spiaggia privata. Acqua cristallina e scogliere mozzafiato.",
+          "tips": [
+            "Prenota un lettino in anticipo",
+            "Costo d'ingresso riscattabile in cibo e bevande"
+          ]
+        },
+        {
+          "name": "Tempio di Uluwatu",
+          "description": "Drammatico tempio sulla scogliera, arroccato a 70 metri sopra il mare. Sito sacro per gli indù balinesi. Scimmie sfacciate!",
+          "tips": [
+            "Fai attenzione alle scimmie - nascondi occhiali/gioielli",
+            "Sarong forniti all'ingresso"
+          ]
+        },
+        {
+          "name": "Danza del Fuoco Kecak a Uluwatu",
+          "description": "Iconica performance Kecak mentre il sole tramonta sull'oceano. Oltre 100 uomini che cantano con un finale di danza del fuoco.",
+          "tips": [
+            "Arriva 30 minuti prima per i posti migliori",
+            "Più spettacolare al tramonto"
+          ]
+        },
+        {
+          "name": "Cena d'Addio al Single Fin",
+          "description": "Leggendario surf bar e ristorante arroccato sulle scogliere di Uluwatu. Frutti di mare freschi, birra fredda e film di surf.",
+          "tips": [
+            "Le sessioni della domenica sono leggendarie",
+            "Ottimi tacos di pesce e hamburger"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Ultima Mattina e Partenza",
+      "theme": "Un Addio Tranquillo",
+      "activities": [
+        {
+          "name": "Alba sulla Spiaggia di Sanur",
+          "description": "La migliore spiaggia di Bali per l'alba. Acque calme, jogger locali e tradizionali barche da pesca jukung che rientrano.",
+          "tips": [
+            "Spiaggia rivolta a est, perfetta per l'alba",
+            "Il Monte Agung visibile nelle mattine limpide"
+          ]
+        },
+        {
+          "name": "Ultimo Trattamento Spa",
+          "description": "Ultimo massaggio balinese indulgente prima della partenza. Modo perfetto per decomprimere prima del viaggio.",
+          "tips": [
+            "Prenota alla spa dell'hotel per comodità",
+            "Richiedi tempo extra per il relax dopo"
+          ]
+        },
+        {
+          "name": "Brunch al Revolver Espresso",
+          "description": "Caffè nascosto in un vicolo con alcuni dei migliori caffè di Bali. Pasto finale perfetto prima dell'aeroporto.",
+          "tips": [
+            "Nascosto in un vicolo - cerca l'insegna",
+            "Ottimi flat white"
+          ]
+        },
+        {
+          "name": "Shopping dell'Ultimo Minuto",
+          "description": "Acquista gli ultimi souvenir o artigianato balinese. Boutique di qualità a Seminyak per articoli selezionati.",
+          "tips": [
+            "Kendra Gallery per artigianato di qualità",
+            "Kou Cuisine per spezie balinesi"
+          ]
+        },
+        {
+          "name": "Trasferimento all'Aeroporto",
+          "description": "Trasferimento privato all'Aeroporto Internazionale Ngurah Rai. Sampai jumpa lagi, Bali!",
+          "tips": [
+            "Prevedi tempo extra per il traffico di Bali",
+            "L'aeroporto ha buoni negozi duty-free"
+          ]
+        }
+      ]
+    }
+  ],
+  "packing": [],
+  "meta": {
+    "highlights": [
+      "Ammira l'alba all'antico tempio Ulun Danu Bratan",
+      "Fai trekking attraverso le splendide risaie di Tegallalang",
+      "Concediti trattamenti spa e benessere di classe mondiale",
+      "Vivi una tradizionale cerimonia balinese di purificazione dell'acqua",
+      "Insegui i tramonti in iconici beach club e templi"
+    ],
+    "packing_suggestions": [
+      "Vestiti leggeri e traspiranti",
+      "Sarong e fascia per le visite ai templi",
+      "Buone scarpe da passeggio per le risaie",
+      "Crema solare sicura per la barriera corallina",
+      "Repellente per zanzare",
+      "Giacca antipioggia leggera per acquazzoni improvvisi"
+    ],
+    "destination_best_for": [
+      "Benessere",
+      "Natura",
+      "Spiritualità",
+      "Romanticismo",
+      "Avventura"
+    ],
+    "weather_note": "Giugno è la stagione secca con temperature piacevoli (24-30°C). Tempo perfetto per l'esplorazione. Porta strati leggeri per le visite ai templi."
+  }
+}

@@ -132,6 +132,7 @@ export default function DestinationHero({
   disableApiCalls = false,
 }: DestinationHeroProps) {
   const t = useTranslations("common.destination");
+  const tTags = useTranslations("destinations.tags");
   const [destinationData, setDestinationData] = useState<DestinationData | null>(null);
   const [loading, setLoading] = useState(true);
   const heroImgRef = useRef<HTMLImageElement | null>(null);
@@ -415,7 +416,7 @@ export default function DestinationHero({
                 key={tag}
                 className="px-3 py-1 bg-white shadow-md text-slate-700 rounded-full text-sm border border-slate-100"
               >
-                {tag}
+                {tTags.has(tag) ? tTags(tag) : tag}
               </span>
             ))}
           </div>

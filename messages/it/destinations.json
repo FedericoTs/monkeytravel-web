@@ -212,7 +212,11 @@
     "family": "Famiglie",
     "wellness": "Benessere",
     "photography": "Fotografia",
-    "offbeat": "Fuori dai Sentieri"
+    "offbeat": "Fuori dai Sentieri",
+    "art": "Arte",
+    "architecture": "Architettura",
+    "scenic": "Panorami",
+    "wine": "Vino"
   },
   "bestTime": {
     "title": "Periodo Migliore per Visitare {city}",

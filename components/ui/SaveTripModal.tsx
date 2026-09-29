@@ -175,7 +175,7 @@ export default function SaveTripModal({
         response = await fetch(`/api/templates/${templateId}/copy`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ startDate }),
+          body: JSON.stringify({ startDate, locale }),
         });
       } else if (shareToken) {
         // Duplicate shared trip with new dates

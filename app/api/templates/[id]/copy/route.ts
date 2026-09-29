@@ -6,6 +6,7 @@ import type { ItineraryDay, Activity } from "@/types";
 import { completeReferralIfEligible } from "@/lib/referral/completion";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { incrementTemplateCopyCount } from "@/lib/explore/counters";
+import { templateItinerary, templateLocale, templateMeta, templatePacking, templateText } from "@/lib/templates/text";
 
 /**
  * POST /api/templates/[id]/copy
@@ -15,6 +16,7 @@ import { incrementTemplateCopyCount } from "@/lib/explore/counters";
  * Body:
  * - startDate: string (ISO date) - When the trip starts
  * - endDate: string (ISO date) - When the trip ends (optional, calculated from duration)
+ * - locale: en | es | it | pt - Language of the copied texts (default en)
  */
 export async function POST(
   request: NextRequest,
@@ -28,6 +30,7 @@ export async function POST(
     // Parse request body
     const body = await request.json();
     const { startDate } = body;
+    const locale = templateLocale(body.locale);
 
     if (!startDate) {
       return errors.badRequest("startDate is required");
@@ -66,8 +69,16 @@ export async function POST(
     const end = new Date(start);
     end.setDate(end.getDate() + durationDays - 1);
 
+    // The visitor saw the template in their language; the copy keeps it.
+    const text = templateText(template.id, locale, {
+      title: template.title,
+      short: template.template_short_description || template.description || "",
+      full: template.description || "",
+    });
+    const localizedItinerary = templateItinerary<ItineraryDay>(template.id, locale, template.itinerary || []);
+
     // Adjust itinerary dates and regenerate activity IDs
-    const adjustedItinerary: ItineraryDay[] = (template.itinerary || []).map(
+    const adjustedItinerary: ItineraryDay[] = localizedItinerary.map(
       (day: ItineraryDay, index: number) => {
         const dayDate = new Date(start);
         dayDate.setDate(dayDate.getDate() + index);
@@ -87,8 +98,8 @@ export async function POST(
     // Create the new trip for the user
     const newTrip = {
       user_id: user.id,
-      title: template.title,
-      description: template.description,
+      title: text.title,
+      description: text.full,
       start_date: startDate,
       end_date: end.toISOString().split("T")[0],
       status: "planning",
@@ -97,8 +108,15 @@ export async function POST(
       tags: template.tags,
       budget: template.budget,
       itinerary: adjustedItinerary,
-      trip_meta: template.trip_meta,
-      packing_list: template.packing_list,
+      trip_meta: {
+        ...templateMeta(template.id, locale, template.trip_meta ?? {}),
+        // Destination lookups read this before the title, which is localized now.
+        destination: template.template_destination ?? undefined,
+        country_code: template.template_country_code ?? undefined,
+      },
+      packing_list: Array.isArray(template.packing_list)
+        ? templatePacking(template.id, locale, template.packing_list)
+        : template.packing_list,
       // Don't copy template fields - this is a regular trip
       is_template: false,
     };

@@ -1,0 +1,412 @@
+{
+  "days": [
+    {
+      "title": "Chegada e Introdução a Shinjuku",
+      "theme": "Primeiras Impressões de Tóquio",
+      "notes": "Vá com calma no Dia 1 para se recuperar do jet lag. Shinjuku oferece a introdução perfeita à energia de Tóquio.",
+      "activities": [
+        {
+          "name": "Chegada em Narita e Trem para Shinjuku",
+          "description": "Pegue o Narita Express (N'EX) diretamente para a Estação Shinjuku. Compre um cartão Suica no aeroporto para viagens tranquilas durante toda a sua viagem.",
+          "tips": [
+            "Compre um JR Pass de 7 dias se planeja passeios de um dia",
+            "Compre um cartão Suica no aeroporto"
+          ]
+        },
+        {
+          "name": "Check-in e Exploração de Shinjuku",
+          "description": "Acomode-se no seu hotel e dê um passeio pelas movimentadas ruas de Shinjuku. Explore as imponentes lojas de departamento e se oriente.",
+          "tips": [
+            "Baixe o Google Maps offline para Tóquio",
+            "A estação tem mais de 200 saídas - memorize a sua"
+          ]
+        },
+        {
+          "name": "Observação no Edifício do Governo Metropolitano de Tóquio",
+          "description": "Vá para o deck de observação gratuito no 45º andar para vistas panorâmicas do pôr do sol sobre Tóquio. Em dias claros, você pode ver o Monte Fuji.",
+          "tips": [
+            "A torre norte tem as melhores vistas do pôr do sol",
+            "Aberto até as 22h30"
+          ]
+        },
+        {
+          "name": "Omoide Yokocho (Beco da Memória)",
+          "description": "Experimente a velha Tóquio neste beco atmosférico de minúsculos bares de yakitori. Aperte-se em um balcão de 6 lugares e desfrute de espetinhos grelhados com cerveja gelada.",
+          "tips": [
+            "Somente dinheiro na maioria das barracas",
+            "Aponte para o que parece bom - inglês limitado",
+            "Experimente o tsukune (almôndegas de frango)"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Antiga Asakusa e Moderna Akihabara",
+      "theme": "Contrastes do Leste de Tóquio",
+      "notes": "Comece cedo em Senso-ji para evitar as multidões, depois contraste com o paraíso da eletrônica e do anime de Akihabara.",
+      "activities": [
+        {
+          "name": "Templo Senso-ji ao Nascer do Sol",
+          "description": "Visite o templo mais antigo de Tóquio antes das multidões. Caminhe pelo icônico portão Kaminarimon e pela rua comercial Nakamise na tranquila luz da manhã.",
+          "tips": [
+            "Chegue antes das 7h para fotos vazias",
+            "O salão principal abre às 6h",
+            "Tire uma sorte omikuji (100 ienes)"
+          ]
+        },
+        {
+          "name": "Café da Manhã Tradicional Japonês",
+          "description": "Desfrute de um café da manhã tradicional japonês em um restaurante local. Arroz, sopa de missô, peixe grelhado, picles e tamago (ovo).",
+          "tips": [
+            "O bar mais antigo do Japão (1880) também serve um ótimo café da manhã",
+            "Experimente o coquetel Denki Bran"
+          ]
+        },
+        {
+          "name": "Cruzeiro pelo Rio Sumida",
+          "description": "Faça um cruzeiro panorâmico pelo rio de Asakusa a Odaiba ou aos Jardins Hamarikyu. Veja Tóquio da água e passe por pontes históricas.",
+          "tips": [
+            "O barco futurista Himiko vale o custo extra",
+            "Sente-se no lado direito para as melhores vistas"
+          ]
+        },
+        {
+          "name": "Akihabara Electric Town",
+          "description": "Mergulhe no famoso distrito de eletrônicos e otaku do Japão. Navegue por lojas de eletrônicos de vários andares, lojas de mangá e produtos de anime.",
+          "tips": [
+            "A Yodobashi Camera tem 9 andares de eletrônicos",
+            "Não perca os andares de gachapon (brinquedos em cápsulas)",
+            "Verifique a Mandarake para colecionáveis raros"
+          ]
+        },
+        {
+          "name": "Experiência em Maid Café",
+          "description": "Experimente a peculiar cultura dos maid cafés de Akihabara. Maids em trajes com babados servem comida fofa e cantam músicas.",
+          "tips": [
+            "A taxa de entrada é de cerca de 700 ienes por hora",
+            "O omurice com arte de ketchup é clássico"
+          ]
+        },
+        {
+          "name": "Jantar Izakaya em Ueno",
+          "description": "Termine o dia em um izakaya tradicional sob os trilhos do trem do mercado Ameyoko. Compartilhe pratos de yakitori, sashimi e cerveja japonesa.",
+          "tips": [
+            "Procure lanternas vermelhas indicando izakayas",
+            "Peça edamame e karaage para começar"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cultura Jovem de Harajuku e Shibuya",
+      "theme": "Moda e Cultura Pop",
+      "notes": "Explore o lado oeste da moda de Tóquio - da moda peculiar de Harajuku ao famoso cruzamento de Shibuya.",
+      "activities": [
+        {
+          "name": "Caminhada Matinal no Santuário Meiji",
+          "description": "Entre na floresta tranquila que cerca o Santuário Meiji, dedicado ao Imperador Meiji. O imponente portão torii e os caminhos de cascalho oferecem tranquilidade no centro de Tóquio.",
+          "tips": [
+            "Escreva um desejo em uma placa de madeira ema",
+            "Manhãs de fim de semana podem apresentar casamentos tradicionais"
+          ]
+        },
+        {
+          "name": "Harajuku e Takeshita Street",
+          "description": "Mergulhe na capital da moda jovem do Japão. Navegue por butiques coloridas, lojas vintage e experimente algodão doce arco-íris na Totti Candy Factory.",
+          "tips": [
+            "Visite durante a semana para evitar multidões",
+            "Não perca as lojas vintage na Cat Street nas proximidades"
+          ]
+        },
+        {
+          "name": "Caminhada Arquitetônica em Omotesando",
+          "description": "Passeie por Omotesando, a Champs-Élysées de Tóquio. Maravilhe-se com as lojas-conceito projetadas por arquitetos mundialmente famosos, incluindo Prada (Herzog & de Meuron) e Dior.",
+          "tips": [
+            "O shopping Omotesando Hills tem um design espiral único",
+            "Ótimo para observar pessoas nos fins de semana"
+          ]
+        },
+        {
+          "name": "Almoço no Afuri Ramen",
+          "description": "Experimente o famoso yuzu shio ramen de Tóquio neste local moderno. O caldo leve e cítrico é uma mudança refrescante do pesado tonkotsu.",
+          "tips": [
+            "Peça na máquina de venda automática - aperte os botões para os acompanhamentos",
+            "Peça macarrão extra (kaedama)"
+          ]
+        },
+        {
+          "name": "Experiência no Cruzamento de Shibuya",
+          "description": "Fique no cruzamento de pedestres mais movimentado do mundo. Até 3.000 pessoas atravessam de uma vez durante o horário de pico. Fotografe do Starbucks ou Shibuya Sky.",
+          "tips": [
+            "Melhores fotos do 2º andar do Starbucks",
+            "Atravesse você mesmo para a experiência completa"
+          ]
+        },
+        {
+          "name": "Pôr do Sol no Shibuya Sky",
+          "description": "Suba ao deck de observação na cobertura do Shibuya Scramble Square para vistas de 360 graus. O Sky Stage ao ar livre oferece vistas desobstruídas do pôr do sol.",
+          "tips": [
+            "Reserve os horários do pôr do sol com antecedência",
+            "As bolsas devem ser guardadas em armários"
+          ]
+        },
+        {
+          "name": "Jantar em Nonbei Yokocho",
+          "description": "Descubra o beco escondido de Shibuya com pequenos bares e restaurantes. Este atmosférico 'Beco dos Bêbados' sobreviveu à reconstrução pós-guerra.",
+          "tips": [
+            "A maioria dos bares acomoda apenas 6-8 pessoas",
+            "Procure a entrada dourada perto dos trilhos"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Tsukiji e Ginza Sofisticada",
+      "theme": "Excelência Culinária e Luxo",
+      "notes": "Hoje é tudo sobre comida - de frutos do mar frescos do mercado ao distrito gastronômico mais sofisticado de Tóquio.",
+      "activities": [
+        {
+          "name": "Café da Manhã no Mercado Externo de Tsukiji",
+          "description": "Explore o lendário mercado externo que permanece depois que o mercado interno se mudou para Toyosu. Experimente o sushi mais fresco, tamago e comida de rua de dezenas de barracas.",
+          "tips": [
+            "Chegue cedo para a melhor seleção",
+            "Experimente tamagoyaki no Yamacho",
+            "Fique na fila do Sushi Dai apenas se tiver 2+ horas"
+          ]
+        },
+        {
+          "name": "Jardins Hamarikyu",
+          "description": "Passeie por este jardim do período Edo com um lago de maré e uma casa de chá tradicional. O contraste de jardins históricos com arranha-céus modernos é a quintessência de Tóquio.",
+          "tips": [
+            "A casa de chá serve matcha com vistas",
+            "Bonito durante a temporada de cerejeiras em flor"
+          ]
+        },
+        {
+          "name": "Exploração do Distrito de Ginza",
+          "description": "Descubra o distrito comercial mais sofisticado de Tóquio. Navegue por lojas de departamento como Mitsukoshi e Wako, e explore os salões de comida subterrâneos (depachika).",
+          "tips": [
+            "Depachika (salões de comida no subsolo) têm amostras grátis",
+            "Ginza aos domingos se torna um paraíso para pedestres"
+          ]
+        },
+        {
+          "name": "Almoço no Ginza Kyubey",
+          "description": "Experimente o sushi omakase em um dos restaurantes de sushi mais prestigiados de Tóquio. Observe os mestres chefs prepararem cada peça no balcão.",
+          "tips": [
+            "O almoço é mais acessível que o jantar",
+            "Os assentos no balcão oferecem a melhor experiência"
+          ]
+        },
+        {
+          "name": "TeamLab Planets",
+          "description": "Mergulhe neste deslumbrante museu de arte digital. Caminhe pela água, ande em espelhos e faça parte das instalações de arte.",
+          "tips": [
+            "Use roupas que você possa enrolar - você anda pela água",
+            "Reserve online com antecedência - muitas vezes esgota"
+          ]
+        },
+        {
+          "name": "Jantar em Toyosu",
+          "description": "Termine o dia com um jantar casual de frutos do mar perto do novo Mercado de Toyosu. Sashimi fresco e donburi em restaurantes à beira do mercado.",
+          "tips": [
+            "Toyosu fecha cedo, mas os restaurantes próximos ficam abertos",
+            "LaLaport tem muitas opções"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Passeio de um Dia ao Monte Fuji e Hakone",
+      "theme": "Beleza Natural e Fontes Termais",
+      "notes": "Saia de Tóquio cedo para o marco mais icônico do Japão. O tempo claro é crucial para as vistas do Fuji - verifique as previsões.",
+      "activities": [
+        {
+          "name": "Shinkansen para Odawara",
+          "description": "Pegue o trem-bala da Estação de Tóquio para Odawara, porta de entrada para Hakone. A viagem mostra a lendária eficiência ferroviária do Japão.",
+          "tips": [
+            "Reserve assentos no lado direito para vistas do Fuji",
+            "Compre ekiben (bento de trem) na estação"
+          ]
+        },
+        {
+          "name": "Museu ao Ar Livre de Hakone",
+          "description": "Explore o primeiro museu ao ar livre do Japão com mais de 100 esculturas em meio à paisagem montanhosa. O Pavilhão Picasso abriga mais de 300 obras.",
+          "tips": [
+            "O ofuro para os pés com vista para as montanhas é gratuito com a entrada",
+            "Reserve no mínimo 2 horas"
+          ]
+        },
+        {
+          "name": "Teleférico de Hakone e Owakudani",
+          "description": "Ande de teleférico sobre vales vulcânicos até Owakudani. Veja as aberturas de enxofre ativas e coma os famosos ovos pretos cozidos em fontes termais (dizem que adicionam 7 anos à sua vida).",
+          "tips": [
+            "Dias claros oferecem vistas do Monte Fuji",
+            "Experimente os ovos pretos (5 por 500 ienes)"
+          ]
+        },
+        {
+          "name": "Cruzeiro de Navio Pirata no Lago Ashi",
+          "description": "Navegue pelo Lago Ashi em um navio pirata réplica com vistas do Monte Fuji refletido na água (em dias claros). Passe pelo famoso portão torii flutuante.",
+          "tips": [
+            "O navio Royal II tem o melhor convés superior",
+            "A manhã geralmente tem vistas mais claras do Fuji"
+          ]
+        },
+        {
+          "name": "Santuário de Hakone e Portão Torii",
+          "description": "Visite o antigo santuário aninhado em florestas à beira do lago. O portão torii vermelho-vivo na água é um dos locais mais fotografados do Japão.",
+          "tips": [
+            "Chegue de manhã cedo ou no final da tarde para fotos sem multidões",
+            "O museu do tesouro custa extra"
+          ]
+        },
+        {
+          "name": "Experiência Onsen",
+          "description": "Relaxe em um tradicional banho termal japonês. Muitos ryokans oferecem acesso a onsen para uso diurno, mesmo que você não esteja hospedado.",
+          "tips": [
+            "Tatuagens podem ser restritas - verifique antes",
+            "Lave-se bem antes de entrar no banho"
+          ]
+        },
+        {
+          "name": "Retorno a Tóquio",
+          "description": "Pegue o Romancecar limited express diretamente de volta para Shinjuku. Reserve um assento na janela virado para a frente para vistas panorâmicas.",
+          "tips": [
+            "Reserve o carro de observação frontal se disponível",
+            "Compre lanches na estação"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Arte de Roppongi e Futuro de Odaiba",
+      "theme": "Tóquio Moderna e Entretenimento",
+      "notes": "Explore o lado contemporâneo de Tóquio - museus de arte de classe mundial, arquitetura futurista e vistas da baía.",
+      "activities": [
+        {
+          "name": "Museu de Arte Mori em Roppongi Hills",
+          "description": "Visite um dos principais museus de arte contemporânea do Japão no 53º andar. Seu ingresso inclui a plataforma de observação Sky Deck na cobertura.",
+          "tips": [
+            "O Sky Deck custa 500 ienes a mais, mas vale a pena",
+            "Aberto até as 22h nos dias de semana"
+          ]
+        },
+        {
+          "name": "Almoço em Roppongi Hills",
+          "description": "Escolha entre diversas opções gastronômicas no complexo Roppongi Hills, de ramen a culinária internacional.",
+          "tips": [
+            "A praça de alimentação do subsolo tem opções de qualidade",
+            "Experimente Tsurutontan para tigelas gigantes de udon"
+          ]
+        },
+        {
+          "name": "O Centro Nacional de Arte de Tóquio",
+          "description": "Maravilhe-se com o maior centro de arte do Japão, abrigado em um deslumbrante edifício de vidro em forma de onda projetado por Kisho Kurokawa. Exposições rotativas significam que há sempre algo novo.",
+          "tips": [
+            "O próprio edifício é arte - entrada gratuita para o café",
+            "Fechado às terças-feiras"
+          ]
+        },
+        {
+          "name": "Odaiba e DiverCity",
+          "description": "Pegue a linha Yurikamome pela Rainbow Bridge até a área futurista da baía. Veja a estátua Gundam em tamanho real, explore shoppings e desfrute das vistas da orla.",
+          "tips": [
+            "O Gundam se move e acende à noite",
+            "Palette Town tem um museu de carros antigos e centros de jogos"
+          ]
+        },
+        {
+          "name": "Vista Noturna da Rainbow Bridge",
+          "description": "Observe a Baía de Tóquio se iluminar ao pôr do sol. Caminhe pelo calçadão à beira-mar ou veja do deck de observação do Aqua City.",
+          "tips": [
+            "A réplica da Estátua da Liberdade é um local popular para fotos",
+            "As cores da Rainbow Bridge mudam sazonalmente"
+          ]
+        },
+        {
+          "name": "Jantar no Bills Odaiba",
+          "description": "Termine o dia com um jantar com vista para o pôr do sol no famoso restaurante australiano conhecido pelos 'melhores ovos mexidos do mundo' e panquecas fofas.",
+          "tips": [
+            "Peça uma mesa na janela para vistas da baía",
+            "Reservas recomendadas para fins de semana"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Últimos Tesouros de Tóquio e Partida",
+      "theme": "Últimas Impressões",
+      "notes": "Aproveite os últimos momentos em Tóquio com um começo tranquilo antes de ir para o aeroporto.",
+      "activities": [
+        {
+          "name": "Cerejeiras em Flor no Parque Yoyogi",
+          "description": "Faça uma caminhada matinal no Parque Yoyogi. Se visitar durante a temporada de cerejeiras em flor, este é um dos melhores locais de hanami de Tóquio.",
+          "tips": [
+            "Manhãs de fim de semana apresentam artistas de rua e músicos",
+            "Traga um cobertor para hanami improvisado"
+          ]
+        },
+        {
+          "name": "Último Ramen no Ichiran",
+          "description": "Experimente as famosas cabines de refeição individual do Ichiran. Personalize seu ramen tonkotsu de acordo com suas preferências exatas através da folha de pedido.",
+          "tips": [
+            "Peça macarrão extra (kaedama) por 250 ienes",
+            "O nível do molho vermelho vai de 1 a 30"
+          ]
+        },
+        {
+          "name": "Compras de Última Hora",
+          "description": "Compre lembranças e lanches finais. Don Quijote (Donki) tem de tudo, de Kit-Kats a eletrônicos, e a maioria é isenta de impostos para turistas.",
+          "tips": [
+            "Traga seu passaporte para compras isentas de impostos",
+            "O Tokyo Banana e os Kit-Kats regionais são ótimos presentes"
+          ]
+        },
+        {
+          "name": "Narita Express para o Aeroporto",
+          "description": "Pegue o Narita Express de Shibuya/Shinjuku de volta para o aeroporto. Reserve 3 horas antes do seu voo para imigração e compras.",
+          "tips": [
+            "Bilhetes de ida e volta do N'EX têm desconto para turistas",
+            "O aeroporto tem excelentes compras de última hora"
+          ]
+        },
+        {
+          "name": "Partida",
+          "description": "Diga sayonara a Tóquio! Faça o check-in para o seu voo e explore as lojas duty-free do terminal para compras finais.",
+          "tips": [
+            "O Terminal 1 tem melhores restaurantes e lojas",
+            "Não perca a rua do ramen antes da segurança"
+          ]
+        }
+      ]
+    }
+  ],
+  "packing": [],
+  "meta": {
+    "highlights": [
+      "Testemunhe o famoso Cruzamento de Shibuya no horário de pico",
+      "Explore o antigo Templo Senso-ji ao nascer do sol antes das multidões",
+      "Experimente o melhor sushi do mundo no Mercado Externo de Tsukiji",
+      "Descubra a peculiar cultura da moda de Harajuku",
+      "Veja Tóquio de 350m de altura no Tokyo Skytree",
+      "Passeie pela serena floresta do Santuário Meiji no centro de Tóquio"
+    ],
+    "packing_suggestions": [
+      "Sapatos confortáveis para caminhar (você andará mais de 15.000 passos diariamente)",
+      "Reserva de Pocket Wi-Fi ou cartão SIM",
+      "Cartão IC para trens (Suica/Pasmo)",
+      "Pequena toalha (muitos banheiros não têm toalhas de papel)",
+      "Dinheiro (muitos lugares ainda aceitam apenas dinheiro)",
+      "Jaqueta leve para noites frescas"
+    ],
+    "destination_best_for": [
+      "Viajantes Solo",
+      "Entusiastas da Cultura",
+      "Amantes da Gastronomia",
+      "Amantes da Fotografia",
+      "Fãs de Anime"
+    ],
+    "weather_note": "Abril é ideal para Tóquio, com cerejeiras em flor e temperaturas em torno de 10-18°C. Leve camadas para noites frescas e um pequeno guarda-chuva para chuvas ocasionais de primavera."
+  }
+}

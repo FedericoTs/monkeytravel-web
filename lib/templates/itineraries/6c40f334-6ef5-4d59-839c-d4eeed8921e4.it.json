@@ -1,0 +1,207 @@
+{
+  "days": [
+    {
+      "title": "Benvenuto in Paradiso",
+      "theme": "Arrivo e Primo Tramonto",
+      "activities": [
+        {
+          "name": "Trasferimento dall'aeroporto a Fira",
+          "description": "Arriva all'aeroporto di Santorini e trasferisciti al tuo hotel a Fira. Goditi i tuoi primi scorci delle viste sulla caldera."
+        },
+        {
+          "name": "Check-in e Viste sulla Caldera",
+          "description": "Fai il check-in nel tuo hotel sulla scogliera e ammira le splendide viste sulla caldera. La maggior parte degli hotel offre drink di benvenuto con panorami mozzafiato.",
+          "tips": [
+            "Richiedi una camera con vista sulla caldera",
+            "La maggior parte dei check-in inizia alle 15:00"
+          ]
+        },
+        {
+          "name": "Esplorazione del Centro Storico di Fira",
+          "description": "Passeggia per le strade imbiancate a calce di Fira. Sfoglia gioiellerie, gallerie d'arte e scopri chiese nascoste con cupole blu."
+        },
+        {
+          "name": "Cena al Tramonto al Ristorante Argo",
+          "description": "Goditi il tuo primo tramonto a Santorini con la cucina tradizionale greca in questo ristorante con vista sulla caldera. Prova il pesce fresco e il vino locale Assyrtiko.",
+          "tips": [
+            "Prenota un tavolo in terrazza per le viste sul tramonto",
+            "Prova il polpo alla griglia"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cupole Blu e Viste sui Vigneti",
+      "theme": "L'Iconica Oia e Degustazione di Vini",
+      "activities": [
+        {
+          "name": "Mattinata nel Villaggio di Oia",
+          "description": "Esplora il villaggio più fotografato della Grecia presto, prima che arrivi la folla. Trova le famose chiese dalle cupole blu e scatta splendide foto della caldera.",
+          "tips": [
+            "Arriva prima delle 10:00 per meno folla",
+            "Le tre cupole blu sono vicino alla piazza principale"
+          ]
+        },
+        {
+          "name": "Brunch al Karma Cafe",
+          "description": "Goditi un brunch rilassante in questo affascinante caffè con viste mozzafiato. Perfetto per osservare la gente e rilassarsi."
+        },
+        {
+          "name": "Tour della Cantina Santo Wines",
+          "description": "Visita la cantina più famosa di Santorini per una degustazione dei vini locali Assyrtiko, Nykteri e Vinsanto. Le viste del tramonto sulla caldera sono spettacolari.",
+          "tips": [
+            "Prenota il pacchetto degustazione al tramonto",
+            "Prova il dolce vino da dessert Vinsanto"
+          ]
+        },
+        {
+          "name": "Cena ad Ammoudi Bay",
+          "description": "Scendi 300 gradini fino all'incantevole porto di pescatori di Ammoudi per gustare pesce fresco in riva all'acqua. Guarda le barche da pesca ondeggiare mentre il sole tramonta.",
+          "tips": [
+            "Prenota in anticipo in estate",
+            "La salita è impegnativa, prenditi il tuo tempo"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Sorgenti Termali e Spiagge Nere",
+      "theme": "Avventura Vulcanica",
+      "activities": [
+        {
+          "name": "Giro in Barca al Vulcano e alle Sorgenti Termali",
+          "description": "Prendi una barca per l'isola vulcanica di Nea Kameni. Fai un'escursione al cratere, poi nuota nelle sorgenti termali naturali di Palea Kameni.",
+          "tips": [
+            "Indossa il costume da bagno sotto i vestiti",
+            "Le sorgenti termali contengono zolfo che può macchiare i vestiti",
+            "Porta acqua e crema solare"
+          ]
+        },
+        {
+          "name": "Pranzo a Perissa Beach",
+          "description": "Rilassati sulla famosa spiaggia di sabbia nera e goditi una fresca insalata greca e pesce alla griglia in una taverna sulla spiaggia."
+        },
+        {
+          "name": "Sito Archeologico dell'Antica Thera",
+          "description": "Visita le rovine di un'antica città greca risalente al IX secolo a.C., drammaticamente arroccata su una cresta montuosa.",
+          "tips": [
+            "Meglio visitarlo nel tardo pomeriggio per evitare il caldo",
+            "Indossa scarpe comode"
+          ]
+        },
+        {
+          "name": "Cena nel Villaggio di Pyrgos",
+          "description": "Vivi un'esperienza culinaria raffinata in uno dei migliori ristoranti di Santorini, noto per le interpretazioni moderne della cucina tradizionale greca."
+        }
+      ]
+    },
+    {
+      "title": "Giornata Spa e Vela al Tramonto",
+      "theme": "Relax e Romanticismo",
+      "activities": [
+        {
+          "name": "Mattinata in Piscina e Spa",
+          "description": "Goditi una mattinata rilassante nella piscina a sfioro del tuo hotel con vista sulla caldera. Prenota un massaggio di coppia per un'esperienza romantica indimenticabile.",
+          "tips": [
+            "Prenota i trattamenti spa in anticipo",
+            "La luce del mattino è la migliore per le foto in piscina"
+          ]
+        },
+        {
+          "name": "Pranzo a Imerovigli",
+          "description": "Goditi la cucina tradizionale greca in questa taverna a conduzione familiare nel villaggio più tranquillo della caldera. Prova la moussaka e i pomodori ripieni."
+        },
+        {
+          "name": "Escursione a Skaros Rock",
+          "description": "Fai un'escursione a questa drammatica penisola rocciosa con un castello veneziano in rovina. Le viste a 360 gradi della caldera sono indimenticabili.",
+          "tips": [
+            "Indossa scarpe robuste",
+            "Porta acqua"
+          ]
+        },
+        {
+          "name": "Crociera Privata in Catamarano al Tramonto",
+          "description": "Naviga intorno alla caldera su un catamarano di lusso, nuotando in calette appartate e ammirando il famoso tramonto di Santorini dall'acqua con una cena barbecue.",
+          "tips": [
+            "Prenota la crociera semi-privata per un'esperienza migliore",
+            "Porta una giacca leggera per la sera"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Arrivederci a Santorini",
+      "theme": "Impressioni Finali",
+      "activities": [
+        {
+          "name": "Alba al Monastero del Profeta Elia",
+          "description": "Svegliati presto per l'alba nel punto più alto dell'isola. Visita lo storico monastero e goditi viste a 360 gradi dell'intera isola.",
+          "tips": [
+            "Vestiti in modo modesto per il monastero",
+            "Porta uno strato caldo per la mattina presto"
+          ]
+        },
+        {
+          "name": "Colazione al Melenio Cafe",
+          "description": "Goditi una colazione greca finale con frutta fresca, yogurt, miele e caffè forte ammirando la caldera."
+        },
+        {
+          "name": "Sito Archeologico di Akrotiri",
+          "description": "Esplora la Pompei dell'Egeo: un insediamento minoico dell'età del bronzo conservato dalla cenere vulcanica per 3.600 anni.",
+          "tips": [
+            "Noleggia un'audioguida per il contesto",
+            "Il sito è coperto, ottimo per qualsiasi condizione atmosferica"
+          ]
+        },
+        {
+          "name": "Pranzo Leggero e Partenza",
+          "description": "Goditi un ultimo pasto leggero a base di pesce fresco e insalata greca prima di dirigerti all'aeroporto."
+        },
+        {
+          "name": "Trasferimento Aeroportuale",
+          "description": "Trasferimento all'aeroporto di Santorini per il tuo volo di partenza. Kalí taxídi! (Buon viaggio!)"
+        }
+      ]
+    }
+  ],
+  "packing": [
+    "Passaporto e documenti di viaggio",
+    "Sandali comodi per camminare",
+    "Costume da bagno e copricostume",
+    "Strati leggeri per le serate",
+    "Crema solare SPF 50+",
+    "Occhiali da sole e cappello da sole",
+    "Fotocamera con batterie extra",
+    "Abito elegante per cene raffinate",
+    "Sciarpa leggera per i monasteri",
+    "Compresse per il mal di mare per le gite in barca",
+    "Bottiglia d'acqua riutilizzabile",
+    "Adattatore universale"
+  ],
+  "meta": {
+    "highlights": [
+      "Ammira il leggendario tramonto di Oia da un ristorante con vista sulla caldera",
+      "Nuota nelle sorgenti termali vulcaniche di Palea Kameni",
+      "Assaggia i pluripremiati vini Assyrtiko con vista sulla caldera",
+      "Naviga intorno alla caldera con una crociera privata al tramonto",
+      "Esplora le rovine di 3.600 anni ad Akrotiri",
+      "Passeggia per villaggi imbiancati a calce con le iconiche cupole blu"
+    ],
+    "packing_suggestions": [
+      "Sandali comodi per camminare sui ciottoli",
+      "Costume da bagno per spiagge e gite in barca",
+      "Strati leggeri per le serate fresche",
+      "Crema solare e cappello per il sole intenso",
+      "Fotocamera per viste mozzafiato",
+      "Abbigliamento smart casual per cene raffinate"
+    ],
+    "destination_best_for": [
+      "Coppie",
+      "Viaggi di nozze",
+      "Fotografi",
+      "Amanti del vino",
+      "Amanti della spiaggia"
+    ],
+    "weather_note": "Giugno offre un clima perfetto con temperature di 24-28°C, piogge minime e fino a 14 ore di luce diurna. Il famoso tramonto è intorno alle 20:30."
+  }
+}
