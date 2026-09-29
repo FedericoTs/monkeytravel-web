@@ -12,7 +12,7 @@ import {
 } from "@/lib/seo/structured-data";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { BlogCard } from "@/components/blog";
+import BlogCard from "@/components/blog/BlogCard";
 
 const SITE_URL = "https://monkeytravel.app";
 

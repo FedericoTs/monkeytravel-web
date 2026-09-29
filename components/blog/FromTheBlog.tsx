@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { getPostBySlug } from "@/lib/blog/api";
-import { BlogCard } from "@/components/blog";
+import BlogCard from "@/components/blog/BlogCard";
 
 interface FromTheBlogProps {
   slugs: string[];

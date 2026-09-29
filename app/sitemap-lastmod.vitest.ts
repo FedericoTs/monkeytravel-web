@@ -73,27 +73,26 @@ function gitAvailable(): boolean {
 }
 
 /**
- * Commits that touched a constant's files without changing what its pages show,
- * such as removing unused code. Listing one here beats a false lastmod bump.
+ * Commits that touched a constant's files without changing what its pages
+ * show. Subjects typed perf, chore, test, refactor, ci, build, style or docs
+ * never do; list the odd fix here by sha. Listing beats a false lastmod bump.
  */
-const NOT_CONTENT: Record<string, string[]> = {
-  LASTMOD_HOMEPAGE: ["3ad790852c4d2fea6757297b9a7a95f03f0e1773"],
-  LASTMOD_LANDING: ["54f1e84b0c9a14ad8c3af508c441bce9949a09ed"],
-  LASTMOD_DESTINATIONS: ["5817242889d8a0c14c227eefc56a993b2378f2c5"],
-};
+const NOT_CONTENT: Record<string, string[]> = {};
+const NOT_CONTENT_SUBJECT = /^(perf|chore|test|refactor|ci|build|style|docs)(\([^)]*\))?!?:/;
 
-/** YYYY-MM-DD of the newest commit touching any of `paths`, or null. */
+/** YYYY-MM-DD of the newest content commit touching any of `paths`, or null. */
 function lastCommitDate(name: string, paths: string[]): string | null {
   try {
     const out = execFileSync(
       "git",
-      ["log", "--format=%H %ad", "--date=short", "--", ...paths],
+      ["log", "--format=%H %ad %s", "--date=short", "--", ...paths],
       { cwd: REPO, encoding: "utf-8", stdio: ["ignore", "pipe", "ignore"] },
     ).trim();
     const skip = new Set(NOT_CONTENT[name] ?? []);
     for (const line of out.split("\n")) {
-      const [sha, date] = line.split(" ");
-      if (!skip.has(sha)) return /^\d{4}-\d{2}-\d{2}$/.test(date ?? "") ? date : null;
+      const [sha, date, ...subject] = line.split(" ");
+      if (skip.has(sha) || NOT_CONTENT_SUBJECT.test(subject.join(" "))) continue;
+      return /^\d{4}-\d{2}-\d{2}$/.test(date ?? "") ? date : null;
     }
     return null;
   } catch {

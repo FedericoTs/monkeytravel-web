@@ -1,10 +1,8 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Link } from "@/lib/i18n/routing";
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
-import { MARKETING_CLIENT_NAMESPACES, pickMessages } from "@/lib/i18n/client-messages";
 import PackingListClient from "./PackingListClient";
 import {
   generateBreadcrumbSchema,
@@ -87,9 +85,6 @@ export default async function PackingListPage({
   // already applied to the visa-checker sibling. getTranslations("breadcrumbs")
   // finds no namespace and throws MISSING_MESSAGE on every SSR render.
   const tBreadcrumbs = await getTranslations("common.breadcrumbs");
-  // The date picker is the wizard's and reads the trips namespace, which the
-  // marketing shell does not carry, so this page adds it for its own subtree.
-  const messages = await getMessages();
 
   const localePrefix = locale === "en" ? "" : `/${locale}`;
   const breadcrumbSchema = generateBreadcrumbSchema([
@@ -124,9 +119,7 @@ export default async function PackingListPage({
         </h1>
         <p className="text-lg text-slate-600 mb-8">{t("subtitle")}</p>
 
-        <NextIntlClientProvider messages={pickMessages(messages, [...MARKETING_CLIENT_NAMESPACES, "trips"])} locale={locale}>
-          <PackingListClient locale={locale} />
-        </NextIntlClientProvider>
+        <PackingListClient locale={locale} />
       </main>
       <Footer />
     </div>
