@@ -9,7 +9,7 @@
  * @see https://nextjs.org/docs/app/building-your-application/routing/error-handling
  */
 
-import * as Sentry from "@sentry/nextjs";
+import { sentry } from "@/lib/observability/sentry";
 import { reportBoundaryError } from "@/lib/observability/report-boundary-error";
 import { useEffect } from "react";
 import { safeGet, safeSet } from "@/lib/safe-storage";
@@ -56,12 +56,16 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
       const fiveMinAgo = Date.now() - 5 * 60 * 1000;
       if (!last || parseInt(last, 10) < fiveMinAgo) {
         safeSet(RELOAD_KEY, String(Date.now()), "session");
-        Sentry.captureMessage("ChunkLoadError auto-recovered via reload", {
-          level: "warning",
-          tags: { digest: error.digest, errorType: "chunk-load-recovery" },
-        });
-        // Defer so Sentry's beacon has a tick to fire.
-        setTimeout(() => window.location.reload(), 100);
+        sentry()
+          .then((Sentry) =>
+            Sentry.captureMessage("ChunkLoadError auto-recovered via reload", {
+              level: "warning",
+              tags: { digest: error.digest, errorType: "chunk-load-recovery" },
+            })
+          )
+          .catch(() => {})
+          // Defer so Sentry's beacon has a tick to fire.
+          .finally(() => setTimeout(() => window.location.reload(), 100));
         return;
       }
     }
