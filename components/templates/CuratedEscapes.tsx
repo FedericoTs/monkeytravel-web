@@ -5,9 +5,10 @@
 import { Link } from "@/lib/i18n/routing";
 import Image from "next/image";
 import { Sparkles, ChevronRight, Users, ArrowRight, MapPin } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@supabase/supabase-js";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { countryName, templateText } from "@/lib/templates/text";
 
 interface TemplateTrip {
   id: string;
@@ -65,7 +66,7 @@ function getGradient(destination: string) {
   return DESTINATION_GRADIENTS[key] || DESTINATION_GRADIENTS.default;
 }
 
-async function fetchTemplates(limit = 6): Promise<TemplateTrip[]> {
+async function fetchTemplates(limit: number, locale: string): Promise<TemplateTrip[]> {
   try {
     // Cookie-free anon client: public templates need no session, and reading
     // cookies would pin the homepage to a per-request render.
@@ -89,19 +90,26 @@ async function fetchTemplates(limit = 6): Promise<TemplateTrip[]> {
 
     if (error || !data) return [];
 
-    return data.map((t) => ({
-      id: t.id,
-      title: t.title,
-      description: t.template_short_description || t.description || "",
-      destination: t.template_destination || "",
-      country: t.template_country || "",
-      countryCode: t.template_country_code || "",
-      coverImageUrl: t.cover_image_url || "",
-      durationDays: t.template_duration_days || 0,
-      budgetTier: (t.template_budget_tier as TemplateTrip["budgetTier"]) || "moderate",
-      moodTags: t.template_mood_tags || [],
-      copyCount: t.template_copy_count || 0,
-    }));
+    return data.map((t) => {
+      const text = templateText(t.id, locale, {
+        title: t.title,
+        short: t.template_short_description || t.description || "",
+        full: t.description || "",
+      });
+      return {
+        id: t.id,
+        title: text.title,
+        description: text.short,
+        destination: t.template_destination || "",
+        country: countryName(t.template_country_code || "", locale, t.template_country || ""),
+        countryCode: t.template_country_code || "",
+        coverImageUrl: t.cover_image_url || "",
+        durationDays: t.template_duration_days || 0,
+        budgetTier: (t.template_budget_tier as TemplateTrip["budgetTier"]) || "moderate",
+        moodTags: t.template_mood_tags || [],
+        copyCount: t.template_copy_count || 0,
+      };
+    });
   } catch {
     return [];
   }
@@ -261,7 +269,7 @@ function SeeAllCard({ t }: { t: Awaited<ReturnType<typeof getTranslations<"commo
  */
 export default async function CuratedEscapes() {
   const t = await getTranslations("common.curatedEscapes");
-  const templates = await fetchTemplates(6);
+  const templates = await fetchTemplates(6, await getLocale());
 
   if (templates.length === 0) {
     return null;

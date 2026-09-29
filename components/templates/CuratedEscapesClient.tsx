@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Sparkles, ChevronRight, ChevronLeft, Users, ArrowRight, MapPin } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface TemplateTrip {
@@ -275,13 +275,14 @@ export default function CuratedEscapesClient() {
   const lastDragTime = useRef(0);
   const momentumFrame = useRef<number | null>(null);
 
+  const locale = useLocale();
   useEffect(() => {
     const fetchTemplates = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const response = await fetch("/api/templates?limit=6");
+        const response = await fetch(`/api/templates?limit=6&locale=${locale}`);
         if (!response.ok) throw new Error("Failed to fetch templates");
 
         const data = await response.json();
@@ -295,7 +296,7 @@ export default function CuratedEscapesClient() {
     };
 
     fetchTemplates();
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     const container = scrollRef.current;
