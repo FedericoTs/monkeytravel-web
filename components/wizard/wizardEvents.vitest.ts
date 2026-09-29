@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { landingAttribution } from "./wizardEvents";
+import { WIZARD_EVENT_STEPS, landingAttribution } from "./wizardEvents";
 
 function setReferrer(value: string) {
   Object.defineProperty(document, "referrer", { value, configurable: true });
@@ -29,5 +31,22 @@ describe("landingAttribution", () => {
     const out = landingAttribution();
     expect(out.referrer).toBeUndefined();
     expect(out.utm_source).toHaveLength(64);
+  });
+});
+
+describe("the step vocabulary", () => {
+  it("matches the CHECK constraint in the newest migration that defines it", () => {
+    const dir = join(process.cwd(), "supabase", "migrations");
+    const marker = "ADD CONSTRAINT wizard_step_events_step_check";
+    const newest = readdirSync(dir)
+      .filter((name) => name.endsWith(".sql"))
+      .sort()
+      .reverse()
+      .map((name) => readFileSync(join(dir, name), "utf8"))
+      .find((sql) => sql.includes(marker));
+    expect(newest).toBeDefined();
+    const check = (newest as string).slice((newest as string).indexOf(marker));
+    const inDatabase = [...check.matchAll(/'([a-z0-9_]+)'/g)].map((m) => m[1]);
+    expect(new Set(inDatabase)).toEqual(new Set(WIZARD_EVENT_STEPS));
   });
 });
