@@ -37,7 +37,9 @@ describe("sentry()", () => {
 
   it("fetches and initialises the SDK once, however many callers ask", async () => {
     const { configureSentry, sentry } = await import("./sentry");
-    const setup = vi.fn((Sentry: { init: (o: unknown) => void }) => Sentry.init({ dsn: "x" }));
+    const setup = vi.fn((Sentry: typeof import("@sentry/nextjs")) => {
+      Sentry.init({ dsn: "x" });
+    });
     configureSentry(setup);
 
     const [a, b] = await Promise.all([sentry(), sentry()]);
