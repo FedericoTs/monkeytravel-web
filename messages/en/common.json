@@ -2180,6 +2180,40 @@
     "moreCuratedTrips": "More curated trips",
     "browse": "Browse",
     "tryAgain": "Try again",
+    "all": "All",
+    "any": "Any",
+    "featured": "Featured",
+    "exploreItinerary": "Explore Itinerary",
+    "travelers": "{count, plural, one {# traveler} other {# travelers}}",
+    "found": "{count, plural, one {# itinerary found} other {# itineraries found}}",
+    "more": "{count, plural, one {# more curated escape} other {# more curated escapes}}",
+    "handPicked": "Hand-picked by experts",
+    "createTrip": "Create Trip",
+    "searchPlaceholder": "Search destinations...",
+    "clear": "Clear",
+    "durations": {
+      "five": "5 days",
+      "week": "1 week",
+      "tenPlus": "10+ days"
+    },
+    "empty": {
+      "title": "No itineraries found",
+      "body": "Try adjusting your filters to discover more curated escapes.",
+      "clear": "Clear filters"
+    },
+    "cta": {
+      "title": "Can't find what you're looking for?",
+      "body": "Create a personalized itinerary with our AI travel planner",
+      "button": "Create Custom Trip"
+    },
+    "filters": {
+      "title": "Filters",
+      "style": "Travel Style",
+      "duration": "Trip Duration",
+      "budget": "Budget Level",
+      "reset": "Reset All",
+      "apply": "Show Results"
+    },
     "moods": {
       "romantic": "Romantic",
       "adventure": "Adventure",

@@ -2180,6 +2180,40 @@
     "moreCuratedTrips": "Altri viaggi selezionati",
     "browse": "Sfoglia",
     "tryAgain": "Riprova",
+    "all": "Tutti",
+    "any": "Qualsiasi",
+    "featured": "In evidenza",
+    "exploreItinerary": "Esplora l'itinerario",
+    "travelers": "{count, plural, one {# viaggiatore} other {# viaggiatori}}",
+    "found": "{count, plural, one {# itinerario trovato} other {# itinerari trovati}}",
+    "more": "{count, plural, one {# altra fuga selezionata} other {# altre fughe selezionate}}",
+    "handPicked": "Selezionati da esperti",
+    "createTrip": "Crea viaggio",
+    "searchPlaceholder": "Cerca destinazioni...",
+    "clear": "Azzera",
+    "durations": {
+      "five": "5 giorni",
+      "week": "1 settimana",
+      "tenPlus": "10+ giorni"
+    },
+    "empty": {
+      "title": "Nessun itinerario trovato",
+      "body": "Prova a modificare i filtri per scoprire altre fughe selezionate.",
+      "clear": "Azzera i filtri"
+    },
+    "cta": {
+      "title": "Non trovi quello che cerchi?",
+      "body": "Crea un itinerario personalizzato con il nostro pianificatore di viaggi AI",
+      "button": "Crea un viaggio su misura"
+    },
+    "filters": {
+      "title": "Filtri",
+      "style": "Stile di viaggio",
+      "duration": "Durata del viaggio",
+      "budget": "Livello di budget",
+      "reset": "Azzera tutto",
+      "apply": "Mostra risultati"
+    },
     "moods": {
       "romantic": "Romantico",
       "adventure": "Avventura",

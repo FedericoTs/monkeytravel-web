@@ -2180,6 +2180,40 @@
     "moreCuratedTrips": "Más viajes seleccionados",
     "browse": "Ver",
     "tryAgain": "Intentar de nuevo",
+    "all": "Todos",
+    "any": "Cualquiera",
+    "featured": "Destacado",
+    "exploreItinerary": "Explorar itinerario",
+    "travelers": "{count, plural, one {# viajero} other {# viajeros}}",
+    "found": "{count, plural, one {# itinerario encontrado} other {# itinerarios encontrados}}",
+    "more": "{count, plural, one {# escapada seleccionada más} other {# escapadas seleccionadas más}}",
+    "handPicked": "Seleccionados por expertos",
+    "createTrip": "Crear viaje",
+    "searchPlaceholder": "Buscar destinos...",
+    "clear": "Borrar",
+    "durations": {
+      "five": "5 días",
+      "week": "1 semana",
+      "tenPlus": "10+ días"
+    },
+    "empty": {
+      "title": "No se encontraron itinerarios",
+      "body": "Prueba a ajustar los filtros para descubrir más escapadas seleccionadas.",
+      "clear": "Borrar filtros"
+    },
+    "cta": {
+      "title": "¿No encuentras lo que buscas?",
+      "body": "Crea un itinerario personalizado con nuestro planificador de viajes con IA",
+      "button": "Crear viaje a medida"
+    },
+    "filters": {
+      "title": "Filtros",
+      "style": "Estilo de viaje",
+      "duration": "Duración del viaje",
+      "budget": "Nivel de presupuesto",
+      "reset": "Restablecer todo",
+      "apply": "Ver resultados"
+    },
     "moods": {
       "romantic": "Romántico",
       "adventure": "Aventura",
