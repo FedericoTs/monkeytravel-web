@@ -2098,8 +2098,8 @@
     }
   },
   "authPrompt": {
-    "title": "Save Your Trip",
-    "subtitle": "Drop your email and we'll send a one-tap link to save your {destination} itinerary",
+    "title": "Keep this plan",
+    "subtitle": "Your {destination} plan is ready. One tap with Google, or a code by email. Free, no password.",
     "benefits": {
       "aiPowered": "Edit and regenerate any day",
       "saveEdit": "Save and access from any device",

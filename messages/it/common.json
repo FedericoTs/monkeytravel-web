@@ -2098,8 +2098,8 @@
     }
   },
   "authPrompt": {
-    "title": "Salva il Tuo Viaggio",
-    "subtitle": "Lascia la tua email e ti inviamo un link al volo per salvare l'itinerario di {destination}",
+    "title": "Salva questo piano",
+    "subtitle": "Il tuo piano per {destination} è pronto. Un tocco con Google, o un codice via email. Gratis, senza password.",
     "benefits": {
       "aiPowered": "Modifica e rigenera qualsiasi giorno",
       "saveEdit": "Salva e accedi da qualsiasi dispositivo",

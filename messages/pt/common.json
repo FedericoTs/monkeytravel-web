@@ -2098,8 +2098,8 @@
     }
   },
   "authPrompt": {
-    "title": "Salve Sua Viagem",
-    "subtitle": "Deixe seu e-mail e enviaremos um link de um toque para salvar seu roteiro de {destination}",
+    "title": "Guarde este plano",
+    "subtitle": "Seu plano para {destination} está pronto. Um toque com o Google, ou um código por e-mail. Grátis, sem senha.",
     "benefits": {
       "aiPowered": "Edite e regenere qualquer dia",
       "saveEdit": "Salve e acesse de qualquer dispositivo",
