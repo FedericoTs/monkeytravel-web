@@ -57,6 +57,18 @@ const VALID_TIERS = new Set(["free", "budget", "moderate", "expensive"]);
 
 /** Same cap as the wizard and the signed-in assistant (lib/ai/assistant/structural). */
 export const MAX_TRIP_DAYS = 14;
+/** The wizard's cap for a trip across several cities. */
+export const MAX_TRIP_DAYS_MULTI = 21;
+
+/**
+ * The longest this trip may be: its own cap, or its current length when it is
+ * already past it. Before this, a three-city trip longer than the single-city
+ * cap lost every edit to its last days, and a request about them was refused.
+ */
+export function maxTripDays(days: ItineraryDay[]): number {
+  const cap = days.some((d) => d.city) ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS;
+  return Math.max(cap, days.length);
+}
 /** Days one reply may rewrite; more would not fit the output budget. */
 const MAX_DAYS_PER_REPLY = 6;
 
@@ -147,6 +159,7 @@ function buildPrompt(input: AssistAnonInput): string {
   const language = LOCALE_LANGUAGE[input.locale ?? "en"] ?? "English";
   const cur = tripCurrency(input.days);
   const dayCount = input.days.length;
+  const maxDays = maxTripDays(input.days);
   const dateLine =
     input.startDate && input.endDate ? `Dates: ${input.startDate} to ${input.endDate} (${dayCount} days)\n` : "";
   const multiCity = input.days.some((d) => d.city);
@@ -164,7 +177,7 @@ Decide:
 - A QUESTION or general advice: answer it, and return "edits": [].
 - A request to CHANGE the plan: return every day that changes, each rewritten in full, in "edits". Keep the good parts of each day and leave days that don't need to change alone.
   - Moving or swapping activities between days changes BOTH days: return both.
-  - Adding or removing days, or changing how many nights a city gets: set "trip_length" to the new total number of days (1-${MAX_TRIP_DAYS}) and return every day whose content changes, including each NEW day in full. Days beyond "trip_length" are removed.${multiCity ? `
+  - Adding or removing days, or changing how many nights a city gets: set "trip_length" to the new total number of days (1-${maxDays}) and return every day whose content changes, including each NEW day in full. New days come first, before any existing day you also change. Days beyond "trip_length" are removed.${multiCity ? `
   - This is a multi-city trip: give each edited day its "city".` : ""}
   - Hotels: use only hotel names the traveller gives you or that already appear in the itinerary; never pick one for them. If they mention hotels you can't see ("the hotels I added"), ask for the names and return "edits": []. When they name where they're staying for certain nights, add a short "Check in at <place>" activity in the evening of the first of those days. The plan doesn't track hotel prices; say so if they ask for them.
   - At most ${MAX_DAYS_PER_REPLY} days per reply. If more need to change, do the first ${MAX_DAYS_PER_REPLY} and say which days are left.
@@ -176,7 +189,7 @@ Return STRICT JSON (no markdown) in this EXACT shape:
   "trip_length": null OR <new total number of days, only when adding or removing days>,
   "edits": [
     {
-      "day_number": <1-${MAX_TRIP_DAYS}>,${multiCity ? `
+      "day_number": <1-${maxDays}>,${multiCity ? `
       "city": "the city this day is in",` : ""}
       "summary": "One concise sentence, in ${language}, describing the change to this day.",
       "theme": "short day theme in ${language}",
@@ -268,12 +281,13 @@ export function validateEdits(
   cur: string
 ): { edits: DayEdit[]; tripLength?: number; lockedDays: { dayNumber: number; names: string[] }[]; lengthRefused: boolean } {
   const current = days.length;
+  const max = maxTripDays(days);
   const byDay = new Map<number, DayEdit>();
   for (const r of raw.edits) {
     if (!r || typeof r !== "object") continue;
     const e = r as Record<string, unknown>;
     const dayNumber = Math.round(num(e.day_number, 0));
-    if (dayNumber < 1 || dayNumber > MAX_TRIP_DAYS) continue;
+    if (dayNumber < 1 || dayNumber > max) continue;
     const activities = (Array.isArray(e.activities) ? e.activities : [])
       .map((x, i) => normalizeActivity(x, i, cur))
       .filter((x): x is Activity => x !== null);
@@ -290,7 +304,7 @@ export function validateEdits(
   let length = current;
   let lengthRefused = false;
   const wanted = Math.round(num(raw.tripLength, current));
-  if (wanted !== current && wanted >= 1 && wanted <= MAX_TRIP_DAYS) {
+  if (wanted !== current && wanted >= 1 && wanted <= max) {
     const added = Array.from({ length: Math.max(0, wanted - current) }, (_, i) => current + 1 + i);
     const dropped = days.filter((d) => d.day_number > wanted);
     const lockedDrop = dropped.some((d) => lockedActivityNames(d).length > 0);

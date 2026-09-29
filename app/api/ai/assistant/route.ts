@@ -49,7 +49,9 @@ import { formatMinutesToTime } from "@/lib/datetime/format";
 import { withDayTarget } from "@/lib/ai/assistant/day-target";
 import {
   claimsItineraryChange,
+  claimsToRemember,
   nothingChangedReply,
+  nothingKeptReply,
   pendingChangeReply,
 } from "@/lib/ai/assistant/honesty";
 
@@ -2212,14 +2214,19 @@ Respond with valid JSON only.`;
     // reply may not say otherwise, whatever the prompt got out of the model:
     // one user got eight such replies in three days (2026-09-20..22) with the
     // prompt rule in place, and deleted the trip. lib/ai/assistant/honesty.ts.
+    // "Noted" and "recorded" claim a memory this assistant does not have:
+    // only the last few messages come back with the next prompt.
     let honestyGuarded = false;
-    if (!changeWasSaved && claimsItineraryChange(parsedResponse.summary)) {
+    const claimedChange = claimsItineraryChange(parsedResponse.summary);
+    if (!changeWasSaved && (claimedChange || claimsToRemember(parsedResponse.summary))) {
       console.warn(
-        `[AI Assistant] honesty guard replaced a change claim (${actionTaken ? "change pending" : "nothing prepared"}): "${String(parsedResponse.summary).slice(0, 120)}"`
+        `[AI Assistant] honesty guard replaced a ${claimedChange ? "change" : "memory"} claim (${actionTaken ? "change pending" : "nothing prepared"}): "${String(parsedResponse.summary).slice(0, 120)}"`
       );
       parsedResponse.summary = actionTaken
         ? pendingChangeReply(userLanguage, applyButtonLabel(userLanguage))
-        : nothingChangedReply(userLanguage);
+        : claimedChange
+          ? nothingChangedReply(userLanguage)
+          : nothingKeptReply(userLanguage);
       honestyGuarded = true;
     }
 
