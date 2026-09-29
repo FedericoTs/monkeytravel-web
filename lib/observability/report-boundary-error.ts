@@ -1,4 +1,4 @@
-import * as Sentry from "@sentry/nextjs";
+import { sentry } from "@/lib/observability/sentry";
 
 /**
  * Report an error caught by a React error boundary, with enough context that
@@ -78,21 +78,30 @@ function resolveRawStack(error: Error & { digest?: string }): string {
 export function reportBoundaryError(
   error: Error & { digest?: string },
   errorType: string
-): void {
-  Sentry.withScope((scope) => {
-    scope.setTag("errorType", errorType);
-    if (error.digest) scope.setTag("digest", error.digest);
+): Promise<void> {
+  // Read now, before the SDK import resolves: the whole point is to keep the
+  // raw stack even if Sentry parses no frames.
+  const rawStack = resolveRawStack(error);
+  const pathname = typeof window !== "undefined" ? window.location.pathname : null;
 
-    scope.setContext("boundary", {
-      name: error.name,
-      message: error.message,
-      digest: error.digest ?? null,
-      // The whole point: keep the raw stack even if Sentry parses no frames.
-      rawStack: resolveRawStack(error),
-      pathname:
-        typeof window !== "undefined" ? window.location.pathname : null,
+  return sentry()
+    .then((Sentry) => {
+      Sentry.withScope((scope) => {
+        scope.setTag("errorType", errorType);
+        if (error.digest) scope.setTag("digest", error.digest);
+
+        scope.setContext("boundary", {
+          name: error.name,
+          message: error.message,
+          digest: error.digest ?? null,
+          rawStack,
+          pathname,
+        });
+
+        Sentry.captureException(error);
+      });
+    })
+    .catch(() => {
+      /* SDK blocked or not loadable: nothing else to do with an error report */
     });
-
-    Sentry.captureException(error);
-  });
 }

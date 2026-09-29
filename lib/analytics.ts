@@ -16,7 +16,7 @@
  * @see https://developers.google.com/analytics/devguides/collection/ga4/events
  */
 
-const sentry = () => import("@sentry/nextjs");
+import { sentry } from "@/lib/observability/sentry";
 
 // Type definitions for gtag
 declare global {

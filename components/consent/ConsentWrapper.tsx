@@ -12,15 +12,34 @@
  * check resolves, which flashes every client component below — Navbar's
  * auth skeleton, CuratedEscapes' loading state, etc. Always render the
  * provider; it tolerates `userId={null}` and re-runs its effect when
- * userId becomes set. The CookieConsentBanner self-hides when
- * `bannerStatus !== "visible"`, so it's safe to always render too.
+ * userId becomes set.
  */
 
 import { ReactNode } from "react";
-import { ConsentProvider } from "@/lib/consent";
-import { CookieConsentBanner } from "./CookieConsentBanner";
-import { CookieSettingsModal } from "./CookieSettingsModal";
+import dynamic from "next/dynamic";
+import { ConsentProvider, useConsent } from "@/lib/consent";
 import { useAuth } from "@/components/auth/AuthProvider";
+
+// Fetched only when there is something to show: most visitors have answered.
+const CookieConsentBanner = dynamic(
+  () => import("./CookieConsentBanner").then((m) => m.CookieConsentBanner),
+  { ssr: false }
+);
+const CookieSettingsModal = dynamic(
+  () => import("./CookieSettingsModal").then((m) => m.CookieSettingsModal),
+  { ssr: false }
+);
+
+/** The banner stays mounted while the settings modal is open so it keeps its state. */
+function ConsentUi() {
+  const { bannerStatus } = useConsent();
+  return (
+    <>
+      {bannerStatus !== "hidden" && <CookieConsentBanner />}
+      {bannerStatus === "settings_open" && <CookieSettingsModal />}
+    </>
+  );
+}
 
 interface ConsentWrapperProps {
   children: ReactNode;
@@ -37,8 +56,7 @@ export function ConsentWrapper({ children }: ConsentWrapperProps) {
   return (
     <ConsentProvider userId={userId}>
       {children}
-      <CookieConsentBanner />
-      <CookieSettingsModal />
+      <ConsentUi />
     </ConsentProvider>
   );
 }

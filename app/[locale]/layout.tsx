@@ -23,7 +23,7 @@ import PageViewBeacon from "@/components/analytics/PageViewBeacon";
 import AuthEventTracker from "@/components/analytics/AuthEventTracker";
 import EngagementBeacon from "@/components/analytics/EngagementBeacon";
 import MaintenanceWrapper from "@/components/MaintenanceWrapper";
-import { ConsentWrapper } from "@/components/consent";
+import { ConsentWrapper } from "@/components/consent/ConsentWrapper";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import "@/app/globals.css";
 

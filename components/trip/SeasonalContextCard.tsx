@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations, useLocale as useNextIntlLocale } from "next-intl";
-import * as Sentry from "@sentry/nextjs";
+import { sentry } from "@/lib/observability/sentry";
 import { SeasonalContext } from "@/types";
 import {
   buildSeasonalContext,
@@ -130,9 +130,13 @@ export default function SeasonalContextCard({
         const isAbort = error instanceof Error && error.name === "AbortError";
         if (isAbort || cancelled || controller.signal.aborted) return;
         console.error("Failed to fetch weather:", error);
-        Sentry.captureException(error, {
-          tags: { component: "SeasonalContextCard", endpoint: "/api/weather" },
-        });
+        sentry()
+          .then((Sentry) =>
+            Sentry.captureException(error, {
+              tags: { component: "SeasonalContextCard", endpoint: "/api/weather" },
+            })
+          )
+          .catch(() => {});
       } finally {
         if (!cancelled && !controller.signal.aborted) {
           setWeatherLoading(false);

@@ -1,14 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Link } from '@/lib/i18n/routing';
 import { isAdmin } from '@/lib/admin';
 import { useAuth } from '@/components/auth/AuthProvider';
-import ReferralModal from '@/components/referral/ReferralModal';
 import { Gift } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
-import NotificationBell from '@/components/notifications/NotificationBell';
 import { useTranslations } from 'next-intl';
+
+// Loaded on demand: the modal when first opened, the bell only for signed-in visitors.
+const ReferralModal = dynamic(() => import('@/components/referral/ReferralModal'), { ssr: false });
+const NotificationBell = dynamic(() => import('@/components/notifications/NotificationBell'), {
+  ssr: false,
+  loading: () => <span className="inline-block h-9 w-9" aria-hidden />,
+});
 
 interface NavLink {
   href: string;
@@ -47,6 +53,11 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
   const { user } = useAuth();
   const loading = false;
   const [referralModalOpen, setReferralModalOpen] = useState(false);
+  const [referralModalMounted, setReferralModalMounted] = useState(false);
+  const openReferralModal = () => {
+    setReferralModalMounted(true);
+    setReferralModalOpen(true);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -99,7 +110,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
               </Link>
             )}
             <button
-              onClick={() => setReferralModalOpen(true)}
+              onClick={openReferralModal}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium text-sm hover:from-amber-600 hover:to-orange-600 transition-colors shadow-md"
             >
               <Gift className="w-4 h-4" />
@@ -200,7 +211,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      setReferralModalOpen(true);
+                      openReferralModal();
                     }}
                     className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium"
                   >
@@ -267,10 +278,12 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
       )}
 
       {/* Referral Modal */}
-      <ReferralModal
-        isOpen={referralModalOpen}
-        onClose={() => setReferralModalOpen(false)}
-      />
+      {referralModalMounted && (
+        <ReferralModal
+          isOpen={referralModalOpen}
+          onClose={() => setReferralModalOpen(false)}
+        />
+      )}
     </>
   );
 }

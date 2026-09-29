@@ -138,7 +138,7 @@ function preloadResultViewChunks(): void {
   warm(import("@/components/trip/ExportMenu"));
   warm(import("@/components/trip/AnonymousShareButton"));
 }
-import * as Sentry from "@sentry/nextjs";
+import { sentry } from "@/lib/observability/sentry";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
 // Step-1 editorial entry; see lib/wizard/entry-state.ts for the arrival model.
 import WizardMasthead from "@/components/wizard/WizardMasthead";
@@ -1454,14 +1454,18 @@ export default function NewTripPage({
             : /invalid|required|missing|validation/i.test(errMsg)
               ? "validation"
               : "unknown";
-    Sentry.withScope((scope) => {
-      scope.setTag("feature", "auto_save");
-      scope.setTag("arm", "auto");
-      scope.setTag("error_class", errorClass);
-      scope.setExtra("attempts", info.attempts);
-      scope.setExtra("destination", destination);
-      Sentry.captureException(err);
-    });
+    sentry()
+      .then((Sentry) => {
+        Sentry.withScope((scope) => {
+          scope.setTag("feature", "auto_save");
+          scope.setTag("arm", "auto");
+          scope.setTag("error_class", errorClass);
+          scope.setExtra("attempts", info.attempts);
+          scope.setExtra("destination", destination);
+          Sentry.captureException(err);
+        });
+      })
+      .catch(() => {});
     void trackWizardEvent(
       "save_failed",
       { destination, group_size: tripIntent, backpacker_mode: travelStyle === "backpacker", locale }

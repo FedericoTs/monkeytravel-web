@@ -23,7 +23,7 @@ beforeEach(() => {
 
 async function report(error: Error & { digest?: string }, type = "locale-root-error") {
   const { reportBoundaryError } = await import("./report-boundary-error");
-  reportBoundaryError(error, type);
+  await reportBoundaryError(error, type);
 }
 
 const ctx = () =>
