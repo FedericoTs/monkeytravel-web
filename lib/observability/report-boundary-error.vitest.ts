@@ -10,9 +10,12 @@ const captureException = vi.fn();
 const setTag = vi.fn();
 const setContext = vi.fn();
 
-vi.mock("@sentry/nextjs", () => ({
-  captureException: (...a: unknown[]) => captureException(...a),
-  withScope: (fn: (scope: unknown) => void) => fn({ setTag, setContext }),
+vi.mock("@/lib/observability/sentry", () => ({
+  sentry: () =>
+    Promise.resolve({
+      captureException: (...a: unknown[]) => captureException(...a),
+      withScope: (fn: (scope: unknown) => void) => fn({ setTag, setContext }),
+    }),
 }));
 
 beforeEach(() => {

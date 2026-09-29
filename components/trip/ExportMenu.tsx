@@ -7,6 +7,7 @@ import type { PremiumTripForExport } from "@/lib/export/pdf";
 import { downloadICS } from "@/lib/export/calendar";
 import { useTranslations } from "next-intl";
 import { capture } from "@/lib/posthog/events";
+import { sentry } from "@/lib/observability/sentry";
 
 // Lazy loaders for PDF export (~75KB saved from initial bundle)
 const lazyLoadPdfExport = () => import("@/lib/export/pdf");
@@ -51,7 +52,7 @@ export default function ExportMenu({ trip, destination, meta, coverImageUrl, gal
     console.error(`[ExportMenu] ${format} export failed`, message);
     setExportError(t("exportFailed"));
     capture("trip_export_failed", { format, surface });
-    import("@sentry/nextjs")
+    sentry()
       .then((Sentry) => {
         Sentry.captureException?.(error instanceof Error ? error : new Error(message), {
           tags: { source: "ExportMenu", subsystem: "export" },
