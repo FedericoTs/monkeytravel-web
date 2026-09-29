@@ -72,6 +72,10 @@
       "schedule": "12 5 * * *"
     },
     {
+      "path": "/api/cron/audit-rls-drift",
+      "schedule": "27 5 * * *"
+    },
+    {
       "path": "/api/cron/spend-alert",
       "schedule": "20 6 * * *"
     },
