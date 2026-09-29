@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     alerted = await sendOpsAlert("Password reset may be broken", [
       `In the last ${WINDOW_DAYS} days ${health.recovery_users} people requested a password reset (${health.recoveries} requests) and nobody's password changed.`,
       "That is the signature of a reset link that lands somewhere it cannot be completed.",
-      "Check: auth.audit_log_entries (user_recovery_requested vs user_updated_password) and app/[locale]/auth/reset-password.",
+      "Check: auth.audit_log_entries (user_recovery_requested vs user_updated_password) and app/[locale]/(app)/auth/reset-password.",
     ]);
   }
   return NextResponse.json({ ok: true, windowDays: WINDOW_DAYS, ...health, broken, alerted });

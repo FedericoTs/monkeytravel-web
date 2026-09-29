@@ -28,7 +28,7 @@
  * it invisible to JavaScript, which is exactly the point — and also breaks
  * every client-side auth read in the app, including the global
  * `components/auth/AuthProvider.tsx` context and the password-recovery flow
- * in `app/[locale]/auth/reset-password/page.tsx`.
+ * in `app/[locale]/(app)/auth/reset-password/page.tsx`.
  *
  * Setting it here would ALSO be quietly asymmetric: browsers refuse to honour
  * HttpOnly from `document.cookie`, so the browser client would keep writing a

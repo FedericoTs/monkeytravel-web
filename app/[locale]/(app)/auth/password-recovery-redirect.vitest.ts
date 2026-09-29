@@ -30,6 +30,7 @@ const FORGOT_PASSWORD = path.join(
   process.cwd(),
   "app",
   "[locale]",
+  "(app)",
   "auth",
   "forgot-password",
   "page.tsx"
@@ -39,6 +40,7 @@ const RESET_PASSWORD = path.join(
   process.cwd(),
   "app",
   "[locale]",
+  "(app)",
   "auth",
   "reset-password",
   "page.tsx"

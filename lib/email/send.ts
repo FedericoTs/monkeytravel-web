@@ -170,7 +170,7 @@ export const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null
   vote_cast: "collabVotes",
   // Pre-trip cascade — gated by emailNotifications + tripReminders. The
   // tripReminders key is already populated at signup
-  // (app/auth/callback/route.ts + app/[locale]/auth/signup/page.tsx);
+  // (app/auth/callback/route.ts + app/[locale]/(app)/auth/signup/page.tsx);
   // we just honour it here. Read failure is fail-closed per cycle-7 #216.
   trip_reminder: "tripReminders",
   // Post-trip re-engagement — marketing, NOT transactional. Deliberately

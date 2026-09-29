@@ -183,7 +183,7 @@ function coerceStatus(raw: unknown): VisaStatus {
  * BUNDLE NOTE: matrix.json is 2.4MB and this module is `server-only` so it can
  * never be pulled into a client chunk. Callers must pass the RESULT down to
  * client components, never the module — the same discipline
- * app/[locale]/trips/new/page.tsx applies to the 477KB destinations dataset it
+ * app/[locale]/(app)/trips/new/page.tsx applies to the 477KB destinations dataset it
  * was previously dragging into the wizard bundle.
  */
 export function getPassportSummary(

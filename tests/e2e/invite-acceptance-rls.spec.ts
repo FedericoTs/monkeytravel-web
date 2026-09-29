@@ -122,7 +122,7 @@ test.describe("invite RLS lockdown — public surface @prod", () => {
     expect(response?.status()).toBe(200);
 
     // Should show the "Create Your Own Trip" CTA that lives in the
-    // error branch of app/[locale]/invite/[token]/page.tsx. Match the
+    // error branch of app/[locale]/(app)/invite/[token]/page.tsx. Match the
     // English copy; the page resolves to /en for the default locale.
     await expect(
       page.getByRole("link", { name: /create your own trip/i })

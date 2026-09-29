@@ -89,7 +89,7 @@ describe("profile page beta access", () => {
       "ai_regenerations_limit", "ai_regenerations_used", "ai_assistant_limit", "ai_assistant_used",
       "redeemed_at", "expires_at", "updated_at",
     ]);
-    const src = readFileSync(join(process.cwd(), "app/[locale]/profile/page.tsx"), "utf8");
+    const src = readFileSync(join(process.cwd(), "app/[locale]/(app)/profile/page.tsx"), "utf8");
     const select = src.match(/from\("user_tester_access"\)\s*\.select\("([^"]*)"\)/)?.[1] ?? "";
     const selected = select.split(",").map((c) => c.trim()).filter(Boolean);
     expect(selected.length).toBeGreaterThan(0);
@@ -100,9 +100,9 @@ describe("profile page beta access", () => {
   it("only calls beta access active while it has not expired", () => {
     // 17 of 18 rows had expired; enforcement (lib/early-access, usage limits)
     // treats those as no access, so the card must too.
-    const src = readFileSync(join(process.cwd(), "app/[locale]/profile/page.tsx"), "utf8");
+    const src = readFileSync(join(process.cwd(), "app/[locale]/(app)/profile/page.tsx"), "utf8");
     expect(src).toMatch(/!betaAccess\.expires_at \|\| new Date\(betaAccess\.expires_at\) > new Date\(\)/);
-    const client = readFileSync(join(process.cwd(), "app/[locale]/profile/ProfileClient.tsx"), "utf8");
+    const client = readFileSync(join(process.cwd(), "app/[locale]/(app)/profile/ProfileClient.tsx"), "utf8");
     expect(client).not.toMatch(/value: t\("profile\.betaSection\.unlimited"\)/);
   });
 });

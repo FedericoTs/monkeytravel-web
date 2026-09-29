@@ -121,7 +121,7 @@ export function pickFallbackCoverImage(
 
 /**
  * Compute trip duration in days, inclusive of the end date (matches the
- * handleSaveTrip math in app/[locale]/trips/new/NewTripWizard.tsx).
+ * handleSaveTrip math in app/[locale]/(app)/trips/new/NewTripWizard.tsx).
  */
 export function computeDurationDays(formState: TripFormState): number {
   const start = new Date(formState.startDate).getTime();

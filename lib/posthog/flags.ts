@@ -34,7 +34,7 @@
  * Show Travelpayouts partners (Booking.com, Trip.com, Klook, etc.)
  * instead of original affiliates (Aviasales, Hotellook)
  *
- * Read by: app/[locale]/trips/[id]/TripDetailClient.tsx
+ * Read by: app/[locale]/(app)/trips/[id]/TripDetailClient.tsx
  */
 export const FLAG_ENHANCED_BOOKING = "enhanced-booking-panel";
 
