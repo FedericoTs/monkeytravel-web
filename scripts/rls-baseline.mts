@@ -33,7 +33,7 @@ const BASELINE = join(ROOT, "supabase", "rls-baseline.json");
 // ----------------------------------------------------------------------------
 
 /**
- * Read a key from .env.local.
+ * Read a key from the environment (CI) or .env.local.
  *
  * Deliberately tolerant of `NAME = value` with whitespace around the `=`, and
  * of CRLF line endings: this repo has at least one variable declared with a
@@ -41,8 +41,9 @@ const BASELINE = join(ROOT, "supabase", "rls-baseline.json");
  * cost real debugging time when it produced a confusing 401.
  */
 function env(name: string): string {
+  if (process.env[name]) return process.env[name] as string;
   const file = join(ROOT, ".env.local");
-  if (!existsSync(file)) throw new Error(".env.local not found");
+  if (!existsSync(file)) throw new Error(`${name} not set and .env.local not found`);
   for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
     const m = line.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/);
     if (m && m[1] === name) return m[2].trim().replace(/^["']|["']$/g, "");

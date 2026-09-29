@@ -1,0 +1,80 @@
+# Does production's row-level security still match the committed baseline?
+#
+# scripts/rls-baseline.mts pins every grant and policy in supabase/rls-baseline.json
+# and exits 1 when the live database differs. Until now it only ran by hand, so
+# the September hardening migrations left it red for a week and nobody saw it —
+# the check that exists to notice a table opened from the dashboard was itself
+# unnoticed. This runs it on every change to the migrations or the baseline,
+# and on demand.
+#
+# A migration and its baseline update land in the same PR; the check passes
+# once the migration is applied to the database, so a red run on such a PR
+# means "apply the migration", and a red run anywhere else means drift.
+
+name: RLS drift
+
+# NOTE: there is NO scheduled run while repository secrets are unset — it
+# would go red every morning saying so. Set NEXT_PUBLIC_SUPABASE_URL and
+# SUPABASE_SERVICE_ROLE_KEY as repository secrets to enable the job, then add
+# a daily schedule so a policy changed outside the repo is caught within a day.
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - "supabase/**"
+      - "scripts/rls-baseline.mts"
+      - ".github/workflows/rls-drift.yml"
+  pull_request:
+    branches: [master]
+    paths:
+      - "supabase/**"
+      - "scripts/rls-baseline.mts"
+      - ".github/workflows/rls-drift.yml"
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      # The check reads the live policies, so it needs credentials.
+      #
+      # On a PULL REQUEST or a push, missing secrets are not the contributor's
+      # problem — forks never receive them — so skip with a notice.
+      #
+      # On a manual run, missing secrets are fatal: triggering a guard by hand
+      # is an explicit request for it to CHECK something, and a green run that
+      # verified nothing is indistinguishable from a real pass.
+      - name: Check credentials are available
+        id: creds
+        env:
+          URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -n "$URL" ] && [ -n "$KEY" ]; then
+            echo "have=true" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "::error::Nothing to run — no repository secrets. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY, or run npm run rls:check locally."
+            exit 1
+          else
+            echo "have=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping — set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY as repository secrets to enable the RLS drift check."
+          fi
+
+      # Only the script's own dependencies: the check is a single fetch and a
+      # JSON diff, and a full npm ci here would cost more than the check itself.
+      - name: Install dependencies
+        if: steps.creds.outputs.have == 'true'
+        run: npm install --no-save --no-audit --no-fund typescript@^5 tsx@^4.21.0
+
+      - name: Compare production RLS with the baseline
+        if: steps.creds.outputs.have == 'true'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/rls-baseline.mts
