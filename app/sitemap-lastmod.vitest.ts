@@ -77,6 +77,8 @@ function gitAvailable(): boolean {
  * such as removing unused code. Listing one here beats a false lastmod bump.
  */
 const NOT_CONTENT: Record<string, string[]> = {
+  LASTMOD_HOMEPAGE: ["3ad790852c4d2fea6757297b9a7a95f03f0e1773"],
+  LASTMOD_LANDING: ["54f1e84b0c9a14ad8c3af508c441bce9949a09ed"],
   LASTMOD_DESTINATIONS: ["5817242889d8a0c14c227eefc56a993b2378f2c5"],
 };
 
