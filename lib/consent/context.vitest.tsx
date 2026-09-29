@@ -1,15 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, act } from "@testing-library/react";
 import { useEffect } from "react";
-import { readFileSync } from "node:fs";
-import path from "node:path";
 
 /**
  * The app's providers must keep one tree shape from the first render.
  *
  * ConsentProvider returned <>{children}</> until the stored consent had loaded
- * and <ConsentContext.Provider> after, and PostHogProviderWrapper swapped in a
- * <PostHogProvider> once PostHog loaded. Each change of shape made React
+ * and <ConsentContext.Provider> after, and a PostHog wrapper (since removed)
+ * swapped in a provider once PostHog loaded. Each change of shape made React
  * unmount and remount EVERYTHING below: measured 2026-09-25 on a production
  * build, the trip page mounted 4 times per load (local state lost, every mount
  * effect run 4 times).
@@ -62,14 +60,5 @@ describe("ConsentProvider", () => {
     // The context DEFAULT says "visible" with no-op actions; the provider's
     // own state starts "hidden", so no banner flash before loading.
     expect(seen[0]).toEqual({ banner: "hidden", analytics: false });
-  });
-});
-
-describe("root providers", () => {
-  it("the PostHog wrapper never swaps in a provider after the first render", () => {
-    const src = readFileSync(path.resolve(__dirname, "../../app/providers.tsx"), "utf8");
-    const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
-    expect(code).not.toMatch(/PostHogProvider\b(?!Wrapper)/);
-    expect(code).not.toMatch(/useState|useEffect/);
   });
 });
