@@ -439,32 +439,8 @@
   },
   {
     "table": "anonymous_activity_votes",
-    "grants": {
-      "anon": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
-      ],
-      "authenticated": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
-      ]
-    },
-    "policies": [
-      {
-        "cmd": "SELECT",
-        "name": "Anyone can read anonymous votes",
-        "roles": [
-          "public"
-        ],
-        "using": "true",
-        "permissive": true,
-        "with_check": null
-      }
-    ],
+    "grants": {},
+    "policies": [],
     "rls_forced": false,
     "rls_enabled": true
   },
@@ -541,6 +517,13 @@
         "with_check": null
       }
     ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "auth_email_events",
+    "grants": {},
+    "policies": [],
     "rls_forced": false,
     "rls_enabled": true
   },
@@ -634,6 +617,13 @@
         "with_check": null
       }
     ],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "consent_events",
+    "grants": {},
+    "policies": [],
     "rls_forced": false,
     "rls_enabled": true
   },
@@ -878,9 +868,9 @@
         "cmd": "SELECT",
         "name": "email_log_select_own",
         "roles": [
-          "public"
+          "authenticated"
         ],
-        "using": "(recipient_email = (( SELECT users.email\n   FROM auth.users\n  WHERE (users.id = ( SELECT auth.uid() AS uid))))::text)",
+        "using": "(recipient_email = lower((( SELECT auth.jwt() AS jwt) ->> 'email'::text)))",
         "permissive": true,
         "with_check": null
       }
@@ -890,46 +880,8 @@
   },
   {
     "table": "email_subscribers",
-    "grants": {
-      "anon": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
-      ],
-      "authenticated": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
-      ]
-    },
-    "policies": [
-      {
-        "cmd": "INSERT",
-        "name": "email_subscribers_anon_insert",
-        "roles": [
-          "anon",
-          "authenticated",
-          "service_role"
-        ],
-        "using": null,
-        "permissive": true,
-        "with_check": "((email IS NOT NULL) AND ((length(email) >= 5) AND (length(email) <= 254)) AND (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'::text))"
-      },
-      {
-        "cmd": "SELECT",
-        "name": "email_subscribers_anon_select",
-        "roles": [
-          "anon",
-          "authenticated",
-          "service_role"
-        ],
-        "using": "true",
-        "permissive": true,
-        "with_check": null
-      }
-    ],
+    "grants": {},
+    "policies": [],
     "rls_forced": false,
     "rls_enabled": true
   },
@@ -1290,29 +1242,13 @@
     "table": "page_views",
     "grants": {
       "anon": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
+        "INSERT"
       ],
       "authenticated": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
+        "INSERT"
       ]
     },
     "policies": [
-      {
-        "cmd": "SELECT",
-        "name": "Allow authenticated reads",
-        "roles": [
-          "authenticated"
-        ],
-        "using": "true",
-        "permissive": true,
-        "with_check": null
-      },
       {
         "cmd": "INSERT",
         "name": "page_views_anon_insert",
@@ -1466,13 +1402,11 @@
     "grants": {
       "anon": [
         "DELETE",
-        "INSERT",
         "SELECT",
         "UPDATE"
       ],
       "authenticated": [
         "DELETE",
-        "INSERT",
         "SELECT",
         "UPDATE"
       ]
@@ -1720,7 +1654,7 @@
         "roles": [
           "public"
         ],
-        "using": "((is_active = true) OR is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))",
+        "using": "(is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))",
         "permissive": true,
         "with_check": null
       },
@@ -1835,28 +1769,14 @@
     "grants": {
       "anon": [
         "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
+        "SELECT"
       ],
       "authenticated": [
         "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
+        "SELECT"
       ]
     },
     "policies": [
-      {
-        "cmd": "INSERT",
-        "name": "Trip owners can insert collaborators",
-        "roles": [
-          "authenticated"
-        ],
-        "using": null,
-        "permissive": true,
-        "with_check": "user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid))"
-      },
       {
         "cmd": "UPDATE",
         "name": "Trip owners can update collaborators",
@@ -1865,7 +1785,7 @@
         ],
         "using": "user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid))",
         "permissive": true,
-        "with_check": "user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid))"
+        "with_check": "(user_is_trip_owner(trip_id, ( SELECT auth.uid() AS uid)) AND ((role = ANY (ARRAY['editor'::text, 'voter'::text, 'viewer'::text])) OR ((role = 'owner'::text) AND (user_id = ( SELECT auth.uid() AS uid)))))"
       },
       {
         "cmd": "DELETE",
@@ -2050,14 +1970,12 @@
       "anon": [
         "DELETE",
         "INSERT",
-        "SELECT",
-        "UPDATE"
+        "SELECT"
       ],
       "authenticated": [
         "DELETE",
         "INSERT",
-        "SELECT",
-        "UPDATE"
+        "SELECT"
       ]
     },
     "policies": [
@@ -2069,7 +1987,7 @@
         ],
         "using": null,
         "permissive": true,
-        "with_check": "((EXISTS ( SELECT 1\n   FROM trips\n  WHERE ((trips.id = trip_invites.trip_id) AND (trips.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators\n  WHERE ((trip_collaborators.trip_id = trip_invites.trip_id) AND (trip_collaborators.user_id = ( SELECT auth.uid() AS uid)) AND (trip_collaborators.role = ANY (ARRAY['owner'::text, 'editor'::text]))))))"
+        "with_check": "((created_by = ( SELECT auth.uid() AS uid)) AND (COALESCE(use_count, 0) = 0) AND ((max_uses >= 1) AND (max_uses <= 100)) AND ((EXISTS ( SELECT 1\n   FROM trips\n  WHERE ((trips.id = trip_invites.trip_id) AND (trips.user_id = ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1\n   FROM trip_collaborators\n  WHERE ((trip_collaborators.trip_id = trip_invites.trip_id) AND (trip_collaborators.user_id = ( SELECT auth.uid() AS uid)) AND (trip_collaborators.role = ANY (ARRAY['owner'::text, 'editor'::text])))))))"
       },
       {
         "cmd": "DELETE",
@@ -2300,44 +2218,8 @@
   },
   {
     "table": "trip_views",
-    "grants": {
-      "anon": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
-      ],
-      "authenticated": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
-      ]
-    },
-    "policies": [
-      {
-        "cmd": "SELECT",
-        "name": "Public can read trip views for public trips",
-        "roles": [
-          "public"
-        ],
-        "using": "(trip_id IN ( SELECT trips.id\n   FROM trips\n  WHERE (trips.visibility = 'public'::text)))",
-        "permissive": true,
-        "with_check": null
-      },
-      {
-        "cmd": "INSERT",
-        "name": "trip_views_anon_insert",
-        "roles": [
-          "anon",
-          "authenticated",
-          "service_role"
-        ],
-        "using": null,
-        "permissive": true,
-        "with_check": "(trip_id IS NOT NULL)"
-      }
-    ],
+    "grants": {},
+    "policies": [],
     "rls_forced": false,
     "rls_enabled": true
   },
@@ -2488,7 +2370,7 @@
         ],
         "using": null,
         "permissive": true,
-        "with_check": "((( SELECT auth.uid() AS uid) = user_id) OR is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))"
+        "with_check": "(is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))"
       },
       {
         "cmd": "SELECT",
@@ -2506,9 +2388,9 @@
         "roles": [
           "authenticated"
         ],
-        "using": "((( SELECT auth.uid() AS uid) = user_id) OR is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))",
+        "using": "(is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))",
         "permissive": true,
-        "with_check": "((( SELECT auth.uid() AS uid) = user_id) OR is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))"
+        "with_check": "(is_admin_user() OR (( SELECT auth.role() AS role) = 'service_role'::text))"
       }
     ],
     "rls_forced": false,
