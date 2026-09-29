@@ -7,10 +7,11 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Link, useRouter } from "@/lib/i18n/routing";
+import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import { createClient } from "@/lib/supabase/client";
-import type { MCPActivity, MCPDay } from "@/lib/mcp/schema";
+import type { MCPDay } from "@/lib/mcp/schema";
 
 /**
  * MCP Itinerary from database (includes DB-specific fields)
@@ -36,6 +37,8 @@ interface Props {
 
 export default function ChatGPTImportClient({ itinerary }: Props) {
   const router = useRouter();
+  const t = useTranslations("trips.chatgptImport");
+  const typeLabel = useActivityTypeLabel();
   const supabase = createClient();
   const [expandedDay, setExpandedDay] = useState<number>(1);
   const [isImporting, setIsImporting] = useState(false);
@@ -59,9 +62,9 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
       // User is logged in - claim the itinerary and redirect
       await claimItinerary(user.id);
     } else {
-      // Redirect to login with return URL
-      const returnUrl = `/from-chatgpt/${itinerary.ref_id}/claim`;
-      router.push(`/auth?redirect=${encodeURIComponent(returnUrl)}`);
+      // Redirect to login, then back here to save while signed in
+      const returnUrl = `/from-chatgpt/${itinerary.ref_id}`;
+      router.push(`/auth/login?redirect=${encodeURIComponent(returnUrl)}`);
     }
   };
 
@@ -91,7 +94,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
         import: itinerary.ref_id,
       });
 
-      router.push(`/trip/new?${params.toString()}`);
+      router.push(`/trips/new?${params.toString()}`);
     } catch (err) {
       console.error("Error claiming itinerary:", err);
       setIsImporting(false);
@@ -116,7 +119,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
             </span>
           </Link>
           <span className="text-xs bg-[var(--accent)]/20 text-[var(--foreground)] px-2 py-1 rounded-full font-medium">
-            From ChatGPT
+            {t("badge")}
           </span>
         </div>
       </header>
@@ -137,16 +140,15 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
               d="M5 13l4 4L19 7"
             />
           </svg>
-          Your itinerary is ready!
+          {t("ready")}
         </div>
 
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-          {itinerary.days}-Day {itinerary.destination} Trip
+          {t("title", { days: itinerary.days, destination: itinerary.destination })}
         </h1>
 
         <p className="text-gray-600 max-w-xl mx-auto mb-6">
-          ChatGPT created this personalized itinerary for you. Save it to
-          MonkeyTravel to edit, share with friends, and access on the go.
+          {t("intro")}
         </p>
 
         {/* Stats */}
@@ -155,14 +157,14 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
             <div className="text-2xl font-bold text-[var(--primary-ink)]">
               {itinerary.days}
             </div>
-            <div className="text-sm text-gray-500">Days</div>
+            <div className="text-sm text-gray-500">{t("stats.days")}</div>
           </div>
           <div className="w-px bg-gray-200" />
           <div className="text-center">
             <div className="text-2xl font-bold text-[var(--primary-ink)]">
               {totalActivities}
             </div>
-            <div className="text-sm text-gray-500">Activities</div>
+            <div className="text-sm text-gray-500">{t("stats.activities")}</div>
           </div>
           {itinerary.travel_style && (
             <>
@@ -171,7 +173,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
                 <div className="text-2xl font-bold text-[var(--primary-ink)] capitalize">
                   {itinerary.travel_style}
                 </div>
-                <div className="text-sm text-gray-500">Style</div>
+                <div className="text-sm text-gray-500">{t("stats.style")}</div>
               </div>
             </>
           )}
@@ -193,7 +195,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
-                Day {day.day}
+                {t("day", { number: day.day })}
               </button>
             ))}
           </div>
@@ -243,7 +245,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
                       </div>
                       <div className="flex-shrink-0">
                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 capitalize">
-                          {activity.type}
+                          {typeLabel(activity.type)}
                         </span>
                       </div>
                     </div>
@@ -259,11 +261,10 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
       <section className="max-w-4xl mx-auto px-4 pb-12">
         <div className="bg-gradient-to-r from-[var(--primary)] to-[#0d5a8a] rounded-2xl p-6 md:p-8 text-white text-center">
           <h2 className="text-xl md:text-2xl font-bold mb-2">
-            Ready to make it yours?
+            {t("cta.title")}
           </h2>
           <p className="text-white/80 mb-6 max-w-md mx-auto">
-            Save this itinerary to your MonkeyTravel account to customize it,
-            add notes, and share with travel companions.
+            {t("cta.description")}
           </p>
 
           <button
@@ -292,7 +293,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Saving...
+                {t("cta.saving")}
               </>
             ) : (
               <>
@@ -304,13 +305,13 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
                     d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
                   />
                 </svg>
-                Save to MonkeyTravel
+                {t("cta.save")}
               </>
             )}
           </button>
 
           <p className="text-white/60 text-sm mt-4">
-            Free to use. No credit card required.
+            {t("cta.free")}
           </p>
         </div>
       </section>
@@ -318,7 +319,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
       {/* Features */}
       <section className="max-w-4xl mx-auto px-4 pb-16">
         <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-          What you can do with MonkeyTravel
+          {t("features.title")}
         </h3>
         <div className="grid md:grid-cols-3 gap-4">
           <div className="bg-white rounded-xl p-4 border border-gray-100">
@@ -337,10 +338,9 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
                 />
               </svg>
             </div>
-            <h4 className="font-medium text-gray-900 mb-1">Edit & Customize</h4>
+            <h4 className="font-medium text-gray-900 mb-1">{t("features.edit.title")}</h4>
             <p className="text-sm text-gray-600">
-              Rearrange activities, add notes, and adjust timings to fit your
-              style.
+              {t("features.edit.description")}
             </p>
           </div>
 
@@ -360,9 +360,9 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
                 />
               </svg>
             </div>
-            <h4 className="font-medium text-gray-900 mb-1">Share with Friends</h4>
+            <h4 className="font-medium text-gray-900 mb-1">{t("features.share.title")}</h4>
             <p className="text-sm text-gray-600">
-              Invite travel companions to view and collaborate on your trip.
+              {t("features.share.description")}
             </p>
           </div>
 
@@ -382,10 +382,9 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
                 />
               </svg>
             </div>
-            <h4 className="font-medium text-gray-900 mb-1">Access Anywhere</h4>
+            <h4 className="font-medium text-gray-900 mb-1">{t("features.access.title")}</h4>
             <p className="text-sm text-gray-600">
-              Your itinerary syncs across devices. Access it offline while
-              traveling.
+              {t("features.access.description")}
             </p>
           </div>
         </div>
@@ -394,11 +393,13 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
       {/* Footer */}
       <footer className="border-t border-gray-100 py-6 text-center text-sm text-gray-500">
         <p>
-          Powered by{" "}
-          <Link href="/" className="text-[var(--primary-ink)] hover:underline">
-            MonkeyTravel
-          </Link>{" "}
-          AI
+          {t.rich("poweredBy", {
+            link: (chunks) => (
+              <Link href="/" className="text-[var(--primary-ink)] hover:underline">
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       </footer>
     </div>

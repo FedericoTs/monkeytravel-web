@@ -12,6 +12,7 @@
 
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import ChatGPTImportClient from "./ChatGPTImportClient";
 import { ogImages } from "@/lib/seo/og-image";
@@ -45,9 +46,10 @@ interface MCPItinerary {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ ref: string }>;
+  params: Promise<{ ref: string; locale: string }>;
 }): Promise<Metadata> {
-  const { ref } = await params;
+  const { ref, locale } = await params;
+  const t = await getTranslations({ locale, namespace: "trips.chatgptImport.meta" });
   const supabase = await createClient();
 
   // Fetch itinerary for metadata
@@ -60,18 +62,19 @@ export async function generateMetadata({
 
   if (!itinerary) {
     return {
-      title: "Import Your Trip",
-      description: "Save your ChatGPT-generated itinerary to MonkeyTravel",
+      title: t("fallbackTitle"),
+      description: t("fallbackDescription"),
     };
   }
 
+  const values = { days: itinerary.days, destination: itinerary.destination };
   return {
-    title: `Your ${itinerary.destination} Trip`,
-    description: `Save your ${itinerary.days}-day ${itinerary.destination} itinerary to MonkeyTravel and start planning!`,
+    title: t("title", values),
+    description: t("description", values),
     openGraph: {
-      title: `Your ${itinerary.days}-Day ${itinerary.destination} Itinerary`,
-      description: `ChatGPT created this trip for you. Save it to MonkeyTravel to edit, share, and explore!`,
-      images: ogImages(`Your ${itinerary.days}-Day ${itinerary.destination} Itinerary`),
+      title: t("ogTitle", values),
+      description: t("ogDescription"),
+      images: ogImages(t("ogTitle", values)),
     },
   };
 }
