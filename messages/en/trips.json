@@ -715,5 +715,54 @@
       "autumn": "Cool temperatures, crisp air, colorful foliage",
       "winter": "Cold temperatures, possible snow, shorter days"
     }
+  },
+  "chatgptImport": {
+    "badge": "From ChatGPT",
+    "ready": "Your itinerary is ready!",
+    "title": "{days}-Day {destination} Trip",
+    "intro": "ChatGPT created this personalized itinerary for you. Save it to MonkeyTravel to edit, share with friends, and access on the go.",
+    "stats": {
+      "days": "Days",
+      "activities": "Activities",
+      "style": "Style"
+    },
+    "day": "Day {number}",
+    "cta": {
+      "title": "Ready to make it yours?",
+      "description": "Save this itinerary to your MonkeyTravel account to customize it, add notes, and share with travel companions.",
+      "save": "Save to MonkeyTravel",
+      "saving": "Saving...",
+      "free": "Free to use. No credit card required."
+    },
+    "features": {
+      "title": "What you can do with MonkeyTravel",
+      "edit": {
+        "title": "Edit & Customize",
+        "description": "Rearrange activities, add notes, and adjust timings to fit your style."
+      },
+      "share": {
+        "title": "Share with Friends",
+        "description": "Invite travel companions to view and collaborate on your trip."
+      },
+      "access": {
+        "title": "Access Anywhere",
+        "description": "Your itinerary syncs across devices. Access it offline while traveling."
+      }
+    },
+    "poweredBy": "Powered by <link>MonkeyTravel</link> AI",
+    "notFound": {
+      "title": "Itinerary Not Found",
+      "description": "This itinerary may have expired, already been saved, or the link might be incorrect. ChatGPT-generated itineraries are available for 7 days.",
+      "create": "Create a New Trip",
+      "back": "Or go back to <link>ChatGPT</link> and generate a new itinerary."
+    },
+    "meta": {
+      "fallbackTitle": "Import Your Trip",
+      "fallbackDescription": "Save your ChatGPT-generated itinerary to MonkeyTravel",
+      "title": "Your {destination} Trip",
+      "description": "Save your {days}-day {destination} itinerary to MonkeyTravel and start planning!",
+      "ogTitle": "Your {days}-Day {destination} Itinerary",
+      "ogDescription": "ChatGPT created this trip for you. Save it to MonkeyTravel to edit, share, and explore!"
+    }
   }
 }

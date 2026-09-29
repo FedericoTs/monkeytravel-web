@@ -715,5 +715,54 @@
       "autumn": "Temperature fresche, aria frizzante, foliage colorato",
       "winter": "Temperature rigide, possibili nevicate, giornate corte"
     }
+  },
+  "chatgptImport": {
+    "badge": "Da ChatGPT",
+    "ready": "Il tuo itinerario è pronto!",
+    "title": "Viaggio a {destination} di {days} {days, plural, one {giorno} other {giorni}}",
+    "intro": "ChatGPT ha creato questo itinerario personalizzato per te. Salvalo su MonkeyTravel per modificarlo, condividerlo con gli amici e averlo sempre a portata di mano.",
+    "stats": {
+      "days": "Giorni",
+      "activities": "Attività",
+      "style": "Stile"
+    },
+    "day": "Giorno {number}",
+    "cta": {
+      "title": "Pronto a farlo tuo?",
+      "description": "Salva questo itinerario nel tuo account MonkeyTravel per personalizzarlo, aggiungere note e condividerlo con i compagni di viaggio.",
+      "save": "Salva su MonkeyTravel",
+      "saving": "Salvataggio...",
+      "free": "Gratis. Nessuna carta di credito richiesta."
+    },
+    "features": {
+      "title": "Cosa puoi fare con MonkeyTravel",
+      "edit": {
+        "title": "Modifica e personalizza",
+        "description": "Riordina le attività, aggiungi note e regola gli orari secondo il tuo stile."
+      },
+      "share": {
+        "title": "Condividi con gli amici",
+        "description": "Invita i compagni di viaggio a vedere il viaggio e collaborare."
+      },
+      "access": {
+        "title": "Accedi ovunque",
+        "description": "Il tuo itinerario si sincronizza su tutti i dispositivi. Consultalo anche offline mentre viaggi."
+      }
+    },
+    "poweredBy": "Con la tecnologia di <link>MonkeyTravel</link> AI",
+    "notFound": {
+      "title": "Itinerario non trovato",
+      "description": "Questo itinerario potrebbe essere scaduto, essere già stato salvato, oppure il link non è corretto. Gli itinerari generati da ChatGPT restano disponibili per 7 giorni.",
+      "create": "Crea un nuovo viaggio",
+      "back": "Oppure torna su <link>ChatGPT</link> e genera un nuovo itinerario."
+    },
+    "meta": {
+      "fallbackTitle": "Importa il tuo viaggio",
+      "fallbackDescription": "Salva su MonkeyTravel l'itinerario generato da ChatGPT",
+      "title": "Il tuo viaggio a {destination}",
+      "description": "Salva su MonkeyTravel il tuo itinerario di {days} {days, plural, one {giorno} other {giorni}} a {destination} e inizia a pianificare!",
+      "ogTitle": "Il tuo itinerario di {days} {days, plural, one {giorno} other {giorni}} a {destination}",
+      "ogDescription": "ChatGPT ha creato questo viaggio per te. Salvalo su MonkeyTravel per modificarlo, condividerlo ed esplorare!"
+    }
   }
 }

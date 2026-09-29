@@ -3,10 +3,13 @@
  * Shown when the itinerary doesn't exist or has already been claimed
  */
 
-import Link from "next/link";
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/lib/i18n/routing";
 
-export default function NotFound() {
+export default async function NotFound() {
+  const t = await getTranslations("trips.chatgptImport");
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f8fafc] to-white flex flex-col">
       {/* Header */}
@@ -47,12 +50,11 @@ export default function NotFound() {
           </div>
 
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Itinerary Not Found
+            {t("notFound.title")}
           </h1>
 
           <p className="text-gray-600 mb-6">
-            This itinerary may have expired, already been saved, or the link might be incorrect.
-            ChatGPT-generated itineraries are available for 7 days.
+            {t("notFound.description")}
           </p>
 
           <div className="space-y-3">
@@ -73,15 +75,17 @@ export default function NotFound() {
                   d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                 />
               </svg>
-              Create a New Trip
+              {t("notFound.create")}
             </Link>
 
             <p className="text-sm text-gray-500">
-              Or go back to{" "}
-              <Link href="/" className="text-[var(--primary-ink)] hover:underline">
-                ChatGPT
-              </Link>{" "}
-              and generate a new itinerary.
+              {t.rich("notFound.back", {
+                link: (chunks) => (
+                  <Link href="/" className="text-[var(--primary-ink)] hover:underline">
+                    {chunks}
+                  </Link>
+                ),
+              })}
             </p>
           </div>
         </div>
@@ -90,11 +94,13 @@ export default function NotFound() {
       {/* Footer */}
       <footer className="border-t border-gray-100 py-6 text-center text-sm text-gray-500">
         <p>
-          Powered by{" "}
-          <Link href="/" className="text-[var(--primary-ink)] hover:underline">
-            MonkeyTravel
-          </Link>{" "}
-          AI
+          {t.rich("poweredBy", {
+            link: (chunks) => (
+              <Link href="/" className="text-[var(--primary-ink)] hover:underline">
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       </footer>
     </div>
