@@ -64,6 +64,7 @@ const BLOG_QUERIES = {
   "where-to-go-in-june": "summer Mediterranean coast travel",
   "where-to-go-in-september": "autumn shoulder season European city",
   "where-to-go-in-december": "Christmas market winter travel snow",
+  "best-christmas-markets-europe-2026": "Christmas market Europe wooden stalls warm lights cathedral evening",
   "travel-packing-checklist": "travel suitcase packing luggage",
   "international-travel-checklist": "passport boarding pass travel documents",
 
@@ -177,7 +178,9 @@ async function isPlaceholder(filePath) {
 async function main() {
   await mkdir(OUT_DIR, { recursive: true });
 
-  const slugs = Object.keys(BLOG_QUERIES);
+  // A slug as the only argument fetches just that one.
+  const only = process.argv[2];
+  const slugs = only ? [only] : Object.keys(BLOG_QUERIES);
   let replaced = 0;
   let skipped = 0;
   let failed = 0;
