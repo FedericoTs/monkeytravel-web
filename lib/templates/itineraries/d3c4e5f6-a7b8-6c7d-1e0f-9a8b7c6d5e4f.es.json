@@ -1,0 +1,423 @@
+{
+  "days": [
+    {
+      "title": "Midtown Manhattan",
+      "theme": "Monumentos icónicos de Nueva York",
+      "activities": [
+        {
+          "name": "Grand Central Terminal",
+          "description": "Impresionante monumento de estilo Beaux-Arts. Maravíllate con el techo celestial, encuentra la galería de los susurros oculta y observa a los viajeros de Nueva York en acción.",
+          "tips": [
+            "Encuentra la Galería de los Susurros cerca del Oyster Bar",
+            "Gran mercado gastronómico en la planta baja"
+          ]
+        },
+        {
+          "name": "Bryant Park & New York Public Library",
+          "description": "Icónica biblioteca de estilo Beaux-Arts con la impresionante Sala de Lectura Rose, luego relájate en el hermoso Bryant Park que hay detrás.",
+          "tips": [
+            "La Sala de Lectura Rose es una visita obligada",
+            "La biblioteca es gratuita y está abierta al público"
+          ]
+        },
+        {
+          "name": "Almuerzo en The Smith",
+          "description": "Popular brasserie americana conocida por sus clásicos de comida reconfortante y su ambiente animado.",
+          "tips": [
+            "Ideal para brunch o almuerzo",
+            "Prueba las tortitas de ricotta"
+          ]
+        },
+        {
+          "name": "Top of the Rock",
+          "description": "Vistas ininterrumpidas de 360° que incluyen el Empire State Building y Central Park. Mejor que el ESB para fotos.",
+          "tips": [
+            "Reserva la franja horaria del atardecer para las mejores fotos",
+            "Tres miradores para explorar"
+          ]
+        },
+        {
+          "name": "St. Patrick's Cathedral",
+          "description": "Magnífica catedral neogótica en la Quinta Avenida. Un oasis de paz en medio del bullicio de Midtown.",
+          "tips": [
+            "Preciosas vidrieras",
+            "Se agradecen las donaciones"
+          ]
+        },
+        {
+          "name": "Experiencia en Times Square",
+          "description": "Ámalo u ódialo, Times Square es la quintaesencia de Nueva York. Contempla las luces de neón y la energía eléctrica en su apogeo.",
+          "tips": [
+            "Mejor por la noche cuando todas las luces están encendidas",
+            "No comas aquí: son trampas para turistas con precios excesivos"
+          ]
+        },
+        {
+          "name": "Espectáculo de Broadway",
+          "description": "Asiste a un musical o una obra de teatro de Broadway de fama mundial. Reserva con antelación para los espectáculos populares o prueba TKTS para descuentos el mismo día.",
+          "tips": [
+            "Consulta Broadway.com para ver los espectáculos",
+            "El puesto de TKTS ofrece entre un 20 y un 50% de descuento para el mismo día"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Central Park & Upper East Side",
+      "theme": "Cultura y Espacio Verde",
+      "activities": [
+        {
+          "name": "Paseo matutino por Central Park",
+          "description": "Explora el parque más famoso de América. Contempla la Bethesda Fountain, el Bow Bridge, Strawberry Fields y el Literary Walk.",
+          "tips": [
+            "Alquila una bicicleta para cubrir más terreno",
+            "Strawberry Fields está cerca de la calle W 72nd"
+          ]
+        },
+        {
+          "name": "Museo Metropolitano de Arte",
+          "description": "Uno de los museos más grandes del mundo. El Templo Egipcio de Dendur, maestros europeos, el Ala Americana y mucho más.",
+          "tips": [
+            "Descarga la aplicación para visitas autoguiadas",
+            "No te pierdas el jardín de la azotea en temporada"
+          ]
+        },
+        {
+          "name": "Almuerzo en Café Sabarsky",
+          "description": "Elegante café vienés dentro de la Neue Galerie. Auténtica sachertorte y Wiener schnitzel en un entorno impresionante.",
+          "tips": [
+            "No hay reservas para el almuerzo, prepárate para esperar",
+            "Los pasteles son excepcionales"
+          ]
+        },
+        {
+          "name": "Guggenheim Museum",
+          "description": "El icónico edificio en espiral de Frank Lloyd Wright es arte en sí mismo. Impresionante colección moderna en su interior.",
+          "tips": [
+            "Empieza por arriba y baja por la espiral",
+            "Los sábados por la noche son de 'paga lo que quieras'"
+          ]
+        },
+        {
+          "name": "Cena en Candle Cafe",
+          "description": "Pionero de la alta cocina vegana en Nueva York. Cocina creativa a base de plantas en un ambiente cálido.",
+          "tips": [
+            "No solo para veganos, a todo el mundo le encanta",
+            "Prueba la piccata de seitán"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Downtown Manhattan",
+      "theme": "Historia y Finanzas",
+      "activities": [
+        {
+          "name": "Estatua de la Libertad y Ellis Island",
+          "description": "Visita el símbolo de libertad más icónico de América y el museo de la inmigración en Ellis Island.",
+          "tips": [
+            "Reserva el acceso a la corona con meses de antelación",
+            "Reserva los billetes del ferry online"
+          ]
+        },
+        {
+          "name": "Almuerzo en Fraunces Tavern",
+          "description": "Taberna histórica donde George Washington se despidió de sus tropas. Cocina americana e historia revolucionaria.",
+          "tips": [
+            "Pequeño museo en la planta superior incluido",
+            "Prueba el fish and chips"
+          ]
+        },
+        {
+          "name": "Wall Street & Federal Hall",
+          "description": "Contempla el famoso Charging Bull, la Bolsa de Nueva York (NYSE) y el Federal Hall, donde Washington fue investido.",
+          "tips": [
+            "El Federal Hall tiene un museo gratuito en su interior",
+            "Foto con el Toro temprano para evitar multitudes"
+          ]
+        },
+        {
+          "name": "Monumento y Museo del 11-S",
+          "description": "Potente monumento y museo en honor a las víctimas del 11-S. Una experiencia conmovedora y profundamente impactante.",
+          "tips": [
+            "Dedica más de 2 horas al museo",
+            "El monumento es gratuito, el museo requiere entrada"
+          ]
+        },
+        {
+          "name": "One World Observatory",
+          "description": "El edificio más alto del hemisferio occidental. Las vistas de 360° desde más de 100 pisos de altura son impresionantes al atardecer.",
+          "tips": [
+            "Reserva la franja horaria del atardecer",
+            "El Sky Portal es un divertido lugar para selfies"
+          ]
+        },
+        {
+          "name": "Cena en Tribeca en Locanda Verde",
+          "description": "La querida taberna italiana de Andrew Carmellini. Comida rústica italiana en un elegante entorno del Greenwich Hotel.",
+          "tips": [
+            "Reservas imprescindibles",
+            "La ricotta de leche de oveja es legendaria"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "SoHo, Greenwich Village & Chelsea",
+      "theme": "Arte, Compras y The High Line",
+      "activities": [
+        {
+          "name": "Compras y Arquitectura en SoHo",
+          "description": "Explora boutiques de diseño y admira la impresionante arquitectura de hierro fundido en calles adoquinadas.",
+          "tips": [
+            "Greene Street tiene los mejores edificios de hierro fundido",
+            "Mezcla de tiendas de lujo e independientes"
+          ]
+        },
+        {
+          "name": "Brunch en Jack's Wife Freda",
+          "description": "Querido café de influencia mediterránea con sabores israelíes y sudafricanos. Famoso lugar para brunch en Instagram.",
+          "tips": [
+            "Prueba la shakshuka verde",
+            "Las colas pueden ser largas, llega temprano"
+          ]
+        },
+        {
+          "name": "Washington Square Park",
+          "description": "Parque icónico en el corazón de Greenwich Village. Artistas callejeros, estudiantes de la NYU y el famoso arco.",
+          "tips": [
+            "Gran lugar para observar a la gente",
+            "A menudo hay música en vivo y actuaciones"
+          ]
+        },
+        {
+          "name": "The High Line",
+          "description": "Parque elevado sobre antiguas vías de tren. Arte público, jardines y vistas únicas de la ciudad y el río Hudson.",
+          "tips": [
+            "Entra por Gansevoort St o 14th St",
+            "Camina hacia el norte para ver Hudson Yards"
+          ]
+        },
+        {
+          "name": "Chelsea Market",
+          "description": "Antigua fábrica de Nabisco que ahora alberga vendedores de comida artesanal, restaurantes y tiendas únicas.",
+          "tips": [
+            "Los Tacos No.1 son increíbles",
+            "Prueba los donuts en Doughnuttery"
+          ]
+        },
+        {
+          "name": "Whitney Museum of American Art",
+          "description": "Museo principal de arte americano en un impresionante edificio de Renzo Piano. Terrazas en la azotea con vistas a la ciudad.",
+          "tips": [
+            "Viernes por la noche gratis de 19:00 a 22:00",
+            "Varias terrazas al aire libre para explorar"
+          ]
+        },
+        {
+          "name": "Cena en Pastis",
+          "description": "Icónico bistró francés que definió el Meatpacking District. Comida clásica de brasserie en un entorno legendario.",
+          "tips": [
+            "Reserva con antelación para la cena de fin de semana",
+            "El steak frites es un clásico"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Brooklyn Bridge & DUMBO",
+      "theme": "Aventuras en Brooklyn",
+      "activities": [
+        {
+          "name": "Paseo por el Puente de Brooklyn",
+          "description": "Cruza el icónico puente de 1883 para disfrutar de impresionantes vistas del horizonte de Manhattan y el puerto.",
+          "tips": [
+            "Empieza desde el lado de Manhattan para las mejores fotos",
+            "Ve temprano para evitar multitudes"
+          ]
+        },
+        {
+          "name": "Exploración de DUMBO",
+          "description": "Explora el fotogénico barrio ribereño de Brooklyn. Famosa vista del Manhattan Bridge, calles adoquinadas, galerías de arte.",
+          "tips": [
+            "Haz la foto clásica en Washington St",
+            "El Carrusel de Jane es precioso"
+          ]
+        },
+        {
+          "name": "Time Out Market New York",
+          "description": "Mercado gastronómico curado con 21 de los mejores restaurantes de Nueva York y espectaculares vistas al río.",
+          "tips": [
+            "Clinton St. Baking para tortitas",
+            "Toma una copa en la azotea después de comer"
+          ]
+        },
+        {
+          "name": "Brooklyn Bridge Park",
+          "description": "Parque ribereño de 85 acres con impresionantes vistas de Manhattan, parques infantiles y muelles. Perfecto para un paseo.",
+          "tips": [
+            "El Pier 6 tiene las mejores vistas del atardecer",
+            "Consulta si hay películas gratuitas al aire libre en verano"
+          ]
+        },
+        {
+          "name": "Brooklyn Heights Promenade",
+          "description": "Impresionante paseo con vistas al East River y alucinantes vistas del horizonte de Manhattan.",
+          "tips": [
+            "Las mejores vistas de todo Nueva York",
+            "Explora las históricas calles de casas de piedra rojiza cercanas"
+          ]
+        },
+        {
+          "name": "Exploración de Williamsburg",
+          "description": "El corazón hipster de Brooklyn. Tiendas vintage, arte callejero, cervecerías artesanales y boutiques en Bedford Avenue.",
+          "tips": [
+            "Smorgasburg está aquí los fines de semana",
+            "Gran arte callejero y murales"
+          ]
+        },
+        {
+          "name": "Cena en Peter Luger Steak House",
+          "description": "La legendaria steakhouse de Nueva York desde 1887. Solo efectivo. El porterhouse es material de leyenda.",
+          "tips": [
+            "SOLO EFECTIVO o tarjeta Peter Luger",
+            "El porterhouse para dos es la opción"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Upper West Side & Harlem",
+      "theme": "Cultura y Soul Food",
+      "activities": [
+        {
+          "name": "Museo Americano de Historia Natural",
+          "description": "Museo de fama mundial con dinosaurios, el planetario Rose Center e increíbles dioramas. Aquí se filmó 'Noche en el Museo'.",
+          "tips": [
+            "El espectáculo del planetario vale el coste adicional",
+            "La sala de la ballena azul es icónica"
+          ]
+        },
+        {
+          "name": "Almuerzo en Jacob's Pickles",
+          "description": "Comida reconfortante sureña y encurtidos caseros. Porciones enormes y hospitalidad hogareña.",
+          "tips": [
+            "Los biscuits son legendarios",
+            "El brunch tiene espera, pero vale la pena"
+          ]
+        },
+        {
+          "name": "La Catedral de San Juan el Divino",
+          "description": "La catedral más grande del mundo (aún en construcción). Impresionante arquitectura gótica.",
+          "tips": [
+            "El tour vertical te permite subir al tejado",
+            "Preciosos pavos reales en el jardín"
+          ]
+        },
+        {
+          "name": "Teatro Apollo",
+          "description": "Legendario local de música de Harlem. Haz una visita guiada o asiste a la Noche de Aficionados (los miércoles).",
+          "tips": [
+            "Tours disponibles la mayoría de los días",
+            "La Noche de Aficionados es una institución de Nueva York"
+          ]
+        },
+        {
+          "name": "Tour a pie por Harlem",
+          "description": "Explora el corazón de la cultura afroamericana. Casas históricas de piedra rojiza, historia del jazz y una vibrante vida callejera.",
+          "tips": [
+            "Camina por Lenox Ave (Malcolm X Blvd)",
+            "Visita Sylvia's para probar soul food"
+          ]
+        },
+        {
+          "name": "Cena en Red Rooster Harlem",
+          "description": "El restaurante insignia de Marcus Samuelsson. Soul food se encuentra con sabores globales con jazz en vivo y brunch gospel.",
+          "tips": [
+            "Reservas recomendadas",
+            "Prueba el pollo frito"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Lower East Side y Experiencias Finales",
+      "theme": "Joyas Ocultas y Despedida",
+      "activities": [
+        {
+          "name": "Desayuno en Chinatown",
+          "description": "Auténtico dim sum en Nom Wah Tea Parlor, el lugar de dim sum más antiguo de Nueva York desde 1920.",
+          "tips": [
+            "Doyers Street tiene una historia fascinante",
+            "Prueba el rollito de huevo original"
+          ]
+        },
+        {
+          "name": "Lower East Side Tenement Museum",
+          "description": "Recorre apartamentos de inmigrantes recreados y experimenta las historias de los recién llegados a Nueva York durante más de 150 años.",
+          "tips": [
+            "Los tours son guiados y con horario",
+            "Reserva con antelación, se agotan"
+          ]
+        },
+        {
+          "name": "Almuerzo en Katz's Delicatessen",
+          "description": "Legendario deli desde 1888. Enormes sándwiches de pastrami y la famosa mesa de 'Cuando Harry encontró a Sally'.",
+          "tips": [
+            "¡No pierdas tu ticket!",
+            "El pastrami con pan de centeno es el clásico"
+          ]
+        },
+        {
+          "name": "Little Italy & Nolita",
+          "description": "Pasea por lo que queda de Little Italy y explora las boutiques de la moderna Nolita.",
+          "tips": [
+            "Evita los restaurantes turísticos de Mulberry",
+            "Nolita tiene excelentes tiendas independientes"
+          ]
+        },
+        {
+          "name": "Café en Caffe Reggio",
+          "description": "Histórico café de Greenwich Village sirviendo espresso desde 1927. Donde el capuchino fue introducido en América.",
+          "tips": [
+            "Máquina de espresso antigua todavía en uso",
+            "Apareció en películas como El Padrino II"
+          ]
+        },
+        {
+          "name": "Vistas finales de Manhattan desde el Empire State Building",
+          "description": "Termina tu viaje en el edificio más icónico de Nueva York. Observatorios en los pisos 86 y 102 con vistas inigualables.",
+          "tips": [
+            "El piso 102 vale la pena el coste adicional",
+            "Evita la cola con entradas exprés"
+          ]
+        }
+      ]
+    }
+  ],
+  "packing": [],
+  "meta": {
+    "highlights": [
+      "Disfruta de las vistas desde el Top of the Rock o el Empire State Building",
+      "Asiste a un espectáculo de Broadway en el Theater District",
+      "Explora arte de clase mundial en el Met y el MoMA",
+      "Pasea por The High Line y explora Chelsea",
+      "Experimenta barrios diversos desde Chinatown hasta Harlem"
+    ],
+    "packing_suggestions": [
+      "Zapatos cómodos para caminar, andarás mucho",
+      "Chaqueta ligera para las noches más frescas",
+      "Atuendo elegante para los espectáculos de Broadway",
+      "Paraguas compacto",
+      "Cargador portátil para el móvil"
+    ],
+    "destination_best_for": [
+      "Cultura",
+      "Comida",
+      "Entretenimiento",
+      "Compras",
+      "Arte"
+    ],
+    "weather_note": "Mayo es ideal con temperaturas suaves (15-23°C). Posibles lluvias primaverales ocasionales."
+  }
+}

@@ -212,7 +212,11 @@
     "family": "Family",
     "wellness": "Wellness",
     "photography": "Photography",
-    "offbeat": "Off the Beaten Path"
+    "offbeat": "Off the Beaten Path",
+    "art": "Art",
+    "architecture": "Architecture",
+    "scenic": "Scenic",
+    "wine": "Wine"
   },
   "bestTime": {
     "title": "Best Time to Visit {city}",

@@ -1,0 +1,349 @@
+{
+  "days": [
+    {
+      "title": "Llegada y la Magia de la Torre Eiffel",
+      "theme": "Introducción Icónica a París",
+      "notes": "Tómate el primer día con calma para adaptarte al cambio horario. El brillo de la Torre Eiffel es una forma mágica de comenzar tu aventura parisina.",
+      "activities": [
+        {
+          "name": "Check-in y Paseo por Le Marais",
+          "description": "Instálate en tu hotel en el encantador barrio de Le Marais. Da un paseo tranquilo por el histórico barrio judío, admirando la arquitectura del siglo XVII y explorando las boutiques.",
+          "tips": [
+            "Prueba el falafel de L'As du Fallafel para un tentempié rápido",
+            "Descarga mapas de París sin conexión"
+          ]
+        },
+        {
+          "name": "Experiencia en el Café de Flore",
+          "description": "Deléitate con la clásica cultura de café parisina en el legendario Café de Flore en Saint-Germain-des-Prés. Pide un café crème y observa el mundo pasar desde la terraza donde Sartre y Simone de Beauvoir una vez filosofaron.",
+          "tips": [
+            "Pide una mesa en la terraza para el mejor ambiente",
+            "El chocolate caliente es legendario"
+          ]
+        },
+        {
+          "name": "Torre Eiffel al Atardecer",
+          "description": "Sube a la Torre Eiffel mientras el sol se pone sobre París. Observa cómo la ciudad se transforma de la hora dorada a un mar de luces parpadeantes. Quédate para el espectáculo de luces que ilumina la torre cada hora durante 5 minutos mágicos.",
+          "tips": [
+            "Reserva las entradas a la cima online con 60 días de antelación",
+            "Llega 30 minutos antes de tu franja horaria",
+            "El espectáculo de luces ocurre cada hora después del anochecer hasta las 23:00"
+          ]
+        },
+        {
+          "name": "Cena Romántica en La Baignoire",
+          "description": "Termina tu primer día en este encantador bistró conocido por su ambiente romántico, manteles blancos almidonados y cubertería vintage. El entorno íntimo es perfecto para una cena tranquila con refinados clásicos franceses.",
+          "tips": [
+            "Reserva una mesa junto a la ventana",
+            "Prueba el confit de pato o el bœuf bourguignon"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Arte y Jardines de la Rive Gauche",
+      "theme": "Museos y Jardines de Luxemburgo",
+      "notes": "La Rive Gauche es el corazón intelectual de París. Tómate tu tiempo en el museo y saborea los jardines.",
+      "activities": [
+        {
+          "name": "Obras Maestras del Musée d'Orsay",
+          "description": "Explora la mejor colección de arte impresionista del mundo en una impresionante estación de tren reconvertida. Maravíllate con los nenúfares de Monet, los autorretratos de Van Gogh y las luminosas escenas de la vida parisina de Renoir.",
+          "tips": [
+            "Reserva la entrada con hora online para saltarte la cola",
+            "La cafetería detrás del reloj gigante ofrece vistas impresionantes",
+            "Los jueves por la noche abren hasta tarde con música en vivo"
+          ]
+        },
+        {
+          "name": "Almuerzo en Le Comptoir du Panthéon",
+          "description": "Disfruta de un almuerzo en este café parisino por excelencia con vistas al majestuoso Panthéon. La comida clásica de bistró y su excelente ubicación para observar a la gente lo convierten en un favorito local.",
+          "tips": [
+            "Pide una mesa al aire libre con vistas al Panthéon",
+            "El croque-monsieur es excelente"
+          ]
+        },
+        {
+          "name": "Romance en los Jardines de Luxemburgo",
+          "description": "Pasea por el jardín más querido de París. Alquila barcos de vela tradicionales en la fuente, admira la romántica gruta de la Fuente de Médici y busca un banco tranquilo en la sección del jardín inglés.",
+          "tips": [
+            "El alquiler de barcos de vela cuesta 5 EUR y es increíblemente romántico",
+            "La escuela de apicultura a veces vende miel",
+            "Encuentra la réplica de la Estatua de la Libertad escondida en el jardín"
+          ]
+        },
+        {
+          "name": "Iglesia de Saint-Sulpice",
+          "description": "Visita esta magnífica iglesia que aparece en El Código Da Vinci. Admira los impresionantes murales de Delacroix y el famoso gnomon, un instrumento astronómico integrado en el suelo.",
+          "tips": [
+            "Los conciertos de órgano los domingos son espectaculares",
+            "Busca la línea meridiana de latón en el suelo"
+          ]
+        },
+        {
+          "name": "Cena en Verjus",
+          "description": "Experimenta la excelencia de la granja a la mesa en este íntimo restaurante de chefs americanos. El menú degustación de temporada cambia cada noche y presenta productos de su propio huerto.",
+          "tips": [
+            "Reserva con semanas de antelación para el comedor principal",
+            "El bar de vinos escondido en la planta baja sirve pequeños platos"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Montmartre: Arte, Vistas y Espíritu Bohemio",
+      "theme": "Corazón Artístico de París",
+      "activities": [
+        {
+          "name": "Amanecer en Sacré-Cœur",
+          "description": "Empieza temprano para subir a la Basílica del Sacré-Cœur antes de las multitudes. La vista panorámica de París desde las escaleras es impresionante con la luz de la mañana.",
+          "tips": [
+            "Llega antes de las 8:30 para encontrar menos gente",
+            "Subir a la cúpula cuesta 8 EUR pero ofrece vistas de 360 grados"
+          ]
+        },
+        {
+          "name": "Tour a Pie por Montmartre",
+          "description": "Explora las sinuosas calles donde una vez vivieron Picasso, Van Gogh y Toulouse-Lautrec. Visita la Place du Tertre con sus retratistas y descubre el Muro de los Te quiero.",
+          "tips": [
+            "Baja por la Rue de l'Abreuvoir, la calle más bonita de París",
+            "Evita a los estafadores con pulseras cerca de Sacré-Cœur"
+          ]
+        },
+        {
+          "name": "Almuerzo en Le Pantruche",
+          "description": "Un neo-bistró relajado que combina un ambiente auténtico con toques modernos en la cocina francesa clásica.",
+          "tips": [
+            "El menú del almuerzo tiene una excelente relación calidad-precio por 22 EUR",
+            "Deja espacio para los postres"
+          ]
+        },
+        {
+          "name": "Museo de Montmartre y Jardines de Renoir",
+          "description": "Descubre la historia de Montmartre en la casa más antigua de la colina, donde Renoir tuvo su estudio.",
+          "tips": [
+            "La cafetería del jardín es perfecta para un refresco por la tarde"
+          ]
+        },
+        {
+          "name": "Espectáculo de Cabaret Moulin Rouge",
+          "description": "Experimenta el mundialmente famoso cabaret Moulin Rouge, cuna del can-can.",
+          "tips": [
+            "Reserva el paquete de cena + espectáculo para la experiencia completa",
+            "El código de vestimenta es elegante informal"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "El Louvre y el París Real",
+      "theme": "Tesoros de Arte y Vida Palaciega",
+      "activities": [
+        {
+          "name": "Exploración del Museo del Louvre",
+          "description": "Pasa la mañana en el museo de arte más grande del mundo. Más allá de la Mona Lisa, descubre la Victoria Alada, la Venus de Milo y La Encajera de Vermeer.",
+          "tips": [
+            "Entra por la entrada subterránea del Carrousel para evitar colas",
+            "Descarga la aplicación del museo para una visita autoguiada"
+          ]
+        },
+        {
+          "name": "Almuerzo en Café Marly",
+          "description": "Cena bajo los arcos del ala Richelieu con una vista impresionante de la pirámide de cristal.",
+          "tips": [
+            "Pide una mesa en la terraza para vistas a la pirámide"
+          ]
+        },
+        {
+          "name": "Jardín de las Tullerías y Place de la Concorde",
+          "description": "Pasea por los jardines franceses formales que conectan el Louvre con los Campos Elíseos.",
+          "tips": [
+            "Alquila sillas metálicas verdes junto a las fuentes para un momento parisino clásico"
+          ]
+        },
+        {
+          "name": "Jardín Escondido del Palais Royal",
+          "description": "Descubre este jardín secreto rodeado de elegantes arcadas y las columnas rayadas de Buren.",
+          "tips": [
+            "Visita Didier Ludot para Chanel vintage"
+          ]
+        },
+        {
+          "name": "Cena en Pétrelle",
+          "description": "Experimenta uno de los comedores más románticos de París, donde Madonna cenaba regularmente.",
+          "tips": [
+            "El menú degustación es excepcional",
+            "Reservas imprescindibles"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Versalles: Excursión de un Día al Esplendor Real",
+      "theme": "Palacio del Rey Sol",
+      "activities": [
+        {
+          "name": "Tren a Versalles",
+          "description": "Toma el tren RER C desde el centro de París hasta Versailles Château-Rive Gauche.",
+          "tips": [
+            "Compra un billete de ida y vuelta",
+            "Siéntate en el lado izquierdo para ver el Sena"
+          ]
+        },
+        {
+          "name": "Palacio de Versalles",
+          "description": "Explora el opulento palacio de Luis XIV. Pasea por el impresionante Salón de los Espejos y los Grandes Apartamentos del Rey.",
+          "tips": [
+            "Reserva la entrada con hora online",
+            "Cerrado los lunes, concurrido los domingos/martes"
+          ]
+        },
+        {
+          "name": "Almuerzo en Ore - Ducasse",
+          "description": "Cena en el restaurante de Alain Ducasse dentro del propio palacio.",
+          "tips": [
+            "Reservas recomendadas"
+          ]
+        },
+        {
+          "name": "Jardines y Palacios del Trianón",
+          "description": "Explora los jardines de 800 hectáreas con sus fuentes y arboledas escondidas. Visita la aldea de María Antonieta.",
+          "tips": [
+            "Alquila una barca de remos en el Gran Canal para un momento romántico"
+          ]
+        },
+        {
+          "name": "Crucero por el Sena al Atardecer",
+          "description": "Regresa a París y disfruta de un romántico crucero por el Sena viendo los monumentos deslizarse.",
+          "tips": [
+            "Reserva la cubierta superior para vistas sin obstáculos"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "París Escondido: Secretos Locales",
+      "theme": "Fuera de lo Común",
+      "activities": [
+        {
+          "name": "Paseo por el Canal Saint-Martin",
+          "description": "Descubre el moderno barrio del canal con sus pasarelas de hierro y boutiques independientes.",
+          "tips": [
+            "Haz una parada en Du Pain et des Idées para probar pasteles increíbles"
+          ]
+        },
+        {
+          "name": "Marché des Enfants Rouges",
+          "description": "Explora el mercado cubierto más antiguo de París, que data de 1615.",
+          "tips": [
+            "La cola del puesto marroquí merece la pena",
+            "Cerrado los lunes"
+          ]
+        },
+        {
+          "name": "Parque des Buttes-Chaumont",
+          "description": "Escápate al parque más espectacular de París con cascadas, una gruta y vistas panorámicas.",
+          "tips": [
+            "Rosa Bonheur es una fantástica cafetería al aire libre en el parque"
+          ]
+        },
+        {
+          "name": "Atardecer y Arte Callejero en Belleville",
+          "description": "Explora el barrio multicultural de Belleville con vibrante arte callejero en la Rue Dénoyez.",
+          "tips": [
+            "Los murales cambian regularmente"
+          ]
+        },
+        {
+          "name": "Cena en Le Comptoir Général",
+          "description": "Termina tu día en este bar de cócteles escondido con temática afrocaribeña.",
+          "tips": [
+            "La entrada está escondida, busca el pequeño cartel"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Notre-Dame y Despedida de París",
+      "theme": "Últimas Impresiones",
+      "activities": [
+        {
+          "name": "Notre-Dame y Sainte-Chapelle",
+          "description": "Sé testigo de la restauración de Notre-Dame y visita las impresionantes vidrieras de Sainte-Chapelle.",
+          "tips": [
+            "Las vidrieras de Sainte-Chapelle se aprecian mejor en mañanas soleadas"
+          ]
+        },
+        {
+          "name": "Shakespeare and Company",
+          "description": "Explora la legendaria librería de lengua inglesa frente a Notre-Dame.",
+          "tips": [
+            "La cafetería de al lado sirve un excelente café"
+          ]
+        },
+        {
+          "name": "Almuerzo de Despedida en L'Ami Jean",
+          "description": "Celebra en este querido bistró vasco conocido por sus generosas porciones y su legendario arroz con leche.",
+          "tips": [
+            "El arroz con leche es suficiente para al menos dos personas"
+          ]
+        },
+        {
+          "name": "Últimas Compras en Le Marais",
+          "description": "Explora boutiques en busca de recuerdos artesanales y hallazgos de moda.",
+          "tips": [
+            "La concept store Merci tiene excelentes regalos de diseño"
+          ]
+        },
+        {
+          "name": "Salida",
+          "description": "Dirígete al aeropuerto en RER B o taxi.",
+          "tips": [
+            "El RER B tarda unos 50 minutos",
+            "Permite tiempo extra para la seguridad"
+          ]
+        }
+      ]
+    }
+  ],
+  "packing": [
+    "Pasaporte y documentos de viaje",
+    "Zapatos cómodos para caminar",
+    "Capas de ropa ligera para clima variable",
+    "Ropa elegante informal para la noche",
+    "Adaptador de corriente universal",
+    "Cámara con tarjetas de memoria adicionales",
+    "Paraguas compacto",
+    "Gafas de sol y protector solar",
+    "Botella de agua reutilizable",
+    "Mochila pequeña para excursiones",
+    "Documentos del seguro de viaje",
+    "Guía de frases en francés",
+    "Medicamentos recetados"
+  ],
+  "meta": {
+    "highlights": [
+      "Observa el brillo de la Torre Eiffel por la noche desde el Campo de Marte",
+      "Maravíllate con las obras maestras impresionistas en el Museo de Orsay",
+      "Explora el bohemio Montmartre donde pintaron Van Gogh y Picasso",
+      "Pasea por los opulentos salones de Versalles",
+      "Navega por el Sena al atardecer pasando por monumentos iluminados",
+      "Descubre joyas escondidas como el Canal Saint-Martin y Buttes-Chaumont"
+    ],
+    "packing_suggestions": [
+      "Zapatos cómodos para caminar por adoquines",
+      "Chaqueta ligera para las noches frescas",
+      "Conjunto elegante informal para restaurantes",
+      "Paraguas compacto para lluvias primaverales",
+      "Cargador portátil para el teléfono",
+      "Guía de frases en francés o aplicación de traducción"
+    ],
+    "destination_best_for": [
+      "Parejas",
+      "Amantes del Arte",
+      "Amantes de la Gastronomía",
+      "Aficionados a la Historia",
+      "Fotógrafos"
+    ],
+    "weather_note": "Junio en París ofrece un clima cálido y agradable, con una media de 17-24°C y largas horas de luz hasta las 22:00. Empaca capas para las noches frescas y lluvias ocasionales."
+  }
+}

@@ -1,10 +1,26 @@
 import { routing } from "@/lib/i18n/routing";
+import type { ItineraryDay, TripMeta } from "@/types";
+import { TEMPLATE_ITINERARIES } from "./itineraries";
 
 export interface TemplateText {
   title: string;
   short: string;
   full: string;
 }
+
+/** What scripts/translate-template-itineraries.mts writes per template and locale. */
+export interface TemplateTranslation {
+  days: Array<{
+    title: string;
+    theme?: string;
+    notes?: string;
+    activities: Array<{ name: string; description?: string; tips?: string[] }>;
+  }>;
+  packing: string[];
+  meta: Pick<TripMeta, "highlights" | "weather_note" | "packing_suggestions" | "destination_best_for">;
+}
+
+const META_LISTS = ["highlights", "packing_suggestions", "destination_best_for"] as const;
 
 type Locale = (typeof routing.locales)[number];
 type Translated = Exclude<Locale, "en">;
@@ -155,6 +171,62 @@ export function templateLocale(value: string | null | undefined): Locale {
 export function templateText(id: string, locale: string, english: TemplateText): TemplateText {
   if (locale === "en") return english;
   return TEXT[id]?.[locale as Translated] ?? english;
+}
+
+/**
+ * The itinerary with its day titles, themes, notes, activity names,
+ * descriptions and tips in `locale`, matched to the English by position. A
+ * translation whose shape no longer matches the row (a day or activity was
+ * added or removed since it was generated) is left aside, whole.
+ */
+export function templateItinerary<T extends ItineraryDay>(id: string, locale: string, days: T[]): T[] {
+  if (locale === "en") return days;
+  const translation = TEMPLATE_ITINERARIES[id]?.[locale as Translated];
+  if (!translation || translation.days.length !== days.length) return days;
+  if (translation.days.some((day, d) => day.activities.length !== days[d].activities.length)) return days;
+  return days.map((day, d) => {
+    const translated = translation.days[d];
+    return {
+      ...day,
+      title: translated.title || day.title,
+      theme: translated.theme ?? day.theme,
+      notes: translated.notes ?? day.notes,
+      activities: day.activities.map((activity, a) => {
+        const text = translated.activities[a];
+        return {
+          ...activity,
+          name: text.name || activity.name,
+          description: text.description ?? activity.description,
+          tips: text.tips ?? activity.tips,
+        };
+      }),
+    };
+  });
+}
+
+/** The packing list in `locale`, or the English one when the counts no longer match. */
+export function templatePacking(id: string, locale: string, items: string[]): string[] {
+  if (locale === "en") return items;
+  const translation = TEMPLATE_ITINERARIES[id]?.[locale as Translated];
+  return translation && translation.packing.length === items.length ? translation.packing : items;
+}
+
+/**
+ * trip_meta with its highlights, weather note, packing suggestions and
+ * best-for tags in `locale`, stamped as the language the trip's text is now
+ * in. A list whose length no longer matches the row stays English.
+ */
+export function templateMeta(id: string, locale: string, meta: TripMeta): TripMeta {
+  if (locale === "en") return meta;
+  const translation = TEMPLATE_ITINERARIES[id]?.[locale as Translated]?.meta;
+  if (!translation) return meta;
+  const localized: TripMeta = { ...meta, locale: locale as Translated };
+  for (const key of META_LISTS) {
+    const texts = translation[key];
+    if (texts && texts.length === meta[key]?.length) localized[key] = texts;
+  }
+  if (translation.weather_note && meta.weather_note) localized.weather_note = translation.weather_note;
+  return localized;
 }
 
 /** A country's name in `locale` from its ISO code, or the stored name when there is none. */

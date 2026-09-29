@@ -1,0 +1,480 @@
+{
+  "days": [
+    {
+      "title": "Roma Antiga",
+      "theme": "Maravilhas do Império Romano",
+      "activities": [
+        {
+          "name": "Coliseu",
+          "description": "O anfiteatro icônico que podia abrigar 50.000 espectadores. Tours pelo piso da arena e subterrâneos revelam a história dos gladiadores.",
+          "tips": [
+            "Reserve o acesso ao piso da arena com antecedência",
+            "O ingresso combinado inclui Fórum e Palatino"
+          ]
+        },
+        {
+          "name": "Fórum Romano",
+          "description": "O coração da Roma antiga. Caminhe entre templos, arcos triunfais e as ruínas da casa do Senado.",
+          "tips": [
+            "Incluído no ingresso do Coliseu",
+            "A Via Sacra era a rua principal da Roma antiga"
+          ]
+        },
+        {
+          "name": "Colina Palatino",
+          "description": "O berço de Roma e lar de imperadores. Vistas deslumbrantes do Fórum e belos jardins.",
+          "tips": [
+            "As melhores vistas do Fórum daqui",
+            "Áreas sombreadas para dias quentes"
+          ]
+        },
+        {
+          "name": "Almoço no Luzzi",
+          "description": "Trattoria romana clássica a poucos passos do Coliseu. Familiar há gerações com culinária local autêntica.",
+          "tips": [
+            "Experimente a carbonara ou amatriciana",
+            "Dinheiro preferencialmente"
+          ]
+        },
+        {
+          "name": "Museus Capitolinos",
+          "description": "O museu público mais antigo do mundo. Esculturas romanas, a estátua original de Marco Aurélio e vistas da cidade.",
+          "tips": [
+            "Não perca a galeria subterrânea que conecta os edifícios",
+            "Vistas incríveis do terraço do café"
+          ]
+        },
+        {
+          "name": "Piazza Venezia e Vittoriano",
+          "description": "Monumento maciço de mármore branco com terraço panorâmico gratuito. Ame-o ou odeie-o, as vistas são incríveis.",
+          "tips": [
+            "O elevador para o terraço superior vale €7",
+            "Frequentemente chamado de 'bolo de casamento'"
+          ]
+        },
+        {
+          "name": "Jantar no Gueto Judaico",
+          "description": "Um dos bairros mais antigos de Roma com culinária judaico-romana única no Nonna Betta.",
+          "tips": [
+            "Imperdível: carciofi alla giudia (alcachofras fritas)",
+            "Reserve com antecedência"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Cidade do Vaticano",
+      "theme": "Arte e Espiritualidade",
+      "activities": [
+        {
+          "name": "Museus do Vaticano e Capela Sistina",
+          "description": "Uma das maiores coleções de arte do mundo, culminando no deslumbrante teto da Capela Sistina de Michelangelo.",
+          "tips": [
+            "Reserve online com semanas de antecedência",
+            "As aberturas noturnas de sexta-feira são mágicas",
+            "Código de vestimenta obrigatório"
+          ]
+        },
+        {
+          "name": "Basílica de São Pedro",
+          "description": "A maior igreja do mundo. A Pietà de Michelangelo, o baldaquino de Bernini e a subida à cúpula para vistas.",
+          "tips": [
+            "Entrada gratuita, mas longas filas de segurança",
+            "Subida à cúpula: €10 (escadas) ou €12 (elevador+escadas)"
+          ]
+        },
+        {
+          "name": "Almoço no Pizzarium",
+          "description": "A lendária pizza al taglio de Gabriele Bonci. A melhor pizza estilo romano do mundo, sem igual.",
+          "tips": [
+            "Aponte para o que parece bom - tudo é incrível",
+            "Peça por peso"
+          ]
+        },
+        {
+          "name": "Castel Sant'Angelo",
+          "description": "Antigo mausoléu, fortaleza e residência papal. Suba ao terraço para vistas deslumbrantes de Roma.",
+          "tips": [
+            "A passagem secreta para o Vaticano é visível",
+            "Ótimas vistas do pôr do sol"
+          ]
+        },
+        {
+          "name": "Caminhada Noturna ao Longo do Rio Tibre",
+          "description": "Passeie pela margem do rio, atravessando belas pontes com vistas de monumentos iluminados.",
+          "tips": [
+            "A Ponte Sant'Angelo tem estátuas de anjos de Bernini",
+            "Bares à beira do rio abrem no verão"
+          ]
+        },
+        {
+          "name": "Aperitivo no Stravinskij Bar",
+          "description": "Bar elegante no Hotel de Russie com um lindo jardim interno. Perfeito para um aperitivo ao pôr do sol.",
+          "tips": [
+            "O ambiente do jardim é mágico",
+            "O Negroni é excelente"
+          ]
+        },
+        {
+          "name": "Jantar no Da Enzo al 29",
+          "description": "Adorada trattoria em Trastevere. Clássicos romanos absolutamente perfeitos - a carbonara é de mudar a vida.",
+          "tips": [
+            "Reserve ou chegue às 19h30 em ponto",
+            "Somente dinheiro - caixa eletrônico por perto"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Destaques do Centro Histórico",
+      "theme": "Roma Barroca e Praças",
+      "activities": [
+        {
+          "name": "Fontana di Trevi ao Amanhecer",
+          "description": "A fonte mais famosa de Roma quase vazia ao nascer do sol. Jogue uma moeda para garantir seu retorno a Roma.",
+          "tips": [
+            "Venha ao amanhecer para fotos sem multidões",
+            "Mais de €1 milhão jogados anualmente"
+          ]
+        },
+        {
+          "name": "Café da Manhã no Antico Caffè Greco",
+          "description": "O café mais antigo de Roma (1760). Café onde Keats, Goethe e Byron já se sentaram. Muito turístico, mas histórico.",
+          "tips": [
+            "Caro, mas vale a pena uma vez pela história",
+            "Fique no balcão para preços mais baixos"
+          ]
+        },
+        {
+          "name": "Escadaria Espanhola e Piazza di Spagna",
+          "description": "Escadaria icônica do século XVIII conectando duas praças. A Casa Keats-Shelley fica na base.",
+          "tips": [
+            "Comer nas escadas agora é proibido",
+            "A igreja no topo tem ótimas vistas"
+          ]
+        },
+        {
+          "name": "Galleria Borghese",
+          "description": "Museu-villa requintado com esculturas de Bernini e pinturas de Caravaggio. O museu mais bonito de Roma.",
+          "tips": [
+            "Reservas obrigatórias - reserve com semanas de antecedência",
+            "Horários de 2 horas rigorosamente aplicados"
+          ]
+        },
+        {
+          "name": "Jardins da Villa Borghese",
+          "description": "O Central Park de Roma. Alugue um barco a remo no lago ou apenas passeie pelos belos jardins.",
+          "tips": [
+            "Barcos a remo disponíveis no lago",
+            "Ótimas vistas do terraço do Pincio"
+          ]
+        },
+        {
+          "name": "Almoço na Osteria dell'Ingegno",
+          "description": "Culinária romana moderna com mesas ao ar livre com vista para uma bela praça com ruínas de templos.",
+          "tips": [
+            "Peça uma mesa ao ar livre com vista para o templo",
+            "Ótima seleção de vinhos"
+          ]
+        },
+        {
+          "name": "Panteão",
+          "description": "O edifício romano antigo mais bem preservado. A cúpula de concreto não reforçado é uma maravilha da engenharia.",
+          "tips": [
+            "Agora com ingresso - reserve online",
+            "O óculo está aberto - a chuva cai lá dentro!"
+          ]
+        },
+        {
+          "name": "Piazza Navona",
+          "description": "Deslumbrante praça barroca com a Fonte dos Quatro Rios de Bernini. Artistas, cafés e artistas de rua.",
+          "tips": [
+            "Construída sobre um antigo estádio romano",
+            "Evite os cafés caros"
+          ]
+        },
+        {
+          "name": "Gelato no Giolitti",
+          "description": "A gelateria mais famosa de Roma desde 1900. Sabores tradicionais em um ambiente elegante.",
+          "tips": [
+            "Pague primeiro no caixa, depois peça",
+            "Experimente a famosa crema ou zabaione"
+          ]
+        },
+        {
+          "name": "Jantar no Armando al Pantheon",
+          "description": "Familiar desde 1961, a poucos passos do Panteão. Clássicos romanos perfeitos em um ambiente despretensioso.",
+          "tips": [
+            "Reserve com bastante antecedência",
+            "O cacio e pepe é lendário"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Trastevere e Aventino",
+      "theme": "Bairros Charmosos",
+      "activities": [
+        {
+          "name": "Mercado de Campo de' Fiori",
+          "description": "Mercado matinal vibrante com produtos frescos, flores, especiarias e produtos locais. Local histórico da execução de Giordano Bruno.",
+          "tips": [
+            "Melhor antes das 11h",
+            "Ótimo para especiarias e produtos secos como souvenirs"
+          ]
+        },
+        {
+          "name": "Café da Manhã no Forno Campo de' Fiori",
+          "description": "Famosa padaria para pizza bianca (pizza branca) e doces. Os locais fazem fila para delícias recém-saídas do forno.",
+          "tips": [
+            "Experimente a pizza bianca com mortadela",
+            "Chegue cedo antes que esgote"
+          ]
+        },
+        {
+          "name": "Caminhada Matinal em Trastevere",
+          "description": "O bairro mais boêmio de Roma. Ruas de paralelepípedos, edifícios cobertos de hera, oficinas de artesãos.",
+          "tips": [
+            "Perca-se nas ruas laterais",
+            "Lindo antes das multidões da tarde"
+          ]
+        },
+        {
+          "name": "Santa Maria em Trastevere",
+          "description": "Uma das igrejas mais antigas de Roma com deslumbrantes mosaicos dourados. A praça externa parece uma vila.",
+          "tips": [
+            "Os mosaicos do século XII são espetaculares",
+            "Entrada gratuita"
+          ]
+        },
+        {
+          "name": "Almoço no Tonnarello",
+          "description": "Instituição de Trastevere que serve porções generosas de clássicos romanos. Atmosfera festiva.",
+          "tips": [
+            "Experimente o tonnarelli cacio e pepe",
+            "Mesas ao ar livre na praça"
+          ]
+        },
+        {
+          "name": "Colina Aventino e Jardim das Laranjeiras",
+          "description": "Colina tranquila com belos jardins e vistas deslumbrantes de Roma. Romântico e sereno.",
+          "tips": [
+            "O Giardino degli Aranci tem as melhores vistas do pôr do sol",
+            "Local muito romântico"
+          ]
+        },
+        {
+          "name": "Buraco da Fechadura dos Cavaleiros de Malta",
+          "description": "Espie pelo famoso buraco da fechadura para ver a cúpula de São Pedro perfeitamente emoldurada por cercas vivas. O melhor segredo de Roma.",
+          "tips": [
+            "Fila pequena, mas anda rápido",
+            "Três países visíveis em um relance"
+          ]
+        },
+        {
+          "name": "Pôr do Sol no Jardim das Laranjeiras",
+          "description": "Volte para a hora dourada. A cúpula de São Pedro brilha ao pôr do sol - verdadeiramente mágico.",
+          "tips": [
+            "Traga uma garrafa de vinho para o pôr do sol",
+            "Fecha ao anoitecer"
+          ]
+        },
+        {
+          "name": "Jantar no Grazia & Graziella",
+          "description": "Joia escondida em Trastevere com massa caseira e serviço acolhedor. Parece que você está comendo na casa da nonna.",
+          "tips": [
+            "Reserve para o jantar",
+            "Todas as massas feitas frescas diariamente"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Via Ápia e Catacumbas",
+      "theme": "Estradas Antigas e Cristianismo Primitivo",
+      "activities": [
+        {
+          "name": "Caminhada/Ciclismo na Via Ápia",
+          "description": "Caminhe ou pedale pela antiga estrada romana. Caminho ladeado por pinheiros com ruínas, túmulos e atmosfera campestre.",
+          "tips": [
+            "Alugue bicicletas no Ponto de Informação no início",
+            "Domingos são sem carros - o melhor dia"
+          ]
+        },
+        {
+          "name": "Catacumbas de São Calisto",
+          "description": "Câmaras de sepultamento subterrâneas de primeiros cristãos e papas. Tours guiados fascinantes revelam a história.",
+          "tips": [
+            "Somente tours guiados - vários idiomas",
+            "Use sapatos confortáveis e uma jaqueta"
+          ]
+        },
+        {
+          "name": "Almoço no L'Archeologia",
+          "description": "Restaurante histórico na Via Ápia com refeições no jardim. Culinária romana tradicional desde 1890.",
+          "tips": [
+            "O ambiente do jardim é lindo",
+            "Experimente o abbacchio (cordeiro)"
+          ]
+        },
+        {
+          "name": "Termas de Caracalla",
+          "description": "Complexo de banhos romanos antigos e massivos. Ruínas impressionantes que já serviram 1.600 banhistas por vez.",
+          "tips": [
+            "Experiência de VR disponível",
+            "Apresentações de ópera de verão aqui"
+          ]
+        },
+        {
+          "name": "Aperitivo no Salotto 42",
+          "description": "Bar lounge elegante com vista para ruínas de templos antigos. Perfeito para drinks ao pôr do sol.",
+          "tips": [
+            "Vistas do templo do terraço",
+            "Excelente menu de coquetéis"
+          ]
+        },
+        {
+          "name": "Jantar no Roscioli",
+          "description": "Famosa salumeria-restaurante com excelentes embutidos, queijos e pratos de massa romana.",
+          "tips": [
+            "Reserve com semanas de antecedência",
+            "Peça uma tábua de queijos e embutidos para começar"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Passeio de um Dia a Tivoli",
+      "theme": "Renascimento e Vilas Antigas",
+      "activities": [
+        {
+          "name": "Trem para Tivoli",
+          "description": "Viagem de trem panorâmica de Roma Tiburtina a Tivoli, uma cidade no topo da colina famosa por suas vilas UNESCO.",
+          "tips": [
+            "Os trens partem a cada 30 minutos",
+            "Compre o bilhete de volta com antecedência"
+          ]
+        },
+        {
+          "name": "Villa d'Este",
+          "description": "Vila de cardeal renascentista com os jardins de fontes mais espetaculares do mundo. 500 fontes!",
+          "tips": [
+            "O beco das Cem Fontes é mágico",
+            "Órgão de água toca em horários definidos"
+          ]
+        },
+        {
+          "name": "Almoço em Tivoli",
+          "description": "Trattoria tradicional no centro medieval de Tivoli. Culinária local simples a preços honestos.",
+          "tips": [
+            "Experimente o azeite local",
+            "A maioria dos restaurantes fecha durante a tarde"
+          ]
+        },
+        {
+          "name": "Villa Adriana",
+          "description": "O vasto retiro campestre do Imperador Adriano. A maior vila romana já construída com piscinas, templos e teatros.",
+          "tips": [
+            "Muito espaçoso - use sapatos confortáveis",
+            "A piscina Canopus é o destaque"
+          ]
+        },
+        {
+          "name": "Retorno a Roma",
+          "description": "Trem de volta a Roma a tempo para o jantar.",
+          "tips": [
+            "Verifique os horários do último trem",
+            "A estação fica fora do centro da cidade"
+          ]
+        },
+        {
+          "name": "Jantar no Felice a Testaccio",
+          "description": "O cacio e pepe mais famoso de Roma. O bairro de Testaccio é a autêntica Roma da classe trabalhadora.",
+          "tips": [
+            "Reserve com bastante antecedência",
+            "O cacio e pepe é um espetáculo à mesa"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Monti e Descobertas Finais",
+      "theme": "Roma Boêmia e Despedida",
+      "activities": [
+        {
+          "name": "Santa Maria Maggiore",
+          "description": "Uma das quatro basílicas papais de Roma com deslumbrantes mosaicos do século V e um belo teto.",
+          "tips": [
+            "Entrada gratuita, pequena taxa para o museu",
+            "O teto é dourado com o primeiro ouro das Américas"
+          ]
+        },
+        {
+          "name": "Exploração do Bairro Monti",
+          "description": "O bairro mais descolado de Roma. Lojas vintage, butiques de artesãos e cafés locais em ruas medievais.",
+          "tips": [
+            "A Via del Boschetto tem as melhores lojas",
+            "Mercado de pulgas de fim de semana na Via Leonina"
+          ]
+        },
+        {
+          "name": "Café na La Bottega del Caffè",
+          "description": "Café charmoso na Piazza Madonna dei Monti, o centro social do bairro. Perfeito para observar as pessoas.",
+          "tips": [
+            "Os locais se reúnem em torno da fonte à noite",
+            "Ótimo espresso"
+          ]
+        },
+        {
+          "name": "Domus Aurea",
+          "description": "O extravagante Palácio Dourado de Nero. A experiência de VR mostra o esplendor original. Aventura subterrânea.",
+          "tips": [
+            "Somente tours guiados - reserve online",
+            "Use uma jaqueta - é fresco no subsolo"
+          ]
+        },
+        {
+          "name": "Almoço Final no Mercato Centrale Roma",
+          "description": "Praça de alimentação gourmet na Estação Termini. Parada final perfeita antes da partida com comida artesanal de primeira.",
+          "tips": [
+            "Ótima qualidade bem na estação",
+            "Estoque guloseimas italianas para levar para casa"
+          ]
+        },
+        {
+          "name": "Último Gelato e Arrivederci",
+          "description": "Um último gelato da Fatamorgana. Sabores artesanais e naturais - a despedida romana perfeita.",
+          "tips": [
+            "Todos os ingredientes naturais, sem corantes artificiais",
+            "Experimente o sabor de manjericão, a especialidade deles"
+          ]
+        }
+      ]
+    }
+  ],
+  "packing": [],
+  "meta": {
+    "highlights": [
+      "Explore o icônico Coliseu e o Fórum Romano",
+      "Maravilhe-se com a Capela Sistina de Michelangelo no Vaticano",
+      "Jogue uma moeda na Fontana di Trevi ao amanhecer",
+      "Experimente o autêntico cacio e pepe em Trastevere",
+      "Passeie por praças charmosas e mercados de bairro"
+    ],
+    "packing_suggestions": [
+      "Sapatos confortáveis para caminhar em paralelepípedos",
+      "Roupas modestas para igrejas (ombros/joelhos cobertos)",
+      "Camadas leves para clima variável",
+      "Óculos de sol e protetor solar",
+      "Mochila pequena para explorar"
+    ],
+    "destination_best_for": [
+      "História",
+      "Arte",
+      "Comida",
+      "Romance",
+      "Arquitetura"
+    ],
+    "weather_note": "O final de abril oferece clima ideal (15-22°C) com menos multidões do que o verão. Leve uma jaqueta leve para as noites."
+  }
+}

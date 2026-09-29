@@ -1,0 +1,400 @@
+{
+  "days": [
+    {
+      "title": "Bairro Gótico e Las Ramblas",
+      "theme": "Exploração do Centro Histórico",
+      "activities": [
+        {
+          "name": "Catedral de Barcelona",
+          "description": "Obra-prima gótica do século XIV com claustros deslumbrantes que abrigam gansos e um terraço na cobertura com vistas panorâmicas.",
+          "tips": [
+            "O acesso ao terraço é extra, mas vale a pena",
+            "Entrada gratuita antes das 12h45 nos dias de semana"
+          ]
+        },
+        {
+          "name": "Passeio a Pé pelo Bairro Gótico",
+          "description": "Perca-se pelas ruas labirínticas do Barri Gòtic, descobrindo ruínas romanas, praças medievais e pátios escondidos.",
+          "tips": [
+            "Procure o Templo Romano de Augusto escondido em um pátio",
+            "Visite a Plaça Sant Felip Neri"
+          ]
+        },
+        {
+          "name": "Almoço no Els Quatre Gats",
+          "description": "Café histórico que foi ponto de encontro de Picasso e artistas modernistas. Cozinha catalã em um deslumbrante cenário Art Nouveau.",
+          "tips": [
+            "Experimente o menu do dia para um bom custo-benefício",
+            "O próprio edifício é uma obra de arte"
+          ]
+        },
+        {
+          "name": "Mercado La Boqueria",
+          "description": "O mercado de alimentos mais famoso de Barcelona. Experimente sucos frescos, jamón ibérico, frutos do mar e produtos locais.",
+          "tips": [
+            "Vá cedo para evitar multidões",
+            "Experimente um smoothie de frutas frescas das barracas"
+          ]
+        },
+        {
+          "name": "Passeio Noturno por Las Ramblas",
+          "description": "O calçadão mais famoso de Barcelona. Observe artistas de rua, explore as barracas de flores e absorva a atmosfera.",
+          "tips": [
+            "Mantenha seus pertences seguros",
+            "Caminhe até o Monumento a Colombo para vistas do porto"
+          ]
+        },
+        {
+          "name": "Jantar de Tapas no El Xampanyet",
+          "description": "Lendário bar de tapas em El Born, servindo tapas catalãs tradicionais e cava da casa desde 1929.",
+          "tips": [
+            "Peça as anchovas e o pão com tomate",
+            "Somente dinheiro - sem reservas"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Obras-primas de Gaudí",
+      "theme": "Arquitetura Modernista",
+      "activities": [
+        {
+          "name": "La Sagrada Família",
+          "description": "A obra-prima inacabada de Gaudí e Patrimônio Mundial da UNESCO. A igreja mais extraordinária que você já verá.",
+          "tips": [
+            "Reserve online com semanas de antecedência",
+            "O acesso às torres requer ingresso separado",
+            "As manhãs têm a melhor luz lá dentro"
+          ]
+        },
+        {
+          "name": "Casa Batlló",
+          "description": "Um dos edifícios residenciais mais criativos de Gaudí, com um telhado em forma de escamas de dragão e varandas que lembram ossos.",
+          "tips": [
+            "Visitas noturnas incluem concerto no terraço",
+            "O audioguia é excelente"
+          ]
+        },
+        {
+          "name": "Almoço na Cervecería Catalana",
+          "description": "Famoso bar de tapas amado por moradores e visitantes. Excelente seleção de pintxos e cervejas espanholas.",
+          "tips": [
+            "Chegue cedo ou espere uma fila",
+            "Aponte para o balcão para pedir os pintxos"
+          ]
+        },
+        {
+          "name": "Casa Milà (La Pedrera)",
+          "description": "A última obra civil de Gaudí, com uma fachada de pedra ondulada e um terraço surreal com chaminés que parecem guerreiros.",
+          "tips": [
+            "As vistas do terraço ao pôr do sol são mágicas",
+            "A experiência noturna inclui show de luzes"
+          ]
+        },
+        {
+          "name": "Compras no Passeig de Gràcia",
+          "description": "O bulevar mais elegante de Barcelona, repleto de butiques de luxo, lojas de grife e arquitetura deslumbrante.",
+          "tips": [
+            "Ótimo para ver vitrines e observar as pessoas",
+            "Observe os postes de luz modernistas"
+          ]
+        },
+        {
+          "name": "Jantar no Tickets",
+          "description": "Bar de tapas criativo dos irmãos Adrià (famosos pelo elBulli). Pratos lúdicos e teatrais que surpreendem e encantam.",
+          "tips": [
+            "As reservas abrem com 2 meses de antecedência - reserve imediatamente",
+            "Não perca as azeitonas líquidas"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Montjuïc e Área do Porto",
+      "theme": "Vistas e Cultura Marítima",
+      "activities": [
+        {
+          "name": "Teleférico de Montjuïc",
+          "description": "Passeio de teleférico panorâmico com vistas espetaculares da cidade, do porto e do Mar Mediterrâneo.",
+          "tips": [
+            "Pegue o funicular do metrô Parallel primeiro",
+            "Melhores vistas em uma manhã clara"
+          ]
+        },
+        {
+          "name": "Fundació Joan Miró",
+          "description": "A maior coleção mundial da obra de Joan Miró em um edifício deslumbrante projetado por Josep Lluís Sert.",
+          "tips": [
+            "O terraço na cobertura tem vistas da cidade",
+            "As quintas-feiras à noite são gratuitas"
+          ]
+        },
+        {
+          "name": "Almoço no La Font del Gat",
+          "description": "Restaurante charmoso nos jardins de Montjuïc com um belo terraço cercado pela natureza.",
+          "tips": [
+            "Local perfeito para descansar após as visitas aos museus",
+            "Experimente os pratos de arroz"
+          ]
+        },
+        {
+          "name": "Praia da Barceloneta",
+          "description": "A praia mais famosa de Barcelona, com areia dourada, bares de praia (chiringuitos) e observação de pessoas.",
+          "tips": [
+            "Alugue uma espreguiçadeira no chiringuito",
+            "Cuidado com batedores de carteira"
+          ]
+        },
+        {
+          "name": "Frutos do Mar no Can Paixano (La Xampanyeria)",
+          "description": "Lendário bar de cava, onde se come em pé. Os moradores se aglomeram para vinho espumante barato e bocadillos incríveis.",
+          "tips": [
+            "Peça no balcão e coma em pé",
+            "O sanduíche de jamón é lendário"
+          ]
+        },
+        {
+          "name": "Fonte Mágica de Montjuïc",
+          "description": "Espetacular show de fontes com água, luzes e música. Uma amada tradição de Barcelona desde 1929.",
+          "tips": [
+            "Os shows acontecem de quinta a domingo à noite",
+            "Chegue cedo para os melhores lugares"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Park Güell e Gràcia",
+      "theme": "Jardins de Gaudí e Bairro Boêmio",
+      "activities": [
+        {
+          "name": "Park Güell",
+          "description": "O fantástico parque público de Gaudí com estruturas cobertas de mosaicos, a famosa fonte do dragão e panoramas da cidade.",
+          "tips": [
+            "Reserve o horário mais cedo online para menos multidões",
+            "A zona gratuita externa também é linda"
+          ]
+        },
+        {
+          "name": "Casa Museu Gaudí",
+          "description": "Residência de Gaudí por quase 20 anos, exibindo móveis que ele projetou e objetos pessoais.",
+          "tips": [
+            "Ingresso combinado com o Park Güell disponível",
+            "Visão interessante sobre sua vida diária"
+          ]
+        },
+        {
+          "name": "Almoço no La Pepita",
+          "description": "Tapas premiadas no coração de Gràcia. Pratos criativos em um ambiente aconchegante de bairro.",
+          "tips": [
+            "As patatas bravas deles são lendárias",
+            "Sem reservas - chegue cedo"
+          ]
+        },
+        {
+          "name": "Exploração do Bairro de Gràcia",
+          "description": "Explore o bairro boêmio de Barcelona. Praças charmosas, butiques independentes e uma autêntica atmosfera local.",
+          "tips": [
+            "Visite a Plaça del Sol e a Plaça de la Virreina",
+            "Ótimas lojas vintage na Carrer Verdi"
+          ]
+        },
+        {
+          "name": "Hora do Vermute em La Pepita",
+          "description": "Junte-se aos moradores para a tradição do vermut - vermute com azeitonas e petiscos. Uma experiência quintessencial de Barcelona.",
+          "tips": [
+            "Melhor apreciado sentado ao ar livre",
+            "Experimente o vermute da casa na torneira"
+          ]
+        },
+        {
+          "name": "Jantar no Botafumeiro",
+          "description": "O restaurante de frutos do mar mais prestigiado de Barcelona. Cozinha galega com mariscos frescos do aquário.",
+          "tips": [
+            "A travessa de frutos do mar para dois é espetacular",
+            "Reservas essenciais"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "El Raval e Sant Antoni",
+      "theme": "Artes e Cultura Alternativa",
+      "activities": [
+        {
+          "name": "MACBA (Museu de Arte Contemporânea)",
+          "description": "O principal museu de arte contemporânea de Barcelona. O edifício branco de Richard Meier é um ícone.",
+          "tips": [
+            "A praça externa é famosa por skatistas",
+            "Entrada gratuita aos sábados à tarde"
+          ]
+        },
+        {
+          "name": "Mercat de Sant Antoni",
+          "description": "Mercado do século XIX lindamente restaurado. Alimentos frescos, produtos locais e mercado de livros/moedas aos domingos.",
+          "tips": [
+            "A arquitetura é deslumbrante",
+            "Ótimo para queijos e embutidos locais"
+          ]
+        },
+        {
+          "name": "Almoço no Federal Café",
+          "description": "Café de inspiração australiana com excelente brunch e café. Ambiente descontraído em um bairro descolado.",
+          "tips": [
+            "Ótimas torradas de abacate e flat whites",
+            "Tem um lindo terraço no pátio"
+          ]
+        },
+        {
+          "name": "Sant Pau Recinte Modernista",
+          "description": "Patrimônio da UNESCO - Deslumbrante complexo hospitalar Art Nouveau. Incrível trabalho de azulejos e arquitetura.",
+          "tips": [
+            "Muitas vezes esquecido, mas rivaliza com a Sagrada Família",
+            "Faça a visita guiada"
+          ]
+        },
+        {
+          "name": "Drinks ao Pôr do Sol no Rooftop do Hotel Pulitzer",
+          "description": "Bar elegante na cobertura com vistas da cidade. Perfeito para coquetéis ao pôr do sol.",
+          "tips": [
+            "Chegue antes do pôr do sol para os melhores lugares",
+            "O código de vestimenta é esporte fino"
+          ]
+        },
+        {
+          "name": "Jantar no Can Culleretes",
+          "description": "O segundo restaurante mais antigo de Barcelona (desde 1786). Cozinha catalã tradicional em um ambiente histórico.",
+          "tips": [
+            "Experimente a escudella (ensopado tradicional)",
+            "Paredes cobertas de objetos históricos"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Viagem de Um Dia a Montserrat",
+      "theme": "Mosteiro da Montanha Sagrada",
+      "activities": [
+        {
+          "name": "Trem para Montserrat",
+          "description": "Viagem panorâmica de trem e trem de cremalheira através de paisagens montanhosas dramáticas até Montserrat.",
+          "tips": [
+            "Compre o pacote Tot Montserrat para transporte + museu + almoço",
+            "Sente-se no lado direito para as vistas"
+          ]
+        },
+        {
+          "name": "Mosteiro de Montserrat",
+          "description": "Antigo mosteiro beneditino dramaticamente empoleirado nas montanhas, lar da Madona Negra.",
+          "tips": [
+            "A fila para ver a Madona Negra pode ser longa",
+            "O coro de meninos canta diariamente às 13h"
+          ]
+        },
+        {
+          "name": "Funicular de Sant Joan e Caminhada",
+          "description": "Pegue o funicular até o topo e caminhe entre as formações rochosas surreais com vistas panorâmicas.",
+          "tips": [
+            "Várias trilhas de diferentes dificuldades",
+            "Traga água e proteção solar"
+          ]
+        },
+        {
+          "name": "Almoço no Restaurant Montserrat",
+          "description": "Restaurante de montanha que serve farta cozinha catalã com vistas do vale abaixo.",
+          "tips": [
+            "Incluído no pacote Tot Montserrat",
+            "Experimente a tradicional escudella"
+          ]
+        },
+        {
+          "name": "Museu de Montserrat",
+          "description": "Coleção impressionante, incluindo obras de Picasso, Dalí, Monet e artefatos egípcios antigos.",
+          "tips": [
+            "Coleção surpreendentemente excelente",
+            "Também incluído no Tot Montserrat"
+          ]
+        },
+        {
+          "name": "Retorno e Jantar Leve no Quimet y Quimet",
+          "description": "Lendário bar de tapas onde se come em pé, famoso por montaditos (torradas com cobertura) e vinhos naturais.",
+          "tips": [
+            "Deixe o garçom escolher para você",
+            "Peça o montadito de mel e trufa"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "El Born e Partida",
+      "theme": "Descobertas Finais",
+      "activities": [
+        {
+          "name": "Museu Picasso",
+          "description": "Mais de 5.000 obras abrangendo a carreira de Picasso, abrigadas em cinco palácios medievais. Essencial para amantes da arte.",
+          "tips": [
+            "Gratuito no primeiro domingo do mês e quintas-feiras à noite",
+            "Reserve online para evitar filas"
+          ]
+        },
+        {
+          "name": "Centro Cultural El Born",
+          "description": "Antigo mercado transformado em centro cultural com ruínas escavadas do século XVIII sob a estrutura de ferro.",
+          "tips": [
+            "As ruínas arqueológicas são fascinantes",
+            "Bela arquitetura de ferro"
+          ]
+        },
+        {
+          "name": "Brunch no Flax & Kale",
+          "description": "Restaurante saudável e moderno com culinária flexitariana inovadora. Leve, fresco e delicioso.",
+          "tips": [
+            "Experimente a pizza com massa de couve-flor",
+            "Ótimos smoothies e sucos"
+          ]
+        },
+        {
+          "name": "Compras Finais nas Butiques de El Born",
+          "description": "Explore butiques independentes, lojas de artesãos e designers locais no bairro mais badalado de Barcelona.",
+          "tips": [
+            "Ótimo para lembranças únicas",
+            "Muitos designers locais de joias e moda"
+          ]
+        },
+        {
+          "name": "Café de Despedida no Satan's Coffee Corner",
+          "description": "Cafeteria cult de cafés especiais. O melhor espresso de Barcelona para abastecer sua viagem de volta para casa.",
+          "tips": [
+            "Espaço pequeno, mas café excelente",
+            "Experimente também o bolo de cenoura"
+          ]
+        }
+      ]
+    }
+  ],
+  "packing": [],
+  "meta": {
+    "highlights": [
+      "Maravilhe-se com a Sagrada Família e o Park Güell de Gaudí",
+      "Explore as ruas sinuosas do medieval Bairro Gótico",
+      "Saboreie tapas autênticas no mercado La Boqueria",
+      "Relaxe na Praia da Barceloneta",
+      "Experimente a vida noturna vibrante em Las Ramblas"
+    ],
+    "packing_suggestions": [
+      "Sapatos confortáveis para caminhar em paralelepípedos",
+      "Camadas leves para clima variável",
+      "Óculos de sol e protetor solar",
+      "Pequena mochila para dias de praia",
+      "Esporte fino para jantares"
+    ],
+    "destination_best_for": [
+      "Arquitetura",
+      "Comida",
+      "Cultura",
+      "Praias",
+      "Vida Noturna"
+    ],
+    "weather_note": "A primavera traz temperaturas agradáveis (15-22°C) perfeitas para caminhadas. Leve camadas de roupa e protetor solar."
+  }
+}

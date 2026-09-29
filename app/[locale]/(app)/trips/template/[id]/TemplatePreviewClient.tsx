@@ -78,6 +78,7 @@ interface TemplatePreviewClientProps {
 
 export default function TemplatePreviewClient({ template }: TemplatePreviewClientProps) {
   const t = useTranslations('trips.template');
+  const tTypes = useTranslations('trips.activityTypes');
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
@@ -439,7 +440,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                                           : null}
                                       </div>
                                       <span className="text-xs text-slate-500 capitalize">
-                                        {activity.type}
+                                        {tTypes.has(activity.type) ? tTypes(activity.type) : activity.type}
                                       </span>
                                     </div>
                                   </div>

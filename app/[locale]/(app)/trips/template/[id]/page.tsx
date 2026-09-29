@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import TemplatePreviewClient from "./TemplatePreviewClient";
 import { refreshItineraryPhotos } from "@/lib/places/refreshItineraryPhotos";
-import { countryName, templateText } from "@/lib/templates/text";
+import { countryName, templateItinerary, templateMeta, templatePacking, templateText } from "@/lib/templates/text";
 
 interface TemplatePageProps {
   params: Promise<{ id: string; locale: string }>;
@@ -104,10 +104,10 @@ export default async function TemplatePage({ params }: TemplatePageProps) {
         moodTags: template.template_mood_tags || [],
         tags: template.tags || [],
         copyCount: template.template_copy_count || 0,
-        itinerary: refreshedItinerary,
-        meta: template.trip_meta,
+        itinerary: templateItinerary(template.id, locale, refreshedItinerary),
+        meta: templateMeta(template.id, locale, template.trip_meta ?? {}),
         budget: template.budget,
-        packingList: template.packing_list || [],
+        packingList: templatePacking(template.id, locale, template.packing_list || []),
       }}
     />
   );

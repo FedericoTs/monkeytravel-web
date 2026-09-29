@@ -212,7 +212,11 @@
     "family": "Família",
     "wellness": "Bem-estar",
     "photography": "Fotografia",
-    "offbeat": "Fora do Comum"
+    "offbeat": "Fora do Comum",
+    "art": "Arte",
+    "architecture": "Arquitetura",
+    "scenic": "Paisagens",
+    "wine": "Vinho"
   },
   "bestTime": {
     "title": "Melhor Época para Visitar {city}",
