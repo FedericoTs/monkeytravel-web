@@ -25,10 +25,13 @@ const day = (title: string, names: string[]): ItineraryDay => ({
   activities: names.map((name) => ({
     name,
     description: `${name} description`,
-    time_slot: "morning",
+    location: "Paris",
+    tips: [],
+    booking_required: false,
+    time_slot: "morning" as const,
     start_time: "09:00",
     duration_minutes: 60,
-    type: "activity",
+    type: "activity" as const,
   })),
 });
 
