@@ -10,6 +10,7 @@ import type { ItineraryDay, TripMeta, CachedDayTravelData } from "@/types";
 import { trackShareLinkClicked } from "@/lib/analytics";
 import { getTripDestination } from "@/lib/trips/destination";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
+import { hasCoordinates } from "@/lib/trips/has-coordinates";
 import { readPendingClaim, claimPendingTrip } from "@/lib/trips/anonymous-claim-client";
 import { onClaimedTrip, readClaimedTrip } from "@/lib/trips/claimed-trip-signal";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
@@ -484,7 +485,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
         title={trip.title}
         subtitle={trip.description}
         dateRange={dateRange}
-        budget={trip.budget || undefined}
+        budget={trip.budget?.total ? trip.budget : undefined}
         days={trip.itinerary.length}
         nights={nights}
         activitiesCount={activitiesCount}
@@ -691,7 +692,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
         )}
 
         {/* Interactive Map */}
-        {showMap && displayItinerary.length > 0 && (
+        {showMap && hasCoordinates(displayItinerary) && (
           <div className="mb-8">
             {/* The map is decorative here — a shared trip must still render
                 its itinerary if Google Maps throws (e.g. a null map ref on iOS

@@ -11,6 +11,7 @@ import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, Collaborato
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
+import { hasCoordinates } from "@/lib/trips/has-coordinates";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
 import TodayView from "@/components/trip/TodayView";
@@ -2138,7 +2139,7 @@ export default function TripDetailClient({
         title={trip.title}
         subtitle={trip.description}
         dateRange={dateRange}
-        budget={trip.budget || undefined}
+        budget={trip.budget?.total ? trip.budget : undefined}
         days={trip.itinerary.length}
         nights={(() => {
           const start = new Date(trip.startDate);
@@ -2777,7 +2778,7 @@ export default function TripDetailClient({
         )}
 
         {/* Interactive Map - First */}
-        {showMap && displayItinerary.length > 0 && (
+        {showMap && hasCoordinates(displayItinerary) && (
           <div className="mb-8">
             <TripMap
               days={displayItinerary}
