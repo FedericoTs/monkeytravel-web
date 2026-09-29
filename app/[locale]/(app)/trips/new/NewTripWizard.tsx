@@ -2332,8 +2332,10 @@ export default function NewTripPage({
           // The anonymous free-generation cap (RATE_LIMIT from both
           // endpoints: the stream refused, and so did this fallback). Ask
           // for a free account, with the destination kept for the way back,
-          // instead of throwing the server's English error.
+          // instead of throwing the server's English error. Its own step,
+          // so the funnel does not count it as a generation that failed.
           if (response.status === 429 && data.code === "RATE_LIMIT" && !authUser) {
+            void trackWizardEvent("generation_capped", { destination, locale });
             setAuthPromptLocation("wizard_generation_limit");
             setAuthPromptReason("generation_limit");
             setShowAuthModal(true);

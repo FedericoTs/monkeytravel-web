@@ -29,38 +29,10 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { errors } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
-
-// Mirror the CHECK constraint in the migration. Keep these in lockstep
-// — adding a step requires updates in BOTH places (and the wizard
-// trackWizardEvent() call sites).
-const STEP_VALUES = [
-  "step_1_destination_dates",
-  "step1_heartbeat", // UX10X Phase 0.3: 10s dwell heartbeat on step 1
-  "step_2_vibes",
-  "generating",
-  "result",
-  // Decision-first arm (2026-07 → 2026-08-17 experiment; retired 2026-09-18,
-  "options_requested", // decide LLM call dispatched (≈ generating)
-  "options_shown", // 2-3 proposals rendered (the decision arm's first-value)
-  "first_value", // shared cross-arm "first magical output" (wizard fires alongside result)
-  "save_clicked",
-  "save_blocked_anon",
-  "save_failed",
-  "saved",
-  "abandoned",
-  // Draft recovery (2026-09-02) — see components/wizard/wizardEvents.ts.
-  "draft_restored",
-  "draft_expired",
-  "generation_failed",
-  "auth_modal_shown",
-  "otp_requested",
-  "otp_link_opened",
-  "otp_code_submitted",
-  "otp_code_verified",
-] as const;
+import { WIZARD_EVENT_STEPS } from "@/components/wizard/wizardEvents";
 
 const BodySchema = z.object({
-  step: z.enum(STEP_VALUES),
+  step: z.enum(WIZARD_EVENT_STEPS),
   destination: z.string().trim().min(1).max(120).optional(),
   duration_days: z.number().int().min(1).max(365).optional(),
   group_size: z.string().trim().min(1).max(32).optional(),

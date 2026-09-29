@@ -11,10 +11,10 @@
 // invalidate effect deps that pass it around (load-bearing note originally at
 // NewTripWizard.tsx 154-164).
 //
-// The step union + the /api/wizard-event zod enum + the
-// wizard_step_events_step_check CHECK constraint are THREE copies of one list.
-// Adding a step means editing all three. The decision-arm values below stay in
-// all three for the rows written during the 2026-07 → 2026-08 experiment.
+// WIZARD_EVENT_STEPS below feeds the /api/wizard-event zod enum, and the test
+// beside this file checks it against the wizard_step_events_step_check CHECK
+// constraint in the newest migration. Adding a step means one entry here plus
+// a migration. The decision-arm values stay for the rows already written.
 
 // front_door: every row is stamped "wizard". The value dates from the
 // front-door A/B (wizard vs decision-first, 2026-07-01 → 2026-08-17; the
@@ -30,51 +30,59 @@ const FRONT_DOOR = "wizard" as const;
 // step 1 is the only one now, so nothing sends it. The API still accepts the
 // field so bundles cached from before the ramp keep posting cleanly.
 
-export type WizardEventStep =
-  | "step_1_destination_dates"
+export const WIZARD_EVENT_STEPS = [
+  "step_1_destination_dates",
   // UX10X Phase 0.3: 10s dwell heartbeat while a session sits on step 1.
   // 56% of step-1 abandoner sessions log exactly ONE event, making dwell
   // (bounce vs struggle) unmeasurable — this makes it measurable. Persists as
   // distinct rows (10s spacing never hits the 1s dedupe bucket).
-  | "step1_heartbeat"
-  | "step_2_vibes"
-  | "generating"
-  | "result"
+  "step1_heartbeat",
+  "step_2_vibes",
+  "generating",
+  "result",
   // Decision-first arm (retired 2026-09-18; kept for its rows + the DB CHECK):
-  | "options_requested" // decide-LLM call dispatched (≈ generating)
-  | "options_shown" // 2-3 proposals rendered (decision arm's first value)
-  | "first_value" // shared cross-arm "first magical output"
-  | "save_clicked"
-  | "save_blocked_anon"
-  | "save_failed"
-  | "saved"
-  | "abandoned"
+  "options_requested", // decide-LLM call dispatched (≈ generating)
+  "options_shown", // 2-3 proposals rendered (decision arm's first value)
+  "first_value", // shared cross-arm "first magical output"
+  "save_clicked",
+  "save_blocked_anon",
+  "save_failed",
+  "saved",
+  "abandoned",
   // Draft recovery (2026-09-02). The generated itinerary lives in a
   // localStorage draft, and until now it auto-restored ONLY on the Save-modal
   // path; every other way back into an account met a blank wizard. Nothing
   // server-side recorded a restore, so the loss was invisible.
-  | "draft_restored"
-  | "draft_expired"
+  "draft_restored",
+  "draft_expired",
   // A generation that reached the server and came back an error (2026-09-02).
   // `abandoned` cannot follow `generating`, so without this a failure and a
   // closed tab were the same row: nothing.
-  | "generation_failed"
+  "generation_failed",
+  // The anonymous free-generation cap. Before this step the refusal wrote
+  // no row of its own: `generating` followed a moment later by
+  // `auth_modal_shown` was the only trace, and the funnel read that pair
+  // as a generation that silently failed.
+  "generation_capped",
   // The save-click-to-account step, which the funnel could not see at all
   // (2026-09-02). 186 sessions clicked Save signed out, 87 ended signed in,
   // and the 99 that did not left no trace of WHY: never typed an address,
   // asked for a link that never arrived, or opened it and still got nothing
   // are three different problems that were one number.
-  | "auth_modal_shown"
-  | "otp_requested"
+  "auth_modal_shown",
+  "otp_requested",
   // Written server-side by the auth callback — see lib/analytics/wizard-event-server.ts.
-  | "otp_link_opened"
+  "otp_link_opened",
   // The in-tab redemption (2026-09-03). Magic-link sign-ups reach a session
   // 63.0% of the time against Google's 99.0% (n=142, p=1.8e-9) because the
   // link means leaving the browser. These two split "typed the code" from
   // "the code worked", so a failure to redeem is never mistaken for someone
   // who simply walked away.
-  | "otp_code_submitted"
-  | "otp_code_verified";
+  "otp_code_submitted",
+  "otp_code_verified",
+] as const;
+
+export type WizardEventStep = (typeof WIZARD_EVENT_STEPS)[number];
 
 /**
  * Where this wizard document came from, for the step-1 row: the referrer's
