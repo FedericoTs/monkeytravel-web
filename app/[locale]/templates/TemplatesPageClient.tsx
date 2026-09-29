@@ -41,32 +41,38 @@ interface TemplateTrip {
   copyCount: number;
 }
 
-// Mood options with emojis
+// Mood options with emojis; labels live in common.curatedEscapes
 const MOOD_OPTIONS = [
-  { id: "all", label: "All", emoji: "✨" },
-  { id: "romantic", label: "Romantic", emoji: "💕" },
-  { id: "adventure", label: "Adventure", emoji: "🏔️" },
-  { id: "cultural", label: "Cultural", emoji: "🏛️" },
-  { id: "relaxation", label: "Relaxation", emoji: "🌴" },
-  { id: "foodie", label: "Foodie", emoji: "🍝" },
-  { id: "family", label: "Family", emoji: "👨‍👩‍👧‍👦" },
+  { id: "all", emoji: "✨" },
+  { id: "romantic", emoji: "💕" },
+  { id: "adventure", emoji: "🏔️" },
+  { id: "cultural", emoji: "🏛️" },
+  { id: "relaxation", emoji: "🌴" },
+  { id: "foodie", emoji: "🍝" },
+  { id: "family", emoji: "👨‍👩‍👧‍👦" },
 ];
 
 // Duration quick filters
 const DURATION_FILTERS = [
-  { value: 0, label: "Any" },
-  { value: 5, label: "5 days" },
-  { value: 7, label: "1 week" },
-  { value: 10, label: "10+ days" },
+  { value: 0, labelKey: "any" },
+  { value: 5, labelKey: "durations.five" },
+  { value: 7, labelKey: "durations.week" },
+  { value: 10, labelKey: "durations.tenPlus" },
 ];
 
-// Budget quick filters
+// Budget quick filters; the tiers are labelled by their own symbol
 const BUDGET_FILTERS = [
-  { value: "", label: "Any", icon: "💰" },
-  { value: "budget", label: "€", icon: "€" },
-  { value: "moderate", label: "€€", icon: "€€" },
-  { value: "luxury", label: "€€€", icon: "€€€" },
+  { value: "", labelKey: "any", icon: "💰" },
+  { value: "budget", icon: "€" },
+  { value: "moderate", icon: "€€" },
+  { value: "luxury", icon: "€€€" },
 ];
+
+/** A mood's label, or the raw tag when a template carries one the catalog does not know. */
+function useMoodLabel() {
+  const t = useTranslations("common.curatedEscapes");
+  return (id: string) => (id === "all" ? t("all") : t.has(`moods.${id}`) ? t(`moods.${id}`) : id);
+}
 
 // Gradient fallbacks for destinations
 const DESTINATION_GRADIENTS: Record<string, { from: string; to: string }> = {
@@ -95,6 +101,7 @@ function getFlagEmoji(countryCode: string): string {
 
 // Featured Template Card - Mobile-first Hero style
 function FeaturedCard({ template }: { template: TemplateTrip }) {
+  const t = useTranslations("common.curatedEscapes");
   const imgRef = useRef<HTMLImageElement | null>(null);
   // Cached-image race shim — see lib/hooks/useImageLoaded.ts.
   const [imageLoaded, setImageLoaded] = useImageLoaded(imgRef, template.coverImageUrl);
@@ -145,11 +152,11 @@ function FeaturedCard({ template }: { template: TemplateTrip }) {
         <div className="absolute top-4 left-4 right-4 flex items-start justify-between z-10">
           <div className="flex items-center gap-2">
             <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[var(--accent)] text-[var(--foreground)] shadow-lg">
-              ⭐ Featured
+              ⭐ {t("featured")}
             </span>
             <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/95 backdrop-blur-sm text-slate-700 shadow-sm flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
-              {template.durationDays} days
+              {t("days", { days: template.durationDays })}
             </span>
           </div>
           <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-400/95 backdrop-blur-sm text-amber-900 shadow-sm">
@@ -179,13 +186,13 @@ function FeaturedCard({ template }: { template: TemplateTrip }) {
             {/* CTA */}
             <div className="flex items-center gap-3 flex-wrap">
               <span className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-[var(--primary-ink)] font-semibold rounded-xl text-sm group-hover:bg-[var(--accent)] group-hover:text-[var(--foreground)] transition-colors shadow-lg">
-                Explore Itinerary
+                {t("exploreItinerary")}
                 <ChevronRight className="w-4 h-4" />
               </span>
               {template.copyCount > 0 && (
                 <span className="text-white/70 text-xs flex items-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-lg backdrop-blur-sm">
                   <Users className="w-3.5 h-3.5" />
-                  {template.copyCount} travelers
+                  {t("travelers", { count: template.copyCount })}
                 </span>
               )}
             </div>
@@ -198,6 +205,8 @@ function FeaturedCard({ template }: { template: TemplateTrip }) {
 
 // Template Card Component - Mobile Optimized
 function TemplateCard({ template, index }: { template: TemplateTrip; index: number }) {
+  const t = useTranslations("common.curatedEscapes");
+  const moodLabel = useMoodLabel();
   const imgRef = useRef<HTMLImageElement | null>(null);
   // Cached-image race shim — see lib/hooks/useImageLoaded.ts.
   const [imageLoaded, setImageLoaded] = useImageLoaded(imgRef, template.coverImageUrl);
@@ -252,7 +261,7 @@ function TemplateCard({ template, index }: { template: TemplateTrip; index: numb
           <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
             <span className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white/95 backdrop-blur-sm text-slate-700 flex items-center gap-1.5 shadow-sm">
               <Calendar className="w-3.5 h-3.5 text-slate-500" />
-              {template.durationDays} days
+              {t("days", { days: template.durationDays })}
             </span>
             <span className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-400/95 backdrop-blur-sm text-amber-900 shadow-sm">
               {budgetLabel}
@@ -287,7 +296,7 @@ function TemplateCard({ template, index }: { template: TemplateTrip; index: numb
                   key={mood}
                   className="flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 whitespace-nowrap"
                 >
-                  {option?.emoji} {option?.label || mood}
+                  {option?.emoji} {moodLabel(mood)}
                 </span>
               );
             })}
@@ -304,12 +313,12 @@ function TemplateCard({ template, index }: { template: TemplateTrip; index: numb
               {template.copyCount > 0 && (
                 <>
                   <Users className="w-4 h-4" />
-                  <span>{template.copyCount} used</span>
+                  <span>{t("used", { count: template.copyCount })}</span>
                 </>
               )}
             </span>
             <span className="text-[var(--primary-ink)] font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all py-1">
-              Explore
+              {t("explore")}
               <ChevronRight className="w-4 h-4" />
             </span>
           </div>
@@ -321,6 +330,7 @@ function TemplateCard({ template, index }: { template: TemplateTrip; index: numb
 
 // Empty State Component
 function EmptyState({ onClear }: { onClear: () => void }) {
+  const t = useTranslations("common.curatedEscapes");
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -330,15 +340,13 @@ function EmptyState({ onClear }: { onClear: () => void }) {
       <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
         <Compass className="w-8 h-8 text-slate-500" />
       </div>
-      <h3 className="text-lg font-bold text-slate-900 mb-2">No itineraries found</h3>
-      <p className="text-slate-500 mb-6 text-sm max-w-sm mx-auto">
-        Try adjusting your filters to discover more curated escapes.
-      </p>
+      <h3 className="text-lg font-bold text-slate-900 mb-2">{t("empty.title")}</h3>
+      <p className="text-slate-500 mb-6 text-sm max-w-sm mx-auto">{t("empty.body")}</p>
       <button
         onClick={onClear}
         className="px-5 py-2.5 bg-[var(--primary)] text-white font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors text-sm"
       >
-        Clear filters
+        {t("empty.clear")}
       </button>
     </motion.div>
   );
@@ -365,6 +373,8 @@ export default function TemplatesPageClient() {
   // i18n: header H1 + chrome were hardcoded English, leaking onto
   // /it/templates + /es/templates. 2026-05-31 launch-night fix.
   const t = useTranslations("common.curatedEscapes");
+  const tNav = useTranslations("common.navigation");
+  const moodLabel = useMoodLabel();
   const [templates, setTemplates] = useState<TemplateTrip[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -499,7 +509,7 @@ export default function TemplatesPageClient() {
               className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span className="text-sm font-medium hidden sm:inline">My Trips</span>
+              <span className="text-sm font-medium hidden sm:inline">{tNav("myTrips")}</span>
             </Link>
 
             <div className="flex items-center gap-2">
@@ -514,7 +524,7 @@ export default function TemplatesPageClient() {
                 className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
               >
                 <Plane className="w-4 h-4" />
-                Create Trip
+                {t("createTrip")}
               </Link>
             </div>
           </div>
@@ -525,7 +535,7 @@ export default function TemplatesPageClient() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 type="text"
-                placeholder="Search destinations..."
+                placeholder={t("searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
@@ -577,7 +587,7 @@ export default function TemplatesPageClient() {
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
-                  {mood.emoji} {mood.label}
+                  {mood.emoji} {moodLabel(mood.id)}
                 </button>
               ))}
 
@@ -593,7 +603,7 @@ export default function TemplatesPageClient() {
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
-                  {dur.label}
+                  {t(dur.labelKey)}
                 </button>
               ))}
 
@@ -621,7 +631,7 @@ export default function TemplatesPageClient() {
                     className="px-3 py-2 rounded-full text-sm font-medium text-red-600 hover:bg-red-50 transition-colors flex items-center gap-1"
                   >
                     <X className="w-3.5 h-3.5" />
-                    Clear
+                    {t("clear")}
                   </button>
                 </>
               )}
@@ -664,21 +674,13 @@ export default function TemplatesPageClient() {
             {/* Results count */}
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-slate-500">
-                {hasActiveFilters ? (
-                  <>
-                    <span className="font-medium text-slate-900">{filteredTemplates.length}</span>{" "}
-                    {filteredTemplates.length === 1 ? "itinerary" : "itineraries"} found
-                  </>
-                ) : (
-                  <>
-                    <span className="font-medium text-slate-900">{remainingTemplates.length}</span>{" "}
-                    more curated escapes
-                  </>
-                )}
+                {hasActiveFilters
+                  ? t("found", { count: filteredTemplates.length })
+                  : t("more", { count: remainingTemplates.length })}
               </p>
               <div className="flex items-center gap-1 text-xs text-slate-500">
                 <Globe className="w-3.5 h-3.5" />
-                Hand-picked by experts
+                {t("handPicked")}
               </div>
             </div>
 
@@ -698,19 +700,15 @@ export default function TemplatesPageClient() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="text-center md:text-left">
-                <h2 className="text-2xl font-bold text-white mb-2">
-                  Can't find what you're looking for?
-                </h2>
-                <p className="text-white/80 text-sm">
-                  Create a personalized itinerary with our AI travel planner
-                </p>
+                <h2 className="text-2xl font-bold text-white mb-2">{t("cta.title")}</h2>
+                <p className="text-white/80 text-sm">{t("cta.body")}</p>
               </div>
               <Link
                 href="/trips/new"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[var(--primary-ink)] font-semibold rounded-xl hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-all shadow-lg"
               >
                 <Sparkles className="w-5 h-5" />
-                Create Custom Trip
+                {t("cta.button")}
               </Link>
             </div>
           </div>
@@ -727,14 +725,14 @@ export default function TemplatesPageClient() {
       <BottomSheet
         isOpen={isFilterSheetOpen}
         onClose={() => setIsFilterSheetOpen(false)}
-        title="Filters"
+        title={t("filters.title")}
       >
         <div className="px-4 pb-6">
           {/* Mood Section */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[var(--accent)]" />
-              Travel Style
+              {t("filters.style")}
             </h3>
             <div className="grid grid-cols-2 gap-2">
               {MOOD_OPTIONS.map((mood) => (
@@ -748,7 +746,7 @@ export default function TemplatesPageClient() {
                   }`}
                 >
                   <span className="text-lg">{mood.emoji}</span>
-                  <span>{mood.label}</span>
+                  <span>{moodLabel(mood.id)}</span>
                   {tempMood === mood.id && (
                     <Check className="w-4 h-4 ml-auto" />
                   )}
@@ -761,7 +759,7 @@ export default function TemplatesPageClient() {
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-slate-500" />
-              Trip Duration
+              {t("filters.duration")}
             </h3>
             <div className="flex flex-wrap gap-2">
               {DURATION_FILTERS.map((dur) => (
@@ -774,7 +772,7 @@ export default function TemplatesPageClient() {
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-[0.98]"
                   }`}
                 >
-                  {dur.label}
+                  {t(dur.labelKey)}
                   {tempDuration === dur.value && (
                     <Check className="w-4 h-4" />
                   )}
@@ -787,7 +785,7 @@ export default function TemplatesPageClient() {
           <div className="mb-8">
             <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
               <Wallet className="w-4 h-4 text-slate-500" />
-              Budget Level
+              {t("filters.budget")}
             </h3>
             <div className="flex gap-2">
               {BUDGET_FILTERS.map((bud) => (
@@ -801,7 +799,7 @@ export default function TemplatesPageClient() {
                   }`}
                 >
                   <span className="text-lg font-bold">{bud.icon}</span>
-                  <span className="text-xs opacity-80">{bud.label}</span>
+                  <span className="text-xs opacity-80">{bud.labelKey ? t(bud.labelKey) : bud.icon}</span>
                 </button>
               ))}
             </div>
@@ -813,13 +811,13 @@ export default function TemplatesPageClient() {
               onClick={resetTempFilters}
               className="flex-1 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
             >
-              Reset All
+              {t("filters.reset")}
             </button>
             <button
               onClick={applyFilters}
               className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary)]/90 transition-colors shadow-lg"
             >
-              Show Results
+              {t("filters.apply")}
             </button>
           </div>
         </div>
