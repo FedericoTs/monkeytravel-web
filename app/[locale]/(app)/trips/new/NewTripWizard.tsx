@@ -5,6 +5,7 @@ import { sanitizeIsoDate, maxTripStartDate } from "@/lib/dates/iso-date";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
+import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import dynamic from "next/dynamic";
 
 // ./page.tsx resolves the optional `?destination=<slug>` deeplink server-side
@@ -441,6 +442,7 @@ export default function NewTripPage({
   // lives up here because the PostHog super-property effect reads it.
   const [claimedTripId, setClaimedTripId] = useState<string | null>(null);
   const t = useTranslations("trips");
+  const typeLabel = useActivityTypeLabel();
   // Locale is forwarded into the wizard_step_events rows so the funnel
   // can be sliced by language without joining back to URL paths. See
   // /api/wizard-event + the trackWizardEvent helper above.
@@ -3865,7 +3867,7 @@ export default function NewTripPage({
                                     ).formatted}
                                   </div>
                                   <span className="text-xs text-slate-500 capitalize">
-                                    {activity.type}
+                                    {typeLabel(activity.type)}
                                   </span>
                                 </div>
                               )}

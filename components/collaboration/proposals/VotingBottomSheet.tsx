@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import Image from "next/image";
 import { hapticMedium, hapticError } from "@/lib/native/haptics";
 import type {
@@ -117,6 +118,7 @@ export function VotingBottomSheet({
 
   const t = useTranslations('common.voting');
   const tc = useTranslations('common.buttons');
+  const typeLabel = useActivityTypeLabel();
   const dragControls = useDragControls();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedOption, setSelectedOption] = useState<VoteType | null>(null);
@@ -433,7 +435,7 @@ export function VotingBottomSheet({
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                   {activity.type && (
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white text-gray-600 border border-gray-200 capitalize">
-                      {activity.type}
+                      {typeLabel(activity.type)}
                     </span>
                   )}
                   {activity.location && (

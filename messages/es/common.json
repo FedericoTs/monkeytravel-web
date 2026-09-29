@@ -1698,12 +1698,6 @@
       "suggested": "Sugerido por AI",
       "new": "NUEVO",
       "day": "Día {number}",
-      "activityTypes": {
-        "attraction": "Atracción",
-        "restaurant": "Restaurante",
-        "activity": "Actividad",
-        "transport": "Transporte"
-      },
       "activityReplaced": "Actividad Reemplazada",
       "autoApplied": "Aplicado automáticamente",
       "undoChange": "Deshacer cambio",

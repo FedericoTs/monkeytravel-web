@@ -5,6 +5,7 @@ import type { Activity, VoteType, ActivityVote, ConsensusResult, ActivityVotingS
 import PlaceGallery from "../PlaceGallery";
 import VotingSection from "../collaboration/VotingSection";
 import { useTranslations } from "next-intl";
+import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import {
   convertPriceLevelToRange,
   formatEstimatedPrice,
@@ -86,6 +87,7 @@ function EditableActivityCard({
 }: EditableActivityCardProps) {
   const t = useTranslations('trips');
   const tc = useTranslations('common');
+  const typeLabel = useActivityTypeLabel();
   const [expanded, setExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showMoveSheet, setShowMoveSheet] = useState(false);
@@ -328,7 +330,7 @@ function EditableActivityCard({
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
           <div className="absolute bottom-2 left-2">
             <span className={`text-xs px-2 py-1 rounded-full backdrop-blur-sm bg-white/90 ${colors.text} border ${colors.border}`}>
-              {activity.type}
+              {typeLabel(activity.type)}
             </span>
           </div>
         </div>
@@ -474,7 +476,7 @@ function EditableActivityCard({
                       <span
                         className={`hidden sm:inline text-xs px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} ${colors.border} border`}
                       >
-                        {activity.type}
+                        {typeLabel(activity.type)}
                       </span>
                       {activity.booking_required && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">

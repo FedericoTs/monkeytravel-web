@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, memo } from "react";
 import { useTranslations } from "next-intl";
+import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import type { Activity } from "@/types";
 import PlaceGallery from "./PlaceGallery";
 import ActivityDetailSheet from "./ui/ActivityDetailSheet";
@@ -42,7 +43,7 @@ function ActivityCard({
   onPhotoCapture,
 }: ActivityCardProps) {
   const t = useTranslations('common');
-  const tTypes = useTranslations('trips.activityTypes');
+  const typeLabel = useActivityTypeLabel();
   const [expanded, setExpanded] = useState(false);
   const [showMobileSheet, setShowMobileSheet] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -172,7 +173,6 @@ function ActivityCard({
   const googleSearchUrl = `https://www.google.com/search?q=${mapSearchQuery}`;
 
   const colors = getActivityTypeColors(activity.type);
-  const typeLabel = tTypes.has(activity.type) ? tTypes(activity.type) : activity.type;
 
   // Stable DOM id for scroll targeting from map pin clicks.
   // Falls back to a name-derived slug when the activity has no id yet
@@ -209,7 +209,7 @@ function ActivityCard({
             <span
               className={`text-xs px-2 py-1 rounded-full backdrop-blur-sm bg-white/90 ${colors.text} border ${colors.border}`}
             >
-              {typeLabel}
+              {typeLabel(activity.type)}
             </span>
           </div>
         </div>
@@ -296,7 +296,7 @@ function ActivityCard({
                   <span
                     className={`hidden sm:inline text-xs px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} ${colors.border} border`}
                   >
-                    {typeLabel}
+                    {typeLabel(activity.type)}
                   </span>
                   {activity.locked && (
                     /* F1 anchored trips: user-fixed commitment — never moved,
