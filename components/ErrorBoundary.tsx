@@ -25,7 +25,7 @@ interface ErrorBoundaryState {
  * against a ref that was not an Element, and the Polyline mounting into that
  * dead map threw out of componentDidMount.
  *
- * The only boundary on the route was app/[locale]/shared/[token]/error.tsx — a
+ * The only boundary on the route was app/[locale]/(app)/shared/[token]/error.tsx — a
  * ROUTE-level boundary — so a decorative map replaced the entire itinerary with
  * a full-screen "something went wrong". The visitor arrived from a friend's
  * share link and never saw the trip. /shared is the top of the acquisition

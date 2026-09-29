@@ -168,7 +168,7 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
   //
   // This used to call getUser(), which is a round trip to Supabase Auth. Every
   // page that needs identity then calls getUser() AGAIN in its own Server
-  // Component (app/[locale]/trips/page.tsx:32, profile/page.tsx:27,
+  // Component (app/[locale]/(app)/trips/page.tsx:32, profile/page.tsx:27,
   // saved/page.tsx:133, trips/[id]/page.tsx:70), so a signed-in request paid
   // the same verification twice, serially. Measured on production: a request
   // carrying a session cookie was ~138ms slower than an anonymous control,

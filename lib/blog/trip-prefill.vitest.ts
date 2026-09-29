@@ -162,7 +162,7 @@ describe("tripsNewHrefForPost", () => {
   });
 
   it("produces a URL the wizard's own parser accepts", () => {
-    // Guards the contract with app/[locale]/trips/new/page.tsx: days must be an
+    // Guards the contract with app/[locale]/(app)/trips/new/page.tsx: days must be an
     // int in 1..14, budget one of three, vibes from the rendered set.
     for (const slug of Object.keys(POSTS)) {
       const href = tripsNewHrefForPost(slug, null);

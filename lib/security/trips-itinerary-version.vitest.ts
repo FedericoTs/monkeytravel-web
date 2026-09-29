@@ -54,13 +54,13 @@ describe("the save paths use it", () => {
   });
 
   it("the trip page never aborts a save and reads the version from props only once", () => {
-    const page = read("app/[locale]/trips/[id]/TripDetailClient.tsx");
+    const page = read("app/[locale]/(app)/trips/[id]/TripDetailClient.tsx");
     expect(page).not.toMatch(/saveAbortRef|new AbortController\(\)/);
     expect(page.match(/trip\.itineraryVersion/g)?.length).toBe(1);
   });
 
   it("every save sends a base that belongs to its content", () => {
-    const page = read("app/[locale]/trips/[id]/TripDetailClient.tsx");
+    const page = read("app/[locale]/(app)/trips/[id]/TripDetailClient.tsx");
     for (const call of page.match(/sync\.send\([^)]*\)/g) ?? []) expect(call).toMatch(/sync\.send\(payload, base\)/);
     // Explicit Save: the base is taken together with the content.
     expect(page).toContain("saveExplicit(JSON.stringify(editedItinerary), editedItinerary, sync.baseVersion())");
@@ -73,7 +73,7 @@ describe("the save paths use it", () => {
   });
 
   it("no server write runs over edits held by a conflict, and adopting a server copy drops undo history", () => {
-    const page = read("app/[locale]/trips/[id]/TripDetailClient.tsx");
+    const page = read("app/[locale]/(app)/trips/[id]/TripDetailClient.tsx");
     expect(page).toContain('if (conflictRef.current) throw new ItineraryWriteBlockedError(t("detail.writeBlockedConflict"));');
     // ...nor over edits still unsaved, unless the write keeps them (a regenerated day is spliced in).
     expect(page).toContain('throw new ItineraryWriteBlockedError(t("detail.writeBlockedUnsaved"));');
@@ -101,7 +101,7 @@ describe("the save paths use it", () => {
   });
 
   it("no phantom first-render edit: one copy for both states, with ids derived from the stored trip", () => {
-    const page = read("app/[locale]/trips/[id]/TripDetailClient.tsx");
+    const page = read("app/[locale]/(app)/trips/[id]/TripDetailClient.tsx");
     // ensureActivityIds mints random ids: two calls made the page look edited,
     // and each mount / router-cache restore minted different ids.
     expect(page).toContain("const [initialItinerary] = useState(() => ensureActivityIdsStable(trip.itinerary, trip.id));");
@@ -113,13 +113,13 @@ describe("the save paths use it", () => {
   });
 
   it("new trips are stored with activity ids, in every creation path that can store id-less days", () => {
-    expect(read("app/[locale]/trips/new/NewTripWizard.tsx")).toContain("itinerary: ensureActivityIds(generatedItinerary.days),");
+    expect(read("app/[locale]/(app)/trips/new/NewTripWizard.tsx")).toContain("itinerary: ensureActivityIds(generatedItinerary.days),");
     expect(read("lib/trips/persistTrip.ts")).toContain("itinerary: ensureActivityIds(itinerary.days),");
     // Anonymous shares are stamped by their validator (which also lets odd shapes through).
     expect(read("lib/trips/anonymous-share.ts")).toContain("itinerary: withActivityIds(b.itinerary),");
     expect(read("app/api/trips/duplicate/route.ts")).toMatch(/itinerary: Array\.isArray\(adjustedItinerary\) \? ensureActivityIds\(/);
     // The wizard gives its own copy ids once, so its insert and every later update carry the same ids.
-    const wizard = read("app/[locale]/trips/new/NewTripWizard.tsx");
+    const wizard = read("app/[locale]/(app)/trips/new/NewTripWizard.tsx");
     expect(wizard).toContain("return missing ? { ...value, days: ensureActivityIds(value.days) } : value;");
     expect(wizard).toContain("const [generatedItinerary, setGeneratedItineraryRaw] = useState<GeneratedItinerary | null>(null);");
   });
@@ -130,7 +130,7 @@ describe("the save paths use it", () => {
   });
 
   it("only real editing blocks a server write, and a view-only regenerate shows the stored copy", () => {
-    const page = read("app/[locale]/trips/[id]/TripDetailClient.tsx");
+    const page = read("app/[locale]/(app)/trips/[id]/TripDetailClient.tsx");
     expect(page).toContain("(!ambientEditRef.current && isEditModeRef.current && hasChangesRef.current)");
     // ...taken only if no edit arrived while re-reading; otherwise spliced on top of it.
     expect(page).toContain("await refetchTripRef.current?.({ onlyIfUnedited: true })");
@@ -138,7 +138,7 @@ describe("the save paths use it", () => {
   });
 
   it("a page restored from the router cache catches up instead of 409ing on its own saves", () => {
-    const page = read("app/[locale]/trips/[id]/TripDetailClient.tsx");
+    const page = read("app/[locale]/(app)/trips/[id]/TripDetailClient.tsx");
     expect(page).toContain("if (known !== null && propsVersion !== null && known > propsVersion) router.refresh();");
     // Newer props are taken as a pair, and never over local edits.
     expect(page).toContain("if (pendingSaveRef.current || hasChangesRef.current || conflictRef.current) return;");

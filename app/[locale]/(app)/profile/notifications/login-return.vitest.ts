@@ -60,7 +60,7 @@ describe.each([
     const url = await landing(page as Page, locale);
     expect(url).toBe(`${prefix}/auth/login?redirect=${encodeURIComponent(path)}`);
 
-    // What the login page makes of it (app/[locale]/auth/login/page.tsx).
+    // What the login page makes of it (app/[locale]/(app)/auth/login/page.tsx).
     const params = new URL(url!, "https://monkeytravel.app").searchParams;
     const destination = safeNextOrDefault(params.get("redirect"), "/trips");
     expect(destination).toBe(path);

@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     // see it: since 20260901090000 RLS hides non-public trips from
     // non-members, so "Save to My Trips" answered 404 for every trip shared
     // by link, i.e. for exactly the people a share link reaches. Same filter
-    // as getSharedTrip in app/[locale]/shared/[token]/page.tsx: an exact
+    // as getSharedTrip in app/[locale]/(app)/shared/[token]/page.tsx: an exact
     // token match and not deleted (the service role bypasses the policy that
     // used to assert deleted_at). Not a trip moderation has hidden either: the
     // user-client read refused those, and so does fork.

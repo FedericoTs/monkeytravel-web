@@ -30,7 +30,7 @@ describe("sameEmail", () => {
 });
 
 describe("the invite page for an emailed invite", () => {
-  const page = readFileSync(join(process.cwd(), "app/[locale]/invite/[token]/page.tsx"), "utf8");
+  const page = readFileSync(join(process.cwd(), "app/[locale]/(app)/invite/[token]/page.tsx"), "utf8");
 
   it("renders the sign-in gate, not a dead-end error, when the visitor is not the invitee", () => {
     // 2026-09-24: this was an error screen whose only button was "Create Your

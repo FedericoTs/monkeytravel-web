@@ -181,7 +181,7 @@ describe("callbackIntentFromRedirect (send-email hook)", () => {
   });
 
   it("keeps the referral and does not invent a destination", () => {
-    // app/[locale]/auth/signup/page.tsx emailRedirectTo for a referred signup.
+    // app/[locale]/(app)/auth/signup/page.tsx emailRedirectTo for a referred signup.
     const redirectTo = `${APP}/auth/callback?ref=ABC123&locale=es`;
     expect(callbackIntentFromRedirect(redirectTo, APP)).toEqual({ ref: "ABC123", locale: "es" });
   });

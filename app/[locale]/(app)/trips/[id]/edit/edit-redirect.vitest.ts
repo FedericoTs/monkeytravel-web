@@ -43,7 +43,7 @@ describe("/trips/<id>/edit", () => {
 });
 
 describe("no code builds /trips/<id>/edit links any more", () => {
-  const ROOT = join(__dirname, "..", "..", "..", "..", "..");
+  const ROOT = join(__dirname, "..", "..", "..", "..", "..", "..");
   const files: string[] = [];
   const walk = (dir: string) => {
     for (const name of readdirSync(dir)) {

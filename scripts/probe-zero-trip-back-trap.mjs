@@ -1,7 +1,7 @@
 /**
  * A user with no trips must be able to leave the wizard.
  *
- * app/[locale]/trips/page.tsx used to hard-redirect any zero-trip user to
+ * app/[locale]/(app)/trips/page.tsx used to hard-redirect any zero-trip user to
  * /trips/new. That made the browser Back button a trap: /trips/new -> Back ->
  * /trips -> server redirect -> /trips/new again. The one control every browser
  * gives you did nothing, for exactly the people who have not yet succeeded at

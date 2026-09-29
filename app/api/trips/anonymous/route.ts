@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
         //
         // Readability comes from HOLDING the share_token, checked server-side
         // by a service-role read keyed on the exact token
-        // (app/[locale]/shared/[token]/page.tsx). It used to come from a bare
+        // (app/[locale]/(app)/shared/[token]/page.tsx). It used to come from a bare
         // `OR (share_token IS NOT NULL)` in trips_select_consolidated, which
         // meant every row with a token was world-readable through the public
         // anon key: 118 trips, 42 of them private, 39 live claim_tokens.

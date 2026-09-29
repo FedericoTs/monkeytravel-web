@@ -60,7 +60,7 @@ async function fetchHostelworldStats(): Promise<{
 /**
  * Fetch /api/explore/trips filtered to travel_style=backpacker.
  *
- * Mirrors the helper in app/[locale]/explore/page.tsx — the typed
+ * Mirrors the helper in app/[locale]/(app)/explore/page.tsx — the typed
  * fetchExploreFeed wrapper doesn't expose travel_style on its Filters
  * interface (it's a UI-layer concept) but the API route reads it
  * from the URL.

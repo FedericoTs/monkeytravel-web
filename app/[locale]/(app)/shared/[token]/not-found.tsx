@@ -17,7 +17,7 @@ export const metadata = {
  * 404. Two different failure UIs for what is conceptually the same event
  * — "this link no longer works" — was a small but real consistency tell.
  *
- * Triggered by app/[locale]/shared/[token]/page.tsx calling notFound()
+ * Triggered by app/[locale]/(app)/shared/[token]/page.tsx calling notFound()
  * when the share_token lookup returns nothing.
  */
 export default function SharedTripNotFound() {

@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     // Build query — card-shape only. Heavy JSONB blobs (itinerary, trip_meta,
     // packing_list, budget) intentionally excluded; cards never render them
     // and they dominate row weight (itinerary alone is 23-31 KB/row).
-    // SSR detail page (app/[locale]/trips/template/[id]/page.tsx) reads
+    // SSR detail page (app/[locale]/(app)/trips/template/[id]/page.tsx) reads
     // those columns from Supabase directly.
     //
     // `description` is kept defensively as a fallback for the rare case
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
     // Transform data for frontend — card shape only.
     // itinerary / trip_meta / budget / packing_list intentionally omitted;
     // template detail/preview reads them directly from Supabase in the SSR
-    // page (app/[locale]/trips/template/[id]/page.tsx).
+    // page (app/[locale]/(app)/trips/template/[id]/page.tsx).
     const formattedTemplates = (templates || []).map((template) => ({
       id: template.id,
       title: template.title,
