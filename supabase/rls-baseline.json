@@ -1142,7 +1142,7 @@
         "roles": [
           "public"
         ],
-        "using": "(claimed_by IS NULL)",
+        "using": "((claimed_by IS NULL) OR (claimed_by = ( SELECT auth.uid() AS uid)))",
         "permissive": true,
         "with_check": null
       },

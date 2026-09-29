@@ -135,6 +135,7 @@ export function trackTripCreated(params: {
   duration: number;
   budgetTier: "budget" | "balanced" | "premium";
   isFromTemplate?: boolean;
+  isFromChatgpt?: boolean;
 }): void {
   trackEvent("trip_created", {
     trip_id: params.tripId,
@@ -142,6 +143,7 @@ export function trackTripCreated(params: {
     duration_days: params.duration,
     budget_tier: params.budgetTier,
     is_from_template: params.isFromTemplate ?? false,
+    ...(params.isFromChatgpt ? { is_from_chatgpt: true } : {}),
     // GA4 ecommerce-style tracking
     currency: "USD",
     value: params.budgetTier === "premium" ? 100 : params.budgetTier === "balanced" ? 50 : 25,

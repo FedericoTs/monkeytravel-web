@@ -7,10 +7,14 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import { createClient } from "@/lib/supabase/client";
+import { attachCoverImage, insertTrip } from "@/lib/trips/persistTrip";
+import { FLEXIBLE_START_OFFSET_DAYS, mcpTripInput } from "@/lib/mcp/import";
+import { addDaysISO } from "@/lib/ai/multi-city-core";
+import { trackTripCreated } from "@/lib/analytics";
 import type { MCPDay } from "@/lib/mcp/schema";
 
 /**
@@ -37,6 +41,7 @@ interface Props {
 
 export default function ChatGPTImportClient({ itinerary }: Props) {
   const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations("trips.chatgptImport");
   const typeLabel = useActivityTypeLabel();
   const supabase = createClient();
@@ -59,8 +64,7 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
     } = await supabase.auth.getUser();
 
     if (user) {
-      // User is logged in - claim the itinerary and redirect
-      await claimItinerary(user.id);
+      await importItinerary(user.id);
     } else {
       // Redirect to login, then back here to save while signed in
       const returnUrl = `/from-chatgpt/${itinerary.ref_id}`;
@@ -68,35 +72,33 @@ export default function ChatGPTImportClient({ itinerary }: Props) {
     }
   };
 
-  // Claim the itinerary for the current user
-  const claimItinerary = async (userId: string) => {
+  // Save the itinerary as the user's trip, then mark the row claimed
+  const importItinerary = async (userId: string) => {
     try {
-      // Update the itinerary to mark it as claimed
-      const { error } = await supabase
-        .from("mcp_itineraries")
-        .update({
-          claimed_by: userId,
-          claimed_at: new Date().toISOString(),
-        })
-        .eq("ref_id", itinerary.ref_id)
-        .is("claimed_by", null);
-
-      if (error) {
-        console.error("Failed to claim itinerary:", error);
-        return;
-      }
-
-      // Redirect to create trip with pre-filled data
-      const params = new URLSearchParams({
-        source: "chatgpt",
+      // Dates are pencilled in as the wizard's "I'm flexible" does; the trip page changes them.
+      const startDate = addDaysISO(new Date().toISOString().slice(0, 10), FLEXIBLE_START_OFFSET_DAYS);
+      const input = mcpTripInput(itinerary, startDate, locale);
+      const { tripId, durationDays } = await insertTrip(supabase, input, userId, { arm: "manual" });
+      void attachCoverImage(supabase, tripId, itinerary.destination);
+      trackTripCreated({
+        tripId,
         destination: itinerary.destination,
-        days: String(itinerary.days),
-        import: itinerary.ref_id,
+        duration: durationDays,
+        budgetTier: input.formState.budgetTier,
+        isFromChatgpt: true,
       });
 
-      router.push(`/trips/new?${params.toString()}`);
+      // Claimed only once the trip exists, so a failed save leaves the itinerary importable
+      const { error } = await supabase
+        .from("mcp_itineraries")
+        .update({ claimed_by: userId, claimed_at: new Date().toISOString() })
+        .eq("ref_id", itinerary.ref_id)
+        .is("claimed_by", null);
+      if (error) console.error("Failed to claim itinerary:", error);
+
+      router.push(`/trips/${tripId}`);
     } catch (err) {
-      console.error("Error claiming itinerary:", err);
+      console.error("Error importing itinerary:", err);
       setIsImporting(false);
     }
   };
