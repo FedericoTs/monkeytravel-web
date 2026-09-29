@@ -1,13 +1,48 @@
 import type { AbstractIntlMessages } from "next-intl";
 
 /**
- * The namespaces client components on the marketing (prerendered) pages read.
- * Server components use getTranslations and see the whole catalog either way;
- * this only decides what is serialized into each page for hydration. The
- * (app) route group provides the full catalog.
+ * The message subtrees client components on the marketing (prerendered)
+ * pages read, as dotted paths. Server components use getTranslations and see
+ * the whole catalog either way; these lists only decide what is serialized
+ * into each page for hydration. The (app) route group provides everything.
+ * lib/i18n/client-messages.vitest.ts checks the lists against the code.
  */
-export const MARKETING_CLIENT_NAMESPACES = ["common", "consent", "blog", "tools", "contact"] as const;
+export const MARKETING_CLIENT_NAMESPACES = [
+  "common.buttons",
+  "common.navigation",
+  "common.bottomNav",
+  "common.language",
+  "common.maintenance",
+  "common.share.notifications",
+  "common.referral",
+  "common.emailSubscribe",
+  "common.pageShare",
+  "common.curatedEscapes",
+  "consent",
+  "contact",
+] as const;
 
-export function pickMessages(messages: AbstractIntlMessages, namespaces: readonly string[]): AbstractIntlMessages {
-  return Object.fromEntries(namespaces.filter((ns) => ns in messages).map((ns) => [ns, messages[ns]]));
+export const BLOG_CLIENT_NAMESPACES = [...MARKETING_CLIENT_NAMESPACES, "blog"] as const;
+
+export const TOOLS_CLIENT_NAMESPACES = [...MARKETING_CLIENT_NAMESPACES, "tools", "trips.wizard.datePicker"] as const;
+
+const isTree = (value: unknown): value is AbstractIntlMessages => typeof value === "object" && value !== null;
+
+/** The subtrees at `paths`, nested as in `messages`. A path below another listed path adds nothing. */
+export function pickMessages(messages: AbstractIntlMessages, paths: readonly string[]): AbstractIntlMessages {
+  const out: AbstractIntlMessages = {};
+  const roots = paths.filter((path) => !paths.some((other) => other !== path && path.startsWith(`${other}.`)));
+  for (const path of roots) {
+    const keys = path.split(".");
+    let source: unknown = messages;
+    for (const key of keys) source = isTree(source) ? source[key] : undefined;
+    if (source === undefined) continue;
+    let target = out;
+    for (const key of keys.slice(0, -1)) {
+      const next = target[key];
+      target = isTree(next) ? next : (target[key] = {});
+    }
+    target[keys[keys.length - 1]] = source as AbstractIntlMessages[string];
+  }
+  return out;
 }
