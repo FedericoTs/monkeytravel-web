@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useImageLoaded } from "@/lib/hooks/useImageLoaded";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -374,6 +374,7 @@ export default function TemplatesPageClient() {
   // /it/templates + /es/templates. 2026-05-31 launch-night fix.
   const t = useTranslations("common.curatedEscapes");
   const tNav = useTranslations("common.navigation");
+  const locale = useLocale();
   const moodLabel = useMoodLabel();
   const [templates, setTemplates] = useState<TemplateTrip[]>([]);
   const [loading, setLoading] = useState(true);
@@ -394,7 +395,7 @@ export default function TemplatesPageClient() {
     const fetchTemplates = async () => {
       setLoading(true);
       try {
-        const response = await fetch("/api/templates?limit=50");
+        const response = await fetch(`/api/templates?limit=50&locale=${locale}`);
         if (!response.ok) throw new Error("Failed to fetch");
         const data = await response.json();
         setTemplates(data.templates || []);
@@ -405,7 +406,7 @@ export default function TemplatesPageClient() {
       }
     };
     fetchTemplates();
-  }, []);
+  }, [locale]);
 
   // Filter templates
   const filteredTemplates = useMemo(() => {

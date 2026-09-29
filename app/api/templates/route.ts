@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { countryName, templateLocale, templateText } from "@/lib/templates/text";
 
 /**
  * Escape special characters for PostgREST ilike queries
@@ -24,6 +25,7 @@ function escapeForPostgrest(input: string): string {
  * - destination: string - Search by destination name
  * - featured: boolean - Only show featured templates
  * - limit: number - Max results (default 20)
+ * - locale: en | es | it | pt - Language of the texts (default en)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -40,6 +42,7 @@ export async function GET(request: NextRequest) {
     const budget = searchParams.get("budget");
     const destination = searchParams.get("destination");
     const featured = searchParams.get("featured") === "true";
+    const locale = templateLocale(searchParams.get("locale"));
     const limitRaw = parseInt(searchParams.get("limit") || "20", 10);
     const limit = Math.min(
       Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : 20,
@@ -117,20 +120,27 @@ export async function GET(request: NextRequest) {
     // itinerary / trip_meta / budget / packing_list intentionally omitted;
     // template detail/preview reads them directly from Supabase in the SSR
     // page (app/[locale]/(app)/trips/template/[id]/page.tsx).
-    const formattedTemplates = (templates || []).map((template) => ({
-      id: template.id,
-      title: template.title,
-      description: template.template_short_description || template.description || "",
-      destination: template.template_destination,
-      country: template.template_country,
-      countryCode: template.template_country_code,
-      coverImageUrl: template.cover_image_url,
-      durationDays: template.template_duration_days,
-      budgetTier: template.template_budget_tier,
-      moodTags: template.template_mood_tags || [],
-      copyCount: template.template_copy_count || 0,
-      featuredOrder: template.template_featured_order,
-    }));
+    const formattedTemplates = (templates || []).map((template) => {
+      const text = templateText(template.id, locale, {
+        title: template.title,
+        short: template.template_short_description || template.description || "",
+        full: template.description || "",
+      });
+      return {
+        id: template.id,
+        title: text.title,
+        description: text.short,
+        destination: template.template_destination,
+        country: countryName(template.template_country_code || "", locale, template.template_country || ""),
+        countryCode: template.template_country_code,
+        coverImageUrl: template.cover_image_url,
+        durationDays: template.template_duration_days,
+        budgetTier: template.template_budget_tier,
+        moodTags: template.template_mood_tags || [],
+        copyCount: template.template_copy_count || 0,
+        featuredOrder: template.template_featured_order,
+      };
+    });
 
     return apiSuccess({
       templates: formattedTemplates,

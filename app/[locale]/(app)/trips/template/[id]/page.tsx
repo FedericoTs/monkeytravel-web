@@ -2,18 +2,19 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import TemplatePreviewClient from "./TemplatePreviewClient";
 import { refreshItineraryPhotos } from "@/lib/places/refreshItineraryPhotos";
+import { countryName, templateText } from "@/lib/templates/text";
 
 interface TemplatePageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: TemplatePageProps) {
-  const { id } = await params;
+  const { id, locale } = await params;
   const supabase = await createClient();
 
   const { data: template } = await supabase
     .from("trips")
-    .select("title, template_destination, template_short_description")
+    .select("id, title, description, template_destination, template_short_description")
     .eq("id", id)
     .eq("is_template", true)
     .single();
@@ -22,15 +23,21 @@ export async function generateMetadata({ params }: TemplatePageProps) {
     return { title: "Template Not Found" };
   }
 
+  const text = templateText(template.id, locale, {
+    title: template.title,
+    short: template.template_short_description || "",
+    full: template.description || "",
+  });
+
   return {
     // Strip brand suffix — root layout's title.template adds it.
     title: `${template.template_destination} Trip`,
-    description: template.template_short_description || `Explore our curated ${template.template_destination} itinerary`,
+    description: text.short || `Explore our curated ${template.template_destination} itinerary`,
   };
 }
 
 export default async function TemplatePage({ params }: TemplatePageProps) {
-  const { id } = await params;
+  const { id, locale } = await params;
   const supabase = await createClient();
 
   const { data: template, error } = await supabase
@@ -75,15 +82,21 @@ export default async function TemplatePage({ params }: TemplatePageProps) {
     Array.isArray(template.itinerary) ? template.itinerary : []
   );
 
+  const text = templateText(template.id, locale, {
+    title: template.title,
+    short: template.template_short_description || template.description,
+    full: template.description,
+  });
+
   return (
     <TemplatePreviewClient
       template={{
         id: template.id,
-        title: template.title,
-        description: template.template_short_description || template.description,
-        fullDescription: template.description,
+        title: text.title,
+        description: text.short,
+        fullDescription: text.full,
         destination: template.template_destination || template.title.replace(/ Trip$/, ""),
-        country: template.template_country || "",
+        country: countryName(template.template_country_code || "", locale, template.template_country || ""),
         countryCode: template.template_country_code || "",
         coverImageUrl: template.cover_image_url,
         durationDays,
