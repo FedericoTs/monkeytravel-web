@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
-import posthog from "posthog-js";
+import { getPostHog } from "@/lib/posthog/client";
 import { safeSet } from "@/lib/safe-storage";
 
 interface ProfileCompletionModalProps {
@@ -77,7 +77,7 @@ export default function ProfileCompletionModal({
   // Track modal shown event
   useEffect(() => {
     if (isOpen) {
-      posthog.capture("profile_modal_shown");
+      getPostHog()?.capture("profile_modal_shown");
       // Store in session to prevent showing again this session
       safeSet("profile_modal_shown", "true", "session");
     }
@@ -130,7 +130,7 @@ export default function ProfileCompletionModal({
       if (updateError) throw updateError;
 
       // Track completion
-      posthog.capture("profile_modal_completed", {
+      getPostHog()?.capture("profile_modal_completed", {
         fields_filled: {
           display_name: !!displayName.trim(),
           home_country: !!homeCountry,
@@ -170,12 +170,12 @@ export default function ProfileCompletionModal({
       console.error("Skip error:", err);
     }
 
-    posthog.capture("profile_modal_skipped");
+    getPostHog()?.capture("profile_modal_skipped");
     onClose();
   };
 
   const handleDismiss = () => {
-    posthog.capture("profile_modal_dismissed");
+    getPostHog()?.capture("profile_modal_dismissed");
     onClose();
   };
 

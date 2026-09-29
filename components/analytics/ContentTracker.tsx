@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { trackContentViewed, setContentGroup } from "@/lib/analytics";
 import { captureContentViewed } from "@/lib/posthog/events";
-import posthog from "posthog-js";
+import { onPostHogReady } from "@/lib/posthog/client";
 
 interface ContentTrackerProps {
   contentType: string;
@@ -44,10 +44,8 @@ export default function ContentTracker({
     setContentGroup(contentGroup);
     trackContentViewed(params);
 
-    // PostHog: fire content_viewed if loaded
-    if (typeof posthog?.capture === "function") {
-      captureContentViewed(params);
-    }
+    // PostHog: once the SDK has initialised at idle time, not before.
+    return onPostHogReady(() => captureContentViewed(params));
   }, [contentType, contentId, contentGroup, metadata]);
 
   return null;

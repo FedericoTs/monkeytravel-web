@@ -71,6 +71,8 @@ const SCRIPT_HOSTS = [
   "https://*.google-analytics.com",
   "https://*.googletagmanager.com",
   "https://*.sentry.io",
+  // Session replay, loaded on demand after consent (instrumentation-client.ts).
+  "https://browser.sentry-cdn.com",
   "https://*.vercel-scripts.com",
   "https://*.vercel-insights.com",
   "https://www.googleadservices.com",

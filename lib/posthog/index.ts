@@ -42,8 +42,10 @@ export {
   type IdentifyProperties,
 } from "./identify";
 
-// Hooks
-export { useFlag } from "./hooks";
+// Hooks. They read the instance instrumentation-client.ts installs, so this
+// barrel never imports posthog-js itself.
+export { useFlag, usePostHog } from "./hooks";
+export { getPostHog, onPostHogReady } from "./client";
 
 // Events
 export * from "./events";
@@ -53,13 +55,3 @@ export * from "./flags";
 
 // LLM Analytics - exported separately from "./llm-analytics" for server-only use
 // Do not import here to avoid bundling server code in client components
-
-// Re-export PostHog React components
-export {
-  PostHogProvider,
-  usePostHog,
-  useFeatureFlagEnabled,
-  useFeatureFlagVariantKey,
-  useFeatureFlagPayload,
-  PostHogFeature,
-} from "posthog-js/react";

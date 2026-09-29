@@ -24,6 +24,7 @@
 
 import { posthogActionFor, POSTHOG_COOKIELESS_MODE } from "@/lib/analytics/posthog-consent";
 import { CONSENT_CHANGE_EVENT } from "@/lib/consent/types";
+import { POSTHOG_READY_EVENT } from "@/lib/posthog/client";
 
 // Helper to check consent from localStorage (runs before React)
 function getStoredConsent(): { analytics: boolean; sessionRecording: boolean } | null {
@@ -67,19 +68,6 @@ function applyPosthogConsent(ph: PosthogConsentSurface, consent: StoredConsent) 
   });
 }
 
-// Sentry router transition tracking — populated after Sentry loads
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _captureRouterTransitionStart: ((...args: any[]) => void) | undefined;
-
-/**
- * Router transition handler for Sentry performance monitoring.
- * Delegates to Sentry.captureRouterTransitionStart once Sentry is loaded.
- * No-ops safely if Sentry hasn't loaded yet.
- */
-export function onRouterTransitionStart(...args: unknown[]) {
-  _captureRouterTransitionStart?.(...args);
-}
-
 /**
  * Deferred initialization of monitoring libraries.
  * Called via requestIdleCallback to avoid blocking initial paint.
@@ -87,16 +75,20 @@ export function onRouterTransitionStart(...args: unknown[]) {
 function initMonitoring() {
   // Get consent state (read once, shared by both init paths)
   const initialConsent = getStoredConsent();
-  const hasAnalyticsConsent = initialConsent?.analytics ?? false;
   const hasSessionRecordingConsent = initialConsent?.sessionRecording ?? false;
 
   /**
    * Sentry Initialization
    *
-   * Error tracking is considered essential functionality.
-   * Session replay is ONLY enabled if user has given explicit consent.
+   * Error tracking is considered essential functionality. Session replay is
+   * ONLY enabled with explicit consent, and its recorder is then fetched from
+   * Sentry's CDN, so nobody else downloads it. No client-side tracing: it
+   * was sampled at zero without analytics consent, which almost nobody gives.
    */
-  import("@sentry/nextjs").then((Sentry) => {
+  import("@sentry/nextjs").then(async (Sentry) => {
+    const replay = hasSessionRecordingConsent
+      ? await Sentry.lazyLoadIntegration("replayIntegration").catch(() => null)
+      : null;
     Sentry.init({
       dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
@@ -112,13 +104,6 @@ function initMonitoring() {
         process.env.NODE_ENV === "production" ||
         process.env.NEXT_PUBLIC_SENTRY_ENABLE_DEV === "1",
 
-      // Performance Monitoring - only with analytics consent
-      tracesSampleRate: hasAnalyticsConsent
-        ? process.env.NODE_ENV === "production"
-          ? 0.1
-          : 1.0
-        : 0,
-
       // Session Replay - ONLY with explicit sessionRecording consent (GDPR)
       replaysSessionSampleRate: hasSessionRecordingConsent ? 0.1 : 0,
       replaysOnErrorSampleRate: hasSessionRecordingConsent ? 1.0 : 0,
@@ -126,15 +111,7 @@ function initMonitoring() {
       // Enable debug mode in development
       debug: process.env.NODE_ENV === "development",
 
-      // Integrations - only add replay if consented
-      integrations: hasSessionRecordingConsent
-        ? [
-            Sentry.replayIntegration({
-              maskAllText: false,
-              blockAllMedia: false,
-            }),
-          ]
-        : [],
+      integrations: replay ? [replay({ maskAllText: false, blockAllMedia: false })] : [],
 
       // Filter out noisy errors
       ignoreErrors: [
@@ -246,9 +223,6 @@ function initMonitoring() {
         return breadcrumb;
       },
     });
-
-    // Wire up router transition tracking
-    _captureRouterTransitionStart = Sentry.captureRouterTransitionStart;
   });
 
   /**
@@ -310,6 +284,8 @@ function initMonitoring() {
       });
 
       (window as typeof window & { posthog: typeof posthog }).posthog = posthog;
+      // Everything that captures or reads flags waits for this (lib/posthog/client.ts).
+      window.dispatchEvent(new Event(POSTHOG_READY_EVENT));
 
       // The banner answered, or the choice changed, after load: switch modes
       // in place instead of waiting for the next page load.

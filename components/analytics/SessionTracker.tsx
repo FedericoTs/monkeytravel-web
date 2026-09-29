@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { hasSessionCookie } from "@/lib/supabase/session-cookie";
 import {
   trackSessionStart,
   trackUserReturn,
@@ -51,10 +51,12 @@ export default function SessionTracker() {
 
     const trackSession = async () => {
       // Fetch auth user directly — we cannot use useAuth() here, see docblock.
-      const supabaseAuth = createClient();
-      const {
-        data: { user },
-      } = await supabaseAuth.auth.getUser();
+      // Without a session cookie there is nobody to look up, so anonymous
+      // visitors never download the Supabase client for this.
+      const supabase = hasSessionCookie()
+        ? await import("@/lib/supabase/client").then(({ createClient }) => createClient())
+        : null;
+      const user = supabase ? (await supabase.auth.getUser()).data.user : null;
       // Calculate days since last visit.
       //
       // safeGet, not localStorage.getItem: Safari with "block all cookies"
@@ -79,7 +81,7 @@ export default function SessionTracker() {
       safeSet(SESSION_STORAGE_KEY, now.toString());
       safeSet(SESSION_COUNT_KEY, sessionCount.toString());
 
-      if (!user) {
+      if (!user || !supabase) {
         // Anonymous session
         trackSessionStart({
           isNewUser: sessionCount === 1,
@@ -92,8 +94,6 @@ export default function SessionTracker() {
 
       // Set user ID for cross-session tracking
       setUserId(user.id);
-
-      const supabase = createClient();
 
       // Fetch all user data in parallel for better performance
       const [

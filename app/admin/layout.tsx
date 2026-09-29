@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { bodyFontClassName } from "@/app/fonts";
-import { PostHogProviderWrapper } from "@/app/providers";
 import { LocaleProvider } from "@/lib/locale";
 import { PlaceCacheProvider } from "@/lib/context/PlaceCacheContext";
 import "@/app/globals.css";
@@ -22,11 +21,9 @@ export default function AdminRootLayout({ children }: { children: React.ReactNod
   return (
     <html lang="en">
       <body className={bodyFontClassName}>
-        <PostHogProviderWrapper>
-          <LocaleProvider>
-            <PlaceCacheProvider>{children}</PlaceCacheProvider>
-          </LocaleProvider>
-        </PostHogProviderWrapper>
+        <LocaleProvider>
+          <PlaceCacheProvider>{children}</PlaceCacheProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

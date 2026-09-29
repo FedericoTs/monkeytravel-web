@@ -17,7 +17,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { createClient } from "@/lib/supabase/client";
+import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Link } from "@/lib/i18n/routing";
 import type { NotificationRow } from "@/lib/notifications/types";
@@ -83,28 +83,37 @@ export default function NotificationBell() {
   // optimization, not a security boundary.
   useEffect(() => {
     if (!authedUserId) return;
-    const supabase = createClient();
-    const channel = supabase
-      .channel(`notifications:${authedUserId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${authedUserId}`,
-        },
-        () => {
-          // We could append the new row directly from `payload.new`, but
-          // a refetch keeps unread counts + ordering consistent and is
-          // cheap (single short query).
-          refresh();
-        }
-      )
-      .subscribe();
+    let cancelled = false;
+    let supabase: SupabaseClient | undefined;
+    let channel: RealtimeChannel | undefined;
+    // The client is loaded here, for signed-in visitors only: the bell sits in
+    // the navbar of every page, and most visitors have nothing to subscribe to.
+    void import("@/lib/supabase/client").then(({ createClient }) => {
+      if (cancelled) return;
+      supabase = createClient();
+      channel = supabase
+        .channel(`notifications:${authedUserId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${authedUserId}`,
+          },
+          () => {
+            // We could append the new row directly from `payload.new`, but
+            // a refetch keeps unread counts + ordering consistent and is
+            // cheap (single short query).
+            refresh();
+          }
+        )
+        .subscribe();
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      if (supabase && channel) supabase.removeChannel(channel);
     };
   }, [authedUserId, refresh]);
 
