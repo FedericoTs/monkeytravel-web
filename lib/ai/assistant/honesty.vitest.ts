@@ -2,7 +2,13 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { claimsItineraryChange, nothingChangedReply, pendingChangeReply } from "./honesty";
+import {
+  claimsItineraryChange,
+  claimsToRemember,
+  nothingChangedReply,
+  nothingKeptReply,
+  pendingChangeReply,
+} from "./honesty";
 
 /**
  * The trip assistant must not say it changed the itinerary when it did not.
@@ -19,6 +25,20 @@ const productionClaims = [
   'Understood. I\'ve added a "Fira Caldera Viewpoint" activity to your Day 7 itinerary, right after photographing the Church of Agios Stylianos.',
   "Understood. I've added the train journey to your Day 1 itinerary. It's now scheduled for 12:00 PM after your arrival.",
   "The Borghese Gallery has been removed from Day 5.",
+  "Your itinerary is now structured to align with your flight schedule and hotel logistics, optimizing your time by grouping activities efficiently.",
+];
+
+// Promises with nothing behind them; the first is a live reply (2026-09-28).
+const promises = [
+  "I'll update your accommodation to Residencia Livia Milena in Santa Maria for your trip to Espargos, Cape Verde.",
+  "Let me move the Vatican to Day 2.",
+  "I'm going to add a sunset walk to Day 3.",
+  "Actualizaré tu alojamiento en Santa Maria.",
+  "Voy a añadir la cena al día 3.",
+  "Aggiornerò il giorno 2 con il museo.",
+  "Sto per spostare il museo al giorno 3.",
+  "Vou atualizar o seu hotel.",
+  "Adicionarei o jantar ao dia 3.",
 ];
 
 const otherLanguageClaims = [
@@ -57,6 +77,14 @@ const honest = [
   "No he cambiado nada todavía.",
   "Non ho modificato nulla.",
   "Não alterei nada.",
+  // Offers, questions and refusals are not promises.
+  "Would you like me to add a boat tour to day 5?",
+  "Tell me the day and I can move it there.",
+  "I will not add anything without your say-so.",
+  "I'll put together a few options for Day 3.",
+  "No voy a cambiar nada sin tu confirmación.",
+  "Non aggiornerò nulla senza conferma.",
+  "Não vou alterar nada sem a sua confirmação.",
   // "Reviewed" is not "revised": these only say the plan was checked.
   "I've reviewed your plan and it looks balanced.",
   "He revisado tu plan y está muy bien equilibrado.",
@@ -74,6 +102,10 @@ describe("claimsItineraryChange", () => {
   });
 
   it.each(restructuringClaims)("catches a restructuring claim: %s", (text) => {
+    expect(claimsItineraryChange(text)).toBe(true);
+  });
+
+  it.each(promises)("catches a promise: %s", (text) => {
     expect(claimsItineraryChange(text)).toBe(true);
   });
 
@@ -109,5 +141,59 @@ describe("the replies the server puts in their place", () => {
   it("falls back to English for other languages", () => {
     expect(nothingChangedReply("fr")).toBe(nothingChangedReply("en"));
     expect(nothingChangedReply(undefined)).toBe(nothingChangedReply("en"));
+  });
+});
+
+// Live replies (2026-09-28) to a hotel address and to flight times, each with
+// no action; the assistant only sees the last few messages afterwards.
+const memoryClaims = [
+  "Your accommodation at Parral 14 Boutique in Condesa for your Mexico City trip has been noted.",
+  "Your flight times for Mexico City on November 23rd and 27th, 2026, have been recorded. I've identified key considerations for your arrival and departure days to ensure smooth travel.",
+  "I've noted that you'll be staying in Santa Maria for the entire trip, even though your flight arrives in Espargos.",
+  "Noted! I'll keep that in mind.",
+  "He tomado nota de tu hotel en Santa Maria.",
+  "Tu vuelo queda anotado.",
+  "Ho preso nota del tuo volo.",
+  "Tomei nota do seu hotel.",
+  "Anotei o voo de regresso.",
+];
+
+const notMemoryClaims = [
+  "Note that the museum closes at 17:00.",
+  "I can't keep that here, but you can add it with Edit Trip.",
+  "Good to know! Santa Maria has the best beaches on Sal.",
+  "Please note the check-in time on your booking.",
+];
+
+describe("claimsToRemember", () => {
+  it.each(memoryClaims)("catches a memory claim: %s", (text) => {
+    expect(claimsToRemember(text)).toBe(true);
+  });
+
+  it.each(notMemoryClaims)("leaves other replies alone: %s", (text) => {
+    expect(claimsToRemember(text)).toBe(false);
+  });
+
+  it("is false for nothing at all", () => {
+    expect(claimsToRemember("")).toBe(false);
+    expect(claimsToRemember(null)).toBe(false);
+  });
+});
+
+describe("nothingKeptReply", () => {
+  const languages = ["en", "es", "it", "pt"];
+
+  it.each(languages)("claims neither a change nor a memory (%s)", (lng) => {
+    expect(claimsItineraryChange(nothingKeptReply(lng))).toBe(false);
+    expect(claimsToRemember(nothingKeptReply(lng))).toBe(false);
+  });
+
+  it.each(languages)("names the trip page's own Edit button (%s)", (lng) => {
+    const trips = JSON.parse(readFileSync(join(process.cwd(), "messages", lng, "trips.json"), "utf8"));
+    expect(nothingKeptReply(lng)).toContain(`"${trips.detail.editTrip}"`);
+  });
+
+  it("falls back to English", () => {
+    expect(nothingKeptReply("de")).toBe(nothingKeptReply("en"));
   });
 });

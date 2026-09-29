@@ -37,26 +37,54 @@ const EN_VERBS = words(
   "added|updated|removed|replaced|moved|changed|saved|scheduled|rescheduled|included|swapped|deleted|dedicated|adjusted|extended|shortened|reordered|put|set|condensed|combined|merged|reworked|rearranged|reorganized|reorganised|restructured|revised|trimmed"
 );
 
+// A promise is a claim too: "I'll update your accommodation to…" went out
+// with no action behind it, and the traveller waited for a change that never
+// came. Verbs that also open an offer ("I'll put together", "I'll include a
+// few tips") stay out.
+const EN_PROMISE_VERBS = words(
+  "update|add|adjust|change|move|remove|replace|schedule|reschedule|extend|shorten|swap|delete|rework|restructure|reorganize|reorganise|rearrange|incorporate|modify|shift"
+);
+const ES_INFINITIVES = words(
+  "actualizar|añadir|agregar|ajustar|cambiar|mover|eliminar|quitar|reemplazar|sustituir|programar|incorporar|modificar|acortar|extender"
+);
+const IT_INFINITIVES = words(
+  "aggiornare|aggiungere|modificare|spostare|rimuovere|togliere|sostituire|programmare|inserire|cambiare|ridurre|estendere|prolungare|scambiare"
+);
+const IT_FUTURES = words(
+  "aggiornerò|aggiungerò|modificherò|sposterò|rimuoverò|toglierò|sostituirò|programmerò|inserirò|cambierò|ridurrò|estenderò|prolungherò|scambierò"
+);
+const PT_INFINITIVES = words(
+  "atualizar|adicionar|acrescentar|ajustar|mudar|alterar|mover|remover|retirar|substituir|agendar|incluir|modificar|encurtar|prolongar|trocar"
+);
+const PT_FUTURES = words(
+  "atualizarei|adicionarei|acrescentarei|ajustarei|mudarei|alterarei|moverei|removerei|retirarei|substituirei|agendarei|incluirei|modificarei|encurtarei|prolongarei|trocarei"
+);
+
 const CLAIM_PATTERNS: RegExp[] = [
   // English
   new RegExp(`${start}(?:has|have)\\s+been\\s+(?:now\\s+|also\\s+|successfully\\s+)?${EN_VERBS}${end}`, "iu"),
   new RegExp(`${start}(?:i|we)(?:['’]ve|\\s+have)\\s+(?:now\\s+|also\\s+|just\\s+|already\\s+|successfully\\s+)?${EN_VERBS}${end}`, "iu"),
   new RegExp(`${start}(?:i|we)\\s+(?:just\\s+|also\\s+|now\\s+)?(?:added|updated|removed|replaced|moved|changed|swapped|deleted|scheduled|rescheduled|put|condensed|combined|merged|reworked|rearranged|reorganized|reorganised|restructured|trimmed)${end}`, "iu"),
-  new RegExp(`${start}(?:is|are|it['’]s|that['’]s)\\s+now\\s+(?:dedicated|scheduled|included|set|booked|planned|part\\s+of|on\\s+day|in\\s+your)${end}`, "iu"),
+  new RegExp(`${start}(?:is|are|it['’]s|that['’]s)\\s+now\\s+(?:dedicated|scheduled|included|set|booked|planned|structured|organized|organised|arranged|aligned|adjusted|updated|optimized|optimised|reorganized|reorganised|rearranged|part\\s+of|on\\s+day|in\\s+your)${end}`, "iu"),
   new RegExp(`${start}(?:now|will\\s+now)\\s+(?:includes?|features?|contains?)${end}`, "iu"),
   // Spanish
   new RegExp(`${start}(?<!no\\s)(?:he|hemos)\\s+(?:ya\\s+)?${words("añadido|agregado|actualizado|eliminado|quitado|borrado|reemplazado|sustituido|cambiado|movido|incluido|programado|guardado|puesto|ajustado|condensado|combinado|fusionado|reorganizado|reestructurado|reducido|acortado")}${end}`, "iu"),
   new RegExp(`${start}(?:ha|han)\\s+sido\\s+${words("añadid|agregad|actualizad|eliminad|quitad|borrad|reemplazad|sustituid|cambiad|movid|incluid|programad|guardad|ajustad|condensad|combinad|fusionad|reorganizad|reestructurad|reducid|acortad")}[oa]s?${end}`, "iu"),
   new RegExp(`${start}(?<!no\\s)${words("añadí|agregué|actualicé|eliminé|quité|reemplacé|sustituí|cambié|moví|incluí|programé|condensé|combiné|fusioné|reorganicé|reestructuré|acorté")}${end}`, "iu"),
-  new RegExp(`${start}ahora\\s+(?:incluye|está\\s+dedicad[oa]|está\\s+programad[oa])${end}`, "iu"),
+  new RegExp(`${start}ahora\\s+(?:incluye|está\\s+(?:dedicad|programad|organizad|estructurad|ajustad|alinead|actualizad)[oa])${end}`, "iu"),
   // Italian
   new RegExp(`${start}(?<!non\\s)(?:ho|abbiamo)\\s+(?:già\\s+|anche\\s+|ora\\s+)?${words("aggiunto|aggiornato|rimosso|eliminato|tolto|sostituito|spostato|cambiato|inserito|incluso|programmato|salvato|modificato|condensato|combinato|unito|riorganizzato|ristrutturato|ridotto|accorciato|scambiato")}${end}`, "iu"),
   new RegExp(`${start}(?:è|sono)\\s+stat[oaie]\\s+${words("aggiunt|aggiornat|rimoss|eliminat|tolt|sostituit|spostat|cambiat|inserit|inclus|programmat|salvat|modificat|condensat|combinat|unit|riorganizzat|ristrutturat|ridott|accorciat|scambiat")}[oaie]${end}`, "iu"),
-  new RegExp(`${start}(?:ora|adesso)\\s+(?:include|comprende|è\\s+dedicat[oa])${end}`, "iu"),
+  new RegExp(`${start}(?:ora|adesso)\\s+(?:include|comprende|è\\s+(?:dedicat|organizzat|strutturat|allineat|aggiornat)[oa])${end}`, "iu"),
   // Portuguese
   new RegExp(`${start}(?<!não\\s)${words("adicionei|acrescentei|atualizei|removi|retirei|substituí|troquei|mudei|movi|incluí|agendei|guardei|salvei|alterei|condensei|combinei|juntei|reorganizei|reestruturei|reduzi|encurtei")}${end}`, "iu"),
   new RegExp(`${start}(?:foi|foram)\\s+${words("adicionad|acrescentad|atualizad|removid|retirad|substituíd|trocad|mudad|movid|incluíd|agendad|guardad|salv|alterad|condensad|combinad|juntad|reorganizad|reestruturad|reduzid|encurtad")}[oa]s?${end}`, "iu"),
-  new RegExp(`${start}agora\\s+(?:inclui|está\\s+dedicad[oa])${end}`, "iu"),
+  new RegExp(`${start}agora\\s+(?:inclui|está\\s+(?:dedicad|organizad|estruturad|alinhad|ajustad|atualizad)[oa])${end}`, "iu"),
+  // Promises (see EN_PROMISE_VERBS above)
+  new RegExp(`${start}(?:i(?:['’]ll|\\s+will)|let\\s+me|i(?:['’]m|\\s+am)\\s+going\\s+to)\\s+(?:now\\s+|just\\s+|also\\s+|go\\s+ahead\\s+and\\s+)?${EN_PROMISE_VERBS}${end}`, "iu"),
+  new RegExp(`${start}(?<!no\\s)(?:voy\\s+a\\s+(?:lo\\s+|la\\s+|los\\s+|las\\s+)?${ES_INFINITIVES}|${ES_INFINITIVES}é)${end}`, "iu"),
+  new RegExp(`${start}(?<!non\\s)(?:${IT_FUTURES}|sto\\s+per\\s+${IT_INFINITIVES})${end}`, "iu"),
+  new RegExp(`${start}(?<!não\\s)(?:vou\\s+${PT_INFINITIVES}|${PT_FUTURES})${end}`, "iu"),
 ];
 
 /** Does this reply say the itinerary was (or now is) changed? */
@@ -198,5 +226,49 @@ export function lengthUnchangedNote(language: string | undefined, days: number):
       return `(A viagem continua com ${days} dias: não consegui preparar os dias novos. Peça de novo, um dia de cada vez.)`;
     default:
       return `(The trip stays at ${days} days: I couldn't prepare the new days. Ask me again, one day at a time.)`;
+  }
+}
+
+// "Noted" and "recorded" tell the traveller that their hotel or flight is
+// kept somewhere. The trip assistant keeps nothing but the last few messages.
+const REMEMBER_PATTERNS: RegExp[] = [
+  new RegExp(`${start}(?:has|have)\\s+been\\s+(?:noted|recorded|logged|registered)${end}`, "iu"),
+  new RegExp(`${start}(?:i|we)(?:['’]ve|\\s+have)\\s+(?:noted|recorded|made\\s+a\\s+note|taken\\s+note)${end}`, "iu"),
+  new RegExp(`${start}(?:i|we)(?:['’]ll|\\s+will)\\s+(?:keep|bear)\\s+(?:that|this|it|these|those)\\s+in\\s+mind${end}`, "iu"),
+  new RegExp(`${start}(?:is|are)\\s+(?:now\\s+)?(?:noted|recorded|on\\s+file)${end}`, "iu"),
+  new RegExp(`^\\s*(?:noted|anotado|annotato)[!.,]`, "iu"),
+  new RegExp(`${start}(?:he|hemos)\\s+tomado\\s+nota${end}`, "iu"),
+  new RegExp(`${start}(?:queda|quedan|ha\\s+sido|han\\s+sido)\\s+(?:anotad|registrad)[oa]s?${end}`, "iu"),
+  new RegExp(`${start}lo\\s+tendré\\s+en\\s+cuenta${end}`, "iu"),
+  new RegExp(`${start}(?:ho|abbiamo)\\s+preso\\s+nota${end}`, "iu"),
+  new RegExp(`${start}(?:è|sono)\\s+stat[oaie]\\s+(?:annotat|registrat)[oaie]${end}`, "iu"),
+  new RegExp(`${start}(?:lo|ne)\\s+terrò\\s+(?:presente|a\\s+mente|conto)${end}`, "iu"),
+  new RegExp(`${start}(?:tomei|tomamos)\\s+nota${end}`, "iu"),
+  new RegExp(`${start}anotei${end}`, "iu"),
+  new RegExp(`${start}(?:foi|foram)\\s+(?:anotad|registrad)[oa]s?${end}`, "iu"),
+  new RegExp(`${start}(?:vou\\s+ter|terei)\\s+(?:isso|isto)\\s+em\\s+(?:conta|mente)${end}`, "iu"),
+];
+
+/** Does this reply tell the traveller that what they said is kept somewhere? */
+export function claimsToRemember(text: string | null | undefined): boolean {
+  if (!text) return false;
+  return REMEMBER_PATTERNS.some((re) => re.test(text));
+}
+
+/**
+ * The trip assistant's reply when it implied it kept a detail it cannot keep
+ * (a hotel, a flight time). Same "Edit Trip" button as nothingChangedReply;
+ * only English gets a chat example, for the same reason.
+ */
+export function nothingKeptReply(language: string | undefined): string {
+  switch (lang(language)) {
+    case "es":
+      return 'Desde aquí no puedo guardar datos como hoteles u horarios de vuelo, y solo recuerdo los últimos mensajes. Puedes ponerlos en el plan con "Editar Viaje".';
+    case "it":
+      return 'Da qui non posso conservare dati come hotel od orari dei voli, e ricordo solo gli ultimi messaggi. Puoi inserirli nel piano con "Modifica Viaggio".';
+    case "pt":
+      return 'Daqui não consigo guardar dados como hotéis ou horários de voo, e só me lembro das últimas mensagens. Você pode colocá-los no plano com "Editar Viagem".';
+    default:
+      return 'I can\'t keep details like hotels or flight times from here, and I only remember the last few messages. Put them in the plan with "Edit Trip", or ask me for one activity at a time, like "add hotel check-in to day 1".';
   }
 }

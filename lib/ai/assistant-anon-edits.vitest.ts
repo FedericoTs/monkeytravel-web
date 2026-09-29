@@ -60,6 +60,17 @@ describe("validateEdits", () => {
     const out = validateEdits(trip(), { edits: [edit(3, ["Quilotoa"], { city: "Baños" })], tripLength: null }, "USD");
     expect(out.edits[0].city).toBe("Baños");
   });
+
+  it("reaches every day of a multi-city trip longer than the single-city cap", () => {
+    const cities = ["Xi'an", "Chongqing", "Chengdu"];
+    const long = Array.from({ length: 19 }, (_, i) => day(i + 1, { city: cities[Math.floor(i / 7)] }));
+    const out = validateEdits(long, { edits: [edit(15), edit(19)], tripLength: null }, "CNY");
+    expect(out.edits.map((e) => e.day_number)).toEqual([15, 19]);
+    expect(validateEdits(long, { edits: [edit(20), edit(21)], tripLength: 21 }, "CNY").tripLength).toBe(21);
+    expect(validateEdits(long, { edits: [edit(20), edit(21), edit(22)], tripLength: 22 }, "CNY").tripLength).toBeUndefined();
+    // A single-city trip keeps its own cap.
+    expect(validateEdits(trip(), { edits: [edit(15)], tripLength: 15 }, "EUR").tripLength).toBeUndefined();
+  });
 });
 
 describe("composeReply", () => {
@@ -67,6 +78,11 @@ describe("composeReply", () => {
 
   it("a claim with nothing prepared becomes an honest reply", () => {
     const text = composeReply({ ...base, reply: "I've swapped the Northern Lights Chase to Day 5 and Orca Watching to Day 2 for you.", edits: [] });
+    expect(text).toMatch(/^I haven't changed your plan/);
+  });
+
+  it("a promise with nothing prepared becomes an honest reply", () => {
+    const text = composeReply({ ...base, reply: "I'll move the Vatican to Day 2 for you.", edits: [] });
     expect(text).toMatch(/^I haven't changed your plan/);
   });
 
