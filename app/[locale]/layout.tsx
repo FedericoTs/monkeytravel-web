@@ -7,7 +7,6 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { bodyFontClassName } from "@/app/fonts";
-import { PostHogProviderWrapper } from "@/app/providers";
 import { LocaleProvider } from "@/lib/locale";
 import { PlaceCacheProvider } from "@/lib/context/PlaceCacheContext";
 import { routing } from "@/lib/i18n/routing";
@@ -26,7 +25,9 @@ import AuthEventTracker from "@/components/analytics/AuthEventTracker";
 import EngagementBeacon from "@/components/analytics/EngagementBeacon";
 import { ToastProvider } from "@/components/ui/Toast";
 import MaintenanceWrapper from "@/components/MaintenanceWrapper";
-import { ProfileCompletionProvider } from "@/components/profile";
+// Straight from the file: the barrel also re-exports the profile modals, and a
+// re-export keeps them (and the Supabase client) in every page's bundle.
+import ProfileCompletionProvider from "@/components/profile/ProfileCompletionProvider";
 import { ConsentWrapper } from "@/components/consent";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import "@/app/globals.css";
@@ -225,39 +226,37 @@ export default async function LocaleLayout({
         <link rel="dns-prefetch" href="https://o4510503013122048.ingest.de.sentry.io" />
       </head>
       <body className={bodyFontClassName}>
-        <PostHogProviderWrapper>
-          <LocaleProvider>
-            <PlaceCacheProvider>
-              <NextIntlClientProvider messages={messages} locale={locale}>
-                <AuthProvider>
-                  {/*
-                   * Reads ?auth_event=... from the OAuth callback and fires the
-                   * signup/login analytics. It MUST live here, at the layout level,
-                   * not on a single page: app/auth/callback/route.ts computes
-                   * `next !== "/trips" ? next : "/trips/new"`, so a newly signed-up
-                   * user is redirected to whatever page the flow started from and
-                   * never to /trips. Suspense is required because the tracker
-                   * calls useSearchParams().
-                   */}
-                  <Suspense fallback={null}>
-                    <AuthEventTracker />
-                    {/* Counts a session as a visit after a few visible seconds. The
-                        only signal that separates a reader from a fetcher outside the
-                        wizard — see components/analytics/EngagementBeacon.tsx. */}
-                    <EngagementBeacon />
-                  </Suspense>
-                  <ConsentWrapper>
-                    <ToastProvider>
-                      <ProfileCompletionProvider>
-                        <MaintenanceWrapper>{children}</MaintenanceWrapper>
-                      </ProfileCompletionProvider>
-                    </ToastProvider>
-                  </ConsentWrapper>
-                </AuthProvider>
-              </NextIntlClientProvider>
-            </PlaceCacheProvider>
-          </LocaleProvider>
-        </PostHogProviderWrapper>
+        <LocaleProvider>
+          <PlaceCacheProvider>
+            <NextIntlClientProvider messages={messages} locale={locale}>
+              <AuthProvider>
+                {/*
+                 * Reads ?auth_event=... from the OAuth callback and fires the
+                 * signup/login analytics. It MUST live here, at the layout level,
+                 * not on a single page: app/auth/callback/route.ts computes
+                 * `next !== "/trips" ? next : "/trips/new"`, so a newly signed-up
+                 * user is redirected to whatever page the flow started from and
+                 * never to /trips. Suspense is required because the tracker
+                 * calls useSearchParams().
+                 */}
+                <Suspense fallback={null}>
+                  <AuthEventTracker />
+                  {/* Counts a session as a visit after a few visible seconds. The
+                      only signal that separates a reader from a fetcher outside the
+                      wizard — see components/analytics/EngagementBeacon.tsx. */}
+                  <EngagementBeacon />
+                </Suspense>
+                <ConsentWrapper>
+                  <ToastProvider>
+                    <ProfileCompletionProvider>
+                      <MaintenanceWrapper>{children}</MaintenanceWrapper>
+                    </ProfileCompletionProvider>
+                  </ToastProvider>
+                </ConsentWrapper>
+              </AuthProvider>
+            </NextIntlClientProvider>
+          </PlaceCacheProvider>
+        </LocaleProvider>
         {/* Their scripts are served by Vercel only; elsewhere they 404. */}
         {process.env.VERCEL === "1" && (
           <>

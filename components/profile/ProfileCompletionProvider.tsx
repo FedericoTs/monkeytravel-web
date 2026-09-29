@@ -1,10 +1,13 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
-import { createClient } from "@/lib/supabase/client";
+import dynamic from "next/dynamic";
 import { useAuth } from "@/components/auth/AuthProvider";
-import ProfileCompletionModal from "./ProfileCompletionModal";
 import { safeGet } from "@/lib/safe-storage";
+
+// Loaded only when the modal opens: it carries the Supabase client and the
+// form, which the pages that never show it should not download.
+const ProfileCompletionModal = dynamic(() => import("./ProfileCompletionModal"));
 
 interface ProfileCompletionContextType {
   showProfileModal: () => void;
@@ -75,6 +78,7 @@ export default function ProfileCompletionProvider({
         return;
       }
 
+      const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
       const { data: profile } = await supabase
         .from("users")
@@ -141,7 +145,7 @@ export default function ProfileCompletionProvider({
   return (
     <ProfileCompletionContext.Provider value={contextValue}>
       {children}
-      {hasChecked && (
+      {hasChecked && isModalOpen && (
         <ProfileCompletionModal
           isOpen={isModalOpen}
           onClose={hideProfileModal}

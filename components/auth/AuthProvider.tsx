@@ -30,8 +30,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { usePathname } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
+import { hasSessionCookie } from "@/lib/supabase/session-cookie";
+import { isStaticPagePath } from "@/lib/security/static-routes";
 import { identify } from "@/lib/posthog/identify";
 import { prefs } from "@/lib/platform/storage";
 import { CLAIM_TOKEN_KEY, shouldTryClaim } from "@/lib/trips/claim-trigger";
@@ -103,86 +105,99 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
+  // Prerendered pages are the marketing surface. Without a session cookie
+  // there is nobody to look up there, so those visitors never download the
+  // Supabase client; app pages and signed-in visitors load it as before.
+  const needsClient = !isStaticPagePath(pathname ?? "/") || hasSessionCookie();
 
   useEffect(() => {
-    const supabase = createClient();
+    if (!needsClient) {
+      setLoading(false);
+      return;
+    }
     let mounted = true;
+    let subscription: { unsubscribe: () => void } | undefined;
 
-    // Single initial fetch — replaces N per-component getUser() calls.
-    supabase.auth.getUser().then(({ data: { user: u } }) => {
+    void import("@/lib/supabase/client").then(({ createClient }) => {
       if (!mounted) return;
-      setUser(u);
-      setLoading(false);
-    });
+      const supabase = createClient();
 
-    // Single subscription — replaces N per-component listeners.
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!mounted) return;
-      setUser(session?.user ?? null);
-      // Subsequent state changes are not "loading" — only the first
-      // hydration is. Once we've heard from auth at least once we're
-      // out of the loading state regardless of which path resolved first.
-      setLoading(false);
+      // Single initial fetch — replaces N per-component getUser() calls.
+      supabase.auth.getUser().then(({ data: { user: u } }) => {
+        if (!mounted) return;
+        setUser(u);
+        setLoading(false);
+      });
 
-      // 2026-05-31 mobile-audit P2: re-register the push device row on
-      // in-session sign-in. NativeBoot only calls initPushOnce() on
-      // cold launch, so a user who signs in mid-session never gets a
-      // user_id-linked device row → every server-side push silently
-      // no-ops with `no_active_devices` until the next cold launch.
-      // Capacitor.isNativePlatform() gate keeps web users from paying
-      // for the dynamic import or the @capacitor/push-notifications
-      // chunk on every login.
-      if (event === "SIGNED_IN") {
-        const cap = (
-          window as typeof window & {
-            Capacitor?: { isNativePlatform?: () => boolean };
+      // Single subscription — replaces N per-component listeners.
+      const { data } = supabase.auth.onAuthStateChange((event, session) => {
+        if (!mounted) return;
+        setUser(session?.user ?? null);
+        // Subsequent state changes are not "loading" — only the first
+        // hydration is. Once we've heard from auth at least once we're
+        // out of the loading state regardless of which path resolved first.
+        setLoading(false);
+
+        // 2026-05-31 mobile-audit P2: re-register the push device row on
+        // in-session sign-in. NativeBoot only calls initPushOnce() on
+        // cold launch, so a user who signs in mid-session never gets a
+        // user_id-linked device row → every server-side push silently
+        // no-ops with `no_active_devices` until the next cold launch.
+        // Capacitor.isNativePlatform() gate keeps web users from paying
+        // for the dynamic import or the @capacitor/push-notifications
+        // chunk on every login.
+        if (event === "SIGNED_IN") {
+          const cap = (
+            window as typeof window & {
+              Capacitor?: { isNativePlatform?: () => boolean };
+            }
+          ).Capacitor;
+          if (cap?.isNativePlatform?.()) {
+            void import("@/lib/native/push")
+              .then(({ initPushOnce }) => initPushOnce())
+              .catch(() => undefined);
           }
-        ).Capacitor;
-        if (cap?.isNativePlatform?.()) {
-          void import("@/lib/native/push")
-            .then(({ initPushOnce }) => initPushOnce())
+        }
+
+        // Anonymous share loop: if this browser shared a trip while signed out,
+        // hand that trip to the account that is now signed in. On SIGNED_IN and
+        // on INITIAL_SESSION (lib/trips/claim-trigger.ts): OAuth and emailed
+        // links finish signing in on the server, so their landing page only
+        // hears INITIAL_SESSION. A cheap storage read first; the claim module
+        // is dynamically imported only when a token is actually waiting, since
+        // almost no page load has anything to claim.
+        //
+        // Fire-and-forget: claimPendingTrip never throws and never blocks the
+        // auth transition. A failed claim must not be able to break signing in.
+        if (shouldTryClaim(event, !!session?.user)) {
+          void prefs
+            .get(CLAIM_TOKEN_KEY)
+            .then((token) =>
+              token
+                ? import("@/lib/trips/anonymous-claim-client").then(({ claimPendingTrip }) => claimPendingTrip())
+                : null,
+            )
+            .then(async (tripId) => {
+              // The claim used to resolve here and be thrown away, so the person
+              // sat on a bare wizard while the trip they had just built moved
+              // silently into their account. Announce it instead; the wizard
+              // turns it into "your trip came with you — open it".
+              if (!tripId) return;
+              const { publishClaimedTrip } = await import("@/lib/trips/claimed-trip-signal");
+              publishClaimedTrip(tripId);
+            })
             .catch(() => undefined);
         }
-      }
-
-      // Anonymous share loop: if this browser shared a trip while signed out,
-      // hand that trip to the account that is now signed in. On SIGNED_IN and
-      // on INITIAL_SESSION (lib/trips/claim-trigger.ts): OAuth and emailed
-      // links finish signing in on the server, so their landing page only
-      // hears INITIAL_SESSION. A cheap storage read first; the claim module
-      // is dynamically imported only when a token is actually waiting, since
-      // almost no page load has anything to claim.
-      //
-      // Fire-and-forget: claimPendingTrip never throws and never blocks the
-      // auth transition. A failed claim must not be able to break signing in.
-      if (shouldTryClaim(event, !!session?.user)) {
-        void prefs
-          .get(CLAIM_TOKEN_KEY)
-          .then((token) =>
-            token
-              ? import("@/lib/trips/anonymous-claim-client").then(({ claimPendingTrip }) => claimPendingTrip())
-              : null,
-          )
-          .then(async (tripId) => {
-            // The claim used to resolve here and be thrown away, so the person
-            // sat on a bare wizard while the trip they had just built moved
-            // silently into their account. Announce it instead; the wizard
-            // turns it into "your trip came with you — open it".
-            if (!tripId) return;
-            const { publishClaimedTrip } = await import("@/lib/trips/claimed-trip-signal");
-            publishClaimedTrip(tripId);
-          })
-          .catch(() => undefined);
-      }
+      });
+      subscription = data.subscription;
     });
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
-  }, []);
+  }, [needsClient]);
 
   // Task #207: idempotent PostHog identify whenever we have a non-null
   // user. Covers the returning-user page-load case (browser tab reopened,

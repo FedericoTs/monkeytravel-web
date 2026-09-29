@@ -913,7 +913,7 @@ export default function NewTripPage({
       setFlexibleDates(true);
     }
 
-    posthog.capture("wizard_prefilled_from_article", {
+    posthog?.capture("wizard_prefilled_from_article", {
       prefilled_days: days ?? null,
       prefilled_budget: budget ?? null,
       prefilled_vibes: vibes,
@@ -2829,7 +2829,7 @@ export default function NewTripPage({
     // Observability: quantify how many activations this recovers. PostHog
     // (unlike trackWizardEvent) has no event-name enum, so this needs no
     // migration.
-    posthog.capture("save_intent_redeemed", {
+    posthog?.capture("save_intent_redeemed", {
       destination,
       group_size: tripIntent,
       backpacker_mode: travelStyle === "backpacker",
@@ -2925,7 +2925,7 @@ export default function NewTripPage({
     // The traveller chose these dates, so they are not pencilled in.
     setFlexibleDates(false);
     setDatesPencilled(false);
-    posthog.capture("wizard_dates_changed", { from_days: current, to_days: change.length, kind: change.kind });
+    posthog?.capture("wizard_dates_changed", { from_days: current, to_days: change.length, kind: change.kind });
     if (change.kind !== "longer") return;
 
     const extra = change.length - current;
@@ -3086,7 +3086,7 @@ export default function NewTripPage({
             mcStops.length > 1
               ? undefined
               : () => {
-                  posthog.capture("wizard_start_over_changed_dates_instead");
+                  posthog?.capture("wizard_start_over_changed_dates_instead");
                   setShowStartOverModal(false);
                   setShowChangeDates(true);
                 }

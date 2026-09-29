@@ -25,6 +25,10 @@ vi.mock("@/lib/supabase/client", () => ({
   }),
 }));
 vi.mock("@/lib/posthog/identify", () => ({ identify: vi.fn(async () => {}) }));
+// The provider loads the Supabase client only on app pages or with a session
+// cookie; these tests are about the auth events, so they run as an app page.
+vi.mock("next/navigation", () => ({ usePathname: () => "/trips/new" }));
+vi.mock("@/lib/security/static-routes", () => ({ isStaticPagePath: () => false }));
 
 let storedToken: string | null = null;
 vi.mock("@/lib/platform/storage", () => ({
@@ -42,6 +46,10 @@ async function signal(event: string, user: boolean) {
       <div />
     </AuthProvider>
   );
+  // The client arrives through a dynamic import, one tick after mount.
+  await act(async () => {
+    await new Promise((r) => setTimeout(r, 0));
+  });
   await act(async () => {
     fire(event, user ? { user: { id: "u1" } } : null);
     await new Promise((r) => setTimeout(r, 20));

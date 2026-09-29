@@ -1,3 +1,4 @@
+import { preload } from "react-dom";
 import styles from "./HeroDoodleBackground.module.css";
 
 /**
@@ -29,6 +30,12 @@ export default function HeroDoodleBackground({
 }: {
   layout?: "split" | "centered";
 }) {
+  // The scenery is the page's largest paint. Announce the matching file from
+  // the document head so the browser fetches it before it has parsed down to
+  // the <picture>, instead of queueing it behind the scripts.
+  preload(`${HERO}/base-mobile.webp`, { as: "image", fetchPriority: "high", media: "(max-width: 767.98px)" });
+  preload(`${HERO}/base-desktop.webp`, { as: "image", fetchPriority: "high", media: "(min-width: 768px)" });
+
   return (
     <div
       className={layout === "centered" ? `${styles.root} ${styles.centered}` : styles.root}
@@ -65,6 +72,7 @@ export default function HeroDoodleBackground({
           className={styles.base}
           draggable={false}
           decoding="async"
+          fetchPriority="high"
         />
       </picture>
 

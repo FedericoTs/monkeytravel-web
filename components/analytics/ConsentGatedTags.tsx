@@ -141,7 +141,8 @@ function clearGoogleCookies() {
  * gtag.js plus the two calls Google's snippet makes before it loads. They run
  * from bundled code rather than an inline script, so the tag needs no nonce
  * and no hash under either CSP; the dataLayer order (consent default, js,
- * config) is the same as with the snippet.
+ * config) is the same as with the snippet. The 190 KB tag is fetched only
+ * after the page has loaded: the queued dataLayer commands wait for it.
  */
 function GaTag({ gaId }: { gaId: string }) {
   useEffect(() => {
@@ -149,7 +150,7 @@ function GaTag({ gaId }: { gaId: string }) {
     gtag("js", new Date());
     gtag("config", gaId);
   }, [gaId]);
-  return <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />;
+  return <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="lazyOnload" />;
 }
 
 export function ConsentGatedTags() {
