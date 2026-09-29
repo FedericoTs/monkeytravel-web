@@ -16,7 +16,7 @@
  * @see https://developers.google.com/analytics/devguides/collection/ga4/events
  */
 
-import { sentry } from "@/lib/observability/sentry";
+import { sentry, sentryBreadcrumb, sentryUser } from "@/lib/observability/sentry";
 
 // Type definitions for gtag
 declare global {
@@ -49,20 +49,13 @@ export function trackEvent(
     window.gtag!("event", eventName, params);
   }
 
-  // Also add breadcrumb to Sentry for debugging — fire-and-forget so
-  // we don't make trackEvent async (would force every caller to await).
-  sentry()
-    .then((S) =>
-      S.addBreadcrumb({
-        category: "analytics",
-        message: eventName,
-        data: params,
-        level: "info",
-      })
-    )
-    .catch(() => {
-      /* SDK not loaded yet or blocked by privacy extension — drop silently */
-    });
+  // Also a breadcrumb for Sentry, kept until the SDK is fetched for an error.
+  sentryBreadcrumb({
+    category: "analytics",
+    message: eventName,
+    data: params,
+    level: "info",
+  });
 
   // Log in development
   if (process.env.NODE_ENV === "development") {
@@ -426,11 +419,7 @@ export function setUserId(userId: string): void {
   }
 
   // Set in Sentry
-  sentry()
-    .then((S) => S.setUser({ id: userId }))
-    .catch(() => {
-      /* SDK not loaded yet — re-set on next identify */
-    });
+  sentryUser({ id: userId });
 }
 
 // ============================================================================

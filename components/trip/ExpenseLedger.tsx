@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import SettleUpView from "@/components/trip/SettleUpView";
+import { sentry } from "@/lib/observability/sentry";
 import {
   captureExpenseAdded,
   captureExpenseDeleted,
@@ -149,9 +150,7 @@ function ExpenseLedgerInner({
           setLoadError(message);
           addToast(t("errorLoadFailed"), "error");
           console.error("[ExpenseLedger] load failed", message);
-          // Lazy-import Sentry so a missing/failed Sentry never breaks the
-          // ledger render (mirrors lib/usage-limits/check.ts:83-95).
-          import("@sentry/nextjs")
+          sentry()
             .then((Sentry) => {
               Sentry.captureException?.(new Error(message), {
                 tags: { source: "ExpenseLedger", subsystem: "load" },
@@ -178,7 +177,7 @@ function ExpenseLedgerInner({
         setLoadError(message);
         addToast(t("errorLoadFailed"), "error");
         console.error("[ExpenseLedger] load failed", err);
-        import("@sentry/nextjs")
+        sentry()
           .then((Sentry) => {
             Sentry.captureException?.(err, {
               tags: { source: "ExpenseLedger", subsystem: "load" },
