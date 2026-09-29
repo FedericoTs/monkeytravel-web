@@ -9,6 +9,7 @@ import dynamic from "next/dynamic";
 import type { ItineraryDay, TripMeta, CachedDayTravelData } from "@/types";
 import { trackShareLinkClicked } from "@/lib/analytics";
 import { getTripDestination } from "@/lib/trips/destination";
+import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import { readPendingClaim, claimPendingTrip } from "@/lib/trips/anonymous-claim-client";
 import { onClaimedTrip, readClaimedTrip } from "@/lib/trips/claimed-trip-signal";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
@@ -130,6 +131,7 @@ interface SharedTripViewProps {
 
 export default function SharedTripView({ trip, shareToken, dateRange, coverImageUrl, engagementSlot, viewSource, isOwner = false, editorHref, liveState }: SharedTripViewProps) {
   const t = useTranslations('common');
+  const typeLabel = useActivityTypeLabel();
   // A live trip opens on Today, for every viewer.
   const fallbackDayState = useMemo<TripDayState>(
     () => liveState ?? computeTripDayState({ startDate: trip.startDate, endDate: trip.endDate, timeZone: null }),
@@ -863,7 +865,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
                                           : null}
                                       </div>
                                       <span className="text-xs text-slate-500 capitalize">
-                                        {activity.type}
+                                        {typeLabel(activity.type)}
                                       </span>
                                     </div>
                                   </div>

@@ -5,6 +5,7 @@ import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-mo
 import type { ActivityStatus } from "@/types/timeline";
 import StarRating from "../ui/StarRating";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 
 interface ActivityData {
   id: string;
@@ -48,6 +49,7 @@ export default function LiveActivityCard({
   isCompletingAnimation = false,
 }: LiveActivityCardProps) {
   const constraintsRef = useRef<HTMLDivElement>(null);
+  const typeLabel = useActivityTypeLabel();
   const [isDragging, setIsDragging] = useState(false);
   const [showCompletedFeedback, setShowCompletedFeedback] = useState(false);
 
@@ -181,7 +183,7 @@ export default function LiveActivityCard({
             />
             {/* Type badge overlay */}
             <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-xs font-medium bg-black/60 text-white">
-              {activity.type}
+              {typeLabel(activity.type)}
             </span>
           </div>
         )}

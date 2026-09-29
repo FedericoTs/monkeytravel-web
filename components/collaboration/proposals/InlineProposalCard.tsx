@@ -4,6 +4,7 @@ import { memo } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import type {
   ProposalWithVotes,
   Activity,
@@ -41,6 +42,7 @@ function InlineProposalCardComponent({
 }: InlineProposalCardProps) {
   const t = useTranslations("common.proposals");
   const tv = useTranslations("common.voting"); // Voting type labels
+  const typeLabel = useActivityTypeLabel();
   const activity = proposal.activity_data as Activity | null;
   const isActive = proposal.status === 'pending' || proposal.status === 'voting';
 
@@ -250,7 +252,7 @@ function InlineProposalCardComponent({
             <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
               <span>{formatDuration(activity.duration_minutes)}</span>
               <span>•</span>
-              <span className="capitalize">{activity.type}</span>
+              <span className="capitalize">{typeLabel(activity.type)}</span>
               {activity.location && (
                 <>
                   <span>•</span>

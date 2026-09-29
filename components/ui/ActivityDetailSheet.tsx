@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import type { Activity } from "@/types";
 import PlaceGallery from "@/components/PlaceGallery";
 import { getActivityTypeColors } from "@/lib/constants/activityColors";
+import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
@@ -35,6 +36,7 @@ export default function ActivityDetailSheet({
   onPhotoCapture,
 }: ActivityDetailSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
+  const typeLabel = useActivityTypeLabel();
 
   // Generate URLs
   const mapSearchQuery = encodeURIComponent(
@@ -132,7 +134,7 @@ export default function ActivityDetailSheet({
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} ${colors.border} border`}
                 >
-                  {colors.icon} {activity.type}
+                  {colors.icon} {typeLabel(activity.type)}
                 </span>
                 {activity.booking_required && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import type {
   AssistantCard,
   AssistantActivityCard,
@@ -94,33 +95,6 @@ const CONFIRMATION_ICONS: Record<string, { path: string; bg: string }> = {
 };
 
 // Mini Activity Card for suggestions
-/**
- * The activity type, or nothing, but NEVER a crash.
- *
- * `t()` throws on a missing message, and the generator does not reliably stay
- * inside the four types the messages define (attraction, restaurant, activity,
- * transport). A live run produced `type: "cafe"`, which threw inside
- * MiniActivityCard, took PreviewChangeCard down with it, and left the user
- * with NO confirmation card at all — the change was prepared and there was
- * nothing on screen to accept it with.
- *
- * That failure is indistinguishable, from the user's side, from the bug this
- * whole change exists to remove: they asked for something, were told about it,
- * and their trip never changed. A label is not worth a dead card, so an
- * unrecognised type falls back to the raw word.
- */
-const KNOWN_ACTIVITY_TYPES = new Set(["attraction", "restaurant", "activity", "transport"]);
-
-function activityTypeLabel(
-  t: (key: string) => string,
-  type: string | undefined
-): string {
-  if (!type) return "";
-  if (KNOWN_ACTIVITY_TYPES.has(type)) return t(`activityTypes.${type}`);
-  // Unknown but printable — "cafe" reads fine next to the activity name.
-  return type.replace(/[_-]+/g, " ");
-}
-
 function MiniActivityCard({
   activity,
   dayNumber,
@@ -135,6 +109,7 @@ function MiniActivityCard({
   className?: string;
 }) {
   const t = useTranslations("common.ai.cards");
+  const typeLabel = useActivityTypeLabel();
   const style = ACTIVITY_STYLES[activity.type] || ACTIVITY_STYLES.activity;
 
   return (
@@ -178,7 +153,7 @@ function MiniActivityCard({
           </h4>
           <div className="flex items-center gap-2 mt-0.5">
             <span className="text-[11px] text-slate-500 capitalize">
-              {activityTypeLabel(t, activity.type)}
+              {typeLabel(activity.type)}
             </span>
             {dayNumber && (
               <>
