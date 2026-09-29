@@ -77,6 +77,28 @@ export type WizardEventStep =
   | "otp_code_verified";
 
 /**
+ * Where this wizard document came from, for the step-1 row: the referrer's
+ * host and path (no query, which can carry tokens) and the URL's utm_source.
+ * document.referrer is the referrer of the page load, so after an in-app
+ * navigation it still names the outside source that brought the session in.
+ */
+export function landingAttribution(): { referrer?: string; utm_source?: string } {
+  if (typeof window === "undefined") return {};
+  const out: { referrer?: string; utm_source?: string } = {};
+  try {
+    if (document.referrer) {
+      const ref = new URL(document.referrer);
+      out.referrer = `${ref.host}${ref.pathname}`.slice(0, 256);
+    }
+  } catch {
+    // An unparsable referrer is not worth an event.
+  }
+  const source = new URLSearchParams(window.location.search).get("utm_source")?.trim();
+  if (source) out.utm_source = source.slice(0, 64);
+  return out;
+}
+
+/**
  * Fire-and-forget POST to /api/wizard-event. Never awaited from a render path,
  * never surfaces its result, swallows every throw. keepalive:true so the
  * "abandoned" event survives a tab close.

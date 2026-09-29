@@ -86,6 +86,10 @@ const BodySchema = z.object({
   // sends it any more, but bundles cached from before the ramp still do, so
   // it stays accepted rather than turning those posts into 400s.
   step1_variant: z.enum(["editorial", "classic"]).optional(),
+  // Where the session came from, on the step-1 row only: the wizard
+  // document's referrer (host and path) and the URL's utm_source.
+  referrer: z.string().trim().max(256).optional(),
+  utm_source: z.string().trim().max(64).optional(),
 });
 
 // Day-4 bug fix (P2.5): composite IP + session rate limit.
@@ -220,6 +224,8 @@ export async function POST(request: NextRequest) {
     front_door: body.front_door ?? null,
     failure_code: body.failure_code ?? null,
     step1_variant: body.step1_variant ?? null,
+    referrer: body.referrer || null,
+    utm_source: body.utm_source || null,
   });
 
   if (error) {
