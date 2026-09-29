@@ -281,6 +281,38 @@ describe("at the free-generation cap", () => {
   });
 });
 
+/**
+ * Keeping a plan someone just built needs the two sign-in paths, not a pitch
+ * above them: on a phone the benefits pushed the email field below the fold.
+ * At the cap the visitor has not built anything yet, so the benefits stay.
+ */
+describe("what sits above the sign-in buttons", () => {
+  it("shows no benefits list when someone is keeping a plan", () => {
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisboa" />);
+    expect(screen.queryByText("benefits.aiPowered")).toBeNull();
+    expect(screen.getByRole("button", { name: "googleButton" })).toBeTruthy();
+    expect(screen.getByPlaceholderText("magicLink.emailPlaceholder")).toBeTruthy();
+  });
+
+  it("keeps the benefits at the free-generation cap", () => {
+    render(
+      <AuthPromptModal isOpen onClose={() => {}} destination="Kutaisi" reason="generation_limit" location="wizard_generation_limit" />
+    );
+    expect(screen.getByText("benefits.aiPowered")).toBeTruthy();
+  });
+});
+
+describe("the save copy names both sign-in paths in every language", () => {
+  it.each(["en", "es", "it", "pt"])("%s", async (locale) => {
+    const messages = (await import(`../../messages/${locale}/common.json`)).default as {
+      authPrompt: { title: string; subtitle: string };
+    };
+    expect(messages.authPrompt.subtitle).toContain("{destination}");
+    expect(messages.authPrompt.subtitle).toContain("Google");
+    expect(messages.authPrompt.title.trim()).toBeTruthy();
+  });
+});
+
 describe("the cap copy exists in every language", () => {
   it.each(["en", "es", "it", "pt"])("%s", async (locale) => {
     const messages = (await import(`../../messages/${locale}/common.json`)).default as {

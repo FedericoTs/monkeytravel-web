@@ -365,10 +365,10 @@ export default function AuthPromptModal({
       ariaLabel={title}
       className="shadow-2xl"
     >
-      {/* Gradient header */}
-      <div className="bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 px-6 py-8 text-white text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      {/* Gradient header, kept short so both sign-in paths sit above the fold on a phone */}
+      <div className="bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 px-6 py-6 text-white text-center">
+        <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -462,7 +462,9 @@ export default function AuthPromptModal({
           </div>
         ) : (
           <>
-            {/* Benefits — kept short so the email field is above the fold */}
+            {/* Benefits only at the cap: someone keeping a plan they just built
+                needs the buttons, not a pitch above them. */}
+            {atLimit && (
             <div className="space-y-2.5 mb-5">
               {BENEFITS.map((benefit, index) => (
                 <div key={index} className="flex items-center gap-3">
@@ -487,6 +489,7 @@ export default function AuthPromptModal({
                 </div>
               ))}
             </div>
+            )}
 
             {/* Google one-tap — fastest path, placed above the email field */}
             <button
