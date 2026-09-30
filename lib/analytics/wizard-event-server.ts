@@ -18,6 +18,7 @@
  * production on 2026-09-02 (fixed in #94).
  */
 import { createAdminClient } from "@/lib/supabase/admin";
+import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 
 export interface WizardStepServerInput {
   /** Must exist in all THREE copies of the step vocabulary. */
@@ -30,8 +31,9 @@ export interface WizardStepServerInput {
 
 export async function logWizardStepServer(input: WizardStepServerInput): Promise<void> {
   // "no_session" is what middleware hands a filtered visitor; a row keyed to
-  // it joins to everyone and therefore to no one.
-  if (!input.sessionId || input.sessionId === "no_session") return;
+  // it joins to everyone and therefore to no one. Outside production only
+  // tagged probes write (telemetry-env.ts).
+  if (!input.sessionId || input.sessionId === "no_session" || !writesTelemetry(input.sessionId)) return;
   try {
     const supabase = createAdminClient();
     // dedupe_bucket is filled by the set_wizard_dedupe_bucket trigger, and the
