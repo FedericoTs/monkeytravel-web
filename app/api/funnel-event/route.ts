@@ -15,6 +15,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { errors } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 
 const BodySchema = z.object({
   // Only the client-fired event is accepted here; server events never POST.
@@ -57,6 +58,11 @@ export async function POST(request: NextRequest) {
   const sessionCheck = await sessionLimiter.check(request, sessionId);
   if (!sessionCheck.allowed) {
     return errors.rateLimit("Too many events for this session");
+  }
+
+  // Previews, local dev and the CI e2e build write only tagged probes.
+  if (!writesTelemetry(rawSession)) {
+    return new NextResponse(null, { status: 204 });
   }
 
   // Optional auth — the /shared visitor is almost always anonymous.

@@ -30,6 +30,7 @@ import { createClient } from "@/lib/supabase/server";
 import { errors } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { WIZARD_EVENT_STEPS } from "@/components/wizard/wizardEvents";
+import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 
 const BodySchema = z.object({
   step: z.enum(WIZARD_EVENT_STEPS),
@@ -135,6 +136,11 @@ export async function POST(request: NextRequest) {
   const sessionCheck = await sessionLimiter.check(request, sessionId);
   if (!sessionCheck.allowed) {
     return errors.rateLimit("Too many wizard events for this session");
+  }
+
+  // Previews, local dev and the CI e2e build write only tagged probes.
+  if (!writesTelemetry(sessionId)) {
+    return new NextResponse(null, { status: 204 });
   }
 
   // 4. Resolve the optional authenticated user. Don't require it —
