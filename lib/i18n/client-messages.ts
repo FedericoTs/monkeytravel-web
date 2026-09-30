@@ -1,11 +1,10 @@
 import type { AbstractIntlMessages } from "next-intl";
 
 /**
- * The message subtrees client components on the marketing (prerendered)
- * pages read, as dotted paths. Server components use getTranslations and see
- * the whole catalog either way; these lists only decide what is serialized
- * into each page for hydration. The (app) route group provides everything.
- * lib/i18n/client-messages.vitest.ts checks the lists against the code.
+ * The message subtrees client components read, as dotted paths, one list per
+ * provider. Server components use getTranslations and see the whole catalog
+ * either way; these lists only decide what is serialized into each page for
+ * hydration. lib/i18n/client-messages.vitest.ts checks the lists against the code.
  */
 export const MARKETING_CLIENT_NAMESPACES = [
   "common.buttons",
@@ -25,6 +24,19 @@ export const MARKETING_CLIENT_NAMESPACES = [
 export const BLOG_CLIENT_NAMESPACES = [...MARKETING_CLIENT_NAMESPACES, "blog"] as const;
 
 export const TOOLS_CLIENT_NAMESPACES = [...MARKETING_CLIENT_NAMESPACES, "tools", "trips.wizard.datePicker"] as const;
+
+/** The (app) route group: the namespaces its client code reads, without the marketing, blog and planner copy. */
+export const APP_CLIENT_NAMESPACES = [
+  "common",
+  "trips",
+  "auth",
+  "profile",
+  "bananas",
+  "consent",
+  "destinations.tags",
+  "blog.tips",
+  "blog.index",
+] as const;
 
 export const CHATGPT_IMPORT_CLIENT_NAMESPACES = [
   ...MARKETING_CLIENT_NAMESPACES,

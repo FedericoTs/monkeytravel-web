@@ -5,14 +5,22 @@ import { Link } from "@/lib/i18n/routing";
 import BlogCard from "./BlogCard";
 import type { BlogFrontmatter } from "@/lib/blog/types";
 
-interface BlogTipsSectionProps {
-  posts: BlogFrontmatter[];
+/** A post with its card text already translated by the server page. */
+export interface BlogTip {
+  post: BlogFrontmatter;
+  title: string;
+  description: string;
+  category: string;
 }
 
-export default function BlogTipsSection({ posts }: BlogTipsSectionProps) {
+interface BlogTipsSectionProps {
+  tips: BlogTip[];
+}
+
+export default function BlogTipsSection({ tips }: BlogTipsSectionProps) {
   const t = useTranslations("blog");
 
-  if (posts.length === 0) return null;
+  if (tips.length === 0) return null;
 
   return (
     <section className="mt-10 sm:mt-14 mb-8">
@@ -36,28 +44,17 @@ export default function BlogTipsSection({ posts }: BlogTipsSectionProps) {
 
       {/* Blog cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {posts.map((post) => {
-          // Defensive lookup — see BlogGrid / BlogLane for the same shim.
-          // Prevents missing translation keys from throwing into the console.
-          const titleKey = `posts.${post.slug}.title`;
-          const descriptionKey = `posts.${post.slug}.description`;
-          const categoryKey = `categories.${post.category}`;
-          return (
-            <BlogCard
-              key={post.slug}
-              post={post}
-              title={t.has(titleKey) ? t(titleKey) : post.title}
-              description={
-                t.has(descriptionKey) ? t(descriptionKey) : post.description
-              }
-              category={
-                t.has(categoryKey) ? t(categoryKey) : post.category
-              }
-              readMoreLabel={t("index.readMore")}
-              minuteReadLabel={t("index.minuteRead", { minutes: post.readingTime })}
-            />
-          );
-        })}
+        {tips.map(({ post, title, description, category }) => (
+          <BlogCard
+            key={post.slug}
+            post={post}
+            title={title}
+            description={description}
+            category={category}
+            readMoreLabel={t("index.readMore")}
+            minuteReadLabel={t("index.minuteRead", { minutes: post.readingTime })}
+          />
+        ))}
       </div>
     </section>
   );
