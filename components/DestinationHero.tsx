@@ -48,6 +48,18 @@ interface DestinationHeroProps {
   disableApiCalls?: boolean;
 }
 
+/** The destination record for a trip whose cover image is already saved. */
+function savedCover(destination: string, coverImageUrl: string): DestinationData {
+  return {
+    placeId: "",
+    name: destination,
+    address: "",
+    location: { latitude: 0, longitude: 0 },
+    coverImageUrl,
+    galleryPhotos: [],
+  };
+}
+
 /**
  * Turn the trip's weather prose into a condition word and an icon.
  *
@@ -133,8 +145,13 @@ export default function DestinationHero({
 }: DestinationHeroProps) {
   const t = useTranslations("common.destination");
   const tTags = useTranslations("destinations.tags");
-  const [destinationData, setDestinationData] = useState<DestinationData | null>(null);
-  const [loading, setLoading] = useState(true);
+  // A saved cover is known before the first render, so the <img> is in the
+  // server HTML and the browser fetches the LCP image with the document
+  // instead of after hydration.
+  const [destinationData, setDestinationData] = useState<DestinationData | null>(() =>
+    coverImageUrl ? savedCover(destination, coverImageUrl) : null,
+  );
+  const [loading, setLoading] = useState(!coverImageUrl);
   const heroImgRef = useRef<HTMLImageElement | null>(null);
   // Error fallback — when the <img> src 200s on direct fetch but the
   // BROWSER fails to load it (Pexels 504 cached as failed, Vercel
@@ -191,14 +208,7 @@ export default function DestinationHero({
   useEffect(() => {
     // If we already have a saved cover image, use it directly - NO API call
     if (coverImageUrl) {
-      setDestinationData({
-        placeId: "",
-        name: destination,
-        address: "",
-        location: { latitude: 0, longitude: 0 },
-        coverImageUrl,
-        galleryPhotos: [],
-      });
+      setDestinationData(savedCover(destination, coverImageUrl));
       setLoading(false);
       return;
     }
@@ -264,7 +274,8 @@ export default function DestinationHero({
               ref={heroImgRef}
               src={effectiveCoverUrl}
               alt={destination}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+              fetchPriority="high"
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
                 imageLoaded ? "opacity-100" : "opacity-0"
               }`}
               onLoad={() => setImageLoaded(true)}
