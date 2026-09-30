@@ -1,7 +1,9 @@
 // app/api/page-view/route.ts
 //
 // One row in page_views per in-app navigation, sent by
-// components/analytics/PageViewBeacon.tsx when the pathname changes.
+// components/analytics/PageViewBeacon.tsx when the pathname changes, plus the
+// landing view of a prefetched or prerendered document, which the middleware
+// never counts.
 //
 // The middleware records document loads. It cannot record client-side
 // navigations because Next strips the Flight headers before middleware runs,
@@ -21,7 +23,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { errors } from "@/lib/api/response-wrapper";
 import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
-import { isPageViewPath } from "@/lib/analytics/page-view-classifier";
+import { isPageViewPath, landingReferrer } from "@/lib/analytics/page-view-classifier";
 import { subjectFromAccessToken } from "@/lib/supabase/middleware";
 
 export const runtime = "nodejs";
@@ -72,10 +74,12 @@ export async function POST(request: NextRequest) {
 
   let path: string | null = null;
   let from: string | null = null;
+  let external: string | null = null;
   try {
-    const body = (await request.json()) as { path?: unknown; from?: unknown };
+    const body = (await request.json()) as { path?: unknown; from?: unknown; referrer?: unknown };
     path = safePath(body.path);
     from = safePath(body.from);
+    external = landingReferrer(body.referrer);
   } catch {
     return respond("skip:body");
   }
@@ -91,8 +95,9 @@ export async function POST(request: NextRequest) {
     const userId = await userIdFromCookies(request);
     await createAdminClient().from("page_views").insert({
       path,
-      // The page the visitor navigated from, on this site.
-      referrer: from ? `${request.nextUrl.origin}${from}` : null,
+      // The page the visitor navigated from, on this site; for a prefetched
+      // landing (no `from`), the external referrer the beacon passed on.
+      referrer: from ? `${request.nextUrl.origin}${from}` : external,
       country: geo.country || null,
       country_code: geo.country || null,
       city: geo.city || null,

@@ -12,14 +12,55 @@
  * runs no client effects.
  *
  * The first pathname is the document the middleware already counted, so it
- * is skipped. A query-only change (the wizard's router.replace) keeps the
- * pathname and sends nothing. sendBeacon survives a navigation that starts
- * right after; the fetch fallback covers browsers that block beacons. Every
- * failure is swallowed: this must never be visible to a visitor.
+ * is skipped, unless the document came from a prefetch or a prerender: the
+ * middleware never counts those, so the landing is counted here, with its
+ * external referrer, once the visitor actually sees it. A query-only change
+ * (the wizard's router.replace) keeps the pathname and sends nothing.
+ * sendBeacon survives a navigation that starts right after; the fetch
+ * fallback covers browsers that block beacons. Every failure is swallowed:
+ * this must never be visible to a visitor.
  */
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { servedFromSpeculation } from "@/lib/analytics/page-view-classifier";
+
+function send(payload: { path: string; from?: string; referrer?: string }) {
+  const body = JSON.stringify(payload);
+  try {
+    if (typeof navigator.sendBeacon === "function") {
+      const blob = new Blob([body], { type: "application/json" });
+      if (navigator.sendBeacon("/api/page-view", blob)) return;
+    }
+  } catch {
+    // fall through to fetch
+  }
+  void fetch("/api/page-view", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    keepalive: true,
+  }).catch(() => {});
+}
+
+/** Counts the landing if it was prefetched or prerendered; waits for a prerender's activation. */
+function countSpeculatedLanding(path: string) {
+  const count = () => {
+    try {
+      const nav = performance.getEntriesByType("navigation")[0] as
+        | { deliveryType?: string; activationStart?: number }
+        | undefined;
+      if (servedFromSpeculation(nav)) send({ path, referrer: document.referrer || undefined });
+    } catch {
+      // no navigation timing: nothing to decide on
+    }
+  };
+  if ((document as Document & { prerendering?: boolean }).prerendering) {
+    document.addEventListener("prerenderingchange", count, { once: true });
+  } else {
+    count();
+  }
+}
 
 export default function PageViewBeacon() {
   const pathname = usePathname();
@@ -27,28 +68,15 @@ export default function PageViewBeacon() {
 
   useEffect(() => {
     if (!pathname) return;
-    if (last.current === null || last.current === pathname) {
+    if (last.current === null) {
       last.current = pathname;
+      countSpeculatedLanding(pathname);
       return;
     }
+    if (last.current === pathname) return;
     const from = last.current;
     last.current = pathname;
-
-    const body = JSON.stringify({ path: pathname, from });
-    try {
-      if (typeof navigator.sendBeacon === "function") {
-        const blob = new Blob([body], { type: "application/json" });
-        if (navigator.sendBeacon("/api/page-view", blob)) return;
-      }
-    } catch {
-      // fall through to fetch
-    }
-    void fetch("/api/page-view", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body,
-      keepalive: true,
-    }).catch(() => {});
+    send({ path: pathname, from });
   }, [pathname]);
 
   return null;
