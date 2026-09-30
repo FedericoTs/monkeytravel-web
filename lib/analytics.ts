@@ -173,7 +173,7 @@ export function trackItineraryGenerated(params: {
  */
 export function trackTripShared(params: {
   tripId: string;
-  shareMethod: "link" | "email" | "social";
+  shareMethod: "link" | "email" | "social" | "image";
 }): void {
   trackEvent("share", {
     content_type: "trip",

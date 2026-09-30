@@ -34,3 +34,21 @@ export function ogImages(alt: string) {
 
 /** `twitter.images` — same asset; 1200x630 satisfies summary_large_image. */
 export const twitterImages = [OG_IMAGE_PATH];
+
+export type TripCardFormat = "og" | "square" | "story";
+
+/** Path of the generated card for one trip (app/api/og/trip), by share token or public slug. */
+export function tripCardPath(
+  key: { token: string } | { slug: string },
+  opts: { locale?: string; format?: TripCardFormat } = {}
+): string {
+  const params = new URLSearchParams("token" in key ? { token: key.token } : { slug: key.slug });
+  if (opts.format && opts.format !== "og") params.set("format", opts.format);
+  if (opts.locale) params.set("locale", opts.locale);
+  return `/api/og/trip?${params.toString()}`;
+}
+
+/** The same card as an absolute URL, for metadata a scraper reads. */
+export function tripCardUrl(key: { token: string } | { slug: string }, opts: { locale?: string; format?: TripCardFormat } = {}): string {
+  return `https://monkeytravel.app${tripCardPath(key, opts)}`;
+}

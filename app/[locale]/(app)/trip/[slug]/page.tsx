@@ -1,3 +1,4 @@
+import { tripCardUrl } from "@/lib/seo/og-image";
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -149,7 +150,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description =
     trip.description ||
     t("metaDescriptionFallback", { destination });
-  const cover = (trip.cover_image_url as string | null) ?? undefined;
+  // The generated card (app/api/og/trip), never the raw cover: the cover is
+  // a landscape stock photo of another size, and a trip without one had no
+  // og:image at all.
+  const card = tripCardUrl({ slug }, { locale });
 
   return {
     title,
@@ -161,15 +165,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       type: "article",
       url: canonical,
-      ...(cover && {
-        images: [{ url: cover, width: 1200, height: 630, alt: trip.title }],
-      }),
+      images: [{ url: card, width: 1200, height: 630, alt: trip.title }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      ...(cover && { images: [cover] }),
+      images: [card],
     },
   };
 }

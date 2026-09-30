@@ -1122,6 +1122,14 @@
     "titleWithInvite": "Share & Invite",
     "shareLink": "Share Link",
     "shareVia": "Share via",
+    "image": {
+      "label": "Share as an image",
+      "story": "Story · 9:16",
+      "square": "Square · 1:1",
+      "preparing": "Preparing…",
+      "failed": "Couldn't create the image. Try again.",
+      "hint": "A picture of the plan for stories, chats and feeds."
+    },
     "participants": {
       "aria": "Who's going and your reply",
       "going": "{count, plural, =0 {Nobody yet} =1 {# going} other {# going}}",

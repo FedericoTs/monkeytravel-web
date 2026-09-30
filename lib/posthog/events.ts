@@ -658,6 +658,19 @@ export async function captureShareLinkCopied(event: {
   ph.capture("share_link_copied", event);
 }
 
+/**
+ * Fires when the trip card image leaves the app: the OS share sheet closed on
+ * a send, or the file was downloaded.
+ */
+export async function captureTripCardShared(event: {
+  trip_id: string;
+  format: "story" | "square";
+  method: "native_share" | "download";
+}) {
+  const ph = await getPosthog();
+  ph.capture("trip_card_shared", event);
+}
+
 export async function captureTripGenerationCompleted(event: TripGenerationCompletedEvent) {
   const ph = await getPosthog();
   ph.capture("trip_generation_completed", event);

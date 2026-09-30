@@ -1,10 +1,24 @@
 import { ImageResponse } from "next/og";
+import type { ReactElement } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getTripDestination } from "@/lib/trips/destination";
 import { computeTripDayState } from "@/lib/trip/live";
+import { cardFonts } from "@/lib/og/fonts";
+import {
+  CARD_SIZES,
+  cardFormat,
+  cardLocale,
+  coverForCard,
+  formatRange,
+  renderBrandCard,
+  renderTripCard,
+  type CardDay,
+  type CardFormat,
+} from "@/lib/og/trip-card";
 
 /**
- * The social preview card for a shared trip.
+ * The trip card as an image: the link preview (1200x630, the default), a
+ * square and a story (lib/og/trip-card.tsx draws them).
  *
  * WHY THIS IS A ROUTE HANDLER AND NOT app/opengraph-image.tsx
  * ----------------------------------------------------------
@@ -22,24 +36,20 @@ import { computeTripDayState } from "@/lib/trip/live";
  * references it as an explicit absolute URL, so nothing depends on convention
  * merging.
  *
- * WHY IT TAKES A SHARE TOKEN AND NOT TEXT
- * ---------------------------------------
+ * WHY IT TAKES A KEY AND NOT TEXT
+ * -------------------------------
  * Taking title/subtitle as query params would let anyone render arbitrary text
- * on a MonkeyTravel-branded 1200x630 card. The token is the capability that
- * already grants public read of this trip, so it grants nothing new, and the
+ * on a MonkeyTravel-branded card. The share token is the capability that
+ * already grants public read of this trip, and the public slug names a trip
+ * that is public by definition, so neither grants anything new, and the
  * numbers are read from the row rather than supplied by the caller — which
  * also means the card cannot drift from the page it advertises.
  */
 
 export const runtime = "nodejs";
 
-const W = 1200;
-const H = 630;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-const INK = "#11161D";
-const CORAL = "#FF6B6B";
-const PAPER = "#FFFFFF";
+const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,120}$/i;
 
 type TripRow = {
   id: string;
@@ -52,300 +62,121 @@ type TripRow = {
   budget: { total?: number; currency?: string } | null;
 };
 
-/** Absolute, because a scraper resolves nothing. */
-function absolutise(url: string | null | undefined, origin: string): string | null {
-  if (!url) return null;
-  if (url.startsWith("http://") || url.startsWith("https://")) return url;
-  if (url.startsWith("/")) return `${origin}${url}`;
-  return null;
-}
-
-function formatRange(start: string | null, end: string | null): string | null {
-  if (!start) return null;
-  const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
-  const s = new Date(`${start}T00:00:00Z`);
-  if (Number.isNaN(s.getTime())) return null;
-  const sTxt = s.toLocaleDateString("en-GB", { ...opts, timeZone: "UTC" });
-  if (!end) return `${sTxt} ${s.getUTCFullYear()}`;
-  const e = new Date(`${end}T00:00:00Z`);
-  if (Number.isNaN(e.getTime())) return `${sTxt} ${s.getUTCFullYear()}`;
-  const eTxt = e.toLocaleDateString("en-GB", { ...opts, timeZone: "UTC" });
-  return `${sTxt} – ${eTxt} ${e.getUTCFullYear()}`;
-}
-
-/** The brand card, for a token that resolves to nothing. */
-function fallback() {
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          width: "100%",
-          height: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-          background: INK,
-          color: PAPER,
-        }}
-      >
-        <div style={{ display: "flex", fontSize: 68, letterSpacing: -1 }}>MonkeyTravel</div>
-        <div style={{ display: "flex", fontSize: 30, color: "#9AA5B1", marginTop: 14 }}>
-          AI trip planning
-        </div>
-      </div>
-    ),
-    // Short cache: a token can start resolving later (a trip un-deleted, a
-    // replica catching up), and a year-long cache of the generic card would
-    // outlive the reason for it.
-    { width: W, height: H, headers: { "Cache-Control": "public, max-age=300" } },
-  );
+function asDays(itinerary: unknown): CardDay[] {
+  if (!Array.isArray(itinerary)) return [];
+  return itinerary
+    .filter((d): d is Record<string, unknown> => !!d && typeof d === "object")
+    .map((d) => ({
+      day_number: Number(d.day_number),
+      date: typeof d.date === "string" ? d.date : null,
+      title: typeof d.title === "string" ? d.title : null,
+      theme: typeof d.theme === "string" ? d.theme : null,
+      city: typeof d.city === "string" ? d.city : null,
+      activities: (Array.isArray(d.activities) ? d.activities : [])
+        .filter((a): a is Record<string, unknown> => !!a && typeof a === "object")
+        .map((a) => ({
+          name: typeof a.name === "string" ? a.name : null,
+          coordinates: (a.coordinates ?? null) as CardDay["activities"][number]["coordinates"],
+        })),
+    }))
+    .filter((d) => Number.isFinite(d.day_number));
 }
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const token = url.searchParams.get("token");
-  if (!token || !UUID_RE.test(token)) return fallback();
+  const format: CardFormat = cardFormat(url.searchParams.get("format"));
+  const locale = cardLocale(url.searchParams.get("locale"));
+  const logo = `${url.origin}/icon-512.png`;
+  const fonts = await cardFonts();
+  const respond = (element: ReactElement, cacheControl: string) =>
+    new ImageResponse(element, {
+      ...CARD_SIZES[format],
+      ...(fonts.length > 0 ? { fonts } : {}),
+      headers: { "Cache-Control": cacheControl },
+    });
+  // Short cache for the brand card: a key can start resolving later (a trip
+  // un-deleted, a replica catching up), and a year-long cache of the generic
+  // card would outlive the reason for it.
+  const fallback = () => respond(renderBrandCard(format, logo), "public, max-age=300");
 
+  const token = url.searchParams.get("token");
+  const slug = url.searchParams.get("slug");
   const supabase = createAdminClient();
-  const { data, error } = await supabase
+  // deleted_at is re-asserted because service_role bypasses RLS entirely —
+  // without it this would render deleted trips.
+  let query = supabase
     .from("trips")
     .select("id, title, trip_meta, start_date, end_date, cover_image_url, itinerary, budget")
-    // share_token is uuid, and deleted_at is re-asserted because service_role
-    // bypasses RLS entirely — without it this would render deleted trips.
-    .eq("share_token", token)
-    .is("deleted_at", null)
-    .single<TripRow>();
+    .is("deleted_at", null);
+  if (token && UUID_RE.test(token)) query = query.eq("share_token", token);
+  else if (slug && SLUG_RE.test(slug)) query = query.eq("public_slug", slug);
+  else return fallback();
 
+  const { data, error } = await query.single<TripRow>();
   if (error || !data) return fallback();
 
   const destination = getTripDestination({ title: data.title, trip_meta: data.trip_meta });
-  const itinerary = Array.isArray(data.itinerary) ? (data.itinerary as unknown[]) : [];
-  const days = itinerary.length;
-  const activities = itinerary.reduce<number>((sum, day) => {
-    const acts = (day as { activities?: unknown[] })?.activities;
-    return sum + (Array.isArray(acts) ? acts.length : 0);
-  }, 0);
+  const days = asDays(data.itinerary);
+  const activityCount = days.reduce((sum, d) => sum + d.activities.length, 0);
 
-  const dates = formatRange(data.start_date, data.end_date);
   // The stored currency, deliberately. The page converts into the VIEWER's
   // preferred currency client-side with live Frankfurter rates (useCurrency),
   // which a scraper has no equivalent of - there is no viewer at unfurl time.
-  // So the card shows what the trip was budgeted in, which is at least a fact
-  // rather than a guess at someone's locale.
   const budgetTotal = typeof data.budget?.total === "number" ? data.budget.total : null;
-  const currency = data.budget?.currency || "USD";
+  const budget = budgetTotal && budgetTotal > 0 ? `${Math.round(budgetTotal)} ${data.budget?.currency || "USD"}` : null;
 
   // Nights is a date difference, not days - 1: SharedTripView's `nights` is
   // ceil((end - start) / 86400000), while days come from itinerary.length and
-  // the two can disagree. A card that contradicts the page it advertises is
-  // worse than one with a missing pill, so this mirrors the page's formula.
+  // the two can disagree. This mirrors the page's formula.
   let nights: number | null = null;
   if (data.start_date && data.end_date) {
     const st = new Date(`${data.start_date}T00:00:00Z`).getTime();
     const en = new Date(`${data.end_date}T00:00:00Z`).getTime();
-    if (!Number.isNaN(st) && !Number.isNaN(en) && en >= st) {
-      nights = Math.ceil((en - st) / 86_400_000);
-    }
+    if (!Number.isNaN(st) && !Number.isNaN(en) && en >= st) nights = Math.ceil((en - st) / 86_400_000);
   }
 
-  // Only facts that exist. A card that prints "0 activities" or an empty
-  // budget pill is worse than a card that simply omits the row.
-  const stats: string[] = [];
-  if (days > 0) stats.push(nights !== null ? `${days}D · ${nights}N` : `${days} days`);
-  if (activities > 0) stats.push(`${activities} activities`);
-  if (budgetTotal && budgetTotal > 0) stats.push(`${Math.round(budgetTotal)} ${currency}`);
+  // "N going" = active participants (the same count /shared shows). A HEAD
+  // count query — no rows pulled — so it adds negligible cost to the unfurl.
+  const { count } = await supabase
+    .from("trip_participants")
+    .select("*", { count: "exact", head: true })
+    .eq("trip_id", data.id)
+    .is("left_at", null);
 
-  const cover = absolutise(data.cover_image_url, url.origin);
-
-  // Phase 5.2 — the link sells participation. Two signals turn the preview into
-  // an invitation: how many people are going, and (while the trip is live) what
-  // is on today. Both are read from the row/table, never the caller.
-  //
-  // "N going" = active participants (the same count /shared shows). A HEAD count
-  // query — no rows pulled — so it adds negligible cost to the unfurl.
-  let goingCount = 0;
-  {
-    const { count } = await supabase
-      .from("trip_participants")
-      .select("*", { count: "exact", head: true })
-      .eq("trip_id", data.id)
-      .is("left_at", null);
-    goingCount = count ?? 0;
-  }
-
-  // Live state, in the trip's OWN timezone (Phase 3.1), so the card matches
-  // what a viewer would see on Today. No viewer tz at unfurl time, so a trip
-  // without a stored zone simply reads as not-live and shows the normal card.
+  // Live state, in the trip's OWN timezone, so the card matches what a viewer
+  // would see on Today. A trip without a stored zone reads as not-live.
   const meta = (data.trip_meta ?? null) as Record<string, unknown> | null;
   const tripTimeZone = typeof meta?.timezone === "string" ? meta.timezone : null;
   const dayState =
     data.start_date && data.end_date
       ? computeTripDayState({ startDate: data.start_date, endDate: data.end_date, timeZone: tripTimeZone })
       : null;
-  const isLive = dayState?.isLive ?? false;
-
-  // Today's headline activity, when live: the first named activity of today's
-  // itinerary day, else that day's title. Kept to one line for the card.
-  let todayActivity: string | null = null;
-  if (isLive && dayState?.dayNumber) {
-    const day = itinerary.find(
-      (d) => !!d && typeof d === "object" && Number((d as { day_number?: unknown }).day_number) === dayState.dayNumber,
-    ) as { title?: unknown; activities?: unknown } | undefined;
-    const acts = Array.isArray(day?.activities) ? (day!.activities as unknown[]) : [];
-    const named = acts.find(
-      (a) => !!a && typeof a === "object" && typeof (a as { name?: unknown }).name === "string" && (a as { name: string }).name.trim(),
-    ) as { name?: string } | undefined;
-    const raw = named?.name?.trim() || (typeof day?.title === "string" && day.title.trim() ? day.title.trim() : null);
-    // Satori does not shrink or ellipsize, so cap the activity to keep the live
-    // line inside the 1200px canvas.
-    todayActivity = raw ? (raw.length > 34 ? `${raw.slice(0, 33).trimEnd()}…` : raw) : null;
+  let live: { dayNumber: number; totalDays: number; today: string | null } | null = null;
+  if (dayState?.isLive && dayState.dayNumber) {
+    const today = days.find((d) => d.day_number === dayState.dayNumber);
+    const named = today?.activities.find((a) => a.name?.trim())?.name?.trim() ?? null;
+    live = { dayNumber: dayState.dayNumber, totalDays: dayState.totalDays, today: named || today?.title?.trim() || null };
   }
 
-  // A live trip advertises its NOW (Day K of N + today's plan); an upcoming/past
-  // one advertises its dates. The eyebrow gets a LIVE chip either way it's live.
-  const liveLine =
-    isLive && dayState?.dayNumber
-      ? `Day ${dayState.dayNumber} of ${dayState.totalDays}${todayActivity ? ` · Today: ${todayActivity}` : ""}`
-      : null;
-
-  return new ImageResponse(
-    (
-      <div style={{ display: "flex", position: "relative", width: "100%", height: "100%", background: INK }}>
-        {cover ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={cover}
-            alt=""
-            width={W}
-            height={H}
-            style={{ position: "absolute", top: 0, left: 0, width: W, height: H, objectFit: "cover" }}
-          />
-        ) : null}
-
-        {/* Scrim. Satori has no filter/backdrop support, so legibility has to
-            come from a plain gradient over the photo. */}
-        <div
-          style={{
-            display: "flex",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: W,
-            height: H,
-            background: "linear-gradient(180deg, rgba(17,22,29,0.15) 0%, rgba(17,22,29,0.55) 45%, rgba(17,22,29,0.92) 100%)",
-          }}
-        />
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            position: "absolute",
-            left: 64,
-            right: 64,
-            bottom: 56,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", marginBottom: 18 }}>
-            <div style={{ display: "flex", width: 34, height: 5, background: CORAL, marginRight: 14 }} />
-            <div style={{ display: "flex", fontSize: 22, color: "#E6EAEE", letterSpacing: 1.5 }}>
-              MONKEYTRAVEL
-            </div>
-            {isLive ? (
-              <div
-                style={{
-                  display: "flex",
-                  fontSize: 20,
-                  letterSpacing: 1.5,
-                  color: PAPER,
-                  background: CORAL,
-                  borderRadius: 999,
-                  padding: "4px 16px",
-                  marginLeft: 16,
-                }}
-              >
-                LIVE
-              </div>
-            ) : null}
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              fontSize: destination.length > 22 ? 66 : 84,
-              // No fontWeight. @vercel/og bundles exactly ONE face,
-              // Geist-Regular.ttf (400) - verified at
-              // node_modules/next/dist/compiled/@vercel/og/. Asking for 700
-              // gets you faux-bold or nothing, so the hierarchy is carried by
-              // size and the scrim instead. Shipping a display face is a
-              // follow-up, not a silent fontWeight that does nothing.
-              color: PAPER,
-              lineHeight: 1.05,
-            }}
-          >
-            {destination}
-          </div>
-
-          {liveLine ? (
-            <div style={{ display: "flex", fontSize: 30, color: PAPER, marginTop: 12 }}>{liveLine}</div>
-          ) : dates ? (
-            <div style={{ display: "flex", fontSize: 30, color: "#D2D8DE", marginTop: 12 }}>{dates}</div>
-          ) : null}
-
-          {/* flexWrap + flexShrink below: Satori defaults flexShrink to 0, not
-              the CSS default of 1, so a wide pill row silently overflows the
-              1200x630 canvas instead of shrinking. */}
-          {goingCount > 0 || stats.length > 0 ? (
-            <div style={{ display: "flex", marginTop: 26, flexWrap: "wrap" }}>
-              {/* "N going" leads, in solid coral — this is the invitation
-                  (Phase 5.2). The neutral stat pills follow. */}
-              {goingCount > 0 ? (
-                <div
-                  style={{
-                    display: "flex",
-                    fontSize: 27,
-                    color: PAPER,
-                    background: CORAL,
-                    borderRadius: 999,
-                    padding: "12px 24px",
-                    marginRight: 14,
-                    flexShrink: 1,
-                  }}
-                >
-                  {goingCount} going
-                </div>
-              ) : null}
-              {stats.map((s, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    fontSize: 27,
-                    color: PAPER,
-                    background: "rgba(255,255,255,0.16)",
-                    borderRadius: 999,
-                    padding: "12px 24px",
-                    marginRight: 14,
-                    flexShrink: 1,
-                  }}
-                >
-                  {s}
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </div>
-    ),
-    {
-      width: W,
-      height: H,
-      headers: {
-        // Scrapers cache aggressively anyway; this keeps repeat unfurls off
-        // the function. s-maxage is what Vercel's CDN reads.
-        "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+  return respond(
+    renderTripCard(
+      {
+        locale,
+        destination,
+        dates: formatRange(data.start_date, data.end_date, locale),
+        days,
+        cover: coverForCard(data.cover_image_url, url.origin),
+        logo,
+        goingCount: count ?? 0,
+        activityCount,
+        nights,
+        budget,
+        live,
       },
-    },
+      format
+    ),
+    // Scrapers cache aggressively anyway; this keeps repeat unfurls off the
+    // function. s-maxage is what Vercel's CDN reads.
+    "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800"
   );
 }
