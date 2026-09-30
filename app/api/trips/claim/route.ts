@@ -2,6 +2,7 @@ import { NextRequest, after } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
+import { logWizardStepServer } from "@/lib/analytics/wizard-event-server";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 
@@ -84,6 +85,10 @@ export async function POST(request: NextRequest) {
         metadata: { source: "anonymous_share" },
       }),
     );
+    // In the wizard funnel the claim is the save: the anonymous result is now
+    // the planner's trip, and the wizard adopts it instead of saving a copy.
+    const sessionId = request.cookies.get("mt_session_id")?.value;
+    after(() => logWizardStepServer({ step: "saved", sessionId, userId: user.id }));
     return apiSuccess({ claimed: true, tripId: row?.trip_id ?? null });
   } catch (err) {
     console.error("[trip-claim] unexpected error:", err);
