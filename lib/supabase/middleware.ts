@@ -1,4 +1,4 @@
-import { classifyPageViewRequest } from "@/lib/analytics/page-view-classifier";
+import { carriesSession, classifyPageViewRequest } from "@/lib/analytics/page-view-classifier";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdmin } from "@/lib/admin";
@@ -37,8 +37,16 @@ export function trackPageView(
     pathname: request.nextUrl.pathname,
     headers: request.headers,
   });
-  if (verdict !== "counted") {
+  if (!carriesSession(verdict)) {
     return { sessionId: null, label: verdict };
+  }
+  if (verdict !== "counted") {
+    // Not a view, but it carries the session (see carriesSession): same
+    // production-only rule as the recording below.
+    const session = process.env.VERCEL_ENV === "production"
+      ? request.cookies.get("mt_session_id")?.value || crypto.randomUUID()
+      : null;
+    return { sessionId: session, label: verdict };
   }
   const path = request.nextUrl.pathname;
 

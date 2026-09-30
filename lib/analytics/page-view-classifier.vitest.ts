@@ -1,6 +1,12 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { classifyPageViewRequest, isPageViewPath } from "./page-view-classifier";
+import {
+  carriesSession,
+  classifyPageViewRequest,
+  isPageViewPath,
+  landingReferrer,
+  servedFromSpeculation,
+} from "./page-view-classifier";
 
 function req(pathname: string, headers: Record<string, string> = {}, method = "GET") {
   const lower = new Map(Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]));
@@ -55,5 +61,42 @@ describe("page-view classifier", () => {
     expect(isPageViewPath("/es/destinations/rome")).toBe(true);
     expect(isPageViewPath("/api/page-view")).toBe(false);
     expect(isPageViewPath("/favicon.ico")).toBe(false);
+  });
+});
+
+describe("the session cookie", () => {
+  it("rides on prefetches and router fetches as well as views", () => {
+    // A visitor who clicks a search result Chrome prefetched gets no other
+    // response; without the cookie on it their whole visit was session-less.
+    expect(carriesSession(classifyPageViewRequest(req("/", { ...NAVIGATION, "sec-purpose": "prefetch" })))).toBe(true);
+    expect(carriesSession(classifyPageViewRequest(req("/trips/new", ROUTER_FETCH)))).toBe(true);
+    expect(carriesSession(classifyPageViewRequest(req("/tools", NAVIGATION)))).toBe(true);
+  });
+
+  it("never rides on API calls, files or non-GET requests", () => {
+    expect(carriesSession(classifyPageViewRequest(req("/api/wizard-event", NAVIGATION)))).toBe(false);
+    expect(carriesSession(classifyPageViewRequest(req("/sitemap.xml", NAVIGATION)))).toBe(false);
+    expect(carriesSession(classifyPageViewRequest(req("/", NAVIGATION, "HEAD")))).toBe(false);
+  });
+});
+
+describe("landing views the middleware never saw", () => {
+  it("recognises a prefetched document and an activated prerender", () => {
+    expect(servedFromSpeculation({ deliveryType: "navigational-prefetch", activationStart: 0 })).toBe(true);
+    expect(servedFromSpeculation({ deliveryType: "", activationStart: 812.4 })).toBe(true);
+  });
+
+  it("leaves ordinary navigations to the middleware", () => {
+    expect(servedFromSpeculation({ deliveryType: "", activationStart: 0 })).toBe(false);
+    expect(servedFromSpeculation({ deliveryType: "cache" })).toBe(false);
+    expect(servedFromSpeculation(undefined)).toBe(false);
+  });
+
+  it("keeps the referrer's origin and path only", () => {
+    expect(landingReferrer("https://www.google.com/")).toBe("https://www.google.com/");
+    expect(landingReferrer("https://example.com/list?email=a@b.c#top")).toBe("https://example.com/list");
+    expect(landingReferrer("")).toBeNull();
+    expect(landingReferrer("javascript:alert(1)")).toBeNull();
+    expect(landingReferrer(42)).toBeNull();
   });
 });

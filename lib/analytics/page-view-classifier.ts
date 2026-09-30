@@ -55,6 +55,35 @@ export function isPageViewPath(pathname: string): boolean {
   );
 }
 
+/**
+ * Whether a request with this verdict carries the analytics session cookie.
+ * Prefetches and router fetches are not views, but a prefetched landing (a
+ * search result Chrome fetched ahead) is the only response its visitor ever
+ * gets, and a router fetch can restore a cookie that did not stick.
+ */
+export function carriesSession(verdict: PageViewVerdict): boolean {
+  return verdict === "counted" || verdict === "skip:prefetch" || verdict === "skip:fetch";
+}
+
+/** A document served from a navigational prefetch, or a prerender that was activated. */
+export function servedFromSpeculation(
+  nav: { deliveryType?: string; activationStart?: number } | undefined,
+): boolean {
+  return nav?.deliveryType === "navigational-prefetch" || (nav?.activationStart ?? 0) > 0;
+}
+
+/** The external referrer of a landing view: origin and path of an http(s) URL. */
+export function landingReferrer(raw: unknown): string | null {
+  if (typeof raw !== "string" || raw.length > 2048) return null;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    return `${url.origin}${url.pathname}`.slice(0, 256);
+  } catch {
+    return null;
+  }
+}
+
 export function classifyPageViewRequest(req: PageViewRequestLike): PageViewVerdict {
   if (req.method !== "GET") return "skip:method";
   if (!isPageViewPath(req.pathname)) return "skip:path";
