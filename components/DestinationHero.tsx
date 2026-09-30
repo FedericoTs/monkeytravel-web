@@ -363,22 +363,23 @@ export default function DestinationHero({
                   </div>
                 )}
 
-                {/* Days & Nights combined */}
-                {(days || nights) && (
+                {/* Days & Nights combined. Counts are tested as booleans: a bare 0
+                    before && renders as text ("1D00" for a one-day trip). */}
+                {(!!days || !!nights) && (
                   <div className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
                     </svg>
                     <span>
-                      {days && `${days}D`}
-                      {days && nights && " · "}
-                      {nights && `${nights}N`}
+                      {!!days && `${days}D`}
+                      {!!days && !!nights && " · "}
+                      {!!nights && `${nights}N`}
                     </span>
                   </div>
                 )}
 
                 {/* Activities count */}
-                {activitiesCount && activitiesCount > 0 && (
+                {activitiesCount !== undefined && activitiesCount > 0 && (
                   <div className="flex items-center gap-1.5 sm:gap-2 bg-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
