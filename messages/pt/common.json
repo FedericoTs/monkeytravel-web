@@ -1028,6 +1028,7 @@
     "confirm": "Começar do Zero",
     "discardMessageSaved": "Você está prestes a descartar o roteiro para {destination}. Fique tranquilo — ele fica arquivado por 7 dias, então podemos restaurá-lo se você mudar de ideia.",
     "confirmDeleteSaved": "Descartar viagem salva",
+    "keptMessage": "Sua viagem para {destination} mantém este plano e continua em Minhas Viagens. Recomeçar só limpa esta página.",
     "reasonLabel": "O que não funcionou?",
     "reasonPlaceholder": "Escolha um motivo",
     "reasons": {

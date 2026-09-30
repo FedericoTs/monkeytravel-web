@@ -1928,7 +1928,7 @@ export default function NewTripPage({
             reason,
             custom_reason: customReason,
             destination,
-            was_auto_saved: wasAutoSaved,
+            was_auto_saved: wasAutoSaved && !autoSave.keepsSavedTrip,
           }),
         });
       } catch (err) {
@@ -1943,6 +1943,8 @@ export default function NewTripPage({
     if (wasAutoSaved) {
       await autoSave.discard();
     }
+    // Planning the same trip again asks again, instead of reusing this choice.
+    setTwinChoice(null);
     clearDraft();
     // Nothing is displayed after Start Over — drop the
     // session stack's current pointer. The stacked snapshots themselves
@@ -3137,7 +3139,8 @@ export default function NewTripPage({
           destination={fullDestination}
           tripDays={generatedItinerary.days.length}
           activitiesCount={totalActivities}
-          wasAutoSaved={autoSaveEnabled && Boolean(autoSave.savedTripId)}
+          wasAutoSaved={autoSaveEnabled && Boolean(autoSave.savedTripId) && !autoSave.keepsSavedTrip}
+          keepsSavedTrip={autoSave.keepsSavedTrip}
           onChangeDatesInstead={
             mcStops.length > 1
               ? undefined

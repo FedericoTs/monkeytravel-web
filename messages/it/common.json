@@ -950,6 +950,7 @@
     "confirm": "Ricomincia",
     "discardMessageSaved": "Stai per eliminare il tuo itinerario per {destination}. Tranquillo — resta archiviato per 7 giorni, possiamo recuperarlo se cambi idea.",
     "confirmDeleteSaved": "Elimina viaggio salvato",
+    "keptMessage": "Il tuo viaggio a {destination} mantiene questo piano e resta tra I Miei Viaggi. Ricominciare svuota solo questa pagina.",
     "reasonLabel": "Cosa non ha funzionato?",
     "reasonPlaceholder": "Scegli un motivo",
     "reasons": {
