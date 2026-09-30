@@ -108,6 +108,7 @@ import {
 } from "@/components/trip/ItineraryDnd";
 
 import { safeGet, safeSet } from "@/lib/safe-storage";
+import { rememberAssistantSeen } from "@/lib/trip/assistant-seen";
 import {
   createItinerarySync,
   ItineraryWriteBlockedError,
@@ -240,6 +241,8 @@ interface TripDetailClientProps {
   ownerDisplayName?: string | null;
   /** Server-computed live day-state. */
   liveState?: TripDayState;
+  /** Server-read: this browser has opened the assistant before (lib/trip/assistant-seen). */
+  assistantSeen?: boolean;
 }
 
 export default function TripDetailClient({
@@ -252,6 +255,7 @@ export default function TripDetailClient({
   collaboratorCount = 0,
   engagementSlot,
   liveState,
+  assistantSeen = false,
 }: TripDetailClientProps) {
   const t = useTranslations('trips');
   const tTrips = useTranslations('common.trips');
@@ -325,6 +329,10 @@ export default function TripDetailClient({
   // The trip assistant changes the trip, so it is for the people who can:
   // the owner and editors (the API answers 403 to anyone else).
   const canUseAssistant = ROLE_PERMISSIONS[userRole]?.canEdit ?? false;
+  // On a first visit the docked panel's column is laid out from the first
+  // paint and the auto-opened panel slides into it, so the plan never
+  // narrows under the reader. Once the panel opens, its own state holds it.
+  const [assistantDockReserved, setAssistantDockReserved] = useState(canUseAssistant && !assistantSeen);
   // The owner sees who said they're going.
   const participantsEnabled = isLiveTripParticipantsEnabled();
   const handleCoverImageFetched = useCallback(
@@ -441,20 +449,27 @@ export default function TripDetailClient({
   const [hasSeenAssistant, setHasSeenAssistant] = useState<boolean>(true);
   useEffect(() => {
     if (typeof window === "undefined" || !canUseAssistant) return;
-    const seenAt = safeGet("mt_ai_assistant_seen");
-    if (!seenAt) {
-      // First-time visitor to any trip — surface the assistant after a brief
-      // delay so they've had a moment to scan the itinerary first.
-      setHasSeenAssistant(false);
-      const t = setTimeout(() => setIsAIAssistantOpen(true), 2500);
-      return () => clearTimeout(t);
+    if (assistantSeen || safeGet("mt_ai_assistant_seen")) {
+      // Seen on this device before the cookie existed: record it there too.
+      if (!assistantSeen) {
+        rememberAssistantSeen();
+        setAssistantDockReserved(false);
+      }
+      return;
     }
-  }, [canUseAssistant]);
+    // First-time visitor to any trip — surface the assistant after a brief
+    // delay so they've had a moment to scan the itinerary first.
+    setHasSeenAssistant(false);
+    const t = setTimeout(() => setIsAIAssistantOpen(true), 2500);
+    return () => clearTimeout(t);
+  }, [canUseAssistant, assistantSeen]);
   // Mark as seen whenever the assistant opens — both auto-open and manual.
   useEffect(() => {
     if (isAIAssistantOpen && typeof window !== "undefined") {
       safeSet("mt_ai_assistant_seen", String(Date.now()));
+      rememberAssistantSeen();
       setHasSeenAssistant(true);
+      setAssistantDockReserved(false);
     }
   }, [isAIAssistantOpen]);
 
@@ -2190,7 +2205,7 @@ export default function TripDetailClient({
       */}
       <main
         className={`max-w-6xl mx-auto px-4 py-6 sm:py-8 transition-[margin] duration-300 ease-out ${
-          isAIAssistantOpen ? "lg:mr-[420px]" : ""
+          isAIAssistantOpen || assistantDockReserved ? "lg:mr-[420px]" : ""
         }`}
       >
         {/* Who said they're going — count, names, join times, remove.

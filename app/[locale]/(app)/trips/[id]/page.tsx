@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
+import { ASSISTANT_SEEN_COOKIE } from "@/lib/trip/assistant-seen";
 import { redirect, notFound } from "next/navigation";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { formatDateRange } from "@/lib/datetime";
@@ -137,6 +139,8 @@ export default async function TripDetailPage({
   const ownerName =
     publicNameOrNull((viewerProfile as { display_name?: string | null } | null)?.display_name, user.email) ?? undefined;
 
+  const assistantSeen = (await cookies()).has(ASSISTANT_SEEN_COOKIE);
+
   return (
     <TripDetailClient
       trip={{
@@ -173,6 +177,7 @@ export default async function TripDetailPage({
       isCollaborativeTrip={isCollaborativeTrip}
       userRole={userRole}
       collaboratorCount={totalVoters}
+      assistantSeen={assistantSeen}
       engagementSlot={
         <TripEngagementSection
           tripId={trip.id}
