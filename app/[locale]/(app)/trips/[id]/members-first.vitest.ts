@@ -34,6 +34,7 @@ vi.mock("./TripDetailClient", () => ({ default: () => null }));
 vi.mock("@/components/explore/TripEngagementSection", () => ({ default: () => null }));
 vi.mock("@/lib/places/refreshItineraryPhotos", () => ({ refreshTripItinerary: async (x: unknown) => x }));
 vi.mock("@/lib/explore/flag", () => ({ isExploreUgcEnabled: () => false }));
+vi.mock("next/headers", () => ({ cookies: async () => ({ has: () => false }) }));
 
 type World = {
   user: string | null;

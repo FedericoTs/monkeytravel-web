@@ -80,13 +80,17 @@ export default function WhoIsGoingCard({ tripId, onShare, className = "" }: WhoI
       aria-label={t("share.participants.whoIsGoing")}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* While the list loads, the pill and the empty-state line hold their
+            place invisibly: the pill's width decides whether the button wraps
+            below the heading on a phone, which used to move the page. */}
         <h2 className="text-base font-bold text-slate-900">
           {t("share.participants.whoIsGoing")}
-          {rows !== null && (
-            <span className="ml-2 rounded-full bg-[var(--primary)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--primary-ink)]">
-              {t("share.participants.going", { count })}
-            </span>
-          )}
+          <span
+            className={`ml-2 rounded-full bg-[var(--primary)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--primary-ink)] ${rows === null ? "invisible" : ""}`}
+            aria-hidden={rows === null || undefined}
+          >
+            {t("share.participants.going", { count })}
+          </span>
         </h2>
         {onShare && (
           <button
@@ -99,10 +103,10 @@ export default function WhoIsGoingCard({ tripId, onShare, className = "" }: WhoI
         )}
       </div>
 
-      {rows === null ? (
-        <p className="mt-3 text-sm text-slate-500">…</p>
-      ) : rows.length === 0 ? (
-        <p className="mt-3 text-sm text-slate-600">{t("share.participants.noneYet")}</p>
+      {rows === null || rows.length === 0 ? (
+        <p className={`mt-3 text-sm text-slate-600 ${rows === null ? "invisible" : ""}`} aria-hidden={rows === null || undefined}>
+          {t("share.participants.noneYet")}
+        </p>
       ) : (
         <ul className="mt-3 divide-y divide-slate-100">
           {rows.map((p) => (
