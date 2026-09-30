@@ -150,6 +150,7 @@ export const POSTS: Record<string, { c: string[]; d?: string[] }> = {
   "wanderlog-vs-mindtrip-2026":            { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
   "wonderplan-review-2026":                { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
   "best-ai-travel-agents-2026":            { c: ["ai-trip-planner", "review", "comparison", "travel-technology"] },
+  "best-ai-for-travel-planning-2026":      { c: ["itinerary", "review", "comparison", "travel-technology"] },
   "best-travel-itinerary-templates-2026":  { c: ["trip-planning", "itinerary", "comparison", "travel-technology"] },
 
   // --- Budget Travel ---
