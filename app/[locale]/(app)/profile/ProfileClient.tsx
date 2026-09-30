@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Link, useRouter } from "@/lib/i18n/routing";
 import Image from "next/image";
-import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { useToast } from "@/components/ui/Toast";
