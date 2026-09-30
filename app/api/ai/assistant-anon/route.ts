@@ -201,15 +201,16 @@ export async function POST(request: NextRequest) {
       reply: result.reply,
       // day_number stays the first edited day, so existing queries still read it.
       edit:
-        result.edits.length > 0 || result.tripLength !== undefined
+        result.edits.length > 0 || result.tripLength !== undefined || result.currency
           ? {
               day_number: result.edits[0]?.day_number ?? null,
               days: result.edits.map((e) => e.day_number),
               trip_length: result.tripLength ?? null,
+              ...(result.currency ? { currency: result.currency } : {}),
             }
           : undefined,
     });
-    return apiSuccess({ reply: result.reply, edits: result.edits, tripLength: result.tripLength, edit: result.edit });
+    return apiSuccess({ reply: result.reply, edits: result.edits, tripLength: result.tripLength, edit: result.edit, currency: result.currency });
   } catch (err) {
     console.error("[assistant-anon] error:", err);
     logAnonExchange({

@@ -19,6 +19,7 @@ import { deriveRefineSuggestions } from "@/lib/trip/refine-suggestions";
 import { decideAssistantBridge } from "@/lib/trip/assistant-bridge";
 import { captureRefineSuggestionClicked } from "@/lib/posthog/events";
 import { capture } from "@/lib/posthog/events";
+import { useLocale as useLocalePrefs } from "@/lib/locale";
 import type { Activity, ItineraryDay } from "@/types";
 
 interface AnonEdit {
@@ -83,6 +84,7 @@ export default function AnonAssistantPanel({
 }: AnonAssistantPanelProps) {
   const t = useTranslations("trips");
   const locale = useLocale();
+  const { setPreferredCurrency } = useLocalePrefs();
   const [messages, setMessages] = useState<Msg[]>([]);
   // Height-capped chat: the panel used to grow unbounded with every message,
   // pushing the itinerary further off-screen each turn (replay 019f285d).
@@ -170,6 +172,11 @@ export default function AnonAssistantPanel({
       );
       const tripLength: number | undefined = typeof payload.tripLength === "number" ? payload.tripLength : undefined;
       const changes = edits.length > 0 || tripLength !== undefined;
+      // Prices follow the viewer's currency, so a currency request is applied here.
+      if (typeof payload.currency === "string" && payload.currency) {
+        setPreferredCurrency(payload.currency);
+        capture("anon_assistant_currency_set", { destination, currency: payload.currency });
+      }
       if (reply || changes) {
         setMessages((m) => [
           ...m,

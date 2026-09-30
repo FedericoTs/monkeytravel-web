@@ -32,6 +32,7 @@ import {
   wizardNothingChangedReply,
 } from "@/lib/ai/assistant/honesty";
 import { daysMentioned } from "@/lib/ai/assistant/day-target";
+import { currencyRequested, currencySwitchedNote, withoutCurrencyTalk } from "@/lib/ai/assistant/currency-request";
 import type { Activity, ItineraryDay } from "@/types";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
@@ -113,6 +114,8 @@ export interface AssistAnonResult {
   tripLength?: number;
   /** Legacy single-day field for clients from before multi-day edits. */
   edit: DayEdit | null;
+  /** The currency the planner asked prices in; the page switches its preference to it. */
+  currency?: string;
   meta: { model: string; costUsd: number; generationTimeMs: number };
 }
 
@@ -215,7 +218,8 @@ Rules:
 2. Each edited day: 3-5 activities, real places, costs realistic in ${cur}. Keep "description" to a few words.
 3. "reply" is warm and concise (1-2 sentences) and describes exactly the edits you return. Never say you changed a day that is not in "edits". Nothing changes until the traveller taps Apply, so ${READY_WORDING[input.locale ?? "en"] ?? READY_WORDING.en} Never mention JSON.
 4. Only real, safe, legal travel. If the request is impossible or off-topic, return "edits": [] and explain kindly in "reply".
-5. USER OVERRIDE: if the user asks for a place outside ${input.destination} (e.g. a day-trip across a border), you may note the travel-time tradeoff ONCE in "reply" — but if they insist, comply and build the edit exactly as they asked. Never refuse the same request twice.`;
+5. USER OVERRIDE: if the user asks for a place outside ${input.destination} (e.g. a day-trip across a border), you may note the travel-time tradeoff ONCE in "reply" — but if they insist, comply and build the edit exactly as they asked. Never refuse the same request twice.
+6. The app shows prices in the traveller's chosen currency by itself. A request to see prices in another currency needs no edits: never rewrite days to change the currency, and do not say what currency the prices are in.`;
 }
 
 function str(v: unknown, fallback: string): string {
@@ -396,13 +400,15 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
     cur
   );
 
-  const finalReply = composeReply({ reply, edits, tripLength, lockedDays, lengthRefused, locale: input.locale, currentDays: input.days.length });
+  const currency = currencyRequested(input.message) ?? undefined;
+  const finalReply = composeReply({ reply, edits, tripLength, lockedDays, lengthRefused, locale: input.locale, currentDays: input.days.length, currency });
 
   return {
     reply: finalReply,
     edits,
     tripLength,
     edit: edits.length === 1 && tripLength === undefined ? edits[0] : null,
+    currency,
     meta: { model: modelId, costUsd, generationTimeMs: Date.now() - startedAt },
   };
 }
@@ -419,8 +425,17 @@ export function composeReply(p: {
   lengthRefused: boolean;
   locale?: string;
   currentDays: number;
+  currency?: string;
 }): string {
   const prepared = p.edits.length > 0 || p.tripLength !== undefined;
+
+  // A currency request is answered by the page switching currency; the model
+  // cannot change it and used to reply "already in euros" regardless.
+  if (p.currency && !prepared) {
+    const kept = withoutCurrencyTalk(p.reply);
+    const rest = kept && !claimsItineraryChange(kept) ? `${kept} ` : "";
+    return `${rest}${currencySwitchedNote(p.locale, p.currency)}`;
+  }
 
   // A day withheld for a fixed plan: the model's "I've updated Day 5" would be
   // worse than the bug. Say what happened.
@@ -448,5 +463,6 @@ export function composeReply(p: {
   // Told to present an unapplied edit as ready, the model still writes "Ho
   // aggiunto…" at times (measured 2026-09-26, Italian): keep the reply true.
   if (claimsItineraryChange(p.reply)) text = `${text} ${applyToSaveNote(p.locale)}`;
+  if (p.currency) text = `${text} ${currencySwitchedNote(p.locale, p.currency)}`;
   return text;
 }
