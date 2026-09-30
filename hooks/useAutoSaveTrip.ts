@@ -48,7 +48,7 @@ export type AutoSaveStatus = "idle" | "saving" | "saved" | "error";
  * of these was a silent early return, which is how six signed-in users lost
  * generations in a month with no event of any kind.
  */
-export type AutoSaveSkipReason = "not_authenticated" | "disabled" | "auth_pending" | "pending_claim";
+export type AutoSaveSkipReason = "not_authenticated" | "disabled" | "auth_pending" | "pending_claim" | "pending_choice";
 
 /** Backoff between attempts. Three attempts total, ~5.5s worst case. */
 export const DEFAULT_RETRY_DELAYS_MS: readonly number[] = [1500, 4000];
@@ -67,11 +67,18 @@ export interface UseAutoSaveTripOptions {
    * claim is adopted (pass adoptedTripId) or released.
    */
   deferred?: boolean;
+  /** The skip reason reported while `deferred` holds; "pending_claim" by default. */
+  deferredReason?: AutoSaveSkipReason;
   /**
    * A trip row that already holds this itinerary: a claimed anonymous share.
    * Adopted as the saved trip - no insert; later edits update that row.
    */
   adoptedTripId?: string | null;
+  /**
+   * A saved trip the planner chose to replace with this itinerary: the next
+   * persist UPDATEs that row instead of inserting a second copy.
+   */
+  replaceTripId?: string | null;
   /** Form state needed to build the trip row. Read via ref so the hook
    *  doesn't re-run on every keystroke. */
   formState: TripFormState;
@@ -135,7 +142,9 @@ export function useAutoSaveTrip({
   onError,
   onSkipped,
   deferred = false,
+  deferredReason = "pending_claim",
   adoptedTripId = null,
+  replaceTripId = null,
   retryDelaysMs = DEFAULT_RETRY_DELAYS_MS,
 }: UseAutoSaveTripOptions): UseAutoSaveTripReturn {
   const [status, setStatus] = useState<AutoSaveStatus>("idle");
@@ -275,13 +284,20 @@ export function useAutoSaveTrip({
     setError(null);
     lastAttemptedItineraryRef.current = itinerary;
   }, [adoptedTripId, itinerary]);
+  // Take over the row the planner chose to replace. Unlike adoption it holds
+  // an older plan, so the persist effect below still runs and UPDATEs it.
+  useEffect(() => {
+    if (!replaceTripId || savedTripIdRef.current) return;
+    savedTripIdRef.current = replaceTripId;
+    setSavedTripId(replaceTripId);
+  }, [replaceTripId]);
   const skipReportedForRef = useRef<GeneratedItinerary | null>(null);
   useEffect(() => {
     if (!itinerary) return;
     const skipReason: AutoSaveSkipReason | null = !enabled
       ? "disabled"
       : deferred
-        ? "pending_claim"
+        ? deferredReason
         : isAuthenticated === null
         ? "auth_pending"
         : !isAuthenticated
@@ -305,7 +321,7 @@ export function useAutoSaveTrip({
       if (pendingSaveRef.current === chained) pendingSaveRef.current = null;
     });
     pendingSaveRef.current = chained;
-  }, [enabled, deferred, isAuthenticated, itinerary, persist]);
+  }, [enabled, deferred, deferredReason, isAuthenticated, itinerary, persist]);
 
   const retry = useCallback(async () => {
     if (!itinerary) return;

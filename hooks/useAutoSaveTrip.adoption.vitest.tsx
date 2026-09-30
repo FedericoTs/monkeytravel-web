@@ -78,3 +78,32 @@ describe("useAutoSaveTrip: deferring for a pending claim", () => {
     expect(h.saveTrip).not.toHaveBeenCalled();
   });
 });
+
+/** The planner is planning a trip they already saved this week (NewTripWizard asks first). */
+describe("useAutoSaveTrip: replacing a saved twin", () => {
+  it("waits with reason pending_choice while the planner decides", async () => {
+    const h = harness({ deferred: true, deferredReason: "pending_choice" });
+    await waitFor(() => expect(h.onSkipped).toHaveBeenCalledWith("pending_choice"));
+    expect(h.saveTrip).not.toHaveBeenCalled();
+    expect(h.updateTrip).not.toHaveBeenCalled();
+  });
+
+  it("writes this plan into the chosen trip instead of inserting a copy", async () => {
+    const h = harness({ deferred: true, deferredReason: "pending_choice" });
+    await waitFor(() => expect(h.onSkipped).toHaveBeenCalledWith("pending_choice"));
+    h.rerender({ ...h.base, deferred: false, replaceTripId: "twin-7" });
+    await waitFor(() => expect(h.updateTrip).toHaveBeenCalledTimes(1));
+    expect(h.updateTrip.mock.calls[0][0]).toBe("twin-7");
+    expect(h.updateTrip.mock.calls[0][1].itinerary).toBe(itineraryA);
+    expect(h.saveTrip).not.toHaveBeenCalled();
+    await waitFor(() => expect(h.result.current.savedTripId).toBe("twin-7"));
+  });
+
+  it("inserts a second trip when the planner keeps both", async () => {
+    const h = harness({ deferred: true, deferredReason: "pending_choice" });
+    await waitFor(() => expect(h.onSkipped).toHaveBeenCalledWith("pending_choice"));
+    h.rerender({ ...h.base, deferred: false });
+    await waitFor(() => expect(h.saveTrip).toHaveBeenCalledTimes(1));
+    expect(h.updateTrip).not.toHaveBeenCalled();
+  });
+});

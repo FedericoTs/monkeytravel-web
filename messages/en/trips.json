@@ -241,7 +241,11 @@
       "shareAnonKeepCta": "Keep this trip, free",
       "shareCrewCta": "Ask your crew to vote",
       "shareCrewHint": "Send this link — they can vote without an account.",
-      "shareCrewVotes": "{count, plural, =1 {# vote so far — see what they picked} other {# votes so far — see what they picked}}"
+      "shareCrewVotes": "{count, plural, =1 {# vote so far — see what they picked} other {# votes so far — see what they picked}}",
+      "twinTitle": "You already have “{title}” for these dates",
+      "twinBody": "Replace its plan with this one, or keep both trips?",
+      "twinReplace": "Replace its plan",
+      "twinKeepBoth": "Keep both"
     },
     "anchors": {
       "cta": "I have fixed plans (flight, wedding, hotel…)",
