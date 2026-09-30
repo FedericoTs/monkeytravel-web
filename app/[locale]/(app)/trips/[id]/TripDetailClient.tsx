@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
-import Link from "next/link";
+import { Link } from "@/lib/i18n/routing";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";

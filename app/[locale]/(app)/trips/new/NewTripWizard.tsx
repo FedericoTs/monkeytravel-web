@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback, type SetStateAction } from "react";
 import { sanitizeIsoDate, maxTripStartDate } from "@/lib/dates/iso-date";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Link, useRouter } from "@/lib/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import dynamic from "next/dynamic";

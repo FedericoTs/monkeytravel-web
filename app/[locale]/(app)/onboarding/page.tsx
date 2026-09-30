@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/lib/i18n/routing";
 import {
   trackOnboardingStepViewed,
   trackOnboardingStepCompleted,
