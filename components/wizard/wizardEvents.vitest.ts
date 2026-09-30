@@ -50,3 +50,20 @@ describe("the step vocabulary", () => {
     expect(new Set(inDatabase)).toEqual(new Set(WIZARD_EVENT_STEPS));
   });
 });
+
+describe("wizard_step_events_human", () => {
+  // The view freezes its columns when created, so a column added to the table
+  // stays invisible to funnel reads until a later migration recreates it.
+  it("is recreated in or after the newest migration that adds a table column", () => {
+    const dir = join(process.cwd(), "supabase", "migrations");
+    const files = readdirSync(dir).filter((name) => name.endsWith(".sql")).sort();
+    const sql = (name: string) => readFileSync(join(dir, name), "utf8");
+    const addsColumn = /alter\s+table\s+(?:if\s+exists\s+)?(?:public\.)?wizard_step_events\b[^;]*\badd\s+column/i;
+    const recreatesView = /create\s+or\s+replace\s+view\s+(?:public\.)?wizard_step_events_human\b/i;
+    const lastColumn = files.filter((name) => addsColumn.test(sql(name))).pop();
+    const lastView = files.filter((name) => recreatesView.test(sql(name))).pop();
+    expect(lastColumn).toBeDefined();
+    expect(lastView).toBeDefined();
+    expect((lastView as string) >= (lastColumn as string)).toBe(true);
+  });
+});
