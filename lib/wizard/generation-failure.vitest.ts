@@ -61,6 +61,13 @@ describe("it would rather say nothing than say the wrong thing", () => {
     expect(classifyGenerationFailure("Destination name too long")).toBe("validation");
   });
 
+  it("recognises anchor validation from lib/ai/anchors-core.ts", () => {
+    expect(
+      classifyGenerationFailure(new Error('anchor "a1" (2026-10-02) falls outside the trip (2026-10-03 to 2026-10-06)'))
+    ).toBe("validation");
+    expect(classifyGenerationFailure(new Error("anchored trips support at most 14 days (got 20)"))).toBe("validation");
+  });
+
   it("prefers validation when a message could match two buckets", () => {
     // "model" would otherwise pull this into upstream; the actionable half is
     // that we sent a destination the server refuses.
