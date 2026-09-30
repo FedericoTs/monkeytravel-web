@@ -1028,6 +1028,7 @@
     "confirm": "Start Fresh",
     "discardMessageSaved": "You're about to discard your itinerary for {destination}. Don't worry — it stays archived for 7 days, so we can restore it if you change your mind.",
     "confirmDeleteSaved": "Discard saved trip",
+    "keptMessage": "Your trip for {destination} keeps this plan and stays in My Trips. Starting over only clears this page.",
     "reasonLabel": "What didn't work?",
     "reasonPlaceholder": "Pick a reason",
     "reasons": {

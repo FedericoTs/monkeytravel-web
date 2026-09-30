@@ -46,6 +46,8 @@ interface StartOverModalProps {
   /** When true, surface the fact that confirming will DELETE an
    *  already-auto-saved trip from the user's dashboard. */
   wasAutoSaved?: boolean;
+  /** The saved trip existed before and stays, with this plan: nothing is lost. */
+  keepsSavedTrip?: boolean;
   /** Offered when the reason is "wrong dates": keep the plan, change the dates. */
   onChangeDatesInstead?: () => void;
 }
@@ -58,6 +60,7 @@ export default function StartOverModal({
   tripDays,
   activitiesCount,
   wasAutoSaved = false,
+  keepsSavedTrip = false,
   onChangeDatesInstead,
 }: StartOverModalProps) {
   const t = useTranslations("common.startOver");
@@ -141,32 +144,36 @@ export default function StartOverModal({
       {/* Content */}
       <div className="px-6 py-5 space-y-4 max-h-[60vh] overflow-y-auto">
         <p className="text-slate-700">
-          {wasAutoSaved
-            ? t("discardMessageSaved", { destination })
-            : t("discardMessage", { destination })}
+          {keepsSavedTrip
+            ? t("keptMessage", { destination })
+            : wasAutoSaved
+              ? t("discardMessageSaved", { destination })
+              : t("discardMessage", { destination })}
         </p>
 
         {/* What will be lost */}
-        <div className="bg-slate-50 rounded-xl p-4 space-y-2">
-          <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">
-            {t("youllLose")}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700">
-              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              {t("daysPlanned", { count: tripDays })}
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700">
-              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              {t("activities", { count: activitiesCount })}
-            </span>
+        {!keepsSavedTrip && (
+          <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+            <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">
+              {t("youllLose")}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700">
+                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {t("daysPlanned", { count: tripDays })}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-700">
+                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                {t("activities", { count: activitiesCount })}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Reason picker — required.
             Why this exists: a 2026-06-07 incident showed
@@ -241,9 +248,11 @@ export default function StartOverModal({
         </div>
 
         {/* Tip */}
-        <p className="text-sm text-slate-500">
-          {t("tip")}
-        </p>
+        {!keepsSavedTrip && (
+          <p className="text-sm text-slate-500">
+            {t("tip")}
+          </p>
+        )}
       </div>
 
       {/* Actions */}

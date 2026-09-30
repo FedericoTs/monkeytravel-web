@@ -122,6 +122,8 @@ export interface UseAutoSaveTripReturn {
    * (matching the just-persisted row), not a stale INSERT.
    */
   regenerate: () => Promise<void>;
+  /** The saved trip is one the planner chose to replace: discard keeps it. */
+  keepsSavedTrip: boolean;
   /**
    * Permanently delete the auto-saved trip and reset the hook to idle.
    * Used by the StartOver flow.
@@ -286,9 +288,12 @@ export function useAutoSaveTrip({
   }, [adoptedTripId, itinerary]);
   // Take over the row the planner chose to replace. Unlike adoption it holds
   // an older plan, so the persist effect below still runs and UPDATEs it.
+  // Remembered past the prop: the wizard stops passing it once saved.
+  const [replacedTripId, setReplacedTripId] = useState<string | null>(null);
   useEffect(() => {
     if (!replaceTripId || savedTripIdRef.current) return;
     savedTripIdRef.current = replaceTripId;
+    setReplacedTripId(replaceTripId);
     setSavedTripId(replaceTripId);
   }, [replaceTripId]);
   const skipReportedForRef = useRef<GeneratedItinerary | null>(null);
@@ -357,8 +362,11 @@ export function useAutoSaveTrip({
       }
     }
     const id = savedTripIdRef.current;
-    if (!id) {
-      // Nothing to delete — just reset.
+    // A replaced trip existed before this wizard (with its own shares or
+    // collaborators): starting over lets go of it instead of deleting it.
+    if (!id || id === replacedTripId) {
+      savedTripIdRef.current = null;
+      setReplacedTripId(null);
       setStatus("idle");
       setSavedTripId(null);
       setError(null);
@@ -378,7 +386,7 @@ export function useAutoSaveTrip({
       setError(null);
       lastAttemptedItineraryRef.current = null;
     }
-  }, []);
+  }, [replacedTripId]);
 
   return {
     status,
@@ -386,6 +394,7 @@ export function useAutoSaveTrip({
     error,
     retry,
     regenerate,
+    keepsSavedTrip: savedTripId !== null && savedTripId === replacedTripId,
     discard,
   };
 }

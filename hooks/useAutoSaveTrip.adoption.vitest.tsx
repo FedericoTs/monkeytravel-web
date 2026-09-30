@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { describe, it, expect, vi } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { useAutoSaveTrip, type UseAutoSaveTripOptions } from "./useAutoSaveTrip";
 import type { GeneratedItinerary } from "@/types";
 
@@ -35,7 +35,7 @@ function harness(overrides: Partial<UseAutoSaveTripOptions> = {}) {
     ...overrides,
   };
   const hook = renderHook((props: UseAutoSaveTripOptions) => useAutoSaveTrip(props), { initialProps: base });
-  return { ...hook, base, saveTrip, updateTrip, onSkipped };
+  return { ...hook, base, saveTrip, updateTrip, deleteTrip, onSkipped };
 }
 
 describe("useAutoSaveTrip: adopting a claimed trip", () => {
@@ -105,5 +105,27 @@ describe("useAutoSaveTrip: replacing a saved twin", () => {
     h.rerender({ ...h.base, deferred: false });
     await waitFor(() => expect(h.saveTrip).toHaveBeenCalledTimes(1));
     expect(h.updateTrip).not.toHaveBeenCalled();
+  });
+
+  it("starting over lets go of a replaced trip instead of deleting it", async () => {
+    const h = harness({ deferred: true, deferredReason: "pending_choice" });
+    await waitFor(() => expect(h.onSkipped).toHaveBeenCalledWith("pending_choice"));
+    h.rerender({ ...h.base, deferred: false, replaceTripId: "twin-7" });
+    await waitFor(() => expect(h.updateTrip).toHaveBeenCalledTimes(1));
+    // Once saved, the wizard no longer passes the id.
+    h.rerender({ ...h.base, deferred: false, replaceTripId: null });
+    expect(h.result.current.keepsSavedTrip).toBe(true);
+    await act(() => h.result.current.discard());
+    expect(h.deleteTrip).not.toHaveBeenCalled();
+    expect(h.result.current.savedTripId).toBeNull();
+    expect(h.result.current.keepsSavedTrip).toBe(false);
+  });
+
+  it("still deletes a trip this wizard inserted when starting over", async () => {
+    const h = harness();
+    await waitFor(() => expect(h.result.current.savedTripId).toBe("inserted-1"));
+    expect(h.result.current.keepsSavedTrip).toBe(false);
+    await act(() => h.result.current.discard());
+    expect(h.deleteTrip).toHaveBeenCalledWith("inserted-1");
   });
 });
