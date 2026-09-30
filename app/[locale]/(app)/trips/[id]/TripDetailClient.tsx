@@ -2383,6 +2383,20 @@ export default function TripDetailClient({
             cachedTravelHash={trip.cachedTravelHash}
           />
         )}
+        {/* The live view has no share button, so a share request (the crew
+            CTAs, ?share=invite) mounts just its modal. */}
+        {isActiveTripPhase && (crewShareRequest > 0 || shouldAutoOpenShareModal) && (
+          <ShareButton
+            key={`share-${crewShareRequest}`}
+            variant="modal"
+            tripId={trip.id}
+            tripTitle={trip.title}
+            tripIntent={trip.meta?.trip_intent}
+            canManageSharing={isOwner}
+            autoOpen
+            initialTab={crewShareRequest > 0 ? "share" : "invite"}
+          />
+        )}
 
         {/* Activity Rating Modal */}
         <ActivityRatingModal

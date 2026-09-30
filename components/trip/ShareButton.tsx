@@ -11,7 +11,8 @@ import type { TripCollaborator } from "@/types";
 interface ShareButtonProps {
   tripId: string;
   tripTitle: string;
-  variant?: "default" | "compact";
+  /** "modal" renders no trigger, for views without a share button: the caller mounts it with autoOpen. */
+  variant?: "default" | "compact" | "modal";
   initialTab?: "share" | "invite";
   showNewBadge?: boolean;
   /** Auto-open the modal on mount (used after trip save) */
@@ -155,6 +156,27 @@ export default function ShareButton({
 
   const hasCollaborators = collaborators.length > 1; // More than just owner
 
+  const modal = (
+    <ShareAndInviteModal
+      isOpen={isModalOpen}
+      onClose={handleModalClose}
+      tripId={tripId}
+      tripTitle={tripTitle}
+      shareUrl={shareUrl || ""}
+      tripIntent={tripIntent}
+      isShared={isShared}
+      isInTrending={isInTrending}
+      onStopSharing={handleStopSharing}
+      onEnableSharing={handleEnableSharing}
+      onTrendingChange={handleTrendingChange}
+      isLoading={isLoading}
+      initialTab={openTab}
+      canManageSharing={canManageSharing}
+    />
+  );
+
+  if (variant === "modal") return modal;
+
   // Compact variant just shows avatars with + button
   if (variant === "compact") {
     return (
@@ -167,22 +189,7 @@ export default function ShareButton({
           showAddButton={true}
         />
 
-        <ShareAndInviteModal
-          isOpen={isModalOpen}
-          onClose={handleModalClose}
-          tripId={tripId}
-          tripTitle={tripTitle}
-          shareUrl={shareUrl || ""}
-          tripIntent={tripIntent}
-          isShared={isShared}
-          isInTrending={isInTrending}
-          onStopSharing={handleStopSharing}
-          onEnableSharing={handleEnableSharing}
-          onTrendingChange={handleTrendingChange}
-          isLoading={isLoading}
-          initialTab={openTab}
-          canManageSharing={canManageSharing}
-        />
+        {modal}
       </>
     );
   }
@@ -247,22 +254,7 @@ export default function ShareButton({
         )}
       </div>
 
-      <ShareAndInviteModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        tripId={tripId}
-        tripTitle={tripTitle}
-        shareUrl={shareUrl || ""}
-        tripIntent={tripIntent}
-        isShared={isShared}
-        isInTrending={isInTrending}
-        onStopSharing={handleStopSharing}
-        onEnableSharing={handleEnableSharing}
-        onTrendingChange={handleTrendingChange}
-        isLoading={isLoading}
-        initialTab={openTab}
-        canManageSharing={canManageSharing}
-      />
+      {modal}
     </>
   );
 }
