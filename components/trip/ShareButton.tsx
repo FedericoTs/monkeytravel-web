@@ -69,6 +69,7 @@ export default function ShareButton({
       if (shareRes.status === "fulfilled" && shareRes.value) {
         setIsShared(!!shareRes.value.isShared);
         setShareUrl(shareRes.value.shareUrl ?? null);
+        setIsInTrending(!!shareRes.value.isInTrending);
       } else if (shareRes.status === "rejected") {
         console.warn("[ShareButton] share status fetch failed (non-fatal):", shareRes.reason);
       }
