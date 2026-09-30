@@ -63,17 +63,18 @@ const REQUIREMENTS_MAX = 500;
 //   2. the two that dominate the shift carry a correctly sized `loading` box,
 //      so a slow network degrades to a skeleton instead of a jump.
 // Heights are measured off the live components, not guessed:
-//   hero  — 400px at every width (the component hard-codes h-[400px])
+//   hero  — the image box (h-64 md:h-80 lg:h-96 in DestinationHero) plus the
+//           tag chips that hang off its bottom edge (30px chips, pulled up 12px)
 //   card  — 363px at 375w, 324px at 1280w
 // The card is SHORTER on desktop despite its taller image (h-40 vs h-32)
 // because the description wraps to fewer lines. Re-measure before touching
 // either number: a placeholder of the WRONG height creates a shift instead of
 // preventing one.
 const HeroSkeleton = () => (
-  <div
-    className="h-[400px] w-full rounded-xl bg-slate-100 animate-pulse"
-    aria-hidden="true"
-  />
+  <div aria-hidden="true">
+    <div className="h-64 md:h-80 lg:h-96 w-full bg-slate-100 animate-pulse" />
+    <div className="h-[18px]" />
+  </div>
 );
 const ActivityCardSkeleton = () => (
   <div
@@ -106,10 +107,11 @@ const ValuePropositionBanner = dynamic(() => import("@/components/trip/ValueProp
 const AuthPromptModal = dynamic(() => import("@/components/ui/AuthPromptModal"), { ssr: false });
 const PendingClaimBanner = dynamic(() => import("@/components/wizard/PendingClaimBanner"), { ssr: false });
 // Share button for signed-out planners only, so it stays out of the bundle for
-// signed-in users.
+// signed-in users. The placeholder is the button's height so the mobile save
+// bar does not grow when it lands.
 const AnonymousShareButton = dynamic(
   () => import("@/components/trip/AnonymousShareButton"),
-  { ssr: false }
+  { ssr: false, loading: () => <div className="h-11" aria-hidden="true" /> }
 );
 
 /**
@@ -126,6 +128,12 @@ const AnonymousShareButton = dynamic(
  * prefetch must be a non-event: dynamic() will simply load the chunk the
  * normal way, and an unhandled rejection here would surface as a bogus error.
  */
+// The warmed modules themselves. Rendered directly they skip the lazy
+// boundary's fallback frame, which for a box without a sized placeholder is
+// a layout shift at the moment the result appears.
+let warmedAssistantPanel: (typeof import("@/components/trip/AnonAssistantPanel"))["default"] | null = null;
+let warmedShareButton: (typeof import("@/components/trip/AnonymousShareButton"))["default"] | null = null;
+
 function preloadResultViewChunks(): void {
   const warm = (p: Promise<unknown>) => {
     p.catch(() => {});
@@ -133,11 +141,11 @@ function preloadResultViewChunks(): void {
   warm(import("@/components/DestinationHero"));
   warm(import("@/components/ActivityCard"));
   warm(import("@/components/TripMap"));
-  warm(import("@/components/trip/AnonAssistantPanel"));
+  warm(import("@/components/trip/AnonAssistantPanel").then((m) => { warmedAssistantPanel = m.default; }));
   warm(import("@/components/trip/RegenerateButton"));
   warm(import("@/components/trip/ValuePropositionBanner"));
   warm(import("@/components/trip/ExportMenu"));
-  warm(import("@/components/trip/AnonymousShareButton"));
+  warm(import("@/components/trip/AnonymousShareButton").then((m) => { warmedShareButton = m.default; }));
 }
 import { sentry } from "@/lib/observability/sentry";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
@@ -363,6 +371,13 @@ function seasonalPopular(month: number, limit = 6): SeasonalPopular[] {
   return [...inSeason, ...rest].slice(0, limit);
 }
 
+// Free-text ?destination= fallback (page.tsx resolves known slugs): capitalized,
+// coords filled in by autocomplete on confirm.
+function capitalizeFreeText(param: string | null | undefined): string {
+  const trimmed = (param ?? "").trim().slice(0, 120);
+  return trimmed ? trimmed.charAt(0).toUpperCase() + trimmed.slice(1) : "";
+}
+
 // Exact copy of DESTINATION_ALLOWLIST in lib/gemini.ts — letters, spaces,
 // hyphens, commas, dots, parentheses, apostrophes, &, /, digits.
 const DESTINATION_ALLOWLIST = /^[\p{L}\p{M}\s\-,.'()&/0-9]+$/u;
@@ -407,6 +422,8 @@ interface NewTripWizardProps {
    * known destination (free-text fallback handled below).
    */
   prefilledDestination: PrefilledDestination | null;
+  /** Month (1-12) the server rendered with: orders the popular picks on both sides of hydration. */
+  seasonMonth: number;
   /**
    * Trip length / budget / vibes carried in from a blog CTA, so a reader who
    * just finished "3-day Paris itinerary" doesn't have to retype the trip the
@@ -419,6 +436,7 @@ interface NewTripWizardProps {
 export default function NewTripPage({
   prefilledDestination,
   prefilledTripShape,
+  seasonMonth,
 }: NewTripWizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -443,6 +461,8 @@ export default function NewTripPage({
   const [claimedTripId, setClaimedTripId] = useState<string | null>(null);
   const t = useTranslations("trips");
   const typeLabel = useActivityTypeLabel();
+  const AssistantPanelView = warmedAssistantPanel ?? AnonAssistantPanel;
+  const ShareButtonView = warmedShareButton ?? AnonymousShareButton;
   // Locale is forwarded into the wizard_step_events rows so the funnel
   // can be sliced by language without joining back to URL paths. See
   // /api/wizard-event + the trackWizardEvent helper above.
@@ -565,9 +585,15 @@ export default function NewTripPage({
   // API reads them from the database, so the wizard does not send them.
 
 
-  // Form state
-  const [destination, setDestination] = useState("");
-  const [destinationCoords, setDestinationCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  // Form state. A deep-linked destination is known before the first render,
+  // so it is in the server HTML: applying it after hydration swapped the
+  // popular picks for the date section in front of the visitor.
+  const [destination, setDestination] = useState(
+    () => prefilledDestination?.name ?? capitalizeFreeText(searchParams?.get("destination")),
+  );
+  const [destinationCoords, setDestinationCoords] = useState<{ latitude: number; longitude: number } | null>(
+    () => (prefilledDestination ? { latitude: prefilledDestination.latitude, longitude: prefilledDestination.longitude } : null),
+  );
   // Multi-city: a route of city+nights rows. Only surfaced in step 1 when
   // MULTI_CITY_ENABLED; a sync effect below keeps `destination`/`endDate`
   // consistent so the rest of the wizard flow is untouched.
@@ -587,21 +613,14 @@ export default function NewTripPage({
   // whether the current dates were auto-filled as a flexible default so we can
   // surface an editable "flexible dates" note.
   const [flexibleDates, setFlexibleDates] = useState(false);
-  // Popular-destination pills: real demand-ranked, reordered by season on the
-  // client. The initial SSR slice is stable (avoids a hydration mismatch); the
-  // effect reorders after mount. `plannedStat` is an honest, aggregate
+  // Popular-destination pills: real demand-ranked, reordered by season with the
+  // month the server rendered with, so both sides of hydration agree and the
+  // chips never move after mount. `plannedStat` is an honest, aggregate
   // (GDPR-safe) social-proof count from /api/wizard/planning-stats.
-  const [popularPicks, setPopularPicks] = useState<SeasonalPopular[]>(
-    () => SEASONAL_POPULAR.slice(0, 6)
-  );
+  const [popularPicks] = useState<SeasonalPopular[]>(() => seasonalPopular(seasonMonth));
+  const inSeasonMonth = seasonMonth;
   const [plannedStat, setPlannedStat] = useState<number | null>(null);
-  // null on the server and first client paint; set in the same effect that
-  // reorders the picks, so the "In season" badge is never a hydration diff.
-  const [inSeasonMonth, setInSeasonMonth] = useState<number | null>(null);
   useEffect(() => {
-    const month = new Date().getMonth() + 1;
-    setPopularPicks(seasonalPopular(month));
-    setInSeasonMonth(month);
     let alive = true;
     fetch("/api/wizard/planning-stats")
       .then((r) => (r.ok ? r.json() : null))
@@ -850,46 +869,17 @@ export default function NewTripPage({
     touchedFieldsThisStepRef.current = new Set();
   }, [step]);
 
-  // Pre-fill destination from ?destination=<slug> deeplink (e.g. coming from
-  // a /destinations/* page or a blog post CTA). Runs once on mount; if the
-  // user already started typing/restored a draft we don't clobber that.
-  // page.tsx resolves the slug server-side: a known destination arrives as
-  // `prefilledDestination`; otherwise the raw `?destination=` value is used as
-  // free text (capitalized, coords filled in by autocomplete on confirm).
-  useEffect(() => {
-    if (destinationFieldRef.current) return;
-
-    if (prefilledDestination) {
-      setDestination(prefilledDestination.name);
-      setDestinationCoords({
-        latitude: prefilledDestination.latitude,
-        longitude: prefilledDestination.longitude,
-      });
-      return;
-    }
-
-    const param = searchParams?.get("destination");
-    if (!param) return;
-    // Free-text fallback — capitalize but otherwise pass through.
-    const trimmed = param.trim().slice(0, 120);
-    if (trimmed) {
-      setDestination(trimmed.charAt(0).toUpperCase() + trimmed.slice(1));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // Pre-fill the SHAPE of the trip (length, budget, vibes) from a blog CTA, so
   // a reader arriving from "3-day Paris itinerary" doesn't have to retype the
   // trip the article described. The params are derived from what the post
   // itself declares (lib/blog/trip-prefill.ts) and validated in page.tsx, so by
   // the time they get here they are already known-good or absent.
   //
-  // Runs once on mount and only on a truly untouched wizard. Draft recovery
-  // runs later and overwrites this on purpose — a trip the reader actually
-  // started outranks a query string they never typed.
+  // Runs once on mount. Draft recovery runs later and overwrites this on
+  // purpose — a trip the reader actually started outranks a query string they
+  // never typed.
   useEffect(() => {
     if (!prefilledTripShape) return;
-    if (destinationFieldRef.current) return;
     const { days, budget, vibes } = prefilledTripShape;
     if (!days && !budget && vibes.length === 0) return;
 
@@ -3343,7 +3333,7 @@ export default function NewTripPage({
                   in. Also hidden once a trip is saved — at that point the
                   owner-based share flow is the right one. */}
               {isAuthenticated === false && !savedTripId && generatedItinerary && (
-                <AnonymousShareButton
+                <ShareButtonView
                   onShared={handleAnonShared}
                   onKeep={handleKeepSharedTrip}
                   mode={tripIntent === "group" ? "crew" : "share"}
@@ -3389,7 +3379,7 @@ export default function NewTripPage({
               explicit `false` swaps — `null` means still resolving and must not
               flash a share button at someone who turns out to be signed in. */}
           {!savedTripId && (isAuthenticated === false && generatedItinerary ? (
-            <AnonymousShareButton
+            <ShareButtonView
               onShared={handleAnonShared}
               onKeep={handleKeepSharedTrip}
               mode={tripIntent === "group" ? "crew" : "share"}
@@ -3522,7 +3512,7 @@ export default function NewTripPage({
           )}
           {/* AI assistant — Q&A + day-scoped edits at peak intent. */}
           <div className="mb-8">
-            <AnonAssistantPanel
+            <AssistantPanelView
               destination={fullDestination}
               tripTitle={`${generatedItinerary.destination.name} Trip`}
               days={generatedItinerary.days}
@@ -3548,7 +3538,7 @@ export default function NewTripPage({
               // else the owner-based share flow is the right one.
               shareSlot={
                 isAuthenticated === false && !savedTripId && generatedItinerary ? (
-                  <AnonymousShareButton
+                  <ShareButtonView
                     trip={{
                       title: `${generatedItinerary.destination.name} Trip`,
                       description: generatedItinerary.destination.description,

@@ -124,6 +124,7 @@ export default async function NewTripPage({
     <NewTripWizard
       prefilledDestination={prefilledDestination}
       prefilledTripShape={parseTripShape(sp)}
+      seasonMonth={new Date().getMonth() + 1}
     />
   );
 }

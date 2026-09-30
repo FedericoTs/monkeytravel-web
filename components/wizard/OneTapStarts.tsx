@@ -11,11 +11,7 @@ export interface OneTapPlace {
 
 interface OneTapStartsProps {
   picks: OneTapPlace[];
-  /**
-   * null on the server and first client paint, set in the same effect that
-   * reorders the picks — so the "In season" badge can never be part of a
-   * hydration mismatch.
-   */
+  /** The month the server rendered with, so the "In season" badge is in the SSR HTML. */
   inSeasonMonth: number | null;
   onPick: (place: OneTapPlace, index: number) => void;
 }
