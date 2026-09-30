@@ -141,7 +141,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function SharedTripPage({ params, searchParams }: PageProps) {
-  const { token } = await params;
+  const { locale, token } = await params;
   // ?vote=1 is the crew ask (lib/trips/crew-share.ts): the recipient page
   // leads with the vote, and the visit row records the framing it arrived
   // with so recipients can be read per framing.
@@ -295,7 +295,7 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
           cachedTravelHash,
         }}
         shareToken={token}
-        dateRange={formatDateRange(trip.start_date, trip.end_date)}
+        dateRange={formatDateRange(trip.start_date, trip.end_date, locale)}
         // The hero makes no Places calls here, so the persisted cover image is
         // its only photo; without it viewers get the gradient fallback.
         coverImageUrl={trip.cover_image_url ?? null}

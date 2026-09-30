@@ -91,6 +91,8 @@ export function formatDateRange(start: Date | string, end: Date | string, locale
   const endYear = e.getUTCFullYear();
 
   if (startMonth === endMonth) {
+    // A one-day trip reads as its day, not "Sep 30-30".
+    if (startDay === endDay && s.getUTCFullYear() === endYear) return `${startMonth} ${startDay}, ${endYear}`;
     return `${startMonth} ${startDay}-${endDay}, ${endYear}`;
   }
   return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${endYear}`;

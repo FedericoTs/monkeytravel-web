@@ -285,7 +285,7 @@ export default async function PublicTripPage({ params }: PageProps) {
         // share_token; pass it through so "copy link"/save flows keep working
         // for a visitor who landed on the public URL.
         shareToken={trip.share_token ?? ""}
-        dateRange={formatDateRange(trip.start_date, trip.end_date)}
+        dateRange={formatDateRange(trip.start_date, trip.end_date, locale)}
         coverImageUrl={(trip.cover_image_url as string | null) ?? null}
         engagementSlot={
           <TripEngagementSection
