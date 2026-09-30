@@ -822,10 +822,11 @@ export interface SaveFailedEvent {
  * so a lost signed-in generation still leaves an event. `not_authenticated`:
  * anonymous. `disabled`: the env kill switch. `auth_pending`: auth unresolved
  * when the result landed. `pending_claim`: the itinerary is an anonymous
- * shared trip whose claim has not resolved.
+ * shared trip whose claim has not resolved. `pending_choice`: the account
+ * saved this place and these dates this week, and the planner is choosing.
  */
 export interface AutoSaveSkippedEvent {
-  reason: "not_authenticated" | "disabled" | "auth_pending" | "pending_claim";
+  reason: "not_authenticated" | "disabled" | "auth_pending" | "pending_claim" | "pending_choice";
   destination?: string;
 }
 

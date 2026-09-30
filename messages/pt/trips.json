@@ -241,7 +241,11 @@
       "shareAnonKeepCta": "Guardar esta viagem, grátis",
       "shareCrewCta": "Peça ao seu grupo para votar",
       "shareCrewHint": "Envie este link — podem votar sem criar conta.",
-      "shareCrewVotes": "{count, plural, =1 {# voto até agora: veja o que escolheram} other {# votos até agora: veja o que escolheram}}"
+      "shareCrewVotes": "{count, plural, =1 {# voto até agora: veja o que escolheram} other {# votos até agora: veja o que escolheram}}",
+      "twinTitle": "Você já tem “{title}” para estas datas",
+      "twinBody": "Substituir o plano dela por este ou manter as duas viagens?",
+      "twinReplace": "Substituir o plano",
+      "twinKeepBoth": "Manter as duas"
     },
     "anchors": {
       "cta": "Tenho planos fixos (voo, casamento, hotel…)",
