@@ -206,6 +206,7 @@ No single tool does everything well. The best approach in 2026 is still layered:
 If you want the head-to-head rather than the full field:
 
 - [Wanderlog vs Mindtrip](/blog/wanderlog-vs-mindtrip-2026) — the two strongest free-to-start options, and why they are not actually competitors
+- [Best AI travel agents](/blog/best-ai-travel-agents-2026) — which assistants can book inside the chat, which hand you to a checkout, and where each one works
 - [Mindtrip alternatives](/blog/mindtrip-alternative-2026) — six options if the login wall is what put you off
 - [AI trip planners without signup](/blog/ai-trip-planners-without-signup-2026) — which tools show you an itinerary before asking for an account
 - [ChatGPT vs AI trip planners](/blog/chatgpt-vs-ai-trip-planners) — when the general assistant is enough and when it is not
