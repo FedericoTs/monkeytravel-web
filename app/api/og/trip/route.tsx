@@ -1,5 +1,9 @@
 import { ImageResponse } from "next/og";
+import { after, type NextRequest } from "next/server";
 import type { ReactElement } from "react";
+import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
+import { previewClient } from "@/lib/analytics/preview-client";
+import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getTripDestination } from "@/lib/trips/destination";
 import { computeTripDayState } from "@/lib/trip/live";
@@ -82,7 +86,7 @@ function asDays(itinerary: unknown): CardDay[] {
     .filter((d) => Number.isFinite(d.day_number));
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const format: CardFormat = cardFormat(url.searchParams.get("format"));
   const locale = cardLocale(url.searchParams.get("locale"));
@@ -156,6 +160,22 @@ export async function GET(request: Request) {
     const today = days.find((d) => d.day_number === dayState.dayNumber);
     const named = today?.activities.find((a) => a.name?.trim())?.name?.trim() ?? null;
     live = { dayNumber: dayState.dayNumber, totalDays: dayState.totalDays, today: named || today?.title?.trim() || null };
+  }
+
+  // A row per drawn card. The CDN keeps each card URL for a day in each region,
+  // so rows are cache misses, named by the client that asked (a chat app
+  // unfurling a link, or the owner's browser making the image).
+  const sessionId = request.cookies.get("mt_session_id")?.value ?? null;
+  if (request.method === "GET" && writesTelemetry(sessionId)) {
+    const metadata = {
+      format,
+      locale,
+      via: token && UUID_RE.test(token) ? "share_token" : "public_slug",
+      client: previewClient(request.headers.get("user-agent")),
+    };
+    after(() =>
+      logFunnelEventServer({ event_type: "trip_card_rendered", trip_id: data.id, session_id: sessionId, metadata })
+    );
   }
 
   return respond(

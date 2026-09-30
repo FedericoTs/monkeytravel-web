@@ -247,8 +247,16 @@ export default function ShareAndInviteModal({
       const stem = tripTitle.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "").toLowerCase() || "trip";
       const outcome = await shareFile(new File([blob], `${stem}-${format}.png`, { type: "image/png" }), { title: tripTitle });
       if (outcome === "cancelled") return;
+      const method = outcome === "shared" ? "native_share" : "download";
       trackTripShared({ tripId, shareMethod: "image" });
-      void captureTripCardShared({ trip_id: tripId, format, method: outcome === "shared" ? "native_share" : "download" });
+      void captureTripCardShared({ trip_id: tripId, format, method });
+      // The first-party count: the PostHog event fires only with analytics consent.
+      void fetch("/api/funnel-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_type: "trip_card_shared", trip_id: tripId, format, method }),
+        keepalive: true,
+      }).catch(() => {});
     } catch (error) {
       console.error("Failed to share the trip image:", error);
       addToast(ts("image.failed"), "error");
