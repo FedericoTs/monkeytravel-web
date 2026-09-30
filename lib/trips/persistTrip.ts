@@ -277,7 +277,16 @@ export async function insertTrip(
   if (!result?.trip_id) throw new Error("Trip insert returned no id");
 
   if (result.reused) {
-    // The concurrent first save already ran the side effects below.
+    // A row with this title and start date saved in the last minute: a
+    // duplicate save, or a new plan made at once. Write this plan into it so
+    // the row holds what the planner sees; sharing and status stay as they are.
+    const { title, description, start_date, end_date, itinerary, cover_image_url, budget, tags, trip_meta, travel_style, packing_list } = row;
+    const { error: updateError } = await supabase
+      .from("trips")
+      .update({ title, description, start_date, end_date, itinerary, cover_image_url, budget, tags, trip_meta, travel_style, packing_list })
+      .eq("id", result.trip_id);
+    if (updateError) throw updateError;
+    enrichTripPhotos(result.trip_id);
     return {
       tripId: result.trip_id,
       durationDays: computeDurationDays(input.formState),
