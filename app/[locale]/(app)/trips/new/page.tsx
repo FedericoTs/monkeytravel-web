@@ -1,4 +1,5 @@
 import { getDestinationBySlug } from "@/lib/destinations/data";
+import { createClient } from "@/lib/supabase/server";
 import type { Locale } from "@/lib/destinations/types";
 import NewTripWizard, { type PrefilledDestination } from "./NewTripWizard";
 
@@ -91,6 +92,26 @@ function parseTripShape(sp: SearchParams): PrefilledTripShape {
   return { days, budget, vibes };
 }
 
+/**
+ * Signed in and already has trips: step 1 opens with the "welcome back"
+ * banner. Known here, the banner is in the first paint instead of pushing the
+ * form down once the client has asked. Anonymous visitors pay no round trip.
+ */
+async function hasOwnTrips(): Promise<boolean> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) return false;
+    const { count } = await supabase
+      .from("trips")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", data.user.id);
+    return (count ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
 export default async function NewTripPage({
   params,
   searchParams,
@@ -98,7 +119,7 @@ export default async function NewTripPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<SearchParams>;
 }) {
-  const [{ locale }, sp] = await Promise.all([params, searchParams]);
+  const [{ locale }, sp, returningUser] = await Promise.all([params, searchParams, hasOwnTrips()]);
 
   let prefilledDestination: PrefilledDestination | null = null;
   const rawSlug = Array.isArray(sp.destination) ? sp.destination[0] : sp.destination;
@@ -124,6 +145,7 @@ export default async function NewTripPage({
     <NewTripWizard
       prefilledDestination={prefilledDestination}
       prefilledTripShape={parseTripShape(sp)}
+      returningUser={returningUser}
       seasonMonth={new Date().getMonth() + 1}
     />
   );

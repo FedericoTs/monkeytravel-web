@@ -859,6 +859,7 @@
       "finalizingDesc": "Dando os toques finais em"
     },
     "elapsed": "{seconds}s decorridos",
+    "streamedDay": "Dia {current} de {total}",
     "estimatedTime": "Criando seu roteiro personalizado: isso costuma levar um ou dois minutos",
     "takingLonger": "Quase lá: um roteiro rico e personalizado vale alguns segundos a mais. Aguarde!",
     "funFacts": {

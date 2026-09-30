@@ -340,6 +340,12 @@ export default function GenerationProgress({
     return seconds;
   };
 
+  const streaming = streamedTotalDays > 0;
+  const escalated = elapsedTime > ESCALATION_THRESHOLD_MS;
+
+  // The card is centred, so any change in its height moved all of it. Each
+  // line whose text changes keeps every variant stacked in one grid cell
+  // (only the current one visible): the cell is as tall as the longest.
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center relative overflow-hidden">
       <FloatingOrbs />
@@ -357,20 +363,20 @@ export default function GenerationProgress({
             </div>
           </div>
 
-          {/* Streaming day-progress badge. Only shows when we have a real
-              day count from the SSE stream — keeps the existing fake-phase
-              UI for the JSON-fallback path. */}
-          {streamedTotalDays > 0 && (
-            <div className="flex justify-center mb-5">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 rounded-full border border-emerald-200">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                <span className="text-xs font-semibold text-emerald-700">
-                  Day {Math.min(streamedDayCount, streamedTotalDays)} of {streamedTotalDays}
-                </span>
-              </div>
+          {/* Streaming day-progress badge. Only visible once we have a real
+              day count from the SSE stream (the JSON-fallback path never
+              gets one); its row is reserved from the start. */}
+          <div className={`flex justify-center mb-5 ${streaming ? "" : "invisible"}`} aria-hidden={!streaming || undefined}>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 rounded-full border border-emerald-200">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="text-xs font-semibold text-emerald-700">
+                {t("streamedDay", {
+                  current: Math.min(streamedDayCount, streamedTotalDays),
+                  total: streamedTotalDays,
+                })}
+              </span>
             </div>
-          )}
-          {streamedTotalDays === 0 && <div className="mb-5" />}
+          </div>
 
           {/* Phase indicator with icons */}
           <div className="flex justify-between items-center mb-8 px-2">
@@ -403,14 +409,22 @@ export default function GenerationProgress({
           </div>
 
           {/* Current phase description */}
-          <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2 transition-all duration-500">
-              {t(`phases.${currentPhase.phase.labelKey}`)}...
-            </h2>
-            <p className="text-slate-600">
-              {t(`phases.${currentPhase.phase.descriptionKey}`)}{" "}
-              <span className="font-semibold text-[var(--primary-ink)]">{destination}</span>
-            </p>
+          <div className="grid text-center mb-8">
+            {PHASES.map((phase, idx) => (
+              <div
+                key={phase.id}
+                className={`col-start-1 row-start-1 ${idx === currentPhase.index ? "" : "invisible"}`}
+                aria-hidden={idx !== currentPhase.index || undefined}
+              >
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
+                  {t(`phases.${phase.labelKey}`)}...
+                </h2>
+                <p className="text-slate-600">
+                  {t(`phases.${phase.descriptionKey}`)}{" "}
+                  <span className="font-semibold text-[var(--primary-ink)]">{destination}</span>
+                </p>
+              </div>
+            ))}
           </div>
 
           {/* Progress track - slim elegant line for airplane to fly along */}
@@ -429,14 +443,19 @@ export default function GenerationProgress({
           </div>
 
           {/* Rotating fun facts */}
-          <div className="bg-slate-50 rounded-2xl p-4 min-h-[60px] flex items-center justify-center">
-            <p
-              key={factIndex}
-              className="text-sm text-slate-600 text-center animate-fade-in-up"
-            >
-              <span className="text-[var(--accent)] mr-2">✨</span>
-              {t(`funFacts.${FUN_FACT_KEYS[factIndex]}`)}
-            </p>
+          <div className="bg-slate-50 rounded-2xl p-4 min-h-[60px] grid items-center">
+            {FUN_FACT_KEYS.map((key, idx) => (
+              <p
+                key={key}
+                className={`col-start-1 row-start-1 text-sm text-slate-600 text-center ${
+                  idx === factIndex ? "animate-fade-in-up" : "invisible"
+                }`}
+                aria-hidden={idx !== factIndex || undefined}
+              >
+                <span className="text-[var(--accent)] mr-2">✨</span>
+                {t(`funFacts.${key}`)}
+              </p>
+            ))}
           </div>
         </div>
 
@@ -444,10 +463,13 @@ export default function GenerationProgress({
             message once we cross the typical-generation threshold, so a
             60-130s gen never leaves the user staring at a stale/false time
             estimate. */}
-        <p className="text-center text-xs text-slate-500 mt-6">
-          {elapsedTime > ESCALATION_THRESHOLD_MS
-            ? t("takingLonger")
-            : t("estimatedTime")}
+        <p className="grid text-center text-xs text-slate-500 mt-6">
+          <span className={`col-start-1 row-start-1 ${escalated ? "invisible" : ""}`} aria-hidden={escalated || undefined}>
+            {t("estimatedTime")}
+          </span>
+          <span className={`col-start-1 row-start-1 ${escalated ? "" : "invisible"}`} aria-hidden={!escalated || undefined}>
+            {t("takingLonger")}
+          </span>
         </p>
       </div>
     </div>

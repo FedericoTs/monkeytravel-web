@@ -859,6 +859,7 @@
       "finalizingDesc": "Putting finishing touches on"
     },
     "elapsed": "{seconds}s elapsed",
+    "streamedDay": "Day {current} of {total}",
     "estimatedTime": "Building your personalized itinerary — this usually takes a minute or two",
     "takingLonger": "Almost there — a rich, personalized itinerary is worth the extra few seconds. Hang tight!",
     "funFacts": {
