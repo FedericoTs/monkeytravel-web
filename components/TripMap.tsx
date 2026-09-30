@@ -400,18 +400,15 @@ export default function TripMap({
     return false;
   }, [filteredActivities]);
 
-  if (loadError) {
+  // One outer box for every state. The placeholders live inside it so the
+  // node the map lands in is never re-created: a display change on the same
+  // node made Chrome report the loaded map as a layout shift from (0,0).
+  if (loadError || !isLoaded) {
     return (
-      <div className={`bg-slate-100 rounded-xl flex items-center justify-center ${className}`}>
-        <p className="text-slate-500">{t("failedToLoad")}</p>
-      </div>
-    );
-  }
-
-  if (!isLoaded) {
-    return (
-      <div className={`bg-slate-100 rounded-xl flex items-center justify-center animate-pulse ${className}`}>
-        <div className="text-slate-500">{t("loading")}</div>
+      <div className={`relative rounded-xl overflow-hidden shadow-lg ${className}`}>
+        <div className={`h-full bg-slate-100 flex items-center justify-center ${loadError ? "" : "animate-pulse"}`}>
+          <p className="text-slate-500">{loadError ? t("failedToLoad") : t("loading")}</p>
+        </div>
       </div>
     );
   }
