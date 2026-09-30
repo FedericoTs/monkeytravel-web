@@ -33,9 +33,8 @@ describe("pickMessages", () => {
 });
 
 /**
- * Every client module a marketing (root-group) route can render must find
- * its messages in the list its nearest provider uses. A miss renders raw
- * keys on a prerendered page, and only in the browser.
+ * Every client module a route can render must find its messages in the list
+ * its nearest provider uses. A miss renders raw keys, and only in the browser.
  */
 const ROOT = resolve(__dirname, "../..");
 const LOCALE_DIR = join(ROOT, "app", "[locale]");
@@ -68,7 +67,6 @@ const isClientModule = (src: string) =>
 
 function routeFiles(dir: string, acc: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
-    if (name === "(app)") continue;
     const file = join(dir, name);
     if (statSync(file).isDirectory()) routeFiles(file, acc);
     else if (/^(page|layout|template|error|not-found|loading|default)\.tsx$/.test(name)) acc.push(file);
@@ -152,11 +150,12 @@ function listFor(entry: string): { name: string; paths: readonly string[] } {
   return { name: "MARKETING_CLIENT_NAMESPACES", paths: MARKETING_CLIENT_NAMESPACES };
 }
 
-describe("every marketing route's client modules find their messages", () => {
+describe("every route's client modules find their messages", () => {
   const entries = routeFiles(LOCALE_DIR);
 
-  it("sees the marketing routes", () => {
+  it("sees the marketing and the app routes", () => {
     expect(entries.length).toBeGreaterThan(20);
+    expect(entries.some((file) => file.includes(`${join("(app)", "trips", "new")}`))).toBe(true);
   });
 
   for (const entry of entries) {

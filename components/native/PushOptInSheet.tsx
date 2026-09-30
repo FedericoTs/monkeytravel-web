@@ -98,7 +98,7 @@ function shouldShowPrompt(): boolean {
  * costs nothing.
  */
 export default function PushOptInSheet() {
-  const t = useTranslations("push.optIn");
+  const t = useTranslations("common.push.optIn");
   const [isOpen, setIsOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 

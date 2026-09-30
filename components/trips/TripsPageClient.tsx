@@ -12,8 +12,7 @@ import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { PullToRefreshIndicator } from "@/components/ui/PullToRefreshIndicator";
 import { hapticLight } from "@/lib/native/haptics";
 import CuratedEscapes from "@/components/templates/CuratedEscapesClient";
-import BlogTipsSection from "@/components/blog/BlogTipsSection";
-import type { BlogFrontmatter } from "@/lib/blog/types";
+import BlogTipsSection, { type BlogTip } from "@/components/blog/BlogTipsSection";
 import ReferralModal from "@/components/referral/ReferralModal";
 import TripActionModal from "@/components/trips/TripActionModal";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
@@ -99,7 +98,7 @@ interface TripsPageClientProps {
   sharedTrips?: SharedTrip[];
   displayName: string;
   lifetimeConversions: number;
-  blogPosts?: BlogFrontmatter[];
+  blogTips?: BlogTip[];
 }
 
 type SortOption = "newest" | "oldest" | "upcoming" | "alphabetical";
@@ -529,7 +528,7 @@ function TripCard({ trip, t, locale, getStatusLabel, onAction }: TripCardProps) 
   );
 }
 
-export default function TripsPageClient({ trips, sharedTrips = [], displayName, lifetimeConversions, blogPosts = [] }: TripsPageClientProps) {
+export default function TripsPageClient({ trips, sharedTrips = [], displayName, lifetimeConversions, blogTips = [] }: TripsPageClientProps) {
   const t = useTranslations('common.trips');
   const tRoles = useTranslations('common.roles');
   // i18n: pass current locale to date formatters so trip cards show
@@ -1369,7 +1368,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
         )}
 
         {/* Travel Guides & Tips from blog */}
-        {blogPosts.length > 0 && <BlogTipsSection posts={blogPosts} />}
+        {blogTips.length > 0 && <BlogTipsSection tips={blogTips} />}
 
         {/* For users WITH trips: Show templates at the bottom for inspiration */}
         {activeTrips.length > 0 && <CuratedEscapes />}

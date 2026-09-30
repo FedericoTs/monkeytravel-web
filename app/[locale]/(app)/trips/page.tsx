@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import TripsPageClient from "@/components/trips/TripsPageClient";
-import { getAllFrontmatter } from "@/lib/blog/api";
+import { getAllFrontmatter, tOr } from "@/lib/blog/api";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
@@ -115,7 +115,15 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
   // post variant parses 62 markdown bodies through remark/rehype per
   // request just for 3 to survive the .slice(0, 3), so we skip the
   // markdown processor entirely here.
-  const blogPosts = getAllFrontmatter(locale).slice(0, 3);
+  // Their card text is translated here, so the page's client messages do not
+  // need every post's title (lib/i18n/client-messages.ts).
+  const tb = await getTranslations({ locale, namespace: "blog" });
+  const blogTips = getAllFrontmatter(locale).slice(0, 3).map((post) => ({
+    post,
+    title: tOr(tb, `posts.${post.slug}.title`, post.title),
+    description: tOr(tb, `posts.${post.slug}.description`, post.description),
+    category: tOr(tb, `categories.${post.category}`, post.category),
+  }));
 
   return (
     <TripsPageClient
@@ -123,7 +131,7 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
       sharedTrips={sharedTrips}
       displayName={displayName}
       lifetimeConversions={lifetimeConversions}
-      blogPosts={blogPosts}
+      blogTips={blogTips}
     />
   );
 }
