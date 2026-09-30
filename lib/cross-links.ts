@@ -37,6 +37,17 @@ const DESTINATION_KEYWORDS: Record<string, string[]> = {
   marrakech: ["marrakech", "morocco", "moroccan", "africa"],
 };
 
+/** The city's own name comes first; unmapped slugs fall back to it ("hong kong"). */
+function keywordsFor(destSlug: string): string[] {
+  return DESTINATION_KEYWORDS[destSlug] ?? [destSlug.replace(/-/g, " ")];
+}
+
+/** Whole words only: "paris" is not in "comparison", nor "rio" in "itinerario". */
+function mentions(text: string, keyword: string): boolean {
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "u").test(text);
+}
+
 /**
  * Find destinations relevant to a blog post based on its tags and slug
  */
@@ -51,8 +62,7 @@ export function getDestinationsForBlogPost(
   ].join(" ");
 
   const scored = destinations.map((dest) => {
-    const keywords = DESTINATION_KEYWORDS[dest.slug] ?? [dest.slug];
-    const matches = keywords.filter((kw) => searchText.includes(kw)).length;
+    const matches = keywordsFor(dest.slug).filter((kw) => mentions(searchText, kw)).length;
     return { destination: dest, score: matches };
   });
 
@@ -121,19 +131,22 @@ export function getBlogPostsForDestination(
   destSlug: string,
   limit = 3
 ): string[] {
-  const keywords = DESTINATION_KEYWORDS[destSlug] ?? [destSlug];
+  const keywords = keywordsFor(destSlug);
   const allBlogSlugs = getBlogSlugs();
 
   const scored = allBlogSlugs.map((blogSlug) => {
     const blogText = blogSlug.replace(/-/g, " ");
-    const slugMatches = keywords.filter((kw) => blogText.includes(kw)).length;
+    const slugMatches = keywords.filter((kw) => mentions(blogText, kw)).length;
 
     // Also check blog post tags for keyword matches
     const tags = getPostTags(blogSlug);
     const tagText = tags.map((t) => t.toLowerCase()).join(" ");
-    const tagMatches = keywords.filter((kw) => tagText.includes(kw)).length;
+    const tagMatches = keywords.filter((kw) => mentions(tagText, kw)).length;
 
-    return { slug: blogSlug, score: slugMatches * 2 + tagMatches };
+    // A post named after the city outranks one that only shares its region.
+    const named = mentions(blogText, keywords[0]) ? 1 : 0;
+
+    return { slug: blogSlug, score: slugMatches * 2 + tagMatches + named };
   });
 
   return scored
