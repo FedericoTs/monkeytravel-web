@@ -47,6 +47,7 @@ import { resolveAssistantRole, ASSISTANT_FORBIDDEN_MESSAGE } from "@/lib/ai/assi
 import { destinationCityTerm } from "@/lib/api/postgrest-filter";
 import { formatMinutesToTime } from "@/lib/datetime/format";
 import { withDayTarget } from "@/lib/ai/assistant/day-target";
+import { activityNotFoundReason, findActivityByName } from "@/lib/ai/assistant/find-activity";
 import {
   claimsItineraryChange,
   claimsToRemember,
@@ -383,81 +384,6 @@ function detectActionIntentRaw(message: string): {
   }
 
   return { type: "none" };
-}
-
-// Find activity by name (improved fuzzy match)
-function findActivityByName(
-  itinerary: ItineraryDay[],
-  searchName: string,
-  /** Search only this day when the user named one. */
-  dayNumber?: number
-): { activity: Activity; dayIndex: number; activityIndex: number } | null {
-  const lowerSearch = searchName.toLowerCase().trim();
-
-  // Remove common words that might interfere with matching
-  const cleanSearch = lowerSearch
-    .replace(/^(the|a|an|visit|go to|see|explore)\s+/i, "")
-    .replace(/\s+(visit|tour|experience|activity)$/i, "")
-    .trim();
-
-  console.log(`[AI Assistant] Searching for activity: "${searchName}" (cleaned: "${cleanSearch}")`);
-  console.log(`[AI Assistant] Activities in itinerary:`);
-
-  let bestMatch: { activity: Activity; dayIndex: number; activityIndex: number; score: number } | null = null;
-
-  for (let dayIdx = 0; dayIdx < itinerary.length; dayIdx++) {
-    const day = itinerary[dayIdx];
-    if (dayNumber !== undefined && (day.day_number ?? dayIdx + 1) !== dayNumber) continue;
-    for (let actIdx = 0; actIdx < day.activities.length; actIdx++) {
-      const activity = day.activities[actIdx];
-      const activityName = activity.name.toLowerCase();
-      const cleanActivityName = activityName
-        .replace(/^(the|a|an|visit|go to|see|explore)\s+/i, "")
-        .replace(/\s+(visit|tour|experience|activity)$/i, "")
-        .trim();
-
-      console.log(`  - Day ${dayIdx + 1}: "${activity.name}"`);
-
-      let score = 0;
-
-      // Exact match (highest priority)
-      if (activityName === lowerSearch || cleanActivityName === cleanSearch) {
-        score = 100;
-      }
-      // Activity name contains search term
-      else if (activityName.includes(lowerSearch) || cleanActivityName.includes(cleanSearch)) {
-        score = 80;
-      }
-      // Search term contains activity name
-      else if (lowerSearch.includes(activityName) || cleanSearch.includes(cleanActivityName)) {
-        score = 70;
-      }
-      // Word-by-word matching
-      else {
-        const searchWords = cleanSearch.split(/\s+/);
-        const activityWords = cleanActivityName.split(/\s+/);
-        const matchedWords = searchWords.filter(sw =>
-          activityWords.some(aw => aw.includes(sw) || sw.includes(aw))
-        );
-        if (matchedWords.length > 0) {
-          score = (matchedWords.length / searchWords.length) * 60;
-        }
-      }
-
-      if (score > 0 && (!bestMatch || score > bestMatch.score)) {
-        bestMatch = { activity, dayIndex: dayIdx, activityIndex: actIdx, score };
-        console.log(`  [Match found] Score: ${score} for "${activity.name}"`);
-      }
-    }
-  }
-
-  if (bestMatch && bestMatch.score >= 40) {
-    console.log(`[AI Assistant] Best match: "${bestMatch.activity.name}" with score ${bestMatch.score}`);
-    return { activity: bestMatch.activity, dayIndex: bestMatch.dayIndex, activityIndex: bestMatch.activityIndex };
-  }
-
-  console.log(`[AI Assistant] No matching activity found for "${searchName}"`);
-  return null;
 }
 
 /**
@@ -1243,7 +1169,7 @@ export async function POST(request: NextRequest) {
         }
       } else {
         console.log(`[AI Assistant] Could not find activity matching "${actionIntent.activityName}"`);
-        replacementError = `Could not find an activity matching "${actionIntent.activityName}" ${actionIntent.dayNumber ? `on Day ${actionIntent.dayNumber}` : "in your itinerary"}`;
+        replacementError = activityNotFoundReason(itinerary, actionIntent.activityName, actionIntent.dayNumber);
       }
     }
 
@@ -1302,7 +1228,7 @@ export async function POST(request: NextRequest) {
           }
         }
       } else {
-        replacementError = `Could not find an activity matching "${actionIntent.activityName}" ${actionIntent.dayNumber ? `on Day ${actionIntent.dayNumber}` : "in your itinerary"}`;
+        replacementError = activityNotFoundReason(itinerary, actionIntent.activityName, actionIntent.dayNumber);
       }
     }
 
@@ -1523,7 +1449,7 @@ export async function POST(request: NextRequest) {
           }
         }
       } else {
-        replacementError = `Could not find an activity matching "${actionIntent.activityName}" ${actionIntent.dayNumber ? `on Day ${actionIntent.dayNumber}` : "in your itinerary"}`;
+        replacementError = activityNotFoundReason(itinerary, actionIntent.activityName, actionIntent.dayNumber);
       }
     }
 
