@@ -145,15 +145,22 @@ export function CookieConsentBanner() {
   // the card can say what the consent is FOR. Logged with every consent event
   // (consent_events.variant) so the two copies can be compared.
   const contextual = bannerVariantFor(pathname) === "contextual";
-  // Defer the visible mount so the hero LCP finishes first. Without this
-  // the banner competes with the hero phone image for main-thread + paint
-  // priority and visibly delays both. 1.5s is long enough for typical
-  // hero rendering, short enough that GDPR compliance still applies.
-  const [readyToShow, setReadyToShow] = useState(false);
+  // Mount once the page's own LCP is in: at the load event (the hero
+  // image is loaded by then) or after 1.5s, whichever comes first. Held
+  // back longer, the card is itself the LCP on pages without a hero.
+  const [readyToShow, setReadyToShow] = useState(
+    () => typeof document !== "undefined" && document.readyState === "complete",
+  );
   useEffect(() => {
-    const timer = setTimeout(() => setReadyToShow(true), 1500);
-    return () => clearTimeout(timer);
-  }, []);
+    if (readyToShow) return;
+    const show = () => setReadyToShow(true);
+    const timer = setTimeout(show, 1500);
+    window.addEventListener("load", show, { once: true });
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("load", show);
+    };
+  }, [readyToShow]);
 
   // Minimised = the visitor has moved on (scrolled, or interacted with the
   // page outside the card) without choosing. Desktop shows a pill, mobile
