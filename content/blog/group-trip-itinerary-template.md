@@ -226,6 +226,8 @@ Two to three planned activities per day, maximum. That includes meals if they're
 
 Plan dinner — it's the hardest meal to agree on spontaneously, especially with a large group and limited local knowledge. Dinner is where group friction concentrates: it is the one meal everybody attends, it costs the most, and it is the one that needs a booking. Leave breakfast and lunch flexible. People eat at different paces, have different dietary needs, and sometimes just want to grab something quick and keep exploring.
 
+Looking at the template formats themselves rather than the group logistics? We compare Google Sheets, Notion, Canva and Wanderlog templates, and when to skip the template, in [Travel Itinerary Templates in 2026](/blog/best-travel-itinerary-templates-2026).
+
 ---
 
 *Sources: [American Psychological Association — Decision Fatigue](https://www.apa.org/topics/stress/decision-fatigue), [Cornell Hospitality Quarterly](https://journals.sagepub.com/home/cqx)*
