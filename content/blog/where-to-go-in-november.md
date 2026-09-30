@@ -147,7 +147,7 @@ Flip the hemisphere. November is late spring in New Zealand: days stretching tow
 - **Follow the monsoon flip, not the brochure.** November splits Asia cleanly: Thailand's Andaman coast, Kerala, and southern Vietnam are drying out, while the Thai Gulf islands, Tamil Nadu, and central Vietnam catch rain. Our [monsoon-season guide](/blog/monsoon-season-where-to-go-and-avoid) maps the whole calendar so you land on the drier side.
 - **The Middle East and North Africa are at their peak now.** Egypt, Jordan, Oman, and Morocco all switch from unbearable to ideal in November; pack layers for the desert nights.
 - **Book the festival dates, wing the rest.** Three things sell out early this month: Oaxaca's Día de Muertos (1–2 November), [Diwali across India](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html?year=2026) (8 November in 2026), and Thailand's lantern festivals around 24 November. Diwali week is a heavy domestic-travel period in India, so book internal flights early.
-- **Compare it against peak season and you'll never go back.** The same latitudes that cost a fortune in [August](/blog/where-to-go-in-august) are calm and cheap now; see how the [2026 travel calendar](/blog/2026-travel-calendar) stacks up before you lock dates.
+- **Compare it against peak season and you'll never go back.** The same latitudes that cost a fortune in [August](/blog/where-to-go-in-august) are calm and cheap now; see how the [2026 travel calendar](/blog/2026-travel-calendar) stacks up before you lock dates. Planning further ahead? See [December](/blog/where-to-go-in-december) and [February](/blog/where-to-go-in-february).
 
 ## Plan Your November Trip in 30 Seconds
 

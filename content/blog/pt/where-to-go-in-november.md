@@ -151,7 +151,7 @@ Mude de hemisfério. Novembro é primavera tardia na Nova Zelândia: dias a esti
 - **Siga a viragem da monção, não a brochura.** Novembro divide a Ásia de forma limpa: a costa de Andamão da Tailândia, o Kerala e o sul do Vietname vão secando, enquanto as ilhas do Golfo tailandês, o Tamil Nadu e o Vietname central apanham chuva. O nosso [guia da época das monções](/blog/monsoon-season-where-to-go-and-avoid) mapeia o calendário para aterrar do lado seco.
 - **O Médio Oriente e o Norte de África estão agora no auge.** O Egito, a Jordânia, Omã e Marrocos passam de insuportáveis a ideais em novembro; leve camadas para as noites do deserto.
 - **Reserve as datas do festival, improvise o resto.** Três coisas esgotam cedo este mês: o Día de Muertos de Oaxaca (1–2 de novembro), o [Diwali em toda a Índia](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html?year=2026) (8 de novembro em 2026) e os festivais de lanternas da Tailândia à volta de 24 de novembro. A semana do Diwali é de viagens internas intensas na Índia: reserve cedo os voos internos.
-- **Compare com a época alta e não volta atrás.** As mesmas latitudes que custam uma fortuna em [agosto](/blog/where-to-go-in-august) estão agora calmas e baratas; veja como fica o [calendário de viagens 2026](/blog/2026-travel-calendar) antes de fixar datas.
+- **Compare com a época alta e não volta atrás.** As mesmas latitudes que custam uma fortuna em [agosto](/blog/where-to-go-in-august) estão agora calmas e baratas; veja como fica o [calendário de viagens 2026](/blog/2026-travel-calendar) antes de fixar datas. Planejando com mais antecedência? Veja [dezembro](/blog/where-to-go-in-december) e [fevereiro](/blog/where-to-go-in-february).
 
 ## Planeie a sua viagem de novembro em 30 segundos
 
