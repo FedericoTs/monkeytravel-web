@@ -11,9 +11,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ShareAndInviteModal from "./ShareAndInviteModal";
+import { shareFile } from "@/lib/native/share";
+import { captureTripCardShared } from "@/lib/posthog/events";
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
+  useLocale: () => "en",
+}));
+vi.mock("@/lib/native/share", () => ({
+  shareFile: vi.fn(async () => "downloaded"),
+}));
+vi.mock("@/lib/posthog/events", () => ({
+  captureTripCardShared: vi.fn(),
 }));
 vi.mock("@/lib/analytics", () => ({
   trackShareModalOpened: vi.fn(),
@@ -94,6 +103,7 @@ beforeEach(() => {
     vi.fn(async () => ({
       ok: true,
       json: async () => ({ shareToken: TOKEN, shareUrl: SHARE_URL, isShared: true, collaborators: [], invites: [] }),
+      blob: async () => new Blob(["png"], { type: "image/png" }),
     }))
   );
 });
@@ -183,5 +193,29 @@ describe("sharing controls for someone who is not the owner", () => {
     renderAs(undefined, true);
     expect(screen.getByText("share.stopSharing.button")).toBeTruthy();
     expect(screen.getByText("share.explore.submitTo")).toBeTruthy();
+  });
+
+  it("offers the trip as an image only once there is a link", () => {
+    const { unmount } = renderAs(undefined, false);
+    expect(screen.queryByTestId("share-image-story")).toBeNull();
+    unmount();
+    renderAs(undefined, true);
+    expect(screen.getByTestId("share-image-story")).toBeTruthy();
+    expect(screen.getByTestId("share-image-square")).toBeTruthy();
+  });
+});
+
+/** The trip as a picture: the card is fetched by token and handed over as a file. */
+describe("share as an image", () => {
+  it("fetches the story card for the link's token and shares it as a named PNG", async () => {
+    renderModal("solo");
+    fireEvent.click(screen.getByTestId("share-image-story"));
+    await waitFor(() => expect(vi.mocked(shareFile)).toHaveBeenCalledTimes(1));
+    expect(fetch).toHaveBeenCalledWith(`/api/og/trip?token=${TOKEN}&format=story&locale=en`);
+    const [file, options] = vi.mocked(shareFile).mock.calls[0];
+    expect(file.name).toBe("lisbon-trip-story.png");
+    expect(file.type).toBe("image/png");
+    expect(options).toEqual({ title: "Lisbon Trip" });
+    expect(captureTripCardShared).toHaveBeenCalledWith({ trip_id: "trip-1", format: "story", method: "download" });
   });
 });
