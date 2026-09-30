@@ -1,5 +1,6 @@
 "use client";
 
+import { DAY_COLORS } from "@/lib/map/day-colors";
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import {
@@ -95,17 +96,6 @@ const mapOptions: google.maps.MapOptions = {
   ],
 };
 
-// Day colors for markers - Fresh Voyager theme
-const DAY_COLORS = [
-  "#FF6B6B", // Day 1 - Coral (primary)
-  "#00B4A6", // Day 2 - Teal (secondary)
-  "#FFD93D", // Day 3 - Gold (accent)
-  "#A29BFE", // Day 4 - Purple
-  "#00B894", // Day 5 - Green
-  "#FD79A8", // Day 6 - Pink
-  "#74B9FF", // Day 7 - Blue
-  "#FDCB6E", // Day 8 - Yellow
-];
 
 /**
  * Generate a stable hash for days to detect real changes

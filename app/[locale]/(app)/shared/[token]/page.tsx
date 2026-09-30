@@ -1,3 +1,4 @@
+import { tripCardUrl } from "@/lib/seo/og-image";
 import { cache } from "react";
 import { cookies, headers } from "next/headers";
 import { createClient, signedInUserId } from "@/lib/supabase/server";
@@ -123,7 +124,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "website",
       images: [
         {
-          url: `https://monkeytravel.app/api/og/trip?token=${encodeURIComponent(token)}`,
+          url: tripCardUrl({ token }, { locale }),
           width: 1200,
           height: 630,
           alt: trip.title ?? "Trip itinerary",
@@ -134,7 +135,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: "summary_large_image",
       title: trip.title,
       description: trip.description || `Check out this travel itinerary on MonkeyTravel`,
-      images: [`https://monkeytravel.app/api/og/trip?token=${encodeURIComponent(token)}`],
+      images: [tripCardUrl({ token }, { locale })],
     },
   };
 }

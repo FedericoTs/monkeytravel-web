@@ -1122,6 +1122,14 @@
     "titleWithInvite": "Condividi e Invita",
     "shareLink": "Link di Condivisione",
     "shareVia": "Condividi tramite",
+    "image": {
+      "label": "Condividi come immagine",
+      "story": "Storia · 9:16",
+      "square": "Quadrata · 1:1",
+      "preparing": "Preparazione…",
+      "failed": "Impossibile creare l'immagine. Riprova.",
+      "hint": "Un'immagine del piano per storie, chat e feed."
+    },
     "participants": {
       "aria": "Chi viene e la tua risposta",
       "going": "{count, plural, =0 {Ancora nessuno} =1 {# viene} other {# vengono}}",

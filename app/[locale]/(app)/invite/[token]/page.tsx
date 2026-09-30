@@ -1,3 +1,4 @@
+import { tripCardUrl } from "@/lib/seo/og-image";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
@@ -66,7 +67,7 @@ async function getInviteData(token: string) {
   // Fetch trip
   const { data: trip, error: tripError } = await supabase
     .from("trips")
-    .select("id, title, description, start_date, end_date, cover_image_url, user_id, itinerary")
+    .select("id, title, description, start_date, end_date, cover_image_url, share_token, user_id, itinerary")
     .eq("id", invite.trip_id)
     .single();
 
@@ -160,6 +161,7 @@ async function getInviteData(token: string) {
       title: trip.title,
       description: trip.description,
       coverImageUrl: trip.cover_image_url,
+      shareToken: (trip.share_token as string | null) ?? null,
       startDate: trip.start_date,
       endDate: trip.end_date,
       durationDays,
@@ -206,7 +208,7 @@ async function viewerOnTrip(tripId: string): Promise<boolean | null> {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { token } = await params;
+  const { token, locale } = await params;
   const data = await getInviteData(token);
 
   // Root layout's title.template appends " | MonkeyTravel" — page-level
@@ -235,7 +237,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: `Join ${data.trip.title}`,
       description: `${data.inviter?.displayName || data.owner.displayName} invited you to join their trip.`,
-      images: data.trip.coverImageUrl ? [data.trip.coverImageUrl] : [],
+      images: data.trip.shareToken
+        ? [tripCardUrl({ token: data.trip.shareToken }, { locale })]
+        : data.trip.coverImageUrl
+          ? [data.trip.coverImageUrl]
+          : [],
     },
   };
 }

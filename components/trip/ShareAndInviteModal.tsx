@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { TrendingUp, Globe, Users, Copy, Check, Mail, Share2, Eye, UserPlus } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
   trackShareModalOpened,
@@ -16,7 +16,10 @@ import BottomSheet from "@/components/ui/BottomSheet";
 import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { openExternal } from "@/lib/native/external-link";
-import { defaultShareFraming, framedShareUrl, type ShareFraming } from "@/lib/trips/crew-share";
+import { shareFile } from "@/lib/native/share";
+import { captureTripCardShared } from "@/lib/posthog/events";
+import { tripCardPath } from "@/lib/seo/og-image";
+import { defaultShareFraming, framedShareUrl, shareTokenFromUrl, type ShareFraming } from "@/lib/trips/crew-share";
 import type { TripCollaborator, TripInvite, CollaboratorRole } from "@/types";
 
 type TabType = "share" | "invite";
@@ -68,11 +71,13 @@ export default function ShareAndInviteModal({
   canManageSharing = true,
 }: ShareAndInviteModalProps) {
   const t = useTranslations("common");
+  const locale = useLocale();
   // Helper to access share translations with proper prefix
   const ts = (key: string, params?: Record<string, string | number>) => t(`share.${key}`, params);
   const tb = (key: string) => t(`buttons.${key}`);
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [copied, setCopied] = useState(false);
+  const [imageBusy, setImageBusy] = useState<"story" | "square" | null>(null);
   // Share framing (2026-09-18): which link the owner hands out. Defaults from
   // the trip's intent (lib/trips/crew-share.ts); the owner can flip it.
   // Re-derived when the modal is reused for another trip.
@@ -227,6 +232,29 @@ export default function ShareAndInviteModal({
     const body = encodeURIComponent(`${ts(crew ? "socialText.emailBodyCrew" : "socialText.emailBody")}\n\n${framedUrl}`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
     trackTripShared({ tripId, shareMethod: "email" });
+  };
+
+  // The trip as a picture (app/api/og/trip): the OS share sheet when the
+  // browser will take a file, otherwise a download.
+  const shareToken = shareTokenFromUrl(shareUrl);
+  const handleShareImage = async (format: "story" | "square") => {
+    if (!shareToken || imageBusy) return;
+    setImageBusy(format);
+    try {
+      const res = await fetch(tripCardPath({ token: shareToken }, { format, locale }));
+      if (!res.ok) throw new Error(`card ${res.status}`);
+      const blob = await res.blob();
+      const stem = tripTitle.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "").toLowerCase() || "trip";
+      const outcome = await shareFile(new File([blob], `${stem}-${format}.png`, { type: "image/png" }), { title: tripTitle });
+      if (outcome === "cancelled") return;
+      trackTripShared({ tripId, shareMethod: "image" });
+      void captureTripCardShared({ trip_id: tripId, format, method: outcome === "shared" ? "native_share" : "download" });
+    } catch (error) {
+      console.error("Failed to share the trip image:", error);
+      addToast(ts("image.failed"), "error");
+    } finally {
+      setImageBusy(null);
+    }
   };
 
   // Generate invite link
@@ -564,6 +592,31 @@ export default function ShareAndInviteModal({
                         </button>
                       </div>
                     </div>
+
+                    {/* The trip as a picture, for stories, chats and feeds. */}
+                    {shareToken && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                          {ts("image.label")}
+                        </label>
+                        <div className="flex items-center gap-3">
+                          {(["story", "square"] as const).map((format) => (
+                            <button
+                              key={format}
+                              type="button"
+                              onClick={() => handleShareImage(format)}
+                              disabled={imageBusy !== null}
+                              data-testid={`share-image-${format}`}
+                              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                            >
+                              <Share2 className="w-4 h-4" aria-hidden="true" />
+                              {imageBusy === format ? ts("image.preparing") : ts(`image.${format}`)}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="mt-2 text-xs text-slate-500">{ts("image.hint")}</p>
+                      </div>
+                    )}
 
                     {/* Listing in Explore and stopping the link: owner only. */}
                     {canManageSharing && (

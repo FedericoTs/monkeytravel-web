@@ -1122,6 +1122,14 @@
     "titleWithInvite": "Compartir e Invitar",
     "shareLink": "Enlace para Compartir",
     "shareVia": "Compartir vía",
+    "image": {
+      "label": "Compartir como imagen",
+      "story": "Historia · 9:16",
+      "square": "Cuadrada · 1:1",
+      "preparing": "Preparando…",
+      "failed": "No se pudo crear la imagen. Inténtalo de nuevo.",
+      "hint": "Una imagen del plan para historias, chats y redes."
+    },
     "participants": {
       "aria": "Quién va y tu respuesta",
       "going": "{count, plural, =0 {Nadie todavía} =1 {# va} other {# van}}",

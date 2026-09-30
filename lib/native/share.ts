@@ -130,3 +130,37 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 export function isNative(): boolean {
   return isNativePlatform();
 }
+
+/**
+ * Share a file through the OS sheet when the browser will take one, else
+ * download it. "cancelled" means the sheet opened and was dismissed.
+ */
+export async function shareFile(
+  file: File,
+  options: { title?: string; text?: string } = {}
+): Promise<"shared" | "downloaded" | "cancelled"> {
+  if (
+    typeof navigator !== "undefined" &&
+    typeof navigator.share === "function" &&
+    typeof navigator.canShare === "function" &&
+    navigator.canShare({ files: [file] })
+  ) {
+    try {
+      await navigator.share({ files: [file], title: options.title, text: options.text });
+      return "shared";
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/abort|cancel/i.test(msg)) return "cancelled";
+      // Not shareable after all — fall through to the download.
+    }
+  }
+  const href = URL.createObjectURL(file);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = file.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(href), 10_000);
+  return "downloaded";
+}
