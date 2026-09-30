@@ -188,6 +188,8 @@ export default function DestinationHero({
   // *effective* (retry-suffixed) src so a remount on retry resets state.
   const [imageLoaded, setImageLoaded] = useImageLoaded(heroImgRef, effectiveCoverUrl);
 
+  const galleryPhotos = destinationData?.galleryPhotos ?? [];
+
   // Currency conversion hook - converts to user's preferred currency
   const { convert: convertCurrency } = useCurrency();
 
@@ -434,11 +436,13 @@ export default function DestinationHero({
         </div>
       )}
 
-      {/* Gallery preview - floating cards, hidden on very small screens */}
-      {destinationData?.galleryPhotos && destinationData.galleryPhotos.length > 0 && (
+      {/* Gallery preview - floating cards, hidden on very small screens. A
+          hero that fetches its destination keeps the row from the first
+          render: the photos arrive later and used to push the page down. */}
+      {(galleryPhotos.length > 0 || (!coverImageUrl && !disableApiCalls)) && (
         <div className="hidden sm:block max-w-4xl mx-auto px-4 -mt-6 relative z-10">
-          <div className="flex gap-2 justify-end">
-            {destinationData.galleryPhotos.slice(0, 3).map((photo, idx) => (
+          <div className="flex gap-2 justify-end h-16 md:h-20">
+            {galleryPhotos.slice(0, 3).map((photo, idx) => (
               <div
                 key={idx}
                 className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg overflow-hidden shadow-lg border-2 border-white relative"
@@ -451,9 +455,9 @@ export default function DestinationHero({
                 />
               </div>
             ))}
-            {destinationData.galleryPhotos.length > 3 && (
+            {galleryPhotos.length > 3 && (
               <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg overflow-hidden shadow-lg border-2 border-white bg-slate-900/80 flex items-center justify-center text-white text-xs sm:text-sm font-medium">
-                +{destinationData.galleryPhotos.length - 3}
+                +{galleryPhotos.length - 3}
               </div>
             )}
           </div>

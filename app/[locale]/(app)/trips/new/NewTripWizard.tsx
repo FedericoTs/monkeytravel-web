@@ -63,8 +63,9 @@ const REQUIREMENTS_MAX = 500;
 //   2. the two that dominate the shift carry a correctly sized `loading` box,
 //      so a slow network degrades to a skeleton instead of a jump.
 // Heights are measured off the live components, not guessed:
-//   hero  — the image box (h-64 md:h-80 lg:h-96 in DestinationHero) plus the
-//           tag chips that hang off its bottom edge (30px chips, pulled up 12px)
+//   hero  — the image box (h-64 md:h-80 lg:h-96 in DestinationHero), the tag
+//           chips hanging off its bottom edge, and from sm the gallery row the
+//           hero reserves while it fetches (thumbnail minus its -mt-6)
 //   card  — 363px at 375w, 324px at 1280w
 // The card is SHORTER on desktop despite its taller image (h-40 vs h-32)
 // because the description wraps to fewer lines. Re-measure before touching
@@ -73,7 +74,8 @@ const REQUIREMENTS_MAX = 500;
 const HeroSkeleton = () => (
   <div aria-hidden="true">
     <div className="h-64 md:h-80 lg:h-96 w-full bg-slate-100 animate-pulse" />
-    <div className="h-[18px]" />
+    <div className="h-5" />
+    <div className="hidden sm:block sm:h-10 md:h-14" />
   </div>
 );
 const ActivityCardSkeleton = () => (
@@ -133,6 +135,7 @@ const AnonymousShareButton = dynamic(
 // a layout shift at the moment the result appears.
 let warmedAssistantPanel: (typeof import("@/components/trip/AnonAssistantPanel"))["default"] | null = null;
 let warmedShareButton: (typeof import("@/components/trip/AnonymousShareButton"))["default"] | null = null;
+let warmedRegenerateButton: (typeof import("@/components/trip/RegenerateButton"))["default"] | null = null;
 
 function preloadResultViewChunks(): void {
   const warm = (p: Promise<unknown>) => {
@@ -142,7 +145,7 @@ function preloadResultViewChunks(): void {
   warm(import("@/components/ActivityCard"));
   warm(import("@/components/TripMap"));
   warm(import("@/components/trip/AnonAssistantPanel").then((m) => { warmedAssistantPanel = m.default; }));
-  warm(import("@/components/trip/RegenerateButton"));
+  warm(import("@/components/trip/RegenerateButton").then((m) => { warmedRegenerateButton = m.default; }));
   warm(import("@/components/trip/ValuePropositionBanner"));
   warm(import("@/components/trip/ExportMenu"));
   warm(import("@/components/trip/AnonymousShareButton").then((m) => { warmedShareButton = m.default; }));
@@ -424,6 +427,8 @@ interface NewTripWizardProps {
   prefilledDestination: PrefilledDestination | null;
   /** Month (1-12) the server rendered with: orders the popular picks on both sides of hydration. */
   seasonMonth: number;
+  /** Server-resolved: signed in with trips already, so step 1 opens with the welcome-back banner. */
+  returningUser?: boolean;
   /**
    * Trip length / budget / vibes carried in from a blog CTA, so a reader who
    * just finished "3-day Paris itinerary" doesn't have to retype the trip the
@@ -437,6 +442,7 @@ export default function NewTripPage({
   prefilledDestination,
   prefilledTripShape,
   seasonMonth,
+  returningUser = false,
 }: NewTripWizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -463,6 +469,7 @@ export default function NewTripPage({
   const typeLabel = useActivityTypeLabel();
   const AssistantPanelView = warmedAssistantPanel ?? AnonAssistantPanel;
   const ShareButtonView = warmedShareButton ?? AnonymousShareButton;
+  const RegenerateButtonView = warmedRegenerateButton ?? RegenerateButton;
   // Locale is forwarded into the wizard_step_events rows so the funnel
   // can be sliced by language without joining back to URL paths. See
   // /api/wizard-event + the trackWizardEvent helper above.
@@ -533,7 +540,7 @@ export default function NewTripPage({
     });
   }, [posthog, entryResolved, authEventAtMount, prefillAtMount, claimedTripId, isAuthenticated]);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [hasExistingTrips, setHasExistingTrips] = useState(false);
+  const [hasExistingTrips, setHasExistingTrips] = useState(returningUser);
   const [showReturningUserBanner, setShowReturningUserBanner] = useState(true);
 
   // ── Claimed trip ──────────────────────────────────────────────────────────
@@ -1666,6 +1673,10 @@ export default function NewTripPage({
   // "Unsaved" respects BOTH save arms: the manual flow (savedTripId) and the
   // auto-save flow (autoSave.savedTripId).
   const isUnsaved = !savedTripId && !autoSave.savedTripId;
+  // Signed in with auto-save on: the save is already under way, so the bars
+  // keep their saved layout (the button reads "Saving…") rather than
+  // flashing the unsaved one and collapsing a second later.
+  const autoSaving = autoSaveEnabled && !deferAutoSave && isAuthenticated === true && autoSave.status !== "error";
   const hasResult = Boolean(generatedItinerary);
   // The tray's restore-swap must never run while the auto-save arm is live:
   // useAutoSaveTrip's effect would UPDATE the persisted row with a DIFFERENT
@@ -3208,7 +3219,7 @@ export default function NewTripPage({
                   surface="anon_result"
                 />
               )}
-              <RegenerateButton
+              <RegenerateButtonView
                 onRegenerate={requestRegenerate}
                 isRegenerating={isRegenerating || generating}
                 variant="compact"
@@ -3252,7 +3263,7 @@ export default function NewTripPage({
                   free/benefit line is the desktop twin of the mobile nudge.
                   Hidden once saved; lg+ only so it doesn't crowd the header on
                   narrow desktops. */}
-              {!savedTripId && (
+              {!savedTripId && !autoSaving && (
                 <span className="hidden lg:flex items-center gap-1.5 text-xs font-medium text-emerald-600 whitespace-nowrap">
                   <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -3263,7 +3274,7 @@ export default function NewTripPage({
                 </span>
               )}
               {/* Unsaved-state pill (both save arms). */}
-              {isUnsaved && <NotSavedPill />}
+              {isUnsaved && !autoSaving && <NotSavedPill />}
               {autoSaveEnabled && autoSave.savedTripId && autoSave.status !== "saving" ? (
                 // Auto-save flow: trip already persisted. Repurpose the
                 // primary action as a navigation to the saved detail view.
@@ -3359,7 +3370,7 @@ export default function NewTripPage({
               hidden sm:block, so without this mobile gets a bare Save button
               with no "why". A compact free/benefit line at the always-visible
               save moment. Hides once the trip is saved. */}
-          {!savedTripId && (
+          {!savedTripId && !autoSaving && (
             <p className="mb-2 flex items-center justify-center gap-1.5 text-[11px] font-medium text-emerald-600">
               <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -3378,7 +3389,7 @@ export default function NewTripPage({
               the save route. isAuthenticated is tri-state, so only an
               explicit `false` swaps — `null` means still resolving and must not
               flash a share button at someone who turns out to be signed in. */}
-          {!savedTripId && (isAuthenticated === false && generatedItinerary ? (
+          {!savedTripId && !autoSaving && (isAuthenticated === false && generatedItinerary ? (
             <ShareButtonView
               onShared={handleAnonShared}
               onKeep={handleKeepSharedTrip}
@@ -3419,7 +3430,7 @@ export default function NewTripPage({
             </button>
 
             {/* Regenerate - Mobile */}
-            <RegenerateButton
+            <RegenerateButtonView
               onRegenerate={requestRegenerate}
               isRegenerating={isRegenerating || generating}
               variant="icon-only"
@@ -3427,7 +3438,7 @@ export default function NewTripPage({
             />
 
             {/* Unsaved-state pill, next to the Save button. */}
-            {isUnsaved && <NotSavedPill />}
+            {isUnsaved && !autoSaving && <NotSavedPill />}
 
             {/* Save - Mobile (Full Width) */}
             {autoSaveEnabled && autoSave.savedTripId && autoSave.status !== "saving" ? (
@@ -3918,7 +3929,7 @@ export default function NewTripPage({
               </svg>
               {t("wizard.result.notQuiteRight")}
             </div>
-            <RegenerateButton
+            <RegenerateButtonView
               onRegenerate={requestRegenerate}
               isRegenerating={isRegenerating || generating}
               variant="default"
@@ -3990,7 +4001,7 @@ export default function NewTripPage({
             claim flips hasExistingTrips to true one tick later and "Welcome
             back — you already have trips" would contradict "your trip came
             with you" for someone who created the account a minute ago. */}
-        {isAuthenticated && hasExistingTrips && showReturningUserBanner && step === 1 && !claimedTripId && !isFreshSignup && (
+        {isAuthenticated !== false && hasExistingTrips && showReturningUserBanner && step === 1 && !claimedTripId && !isFreshSignup && (
           <div className="mb-6 p-4 bg-gradient-to-r from-[var(--primary)]/5 to-[var(--secondary)]/5 border border-[var(--primary)]/20 rounded-xl">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">

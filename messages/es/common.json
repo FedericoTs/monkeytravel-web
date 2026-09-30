@@ -859,6 +859,7 @@
       "finalizingDesc": "Dando los toques finales a"
     },
     "elapsed": "{seconds}s transcurridos",
+    "streamedDay": "Día {current} de {total}",
     "estimatedTime": "Creando tu itinerario personalizado: esto suele tardar uno o dos minutos",
     "takingLonger": "Casi listo: un itinerario detallado y personalizado merece unos segundos más. ¡Un momento!",
     "funFacts": {
