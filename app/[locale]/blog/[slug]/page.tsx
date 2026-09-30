@@ -327,6 +327,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
             className="object-cover"
             sizes="100vw"
             priority
+            fetchPriority="high"
           />
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-black/20" />
