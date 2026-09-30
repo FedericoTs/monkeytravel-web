@@ -126,23 +126,14 @@ export function ConsentProvider({ children, userId }: ConsentProviderProps) {
         }
       }
 
-      // If no consent found anywhere, show banner — but defer the
-      // appearance by ~800ms so it doesn't race the rest of the
-      // page (auth-button hydration, navbar settle, image priorities).
-      // Banner pops up as a deliberate moment rather than competing
-      // with everything else painting in the first 200ms.
+      // No consent anywhere: the banner itself waits for the page's own
+      // paint before mounting (CookieConsentBanner), so no delay here.
       if (!localRecord && (!userId || !(await loadConsentFromSupabase(userId || "")))) {
-        const t = setTimeout(() => setBannerStatus("visible"), 800);
-        cleanups.push(() => clearTimeout(t));
+        setBannerStatus("visible");
       }
-
     }
 
-    const cleanups: Array<() => void> = [];
     initializeConsent();
-    return () => {
-      cleanups.forEach((fn) => fn());
-    };
   }, [userId]);
 
   // Accept all cookies
