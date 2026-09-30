@@ -91,6 +91,19 @@ describe("composeReply", () => {
     expect(composeReply({ ...base, reply, edits: [] })).toBe(reply);
   });
 
+  it("a currency request drops the model's currency claims and says what the page did", () => {
+    const claimed = "The budget estimates are already in Euros, as requested in our previous conversation. All costs listed are in EUR.";
+    expect(composeReply({ ...base, reply: claimed, edits: [], currency: "EUR" })).toBe("Done: prices now show in EUR.");
+    const mixed = "Day 2 looks balanced. Prices will be shown in euros.";
+    expect(composeReply({ ...base, reply: mixed, edits: [], currency: "EUR" })).toBe("Day 2 looks balanced. Done: prices now show in EUR.");
+  });
+
+  it("a currency request next to a day edit keeps the edit's reply and adds the switch", () => {
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    const text = composeReply({ ...base, reply: "Here's a Colmar day trip for day 2.", edits: [d2], currency: "EUR" });
+    expect(text).toBe("Here's a Colmar day trip for day 2. Done: prices now show in EUR.");
+  });
+
   it("a 'swap' that prepared one side says the other side is missing", () => {
     const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
     const text = composeReply({
