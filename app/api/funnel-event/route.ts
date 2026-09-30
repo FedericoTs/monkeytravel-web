@@ -3,9 +3,10 @@
 // UX10X Master Plan Phase 0.3 — endpoint for CLIENT-fired funnel events.
 // Server-side loop events (share_link_created / share_link_visited /
 // vote_cast) insert into funnel_events directly via the service-role helper
-// (lib/analytics/funnel-events.ts); only the one client-fired event needs an
+// (lib/analytics/funnel-events.ts); only the client-fired events need an
 // HTTP endpoint: plan_own_clicked, fired from the /shared "plan your own"
-// CTAs. Mirrors /api/wizard-event's composite IP+session rate limit and its
+// CTAs, and trip_card_shared, fired when the owner shares or downloads the
+// trip card. Mirrors /api/wizard-event's composite IP+session rate limit and its
 // anon-friendly insert (the funnel_events INSERT RLS policy enforces
 // user_id IS NULL OR user_id = auth.uid(), so we pass auth.uid() when present
 // and let the DB reject mismatches).
@@ -17,13 +18,21 @@ import { errors } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 
-const BodySchema = z.object({
-  // Only the client-fired event is accepted here; server events never POST.
-  event_type: z.literal("plan_own_clicked"),
-  trip_id: z.string().uuid().optional(),
-  destination: z.string().trim().max(120).optional(),
-  referral_code: z.string().trim().max(64).optional(),
-});
+// Only the client-fired events are accepted here; server events never POST.
+const BodySchema = z.discriminatedUnion("event_type", [
+  z.object({
+    event_type: z.literal("plan_own_clicked"),
+    trip_id: z.string().uuid().optional(),
+    destination: z.string().trim().max(120).optional(),
+    referral_code: z.string().trim().max(64).optional(),
+  }),
+  z.object({
+    event_type: z.literal("trip_card_shared"),
+    trip_id: z.string().uuid(),
+    format: z.enum(["story", "square"]),
+    method: z.enum(["native_share", "download"]),
+  }),
+]);
 
 // Composite IP + session limiter, same shape as /api/wizard-event: the IP
 // bucket catches cookie-rotation abuse, the session bucket catches a stuck
@@ -82,10 +91,10 @@ export async function POST(request: NextRequest) {
     trip_id: body.trip_id ?? null,
     session_id: rawSession ?? null,
     user_id: userId,
-    metadata: {
-      destination: body.destination ?? null,
-      referral_code: body.referral_code ?? null,
-    },
+    metadata:
+      body.event_type === "plan_own_clicked"
+        ? { destination: body.destination ?? null, referral_code: body.referral_code ?? null }
+        : { format: body.format, method: body.method },
   });
 
   if (error) {

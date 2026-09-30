@@ -217,5 +217,14 @@ describe("share as an image", () => {
     expect(file.type).toBe("image/png");
     expect(options).toEqual({ title: "Lisbon Trip" });
     expect(captureTripCardShared).toHaveBeenCalledWith({ trip_id: "trip-1", format: "story", method: "download" });
+    // The first-party count, which does not wait for analytics consent.
+    const post = vi.mocked(fetch).mock.calls.find(([url]) => url === "/api/funnel-event");
+    expect(post?.[1]).toMatchObject({ method: "POST", keepalive: true });
+    expect(JSON.parse(String(post?.[1]?.body))).toEqual({
+      event_type: "trip_card_shared",
+      trip_id: "trip-1",
+      format: "story",
+      method: "download",
+    });
   });
 });

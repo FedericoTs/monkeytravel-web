@@ -10,21 +10,28 @@
 // should `void logFunnelEventServer(...)` (do not await).
 //
 // Writes use the service-role admin client, so they bypass RLS and do not
-// depend on the anon INSERT policy (that policy is only for the one
-// client-fired event, plan_own_clicked, added in PR2c).
+// depend on the anon INSERT policy (that policy is only for the client-fired
+// events posted to app/api/funnel-event).
 
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export type FunnelEventType =
-  | "share_link_created"
-  | "share_link_visited"
-  | "vote_cast"
-  | "plan_own_clicked"
+/** The event vocabulary, in step with the funnel_events CHECK (funnel-events.vitest.ts). */
+export const FUNNEL_EVENT_TYPES = [
+  "share_link_created",
+  "share_link_visited",
+  "vote_cast",
+  "plan_own_clicked",
   // 2026-09-02: an anonymous trip taken over by a signup (app/api/trips/claim).
   // The claim RPC also stamps trip_meta.claimed_at, so the count survives
   // funnel_events retention; this row carries the user for cohort joins.
-  | "trip_claimed";
+  "trip_claimed",
+  // The trip card: drawn by /api/og/trip, and shared or downloaded by the owner.
+  "trip_card_rendered",
+  "trip_card_shared",
+] as const;
+
+export type FunnelEventType = (typeof FUNNEL_EVENT_TYPES)[number];
 
 export interface FunnelEventInput {
   event_type: FunnelEventType;
