@@ -145,6 +145,8 @@ If you've decided to use a dedicated tool (smart move), here's a quick breakdown
 
 For our full analysis of all the major tools, read our [comparison of the best AI trip planners in 2026](/blog/best-ai-trip-planners-2026-compared).
 
+If your question is ChatGPT against the other general assistants rather than against dedicated planners, we compare it with Gemini, Perplexity and Claude in [Best AI for travel planning](/blog/best-ai-for-travel-planning-2026).
+
 ## The Bottom Line
 
 ChatGPT changed how people think about trip planning. It made the idea of "AI helping you plan travel" mainstream. But thinking about planning and actually planning are different things.
