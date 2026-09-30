@@ -14,6 +14,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { errors } from "@/lib/api/response-wrapper";
 import { parseConsentEvent } from "@/lib/consent/consent-event-schema";
+import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 
 export const runtime = "nodejs";
 
@@ -44,6 +45,8 @@ export async function POST(request: NextRequest) {
   }
   const payload = parseConsentEvent(body);
   if (!payload) return new NextResponse(null, { status: 204 });
+  // Previews, local dev and the CI e2e build write only tagged probes.
+  if (!writesTelemetry(sessionId)) return new NextResponse(null, { status: 204 });
 
   try {
     await createAdminClient().from("consent_events").insert({
