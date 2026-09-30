@@ -44,7 +44,7 @@ function fakeSupabase() {
           const byUser = filters.find(([c]) => c === "user_id");
           if (byUser && byUser[1] !== OWNER) return { data: null, error: { code: "PGRST116" } };
           return {
-            data: { id: TRIP, user_id: OWNER, share_token: TOKEN, shared_at: "2026-09-24T10:43:32Z", visibility: "shared" },
+            data: { id: TRIP, user_id: OWNER, share_token: TOKEN, shared_at: "2026-09-24T10:43:32Z", visibility: "public", submitted_to_trending_at: "2026-09-25T08:00:00Z" },
             error: null,
           };
         },
@@ -85,8 +85,11 @@ describe("GET share status", () => {
     expect(rpc).toHaveBeenCalledWith("get_or_create_referral_code", { p_user_id: OWNER });
   });
 
-  it("still answers the owner", async () => {
-    expect((await GET(req(), ctx)).status).toBe(200);
+  it("still answers the owner, including whether the trip is in Explore", async () => {
+    const res = await GET(req(), ctx);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect((body.data ?? body).isInTrending).toBe(true);
     expect(rpc).toHaveBeenCalledWith("get_or_create_referral_code", { p_user_id: OWNER });
   });
 

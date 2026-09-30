@@ -182,7 +182,7 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
       supabase,
       id,
       user.id,
-      "id, user_id, share_token, shared_at, visibility"
+      "id, user_id, share_token, shared_at, visibility, submitted_to_trending_at"
     );
     if (tripError) return tripError;
 
@@ -201,6 +201,8 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
       shareUrl,
       sharedAt: trip.shared_at,
       visibility: trip.visibility,
+      // The share window's Explore switch starts from this.
+      isInTrending: Boolean(trip.submitted_to_trending_at),
     });
   } catch (error) {
     console.error("[Share] Error fetching share status:", error);

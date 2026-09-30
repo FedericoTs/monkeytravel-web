@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import ShareButton from "./ShareButton";
 
 vi.mock("next-intl", () => ({
@@ -8,11 +8,11 @@ vi.mock("next-intl", () => ({
 }));
 vi.mock("@/components/collaboration/CollaboratorAvatars", () => ({ CollaboratorAvatars: () => null }));
 vi.mock("@/lib/analytics", () => ({ trackTripShared: vi.fn() }));
-// The modal has its own tests; here it only reports whether it is open and on which tab.
+// The modal has its own tests; here it only reports whether it is open, on which tab, and the Explore state.
 vi.mock("./ShareAndInviteModal", () => ({
-  default: ({ isOpen, initialTab, onClose }: { isOpen: boolean; initialTab: string; onClose: () => void }) =>
+  default: ({ isOpen, initialTab, isInTrending, onClose }: { isOpen: boolean; initialTab: string; isInTrending: boolean; onClose: () => void }) =>
     isOpen ? (
-      <div role="dialog" data-tab={initialTab}>
+      <div role="dialog" data-tab={initialTab} data-trending={String(isInTrending)}>
         <button onClick={onClose}>close</button>
       </div>
     ) : null,
@@ -45,5 +45,16 @@ describe("ShareButton modal variant", () => {
     render(<ShareButton tripId="trip-1" tripTitle="Lisbon" />);
     fireEvent.click(screen.getByRole("button", { name: "share" }));
     expect(screen.getByRole("dialog").getAttribute("data-tab")).toBe("share");
+  });
+});
+
+describe("ShareButton Explore state", () => {
+  it("starts the Explore switch from the saved status, not always off", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true, json: async () => ({ isShared: true, isInTrending: true, shareUrl: "https://x/s/1", collaborators: [] }) }))
+    );
+    render(<ShareButton tripId="trip-1" tripTitle="Lisbon" variant="modal" autoOpen />);
+    await waitFor(() => expect(screen.getByRole("dialog").getAttribute("data-trending")).toBe("true"));
   });
 });
