@@ -9,13 +9,15 @@
  * plus the one invariant that protects real people.
  *
  * What it proves
- *   - the label table has rows, with the three known reasons only
+ *   - the label table has rows, and every reason is a rule the function has
  *   - 2026-09-01 (the Cittadella sweep) is labelled as legacy_sweep, hundreds
  *     of sessions
  *   - the view excludes them: view count < raw is_bot=false count on that day
  *     by thousands
- *   - NO labelled session for a day >= 2026-09-02 ever fired the engagement
- *     beacon (an engaged session is never labelled)
+ *   - no session labelled by a rule that requires "never engaged" ever fired
+ *     the engagement beacon
+ *   - wizard_landing_fleet never labels a signed-in session, one with a
+ *     consent or funnel row, or one whose wizard went past step 1
  *   - the label share over the last 7 days sits in a sane band (5%..45%);
  *     outside it, a rule has gone wrong
  *   - the rollup the dashboard reads already reflects the labels
@@ -53,7 +55,14 @@ function check(ok: boolean, label: string, detail?: unknown) {
 
 const SWEEP_DAY = "2026-09-01";
 const ENGAGED_FROM = "2026-09-02";
-const KNOWN_REASONS = new Set(["heavy_unengaged", "ua_city_sweep", "legacy_sweep"]);
+const KNOWN_REASONS = new Set([
+  "phantom_prefetch", "document_burst", "heavy_unengaged", "ua_city_sweep", "ua_family_sweep",
+  "family_conversionless", "ua_lagging_fleet", "nocity_lagging_fleet", "stale_chrome", "legacy_sweep",
+  "cookieless_internal_entry", "entry_burst_fleet", "wizard_landing_fleet",
+]);
+// The rules whose SQL requires that the session never fired the engagement beacon.
+const UNENGAGED_ONLY = ["heavy_unengaged", "ua_city_sweep", "ua_family_sweep", "cookieless_internal_entry", "entry_burst_fleet"];
+const WIZARD_STEP_1 = ["step_1_destination_dates", "step1_heartbeat"];
 
 async function countExact(table: string, build: (q: any) => any): Promise<number> {
   const q = build(admin.from(table).select("*", { count: "exact", head: true }));
@@ -73,7 +82,7 @@ async function countExact(table: string, build: (q: any) => any): Promise<number
   check(!rErr, "label table readable with the service role", rErr?.message);
   const seen = new Set((reasons ?? []).map((r) => r.reason));
   check(seen.size > 0, "label table has rows", [...seen]);
-  check([...seen].every((r) => KNOWN_REASONS.has(r)), "every reason is one of the three known rules", [...seen]);
+  check([...seen].every((r) => KNOWN_REASONS.has(r)), "every reason is one of the known rules", [...seen]);
 
   // 2. the sweep day is labelled, hundreds of sessions, as legacy_sweep
   const sweepLabels = await countExact("page_view_session_labels", (q) =>
@@ -90,19 +99,21 @@ async function countExact(table: string, build: (q: any) => any): Promise<number
   );
   check(rawHuman - viewHuman >= 3000, `view excludes thousands of ${SWEEP_DAY} rows that is_bot alone kept`, { rawHuman, viewHuman, excluded: rawHuman - viewHuman });
 
-  // 4. an engaged session is never labelled (days with engagement data)
+  // 4. the "never engaged" rules never label an engaged session (days with engagement data)
   const { data: labelled, error: lErr } = await admin
     .from("page_view_session_labels")
     .select("session_id")
     .gte("day", ENGAGED_FROM)
+    .in("reason", UNENGAGED_ONLY)
     .limit(5000);
   check(!lErr, "labels for engagement-era days readable", lErr?.message);
   const ids = (labelled ?? []).map((r) => r.session_id);
   let engagedButLabelled = 0;
-  for (let i = 0; i < ids.length; i += 500) {
-    engagedButLabelled += await countExact("session_engagement", (q) => q.in("session_id", ids.slice(i, i + 500)));
+  // 100 ids per request: 500 UUIDs overflow the request URL
+  for (let i = 0; i < ids.length; i += 100) {
+    engagedButLabelled += await countExact("session_engagement", (q) => q.in("session_id", ids.slice(i, i + 100)));
   }
-  check(engagedButLabelled === 0, "no labelled session (day >= 2026-09-02) ever fired the engagement beacon", { checked: ids.length, engagedButLabelled });
+  check(engagedButLabelled === 0, "no session labelled by a never-engaged rule fired the engagement beacon", { checked: ids.length, engagedButLabelled });
 
   // 5. 7-day label share in a sane band
   const since = new Date(Date.now() - 7 * 864e5).toISOString();
@@ -121,6 +132,30 @@ async function countExact(table: string, build: (q: any) => any): Promise<number
   const all = (roll ?? []).filter((r) => r.dimension === "all").reduce((a, r) => a + r.views, 0);
   const total = (roll ?? []).filter((r) => r.dimension === "total").reduce((a, r) => a + r.views, 0);
   check(all > 0 && total > 0 && all - total >= 6000, `rollup ${SWEEP_DAY}: 'total' (human) sits >= 6,000 below 'all' (raw)`, { all, total });
+
+  // 7. wizard_landing_fleet keeps to its definition
+  const { data: fleet, error: fErr } = await admin
+    .from("page_view_session_labels")
+    .select("session_id")
+    .eq("reason", "wizard_landing_fleet")
+    .limit(5000);
+  check(!fErr && (fleet ?? []).length > 0, "wizard_landing_fleet has labels", fErr?.message ?? (fleet ?? []).length);
+  const fleetIds = (fleet ?? []).map((r) => r.session_id);
+  let signedIn = 0, consented = 0, funnel = 0, pastStep1 = 0;
+  for (let i = 0; i < fleetIds.length; i += 100) {
+    const chunk = fleetIds.slice(i, i + 100);
+    signedIn += await countExact("wizard_step_events", (q) => q.in("session_id", chunk).not("user_id", "is", null));
+    consented += await countExact("consent_events", (q) => q.in("session_id", chunk));
+    funnel += await countExact("funnel_events", (q) => q.in("session_id", chunk));
+    pastStep1 += await countExact("wizard_step_events", (q) =>
+      q.in("session_id", chunk).not("step", "in", `(${WIZARD_STEP_1.join(",")})`),
+    );
+  }
+  check(
+    signedIn + consented + funnel + pastStep1 === 0,
+    "wizard_landing_fleet labels no signed-in, consenting, converting or past-step-1 session",
+    { checked: fleetIds.length, signedIn, consented, funnel, pastStep1 },
+  );
 
   console.log(failures ? `\n${failures} check(s) FAILED` : "\nall checks passed");
   process.exit(failures ? 1 : 0);
