@@ -22,7 +22,7 @@ Eight weeks later, measured:
 
 Friends open and do not vote. The criterion fired. The vote-before thesis is retired.
 
-The deeper finding is what recipients *do* instead: **37.8% of human recipient sessions go on to `/trips/new`**. Intent is real. But the page's only offered action is "make your own copy", which turns a fellow traveller into a separate solo planner. The group fragments into N solo trips.
+The deeper finding is what recipients *do* instead: **37.8% of human recipient sessions go on to `/trips/new`**. *(Page views, inflated by prefetched links: the wizard's own event gives about 13% for share-link recipients. See the 2026-10-01 log.)* Intent is real. But the page's only offered action is "make your own copy", which turns a fellow traveller into a separate solo planner. The group fragments into N solo trips.
 
 And the finding underneath that one: **of 171 trips that actually travelled since May, 9 were edited during the trip, 0 used the checklist, 3 logged an expense, 0 synced a calendar.** The product is never open while the trip it planned is happening. Retention (7.4% ever return) and virality (K ≈ 0.011) are the same problem seen from two sides: the trip stops existing the moment it is generated.
 
@@ -87,7 +87,7 @@ Added, from this summer's incidents:
 
 ### Virality — the other face of the constraint
 - **K ≈ 0.011.** 80 shares lifetime · ~9 human recipients/share · 0.4% recipient→signup.
-- Recipients are real and interested: 37.8% → wizard, 9.7% → auth. They leak at "make your own copy".
+- Recipients are real and interested: 37.8% → wizard, 9.7% → auth *(prefetch-inflated page views; see the 2026-10-01 log)*. They leak at "make your own copy".
 - Referral: 43 clicks → 1 signup in 28 days.
 
 ### Product surfaces — what a first-time visitor meets
@@ -327,7 +327,7 @@ Each phase lists **entry gate → workstreams (numbered, in build order) → tes
 | Signups via invite / referred | 2 / 1 |
 | Referral clicks → signups (28d) | 43 → 1 |
 | Human recipient sessions / 28d (est.) | 600–900 |
-| Recipient → wizard / → auth | 37.8% / 9.7% |
+| Recipient → wizard / → auth | 37.8% / 9.7% (prefetch-inflated page views; see the 2026-10-01 log) |
 | `trip_views` rows ever | 0 |
 | Product-query impressions / 28d, positions | ~22,000 at 9–17 |
 | Organic clicks/day (GSC) | ~188, flat |
@@ -364,7 +364,7 @@ Operating principles 1–5 · the cut list (C1, C2, C7, C8, C9 as decided) · me
 
 ## Baseline 2026-09-05, recomputed 2026-10-01 (28 full UTC days, 2026-08-08 → 2026-09-05 exclusive)
 
-*Produced by `scripts/baseline-snapshot.mts` from `get_live_trip_baseline(28, '2026-09-05')` at 2026-10-01T13:27Z. Every figure reads labelled human data (`page_views_human`, automation labels applied to wizard sessions and trip opens). Re-run the same command for the weekly ritual; never hand-edit these numbers. A past window read with today's definitions and the labels as stored now; the participant rows are not recomputed.*
+*Produced by `scripts/baseline-snapshot.mts` from `get_live_trip_baseline(28, '2026-09-05')` at 2026-10-01T14:56Z. Every figure reads labelled human data (`page_views_human`, automation labels applied to wizard sessions and trip opens). Re-run the same command for the weekly ritual; never hand-edit these numbers. A past window read with today's definitions and the labels as stored now; the participant rows are not recomputed.*
 
 | Area | Metric | Value |
 |---|---|---|
@@ -373,8 +373,9 @@ Operating principles 1–5 · the cut list (C1, C2, C7, C8, C9 as decided) · me
 | Live trip | trips in progress today / opened today by their people | 17 / 0 |
 | Live trip | edited during the trip (trips travelled since 2026-05-01) | — (reads each trip's current updated_at, so a past window cannot be recomputed); 161 trips |
 | Live trip | trip_views rows in window by source | none in window |
-| Recipients | human recipient sessions (`/shared/*`, `/trip/*`) | 981 (245.3/week) |
-| Recipients | recipient → wizard / → auth | 26.8% / 3.8% |
+| Recipients | human recipient sessions (`/shared/*`, `/trip/*`): all / arrived by a share link / by a public trip page | 981 (245.3/week) / 182 / 799 |
+| Recipients | recipient → wizard (the wizard's own step-1 event later in the session): all / share link / public trip page | 4.5% / 13.2% / 2.5% |
+| Recipients | recipient → auth (a page view of `/auth/*`) | 3.8% — reads high: before the prefetch fix of 2026-09-17 a prefetched sign-in link counted as a view |
 | Recipients | **recipient → participant** — people who tapped *I'm going* ÷ human recipient sessions (a rate of people over sessions, like K) | — (— of —; measured since —) |
 | Sharing | trips created / shared / share rate | 146 (5.2/day) / 42 / 26% |
 | Sharing | recipient sessions per shared trip | 23.4 |
@@ -393,6 +394,7 @@ Operating principles 1–5 · the cut list (C1, C2, C7, C8, C9 as decided) · me
 
 - 2026-09-18 · Group-intent shares open on the crew ask. The share-moment read (30 days): 35 of 117 signed-in creators shared, 43 of 154 trips, 36 of them within ten minutes of creation and all from the trip page — the share moment already fires. The framing is what differs: the anonymous crew ask, whose link opens on the vote, reached a real recipient on 28 of 76 trips; the signed-in generic link on 8 of 43; solo links on 0 of 3. So the owner's share modal now opens on the crew ask when the trip was planned "with friends" (plain link one tap away), and every share visit records its framing (`funnel_events.share_link_visited.metadata.crew_ask`). Measure: recipients per shared group-intent trip by framing, decided after four weeks or 40 shared group trips, whichever first. Owner: Claude, with Federico.
 - 2026-09-18 · Plan status synced to the code: 3.5, 5.2 and 5.4 were shipped but never marked. What remains is gated by the plan's own entry conditions: 5.1 (homepage rewrite) waits for two weeks of Phase 2–3 data, Phase 6 (PWA) waits for one measured Today-mode cohort (first TODT read due 2026-10-03), and the morning-of nudge ships off by design until the digest read of ~2026-09-27. Evidence: code inspection of `TripDetailClient.tsx` and `app/api/og/trip/route.tsx`; PR #132 for the feed. Owner: Claude, with Federico.
-- 2026-10-01 · TODT counts only the trip's own people: the owner, a collaborator, or a participant (an anonymous one through the new `trip_views.participant_id`). A session labelled automation never counts. The kill threshold (TODT < 10% at 60 days, n ≥ 100) applies to this definition. Evidence: a dry run of the 10-03 read on 2026-10-01 (99 trips completed in 28 days) gave 13.1% under "any human open". Only 4 of those 13 trips were opened by their travellers; the other 9 by public or shared visitors only, 3 of them only by sessions labelled automation. Same window, new definition: TODT 4.0%, anyone-but-automation 10.1% (reported beside it). The 2026-09-05 window recomputed with today's definitions sits under the frozen block, so the 10-03 read compares like with like. Human views/day (1,401 recomputed vs 5,029 frozen) and automation share (52.9% vs 9.1%) moved with the definitions, not the traffic. Step 1 → 2 (36.5%) and recipient → wizard (26.8%) are the comparable starting points. Owner: Claude.
+- 2026-10-01 · TODT counts only the trip's own people: the owner, a collaborator, or a participant (an anonymous one through the new `trip_views.participant_id`). A session labelled automation never counts. The kill threshold (TODT < 10% at 60 days, n ≥ 100) applies to this definition. Evidence: a dry run of the 10-03 read on 2026-10-01 (99 trips completed in 28 days) gave 13.1% under "any human open". Only 4 of those 13 trips were opened by their travellers; the other 9 by public or shared visitors only, 3 of them only by sessions labelled automation. Same window, new definition: TODT 4.0%, anyone-but-automation 10.1% (reported beside it). The 2026-09-05 window recomputed with today's definitions sits under the frozen block, so the 10-03 read compares like with like. Human views/day (1,401 recomputed vs 5,029 frozen) and automation share (52.9% vs 9.1%) moved with the definitions, not the traffic. Step 1 → 2 (36.5%) is the comparable starting point for the wizard; for recipients see the next entry. Owner: Claude.
+- 2026-10-01 · Recipient → wizard counts the wizard's own step-1 event in the recipient's session, split by how they arrived (share link or public trip page). Recipient → auth is flagged as reading high on any window that starts before 2026-09-18. The previous entry's "recipient → wizard 26.8%" was wrong. Evidence: before the prefetch fix of 2026-09-17, a `/trips/new` link the browser prefetched was recorded as a page view, and the retroactive correction only catches prefetches within 500 ms. Over 08-08 → 09-05, 263 of 981 recipient sessions "reached the wizard" by page view (26.8%), but only 44 fired its step-1 event (4.5%). On the event: share-link recipients 13.2% (24 of 182) then, 12.0% (13 of 108) in the 28 days to 10-01; public trip pages 2.5% (20 of 799) then, 0.9% (8 of 878). The share loop's conversion held. What fell is the number of share-link recipients and the public pages' rate. The 37.8% recipient → wizard in sections 0 and 3 carries the same inflation. Owner: Claude.
 
 *(append weekly: date · decision · evidence · owner)*

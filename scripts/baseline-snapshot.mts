@@ -90,8 +90,9 @@ const block = `${heading} (${w.days} full UTC days, ${w.from} → ${w.to_exclusi
 | Live trip | trips in progress today / opened today by their people | ${v(lt.trips_in_progress_today)} / ${v(lt.in_progress_opened_today)} |
 | Live trip | edited during the trip (trips travelled since 2026-05-01) | ${TO ? `— (reads each trip's current updated_at, so a past window cannot be recomputed); ${v(lt.travelled_since_may)} trips` : `${pct(lt.edited_during_trip_pct)} of ${v(lt.travelled_since_may)}`} |
 | Live trip | trip_views rows in window by source | ${views} |
-| Recipients | human recipient sessions (\`/shared/*\`, \`/trip/*\`) | ${v(rc.recipient_sessions)} (${v(rc.recipient_sessions_per_week)}/week) |
-| Recipients | recipient → wizard / → auth | ${pct(rc.recipient_to_wizard_pct)} / ${pct(rc.recipient_to_auth_pct)} |
+| Recipients | human recipient sessions (\`/shared/*\`, \`/trip/*\`): all / arrived by a share link / by a public trip page | ${v(rc.recipient_sessions)} (${v(rc.recipient_sessions_per_week)}/week) / ${v(rc.link_sessions)} / ${v(rc.public_sessions)} |
+| Recipients | recipient → wizard (the wizard's own step-1 event later in the session): all / share link / public trip page | ${pct(rc.recipient_to_wizard_pct)} / ${pct(rc.link_to_wizard_pct)} / ${pct(rc.public_to_wizard_pct)} |
+| Recipients | recipient → auth (a page view of \`/auth/*\`) | ${pct(rc.recipient_to_auth_pct)}${String(w.from) < "2026-09-18" ? " — reads high: before the prefetch fix of 2026-09-17 a prefetched sign-in link counted as a view" : ""} |
 | Recipients | **recipient → participant** — people who tapped *I'm going* ÷ human recipient sessions (a rate of people over sessions, like K) | ${pct(pm.recipient_to_participant_pct)} (${v(pm.tappers_in_window)} of ${v(pm.recipient_sessions)}; measured since ${v(pm.measured_since)}) |
 | Sharing | trips created / shared / share rate | ${v(sh.trips_created)} (${v(sh.trips_created_per_day)}/day) / ${v(sh.trips_shared)} / ${pct(sh.share_rate_pct)} |
 | Sharing | recipient sessions per shared trip | ${v(sh.recipients_per_share)} |
