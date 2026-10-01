@@ -37,6 +37,7 @@ import { isStaticPagePath } from "@/lib/security/static-routes";
 import { identify } from "@/lib/posthog/identify";
 import { prefs } from "@/lib/platform/storage";
 import { CLAIM_TOKEN_KEY, shouldTryClaim } from "@/lib/trips/claim-trigger";
+import { syncTripCacheOwner } from "@/lib/sw/trip-cache";
 
 /**
  * Module-level set of user.ids we've already PostHog-identified on this
@@ -113,6 +114,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     if (!needsClient) {
+      // No session cookie: nobody is signed in, so no account's trips stay cached.
+      void syncTripCacheOwner(null);
       setLoading(false);
       return;
     }
@@ -138,6 +141,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // hydration is. Once we've heard from auth at least once we're
         // out of the loading state regardless of which path resolved first.
         setLoading(false);
+
+        // Offline trip copies belong to the signed-in account. These events
+        // read the session cookie, not the network, so offline keeps them.
+        if (event === "INITIAL_SESSION" || event === "SIGNED_IN" || event === "SIGNED_OUT") {
+          void syncTripCacheOwner(session?.user?.id ?? null);
+        }
 
         // 2026-05-31 mobile-audit P2: re-register the push device row on
         // in-session sign-in. NativeBoot only calls initPushOnce() on

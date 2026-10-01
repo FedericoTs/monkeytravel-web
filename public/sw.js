@@ -9,9 +9,9 @@
  * STRATEGY (conservative on purpose — auth-sensitive paths bypass us
  * entirely so we never serve stale logged-in state):
  *
- *   - GET /trips/[id]                → stale-while-revalidate (HTML)
- *   - GET /api/trips/[id]            → stale-while-revalidate (JSON)
- *   - GET /api/trips/[id]/activities → stale-while-revalidate (JSON)
+ *   - GET /trips/[id]                → network-first, cache when offline (HTML)
+ *   - GET /api/trips/[id]            → network-first, cache when offline (JSON)
+ *   - GET /api/trips/[id]/activities → network-first, cache when offline (JSON)
  *   - GET images.pexels.com          → cache-first, 30-day TTL
  *   - GET lh3.googleusercontent.com  → cache-first, 30-day TTL
  *   - GET /_next/static/*            → cache-first (immutable)
@@ -27,6 +27,8 @@
  * The SW is registered from lib/sw/register.ts only in the browser
  * (typeof window !== 'undefined') and only when the user is on a
  * /trips/* path (we don't need offline on /blog or marketing pages).
+ * The trips cache belongs to the account that filled it: the page drops
+ * it on sign-out or a change of account (lib/sw/trip-cache.ts).
  *
  * CACHE VERSIONING: bump CACHE_VERSION when changing this file. Old
  * caches are deleted on `activate`. The browser auto-refetches the
@@ -34,7 +36,7 @@
  * full app launch.
  */
 
-const CACHE_VERSION = "mt-v2";
+const CACHE_VERSION = "mt-v3";
 const CACHE_TRIPS = `${CACHE_VERSION}-trips`;
 const CACHE_IMAGES = `${CACHE_VERSION}-images`;
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
@@ -105,17 +107,17 @@ self.addEventListener("fetch", (event) => {
   // Only a uuid: /trips/new is the planner, and serving it from here ran the
   // planner of the previous visit, so a returning planner missed every fix.
   if (/^\/(?:[a-z]{2}\/)?trips\/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}(?:\/edit)?\/?$/i.test(url.pathname)) {
-    event.respondWith(staleWhileRevalidate(req, CACHE_TRIPS));
+    event.respondWith(networkFirst(req, CACHE_TRIPS));
     return;
   }
 
-  // Trip JSON APIs that are safe to serve stale.
+  // Trip JSON APIs, kept for reading the trip offline.
   if (
     /^\/api\/trips\/[^/]+(?:\/activities|\/checklist|\/votes|\/view)?$/.test(
       url.pathname
     )
   ) {
-    event.respondWith(staleWhileRevalidate(req, CACHE_TRIPS));
+    event.respondWith(networkFirst(req, CACHE_TRIPS));
     return;
   }
 
@@ -141,35 +143,31 @@ self.addEventListener("fetch", (event) => {
 });
 
 /**
- * Stale-while-revalidate: serve cached response immediately if we have
- * one, kick off a background refetch in either case. Failure to refetch
- * (offline) is silent — the cached response is enough.
+ * Network-first: the server's answer whenever there is one, so a trip page is
+ * never older than the last deploy or the last edit, and a signed-out visitor
+ * gets the sign-in redirect instead of the trip. The copy is for offline only.
  */
-async function staleWhileRevalidate(request, cacheName) {
+async function networkFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
-
-  const fetchAndUpdate = fetch(request)
-    .then((res) => {
-      // Only cache successful responses. A 401/403/500 should not poison
-      // the cache for future loads.
-      if (res && res.ok && res.status === 200) {
-        // Clone before storing — body is a stream, can only be read once.
-        cache.put(request, res.clone()).catch(() => undefined);
-      }
-      return res;
-    })
-    .catch(() => undefined);
-
-  if (cached) return cached;
-  // No cached value yet — wait for the network. If that also fails,
-  // surface the failure to the page (it'll handle the error state).
-  const fresh = await fetchAndUpdate;
-  if (fresh) return fresh;
-  return new Response("Offline and not cached", {
-    status: 504,
-    statusText: "Gateway Timeout (offline)",
-  });
+  let res;
+  try {
+    res = await fetch(request);
+  } catch {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    return new Response("Offline and not cached", {
+      status: 504,
+      statusText: "Gateway Timeout (offline)",
+    });
+  }
+  if (res.ok && res.status === 200) {
+    // Clone before storing — body is a stream, can only be read once.
+    cache.put(request, res.clone()).catch(() => undefined);
+  } else if (res.type === "opaqueredirect" || [401, 403, 404, 410].includes(res.status)) {
+    // The server no longer shows this to whoever is asking: drop the copy.
+    cache.delete(request).catch(() => undefined);
+  }
+  return res;
 }
 
 /**

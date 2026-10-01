@@ -7,5 +7,7 @@ export async function POST(request: NextRequest) {
 
   // Use the request origin to build the redirect URL (works in all environments)
   const origin = request.headers.get("origin") || request.nextUrl.origin;
-  return NextResponse.redirect(new URL("/", origin));
+  // 303, not the default 307: a 307 makes the browser repeat the POST on the
+  // home page, which answers 405 with an empty page.
+  return NextResponse.redirect(new URL("/", origin), 303);
 }
