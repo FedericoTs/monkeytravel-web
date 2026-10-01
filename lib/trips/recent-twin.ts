@@ -14,6 +14,7 @@ export interface RecentTwin {
  * A trip this account saved in the last week for the same place and dates.
  * Planning it again in a fresh wizard would otherwise auto-save a second copy
  * under the same name, and edits then land on whichever copy is open.
+ * A cancelled trip was set aside on purpose, so planning it again is a new trip.
  * Any error reads as "no twin": the save goes ahead as before.
  */
 export async function findRecentTwin(
@@ -29,6 +30,7 @@ export async function findRecentTwin(
     .select("id, title, trip_meta")
     .eq("user_id", userId)
     .is("deleted_at", null)
+    .neq("status", "cancelled")
     .eq("start_date", trip.startDate)
     .eq("end_date", trip.endDate)
     .gte("created_at", since)

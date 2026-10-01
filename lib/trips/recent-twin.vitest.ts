@@ -9,7 +9,7 @@ type Row = { id: string; title: string; trip_meta: unknown };
 function fakeClient(rows: Row[] | null, error: unknown = null) {
   const calls: Array<[string, ...unknown[]]> = [];
   const builder: Record<string, unknown> = {};
-  for (const method of ["select", "eq", "is", "gte", "order", "limit"]) {
+  for (const method of ["select", "eq", "neq", "is", "gte", "order", "limit"]) {
     builder[method] = (...args: unknown[]) => {
       calls.push([method, ...args]);
       return method === "limit" ? Promise.resolve({ data: rows, error }) : builder;
@@ -23,7 +23,7 @@ const NOW = new Date("2026-09-30T12:00:00Z");
 const TOKYO = { destination: "Tokyo, Japan", startDate: "2026-12-20", endDate: "2026-12-29" };
 
 describe("findRecentTwin", () => {
-  it("asks for this account's live trips on the same dates from the last week", async () => {
+  it("asks for this account's live, uncancelled trips on the same dates from the last week", async () => {
     const { client, calls } = fakeClient([]);
     await findRecentTwin(client, "user-1", TOKYO, NOW);
     expect(calls).toEqual(
@@ -31,6 +31,7 @@ describe("findRecentTwin", () => {
         ["from", "trips"],
         ["eq", "user_id", "user-1"],
         ["is", "deleted_at", null],
+        ["neq", "status", "cancelled"],
         ["eq", "start_date", "2026-12-20"],
         ["eq", "end_date", "2026-12-29"],
         ["gte", "created_at", "2026-09-23T12:00:00.000Z"],
