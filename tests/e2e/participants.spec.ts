@@ -53,9 +53,9 @@ test.describe("recipient → participant", () => {
     const anon = await browser.newContext({ storageState: { cookies: [], origins: [] } });
     try {
       const rp = await anon.newPage();
-      // networkidle + a generous timeout: the first /shared/[token] hit on a
-      // cold dev server compiles the route before it can render the bar.
-      const r = await rp.goto(`/shared/${token}`, { waitUntil: "networkidle", timeout: 120_000 });
+      // A generous timeout: the first /shared/[token] hit on a cold dev server
+      // compiles the route. Not networkidle: the page polls its live feed.
+      const r = await rp.goto(`/shared/${token}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
       expect(r?.status()).toBeLessThan(400);
       await declineConsent(rp);
 
@@ -66,8 +66,9 @@ test.describe("recipient → participant", () => {
 
       await rp.getByTestId("participants-name").fill(name);
       await rp.getByTestId("participants-name").press("Enter");
-      // the email step follows; skip it
-      await rp.getByRole("button", { name: /skip|omitir|salta|pular/i }).click();
+      // the email step follows; skip it. Scoped to the bar: a trip that runs
+      // today also shows the Today card, whose "Skip this" matches /skip/.
+      await bar.getByRole("button", { name: /^(skip|omitir|salta|pular)$/i }).click();
       await expect(rp.getByTestId("participants-done")).toBeVisible();
 
       // the header count reflects it on reload

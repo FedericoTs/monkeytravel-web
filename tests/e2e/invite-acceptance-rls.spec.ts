@@ -136,9 +136,11 @@ test.describe("invite RLS lockdown — seeded fixtures (skipped without env)", (
   // DEFINER + recipient_email enforcement work end-to-end. Without
   // these env vars we skip — never fail — because the workflow doesn't
   // assume a fixture-seeding helper is available yet.
+  // VALID_INVITE_TOKEN must be a plain link invite (no recipient_email): one
+  // sent to an email shows anyone else only the sign-in gate (see below).
   test.skip(
     !process.env.VALID_INVITE_TOKEN,
-    "set VALID_INVITE_TOKEN to a real active token to run this suite"
+    "set VALID_INVITE_TOKEN to a real active link invite to run this suite"
   );
 
   const VALID_TOKEN = process.env.VALID_INVITE_TOKEN || "";
@@ -172,15 +174,31 @@ test.describe("invite RLS lockdown — seeded fixtures (skipped without env)", (
     ).toHaveCount(0);
   });
 
-  // RECIPIENT_MISMATCH path requires an authenticated session with an
-  // email that differs from the invite's recipient_email. That needs
-  // either a Supabase test-user helper or a stored auth state file. We
-  // describe the assertion shape so a future iteration can wire it up
-  // when those fixtures land.
+});
+
+test.describe("invite RLS lockdown — invite sent to an email (skipped without env)", () => {
+  // RECIPIENT_INVITE_TOKEN: an invite with a recipient_email.
+  // MISMATCHED_AUTH_STATE: a storageState signed in with a different email.
   test.skip(
-    !process.env.MISMATCHED_AUTH_STATE,
-    "set MISMATCHED_AUTH_STATE=path/to/storageState.json with a logged-in user whose email != invite recipient"
+    !process.env.RECIPIENT_INVITE_TOKEN || !process.env.MISMATCHED_AUTH_STATE,
+    "set RECIPIENT_INVITE_TOKEN and MISMATCHED_AUTH_STATE to run this check"
   );
+
+  const RECIPIENT_TOKEN = process.env.RECIPIENT_INVITE_TOKEN || "";
+
+  test("GET as anon withholds the preview (403 RECIPIENT_MISMATCH)", async ({ request }) => {
+    const res = await request.get(`/api/invites/${RECIPIENT_TOKEN}`);
+    expect(res.status()).toBe(403);
+    expect((await res.json()).code).toBe("RECIPIENT_MISMATCH");
+  });
+
+  test("UI: an anon recipient gets the sign-in gate, not the invalid-invite page", async ({ page }) => {
+    const response = await page.goto(`/invite/${RECIPIENT_TOKEN}`);
+    expect(response?.status()).toBe(200);
+    await expect(page.getByRole("button", { name: /email me a sign-in link/i })).toBeVisible({
+      timeout: 15_000,
+    });
+  });
 
   test("POST /api/invites/[recipient-scoped-token] as mismatched user returns 403 RECIPIENT_MISMATCH", async ({
     browser,
@@ -188,7 +206,7 @@ test.describe("invite RLS lockdown — seeded fixtures (skipped without env)", (
     const ctx = await browser.newContext({
       storageState: process.env.MISMATCHED_AUTH_STATE,
     });
-    const res = await ctx.request.post(`/api/invites/${VALID_TOKEN}`, {
+    const res = await ctx.request.post(`/api/invites/${RECIPIENT_TOKEN}`, {
       data: {},
     });
     expect(res.status()).toBe(403);
@@ -206,18 +224,15 @@ test.describe("invite RLS lockdown — expired-token fixture (skipped without en
 
   const EXPIRED_TOKEN = process.env.EXPIRED_INVITE_TOKEN || "";
 
-  test("GET /api/invites/[expired-token] returns 404 (RPC filters expired)", async ({
+  test("GET /api/invites/[expired-token] returns 410 EXPIRED", async ({
     request,
   }) => {
-    // Important architectural detail from the migration: the RPC filters
-    // expires_at > now() INSIDE the function, so an expired invite
-    // returns ZERO rows — the route sees `notFound`, not a custom
-    // "expired" error code. This is the safer default per the migration
-    // comment (anonymous callers see the same NOT_FOUND for unknown,
-    // revoked, expired, and exhausted). If this assertion ever fires as
-    // 410 or some other code, the RPC contract has loosened.
+    // get_invite_by_token filters expired invites out, and the route then asks
+    // get_invite_status_by_token so the page can say "expired" rather than
+    // "not found" (lib/api/invite-validation.ts). Unknown tokens stay 404.
     const res = await request.get(`/api/invites/${EXPIRED_TOKEN}`);
-    expect(res.status()).toBe(404);
+    expect(res.status()).toBe(410);
+    expect((await res.json()).code).toBe("EXPIRED");
   });
 
   test("UI: /invite/[expired-token] renders invalid-state page", async ({

@@ -81,6 +81,9 @@ async function dayOneNames(): Promise<string[]> {
 }
 
 test.describe("crew consensus actually writes", () => {
+  // One fixture trip for all four: run in parallel, two approvals of the same
+  // activity land at once and the "added exactly once" check sees both.
+  test.describe.configure({ mode: "serial" });
   test.skip(!tripId, "no fixture trip — run scripts/e2e-fixtures.mts --seed");
   test.skip(!creds().url || !creds().key, "no service credentials to assert on the database");
 
