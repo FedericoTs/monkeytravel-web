@@ -7,7 +7,7 @@ import type { Destination } from "@/lib/destinations/types";
  * WHY THIS EXISTS
  * `getDestinationsForBlogPost()` in lib/cross-links.ts scores destinations by
  * looking for keywords inside `slug + tags`. That works for a post tagged
- * "japan" or "europe". It cannot work for these four, because their tags are
+ * "japan" or "europe". It cannot work for these posts, because their tags are
  * generic taxonomy concepts — "seasonal", "monthly travel guide", "autumn
  * travel", "best destinations" — and the cities live only in the BODY.
  *
@@ -53,6 +53,25 @@ const SEASONAL_PICKS: Record<string, string[]> = {
   // Bangkok is the destination entry we hold for it. Tokyo — what the keyword
   // matcher returned — is deliberately NOT here.
   "monsoon-season-where-to-go-and-avoid": ["bali", "bangkok"],
+
+  // §12 "Northern Europe's Cities", which names Vienna, Berlin and Amsterdam.
+  "where-to-go-in-january": ["vienna", "berlin", "amsterdam"],
+
+  // §1 "Rio de Janeiro & Salvador — Carnival", §7 "Vietnam & Taiwan" (Taipei's
+  // lantern displays).
+  "where-to-go-in-february": ["rio-de-janeiro", "taipei"],
+
+  // §1 "Japan — Cherry Blossom" (Tokyo and Kyoto), §6 "Morocco" (Marrakech).
+  "where-to-go-in-march": ["tokyo", "kyoto", "marrakech"],
+
+  // §1 "Kyoto, Japan", §2 "Marrakech, Morocco", §4 "Amsterdam, Netherlands".
+  "where-to-go-in-april": ["kyoto", "marrakech", "amsterdam"],
+
+  // §1 "Bali, Indonesia"; no other section has a destination entry.
+  "where-to-go-in-august": ["bali"],
+
+  // §4 "The Algarve & Lisbon", §11 "Kyoto & Kansai" (Kyoto and Osaka).
+  "where-to-go-in-september": ["lisbon", "kyoto", "osaka"],
 };
 
 const BY_SLUG = new Map(destinations.map((d) => [d.slug, d]));
