@@ -39,7 +39,7 @@ schema: Article
 
 A temporada de monções afasta a maioria dos viajantes da Ásia. E é exatamente por isso que você deveria considerar ir.
 
-Aqui está o que ninguém te conta: "monção" não significa chuva sem parar. Geralmente significa um par de aguaceiros fortes à tarde, com manhãs e fins de tarde ensolarados. Alguns destinos são genuinamente perigosos durante a monção — enchentes, deslizamentos de terra, ilhas fechadas. Outros estão no seu momento mais bonito: cachoeiras em potência máxima, terraços de arroz de um verde reluzente e preços de hotel cortados pela metade.
+Aqui está o que ninguém te conta: "monção" não significa chuva sem parar. Geralmente significa algumas pancadas de chuva fortes à tarde, com manhãs e fins de tarde ensolarados. Alguns destinos são genuinamente perigosos durante a monção — enchentes, deslizamentos de terra, ilhas fechadas. Outros estão no seu momento mais bonito: cachoeiras em potência máxima, terraços de arroz de um verde reluzente e preços de hotel cortados pela metade.
 
 Este guia detalha a temporada de monções pela Ásia mês a mês, para que você saiba exatamente onde evitar, onde aproveitar e como viajar de forma mais inteligente durante a estação chuvosa.
 
@@ -73,7 +73,7 @@ O ponto fundamental a entender: **quando um lado de um país está sendo encharc
 
 ### 1. Mumbai e Kerala, Índia (junho-setembro)
 
-Mumbai recebe mais de 2.400 mm de chuva durante a monção — isso é quase 2,5 metros de água. As ruas alagam regularmente. Em 2024, as enchentes da monção paralisaram a rede ferroviária de Mumbai várias vezes. Kerala sofreu enchentes devastadoras em 2018 e 2019, e as chuvas intensas continuam a provocar deslizamentos de terra.
+Mumbai recebe mais de 2.400 mm de chuva durante a monção — isso é quase 2,5 metros de água. As ruas alagam regularmente. Em 2024, as enchentes da monção paralisaram a rede ferroviária de Mumbai várias vezes. Kerala sofreu enchentes devastadoras em 2018 e 2019, e as chuvas intensas continuam provocando deslizamentos de terra.
 
 **O risco:** Enchentes urbanas, interrupção do transporte, deslizamentos nas estações de montanha. A infraestrutura de Mumbai simplesmente não consegue lidar com o pico das chuvas da monção.
 
@@ -235,11 +235,11 @@ A maior parte da Ásia é perfeitamente segura durante a monção. A chuva é pr
 
 ### Como é, na prática, a chuva da monção?
 
-Não é uma garoa constante — são aguaceiros intensos e fortes que normalmente duram de 1 a 3 horas à tarde, e depois clareiam completamente. As manhãs costumam ser ensolaradas e agradáveis. A temperatura se mantém quente (27-33 graus Celsius na maior parte do Sudeste Asiático), então a chuva é na verdade refrescante depois de uma manhã quente.
+Não é uma garoa constante — são pancadas de chuva intensas e fortes que normalmente duram de 1 a 3 horas à tarde, e depois clareiam completamente. As manhãs costumam ser ensolaradas e agradáveis. A temperatura se mantém quente (27-33 graus Celsius na maior parte do Sudeste Asiático), então a chuva é na verdade refrescante depois de uma manhã quente.
 
 ### Ainda dá para ir à praia durante a monção?
 
-Sim, em muitos lugares. As praias de Bali estão ótimas o ano todo. A costa leste do Sri Lanka (Trincomalee, Arugam Bay) fica ensolarada de maio a setembro enquanto a costa oeste está chuvosa. A costa de Andamão, no sul da Tailândia (Phuket, Krabi), fica chuvosa de maio a outubro, mas a costa do Golfo (Ko Samui) fica seca até outubro. O segredo é escolher a costa certa.
+Sim, em muitos lugares. As praias de Bali estão ótimas o ano todo. A costa leste do Sri Lanka (Trincomalee, Arugam Bay) fica ensolarada de maio a setembro enquanto a costa oeste está chuvosa. A costa de Andamã, no sul da Tailândia (Phuket, Krabi), fica chuvosa de maio a outubro, mas a costa do Golfo (Ko Samui) fica seca até outubro. O segredo é escolher a costa certa.
 
 ### Quanto mais barato é viajar durante a temporada de monções?
 

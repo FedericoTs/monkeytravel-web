@@ -84,7 +84,7 @@ A comida georgiana é uma das grandes cozinhas inexploradas da Europa — embora
 
 **Melhor prato local:** Khinkali — bolinhos enormes recheados com carne temperada e caldo. Você os come com a mão: dá uma pequena mordida, bebe a sopa de dentro e depois come o resto. Cinco khinkali custam cerca de US$ 2-3 e constituem uma refeição completa.
 
-**Onde comer:** o Bazar Dezerter, para churchkhela fresca (doce de nozes), especiarias e queijo. As ruas ao redor de Abanotubani (o bairro das casas de banho) estão repletas de pequenos restaurantes. O Shavi Lomi, no bairro de Vera, serve comida georgiana moderna a preços absurdamente baixos.
+**Onde comer:** o Bazar Dezerter, para churchkhela fresca (doce de nozes), especiarias e queijo. As ruas ao redor de Abanotubani (o bairro dos banhos) estão repletas de pequenos restaurantes. O Shavi Lomi, no bairro de Vera, serve comida georgiana moderna a preços absurdamente baixos.
 
 **Preço da cerveja:** US$ 1-1,50 por chopes locais. O grande atrativo é o vinho georgiano — uma garrafa de um excelente Saperavi custa de US$ 4 a US$ 6 em um restaurante.
 

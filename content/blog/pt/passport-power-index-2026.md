@@ -249,7 +249,7 @@ Os custos de visto somam rápido. Um viajante que visita 10 países pode gastar 
 
 ## Tendências Pós-COVID que Estão Remodelando o Poder dos Passaportes
 
-A pandemia alterou profundamente a mobilidade global, e seus efeitos continuam a moldar o cenário de 2026.
+A pandemia alterou profundamente a mobilidade global, e seus efeitos continuam moldando o cenário de 2026.
 
 ### A Diferença de Mobilidade Cada Vez Maior
 
@@ -309,7 +309,7 @@ Programas como o Global Entry (EUA), o NEXUS (EUA-Canadá) e o Registered Travel
 
 Com um passaporte de ranking mais baixo, viajar de forma espontânea é mais difícil. Dê a si mesmo 2-3 meses para o processamento dos vistos e tenha sempre a sua documentação pronta: extratos bancários, cartas do empregador, reservas de hotel e seguro de viagem.
 
-**Independentemente da posição do seu passaporte, o planejador de viagens com AI da MonkeyTravel pode ajudar você a montar roteiros detalhados sob medida para os seus destinos.** Ele cuida da logística — melhor roteirização, recomendações locais, planejamento de orçamento — para que você possa focar na experiência. Experimente o [planejador de viagens com AI gratis](/trips/new) para montar o seu próximo roteiro sem visto.
+**Independentemente da posição do seu passaporte, o planejador de viagens com AI da MonkeyTravel pode ajudar você a montar roteiros detalhados sob medida para os seus destinos.** Ele cuida da logística — melhor roteirização, recomendações locais, planejamento de orçamento — para que você possa focar na experiência. Experimente o [planejador de viagens com AI grátis](/trips/new) para montar o seu próximo roteiro sem visto.
 
 ---
 

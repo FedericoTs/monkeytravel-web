@@ -131,7 +131,7 @@ Bucareste tem uma fama injusta. Sim, ela tem suas arestas. Mas essas arestas vê
 
 ## 3. Tirana, Albânia — $30-55/dia
 
-A Albânia é o destino sobre o qual os viajeiros experientes não param de falar — e com razão. Tirana é caótica, colorida e incrivelmente acessível. O recente boom turístico do país ainda não alcançou os preços, o que faz de 2026 uma janela perfeita.
+A Albânia é o destino sobre o qual os viajantes experientes não param de falar — e com razão. Tirana é caótica, colorida e incrivelmente acessível. O recente boom turístico do país ainda não alcançou os preços, o que faz de 2026 uma janela perfeita.
 
 **Quanto custa:**
 - Quarto compartilhado em hostel: $8-12/noite
@@ -185,7 +185,7 @@ Sarajevo é uma das cidades emocionalmente mais marcantes da Europa. Bazares oto
 - Cerveja em um bar: $1,50-2,50
 
 **Destaques:**
-- Bascarsija — o antigo bazar otomano, ainda em funcionamento depois de mais de 500 anos, com oficinas de cobreiros, cafés e mesquitas
+- Bascarsija — o antigo bazar otomano, ainda em funcionamento depois de mais de 500 anos, com oficinas de caldeireiros, cafés e mesquitas
 - O Túnel da Esperança — o túnel que manteve Sarajevo conectada ao mundo exterior durante o cerco
 - A pista de bobsled dos Jogos Olímpicos de Inverno de 1984 no monte Trebevic, hoje coberta de arte em grafite
 
@@ -197,7 +197,7 @@ Sarajevo é uma das cidades emocionalmente mais marcantes da Europa. Bazares oto
 
 ## 6. Tbilisi, Geórgia (Europeia Honorária) — $30-55/dia
 
-Tecnicamente transcontinental, mas incluímos Tbilisi porque ela aparece consistentemente entre os destinos mais baratos e mais gratificantes para viajeiros europeus. A capital da Geórgia mistura igrejas antigas, banhos de enxofre e uma tradição vinícola de 8.000 anos — tudo a preços que fazem os Bálcãs parecerem caros.
+Tecnicamente transcontinental, mas incluímos Tbilisi porque ela aparece consistentemente entre os destinos mais baratos e mais gratificantes para viajantes europeus. A capital da Geórgia mistura igrejas antigas, banhos de enxofre e uma tradição vinícola de 8.000 anos — tudo a preços que fazem os Bálcãs parecerem caros.
 
 **Quanto custa:**
 - Quarto compartilhado em hostel: $6-10/noite
@@ -361,13 +361,13 @@ Lisboa é a cidade mais cara desta lista que ainda dá a sensação de ser genui
 - Cerveja em um bar: $2,50-4
 
 **Destaques:**
-- Bonde 28 — o famoso bonde amarelo serpenteia por Alfama, Graca e Baixa. O mesmo trajeto a pé é ainda melhor e gratuito
-- Torre de Belém e Mosteiro dos Jerónimos — obras-primas manuelinas à beira-rio ($10 cada ou gratuito no primeiro domingo de cada mês)
+- Bonde 28 — o famoso bonde amarelo serpenteia por Alfama, Graça e Baixa. O mesmo trajeto a pé é ainda melhor e gratuito
+- Torre de Belém e Mosteiro dos Jerônimos — obras-primas manuelinas à beira-rio ($10 cada ou gratuito no primeiro domingo de cada mês)
 - Time Out Market — o mercado gastronômico no Mercado da Ribeira, com bancas dos melhores chefs de Lisboa, pratos a partir de $8
 
 **Dica gastronômica:** Pule o Time Out Market no jantar (fica caro depois do meio-dia). Em vez disso, encontre uma *tasca* (taverna de bairro) na Mouraria ou em Alfama. O *prato do dia* costuma sair por $7-9 e inclui sopa, prato principal e bebida.
 
-**Dica para economizar:** O Lisboa Card ($25/24 horas) inclui transporte público ilimitado e entrada gratuita em mais de 40 atrações, incluindo a Torre de Belém e o Mosteiro dos Jerónimos. Ele se paga se você visitar 2-3 pontos pagos e ainda usar os bondes.
+**Dica para economizar:** O Lisboa Card ($25/24 horas) inclui transporte público ilimitado e entrada gratuita em mais de 40 atrações, incluindo a Torre de Belém e o Mosteiro dos Jerônimos. Ele se paga se você visitar 2-3 pontos pagos e ainda usar os bondes.
 
 ---
 

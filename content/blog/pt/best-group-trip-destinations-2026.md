@@ -87,7 +87,7 @@ Praia, arquitetura de classe mundial, pintxos de US$4 até estrelas Michelin, e 
 
 Reserve a Sagrada Família (US$30/pessoa) com antecedência — é inegociável. Depois deixe o grupo se dividir: Praia da Barceloneta, perambular pelo Bairro Gótico, mercado da Boqueria. Reúna todo mundo para o jantar em El Born. O metrô cobre tudo com o passe de 10 viagens por US$12.
 
-### 7. Marrakesh, Marrocos (~US$65/dia)
+### 7. Marrakech, Marrocos (~US$65/dia)
 
 Alugar um riad inteiro na Medina é uma das melhores experiências de acomodação em grupo do planeta. Por US$120-180/noite você ganha um pátio privativo, terraço na cobertura e, muitas vezes, uma piscina de imersão. Café da manhã incluído.
 

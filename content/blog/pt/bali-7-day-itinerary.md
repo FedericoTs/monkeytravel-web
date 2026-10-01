@@ -39,7 +39,7 @@ Este roteiro de 7 dias foi feito para quem vai pela primeira vez e quer ver os d
 
 ### Melhor Época para Visitar
 
-A estação seca de Bali vai de **abril a outubro**. É quando você quer estar lá. Os céus são claros, a umidade é tolerável e você não será pego por aguaceiros à tarde.
+A estação seca de Bali vai de **abril a outubro**. É quando você quer estar lá. Os céus são claros, a umidade é tolerável e você não será pego por pancadas de chuva à tarde.
 
 **Novembro a março** é a estação chuvosa. Mesmo assim não chove o dia inteiro — geralmente uma pancada forte à tarde — mas as estradas alagam, alguns serviços de barco para Nusa Penida são cancelados e tudo fica mais abafado. Se a estação chuvosa for sua única opção, ainda vale a pena ir. Só leve uma capa de chuva e seja flexível.
 
@@ -113,7 +113,7 @@ Esta é uma aventura de dia inteiro. Contrate um motorista (US$ 35-45 pelo dia) 
 
 O lugar mais fotografado de Bali, e com razão. Chegue cedo — às 10h já está lotado de grupos de excursão.
 
-- **Entrada:** 25.000 IDR (US$ 1,60), mais pequenas doações solicitadas em vários mirantes ao longo do caminho
+- **Entrada:** 25.000 IDR (US$ 1,60), além de pequenas doações solicitadas em vários mirantes ao longo do caminho
 - **Tempo necessário:** 1h30 a 2 horas
 - **Dica:** Passe direto pela primeira plataforma de observação. Quanto mais você desce pelos terraços, menos gente encontra. Aquelas fotos no balanço que você viu no Instagram? Elas são tiradas em pontos comerciais que cobram de US$ 10 a US$ 35 pela experiência. Sinceramente, a vista da trilha gratuita é melhor.
 

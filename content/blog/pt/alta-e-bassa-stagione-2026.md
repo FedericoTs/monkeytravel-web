@@ -86,7 +86,7 @@ A diferença de tarifa é o que se procura, mas não é a única.
 
 **Quem está lá.** As mesmas semanas atraem públicos diferentes. Meados de junho e meados de setembro são casais e gente sem filhos em idade escolar. Agosto é família.
 
-**O trânsito, que não é detalhe.** Os sábados do fim de julho e de agosto são os piores dias do ano nas autoestradas italianas, porque todo mundo troca de casa no mesmo dia.
+**O trânsito, que não é detalhe.** Os sábados do fim de julho e de agosto são os piores dias do ano nas rodovias italianas, porque todo mundo troca de casa no mesmo dia.
 
 ## Como usar isso, em três passos
 

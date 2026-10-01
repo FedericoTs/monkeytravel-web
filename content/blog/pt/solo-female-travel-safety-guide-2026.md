@@ -232,7 +232,7 @@ Estas valem independentemente do destino.
 
 ### Consciência cultural
 
-- **Pesquise as normas de vestimenta antes de ir.** O que é tranquilo em Lisboa pode não ser apropriado em Marraquexe. Respeitar os códigos de vestimenta locais não é se limitar — é reduzir a atenção indesejada.
+- **Pesquise as normas de vestimenta antes de ir.** O que é tranquilo em Lisboa pode não ser apropriado em Marrakech. Respeitar os códigos de vestimenta locais não é se limitar — é reduzir a atenção indesejada.
 - **Aprenda a palavra local para "não".** E use-a com firmeza quando necessário. Você não deve educação a ninguém às custas do seu conforto.
 - **Confie nos seus instintos.** Se uma situação parecer errada, vá embora. Você não precisa de um motivo lógico. Viajar sozinha aguça seus instintos — ouça-os.
 
