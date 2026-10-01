@@ -170,7 +170,7 @@ export function slugifyHeading(text: string): string {
     .trim();
 }
 
-const NAMED_ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+const NAMED_ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: "\u00a0" };
 
 /**
  * A heading's text as the browser reads it: tags stripped, entities decoded.
