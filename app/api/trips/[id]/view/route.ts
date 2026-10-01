@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { apiSuccess, errors } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
+import { PARTICIPANT_COOKIE, isParticipantCookieId } from "@/lib/participants/shared";
 import {
   VIEW_SESSION_COOKIE,
   clientIp,
@@ -116,18 +117,45 @@ export async function POST(
       return apiSuccess({ recorded: false, fromCookie });
     }
 
+    // Someone who tapped "I'm going" is one of the trip's people, with or
+    // without an account, so their open counts toward TODT.
+    let participantId: string | null = null;
+    const participantCookie = cookieStore.get(PARTICIPANT_COOKIE)?.value;
+    if (!isOwner && !isCollaborator && isParticipantCookieId(participantCookie)) {
+      const { data: participant } = await admin
+        .from("trip_participants")
+        .select("id")
+        .eq("trip_id", id)
+        .eq("participant_cookie_id", participantCookie)
+        .is("left_at", null)
+        .maybeSingle();
+      participantId = participant?.id ?? null;
+    }
+
+    const viewedOn = utcDay();
     const { error } = await admin.from("trip_views").insert({
       trip_id: id,
       viewer_id: user?.id ?? null,
       source: verifiedSource(source, trip, isOwner, isCollaborator),
       session_id: sessionId,
-      viewed_on: utcDay(),
+      viewed_on: viewedOn,
       is_bot: isAnalyticsBot(userAgent),
+      participant_id: participantId,
     });
 
     if (error) {
       // 23505 unique_violation: this session already opened this trip today.
+      // If they joined since that open, the day's row still gets credited.
       if (error.code === "23505") {
+        if (participantId) {
+          await admin
+            .from("trip_views")
+            .update({ participant_id: participantId })
+            .eq("trip_id", id)
+            .eq("session_id", sessionId)
+            .eq("viewed_on", viewedOn)
+            .is("participant_id", null);
+        }
         return apiSuccess({ recorded: false, duplicate: true, fromCookie });
       }
       // 23503 foreign_key_violation (unknown trip) and anything else: say
