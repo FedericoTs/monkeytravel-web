@@ -140,6 +140,24 @@ export async function scheduleTripNotifications(
       });
     }
 
+    // The post-trip follow-ups move with end_date too, same best-effort rule.
+    const { error: followupErr } = await admin.rpc("enqueue_trip_followups", {
+      p_trip_id: args.tripId,
+      p_user_id: args.userId,
+    });
+    if (followupErr) {
+      console.error("[notifications/scheduling] follow-up enqueue RPC failed", {
+        tripId: args.tripId,
+        userId: args.userId,
+        error: followupErr.message,
+      });
+      void captureSchedulingError(followupErr, {
+        stage: "followup_rpc_call",
+        tripId: args.tripId,
+        userId: args.userId,
+      });
+    }
+
     return { ok: true, scheduledCount: count };
   } catch (err) {
     console.error("[notifications/scheduling] enqueue exception", {
