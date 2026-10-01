@@ -1,6 +1,6 @@
 import { carriesSession, classifyPageViewRequest } from "@/lib/analytics/page-view-classifier";
 import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { isAdmin } from "@/lib/admin";
 import { geolocation } from "@vercel/functions";
 import { SUPABASE_AUTH_COOKIE_OPTIONS } from "@/lib/supabase/cookie-options";
@@ -94,19 +94,23 @@ export function trackPageView(
       is_bot: isAnalyticsBot(request.headers.get("user-agent")),
     };
 
-    // Fire and forget - don't await to avoid blocking the response
-    fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/page_views`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
-        Prefer: "return=minimal",
-      },
-      body: JSON.stringify(pageView),
-    }).catch(() => {
-      // Silently ignore errors to not impact user experience
-    });
+    // Not awaited, so the response is not held up, but handed to after():
+    // left running, the write was frozen with the function and flushed only
+    // by that instance's next request, or lost.
+    after(
+      fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/page_views`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify(pageView),
+      }).catch(() => {
+        // Silently ignore errors to not impact user experience
+      })
+    );
   } catch {
     // Silently ignore errors
   }

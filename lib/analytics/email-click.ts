@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 
@@ -38,7 +39,7 @@ interface RequestLike {
 }
 
 /**
- * Fire-and-forget insert with the public key, like the page_views row: its
+ * Insert with the public key, handed to after() like the page_views row: its
  * policy only takes a null user_id, so `signed_in` says whether the click
  * carried a session. `navigate` is false for clients that send no fetch
  * metadata, such as mail link scanners.
@@ -48,7 +49,7 @@ export function trackEmailClick(request: RequestLike, sessionId: string | null, 
   if (!click || !writesTelemetry(sessionId)) return;
   if (isAnalyticsBot(request.headers.get("user-agent"))) return;
   try {
-    fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/funnel_events`, {
+    after(fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/funnel_events`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -67,7 +68,7 @@ export function trackEmailClick(request: RequestLike, sessionId: string | null, 
           navigate: request.headers.get("sec-fetch-mode") === "navigate",
         },
       }),
-    }).catch(() => {});
+    }).catch(() => {}));
   } catch {
     // Telemetry never breaks the response.
   }
