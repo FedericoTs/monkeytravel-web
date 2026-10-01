@@ -135,6 +135,7 @@ async function loadTrip(
       .select("id, user_id, title, itinerary, share_token, is_archived")
       .eq("id", tripId)
       .eq("share_token", shareToken)
+      .is("deleted_at", null)
       .maybeSingle();
     if (error) {
       console.error("[calendar-download] share-token lookup failed:", error);

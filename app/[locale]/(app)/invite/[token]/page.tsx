@@ -69,6 +69,7 @@ async function getInviteData(token: string) {
     .from("trips")
     .select("id, title, description, start_date, end_date, cover_image_url, share_token, user_id, itinerary")
     .eq("id", invite.trip_id)
+    .is("deleted_at", null)
     .single();
 
   if (tripError || !trip) {

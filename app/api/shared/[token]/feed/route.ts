@@ -27,7 +27,7 @@ export async function GET(_request: NextRequest, context: InviteTokenRouteContex
     const admin = createAdminClient();
     // The trip lookup, the participant cookie and the viewer are independent.
     const [{ data: trip, error }, cookieStore, userId] = await Promise.all([
-      admin.from("trips").select("id, user_id, itinerary").eq("share_token", token).single(),
+      admin.from("trips").select("id, user_id, itinerary").eq("share_token", token).is("deleted_at", null).single(),
       cookies(),
       signedInUserId(),
     ]);
