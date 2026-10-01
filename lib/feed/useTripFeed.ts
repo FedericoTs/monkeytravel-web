@@ -7,7 +7,7 @@ import type { FeedEvent } from "./shared";
  * The Today activity feed on the client — Live Trip Phase 3.5.
  *
  * Fetch on mount, then refetch on demand. No realtime channel of its own: the
- * chip actions already arrive over the trip_today_actions subscription that
+ * chip actions already arrive over the Today broadcast that
  * TodayView owns (useTodayActions), and the money tables have no public read
  * path to subscribe to — so TodayView calls refetch() whenever those change
  * or an expense is added. That reuses one subscription instead of opening a

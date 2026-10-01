@@ -18,7 +18,7 @@
  * Returns the trip's active actions (same shape as GET) so the client can
  * replace its state in one go.
  */
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { cookies } from "next/headers";
 import { nanoid } from "nanoid";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -29,7 +29,7 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { PARTICIPANT_COOKIE, PARTICIPANT_COOKIE_MAX_AGE_SECONDS, isUuid } from "@/lib/participants/shared";
-import { parseTodayActionType, RUNNING_LATE_STEP_MINUTES } from "@/lib/today/actions";
+import { parseTodayActionType, RUNNING_LATE_STEP_MINUTES, TODAY_CHANGED_EVENT, todayChannel } from "@/lib/today/actions";
 import { todayActionsSnapshot } from "@/lib/today/snapshot";
 import { suggestNearbyAlternative } from "@/lib/ai/nearby-alternative";
 
@@ -96,6 +96,9 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     const isOwner = !!userId && userId === trip.user_id;
 
     const finish = async () => {
+      // Everyone on this trip's Today re-fetches on this ping; it carries no
+      // data, so the table needs no public read for live updates.
+      after(() => admin.channel(todayChannel(trip.id)).httpSend(TODAY_CHANGED_EVENT, {}).then(() => undefined, () => undefined));
       if (issuedCookie) {
         cookieStore.set({
           name: PARTICIPANT_COOKIE,
