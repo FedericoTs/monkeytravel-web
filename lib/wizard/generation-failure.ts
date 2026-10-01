@@ -43,6 +43,8 @@ const VALIDATION = [
   "trip is too long",
   "end date must be after",
   "maximum trip length",
+  "maximum trip duration",
+  "cannot be in the past",
 ];
 const RATE_LIMIT = ["rate_limit", "rate limit", "too many requests", "429", "daily limit", "quota"];
 const TIMEOUT = ["timeout", "timed out", "aborted", "aborterror"];

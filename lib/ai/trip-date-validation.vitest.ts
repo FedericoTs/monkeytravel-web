@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { validateTripParams } from "@/lib/gemini";
 import { addDaysISO } from "@/lib/ai/multi-city-core";
+import { classifyGenerationFailure } from "@/lib/wizard/generation-failure";
 import type { TripCreationParams } from "@/types";
 
 /**
@@ -69,5 +70,38 @@ describe("validateTripParams — date format", () => {
 
   it("addDaysISO still throws loudly on a 5-digit year (guard intact)", () => {
     expect(() => addDaysISO("20220-08-11", 1)).toThrow(/invalid date/i);
+  });
+});
+
+describe("validateTripParams — start date vs timezone", () => {
+  afterEach(() => vi.useRealTimers());
+
+  it("accepts the traveller's local today when UTC is already tomorrow", () => {
+    // 03:34 UTC on Oct 1 is still the evening of Sep 30 in the Americas.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-01T03:34:00Z"));
+    const result = validateTripParams(
+      params({ startDate: "2026-09-30", endDate: "2026-10-05" })
+    );
+    expect(result.valid).toBe(true);
+  });
+
+  it("still rejects a start date two days in the past", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-01T03:34:00Z"));
+    const result = validateTripParams(
+      params({ startDate: "2026-09-29", endDate: "2026-10-05" })
+    );
+    expect(result.error).toBe("Start date cannot be in the past");
+    // The wizard must bucket this as validation, not "unknown".
+    expect(classifyGenerationFailure(new Error(result.error))).toBe("validation");
+  });
+
+  it("classifies the duration cap as validation", () => {
+    const result = validateTripParams(
+      params({ startDate: "2099-08-01", endDate: "2099-08-20" })
+    );
+    expect(result.error).toBe("Maximum trip duration is 14 days");
+    expect(classifyGenerationFailure(new Error(result.error))).toBe("validation");
   });
 });

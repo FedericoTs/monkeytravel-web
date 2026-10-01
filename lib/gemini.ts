@@ -1760,8 +1760,12 @@ export function validateTripParams(
 
   const start = new Date(`${params.startDate}T00:00:00Z`);
   const end = new Date(`${params.endDate}T00:00:00Z`);
+  // The traveller picks dates in their own timezone, so "today" can be a
+  // calendar day behind UTC (the Americas in the evening). Allow one day of
+  // slack so their today is never rejected as past.
   const now = new Date();
-  now.setHours(0, 0, 0, 0);
+  now.setUTCHours(0, 0, 0, 0);
+  now.setUTCDate(now.getUTCDate() - 1);
 
   if (isNaN(start.getTime()) || isNaN(end.getTime())) {
     return { valid: false, error: "Invalid date format" };
