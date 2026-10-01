@@ -10,10 +10,19 @@ vi.mock("@/components/collaboration/CollaboratorAvatars", () => ({ CollaboratorA
 vi.mock("@/lib/analytics", () => ({ trackTripShared: vi.fn() }));
 // The modal has its own tests; here it only reports whether it is open, on which tab, and the Explore state.
 vi.mock("./ShareAndInviteModal", () => ({
-  default: ({ isOpen, initialTab, isInTrending, onClose }: { isOpen: boolean; initialTab: string; isInTrending: boolean; onClose: () => void }) =>
+  default: ({ isOpen, initialTab, isInTrending, onClose, onRequestPublish }: { isOpen: boolean; initialTab: string; isInTrending: boolean; onClose: () => void; onRequestPublish?: () => void }) =>
     isOpen ? (
       <div role="dialog" data-tab={initialTab} data-trending={String(isInTrending)}>
         <button onClick={onClose}>close</button>
+        <button onClick={onRequestPublish}>list in explore</button>
+      </div>
+    ) : null,
+}));
+vi.mock("@/components/explore/PublishTripModal", () => ({
+  default: ({ isOpen, onClose, onPublished }: { isOpen: boolean; onClose: () => void; onPublished?: (d: { tripId: string; shareToken: string }) => void }) =>
+    isOpen ? (
+      <div role="alertdialog">
+        <button onClick={() => { onPublished?.({ tripId: "trip-1", shareToken: "t" }); onClose(); }}>publish</button>
       </div>
     ) : null,
 }));
@@ -56,5 +65,25 @@ describe("ShareButton Explore state", () => {
     );
     render(<ShareButton tripId="trip-1" tripTitle="Lisbon" variant="modal" autoOpen />);
     await waitFor(() => expect(screen.getByRole("dialog").getAttribute("data-trending")).toBe("true"));
+  });
+});
+
+describe("ShareButton listing in Explore", () => {
+  it("hands the switch to the publish modal and shows the trip listed after it publishes", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true, json: async () => ({ isShared: true, isInTrending: false, shareUrl: "https://x/s/1", collaborators: [] }) }))
+    );
+    render(<ShareButton tripId="trip-1" tripTitle="Lisbon" />);
+    fireEvent.click(screen.getByRole("button", { name: /^shared?$/ }));
+    await waitFor(() => expect(screen.getByRole("dialog").getAttribute("data-trending")).toBe("false"));
+
+    fireEvent.click(screen.getByRole("button", { name: "list in explore" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "publish" }));
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: /^shared?$/ }));
+    expect(screen.getByRole("dialog").getAttribute("data-trending")).toBe("true");
   });
 });

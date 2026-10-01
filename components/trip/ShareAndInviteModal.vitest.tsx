@@ -228,3 +228,45 @@ describe("share as an image", () => {
     });
   });
 });
+
+/**
+ * Listing in Explore goes through the publish flow (the publish modal and
+ * POST /publish), so the fixed-plan confirmation and the publish limits apply.
+ */
+describe("the Explore switch", () => {
+  function renderListed(isInTrending: boolean, onRequestPublish = vi.fn()) {
+    render(
+      <ShareAndInviteModal
+        isOpen
+        onClose={vi.fn()}
+        tripId="trip-1"
+        tripTitle="Lisbon Trip"
+        shareUrl={SHARE_URL}
+        isShared
+        isInTrending={isInTrending}
+        onStopSharing={vi.fn()}
+        onEnableSharing={vi.fn(async () => undefined)}
+        isLoading={false}
+        onRequestPublish={onRequestPublish}
+      />
+    );
+    return onRequestPublish;
+  }
+
+  it("opens the publish flow instead of listing the trip itself", () => {
+    const onRequestPublish = renderListed(false);
+    fireEvent.click(screen.getByRole("switch"));
+    expect(onRequestPublish).toHaveBeenCalledTimes(1);
+    const urls = vi.mocked(fetch).mock.calls.map(([url]) => String(url));
+    expect(urls.filter((u) => u.includes("/publish") || u.includes("submit-trending"))).toEqual([]);
+  });
+
+  it("unpublishes through the publish route when switched off", async () => {
+    renderListed(true);
+    const toggle = screen.getByRole("switch");
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+    fireEvent.click(toggle);
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/trips/trip-1/publish", { method: "DELETE" }));
+    await waitFor(() => expect(screen.getByRole("switch").getAttribute("aria-checked")).toBe("false"));
+  });
+});

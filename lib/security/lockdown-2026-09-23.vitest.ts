@@ -25,13 +25,6 @@ describe("writers moved to the service role", () => {
     expect(src).toMatch(/if \(!trip \|\| trip\.deleted_at\)/);
   });
 
-  it("submit-trending writes trending_approved / trending_score through the service role", () => {
-    const src = read("app/api/trips/[id]/submit-trending/route.ts");
-    const updates = src.match(/await (\w+(?:\(\))?)\s*\.from\("trips"\)\s*\.update\(/g) ?? [];
-    expect(updates.length).toBe(2);
-    for (const u of updates) expect(u).toContain("createAdminClient()");
-  });
-
   it("incrementUsage calls increment_usage on the service role", () => {
     const src = read("lib/usage-limits/check.ts");
     const body = src.slice(src.indexOf("export async function incrementUsage"));
