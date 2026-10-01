@@ -23,6 +23,14 @@ export function parseTodayActionType(value: unknown): TodayActionType | null {
     : null;
 }
 
+/**
+ * The broadcast a trip's chip changes are announced on. The message carries
+ * nothing: listeners re-fetch through /api/shared/[token]/today-actions, so
+ * the table itself is never read from the browser.
+ */
+export const todayChannel = (tripId: string) => `trip-today:${tripId}`;
+export const TODAY_CHANGED_EVENT = "changed";
+
 /** Minutes a single "running late" adds. Fixed so the chip stays one tap. */
 export const RUNNING_LATE_STEP_MINUTES = 30;
 /** Cap the summed shift so many taps can't push the day off the clock. */

@@ -4,16 +4,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { Activity } from "@/types";
-import type { TodayAction, TodayActionType } from "./actions";
+import { TODAY_CHANGED_EVENT, todayChannel, type TodayAction, type TodayActionType } from "./actions";
 
 /**
  * The chip overlay for a live trip's Today — Live Trip Phase 3.3.
  *
- * Hydrates the active actions, then subscribes to trip_today_actions changes
- * (the same postgres_changes pattern as useActivityVotes) so a chip tapped by
- * anyone appears on everyone's Today within a second. Applying and undoing go
- * through the /shared/[token] routes (service role); this hook re-fetches on
- * any realtime event so every viewer converges on the server's truth.
+ * Hydrates the active actions, then listens on the trip's Today broadcast so a
+ * chip tapped by anyone appears on everyone's Today within a second. Applying
+ * and undoing go through the /shared/[token] routes (service role), which
+ * announce each change; this hook re-fetches on every announcement so every
+ * viewer converges on the server's truth.
  */
 export interface TodayActionsApi {
   actions: TodayAction[];
@@ -48,8 +48,8 @@ export function useTodayActions(shareToken: string, tripId: string, enabled: boo
     const supabase = createClient();
     if (channelRef.current) supabase.removeChannel(channelRef.current);
     const channel = supabase
-      .channel(`trip-today:${tripId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "trip_today_actions", filter: `trip_id=eq.${tripId}` }, () => {
+      .channel(todayChannel(tripId))
+      .on("broadcast", { event: TODAY_CHANGED_EVENT }, () => {
         void fetchActions();
       })
       .subscribe();
