@@ -18,6 +18,7 @@
  *   - Everything else                → network-only (NEVER cache)
  *
  * Specifically NOT cached:
+ *   - /trips/new (the planner): a cached copy runs the code of the last visit
  *   - Anything POST/PUT/DELETE/PATCH
  *   - /api/auth/*, /auth/*
  *   - /api/profile, /api/notifications/* (user-scoped, can leak)
@@ -33,7 +34,7 @@
  * full app launch.
  */
 
-const CACHE_VERSION = "mt-v1";
+const CACHE_VERSION = "mt-v2";
 const CACHE_TRIPS = `${CACHE_VERSION}-trips`;
 const CACHE_IMAGES = `${CACHE_VERSION}-images`;
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
@@ -101,7 +102,9 @@ self.addEventListener("fetch", (event) => {
 
   // Trip detail pages (HTML).
   // Matches /trips/[uuid] and /[locale]/trips/[uuid] (with optional /edit).
-  if (/^\/(?:[a-z]{2}\/)?trips\/[^/]+(?:\/edit)?\/?$/.test(url.pathname)) {
+  // Only a uuid: /trips/new is the planner, and serving it from here ran the
+  // planner of the previous visit, so a returning planner missed every fix.
+  if (/^\/(?:[a-z]{2}\/)?trips\/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}(?:\/edit)?\/?$/i.test(url.pathname)) {
     event.respondWith(staleWhileRevalidate(req, CACHE_TRIPS));
     return;
   }
