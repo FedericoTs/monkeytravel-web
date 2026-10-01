@@ -44,7 +44,7 @@ Carried in from `MOBILE_REVIEW.md` + `MOBILE_HANDOFF.md`, condensed:
 
 - ✅ Capacitor 8 wrap with `server.url = https://monkeytravel.app` (live-site shell, no bundled web)
 - ✅ Plugins installed: `app`, `browser`, `preferences`, `share`, `splash-screen`, `status-bar`
-- ✅ Service worker on `/trips/*` (stale-while-revalidate for offline trip viewing)
+- ✅ Service worker on `/trips/*` (network-first; the account's trips kept for offline viewing, dropped on sign-out)
 - ✅ Android hardware back-button handler with LIFO modal interception
 - ✅ iOS safe-area handling on Navbar + sheets/modals
 - ✅ Web-style flash + accidental selection killed (`-webkit-tap-highlight-color` + `user-select: none` on chrome)

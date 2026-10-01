@@ -10,7 +10,7 @@ import { test, expect } from "@playwright/test";
  *
  * What requires a real browser context with SW enabled (defer to manual
  * QA on a device):
- *   - Cache hit on second load of /trips/[id]
+ *   - Online loads of /trips/[id] come from the network, not the cache
  *   - Offline cold-load of a previously-viewed trip returns cached HTML
  *   - Auth-sensitive paths bypass the SW
  */
@@ -32,7 +32,7 @@ test.describe("Service worker @prod", () => {
     // SW file itself. A regression here means we deployed something
     // different from what we tested.
     expect(body).toContain("CACHE_VERSION");
-    expect(body).toContain("staleWhileRevalidate");
+    expect(body).toContain("networkFirst");
     expect(body).toContain("cacheFirst");
     // Auth-sensitive paths must be explicitly excluded from caching.
     expect(body).toContain("/api/auth/");
