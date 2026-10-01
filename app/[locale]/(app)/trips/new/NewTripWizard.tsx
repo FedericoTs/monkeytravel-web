@@ -2530,6 +2530,14 @@ export default function NewTripPage({
     // is set, but a child component (ValuePropositionBanner's onSave, the
     // assistant's save bridge) could still invoke it.
     if (autoSaveEnabled && autoSave.savedTripId) return;
+    // While the replace-or-keep-both prompt is open, a save from here would
+    // insert another copy behind it: take the planner to the prompt instead.
+    if (awaitingTwinChoice) {
+      const prompt = document.querySelector<HTMLElement>("[data-twin-trip-prompt]");
+      prompt?.scrollIntoView({ behavior: "smooth", block: "center" });
+      prompt?.querySelector("button")?.focus({ preventScroll: true });
+      return;
+    }
     // Synchronous re-entry guard: setLoading(true) below is async, and a
     // user can click a second time in the gap before React re-renders the
     // disabled button. The ref check fires before any state update lands.
