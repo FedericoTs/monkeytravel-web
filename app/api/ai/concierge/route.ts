@@ -117,7 +117,9 @@ async function persistConciergeTurn(input: {
 }
 
 const MAX_QUESTION_LENGTH = 800;
-const MAX_RESPONSE_TOKENS = 500;
+// The answer plus one proposal line, with room to spare: a cut answer loses
+// the proposal, which comes last.
+const MAX_RESPONSE_TOKENS = 1024;
 
 /**
  * Per-process trip-context cache.
@@ -392,6 +394,9 @@ export async function POST(request: NextRequest) {
       generationConfig: {
         temperature: 0.6, // some warmth but mostly factual
         maxOutputTokens: MAX_RESPONSE_TOKENS,
+        // Thinking off: flash thinks by default and its thinking tokens count
+        // against the cap, which spent it before the answer was written.
+        thinkingConfig: { thinkingBudget: 0 },
       },
     });
 
