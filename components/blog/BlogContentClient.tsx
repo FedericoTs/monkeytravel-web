@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 
 interface TocItem {
   id: string;
@@ -113,7 +114,15 @@ export default function BlogContentClient({ html, tocLabel = "Table of Contents"
                     ? "text-slate-700 font-medium"
                     : "text-slate-500"
                 }`}
-                onClick={() => setTocOpen(false)}
+                onClick={(event) => {
+                  // The list sits above every heading: collapse it before
+                  // scrolling, or the page shrinks mid-scroll and the heading
+                  // lands under the navbar.
+                  event.preventDefault();
+                  flushSync(() => setTocOpen(false));
+                  document.getElementById(item.id)?.scrollIntoView();
+                  if (location.hash !== `#${item.id}`) history.pushState(null, "", `#${item.id}`);
+                }}
               >
                 {item.text}
               </a>

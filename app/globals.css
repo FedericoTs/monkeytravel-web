@@ -1046,6 +1046,13 @@ h1, h2, h3 {
   max-width: var(--prose-measure);
 }
 
+/* A ToC link lands the heading below the fixed navbar, whose height grows
+   by the safe-area inset (.navbar-safe), instead of under it. */
+.blog-prose h2,
+.blog-prose h3 {
+  scroll-margin-top: calc(6rem + env(safe-area-inset-top, 0px));
+}
+
 .blog-prose p {
   margin-bottom: 1.25rem;
   max-width: var(--prose-measure);
