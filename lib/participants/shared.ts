@@ -7,6 +7,11 @@
 export const PARTICIPANT_COOKIE = "mt_anon_voter";
 export const PARTICIPANT_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
+/** The length trip_participants.participant_cookie_id accepts. */
+export function isParticipantCookieId(value: string | null | undefined): value is string {
+  return typeof value === "string" && value.length >= 10 && value.length <= 60;
+}
+
 export const PARTICIPANT_SOURCES = ["shared", "public", "crew_ask"] as const;
 export type ParticipantSource = (typeof PARTICIPANT_SOURCES)[number];
 

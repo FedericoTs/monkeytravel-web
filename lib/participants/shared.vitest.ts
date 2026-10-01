@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   initialsOf,
+  isParticipantCookieId,
   normalizeDisplayName,
   normalizeEmail,
   parseJoinAction,
@@ -59,5 +60,18 @@ describe("parsers", () => {
     expect(parseJoinAction("join")).toBe("join");
     expect(parseJoinAction("delete")).toBeNull();
     expect(parseJoinAction(1)).toBeNull();
+  });
+});
+
+describe("isParticipantCookieId", () => {
+  it("accepts what the join route mints and the column allows", () => {
+    expect(isParticipantCookieId("V1StGXR8_Z5jdHi6B-myT")).toBe(true);
+    expect(isParticipantCookieId("x".repeat(60))).toBe(true);
+  });
+  it("rejects missing, short and oversized values", () => {
+    expect(isParticipantCookieId(undefined)).toBe(false);
+    expect(isParticipantCookieId("")).toBe(false);
+    expect(isParticipantCookieId("x".repeat(9))).toBe(false);
+    expect(isParticipantCookieId("x".repeat(61))).toBe(false);
   });
 });

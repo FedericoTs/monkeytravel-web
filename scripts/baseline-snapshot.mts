@@ -10,6 +10,7 @@
  *   npx tsx scripts/baseline-snapshot.mts              # print
  *   npx tsx scripts/baseline-snapshot.mts --append     # print + append to the plan
  *   DAYS=56 npx tsx scripts/baseline-snapshot.mts      # different window
+ *   npx tsx scripts/baseline-snapshot.mts --to=2026-09-05   # a past window, today's definitions
  *
  * Needs SUPABASE_SERVICE_ROLE_KEY (env or .env.local): the function is
  * revoked from every other role because it aggregates visitor behaviour.
@@ -36,21 +37,31 @@ if (!url || !key) {
 const DAYS = Number(process.env.DAYS || 28);
 const APPEND = process.argv.includes("--append");
 const PLAN = "docs/LIVE_TRIP_MASTER_PLAN.md";
+// --to=YYYY-MM-DD: the window ending (exclusive) on that day, read with today's definitions.
+const TO = process.argv.find((a) => a.startsWith("--to="))?.slice("--to=".length) ?? null;
+if (TO !== null && !/^\d{4}-\d{2}-\d{2}$/.test(TO)) {
+  console.error("--to takes a date, e.g. --to=2026-09-05");
+  process.exit(2);
+}
 
 type J = Record<string, unknown>;
 const admin = createClient(url, key, { auth: { persistSession: false } });
 
-const { data, error } = await admin.rpc("get_live_trip_baseline", { p_days: DAYS });
+const { data, error } = await admin.rpc("get_live_trip_baseline", TO ? { p_days: DAYS, p_to: TO } : { p_days: DAYS });
 if (error || !data) {
   console.error("get_live_trip_baseline failed:", error?.message);
   process.exit(1);
 }
 const b = data as J;
 // Phase 2 metrics live in their own function so the frozen baseline stays
-// what it was (see migration 20260905230000_trip_participants.sql).
-const { data: pdata, error: perror } = await admin.rpc("get_live_trip_participant_metrics", { p_days: DAYS });
-if (perror) console.error("get_live_trip_participant_metrics failed:", perror.message);
-const pm = (pdata ?? {}) as J;
+// what it was (see migration 20260905230000_trip_participants.sql). It has no
+// end date, so a past window leaves its rows empty.
+let pm: J = {};
+if (!TO) {
+  const { data: pdata, error: perror } = await admin.rpc("get_live_trip_participant_metrics", { p_days: DAYS });
+  if (perror) console.error("get_live_trip_participant_metrics failed:", perror.message);
+  pm = (pdata ?? {}) as J;
+}
 const w = b.window as J, wz = b.wizard as J, rc = b.recipients as J, sh = b.sharing as J,
   rt = b.retention as J, lt = b.live_trip as J, g = b.guardrails as J;
 
@@ -66,15 +77,18 @@ const todtNote =
     : "";
 
 const stamp = String(w.to_exclusive);
-const block = `## Baseline ${stamp} (${w.days} full UTC days, ${w.from} → ${w.to_exclusive} exclusive)
+const heading = `## Baseline ${stamp}${TO ? `, recomputed ${String(w.computed_at).slice(0, 10)}` : ""}`;
+const call = `get_live_trip_baseline(${DAYS}${TO ? `, '${TO}'` : ""})`;
+const block = `${heading} (${w.days} full UTC days, ${w.from} → ${w.to_exclusive} exclusive)
 
-*Produced by \`scripts/baseline-snapshot.mts\` from \`get_live_trip_baseline(${DAYS})\` at ${String(w.computed_at).slice(0, 16)}Z. Every figure reads labelled human data (\`page_views_human\`, automation labels applied to wizard sessions). Re-run the same command for the weekly ritual; never hand-edit these numbers.*
+*Produced by \`scripts/baseline-snapshot.mts\` from \`${call}\` at ${String(w.computed_at).slice(0, 16)}Z. Every figure reads labelled human data (\`page_views_human\`, automation labels applied to wizard sessions and trip opens). Re-run the same command for the weekly ritual; never hand-edit these numbers.${TO ? " A past window read with today's definitions and the labels as stored now; the participant rows are not recomputed." : ""}*
 
 | Area | Metric | Value |
 |---|---|---|
-| North Star | **TODT** — trips with ≥1 human open on a day inside their dates, of trips completed in the window | **${pct(lt.todt_pct)}** (${v(lt.trips_completed_in_window)} trips)${todtNote} |
-| Live trip | trips in progress today / opened today | ${v(lt.trips_in_progress_today)} / ${v(lt.in_progress_opened_today)} |
-| Live trip | edited during the trip (trips travelled since 2026-05-01) | ${pct(lt.edited_during_trip_pct)} of ${v(lt.travelled_since_may)} |
+| North Star | **TODT** — trips opened on a day inside their dates by their owner, a collaborator or a participant, of trips completed in the window | **${pct(lt.todt_pct)}** (${v(lt.trips_completed_in_window)} trips)${todtNote} |
+| North Star | the same trips opened by anyone, public and shared visitors included (not the North Star) | ${pct(lt.todt_any_viewer_pct)} |
+| Live trip | trips in progress today / opened today by their people | ${v(lt.trips_in_progress_today)} / ${v(lt.in_progress_opened_today)} |
+| Live trip | edited during the trip (trips travelled since 2026-05-01) | ${TO ? `— (reads each trip's current updated_at, so a past window cannot be recomputed); ${v(lt.travelled_since_may)} trips` : `${pct(lt.edited_during_trip_pct)} of ${v(lt.travelled_since_may)}`} |
 | Live trip | trip_views rows in window by source | ${views} |
 | Recipients | human recipient sessions (\`/shared/*\`, \`/trip/*\`) | ${v(rc.recipient_sessions)} (${v(rc.recipient_sessions_per_week)}/week) |
 | Recipients | recipient → wizard / → auth | ${pct(rc.recipient_to_wizard_pct)} / ${pct(rc.recipient_to_auth_pct)} |
@@ -83,7 +97,7 @@ const block = `## Baseline ${stamp} (${w.days} full UTC days, ${w.from} → ${w.
 | Sharing | recipient sessions per shared trip | ${v(sh.recipients_per_share)} |
 | Sharing | **participants per shared trip** — taps in window ÷ trips shared in window; name / email capture; with account (participant → own trip is not linkable yet) | ${v(pm.participants_per_shared_trip)} (${v(pm.taps_in_window)} / ${v(pm.trips_shared_in_window)}); ${pct(pm.name_capture_pct)} / ${pct(pm.email_capture_pct)}; ${v(pm.with_account)} |
 | K | new users / via invite / referred / **K** | ${v(sh.new_users)} / ${v(sh.signups_via_invite)} / ${v(sh.signups_referred)} / **${v(sh.k_factor)}** |
-| Retention | cohort return ≥2 logins | ${pct(rt.return_once_pct)} of ${v(rt.cohort_users)} |
+| Retention | cohort return ≥2 logins | ${pct(rt.return_once_pct)} of ${v(rt.cohort_users)}${TO ? " (each user's login count as of today, so a past cohort reads higher than it did then)" : ""} |
 | Retention | post-trip 7-day return (owner opened anything within 7 days after end_date) | ${pct(rt.post_trip_return_7d_pct)} of ${v(rt.trips_ended)} trips |
 | Wizard | step-1 → step-2 (wizard arm, as \`get_ux10x_rates\`) | ${pct(wz.step1_to_2_pct)} (${v(wz.step2_sessions)} of ${v(wz.step1_sessions)}) |
 | Wizard | step-1 → result / result → saved | ${pct(wz.step1_to_result_pct)} / ${pct(wz.result_to_saved_pct)} |
@@ -103,8 +117,8 @@ if (APPEND) {
     console.error(`${PLAN}: "${marker}" not found; nothing appended`);
     process.exit(1);
   }
-  if (raw.includes(`## Baseline ${stamp} (`)) {
-    console.error(`${PLAN}: a baseline block for ${stamp} already exists; nothing appended`);
+  if (raw.includes(`${heading} (`)) {
+    console.error(`${PLAN}: "${heading}" already exists; nothing appended`);
     process.exit(1);
   }
   const insert = block.replace(/\n/g, eol) + eol;
