@@ -664,7 +664,7 @@ export default function ShareAndInviteModal({
                             trendingLoading && "opacity-50 cursor-not-allowed"
                           )}
                         >
-                          <span className={cn("absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform", trendingEnabled ? "translate-x-6" : "translate-x-1")} />
+                          <span className={cn("absolute left-0 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform", trendingEnabled ? "translate-x-6" : "translate-x-1")} />
                         </button>
                       </div>
                     </div>
