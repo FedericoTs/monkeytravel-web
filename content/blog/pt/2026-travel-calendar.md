@@ -34,7 +34,7 @@ Alguns princípios antes de o calendário começar.
 
 **Toda faixa de orçamento abaixo cobre hospedagem, comida, transporte local e uma atividade por dia — os voos ficam de fora, já que variam conforme a origem.** Onde você vê "$80-140/dia", isso é por pessoa, gama média. As semanas de festival e os corredores de Natal/Ano-Novo são sinalizados à parte porque quebram a média.
 
-**Vou te dizer também quando não ir.** Não vá a Bali em fevereiro se a chuva arruína sua viagem. Não vá a Marraquexe em julho a menos que seu riad tenha uma piscina de mergulho. Não reserve Santorini em agosto a menos que você já tenha aceitado o preço. As linhas mensais de "evitar" são curtas, mas decisivas.
+**Vou te dizer também quando não ir.** Não vá a Bali em fevereiro se a chuva arruína sua viagem. Não vá a Marrakech em julho a menos que seu riad tenha uma piscina de mergulho. Não reserve Santorini em agosto a menos que você já tenha aceitado o preço. As linhas mensais de "evitar" são curtas, mas decisivas.
 
 Mais uma coisa. A pergunta mais útil de todas não é "para onde devo ir em março" — é "o que eu quero desta viagem?". A seção sobre escolher o mês certo, perto do fim, trabalha de trás para frente a partir de objetivos (praia mais quente, menor custo, maior evento) e é, para a maioria dos leitores, o ponto certo por onde começar.
 
@@ -42,18 +42,18 @@ Mais uma coisa. A pergunta mais útil de todas não é "para onde devo ir em mar
 
 | Mês | Escolha para clima quente | Melhor custo-benefício (meia temporada) | Evento/fenômeno de destaque |
 |---|---|---|---|
-| Janeiro | Bangcoc, Tailândia | Marraquexe, Marrocos | Pico da aurora boreal (Lapônia) |
+| Janeiro | Bangcoc, Tailândia | Marrakech, Marrocos | Pico da aurora boreal (Lapônia) |
 | Fevereiro | Maldivas | Egito | Carnaval do Rio (13-18 de fev) |
 | Março | Cartagena, Colômbia | Lisboa, Portugal | Holi (3-4 de março, Rajastão) |
 | Abril | Bali, Indonésia | Lisboa, Portugal | Sakura em plena floração (Tóquio, fim de março-7 de abril) |
-| Maio | Algarve, Portugal | Marraquexe, Marrocos | Abre a estação seca da Trilha Inca |
+| Maio | Algarve, Portugal | Marrakech, Marrocos | Abre a estação seca da Trilha Inca |
 | Junho | Santorini, Grécia | Lisboa, Portugal | Sol da meia-noite (Islândia/Lofoten) |
 | Julho | Algarve, Portugal | Bali, Indonésia | Começa a Grande Migração (Masai Mara) |
 | Agosto | Montenegro | Eslovênia | Edinburgh Fringe (o mês inteiro) |
 | Setembro | Bali, Indonésia | Istambul, Turquia | La Mercè (Barcelona, 20-24 de set) |
-| Outubro | Creta, Grécia | Marraquexe, Marrocos | Folhagem de outono da Nova Inglaterra (semanas de pico 1-2) |
+| Outubro | Creta, Grécia | Marrakech, Marrocos | Folhagem de outono da Nova Inglaterra (semanas de pico 1-2) |
 | Novembro | Sri Lanka (leste) | Lisboa, Portugal | Folhagem koyo de Tóquio |
-| Dezembro | Bangcoc, Tailândia | Marraquexe, Marrocos | Mercados de Natal (Viena, Praga) |
+| Dezembro | Bangcoc, Tailândia | Marrakech, Marrocos | Mercados de Natal (Viena, Praga) |
 
 Use a tabela para navegar. Cada seção mensal abaixo explica por que essas escolhas específicas vencem as alternativas.
 
@@ -81,9 +81,9 @@ Bangcoc em janeiro é o mais próximo de uma semana garantida de bom tempo no Su
 - **O que torna janeiro o momento certo:** a janela climática mais confiável do ano para a cidade, e ela emenda com a temporada de decoração do Ano-Novo Chinês em Yaowarat no fim de janeiro.
 - **Dica de quem conhece por dentro:** o Ano-Novo Chinês cai em 17 de fevereiro em 2026, mas Yaowarat (Chinatown) começa a se decorar a partir do fim de janeiro — exposições de lanternas vermelhas, cardápios especiais, nenhuma das multidões reais do feriado ainda. Para um plano de cinco dias, veja nosso [roteiro de Bangcoc de 5 dias](/blog/bangkok-5-day-itinerary).
 
-### Marraquexe, Marrocos — o melhor destino cultural com bom custo-benefício do inverno
+### Marrakech, Marrocos — o melhor destino cultural com bom custo-benefício do inverno
 
-Janeiro em [Marraquexe](/destinations/marrakech) derruba as máximas diurnas para uns administráveis 18 °C e o volume de turistas para o seu mínimo anual. Os preços dos riads despencam de 40% a 60% em relação à primavera. As Montanhas do Atlas mantêm a neve nos cumes durante todo janeiro, oferecendo o pano de fundo dramático que os cartões-postais prometem e raramente entregam.
+Janeiro em [Marrakech](/destinations/marrakech) derruba as máximas diurnas para uns administráveis 18 °C e o volume de turistas para o seu mínimo anual. Os preços dos riads despencam de 40% a 60% em relação à primavera. As Montanhas do Atlas mantêm a neve nos cumes durante todo janeiro, oferecendo o pano de fundo dramático que os cartões-postais prometem e raramente entregam.
 
 - **Temp. média:** 6-18 °C
 - **Orçamento diário:** $45-110/pessoa
@@ -143,7 +143,7 @@ O Holi é o festival das cores, a celebração da chegada da primavera, e um dos
 
 - **Temp. média:** 18-32 °C
 - **Orçamento diário:** $25-60/pessoa
-- **O que torna março o momento certo:** o Holi cai em 3-4 de março em 2026. Além do festival, março é a cauda da alta temporada — preços ligeiramente mais baixos que janeiro-fevereiro, com clima ainda fresco o bastante para os fortes.
+- **O que torna março o momento certo:** o Holi cai em 3-4 de março em 2026. Além do festival, março é a reta final da alta temporada — preços ligeiramente mais baixos que janeiro-fevereiro, com clima ainda fresco o bastante para os fortes.
 - **Dica de quem conhece por dentro:** vista roupas que você não se importa de estragar (o pó colorido é permanente). Reserve eventos específicos de Holi pelo seu hotel em vez de entrar nas celebrações de rua à toa — quem vai pela primeira vez acha a versão sem filtro avassaladora. Os hotéis-patrimônio (havelis e palácios convertidos) custam $30-60/noite por propriedades que na Europa passariam de $200.
 
 ### Cartagena, Colômbia — estação seca caribenha
@@ -183,7 +183,7 @@ Os Jardins de Keukenhof ficam abertos de 19 de março a 10 de maio de 2026, com 
 
 ### Lisboa, Portugal — perfeição de pré-temporada (ainda)
 
-[Lisboa](/destinations/lisbon) carrega suas vantagens de março para abril, com clima marginalmente mais quente e um pouco mais de gente. Hospedagem de 30% a 40% mais barata que no verão, mesas de restaurante sem reserva na maioria das noites, temporada completa de esplanadas aberta em Alfama. Abril é quando Lisboa fica mais subestimada — junho leva a energia dos festivais, mas abril leva o preço.
+[Lisboa](/destinations/lisbon) carrega suas vantagens de março para abril, com clima marginalmente mais quente e um pouco mais de gente. Hospedagem de 30% a 40% mais barata que no verão, mesas de restaurante sem reserva na maioria das noites, temporada completa de mesas ao ar livre em Alfama. Abril é quando Lisboa fica mais subestimada — junho leva a energia dos festivais, mas abril leva o preço.
 
 - **Temp. média:** 12-19 °C
 - **Orçamento diário:** $70-110/pessoa
@@ -207,9 +207,9 @@ A Costa Amalfitana em julho é um dos trechos de estrada mais congestionados da 
 - **O que torna maio o momento certo:** o Caminho dos Deuses (Sentiero degli Dei) coberto de flores silvestres. As balsas entre Positano, Amalfi e Ravello com a programação completa, mas sem o gargalo.
 - **Dica de quem conhece por dentro:** pule a hospedagem em Positano — preço premium pelo nome. Hospede-se em Praiano ou Furore: 10-20 minutos de balsa, de 30% a 40% mais barato. Nosso [roteiro de Itália de 5 dias](/blog/5-day-italy-itinerary) combina a costa com [Roma](/destinations/rome) e Florença.
 
-### Marraquexe, Marrocos — última janela antes da fornalha do verão
+### Marrakech, Marrocos — última janela antes da fornalha do verão
 
-Marraquexe chega a 38-42 °C de junho a setembro. Maio fica em 18-28 °C — quente o bastante para jantar ao ar livre na Djemaa el-Fna sem o calor que te esgota já às 10h no verão. Fica entre as ondas de turistas da Páscoa e do verão, então os preços estão no piso da primavera. O Ramadã termina em 30 de abril de 2026, então maio já é totalmente pós-Ramadã, com todos os restaurantes abertos.
+Marrakech chega a 38-42 °C de junho a setembro. Maio fica em 18-28 °C — quente o bastante para jantar ao ar livre na Djemaa el-Fna sem o calor que te esgota já às 10h no verão. Fica entre as ondas de turistas da Páscoa e do verão, então os preços estão no piso da primavera. O Ramadã termina em 30 de abril de 2026, então maio já é totalmente pós-Ramadã, com todos os restaurantes abertos.
 
 - **Temp. média:** 18-28 °C
 - **Orçamento diário:** EUR 35-70/pessoa
@@ -244,7 +244,7 @@ O solstício de verão em 21 de junho entrega quase 24 horas de luz do dia. As e
 
 ### Lisboa, Portugal — as Festas de Lisboa e a energia dos festivais
 
-A Festa de Santo António, em 12-13 de junho, transforma Lisboa em um festival a céu aberto: sardinhas grelhando em cada esquina, as marchas populares de bairro desfilando pela Avenida da Liberdade. A EuroPride Lisboa assume o palco de 14 a 23 de junho. O MEO Kalorama acontece de 19 a 21 de junho. Onze horas diárias de sol e 25 °C fazem da cidade a sua melhor versão.
+A Festa de Santo Antônio, em 12-13 de junho, transforma Lisboa em um festival a céu aberto: sardinhas grelhando em cada esquina, as marchas populares de bairro desfilando pela Avenida da Liberdade. A EuroPride Lisboa assume o palco de 14 a 23 de junho. O MEO Kalorama acontece de 19 a 21 de junho. Onze horas diárias de sol e 25 °C fazem da cidade a sua melhor versão.
 
 - **Temp. média:** 25 °C de máxima, 16 °C de mínima
 - **Orçamento diário:** $100-150/pessoa
@@ -253,7 +253,7 @@ A Festa de Santo António, em 12-13 de junho, transforma Lisboa em um festival a
 
 ### Tóquio, Japão — hortênsias fora de temporada e o Sanno Matsuri
 
-Junho é a baixa temporada de Tóquio — a estação das chuvas (tsuyu) começa no início de junho, mas isso não significa aguaceiros constantes. Espere garoas intermitentes misturadas com períodos de céu limpo. A primeira metade costuma ser mais seca. Em troca: preços de hotel de 30% a 40% abaixo do pico, filas mais curtas em todo lugar, e uma das mais belas exibições sazonais de Tóquio — as hortênsias florescendo por templos e parques.
+Junho é a baixa temporada de Tóquio — a estação das chuvas (tsuyu) começa no início de junho, mas isso não significa chuva constante. Espere garoas intermitentes misturadas com períodos de céu limpo. A primeira metade costuma ser mais seca. Em troca: preços de hotel de 30% a 40% abaixo do pico, filas mais curtas em todo lugar, e uma das mais belas exibições sazonais de Tóquio — as hortênsias florescendo por templos e parques.
 
 - **Temp. média:** 25 °C de máxima, 18 °C de mínima
 - **Orçamento diário:** $100-160/pessoa
@@ -313,7 +313,7 @@ Julho fica no coração da estação seca de [Bali](/destinations/bali). Sol con
 - **O que torna julho o momento certo:** o mês mais seco do ano, ponto.
 - **Dica de quem conhece por dentro:** divida a viagem entre as costas. Oeste (Canggu, Uluwatu) para surfe com vento offshore. Leste (Amed, Tulamben) para mergulho em águas calmas — o naufrágio do USAT Liberty em Tulamben é acessível a partir da praia. Nosso [roteiro de Bali de 7 dias](/blog/bali-7-day-itinerary) cobre o percurso. Se você está em dúvida entre Bali e a Tailândia, nossa [comparação Bali vs Tailândia](/blog/bali-vs-thailand) aborda os trade-offs diretamente.
 
-**Evite em julho:** Santorini a menos que preço não importe (julho é o mês mais caro, com quartos com vista para a caldeira a $300-500+). Marraquexe a menos que seu riad tenha uma piscina de mergulho (37-40 °C+ durante o dia). Roma e Atenas — cidades mediterrâneas a 35-38 °C sem alívio.
+**Evite em julho:** Santorini a menos que preço não importe (julho é o mês mais caro, com quartos com vista para a caldeira a $300-500+). Marrakech a menos que seu riad tenha uma piscina de mergulho (37-40 °C+ durante o dia). Roma e Atenas — cidades mediterrâneas a 35-38 °C sem alívio.
 
 ---
 
@@ -378,7 +378,7 @@ Setembro em [Istambul](/destinations/istanbul) é uma aula magna de custo-benef�
 
 ### Bali, Indonésia — estação seca, antes da multidão
 
-Setembro é a cauda da estação seca de [Bali](/destinations/bali). A chuva de novembro a março ainda não começou, a umidade está mais baixa que em julho-agosto, e as multidões das férias escolares australianas (o maior segmento de Bali) foram para casa. Os preços das villas caem a partir da segunda semana.
+Setembro é a reta final da estação seca de [Bali](/destinations/bali). A chuva de novembro a março ainda não começou, a umidade está mais baixa que em julho-agosto, e as multidões das férias escolares australianas (o maior segmento de Bali) foram para casa. Os preços das villas caem a partir da segunda semana.
 
 - **Temp. média:** 28 °C
 - **Orçamento diário:** $50-90/pessoa
@@ -411,9 +411,9 @@ Creta em outubro é o segredo de meia temporada mais bem guardado da Grécia. O 
 - **O que torna outubro o momento certo:** clima de praia sem preços de verão, e a caminhada do Desfiladeiro de Samaria em temperaturas que não te destroem.
 - **Dica de quem conhece por dentro:** o Festival da Tsikoudia (raki) acontece em várias vilas por Creta ao longo de outubro — os locais destilam raki fresca da colheita de uva. Pergunte ao seu anfitrião qual é o mais próximo.
 
-### Marraquexe, Marrocos — o ponto ideal climático do ano
+### Marrakech, Marrocos — o ponto ideal climático do ano
 
-[Marraquexe](/destinations/marrakech) em outubro atinge o seu pico climático. Os 40 °C+ do verão amenizaram para 27 °C. A chuva é essencialmente inexistente — menos de 2 dias chuvosos. Mercados, riads e comida de rua em plena capacidade, com bem menos visitantes do que na primavera.
+[Marrakech](/destinations/marrakech) em outubro atinge o seu pico climático. Os 40 °C+ do verão amenizaram para 27 °C. A chuva é essencialmente inexistente — menos de 2 dias chuvosos. Mercados, riads e comida de rua em plena capacidade, com bem menos visitantes do que na primavera.
 
 - **Temp. média:** 27 °C
 - **Orçamento diário:** $50-80/pessoa
@@ -457,7 +457,7 @@ Novembro vê as costas leste e norte do Sri Lanka entrarem na sua estação seca
 
 ### Lisboa, Portugal — capital do custo-benefício fora de temporada na Europa
 
-[Lisboa](/destinations/lisbon) em novembro é o melhor custo-benefício de meia temporada da Europa. A intensidade do verão se foi, clima ameno para caminhar, preços de hotel de 30% a 50% abaixo do pico. A chuva de novembro é real (6-8 dias chuvosos), mas os aguaceiros tendem a ser intermitentes, não o dia todo. A luz suave de outono faz a azulejaria brilhar.
+[Lisboa](/destinations/lisbon) em novembro é o melhor custo-benefício de meia temporada da Europa. A intensidade do verão se foi, clima ameno para caminhar, preços de hotel de 30% a 50% abaixo do pico. A chuva de novembro é real (6-8 dias chuvosos), mas as pancadas de chuva tendem a ser intermitentes, não o dia todo. A luz suave de outono faz a azulejaria brilhar.
 
 - **Temp. média:** 11-18 °C
 - **Orçamento diário:** $80-140/pessoa
@@ -492,13 +492,13 @@ Dezembro é o mês mais polarizador do calendário. As buscas genéricas por "al
 - **O que torna dezembro o momento certo:** a janela climática mais confiável do ano para esta cidade. Pad Thai de um vendedor de rua reconhecido pelo Michelin: $1,50-2.
 - **Dica de quem conhece por dentro:** o Mercado de Fim de Semana de Chatuchak (mais de 15.000 barracas) é navegável em dezembro, ao contrário do calor brutal do verão. Sábado de manhã antes das 10h. Nosso [roteiro de Bangcoc de 5 dias](/blog/bangkok-5-day-itinerary) cobre um plano completo.
 
-### Marraquexe, Marrocos — o ponto fora da curva de clima ameno
+### Marrakech, Marrocos — o ponto fora da curva de clima ameno
 
-[Marraquexe](/destinations/marrakech) em dezembro fica em um ponto ideal de clima ameno — quente o bastante para perambular pela medina durante o dia (18-22 °C), fresco o bastante para de fato caminhar por horas. A chuva é mínima. O turismo está baixo o suficiente para você conseguir melhores preços em tudo, de riads a tours guiados.
+[Marrakech](/destinations/marrakech) em dezembro fica em um ponto ideal de clima ameno — quente o bastante para perambular pela medina durante o dia (18-22 °C), fresco o bastante para de fato caminhar por horas. A chuva é mínima. O turismo está baixo o suficiente para você conseguir melhores preços em tudo, de riads a tours guiados.
 
 - **Temp. média:** 9-20 °C
 - **Orçamento diário:** $50-120/pessoa
-- **O que torna dezembro o momento certo:** enquanto o resto do norte da África e do Mediterrâneo está frio demais para explorar ao ar livre, Marraquexe está na sua versão mais confortável.
+- **O que torna dezembro o momento certo:** enquanto o resto do norte da África e do Mediterrâneo está frio demais para explorar ao ar livre, Marrakech está na sua versão mais confortável.
 - **Dica de quem conhece por dentro:** as noites de dezembro caem para 7-9 °C. Os terraços nos telhados, essenciais no verão, perdem o apelo à noite. Reserve um jantar marroquino tradicional dentro de um riad ($15-25 por pessoa) — tagine, cuscuz, chá de menta à luz de velas.
 
 **Evite em dezembro:** qualquer lugar do calendário entre 20 de dezembro e 2 de janeiro se você puder mudar as datas. Essa janela de 13 dias carrega os preços mais altos do ano inteiro no mundo todo. De 1º a 15 de dezembro oferece clima parecido a um custo de 30% a 50% mais baixo na maioria dos destinos.
@@ -509,13 +509,13 @@ Dezembro é o mês mais polarizador do calendário. As buscas genéricas por "al
 
 Se você chegou até aqui, tem o calendário. A pergunta mais difícil é qual casa é a sua. A maioria dos leitores não precisa, na verdade, de um mês — precisa trabalhar de trás para frente a partir de uma única restrição. Eis como eu afunilaria.
 
-**Comece pela restrição menos flexível.** Para a maioria das pessoas, são as datas (você tem uma semana fixa de férias) ou o orçamento. Se suas datas são fixas, o calendário acima é o seu cardápio — escolha do seu mês. Se o orçamento é fixo e as datas estão abertas, trabalhe a segunda coluna da tabela de escolha rápida. As escolhas de meia temporada para janeiro (Marraquexe), maio (Marraquexe de novo) e novembro (Lisboa) entregam a maior experiência por dólar do ano inteiro.
+**Comece pela restrição menos flexível.** Para a maioria das pessoas, são as datas (você tem uma semana fixa de férias) ou o orçamento. Se suas datas são fixas, o calendário acima é o seu cardápio — escolha do seu mês. Se o orçamento é fixo e as datas estão abertas, trabalhe a segunda coluna da tabela de escolha rápida. As escolhas de meia temporada para janeiro (Marrakech), maio (Marrakech de novo) e novembro (Lisboa) entregam a maior experiência por dólar do ano inteiro.
 
 **Se "a praia mais quente" é o objetivo:** Maldivas em fevereiro (pico da estação seca, visibilidade de 25-30 m), Bali em julho (mês mais seco), Creta no fim de setembro (água ainda a 23 °C, preços despencados) ou Bangcoc em dezembro (28-31 °C, chuva quase zero). Qualquer coisa descrita como "quente e seca" fora dessas janelas exige mais pesquisa do que uma escolha rápida merece.
 
 **Se "o maior evento" é o objetivo:** Carnaval do Rio 13-18 de fevereiro de 2026 (reserve ontem). Sakura em plena floração 1-7 de abril em Quioto e Osaka (reserve até janeiro). Inti Raymi 24 de junho em Cusco (as permissões da Trilha Inca esgotam com 6 meses de antecedência). Edinburgh Fringe o agosto inteiro (reserve hospedagem com 6 meses de antecedência). La Mercè Barcelona 20-24 de setembro. Dia dos Mortos Oaxaca 1-2 de novembro. O padrão: eventos com datas fixas exigem reservar em prazos fixos. Se você está lendo isto em maio de 2026, o Inti Raymi ainda é viável, o Edinburgh Fringe precisa de ação urgente, e o Carnaval 2027 é algo em que começar a pensar agora.
 
-**Se "o menor custo" é o objetivo:** fevereiro (estatisticamente o mês mais barato para voar no mundo, fora das janelas de Carnaval/Dia dos Namorados), começo de novembro antes da Black Friday e as duas primeiras semanas de dezembro antes do dia 20. Dentro desses meses: Marraquexe ($40-100/dia), Bangcoc ($40-110/dia), Bali ($40-90/dia) e Istambul ($45-100/dia) aparecem consistentemente entre os mais baratos. O Egito em fevereiro ($50-120/dia) é o ponto fora da curva de custo-benefício — densidade histórica extraordinária a preços quase de Ásia.
+**Se "o menor custo" é o objetivo:** fevereiro (estatisticamente o mês mais barato para voar no mundo, fora das janelas de Carnaval/Dia dos Namorados), começo de novembro antes da Black Friday e as duas primeiras semanas de dezembro antes do dia 20. Dentro desses meses: Marrakech ($40-100/dia), Bangcoc ($40-110/dia), Bali ($40-90/dia) e Istambul ($45-100/dia) aparecem consistentemente entre os mais baratos. O Egito em fevereiro ($50-120/dia) é o ponto fora da curva de custo-benefício — densidade histórica extraordinária a preços quase de Ásia.
 
 **Se "um fenômeno natural específico" é o objetivo:** aurora boreal — Lapônia em janeiro ou fevereiro durante o máximo solar atual, enquanto dura. Sol da meia-noite — Islândia ou Lofoten no fim de junho. Cerejeiras — Tóquio e Quioto no começo de abril. Folhagem de outono da Nova Inglaterra — as duas primeiras semanas de outubro. Travessias de rio da Grande Migração — Masai Mara no fim de julho e em agosto, Serengeti durante todo agosto. Temporada de baleias — Hermanus em agosto, Trincomalee em novembro, os Açores em maio. Nenhum deles é intercambiável. Adapte a viagem ao fenômeno, não o contrário.
 
@@ -535,7 +535,7 @@ Fevereiro, pelas contas. As companhias aéreas dos EUA, da Europa e da Austráli
 
 ### Quando é a meia temporada na Europa?
 
-Há duas janelas de meia temporada na Europa, e elas não são equivalentes. A meia temporada de primavera vai aproximadamente de abril a meados de maio (depois da Páscoa, antes de as férias escolares começarem por volta de 20 de maio). A meia temporada de outono vai de meados de setembro a outubro. Setembro é estatisticamente a melhor das duas — a água do Mediterrâneo ainda quente a 24-25 °C, os preços caíram de 30% a 45% em relação a agosto, e o calendário de festivais (La Mercè, o início da Oktoberfest, o Festival de Cinema de Veneza) é denso. Outubro estende o valor para o fim do verão mediterrâneo em cidades como Roma, Creta e Marraquexe. Maio é a melhor janela de primavera para destinos de água mais fria (Algarve, ilhas gregas, Provença) e para preços de meia temporada em todos os fronts. Abril só é meia temporada fora do fim de semana da Páscoa (3-6 de abril de 2026 no Ocidente; 10-13 de abril ortodoxa).
+Há duas janelas de meia temporada na Europa, e elas não são equivalentes. A meia temporada de primavera vai aproximadamente de abril a meados de maio (depois da Páscoa, antes de as férias escolares começarem por volta de 20 de maio). A meia temporada de outono vai de meados de setembro a outubro. Setembro é estatisticamente a melhor das duas — a água do Mediterrâneo ainda quente a 24-25 °C, os preços caíram de 30% a 45% em relação a agosto, e o calendário de festivais (La Mercè, o início da Oktoberfest, o Festival de Cinema de Veneza) é denso. Outubro estende o valor para o fim do verão mediterrâneo em cidades como Roma, Creta e Marrakech. Maio é a melhor janela de primavera para destinos de água mais fria (Algarve, ilhas gregas, Provença) e para preços de meia temporada em todos os fronts. Abril só é meia temporada fora do fim de semana da Páscoa (3-6 de abril de 2026 no Ocidente; 10-13 de abril ortodoxa).
 
 ### Melhor mês para as cerejeiras em 2026?
 
@@ -543,7 +543,7 @@ Do fim de março ao começo de abril para o centro do Japão, com variação reg
 
 ### Pior mês para o clima do Sudeste Asiático?
 
-Depende de qual parte do Sudeste Asiático. A monção do sudoeste em geral afeta a costa de Andamão da Tailândia (Phuket, Krabi), a costa oeste da Malásia e a maior parte do Sudeste Asiático continental de maio a outubro — o pico de chuva costuma ser em setembro. A estação úmida de Bali vai de novembro a março, com janeiro e fevereiro os mais intensos. O Sri Lanka é o caso em que o país tem duas monções em calendários opostos — a costa sudoeste (Colombo, Galle) está em monção de maio a agosto; a costa leste (Trincomalee, Arugam Bay) está seca de maio a setembro. O pior mês "no geral" para a definição mais ampla de Sudeste Asiático é setembro — pico da monção do sudoeste, pico de risco de tufões para as Filipinas e o sul do Japão. Nosso [guia da temporada de monções](/blog/monsoon-season-where-to-go-and-avoid) destrincha os padrões regionais. O melhor mês "no geral" para essa mesma definição ampla é dezembro ou janeiro — quase tudo está na estação seca.
+Depende de qual parte do Sudeste Asiático. A monção do sudoeste em geral afeta a costa de Andamã da Tailândia (Phuket, Krabi), a costa oeste da Malásia e a maior parte do Sudeste Asiático continental de maio a outubro — o pico de chuva costuma ser em setembro. A estação úmida de Bali vai de novembro a março, com janeiro e fevereiro os mais intensos. O Sri Lanka é o caso em que o país tem duas monções em calendários opostos — a costa sudoeste (Colombo, Galle) está em monção de maio a agosto; a costa leste (Trincomalee, Arugam Bay) está seca de maio a setembro. O pior mês "no geral" para a definição mais ampla de Sudeste Asiático é setembro — pico da monção do sudoeste, pico de risco de tufões para as Filipinas e o sul do Japão. Nosso [guia da temporada de monções](/blog/monsoon-season-where-to-go-and-avoid) destrincha os padrões regionais. O melhor mês "no geral" para essa mesma definição ampla é dezembro ou janeiro — quase tudo está na estação seca.
 
 ### Quando cai a Páscoa em 2026 e como ela afeta os preços?
 
@@ -551,7 +551,7 @@ O Domingo de Páscoa é 5 de abril de 2026 (Ocidente) e 12 de abril de 2026 (ort
 
 ### Quando devo reservar uma viagem em 2026?
 
-Voos de longa distância: 4-6 meses de antecedência é o ponto ideal consistente para rotas transatlânticas e transpacíficas. Europa de curta distância: 6-10 semanas. Caribe e México no inverno: 3-4 meses de antecedência, mais para as semanas de Natal/spring break. Exceções específicas que exigem mais antecedência: permissões da Trilha Inca (6 meses para julho-agosto), campervans na Islândia (3 meses para junho-julho), ingressos do Sambódromo para o Carnaval do Rio (3-4 meses no mínimo), hospedagem do Edinburgh Fringe (4-6 meses), semanas de resort nas Maldivas (3 meses), cabanas de aurora na Lapônia para dezembro-janeiro (3-4 meses). Exceções específicas com janelas mais curtas: escapadas urbanas de meia temporada (Lisboa, Istambul, Marraquexe) funcionam bem com 2-4 semanas de antecedência, e a disponibilidade de última hora em dezembro para esses mesmos destinos costuma ser encontrável.
+Voos de longa distância: 4-6 meses de antecedência é o ponto ideal consistente para rotas transatlânticas e transpacíficas. Europa de curta distância: 6-10 semanas. Caribe e México no inverno: 3-4 meses de antecedência, mais para as semanas de Natal/spring break. Exceções específicas que exigem mais antecedência: permissões da Trilha Inca (6 meses para julho-agosto), campervans na Islândia (3 meses para junho-julho), ingressos do Sambódromo para o Carnaval do Rio (3-4 meses no mínimo), hospedagem do Edinburgh Fringe (4-6 meses), semanas de resort nas Maldivas (3 meses), cabanas de aurora na Lapônia para dezembro-janeiro (3-4 meses). Exceções específicas com janelas mais curtas: escapadas urbanas de meia temporada (Lisboa, Istambul, Marrakech) funcionam bem com 2-4 semanas de antecedência, e a disponibilidade de última hora em dezembro para esses mesmos destinos costuma ser encontrável.
 
 ### A temporada de aurora de máximo solar realmente vale a viagem em 2026?
 

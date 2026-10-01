@@ -131,7 +131,7 @@ Para uma estrutura de uma semana inteira, veja o [roteiro de 4 dias por Tóquio]
 
 ## 🏔 Se você quer fugir do calor: escolhas de coolcation
 
-É aqui que a conta mais se deslocou. Há três anos, o coolcation era a alternativa discreta. Agora é simplesmente a opção mainstream, e os números confirmam. As Ilhas Faroé têm um sistema de reservas para visitantes. A Islândia recebeu pouco menos de 2,3 milhões de visitantes estrangeiros com pernoite em 2025, com agosto marcando um recorde mensal histórico, e as pernoites em alojamentos registados subiram 9,1% face a 2024.
+É aqui que a conta mais se deslocou. Há três anos, o coolcation era a alternativa discreta. Agora é simplesmente a opção mainstream, e os números confirmam. As Ilhas Faroé têm um sistema de reservas para visitantes. A Islândia recebeu pouco menos de 2,3 milhões de visitantes estrangeiros com pernoite em 2025, com agosto marcando um recorde mensal histórico, e as pernoites em alojamentos registrados subiram 9,1% em relação a 2024.
 
 A diferença de temperatura é a manchete. Enquanto o Mediterrâneo tem média de 30-33 °C em julho e agosto (com picos regulares de 42-45 °C), os destinos abaixo ficam entre 10 °C e 25 °C. Isso é uma diferença de 15-20 °C. Um dia inteiro de trilha em vez de uma sessão de suor em formato de piscina.
 

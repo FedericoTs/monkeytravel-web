@@ -34,7 +34,7 @@ schema: Article
 
 Poucas coisas moldam tanto a sua experiência de viagem quanto o passaporte que você carrega. Antes de reservar voos, planejar roteiros ou começar a fazer as malas, uma pergunta determina para onde você pode realmente ir: quantos países deixam você entrar sem visto?
 
-A diferença é impressionante. O passaporte mais poderoso do mundo desbloqueia 195 destinos sem visto. O mais fraco? Apenas 24. Esse abismo de 171 países é o maior já registrado, e continua a aumentar.
+A diferença é impressionante. O passaporte mais poderoso do mundo desbloqueia 195 destinos sem visto. O mais fraco? Apenas 24. Esse abismo de 171 países é o maior já registrado, e continua aumentando.
 
 Este guia detalha o acesso sem visto para os 15 principais passaportes do mundo, explica o papel crescente das autorizações eletrônicas de viagem e oferece estratégias práticas para maximizar a sua liberdade de viagem, não importa qual passaporte você tenha.
 
@@ -66,7 +66,7 @@ O Índice de Passaportes Henley, baseado em dados exclusivos da Associação Int
 
 **Os EUA se recuperaram.** Depois de cair para a 12ª posição em 2025, o passaporte americano voltou ao top 10 com 179 destinos.
 
-**O abismo de mobilidade continua a crescer.** O Afeganistão permanece na última posição, com acesso a apenas 24 destinos, enquanto Síria (29), Iraque (31) e Paquistão e Iêmen (34) completam os passaportes mais fracos. O abismo de 171 destinos entre Singapura e Afeganistão é o maior já registrado.
+**O abismo de mobilidade continua crescendo.** O Afeganistão permanece na última posição, com acesso a apenas 24 destinos, enquanto Síria (29), Iraque (31) e Paquistão e Iêmen (34) completam os passaportes mais fracos. O abismo de 171 destinos entre Singapura e Afeganistão é o maior já registrado.
 
 ## Destinos sem visto por região
 
@@ -129,7 +129,7 @@ Uma ETA é uma permissão digital para viajar. Não é um visto, mas também nã
 
 **ETA da Austrália (subclasse 601):** o sistema de ETA da Austrália funciona há mais de duas décadas. Permite múltiplas entradas para estadias de até 3 meses e custa $20 AUD.
 
-**ETIAS da UE (previsto para o fim de 2026):** o Sistema Europeu de Informação e Autorização de Viagem deve ser lançado no fim de 2026. Aplicar-se-á a cidadãos de países isentos de visto (incluindo cidadãos dos EUA, do Reino Unido, do Canadá e da Austrália). O ETIAS custará 7 EUR, será válido por 3 anos e permitirá estadias de até 90 dias dentro de qualquer período de 180 dias no Espaço Schengen.
+**ETIAS da UE (previsto para o fim de 2026):** o Sistema Europeu de Informação e Autorização de Viagem deve ser lançado no fim de 2026. Ele se aplicará a cidadãos de países isentos de visto (incluindo cidadãos dos EUA, do Reino Unido, do Canadá e da Austrália). O ETIAS custará 7 EUR, será válido por 3 anos e permitirá estadias de até 90 dias dentro de qualquer período de 180 dias no Espaço Schengen.
 
 ### ETA vs. visto: as principais diferenças
 
@@ -153,7 +153,7 @@ Mais de 50 países agora oferecem vistos dedicados para trabalhadores remotos, u
 
 **A Espanha** ocupa o primeiro lugar no Relatório Global de Nômades Digitais de 2025 e continua sendo uma das melhores opções em 2026. Transporte público sólido, saúde de alta qualidade, excelente segurança urbana e um marco legal claro a destacam.
 
-**Portugal** continua a atrair nômades digitais com o seu visto D8, que pode ser combinado com perspectivas de residência de longo prazo. Clima ameno, custo de vida acessível (fora de Lisboa) e uma comunidade de expatriados acolhedora o mantêm perto do topo.
+**Portugal** continua atraindo nômades digitais com o seu visto D8, que pode ser combinado com perspectivas de residência de longo prazo. Clima ameno, custo de vida acessível (fora de Lisboa) e uma comunidade de expatriados acolhedora o mantêm perto do topo.
 
 **O Japão** introduziu um visto para nômade digital que permite que trabalhadores remotos e suas famílias morem e trabalhem no país por seis meses.
 

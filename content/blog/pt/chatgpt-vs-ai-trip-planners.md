@@ -70,7 +70,7 @@ Para ser justo, quando apontamos o problema de tempo com Sintra, o ChatGPT se co
 
 As ferramentas dedicadas abordaram o mesmo pedido de forma diferente.
 
-**O MonkeyTravel** gerou um roteiro estruturado dia a dia com nomes reais de locais, custos estimados por atividade e um fluxo geográfico lógico que minimizava idas e voltas desnecessárias. O bate-volta a Sintra ficou limitado a dois sítios (Palácio da Pena e Quinta da Regaleira) com tempo de transporte realista contabilizado. Ofereceu três faixas de orçamento para você ver como o roteiro muda em diferentes patamares de preço.
+**O MonkeyTravel** gerou um roteiro estruturado dia a dia com nomes reais de locais, custos estimados por atividade e um fluxo geográfico lógico que minimizava idas e voltas desnecessárias. O bate-volta a Sintra ficou limitado a dois locais (Palácio da Pena e Quinta da Regaleira) com tempo de transporte realista contabilizado. Ofereceu três faixas de orçamento para você ver como o roteiro muda em diferentes patamares de preço.
 
 **O Layla AI** trouxe preços ao vivo do Skyscanner e do Booking.com, mostrando tarifas reais de hotéis e custos de voos ao lado do roteiro. O detalhamento diário do orçamento estava conectado a dados reais, não a estimativas. Sinalizou que os fechamentos de museus às segundas-feiras afetariam o Dia 1 e se ajustou automaticamente.
 
