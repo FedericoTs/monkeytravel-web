@@ -45,6 +45,15 @@ const VALIDATION = [
   "maximum trip length",
   "maximum trip duration",
   "cannot be in the past",
+  "invalid characters in",
+  "invalid input detected",
+  "requirements text too long",
+  "must-do",
+  "invalid destinations",
+  "is before trip start",
+  "date must be yyyy-mm-dd",
+  "not a valid calendar date",
+  "support at most",
 ];
 const RATE_LIMIT = ["rate_limit", "rate limit", "too many requests", "429", "daily limit", "quota"];
 const TIMEOUT = ["timeout", "timed out", "aborted", "aborterror"];
@@ -72,4 +81,35 @@ export function classifyGenerationFailure(err: unknown): GenerationFailureCode {
   if (has(text, NETWORK)) return "network";
   if (has(text, UPSTREAM)) return "upstream";
   return "unknown";
+}
+
+/** What a validation failure asks the traveller to change. */
+export type ValidationFix = "dates" | "duration" | "destination" | "fixed_plans" | "notes" | "other";
+
+export function validationFix(message: string): ValidationFix {
+  const text = message.toLowerCase();
+  if (has(text, ["support at most", "maximum trip duration", "maximum trip length", "trip is too long"])) return "duration";
+  if (text.includes("anchor")) return "fixed_plans";
+  if (has(text, ["cannot be in the past", "end date must be after", "invalid date", "is before trip start",
+                 "date must be yyyy-mm-dd", "not a valid calendar date"])) return "dates";
+  if (text.includes("destination")) return "destination";
+  if (has(text, ["requirements", "must-do", "invalid input detected"])) return "notes";
+  return "other";
+}
+
+/** The wizard step that holds the field to change: notes and must-dos are on step 2. */
+export function validationFixStep(fix: ValidationFix): 1 | 2 {
+  return fix === "notes" ? 2 : 1;
+}
+
+/**
+ * The server's own words for a failure the buckets cannot explain (unknown) or
+ * that blames the request (validation), so the next one can be read from the
+ * table. Quoted values can be what the traveller typed, so they are blanked.
+ */
+export function failureDetail(err: unknown, code: GenerationFailureCode): string | undefined {
+  if (code !== "unknown" && code !== "validation") return undefined;
+  const message = err instanceof Error ? err.message : typeof err === "string" ? err : "";
+  const detail = message.replace(/"[^"]*"/g, '""').replace(/\s+/g, " ").trim().slice(0, 80);
+  return detail || undefined;
 }

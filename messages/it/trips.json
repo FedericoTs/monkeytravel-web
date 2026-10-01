@@ -403,7 +403,16 @@
     "errorTimeout": "La richiesta ha impiegato troppo tempo. Può succedere con viaggi complessi — riprova.",
     "errorNetwork": "Problema di connessione. Controlla la tua connessione e riprova.",
     "errorServerBusy": "La nostra AI sta impiegando più del solito. Riprova tra un istante — o prova un viaggio più breve.",
-    "retry": "Riprova"
+    "retry": "Riprova",
+    "editDetails": "Modifica i dettagli del viaggio",
+    "fix": {
+      "dates": "Controlla le date: il viaggio deve iniziare oggi o più avanti, e finire dopo l'inizio.",
+      "duration": "I viaggi possono durare al massimo {days} giorni. Accorcia le date e riprova.",
+      "destination": "Non riusciamo a usare questa destinazione. Scrivi solo il nome del luogo: una città, una regione o un paese.",
+      "fixed_plans": "Uno dei tuoi impegni fissi non rientra nel viaggio. Controlla giorno e orario, oppure rimuovilo.",
+      "notes": "Qualcosa tra le cose da vedere, fare o mangiare, o nei requisiti speciali, non si può usare. Accorcialo o riformulalo e riprova.",
+      "other": "Alcuni dettagli del viaggio vanno modificati prima di creare questo itinerario."
+    }
   },
   "result": {
     "title": "Il Tuo Itinerario a {destination}",

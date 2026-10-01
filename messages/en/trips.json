@@ -403,7 +403,16 @@
     "errorTimeout": "The request took too long. This can happen with complex trips — please try again.",
     "errorNetwork": "Connection issue. Please check your internet and try again.",
     "errorServerBusy": "Our AI is taking longer than usual right now. Please try again in a moment — or try a shorter trip.",
-    "retry": "Try Again"
+    "retry": "Try Again",
+    "editDetails": "Edit trip details",
+    "fix": {
+      "dates": "Check your dates: the trip has to start today or later, and end after it starts.",
+      "duration": "Trips can be up to {days} days. Shorten your dates and try again.",
+      "destination": "We couldn't use that destination. Enter just the place name: a city, region or country.",
+      "fixed_plans": "One of your fixed plans doesn't fit the trip. Check its day and time, or remove it.",
+      "notes": "Something in your must-see list or special requirements can't be used. Shorten or reword it, then try again.",
+      "other": "Some trip details need changing before we can build this itinerary."
+    }
   },
   "result": {
     "title": "Your {destination} Itinerary",
