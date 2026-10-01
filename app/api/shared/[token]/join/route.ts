@@ -98,6 +98,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       .from("trips")
       .select("id, user_id")
       .eq("share_token", token)
+      .is("deleted_at", null)
       .single();
     if (tripError || !trip) {
       return errors.notFound("Shared trip not found");

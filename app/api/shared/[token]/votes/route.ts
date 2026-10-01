@@ -40,6 +40,7 @@ export async function GET(_request: NextRequest, context: InviteTokenRouteContex
       .from("trips")
       .select("id")
       .eq("share_token", token)
+      .is("deleted_at", null)
       .single();
 
     if (tripError || !trip) {

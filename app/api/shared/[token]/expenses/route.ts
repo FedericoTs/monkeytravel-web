@@ -22,7 +22,7 @@ export async function GET(_request: NextRequest, context: InviteTokenRouteContex
     if (!token || !isUuid(token)) return errors.badRequest("Invalid share token");
 
     const admin = createAdminClient();
-    const { data: trip, error } = await admin.from("trips").select("id, user_id").eq("share_token", token).single();
+    const { data: trip, error } = await admin.from("trips").select("id, user_id").eq("share_token", token).is("deleted_at", null).single();
     if (error || !trip) return errors.notFound("Shared trip not found");
 
     const cookieId = (await cookies()).get(PARTICIPANT_COOKIE)?.value;

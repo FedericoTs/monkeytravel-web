@@ -104,6 +104,7 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
         user_id
       `)
       .eq("id", invite.trip_id)
+      .is("deleted_at", null)
       .single();
 
     if (tripError || !trip) {
@@ -139,6 +140,7 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
       .from("trips")
       .select("itinerary")
       .eq("id", invite.trip_id)
+      .is("deleted_at", null)
       .single();
 
     let destination = null;
