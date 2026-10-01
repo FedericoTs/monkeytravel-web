@@ -5,6 +5,7 @@ import { isAdmin } from "@/lib/admin";
 import { geolocation } from "@vercel/functions";
 import { SUPABASE_AUTH_COOKIE_OPTIONS } from "@/lib/supabase/cookie-options";
 import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
+import { trackEmailClick } from "@/lib/analytics/email-click";
 
 // Track page views with geo data (non-blocking).
 // Returns the session_id that was used (so the caller can set the cookie on
@@ -58,6 +59,8 @@ export function trackPageView(
   // Vercel deployments ('production' | 'preview' | 'development'), so a
   // missing/non-production value catches both local dev and preview builds.
   if (process.env.VERCEL_ENV !== "production") {
+    // Writes only for a probe session here (writesTelemetry).
+    trackEmailClick(request, request.cookies.get("mt_session_id")?.value ?? null, userId);
     return { sessionId: null, label: "counted;dry" };
   }
 
@@ -107,6 +110,7 @@ export function trackPageView(
   } catch {
     // Silently ignore errors
   }
+  trackEmailClick(request, sessionId, userId);
 
   return { sessionId, label: "counted" };
 }

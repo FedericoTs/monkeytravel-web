@@ -29,6 +29,8 @@ export const FUNNEL_EVENT_TYPES = [
   // The trip card: drawn by /api/og/trip, and shared or downloaded by the owner.
   "trip_card_rendered",
   "trip_card_shared",
+  // A reminder or digest email's link opened (lib/analytics/email-click.ts).
+  "email_clicked",
 ] as const;
 
 export type FunnelEventType = (typeof FUNNEL_EVENT_TYPES)[number];
