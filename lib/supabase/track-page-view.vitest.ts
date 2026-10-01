@@ -71,4 +71,32 @@ describe("trackPageView", () => {
     expect(trackPageView(request("/blog", NAVIGATION)).sessionId).toBeNull();
     expect(recorded).not.toHaveBeenCalled();
   });
+
+  describe("a click from a reminder email", () => {
+    const TRIP = "77e96874-2985-4867-8472-d97c1f148b65";
+    const PHONE = {
+      ...NAVIGATION,
+      "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+    };
+    const urls = () => recorded.mock.calls.map((call) => (call as unknown as [string])[0]);
+
+    it("is recorded with the view, under the same session", () => {
+      trackPageView(request(`/trips/${TRIP}?slot=in_trip_day_3`, PHONE, "kept-id"));
+      expect(urls()).toEqual([
+        "https://example.supabase.co/rest/v1/page_views",
+        "https://example.supabase.co/rest/v1/funnel_events",
+      ]);
+      const click = JSON.parse((recorded.mock.calls[1] as unknown as [string, RequestInit])[1].body as string);
+      expect(click).toMatchObject({ event_type: "email_clicked", trip_id: TRIP, session_id: "kept-id" });
+    });
+
+    it("is not recorded for a prefetch, and outside production only for a probe session", () => {
+      trackPageView(request(`/trips/${TRIP}?slot=in_trip_day_3`, { ...PHONE, "sec-purpose": "prefetch" }, "kept-id"));
+      vi.stubEnv("VERCEL_ENV", "preview");
+      trackPageView(request(`/trips/${TRIP}?slot=in_trip_day_3`, PHONE, "kept-id"));
+      expect(recorded).not.toHaveBeenCalled();
+      trackPageView(request(`/trips/${TRIP}?slot=in_trip_day_3`, PHONE, "e2eprobe-click"));
+      expect(urls()).toEqual(["https://example.supabase.co/rest/v1/funnel_events"]);
+    });
+  });
 });
