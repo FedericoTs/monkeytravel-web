@@ -46,7 +46,7 @@ Faixas de orçamento reais, com o que cada uma de fato entrega:
 
 | Faixa | Gasto total (10 noites, 2 pessoas, voos incl.) | O que está incluído | A quem serve |
 |---|---|---|---|
-| **Pouco conhecida** | US$ 2.000–4.500 | Hotéis boutique 3 estrelas, restaurantes de gama média, transporte público + táxis ocasionais, 2–3 passeios pagos | Casais que preferem viajar três vezes em cinco anos a viajar uma vez "perfeitamente" |
+| **Pouco conhecida** | US$ 2.000–4.500 | Hotéis boutique 3 estrelas, restaurantes de preço médio, transporte público + táxis ocasionais, 2–3 passeios pagos | Casais que preferem viajar três vezes em cinco anos a viajar uma vez "perfeitamente" |
 | **Conforto** | US$ 4.500–8.000 | Hotéis 4 estrelas com personalidade, jantares de luxo ocasionais, traslados privativos, 4–5 passeios, voo regional | O ponto ideal. A maioria dos casais para aqui e tem a viagem que realmente queriam |
 | **Premium** | US$ 8.000–15.000 | 5 estrelas ou boutique de luxo, vila privativa com piscina ou suíte com vista para a caldeira, alta gastronomia, tours guiados privativos | Casais que tratam a lua de mel como o luxo da década |
 | **Aspiracional** | Mais de US$ 15.000 | Bangalôs sobre a água, ilha privativa, viagens de várias etapas em classe executiva, serviço de mordomo, traslados de helicóptero ou hidroavião | Economizando para isso, vendendo patrimônio por isso, ou simplesmente têm o dinheiro — e não querem nenhuma concessão |

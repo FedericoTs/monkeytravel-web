@@ -286,7 +286,7 @@ Seu último dia. Leve com calma.
 
 **Manhã: Tratamento de Spa Balinês (9h)**
 
-Uma massagem balinesa de verdade é praticamente obrigatória antes de ir embora. A relação qualidade-preço é surreal comparada a qualquer lugar no Ocidente.
+Uma massagem balinesa de verdade é praticamente obrigatória antes de ir embora. O custo-benefício é surreal comparada a qualquer lugar no Ocidente.
 
 - **Massagem balinesa tradicional de 1 hora:** US$ 8-15 em um spa local, US$ 25-50 em um spa de resort
 - **Pacote de spa de 2 horas** (massagem + esfoliação corporal + banho de flores): US$ 20-35 em spas intermediários, US$ 60-100 em spas de luxo

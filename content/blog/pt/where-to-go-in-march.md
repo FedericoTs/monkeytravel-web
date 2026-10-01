@@ -68,7 +68,7 @@ Março é o segredo mais bem guardado da Patagônia. O famoso vento baixa de for
 **Custos reais:** $100–160/dia — abaixo do pico de janeiro, e com disponibilidade nos refúgios muitíssimo melhor.
 **A contrapartida:** a temporada está acabando, por isso os serviços diminuem ao longo do mês e alguns percursos e refúgios fecham a partir do fim de março. Verifique as datas de encerramento em vigor para tudo aquilo em torno do qual construa a viagem, e conte com noites verdadeiramente frias.
 
-## 5. Jordânia — Primavera nos trilhos do deserto
+## 5. Jordânia — Primavera nas trilhas do deserto
 
 Março é quando a Jordânia está no seu melhor: 20–24 °C na bacia de Petra, flores por toda a reserva de Dana e um tempo para caminhar que nem o calor do verão nem o frio do inverno permitem. Os trechos mais populares do Jordan Trail são feitos exatamente nesta janela.
 
@@ -119,7 +119,7 @@ As chuvas do Zambeze caem de novembro a março e a água chega às cataratas com
 
 ## 12. Nepal — Abre o trekking de primavera
 
-A temporada de primavera começa em março: tempo estável, dias aquecendo e os bosques de rododendros ao longo dos percursos do Annapurna e do Langtang em flor a partir de meados do mês. As vistas são mais brumosas do que no outono cristalino pós-monção, mas os trilhos estão abertos e os desfiladeiros vão limpando.
+A temporada de primavera começa em março: tempo estável, dias aquecendo e os bosques de rododendros ao longo dos percursos do Annapurna e do Langtang em flor a partir de meados do mês. As vistas são mais brumosas do que no outono cristalino pós-monção, mas as trilhas estão abertas e os desfiladeiros vão limpando.
 
 **Custos reais:** $40–70/dia no percurso, incluindo casas de chá, licenças e guia.
 **A contrapartida:** a bruma de março é uma limitação real para fotografia: o outono é mais nítido. Os desfiladeiros altos podem ainda ter neve no início do mês, e o acampamento-base do Everest está mais concorrido na primavera do que no outono por causa da temporada de escaladas.

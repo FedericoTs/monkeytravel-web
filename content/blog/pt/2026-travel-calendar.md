@@ -32,7 +32,7 @@ Alguns princípios antes de o calendário começar.
 
 **As escolhas são guiadas por condições, não por popularidade.** Tóquio aparece quatro vezes neste calendário porque a cidade faz quatro coisas genuinamente diferentes ao longo do ano — sakura no começo de abril, hortênsias e o Sanno Matsuri em junho, folhagem koyo em novembro, iluminações e sashimi sazonal em dezembro. Bali aparece cinco vezes porque a estação seca e a estação chuvosa produzem duas ilhas distintas a preços muito diferentes. Reduzi cada mês de doze destinos para dois ou três porque o formato de listicle esconde os trade-offs. Duas escolhas fortes são mais úteis do que dez genéricas.
 
-**Toda faixa de orçamento abaixo cobre hospedagem, comida, transporte local e uma atividade por dia — os voos ficam de fora, já que variam conforme a origem.** Onde você vê "$80-140/dia", isso é por pessoa, gama média. As semanas de festival e os corredores de Natal/Ano-Novo são sinalizados à parte porque quebram a média.
+**Toda faixa de orçamento abaixo cobre hospedagem, comida, transporte local e uma atividade por dia — os voos ficam de fora, já que variam conforme a origem.** Onde você vê "$80-140/dia", isso é por pessoa, na faixa intermediária. As semanas de festival e os corredores de Natal/Ano-Novo são sinalizados à parte porque quebram a média.
 
 **Vou te dizer também quando não ir.** Não vá a Bali em fevereiro se a chuva arruína sua viagem. Não vá a Marrakech em julho a menos que seu riad tenha uma piscina de mergulho. Não reserve Santorini em agosto a menos que você já tenha aceitado o preço. As linhas mensais de "evitar" são curtas, mas decisivas.
 
@@ -461,7 +461,7 @@ Novembro vê as costas leste e norte do Sri Lanka entrarem na sua estação seca
 
 - **Temp. média:** 11-18 °C
 - **Orçamento diário:** $80-140/pessoa
-- **O que torna novembro o momento certo:** hotéis-boutique de gama média em Alfama ou no Bairro Alto que cobram $180-250 em julho caem para $80-120.
+- **O que torna novembro o momento certo:** hotéis-boutique de preço médio em Alfama ou no Bairro Alto que cobram $180-250 em julho caem para $80-120.
 - **Dica de quem conhece por dentro:** a Feira da Ladra (terças e sábados) — o mercado de antiguidades e curiosidades de Lisboa desde o século XII. Menos gente em novembro significa melhor margem para pechinchar. Chegue antes das 10h. Nosso [roteiro de Lisboa de 3 dias](/blog/lisbon-3-day-itinerary) cobre um plano completo.
 
 **Evite em novembro:** todo o Caribe ocidental se sua viagem coincidir com o Dia de Ação de Graças — o caos das viagens domésticas nos EUA se estende aos voos de saída, e o domingo depois do Dia de Ação de Graças é o pior dia do ano para voar.
