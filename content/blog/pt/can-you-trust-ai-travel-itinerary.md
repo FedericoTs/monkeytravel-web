@@ -71,7 +71,7 @@ A AI pode recomendar com toda a confiança uma "Trattoria del Ponte" em Florenç
 
 Não vamos te dar uma taxa de alucinação, porque não existe nenhum número publicado confiável específico para viagens. Os números que circulam costumam ser a estimativa de alguém, repetida até soar oficial. Desconfie de qualquer percentual preciso que você ler aqui — inclusive de um que teria sido conveniente para nós.
 
-O que de fato foi estudado a sério é o efeito que as alucinações têm sobre você. Rejón-Guardia, Molinillo e Anaya-Sánchez, no *Journal of Consumer Behaviour* de 2026, conduziram dois experimentos — com 1.004 e 241 participantes — com pessoas planejando uma viagem a Barcelona usando o ChatGPT. Um único erro visível reduziu de forma significativa a precisão atribuída ao roteiro inteiro, e daí veio a cascata: menos preciso pareceu menos útil, menos útil pareceu menos confiável, e menos confiável significou parar de seguir o plano.
+O que de fato foi estudado com seriedade é o efeito que as alucinações têm sobre você. Rejón-Guardia, Molinillo e Anaya-Sánchez, no *Journal of Consumer Behaviour* de 2026, conduziram dois experimentos — com 1.004 e 241 participantes — com pessoas planejando uma viagem a Barcelona usando o ChatGPT. Um único erro visível reduziu de forma significativa a precisão atribuída ao roteiro inteiro, e daí veio a cascata: menos preciso pareceu menos útil, menos útil pareceu menos confiável, e menos confiável significou parar de seguir o plano.
 
 Esse é o custo real. Não o erro em si, mas o fato de um restaurante errado fazer você duvidar das outras vinte entradas que não tem como conferir.
 

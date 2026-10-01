@@ -69,12 +69,12 @@ A comida parisiense é um ofício. Recompensa a paciência e a disposição de p
 - Croissants matinais e pain au chocolat de uma boulangerie de verdade (€1,30-2,50)
 - Almoço num bistrô: steak frites, confit de pato ou um croque monsieur (€14-22)
 - Pequenos pratos de wine bar: tábuas de frios, terrines, queijos (€8-18 por prato)
-- Jantar num restaurante de gama média (€35-65 por pessoa)
+- Jantar num restaurante de preço médio (€35-65 por pessoa)
 - Crepes de rua perto de Montparnasse (€5-8)
 
 **Onde deixa a desejar:** Os restaurantes armadilha para turistas perto dos grandes pontos turísticos são genuinamente terríveis e caríssimos. Uma refeição ruim em Paris é pior do que uma refeição ruim em Roma, porque você esperava mais e pagou mais.
 
-**Orçamento diário de comida:** €40-60 (econômico), €70-120 (gama média), €150+ (luxo)
+**Orçamento diário de comida:** €40-60 (econômico), €70-120 (intermediário), €150+ (luxo)
 
 ### Roma: Alma e Simplicidade
 
@@ -85,12 +85,12 @@ A comida romana é sobre ingredientes, não técnica. Um prato de cacio e pepe u
 - Pizza al taglio (por peso) no almoço (€3-6 para uma refeição que sacia)
 - Supplì (bolinhos de arroz fritos) de um vendedor de rua (€1,50-2,50)
 - Massa numa trattoria de verdade: carbonara, amatriciana, cacio e pepe (€10-14)
-- Jantar num restaurante de gama média (€25-45 por pessoa)
+- Jantar num restaurante de preço médio (€25-45 por pessoa)
 - Gelato de uma gelateria artesanal (€2,50-4,00)
 
 **Onde deixa a desejar:** A cena de restaurantes de Roma pode parecer repetitiva se você não se aventurar além do centro storico. Os cardápios turísticos perto da Fontana di Trevi e da Escadaria Espanhola servem lasanha de micro-ondas a preços de Paris.
 
-**Orçamento diário de comida:** €30-45 (econômico), €55-95 (gama média), €120+ (luxo)
+**Orçamento diário de comida:** €30-45 (econômico), €55-95 (intermediário), €120+ (luxo)
 
 ### Veredito: Gastronomia
 
@@ -226,7 +226,7 @@ Veja quanto custa um dia de verdade em cada cidade em 2026, detalhado por estilo
 
 ### Paris: Detalhamento do Orçamento Diário
 
-| Despesa | Econômico | Gama Média | Luxo |
+| Despesa | Econômico | Intermediário | Luxo |
 |---------|-----------|------------|------|
 | Hospedagem | €80-120 | €160-280 | €350-600+ |
 | Café da manhã | €5-8 | €8-15 | €20-35 |
@@ -239,7 +239,7 @@ Veja quanto custa um dia de verdade em cada cidade em 2026, detalhado por estilo
 
 ### Roma: Detalhamento do Orçamento Diário
 
-| Despesa | Econômico | Gama Média | Luxo |
+| Despesa | Econômico | Intermediário | Luxo |
 |---------|-----------|------------|------|
 | Hospedagem | €60-100 | €130-230 | €300-550+ |
 | Café da manhã | €3-5 | €5-10 | €15-25 |

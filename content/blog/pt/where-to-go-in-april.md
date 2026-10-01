@@ -239,7 +239,7 @@ A temporada 2025-2026 de Whistler Blackcomb vai até segunda-feira, 13 de abril 
 
 **Os movimentos específicos de abril:**
 
-- **Esquie no glaciar de Blackcomb até maio** se suas datas passarem de 13 de abril. Terreno limitado, mas condições de glaciar deslumbrantes e quase ninguém nelas.
+- **Esquie na geleira de Blackcomb até maio** se suas datas passarem de 13 de abril. Terreno limitado, mas condições de geleira deslumbrantes e quase ninguém nelas.
 - **A temporada de mountain bike abre no fim de abril** — o Bike Park abre para a temporada de 2026 por volta de 16 de maio, mas as trilhas de menor altitude do Whistler Valley são pedaláveis no fim de abril para quem anda de fat-tire e gravel.
 - **Hospede-se na Upper Village** (na base de Blackcomb, beira-pista) em vez da Whistler Village principal — mais tranquila, estacionamento mais fácil, igualmente perto dos teleféricos.
 

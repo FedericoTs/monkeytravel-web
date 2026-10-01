@@ -99,7 +99,7 @@ As Filipinas têm uma média de 20 tufões por ano, sendo que os mais fortes ati
 
 A monção transforma as famosas rotas de trekking do Nepal em trilhas enlameadas, infestadas de sanguessugas e cobertas por nuvens. Os treks do Annapurna e do Acampamento Base do Everest ficam praticamente proibidos: as trilhas são escorregadias e perigosas, as vistas das montanhas ficam escondidas atrás das nuvens e as sanguessugas estão por toda parte.
 
-**O risco:** Fechamento de trilhas, visibilidade zero das montanhas, deslizamentos em estradas e trilhas, sanguessugas (a sério — são um problema real).
+**O risco:** Fechamento de trilhas, visibilidade zero das montanhas, deslizamentos em estradas e trilhas, sanguessugas (sério mesmo — são um problema real).
 
 ---
 

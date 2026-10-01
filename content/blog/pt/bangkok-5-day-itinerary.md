@@ -392,7 +392,7 @@ O **Parque Lumphini** é o Central Park de Bangkok — 57 hectares de área verd
 
 Dê-se um agrado com uma experiência de spa de verdade. Bangkok tem de tudo, desde casas de massagem de rua por ฿200 até spas de hotéis de luxo.
 
-- **Health Land** (Asoke ou Sathorn): O spa de gama intermediária com melhor custo-benefício de Bangkok. Massagem tailandesa tradicional: ฿600 ($17) por 2 horas. Massagem com óleo de aromaterapia: ฿800 ($23) por 2 horas. Reserve com um dia de antecedência — lota.
+- **Health Land** (Asoke ou Sathorn): O spa intermediário com melhor custo-benefício de Bangkok. Massagem tailandesa tradicional: ฿600 ($17) por 2 horas. Massagem com óleo de aromaterapia: ฿800 ($23) por 2 horas. Reserve com um dia de antecedência — lota.
 - **Wat Pho Thai Traditional Massage School** (filial Sanam Chai): Formados pelos mestres do Wat Pho. ฿500 ($14,30) por 60 minutos.
 - **Divana Spa ou Thann Sanctuary** (luxo): ฿2.000-5.000 ($57-143) por tratamentos de 90-120 minutos.
 

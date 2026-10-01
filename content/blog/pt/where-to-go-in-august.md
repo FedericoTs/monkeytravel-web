@@ -35,7 +35,7 @@ Mas agosto não é um mau mês. É um mês mal *escolhido*. Há lugares onde ago
 | Hokkaido, Japão | O único Japão confortável em agosto | $90–140 | Moderadas |
 | Arugam Bay e o leste do Sri Lanka | Estação seca na costa leste, pico do surf | $35–60 | Baixas–moderadas |
 | Zanzibar, Tanzânia | Estação fresca e seca, ventos para kitesurf | $60–100 | Moderadas |
-| Vancouver e Whistler, Canadá | Seco, quente, trilhos alpinos no auge | $130–190 | Moderadas–altas |
+| Vancouver e Whistler, Canadá | Seco, quente, trilhas alpinas no auge | $130–190 | Moderadas–altas |
 | Dolomitas, Itália | Temporada dos rifugios no auge | $100–160 | Altas (Ferragosto) |
 | Medellín, Colômbia | Feria de las Flores, primavera eterna | $40–65 | Moderadas |
 | Queenstown, Nova Zelândia | Inverno austral: pico da temporada de esqui | $110–170 | Moderadas–altas |
@@ -63,7 +63,7 @@ Agosto é o período mais quente da Islândia (10–15°C) e o último mês em q
 
 ## 4. Lago Bled e Alpes Julianos, Eslovênia — Os Alpes pela metade do preço
 
-A Eslovênia em agosto é o que o cartão-postal prometia: tardes de 25°C, um lago alpino suficientemente ameno para nadar de verdade e os trilhos dos Alpes Julianos na sua versão mais amigável. Liubliana fica a 40 minutos e é uma das capitais mais subvalorizadas da Europa: pequena, verde e ao ar livre todo o verão.
+A Eslovênia em agosto é o que o cartão-postal prometia: tardes de 25°C, um lago alpino suficientemente ameno para nadar de verdade e as trilhas dos Alpes Julianos na sua versão mais amigável. Liubliana fica a 40 minutos e é uma das capitais mais subvalorizadas da Europa: pequena, verde e ao ar livre todo o verão.
 
 **Custos reais:** $70–110/dia na faixa intermediária — cerca de metade do que custa a mesma viagem do outro lado da fronteira, nos Alpes austríacos ou suíços.
 **A contrapartida:** Bled enche por volta das 10h; durma em Bohinj (a 20 minutos, o dobro do lago, um décimo da multidão) e visite Bled às 7h, como fazem os locais.
@@ -98,14 +98,14 @@ Agosto cai no meio do *kusi* — a estação fresca e seca dos ventos alísios d
 
 ## 9. Vancouver e Whistler, Canadá — Agosto é o mês da recompensa
 
-A famosa chuva de Vancouver tira agosto de férias: estatisticamente é o seu mês mais seco e ensolarado, 22–25°C, com praias, montanhas e luz até depois das 21h. A noventa minutos pela rodovia Sea-to-Sky, os trilhos alpinos de Whistler estão totalmente livres de neve — a curta janela em que as rotas altas (Panorama Ridge, o Black Tusk) podem de fato ser percorridas.
+A famosa chuva de Vancouver tira agosto de férias: estatisticamente é o seu mês mais seco e ensolarado, 22–25°C, com praias, montanhas e luz até depois das 21h. A noventa minutos pela rodovia Sea-to-Sky, as trilhas alpinas de Whistler estão totalmente livres de neve — a curta janela em que as rotas altas (Panorama Ridge, o Black Tusk) podem de fato ser percorridas.
 
 **Custos reais:** $130–190/dia — preços de cidade canadense, mas a natureza é grátis.
-**A contrapartida:** é também quando todo mundo de Vancouver está lá fora. Os estacionamentos dos trilhos enchem às 8h aos fins de semana; vá no meio da semana ou vá cedo.
+**A contrapartida:** é também quando todo mundo de Vancouver está lá fora. Os estacionamentos das trilhas enchem às 8h aos fins de semana; vá no meio da semana ou vá cedo.
 
 ## 10. Dolomitas, Itália — O Ferragosto bem feito
 
-Se não consegue vencer a Itália de agosto, junte-se a ela onde os italianos realmente vão: para cima. A rede de rifugios das Dolomitas está em pleno funcionamento — caminhadas de refúgio em refúgio entre Tre Cime, Alpe di Siusi e as cristas de Puez-Odle, com polenta e um beliche à espera a 2.400 m. Faz 22°C nos trilhos enquanto Florença derrete.
+Se não consegue vencer a Itália de agosto, junte-se a ela onde os italianos realmente vão: para cima. A rede de rifugios das Dolomitas está em pleno funcionamento — caminhadas de refúgio em refúgio entre Tre Cime, Alpe di Siusi e as cristas de Puez-Odle, com polenta e um beliche à espera a 2.400 m. Faz 22°C nas trilhas enquanto Florença derrete.
 
 **Custos reais:** $100–160/dia; a meia pensão num rifugio custa €60–80 e é o pernoite alpino com melhor custo-benefício da Europa.
 **A contrapartida:** a semana do Ferragosto (por volta de 15 de agosto) é o pico das férias italianas — os refúgios esgotam com meses de antecedência. Reserve já para o final de agosto, ou aceite caminhadas de um dia a partir do vale.
