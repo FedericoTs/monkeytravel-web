@@ -176,7 +176,12 @@ import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim
 import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
 import { decideDraftRestore } from "@/lib/wizard/draft-restore";
 import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
-import { classifyGenerationFailure } from "@/lib/wizard/generation-failure";
+import {
+  classifyGenerationFailure,
+  failureDetail,
+  validationFix,
+  validationFixStep,
+} from "@/lib/wizard/generation-failure";
 // Session generation counter + per-session trip stack.
 import { useSessionTripStack } from "@/hooks/useSessionTripStack";
 import { useCurrency } from "@/lib/locale";
@@ -2001,6 +2006,9 @@ export default function NewTripPage({
       : 0;
   const effectiveMaxTripDays =
     multiCityLegCount > 1 ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS;
+  // A request the server refused as invalid fails the same way on every retry:
+  // the error box says what to change and takes the traveller back to it.
+  const errorFix = error && classifyGenerationFailure(error) === "validation" ? validationFix(error) : null;
 
   const canProceed = () => {
     switch (step) {
@@ -2492,10 +2500,12 @@ export default function NewTripPage({
       // before the request fires), so without this row a failed generation
       // is indistinguishable from someone closing the tab. The failure_code
       // separates the buckets without anyone reading a stack trace.
+      const failureCode = classifyGenerationFailure(err);
       void trackWizardEvent("generation_failed", {
         destination,
         locale,
-        failure_code: classifyGenerationFailure(err),
+        failure_code: failureCode,
+        failure_detail: failureDetail(err, failureCode),
       });
       captureTripGenerationCompleted({
         destination,
@@ -4137,7 +4147,11 @@ export default function NewTripPage({
                     user can act on. The friendly message + retry button
                     gives them a concrete next step.
                   */}
-                  {error.includes("timed out")
+                  {errorFix
+                    ? t(`generation.fix.${errorFix}`, {
+                        days: Number(error.match(/(\d+)\s*days/i)?.[1]) || effectiveMaxTripDays,
+                      })
+                    : error.includes("timed out")
                     ? t("generation.errorTimeout")
                     : error.includes("fetch") || error.includes("network") || error.includes("Failed to fetch")
                     ? t("generation.errorNetwork")
@@ -4151,13 +4165,19 @@ export default function NewTripPage({
                     : error}
                 </p>
                 <button
-                  onClick={() => { setError(null); handleGenerate(); }}
+                  onClick={() => {
+                    setError(null);
+                    if (errorFix) setStep(validationFixStep(errorFix));
+                    else handleGenerate();
+                  }}
                   className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  {t("generation.retry")}
+                  {!errorFix && (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  )}
+                  {errorFix ? t("generation.editDetails") : t("generation.retry")}
                 </button>
               </div>
             </div>

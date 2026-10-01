@@ -403,7 +403,16 @@
     "errorTimeout": "A solicitação demorou demais. Isso pode acontecer com viagens complexas — tente novamente.",
     "errorNetwork": "Problema de conexão. Verifique sua internet e tente novamente.",
     "errorServerBusy": "Nossa AI está demorando mais que o normal agora. Tente novamente em instantes — ou experimente uma viagem mais curta.",
-    "retry": "Tentar Novamente"
+    "retry": "Tentar Novamente",
+    "editDetails": "Editar detalhes da viagem",
+    "fix": {
+      "dates": "Confira as datas: a viagem precisa começar hoje ou depois, e terminar depois de começar.",
+      "duration": "As viagens podem ter até {days} dias. Encurte as datas e tente novamente.",
+      "destination": "Não conseguimos usar esse destino. Digite só o nome do lugar: uma cidade, região ou país.",
+      "fixed_plans": "Um dos seus planos fixos não cabe na viagem. Confira o dia e o horário, ou remova-o.",
+      "notes": "Algo no que você quer ver, fazer ou comer, ou nos requisitos especiais, não pode ser usado. Encurte ou reescreva e tente novamente.",
+      "other": "Alguns detalhes da viagem precisam mudar antes de criarmos este roteiro."
+    }
   },
   "result": {
     "title": "Seu Roteiro em {destination}",

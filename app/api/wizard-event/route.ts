@@ -51,6 +51,10 @@ const BodySchema = z.object({
   failure_code: z
     .enum(["validation", "rate_limit", "timeout", "network", "upstream", "unknown"])
     .optional(),
+  // The server's message behind an unknown or validation failure, with quoted
+  // values blanked (failureDetail in lib/wizard/generation-failure.ts). It
+  // explains a row; failure_code stays the column to group by.
+  failure_detail: z.string().trim().max(120).optional(),
   // Which step-1 arm the session saw. MUST be declared here: zod strips keys
   // it does not know, so omitting this field would leave the column NULL
   // forever while every client dutifully sent the value — exactly how
@@ -201,6 +205,7 @@ export async function POST(request: NextRequest) {
     locale: body.locale ?? null,
     front_door: body.front_door ?? null,
     failure_code: body.failure_code ?? null,
+    failure_detail: body.failure_detail || null,
     step1_variant: body.step1_variant ?? null,
     referrer: body.referrer || null,
     utm_source: body.utm_source || null,

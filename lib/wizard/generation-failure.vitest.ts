@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { classifyGenerationFailure } from "./generation-failure";
+import { classifyGenerationFailure, failureDetail, validationFix, validationFixStep } from "./generation-failure";
 
 describe("validation — the bucket that means WE sent something the server refuses", () => {
   it("recognises the exact server strings from lib/gemini.ts", () => {
@@ -72,5 +72,78 @@ describe("it would rather say nothing than say the wrong thing", () => {
     // "model" would otherwise pull this into upstream; the actionable half is
     // that we sent a destination the server refuses.
     expect(classifyGenerationFailure(new Error("Destination name too long for the model"))).toBe("validation");
+  });
+});
+
+describe("server messages that used to fall through to unknown", () => {
+  it("labels the rest of validateTripParams and validateAnchors as validation", () => {
+    for (const message of [
+      "Invalid characters in destination",
+      "Invalid characters in requirements",
+      "Invalid characters in must-dos",
+      "Invalid input detected",
+      "Requirements text too long (max 500 characters)",
+      "Must-dos must be a list of at most 10 items",
+      "Each must-do must be 1-80 characters",
+      "Invalid destinations",
+      "trip end (2026-10-01) is before trip start (2026-10-03)",
+      'trip start: date must be YYYY-MM-DD (got "tomorrow")',
+      'trip end: "2026-02-30" is not a valid calendar date',
+    ]) {
+      expect(classifyGenerationFailure(new Error(message))).toBe("validation");
+    }
+  });
+});
+
+describe("validationFix: what to change, and on which step", () => {
+  it("sends date, length, destination and fixed-plan problems back to step 1", () => {
+    expect(validationFix("Start date cannot be in the past")).toBe("dates");
+    expect(validationFix("End date must be after start date")).toBe("dates");
+    expect(validationFix("trip end (2026-10-01) is before trip start (2026-10-03)")).toBe("dates");
+    expect(validationFix("Maximum trip duration is 14 days")).toBe("duration");
+    expect(validationFix("anchored trips support at most 14 days (got 20)")).toBe("duration");
+    expect(validationFix("Destination contains invalid characters")).toBe("destination");
+    expect(validationFix("Invalid characters in destination")).toBe("destination");
+    expect(validationFix('anchor "a1" (2026-10-02) falls outside the trip (2026-10-03 to 2026-10-06)')).toBe("fixed_plans");
+    for (const fix of ["dates", "duration", "destination", "fixed_plans", "other"] as const) {
+      expect(validationFixStep(fix)).toBe(1);
+    }
+  });
+
+  it("sends notes and must-do problems to step 2, where those fields are", () => {
+    expect(validationFix("Requirements text too long (max 500 characters)")).toBe("notes");
+    expect(validationFix("Each must-do must be 1-80 characters")).toBe("notes");
+    expect(validationFix("Invalid input detected")).toBe("notes");
+    expect(validationFixStep("notes")).toBe(2);
+  });
+
+  it("falls back to other for a rule it does not know", () => {
+    expect(validationFix("Budget tier must be one of budget, balanced, premium")).toBe("other");
+  });
+});
+
+describe("failureDetail: the server's words, without what the traveller typed", () => {
+  it("is recorded only for the buckets that need it", () => {
+    expect(failureDetail(new Error("Something odd"), "unknown")).toBe("Something odd");
+    expect(failureDetail(new Error("Start date cannot be in the past"), "validation")).toBe(
+      "Start date cannot be in the past"
+    );
+    expect(failureDetail(new Error("Failed to fetch"), "network")).toBeUndefined();
+    expect(failureDetail(new Error("AI service unavailable"), "upstream")).toBeUndefined();
+  });
+
+  it("blanks quoted values, which can be a hotel or a person's name", () => {
+    const err = new Error('two overnight stays on 2026-10-05 ("Casa Maria" and "Hotel Sol") — a night can only end in one place');
+    const detail = failureDetail(err, "validation") as string;
+    expect(detail).not.toContain("Maria");
+    expect(detail).not.toContain("Sol");
+    expect(detail.startsWith('two overnight stays on 2026-10-05 ("" and "")')).toBe(true);
+  });
+
+  it("stays short and single-line, and says nothing when there is nothing to say", () => {
+    expect(failureDetail(new Error("x".repeat(300)), "unknown")).toHaveLength(80);
+    expect(failureDetail(new Error("line one\n  line two"), "unknown")).toBe("line one line two");
+    expect(failureDetail(new Error(""), "unknown")).toBeUndefined();
+    expect(failureDetail({ weird: true }, "unknown")).toBeUndefined();
   });
 });
