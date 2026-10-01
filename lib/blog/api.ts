@@ -170,6 +170,25 @@ export function slugifyHeading(text: string): string {
     .trim();
 }
 
+const NAMED_ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+
+/**
+ * A heading's text as the browser reads it: tags stripped, entities decoded.
+ * BlogContentClient re-derives every id from textContent, so an id built from
+ * the renderer's "&#x26;" sent the sidebar's links nowhere and the ToC and
+ * JSON-LD printed the entity.
+ */
+function headingText(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&(#x[0-9a-f]+|#[0-9]+|[a-z]+);/gi, (entity, ref: string) => {
+      if (ref[0] !== "#") return NAMED_ENTITIES[ref.toLowerCase()] ?? entity;
+      const code = ref[1] === "x" || ref[1] === "X" ? parseInt(ref.slice(2), 16) : parseInt(ref.slice(1), 10);
+      return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : entity;
+    })
+    .trim();
+}
+
 /**
  * Inject `id="..."` attributes into rendered <h2>/<h3> tags that don't
  * already have them. Lets both the server-rendered sidebar ToC and the
@@ -183,8 +202,7 @@ function addHeadingIds(html: string): string {
       if (attrs && /\sid=/.test(attrs)) {
         return _match;
       }
-      const text = inner.replace(/<[^>]*>/g, "").trim();
-      const id = slugifyHeading(text);
+      const id = slugifyHeading(headingText(inner));
       const existingAttrs = attrs ?? "";
       return `<h${level}${existingAttrs} id="${id}">${inner}</h${level}>`;
     }
@@ -208,7 +226,7 @@ export function extractToc(html: string): TocItem[] {
   let match: RegExpExecArray | null;
   while ((match = re.exec(html)) !== null) {
     const level = parseInt(match[1], 10) as 2 | 3;
-    const text = match[2].replace(/<[^>]*>/g, "").trim();
+    const text = headingText(match[2]);
     if (text) items.push({ id: slugifyHeading(text), text, level });
   }
   return items;
