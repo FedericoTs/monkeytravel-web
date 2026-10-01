@@ -12,6 +12,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 
 vi.mock("@vercel/functions", () => ({ geolocation: () => ({}) }));
+const { handedToAfter } = vi.hoisted(() => ({ handedToAfter: vi.fn() }));
+vi.mock("next/server", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/server")>()),
+  after: handedToAfter,
+}));
 
 const { trackPageView } = await import("./middleware");
 
@@ -32,6 +37,7 @@ beforeEach(() => {
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon");
   recorded.mockClear();
+  handedToAfter.mockClear();
   vi.stubGlobal("fetch", recorded);
 });
 
@@ -88,6 +94,14 @@ describe("trackPageView", () => {
       ]);
       const click = JSON.parse((recorded.mock.calls[1] as unknown as [string, RequestInit])[1].body as string);
       expect(click).toMatchObject({ event_type: "email_clicked", trip_id: TRIP, session_id: "kept-id" });
+    });
+
+    // A write left running is frozen with the function once the response is
+    // sent, and lands only with that instance's next request, if ever.
+    it("hands both writes to after(), so the function outlives them", () => {
+      trackPageView(request(`/trips/${TRIP}?slot=in_trip_day_3`, PHONE, "kept-id"));
+      expect(handedToAfter).toHaveBeenCalledTimes(2);
+      for (const [task] of handedToAfter.mock.calls) expect(task).toBeInstanceOf(Promise);
     });
 
     it("is not recorded for a prefetch, and outside production only for a probe session", () => {

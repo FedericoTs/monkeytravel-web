@@ -1,5 +1,9 @@
 /** @vitest-environment node */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+const { handedToAfter } = vi.hoisted(() => ({ handedToAfter: vi.fn() }));
+vi.mock("next/server", () => ({ after: handedToAfter }));
+
 import { emailClickFromUrl, trackEmailClick } from "./email-click";
 
 const TRIP = "77e96874-2985-4867-8472-d97c1f148b65";
@@ -50,8 +54,10 @@ describe("trackEmailClick", () => {
     vi.unstubAllGlobals();
   });
 
-  it("records the click with the public key and no user id", () => {
+  it("records the click with the public key and no user id, through after()", () => {
+    handedToAfter.mockClear();
     trackEmailClick(request(`/trips/${TRIP}?slot=in_trip_day_9`), "sess-1", "user-1");
+    expect(handedToAfter).toHaveBeenCalledTimes(1);
     expect(recorded).toHaveBeenCalledTimes(1);
     expect((recorded.mock.calls[0] as unknown as [string])[0]).toBe("https://example.supabase.co/rest/v1/funnel_events");
     expect(body()).toEqual({
