@@ -214,7 +214,7 @@ export default function OngoingTripView({
   // Format date for display — locale-aware (was hardcoded en-US, caught
   // 2026-05-29 audit; the badge showed "Thursday, May 28" even on /it/).
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    const date = parseLocalDate(dateStr) ?? new Date(dateStr);
     return date.toLocaleDateString(locale, {
       weekday: "long",
       month: "short",

@@ -5,12 +5,14 @@
  * to avoid confusion between different output formats.
  */
 
+import { parseLocalDate } from "@/lib/utils/date-local";
+
 /**
  * Format date with weekday: "Wed, Jun 15"
  * Use for trip cards, headers where weekday context helps
  */
 export function formatDateWithWeekday(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
+  const d = typeof date === "string" ? (parseLocalDate(date) ?? new Date(date)) : date;
   return d.toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
@@ -23,7 +25,7 @@ export function formatDateWithWeekday(date: Date | string): string {
  * Use for PDF exports, documents where full date context is needed
  */
 export function formatDateFull(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
+  const d = typeof date === "string" ? (parseLocalDate(date) ?? new Date(date)) : date;
   return d.toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
@@ -40,7 +42,7 @@ export function formatDateShort(datetime: string | Date): string {
   if (!datetime) return "";
 
   try {
-    const date = typeof datetime === "string" ? new Date(datetime) : datetime;
+    const date = typeof datetime === "string" ? (parseLocalDate(datetime) ?? new Date(datetime)) : datetime;
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",

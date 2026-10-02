@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { AlertTriangle, ExternalLink, Info, ShieldAlert } from "lucide-react";
 import { openExternal } from "@/lib/native/external-link";
 
@@ -48,6 +48,7 @@ export default function TravelAdvisoryBanner({
   className = "",
 }: TravelAdvisoryBannerProps) {
   const t = useTranslations("common.advisory");
+  const locale = useLocale();
   const [advisory, setAdvisory] = useState<AdvisoryShape | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -120,7 +121,7 @@ export default function TravelAdvisoryBanner({
           </button>
           <span className={`${config.subtitle}`}>
             {t("lastUpdated", {
-              date: formatDate(advisory.updatedAt),
+              date: formatDate(advisory.updatedAt, locale),
             })}
           </span>
         </div>
@@ -174,9 +175,9 @@ const LEVEL_CONFIG: Record<
   },
 };
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale: string): string {
   try {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString(locale, {
       year: "numeric",
       month: "short",
       day: "numeric",

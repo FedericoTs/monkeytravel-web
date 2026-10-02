@@ -17,7 +17,7 @@
  * Swap nearby asks the AI agent for one nearby alternative.
  */
 import { useEffect, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { Activity, ItineraryDay } from "@/types";
 import type { TripDayState } from "@/lib/trip/live";
 import ActivityCard from "@/components/ActivityCard";
@@ -77,6 +77,7 @@ export default function TodayView({
 }: TodayViewProps) {
   const t = useTranslations("common");
   const tw = useTranslations("trips");
+  const locale = useLocale();
 
   const dayNumber = dayState.dayNumber ?? 1;
   const today = useMemo(() => itinerary.find((d) => d.day_number === dayNumber), [itinerary, dayNumber]);
@@ -140,13 +141,13 @@ export default function TodayView({
   const dateLabel = useMemo(() => {
     if (!dayState.todayLocalDate) return "";
     try {
-      return new Intl.DateTimeFormat(undefined, { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(
+      return new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(
         new Date(dayState.todayLocalDate + "T00:00:00Z"),
       );
     } catch {
       return dayState.todayLocalDate;
     }
-  }, [dayState.todayLocalDate]);
+  }, [dayState.todayLocalDate, locale]);
 
   const [showYesterday, setShowYesterday] = useState(false);
 
