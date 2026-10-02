@@ -169,13 +169,16 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
       doc.setDrawColor(226, 232, 240); // slate-200
       doc.roundedRect(margin, yPosition, contentWidth, 30, 2, 2, "FD");
 
-      // Time badge
-      doc.setFillColor(...accentColor);
-      doc.roundedRect(margin + 3, yPosition + 3, 20, 8, 1, 1, "F");
-      doc.setTextColor(30, 41, 59);
-      doc.setFontSize(7);
-      doc.setFont("helvetica", "bold");
-      doc.text(activity.start_time, margin + 5, yPosition + 8);
+      // Time badge. Saved activities can lack a field the type promises
+      // (time, name, duration, description, place); jsPDF throws on undefined.
+      if (activity.start_time) {
+        doc.setFillColor(...accentColor);
+        doc.roundedRect(margin + 3, yPosition + 3, 20, 8, 1, 1, "F");
+        doc.setTextColor(30, 41, 59);
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "bold");
+        doc.text(activity.start_time, margin + 5, yPosition + 8);
+      }
 
       // Type badge (colored pill with label instead of emoji)
       const config = typeConfig[activity.type] || { label: "See", color: [99, 110, 114] };
@@ -190,18 +193,19 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
       doc.setTextColor(...textColor);
       doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
-      doc.text(activity.name, margin + 41, yPosition + 9);
+      doc.text(activity.name ?? "", margin + 41, yPosition + 9);
 
       // Duration
       doc.setTextColor(...mutedColor);
       doc.setFontSize(8);
       doc.setFont("helvetica", "normal");
-      doc.text(`${activity.duration_minutes} min`, pageWidth - margin - 15, yPosition + 9);
+      if (activity.duration_minutes) doc.text(`${activity.duration_minutes} min`, pageWidth - margin - 15, yPosition + 9);
 
       // Description (truncated)
-      const descText = activity.description.length > 100
-        ? activity.description.substring(0, 100) + "..."
-        : activity.description;
+      const description = activity.description ?? "";
+      const descText = description.length > 100
+        ? description.substring(0, 100) + "..."
+        : description;
       doc.setFontSize(8);
       doc.text(doc.splitTextToSize(descText, contentWidth - 30), margin + 5, yPosition + 16);
 
@@ -210,7 +214,7 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
       doc.circle(margin + 7, yPosition + 25, 1.5, "F");
       doc.setTextColor(...mutedColor);
       doc.setFontSize(7);
-      const locationText = activity.address || activity.location;
+      const locationText = activity.address || activity.location || "";
       doc.text(`${locationText.substring(0, 55)}${locationText.length > 55 ? "..." : ""}`, margin + 11, yPosition + 26);
 
       // Cost
