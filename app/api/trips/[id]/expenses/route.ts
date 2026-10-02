@@ -6,7 +6,8 @@
  * read/write authorization, fail-open on logging.
  *
  * GET    → list all expenses on this trip, newest spent_on first
- * POST   → create a new expense (caller becomes created_by)
+ * POST   → create a new expense (caller becomes created_by and payer,
+ *          split equally across the trip's members)
  * PATCH  → update an existing expense (id in body, creator or owner only)
  * DELETE → remove an expense (id in body, creator or owner only)
  *
@@ -17,9 +18,50 @@
  */
 
 import { NextRequest } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
+import { centsToAmount, splitEquallyCents } from "@/lib/expenses/shared";
+import { publicNameOrNull } from "@/lib/profile/public-name";
+
+/**
+ * Equal shares across the trip's members (owner and collaborators).
+ * compute_trip_settlements only counts an expense with a payer and shares,
+ * so without them a member's expense never reached Settle Up.
+ */
+async function insertMemberSplits(supabase: SupabaseClient, tripId: string, expenseId: string, amount: number) {
+  const [{ data: trip }, { data: collaborators }] = await Promise.all([
+    supabase.from("trips").select("user_id").eq("id", tripId).maybeSingle(),
+    supabase.from("trip_collaborators").select("user_id").eq("trip_id", tripId),
+  ]);
+  const members = [...new Set([trip?.user_id, ...(collaborators ?? []).map((c) => c.user_id)])].filter(
+    (id): id is string => typeof id === "string",
+  );
+  const shares = splitEquallyCents(Math.round(amount * 100), members.length);
+  const { error } = await supabase
+    .from("trip_expense_splits")
+    .insert(members.map((userId, i) => ({ expense_id: expenseId, user_id: userId, share_amount: centsToAmount(shares[i]) })));
+  if (error) console.error("[expenses] split insert failed", error);
+}
+
+/** A new amount re-divides the existing shares: same people, settled flags kept. */
+async function resplit(supabase: SupabaseClient, tripId: string, expenseId: string, amount: number) {
+  const { data: existing } = await supabase
+    .from("trip_expense_splits")
+    .select("id")
+    .eq("expense_id", expenseId)
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
+  if (!existing || existing.length === 0) return insertMemberSplits(supabase, tripId, expenseId, amount);
+  const shares = splitEquallyCents(Math.round(amount * 100), existing.length);
+  const results = await Promise.all(
+    existing.map((s, i) =>
+      supabase.from("trip_expense_splits").update({ share_amount: centsToAmount(shares[i]) }).eq("id", s.id),
+    ),
+  );
+  for (const r of results) if (r.error) console.error("[expenses] split update failed", r.error);
+}
 
 const VALID_CATEGORIES = [
   "transport",
@@ -171,6 +213,10 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       );
     }
 
+    // The shared ledger shows the payer's name to anyone with the link.
+    const { data: profile } = await supabase.from("users").select("display_name").eq("id", user.id).maybeSingle();
+    const payerName = publicNameOrNull(profile?.display_name as string | null | undefined, user.email);
+
     // RLS WITH CHECK clause requires created_by = auth.uid() AND
     // (owner or collaborator). If user isn't a member, INSERT fails
     // with permission_denied — we surface as 403.
@@ -179,6 +225,9 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       .insert({
         trip_id: tripId,
         created_by: user.id,
+        created_by_name: payerName,
+        paid_by_user_id: user.id,
+        paid_by_name: payerName,
         amount: parsed.amount,
         currency: parsed.currency,
         category: parsed.category,
@@ -199,6 +248,7 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       return errors.internal("Failed to create expense", "expenses");
     }
 
+    await insertMemberSplits(supabase, tripId, data.id, parsed.amount);
     return apiSuccess({ expense: data });
   } catch (err) {
     console.error("[expenses POST] unexpected", err);
@@ -269,6 +319,7 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
       return errors.notFound("Expense not found");
     }
 
+    if (typeof update.amount === "number") await resplit(supabase, tripId, expenseId, update.amount);
     void user;
     return apiSuccess({ expense: data });
   } catch (err) {
