@@ -55,7 +55,7 @@ async function insertMemberSplits(supabase: SupabaseClient, tripId: string, expe
 async function resplit(supabase: SupabaseClient, tripId: string, expenseId: string, amount: number) {
   const { data: existing, error: readError } = await supabase
     .from("trip_expense_splits")
-    .select("id")
+    .select("id, user_id, participant_cookie_id")
     .eq("expense_id", expenseId)
     .order("created_at", { ascending: true })
     .order("id", { ascending: true });
@@ -65,9 +65,17 @@ async function resplit(supabase: SupabaseClient, tripId: string, expenseId: stri
   }
   if (!existing || existing.length === 0) return insertMemberSplits(supabase, tripId, expenseId, amount);
   const shares = splitEquallyCents(Math.round(amount * 100), existing.length);
-  // One statement, so the shares change together or not at all.
+  // One statement, so the shares change together or not at all. Each row
+  // keeps its identity: the identity check runs on the proposed row before
+  // the conflict turns the insert into an update.
   const { error } = await supabase.from("trip_expense_splits").upsert(
-    existing.map((s, i) => ({ id: s.id, expense_id: expenseId, share_amount: centsToAmount(shares[i]) })),
+    existing.map((s, i) => ({
+      id: s.id,
+      expense_id: expenseId,
+      user_id: s.user_id,
+      participant_cookie_id: s.participant_cookie_id,
+      share_amount: centsToAmount(shares[i]),
+    })),
     { onConflict: "id" },
   );
   if (error) console.error("[expenses] split update failed", error);

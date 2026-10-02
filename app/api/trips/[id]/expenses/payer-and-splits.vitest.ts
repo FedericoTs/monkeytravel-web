@@ -106,16 +106,28 @@ describe("POST /api/trips/[id]/expenses", () => {
 
 describe("PATCH /api/trips/[id]/expenses", () => {
   it("re-divides the existing shares when the amount changes", async () => {
-    existingSplits = [{ id: "s1" }, { id: "s2" }, { id: "s3" }];
+    existingSplits = [
+      { id: "s1", user_id: "owner-1", participant_cookie_id: null },
+      { id: "s2", user_id: "mate-1", participant_cookie_id: null },
+      { id: "s3", user_id: null, participant_cookie_id: "guest-cookie" },
+    ];
     const res = await PATCH(req("PATCH", { id: "exp-1", amount: 90 }), ctx);
     expect(res.status).toBe(200);
     // One write for all the shares, so they can't end up half re-divided.
     const upserts = ops("trip_expense_splits", "upsert");
     expect(upserts).toHaveLength(1);
-    expect((upserts[0].value as Row[]).map((s) => [s.id, s.share_amount])).toEqual([
+    const rows = upserts[0].value as Row[];
+    expect(rows.map((s) => [s.id, s.share_amount])).toEqual([
       ["s1", 30],
       ["s2", 30],
       ["s3", 30],
+    ]);
+    // The table checks each proposed row has exactly one of the two
+    // identities, before the conflict makes it an update.
+    expect(rows.map((s) => [s.user_id, s.participant_cookie_id])).toEqual([
+      ["owner-1", null],
+      ["mate-1", null],
+      [null, "guest-cookie"],
     ]);
     expect(ops("trip_expense_splits", "update")).toEqual([]);
     expect(ops("trip_expense_splits", "insert")).toEqual([]);
