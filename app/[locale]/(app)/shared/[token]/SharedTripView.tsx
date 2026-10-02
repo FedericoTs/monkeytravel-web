@@ -579,7 +579,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             weatherNote={trip.meta?.weather_note}
             onViewFullItinerary={() => setTodayMode(false)}
             tripId={trip.id}
-            shareToken={shareToken}
+            apiBase={`/api/shared/${shareToken}`}
             packingItems={trip.packingList}
             className="mb-6"
           />

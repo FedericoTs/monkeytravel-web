@@ -211,8 +211,6 @@ interface TripDetailClientProps {
     meta?: TripMeta;
     packingList?: string[];
     packingChecked?: string[];
-    /** The trip's share link token; Today's crew chips go through it. */
-    shareToken?: string;
     /** Pre-saved cover image URL - eliminates Places API call on load */
     coverImageUrl?: string | null;
     /** Cached travel distances from trip_meta - eliminates recalculation */
@@ -2158,7 +2156,7 @@ export default function TripDetailClient({
       weatherNote={trip.meta?.weather_note}
       onViewFullItinerary={() => setTodayMode(false)}
       tripId={trip.id}
-      shareToken={trip.shareToken}
+      apiBase={`/api/trips/${trip.id}/today`}
       className="mb-6"
     />
   ) : null;

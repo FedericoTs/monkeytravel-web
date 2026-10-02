@@ -18,14 +18,15 @@ export interface TripFeedApi {
   refetch: () => void;
 }
 
-export function useTripFeed(shareToken: string, enabled: boolean): TripFeedApi {
+/** `base` is the routes Today uses: the share link's, or the members' /api/trips/[id]/today. */
+export function useTripFeed(base: string, enabled: boolean): TripFeedApi {
   const [events, setEvents] = useState<FeedEvent[]>([]);
 
   const refetch = useCallback(() => {
     if (!enabled) return;
     void (async () => {
       try {
-        const res = await fetch(`/api/shared/${shareToken}/feed`, { cache: "no-store" });
+        const res = await fetch(`${base}/feed`, { cache: "no-store" });
         if (!res.ok) return;
         const json = await res.json();
         const data = (json as { data?: { events?: FeedEvent[] } })?.data ?? json;
@@ -35,7 +36,7 @@ export function useTripFeed(shareToken: string, enabled: boolean): TripFeedApi {
         // leave the last-known feed in place
       }
     })();
-  }, [shareToken, enabled]);
+  }, [base, enabled]);
 
   useEffect(() => {
     refetch();

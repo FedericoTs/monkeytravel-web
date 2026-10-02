@@ -44,9 +44,13 @@ interface TodayViewProps {
   currency?: string;
   weatherNote?: string;
   onViewFullItinerary: () => void;
-  /** Trip id + share token enable the chips (Phase 3.3); omit to show a read-only Today. */
+  /**
+   * Trip id + the routes Today reads and writes enable the chips, expenses
+   * and feed: `/api/shared/<token>` on the share link, `/api/trips/<id>/today`
+   * for members. Omit to show a read-only Today.
+   */
   tripId?: string;
-  shareToken?: string;
+  apiBase?: string;
   /** The trip's packing list, for the "Packed?" checklist (Phase 3.4). */
   packingItems?: string[];
   className?: string;
@@ -72,7 +76,7 @@ export default function TodayView({
   weatherNote,
   onViewFullItinerary,
   tripId,
-  shareToken,
+  apiBase,
   packingItems,
   className = "",
 }: TodayViewProps) {
@@ -86,15 +90,15 @@ export default function TodayView({
   const tomorrow = useMemo(() => itinerary.find((d) => d.day_number === dayNumber + 1), [itinerary, dayNumber]);
   const yesterday = useMemo(() => itinerary.find((d) => d.day_number === dayNumber - 1), [itinerary, dayNumber]);
 
-  // Phase 3.3 overlay (realtime). Enabled only when we have a share token.
-  const chipsEnabled = !!shareToken && !!tripId;
-  const { actions, busy, error, apply, undo } = useTodayActions(shareToken ?? "", tripId ?? "", chipsEnabled);
+  // Phase 3.3 overlay (realtime). Enabled only when we know which routes to use.
+  const chipsEnabled = !!apiBase && !!tripId;
+  const { actions, busy, error, apply, undo } = useTodayActions(apiBase ?? "", tripId ?? "", chipsEnabled);
   // Phase 3.4 expenses: "Who paid?" on the live trip, split across participants.
-  const expenses = useTripExpenses(shareToken ?? "", chipsEnabled);
+  const expenses = useTripExpenses(apiBase ?? "", chipsEnabled);
   // Phase 3.5 activity feed: joins + chip actions + expenses, merged server-side.
   // No channel of its own — refetch when the realtime chip actions change or an
   // expense is added (both re-identify the arrays below), reusing one channel.
-  const { events: feedEvents, refetch: refetchFeed } = useTripFeed(shareToken ?? "", chipsEnabled);
+  const { events: feedEvents, refetch: refetchFeed } = useTripFeed(apiBase ?? "", chipsEnabled);
   useEffect(() => {
     refetchFeed();
   }, [actions, expenses.expenses, refetchFeed]);

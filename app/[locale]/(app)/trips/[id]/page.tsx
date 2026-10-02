@@ -156,7 +156,6 @@ export default async function TripDetailPage({
         meta: tripMeta,
         packingList,
         packingChecked,
-        shareToken: trip.share_token ?? undefined,
         coverImageUrl: trip.cover_image_url,
         cachedTravelDistances,
         cachedTravelHash,

@@ -11,9 +11,10 @@ import { TODAY_CHANGED_EVENT, todayChannel, type TodayAction, type TodayActionTy
  *
  * Hydrates the active actions, then listens on the trip's Today broadcast so a
  * chip tapped by anyone appears on everyone's Today within a second. Applying
- * and undoing go through the /shared/[token] routes (service role), which
- * announce each change; this hook re-fetches on every announcement so every
- * viewer converges on the server's truth.
+ * and undoing go through the routes under `base` (the share link's, or the
+ * members' /api/trips/[id]/today), which announce each change; this hook
+ * re-fetches on every announcement so every viewer converges on the server's
+ * truth.
  */
 export interface TodayActionsApi {
   actions: TodayAction[];
@@ -23,12 +24,11 @@ export interface TodayActionsApi {
   undo: (actionId: string) => Promise<void>;
 }
 
-export function useTodayActions(shareToken: string, tripId: string, enabled: boolean): TodayActionsApi {
+export function useTodayActions(base: string, tripId: string, enabled: boolean): TodayActionsApi {
   const [actions, setActions] = useState<TodayAction[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const base = `/api/shared/${shareToken}`;
 
   const fetchActions = useCallback(async () => {
     try {

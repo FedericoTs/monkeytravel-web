@@ -28,12 +28,12 @@ export interface TripExpensesApi {
   remove: (expenseId: string) => Promise<void>;
 }
 
-export function useTripExpenses(shareToken: string, enabled: boolean): TripExpensesApi {
+/** `base` is the routes Today uses: the share link's, or the members' /api/trips/[id]/today. */
+export function useTripExpenses(base: string, enabled: boolean): TripExpensesApi {
   const [expenses, setExpenses] = useState<ExpensePublic[]>([]);
   const [summary, setSummary] = useState<ExpenseSummary | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const base = `/api/shared/${shareToken}`;
 
   const applyResult = (json: unknown) => {
     const data = (json as { data?: { expenses?: ExpensePublic[]; summary?: ExpenseSummary } })?.data ?? json;
