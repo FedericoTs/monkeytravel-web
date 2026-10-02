@@ -17,6 +17,7 @@
 import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 
@@ -52,7 +53,7 @@ export async function GET(_request: NextRequest, context: InviteTokenRouteContex
     // than a GROUP BY round-trip and lets us compute `myVotes` in the same pass.
     const { data: rows, error: rowsError } = await supabase
       .from("anonymous_activity_votes")
-      .select("activity_id, vote_type, voter_cookie_id")
+      .select("activity_id, vote_type, voter_cookie_id, user_id")
       .eq("trip_id", trip.id);
 
     if (rowsError) {
@@ -64,6 +65,14 @@ export async function GET(_request: NextRequest, context: InviteTokenRouteContex
     // that's the POST route's job. Pre-vote viewers just see tallies.
     const cookieStore = await cookies();
     const voterCookieId = cookieStore.get(COOKIE_NAME)?.value;
+    // Signed in, "mine" is the account's votes from any browser.
+    let userId: string | null = null;
+    try {
+      const { data } = await (await createClient()).auth.getUser();
+      userId = data.user?.id ?? null;
+    } catch {
+      userId = null;
+    }
 
     const tallies: Record<string, { up: number; down: number }> = {};
     const myVotes: Record<string, "up" | "down"> = {};
@@ -74,7 +83,7 @@ export async function GET(_request: NextRequest, context: InviteTokenRouteContex
       else if (row.vote_type === "down") bucket.down++;
       tallies[row.activity_id] = bucket;
 
-      if (voterCookieId && row.voter_cookie_id === voterCookieId) {
+      if (userId ? row.user_id === userId : voterCookieId && row.voter_cookie_id === voterCookieId) {
         myVotes[row.activity_id] = row.vote_type as "up" | "down";
       }
     }

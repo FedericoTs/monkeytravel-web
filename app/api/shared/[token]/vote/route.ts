@@ -4,7 +4,8 @@
  * Anonymous thumbs-up/down on a single activity in a shared trip. No auth
  * required — possession of the share token is sufficient. Voter identity is
  * a cookie-issued opaque id (mt_anon_voter); same browser revoting on the
- * same activity updates the existing row.
+ * same activity updates the existing row. Signed in, the vote is the
+ * account's on any browser, and this browser's guest votes become theirs.
  *
  * Body: { activity_id, vote_type ('up'|'down'|null), display_name?, comment? }
  *   - vote_type === null removes the voter's vote on this activity.
@@ -15,6 +16,8 @@ import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { nanoid } from "nanoid";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { linkGuestToAccount } from "@/lib/participants/link";
 import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
 import { enqueueNotification } from "@/lib/notifications/service";
 import { captureServerEvent } from "@/lib/posthog/server";
@@ -127,14 +130,29 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       issuedCookie = true;
     }
 
+    let userId: string | null = null;
+    try {
+      const { data } = await (await createClient()).auth.getUser();
+      userId = data.user?.id ?? null;
+    } catch {
+      userId = null;
+    }
+    // What this browser voted as a guest becomes the account's first.
+    if (userId && !issuedCookie) await linkGuestToAccount(supabase, userId, voterCookieId, trip.id);
+    const voterId = voterCookieId;
+    const isMine = (row: { user_id: string | null; voter_cookie_id: string }) =>
+      userId ? row.user_id === userId : row.voter_cookie_id === voterId;
+
     if (vote_type === null) {
       // Remove existing vote (if any). No-op if not present.
-      const { error: deleteError } = await supabase
+      const removal = supabase
         .from("anonymous_activity_votes")
         .delete()
         .eq("trip_id", trip.id)
-        .eq("activity_id", activity_id)
-        .eq("voter_cookie_id", voterCookieId);
+        .eq("activity_id", activity_id);
+      const { error: deleteError } = await (userId
+        ? removal.eq("user_id", userId)
+        : removal.eq("voter_cookie_id", voterCookieId));
 
       if (deleteError) {
         console.error("[Shared Vote] Delete failed:", deleteError);
@@ -148,11 +166,13 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       // itinerary. Best-effort: on count failure we just skip the notification.
       let isVotersFirstVoteOnTrip = false;
       {
-        const { count, error: countError } = await supabase
+        const votes = supabase
           .from("anonymous_activity_votes")
           .select("id", { count: "exact", head: true })
-          .eq("trip_id", trip.id)
-          .eq("voter_cookie_id", voterCookieId);
+          .eq("trip_id", trip.id);
+        const { count, error: countError } = await (userId
+          ? votes.eq("user_id", userId)
+          : votes.eq("voter_cookie_id", voterCookieId));
         if (!countError) isVotersFirstVoteOnTrip = (count ?? 0) === 0;
       }
 
@@ -171,9 +191,11 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       if (displayName !== null) upsertRow.voter_display_name = displayName;
       if (commentText !== null) upsertRow.comment = commentText;
 
-      const { error: upsertError } = await supabase
-        .from("anonymous_activity_votes")
-        .upsert(upsertRow, { onConflict: "trip_id,activity_id,voter_cookie_id" });
+      const { error: upsertError } = userId
+        ? await saveAccountVote(supabase, userId, upsertRow)
+        : await supabase
+            .from("anonymous_activity_votes")
+            .upsert(upsertRow, { onConflict: "trip_id,activity_id,voter_cookie_id" });
 
       if (upsertError) {
         console.error("[Shared Vote] Upsert failed:", upsertError);
@@ -229,7 +251,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     // hot path — keep it readable.
     const { data: tallyRows, error: tallyError } = await supabase
       .from("anonymous_activity_votes")
-      .select("vote_type, voter_cookie_id")
+      .select("vote_type, voter_cookie_id, user_id")
       .eq("trip_id", trip.id)
       .eq("activity_id", activity_id);
 
@@ -244,7 +266,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     for (const row of tallyRows ?? []) {
       if (row.vote_type === "up") up++;
       else if (row.vote_type === "down") down++;
-      if (row.voter_cookie_id === voterCookieId) {
+      if (isMine(row)) {
         myVote = row.vote_type as "up" | "down";
       }
     }
@@ -268,4 +290,39 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     console.error("[Shared Vote] Unexpected error:", error);
     return errors.internal("Unexpected error", "SharedVote");
   }
+}
+
+/**
+ * Save a signed-in voter's vote: update the account's row for the activity,
+ * else add one. This browser's cookie can already key another account's vote
+ * here (a shared device), so the new row then gets an id of its own.
+ */
+async function saveAccountVote(
+  supabase: ReturnType<typeof createAdminClient>,
+  userId: string,
+  row: Record<string, unknown>,
+): Promise<{ error: unknown }> {
+  const votes = () => supabase.from("anonymous_activity_votes");
+  const { data: existing, error: readError } = await votes()
+    .select("id")
+    .eq("trip_id", row.trip_id as string)
+    .eq("activity_id", row.activity_id as string)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (readError) return { error: readError };
+  if (existing) {
+    // The vote, and a name or comment only when given (as the upsert does).
+    const change: Record<string, unknown> = { vote_type: row.vote_type };
+    if ("voter_display_name" in row) change.voter_display_name = row.voter_display_name;
+    if ("comment" in row) change.comment = row.comment;
+    return votes().update(change).eq("id", existing.id as string);
+  }
+  const { data: taken, error: takenError } = await votes()
+    .select("id")
+    .eq("trip_id", row.trip_id as string)
+    .eq("activity_id", row.activity_id as string)
+    .eq("voter_cookie_id", row.voter_cookie_id as string)
+    .maybeSingle();
+  if (takenError) return { error: takenError };
+  return votes().insert({ ...row, user_id: userId, voter_cookie_id: taken ? nanoid(21) : row.voter_cookie_id });
 }
