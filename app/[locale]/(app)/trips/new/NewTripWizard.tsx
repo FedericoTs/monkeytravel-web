@@ -4327,8 +4327,7 @@ export default function NewTripPage({
                 <p className="text-xs text-slate-500 mt-2">
                   {/* Say what happens next, never "coming soon":
                       invite-after-generation already works. */}
-                  You&rsquo;ll be able to invite friends to vote after we
-                  generate the trip.
+                  {t("wizard.step1.withFriendsHint")}
                 </p>
               )}
             </div>
