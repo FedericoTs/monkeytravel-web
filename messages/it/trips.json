@@ -129,6 +129,7 @@
       "whosComing": "Chi viene?",
       "justMe": "Solo io",
       "withFriends": "Con amici",
+      "withFriendsHint": "Potrai invitare i tuoi amici a votare dopo che avremo generato il viaggio.",
       "destinationLabel": "Destinazione",
       "travelDatesLabel": "Date del viaggio",
       "checkin": "ARRIVO",

@@ -129,6 +129,7 @@
       "whosComing": "Who's coming?",
       "justMe": "Just me",
       "withFriends": "With friends",
+      "withFriendsHint": "You'll be able to invite friends to vote after we generate the trip.",
       "destinationLabel": "Destination",
       "travelDatesLabel": "Travel dates",
       "checkin": "CHECK-IN",
