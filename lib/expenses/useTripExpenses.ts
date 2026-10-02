@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { keepIfSame } from "@/lib/today/refresh-throttle";
+import { freshness, readSignal } from "@/lib/today/freshness";
 import type { ExpensePublic, ExpenseSummary } from "./shared";
 
 /**
@@ -37,6 +38,7 @@ export function useTripExpenses(base: string, enabled: boolean): TripExpensesApi
   const [summary, setSummary] = useState<ExpenseSummary | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fresh] = useState(freshness);
 
   const applyResult = (json: unknown) => {
     const data = (json as { data?: { expenses?: ExpensePublic[]; summary?: ExpenseSummary } })?.data ?? json;
@@ -46,14 +48,16 @@ export function useTripExpenses(base: string, enabled: boolean): TripExpensesApi
   };
 
   const fetchLedger = useCallback(async () => {
+    const current = fresh.startRead();
     try {
-      const res = await fetch(`${base}/expenses`, { cache: "no-store" });
+      const res = await fetch(`${base}/expenses`, { cache: "no-store", signal: readSignal() });
       if (!res.ok) return;
-      applyResult(await res.json());
+      const json = await res.json();
+      if (current()) applyResult(json);
     } catch {
       // leave the last-known ledger in place
     }
-  }, [base]);
+  }, [base, fresh]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -61,19 +65,20 @@ export function useTripExpenses(base: string, enabled: boolean): TripExpensesApi
   }, [enabled, fetchLedger]);
 
   const post = useCallback(
-    async (body: Record<string, unknown>) => {
-      const res = await fetch(`${base}/expense`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j?.error?.message || j?.message || "That didn't work.");
-      }
-      applyResult(await res.json());
-    },
-    [base],
+    (body: Record<string, unknown>) =>
+      fresh.write(async () => {
+        const res = await fetch(`${base}/expense`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          throw new Error(j?.error?.message || j?.message || "That didn't work.");
+        }
+        applyResult(await res.json());
+      }),
+    [base, fresh],
   );
 
   const add = useCallback<TripExpensesApi["add"]>(

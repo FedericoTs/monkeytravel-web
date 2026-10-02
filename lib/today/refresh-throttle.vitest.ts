@@ -82,6 +82,17 @@ describe("throttledRefresh", () => {
     expect(run).toHaveBeenCalledTimes(2);
   });
 
+  it("still refreshes within the gap after the device clock goes back", async () => {
+    const { run } = slowRefresh(10);
+    const refresh = throttledRefresh(run, 3_000);
+    refresh.request();
+    await vi.advanceTimersByTimeAsync(100);
+    vi.setSystemTime(Date.now() - 10 * 60_000);
+    refresh.request();
+    await vi.advanceTimersByTimeAsync(3_000);
+    expect(run).toHaveBeenCalledTimes(2);
+  });
+
   it("drops a waiting refresh when the screen goes away", async () => {
     const { run } = slowRefresh(10);
     const refresh = throttledRefresh(run, 3_000);

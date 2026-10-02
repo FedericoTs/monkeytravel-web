@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { freshness, readSignal } from "@/lib/today/freshness";
 import type { FeedEvent } from "./shared";
 
 /**
@@ -21,22 +22,25 @@ export interface TripFeedApi {
 /** `base` is the routes Today uses: the share link's, or the members' /api/trips/[id]/today. */
 export function useTripFeed(base: string, enabled: boolean): TripFeedApi {
   const [events, setEvents] = useState<FeedEvent[]>([]);
+  // Two refetches can overlap; the one started last wins.
+  const [fresh] = useState(freshness);
 
   const refetch = useCallback(() => {
     if (!enabled) return;
+    const current = fresh.startRead();
     void (async () => {
       try {
-        const res = await fetch(`${base}/feed`, { cache: "no-store" });
+        const res = await fetch(`${base}/feed`, { cache: "no-store", signal: readSignal() });
         if (!res.ok) return;
         const json = await res.json();
         const data = (json as { data?: { events?: FeedEvent[] } })?.data ?? json;
         const list = (data as { events?: FeedEvent[] })?.events;
-        if (Array.isArray(list)) setEvents(list);
+        if (Array.isArray(list) && current()) setEvents(list);
       } catch {
         // leave the last-known feed in place
       }
     })();
-  }, [base, enabled]);
+  }, [base, enabled, fresh]);
 
   useEffect(() => {
     refetch();

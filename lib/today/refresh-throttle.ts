@@ -33,7 +33,8 @@ export function throttledRefresh(run: () => Promise<unknown>, gapMs: number) {
       return;
     }
     if (timer) return;
-    timer = setTimeout(() => void start(), Math.max(0, lastStart + gapMs - Date.now()));
+    // Capped at the gap, so a device clock set backwards can't stall refreshes.
+    timer = setTimeout(() => void start(), Math.min(gapMs, Math.max(0, lastStart + gapMs - Date.now())));
   }
 
   const cancel = () => {
