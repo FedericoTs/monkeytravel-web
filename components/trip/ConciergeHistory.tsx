@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Compass, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 
 /**
@@ -56,6 +56,7 @@ export default function ConciergeHistory({
 
 function ConciergeHistoryInner({ tripId, className }: ConciergeHistoryProps) {
   const t = useTranslations("common.concierge");
+  const locale = useLocale();
 
   const [isOpen, setIsOpen] = useState(false);
   const [turns, setTurns] = useState<ConciergeTurn[] | null>(null);
@@ -170,7 +171,7 @@ function ConciergeHistoryInner({ tripId, className }: ConciergeHistoryProps) {
               >
                 <header className="flex items-center gap-2 text-xs text-slate-500">
                   <time dateTime={turn.created_at}>
-                    {formatRelative(turn.created_at)}
+                    {formatRelative(turn.created_at, locale)}
                   </time>
                   {turn.is_live_trip && (
                     <span className="inline-flex items-center gap-1 text-violet-700 bg-violet-50 border border-violet-100 rounded px-1.5 py-0.5">
@@ -210,13 +211,14 @@ function ConciergeHistoryInner({ tripId, className }: ConciergeHistoryProps) {
  * Avoids the date-fns dependency this component would otherwise need.
  * Falls back to a locale date string for anything older than 30 days.
  */
-function formatRelative(iso: string): string {
+function formatRelative(iso: string, locale: string): string {
   const then = new Date(iso).getTime();
   if (!Number.isFinite(then)) return "";
   const diffSec = Math.max(0, (Date.now() - then) / 1000);
-  if (diffSec < 60) return `${Math.round(diffSec)}s ago`;
-  if (diffSec < 3600) return `${Math.round(diffSec / 60)}m ago`;
-  if (diffSec < 86400) return `${Math.round(diffSec / 3600)}h ago`;
-  if (diffSec < 86400 * 30) return `${Math.round(diffSec / 86400)}d ago`;
-  return new Date(iso).toLocaleDateString();
+  const rtf = new Intl.RelativeTimeFormat(locale, { style: "narrow" });
+  if (diffSec < 60) return rtf.format(-Math.round(diffSec), "second");
+  if (diffSec < 3600) return rtf.format(-Math.round(diffSec / 60), "minute");
+  if (diffSec < 86400) return rtf.format(-Math.round(diffSec / 3600), "hour");
+  if (diffSec < 86400 * 30) return rtf.format(-Math.round(diffSec / 86400), "day");
+  return new Date(iso).toLocaleDateString(locale);
 }

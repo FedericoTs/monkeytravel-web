@@ -1,6 +1,6 @@
 /** @vitest-environment node */
-import { describe, expect, it } from "vitest";
-import { formatDateRange } from "./format";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { formatDateFull, formatDateRange, formatDateShort, formatDateWithWeekday } from "./format";
 
 describe("formatDateRange", () => {
   it("names the month in the page's language", () => {
@@ -12,5 +12,27 @@ describe("formatDateRange", () => {
   it("shows a one-day trip as its day", () => {
     expect(formatDateRange("2026-09-30", "2026-09-30", "en")).toBe("Sep 30, 2026");
     expect(formatDateRange("2026-09-30", "2026-09-30", "it")).toBe("set 30, 2026");
+  });
+});
+
+// A trip date is a calendar day. West of UTC, reading "2026-10-01" as UTC
+// midnight printed it a day early.
+describe("trip days west of UTC", () => {
+  const original = process.env.TZ;
+  beforeAll(() => {
+    process.env.TZ = "America/Chicago";
+  });
+  afterAll(() => {
+    process.env.TZ = original;
+  });
+
+  it("keep their day", () => {
+    expect(formatDateWithWeekday("2026-10-01")).toBe("Thu, Oct 1");
+    expect(formatDateFull("2026-10-01")).toBe("Thu, Oct 1, 2026");
+    expect(formatDateShort("2026-10-01")).toBe("Oct 1");
+  });
+
+  it("still read full timestamps as instants", () => {
+    expect(formatDateShort("2026-10-01T03:00:00Z")).toBe("Sep 30");
   });
 });
