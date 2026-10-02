@@ -2382,6 +2382,7 @@
       "emptyHint": "Todos os saldos desta viagem estão zerados. Bom trabalho.",
       "owes": "deve a",
       "payAction": "Pagar",
+      "guestNoPaymentLink": "Sem link de pagamento: essa pessoa entrou sem fazer login. Pague diretamente.",
       "payComingSoon": "Pagar (em breve)"
     },
     "payments": {

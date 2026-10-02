@@ -2382,6 +2382,7 @@
       "emptyHint": "Ogni saldo del viaggio è in pareggio. Ben fatto.",
       "owes": "deve a",
       "payAction": "Paga",
+      "guestNoPaymentLink": "Nessun link di pagamento: questa persona si è unita senza accedere. Paga direttamente.",
       "payComingSoon": "Paga (in arrivo)"
     },
     "payments": {

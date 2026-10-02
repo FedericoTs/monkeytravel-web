@@ -2382,6 +2382,7 @@
       "emptyHint": "Every balance on this trip is even. Nice work.",
       "owes": "owes",
       "payAction": "Pay",
+      "guestNoPaymentLink": "No payment link: they joined without signing in. Pay them directly.",
       "payComingSoon": "Pay (coming soon)"
     },
     "payments": {

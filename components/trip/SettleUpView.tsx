@@ -11,8 +11,7 @@ import PaymentLinkButtons from "@/components/trip/PaymentLinkButtons";
  * SettleUpView — Splitwise-style "who owes whom" recap modal.
  *
  * Renders the greedy minimum-transfer settlement set returned by
- * GET /api/trips/[id]/settlements (which calls the
- * compute_trip_settlements PL/pgSQL RPC, see 20260531_day10_expense_splits).
+ * GET /api/trips/[id]/settlements, guests included.
  *
  * Mobile-first: full-bleed BaseModal on small screens (max-w-md is the
  * BaseModal default; the inner list is single-column at every breakpoint
@@ -34,6 +33,8 @@ export interface SettlementTransfer {
   toUser: {
     id: string;
     name: string;
+    /** Joined without signing in, so there are no payment handles to show. */
+    guest?: boolean;
     // Optional payment handles — present when the API joined them from
     // public.users for this recipient. Absence = null = "no handle"
     // (the PaymentLinkButtons component hides the per-provider button).
@@ -258,6 +259,8 @@ export default function SettleUpView({
                         >
                           {t("payAction")}
                         </button>
+                      ) : tr.toUser.guest ? (
+                        <p className="text-xs text-slate-500 italic">{t("guestNoPaymentLink")}</p>
                       ) : (
                         <PaymentLinkButtons
                           recipient={{

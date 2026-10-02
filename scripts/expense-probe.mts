@@ -9,8 +9,7 @@
  *     participants (owner + active participants + the payer), the split
  *     summing to the amount;
  *   - the viewer's summary (paid/owed/net) is correct;
- *   - undo removes it (creator only);
- *   - anonymous expenses NEVER enter the authed compute_trip_settlements.
+ *   - undo removes it (creator only).
  * Cleans up its rows + probe participants.
  *
  *   SHARE_TOKEN=<uuid> BASE=http://localhost:3001 npx tsx scripts/expense-probe.mts
@@ -86,19 +85,13 @@ async function post(token: string, body: unknown, opts: { cookie?: string; ua?: 
       sm,
     );
 
-    // 3. anon expense does NOT enter authed settlement
-    const { data: settle } = await admin.rpc("compute_trip_settlements", { p_trip_id: tripId });
-    const total = (settle ?? []).reduce((s: number, t: { amount: string }) => s + Number(t.amount), 0);
-    // our €40 anon expense would add ~€10 skew if it leaked; assert none of the transfers reference it by amount
-    check(!(settle ?? []).some((t: { amount: string }) => Number(t.amount) === 10), "no €10 anon-split transfer leaked into settlement", { transfers: (settle ?? []).length, total });
-
-    // 4. bad amount + cookie-less curl
+    // 3. bad amount + cookie-less curl
     const bad = await post(token, { amount: "0" }, { cookie });
     check(bad.status === 400, "amount 0 → 400", bad.status);
     const curl = await post(token, { amount: "5" }, { ua: "curl/8.0" });
     check(curl.status === 400, "cookie-less curl → 400", curl.status);
 
-    // 5. undo (creator)
+    // 4. undo (creator)
     const undo = await post(token, { undo: true, expense_id: mine!.id }, { cookie });
     check(undo.status === 200 && !undo.data.expenses?.some((e) => e.id === mine!.id), "creator undo removes the expense", { remaining: undo.data.expenses?.length });
   } finally {

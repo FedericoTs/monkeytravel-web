@@ -2,11 +2,10 @@
  * "Who paid?" — shared types and pure money helpers for the live-trip expense
  * split. Live Trip plan, Phase 3.4 (expenses half).
  *
- * The split is across the trip's *participants* (Phase 2), who are anonymous.
- * The existing Settle Up / compute_trip_settlements stays authed-only; this
- * layer computes its own summary over authed AND anonymous splitters, keyed
- * by a unified actor key. All arithmetic is in integer cents to avoid float
- * drift; amounts persist as NUMERIC(12,2).
+ * The split is across the trip's group, accounts and guests alike. The Today
+ * summary and Settle Up both add up the same ledger, keyed by a unified actor
+ * key. All arithmetic is in integer cents to avoid float drift; amounts
+ * persist as NUMERIC(12,2).
  */
 
 export const EXPENSE_CATEGORIES = ["transport", "accommodation", "food", "activity", "shopping", "other"] as const;
@@ -48,8 +47,8 @@ export function normalizeCurrency(value: unknown): string {
 /**
  * Split `totalCents` equally into `n` shares that sum EXACTLY to the total.
  * The remainder cents go to the first shares (deterministic), so the parent
- * always equals the sum of splits — the invariant compute_trip_settlements
- * and the summary both rely on.
+ * always equals the sum of splits — the invariant Settle Up and the summary
+ * both rely on.
  */
 export function splitEquallyCents(totalCents: number, n: number): number[] {
   if (n <= 0) return [];
@@ -89,7 +88,8 @@ export interface ExpenseLedgerEntry {
   currency: string;
   amountCents: number;
   paidByKey: string;
-  splits: Array<{ key: string; shareCents: number }>;
+  paidByName: string | null;
+  splits: Array<{ key: string; name: string | null; shareCents: number }>;
 }
 
 export interface ExpensePublic {
@@ -140,4 +140,63 @@ export function summarize(expenses: ExpenseLedgerEntry[], viewerKey: string): Ex
     if (mine) youOweCents += mine.shareCents;
   }
   return { currency, totalCents, youPaidCents, youOweCents, netCents: youPaidCents - youOweCents, count };
+}
+
+export interface LedgerTransfer {
+  fromKey: string;
+  toKey: string;
+  amountCents: number;
+  currency: string;
+}
+
+/**
+ * Who pays whom so everyone is even, per currency: whoever owes most pays
+ * whoever is owed most, until nobody owes anything. A balance is what someone
+ * paid minus their shares, the same sum as their Today summary.
+ */
+export function settleUp(entries: ExpenseLedgerEntry[]): LedgerTransfer[] {
+  const balances = new Map<string, Map<string, number>>();
+  const add = (currency: string, key: string, cents: number) => {
+    const byKey = balances.get(currency) ?? new Map<string, number>();
+    byKey.set(key, (byKey.get(key) ?? 0) + cents);
+    balances.set(currency, byKey);
+  };
+  for (const e of entries) {
+    add(e.currency, e.paidByKey, e.amountCents);
+    for (const s of e.splits) add(e.currency, s.key, -s.shareCents);
+  }
+
+  const transfers: LedgerTransfer[] = [];
+  for (const currency of [...balances.keys()].sort()) {
+    // Sorted so that ties settle the same way every time.
+    const people = [...balances.get(currency)!].map(([key, cents]) => ({ key, cents })).sort((a, b) => a.key.localeCompare(b.key));
+    for (;;) {
+      let creditor: { key: string; cents: number } | null = null;
+      let debtor: { key: string; cents: number } | null = null;
+      for (const p of people) {
+        if (p.cents > 0 && (!creditor || p.cents > creditor.cents)) creditor = p;
+        if (p.cents < 0 && (!debtor || p.cents < debtor.cents)) debtor = p;
+      }
+      if (!creditor || !debtor) break;
+      const amountCents = Math.min(creditor.cents, -debtor.cents);
+      transfers.push({ fromKey: debtor.key, toKey: creditor.key, amountCents, currency });
+      creditor.cents -= amountCents;
+      debtor.cents += amountCents;
+    }
+  }
+  return transfers;
+}
+
+/** Each person's latest name in the ledger, given entries newest first. */
+export function ledgerNames(entries: ExpenseLedgerEntry[]): Map<string, string> {
+  const names = new Map<string, string>();
+  const note = (key: string, name: string | null) => {
+    const trimmed = name?.trim();
+    if (trimmed && !names.has(key)) names.set(key, trimmed);
+  };
+  for (const e of entries) {
+    note(e.paidByKey, e.paidByName);
+    for (const s of e.splits) note(s.key, s.name);
+  }
+  return names;
 }
