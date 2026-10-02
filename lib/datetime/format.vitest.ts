@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { formatDateFull, formatDateRange, formatDateShort, formatDateWithWeekday } from "./format";
+import { formatDateFull, formatDateRange, formatDateRangeWithWeekdays, formatDateShort, formatDateWithWeekday } from "./format";
 
 describe("formatDateRange", () => {
   it("names the month in the page's language", () => {
@@ -30,6 +30,7 @@ describe("trip days west of UTC", () => {
     expect(formatDateWithWeekday("2026-10-01")).toBe("Thu, Oct 1");
     expect(formatDateFull("2026-10-01")).toBe("Thu, Oct 1, 2026");
     expect(formatDateShort("2026-10-01")).toBe("Oct 1");
+    expect(formatDateRangeWithWeekdays("2026-10-01", "2026-10-04")).toBe("Thu, Oct 1 - Sun, Oct 4");
   });
 
   it("still read full timestamps as instants", () => {
