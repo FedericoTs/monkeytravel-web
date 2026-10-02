@@ -278,7 +278,7 @@ test.describe("users lockdown — signed in", () => {
     request,
   }) => {
     // Two separate regressions meet here:
-    //   compute_trip_settlements LEFT JOINed public.users for display_name, so
+    //   Settle Up's names came from a LEFT JOIN on public.users, so
     //   restricted rows made every name blank -> the route renders "—".
     //   The payment-handle lookup used the user-scoped client (48013fc), so
     //   handles came back null and the pay buttons showed an empty state.
