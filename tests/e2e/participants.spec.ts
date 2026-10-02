@@ -53,9 +53,9 @@ test.describe("recipient → participant", () => {
     const anon = await browser.newContext({ storageState: { cookies: [], origins: [] } });
     try {
       const rp = await anon.newPage();
-      // networkidle + a generous timeout: the first /shared/[token] hit on a
-      // cold dev server compiles the route before it can render the bar.
-      const r = await rp.goto(`/shared/${token}`, { waitUntil: "networkidle", timeout: 120_000 });
+      // A generous timeout: the first /shared/[token] hit on a cold dev server
+      // compiles the route. Not networkidle: the page polls its live feed.
+      const r = await rp.goto(`/shared/${token}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
       expect(r?.status()).toBeLessThan(400);
       await declineConsent(rp);
 
@@ -66,8 +66,9 @@ test.describe("recipient → participant", () => {
 
       await rp.getByTestId("participants-name").fill(name);
       await rp.getByTestId("participants-name").press("Enter");
-      // the email step follows; skip it
-      await rp.getByRole("button", { name: /skip|omitir|salta|pular/i }).click();
+      // the email step follows; skip it. Scoped to the bar: a trip that runs
+      // today also shows the Today card, whose "Skip this" matches /skip/.
+      await bar.getByRole("button", { name: /^(skip|omitir|salta|pular)$/i }).click();
       await expect(rp.getByTestId("participants-done")).toBeVisible();
 
       // the header count reflects it on reload
@@ -79,7 +80,8 @@ test.describe("recipient → participant", () => {
       await anon.close();
     }
 
-    // 3. the owner sees them
+    // 3. the owner sees them (the assistant's first open would cover the card on mobile)
+    await page.addInitScript(() => localStorage.setItem("mt_ai_assistant_seen", String(Date.now())));
     await page.goto(`/trips/${TRIP_ID}`);
     await declineConsent(page);
     const card = page.getByTestId("who-is-going");
@@ -87,8 +89,13 @@ test.describe("recipient → participant", () => {
     const row = card.getByTestId("who-is-going-row").filter({ hasText: name });
     await expect(row).toBeVisible();
 
-    // 4. ...and removes them (cleanup doubles as the assertion)
+    // 4. ...and removes them (cleanup doubles as the assertion). The row goes
+    // optimistically, so wait for the server to confirm before reading the list.
+    const removed = page.waitForResponse(
+      (r) => r.request().method() === "DELETE" && r.url().includes(`/api/trips/${TRIP_ID}/participants/`),
+    );
     await row.getByRole("button", { name: /remove|quitar|rimuovi|remover/i }).click();
+    expect((await removed).ok(), "participant removal failed").toBe(true);
     await expect(row).toHaveCount(0);
 
     const list = await request.get(`/api/trips/${TRIP_ID}/participants`);

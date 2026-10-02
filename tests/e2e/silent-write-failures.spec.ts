@@ -208,19 +208,15 @@ test.describe("a packing tick that cannot save must say so", () => {
     await item.scrollIntoViewIfNeeded();
     await expect(item).toBeVisible({ timeout: 20_000 });
 
-    // The toggle lives on the custom checkbox div, NOT on the label — clicking
-    // the text does nothing at all, which is worth knowing for any future test
-    // of this component.
-    const row = item.locator("xpath=ancestor::*[self::div or self::label][1]");
+    // Each item is a real (visually hidden) checkbox inside its label.
     // Dispatched directly rather than as a pointer click. The assistant panel
     // is `fixed z-[70]` on the left and opens itself 2.5s after load, so it
     // covers the column the checkbox sits in — a real click is intercepted by
     // it, intermittently, depending on how fast the page settles. The subject
     // of this test is what happens AFTER the toggle, so the toggle is invoked
     // rather than aimed at.
-    await row
-      .locator("div.w-5.h-5")
-      .first()
+    await page
+      .getByRole("checkbox", { name: /Fixture Rain Jacket/i })
       .evaluate((el) => (el as HTMLElement).click());
 
     // THE POINT: the user is told. Before the fix this never appeared, because

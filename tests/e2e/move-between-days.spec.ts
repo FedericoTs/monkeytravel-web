@@ -125,6 +125,12 @@ const dayOrder = (page: Page, dayNumber: number) =>
     .evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
 
 async function openTrip(page: Page, tripId: string) {
+  // The share prompt (after 25s on an unshared trip) and the assistant's first
+  // open are timed overlays; on a slow machine they land mid-test.
+  await page.addInitScript((id) => {
+    localStorage.setItem(`share_prompt_dismissed:${id}`, "1");
+    localStorage.setItem("mt_ai_assistant_seen", String(Date.now()));
+  }, tripId);
   await page.goto(`/en/trips/${tripId}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
   await declineConsent(page);
   await ensureEditing(page);
