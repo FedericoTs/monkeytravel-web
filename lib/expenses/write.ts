@@ -3,6 +3,7 @@ import type { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { errors } from "@/lib/api/response-wrapper";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { linkGuestToAccount } from "@/lib/participants/link";
 import { isUuid } from "@/lib/participants/shared";
 import { isTodayActor, resolveTodayPerson, storedCookie } from "@/lib/today/actor";
 import type { TodayRequester } from "@/lib/today/write";
@@ -74,6 +75,10 @@ export async function writeTripExpense(
     typeof body.activity_id === "string" && body.activity_id.length > 0 && body.activity_id.length <= 100 ? body.activity_id : null;
   const description =
     typeof body.description === "string" && body.description.trim().length > 0 ? body.description.trim().slice(0, 280) : null;
+
+  // A signed-in payer who was a guest here on this browser is one person:
+  // link them before the group is read, or they would get two shares.
+  if (userId && cookieId) await linkGuestToAccount(admin, userId, cookieId, trip.id);
 
   const person = await resolveTodayPerson(admin, trip, user, cookieId);
   const actorName = person.name;

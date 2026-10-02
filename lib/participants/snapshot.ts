@@ -11,10 +11,11 @@ export async function participantsSnapshot(
   admin: SupabaseClient,
   tripId: string,
   cookieId: string | undefined,
+  userId: string | null = null,
 ): Promise<ParticipantsResponse> {
   const { data: rows, error } = await admin
     .from("trip_participants")
-    .select("id, participant_cookie_id, display_name, email, joined_at")
+    .select("id, participant_cookie_id, user_id, display_name, email, joined_at")
     .eq("trip_id", tripId)
     .is("left_at", null)
     .order("joined_at", { ascending: true });
@@ -23,7 +24,12 @@ export async function participantsSnapshot(
     return { count: 0, participants: [], me: { joined: false, display_name: null, has_email: false } };
   }
   const list = rows ?? [];
-  const mine = cookieId ? list.find((r) => r.participant_cookie_id === cookieId) : undefined;
+  const onThisBrowser = (r: (typeof list)[number]) => !!cookieId && r.participant_cookie_id === cookieId;
+  // Signed in, your row is your account's on any browser, or this browser's
+  // until it is linked. Signed out, it is this browser's.
+  const mine = userId
+    ? (list.find((r) => r.user_id === userId) ?? list.find((r) => onThisBrowser(r) && !r.user_id))
+    : list.find(onThisBrowser);
   return {
     count: list.length,
     participants: list.slice(0, PUBLIC_NAMES_MAX).map((r) => ({
