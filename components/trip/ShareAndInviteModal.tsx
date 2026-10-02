@@ -52,6 +52,11 @@ interface ShareAndInviteModalProps {
    * to true: the owner's view is unchanged.
    */
   canManageSharing?: boolean;
+  /**
+   * Whether Explore is on. While it's off the publish route answers 404, so
+   * the switch is hidden. Defaults to true.
+   */
+  exploreEnabled?: boolean;
   /** Opens the publish flow, which applies the Explore checks. */
   onRequestPublish?: () => void;
 }
@@ -71,6 +76,7 @@ export default function ShareAndInviteModal({
   isLoading,
   initialTab = "share",
   canManageSharing = true,
+  exploreEnabled = true,
   onRequestPublish,
 }: ShareAndInviteModalProps) {
   const t = useTranslations("common");
@@ -193,9 +199,12 @@ export default function ShareAndInviteModal({
       if (response.ok) {
         setTrendingEnabled(false);
         onTrendingChange?.(false);
+      } else {
+        addToast(ts("explore.unlistFailed"), "error");
       }
     } catch (error) {
       console.error("Failed to update trending status:", error);
+      addToast(ts("explore.unlistFailed"), "error");
     } finally {
       setTrendingLoading(false);
     }
@@ -637,6 +646,7 @@ export default function ShareAndInviteModal({
                     {canManageSharing && (
                     <>
                     {/* Submit to Trending */}
+                    {exploreEnabled && (
                     <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -668,6 +678,7 @@ export default function ShareAndInviteModal({
                         </button>
                       </div>
                     </div>
+                    )}
 
                     {/* Stop Sharing */}
                     <div className="border-t border-slate-200 pt-4">

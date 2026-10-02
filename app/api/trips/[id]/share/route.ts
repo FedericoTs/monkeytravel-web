@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import { purgeTripCard } from "@/lib/seo/trip-card-cache";
+import { isExploreUgcEnabled } from "@/lib/explore/flag";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
 
@@ -203,8 +204,10 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
       shareUrl,
       sharedAt: trip.shared_at,
       visibility: trip.visibility,
-      // The share window's Explore switch starts from this.
+      // The share window's Explore switch starts from this, and is hidden
+      // while Explore is off (the publish route answers 404 then).
       isInTrending: Boolean(trip.submitted_to_trending_at),
+      exploreEnabled: isExploreUgcEnabled(),
     });
   } catch (error) {
     console.error("[Share] Error fetching share status:", error);

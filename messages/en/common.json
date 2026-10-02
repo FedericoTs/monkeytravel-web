@@ -1186,6 +1186,7 @@
       "publicBadge": "Public",
       "unpublishAction": "(Unpublish)",
       "unpublishConfirm": "Remove this trip from Explore? You can re-publish anytime.",
+      "unlistFailed": "Couldn't remove the trip from Explore. Try again.",
       "removeFromExploreTitle": "Click to remove from /explore",
       "engagement": {
         "barAriaLabel": "Trip engagement actions",

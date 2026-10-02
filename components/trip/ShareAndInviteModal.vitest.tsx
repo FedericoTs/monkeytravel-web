@@ -29,8 +29,9 @@ vi.mock("@/lib/analytics", () => ({
   trackTripShared: vi.fn(),
   trackReferralLinkClicked: vi.fn(),
 }));
+const { addToast } = vi.hoisted(() => ({ addToast: vi.fn() }));
 vi.mock("@/components/ui/Toast", () => ({
-  useToast: () => ({ addToast: vi.fn() }),
+  useToast: () => ({ addToast }),
 }));
 vi.mock("@/lib/hooks/useModalBehavior", () => ({
   useModalBehavior: () => undefined,
@@ -234,7 +235,7 @@ describe("share as an image", () => {
  * POST /publish), so the fixed-plan confirmation and the publish limits apply.
  */
 describe("the Explore switch", () => {
-  function renderListed(isInTrending: boolean, onRequestPublish = vi.fn()) {
+  function renderListed(isInTrending: boolean, onRequestPublish = vi.fn(), exploreEnabled?: boolean) {
     render(
       <ShareAndInviteModal
         isOpen
@@ -248,10 +249,31 @@ describe("the Explore switch", () => {
         onEnableSharing={vi.fn(async () => undefined)}
         isLoading={false}
         onRequestPublish={onRequestPublish}
+        {...(exploreEnabled === undefined ? {} : { exploreEnabled })}
       />
     );
     return onRequestPublish;
   }
+
+  // While Explore is off the publish route answers 404, so a switch could only fail.
+  it("is hidden while Explore is off", () => {
+    renderListed(false, vi.fn(), false);
+    expect(screen.queryByRole("switch")).toBeNull();
+    expect(screen.getByText("share.stopSharing.button")).toBeTruthy();
+  });
+
+  it("says so when the trip can't be unlisted, and stays on", async () => {
+    vi.mocked(fetch).mockImplementation(async (url) =>
+      String(url).endsWith("/publish")
+        ? ({ ok: false, status: 500, json: async () => ({}) } as Response)
+        : ({ ok: true, json: async () => ({ isShared: true, collaborators: [], invites: [] }) } as Response),
+    );
+    addToast.mockClear();
+    renderListed(true);
+    fireEvent.click(screen.getByRole("switch"));
+    await waitFor(() => expect(addToast).toHaveBeenCalledWith("share.explore.unlistFailed", "error"));
+    expect(screen.getByRole("switch").getAttribute("aria-checked")).toBe("true");
+  });
 
   it("opens the publish flow instead of listing the trip itself", () => {
     const onRequestPublish = renderListed(false);
