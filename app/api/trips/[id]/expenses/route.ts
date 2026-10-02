@@ -7,7 +7,7 @@
  *
  * GET    → list all expenses on this trip, newest spent_on first
  * POST   → create a new expense (caller becomes created_by and payer,
- *          split equally across the trip's members)
+ *          split equally across the trip's group, lib/trips/roster)
  * PATCH  → update an existing expense (id in body, creator or owner only)
  * DELETE → remove an expense (id in body, creator or owner only)
  *
@@ -24,29 +24,36 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import { centsToAmount, splitEquallyCents } from "@/lib/expenses/shared";
 import { publicNameOrNull } from "@/lib/profile/public-name";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { expenseCohort, tripRoster } from "@/lib/trips/roster";
 
 /**
- * Equal shares across the trip's members (owner and collaborators).
- * compute_trip_settlements only counts an expense with a payer and shares,
- * so without them a member's expense never reached Settle Up.
- * Returns the error that stopped it, if any.
+ * Equal shares across the trip's group (lib/trips/roster), the payer
+ * included once. compute_trip_settlements only counts an expense with a
+ * payer and shares, so without them a member's expense never reached Settle
+ * Up. Returns the error that stopped it, if any.
  */
-async function insertMemberSplits(supabase: SupabaseClient, tripId: string, expenseId: string, amount: number) {
-  const [{ data: trip, error: tripError }, { data: collaborators, error: collaboratorsError }] = await Promise.all([
-    supabase.from("trips").select("user_id").eq("id", tripId).maybeSingle(),
-    supabase.from("trip_collaborators").select("user_id").eq("trip_id", tripId),
-  ]);
-  if (tripError || collaboratorsError) {
-    console.error("[expenses] member lookup failed", tripError ?? collaboratorsError);
-    return tripError ?? collaboratorsError;
+async function insertMemberSplits(supabase: SupabaseClient, tripId: string, expenseId: string, amount: number, payerId: string | null) {
+  const { data: trip, error: tripError } = await supabase.from("trips").select("user_id").eq("id", tripId).maybeSingle();
+  // The "I'm going" list is readable by the service role only.
+  const { roster, error: rosterError } = tripError
+    ? { roster: [], error: tripError }
+    : await tripRoster(createAdminClient(), { id: tripId, user_id: (trip?.user_id as string | null) ?? null });
+  if (rosterError) {
+    console.error("[expenses] member lookup failed", rosterError);
+    return rosterError;
   }
-  const members = [...new Set([trip?.user_id, ...(collaborators ?? []).map((c) => c.user_id)])].filter(
-    (id): id is string => typeof id === "string",
-  );
+  const members = expenseCohort(roster, payerId ? { userId: payerId, cookieId: null, name: null } : null);
   const shares = splitEquallyCents(Math.round(amount * 100), members.length);
-  const { error } = await supabase
-    .from("trip_expense_splits")
-    .insert(members.map((userId, i) => ({ expense_id: expenseId, user_id: userId, share_amount: centsToAmount(shares[i]) })));
+  const { error } = await supabase.from("trip_expense_splits").insert(
+    members.map((m, i) => ({
+      expense_id: expenseId,
+      user_id: m.userId,
+      participant_cookie_id: m.userId ? null : m.cookieId,
+      participant_name: m.name,
+      share_amount: centsToAmount(shares[i]),
+    })),
+  );
   if (error) console.error("[expenses] split insert failed", error);
   return error;
 }
@@ -63,7 +70,10 @@ async function resplit(supabase: SupabaseClient, tripId: string, expenseId: stri
     console.error("[expenses] split read failed", readError);
     return readError;
   }
-  if (!existing || existing.length === 0) return insertMemberSplits(supabase, tripId, expenseId, amount);
+  if (!existing || existing.length === 0) {
+    const { data: expense } = await supabase.from("trip_expenses").select("paid_by_user_id").eq("id", expenseId).maybeSingle();
+    return insertMemberSplits(supabase, tripId, expenseId, amount, (expense?.paid_by_user_id as string | null) ?? null);
+  }
   const shares = splitEquallyCents(Math.round(amount * 100), existing.length);
   // One statement, so the shares change together or not at all. Each row
   // keeps its identity: the identity check runs on the proposed row before
@@ -267,7 +277,7 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       return errors.internal("Failed to create expense", "expenses");
     }
 
-    const splitError = await insertMemberSplits(supabase, tripId, data.id, parsed.amount);
+    const splitError = await insertMemberSplits(supabase, tripId, data.id, parsed.amount, user.id);
     if (splitError) {
       // Without shares the expense never reaches Settle Up: don't keep half of it.
       const { error: undoError } = await supabase.from("trip_expenses").delete().eq("id", data.id);
