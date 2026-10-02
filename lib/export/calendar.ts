@@ -1,4 +1,5 @@
 import type { Activity, TripForExport } from "@/types";
+import { parseLocalDate } from "@/lib/utils/date-local";
 
 /**
  * Format date and time for ICS (YYYYMMDDTHHmmss format)
@@ -10,7 +11,9 @@ function formatICSDateTime(date: string, time: string): string {
   const m = /^(\d{1,2}):(\d{2})$/.exec((time || "").trim());
   const hours = m ? Number(m[1]) : 9;
   const minutes = m ? Number(m[2]) : 0;
-  const dateObj = new Date(date);
+  // The day is a calendar date: read as UTC midnight, it falls on the day
+  // before anywhere west of UTC, and the hours below land there.
+  const dateObj = parseLocalDate(date) ?? new Date(date);
   dateObj.setHours(hours, minutes, 0, 0);
 
   const year = dateObj.getFullYear();

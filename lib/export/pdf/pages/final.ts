@@ -2,6 +2,7 @@ import type jsPDF from "jspdf";
 import type { PageContext, PremiumTripForExport } from "../types";
 import { COLORS, TYPOGRAPHY, LAYOUT } from "../config";
 import { getImageFormat, hasImage } from "../utils/images";
+import { parseLocalDate } from "@/lib/utils/date-local";
 
 /**
  * Render the final page with gallery, closing message, and branding
@@ -148,7 +149,7 @@ export function renderFinalPage(
   const destinationTag = trip.destination
     .replace(/[^a-zA-Z0-9]/g, "")
     .substring(0, 20);
-  const year = new Date(trip.startDate).getFullYear();
+  const year = (parseLocalDate(trip.startDate) ?? new Date(trip.startDate)).getFullYear();
   const hashtags = `#MonkeyTravel #${destinationTag}${year}`;
 
   doc.text(hashtags, pageWidth / 2, y + 30, { align: "center" });

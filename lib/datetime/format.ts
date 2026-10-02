@@ -105,8 +105,8 @@ export function formatDateRange(start: Date | string, end: Date | string, locale
  * Use for PDF overviews where weekday context helps planning
  */
 export function formatDateRangeWithWeekdays(start: Date | string, end: Date | string): string {
-  const s = typeof start === "string" ? new Date(start) : start;
-  const e = typeof end === "string" ? new Date(end) : end;
+  const s = typeof start === "string" ? (parseLocalDate(start) ?? new Date(start)) : start;
+  const e = typeof end === "string" ? (parseLocalDate(end) ?? new Date(end)) : end;
 
   const options: Intl.DateTimeFormatOptions = { weekday: "short", month: "short", day: "numeric" };
   return `${s.toLocaleDateString("en-US", options)} - ${e.toLocaleDateString("en-US", options)}`;
