@@ -98,6 +98,8 @@ Gennaio a [Marrakech](/it/destinations/marrakech) abbassa le massime diurne a un
 
 **Evita a gennaio:** le Maldive nella prima settimana (il sovrapprezzo di Capodanno gonfia le tariffe del 15-25%), e qualunque isola caraibica ancora in ripresa dalla coda della stagione degli uragani — prenota la seconda o terza settimana piuttosto.
 
+**La guida completa del mese:** [dove andare a gennaio 2027](/blog/where-to-go-in-january), con dodici mete.
+
 ---
 
 ## Febbraio: Carnevale, aurora in massimo solare e picco dell'estate australe
@@ -127,6 +129,8 @@ Febbraio in Egitto si avvicina all'ideale platonico del meteo per i monumenti: L
 Se gennaio non ha funzionato per l'aurora, febbraio in Lapponia finlandese è statisticamente altrettanto forte, con una probabilità di aurora del 70-80% nelle notti serene e finestre diurne sensibilmente più lunghe per slitte trainate dagli husky e safari con le renne. Il W Trek di Torres del Paine in Patagonia tocca il suo singolo miglior mese meteo — venti più stabili rispetto a gennaio, la luce autunnale che ossessiona i fotografi. Le prenotazioni dei rifugi per febbraio vanno fatte 4-5 mesi prima.
 
 **Evita a febbraio:** city break nell'Europa continentale cercando caldo. Parigi e Roma sono miti ma grigie, con meno luce diurna di quanto suggeriscano i depliant. Tienile per marzo-aprile o ottobre. Evita anche Bali se non tolleri la pioggia — febbraio è nel cuore della stagione delle piogge e i temporali pomeridiani possono durare più delle solite 1-2 ore.
+
+**La guida completa del mese:** [dove andare a febbraio 2027](/blog/where-to-go-in-february), con dodici mete.
 
 ---
 
@@ -163,6 +167,8 @@ Fine marzo a Cartagena è il punto dolce post-spring-break, pre-stagione delle p
 
 **Evita a marzo:** Tokyo per i ciliegi a meno che tu non sia flessibile sulle date — le previsioni 2026 indicano la prima fioritura attorno al 21 marzo con piena fioritura (mankai) solo verso il 28 marzo, una finestra di 5-7 giorni. Se il sakura è la tua ragione per viaggiare, trattalo come un viaggio di aprile e leggi la sezione successiva.
 
+**La guida completa del mese:** [dove andare a marzo 2027](/blog/where-to-go-in-march), con dodici mete.
+
 ---
 
 ## Aprile: sakura, tulipani e Mediterraneo prima della folla
@@ -198,6 +204,8 @@ I giardini di Keukenhof sono aperti dal 19 marzo al 10 maggio 2026, con le migli
 
 **Evita ad aprile:** Bali durante Nyepi (Giorno del Silenzio, cade a fine marzo o a volte a inizio aprile a seconda del calendario lunare). L'intera isola chiude — niente voli su Denpasar, niente internet, vietato uscire dal tuo alloggio. Conferma le date prima di prenotare.
 
+**La guida completa del mese:** [dove andare ad aprile 2027](/blog/where-to-go-in-april), con dodici mete.
+
 ---
 
 ## Maggio: Europa in mezza stagione, stagione secca dell'Inca Trail, e l'ultima finestra prima dei prezzi estivi
@@ -232,6 +240,8 @@ Il 1° maggio è l'inizio dei quattro migliori mesi per l'Inca Trail e le Ande c
 - **Suggerimento da insider:** costruisci 2 giorni di acclimatamento a Cusco (3.400 m). Non arrivare in volo e partire per il trekking il giorno dopo. Se l'Inca Trail classico è esaurito, il trek di Salkantay offre scenari paragonabili senza sistema di permessi.
 
 **Evita a maggio:** la costa sud-occidentale dello Sri Lanka (Colombo, Galle, Mirissa) — il monsone di sud-ovest arriva a maggio. Sposta sulla costa orientale (Trincomalee, Arugam Bay), dove la stagione secca inizia a maggio e dura fino a settembre.
+
+**La guida completa del mese:** [dove andare a maggio 2027](/blog/where-to-go-in-may), con dodici mete.
 
 ---
 
@@ -277,6 +287,8 @@ L'Egeo è caldo (22 °C), il cielo senza nuvole, gli iconici villaggi bianchi br
 
 **Evita a giugno:** Cusco a meno che tu non abbia già assicurato i permessi dell'Inca Trail — giugno va esaurito con 6 mesi di anticipo. Il trek di Salkantay è la mossa se stai improvvisando. Evita anche Tokyo se la pioggia ti rovina il viaggio — la prima metà è più asciutta della seconda, ma non ci sono garanzie.
 
+**La guida completa del mese:** [dove andare a giugno 2027](/blog/where-to-go-in-june), con dodici mete.
+
 ---
 
 ## Luglio: alta stagione, stagione dei festival, e la strategia della fuga dal caldo
@@ -321,6 +333,8 @@ Luglio è nel cuore della stagione secca di [Bali](/it/destinations/bali). Sole 
 
 **Evita a luglio:** Santorini a meno che il prezzo non sia un problema (luglio è il mese più caro, con camere vista caldera a 300-500+ $). Marrakech a meno che il tuo riad non abbia una piccola piscina (37-40 °C+ di giorno). Roma e Atene — città mediterranee a 35-38 °C senza tregua.
 
+**La guida completa del mese:** [dove andare a luglio 2027](/blog/where-to-go-in-july), con dodici mete.
+
 ---
 
 ## Agosto: festival, attraversamenti fluviali della migrazione, e perché conviene andare a sud
@@ -358,6 +372,8 @@ Se il Masai Mara di luglio era l'inizio della migrazione, agosto è il suo più 
 
 **Evita ad agosto:** l'intera costa mediterranea a meno che tu non abbia già pagato. Santorini, Dubrovnik, Amalfi e le isole greche funzionano con il loro mese più costoso e con le loro folle più alte. Se devi fare il Mediterraneo ad agosto, scegli Montenegro o Slovenia.
 
+**La guida completa del mese:** [dove andare ad agosto 2026](/blog/where-to-go-in-august), con dodici mete.
+
 ---
 
 ## Settembre: Europa in mezza stagione al suo picco assoluto
@@ -392,6 +408,8 @@ Settembre è la coda della stagione secca di [Bali](/it/destinations/bali). Le p
 - **Suggerimento da insider:** la visibilità per le immersioni davanti ad Amed supera i 25 metri a settembre. Sidemen per le viste delle risaie senza il traffico di Ubud. Munduk al nord per temperature di montagna più fresche e cascate.
 
 **Evita a settembre:** destinazioni caraibiche e della Costa del Golfo — settembre è il picco statistico della stagione degli uragani atlantici. L'assicurazione di viaggio è obbligatoria se vai.
+
+**La guida completa del mese:** [dove andare a settembre 2026](/blog/where-to-go-in-september), con dodici mete.
 
 ---
 
@@ -437,6 +455,8 @@ L'Oktoberfest 2026 va dal 19 settembre al 4 ottobre. L'ultimo weekend (2-4 ottob
 
 **Evita a ottobre:** qualunque luogo si aspetti stabilità caraibica — il rischio di uragani tardivi continua durante ottobre.
 
+**La guida completa del mese:** [dove andare a ottobre 2026](/blog/where-to-go-in-october), con dodici mete.
+
 ---
 
 ## Novembre: foliage di Tokyo, tropici pre-feste, e il mese più tranquillo d'Europa
@@ -471,6 +491,8 @@ Novembre vede le coste est e nord dello Sri Lanka entrare nella loro stagione se
 - **Suggerimento da insider:** Feira da Ladra (martedì e sabato) — il mercato di antiquariato e curiosità di Lisbona dal XII secolo. Meno folla a novembre significa migliore leva nella contrattazione. Arriva prima delle 10. Il nostro [itinerario di Lisbona in 3 giorni](/it/blog/lisbon-3-day-itinerary) copre un piano completo.
 
 **Evita a novembre:** tutto il Caraibe occidentale se il tuo viaggio si sovrappone al Thanksgiving — il caos dei viaggi domestici USA si estende ai voli in uscita, e la domenica dopo Thanksgiving è il peggior giorno di volo dell'anno.
+
+**La guida completa del mese:** [dove andare a novembre 2026](/blog/where-to-go-in-november), con dodici mete.
 
 ---
 
@@ -508,6 +530,8 @@ Dicembre è il mese più polarizzante del calendario. Le ricerche generiche di "
 - **Suggerimento da insider:** le serate di dicembre scendono a 7-9 °C. Le terrazze sui tetti, essenziali in estate, diventano meno attraenti di sera. Prenota una cena marocchina tradizionale dentro un riad (15-25 $ a persona) — tajine, couscous, tè alla menta a lume di candela.
 
 **Evita a dicembre:** ovunque sul calendario dal 20 dicembre al 2 gennaio se puoi spostare le date. Questa finestra di 13 giorni porta i prezzi più alti dell'intero anno a livello globale. Dal 1° al 15 dicembre offre meteo simile a un costo il 30-50% più basso nella maggior parte delle destinazioni.
+
+**La guida completa del mese:** [dove andare a dicembre 2026](/blog/where-to-go-in-december), con dodici mete.
 
 ---
 
