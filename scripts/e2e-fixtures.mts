@@ -269,7 +269,7 @@ async function seed() {
 
   // ---- expenses + splits: Settle Up needs a real debtor/creditor pair ------
   // Owner pays 90 split three ways -> owner +60, the other two -30 each, so
-  // compute_trip_settlements emits two transfers with names on both sides.
+  // Settle Up shows two transfers with names on both sides.
   await db.from("trip_expenses").delete().eq("trip_id", tripId);
   const expenseId = randomUUID();
   {
