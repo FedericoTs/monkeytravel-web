@@ -1158,6 +1158,8 @@
       "anonymous": "Someone (no name)",
       "joinedAt": "joined {when}",
       "getsUpdates": "gets updates",
+      "guest": "no account",
+      "followingAlong": "following along, not splitting costs",
       "remove": "Remove",
       "planOwnLead": "Going somewhere else?"
     },
