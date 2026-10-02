@@ -37,6 +37,7 @@ import { isStaticPagePath } from "@/lib/security/static-routes";
 import { identify } from "@/lib/posthog/identify";
 import { prefs } from "@/lib/platform/storage";
 import { CLAIM_TOKEN_KEY, shouldTryClaim } from "@/lib/trips/claim-trigger";
+import { GUEST_LINK_KEY } from "@/lib/participants/link-trigger";
 import { syncTripCacheOwner } from "@/lib/sw/trip-cache";
 
 /**
@@ -196,6 +197,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
               const { publishClaimedTrip } = await import("@/lib/trips/claimed-trip-signal");
               publishClaimedTrip(tripId);
             })
+            .catch(() => undefined);
+        }
+
+        // A browser that was on a share link signed out may have joined or paid
+        // there as a guest: hand that to the account now signed in. Same moments
+        // and same rules as the claim: a cheap read first, never blocking.
+        if (shouldTryClaim(event, !!session?.user)) {
+          void prefs
+            .get(GUEST_LINK_KEY)
+            .then((pending) => (pending ? fetch("/api/participants/link", { method: "POST" }) : null))
+            .then((res) => (res?.ok ? prefs.remove(GUEST_LINK_KEY) : undefined))
             .catch(() => undefined);
         }
       });
