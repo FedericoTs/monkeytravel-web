@@ -32,12 +32,14 @@ describe("trip_today_actions has no public read path", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("the Today hook listens to the broadcast the route sends after each change", () => {
+  it("the Today hook listens to the broadcast both routes send after each change", () => {
     const hook = read("lib/today/useTodayActions.ts");
     expect(hook).toMatch(/\.channel\(todayChannel\(tripId\)\)/);
     expect(hook).toMatch(/\.on\("broadcast", \{ event: TODAY_CHANGED_EVENT \}/);
-    const route = read("app/api/shared/[token]/today-action/route.ts");
-    expect(route).toMatch(/admin\.channel\(todayChannel\(trip\.id\)\)\.httpSend\(TODAY_CHANGED_EVENT/);
+    expect(read("lib/today/write.ts")).toMatch(/admin\.channel\(todayChannel\(tripId\)\)\.httpSend\(TODAY_CHANGED_EVENT, \{\}\)/);
+    for (const route of ["app/api/shared/[token]/today-action/route.ts", "app/api/trips/[id]/today/today-action/route.ts"]) {
+      expect(read(route), route).toContain("announceTodayChange(admin, trip.id);");
+    }
   });
 
   it("the migration closes the table and takes it out of realtime", () => {

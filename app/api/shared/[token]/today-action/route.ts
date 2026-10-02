@@ -18,35 +18,22 @@
  * Returns the trip's active actions (same shape as GET) so the client can
  * replace its state in one go.
  */
-import { NextRequest, after } from "next/server";
+import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { nanoid } from "nanoid";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { captureServerEvent } from "@/lib/posthog/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { PARTICIPANT_COOKIE, PARTICIPANT_COOKIE_MAX_AGE_SECONDS, isUuid } from "@/lib/participants/shared";
-import { parseTodayActionType, RUNNING_LATE_STEP_MINUTES, TODAY_CHANGED_EVENT, todayChannel } from "@/lib/today/actions";
 import { todayActionsSnapshot } from "@/lib/today/snapshot";
-import { isTodayActor, resolveTodayPerson, storedCookie } from "@/lib/today/actor";
-import { suggestNearbyAlternative } from "@/lib/ai/nearby-alternative";
+import { announceTodayChange, writeTodayAction, type TodayActionBody } from "@/lib/today/write";
 
 const ipLimiter = createRateLimiter("today-action-ip", 40, 60_000);
 const cookieTripLimiter = createRateLimiter("today-action-cookie-trip", 20, 60_000);
 const BOT_UA_REGEX = /^(curl|wget|python-requests|httpie|go-http-client|libwww-perl|scrapy)\b/i;
-
-interface Body {
-  action_type?: unknown;
-  day_number?: unknown;
-  activity_id?: unknown;
-  activity?: { name?: unknown; type?: unknown; location?: unknown; address?: unknown };
-  destination?: unknown;
-  undo?: unknown;
-  action_id?: unknown;
-}
 
 export async function POST(request: NextRequest, context: InviteTokenRouteContext) {
   try {
@@ -64,7 +51,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       if (!ua || BOT_UA_REGEX.test(ua)) return errors.badRequest("Invalid request");
     }
 
-    const body = (await request.json().catch(() => null)) as Body | null;
+    const body = (await request.json().catch(() => null)) as TodayActionBody | null;
     if (!body || typeof body !== "object") return errors.badRequest("Invalid request body");
 
     const admin = createAdminClient();
@@ -86,7 +73,6 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     const { allowed: cookieAllowed } = await cookieTripLimiter.check(request, `${cookieId}:${trip.id}`);
     if (!cookieAllowed) return errors.rateLimit("Too many changes. Please slow down.");
 
-    // Owner vs participant.
     let user: { id: string; email?: string | null } | null = null;
     try {
       const supabase = await createClient();
@@ -95,117 +81,22 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     } catch {
       user = null;
     }
-    const userId = user?.id ?? null;
-    const isOwner = !!userId && userId === trip.user_id;
-    const actor = { userId, cookieId };
 
-    const finish = async () => {
-      // Everyone on this trip's Today re-fetches on this ping; it carries no
-      // data, so the table needs no public read for live updates.
-      after(() => admin.channel(todayChannel(trip.id)).httpSend(TODAY_CHANGED_EVENT, {}).then(() => undefined, () => undefined));
-      if (issuedCookie) {
-        cookieStore.set({
-          name: PARTICIPANT_COOKIE,
-          value: cookieId,
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: PARTICIPANT_COOKIE_MAX_AGE_SECONDS,
-          path: "/",
-        });
-      }
-      return apiSuccess(await todayActionsSnapshot(admin, trip.id, cookieId, userId));
-    };
-
-    // ---- Undo: soft, and only your own action (the owner may undo any).
-    if (body.undo === true) {
-      const actionId = typeof body.action_id === "string" ? body.action_id : "";
-      if (!actionId || !isUuid(actionId)) return errors.badRequest("Invalid action_id");
-      const { data: row, error: readError } = await admin
-        .from("trip_today_actions")
-        .select("actor_user_id, actor_cookie_id")
-        .eq("id", actionId)
-        .eq("trip_id", trip.id)
-        .is("undone_at", null)
-        .maybeSingle();
-      if (readError) {
-        console.error("[today-action] undo read failed:", readError);
-        return errors.internal("Could not undo", "TodayAction");
-      }
-      const by = { userId: (row?.actor_user_id as string | null) ?? null, cookieId: (row?.actor_cookie_id as string | null) ?? null };
-      if (row && (isOwner || isTodayActor(actor, by))) {
-        const { error } = await admin
-          .from("trip_today_actions")
-          .update({ undone_at: new Date().toISOString() })
-          .eq("id", actionId)
-          .is("undone_at", null);
-        if (error) {
-          console.error("[today-action] undo failed:", error);
-          return errors.internal("Could not undo", "TodayAction");
-        }
-      }
-      return finish();
-    }
-
-    // ---- Apply a chip.
-    const actionType = parseTodayActionType(body.action_type);
-    if (!actionType) return errors.badRequest("Invalid action_type");
-    const dayNumber = typeof body.day_number === "number" && Number.isFinite(body.day_number) ? Math.max(1, Math.floor(body.day_number)) : 0;
-    if (!dayNumber) return errors.badRequest("Invalid day_number");
-    const activityId =
-      typeof body.activity_id === "string" && body.activity_id.length > 0 && body.activity_id.length <= 100 ? body.activity_id : null;
-    if ((actionType === "skip" || actionType === "swap") && !activityId) {
-      return errors.badRequest(`${actionType} needs an activity_id`);
-    }
-
-    const { name: actorName } = await resolveTodayPerson(admin, trip, user, cookieId);
-
-    const payload: Record<string, unknown> = {};
-    if (actionType === "running_late") payload.minutes = RUNNING_LATE_STEP_MINUTES;
-    if (actionType === "swap") {
-      const meta = (trip.trip_meta ?? {}) as { destination?: string; locale?: string };
-      const destination = (typeof body.destination === "string" && body.destination) || meta.destination || "the area";
-      const a = body.activity ?? {};
-      const suggestion = await suggestNearbyAlternative(
-        {
-          name: typeof a.name === "string" ? a.name : "this activity",
-          type: typeof a.type === "string" ? a.type : "",
-          location: typeof a.location === "string" ? a.location : "",
-          address: typeof a.address === "string" ? a.address : "",
-        },
-        destination,
-        meta.locale || "en",
-      );
-      if (!suggestion) return errors.internal("Could not find an alternative right now", "TodayAction");
-      payload.swap_to = suggestion;
-    }
-
-    const { error: insertError } = await admin.from("trip_today_actions").insert({
-      trip_id: trip.id,
-      day_number: dayNumber,
-      action_type: actionType,
-      activity_id: activityId,
-      payload,
-      actor_cookie_id: storedCookie(actor),
-      actor_user_id: userId,
-      actor_name: actorName,
-      actor_role: isOwner ? "owner" : "participant",
-    });
-    // A double-tap collides with the partial unique index — that is the
-    // idempotency guarantee, not an error.
-    if (insertError && insertError.code !== "23505") {
-      console.error("[today-action] insert failed:", insertError);
-      return errors.internal("Could not save that", "TodayAction");
-    }
-    if (!insertError) {
-      captureServerEvent(userId ?? cookieId, "today_action", {
-        trip_id: trip.id,
-        action_type: actionType,
-        role: isOwner ? "owner" : "participant",
+    const failed = await writeTodayAction(admin, trip, { user, cookieId }, body);
+    if (failed) return failed;
+    announceTodayChange(admin, trip.id);
+    if (issuedCookie) {
+      cookieStore.set({
+        name: PARTICIPANT_COOKIE,
+        value: cookieId,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: PARTICIPANT_COOKIE_MAX_AGE_SECONDS,
+        path: "/",
       });
     }
-
-    return finish();
+    return apiSuccess(await todayActionsSnapshot(admin, trip.id, cookieId, user?.id ?? null));
   } catch (error) {
     console.error("[today-action] Unexpected error:", error);
     return errors.internal("Internal server error", "TodayAction");

@@ -1,6 +1,8 @@
 import "server-only";
+import { cookies } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { publicNameOrNull } from "@/lib/profile/public-name";
+import { PARTICIPANT_COOKIE } from "@/lib/participants/shared";
 
 /**
  * Who taps a chip or logs a payment on a live trip's Today. Signed in, a
@@ -29,6 +31,12 @@ export function isTodayActor(actor: TodayActor, row: TodayActor): boolean {
 /** The cookie a new tap or payment is stored under: none when signed in, so the account identifies it everywhere. */
 export function storedCookie(actor: TodayActor): string | null {
   return actor.userId ? null : actor.cookieId;
+}
+
+/** This browser's guest cookie, if it holds a usable one. The members' routes read it but never set one. */
+export async function browserGuestCookie(): Promise<string | null> {
+  const value = (await cookies()).get(PARTICIPANT_COOKIE)?.value;
+  return value && value.length >= 10 && value.length <= 60 ? value : null;
 }
 
 const NAME_MAX = 60;
