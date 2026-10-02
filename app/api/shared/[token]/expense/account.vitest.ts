@@ -133,6 +133,17 @@ describe("POST /api/shared/[token]/expense", () => {
       paid_by_user_id: null,
       paid_by_cookie_id: "guest-cookie-1",
     });
+    expect(ops("link_guest_to_account", "rpc")).toEqual([]);
+  });
+
+  it("makes a signed-in payer's guest history here theirs before the group is read", async () => {
+    signedIn = { id: "user-9" };
+    browserCookie = "guest-cookie-1";
+    await send({ amount: "12" });
+    const [link] = ops("link_guest_to_account", "rpc");
+    expect(link.value).toEqual({ p_user_id: "user-9", p_cookie: "guest-cookie-1", p_trip_id: "trip-1" });
+    const groupRead = log.findIndex((q) => q.table === "trip_participants" && q.end === "list");
+    expect(log.indexOf(link)).toBeLessThan(groupRead);
   });
 
   it("removes your expense from another device of the same account", async () => {

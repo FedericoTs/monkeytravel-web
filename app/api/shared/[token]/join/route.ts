@@ -6,7 +6,8 @@
  * takes it back. No auth required — possession of the share token is the
  * capability, exactly like /vote. Identity is the SAME cookie /vote mints
  * (mt_anon_voter), so a participant's votes and participation are one
- * person; user_id is attached when the browser also holds a session.
+ * person. Signed in, a person has one row per trip, their account's, on any
+ * browser; this browser's guest row becomes it.
  *
  * Body: { action: 'join' | 'update' | 'leave', source?, display_name?, email? }
  *   join   — insert, or re-activate a row that had left; name/email if given
@@ -31,6 +32,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
+import { linkGuestToAccount } from "@/lib/participants/link";
 import {
   PARTICIPANT_COOKIE,
   PARTICIPANT_COOKIE_MAX_AGE_SECONDS,
@@ -135,19 +137,25 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       accountEmail = null;
     }
 
-    const { data: existing } = await admin
-      .from("trip_participants")
-      .select("id, left_at, display_name, email")
-      .eq("trip_id", trip.id)
-      .eq("participant_cookie_id", cookieId)
-      .maybeSingle();
+    // What this browser did here as a guest becomes the account's first.
+    if (userId && !issuedCookie) await linkGuestToAccount(admin, userId, cookieId, trip.id);
+
+    const lookup = admin.from("trip_participants").select("id, left_at, display_name, email").eq("trip_id", trip.id);
+    const { data: existing } = await (userId
+      ? lookup.eq("user_id", userId)
+      : lookup.eq("participant_cookie_id", cookieId)
+    ).maybeSingle();
 
     let joinedNow = false;
     if (action === "join") {
       if (!existing) {
+        // Signed in, this browser's cookie can already key another account's row here.
+        const { data: taken } = userId
+          ? await admin.from("trip_participants").select("id").eq("trip_id", trip.id).eq("participant_cookie_id", cookieId).maybeSingle()
+          : { data: null };
         const { error } = await admin.from("trip_participants").insert({
           trip_id: trip.id,
-          participant_cookie_id: cookieId,
+          participant_cookie_id: taken ? nanoid(21) : cookieId,
           user_id: userId,
           display_name: displayName,
           email: email ?? accountEmail,
@@ -163,7 +171,6 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         if (displayName) patch.display_name = displayName;
         if (email) patch.email = email;
         else if (accountEmail && !existing.email) patch.email = accountEmail;
-        if (userId) patch.user_id = userId;
         const { error } = await admin.from("trip_participants").update(patch).eq("id", existing.id);
         if (error) {
           console.error("[Shared Join] rejoin failed:", error);
@@ -179,7 +186,6 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       if (displayName) patch.display_name = displayName;
       if (email) patch.email = email;
       else if (accountEmail && !existing.email) patch.email = accountEmail;
-      if (userId) patch.user_id = userId;
       if (Object.keys(patch).length > 0) {
         const { error } = await admin.from("trip_participants").update(patch).eq("id", existing.id);
         if (error) {
@@ -224,7 +230,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       });
     }
 
-    const snapshot = await participantsSnapshot(admin, trip.id, cookieId);
+    const snapshot = await participantsSnapshot(admin, trip.id, cookieId, userId);
     return apiSuccess(snapshot);
   } catch (error) {
     console.error("[Shared Join] Unexpected error:", error);

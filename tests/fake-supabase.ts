@@ -3,8 +3,9 @@
  * recorded, and `answer` decides what each one returns.
  */
 export interface FakeQuery {
+  /** The table, or the function name for an rpc. */
   table: string;
-  op: "select" | "insert" | "update" | "upsert" | "delete";
+  op: "select" | "insert" | "update" | "upsert" | "delete" | "rpc";
   value?: unknown;
   filters: Array<[op: "eq" | "is" | "in", column: string, value: unknown]>;
   /** How the query was awaited: a single row, or the whole list. */
@@ -43,6 +44,11 @@ export function fakeSupabase(answer: FakeAnswer = () => ({ data: null, error: nu
     };
     return chain;
   };
-  const client = { from, channel: () => ({ httpSend: async () => undefined }) };
+  const rpc = async (fn: string, args: unknown) => {
+    const q: FakeQuery = { table: fn, op: "rpc", value: args, filters: [], end: "single" };
+    log.push(q);
+    return answer(q);
+  };
+  const client = { from, rpc, channel: () => ({ httpSend: async () => undefined }) };
   return { client, log };
 }
