@@ -115,7 +115,7 @@ No necesitas una hoja de cálculo. Hay varias apps diseñadas específicamente p
 
 ## La conversación sobre dinero antes del viaje (plantilla)
 
-Esta es la conversación que previene el 90% de los problemas de dinero en viajes grupales. Tenla antes de que nadie reserve nada.
+Esta es la conversación que previene la mayoría de los problemas de dinero en viajes grupales. Tenla antes de que nadie reserve nada.
 
 **Cubrid estos cinco puntos:**
 

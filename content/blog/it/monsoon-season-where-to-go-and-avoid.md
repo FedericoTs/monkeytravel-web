@@ -157,7 +157,7 @@ Il Myanmar nella stagione dei monsoni e profondamente suggestivo. I templi di Ba
 - **Zaino impermeabile o sacca stagna:** I tuoi dispositivi elettronici ti ringrazieranno. Una sacca stagna da 20L costa meno di 15 euro e salva telefono, fotocamera e passaporto.
 - **Abbigliamento ad asciugatura rapida:** Il cotone resta bagnato per ore. Il sintetico o la lana merino si asciugano in 30 minuti.
 - **Sandali impermeabili:** Teva, Chaco o simili. Le scarpe chiuse si inzuppano e restano bagnate.
-- **Giacca antipioggia compatta:** Non un poncho (sono inutili con il vento). Una giacca Gore-Tex ripiegabile gestisce il 90% della pioggia monsonica.
+- **Giacca antipioggia compatta:** Non un poncho (sono inutili con il vento). Una giacca Gore-Tex ripiegabile regge quasi tutta la pioggia monsonica.
 - **Custodia impermeabile per il telefono:** 5 euro di assicurazione per un dispositivo da 1.000 euro.
 
 ### Pianifica la Giornata Intorno alla Pioggia

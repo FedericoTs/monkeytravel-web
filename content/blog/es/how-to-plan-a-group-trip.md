@@ -59,7 +59,7 @@ Antes de que nadie elija un restaurante o discuta entre Airbnb y hotel, el grupo
 
 2. **Presupuesto por persona** — No "¿cuánto os gustaría gastar?" sino "¿Os parece bien $150/día incluyendo alojamiento, comida y actividades?" Da un número concreto. Quien no pueda permitírselo debería decirlo ahora, no después de que hayas reservado un hotel de $200/noche.
 
-3. **El rollo del viaje** — Esta es la que previene el 90% de las discusiones después. ¿Vais a hacer: (a) aventura y días repletos, (b) relax con mucho tiempo libre, o (c) una mezcla? Si la mitad del grupo quiere hacer senderismo al amanecer y la otra mitad quiere quedarse junto a la piscina hasta mediodía, vais a pelearos por eso todos los días a menos que lo hablemos antes.
+3. **El rollo del viaje** — Esta es la que previene la mayoría de las discusiones después. ¿Vais a hacer: (a) aventura y días repletos, (b) relax con mucho tiempo libre, o (c) una mezcla? Si la mitad del grupo quiere hacer senderismo al amanecer y la otra mitad quiere quedarse junto a la piscina hasta mediodía, vais a pelearos por eso todos los días a menos que lo hablemos antes.
 
 *Cuando el grupo ya tenga fechas, nuestra [plantilla de itinerario para viajes en grupo](/blog/group-trip-itinerary-template) te da la estructura día a día para rellenar.*
 

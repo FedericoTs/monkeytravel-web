@@ -116,7 +116,7 @@ Você não precisa de uma planilha. Existem vários apps feitos especificamente 
 
 ## A conversa sobre dinheiro antes da viagem (modelo)
 
-Esta é a conversa que evita 90% dos problemas de dinheiro em viagens em grupo. Tenham-na antes que alguém reserve qualquer coisa.
+Esta é a conversa que evita a maior parte dos problemas de dinheiro em viagens em grupo. Tenham-na antes que alguém reserve qualquer coisa.
 
 **Abordem estes cinco pontos:**
 

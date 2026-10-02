@@ -173,7 +173,7 @@ Myanmar in monsoon season is deeply atmospheric. Bagan's temples in the rain, In
 - **Waterproof daypack or dry bag:** Your electronics will thank you. A 20L dry bag costs under $15 and saves your phone, camera, and passport.
 - **Quick-dry clothing:** Cotton stays wet for hours. Synthetic or merino wool dries in 30 minutes.
 - **Waterproof sandals:** Tevas, Chacos, or similar. Closed shoes get soaked and stay soaked.
-- **Compact rain jacket:** Not a poncho (they're useless in wind). A packable Gore-Tex jacket handles 90% of monsoon rain.
+- **Compact rain jacket:** Not a poncho (they're useless in wind). A packable Gore-Tex jacket handles most monsoon rain.
 - **Waterproof phone pouch:** $5 insurance for a $1,000 device.
 
 ### Plan Your Day Around the Rain

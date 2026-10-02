@@ -68,7 +68,7 @@ Questi numeri sono dati aggregati da The Knot, Zola e Bach to Basic. E non inclu
 
 ## Passo 1: Stabilisci il Budget Prima di Tutto il Resto
 
-Questo è il passaggio che tutte vogliono saltare e quello che previene il 90% dei drammi quando non lo salti.
+Questo è il passaggio che tutte vogliono saltare e quello che previene la maggior parte dei drammi quando non lo salti.
 
 Prima di scegliere una destinazione, prima di creare una bacheca Pinterest, prima di fare qualsiasi cosa -- fai un sondaggio nel gruppo sui soldi. E rendilo anonimo se puoi. Le persone diranno che "va bene qualsiasi cosa" per non sembrare quelle che rovinano la festa, poi si stresseranno in silenzio per mesi.
 

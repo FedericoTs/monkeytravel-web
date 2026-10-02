@@ -61,7 +61,7 @@ Antes que alguém escolha um restaurante ou discuta entre Airbnb e hotel, seu gr
 
 2. **Orçamento por pessoa** — Não "quanto você gostaria de gastar?", mas "Você se sente à vontade com $150/dia incluindo hospedagem, comida e atividades?" Dê um número específico. Quem não pode pagar deve dizer agora, não depois que você já reservou um hotel de $200/noite.
 
-3. **Clima da viagem** — Esse aqui evita 90% das discussões depois. Vocês vão fazer: (a) aventura e dias cheios, (b) algo relaxado com bastante tempo livre, ou (c) uma mistura? Se metade do grupo quer fazer trilha ao amanhecer e a outra metade quer ficar na piscina até o meio-dia, vocês vão brigar por isso todos os dias a menos que resolvam isso antes.
+3. **Clima da viagem** — Esse aqui evita a maior parte das discussões depois. Vocês vão fazer: (a) aventura e dias cheios, (b) algo relaxado com bastante tempo livre, ou (c) uma mistura? Se metade do grupo quer fazer trilha ao amanhecer e a outra metade quer ficar na piscina até o meio-dia, vocês vão brigar por isso todos os dias a menos que resolvam isso antes.
 
 *Depois que o grupo definir as datas, nosso [modelo de roteiro para viagem em grupo](/blog/group-trip-itinerary-template) dá a estrutura dia a dia para preencher.*
 

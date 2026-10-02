@@ -162,7 +162,7 @@ Mianmar na temporada de monções é profundamente atmosférico. Os templos de B
 - **Mochila impermeável ou saco estanque:** Seus eletrônicos vão agradecer. Um saco estanque de 20L custa menos de $15 e salva seu celular, câmera e passaporte.
 - **Roupas de secagem rápida:** O algodão fica molhado por horas. Sintético ou lã merino seca em 30 minutos.
 - **Sandálias impermeáveis:** Tevas, Chacos ou similares. Sapatos fechados ficam encharcados e continuam encharcados.
-- **Jaqueta de chuva compacta:** Não uma capa de chuva (são inúteis com vento). Uma jaqueta Gore-Tex dobrável dá conta de 90% da chuva da monção.
+- **Jaqueta de chuva compacta:** Não uma capa de chuva (são inúteis com vento). Uma jaqueta Gore-Tex dobrável dá conta de quase toda a chuva da monção.
 - **Capa impermeável para celular:** $5 de seguro para um aparelho de $1.000.
 
 ### Planeje Seu Dia em Torno da Chuva

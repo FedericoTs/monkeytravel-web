@@ -68,7 +68,7 @@ Esos números provienen de datos agregados de The Knot, Zola y Bach to Basic. Y 
 
 ## Paso 1: Fija el presupuesto antes que nada
 
-Este es el paso que todas quieren saltarse y el paso que evita el 90% del drama de las despedidas cuando no te lo saltas.
+Este es el paso que todas quieren saltarse y el paso que evita casi todo el drama de las despedidas cuando no te lo saltas.
 
 Antes de elegir un destino, antes de crear un tablero de Pinterest, antes de hacer nada — pregunta al grupo por el dinero. Y hazlo de forma anónima si puedes. La gente dirá que "le parece bien lo que sea" para no ser la aguafiestas, y luego estará estresada con los costes durante meses.
 

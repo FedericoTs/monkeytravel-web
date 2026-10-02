@@ -65,7 +65,7 @@ Those numbers come from aggregated data across The Knot, Zola, and Bach to Basic
 
 ## Step 1: Set the Budget Before Anything Else
 
-This is the step everyone wants to skip and the step that prevents 90% of bachelorette drama when you don't skip it.
+This is the step everyone wants to skip and the step that prevents most bachelorette drama when you don't skip it.
 
 Before you pick a destination, before you create a Pinterest board, before you do anything — survey the group about money. And make it anonymous if you can. People will say they're "fine with whatever" to avoid being the buzzkill, then quietly stress about costs for months.
 

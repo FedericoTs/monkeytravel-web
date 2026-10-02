@@ -156,7 +156,7 @@ Myanmar en temporada de monzones es profundamente atmosférico. Los templos de B
 - **Mochila impermeable o bolsa seca:** Tu electrónica te lo agradecerá. Una bolsa seca de 20L cuesta menos de $15 y salva tu móvil, cámara y pasaporte.
 - **Ropa de secado rápido:** El algodón se queda mojado durante horas. El sintético o la lana merino se seca en 30 minutos.
 - **Sandalias impermeables:** Teva, Chaco o similares. Los zapatos cerrados se empapan y no se secan.
-- **Chubasquero compacto:** No un poncho (son inútiles con viento). Una chaqueta Gore-Tex plegable maneja el 90% de la lluvia del monzón.
+- **Chubasquero compacto:** No un poncho (son inútiles con viento). Una chaqueta Gore-Tex plegable aguanta casi toda la lluvia del monzón.
 - **Funda impermeable para el móvil:** 5 euros de seguro para un dispositivo de 1.000 euros.
 
 ### Planifica Tu Día Alrededor de la Lluvia
