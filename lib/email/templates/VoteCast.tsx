@@ -10,6 +10,7 @@
 import { Button, Heading, Section, Text } from "@react-email/components";
 import { EmailLayout } from "./_layout";
 import { voteCastCopy, layoutCopy, type EmailLocale } from "../copy";
+import { VOTE_INFO } from "@/types";
 
 export interface VoteCastEmailProps {
   voterName: string;
@@ -29,13 +30,6 @@ export interface VoteCastEmailProps {
   /** Recipient UI language — localizes the shared shell. */
   locale?: EmailLocale;
 }
-
-const VOTE_EMOJI: Record<VoteCastEmailProps["voteType"], string> = {
-  love: "❤️",
-  flexible: "🤷",
-  concerns: "⚠️",
-  no: "👎",
-};
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
 
@@ -60,7 +54,7 @@ export default function VoteCastEmail({
       locale={locale}
     >
       <Heading as="h1" style={h1}>
-        {VOTE_EMOJI[voteType]} {t.heading}
+        {VOTE_INFO[voteType].emoji} {t.heading}
       </Heading>
 
       <Text style={leadText}>{t.lead(voterName, phrase)}</Text>
