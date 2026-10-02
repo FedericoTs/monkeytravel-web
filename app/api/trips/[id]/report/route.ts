@@ -1,9 +1,10 @@
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { purgeTripCard } from "@/lib/seo/trip-card-cache";
 
 /**
  * POST /api/trips/[id]/report — flag a public trip for moderation.
@@ -125,6 +126,8 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
       .from("trips")
       .update({ is_hidden: true })
       .eq("id", tripId);
+    // A hidden trip's public card is the brand card; drop the cached one.
+    after(() => purgeTripCard(tripId));
   }
 
   void captureServerEvent(user?.id ?? "anon", "explore_trip_reported", {
