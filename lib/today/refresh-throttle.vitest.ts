@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { keepIfSame, throttledRefresh } from "./refresh-throttle";
 
 /**
- * Anyone who has seen a trip can send on its Today channel. However many
- * events arrive, a screen refreshes at most once per gap, never twice at
- * once, and always once more after the last event.
+ * A busy group can change many things at once. However many events arrive, a
+ * screen refreshes at most once per gap, never twice at once, and always once
+ * more after the last event.
  */
 
 beforeEach(() => vi.useFakeTimers());

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { Activity } from "@/types";
-import { TODAY_CHANGED_EVENT, todayChannel, type TodayAction, type TodayActionType } from "./actions";
+import { TODAY_CHANGED_EVENT, TODAY_CHANNEL_OPTIONS, todayChannel, type TodayAction, type TodayActionType } from "./actions";
 import { TODAY_REFRESH_GAP_MS, keepIfSame, throttledRefresh } from "./refresh-throttle";
 
 /**
@@ -55,7 +55,7 @@ export function useTodayActions(
     const supabase = createClient();
     if (channelRef.current) supabase.removeChannel(channelRef.current);
     const channel = supabase
-      .channel(todayChannel(tripId))
+      .channel(todayChannel(tripId), TODAY_CHANNEL_OPTIONS)
       .on("broadcast", { event: TODAY_CHANGED_EVENT }, () => refresh.request())
       .subscribe();
     channelRef.current = channel;

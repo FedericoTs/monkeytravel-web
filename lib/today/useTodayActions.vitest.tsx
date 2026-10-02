@@ -5,8 +5,8 @@ import { useTodayActions } from "./useTodayActions";
 
 /**
  * A screen on Today refreshes its chips and its expense panel when the trip's
- * channel says something changed, but a flood of events (anyone who has seen
- * the trip can send them) costs one refresh now and one after the gap.
+ * channel says something changed, but a flood of events costs one refresh now
+ * and one after the gap.
  */
 
 let onChanged: (() => void) | null = null;
