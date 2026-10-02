@@ -14,13 +14,17 @@ let signedIn: { id: string } | null = { id: "mate-1" };
 let member = true;
 let log: FakeQuery[] = [];
 const announced: string[] = [];
+let readsAllowed = true;
+let accessChecks = 0;
 
 vi.mock("next/server", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/server")>()),
   after: (task: () => unknown) => void task(),
 }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
-vi.mock("@/lib/api/rate-limit", () => ({ createRateLimiter: () => ({ check: async () => ({ allowed: true }) }) }));
+vi.mock("@/lib/api/rate-limit", () => ({
+  createRateLimiter: (namespace: string) => ({ check: async () => ({ allowed: namespace !== "today-read" || readsAllowed }) }),
+}));
 vi.mock("@/lib/participants/flag", () => ({ isLiveTripParticipantsEnabled: () => true }));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: () => {} }));
 vi.mock("@/lib/today/snapshot", () => ({ todayActionsSnapshot: async () => [] }));
@@ -30,10 +34,12 @@ vi.mock("@/lib/api/auth", () => ({
     signedIn
       ? { user: signedIn, supabase: {}, errorResponse: null }
       : { user: null, supabase: {}, errorResponse: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) },
-  verifyTripAccess: async () =>
-    member
+  verifyTripAccess: async () => {
+    accessChecks++;
+    return member
       ? { trip: TRIP, isOwner: false, collaboratorRole: "editor", errorResponse: null }
-      : { trip: null, isOwner: false, collaboratorRole: null, errorResponse: NextResponse.json({ error: "Access denied" }, { status: 403 }) },
+      : { trip: null, isOwner: false, collaboratorRole: null, errorResponse: NextResponse.json({ error: "Access denied" }, { status: 403 }) };
+  },
 }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => {
@@ -63,6 +69,8 @@ const writes = (table: string) => log.filter((q) => q.table === table && q.op ==
 beforeEach(() => {
   signedIn = { id: "mate-1" };
   member = true;
+  readsAllowed = true;
+  accessChecks = 0;
   announced.length = 0;
   log = [];
 });
@@ -94,7 +102,7 @@ describe("Today's member routes", () => {
     expect(announced).toEqual(["trip-today:trip-1"]);
   });
 
-  it("write a member's payment by account", async () => {
+  it("write a member's payment by account and tell everyone's Today", async () => {
     const res = await pay(post("expense", { amount: "10" }), ctx);
     expect(res.status).toBe(200);
     expect(writes("trip_expenses")[0].value).toMatchObject({
@@ -105,5 +113,13 @@ describe("Today's member routes", () => {
       paid_by_cookie_id: null,
       currency: "EUR",
     });
+    expect(announced).toEqual(["trip-today:trip-1"]);
+  });
+
+  it("turn away a member reading faster than any screen refreshes, before any lookup", async () => {
+    readsAllowed = false;
+    const res = await actions(new NextRequest("http://localhost/api/trips/trip-1/today/today-actions"), ctx);
+    expect(res.status).toBe(429);
+    expect(accessChecks).toBe(0);
   });
 });

@@ -1,16 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { keepIfSame } from "@/lib/today/refresh-throttle";
 import type { ExpensePublic, ExpenseSummary } from "./shared";
 
 /**
  * The live-trip expense ledger on the client — Live Trip Phase 3.4.
  *
  * Fetch on mount + refetch after every mutation, so the actor sees their own
- * change immediately and other viewers pick it up on their next load. No
- * realtime here on purpose: the money tables keep member-only RLS (no public
- * SELECT), so an anon browser can't subscribe; going through the service-role
- * routes keeps amounts off the public read path.
+ * change immediately, and `refetch` when the Today broadcast announces a
+ * change (TodayView passes it to useTodayActions), so other viewers see it
+ * too. No subscription of its own: the money tables keep member-only RLS (no
+ * public SELECT), so amounts stay on the service-role routes.
  */
 export interface AddExpenseInput {
   amount: string;
@@ -26,6 +27,8 @@ export interface TripExpensesApi {
   error: string | null;
   add: (input: AddExpenseInput) => Promise<boolean>;
   remove: (expenseId: string) => Promise<void>;
+  /** Reads the ledger again; keeps what's shown if nothing changed. */
+  refetch: () => Promise<void>;
 }
 
 /** `base` is the routes Today uses: the share link's, or the members' /api/trips/[id]/today. */
@@ -38,8 +41,8 @@ export function useTripExpenses(base: string, enabled: boolean): TripExpensesApi
   const applyResult = (json: unknown) => {
     const data = (json as { data?: { expenses?: ExpensePublic[]; summary?: ExpenseSummary } })?.data ?? json;
     const d = data as { expenses?: ExpensePublic[]; summary?: ExpenseSummary };
-    if (Array.isArray(d?.expenses)) setExpenses(d.expenses);
-    if (d?.summary) setSummary(d.summary);
+    if (Array.isArray(d?.expenses)) setExpenses((prev) => keepIfSame(prev, d.expenses as ExpensePublic[]));
+    if (d?.summary) setSummary((prev) => keepIfSame(prev, d.summary as ExpenseSummary));
   };
 
   const fetchLedger = useCallback(async () => {
@@ -107,5 +110,5 @@ export function useTripExpenses(base: string, enabled: boolean): TripExpensesApi
     [busy, post],
   );
 
-  return { expenses, summary, busy, error, add, remove };
+  return { expenses, summary, busy, error, add, remove, refetch: fetchLedger };
 }

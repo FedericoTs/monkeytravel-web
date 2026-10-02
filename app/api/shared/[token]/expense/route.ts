@@ -22,6 +22,7 @@ import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { PARTICIPANT_COOKIE, PARTICIPANT_COOKIE_MAX_AGE_SECONDS, isUuid } from "@/lib/participants/shared";
 import { expensesSnapshot } from "@/lib/expenses/snapshot";
 import { writeTripExpense, type TripExpenseBody } from "@/lib/expenses/write";
+import { announceTodayChange } from "@/lib/today/write";
 
 const ipLimiter = createRateLimiter("expense-ip", 30, 60_000);
 const cookieTripLimiter = createRateLimiter("expense-cookie-trip", 15, 60_000);
@@ -75,6 +76,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
     const failed = await writeTripExpense(admin, trip, { user, cookieId }, body);
     if (failed) return failed;
+    announceTodayChange(admin, trip.id);
     if (issuedCookie) {
       cookieStore.set({
         name: PARTICIPANT_COOKIE,
