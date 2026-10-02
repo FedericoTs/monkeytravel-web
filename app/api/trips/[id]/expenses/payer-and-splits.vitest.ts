@@ -3,8 +3,8 @@ import { NextRequest } from "next/server";
 
 /**
  * A member's expense records who paid and splits equally across the trip's
- * group (lib/trips/roster). Without either, compute_trip_settlements skipped
- * it, so Settle Up never counted what members added in the ledger.
+ * group (lib/trips/roster). Without either, Settle Up never counted what
+ * members added in the ledger.
  */
 
 type Row = Record<string, unknown>;

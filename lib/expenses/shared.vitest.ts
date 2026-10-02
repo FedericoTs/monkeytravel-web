@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   actorKey,
   centsToAmount,
+  ledgerNames,
   normalizeCurrency,
   parseAmountToCents,
   parseExpenseCategory,
+  settleUp,
   splitEquallyCents,
   summarize,
   type ExpenseLedgerEntry,
@@ -65,10 +67,11 @@ describe("summarize", () => {
     amountCents: 3000,
     currency: "EUR",
     paidByKey: "c:ana",
+    paidByName: "Ana",
     splits: [
-      { key: "c:ana", shareCents: 1000 },
-      { key: "c:bob", shareCents: 1000 },
-      { key: "u:owner", shareCents: 1000 },
+      { key: "c:ana", name: "Ana", shareCents: 1000 },
+      { key: "c:bob", name: "Bob", shareCents: 1000 },
+      { key: "u:owner", name: null, shareCents: 1000 },
     ],
     ...over,
   });
@@ -91,5 +94,57 @@ describe("summarize", () => {
     const s = summarize([exp({ currency: "EUR", amountCents: 3000 }), exp({ currency: "USD", amountCents: 100 })], "c:ana");
     expect(s.currency).toBe("EUR");
     expect(s.totalCents).toBe(3000);
+  });
+});
+
+describe("settleUp", () => {
+  const entry = (paidByKey: string, amountCents: number, keys: string[], currency = "EUR"): ExpenseLedgerEntry => ({
+    currency,
+    amountCents,
+    paidByKey,
+    paidByName: null,
+    splits: keys.map((key, i) => ({ key, name: null, shareCents: splitEquallyCents(amountCents, keys.length)[i] })),
+  });
+
+  // The owner paid dinner for three; a guest paid gelato for three.
+  const ledger = [entry("u:owner", 9000, ["u:owner", "u:mate", "c:bo"]), entry("c:bo", 3000, ["u:owner", "u:mate", "c:bo"])];
+
+  it("settles guests like everyone else", () => {
+    expect(settleUp(ledger)).toEqual([
+      { fromKey: "u:mate", toKey: "u:owner", amountCents: 4000, currency: "EUR" },
+      { fromKey: "c:bo", toKey: "u:owner", amountCents: 1000, currency: "EUR" },
+    ]);
+  });
+
+  it("agrees with each person's Today summary", () => {
+    const transfers = settleUp(ledger);
+    for (const key of ["u:owner", "u:mate", "c:bo"]) {
+      const received = transfers.filter((t) => t.toKey === key).reduce((sum, t) => sum + t.amountCents, 0);
+      const paid = transfers.filter((t) => t.fromKey === key).reduce((sum, t) => sum + t.amountCents, 0);
+      expect(received - paid).toBe(summarize(ledger, key).netCents);
+    }
+  });
+
+  it("settles each currency on its own", () => {
+    const transfers = settleUp([entry("u:owner", 2000, ["u:owner", "u:mate"]), entry("u:mate", 5000, ["u:owner", "u:mate"], "USD")]);
+    expect(transfers).toEqual([
+      { fromKey: "u:mate", toKey: "u:owner", amountCents: 1000, currency: "EUR" },
+      { fromKey: "u:owner", toKey: "u:mate", amountCents: 2500, currency: "USD" },
+    ]);
+  });
+
+  it("has nothing to settle when everyone paid their share", () => {
+    expect(settleUp([entry("u:owner", 1000, ["u:owner", "u:mate"]), entry("u:mate", 1000, ["u:owner", "u:mate"])])).toEqual([]);
+    expect(settleUp([])).toEqual([]);
+  });
+});
+
+describe("ledgerNames", () => {
+  it("keeps each person's latest name, newest entry first", () => {
+    const names = ledgerNames([
+      { currency: "EUR", amountCents: 100, paidByKey: "c:bo", paidByName: " Bo ", splits: [{ key: "u:owner", name: null, shareCents: 100 }] },
+      { currency: "EUR", amountCents: 100, paidByKey: "u:owner", paidByName: null, splits: [{ key: "c:bo", name: "Bobby", shareCents: 100 }] },
+    ]);
+    expect(Object.fromEntries(names)).toEqual({ "c:bo": "Bo" });
   });
 });

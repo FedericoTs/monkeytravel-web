@@ -4,14 +4,13 @@
  * Returns the greedy minimum-transfer settlement set for a trip — one
  * entry per recommended payment, partitioned by currency.
  *
- * The actual computation runs in Postgres (compute_trip_settlements
- * RPC, see 20260531_day10_expense_splits.sql) so all the membership
- * gating lives in RLS — the route handler is a thin verify-then-call
- * wrapper. Mirrors the existing patterns in /api/trips/[id]/expenses
+ * Everyone in the group is settled, guests included, from the same ledger
+ * the Today summary adds up (settleUp in lib/expenses/shared), so the two
+ * never disagree. Mirrors the existing patterns in /api/trips/[id]/expenses
  * and /api/trips/[id]/activities/from-booking:
  *   - getAuthenticatedUser() → 401 path
  *   - membership probe → 403 / 404 paths
- *   - RPC call → 500 path
+ *   - ledger read → 500 path
  *
  * RESPONSE SHAPE
  *   { transfers: Array<{
@@ -19,6 +18,9 @@
  *       toUser: {
  *         id: string;
  *         name: string;
+ *         // A guest who joined without signing in: no handles. Guests'
+ *         // ids are per-response labels, never their browser cookie.
+ *         guest: boolean;
  *         // Optional payment handles — present only when the recipient
  *         // populated them in Settings > Payment Handles. Each is a raw
  *         // app-validated string (PayPal.me handle, Venmo username, Wise
@@ -28,7 +30,7 @@
  *         venmo_handle?:  string | null;
  *         wise_handle?:   string | null;
  *       };
- *       amount:   number;        // ALREADY ROUNDED TO 2 DP by the RPC
+ *       amount:   number;        // 2 DP, from whole cents
  *       currency: string;        // 3-letter ISO code, uppercased
  *     }>,
  *     // Trip title used by the client as the deeplink "note" so the
@@ -51,7 +53,7 @@
  *
  *   Authorization for this read is the membership probe below, not RLS.
  *   Once that probe passes, the caller is a member of this trip and the
- *   recipients are exactly the counterparties the RPC computed for it —
+ *   recipients are exactly the counterparties settled for it —
  *   so the handles are fetched with the service client, scoped to those
  *   ids.
  *
@@ -65,15 +67,12 @@ import { getAuthenticatedUser } from "@/lib/api/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
+import { centsToAmount, ledgerNames, settleUp } from "@/lib/expenses/shared";
+import { readExpenseLedger } from "@/lib/expenses/snapshot";
+import { publicNameOrNull } from "@/lib/profile/public-name";
 
-interface SettlementRow {
-  from_user_id: string;
-  from_name: string | null;
-  to_user_id: string;
-  to_name: string | null;
-  amount: number | string; // PG NUMERIC → string in some driver versions
-  currency: string;
-}
+/** The account id behind a ledger key, or null for a guest. */
+const accountOf = (key: string): string | null => (key.startsWith("u:") ? key.slice(2) : null);
 
 export async function GET(_req: NextRequest, context: TripRouteContext) {
   try {
@@ -81,11 +80,9 @@ export async function GET(_req: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // Membership probe before the RPC. The RPC itself is SECURITY INVOKER
-    // and RLS-gated, so a non-member call returns an empty array rather
-    // than 403 — which the UI would render as "all settled up", giving
-    // the wrong signal. We probe trips + trip_collaborators here so
-    // unauthorized callers get a clean 403 / 404 instead.
+    // Membership probe first: it is the authorization for the service-role
+    // reads below, and unauthorized callers get a clean 403 / 404 rather
+    // than an empty list the UI would render as "all settled up".
     const [tripProbe, collabProbe] = await Promise.all([
       // `title` rides along here so we can pass it as the deeplink
       // "note" / "description" without a second round-trip — the payer
@@ -119,32 +116,41 @@ export async function GET(_req: NextRequest, context: TripRouteContext) {
       return errors.forbidden("You must be a member of this trip");
     }
 
-    // Trust the RPC to compute + round. Pass tripId via positional arg
-    // — the supabase-js .rpc() call passes a single JSON object so we
-    // name the parameter to match the SQL signature (p_trip_id).
-    const { data, error } = await supabase.rpc("compute_trip_settlements", {
-      p_trip_id: tripId,
-    });
-
+    // A ledger that can't be read in full must not look settled.
+    const admin = createAdminClient();
+    const { ledger, error } = await readExpenseLedger(admin, tripId);
     if (error) {
-      console.error("[settlements GET] rpc failed", error);
+      console.error("[settlements GET] ledger read failed", error);
       return errors.internal("Failed to compute settlements", "settlements");
     }
+    const owed = settleUp(ledger);
 
-    const rows = (data as SettlementRow[] | null) ?? [];
+    // Accounts go by their profile name, guests by the name they joined with.
+    const names = ledgerNames(ledger);
+    const accountIds = Array.from(
+      new Set(owed.flatMap((t) => [accountOf(t.fromKey), accountOf(t.toKey)]).filter((id): id is string => id !== null)),
+    );
+    if (accountIds.length > 0) {
+      const { data: profiles, error: profileErr } = await admin.from("public_profiles").select("id, display_name").in("id", accountIds);
+      if (profileErr) console.error("[settlements GET] name fetch failed", profileErr);
+      for (const p of profiles ?? []) {
+        const name = publicNameOrNull(p.display_name as string | null, null);
+        if (name) names.set(`u:${p.id as string}`, name);
+      }
+    }
 
-    // Collect unique recipient (to_user_id) ids so we can fetch their
+    // Collect unique recipient account ids so we can fetch their
     // payment handle columns in a single round-trip. We deliberately
     // only fetch handles for RECIPIENTS — the payer doesn't need their
     // own handles to send money, only the receiving side's. This also
     // minimizes the data we surface to the client.
     const recipientIds = Array.from(
-      new Set(rows.map((r) => r.to_user_id).filter(Boolean)),
+      new Set(owed.map((t) => accountOf(t.toKey)).filter((id): id is string => id !== null)),
     );
 
     // Fetched with the service client — see HANDLE FETCH SCOPING above.
     // The membership probe is the authorization; recipientIds are the
-    // counterparties the RPC computed for THIS trip, so the read stays
+    // counterparties settled for THIS trip, so the read stays
     // scoped to people the caller demonstrably shares a trip with.
     const handlesById = new Map<
       string,
@@ -155,7 +161,7 @@ export async function GET(_req: NextRequest, context: TripRouteContext) {
       }
     >();
     if (recipientIds.length > 0) {
-      const { data: handleRows, error: handleErr } = await createAdminClient()
+      const { data: handleRows, error: handleErr } = await admin
         .from("users")
         .select("id, paypal_handle, venmo_handle, wise_handle")
         .in("id", recipientIds);
@@ -182,26 +188,32 @@ export async function GET(_req: NextRequest, context: TripRouteContext) {
       }
     }
 
-    // Normalize: NUMERIC arrives as string in some node-postgres versions
-    // but as number when supabase-js auto-parses. Force-to-number once
-    // here so the wire format is stable for the UI.
-    const transfers = rows.map((r) => {
-      const amt = typeof r.amount === "string" ? Number(r.amount) : r.amount;
-      const handles = handlesById.get(r.to_user_id);
+    // A guest's key is their browser cookie, so guests get a label instead.
+    const guestIds = new Map<string, string>();
+    const idOf = (key: string): string => {
+      const account = accountOf(key);
+      if (account) return account;
+      if (!guestIds.has(key)) guestIds.set(key, `guest-${guestIds.size + 1}`);
+      return guestIds.get(key)!;
+    };
+    const transfers = owed.map((t) => {
+      const recipient = accountOf(t.toKey);
+      const handles = recipient ? handlesById.get(recipient) : undefined;
       return {
         fromUser: {
-          id: r.from_user_id,
-          name: (r.from_name ?? "").trim() || "—",
+          id: idOf(t.fromKey),
+          name: names.get(t.fromKey) ?? "—",
         },
         toUser: {
-          id: r.to_user_id,
-          name: (r.to_name ?? "").trim() || "—",
+          id: idOf(t.toKey),
+          name: names.get(t.toKey) ?? "—",
+          guest: recipient === null,
           paypal_handle: handles?.paypal_handle ?? null,
           venmo_handle: handles?.venmo_handle ?? null,
           wise_handle: handles?.wise_handle ?? null,
         },
-        amount: Number.isFinite(amt) ? amt : 0,
-        currency: r.currency,
+        amount: centsToAmount(t.amountCents),
+        currency: t.currency,
       };
     });
 

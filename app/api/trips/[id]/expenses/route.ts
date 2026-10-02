@@ -29,9 +29,9 @@ import { expenseCohort, tripRoster } from "@/lib/trips/roster";
 
 /**
  * Equal shares across the trip's group (lib/trips/roster), the payer
- * included once. compute_trip_settlements only counts an expense with a
- * payer and shares, so without them a member's expense never reached Settle
- * Up. Returns the error that stopped it, if any.
+ * included once. Settle Up adds up payers and shares, so without them a
+ * member's expense never reached it. Returns the error that stopped it, if
+ * any.
  */
 async function insertMemberSplits(supabase: SupabaseClient, tripId: string, expenseId: string, amount: number, payerId: string | null) {
   const { data: trip, error: tripError } = await supabase.from("trips").select("user_id").eq("id", tripId).maybeSingle();

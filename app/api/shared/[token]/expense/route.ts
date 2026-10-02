@@ -4,8 +4,7 @@
  * Logs an expense the actor paid and splits it equally across the trip's
  * group (lib/trips/roster). Participants can be anonymous, so the split
  * targets are a mix of authed users and cookie ids — the extended
- * trip_expenses / trip_expense_splits carry both. The authed Settle Up
- * (compute_trip_settlements) ignores the anonymous rows.
+ * trip_expenses / trip_expense_splits carry both, and Settle Up counts both.
  *
  * Body: { amount, currency?, activity_id?, description?, category?, undo?, expense_id? }
  * Writes via the service role (the tables' RLS is member-only). Returns the
