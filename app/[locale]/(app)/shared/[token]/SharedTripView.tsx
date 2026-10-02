@@ -21,6 +21,8 @@ import TodayPacking from "@/components/trip/TodayPacking";
 import { useLiveTripState } from "@/lib/trip/useLiveTripState";
 import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
+import { GUEST_LINK_KEY } from "@/lib/participants/link-trigger";
+import { prefs } from "@/lib/platform/storage";
 import DestinationHero from "@/components/DestinationHero";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import ActivityCard from "@/components/ActivityCard";
@@ -224,6 +226,11 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
       cancelled = true;
     };
   }, [viewerLoading, viewer, shareToken, getPending, clearPending]);
+  // Signed out, this browser may join or pay here as a guest: note it, so the
+  // next sign-in hands that to the account (lib/participants/link-trigger).
+  useEffect(() => {
+    if (!viewerLoading && !viewer) void prefs.set(GUEST_LINK_KEY, "1");
+  }, [viewerLoading, viewer]);
   // The sharer opening their own link: this browser still holds the claim
   // token for THIS trip. "Save to My Trips" would duplicate their own
   // itinerary, so the strip offers the claim instead, and once the claim lands
