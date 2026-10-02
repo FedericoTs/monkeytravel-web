@@ -30,6 +30,7 @@ import type {
 } from "./types";
 import { VOTE_INFO, type VoteType } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
+import { publicNameOrNull } from "@/lib/profile/public-name";
 
 /** The vote a collab_vote records; older rows only say up or down. */
 const voteOf = (data: CollabVotePayload): VoteType =>
@@ -355,10 +356,61 @@ export async function listNotifications(
     return { notifications: [], unreadCount: 0 };
   }
 
+  const notifications = (rows ?? []) as NotificationRow[];
+  await nameCrewJoined(notifications);
   return {
-    notifications: (rows ?? []) as NotificationRow[],
+    notifications,
     unreadCount: unreadCount ?? 0,
   };
+}
+
+/**
+ * A guest gives their name only after tapping "I'm going", so a crew_joined
+ * row takes the name from their "I'm going" row as it is now: an account's
+ * public name, else the name they gave. Unnamed, the row keeps none.
+ */
+async function nameCrewJoined(rows: NotificationRow[]): Promise<void> {
+  const ids = [
+    ...new Set(
+      rows
+        .filter((r) => r.type === "crew_joined")
+        .map((r) => r.payload.participant_id)
+        .filter((id): id is string => typeof id === "string")
+    ),
+  ];
+  if (ids.length === 0) return;
+
+  // Service role: the table has no client read. The ids come from the
+  // caller's own notifications, which only the service role writes.
+  const admin = createAdminClient();
+  const { data: people, error } = await admin
+    .from("trip_participants")
+    .select("id, user_id, display_name")
+    .in("id", ids);
+  if (error) {
+    console.error("[notifications] crew name read failed", { error: error.message });
+    return;
+  }
+  const accountIds = [...new Set((people ?? []).map((p) => p.user_id as string | null).filter((u): u is string => !!u))];
+  const profileNames = new Map<string, string>();
+  if (accountIds.length > 0) {
+    const { data: profiles } = await admin.from("public_profiles").select("id, display_name").in("id", accountIds);
+    for (const p of profiles ?? []) {
+      const name = publicNameOrNull(p.display_name as string | null, null);
+      if (name) profileNames.set(p.id as string, name);
+    }
+  }
+  const names = new Map<string, string | null>();
+  for (const p of people ?? []) {
+    const given = publicNameOrNull(p.display_name as string | null, null);
+    names.set(p.id as string, (p.user_id ? profileNames.get(p.user_id as string) : undefined) ?? given);
+  }
+  for (const row of rows) {
+    const id = row.payload.participant_id;
+    if (row.type === "crew_joined" && typeof id === "string" && names.has(id)) {
+      row.payload = { ...row.payload, name: names.get(id) ?? null };
+    }
+  }
 }
 
 /**

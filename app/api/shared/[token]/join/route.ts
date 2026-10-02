@@ -24,12 +24,14 @@
  */
 import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
+import { waitUntil } from "@vercel/functions";
 import { nanoid } from "nanoid";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { enqueueNotification } from "@/lib/notifications/service";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { linkGuestToAccount } from "@/lib/participants/link";
@@ -98,7 +100,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     const admin = createAdminClient();
     const { data: trip, error: tripError } = await admin
       .from("trips")
-      .select("id, user_id")
+      .select("id, user_id, title")
       .eq("share_token", token)
       .is("deleted_at", null)
       .single();
@@ -147,25 +149,31 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     ).maybeSingle();
 
     let joinedNow = false;
+    let firstJoinId: string | null = null;
     if (action === "join") {
       if (!existing) {
         // Signed in, this browser's cookie can already key another account's row here.
         const { data: taken } = userId
           ? await admin.from("trip_participants").select("id").eq("trip_id", trip.id).eq("participant_cookie_id", cookieId).maybeSingle()
           : { data: null };
-        const { error } = await admin.from("trip_participants").insert({
-          trip_id: trip.id,
-          participant_cookie_id: taken ? nanoid(21) : cookieId,
-          user_id: userId,
-          display_name: displayName,
-          email: email ?? accountEmail,
-          source,
-        });
+        const { data: inserted, error } = await admin
+          .from("trip_participants")
+          .insert({
+            trip_id: trip.id,
+            participant_cookie_id: taken ? nanoid(21) : cookieId,
+            user_id: userId,
+            display_name: displayName,
+            email: email ?? accountEmail,
+            source,
+          })
+          .select("id")
+          .single();
         if (error) {
           console.error("[Shared Join] insert failed:", error);
           return errors.internal("Could not save that", "SharedJoin");
         }
         joinedNow = true;
+        firstJoinId = (inserted?.id as string | undefined) ?? null;
       } else {
         const patch: Record<string, unknown> = { left_at: null };
         if (displayName) patch.display_name = displayName;
@@ -216,6 +224,25 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         gave_name: displayName !== null,
         gave_email: email !== null && email !== undefined,
       });
+    }
+
+    // Tell the owner, once per person per trip: a rejoin after leaving or a
+    // name change says nothing new. In the bell only; nothing is sent out.
+    if (firstJoinId && trip.user_id && trip.user_id !== userId) {
+      waitUntil(enqueueNotification({
+        userId: trip.user_id as string,
+        notification: {
+          type: "crew_joined",
+          data: {
+            message: `${displayName ?? "Someone"} is going on "${trip.title}"`,
+            href: `/trips/${trip.id}`,
+            trip_id: trip.id,
+            tripName: trip.title as string,
+            participant_id: firstJoinId,
+            name: displayName,
+          },
+        },
+      }));
     }
 
     if (issuedCookie) {

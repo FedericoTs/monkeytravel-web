@@ -1244,7 +1244,9 @@
       "loading": "Loading…",
       "allCaughtUp": "You're all caught up.",
       "emptyHint": "You'll see updates here when collaborators vote, comment, or accept invites.",
-      "viewAllSettings": "View all settings"
+      "viewAllSettings": "View all settings",
+      "crewJoined": "{name} is going on “{trip}”",
+      "crewJoinedSomeone": "Someone is going on “{trip}”"
     },
     "stopSharing": {
       "button": "Stop sharing this trip",

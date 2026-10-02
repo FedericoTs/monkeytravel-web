@@ -1244,7 +1244,9 @@
       "loading": "Carregando…",
       "allCaughtUp": "Você está em dia.",
       "emptyHint": "Você verá atualizações aqui quando os colaboradores votarem, comentarem ou aceitarem convites.",
-      "viewAllSettings": "Ver todas as configurações"
+      "viewAllSettings": "Ver todas as configurações",
+      "crewJoined": "{name} vai para “{trip}”",
+      "crewJoinedSomeone": "Alguém vai para “{trip}”"
     },
     "stopSharing": {
       "button": "Parar de compartilhar esta viagem",
