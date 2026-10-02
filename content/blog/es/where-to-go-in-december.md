@@ -60,6 +60,8 @@ Ninguna ciudad hace la tradición de los mercadillos navideños mejor que Viena.
 **Coste orientativo:** $205 (€177) por persona y día (media de Budget Your Trip); reserva primero la cama.
 **La contrapartida:** la mayoría de los mercadillos cierran entre el 23 y el 26 de diciembre (Rathausplatz el 26, Spittelberg y Karlsplatz el 23), así que la experiencia clásica está a principios y mediados de mes. Solo Schönbrunn y el mercado de invierno de Riesenradplatz siguen hasta el 6 de enero de 2027, junto con la pista de hielo de la Rathausplatz: suficiente para una visita entre Navidad y Año Nuevo, no para el despliegue completo.
 
+Viena es uno de los ocho grandes mercados con fechas de 2026 confirmadas —los otros son Budapest, Colonia, Colmar, Dresde, Basilea, Núremberg y Zagreb—; nuestra [guía de mercados navideños](/blog/best-christmas-markets-europe-2026) tiene todas las fechas y cuáles siguen abiertos después de Navidad.
+
 ## 2. Tromsø, Noruega — La aurora en su mejor momento
 
 Muy al norte del Círculo Polar Ártico, Tromsø pasa diciembre en noche polar: del viernes 27 de noviembre de 2026 al viernes 15 de enero de 2027 el sol no asoma por el horizonte. Las largas horas de oscuridad son el mejor momento para la aurora, y Tromsø queda bajo el óvalo auroral, con operadores que viven de perseguir cielos despejados. Es más suave de lo que sugiere la latitud (máximas en torno a 0,3 °C), pero caen 109,7 mm de precipitación en 15 días de lluvia o nieve, y esas nubes son el verdadero enemigo del viaje.

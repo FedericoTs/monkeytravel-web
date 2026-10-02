@@ -61,6 +61,8 @@ Nessuna città porta avanti l'intera tradizione dei mercatini di Natale meglio d
 **Costo indicativo:** $205 (€177) a persona al giorno (media Budget Your Trip); prenota per prima cosa l'alloggio.
 **Il compromesso:** la maggior parte dei mercatini chiude tra il 23 e il 26 dicembre (Rathausplatz il 26, Spittelberg e Karlsplatz il 23), quindi l'esperienza classica sta tra inizio e metà dicembre. Solo Schönbrunn e il mercatino invernale del Riesenradplatz proseguono fino al 6 gennaio 2027, insieme alla pista di ghiaccio di Rathausplatz: abbastanza per una visita tra Natale e Capodanno, ma non l'offerta completa.
 
+Vienna è uno degli otto grandi mercatini con le date 2026 confermate — gli altri sono Budapest, Colonia, Colmar, Dresda, Basilea, Norimberga e Zagabria; la nostra [guida ai mercatini di Natale](/blog/best-christmas-markets-europe-2026) ha tutte le date e quali restano aperti dopo Natale.
+
 ## 2. Tromsø, Norvegia — L'aurora al suo meglio
 
 Ben oltre il Circolo Polare Artico, Tromsø passa dicembre nella notte polare: da venerdì 27 novembre 2026 a venerdì 15 gennaio 2027 il sole non sale sopra l'orizzonte. Le lunghe ore di buio sono il momento migliore per l'aurora, e Tromsø sta sotto l'ovale aurorale, con operatori che inseguono il cielo sereno per mestiere. È più mite di quanto suggerisca la latitudine (massime attorno a 0,3 °C), ma cadono 109,7 mm di precipitazioni su 15 giorni di pioggia, e quelle nuvole sono il vero nemico di un viaggio per l'aurora.

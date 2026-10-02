@@ -177,7 +177,7 @@ Acción de Gracias cae el jueves 26 de noviembre de 2026 y el pico de tarifas ab
 
 ### ¿Principios o finales de noviembre: qué es mejor?
 
-En el Sudeste Asiático y el sur de la India, cuanto más tarde, más seco: Phuket, Ciudad Ho Chi Minh y Kochi van hacia una estación seca en diciembre, y las noches de farolillos de Tailandia caen el martes 24 de noviembre. En Europa el ambiente navideño arranca a mediados de mes (el mercado de la Rathausplatz de Viena abre el viernes 13 de noviembre) y la noche polar de Tromsø empieza el viernes 27 de noviembre. Oriente Medio, Oaxaca después de la fiesta del 1 y 2 de noviembre y el hemisferio sur van bien todo el mes.
+En el Sudeste Asiático y el sur de la India, cuanto más tarde, más seco: Phuket, Ciudad Ho Chi Minh y Kochi van hacia una estación seca en diciembre, y las noches de farolillos de Tailandia caen el martes 24 de noviembre. En Europa el ambiente navideño arranca a mediados de mes (el mercado de la Rathausplatz de Viena abre el viernes 13 de noviembre; aquí están [las fechas confirmadas de los grandes mercados navideños de Europa](/blog/best-christmas-markets-europe-2026)) y la noche polar de Tromsø empieza el viernes 27 de noviembre. Oriente Medio, Oaxaca después de la fiesta del 1 y 2 de noviembre y el hemisferio sur van bien todo el mes.
 
 ### ¿Adónde ir si solo tengo una semana?
 

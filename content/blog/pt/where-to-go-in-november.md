@@ -181,7 +181,7 @@ O Thanksgiving é na quinta-feira 26 de novembro de 2026 e o pico de tarifas dur
 
 ### Início ou fim de novembro: qual é melhor?
 
-No Sudeste Asiático e no sul da Índia, mais tarde é mais seco: Phuket, Ho Chi Minh e Kochi caminham todas para a estação seca de dezembro, e as noites de lanternas da Tailândia caem na terça-feira 24 de novembro. Na Europa, o ambiente de Natal começa em meados do mês (o mercado da Rathausplatz, em Viena, abre na sexta-feira 13 de novembro) e a noite polar de Tromsø começa na sexta-feira 27 de novembro. O Oriente Médio, Oaxaca depois do festival de 1–2 de novembro e o hemisfério sul são bons o mês inteiro.
+No Sudeste Asiático e no sul da Índia, mais tarde é mais seco: Phuket, Ho Chi Minh e Kochi caminham todas para a estação seca de dezembro, e as noites de lanternas da Tailândia caem na terça-feira 24 de novembro. Na Europa, o ambiente de Natal começa em meados do mês (o mercado da Rathausplatz, em Viena, abre na sexta-feira 13 de novembro; veja [as datas confirmadas dos grandes mercados de Natal da Europa](/blog/best-christmas-markets-europe-2026)) e a noite polar de Tromsø começa na sexta-feira 27 de novembro. O Oriente Médio, Oaxaca depois do festival de 1–2 de novembro e o hemisfério sul são bons o mês inteiro.
 
 ### Para onde ir com uma semana apenas?
 
