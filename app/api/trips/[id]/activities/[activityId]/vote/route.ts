@@ -247,6 +247,7 @@ export async function POST(request: NextRequest, context: TripActivityRouteConte
             voter_name: voterName,
             activity_label: activityLabel,
             vote_type: voteType === "love" ? "up" : "down",
+            vote: voteType,
           },
         },
       });

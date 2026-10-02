@@ -23,10 +23,19 @@ import type {
   NotificationType as PushNotificationType,
 } from "@/lib/push/types";
 import type {
+  CollabVotePayload,
   NotificationPayload,
   NotificationRow,
   NotificationType,
 } from "./types";
+import type { VoteType } from "@/types";
+import { getTripDestination } from "@/lib/trips/destination";
+
+const VOTE_EMOJI: Record<VoteType, string> = { love: "❤️", flexible: "🤷", concerns: "⚠️", no: "👎" };
+
+/** The vote a collab_vote records; older rows only say up or down. */
+const voteOf = (data: CollabVotePayload): VoteType =>
+  data.vote ?? (data.vote_type === "up" ? "love" : "no");
 
 interface EnqueueArgs {
   userId: string;
@@ -116,6 +125,12 @@ async function dispatchEmailForNotification(args: {
     if (!profile?.email) return;
 
     const data = args.notification.data;
+    const { data: trip } = await admin
+      .from("trips")
+      .select("title, trip_meta")
+      .eq("id", data.trip_id)
+      .maybeSingle();
+    if (!trip) return;
     const APP_URL =
       process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
 
@@ -129,14 +144,9 @@ async function dispatchEmailForNotification(args: {
         id: "vote_cast",
         props: {
           voterName: data.voter_name,
-          tripTitle: "", // We don't have the trip title in the payload; fall back to destination
-          tripDestination: data.trip_id, // payload doesn't carry destination; safe fallback
-          voteType:
-            data.vote_type === "up"
-              ? "love"
-              : data.vote_type === "down"
-                ? "no"
-                : "love",
+          tripTitle: trip.title ?? "",
+          tripDestination: getTripDestination(trip),
+          voteType: voteOf(data),
           activityLabel: data.activity_label,
           tripUrl: `${APP_URL}${data.href || `/trips/${data.trip_id}`}`,
         },
@@ -192,7 +202,7 @@ async function dispatchPushForNotification(args: {
           // lib/push/types.ts when a new bell type starts pushing.
           type: "collab_activity_added" as PushNotificationType,
           title: `${d.voter_name} voted`,
-          body: `${d.vote_type === "up" ? "👍" : "👎"} on "${d.activity_label}"`,
+          body: `${VOTE_EMOJI[voteOf(d)]} on "${d.activity_label}"`,
           sound: "default",
           data: {
             url: d.href ?? `/trips/${d.trip_id}`,
