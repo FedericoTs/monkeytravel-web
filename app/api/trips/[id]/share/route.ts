@@ -7,6 +7,7 @@ import { captureServerEvent } from "@/lib/posthog/server";
 import { v4 as uuidv4 } from "uuid";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
+import { purgeTripCard } from "@/lib/seo/trip-card-cache";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
 
@@ -157,6 +158,7 @@ export async function DELETE(request: NextRequest, context: TripRouteContext) {
       return errors.internal("Failed to revoke sharing", "Share");
     }
 
+    after(() => purgeTripCard(id));
     return apiSuccess({ success: true });
   } catch (error) {
     console.error("[Share] Error revoking share link:", error);

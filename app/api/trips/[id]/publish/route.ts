@@ -8,6 +8,7 @@ import { enrichTripByIdAdmin } from "@/lib/images/enrichTrip";
 import { runTripCounter } from "@/lib/explore/counters";
 import { randomUUID } from "node:crypto";
 import { publicNameOrNull } from "@/lib/profile/public-name";
+import { purgeTripCard } from "@/lib/seo/trip-card-cache";
 
 /**
  * POST /api/trips/[id]/publish — owner opts a trip into the public
@@ -283,6 +284,7 @@ export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
   void captureServerEvent(user.id, "explore_trip_unpublished", {
     trip_id: tripId,
   });
+  after(() => purgeTripCard(tripId));
 
   return apiSuccess({ tripId, visibility: "private" });
 }
