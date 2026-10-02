@@ -6,6 +6,8 @@
  * type means migrating the constraint AND adding a payload type here.
  */
 
+import type { VoteType } from "@/types";
+
 export type NotificationType =
   | "collab_vote"
   | "collab_comment"
@@ -33,6 +35,8 @@ export interface CollabVotePayload extends BasePayload {
   voter_name: string;
   activity_label: string; // e.g. "Day 2 — Boqueria Market"
   vote_type: "up" | "down";
+  /** The exact vote; older rows only have vote_type. */
+  vote?: VoteType;
 }
 
 export interface CollabCommentPayload extends BasePayload {
