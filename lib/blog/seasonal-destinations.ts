@@ -64,8 +64,17 @@ const SEASONAL_PICKS: Record<string, string[]> = {
   // §1 "Japan — Cherry Blossom" (Tokyo and Kyoto), §6 "Morocco" (Marrakech).
   "where-to-go-in-march": ["tokyo", "kyoto", "marrakech"],
 
-  // §1 "Kyoto, Japan", §2 "Marrakech, Morocco", §4 "Amsterdam, Netherlands".
+  // §1 "Japan" (Kyoto), §2 "The Netherlands" (Amsterdam), §7 "Marrakech".
   "where-to-go-in-april": ["kyoto", "marrakech", "amsterdam"],
+
+  // §7 "Prague" (Prague Spring), §5 "Istanbul and Cappadocia", §6 "Seoul".
+  "where-to-go-in-may": ["prague", "istanbul", "seoul"],
+
+  // §2 "Lisbon and Porto", §4 "Greek islands" (Santorini), §6 "Paris".
+  "where-to-go-in-june": ["lisbon", "santorini", "paris"],
+
+  // §1 "Masai Mara" (Nairobi is the gateway), §4 "Kyoto and Mount Fuji".
+  "where-to-go-in-july": ["nairobi", "kyoto"],
 
   // §1 "Bali, Indonesia"; no other section has a destination entry.
   "where-to-go-in-august": ["bali"],

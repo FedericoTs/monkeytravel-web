@@ -50,6 +50,8 @@ export interface LandingPageLink {
 const CONCEPT_TO_LANDING: Record<string, LandingPageLink> = {
   "group-travel": { path: "/group-trip-planner", labelKey: "groupTripPlanner" },
   "budget-travel": { path: "/budget-trip-planner", labelKey: "budgetTripPlanner" },
+  // Shoulder season is the value season, and the month guides lead with costs.
+  "shoulder-season": { path: "/budget-trip-planner", labelKey: "budgetTripPlanner" },
   "solo-travel": { path: "/solo-trip-planner", labelKey: "soloTripPlanner" },
   "weekend-trip": { path: "/weekend-trip-planner", labelKey: "weekendTripPlanner" },
   "multi-city-trip": { path: "/multi-city-trip-planner", labelKey: "multiCityTripPlanner" },
