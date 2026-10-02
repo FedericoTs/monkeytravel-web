@@ -73,7 +73,8 @@ export default function SettleUpView({
 
   const [transfers, setTransfers] = useState<SettlementTransfer[]>([]);
   const [tripName, setTripName] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  // Loading until the first answer: an empty list would read as "All settled up!".
+  const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   // Currency formatter — mirrors ExpenseLedger.formatMoney() so the
@@ -124,7 +125,8 @@ export default function SettleUpView({
         addToast(t("errorLoad"), "error");
         console.error("[SettleUpView] load failed", err);
       } finally {
-        setLoading(false);
+        // A cancelled load hands over to the one that replaced it.
+        if (!signal?.aborted) setLoading(false);
       }
     },
     [tripId, addToast, t]
