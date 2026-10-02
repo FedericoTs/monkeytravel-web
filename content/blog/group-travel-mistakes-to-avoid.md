@@ -6,7 +6,7 @@ description: >-
   vibe — and the systems that prevent them, based on real data.
 author: Giuseppe G.
 publishedAt: '2026-02-18'
-updatedAt: '2026-02-18'
+updatedAt: '2026-10-01'
 category: Trip Planning
 tags: ["group travel", "trip planning"]
 image: /images/blog/group-travel-mistakes.jpg
@@ -30,7 +30,7 @@ schema: Article
 
 Nothing destroys a friendship faster than a badly planned group trip.
 
-That's not hyperbole. A 2024 survey by Away Travel found that 62% of people have had a friendship strained by a group vacation. Not because of anything dramatic — no stolen wallets or missed flights. Just slow, grinding friction from mismatched expectations, money weirdness, and the special kind of resentment that builds when you're stuck on someone else's schedule for a week.
+It's rarely anything dramatic — no stolen wallets or missed flights. Just slow, grinding friction from mismatched expectations, money weirdness, and the special kind of resentment that builds when you're stuck on someone else's schedule for a week.
 
 The good news: almost every group trip disaster is preventable. The bad news: most people make the same 10 mistakes every single time.
 
@@ -48,7 +48,7 @@ WhatsApp and iMessage are great for sharing memes. They are genuinely terrible f
 
 Here's what usually happens: someone suggests Santorini. Everyone says yes because Santorini is gorgeous. Then someone looks up hotels and discovers that a decent place for six people in peak season is $400/night. Two people can swing that. Two people absolutely cannot. Now you've got an awkward conversation that nobody wanted to have.
 
-According to a CheapOAir study, budget disagreements are the number one source of conflict on group trips, ahead of scheduling and destination disputes. It's not even close.
+Money is the disagreement nobody wants to start, which is exactly why it festers: one person's "reasonable" is another person's splurge, and it usually surfaces after the flights are booked.
 
 **The fix:** Agree on a daily per-person budget range before you pick a destination. "We're all comfortable spending $100-150 per day including accommodation, food, and activities" is the starting point. Then you filter destinations that fit. Santorini in September at $140/day? Doable. Santorini in July at $140/day? You're sleeping on the beach.
 
@@ -78,7 +78,7 @@ These are not character flaws. They're just different travel styles. But when yo
 
 ## Mistake #6: Booking Non-Refundable Everything
 
-Group trips have the highest cancellation rate of any travel category. Someone's work schedule changes. Someone gets sick. Someone's partner can't come anymore so they drop out. A Schwab study found that 31% of group trips experience at least one cancellation — and when that happens, the non-refundable hotel becomes a very expensive argument.
+The more people on a trip, the more chances someone drops out. Someone's work schedule changes. Someone gets sick. Someone's partner can't come anymore so they drop out. And when that happens, the non-refundable hotel becomes a very expensive argument.
 
 **The fix:** Book refundable options until 30 days before departure. Yes, it's sometimes $10-20 more per night. That's insurance against the $400 you'd lose if someone bails. Once you're inside the 30-day window and everyone has confirmed, you can switch to non-refundable rates if cheaper options are still available. Pay a little more now to avoid a lot of pain later.
 
@@ -134,7 +134,7 @@ The best group trips aren't the ones with the most impressive itineraries. They'
 
 ### What's the biggest mistake people make on group trips?
 
-Not setting expectations before the trip starts. Budget, daily pace, travel style, alone time — all of it needs to be discussed before anyone books a flight. Most group travel conflicts aren't about the destination or the activities. They're about assumptions that were never surfaced. A 15-minute conversation before planning starts prevents 90% of on-trip arguments.
+Not setting expectations before the trip starts. Budget, daily pace, travel style, alone time — all of it needs to be discussed before anyone books a flight. Most group travel conflicts aren't about the destination or the activities. They're about assumptions that were never surfaced. A 15-minute conversation before planning starts heads off most of the arguments you'd otherwise have on the trip.
 
 ### How many people is ideal for a group trip?
 
@@ -147,7 +147,3 @@ Yes, but test it first. Do a weekend trip — 2 to 3 days — before committing 
 ### How far in advance should you plan a group trip?
 
 3-6 months for international trips, 4-8 weeks for domestic. International trips need more lead time because of flight prices, visa requirements, and accommodation availability. But don't start too early either — more than 6 months out, and people lose momentum. The sweet spot is starting 5 months before departure: far enough out to get reasonable prices, close enough that it still feels real and urgent.
-
----
-
-*Sources: [CheapOAir — Top Causes of Travel Conflict](https://www.cheapoair.com/miles-away/group-travel-tips/), [Gamintraveler — Group Travel Planning Tips](https://www.gamintraveler.com/group-travel-tips/)*

@@ -67,7 +67,7 @@ Esses números vêm de dados agregados do The Knot, Zola e Bach to Basic. E eles
 
 ## Passo 1: Defina o Orçamento Antes de Qualquer Outra Coisa
 
-Este é o passo que todo mundo quer pular e o passo que evita 90% do drama da despedida de solteira quando você não pula.
+Este é o passo que todo mundo quer pular e o passo que evita quase todo o drama da despedida de solteira quando você não pula.
 
 Antes de escolher um destino, antes de criar um painel no Pinterest, antes de fazer qualquer coisa — faça uma pesquisa com o grupo sobre dinheiro. E deixe anônima, se possível. As pessoas vão dizer que estão "de boa com qualquer coisa" para não serem a estraga-prazeres, e depois vão se estressar em silêncio com os custos por meses.
 

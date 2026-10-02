@@ -59,7 +59,7 @@ Before anyone picks a restaurant or argues about Airbnb vs. hotel, your group ne
 
 2. **Budget per person** — Not "what would you like to spend?" but "Are you comfortable with $150/day including accommodation, food, and activities?" Give a specific number. People who can't afford it should say so now, not after you've booked a $200/night hotel.
 
-3. **Vibe** — This one prevents 90% of arguments later. Are you doing: (a) adventure and packed days, (b) relaxed with lots of downtime, or (c) a mix? If half the group wants to hike at dawn and the other half wants to sit by the pool until noon, you'll fight about it every single day unless you address it upfront.
+3. **Vibe** — This one prevents most of the arguments later. Are you doing: (a) adventure and packed days, (b) relaxed with lots of downtime, or (c) a mix? If half the group wants to hike at dawn and the other half wants to sit by the pool until noon, you'll fight about it every single day unless you address it upfront.
 
 ## Step 3: Present Choices, Not Open Questions
 

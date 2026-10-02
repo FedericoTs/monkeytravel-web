@@ -115,7 +115,7 @@ Non ti serve un foglio Excel. Esistono diverse app pensate esattamente per quest
 
 ## La conversazione sui soldi prima del viaggio (modello)
 
-Questa è la conversazione che previene il 90% dei problemi economici nei viaggi di gruppo. Falla prima che qualcuno prenoti qualsiasi cosa.
+Questa è la conversazione che previene la maggior parte dei problemi economici nei viaggi di gruppo. Falla prima che qualcuno prenoti qualsiasi cosa.
 
 **Copri questi cinque punti:**
 

@@ -59,7 +59,7 @@ Prima che qualcuno scelga un ristorante o discuta di Airbnb vs. hotel, il gruppo
 
 2. **Budget a persona** — Non "quanto vorresti spendere?" ma "Ti sta bene $150/giorno compreso alloggio, cibo e attività?" Dai un numero specifico. Chi non se lo può permettere deve dirlo ora, non dopo aver prenotato un hotel da $200 a notte.
 
-3. **Stile** — Questo previene il 90% delle discussioni future. Cosa vogliamo: (a) avventura e giornate piene, (b) relax con tanto tempo libero, o (c) un mix? Se metà del gruppo vuole fare escursioni all'alba e l'altra metà vuole stare in piscina fino a mezzogiorno, litigherete ogni singolo giorno se non ne parlate subito.
+3. **Stile** — Questo previene la maggior parte delle discussioni future. Cosa vogliamo: (a) avventura e giornate piene, (b) relax con tanto tempo libero, o (c) un mix? Se metà del gruppo vuole fare escursioni all'alba e l'altra metà vuole stare in piscina fino a mezzogiorno, litigherete ogni singolo giorno se non ne parlate subito.
 
 *Quando il gruppo ha deciso le date, il nostro [template per l'itinerario di gruppo](/blog/group-trip-itinerary-template) ti dà la struttura giorno per giorno da riempire.*
 

@@ -112,7 +112,7 @@ You don't need a spreadsheet. Several apps exist specifically for this problem:
 
 ## The Pre-Trip Money Conversation (Template)
 
-This is the conversation that prevents 90% of group-trip money problems. Have it before anyone books anything.
+This is the conversation that prevents most group-trip money problems. Have it before anyone books anything.
 
 **Cover these five things:**
 
