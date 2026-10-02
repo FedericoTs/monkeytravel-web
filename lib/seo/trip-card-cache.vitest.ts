@@ -8,7 +8,7 @@ import path from "node:path";
  * unshared or unpublished trip doesn't keep its picture.
  */
 
-const dangerouslyDeleteByTag = vi.fn(async (_tag: string) => undefined);
+const dangerouslyDeleteByTag = vi.fn<(tag: string) => Promise<void>>(async () => undefined);
 vi.mock("@vercel/functions", () => ({ dangerouslyDeleteByTag }));
 
 const { purgeTripCard, tripCardTag } = await import("./trip-card-cache");
