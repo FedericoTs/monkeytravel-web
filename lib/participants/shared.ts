@@ -84,14 +84,26 @@ export interface ParticipantsResponse {
 
 export const PUBLIC_NAMES_MAX = 8;
 
-/** What the owner sees. Email is never included — only whether one was given. */
+/**
+ * One person in the trip's group as the owner sees it (lib/trips/roster): the
+ * owner, every collaborator and everyone who said they're going. Email is
+ * never included — only whether one was given.
+ */
 export interface OwnerParticipant {
+  /** Their "I'm going" row when they have one, else their account. */
   id: string;
   display_name: string | null;
-  joined_at: string;
-  source: ParticipantSource;
-  has_email: boolean;
+  /** "owner" or their collaborator role; null for someone who only said they're going. */
+  role: string | null;
+  going: boolean;
+  /** Shares new expenses (lib/trips/roster sharesExpenses). */
+  in_split: boolean;
   has_account: boolean;
+  has_email: boolean;
+  /** When they said they're going. */
+  joined_at: string | null;
+  /** The "I'm going" row Remove takes back. */
+  participant_id: string | null;
 }
 
 export function isUuid(value: string): boolean {

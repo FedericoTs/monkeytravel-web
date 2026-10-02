@@ -19,6 +19,8 @@ export interface RosterPerson {
   /** "owner" or their collaborator role; null for someone who only said they're going. */
   role: string | null;
   going: boolean;
+  /** Their "I'm going" row, if they tapped it. */
+  participant: { id: string; joinedAt: string; hasEmail: boolean } | null;
 }
 
 export type CohortMember = Pick<RosterPerson, "userId" | "cookieId" | "name">;
@@ -32,7 +34,7 @@ export async function tripRoster(
     admin.from("trip_collaborators").select("user_id, role").eq("trip_id", trip.id).order("joined_at", { ascending: true }),
     admin
       .from("trip_participants")
-      .select("participant_cookie_id, user_id, display_name")
+      .select("id, participant_cookie_id, user_id, display_name, email, joined_at")
       .eq("trip_id", trip.id)
       .is("left_at", null)
       .order("joined_at", { ascending: true }),
@@ -44,17 +46,34 @@ export async function tripRoster(
   const put = (p: RosterPerson) => {
     const seen = byKey.get(p.key);
     if (!seen) byKey.set(p.key, p);
-    else byKey.set(p.key, { ...seen, role: seen.role ?? p.role, going: seen.going || p.going, name: seen.name ?? p.name });
+    else
+      byKey.set(p.key, {
+        ...seen,
+        role: seen.role ?? p.role,
+        going: seen.going || p.going,
+        name: seen.name ?? p.name,
+        participant: seen.participant ?? p.participant,
+      });
   };
-  if (trip.user_id) put({ key: actorKey(trip.user_id, null), userId: trip.user_id, cookieId: null, name: null, role: "owner", going: false });
+  if (trip.user_id) {
+    put({ key: actorKey(trip.user_id, null), userId: trip.user_id, cookieId: null, name: null, role: "owner", going: false, participant: null });
+  }
   for (const c of collaborators.data ?? []) {
     const userId = c.user_id as string;
-    put({ key: actorKey(userId, null), userId, cookieId: null, name: null, role: (c.role as string | null) ?? null, going: false });
+    put({ key: actorKey(userId, null), userId, cookieId: null, name: null, role: (c.role as string | null) ?? null, going: false, participant: null });
   }
   for (const p of participants.data ?? []) {
     const userId = (p.user_id as string | null) ?? null;
     const cookieId = userId ? null : ((p.participant_cookie_id as string | null) ?? null);
-    put({ key: actorKey(userId, cookieId), userId, cookieId, name: (p.display_name as string | null) ?? null, role: null, going: true });
+    put({
+      key: actorKey(userId, cookieId),
+      userId,
+      cookieId,
+      name: (p.display_name as string | null) ?? null,
+      role: null,
+      going: true,
+      participant: { id: p.id as string, joinedAt: p.joined_at as string, hasEmail: !!p.email },
+    });
   }
   return { roster: [...byKey.values()], error: null };
 }

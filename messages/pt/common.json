@@ -1158,6 +1158,8 @@
       "anonymous": "Alguém (sem nome)",
       "joinedAt": "entrou {when}",
       "getsUpdates": "recebe avisos",
+      "guest": "sem conta",
+      "followingAlong": "só acompanha, não divide os gastos",
       "remove": "Remover",
       "planOwnLead": "Vai para outro lugar?"
     },

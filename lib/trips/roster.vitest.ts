@@ -32,17 +32,33 @@ describe("tripRoster", () => {
         { user_id: "viewer-1", role: "viewer" },
       ],
       [
-        { participant_cookie_id: "mate-cookie", user_id: "mate-1", display_name: "Luca" },
-        { participant_cookie_id: "guest-cookie-1", user_id: null, display_name: "Bo" },
+        { id: "row-1", participant_cookie_id: "mate-cookie", user_id: "mate-1", display_name: "Luca", email: null, joined_at: "2026-10-01T10:00:00Z" },
+        { id: "row-2", participant_cookie_id: "guest-cookie-1", user_id: null, display_name: "Bo", email: "bo@example.com", joined_at: "2026-10-01T11:00:00Z" },
       ],
     );
     const { roster, error } = await tripRoster(admin, TRIP);
     expect(error).toBeNull();
     expect(roster).toEqual([
-      { key: "u:owner-1", userId: "owner-1", cookieId: null, name: null, role: "owner", going: false },
-      { key: "u:mate-1", userId: "mate-1", cookieId: null, name: "Luca", role: "editor", going: true },
-      { key: "u:viewer-1", userId: "viewer-1", cookieId: null, name: null, role: "viewer", going: false },
-      { key: "c:guest-cookie-1", userId: null, cookieId: "guest-cookie-1", name: "Bo", role: null, going: true },
+      { key: "u:owner-1", userId: "owner-1", cookieId: null, name: null, role: "owner", going: false, participant: null },
+      {
+        key: "u:mate-1",
+        userId: "mate-1",
+        cookieId: null,
+        name: "Luca",
+        role: "editor",
+        going: true,
+        participant: { id: "row-1", joinedAt: "2026-10-01T10:00:00Z", hasEmail: false },
+      },
+      { key: "u:viewer-1", userId: "viewer-1", cookieId: null, name: null, role: "viewer", going: false, participant: null },
+      {
+        key: "c:guest-cookie-1",
+        userId: null,
+        cookieId: "guest-cookie-1",
+        name: "Bo",
+        role: null,
+        going: true,
+        participant: { id: "row-2", joinedAt: "2026-10-01T11:00:00Z", hasEmail: true },
+      },
     ]);
     // Only people who haven't left count as going.
     const going = log.find((q: FakeQuery) => q.table === "trip_participants");
@@ -58,7 +74,7 @@ describe("tripRoster", () => {
 });
 
 describe("who shares an expense", () => {
-  const person = (role: string | null, going: boolean): RosterPerson => ({ key: "u:x", userId: "x", cookieId: null, name: null, role, going });
+  const person = (role: string | null, going: boolean): RosterPerson => ({ key: "u:x", userId: "x", cookieId: null, name: null, role, going, participant: null });
 
   it("is the owner, editors, voters and anyone going, but not a viewer who isn't", () => {
     expect(sharesExpenses(person("owner", false))).toBe(true);
