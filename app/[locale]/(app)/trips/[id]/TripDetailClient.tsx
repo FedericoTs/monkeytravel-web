@@ -211,6 +211,8 @@ interface TripDetailClientProps {
     meta?: TripMeta;
     packingList?: string[];
     packingChecked?: string[];
+    /** The trip's share link token; Today's crew chips go through it. */
+    shareToken?: string;
     /** Pre-saved cover image URL - eliminates Places API call on load */
     coverImageUrl?: string | null;
     /** Cached travel distances from trip_meta - eliminates recalculation */
@@ -2146,6 +2148,32 @@ export default function TripDetailClient({
     return tTrips(status as "planning" | "confirmed" | "cancelled");
   };
 
+  // A live trip opens on Today, in either phase. The active phase used to show
+  // only OngoingTripView, so its crew chips, feed and Who paid? never appeared here.
+  const todayView = showToday ? (
+    <TodayView
+      itinerary={displayItinerary}
+      dayState={dayState}
+      currency={trip.budget?.currency}
+      weatherNote={trip.meta?.weather_note}
+      onViewFullItinerary={() => setTodayMode(false)}
+      tripId={trip.id}
+      shareToken={trip.shareToken}
+      className="mb-6"
+    />
+  ) : null;
+  const backToToday =
+    dayState.isLive && !todayMode && !isEditMode ? (
+      <button
+        type="button"
+        onClick={() => setTodayMode(true)}
+        data-testid="back-to-today"
+        className="mb-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm font-medium text-[var(--primary-ink)] hover:bg-[var(--primary)]/15"
+      >
+        <span aria-hidden>←</span> {tCommon("today.backToToday")}
+      </button>
+    ) : null;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
       {/* Hero with Cover Image - Enhanced with weather and stats */}
@@ -2369,20 +2397,23 @@ export default function TripDetailClient({
           </div>
         )}
 
-        {/* Active Trip Phase - Ongoing Trip View with Gamification */}
-        {isActiveTripPhase && (
-          <OngoingTripView
-            tripId={trip.id}
-            destination={destination}
-            startDate={trip.startDate}
-            endDate={trip.endDate}
-            itinerary={editedItinerary}
-            meta={trip.meta}
-            budget={trip.budget}
-            cachedTravelDistances={trip.cachedTravelDistances}
-            cachedTravelHash={trip.cachedTravelHash}
-          />
-        )}
+        {/* Active Trip Phase - Today, else the Ongoing Trip View with Gamification */}
+        {isActiveTripPhase && (todayView ?? (
+          <>
+            {backToToday}
+            <OngoingTripView
+              tripId={trip.id}
+              destination={destination}
+              startDate={trip.startDate}
+              endDate={trip.endDate}
+              itinerary={editedItinerary}
+              meta={trip.meta}
+              budget={trip.budget}
+              cachedTravelDistances={trip.cachedTravelDistances}
+              cachedTravelHash={trip.cachedTravelHash}
+            />
+          </>
+        ))}
         {/* The live view has no share button, so a share request (the crew
             CTAs, ?share=invite) mounts just its modal. */}
         {isActiveTripPhase && (crewShareRequest > 0 || shouldAutoOpenShareModal) && (
@@ -2915,29 +2946,11 @@ export default function TripDetailClient({
             </div>
           )}
 
-        {showToday && (
-          <TodayView
-            itinerary={displayItinerary}
-            dayState={dayState}
-            currency={trip.budget?.currency}
-            weatherNote={trip.meta?.weather_note}
-            onViewFullItinerary={() => setTodayMode(false)}
-            className="mb-6"
-          />
-        )}
+        {todayView}
 
         {!showToday && (
         <>
-        {dayState.isLive && !todayMode && !isEditMode && (
-          <button
-            type="button"
-            onClick={() => setTodayMode(true)}
-            data-testid="back-to-today"
-            className="mb-4 inline-flex items-center gap-1.5 rounded-lg bg-[var(--primary)]/10 px-3 py-2 text-sm font-medium text-[var(--primary-ink)] hover:bg-[var(--primary)]/15"
-          >
-            <span aria-hidden>←</span> {tCommon("today.backToToday")}
-          </button>
-        )}
+        {backToToday}
         {/* Day Filter Slider - Mobile optimized */}
         <DaySlider
           days={displayItinerary}
