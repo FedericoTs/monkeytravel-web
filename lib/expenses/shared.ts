@@ -77,9 +77,19 @@ export function actorKey(userId: string | null, cookieId: string | null): string
 }
 
 export interface ExpenseSplitPublic {
-  key: string;
   name: string | null;
   shareCents: number;
+}
+
+/**
+ * An expense as the server sums it, keyed by person. Never sent to the
+ * browser: a guest's key is the cookie that identifies them on every trip.
+ */
+export interface ExpenseLedgerEntry {
+  currency: string;
+  amountCents: number;
+  paidByKey: string;
+  splits: Array<{ key: string; shareCents: number }>;
 }
 
 export interface ExpensePublic {
@@ -89,7 +99,6 @@ export interface ExpensePublic {
   currency: string;
   category: ExpenseCategory;
   description: string | null;
-  paidByKey: string;
   paidByName: string | null;
   /** True when the payer is the trip owner (so a null name renders "The owner", not "someone"). */
   paidByIsOwner: boolean;
@@ -111,7 +120,7 @@ export interface ExpenseSummary {
 }
 
 /** Compute the viewer's summary over the ledger. Multi-currency collapses to the dominant one for display. */
-export function summarize(expenses: ExpensePublic[], viewerKey: string): ExpenseSummary {
+export function summarize(expenses: ExpenseLedgerEntry[], viewerKey: string): ExpenseSummary {
   const byCurrencyTotal = new Map<string, number>();
   for (const e of expenses) byCurrencyTotal.set(e.currency, (byCurrencyTotal.get(e.currency) ?? 0) + e.amountCents);
   let currency = "EUR";
