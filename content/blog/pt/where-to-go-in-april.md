@@ -1,305 +1,162 @@
 ---
-title: "Para onde ir em abril de 2026: 12 destinos no auge da temporada"
+title: "Para onde viajar em abril de 2027: 12 destinos com a Páscoa já para trás"
 slug: "where-to-go-in-april"
-description: "Abril é o mês com a maior divisão de telas no calendário de viagens — sakura no Japão, o último ar fresco em Marrakech, a primeira semana de mar para nadar no Mediterrâneo. Doze destinos onde abril é comprovadamente o mês certo, com custos reais, clima real e os trade-offs que ninguém escreve."
+description: "Em 2027 a Páscoa cai em 28 de março, então abril começa em plena meia-estação e a pressão se desloca para o Songkran (13 a 15 de abril), a Feria de Sevilha (prevista para 13 a 18 de abril) e uma última semana lotada: Semana Santa grega, Dia do Rei e Golden Week japonesa. Doze destinos com custos, clima e contrapartidas reais de abril."
 author: "Emanuela P."
 publishedAt: "2026-05-30"
-updatedAt: "2026-05-30"
+updatedAt: "2026-10-02"
 category: "Seasonal Travel"
 tags: ["sazonal", "guia mensal de viagens", "viagem de primavera", "meia-estação", "melhores destinos"]
 image: "/images/blog/where-to-go-in-april.jpg"
-imageAlt: "Flores de cerejeira ao longo de um canal em Kyoto ao pôr do sol no início de abril"
-readingTime: 14
+imageAlt: "Close de tulipas cor-de-rosa em plena floração em um campo sob um céu claro de primavera"
+readingTime: 12
 seo:
   # GSC: pt-BR translation of the standalone /blog/where-to-go-in-april article
-  title: "Para onde ir em abril de 2026: 12 destinos no auge"
-  description: "Viajar em abril do jeito certo. Sakura em Kyoto, tulipas em Amsterdã, o último mês fresco em Marrakech, o primeiro mergulho do ano no Algarve. Doze destinos com custos, clima e realidade de multidão reais de abril — sem o ruído genérico dos top 10."
-  keywords: ["para onde ir em abril", "destinos de viagem em abril 2026", "melhores lugares para visitar em abril", "ideias de viagem em abril", "destinos de férias na primavera 2026", "destinos de abril por clima"]
+  title: "Para onde viajar em abril de 2027: 12 destinos"
+  description: "A Páscoa é em 28 de março e abril de 2027 começa na meia-estação. Sakura tardia, tulipas, Feria de Sevilha (prevista para 13–18 de abril), Songkran 13–15 de abril: 12 destinos."
+  keywords: ["para onde viajar em abril", "para onde viajar em abril 2027", "melhores destinos em abril", "viajar em abril 2027", "onde faz calor em abril", "férias em abril"]
 schema: "Article"
 ---
 
-# Para onde ir em abril de 2026: 12 destinos no auge da temporada
+# Para onde viajar em abril de 2027: 12 destinos com a Páscoa já para trás
 
-Abril é o mês mais esquizofrênico do calendário de viagens, e isso é um elogio. Dentro de uma única janela de 30 dias, o mundo oferece flores de cerejeira em Kyoto, o último ar fresco em Marrakech antes da fornalha do verão, a primeira semana de mar para nadar no Mediterrâneo, campos de tulipas nos arredores de Amsterdã, o fim da estação seca na Costa Rica e as últimas semanas da temporada de esqui em Whistler. Nenhum outro mês pede aos viajantes que escolham entre tantas experiências genuinamente no auge.
+Abril é o mês em que a primavera deixa de ser uma previsão. No Japão as cerejeiras ainda estão em flor, os campos de bulbos holandeses viram faixas de cor, o Mediterrâneo e o Norte da África estão na sua janela amena sem chegar ao calor, e o Sudeste Asiático faz a maior festa do ano. Abril também gira em torno de datas, e elas mudam todo ano.
 
-O problema é que a maioria das listas de "para onde ir em abril" trata todos os doze meses como praticamente intercambiáveis, joga doze cidades famosas em uma lista numerada e dá o assunto por encerrado. Abril não funciona assim. Abril é um alvo móvel — a Páscoa (5 de abril em 2026 no calendário ocidental, 12 de abril no ortodoxo) cria um pico de preços de 25 a 40% na Europa católica e ortodoxa, a previsão da sakura muda 4 a 5 dias a cada ano, e a semana de transição do Mediterrâneo (quando a temperatura do mar cruza os 18 °C e os primeiros locais começam a nadar) acontece em algum momento entre 18 de abril e 5 de maio, dependendo da latitude.
+A versão de 2027 é incomumente generosa. A Páscoa cai em 28 de março, então a Semana Santa e seus preços acabam antes de abril começar, e o mês abre em plena meia-estação. A pressão muda de lugar: o Songkran (13 a 15 de abril) e a Feria de Sevilha (prevista para 13 a 18 de abril) lotam o meio do mês, e a última semana acumula a Semana Santa grega (26 de abril a 1º de maio), o Dia do Rei (27 de abril) e a Golden Week japonesa (a partir de 29 de abril). Planeje em torno dessas datas e abril de 2027 tem ótimo custo-benefício. Doze lugares onde abril é o ponto, com as datas que importam.
 
-Eu mantenho uma planilha de clima para este calendário — cobertura de céu real, temperatura do mar, percentuais de pico nas diárias de hotel, a data em que o primeiro bar de praia abre em Lagos. Abril é o mês que mais atualizo, porque é o mês em que a diferença entre uma viagem perfeita e uma viagem fora de época pode ser um único fim de semana.
+## Comparação rápida: 12 destinos para abril
 
-Abaixo: doze destinos onde abril é comprovadamente o mês certo para estar lá. Custos diários reais (hospedagem, comida, transporte local, uma atividade — voos excluídos, já que variam conforme a origem), clima real e as datas dentro de abril que funcionam melhor. Se você está reservando o primeiro semestre do ano e só tem uma janela de temporada intermediária, este é o cardápio.
+| Destino | Por que em abril | Orçamento diário (faixa intermediária, p.p.) | Afluência |
+|---|---|---|---|
+| Japão (Quioto, Tóquio, Tohoku) | Floração tardia, depois o norte | $130–210 | Alta (floração, Golden Week) |
+| Países Baixos | Tulipas; Dia do Rei, 27 de abril | $120–190 | Alta (Dia do Rei) |
+| Sevilha e Andaluzia | Feria de Abril, prevista para 13–18 de abril | $75–120 | Extrema (semana da Feria) |
+| Tailândia | Songkran, 13–15 de abril | $40–80 | Alta (Songkran) |
+| Grécia | Ruínas tranquilas, depois Semana Santa, 26 de abril–1º de maio | $75–125 | Baixa, depois alta (Páscoa) |
+| Istambul | Temporada de tulipas no Bósforo | $70–120 | Média–alta |
+| Marrakech e o Atlas | Depois do Ramadã, antes do calor | $50–90 | Média |
+| Algarve e Lisboa | Primeiras semanas quentes no litoral | $70–120 | Baixa–média |
+| Nepal | Rododendros em plena floração | $40–70 | Média–alta |
+| Nova Orleans | French Quarter Fest e Jazz Fest | $150–250 | Alta (fins de semana de festival) |
+| Costa Rica (costa do Pacífico) | Últimas semanas da estação seca | $100–170 | Média |
+| Nova Zelândia (Ilha Sul) | Cores de outono, tempo estável | $120–190 | Baixa–média |
 
----
+## 1. Japão — O fim da floração, e depois o norte
 
-## Comparação rápida: 12 destinos de abril
+Abril começa com as cerejeiras ainda em flor no centro do Japão, e depois a frente sobe para o norte. Pelas médias de 1991–2020 da Agência Meteorológica do Japão, [a plena floração chega em 31 de março a Tóquio e em 4 de abril a Quioto e Osaka](https://www.data.jma.go.jp/sakura/data/sakura004_07.html), em 13 de abril a Sendai e em 26 de abril a Aomori, a província do Castelo de Hirosaki; Hokkaido só em maio. Assim, o início de abril pega Quioto no auge ou logo depois, e o fim de abril ainda encontra plena floração em Tohoku. As previsões de 2027 [saem por volta de fevereiro](https://www.japan-guide.com/sakura/); o nosso [guia da época das cerejeiras](/blog/japan-cherry-blossom-season-guide) explica como lê-las.
 
-| Destino | Por que abril | Orçamento diário | Temp. média | Fique de olho em |
-|---|---|---|---|---|
-| **Kyoto, Japão** | Sakura em plena floração, 1 a 7 de abril | $130-220/pessoa | 14-19 °C | Diárias de hotel disparam 50-60% |
-| **Marrakech, Marrocos** | Último mês fresco antes da fornalha | $50-100/pessoa | 14-26 °C | Ramadã termina em 30 de abril (quase todo o mês pós-Ramadã) |
-| **Andaluzia, Espanha** | Semana Santa + cores da primavera | $80-140/pessoa | 12-23 °C | Preços disparam na semana da Páscoa |
-| **Amsterdã, Países Baixos** | Tulipas no auge, Keukenhof aberto | $110-180/pessoa | 8-14 °C | Bloemencorso (18 de abr.) esgota |
-| **Algarve, Portugal** | Primeira boa semana, antes da multidão | $70-120/pessoa | 14-21 °C | Mar ainda a 17 °C — gelado |
-| **Petra, Jordânia** | Janela perfeita de 22 °C para passeios | $80-140/pessoa | 12-25 °C | Pico de peregrinos de Páscoa na Terra Santa |
-| **Cuba (Havana + Viñales)** | Últimas semanas limpas da estação seca | $60-110/pessoa | 22-29 °C | Opções de voo dos EUA ainda limitadas |
-| **Costa Rica (Pacífico)** | Fim da estação seca, pico de fauna | $90-160/pessoa | 24-32 °C | "Semana Santa" lota as praias de 1 a 6 de abr. |
-| **Atenas, Grécia** | Acrópole sem o calor de agosto | $80-130/pessoa | 12-21 °C | Páscoa Ortodoxa (12 de abr.) eleva preços |
-| **Lake District, Inglaterra** | Narcisos, cordeiros, trilhas tranquilas | $110-180/pessoa | 6-13 °C | Chuva — leve roupa para ela |
-| **Charleston, EUA** | Azaleias, clima ameno do Lowcountry | $180-280/pessoa | 14-25 °C | Spoleto Festival (fim de maio) — reserve antes |
-| **Whistler, Canadá** | Esqui de primavera, metade do preço | $200-320/pessoa | -2-8 °C | Fecha de meados a fim de abril — confira datas |
+**Custos reais:** $130–210/dia — as semanas da floração estão entre as mais caras do Japão.
+**A contrapartida:** o mês termina com uma segunda corrida. A [Golden Week](https://www8.cao.go.jp/chosei/shukujitsu/gaiyou.html) começa com o Dia de Shōwa, na quinta-feira, 29 de abril, e vai até o Dia das Crianças, em 5 de maio, com boa parte do país viajando ao mesmo tempo. Vá embora até o dia 28 ou chegue depois do dia 5.
 
-Dois ótimos destinos batem dez genéricos. Abaixo: por que cada um deles merece sua vaga em abril, e não nos meses ao redor.
+## 2. Países Baixos — Tulipas, um desfile de flores e o Dia do Rei
 
----
+[O Keukenhof fica aberto de 18 de março a 9 de maio de 2027](https://keukenhof.nl/en/), mas os campos de bulbos listrados entre Leiden e Haarlem costumam atingir o auge a partir de meados de abril: é o mês para o qual os Países Baixos foram feitos. O [Bloemencorso Bollenstreek](https://bloemencorso-bollenstreek.nl/en/) acontece de 14 a 18 de abril, e seus carros alegóricos cobertos de flores percorrem 42 km de Noordwijk a Haarlem no sábado, 17 de abril. Depois, [o Dia do Rei cai na terça-feira, 27 de abril](https://www.officeholidays.com/countries/netherlands/2027): o país inteiro de laranja, feiras de rua em cada calçada e [Amsterdã](/destinations/amsterdam) na sua versão mais barulhenta. Conte com máximas por volta de 13 °C.
 
-## 1. Kyoto, Japão — Sakura em plena floração
+**Custos reais:** $120–190/dia — os hotéis de Amsterdã estão entre os mais caros da Europa; Leiden ou Haarlem são bases mais baratas.
+**A contrapartida:** o Dia do Rei é incrível se você veio para isso e um muro logístico se não veio, e os dias mais cheios do Keukenhof esgotam. Vá num dia útil de manhã, e lembre que os campos são fazendas em produção: olhe da estrada, não entre.
 
-O motivo pelo qual milhões de pessoas viajam em abril. A previsão de 2026 da Japan Meteorological Corporation aponta Tóquio abrindo por volta de 21 de março, com plena floração (mankai) até 28 de março, e então Kyoto e Osaka no auge de 1 a 2 de abril, com as pétalas resistindo até 7 a 10 de abril. Depois de Kyoto, a floração marcha para o norte — Sendai por volta de 11 de abril, Sapporo só no fim de abril. Um JR Pass torna a perseguição economicamente racional se você chegar tarde.
+## 3. Sevilha — A Feria, com a Semana Santa já para trás
 
-**Orçamento diário:** $130-220/pessoa, faixa intermediária. As diárias de hotel disparam 50-60% durante a janela da sakura — espere pagar $250-400/noite por uma machiya decente em Gion que custaria $130 em outubro.
+Com a Semana Santa encerrada em março, abril de 2027 pertence à outra grande semana de Sevilha: a Feria de Abril. A prefeitura propôs [a quarta-feira da Feria, 14 de abril, como feriado municipal de 2027](https://andaluciainforma.es/actualidad/festivos-locales-de-sevilla-2027-14-abril-27-mayo/), o que colocaria a feira de 13 a 18 de abril (confira as datas definitivas antes de reservar): as luzes acendem à meia-noite da segunda-feira, dia 12, depois do jantar do *pescaíto*, e os fogos de encerramento são na noite de domingo. No meio disso, uma cidade efêmera de mais de mil *casetas*, carruagens a cavalo, vestidos de flamenca e *sevillanas* até o amanhecer, com máximas por volta de 23 °C. Antes e depois, a Andaluzia está em plena meia-estação.
 
-**Os movimentos específicos de abril:**
+**Custos reais:** $75–120/dia numa semana normal de abril; a semana da Feria fica muito acima disso, muitas vezes com estadia mínima.
+**A contrapartida:** a maioria das *casetas* é privada, para sócios e convidados, então sem um contato local você vai ficar nas públicas — divertidas, mas bem menos intimistas. Quer as procissões da Semana Santa? Em 2027 elas caem de 21 a 27 de março; veja o nosso [guia de março](/blog/where-to-go-in-march).
 
-- Caminhe pelo **Caminho do Filósofo** às 6h30. Às 8h já é uma procissão; ao nascer do sol ainda é um caminho ladeado por árvores sobre um canal, do jeito que deveria ser.
-- **Parque Maruyama** à noite na segunda semana. A famosa shidare-zakura (cerejeira-chorona) fica iluminada até as 22h. Leve uma cerveja. Os locais levam.
-- **Bate-volta ao norte, para Sendai ou Aomori**, se você chegar depois que as pétalas de Kyoto caírem. Não tente salvar uma semana sem sakura em Kyoto — persiga a floração. Um JR Pass mais um assento no Tohoku Shinkansen coloca você em Sendai em 3 horas.
+## 4. Tailândia — Songkran no mês mais quente
 
-**Pule se:** suas datas caírem entre 12 e 20 de abril e as pétalas de Kyoto já tiverem ido — em vez disso, mude para o Japão das folhas de outono em novembro.
+[O Songkran, o Ano-Novo tailandês, vai de 13 a 15 de abril de 2027](https://www.officeholidays.com/countries/thailand/2027), de terça a quinta-feira, e durante três dias o país vira uma guerra de água. O fosso da cidade antiga de Chiang Mai é o campo de batalha mais famoso; em [Bangkok](/blog/bangkok-5-day-itinerary), são a Silom Road e a Khao San. Por trás das pistolas d'água, continua sendo uma festa de família: visitas aos templos, oferendas aos monges e água derramada com cuidado nas mãos dos mais velhos. Longe da festa, Koh Samui e as ilhas do golfo estão no período mais seco.
 
-Para o ritmo depois que você chegar, veja o [roteiro de 4 dias em Tóquio](/blog/tokyo-4-day-itinerary), o [guia da primeira viagem ao Japão](/blog/first-trip-to-japan-what-you-need-to-know) e o [guia da temporada das cerejeiras](/blog/japan-cherry-blossom-season-guide).
+**Custos reais:** $40–80/dia; os hotéis de Bangkok e Chiang Mai sobem no Songkran, e ônibus e trens lotam com os tailandeses voltando para casa.
+**A contrapartida:** é o mês mais quente — Bangkok tem máximas médias perto de 35 °C — e a fumaça da temporada de queimadas no norte pode se arrastar até o início de abril. Você vai se encharcar toda vez que puser o pé na rua: celular em saco estanque, e esta não é a semana para alugar moto.
 
----
+## 5. Grécia — Ruínas vazias, depois a Semana Santa
 
-## 2. Marrakech, Marrocos — Último mês fresco antes da fornalha
+A Grécia em abril são duas viagens. Na maior parte do mês, a Acrópole, Delfos e Micenas estão amenas — por volta de 20 °C em Atenas —, verdes e maravilhosamente vazias. Depois, quem manda é o calendário ortodoxo: a Páscoa chega tarde em 2027, em [2 de maio](https://www.officeholidays.com/countries/greece/2027), então a Semana Santa vai de 26 de abril a 1º de maio. A Sexta-Feira Santa (30 de abril) traz as procissões do *Epitáfio* à luz de velas; o Sábado Santo, a Ressurreição à meia-noite e os fogos diante de cada igreja; o Domingo de Páscoa, cordeiro no espeto. Sempre quis viver uma Páscoa grega? Em 2027, uma viagem que comece no fim de abril pega a festa.
 
-[Marrakech](/destinations/marrakech) chega a 38-42 °C de junho a setembro. Abril fica entre 14 e 26 °C — quente o suficiente para jantar ao ar livre na Djemaa el-Fna e em terraços, fresco o suficiente para realmente caminhar pela medina por quatro horas sem virar uma baixa. O timing de abril também enfia duas agulhas: os preços pós-Páscoa amolecem depois de 6 de abril, e o Ramadã termina em 30 de abril de 2026, o que significa que quase todo o mês de abril é totalmente pós-Ramadã, com restaurantes diurnos, barracas de comida e souks funcionando normalmente.
+**Custos reais:** $75–125/dia em Atenas; os preços nas ilhas disparam na semana da Páscoa.
+**A contrapartida:** muitos hotéis e tavernas das ilhas esperam a Páscoa para abrir, então antes disso, em abril, as ilhas estão quase fechadas e os ferries são escassos — depois a Semana Santa lota os barcos de atenienses voltando para suas cidades. Guarde o [roteiro pelas ilhas](/blog/greek-island-hopping-itinerary) para junho ou setembro.
 
-**Orçamento diário:** $50-100/pessoa, faixa intermediária.
+## 6. Istambul — Temporada de tulipas no Bósforo
 
-**Os movimentos específicos de abril:**
+A tulipa foi otomana muito antes de ser holandesa, e todo mês de abril Istambul enche seus parques com ela para o festival das tulipas. A programação de 2027 ainda não foi anunciada, mas os canteiros florescem durante todo o mês: o [Parque Emirgan](https://goturkiye.com/istanbul/emirgan-park), acima do Bósforo, é a sede principal, e o Parque Gülhane, ao lado do Topkapı, a mais central. O resto da cidade está no seu melhor clima para caminhar, 8–17 °C, e as barcas do Bósforo finalmente fazem sentido no convés aberto.
 
-- Bate-volta ao **Vale do Ourika ou Imlil**, 60 a 90 minutos ao sul, adentrando as Montanhas Atlas. Flores silvestres cobrem as encostas inferiores ao longo de abril; em maio a cor já desbota. Um grand taxi até Imlil custa $25-35 ida e volta.
-- **A academia de negociação no souk está no auge.** Os vendedores estão atentos depois do Ramadã e antes da desaceleração do verão. Comece com 25-30% do preço pedido. O melhor couro, especiarias e cerâmicas ficam nos becos secundários, fora das rotas turísticas principais.
-- **Reserve um riad com piscina de imersão** mesmo que as tardes de abril sejam amenas — na terceira semana de abril você vai querer. $60-120/noite garante um riad de respeito na medina.
+**Custos reais:** $70–120/dia; os ingressos dos grandes palácios e museus pesam rápido no orçamento.
+**A contrapartida:** o tempo de abril é instável — depois de uma manhã fria e chuvosa vinda do Mar Negro pode vir uma tarde quente — e Emirgan e Gülhane lotam nos fins de semana. Vá em dias úteis, de manhã; o nosso [roteiro de três dias em Istambul](/blog/istanbul-3-day-itinerary) cobre o resto.
 
-**Pule se:** você é sensível ao chamado para a oração às 5h, que ecoa mais alto na medina — reserve em Gueliz, o bairro moderno, que de qualquer forma é 10-15% mais barato.
+## 7. Marrakech e o Atlas — Depois do Ramadã, antes do calor
 
----
+Abril é o último mês confortável em [Marrakech](/destinations/marrakech) antes da fornalha: tardes por volta de 25 °C e noites frescas nos terraços. Em 2027 ele também fica livre do Ramadã, que termina no início de março — [o Eid al-Fitr está previsto para 9 de março](https://www.officeholidays.com/countries/morocco/2027) —, então restaurantes e souks funcionam no horário normal o mês todo. O Alto Atlas está no auge do verde: neve ainda no Toubkal e flores silvestres no Vale do Ourika e em volta de Imlil, a 60–90 minutos da cidade. Mais ao sul, o Saara em Merzouga está quente, não castigador.
 
-## 3. Andaluzia, Espanha — Semana Santa e as primeiras semanas quentes
+**Custos reais:** $50–90/dia; um riad com pátio continua sendo a hospedagem clássica de faixa intermediária.
+**A contrapartida:** abril é procurado, e as férias de primavera europeias lotam os melhores riads, então reserve cedo. No fim de abril um *chergui* quente pode levar a cidade acima de 30 °C por dias, e as noites na montanha ainda são frias.
 
-A Andaluzia em abril é uma resposta complicada. A Semana Santa (29 de março a 5 de abril em 2026) transforma Sevilha, Granada e Málaga em uma das procissões religiosas mais teatrais do planeta — cofradías fantasiadas carregando pasos pelas ruas todas as noites, incenso espesso o suficiente para sentir o gosto. Depois da segunda-feira de Páscoa as cidades respiram; os preços caem 30-40% em 48 horas e você tem a mesma primavera andaluza quente, sem as multidões nem os quartos de hotel de EUR 250/noite em Sevilha.
+## 8. Algarve e Lisboa — As primeiras semanas quentes
 
-**Orçamento diário:** $80-140/pessoa durante a Páscoa, $60-100 depois de 6 de abril.
+Abril é quando o litoral sul de Portugal acorda: tardes de 20 °C, flores silvestres nas trilhas das falésias e as enseadas de Lagos no auge da fotogenia sob a luz baixa da primavera. Caminhe a partir da Ponta da Piedade, ou pelo Percurso dos Sete Vales Suspensos, perto de Carvoeiro, e você terá longos trechos só para você. O mar é o problema: por volta de 16–17 °C, revigorante mais do que castigador. Lisboa é o complemento natural, amena e boa de caminhar; o nosso [roteiro de três dias em Lisboa](/blog/lisbon-3-day-itinerary) cobre a cidade, e o litoral fica a umas três horas ao sul de carro.
 
-**Os movimentos específicos de abril:**
+**Custos reais:** $70–120/dia — bem abaixo do pico de julho e agosto, no litoral e na cidade.
+**A contrapartida:** as frentes atlânticas ainda trazem dias de chuva e vento, e alguns bares de praia e passeios de barco funcionam em horário reduzido até maio. Se você precisa de mar quente, o Algarve só entrega isso no verão.
 
-- **Se você quer a Semana Santa:** Sevilha é a atração principal. Reserve até janeiro. A procissão da Madrugá, da noite de Quinta-Feira Santa até a manhã de Sexta-Feira Santa, é a âncora cultural — os locais começam a noite num bar de tapas às 22h e assistem às procissões até o amanhecer.
-- **Se você quer a Andaluzia pós-Páscoa:** Granada, de 7 a 25 de abril. A Alhambra está a 18 °C e as filas de entrada são de 20 minutos em vez de duas horas. Os ingressos ainda precisam ser reservados com 10 dias de antecedência — os jardins do Generalife estão no auge de abril, com as rosas apenas começando a abrir.
-- **Coma nas abacerías**, não nos bares de tapas das praças principais. Uma abacería é uma mercearia com mesas — presunto ibérico de verdade, manchego e Rioja por metade do que custam as tapas turísticas.
+## 9. Nepal — Os rododendros no auge
 
-**Pule se:** multidões e fumaça de incenso disparam ansiedade — a Semana Santa é intensa. Vá na segunda metade de abril.
+Se [março](/blog/where-to-go-in-march) abre a temporada de trekking de primavera no Nepal, abril é o auge. O rododendro — flor nacional do Nepal — pinta encostas inteiras de vermelho e rosa entre cerca de 2.000 e 3.500 metros, e o percurso clássico para atravessá-las é o circuito Ghorepani–Poon Hill, no sopé do Annapurna; o Langtang e os vales baixos do Everest também florescem. Os dias são quentes e estáveis, por volta de 28 °C em Katmandu e bem mais frescos nas trilhas, e as passagens altas costumam estar abertas.
 
----
+**Custos reais:** $40–70/dia na trilha, incluindo casas de chá, licenças e guia.
+**A contrapartida:** a névoa seca da primavera aumenta ao longo de abril, então as vistas das montanhas ficam mais apagadas do que em outubro e novembro, e à tarde as nuvens costumam fechar. A região do Everest está no seu momento mais movimentado com a temporada de escaladas — conte com casas de chá lotadas e atrasos por causa do tempo nos voos para Lukla.
 
-## 4. Amsterdã, Países Baixos — Tulipas no auge
+## 10. Nova Orleans — Dois festivais antes do calor
 
-Os Jardins Keukenhof ficam abertos de 19 de março a 10 de maio de 2026, com as melhores exibições de tulipas a partir de meados de abril. O Desfile de Flores Bloemencorso acontece em 18 de abril. Os campos de bulbos entre Leiden e Haarlem atingem o auge da cor na segunda e terceira semanas. [Amsterdã](/destinations/amsterdam) em si sacode o inverno com uma energia palpável ao longo de cada canal — terraços abrindo, barcos na água, a cidade relembrando para que serve.
+Abril é o mês dos festivais em Nova Orleans e o último ameno antes do bafo do verão. O French Quarter Festival enche o bairro histórico de música local de 8 a 11 de abril de 2027, com entrada gratuita. Depois vem o grande: [o Jazz Fest acontece de 22 a 25 de abril e de 29 de abril a 2 de maio de 2027](https://www.nojazzfest.com/faq/) no Fair Grounds, dois fins de semana prolongados de jazz, gospel, zydeco, brass bands e grandes atrações. No intervalo, a temporada do lagostim está a todo vapor e as tardes ficam por volta de 25 °C.
 
-**Orçamento diário:** $110-180/pessoa.
+**Custos reais:** $150–250/dia numa semana normal; os fins de semana do Jazz Fest fazem os hotéis dispararem, muitas vezes com estadia mínima.
+**A contrapartida:** o Jazz Fest é quente, lotado e às vezes enlameado, e os quartos com bom custo-benefício somem com meses de antecedência — se você quer a cidade e não o festival, venha no começo de abril. As tempestades de primavera podem ser violentas, e a umidade já aperta no fim do mês.
 
-**Os movimentos específicos de abril:**
+## 11. Costa Rica — As últimas semanas da estação seca
 
-- **Visite o Keukenhof numa manhã de dia de semana, antes das 11h.** Os jardins ficam 60% menos lotados. O dia do Bloemencorso (18 de abril) esgota meses antes — pule, a menos que você já tenha reservado.
-- **Pedale pelos campos de bulbos.** Alugue uma bicicleta em Leiden ou Hillegom e percorra as rotas dedicadas pelos campos. De graça, mais impressionante que os jardins, e as fotos não se parecem com nenhuma outra.
-- **O Dia do Rei (27 de abril)** é o maior festival da cidade no ano. O país inteiro veste laranja, cada rua vira um mercado e o centro de Amsterdã fica genuinamente intransitável. Brilhante se você veio para isso, um desastre logístico se não.
+O lado do Pacífico da Costa Rica fica seco de dezembro a abril, e abril é o último mês inteiro antes das chuvas — desta vez sem a corrida às praias da Semana Santa, que em 2027 cai em março. É a melhor época para observar a fauna: preguiças, bugios, macacos-prego e araras-vermelhas em Manuel Antonio, Carara e na Península de Osa. Guanacaste e Nicoya têm sol garantido, o surfe em Nosara e Santa Teresa é constante, e uma noite na floresta nublada de Monteverde é um contraponto fresco.
 
-**Pule se:** você quer calor garantido — as máximas de abril ficam entre 8 e 14 °C. Leve camadas de roupa.
+**Custos reais:** $100–170/dia — a Costa Rica já não é um destino barato, e as visitas guiadas aos parques pesam.
+**A contrapartida:** abril é o mês mais quente em Guanacaste, com máximas por volta de 35 °C e uma paisagem marrom e empoeirada. As primeiras pancadas de chuva da tarde podem chegar ao sul e ao Vale Central no fim de abril.
 
----
+## 12. Nova Zelândia — O ouro do outono em Central Otago
 
-## 5. Algarve, Portugal — A primeira semana em que o mar é tolerável
+A Nova Zelândia está no outono, e abril é um dos seus meses mais subestimados. Os álamos, salgueiros e lariços de Central Otago ficam dourados em volta de Queenstown, Arrowtown e Wanaka, as multidões do verão já foram embora e o tempo costuma ser estável e limpo, com máximas por volta de 15 °C. Arrowtown realiza o seu [Autumn Festival de 15 a 18 de abril de 2027](https://www.arrowtownautumnfestival.co.nz/), e as estradas para Milford Sound e Aoraki/Mount Cook estão no seu momento mais bonito.
 
-O Algarve em abril é o primeiro mês do ano em que o Atlântico fica navegável para os comprometidos (17-18 °C — gelado, não punitivo). O cenário das falésias, as grutas marinhas em Benagil e as enseadas escondidas estão no seu melhor fotogênico sob a luz da primavera. Os terraços dos restaurantes abrem até meados do mês. Os preços ficam 40-50% abaixo de julho-agosto, e a estrada litorânea ainda não está para-choque com para-choque.
+**Custos reais:** $120–190/dia com carro alugado — abaixo do pico de dezembro a fevereiro, e os motorhomes são mais fáceis de reservar.
+**A contrapartida:** os dias encurtam rápido depois que os relógios atrasam no início de abril, as noites no interior podem chegar perto de zero e a primeira neve pode cobrir as passagens de montanha no fim do mês. As férias escolares da Nova Zelândia também caem em abril — confira as datas antes de reservar os lugares mais procurados por famílias.
 
-**Orçamento diário:** $70-120/pessoa.
+## Conselhos práticos para viajar em abril
 
-**Os movimentos específicos de abril:**
+- **A Páscoa acaba antes de abril começar.** O Domingo de Páscoa é em 28 de março, então só o finalzinho das férias escolares de Páscoa na Europa chega a abril.
+- **A última semana é a cara.** A Semana Santa grega, o Dia do Rei e a Golden Week começam todos entre 26 e 29 de abril. Se a sua viagem tocar algum deles, reserve essas noites primeiro.
+- **Meados de abril é Ano-Novo em boa parte da Ásia.** O Songkran (13 a 15 de abril) tem equivalentes no Laos, no Camboja, em Mianmar e no Sri Lanka mais ou menos nos mesmos dias, e [o Vaisakhi cai em 14 de abril](https://www.officeholidays.com/holidays/india/punjab/vaisakhi) no Punjab. Conte com ônibus e trens lotados e alguns comércios fechados.
+- **As cerejeiras de Washington chegam cedo.** O [National Cherry Blossom Festival](https://nationalcherryblossomfestival.org/) de Washington vai de 20 de março a 11 de abril de 2027, mas o [Serviço Nacional de Parques](https://www.nps.gov/subjects/cherryblossom/bloom-watch.htm) situa o pico mais provável entre o fim de março e o início de abril, e não consegue prevê-lo com mais de uns dez dias de antecedência.
+- **Compare com os meses vizinhos antes de fechar.** [Março](/blog/where-to-go-in-march) sai mais barato fora da semana da Páscoa e [maio](/blog/where-to-go-in-may) é mais quente, com a temporada do Mediterrâneo realmente aberta.
 
-- **Lagos como base.** Centro histórico caminhável, porto de pesca ativo, as caminhadas pelas falésias na Ponta da Piedade começam na beira da cidade. Hotéis-boutique no bairro antigo custam EUR 80-130/noite em abril, contra EUR 200+ em julho.
-- **Gruta de Benagil às 8h de caiaque**, não nos barcos de excursão superlotados que chegam às 10h. Aluguel de caiaque por EUR 15/hora em Marinha ou Carvoeiro.
-- **O interior do Algarve** — Monchique, Silves, Loulé — é uma virada completa em relação ao litoral: florestas de sobreiros, castelos no topo de colinas, restaurantes de montanha servindo pratos de caça e castanha. Abril é o único mês em que o interior está quente e verde o bastante para fazer sentido.
+## Planeje a sua viagem de abril em 30 segundos
 
-**Pule se:** sua ideia de férias na praia exige água a 28 °C. O Algarve não chega lá até junho.
+Escolha um destino acima e [crie um roteiro dia a dia para abril](/trips/new) com lugares reais, horários e orçamento — grátis, sem cadastro para ver.
 
-Para um contexto mais amplo de Portugal, o [roteiro de 3 dias em Lisboa](/blog/lisbon-3-day-itinerary) combina bem como complemento urbano antes do litoral.
+## Perguntas frequentes (FAQ)
 
----
+### Qual é o melhor lugar para viajar em abril de 2027?
 
-## 6. Petra, Jordânia — A janela de 22 °C para passeios
+Para um espetáculo que só acontece uma vez por ano: os campos de bulbos holandeses, a Feria de Sevilha (prevista para 13 a 18 de abril) ou o Songkran (13 a 15 de abril). Para as cerejeiras, Quioto nos primeiros dias de abril ou o norte do Japão mais tarde. Em clima e custo-benefício, Marrakech, o Algarve e Istambul. Para algo diferente, os rododendros do Nepal ou o outono da Nova Zelândia.
 
-Petra é um sítio vasto espalhado por rocha exposta — o desfiladeiro do Siq, o Tesouro, os Túmulos Reais, o Mosteiro, o Alto Lugar do Sacrifício. Em julho chega a 38 °C e os turistas desabam. Em janeiro faz frio e o vento corta a garganta. Abril é o ideal platônico: 12-25 °C, quase nenhuma chuva, céu limpo, a luz do deserto pela qual os fotógrafos se obcecam.
+### Quando é a Páscoa de 2027 e como afeta abril?
 
-**Orçamento diário:** $80-140/pessoa, faixa intermediária (a Jordânia é mais cara do que as pessoas esperam).
+O Domingo de Páscoa é em [28 de março de 2027](https://www.officeholidays.com/countries/netherlands/2027), então a Semana Santa (21 a 27 de março) e a alta de preços caem em março, e abril é principalmente meia-estação na Europa católica e na América Latina. A Páscoa ortodoxa é em 2 de maio, o que coloca a Semana Santa grega de 26 de abril a 1º de maio.
 
-**Os movimentos específicos de abril:**
+### Onde faz calor em abril?
 
-- **Dois dias no mínimo em Petra.** Dia um para o Tesouro e a rota principal. Dia dois para o Mosteiro (800 degraus para cima — faça em abril, não faça em julho) e a Trilha de Trás, partindo de Little Petra.
-- **Combine com Wadi Rum.** A 90 minutos ao sul, a paisagem lunar do deserto que serviu de cenário para tudo, de Lawrence da Arábia a Duna. Um acampamento beduíno de uma noite custa $60-120/pessoa, com tudo incluído, incluindo jantar ao redor da fogueira e observação de estrelas sem poluição luminosa.
-- **Acrescente o Mar Morto.** Flutue no ponto mais baixo da Terra. A água está a 22-24 °C em abril — finalmente própria para nadar.
+Calor de verdade: a Tailândia (Bangkok tem máximas médias por volta de 35 °C) e a costa do Pacífico da Costa Rica. Calor sem castigo: Marrakech, Sevilha e Nova Orleans por volta de 25 °C, e o Algarve por volta de 20 °C, embora o Atlântico ainda esteja frio. Atenas, Istambul e o centro do Japão estão amenos mais do que quentes.
 
-**Pule se:** você está viajando durante a Páscoa ocidental (3 a 6 de abril) — o tráfego de peregrinos cristãos pela Terra Santa em geral eleva as diárias de hotel em Aqaba e Amã.
+### Que destinos evitar em abril?
 
----
-
-## 7. Cuba (Havana + Viñales) — Últimas semanas limpas da estação seca
-
-Abril é o último mês seco confiável em Cuba antes que a estação chuvosa de maio comece. Havana fica entre 22 e 29 °C, com baixa umidade. O país do tabaco em Viñales está no auge — a colheita acontece ao longo de abril, e você pode ver campos inteiros sendo cortados e as folhas penduradas nos celeiros de secagem. Crucialmente, abril fica entre o spring break dos EUA (que lota Varadero e Cayo Coco em março) e o pico europeu (que chega em junho).
-
-**Orçamento diário:** $60-110/pessoa.
-
-**Os movimentos específicos de abril:**
-
-- **Pule os resorts all-inclusive.** Hospede-se em casas particulares em Havana Vieja ou Centro Habana por $25-45/noite — um quarto privativo numa casa de família, muitas vezes com café da manhã. O que escrevem sobre as casas de Cuba é verdade: elas são o país.
-- **Viñales por 2 a 3 noites.** Plantações de tabaco, mogotes de calcário, cavalgadas pelo vale. Uma casa particular na cidade de Viñales custa $20-35/noite.
-- **O Malecón ao pôr do sol** com uma cerveja Cristal ($2) e quem quer que esteja vendendo frituras. Abril é o mês antes de a umidade ficar opressiva — sente-se no muro à beira-mar até as 21h e não marque mais nada.
-
-**Pule se:** você tem passaporte dos EUA e desconhece as restrições de viagem da OFAC — verifique os requisitos atuais da categoria "Support for the Cuban People" antes de reservar, e use um cartão não emitido por um banco norte-americano (cartões de bancos dos EUA não funcionam em Cuba).
+O Quênia e a Tanzânia estão nas chuvas longas, e alguns acampamentos de safári fecham. As planícies do norte da Índia chegam perto dos 40 °C no fim do mês. O Japão na Golden Week (29 de abril a 5 de maio) fica lotado e caro. As ilhas gregas menores costumam estar meio fechadas antes da Páscoa ortodoxa, e o norte da Tailândia e o Laos ainda podem ter fumaça das queimadas no início de abril.
 
 ---
 
-## 8. Costa Rica (Costa do Pacífico) — Fim da estação seca, pico de fauna
+*Como ler os números: as temperaturas são médias mensais típicas de cada destino, não previsões — os dias exatos variam muito. Os orçamentos diários são estimativas editoriais de faixa intermediária por pessoa que cobrem hospedagem, comida, transporte local e atividades; são um guia de planejamento, não dados de pesquisa, e mudam com a temporada, a antecedência da reserva e o câmbio. As datas de festivais e temporadas estão citadas abaixo e foram verificadas para 2027.*
 
-A estação seca da Costa Rica vai de dezembro a abril, com abril entregando o pico de visibilidade da fauna — os animais se concentram em torno das fontes de água remanescentes, tornando preguiças, bugios e quetzais mais fáceis de encontrar do que em qualquer outra época. A costa do Pacífico (Manuel Antonio, Nosara, Santa Teresa) está no auge: quente, seca, surfável. O senão: a primeira semana de abril é a Semana Santa, quando metade da Costa Rica vai à praia ao mesmo tempo. Depois de 7 de abril, o país respira e os preços caem visivelmente.
-
-**Orçamento diário:** $90-160/pessoa.
-
-**Os movimentos específicos de abril:**
-
-- **Manuel Antonio pela concentração de fauna.** Abril é quando preguiças, macacos e araras são mais fáceis de fotografar, porque a floresta seca está mais rala. Um guia licenciado ($30-40 por meio período) encontra animais que você perderia sozinho.
-- **Nosara ou Santa Teresa pela versão surfe-e-yoga.** Ambas construíram cenas de bem-estar genuínas, que não parecem encenadas. Eco-hotéis de faixa intermediária por $100-180/noite.
-- **Combine a costa do Pacífico com uma floresta nublada** (Monteverde, San Gerardo de Dota) pelo contraste. O céu limpo de abril torna os passeios pelo dossel realmente visíveis.
-
-**Pule se:** você está viajando de 1 a 6 de abril — o trânsito de praia na Semana Santa é genuinamente brutal e os preços disparam 30-40%.
-
----
-
-## 9. Atenas, Grécia — Acrópole sem o calor de agosto
-
-Atenas em agosto é uma laje de concreto a 38 °C. Atenas em abril fica entre 12 e 21 °C, com céu limpo, e a Acrópole é escalável sem drama médico. Os sítios arqueológicos da cidade — Acrópole, Ágora Antiga, Fórum Romano, Cerâmico — estão todos no seu auge de abril. A Páscoa Ortodoxa cai em 12 de abril em 2026, o que cria um pico de preços em torno dos dias 10 a 13, mas também uma das melhores janelas culturais do ano: a missa da ressurreição à meia-noite na Catedral, fogos de artifício à meia-noite, cordeiro assando nos pátios a partir do Domingo de Páscoa.
-
-**Orçamento diário:** $80-130/pessoa.
-
-**Os movimentos específicos de abril:**
-
-- **Escale a Acrópole no horário de abertura (8h)** em abril, em vez de às 6h em agosto. Só a diferença de temperatura já vale a mudança de horário. O ingresso combinado de EUR 30 cobre a Acrópole mais seis outros sítios — o melhor custo-benefício do turismo grego.
-- **Coma no Mercado Central (Varvakios Agora)** para peixe e carne. As tabernas de almoço lá dentro servem peixe grelhado e patsa (sopa de bucho, instituição para ressaca) por metade do custo dos restaurantes turísticos de Plaka.
-- **Bate-volta a Egina ou Hidra** de balsa — ambas ficam a 60-90 minutos do Pireu, ambas estão funcionalmente vazias em abril, e a colheita de pistache de Egina está apenas começando.
-
-**Pule se:** o Domingo de Páscoa cair na sua janela de viagem e você não tiver interesse em turismo religioso — as diárias de hotel em Atenas disparam 30-40% em torno de 10 a 13 de abril.
-
----
-
-## 10. Lake District, Inglaterra — Narcisos, cordeiros, trilhas tranquilas
-
-O Lake District inglês em abril é sobre o que Wordsworth escreveu, literalmente — "I wandered lonely as a cloud" é um poema sobre narcisos ambientado em abril, em Ullswater. Os primeiros cordeiros estão nas colinas, narcisos cobrem as margens, a longa luz do Atlântico empurra o pôr do sol para depois das 20h até meados do mês, e as caminhadas pelos fells estão funcionalmente vazias antes que o feriado escolar de maio desça. A chuva é real — leve roupa para ela — mas a chuva de abril é geralmente em rajadas, não chuva o dia inteiro.
-
-**Orçamento diário:** $110-180/pessoa.
-
-**Os movimentos específicos de abril:**
-
-- **Faça base em Ambleside ou Grasmere**, não na cidade de Windermere. Grasmere é o vilarejo onde Wordsworth morou; Ambleside é o polo das caminhadas. Ambas estão conectadas pelo Cumbria Way e por ônibus confiáveis.
-- **Faça a Fairfield Horseshoe** (15 km, 1.000 m de subida) num dia limpo de abril, uma das melhores caminhadas de cumeada da Inglaterra. Meio vazia em abril; lotada no verão.
-- **Beba no Drunken Duck** ou no Mortal Man — pubs cumbrianos de verdade, com comida de verdade (torta de cordeiro, caça local), a maioria das pints abaixo de £5.
-
-**Pule se:** você precisa de sol garantido. A média anual do Lake District é de 1.800 mm de chuva — abril tem cerca de 8 a 10 dias úmidos.
-
----
-
-## 11. Charleston, EUA — Azaleias, preparativos do Spoleto, o Lowcountry no auge
-
-Charleston em abril é a cidade no auge da entrega visual: azaleias explodindo em rosa e branco em cada jardim, folhas de magnólia ainda lustrosas com o crescimento da primavera, tardes na casa dos 24 °C, baixa umidade (a umidade pesada chega em maio). O Spoleto Festival abre no fim de maio — reserve Charleston em abril pela calma pré-festival com o mesmo clima e metade dos preços do festival.
-
-**Orçamento diário:** $180-280/pessoa (Charleston é genuinamente cara — a cena de hotéis-boutique está bombando).
-
-**Os movimentos específicos de abril:**
-
-- **Caminhe pela Battery e pela South of Broad** no fim da tarde, quando a luz doura as fachadas antebellum. Abril é o único mês em que a temperatura está certa para a caminhada completa de 90 minutos sem suar.
-- **Magnolia Plantation ou Middleton Place** pelos jardins. Os jardins de Middleton são os mais antigos jardins paisagísticos da América (1741) — abril é o auge da floração de camélias e azaleias.
-- **Coma camarão com grits no FIG, camarão husk no Husk, ostras no Leon's.** A cena gastronômica de Charleston é a mais profunda do sul dos EUA, e as reservas de abril são encontráveis com 2 a 3 semanas de antecedência, em vez de dois meses.
-
-**Pule se:** você é alérgico a pólen — a contagem de pólen de Charleston em abril está entre as mais altas do país.
-
----
-
-## 12. Whistler, Canadá — Esqui de primavera pela metade do preço
-
-A temporada 2025-2026 de Whistler Blackcomb vai até segunda-feira, 13 de abril de 2026, na Whistler Mountain, e até 25 de maio no Glaciar Horstman de Blackcomb. Abril é "esqui de primavera" — neve granulada de manhã, neve derretida no meio da tarde, cerveja no terraço às 15h, mais luz do dia e preços 30-50% abaixo do pico de janeiro-fevereiro. A experiência de esqui em si é diferente do inverno, não pior — mais macia, mais ensolarada, mais indulgente com esquiadores intermediários.
-
-**Orçamento diário:** $200-320/pessoa.
-
-**Os movimentos específicos de abril:**
-
-- **Esquie na geleira de Blackcomb até maio** se suas datas passarem de 13 de abril. Terreno limitado, mas condições de geleira deslumbrantes e quase ninguém nelas.
-- **A temporada de mountain bike abre no fim de abril** — o Bike Park abre para a temporada de 2026 por volta de 16 de maio, mas as trilhas de menor altitude do Whistler Valley são pedaláveis no fim de abril para quem anda de fat-tire e gravel.
-- **Hospede-se na Upper Village** (na base de Blackcomb, beira-pista) em vez da Whistler Village principal — mais tranquila, estacionamento mais fácil, igualmente perto dos teleféricos.
-
-**Pule se:** você quer neve pó garantida de pleno inverno — abril é tempo de neve granulada. Reserve janeiro para a neve pó, abril para o sol.
-
----
-
-## Dicas práticas para viajar em abril
-
-**A Páscoa é a alavanca de preços.** O Domingo de Páscoa é 5 de abril (ocidental) e 12 de abril (ortodoxo) em 2026. A Europa católica dispara 25-40% em torno de 3 a 6 de abril; a Europa ortodoxa (Grécia, partes dos Bálcãs, Rússia) dispara em torno de 10 a 13 de abril. O movimento estratégico: chegue entre 14 e 25 de abril para um clima de primavera idêntico a preços de temporada intermediária. Se a Páscoa é o seu motivo para viajar, reserve até janeiro — Sevilha, Roma e Atenas durante suas respectivas semanas de Páscoa estão entre as janelas de viagem mais reservadas do ano.
-
-**O Mediterrâneo está em transição.** O mar está esquentando, mas não está quente. Até 25 de abril, Creta, Chipre e a costa sul da Sicília estão toleravelmente navegáveis para os comprometidos; antes de 20 de abril, a maior parte da água do Mediterrâneo ainda está na faixa de 16-18 °C. Se você precisa nadar, mire em 22 a 30 de abril ou mude para um destino onde a diferença entre ar e água seja maior (sol e areia do Algarve, sem esperar água de banheira).
-
-**Prever a sakura é um alvo móvel.** A Japan Meteorological Corporation atualiza sua previsão a cada 5 a 7 dias a partir de janeiro. Reserve voos para Tóquio com chegada por volta de 28 de março a 5 de abril para a janela mais segura do Japão central. Se você chegar depois de 7 de abril e as pétalas tiverem ido, persiga a floração para o norte usando um JR Pass. O erro é ficar em Kyoto tentando salvar uma semana sem sakura.
-
-**A compressão do spring break é regional.** A maioria dos spring breaks universitários dos EUA cai entre 8 de março e 20 de abril de 2026, o que dispara os preços para o México, Cancún, Punta Cana e a costa da Flórida nas duas semanas centrais. As escolas do Reino Unido têm férias por volta da primeira metade de abril, as alemãs até meados de abril. A janela pós-spring break (20 a 30 de abril) é um dos bolsões de melhor custo-benefício mais subestimados do ano para o Caribe e o México.
-
-**Faça as malas para a latitude, não para o mês.** Abril é o mês em que a maioria dos viajantes leva menos roupa do que deveria — fazem as malas para "primavera" e chegam a Kyoto a 6 °C na chuva. Verifique a previsão real do destino 7 dias antes e leve uma camada de roupa a mais do que você imagina. O Lake District, o Japão central e as Montanhas Atlas em abril surpreendem as pessoas com regularidade.
-
----
-
-## Perguntas frequentes
-
-### Qual é o melhor lugar para ir em abril de 2026?
-
-Depende do que é menos flexível para você. Para a experiência que só acontece em abril — sakura, campos de tulipas no auge — vá a Kyoto ou Amsterdã. Pelo melhor custo-benefício de preço-por-condição, vá a Marrakech ou ao Algarve (ambos 40-50% mais baratos que o pico do verão, com clima que pode até ser melhor). Para quem viaja internacionalmente pela primeira vez, a Andaluzia depois da Páscoa ou Portugal são as viagens mais fáceis de abril. Para casais em lua de mel: Andaluzia pós-Páscoa, o Algarve ou Petra (com Wadi Rum e o Mar Morto). O único erro a evitar é reservar um destino de praia no Mediterrâneo esperando clima de julho — as praias de abril são lindas, mas frias.
-
-### Abril é uma boa época para visitar a Europa?
-
-Sim, com uma ressalva. Abril é o início da temporada intermediária de primavera — a hospedagem fica 30-50% abaixo do pico do verão, os museus são acessíveis sem filas de duas horas, e o clima no sul da Europa (Espanha, Portugal, sul da Itália, Grécia) é genuinamente ameno. A ressalva é a Páscoa (5 de abril de 2026 no ocidente; 12 de abril no ortodoxo), que cria um pico de preços de 25-40% nas respectivas regiões nos 4 a 7 dias ao redor dela. Chegue entre 14 e 25 de abril e você terá preços plenos de temporada intermediária com clima confiavelmente quente em boa parte do sul da Europa. Evite o norte da Europa no início de abril se você precisa de calor constante — Londres, Berlim e Amsterdã ficam todas entre 8 e 14 °C, com chuva frequente.
-
-### Abril é tarde demais para as cerejeiras no Japão?
-
-Depende de onde no Japão. A previsão de 2026 aponta a primeira floração em Tóquio por volta de 21 de março, com plena floração até 28 de março e pétalas resistindo até 7 a 10 de abril. Kyoto e Osaka chegam ao auge de 1 a 2 de abril. Depois de 7 de abril, você vai precisar perseguir a floração para o norte — plena floração em Sendai por volta de 11 de abril, Sapporo só no fim de abril. Se você chegar ao Japão central depois de 10 de abril, encare a viagem como uma viagem de cultura/comida com possível sakura, em vez de uma viagem de sakura com possível cultura, e considere reservar um Tohoku Shinkansen para o norte. A análise completa está no nosso [guia da temporada das cerejeiras](/blog/japan-cherry-blossom-season-guide).
-
-### Para onde no Caribe devo ir em abril?
-
-Abril é um dos melhores meses do Caribe no calendário — pós-spring break (depois de 20 de abril), antes da temporada de furacões (que começa em 1º de junho), baixa umidade e confiavelmente seco. Havana e Viñales em Cuba, a Península de Samaná na República Dominicana, a ponta sul de Santa Lúcia e Aruba todos entregam. Evite as duas primeiras semanas de abril por causa das multidões remanescentes do spring break em Cancún, Punta Cana e nas ilhas próximas da Flórida. O ponto ideal de preço é de 22 a 30 de abril.
-
-### Quando o Mediterrâneo fica próprio para nadar em abril?
-
-O Mediterrâneo cruza o limiar dos 18 °C (em que a maioria das pessoas o considera próprio para nadar de verdade, não só para um mergulho rápido) em datas diferentes, dependendo da latitude. A costa sul de Chipre e Creta atinge 18-19 °C até 20 a 25 de abril. A Sicília e o sul da Sardenha até o fim de abril. A Riviera Francesa, a Grécia continental e a costa croata só chegam a 18 °C no início ou meados de maio. Se o seu objetivo é realmente nadar, mire de 25 de abril em diante nos destinos mais ao sul do Mediterrâneo ou mude para um destino onde a temperatura do mar importe menos (Marrakech, city break na Andaluzia, Petra, Lake District).
-
-### Qual é o lugar mais barato para viajar em abril?
-
-Marrakech ($50-100/dia), o Algarve pós-Páscoa ($70-120/dia), Cuba ($60-110/dia) e Atenas depois da Páscoa grega ($60-100/dia) são os destaques de custo-benefício para abril de 2026. Na Ásia, abril é a estação quente pré-monção — Tailândia e Vietnã estão no seu auge de calor, então os preços caem, mas o calor é genuinamente difícil. A escolha barata mais inteligente de abril é o sul da Europa na janela pós-Páscoa ou o Norte da África. Para mais opções de custo-benefício, veja nosso guia dos [destinos mais baratos da Europa](/blog/cheapest-destinations-in-europe).
-
-### Devo reservar agora minha viagem de abril de 2026?
-
-Japão na janela da sakura (28 de março a 7 de abril): sim, imediatamente — voos e hotéis para o corredor das cerejeiras costumam estar 50-60% reservados até janeiro para a primavera seguinte. Espanha na Semana Santa (29 de março a 5 de abril): sim, reserve até fevereiro. Outros destinos de abril têm mais flexibilidade — Marrakech, Algarve e a janela intermediária de Atenas funcionam bem com 6 a 8 semanas de antecedência. A Costa Rica durante a semana da Semana Santa (1 a 6 de abril) precisa de 3 a 4 meses. Veja nosso [calendário de viagens 2026](/blog/2026-travel-calendar) para a estratégia mais ampla de reserva mês a mês.
-
----
-
-*Planeje sua viagem de abril de 2026 com nosso [planejador de viagens com AI grátis](/trips/new) — informe suas datas, cidade de origem e orçamento, e receba um plano dia a dia sequenciado, com custos realistas e previsões de clima específicas de abril.*
-
-*Fontes:*
-
-- [Japan Meteorological Corporation — Previsão das Cerejeiras 2026](https://sakura.weathermap.jp/en.php)
-- [Jardins Keukenhof — Datas da Temporada 2026](https://keukenhof.nl/en/)
-- [Whistler Blackcomb — Datas de Funcionamento da Temporada 2025-2026](https://www.whistlerblackcomb.com/)
-- [Visit Petra — Informações ao Visitante](https://visitpetra.jo/en)
-- [World Weather Online — Dados Climáticos Históricos](https://www.worldweatheronline.com/)
-- [Numbeo — Banco de Dados de Custo de Vida](https://www.numbeo.com/cost-of-living/)
+*Fontes: [Agência Meteorológica do Japão — médias de plena floração](https://www.data.jma.go.jp/sakura/data/sakura004_07.html), [japan-guide.com — previsão da sakura](https://www.japan-guide.com/sakura/), [Gabinete do Japão — feriados](https://www8.cao.go.jp/chosei/shukujitsu/gaiyou.html), [Keukenhof](https://keukenhof.nl/en/), [Bloemencorso Bollenstreek](https://bloemencorso-bollenstreek.nl/en/), [Andalucía Informa — feriados de Sevilha 2027](https://andaluciainforma.es/actualidad/festivos-locales-de-sevilla-2027-14-abril-27-mayo/), Office Holidays 2027: [Países Baixos](https://www.officeholidays.com/countries/netherlands/2027), [Grécia](https://www.officeholidays.com/countries/greece/2027), [Tailândia](https://www.officeholidays.com/countries/thailand/2027), [Marrocos](https://www.officeholidays.com/countries/morocco/2027), [Vaisakhi no Punjab](https://www.officeholidays.com/holidays/india/punjab/vaisakhi), [Go Türkiye — Parque Emirgan](https://goturkiye.com/istanbul/emirgan-park), [Jazz Fest — FAQ](https://www.nojazzfest.com/faq/), [Arrowtown Autumn Festival](https://www.arrowtownautumnfestival.co.nz/), [National Cherry Blossom Festival](https://nationalcherryblossomfestival.org/), [NPS — Bloom Watch](https://www.nps.gov/subjects/cherryblossom/bloom-watch.htm).*

@@ -86,9 +86,8 @@ const nextConfig: NextConfig = {
       // ("places to visit in april 2026", "where to travel april 2026",
       // ~50 long-tail variants ranking pos 6.36) with a real 200 response
       // and a CTR-friendly hero, table, and 12 destination sections.
-      ["where-to-go-in-may",       "2026-travel-calendar#may"],
-      ["where-to-go-in-june",      "2026-travel-calendar#june"],
-      ["where-to-go-in-july",      "2026-travel-calendar#july"],
+      // May, June and July redirects removed: standalone posts serve these
+      // months, published ahead of the queries as for January to March.
       // 2026-07-12: where-to-go-in-august redirect REMOVED (April playbook).
       // Peak search season for "where to go in august" is June–August — the
       // anchor-redirect can't rank for the ~50 long-tail variants the April
