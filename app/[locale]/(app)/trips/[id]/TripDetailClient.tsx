@@ -180,6 +180,9 @@ const ExpenseLedger = dynamic(
   () => import("@/components/trip/ExpenseLedger"),
   { ssr: false }
 );
+// Opened from Today's expense panel; loaded only when someone opens it.
+const SettleUpView = dynamic(() => import("@/components/trip/SettleUpView"), { ssr: false });
+const expenseLedgerEnabled = process.env.NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED === "true";
 
 // Concierge chat — flag-gated + only useful after the user clicks the
 // trigger pill. Same lazy pattern as AIAssistant above.
@@ -266,6 +269,9 @@ export default function TripDetailClient({
   );
   const dayState = useLiveTripState(fallbackDayState, trip.startDate, trip.endDate);
   const [todayMode, setTodayMode] = useState(true);
+  // Settle Up from Today's expense panel: the ledger with it sits in the
+  // planning view, which a live trip hides.
+  const [settleFromToday, setSettleFromToday] = useState(false);
   // A separate translator for the 'common' namespace (activity.*,
   // addFromEmail.*, today.*): re-namespacing tTrips would mean touching
   // every one of its call sites.
@@ -2157,6 +2163,7 @@ export default function TripDetailClient({
       onViewFullItinerary={() => setTodayMode(false)}
       tripId={trip.id}
       apiBase={`/api/trips/${trip.id}/today`}
+      onSettleUp={expenseLedgerEnabled ? () => setSettleFromToday(true) : undefined}
       className="mb-6"
     />
   ) : null;
@@ -3435,6 +3442,8 @@ export default function TripDetailClient({
         )}
           </>
         )}
+        {/* Outside both phases: Today shows during the trip and before it. */}
+        {settleFromToday && <SettleUpView tripId={trip.id} isOpen onClose={() => setSettleFromToday(false)} />}
       </main>
 
       {/* Edit Mode Undo/Redo Bar - Minimal, with status indicator */}
