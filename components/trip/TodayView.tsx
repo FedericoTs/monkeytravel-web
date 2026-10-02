@@ -92,12 +92,13 @@ export default function TodayView({
 
   // Phase 3.3 overlay (realtime). Enabled only when we know which routes to use.
   const chipsEnabled = !!apiBase && !!tripId;
-  const { actions, busy, error, apply, undo } = useTodayActions(apiBase ?? "", tripId ?? "", chipsEnabled);
   // Phase 3.4 expenses: "Who paid?" on the live trip, split across participants.
+  // Refreshed with the chips when the trip's Today broadcast announces a change.
   const expenses = useTripExpenses(apiBase ?? "", chipsEnabled);
+  const { actions, busy, error, apply, undo } = useTodayActions(apiBase ?? "", tripId ?? "", chipsEnabled, expenses.refetch);
   // Phase 3.5 activity feed: joins + chip actions + expenses, merged server-side.
-  // No channel of its own — refetch when the realtime chip actions change or an
-  // expense is added (both re-identify the arrays below), reusing one channel.
+  // No channel of its own — refetch when the chip actions or the expenses
+  // change (a refresh that changed nothing keeps the arrays), reusing one channel.
   const { events: feedEvents, refetch: refetchFeed } = useTripFeed(apiBase ?? "", chipsEnabled);
   useEffect(() => {
     refetchFeed();

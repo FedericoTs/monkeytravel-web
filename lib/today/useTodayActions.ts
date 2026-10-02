@@ -5,16 +5,17 @@ import { createClient } from "@/lib/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { Activity } from "@/types";
 import { TODAY_CHANGED_EVENT, todayChannel, type TodayAction, type TodayActionType } from "./actions";
+import { TODAY_REFRESH_GAP_MS, keepIfSame, throttledRefresh } from "./refresh-throttle";
 
 /**
  * The chip overlay for a live trip's Today — Live Trip Phase 3.3.
  *
  * Hydrates the active actions, then listens on the trip's Today broadcast so a
- * chip tapped by anyone appears on everyone's Today within a second. Applying
+ * chip tapped by anyone appears on everyone's Today within seconds. Applying
  * and undoing go through the routes under `base` (the share link's, or the
  * members' /api/trips/[id]/today), which announce each change; this hook
- * re-fetches on every announcement so every viewer converges on the server's
- * truth.
+ * re-fetches, along with `alsoRefresh` (the expense panel), at most every few
+ * seconds (refresh-throttle), so every viewer converges on the server's truth.
  */
 export interface TodayActionsApi {
   actions: TodayAction[];
@@ -24,7 +25,12 @@ export interface TodayActionsApi {
   undo: (actionId: string) => Promise<void>;
 }
 
-export function useTodayActions(base: string, tripId: string, enabled: boolean): TodayActionsApi {
+export function useTodayActions(
+  base: string,
+  tripId: string,
+  enabled: boolean,
+  alsoRefresh?: () => Promise<void>,
+): TodayActionsApi {
   const [actions, setActions] = useState<TodayAction[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +42,7 @@ export function useTodayActions(base: string, tripId: string, enabled: boolean):
       if (!res.ok) return;
       const json = (await res.json()) as { data?: TodayAction[] } | TodayAction[];
       const list = Array.isArray(json) ? json : json.data;
-      if (Array.isArray(list)) setActions(list);
+      if (Array.isArray(list)) setActions((prev) => keepIfSame(prev, list));
     } catch {
       // realtime will bring the next update; the overlay just stays put.
     }
@@ -45,22 +51,22 @@ export function useTodayActions(base: string, tripId: string, enabled: boolean):
   useEffect(() => {
     if (!enabled || !tripId) return;
     void fetchActions();
+    const refresh = throttledRefresh(() => Promise.all([fetchActions(), alsoRefresh?.()]), TODAY_REFRESH_GAP_MS);
     const supabase = createClient();
     if (channelRef.current) supabase.removeChannel(channelRef.current);
     const channel = supabase
       .channel(todayChannel(tripId))
-      .on("broadcast", { event: TODAY_CHANGED_EVENT }, () => {
-        void fetchActions();
-      })
+      .on("broadcast", { event: TODAY_CHANGED_EVENT }, () => refresh.request())
       .subscribe();
     channelRef.current = channel;
     return () => {
+      refresh.cancel();
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
     };
-  }, [enabled, tripId, fetchActions]);
+  }, [enabled, tripId, fetchActions, alsoRefresh]);
 
   const post = useCallback(
     async (body: Record<string, unknown>) => {

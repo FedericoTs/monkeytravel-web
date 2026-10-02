@@ -17,7 +17,12 @@ let collaborators: string[] = [];
 let participants: Array<{ participant_cookie_id: string; user_id: string | null; display_name: string }> = [];
 let existingExpense: { created_by: string | null; created_by_cookie_id: string | null } | null = null;
 let log: FakeQuery[] = [];
+const announced: string[] = [];
 
+vi.mock("next/server", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/server")>()),
+  after: (task: () => unknown) => void task(),
+}));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => (browserCookie ? { value: browserCookie } : undefined), set: () => {} }),
 }));
@@ -50,7 +55,7 @@ vi.mock("@/lib/supabase/admin", () => ({
       return { data: null, error: null };
     });
     log = fake.log;
-    return fake.client;
+    return { ...fake.client, channel: (topic: string) => ({ httpSend: async () => void announced.push(topic) }) };
   },
 }));
 
@@ -72,6 +77,7 @@ beforeEach(() => {
   collaborators = [];
   participants = [];
   existingExpense = null;
+  announced.length = 0;
 });
 
 describe("POST /api/shared/[token]/expense", () => {
@@ -97,6 +103,8 @@ describe("POST /api/shared/[token]/expense", () => {
       ["mate-1", null, 10],
       [null, "guest-cookie-1", 10],
     ]);
+    // Everyone's open Today refreshes its expense panel.
+    expect(announced).toEqual(["trip-today:trip-1"]);
   });
 
   it("records a signed-in visitor who pays by account, but keeps this browser as the creator", async () => {
