@@ -49,4 +49,32 @@ describe("expensesSnapshot", () => {
     const { expenses } = await expensesSnapshot(admin, "trip-1", "owner-1", null, "browser-cookie-1");
     expect(expenses.filter((e) => e.mine).map((e) => e.id)).toEqual(["on-this-browser"]);
   });
+
+  // Anyone with the share link reads this, and a guest's cookie is who they are on every trip.
+  it("sends names and amounts, never a guest's cookie or an account id", async () => {
+    const world = fakeSupabase((q) => {
+      if (q.table === "trip_expenses") return { data: [{ ...row("gelato", null, "guest-cookie-1"), amount: 20 }], error: null };
+      if (q.table === "trip_expense_splits") {
+        return {
+          data: [
+            { expense_id: "gelato", user_id: "owner-1", participant_cookie_id: null, participant_name: null, share_amount: 10 },
+            { expense_id: "gelato", user_id: null, participant_cookie_id: "guest-cookie-1", participant_name: "Bo", share_amount: 10 },
+          ],
+          error: null,
+        };
+      }
+      return { data: [], error: null };
+    }).client as unknown as SupabaseClient;
+
+    const snapshot = await expensesSnapshot(world, "trip-1", "owner-1", null, "guest-cookie-1");
+    const sent = JSON.stringify(snapshot);
+    expect(sent).not.toContain("guest-cookie-1");
+    expect(sent).not.toContain("owner-1");
+    expect(snapshot.expenses[0].splits).toEqual([
+      { name: null, shareCents: 1000 },
+      { name: "Bo", shareCents: 1000 },
+    ]);
+    // The server still knows whose share is whose.
+    expect(snapshot.summary).toMatchObject({ youPaidCents: 2000, youOweCents: 1000, netCents: 1000 });
+  });
 });

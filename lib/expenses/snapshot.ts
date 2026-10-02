@@ -4,6 +4,7 @@ import {
   actorKey,
   summarize,
   type ExpenseCategory,
+  type ExpenseLedgerEntry,
   type ExpensePublic,
   type ExpenseSummary,
 } from "./shared";
@@ -58,16 +59,19 @@ export async function expensesSnapshot(
   }
 
   const viewerKey = actorKey(viewerUserId, viewerCookieId ?? null);
+  const ledger: ExpenseLedgerEntry[] = [];
   const expenses: ExpensePublic[] = expenseRows.map((r) => {
     const paidByKey = actorKey((r.paid_by_user_id as string | null) ?? null, (r.paid_by_cookie_id as string | null) ?? null);
+    const amountCents = Math.round(Number(r.amount) * 100);
+    const splits = splitsByExpense.get(r.id as string) ?? [];
+    ledger.push({ currency: r.currency as string, amountCents, paidByKey, splits });
     return {
       id: r.id as string,
       activityId: (r.activity_id as string | null) ?? null,
-      amountCents: Math.round(Number(r.amount) * 100),
+      amountCents,
       currency: r.currency as string,
       category: (r.category as ExpenseCategory) ?? "other",
       description: (r.description as string | null) ?? null,
-      paidByKey,
       paidByName: (r.paid_by_name as string | null) ?? null,
       paidByIsOwner: ownerKey !== null && paidByKey === ownerKey,
       // "mine" = the viewer created it (drives the delete control), by account
@@ -77,11 +81,12 @@ export async function expensesSnapshot(
         { userId: (r.created_by as string | null) ?? null, cookieId: (r.created_by_cookie_id as string | null) ?? null },
       ),
       createdAt: r.created_at as string,
-      splits: splitsByExpense.get(r.id as string) ?? [],
+      // Names and amounts only; the keys stay in the ledger.
+      splits: splits.map(({ name, shareCents }) => ({ name, shareCents })),
     };
   });
 
-  return { expenses, summary: summarize(expenses, viewerKey) };
+  return { expenses, summary: summarize(ledger, viewerKey) };
 }
 
 function emptySummary(): ExpenseSummary {

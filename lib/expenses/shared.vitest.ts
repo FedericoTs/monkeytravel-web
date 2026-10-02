@@ -7,7 +7,7 @@ import {
   parseExpenseCategory,
   splitEquallyCents,
   summarize,
-  type ExpensePublic,
+  type ExpenseLedgerEntry,
 } from "./shared";
 
 describe("parseAmountToCents", () => {
@@ -61,22 +61,14 @@ describe("currency + category + cents", () => {
 });
 
 describe("summarize", () => {
-  const exp = (over: Partial<ExpensePublic>): ExpensePublic => ({
-    id: Math.random().toString(36).slice(2),
-    activityId: null,
+  const exp = (over: Partial<ExpenseLedgerEntry>): ExpenseLedgerEntry => ({
     amountCents: 3000,
     currency: "EUR",
-    category: "food",
-    description: null,
     paidByKey: "c:ana",
-    paidByName: "Ana",
-    paidByIsOwner: false,
-    mine: false,
-    createdAt: "2026-09-06T10:00:00Z",
     splits: [
-      { key: "c:ana", name: "Ana", shareCents: 1000 },
-      { key: "c:bob", name: "Bob", shareCents: 1000 },
-      { key: "u:owner", name: null, shareCents: 1000 },
+      { key: "c:ana", shareCents: 1000 },
+      { key: "c:bob", shareCents: 1000 },
+      { key: "u:owner", shareCents: 1000 },
     ],
     ...over,
   });
