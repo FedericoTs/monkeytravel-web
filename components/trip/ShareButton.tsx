@@ -40,6 +40,7 @@ export default function ShareButton({
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInTrending, setIsInTrending] = useState(false);
+  const [exploreEnabled, setExploreEnabled] = useState(false);
   const [isPublishOpen, setIsPublishOpen] = useState(false);
   const [collaborators, setCollaborators] = useState<TripCollaborator[]>([]);
   const [openTab, setOpenTab] = useState<"share" | "invite">(initialTab);
@@ -72,6 +73,7 @@ export default function ShareButton({
         setIsShared(!!shareRes.value.isShared);
         setShareUrl(shareRes.value.shareUrl ?? null);
         setIsInTrending(!!shareRes.value.isInTrending);
+        setExploreEnabled(!!shareRes.value.exploreEnabled);
       } else if (shareRes.status === "rejected") {
         console.warn("[ShareButton] share status fetch failed (non-fatal):", shareRes.reason);
       }
@@ -170,6 +172,7 @@ export default function ShareButton({
         tripIntent={tripIntent}
         isShared={isShared}
         isInTrending={isInTrending}
+        exploreEnabled={exploreEnabled}
         onStopSharing={handleStopSharing}
         onEnableSharing={handleEnableSharing}
         onTrendingChange={handleTrendingChange}

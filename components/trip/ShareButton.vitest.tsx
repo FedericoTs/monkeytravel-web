@@ -10,9 +10,9 @@ vi.mock("@/components/collaboration/CollaboratorAvatars", () => ({ CollaboratorA
 vi.mock("@/lib/analytics", () => ({ trackTripShared: vi.fn() }));
 // The modal has its own tests; here it only reports whether it is open, on which tab, and the Explore state.
 vi.mock("./ShareAndInviteModal", () => ({
-  default: ({ isOpen, initialTab, isInTrending, onClose, onRequestPublish }: { isOpen: boolean; initialTab: string; isInTrending: boolean; onClose: () => void; onRequestPublish?: () => void }) =>
+  default: ({ isOpen, initialTab, isInTrending, exploreEnabled, onClose, onRequestPublish }: { isOpen: boolean; initialTab: string; isInTrending: boolean; exploreEnabled?: boolean; onClose: () => void; onRequestPublish?: () => void }) =>
     isOpen ? (
-      <div role="dialog" data-tab={initialTab} data-trending={String(isInTrending)}>
+      <div role="dialog" data-tab={initialTab} data-trending={String(isInTrending)} data-explore={String(exploreEnabled)}>
         <button onClick={onClose}>close</button>
         <button onClick={onRequestPublish}>list in explore</button>
       </div>
@@ -65,6 +65,16 @@ describe("ShareButton Explore state", () => {
     );
     render(<ShareButton tripId="trip-1" tripTitle="Lisbon" variant="modal" autoOpen />);
     await waitFor(() => expect(screen.getByRole("dialog").getAttribute("data-trending")).toBe("true"));
+  });
+
+  it("offers Explore once the status says it's on", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true, json: async () => ({ isShared: true, exploreEnabled: true, shareUrl: "https://x/s/1", collaborators: [] }) }))
+    );
+    render(<ShareButton tripId="trip-1" tripTitle="Lisbon" variant="modal" autoOpen />);
+    expect(screen.getByRole("dialog").getAttribute("data-explore")).toBe("false");
+    await waitFor(() => expect(screen.getByRole("dialog").getAttribute("data-explore")).toBe("true"));
   });
 });
 

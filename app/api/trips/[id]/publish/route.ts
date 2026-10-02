@@ -265,7 +265,7 @@ export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
 
   const { data: trip } = await supabase
     .from("trips")
-    .select("id, user_id")
+    .select("id, user_id, share_token")
     .eq("id", tripId)
     .single();
   if (!trip) return errors.notFound("Trip not found");
@@ -273,9 +273,11 @@ export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
     return errors.forbidden("Only the trip owner can unpublish");
   }
 
+  // Unlisting keeps the share link, so a trip that has one stays shared.
+  const visibility = trip.share_token ? "shared" : "private";
   const { error: updateErr } = await supabase
     .from("trips")
-    .update({ visibility: "private", submitted_to_trending_at: null })
+    .update({ visibility, submitted_to_trending_at: null })
     .eq("id", tripId);
   if (updateErr) {
     return errors.internal("Failed to unpublish trip", "trips.update");
@@ -286,5 +288,5 @@ export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
   });
   after(() => purgeTripCard(tripId));
 
-  return apiSuccess({ tripId, visibility: "private" });
+  return apiSuccess({ tripId, visibility });
 }

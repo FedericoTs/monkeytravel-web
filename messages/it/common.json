@@ -1186,6 +1186,7 @@
       "publicBadge": "Pubblico",
       "unpublishAction": "(Rimuovi)",
       "unpublishConfirm": "Rimuovere questo viaggio da Esplora? Puoi ripubblicarlo in qualsiasi momento.",
+      "unlistFailed": "Non è stato possibile rimuovere il viaggio da Esplora. Riprova.",
       "removeFromExploreTitle": "Clicca per rimuovere da /explore",
       "engagement": {
         "barAriaLabel": "Azioni di interazione viaggio",
