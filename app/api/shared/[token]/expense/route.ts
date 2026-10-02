@@ -24,6 +24,7 @@ import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { PARTICIPANT_COOKIE, PARTICIPANT_COOKIE_MAX_AGE_SECONDS, isUuid } from "@/lib/participants/shared";
 import { centsToAmount, normalizeCurrency, parseAmountToCents, parseExpenseCategory, splitEquallyCents } from "@/lib/expenses/shared";
 import { expensesSnapshot } from "@/lib/expenses/snapshot";
+import { isTodayActor, resolveTodayPerson, storedCookie } from "@/lib/today/actor";
 
 const ipLimiter = createRateLimiter("expense-ip", 30, 60_000);
 const cookieTripLimiter = createRateLimiter("expense-cookie-trip", 15, 60_000);
@@ -76,15 +77,17 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     const { allowed: cookieAllowed } = await cookieTripLimiter.check(request, `${cookieId}:${trip.id}`);
     if (!cookieAllowed) return errors.rateLimit("Too many changes. Please slow down.");
 
-    let userId: string | null = null;
+    let user: { id: string; email?: string | null } | null = null;
     try {
       const supabase = await createClient();
       const { data } = await supabase.auth.getUser();
-      userId = data.user?.id ?? null;
+      user = data.user ?? null;
     } catch {
-      userId = null;
+      user = null;
     }
+    const userId = user?.id ?? null;
     const isOwner = !!userId && userId === trip.user_id;
+    const actor = { userId, cookieId };
 
     const finish = async () => {
       if (issuedCookie) {
@@ -105,12 +108,23 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     if (body.undo === true) {
       const expenseId = typeof body.expense_id === "string" ? body.expense_id : "";
       if (!expenseId || !isUuid(expenseId)) return errors.badRequest("Invalid expense_id");
-      let del = admin.from("trip_expenses").delete().eq("id", expenseId).eq("trip_id", trip.id);
-      if (!isOwner) del = del.eq("created_by_cookie_id", cookieId);
-      const { error } = await del;
-      if (error) {
-        console.error("[expense] undo failed:", error);
+      const { data: row, error: readError } = await admin
+        .from("trip_expenses")
+        .select("created_by, created_by_cookie_id")
+        .eq("id", expenseId)
+        .eq("trip_id", trip.id)
+        .maybeSingle();
+      if (readError) {
+        console.error("[expense] undo read failed:", readError);
         return errors.internal("Could not remove the expense", "Expense");
+      }
+      const by = { userId: (row?.created_by as string | null) ?? null, cookieId: (row?.created_by_cookie_id as string | null) ?? null };
+      if (row && (isOwner || isTodayActor(actor, by))) {
+        const { error } = await admin.from("trip_expenses").delete().eq("id", expenseId);
+        if (error) {
+          console.error("[expense] undo failed:", error);
+          return errors.internal("Could not remove the expense", "Expense");
+        }
       }
       return finish();
     }
@@ -127,17 +141,8 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     const description =
       typeof body.description === "string" && body.description.trim().length > 0 ? body.description.trim().slice(0, 280) : null;
 
-    // Actor name (owner → null, rendered "The owner"; participant → their name).
-    let actorName: string | null = null;
-    if (!isOwner) {
-      const { data: me } = await admin
-        .from("trip_participants")
-        .select("display_name")
-        .eq("trip_id", trip.id)
-        .eq("participant_cookie_id", cookieId)
-        .maybeSingle();
-      actorName = (me?.display_name as string | null) ?? null;
-    }
+    const person = await resolveTodayPerson(admin, trip, user, cookieId);
+    const actorName = person.name;
 
     // Split cohort: active participants + the owner, unified and deduped by key.
     const { data: participants } = await admin
@@ -161,7 +166,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       });
     }
     // The payer shares too, even if they haven't tapped "I'm going".
-    add({ userId: isOwner ? (userId as string) : null, cookieId: isOwner ? null : cookieId, name: actorName });
+    add({ userId: person.userId, cookieId: storedCookie(person), name: actorName });
 
     const members = [...cohort.values()];
     const shares = splitEquallyCents(amountCents, members.length);
@@ -175,11 +180,13 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         category,
         description,
         activity_id: activityId,
-        created_by: isOwner ? userId : null,
-        created_by_cookie_id: isOwner ? null : cookieId,
+        // A creator account can edit the row through the table's policies, so
+        // only members get one; anyone else stays the creator by this browser.
+        created_by: person.isMember ? person.userId : null,
+        created_by_cookie_id: person.isMember ? null : cookieId,
         created_by_name: actorName,
-        paid_by_user_id: isOwner ? userId : null,
-        paid_by_cookie_id: isOwner ? null : cookieId,
+        paid_by_user_id: person.userId,
+        paid_by_cookie_id: storedCookie(person),
         paid_by_name: actorName,
       })
       .select("id")
@@ -204,7 +211,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       return errors.internal("Could not save the expense", "Expense");
     }
 
-    captureServerEvent(isOwner ? (userId as string) : cookieId, "trip_expense_added", {
+    captureServerEvent(userId ?? cookieId, "trip_expense_added", {
       trip_id: trip.id,
       amount_cents: amountCents,
       currency,

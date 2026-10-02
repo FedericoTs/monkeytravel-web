@@ -4,8 +4,8 @@
  * A live trip's owner or a participant taps Running late / Skip this / Swap
  * nearby / Done for today. The action is written to trip_today_actions and
  * overlaid on everyone's Today view in real time; it NEVER edits the owner's
- * itinerary (a participant is anonymous and cannot). Identity is the shared
- * mt_anon_voter cookie; the owner is resolved from their session.
+ * itinerary (a participant is anonymous and cannot). A signed-in person acts
+ * as their account, a guest as the shared mt_anon_voter cookie (lib/today/actor).
  *
  * Body:
  *   { action_type: 'running_late'|'skip'|'swap'|'done',
@@ -31,6 +31,7 @@ import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { PARTICIPANT_COOKIE, PARTICIPANT_COOKIE_MAX_AGE_SECONDS, isUuid } from "@/lib/participants/shared";
 import { parseTodayActionType, RUNNING_LATE_STEP_MINUTES, TODAY_CHANGED_EVENT, todayChannel } from "@/lib/today/actions";
 import { todayActionsSnapshot } from "@/lib/today/snapshot";
+import { isTodayActor, resolveTodayPerson, storedCookie } from "@/lib/today/actor";
 import { suggestNearbyAlternative } from "@/lib/ai/nearby-alternative";
 
 const ipLimiter = createRateLimiter("today-action-ip", 40, 60_000);
@@ -86,15 +87,17 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     if (!cookieAllowed) return errors.rateLimit("Too many changes. Please slow down.");
 
     // Owner vs participant.
-    let userId: string | null = null;
+    let user: { id: string; email?: string | null } | null = null;
     try {
       const supabase = await createClient();
       const { data } = await supabase.auth.getUser();
-      userId = data.user?.id ?? null;
+      user = data.user ?? null;
     } catch {
-      userId = null;
+      user = null;
     }
+    const userId = user?.id ?? null;
     const isOwner = !!userId && userId === trip.user_id;
+    const actor = { userId, cookieId };
 
     const finish = async () => {
       // Everyone on this trip's Today re-fetches on this ping; it carries no
@@ -114,22 +117,32 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       return apiSuccess(await todayActionsSnapshot(admin, trip.id, cookieId, userId));
     };
 
-    // ---- Undo: soft, and only your own action.
+    // ---- Undo: soft, and only your own action (the owner may undo any).
     if (body.undo === true) {
       const actionId = typeof body.action_id === "string" ? body.action_id : "";
       if (!actionId || !isUuid(actionId)) return errors.badRequest("Invalid action_id");
-      const match = isOwner
-        ? admin.from("trip_today_actions").update({ undone_at: new Date().toISOString() }).eq("id", actionId).eq("trip_id", trip.id)
-        : admin
-            .from("trip_today_actions")
-            .update({ undone_at: new Date().toISOString() })
-            .eq("id", actionId)
-            .eq("trip_id", trip.id)
-            .eq("actor_cookie_id", cookieId);
-      const { error } = await match.is("undone_at", null);
-      if (error) {
-        console.error("[today-action] undo failed:", error);
+      const { data: row, error: readError } = await admin
+        .from("trip_today_actions")
+        .select("actor_user_id, actor_cookie_id")
+        .eq("id", actionId)
+        .eq("trip_id", trip.id)
+        .is("undone_at", null)
+        .maybeSingle();
+      if (readError) {
+        console.error("[today-action] undo read failed:", readError);
         return errors.internal("Could not undo", "TodayAction");
+      }
+      const by = { userId: (row?.actor_user_id as string | null) ?? null, cookieId: (row?.actor_cookie_id as string | null) ?? null };
+      if (row && (isOwner || isTodayActor(actor, by))) {
+        const { error } = await admin
+          .from("trip_today_actions")
+          .update({ undone_at: new Date().toISOString() })
+          .eq("id", actionId)
+          .is("undone_at", null);
+        if (error) {
+          console.error("[today-action] undo failed:", error);
+          return errors.internal("Could not undo", "TodayAction");
+        }
       }
       return finish();
     }
@@ -145,19 +158,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       return errors.badRequest(`${actionType} needs an activity_id`);
     }
 
-    // Attribution: the participant's name (Phase 2) or the owner.
-    let actorName: string | null = null;
-    if (isOwner) {
-      actorName = null; // rendered as "The owner"
-    } else {
-      const { data: participant } = await admin
-        .from("trip_participants")
-        .select("display_name")
-        .eq("trip_id", trip.id)
-        .eq("participant_cookie_id", cookieId)
-        .maybeSingle();
-      actorName = (participant?.display_name as string | null) ?? null;
-    }
+    const { name: actorName } = await resolveTodayPerson(admin, trip, user, cookieId);
 
     const payload: Record<string, unknown> = {};
     if (actionType === "running_late") payload.minutes = RUNNING_LATE_STEP_MINUTES;
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       action_type: actionType,
       activity_id: activityId,
       payload,
-      actor_cookie_id: isOwner ? null : cookieId,
+      actor_cookie_id: storedCookie(actor),
       actor_user_id: userId,
       actor_name: actorName,
       actor_role: isOwner ? "owner" : "participant",
@@ -197,7 +198,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       return errors.internal("Could not save that", "TodayAction");
     }
     if (!insertError) {
-      captureServerEvent(isOwner ? (userId as string) : cookieId, "today_action", {
+      captureServerEvent(userId ?? cookieId, "today_action", {
         trip_id: trip.id,
         action_type: actionType,
         role: isOwner ? "owner" : "participant",

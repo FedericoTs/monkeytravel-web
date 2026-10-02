@@ -7,6 +7,7 @@ import {
   type ExpensePublic,
   type ExpenseSummary,
 } from "./shared";
+import { isTodayActor } from "@/lib/today/actor";
 
 export interface ExpensesSnapshot {
   expenses: ExpensePublic[];
@@ -59,7 +60,6 @@ export async function expensesSnapshot(
   const viewerKey = actorKey(viewerUserId, viewerCookieId ?? null);
   const expenses: ExpensePublic[] = expenseRows.map((r) => {
     const paidByKey = actorKey((r.paid_by_user_id as string | null) ?? null, (r.paid_by_cookie_id as string | null) ?? null);
-    const createdByKey = actorKey((r.created_by as string | null) ?? null, (r.created_by_cookie_id as string | null) ?? null);
     return {
       id: r.id as string,
       activityId: (r.activity_id as string | null) ?? null,
@@ -70,8 +70,12 @@ export async function expensesSnapshot(
       paidByKey,
       paidByName: (r.paid_by_name as string | null) ?? null,
       paidByIsOwner: ownerKey !== null && paidByKey === ownerKey,
-      // "mine" = the viewer created it (drives the delete control).
-      mine: createdByKey === viewerKey && viewerKey !== "c:unknown",
+      // "mine" = the viewer created it (drives the delete control), by account
+      // or on this browser, matching the delete route.
+      mine: isTodayActor(
+        { userId: viewerUserId, cookieId: viewerCookieId ?? null },
+        { userId: (r.created_by as string | null) ?? null, cookieId: (r.created_by_cookie_id as string | null) ?? null },
+      ),
       createdAt: r.created_at as string,
       splits: splitsByExpense.get(r.id as string) ?? [],
     };
