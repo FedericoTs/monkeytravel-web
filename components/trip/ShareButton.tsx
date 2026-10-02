@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import ShareAndInviteModal from "./ShareAndInviteModal";
+import PublishTripModal from "@/components/explore/PublishTripModal";
 import { CollaboratorAvatars } from "@/components/collaboration/CollaboratorAvatars";
 import { trackTripShared } from "@/lib/analytics";
 import type { TripCollaborator } from "@/types";
@@ -39,6 +40,7 @@ export default function ShareButton({
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInTrending, setIsInTrending] = useState(false);
+  const [isPublishOpen, setIsPublishOpen] = useState(false);
   const [collaborators, setCollaborators] = useState<TripCollaborator[]>([]);
   const [openTab, setOpenTab] = useState<"share" | "invite">(initialTab);
 
@@ -158,22 +160,34 @@ export default function ShareButton({
   const hasCollaborators = collaborators.length > 1; // More than just owner
 
   const modal = (
-    <ShareAndInviteModal
-      isOpen={isModalOpen}
-      onClose={handleModalClose}
-      tripId={tripId}
-      tripTitle={tripTitle}
-      shareUrl={shareUrl || ""}
-      tripIntent={tripIntent}
-      isShared={isShared}
-      isInTrending={isInTrending}
-      onStopSharing={handleStopSharing}
-      onEnableSharing={handleEnableSharing}
-      onTrendingChange={handleTrendingChange}
-      isLoading={isLoading}
-      initialTab={openTab}
-      canManageSharing={canManageSharing}
-    />
+    <>
+      <ShareAndInviteModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        tripId={tripId}
+        tripTitle={tripTitle}
+        shareUrl={shareUrl || ""}
+        tripIntent={tripIntent}
+        isShared={isShared}
+        isInTrending={isInTrending}
+        onStopSharing={handleStopSharing}
+        onEnableSharing={handleEnableSharing}
+        onTrendingChange={handleTrendingChange}
+        isLoading={isLoading}
+        initialTab={openTab}
+        canManageSharing={canManageSharing}
+        onRequestPublish={() => {
+          handleModalClose();
+          setIsPublishOpen(true);
+        }}
+      />
+      <PublishTripModal
+        tripId={tripId}
+        isOpen={isPublishOpen}
+        onClose={() => setIsPublishOpen(false)}
+        onPublished={() => setIsInTrending(true)}
+      />
+    </>
   );
 
   if (variant === "modal") return modal;

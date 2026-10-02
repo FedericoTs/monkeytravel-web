@@ -47,11 +47,13 @@ interface ShareAndInviteModalProps {
   initialTab?: TabType;
   /**
    * Whether this viewer may turn the link on or off and list the trip in
-   * Explore. Only the owner may (POST/DELETE /share and /submit-trending are
+   * Explore. Only the owner may (POST/DELETE /share and /publish are
    * owner-only), so a collaborator's click used to fail silently. Defaults
    * to true: the owner's view is unchanged.
    */
   canManageSharing?: boolean;
+  /** Opens the publish flow, which applies the Explore checks. */
+  onRequestPublish?: () => void;
 }
 
 export default function ShareAndInviteModal({
@@ -69,6 +71,7 @@ export default function ShareAndInviteModal({
   isLoading,
   initialTab = "share",
   canManageSharing = true,
+  onRequestPublish,
 }: ShareAndInviteModalProps) {
   const t = useTranslations("common");
   const locale = useLocale();
@@ -177,15 +180,19 @@ export default function ShareAndInviteModal({
   // Handle trending toggle
   const handleTrendingToggle = async () => {
     if (trendingLoading) return;
+    // Listing goes through the publish flow, so its checks apply here too.
+    if (!trendingEnabled) {
+      onRequestPublish?.();
+      return;
+    }
 
     setTrendingLoading(true);
     try {
-      const method = trendingEnabled ? "DELETE" : "POST";
-      const response = await fetch(`/api/trips/${tripId}/submit-trending`, { method });
+      const response = await fetch(`/api/trips/${tripId}/publish`, { method: "DELETE" });
 
       if (response.ok) {
-        setTrendingEnabled(!trendingEnabled);
-        onTrendingChange?.(!trendingEnabled);
+        setTrendingEnabled(false);
+        onTrendingChange?.(false);
       }
     } catch (error) {
       console.error("Failed to update trending status:", error);
@@ -637,7 +644,7 @@ export default function ShareAndInviteModal({
                             {trendingEnabled ? <Globe className="w-5 h-5 text-white" /> : <TrendingUp className="w-5 h-5 text-white" />}
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-slate-900">
+                            <p id="explore-switch-label" className="text-sm font-semibold text-slate-900">
                               {trendingEnabled ? ts("explore.listedOn") : ts("explore.submitTo")}
                             </p>
                             <p className="text-xs text-slate-500">
@@ -648,13 +655,16 @@ export default function ShareAndInviteModal({
                         <button
                           onClick={handleTrendingToggle}
                           disabled={trendingLoading}
+                          role="switch"
+                          aria-checked={trendingEnabled}
+                          aria-labelledby="explore-switch-label"
                           className={cn(
                             "relative w-12 h-7 rounded-full transition-colors",
                             trendingEnabled ? "bg-gradient-to-r from-amber-500 to-orange-500" : "bg-slate-200",
                             trendingLoading && "opacity-50 cursor-not-allowed"
                           )}
                         >
-                          <span className={cn("absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform", trendingEnabled ? "translate-x-6" : "translate-x-1")} />
+                          <span className={cn("absolute left-0 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform", trendingEnabled ? "translate-x-6" : "translate-x-1")} />
                         </button>
                       </div>
                     </div>
