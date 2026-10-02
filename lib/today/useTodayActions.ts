@@ -6,6 +6,7 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { Activity } from "@/types";
 import { TODAY_CHANGED_EVENT, TODAY_CHANNEL_OPTIONS, todayChannel, type TodayAction, type TodayActionType } from "./actions";
 import { TODAY_REFRESH_GAP_MS, keepIfSame, throttledRefresh } from "./refresh-throttle";
+import { freshness, readSignal } from "./freshness";
 
 /**
  * The chip overlay for a live trip's Today — Live Trip Phase 3.3.
@@ -35,18 +36,20 @@ export function useTodayActions(
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const [fresh] = useState(freshness);
 
   const fetchActions = useCallback(async () => {
+    const current = fresh.startRead();
     try {
-      const res = await fetch(`${base}/today-actions`, { cache: "no-store" });
+      const res = await fetch(`${base}/today-actions`, { cache: "no-store", signal: readSignal() });
       if (!res.ok) return;
       const json = (await res.json()) as { data?: TodayAction[] } | TodayAction[];
       const list = Array.isArray(json) ? json : json.data;
-      if (Array.isArray(list)) setActions((prev) => keepIfSame(prev, list));
+      if (Array.isArray(list) && current()) setActions((prev) => keepIfSame(prev, list));
     } catch {
       // realtime will bring the next update; the overlay just stays put.
     }
-  }, [base]);
+  }, [base, fresh]);
 
   useEffect(() => {
     if (!enabled || !tripId) return;
@@ -69,21 +72,22 @@ export function useTodayActions(
   }, [enabled, tripId, fetchActions, alsoRefresh]);
 
   const post = useCallback(
-    async (body: Record<string, unknown>) => {
-      const res = await fetch(`${base}/today-action`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j?.error?.message || j?.message || "That didn't work.");
-      }
-      const json = (await res.json()) as { data?: TodayAction[] } | TodayAction[];
-      const list = Array.isArray(json) ? json : json.data;
-      if (Array.isArray(list)) setActions(list);
-    },
-    [base],
+    (body: Record<string, unknown>) =>
+      fresh.write(async () => {
+        const res = await fetch(`${base}/today-action`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          throw new Error(j?.error?.message || j?.message || "That didn't work.");
+        }
+        const json = (await res.json()) as { data?: TodayAction[] } | TodayAction[];
+        const list = Array.isArray(json) ? json : json.data;
+        if (Array.isArray(list)) setActions(list);
+      }),
+    [base, fresh],
   );
 
   const apply = useCallback<TodayActionsApi["apply"]>(
