@@ -178,7 +178,7 @@ Il Thanksgiving è giovedì 26 novembre 2026, e l'impennata delle tariffe copre 
 
 ### Inizio o fine novembre: cosa conviene?
 
-Nel Sud-est asiatico e nell'India del sud, più tardi è più asciutto: Phuket, Ho Chi Minh City e Kochi vanno tutte verso la stagione secca di dicembre, e le notti delle lanterne thailandesi cadono martedì 24 novembre. In Europa la stagione natalizia comincia a metà mese (il mercatino di Rathausplatz a Vienna apre venerdì 13 novembre) e la notte polare di Tromsø inizia venerdì 27 novembre. Medio Oriente, Oaxaca dopo la festa dell'1–2 novembre ed emisfero australe vanno bene tutto il mese.
+Nel Sud-est asiatico e nell'India del sud, più tardi è più asciutto: Phuket, Ho Chi Minh City e Kochi vanno tutte verso la stagione secca di dicembre, e le notti delle lanterne thailandesi cadono martedì 24 novembre. In Europa la stagione natalizia comincia a metà mese (il mercatino di Rathausplatz a Vienna apre venerdì 13 novembre; ecco [le date confermate dei grandi mercatini di Natale d'Europa](/blog/best-christmas-markets-europe-2026)) e la notte polare di Tromsø inizia venerdì 27 novembre. Medio Oriente, Oaxaca dopo la festa dell'1–2 novembre ed emisfero australe vanno bene tutto il mese.
 
 ### Dove andare per una settimana sola?
 

@@ -177,7 +177,7 @@ Thanksgiving is Thursday 26 November 2026, and the fare spike runs the week of 2
 
 ### Early November or late November: which is better?
 
-In Southeast Asia and South India, later is drier: Phuket, Ho Chi Minh City and Kochi all taper toward a December dry season, and Thailand's lantern nights fall on Tuesday 24 November. In Europe the Christmas layer starts mid-month (Vienna's Rathausplatz market opens on Friday 13 November) and Tromsø's polar night begins on Friday 27 November. The Middle East, Oaxaca after the 1–2 November festival, and the Southern Hemisphere are good all month.
+In Southeast Asia and South India, later is drier: Phuket, Ho Chi Minh City and Kochi all taper toward a December dry season, and Thailand's lantern nights fall on Tuesday 24 November. In Europe the Christmas layer starts mid-month (Vienna's Rathausplatz market opens on Friday 13 November; here are [the confirmed dates for Europe's big Christmas markets](/blog/best-christmas-markets-europe-2026)) and Tromsø's polar night begins on Friday 27 November. The Middle East, Oaxaca after the 1–2 November festival, and the Southern Hemisphere are good all month.
 
 ### Where should I go for one week only?
 

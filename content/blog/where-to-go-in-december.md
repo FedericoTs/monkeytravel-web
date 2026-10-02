@@ -60,6 +60,8 @@ No city runs the whole Christmas-market tradition better than Vienna. The Rathau
 **Cost reality:** $205 (€177) per person a day (Budget Your Trip average); book the sleep first.
 **The trade-off:** most markets close December 23–26 (Rathausplatz on the 26th, Spittelberg and Karlsplatz on the 23rd), so the classic experience is early-to-mid December. Only Schönbrunn and the Riesenradplatz winter market carry on to 6 January 2027, along with the ice rink on Rathausplatz — enough for a visit between Christmas and New Year, but not the full spread.
 
+Vienna is one of eight major markets with confirmed 2026 dates — Budapest, Cologne, Colmar, Dresden, Basel, Nuremberg and Zagreb are the others; our [Christmas markets guide](/blog/best-christmas-markets-europe-2026) has every date and which ones run past Christmas.
+
 ## 2. Tromsø, Norway — The Aurora at Its Best
 
 Well north of the Arctic Circle, Tromsø spends December in polar night: from Friday 27 November 2026 to Friday 15 January 2027 the sun does not rise above the horizon. The long dark hours are prime aurora time, and Tromsø sits under the auroral oval with operators who chase clear sky for a living. It is milder than the latitude suggests (highs around 0.3 °C), but 109.7 mm of precipitation falls on 15 wet days, and that cloud is the real enemy of an aurora trip.

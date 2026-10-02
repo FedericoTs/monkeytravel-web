@@ -61,6 +61,8 @@ Nenhuma cidade leva a tradição dos mercados de Natal tão a sério quanto Vien
 **Custo indicativo:** $205 (€177) por pessoa (média do Budget Your Trip); reserve primeiro a hospedagem.
 **A contrapartida:** a maioria dos mercados fecha entre 23 e 26 de dezembro (Rathausplatz no dia 26, Spittelberg e Karlsplatz no dia 23), por isso a experiência clássica é no início e em meados de dezembro. Só Schönbrunn e o mercado de inverno da Riesenradplatz continuam até 6 de janeiro de 2027, juntamente com a pista de gelo da Rathausplatz — chega para uma visita entre o Natal e o Ano Novo, mas não é o leque completo.
 
+Viena é um dos oito grandes mercados com datas de 2026 confirmadas — os outros são Budapeste, Colônia, Colmar, Dresden, Basileia, Nuremberg e Zagreb; o nosso [guia de mercados de Natal](/blog/best-christmas-markets-europe-2026) tem todas as datas e quais continuam abertos depois do Natal.
+
 ## 2. Tromsø, Noruega — A aurora no seu melhor
 
 Bem ao norte do Círculo Polar Ártico, Tromsø passa dezembro em noite polar: de sexta, 27 de novembro de 2026, a sexta, 15 de janeiro de 2027, o sol não sobe acima do horizonte. As longas horas de escuridão são o tempo nobre da aurora, e Tromsø fica sob o oval auroral, com operadores que vivem de perseguir céu limpo. É mais ameno do que a latitude sugere (máximas por volta de 0,3 °C), mas caem 109,7 mm de precipitação em 15 dias, e essa nebulosidade é o verdadeiro inimigo.
