@@ -110,6 +110,16 @@ export function createRateLimiter(
   };
 }
 
+// Count and start the window in one atomic step: an EXPIRE sent after the
+// INCR can be lost, leaving a counter that never resets. A blocked hit on a
+// counter with no expiry gives it one, so such a counter resets after a window.
+const INCR_WITH_WINDOW = `
+local count = redis.call("INCR", KEYS[1])
+if count == 1 or (count > tonumber(ARGV[2]) and redis.call("PTTL", KEYS[1]) < 0) then
+  redis.call("PEXPIRE", KEYS[1], ARGV[1])
+end
+return count`;
+
 async function checkRedis(
   client: Redis,
   namespace: string,
@@ -118,15 +128,11 @@ async function checkRedis(
   windowMs: number
 ): Promise<{ allowed: boolean; remaining: number }> {
   const key = `ratelimit:${namespace}:${bucketKey}`;
-  const count = await client.incr(key);
-
-  // First hit in the window — set the TTL. We use EXPIRE rather than
-  // SET+EX so we don't race with a sibling increment that's already past
-  // the first hit.
-  if (count === 1) {
-    const ttlSeconds = Math.max(1, Math.ceil(windowMs / 1000));
-    await client.expire(key, ttlSeconds);
-  }
+  const count = await client.eval<string[], number>(
+    INCR_WITH_WINDOW,
+    [key],
+    [String(windowMs), String(limit)]
+  );
 
   if (count > limit) {
     return { allowed: false, remaining: 0 };
