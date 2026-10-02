@@ -24,6 +24,7 @@ import ActivityCard from "@/components/ActivityCard";
 import TodayPacking from "@/components/trip/TodayPacking";
 import TodayExpenses from "@/components/trip/TodayExpenses";
 import TodayFeed from "@/components/trip/TodayFeed";
+import { weatherCondition } from "@/lib/trips/weather-note";
 import ExpenseQuickAdd from "@/components/trip/ExpenseQuickAdd";
 import { useTodayActions } from "@/lib/today/useTodayActions";
 import { useTripExpenses } from "@/lib/expenses/useTripExpenses";
@@ -78,6 +79,7 @@ export default function TodayView({
   const t = useTranslations("common");
   const tw = useTranslations("trips");
   const locale = useLocale();
+  const weather = weatherNote ? weatherCondition(weatherNote) : null;
 
   const dayNumber = dayState.dayNumber ?? 1;
   const today = useMemo(() => itinerary.find((d) => d.day_number === dayNumber), [itinerary, dayNumber]);
@@ -236,10 +238,11 @@ export default function TodayView({
       <p className="text-sm text-slate-600 mb-1 capitalize">{dateLabel}</p>
       {dayState.timeZoneSource === "viewer" && <p className="text-xs text-slate-400 mb-3">{t("today.deviceTzNote")}</p>}
 
-      {weatherNote && (
+      {/* The condition only: the note's figures are model-invented (lib/trips/weather-note). */}
+      {weather && (
         <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
-          <span aria-hidden>☀️</span>
-          <p className="text-sm text-amber-900">{weatherNote}</p>
+          <span aria-hidden>{weather.icon}</span>
+          <p className="text-sm text-amber-900">{t(`destination.weather.${weather.conditionKey}`)}</p>
         </div>
       )}
 
