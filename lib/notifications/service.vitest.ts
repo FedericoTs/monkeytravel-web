@@ -19,7 +19,7 @@ vi.mock("@/lib/supabase/admin", () => ({
         table === "notifications"
           ? { id: "notification-1" }
           : table === "users"
-            ? { email: "owner@example.test", display_name: "Owner", preferred_language: "en" }
+            ? { email: "owner@example.com", display_name: "Owner", preferred_language: "en" }
             : table === "trips"
               ? { title: "Lisbon long weekend", trip_meta: { destination: "Lisbon, Portugal" } }
               : null;
