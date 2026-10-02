@@ -80,7 +80,8 @@ test.describe("recipient → participant", () => {
       await anon.close();
     }
 
-    // 3. the owner sees them
+    // 3. the owner sees them (the assistant's first open would cover the card on mobile)
+    await page.addInitScript(() => localStorage.setItem("mt_ai_assistant_seen", String(Date.now())));
     await page.goto(`/trips/${TRIP_ID}`);
     await declineConsent(page);
     const card = page.getByTestId("who-is-going");
@@ -88,8 +89,13 @@ test.describe("recipient → participant", () => {
     const row = card.getByTestId("who-is-going-row").filter({ hasText: name });
     await expect(row).toBeVisible();
 
-    // 4. ...and removes them (cleanup doubles as the assertion)
+    // 4. ...and removes them (cleanup doubles as the assertion). The row goes
+    // optimistically, so wait for the server to confirm before reading the list.
+    const removed = page.waitForResponse(
+      (r) => r.request().method() === "DELETE" && r.url().includes(`/api/trips/${TRIP_ID}/participants/`),
+    );
     await row.getByRole("button", { name: /remove|quitar|rimuovi|remover/i }).click();
+    expect((await removed).ok(), "participant removal failed").toBe(true);
     await expect(row).toHaveCount(0);
 
     const list = await request.get(`/api/trips/${TRIP_ID}/participants`);
