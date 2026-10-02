@@ -59,4 +59,24 @@ describe("Today's weather", () => {
   ] as const)("reads %s as %s", (note, key, icon) => {
     expect(weatherCondition(note)).toMatchObject({ conditionKey: key, icon });
   });
+
+  // The note comes in the trip's language.
+  it.each([
+    ["Días soleados y cálidos", "sunny"],
+    ["Caldo torrido, lunghe giornate di sole", "sunny"],
+    ["Ensolarado e quente", "sunny"],
+    ["Nublado y fresco", "cloudy"],
+    ["Nuvoloso con qualche schiarita", "cloudy"],
+    ["Piovoso, con temperature fresche", "rainy"],
+    ["Chuva frequente à tarde", "rainy"],
+    ["Clima mite, possibili piogge", "rainy"],
+    ["Temperaturas frías (0-10°C), posible nieve", "cold"],
+    ["Freddo e nevicate frequenti", "cold"],
+    ["Ventoso en la costa", "windy"],
+    ["Temperature miti e piacevoli", "pleasant"],
+    ["Clima ameno e agradável", "pleasant"],
+    ["La calidad del aire es buena, solo algo de bruma", "mild"],
+  ] as const)("reads %s as %s", (note, key) => {
+    expect(weatherCondition(note).conditionKey).toBe(key);
+  });
 });
