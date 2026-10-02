@@ -96,6 +96,8 @@ January in [Marrakech](/destinations/marrakech) drops daytime highs to a managea
 
 **Avoid in January:** The Maldives in the first week (New Year surcharge inflates rates 15-25%), and any Caribbean island still recovering from late hurricane season — book the second or third week instead.
 
+**The full month guide:** [where to go in January 2027](/blog/where-to-go-in-january), with twelve destinations.
+
 ---
 
 ## February: Carnival, Solar-Maximum Aurora, and Southern Hemisphere Summer Peak
@@ -125,6 +127,8 @@ February in Egypt is close to the platonic ideal of sightseeing weather: Luxor a
 If January didn't work for the aurora, February in Finnish Lapland is statistically as strong, with 70-80% aurora probability on clear nights and noticeably longer daytime activity windows for husky sledding and reindeer safaris. Patagonia's Torres del Paine W Trek hits its single best weather month — more stable winds than January, the autumn light photographers obsess over. Refugio bookings for February need to happen 4-5 months ahead.
 
 **Avoid in February:** Mainland European city breaks for warmth. Paris and Rome are mild but grey, with shorter daylight than the brochures suggest. Save those for March-April or October. Also avoid Bali if you can't tolerate rain — February sits in the heart of the wet season and afternoon storms can run longer than the standard 1-2 hours.
+
+**The full month guide:** [where to go in February 2027](/blog/where-to-go-in-february), with twelve destinations.
 
 ---
 
@@ -161,6 +165,8 @@ Late March in Cartagena is the post-spring-break, pre-rainy-season sweet spot: 2
 
 **Avoid in March:** Tokyo for cherry blossoms unless you're flexible on dates — the 2026 forecast predicts first bloom around March 21 with full bloom (mankai) only by March 28, a 5-7 day window. If sakura is your reason to travel, treat it as an April trip and read the next section.
 
+**The full month guide:** [where to go in March 2027](/blog/where-to-go-in-march), with twelve destinations.
+
 ---
 
 ## April: Sakura, Tulips, and the Mediterranean Before the Crowds
@@ -196,6 +202,8 @@ Keukenhof Gardens is open March 19 to May 10, 2026, with the best tulip displays
 
 **Avoid in April:** Bali during Nyepi (Day of Silence, falls in late March or sometimes early April depending on the lunar calendar). The entire island shuts down — no flights into Denpasar, no internet, no leaving your accommodation. Confirm dates before booking.
 
+**The full month guide:** [where to go in April 2027](/blog/where-to-go-in-april), with twelve destinations.
+
 ---
 
 ## May: Shoulder Season Europe, Inca Trail Dry Season, and the Last Window Before Summer Prices Hit
@@ -230,6 +238,8 @@ May 1 is the start of the four best months for the Inca Trail and surrounding An
 - **Insider tip:** Build in 2 days acclimatizing in Cusco (3,400 m). Don't fly in and trek out the next day. If the Classic Inca Trail is sold out, the Salkantay Trek delivers comparable scenery with no permit system.
 
 **Avoid in May:** Sri Lanka's southwest coast (Colombo, Galle, Mirissa) — the southwest monsoon arrives in May. Flip to the east coast (Trincomalee, Arugam Bay) instead, where dry season starts in May and runs through September.
+
+**The full month guide:** [where to go in May 2027](/blog/where-to-go-in-may), with twelve destinations.
 
 ---
 
@@ -275,6 +285,8 @@ Aegean is warm (22°C), sky is cloudless, the iconic white villages glow against
 
 **Avoid in June:** Cusco unless you've already secured Inca Trail permits — June books out 6 months ahead. The Salkantay Trek is the move if you're improvising. Also avoid Tokyo if rain ruins your trip — the first half is drier than the second, but there are no guarantees.
 
+**The full month guide:** [where to go in June 2027](/blog/where-to-go-in-june), with twelve destinations.
+
 ---
 
 ## July: Peak Season, Festival Season, and the Cool-Escape Strategy
@@ -319,6 +331,8 @@ July sits in the heart of [Bali's](/destinations/bali) dry season. Consistent su
 
 **Avoid in July:** Santorini unless price doesn't matter (July is the most expensive month, with caldera-view rooms at $300-500+). Marrakech unless your riad has a plunge pool (37-40°C+ daytime). Rome and Athens — Mediterranean cities running 35-38°C with no reprieve.
 
+**The full month guide:** [where to go in July 2027](/blog/where-to-go-in-july), with twelve destinations.
+
 ---
 
 ## August: Festivals, Migration River Crossings, and Why You Should Go South Instead
@@ -356,6 +370,8 @@ If July's Masai Mara was the migration's beginning, August is its biggest crossi
 
 **Avoid in August:** The entire Mediterranean coast unless you have already paid. Santorini, Dubrovnik, Amalfi, and the Greek Islands all run their most expensive month with their highest crowds. If you must do the Mediterranean in August, choose Montenegro or Slovenia.
 
+**The full month guide:** [where to go in August 2026](/blog/where-to-go-in-august), with twelve destinations.
+
 ---
 
 ## September: Shoulder-Season Europe at Its Absolute Peak
@@ -390,6 +406,8 @@ September is the tail end of [Bali's](/destinations/bali) dry season. The Novemb
 - **Insider tip:** Diving visibility off Amed exceeds 25 meters in September. Sidemen for rice-terrace views without Ubud's traffic. Munduk in the north for cooler mountain temperatures and waterfalls.
 
 **Avoid in September:** Caribbean and Gulf Coast destinations — September is the statistical peak of Atlantic hurricane season. Travel insurance is mandatory if you go.
+
+**The full month guide:** [where to go in September 2026](/blog/where-to-go-in-september), with twelve destinations.
 
 ---
 
@@ -435,6 +453,8 @@ Oktoberfest 2026 runs September 19 to October 4. The final weekend (October 2-4)
 
 **Avoid in October:** Anywhere expecting Caribbean stability — late hurricane season risk continues through October.
 
+**The full month guide:** [where to go in October 2026](/blog/where-to-go-in-october), with twelve destinations.
+
 ---
 
 ## November: Tokyo Foliage, Pre-Holiday Tropics, and Europe's Quietest Month
@@ -469,6 +489,8 @@ November sees Sri Lanka's east and north coasts entering their dry season — Tr
 - **Insider tip:** Feira da Ladra flea market (Tuesdays and Saturdays) — Lisbon's antique-and-oddity market since the 12th century. Smaller crowds in November mean better bargaining leverage. Arrive before 10 AM. Our [Lisbon 3-day itinerary](/blog/lisbon-3-day-itinerary) covers a full plan.
 
 **Avoid in November:** The entire western Caribbean if your trip overlaps with Thanksgiving — domestic US travel chaos extends to outbound flights, and the Sunday after Thanksgiving is the year's worst flying day.
+
+**The full month guide:** [where to go in November 2026](/blog/where-to-go-in-november), with twelve destinations.
 
 ---
 
@@ -506,6 +528,8 @@ December is the most polarizing month on the calendar. Generic "somewhere warm" 
 - **Insider tip:** December evenings drop to 7-9°C. The rooftop terraces that are essential in summer become less appealing at night. Book a traditional Moroccan dinner inside a riad ($15-25 per person) — tagine, couscous, mint tea by candlelight.
 
 **Avoid in December:** Anywhere on the calendar from December 20 to January 2 if you can shift dates. This 13-day window carries the highest prices of the entire year globally. December 1-15 offers similar weather at 30-50% lower cost in most destinations.
+
+**The full month guide:** [where to go in December 2026](/blog/where-to-go-in-december), with twelve destinations.
 
 ---
 
