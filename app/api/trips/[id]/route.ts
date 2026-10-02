@@ -1,8 +1,9 @@
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { errors, apiSuccess, apiError } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
+import { purgeTripCard } from "@/lib/seo/trip-card-cache";
 import type { ItineraryDay } from "@/types";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import { refreshItineraryPhotos } from "@/lib/places/refreshItineraryPhotos";
@@ -420,6 +421,7 @@ export async function DELETE(request: NextRequest, context: TripRouteContext) {
     // not this user's trip. All three are reported as success, which keeps a
     // double-tap from a stale UI idempotent and tells a prober nothing about
     // whether some other user's trip id exists.
+    if (deleted === true) after(() => purgeTripCard(id));
     return apiSuccess({ success: true, deleted: deleted === true });
   } catch (error) {
     console.error("[Trips] Error soft-deleting trip:", error);

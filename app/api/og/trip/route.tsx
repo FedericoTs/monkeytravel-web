@@ -6,6 +6,7 @@ import { previewClient } from "@/lib/analytics/preview-client";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getTripDestination } from "@/lib/trips/destination";
+import { tripCardTag } from "@/lib/seo/trip-card-cache";
 import { computeTripDayState } from "@/lib/trip/live";
 import { cardFonts } from "@/lib/og/fonts";
 import {
@@ -64,6 +65,7 @@ type TripRow = {
   cover_image_url: string | null;
   itinerary: unknown;
   budget: { total?: number; currency?: string } | null;
+  is_hidden: boolean | null;
 };
 
 function asDays(itinerary: unknown): CardDay[] {
@@ -92,11 +94,11 @@ export async function GET(request: NextRequest) {
   const locale = cardLocale(url.searchParams.get("locale"));
   const logo = `${url.origin}/icon-512.png`;
   const fonts = await cardFonts();
-  const respond = (element: ReactElement, cacheControl: string) =>
+  const respond = (element: ReactElement, cacheControl: string, tag?: string) =>
     new ImageResponse(element, {
       ...CARD_SIZES[format],
       ...(fonts.length > 0 ? { fonts } : {}),
-      headers: { "Cache-Control": cacheControl },
+      headers: { "Cache-Control": cacheControl, ...(tag ? { "Vercel-Cache-Tag": tag } : {}) },
     });
   // Short cache for the brand card: a key can start resolving later (a trip
   // un-deleted, a replica catching up), and a year-long cache of the generic
@@ -110,14 +112,16 @@ export async function GET(request: NextRequest) {
   // without it this would render deleted trips.
   let query = supabase
     .from("trips")
-    .select("id, title, trip_meta, start_date, end_date, cover_image_url, itinerary, budget")
+    .select("id, title, trip_meta, start_date, end_date, cover_image_url, itinerary, budget, is_hidden")
     .is("deleted_at", null);
   if (token && UUID_RE.test(token)) query = query.eq("share_token", token);
-  else if (slug && SLUG_RE.test(slug)) query = query.eq("public_slug", slug);
+  // A slug only names a published trip: the predicate /trip/[slug] uses.
+  else if (slug && SLUG_RE.test(slug)) query = query.eq("public_slug", slug).eq("visibility", "public");
   else return fallback();
 
   const { data, error } = await query.single<TripRow>();
   if (error || !data) return fallback();
+  if (!token && data.is_hidden === true) return fallback();
 
   const destination = getTripDestination({ title: data.title, trip_meta: data.trip_meta });
   const days = asDays(data.itinerary);
@@ -196,7 +200,9 @@ export async function GET(request: NextRequest) {
       format
     ),
     // Scrapers cache aggressively anyway; this keeps repeat unfurls off the
-    // function. s-maxage is what Vercel's CDN reads.
-    "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800"
+    // function. s-maxage is what Vercel's CDN reads; the tag lets a deleted,
+    // unshared or unpublished trip drop its cards (lib/seo/trip-card-cache).
+    "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+    tripCardTag(data.id)
   );
 }
