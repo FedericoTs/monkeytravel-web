@@ -19,6 +19,7 @@ let accountVote: { id: string } | null = null;
 let cookieVote: { id: string } | null = null;
 let tally: Array<{ vote_type: string; voter_cookie_id: string; user_id: string | null }> = [];
 let log: FakeQuery[] = [];
+const enqueue = vi.fn();
 
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => (browserCookie ? { value: browserCookie } : undefined), set: vi.fn() }),
@@ -27,7 +28,7 @@ vi.mock("nanoid", () => ({ nanoid: () => "fresh-browser-id-0001" }));
 vi.mock("@/lib/api/rate-limit", () => ({ createRateLimiter: () => ({ check: async () => ({ allowed: true }) }) }));
 vi.mock("@/lib/analytics/funnel-events", () => ({ logFunnelEventServer: async () => undefined }));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: async () => undefined }));
-vi.mock("@/lib/notifications/service", () => ({ enqueueNotification: async () => undefined }));
+vi.mock("@/lib/notifications/service", () => ({ enqueueNotification: async (args: unknown) => enqueue(args) }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth: { getUser: async () => ({ data: { user: signedIn } }) } }),
 }));
@@ -64,6 +65,7 @@ beforeEach(() => {
   accountVote = null;
   cookieVote = null;
   tally = [];
+  enqueue.mockClear();
 });
 
 describe("POST /api/shared/[token]/vote", () => {
@@ -114,5 +116,16 @@ describe("POST /api/shared/[token]/vote", () => {
     const [removal] = votesOp("delete");
     expect(eqOf(removal, "user_id")).toBe("user-1");
     expect(eqOf(removal, "voter_cookie_id")).toBeUndefined();
+  });
+  it("tells the owner about a guest's first vote", async () => {
+    await vote({ vote_type: "up" });
+    expect(enqueue).toHaveBeenCalledWith(expect.objectContaining({ userId: "owner-1" }));
+  });
+
+  it("doesn't tell the owner about their own vote", async () => {
+    signedIn = { id: "owner-1" };
+    await vote({ vote_type: "up" });
+    expect(votesOp("insert")).toHaveLength(1);
+    expect(enqueue).not.toHaveBeenCalled();
   });
 });

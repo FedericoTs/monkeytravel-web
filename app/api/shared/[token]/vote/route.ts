@@ -223,9 +223,9 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
       // Crew Loop notification: tell the trip owner their crew is voting —
       // only on this voter's FIRST vote row for the trip (throttle above),
-      // never on revotes/removals. enqueueNotification is best-effort and
-      // swallows its own failures.
-      if (isVotersFirstVoteOnTrip && trip.user_id) {
+      // never on revotes/removals, and not for the owner's own vote.
+      // enqueueNotification is best-effort and swallows its own failures.
+      if (isVotersFirstVoteOnTrip && trip.user_id && trip.user_id !== userId) {
         void enqueueNotification({
           userId: trip.user_id as string,
           notification: {
