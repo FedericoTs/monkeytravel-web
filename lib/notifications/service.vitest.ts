@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const dispatchEmail = vi.fn(async () => undefined);
 const dispatchPush = vi.fn(async () => ({ ok: true }));
+let tripLookupError: { message: string } | null = null;
 
 vi.mock("@/lib/email/send", () => ({ dispatchEmail }));
 vi.mock("@/lib/push/dispatch", () => ({ dispatchPush }));
@@ -27,8 +28,10 @@ vi.mock("@/lib/supabase/admin", () => ({
         insert: () => chain,
         select: () => chain,
         eq: () => chain,
+        is: () => chain,
         single: async () => ({ data: row, error: null }),
-        maybeSingle: async () => ({ data: row, error: null }),
+        maybeSingle: async () =>
+          table === "trips" && tripLookupError ? { data: null, error: tripLookupError } : { data: row, error: null },
       };
       return chain;
     },
@@ -61,6 +64,7 @@ const pushBody = () => (dispatchPush.mock.calls.at(-1) as unknown as [string, { 
 beforeEach(() => {
   dispatchEmail.mockClear();
   dispatchPush.mockClear();
+  tripLookupError = null;
 });
 
 describe("collab_vote email and push", () => {
@@ -70,11 +74,12 @@ describe("collab_vote email and push", () => {
     expect(emailProps()).toMatchObject({ tripTitle: "Lisbon long weekend", tripDestination: "Lisbon, Portugal" });
   });
 
+  // The same emoji the voter tapped in the app.
   it.each([
-    ["flexible", "🤷"],
-    ["concerns", "⚠️"],
+    ["flexible", "👌"],
+    ["concerns", "🤔"],
     ["no", "👎"],
-    ["love", "❤️"],
+    ["love", "😍"],
   ] as const)("report a %s vote as %s, not as no", async (kind, emoji) => {
     await vote({ vote_type: kind === "love" ? "up" : "down", vote: kind });
     await vi.waitFor(() => expect(dispatchPush).toHaveBeenCalledTimes(1));
@@ -91,5 +96,22 @@ describe("collab_vote email and push", () => {
     await vote({ vote_type: "down" });
     await vi.waitFor(() => expect(dispatchEmail).toHaveBeenCalledTimes(1));
     expect(emailProps().voteType).toBe("no");
+  });
+
+  it("say why the email didn't go when the trip can't be read", async () => {
+    tripLookupError = { message: "statement timeout" };
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      await vote({ vote_type: "up", vote: "love" });
+      await vi.waitFor(() =>
+        expect(logged).toHaveBeenCalledWith(
+          "[notifications] email lookup failed",
+          expect.objectContaining({ table: "trips", error: "statement timeout" }),
+        ),
+      );
+      expect(dispatchEmail).not.toHaveBeenCalled();
+    } finally {
+      logged.mockRestore();
+    }
   });
 });

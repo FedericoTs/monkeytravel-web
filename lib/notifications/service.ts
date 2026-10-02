@@ -28,10 +28,8 @@ import type {
   NotificationRow,
   NotificationType,
 } from "./types";
-import type { VoteType } from "@/types";
+import { VOTE_INFO, type VoteType } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
-
-const VOTE_EMOJI: Record<VoteType, string> = { love: "❤️", flexible: "🤷", concerns: "⚠️", no: "👎" };
 
 /** The vote a collab_vote records; older rows only say up or down. */
 const voteOf = (data: CollabVotePayload): VoteType =>
@@ -114,22 +112,31 @@ async function dispatchEmailForNotification(args: {
 
   try {
     const admin = createAdminClient();
-    const { data: profile } = await admin
+    const { data: profile, error: profileError } = await admin
       .from("users")
       .select("email, display_name, preferred_language")
       .eq("id", args.userId)
       .maybeSingle();
+    if (profileError) {
+      console.error("[notifications] email lookup failed", { notificationId: args.notificationId, table: "users", error: profileError.message });
+      return;
+    }
 
     // No email on file (rare — only happens for users we created from a
     // social-only signup without ever capturing email). Nothing to do.
     if (!profile?.email) return;
 
     const data = args.notification.data;
-    const { data: trip } = await admin
+    const { data: trip, error: tripError } = await admin
       .from("trips")
       .select("title, trip_meta")
       .eq("id", data.trip_id)
+      .is("deleted_at", null)
       .maybeSingle();
+    if (tripError) {
+      console.error("[notifications] email lookup failed", { notificationId: args.notificationId, table: "trips", error: tripError.message });
+      return;
+    }
     if (!trip) return;
     const APP_URL =
       process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
@@ -202,7 +209,7 @@ async function dispatchPushForNotification(args: {
           // lib/push/types.ts when a new bell type starts pushing.
           type: "collab_activity_added" as PushNotificationType,
           title: `${d.voter_name} voted`,
-          body: `${VOTE_EMOJI[voteOf(d)]} on "${d.activity_label}"`,
+          body: `${VOTE_INFO[voteOf(d)].emoji} on "${d.activity_label}"`,
           sound: "default",
           data: {
             url: d.href ?? `/trips/${d.trip_id}`,
