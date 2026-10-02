@@ -3,14 +3,20 @@ import { NextRequest } from "next/server";
 
 /**
  * A member's expense records who paid and splits equally across the trip's
- * members. Without either, compute_trip_settlements skipped it, so Settle Up
- * never counted what members added in the ledger.
+ * group (lib/trips/roster). Without either, compute_trip_settlements skipped
+ * it, so Settle Up never counted what members added in the ledger.
  */
 
 type Row = Record<string, unknown>;
 const log: { table: string; op: string; value?: unknown; filter?: [string, unknown][] }[] = [];
 let displayName: string | null = "Sam";
 let existingSplits: Row[] = [];
+let participants: Row[] = [];
+const collaborators = [
+  { user_id: "mate-1", role: "editor" },
+  { user_id: "voter-1", role: "voter" },
+  { user_id: "viewer-1", role: "viewer" },
+];
 /** "table:op" that answers with an error. */
 let failing: string | null = null;
 const previous = { amount: 120, currency: "EUR", category: "food", description: "Dinner", spent_on: "2026-10-01" };
@@ -23,7 +29,8 @@ function chainFor(table: string) {
     if (failing === `${table}:${op}`) return { data: null, error: { message: "boom" } };
     if (table === "users") return { data: { display_name: displayName }, error: null };
     if (table === "trips") return { data: { user_id: "owner-1" }, error: null };
-    if (table === "trip_collaborators") return { data: [{ user_id: "mate-1" }, { user_id: "voter-1" }], error: null };
+    if (table === "trip_collaborators") return { data: collaborators, error: null };
+    if (table === "trip_participants") return { data: participants, error: null };
     if (table === "trip_expenses" && op === "select") return { data: previous, error: null };
     if (table === "trip_expenses") return { data: { id: "exp-1", ...(value as Row) }, error: null };
     if (table === "trip_expense_splits" && op === "select") return { data: existingSplits, error: null };
@@ -37,6 +44,7 @@ function chainFor(table: string) {
     upsert: (v: unknown) => ((op = "upsert"), (value = v), chain),
     delete: () => ((op = "delete"), chain),
     eq: (k: string, v: unknown) => (filters.push([k, v]), chain),
+    is: () => chain,
     order: () => chain,
     single: async () => (record(), result()),
     maybeSingle: async () => (record(), result()),
@@ -52,6 +60,8 @@ vi.mock("@/lib/api/auth", () => ({
     supabase: { from: (table: string) => chainFor(table) },
   }),
 }));
+// The roster reads the "I'm going" list with the service role.
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ from: (table: string) => chainFor(table) }) }));
 
 const { POST, PATCH } = await import("./route");
 const ctx = { params: Promise.resolve({ id: "trip-1" }) };
@@ -63,11 +73,13 @@ beforeEach(() => {
   log.length = 0;
   displayName = "Sam";
   existingSplits = [];
+  participants = [];
   failing = null;
 });
 
 describe("POST /api/trips/[id]/expenses", () => {
-  it("records the member as payer and splits across owner and collaborators", async () => {
+  it("records the member as payer and splits across the owner, editors, voters and anyone going", async () => {
+    participants = [{ participant_cookie_id: "guest-cookie-1", user_id: null, display_name: "Bo" }];
     const res = await POST(req("POST", { amount: 100, currency: "EUR", category: "food" }), ctx);
     expect(res.status).toBe(200);
     expect(ops("trip_expenses", "insert")[0].value).toMatchObject({
@@ -77,9 +89,22 @@ describe("POST /api/trips/[id]/expenses", () => {
       created_by_name: "Sam",
     });
     const splits = ops("trip_expense_splits", "insert")[0].value as Row[];
-    expect(splits.map((s) => s.user_id)).toEqual(["owner-1", "mate-1", "voter-1"]);
-    expect(splits.map((s) => s.share_amount)).toEqual([33.34, 33.33, 33.33]);
+    // The viewer isn't charged; the guest who said they're going is.
+    expect(splits.map((s) => [s.user_id, s.participant_cookie_id, s.share_amount])).toEqual([
+      ["owner-1", null, 25],
+      ["mate-1", null, 25],
+      ["voter-1", null, 25],
+      [null, "guest-cookie-1", 25],
+    ]);
+    expect(splits[3].participant_name).toBe("Bo");
     expect(splits.every((s) => s.expense_id === "exp-1")).toBe(true);
+  });
+
+  it("charges a viewer once they say they're going", async () => {
+    participants = [{ participant_cookie_id: "viewer-cookie-1", user_id: "viewer-1", display_name: "Vi" }];
+    await POST(req("POST", { amount: 100, currency: "EUR", category: "food" }), ctx);
+    const splits = ops("trip_expense_splits", "insert")[0].value as Row[];
+    expect(splits.map((s) => s.user_id)).toEqual(["owner-1", "mate-1", "voter-1", "viewer-1"]);
   });
 
   it("never shows an email-like name as the payer", async () => {

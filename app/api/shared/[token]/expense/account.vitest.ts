@@ -33,6 +33,7 @@ vi.mock("@/lib/supabase/admin", () => ({
     const fake = fakeSupabase((q) => {
       if (q.table === "trips") return { data: { id: "trip-1", user_id: "owner-1", trip_meta: {}, budget: { currency: "EUR" } }, error: null };
       if (q.table === "trip_collaborators") {
+        if (q.end === "list") return { data: collaborators.map((id) => ({ user_id: id, role: "editor" })), error: null };
         const id = eqOf(q, "user_id") as string;
         return { data: collaborators.includes(id) ? { user_id: id } : null, error: null };
       }
@@ -108,6 +109,19 @@ describe("POST /api/shared/[token]/expense", () => {
       paid_by_user_id: "user-9",
       paid_by_cookie_id: null,
     });
+  });
+
+  it("shares a guest's payment with the trip's editors too, not only those going", async () => {
+    browserCookie = "guest-cookie-1";
+    collaborators = ["editor-2"];
+    participants = [{ participant_cookie_id: "guest-cookie-1", user_id: null, display_name: "Bo" }];
+    await send({ amount: "30" });
+    const splits = ops("trip_expense_splits", "insert")[0].value as Array<Record<string, unknown>>;
+    expect(splits.map((s) => [s.user_id, s.participant_cookie_id, s.share_amount])).toEqual([
+      ["owner-1", null, 10],
+      ["editor-2", null, 10],
+      [null, "guest-cookie-1", 10],
+    ]);
   });
 
   it("records a guest who pays by their browser", async () => {

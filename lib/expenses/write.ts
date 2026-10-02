@@ -6,6 +6,7 @@ import { captureServerEvent } from "@/lib/posthog/server";
 import { isUuid } from "@/lib/participants/shared";
 import { isTodayActor, resolveTodayPerson, storedCookie } from "@/lib/today/actor";
 import type { TodayRequester } from "@/lib/today/write";
+import { expenseCohort, tripRoster } from "@/lib/trips/roster";
 import { centsToAmount, normalizeCurrency, parseAmountToCents, parseExpenseCategory, splitEquallyCents } from "./shared";
 
 /**
@@ -77,31 +78,13 @@ export async function writeTripExpense(
   const person = await resolveTodayPerson(admin, trip, user, cookieId);
   const actorName = person.name;
 
-  // Split cohort: active participants + the owner, unified and deduped by key.
-  const { data: participants } = await admin
-    .from("trip_participants")
-    .select("participant_cookie_id, user_id, display_name")
-    .eq("trip_id", trip.id)
-    .is("left_at", null);
-  type Member = { userId: string | null; cookieId: string | null; name: string | null };
-  const cohort = new Map<string, Member>();
-  const add = (m: Member) => {
-    const key = m.userId ? `u:${m.userId}` : m.cookieId ? `c:${m.cookieId}` : null;
-    if (key && !cohort.has(key)) cohort.set(key, m);
-  };
-  // The owner always shares.
-  add({ userId: trip.user_id as string, cookieId: null, name: null });
-  for (const p of participants ?? []) {
-    add({
-      userId: (p.user_id as string | null) ?? null,
-      cookieId: (p.participant_cookie_id as string | null) ?? null,
-      name: (p.display_name as string | null) ?? null,
-    });
+  // Split across the trip's group, the payer included once (lib/trips/roster).
+  const { roster, error: rosterError } = await tripRoster(admin, trip);
+  if (rosterError) {
+    console.error("[expense] group lookup failed:", rosterError);
+    return errors.internal("Could not save the expense", "Expense");
   }
-  // The payer shares too, even if they haven't tapped "I'm going".
-  add({ userId: person.userId, cookieId: storedCookie(person), name: actorName });
-
-  const members = [...cohort.values()];
+  const members = expenseCohort(roster, { userId: person.userId, cookieId: storedCookie(person), name: actorName });
   const shares = splitEquallyCents(amountCents, members.length);
 
   const { data: inserted, error: insErr } = await admin
