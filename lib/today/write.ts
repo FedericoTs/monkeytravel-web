@@ -5,7 +5,7 @@ import { errors } from "@/lib/api/response-wrapper";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { suggestNearbyAlternative } from "@/lib/ai/nearby-alternative";
 import { isUuid } from "@/lib/participants/shared";
-import { parseTodayActionType, RUNNING_LATE_STEP_MINUTES, TODAY_CHANGED_EVENT, todayChannel } from "./actions";
+import { parseTodayActionType, RUNNING_LATE_STEP_MINUTES, TODAY_CHANGED_EVENT, TODAY_CHANNEL_OPTIONS, todayChannel } from "./actions";
 import { isTodayActor, resolveTodayPerson, storedCookie } from "./actor";
 
 /**
@@ -31,9 +31,15 @@ export interface TodayRequester {
   cookieId: string | null;
 }
 
-/** Everyone on this trip's Today re-fetches on this ping; it carries no data, so the table needs no public read. */
+/**
+ * Everyone on this trip's Today re-fetches on this ping; it carries no data, so
+ * the table needs no public read. Sent on the private channel, which only the
+ * service role can send on.
+ */
 export function announceTodayChange(admin: SupabaseClient, tripId: string): void {
-  after(() => admin.channel(todayChannel(tripId)).httpSend(TODAY_CHANGED_EVENT, {}).then(() => undefined, () => undefined));
+  after(() =>
+    admin.channel(todayChannel(tripId), TODAY_CHANNEL_OPTIONS).httpSend(TODAY_CHANGED_EVENT, {}).then(() => undefined, () => undefined),
+  );
 }
 
 /** Applies or undoes a chip. Returns the error to answer with, or null once the change is written. */

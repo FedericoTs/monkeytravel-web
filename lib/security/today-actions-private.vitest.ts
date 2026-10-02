@@ -34,9 +34,11 @@ describe("trip_today_actions has no public read path", () => {
 
   it("the Today hook listens to the broadcast both routes send after each change", () => {
     const hook = read("lib/today/useTodayActions.ts");
-    expect(hook).toMatch(/\.channel\(todayChannel\(tripId\)\)/);
+    expect(hook).toMatch(/\.channel\(todayChannel\(tripId\), TODAY_CHANNEL_OPTIONS\)/);
     expect(hook).toMatch(/\.on\("broadcast", \{ event: TODAY_CHANGED_EVENT \}/);
-    expect(read("lib/today/write.ts")).toMatch(/admin\.channel\(todayChannel\(tripId\)\)\.httpSend\(TODAY_CHANGED_EVENT, \{\}\)/);
+    expect(read("lib/today/write.ts")).toMatch(
+      /admin\.channel\(todayChannel\(tripId\), TODAY_CHANNEL_OPTIONS\)\.httpSend\(TODAY_CHANGED_EVENT, \{\}\)/,
+    );
     for (const route of ["app/api/shared/[token]/today-action/route.ts", "app/api/trips/[id]/today/today-action/route.ts"]) {
       expect(read(route), route).toContain("announceTodayChange(admin, trip.id);");
     }
@@ -58,5 +60,25 @@ describe("trip_today_actions has no public read path", () => {
     const entry = baseline.find((t) => t.table === "trip_today_actions");
     expect(entry?.grants).toEqual({});
     expect(entry?.policies).toEqual([]);
+  });
+});
+
+/**
+ * As a public channel, anyone with the public key could send "changed" and
+ * make every open Today refetch. Private, anyone may listen but only the
+ * server may send: verified live that a public-key send, on either the public
+ * or the private channel, never reaches a private listener.
+ */
+describe("Today's live channel takes sends from the server only", () => {
+  it("the screen and the server both use the private channel", () => {
+    expect(read("lib/today/actions.ts")).toContain("export const TODAY_CHANNEL_OPTIONS = { config: { private: true } };");
+  });
+
+  it("clients may listen on Today topics, and no migration lets them send", () => {
+    const sql = read("supabase/migrations/20261002200000_today_channel_private.sql");
+    expect(sql).toMatch(/for select\s+to anon, authenticated\s+using \(realtime\.topic\(\) like 'trip-today:%'/);
+    const migrations = readdirSync(path.join(ROOT, "supabase/migrations")).map((name) => read(`supabase/migrations/${name}`));
+    const sendPolicies = migrations.filter((m) => /on realtime\.messages\s+for (insert|all|update)/i.test(m));
+    expect(sendPolicies).toEqual([]);
   });
 });

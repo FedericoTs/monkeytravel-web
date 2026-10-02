@@ -24,11 +24,13 @@ export function parseTodayActionType(value: unknown): TodayActionType | null {
 }
 
 /**
- * The broadcast a trip's chip changes are announced on. The message carries
- * nothing: listeners re-fetch through /api/shared/[token]/today-actions, so
- * the table itself is never read from the browser.
+ * The broadcast a trip's chip and payment changes are announced on. The
+ * message carries nothing: listeners re-fetch through Today's routes, so the
+ * tables are never read from the browser. The channel is private: anyone may
+ * listen, but only the server may send (realtime.messages policy).
  */
 export const todayChannel = (tripId: string) => `trip-today:${tripId}`;
+export const TODAY_CHANNEL_OPTIONS = { config: { private: true } };
 export const TODAY_CHANGED_EVENT = "changed";
 
 /** Minutes a single "running late" adds. Fixed so the chip stays one tap. */

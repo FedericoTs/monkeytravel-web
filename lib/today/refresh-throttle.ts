@@ -1,9 +1,8 @@
 /**
- * Refreshing Today when its live channel says something changed. Anyone who
- * has seen the trip can send on that channel, so its events must not turn
- * into unbounded reads: refreshes run at most once per `gapMs`, never two at
- * once, and a burst ends in one trailing refresh so the last change is never
- * missed.
+ * Refreshing Today when its live channel says something changed. A busy group
+ * can change many things at once, so events must not turn into unbounded
+ * reads: refreshes run at most once per `gapMs`, never two at once, and a
+ * burst ends in one trailing refresh so the last change is never missed.
  */
 export const TODAY_REFRESH_GAP_MS = 3_000;
 
