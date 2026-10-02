@@ -29,12 +29,17 @@ import { publicNameOrNull } from "@/lib/profile/public-name";
  * Equal shares across the trip's members (owner and collaborators).
  * compute_trip_settlements only counts an expense with a payer and shares,
  * so without them a member's expense never reached Settle Up.
+ * Returns the error that stopped it, if any.
  */
 async function insertMemberSplits(supabase: SupabaseClient, tripId: string, expenseId: string, amount: number) {
-  const [{ data: trip }, { data: collaborators }] = await Promise.all([
+  const [{ data: trip, error: tripError }, { data: collaborators, error: collaboratorsError }] = await Promise.all([
     supabase.from("trips").select("user_id").eq("id", tripId).maybeSingle(),
     supabase.from("trip_collaborators").select("user_id").eq("trip_id", tripId),
   ]);
+  if (tripError || collaboratorsError) {
+    console.error("[expenses] member lookup failed", tripError ?? collaboratorsError);
+    return tripError ?? collaboratorsError;
+  }
   const members = [...new Set([trip?.user_id, ...(collaborators ?? []).map((c) => c.user_id)])].filter(
     (id): id is string => typeof id === "string",
   );
@@ -43,24 +48,30 @@ async function insertMemberSplits(supabase: SupabaseClient, tripId: string, expe
     .from("trip_expense_splits")
     .insert(members.map((userId, i) => ({ expense_id: expenseId, user_id: userId, share_amount: centsToAmount(shares[i]) })));
   if (error) console.error("[expenses] split insert failed", error);
+  return error;
 }
 
 /** A new amount re-divides the existing shares: same people, settled flags kept. */
 async function resplit(supabase: SupabaseClient, tripId: string, expenseId: string, amount: number) {
-  const { data: existing } = await supabase
+  const { data: existing, error: readError } = await supabase
     .from("trip_expense_splits")
     .select("id")
     .eq("expense_id", expenseId)
     .order("created_at", { ascending: true })
     .order("id", { ascending: true });
+  if (readError) {
+    console.error("[expenses] split read failed", readError);
+    return readError;
+  }
   if (!existing || existing.length === 0) return insertMemberSplits(supabase, tripId, expenseId, amount);
   const shares = splitEquallyCents(Math.round(amount * 100), existing.length);
-  const results = await Promise.all(
-    existing.map((s, i) =>
-      supabase.from("trip_expense_splits").update({ share_amount: centsToAmount(shares[i]) }).eq("id", s.id),
-    ),
+  // One statement, so the shares change together or not at all.
+  const { error } = await supabase.from("trip_expense_splits").upsert(
+    existing.map((s, i) => ({ id: s.id, expense_id: expenseId, share_amount: centsToAmount(shares[i]) })),
+    { onConflict: "id" },
   );
-  for (const r of results) if (r.error) console.error("[expenses] split update failed", r.error);
+  if (error) console.error("[expenses] split update failed", error);
+  return error;
 }
 
 const VALID_CATEGORIES = [
@@ -248,7 +259,13 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       return errors.internal("Failed to create expense", "expenses");
     }
 
-    await insertMemberSplits(supabase, tripId, data.id, parsed.amount);
+    const splitError = await insertMemberSplits(supabase, tripId, data.id, parsed.amount);
+    if (splitError) {
+      // Without shares the expense never reaches Settle Up: don't keep half of it.
+      const { error: undoError } = await supabase.from("trip_expenses").delete().eq("id", data.id);
+      if (undoError) console.error("[expenses POST] undo failed", undoError);
+      return errors.internal("Failed to create expense", "expenses");
+    }
     return apiSuccess({ expense: data });
   } catch (err) {
     console.error("[expenses POST] unexpected", err);
@@ -297,6 +314,18 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
       return errors.badRequest("no editable fields supplied");
     }
 
+    // The shares follow the amount. If they can't, the edit is undone.
+    let before: Record<string, unknown> | null = null;
+    if (typeof update.amount === "number") {
+      const { data: previous } = await supabase
+        .from("trip_expenses")
+        .select("amount, currency, category, description, spent_on")
+        .eq("id", expenseId)
+        .eq("trip_id", tripId)
+        .maybeSingle();
+      before = previous;
+    }
+
     const { data, error } = await supabase
       .from("trip_expenses")
       .update(update)
@@ -319,7 +348,18 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
       return errors.notFound("Expense not found");
     }
 
-    if (typeof update.amount === "number") await resplit(supabase, tripId, expenseId, update.amount);
+    if (typeof update.amount === "number" && (await resplit(supabase, tripId, expenseId, update.amount))) {
+      if (before) {
+        const restore = Object.fromEntries(Object.keys(update).map((k) => [k, before[k]]));
+        const { error: undoError } = await supabase
+          .from("trip_expenses")
+          .update(restore)
+          .eq("id", expenseId)
+          .eq("trip_id", tripId);
+        if (undoError) console.error("[expenses PATCH] undo failed", undoError);
+      }
+      return errors.internal("Failed to update expense", "expenses");
+    }
     void user;
     return apiSuccess({ expense: data });
   } catch (err) {
