@@ -22,10 +22,12 @@ interface TodayExpensesProps {
   onRemove: (expenseId: string) => void;
   /** Map activity id → name, to label expenses logged on an activity. */
   activityName: (id: string | null) => string | null;
+  /** Opens Settle Up; members only, so only the trip page passes it. */
+  onSettleUp?: () => void;
   className?: string;
 }
 
-export default function TodayExpenses({ expenses, summary, busy, error, onAdd, onRemove, activityName, className = "" }: TodayExpensesProps) {
+export default function TodayExpenses({ expenses, summary, busy, error, onAdd, onRemove, activityName, onSettleUp, className = "" }: TodayExpensesProps) {
   const t = useTranslations("common");
   const locale = useLocale();
 
@@ -64,6 +66,17 @@ export default function TodayExpenses({ expenses, summary, busy, error, onAdd, o
             <span className="text-sm font-semibold text-[var(--primary-ink)]">{t("today.expenses.youOwe", { amount: money(-net) })}</span>
           ) : (
             <span className="text-sm text-slate-500">{t("today.expenses.settledUp")}</span>
+          )}
+          {onSettleUp && (
+            <button
+              type="button"
+              onClick={onSettleUp}
+              aria-haspopup="dialog"
+              className="ml-auto rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200"
+              data-testid="today-settle-up"
+            >
+              {t("expenses.settle.openButton")}
+            </button>
           )}
         </div>
       )}

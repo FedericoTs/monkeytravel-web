@@ -53,6 +53,8 @@ interface TodayViewProps {
   apiBase?: string;
   /** The trip's packing list, for the "Packed?" checklist (Phase 3.4). */
   packingItems?: string[];
+  /** Opens Settle Up from the expense panel; the trip page passes it for members. */
+  onSettleUp?: () => void;
   className?: string;
 }
 
@@ -78,6 +80,7 @@ export default function TodayView({
   tripId,
   apiBase,
   packingItems,
+  onSettleUp,
   className = "",
 }: TodayViewProps) {
   const t = useTranslations("common");
@@ -283,6 +286,7 @@ export default function TodayView({
           onAdd={(amt) => expenses.add({ amount: amt })}
           onRemove={expenses.remove}
           activityName={activityNameOf}
+          onSettleUp={onSettleUp}
           className="mb-4"
         />
       )}
