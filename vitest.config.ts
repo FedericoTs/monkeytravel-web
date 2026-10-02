@@ -7,10 +7,8 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
-    // Only pick up files explicitly tagged as tests. We don't want vitest
-    // to wander into the .next/ build output or the existing one-off
-    // lib/proposals/consensus.test.ts (which is unrelated and not
-    // structured as a vitest suite).
+    // Only pick up files explicitly tagged as tests, so vitest never
+    // wanders into the .next/ build output.
     include: ["**/*.vitest.ts", "**/*.vitest.tsx"],
     exclude: ["node_modules/**", ".next/**", "dist/**"],
   },

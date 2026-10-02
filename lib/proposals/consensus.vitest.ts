@@ -2,7 +2,6 @@
  * Proposal Consensus Algorithm Tests
  *
  * Stress tests for all consensus scenarios to ensure correct behavior.
- * Run with: npx tsx lib/proposals/consensus.test.ts
  *
  * 4-Level Voting System:
  * - love: +2 (strong positive)
@@ -11,6 +10,7 @@
  * - no: -2 (strong negative)
  */
 
+import { describe, expect, it } from "vitest";
 import {
   calculateProposalConsensus,
   groupProposalsBySlot,
@@ -382,196 +382,90 @@ const testCases: TestCase[] = [
 ];
 
 // Run tests
-function runTests(): void {
-  console.log('\n=== PROPOSAL CONSENSUS ALGORITHM TESTS (4-LEVEL VOTING) ===\n');
 
-  let passed = 0;
-  let failed = 0;
-
-  for (const test of testCases) {
-    const result = calculateProposalConsensus(test.input);
-    const errors: string[] = [];
-
-    // Check each expected property
-    for (const [key, expectedValue] of Object.entries(test.expected)) {
-      const actualValue = result[key as keyof ProposalConsensusResult];
-
-      if (Array.isArray(expectedValue)) {
-        // Compare arrays
-        const actualArray = actualValue as string[];
-        if (
-          expectedValue.length !== actualArray.length ||
-          !expectedValue.every((v, i) => v === actualArray[i])
-        ) {
-          errors.push(`  ${key}: expected ${JSON.stringify(expectedValue)}, got ${JSON.stringify(actualArray)}`);
-        }
-      } else if (typeof expectedValue === 'number') {
-        // Compare numbers with tolerance
-        if (Math.abs((actualValue as number) - expectedValue) > 0.01) {
-          errors.push(`  ${key}: expected ${expectedValue}, got ${actualValue}`);
-        }
+describe("calculateProposalConsensus", () => {
+  it.each(testCases)("$name", ({ input, expected }) => {
+    const result = calculateProposalConsensus(input);
+    for (const [key, value] of Object.entries(expected)) {
+      const actual = result[key as keyof ProposalConsensusResult];
+      if (typeof value === "number") {
+        expect(Math.abs((actual as number) - value), key).toBeLessThanOrEqual(0.01);
       } else {
-        // Direct comparison
-        if (actualValue !== expectedValue) {
-          errors.push(`  ${key}: expected ${expectedValue}, got ${actualValue}`);
-        }
+        expect(actual, key).toEqual(value);
       }
     }
+  });
+});
 
-    if (errors.length === 0) {
-      console.log(`✅ ${test.name}`);
-      passed++;
-    } else {
-      console.log(`❌ ${test.name}`);
-      errors.forEach(e => console.log(e));
-      failed++;
-    }
-  }
+describe("determineTournamentWinner", () => {
+  const slot = (id: string) => ({ id, target_day: 0, target_time_slot: "morning" });
+  const results = (entries: Array<[string, Partial<ProposalConsensusResult>]>) =>
+    new Map(entries.map(([id, r]) => [id, r as ProposalConsensusResult]));
 
-  console.log(`\n=== RESULTS: ${passed} passed, ${failed} failed ===\n`);
+  it("a single approved proposal wins", () => {
+    const outcome = determineTournamentWinner([slot("p1")], results([["p1", { status: "approved", score: 2 }]]));
+    expect(outcome.status).toBe("winner");
+    expect(outcome.winner?.id).toBe("p1");
+  });
 
-  // Additional stress tests
-  runTournamentTests();
-  runSlotGroupingTests();
-  runVoteSummaryTests();
-}
+  it("the higher-scored approved proposal wins", () => {
+    const outcome = determineTournamentWinner(
+      [slot("p1"), slot("p2")],
+      results([["p1", { status: "approved", score: 2 }], ["p2", { status: "voting", score: 0.5 }]])
+    );
+    expect(outcome.status).toBe("winner");
+    expect(outcome.winner?.id).toBe("p1");
+  });
 
-function runTournamentTests(): void {
-  console.log('\n=== TOURNAMENT TESTS ===\n');
+  it("equal scores are a tie", () => {
+    const outcome = determineTournamentWinner(
+      [slot("p1"), slot("p2")],
+      results([["p1", { status: "likely_approve", score: 1.5 }], ["p2", { status: "likely_approve", score: 1.5 }]])
+    );
+    expect(outcome.status).toBe("tie");
+  });
 
-  // Test 1: Single proposal approved
-  const singleApproved = determineTournamentWinner(
-    [{ id: 'p1', target_day: 0, target_time_slot: 'morning' }],
-    new Map([['p1', { status: 'approved', score: 2 } as ProposalConsensusResult]])
-  );
-  console.log(
-    singleApproved.status === 'winner' && singleApproved.winner?.id === 'p1'
-      ? '✅ Single approved proposal wins'
-      : '❌ Single approved proposal should win'
-  );
+  it("pending votes mean it is still voting", () => {
+    const outcome = determineTournamentWinner(
+      [slot("p1"), slot("p2")],
+      results([["p1", { status: "waiting", score: 0 }], ["p2", { status: "voting", score: 0.5 }]])
+    );
+    expect(outcome.status).toBe("voting");
+  });
+});
 
-  // Test 2: Multiple proposals, one clearly wins
-  const clearWinner = determineTournamentWinner(
-    [
-      { id: 'p1', target_day: 0, target_time_slot: 'morning' },
-      { id: 'p2', target_day: 0, target_time_slot: 'morning' },
-    ],
-    new Map([
-      ['p1', { status: 'approved', score: 2 } as ProposalConsensusResult],
-      ['p2', { status: 'voting', score: 0.5 } as ProposalConsensusResult],
-    ])
-  );
-  console.log(
-    clearWinner.status === 'winner' && clearWinner.winner?.id === 'p1'
-      ? '✅ Higher scored approved proposal wins'
-      : '❌ Higher scored approved proposal should win'
-  );
+describe("groupProposalsBySlot", () => {
+  it("groups proposals by day and time slot", () => {
+    const grouped = groupProposalsBySlot([
+      { id: "p1", target_day: 0, target_time_slot: "morning" },
+      { id: "p2", target_day: 0, target_time_slot: "morning" },
+      { id: "p3", target_day: 0, target_time_slot: "afternoon" },
+      { id: "p4", target_day: 1, target_time_slot: "morning" },
+    ]);
+    expect(grouped.get("0-morning")?.length).toBe(2);
+    expect(grouped.get("0-afternoon")?.length).toBe(1);
+    expect(grouped.get("1-morning")?.length).toBe(1);
+    expect(grouped.size).toBe(3);
+  });
+});
 
-  // Test 3: Tie
-  const tie = determineTournamentWinner(
-    [
-      { id: 'p1', target_day: 0, target_time_slot: 'morning' },
-      { id: 'p2', target_day: 0, target_time_slot: 'morning' },
-    ],
-    new Map([
-      ['p1', { status: 'likely_approve', score: 1.5 } as ProposalConsensusResult],
-      ['p2', { status: 'likely_approve', score: 1.5 } as ProposalConsensusResult],
-    ])
-  );
-  console.log(
-    tie.status === 'tie'
-      ? '✅ Equal scores result in tie'
-      : '❌ Equal scores should result in tie'
-  );
+describe("calculateVoteSummary", () => {
+  it("counts each of the four votes", () => {
+    const summary = calculateVoteSummary([
+      createVote("user1", "love"),
+      createVote("user2", "flexible"),
+      createVote("user3", "concerns", "test-proposal", "Some concern"),
+      createVote("user4", "no", "test-proposal", "Skip this"),
+    ]);
+    expect(summary).toMatchObject({ love: 1, flexible: 1, concerns: 1, no: 1, total: 4 });
+  });
 
-  // Test 4: Still voting
-  const stillVoting = determineTournamentWinner(
-    [
-      { id: 'p1', target_day: 0, target_time_slot: 'morning' },
-      { id: 'p2', target_day: 0, target_time_slot: 'morning' },
-    ],
-    new Map([
-      ['p1', { status: 'waiting', score: 0 } as ProposalConsensusResult],
-      ['p2', { status: 'voting', score: 0.5 } as ProposalConsensusResult],
-    ])
-  );
-  console.log(
-    stillVoting.status === 'voting'
-      ? '✅ Pending votes means still voting'
-      : '❌ Pending votes should mean still voting'
-  );
-}
-
-function runSlotGroupingTests(): void {
-  console.log('\n=== SLOT GROUPING TESTS ===\n');
-
-  const proposals = [
-    { id: 'p1', target_day: 0, target_time_slot: 'morning' },
-    { id: 'p2', target_day: 0, target_time_slot: 'morning' },
-    { id: 'p3', target_day: 0, target_time_slot: 'afternoon' },
-    { id: 'p4', target_day: 1, target_time_slot: 'morning' },
-  ];
-
-  const grouped = groupProposalsBySlot(proposals);
-
-  console.log(
-    grouped.get('0-morning')?.length === 2
-      ? '✅ Morning slot groups 2 proposals'
-      : '❌ Morning slot should have 2 proposals'
-  );
-
-  console.log(
-    grouped.get('0-afternoon')?.length === 1
-      ? '✅ Afternoon slot groups 1 proposal'
-      : '❌ Afternoon slot should have 1 proposal'
-  );
-
-  console.log(
-    grouped.get('1-morning')?.length === 1
-      ? '✅ Day 1 morning groups 1 proposal'
-      : '❌ Day 1 morning should have 1 proposal'
-  );
-
-  console.log(
-    grouped.size === 3
-      ? '✅ Total 3 slot groups'
-      : '❌ Should have 3 slot groups'
-  );
-}
-
-function runVoteSummaryTests(): void {
-  console.log('\n=== VOTE SUMMARY TESTS (4-LEVEL) ===\n');
-
-  const votes: TestVote[] = [
-    createVote('user1', 'love'),
-    createVote('user2', 'flexible'),
-    createVote('user3', 'concerns', 'test-proposal', 'Some concern'),
-    createVote('user4', 'no', 'test-proposal', 'Skip this'),
-  ];
-
-  const summary = calculateVoteSummary(votes);
-
-  console.log(
-    summary.love === 1 && summary.flexible === 1 && summary.concerns === 1 && summary.no === 1 && summary.total === 4
-      ? '✅ Vote summary correctly calculated (4-level)'
-      : `❌ Vote summary incorrect: love=${summary.love}, flexible=${summary.flexible}, concerns=${summary.concerns}, no=${summary.no}, total=${summary.total}`
-  );
-
-  // Test with only positive votes
-  const positiveVotes: TestVote[] = [
-    createVote('user1', 'love'),
-    createVote('user2', 'love'),
-    createVote('user3', 'flexible'),
-  ];
-
-  const positiveSummary = calculateVoteSummary(positiveVotes);
-
-  console.log(
-    positiveSummary.love === 2 && positiveSummary.flexible === 1 && positiveSummary.concerns === 0 && positiveSummary.no === 0
-      ? '✅ Positive-only vote summary correct'
-      : '❌ Positive-only vote summary incorrect'
-  );
-}
-
-// Run all tests
-runTests();
+  it("counts positive-only votes", () => {
+    const summary = calculateVoteSummary([
+      createVote("user1", "love"),
+      createVote("user2", "love"),
+      createVote("user3", "flexible"),
+    ]);
+    expect(summary).toMatchObject({ love: 2, flexible: 1, concerns: 0, no: 0 });
+  });
+});
