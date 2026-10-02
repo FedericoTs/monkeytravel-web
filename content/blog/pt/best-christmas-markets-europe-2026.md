@@ -64,7 +64,7 @@ A regra do Advento já se provou útil: dos três mercados que anunciaram entre 
 
 Um dos dois que abrem primeiro (o outro é Budapeste), e o que menos parece um mercado e mais uma produção em escala de cidade: a prefeitura neogótica iluminada de baixo, uma pista de patinação serpenteando pelo parque atrás e uma alameda arborizada de barracas. A verdadeira vantagem de Viena é a densidade: o do Rathausplatz é a manchete, mas Spittelberg, Karlsplatz e o Freyung ficam a um bonde de distância e têm caráter bem diferente.
 
-**Quanto custa de verdade:** uma caneca de *Punsch* sai por € 5–6 mais um depósito de € 3–5 pela caneca, devolvido na entrega. Hotéis de padrão médio no primeiro distrito sobem forte ao longo de dezembro; a semana de 13 a 20 de novembro é bem mais barata e o mercado já está a pleno vapor.
+**Quanto custa de verdade:** uma caneca de *Punsch* sai por € 5–6 mais um depósito de € 3–5 pela caneca, devolvido na entrega. Hotéis de faixa intermediária no primeiro distrito sobem forte ao longo de dezembro; a semana de 13 a 20 de novembro é bem mais barata e o mercado já está a pleno vapor.
 
 **O outro lado:** está entre os mais cheios nos fins de semana de dezembro, e as barracas do Rathausplatz são bastante turísticas. Vá num dia útil e use Spittelberg como antídoto.
 
