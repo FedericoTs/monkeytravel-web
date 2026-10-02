@@ -1402,7 +1402,6 @@
     "grants": {
       "anon": [
         "DELETE",
-        "SELECT",
         "UPDATE"
       ],
       "authenticated": [
@@ -1424,11 +1423,11 @@
       },
       {
         "cmd": "SELECT",
-        "name": "referral_codes_select_consolidated",
+        "name": "referral_codes_select_own",
         "roles": [
-          "public"
+          "authenticated"
         ],
-        "using": "true",
+        "using": "(user_id = ( SELECT auth.uid() AS uid))",
         "permissive": true,
         "with_check": null
       }

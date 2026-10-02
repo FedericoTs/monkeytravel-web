@@ -260,8 +260,9 @@ END $$;
 -- ============================================================================
 -- TEST GROUP 5: referral_codes.SELECT
 -- ============================================================================
--- Old policies OR'd to `true` (public can view by code). New policy = true.
--- Sanity: everyone (incl. user_c) can read the row.
+-- Old policies OR'd to `true` (public can view by code). Now only the
+-- owner reads a code (migration referral_codes_owner_only); lookups by code
+-- run on the server with the service role.
 -- ============================================================================
 
 DO $$
@@ -277,7 +278,7 @@ BEGIN
 
   PERFORM set_config('request.jwt.claim.sub', v_user_c::text, true);
   SELECT count(*) INTO v_count FROM public.referral_codes WHERE code = 'CODE-A';
-  ASSERT v_count = 1, format('stranger user_c should also see code by-code (public lookup), saw %s', v_count);
+  ASSERT v_count = 0, format('stranger user_c should not see another user''s code, saw %s', v_count);
 
   RAISE NOTICE 'GROUP 5 referral_codes.SELECT: PASS';
 END $$;

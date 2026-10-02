@@ -6,7 +6,8 @@ import path from "node:path";
  * A referral code is readable only by its owner. Every lookup of someone
  * else's code (the join page, click tracking, the referee's completion) runs
  * on the server with the service role. These guards fail if one of them goes
- * back to a client that RLS limits to the caller's own code.
+ * back to a client that RLS limits to the caller's own code, or if the table
+ * opens up to other readers again.
  */
 
 const ROOT = path.resolve(__dirname, "../..");
@@ -29,5 +30,19 @@ describe("referral codes are looked up on the server", () => {
     const src = read("lib/referral/completion.ts");
     expect(src).toMatch(/await adminDb\s*\.from\("referral_codes"\)/);
     expect(src).not.toMatch(/supabase\s*\.from\("referral_codes"\)/);
+  });
+
+  it("the committed RLS baseline lets only a code's owner read it", () => {
+    const baseline = JSON.parse(read("supabase/rls-baseline.json")) as Array<{
+      table: string;
+      grants: Record<string, string[]>;
+      policies: Array<{ cmd: string; roles: string[]; using: string | null }>;
+    }>;
+    const entry = baseline.find((t) => t.table === "referral_codes")!;
+    expect(entry.grants.anon ?? []).not.toContain("SELECT");
+    const reads = entry.policies.filter((p) => p.cmd === "SELECT" || p.cmd === "ALL");
+    expect(reads).toEqual([
+      expect.objectContaining({ roles: ["authenticated"], using: "(user_id = ( SELECT auth.uid() AS uid))" }),
+    ]);
   });
 });
