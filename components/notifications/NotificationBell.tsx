@@ -265,8 +265,16 @@ function NotificationItem({
   notification: NotificationRow;
   onClick: () => void;
 }) {
+  const t = useTranslations("common.share.notifications");
   const unread = !notification.read_at;
-  const message = (notification.payload?.message as string) ?? "Update";
+  const { name, tripName } = notification.payload ?? {};
+  // "I'm going" reads in the viewer's language; other types keep their stored line.
+  const message =
+    notification.type === "crew_joined" && typeof tripName === "string"
+      ? typeof name === "string" && name
+        ? t("crewJoined", { name, trip: tripName })
+        : t("crewJoinedSomeone", { trip: tripName })
+      : ((notification.payload?.message as string) ?? "Update");
   const href = (notification.payload?.href as string | undefined) ?? null;
   const created = new Date(notification.created_at);
   const timeAgo = formatTimeAgo(created);

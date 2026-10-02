@@ -15,6 +15,7 @@ export type NotificationType =
   | "invite_accepted"
   | "trip_shared"
   | "anon_vote"
+  | "crew_joined"
   | "system";
 
 /**
@@ -80,6 +81,18 @@ export interface AnonVotePayload extends BasePayload {
   voterName: string | null;
 }
 
+/**
+ * Someone said "I'm going" on a shared trip, the first time for that trip.
+ * The bell shows their current name, read from their "I'm going" row when
+ * the list loads: a guest gives a name only after the tap.
+ */
+export interface CrewJoinedPayload extends BasePayload {
+  trip_id: string;
+  tripName: string;
+  participant_id: string;
+  name: string | null;
+}
+
 export interface SystemPayload extends BasePayload {
   category?: "release_note" | "billing" | "outage" | "tip";
 }
@@ -91,6 +104,7 @@ export type NotificationPayload =
   | { type: "invite_accepted"; data: InviteAcceptedPayload }
   | { type: "trip_shared"; data: TripSharedPayload }
   | { type: "anon_vote"; data: AnonVotePayload }
+  | { type: "crew_joined"; data: CrewJoinedPayload }
   | { type: "system"; data: SystemPayload };
 
 /**
