@@ -18,8 +18,8 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
 
-    // Find the referral code
-    const { data: referralCode, error: codeError } = await supabase
+    // Find the referral code, on the server: only a code's owner can read it.
+    const { data: referralCode, error: codeError } = await createAdminClient()
       .from("referral_codes")
       .select("id, user_id")
       .eq("code", code.toUpperCase())

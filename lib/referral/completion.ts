@@ -91,8 +91,13 @@ export async function completeReferralIfEligible(
       };
     }
 
+    // Privileged client, created up front: the referrer's code is not
+    // readable by the referee, and the claim and reward path below write
+    // through it too (see the notes at each step).
+    const adminDb = createAdminClient();
+
     // Find the referrer's code
-    const { data: referralCode, error: codeError } = await supabase
+    const { data: referralCode, error: codeError } = await adminDb
       .from("referral_codes")
       .select("id, user_id, total_conversions")
       .eq("code", currentUser.referred_by_code)
@@ -110,10 +115,6 @@ export async function completeReferralIfEligible(
     }
 
     const now = new Date().toISOString();
-
-    // Privileged-write client, created up front. The claim below and the
-    // reward path both go through it (see the notes at each step).
-    const adminDb = createAdminClient();
 
     // 1. Grant reward to referee (current user)
     // Note: free_trips_remaining column was deprecated 2026-05-31 — it was

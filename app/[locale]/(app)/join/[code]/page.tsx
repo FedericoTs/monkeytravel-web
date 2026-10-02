@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ReferralLandingClient from "./ReferralLandingClient";
@@ -11,8 +12,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { code } = await params;
   const supabase = await createClient();
 
-  // Find the referrer
-  const { data: referralCode } = await supabase
+  // Find the referrer. Codes are looked up here, on the server: only a
+  // code's owner can read it from the client.
+  const { data: referralCode } = await createAdminClient()
     .from("referral_codes")
     .select("user_id")
     .eq("code", code.toUpperCase())
@@ -56,8 +58,8 @@ export default async function ReferralLandingPage({ params }: PageProps) {
   const { code } = await params;
   const supabase = await createClient();
 
-  // Find the referral code
-  const { data: referralCode, error } = await supabase
+  // Find the referral code (on the server, as above)
+  const { data: referralCode, error } = await createAdminClient()
     .from("referral_codes")
     .select("id, code, user_id")
     .eq("code", code.toUpperCase())
