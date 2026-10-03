@@ -165,7 +165,7 @@ A Anse Source d'Argent, em La Digue — rochas de granito, areia rosada, águas 
 
 ## 8. Islândia — A lua de mel anti-lua de mel
 
-Teatral de um jeito que nenhum destino de praia é. A Blue Lagoon enquanto a neve cai. Caçar a aurora cruzando um campo de lava escuro. Dirigir a Ring Road sem nenhum outro carro por quilômetros. Cavernas de gelo glacial em que você entra a pé. Gêiseres, cachoeiras, praias de areia preta. É a lua de mel anti-lua de mel — e, para o casal certo, é incomparável. A [Islândia](/destinations/iceland) não entrega os estereótipos da lua de mel tropical; ela entrega histórias de paisagem que vão virar "a vez em que fizemos nossa lua de mel na Islândia e foi a melhor decisão que já tomamos".
+Teatral de um jeito que nenhum destino de praia é. A Blue Lagoon enquanto a neve cai. Caçar a aurora cruzando um campo de lava escuro. Dirigir a Ring Road sem nenhum outro carro por quilômetros. Cavernas de gelo glacial em que você entra a pé. Gêiseres, cachoeiras, praias de areia preta. É a lua de mel anti-lua de mel — e, para o casal certo, é incomparável. A Islândia não entrega os estereótipos da lua de mel tropical; ela entrega histórias de paisagem que vão virar "a vez em que fizemos nossa lua de mel na Islândia e foi a melhor decisão que já tomamos".
 
 **Melhor época para visitar:** de setembro a março para auroras boreais e cavernas de gelo (pico de dezembro a fevereiro). Junho-julho para o sol da meia-noite, acesso às terras altas e colônias de papagaios-do-mar. As duas versões são dramáticas; escolha qual combina com a sua estética. Evite o fim de outubro a novembro (a escuridão está começando, mas as cavernas de gelo ainda não estão abertas e o clima é genuinamente difícil).
 

@@ -340,4 +340,4 @@ Le 15 citta di questa lista dimostrano che il miglior cibo d'Europa non e dietro
 
 Scegli una citta. Fissa il tuo budget per il cibo. Lascia che l'AI di MonkeyTravel costruisca un itinerario gastronomico giorno per giorno con ristoranti, mercati e piatti specifici — tutto calibrato su quanto vuoi spendere.
 
-**[Pianifica il Mio Viaggio Gastronomico Gratis →](/trip-planner)**
+**[Pianifica il Mio Viaggio Gastronomico Gratis →](/trips/new)**

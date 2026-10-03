@@ -33,7 +33,7 @@ Here is the truer framing. **Spring and summer aren't one travel season. They're
 
 Pick the goal first. Pick the destination second. That order matters because most disappointing summer trips happen when people pick a postcard destination and then realize their actual goal was something else.
 
-What follows is a single guide consolidating three earlier MonkeyTravel posts (the [summer destinations list](/blog/best-summer-destinations-2026), the [coolcation list](/blog/coolcation-destinations-2026), and the [spring break list](/blog/spring-break-destinations-2026)) into one editorial pass. Twelve destinations in the quick-pick table, then deep dives organized by what you actually want. I have cut filler. I have called out the picks I personally skip. And I have kept the real numbers — temperatures, daily budgets, crowd levels — that let you decide.
+What follows is a single guide consolidating three earlier MonkeyTravel posts (the summer destinations list, the coolcation list, and the spring break list) into one editorial pass. Twelve destinations in the quick-pick table, then deep dives organized by what you actually want. I have cut filler. I have called out the picks I personally skip. And I have kept the real numbers — temperatures, daily budgets, crowd levels — that let you decide.
 
 A note on dates: when I say "shoulder season starts late May," I mean western Europe. Greek islands shoulder is different. The decision flow at the end of the post will sort that out.
 
@@ -46,17 +46,17 @@ This table consolidates the strongest picks from the three source posts. Use it 
 | Destination | Best for | Avg temp (May–Aug) | Daily budget | What makes it special |
 |---|---|---|---|---|
 | [Santorini, Greece](/destinations/santorini) | Hot beach | 26-30°C | $150-220 | Caldera sunsets, near-zero rain, the Aegean at 25°C |
-| [Amalfi Coast, Italy](/destinations/amalfi-coast) | Hot beach | 27-32°C | $180-280 | Lemon groves at peak, hairpin coast road, July sea |
-| [Algarve, Portugal](/destinations/algarve) | Hot beach (value) | 25-30°C | $80-130 | Best-value beaches in Western Europe, sea caves |
+| Amalfi Coast, Italy | Hot beach | 27-32°C | $180-280 | Lemon groves at peak, hairpin coast road, July sea |
+| Algarve, Portugal | Hot beach (value) | 25-30°C | $80-130 | Best-value beaches in Western Europe, sea caves |
 | [Bali, Indonesia](/destinations/bali) | Hot beach (luxury value) | 27-30°C | $50-90 | Dry season, surf, $25 massages, $80 pool villas |
-| [Iceland](/destinations/iceland) | Cool escape | 12-15°C | $150-250 | 20+ hours daylight, ring road, geothermal pools |
-| [Norwegian Fjords](/destinations/norway) | Cool escape | 12-20°C | $140-250 | Trolltunga, Lofoten arctic beaches, Flåm Railway |
-| [Scotland](/destinations/scotland) | Cool escape | 12-18°C | $130-200 | NC500, Edinburgh Fringe in August, Highland walks |
-| [Hokkaido, Japan](/destinations/hokkaido) | Cool escape | 18-25°C | $100-180 | Lavender fields, summer Japan without the swelter |
+| Iceland | Cool escape | 12-15°C | $150-250 | 20+ hours daylight, ring road, geothermal pools |
+| Norwegian Fjords | Cool escape | 12-20°C | $140-250 | Trolltunga, Lofoten arctic beaches, Flåm Railway |
+| Scotland | Cool escape | 12-18°C | $130-200 | NC500, Edinburgh Fringe in August, Highland walks |
+| Hokkaido, Japan | Cool escape | 18-25°C | $100-180 | Lavender fields, summer Japan without the swelter |
 | [Lisbon, Portugal](/destinations/lisbon) | Shoulder value | 17-25°C in spring | $75-120 | Capital culture at secondary-city prices |
-| [Albuquerque, USA](/destinations/albuquerque) | Spring value | 14-22°C in spring | $80-120 | New Mexico chili food culture, Sandia tramway |
-| [Cartagena, Colombia](/destinations/cartagena) | Spring value | 28-32°C in spring | $65-110 | Walled UNESCO city, Caribbean prices that work |
-| [Slovenia](/destinations/slovenia) | Shoulder value (cool) | 18-25°C | $80-140 | Lake Bled, Soca river, the Alps without Swiss prices |
+| Albuquerque, USA | Spring value | 14-22°C in spring | $80-120 | New Mexico chili food culture, Sandia tramway |
+| Cartagena, Colombia | Spring value | 28-32°C in spring | $65-110 | Walled UNESCO city, Caribbean prices that work |
+| Slovenia | Shoulder value (cool) | 18-25°C | $80-140 | Lake Bled, Soca river, the Alps without Swiss prices |
 
 Now: the three sections.
 

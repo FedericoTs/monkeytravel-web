@@ -40,7 +40,7 @@ Ecco l'inquadramento più onesto. **Primavera ed estate non sono un'unica stagio
 
 Scegli prima l'obiettivo. Scegli la destinazione dopo. Quell'ordine conta perché la maggior parte dei viaggi estivi deludenti accade quando le persone scelgono una destinazione da cartolina e poi si rendono conto che il loro vero obiettivo era qualcos'altro.
 
-Quello che segue è una guida unica che consolida tre post precedenti di MonkeyTravel (la [classifica delle destinazioni estive](/it/blog/best-summer-destinations-2026), la [classifica delle coolcation](/it/blog/coolcation-destinations-2026) e la [classifica dello spring break](/it/blog/spring-break-destinations-2026)) in una sola passata editoriale. Dodici destinazioni nella tabella rapida, poi approfondimenti organizzati per ciò che vuoi davvero. Ho tagliato il superfluo. Ho segnalato le scelte che personalmente salto. E ho tenuto i numeri reali — temperature, budget giornalieri, livelli di affluenza — che ti permettono di decidere.
+Quello che segue è una guida unica che consolida tre post precedenti di MonkeyTravel (la classifica delle destinazioni estive, la classifica delle coolcation e la classifica dello spring break) in una sola passata editoriale. Dodici destinazioni nella tabella rapida, poi approfondimenti organizzati per ciò che vuoi davvero. Ho tagliato il superfluo. Ho segnalato le scelte che personalmente salto. E ho tenuto i numeri reali — temperature, budget giornalieri, livelli di affluenza — che ti permettono di decidere.
 
 Una nota sulle date: quando dico "la mezza stagione inizia a fine maggio", intendo Europa occidentale. La mezza stagione nelle isole greche è diversa. Il flusso decisionale alla fine del post lo chiarirà.
 
@@ -53,17 +53,17 @@ Questa tabella consolida le scelte più forti dai tre post originali. Usala per 
 | Destinazione | Ideale per | Temp. media (mag-ago) | Budget giornaliero | Cosa la rende speciale |
 |---|---|---|---|---|
 | [Santorini, Grecia](/it/destinations/santorini) | Spiaggia con caldo | 26-30 °C | 150-220 $ | Tramonti sulla caldera, pioggia quasi nulla, Egeo a 25 °C |
-| [Costiera Amalfitana, Italia](/it/destinations/amalfi-coast) | Spiaggia con caldo | 27-32 °C | 180-280 $ | Limonaie al picco, strada panoramica a tornanti, mare di luglio |
-| [Algarve, Portogallo](/it/destinations/algarve) | Spiaggia con caldo (valore) | 25-30 °C | 80-130 $ | Le spiagge con il miglior rapporto qualità-prezzo dell'Europa occidentale, grotte marine |
+| Costiera Amalfitana, Italia | Spiaggia con caldo | 27-32 °C | 180-280 $ | Limonaie al picco, strada panoramica a tornanti, mare di luglio |
+| Algarve, Portogallo | Spiaggia con caldo (valore) | 25-30 °C | 80-130 $ | Le spiagge con il miglior rapporto qualità-prezzo dell'Europa occidentale, grotte marine |
 | [Bali, Indonesia](/it/destinations/bali) | Spiaggia con caldo (lusso accessibile) | 27-30 °C | 50-90 $ | Stagione secca, surf, massaggi a 25 $, ville con piscina a 80 $ |
-| [Islanda](/it/destinations/iceland) | Fuga dal caldo | 12-15 °C | 150-250 $ | Oltre 20 ore di luce, Ring Road, piscine geotermali |
-| [Fiordi norvegesi](/it/destinations/norway) | Fuga dal caldo | 12-20 °C | 140-250 $ | Trolltunga, spiagge artiche delle Lofoten, Ferrovia di Flåm |
-| [Scozia](/it/destinations/scotland) | Fuga dal caldo | 12-18 °C | 130-200 $ | NC500, Edinburgh Fringe ad agosto, camminate nelle Highlands |
-| [Hokkaido, Giappone](/it/destinations/hokkaido) | Fuga dal caldo | 18-25 °C | 100-180 $ | Campi di lavanda, Giappone d'estate senza l'afa |
+| Islanda | Fuga dal caldo | 12-15 °C | 150-250 $ | Oltre 20 ore di luce, Ring Road, piscine geotermali |
+| Fiordi norvegesi | Fuga dal caldo | 12-20 °C | 140-250 $ | Trolltunga, spiagge artiche delle Lofoten, Ferrovia di Flåm |
+| Scozia | Fuga dal caldo | 12-18 °C | 130-200 $ | NC500, Edinburgh Fringe ad agosto, camminate nelle Highlands |
+| Hokkaido, Giappone | Fuga dal caldo | 18-25 °C | 100-180 $ | Campi di lavanda, Giappone d'estate senza l'afa |
 | [Lisbona, Portogallo](/it/destinations/lisbon) | Valore di mezza stagione | 17-25 °C in primavera | 75-120 $ | Cultura da capitale a prezzi da città secondaria |
-| [Albuquerque, USA](/it/destinations/albuquerque) | Valore primaverile | 14-22 °C in primavera | 80-120 $ | Cultura gastronomica del chili del New Mexico, funivia di Sandia |
-| [Cartagena, Colombia](/it/destinations/cartagena) | Valore primaverile | 28-32 °C in primavera | 65-110 $ | Città murata UNESCO, prezzi caraibici che funzionano |
-| [Slovenia](/it/destinations/slovenia) | Valore di mezza stagione (fresco) | 18-25 °C | 80-140 $ | Lago di Bled, fiume Soča, le Alpi senza prezzi svizzeri |
+| Albuquerque, USA | Valore primaverile | 14-22 °C in primavera | 80-120 $ | Cultura gastronomica del chili del New Mexico, funivia di Sandia |
+| Cartagena, Colombia | Valore primaverile | 28-32 °C in primavera | 65-110 $ | Città murata UNESCO, prezzi caraibici che funzionano |
+| Slovenia | Valore di mezza stagione (fresco) | 18-25 °C | 80-140 $ | Lago di Bled, fiume Soča, le Alpi senza prezzi svizzeri |
 
 Ora: le tre sezioni.
 

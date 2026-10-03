@@ -40,7 +40,7 @@ Este es el encuadre más sincero. **La primavera y el verano no son una sola tem
 
 Elige primero el objetivo. Elige el destino después. Ese orden importa porque la mayoría de los viajes de verano decepcionantes suceden cuando la gente elige un destino de postal y luego se da cuenta de que su objetivo real era otra cosa.
 
-Lo que sigue es una guía única que consolida tres posts anteriores de MonkeyTravel (la [lista de destinos de verano](/es/blog/best-summer-destinations-2026), la [lista de coolcation](/es/blog/coolcation-destinations-2026) y la [lista de spring break](/es/blog/spring-break-destinations-2026)) en una sola pasada editorial. Doce destinos en la tabla rápida, luego inmersiones profundas organizadas por lo que realmente quieres. He recortado paja. He señalado las opciones que personalmente me salto. Y he mantenido los números reales — temperaturas, presupuestos diarios, niveles de afluencia — para que puedas decidir.
+Lo que sigue es una guía única que consolida tres posts anteriores de MonkeyTravel (la lista de destinos de verano, la lista de coolcation y la lista de spring break) en una sola pasada editorial. Doce destinos en la tabla rápida, luego inmersiones profundas organizadas por lo que realmente quieres. He recortado paja. He señalado las opciones que personalmente me salto. Y he mantenido los números reales — temperaturas, presupuestos diarios, niveles de afluencia — para que puedas decidir.
 
 Una nota sobre las fechas: cuando digo "la temporada media empieza a finales de mayo", me refiero a Europa Occidental. La temporada media en las islas griegas es distinta. El flujo de decisión al final del post lo dejará claro.
 
@@ -53,17 +53,17 @@ Esta tabla consolida las opciones más fuertes de los tres posts originales. Ús
 | Destino | Ideal para | Temp. media (may-ago) | Presupuesto diario | Qué lo hace especial |
 |---|---|---|---|---|
 | [Santorini, Grecia](/es/destinations/santorini) | Playa con calor | 26-30 °C | 150-220 $ | Atardeceres en la caldera, lluvia casi nula, Egeo a 25 °C |
-| [Costa Amalfitana, Italia](/es/destinations/amalfi-coast) | Playa con calor | 27-32 °C | 180-280 $ | Limonares en pleno apogeo, carretera de curvas cerradas, mar de julio |
-| [Algarve, Portugal](/es/destinations/algarve) | Playa con calor (valor) | 25-30 °C | 80-130 $ | Las playas con mejor relación calidad-precio de Europa Occidental, cuevas marinas |
+| Costa Amalfitana, Italia | Playa con calor | 27-32 °C | 180-280 $ | Limonares en pleno apogeo, carretera de curvas cerradas, mar de julio |
+| Algarve, Portugal | Playa con calor (valor) | 25-30 °C | 80-130 $ | Las playas con mejor relación calidad-precio de Europa Occidental, cuevas marinas |
 | [Bali, Indonesia](/es/destinations/bali) | Playa con calor (lujo asequible) | 27-30 °C | 50-90 $ | Estación seca, surf, masajes a 25 $, villas con piscina a 80 $ |
-| [Islandia](/es/destinations/iceland) | Huir del calor | 12-15 °C | 150-250 $ | 20+ horas de luz, Ring Road, piscinas geotérmicas |
-| [Fiordos noruegos](/es/destinations/norway) | Huir del calor | 12-20 °C | 140-250 $ | Trolltunga, playas árticas de Lofoten, ferrocarril de Flåm |
-| [Escocia](/es/destinations/scotland) | Huir del calor | 12-18 °C | 130-200 $ | NC500, Edinburgh Fringe en agosto, caminatas en las Highlands |
-| [Hokkaido, Japón](/es/destinations/hokkaido) | Huir del calor | 18-25 °C | 100-180 $ | Campos de lavanda, Japón en verano sin el sofoco |
+| Islandia | Huir del calor | 12-15 °C | 150-250 $ | 20+ horas de luz, Ring Road, piscinas geotérmicas |
+| Fiordos noruegos | Huir del calor | 12-20 °C | 140-250 $ | Trolltunga, playas árticas de Lofoten, ferrocarril de Flåm |
+| Escocia | Huir del calor | 12-18 °C | 130-200 $ | NC500, Edinburgh Fringe en agosto, caminatas en las Highlands |
+| Hokkaido, Japón | Huir del calor | 18-25 °C | 100-180 $ | Campos de lavanda, Japón en verano sin el sofoco |
 | [Lisboa, Portugal](/es/destinations/lisbon) | Valor de temporada media | 17-25 °C en primavera | 75-120 $ | Cultura capital a precios de ciudad secundaria |
-| [Albuquerque, EE. UU.](/es/destinations/albuquerque) | Valor de primavera | 14-22 °C en primavera | 80-120 $ | Cultura gastronómica de chile de Nuevo México, teleférico de Sandía |
-| [Cartagena, Colombia](/es/destinations/cartagena) | Valor de primavera | 28-32 °C en primavera | 65-110 $ | Ciudad amurallada UNESCO, precios caribeños que sí funcionan |
-| [Eslovenia](/es/destinations/slovenia) | Valor de temporada media (fresco) | 18-25 °C | 80-140 $ | Lago Bled, río Soča, los Alpes sin precios suizos |
+| Albuquerque, EE. UU. | Valor de primavera | 14-22 °C en primavera | 80-120 $ | Cultura gastronómica de chile de Nuevo México, teleférico de Sandía |
+| Cartagena, Colombia | Valor de primavera | 28-32 °C en primavera | 65-110 $ | Ciudad amurallada UNESCO, precios caribeños que sí funcionan |
+| Eslovenia | Valor de temporada media (fresco) | 18-25 °C | 80-140 $ | Lago Bled, río Soča, los Alpes sin precios suizos |
 
 Ahora: las tres secciones.
 

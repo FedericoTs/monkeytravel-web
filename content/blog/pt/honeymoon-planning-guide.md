@@ -55,7 +55,7 @@ Faixas de orçamento reais, com o que cada uma de fato entrega:
 
 - **Pouco conhecida (US$ 2.000–4.500):** Bacalar (México), Sri Lanka, Creta, Eslovênia, Açores
 - **Conforto (US$ 4.500–8.000):** [Bali](/destinations/bali), Tulum, [Lisboa](/destinations/lisbon) + Algarve, Montenegro, Puerto Vallarta, Zanzibar
-- **Premium (US$ 8.000–15.000):** [Santorini](/destinations/santorini), Costa Amalfitana, [Japão](/destinations/japan), Santa Lúcia, Lago de Como, Islândia
+- **Premium (US$ 8.000–15.000):** [Santorini](/destinations/santorini), Costa Amalfitana, Japão, Santa Lúcia, Lago de Como, Islândia
 - **Aspiracional (mais de US$ 15.000):** Maldivas overwater, ilhas privativas das Seychelles, Bora Bora, combo safári africano + Zanzibar, Glacier Express da Suíça + chalé privativo
 
 Uma observação sobre esses números: eles pressupõem duas pessoas, dez noites no total, e incluem voos de ida e volta em classe econômica a partir de um grande hub dos EUA ou da Europa. Casais que voam de aeroportos secundários acrescentam US$ 300–800 por pessoa. Casais que voam em classe executiva acrescentam muito mais. A faixa não muda; o custo do voo, sim.
@@ -66,7 +66,7 @@ Uma observação sobre esses números: eles pressupõem duas pessoas, dez noites
 
 Estes são os destinos que rendem acima do preço. Não são "luas de mel baratas". São luas de mel em lugares onde o seu dinheiro compra o que US$ 8.000 compram em Santorini. A troca é a fama — esses lugares ainda não estão na primeira página do Instagram, e é por isso que os preços continuam racionais.
 
-### [Bacalar](/destinations/bacalar), México
+### Bacalar, México
 
 **Por que é romântico:** uma lagoa de água doce com sete tons distintos de azul causados pelas profundidades sobre areia branca e nascentes de cenotes. Pequenos hotéis boutique bem na beira da água, com caiaques e pranchas de stand-up incluídos. Sem redes hoteleiras. Sem faixa de resorts. A lagoa ao amanhecer é o tipo de coisa que faz os recém-casados sentarem num deque e não dizerem nada por meia hora, o que é mais do que se pode dizer da maioria dos destinos "românticos".
 
@@ -76,7 +76,7 @@ Estes são os destinos que rendem acima do preço. Não são "luas de mel barata
 
 **Minha opinião:** isto é o que Tulum era em 2014. Três horas ao sul de Cancún de carro, três horas ao sul de Tulum, e a diferença entre Tulum e Bacalar agora é a diferença entre palapas de US$ 400/noite e palapas de US$ 50/noite — para uma hospedagem provavelmente mais romântica. Vá antes que alguém famoso fotografe o lugar.
 
-### [Sri Lanka](/destinations/sri-lanka)
+### Sri Lanka
 
 **Por que é romântico:** experiências cinco estrelas a preços de duas estrelas. Hotéis boutique à beira-mar em Mirissa por US$ 40–70 a noite, massagens ayurvédicas de noventa minutos para dois por US$ 30–40, atum e camarão frescos na grelha da praia por US$ 15. E então — este é o upgrade escondido — você pode dirigir duas horas para o interior e estar na região do chá com a neblina rolando sobre encostas esmeralda, depois mais duas horas e está na Fortaleza-Palácio de Sigiriya, um palácio de 1.500 anos sobre um monólito de 200 metros.
 
@@ -86,7 +86,7 @@ Estes são os destinos que rendem acima do preço. Não são "luas de mel barata
 
 **Minha opinião:** o destino de lua de mel mais subestimado da Ásia. Casais que querem textura — praia, mais plantações de chá, mais ruínas, mais vida selvagem — obtêm aqui mais do que em qualquer viagem tropical de destino único pelo triplo do preço.
 
-### [Creta](/destinations/crete), Grécia
+### Creta, Grécia
 
 **Por que é romântico:** Grécia sem o imposto Santorini. O porto veneziano de Chania na hora dourada com suas tavernas à beira-mar, a trilha do Desfiladeiro de Samaria (o mais longo da Europa, US$ 5 de entrada), a areia rosada de Elafonisi. O que Santorini não tem e Creta tem: escala. Aqui você pode desaparecer.
 
@@ -96,7 +96,7 @@ Estes são os destinos que rendem acima do preço. Não são "luas de mel barata
 
 **Minha opinião:** se você quer a iconografia da lua de mel grega — paredes caiadas de branco, cúpulas azuis, frutos do mar de taverna numa mesa de madeira sobre a água — e não é religiosamente fiel às vistas da caldeira, Creta é mais gratificante que Santorini e custa metade. Mandei amigos para lá em setembro passado; eles estenderam a viagem por três dias.
 
-### [Eslovênia](/destinations/slovenia)
+### Eslovênia
 
 **Por que é romântico:** o Lago Bled é um castelo medieval sobre um penhasco acima de um lago esmeralda com uma pequena igreja numa ilha no meio, à qual se chega remando. Há um bolo regional — o bolo de creme de Bled — que vale uma viagem de avião por si só. O Desfiladeiro de Vintgar é uma passarela de madeira de dois quilômetros sobre corredeiras esmeralda. O Castelo de Predjama é construído na boca de uma caverna. A Eslovênia é o país que a Suíça seria se a Suíça fosse acessível.
 
@@ -122,7 +122,7 @@ Esta é a faixa que a maioria dos casais deveria reservar. É a faixa de preço 
 
 **Minha opinião:** divida a semana. Três noites em Ubud pela selva, os terraços de arroz, os templos. Quatro noites em Seminyak ou Canggu pela praia e pela cena gastronômica. Não tente fazer os dois a partir de uma única base — o trajeto é de 90 minutos e os climas são completamente diferentes. O erro número um da lua de mel em Bali é ficar num só lugar e tratar o outro como passeio de um dia.
 
-### [Tulum](/destinations/tulum), México
+### Tulum, México
 
 **Por que é romântico:** o único lugar que genuinamente combina praia, ruínas maias e mergulho em cenotes numa única cidade. A faixa de hotéis eco-chic na estrada da praia é sobre o que a reputação de Tulum é de fato construída — bangalôs com teto de palapa, chuveiros ao ar livre e camas com dossel na selva. O nascer do sol nas ruínas à beira do penhasco é uma das experiências mais cinematográficas do México.
 
@@ -142,7 +142,7 @@ Esta é a faixa que a maioria dos casais deveria reservar. É a faixa de preço 
 
 **Minha opinião:** subestimado como lua de mel. O conselho padrão manda você para a Itália; Portugal é o que a Itália era 15 anos atrás — a mesma luz mediterrânea, a mesma ênfase no que está na mesa, preços 30% mais baixos e multidões que ainda não o descobriram por completo.
 
-### [Montenegro](/destinations/montenegro)
+### Montenegro
 
 **Por que é romântico:** tudo o que a Costa Amalfitana promete — cidades bizantinas de pedra sobre águas impossivelmente azuis, muralhas medievais, restaurantes de frutos do mar no porto — por uma fração do preço. Perast, uma vila de 350 habitantes na Baía de Kotor com duas igrejas barrocas em pequenas ilhas ao largo da costa, é um dos lugares genuinamente mais românticos da Europa e quase ninguém sabe que existe.
 
@@ -152,7 +152,7 @@ Esta é a faixa que a maioria dos casais deveria reservar. É a faixa de preço 
 
 **Minha opinião:** a lua de mel de costa com penhascos com melhor custo-benefício da Europa neste momento. Combine-a com [destinos europeus mais baratos](/blog/cheapest-destinations-in-europe) se quiser estender a viagem sem estourar o orçamento.
 
-### [Puerto Vallarta](/destinations/puerto-vallarta), México
+### Puerto Vallarta, México
 
 **Por que é romântico:** ruas de paralelepípedos na Zona Romántica (a cidade antiga original), hotéis boutique com bares no terraço sobre o Pacífico, montanhas de selva que descem direto até o mar. A 30 minutos de carro na Sierra Madre e você está numa trilha até uma cachoeira. A 1 hora ao norte e você está em Sayulita, uma vila de surfe que é tudo o que o México de resort de praia não é.
 
@@ -162,7 +162,7 @@ Esta é a faixa que a maioria dos casais deveria reservar. É a faixa de preço 
 
 **Minha opinião:** uma lua de mel mais interessante que o Havaí pela metade do preço. A força do Havaí é a paisagem dramática; Puerto Vallarta tem paisagem dramática, mais uma cidade de verdade, mais uma cena gastronômica séria, mais selva de montanha, mais surfe a 90 minutos.
 
-### [Zanzibar](/destinations/zanzibar)
+### Zanzibar
 
 **Por que é romântico:** a qualidade de lagoa e praia das Maldivas com cultura, história e profundidade adicionais. A cidade antiga suaíli-árabe de Stone Town. Tours por fazendas de especiarias que cheiram a cravo e noz-moscada. Cruzeiros de dhow ao pôr do sol por US$ 30 o casal. Vilas boutique com vista para o mar a partir de US$ 60 a noite. O fato de você poder passar uma semana aqui pelo que custa uma única noite nas Maldivas.
 
@@ -188,7 +188,7 @@ Esta é a faixa que a maioria dos casais deveria reservar. É a faixa de preço 
 
 **Minha opinião:** reserve em Firostefani, entre Fira e Imerovigli. A vista da caldeira é idêntica à de Oia pela metade do acréscimo, a caminhada até Oia leva dez minutos, e você de fato consegue uma piscina de hotel que não é compartilhada com excursionistas de um dia. Qualquer um que mande você reservar em Oia está vendendo alguma coisa.
 
-### A [Costa Amalfitana](/destinations/amalfi-coast), Itália
+### A Costa Amalfitana, Itália
 
 **Por que é romântico:** há um motivo para ela aparecer em toda lista de lua de mel — ela merece. Vilarejos de penhasco pintados em ocre e terracota descendo até a água turquesa, pomares de limão e a massa de frutos do mar que arruína qualquer outra massa que você comer depois. Os passeios de barco privativo pela costa são a experiência icônica da lua de mel amalfitana e valem cada euro. Veja o [Roteiro de 5 Dias na Itália](/blog/5-day-italy-itinerary) para o contexto mais amplo da Itália.
 
@@ -198,7 +198,7 @@ Esta é a faixa que a maioria dos casais deveria reservar. É a faixa de preço 
 
 **Minha opinião:** hospede-se em Ravello, não na cidade de Amalfi. Ravello fica 300 metros acima da costa, mais fresca, com os jardins da Villa Rufolo e o terraço de concertos do Festival Wagner. A descida até a água leva quinze minutos. A cidade de Amalfi recebe todos os excursionistas de cruzeiro; Ravello recebe as pessoas que de fato queriam estar lá.
 
-### [Japão](/destinations/japan)
+### Japão
 
 **Por que é romântico:** o melhor país isolado para a lua de mel de contrastes — templos, mercados de comida, pousadas ryokan, onsen de montanha. Uma semana em Tóquio e Quioto, depois três dias num ryokan tradicional em Hakone ou Kinosaki Onsen com jantares kaiseki e um banho privativo de madeira de cipreste. Você sai transformado.
 
@@ -218,7 +218,7 @@ Esta é a faixa que a maioria dos casais deveria reservar. É a faixa de preço 
 
 **Minha opinião:** reserve em Soufrière (o extremo sul, perto dos Pitons), não em Rodney Bay (o norte). O sentido inteiro são os Pitons — você os quer na sua sacada, não a duas horas de carro.
 
-### [Lago de Como](/destinations/lake-como), Itália
+### Lago de Como, Itália
 
 **Por que é romântico:** a resposta sem esforço do norte da Itália ao glamour mediterrâneo. Água lisa como seda refletindo os Alpes cobertos de neve. Balsas entre vilas ornamentadas em vilarejos de pescadores. A escala é intimista — 46 km de comprimento — e o ritmo é despreocupado.
 
@@ -228,7 +228,7 @@ Esta é a faixa que a maioria dos casais deveria reservar. É a faixa de preço 
 
 **Minha opinião:** hospede-se em Varenna, não em Bellagio. A mesma vista do outro lado do lago, um quarto da densidade turística, você consegue uma mesa num restaurante à beira do lago sem reservar três semanas antes. Bellagio é o nome do Instagram; Varenna é a experiência real.
 
-### [Islândia](/destinations/iceland)
+### Islândia
 
 **Por que é romântico:** teatral de um jeito que nenhum destino de praia é. A Lagoa Azul enquanto neva. Caçar a aurora num campo de lava escuro. Dirigir pela Ring Road sem nenhum outro carro. Cavernas de gelo de geleira nas quais você entra caminhando. É a lua de mel anti-lua de mel — e, para o casal certo, é inigualável.
 
@@ -244,7 +244,7 @@ Esta é a faixa que a maioria dos casais deveria reservar. É a faixa de preço 
 
 Faixa de uma-vez-na-vida. Não para todo mundo, não para todo casal, mas para os casais que tratam a lua de mel como a viagem — aquela sobre a qual falarão por trinta anos — esses destinos entregam de um jeito que a faixa de conforto não consegue replicar. Não há nada como uma ilha privativa no Oceano Índico, não há atalho para um pôr do sol de safári.
 
-### As [Maldivas](/destinations/maldives)
+### As Maldivas
 
 **Por que é romântico:** é a referência por um motivo. Bangalôs privativos sobre a água com pisos de vidro acima de lagoas turquesa. Sem carros, sem multidões, proporções de funcionários por hóspede que garantem que o champanhe esteja sempre gelado. O cenário de propriedade única mais romântico desta lista.
 

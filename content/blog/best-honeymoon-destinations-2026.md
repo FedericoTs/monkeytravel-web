@@ -169,7 +169,7 @@ La Digue's Anse Source d'Argent — granite boulders, pink sand, turquoise shall
 
 ## 8. Iceland — The Anti-Honeymoon Honeymoon
 
-Theatrical in a way no beach destination is. The Blue Lagoon while snow falls. Aurora chasing across a dark lava field. Driving the Ring Road with no other cars for kilometers. Glacier ice caves you walk into. Geysers, waterfalls, black-sand beaches. It's the anti-honeymoon honeymoon — and for the right couple, it's unmatched. [Iceland](/destinations/iceland) doesn't deliver tropical-honeymoon stereotypes; it delivers landscape stories that will become "the time we did our honeymoon in Iceland and it was the best decision we ever made."
+Theatrical in a way no beach destination is. The Blue Lagoon while snow falls. Aurora chasing across a dark lava field. Driving the Ring Road with no other cars for kilometers. Glacier ice caves you walk into. Geysers, waterfalls, black-sand beaches. It's the anti-honeymoon honeymoon — and for the right couple, it's unmatched. Iceland doesn't deliver tropical-honeymoon stereotypes; it delivers landscape stories that will become "the time we did our honeymoon in Iceland and it was the best decision we ever made."
 
 **Best time to visit:** September through March for Northern Lights and ice caves (peak December-February). June-July for midnight sun, highland access, and puffin colonies. Both versions are dramatic; pick which one fits your aesthetic. Avoid late October-November (the dark is starting but ice caves aren't open yet, and the weather is genuinely difficult).
 
