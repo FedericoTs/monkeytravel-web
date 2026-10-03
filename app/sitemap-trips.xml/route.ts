@@ -1,7 +1,10 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isTripIndexable, itineraryFingerprint, publicTripAlternates } from "@/lib/seo/public-trip";
 
 /**
- * /sitemap-trips.xml — every published community trip, across all 4 locales.
+ * /sitemap-trips.xml — one URL per published community trip: the locale its
+ * itinerary is written in (lib/seo/public-trip.ts). Trips below the page's
+ * index threshold, and later copies of an identical itinerary, are left out.
  *
  * Kept OUT of the main `app/sitemap.ts` (which is a static-content sitemap)
  * because this set is DB-driven, high-cardinality, and grows continuously.
@@ -13,21 +16,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * discovers it.
  */
 
-const SITE_URL = "https://monkeytravel.app";
-
-// Locale set + prefixing. Mirrors lib/i18n/routing.ts (en unprefixed).
-const LOCALES = ["en", "es", "it", "pt"] as const;
-const DEFAULT_LOCALE = "en";
-const localePrefix = (l: string) => (l === DEFAULT_LOCALE ? "" : `/${l}`);
-
 // Revalidate hourly — new trips get published continuously; an hour-stale
 // sitemap is an acceptable trade for not re-querying on every crawler hit.
 export const revalidate = 3600;
 
-// Single-urlset cap. The sitemaps.org limit is 50k URLs / 50MB per file. We
-// emit 4 locale variants per trip, so ~11k trips fills a file. If published
-// trip count ever approaches this, shard by paginating `.range()` here and
-// splitting into /sitemap-trips-1.xml, -2.xml, … behind a sitemap index.
+// Row cap. One URL per trip keeps the 50k-URL file limit far off; the real
+// bound is reading every trip's itinerary JSON here. Shard (paginate
+// `.range()` behind a sitemap index) before published trips approach this.
 const MAX_TRIPS = 11000;
 
 function xmlEscape(s: string): string {
@@ -44,6 +39,8 @@ export async function GET() {
     public_slug: string | null;
     updated_at: string | null;
     shared_at: string | null;
+    trip_meta: unknown;
+    itinerary: unknown;
   }> = [];
 
   try {
@@ -52,7 +49,7 @@ export async function GET() {
       .from("trips")
       // Published predicate: visibility='public' AND coalesce(is_hidden,false)
       // = false AND deleted_at IS NULL AND public_slug IS NOT NULL.
-      .select("public_slug, updated_at, shared_at")
+      .select("public_slug, updated_at, shared_at, trip_meta, itinerary")
       .eq("visibility", "public")
       .is("deleted_at", null)
       .not("public_slug", "is", null)
@@ -67,18 +64,22 @@ export async function GET() {
   }
 
   const urls: string[] = [];
-  for (const row of rows) {
+  const seen = new Set<string>();
+  // Oldest first, so an itinerary is listed under its first publication.
+  for (const row of [...rows].reverse()) {
     if (!row.public_slug) continue;
-    const slug = row.public_slug;
+    const days = Array.isArray(row.itinerary) ? row.itinerary : [];
+    if (!isTripIndexable(days)) continue;
+    const fingerprint = itineraryFingerprint(days);
+    if (seen.has(fingerprint)) continue;
+    seen.add(fingerprint);
+
     const lastmod = (row.updated_at || row.shared_at || "").slice(0, 10);
     const lastmodTag = lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : "";
-
-    for (const locale of LOCALES) {
-      const loc = `${SITE_URL}${localePrefix(locale)}/trip/${slug}`;
-      urls.push(
-        `  <url>\n    <loc>${xmlEscape(loc)}</loc>${lastmodTag}\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`,
-      );
-    }
+    const loc = publicTripAlternates(row.public_slug, row.trip_meta).canonical;
+    urls.push(
+      `  <url>\n    <loc>${xmlEscape(loc)}</loc>${lastmodTag}\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`,
+    );
   }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>`;

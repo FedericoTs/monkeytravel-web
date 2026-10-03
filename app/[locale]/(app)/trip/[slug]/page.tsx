@@ -18,7 +18,8 @@ import {
   generatePersonSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
-import { buildAlternates } from "@/lib/seo/canonical";
+import { isTripIndexable, publicTripAlternates } from "@/lib/seo/public-trip";
+import { tripLocale } from "@/lib/ai/language";
 
 const SITE_URL = "https://monkeytravel.app";
 
@@ -112,14 +113,6 @@ const getPublicTrip = cache(async (slug: string) => {
   return { trip, author };
 });
 
-/** Count total activities across the itinerary — feeds the thin-content guard. */
-function countActivities(itinerary: ItineraryDay[]): number {
-  return itinerary.reduce(
-    (sum, day) => sum + (Array.isArray(day.activities) ? day.activities.length : 0),
-    0,
-  );
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
   setRequestLocale(locale);
@@ -140,11 +133,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Thin-content guard: pages with almost no itinerary content get
   // classified "Crawled — currently not indexed" and drag down site
   // quality. Below the threshold we still RENDER (a human with the link
-  // sees it) but tell Google not to index. 4 activities ≈ one real day.
-  const activityCount = countActivities(rawItinerary);
-  const indexable = activityCount >= 4;
+  // sees it) but tell Google not to index. The sitemap applies the same rule.
+  const indexable = isTripIndexable(rawItinerary);
 
-  const { canonical, languages } = buildAlternates(`/trip/${slug}`, { locale });
+  const { canonical, languages } = publicTripAlternates(slug, trip.trip_meta);
 
   // A default trip title ("<City> Trip") only repeats the destination, so the
   // day count is used instead; it also tells same-city trips apart.
@@ -217,7 +209,7 @@ export default async function PublicTripPage({ params }: PageProps) {
   const destination = getTripDestination(trip);
 
   // ---- Structured data ----------------------------------------------------
-  const tripUrl = buildAlternates(`/trip/${slug}`, { locale }).canonical;
+  const tripUrl = publicTripAlternates(slug, tripMeta).canonical;
 
   const tripSchema = generateTripSchema({
     name: trip.title,
@@ -228,7 +220,7 @@ export default async function PublicTripPage({ params }: PageProps) {
     destination,
     image: (trip.cover_image_url as string | null) ?? undefined,
     datePublished: (trip.shared_at as string | null) ?? undefined,
-    inLanguage: locale,
+    inLanguage: tripLocale(tripMeta) ?? "en",
     // Enriched: real per-day itinerary → nested ItemList of TouristAttraction.
     days: itinerary,
   });
