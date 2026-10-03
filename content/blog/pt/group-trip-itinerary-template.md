@@ -37,6 +37,8 @@ Pergunte a qualquer pessoa que já organizou uma viagem em grupo qual foi a part
 
 Aqui está o modelo que resolve isso.
 
+Para o processo inteiro, da escolha de quem organiza até o checklist final, veja [como planejar uma viagem em grupo](/blog/how-to-plan-a-group-trip).
+
 ## Por Que a Maioria dos Roteiros em Grupo Fracassa
 
 Antes do modelo, ajuda entender por que as abordagens de sempre não funcionam.

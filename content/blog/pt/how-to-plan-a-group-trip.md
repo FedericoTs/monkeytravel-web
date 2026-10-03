@@ -93,6 +93,8 @@ Dinheiro arruína amizades mais rápido do que qualquer outra coisa numa viagem 
 
 **Cobre um depósito adiantado.** $100-200 por pessoa antes de reservar qualquer coisa. Isso filtra as pessoas do "talvez" e compromete as que vão de verdade. Um depósito não reembolsável faz com que ninguém desista duas semanas antes da viagem porque "surgiu um imprevisto".
 
+Para a parte do dinheiro em mais detalhes, veja [como dividir os custos de uma viagem em grupo](/blog/group-trip-budget-how-to-split-costs).
+
 ## Passo 5: monte o roteiro com liberdade embutida
 
 O maior erro no planejamento de uma viagem em grupo: tentar manter todo mundo junto cada minuto de cada dia.
@@ -120,6 +122,8 @@ Antes de viajar, todo grupo precisa abordar esses temas constrangedores, mas nec
 - **Se separar é saudável.** Numa viagem de 7 dias, passar 2-3 atividades separados na verdade deixa o tempo em grupo melhor. Vocês voltam com histórias para contar uns aos outros.
 
 - **A diferença de orçamento.** Se há uma diferença de $50/dia entre a pessoa que menos gasta e a que mais gasta no grupo, planejem as atividades pelo orçamento mais baixo e deixem que os que gastam mais se deem um upgrade em particular (quarto de hotel melhor, jantar mais chique).
+
+Essas conversas evitam a maioria dos [erros em viagens em grupo que estragam tudo](/blog/group-travel-mistakes-to-avoid).
 
 ## Passo 7: use uma ferramenta que não exija um doutorado
 
@@ -153,6 +157,12 @@ Use isto como seu cronograma:
 - **Dia 1:** Relaxe. A parte difícil já passou.
 
 ---
+
+*Ainda escolhendo para onde ir? Comece pelos [melhores destinos para viagens em grupo](/blog/best-group-trip-destinations-2026).*
+
+*Vai organizar uma despedida de solteira? Veja [como planejar uma despedida de solteira](/blog/how-to-plan-a-bachelorette-trip).*
+
+*Os números sobre como os grupos planejam estão nas nossas [estatísticas de viagens em grupo](/blog/group-travel-statistics-2026).*
 
 ## Perguntas frequentes
 
