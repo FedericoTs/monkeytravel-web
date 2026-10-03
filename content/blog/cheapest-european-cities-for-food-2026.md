@@ -339,4 +339,4 @@ The 15 cities on this list prove that the best food in Europe is not behind a ve
 
 Pick a city. Set your food budget. Let MonkeyTravel's AI build a day-by-day food itinerary with specific restaurants, markets, and dishes — all calibrated to what you want to spend.
 
-**[Plan My Food Trip Free →](/trip-planner)**
+**[Plan My Food Trip Free →](/trips/new)**

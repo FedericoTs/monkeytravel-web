@@ -54,7 +54,7 @@ Real budget tiers, with what each one actually delivers:
 
 - **Under-the-radar ($2,000–$4,500):** Bacalar (Mexico), Sri Lanka, Crete, Slovenia, Azores
 - **Comfort ($4,500–$8,000):** [Bali](/destinations/bali), Tulum, [Lisbon](/destinations/lisbon) + Algarve, Montenegro, Puerto Vallarta, Zanzibar
-- **Premium ($8,000–$15,000):** [Santorini](/destinations/santorini), Amalfi Coast, [Japan](/destinations/japan), St Lucia, Lake Como, Iceland
+- **Premium ($8,000–$15,000):** [Santorini](/destinations/santorini), Amalfi Coast, Japan, St Lucia, Lake Como, Iceland
 - **Aspirational ($15,000+):** Maldives overwater, Seychelles private islands, Bora Bora, African safari + Zanzibar combo, Switzerland's Glacier Express + private chalet
 
 A note on these numbers: they assume two people, ten nights total, and include round-trip economy flights from a major US or European hub. Couples flying from secondary airports add $300–$800 per person. Couples flying business add a lot more. The tier doesn't move; the flight cost does.
@@ -65,7 +65,7 @@ A note on these numbers: they assume two people, ten nights total, and include r
 
 These are the destinations that punch above their price. They're not "cheap honeymoons." They're honeymoons in places where your money buys what $8,000 buys in Santorini. The trade is fame — these places aren't on Instagram's first page yet, which is why the prices are still rational.
 
-### [Bacalar](/destinations/bacalar), Mexico
+### Bacalar, Mexico
 
 **Why romantic:** A freshwater lagoon with seven distinct shades of blue caused by the depths over white sand and cenote springs. Tiny boutique hotels right on the water with kayaks and paddleboards thrown in. No chains. No resort strip. The lagoon at sunrise is the sort of thing that makes new spouses sit on a dock and not say anything for half an hour, which is more than you can say for most "romantic" destinations.
 
@@ -75,7 +75,7 @@ These are the destinations that punch above their price. They're not "cheap hone
 
 **My take:** This is what Tulum was in 2014. Three hours south of Cancun by car, three hours south of Tulum, and the difference between Tulum and Bacalar right now is the difference between $400/night palapas and $50/night palapas — for arguably more romantic accommodation. Go before someone famous photographs it.
 
-### [Sri Lanka](/destinations/sri-lanka)
+### Sri Lanka
 
 **Why romantic:** Five-star experiences at two-star prices. Beachfront boutique hotels in Mirissa for $40–$70 a night, ninety-minute Ayurvedic massages for two for $30–$40, fresh tuna and prawns on a beach grill for $15. And then — this is the hidden upgrade — you can drive two hours inland and be in tea country with mist rolling over emerald hillsides, then two more hours and you're at Sigiriya Rock Fortress, a 1,500-year-old palace on a 200-meter monolith.
 
@@ -85,7 +85,7 @@ These are the destinations that punch above their price. They're not "cheap hone
 
 **My take:** The most underrated honeymoon destination in Asia. Couples who want texture — beach plus tea plantations plus ruins plus wildlife — get more here than from any single-destination tropical trip at three times the price.
 
-### [Crete](/destinations/crete), Greece
+### Crete, Greece
 
 **Why romantic:** Greece without the Santorini tax. Chania's Venetian harbor at golden hour with its waterfront tavernas, the Samaria Gorge hike (Europe's longest, $5 entrance fee), Elafonisi's pink sand. The thing Santorini doesn't have and Crete does: scale. You can disappear here.
 
@@ -95,7 +95,7 @@ These are the destinations that punch above their price. They're not "cheap hone
 
 **My take:** If you want Greek honeymoon iconography — whitewashed walls, blue domes, taverna seafood at a wooden table on the water — and you're not religiously committed to caldera views, Crete is more rewarding than Santorini and half the price. I sent friends here last September; they extended their trip by three days.
 
-### [Slovenia](/destinations/slovenia)
+### Slovenia
 
 **Why romantic:** Lake Bled is a medieval castle on a cliff above an emerald lake with a tiny island church in the middle that you row to. There's a regional cake — the Bled cream cake — that's worth a flight on its own. Vintgar Gorge is two kilometers of wooden walkway over emerald rapids. Predjama Castle is built into the mouth of a cave. Slovenia is the country Switzerland would be if Switzerland were affordable.
 
@@ -121,7 +121,7 @@ This is the tier most couples should book. It's the price range where your money
 
 **My take:** Split the week. Three nights in Ubud for the jungle, the rice terraces, the temples. Four nights in Seminyak or Canggu for the beach and the food scene. Don't try to do both from one base — the drive is 90 minutes and the vibes are completely different. The number-one Bali honeymoon mistake is staying in one location and treating the other as a day trip.
 
-### [Tulum](/destinations/tulum), Mexico
+### Tulum, Mexico
 
 **Why romantic:** The only place that genuinely combines beach, Mayan ruins, and cenote swimming in a single town. The eco-chic hotel strip on the beach road is what Tulum's reputation is actually built on — palapa-roofed bungalows with outdoor showers and four-poster beds in the jungle. Sunrise at the cliffside ruins is one of the most cinematic experiences in Mexico.
 
@@ -141,7 +141,7 @@ This is the tier most couples should book. It's the price range where your money
 
 **My take:** Underrated as a honeymoon. The standard advice sends you to Italy; Portugal is what Italy was 15 years ago — same Mediterranean light, same emphasis on what's on the table, prices 30% lower, and crowds that haven't fully discovered it.
 
-### [Montenegro](/destinations/montenegro)
+### Montenegro
 
 **Why romantic:** Everything the Amalfi Coast promises — Byzantine stone towns on impossibly blue water, medieval walls, seafood restaurants at the harbor — at a fraction of the price. Perast, a village of 350 people on the Bay of Kotor with two baroque churches on tiny offshore islands, is one of the most genuinely romantic places in Europe and almost no one knows it exists.
 
@@ -151,7 +151,7 @@ This is the tier most couples should book. It's the price range where your money
 
 **My take:** The best-value cliffside-coast honeymoon in Europe right now. Pair it with [cheaper European destinations](/blog/cheapest-destinations-in-europe) if you want to extend the trip without breaking the budget.
 
-### [Puerto Vallarta](/destinations/puerto-vallarta), Mexico
+### Puerto Vallarta, Mexico
 
 **Why romantic:** Cobblestone streets in the Zona Romántica (the original old town), boutique hotels with rooftop bars over the Pacific, jungle mountains that come right down to the sea. A 30-minute drive into the Sierra Madre and you're at a waterfall hike. A 1-hour drive north and you're in Sayulita, a surf village that's everything beach-resort Mexico isn't.
 
@@ -161,7 +161,7 @@ This is the tier most couples should book. It's the price range where your money
 
 **My take:** A more interesting honeymoon than Hawaii at half the price. Hawaii's strength is the dramatic landscape; Puerto Vallarta has dramatic landscape plus a real city plus a serious food scene plus mountain jungle plus surfing within 90 minutes.
 
-### [Zanzibar](/destinations/zanzibar)
+### Zanzibar
 
 **Why romantic:** The Maldives' lagoon and beach quality with added culture, history, and depth. Stone Town's Swahili-Arab old city. Spice farm tours that smell of clove and nutmeg. Sunset dhow cruises for $30 a couple. Boutique villas with ocean views from $60 a night. The fact that you can spend a week here for what one Maldives night costs.
 
@@ -187,7 +187,7 @@ This is where the destinations earn their reputations. Cliffside infinity pools,
 
 **My take:** Book in Firostefani, between Fira and Imerovigli. The caldera view is identical to Oia at half the markup, the walk to Oia is ten minutes, and you actually get a hotel pool that isn't shared with day-trippers. Anyone telling you to book in Oia is selling something.
 
-### The [Amalfi Coast](/destinations/amalfi-coast), Italy
+### The Amalfi Coast, Italy
 
 **Why romantic:** There's a reason it shows up on every honeymoon list — it earns it. Cliffside villages painted in ochre and terracotta dropping to turquoise water, lemon groves, and the seafood pasta that ruins every other pasta you'll eat afterward. Private boat charters along the coast are the iconic Amalfi honeymoon experience and worth every euro. See the [5-Day Italy Itinerary](/blog/5-day-italy-itinerary) for the broader Italy context.
 
@@ -197,7 +197,7 @@ This is where the destinations earn their reputations. Cliffside infinity pools,
 
 **My take:** Stay in Ravello, not Amalfi town. Ravello is 300 meters above the coast, cooler, with the gardens at Villa Rufolo and the Wagner Festival concert terrace. The drive down to the water is fifteen minutes. Amalfi town gets every cruise-ship day-tripper; Ravello gets people who actually wanted to be there.
 
-### [Japan](/destinations/japan)
+### Japan
 
 **Why romantic:** The single best country for the contrasting honeymoon — temples, food markets, ryokan inns, mountain onsen. A week in Tokyo and Kyoto, then three days at a traditional ryokan in Hakone or Kinosaki Onsen with kaiseki dinners and a private cypress-wood bath. You leave changed.
 
@@ -217,7 +217,7 @@ This is where the destinations earn their reputations. Cliffside infinity pools,
 
 **My take:** Book Soufriere (the south end, near the Pitons), not Rodney Bay (the north). The whole point is the Pitons — you want them on your balcony, not a two-hour drive away.
 
-### [Lake Como](/destinations/lake-como), Italy
+### Lake Como, Italy
 
 **Why romantic:** Northern Italy's effortless answer to Mediterranean glamour. Silk-smooth water reflecting snow-capped Alps. Ferries between ornate villas in fishing villages. The scale is intimate — 46 km long — and the pace is unhurried.
 
@@ -227,7 +227,7 @@ This is where the destinations earn their reputations. Cliffside infinity pools,
 
 **My take:** Stay in Varenna, not Bellagio. Same view across the lake, a quarter of the tourist density, you can find a table at a lakefront restaurant without booking three weeks out. Bellagio is the Instagram name; Varenna is the actual experience.
 
-### [Iceland](/destinations/iceland)
+### Iceland
 
 **Why romantic:** Theatrical in a way no beach destination is. The Blue Lagoon while snow falls. Aurora chasing across a dark lava field. Driving the Ring Road with no other cars. Glacier ice caves you walk into. It's the anti-honeymoon honeymoon — and for the right couple, it's unmatched.
 
@@ -243,7 +243,7 @@ This is where the destinations earn their reputations. Cliffside infinity pools,
 
 Once-in-a-lifetime tier. Not for everyone, not for every couple, but for the couples who treat the honeymoon as the trip — the one they'll talk about for thirty years — these destinations deliver in a way the comfort tier can't replicate. There's nothing else like a private island in the Indian Ocean, no shortcut to a safari sunset.
 
-### The [Maldives](/destinations/maldives)
+### The Maldives
 
 **Why romantic:** It's the benchmark for a reason. Private overwater bungalows with glass floors above turquoise lagoons. No cars, no crowds, staff-to-guest ratios that mean champagne is always cold. The most romantic single-property setting on this list.
 

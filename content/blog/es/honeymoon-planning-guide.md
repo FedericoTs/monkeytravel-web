@@ -61,7 +61,7 @@ Niveles de presupuesto reales, con lo que cada uno realmente entrega:
 
 - **Bajo el radar (2.000–4.500 $):** Bacalar (México), Sri Lanka, Creta, Eslovenia, Azores
 - **Comfort (4.500–8.000 $):** [Bali](/es/destinations/bali), Tulum, [Lisboa](/es/destinations/lisbon) + Algarve, Montenegro, Puerto Vallarta, Zanzíbar
-- **Premium (8.000–15.000 $):** [Santorini](/es/destinations/santorini), Costa Amalfitana, [Japón](/es/destinations/japan), Santa Lucía, Lago de Como, Islandia
+- **Premium (8.000–15.000 $):** [Santorini](/es/destinations/santorini), Costa Amalfitana, Japón, Santa Lucía, Lago de Como, Islandia
 - **Aspiracional (más de 15.000 $):** Maldivas overwater, islas privadas de Seychelles, Bora Bora, combo safari africano + Zanzíbar, Glacier Express de Suiza + chalet privado
 
 Una nota sobre estos números: asumen dos personas, diez noches en total, e incluyen vuelos ida y vuelta en clase turista desde un hub importante de EE. UU. o Europa. Las parejas que vuelan desde aeropuertos secundarios añaden 300–800 $ por persona. Las que vuelan en business añaden mucho más. El nivel no se mueve; el coste del vuelo sí.
@@ -72,7 +72,7 @@ Una nota sobre estos números: asumen dos personas, diez noches en total, e incl
 
 Estos son los destinos que rinden por encima de su precio. No son "lunas de miel baratas". Son lunas de miel en lugares donde tu dinero compra lo que 8.000 $ compran en Santorini. El intercambio es la fama — estos sitios todavía no están en la primera página de Instagram, que es por lo que los precios siguen siendo racionales.
 
-### [Bacalar](/es/destinations/bacalar), México
+### Bacalar, México
 
 **Por qué es romántico:** una laguna de agua dulce con siete tonos distintos de azul causados por las profundidades sobre arena blanca y manantiales de cenotes. Pequeños hoteles boutique justo sobre el agua con kayaks y paddleboards incluidos. Sin cadenas. Sin franja de resorts. La laguna al amanecer es de esas cosas que hacen que los recién casados se sienten en un muelle y no digan nada durante media hora, lo cual es más de lo que se puede decir de la mayoría de destinos "románticos".
 
@@ -82,7 +82,7 @@ Estos son los destinos que rinden por encima de su precio. No son "lunas de miel
 
 **Mi opinión:** esto es lo que era Tulum en 2014. Tres horas al sur de Cancún en coche, tres horas al sur de Tulum, y la diferencia entre Tulum y Bacalar ahora mismo es la diferencia entre palapas de 400 $/noche y palapas de 50 $/noche — para un alojamiento posiblemente más romántico. Ve antes de que alguien famoso lo fotografíe.
 
-### [Sri Lanka](/es/destinations/sri-lanka)
+### Sri Lanka
 
 **Por qué es romántico:** experiencias de cinco estrellas a precios de dos estrellas. Hoteles boutique frente al mar en Mirissa por 40–70 $ la noche, masajes ayurvédicos de noventa minutos para dos por 30–40 $, atún y gambas frescas a la parrilla en la playa por 15 $. Y luego — esta es la mejora oculta — puedes conducir dos horas hacia el interior y estar en zona de té con la niebla rodando sobre laderas esmeralda, después dos horas más y estás en la fortaleza-palacio de Sigiriya, una construcción de 1.500 años de antigüedad sobre un monolito de 200 metros.
 
@@ -92,7 +92,7 @@ Estos son los destinos que rinden por encima de su precio. No son "lunas de miel
 
 **Mi opinión:** el destino de luna de miel más infravalorado de Asia. Las parejas que quieren textura — playa más plantaciones de té más ruinas más fauna — obtienen aquí más que en cualquier viaje tropical de un único destino al triple de precio.
 
-### [Creta](/es/destinations/crete), Grecia
+### Creta, Grecia
 
 **Por qué es romántico:** Grecia sin el impuesto Santorini. El puerto veneciano de Chania a la hora dorada con sus tabernas frente al mar, la caminata por la garganta de Samaria (la más larga de Europa, 5 $ de entrada), la arena rosada de Elafonisi. Lo que Santorini no tiene y Creta sí: escala. Aquí puedes desaparecer.
 
@@ -102,7 +102,7 @@ Estos son los destinos que rinden por encima de su precio. No son "lunas de miel
 
 **Mi opinión:** si quieres iconografía de luna de miel griega — muros encalados, cúpulas azules, marisco de taberna en una mesa de madera sobre el agua — y no eres religiosamente devoto de las vistas a la caldera, Creta es más gratificante que Santorini y la mitad de cara. Mandé a unos amigos allí el pasado septiembre; alargaron el viaje tres días.
 
-### [Eslovenia](/es/destinations/slovenia)
+### Eslovenia
 
 **Por qué es romántico:** el lago Bled es un castillo medieval sobre un acantilado encima de un lago esmeralda con una pequeña iglesia en una isla en medio a la que se llega remando. Hay un pastel regional — la tarta de crema de Bled — que merece un vuelo por sí solo. La garganta de Vintgar son dos kilómetros de pasarela de madera sobre rápidos esmeralda. El castillo de Predjama está construido en la boca de una cueva. Eslovenia es el país que Suiza sería si Suiza fuera asequible.
 
@@ -128,7 +128,7 @@ Este es el nivel que la mayoría de parejas debería reservar. Es la franja de p
 
 **Mi opinión:** parte la semana. Tres noches en Ubud por la jungla, los arrozales en terrazas, los templos. Cuatro noches en Seminyak o Canggu por la playa y la escena gastronómica. No intentes hacer ambos desde una sola base — el trayecto son 90 minutos y los ambientes son completamente distintos. El error número uno de las lunas de miel en Bali es quedarse en un solo sitio y tratar el otro como excursión de día.
 
-### [Tulum](/es/destinations/tulum), México
+### Tulum, México
 
 **Por qué es romántico:** el único lugar que combina genuinamente playa, ruinas mayas y baño en cenotes en un solo pueblo. La franja de hoteles eco-chic de la carretera de la playa es sobre lo que se construye realmente la reputación de Tulum — bungalows con techo de palapa, duchas al aire libre y camas con dosel en la jungla. El amanecer en las ruinas sobre el acantilado es una de las experiencias más cinematográficas de México.
 
@@ -148,7 +148,7 @@ Este es el nivel que la mayoría de parejas debería reservar. Es la franja de p
 
 **Mi opinión:** infravalorado como luna de miel. El consejo estándar te manda a Italia; Portugal es lo que Italia era hace 15 años — misma luz mediterránea, mismo énfasis en lo que hay en la mesa, precios un 30% más bajos y multitudes que aún no lo han descubierto del todo.
 
-### [Montenegro](/es/destinations/montenegro)
+### Montenegro
 
 **Por qué es romántico:** todo lo que la Costa Amalfitana promete — pueblos bizantinos de piedra sobre aguas imposiblemente azules, muros medievales, restaurantes de marisco en el puerto — a una fracción del precio. Perast, un pueblo de 350 habitantes en la bahía de Kotor con dos iglesias barrocas en pequeñas islas frente a la costa, es uno de los lugares genuinamente más románticos de Europa y casi nadie sabe que existe.
 
@@ -158,7 +158,7 @@ Este es el nivel que la mayoría de parejas debería reservar. Es la franja de p
 
 **Mi opinión:** la luna de miel de costa con acantilados con mejor relación calidad-precio en Europa ahora mismo. Combínalo con [destinos europeos más baratos](/es/blog/cheapest-destinations-in-europe) si quieres alargar el viaje sin romper el presupuesto.
 
-### [Puerto Vallarta](/es/destinations/puerto-vallarta), México
+### Puerto Vallarta, México
 
 **Por qué es romántico:** calles adoquinadas en la Zona Romántica (el casco antiguo original), hoteles boutique con bares en azotea sobre el Pacífico, montañas de jungla que bajan directas al mar. A 30 minutos en coche en la Sierra Madre y estás en una caminata a una cascada. A 1 hora al norte y estás en Sayulita, un pueblo de surf que es todo lo que el México de resort de playa no es.
 
@@ -168,7 +168,7 @@ Este es el nivel que la mayoría de parejas debería reservar. Es la franja de p
 
 **Mi opinión:** una luna de miel más interesante que Hawái a la mitad de precio. La fuerza de Hawái es el paisaje dramático; Puerto Vallarta tiene paisaje dramático más una ciudad de verdad más una escena gastronómica seria más jungla de montaña más surf a 90 minutos.
 
-### [Zanzíbar](/es/destinations/zanzibar)
+### Zanzíbar
 
 **Por qué es romántico:** la calidad de laguna y playa de las Maldivas con cultura, historia y profundidad añadidas. El casco antiguo suajili-árabe de Stone Town. Tours por granjas de especias que huelen a clavo y nuez moscada. Cruceros en dhow al atardecer por 30 $ la pareja. Villas boutique con vistas al mar desde 60 $ la noche. El hecho de que puedas pasar aquí una semana por lo que cuesta una sola noche en Maldivas.
 
@@ -194,7 +194,7 @@ Aquí es donde los destinos se ganan su reputación. Piscinas infinitas sobre ac
 
 **Mi opinión:** reserva en Firostefani, entre Fira e Imerovigli. La vista a la caldera es idéntica a la de Oia a la mitad del recargo, el paseo hasta Oia son diez minutos, y de verdad consigues una piscina de hotel que no compartes con excursionistas de día. Cualquiera que te diga que reserves en Oia te está vendiendo algo.
 
-### La [Costa Amalfitana](/es/destinations/amalfi-coast), Italia
+### La Costa Amalfitana, Italia
 
 **Por qué es romántico:** hay una razón por la que aparece en todas las listas de luna de miel — se la gana. Pueblos de acantilado pintados en ocre y terracota que caen al agua turquesa, limonares y la pasta de marisco que arruina cualquier otra pasta que comas después. Los charters en barco privado por la costa son la experiencia icónica de luna de miel amalfitana y valen cada euro. Mira el [Itinerario de Italia de 5 días](/es/blog/5-day-italy-itinerary) para el contexto más amplio de Italia.
 
@@ -204,7 +204,7 @@ Aquí es donde los destinos se ganan su reputación. Piscinas infinitas sobre ac
 
 **Mi opinión:** alójate en Ravello, no en Amalfi pueblo. Ravello está a 300 metros sobre la costa, más fresco, con los jardines de Villa Rufolo y la terraza de conciertos del Festival Wagner. El trayecto al agua son quince minutos. Amalfi pueblo recibe a todos los excursionistas de día de los cruceros; Ravello recibe a la gente que realmente quería estar allí.
 
-### [Japón](/es/destinations/japan)
+### Japón
 
 **Por qué es romántico:** el mejor país individual para la luna de miel contrastada — templos, mercados de comida, posadas ryokan, onsen de montaña. Una semana en Tokio y Kioto, luego tres días en un ryokan tradicional en Hakone o Kinosaki Onsen con cenas kaiseki y un baño privado de madera de ciprés. Te vas distinto de como llegaste.
 
@@ -224,7 +224,7 @@ Aquí es donde los destinos se ganan su reputación. Piscinas infinitas sobre ac
 
 **Mi opinión:** reserva en Soufrière (el extremo sur, cerca de los Pitons), no en Rodney Bay (el norte). El sentido entero son los Pitons — los quieres en tu balcón, no a dos horas en coche.
 
-### [Lago de Como](/es/destinations/lake-como), Italia
+### Lago de Como, Italia
 
 **Por qué es romántico:** la respuesta sin esfuerzo del norte de Italia al glamour mediterráneo. Agua suave como la seda reflejando Alpes nevados. Ferries entre villas ornamentadas en pueblos pesqueros. La escala es íntima — 46 km de largo — y el ritmo es pausado.
 
@@ -234,7 +234,7 @@ Aquí es donde los destinos se ganan su reputación. Piscinas infinitas sobre ac
 
 **Mi opinión:** alójate en Varenna, no en Bellagio. La misma vista al otro lado del lago, una cuarta parte de densidad turística, puedes conseguir mesa en un restaurante a la orilla del lago sin reservar tres semanas antes. Bellagio es el nombre de Instagram; Varenna es la experiencia real.
 
-### [Islandia](/es/destinations/iceland)
+### Islandia
 
 **Por qué es romántico:** teatral de una forma que ningún destino de playa lo es. La Laguna Azul mientras nieva. Persiguiendo auroras por un campo de lava oscuro. Conduciendo la Ring Road sin otros coches. Cuevas de hielo de glaciar a las que entras caminando. Es la luna de miel anti-luna de miel — y para la pareja adecuada, no tiene rival.
 
@@ -250,7 +250,7 @@ Aquí es donde los destinos se ganan su reputación. Piscinas infinitas sobre ac
 
 Nivel única-vez-en-la-vida. No para todo el mundo, no para toda pareja, pero para las parejas que tratan la luna de miel como el viaje — el del que hablarán durante treinta años — estos destinos entregan de una manera que el nivel comfort no puede replicar. No hay nada como una isla privada en el océano Índico, no hay atajo a un atardecer de safari.
 
-### Las [Maldivas](/es/destinations/maldives)
+### Las Maldivas
 
 **Por qué es romántico:** es la referencia por una razón. Bungalows privados sobre el agua con suelos de cristal sobre lagunas turquesa. Sin coches, sin multitudes, ratios de personal por huésped que significan que el champán siempre está frío. El entorno de una sola propiedad más romántico de esta lista.
 
