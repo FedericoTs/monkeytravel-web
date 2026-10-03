@@ -18,11 +18,13 @@ const sourceSans = Source_Sans_3({
   display: "swap",
 });
 
-// Keep mono for code blocks
+// Keep mono for code blocks. Not preloaded: it only appears below the fold
+// or in dialogs, so it should not compete with the hero for bandwidth.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
+  preload: false,
 });
 
 /** The <body> class every root layout applies: the three font variables plus antialiasing. */
