@@ -41,6 +41,8 @@ Existe uma janela de duas semanas — às vezes menos — em que as florestas do
 
 Este guia cobre 12 destinos onde a folhagem de outono vale a pena planejar uma viagem inteira. Não apenas "árvores bonitas" — estamos falando de lugares onde o espetáculo do outono é tão dramático que transforma a paisagem por completo. Para cada um, você vai ter as datas exatas de pico, as melhores rotas, quanto custa e como fotografar sem acabar com a mesma foto que todo mundo tira.
 
+Para saber o que vale a pena planejar nos outros meses, veja o [calendário de viagens mês a mês](/blog/2026-travel-calendar).
+
 ## Quando a folhagem de outono atinge o pico? Uma linha do tempo global
 
 Antes de entrarmos nos destinos, aqui está a ferramenta de planejamento mais importante — uma linha do tempo, mês a mês, do pico de cores pelo mundo:

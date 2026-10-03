@@ -39,6 +39,8 @@ Cada primavera, Japón se tiñe de rosa. Millones de cerezos florecen a lo largo
 
 Si planeas un viaje para ver el sakura en 2026, el timing lo es todo. Llegar demasiado pronto y verás ramas desnudas. Llegar demasiado tarde y los pétalos ya estarán en el suelo. Esta guía cubre exactamente cuándo y dónde ir, cómo seguir el pronóstico y cómo vivir el hanami como los locales.
 
+Para saber qué merece la pena planificar en los demás meses, consulta el [calendario de viajes mes a mes](/blog/2026-travel-calendar).
+
 ## ¿Cuándo Florecen los Cerezos en Japón?
 
 La temporada de cerezos en flor en Japón va típicamente de **finales de marzo a mediados de abril** en la mayor parte de la isla principal (Honshu). Pero el momento exacto varía cada año según las temperaturas invernales y el calor de principios de primavera.

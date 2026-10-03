@@ -130,7 +130,7 @@ Las Seychelles tienen dos temporadas de calma al año, y mayo cierra la primera.
 - **Mayo es el último mes de temporada media en el Mediterráneo.** El mar solo llega a unos 19–20 °C, y los precios empiezan a subir la última semana: ve tarde para bañarte, pronto para ahorrar.
 - **La línea del monzón se mueve a final de mes.** Tailandia, la costa suroeste de Sri Lanka y la costa oeste de India entran en la estación húmeda hacia finales de mayo, mientras Bali entra en la seca: consulta nuestra [guía del monzón](/blog/monsoon-season-where-to-go-and-avoid).
 - **Reserva primero lo que tiene cupo.** Los permisos del Camino Inca, las entradas de Chelsea, los trenes de la Golden Week y las habitaciones en las islas griegas el fin de semana de Pascua se agotan mucho antes de que se encarezcan los vuelos.
-- **Compáralo con los meses vecinos antes de cerrar.** [Abril](/blog/where-to-go-in-april), el mes anterior, es más fresco y más barato en el Mediterráneo; [junio](/blog/where-to-go-in-june) es más cálido, con los precios de verano empezando.
+- **Compáralo con los meses vecinos antes de cerrar.** [Abril](/blog/where-to-go-in-april), el mes anterior, es más fresco y más barato en el Mediterráneo; [junio](/blog/where-to-go-in-june) es más cálido, con los precios de verano empezando. El [calendario de viajes mes a mes](/blog/2026-travel-calendar) muestra todo el año de un vistazo.
 
 ## Planifica tu viaje de mayo en 30 segundos
 

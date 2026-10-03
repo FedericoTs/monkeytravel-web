@@ -46,6 +46,8 @@ Una nota sulle date: quando dico "la mezza stagione inizia a fine maggio", inten
 
 ---
 
+Per sapere cosa vale la pena pianificare negli altri mesi, guarda il [calendario dei viaggi mese per mese](/blog/2026-travel-calendar).
+
 ## Comparativa rapida: 12 destinazioni attraverso tutti e tre gli obiettivi
 
 Questa tabella consolida le scelte più forti dai tre post originali. Usala per triangolare e poi salta alla sezione di approfondimento che corrisponde al tuo obiettivo.

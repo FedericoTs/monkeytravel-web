@@ -36,6 +36,8 @@ If you search for Italy's 2026 season calendar and find ten different answers, t
 
 No authority decides when high season starts. Every property decides for itself — each hotel, resort, campsite and beach club publishes its own price list with its own dates. What does exist, and is worth understanding because it does not change, is the **structure** almost all of them follow.
 
+For what is worth planning around in every other month, see the [month-by-month travel calendar](/blog/2026-travel-calendar).
+
 ## The structure, which is always the same
 
 Practically every Italian coastal price list splits summer into three bands, not two:

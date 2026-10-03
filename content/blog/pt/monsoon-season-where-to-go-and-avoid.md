@@ -43,6 +43,8 @@ Aqui está o que ninguém te conta: "monção" não significa chuva sem parar. G
 
 Este guia detalha a temporada de monções pela Ásia mês a mês, para que você saiba exatamente onde evitar, onde aproveitar e como viajar de forma mais inteligente durante a estação chuvosa.
 
+Para saber o que vale a pena planejar nos outros meses, veja o [calendário de viagens mês a mês](/blog/2026-travel-calendar).
+
 ## O Que É a Temporada de Monções, Exatamente?
 
 A monção não é uma tempestade — é um padrão de ventos sazonais. À medida que o continente esquenta no verão, o ar úmido do Oceano Índico e do Pacífico flui para o interior, trazendo chuvas intensas. A palavra-chave é **sazonal**: começa e termina em momentos previsíveis, e regiões diferentes são afetadas em calendários diferentes.

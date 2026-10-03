@@ -36,6 +36,8 @@ Si buscas el calendario de temporadas de Italia para 2026 y encuentras diez resp
 
 Ninguna autoridad decide cuándo empieza la temporada alta. Lo decide cada alojamiento: cada hotel, complejo, camping y balneario publica su propia tarifa con sus propias fechas. Lo que sí existe, y conviene entender porque no cambia, es la **estructura** que casi todos siguen.
 
+Para saber qué merece la pena planificar en los demás meses, consulta el [calendario de viajes mes a mes](/blog/2026-travel-calendar).
+
 ## La estructura, que siempre es la misma
 
 Prácticamente toda tarifa de costa italiana divide el verano en tres franjas, no dos:

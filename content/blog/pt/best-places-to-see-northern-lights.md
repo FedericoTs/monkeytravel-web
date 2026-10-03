@@ -46,6 +46,8 @@ Mas quando dá certo — quando o céu se rasga em verde e violeta e você fica 
 
 Este guia é sobre garantir que dê certo. Classificamos 12 destinos por probabilidade de aurora, custos reais, acessibilidade e o que mais dá para fazer caso as luzes não apareçam. Porque, mesmo nos melhores lugares, céus limpos nunca são garantidos — então você precisa de uma viagem que valha a pena de qualquer jeito.
 
+Para saber o que vale a pena planejar nos outros meses, veja o [calendário de viagens mês a mês](/blog/2026-travel-calendar).
+
 ## Referência Rápida de Orçamento: Destinos de Aurora Boreal por Preço
 
 | Faixa de Orçamento | Destinos | Custo/Noite | Probabilidade de Aurora |

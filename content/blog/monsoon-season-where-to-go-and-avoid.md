@@ -42,6 +42,8 @@ Here's what nobody tells you: "monsoon" doesn't mean nonstop rain. It usually me
 
 This guide breaks down monsoon season across Asia month by month, so you know exactly where to avoid, where to embrace, and how to travel smarter during the wet season.
 
+For what is worth planning around in every other month, see the [month-by-month travel calendar](/blog/2026-travel-calendar).
+
 ## Where the 2026 season actually stands
 
 Updated August 2026, because a monsoon guide that ignores this year's conditions is just a climate average.

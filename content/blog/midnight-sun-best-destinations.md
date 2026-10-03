@@ -42,6 +42,8 @@ The midnight sun is a natural phenomenon that occurs above the Arctic Circle (an
 
 But not all midnight sun destinations are equal. Some are easy to reach and well-equipped for visitors. Others are remote, expensive, and require serious planning. This guide breaks down the best places to experience the midnight sun in 2026, with honest details about when to go, what to do, and what it actually costs.
 
+For what is worth planning around in every other month, see the [month-by-month travel calendar](/blog/2026-travel-calendar).
+
 ## How the Midnight Sun Works
 
 The Earth tilts 23.5 degrees on its axis. During the Northern Hemisphere's summer, the North Pole leans toward the sun, meaning areas above the Arctic Circle (66.5°N) get 24 hours of continuous daylight around the summer solstice (June 20-21, 2026).

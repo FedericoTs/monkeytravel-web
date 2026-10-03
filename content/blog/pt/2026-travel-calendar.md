@@ -237,6 +237,8 @@ Marrakech chega a 38-42 °C de junho a setembro. Maio fica em 18-28 °C — quen
 
 **O guia completo do mês:** [para onde viajar em maio de 2027](/blog/where-to-go-in-may), com doze destinos.
 
+**Da primavera ao verão:** o [guia de viagens para a primavera e o verão](/blog/spring-summer-travel-guide) separa os meses quentes entre calor, frescor e opções de bom preço.
+
 ---
 
 ## Junho: sol da meia-noite, o ponto ideal do Mediterrâneo, e o último dos preços de meia temporada
@@ -526,6 +528,8 @@ Dezembro é o mês mais polarizador do calendário. As buscas genéricas por "al
 **Evite em dezembro:** qualquer lugar do calendário entre 20 de dezembro e 2 de janeiro se você puder mudar as datas. Essa janela de 13 dias carrega os preços mais altos do ano inteiro no mundo todo. De 1º a 15 de dezembro oferece clima parecido a um custo de 30% a 50% mais baixo na maioria dos destinos.
 
 **O guia completo do mês:** [para onde ir em dezembro de 2026](/blog/where-to-go-in-december), com doze destinos.
+
+**Mercados de Natal:** [os melhores mercados de Natal da Europa](/blog/best-christmas-markets-europe-2026), com as datas de 2026 já confirmadas.
 
 ---
 

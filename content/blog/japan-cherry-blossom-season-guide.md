@@ -34,6 +34,8 @@ Every spring, Japan turns pink. Millions of cherry trees bloom across the countr
 
 If you're planning a trip to see the sakura in 2026, timing is everything. Bloom too early and you'll see bare branches. Arrive too late and the petals are already on the ground. This guide covers exactly when and where to go, how to track the forecast, and how to experience hanami like the locals do.
 
+For what is worth planning around in every other month, see the [month-by-month travel calendar](/blog/2026-travel-calendar).
+
 ## When Do Cherry Blossoms Bloom in Japan?
 
 The cherry blossom season in Japan typically runs from **late March to mid-April** in most of the main island (Honshu). But the exact timing shifts every year depending on winter temperatures and early spring warmth.

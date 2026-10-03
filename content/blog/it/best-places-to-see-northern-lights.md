@@ -40,6 +40,8 @@ Ma quando funziona — quando il cielo si squarcia in verde e viola e resti a bo
 
 Questa guida serve a far sì che funzioni. Abbiamo classificato 12 destinazioni per probabilità di aurora, costi reali, accessibilità e cosa puoi fare se le luci non si mostrano. Perché anche nei posti migliori, i cieli sereni non sono mai garantiti — quindi ti serve un viaggio che valga la pena comunque.
 
+Per sapere cosa vale la pena pianificare negli altri mesi, guarda il [calendario dei viaggi mese per mese](/blog/2026-travel-calendar).
+
 ## Come Funziona l'Aurora Boreale (Versione da 60 Secondi)
 
 L'aurora boreale si verifica quando particelle cariche provenienti dal sole si scontrano con l'atmosfera terrestre. Queste particelle seguono le linee del campo magnetico verso i poli, eccitando le molecole di gas e producendo luce — verde dall'ossigeno a bassa quota, viola e rosso dall'azoto più in alto.

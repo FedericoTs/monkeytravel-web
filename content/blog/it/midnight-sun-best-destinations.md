@@ -42,6 +42,8 @@ Il sole di mezzanotte è un fenomeno naturale che si verifica sopra il Circolo P
 
 Ma non tutte le destinazioni del sole di mezzanotte sono uguali. Alcune sono facili da raggiungere e ben attrezzate per i visitatori. Altre sono remote, costose e richiedono una pianificazione seria. Questa guida analizza i migliori posti per vivere il sole di mezzanotte nel 2026, con dettagli onesti su quando andare, cosa fare e quanto costa realmente.
 
+Per sapere cosa vale la pena pianificare negli altri mesi, guarda il [calendario dei viaggi mese per mese](/blog/2026-travel-calendar).
+
 ## Come Funziona il Sole di Mezzanotte
 
 La Terra è inclinata di 23,5 gradi sul suo asse. Durante l'estate dell'emisfero nord, il Polo Nord si inclina verso il sole, il che significa che le zone sopra il Circolo Polare Artico (66,5°N) ricevono 24 ore di luce continua intorno al solstizio d'estate (20-21 giugno 2026).

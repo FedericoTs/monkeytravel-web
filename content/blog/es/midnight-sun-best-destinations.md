@@ -40,6 +40,8 @@ El sol de medianoche es un fenómeno natural que ocurre por encima del Círculo 
 
 Pero no todos los destinos de sol de medianoche son iguales. Algunos son fáciles de alcanzar y están bien equipados para visitantes. Otros son remotos, caros y requieren una planificación seria. Esta guía desglosa los mejores lugares para vivir el sol de medianoche en 2026, con detalles honestos sobre cuándo ir, qué hacer y cuánto cuesta realmente.
 
+Para saber qué merece la pena planificar en los demás meses, consulta el [calendario de viajes mes a mes](/blog/2026-travel-calendar).
+
 ## Cómo Funciona el Sol de Medianoche
 
 La Tierra se inclina 23,5 grados sobre su eje. Durante el verano del hemisferio norte, el Polo Norte se inclina hacia el sol, lo que significa que las zonas por encima del Círculo Polar Ártico (66,5°N) reciben 24 horas de luz continua alrededor del solsticio de verano (20-21 de junio de 2026).

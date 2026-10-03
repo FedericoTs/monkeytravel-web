@@ -40,6 +40,8 @@ Hay una ventana de dos semanas — a veces menos — cuando los bosques del mund
 
 Esta guía cubre 12 destinos donde el follaje otoñal justifica planificar un viaje entero. No solo "árboles bonitos" — estamos hablando de lugares donde el espectáculo otoñal es tan dramático que transforma completamente el paisaje. Para cada uno, encontrarás las fechas exactas del pico de color, las mejores rutas, cuánto cuesta y cómo fotografiarlo sin acabar con la misma foto que todos los demás.
 
+Para saber qué merece la pena planificar en los demás meses, consulta el [calendario de viajes mes a mes](/blog/2026-travel-calendar).
+
 ## ¿Cuándo Alcanza su Pico el Follaje Otoñal? Cronología Global
 
 Antes de entrar en destinos, aquí tienes la herramienta clave de planificación — una cronología mes a mes del pico de color en el mundo:

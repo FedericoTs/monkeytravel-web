@@ -130,7 +130,7 @@ Le Seychelles hanno due stagioni di calma all'anno, e maggio chiude la prima. Tr
 - **Maggio è l'ultimo mese di mezza stagione nel Mediterraneo.** Il mare arriva solo a circa 19–20 °C, e i prezzi cominciano a salire nell'ultima settimana: vai tardi per fare il bagno, presto per risparmiare.
 - **La linea del monsone si sposta a fine mese.** Thailandia, la costa sud-occidentale dello Sri Lanka e la costa occidentale dell'India passano alla stagione delle piogge verso fine maggio, mentre Bali entra in quella secca: vedi la nostra [guida al monsone](/blog/monsoon-season-where-to-go-and-avoid).
 - **Prenota prima ciò che ha posti contati.** Permessi per il Cammino Inca, biglietti di Chelsea, treni della Golden Week e camere sulle isole greche nel weekend di Pasqua si esauriscono molto prima che i voli diventino cari.
-- **Confrontalo con i mesi vicini prima di chiudere.** [Aprile](/blog/where-to-go-in-april), il mese prima, è più fresco e più economico nel Mediterraneo; [giugno](/blog/where-to-go-in-june) è più caldo, con i prezzi estivi che partono.
+- **Confrontalo con i mesi vicini prima di chiudere.** [Aprile](/blog/where-to-go-in-april), il mese prima, è più fresco e più economico nel Mediterraneo; [giugno](/blog/where-to-go-in-june) è più caldo, con i prezzi estivi che partono. Il [calendario dei viaggi mese per mese](/blog/2026-travel-calendar) mostra tutto l'anno a colpo d'occhio.
 
 ## Pianifica il tuo viaggio di maggio in 30 secondi
 

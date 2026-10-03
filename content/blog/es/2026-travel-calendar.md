@@ -243,6 +243,8 @@ El 1 de mayo arranca los cuatro mejores meses para el Camino del Inca y los Ande
 
 **La guía completa del mes:** [dónde viajar en mayo de 2027](/blog/where-to-go-in-may), con doce destinos.
 
+**De la primavera al verano:** la [guía de viajes para primavera y verano](/blog/spring-summer-travel-guide) ordena los meses cálidos en calor, frescor y opciones de buen precio.
+
 ---
 
 ## Junio: sol de medianoche, el punto dulce del Mediterráneo y lo último de los precios de temporada media
@@ -532,6 +534,8 @@ Diciembre es el mes más polarizador del calendario. Las búsquedas genéricas d
 **Evitar en diciembre:** cualquier lugar del calendario del 20 de diciembre al 2 de enero si puedes mover fechas. Esta ventana de 13 días lleva los precios más altos del año entero a nivel global. Del 1 al 15 de diciembre ofrece un clima similar a un coste un 30-50% más bajo en la mayoría de destinos.
 
 **La guía completa del mes:** [dónde ir en diciembre de 2026](/blog/where-to-go-in-december), con doce destinos.
+
+**Mercados navideños:** [los mejores mercados navideños de Europa](/blog/best-christmas-markets-europe-2026), con las fechas de 2026 ya confirmadas.
 
 ---
 
