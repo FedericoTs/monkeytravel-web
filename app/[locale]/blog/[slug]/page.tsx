@@ -202,7 +202,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
           name: namedAuthor.name,
           url: authorBioUrl,
           jobTitle: namedAuthor.title,
-          image: `${SITE_URL}/images/authors/${namedAuthor.slug}.jpg`,
+          ...(namedAuthor.photo ? { image: `${SITE_URL}${namedAuthor.photo}` } : {}),
         }
       : frontmatter.author,
     wordCount,
