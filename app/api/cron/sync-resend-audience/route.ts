@@ -55,6 +55,9 @@ function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
+// Contact creation stops after this; vercel.json gives the function 300 s.
+const CREATE_BUDGET_MS = 240_000;
+
 function serviceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -223,13 +226,19 @@ export async function GET(request: NextRequest) {
 
   // Step 3: insert the missing contacts. Sequential rather than
   // Promise.all to stay under Resend's per-API-key rate limit
-  // (10 req/s default). With ~10-20 new signups/week we never come
-  // close to the 60s function cap.
+  // (10 req/s default). A backlog can outlast one run, so creation stops at
+  // a deadline inside the function limit: the opt-out steps below still run,
+  // and the next run creates the rest.
   let created = 0;
   let failed = 0;
+  let deferred = 0;
   const errors: Array<{ email: string; error: string }> = [];
 
-  for (const c of toCreate) {
+  for (const [i, c] of toCreate.entries()) {
+    if (Date.now() - startedAt > CREATE_BUDGET_MS) {
+      deferred = toCreate.length - i;
+      break;
+    }
     try {
       const res = await resend.contacts.create({
         email: c.email,
@@ -316,6 +325,7 @@ export async function GET(request: NextRequest) {
     toCreate: toCreate.length,
     created,
     failed,
+    deferred,
     reconciledOptOuts: reconciled,
     reverseBackSynced: backSynced,
     durationMs: Date.now() - startedAt,
@@ -331,6 +341,7 @@ export async function GET(request: NextRequest) {
       toCreate: toCreate.length,
       created,
       failed,
+      deferred,
       reconciledOptOuts: reconciled,
       reverseBackSynced: backSynced,
     },

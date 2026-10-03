@@ -26,6 +26,10 @@
       "maxDuration": 30,
       "memory": 256
     },
+    "app/api/cron/sync-resend-audience/route.ts": {
+      "maxDuration": 300,
+      "memory": 256
+    },
     "app/api/cron/*/route.ts": {
       "maxDuration": 60,
       "memory": 256
