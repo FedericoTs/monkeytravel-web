@@ -8,6 +8,8 @@ import { generateBreadcrumbSchema, generateCollectionPageSchema, jsonLdScriptPro
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BlogGrid from "@/components/blog/BlogGrid";
+import TopicLinks from "@/components/blog/TopicLinks";
+import { getIndexableTags } from "@/lib/blog/tags";
 import { BlogLane, FeaturedHero } from "@/components/blog";
 import ContentTracker from "@/components/analytics/ContentTracker";
 import { Link } from "@/lib/i18n/routing";
@@ -240,6 +242,12 @@ export default async function BlogIndexPage({ params }: PageProps) {
               description={t("lanes.ai.description")}
               posts={aiLane}
             />
+          </div>
+        </div>
+
+        <div className="bg-white border-t border-slate-200/60">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+            <TopicLinks title={t("index.browseByTopic")} tags={getIndexableTags(locale)} />
           </div>
         </div>
 
