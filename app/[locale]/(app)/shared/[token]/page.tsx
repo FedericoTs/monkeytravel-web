@@ -20,7 +20,7 @@ import {
   generateBreadcrumbSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
-import { buildAlternates } from "@/lib/seo/canonical";
+import { publicTripAlternates } from "@/lib/seo/public-trip";
 
 interface PageProps {
   params: Promise<{ locale: string; token: string }>;
@@ -103,7 +103,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     trip.public_slug;
 
   const canonical = isPublic
-    ? buildAlternates(`/trip/${trip.public_slug}`, { locale }).canonical
+    ? publicTripAlternates(trip.public_slug, trip.trip_meta).canonical
     : `https://monkeytravel.app/shared/${token}`;
 
   return {
