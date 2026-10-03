@@ -4,7 +4,7 @@ slug: "2026-travel-calendar"
 description: "Una guida mese per mese su dove viaggiare nel 2026 — costruita su dati meteo reali, andamenti di affluenza ed eventi stagionali, non su classifiche generiche. Un unico pilastro che copre tutti i 12 mesi con fasce di budget specifiche e finestre temporali precise."
 author: "Emanuela P."
 publishedAt: "2026-05-06"
-updatedAt: "2026-05-06"
+updatedAt: "2026-10-02"
 category: "Seasonal Travel"
 tags: ["stagionale", "guida mensile ai viaggi", "pianificazione viaggi"]
 image: "/images/blog/2026-travel-calendar.jpg"

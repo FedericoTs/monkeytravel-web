@@ -4,7 +4,7 @@ slug: "2026-travel-calendar"
 description: "Um guia mês a mês de para onde viajar em 2026 — construído sobre dados climáticos reais, padrões de lotação e eventos sazonais, não sobre listas genéricas de top 10. Um único pilar cobrindo os 12 meses com faixas de orçamento específicas e janelas de timing precisas."
 author: "Emanuela P."
 publishedAt: "2026-05-06"
-updatedAt: "2026-05-06"
+updatedAt: "2026-10-02"
 category: "Seasonal Travel"
 tags: ["sazonal", "guia mensal de viagens", "planejamento de viagem"]
 image: "/images/blog/trending-destinations-may-2026.jpg"
