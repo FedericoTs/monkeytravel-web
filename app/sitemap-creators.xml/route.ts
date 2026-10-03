@@ -1,10 +1,13 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isCreatorIndexable } from "@/lib/seo/creator-indexable";
 
 /**
  * /sitemap-creators.xml — every public creator profile, across all 4 locales.
  *
- * A "creator" qualifies when they have ≥1 published trip AND their profile is
- * not private (privacy_settings->>'privateProfile' !== 'true'). Same
+ * A "creator" qualifies when their profile is not private
+ * (privacy_settings->>'privateProfile' !== 'true') and passes
+ * isCreatorIndexable (a bio, or enough published trips); thinner profiles are
+ * noindex on the page too. Same
  * rationale as sitemap-trips.xml for living outside the static app/sitemap.ts.
  *
  * Referenced from `app/robots.ts`.
@@ -48,9 +51,11 @@ export async function GET() {
       .order("shared_at", { ascending: false, nullsFirst: false });
 
     const latestByUser = new Map<string, string>();
+    const tripCountByUser = new Map<string, number>();
     for (const r of tripRows ?? []) {
       const uid = r.user_id as string | null;
       if (!uid) continue;
+      tripCountByUser.set(uid, (tripCountByUser.get(uid) ?? 0) + 1);
       const stamp = ((r.shared_at || r.updated_at || "") as string).slice(0, 10);
       if (!latestByUser.has(uid)) latestByUser.set(uid, stamp);
     }
@@ -62,7 +67,7 @@ export async function GET() {
       //    private profiles + username-less rows.
       const { data: userRows } = await supabase
         .from("users")
-        .select("id, username, privacy_settings")
+        .select("id, username, privacy_settings, bio")
         .in("id", userIds);
 
       for (const u of userRows ?? []) {
@@ -70,6 +75,8 @@ export async function GET() {
         if (!username) continue;
         const priv = (u.privacy_settings ?? {}) as Record<string, unknown>;
         if (String(priv.privateProfile ?? "") === "true") continue;
+        const publicTripCount = tripCountByUser.get(u.id as string) ?? 0;
+        if (!isCreatorIndexable({ publicTripCount, bio: u.bio as string | null })) continue;
         creators.push({
           username,
           lastmod: latestByUser.get(u.id as string) ?? "",
