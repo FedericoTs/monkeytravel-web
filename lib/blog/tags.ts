@@ -71,3 +71,43 @@ export function getPostsByTagSlug(slug: string, locale = "en"): BlogFrontmatter[
     (fm.tags ?? []).some((tag) => slugifyTag(tag) === slug)
   );
 }
+
+export interface TagLink {
+  slug: string;
+  display: string;
+}
+
+/**
+ * Tag archives that are indexed and in the sitemap (TAG_MIN_POSTS_FOR_INDEX
+ * posts or more), most posts first. The only tags worth linking to: a link
+ * to a noindexed archive spends crawl on a page Google is told to drop.
+ */
+export function getIndexableTags(locale = "en"): TagLink[] {
+  const counts = new Map<string, { display: string; count: number }>();
+  for (const fm of getAllFrontmatter(locale)) {
+    const seen = new Set<string>();
+    for (const tag of fm.tags ?? []) {
+      const slug = slugifyTag(tag);
+      if (!slug || seen.has(slug)) continue;
+      seen.add(slug);
+      const entry = counts.get(slug);
+      if (entry) entry.count++;
+      else counts.set(slug, { display: tag, count: 1 });
+    }
+  }
+  return [...counts.entries()]
+    .filter(([, { count }]) => count >= TAG_MIN_POSTS_FOR_INDEX)
+    .sort((a, b) => b[1].count - a[1].count)
+    .map(([slug, { display }]) => ({ slug, display }));
+}
+
+/** The post's own tags that have an indexed archive, in the post's order. */
+export function getIndexableTagsForPost(tags: string[] | undefined, locale = "en"): TagLink[] {
+  const indexable = new Set(getIndexableTags(locale).map((t) => t.slug));
+  const out: TagLink[] = [];
+  for (const tag of tags ?? []) {
+    const slug = slugifyTag(tag);
+    if (indexable.has(slug) && !out.some((t) => t.slug === slug)) out.push({ slug, display: tag });
+  }
+  return out;
+}

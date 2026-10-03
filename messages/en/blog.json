@@ -12,6 +12,7 @@
     "articleCount": "articles",
     "featured": "Editor's pick",
     "allPostsHeading": "Browse all articles",
+    "browseByTopic": "Browse by topic",
     "allPostsDescription": "Filter by topic and region to find what you need."
   },
   "lanes": {
@@ -41,6 +42,7 @@
   },
   "detail": {
     "relatedPosts": "You might also like",
+    "topics": "Topics",
     "publishedOn": "Published {date}",
     "updatedOn": "Updated {date}",
     "byline": "By the MonkeyTravel Team",

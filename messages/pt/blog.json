@@ -12,6 +12,7 @@
     "articleCount": "artigos",
     "featured": "Escolha do editor",
     "allPostsHeading": "Ver todos os artigos",
+    "browseByTopic": "Navegue por tema",
     "allPostsDescription": "Filtre por tema e região para encontrar o que precisa."
   },
   "lanes": {
@@ -41,6 +42,7 @@
   },
   "detail": {
     "relatedPosts": "Você também pode gostar",
+    "topics": "Tópicos",
     "publishedOn": "Publicado em {date}",
     "updatedOn": "Atualizado em {date}",
     "byline": "Pela Equipe MonkeyTravel",

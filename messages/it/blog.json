@@ -12,6 +12,7 @@
     "articleCount": "articoli",
     "featured": "In evidenza",
     "allPostsHeading": "Tutti gli articoli",
+    "browseByTopic": "Esplora per argomento",
     "allPostsDescription": "Filtra per argomento e regione per trovare quello che cerchi."
   },
   "lanes": {
@@ -41,6 +42,7 @@
   },
   "detail": {
     "relatedPosts": "Potrebbe interessarti anche",
+    "topics": "Argomenti",
     "publishedOn": "Pubblicato il {date}",
     "updatedOn": "Aggiornato il {date}",
     "byline": "Dal team MonkeyTravel",

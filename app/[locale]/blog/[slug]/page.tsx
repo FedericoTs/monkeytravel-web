@@ -28,6 +28,8 @@ import { getPrimaryDestinationFromTags } from "@/lib/blog/primaryDestination";
 import { tripsNewHrefForPost } from "@/lib/blog/trip-prefill";
 import { landingPagesForPost } from "@/lib/blog/landing-page-links";
 import StickyBlogCta from "@/components/blog/StickyBlogCta";
+import TopicLinks from "@/components/blog/TopicLinks";
+import { getIndexableTagsForPost } from "@/lib/blog/tags";
 import ContentTracker from "@/components/analytics/ContentTracker";
 import { Link } from "@/lib/i18n/routing";
 
@@ -452,6 +454,11 @@ export default async function BlogDetailPage({ params }: PageProps) {
                     ctaLabel={t("detail.planThisCta.button", { city: primaryDestination.name[loc] })}
                   />
                 )}
+                <TopicLinks
+                  title={t("detail.topics")}
+                  tags={getIndexableTagsForPost(frontmatter.tags, locale)}
+                  className="mt-10"
+                />
                 <BlogPrevNext
                   prev={prevPost}
                   prevTitle={prevPost ? tOr(t, `posts.${prevPost.slug}.title`, prevPost.title) : null}
