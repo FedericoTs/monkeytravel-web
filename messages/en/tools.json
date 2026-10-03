@@ -112,7 +112,7 @@
     "linkCopied": "Link copied",
     "planTripCta": "Now plan your trip to {destination} →",
     "disclaimer": "Visa rules change without notice. This tool is a planning aid based on the latest publicly available data — always verify with the official source for your specific situation (purpose of visit, nationality of birth vs. residence, dual citizenship, etc).",
-    "datasetCredit": "Data: imorte/passport-index-data (MIT) · last refreshed {date}",
+    "datasetCredit": "Data: imorte/passport-index-data (MIT) · as of {date}, checked for updates daily",
     "loadingResult": "Checking...",
     "noResultTitle": "We don't have data for that pair yet",
     "noResultSubtitle": "Try a different passport or destination, or check the official embassy site."

@@ -38,7 +38,7 @@
   },
   "sources": {
     "heading": "Da dove arrivano questi dati e cosa non sono",
-    "body": "Costruito sul dataset aperto passport-index, aggiornato ogni notte. È un aiuto alla pianificazione, non una consulenza legale: le regole sui visti cambiano senza preavviso e il requisito che ti riguarda può dipendere dal percorso, dal motivo del viaggio e da quanto ti fermi. Verifica con l'autorità del paese di destinazione prima di prenotare.",
+    "body": "Costruito sul dataset aperto passport-index, aggiornato al {date}; ogni notte controlliamo se ci sono modifiche. È un aiuto alla pianificazione, non una consulenza legale: le regole sui visti cambiano senza preavviso e il requisito che ti riguarda può dipendere dal percorso, dal motivo del viaggio e da quanto ti fermi. Verifica con l'autorità del paese di destinazione prima di prenotare.",
     "checkerLink": "Verifica una coppia passaporto-destinazione specifica"
   },
   "meta": {

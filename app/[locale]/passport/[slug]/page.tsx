@@ -15,6 +15,7 @@ import {
   passportCodeForSlug,
 } from "@/lib/visa/passport-pages";
 import PassportLinks from "@/components/tools/PassportLinks";
+import { visaDataAsOfLabel } from "@/lib/visa/dataset";
 import PassportStatusChart from "@/components/passport/PassportStatusChart";
 import PassportMap from "@/components/passport/PassportMap";
 import { ogImages, twitterImages } from "@/lib/seo/og-image";
@@ -236,7 +237,7 @@ export default async function PassportPage({ params }: PageProps) {
               lib/visa/lookup.ts carries, surfaced where the reader is. */}
           <section className="mt-12 border-t border-slate-200 pt-6 text-sm text-slate-600">
             <h2 className="font-semibold text-slate-800">{t("sources.heading")}</h2>
-            <p className="mt-2 max-w-3xl">{t("sources.body")}</p>
+            <p className="mt-2 max-w-3xl">{t("sources.body", { date: visaDataAsOfLabel(locale) })}</p>
             <p className="mt-2">
               <Link href="/tools/visa-checker" className="text-[var(--primary-ink)] underline">
                 {t("sources.checkerLink")}

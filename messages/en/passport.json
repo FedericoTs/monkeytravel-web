@@ -38,7 +38,7 @@
   },
   "sources": {
     "heading": "Where this comes from, and what it is not",
-    "body": "Built from the open passport-index dataset, refreshed nightly. This is a planning aid, not legal advice: visa rules change without notice, and the requirement that applies to you can depend on your route, your purpose of travel and how long you stay. Confirm with the destination's own authority before you book.",
+    "body": "Built from the open passport-index dataset, as of {date}; we check it for updates every night. This is a planning aid, not legal advice: visa rules change without notice, and the requirement that applies to you can depend on your route, your purpose of travel and how long you stay. Confirm with the destination's own authority before you book.",
     "checkerLink": "Check a specific passport and destination pair"
   },
   "meta": {

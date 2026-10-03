@@ -34,6 +34,9 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "..");
 const MATRIX_PATH = path.join(REPO_ROOT, "lib", "visa", "matrix.json");
+// The date the pages show for the data (lib/visa/dataset.ts). Set only when
+// the snapshot changes, so a run that finds nothing new leaves it alone.
+const DATASET_PATH = path.join(REPO_ROOT, "lib", "visa", "dataset.json");
 const UPSTREAM_URL =
   "https://raw.githubusercontent.com/imorte/passport-index-data/main/passport-index.json";
 
@@ -66,7 +69,10 @@ async function main() {
   const currentRaw = await fs.readFile(MATRIX_PATH, "utf8").catch(() => null);
   if (!currentRaw) {
     console.log(`[refresh-visa] matrix.json missing — writing fresh copy`);
-    if (!CHECK_ONLY) await writePretty(MATRIX_PATH, fresh);
+    if (!CHECK_ONLY) {
+      await writePretty(MATRIX_PATH, fresh);
+      await writeDatasetDate();
+    }
     return CHECK_ONLY ? exit(1) : exit(0);
   }
 
@@ -93,7 +99,14 @@ async function main() {
   }
 
   await writePretty(MATRIX_PATH, fresh);
+  await writeDatasetDate();
   console.log(`[refresh-visa] Wrote ${MATRIX_PATH}`);
+}
+
+async function writeDatasetDate() {
+  const asOf = new Date().toISOString().slice(0, 10);
+  await fs.writeFile(DATASET_PATH, JSON.stringify({ asOf }, null, 2) + "\n", "utf8");
+  console.log(`[refresh-visa] Data date set to ${asOf}`);
 }
 
 function validateShape(data) {

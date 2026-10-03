@@ -8,6 +8,7 @@ import {
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
 import { lookupVisaRequirement, getDatasetSize } from "@/lib/visa/lookup";
+import { visaDataAsOfLabel } from "@/lib/visa/dataset";
 import { getCountryOptions, getCountryName, iso2ToFlag } from "@/lib/visa/countries";
 import { buildIvisaAffiliateUrl, shouldShowIvisaCta } from "@/lib/visa/ivisa";
 import { fetchGovukAdvisory } from "@/lib/visa/govuk-advisory";
@@ -180,8 +181,8 @@ export default async function VisaCheckerPage({
       )}`
     : null;
 
-  // Today as ISO date for the "data refreshed" credit.
-  const refreshedDate = new Date().toISOString().split("T")[0];
+  // The date of the data itself, not of this render.
+  const refreshedDate = visaDataAsOfLabel(locale);
 
 
   return (
