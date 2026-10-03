@@ -4,6 +4,7 @@
   "lede": "Um passaporte {country} abre <strong>{count} de {total} destinos</strong> sem nenhuma burocracia antes de voar: sem visto ou com visto na chegada. Todo o resto está abaixo, agrupado pelo que realmente exige de você.",
   "days": "{days} dias",
   "others": "Outros passaportes",
+  "byPassport": "Destinos sem visto por passaporte",
   "status": {
     "visaFree": {
       "label": "Sem visto",

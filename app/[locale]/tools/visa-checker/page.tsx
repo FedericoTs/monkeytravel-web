@@ -14,6 +14,8 @@ import { fetchGovukAdvisory } from "@/lib/visa/govuk-advisory";
 import VisaCheckerForm from "./VisaCheckerForm";
 import ExternalLinkButton from "@/components/tools/ExternalLinkButton";
 import VisaCheckerSsrTracker from "./VisaCheckerSsrTracker";
+import PassportLinks from "@/components/tools/PassportLinks";
+import { PASSPORT_PAGE_CODES, passportSlug } from "@/lib/visa/passport-pages";
 import { ogImages } from "@/lib/seo/og-image";
 
 const BASE_URL = "https://monkeytravel.app";
@@ -116,6 +118,7 @@ export default async function VisaCheckerPage({
   // next-intl renders the literal "breadcrumbs.home" key. Fixed by using
   // the full path. Same pattern would bite any future breadcrumb caller.
   const tBreadcrumbs = await getTranslations("common.breadcrumbs");
+  const tPassport = await getTranslations("passport");
 
   const localePrefix = locale === "en" ? "" : `/${locale}`;
   const breadcrumbSchema = generateBreadcrumbSchema([
@@ -145,6 +148,8 @@ export default async function VisaCheckerPage({
   const toName = hasQuery ? getCountryName(to, locale) : "";
   const fromFlag = hasQuery ? iso2ToFlag(from) : "";
   const toFlag = hasQuery ? iso2ToFlag(to) : "";
+  // The checked passport's own page, when it has one.
+  const fromPassport = PASSPORT_PAGE_CODES.find((c) => c === from);
 
   const status = result?.status;
   const days = result?.days;
@@ -351,6 +356,15 @@ export default async function VisaCheckerPage({
               </ExternalLinkButton>
             )}
 
+            {hasQuery && fromPassport && (
+              <Link
+                href={`/passport/${passportSlug(fromPassport)}`}
+                className="block font-medium text-[var(--foreground)] underline decoration-slate-300 underline-offset-4 hover:decoration-[var(--primary)]"
+              >
+                {tPassport("h1", { country: fromName })}
+              </Link>
+            )}
+
             {/* CTA to the full trip planner — convert tool users into
                 wizard users. Pre-fills the destination country. */}
             {status !== "same country" && status !== "no admission" && (
@@ -379,6 +393,12 @@ export default async function VisaCheckerPage({
             {datasetSize.pairs.toLocaleString(locale)} pairs
           </div>
         )}
+
+        <PassportLinks
+          locale={locale}
+          title={tPassport("byPassport")}
+          className="mt-12 border-t border-slate-200 pt-8"
+        />
 
         <div className="border-t border-slate-200 mt-12 pt-8">
           <Link

@@ -15,6 +15,7 @@ import { Link } from "@/lib/i18n/routing";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
 import { ogImages } from "@/lib/seo/og-image";
+import PassportLinks from "@/components/tools/PassportLinks";
 
 const BASE_URL = "https://monkeytravel.app";
 
@@ -86,6 +87,7 @@ export default async function ToolsLandingPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("tools.landing");
+  const tPassport = await getTranslations("passport");
 
   const tools = [
     {
@@ -199,6 +201,12 @@ export default async function ToolsLandingPage({
             );
           })}
         </div>
+
+        <PassportLinks
+          locale={locale}
+          title={tPassport("byPassport")}
+          className="mt-12 border-t border-slate-200 pt-8"
+        />
       </main>
       <Footer />
     </div>

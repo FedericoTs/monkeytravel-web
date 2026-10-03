@@ -10,12 +10,11 @@ import {
 } from "@/lib/seo/structured-data";
 import { routing } from "@/lib/i18n/routing";
 import {
-  PASSPORT_PAGE_CODES,
   allPassportSlugs,
   getPassportSummary,
   passportCodeForSlug,
-  passportSlug,
 } from "@/lib/visa/passport-pages";
+import PassportLinks from "@/components/tools/PassportLinks";
 import PassportStatusChart from "@/components/passport/PassportStatusChart";
 import PassportMap from "@/components/passport/PassportMap";
 import { ogImages, twitterImages } from "@/lib/seo/og-image";
@@ -247,25 +246,12 @@ export default async function PassportPage({ params }: PageProps) {
 
           {/* Sibling passports — internal links, and genuinely useful if the
               reader holds more than one. */}
-          <nav aria-label={t("others")} className="mt-10 border-t border-slate-200 pt-6">
-            <h2 className="text-sm font-semibold text-slate-800">{t("others")}</h2>
-            <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
-              {PASSPORT_PAGE_CODES.filter((c) => c !== code).map((c) => {
-                const other = getPassportSummary(c, locale);
-                if (!other) return null;
-                return (
-                  <li key={c}>
-                    <Link
-                      href={`/passport/${passportSlug(c)}`}
-                      className="text-[var(--primary-ink)] hover:underline"
-                    >
-                      <span aria-hidden="true">{other.flag}</span> {other.name}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
+          <PassportLinks
+            locale={locale}
+            title={t("others")}
+            exclude={code}
+            className="mt-10 border-t border-slate-200 pt-6"
+          />
         </div>
       </main>
 

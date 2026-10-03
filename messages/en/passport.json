@@ -4,6 +4,7 @@
   "lede": "A {country} passport gets you into <strong>{count} of {total} destinations</strong> with no paperwork before you fly — visa-free or a visa issued on arrival. Everything else is below, grouped by what it actually asks of you.",
   "days": "{days} days",
   "others": "Other passports",
+  "byPassport": "Visa-free destinations by passport",
   "status": {
     "visaFree": {
       "label": "Visa free",
