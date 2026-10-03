@@ -47,7 +47,6 @@ export function generateOrganizationSchema(): OrganizationSchema {
     sameAs: [
       "https://x.com/monkeytravel",
       "https://instagram.com/monkeytravel.app",
-      "https://linkedin.com/company/monkeytravel",
     ],
     contactPoint: {
       "@type": "ContactPoint",
