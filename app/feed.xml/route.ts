@@ -1,6 +1,10 @@
-import { getAllPosts } from "@/lib/blog/api";
+import { getAllFrontmatter } from "@/lib/blog/api";
 
 const SITE_URL = "https://monkeytravel.app";
+
+// Built once and refreshed hourly, like sitemap-trips.xml: the feed only
+// needs front matter, so it never renders the posts themselves.
+export const revalidate = 3600;
 
 function escapeXml(str: string): string {
   return str
@@ -12,11 +16,8 @@ function escapeXml(str: string): string {
 }
 
 export async function GET() {
-  const posts = await getAllPosts("en");
-
-  const items = posts
-    .map((post) => {
-      const { frontmatter } = post;
+  const items = getAllFrontmatter("en")
+    .map((frontmatter) => {
       const url = `${SITE_URL}/blog/${frontmatter.slug}`;
       const pubDate = new Date(frontmatter.publishedAt).toUTCString();
 
