@@ -79,13 +79,14 @@ export async function generateMetadata({
 
   // hreflang map — inline literal matching homepage shape (task #209
   // fix). Routing uses `localePrefix: 'as-needed'` with default 'en',
-  // so English URLs are unprefixed and IT/ES carry the locale segment.
-  // Without these tags Google can't deduplicate /explore, /it/explore,
-  // /es/explore — they get treated as three competing pages.
+  // so English URLs are unprefixed and es/it/pt carry the locale segment.
+  // Without these tags Google can't deduplicate /explore and its locale
+  // twins — they get treated as competing pages.
   const languages = {
     en: `${SITE_URL}/explore`,
     es: `${SITE_URL}/es/explore`,
     it: `${SITE_URL}/it/explore`,
+    pt: `${SITE_URL}/pt/explore`,
     "x-default": `${SITE_URL}/explore`,
   } as const;
   const canonical =

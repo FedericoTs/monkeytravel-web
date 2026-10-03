@@ -65,6 +65,7 @@ export async function generateMetadata({
         it: `${BASE_URL}/it/tools`,
         es: `${BASE_URL}/es/tools`,
         pt: `${BASE_URL}/pt/tools`,
+        "x-default": `${BASE_URL}/tools`,
       },
     },
     openGraph: {
