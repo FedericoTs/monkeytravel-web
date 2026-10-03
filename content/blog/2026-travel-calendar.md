@@ -4,7 +4,7 @@ slug: "2026-travel-calendar"
 description: "A month-by-month guide to where to travel in 2026 — built on real weather data, crowd patterns, and seasonal events, not generic top-10 lists. One pillar covering all 12 months with specific budget ranges and timing windows."
 author: "Emanuela P."
 publishedAt: "2026-05-06"
-updatedAt: "2026-05-06"
+updatedAt: "2026-10-02"
 category: "Seasonal Travel"
 tags: ["seasonal", "monthly travel guide", "trip planning"]
 image: "/images/blog/trending-destinations-may-2026.jpg"

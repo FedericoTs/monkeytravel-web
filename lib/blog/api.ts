@@ -312,8 +312,9 @@ export function getPostTags(slug: string): string[] {
   return parsed?.frontmatter.tags ?? [];
 }
 
-export function getPostDates(slug: string): { publishedAt: string; updatedAt: string } | null {
-  const parsed = parseFrontmatter(slug);
+/** Dates of the post in `locale`: a translation carries its own `updatedAt`. */
+export function getPostDates(slug: string, locale = "en"): { publishedAt: string; updatedAt: string } | null {
+  const parsed = parseFrontmatter(slug, locale);
   if (!parsed) return null;
   return {
     publishedAt: parsed.frontmatter.publishedAt,

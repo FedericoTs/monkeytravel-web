@@ -50,6 +50,11 @@ function ptAware(locale: string, base: string): string {
   return locale === "pt" && base < LASTMOD_PT_CONTENT ? LASTMOD_PT_CONTENT : base;
 }
 
+/** The latest of some YYYY-MM-DD dates (blog front matter). */
+function newestDate(dates: Array<string | undefined>): string {
+  return dates.filter((d): d is string => Boolean(d)).sort().pop() ?? LASTMOD_HOMEPAGE;
+}
+
 // Most-important pages get the highest priority signal so Google clusters them
 // at the top of the crawl queue when budget is tight.
 const PRIORITY_HOMEPAGE = 1.0;
@@ -233,21 +238,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const blogPages: MetadataRoute.Sitemap = [];
   const blogSlugs = getBlogSlugs();
 
-  // Use the most-recent post date as the blog index lastmod so Google sees
-  // fresh activity each time we publish, without the index changing every build.
-  const newestPostDate = blogSlugs
-    .map((slug) => getPostDates(slug)?.updatedAt)
-    .filter((d): d is string => Boolean(d))
-    .sort()
-    .pop() ?? LASTMOD_HOMEPAGE;
-
   for (const locale of locales) {
     const prefix = locale === defaultLocale ? "" : `/${locale}`;
 
-    // Blog index page per locale
+    // Blog index per locale: the newest post date in THAT locale, so Google
+    // sees fresh activity each time we publish there.
+    const localeSlugs = blogSlugs.filter((slug) => hasLocaleTranslation(slug, locale));
     blogPages.push({
       url: `${baseUrl}${prefix}/blog`,
-      lastModified: newestPostDate,
+      lastModified: ptAware(
+        locale,
+        newestDate(localeSlugs.map((slug) => getPostDates(slug, locale)?.updatedAt)),
+      ),
       changeFrequency: "weekly",
       priority: PRIORITY_INDEX,
     });
@@ -257,9 +259,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // single EN entry instead of 3 locale variants. This stops Google from
     // discovering /es/ /it/ URLs that serve EN-fallback content and would
     // be flagged as "Duplicate, Google chose different canonical than user".
-    for (const slug of blogSlugs) {
-      if (!hasLocaleTranslation(slug, locale)) continue;
-      const dates = getPostDates(slug);
+    for (const slug of localeSlugs) {
+      const dates = getPostDates(slug, locale);
       blogPages.push({
         url: `${baseUrl}${prefix}/blog/${slug}`,
         // ptAware here too: frontmatter `updatedAt` belongs to the POST, not to
@@ -297,10 +298,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const locale of locales) {
     const prefix = locale === defaultLocale ? "" : `/${locale}`;
     for (const tagSlug of getAllTagSlugs(locale)) {
-      if (getPostsByTagSlug(tagSlug, locale).length < TAG_MIN_POSTS_FOR_INDEX) continue;
+      const tagged = getPostsByTagSlug(tagSlug, locale);
+      if (tagged.length < TAG_MIN_POSTS_FOR_INDEX) continue;
       tagPages.push({
         url: `${baseUrl}${prefix}/blog/tag/${tagSlug}`,
-        lastModified: newestPostDate,
+        // The archive changes when one of its own posts does.
+        lastModified: ptAware(locale, newestDate(tagged.map((fm) => fm.updatedAt))),
         changeFrequency: "weekly",
         priority: 0.6,
       });
