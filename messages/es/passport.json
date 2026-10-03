@@ -38,7 +38,7 @@
   },
   "sources": {
     "heading": "De dónde sale esto y qué no es",
-    "body": "Construido con el conjunto de datos abierto passport-index, actualizado cada noche. Es una ayuda para planificar, no asesoramiento legal: las normas de visado cambian sin aviso y el requisito que se te aplica puede depender de tu ruta, del motivo del viaje y de cuánto te quedes. Confirma con la autoridad del destino antes de reservar.",
+    "body": "Construido con el conjunto de datos abierto passport-index, a fecha de {date}; cada noche comprobamos si hay cambios. Es una ayuda para planificar, no asesoramiento legal: las normas de visado cambian sin aviso y el requisito que se te aplica puede depender de tu ruta, del motivo del viaje y de cuánto te quedes. Confirma con la autoridad del destino antes de reservar.",
     "checkerLink": "Consultar un pasaporte y un destino concretos"
   },
   "meta": {

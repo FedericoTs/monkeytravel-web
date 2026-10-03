@@ -112,7 +112,7 @@
     "linkCopied": "Link copiado",
     "planTripCta": "Agora planeje sua viagem para {destination} →",
     "disclaimer": "As regras de visto mudam sem aviso prévio. Esta ferramenta é um apoio ao planejamento baseado nos dados públicos mais recentes — verifique sempre com a fonte oficial para a sua situação específica (motivo da viagem, nacionalidade de nascimento vs. residência, dupla cidadania, etc).",
-    "datasetCredit": "Dados: imorte/passport-index-data (MIT) · última atualização {date}",
+    "datasetCredit": "Dados: imorte/passport-index-data (MIT) · de {date}, com verificação diária de mudanças",
     "loadingResult": "Verificando...",
     "noResultTitle": "Ainda não temos dados para essa combinação",
     "noResultSubtitle": "Tente outro passaporte ou destino, ou consulte o site oficial da embaixada."

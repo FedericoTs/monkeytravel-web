@@ -112,7 +112,7 @@
     "linkCopied": "Link copiato",
     "planTripCta": "Ora pianifica il tuo viaggio a {destination} →",
     "disclaimer": "Le regole sui visti cambiano senza preavviso. Questo strumento è un supporto alla pianificazione basato sui dati pubblici più recenti — verifica sempre con la fonte ufficiale per la tua situazione specifica (motivo del viaggio, cittadinanza di nascita vs. residenza, doppia cittadinanza, ecc).",
-    "datasetCredit": "Dati: imorte/passport-index-data (MIT) · ultimo aggiornamento {date}",
+    "datasetCredit": "Dati: imorte/passport-index-data (MIT) · aggiornati al {date}, controllati ogni giorno",
     "loadingResult": "Verifica in corso...",
     "noResultTitle": "Non abbiamo dati per questa combinazione",
     "noResultSubtitle": "Prova un altro passaporto o destinazione, o controlla il sito ufficiale dell'ambasciata."

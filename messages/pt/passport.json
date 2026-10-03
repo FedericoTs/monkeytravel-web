@@ -38,7 +38,7 @@
   },
   "sources": {
     "heading": "De onde vêm estes dados e o que eles não são",
-    "body": "Construído a partir do conjunto de dados aberto passport-index, atualizado todas as noites. É um apoio ao planejamento, não uma orientação jurídica: as regras de visto mudam sem aviso e a exigência que se aplica a você pode depender da rota, do motivo da viagem e do tempo de permanência. Confirme com a autoridade do destino antes de reservar.",
+    "body": "Construído a partir do conjunto de dados aberto passport-index, com dados de {date}; todas as noites verificamos se há mudanças. É um apoio ao planejamento, não uma orientação jurídica: as regras de visto mudam sem aviso e a exigência que se aplica a você pode depender da rota, do motivo da viagem e do tempo de permanência. Confirme com a autoridade do destino antes de reservar.",
     "checkerLink": "Consultar um passaporte e destino específicos"
   },
   "meta": {
