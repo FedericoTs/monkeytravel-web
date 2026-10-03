@@ -146,7 +146,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const { canonical, languages } = buildAlternates(`/trip/${slug}`, { locale });
 
-  const title = t("metaTitle", { destination, title: trip.title });
+  // A default trip title ("<City> Trip") only repeats the destination, so the
+  // day count is used instead; it also tells same-city trips apart.
+  const days = rawItinerary.length;
+  const city = destination.split(",")[0].trim().toLowerCase();
+  const title =
+    days > 0 && city && (!trip.title || trip.title.toLowerCase().includes(city))
+      ? t("metaTitleDays", { destination, days })
+      : t("metaTitle", { destination, title: trip.title });
   const description =
     trip.description ||
     t("metaDescriptionFallback", { destination });

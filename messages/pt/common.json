@@ -2606,7 +2606,8 @@
     }
   },
   "publicTrip": {
-    "metaTitle": "Roteiro de {destination} — {title} | MonkeyTravel",
+    "metaTitle": "{title} — Roteiro de {destination}",
+    "metaTitleDays": "Roteiro de {destination}: {days, plural, one {# dia} other {# dias}}",
     "metaDescriptionFallback": "Um roteiro de viagem detalhado dia a dia para {destination}, planejado no MonkeyTravel.",
     "notFoundTitle": "Viagem não encontrada",
     "breadcrumbHome": "Início",
@@ -2614,8 +2615,8 @@
     "anonymousTraveler": "Um viajante do MonkeyTravel"
   },
   "creator": {
-    "metaTitle": "{name} — Roteiros de viagem | MonkeyTravel",
-    "metaDescription": "Explore {count} roteiros de viagem criados por {name} no MonkeyTravel.",
+    "metaTitle": "{name} — Roteiros de viagem",
+    "metaDescription": "Explore {count, plural, one {# roteiro de viagem criado} other {# roteiros de viagem criados}} por {name} no MonkeyTravel.",
     "notFoundTitle": "Criador não encontrado",
     "fallbackName": "Viajante",
     "breadcrumbHome": "Início",
