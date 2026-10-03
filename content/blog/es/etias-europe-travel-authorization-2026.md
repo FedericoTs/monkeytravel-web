@@ -2,12 +2,12 @@
 title: 'ETIAS Autorización de Viaje a Europa 2026: Todo Lo Que Necesitas Saber'
 slug: etias-europe-travel-authorization-2026
 description: >-
-  Guía completa sobre la autorización de viaje ETIAS que se lanza en 2026. Quién
-  la necesita, cómo solicitarla, coste, validez y qué significa para viajar a
-  Europa.
+  Guía completa sobre la autorización de viaje ETIAS, que aún no tiene fecha
+  oficial de inicio. Quién la necesitará, cómo solicitarla, coste, validez y qué
+  significa para viajar a Europa.
 author: Riccardo P.
 publishedAt: '2026-04-15'
-updatedAt: '2026-04-15'
+updatedAt: '2026-10-03'
 category: Travel Tips
 tags: ["documentos de viaje", "europa", "planificación de viajes"]
 image: /images/blog/etias-europe-travel-authorization-2026.jpg
@@ -20,8 +20,8 @@ seo:
     ETIAS 2026 para Estadounidenses: Guía Completa de la Nueva Autorización de
     Viaje a Europa
   description: >-
-    ETIAS se lanza en el Q4 de 2026 para estadounidenses y más de 60
-    nacionalidades. Conoce el coste (20 €), proceso de solicitud, qué 30 países
+    ETIAS aún no tiene fecha oficial de inicio. Para estadounidenses y 59 países
+    y territorios más: el coste (20 €), el proceso de solicitud, los 30 países que
     lo exigen y en qué se diferencia de un visado.
   keywords:
     - etias 2026
@@ -37,9 +37,11 @@ schema: Article
 
 # ETIAS Autorización de Viaje a Europa 2026: Todo Lo Que Necesitas Saber
 
-Si estás planeando un viaje a Europa a finales de 2026 o después, hay un nuevo requisito que no puedes ignorar. El Sistema Europeo de Información y Autorización de Viajes — ETIAS — se lanza finalmente tras años de retrasos. Afecta a viajeros de Estados Unidos, Reino Unido, Canadá, Australia y más de 60 países que actualmente disfrutan de acceso sin visado al Espacio Schengen europeo.
+Si estás planeando un viaje a Europa, hay un nuevo requisito en camino que conviene conocer. El Sistema Europeo de Información y Autorización de Viajes — ETIAS — lleva años de retrasos y todavía no tiene fecha oficial de inicio. Cuando empiece, afectará a viajeros de Estados Unidos, Reino Unido, Canadá, Australia y el resto de los 59 países y territorios cuyos ciudadanos pueden visitar hoy Europa sin visado.
 
-No es un visado. Es más barato, más rápido y más sencillo que un visado. Pero no podrás embarcar en tu vuelo a Europa sin él.
+No es un visado. Es más barato, más rápido y más sencillo que un visado. Pero, cuando se aplique por completo, no podrás embarcar en tu vuelo a Europa sin él.
+
+*Comprobado el 3 de octubre de 2026 con las fuentes oficiales de la UE, EE. UU., Reino Unido, Canadá y Australia que aparecen al final.*
 
 Aquí tienes todo lo que necesitas saber: qué es ETIAS, cuándo se lanza, quién lo necesita, cómo solicitarlo, cuánto cuesta y cómo cambiará la planificación de tus viajes.
 
@@ -61,38 +63,39 @@ El propósito es directo: dar a las autoridades fronterizas europeas aviso previ
 
 **Todavía no se sabe, y esa es la respuesta honesta.**
 
-Durante buena parte de 2025 y 2026 la fecha oficial era el último trimestre de 2026. Esa mención ha sido **retirada del sitio oficial de ETIAS**, que ahora solo indica que el sistema «no está en funcionamiento y no se recogen solicitudes de autorización de viaje en este momento».
+Durante buena parte de 2025 y 2026 la fecha oficial era el último trimestre de 2026. Esa mención ha sido **retirada del sitio oficial de ETIAS**, que ahora solo indica que el sistema «no está en funcionamiento y no se recogen solicitudes de autorización de viaje en este momento». Añade que la UE anunciará la fecha de inicio «varios meses antes de su lanzamiento».
 
-El Financial Times informó de que eu-LISA, la agencia de la UE que construye el sistema, considera que un lanzamiento en 2026 ya no es viable. Su consejo de administración trató el calendario en junio de 2026 y volverá a reunirse en **septiembre de 2026** para fijar una nueva fecha. Se espera 2027, pero no hay ninguna fecha confirmada.
+En julio de 2026 el Financial Times informó de que eu-LISA, la agencia de la UE que construye el sistema, considera que un lanzamiento en 2026 ya no es viable. Su consejo de administración volvió a reunirse el **23 y 24 de septiembre de 2026**, trató la planificación de ETIAS y una hoja de ruta para 2027-2028, y **no fijó ninguna fecha de lanzamiento**. Ninguna fuente oficial ha confirmado un inicio en 2027.
 
 En la práctica: **hoy no puedes solicitar ETIAS**, y cualquier web que te invite a preinscribirte o pagar por uno no es legítima.
 
-Habrá un **período de transición** de aproximadamente seis meses tras el lanzamiento, durante el cual ETIAS estará operativo pero la aplicación podrá ser gradual. Sin embargo, se espera que las aerolíneas y transportistas comprueben el estado ETIAS al embarcar desde el primer día.
+Cuando ETIAS empiece, se implantará a lo largo de **al menos 12 meses**. Primero, un período transitorio de al menos seis meses: hay que solicitarlo, pero a quien cumpla las demás condiciones de entrada no se le rechaza por llegar sin él. Después, un período de gracia de al menos seis meses, en el que ETIAS es obligatorio salvo para quien entre por primera vez desde el final del período transitorio.
 
 **Fechas clave:**
 
 - **2016:** ETIAS propuesto por la Comisión Europea
 - **2018:** Reglamento ETIAS adoptado oficialmente
 - **2023-2025:** Múltiples retrasos por integración técnica con el Sistema de Entrada/Salida (SES)
-- **2025:** SES comienza a implementarse en fronteras terrestres, marítimas y aéreas
+- **12 oct 2025:** el Sistema de Entradas y Salidas (SES) empieza a funcionar en fronteras terrestres, marítimas y aéreas
+- **10 abr 2026:** el SES funciona plenamente en todas las fronteras exteriores y se acaban los sellos en el pasaporte
 - **Jul 2026:** la fecha del último trimestre de 2026 se retira discretamente del sitio oficial
-- **Sep 2026:** se espera que el consejo de eu-LISA fije una nueva fecha de lanzamiento
-- **2027:** ventana de lanzamiento esperada, aún sin confirmar
+- **23-24 sep 2026:** el consejo de eu-LISA revisa la planificación de ETIAS y no fija fecha de lanzamiento
+- **Próximo paso:** la UE anunciará la fecha de inicio varios meses antes del lanzamiento
 
-El consejo práctico es simple: **ETIAS no es necesario para ningún viaje que estés reservando ahora mismo.** Vuelve a comprobar el sitio oficial antes de viajar en 2027 e ignora a quien te venda una solicitud mientras tanto.
+El consejo práctico es simple: **ETIAS no es necesario para ningún viaje que estés reservando ahora mismo.** Vuelve a comprobar el sitio oficial antes de viajar e ignora a quien te venda una solicitud mientras tanto.
 
 ---
 
 ## Quién Necesita ETIAS
 
-ETIAS es obligatorio para ciudadanos de **más de 60 países** que actualmente tienen acceso sin visado al Espacio Schengen. Son viajeros que actualmente pueden entrar en Europa sin autorización previa — a partir del Q4 de 2026, necesitarán aprobación ETIAS antes de partir.
+ETIAS será obligatorio para los ciudadanos de los **59 países y territorios** que actualmente tienen acceso sin visado al Espacio Schengen. Son viajeros que hoy pueden entrar en Europa sin autorización previa: cuando ETIAS empiece, necesitarán una aprobación antes de partir.
 
 ### Países Cuyos Ciudadanos Necesitan ETIAS
 
-La lista completa incluye:
+Entre ellos (la [lista oficial](https://travel-europe.europa.eu/etias/who-should-apply_en) recoge los 59):
 
 - **Norteamérica:** Estados Unidos, Canadá, México
-- **Sudamérica:** Argentina, Brasil, Chile, Colombia, Costa Rica, Ecuador, Paraguay, Perú, Uruguay, Venezuela y otros
+- **América Latina:** Argentina, Brasil, Chile, Colombia, Costa Rica, Paraguay, Perú, Uruguay, Venezuela y otros
 - **Asia-Pacífico:** Australia, Nueva Zelanda, Japón, Corea del Sur, Singapur, Taiwán, Brunéi, Malasia
 - **Reino Unido:** Todos los ciudadanos británicos post-Brexit
 - **Caribe:** Bahamas, Barbados, Trinidad y Tobago y otros
@@ -106,7 +109,7 @@ Si tienes un pasaporte de un país que actualmente requiere visado Schengen (Chi
 
 ## Qué 30 Países Exigen ETIAS
 
-ETIAS cubre la entrada a los **30 países del Espacio Schengen**. Estos incluyen los 27 miembros Schengen de la UE más Islandia, Liechtenstein, Noruega y Suiza.
+ETIAS será obligatorio para entrar en **30 países europeos**: los 29 miembros del Espacio Schengen (25 países de la UE más Islandia, Liechtenstein, Noruega y Suiza) y Chipre.
 
 La lista completa:
 
@@ -138,7 +141,7 @@ La lista completa:
 | Rumanía | |
 | Suecia | |
 
-**Importante:** Irlanda no forma parte del Espacio Schengen y no requiere ETIAS. Irlanda tiene sus propios requisitos de entrada. Chipre es miembro de la UE pero aún no es miembro pleno de Schengen — su estado ETIAS puede cambiar, así que compruébalo antes de viajar.
+**Importante:** Irlanda no forma parte del Espacio Schengen y no requiere ETIAS. Irlanda tiene sus propios requisitos de entrada. Chipre es miembro de la UE pero aún no es miembro pleno de Schengen; figura en la lista oficial de países que exigirán ETIAS, lo que eleva el total a 30.
 
 Si solo visitas países europeos fuera de Schengen (Reino Unido, Irlanda, Turquía, etc.), no necesitas ETIAS para esos destinos. Pero en cuanto tu itinerario incluya cualquier país Schengen — incluso una escala — lo necesitarás.
 
@@ -148,14 +151,14 @@ Si solo visitas países europeos fuera de Schengen (Reino Unido, Irlanda, Turqu�
 
 **20 € por solicitud.**
 
-La tasa subió desde los 7 € en julio de 2025. Los viajeros **menores de 18 y mayores de 70 están exentos** y no pagan nada. Para contexto:
+La tasa subió desde los 7 €: la Comisión Europea aprobó el cambio en julio de 2025 y entró en vigor en noviembre de 2025, antes del lanzamiento. Los viajeros **menores de 18 y mayores de 70 están exentos** y no pagan nada. Para contexto:
 
-- ESTA de EE. UU. cuesta 21 $
-- ETA del Reino Unido cuesta 10 £
+- ESTA de EE. UU. cuesta 40,27 $ (40,62 $ desde el 16 de octubre de 2026)
+- ETA del Reino Unido cuesta 20 £
 - eTA de Canadá cuesta 7 $ CAD
-- ETA de Australia cuesta 20 $ AUD
+- ETA de Australia cuesta 20 $ AUD (el cargo de servicio de la app)
 
-ETIAS es la autorización de viaje más barata entre sistemas comparables.
+ETIAS queda en medio: más barato que el ESTA de EE. UU. y el ETA del Reino Unido, más caro que el eTA de Canadá y el ETA de Australia.
 
 **Exenciones de tasa:** Los viajeros menores de 18 años y mayores de 70 están exentos de la tasa. La solicitud es gratuita para ellos.
 
@@ -237,11 +240,11 @@ En la práctica, la experiencia fronteriza será así:
 
 1. Llegas al control de pasaportes en el país Schengen
 2. El agente escanea tu pasaporte
-3. El sistema comprueba automáticamente tu estado ETIAS y la nueva base de datos del Sistema de Entrada/Salida (SES)
+3. El sistema comprueba tu estado ETIAS y el Sistema de Entradas y Salidas (SES), que registra a los viajeros de fuera de la UE en las fronteras exteriores desde octubre de 2025
 4. Si todo está correcto, te admiten — potencialmente a través de puertas electrónicas automatizadas en los aeropuertos principales
-5. El SES registra tu entrada, reemplazando el antiguo sistema de sellos en el pasaporte
+5. El SES registra tu entrada; desde el 10 de abril de 2026 sustituye a los sellos en el pasaporte en todas las fronteras exteriores
 
-La mayoría de viajeros experimentará un proceso fronterizo **más rápido** que el actual, porque la preselección ya se habrá realizado. La combinación de ETIAS y SES está diseñada para reducir colas, no para aumentarlas.
+ETIAS y el SES están diseñados para sacar los controles de la cola: ETIAS te revisa antes de volar y el SES sustituye al sellado manual. Tu primer registro en el SES, con huellas dactilares y una foto, tarda más que los pasos posteriores.
 
 Si tu ETIAS fue denegado, o si el agente fronterizo tiene dudas, podrás ser derivado a inspección secundaria — el mismo proceso que existe hoy.
 
@@ -268,7 +271,7 @@ Para la mayoría de viajeros, cambia muy poco en la práctica. Esto es lo que ha
 
 ### Antes de Reservar Vuelos
 
-Solicita ETIAS al menos **2 semanas antes de tu viaje** para contemplar posibles retrasos. La mayoría de aprobaciones llegan en minutos, pero la ventana máxima de procesamiento de 30 días significa que no deberías esperar al último momento.
+Cuando ETIAS esté en marcha, solicítalo al menos **2 semanas antes de tu viaje** para contemplar posibles retrasos. La mayoría de aprobaciones llegan en minutos, pero la ventana máxima de procesamiento de 30 días significa que no deberías esperar al último momento.
 
 ### Escalas y Conexiones
 
@@ -276,7 +279,7 @@ Si tienes un vuelo de conexión que transita por un país Schengen — aunque tu
 
 ### Viajes Multi-País por Europa
 
-Un ETIAS cubre los 30 países Schengen. No necesitas autorizaciones separadas para cada país. Vuela a París, toma un tren a Ámsterdam, continúa a Berlín y vuela de vuelta desde Roma — todo con un solo ETIAS.
+Un ETIAS cubre los 30 países que lo exigen. No necesitas autorizaciones separadas para cada país. Vuela a París, toma un tren a Ámsterdam, continúa a Berlín y vuela de vuelta desde Roma — todo con un solo ETIAS.
 
 ### Reino Unido e Irlanda
 
@@ -296,7 +299,7 @@ No. ETIAS es una autorización de viaje, no un visado. Es un simple control de p
 
 ### Necesitan los estadounidenses ETIAS para visitar Europa en 2026?
 
-Sí, a partir del Q4 de 2026. Los ciudadanos estadounidenses necesitarán un ETIAS aprobado antes de viajar a cualquiera de los 30 países del Espacio Schengen. Esto sustituye al sistema actual donde los estadounidenses simplemente se presentan con un pasaporte válido.
+No. ETIAS no está en funcionamiento, así que ningún viaje en 2026 lo necesita. Cuando empiece y se aplique por completo, los ciudadanos estadounidenses necesitarán un ETIAS aprobado antes de viajar a cualquiera de los 30 países europeos que lo exigen. Hasta entonces, entran con un pasaporte válido, como hoy.
 
 ### Cuánto tarda el proceso de ETIAS?
 
@@ -304,7 +307,7 @@ La mayoría de solicitudes se procesan en minutos. Los casos complejos pueden ta
 
 ### Puedo seguir visitando Europa 90 días sin visado?
 
-Sí. ETIAS no cambia la regla de 90/180 días. Puedes permanecer en el Espacio Schengen hasta 90 días dentro de cualquier período de 180 días. La diferencia es que ahora necesitas aprobación previa mediante ETIAS antes de ir.
+Sí. ETIAS no cambia la regla de 90/180 días. Puedes permanecer en el Espacio Schengen hasta 90 días dentro de cualquier período de 180 días. La diferencia, cuando ETIAS esté en marcha, es que necesitarás una aprobación previa antes de ir.
 
 ### Qué pasa si mi ETIAS caduca durante el viaje?
 
@@ -334,7 +337,15 @@ Tanto si estás planeando una semana en París, una aventura multi-ciudad por Sc
 
 ## Fuentes
 
-- [ETIAS costará 20 EUR](https://home-affairs.ec.europa.eu/news/european-travel-authorisation-etias-will-cost-eur-20-2025-07-17_en) — Comisión Europea, Migración y Asuntos de Interior (17 de julio de 2025): la tasa es de 20 EUR, con menores de 18 y mayores de 70 exentos
-- [ETIAS — sitio oficial de la UE](https://travel-europe.europa.eu/etias_es) — actualmente indica que el sistema no está en funcionamiento y no se recogen solicitudes
-- Información del Financial Times (julio de 2026): la mención al último trimestre de 2026 fue retirada del sitio oficial; eu-LISA considera 2026 inviable y se reúne en septiembre de 2026 para fijar una nueva fecha
-- Comprobado el 25 de agosto de 2026. Las fechas de ETIAS se han movido repetidamente desde 2016: confirma en el sitio oficial de la UE antes de viajar.
+- [ETIAS, sitio oficial de la UE](https://travel-europe.europa.eu/en/etias): «actualmente no está en funcionamiento»; la UE anunciará la fecha de inicio varios meses antes del lanzamiento
+- [El consejo de administración de eu-LISA revisa los sistemas informáticos clave de la UE](https://www.eulisa.europa.eu/news-and-events/news/eu-lisa-management-board-reviews-implementation-key-eu-it-systems-and-future) (eu-LISA, 24 de septiembre de 2026): se trató la planificación de ETIAS, sin fijar fecha de lanzamiento
+- [Reglamento Delegado (UE) 2025/1411 de la Comisión](https://eur-lex.europa.eu/eli/reg_del/2025/1411/oj): la tasa de 20 €; exentos los menores de 18 y los mayores de 70
+- [Calendario de ETIAS explicado](https://travel-europe.europa.eu/etias/about-etias/news-corner/etias-timeline-explained) (sitio oficial de la UE): un período transitorio y un período de gracia de al menos seis meses cada uno
+- [El Sistema de Entradas y Salidas, plenamente operativo desde el 10 de abril de 2026](https://home-affairs.ec.europa.eu/news/entryexit-system-will-become-fully-operational-10-april-2026-2026-03-30_en) (Comisión Europea, 30 de marzo de 2026)
+- [Quién debe solicitar ETIAS](https://travel-europe.europa.eu/etias/who-should-apply_en) (sitio oficial de la UE): los 59 países y territorios, y los 30 países europeos que exigen ETIAS
+- Tasa del ESTA de EE. UU.: Federal Register [2025-20304](https://www.federalregister.gov/d/2025-20304) (40,27 $ desde el 1 de enero de 2026) y [2026-20185](https://www.federalregister.gov/d/2026-20185) (40,62 $ desde el 16 de octubre de 2026)
+- [ETA del Reino Unido](https://www.gov.uk/eta) (GOV.UK): «An ETA costs £20» (cuesta 20 £)
+- [eTA de Canadá](https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/eta.html) (Gobierno de Canadá): 7 $ CAD
+- [ETA de Australia, subclase 601](https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/electronic-travel-authority-601) (Department of Home Affairs): 20 $ AUD de cargo de servicio en la app
+- Información del Financial Times (julio de 2026), recogida por [The Independent](https://www.aol.com/articles/etias-travel-permit-delayed-again-165222000.html): eu-LISA considera inviable un lanzamiento en 2026
+- Comprobado el 3 de octubre de 2026. Las fechas de ETIAS se han movido repetidamente desde 2016: confirma en el sitio oficial de la UE antes de viajar.
