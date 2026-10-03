@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { isCreatorIndexable } from "@/lib/seo/creator-indexable";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
@@ -162,7 +163,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    robots: { index: true, follow: true },
+    robots: { index: isCreatorIndexable(creator), follow: true },
     alternates: { canonical, languages },
     openGraph: {
       title,
