@@ -38,6 +38,8 @@ Ecco cosa nessuno ti dice: "monsone" non significa pioggia ininterrotta. Di soli
 
 Questa guida analizza la stagione dei monsoni in Asia mese per mese, per sapere esattamente cosa evitare, cosa sfruttare e come viaggiare in modo piu intelligente durante la stagione umida.
 
+Per sapere cosa vale la pena pianificare negli altri mesi, guarda il [calendario dei viaggi mese per mese](/blog/2026-travel-calendar).
+
 ## Cos'e la Stagione dei Monsoni, Esattamente?
 
 Il monsone non e una tempesta -- e un modello di venti stagionali. Quando il continente si riscalda in estate, l'aria umida dall'Oceano Indiano e dal Pacifico fluisce verso l'interno, portando piogge intense. La parola chiave e **stagionale**: inizia e finisce in momenti prevedibili, e regioni diverse vengono colpite in periodi diversi.

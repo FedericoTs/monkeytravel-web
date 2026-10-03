@@ -40,6 +40,8 @@ C'è una finestra di due settimane — a volte meno — in cui le foreste del mo
 
 Questa guida copre 12 destinazioni dove il foliage autunnale merita di pianificare un intero viaggio. Non solo "alberi carini" — parliamo di luoghi dove lo spettacolo autunnale è così drammatico da trasformare completamente il paesaggio. Per ciascuno troverai le date esatte del picco di colore, i percorsi migliori, quanto costa e come fotografarlo senza ritrovarti con lo stesso scatto di tutti gli altri.
 
+Per sapere cosa vale la pena pianificare negli altri mesi, guarda il [calendario dei viaggi mese per mese](/blog/2026-travel-calendar).
+
 ## Quando Raggiunge il Picco il Foliage Autunnale? Cronologia Globale
 
 Prima di passare alle destinazioni, ecco lo strumento chiave di pianificazione — una cronologia mese per mese del picco di colore nel mondo:

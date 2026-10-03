@@ -130,7 +130,7 @@ June is early winter in South Africa's Lowveld, which is exactly why it is one o
 - **Book the festival nights first.** Santo António in Lisbon, Midsummer in the archipelago, Yosakoi week in Sapporo and Inti Raymi week in Cusco are when rooms run out — sleep is the constraint, not flights.
 - **June splits Asia in two.** The monsoon reaches southern India early in the month and works north, while Japan, Taiwan, South Korea and southern China have their rainy seasons. Go where it is dry — Bali, Ladakh, Hokkaido — and see our [monsoon guide](/blog/monsoon-season-where-to-go-and-avoid).
 - **Use the light.** Sightsee early and late, rest at midday, and dine after 9pm in southern Europe. For a sun that never sets, see our [midnight sun guide](/blog/midnight-sun-best-destinations).
-- **Compare it with the months either side before you lock in.** [May](/blog/where-to-go-in-may) is cheaper and calmer in Europe; [July](/blog/where-to-go-in-july) brings the Mediterranean peak and the Mara crossings.
+- **Compare it with the months either side before you lock in.** [May](/blog/where-to-go-in-may) is cheaper and calmer in Europe; [July](/blog/where-to-go-in-july) brings the Mediterranean peak and the Mara crossings. The [month-by-month travel calendar](/blog/2026-travel-calendar) shows the whole year at a glance.
 
 ## Plan Your June Trip in 30 Seconds
 

@@ -130,7 +130,7 @@ Tbilisi in July is hot, but Georgia's summer is in the mountains. In Svaneti, th
 - **Book the bed before the flight.** San Fermín, Naadam, the Gion weekends and the Stampede reprice their host cities months out; Mara camps, Lofoten cabins and Rockies lodges fill regardless.
 - **The monsoon splits Asia in two.** India's west coast, Thailand's Andaman side and most of mainland Southeast Asia are wet; Ladakh and Bali are not. Our [monsoon guide](/blog/monsoon-season-where-to-go-and-avoid) maps the calendar.
 - **Below the equator, July is dry season.** East Africa, the Andes and Queensland's tropical north are at their driest — hence the safari, trekking and reef picks.
-- **Compare the months either side.** [June](/blog/where-to-go-in-june) has the same long days before school holidays push prices up; [August](/blog/where-to-go-in-august) covers alpine valleys and dry-season islands that work just as well in late July.
+- **Compare the months either side.** [June](/blog/where-to-go-in-june) has the same long days before school holidays push prices up; [August](/blog/where-to-go-in-august) covers alpine valleys and dry-season islands that work just as well in late July. The [month-by-month travel calendar](/blog/2026-travel-calendar) shows the whole year at a glance.
 
 ## Plan Your July Trip in 30 Seconds
 

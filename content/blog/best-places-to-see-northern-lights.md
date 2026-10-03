@@ -45,6 +45,8 @@ But when it works — when the sky cracks open in green and violet and you stand
 
 This guide is about making sure it works. We've ranked 12 destinations by aurora probability, real costs, accessibility, and what else you can do if the lights don't show. Because even in the best locations, clear skies are never guaranteed — so you need a trip worth taking regardless.
 
+For what is worth planning around in every other month, see the [month-by-month travel calendar](/blog/2026-travel-calendar).
+
 ## Quick Budget Reference: Northern Lights Destinations by Price
 
 | Budget Tier | Destinations | Cost/Night | Aurora Probability |

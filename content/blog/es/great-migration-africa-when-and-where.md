@@ -36,6 +36,8 @@ Pero hay algo que la mayoría de guías no te dicen: no existe un mal momento pa
 
 Esta guía desglosa la migración mes a mes, compara el Serengeti y el Masai Mara, recomienda campamentos específicos para cada temporada y te da un presupuesto realista para que puedas planificar este viaje de verdad.
 
+Para saber qué merece la pena planificar en los demás meses, consulta el [calendario de viajes mes a mes](/blog/2026-travel-calendar).
+
 ## El Ciclo Anual: Mes a Mes
 
 La Gran Migración sigue un bucle aproximadamente en sentido horario a través del Serengeti en Tanzania y el Masai Mara en Kenia. La lluvia dicta la ruta — las manadas siguen la hierba fresca.

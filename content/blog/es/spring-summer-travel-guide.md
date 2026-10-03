@@ -46,6 +46,8 @@ Una nota sobre las fechas: cuando digo "la temporada media empieza a finales de 
 
 ---
 
+Para saber qué merece la pena planificar en los demás meses, consulta el [calendario de viajes mes a mes](/blog/2026-travel-calendar).
+
 ## Comparativa rápida: 12 destinos a través de los tres objetivos
 
 Esta tabla consolida las opciones más fuertes de los tres posts originales. Úsala para triangular y luego salta a la sección de inmersión profunda que encaje con tu objetivo.

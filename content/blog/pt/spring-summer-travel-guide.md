@@ -40,6 +40,8 @@ Uma observação sobre as datas: quando digo "a meia-estação começa no fim de
 
 ---
 
+Para saber o que vale a pena planejar nos outros meses, veja o [calendário de viagens mês a mês](/blog/2026-travel-calendar).
+
 ## Comparativo de escolha rápida: 12 destinos para os três objetivos
 
 Esta tabela consolida as escolhas mais fortes dos três posts originais. Use-a para triangular e, depois, pule para a seção de análise detalhada que encaixa com o seu objetivo.

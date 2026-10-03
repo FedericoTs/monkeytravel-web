@@ -37,6 +37,8 @@ Esto es lo que nadie te dice: "monzón" no significa lluvia sin parar. Normalmen
 
 Esta guía desglosa la temporada de monzones en Asia mes a mes, para que sepas exactamente qué evitar, qué aprovechar y cómo viajar de forma más inteligente durante la temporada húmeda.
 
+Para saber qué merece la pena planificar en los demás meses, consulta el [calendario de viajes mes a mes](/blog/2026-travel-calendar).
+
 ## ¿Qué Es la Temporada de Monzones, Exactamente?
 
 El monzón no es una tormenta — es un patrón de vientos estacionales. A medida que el continente se calienta en verano, el aire húmedo del Océano Índico y el Pacífico fluye hacia el interior, trayendo lluvias intensas. La palabra clave es **estacional**: empieza y termina en momentos predecibles, y cada región se ve afectada en diferentes fechas.

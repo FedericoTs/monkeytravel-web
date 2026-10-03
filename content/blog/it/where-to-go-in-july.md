@@ -130,7 +130,7 @@ Tbilisi a luglio è calda, ma l'estate della Georgia è in montagna. In Svanezia
 - **Prenota il letto prima del volo.** San Fermín, il Naadam, i weekend del Gion e la Stampede fanno salire i prezzi delle loro città con mesi di anticipo; i campi del Mara, le capanne delle Lofoten e i lodge delle Rocciose si riempiono comunque.
 - **Il monsone divide l'Asia in due.** La costa occidentale dell'India, il versante delle Andamane della Thailandia e gran parte del Sud-est asiatico continentale sono sotto la pioggia; il Ladakh e Bali no. La nostra [guida al monsone](/blog/monsoon-season-where-to-go-and-avoid) traccia il calendario.
 - **A sud dell'equatore, luglio è stagione secca.** Africa orientale, Ande e Queensland tropicale sono nei loro mesi più secchi: da qui i safari, i trekking e la barriera corallina di questa lista.
-- **Confronta i mesi vicini.** [Giugno](/blog/where-to-go-in-june) ha le stesse giornate lunghe prima che le vacanze scolastiche alzino i prezzi; [agosto](/blog/where-to-go-in-august) copre le valli alpine e le isole in stagione secca che funzionano altrettanto bene a fine luglio.
+- **Confronta i mesi vicini.** [Giugno](/blog/where-to-go-in-june) ha le stesse giornate lunghe prima che le vacanze scolastiche alzino i prezzi; [agosto](/blog/where-to-go-in-august) copre le valli alpine e le isole in stagione secca che funzionano altrettanto bene a fine luglio. Il [calendario dei viaggi mese per mese](/blog/2026-travel-calendar) mostra tutto l'anno a colpo d'occhio.
 
 ## Pianifica il tuo viaggio di luglio in 30 secondi
 

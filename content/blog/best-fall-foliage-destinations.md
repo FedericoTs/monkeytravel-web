@@ -41,6 +41,8 @@ There's a two-week window — sometimes less — when the world's forests turn i
 
 This guide covers 12 destinations where fall foliage is worth planning a trip around. Not just "pretty trees" — we're talking about places where the autumn display is so dramatic it changes the entire landscape. For each one, you'll get the exact peak dates, the best routes, what it costs, and how to photograph it without ending up with the same shot as everyone else.
 
+For what is worth planning around in every other month, see the [month-by-month travel calendar](/blog/2026-travel-calendar).
+
 ## When Does Fall Foliage Peak? A Global Timeline
 
 Before we get into destinations, here's the critical planning tool — a month-by-month timeline of peak color around the world:

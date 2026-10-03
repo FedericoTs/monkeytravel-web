@@ -39,6 +39,8 @@ A note on dates: when I say "shoulder season starts late May," I mean western Eu
 
 ---
 
+For what is worth planning around in every other month, see the [month-by-month travel calendar](/blog/2026-travel-calendar).
+
 ## Quick-pick comparison: 12 destinations across all three goals
 
 This table consolidates the strongest picks from the three source posts. Use it to triangulate, then jump to the deep-dive section that fits your goal.

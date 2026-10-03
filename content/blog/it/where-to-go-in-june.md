@@ -130,7 +130,7 @@ Giugno è inizio inverno nel Lowveld sudafricano, ed è proprio per questo uno d
 - **Prenota prima le notti di festa.** Sant'Antonio a Lisbona, il Midsommar nell'arcipelago, la settimana dello Yosakoi a Sapporo e quella dell'Inti Raymi a Cusco sono quando finiscono le camere: il limite è dove dormire, non i voli.
 - **Giugno divide l'Asia in due.** Il monsone arriva nel sud dell'India all'inizio del mese e risale verso nord, mentre Giappone, Taiwan, Corea del Sud e Cina meridionale vivono la loro stagione delle piogge. Vai dove è asciutto — Bali, Ladakh, Hokkaido — e leggi la nostra [guida ai monsoni](/blog/monsoon-season-where-to-go-and-avoid).
 - **Sfrutta la luce.** Visita presto e tardi, riposa a mezzogiorno e cena dopo le 21 nel sud Europa. Per un sole che non tramonta, leggi la nostra [guida al sole di mezzanotte](/blog/midnight-sun-best-destinations).
-- **Confrontalo con i mesi vicini prima di chiudere.** [Maggio](/blog/where-to-go-in-may) costa meno ed è più tranquillo in Europa; [luglio](/blog/where-to-go-in-july) porta il picco del Mediterraneo e gli attraversamenti del Mara.
+- **Confrontalo con i mesi vicini prima di chiudere.** [Maggio](/blog/where-to-go-in-may) costa meno ed è più tranquillo in Europa; [luglio](/blog/where-to-go-in-july) porta il picco del Mediterraneo e gli attraversamenti del Mara. Il [calendario dei viaggi mese per mese](/blog/2026-travel-calendar) mostra tutto l'anno a colpo d'occhio.
 
 ## Pianifica il tuo viaggio di giugno in 30 secondi
 

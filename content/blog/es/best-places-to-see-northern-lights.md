@@ -38,6 +38,8 @@ Pero cuando funciona — cuando el cielo se abre en verde y violeta y te quedas 
 
 Esta guía trata de que funcione. Hemos clasificado 12 destinos por probabilidad de aurora, costes reales, accesibilidad y qué más puedes hacer si las luces no aparecen. Porque incluso en los mejores lugares, los cielos despejados nunca están garantizados — así que necesitas un viaje que valga la pena de todas formas.
 
+Para saber qué merece la pena planificar en los demás meses, consulta el [calendario de viajes mes a mes](/blog/2026-travel-calendar).
+
 ## Cómo Funcionan las Auroras Boreales (Versión de 60 Segundos)
 
 La aurora boreal ocurre cuando partículas cargadas del sol chocan con la atmósfera terrestre. Estas partículas siguen las líneas del campo magnético hacia los polos, excitando las moléculas de gas y produciendo luz — verde del oxígeno a baja altitud, violeta y rojo del nitrógeno más arriba.

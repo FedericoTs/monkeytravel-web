@@ -241,6 +241,8 @@ May 1 is the start of the four best months for the Inca Trail and surrounding An
 
 **The full month guide:** [where to go in May 2027](/blog/where-to-go-in-may), with twelve destinations.
 
+**Spring into summer:** the [spring and summer travel guide](/blog/spring-summer-travel-guide) sorts the warm months into heat, coolcation and value picks.
+
 ---
 
 ## June: Midnight Sun, Mediterranean Sweet Spot, and the Last of Shoulder-Season Pricing
@@ -530,6 +532,8 @@ December is the most polarizing month on the calendar. Generic "somewhere warm" 
 **Avoid in December:** Anywhere on the calendar from December 20 to January 2 if you can shift dates. This 13-day window carries the highest prices of the entire year globally. December 1-15 offers similar weather at 30-50% lower cost in most destinations.
 
 **The full month guide:** [where to go in December 2026](/blog/where-to-go-in-december), with twelve destinations.
+
+**Christmas markets:** [Europe's best Christmas markets](/blog/best-christmas-markets-europe-2026), with the 2026 dates that are confirmed.
 
 ---
 

@@ -243,6 +243,8 @@ Il 1° maggio è l'inizio dei quattro migliori mesi per l'Inca Trail e le Ande c
 
 **La guida completa del mese:** [dove andare a maggio 2027](/blog/where-to-go-in-may), con dodici mete.
 
+**Dalla primavera all'estate:** la [guida di viaggio per primavera ed estate](/blog/spring-summer-travel-guide) divide i mesi caldi tra caldo, fresco e scelte convenienti.
+
 ---
 
 ## Giugno: sole di mezzanotte, punto dolce mediterraneo e l'ultima coda dei prezzi di mezza stagione
@@ -532,6 +534,8 @@ Dicembre è il mese più polarizzante del calendario. Le ricerche generiche di "
 **Evita a dicembre:** ovunque sul calendario dal 20 dicembre al 2 gennaio se puoi spostare le date. Questa finestra di 13 giorni porta i prezzi più alti dell'intero anno a livello globale. Dal 1° al 15 dicembre offre meteo simile a un costo il 30-50% più basso nella maggior parte delle destinazioni.
 
 **La guida completa del mese:** [dove andare a dicembre 2026](/blog/where-to-go-in-december), con dodici mete.
+
+**Mercatini di Natale:** [i migliori mercatini di Natale d'Europa](/blog/best-christmas-markets-europe-2026), con le date 2026 già confermate.
 
 ---
 

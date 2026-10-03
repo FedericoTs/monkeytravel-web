@@ -36,6 +36,8 @@ But here's what most guides don't tell you: there is no bad time to see the Grea
 
 This guide breaks down the migration month by month, compares the Serengeti and Masai Mara, recommends specific camps for each season, and gives you a realistic budget breakdown so you can actually plan this trip.
 
+For what is worth planning around in every other month, see the [month-by-month travel calendar](/blog/2026-travel-calendar).
+
 ## The Annual Cycle: Month by Month
 
 The Great Migration follows a roughly clockwise loop through Tanzania's Serengeti and Kenya's Masai Mara. Rain dictates the route — the herds follow the fresh grass.

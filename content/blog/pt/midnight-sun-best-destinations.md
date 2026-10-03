@@ -43,6 +43,8 @@ O sol da meia-noite é um fenômeno natural que ocorre acima do Círculo Polar �
 
 Mas nem todos os destinos de sol da meia-noite são iguais. Alguns são fáceis de alcançar e bem equipados para visitantes. Outros são remotos, caros e exigem um planejamento sério. Este guia detalha os melhores lugares para viver o sol da meia-noite em 2026, com informações honestas sobre quando ir, o que fazer e quanto realmente custa.
 
+Para saber o que vale a pena planejar nos outros meses, veja o [calendário de viagens mês a mês](/blog/2026-travel-calendar).
+
 ## Como Funciona o Sol da Meia-Noite
 
 A Terra é inclinada em 23,5 graus em seu eixo. Durante o verão do hemisfério norte, o Polo Norte se inclina em direção ao sol, o que significa que as áreas acima do Círculo Polar Ártico (66,5°N) recebem 24 horas de luz contínua em torno do solstício de verão (20 a 21 de junho de 2026).

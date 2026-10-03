@@ -35,6 +35,8 @@ Cercare «calendario alta e bassa stagione 2026» e trovare dieci calendari dive
 
 Non c'è un ente che decida quando comincia l'alta stagione. La decide ogni struttura: ogni hotel, villaggio, campeggio e stabilimento pubblica il proprio listino con le proprie date. Quello che esiste — e che vale la pena capire, perché non cambia — è la **struttura** che quasi tutti seguono.
 
+Per sapere cosa vale la pena pianificare negli altri mesi, guarda il [calendario dei viaggi mese per mese](/blog/2026-travel-calendar).
+
 ## La struttura, che è sempre la stessa
 
 Praticamente ogni listino italiano di mare divide l'estate in tre fasce, non due:
