@@ -31,8 +31,10 @@ const defaultLocale = "en";
 // content moves.
 const LASTMOD_HOMEPAGE = "2026-09-30";
 const LASTMOD_LANDING = "2026-09-28";
+const LASTMOD_TOOLS = "2026-10-03";
+const LASTMOD_EXPLORE = "2026-10-03";
 const LASTMOD_DESTINATIONS = "2026-09-29";
-const LASTMOD_LEGAL = "2026-08-25";
+const LASTMOD_LEGAL = "2026-10-03";
 
 // The pt locale shipped 2026-06-09 (commit 988c1f6 — 29 destinations + 65 blog
 // posts). pt pages must NEVER carry an en/es/it date that PRE-DATES the pt
@@ -168,7 +170,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const path of toolPaths) {
       landingPages.push({
         url: `${baseUrl}${prefix}${path}`,
-        lastModified: ptAware(locale, LASTMOD_LANDING),
+        lastModified: ptAware(locale, LASTMOD_TOOLS),
         changeFrequency: 'monthly',
         priority: PRIORITY_LANDING,
       });
@@ -192,7 +194,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const path of explorePaths) {
       landingPages.push({
         url: `${baseUrl}${prefix}${path}`,
-        lastModified: ptAware(locale, LASTMOD_HOMEPAGE),
+        lastModified: ptAware(locale, LASTMOD_EXPLORE),
         // Daily — explore feed re-ranks via trending_score every cron tick
         // and new UGC trips land continuously. We want Googlebot to come
         // back often, not the monthly cadence the SEO landing pages use.

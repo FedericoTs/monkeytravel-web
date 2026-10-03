@@ -39,31 +39,21 @@ test.describe("static pages — chrome + metadata @prod", () => {
     await expect(page).toHaveTitle("Terms of Service | MonkeyTravel");
   });
 
-  test("/it/privacy canonical points at the IT path, not /privacy", async ({
-    page,
-  }) => {
-    await page.goto("/it/privacy");
-    const canonical = await page
-      .locator("link[rel='canonical']")
-      .getAttribute("href");
-    expect(canonical, "/it/privacy must declare /it/privacy as its canonical").toMatch(
-      /\/it\/privacy$/
-    );
-  });
+  // The legal text is English in every locale, so the locale copies point at
+  // the English page — never at the homepage the root layout defaults to.
+  const LEGAL_CANONICALS = [
+    ["/it/privacy", "https://monkeytravel.app/privacy"],
+    ["/it/terms", "https://monkeytravel.app/terms"],
+    ["/es/privacy", "https://monkeytravel.app/privacy"],
+  ] as const;
 
-  test("/it/terms canonical points at the IT path", async ({ page }) => {
-    await page.goto("/it/terms");
-    const canonical = await page
-      .locator("link[rel='canonical']")
-      .getAttribute("href");
-    expect(canonical).toMatch(/\/it\/terms$/);
-  });
-
-  test("/es/privacy canonical points at the ES path", async ({ page }) => {
-    await page.goto("/es/privacy");
-    const canonical = await page
-      .locator("link[rel='canonical']")
-      .getAttribute("href");
-    expect(canonical).toMatch(/\/es\/privacy$/);
-  });
+  for (const [path, expected] of LEGAL_CANONICALS) {
+    test(`${path} canonical points at the English page`, async ({ page }) => {
+      await page.goto(path);
+      const canonical = await page
+        .locator("link[rel='canonical']")
+        .getAttribute("href");
+      expect(canonical).toBe(expected);
+    });
+  }
 });
