@@ -79,7 +79,9 @@ export default function robots(): MetadataRoute.Robots {
   const baseUrl = "https://monkeytravel.app";
 
   const disallow = DISALLOW_PATHS.flatMap(expandLocales);
-  const allow = ALLOW_PATHS.flatMap(expandLocales);
+  // Share images are served under the disallowed /api/; the longer Allow wins,
+  // so Googlebot-Image and link previews can fetch them.
+  const allow = [...ALLOW_PATHS.flatMap(expandLocales), "/api/og/"];
 
   return {
     rules: [
