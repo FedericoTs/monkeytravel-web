@@ -15,10 +15,11 @@ const BLOG_DIR = path.join(process.cwd(), "content/blog");
  * Each blog page renders its own <h1> from `messages/{locale}/blog.json`
  * (the SEO title). Authors typically also write a `# Title` at the top of
  * the markdown body which would render a SECOND <h1>, hurting the
- * one-h1-per-page best practice. This removes that duplicate.
+ * one-h1-per-page best practice. This removes that duplicate, also when an
+ * HTML comment (such as a translation-review note) comes before it.
  */
 function stripLeadingH1(markdown: string): string {
-  return markdown.replace(/^\s*#\s+[^\n]+\n+/, "");
+  return markdown.replace(/^(\s*(?:<!--[\s\S]*?-->\s*)*)#\s+[^\n]+\n+/, "$1");
 }
 
 /**
