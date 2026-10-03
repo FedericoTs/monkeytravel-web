@@ -93,10 +93,10 @@ ETIAS will be required for citizens of the **59 countries and territories** that
 
 ### Countries Whose Citizens Need ETIAS
 
-The full list includes:
+Among them (the [official list](https://travel-europe.europa.eu/etias/who-should-apply_en) has all 59):
 
 - **North America:** United States, Canada, Mexico
-- **South America:** Argentina, Brazil, Chile, Colombia, Costa Rica, Ecuador, Paraguay, Peru, Uruguay, Venezuela, and others
+- **Latin America:** Argentina, Brazil, Chile, Colombia, Costa Rica, Paraguay, Peru, Uruguay, Venezuela, and others
 - **Asia-Pacific:** Australia, New Zealand, Japan, South Korea, Singapore, Taiwan, Brunei, Malaysia
 - **United Kingdom:** All British citizens post-Brexit
 - **Caribbean:** Bahamas, Barbados, Trinidad and Tobago, and others

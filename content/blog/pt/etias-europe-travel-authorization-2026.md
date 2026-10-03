@@ -96,10 +96,10 @@ O ETIAS será exigido para cidadãos dos **59 países e territórios** que atual
 
 ### Países Cujos Cidadãos Precisam do ETIAS
 
-A lista completa inclui:
+Entre eles (a [lista oficial](https://travel-europe.europa.eu/etias/who-should-apply_en) traz todos os 59):
 
 - **América do Norte:** Estados Unidos, Canadá, México
-- **América do Sul:** Argentina, Brasil, Chile, Colômbia, Costa Rica, Equador, Paraguai, Peru, Uruguai, Venezuela, entre outros
+- **América Latina:** Argentina, Brasil, Chile, Colômbia, Costa Rica, Paraguai, Peru, Uruguai, Venezuela, entre outros
 - **Ásia-Pacífico:** Austrália, Nova Zelândia, Japão, Coreia do Sul, Singapura, Taiwan, Brunei, Malásia
 - **Reino Unido:** Todos os cidadãos britânicos após o Brexit
 - **Caribe:** Bahamas, Barbados, Trinidad e Tobago, entre outros
