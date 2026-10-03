@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import TemplatePreviewClient from "./TemplatePreviewClient";
 import { refreshItineraryPhotos } from "@/lib/places/refreshItineraryPhotos";
 import { countryName, templateItinerary, templateMeta, templatePacking, templateText } from "@/lib/templates/text";
+import { buildAlternates } from "@/lib/seo/canonical";
 
 interface TemplatePageProps {
   params: Promise<{ id: string; locale: string }>;
@@ -14,7 +15,7 @@ export async function generateMetadata({ params }: TemplatePageProps) {
 
   const { data: template } = await supabase
     .from("trips")
-    .select("id, title, description, template_destination, template_short_description")
+    .select("id, title, description, template_destination, template_short_description, public_slug, visibility")
     .eq("id", id)
     .eq("is_template", true)
     .single();
@@ -29,10 +30,17 @@ export async function generateMetadata({ params }: TemplatePageProps) {
     full: template.description || "",
   });
 
+  // The template repeats its public trip page, which is the URL to index.
+  const publicPath =
+    template.public_slug && template.visibility === "public" ? `/trip/${template.public_slug}` : null;
+  const { canonical } = buildAlternates(publicPath ?? `/trips/template/${template.id}`, { locale });
+
   return {
     // Strip brand suffix — root layout's title.template adds it.
     title: `${template.template_destination} Trip`,
     description: text.short || `Explore our curated ${template.template_destination} itinerary`,
+    alternates: { canonical },
+    ...(publicPath ? {} : { robots: { index: false, follow: true } }),
   };
 }
 
