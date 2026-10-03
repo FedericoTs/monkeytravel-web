@@ -17,9 +17,9 @@
  * never breaks the render.
  */
 
-import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
+import { GoogleGenerativeAI, type GenerateContentResult, type GenerationConfig } from "@/lib/ai/genai-compat";
 import { logCacheMetrics } from "@/lib/gemini";
-import { getModelForPurpose } from "@/lib/ai/model-router";
+import { getModelForPurpose, getSiblingModel } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import {
@@ -330,6 +330,12 @@ export function validateEdits(
   return { edits, tripLength: length !== current ? length : undefined, lockedDays, lengthRefused };
 }
 
+/** 429, 500 and 503 ("high demand") are the model pool's, not the request's. */
+export function isModelOverloaded(err: unknown): boolean {
+  const status = (err as { status?: unknown } | null)?.status;
+  return status === 429 || status === 500 || status === 503;
+}
+
 /**
  * Answer or propose edits. Throws on missing key / empty output — the route
  * maps those to a 500. Input validation is the route's job.
@@ -340,38 +346,48 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
   }
   const startedAt = Date.now();
   const cur = tripCurrency(input.days);
-  const modelId = getModelForPurpose("concierge");
+  let modelId = getModelForPurpose("concierge");
 
-  const model = genAI.getGenerativeModel({
-    model: modelId,
-    generationConfig: {
-      temperature: 0.5,
-      responseMimeType: "application/json",
-      // Several full days of 3-5 activity objects, plus the reply. 4096 fit
-      // one day; "add one more day" failed twice as non-JSON (2026-09-15),
-      // the truncation this budget prevents.
-      maxOutputTokens: 8192,
-      // Thinking OFF. The "concierge" purpose resolves to gemini-2.5-flash,
-      // which thinks by default, and thinking tokens count against the cap
-      // above — the headroom was being spent thinking. api_request_logs, 7
-      // days to 2026-09-23: 67 calls, 4 HTTP 500 "non-JSON output" (each after
-      // ~40 s, i.e. both attempts), 12 of 67 over 15 s, p95 37.9 s — against
-      // the signed-in concierge's p95 5.0 s with 0 errors. Same fix as the
-      // trip-generation paths (lib/gemini.ts).
-      thinkingConfig: { thinkingBudget: 0 },
-    },
-  });
+  const generationConfig: GenerationConfig = {
+    temperature: 0.5,
+    responseMimeType: "application/json",
+    // Several full days of 3-5 activity objects, plus the reply. 4096 fit
+    // one day; "add one more day" failed twice as non-JSON (2026-09-15),
+    // the truncation this budget prevents.
+    maxOutputTokens: 8192,
+    // Thinking OFF. The "concierge" purpose resolves to gemini-2.5-flash,
+    // which thinks by default, and thinking tokens count against the cap
+    // above — the headroom was being spent thinking. api_request_logs, 7
+    // days to 2026-09-23: 67 calls, 4 HTTP 500 "non-JSON output" (each after
+    // ~40 s, i.e. both attempts), 12 of 67 over 15 s, p95 37.9 s — against
+    // the signed-in concierge's p95 5.0 s with 0 errors. Same fix as the
+    // trip-generation paths (lib/gemini.ts).
+    thinkingConfig: { thinkingBudget: 0 },
+  };
+  let model = genAI.getGenerativeModel({ model: modelId, generationConfig });
 
   // One retry on non-JSON output: flash-tier models occasionally emit prose or
   // truncated JSON despite responseMimeType. Re-asking breaks the repro loop
   // cheaply and keeps the assistant from 500ing into the generic "Couldn't do
   // that" toast that session replays show users hammering (replay 019f24bf).
+  // An overloaded model gets the same single retry, on its sibling: overload
+  // errors belong to one model's serving pool.
   let parsed: unknown | undefined;
   let costUsd = 0;
   for (let attempt = 0; attempt < 2 && parsed === undefined; attempt++) {
-    const response = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: buildPrompt(input) }] }],
-    });
+    let response: GenerateContentResult;
+    try {
+      response = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: buildPrompt(input) }] }],
+      });
+    } catch (err) {
+      if (attempt === 1 || !isModelOverloaded(err)) throw err;
+      console.warn(`assistant-anon: ${modelId} overloaded, retrying on its sibling`);
+      modelId = getSiblingModel(modelId);
+      model = genAI.getGenerativeModel({ model: modelId, generationConfig });
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      continue;
+    }
     logCacheMetrics("ai.assistant-anon", response.response.usageMetadata, modelId);
     costUsd += geminiCostUsd(modelId, response.response.usageMetadata);
     try {
