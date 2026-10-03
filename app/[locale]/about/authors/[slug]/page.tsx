@@ -54,7 +54,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: enUrl,
       siteName: "MonkeyTravel",
       type: "profile",
-      images: [{ url: `${SITE_URL}/images/authors/${author.slug}.jpg`, width: 400, height: 400, alt: author.name }],
+      images: author.photo
+        ? [{ url: `${SITE_URL}${author.photo}`, width: 400, height: 400, alt: author.name }]
+        : [{ url: "/og-image.png", width: 1200, height: 630, alt: author.name }],
     },
   };
 }
@@ -68,7 +70,6 @@ export default async function AuthorPage({ params }: PageProps) {
 
   const localePrefix = locale === routing.defaultLocale ? "" : `/${locale}`;
   const url = `${SITE_URL}${localePrefix}/about/authors/${slug}`;
-  const photoUrl = `/images/authors/${author.slug}.jpg`;
 
   // All posts authored by this person, in this locale
   const allPosts = getAllFrontmatter(locale);
@@ -79,7 +80,7 @@ export default async function AuthorPage({ params }: PageProps) {
     url,
     jobTitle: author.title,
     description: author.fullBio,
-    image: `${SITE_URL}${photoUrl}`,
+    image: author.photo ? `${SITE_URL}${author.photo}` : undefined,
     knowsAbout: author.expertise,
     sameAs: [
       ...(author.twitter ? [`https://twitter.com/${author.twitter}`] : []),
@@ -89,7 +90,7 @@ export default async function AuthorPage({ params }: PageProps) {
 
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: "Home", url: `${SITE_URL}${localePrefix}` },
-    { name: "About", url: `${SITE_URL}${localePrefix}/about` },
+    { name: "Blog", url: `${SITE_URL}${localePrefix}/blog` },
     { name: author.name, url },
   ]);
 
@@ -117,8 +118,8 @@ export default async function AuthorPage({ params }: PageProps) {
               <div className="shrink-0 w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden bg-gradient-to-br from-[var(--primary)]/20 to-[var(--accent)]/30 ring-4 ring-white shadow-lg">
                 {/* Author headshots aren't shot yet (see .audit/CONTENT_TODO.md);
                     render initials over the gradient circle instead of a broken
-                    <img>. Swap back to <Image src={photoUrl} .../> when a real
-                    /images/authors/{slug}.jpg exists. */}
+                    <img>. Swap back to <Image src={author.photo} .../> once the author
+                    has a `photo` set. */}
                 <span className="flex items-center justify-center w-full h-full text-4xl font-bold text-[var(--primary-ink)]">
                   {author.name
                     .split(/\s+/)

@@ -8,7 +8,7 @@
  * is the single source of truth for who wrote what.
  *
  * To add a real photo: drop `/public/images/authors/{slug}.jpg` (square,
- * 400x400 minimum). The bio page auto-picks it up.
+ * 400x400 minimum) and set that path as the author's `photo`.
  *
  * ON LOCALIZATION: `title`, `shortBio` and `fullBio` are English-only, for
  * every locale — not just Portuguese. That is deliberate and already handled:
@@ -58,6 +58,8 @@ export interface Author {
   twitter?: string;
   /** LinkedIn profile slug, optional */
   linkedin?: string;
+  /** Public path of a real headshot. Schema and share images use it only when set. */
+  photo?: string;
 }
 
 export const AUTHORS: Author[] = [
