@@ -1066,6 +1066,12 @@ export default function TripDetailClient({
   const [dragPreview, setDragPreview] = useState<ItineraryDay[] | null>(null);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const dragStartRef = useRef<ItineraryDay[] | null>(null);
+  // The preview as of the last drag-over, read synchronously, and a one-frame
+  // hold after each cross-day step: the step reflows the days under the
+  // pointer, and reacting to that reflow in the same frame bounced the card
+  // between two days until React stopped the update loop.
+  const dragPreviewRef = useRef<ItineraryDay[] | null>(null);
+  const crossDayHoldRef = useRef(false);
   const collisionDetection = useMemo(() => makeItineraryCollisionDetection(), []);
   // Re-measure every droppable on each move. dnd-kit measures droppables once
   // when a drag starts and only re-measures sortable ITEMS when a list
@@ -2051,6 +2057,7 @@ export default function TripDetailClient({
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
       dragStartRef.current = editedItinerary;
+      dragPreviewRef.current = editedItinerary;
       setDragPreview(editedItinerary);
       setActiveDragId(String(event.active.id));
       hapticSelection();
@@ -2064,13 +2071,19 @@ export default function TripDetailClient({
   // order is committed once, on drop.
   const handleDragOver = useCallback((event: DragOverEvent) => {
     const { active, over } = event;
-    if (!over) return;
+    const prev = dragPreviewRef.current;
+    if (!over || !prev || crossDayHoldRef.current) return;
     const activeId = String(active.id);
+    if (isSameDayTarget(prev, activeId, over.id)) return;
     const activeTop = active.rect.current.translated?.top;
     const after = activeTop !== undefined && over.rect ? activeTop > over.rect.top + over.rect.height / 2 : false;
-    setDragPreview((prev) => {
-      if (!prev || isSameDayTarget(prev, activeId, over.id)) return prev;
-      return applyMove(prev, activeId, over.id, { after });
+    const next = applyMove(prev, activeId, over.id, { after });
+    if (next === prev) return;
+    dragPreviewRef.current = next;
+    setDragPreview(next);
+    crossDayHoldRef.current = true;
+    requestAnimationFrame(() => {
+      crossDayHoldRef.current = false;
     });
   }, []);
 
@@ -2080,6 +2093,7 @@ export default function TripDetailClient({
       const start = dragStartRef.current;
       const preview = dragPreview;
       dragStartRef.current = null;
+      dragPreviewRef.current = null;
       setDragPreview(null);
       setActiveDragId(null);
       if (!start || !preview) return;
@@ -2106,6 +2120,7 @@ export default function TripDetailClient({
 
   const handleDragCancel = useCallback(() => {
     dragStartRef.current = null;
+    dragPreviewRef.current = null;
     setDragPreview(null);
     setActiveDragId(null);
   }, []);
