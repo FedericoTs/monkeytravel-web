@@ -60,6 +60,7 @@ export async function generateMetadata({
         it: `${BASE_URL}/it/tools/packing-list`,
         es: `${BASE_URL}/es/tools/packing-list`,
         pt: `${BASE_URL}/pt/tools/packing-list`,
+        "x-default": `${BASE_URL}/tools/packing-list`,
       },
     },
     openGraph: {

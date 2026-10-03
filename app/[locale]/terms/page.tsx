@@ -5,27 +5,20 @@ import Footer from '@/components/Footer';
 
 const BASE_URL = 'https://monkeytravel.app';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
-  const { locale } = await params;
-  const path = locale === 'en' ? '/terms' : `/${locale}/terms`;
+export async function generateMetadata(): Promise<Metadata> {
   // **2026-05-25 fix**: was "Terms of Service - MonkeyTravel" which combined
   // with the root template "%s | MonkeyTravel" produced
   // "Terms of Service - MonkeyTravel | MonkeyTravel" (double brand). Drop
-  // the suffix here + add locale-aware canonical + hreflang.
+  // the suffix here. The terms are English in every locale, so every locale
+  // points at the English page, like the author pages.
   return {
     title: 'Terms of Service',
     description:
       'Terms of Service for MonkeyTravel — Read our terms and conditions for using the app.',
     alternates: {
-      canonical: `${BASE_URL}${path}`,
+      canonical: `${BASE_URL}/terms`,
       languages: {
         en: `${BASE_URL}/terms`,
-        es: `${BASE_URL}/es/terms`,
-        it: `${BASE_URL}/it/terms`,
         'x-default': `${BASE_URL}/terms`,
       },
     },

@@ -85,6 +85,7 @@ export async function generateMetadata({
         it: `${BASE_URL}/it/tools/visa-checker`,
         es: `${BASE_URL}/es/tools/visa-checker`,
         pt: `${BASE_URL}/pt/tools/visa-checker`,
+        "x-default": `${BASE_URL}/tools/visa-checker`,
       },
     },
     openGraph: {

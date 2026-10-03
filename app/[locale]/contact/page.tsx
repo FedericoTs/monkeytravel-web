@@ -22,6 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         en: `${baseUrl}/contact`,
         es: `${baseUrl}/es/contact`,
         it: `${baseUrl}/it/contact`,
+        pt: `${baseUrl}/pt/contact`,
         "x-default": `${baseUrl}/contact`,
       },
     },
