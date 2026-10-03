@@ -19,6 +19,7 @@ import {
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
 import { isTripIndexable, publicTripAlternates } from "@/lib/seo/public-trip";
+import { clipMetaDescription } from "@/lib/seo/meta-description";
 import { tripLocale } from "@/lib/ai/language";
 
 const SITE_URL = "https://monkeytravel.app";
@@ -146,9 +147,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     days > 0 && city && (!trip.title || trip.title.toLowerCase().includes(city))
       ? t("metaTitleDays", { destination, days })
       : t("metaTitle", { destination, title: trip.title });
-  const description =
-    trip.description ||
-    t("metaDescriptionFallback", { destination });
+  const description = clipMetaDescription(
+    trip.description || t("metaDescriptionFallback", { destination }),
+  );
   // The generated card (app/api/og/trip), never the raw cover: the cover is
   // a landscape stock photo of another size, and a trip without one had no
   // og:image at all.
