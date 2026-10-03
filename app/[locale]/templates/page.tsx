@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import TemplatesPageClient from "./TemplatesPageClient";
 import { ogImages } from "@/lib/seo/og-image";
+import { buildAlternates } from "@/lib/seo/canonical";
 
 /**
  * Locale-aware metadata for /templates ("Curated Escapes").
@@ -24,13 +25,16 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "common.curatedEscapes.meta" });
   const title = t("title");
   const description = t("description");
+  const { canonical, languages } = buildAlternates("/templates", { locale });
   return {
     title,
     description,
+    alternates: { canonical, languages },
     openGraph: {
       title: `${title} | MonkeyTravel`,
       description,
       type: "website",
+      url: canonical,
       images: ogImages(`${title} | MonkeyTravel`),
     },
   };
