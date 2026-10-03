@@ -36,6 +36,8 @@ Pregúntale a cualquiera que haya organizado un viaje en grupo qué fue lo más 
 
 Aquí tienes la plantilla que lo soluciona.
 
+Para todo el proceso, desde elegir a quien organiza hasta la lista final, consulta [cómo planificar un viaje en grupo](/blog/how-to-plan-a-group-trip).
+
 ## Por Qué Fracasan la Mayoría de los Itinerarios en Grupo
 
 Antes de la plantilla, conviene entender por qué los enfoques habituales no funcionan.

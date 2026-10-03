@@ -39,6 +39,8 @@ Ma la destinazione fa la differenza tra un viaggio di gruppo riuscito e un disas
 
 Abbiamo incrociato i dati sui costi giornalieri di Budget Your Trip e Numbeo e selezionato 15 destinazioni che funzionano davvero per i gruppi — ordinate per fascia di prezzo.
 
+Per tutto il processo, dalla scelta di chi organizza alla checklist finale, leggi [come pianificare un viaggio di gruppo](/blog/how-to-plan-a-group-trip).
+
 ## Come Abbiamo Scelto Queste Destinazioni
 
 - **Alloggi adatti ai gruppi** — Ville, Airbnb grandi, apart-hotel o ostelli con camere private. Quattro camere d'hotel separate significano che il gruppo non si vede quasi mai.

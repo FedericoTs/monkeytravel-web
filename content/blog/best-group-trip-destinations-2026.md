@@ -34,6 +34,8 @@ But the destination makes or breaks a group trip more than the planning does. Pi
 
 We cross-referenced daily cost data from Budget Your Trip and Numbeo and narrowed it down to 15 destinations that actually work for groups — sorted by budget tier.
 
+For the whole process, from picking an organizer to the final checklist, see [how to plan a group trip](/blog/how-to-plan-a-group-trip).
+
 ## How We Picked These Destinations
 
 - **Group-friendly accommodation** — Villas, large Airbnbs, apart-hotels, or hostels with private rooms. Four separate hotel rooms means the group barely sees each other.

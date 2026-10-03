@@ -34,6 +34,8 @@ Pero el destino puede hacer o deshacer un viaje en grupo más que la planificaci
 
 Cruzamos datos de coste diario de Budget Your Trip y Numbeo y los redujimos a 15 destinos que realmente funcionan para grupos — organizados por nivel de presupuesto.
 
+Para todo el proceso, desde elegir a quien organiza hasta la lista final, consulta [cómo planificar un viaje en grupo](/blog/how-to-plan-a-group-trip).
+
 ## Cómo elegimos estos destinos
 
 - **Alojamiento para grupos** — Villas, Airbnbs grandes, apart-hoteles u hostales con habitaciones privadas. Cuatro habitaciones de hotel separadas significa que el grupo apenas se ve.

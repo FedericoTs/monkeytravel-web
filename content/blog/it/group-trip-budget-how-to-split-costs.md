@@ -37,6 +37,8 @@ Ma il vero problema non sono i soldi in sé. Sono le aspettative poco chiare. Ne
 
 Non deve andare così. Ti basta un sistema, una breve conversazione prima di prenotare qualsiasi cosa, e la volontà di sentirti leggermente a disagio per dieci minuti per evitare di essere profondamente risentito per dieci giorni.
 
+Per tutto il processo, dalla scelta di chi organizza alla checklist finale, leggi [come pianificare un viaggio di gruppo](/blog/how-to-plan-a-group-trip).
+
 ## Perché i soldi diventano un problema nei viaggi di gruppo
 
 Prima di parlare di soluzioni, siamo onesti sul perché è così difficile.

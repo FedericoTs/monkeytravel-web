@@ -36,6 +36,8 @@ Chiedi a chiunque abbia organizzato un viaggio di gruppo qual è stata la parte 
 
 Ecco il template che risolve tutto.
 
+Per tutto il processo, dalla scelta di chi organizza alla checklist finale, leggi [come pianificare un viaggio di gruppo](/blog/how-to-plan-a-group-trip).
+
 ## Perché la Maggior Parte degli Itinerari di Gruppo Fallisce
 
 Prima del template, è utile capire perché gli approcci classici non funzionano.

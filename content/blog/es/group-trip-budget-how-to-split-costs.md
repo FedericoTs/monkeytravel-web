@@ -37,6 +37,8 @@ Pero el verdadero problema no es el dinero en sí. Son las expectativas poco cla
 
 Esto no tiene por qué pasar. Solo necesitas un sistema, una conversación breve antes de reservar nada y la disposición a estar un poco incómodo durante diez minutos para evitar estar profundamente resentido durante diez días.
 
+Para todo el proceso, desde elegir a quien organiza hasta la lista final, consulta [cómo planificar un viaje en grupo](/blog/how-to-plan-a-group-trip).
+
 ## Por qué el dinero se vuelve raro en los viajes en grupo
 
 Antes de hablar de soluciones, seamos honestos sobre por qué esto es tan difícil.

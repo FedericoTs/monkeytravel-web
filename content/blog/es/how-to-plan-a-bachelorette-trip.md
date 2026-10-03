@@ -39,6 +39,8 @@ La cuestión es esta: los viajes que salen mal casi nunca fracasan por un mal de
 
 Esta guía es el antídoto para todo eso.
 
+Para todo el proceso, desde elegir a quien organiza hasta la lista final, consulta [cómo planificar un viaje en grupo](/blog/how-to-plan-a-group-trip).
+
 ## La despedida de soltera en 2026: qué ha cambiado de verdad
 
 Si tu imagen mental de una despedida de soltera sigue siendo bandas de novia, chupitos y una limusina — es hora de actualizarla. Las despedidas han evolucionado, y las tendencias de 2026 cuentan una historia bastante interesante.

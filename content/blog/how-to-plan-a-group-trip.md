@@ -87,6 +87,8 @@ Money ruins friendships faster than anything on a group trip. Set the system bef
 
 **Collect a deposit upfront.** $100-200 per person before booking anything. This filters out the "maybe" people and commits the real ones. Non-refundable deposits mean nobody backs out two weeks before the trip because "something came up."
 
+For the money side in more detail, see [how to split costs on a group trip](/blog/group-trip-budget-how-to-split-costs).
+
 ## Step 5: Build the Itinerary With Built-in Freedom
 
 The biggest mistake in group trip planning: trying to keep everyone together for every minute of every day.
@@ -114,6 +116,8 @@ Before you leave, every group needs to address these awkward-but-necessary topic
 - **Splitting up is healthy.** On a 7-day trip, spending 2-3 activities apart actually makes the group time better. You come back with stories to tell each other.
 
 - **The budget spread.** If there's a $50/day difference between the cheapest and most expensive person in the group, plan activities at the lower budget and let the bigger spenders upgrade privately (better hotel room, fancier dinner).
+
+These conversations head off most of the [group travel mistakes that ruin trips](/blog/group-travel-mistakes-to-avoid).
 
 ## Step 7: Use a Tool That Doesn't Require a PhD
 
@@ -151,6 +155,12 @@ Use this as your timeline:
 *Once the group has agreed on dates, our [group trip itinerary template](/blog/group-trip-itinerary-template) gives you a day-by-day structure to fill in.*
 
 *If the sticking point is deciding rather than organising, try [planning the trip by voting](/blog/plan-group-trip-by-voting).*
+
+*Still choosing where to go? Start with [the best group trip destinations](/blog/best-group-trip-destinations-2026).*
+
+*Planning a bachelorette? See [how to plan a bachelorette trip everyone enjoys](/blog/how-to-plan-a-bachelorette-trip).*
+
+*The numbers behind group planning are in our [group travel statistics](/blog/group-travel-statistics-2026).*
 
 ## FAQ
 

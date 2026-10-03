@@ -36,6 +36,8 @@ Ask anyone who has organised a group trip what the hardest part was and you will
 
 Here's the template that fixes it.
 
+For the whole process, from picking an organizer to the final checklist, see [how to plan a group trip](/blog/how-to-plan-a-group-trip).
+
 ## Why Most Group Itineraries Fail
 
 Before the template, it helps to understand why the usual approaches don't work.

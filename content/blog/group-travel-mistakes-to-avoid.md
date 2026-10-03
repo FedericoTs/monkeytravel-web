@@ -36,6 +36,8 @@ The good news: almost every group trip disaster is preventable. The bad news: mo
 
 Here's what they are — and how to actually fix them.
 
+For the whole process, from picking an organizer to the final checklist, see [how to plan a group trip](/blog/how-to-plan-a-group-trip).
+
 ## Mistake #1: Planning by Group Chat
 
 You know this one. Someone texts "We should go to Lisbon!" and the group chat erupts. Seventy messages about dates. Forty about accommodation. A few restaurant links nobody clicks. Someone shares a TikTok. The conversation fractures into three parallel threads. Two weeks later, nothing is booked.

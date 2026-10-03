@@ -34,6 +34,8 @@ But the real problem isn't money itself. It's unclear expectations. Nobody wants
 
 This doesn't have to happen. You just need a system, a short conversation before booking anything, and the willingness to be mildly uncomfortable for ten minutes to avoid being deeply resentful for ten days.
 
+For the whole process, from picking an organizer to the final checklist, see [how to plan a group trip](/blog/how-to-plan-a-group-trip).
+
 ## Why Money Gets Weird on Group Trips
 
 Before we talk solutions, let's be honest about why this is hard.

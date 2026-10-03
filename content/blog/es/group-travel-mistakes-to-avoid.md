@@ -37,6 +37,8 @@ La buena noticia: casi todos los desastres en viajes en grupo se pueden prevenir
 
 Aquí van — y cómo solucionarlos de verdad.
 
+Para todo el proceso, desde elegir a quien organiza hasta la lista final, consulta [cómo planificar un viaje en grupo](/blog/how-to-plan-a-group-trip).
+
 ## Error #1: Planificar por el Chat de Grupo
 
 Este lo conoces de sobra. Alguien escribe "¡Deberíamos ir a Lisboa!" y el chat explota. Setenta mensajes sobre fechas. Cuarenta sobre alojamiento. Varios enlaces de restaurantes que nadie abre. Alguien manda un TikTok. La conversación se divide en tres hilos paralelos. Dos semanas después, no hay nada reservado.

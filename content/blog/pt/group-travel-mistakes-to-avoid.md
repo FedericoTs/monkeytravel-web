@@ -38,6 +38,8 @@ A boa notícia: quase todo desastre de viagem em grupo pode ser evitado. A má n
 
 Aqui estão eles — e como realmente corrigi-los.
 
+Para o processo inteiro, da escolha de quem organiza até o checklist final, veja [como planejar uma viagem em grupo](/blog/how-to-plan-a-group-trip).
+
 ## Erro #1: Planejar pelo Grupo do WhatsApp
 
 Você conhece bem esse. Alguém manda "A gente devia ir pra Lisboa!" e o grupo explode. Setenta mensagens sobre datas. Quarenta sobre hospedagem. Alguns links de restaurantes que ninguém clica. Alguém compartilha um TikTok. A conversa se fragmenta em três tópicos paralelos. Duas semanas depois, nada foi reservado.

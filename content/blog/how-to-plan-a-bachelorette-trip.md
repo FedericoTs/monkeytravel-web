@@ -36,6 +36,8 @@ Here's the thing: the trips that go wrong almost never fail because of a bad des
 
 This guide is the antidote to all of that.
 
+For the whole process, from picking an organizer to the final checklist, see [how to plan a group trip](/blog/how-to-plan-a-group-trip).
+
 ## The 2026 Bachelorette: What's Actually Changed
 
 If your mental image of a bachelorette trip is still sashes, shot glasses, and a limousine — it's time to update. The bachelorette has evolved, and the trends in 2026 tell a pretty interesting story.

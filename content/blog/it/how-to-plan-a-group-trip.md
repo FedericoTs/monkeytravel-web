@@ -91,6 +91,8 @@ I soldi rovinano le amicizie più velocemente di qualsiasi altra cosa in un viag
 
 **Raccogli un deposito in anticipo.** $100-200 a persona prima di prenotare qualsiasi cosa. Questo filtra le persone del "forse" e impegna quelle serie. Un deposito non rimborsabile fa sì che nessuno si tiri indietro due settimane prima del viaggio perché "è saltato fuori qualcosa".
 
+Per la parte economica nel dettaglio, leggi [come dividere le spese di un viaggio di gruppo](/blog/group-trip-budget-how-to-split-costs).
+
 ## Passo 5: Costruisci l'itinerario con libertà integrata
 
 Il più grande errore nella pianificazione di un viaggio di gruppo: cercare di tenere tutti insieme per ogni minuto di ogni giornata.
@@ -118,6 +120,8 @@ Prima di partire, ogni gruppo deve affrontare questi argomenti scomodi ma necess
 - **Separarsi è sano.** In un viaggio di 7 giorni, fare 2-3 attività separatamente in realtà rende migliore il tempo insieme. Tornate con storie da raccontarvi.
 
 - **La forbice di budget.** Se c'è una differenza di $50/giorno tra la persona più parsimoniosa e quella che spende di più nel gruppo, pianificate le attività sul budget più basso e lasciate che chi spende di più si faccia un upgrade privatamente (camera migliore, cena più elegante).
+
+Queste conversazioni prevengono la maggior parte degli [errori nei viaggi di gruppo che rovinano tutto](/blog/group-travel-mistakes-to-avoid).
 
 ## Passo 7: Usa uno strumento che non richieda una laurea
 
@@ -151,6 +155,12 @@ Usa questa come timeline:
 - **Giorno 1:** Rilassati. La parte difficile è fatta.
 
 ---
+
+*Stai ancora scegliendo dove andare? Parti dalle [migliori destinazioni per viaggi di gruppo](/blog/best-group-trip-destinations-2026).*
+
+*Organizzi un addio al nubilato? Leggi [come organizzare un addio al nubilato](/blog/how-to-plan-a-bachelorette-trip).*
+
+*I numeri su come pianificano i gruppi sono nelle nostre [statistiche sui viaggi di gruppo](/blog/group-travel-statistics-2026).*
 
 ## FAQ
 

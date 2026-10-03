@@ -39,6 +39,8 @@ Il punto è questo: i viaggi che vanno male quasi mai falliscono per una destina
 
 Questa guida è l'antidoto a tutto questo.
 
+Per tutto il processo, dalla scelta di chi organizza alla checklist finale, leggi [come pianificare un viaggio di gruppo](/blog/how-to-plan-a-group-trip).
+
 ## L'Addio al Nubilato nel 2026: Cosa È Cambiato Davvero
 
 Se la tua immagine mentale di un addio al nubilato è ancora fatta di fasce, bicchierini da shot e una limousine -- è ora di aggiornarsi. L'addio al nubilato si è evoluto, e i trend del 2026 raccontano una storia piuttosto interessante.
