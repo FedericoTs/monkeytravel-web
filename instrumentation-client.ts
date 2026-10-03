@@ -156,6 +156,12 @@ function initSentry(Sentry: typeof import("@sentry/nextjs"), hasSessionRecording
       // SecurityErrors from our own code.
       "The operation is insecure",
       "imtgo_device_info_WS",
+      // Microsoft's link scanners (Outlook Safe Links) load shared links in
+      // a headless browser and throw this from their own script.
+      "Object Not Found Matching Id",
+      // The server-component stream was cut off because the visitor left
+      // or lost the connection mid-response; nothing to fix on our side.
+      "Connection closed.",
     ],
 
     // Drop events originating from third-party beacons we can't control.
@@ -172,6 +178,9 @@ function initSentry(Sentry: typeof import("@sentry/nextjs"), hasSessionRecording
       /^moz-extension:\/\//i,
       /^safari-extension:\/\//i,
       /^webkit-masked-url:\/\//i,
+      // Google Translate's proxy (*.translate.goog) rewrites the page with
+      // its own script; its errors are reported from these frames.
+      /\/_\/translate_http\//,
     ],
 
     // Don't send PII by default
