@@ -292,6 +292,27 @@ export default async function DestinationsIndexPage({ params }: PageProps) {
           </div>
         </div>
 
+        {/* Every style page, not only the three lanes above. */}
+        <nav aria-label={t("index.byStyle")} className="bg-white border-t border-slate-200/60">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-4 tracking-tight">
+              {t("index.byStyle")}
+            </h2>
+            <ul className="flex flex-wrap gap-2">
+              {Object.entries(tagLabels).map(([tag, label]) => (
+                <li key={tag}>
+                  <Link
+                    href={`/destinations/style/${tag}`}
+                    className="inline-flex min-h-11 items-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-[var(--foreground)] transition-colors hover:border-[var(--primary)]"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </nav>
+
         {/* All destinations grouped by continent */}
         <section className="py-14 sm:py-16 bg-[var(--background-alt)] border-t border-slate-200/60">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

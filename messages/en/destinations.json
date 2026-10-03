@@ -19,7 +19,8 @@
     "destinationCount": "destinations",
     "featured": "Featured",
     "allByContinent": "Browse by continent",
-    "allByContinentDescription": "Every destination, grouped where it lives on the map."
+    "allByContinentDescription": "Every destination, grouped where it lives on the map.",
+    "byStyle": "Browse by travel style"
   },
   "lanes": {
     "trending": {

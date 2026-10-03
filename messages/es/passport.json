@@ -4,6 +4,7 @@
   "lede": "Un pasaporte de {country} te abre <strong>{count} de {total} destinos</strong> sin ningún trámite antes de volar: sin visado o con visado a la llegada. Todo lo demás está abajo, agrupado por lo que realmente te exige.",
   "days": "{days} días",
   "others": "Otros pasaportes",
+  "byPassport": "Destinos sin visado por pasaporte",
   "status": {
     "visaFree": {
       "label": "Sin visado",

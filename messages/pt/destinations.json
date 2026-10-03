@@ -19,7 +19,8 @@
     "destinationCount": "destinos",
     "featured": "Em destaque",
     "allByContinent": "Navegue por continente",
-    "allByContinentDescription": "Todos os destinos, agrupados por continente no mapa."
+    "allByContinentDescription": "Todos os destinos, agrupados por continente no mapa.",
+    "byStyle": "Navegue por estilo de viagem"
   },
   "lanes": {
     "trending": {
