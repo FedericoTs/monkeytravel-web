@@ -15,8 +15,8 @@
  * Prefer --since after a content deploy. Submitting the whole sitemap on every
  * run is not rewarded and is what "spammy" looks like to the endpoint.
  *
- * Deliberately NOT called from the build or the content pipeline: submission
- * stays an explicit act.
+ * Not called from the build. Changed blog posts are sent automatically after
+ * each production deploy (scripts/seo-notify.mjs); use this for anything else.
  */
 
 import fs from "node:fs";

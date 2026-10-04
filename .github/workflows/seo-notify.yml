@@ -1,0 +1,79 @@
+name: Search engine notifications
+
+# After each successful production deploy, changed blog posts go to IndexNow
+# and the sitemap is resubmitted to Search Console. Every Monday, recently
+# updated pages that Google still has not indexed are listed in one issue, so
+# "Request indexing" is only needed for those. Script: scripts/seo-notify.mjs.
+
+on:
+  deployment_status:
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: read
+  issues: write
+
+jobs:
+  notify:
+    if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 100
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      # The last successful production deploy before this one, so a deploy
+      # Vercel skipped or cancelled does not drop its changes.
+      - name: Find the previous production deploy
+        id: base
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.deployment.sha }}
+        run: |
+          prev=""
+          for d in $(gh api "repos/${{ github.repository }}/deployments?environment=Production&per_page=30" --jq '.[] | "\(.id):\(.sha)"'); do
+            id="${d%%:*}"; s="${d##*:}"
+            [ "$s" = "$SHA" ] && continue
+            git merge-base --is-ancestor "$s" "$SHA" 2>/dev/null || continue
+            state=$(gh api "repos/${{ github.repository }}/deployments/$id/statuses?per_page=1" --jq '.[0].state')
+            if [ "$state" = "success" ]; then prev="$s"; break; fi
+          done
+          echo "prev=$prev" >> "$GITHUB_OUTPUT"
+      - name: Notify search engines
+        env:
+          GSC_SERVICE_ACCOUNT_KEY: ${{ secrets.GSC_SERVICE_ACCOUNT_KEY }}
+        run: node scripts/seo-notify.mjs deploy --from "${{ steps.base.outputs.prev }}" --to "${{ github.event.deployment.sha }}"
+
+  check:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Inspect recently updated pages
+        env:
+          GSC_SERVICE_ACCOUNT_KEY: ${{ secrets.GSC_SERVICE_ACCOUNT_KEY }}
+        run: node scripts/seo-notify.mjs check --out report.md --count-file count.txt
+      # One standing issue: updated while pages are waiting, closed when none are.
+      - name: Update the indexing issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          num=$(gh issue list --label indexing-watch --state open --json number --jq '.[0].number // empty')
+          if [ "$(cat count.txt)" != "0" ]; then
+            if [ -n "$num" ]; then
+              gh issue edit "$num" --body-file report.md
+            else
+              gh label create indexing-watch --color 1D76DB --description "Pages waiting for Google to index them" 2>/dev/null || true
+              gh issue create --title "Pages waiting for Google indexing" --label indexing-watch --body-file report.md
+            fi
+          elif [ -n "$num" ]; then
+            gh issue close "$num" --comment "Every page updated in the last three weeks is indexed."
+          fi
