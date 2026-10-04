@@ -4,7 +4,7 @@ slug: "where-to-go-in-january"
 description: "Gennaio è il mese più economico per volare quasi ovunque nell'emisfero nord e, allo stesso tempo, il culmine dell'estate a sud dell'equatore. La Patagonia al suo meglio, l'Hokkaido con la neve più affidabile del pianeta, la costa delle Andamane nella sua settimana più asciutta e la Lapponia che si riprende la luce. Dodici mete dove gennaio è il motivo del viaggio, con costi reali e i compromessi che nessuno racconta."
 author: "Emanuela P."
 publishedAt: "2026-09-03"
-updatedAt: "2026-09-03"
+updatedAt: "2026-10-04"
 category: "Seasonal Travel"
 tags: ["stagionale", "guida mensile ai viaggi", "viaggi invernali", "migliori destinazioni"]
 image: "/images/blog/where-to-go-in-january.jpg"
@@ -39,6 +39,10 @@ L'altra metà della storia è che gennaio non è inverno ovunque. Sotto l'equato
 | Rajasthan e India del nord | Il mese più camminabile dell'anno | $35–60 | Medio |
 | Vietnam del sud e Mekong | Asciutto, caldo ed economico | $35–60 | Medio |
 | Città del nord Europa | Prezzi post-feste, musei vuoti | $90–150 | Basso |
+
+### Le mete più economiche di gennaio 2027
+
+Con un budget di fascia media, quattro delle dodici mete costano meno a persona al giorno: Rajasthan e India del nord ($35–60), Vietnam del sud e Mekong ($35–60), il sud e l'ovest dello Sri Lanka ($35–65) e la costa delle Andamane, in Thailandia ($45–80). Il volo è l'altra metà del conto: confronta le tariffe dal tuo aeroporto prima di scegliere.
 
 ## 1. La costa delle Andamane, Thailandia — Il mese più asciutto
 
