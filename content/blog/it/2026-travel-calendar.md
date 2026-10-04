@@ -374,7 +374,7 @@ Se il Masai Mara di luglio era l'inizio della migrazione, agosto è il suo più 
 
 **Evita ad agosto:** l'intera costa mediterranea a meno che tu non abbia già pagato. Santorini, Dubrovnik, Amalfi e le isole greche funzionano con il loro mese più costoso e con le loro folle più alte. Se devi fare il Mediterraneo ad agosto, scegli Montenegro o Slovenia.
 
-**La guida completa del mese:** [dove andare ad agosto 2026](/blog/where-to-go-in-august), con dodici mete.
+**La guida completa del mese:** [dove andare ad agosto 2027](/blog/where-to-go-in-august), con dodici mete.
 
 ---
 
@@ -411,7 +411,7 @@ Settembre è la coda della stagione secca di [Bali](/it/destinations/bali). Le p
 
 **Evita a settembre:** destinazioni caraibiche e della Costa del Golfo — settembre è il picco statistico della stagione degli uragani atlantici. L'assicurazione di viaggio è obbligatoria se vai.
 
-**La guida completa del mese:** [dove andare a settembre 2026](/blog/where-to-go-in-september), con dodici mete.
+**La guida completa del mese:** [dove andare a settembre 2027](/blog/where-to-go-in-september), con dodici mete.
 
 ---
 

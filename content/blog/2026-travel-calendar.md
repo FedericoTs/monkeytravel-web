@@ -372,7 +372,7 @@ If July's Masai Mara was the migration's beginning, August is its biggest crossi
 
 **Avoid in August:** The entire Mediterranean coast unless you have already paid. Santorini, Dubrovnik, Amalfi, and the Greek Islands all run their most expensive month with their highest crowds. If you must do the Mediterranean in August, choose Montenegro or Slovenia.
 
-**The full month guide:** [where to go in August 2026](/blog/where-to-go-in-august), with twelve destinations.
+**The full month guide:** [where to go in August 2027](/blog/where-to-go-in-august), with twelve destinations.
 
 ---
 
@@ -409,7 +409,7 @@ September is the tail end of [Bali's](/destinations/bali) dry season. The Novemb
 
 **Avoid in September:** Caribbean and Gulf Coast destinations — September is the statistical peak of Atlantic hurricane season. Travel insurance is mandatory if you go.
 
-**The full month guide:** [where to go in September 2026](/blog/where-to-go-in-september), with twelve destinations.
+**The full month guide:** [where to go in September 2027](/blog/where-to-go-in-september), with twelve destinations.
 
 ---
 
