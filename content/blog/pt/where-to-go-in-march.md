@@ -4,7 +4,7 @@ slug: "where-to-go-in-march"
 description: "Março é o ponto de virada: as cerejeiras do Japão, o Holi em 22 de março, a Semana Santa enchendo a Andaluzia, as semanas mais calmas da Patagônia e o sudoeste americano antes do calor. É também o mês em que chegam os preços da Páscoa — no dia 28 de março em 2027 — por isso as três primeiras semanas e a última são viagens diferentes. Doze destinos com custos reais e os compromissos que ninguém conta."
 author: "Emanuela P."
 publishedAt: "2026-09-03"
-updatedAt: "2026-09-03"
+updatedAt: "2026-10-04"
 category: "Seasonal Travel"
 tags: ["sazonal", "guia mensal de viagens", "viagem de primavera", "meia-estação", "melhores destinos"]
 image: "/images/blog/where-to-go-in-march.jpg"
@@ -39,6 +39,10 @@ As três primeiras semanas são de meia-estação: amenas, tranquilas, baratas. 
 | Centro do Vietnã | Chega a época seca a Hoi An | $35–60 | Média |
 | Cataratas Vitória (Zâmbia/Zimbábue) | Vazão máxima depois das chuvas | $90–150 | Média |
 | Nepal | Trekking de primavera, rododendros | $40–70 | Média–alta |
+
+### Os destinos mais baratos para viajar em março de 2027
+
+Com um orçamento de faixa intermediária, quatro dos doze destinos custam menos por pessoa por dia: Rajastão e norte da Índia ($35–60), centro do Vietnã ($35–60), Nepal ($40–70) e Marrocos, entre o Atlas e a costa ($50–85). A passagem aérea é a outra metade da conta: compare as tarifas a partir do seu aeroporto antes de escolher.
 
 ## 1. Japão — As cerejeiras, com o calendário na mão
 

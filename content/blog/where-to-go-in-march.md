@@ -4,7 +4,7 @@ slug: "where-to-go-in-march"
 description: "March is the pivot: Japan's cherry blossom, Holi on 22 March, Semana Santa filling Andalusia, Patagonia's calmest weeks, and the desert Southwest before the heat. It is also the month Easter pricing arrives — on 28 March in 2027 — so the first three weeks and the last one are different trips. Twelve destinations with real daily costs and the trade-offs no one writes about."
 author: "Emanuela P."
 publishedAt: "2026-09-03"
-updatedAt: "2026-09-03"
+updatedAt: "2026-10-04"
 category: "Seasonal Travel"
 tags: ["seasonal", "monthly travel guide", "spring travel", "shoulder season", "best destinations"]
 image: "/images/blog/where-to-go-in-march.jpg"
@@ -39,6 +39,10 @@ The first three weeks are shoulder season: mild, quiet, cheap. Then it turns. Ea
 | Vietnam's centre | Dry season arrives in Hoi An | $35–60 | Moderate |
 | Victoria Falls (Zambia/Zimbabwe) | Peak flow after the rains | $90–150 | Moderate |
 | Nepal | Spring trekking, rhododendrons | $40–70 | Moderate–high |
+
+### The cheapest places to travel in March 2027
+
+On a mid-range budget, four of the twelve cost the least per person per day: Rajasthan and North India ($35–60), central Vietnam ($35–60), Nepal ($40–70), and Morocco's Atlas and coast ($50–85). Flights are the other half of the bill, so compare fares from your home airport before you choose.
 
 ## 1. Japan — Cherry Blossom, Timed Carefully
 

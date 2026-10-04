@@ -4,7 +4,7 @@ slug: "where-to-go-in-january"
 description: "Janeiro é o mês mais barato para voar para quase qualquer ponto do hemisfério norte e, ao mesmo tempo, o pico do verão ao sul do equador. A Patagônia no seu melhor, Hokkaido com a neve mais confiável do planeta, a costa de Andamã na sua semana mais seca e a Lapônia recuperando a luz. Doze destinos onde janeiro é o motivo da viagem, com custos reais e os compromissos que ninguém conta."
 author: "Emanuela P."
 publishedAt: "2026-09-03"
-updatedAt: "2026-09-03"
+updatedAt: "2026-10-04"
 category: "Seasonal Travel"
 tags: ["sazonal", "guia mensal de viagens", "viagem de inverno", "melhores destinos"]
 image: "/images/blog/where-to-go-in-january.jpg"
@@ -39,6 +39,10 @@ A outra metade da história é que janeiro não é inverno em toda parte. Abaixo
 | Rajastão e norte da Índia | O mês mais caminhável do ano | $35–60 | Média |
 | Sul do Vietnã e Mekong | Seco, quente e barato | $35–60 | Média |
 | Cidades do norte da Europa | Preços pós-festas, museus vazios | $90–150 | Baixa |
+
+### Os destinos mais baratos para viajar em janeiro de 2027
+
+Com um orçamento de faixa intermediária, quatro dos doze destinos custam menos por pessoa por dia: Rajastão e norte da Índia ($35–60), sul do Vietnã e Mekong ($35–60), sul e oeste do Sri Lanka ($35–65) e a costa de Andamã, na Tailândia ($45–80). A passagem aérea é a outra metade da conta: compare as tarifas a partir do seu aeroporto antes de escolher.
 
 ## 1. A costa de Andamã, Tailândia — O mês mais seco
 

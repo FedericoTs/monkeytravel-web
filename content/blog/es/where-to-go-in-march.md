@@ -4,7 +4,7 @@ slug: "where-to-go-in-march"
 description: "Marzo es el punto de giro: los cerezos de Japón, el Holi el 22 de marzo, la Semana Santa llenando Andalucía, las semanas más tranquilas de la Patagonia y el suroeste americano antes del calor. Es también el mes en que llegan los precios de Semana Santa —el 28 de marzo en 2027—, así que las tres primeras semanas y la última son viajes distintos. Doce destinos con costes reales y las contrapartidas que nadie cuenta."
 author: "Emanuela P."
 publishedAt: "2026-09-03"
-updatedAt: "2026-09-03"
+updatedAt: "2026-10-04"
 category: "Seasonal Travel"
 tags: ["estacional", "guía mensual de viajes", "viajes de primavera", "temporada media", "mejores destinos"]
 image: "/images/blog/where-to-go-in-march.jpg"
@@ -39,6 +39,10 @@ Las tres primeras semanas son temporada media: templadas, tranquilas, baratas. D
 | Centro de Vietnam | Llega la estación seca a Hoi An | $35–60 | Medio |
 | Cataratas Victoria (Zambia/Zimbabue) | Caudal máximo tras las lluvias | $90–150 | Medio |
 | Nepal | Trekking de primavera, rododendros | $40–70 | Medio–alto |
+
+### Los destinos más baratos para viajar en marzo de 2027
+
+Con un presupuesto de gama media, cuatro de los doce son los que menos cuestan por persona y día: Rajastán y el norte de la India ($35–60), el centro de Vietnam ($35–60), Nepal ($40–70) y el Atlas y la costa de Marruecos ($50–85). El vuelo es la otra mitad de la cuenta: compara tarifas desde tu aeropuerto antes de decidir.
 
 ## 1. Japón — Los cerezos, con el calendario en la mano
 

@@ -4,7 +4,7 @@ slug: "where-to-go-in-february"
 description: "Fevereiro coloca em 28 dias mais do que devia: o Carnaval do Rio, o Ano Novo Lunar em toda a Ásia, a época de partos do Serengeti e as auroras da Islândia com a luz voltando. É também o último mês barato antes de começarem os preços de primavera. Doze destinos onde fevereiro é o motivo da viagem, com custos reais e os compromissos que ninguém conta."
 author: "Emanuela P."
 publishedAt: "2026-09-03"
-updatedAt: "2026-09-03"
+updatedAt: "2026-10-04"
 category: "Seasonal Travel"
 tags: ["sazonal", "guia mensal de viagens", "viagem de inverno", "melhores destinos"]
 image: "/images/blog/where-to-go-in-february.jpg"
@@ -39,6 +39,10 @@ Fevereiro é o mês com mais acontecimentos do ano de viagem, e quase ninguém o
 | Luang Prabang, Laos | Fresco, seco e ainda tranquilo | $35–60 | Baixa–média |
 | Cartagena e a costa colombiana | As semanas mais secas do ano | $60–100 | Média–alta |
 | Nova Zelândia | Mar mais quente, os locais trabalhando | $110–170 | Média |
+
+### Os destinos mais baratos para viajar em fevereiro de 2027
+
+Com um orçamento de faixa intermediária, quatro dos doze destinos custam menos por pessoa por dia: Luang Prabang, no Laos ($35–60), Vietnã e Taiwan ($40–75, com preços em alta perto do Ano Novo Lunar, em 6 de fevereiro), Oaxaca e Cidade do México ($45–80) e Egito ($50–90). A passagem aérea é a outra metade da conta: compare as tarifas a partir do seu aeroporto antes de escolher.
 
 ## 1. Rio de Janeiro e Salvador — Carnaval
 
