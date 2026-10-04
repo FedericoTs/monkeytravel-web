@@ -13,8 +13,8 @@
  * sooner is the cheapest AI-visibility lever available to us. Google does not
  * participate; it keeps using the sitemap.
  *
- * Deliberately NOT wired into publishing. Submission is an explicit action
- * (scripts/indexnow-submit.mts) so the content pipeline is untouched.
+ * Not wired into publishing. Changed blog posts are sent after each production
+ * deploy by scripts/seo-notify.mjs; scripts/indexnow-submit.mts covers the rest.
  *
  * Protocol notes that the implementation below depends on:
  *  - The key must be retrievable at https://<host>/<key>.txt and the file body
