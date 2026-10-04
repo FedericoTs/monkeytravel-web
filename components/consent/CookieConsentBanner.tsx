@@ -85,6 +85,14 @@
  * dedupe refs. Only what the minimised branch RENDERS changed: ConsentMiniBar
  * carries both decisions at equal weight, at every width. See that file for
  * what must not be "tidied up" (the buttons are unfilled on purpose).
+ *
+ * PHONES OPEN ON THE BAR
+ * ----------------------
+ * Below 640px the tall top-pinned card covered the menu and, on compact
+ * headers, the page's heading. Phones get the compact ConsentMiniBar instead,
+ * placed per screen by phoneBarOnTop() so it never covers the button the
+ * visitor came for, and at the bottom once minimised. The full card is
+ * desktop only.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -100,6 +108,29 @@ import { ConsentMiniBar } from "./ConsentMiniBar";
 const NAVIGATION_KEYS = new Set(["Tab", "Shift", "Control", "Alt", "Meta", "CapsLock"]);
 // How far the page has to move before the card counts as "scrolled past".
 const SCROLL_THRESHOLD_PX = 40;
+// The phone bar is about 160px tall, up to 190px when its copy wraps.
+const PHONE_BAR_SPACE_PX = 12 + 190;
+
+/**
+ * Where the phone bar goes on this screen: never over a button the visitor
+ * came to press, and over the page's heading only when the bottom would cover
+ * one (short screens). A brief cover of the nav is the cheapest of the three.
+ */
+function phoneBarOnTop(): boolean {
+  const overlaps = (r: DOMRect, from: number, to: number) => r.bottom > from && r.top < to;
+  const css = getComputedStyle(document.documentElement);
+  const lift = Math.max(
+    0,
+    ...["--mt-bottom-bar-h", "--mt-nav-h", "--mt-sticky-cta-h"].map((v) => parseFloat(css.getPropertyValue(v)) || 0)
+  );
+  const bottomFrom = window.innerHeight - lift - PHONE_BAR_SPACE_PX;
+  const h1 = document.querySelector("h1")?.getBoundingClientRect();
+  const topCoversHeading = !!h1 && overlaps(h1, 0, PHONE_BAR_SPACE_PX);
+  const bottomCoversAction = [...document.querySelectorAll("main a[href*='/trips/new'], main button")]
+    .map((el) => el.getBoundingClientRect())
+    .some((r) => r.width > 0 && overlaps(r, bottomFrom, window.innerHeight - lift));
+  return !topCoversHeading || bottomCoversAction;
+}
 
 /**
  * ONE constant for both decisions, and it is a legal requirement rather than
@@ -130,9 +161,7 @@ export function CookieConsentBanner() {
   const { bannerStatus, acceptAll, acceptEssentialOnly, openSettings } =
     useConsent();
   // /trips/new publishes its own fixed footer's height as --mt-footer-h (see
-  // hooks/useCssVarHeight.ts). Only there can the mobile card sit ABOVE that
-  // footer instead of over the heading; every other route keeps the top pin,
-  // which exists precisely because their fixed-bottom bars publish nothing.
+  // hooks/useCssVarHeight.ts); the bar sits above that footer on phones.
   const pathname = usePathname();
   const onWizard = /\/trips\/new(\/|$)/.test(pathname ?? "");
   // /trip/[slug] and /shared/[token] (both SharedTripView) publish their
@@ -145,6 +174,8 @@ export function CookieConsentBanner() {
   // the card can say what the consent is FOR. Logged with every consent event
   // (consent_events.variant) so the two copies can be compared.
   const contextual = bannerVariantFor(pathname) === "contextual";
+  // Client-only component (ConsentWrapper loads it with ssr:false).
+  const [onPhone] = useState(() => window.matchMedia("(max-width: 639px)").matches);
   // Mount once the page's own LCP is in: at the load event (the hero
   // image is loaded by then) or after 1.5s, whichever comes first. Held
   // back longer, the card is itself the LCP on pages without a hero.
@@ -161,6 +192,19 @@ export function CookieConsentBanner() {
       window.removeEventListener("load", show);
     };
   }, [readyToShow]);
+
+  // Phones: top or bottom, decided per page after it has laid out and before
+  // the bar shows, so it never jumps. The wizard and trip views publish bottom
+  // bars the bar sits above.
+  const [phoneTopFor, setPhoneTopFor] = useState<{ path: string; top: boolean } | null>(null);
+  useEffect(() => {
+    const path = pathname ?? "";
+    if (!onPhone || !readyToShow || phoneTopFor?.path === path) return;
+    const frame = requestAnimationFrame(() =>
+      setPhoneTopFor({ path, top: !onWizard && !onTripView && phoneBarOnTop() })
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [onPhone, readyToShow, pathname, onWizard, onTripView, phoneTopFor]);
 
   // Minimised = the visitor has moved on (scrolled, or interacted with the
   // page outside the card) without choosing. Desktop shows a pill, mobile
@@ -199,6 +243,8 @@ export function CookieConsentBanner() {
       if (event instanceof KeyboardEvent && NAVIGATION_KEYS.has(event.key)) return;
       const target = event.target;
       if (target instanceof Node && cardRef.current?.contains(target)) return;
+      // The phone's first view is the bar; a tap on it must not move it mid-tap.
+      if (target instanceof Element && target.closest("[data-consent-bar]")) return;
       setMinimized(true);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -221,25 +267,20 @@ export function CookieConsentBanner() {
     return <ConsentMiniBar onWizard={onWizard} />;
   }
 
+  if (onPhone) {
+    if (phoneTopFor?.path !== (pathname ?? "")) return null;
+    return <ConsentMiniBar onWizard={onWizard} placement={phoneTopFor.top ? "top" : "bottom"} origin="card" />;
+  }
+
   return (
-    // On mobile pin to TOP — many pages have a fixed-bottom action bar
-    // (save bar, sticky CTAs) that this banner used to cover at z-9999. Top
-    // is reachable without obstructing primary actions. On desktop keep at
-    // bottom (no fixed-bottom action bars).
-    //
-    // EXCEPT the wizard: there the top pin covered the heading and the
-    // "what does this page make" line for every cold visitor at 375px. The
-    // wizard publishes its footer height, so the card sits just above the
-    // Continue button — over the chips, never over the masthead, the input
-    // or the primary action. Still position:fixed, so nothing shifts when
-    // it mounts 1.5s after load.
+    // Phones never get here. At the bottom on every route; on /trip and
+    // /shared above the save bar, which is fixed at every width. Still
+    // position:fixed, so nothing shifts when it mounts 1.5s after load.
     <div
       className={
-        onWizard
-          ? "fixed left-0 right-0 max-sm:bottom-[var(--mt-footer-h,96px)] sm:bottom-0 z-[9999] p-3 sm:p-4 pointer-events-none animate-in slide-in-from-bottom duration-300"
-          : onTripView
-            ? "fixed left-0 right-0 bottom-[var(--mt-bottom-bar-h,0px)] z-[9999] p-3 sm:p-4 pointer-events-none animate-in slide-in-from-bottom duration-300"
-            : "fixed top-0 left-0 right-0 sm:top-auto sm:bottom-0 z-[9999] p-3 sm:p-4 pointer-events-none animate-in slide-in-from-top sm:slide-in-from-bottom duration-300"
+        onTripView
+          ? "fixed left-0 right-0 bottom-[var(--mt-bottom-bar-h,0px)] z-[9999] p-3 sm:p-4 pointer-events-none animate-in slide-in-from-bottom duration-300"
+          : "fixed left-0 right-0 bottom-0 z-[9999] p-3 sm:p-4 pointer-events-none animate-in slide-in-from-bottom duration-300"
       }
     >
       <div className="max-w-5xl mx-auto pointer-events-auto">

@@ -14,6 +14,9 @@ const BUILDHOP_LAUNCH_ID = "6a52cf38-01c1-4cb9-9420-4a901acb64f5";
 
 export default function BuildHopFeedbackWidget() {
   useEffect(() => {
+    // Not on phones: the launcher sat on page content and on the consent bar,
+    // so it is neither shown there (app/globals.css) nor downloaded.
+    if (window.matchMedia("(max-width: 639px)").matches) return;
     let idleId: number | undefined;
     let timeoutId: number | undefined;
     const inject = () => {
