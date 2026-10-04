@@ -111,7 +111,8 @@ export default async function Footer() {
             <a
               href="https://buildhop.io/discover/monkeytravel-6a52cf38-01c1-4cb9-9420-4a901acb64f5"
               target="_blank"
-              rel="noopener noreferrer"
+              // A badge shown in return for a listing: nofollow, per Google's link guidelines.
+              rel="nofollow noopener noreferrer"
               title="Trending on BuildHop: MonkeyTravel"
               className="mt-6 inline-block"
             >

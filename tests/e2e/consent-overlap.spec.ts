@@ -24,6 +24,9 @@
  * A click *inside* the card never minimises it, so the other specs' first
  * action (`declineConsent`) is unaffected.
  *
+ * Phones never get the card: they open on the mini bar, so 1 and 2 are
+ * asserted on the bar there, and the feedback launcher is not shown at all.
+ *
  * Run locally:   npx playwright test tests/e2e/consent-overlap.spec.ts
  * Against prod:  BASE_URL=https://monkeytravel.app npx playwright test tests/e2e/consent-overlap.spec.ts
  */
@@ -37,6 +40,8 @@ type Box = { x: number; y: number; width: number; height: number };
 const VIEWPORTS = [
   { name: "desktop", width: 1280, height: 800 },
   { name: "mobile", width: 390, height: 844 },
+  // Short screen: where a bottom bar would reach the hero's button.
+  { name: "mobile", width: 375, height: 667 },
 ] as const;
 
 type Surface = {
@@ -123,14 +128,17 @@ for (const vp of VIEWPORTS) {
         );
 
         const card = page.getByTestId("consent-card");
+        const mini = page.getByTestId("consent-mini");
+        const phone = vp.name === "mobile";
+        const firstShown = phone ? mini : card;
         // 800 ms (consent context) + 1500 ms (banner) before it may appear.
-        await expect(card).toBeVisible({ timeout: 10_000 });
+        await expect(firstShown).toBeVisible({ timeout: 10_000 });
 
         const cta = await firstVisible(surface.cta(page));
         expect(cta, `primary CTA not found on ${surface.path}`).not.toBeNull();
 
         // 1. Before any interaction.
-        const before = overlapArea(await card.boundingBox(), await cta!.boundingBox());
+        const before = overlapArea(await firstShown.boundingBox(), await cta!.boundingBox());
         if (surface.name === "wizard" && vp.name === "desktop") {
           test.info().annotations.push({
             type: "measured",
@@ -142,9 +150,9 @@ for (const vp of VIEWPORTS) {
 
         // 2. After the first scroll / interaction.
         await firstInteraction(page);
-        await expect(card).toBeHidden({ timeout: 3_000 });
+        if (phone) await expect(card).toHaveCount(0);
+        else await expect(card).toBeHidden({ timeout: 3_000 });
 
-        const mini = page.getByTestId("consent-mini");
         const ctaAfter = (await firstVisible(surface.cta(page))) ?? cta!;
 
         // The bar is present at BOTH viewports now, and clears the CTA.
@@ -192,21 +200,19 @@ for (const vp of VIEWPORTS) {
         }
 
         // Phase 1.2: the third-party feedback launcher (fixed bottom-right,
-        // z-index 2147483000) must not sit on Continue either. It is hidden
-        // on the wizard below sm; elsewhere it must simply not intersect.
+        // z-index 2147483000) must not sit on Continue either. Phones do not
+        // show it at all; on desktop it must simply not intersect.
         {
           const launcher = page.locator("[data-buildhop-feedback-widget]");
-          if ((await launcher.count()) > 0 && (await launcher.isVisible())) {
-            if (vp.name === "mobile" && surface.name === "wizard") {
-              await expect(launcher).toBeHidden();
-            } else {
-              expect(overlapArea(await launcher.boundingBox(), await ctaAfter.boundingBox())).toBe(0);
-              // The consent bar's 92px right gutter exists for exactly this.
-              expect(
-                overlapArea(await launcher.boundingBox(), await mini.boundingBox()),
-                "consent bar overlaps the third-party launcher"
-              ).toBe(0);
-            }
+          if (phone) {
+            await expect(launcher).toBeHidden();
+          } else if ((await launcher.count()) > 0 && (await launcher.isVisible())) {
+            expect(overlapArea(await launcher.boundingBox(), await ctaAfter.boundingBox())).toBe(0);
+            // The consent bar's 92px right gutter exists for exactly this.
+            expect(
+              overlapArea(await launcher.boundingBox(), await mini.boundingBox()),
+              "consent bar overlaps the third-party launcher"
+            ).toBe(0);
           } else {
             test.info().annotations.push({
               type: "note",

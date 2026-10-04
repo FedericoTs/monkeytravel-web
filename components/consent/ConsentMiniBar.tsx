@@ -38,10 +38,11 @@
  * - **No dismiss control.** The bar ends on a decision, identically from
  *   either side. A "×" that suppressed it would make refusal the expensive
  *   option again, in a subtler way.
- * - **Left-anchored, content-width, with a fixed 92px right gutter.** The
- *   BuildHop launcher is `position: fixed` bottom-right at z-index
- *   2147483000 (app/globals.css) — that stacking contest cannot be won, only
- *   the geometry. Bottom-left is the corner the old pill already proved free.
+ * - **From 640px: left-anchored, content-width, with a fixed 92px right
+ *   gutter.** The BuildHop launcher is `position: fixed` bottom-right at
+ *   z-index 2147483000 (app/globals.css) — that stacking contest cannot be
+ *   won, only the geometry. Phones do not load the launcher, so the bar spans
+ *   the width there.
  * - **`max()` of the published bar heights, not their sum.** `--mt-nav-h`,
  *   `--mt-bottom-bar-h` and `--mt-sticky-cta-h` are all `fixed bottom-0`
  *   siblings: on /shared the save bar and the mobile nav overlap rather than
@@ -53,6 +54,7 @@
 
 import { useTranslations } from "next-intl";
 import { useConsent } from "@/lib/consent";
+import type { ConsentOrigin } from "@/lib/consent/types";
 
 /**
  * ONE constant for both decisions. See the header: this is what makes
@@ -64,20 +66,35 @@ const MINI_BTN =
   "text-[var(--foreground)] leading-tight text-center " +
   "hover:bg-slate-50 active:bg-slate-100 transition-colors";
 
-export function ConsentMiniBar({ onWizard }: { onWizard: boolean }) {
+/**
+ * Phones (no feedback launcher there) get the full width, which keeps the bar
+ * short. `placement="top"` is the phone's first view on pages whose heading
+ * starts low enough to stay clear; `origin` tells the two surfaces apart.
+ */
+export function ConsentMiniBar({
+  onWizard,
+  placement = "bottom",
+  origin = "mini",
+}: {
+  onWizard: boolean;
+  placement?: "top" | "bottom";
+  origin?: ConsentOrigin;
+}) {
   const t = useTranslations("consent");
   const { acceptAll, acceptEssentialOnly, openSettings } = useConsent();
 
-  const bottom = onWizard
-    ? "max-sm:bottom-[calc(var(--mt-footer-h,96px)+0.75rem)] sm:bottom-4"
-    : "bottom-[calc(max(var(--mt-bottom-bar-h,0px),var(--mt-nav-h,0px),var(--mt-sticky-cta-h,0px),env(safe-area-inset-bottom,0px))+0.75rem)]";
+  const position =
+    placement === "top"
+      ? "top-3"
+      : onWizard
+        ? "max-sm:bottom-[calc(var(--mt-footer-h,96px)+0.75rem)] sm:bottom-4"
+        : "bottom-[calc(max(var(--mt-bottom-bar-h,0px),var(--mt-nav-h,0px),var(--mt-sticky-cta-h,0px),env(safe-area-inset-bottom,0px))+0.75rem)]";
 
   return (
     <div
       className={
-        "fixed z-[9999] pointer-events-none left-3 sm:left-4 " +
-        "w-[min(300px,calc(100vw-6.5rem))] sm:w-[320px] " +
-        bottom
+        "fixed z-[9999] pointer-events-none left-3 right-3 sm:right-auto sm:left-4 sm:w-[320px] " +
+        position
       }
     >
       <div
@@ -85,6 +102,7 @@ export function ConsentMiniBar({ onWizard }: { onWizard: boolean }) {
         role="region"
         aria-label={t("banner.miniAria")}
         data-testid="consent-mini"
+        data-consent-bar=""
       >
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs font-semibold text-[var(--foreground)]">
@@ -94,7 +112,7 @@ export function ConsentMiniBar({ onWizard }: { onWizard: boolean }) {
             type="button"
             onClick={openSettings}
             data-testid="consent-mini-options"
-            className="min-h-[44px] inline-flex items-center px-1 -my-1 text-[11px] text-[var(--foreground)] underline underline-offset-2"
+            className="min-h-[24px] sm:min-h-[44px] inline-flex items-center px-1 sm:-my-1 text-[11px] text-[var(--foreground)] underline underline-offset-2"
           >
             {t("banner.miniOptions")}
           </button>
@@ -107,7 +125,7 @@ export function ConsentMiniBar({ onWizard }: { onWizard: boolean }) {
         <div className="mt-2 grid grid-cols-2 gap-2">
           <button
             type="button"
-            onClick={() => acceptEssentialOnly("mini")}
+            onClick={() => acceptEssentialOnly(origin)}
             data-testid="consent-mini-reject"
             className={MINI_BTN}
           >
@@ -115,7 +133,7 @@ export function ConsentMiniBar({ onWizard }: { onWizard: boolean }) {
           </button>
           <button
             type="button"
-            onClick={() => acceptAll("mini")}
+            onClick={() => acceptAll(origin)}
             data-testid="consent-mini-accept"
             className={MINI_BTN}
           >
