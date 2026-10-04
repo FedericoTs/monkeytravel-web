@@ -368,7 +368,7 @@ Se o Masai Mara de julho foi o começo da migração, agosto é o seu maior mês
 
 **Evite em agosto:** toda a costa do Mediterrâneo a menos que você já tenha pago. Santorini, Dubrovnik, Amalfi e as ilhas gregas funcionam com o mês mais caro e as maiores multidões. Se você precisa fazer o Mediterrâneo em agosto, escolha Montenegro ou Eslovênia.
 
-**O guia completo do mês:** [para onde ir em agosto de 2026](/blog/where-to-go-in-august), com doze destinos.
+**O guia completo do mês:** [para onde ir em agosto de 2027](/blog/where-to-go-in-august), com doze destinos.
 
 ---
 
@@ -405,7 +405,7 @@ Setembro é a reta final da estação seca de [Bali](/destinations/bali). A chuv
 
 **Evite em setembro:** destinos do Caribe e da Costa do Golfo — setembro é o pico estatístico da temporada de furacões do Atlântico. O seguro-viagem é obrigatório se você for.
 
-**O guia completo do mês:** [para onde ir em setembro de 2026](/blog/where-to-go-in-september), com doze destinos.
+**O guia completo do mês:** [para onde ir em setembro de 2027](/blog/where-to-go-in-september), com doze destinos.
 
 ---
 
