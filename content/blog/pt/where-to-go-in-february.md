@@ -134,7 +134,7 @@ Fevereiro é discretamente o melhor mês da Nova Zelândia. O mar está no seu p
 - **A semana seguinte a uma festa é a pechincha.** Rio a partir do dia 16, Vietnã a partir do 12 aproximadamente: mesmo destino, preços normais, tudo reaberto.
 - **Fevereiro é o último mês barato no norte.** Março traz os preços das férias escolares e da aproximação da Páscoa à Europa e à América do Norte. Se as suas datas são flexíveis e o destino é do norte, fevereiro ganha de março no custo quase sempre.
 - **Mês curto, conexões apertadas.** Fevereiro tem 28 dias e um número fixo de lugares em voos de longa distância, e as semanas de festa comem uma fatia desproporcional. Reserve os voos internos no Brasil, Vietnã e Tanzânia antes do que faria num mês normal.
-- **Verifique de que lado das chuvas está.** África oriental, sudeste asiático e Caribe têm divisões regionais este mês — o nosso [guia da monção](/blog/monsoon-season-where-to-go-and-avoid) as mapeia, e o [calendário de viagens 2026](/blog/2026-travel-calendar) mostra como fevereiro se compara com os meses vizinhos.
+- **Verifique de que lado das chuvas está.** África oriental, sudeste asiático e Caribe têm divisões regionais este mês — o nosso [guia da monção](/blog/monsoon-season-where-to-go-and-avoid) as mapeia, e o [calendário de viagens 2027](/blog/2027-travel-calendar) mostra como fevereiro se compara com os meses vizinhos.
 - **Duas festas marcam fevereiro de 2027.** O Ano-Novo Chinês cai em 6 de fevereiro e o Carnaval culmina na terça-feira, 9; veja [onde comemorar o Ano-Novo Chinês](/blog/lunar-new-year-where-to-celebrate) e [o Carnaval 2027 pelo mundo](/blog/carnival-around-the-world) para datas e reservas.
 
 ## Planeje a sua viagem de fevereiro em 30 segundos

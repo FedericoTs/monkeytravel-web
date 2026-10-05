@@ -130,7 +130,7 @@ Nueva Zelanda está en otoño, y abril es uno de sus meses más infravalorados. 
 - **La última semana es la cara.** La Semana Santa griega, el Día del Rey y la Golden Week empiezan entre el 26 y el 29 de abril. Si tu viaje toca alguna, reserva primero esas noches.
 - **A mediados de abril es Año Nuevo en buena parte de Asia.** Songkran (13–15 de abril) tiene equivalentes en Laos, Camboya, Myanmar y Sri Lanka en torno a los mismos días, y [Vaisakhi cae el 14 de abril](https://www.officeholidays.com/holidays/india/punjab/vaisakhi) en el Punyab. Cuenta con autobuses y trenes llenos y algunos negocios cerrados.
 - **Los cerezos de Washington llegan pronto.** El [National Cherry Blossom Festival](https://nationalcherryblossomfestival.org/) de Washington D. C. va del 20 de marzo al 11 de abril de 2027, pero el [Servicio de Parques Nacionales](https://www.nps.gov/subjects/cherryblossom/bloom-watch.htm) sitúa el pico más probable a finales de marzo o principios de abril, y no puede anticiparlo con más de unos diez días.
-- **Compáralo con los meses vecinos antes de cerrar.** [Marzo](/blog/where-to-go-in-march) es más barato fuera de su Semana Santa y [mayo](/blog/where-to-go-in-may) es más cálido, con la temporada mediterránea ya abierta del todo. El [calendario de viajes mes a mes](/blog/2026-travel-calendar) muestra todo el año de un vistazo.
+- **Compáralo con los meses vecinos antes de cerrar.** [Marzo](/blog/where-to-go-in-march) es más barato fuera de su Semana Santa y [mayo](/blog/where-to-go-in-may) es más cálido, con la temporada mediterránea ya abierta del todo. El [calendario de viajes mes a mes](/blog/2027-travel-calendar) muestra todo el año de un vistazo.
 
 ## Planifica tu viaje de abril en 30 segundos
 

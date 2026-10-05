@@ -134,7 +134,7 @@ Copenhagen, Vienna, Berlin, Amsterdam and Edinburgh in mid-January are as cheap 
 - **Pick your hemisphere and commit.** January splits the planet more sharply than any other month. Chasing both — a European city break plus a tropical beach — usually means paying long-haul peak-season prices for the second half.
 - **Watch the two-coast countries.** Sri Lanka, Vietnam, Costa Rica, Thailand and Oman all have regions on opposite weather calendars in January. Our [monsoon-season guide](/blog/monsoon-season-where-to-go-and-avoid) maps which side is dry.
 - **Book the Southern Hemisphere earlier than feels necessary.** January is domestic holiday season in Argentina, Chile, New Zealand and South Africa, so huts, ferries, campervans and park permits sell out to locals long before international visitors start looking.
-- **Compare it against the shoulder months before locking in.** If your dates can move, [February](/blog/where-to-go-in-february) keeps most of January's weather with fewer domestic crowds in the south — see how the [2026 travel calendar](/blog/2026-travel-calendar) lines up first.
+- **Compare it against the shoulder months before locking in.** If your dates can move, [February](/blog/where-to-go-in-february) keeps most of January's weather with fewer domestic crowds in the south — see how the [2027 travel calendar](/blog/2027-travel-calendar) lines up first.
 - **Catch Epiphany on 5–6 January.** Spain's Three Kings parades, Italy's Befana and the Greek cross dives fall in the first week; see [Epiphany around the world](/blog/epiphany-around-the-world) for the 2027 dates.
 
 ## Plan Your January Trip in 30 Seconds

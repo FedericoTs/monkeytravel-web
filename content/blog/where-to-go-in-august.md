@@ -23,6 +23,8 @@ August is the hardest month to travel well. It's the one month when most of the 
 
 But August is not a bad month. It's a badly *chosen* month. There are places where August is demonstrably the best time of year to show up — festival cities at full voltage, alpine valleys at their warmest, islands in the middle of their dry season, and an entire hemisphere where it's winter and the ski lifts are running. Here are twelve of them, with real costs and the honest trade-offs.
 
+One date stands out in August 2027: on Monday 2 August a total solar eclipse crosses the Strait of Gibraltar and North Africa. [Spain's National Geographic Institute](https://astronomia.ign.es/en/web/guest/eclipses-de-sol-y-luna/eclipse-total-sol-de-2-de-agosto-2027) gives Ceuta 4 min 48 s of totality and Cádiz 2 min 54 s, from about 10:45 local time, and the longest totality, about 6 min 23 s, falls near Luxor in Upper Egypt. Our guide to [the best places to travel in 2027](/blog/best-places-to-travel-2027) covers where to watch it and what to book.
+
 ## Quick-Pick Comparison: 12 August Destinations
 
 | Destination | Why August | Daily budget (mid-range, pp) | Crowds |

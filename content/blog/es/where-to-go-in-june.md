@@ -130,7 +130,7 @@ Junio es principio de invierno en el Lowveld sudafricano, y por eso mismo es uno
 - **Reserva primero las noches de fiesta.** San Antonio en Lisboa, Midsommar en el archipiélago, la semana de Yosakoi en Sapporo y la del Inti Raymi en Cusco son cuando se agotan las habitaciones: el límite es dónde dormir, no los vuelos.
 - **Junio parte Asia en dos.** El monzón llega al sur de la India a principios de mes y avanza hacia el norte, mientras Japón, Taiwán, Corea del Sur y el sur de China viven su temporada de lluvias. Ve donde está seco —Bali, Ladakh, Hokkaido— y mira nuestra [guía del monzón](/blog/monsoon-season-where-to-go-and-avoid).
 - **Aprovecha la luz.** Visita temprano y tarde, descansa a mediodía y cena después de las 21:00 en el sur de Europa. Para un sol que no se pone, mira nuestra [guía del sol de medianoche](/blog/midnight-sun-best-destinations).
-- **Compáralo con los meses vecinos antes de cerrar.** [Mayo](/blog/where-to-go-in-may) es más barato y tranquilo en Europa; [julio](/blog/where-to-go-in-july) trae el pico del Mediterráneo y los cruces del Mara. El [calendario de viajes mes a mes](/blog/2026-travel-calendar) muestra todo el año de un vistazo.
+- **Compáralo con los meses vecinos antes de cerrar.** [Mayo](/blog/where-to-go-in-may) es más barato y tranquilo en Europa; [julio](/blog/where-to-go-in-july) trae el pico del Mediterráneo y los cruces del Mara. El [calendario de viajes mes a mes](/blog/2027-travel-calendar) muestra todo el año de un vistazo.
 
 ## Planifica tu viaje de junio en 30 segundos
 
