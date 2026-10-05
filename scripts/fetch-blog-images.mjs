@@ -31,6 +31,9 @@ const BLOG_QUERIES = {
   "epiphany-around-the-world": "three kings nativity figurines",
   "lunar-new-year-where-to-celebrate": "chinese new year red lanterns street",
   "carnival-around-the-world": "carnival parade costumes dancers",
+  // 2027 planning pillars
+  "2027-travel-calendar": "hand placing pins on world map travel planning",
+  "best-places-to-travel-2027": "total solar eclipse sky",
   // 2026-07-12 — GSC audit: standalone August month page (April-resurrection playbook)
   "where-to-go-in-august": "Dolomites alpine lake mountains summer",
   // 2026-07-06 — multi-city content wave
