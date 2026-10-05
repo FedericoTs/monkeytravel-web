@@ -132,6 +132,7 @@ Basilea divide il mercatino tra due piazze a pochi passi l'una dall'altra: Barf�
 - **Abbina i mercatini in treno, non in aereo.** Colonia–Norimberga è comodo in treno, così come Colmar–Strasburgo. Due mercatini in un viaggio batte quasi sempre un mercatino e due voli.
 - **Ricontrolla Strasburgo prima di prenotare.** È l'ultimo grande mercatino senza date 2026 pubblicate; Budapest, Dresda e Basilea le avevano annunciate entro inizio ottobre.
 - **Pianifica anche il resto del mese.** I mercatini sono un'attività serale: guarda cos'altro vale la pena a [dicembre](/blog/where-to-go-in-december) e come si colloca la stagione nel [calendario viaggi 2026](/blog/2026-travel-calendar).
+- **Allunga il viaggio.** Se pianifichi tutte le feste, le nostre guide su [dove passare il Natale](/blog/where-to-spend-christmas) e [dove passare il Capodanno](/blog/where-to-spend-new-years-eve) coprono i giorni dopo la chiusura dei mercatini.
 
 ## Pianifica il tuo viaggio ai mercatini in 30 secondi
 

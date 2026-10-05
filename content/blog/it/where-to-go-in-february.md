@@ -135,6 +135,7 @@ Febbraio è in sordina il mese migliore della Nuova Zelanda. Il mare è al suo p
 - **Febbraio è l'ultimo mese economico al nord.** Marzo porta i prezzi delle vacanze scolastiche e dell'avvicinamento a Pasqua in Europa e Nord America. Se le tue date sono flessibili e la meta è settentrionale, febbraio batte marzo sul costo quasi sempre.
 - **Mese corto, coincidenze strette.** Febbraio ha 28 giorni e un numero fisso di posti a lungo raggio, e le settimane di festa se ne mangiano una quota sproporzionata. Prenota i voli interni in Brasile, Vietnam e Tanzania prima di quanto faresti in un mese normale.
 - **Controlla da che lato delle piogge sei.** Africa orientale, sud-est asiatico e Caraibi hanno divisioni regionali questo mese — la nostra [guida al monsone](/blog/monsoon-season-where-to-go-and-avoid) le mappa, e il [calendario viaggi 2026](/blog/2026-travel-calendar) mostra come febbraio si confronta con i mesi vicini.
+- **Due feste segnano febbraio 2027.** Il Capodanno cinese cade il 6 febbraio e il Carnevale culmina martedì 9; vedi [dove festeggiare il Capodanno cinese](/blog/lunar-new-year-where-to-celebrate) e [il Carnevale 2027 nel mondo](/blog/carnival-around-the-world) per date e prenotazioni.
 
 ## Pianifica il tuo viaggio di febbraio in 30 secondi
 

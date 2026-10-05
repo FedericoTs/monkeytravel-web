@@ -529,6 +529,8 @@ Dezembro é o mês mais polarizador do calendário. As buscas genéricas por "al
 
 **O guia completo do mês:** [para onde ir em dezembro de 2026](/blog/where-to-go-in-december), com doze destinos.
 
+**Para as festas:** [onde passar o Natal](/blog/where-to-spend-christmas), [o Réveillon](/blog/where-to-spend-new-years-eve) e [o Réveillon na neve](/blog/new-years-eve-in-the-snow).
+
 **Mercados de Natal:** [os melhores mercados de Natal da Europa](/blog/best-christmas-markets-europe-2026), com as datas de 2026 já confirmadas.
 
 ---

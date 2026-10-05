@@ -535,6 +535,8 @@ Diciembre es el mes más polarizador del calendario. Las búsquedas genéricas d
 
 **La guía completa del mes:** [dónde ir en diciembre de 2026](/blog/where-to-go-in-december), con doce destinos.
 
+**Para las fiestas:** [dónde pasar la Navidad](/blog/where-to-spend-christmas), [la Nochevieja](/blog/where-to-spend-new-years-eve) y [la Nochevieja en la nieve](/blog/new-years-eve-in-the-snow).
+
 **Mercados navideños:** [los mejores mercados navideños de Europa](/blog/best-christmas-markets-europe-2026), con las fechas de 2026 ya confirmadas.
 
 ---

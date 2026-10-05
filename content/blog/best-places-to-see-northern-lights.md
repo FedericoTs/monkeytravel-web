@@ -139,6 +139,8 @@ Finnish Lapland combines aurora hunting with the most complete Arctic winter exp
 
 **Pro tip**: Inari (260 km north of Rovaniemi) has significantly less light pollution and higher aurora probability. Worth the drive.
 
+If you are here for the holidays, our guide to [New Year's Eve in the snow](/blog/new-years-eve-in-the-snow) compares Lapland's aurora cabins with ski resorts and Alpine huts.
+
 ---
 
 ### 5. Reykjavik & Southern Iceland

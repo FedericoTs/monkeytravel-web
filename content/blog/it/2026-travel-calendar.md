@@ -535,6 +535,8 @@ Dicembre è il mese più polarizzante del calendario. Le ricerche generiche di "
 
 **La guida completa del mese:** [dove andare a dicembre 2026](/blog/where-to-go-in-december), con dodici mete.
 
+**Per le feste:** [dove passare il Natale](/blog/where-to-spend-christmas), [il Capodanno](/blog/where-to-spend-new-years-eve) e [il Capodanno sulla neve](/blog/new-years-eve-in-the-snow).
+
 **Mercatini di Natale:** [i migliori mercatini di Natale d'Europa](/blog/best-christmas-markets-europe-2026), con le date 2026 già confermate.
 
 ---

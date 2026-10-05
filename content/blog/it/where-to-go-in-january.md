@@ -135,6 +135,7 @@ Copenaghen, Vienna, Berlino, Amsterdam ed Edimburgo a metà gennaio sono al mini
 - **Attenzione ai paesi a due coste.** Sri Lanka, Vietnam, Costa Rica, Thailandia e Oman hanno regioni su calendari opposti a gennaio. La nostra [guida al monsone](/blog/monsoon-season-where-to-go-and-avoid) dice quale lato è asciutto.
 - **Prenota l'emisfero sud prima di quanto sembri necessario.** Gennaio è stagione di vacanze interne in Argentina, Cile, Nuova Zelanda e Sudafrica, quindi rifugi, traghetti, camper e permessi si esauriscono con i residenti molto prima che i viaggiatori internazionali comincino a guardare.
 - **Confrontalo con i mesi vicini prima di fissare le date.** Se puoi spostarti, [febbraio](/blog/where-to-go-in-february) mantiene quasi lo stesso clima con meno affollamento locale al sud — guarda come si incastra il [calendario viaggi 2026](/blog/2026-travel-calendar) prima di decidere.
+- **Approfitta dell'Epifania, il 5 e 6 gennaio.** Le cabalgatas dei Re Magi in Spagna, la Befana e i tuffi per recuperare la croce in Grecia cadono nella prima settimana; trovi le date 2027 in [l'Epifania nel mondo](/blog/epiphany-around-the-world).
 
 ## Pianifica il tuo viaggio di gennaio in 30 secondi
 
