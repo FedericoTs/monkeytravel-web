@@ -122,6 +122,8 @@ La Lapponia finlandese combina la caccia all'aurora con l'esperienza invernale a
 
 **Consiglio**: Inari (260 km a nord di Rovaniemi) ha significativamente meno inquinamento luminoso e maggiore probabilità di aurora. Vale lo spostamento.
 
+Se ci vieni per le feste, la nostra guida al [Capodanno sulla neve](/blog/new-years-eve-in-the-snow) mette a confronto le baite per l'aurora in Lapponia con le località sciistiche e i rifugi alpini.
+
 ---
 
 ### 5. Reykjavik e Islanda Meridionale

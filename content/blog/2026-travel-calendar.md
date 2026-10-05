@@ -533,6 +533,8 @@ December is the most polarizing month on the calendar. Generic "somewhere warm" 
 
 **The full month guide:** [where to go in December 2026](/blog/where-to-go-in-december), with twelve destinations.
 
+**For the holidays:** [where to spend Christmas](/blog/where-to-spend-christmas), [New Year's Eve](/blog/where-to-spend-new-years-eve) and [New Year's Eve in the snow](/blog/new-years-eve-in-the-snow).
+
 **Christmas markets:** [Europe's best Christmas markets](/blog/best-christmas-markets-europe-2026), with the 2026 dates that are confirmed.
 
 ---

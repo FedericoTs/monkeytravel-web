@@ -135,6 +135,7 @@ February is quietly New Zealand's best month. The sea is at its warmest — a mo
 - **February is the last cheap month up north.** March brings spring-break and Easter-run-up pricing to Europe and North America. If your dates are flexible and the destination is northern, February beats March on cost almost every time.
 - **Short month, tight connections.** February has 28 days and a fixed number of long-haul seats, and the festival weeks eat a disproportionate share. Book internal flights in Brazil, Vietnam and Tanzania earlier than you would in a normal month.
 - **Check which side of the rains you are on.** East Africa, Southeast Asia and the Caribbean all have regional splits this month — our [monsoon-season guide](/blog/monsoon-season-where-to-go-and-avoid) maps them, and the [2026 travel calendar](/blog/2026-travel-calendar) shows how February compares to the months either side.
+- **Two festivals shape February 2027.** Lunar New Year falls on 6 February and Carnival peaks on Shrove Tuesday, 9 February; see [where to celebrate Lunar New Year](/blog/lunar-new-year-where-to-celebrate) and [Carnival 2027 around the world](/blog/carnival-around-the-world) for dates and booking windows.
 
 ## Plan Your February Trip in 30 Seconds
 

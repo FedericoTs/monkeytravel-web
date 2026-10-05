@@ -132,6 +132,7 @@ Basel splits its market between two squares a short walk apart: Barfüsserplatz,
 - **Pair markets by rail, not by air.** Cologne–Nuremberg is straightforward by train, as is Colmar–Strasbourg. Two markets in one trip almost always beats one market and two flights.
 - **Re-check Strasbourg before you book.** It is the last major market without published 2026 dates; Budapest, Dresden and Basel had all announced by early October.
 - **Plan around the rest of the month too.** Markets are an evening activity — see what else is worth doing in [December](/blog/where-to-go-in-december) and how the season sits in the [2026 travel calendar](/blog/2026-travel-calendar).
+- **Make a week of it.** If you are planning the whole festive fortnight, our guides to [where to spend Christmas](/blog/where-to-spend-christmas) and [where to spend New Year's Eve](/blog/where-to-spend-new-years-eve) cover the days after the markets close.
 
 ## Plan Your Christmas Market Trip in 30 Seconds
 

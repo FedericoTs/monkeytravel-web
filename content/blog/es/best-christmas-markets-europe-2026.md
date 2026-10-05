@@ -132,6 +132,7 @@ Basilea reparte su mercado entre dos plazas a un paseo de distancia: Barfüsserp
 - **Combina mercados en tren, no en avión.** Colonia–Núremberg es cómodo en tren, igual que Colmar–Estrasburgo. Dos mercados en un viaje casi siempre gana a un mercado y dos vuelos.
 - **Comprueba Estrasburgo antes de reservar.** Es el último gran mercado sin fechas publicadas para 2026; Budapest, Dresde y Basilea ya las habían anunciado a principios de octubre.
 - **Planifica también el resto del mes.** Los mercados son una actividad de tarde-noche: mira qué más merece la pena en [diciembre](/blog/where-to-go-in-december) y cómo encaja la temporada en el [calendario de viajes 2026](/blog/2026-travel-calendar).
+- **Alarga el viaje.** Si planificas todas las fiestas, nuestras guías de [dónde pasar la Navidad](/blog/where-to-spend-christmas) y [dónde pasar la Nochevieja](/blog/where-to-spend-new-years-eve) cubren los días en que cierran los mercados.
 
 ## Planifica tu viaje a los mercados navideños en 30 segundos
 

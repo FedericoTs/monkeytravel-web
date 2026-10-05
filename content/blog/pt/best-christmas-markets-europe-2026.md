@@ -132,6 +132,7 @@ Basileia divide o mercado entre duas praças a poucos passos uma da outra: Barf�
 - **Combine mercados de trem, não de avião.** Colônia–Nuremberg é tranquilo de trem, assim como Colmar–Estrasburgo. Dois mercados numa viagem quase sempre ganha de um mercado e dois voos.
 - **Confira Estrasburgo antes de reservar.** É o último grande mercado sem datas de 2026 publicadas; Budapeste, Dresden e Basileia já tinham anunciado as suas até o começo de outubro.
 - **Planeje o resto do mês também.** Mercados são atividade de fim de tarde: veja o que mais vale a pena em [dezembro](/blog/where-to-go-in-december) e como a temporada se encaixa no [calendário de viagens 2026](/blog/2026-travel-calendar).
+- **Estenda a viagem.** Se você está planejando as festas inteiras, nossos guias de [onde passar o Natal](/blog/where-to-spend-christmas) e [onde passar o Réveillon](/blog/where-to-spend-new-years-eve) cobrem os dias depois que os mercados fecham.
 
 ## Planeje sua viagem aos mercados de Natal em 30 segundos
 

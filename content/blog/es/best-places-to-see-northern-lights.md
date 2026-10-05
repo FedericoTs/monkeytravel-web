@@ -120,6 +120,8 @@ La Laponia finlandesa combina la caza de auroras con la experiencia invernal ár
 
 **Consejo**: Inari (260 km al norte de Rovaniemi) tiene significativamente menos contaminación lumínica y mayor probabilidad de aurora. Merece el desplazamiento.
 
+Si vienes en las fiestas, nuestra guía de [Nochevieja en la nieve](/blog/new-years-eve-in-the-snow) compara las cabañas para ver auroras de Laponia con estaciones de esquí y refugios alpinos.
+
 ---
 
 ### 5. Reikiavik y el Sur de Islandia
