@@ -24,6 +24,13 @@ const MAX_PLACEHOLDER_SIZE = 60_000; // Files under 60KB are considered placehol
 
 // Map each blog slug to a descriptive Pexels search query
 const BLOG_QUERIES = {
+  // Winter 2026–27 holiday and festival guides
+  "where-to-spend-christmas": "christmas tree snowy town square lights",
+  "where-to-spend-new-years-eve": "new year fireworks harbour city night",
+  "new-years-eve-in-the-snow": "snowy mountain chalet night lights",
+  "epiphany-around-the-world": "three kings nativity figurines",
+  "lunar-new-year-where-to-celebrate": "chinese new year red lanterns street",
+  "carnival-around-the-world": "carnival parade costumes dancers",
   // 2026-07-12 — GSC audit: standalone August month page (April-resurrection playbook)
   "where-to-go-in-august": "Dolomites alpine lake mountains summer",
   // 2026-07-06 — multi-city content wave
