@@ -48,7 +48,7 @@
     "@react-email/render": "^2.1.0",
     "@react-google-maps/api": "^2.20.8",
     "@sentry/nextjs": "^10.29.0",
-    "@supabase/ssr": "^0.8.0",
+    "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.86.0",
     "@upstash/redis": "^1.39.0",
     "@vercel/analytics": "^1.6.1",
