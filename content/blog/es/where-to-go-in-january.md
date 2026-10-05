@@ -134,7 +134,7 @@ Copenhague, Viena, Berlín, Ámsterdam y Edimburgo a mediados de enero están en
 - **Elige hemisferio y comprométete.** Enero parte el planeta más que ningún otro mes. Perseguir los dos —una escapada europea más una playa tropical— suele significar pagar precios de temporada alta de larga distancia en la segunda mitad.
 - **Ojo con los países de dos costas.** Sri Lanka, Vietnam, Costa Rica, Tailandia y Omán tienen regiones en calendarios opuestos en enero. Nuestra [guía del monzón](/blog/monsoon-season-where-to-go-and-avoid) indica qué lado está seco.
 - **Reserva el hemisferio sur antes de lo que parece necesario.** Enero es temporada de vacaciones locales en Argentina, Chile, Nueva Zelanda y Sudáfrica, así que refugios, ferris, autocaravanas y permisos se agotan con los residentes mucho antes de que los viajeros internacionales empiecen a mirar.
-- **Compáralo con los meses vecinos antes de cerrar fechas.** Si puedes mover el viaje, [febrero](/blog/where-to-go-in-february) mantiene casi el mismo clima con menos aforo local en el sur — mira cómo encaja el [calendario de viajes 2026](/blog/2026-travel-calendar) antes de decidir.
+- **Compáralo con los meses vecinos antes de cerrar fechas.** Si puedes mover el viaje, [febrero](/blog/where-to-go-in-february) mantiene casi el mismo clima con menos aforo local en el sur — mira cómo encaja el [calendario de viajes 2027](/blog/2027-travel-calendar) antes de decidir.
 - **Aprovecha el Día de Reyes, el 5 y 6 de enero.** Las cabalgatas en España, la Befana en Italia y los saltos al agua para recuperar la cruz en Grecia caen en la primera semana; consulta las fechas de 2027 en [el Día de Reyes en el mundo](/blog/epiphany-around-the-world).
 
 ## Planifica tu viaje de enero en 30 segundos

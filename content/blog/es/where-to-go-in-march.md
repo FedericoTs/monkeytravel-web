@@ -134,7 +134,7 @@ La temporada de primavera arranca en marzo: tiempo estable, días templándose y
 - **La floración no se reserva, se apuesta.** Tokio y Kioto suelen alcanzar el pico en los últimos días de marzo, pero la fecha se mueve con el invierno. Diseña una ruta con recorrido norte-sur suficiente para encontrarte el frente en algún punto en lugar de jugarte el viaje a una ciudad y una semana.
 - **Marzo es el mes del desierto.** Jordania, Marruecos, Rajastán, Utah y Arizona están todos en la ventana estrecha entre el frío del invierno y el calor del verano. En mayo, varios de ellos resultan genuinamente desagradables.
 - **Comprueba qué ha reabierto de verdad.** Marzo es un mes de transición, y hoteles de temporada, ferris, refugios y carreteras de parque reabren en fechas muy dispares. Confirma en lugar de suponer, sobre todo en Grecia, Islandia y la Patagonia.
-- **Compáralo con los meses vecinos antes de cerrar.** [Febrero](/blog/where-to-go-in-february) sale más barato en el norte y [abril](/blog/where-to-go-in-april) es más cálido — mira cómo encaja el [calendario de viajes 2026](/blog/2026-travel-calendar) antes de comprometerte con las fechas.
+- **Compáralo con los meses vecinos antes de cerrar.** [Febrero](/blog/where-to-go-in-february) sale más barato en el norte y [abril](/blog/where-to-go-in-april) es más cálido — mira cómo encaja el [calendario de viajes 2027](/blog/2027-travel-calendar) antes de comprometerte con las fechas.
 
 ## Planifica tu viaje de marzo en 30 segundos
 

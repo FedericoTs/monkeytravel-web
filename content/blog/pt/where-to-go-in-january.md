@@ -134,7 +134,7 @@ Copenhague, Viena, Berlim, Amsterdã e Edimburgo em meados de janeiro estão com
 - **Escolha o hemisfério e comprometa-se.** Janeiro divide o planeta mais do que qualquer outro mês. Perseguir os dois — uma escapadinha europeia mais uma praia tropical — costuma significar pagar preços de alta temporada em voos de longa distância na segunda metade.
 - **Atenção aos países de duas costas.** Sri Lanka, Vietnã, Costa Rica, Tailândia e Omã têm regiões em calendários opostos em janeiro. O nosso [guia da monção](/blog/monsoon-season-where-to-go-and-avoid) mostra que lado está seco.
 - **Reserve o hemisfério sul antes do que parece necessário.** Janeiro é época de férias internas na Argentina, Chile, Nova Zelândia e África do Sul, por isso refúgios, ferries, motorhomes e licenças esgotam com os residentes muito antes de os viajantes internacionais começarem a olhar.
-- **Compare-o com os meses vizinhos antes de fechar datas.** Se puder mexer, [fevereiro](/blog/where-to-go-in-february) mantém quase o mesmo clima com menos afluência local no sul — veja como encaixa o [calendário de viagens 2026](/blog/2026-travel-calendar) antes de decidir.
+- **Compare-o com os meses vizinhos antes de fechar datas.** Se puder mexer, [fevereiro](/blog/where-to-go-in-february) mantém quase o mesmo clima com menos afluência local no sul — veja como encaixa o [calendário de viagens 2027](/blog/2027-travel-calendar) antes de decidir.
 - **Aproveite o Dia de Reis, em 5 e 6 de janeiro.** As cavalgadas de Reis na Espanha, a Befana na Itália e os mergulhos pela cruz na Grécia caem na primeira semana; veja as datas de 2027 em [o Dia de Reis pelo mundo](/blog/epiphany-around-the-world).
 
 ## Planeje a sua viagem de janeiro em 30 segundos

@@ -130,7 +130,7 @@ The Seychelles has two calm seasons a year, and May closes the first. Between th
 - **May is the Mediterranean's last shoulder month.** The sea reaches only about 19–20°C, and prices start climbing in the last week: go late to swim, early for value.
 - **The monsoon line moves at the end of the month.** Thailand, Sri Lanka's south-west coast and India's west coast turn wet around late May, while Bali dries out — see our [monsoon guide](/blog/monsoon-season-where-to-go-and-avoid).
 - **Book the fixed things first.** Inca Trail permits, Chelsea tickets, Golden Week trains and Easter-weekend island rooms sell out long before flights get expensive.
-- **Compare it with the months either side before you lock in.** [April](/blog/where-to-go-in-april), the month before, is cooler and cheaper around the Mediterranean; [June](/blog/where-to-go-in-june) is warmer, with summer prices starting. The [month-by-month travel calendar](/blog/2026-travel-calendar) shows the whole year at a glance.
+- **Compare it with the months either side before you lock in.** [April](/blog/where-to-go-in-april), the month before, is cooler and cheaper around the Mediterranean; [June](/blog/where-to-go-in-june) is warmer, with summer prices starting. The [month-by-month travel calendar](/blog/2027-travel-calendar) shows the whole year at a glance.
 
 ## Plan Your May Trip in 30 Seconds
 

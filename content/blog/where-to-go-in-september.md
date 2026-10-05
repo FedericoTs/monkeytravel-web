@@ -128,7 +128,7 @@ If September has a festival to rival Edinburgh's August, it's this one: Oktoberf
 
 - **The first week still counts as summer; the rest is the deal.** In much of Europe, prices and crowds don't fully drop until school holidays end in early September. If you can travel from the second week onward, you get the same weather for meaningfully less.
 - **Chase the warm water, not the warm air.** The Mediterranean, Adriatic, and Aegean are at their annual peak sea temperature in September — often warmer than the July sea. It's the single best month for swimming holidays in southern Europe.
-- **Flip the hemisphere for spring.** While the north cools toward autumn, September is spring in the south — Cape Town, and the shoulder season across much of the Southern Hemisphere. Our [month-by-month travel calendar](/blog/2026-travel-calendar) maps which way each region is heading.
+- **Flip the hemisphere for spring.** While the north cools toward autumn, September is spring in the south — Cape Town, and the shoulder season across much of the Southern Hemisphere. Our [month-by-month travel calendar](/blog/2027-travel-calendar) maps which way each region is heading.
 - **Mind the tail-end closures and the weather calendar.** Some island and high-mountain businesses start winding down late in the month, and September is peak typhoon season in East Asia and Atlantic hurricane season in the Caribbean. Check the specific-region calendar, not just the temperature.
 - **September is where the value lives.** It's consistently one of the best-priced months for weather-per-dollar in Europe — see how it compares in our [where to go in August](/blog/where-to-go-in-august) guide, then note how much cheaper the same places get four weeks later.
 

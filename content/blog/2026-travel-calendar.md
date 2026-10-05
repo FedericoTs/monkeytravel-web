@@ -24,6 +24,8 @@ schema: "Article"
 
 # The 2026 Travel Calendar: Where to Go Every Month, by Conditions Not Hype
 
+*Planning next year? Our [2027 travel calendar](/blog/2027-travel-calendar) has every month's picks, the 2 August total solar eclipse and the 2027 long weekends.*
+
 I write this from Bologna, where the May rain has finally let up and the swallows are back over the rooftops. I'm a cultural anthropologist by training, and my job — the part of it that involves writing for MonkeyTravel — is to test the difference between what travel marketing promises about a place and what is actually happening there in a given month. The two are often very far apart.
 
 Most "best time to visit" advice is useless. It averages a country into a single line ("Italy is best in spring or fall") and leaves you to figure out whether that means Sicily in March or the Dolomites in October — destinations with almost nothing in common climatically. It ignores the festival you'd want to plan around, the monsoon that might ruin a beach week 200 km from a perfectly dry one, and the way prices on the same hotel can swing 60% across two adjacent weeks. It treats December in Vienna and December in Cape Town as if they're the same problem.

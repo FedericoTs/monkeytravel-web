@@ -130,7 +130,7 @@ Tiflis en julio es calurosa, pero el verano de Georgia está en las montañas. E
 - **Reserva la cama antes que el vuelo.** San Fermín, el Naadam, los fines de semana del Gion y la Stampede disparan los precios de sus ciudades con meses de antelación; los campamentos del Mara, las cabañas de Lofoten y los alojamientos de las Rocosas se llenan igualmente.
 - **El monzón parte Asia en dos.** La costa oeste de India, el lado del mar de Andamán de Tailandia y la mayor parte del Sudeste Asiático continental están en plena lluvia; Ladakh y Bali, no. Nuestra [guía del monzón](/blog/monsoon-season-where-to-go-and-avoid) traza el calendario.
 - **Al sur del ecuador, julio es estación seca.** África oriental, los Andes y el norte tropical de Queensland están en sus meses más secos: de ahí los safaris, los treks y el arrecife de esta lista.
-- **Compara con los meses vecinos.** [Junio](/blog/where-to-go-in-june) tiene los mismos días largos antes de que las vacaciones escolares suban los precios; [agosto](/blog/where-to-go-in-august) cubre los valles alpinos y las islas en estación seca que funcionan igual de bien a finales de julio. El [calendario de viajes mes a mes](/blog/2026-travel-calendar) muestra todo el año de un vistazo.
+- **Compara con los meses vecinos.** [Junio](/blog/where-to-go-in-june) tiene los mismos días largos antes de que las vacaciones escolares suban los precios; [agosto](/blog/where-to-go-in-august) cubre los valles alpinos y las islas en estación seca que funcionan igual de bien a finales de julio. El [calendario de viajes mes a mes](/blog/2027-travel-calendar) muestra todo el año de un vistazo.
 
 ## Planifica tu viaje de julio en 30 segundos
 

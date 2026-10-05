@@ -134,7 +134,7 @@ La stagione primaverile parte a marzo: tempo stabile, giornate che si scaldano e
 - **La fioritura non si prenota, si scommette.** Tokyo e Kyoto di solito toccano il picco negli ultimi giorni di marzo, ma la data si muove con l'inverno. Costruisci un itinerario con abbastanza escursione nord-sud da incontrare il fronte da qualche parte, invece di giocarti il viaggio su una città e una settimana.
 - **Marzo è il mese del deserto.** Giordania, Marocco, Rajasthan, Utah e Arizona sono tutti nella finestra stretta tra il freddo invernale e il caldo estivo. A maggio, diversi di loro sono davvero sgradevoli.
 - **Verifica cosa ha davvero riaperto.** Marzo è un mese di transizione, e hotel stagionali, traghetti, rifugi e strade dei parchi riaprono in date molto diverse. Conferma invece di dare per scontato, soprattutto in Grecia, Islanda e Patagonia.
-- **Confrontalo con i mesi vicini prima di chiudere.** [Febbraio](/blog/where-to-go-in-february) costa meno al nord e [aprile](/blog/where-to-go-in-april) è più caldo — guarda come si incastra il [calendario viaggi 2026](/blog/2026-travel-calendar) prima di impegnarti sulle date.
+- **Confrontalo con i mesi vicini prima di chiudere.** [Febbraio](/blog/where-to-go-in-february) costa meno al nord e [aprile](/blog/where-to-go-in-april) è più caldo — guarda come si incastra il [calendario viaggi 2027](/blog/2027-travel-calendar) prima di impegnarti sulle date.
 
 ## Pianifica il tuo viaggio di marzo in 30 secondi
 

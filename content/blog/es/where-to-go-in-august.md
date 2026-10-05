@@ -23,6 +23,8 @@ Agosto es el mes más difícil para viajar bien. Es el único mes en que casi to
 
 Pero agosto no es un mal mes. Es un mes mal *elegido*. Hay lugares donde agosto es, con datos en la mano, el mejor momento del año para presentarse: ciudades en festival a pleno voltaje, valles alpinos en su punto más cálido, islas en mitad de su estación seca y un hemisferio entero donde es invierno y los remontes están funcionando. Aquí van doce, con costes reales y las contrapartidas honestas.
 
+Una fecha destaca en agosto de 2027: el lunes 2 de agosto, un eclipse total de Sol cruza el estrecho de Gibraltar y el norte de África. Según el [Instituto Geográfico Nacional](https://astronomia.ign.es/es/eclipses-de-sol-y-luna/eclipse-total-sol-de-2-de-agosto-2027), la totalidad dura 4 min 48 s en Ceuta y 2 min 54 s en Cádiz, desde las 10:45 hora local aproximadamente, y la más larga, de unos 6 min 23 s, se verá cerca de Luxor, en el Alto Egipto. Nuestra guía de [los mejores destinos para viajar en 2027](/blog/best-places-to-travel-2027) explica dónde verlo y qué reservar.
+
 ## Comparativa rápida: 12 destinos para agosto
 
 | Destino | Por qué agosto | Presupuesto diario (gama media, p. p.) | Multitudes |

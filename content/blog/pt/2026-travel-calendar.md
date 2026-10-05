@@ -20,6 +20,8 @@ schema: "Article"
 
 # O Calendário de Viagens 2026: Para Onde Ir Todo Mês, por Condições e Não por Hype
 
+*Planejando o ano que vem? Nosso [calendário de viagens 2027](/blog/2027-travel-calendar) reúne os destinos de cada mês, o eclipse solar total de 2 de agosto e os feriados prolongados de 2027.*
+
 Escrevo isto de Bolonha, onde a chuva de maio finalmente deu trégua e as andorinhas voltaram a sobrevoar os telhados. Sou antropóloga cultural de formação, e o meu trabalho — a parte que envolve escrever para a MonkeyTravel — é testar a diferença entre o que o marketing de viagens promete sobre um lugar e o que está de fato acontecendo lá em um determinado mês. As duas coisas costumam estar muito distantes uma da outra.
 
 A maioria dos conselhos sobre "a melhor época para visitar" é inútil. Eles resumem um país inteiro em uma única frase ("a Itália é melhor na primavera ou no outono") e deixam para você descobrir se isso significa a Sicília em março ou as Dolomitas em outubro — destinos que, climaticamente, quase não têm nada em comum. Ignoram o festival em torno do qual você gostaria de planejar a viagem, a monção que pode arruinar uma semana de praia a 200 km de outra perfeitamente seca, e o jeito como os preços do mesmo hotel podem variar 60% entre duas semanas vizinhas. Tratam o dezembro de Viena e o dezembro da Cidade do Cabo como se fossem o mesmo problema.

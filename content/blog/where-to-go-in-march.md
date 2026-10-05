@@ -134,7 +134,7 @@ The spring season starts in March: stable weather, warming days, and the rhodode
 - **Cherry blossom cannot be booked, only bet on.** Tokyo and Kyoto usually peak in the last days of March, but the date moves with the winter. Build a route with enough north–south range that you meet the front somewhere rather than staking a whole trip on one city and one week.
 - **March is the desert's month.** Jordan, Morocco, Rajasthan, Utah and Arizona are all in the narrow window between winter cold and summer heat. By May, several of them are genuinely unpleasant.
 - **Check what has actually reopened.** March is a transition month, and seasonal hotels, ferries, mountain huts and park roads reopen on wildly different dates. Confirm rather than assume, especially in Greece, Iceland and Patagonia.
-- **Compare it with the months either side before you lock in.** [February](/blog/where-to-go-in-february) is cheaper up north and [April](/blog/where-to-go-in-april) is warmer — see how the [2026 travel calendar](/blog/2026-travel-calendar) stacks up before you commit to dates.
+- **Compare it with the months either side before you lock in.** [February](/blog/where-to-go-in-february) is cheaper up north and [April](/blog/where-to-go-in-april) is warmer — see how the [2027 travel calendar](/blog/2027-travel-calendar) stacks up before you commit to dates.
 
 ## Plan Your March Trip in 30 Seconds
 

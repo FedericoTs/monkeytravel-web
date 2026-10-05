@@ -130,7 +130,7 @@ New Zealand is in autumn, and April is one of its most underrated months. Centra
 - **The last week is the expensive one.** Greek Holy Week, King's Day and Golden Week all begin between 26 and 29 April. If your trip touches any of them, book those nights first.
 - **Mid-April is New Year across much of Asia.** Songkran (13–15 April) has counterparts in Laos, Cambodia, Myanmar and Sri Lanka around the same days, and [Vaisakhi falls on 14 April](https://www.officeholidays.com/holidays/india/punjab/vaisakhi) in Punjab. Expect full buses and trains, and some closed businesses.
 - **Washington's blossom comes early.** DC's [National Cherry Blossom Festival](https://nationalcherryblossomfestival.org/) runs 20 March–11 April 2027, but the [National Park Service](https://www.nps.gov/subjects/cherryblossom/bloom-watch.htm) puts the likeliest peak in late March or early April, and can't call it more than about ten days out.
-- **Compare it with the months either side before you lock in.** [March](/blog/where-to-go-in-march) is cheaper outside its Easter week and [May](/blog/where-to-go-in-may) is warmer, with the Mediterranean season properly open. The [month-by-month travel calendar](/blog/2026-travel-calendar) shows the whole year at a glance.
+- **Compare it with the months either side before you lock in.** [March](/blog/where-to-go-in-march) is cheaper outside its Easter week and [May](/blog/where-to-go-in-may) is warmer, with the Mediterranean season properly open. The [month-by-month travel calendar](/blog/2027-travel-calendar) shows the whole year at a glance.
 
 ## Plan Your April Trip in 30 Seconds
 
