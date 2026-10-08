@@ -47,6 +47,11 @@ import TripDayDigestEmail, {
   tripDayDigestSubject,
   type TripDayDigestEmailProps,
 } from "./templates/TripDayDigest";
+import FinishTripEmail, {
+  finishTripEmailText,
+  finishTripSubject,
+  type FinishTripEmailProps,
+} from "./templates/FinishTrip";
 import ShareFixNoticeEmail, {
   shareFixNoticeText,
   shareFixSubject,
@@ -61,6 +66,7 @@ export type EmailTemplate =
   | { id: "trip_reminder"; props: TripReminderEmailProps }
   | { id: "trip_followup"; props: TripFollowupEmailProps }
   | { id: "trip_day_digest"; props: TripDayDigestEmailProps }
+  | { id: "finish_trip"; props: FinishTripEmailProps }
   | { id: "feedback_outreach"; props: FeedbackOutreachEmailProps }
   | { id: "share_fix_notice"; props: ShareFixNoticeProps };
 
@@ -183,6 +189,8 @@ export const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null
   // cascade: the owner created the trip and is ON it. tripReminders, never
   // marketing (see 20260906160000).
   trip_day_digest: "tripReminders",
+  // A nudge to an account that has no trip yet: marketing, not transactional.
+  finish_trip: "marketingNotifications",
   // Feedback outreach is research/marketing — gated by emailNotifications +
   // marketingNotifications so an in-app marketing opt-out always suppresses
   // it. NOT transactional: the recipient didn't trigger this send.
@@ -206,6 +214,7 @@ const UNSUB_KEY: Record<EmailTemplate["id"], UnsubKey | null> = {
   trip_reminder: "tripReminders",
   trip_followup: "marketingNotifications",
   trip_day_digest: "tripReminders",
+  finish_trip: "marketingNotifications",
   feedback_outreach: "marketingNotifications",
   share_fix_notice: "marketingNotifications",
 };
@@ -731,6 +740,12 @@ async function renderTemplate(
         heading: template.props.heading,
         destination: template.props.destination,
       });
+      return { html, text, subject };
+    }
+    case "finish_trip": {
+      const html = await render(FinishTripEmail(template.props));
+      const text = finishTripEmailText(template.props);
+      const subject = finishTripSubject(template.props);
       return { html, text, subject };
     }
     case "feedback_outreach": {

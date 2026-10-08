@@ -39,8 +39,8 @@ export interface RenderDefect {
 export interface VerifyRenderInput {
   subject: string;
   html: string;
-  /** The destination as it was rendered into the email. */
-  destination: string;
+  /** The destination as it was rendered into the email; null for an email that names none. */
+  destination: string | null;
   /**
    * The exact URL this email's CTA should point at.
    *
@@ -79,6 +79,7 @@ const POISON = [
   "tripReminderEmail.",
   "tripFollowupEmail.",
   "tripDayDigestEmail.",
+  "finishTripEmail.",
   "emailContext.",
   "{destination}",
   "undefined",
@@ -149,7 +150,9 @@ export function verifyRenderedEmail(input: VerifyRenderInput): RenderDefect[] {
     }
   }
 
-  if (!input.destination.trim() || input.destination === "your trip") {
+  if (input.destination === null) {
+    // Nothing to find: the email does not name a place.
+  } else if (!input.destination.trim() || input.destination === "your trip") {
     block("destination_unusable", `destination is ${JSON.stringify(input.destination)}`);
   } else if (!input.html.includes(escapeHtmlText(input.destination))) {
     // The destination must reach the READER, not merely the props.

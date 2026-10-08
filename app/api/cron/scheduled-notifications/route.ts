@@ -31,6 +31,7 @@ import { resolveLocale, formatDateRange } from "@/lib/email/reminder-locale";
 import { retryTransient } from "@/lib/notifications/retry";
 import { domesticTripVerdict } from "@/lib/notifications/domestic-trip";
 import { normalizeTripTitle, twinDecision, type TwinCandidate } from "@/lib/notifications/twin-trips";
+import { FINISH_TRIP_NS, FINISH_TRIP_SLOT, sendFinishTripEmail } from "@/lib/notifications/finish-trip";
 
 /**
  * Trip email cron: sweeps `scheduled_notifications` and dispatches the
@@ -63,9 +64,12 @@ import { normalizeTripTitle, twinDecision, type TwinCandidate } from "@/lib/noti
  *   new trip with a user_id, plus lib/notifications/scheduling.ts from PATCH
  *   /api/trips/[id] (date or mute change), fork and duplicate.
  * - Email: lib/email/send.ts (dispatchEmail).
+ * - The one account-level slot (finish_trip_1d, no trip) is queued by a
+ *   trigger on public.users and decided in lib/notifications/finish-trip.ts.
  * - Settings: users.notification_settings gates each send inside
  *   dispatchEmail (tripReminders for reminders and digests,
- *   marketingNotifications for followups), fail-closed on a read error.
+ *   marketingNotifications for followups and the finish-trip email),
+ *   fail-closed on a read error.
  * - Per-trip mute: trips.reminders_muted blocks enqueue at the RPC layer; a
  *   row already pending when the trip is muted still reaches this route, so
  *   the flag is re-checked below.
@@ -337,8 +341,13 @@ function assertTranslated(values: Record<string, string>): string | null {
 }
 
 /** Every slot the queue can hold — the pre-trip cascade, the post-trip
- * followups, and the in-trip per-day digests (in_trip_day_<K>). */
-type QueueSlot = TripReminderSlot | TripFollowupSlot | `in_trip_day_${number}`;
+ * followups, the in-trip per-day digests (in_trip_day_<K>) and the
+ * account-level finish-trip email. */
+type QueueSlot =
+  | TripReminderSlot
+  | TripFollowupSlot
+  | `in_trip_day_${number}`
+  | typeof FINISH_TRIP_SLOT;
 
 /**
  * Shape of the trip row this route selects.
@@ -376,6 +385,9 @@ type SlotRow = {
   slot: QueueSlot;
   scheduled_for: string;
 };
+
+/** A due row as read. A DB CHECK keeps trip_id null for FINISH_TRIP_SLOT only. */
+type DueRow = Omit<SlotRow, "trip_id"> & { trip_id: string | null };
 
 function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -442,7 +454,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const dueRows = prioritizeDueRows((dueRowsRaw ?? []) as SlotRow[]);
+  const dueRows = prioritizeDueRows((dueRowsRaw ?? []) as DueRow[]);
   if (dueRows.length === 0) {
     return NextResponse.json({
       success: true,
@@ -468,12 +480,15 @@ export async function GET(request: NextRequest) {
   // duplicate, so no copy is suppressed before another has actually sent.
   const waitingTwins: SlotRow[] = [];
 
-  const runRow = async (row: SlotRow, finalPass: boolean): Promise<void> => {
+  const runRow = async (row: DueRow, finalPass: boolean): Promise<void> => {
     try {
-      const outcome = await processRow(svc, row, finalPass);
+      const outcome =
+        row.slot === FINISH_TRIP_SLOT
+          ? await processFinishTripRow(svc, row)
+          : await processRow(svc, row as SlotRow, finalPass);
       if (outcome === "sent") sent++;
       else if (outcome === "skipped") skipped++;
-      else if (outcome === "deferred") waitingTwins.push(row);
+      else if (outcome === "deferred") waitingTwins.push(row as SlotRow);
       else failed++;
     } catch (err) {
       failed++;
@@ -1096,6 +1111,22 @@ async function processRow(
 
   await persistOutcome(svc, row.id, "failed", "dispatch_error", result.error);
   return "failed";
+}
+
+/**
+ * The finish-trip email belongs to an account, not a trip, so none of the
+ * trip checks above apply. finish-trip.ts decides and sends; this records it.
+ */
+async function processFinishTripRow(
+  svc: ReturnType<typeof serviceClient>,
+  row: DueRow
+): Promise<"sent" | "skipped" | "failed"> {
+  const outcome = await sendFinishTripEmail(svc, row, (locale) =>
+    getTranslations({ locale, namespace: FINISH_TRIP_NS })
+  );
+  await persistOutcome(svc, row.id, outcome.status, outcome.reason, outcome.error);
+  if (outcome.status === "sent") return "sent";
+  return outcome.status === "failed" ? "failed" : "skipped";
 }
 
 /**
