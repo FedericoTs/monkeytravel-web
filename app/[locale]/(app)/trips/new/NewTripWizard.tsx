@@ -2280,7 +2280,8 @@ export default function NewTripPage({
         ...(!isMultiCity && anchors.length > 0 ? { anchors } : {}),
       };
       // Regenerate asks for a different plan: the server then skips its cache.
-      const requestBody = opts.fresh ? { ...params, fresh: true } : params;
+      // The page locale picks the itinerary's language.
+      const requestBody = { ...params, locale, ...(opts.fresh ? { fresh: true } : {}) };
 
       // Reset stream progress for this generation.
       setStreamedDayCount(0);
