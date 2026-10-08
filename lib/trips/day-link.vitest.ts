@@ -13,7 +13,7 @@ import {
 
 // Generated per run: no key-shaped literal in the source.
 const SECRET = randomBytes(32).toString("hex");
-const TRIP = "77e96874-2985-4867-8472-d97c1f148b65";
+const TRIP = "3f6c2a8e-91d4-4b7a-a5e2-6c0d8b1f4e29";
 const OTHER_TRIP = "0b5c3a52-6f0e-4c1e-9d3b-8a7f6e5d4c3b";
 const DATE = "2026-10-14";
 // The link is minted the day before the plan's date.
