@@ -2137,7 +2137,8 @@ Respond with valid JSON only.`;
     // "Activity Replaced" with a strike-through animation — the completed-look
     // card this fix is meant to suppress, arriving by a second route. Filter
     // whatever it produces rather than trusting it to have stopped.
-    const CHANGE_CARDS = new Set(["activity_replacement", "activity_added", "activity_suggestion"]);
+    // Model-written "confirmation" cards ("Akihabara Added") assert a change too.
+    const CHANGE_CARDS = new Set(["activity_replacement", "activity_added", "activity_suggestion", "confirmation"]);
     if (!changeWasSaved && Array.isArray(parsedResponse.cards)) {
       parsedResponse.cards = parsedResponse.cards.filter(
         (c) => !CHANGE_CARDS.has((c as { type?: string })?.type ?? "")
