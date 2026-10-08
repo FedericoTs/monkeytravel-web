@@ -14,7 +14,7 @@ import type {
 } from "@/types";
 import { getProposalTimeRemaining } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING, VOTE_INFO } from "@/types";
-import { isApiImageSrc, proxyImageUrl } from "@/lib/img/proxyUrl";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 /**
  * 4-Level Voting Options for Proposals
@@ -405,7 +405,6 @@ export function VotingBottomSheet({
                     width={80}
                     height={80}
                     className="w-full h-full object-cover"
-                    unoptimized={isApiImageSrc(proxyImageUrl(activity.image_url))}
                   />
                 </div>
               )}

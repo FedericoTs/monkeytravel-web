@@ -51,8 +51,8 @@ export function proxyImageUrl(url: string | null | undefined): string | null {
 
 /**
  * True for same-origin API image srcs (the Places photo proxy, /api/img/proxy).
- * next/image must render these `unoptimized`: the routes already size their
- * bytes, and robots.txt keeps crawlers off /api/ but not off /_next/image.
+ * Public, crawlable surfaces render these `unoptimized`: robots.txt keeps
+ * crawlers off /api/ but not off /_next/image. Private pages keep the optimizer.
  */
 export function isApiImageSrc(src: string | null | undefined): boolean {
   return !!src && src.startsWith("/api/");

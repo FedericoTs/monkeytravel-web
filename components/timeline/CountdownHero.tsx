@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { isApiImageSrc, proxyImageUrl } from "@/lib/img/proxyUrl";
+import { proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface CountdownHeroProps {
   destination: string;
@@ -76,7 +76,6 @@ export default function CountdownHero({
             fill
             className="object-cover"
             priority
-            unoptimized={isApiImageSrc(proxyImageUrl(coverImageUrl))}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-[var(--primary)] via-[var(--primary-dark)] to-[var(--secondary)]" />
