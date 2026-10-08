@@ -7,6 +7,7 @@ import {
   DEFAULT_LANGUAGE,
   isSupportedLanguage,
   resolveAiLanguage,
+  requestLocale,
   type SupportedLanguage,
 } from "./language";
 import { getLanguageInstruction } from "@/lib/gemini";
@@ -144,6 +145,28 @@ describe("every language reaches the prompt", () => {
     for (const lang of AI_LANGUAGES) {
       if (lang === "en") continue;
       expect(getLanguageInstruction(lang), lang).toMatch(/JSON/);
+    }
+  });
+});
+
+describe("requestLocale", () => {
+  it("takes the page locale a request carries", () => {
+    expect(requestLocale("it")).toBe("it");
+    expect(requestLocale("pt-BR")).toBe("pt");
+    expect(requestLocale(" ES ")).toBe("es");
+  });
+
+  it("returns null for anything else, so the caller falls back", () => {
+    for (const v of [undefined, null, "", "de", 42, {}]) expect(requestLocale(v)).toBeNull();
+  });
+
+  it("is what picks the generation language", () => {
+    // The NEXT_LOCALE cookie is usually absent, so the page locale must win.
+    const read = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
+    const wizard = read("app", "[locale]", "(app)", "trips", "new", "NewTripWizard.tsx");
+    expect(wizard).toMatch(/requestBody = \{ \.\.\.params, locale/);
+    for (const route of [["app", "api", "ai", "generate", "route.ts"], ["app", "api", "ai", "generate", "stream", "route.ts"]]) {
+      expect(read(...route)).toContain("requestLocale(body.locale) ?? userContext.userLanguage");
     }
   });
 });

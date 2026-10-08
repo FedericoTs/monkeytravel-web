@@ -188,7 +188,7 @@ Decide:
 
 Return STRICT JSON (no markdown) in this EXACT shape:
 {
-  "reply": "Short chat reply in ${language}.",
+  "reply": "Short chat reply in the language of the traveller's new message (${language} if unclear).",
   "trip_length": null OR <new total number of days, only when adding or removing days>,
   "edits": [
     {

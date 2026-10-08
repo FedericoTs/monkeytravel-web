@@ -106,6 +106,18 @@ function getLanguageInstruction(language: SupportedLanguage): string {
   return instructions[language];
 }
 
+const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
+  en: "English",
+  es: "Spanish",
+  it: "Italian",
+  pt: "Portuguese",
+};
+
+/** The chat reply follows the traveller; itinerary text keeps the trip's language. */
+function replyLanguageRule(tripLanguage: SupportedLanguage): string {
+  return `\n\nREPLY LANGUAGE: write your chat reply in the same language as the user's latest message. Itinerary text you write (activity names, descriptions, tips) stays in ${LANGUAGE_NAMES[tripLanguage]}.`;
+}
+
 // Types for the assistant
 interface AssistantMessage {
   role: "user" | "assistant";
@@ -2064,7 +2076,7 @@ NOTE: ${structuralNote}`;
 
 
     const systemPrompt = buildSystemPrompt(tripContext);
-    const languageInstruction = getLanguageInstruction(userLanguage);
+    const languageInstruction = getLanguageInstruction(userLanguage) + replyLanguageRule(userLanguage);
     const fullPrompt = `${systemPrompt}${languageInstruction}
 ${actionContext}
 ${conversationHistory ? `\nRecent conversation:\n${conversationHistory}\n` : ""}
