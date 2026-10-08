@@ -6,7 +6,7 @@ import { Search, X, MapPin, Clock, Loader2, ChevronLeft, AlertCircle } from "luc
 import Image from "next/image";
 import type { Activity, ProposalType } from "@/types";
 import BaseModal from "@/components/ui/BaseModal";
-import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { isApiImageSrc, proxyImageUrl } from "@/lib/img/proxyUrl";
 
 // Reuse activity search result type
 interface ActivitySearchResult {
@@ -370,6 +370,7 @@ export function ProposeActivitySheet({
                             width={48}
                             height={48}
                             className="w-full h-full object-cover"
+                            unoptimized={isApiImageSrc(proxyImageUrl(result.image_url))}
                           />
                         </div>
                       ) : (
@@ -520,6 +521,7 @@ export function ProposeActivitySheet({
                     alt={selectedActivity.name || "Activity"}
                     fill
                     className="object-cover"
+                    unoptimized={isApiImageSrc(proxyImageUrl(selectedActivity.image_url))}
                   />
                 </div>
               )}

@@ -12,7 +12,7 @@ import type {
 } from "@/types";
 import { getProposalTimeRemaining } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING, VOTE_INFO } from "@/types";
-import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { isApiImageSrc, proxyImageUrl } from "@/lib/img/proxyUrl";
 
 interface InlineProposalCardProps {
   proposal: ProposalWithVotes;
@@ -226,6 +226,7 @@ function InlineProposalCardComponent({
                 width={48}
                 height={48}
                 className={`w-full h-full object-cover ${cardState === 'rejected' ? 'grayscale' : ''}`}
+                unoptimized={isApiImageSrc(proxyImageUrl(activity.image_url))}
               />
             </div>
           )}

@@ -100,7 +100,7 @@ describe("coverForCard", () => {
       "https://images.pexels.com/photos/1/p.jpeg?auto=compress&cs=tinysrgb&w=1200&h=1200&fit=crop"
     );
     expect(coverForCard("/api/places/photo?name=places%2Fabc&w=600&h=400&t=attraction", "https://monkeytravel.app")).toBe(
-      "https://monkeytravel.app/api/places/photo?name=places%2Fabc&w=1200&h=1200&t=attraction"
+      "https://monkeytravel.app/api/places/photo?name=places%2Fabc&w=1200&h=1200&t=attraction&og=1"
     );
     expect(coverForCard("https://cdn.example.com/x.jpg", "https://monkeytravel.app")).toBe("https://cdn.example.com/x.jpg");
     expect(coverForCard(null, "https://monkeytravel.app")).toBeNull();

@@ -48,3 +48,12 @@ export function proxyImageUrl(url: string | null | undefined): string | null {
   //    which is not configured in images.localPatterns."
   return `/api/img/proxy/${encodeURIComponent(url)}`;
 }
+
+/**
+ * True for same-origin API image srcs (the Places photo proxy, /api/img/proxy).
+ * next/image must render these `unoptimized`: the routes already size their
+ * bytes, and robots.txt keeps crawlers off /api/ but not off /_next/image.
+ */
+export function isApiImageSrc(src: string | null | undefined): boolean {
+  return !!src && src.startsWith("/api/");
+}
