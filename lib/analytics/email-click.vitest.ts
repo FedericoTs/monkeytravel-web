@@ -19,6 +19,8 @@ describe("emailClickFromUrl", () => {
     expect(emailClickFromUrl(at("/trips/new?slot=followup_next_21d"))).toEqual({ slot: "followup_next_21d", page: "wizard", tripId: null });
     expect(emailClickFromUrl(at("/es/trips/new?slot=finish_trip_1d&destination=Lisboa"))).toEqual({ slot: "finish_trip_1d", page: "wizard", tripId: null });
     expect(emailClickFromUrl(at("/shared/tok123?slot=in_trip_day_3"))?.page).toBe("shared");
+    expect(emailClickFromUrl(at(`/es/day/${TRIP}/2026-10-14?k=1.x&slot=in_trip_day_3`))).toEqual({ slot: "in_trip_day_3", page: "day", tripId: TRIP });
+    expect(emailClickFromUrl(at("/day/not-a-trip/2026-10-14?slot=in_trip_day_3"))?.page).toBe("other");
   });
 
   it("ignores links without a known slot", () => {

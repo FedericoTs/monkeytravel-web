@@ -2631,6 +2631,19 @@
   },
   "lockedActivity": "Plano fixo",
   "lastUpdated": "Atualizado em {date}",
+  "tripDayPage": {
+    "metaTitle": "Seu plano do dia",
+    "heading": "Dia {day}",
+    "readOnly": "Esta é uma visualização somente leitura do dia.",
+    "signInToEdit": "Entre para editar",
+    "openTrip": "Abrir e editar sua viagem",
+    "empty": "Ainda nada planejado para este dia.",
+    "expiredTitle": "Este link expirou",
+    "expiredBody": "Os links para o plano de um dia funcionam por alguns dias. Entre para ver sua viagem.",
+    "unavailableTitle": "Este dia não está disponível",
+    "unavailableBody": "A viagem pode ter sido excluída ou as datas podem ter mudado. Entre para ver suas viagens.",
+    "signIn": "Entrar"
+  },
   "tripDayDigestEmail": {
     "heading": "Amanhã: Dia {day}",
     "intro": "Veja como será o seu amanhã.",

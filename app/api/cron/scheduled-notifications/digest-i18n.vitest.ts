@@ -75,4 +75,9 @@ describe("the cron wires the digest namespace + guard", () => {
   it("assertTranslated refuses an unresolved digest key", () => {
     expect(source).toContain('value.includes("tripDayDigestEmail.")');
   });
+
+  it("links the owner's button to the signed day page", () => {
+    expect(source).toContain("const ownerUrl = digestDayUrl({");
+    expect(source).toMatch(/sendDigest\(recipientEmail, row\.user_id, locale, ownerT, ownerUrl,/);
+  });
 });

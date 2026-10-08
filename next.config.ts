@@ -232,6 +232,15 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         headers: securityHeaders,
       },
+      // Signed day links (/day/<trip>/<date>?k=...) carry their key in the URL:
+      // never send it on as a Referer, never index the page.
+      ...['/day/:path*', '/:locale(es|it|pt)/day/:path*'].map((source) => ({
+        source,
+        headers: [
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+        ],
+      })),
       // Aggressive caching for static images (blog heroes, destinations)
       {
         source: '/images/:path*',
