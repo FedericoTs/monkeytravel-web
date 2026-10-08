@@ -3,7 +3,7 @@
  *
  * Sent by the daily cron (app/api/cron/scheduled-notifications) for each
  * `in_trip_day_<K>` slot: "Tomorrow: Day 3 — Alfama", with the day's plan and
- * a deep link to Today. Transactional — the owner is on the trip — so it is
+ * a link that opens it. Transactional — the owner is on the trip — so it is
  * gated on tripReminders (lib/email/send.ts NOTIFICATION_SETTING_KEY).
  *
  * String-prop-only, like the sibling lifecycle templates: the cron resolves
@@ -46,7 +46,7 @@ export interface TripDayDigestEmailProps {
   andMore?: string;
   /** Pre-translated CTA label. */
   ctaLabel: string;
-  /** Absolute URL to the trip (opens Today while the trip is live). */
+  /** The button's target: the owner's signed day page, or a participant's share link. */
   tripUrl: string;
   /** Optional pre-built HMAC unsubscribe URL (key='tripReminders'). */
   unsubscribeUrl?: string;

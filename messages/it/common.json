@@ -2631,10 +2631,23 @@
   },
   "lockedActivity": "Impegno fisso",
   "lastUpdated": "Aggiornato il {date}",
+  "tripDayPage": {
+    "metaTitle": "Il tuo piano del giorno",
+    "heading": "Giorno {day}",
+    "readOnly": "Questa è una vista in sola lettura della giornata.",
+    "signInToEdit": "Accedi per modificare",
+    "openTrip": "Apri e modifica il viaggio",
+    "empty": "Ancora niente in programma per questo giorno.",
+    "expiredTitle": "Questo link è scaduto",
+    "expiredBody": "I link al piano di una giornata funzionano per un paio di giorni. Accedi per vedere il tuo viaggio.",
+    "unavailableTitle": "Questa giornata non è disponibile",
+    "unavailableBody": "Il viaggio potrebbe essere stato eliminato o le sue date potrebbero essere cambiate. Accedi per vedere i tuoi viaggi.",
+    "signIn": "Accedi"
+  },
   "tripDayDigestEmail": {
     "heading": "Domani: Giorno {day}",
     "intro": "Ecco com'è fatto il tuo domani.",
-    "cta": "Vedi il piano di domani",
+    "cta": "Apri il piano di oggi",
     "andMore": "+altri {count}",
     "empty": "Ancora niente in programma per il giorno {day} — apri il viaggio per organizzarlo."
   }

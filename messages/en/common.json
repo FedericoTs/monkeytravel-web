@@ -2631,10 +2631,23 @@
   },
   "lockedActivity": "Fixed plan",
   "lastUpdated": "Last updated {date}",
+  "tripDayPage": {
+    "metaTitle": "Your day plan",
+    "heading": "Day {day}",
+    "readOnly": "This is a read-only view of the day.",
+    "signInToEdit": "Sign in to edit",
+    "openTrip": "Open and edit your trip",
+    "empty": "Nothing planned for this day yet.",
+    "expiredTitle": "This link has expired",
+    "expiredBody": "Links to a day's plan work for a couple of days. Sign in to see your trip.",
+    "unavailableTitle": "This day isn't available",
+    "unavailableBody": "The trip may have been deleted or its dates changed. Sign in to see your trips.",
+    "signIn": "Sign in"
+  },
   "tripDayDigestEmail": {
     "heading": "Tomorrow: Day {day}",
     "intro": "Here's what tomorrow looks like.",
-    "cta": "See tomorrow's plan",
+    "cta": "Open today's plan",
     "andMore": "+{count} more",
     "empty": "Nothing planned for day {day} yet — open your trip to fill it in."
   }

@@ -16,8 +16,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 export interface EmailClick {
   slot: string;
-  /** Where the link opened: the owner's trip, a share link or the wizard. */
-  page: "trip" | "shared" | "wizard" | "other";
+  /** Where the link opened: the owner's trip, a signed day link, a share link or the wizard. */
+  page: "trip" | "day" | "shared" | "wizard" | "other";
   tripId: string | null;
 }
 
@@ -28,6 +28,8 @@ export function emailClickFromUrl(url: URL): EmailClick | null {
   const path = url.pathname.replace(/^\/(?:en|es|it|pt)(?=\/|$)/, "") || "/";
   const trip = path.match(/^\/trips\/([^/]+)\/?$/);
   if (trip && UUID_RE.test(trip[1])) return { slot, page: "trip", tripId: trip[1].toLowerCase() };
+  const day = path.match(/^\/day\/([^/]+)\/\d{4}-\d{2}-\d{2}\/?$/);
+  if (day && UUID_RE.test(day[1])) return { slot, page: "day", tripId: day[1].toLowerCase() };
   if (path === "/trips/new") return { slot, page: "wizard", tripId: null };
   if (path.startsWith("/shared/")) return { slot, page: "shared", tripId: null };
   return { slot, page: "other", tripId: null };

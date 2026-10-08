@@ -27,6 +27,7 @@ import {
 import { isTripNotificationsEnabled } from "@/lib/notifications/scheduling";
 import { parseDigestDay, digestStaleReason, digestParticipantRecipients } from "@/lib/notifications/digest";
 import { postTripCtaUrl } from "@/lib/email/followup-cta";
+import { digestDayUrl } from "@/lib/trips/day-link";
 import { resolveLocale, formatDateRange } from "@/lib/email/reminder-locale";
 import { retryTransient } from "@/lib/notifications/retry";
 import { domesticTripVerdict } from "@/lib/notifications/domestic-trip";
@@ -1201,7 +1202,9 @@ async function dispatchDayDigest(
     await persistOutcome(svc, row.id, "failed", "i18n_load_error", err instanceof Error ? err.message : String(err));
     return "failed";
   }
-  const result = await sendDigest(recipientEmail, row.user_id, locale, ownerT, `${APP_URL}/trips/${trip.id}?slot=${row.slot}`, "");
+  // The owner's button opens that day's plan without sign-in (lib/trips/day-link.ts).
+  const ownerUrl = digestDayUrl({ appUrl: APP_URL, locale, tripId: trip.id, startDate: trip.start_date, day, slot: row.slot });
+  const result = await sendDigest(recipientEmail, row.user_id, locale, ownerT, ownerUrl, "");
 
   // Participant fan-out (off by default): also email the trip's
   // emailed participants. Best-effort and INDEPENDENT of the owner outcome
