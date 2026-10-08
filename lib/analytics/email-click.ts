@@ -3,14 +3,14 @@ import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 
 /**
- * Clicks on reminder, digest and follow-up emails, whose links carry
+ * Clicks on reminder, digest, follow-up and finish-trip emails, whose links carry
  * `?slot=<queue slot>` (app/api/cron/scheduled-notifications) that nothing
  * read. The middleware records each counted view carrying a known slot as
  * funnel_events `email_clicked`, before any sign-in or share-link redirect.
  */
 
 const EMAIL_SLOT_RE =
-  /^(?:pack_early_14d|visa_check_7d|weather_3d|confirm_1d|morning_of|followup_(?:return_3d|next_21d|final_45d|dormant)|in_trip_day_(?:[2-9]|1\d|2[01]))$/;
+  /^(?:pack_early_14d|visa_check_7d|weather_3d|confirm_1d|morning_of|followup_(?:return_3d|next_21d|final_45d|dormant)|in_trip_day_(?:[2-9]|1\d|2[01])|finish_trip_1d)$/;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
