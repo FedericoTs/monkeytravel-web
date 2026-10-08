@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { createHash } from "crypto";
 import { waitUntil } from "@vercel/functions";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
@@ -75,8 +76,8 @@ async function readCachedPhoto(placeId: string): Promise<CachedPhotoRow | null> 
  * Photos", see PLACE_PHOTO_USD_PER_CALL). Until 2026-09-26 these were the one
  * Google call nobody logged, and by Vercel's counts (~400-480 invocations a
  * day) they are the likely bulk of the Google bill, while everything the log
- * did show sat inside Google's free allowances. `place` and the size make
- * repeat downloads of one photo countable.
+ * did show sat inside Google's free allowances. `photo` (photoKey) and the
+ * size make repeat downloads of one photo countable; `place` groups them.
  *
  * Priced only on a 2xx. A 4xx (an expired photo name) is logged at $0: whether
  * Google bills those is unverified, and the bill settles it.
@@ -99,6 +100,14 @@ function logPhotoDownload(
       metadata,
     })
   );
+}
+
+/**
+ * A short id for the requested photo name or legacy ref: repeat downloads of
+ * one photo share it, and the log never stores Google's identifier itself.
+ */
+function photoKey(nameOrRef: string): string {
+  return createHash("sha256").update(nameOrRef).digest("hex").slice(0, 12);
 }
 
 // Validate the photo name shape so we can't be used as an open proxy.
@@ -250,7 +259,7 @@ export async function GET(request: NextRequest) {
     name ? "places/{id}/photos/{photo}/media (render)" : "maps/api/place/photo (render, legacy ref)",
     res.status,
     startedAt,
-    name ? { place: namePlaceId, w, h } : { legacy: true, w, h }
+    name ? { place: namePlaceId, photo: photoKey(name), w, h } : { legacy: true, photo: photoKey(ref!), w, h }
   );
 
   // **2026-06-04 fix:** on a 4xx from Google's /media endpoint (most
@@ -418,8 +427,11 @@ async function healExpiredPhoto(
       `https://places.googleapis.com/v1/${fresh.photo_resource_name}/media?maxHeightPx=${h}&maxWidthPx=${w}`,
       { headers: { "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY }, redirect: "follow" }
     );
+    // Keyed by the requested name, like the failed download before it: every
+    // heal of one dead URL then counts as a repeat of that photo.
     logPhotoDownload("places/{id}/photos/{photo}/media (render self-heal)", res.status, startedAt, {
       place: placeId,
+      photo: photoKey(deadName),
       w,
       h,
     });

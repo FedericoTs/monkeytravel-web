@@ -72,8 +72,20 @@ describe("photo downloads are logged and priced", () => {
       cacheHit: false,
       costUsd: 0.007,
       exactCost: true,
-      metadata: { place: "ChIJplace123", w: 600, h: 400 },
+      metadata: { place: "ChIJplace123", photo: expect.stringMatching(/^[0-9a-f]{12}$/), w: 600, h: 400 },
     });
+  });
+
+  it("repeat downloads of one photo share an id, another photo gets another", async () => {
+    for (let i = 0; i < 4; i++) upstream.mockResolvedValueOnce(jpeg());
+    await GET(photoRequest(`name=${encodeURIComponent(NAME)}&w=600&h=400`));
+    await GET(photoRequest(`name=${encodeURIComponent(NAME)}&w=600&h=400`));
+    await GET(photoRequest(`name=${encodeURIComponent("places/ChIJplace123/photos/Other")}&w=600&h=400`));
+    await GET(photoRequest(`ref=${"B".repeat(40)}&w=400`));
+    const ids = logged.map((r) => (r.metadata as { photo: string }).photo);
+    expect(ids[0]).toBe(ids[1]);
+    expect(new Set(ids).size).toBe(3);
+    expect(JSON.stringify(logged)).not.toContain("AbCdEf");
   });
 
   it("a legacy photo reference is logged the same way", async () => {
@@ -83,7 +95,7 @@ describe("photo downloads are logged and priced", () => {
       apiName: "google_places_photo",
       endpoint: "maps/api/place/photo (render, legacy ref)",
       costUsd: 0.007,
-      metadata: { legacy: true, w: 400 },
+      metadata: { legacy: true, photo: expect.stringMatching(/^[0-9a-f]{12}$/), w: 400 },
     });
   });
 
@@ -101,6 +113,9 @@ describe("photo downloads are logged and priced", () => {
       ["places/{id}/photos/{photo}/media (render)", 400, 0],
       ["places/{id}/photos/{photo}/media (render self-heal)", 200, 0.007],
     ]);
+    // Both rows carry the requested photo's id, so repeated heals of one URL add up.
+    const [failed, healed] = logged.map((r) => (r.metadata as { photo: string }).photo);
+    expect(healed).toBe(failed);
   });
 
   it("nothing is logged when no download is attempted", async () => {
