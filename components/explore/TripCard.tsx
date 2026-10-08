@@ -2,7 +2,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/routing";
 import type { ExploreTripCard } from "@/lib/explore/types";
-import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { cardSizedSrc, isApiImageSrc, proxyImageUrl } from "@/lib/img/proxyUrl";
 import { BUDGET_TIER_LABEL } from "@/lib/explore/budget-tier";
 
 interface TripCardProps {
@@ -71,14 +71,17 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
             // Pexels CDN intermittently 504s direct browser loads
             // (Cloudflare anti-scraping). Route through same-origin
             // proxy so the bytes come back via our Vercel egress.
-            src={proxyImageUrl(trip.coverImage) || trip.coverImage}
+            src={cardSizedSrc(proxyImageUrl(trip.coverImage) || trip.coverImage)}
             alt={trip.title}
             fill
             sizes={sizes}
             className="object-cover group-hover:scale-105 transition-transform duration-500"
             // Public, frequently-cached. unoptimized for Google Places
-            // URLs (Next image optimizer can't always hit them).
-            unoptimized={trip.coverImage.includes("googleapis.com")}
+            // URLs (Next image optimizer can't always hit them) and for
+            // our /api/ image routes (see isApiImageSrc).
+            unoptimized={
+              isApiImageSrc(proxyImageUrl(trip.coverImage)) || trip.coverImage.includes("googleapis.com")
+            }
           />
         ) : null}
         {/* Top-left badge stack — Editor's Pick + Backpacker. Both

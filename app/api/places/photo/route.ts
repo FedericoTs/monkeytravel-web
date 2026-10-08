@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
 import { curatedFor, fetchPlacePhoto, readActivityTypeHint } from "@/lib/images/activity";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logApiCall } from "@/lib/api-gateway";
@@ -202,6 +203,17 @@ export async function GET(request: NextRequest) {
   }
   if (!GOOGLE_PLACES_API_KEY) {
     return new Response("Photo service not configured", { status: 503 });
+  }
+
+  // Automation gets the curated stock image instead of a paid Google download.
+  // `no-store` keeps the redirect out of the CDN, so a human request for the
+  // same URL still fetches the photo. og=1 marks the OG card renderer: its
+  // fetch sends a library user-agent, but the card is a human share preview.
+  if (searchParams.get("og") !== "1" && isAnalyticsBot(request.headers.get("user-agent"))) {
+    return new Response(null, {
+      status: 307,
+      headers: { Location: curatedFallbackForName(name ?? ref!, typeHint), "Cache-Control": "no-store" },
+    });
   }
 
   // Clamp dimensions to reasonable bounds.
