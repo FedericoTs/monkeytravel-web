@@ -145,7 +145,7 @@ describe("composeReply", () => {
   it("an edit described as done says it waits for Apply", () => {
     const { edits, tripLength } = validateEdits(trip(), { edits: [edit(6)], tripLength: 6 }, "EUR");
     const text = composeReply({ ...base, locale: "it", reply: "Certo! Ho aggiunto un sesto giorno al tuo itinerario.", edits, tripLength });
-    expect(text).toContain('finché non tocchi "Applica modifica"');
+    expect(text).toMatch(/^Non ancora applicato: tocca "Applica modifica"/);
   });
 
   it("an edit presented as ready gets no note", () => {
@@ -161,5 +161,22 @@ describe("composeReply", () => {
 
   it("an empty reply falls back in the traveller's language", () => {
     expect(composeReply({ ...base, locale: "pt", reply: "", edits: [] })).toMatch(/^Estou aqui para ajudar/);
+  });
+});
+
+describe("composeReply on a pending edit that claims to be done", () => {
+  const base = { lockedDays: [], lengthRefused: false, locale: "en", currentDays: 5 };
+
+  it("opens with the not-applied line, so Apply isn't skipped", () => {
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    const text = composeReply({ ...base, reply: "I've updated Day 2 to start at 15:00.", edits: [d2] });
+    expect(text).toMatch(/^Not applied yet: tap "Apply change" below/);
+    expect(text).toContain("I've updated Day 2 to start at 15:00.");
+  });
+
+  it("leaves a reply that already presents the edit as ready alone", () => {
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    const text = composeReply({ ...base, reply: "Here's Day 2 starting at 15:00.", edits: [d2] });
+    expect(text).toBe("Here's Day 2 starting at 15:00.");
   });
 });

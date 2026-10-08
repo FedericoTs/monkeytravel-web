@@ -42,7 +42,7 @@ const EN_VERBS = words(
 // came. Verbs that also open an offer ("I'll put together", "I'll include a
 // few tips") stay out.
 const EN_PROMISE_VERBS = words(
-  "update|add|adjust|change|move|remove|replace|schedule|reschedule|extend|shorten|swap|delete|rework|restructure|reorganize|reorganise|rearrange|incorporate|modify|shift"
+  "update|add|adjust|change|move|remove|replace|schedule|reschedule|extend|shorten|swap|delete|rework|restructure|reorganize|reorganise|rearrange|incorporate|modify|shift|reconfigure|integrate|insert|reorder"
 );
 const ES_INFINITIVES = words(
   "actualizar|añadir|agregar|ajustar|cambiar|mover|eliminar|quitar|reemplazar|sustituir|programar|incorporar|modificar|acortar|extender"
@@ -67,6 +67,9 @@ const CLAIM_PATTERNS: RegExp[] = [
   new RegExp(`${start}(?:i|we)\\s+(?:just\\s+|also\\s+|now\\s+)?(?:added|updated|removed|replaced|moved|changed|swapped|deleted|scheduled|rescheduled|put|condensed|combined|merged|reworked|rearranged|reorganized|reorganised|restructured|trimmed)${end}`, "iu"),
   new RegExp(`${start}(?:is|are|it['’]s|that['’]s)\\s+now\\s+(?:dedicated|scheduled|included|set|booked|planned|structured|organized|organised|arranged|aligned|adjusted|updated|optimized|optimised|reorganized|reorganised|rearranged|part\\s+of|on\\s+day|in\\s+your)${end}`, "iu"),
   new RegExp(`${start}(?:now|will\\s+now)\\s+(?:includes?|features?|contains?)${end}`, "iu"),
+  // "This update integrates Akihabara…", "Day 3, now with a sunset cruise".
+  new RegExp(`${start}(?:this|the)\\s+(?:update|change|revision|new\\s+version|updated\\s+plan|revised\\s+plan)\\s+(?:now\\s+)?(?:integrates|incorporates|includes|adds|brings|puts)${end}`, "iu"),
+  new RegExp(`${start}(?:day\\s+\\d+|your\\s+(?:trip|itinerary|plan|day)),?\\s+now\\s+with${end}`, "iu"),
   // Spanish
   new RegExp(`${start}(?<!no\\s)(?:he|hemos)\\s+(?:ya\\s+)?${words("añadido|agregado|actualizado|eliminado|quitado|borrado|reemplazado|sustituido|cambiado|movido|incluido|programado|guardado|puesto|ajustado|condensado|combinado|fusionado|reorganizado|reestructurado|reducido|acortado")}${end}`, "iu"),
   new RegExp(`${start}(?:ha|han)\\s+sido\\s+${words("añadid|agregad|actualizad|eliminad|quitad|borrad|reemplazad|sustituid|cambiad|movid|incluid|programad|guardad|ajustad|condensad|combinad|fusionad|reorganizad|reestructurad|reducid|acortad")}[oa]s?${end}`, "iu"),
@@ -81,7 +84,7 @@ const CLAIM_PATTERNS: RegExp[] = [
   new RegExp(`${start}(?:foi|foram)\\s+${words("adicionad|acrescentad|atualizad|removid|retirad|substituíd|trocad|mudad|movid|incluíd|agendad|guardad|salv|alterad|condensad|combinad|juntad|reorganizad|reestruturad|reduzid|encurtad")}[oa]s?${end}`, "iu"),
   new RegExp(`${start}agora\\s+(?:inclui|está\\s+(?:dedicad|organizad|estruturad|alinhad|ajustad|atualizad)[oa])${end}`, "iu"),
   // Promises (see EN_PROMISE_VERBS above)
-  new RegExp(`${start}(?:i(?:['’]ll|\\s+will)|let\\s+me|i(?:['’]m|\\s+am)\\s+going\\s+to)\\s+(?:now\\s+|just\\s+|also\\s+|go\\s+ahead\\s+and\\s+)?${EN_PROMISE_VERBS}${end}`, "iu"),
+  new RegExp(`${start}(?:i(?:['’]ll|\\s+will)|let\\s+me|i(?:['’]m|\\s+am)\\s+(?:going|preparing|about)\\s+to)\\s+(?:now\\s+|just\\s+|also\\s+|go\\s+ahead\\s+and\\s+)?${EN_PROMISE_VERBS}${end}`, "iu"),
   new RegExp(`${start}(?<!no\\s)(?:voy\\s+a\\s+(?:lo\\s+|la\\s+|los\\s+|las\\s+)?${ES_INFINITIVES}|${ES_INFINITIVES}é)${end}`, "iu"),
   new RegExp(`${start}(?<!non\\s)(?:${IT_FUTURES}|sto\\s+per\\s+${IT_INFINITIVES})${end}`, "iu"),
   new RegExp(`${start}(?<!não\\s)(?:vou\\s+${PT_INFINITIVES}|${PT_FUTURES})${end}`, "iu"),
@@ -168,21 +171,20 @@ export function uncoveredDaysNote(language: string | undefined, covered: number[
 }
 
 /**
- * Appended when the wizard assistant prepared an edit but its reply talks as
- * if it were already done ("Ho aggiunto un sesto giorno"). It is not done until
- * the traveller taps Apply; the label is the wizard's button
- * (trips.assistant.apply in each locale).
+ * Opens a wizard reply that talks as if a prepared edit were already done
+ * ("I've updated Day 2"). Read first, so the Apply button isn't skipped; the
+ * label is the wizard's button (trips.assistant.apply in each locale).
  */
-export function applyToSaveNote(language: string | undefined): string {
+export function notAppliedLead(language: string | undefined): string {
   switch (lang(language)) {
     case "es":
-      return '(No cambia nada hasta que toques "Aplicar cambio" abajo.)';
+      return 'Aún no aplicado: toca "Aplicar cambio" abajo para actualizar tu plan.';
     case "it":
-      return '(Non cambia nulla finché non tocchi "Applica modifica" qui sotto.)';
+      return 'Non ancora applicato: tocca "Applica modifica" qui sotto per aggiornare il tuo piano.';
     case "pt":
-      return '(Nada muda até você tocar em "Aplicar alteração" abaixo.)';
+      return 'Ainda não aplicado: toque em "Aplicar alteração" abaixo para atualizar o seu plano.';
     default:
-      return '(Nothing changes until you tap "Apply change" below.)';
+      return 'Not applied yet: tap "Apply change" below to update your plan.';
   }
 }
 
