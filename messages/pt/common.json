@@ -2647,7 +2647,7 @@
   "tripDayDigestEmail": {
     "heading": "Amanhã: Dia {day}",
     "intro": "Veja como será o seu amanhã.",
-    "cta": "Abrir o plano de hoje",
+    "cta": "Ver o plano de amanhã",
     "andMore": "+{count} mais",
     "empty": "Ainda nada planejado para o dia {day} — abra sua viagem para preencher."
   }
