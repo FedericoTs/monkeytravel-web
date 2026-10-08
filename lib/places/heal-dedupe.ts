@@ -66,6 +66,22 @@ export function reusableFreshRef(
 }
 
 /**
+ * Tag a gallery proxy URL with its photo's index in the place's photo list, so
+ * that when the name dies the heal picks that photo (fetchPlacePhoto's
+ * `photoIndex`) instead of every tile healing to the first. Index 0 needs no tag.
+ */
+export function withPhotoIndex(url: string, index: number): string {
+  if (!url.startsWith("/api/places/photo") || !Number.isInteger(index) || index <= 0) return url;
+  return /[?&]i=/.test(url) ? url : `${url}&i=${index}`;
+}
+
+/** Read an `i=` photo index back off a proxy URL. Invalid/absent → 0. Google lists ≤10 photos. */
+export function readPhotoIndex(raw: string | null | undefined): number {
+  const i = Number(raw);
+  return Number.isInteger(i) && i > 0 && i < 10 ? i : 0;
+}
+
+/**
  * Coalesce concurrent async work by key: the first caller runs `fn`, every
  * caller that arrives before it settles shares the same promise, and the key
  * is released as soon as it settles (success or failure) so a later request
