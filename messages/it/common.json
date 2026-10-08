@@ -2650,5 +2650,13 @@
     "cta": "Vedi il piano di domani",
     "andMore": "+altri {count}",
     "empty": "Ancora niente in programma per il giorno {day} — apri il viaggio per organizzarlo."
+  },
+  "finishTripEmail": {
+    "heading": "Il tuo primo viaggio è a un passo",
+    "headingDestination": "Destinazione {destination}: il tuo viaggio è a un passo",
+    "body": "Hai creato il tuo account MonkeyTravel, ma non hai ancora pianificato un viaggio. Dicci dove e quando, e in circa un minuto avrai un piano giorno per giorno. Poi puoi cambiare tutto quello che vuoi.",
+    "bodyDestination": "Hai iniziato a pianificare un viaggio con destinazione {destination}. Completalo e in circa un minuto avrai un piano giorno per giorno. Poi puoi cambiare tutto quello che vuoi.",
+    "cta": "Pianifica il mio viaggio",
+    "signoff": "Il team di MonkeyTravel"
   }
 }

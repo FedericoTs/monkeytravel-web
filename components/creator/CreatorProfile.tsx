@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/lib/i18n/routing";
-import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { cardSizedSrc, isApiImageSrc, proxyImageUrl } from "@/lib/img/proxyUrl";
 
 /**
  * A single published trip belonging to a creator, in the shape the profile
@@ -69,7 +69,9 @@ export default async function CreatorProfile({
               fill
               sizes="96px"
               className="object-cover"
-              unoptimized={creator.avatarUrl.includes("googleapis.com")}
+              unoptimized={
+                isApiImageSrc(proxyImageUrl(creator.avatarUrl)) || creator.avatarUrl.includes("googleapis.com")
+              }
             />
           ) : (
             <span className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-[var(--primary-ink)]">
@@ -127,12 +129,14 @@ export default async function CreatorProfile({
               <div className="relative h-44 overflow-hidden bg-gradient-to-br from-[var(--primary)]/15 to-[var(--accent)]/15">
                 {trip.coverImage ? (
                   <Image
-                    src={proxyImageUrl(trip.coverImage) || trip.coverImage}
+                    src={cardSizedSrc(proxyImageUrl(trip.coverImage) || trip.coverImage)}
                     alt={trip.title}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    unoptimized={trip.coverImage.includes("googleapis.com")}
+                    unoptimized={
+                      isApiImageSrc(proxyImageUrl(trip.coverImage)) || trip.coverImage.includes("googleapis.com")
+                    }
                   />
                 ) : null}
               </div>

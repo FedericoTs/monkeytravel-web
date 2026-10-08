@@ -1,12 +1,14 @@
 import { NextRequest } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
 import { curatedFor, fetchPlacePhoto, readActivityTypeHint } from "@/lib/images/activity";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logApiCall } from "@/lib/api-gateway";
 import { PLACE_PHOTO_USD_PER_CALL } from "@/lib/api-gateway/places-sku";
 import {
   InFlight,
+  readPhotoIndex,
   reusableFreshRef,
   type CachedPhotoRow,
   type FreshPhoto,
@@ -184,6 +186,9 @@ export async function GET(request: NextRequest) {
   // — validated to "" in that case, never rejected: a missing hint must degrade
   // the fallback, never fail the image request.
   const typeHint = readActivityTypeHint(searchParams.get("t"));
+  // Gallery tiles carry their photo's index (withPhotoIndex), so a dead name
+  // heals to that photo instead of every tile healing to the first one.
+  const photoIndex = readPhotoIndex(searchParams.get("i"));
 
   // Exactly one of the two addressing modes. `name` is the New API
   // resource name; `ref` is a legacy photo_reference.
@@ -198,6 +203,17 @@ export async function GET(request: NextRequest) {
   }
   if (!GOOGLE_PLACES_API_KEY) {
     return new Response("Photo service not configured", { status: 503 });
+  }
+
+  // Automation gets the curated stock image instead of a paid Google download.
+  // `no-store` keeps the redirect out of the CDN, so a human request for the
+  // same URL still fetches the photo. og=1 marks the OG card renderer: its
+  // fetch sends a library user-agent, but the card is a human share preview.
+  if (searchParams.get("og") !== "1" && isAnalyticsBot(request.headers.get("user-agent"))) {
+    return new Response(null, {
+      status: 307,
+      headers: { Location: curatedFallbackForName(name ?? ref!, typeHint), "Cache-Control": "no-store" },
+    });
   }
 
   // Clamp dimensions to reasonable bounds.
@@ -287,7 +303,7 @@ export async function GET(request: NextRequest) {
       const placeId = !transient ? namePlaceId : undefined;
 
       if (placeId) {
-        const healed = await healExpiredPhoto(placeId, name!, w, h);
+        const healed = await healExpiredPhoto(placeId, name!, w, h, photoIndex);
         if (healed) return healed;
       }
 
@@ -364,7 +380,8 @@ async function healExpiredPhoto(
   placeId: string,
   deadName: string,
   w: number,
-  h: number
+  h: number,
+  photoIndex = 0
 ): Promise<Response | null> {
   try {
     // Dedupe before paying (2026-09-13): 772 of a fortnight's 2,268 photo
@@ -373,8 +390,10 @@ async function healExpiredPhoto(
     // save-time pass or an earlier heal already refreshed is reused straight
     // from places_v2 at no cost. The heal's own cache write below is what
     // makes that reuse true for every later request from every region.
-    const fresh = await healsInFlight.run(placeId, async () => {
-      const reusable = reusableFreshRef(await readCachedPhoto(placeId), deadName);
+    // places_v2 holds the place's first photo, so a gallery tile (photoIndex
+    // > 0) neither reuses that ref nor overwrites it.
+    const fresh = await healsInFlight.run(photoIndex ? `${placeId}#${photoIndex}` : placeId, async () => {
+      const reusable = photoIndex ? null : reusableFreshRef(await readCachedPhoto(placeId), deadName);
       if (reusable) {
         void logApiCall({
           apiName: "google_places_details",
@@ -388,6 +407,7 @@ async function healExpiredPhoto(
       }
       return fetchPlacePhoto(placeId, {
         endpointLabel: "places/{id}:photos (render self-heal)",
+        photoIndex,
       });
     });
     // No photo at all, or Google handed back the same dead ref — nothing to do.
@@ -413,6 +433,7 @@ async function healExpiredPhoto(
     // the user's image must not wait on our bookkeeping, and a failed write
     // only costs us one more heal later.
     void (async () => {
+      if (photoIndex) return;
       try {
         const supabase = createAdminClient();
         await supabase

@@ -126,6 +126,8 @@ async function main() {
     .from("scheduled_notifications")
     .select("id, user_id, trip_id, slot, scheduled_for")
     .eq("status", STATUS)
+    // Trip emails only: the account-level finish-trip row has no trip to audit.
+    .not("trip_id", "is", null)
     .order("scheduled_for", { ascending: true });
   if (LIMIT) q = q.limit(LIMIT);
 

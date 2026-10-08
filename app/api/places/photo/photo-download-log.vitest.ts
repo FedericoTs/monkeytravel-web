@@ -42,7 +42,12 @@ vi.mock("@/lib/images/activity", () => ({
 import { GET } from "./route";
 
 const NAME = "places/ChIJplace123/photos/AbCdEf";
-const photoRequest = (query: string) => new NextRequest(`https://monkeytravel.app/api/places/photo?${query}`);
+const BROWSER_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36";
+const photoRequest = (query: string, userAgent: string | null = BROWSER_UA) =>
+  new NextRequest(`https://monkeytravel.app/api/places/photo?${query}`, {
+    headers: userAgent ? { "user-agent": userAgent } : {},
+  });
 const jpeg = () => new Response(new Uint8Array([1, 2, 3]), { status: 200, headers: { "content-type": "image/jpeg" } });
 
 const upstream = vi.fn();
@@ -102,5 +107,40 @@ describe("photo downloads are logged and priced", () => {
     const res = await GET(photoRequest("name=not-a-photo-name"));
     expect(res.status).toBe(400);
     expect(logged).toHaveLength(0);
+  });
+});
+
+describe("automation gets the curated image instead of a Google download", () => {
+  const query = `name=${encodeURIComponent(NAME)}&w=600&h=400`;
+
+  it.each([
+    ["a crawler", "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"],
+    ["a headless browser", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 HeadlessChrome/141.0.0.0 Safari/537.36"],
+    ["the pinned automation fleet", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"],
+    ["a request with no user-agent", null],
+  ])("%s gets an uncached 307 to the curated image and Google is never called", async (_who, userAgent) => {
+    const res = await GET(photoRequest(query, userAgent));
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toBe("https://images.pexels.com/fallback.jpg");
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    expect(upstream).not.toHaveBeenCalled();
+    expect(logged).toHaveLength(0);
+  });
+
+  it("a browser follows the existing path: Google download, cached for a year", async () => {
+    upstream.mockResolvedValueOnce(jpeg());
+    const res = await GET(photoRequest(query));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("cache-control")).toBe("public, max-age=2592000, s-maxage=31536000, immutable");
+    expect(upstream).toHaveBeenCalledTimes(1);
+    expect(upstream.mock.calls[0][0]).toBe(`https://places.googleapis.com/v1/${NAME}/media?maxHeightPx=400&maxWidthPx=600`);
+    expect(logged).toHaveLength(1);
+  });
+
+  it("the OG card renderer (og=1) follows the existing path despite its library user-agent", async () => {
+    upstream.mockResolvedValueOnce(jpeg());
+    const res = await GET(photoRequest(`${query}&og=1`, "undici"));
+    expect(res.status).toBe(200);
+    expect(upstream).toHaveBeenCalledTimes(1);
   });
 });

@@ -2650,5 +2650,13 @@
     "cta": "See tomorrow's plan",
     "andMore": "+{count} more",
     "empty": "Nothing planned for day {day} yet — open your trip to fill it in."
+  },
+  "finishTripEmail": {
+    "heading": "Your first trip is one step away",
+    "headingDestination": "Your {destination} trip is one step away",
+    "body": "You signed up for MonkeyTravel but haven't planned a trip yet. Tell us where and when, and you'll have a day-by-day plan in about a minute. You can change anything afterwards.",
+    "bodyDestination": "You started planning a trip to {destination}. Finish it and you'll have a day-by-day plan in about a minute. You can change anything afterwards.",
+    "cta": "Plan my trip",
+    "signoff": "The MonkeyTravel Team"
   }
 }

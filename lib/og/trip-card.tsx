@@ -167,6 +167,9 @@ export function coverForCard(url: string | null | undefined, origin: string, siz
   } else if (abs.pathname === "/api/places/photo") {
     abs.searchParams.set("w", String(size));
     abs.searchParams.set("h", String(size));
+    // The card renderer's fetch sends a library user-agent; og=1 keeps the
+    // proxy from treating it as automation (app/api/places/photo/route.ts).
+    abs.searchParams.set("og", "1");
   }
   return abs.toString();
 }

@@ -48,3 +48,26 @@ export function proxyImageUrl(url: string | null | undefined): string | null {
   //    which is not configured in images.localPatterns."
   return `/api/img/proxy/${encodeURIComponent(url)}`;
 }
+
+/**
+ * True for same-origin API image srcs (the Places photo proxy, /api/img/proxy).
+ * Public, crawlable surfaces render these `unoptimized`: robots.txt keeps
+ * crawlers off /api/ but not off /_next/image. Private pages keep the optimizer.
+ */
+export function isApiImageSrc(src: string | null | undefined): boolean {
+  return !!src && src.startsWith("/api/");
+}
+
+/**
+ * A Places photo proxy src capped at card size. Unoptimized cards would
+ * otherwise download the 1920px cover; any other src is returned unchanged.
+ */
+export function cardSizedSrc(src: string): string {
+  if (!src.startsWith("/api/places/photo?")) return src;
+  const [path, query] = src.split("?");
+  const params = new URLSearchParams(query);
+  if (Number(params.get("w")) <= 800) return src;
+  params.set("w", "800");
+  params.set("h", "500");
+  return `${path}?${params.toString()}`;
+}
