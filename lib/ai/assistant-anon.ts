@@ -23,7 +23,7 @@ import { getModelForPurpose, getSiblingModel } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import {
-  applyToSaveNote,
+  notAppliedLead,
   claimsItineraryChange,
   lengthUnchangedNote,
   lockedDayReply,
@@ -188,7 +188,7 @@ Decide:
 
 Return STRICT JSON (no markdown) in this EXACT shape:
 {
-  "reply": "Short chat reply in ${language}.",
+  "reply": "Short chat reply in the language of the traveller's new message (${language} if unclear).",
   "trip_length": null OR <new total number of days, only when adding or removing days>,
   "edits": [
     {
@@ -476,9 +476,9 @@ export function composeReply(p: {
   const uncovered = daysMentioned(text).filter((n) => !covered.includes(n) && !removed.includes(n));
   if (uncovered.length > 0 && covered.length > 0) text = `${text} ${uncoveredDaysNote(p.locale, covered, uncovered)}`;
   if (p.lengthRefused) text = `${text} ${lengthUnchangedNote(p.locale, p.currentDays)}`;
-  // Told to present an unapplied edit as ready, the model still writes "Ho
-  // aggiunto…" at times (measured 2026-09-26, Italian): keep the reply true.
-  if (claimsItineraryChange(p.reply)) text = `${text} ${applyToSaveNote(p.locale)}`;
+  // Told to present an unapplied edit as ready, the model still writes "I've
+  // updated…" most of the time: lead with the truth so Apply isn't skipped.
+  if (claimsItineraryChange(p.reply)) text = `${notAppliedLead(p.locale)} ${text}`;
   if (p.currency) text = `${text} ${currencySwitchedNote(p.locale, p.currency)}`;
   return text;
 }

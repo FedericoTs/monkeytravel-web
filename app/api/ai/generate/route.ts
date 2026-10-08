@@ -28,6 +28,7 @@ import {
   adjustItineraryDates,
 } from "@/lib/ai/cache";
 import { loadUserContext } from "@/lib/ai/user-context";
+import { requestLocale } from "@/lib/ai/language";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import {
   generateMultiCityItinerary,
@@ -109,7 +110,10 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       return errors.badRequest("Body must be valid JSON");
     }
 
-    const { profilePreferences, userLanguage } = userContext;
+    const { profilePreferences } = userContext;
+    // The page's own locale wins: next-intl writes NEXT_LOCALE only when it
+    // differs from the browser language, so the cookie is usually absent.
+    const userLanguage = requestLocale(body.locale) ?? userContext.userLanguage;
     console.log(`[AI Generate] User language: ${userLanguage} (anonymous=${isAnonymous})`);
 
     // Whitelist travelStyle so untrusted strings can't flow into the AI

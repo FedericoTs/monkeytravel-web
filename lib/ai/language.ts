@@ -47,6 +47,16 @@ export function resolveAiLanguage(raw: unknown): SupportedLanguage {
 }
 
 /**
+ * The locale a request carries for the page it came from. Null when absent or
+ * unsupported, so the caller falls back to cookie and profile.
+ */
+export function requestLocale(raw: unknown): SupportedLanguage | null {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  const base = raw.trim().toLowerCase().split(/[-_]/)[0];
+  return isSupportedLanguage(base) ? base : null;
+}
+
+/**
  * The language a trip's text is written in, from trip_meta.locale — or null
  * when the trip predates the stamp (Phase 1.3). Callers fall back to the
  * visitor's cookie/profile; the point is that an existing trip's own

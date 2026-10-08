@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { HEAL_REUSE_MAX_AGE_DAYS, InFlight, reusableFreshRef } from "./heal-dedupe";
+import { HEAL_REUSE_MAX_AGE_DAYS, InFlight, readPhotoIndex, reusableFreshRef, withPhotoIndex } from "./heal-dedupe";
 
 const NOW = Date.parse("2026-09-13T10:00:00Z");
 const DEAD = "places/ChIJdead/photos/AAAA";
@@ -82,5 +82,27 @@ describe("InFlight", () => {
     await expect(a).rejects.toThrow("google down");
     await expect(b).rejects.toThrow("google down");
     expect(flight.size).toBe(0);
+  });
+});
+
+describe("gallery photo index", () => {
+  const TILE = "/api/places/photo?name=places%2FChIJdead%2Fphotos%2FAAAA&w=200&h=150";
+
+  it("tags a gallery proxy URL with its index, once", () => {
+    expect(withPhotoIndex(TILE, 3)).toBe(`${TILE}&i=3`);
+    expect(withPhotoIndex(`${TILE}&i=2`, 3)).toBe(`${TILE}&i=2`);
+  });
+
+  it("leaves the cover, bad indexes and non-proxy URLs alone", () => {
+    expect(withPhotoIndex(TILE, 0)).toBe(TILE);
+    expect(withPhotoIndex(TILE, -1)).toBe(TILE);
+    expect(withPhotoIndex(TILE, 1.5)).toBe(TILE);
+    expect(withPhotoIndex("https://images.pexels.com/photos/1/p.jpeg", 2)).toBe("https://images.pexels.com/photos/1/p.jpeg");
+  });
+
+  it("reads the index back; anything else is the first photo", () => {
+    expect(readPhotoIndex("3")).toBe(3);
+    expect(readPhotoIndex("9")).toBe(9);
+    for (const raw of [null, undefined, "", "0", "-1", "10", "2.5", "abc"]) expect(readPhotoIndex(raw)).toBe(0);
   });
 });

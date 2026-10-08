@@ -106,6 +106,18 @@ function getLanguageInstruction(language: SupportedLanguage): string {
   return instructions[language];
 }
 
+const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
+  en: "English",
+  es: "Spanish",
+  it: "Italian",
+  pt: "Portuguese",
+};
+
+/** The chat reply follows the traveller; itinerary text keeps the trip's language. */
+function replyLanguageRule(tripLanguage: SupportedLanguage): string {
+  return `\n\nREPLY LANGUAGE: write your chat reply in the same language as the user's latest message. Itinerary text you write (activity names, descriptions, tips) stays in ${LANGUAGE_NAMES[tripLanguage]}.`;
+}
+
 // Types for the assistant
 interface AssistantMessage {
   role: "user" | "assistant";
@@ -2064,7 +2076,7 @@ NOTE: ${structuralNote}`;
 
 
     const systemPrompt = buildSystemPrompt(tripContext);
-    const languageInstruction = getLanguageInstruction(userLanguage);
+    const languageInstruction = getLanguageInstruction(userLanguage) + replyLanguageRule(userLanguage);
     const fullPrompt = `${systemPrompt}${languageInstruction}
 ${actionContext}
 ${conversationHistory ? `\nRecent conversation:\n${conversationHistory}\n` : ""}
@@ -2125,7 +2137,8 @@ Respond with valid JSON only.`;
     // "Activity Replaced" with a strike-through animation — the completed-look
     // card this fix is meant to suppress, arriving by a second route. Filter
     // whatever it produces rather than trusting it to have stopped.
-    const CHANGE_CARDS = new Set(["activity_replacement", "activity_added", "activity_suggestion"]);
+    // Model-written "confirmation" cards ("Akihabara Added") assert a change too.
+    const CHANGE_CARDS = new Set(["activity_replacement", "activity_added", "activity_suggestion", "confirmation"]);
     if (!changeWasSaved && Array.isArray(parsedResponse.cards)) {
       parsedResponse.cards = parsedResponse.cards.filter(
         (c) => !CHANGE_CARDS.has((c as { type?: string })?.type ?? "")

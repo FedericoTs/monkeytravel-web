@@ -195,10 +195,13 @@ async function searchPlaceId(query: string): Promise<PlaceRecord | null> {
  * `endpointLabel` lets a caller attribute the spend (the render-time self-heal
  * in /api/places/photo passes its own) so api_request_logs can tell heals from
  * enrichment passes. The apiName and the cost never change.
+ *
+ * `photoIndex` starts the search at that position in the place's photo list,
+ * so a gallery tile heals to its own photo rather than the first one.
  */
 export async function fetchPlacePhoto(
   placeId: string,
-  opts: { endpointLabel?: string } = {}
+  opts: { endpointLabel?: string; photoIndex?: number } = {}
 ): Promise<{ photo_resource_name: string; photo_url: string } | null> {
   if (!GOOGLE_PLACES_API_KEY) {
     return null;
@@ -236,9 +239,10 @@ export async function fetchPlacePhoto(
     // works at /media" from "Google returned a token that 400s". Full
     // hashes are typically 300-450 chars; pathological ones run ~80-120.
     const MIN_PHOTO_TOKEN_LEN = 200;
+    const usable = (p: { name?: string }) => typeof p?.name === "string" && p.name.length >= MIN_PHOTO_TOKEN_LEN;
+    // From `photoIndex` onwards; a list shorter than that falls back to the first.
     const photoResourceName: string | null =
-      photos.find((p) => typeof p?.name === "string" && p.name.length >= MIN_PHOTO_TOKEN_LEN)
-        ?.name ?? null;
+      (photos.slice(opts.photoIndex ?? 0).find(usable) ?? photos.find(usable))?.name ?? null;
 
     if (!photoResourceName) {
       return null;

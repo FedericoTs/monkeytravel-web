@@ -26,6 +26,7 @@ import {
   adjustItineraryDates,
 } from "@/lib/ai/cache";
 import { loadUserContext } from "@/lib/ai/user-context";
+import { requestLocale } from "@/lib/ai/language";
 import type {
   TripCreationParams,
   GeneratedItinerary,
@@ -149,7 +150,10 @@ export async function POST(request: NextRequest) {
   }
   const body = parsedBody;
 
-  const { profilePreferences, userLanguage } = userContext;
+  const { profilePreferences } = userContext;
+  // The page's own locale wins: next-intl writes NEXT_LOCALE only when it
+  // differs from the browser language, so the cookie is usually absent.
+  const userLanguage = requestLocale(body.locale) ?? userContext.userLanguage;
 
   const params: TripCreationParams = {
     destination: body.destination as string,

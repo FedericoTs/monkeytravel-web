@@ -7,6 +7,7 @@ import {
   claimsToRemember,
   nothingChangedReply,
   nothingKeptReply,
+  notAppliedLead,
   pendingChangeReply,
 } from "./honesty";
 
@@ -195,5 +196,44 @@ describe("nothingKeptReply", () => {
 
   it("falls back to English", () => {
     expect(nothingKeptReply("de")).toBe(nothingKeptReply("en"));
+  });
+});
+
+describe("claims the guard used to miss", () => {
+  // Trip-assistant replies sent with nothing prepared or saved.
+  const missed = [
+    "This update integrates Akihabara into your Tokyo days.",
+    "Day 3, now with a sunset cruise on the Seine.",
+    "I'm preparing to add Akihabara to Day 2.",
+    "I will reconfigure your Day 4 around the museum.",
+  ];
+  it.each(missed)("catches: %s", (text) => {
+    expect(claimsItineraryChange(text)).toBe(true);
+  });
+
+  const offers = [
+    "I can integrate a food tour if you like.",
+    "Akihabara is great now with the autumn sales on.",
+    "Would you like me to reorder Day 2?",
+  ];
+  it.each(offers)("leaves an offer alone: %s", (text) => {
+    expect(claimsItineraryChange(text)).toBe(false);
+  });
+});
+
+describe("notAppliedLead", () => {
+  it("names the wizard's Apply button in each language", () => {
+    expect(notAppliedLead("en")).toContain('"Apply change"');
+    expect(notAppliedLead("es")).toContain('"Aplicar cambio"');
+    expect(notAppliedLead("it")).toContain('"Applica modifica"');
+    expect(notAppliedLead("pt")).toContain('"Aplicar alteração"');
+  });
+});
+
+describe("the trip assistant's card filter", () => {
+  it("drops model-written confirmation cards when nothing was saved", () => {
+    const src = readFileSync(join(process.cwd(), "app", "api", "ai", "assistant", "route.ts"), "utf8");
+    const set = src.match(/const CHANGE_CARDS = new Set\(\[([^\]]+)\]\)/)?.[1] ?? "";
+    expect(set).toContain('"confirmation"');
   });
 });

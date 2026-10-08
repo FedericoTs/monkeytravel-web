@@ -15,6 +15,7 @@ import { checkApiAccess, logApiCall, ApiBlockedError } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { withPhotoIndex } from "@/lib/places/heal-dedupe";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -70,6 +71,24 @@ interface PlaceResult {
  */
 function placePhotoUrl(photoName: string, w: number, h: number): string {
   return `/api/places/photo?name=${encodeURIComponent(photoName)}&w=${w}&h=${h}`;
+}
+
+/**
+ * Destination results cached before gallery URLs carried a photo index get
+ * their tile position instead (the cover is index 0, tile k is k + 1), so their
+ * dead names also heal to distinct photos. URLs that have an index keep it.
+ */
+function withGalleryIndexes(result: unknown): unknown {
+  const gallery = (result as { galleryPhotos?: unknown } | null)?.galleryPhotos;
+  if (!Array.isArray(gallery)) return result;
+  return {
+    ...(result as object),
+    galleryPhotos: gallery.map((p: { url: string; thumbnailUrl: string }, k: number) => ({
+      ...p,
+      url: withPhotoIndex(p.url, k + 1),
+      thumbnailUrl: withPhotoIndex(p.thumbnailUrl, k + 1),
+    })),
+  };
 }
 
 /**
@@ -436,7 +455,7 @@ export async function GET(request: NextRequest) {
       console.log("[Places Destination] Cache HIT for:", destination);
       await logPlacesApiRequest("/places:searchText (destination)", {
         fieldMask: DESTINATION_SEARCH_FIELD_MASK, cacheHit: true, userId: user?.id });
-      return apiSuccess(cachedResult);
+      return apiSuccess(withGalleryIndexes(cachedResult));
     }
 
     console.log("[Places Destination] Cache MISS for:", destination);
@@ -514,12 +533,15 @@ export async function GET(request: NextRequest) {
     // (even an awkward portrait) than an empty gallery.
     const galleryPhotosSource = (landscape.length >= 3 ? landscape : candidates).slice(0, 4);
 
-    const galleryPhotos = galleryPhotosSource.map(
-      (photo: PlacePhoto) => ({
-        url: proxyUrl(photo.name, 800, 600),
-        thumbnailUrl: proxyUrl(photo.name, 200, 150),
-      })
-    );
+    // Each tile's URLs carry its photo's index in place.photos, so a dead name
+    // heals to that photo rather than to the cover.
+    const galleryPhotos = galleryPhotosSource.map((photo: PlacePhoto) => {
+      const index = place.photos.indexOf(photo);
+      return {
+        url: withPhotoIndex(proxyUrl(photo.name, 800, 600), index),
+        thumbnailUrl: withPhotoIndex(proxyUrl(photo.name, 200, 150), index),
+      };
+    });
 
     const result = {
       placeId: place.id,
