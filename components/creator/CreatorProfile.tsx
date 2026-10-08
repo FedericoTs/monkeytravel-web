@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/lib/i18n/routing";
-import { isApiImageSrc, proxyImageUrl } from "@/lib/img/proxyUrl";
+import { cardSizedSrc, isApiImageSrc, proxyImageUrl } from "@/lib/img/proxyUrl";
 
 /**
  * A single published trip belonging to a creator, in the shape the profile
@@ -129,7 +129,7 @@ export default async function CreatorProfile({
               <div className="relative h-44 overflow-hidden bg-gradient-to-br from-[var(--primary)]/15 to-[var(--accent)]/15">
                 {trip.coverImage ? (
                   <Image
-                    src={proxyImageUrl(trip.coverImage) || trip.coverImage}
+                    src={cardSizedSrc(proxyImageUrl(trip.coverImage) || trip.coverImage)}
                     alt={trip.title}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

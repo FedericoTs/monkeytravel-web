@@ -57,3 +57,17 @@ export function proxyImageUrl(url: string | null | undefined): string | null {
 export function isApiImageSrc(src: string | null | undefined): boolean {
   return !!src && src.startsWith("/api/");
 }
+
+/**
+ * A Places photo proxy src capped at card size. Unoptimized cards would
+ * otherwise download the 1920px cover; any other src is returned unchanged.
+ */
+export function cardSizedSrc(src: string): string {
+  if (!src.startsWith("/api/places/photo?")) return src;
+  const [path, query] = src.split("?");
+  const params = new URLSearchParams(query);
+  if (Number(params.get("w")) <= 800) return src;
+  params.set("w", "800");
+  params.set("h", "500");
+  return `${path}?${params.toString()}`;
+}
