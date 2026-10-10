@@ -381,6 +381,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
             message: `${collaboratorName} joined "${trip.title ?? "your trip"}"`,
             href: `/trips/${result.trip_id}`,
             trip_id: result.trip_id,
+            tripName: trip.title ?? undefined,
             collaborator_name: collaboratorName,
             collaborator_email: user.email ?? "",
           },

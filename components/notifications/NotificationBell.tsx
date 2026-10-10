@@ -16,11 +16,12 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Link } from "@/lib/i18n/routing";
 import type { NotificationRow } from "@/lib/notifications/types";
+import { notificationText, notificationTime } from "@/lib/notifications/display";
 
 interface NotificationsAPI {
   notifications: NotificationRow[];
@@ -266,18 +267,11 @@ function NotificationItem({
   onClick: () => void;
 }) {
   const t = useTranslations("common.share.notifications");
+  const locale = useLocale();
   const unread = !notification.read_at;
-  const { name, tripName } = notification.payload ?? {};
-  // "I'm going" reads in the viewer's language; other types keep their stored line.
-  const message =
-    notification.type === "crew_joined" && typeof tripName === "string"
-      ? typeof name === "string" && name
-        ? t("crewJoined", { name, trip: tripName })
-        : t("crewJoinedSomeone", { trip: tripName })
-      : ((notification.payload?.message as string) ?? "Update");
+  const message = notificationText(notification, t);
   const href = (notification.payload?.href as string | undefined) ?? null;
-  const created = new Date(notification.created_at);
-  const timeAgo = formatTimeAgo(created);
+  const timeAgo = notificationTime(notification.created_at, locale, t("justNow"));
 
   const inner = (
     <div
@@ -305,16 +299,4 @@ function NotificationItem({
       {href ? <Link href={href as never}>{inner}</Link> : inner}
     </li>
   );
-}
-
-function formatTimeAgo(d: Date): string {
-  const diff = Date.now() - d.getTime();
-  const min = Math.floor(diff / 60000);
-  if (min < 1) return "just now";
-  if (min < 60) return `${min}m ago`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}h ago`;
-  const day = Math.floor(hr / 24);
-  if (day < 7) return `${day}d ago`;
-  return d.toLocaleDateString();
 }

@@ -55,6 +55,8 @@ export interface CollabProposalPayload extends BasePayload {
 
 export interface InviteAcceptedPayload extends BasePayload {
   trip_id: string;
+  /** The bell names the trip in the viewer's language; older rows lack it. */
+  tripName?: string;
   collaborator_name: string;
   collaborator_email: string;
 }
