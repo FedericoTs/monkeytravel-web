@@ -246,7 +246,23 @@
       "twinTitle": "Você já tem “{title}” para estas datas",
       "twinBody": "Substituir o plano dela por este ou manter as duas viagens?",
       "twinReplace": "Substituir o plano",
-      "twinKeepBoth": "Manter as duas"
+      "twinKeepBoth": "Manter as duas",
+      "valueBanner": {
+        "title": "Salve e desbloqueie mais",
+        "subtitle": "Edição completa e recursos de AI",
+        "remindersTitle": "Lembretes da viagem",
+        "remindersBody": "A gente lembra você da mala e do visto antes de viajar",
+        "editingTitle": "Edição completa",
+        "editingBody": "Personalize cada detalhe",
+        "shareTitle": "Compartilhar e exportar",
+        "shareBody": "PDF e sincronização com a agenda",
+        "cta": "Salvar e começar a editar",
+        "saving": "Salvando sua viagem...",
+        "stickyCta": "Salvar a viagem e desbloquear recursos",
+        "stickySaving": "Salvando...",
+        "stickyHint": "Sua viagem será salva na sua conta",
+        "dismiss": "Fechar"
+      }
     },
     "anchors": {
       "cta": "Tenho planos fixos (voo, casamento, hotel…)",
