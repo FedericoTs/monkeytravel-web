@@ -84,6 +84,17 @@ describe("correct emails are not blocked", () => {
     expect(blockingDefects(defects)).toEqual([]);
   });
 
+  it("passes when a signed link's token happens to spell NaN", () => {
+    // Signed tokens are random base64url text, so some spell NaN by chance.
+    const html = `<html><body><h1>Travel day</h1><p>Paris</p>
+      <p>Louvre Museum</p><p>09:30</p>
+      <a href="https://monkeytravel.app/trips/abc-123?slot=morning_of">Open</a>
+      <a href="https://monkeytravel.app/day/abc-123/2026-11-02?slot=morning_of&amp;k=Zx8NaN_q-41mPw9TtR2vLk">Day</a>
+      <a href="https://monkeytravel.app/unsubscribe?token=eyJ0IjoicCIsInAiOiJ4In0.NaNundefinedQw-_9xYzAbCdEfGh">Unsubscribe</a>
+      </body></html>`;
+    expect(blockingDefects(goodEmail({ html }))).toEqual([]);
+  });
+
   it("treats a long subject as a warning, never a block", () => {
     const defects = goodEmail({ subject: "x".repeat(120) });
     expect(blockingDefects(defects)).toEqual([]);
@@ -113,6 +124,13 @@ describe("broken emails are caught", () => {
   it("blocks a missing prop rendered as undefined", () => {
     const defects = goodEmail({ html: "<p>Paris undefined</p>" });
     expect(blockingDefects(defects).map((d) => d.check)).toContain("poison_html");
+  });
+
+  it("still blocks NaN in visible text, a short query value or a path", () => {
+    const checks = (html: string) => blockingDefects(goodEmail({ html })).map((d) => d.check);
+    expect(checks("<p>NaN °C</p>")).toContain("poison_html");
+    expect(checks(`<a href="https://monkeytravel.app/trips/abc-123?day=NaN">x</a>`)).toContain("poison_html");
+    expect(checks(`<a href="https://monkeytravel.app/trips/undefined?slot=morning_of">x</a>`)).toContain("poison_html");
   });
 
   it("blocks an empty subject", () => {
