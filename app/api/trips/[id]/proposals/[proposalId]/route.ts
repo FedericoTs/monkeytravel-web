@@ -1,8 +1,11 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
-import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { errors, apiError, apiSuccess } from "@/lib/api/response-wrapper";
 import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 import type { TripProposalRouteContext } from "@/lib/api/route-context";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { approveProposal, type ApproveOutcome } from "@/lib/proposals/approve";
+import { publicProposer } from "@/lib/proposals/proposer";
 import type {
   Activity,
   ProposalVote,
@@ -16,6 +19,22 @@ import {
   calculateProposalConsensus,
   calculateVoteSummary,
 } from "@/lib/proposals/consensus";
+
+/** Why an owner's approval did not land. */
+function approveFailed(reason: Extract<ApproveOutcome, { ok: false }>["reason"], day: number) {
+  switch (reason) {
+    case "no_day":
+      return errors.conflict(`Day ${day} is no longer in this trip`);
+    case "busy":
+      return apiError("This trip is being edited right now. Please try again.", { status: 409, code: "ITINERARY_BUSY" });
+    case "resolved":
+      return errors.badRequest("This proposal has already been resolved");
+    case "not_found":
+      return errors.notFound("Trip not found");
+    default:
+      return errors.internal("Failed to approve proposal", "Proposals");
+  }
+}
 
 /**
  * GET /api/trips/[id]/proposals/[proposalId]
@@ -56,11 +75,7 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
         resolution_method,
         created_at,
         updated_at,
-        expires_at,
-        proposer:proposed_by (
-          display_name,
-          avatar_url
-        )
+        expires_at
       `)
       .eq("id", proposalId)
       .eq("trip_id", tripId)
@@ -104,15 +119,14 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
     collaborators?.forEach((c) => voterIds.add(c.user_id));
     const totalVoters = voterIds.size;
 
-    // Voter names come from public_profiles rather than an embed on users.
-    // The people who voted on a proposal are by definition not the caller, and
-    // public.users only exposes the caller's own row — an embed there would not
-    // error, it would return null for everyone and silently label the whole
-    // crew "Unknown".
-    const profileMap = await batchFetchUserProfiles(
-      supabase,
-      (votes || []).map((v) => v.user_id as string)
-    );
+    // Voter and proposer names come from public_profiles rather than an embed
+    // on users. Those people are mostly not the caller, and public.users only
+    // exposes the caller's own row — an embed there would not error, it would
+    // return null for everyone else and silently label them "Unknown".
+    const profileMap = await batchFetchUserProfiles(supabase, [
+      ...(votes || []).map((v) => v.user_id as string),
+      proposal.proposed_by as string,
+    ]);
 
     // Transform votes
     const transformedVotes: ProposalVote[] = (votes || []).map((v) => {
@@ -147,11 +161,6 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
     });
 
     // Transform proposal
-    const profile = proposal.proposer as unknown as {
-      display_name: string;
-      avatar_url: string | null;
-    } | null;
-
     const currentUserVote = transformedVotes.find((v) => v.user_id === user.id);
 
     const transformedProposal: ProposalWithVotes = {
@@ -171,12 +180,7 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
       created_at: proposal.created_at,
       updated_at: proposal.updated_at,
       expires_at: proposal.expires_at,
-      proposer: profile
-        ? {
-            display_name: profile.display_name || "Unknown",
-            avatar_url: profile.avatar_url || undefined,
-          }
-        : undefined,
+      proposer: publicProposer(profileMap.get(proposal.proposed_by as string)),
       votes: transformedVotes,
       vote_summary: voteSummary,
       consensus,
@@ -218,7 +222,7 @@ export async function PATCH(request: NextRequest, context: TripProposalRouteCont
     // Get proposal and trip info
     const { data: proposal, error: proposalError } = await supabase
       .from("activity_proposals")
-      .select("id, trip_id, proposed_by, status")
+      .select("id, trip_id, proposed_by, status, target_day, activity_data")
       .eq("id", proposalId)
       .eq("trip_id", tripId)
       .single();
@@ -273,6 +277,19 @@ export async function PATCH(request: NextRequest, context: TripProposalRouteCont
         break;
       default:
         return errors.badRequest("Invalid action");
+    }
+
+    // The same path as an approval by votes: the activity goes into the trip,
+    // then the proposal reads approved.
+    if (action === 'approve') {
+      const outcome = await approveProposal(createAdminClient(), proposal, { method, resolvedBy: user.id });
+      if (!outcome.ok) return approveFailed(outcome.reason, proposal.target_day);
+      const { data: approved } = await supabase
+        .from("activity_proposals")
+        .select()
+        .eq("id", proposalId)
+        .single();
+      return apiSuccess({ success: true, proposal: approved, action, activityAdded: true });
     }
 
     // Update proposal

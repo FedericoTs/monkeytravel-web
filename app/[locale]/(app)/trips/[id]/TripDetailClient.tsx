@@ -7,7 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Undo2, Redo2, RefreshCw, Sparkles } from "lucide-react";
 import TripActionsMenu, { TripActionsMenuItem, TripActionsMenuSlot } from "@/components/trip/TripActionsMenu";
-import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType, ProposalVoteType, ProposalWithVotes } from "@/types";
+import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType, ProposalVoteType, ActivityProposal } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
@@ -818,44 +818,28 @@ export default function TripDetailClient({
   // Track recently approved proposals to show transition animation
   const [recentlyApproved, setRecentlyApproved] = useState<Set<string>>(new Set());
 
-  // Handle proposal status changes (especially approvals)
-  const handleProposalChange = useCallback((proposal: ProposalWithVotes) => {
-    if (proposal.status === 'approved' && proposal.activity_data) {
+  // Handle proposal status changes (especially approvals). The server has
+  // already added an approved proposal's activity to the trip: the page takes
+  // the stored copy, once per proposal, in the save queue and never over
+  // unsaved edits (their save gets the conflict choice instead).
+  const approvalsSeenRef = useRef<Set<string>>(new Set());
+  const handleProposalChange = useCallback((proposal: ActivityProposal) => {
+    if (proposal.status === 'approved' && !approvalsSeenRef.current.has(proposal.id)) {
+      approvalsSeenRef.current.add(proposal.id);
       // Mark as recently approved for animation
       setRecentlyApproved(prev => new Set([...prev, proposal.id]));
 
-      // Add the approved activity to the local itinerary
-      const activityData = proposal.activity_data as Activity;
-      const targetDayIndex = proposal.target_day; // 0-indexed
+      const name = (proposal.activity_data as Activity | undefined)?.name;
+      if (name) addToast(t('detail.proposalApproved', { name, day: proposal.target_day }), "success");
 
-      if (targetDayIndex >= 0 && targetDayIndex < editedItinerary.length) {
-        const newActivity: Activity = {
-          ...activityData,
-          id: activityData.id || `act_${proposal.id.slice(0, 12)}`,
-        };
-
-        setEditedItinerary(prev => {
-          return prev.map((day, index) => {
-            if (index === targetDayIndex) {
-              // Check if activity already exists (avoid duplicates)
-              const exists = day.activities.some(a => a.id === newActivity.id);
-              if (exists) return day;
-
-              // Insert and sort by time
-              const activities = [...day.activities, newActivity].sort((a, b) => {
-                const timeA = a.start_time || "00:00";
-                const timeB = b.start_time || "00:00";
-                return timeA.localeCompare(timeB);
-              });
-              return { ...day, activities };
-            }
-            return day;
-          });
+      void sync
+        .enqueue(async () => {
+          if (!conflictRef.current) await refetchTripRef.current?.({ onlyIfUnedited: true });
+        })
+        .catch((err) => {
+          console.warn("[proposals] approved, but the page could not re-read the trip", err);
+          router.refresh();
         });
-
-        // Show success toast
-        addToast(`"${newActivity.name}" has been approved and added to your itinerary!`, "success");
-      }
 
       // Remove from recently approved after animation completes
       setTimeout(() => {
@@ -866,7 +850,7 @@ export default function TripDetailClient({
         });
       }, 3000);
     }
-  }, [editedItinerary.length, addToast]);
+  }, [addToast, sync, router, t]);
 
   const {
     proposals,
@@ -1579,9 +1563,9 @@ export default function TripDetailClient({
     setProposeModalState(prev => ({ ...prev, isOpen: false }));
   }, []);
 
-  // Get proposals for a specific day (1-indexed day number)
+  // Get proposals for a specific day (target_day is the day's day_number)
   const getProposalsForDay = useCallback((dayNumber: number) => {
-    return proposals.filter(p => p.target_day === dayNumber - 1);
+    return proposals.filter(p => p.target_day === dayNumber);
   }, [proposals]);
 
   // Get merged timeline of activities and proposals for a day
@@ -3724,8 +3708,14 @@ export default function TripDetailClient({
         isOwner={userRole === 'owner'}
         onForceResolve={async (action) => {
           if (votingSheetState.proposal) {
-            await forceResolve(votingSheetState.proposal.id, action);
-            addToast(`Proposal ${action}d`, "success");
+            try {
+              await forceResolve(votingSheetState.proposal.id, action);
+            } catch (err) {
+              addToast(t('detail.proposalActionFailed'), "error");
+              throw err;
+            }
+            // An approval is confirmed by handleProposalChange, with the day.
+            if (action === 'reject') addToast(`Proposal ${action}d`, "success");
           }
         }}
       />

@@ -417,7 +417,7 @@ export function VotingBottomSheet({
                 {/* Activity Details */}
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-gray-500">
                   <span className="flex items-center gap-1">
-                    <span>📅</span> {t('day', { day: proposal.target_day + 1 })}
+                    <span>📅</span> {t('day', { day: proposal.target_day })}
                   </span>
                   {activity.start_time && (
                     <span className="flex items-center gap-1">
