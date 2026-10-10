@@ -2369,6 +2369,7 @@
     "empty": "Nenhuma despesa registrada ainda.",
     "toastAdded": "Despesa adicionada.",
     "toastDeleted": "Despesa removida.",
+    "undo": "Desfazer",
     "errorAmountRequired": "Insira um valor maior que zero.",
     "errorAddFailed": "Não foi possível adicionar a despesa — tente novamente.",
     "errorDeleteFailed": "Não foi possível excluir a despesa — tente novamente.",

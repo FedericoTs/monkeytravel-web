@@ -2369,6 +2369,7 @@
     "empty": "Nessuna spesa registrata.",
     "toastAdded": "Spesa aggiunta.",
     "toastDeleted": "Spesa rimossa.",
+    "undo": "Annulla",
     "errorAmountRequired": "Inserisci un importo maggiore di zero.",
     "errorAddFailed": "Impossibile aggiungere la spesa — riprova.",
     "errorDeleteFailed": "Impossibile eliminare la spesa — riprova.",
