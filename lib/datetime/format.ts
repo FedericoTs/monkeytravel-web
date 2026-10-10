@@ -53,7 +53,7 @@ export function formatDateShort(datetime: string | Date): string {
 }
 
 /**
- * Format date range: "Jun 15-20, 2025" / "15-20 giu 2025" / "15-20 jun 2025"
+ * Format date range: "Jun 15 – 20, 2025" / "15–20 giu 2025" / "15 – 20 de jun. de 2025"
  *
  * Locale-aware as of 2026-05-29 — was hardcoded en-US, leaving Italian
  * and Spanish users with English month names on trip cards. Pass the
@@ -81,23 +81,18 @@ export function formatDateShort(datetime: string | Date): string {
 export function formatDateRange(start: Date | string, end: Date | string, locale: string = "en-US"): string {
   const s = typeof start === "string" ? new Date(start) : start;
   const e = typeof end === "string" ? new Date(end) : end;
+  if (Number.isNaN(s.getTime())) return "";
 
-  const startMonth = s.toLocaleDateString(locale, { month: "short", timeZone: "UTC" });
-  const endMonth = e.toLocaleDateString(locale, { month: "short", timeZone: "UTC" });
-
-  // Use UTC getters so day/year extraction matches the UTC-anchored
-  // month string above. Mixing `s.getDate()` (local) with a UTC month
-  // string would re-introduce the same TZ mismatch we just fixed.
-  const startDay = s.getUTCDate();
-  const endDay = e.getUTCDate();
-  const endYear = e.getUTCFullYear();
-
-  if (startMonth === endMonth) {
-    // A one-day trip reads as its day, not "Sep 30-30".
-    if (startDay === endDay && s.getUTCFullYear() === endYear) return `${startMonth} ${startDay}, ${endYear}`;
-    return `${startMonth} ${startDay}-${endDay}, ${endYear}`;
-  }
-  return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${endYear}`;
+  // Intl puts day, month and year in the locale's order and merges what the two
+  // dates share ("31 ott – 2 nov 2026"); a one-day trip reads as its day.
+  const fmt = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+  if (Number.isNaN(e.getTime()) || e.getTime() < s.getTime()) return fmt.format(s);
+  // ICU pads the second day in some locales ("02 nov") and versions differ on thin
+  // spaces around the dash: plain days and spaces keep server and browser text equal.
+  return fmt
+    .formatRangeToParts(s, e)
+    .map((part) => (part.type === "day" ? part.value.replace(/^0(?=\d)/, "") : part.value.replace(/[\u2009\u202f]/g, " ")))
+    .join("");
 }
 
 /**

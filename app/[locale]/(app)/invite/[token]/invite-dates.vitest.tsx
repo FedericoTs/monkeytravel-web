@@ -60,12 +60,12 @@ describe("invite page trip dates", () => {
   it("shows the trip's own days west of UTC, not the day before", () => {
     expect(new Date("2026-11-24").getDate()).toBe(23); // the trap, in this zone
     renderIn("en", enCommon);
-    expect(screen.getByText("Nov 24-25, 2026")).toBeTruthy();
+    expect(screen.getByText("Nov 24 – 25, 2026")).toBeTruthy();
     expect(screen.queryByText(/Nov 23/)).toBeNull();
   });
 
   it("in the page's language, the same way My Trips shows it", () => {
     renderIn("it", itCommon);
-    expect(screen.getByText("nov 24-25, 2026")).toBeTruthy();
+    expect(screen.getByText("24–25 nov 2026")).toBeTruthy();
   });
 });
