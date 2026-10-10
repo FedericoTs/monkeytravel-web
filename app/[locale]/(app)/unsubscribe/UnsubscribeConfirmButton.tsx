@@ -12,6 +12,11 @@ interface UnsubscribeConfirmButtonProps {
    * viaggio"). From profile.unsubscribe.what.
    */
   what: string;
+  /**
+   * A guest's link to one trip's daily plan (what: profile.unsubscribe.guest).
+   * A guest has no account settings to point to, and stays on the trip.
+   */
+  guest?: boolean;
 }
 
 type State =
@@ -29,6 +34,7 @@ type State =
 export function UnsubscribeConfirmButton({
   token,
   what,
+  guest = false,
 }: UnsubscribeConfirmButtonProps) {
   const t = useTranslations("profile.unsubscribe");
   const [state, setState] = useState<State>({ kind: "idle" });
@@ -78,10 +84,14 @@ export function UnsubscribeConfirmButton({
           </svg>
         </div>
         <h1 className="text-2xl font-bold text-slate-900 mb-2">{t("doneTitle")}</h1>
-        <p className="text-slate-600 mb-6">{t("doneBody", { what })}</p>
-        <p className="text-sm text-slate-500">
-          {t.rich("doneChangedMind", { link: settingsLink })}
+        <p className="text-slate-600 mb-6">
+          {guest ? t("guest.doneBody", { what }) : t("doneBody", { what })}
         </p>
+        {!guest && (
+          <p className="text-sm text-slate-500">
+            {t.rich("doneChangedMind", { link: settingsLink })}
+          </p>
+        )}
       </>
     );
   }
@@ -91,7 +101,9 @@ export function UnsubscribeConfirmButton({
       <h1 className="text-2xl font-bold text-slate-900 mb-2">
         {t("confirmTitle", { what })}
       </h1>
-      <p className="text-slate-600 mb-6">{t("confirmBody", { what })}</p>
+      <p className="text-slate-600 mb-6">
+        {guest ? t("guest.confirmBody") : t("confirmBody", { what })}
+      </p>
       <button
         type="button"
         onClick={handleClick}
@@ -105,9 +117,11 @@ export function UnsubscribeConfirmButton({
           {state.reason === "network" ? t("errorNetwork") : t("errorGeneric")}
         </p>
       )}
-      <p className="mt-6 text-sm text-slate-500">
-        {t.rich("orSettings", { link: settingsLink })}
-      </p>
+      {!guest && (
+        <p className="mt-6 text-sm text-slate-500">
+          {t.rich("orSettings", { link: settingsLink })}
+        </p>
+      )}
     </>
   );
 }

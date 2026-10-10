@@ -235,3 +235,89 @@ export function unsubKeyToSettingPatch(key: UnsubKey): Record<string, boolean> {
   }
   return { [key]: false };
 }
+
+/**
+ * Guest tokens: a trip's daily plan sent to an "I'm going" row with no account
+ * (trip_participants.id). Same secret, shape and expiry as the tokens above,
+ * but the MAC covers a purpose tag, so a guest token, an account token and a
+ * day link (lib/trips/day-link.ts) never verify as one another.
+ */
+const PARTICIPANT_PURPOSE = "mt-participant-unsub:v1";
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+interface ParticipantUnsubPayload {
+  t: "participant";
+  p: string; // trip_participants.id
+  e: number; // unix seconds
+}
+
+function participantMac(secret: string, payloadB64: string): string {
+  return b64urlEncode(
+    createHmac("sha256", secret).update(`${PARTICIPANT_PURPOSE}|${payloadB64}`).digest()
+  );
+}
+
+/** Mint a guest's token for one trip_participants row. Throws without a usable secret. */
+export function signParticipantUnsubscribeToken(
+  participantId: string,
+  ttlDays: number = DEFAULT_TTL_DAYS
+): string {
+  if (!UUID_RE.test(participantId)) throw new Error("invalid participant id");
+  const payload: ParticipantUnsubPayload = {
+    t: "participant",
+    p: participantId,
+    e: Math.floor(Date.now() / 1000) + ttlDays * 86400,
+  };
+  const payloadB64 = b64urlEncode(Buffer.from(JSON.stringify(payload), "utf8"));
+  return `${payloadB64}.${participantMac(getSecret(), payloadB64)}`;
+}
+
+export interface ParticipantVerifyResult {
+  ok: boolean;
+  participantId?: string;
+  reason?: VerifyResult["reason"];
+}
+
+/** Verify a guest's token. Never throws; every failure is a reason. */
+export function verifyParticipantUnsubscribeToken(token: string): ParticipantVerifyResult {
+  const parts = typeof token === "string" ? token.split(".") : [];
+  if (parts.length !== 2 || !parts[0] || !parts[1]) return { ok: false, reason: "format" };
+
+  let secret: string;
+  try {
+    secret = getSecret();
+  } catch {
+    return { ok: false, reason: "secret_missing" };
+  }
+
+  // Compared as encoded text: decoding would accept other spellings of one MAC.
+  const given = Buffer.from(parts[1]);
+  const expected = Buffer.from(participantMac(secret, parts[0]));
+  if (given.length !== expected.length || !timingSafeEqual(given, expected)) {
+    return { ok: false, reason: "signature" };
+  }
+
+  let payload: Partial<ParticipantUnsubPayload> | null;
+  try {
+    payload = JSON.parse(b64urlDecode(parts[0]).toString("utf8"));
+  } catch {
+    return { ok: false, reason: "format" };
+  }
+  if (
+    payload?.t !== "participant" ||
+    typeof payload.p !== "string" ||
+    !UUID_RE.test(payload.p) ||
+    typeof payload.e !== "number"
+  ) {
+    return { ok: false, reason: "format" };
+  }
+  if (payload.e * 1000 < Date.now()) return { ok: false, reason: "expired" };
+  return { ok: true, participantId: payload.p };
+}
+
+/** A guest's link: the same /unsubscribe page an account's link opens. */
+export function buildParticipantUnsubscribeUrl(participantId: string, appUrl?: string): string {
+  const base = appUrl ?? (process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app");
+  const token = signParticipantUnsubscribeToken(participantId);
+  return `${base}/unsubscribe?token=${encodeURIComponent(token)}`;
+}

@@ -129,10 +129,12 @@ export function digestStaleReason(day: number, startDate: string, now: Date): st
 export interface DigestRecipient {
   email: string;
   /** Non-null only for a signed-in participant — then dispatchEmail honours
-   * their tripReminders opt-out; anonymous participants have none. */
+   * their tripReminders opt-out; a guest opts out by their own link instead. */
   userId: string | null;
   /** Stable id for the per-recipient idempotency key. */
   key: string;
+  /** Their trip_participants row, which a guest's unsubscribe link names. */
+  participantId: string;
 }
 
 /**
@@ -146,7 +148,7 @@ export interface DigestRecipient {
  * already filtered to active (left_at IS NULL); this is the recipient policy.
  */
 export function digestParticipantRecipients(
-  rows: { email: string | null; user_id: string | null; participant_cookie_id: string | null }[],
+  rows: { id: string; email: string | null; user_id: string | null; participant_cookie_id: string | null }[],
   ownerEmail: string,
 ): DigestRecipient[] {
   const seen = new Set<string>([ownerEmail.trim().toLowerCase()]);
@@ -155,7 +157,12 @@ export function digestParticipantRecipients(
     const email = (r.email ?? "").trim().toLowerCase();
     if (!email || seen.has(email)) continue;
     seen.add(email);
-    out.push({ email, userId: r.user_id ?? null, key: r.participant_cookie_id ?? r.user_id ?? email });
+    out.push({
+      email,
+      userId: r.user_id ?? null,
+      key: r.participant_cookie_id ?? r.user_id ?? email,
+      participantId: r.id,
+    });
   }
   return out;
 }

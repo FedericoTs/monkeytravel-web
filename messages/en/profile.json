@@ -170,6 +170,12 @@
     "expiredBody": "This unsubscribe link has expired. You can manage all your preferences here:",
     "invalidTitle": "Couldn't verify this link",
     "invalidBody": "This unsubscribe link looks invalid or incomplete. Sign in to manage your preferences directly:",
-    "openSettings": "Open notification settings"
+    "openSettings": "Open notification settings",
+    "guest": {
+      "what": "the daily plan for {trip}",
+      "whatThisTrip": "this trip's daily plan",
+      "confirmBody": "Confirm and we'll stop emailing you each day's plan. You'll stay on the list of who's going.",
+      "doneBody": "You won't get {what} anymore, but you're still on the list of who's going."
+    }
   }
 }

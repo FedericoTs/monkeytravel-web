@@ -170,6 +170,12 @@
     "expiredBody": "Este link para cancelar a inscrição expirou. Você pode gerenciar todas as suas preferências aqui:",
     "invalidTitle": "Não conseguimos verificar este link",
     "invalidBody": "Este link para cancelar a inscrição parece inválido ou incompleto. Entre na sua conta para gerenciar suas preferências diretamente:",
-    "openSettings": "Abrir configurações de notificação"
+    "openSettings": "Abrir configurações de notificação",
+    "guest": {
+      "what": "o plano diário de {trip}",
+      "whatThisTrip": "o plano diário desta viagem",
+      "confirmBody": "Confirme e vamos parar de enviar o plano de cada dia para o seu e-mail. Você continua na lista de quem vai.",
+      "doneBody": "Você não vai mais receber {what}, mas continua na lista de quem vai."
+    }
   }
 }

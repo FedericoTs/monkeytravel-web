@@ -7,7 +7,7 @@ export interface FakeQuery {
   table: string;
   op: "select" | "insert" | "update" | "upsert" | "delete" | "rpc";
   value?: unknown;
-  filters: Array<[op: "eq" | "is" | "in", column: string, value: unknown]>;
+  filters: Array<[op: "eq" | "neq" | "is" | "not" | "in" | "lte" | "gte", column: string, value: unknown]>;
   /** How the query was awaited: a single row, or the whole list. */
   end: "single" | "maybeSingle" | "list";
 }
@@ -33,8 +33,12 @@ export function fakeSupabase(answer: FakeAnswer = () => ({ data: null, error: nu
       upsert: (v: unknown) => ((q.op = "upsert"), (q.value = v), chain),
       delete: () => ((q.op = "delete"), chain),
       eq: (c: string, v: unknown) => (q.filters.push(["eq", c, v]), chain),
+      neq: (c: string, v: unknown) => (q.filters.push(["neq", c, v]), chain),
       is: (c: string, v: unknown) => (q.filters.push(["is", c, v]), chain),
+      not: (c: string, op: string, v: unknown) => (q.filters.push(["not", c, [op, v]]), chain),
       in: (c: string, v: unknown) => (q.filters.push(["in", c, v]), chain),
+      lte: (c: string, v: unknown) => (q.filters.push(["lte", c, v]), chain),
+      gte: (c: string, v: unknown) => (q.filters.push(["gte", c, v]), chain),
       order: () => chain,
       limit: () => chain,
       single: async () => done("single"),

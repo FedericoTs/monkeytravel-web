@@ -48,7 +48,7 @@ export interface TripDayDigestEmailProps {
   ctaLabel: string;
   /** The button's target: the owner's signed day page, or a participant's share link. */
   tripUrl: string;
-  /** Optional pre-built HMAC unsubscribe URL (key='tripReminders'). */
+  /** Optional pre-built HMAC unsubscribe URL: an account's (key='tripReminders') or a guest's. */
   unsubscribeUrl?: string;
   /** Recipient UI language — localizes the shared shell. */
   locale?: EmailLocale;

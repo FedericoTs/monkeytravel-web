@@ -1,6 +1,14 @@
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
-import { UNSUB_KEYS, verifyUnsubscribeToken, type UnsubKey } from "@/lib/email/unsubscribe";
+import type { ReactNode } from "react";
+import {
+  UNSUB_KEYS,
+  verifyParticipantUnsubscribeToken,
+  verifyUnsubscribeToken,
+  type UnsubKey,
+} from "@/lib/email/unsubscribe";
+import { guestDigestTripName } from "@/lib/participants/digest-unsubscribe";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { Link } from "@/lib/i18n/routing";
 import { UnsubscribeConfirmButton } from "./UnsubscribeConfirmButton";
 
@@ -40,29 +48,44 @@ interface PageProps {
 export default async function UnsubscribePage({ params, searchParams }: PageProps) {
   const [{ locale }, { token }] = await Promise.all([params, searchParams]);
   const t = await getTranslations({ locale, namespace: "profile.unsubscribe" });
-  const result = verifyUnsubscribeToken(token || "");
+  // A guest's link stops one trip's daily plan. An expired one is reported as
+  // expired, not checked again as an account's link.
+  const guest = verifyParticipantUnsubscribeToken(token || "");
+  const result = guest.ok || guest.reason === "expired" ? null : verifyUnsubscribeToken(token || "");
+  const expired = (result ?? guest).reason === "expired";
 
-  // Every UnsubKey has a phrase in profile.unsubscribe.what, shaped to fit
-  // "Stop receiving {what}?" in each language (checked by
-  // notification-settings-i18n.vitest.ts).
-  const key = result.payload?.k;
-  const what =
-    typeof key === "string" && key in UNSUB_KEYS
-      ? t(`what.${key as UnsubKey}`)
-      : t("what.fallback");
+  let confirm: ReactNode = null;
+  if (guest.ok && guest.participantId) {
+    let trip: string | null = null;
+    try {
+      trip = await guestDigestTripName(createAdminClient(), guest.participantId);
+    } catch {
+      // Only the copy needs the name: without it the page says "this trip".
+    }
+    const what = trip ? t("guest.what", { trip }) : t("guest.whatThisTrip");
+    confirm = <UnsubscribeConfirmButton token={token || ""} what={what} guest />;
+  } else if (result?.ok && result.payload) {
+    // Every UnsubKey has a phrase in profile.unsubscribe.what, shaped to fit
+    // "Stop receiving {what}?" in each language (checked by
+    // notification-settings-i18n.vitest.ts).
+    const key = result.payload.k;
+    const what =
+      typeof key === "string" && key in UNSUB_KEYS
+        ? t(`what.${key as UnsubKey}`)
+        : t("what.fallback");
+    confirm = <UnsubscribeConfirmButton token={token || ""} what={what} />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-sm p-8 text-center">
-        {result.ok && result.payload ? (
-          <UnsubscribeConfirmButton token={token || ""} what={what} />
-        ) : (
+        {confirm ?? (
           <>
             <h1 className="text-2xl font-bold text-slate-900 mb-2">
-              {result.reason === "expired" ? t("expiredTitle") : t("invalidTitle")}
+              {expired ? t("expiredTitle") : t("invalidTitle")}
             </h1>
             <p className="text-slate-600 mb-6">
-              {result.reason === "expired" ? t("expiredBody") : t("invalidBody")}
+              {expired ? t("expiredBody") : t("invalidBody")}
             </p>
             <Link
               href="/profile/notifications"

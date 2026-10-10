@@ -84,16 +84,16 @@ describe("digestStaleReason", () => {
 
 describe("digestParticipantRecipients", () => {
   const rows = (xs: Array<[string | null, string | null, string | null]>) =>
-    xs.map(([email, user_id, participant_cookie_id]) => ({ email, user_id, participant_cookie_id }));
+    xs.map(([email, user_id, participant_cookie_id], i) => ({ id: `row-${i + 1}`, email, user_id, participant_cookie_id }));
 
-  it("keeps emailed participants, carries user id + a stable key", () => {
+  it("keeps emailed participants, carries user id, a stable key and the row", () => {
     const out = digestParticipantRecipients(
       rows([["ana@x.com", "u-1", "c-1"], ["bob@x.com", null, "c-2"]]),
       "owner@x.com",
     );
     expect(out).toEqual([
-      { email: "ana@x.com", userId: "u-1", key: "c-1" },
-      { email: "bob@x.com", userId: null, key: "c-2" },
+      { email: "ana@x.com", userId: "u-1", key: "c-1", participantId: "row-1" },
+      { email: "bob@x.com", userId: null, key: "c-2", participantId: "row-2" },
     ]);
   });
 
@@ -107,10 +107,11 @@ describe("digestParticipantRecipients", () => {
     expect(out).toHaveLength(1);
     expect(out[0].email).toBe("ana@x.com");
     expect(out[0].key).toBe("c-1"); // first wins
+    expect(out[0].participantId).toBe("row-1");
   });
 
   it("skips rows with no email; falls back key cookie→user→email", () => {
     const out = digestParticipantRecipients(rows([[null, "u-1", "c-1"], ["  ", null, "c-2"], ["cara@x.com", "u-3", null]]), "owner@x.com");
-    expect(out).toEqual([{ email: "cara@x.com", userId: "u-3", key: "u-3" }]);
+    expect(out).toEqual([{ email: "cara@x.com", userId: "u-3", key: "u-3", participantId: "row-3" }]);
   });
 });

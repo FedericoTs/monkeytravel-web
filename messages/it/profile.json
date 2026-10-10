@@ -170,6 +170,12 @@
     "expiredBody": "Questo link per annullare l'iscrizione è scaduto. Puoi gestire tutte le preferenze qui:",
     "invalidTitle": "Non riusciamo a verificare questo link",
     "invalidBody": "Questo link per annullare l'iscrizione non sembra valido o è incompleto. Accedi per gestire direttamente le preferenze:",
-    "openSettings": "Apri le impostazioni delle notifiche"
+    "openSettings": "Apri le impostazioni delle notifiche",
+    "guest": {
+      "what": "il piano giornaliero di {trip}",
+      "whatThisTrip": "il piano giornaliero di questo viaggio",
+      "confirmBody": "Conferma e non ti invieremo più via email il piano di ogni giorno. Resterai nella lista di chi viene.",
+      "doneBody": "Non riceverai più {what}, ma sei ancora nella lista di chi viene."
+    }
   }
 }
