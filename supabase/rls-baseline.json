@@ -2204,13 +2204,11 @@
       "anon": [
         "DELETE",
         "INSERT",
-        "SELECT",
         "UPDATE"
       ],
       "authenticated": [
         "DELETE",
         "INSERT",
-        "SELECT",
         "UPDATE"
       ]
     },

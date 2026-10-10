@@ -58,7 +58,7 @@ type TripRow = {
   id: string;
   title: string;
   description: string | null;
-  share_token: string;
+  public_slug: string;
   cover_image_url: string | null;
   tags: string[] | null;
   start_date: string;
@@ -90,7 +90,7 @@ function mapRowToCard(t: TripRow): ExploreTripCard {
     id: t.id,
     title: t.title,
     description: t.description,
-    shareToken: t.share_token,
+    publicSlug: t.public_slug,
     destination: (meta.destination as string) ?? t.title,
     countryCode: (meta.country_code as string) ?? null,
     durationDays,
@@ -170,12 +170,14 @@ export default async function SavedPage({
     }
 
     // Step 2: hydrate the trips (public + visible only — saved trips
-    // that have been un-published or hidden drop off the list).
+    // that have been un-published or hidden drop off the list). Cards link
+    // to the public page by slug: the share link would let a saver join the
+    // trip's group.
     if (savedTripIds.length > 0) {
       const r = await supabase
         .from("trips")
         .select(
-          `id, title, description, share_token, cover_image_url, tags,
+          `id, title, description, public_slug, cover_image_url, tags,
            start_date, end_date, shared_at, trending_score, view_count,
            template_copy_count, like_count, save_count, fork_count,
            author_display_name, author_note, is_editors_pick, travel_style,
@@ -183,7 +185,8 @@ export default async function SavedPage({
         )
         .in("id", savedTripIds)
         .eq("visibility", "public")
-        .eq("is_hidden", false);
+        .eq("is_hidden", false)
+        .not("public_slug", "is", null);
       if (r.error) queryError = r.error.message;
       else {
         // Preserve save order from step 1.

@@ -1,6 +1,7 @@
 import { NextRequest, after } from "next/server";
 import { getAuthenticatedUser, verifyTripAccess, verifyTripOwnership } from "@/lib/api/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { readShareToken } from "@/lib/trips/share-token";
 import { enrichTripByIdAdmin } from "@/lib/images/enrichTrip";
 import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
 import { captureServerEvent } from "@/lib/posthog/server";
@@ -40,25 +41,21 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // Verify ownership and get share status
-    const { trip, errorResponse: tripError } = await verifyTripOwnership(
-      supabase,
-      id,
-      user.id,
-      "id, user_id, share_token"
-    );
+    // Verify ownership, then read the share status
+    const { errorResponse: tripError } = await verifyTripOwnership(supabase, id, user.id);
     if (tripError) return tripError;
+    const existingToken = await readShareToken(id);
 
     // If already shared, return existing token
-    if (trip.share_token) {
+    if (existingToken) {
       // Voters are about to look at this trip again — make sure its activity
       // photos are real, not the curated generation-time fallbacks. Runs after
       // the response (next/server `after`); 24h cooldown makes repeats free.
       after(() => enrichTripByIdAdmin(id, "share"));
-      const shareUrl = await buildShareUrl(user.id, trip.share_token as string);
+      const shareUrl = await buildShareUrl(user.id, existingToken);
       return apiSuccess({
         success: true,
-        shareToken: trip.share_token,
+        shareToken: existingToken,
         shareUrl,
         isNew: false,
       });
@@ -179,30 +176,30 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
     if (errorResponse) return errorResponse;
 
     // Any member may READ the share status: ShareButton asks on mount for
-    // every role, and the trips SELECT policy already shows members the
-    // token and visibility. Owner-only was a 404 on every collaborator's page
-    // load. Creating and revoking (POST/DELETE above) stay with the owner.
+    // every role. Owner-only was a 404 on every collaborator's page load.
+    // Creating and revoking (POST/DELETE above) stay with the owner.
     // user_id must be in the select: verifyTripAccess decides ownership from it.
     const { trip, errorResponse: tripError } = await verifyTripAccess(
       supabase,
       id,
       user.id,
-      "id, user_id, share_token, shared_at, visibility, submitted_to_trending_at"
+      "id, user_id, shared_at, visibility, submitted_to_trending_at"
     );
     if (tripError) return tripError;
+    const shareToken = await readShareToken(id);
 
     // The link carries the OWNER's referral code. buildShareUrl creates a
     // code for whoever it is given, so passing the caller would mint one for
     // a collaborator and credit them.
-    const isShared = !!trip.share_token;
-    const shareUrl = isShared
-      ? await buildShareUrl(trip.user_id, trip.share_token as string)
+    const isShared = !!shareToken;
+    const shareUrl = shareToken
+      ? await buildShareUrl(trip.user_id, shareToken)
       : null;
 
     return apiSuccess({
       success: true,
       isShared,
-      shareToken: trip.share_token,
+      shareToken,
       shareUrl,
       sharedAt: trip.shared_at,
       visibility: trip.visibility,

@@ -19,8 +19,8 @@ interface TripCardProps {
  * Trip card rendered in the /explore feed + homepage trending block +
  * per-destination "trending here" block.
  *
- * Click target: the whole card → `/shared/{token}` (the existing
- * anonymous trip view). The TripCard itself is server-rendered; the
+ * Click target: the whole card → `/trip/{slug}` (the public trip
+ * page). The TripCard itself is server-rendered; the
  * EngagementBar on the destination page handles like/save/fork — the
  * card just surfaces the counts.
  */
@@ -35,12 +35,9 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
     ? "(max-width: 768px) 50vw, 25vw"
     : "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw";
 
-  // Primary click target: the indexable public trip page. Fall back to the
-  // legacy /shared/{token} link when a trip has no public_slug yet (pre-
-  // migration / non-public rows).
-  const tripHref = trip.publicSlug
-    ? `/trip/${trip.publicSlug}`
-    : `/shared/${trip.shareToken}`;
+  // Primary click target: the indexable public trip page. Never /shared/{token}:
+  // that link lets its holder join the trip's group.
+  const tripHref = `/trip/${trip.publicSlug}`;
 
   // The byline links to the creator profile when a public username exists.
   // Because the whole card is a link, we use the "stretched link" pattern:

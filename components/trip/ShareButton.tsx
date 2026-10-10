@@ -93,9 +93,25 @@ export default function ShareButton({
     };
   }, [tripId]);
 
+  // Unpublishing gives the share link a new token, from this window or from
+  // the trip page's publish toggle, so the link is read again when it opens.
+  const refreshShareLink = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/trips/${tripId}/share`);
+      if (!res.ok) return;
+      const status = await res.json();
+      setIsShared(!!status.isShared);
+      setShareUrl(status.shareUrl ?? null);
+      setIsInTrending(!!status.isInTrending);
+    } catch {
+      // Keeps the link it has.
+    }
+  }, [tripId]);
+
   const handleOpen = (tab: "share" | "invite" = "share") => {
     setOpenTab(tab);
     setIsModalOpen(true);
+    void refreshShareLink();
   };
 
   const handleEnableSharing = async () => {
@@ -141,6 +157,7 @@ export default function ShareButton({
 
   const handleTrendingChange = (isTrending: boolean) => {
     setIsInTrending(isTrending);
+    if (!isTrending) void refreshShareLink();
   };
 
   const refreshCollaborators = useCallback(async () => {

@@ -102,7 +102,6 @@ type TripRow = {
   user_id: string;
   title: string | null;
   itinerary: unknown;
-  share_token: string | null;
   is_archived: boolean | null;
 };
 
@@ -132,7 +131,7 @@ async function loadTrip(
     const admin = createAdminClient();
     const { data, error } = await admin
       .from("trips")
-      .select("id, user_id, title, itinerary, share_token, is_archived")
+      .select("id, user_id, title, itinerary, is_archived")
       .eq("id", tripId)
       .eq("share_token", shareToken)
       .is("deleted_at", null)
@@ -159,7 +158,7 @@ async function loadTrip(
   // the response-wrapper error path, and we want a uniform 404 here.
   const { data: trip, error: tripError } = await supabase
     .from("trips")
-    .select("id, user_id, title, itinerary, share_token, is_archived")
+    .select("id, user_id, title, itinerary, is_archived")
     .eq("id", tripId)
     .maybeSingle();
 

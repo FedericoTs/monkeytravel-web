@@ -76,9 +76,8 @@ export async function GET(request: NextRequest) {
       end_date: string;
       tags: string[] | null;
       cover_image_url: string | null;
-      share_token: string;
       shared_at: string | null;
-      public_slug: string | null;
+      public_slug: string;
       user_id: string | null;
       // Lineage — set on forks (POST /api/trips/[id]/fork). Feeds the dedupe.
       parent_trip_id?: string | null;
@@ -116,12 +115,14 @@ export async function GET(request: NextRequest) {
         // /creator/{username}). user_id feeds a batched, privacy-safe
         // username lookup below (never exposes email/payment handles).
         ugcOn
-          ? "id, parent_trip_id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta, like_count, save_count, fork_count, author_display_name, author_note, is_editors_pick, travel_style"
-          : "id, parent_trip_id, title, description, start_date, end_date, tags, cover_image_url, share_token, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta",
+          ? "id, parent_trip_id, title, description, start_date, end_date, tags, cover_image_url, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta, like_count, save_count, fork_count, author_display_name, author_note, is_editors_pick, travel_style"
+          : "id, parent_trip_id, title, description, start_date, end_date, tags, cover_image_url, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta",
         { count: "exact" }
       )
       .eq("visibility", "public")
-      .not("share_token", "is", null)
+      // Cards link to the public page by slug. The share token opens the trip's
+      // private group page, so the feed neither returns nor filters on it.
+      .not("public_slug", "is", null)
       .not("submitted_to_trending_at", "is", null)
       .order("trending_score", { ascending: false })
       .order("shared_at", { ascending: false });
@@ -253,8 +254,7 @@ export async function GET(request: NextRequest) {
         id: trip.id,
         title: trip.title,
         description: trip.description,
-        shareToken: trip.share_token,
-        publicSlug: trip.public_slug ?? undefined,
+        publicSlug: trip.public_slug,
         destination: meta.destination || trip.title,
         countryCode: meta.country_code as string || null,
         durationDays,

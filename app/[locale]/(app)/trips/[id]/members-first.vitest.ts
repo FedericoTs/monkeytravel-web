@@ -7,14 +7,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
  * Until 2026-09-25 the share-link redirect ran first, for everyone: once a
  * trip had a share_token its owner and collaborators were sent to the
  * read-only /shared view on every visit and could never edit it again (109
- * live trips). Members now always get the editor; only non-members follow the
- * share link, and only when RLS lets them see the token (public trips). The
- * real page runs against a fake Supabase that applies the same visibility.
+ * live trips). Members now always get the editor. A non-member of a public
+ * trip goes to its public page, never to the share link, which lets its
+ * holder join the group. The real page runs against a fake Supabase that
+ * applies the same visibility and the column grant (no share_token, no *).
  */
 
 const TRIP = "trip-1";
 const OWNER = "owner-1";
 const TOKEN = "tok-abc";
+const SLUG = "lisbon-trip-abc123";
 
 class Redirect extends Error {
   constructor(public url: string) {
@@ -40,6 +42,7 @@ type World = {
   user: string | null;
   collaborators: Record<string, string>; // user id -> role
   shareToken: string | null;
+  publicSlug?: string | null;
   visibility: "private" | "public";
   isHidden?: boolean;
   displayName?: string | null; // the viewer's public.users.display_name
@@ -56,9 +59,15 @@ const trip = () => ({
   itinerary: [],
   trip_meta: {},
   share_token: world.shareToken,
+  public_slug: world.publicSlug === undefined ? SLUG : world.publicSlug,
   visibility: world.visibility,
   is_hidden: world.isHidden ?? false,
 });
+
+// The column grant: anon and authenticated may select every trips column but
+// share_token, so "*" and share_token are refused (42501) for everyone.
+const refusedColumns = (cols: string) => cols === "*" || /\(\*\)|\bshare_token\b/.test(cols);
+const PERMISSION_DENIED = { data: null, error: { code: "42501", message: "permission denied for table trips" } };
 
 // RLS on trips since 20260901090000: members see the row; anyone sees a
 // public trip; nobody else sees it at all.
@@ -73,8 +82,10 @@ function fakeSupabase() {
     from(table: string) {
       const filters: Record<string, unknown> = {};
       let head = false;
+      let cols = "";
       const q = {
-        select: (_cols: string, opts?: { head?: boolean }) => {
+        select: (selected: string, opts?: { head?: boolean }) => {
+          cols = selected;
           head = !!opts?.head;
           return q;
         },
@@ -85,11 +96,15 @@ function fakeSupabase() {
         maybeSingle: async () => {
           if (table === "users") return { data: { display_name: world.displayName ?? null }, error: null };
           if (table === "trips") {
+            if (refusedColumns(cols)) return PERMISSION_DENIED;
             if (!canSee()) return { data: null, error: null };
             if ("user_id" in filters && filters.user_id !== OWNER) return { data: null, error: null };
-            return { data: trip(), error: null };
+            // Only the selected columns come back.
+            const row = trip() as Record<string, unknown>;
+            return { data: Object.fromEntries(cols.split(",").map((c) => [c.trim(), row[c.trim()]])), error: null };
           }
           // trip_collaborators: the caller's own membership row, with the trip.
+          if (refusedColumns(cols)) return PERMISSION_DENIED;
           const role = world.collaborators[String(filters.user_id)];
           return { data: role ? { role, trips: trip() } : null, error: null };
         },
@@ -173,15 +188,25 @@ describe("the byline the owner would publish with", () => {
 });
 
 describe("non-members", () => {
-  it("a signed-in stranger on a public trip follows the share link, keeping the locale", async () => {
+  it("a signed-in stranger on a public trip goes to its public page, keeping the locale", async () => {
     world.user = "stranger";
     world.visibility = "public";
-    expect(await visit("es")).toEqual({ redirect: `/es/shared/${TOKEN}` });
+    expect(await visit("es")).toEqual({ redirect: `/es/trip/${SLUG}` });
   });
 
-  it("a signed-out visitor on a public trip follows the share link", async () => {
+  it("a signed-out visitor on a public trip goes to its public page", async () => {
     world.visibility = "public";
-    expect(await visit()).toEqual({ redirect: `/shared/${TOKEN}` });
+    expect(await visit()).toEqual({ redirect: `/trip/${SLUG}` });
+  });
+
+  it("is never sent to the share link, which would let them join the group", async () => {
+    world.visibility = "public";
+    for (const user of [null, "stranger"]) {
+      world.user = user;
+      const result = await visit("it");
+      expect(JSON.stringify(result)).not.toContain(TOKEN);
+      expect(JSON.stringify(result)).not.toContain("/shared/");
+    }
   });
 
   it("a signed-out visitor on a private trip is sent to sign in and back to this trip", async () => {
@@ -200,17 +225,17 @@ describe("non-members", () => {
     expect(await visit()).toEqual({ notFound: true });
   });
 
-  it("a hidden public trip is not redirected to its share link", async () => {
+  it("a hidden public trip is not redirected to its public page", async () => {
     world.user = "stranger";
     world.visibility = "public";
     world.isHidden = true;
     expect(await visit()).toEqual({ notFound: true });
   });
 
-  it("a public trip without a share link is a 404 for strangers", async () => {
+  it("a public trip without a public page is a 404 for strangers", async () => {
     world.user = "stranger";
     world.visibility = "public";
-    world.shareToken = null;
+    world.publicSlug = null;
     expect(await visit()).toEqual({ notFound: true });
   });
 });

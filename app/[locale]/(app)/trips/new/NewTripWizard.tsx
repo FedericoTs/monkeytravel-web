@@ -1047,7 +1047,7 @@ export default function NewTripPage({
       const supabase = createClient();
       const { count } = await supabase
         .from("trips")
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .eq("user_id", authUser.id);
       setHasExistingTrips((count ?? 0) > 0);
     };

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
+import { TRIP_COLUMNS } from "@/lib/trips/columns";
 import type { ItineraryDay, Activity } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import {
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
     // (lib/ai/assistant-access.ts); this was owner-only until 2026-09-25.
     const { data: trip, error: tripError } = await supabase
       .from("trips")
-      .select("*")
+      .select(TRIP_COLUMNS)
       .eq("id", tripId)
       .single();
 
