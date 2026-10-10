@@ -31,7 +31,8 @@ function copyableTripMeta(meta: unknown): unknown {
  * The duplicated trip will be private and fully editable by the new owner.
  *
  * Body:
- * - shareToken: string (required) - The share token of the trip to duplicate
+ * - shareToken: string - The share token of the trip to duplicate
+ * - publicSlug: string - Instead, from the public /trip/[slug] page: the trip's slug
  * - startDate: string (optional) - Custom start date for the trip (ISO format)
  */
 export async function POST(request: NextRequest) {
@@ -39,11 +40,13 @@ export async function POST(request: NextRequest) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errors.unauthorized("Please sign in to save this trip");
 
-    // Get share token and optional start date from request body
+    // Get share token (or, from the public page, the slug) and optional start date
     const body = await request.json();
-    const { shareToken, startDate } = body;
+    const { shareToken, publicSlug, startDate } = body;
+    const bySlug = shareToken === undefined;
+    const ref: unknown = bySlug ? publicSlug : shareToken;
 
-    if (!shareToken || typeof shareToken !== "string" || shareToken.length > 100) {
+    if (!ref || typeof ref !== "string" || ref.length > 100) {
       return errors.badRequest("Share token is required");
     }
 
@@ -77,11 +80,12 @@ export async function POST(request: NextRequest) {
     // as getSharedTrip in app/[locale]/(app)/shared/[token]/page.tsx: an exact
     // token match and not deleted (the service role bypasses the policy that
     // used to assert deleted_at). Not a trip moderation has hidden either: the
-    // user-client read refused those, and so does fork.
-    const { data: sourceTrip, error: fetchError } = await createAdminClient()
-      .from("trips")
-      .select("*")
-      .eq("share_token", shareToken)
+    // user-client read refused those, and so does fork. The public page has no
+    // token: by slug, only a public trip answers, as on /trip/[slug].
+    const trips = createAdminClient().from("trips").select("*");
+    const { data: sourceTrip, error: fetchError } = await (bySlug
+      ? trips.eq("public_slug", ref).eq("visibility", "public")
+      : trips.eq("share_token", ref))
       .is("deleted_at", null)
       .not("is_hidden", "is", true)
       .maybeSingle();
