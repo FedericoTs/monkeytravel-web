@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { safeGet, safeSet } from "@/lib/safe-storage";
 
 interface ValuePropositionBannerProps {
@@ -21,8 +22,8 @@ const UNLOCKABLE_FEATURES = [
     // NOT "AI Assistant": the anonymous assistant panel is live on this very
     // screen, a few hundred pixels below this banner, so listing it as a
     // post-save unlock told the reader something they could see was false.
-    title: "Trip reminders",
-    description: "Packing and visa nudges before you go",
+    titleKey: "remindersTitle",
+    descriptionKey: "remindersBody",
   },
   {
     icon: (
@@ -30,8 +31,8 @@ const UNLOCKABLE_FEATURES = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
       </svg>
     ),
-    title: "Full Editing",
-    description: "Customize every detail",
+    titleKey: "editingTitle",
+    descriptionKey: "editingBody",
   },
   {
     icon: (
@@ -39,8 +40,8 @@ const UNLOCKABLE_FEATURES = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
       </svg>
     ),
-    title: "Share & Export",
-    description: "PDF, calendar sync",
+    titleKey: "shareTitle",
+    descriptionKey: "shareBody",
   },
 ];
 
@@ -50,6 +51,7 @@ export default function ValuePropositionBanner({
   variant = "inline",
   className = "",
 }: ValuePropositionBannerProps) {
+  const t = useTranslations("trips.wizard.result.valueBanner");
   const [isVisible, setIsVisible] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
 
@@ -86,7 +88,7 @@ export default function ValuePropositionBanner({
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-full text-xs font-medium text-slate-600 whitespace-nowrap flex-shrink-0"
               >
                 <span className="text-[var(--primary-ink)]">{feature.icon}</span>
-                <span>{feature.title}</span>
+                <span>{t(feature.titleKey)}</span>
               </div>
             ))}
           </div>
@@ -103,11 +105,11 @@ export default function ValuePropositionBanner({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Saving...
+                {t("stickySaving")}
               </span>
             ) : (
               <span className="flex items-center justify-center gap-2">
-                Save Trip & Unlock Features
+                {t("stickyCta")}
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -116,7 +118,7 @@ export default function ValuePropositionBanner({
           </button>
 
           <p className="text-center text-xs text-slate-500 mt-2">
-            Your trip will be saved to your account
+            {t("stickyHint")}
           </p>
         </div>
       </div>
@@ -130,7 +132,7 @@ export default function ValuePropositionBanner({
       <button
         onClick={handleDismiss}
         className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white/80 flex items-center justify-center text-slate-500 hover:text-slate-600 hover:bg-white transition-colors z-10"
-        aria-label="Dismiss"
+        aria-label={t("dismiss")}
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -152,8 +154,8 @@ export default function ValuePropositionBanner({
               </svg>
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900">Save to unlock more</h3>
-              <p className="text-xs text-slate-500">Full editing & AI features</p>
+              <h3 className="font-semibold text-slate-900">{t("title")}</h3>
+              <p className="text-xs text-slate-500">{t("subtitle")}</p>
             </div>
           </div>
 
@@ -167,8 +169,8 @@ export default function ValuePropositionBanner({
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--primary)]/10 to-[var(--secondary)]/10 flex items-center justify-center mx-auto mb-2 text-[var(--primary-ink)]">
                   {feature.icon}
                 </div>
-                <div className="text-sm font-medium text-slate-900">{feature.title}</div>
-                <div className="text-xs text-slate-500 mt-0.5">{feature.description}</div>
+                <div className="text-sm font-medium text-slate-900">{t(feature.titleKey)}</div>
+                <div className="text-xs text-slate-500 mt-0.5">{t(feature.descriptionKey)}</div>
               </div>
             ))}
           </div>
@@ -185,11 +187,11 @@ export default function ValuePropositionBanner({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Saving Your Trip...
+                {t("saving")}
               </>
             ) : (
               <>
-                Save & Start Editing
+                {t("cta")}
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>

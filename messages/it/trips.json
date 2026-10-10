@@ -246,7 +246,23 @@
       "twinTitle": "Hai già «{title}» per queste date",
       "twinBody": "Vuoi sostituire il suo piano con questo o tenere entrambi i viaggi?",
       "twinReplace": "Sostituisci il piano",
-      "twinKeepBoth": "Tieni entrambi"
+      "twinKeepBoth": "Tieni entrambi",
+      "valueBanner": {
+        "title": "Salva e sblocca di più",
+        "subtitle": "Modifica completa e funzionalità AI",
+        "remindersTitle": "Promemoria di viaggio",
+        "remindersBody": "Ti ricordiamo valigia e visti prima di partire",
+        "editingTitle": "Modifica completa",
+        "editingBody": "Personalizza ogni dettaglio",
+        "shareTitle": "Condividi ed esporta",
+        "shareBody": "PDF e sincronizzazione col calendario",
+        "cta": "Salva e inizia a modificare",
+        "saving": "Salvataggio del viaggio...",
+        "stickyCta": "Salva il viaggio e sblocca le funzionalità",
+        "stickySaving": "Salvataggio...",
+        "stickyHint": "Il viaggio verrà salvato nel tuo account",
+        "dismiss": "Chiudi"
+      }
     },
     "anchors": {
       "cta": "Ho già impegni fissi (volo, matrimonio, hotel…)",
