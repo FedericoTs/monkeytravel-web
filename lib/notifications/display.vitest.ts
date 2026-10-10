@@ -15,8 +15,10 @@ import type { NotificationRow } from "./types";
 const COMMON = { en: enCommon, es: esCommon, it: itCommon, pt: ptCommon } as const;
 type Locale = keyof typeof COMMON;
 
-const translator = (locale: Locale) =>
-  createTranslator({ locale, messages: { common: COMMON[locale] }, namespace: "common.share.notifications" });
+function translator(locale: Locale) {
+  const t = createTranslator({ locale, messages: { common: COMMON[locale] }, namespace: "common.share.notifications" });
+  return t as unknown as (key: string, values?: Record<string, string | number>) => string;
+}
 
 const row = (type: NotificationRow["type"], payload: Record<string, unknown>) => ({
   type,
