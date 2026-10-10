@@ -62,3 +62,40 @@ describe("useTodayActions", () => {
     expect(alsoRefresh).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("useTodayActions errors", () => {
+  /** Reads find no actions; every write answers with `write()`. */
+  function stubWrites(write: () => Promise<Response>) {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init?: RequestInit) =>
+        init?.method === "POST" ? write() : new Response(JSON.stringify({ data: [] }), { status: 200 }),
+      ),
+    );
+  }
+
+  async function tapRunningLate() {
+    const { result } = renderHook(() => useTodayActions("/api/shared/token-1", "trip-1", true));
+    await act(async () => {
+      await result.current.apply({ action_type: "running_late", day_number: 1 });
+    });
+    return result.current.error;
+  }
+
+  it("keeps the route's English out: a refused write is a key the screen translates", async () => {
+    stubWrites(async () => new Response(JSON.stringify({ error: "Could not save that" }), { status: 500 }));
+    expect(await tapRunningLate()).toBe("failed");
+  });
+
+  it("tells someone tapping too fast to wait", async () => {
+    stubWrites(async () => new Response(JSON.stringify({ error: "Too many changes. Please slow down.", code: "RATE_LIMIT" }), { status: 429 }));
+    expect(await tapRunningLate()).toBe("rateLimited");
+  });
+
+  it("treats a lost connection as a plain failure", async () => {
+    stubWrites(async () => {
+      throw new TypeError("Failed to fetch");
+    });
+    expect(await tapRunningLate()).toBe("failed");
+  });
+});

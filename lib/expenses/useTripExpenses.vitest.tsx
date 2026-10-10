@@ -51,3 +51,46 @@ describe("useTripExpenses", () => {
     expect(result.current.expenses.map((e) => e.id)).toEqual(["mine", "dinner"]);
   });
 });
+
+describe("useTripExpenses errors", () => {
+  /** Reads find an empty ledger; every write answers `status` with `body`. */
+  function stubWrites(status: number, body: unknown) {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init?: RequestInit) =>
+        init?.method === "POST"
+          ? new Response(JSON.stringify(body), { status })
+          : new Response(JSON.stringify(ledger([])), { status: 200 }),
+      ),
+    );
+  }
+
+  it("names the amount when the route could not read it", async () => {
+    stubWrites(400, { error: "Enter an amount greater than zero" });
+    const { result } = renderHook(() => useTripExpenses("/api/shared/token-1", true));
+    let saved = true;
+    await act(async () => {
+      saved = await result.current.add({ amount: "abc" });
+    });
+    expect(saved).toBe(false);
+    expect(result.current.error).toBe("amount");
+  });
+
+  it("tells someone adding too fast to wait", async () => {
+    stubWrites(429, { error: "Too many changes. Please slow down.", code: "RATE_LIMIT" });
+    const { result } = renderHook(() => useTripExpenses("/api/shared/token-1", true));
+    await act(async () => {
+      await result.current.add({ amount: "30" });
+    });
+    expect(result.current.error).toBe("rateLimited");
+  });
+
+  it("reports a refused removal as a plain failure, never the route's English", async () => {
+    stubWrites(400, { error: "Invalid expense_id" });
+    const { result } = renderHook(() => useTripExpenses("/api/shared/token-1", true));
+    await act(async () => {
+      await result.current.remove("not-a-uuid");
+    });
+    expect(result.current.error).toBe("failed");
+  });
+});

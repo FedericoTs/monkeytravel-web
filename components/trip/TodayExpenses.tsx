@@ -12,12 +12,13 @@ import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { centsToAmount, type ExpensePublic, type ExpenseSummary } from "@/lib/expenses/shared";
 import ExpenseQuickAdd from "@/components/trip/ExpenseQuickAdd";
+import type { TodayErrorKey } from "@/lib/today/errors";
 
 interface TodayExpensesProps {
   expenses: ExpensePublic[];
   summary: ExpenseSummary | null;
   busy: boolean;
-  error: string | null;
+  error: TodayErrorKey | null;
   onAdd: (amount: string) => Promise<boolean>;
   onRemove: (expenseId: string) => void;
   /** Map activity id → name, to label expenses logged on an activity. */
@@ -107,7 +108,7 @@ export default function TodayExpenses({ expenses, summary, busy, error, onAdd, o
       )}
 
       {!hasExpenses && <p className="mt-2 text-xs text-slate-500">{t("today.expenses.empty")}</p>}
-      {error && <p className="mt-2 text-xs text-red-600" role="alert">{error}</p>}
+      {error && <p className="mt-2 text-xs text-red-600" role="alert">{t(`today.errors.${error}`)}</p>}
     </section>
   );
 }

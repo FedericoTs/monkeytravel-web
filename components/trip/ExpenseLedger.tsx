@@ -247,8 +247,7 @@ function ExpenseLedgerInner({
         }),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        addToast(err.error || t("errorAddFailed"), "error");
+        addToast(t("errorAddFailed"), "error");
         return;
       }
       const data = (await res.json()) as { expense: ExpenseRow };
@@ -280,8 +279,8 @@ function ExpenseLedgerInner({
         body: JSON.stringify({ id }),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        addToast(err.error || t("errorDeleteFailed"), "error");
+        // Row-level security refuses someone else's expense with a 403.
+        addToast(t(res.status === 403 ? "errorDeleteNotYours" : "errorDeleteFailed"), "error");
         return;
       }
       const removed = expenses.find((e) => e.id === id);

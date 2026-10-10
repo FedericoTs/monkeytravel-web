@@ -53,12 +53,14 @@ export default function InviteRecipientGate({
         body: JSON.stringify({ locale }),
       });
       if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        throw new Error(body?.error || t("gate.sendFailed"));
+        // The route explains in English for its logs; say it in the page's words.
+        setError(t(res.status === 429 ? "errors.tooManyEmails" : res.status === 404 ? "errors.invalidTokenDesc" : "gate.sendFailed"));
+        setState("idle");
+        return;
       }
       setState("sent");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("gate.sendFailed"));
+    } catch {
+      setError(t("gate.sendFailed"));
       setState("idle");
     }
   };
@@ -72,8 +74,8 @@ export default function InviteRecipientGate({
         options: { redirectTo: buildAuthCallbackUrl(window.location.origin, { next: invitePath, locale }) },
       });
       if (oauthError) throw oauthError;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("errors.signInFailed"));
+    } catch {
+      setError(t("errors.signInFailed"));
       setState("idle");
     }
   };

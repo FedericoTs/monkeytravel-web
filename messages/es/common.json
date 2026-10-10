@@ -280,6 +280,20 @@
       "namePlaceholder": "Sara",
       "submit": "Votar",
       "skip": "Omitir"
+    },
+    "metaDescription": "Echa un vistazo a este itinerario de viaje en MonkeyTravel",
+    "unavailable": {
+      "metaTitle": "Viaje no encontrado",
+      "title": "Este viaje compartido no está disponible",
+      "body": "Puede que el enlace haya caducado o que el propietario haya dejado de compartir el viaje. Pídele un enlace nuevo, o planifica uno propio.",
+      "cta": "Planifica tu propio viaje"
+    },
+    "loadError": {
+      "title": "No se pudo cargar este viaje",
+      "body": "Puede que el enlace no sea válido, haya caducado o no esté disponible en este momento. Inténtalo de nuevo o contacta con el propietario del viaje.",
+      "retry": "Reintentar",
+      "home": "Ir al inicio",
+      "errorId": "ID del error: {digest}"
     }
   },
   "emailSubscribe": {
@@ -1117,7 +1131,12 @@
     "restOfDay": "Resto del día",
     "tomorrow": "Mañana",
     "yesterday": "Ayer",
-    "nothingToday": "Nada planeado para hoy."
+    "nothingToday": "Nada planeado para hoy.",
+    "errors": {
+      "failed": "No ha funcionado. Inténtalo de nuevo.",
+      "rateLimited": "Demasiados cambios seguidos. Espera un momento y vuelve a intentarlo.",
+      "amount": "Introduce un importe mayor que cero."
+    }
   },
   "share": {
     "title": "Compartir Viaje",
@@ -1291,6 +1310,7 @@
       "copyFailed": "Error al copiar el enlace",
       "inviteCreated": "¡Enlace de invitación creado!",
       "inviteCreateFailed": "Error al crear el enlace de invitación",
+      "inviteEmailInvalid": "Esa dirección de correo no parece válida. Revísala e inténtalo de nuevo.",
       "networkError": "Error de red. Por favor, inténtalo de nuevo.",
       "roleUpdated": "Rol actualizado a {role}",
       "roleUpdateFailed": "Error al actualizar el rol",
@@ -1475,6 +1495,12 @@
       "tapToVote": "Toca para ver y votar",
       "tapToPropose": "Toca para proponer una actividad",
       "proposeActivity": "Proponer actividad"
+    },
+    "toasts": {
+      "submitted": "🗳️ ¡Propuesta enviada! Los demás viajeros la votarán.",
+      "voteRecorded": "¡Voto registrado!",
+      "voteRemoved": "Voto eliminado",
+      "rejected": "Propuesta rechazada"
     }
   },
   "collaborators": {
@@ -2304,7 +2330,12 @@
       "failedToJoin": "Error al unirse al viaje",
       "somethingWentWrong": "Algo salió mal",
       "signInFailed": "Error al iniciar sesión",
-      "failedToSendMagicLink": "Error al enviar el enlace mágico"
+      "failedToSendMagicLink": "Error al enviar el enlace mágico",
+      "tooManyEmails": "Demasiados correos de acceso. Inténtalo de nuevo más tarde."
+    },
+    "meta": {
+      "description": "Te han invitado a planear {destination}. Acepta la invitación y empieza a planificar con tu grupo.",
+      "ogDescription": "{name} te ha invitado a un viaje."
     }
   },
   "backpacker": {
@@ -2372,6 +2403,7 @@
     "errorAmountRequired": "Introduce un importe mayor que cero.",
     "errorAddFailed": "No se pudo añadir el gasto — inténtalo de nuevo.",
     "errorDeleteFailed": "No se pudo eliminar el gasto — inténtalo de nuevo.",
+    "errorDeleteNotYours": "Solo puedes eliminar los gastos que añadiste tú.",
     "errorLoadFailed": "No se pudieron cargar los gastos. Inténtalo de nuevo.",
     "retry": "Intentar de nuevo",
     "deleteAriaLabel": "Eliminar este gasto",

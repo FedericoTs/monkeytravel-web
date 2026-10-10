@@ -14,6 +14,16 @@ interface PageProps {
   params: Promise<{ token: string; locale: string }>;
 }
 
+/** The invite error codes, as keys under common.invitePage.errors. */
+const ERROR_KEYS: Record<string, string> = {
+  INVALID_TOKEN: "invalidToken",
+  REVOKED: "revoked",
+  EXPIRED: "expired",
+  MAX_USES: "maxUses",
+  TRIP_NOT_FOUND: "tripNotFound",
+  RECIPIENT_MISMATCH: "recipientMismatch",
+};
+
 async function getInviteData(token: string) {
   // Use admin client for public invite preview (bypasses RLS)
   // This is safe because we only expose limited preview data
@@ -211,6 +221,7 @@ async function viewerOnTrip(tripId: string): Promise<boolean | null> {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { token, locale } = await params;
   const data = await getInviteData(token);
+  const t = await getTranslations({ locale, namespace: "common.invitePage" });
 
   // Root layout's title.template appends " | MonkeyTravel" — page-level
   // titles must NOT include the suffix themselves, or we render the
@@ -221,23 +232,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Title only; the trip's details stay private until then.
   if ("error" in data && data.error === "RECIPIENT_MISMATCH") {
     return {
-      title: `Join ${data.tripTitle}`,
+      title: t("gate.title", { trip: data.tripTitle }),
       robots: { index: false, follow: false },
     };
   }
 
   if ("error" in data) {
     return {
-      title: "Invalid Invite",
+      title: t(`errors.${ERROR_KEYS[data.error as string] ?? "invalidToken"}`),
     };
   }
 
   return {
-    title: `Join ${data.trip.title}`,
-    description: `You've been invited to join a trip to ${data.trip.destination || data.trip.title}. Accept the invite to start planning together!`,
+    title: t("gate.title", { trip: data.trip.title }),
+    description: t("meta.description", { destination: data.trip.destination || data.trip.title }),
     openGraph: {
-      title: `Join ${data.trip.title}`,
-      description: `${data.inviter?.displayName || data.owner.displayName} invited you to join their trip.`,
+      title: t("gate.title", { trip: data.trip.title }),
+      description: t("meta.ogDescription", { name: data.inviter?.displayName || data.owner.displayName }),
       images: data.trip.shareToken
         ? [tripCardUrl({ token: data.trip.shareToken }, { locale })]
         : data.trip.coverImageUrl
@@ -274,15 +285,7 @@ export default async function JoinPage({ params }: PageProps) {
       redirect(`${localePrefix}/trips/${tripId}`);
     }
 
-    const errorMap: Record<string, string> = {
-      INVALID_TOKEN: "invalidToken",
-      REVOKED: "revoked",
-      EXPIRED: "expired",
-      MAX_USES: "maxUses",
-      TRIP_NOT_FOUND: "tripNotFound",
-      RECIPIENT_MISMATCH: "recipientMismatch",
-    };
-    const errorKey = errorMap[data.error as string] ?? "invalidToken";
+    const errorKey = ERROR_KEYS[data.error as string] ?? "invalidToken";
 
     return (
       <div className="min-h-screen min-h-dvh bg-gradient-to-b from-slate-50 to-white flex items-center justify-center p-4">

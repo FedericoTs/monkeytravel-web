@@ -57,4 +57,19 @@ describe("TodayExpenses", () => {
     panel();
     expect(screen.queryByTestId("today-settle-up")).toBeNull();
   });
+
+  it("words a failed payment from today.errors, not from the route's English", () => {
+    render(
+      <TodayExpenses
+        expenses={[]}
+        summary={null}
+        busy={false}
+        error="amount"
+        onAdd={async () => false}
+        onRemove={() => undefined}
+        activityName={() => null}
+      />,
+    );
+    expect(screen.getByRole("alert").textContent).toBe("today.errors.amount");
+  });
 });

@@ -2,6 +2,7 @@
 
 import { reportBoundaryError } from "@/lib/observability/report-boundary-error";
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/routing";
 
 interface ErrorProps {
@@ -10,6 +11,7 @@ interface ErrorProps {
 }
 
 export default function SharedTripError({ error, reset }: ErrorProps) {
+  const t = useTranslations("common.shared.loadError");
   useEffect(() => {
     reportBoundaryError(error, "shared-trip-error");
   }, [error]);
@@ -23,28 +25,28 @@ export default function SharedTripError({ error, reset }: ErrorProps) {
           </svg>
         </div>
         <h1 className="text-xl font-semibold text-slate-900 mb-2">
-          Unable to load this trip
+          {t("title")}
         </h1>
         <p className="text-slate-500 mb-6">
-          This shared trip link may be invalid, expired, or temporarily unavailable. Please try again or contact the trip owner.
+          {t("body")}
         </p>
         <div className="flex gap-3 justify-center">
           <button
             onClick={reset}
             className="px-5 py-2.5 bg-[var(--primary)] text-white rounded-lg font-medium text-sm hover:opacity-90 transition-opacity"
           >
-            Try again
+            {t("retry")}
           </button>
           <Link
             href="/"
             className="px-5 py-2.5 bg-white text-[var(--primary-ink)] border border-slate-200 rounded-lg font-medium text-sm hover:bg-slate-50 transition-colors"
           >
-            Go home
+            {t("home")}
           </Link>
         </div>
         {error.digest && (
           <p className="mt-6 text-xs text-slate-500">
-            Error ID: {error.digest}
+            {t("errorId", { digest: error.digest })}
           </p>
         )}
       </div>
