@@ -1265,7 +1265,21 @@
       "emptyHint": "You'll see updates here when collaborators vote, comment, or accept invites.",
       "viewAllSettings": "View all settings",
       "crewJoined": "{name} is going on “{trip}”",
-      "crewJoinedSomeone": "Someone is going on “{trip}”"
+      "crewJoinedSomeone": "Someone is going on “{trip}”",
+      "anonVote": "{name} started voting on “{trip}”",
+      "anonVoteSomeone": "Someone started voting on “{trip}”",
+      "inviteAccepted": "{name} joined “{trip}”",
+      "inviteAcceptedNoTrip": "{name} joined your trip",
+      "collabVote": {
+        "love": "{name} loved an activity in your trip",
+        "flexible": "{name} is flexible on an activity in your trip",
+        "concerns": "{name} has concerns about an activity in your trip",
+        "no": "{name} voted no on an activity in your trip",
+        "voted": "{name} voted on an activity in your trip"
+      },
+      "collabProposal": "{name} proposed “{activity}” for day {day}",
+      "justNow": "just now",
+      "update": "Update"
     },
     "stopSharing": {
       "button": "Stop sharing this trip",
@@ -2400,6 +2414,7 @@
     "empty": "No expenses logged yet.",
     "toastAdded": "Expense added.",
     "toastDeleted": "Expense removed.",
+    "undo": "Undo",
     "errorAmountRequired": "Enter an amount greater than zero.",
     "errorAddFailed": "Couldn't add the expense — try again.",
     "errorDeleteFailed": "Couldn't delete the expense — try again.",
@@ -2407,6 +2422,8 @@
     "errorLoadFailed": "Could not load expenses. Try again.",
     "retry": "Try again",
     "deleteAriaLabel": "Delete this expense",
+    "amountInvalid": "Enter an amount like {example}.",
+    "amountWhich": "Which amount did you mean?",
     "settle": {
       "openButton": "Settle up",
       "title": "Settle Up",

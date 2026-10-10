@@ -4,9 +4,12 @@
  * Inline "Who paid?" quick-add — Live Trip Phase 3.4. A compact button that
  * expands to an amount field; used per activity in Today and once at the day
  * level. Submitting logs the expense (the caller wires it to the trip's split).
+ * The amount is read in the app's language and sent as canonicalAmount.
  */
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { canonicalAmount, formatAmount, readAmount } from "@/lib/expenses/shared";
+import AmountChoices from "@/components/trip/AmountChoices";
 
 interface ExpenseQuickAddProps {
   onAdd: (amount: string) => Promise<boolean>;
@@ -18,16 +21,32 @@ interface ExpenseQuickAddProps {
 
 export default function ExpenseQuickAdd({ onAdd, busy, variant = "inline", className = "" }: ExpenseQuickAddProps) {
   const t = useTranslations("common");
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
+  const [choices, setChoices] = useState<number[] | null>(null);
+  const [invalid, setInvalid] = useState(false);
+
+  const edit = (value: string) => {
+    setAmount(value);
+    setChoices(null);
+    setInvalid(false);
+  };
+
+  const save = async (cents: number) => {
+    const ok = await onAdd(canonicalAmount(cents));
+    if (ok) {
+      edit("");
+      setOpen(false);
+    }
+  };
 
   const submit = async () => {
     if (!amount.trim()) return;
-    const ok = await onAdd(amount.trim());
-    if (ok) {
-      setAmount("");
-      setOpen(false);
-    }
+    const reading = readAmount(amount, locale);
+    if (reading.kind === "ambiguous") return setChoices(reading.options);
+    if (reading.kind === "invalid" || reading.cents <= 0) return setInvalid(true);
+    await save(reading.cents);
   };
 
   if (!open) {
@@ -60,9 +79,10 @@ export default function ExpenseQuickAdd({ onAdd, busy, variant = "inline", class
         type="text"
         inputMode="decimal"
         value={amount}
-        onChange={(e) => setAmount(e.target.value)}
+        onChange={(e) => edit(e.target.value)}
         data-testid="expense-amount"
         autoFocus
+        aria-invalid={invalid}
         placeholder={t("today.expenses.amountPlaceholder")}
         className="min-h-[40px] w-28 rounded-lg border border-slate-300 px-3 text-sm focus:border-[var(--primary)] focus:outline-none"
       />
@@ -78,12 +98,18 @@ export default function ExpenseQuickAdd({ onAdd, busy, variant = "inline", class
         type="button"
         onClick={() => {
           setOpen(false);
-          setAmount("");
+          edit("");
         }}
         className="min-h-[40px] px-2 text-sm text-slate-500 hover:text-slate-700"
       >
         {t("today.expenses.cancel")}
       </button>
+      {choices && <AmountChoices options={choices} onPick={(cents) => void save(cents)} disabled={busy} className="w-full" />}
+      {invalid && (
+        <p role="alert" className="w-full text-xs text-red-600">
+          {t("expenses.amountInvalid", { example: formatAmount(1250, locale) })}
+        </p>
+      )}
     </form>
   );
 }

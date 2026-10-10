@@ -28,7 +28,8 @@ export interface TripExpensesApi {
   busy: boolean;
   error: TodayErrorKey | null;
   add: (input: AddExpenseInput) => Promise<boolean>;
-  remove: (expenseId: string) => Promise<void>;
+  /** Resolves false when the removal didn't go through. */
+  remove: (expenseId: string, options?: { keepalive?: boolean }) => Promise<boolean>;
   /** Reads the ledger again; keeps what's shown if nothing changed. */
   refetch: () => Promise<void>;
 }
@@ -66,12 +67,13 @@ export function useTripExpenses(base: string, enabled: boolean): TripExpensesApi
   }, [enabled, fetchLedger]);
 
   const post = useCallback(
-    (body: Record<string, unknown>) =>
+    (body: Record<string, unknown>, keepalive = false) =>
       fresh.write(async () => {
         const res = await fetch(`${base}/expense`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
+          keepalive,
         });
         // A 400 on an add is the amount the route could not read.
         if (!res.ok) throw new TodayWriteError(res.status === 400 && !body.undo ? "amount" : todayErrorKey(res.status));
@@ -98,20 +100,20 @@ export function useTripExpenses(base: string, enabled: boolean): TripExpensesApi
     [busy, post],
   );
 
+  // Sent once Undo has had its chance (TodayExpenses), so a change in flight
+  // must not drop it; keepalive lets it outlive a page being closed.
   const remove = useCallback<TripExpensesApi["remove"]>(
-    async (expenseId) => {
-      if (busy) return;
-      setBusy(true);
+    async (expenseId, options) => {
       setError(null);
       try {
-        await post({ undo: true, expense_id: expenseId });
+        await post({ undo: true, expense_id: expenseId }, options?.keepalive);
+        return true;
       } catch (e) {
         setError(e instanceof TodayWriteError ? e.key : "failed");
-      } finally {
-        setBusy(false);
+        return false;
       }
     },
-    [busy, post],
+    [post],
   );
 
   return { expenses, summary, busy, error, add, remove, refetch: fetchLedger };

@@ -1265,7 +1265,21 @@
       "emptyHint": "Você verá atualizações aqui quando os colaboradores votarem, comentarem ou aceitarem convites.",
       "viewAllSettings": "Ver todas as configurações",
       "crewJoined": "{name} vai para “{trip}”",
-      "crewJoinedSomeone": "Alguém vai para “{trip}”"
+      "crewJoinedSomeone": "Alguém vai para “{trip}”",
+      "anonVote": "{name} começou a votar em “{trip}”",
+      "anonVoteSomeone": "Alguém começou a votar em “{trip}”",
+      "inviteAccepted": "{name} entrou em “{trip}”",
+      "inviteAcceptedNoTrip": "{name} entrou na sua viagem",
+      "collabVote": {
+        "love": "{name} amou uma atividade da sua viagem",
+        "flexible": "{name} está flexível sobre uma atividade da sua viagem",
+        "concerns": "{name} tem dúvidas sobre uma atividade da sua viagem",
+        "no": "{name} votou não em uma atividade da sua viagem",
+        "voted": "{name} votou em uma atividade da sua viagem"
+      },
+      "collabProposal": "{name} propôs “{activity}” para o dia {day}",
+      "justNow": "agora mesmo",
+      "update": "Novidade"
     },
     "stopSharing": {
       "button": "Parar de compartilhar esta viagem",
@@ -2400,6 +2414,7 @@
     "empty": "Nenhuma despesa registrada ainda.",
     "toastAdded": "Despesa adicionada.",
     "toastDeleted": "Despesa removida.",
+    "undo": "Desfazer",
     "errorAmountRequired": "Insira um valor maior que zero.",
     "errorAddFailed": "Não foi possível adicionar a despesa — tente novamente.",
     "errorDeleteFailed": "Não foi possível excluir a despesa — tente novamente.",
@@ -2407,6 +2422,8 @@
     "errorLoadFailed": "Não foi possível carregar as despesas. Tente novamente.",
     "retry": "Tentar de novo",
     "deleteAriaLabel": "Excluir esta despesa",
+    "amountInvalid": "Insira um valor como {example}.",
+    "amountWhich": "Qual valor você quis dizer?",
     "settle": {
       "openButton": "Acertar contas",
       "title": "Acertar Contas",

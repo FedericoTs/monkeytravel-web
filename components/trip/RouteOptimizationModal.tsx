@@ -10,6 +10,7 @@ import {
   type OptimizationConstraints,
 } from "@/lib/optimization/routeOptimizer";
 import type { Activity } from "@/types";
+import { activityTypeKey } from "@/lib/i18n/activity-type";
 
 interface RouteOptimizationModalProps {
   isOpen: boolean;
@@ -51,7 +52,7 @@ function getActivityIcon(type: string): string {
     nightlife: "🌙",
     activity: "🎯",
   };
-  return icons[type?.toLowerCase()] || "📍";
+  return icons[activityTypeKey(type) ?? ""] || "📍";
 }
 
 export function RouteOptimizationModal({

@@ -6,6 +6,7 @@ import { Activity } from "@/types";
 import { ActivitySearchResult } from "@/app/api/activities/search/route";
 import { useTranslations } from "next-intl";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 
 interface AddActivityButtonProps {
   dayIndex: number;
@@ -31,6 +32,7 @@ export default function AddActivityButton({
 }: AddActivityButtonProps) {
   const t = useTranslations("common.addActivity");
   const tTrip = useTranslations("common.trip");
+  const typeLabel = useActivityTypeLabel();
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -376,7 +378,7 @@ export default function AddActivityButton({
                         )}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
-                        <span className="capitalize">{result.type}</span>
+                        <span className="capitalize">{typeLabel(result.type)}</span>
                         {result.duration_minutes && (
                           <>
                             <span>•</span>

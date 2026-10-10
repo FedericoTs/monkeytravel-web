@@ -30,7 +30,7 @@ const SITE_URL = "https://monkeytravel.app";
  * This is the Wanderlog-playbook surface: a stable, crawlable URL per
  * published community trip that earns organic search traffic. It reuses the
  * exact same renderer as /shared/[token] (SharedTripView) but differs in
- * three load-bearing ways:
+ * four load-bearing ways:
  *
  *   1. Addressed by `trips.public_slug` (stable, human-readable) rather than
  *      `share_token` (a private capability token that must stay noindex).
@@ -39,6 +39,8 @@ const SITE_URL = "https://monkeytravel.app";
  *   3. Fetched via the admin client with an explicit column allowlist, and
  *      guarded by the published predicate — only genuinely public trips
  *      render; anything else 404s.
+ *   4. Read-only: the share token never reaches the view, so a visitor
+ *      cannot join the group, vote, act on Today or split its costs.
  *
  * Published predicate (must match everywhere):
  *   visibility='public' AND coalesce(is_hidden,false)=false
@@ -56,6 +58,14 @@ interface PageProps {
 
 /** Public-safe author columns. NEVER widen this to email / payment handles. */
 const AUTHOR_COLS = "username, display_name, avatar_url, bio, privacy_settings";
+
+/**
+ * Public-safe trip columns. NEVER add share_token: it is the private share
+ * link's access to the group (joining, votes, Today, expenses), and anything
+ * this page reads can end up in the HTML it sends to anyone.
+ */
+const TRIP_COLS =
+  "id, user_id, title, description, status, start_date, end_date, tags, budget, itinerary, trip_meta, packing_list, cover_image_url, shared_at, visibility, is_hidden, public_slug, like_count, save_count, fork_count";
 
 interface PublicAuthor {
   username: string | null;
@@ -75,7 +85,7 @@ const getPublicTrip = cache(async (slug: string) => {
 
   const { data: trip, error } = await supabase
     .from("trips")
-    .select("*")
+    .select(TRIP_COLS)
     .eq("public_slug", slug)
     .eq("visibility", "public")
     .is("deleted_at", null)
@@ -281,10 +291,9 @@ export default async function PublicTripPage({ params }: PageProps) {
           cachedTravelDistances,
           cachedTravelHash,
         }}
-        // SharedTripView keys client-side share/save behaviour off the
-        // share_token; pass it through so "copy link"/save flows keep working
-        // for a visitor who landed on the public URL.
-        shareToken={trip.share_token ?? ""}
+        // No share token: anyone can open this page, so it renders read-only
+        // and shares and saves by its own URL and slug.
+        publicPage={{ slug, url: tripUrl }}
         dateRange={formatDateRange(trip.start_date, trip.end_date, locale)}
         coverImageUrl={(trip.cover_image_url as string | null) ?? null}
         engagementSlot={

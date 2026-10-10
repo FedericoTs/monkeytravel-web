@@ -17,6 +17,8 @@ interface SaveTripModalProps {
   templateId?: string;
   /** For shared trips: the share token */
   shareToken?: string;
+  /** For a public trip page, which has no share token: the trip's public slug */
+  publicSlug?: string;
   /** Trip metadata for display */
   tripTitle: string;
   tripDestination: string;
@@ -34,6 +36,7 @@ const PENDING_SAVE_KEY = "pendingSaveTripAction";
 interface PendingSave {
   templateId?: string;
   shareToken?: string;
+  publicSlug?: string;
   tripTitle: string;
   startDate?: string;
   timestamp: number;
@@ -65,6 +68,7 @@ export default function SaveTripModal({
   onClose,
   templateId,
   shareToken,
+  publicSlug,
   tripTitle,
   tripDestination,
   tripCountryCode,
@@ -140,12 +144,20 @@ export default function SaveTripModal({
     const pending: PendingSave = {
       templateId,
       shareToken,
+      publicSlug,
       tripTitle,
       startDate,
       timestamp: Date.now(),
     };
     await prefs.set(PENDING_SAVE_KEY, JSON.stringify(pending));
   };
+
+  // Signing in comes back to the page this dialog was opened from.
+  const returnPath = templateId
+    ? `/trips/template/${templateId}`
+    : shareToken
+      ? `/shared/${shareToken}`
+      : `/trip/${publicSlug}`;
 
   // Handle save action
   const handleSave = async () => {
@@ -157,10 +169,7 @@ export default function SaveTripModal({
     if (!isAuthenticated) {
       // Store pending action and redirect to login
       await storePendingSave();
-      const redirectPath = templateId
-        ? `/trips/template/${templateId}`
-        : `/shared/${shareToken}`;
-      router.push(`/auth/login?redirect=${encodeURIComponent(redirectPath)}`);
+      router.push(`/auth/login?redirect=${encodeURIComponent(returnPath)}`);
       return;
     }
 
@@ -177,12 +186,12 @@ export default function SaveTripModal({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ startDate, locale }),
         });
-      } else if (shareToken) {
-        // Duplicate shared trip with new dates
+      } else if (shareToken || publicSlug) {
+        // Duplicate the shared or public trip with new dates
         response = await fetch("/api/trips/duplicate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ shareToken, startDate }),
+          body: JSON.stringify(shareToken ? { shareToken, startDate } : { publicSlug, startDate }),
         });
       } else {
         throw new Error("No template or share token provided");
@@ -396,10 +405,7 @@ export default function SaveTripModal({
                   <button
                     onClick={async () => {
                       await storePendingSave();
-                      const redirectPath = templateId
-                        ? `/trips/template/${templateId}`
-                        : `/shared/${shareToken}`;
-                      router.push(`/auth/login?redirect=${encodeURIComponent(redirectPath)}`);
+                      router.push(`/auth/login?redirect=${encodeURIComponent(returnPath)}`);
                     }}
                     className="text-[var(--primary-ink)] hover:underline font-medium"
                   >

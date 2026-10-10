@@ -11,12 +11,15 @@ import {
   Scale,
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import AmountChoices from "@/components/trip/AmountChoices";
 import SettleUpView from "@/components/trip/SettleUpView";
+import { centsToAmount, formatAmount, readAmount } from "@/lib/expenses/shared";
 import { sentry } from "@/lib/observability/sentry";
 import {
   captureExpenseAdded,
   captureExpenseDeleted,
 } from "@/lib/posthog/events";
+import { useUndoableRemoval } from "@/hooks/useUndoableRemoval";
 
 /**
  * Per-trip expense ledger (task #220).
@@ -124,7 +127,6 @@ function ExpenseLedgerInner({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   // Settle-up modal lives inside the ledger so trip members can see
   // recommended transfers without leaving the spend timeline. Hidden
   // until at least one expense exists — settling an empty ledger has
@@ -133,6 +135,8 @@ function ExpenseLedgerInner({
 
   // Add-form state
   const [amount, setAmount] = useState("");
+  // Set when the typed amount reads two ways: the readings to pick from.
+  const [amountChoices, setAmountChoices] = useState<number[] | null>(null);
   const [currency, setCurrency] = useState(defaultCurrency);
   const [category, setCategory] = useState<ExpenseRow["category"]>("food");
   const [description, setDescription] = useState("");
@@ -201,11 +205,41 @@ function ExpenseLedgerInner({
     return () => ctrl.abort();
   }, [loadExpenses]);
 
+  /** Sent once the Undo toast has gone (useUndoableRemoval). */
+  const sendDelete = async (id: string, { keepalive }: { keepalive: boolean }) => {
+    try {
+      const res = await fetch(`/api/trips/${tripId}/expenses`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+        keepalive,
+      });
+      if (!res.ok) {
+        // Row-level security refuses someone else's expense with a 403.
+        addToast(t(res.status === 403 ? "errorDeleteNotYours" : "errorDeleteFailed"), "error");
+        return false;
+      }
+      const removed = expenses.find((e) => e.id === id);
+      setExpenses((prev) => prev.filter((e) => e.id !== id));
+      void captureExpenseDeleted({
+        trip_id: tripId,
+        was_self: removed?.created_by === currentUserId,
+      }).catch(() => {});
+      return true;
+    } catch (err) {
+      console.error("[ExpenseLedger] delete failed", err);
+      addToast(t("errorDeleteFailed"), "error");
+      return false;
+    }
+  };
+  const { hidden, remove: handleDelete } = useUndoableRemoval(sendDelete, { removed: t("toastDeleted"), undo: t("undo") });
+  const shown = useMemo(() => expenses.filter((e) => !hidden.has(e.id)), [expenses, hidden]);
+
   /** Per-currency totals + per-category breakdown. */
   const totals = useMemo(() => {
     const byCurrency = new Map<string, number>();
     const byCategoryAndCurrency = new Map<string, Map<string, number>>();
-    for (const e of expenses) {
+    for (const e of shown) {
       const amt = typeof e.amount === "string" ? Number(e.amount) : e.amount;
       if (!Number.isFinite(amt)) continue;
       byCurrency.set(e.currency, (byCurrency.get(e.currency) || 0) + amt);
@@ -216,23 +250,38 @@ function ExpenseLedgerInner({
       byCategoryAndCurrency.set(e.category, inner);
     }
     return { byCurrency, byCategoryAndCurrency };
-  }, [expenses]);
+  }, [shown]);
 
   const resetForm = () => {
     setAmount("");
+    setAmountChoices(null);
     setCurrency(defaultCurrency);
     setCategory("food");
     setDescription("");
     setSpentOn(todayLocalISO());
   };
 
-  const handleAdd = async () => {
+  /** `pickedCents` is the reading chosen when the typed amount read two ways. */
+  const handleAdd = async (pickedCents?: number) => {
     if (saving) return;
-    const n = Number(amount);
-    if (!Number.isFinite(n) || n <= 0) {
+    let cents = pickedCents;
+    if (cents === undefined) {
+      const reading = readAmount(amount, locale);
+      if (reading.kind === "ambiguous") {
+        setAmountChoices(reading.options);
+        return;
+      }
+      if (reading.kind === "invalid") {
+        addToast(t("amountInvalid", { example: formatAmount(1250, locale) }), "error");
+        return;
+      }
+      cents = reading.cents;
+    }
+    if (cents <= 0) {
       addToast(t("errorAmountRequired"), "error");
       return;
     }
+    const n = centsToAmount(cents);
     setSaving(true);
     try {
       const res = await fetch(`/api/trips/${tripId}/expenses`, {
@@ -266,35 +315,6 @@ function ExpenseLedgerInner({
       addToast(t("errorAddFailed"), "error");
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (deletingId) return;
-    setDeletingId(id);
-    try {
-      const res = await fetch(`/api/trips/${tripId}/expenses`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
-      if (!res.ok) {
-        // Row-level security refuses someone else's expense with a 403.
-        addToast(t(res.status === 403 ? "errorDeleteNotYours" : "errorDeleteFailed"), "error");
-        return;
-      }
-      const removed = expenses.find((e) => e.id === id);
-      setExpenses((prev) => prev.filter((e) => e.id !== id));
-      addToast(t("toastDeleted"), "success");
-      void captureExpenseDeleted({
-        trip_id: tripId,
-        was_self: removed?.created_by === currentUserId,
-      }).catch(() => {});
-    } catch (err) {
-      console.error("[ExpenseLedger] delete failed", err);
-      addToast(t("errorDeleteFailed"), "error");
-    } finally {
-      setDeletingId(null);
     }
   };
 
@@ -363,7 +383,7 @@ function ExpenseLedgerInner({
           {/* Settle-up is only useful with at least one expense logged.
               Rendering it on an empty ledger would invite a click into a
               guaranteed-empty modal. */}
-          {expenses.length > 0 && (
+          {shown.length > 0 && (
             <button
               type="button"
               onClick={() => setShowSettle(true)}
@@ -402,14 +422,17 @@ function ExpenseLedgerInner({
               <span className="text-xs font-medium text-slate-600 block mb-1">
                 {t("fieldAmount")}
               </span>
+              {/* Text, not type="number": browsers read "1.200" there as 1.2. */}
               <input
-                type="number"
+                type="text"
                 inputMode="decimal"
-                min="0"
-                step="0.01"
+                autoComplete="off"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
+                onChange={(e) => {
+                  setAmount(e.target.value);
+                  setAmountChoices(null);
+                }}
+                placeholder={formatAmount(0, locale)}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
               />
             </label>
@@ -440,6 +463,7 @@ function ExpenseLedgerInner({
               />
             </label>
           </div>
+          {amountChoices && <AmountChoices options={amountChoices} onPick={(cents) => void handleAdd(cents)} disabled={saving} />}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <label className="block">
               <span className="text-xs font-medium text-slate-600 block mb-1">
@@ -486,7 +510,7 @@ function ExpenseLedgerInner({
             </button>
             <button
               type="button"
-              onClick={handleAdd}
+              onClick={() => void handleAdd()}
               disabled={saving || !amount}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50"
             >
@@ -518,13 +542,13 @@ function ExpenseLedgerInner({
             </button>
           </div>
         </div>
-      ) : expenses.length === 0 ? (
+      ) : shown.length === 0 ? (
         <div className="p-6 text-center text-sm text-slate-500">
           {t("empty")}
         </div>
       ) : (
         <ul className="divide-y divide-slate-100">
-          {expenses.map((e) => {
+          {shown.map((e) => {
             const amt =
               typeof e.amount === "string" ? Number(e.amount) : e.amount;
             // RLS policy `trip_expenses_delete_creator_or_owner` allows
@@ -560,15 +584,10 @@ function ExpenseLedgerInner({
                   <button
                     type="button"
                     onClick={() => handleDelete(e.id)}
-                    disabled={deletingId === e.id}
                     aria-label={t("deleteAriaLabel")}
-                    className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                    className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   >
-                    {deletingId === e.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-                    ) : (
-                      <Trash2 className="w-4 h-4" aria-hidden="true" />
-                    )}
+                    <Trash2 className="w-4 h-4" aria-hidden="true" />
                   </button>
                 )}
               </li>

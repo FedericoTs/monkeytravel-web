@@ -22,7 +22,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
-import { centsToAmount, splitEquallyCents } from "@/lib/expenses/shared";
+import { centsToAmount, readAmount, splitEquallyCents } from "@/lib/expenses/shared";
 import { publicNameOrNull } from "@/lib/profile/public-name";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { expenseCohort, tripRoster } from "@/lib/trips/roster";
@@ -132,8 +132,9 @@ function normalizeBody(body: unknown): {
   if (typeof b.amount === "number" && Number.isFinite(b.amount)) {
     out.amount = Math.round(b.amount * 100) / 100;
   } else if (typeof b.amount === "string") {
-    const n = Number(b.amount);
-    if (Number.isFinite(n)) out.amount = Math.round(n * 100) / 100;
+    // Number("1.200") is 1.2: read it like Today does, refusing what reads two ways.
+    const reading = readAmount(b.amount);
+    if (reading.kind === "amount") out.amount = centsToAmount(reading.cents);
   }
 
   if (typeof b.currency === "string") {

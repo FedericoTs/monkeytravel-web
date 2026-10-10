@@ -246,7 +246,23 @@
       "twinTitle": "You already have “{title}” for these dates",
       "twinBody": "Replace its plan with this one, or keep both trips?",
       "twinReplace": "Replace its plan",
-      "twinKeepBoth": "Keep both"
+      "twinKeepBoth": "Keep both",
+      "valueBanner": {
+        "title": "Save to unlock more",
+        "subtitle": "Full editing & AI features",
+        "remindersTitle": "Trip reminders",
+        "remindersBody": "Packing and visa nudges before you go",
+        "editingTitle": "Full Editing",
+        "editingBody": "Customize every detail",
+        "shareTitle": "Share & Export",
+        "shareBody": "PDF, calendar sync",
+        "cta": "Save & Start Editing",
+        "saving": "Saving Your Trip...",
+        "stickyCta": "Save Trip & Unlock Features",
+        "stickySaving": "Saving...",
+        "stickyHint": "Your trip will be saved to your account",
+        "dismiss": "Dismiss"
+      }
     },
     "anchors": {
       "cta": "I have fixed plans (flight, wedding, hotel…)",
@@ -618,7 +634,14 @@
     "nightlife": "Nightlife",
     "spa": "Spa",
     "wellness": "Wellness",
-    "event": "Event"
+    "event": "Event",
+    "adventure": "Adventure",
+    "urban": "Urban",
+    "sightseeing": "Sightseeing",
+    "accommodation": "Accommodation",
+    "romantic": "Romantic",
+    "tour": "Tour",
+    "beach": "Beach"
   },
   "durations": {
     "30min": "30 min",

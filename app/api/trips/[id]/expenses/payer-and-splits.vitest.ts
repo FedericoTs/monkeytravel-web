@@ -127,6 +127,16 @@ describe("POST /api/trips/[id]/expenses", () => {
     expect(ops("trip_expense_splits", "insert")).toEqual([]);
     expect(ops("trip_expenses", "delete")).toHaveLength(1);
   });
+
+  it("reads an amount sent as text like Today does, refusing one that could mean two things", async () => {
+    // Number("1.200") is 1.2: this used to be saved a thousand times too small.
+    const res = await POST(req("POST", { amount: "1.200", currency: "EUR", category: "food" }), ctx);
+    expect(res.status).toBe(400);
+    expect(ops("trip_expenses", "insert")).toEqual([]);
+
+    await POST(req("POST", { amount: "1.200,50", currency: "EUR", category: "food" }), ctx);
+    expect(ops("trip_expenses", "insert")[0].value).toMatchObject({ amount: 1200.5 });
+  });
 });
 
 describe("PATCH /api/trips/[id]/expenses", () => {

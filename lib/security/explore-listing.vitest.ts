@@ -6,6 +6,7 @@ import path from "node:path";
  * A trip reaches Explore only through POST /api/trips/[id]/publish, which
  * asks before publishing fixed plans and applies the activity, length and
  * weekly limits. These guards fail if another route starts listing trips.
+ * Unpublishing and stopping sharing take a trip off, and clear the stamp.
  */
 
 const ROOT = path.resolve(__dirname, "../..");
@@ -20,13 +21,28 @@ function sourceFiles(dir: string): string[] {
   });
 }
 
+const PUBLISH_ROUTE = path.join("app", "api", "trips", "[id]", "publish", "route.ts");
+const SHARE_ROUTE = path.join("app", "api", "trips", "[id]", "share", "route.ts");
+
+// Every file that writes the listing column; one scan serves both guards.
+let writers: Array<[string, string]> | undefined;
+const listingWriters = () =>
+  (writers ??= ["app", "lib", "components"]
+    .flatMap(sourceFiles)
+    .map((file): [string, string] => [file, read(file)])
+    .filter(([, src]) => /submitted_to_trending_at\s*:/.test(src)));
+
 describe("Explore listing", () => {
-  it("only the publish route writes the listing column", () => {
-    const writers = ["app", "lib", "components"]
-      .flatMap(sourceFiles)
-      .filter((file) => /submitted_to_trending_at\s*:/.test(read(file)));
-    expect(writers).toEqual([path.join("app", "api", "trips", "[id]", "publish", "route.ts")]);
-  });
+  // Reads every source file: give it room when the whole suite runs at once.
+  it("only the publish route sets the listing column", () => {
+    const setters = listingWriters().filter(([, src]) => /submitted_to_trending_at\s*:(?!\s*null\b)/.test(src));
+    expect(setters.map(([file]) => file)).toEqual([PUBLISH_ROUTE]);
+  }, 30_000);
+
+  it("only unpublishing and stopping sharing clear it", () => {
+    const clearers = listingWriters().filter(([, src]) => /submitted_to_trending_at\s*:\s*null\b/.test(src));
+    expect(clearers.map(([file]) => file).sort()).toEqual([PUBLISH_ROUTE, SHARE_ROUTE].sort());
+  }, 30_000);
 
   it("the unchecked submit-trending route stays gone", () => {
     expect(existsSync(path.join(ROOT, "app/api/trips/[id]/submit-trending"))).toBe(false);

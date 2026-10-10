@@ -166,6 +166,16 @@ describe("POST /api/shared/[token]/expense", () => {
     expect(eqOf(removed, "created_by_cookie_id")).toBeUndefined();
   });
 
+  it("records the amount the browser read, and refuses one that could mean two things", async () => {
+    await send({ amount: "1200.00" });
+    expect(ops("trip_expenses", "insert")[0].value).toMatchObject({ amount: 1200 });
+
+    // No locale here: "1.200" is 1200 in Italian but 1.20 in English.
+    const res = await send({ amount: "1.200" });
+    expect(res.status).toBe(400);
+    expect(ops("trip_expenses", "insert")).toEqual([]);
+  });
+
   it("leaves someone else's expense alone", async () => {
     signedIn = { id: "mate-1" };
     existingExpense = { created_by: "other-1", created_by_cookie_id: null };

@@ -33,6 +33,7 @@ import DaySummary from "@/components/trip/DaySummary";
 import SaveTripModal, { usePendingSaveTripAction } from "@/components/ui/SaveTripModal";
 import { useAuth } from "@/components/auth/AuthProvider";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
+import ShareRow from "@/components/ShareRow";
 import {
   AnonymousActivityVoteBar,
   type MyVote,
@@ -96,7 +97,14 @@ interface SharedTripViewProps {
     /** Hash of itinerary when travel distances were calculated */
     cachedTravelHash?: string;
   };
-  shareToken: string;
+  /**
+   * The share link's token: holding it is access to the group (joining,
+   * votes, Today's actions, expenses). The public /trip/[slug] page passes
+   * `publicPage` instead, and the view is read-only.
+   */
+  shareToken?: string;
+  /** The public page's slug and canonical URL, which sharing and saving use there. */
+  publicPage?: { slug: string; url: string };
   dateRange: string;
   /**
    * Persisted cover image URL (column `trips.cover_image_url`). The hero runs
@@ -132,7 +140,7 @@ interface SharedTripViewProps {
   liveState?: TripDayState;
 }
 
-export default function SharedTripView({ trip, shareToken, dateRange, coverImageUrl, engagementSlot, viewSource, isOwner = false, editorHref, liveState }: SharedTripViewProps) {
+export default function SharedTripView({ trip, shareToken, publicPage, dateRange, coverImageUrl, engagementSlot, viewSource, isOwner = false, editorHref, liveState }: SharedTripViewProps) {
   const t = useTranslations('common');
   const typeLabel = useActivityTypeLabel();
   // A live trip opens on Today, for every viewer.
@@ -156,8 +164,10 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   // as the personal ask it actually was.
   const crewAsk = searchParams?.get("vote") === "1";
   // The recipient page is built around "I'm going". Off
-  // (NEXT_PUBLIC_LIVE_TRIP_PARTICIPANTS=off) returns the browse layout.
-  const participantsEnabled = isLiveTripParticipantsEnabled() && !!shareToken;
+  // (NEXT_PUBLIC_LIVE_TRIP_PARTICIPANTS=off) returns the browse layout. The
+  // public page keeps the layout, but every group control needs the token.
+  const participantsEnabled = isLiveTripParticipantsEnabled();
+  const publicSlug = publicPage?.slug;
 
   // Record the open. One row per session per trip per UTC day is the
   // database's rule (UNIQUE trip_id, session_id, viewed_on); this only has to
@@ -217,7 +227,9 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
     if (viewerLoading || !viewer) return;
     let cancelled = false;
     void getPending().then(async (pending) => {
-      if (cancelled || !pending || pending.shareToken !== shareToken) return;
+      if (cancelled || !pending) return;
+      const ours = shareToken ? pending.shareToken === shareToken : !!publicSlug && pending.publicSlug === publicSlug;
+      if (!ours) return;
       await clearPending();
       setResumedStartDate(pending.startDate);
       setShowSaveModal(true);
@@ -225,12 +237,12 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
     return () => {
       cancelled = true;
     };
-  }, [viewerLoading, viewer, shareToken, getPending, clearPending]);
+  }, [viewerLoading, viewer, shareToken, publicSlug, getPending, clearPending]);
   // Signed out, this browser may join or pay here as a guest: note it, so the
   // next sign-in hands that to the account (lib/participants/link-trigger).
   useEffect(() => {
-    if (!viewerLoading && !viewer) void prefs.set(GUEST_LINK_KEY, "1");
-  }, [viewerLoading, viewer]);
+    if (shareToken && !viewerLoading && !viewer) void prefs.set(GUEST_LINK_KEY, "1");
+  }, [shareToken, viewerLoading, viewer]);
   // The sharer opening their own link: this browser still holds the claim
   // token for THIS trip. "Save to My Trips" would duplicate their own
   // itinerary, so the strip offers the claim instead, and once the claim lands
@@ -240,7 +252,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   useEffect(() => {
     let alive = true;
     void readPendingClaim().then((p) => {
-      if (alive) setOwnerPending(!!p && p.shareToken === shareToken);
+      if (alive) setOwnerPending(!!shareToken && !!p && p.shareToken === shareToken);
     });
     return () => {
       alive = false;
@@ -274,6 +286,8 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   const [myVotes, setMyVotes] = useState<Record<string, "up" | "down">>({});
   const [pendingVoteId, setPendingVoteId] = useState<string | null>(null);
   const [hasDisplayName, setHasDisplayName] = useState(false);
+  // Votes go through the share link, so the public page shows none.
+  const canVote = !!shareToken;
 
   // Track share link view for viral loop analytics
   useEffect(() => {
@@ -286,6 +300,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
   // Hydrate vote tallies + this viewer's own votes on mount. One round-trip,
   // returns all activities at once (typical trip is <40 activities).
   useEffect(() => {
+    if (!shareToken) return;
     let cancelled = false;
     (async () => {
       try {
@@ -542,10 +557,28 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
           // The owner (e.g. opening their own share link): show them who's
           // going, not an "I'm going" button.
           <WhoIsGoingCard tripId={trip.id} className="mb-6" />
+        ) : !shareToken ? (
+          // The public page: share its own URL or save a copy, nothing more.
+          participantsEnabled &&
+          publicPage && (
+            <div
+              data-testid="public-trip-actions"
+              className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
+            >
+              <ShareRow url={publicPage.url} title={trip.title} />
+              <button
+                type="button"
+                onClick={() => setShowSaveModal(true)}
+                className="inline-flex min-h-[40px] items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                {t("share.participants.saveForLater")}
+              </button>
+            </div>
+          )
         ) : participantsEnabled ? (
           <ParticipantsBar
             shareToken={shareToken}
-            source={crewAsk ? "crew_ask" : viewSource === "public" ? "public" : "shared"}
+            source={crewAsk ? "crew_ask" : "shared"}
             crewAsk={crewAsk}
             tripTitle={trip.title}
             onSaveForLater={() => setShowSaveModal(true)}
@@ -586,7 +619,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
             weatherNote={trip.meta?.weather_note}
             onViewFullItinerary={() => setTodayMode(false)}
             tripId={trip.id}
-            apiBase={`/api/shared/${shareToken}`}
+            apiBase={shareToken ? `/api/shared/${shareToken}` : undefined}
             packingItems={trip.packingList}
             className="mb-6"
           />
@@ -785,7 +818,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
                                 showGallery={true}
                                 disableAutoFetch={true}
                               />
-                              {voteActivityId && (
+                              {canVote && voteActivityId && (
                                 <div className="px-3 sm:px-4 pb-3">
                                   <AnonymousActivityVoteBar
                                     activityId={voteActivityId}
@@ -877,7 +910,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
                                       </span>
                                     </div>
                                   </div>
-                                  {activity.id && (
+                                  {canVote && activity.id && (
                                     <div className="mt-3">
                                       <AnonymousActivityVoteBar
                                         activityId={activity.id}
@@ -1079,6 +1112,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
           isOpen={showSaveModal}
           onClose={() => setShowSaveModal(false)}
           shareToken={shareToken}
+          publicSlug={publicSlug}
           tripTitle={trip.title}
           tripDestination={destination}
           durationDays={nights + 1}

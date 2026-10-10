@@ -7,6 +7,7 @@ import Image from "next/image";
 import type { Activity, ProposalType } from "@/types";
 import BaseModal from "@/components/ui/BaseModal";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 
 // Reuse activity search result type
 interface ActivitySearchResult {
@@ -83,6 +84,7 @@ export function ProposeActivitySheet({
   onPropose,
 }: ProposeActivitySheetProps) {
   const t = useTranslations("common.proposeActivity");
+  const typeLabel = useActivityTypeLabel();
 
   // Step navigation
   const [step, setStep] = useState<Step>('search');
@@ -389,7 +391,7 @@ export function ProposeActivitySheet({
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
-                          <span className="capitalize">{result.type}</span>
+                          <span className="capitalize">{typeLabel(result.type)}</span>
                           {result.duration_minutes && (
                             <>
                               <span>•</span>
@@ -526,7 +528,7 @@ export function ProposeActivitySheet({
               <div className="p-4">
                 <h4 className="font-semibold text-slate-900">{selectedActivity.name}</h4>
                 <div className="flex items-center gap-2 mt-1 text-sm text-slate-500">
-                  <span className="capitalize">{selectedActivity.type}</span>
+                  <span className="capitalize">{typeLabel(selectedActivity.type)}</span>
                   {selectedActivity.duration_minutes && (
                     <>
                       <span>•</span>
