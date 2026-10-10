@@ -52,7 +52,7 @@ export type AuthResult = AuthSuccess | AuthFailure;
  * if (errorResponse) return errorResponse;
  *
  * // Now user is guaranteed to exist
- * const { data } = await supabase.from('trips').select().eq('user_id', user.id);
+ * const { data } = await supabase.from('trips').select('id, title').eq('user_id', user.id);
  */
 export async function getAuthenticatedUser(): Promise<AuthResult> {
   const supabase = await createClient();

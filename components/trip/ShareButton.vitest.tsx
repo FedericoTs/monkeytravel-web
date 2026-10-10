@@ -8,11 +8,11 @@ vi.mock("next-intl", () => ({
 }));
 vi.mock("@/components/collaboration/CollaboratorAvatars", () => ({ CollaboratorAvatars: () => null }));
 vi.mock("@/lib/analytics", () => ({ trackTripShared: vi.fn() }));
-// The modal has its own tests; here it only reports whether it is open, on which tab, and the Explore state.
+// The modal has its own tests; here it only reports whether it is open, on which tab, the Explore state and the link.
 vi.mock("./ShareAndInviteModal", () => ({
-  default: ({ isOpen, initialTab, isInTrending, exploreEnabled, onClose, onRequestPublish, onStopSharing }: { isOpen: boolean; initialTab: string; isInTrending: boolean; exploreEnabled?: boolean; onClose: () => void; onRequestPublish?: () => void; onStopSharing: () => void }) =>
+  default: ({ isOpen, initialTab, isInTrending, exploreEnabled, shareUrl, onClose, onRequestPublish, onStopSharing }: { isOpen: boolean; initialTab: string; isInTrending: boolean; exploreEnabled?: boolean; shareUrl: string; onClose: () => void; onRequestPublish?: () => void; onStopSharing: () => void }) =>
     isOpen ? (
-      <div role="dialog" data-tab={initialTab} data-trending={String(isInTrending)} data-explore={String(exploreEnabled)}>
+      <div role="dialog" data-tab={initialTab} data-trending={String(isInTrending)} data-explore={String(exploreEnabled)} data-url={shareUrl}>
         <button onClick={onClose}>close</button>
         <button onClick={onRequestPublish}>list in explore</button>
         <button onClick={onStopSharing}>stop sharing</button>
@@ -118,5 +118,22 @@ describe("ShareButton listing in Explore", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /^shared?$/ }));
     expect(screen.getByRole("dialog").getAttribute("data-trending")).toBe("false");
+  });
+});
+
+describe("ShareButton share link", () => {
+  // Unpublishing gives the link a new token, also from the trip page's toggle.
+  it("reads the link again when the window opens", async () => {
+    let shareUrl = "https://x/shared/old-token";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true, json: async () => ({ isShared: true, shareUrl, collaborators: [] }) }))
+    );
+    render(<ShareButton tripId="trip-1" tripTitle="Lisbon" />);
+    await waitFor(() => expect(screen.getByRole("button", { name: "shared" })).toBeTruthy());
+
+    shareUrl = "https://x/shared/new-token";
+    fireEvent.click(screen.getByRole("button", { name: "shared" }));
+    await waitFor(() => expect(screen.getByRole("dialog").getAttribute("data-url")).toBe("https://x/shared/new-token"));
   });
 });

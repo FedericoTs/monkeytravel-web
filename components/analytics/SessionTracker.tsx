@@ -111,12 +111,12 @@ export default function SessionTracker() {
         // Total trips count
         supabase
           .from("trips")
-          .select("*", { count: "exact", head: true })
+          .select("id", { count: "exact", head: true })
           .eq("user_id", user.id),
         // Active trips count
         supabase
           .from("trips")
-          .select("*", { count: "exact", head: true })
+          .select("id", { count: "exact", head: true })
           .eq("user_id", user.id)
           .eq("status", "active"),
         // Beta access check. maybeSingle, not single: most users have no

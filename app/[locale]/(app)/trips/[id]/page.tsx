@@ -11,6 +11,7 @@ import { computeTripDayState } from "@/lib/trip/live";
 import TripEngagementSection from "@/components/explore/TripEngagementSection";
 import { refreshTripItinerary } from "@/lib/places/refreshItineraryPhotos";
 import { publicNameOrNull } from "@/lib/profile/public-name";
+import { TRIP_COLUMNS } from "@/lib/trips/columns";
 
 export async function generateMetadata(): Promise<Metadata> {
   // Title is intentionally generic — pulling the actual trip title here
@@ -44,14 +45,14 @@ export default async function TripDetailPage({
   // Members first: the owner and anyone invited ALWAYS get the editor here,
   // whether or not the trip has a share link.
   //
-  // Until 2026-09-25 the share-link redirect below ran before this check, for
+  // Until 2026-09-25 the non-member redirect below ran before this check, for
   // everyone: once a trip had a share_token (the "Share" button, the share
   // prompt, publishing, a signed-out share that was later claimed), its owner
   // and collaborators were sent to the read-only /shared view on every visit
   // and could never edit it again — nor stop sharing, whose only button lives
   // in this editor. 109 live trips were in that state.
   const owned = user
-    ? await supabase.from("trips").select("*").eq("id", id).eq("user_id", user.id).maybeSingle()
+    ? await supabase.from("trips").select(TRIP_COLUMNS).eq("id", id).eq("user_id", user.id).maybeSingle()
     : null;
   let trip = owned?.data ?? null;
   let userRole: CollaboratorRole = "owner";
@@ -59,31 +60,29 @@ export default async function TripDetailPage({
   if (user && !trip) {
     const { data: collaborator } = await supabase
       .from("trip_collaborators")
-      .select("role, trips(*)")
+      .select(`role, trips(${TRIP_COLUMNS})`)
       .eq("trip_id", id)
       .eq("user_id", user.id)
       .maybeSingle();
     if (collaborator?.trips) {
-      trip = collaborator.trips as typeof trip;
+      // One row (the embed follows trip_id), typed as a list without a schema.
+      trip = collaborator.trips as unknown as (typeof collaborator.trips)[number];
       userRole = collaborator.role as CollaboratorRole;
     }
   }
 
   if (!trip || !user) {
-    // **2026-06-09 — recovery for Google organic traffic on /trips/[id].**
-    // A visitor who is not a member of a trip that has a share link is sent
-    // to the /shared/[token] view (search traffic landed here and hit a login
-    // wall or a 404). RLS decides who can see the token: since 2026-09-01
-    // only members, and anyone for a PUBLIC trip, so a non-member only ever
-    // gets here for public trips. Never widen this with a service-role read:
-    // the token is the capability to open the trip.
-    const { data: publishedTrip } = await supabase
+    // A visitor who is not a member of a published trip (search traffic lands
+    // here) goes to its public page. Never to /shared/<token>: that link lets
+    // its holder join the group, vote and add expenses, so only members get
+    // it. RLS shows a non-member no trip but a public one.
+    const { data: publicTrip } = await supabase
       .from("trips")
-      .select("share_token, is_hidden")
+      .select("public_slug, visibility, is_hidden")
       .eq("id", id)
       .maybeSingle();
-    if (publishedTrip?.share_token && !publishedTrip.is_hidden) {
-      redirect(`${localePrefix}/shared/${publishedTrip.share_token}`);
+    if (publicTrip?.visibility === "public" && publicTrip.public_slug && !publicTrip.is_hidden) {
+      redirect(`${localePrefix}/trip/${publicTrip.public_slug}`);
     }
     if (!user) {
       // Back here after signing in (it used to land on /trips and lose the trip).

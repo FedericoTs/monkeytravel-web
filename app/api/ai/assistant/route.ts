@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { resolveAiLanguage, tripLocale, type SupportedLanguage } from "@/lib/ai/language";
 import { getAuthenticatedUser } from "@/lib/api/auth";
+import { TRIP_COLUMNS } from "@/lib/trips/columns";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import {
@@ -992,7 +993,7 @@ export async function POST(request: NextRequest) {
     // message answered "Trip not found".
     const { data: trip, error: tripError } = await supabase
       .from("trips")
-      .select("*")
+      .select(TRIP_COLUMNS)
       .eq("id", tripId)
       .single();
 

@@ -7,6 +7,7 @@ import { generateActivityId } from "@/lib/utils/activity-id";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import { completeReferralIfEligible } from "@/lib/referral/completion";
 import { runTripCounter } from "@/lib/explore/counters";
+import { TRIP_COLUMNS } from "@/lib/trips/columns";
 import type { ItineraryDay, Activity } from "@/types";
 
 /**
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
   // Pull the source trip. Must be public + not hidden.
   const { data: src, error: srcErr } = await supabase
     .from("trips")
-    .select("*")
+    .select(TRIP_COLUMNS)
     .eq("id", sourceTripId)
     .single();
 

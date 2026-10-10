@@ -8,6 +8,7 @@ import type { ItineraryDay } from "@/types";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import { refreshItineraryPhotos } from "@/lib/places/refreshItineraryPhotos";
 import { keepStoredPlacePhotos } from "@/lib/trips/keep-place-photos";
+import { TRIP_COLUMNS } from "@/lib/trips/columns";
 
 /**
  * GET /api/trips/[id] - Fetch a single trip
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
       supabase,
       id,
       user.id,
-      "*",
+      TRIP_COLUMNS,
       ["editor", "voter", "viewer"]
     );
     if (tripError) return tripError;
@@ -201,7 +202,7 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     // version, also by itinerary_version (compare-and-set).
     let write = supabase.from("trips").update(updates).eq("id", id);
     if (baseItineraryVersion !== null) write = write.eq("itinerary_version", baseItineraryVersion);
-    const { data: updatedTrip, error: updateError } = await write.select().single();
+    const { data: updatedTrip, error: updateError } = await write.select(TRIP_COLUMNS).single();
 
     if (updateError) {
       // Zero rows: either the itinerary moved on since this tab read it (a

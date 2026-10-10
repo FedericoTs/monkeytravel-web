@@ -1,6 +1,7 @@
 import { NextRequest, after } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { TRIP_COLUMNS } from "@/lib/trips/columns";
 import { generateActivityId } from "@/lib/utils/activity-id";
 import type { ItineraryDay, Activity } from "@/types";
 import { completeReferralIfEligible } from "@/lib/referral/completion";
@@ -54,7 +55,7 @@ export async function POST(
     // Fetch the template
     const { data: template, error: fetchError } = await supabase
       .from("trips")
-      .select("*")
+      .select(TRIP_COLUMNS)
       .eq("id", templateId)
       .eq("is_template", true)
       .single();

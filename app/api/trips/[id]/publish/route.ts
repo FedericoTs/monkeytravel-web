@@ -9,6 +9,7 @@ import { runTripCounter } from "@/lib/explore/counters";
 import { randomUUID } from "node:crypto";
 import { publicNameOrNull } from "@/lib/profile/public-name";
 import { purgeTripCard } from "@/lib/seo/trip-card-cache";
+import { readShareToken } from "@/lib/trips/share-token";
 
 /**
  * POST /api/trips/[id]/publish — owner opts a trip into the public
@@ -32,8 +33,9 @@ import { purgeTripCard } from "@/lib/seo/trip-card-cache";
  *   (the "trip must be N hours old" gate was removed 2026-05-28 to
  *   unblock the post-save auto-prompt — see MIN_TRIP_AGE_HOURS below)
  *
- * DELETE = unpublish: visibility -> 'private', is_hidden untouched
- * (only moderators flip is_hidden).
+ * DELETE = unpublish: off Explore; a trip with a share link stays 'shared'
+ * under a new token, else 'private'. is_hidden untouched (only moderators
+ * flip is_hidden).
  */
 
 type RouteCtx = { params: Promise<{ id: string }> };
@@ -120,7 +122,7 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
   const { data: trip, error: lookupErr } = await supabase
     .from("trips")
     .select(
-      "id, user_id, visibility, share_token, created_at, itinerary, start_date, end_date, trip_meta"
+      "id, user_id, visibility, created_at, itinerary, start_date, end_date, trip_meta"
     )
     .eq("id", tripId)
     .single();
@@ -209,11 +211,12 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
   }
 
   // Flip visibility + stamp metadata.
+  const existingToken = await readShareToken(tripId);
   const update: Record<string, unknown> = {
     visibility: "public",
     submitted_to_trending_at: new Date().toISOString(),
   };
-  if (!trip.share_token) update.share_token = randomUUID();
+  if (!existingToken) update.share_token = randomUUID();
   // shared_at acts as the recency boost anchor. Set on first publish only.
   update.shared_at = new Date().toISOString();
   if (authorDisplayName !== null) update.author_display_name = authorDisplayName;
@@ -223,7 +226,7 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
     .from("trips")
     .update(update)
     .eq("id", tripId)
-    .select("id, share_token")
+    .select("id")
     .single();
 
   if (updateErr || !updated) {
@@ -248,7 +251,7 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
 
   return apiSuccess({
     tripId: updated.id,
-    shareToken: updated.share_token,
+    shareToken: existingToken ?? update.share_token,
     visibility: "public",
     explorePath: "/explore",
   });
@@ -265,7 +268,7 @@ export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
 
   const { data: trip } = await supabase
     .from("trips")
-    .select("id, user_id, share_token")
+    .select("id, user_id")
     .eq("id", tripId)
     .single();
   if (!trip) return errors.notFound("Trip not found");
@@ -273,11 +276,18 @@ export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
     return errors.forbidden("Only the trip owner can unpublish");
   }
 
-  // Unlisting keeps the share link, so a trip that has one stays shared.
-  const visibility = trip.share_token ? "shared" : "private";
+  // Unlisting keeps a share link, so a trip that has one stays shared. The
+  // link gets a new token: the old one was public, and must not keep opening
+  // the trip's group page once the trip is not.
+  const hasShareLink = Boolean(await readShareToken(tripId));
+  const visibility = hasShareLink ? "shared" : "private";
   const { error: updateErr } = await supabase
     .from("trips")
-    .update({ visibility, submitted_to_trending_at: null })
+    .update({
+      visibility,
+      submitted_to_trending_at: null,
+      ...(hasShareLink ? { share_token: randomUUID() } : {}),
+    })
     .eq("id", tripId);
   if (updateErr) {
     return errors.internal("Failed to unpublish trip", "trips.update");

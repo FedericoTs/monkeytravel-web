@@ -16,13 +16,11 @@ export interface ExploreTripCard {
   id: string;
   title: string;
   description: string | null;
-  shareToken: string;
   /**
-   * Stable public slug → drives the indexable `/trip/{publicSlug}` link.
-   * Optional: pre-migration rows / non-public trips may lack it, in which
-   * case TripCard falls back to the legacy `/shared/{shareToken}` link.
+   * Stable public slug → the card's `/trip/{publicSlug}` link. Never the share
+   * token: that opens the trip's private group page.
    */
-  publicSlug?: string;
+  publicSlug: string;
   destination: string;
   countryCode: string | null;
   durationDays: number;

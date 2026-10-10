@@ -10,7 +10,9 @@ import { NextRequest } from "next/server";
  * may now read it; creating and revoking the link stay with the owner. The
  * link must carry the OWNER's referral code: get_or_create_referral_code
  * mints one for whoever it is given. Stopping sharing also takes a trip off
- * Explore, so sharing it again must not report it as listed.
+ * Explore, so sharing it again must not report it as listed. The token comes
+ * from the service role (the user-scoped client may not select it), and
+ * unpublishing gives it a new one, which the status then reports.
  */
 
 const OWNER = "owner-1";
@@ -31,6 +33,10 @@ vi.mock("@/lib/images/enrichTrip", () => ({ enrichTripByIdAdmin: vi.fn() }));
 vi.mock("@/lib/analytics/funnel-events", () => ({ logFunnelEventServer: vi.fn() }));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: vi.fn() }));
 vi.mock("@/lib/seo/trip-card-cache", () => ({ purgeTripCard: vi.fn() }));
+vi.mock("@/lib/explore/flag", () => ({ isExploreUgcEnabled: () => true }));
+vi.mock("@/lib/explore/counters", () => ({ runTripCounter: vi.fn() }));
+// The service-role read of the stored trip's token.
+vi.mock("@/lib/trips/share-token", () => ({ readShareToken: async () => row.share_token }));
 vi.mock("next/server", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/server")>()),
   after: () => {},
@@ -50,14 +56,17 @@ function fakeSupabase() {
         return q;
       }
       // trips: owner-only reads filter .eq("user_id", caller); honour that.
+      // The column grant refuses share_token and "*" to this client.
       const filters: Array<[string, unknown]> = [];
+      let cols = "";
       const q = {
-        select: () => q,
+        select: (c = "*") => ((cols = c), q),
         eq: (c: string, v: unknown) => {
           filters.push([c, v]);
           return q;
         },
         single: async () => {
+          if (/share_token|\*/.test(cols)) return { data: null, error: { code: "42501" } };
           const byUser = filters.find(([c]) => c === "user_id");
           if (byUser && byUser[1] !== OWNER) return { data: null, error: { code: "PGRST116" } };
           return { data: { ...row }, error: null };
@@ -82,6 +91,7 @@ vi.mock("@/lib/api/auth", async (importOriginal) => {
 });
 
 import { GET, POST, DELETE } from "./route";
+import { DELETE as UNPUBLISH } from "../publish/route";
 
 const ctx = { params: Promise.resolve({ id: TRIP }) } as never;
 const req = (method = "GET") => new NextRequest(`https://monkeytravel.app/api/trips/${TRIP}/share`, { method });
@@ -151,5 +161,20 @@ describe("stopping sharing a trip on Explore", () => {
   it("a shared trip still carrying a stamp is not reported as listed", async () => {
     row = { ...LISTED, visibility: "shared" };
     expect((await status()).isInTrending).toBe(false);
+  });
+});
+
+describe("unpublishing a listed trip", () => {
+  it("keeps it shared under a new token, and the status hands out that token", async () => {
+    const res = await UNPUBLISH(new NextRequest(`https://monkeytravel.app/api/trips/${TRIP}/publish`, { method: "DELETE" }), {
+      params: Promise.resolve({ id: TRIP }),
+    });
+    expect(res.status).toBe(200);
+    expect(row.share_token).toBeTruthy();
+    expect(row.share_token).not.toBe(TOKEN);
+    const shown = await status();
+    expect(shown).toMatchObject({ isShared: true, shareToken: row.share_token, visibility: "shared", isInTrending: false });
+    expect(shown.shareUrl).toContain(`/shared/${row.share_token}`);
+    expect(shown.shareUrl).not.toContain(TOKEN);
   });
 });

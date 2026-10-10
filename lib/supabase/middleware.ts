@@ -300,9 +300,9 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
   // Note: /trips/new is excluded to allow gradual engagement (users can fill form before signup)
   // Note: /trips/template/* is public so curated escapes can drive traffic & conversions
   // Note (2026-06-09): /trips/[uuid] is excluded so the page itself can run its
-  //   share_token check first. Google has been indexing /trips/[uuid] URLs (see
+  //   published-trip check first. Google has been indexing /trips/[uuid] URLs (see
   //   today's daily routine — 22 organic clicks/14d landing on these), and the
-  //   page-level logic redirects anon visitors to /shared/[token] when the trip
+  //   page-level logic redirects anon visitors to /trip/[slug] when the trip
   //   is published. If we redirect them to /auth/login here, those Google
   //   sessions never reach the page logic and drop straight off the site.
   //   The page still requires auth for non-owners of UNPUBLISHED trips
