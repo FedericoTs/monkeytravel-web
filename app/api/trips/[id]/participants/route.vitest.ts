@@ -7,7 +7,8 @@ import { fakeSupabase } from "@/tests/fake-supabase";
  * The owner's "Who's going" is the group the expense split uses: the owner,
  * every collaborator and everyone who said they're going, once each. The
  * count is the people who share expenses; a viewer who hasn't said they're
- * going is listed but not counted.
+ * going is listed but not counted, nor is someone who said it only on the
+ * public trip page.
  */
 
 const TRIP_ID = "11111111-2222-4333-8444-555555555555";
@@ -38,6 +39,7 @@ vi.mock("@/lib/supabase/admin", () => ({
             { id: "row-m", participant_cookie_id: "mate-cookie", user_id: "mate-1", display_name: "Luca G", email: null, joined_at: "2026-10-01T10:00:00Z" },
             { id: "row-v2", participant_cookie_id: "vi-cookie", user_id: "viewer-2", display_name: "Vi", email: null, joined_at: "2026-10-01T11:00:00Z" },
             { id: "row-g", participant_cookie_id: "guest-cookie", user_id: null, display_name: "Bo", email: "bo@example.com", joined_at: "2026-10-01T12:00:00Z" },
+            { id: "row-p", participant_cookie_id: "public-cookie", user_id: null, display_name: "Pat", email: null, joined_at: "2026-10-01T13:00:00Z", source: "public" },
           ],
           error: null,
         };
@@ -77,6 +79,7 @@ describe("GET /api/trips/[id]/participants", () => {
       { id: "viewer-1", display_name: null, role: "viewer", going: false, in_split: false, has_account: true, has_email: false, joined_at: null, participant_id: null },
       { id: "row-v2", display_name: "Vi", role: "viewer", going: true, in_split: true, has_account: true, has_email: false, joined_at: "2026-10-01T11:00:00Z", participant_id: "row-v2" },
       { id: "row-g", display_name: "Bo", role: null, going: true, in_split: true, has_account: false, has_email: true, joined_at: "2026-10-01T12:00:00Z", participant_id: "row-g" },
+      { id: "row-p", display_name: "Pat", role: null, going: true, in_split: false, has_account: false, has_email: false, joined_at: "2026-10-01T13:00:00Z", participant_id: "row-p" },
     ]);
   });
 

@@ -142,7 +142,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     // What this browser did here as a guest becomes the account's first.
     if (userId && !issuedCookie) await linkGuestToAccount(admin, userId, cookieId, trip.id);
 
-    const lookup = admin.from("trip_participants").select("id, left_at, display_name, email").eq("trip_id", trip.id);
+    const lookup = admin.from("trip_participants").select("id, left_at, display_name, email, source").eq("trip_id", trip.id);
     const { data: existing } = await (userId
       ? lookup.eq("user_id", userId)
       : lookup.eq("participant_cookie_id", cookieId)
@@ -179,6 +179,9 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         if (displayName) patch.display_name = displayName;
         if (email) patch.email = email;
         else if (accountEmail && !existing.email) patch.email = accountEmail;
+        // The share link is the group's invitation, so joining through it
+        // confirms someone who first said they're going on the public page.
+        if (existing.source === "public" && source !== "public") patch.source = "shared";
         const { error } = await admin.from("trip_participants").update(patch).eq("id", existing.id);
         if (error) {
           console.error("[Shared Join] rejoin failed:", error);

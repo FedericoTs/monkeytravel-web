@@ -117,6 +117,27 @@ describe("POST /api/shared/[token]/join", () => {
     expect(rejoin.value).toEqual({ left_at: null });
   });
 
+  it("confirms someone who said they're going on the public page when they join through the share link, and only then", async () => {
+    ownRow = { id: "row-3", left_at: null, display_name: "Pat", email: null, source: "public" };
+    await send({ action: "join", source: "shared" });
+    const [confirmed] = ops("trip_participants", "update");
+    expect(eqOf(confirmed, "id")).toBe("row-3");
+    expect(confirmed.value).toEqual({ left_at: null, source: "shared" });
+
+    // The group ask is the share link too, and so is coming back after leaving.
+    ownRow = { id: "row-3", left_at: "2026-10-01T10:00:00Z", display_name: "Pat", email: null, source: "public" };
+    await send({ action: "join", source: "crew_ask" });
+    expect(ops("trip_participants", "update")[0].value).toEqual({ left_at: null, source: "shared" });
+
+    // A tab of the public page opened before it went read-only still sends "public".
+    ownRow = { id: "row-3", left_at: null, display_name: "Pat", email: null, source: "public" };
+    await send({ action: "join", source: "public" });
+    expect(ops("trip_participants", "update")[0].value).toEqual({ left_at: null });
+    // A name change isn't joining.
+    await send({ action: "update", display_name: "Pat B" });
+    expect(ops("trip_participants", "update")[0].value).toEqual({ display_name: "Pat B" });
+  });
+
   it("has nothing to link on a browser that had no cookie", async () => {
     signedIn = { id: "user-1" };
     browserCookie = undefined;

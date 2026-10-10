@@ -98,7 +98,8 @@ export default function WhoIsGoingCard({ tripId, onShare, className = "" }: WhoI
       p.going && p.joined_at ? t("share.participants.joinedAt", { when: fmt(p.joined_at) }) : null,
       p.has_account ? null : t("share.participants.guest"),
       p.has_email ? t("share.participants.getsUpdates") : null,
-      p.in_split ? null : t("share.participants.followingAlong"),
+      // Going but not sharing: they said so on the public page, not through the share link.
+      p.in_split ? null : p.going ? t("share.participants.notInExpensesYet") : t("share.participants.followingAlong"),
     ]
       .filter(Boolean)
       .join(" · ");
