@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { actorKey } from "@/lib/expenses/shared";
+import type { ParticipantSource } from "@/lib/participants/shared";
 
 /**
  * Who is in a trip's group, one entry per person: the owner, every
@@ -19,8 +20,8 @@ export interface RosterPerson {
   /** "owner" or their collaborator role; null for someone who only said they're going. */
   role: string | null;
   going: boolean;
-  /** Their "I'm going" row, if they tapped it. */
-  participant: { id: string; joinedAt: string; hasEmail: boolean } | null;
+  /** Their "I'm going" row, if they tapped it, and where they tapped it. */
+  participant: { id: string; joinedAt: string; hasEmail: boolean; source: ParticipantSource } | null;
 }
 
 export type CohortMember = Pick<RosterPerson, "userId" | "cookieId" | "name">;
@@ -34,7 +35,7 @@ export async function tripRoster(
     admin.from("trip_collaborators").select("user_id, role").eq("trip_id", trip.id).order("joined_at", { ascending: true }),
     admin
       .from("trip_participants")
-      .select("id, participant_cookie_id, user_id, display_name, email, joined_at")
+      .select("id, participant_cookie_id, user_id, display_name, email, joined_at, source")
       .eq("trip_id", trip.id)
       .is("left_at", null)
       .order("joined_at", { ascending: true }),
@@ -43,6 +44,9 @@ export async function tripRoster(
   if (error) return { roster: [], error };
 
   const byKey = new Map<string, RosterPerson>();
+  // Of one person's "I'm going" rows, the first, unless only a later one came through the share link.
+  const confirmedFirst = (a: RosterPerson["participant"], b: RosterPerson["participant"]) =>
+    a && b && a.source === "public" && b.source !== "public" ? b : (a ?? b);
   const put = (p: RosterPerson) => {
     const seen = byKey.get(p.key);
     if (!seen) byKey.set(p.key, p);
@@ -52,7 +56,7 @@ export async function tripRoster(
         role: seen.role ?? p.role,
         going: seen.going || p.going,
         name: seen.name ?? p.name,
-        participant: seen.participant ?? p.participant,
+        participant: confirmedFirst(seen.participant, p.participant),
       });
   };
   if (trip.user_id) {
@@ -72,7 +76,7 @@ export async function tripRoster(
       name: (p.display_name as string | null) ?? null,
       role: null,
       going: true,
-      participant: { id: p.id as string, joinedAt: p.joined_at as string, hasEmail: !!p.email },
+      participant: { id: p.id as string, joinedAt: p.joined_at as string, hasEmail: !!p.email, source: p.source as ParticipantSource },
     });
   }
   return { roster: [...byKey.values()], error: null };
@@ -80,11 +84,12 @@ export async function tripRoster(
 
 /**
  * Whether a person shares a new expense: the owner, editors, voters, and
- * anyone who said they're going. A viewer is often someone following along,
- * so they share only once they tap "I'm going".
+ * anyone who said they're going through the share link. A viewer is often
+ * someone following along, so they share only once they tap "I'm going".
+ * Anyone could tap it on the public trip page, so that alone doesn't count.
  */
 export function sharesExpenses(p: RosterPerson): boolean {
-  return p.going || p.role === "owner" || p.role === "editor" || p.role === "voter";
+  return (p.going && p.participant?.source !== "public") || p.role === "owner" || p.role === "editor" || p.role === "voter";
 }
 
 /** Who a new expense is split across: everyone who shares, plus the payer, once. */

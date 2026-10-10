@@ -1179,6 +1179,7 @@
       "getsUpdates": "recibe avisos",
       "guest": "sin cuenta",
       "followingAlong": "solo sigue el viaje, no comparte gastos",
+      "notInExpensesYet": "todavía no comparte gastos",
       "remove": "Quitar",
       "planOwnLead": "¿Vas a otro sitio?"
     },

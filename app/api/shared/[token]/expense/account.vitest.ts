@@ -14,7 +14,7 @@ const TOKEN = "11111111-2222-4333-8444-555555555555";
 let signedIn: { id: string } | null = null;
 let browserCookie: string | undefined;
 let collaborators: string[] = [];
-let participants: Array<{ participant_cookie_id: string; user_id: string | null; display_name: string }> = [];
+let participants: Array<{ participant_cookie_id: string; user_id: string | null; display_name: string; source?: string }> = [];
 let existingExpense: { created_by: string | null; created_by_cookie_id: string | null } | null = null;
 let log: FakeQuery[] = [];
 const announced: string[] = [];
@@ -129,6 +129,20 @@ describe("POST /api/shared/[token]/expense", () => {
       ["owner-1", null, 10],
       ["editor-2", null, 10],
       [null, "guest-cookie-1", 10],
+    ]);
+  });
+
+  it("doesn't charge someone who said they're going only on the public trip page", async () => {
+    browserCookie = "guest-cookie-1";
+    participants = [
+      { participant_cookie_id: "guest-cookie-1", user_id: null, display_name: "Bo", source: "shared" },
+      { participant_cookie_id: "public-cookie-1", user_id: null, display_name: "Pat", source: "public" },
+    ];
+    await send({ amount: "30" });
+    const splits = ops("trip_expense_splits", "insert")[0].value as Array<Record<string, unknown>>;
+    expect(splits.map((s) => [s.user_id, s.participant_cookie_id, s.share_amount])).toEqual([
+      ["owner-1", null, 15],
+      [null, "guest-cookie-1", 15],
     ]);
   });
 

@@ -107,6 +107,16 @@ describe("POST /api/trips/[id]/expenses", () => {
     expect(splits.map((s) => s.user_id)).toEqual(["owner-1", "mate-1", "voter-1", "viewer-1"]);
   });
 
+  it("doesn't charge someone who said they're going only on the public trip page", async () => {
+    participants = [
+      { participant_cookie_id: "public-cookie-1", user_id: null, display_name: "Pat", source: "public" },
+      { participant_cookie_id: "guest-cookie-1", user_id: null, display_name: "Bo", source: "shared" },
+    ];
+    await POST(req("POST", { amount: 100, currency: "EUR", category: "food" }), ctx);
+    const splits = ops("trip_expense_splits", "insert")[0].value as Row[];
+    expect(splits.map((s) => s.user_id ?? s.participant_cookie_id)).toEqual(["owner-1", "mate-1", "voter-1", "guest-cookie-1"]);
+  });
+
   it("never shows an email-like name as the payer", async () => {
     displayName = "mate@example.com";
     await POST(req("POST", { amount: 10, currency: "EUR", category: "food" }), ctx);
