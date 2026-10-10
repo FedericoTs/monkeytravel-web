@@ -616,7 +616,14 @@
     "nightlife": "Vida Nocturna",
     "spa": "Spa",
     "wellness": "Bienestar",
-    "event": "Evento"
+    "event": "Evento",
+    "adventure": "Aventura",
+    "urban": "Urbano",
+    "sightseeing": "Turismo",
+    "accommodation": "Alojamiento",
+    "romantic": "Romántico",
+    "tour": "Tour",
+    "beach": "Playa"
   },
   "durations": {
     "30min": "30 min",

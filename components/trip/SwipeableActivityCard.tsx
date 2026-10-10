@@ -21,6 +21,7 @@ import {
 import type { Activity } from "@/types";
 import type { ActivityStatus } from "@/types/timeline";
 import { ACTIVITY_XP } from "@/types/timeline";
+import { activityTypeKey } from "@/lib/i18n/activity-type";
 
 interface SwipeableActivityCardProps {
   activity: Activity;
@@ -107,7 +108,7 @@ export default function SwipeableActivityCard({
     }
   };
 
-  const Icon = TYPE_ICONS[activity.type] || Sparkles;
+  const Icon = TYPE_ICONS[activityTypeKey(activity.type) ?? ""] || Sparkles;
   const isCompleted = status === "completed";
   const isSkipped = status === "skipped";
   const isUpcoming = status === "upcoming";
