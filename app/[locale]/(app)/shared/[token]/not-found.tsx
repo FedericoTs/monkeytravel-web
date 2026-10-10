@@ -1,9 +1,14 @@
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/lib/i18n/routing";
 
-export const metadata = {
-  title: "Trip Not Found",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("common.shared.unavailable");
+  return {
+    title: t("metaTitle"),
+    robots: { index: false, follow: false },
+  };
+}
 
 /**
  * Co-located not-found UI for the shared-trip route.
@@ -20,7 +25,8 @@ export const metadata = {
  * Triggered by app/[locale]/(app)/shared/[token]/page.tsx calling notFound()
  * when the share_token lookup returns nothing.
  */
-export default function SharedTripNotFound() {
+export default async function SharedTripNotFound() {
+  const t = await getTranslations("common.shared.unavailable");
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center">
@@ -44,11 +50,10 @@ export default function SharedTripNotFound() {
           </svg>
         </div>
         <h1 className="text-2xl font-bold text-slate-900 mb-2">
-          This shared trip isn&rsquo;t available
+          {t("title")}
         </h1>
         <p className="text-slate-600 mb-8">
-          The link may have expired or the owner stopped sharing this trip.
-          Try asking them for a fresh link — or plan one of your own.
+          {t("body")}
         </p>
         <Link
           href="/trips/new"
@@ -67,7 +72,7 @@ export default function SharedTripNotFound() {
               d="M12 4v16m8-8H4"
             />
           </svg>
-          Plan your own trip
+          {t("cta")}
         </Link>
       </div>
     </div>

@@ -280,6 +280,20 @@
       "namePlaceholder": "Sarah",
       "submit": "Vote",
       "skip": "Skip"
+    },
+    "metaDescription": "Check out this travel itinerary on MonkeyTravel",
+    "unavailable": {
+      "metaTitle": "Trip Not Found",
+      "title": "This shared trip isn’t available",
+      "body": "The link may have expired or the owner stopped sharing this trip. Try asking them for a fresh link — or plan one of your own.",
+      "cta": "Plan your own trip"
+    },
+    "loadError": {
+      "title": "Unable to load this trip",
+      "body": "This shared trip link may be invalid, expired, or temporarily unavailable. Please try again or contact the trip owner.",
+      "retry": "Try again",
+      "home": "Go home",
+      "errorId": "Error ID: {digest}"
     }
   },
   "emailSubscribe": {
@@ -1117,7 +1131,12 @@
     "restOfDay": "Rest of today",
     "tomorrow": "Tomorrow",
     "yesterday": "Yesterday",
-    "nothingToday": "Nothing planned for today."
+    "nothingToday": "Nothing planned for today.",
+    "errors": {
+      "failed": "That didn't work. Try again.",
+      "rateLimited": "Too many changes at once. Wait a moment and try again.",
+      "amount": "Enter an amount greater than zero."
+    }
   },
   "share": {
     "title": "Share Trip",
@@ -1305,6 +1324,7 @@
       "copyFailed": "Failed to copy link",
       "inviteCreated": "Invite link created!",
       "inviteCreateFailed": "Failed to create invite link",
+      "inviteEmailInvalid": "That email address doesn't look right. Check it and try again.",
       "networkError": "Network error. Please try again.",
       "roleUpdated": "Role updated to {role}",
       "roleUpdateFailed": "Failed to update role",
@@ -1489,6 +1509,12 @@
       "tapToVote": "Tap to view & vote",
       "tapToPropose": "Tap to propose an activity",
       "proposeActivity": "Propose activity"
+    },
+    "toasts": {
+      "submitted": "🗳️ Proposal submitted! Other travelers will vote on it.",
+      "voteRecorded": "Vote recorded!",
+      "voteRemoved": "Vote removed",
+      "rejected": "Proposal rejected"
     }
   },
   "collaborators": {
@@ -2318,7 +2344,12 @@
       "failedToJoin": "Failed to join trip",
       "somethingWentWrong": "Something went wrong",
       "signInFailed": "Sign in failed",
-      "failedToSendMagicLink": "Failed to send magic link"
+      "failedToSendMagicLink": "Failed to send magic link",
+      "tooManyEmails": "Too many sign-in emails. Try again a little later."
+    },
+    "meta": {
+      "description": "You've been invited to join a trip to {destination}. Accept the invite to start planning together!",
+      "ogDescription": "{name} invited you to join their trip."
     }
   },
   "backpacker": {
@@ -2387,6 +2418,7 @@
     "errorAmountRequired": "Enter an amount greater than zero.",
     "errorAddFailed": "Couldn't add the expense — try again.",
     "errorDeleteFailed": "Couldn't delete the expense — try again.",
+    "errorDeleteNotYours": "You can only remove expenses you added.",
     "errorLoadFailed": "Could not load expenses. Try again.",
     "retry": "Try again",
     "deleteAriaLabel": "Delete this expense",

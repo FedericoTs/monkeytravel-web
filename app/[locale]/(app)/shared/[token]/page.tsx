@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers";
 import { createClient, signedInUserId } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { logSharedTripVisit } from "@/lib/analytics/funnel-events";
 import { classifySharedVisit } from "@/lib/analytics/share-visit-classifier";
 import { captureServerEvent } from "@/lib/posthog/server";
@@ -83,10 +84,11 @@ async function resolveViewer(tripId: string, ownerId: string | null) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, token } = await params;
   const trip = await getSharedTrip(token);
+  const t = await getTranslations({ locale, namespace: "common.shared" });
 
   if (!trip) {
     return {
-      title: "Trip Not Found",
+      title: t("unavailable.metaTitle"),
       robots: { index: false, follow: false },
     };
   }
@@ -108,7 +110,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: trip.title,
-    description: trip.description || `Check out this travel itinerary on MonkeyTravel`,
+    description: trip.description || t("metaDescription"),
     robots: { index: false, follow: false },
     alternates: {
       canonical,
@@ -120,7 +122,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     // when the token resolves to nothing), so og:image never goes missing.
     openGraph: {
       title: trip.title,
-      description: trip.description || `Check out this travel itinerary on MonkeyTravel`,
+      description: trip.description || t("metaDescription"),
       type: "website",
       images: [
         {
@@ -134,7 +136,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     twitter: {
       card: "summary_large_image",
       title: trip.title,
-      description: trip.description || `Check out this travel itinerary on MonkeyTravel`,
+      description: trip.description || t("metaDescription"),
       images: [tripCardUrl({ token }, { locale })],
     },
   };

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { keepIfSame } from "@/lib/today/refresh-throttle";
 import { freshness, readSignal } from "@/lib/today/freshness";
+import { TodayWriteError, todayErrorKey, type TodayErrorKey } from "@/lib/today/errors";
 import type { ExpensePublic, ExpenseSummary } from "./shared";
 
 /**
@@ -25,7 +26,7 @@ export interface TripExpensesApi {
   expenses: ExpensePublic[];
   summary: ExpenseSummary | null;
   busy: boolean;
-  error: string | null;
+  error: TodayErrorKey | null;
   add: (input: AddExpenseInput) => Promise<boolean>;
   /** Resolves false when the removal didn't go through. */
   remove: (expenseId: string, options?: { keepalive?: boolean }) => Promise<boolean>;
@@ -38,7 +39,7 @@ export function useTripExpenses(base: string, enabled: boolean): TripExpensesApi
   const [expenses, setExpenses] = useState<ExpensePublic[]>([]);
   const [summary, setSummary] = useState<ExpenseSummary | null>(null);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<TodayErrorKey | null>(null);
   const [fresh] = useState(freshness);
 
   const applyResult = (json: unknown) => {
@@ -74,10 +75,8 @@ export function useTripExpenses(base: string, enabled: boolean): TripExpensesApi
           body: JSON.stringify(body),
           keepalive,
         });
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j?.error?.message || j?.message || "That didn't work.");
-        }
+        // A 400 on an add is the amount the route could not read.
+        if (!res.ok) throw new TodayWriteError(res.status === 400 && !body.undo ? "amount" : todayErrorKey(res.status));
         applyResult(await res.json());
       }),
     [base, fresh],
@@ -92,7 +91,7 @@ export function useTripExpenses(base: string, enabled: boolean): TripExpensesApi
         await post({ amount, activity_id: activityId ?? undefined, description: description ?? undefined, category });
         return true;
       } catch (e) {
-        setError(e instanceof Error ? e.message : "That didn't work.");
+        setError(e instanceof TodayWriteError ? e.key : "failed");
         return false;
       } finally {
         setBusy(false);
@@ -110,7 +109,7 @@ export function useTripExpenses(base: string, enabled: boolean): TripExpensesApi
         await post({ undo: true, expense_id: expenseId }, options?.keepalive);
         return true;
       } catch (e) {
-        setError(e instanceof Error ? e.message : "That didn't work.");
+        setError(e instanceof TodayWriteError ? e.key : "failed");
         return false;
       }
     },

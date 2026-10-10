@@ -8,6 +8,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { ROLE_INFO, type CollaboratorRole } from "@/types";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { formatDateRange } from "@/lib/datetime";
+import { classifyOtpError } from "@/lib/auth/otp-code";
 
 interface InviteAcceptClientProps {
   invite: {
@@ -43,6 +44,14 @@ interface InviteAcceptClientProps {
   } | null;
 }
 
+// The join route explains in English for its logs; the page says why in its own words.
+const JOIN_ERROR_KEYS: Record<string, string> = {
+  MAX_USES: "errors.maxUsesDesc",
+  REVOKED: "errors.revokedDesc",
+  EXPIRED: "errors.expiredDesc",
+  RECIPIENT_MISMATCH: "errors.recipientMismatchDesc",
+};
+
 export default function InviteAcceptClient({
   invite,
   trip,
@@ -53,6 +62,7 @@ export default function InviteAcceptClient({
   const locale = useLocale();
   const t = useTranslations("common.invitePage");
   const tRoles = useTranslations("common.roles");
+  const tErrors = useTranslations("common.errors");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Task #181 cleanup: pull auth from the single AuthProvider. We project
@@ -101,16 +111,23 @@ export default function InviteAcceptClient({
           setIsLoading(false);
           return;
         }
-        throw new Error(data.error || t("errors.failedToJoin"));
+        const notFound = response.status === 400 || response.status === 404;
+        setError(
+          response.status === 401
+            ? tErrors("sessionExpired")
+            : t(JOIN_ERROR_KEYS[data.code] ?? (notFound ? "errors.invalidTokenDesc" : "errors.failedToJoin"))
+        );
+        setIsLoading(false);
+        return;
       }
 
       // Success! Redirect to trip
       router.push(`/trips/${data.tripId}`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("errors.somethingWentWrong"));
+    } catch {
+      setError(t("errors.somethingWentWrong"));
       setIsLoading(false);
     }
-  }, [router, t]);
+  }, [router, t, tErrors]);
 
   // Auto-accept on the null → set user transition that happens AFTER the
   // central AuthProvider has resolved its initial getUser(). The original
@@ -154,8 +171,8 @@ export default function InviteAcceptClient({
       });
 
       if (error) throw error;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("errors.signInFailed"));
+    } catch {
+      setError(t("errors.signInFailed"));
       setIsLoading(false);
     }
   };
@@ -181,7 +198,8 @@ export default function InviteAcceptClient({
       if (error) throw error;
       setMagicLinkSent(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("errors.failedToSendMagicLink"));
+      const rateLimited = classifyOtpError(err instanceof Error ? err.message : null) === "rate_limit";
+      setError(t(rateLimited ? "errors.tooManyEmails" : "errors.failedToSendMagicLink"));
     } finally {
       setIsLoading(false);
     }

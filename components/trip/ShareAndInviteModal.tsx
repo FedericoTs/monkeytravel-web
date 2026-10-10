@@ -329,7 +329,8 @@ export default function ShareAndInviteModal({
       } else {
         const error = await response.json();
         console.error("Failed to generate invite:", error);
-        addToast(error.error || ts("toast.inviteCreateFailed"), "error");
+        // The route explains in English for its logs; with an address typed, a 400 is that address.
+        addToast(ts(response.status === 400 && trimmedEmail ? "toast.inviteEmailInvalid" : "toast.inviteCreateFailed"), "error");
       }
     } catch (error) {
       console.error("Failed to generate invite:", error);
@@ -389,7 +390,7 @@ export default function ShareAndInviteModal({
       if (response.ok) {
         const data = (await response.json().catch(() => null)) as { invitesReset?: number } | null;
         await fetchCollaborators();
-        addToast(ts("toast.roleUpdated", { role: newRole }), "success");
+        addToast(ts("toast.roleUpdated", { role: t(`roles.${newRole}.label`) }), "success");
         noteInvitesReset(data?.invitesReset);
       } else {
         addToast(ts("toast.roleUpdateFailed"), "error");

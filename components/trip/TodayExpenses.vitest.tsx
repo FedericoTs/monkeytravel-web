@@ -90,4 +90,21 @@ describe("TodayExpenses", () => {
     await act(async () => void (await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS)));
     expect(onRemove).toHaveBeenCalledExactlyOnceWith("e1", { keepalive: false });
   });
+
+  it("words a failed payment from today.errors, not from the route's English", () => {
+    render(
+      <ToastProvider>
+        <TodayExpenses
+          expenses={[]}
+          summary={null}
+          busy={false}
+          error="amount"
+          onAdd={async () => false}
+          onRemove={async () => true}
+          activityName={() => null}
+        />
+      </ToastProvider>,
+    );
+    expect(screen.getByText("today.errors.amount")).toBeTruthy();
+  });
 });

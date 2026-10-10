@@ -7,6 +7,7 @@ import type { Activity } from "@/types";
 import { TODAY_CHANGED_EVENT, TODAY_CHANNEL_OPTIONS, todayChannel, type TodayAction, type TodayActionType } from "./actions";
 import { TODAY_REFRESH_GAP_MS, keepIfSame, throttledRefresh } from "./refresh-throttle";
 import { freshness, readSignal } from "./freshness";
+import { TodayWriteError, todayErrorKey, type TodayErrorKey } from "./errors";
 
 /**
  * The chip overlay for a live trip's Today — Live Trip Phase 3.3.
@@ -21,7 +22,7 @@ import { freshness, readSignal } from "./freshness";
 export interface TodayActionsApi {
   actions: TodayAction[];
   busy: boolean;
-  error: string | null;
+  error: TodayErrorKey | null;
   apply: (input: { action_type: TodayActionType; day_number: number; activity?: Activity }) => Promise<void>;
   undo: (actionId: string) => Promise<void>;
 }
@@ -34,7 +35,7 @@ export function useTodayActions(
 ): TodayActionsApi {
   const [actions, setActions] = useState<TodayAction[]>([]);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<TodayErrorKey | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const [fresh] = useState(freshness);
 
@@ -79,10 +80,7 @@ export function useTodayActions(
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j?.error?.message || j?.message || "That didn't work.");
-        }
+        if (!res.ok) throw new TodayWriteError(todayErrorKey(res.status));
         const json = (await res.json()) as { data?: TodayAction[] } | TodayAction[];
         const list = Array.isArray(json) ? json : json.data;
         if (Array.isArray(list)) setActions(list);
@@ -105,7 +103,7 @@ export function useTodayActions(
             : {}),
         });
       } catch (e) {
-        setError(e instanceof Error ? e.message : "That didn't work.");
+        setError(e instanceof TodayWriteError ? e.key : "failed");
       } finally {
         setBusy(false);
       }
@@ -121,7 +119,7 @@ export function useTodayActions(
       try {
         await post({ undo: true, action_id: actionId });
       } catch (e) {
-        setError(e instanceof Error ? e.message : "That didn't work.");
+        setError(e instanceof TodayWriteError ? e.key : "failed");
       } finally {
         setBusy(false);
       }

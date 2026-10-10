@@ -271,7 +271,7 @@ export default function TodayView({
           {shiftMinutes > 0 && <span className="text-xs font-medium text-[var(--primary-ink)]">{t("today.chips.shiftedBy", { minutes: shiftMinutes })}</span>}
         </div>
       )}
-      {error && <p className="mb-3 text-xs text-red-600" role="alert">{error}</p>}
+      {error && <p className="mb-3 text-xs text-red-600" role="alert">{t(`today.errors.${error}`)}</p>}
 
       {/* Feed — participant joins + chip actions + expenses, merged (Phase 3.5) */}
       {chipsEnabled && <TodayFeed events={feedEvents} className="mb-4" />}

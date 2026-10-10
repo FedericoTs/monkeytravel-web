@@ -14,12 +14,13 @@ import { useLocale, useTranslations } from "next-intl";
 import { centsToAmount, type ExpensePublic, type ExpenseSummary } from "@/lib/expenses/shared";
 import ExpenseQuickAdd from "@/components/trip/ExpenseQuickAdd";
 import { useUndoableRemoval } from "@/hooks/useUndoableRemoval";
+import type { TodayErrorKey } from "@/lib/today/errors";
 
 interface TodayExpensesProps {
   expenses: ExpensePublic[];
   summary: ExpenseSummary | null;
   busy: boolean;
-  error: string | null;
+  error: TodayErrorKey | null;
   onAdd: (amount: string) => Promise<boolean>;
   /** Sends a removal; resolves false when it didn't go through. */
   onRemove: (expenseId: string, options?: { keepalive?: boolean }) => Promise<boolean>;
@@ -113,7 +114,7 @@ export default function TodayExpenses({ expenses, summary, busy, error, onAdd, o
       )}
 
       {!hasExpenses && <p className="mt-2 text-xs text-slate-500">{t("today.expenses.empty")}</p>}
-      {error && <p className="mt-2 text-xs text-red-600" role="alert">{error}</p>}
+      {error && <p className="mt-2 text-xs text-red-600" role="alert">{t(`today.errors.${error}`)}</p>}
     </section>
   );
 }

@@ -2465,11 +2465,7 @@ export default function TripDetailClient({
             targetActivityName={proposeModalState.targetActivityName}
             onPropose={async (input) => {
               await createProposal(input);
-              addToast(
-                "🗳️ Proposal submitted! Other travelers will vote on it.",
-                "success",
-                4000
-              );
+              addToast(tCommon("proposals.toasts.submitted"), "success", 4000);
             }}
           />
         )}
@@ -3695,13 +3691,13 @@ export default function TripDetailClient({
         onVote={async (voteType, comment) => {
           if (votingSheetState.proposal) {
             await voteOnProposal(votingSheetState.proposal.id, voteType, comment);
-            addToast("Vote recorded!", "success");
+            addToast(tCommon("proposals.toasts.voteRecorded"), "success");
           }
         }}
         onRemoveVote={async () => {
           if (votingSheetState.proposal) {
             await removeProposalVote(votingSheetState.proposal.id);
-            addToast("Vote removed", "success");
+            addToast(tCommon("proposals.toasts.voteRemoved"), "success");
           }
         }}
         totalVoters={voterCount}
@@ -3715,7 +3711,7 @@ export default function TripDetailClient({
               throw err;
             }
             // An approval is confirmed by handleProposalChange, with the day.
-            if (action === 'reject') addToast(`Proposal ${action}d`, "success");
+            if (action === 'reject') addToast(tCommon("proposals.toasts.rejected"), "success");
           }
         }}
       />
