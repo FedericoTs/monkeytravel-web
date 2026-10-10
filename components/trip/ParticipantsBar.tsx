@@ -6,8 +6,8 @@
  * trio and its zeros, and the vote banner (whose copy becomes the secondary
  * line under the button).
  *
- * Tapping "I'm going" is optimistic: the count and the state flip at once,
- * then POST /join confirms. On success the row asks, inline and in order,
+ * Tapping "I'm going" flips the state at once; the count changes when
+ * POST /join confirms. On success the row asks, inline and in order,
  * for a name (optional) and then an email for this trip's notifications
  * (optional, purpose stated). "Not going" is one tap away the whole time.
  *
@@ -117,9 +117,10 @@ export default function ParticipantsBar({
     setError(null);
     setBusy(true);
     const before = data;
-    // Optimistic: the count and the "You're in" pill flip at once. The name
-    // prompt waits for the POST to confirm — an update needs the row to exist.
-    setData({ ...data, count: data.count + 1, me: { ...data.me, joined: true } });
+    // Optimistic: the "You're in" pill flips at once. The name prompt waits for
+    // the POST to confirm — an update needs the row to exist — and so does the
+    // count: someone who said they're going on the public page is in it already.
+    setData({ ...data, me: { ...data.me, joined: true } });
     try {
       const next = await post({ action: "join" });
       if (next) setData(next);

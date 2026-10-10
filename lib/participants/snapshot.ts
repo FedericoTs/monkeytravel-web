@@ -15,7 +15,7 @@ export async function participantsSnapshot(
 ): Promise<ParticipantsResponse> {
   const { data: rows, error } = await admin
     .from("trip_participants")
-    .select("id, participant_cookie_id, user_id, display_name, email, joined_at")
+    .select("id, participant_cookie_id, user_id, display_name, email, joined_at, source")
     .eq("trip_id", tripId)
     .is("left_at", null)
     .order("joined_at", { ascending: true });
@@ -38,7 +38,9 @@ export async function participantsSnapshot(
       joined_at: r.joined_at as string,
     })),
     me: {
-      joined: !!mine,
+      // Someone whose row came from the public page joins the group only
+      // through this link (lib/trips/roster), so it still offers "I'm going".
+      joined: !!mine && mine.source !== "public",
       display_name: (mine?.display_name as string | null) ?? null,
       has_email: !!mine?.email,
     },
