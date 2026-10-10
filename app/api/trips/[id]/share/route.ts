@@ -143,13 +143,15 @@ export async function DELETE(request: NextRequest, context: TripRouteContext) {
     );
     if (tripError) return tripError;
 
-    // Remove share token
+    // Remove share token. A trip on Explore leaves it too, so its listing
+    // stamp is cleared the way DELETE /publish clears it.
     const { error: updateError } = await supabase
       .from("trips")
       .update({
         share_token: null,
         shared_at: null,
         visibility: "private",
+        submitted_to_trending_at: null,
       })
       .eq("id", id)
       .eq("user_id", user.id);
@@ -205,8 +207,9 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
       sharedAt: trip.shared_at,
       visibility: trip.visibility,
       // The share window's Explore switch starts from this, and is hidden
-      // while Explore is off (the publish route answers 404 then).
-      isInTrending: Boolean(trip.submitted_to_trending_at),
+      // while Explore is off (the publish route answers 404 then). Listed
+      // means public and stamped, as the Explore feed reads it.
+      isInTrending: trip.visibility === "public" && Boolean(trip.submitted_to_trending_at),
       exploreEnabled: isExploreUgcEnabled(),
     });
   } catch (error) {
