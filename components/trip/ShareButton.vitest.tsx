@@ -10,11 +10,12 @@ vi.mock("@/components/collaboration/CollaboratorAvatars", () => ({ CollaboratorA
 vi.mock("@/lib/analytics", () => ({ trackTripShared: vi.fn() }));
 // The modal has its own tests; here it only reports whether it is open, on which tab, and the Explore state.
 vi.mock("./ShareAndInviteModal", () => ({
-  default: ({ isOpen, initialTab, isInTrending, exploreEnabled, onClose, onRequestPublish }: { isOpen: boolean; initialTab: string; isInTrending: boolean; exploreEnabled?: boolean; onClose: () => void; onRequestPublish?: () => void }) =>
+  default: ({ isOpen, initialTab, isInTrending, exploreEnabled, onClose, onRequestPublish, onStopSharing }: { isOpen: boolean; initialTab: string; isInTrending: boolean; exploreEnabled?: boolean; onClose: () => void; onRequestPublish?: () => void; onStopSharing: () => void }) =>
     isOpen ? (
       <div role="dialog" data-tab={initialTab} data-trending={String(isInTrending)} data-explore={String(exploreEnabled)}>
         <button onClick={onClose}>close</button>
         <button onClick={onRequestPublish}>list in explore</button>
+        <button onClick={onStopSharing}>stop sharing</button>
       </div>
     ) : null,
 }));
@@ -95,5 +96,27 @@ describe("ShareButton listing in Explore", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /^shared?$/ }));
     expect(screen.getByRole("dialog").getAttribute("data-trending")).toBe("true");
+  });
+
+  it("shows the trip off Explore once sharing stops, without a reload", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init?: RequestInit) => ({
+        ok: true,
+        json: async () =>
+          init?.method === "DELETE"
+            ? { success: true }
+            : { isShared: true, isInTrending: true, shareUrl: "https://x/s/1", collaborators: [] },
+      }))
+    );
+    render(<ShareButton tripId="trip-1" tripTitle="Lisbon" />);
+    fireEvent.click(screen.getByRole("button", { name: /^shared?$/ }));
+    await waitFor(() => expect(screen.getByRole("dialog").getAttribute("data-trending")).toBe("true"));
+
+    fireEvent.click(screen.getByRole("button", { name: "stop sharing" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+
+    fireEvent.click(screen.getByRole("button", { name: /^shared?$/ }));
+    expect(screen.getByRole("dialog").getAttribute("data-trending")).toBe("false");
   });
 });

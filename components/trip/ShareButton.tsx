@@ -128,6 +128,8 @@ export default function ShareButton({
       if (response.ok) {
         setIsShared(false);
         setShareUrl(null);
+        // Stopping sharing also takes the trip off Explore.
+        setIsInTrending(false);
         setIsModalOpen(false);
       }
     } catch (error) {
