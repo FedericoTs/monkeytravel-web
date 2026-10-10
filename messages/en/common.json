@@ -2375,6 +2375,8 @@
     "errorLoadFailed": "Could not load expenses. Try again.",
     "retry": "Try again",
     "deleteAriaLabel": "Delete this expense",
+    "amountInvalid": "Enter an amount like {example}.",
+    "amountWhich": "Which amount did you mean?",
     "settle": {
       "openButton": "Settle up",
       "title": "Settle Up",

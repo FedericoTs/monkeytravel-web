@@ -2375,6 +2375,8 @@
     "errorLoadFailed": "Não foi possível carregar as despesas. Tente novamente.",
     "retry": "Tentar de novo",
     "deleteAriaLabel": "Excluir esta despesa",
+    "amountInvalid": "Insira um valor como {example}.",
+    "amountWhich": "Qual valor você quis dizer?",
     "settle": {
       "openButton": "Acertar contas",
       "title": "Acertar Contas",
