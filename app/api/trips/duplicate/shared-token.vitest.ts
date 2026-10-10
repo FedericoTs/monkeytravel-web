@@ -10,14 +10,15 @@ import { NextRequest } from "next/server";
  * client, and since 20260901090000 RLS hides non-public trips from
  * non-members: every trip shared by link answered 404 to exactly the people
  * the link reached. The source is now read with the service role by exact
- * token and not deleted, the same filter /shared/[token] uses.
+ * token and not deleted, the same filter /shared/[token] uses. The public
+ * trip page holds no token, so it names a published trip by its slug.
  */
 
 const OWNER = "owner-1";
 const SAVER = "saver-1";
 const TOKEN = "tok-abcdef";
 
-type SourceTrip = { id: string; user_id: string; share_token: string; deleted_at: string | null; visibility: string; is_hidden?: boolean | null };
+type SourceTrip = { id: string; user_id: string; share_token: string; deleted_at: string | null; visibility: string; is_hidden?: boolean | null; public_slug?: string | null };
 let caller: string | null;
 let stored: SourceTrip[];
 const inserted: Array<Record<string, unknown>> = [];
@@ -183,6 +184,46 @@ describe("saving a trip someone shared by link", () => {
     caller = null;
     const { status } = await save({ shareToken: TOKEN });
     expect(status).toBe(401);
+    expect(inserted).toHaveLength(0);
+  });
+});
+
+describe("saving a public trip from its page", () => {
+  const SLUG = "lisbon-trip-abc123";
+
+  it("a published trip is saved by its slug, without the token", async () => {
+    stored = [source({ visibility: "public", public_slug: SLUG })];
+    const { status, json } = await save({ publicSlug: SLUG, startDate: "2027-01-10" });
+    expect(status).toBe(200);
+    expect(inserted).toHaveLength(1);
+    expect(inserted[0]).toMatchObject({ id: json.tripId, user_id: SAVER, visibility: "private", share_token: null });
+    expect(adminFilters).toEqual([
+      ["eq", "public_slug", SLUG],
+      ["eq", "visibility", "public"],
+      ["is", "deleted_at", null],
+      ["not", "is_hidden", true],
+    ]);
+  });
+
+  it("a trip that is not public cannot be saved by its slug", async () => {
+    stored = [source({ visibility: "shared", public_slug: SLUG })];
+    expect((await save({ publicSlug: SLUG })).status).toBe(404);
+    expect(inserted).toHaveLength(0);
+  });
+
+  it("a hidden or deleted public trip cannot be saved by its slug", async () => {
+    stored = [source({ visibility: "public", public_slug: SLUG, is_hidden: true })];
+    expect((await save({ publicSlug: SLUG })).status).toBe(404);
+    stored = [source({ visibility: "public", public_slug: SLUG, deleted_at: "2026-09-20T00:00:00Z" })];
+    expect((await save({ publicSlug: SLUG })).status).toBe(404);
+    expect(inserted).toHaveLength(0);
+  });
+
+  it("rejects a non-string or oversized slug, and never falls back from a bad token to it", async () => {
+    stored = [source({ visibility: "public", public_slug: SLUG })];
+    expect((await save({ publicSlug: 42 })).status).toBe(400);
+    expect((await save({ publicSlug: "x".repeat(101) })).status).toBe(400);
+    expect((await save({ shareToken: 42, publicSlug: SLUG })).status).toBe(400);
     expect(inserted).toHaveLength(0);
   });
 });
