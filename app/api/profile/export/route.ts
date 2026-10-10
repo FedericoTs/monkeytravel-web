@@ -87,14 +87,18 @@ export async function GET() {
           `
           id,
           title,
-          destination,
+          description,
           start_date,
           end_date,
           status,
-          budget_tier,
+          visibility,
+          budget,
           itinerary,
-          preferences,
-          is_public,
+          trip_meta,
+          packing_list,
+          notes,
+          tags,
+          travel_style,
           created_at,
           updated_at
         `
@@ -125,12 +129,17 @@ export async function GET() {
           id,
           trip_id,
           activity_id,
+          day_number,
           status,
           started_at,
           completed_at,
+          actual_duration_minutes,
           rating,
-          notes,
-          created_at
+          experience_notes,
+          quick_tags,
+          skip_reason,
+          created_at,
+          updated_at
         `
         )
         .eq("user_id", userId)
@@ -143,9 +152,12 @@ export async function GET() {
           `
           id,
           trip_id,
-          items,
+          text,
+          category,
+          is_checked,
+          due_date,
           created_at,
-          updated_at
+          checked_at
         `
         )
         .eq("user_id", userId),
@@ -156,16 +168,21 @@ export async function GET() {
         .select(
           `
           id,
-          trips_generated,
-          trips_regenerated,
-          ai_requests_used,
-          last_activity_at,
+          period_type,
+          period_key,
+          ai_generations_used,
+          ai_regenerations_used,
+          ai_assistant_messages_used,
+          ai_tokens_used,
+          places_autocomplete_used,
+          places_search_used,
+          places_details_used,
           created_at,
           updated_at
         `
         )
         .eq("user_id", userId)
-        .single(),
+        .order("created_at", { ascending: false }),
 
       // AI usage history
       supabase
@@ -173,12 +190,12 @@ export async function GET() {
         .select(
           `
           id,
-          action_type,
-          model_used,
-          tokens_input,
-          tokens_output,
-          cost_estimate,
-          metadata,
+          trip_id,
+          action,
+          model_id,
+          input_tokens,
+          output_tokens,
+          cost_cents,
           created_at
         `
         )
@@ -187,12 +204,24 @@ export async function GET() {
         .limit(1000), // Limit to last 1000 entries
     ]);
 
+    // The file says it holds all of the person's data, so a section that failed
+    // to load fails the export instead of shipping empty. Nothing is stamped,
+    // so they can try again.
+    const sections = { profileResult, tripsResult, conversationsResult, timelinesResult, checklistsResult, usageResult, aiUsageResult };
+    const failed = Object.entries(sections)
+      .filter(([, r]) => r.error)
+      .map(([name, r]) => `${name}: ${r.error?.message}`);
+    if (failed.length > 0) {
+      console.error("[Data Export] sections failed:", failed);
+      return errors.internal("Failed to export data", "Data Export");
+    }
+
     // Compile export data
     const exportData = {
       exportInfo: {
         exportedAt: new Date().toISOString(),
         userId,
-        version: "1.0",
+        version: "1.1",
         dataRetentionNote:
           "This export contains all your personal data stored by MonkeyTravel. " +
           "Some aggregated analytics data may not be included as it is anonymized.",
@@ -202,7 +231,7 @@ export async function GET() {
       aiConversations: conversationsResult.data || [],
       activityTimelines: timelinesResult.data || [],
       tripChecklists: checklistsResult.data || [],
-      usage: usageResult.data || null,
+      usage: usageResult.data || [],
       aiUsageHistory: aiUsageResult.data || [],
     };
 
