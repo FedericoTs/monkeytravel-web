@@ -497,26 +497,8 @@
   },
   {
     "table": "api_request_logs",
-    "grants": {
-      "anon": [
-        "SELECT"
-      ],
-      "authenticated": [
-        "SELECT"
-      ]
-    },
-    "policies": [
-      {
-        "cmd": "SELECT",
-        "name": "api_request_logs_authenticated_select",
-        "roles": [
-          "authenticated"
-        ],
-        "using": "true",
-        "permissive": true,
-        "with_check": null
-      }
-    ],
+    "grants": {},
+    "policies": [],
     "rls_forced": false,
     "rls_enabled": true
   },
