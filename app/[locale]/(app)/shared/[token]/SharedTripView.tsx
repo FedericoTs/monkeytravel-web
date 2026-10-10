@@ -985,6 +985,8 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
           </div>
         )}
 
+        {/* Both fixed bars sit on top of the mobile nav (--mt-nav-h, 0px at
+            desktop): at bottom-0 the nav covered the owner's sign-up link. */}
         {/* With participants on, "Plan your own trip" sits in flow at the very
             bottom only. The owner-claim strip and the flag-off two-button bar
             are fixed bars. */}
@@ -992,7 +994,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
           <div
             ref={bottomBarRef}
             data-testid="trip-bottom-bar"
-            className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100"
+            className="fixed bottom-[var(--mt-nav-h,0px)] left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100"
           >
             <div className="max-w-2xl mx-auto">
               <div
@@ -1044,7 +1046,7 @@ export default function SharedTripView({ trip, shareToken, dateRange, coverImage
           <div
             ref={bottomBarRef}
             data-testid="trip-bottom-bar"
-            className="fixed bottom-0 left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100"
+            className="fixed bottom-[var(--mt-nav-h,0px)] left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100"
           >
             <div className="max-w-2xl mx-auto">
               <div className="flex flex-col sm:flex-row gap-3">
