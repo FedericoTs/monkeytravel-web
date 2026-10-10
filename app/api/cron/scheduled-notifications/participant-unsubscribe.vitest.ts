@@ -147,6 +147,18 @@ describe("digest fan-out to participants", () => {
     expect(cy).toMatchObject({ recipientUserId: MEMBER, guestUnsubscribeUrl: undefined });
   });
 
+  it("never emails the share link to someone who said they're going only on the public page", async () => {
+    const rows = [
+      { ...participants[0], source: "shared" },
+      { ...participants[1], source: "public" },
+    ];
+    // The participants read comes back with its `neq` filters applied, as the database would.
+    const kept = (q: FakeQuery) => rows.filter((r) => q.filters.every(([op, column, value]) => op !== "neq" || r[column as keyof typeof r] !== value));
+    client = fakeSupabase((q) => (q.table === "trip_participants" ? { data: kept(q), error: null } : answer(q))).client;
+    const calls = await runCron();
+    expect(calls.map((c) => c.recipientEmail)).toEqual(["owner@example.com", "ana@example.com"]);
+  });
+
   it("does not email a guest it cannot give a working link", async () => {
     vi.stubEnv("EMAIL_UNSUBSCRIBE_SECRET", "");
     vi.spyOn(console, "warn").mockImplementation(() => {});

@@ -1252,6 +1252,9 @@ async function dispatchDayDigest(
         .from("trip_participants")
         .select("id, email, user_id, participant_cookie_id")
         .eq("trip_id", row.trip_id)
+        // Not someone who said they're going on the public page: the email
+        // carries the share link, and joining through it would confirm them.
+        .neq("source", "public")
         .is("left_at", null)
         .not("email", "is", null);
       const recipients = digestParticipantRecipients(parts ?? [], recipientEmail);
