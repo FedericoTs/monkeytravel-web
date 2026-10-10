@@ -44,7 +44,7 @@ vi.mock("next/server", async (importOriginal) => {
 vi.mock("@/lib/analytics/wizard-event-server", () => ({ logWizardStepServer: vi.fn() }));
 vi.mock("@/lib/explore/counters", () => ({ runTripCounter: vi.fn() }));
 
-import { GET } from "./route";
+import { GET, HEAD } from "./route";
 
 const APP = "https://monkeytravel.app";
 // An account from long before the test, so this is a returning login.
@@ -117,5 +117,22 @@ describe("safety", () => {
       expect(url.pathname).toMatch(/^(\/pt)?\/trips$/);
       expect(url.href).not.toContain("evil");
     }
+  });
+});
+
+describe("a link checker's HEAD request", () => {
+  it("answers without redeeming the one-time token", async () => {
+    const res = HEAD();
+    expect(res.status).toBe(200);
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    expect(verifyOtp).not.toHaveBeenCalled();
+    expect(exchangeCodeForSession).not.toHaveBeenCalled();
+  });
+
+  it("leaves the token for the person's own click", async () => {
+    HEAD();
+    const url = await landing("token_hash=h&type=magiclink&locale=en&next=%2Ftrips");
+    expect(verifyOtp).toHaveBeenCalledWith({ token_hash: "h", type: "magiclink" });
+    expect(url.pathname).not.toContain("/auth/login");
   });
 });

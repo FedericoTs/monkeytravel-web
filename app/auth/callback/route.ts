@@ -79,6 +79,15 @@ async function readUtmSource(): Promise<string | null> {
   }
 }
 
+/**
+ * Link checkers and mail scanners probe emailed links with HEAD, and Next
+ * answers HEAD with the GET handler when none is exported: that redeemed the
+ * one-time token before the person's own click. Answer without touching it.
+ */
+export function HEAD() {
+  return new Response(null, { status: 200, headers: { "Cache-Control": "no-store" } });
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
