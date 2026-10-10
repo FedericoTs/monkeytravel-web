@@ -3,11 +3,11 @@ import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 import type { TripProposalRouteContext } from "@/lib/api/route-context";
-import type { ProposalVote, ProposalVoteType, Activity, ItineraryDay } from "@/types";
+import type { ProposalVote, ProposalVoteType } from "@/types";
 import { calculateProposalConsensus, calculateVoteSummary } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING } from "@/types";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { generateActivityId } from "@/lib/utils/activity-id";
+import { approveProposal } from "@/lib/proposals/approve";
 
 /**
  * GET /api/trips/[id]/proposals/[proposalId]/vote
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
     // Verify proposal exists and is votable
     const { data: proposal, error: proposalError } = await supabase
       .from("activity_proposals")
-      .select("id, trip_id, status, proposed_by")
+      .select("id, trip_id, status, proposed_by, target_day, activity_data")
       .eq("id", proposalId)
       .eq("trip_id", tripId)
       .single();
@@ -198,6 +198,8 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
     // reaches consensus reports the honest "nothing to apply" default.
     let consensusApplied = true;
     let activityAdded = true;
+    // What this vote decided, once written: the page re-reads the trip after an approval.
+    let resolved: "approved" | "rejected" | null = null;
 
     let vote;
     if (existingVote) {
@@ -324,7 +326,22 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
         //
         // Elevated does not mean unchecked: consensus was computed server-side
         // from stored votes, and every write below asserts it changed a row.
-        if (consensus.status === 'approved' || consensus.status === 'rejected') {
+        if (consensus.status === 'approved') {
+          // The owner's approve takes the same path (lib/proposals/approve.ts):
+          // the activity goes into the trip, then the proposal reads approved.
+          // A failure leaves it open, so the next vote applies it again.
+          const outcome = await approveProposal(createAdminClient(), proposal, {
+            method: "consensus",
+            resolvedBy: null,
+          });
+          if (!outcome.ok) {
+            // The vote IS recorded, so the request is not a failure — but the
+            // caller must not be told the activity landed when it did not.
+            activityAdded = false;
+            throw new Error(`Could not apply the approved proposal: ${outcome.reason}`);
+          }
+          resolved = "approved";
+        } else if (consensus.status === 'rejected') {
           const admin = createAdminClient();
 
           const { data: resolvedRows, error: resolveError } = await admin
@@ -337,96 +354,13 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
             .select("id");
 
           if (resolveError || !resolvedRows?.length) {
-            // Do not fall through to the itinerary write: that would add the
-            // activity while the proposal still reads as open, and every
-            // later vote would add it again.
             console.error("[proposal vote] could not resolve proposal", {
               proposalId,
               error: resolveError?.message ?? "matched no rows",
             });
             throw new Error("Could not record the proposal outcome");
           }
-
-          // If APPROVED: Add the activity to the trip's itinerary
-          if (consensus.status === 'approved') {
-            try {
-              // Get the full proposal with activity_data
-              const { data: fullProposal } = await supabase
-                .from("activity_proposals")
-                .select("activity_data, target_day, target_time_slot, type")
-                .eq("id", proposalId)
-                .single();
-
-              if (fullProposal?.activity_data && fullProposal.target_day) {
-                const activityData = fullProposal.activity_data as Activity;
-                const targetDayNumber = fullProposal.target_day;
-
-                // Get the current trip itinerary
-                const { data: tripData } = await supabase
-                  .from("trips")
-                  .select("itinerary")
-                  .eq("id", tripId)
-                  .single();
-
-                if (tripData?.itinerary) {
-                  const itinerary = tripData.itinerary as ItineraryDay[];
-                  const targetDayIndex = targetDayNumber - 1;
-
-                  if (targetDayIndex >= 0 && targetDayIndex < itinerary.length) {
-                    // Create the new activity with a unique ID
-                    const newActivity: Activity = {
-                      ...activityData,
-                      id: activityData.id || generateActivityId(),
-                    };
-
-                    // Add to the target day's activities
-                    const updatedItinerary = itinerary.map((day, index) => {
-                      if (index === targetDayIndex) {
-                        // Insert activity and sort by start_time
-                        const activities = [...day.activities, newActivity].sort((a, b) => {
-                          const timeA = a.start_time || "00:00";
-                          const timeB = b.start_time || "00:00";
-                          return timeA.localeCompare(timeB);
-                        });
-                        return { ...day, activities };
-                      }
-                      return day;
-                    });
-
-                    // Update the trip with the new itinerary.
-                    // `.select()` is load-bearing — see the note above.
-                    const { data: writtenRows, error: itineraryError } = await admin
-                      .from("trips")
-                      .update({
-                        itinerary: updatedItinerary,
-                        updated_at: new Date().toISOString(),
-                      })
-                      .eq("id", tripId)
-                      .select("id");
-
-                    if (itineraryError || !writtenRows?.length) {
-                      console.error("[proposal vote] approved activity was NOT added", {
-                        tripId,
-                        proposalId,
-                        activity: newActivity.name,
-                        error: itineraryError?.message ?? "matched no rows",
-                      });
-                      throw new Error("Could not add the approved activity to the itinerary");
-                    }
-
-                    console.log(`Activity "${newActivity.name}" added to Day ${targetDayNumber} after proposal approval`);
-                  }
-                }
-              }
-            } catch (insertError) {
-              // The vote IS recorded, so the request is not a failure — but the
-              // caller must not be told the activity landed when it did not.
-              // The response now carries `activityAdded`, and this is the one
-              // place that can set it false.
-              console.error("Error adding approved activity to itinerary:", insertError);
-              activityAdded = false;
-            }
-          }
+          resolved = "rejected";
         }
       }
     } catch (consensusError) {
@@ -445,6 +379,7 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
       // writes had silently matched zero rows.
       consensusApplied,
       activityAdded,
+      resolved,
     });
   } catch (error) {
     console.error("[Proposal Vote] Unexpected error in POST:", error);

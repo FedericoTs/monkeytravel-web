@@ -542,6 +542,8 @@
     "aiTripAssistant": "Asistente de Viaje AI",
     "suggestActivity": "+ Sugerir una actividad para este día",
     "proposalSubmitted": "¡Propuesta enviada! Otros viajeros votarán sobre ella.",
+    "proposalApproved": "Propuesta aprobada: «{name}» ya está en el día {day}.",
+    "proposalActionFailed": "No se pudo actualizar la propuesta. Inténtalo de nuevo.",
     "crewVotesSummary": "🗳️ {count, plural, one {# voto} other {# votos}} de tu grupo",
     "crewVotesVoters": "De {names}",
     "crewVotesShare": "Compartir enlace de votación",

@@ -930,7 +930,7 @@ export interface ActivityProposal {
   type: ProposalType;
   activity_data: Activity;
   target_activity_id?: string;  // For replacement: which activity to replace
-  target_day: number;
+  target_day: number;  // The day's day_number (1-based)
   target_time_slot?: 'morning' | 'afternoon' | 'evening';
   note?: string;
   status: ProposalStatus;
@@ -940,7 +940,7 @@ export interface ActivityProposal {
   created_at: string;
   updated_at: string;
   expires_at: string;
-  // Joined data from users table
+  // The proposer's public profile (no public name: undefined)
   proposer?: {
     display_name: string;
     avatar_url?: string;

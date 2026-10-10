@@ -17,7 +17,8 @@ interface UseProposalsOptions {
   tripId: string;
   enabled?: boolean;
   statusFilter?: 'active' | 'all' | 'pending' | 'voting' | 'approved' | 'rejected';
-  onProposalChange?: (proposal: ProposalWithVotes) => void;
+  /** A proposal as it is after a change: from realtime, or an approval this tab made. */
+  onProposalChange?: (proposal: ActivityProposal) => void;
 }
 
 interface CreateProposalInput {
@@ -112,6 +113,17 @@ export function useProposals({
     }
   }, [tripId, enabled, statusFilter]);
 
+  // An approval this tab made, reported as realtime would report it (which
+  // may be down). No cached copy: realtime already refreshed the list, and
+  // reported it then.
+  const reportApproved = useCallback(
+    (proposalId: string) => {
+      const cached = proposalsRef.current.find((p) => p.id === proposalId);
+      if (cached) onProposalChange?.({ ...cached, status: "approved" });
+    },
+    [onProposalChange]
+  );
+
   // Create a new proposal
   const createProposal = useCallback(
     async (input: CreateProposalInput): Promise<ActivityProposal | null> => {
@@ -192,6 +204,9 @@ export function useProposals({
           throw new Error(data.error || "Failed to vote");
         }
 
+        // This vote approved it: its activity is now in the trip.
+        if (data.resolved === "approved") reportApproved(proposalId);
+
         // Refresh to get updated consensus
         await fetchProposals();
       } catch (err) {
@@ -201,7 +216,7 @@ export function useProposals({
         setIsVoting(false);
       }
     },
-    [tripId, fetchProposals]
+    [tripId, fetchProposals, reportApproved]
   );
 
   // Remove vote from a proposal
@@ -304,6 +319,9 @@ export function useProposals({
           throw new Error(data.error || "Failed to resolve proposal");
         }
 
+        // The server added the activity before marking it approved.
+        if (action === 'approve') reportApproved(proposalId);
+
         // Refresh to update list
         await fetchProposals();
       } catch (err) {
@@ -311,7 +329,7 @@ export function useProposals({
         throw err;
       }
     },
-    [tripId, fetchProposals]
+    [tripId, fetchProposals, reportApproved]
   );
 
   // Delete a proposal (proposer only, pending status only)
@@ -427,12 +445,12 @@ export function useProposals({
           // Refresh proposals on any change
           fetchProposals();
 
-          // Notify callback if provided (use ref to avoid recreating subscription)
-          if (onProposalChange && payload.new) {
-            const proposal = proposalsRef.current.find((p) => p.id === (payload.new as { id: string }).id);
-            if (proposal) {
-              onProposalChange(proposal);
-            }
+          // The row as changed (a DELETE carries none): the cached copy is from
+          // before the change, so an approval would still read as open.
+          const changed = payload.new as Partial<ActivityProposal> | undefined;
+          if (onProposalChange && changed?.id) {
+            const cached = proposalsRef.current.find((p) => p.id === changed.id);
+            onProposalChange({ ...cached, ...changed } as ActivityProposal);
           }
         }
       )

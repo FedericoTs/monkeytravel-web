@@ -17,6 +17,7 @@ import {
   calculateVoteSummary,
 } from "@/lib/proposals/consensus";
 import { enqueueNotification } from "@/lib/notifications/service";
+import { publicProposer } from "@/lib/proposals/proposer";
 
 /**
  * GET /api/trips/[id]/proposals
@@ -66,11 +67,7 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
         resolution_method,
         created_at,
         updated_at,
-        expires_at,
-        proposer:proposed_by (
-          display_name,
-          avatar_url
-        )
+        expires_at
       `)
       .eq("trip_id", tripId)
       .order("created_at", { ascending: false });
@@ -150,15 +147,14 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
     collaborators?.forEach((c) => voterIds.add(c.user_id));
     const totalVoters = voterIds.size;
 
-    // Voter names come from public_profiles rather than an embed on users.
-    // The people who voted on a proposal are by definition not the caller, and
-    // public.users only exposes the caller's own row — an embed there would not
-    // error, it would return null for everyone and silently label the whole
-    // crew "Unknown".
-    const profileMap = await batchFetchUserProfiles(
-      supabase,
-      (votes || []).map((v) => v.user_id as string)
-    );
+    // Voter and proposer names come from public_profiles rather than an embed
+    // on users. Those people are mostly not the caller, and public.users only
+    // exposes the caller's own row — an embed there would not error, it would
+    // return null for everyone else and silently label them "Unknown".
+    const profileMap = await batchFetchUserProfiles(supabase, [
+      ...(votes || []).map((v) => v.user_id as string),
+      ...proposals.map((p) => p.proposed_by as string),
+    ]);
 
     // Group votes by proposal
     const votesByProposal = new Map<string, ProposalVote[]>();
@@ -189,11 +185,6 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
 
     // Transform proposals with votes and consensus
     const transformedProposals: ProposalWithVotes[] = proposals.map((p) => {
-      const profile = p.proposer as unknown as {
-        display_name: string;
-        avatar_url: string | null;
-      } | null;
-
       const proposalVotes = votesByProposal.get(p.id) || [];
       const voteSummary = calculateVoteSummary(proposalVotes);
       const consensus = calculateProposalConsensus({
@@ -224,12 +215,7 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
         created_at: p.created_at,
         updated_at: p.updated_at,
         expires_at: p.expires_at,
-        proposer: profile
-          ? {
-              display_name: profile.display_name || "Unknown",
-              avatar_url: profile.avatar_url || undefined,
-            }
-          : undefined,
+        proposer: publicProposer(profileMap.get(p.proposed_by as string)),
         votes: proposalVotes,
         vote_summary: voteSummary,
         consensus,
@@ -285,8 +271,9 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       return errors.badRequest("Activity data with name is required");
     }
 
-    if (typeof targetDay !== 'number' || targetDay < 0) {
-      return errors.badRequest("Valid target day (0 or greater) is required");
+    // The day's day_number: Day 1 is 1.
+    if (!Number.isInteger(targetDay) || targetDay < 1) {
+      return errors.badRequest("Valid target day (1 or greater) is required");
     }
 
     if (type === 'replacement' && !targetActivityId) {
@@ -357,11 +344,7 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
         status,
         created_at,
         updated_at,
-        expires_at,
-        proposer:proposed_by (
-          display_name,
-          avatar_url
-        )
+        expires_at
       `)
       .single();
 
@@ -371,10 +354,8 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     }
 
     // Transform response
-    const profile = proposal.proposer as unknown as {
-      display_name: string;
-      avatar_url: string | null;
-    } | null;
+    const profiles = await batchFetchUserProfiles(supabase, [user.id]);
+    const proposer = publicProposer(profiles.get(user.id), user.email);
 
     const transformedProposal: ActivityProposal = {
       id: proposal.id,
@@ -390,30 +371,25 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       created_at: proposal.created_at,
       updated_at: proposal.updated_at,
       expires_at: proposal.expires_at,
-      proposer: profile
-        ? {
-            display_name: profile.display_name || "Unknown",
-            avatar_url: profile.avatar_url || undefined,
-          }
-        : undefined,
+      proposer,
     };
 
     // Notify the trip owner — but not for self-proposals (owner
     // proposing on their own trip is noise). Best-effort; the proposal
     // is already saved if this fires.
     if (!isOwner) {
-      const proposerName = profile?.display_name || "A collaborator";
+      const proposerName = proposer?.display_name || "A collaborator";
       void enqueueNotification({
         userId: trip.user_id,
         notification: {
           type: "collab_proposal",
           data: {
-            message: `${proposerName} proposed "${activityWithId.name}" for day ${targetDay + 1}`,
+            message: `${proposerName} proposed "${activityWithId.name}" for day ${targetDay}`,
             href: `/trips/${tripId}`,
             trip_id: tripId,
             proposer_name: proposerName,
             proposed_activity: activityWithId.name,
-            day_number: targetDay + 1,
+            day_number: targetDay,
           },
         },
       });
