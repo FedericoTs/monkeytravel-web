@@ -88,6 +88,14 @@ const POISON = [
 ];
 
 /**
+ * Signed link tokens (?token=, ?k=) are random text and can spell "NaN" by
+ * chance, which held back correct emails. The scan skips query values of 20
+ * or more characters; a short broken one such as ?day=NaN is still caught.
+ */
+const LONG_QUERY_VALUE = /((?:\?|&amp;|&)[\w-]+=)[\w\-.~%]{20,}/g;
+
+
+/**
  * React escapes text nodes on render, so a destination containing "&" — every
  * multi-city trip, e.g. "Palermo, Agrigento, Syracuse & Taormina" — appears
  * in the HTML as "&amp;". Searching for the raw string reports a missing
@@ -141,8 +149,9 @@ export function verifyRenderedEmail(input: VerifyRenderInput): RenderDefect[] {
     );
   }
 
+  const scanned = input.html.replace(LONG_QUERY_VALUE, "$1");
   for (const p of POISON) {
-    if (input.html.includes(p)) {
+    if (scanned.includes(p)) {
       block("poison_html", `body contains ${JSON.stringify(p)}`);
     }
     if (input.subject.includes(p)) {
