@@ -18,6 +18,7 @@ import { splitCities } from "@/lib/ai/multi-city-core";
 import { isSupportedLanguage, resolveAiLanguage } from "@/lib/ai/language";
 import { isValidTimeZone } from "@/lib/trip/live";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
+import { newTripTitle } from "@/lib/trips/title";
 
 export interface TripFormState {
   destination: string;
@@ -200,7 +201,9 @@ function buildTripRow(
 
   return {
     user_id: userId,
-    title: `${itinerary.destination.name} Trip`,
+    // The page's locale, as the wizard's own save uses: insert_trip_dedup
+    // matches the two save arms by title.
+    title: newTripTitle(itinerary.destination.name, formState.locale),
     description: itinerary.destination.description,
     start_date: formState.startDate,
     end_date: formState.endDate,

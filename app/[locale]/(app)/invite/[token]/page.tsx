@@ -24,7 +24,13 @@ const ERROR_KEYS: Record<string, string> = {
   RECIPIENT_MISMATCH: "recipientMismatch",
 };
 
-async function getInviteData(token: string) {
+/** Stand-ins, in the page's language, for an owner or inviter without a display name. */
+interface UnnamedLabels {
+  owner: string;
+  inviter: string;
+}
+
+async function getInviteData(token: string, unnamed: UnnamedLabels) {
   // Use admin client for public invite preview (bypasses RLS)
   // This is safe because we only expose limited preview data
   const supabase = createClient(
@@ -180,11 +186,11 @@ async function getInviteData(token: string) {
       collaboratorCount: (collaboratorCount || 0) + 1, // +1 for owner
     },
     owner: {
-      displayName: owner?.display_name || "Trip Owner",
+      displayName: owner?.display_name || unnamed.owner,
       avatarUrl: owner?.avatar_url,
     },
     inviter: inviter ? {
-      displayName: inviter.display_name,
+      displayName: inviter.display_name || unnamed.inviter,
       avatarUrl: inviter.avatar_url,
     } : null,
   };
@@ -220,8 +226,8 @@ async function viewerOnTrip(tripId: string): Promise<boolean | null> {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { token, locale } = await params;
-  const data = await getInviteData(token);
   const t = await getTranslations({ locale, namespace: "common.invitePage" });
+  const data = await getInviteData(token, { owner: t("ownerFallback"), inviter: t("someoneFallback") });
 
   // Root layout's title.template appends " | MonkeyTravel" — page-level
   // titles must NOT include the suffix themselves, or we render the
@@ -262,7 +268,7 @@ export default async function JoinPage({ params }: PageProps) {
   const { token, locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("common.invitePage");
-  const data = await getInviteData(token);
+  const data = await getInviteData(token, { owner: t("ownerFallback"), inviter: t("someoneFallback") });
 
   if ("error" in data && data.error === "RECIPIENT_MISMATCH") {
     return (

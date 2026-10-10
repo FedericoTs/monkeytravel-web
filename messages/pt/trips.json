@@ -30,7 +30,7 @@
       "longGap": "O dia {day} tem um intervalo de {hours} horas — preencher?"
     },
     "keepPlanPrompt": "Este plano existe apenas neste navegador.",
-    "keepPlanButton": "Guarde esta viagem, grátis"
+    "keepPlanButton": "Salve esta viagem, grátis"
   },
   "daySummary": {
     "title": "Dia {day}",
@@ -80,7 +80,7 @@
       "minutesAgo": "há {minutes} min",
       "hoursAgo": "há {hours} h",
       "yesterday": "ontem",
-      "expired": "O plano que criou aqui expirou. Comece um novo — demora apenas cerca de 30 segundos."
+      "expired": "O plano que você criou aqui expirou. Comece um novo — demora apenas cerca de 30 segundos."
     },
     "multiCity": {
       "toggleTitle": "Planeje várias cidades",
@@ -92,6 +92,9 @@
       "nightsAria": "Noites na cidade {number}",
       "removeCityAria": "Remover cidade {number}",
       "addCity": "+ Adicionar cidade",
+      "startDateAria": "Data de início da viagem",
+      "nightsTotal": "{count, plural, one {# noite} other {# noites}} no total entre suas cidades",
+      "endsOn": "termina em {date}",
       "longTripNudge": "{days} dias de viagem? Viagens tão longas funcionam melhor com várias paradas — toque para dividir o roteiro em cidades."
     },
     "datePicker": {
@@ -121,7 +124,7 @@
     },
     "step1": {
       "popularNow": "Populares agora",
-      "planningStat": "{count}+ viagens planeadas nos últimos 30 dias",
+      "planningStat": "{count}+ viagens planejadas nos últimos 30 dias",
       "title": "Para onde e quando?",
       "subtitle": "Escolha um destino e as datas da sua viagem",
       "placeholder": "ex.: Paris, Tóquio, Nova York...",
@@ -163,10 +166,10 @@
         "chipAria": "Começar uma viagem para {city}, {country} — define o lugar e datas flexíveis"
       },
       "oneTap": {
-        "datesPencilled": "Colocamos por agora {days} dias daqui a cerca de três semanas — toque numa duração ou abra o calendário para mudar."
+        "datesPencilled": "Colocamos por enquanto {days} dias daqui a cerca de três semanas — toque numa duração ou abra o calendário para mudar."
       },
       "useFlexibleDates": "Usar datas flexíveis",
-      "hintFlexibleDefault": "Ainda sem datas? Colocaremos por agora {days} dias daqui a cerca de três semanas — você pode mudá-las quando quiser.",
+      "hintFlexibleDefault": "Ainda sem datas? Colocaremos por enquanto {days} dias daqui a cerca de três semanas — você pode mudá-las quando quiser.",
       "freeReassuranceSignedIn": "Grátis — sua viagem dia a dia completa, pronta para salvar com um toque",
       "destinationTooLong": "Isso parece um pedido em vez de um lugar. Escreva aqui o destino (máx. 100 caracteres) e acrescente os detalhes no passo seguinte."
     },
@@ -184,6 +187,7 @@
       "endDate": "Data de término",
       "daysLabel": "{count} dias",
       "customize": "Personalize orçamento, ritmo e preferências",
+      "customizeDefaults": "(padrão: orçamento equilibrado, ritmo moderado)",
       "generate": "Gerar Roteiro",
       "back": "Voltar",
       "mustDos": {
@@ -227,19 +231,19 @@
       "dayLabel": "Dia {n}",
       "packingSuggestions": "Sugestões de Bagagem",
       "dailyBudget": "Orçamento Est.",
-      "mobileSaveNudge": "{count, plural, one {# dia} other {# dias}} — salvo só neste navegador até você guardar",
+      "mobileSaveNudge": "{count, plural, one {# dia} other {# dias}} — só neste navegador até você salvar",
       "saveHeaderNudge": "{count, plural, one {# dia} other {# dias}} — só neste navegador",
       "shareForVotes": "Envie para quem vai",
       "notSavedPill": "Não salvo",
       "sessionTrayTitle": "{count} viagens nesta sessão — nenhuma salva ainda",
-      "shareAnonCta": "Partilhar esta viagem",
-      "shareAnonCreating": "A criar a ligação...",
+      "shareAnonCta": "Compartilhar esta viagem",
+      "shareAnonCreating": "Criando o link...",
       "shareAnonCopy": "Copiar",
       "shareAnonCopied": "Copiado",
-      "shareAnonError": "Não foi possível criar a ligação. Tente novamente.",
+      "shareAnonError": "Não foi possível criar o link. Tente novamente.",
       "shareAnonHint": "Qualquer pessoa com o link pode ver e votar.",
-      "shareAnonKeepPrompt": "Quer continuar a editá-lo?",
-      "shareAnonKeepCta": "Guardar esta viagem, grátis",
+      "shareAnonKeepPrompt": "Quer continuar editando?",
+      "shareAnonKeepCta": "Salvar esta viagem, grátis",
       "shareCrewCta": "Peça ao seu grupo para votar",
       "shareCrewHint": "Envie este link — podem votar sem criar conta.",
       "shareCrewVotes": "{count, plural, =1 {# voto até agora: veja o que escolheram} other {# votos até agora: veja o que escolheram}}",
@@ -314,10 +318,10 @@
       "dismiss": "Fechar"
     },
     "pendingClaim": {
-      "title": "A sua viagem a {destination} ainda está aqui",
-      "titleGeneric": "A sua viagem partilhada ainda está aqui",
-      "body": "Partilhou-a sem conta. Registe-se grátis para continuar a editá-la, ou abra o link que enviou.",
-      "keep": "Guardar esta viagem",
+      "title": "Sua viagem para {destination} ainda está aqui",
+      "titleGeneric": "Sua viagem compartilhada ainda está aqui",
+      "body": "Você compartilhou esta viagem sem conta. Cadastre-se grátis para continuar editando ou abra o link que você enviou.",
+      "keep": "Salvar esta viagem",
       "openLink": "Abrir o link",
       "dismiss": "Fechar"
     }
@@ -520,6 +524,12 @@
     "editingMode": "Modo de Edição",
     "optimizeRoute": "Otimizar Rota",
     "optimize": "Otimizar",
+    "routeOptimized": "Rota otimizada",
+    "routeOptimizedSave": "Rota otimizada. Salve as alterações para mantê-la.",
+    "pageTitle": "Detalhes da viagem",
+    "exitEditing": "Sair",
+    "activityRegenerateFailed": "Não foi possível gerar a atividade de novo. Tente novamente.",
+    "saveChangesFailed": "Não foi possível salvar as alterações. Tente novamente.",
     "estBudget": "Orçamento Est.",
     "noItinerary": "Nenhum Roteiro Ainda",
     "noItineraryMessage": "Esta viagem ainda não tem atividades planejadas.",

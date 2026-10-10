@@ -126,11 +126,10 @@ export default async function NewTripPage({
   if (rawSlug) {
     const known = getDestinationBySlug(rawSlug.toLowerCase());
     if (known) {
-      // Locales other than the three our content is authored in (en/es/it)
-      // can still hit this route via the middleware fallback; default to
-      // the English name in that case rather than indexing with `undefined`.
+      // Any other locale that reaches this route gets the English name rather
+      // than indexing with `undefined`.
       const safeLocale: Locale =
-        locale === "es" || locale === "it" || locale === "en"
+        locale === "es" || locale === "it" || locale === "pt" || locale === "en"
           ? (locale as Locale)
           : "en";
       prefilledDestination = {

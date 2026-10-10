@@ -92,6 +92,9 @@
       "nightsAria": "Nights in city {number}",
       "removeCityAria": "Remove city {number}",
       "addCity": "+ Add city",
+      "startDateAria": "Trip start date",
+      "nightsTotal": "{count, plural, one {# night} other {# nights}} total across your cities",
+      "endsOn": "ends {date}",
       "longTripNudge": "Planning {days} days? Trips this long usually work better as multiple stops — tap to split your route into cities."
     },
     "datePicker": {
@@ -184,6 +187,7 @@
       "endDate": "End date",
       "daysLabel": "{count} days",
       "customize": "Customize budget, pace & preferences",
+      "customizeDefaults": "(defaults: Balanced budget, Moderate pace)",
       "generate": "Generate Itinerary",
       "back": "Back",
       "mustDos": {
@@ -520,6 +524,12 @@
     "editingMode": "Editing Mode",
     "optimizeRoute": "Optimize Route",
     "optimize": "Optimize",
+    "routeOptimized": "Route optimized",
+    "routeOptimizedSave": "Route optimized. Save your changes to keep it.",
+    "pageTitle": "Trip Details",
+    "exitEditing": "Exit",
+    "activityRegenerateFailed": "Failed to regenerate activity. Please try again.",
+    "saveChangesFailed": "Failed to save changes. Please try again.",
     "estBudget": "Est. Budget",
     "noItinerary": "No Itinerary Yet",
     "noItineraryMessage": "This trip doesn't have any activities planned yet.",

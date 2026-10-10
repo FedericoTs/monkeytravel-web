@@ -87,7 +87,8 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
         role: "owner" as CollaboratorRole,
         invited_by: null,
         joined_at: null, // Owner didn't "join"
-        display_name: ownerProfile?.display_name || "Trip Owner",
+        // Null without a name: the list words the stand-in in the viewer's language.
+        display_name: ownerProfile?.display_name || null,
         avatar_url: ownerProfile?.avatar_url || null,
       };
     }
@@ -102,7 +103,7 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
         role: c.role as CollaboratorRole,
         invited_by: c.invited_by,
         joined_at: c.joined_at,
-        display_name: profile?.display_name || "Unknown User",
+        display_name: profile?.display_name || null,
         avatar_url: profile?.avatar_url || null,
       };
     });

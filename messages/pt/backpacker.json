@@ -38,7 +38,7 @@
   },
   "features": {
     "title": "Feito para como o mochileiro viaja de verdade",
-    "subtitle": "A maioria dos planejadores de viagem com AI cai no padrão de roteiros turísticos de gama média. Ative o Modo Mochileiro e cada linha do roteiro se reorganiza em torno do seu perfil — hospedagem, atividades, comida, transporte, vida social.",
+    "subtitle": "A maioria dos planejadores de viagem com AI cai no padrão de roteiros turísticos de categoria intermediária. Ative o Modo Mochileiro e cada linha do roteiro se reorganiza em torno do seu perfil — hospedagem, atividades, comida, transporte, vida social.",
     "items": {
       "hostels": {
         "title": "Hostels antes de hotéis",
@@ -145,7 +145,7 @@
       },
       "comfort": {
         "question": "E se eu quiser um plano um pouco mais confortável?",
-        "answer": "Desative o Modo Mochileiro no assistente e gere de novo. Você terá um plano de gama média com o mesmo destino + datas. Ou mantenha o Modo Mochileiro ativado, mas suba o nível de orçamento no passo 2 — o plano ainda vai privilegiar hostels e atividades sociais, só com uma extravagância de vez em quando."
+        "answer": "Desative o Modo Mochileiro no assistente e gere de novo. Você terá um plano de categoria intermediária com o mesmo destino + datas. Ou mantenha o Modo Mochileiro ativado, mas suba o nível de orçamento no passo 2 — o plano ainda vai privilegiar hostels e atividades sociais, só com uma extravagância de vez em quando."
       }
     }
   },

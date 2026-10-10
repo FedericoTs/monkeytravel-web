@@ -208,6 +208,12 @@
     "googleVerified": "Google verified",
     "venueTierEstimate": "Venue tier estimate",
     "insiderTips": "Insider Tips",
+    "startTime": "Start Time",
+    "estCost": "Est. Cost",
+    "durationMinutes": "<b>{minutes} min</b> duration",
+    "about": "About",
+    "location": "Location",
+    "photos": "Photos",
     "loadingPhotos": "Loading photos...",
     "noPhotos": "No photos available",
     "regeneratingActivity": "Regenerating activity with AI..."
@@ -502,6 +508,7 @@
     "hideArchived": "Hide archived",
     "confirmArchive": "Archive this trip?",
     "confirmArchiveMessage": "This will hide the trip from your main view. You can restore it anytime.",
+    "confirmUnarchiveMessage": "{title} will be restored to your main trips view.",
     "confirmDelete": "Delete this trip?",
     "confirmDeleteMessage": "This action cannot be undone. The trip will be permanently deleted.",
     "tripArchived": "Trip archived",
@@ -667,6 +674,13 @@
   "gallery": {
     "loadGooglePhotos": "Load Google Photos",
     "verified": "Verified: {label}",
+    "priceLevels": {
+      "free": "Free",
+      "inexpensive": "Inexpensive",
+      "moderate": "Moderate",
+      "expensive": "Expensive",
+      "veryExpensive": "Very Expensive"
+    },
     "openNow": "Open Now",
     "closed": "Closed",
     "website": "Website",
@@ -1521,6 +1535,8 @@
   "collaborators": {
     "you": "you",
     "owner": "Owner",
+    "ownerFallback": "Trip Owner",
+    "memberFallback": "Unknown User",
     "editor": "Editor",
     "viewer": "Viewer",
     "pending": "Pending",
@@ -2318,6 +2334,9 @@
     "signIn": "Sign in",
     "createYourOwnTrip": "Create Your Own Trip",
     "alreadyOnTrip": "Already on this trip?",
+    "ownerFallback": "Trip Owner",
+    "someoneFallback": "Someone",
+    "inviterNoteLabel": "Personal note from the inviter",
     "gate": {
       "title": "Join {trip}",
       "sentTo": "This invite was sent to {email}. Sign in with that email to see the trip and join it.",

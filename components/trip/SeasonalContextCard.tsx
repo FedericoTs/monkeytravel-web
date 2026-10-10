@@ -33,6 +33,7 @@ const VIBE_REASON_KEY_BY_ENGLISH: Record<string, string> = {
 function intlLocaleTag(locale: string): string {
   if (locale === "es") return "es-ES";
   if (locale === "it") return "it-IT";
+  if (locale === "pt") return "pt-BR";
   return "en-US";
 }
 

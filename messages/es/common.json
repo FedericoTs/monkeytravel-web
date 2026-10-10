@@ -208,6 +208,12 @@
     "googleVerified": "Verificado por Google",
     "venueTierEstimate": "Estimación según categoría",
     "insiderTips": "Consejos Locales",
+    "startTime": "Hora de inicio",
+    "estCost": "Costo estimado",
+    "durationMinutes": "<b>{minutes} min</b> de duración",
+    "about": "Descripción",
+    "location": "Ubicación",
+    "photos": "Fotos",
     "loadingPhotos": "Cargando fotos...",
     "noPhotos": "No hay fotos disponibles",
     "regeneratingActivity": "Regenerando actividad con AI..."
@@ -502,6 +508,7 @@
     "hideArchived": "Ocultar archivados",
     "confirmArchive": "¿Archivar este viaje?",
     "confirmArchiveMessage": "Esto ocultará el viaje de tu vista principal. Puedes restaurarlo en cualquier momento.",
+    "confirmUnarchiveMessage": "{title} volverá a tu vista principal de viajes.",
     "confirmDelete": "¿Eliminar este viaje?",
     "confirmDeleteMessage": "Esta acción no se puede deshacer. El viaje se eliminará permanentemente.",
     "tripArchived": "Viaje archivado",
@@ -667,6 +674,13 @@
   "gallery": {
     "loadGooglePhotos": "Cargar fotos de Google",
     "verified": "Verificado: {label}",
+    "priceLevels": {
+      "free": "Gratis",
+      "inexpensive": "Económico",
+      "moderate": "Precio medio",
+      "expensive": "Caro",
+      "veryExpensive": "Muy caro"
+    },
     "openNow": "Abierto ahora",
     "closed": "Cerrado",
     "website": "Sitio web",
@@ -1521,6 +1535,8 @@
   "collaborators": {
     "you": "tú",
     "owner": "Propietario",
+    "ownerFallback": "Organizador del viaje",
+    "memberFallback": "Usuario sin nombre",
     "editor": "Editor",
     "viewer": "Espectador",
     "pending": "Pendiente",
@@ -2318,6 +2334,9 @@
     "signIn": "Iniciar sesión",
     "createYourOwnTrip": "Crea Tu Propio Viaje",
     "alreadyOnTrip": "¿Ya estás en este viaje?",
+    "ownerFallback": "El organizador del viaje",
+    "someoneFallback": "Alguien",
+    "inviterNoteLabel": "Nota personal de quien te invitó",
     "gate": {
       "title": "Únete a {trip}",
       "sentTo": "Esta invitación se envió a {email}. Inicia sesión con ese correo para ver el viaje y unirte.",

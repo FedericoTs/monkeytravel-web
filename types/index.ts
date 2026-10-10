@@ -663,8 +663,9 @@ export interface TripCollaborator {
   role: CollaboratorRole;
   invited_by: string | null;
   joined_at: string;
-  // Joined from profiles table
-  display_name: string;
+  // Joined from profiles table; null when the person never set a name
+  // (shown through useCollaboratorName).
+  display_name: string | null;
   avatar_url: string | null;
   email?: string;
 }

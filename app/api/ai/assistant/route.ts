@@ -414,7 +414,7 @@ function applyButtonLabel(language: string): string {
     case "it":
       return "Salva nel mio viaggio";
     case "pt":
-      return "Guardar na minha viagem";
+      return "Salvar na minha viagem";
     default:
       return "Save to my trip";
   }

@@ -272,7 +272,7 @@ export default function InviteAcceptClient({
           {invite.message && (
             <div
               className="mb-5 p-4 bg-orange-50/60 rounded-xl border-l-4 border-[var(--primary)]"
-              aria-label="Personal note from the inviter"
+              aria-label={t("inviterNoteLabel")}
             >
               <p className="text-sm italic text-slate-700 leading-relaxed">
                 &ldquo;{invite.message}&rdquo;

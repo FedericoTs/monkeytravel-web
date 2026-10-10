@@ -11,6 +11,7 @@
  * `trip_meta.destinations` / the city-tagged `ItineraryDay`s.
  */
 import { Fragment } from "react";
+import { useTranslations } from "next-intl";
 
 const TEAL = "#0EA5A4"; // route line
 const CORAL = "#FB7150"; // ordered city nodes
@@ -29,6 +30,7 @@ export function JourneyRibbon({
   stops: JourneyStop[];
   className?: string;
 }) {
+  const t = useTranslations("trips.wizard.datePicker");
   if (stops.length < 2) return null;
 
   return (
@@ -73,7 +75,7 @@ export function JourneyRibbon({
                   {stop.city}
                 </span>
                 <span className="mt-1 rounded-full bg-teal-100 px-2 py-0.5 text-[11px] font-medium text-teal-800">
-                  {stop.nights} {stop.nights === 1 ? "night" : "nights"}
+                  {t("nightCount", { count: stop.nights })}
                 </span>
               </div>
             </Fragment>

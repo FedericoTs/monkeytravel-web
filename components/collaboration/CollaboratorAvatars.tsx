@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { useCollaboratorName } from "@/lib/i18n/collaborator-name";
 import { TripCollaborator } from "@/types";
 
 interface CollaboratorAvatarsProps {
@@ -34,6 +35,7 @@ export function CollaboratorAvatars({
   className,
 }: CollaboratorAvatarsProps) {
   const t = useTranslations("common.collaborators");
+  const nameOf = useCollaboratorName();
   const visibleCollaborators = collaborators.slice(0, maxVisible);
   const hiddenCount = Math.max(0, collaborators.length - maxVisible);
   const sizeClass = sizeClasses[size];
@@ -64,12 +66,12 @@ export function CollaboratorAvatars({
               index > 0 && overlapClass
             )}
             style={{ zIndex: maxVisible - index }}
-            title={collaborator.display_name}
+            title={nameOf(collaborator)}
           >
             {collaborator.avatar_url ? (
               <img
                 src={collaborator.avatar_url}
-                alt={collaborator.display_name}
+                alt={nameOf(collaborator)}
                 className="w-full h-full object-cover"
               />
             ) : (

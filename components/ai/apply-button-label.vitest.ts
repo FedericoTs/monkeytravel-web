@@ -21,7 +21,7 @@ const ROUTE_LABELS: Record<string, string> = {
   en: "Save to my trip",
   es: "Guardar en mi viaje",
   it: "Salva nel mio viaggio",
-  pt: "Guardar na minha viagem",
+  pt: "Salvar na minha viagem",
 };
 
 describe("the prompt names the button exactly as the button is labelled", () => {

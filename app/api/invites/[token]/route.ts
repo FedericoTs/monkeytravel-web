@@ -176,12 +176,13 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
         destination,
         collaboratorCount: (collaboratorCount || 0) + 1, // +1 for owner
       },
+      // Null when there is no name: the reader words the stand-in in its own language.
       owner: {
-        displayName: owner?.display_name || "Trip Owner",
+        displayName: owner?.display_name || null,
         avatarUrl: owner?.avatar_url,
       },
       inviter: inviter ? {
-        displayName: inviter.display_name,
+        displayName: inviter.display_name || null,
         avatarUrl: inviter.avatar_url,
       } : null,
     });
