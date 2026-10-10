@@ -16,9 +16,8 @@
  * WHEN TO USE THIS vs `new Date(str)`:
  *   - Use parseLocalDate() any time you'll display the date (via
  *     toLocaleDateString, getDate, etc.) — the values are user-facing.
- *   - It's also safe (and recommended for consistency) for DURATION
- *     calculations, though there `new Date(str)` is technically correct
- *     because UTC-X minus UTC-Y equals the local-X minus local-Y.
+ *   - For DURATIONS, count days with daysBetweenLocal(): local midnights
+ *     are 23 or 25 hours apart across a daylight-saving change.
  *
  * Returns null for invalid input rather than throwing — caller decides
  * whether to surface that as an error or quietly skip rendering.
@@ -40,6 +39,15 @@ export function parseLocalDate(iso: string | null | undefined): Date | null {
   const mo = parseInt(m[2], 10);
   const d = parseInt(m[3], 10);
   return new Date(y, mo - 1, d);
+}
+
+/**
+ * Whole days from one local midnight to another. Rounded, never floored or
+ * ceiled: across a daylight-saving change the gap is a day plus or minus an
+ * hour.
+ */
+export function daysBetweenLocal(from: Date, to: Date): number {
+  return Math.round((to.getTime() - from.getTime()) / 86_400_000);
 }
 
 /**

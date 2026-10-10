@@ -16,6 +16,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { daysBetweenLocal } from "@/lib/utils/date-local";
 
 interface DateRangePickerProps {
   startDate: string;
@@ -94,8 +95,7 @@ const calculateTripDuration = (start: string, end: string): number => {
   const startDate = parseDate(start);
   const endDate = parseDate(end);
   if (!startDate || !endDate) return 0;
-  const diff = endDate.getTime() - startDate.getTime();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1;
+  return daysBetweenLocal(startDate, endDate) + 1;
 };
 
 /**

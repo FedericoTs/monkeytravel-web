@@ -20,7 +20,7 @@ import DaySlider from "@/components/ui/DaySlider";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
-import { parseLocalDate } from "@/lib/utils/date-local";
+import { daysBetweenLocal, parseLocalDate } from "@/lib/utils/date-local";
 import { hapticSuccess, hapticLight, hapticError } from "@/lib/native/haptics";
 
 // Dynamic import for TripMap
@@ -97,8 +97,7 @@ export default function OngoingTripView({
     const start = parseLocalDate(startDate) ?? new Date(startDate);
     start.setHours(0, 0, 0, 0);
 
-    const diffTime = today.getTime() - start.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    const diffDays = daysBetweenLocal(start, today) + 1;
 
     // Clamp to valid day range
     return Math.max(1, Math.min(diffDays, displayItinerary.length));
