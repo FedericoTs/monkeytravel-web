@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { getTranslations } from "next-intl/server";
 import { dispatchEmail, type EmailTemplate } from "@/lib/email/send";
+import { buildParticipantUnsubscribeUrl } from "@/lib/email/unsubscribe";
 import type { TripReminderSlot } from "@/lib/email/templates/TripReminder";
 import {
   TERMINAL_FOLLOWUP_SLOTS,
@@ -1190,6 +1191,7 @@ async function dispatchDayDigest(
     tr: Awaited<ReturnType<typeof getTranslations>>,
     ctaUrl: string,
     idemSuffix: string,
+    guestUnsubscribeUrl?: string,
   ): Promise<Awaited<ReturnType<typeof dispatchEmail>> | { ok: false; status: "failed"; error: string; i18n: true }> => {
     const heading = tr("heading", { day });
     const intro = tr("intro");
@@ -1212,6 +1214,7 @@ async function dispatchDayDigest(
     return dispatchEmail({
       recipientEmail: email,
       recipientUserId: userId,
+      guestUnsubscribeUrl,
       idempotencyKey: `${template.id}:${row.trip_id}:${row.slot}${idemSuffix}`,
       locale: loc,
       template,
@@ -1247,7 +1250,7 @@ async function dispatchDayDigest(
     try {
       const { data: parts } = await svc
         .from("trip_participants")
-        .select("email, user_id, participant_cookie_id")
+        .select("id, email, user_id, participant_cookie_id")
         .eq("trip_id", row.trip_id)
         .is("left_at", null)
         .not("email", "is", null);
@@ -1258,7 +1261,21 @@ async function dispatchDayDigest(
         const shareUrl = `${APP_URL}/shared/${trip.share_token}?slot=${row.slot}`;
         let sent = 0, skipped = 0, failed = 0;
         for (const r of recipients) {
-          const pr = await sendDigest(r.email, r.userId, partLocale, partT, shareUrl, `:${r.key}`);
+          // A guest has no account to opt out from: their email carries a link
+          // that stops this trip's digest, and is not sent without one.
+          let guestUnsub: string | undefined;
+          if (!r.userId) {
+            try {
+              guestUnsub = buildParticipantUnsubscribeUrl(r.participantId, APP_URL);
+            } catch (err) {
+              failed++;
+              console.warn("[cron/scheduled-notifs] guest digest not sent: no unsubscribe link", {
+                trip: row.trip_id, error: err instanceof Error ? err.message : String(err),
+              });
+              continue;
+            }
+          }
+          const pr = await sendDigest(r.email, r.userId, partLocale, partT, shareUrl, `:${r.key}`, guestUnsub);
           if (pr.ok && pr.status === "sent") sent++;
           else if (pr.ok) skipped++;
           else failed++;

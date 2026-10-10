@@ -170,6 +170,12 @@
     "expiredBody": "Este enlace para darte de baja ha caducado. Puedes gestionar todas tus preferencias aquí:",
     "invalidTitle": "No pudimos verificar este enlace",
     "invalidBody": "Este enlace para darte de baja no parece válido o está incompleto. Inicia sesión para gestionar tus preferencias directamente:",
-    "openSettings": "Abrir la configuración de notificaciones"
+    "openSettings": "Abrir la configuración de notificaciones",
+    "guest": {
+      "what": "el plan diario de {trip}",
+      "whatThisTrip": "el plan diario de este viaje",
+      "confirmBody": "Confirma y dejaremos de enviarte por correo el plan de cada día. Seguirás en la lista de quienes van.",
+      "doneBody": "Ya no recibirás {what}, pero sigues en la lista de quienes van."
+    }
   }
 }

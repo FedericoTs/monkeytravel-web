@@ -133,6 +133,13 @@ interface DispatchOptions {
    */
   recipientUserId: string | null;
   /**
+   * The unsubscribe link of a recipient with no account: a trip's guest
+   * (buildParticipantUnsubscribeUrl in ./unsubscribe). Used only when
+   * recipientUserId is null, as the footer link and the List-Unsubscribe
+   * headers, the way an account's own link is.
+   */
+  guestUnsubscribeUrl?: string;
+  /**
    * Stable identifier from the source event (e.g. notification.id,
    * trip_invite.id). Same key = same logical send = dedupe.
    */
@@ -423,6 +430,11 @@ export async function dispatchEmail(
           signErr instanceof Error ? signErr.message : signErr
         );
       }
+    } else if (!options.recipientUserId && options.guestUnsubscribeUrl) {
+      template = {
+        ...options.template,
+        props: { ...options.template.props, unsubscribeUrl: options.guestUnsubscribeUrl },
+      } as EmailTemplate;
     }
 
     // Inject the resolved recipient locale so the template + shared shell
@@ -564,6 +576,9 @@ export async function dispatchEmail(
     } catch {
       // Skip the header if signing fails — never block the send.
     }
+  } else if (!options.recipientUserId && options.guestUnsubscribeUrl) {
+    headers["List-Unsubscribe"] = `<${options.guestUnsubscribeUrl}>`;
+    headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
   }
 
   // Feedback-outreach is a founder feedback ask; it lands in Primary (not

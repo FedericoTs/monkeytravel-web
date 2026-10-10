@@ -3,9 +3,11 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   verifyUnsubscribeToken,
+  verifyParticipantUnsubscribeToken,
   unsubKeyToSettingPatch,
   type UnsubKey,
 } from "@/lib/email/unsubscribe";
+import { stopGuestDigest } from "@/lib/participants/digest-unsubscribe";
 
 /**
  * Headers required to keep email-scanner / link-prefetcher caches from
@@ -60,8 +62,30 @@ async function applyUnsubscribe(
 }
 
 /**
+ * What a token stops, and how: a guest's token one trip's daily plan
+ * (lib/participants/digest-unsubscribe.ts), an account's token one kind of
+ * email. `info` is what a response may say about it.
+ */
+function readToken(token: string):
+  | { ok: true; info: Record<string, unknown>; apply: () => Promise<{ applied: boolean }> }
+  | { ok: false; reason: string } {
+  const guest = verifyParticipantUnsubscribeToken(token);
+  if (guest.ok && guest.participantId) {
+    const participantId = guest.participantId;
+    return { ok: true, info: { guest: true }, apply: () => stopGuestDigest(createAdminClient(), participantId) };
+  }
+  // An expired guest token says so, rather than failing as an account token.
+  if (guest.reason === "expired") return { ok: false, reason: "expired" };
+  const result = verifyUnsubscribeToken(token);
+  if (!result.ok || !result.payload) return { ok: false, reason: result.reason ?? "format" };
+  const { u, k } = result.payload;
+  return { ok: true, info: { key: k }, apply: () => applyUnsubscribe(u, k) };
+}
+
+/**
  * POST /api/unsubscribe
- * Body: { token: string }
+ * Body: { token: string }, or the token in the URL (a mail client's one-click
+ * POST, which middleware.ts routes here from the /unsubscribe page's URL)
  *
  * RFC 8058-style one-click unsubscribe. Verifies the HMAC token, flips
  * the user's notification_settings, returns 200. Mail clients
@@ -77,19 +101,20 @@ async function applyUnsubscribe(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const token = typeof body?.token === "string" ? body.token : "";
+    // RFC 8058 posts the form "List-Unsubscribe=One-Click": the token is in the URL.
+    const token =
+      typeof body?.token === "string"
+        ? body.token
+        : request.nextUrl.searchParams.get("token") || "";
 
-    const result = verifyUnsubscribeToken(token);
-    if (!result.ok || !result.payload) {
-      return errors.badRequest(`Invalid token: ${result.reason}`);
+    const target = readToken(token);
+    if (!target.ok) {
+      return errors.badRequest(`Invalid token: ${target.reason}`);
     }
 
-    const { applied } = await applyUnsubscribe(
-      result.payload.u,
-      result.payload.k
-    );
+    const { applied } = await target.apply();
 
-    return apiSuccess({ ok: true, applied, key: result.payload.k });
+    return apiSuccess({ ok: true, applied, ...target.info });
   } catch (err) {
     return errors.internal(
       err instanceof Error ? err.message : "Unsubscribe failed",
@@ -119,10 +144,10 @@ export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token") || "";
   const confirm = request.nextUrl.searchParams.get("confirm") === "1";
 
-  const result = verifyUnsubscribeToken(token);
-  if (!result.ok || !result.payload) {
+  const target = readToken(token);
+  if (!target.ok) {
     // Attach no-store even on error so scanners don't cache 400s.
-    const res = errors.badRequest(`Invalid token: ${result.reason}`);
+    const res = errors.badRequest(`Invalid token: ${target.reason}`);
     res.headers.set("Cache-Control", NO_STORE_HEADERS["Cache-Control"]);
     return res;
   }
@@ -131,12 +156,9 @@ export async function GET(request: NextRequest) {
   // by mail scanners (they don't know the magic flag) so this is safe.
   if (confirm) {
     try {
-      const { applied } = await applyUnsubscribe(
-        result.payload.u,
-        result.payload.k
-      );
+      const { applied } = await target.apply();
       return apiSuccess(
-        { ok: true, applied, key: result.payload.k },
+        { ok: true, applied, ...target.info },
         { headers: { ...NO_STORE_HEADERS } }
       );
     } catch (err) {
@@ -155,7 +177,7 @@ export async function GET(request: NextRequest) {
     {
       ok: true,
       applied: false,
-      key: result.payload.k,
+      ...target.info,
       // Note: we deliberately do NOT include user_id or email in the
       // response — the token already proves the holder controls the
       // unsubscribe, and we don't want a token leak to also leak PII.
@@ -171,8 +193,7 @@ export async function GET(request: NextRequest) {
  */
 export async function HEAD(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token") || "";
-  const result = verifyUnsubscribeToken(token);
-  const status = result.ok ? 200 : 400;
+  const status = readToken(token).ok ? 200 : 400;
   return new NextResponse(null, {
     status,
     headers: NO_STORE_HEADERS,

@@ -201,6 +201,15 @@ export async function middleware(request: NextRequest) {
   // Locale-stripped path, for the /feedback/ exemption in shouldSkipIntl.
   const pathNoLocale = pathname.replace(/^\/(en|es|it|pt)(?=\/|$)/, "") || "/";
 
+  // A mail client's one-click unsubscribe (RFC 8058) POSTs to the email's
+  // List-Unsubscribe link, the /unsubscribe page. A page renders a POST and
+  // changes nothing, so the API takes it, with no locale redirect in between.
+  if (request.method === "POST" && pathNoLocale === "/unsubscribe" && !request.headers.has("next-action")) {
+    const api = request.nextUrl.clone();
+    api.pathname = "/api/unsubscribe";
+    return attachSecurityHeaders(NextResponse.rewrite(api));
+  }
+
   // /{locale}/auth/callback does not exist: the route is unprefixed and takes
   // the language as ?locale=. Redirect prefixed callback links, including ones
   // still sitting in inboxes, to the real route with every param kept so the
