@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Activity } from "@/types";
+import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 
 interface MatchOption {
   activity: Activity;
@@ -28,6 +29,7 @@ export default function MatchConfirmationDialog({
   onTypeMore,
 }: MatchConfirmationDialogProps) {
   const t = useTranslations("common.ai.match");
+  const typeLabel = useActivityTypeLabel();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   // Sort matches by confidence
@@ -137,7 +139,7 @@ export default function MatchConfirmationDialog({
                     {match.activity.type && (
                       <>
                         <span className="text-slate-300">•</span>
-                        <span className="text-xs text-slate-500 capitalize">{match.activity.type}</span>
+                        <span className="text-xs text-slate-500 capitalize">{typeLabel(match.activity.type)}</span>
                       </>
                     )}
                   </div>

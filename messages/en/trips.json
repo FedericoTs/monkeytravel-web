@@ -618,7 +618,14 @@
     "nightlife": "Nightlife",
     "spa": "Spa",
     "wellness": "Wellness",
-    "event": "Event"
+    "event": "Event",
+    "adventure": "Adventure",
+    "urban": "Urban",
+    "sightseeing": "Sightseeing",
+    "accommodation": "Accommodation",
+    "romantic": "Romantic",
+    "tour": "Tour",
+    "beach": "Beach"
   },
   "durations": {
     "30min": "30 min",
