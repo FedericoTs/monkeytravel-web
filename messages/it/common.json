@@ -1246,7 +1246,21 @@
       "emptyHint": "Vedrai gli aggiornamenti qui quando i collaboratori voteranno, commenteranno o accetteranno inviti.",
       "viewAllSettings": "Vedi tutte le impostazioni",
       "crewJoined": "{name} viene a “{trip}”",
-      "crewJoinedSomeone": "Qualcuno viene a “{trip}”"
+      "crewJoinedSomeone": "Qualcuno viene a “{trip}”",
+      "anonVote": "{name} ha iniziato a votare “{trip}”",
+      "anonVoteSomeone": "Qualcuno ha iniziato a votare “{trip}”",
+      "inviteAccepted": "{name} ora fa parte di “{trip}”",
+      "inviteAcceptedNoTrip": "{name} ora fa parte del tuo viaggio",
+      "collabVote": {
+        "love": "{name} ha adorato un’attività del tuo viaggio",
+        "flexible": "{name} è flessibile su un’attività del tuo viaggio",
+        "concerns": "{name} ha dei dubbi su un’attività del tuo viaggio",
+        "no": "{name} ha votato no a un’attività del tuo viaggio",
+        "voted": "{name} ha votato un’attività del tuo viaggio"
+      },
+      "collabProposal": "{name} ha proposto “{activity}” per il giorno {day}",
+      "justNow": "proprio ora",
+      "update": "Aggiornamento"
     },
     "stopSharing": {
       "button": "Smetti di condividere questo viaggio",
