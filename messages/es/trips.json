@@ -92,6 +92,9 @@
       "nightsAria": "Noches en la ciudad {number}",
       "removeCityAria": "Eliminar ciudad {number}",
       "addCity": "+ Añadir ciudad",
+      "startDateAria": "Fecha de inicio del viaje",
+      "nightsTotal": "{count, plural, one {# noche} other {# noches}} en total entre tus ciudades",
+      "endsOn": "termina el {date}",
       "longTripNudge": "¿{days} días de viaje? Los viajes tan largos suelen funcionar mejor con varias paradas: toca para dividir tu ruta en ciudades."
     },
     "datePicker": {
@@ -184,6 +187,7 @@
       "endDate": "Fecha de fin",
       "daysLabel": "{count} días",
       "customize": "Personaliza presupuesto, ritmo y preferencias",
+      "customizeDefaults": "(por defecto: presupuesto equilibrado, ritmo moderado)",
       "generate": "Generar Itinerario",
       "back": "Atrás",
       "mustDos": {
@@ -520,6 +524,12 @@
     "editingMode": "Modo Edición",
     "optimizeRoute": "Optimizar Ruta",
     "optimize": "Optimizar",
+    "routeOptimized": "Ruta optimizada",
+    "routeOptimizedSave": "Ruta optimizada. Guarda los cambios para conservarla.",
+    "pageTitle": "Detalles del viaje",
+    "exitEditing": "Salir",
+    "activityRegenerateFailed": "No se pudo regenerar la actividad. Inténtalo de nuevo.",
+    "saveChangesFailed": "No se pudieron guardar los cambios. Inténtalo de nuevo.",
     "estBudget": "Presupuesto Est.",
     "noItinerary": "Sin Itinerario Aún",
     "noItineraryMessage": "Este viaje aún no tiene actividades planificadas.",

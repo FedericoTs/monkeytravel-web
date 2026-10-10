@@ -6,6 +6,7 @@ import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta, CollaboratorRole } from "@/types";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import TripDetailClient from "./TripDetailClient";
 import { computeTripDayState } from "@/lib/trip/live";
 import TripEngagementSection from "@/components/explore/TripEngagementSection";
@@ -13,16 +14,18 @@ import { refreshTripItinerary } from "@/lib/places/refreshItineraryPhotos";
 import { publicNameOrNull } from "@/lib/profile/public-name";
 import { TRIP_COLUMNS } from "@/lib/trips/columns";
 
-export async function generateMetadata(): Promise<Metadata> {
-  // Title is intentionally generic — pulling the actual trip title here
-  // would (a) require a DB round-trip every page view duplicating the
-  // owner/collaborator check in the page render and (b) leak the title
-  // to anyone holding the trip ID even when they lack access. The page
-  // itself sets a more informative document.title via the hero component
-  // once auth resolves. robots: noindex because trip pages are personal
-  // data — never want them in search results.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  // Generic on purpose: the trip's own title would need the page's access
+  // check here, and would show to anyone holding the id. noindex: trip pages
+  // are personal data.
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "trips.detail" });
   return {
-    title: "Trip Details",
+    title: t("pageTitle"),
     robots: { index: false, follow: false },
   };
 }

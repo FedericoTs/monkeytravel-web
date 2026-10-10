@@ -208,6 +208,12 @@
     "googleVerified": "Verificado pelo Google",
     "venueTierEstimate": "Estimativa por categoria",
     "insiderTips": "Dicas Locais",
+    "startTime": "Horário de início",
+    "estCost": "Custo estimado",
+    "durationMinutes": "<b>{minutes} min</b> de duração",
+    "about": "Sobre",
+    "location": "Localização",
+    "photos": "Fotos",
     "loadingPhotos": "Carregando fotos...",
     "noPhotos": "Nenhuma foto disponível",
     "regeneratingActivity": "Regenerando atividade com AI..."
@@ -502,6 +508,7 @@
     "hideArchived": "Ocultar arquivadas",
     "confirmArchive": "Arquivar esta viagem?",
     "confirmArchiveMessage": "Isso ocultará a viagem da sua visão principal. Você pode restaurá-la a qualquer momento.",
+    "confirmUnarchiveMessage": "{title} voltará para a sua visão principal de viagens.",
     "confirmDelete": "Excluir esta viagem?",
     "confirmDeleteMessage": "Esta ação não pode ser desfeita. A viagem será excluída permanentemente.",
     "tripArchived": "Viagem arquivada",
@@ -667,6 +674,13 @@
   "gallery": {
     "loadGooglePhotos": "Carregar fotos do Google",
     "verified": "Verificado: {label}",
+    "priceLevels": {
+      "free": "Grátis",
+      "inexpensive": "Econômico",
+      "moderate": "Preço médio",
+      "expensive": "Caro",
+      "veryExpensive": "Muito caro"
+    },
     "openNow": "Aberto agora",
     "closed": "Fechado",
     "website": "Site",
@@ -1055,7 +1069,7 @@
     },
     "customReasonLabel": "Conte-nos mais",
     "customReasonOptional": "opcional",
-    "customReasonPlaceholder": "Ajuda-nos a melhorar — o que teria deixado esta viagem perfeita?"
+    "customReasonPlaceholder": "Isso nos ajuda a melhorar — o que teria deixado esta viagem perfeita?"
   },
   "stagedLoading": {
     "stages": {
@@ -1077,7 +1091,7 @@
       "save": "Salvar",
       "cancel": "Cancelar",
       "spentSoFar": "Gasto até agora",
-      "youAreOwed": "Devem-te {amount}",
+      "youAreOwed": "Você tem {amount} a receber",
       "youOwe": "Você deve {amount}",
       "settledUp": "Tudo acertado",
       "paid": "pagou",
@@ -1131,7 +1145,7 @@
     "restOfDay": "Resto do dia",
     "tomorrow": "Amanhã",
     "yesterday": "Ontem",
-    "nothingToday": "Nada planeado para hoje.",
+    "nothingToday": "Nada planejado para hoje.",
     "errors": {
       "failed": "Não deu certo. Tente de novo.",
       "rateLimited": "Muitas alterações seguidas. Espere um pouco e tente de novo.",
@@ -1296,7 +1310,7 @@
       "twitterCrew": "Ajude-me a escolher: vote nas ideias para {tripTitle} no MonkeyTravel",
       "whatsappCrew": "Ajude-me a escolher: vote nas ideias para {tripTitle} (sem criar conta):",
       "emailSubjectCrew": "Vote na nossa viagem: {tripTitle}",
-      "emailBodyCrew": "Reuni ideias para a nossa viagem no MonkeyTravel. Vote em cada uma com gosto ou não gosto — sem criar conta."
+      "emailBodyCrew": "Reuni ideias para a nossa viagem no MonkeyTravel. Vote em cada uma com 👍 ou 👎 — sem criar conta."
     },
     "invite": {
       "viewOnlyLink": "Link de Votação em Grupo",
@@ -1389,8 +1403,8 @@
     },
     "ownerClaim": {
       "title": "Esta é a sua viagem",
-      "body": "Partilhou-a sem conta. Registe-se grátis e poderá editá-la.",
-      "cta": "Registe-se para a guardar"
+      "body": "Você compartilhou esta viagem sem conta. Cadastre-se grátis e poderá editá-la.",
+      "cta": "Cadastre-se para salvá-la"
     },
     "memberEdit": {
       "note": "Você está vendo o que veem as pessoas com o link.",
@@ -1421,12 +1435,12 @@
       "label": "Como o link abre",
       "crew": "Peça ao seu grupo para votar",
       "plain": "Só enviar o plano",
-      "crewHint": "Abre na votação: cada um vota em cada ideia com gosto ou não gosto, sem criar conta. De resto, só leitura.",
-      "plainHint": "Abre no itinerário. Qualquer pessoa com o link pode vê-lo (só leitura)."
+      "crewHint": "Abre na votação: cada um vota em cada ideia com 👍 ou 👎, sem criar conta. Fora isso, somente leitura.",
+      "plainHint": "Abre no roteiro. Qualquer pessoa com o link pode ver (somente leitura)."
     },
     "crewPrompt": {
       "title": "O seu amigo quer o seu voto",
-      "body": "Vote em cada ideia com gosto ou não gosto — sem criar conta."
+      "body": "Vote em cada ideia com 👍 ou 👎 — sem criar conta."
     }
   },
   "proposals": {
@@ -1521,6 +1535,8 @@
   "collaborators": {
     "you": "você",
     "owner": "Dono",
+    "ownerFallback": "Organizador da viagem",
+    "memberFallback": "Usuário sem nome",
     "editor": "Editor",
     "viewer": "Visualizador",
     "pending": "Pendente",
@@ -1746,7 +1762,7 @@
         }
       },
       "notAppliedTitle": "Não consegui fazer essa alteração",
-      "notAppliedBody": "Percebi o que querias, mas a alteração não foi aplicada ao teu plano — por isso nada mudou. Tenta indicar uma atividade de cada vez (\"substitui X por Y\", \"adiciona Z ao dia 2\"), ou edita o dia diretamente no plano."
+      "notAppliedBody": "Entendi o que você queria, mas a alteração não foi aplicada ao seu plano — por isso nada mudou. Tente indicar uma atividade de cada vez (\"substitua X por Y\", \"adicione Z ao dia 2\"), ou edite o dia diretamente no plano."
     },
     "cards": {
       "addToTrip": "Adicionar à viagem",
@@ -1779,20 +1795,20 @@
       "adding": "Adicionando",
       "removing": "Removendo",
       "modifying": "Modificando",
-      "suggestedChange": "Ainda não está na tua viagem",
+      "suggestedChange": "Ainda não está na sua viagem",
       "day": "Dia {number}",
       "daysCount": "{count} dias",
       "activitiesCount": "{count} atividades",
       "tripExtendedTo": "Viagem estendida: nova data de término {date}",
       "shiftDaysSummary": "Os dias {from}–{to} são adiados em {count, plural, one {# dia} other {# dias}}",
       "unmappedDays": "Sem alterações (não estavam no seu rascunho): dia {days}",
-      "previewBadge": "Não guardado",
+      "previewBadge": "Não salvo",
       "before": "ANTES",
       "after": "DEPOIS",
       "whyThisChange": "Por que esta alteração:",
-      "applying": "A guardar...",
-      "applyChange": "Guardar na minha viagem",
-      "helperText": "Nada muda até tocares em Guardar na minha viagem"
+      "applying": "Salvando...",
+      "applyChange": "Salvar na minha viagem",
+      "helperText": "Nada muda até você tocar em Salvar na minha viagem"
     },
     "undo": {
       "message": "Alteração aplicada",
@@ -2154,7 +2170,7 @@
     }
   },
   "authPrompt": {
-    "title": "Guarde este plano",
+    "title": "Salve este plano",
     "subtitle": "Seu plano para {destination} está pronto. Um toque com o Google, ou um código por e-mail. Grátis, sem senha.",
     "benefits": {
       "aiPowered": "Edite e regenere qualquer dia",
@@ -2175,13 +2191,13 @@
       "sentSubtitle": "Enviamos um link de um toque para {email}",
       "checkInbox": "Clique no link do e-mail para salvar sua viagem. Sem senha.",
       "useDifferent": "Usar outro e-mail",
-      "codePrompt": "Ou introduza o código de 6 dígitos do email",
+      "codePrompt": "Ou digite o código de 6 dígitos do email",
       "codeSubmit": "Verificar",
-      "codeVerifying": "A verificar…",
+      "codeVerifying": "Verificando…",
       "codeInvalid": "Esse código não corresponde. Verifique os dígitos e tente novamente.",
       "codeExpired": "Esse código expirou. Envie um novo email para receber outro.",
-      "codeRateLimited": "Demasiadas tentativas. Aguarde um momento e tente novamente.",
-      "codeNetwork": "Problema de ligação. Verifique a sua rede e tente novamente.",
+      "codeRateLimited": "Muitas tentativas. Aguarde um momento e tente novamente.",
+      "codeNetwork": "Problema de conexão. Verifique sua rede e tente novamente.",
       "codeFailed": "Não conseguimos verificar esse código. Use o link do email."
     },
     "trust": {
@@ -2318,6 +2334,9 @@
     "signIn": "Entrar",
     "createYourOwnTrip": "Crie Sua Própria Viagem",
     "alreadyOnTrip": "Já faz parte desta viagem?",
+    "ownerFallback": "O organizador da viagem",
+    "someoneFallback": "Alguém",
+    "inviterNoteLabel": "Recado pessoal de quem convidou você",
     "gate": {
       "title": "Participe de {trip}",
       "sentTo": "Este convite foi enviado para {email}. Entre com esse e-mail para ver a viagem e participar.",

@@ -531,6 +531,7 @@ function TripCard({ trip, t, locale, getStatusLabel, onAction }: TripCardProps) 
 export default function TripsPageClient({ trips, sharedTrips = [], displayName, lifetimeConversions, blogTips = [] }: TripsPageClientProps) {
   const t = useTranslations('common.trips');
   const tRoles = useTranslations('common.roles');
+  const tNav = useTranslations('common.navigation');
   // i18n: pass current locale to date formatters so trip cards show
   // "24-29 mag 2026" on /it/ instead of "May 24-29, 2026". Caught
   // 2026-05-29 audit.
@@ -898,7 +899,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
             <Link
               href="/profile"
               className="p-2 rounded-lg text-slate-500 hover:text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"
-              title="Profile"
+              title={tNav('profile')}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -1188,7 +1189,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
             )}
             {filterStatus !== "all" && (
               <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-700">
-                {filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}
+                {getStatusLabel(filterStatus)}
                 <button onClick={() => setFilterStatus("all")} className="hover:text-slate-900">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1280,7 +1281,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
             <div className="relative w-40 h-40 sm:w-52 sm:h-52 md:w-64 md:h-64 mx-auto mb-4 sm:mb-6">
               <Image
                 src="/images/empty-state.png"
-                alt="No trips yet"
+                alt={t('noTripsYet')}
                 fill
                 className="object-contain"
                 priority

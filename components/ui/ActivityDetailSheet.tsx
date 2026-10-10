@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
 import type { Activity } from "@/types";
 import PlaceGallery from "@/components/PlaceGallery";
 import { getActivityTypeColors } from "@/lib/constants/activityColors";
@@ -37,6 +38,7 @@ export default function ActivityDetailSheet({
 }: ActivityDetailSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const typeLabel = useActivityTypeLabel();
+  const t = useTranslations("common");
 
   // Generate URLs
   const mapSearchQuery = encodeURIComponent(
@@ -106,7 +108,7 @@ export default function ActivityDetailSheet({
             <button
               onClick={onClose}
               className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center transition-colors hover:bg-black/60"
-              aria-label="Close"
+              aria-label={t("buttons.close")}
             >
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -138,7 +140,7 @@ export default function ActivityDetailSheet({
                 </span>
                 {activity.booking_required && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                    Booking Required
+                    {t("activity.booking")}
                   </span>
                 )}
               </div>
@@ -151,7 +153,7 @@ export default function ActivityDetailSheet({
               <button
                 onClick={onClose}
                 className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center flex-shrink-0 transition-colors"
-                aria-label="Close"
+                aria-label={t("buttons.close")}
               >
                 <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -173,7 +175,7 @@ export default function ActivityDetailSheet({
                   </svg>
                 </div>
                 <div>
-                  <div className="text-sm text-slate-500">Start Time</div>
+                  <div className="text-sm text-slate-500">{t("activity.startTime")}</div>
                   <div className="font-semibold text-slate-900">{activity.start_time}</div>
                 </div>
               </div>
@@ -185,12 +187,12 @@ export default function ActivityDetailSheet({
                   </svg>
                 </div>
                 <div>
-                  <div className="text-sm text-slate-500">Est. Cost</div>
+                  <div className="text-sm text-slate-500">{t("activity.estCost")}</div>
                   <div className="font-semibold text-slate-900">
                     {activity.estimated_cost?.amount == null
                       ? "—"
                       : activity.estimated_cost.amount === 0
-                      ? "Free"
+                      ? t("activity.free")
                       : `${activity.estimated_cost.currency || currency} ${activity.estimated_cost.amount}`}
                   </div>
                 </div>
@@ -203,13 +205,16 @@ export default function ActivityDetailSheet({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
               </svg>
               <span className="text-sm text-slate-600">
-                <span className="font-medium">{activity.duration_minutes} min</span> duration
+                {t.rich("activity.durationMinutes", {
+                  minutes: activity.duration_minutes,
+                  b: (chunks) => <span className="font-medium">{chunks}</span>,
+                })}
               </span>
             </div>
 
             {/* Description */}
             <div>
-              <h3 className="text-sm font-semibold text-slate-700 mb-2">About</h3>
+              <h3 className="text-sm font-semibold text-slate-700 mb-2">{t("activity.about")}</h3>
               <p className="text-slate-600 text-sm leading-relaxed">
                 {activity.description}
               </p>
@@ -224,7 +229,7 @@ export default function ActivityDetailSheet({
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm text-slate-500 mb-0.5">Location</div>
+                <div className="text-sm text-slate-500 mb-0.5">{t("activity.location")}</div>
                 <p className="text-slate-900 font-medium text-sm">
                   {activity.address || activity.location}
                 </p>
@@ -233,7 +238,7 @@ export default function ActivityDetailSheet({
 
             {/* Photo Gallery */}
             <div>
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">Photos</h3>
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">{t("activity.photos")}</h3>
               <PlaceGallery
                 placeName={activity.name}
                 placeAddress={activity.address || activity.location}
@@ -254,7 +259,7 @@ export default function ActivityDetailSheet({
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                     </svg>
                   </div>
-                  <span className="font-semibold text-blue-800">Insider Tips</span>
+                  <span className="font-semibold text-blue-800">{t("activity.insiderTips")}</span>
                 </div>
                 <ul className="space-y-2">
                   {activity.tips.map((tip, i) => (
@@ -281,7 +286,7 @@ export default function ActivityDetailSheet({
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
               </svg>
-              Open in Maps
+              {t("map.openInMaps")}
             </a>
             <a
               href={googleSearchUrl}
@@ -292,7 +297,7 @@ export default function ActivityDetailSheet({
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
               </svg>
-              Search
+              {t("buttons.verify")}
             </a>
             {activity.official_website && (
               <a

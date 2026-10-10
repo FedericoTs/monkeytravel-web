@@ -17,6 +17,9 @@ interface PlacePhoto {
 // Using CachedPlaceData from context, but defining PlaceData for API response
 type PlaceData = Omit<CachedPlaceData, "cachedAt">;
 
+// Google's 0-4 price level, worded here: /api/places labels it in English.
+const PRICE_LEVEL_KEYS = ["free", "inexpensive", "moderate", "expensive", "veryExpensive"] as const;
+
 interface PlaceGalleryProps {
   placeName: string;
   placeAddress: string;
@@ -199,6 +202,8 @@ export default function PlaceGallery({
     return null;
   }
 
+  const priceKey = typeof placeData.priceLevel === "number" ? PRICE_LEVEL_KEYS[placeData.priceLevel] : undefined;
+
   return (
     <>
       <div className={`${className} w-full overflow-hidden`}>
@@ -224,12 +229,12 @@ export default function PlaceGallery({
 
             {/* Verified Price Level */}
             {placeData.priceLevelSymbol && (
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-green-50 rounded-full border border-green-100" title={t("verified", { label: placeData.priceLevelLabel || "" })}>
+              <div className="flex items-center gap-1 px-2 py-0.5 bg-green-50 rounded-full border border-green-100" title={t("verified", { label: priceKey ? t(`priceLevels.${priceKey}`) : "" })}>
                 <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
                 <span className="text-xs font-semibold text-green-700">
-                  {placeData.priceLevelSymbol}
+                  {priceKey === "free" ? t("priceLevels.free") : placeData.priceLevelSymbol}
                 </span>
               </div>
             )}

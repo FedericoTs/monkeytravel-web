@@ -58,7 +58,7 @@ vi.mock("@supabase/supabase-js", () => ({
 }));
 
 import InviteAcceptClient from "./InviteAcceptClient";
-import { generateMetadata } from "./page";
+import JoinPage, { generateMetadata } from "./page";
 
 const props = {
   invite: { token: "tok12345", role: "voter" as const, expiresAt: "2036-01-01T00:00:00Z", message: null },
@@ -178,5 +178,30 @@ describe("the invite page's title and link preview", () => {
 
     db.rpc.get_invite_status_by_token = [];
     expect((await metadataFor("it")).title).toBe(itCommon.invitePage.errors.invalidToken);
+  });
+
+  it("calls an owner without a name by the page's own words", async () => {
+    db.rpc.get_invite_by_token = [usable];
+    db.tables.users = { data: { display_name: null, avatar_url: null } };
+    expect((await metadataFor("it")).openGraph?.description).toBe(
+      `${itCommon.invitePage.ownerFallback} ti ha invitato a un viaggio.`
+    );
+    expect((await metadataFor("en")).openGraph?.description).toBe("Trip Owner invited you to join their trip.");
+  });
+
+  it("calls an inviter without a name someone, not the owner", async () => {
+    db.rpc.get_invite_by_token = [{ ...usable, created_by: "member-1" }];
+    db.tables.users = { data: { display_name: null, avatar_url: null } };
+    expect((await metadataFor("it")).openGraph?.description).toBe("Qualcuno ti ha invitato a un viaggio.");
+  });
+
+  it("shows the join screen with the stand-in, never null", async () => {
+    db.rpc.get_invite_by_token = [{ ...usable, message: "Ci vediamo a Lisbona" }];
+    db.tables.users = { data: { display_name: null, avatar_url: null } };
+    const page = await JoinPage({ params: Promise.resolve({ token: "tok12345", locale: "it" }) });
+    render(<NextIntlClientProvider locale="it" messages={{ common: itCommon }}>{page}</NextIntlClientProvider>);
+    expect(screen.getByText(`${itCommon.invitePage.ownerFallback} ti ha invitato a unirti`)).toBeTruthy();
+    expect(screen.getByLabelText(itCommon.invitePage.inviterNoteLabel)).toBeTruthy();
+    expect(document.body.textContent).not.toContain("null");
   });
 });

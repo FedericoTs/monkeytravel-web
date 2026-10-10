@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { useCollaboratorName } from "@/lib/i18n/collaborator-name";
 import { TripCollaborator, CollaboratorRole, ROLE_INFO } from "@/types";
 
 interface CollaboratorRowProps {
@@ -28,6 +29,7 @@ export function CollaboratorRow({
 
   const roleInfo = ROLE_INFO[collaborator.role];
   const isOwner = collaborator.role === "owner";
+  const name = useCollaboratorName()(collaborator);
 
   const handleRoleChange = async (newRole: CollaboratorRole) => {
     if (!onRoleChange || newRole === collaborator.role) {
@@ -49,7 +51,7 @@ export function CollaboratorRow({
 
     const confirmMessage = isCurrentUser
       ? t("confirmLeave")
-      : t("confirmRemove", { name: collaborator.display_name });
+      : t("confirmRemove", { name });
 
     if (!confirm(confirmMessage)) return;
 
@@ -71,7 +73,7 @@ export function CollaboratorRow({
         {collaborator.avatar_url ? (
           <img
             src={collaborator.avatar_url}
-            alt={collaborator.display_name}
+            alt={name}
             className="w-10 h-10 rounded-full object-cover"
           />
         ) : (
@@ -89,7 +91,7 @@ export function CollaboratorRow({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-medium text-gray-900 truncate">
-            {collaborator.display_name}
+            {name}
           </span>
           {isCurrentUser && (
             <span className="text-xs text-gray-500">({t("you")})</span>

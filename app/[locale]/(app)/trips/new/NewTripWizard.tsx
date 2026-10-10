@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
+import { usePaceLabel } from "@/lib/i18n/pace";
 import dynamic from "next/dynamic";
 
 // ./page.tsx resolves the optional `?destination=<slug>` deeplink server-side
@@ -230,6 +231,7 @@ import {
   type PersistInput,
 } from "@/lib/trips/persistTrip";
 import { resolveAiLanguage } from "@/lib/ai/language";
+import { newTripTitle } from "@/lib/trips/title";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { applyAssistantEdits, type AssistantDayEdit } from "@/lib/trips/day-edit-merge";
 import { planDateChange, moveItineraryDates } from "@/lib/trips/change-dates";
@@ -473,6 +475,7 @@ export default function NewTripPage({
   const [claimedTripId, setClaimedTripId] = useState<string | null>(null);
   const t = useTranslations("trips");
   const typeLabel = useActivityTypeLabel();
+  const paceLabel = usePaceLabel();
   const AssistantPanelView = warmedAssistantPanel ?? AnonAssistantPanel;
   const ShareButtonView = warmedShareButton ?? AnonymousShareButton;
   const RegenerateButtonView = warmedRegenerateButton ?? RegenerateButton;
@@ -2701,7 +2704,7 @@ export default function NewTripPage({
       // hard-refresh-then-resave, and any client guard regression. RLS
       // applies (SECURITY INVOKER); user_id is taken from auth.uid()
       // server-side.
-      const tripTitle = `${generatedItinerary.destination.name} Trip`;
+      const tripTitle = newTripTitle(generatedItinerary.destination.name, locale);
       const { data: dedupSave, error: tripError } = await supabase
         .rpc("insert_trip_dedup", {
           p_row: {
@@ -3006,7 +3009,7 @@ export default function NewTripPage({
             extra === 1 ? `Day ${current + 1}` : `Days ${current + 1} to ${change.length}`
           }), planned like the other days, and set trip_length to ${change.length}. Leave the existing days as they are.`,
           destination: `${itinerary.destination.name}, ${itinerary.destination.country}`,
-          tripTitle: `${itinerary.destination.name} Trip`,
+          tripTitle: newTripTitle(itinerary.destination.name, locale),
           days: moved,
           startDate: start,
           endDate: addDaysISO(start, current - 1),
@@ -3086,6 +3089,7 @@ export default function NewTripPage({
   // Show generated itinerary
   if (generatedItinerary) {
     const fullDestination = `${generatedItinerary.destination.name}, ${generatedItinerary.destination.country}`;
+    const tripTitle = newTripTitle(generatedItinerary.destination.name, locale);
     // Multi-city: route stops (city + consecutive nights + transit labels
     // from the merged transfer legs) for the Journey ribbon. Empty on
     // single-city trips.
@@ -3290,7 +3294,7 @@ export default function NewTripPage({
               {savedTripId && (
                 <ExportMenu
                   trip={{
-                    title: `${generatedItinerary.destination.name} Trip`,
+                    title: tripTitle,
                     description: generatedItinerary.destination.description,
                     startDate,
                     endDate,
@@ -3435,7 +3439,7 @@ export default function NewTripPage({
                   mode={tripIntent === "group" ? "crew" : "share"}
                   existingShareUrl={sessionShareUrl}
                   trip={{
-                    title: `${generatedItinerary.destination.name} Trip`,
+                    title: tripTitle,
                     description: generatedItinerary.destination.description,
                     destination,
                     startDate,
@@ -3482,7 +3486,7 @@ export default function NewTripPage({
               existingShareUrl={sessionShareUrl}
               className="mb-2"
               trip={{
-                title: `${generatedItinerary.destination.name} Trip`,
+                title: tripTitle,
                 description: generatedItinerary.destination.description,
                 destination,
                 startDate,
@@ -3610,7 +3614,7 @@ export default function NewTripPage({
           <div className="mb-8">
             <AssistantPanelView
               destination={fullDestination}
-              tripTitle={`${generatedItinerary.destination.name} Trip`}
+              tripTitle={tripTitle}
               days={generatedItinerary.days}
               language={generatedItinerary.language}
               startDate={startDate}
@@ -3636,7 +3640,7 @@ export default function NewTripPage({
                 isAuthenticated === false && !savedTripId && generatedItinerary ? (
                   <ShareButtonView
                     trip={{
-                      title: `${generatedItinerary.destination.name} Trip`,
+                      title: tripTitle,
                       description: generatedItinerary.destination.description,
                       destination,
                       startDate,
@@ -3764,7 +3768,7 @@ export default function NewTripPage({
             </div>
             <div className="bg-white rounded-xl border border-slate-200 p-4">
               <div className="text-sm text-slate-500">{t("wizard.result.pace")}</div>
-              <div className="font-semibold text-xl text-slate-900 capitalize">{pace}</div>
+              <div className="font-semibold text-xl text-slate-900">{paceLabel(pace)}</div>
             </div>
           </div>
 
@@ -4477,12 +4481,12 @@ export default function NewTripPage({
                       // reach the itinerary maths.
                       setStartDate(sanitizeIsoDate(e.target.value));
                     }}
-                    aria-label="Trip start date"
+                    aria-label={t("wizard.multiCity.startDateAria")}
                     className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-[var(--primary)] focus:outline-none"
                   />
                   <p className="mt-1.5 text-xs text-slate-500">
-                    {cityRows.reduce((s, r) => s + (Number(r.nights) || 0), 0)} nights total across your cities
-                    {endDate ? ` · ends ${endDate}` : ""}
+                    {t("wizard.multiCity.nightsTotal", { count: cityRows.reduce((s, r) => s + (Number(r.nights) || 0), 0) })}
+                    {endDate ? ` · ${t("wizard.multiCity.endsOn", { date: endDate })}` : ""}
                   </p>
                 </div>
               ) : (
@@ -4688,7 +4692,7 @@ export default function NewTripPage({
                   </svg>
                   {t("wizard.step2.customize")}
                   {!showAdvancedPrefs && (
-                    <span className="text-xs text-slate-500 font-normal">(defaults: Balanced budget, Moderate pace)</span>
+                    <span className="text-xs text-slate-500 font-normal">{t("wizard.step2.customizeDefaults")}</span>
                   )}
                 </span>
                 <svg className={`w-5 h-5 transition-transform ${showAdvancedPrefs ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">

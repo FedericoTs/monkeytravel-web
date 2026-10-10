@@ -38,8 +38,9 @@ export async function generateMetadata({ params }: TemplatePageProps) {
     : buildAlternates(`/trips/template/${template.id}`, { locale });
 
   return {
-    // Strip brand suffix — root layout's title.template adds it.
-    title: `${template.template_destination} Trip`,
+    // Strip brand suffix — root layout's title.template adds it. Other
+    // languages take the translated template title: "{dest} Trip" is English.
+    title: locale === "en" ? `${template.template_destination} Trip` : text.title,
     description: text.short || `Explore our curated ${template.template_destination} itinerary`,
     alternates: { canonical },
     ...(publicSlug ? {} : { robots: { index: false, follow: true } }),

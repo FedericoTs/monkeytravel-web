@@ -208,6 +208,12 @@
     "googleVerified": "Verificato da Google",
     "venueTierEstimate": "Stima per categoria",
     "insiderTips": "Consigli Locali",
+    "startTime": "Ora di inizio",
+    "estCost": "Costo stimato",
+    "durationMinutes": "<b>{minutes} min</b> di durata",
+    "about": "Descrizione",
+    "location": "Posizione",
+    "photos": "Foto",
     "loadingPhotos": "Caricamento foto...",
     "noPhotos": "Nessuna foto disponibile",
     "regeneratingActivity": "Rigenerazione attività con AI..."
@@ -502,6 +508,7 @@
     "hideArchived": "Nascondi archiviati",
     "confirmArchive": "Archiviare questo viaggio?",
     "confirmArchiveMessage": "Questo nasconderà il viaggio dalla vista principale. Puoi ripristinarlo in qualsiasi momento.",
+    "confirmUnarchiveMessage": "{title} tornerà nella vista principale dei tuoi viaggi.",
     "confirmDelete": "Eliminare questo viaggio?",
     "confirmDeleteMessage": "Questa azione non può essere annullata. Il viaggio verrà eliminato permanentemente.",
     "tripArchived": "Viaggio archiviato",
@@ -667,6 +674,13 @@
   "gallery": {
     "loadGooglePhotos": "Carica foto da Google",
     "verified": "Verificato: {label}",
+    "priceLevels": {
+      "free": "Gratis",
+      "inexpensive": "Economico",
+      "moderate": "Prezzo medio",
+      "expensive": "Costoso",
+      "veryExpensive": "Molto costoso"
+    },
     "openNow": "Aperto ora",
     "closed": "Chiuso",
     "website": "Sito web",
@@ -1521,6 +1535,8 @@
   "collaborators": {
     "you": "tu",
     "owner": "Proprietario",
+    "ownerFallback": "Organizzatore del viaggio",
+    "memberFallback": "Utente senza nome",
     "editor": "Editore",
     "viewer": "Osservatore",
     "pending": "In sospeso",
@@ -2318,6 +2334,9 @@
     "signIn": "Accedi",
     "createYourOwnTrip": "Crea il Tuo Viaggio",
     "alreadyOnTrip": "Fai già parte di questo viaggio?",
+    "ownerFallback": "L'organizzatore del viaggio",
+    "someoneFallback": "Qualcuno",
+    "inviterNoteLabel": "Messaggio personale di chi ti ha invitato",
     "gate": {
       "title": "Unisciti a {trip}",
       "sentTo": "Questo invito è stato inviato a {email}. Accedi con quell'email per vedere il viaggio e unirti.",

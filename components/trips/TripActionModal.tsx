@@ -64,7 +64,7 @@ export default function TripActionModal({
       case "delete":
         return t("confirmDeleteMessage");
       case "unarchive":
-        return `${tripTitle} will be restored to your main trips view.`;
+        return t("confirmUnarchiveMessage", { title: tripTitle });
       default:
         return "";
     }

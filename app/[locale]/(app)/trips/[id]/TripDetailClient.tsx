@@ -1143,8 +1143,9 @@ export default function TripDetailClient({
       }
       return newItinerary;
     });
-    addToast("Route optimized! Save changes to apply.", "success");
-  }, [pushUndo, addToast]);
+    // A solo owner's edits save themselves; edit mode has a Save button.
+    addToast(t(ambientEdit ? "detail.routeOptimized" : "detail.routeOptimizedSave"), "success");
+  }, [pushUndo, addToast, ambientEdit, t]);
 
   // Edit handlers (with undo support)
   const handleActivityMove = useCallback(
@@ -1304,12 +1305,12 @@ export default function TripDetailClient({
         }
       } catch (error) {
         console.error("Error regenerating activity:", error);
-        setSaveError("Failed to regenerate activity. Please try again.");
+        setSaveError(t("detail.activityRegenerateFailed"));
       } finally {
         setRegeneratingActivityId(null);
       }
     },
-    [trip.id, destination, editedItinerary, pushUndo]
+    [trip.id, destination, editedItinerary, pushUndo, t]
   );
 
   // Per-day regeneration: replaces all activities of a single day with a
@@ -1457,12 +1458,12 @@ export default function TripDetailClient({
         setTimeout(() => setSaveSuccess(false), 3000);
       } catch (error) {
         console.error("Error saving changes:", error);
-        setSaveError("Failed to save changes. Please try again.");
+        setSaveError(t("detail.saveChangesFailed"));
       } finally {
         setIsSaving(false);
       }
     },
-    [sync, adoptSaved, setConflict, trip.id]
+    [sync, adoptSaved, setConflict, trip.id, t]
   );
 
   const handleSaveChanges = useCallback(async () => {
@@ -2222,7 +2223,7 @@ export default function TripDetailClient({
           {trip.meta?.travel_style === "backpacker" && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-500 text-white">
               <span aria-hidden>🎒</span>
-              Backpacker route
+              {tCommon("shared.backpackerRoute")}
             </span>
           )}
         </div>
@@ -3453,7 +3454,7 @@ export default function TripDetailClient({
                     onClick={undo}
                     disabled={undoStack.length === 0}
                     className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    title="Undo (Cmd+Z)"
+                    title={`${t("detail.undo")} (Cmd+Z)`}
                   >
                     <Undo2 className="w-4 h-4 text-slate-600" />
                   </button>
@@ -3461,7 +3462,7 @@ export default function TripDetailClient({
                     onClick={redo}
                     disabled={redoStack.length === 0}
                     className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    title="Redo (Cmd+Shift+Z)"
+                    title={`${t("detail.redo")} (Cmd+Shift+Z)`}
                   >
                     <Redo2 className="w-4 h-4 text-slate-600" />
                   </button>
@@ -3478,13 +3479,13 @@ export default function TripDetailClient({
               {/* Right: Keyboard hint */}
               <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
                 <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">⌘Z</kbd>
-                <span>undo</span>
+                <span>{t("detail.undo")}</span>
                 <span className="mx-1">•</span>
                 <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">⌘⇧Z</kbd>
-                <span>redo</span>
+                <span>{t("detail.redo")}</span>
                 <span className="mx-1">•</span>
                 <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">Esc</kbd>
-                <span>exit</span>
+                <span>{t("detail.exitEditing")}</span>
               </div>
             </div>
           </div>
@@ -3507,7 +3508,7 @@ export default function TripDetailClient({
             <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl overflow-hidden shadow-md bg-white">
               <Image
                 src="/images/ai-agent.png"
-                alt="AI Assistant"
+                alt={t("detail.aiAssistant")}
                 fill
                 className="object-cover"
               />
@@ -3540,7 +3541,7 @@ export default function TripDetailClient({
             <div className="relative w-9 h-9 rounded-lg overflow-hidden shadow-sm">
               <Image
                 src="/images/ai-agent.png"
-                alt="AI Assistant"
+                alt={t("detail.aiAssistant")}
                 fill
                 className="object-cover"
               />
