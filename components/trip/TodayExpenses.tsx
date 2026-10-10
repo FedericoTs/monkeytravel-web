@@ -6,12 +6,14 @@
  * A summary (spent so far · you're owed / you owe), a day-level "Who paid?"
  * add, and the recent ledger with a delete on your own rows. Splitting is
  * across the trip's participants; the per-activity add lives on each activity
- * card (ExpenseQuickAdd), this is the day view of the result.
+ * card (ExpenseQuickAdd), this is the day view of the result. A delete waits
+ * behind a toast with Undo before it is sent (useUndoableRemoval).
  */
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { centsToAmount, type ExpensePublic, type ExpenseSummary } from "@/lib/expenses/shared";
 import ExpenseQuickAdd from "@/components/trip/ExpenseQuickAdd";
+import { useUndoableRemoval } from "@/hooks/useUndoableRemoval";
 
 interface TodayExpensesProps {
   expenses: ExpensePublic[];
@@ -19,7 +21,8 @@ interface TodayExpensesProps {
   busy: boolean;
   error: string | null;
   onAdd: (amount: string) => Promise<boolean>;
-  onRemove: (expenseId: string) => void;
+  /** Sends a removal; resolves false when it didn't go through. */
+  onRemove: (expenseId: string, options?: { keepalive?: boolean }) => Promise<boolean>;
   /** Map activity id → name, to label expenses logged on an activity. */
   activityName: (id: string | null) => string | null;
   /** Opens Settle Up; members only, so only the trip page passes it. */
@@ -42,7 +45,10 @@ export default function TodayExpenses({ expenses, summary, busy, error, onAdd, o
     };
   }, [summary?.currency, locale]);
 
-  const hasExpenses = expenses.length > 0;
+  const { hidden, remove } = useUndoableRemoval(onRemove, { removed: t("expenses.toastDeleted"), undo: t("expenses.undo") });
+  const shown = useMemo(() => expenses.filter((e) => !hidden.has(e.id)), [expenses, hidden]);
+
+  const hasExpenses = shown.length > 0;
   const net = summary?.netCents ?? 0;
 
   return (
@@ -83,7 +89,7 @@ export default function TodayExpenses({ expenses, summary, busy, error, onAdd, o
 
       {hasExpenses && (
         <ul className="mt-3 divide-y divide-slate-100" data-testid="expense-list">
-          {expenses.slice(0, 8).map((e) => {
+          {shown.slice(0, 8).map((e) => {
             const who = e.paidByName?.trim() || (e.paidByIsOwner ? t("today.owner") : t("today.someone"));
             const label = e.activityId ? activityName(e.activityId) : null;
             return (
@@ -96,7 +102,7 @@ export default function TodayExpenses({ expenses, summary, busy, error, onAdd, o
                   <p className="text-xs text-slate-500">{t("today.expenses.splitAcross", { count: e.splits.length })}</p>
                 </div>
                 {e.mine && (
-                  <button type="button" onClick={() => onRemove(e.id)} disabled={busy} className="text-xs text-slate-500 hover:text-red-600 underline-offset-2 hover:underline disabled:opacity-50">
+                  <button type="button" onClick={() => remove(e.id)} disabled={busy} className="text-xs text-slate-500 hover:text-red-600 underline-offset-2 hover:underline disabled:opacity-50">
                     {t("today.expenses.remove")}
                   </button>
                 )}

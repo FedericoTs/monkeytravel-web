@@ -2369,6 +2369,7 @@
     "empty": "Aún no hay gastos registrados.",
     "toastAdded": "Gasto añadido.",
     "toastDeleted": "Gasto eliminado.",
+    "undo": "Deshacer",
     "errorAmountRequired": "Introduce un importe mayor que cero.",
     "errorAddFailed": "No se pudo añadir el gasto — inténtalo de nuevo.",
     "errorDeleteFailed": "No se pudo eliminar el gasto — inténtalo de nuevo.",

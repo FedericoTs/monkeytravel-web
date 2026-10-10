@@ -2369,6 +2369,7 @@
     "empty": "No expenses logged yet.",
     "toastAdded": "Expense added.",
     "toastDeleted": "Expense removed.",
+    "undo": "Undo",
     "errorAmountRequired": "Enter an amount greater than zero.",
     "errorAddFailed": "Couldn't add the expense — try again.",
     "errorDeleteFailed": "Couldn't delete the expense — try again.",

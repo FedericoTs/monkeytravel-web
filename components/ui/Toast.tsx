@@ -18,7 +18,8 @@ interface Toast {
 
 interface ToastContextType {
   toasts: Toast[];
-  addToast: (message: string, type?: Toast["type"], duration?: number, action?: ToastAction) => void;
+  /** Returns the toast's id, for removeToast. */
+  addToast: (message: string, type?: Toast["type"], duration?: number, action?: ToastAction) => string;
   removeToast: (id: string) => void;
 }
 
@@ -42,6 +43,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       if (duration > 0) {
         setTimeout(() => removeToast(id), duration);
       }
+      return id;
     },
     [removeToast]
   );
