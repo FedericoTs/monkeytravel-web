@@ -2375,6 +2375,8 @@
     "errorLoadFailed": "No se pudieron cargar los gastos. Inténtalo de nuevo.",
     "retry": "Intentar de nuevo",
     "deleteAriaLabel": "Eliminar este gasto",
+    "amountInvalid": "Introduce un importe como {example}.",
+    "amountWhich": "¿Qué importe querías decir?",
     "settle": {
       "openButton": "Liquidar",
       "title": "Liquidar cuentas",

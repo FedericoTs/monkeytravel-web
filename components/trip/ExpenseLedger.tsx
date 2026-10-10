@@ -11,7 +11,9 @@ import {
   Scale,
 } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import AmountChoices from "@/components/trip/AmountChoices";
 import SettleUpView from "@/components/trip/SettleUpView";
+import { centsToAmount, formatAmount, readAmount } from "@/lib/expenses/shared";
 import { sentry } from "@/lib/observability/sentry";
 import {
   captureExpenseAdded,
@@ -133,6 +135,8 @@ function ExpenseLedgerInner({
 
   // Add-form state
   const [amount, setAmount] = useState("");
+  // Set when the typed amount reads two ways: the readings to pick from.
+  const [amountChoices, setAmountChoices] = useState<number[] | null>(null);
   const [currency, setCurrency] = useState(defaultCurrency);
   const [category, setCategory] = useState<ExpenseRow["category"]>("food");
   const [description, setDescription] = useState("");
@@ -220,19 +224,34 @@ function ExpenseLedgerInner({
 
   const resetForm = () => {
     setAmount("");
+    setAmountChoices(null);
     setCurrency(defaultCurrency);
     setCategory("food");
     setDescription("");
     setSpentOn(todayLocalISO());
   };
 
-  const handleAdd = async () => {
+  /** `pickedCents` is the reading chosen when the typed amount read two ways. */
+  const handleAdd = async (pickedCents?: number) => {
     if (saving) return;
-    const n = Number(amount);
-    if (!Number.isFinite(n) || n <= 0) {
+    let cents = pickedCents;
+    if (cents === undefined) {
+      const reading = readAmount(amount, locale);
+      if (reading.kind === "ambiguous") {
+        setAmountChoices(reading.options);
+        return;
+      }
+      if (reading.kind === "invalid") {
+        addToast(t("amountInvalid", { example: formatAmount(1250, locale) }), "error");
+        return;
+      }
+      cents = reading.cents;
+    }
+    if (cents <= 0) {
       addToast(t("errorAmountRequired"), "error");
       return;
     }
+    const n = centsToAmount(cents);
     setSaving(true);
     try {
       const res = await fetch(`/api/trips/${tripId}/expenses`, {
@@ -403,14 +422,17 @@ function ExpenseLedgerInner({
               <span className="text-xs font-medium text-slate-600 block mb-1">
                 {t("fieldAmount")}
               </span>
+              {/* Text, not type="number": browsers read "1.200" there as 1.2. */}
               <input
-                type="number"
+                type="text"
                 inputMode="decimal"
-                min="0"
-                step="0.01"
+                autoComplete="off"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
+                onChange={(e) => {
+                  setAmount(e.target.value);
+                  setAmountChoices(null);
+                }}
+                placeholder={formatAmount(0, locale)}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-[var(--primary)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
               />
             </label>
@@ -441,6 +463,7 @@ function ExpenseLedgerInner({
               />
             </label>
           </div>
+          {amountChoices && <AmountChoices options={amountChoices} onPick={(cents) => void handleAdd(cents)} disabled={saving} />}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <label className="block">
               <span className="text-xs font-medium text-slate-600 block mb-1">
@@ -487,7 +510,7 @@ function ExpenseLedgerInner({
             </button>
             <button
               type="button"
-              onClick={handleAdd}
+              onClick={() => void handleAdd()}
               disabled={saving || !amount}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50"
             >

@@ -17,26 +17,99 @@ export function parseExpenseCategory(value: unknown): ExpenseCategory {
     : "other";
 }
 
-/** Accepts "12.50", "12,50", "€12" → cents (1250); null when not a positive amount. */
-export function parseAmountToCents(input: unknown): number | null {
-  if (typeof input === "number") {
-    if (!Number.isFinite(input) || input <= 0) return null;
-    return Math.round(input * 100);
+/** The most one payment can be: 1,000,000.00. */
+const MAX_AMOUNT_CENTS = 1_000_000_00;
+
+/**
+ * What a typed amount says. Ambiguous: a lone "," or "." before exactly three
+ * digits where the locale writes decimals with it ("1.200" in en, "1,200" in
+ * it) or no locale is known. Options in cents, the thousands reading first;
+ * the decimal one only when it fits in cents ("1.200" → 1.20, not "1.234").
+ */
+export type AmountReading = { kind: "amount"; cents: number } | { kind: "ambiguous"; options: number[] } | { kind: "invalid" };
+
+// A currency sign or code before or after the number: "€12", "R$ 12,50", "12 EUR".
+const CURRENCY_MARK = String.raw`(?:[A-Za-z]{0,3}\p{Sc}|[A-Za-z]{3})`;
+const LEADING_MARK = new RegExp(String.raw`^${CURRENCY_MARK}\s*`, "u");
+const TRAILING_MARK = new RegExp(String.raw`\s*${CURRENCY_MARK}$`, "u");
+// Thousands in threes, then the other mark and 1-2 decimals: "1,500.50", "1.500,50", "1 500".
+const GROUPED: ReadonlyArray<readonly [string, RegExp]> = [
+  [",", /^([1-9]\d{0,2}(?:,\d{3})+)(?:\.(\d{1,2}))?$/],
+  [".", /^([1-9]\d{0,2}(?:\.\d{3})+)(?:,(\d{1,2}))?$/],
+  [" ", /^([1-9]\d{0,2}(?: \d{3})+)(?:[.,](\d{1,2}))?$/],
+];
+
+/** "," where the locale writes decimals with ".", "." where it uses ","; null when unknown. */
+function thousandsMark(locale: string | undefined): string | null {
+  if (!locale) return null;
+  try {
+    const decimal = new Intl.NumberFormat(locale).formatToParts(1.5).find((p) => p.type === "decimal")?.value;
+    return decimal === "." ? "," : decimal === "," ? "." : null;
+  } catch {
+    return null;
   }
-  if (typeof input !== "string") return null;
-  const cleaned = input.replace(/[^\d.,]/g, "").replace(/,/g, ".");
-  if (!cleaned) return null;
-  // Keep only the last dot as the decimal separator (handles "1.234.56" oddities minimally).
-  const parts = cleaned.split(".");
-  const normalized = parts.length > 1 ? parts.slice(0, -1).join("") + "." + parts[parts.length - 1] : parts[0];
-  const value = Number(normalized);
-  if (!Number.isFinite(value) || value <= 0) return null;
-  const cents = Math.round(value * 100);
-  return cents > 0 && cents <= 1_000_000_00 ? cents : null; // cap at 1,000,000.00
+}
+
+function centsOf(whole: string, decimals = ""): AmountReading {
+  const cents = Number(whole || "0") * 100 + Number(decimals.padEnd(2, "0"));
+  return Number.isSafeInteger(cents) ? { kind: "amount", cents } : { kind: "invalid" };
+}
+
+/**
+ * Reads an amount as typed in the UI locale. "12.50" and "12,50" are 12.50
+ * anywhere, and so are grouped forms like "1,500.50", "1.500,50" or "1 500".
+ * Anything else (signs, three decimals, stray letters) is invalid.
+ */
+export function readAmount(input: string, locale?: string): AmountReading {
+  const text = input.trim().replace(/\s/g, " ").replace(LEADING_MARK, "").replace(TRAILING_MARK, "");
+  if (/^\d+$/.test(text)) return centsOf(text);
+  const decimal = /^(\d*)[.,](\d{1,2})$/.exec(text);
+  if (decimal) return centsOf(decimal[1], decimal[2]);
+  for (const [mark, pattern] of GROUPED) {
+    const match = pattern.exec(text);
+    if (!match) continue;
+    const groups = match[1].split(mark);
+    const lone = groups.length === 2 && match[2] === undefined && mark !== " ";
+    if (!lone || mark === thousandsMark(locale)) return centsOf(groups.join(""), match[2]);
+    const [head, tail] = groups;
+    const options = [Number(head + tail) * 100];
+    if (tail.endsWith("0")) options.push(Number(head) * 100 + Number(tail.slice(0, 2)));
+    return { kind: "ambiguous", options };
+  }
+  return { kind: "invalid" };
+}
+
+/**
+ * The server's read of an amount: a JSON number or a string in the form
+ * canonicalAmount writes. Cents when positive and at most 1,000,000.00, else
+ * null. It has no locale, so a string that reads two ways is refused.
+ */
+export function parseAmountToCents(input: unknown): number | null {
+  let cents: number | null = null;
+  if (typeof input === "number" && Number.isFinite(input)) cents = Math.round(input * 100);
+  else if (typeof input === "string") {
+    const reading = readAmount(input);
+    if (reading.kind === "amount") cents = reading.cents;
+  }
+  return cents !== null && cents > 0 && cents <= MAX_AMOUNT_CENTS ? cents : null;
 }
 
 export function centsToAmount(cents: number): number {
   return Math.round(cents) / 100;
+}
+
+/** What the browser sends once it has read the amount: "1200.00", the same in every locale. */
+export function canonicalAmount(cents: number): string {
+  return centsToAmount(cents).toFixed(2);
+}
+
+/** Cents with two decimals in the locale, so they read one way only: "1,200.00", "1.200,00". */
+export function formatAmount(cents: number, locale: string): string {
+  try {
+    return new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(centsToAmount(cents));
+  } catch {
+    return canonicalAmount(cents);
+  }
 }
 
 /** ISO-4217-ish: 3 letters, uppercased. Falls back to EUR. */

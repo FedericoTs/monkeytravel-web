@@ -1,33 +1,136 @@
 import { describe, expect, it } from "vitest";
 import {
   actorKey,
+  canonicalAmount,
   centsToAmount,
+  formatAmount,
   ledgerNames,
   normalizeCurrency,
   parseAmountToCents,
   parseExpenseCategory,
+  readAmount,
   settleUp,
   splitEquallyCents,
   summarize,
   type ExpenseLedgerEntry,
 } from "./shared";
 
+const LOCALES = ["en", "es", "it", "pt"] as const;
+const amount = (cents: number) => ({ kind: "amount", cents });
+const ask = (...options: number[]) => ({ kind: "ambiguous", options });
+const invalid = { kind: "invalid" };
+
+describe("readAmount", () => {
+  it.each([...LOCALES, undefined])("reads one decimal mark with 1-2 decimals the same way (%s)", (locale) => {
+    expect(readAmount("12.50", locale)).toEqual(amount(1250));
+    expect(readAmount("12,50", locale)).toEqual(amount(1250));
+    expect(readAmount("12,5", locale)).toEqual(amount(1250));
+    expect(readAmount("0.05", locale)).toEqual(amount(5));
+    expect(readAmount(",50", locale)).toEqual(amount(50));
+    expect(readAmount("1200", locale)).toEqual(amount(120000));
+    expect(readAmount(" 7 ", locale)).toEqual(amount(700));
+  });
+
+  it.each([...LOCALES, undefined])("reads grouped thousands the same way (%s)", (locale) => {
+    expect(readAmount("1,500.50", locale)).toEqual(amount(150050));
+    expect(readAmount("1.500,50", locale)).toEqual(amount(150050));
+    expect(readAmount("1 500", locale)).toEqual(amount(150000));
+    expect(readAmount("1 500,50", locale)).toEqual(amount(150050));
+    expect(readAmount("1 500.5", locale)).toEqual(amount(150050));
+    // The no-break spaces Intl writes in some locales.
+    expect(readAmount("1 500", locale)).toEqual(amount(150000));
+    expect(readAmount("1 500,50", locale)).toEqual(amount(150050));
+    expect(readAmount("1.500.000", locale)).toEqual(amount(150000000));
+    expect(readAmount("1,234,567.89", locale)).toEqual(amount(123456789));
+  });
+
+  it("en: a comma before three digits is thousands; a dot there asks", () => {
+    expect(readAmount("1,500", "en")).toEqual(amount(150000));
+    expect(readAmount("12,345", "en")).toEqual(amount(1234500));
+    expect(readAmount("$1,200", "en")).toEqual(amount(120000));
+    expect(readAmount("1.200", "en")).toEqual(ask(120000, 120));
+    expect(readAmount("1.250", "en")).toEqual(ask(125000, 125));
+    // 1.234 is no amount of money, so only the thousands reading is offered.
+    expect(readAmount("1.234", "en")).toEqual(ask(123400));
+  });
+
+  it.each(["es", "it", "pt"])("%s: a dot before three digits is thousands; a comma there asks", (locale) => {
+    expect(readAmount("1.200", locale)).toEqual(amount(120000));
+    expect(readAmount("12.500", locale)).toEqual(amount(1250000));
+    expect(readAmount("€ 1.200", locale)).toEqual(amount(120000));
+    expect(readAmount("1,200", locale)).toEqual(ask(120000, 120));
+    expect(readAmount("1,234", locale)).toEqual(ask(123400));
+  });
+
+  it("asks either way when there is no locale, as on the server", () => {
+    expect(readAmount("1.200")).toEqual(ask(120000, 120));
+    expect(readAmount("1,200")).toEqual(ask(120000, 120));
+    expect(readAmount("1.200,00")).toEqual(amount(120000));
+  });
+
+  it("drops a currency sign or code around the number", () => {
+    expect(readAmount("€12", "en")).toEqual(amount(1200));
+    expect(readAmount("12 €", "it")).toEqual(amount(1200));
+    expect(readAmount("12€", "es")).toEqual(amount(1200));
+    expect(readAmount("R$ 1.200,50", "pt")).toEqual(amount(120050));
+    expect(readAmount("US$1,500.50", "en")).toEqual(amount(150050));
+    expect(readAmount("EUR 1.200", "it")).toEqual(amount(120000));
+    expect(readAmount("1.200 eur", "es")).toEqual(amount(120000));
+  });
+
+  it("refuses what it could only guess at", () => {
+    const junk = [
+      "", " ", "abc", "€", "-5", "+5", "−5", "5k", "1e3", "0x10", "12abc34",
+      "12 50", "1  500", "1,5000", "1234.567", "0,500", "1.234.56", "1,500,50", "1.500.50", "1,2,3",
+      "1,500.505", "1.200,50.00", "12.", "12,", ".", "1, 500",
+    ];
+    for (const locale of [...LOCALES, undefined]) {
+      for (const input of junk) expect(readAmount(input, locale), `${input} (${locale})`).toEqual(invalid);
+    }
+  });
+});
+
 describe("parseAmountToCents", () => {
-  it("parses dot and comma decimals and strips symbols", () => {
-    expect(parseAmountToCents("12.50")).toBe(1250);
+  it("takes a number or the string the browser sends", () => {
+    expect(parseAmountToCents(9.99)).toBe(999);
+    expect(parseAmountToCents("1200.00")).toBe(120000);
     expect(parseAmountToCents("12,50")).toBe(1250);
     expect(parseAmountToCents("€12")).toBe(1200);
-    expect(parseAmountToCents(9.99)).toBe(999);
+    expect(parseAmountToCents("1.500,50")).toBe(150050);
+  });
+  it("refuses a string that reads two ways instead of guessing", () => {
+    expect(parseAmountToCents("1.200")).toBeNull();
+    expect(parseAmountToCents("1,500")).toBeNull();
   });
   it("rejects non-positive and junk", () => {
     expect(parseAmountToCents("0")).toBeNull();
-    expect(parseAmountToCents("-5")).toBe(500); // symbols stripped incl. '-', so "5"; ok — never negative
+    expect(parseAmountToCents("-5")).toBeNull();
+    expect(parseAmountToCents(-5)).toBeNull();
     expect(parseAmountToCents("abc")).toBeNull();
     expect(parseAmountToCents("")).toBeNull();
     expect(parseAmountToCents(0)).toBeNull();
+    expect(parseAmountToCents(Number.NaN)).toBeNull();
+    expect(parseAmountToCents(null)).toBeNull();
   });
-  it("caps absurd amounts", () => {
+  it("caps absurd amounts, typed or sent as a number", () => {
+    expect(parseAmountToCents("1000000")).toBe(100000000);
+    expect(parseAmountToCents("1.000.000,01")).toBeNull();
     expect(parseAmountToCents("99999999")).toBeNull();
+    expect(parseAmountToCents(99999999)).toBeNull();
+  });
+});
+
+describe("the browser and the server read the same amount", () => {
+  const samples = [1, 5, 10, 99, 100, 120, 1250, 99999, 120000, 150050, 12345678, 100000000];
+
+  it("the server reads back what the browser sends", () => {
+    for (const cents of samples) expect(parseAmountToCents(canonicalAmount(cents))).toBe(cents);
+    expect(canonicalAmount(120000)).toBe("1200.00");
+    expect(canonicalAmount(5)).toBe("0.05");
+  });
+
+  it.each(LOCALES)("%s: an amount offered to pick reads back as itself", (locale) => {
+    for (const cents of samples) expect(readAmount(formatAmount(cents, locale), locale)).toEqual(amount(cents));
   });
 });
 

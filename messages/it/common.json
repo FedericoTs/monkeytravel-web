@@ -2375,6 +2375,8 @@
     "errorLoadFailed": "Impossibile caricare le spese. Riprova.",
     "retry": "Riprova",
     "deleteAriaLabel": "Elimina questa spesa",
+    "amountInvalid": "Inserisci un importo come {example}.",
+    "amountWhich": "Quale importo intendevi?",
     "settle": {
       "openButton": "Liquidare",
       "title": "Liquidare",
