@@ -41,8 +41,11 @@ const DEAD = `places/${PLACE}/photos/DeadTile`;
 const BROWSER_UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36";
 
+// Holds Google's Place Details answer while set, so concurrent heals overlap.
+let detailsGate: Promise<void> | null = null;
 const google = vi.fn(async (url: string) => {
   if (url === `https://places.googleapis.com/v1/places/${PLACE}`) {
+    await detailsGate;
     return new Response(JSON.stringify({ photos: [0, 1, 2, 3, 4].map((n) => ({ name: photo(n) })) }), { status: 200 });
   }
   if (url.includes("/photos/DeadTile/media")) return new Response("{}", { status: 400 });
@@ -64,6 +67,7 @@ const healedPhoto = () => {
 
 beforeEach(() => {
   google.mockClear();
+  detailsGate = null;
   cachedRow = null;
   cacheWrites.length = 0;
   vi.stubGlobal("fetch", google);
@@ -89,6 +93,22 @@ describe("gallery heal picks distinct photos", () => {
     expect(healedPhoto()).toBe("P2");
     await new Promise((r) => setTimeout(r, 0));
     expect(cacheWrites).toHaveLength(0);
+  });
+
+  it("a hero and its tiles healing at once share one Place Details call", async () => {
+    let release = () => {};
+    detailsGate = new Promise((resolve) => (release = resolve));
+    const responses = Promise.all([tile(""), tile("&i=1"), tile("&i=2"), tile("&i=3")]);
+    // Let every heal reach Google before it answers.
+    await new Promise((r) => setTimeout(r, 20));
+    release();
+    expect((await responses).map((res) => res.status)).toEqual([200, 200, 200, 200]);
+
+    const urls = google.mock.calls.map(([url]) => url);
+    expect(urls.filter((url) => url === `https://places.googleapis.com/v1/places/${PLACE}`)).toHaveLength(1);
+    // Each one still downloads its own photo.
+    const healed = urls.filter((url) => url.includes("/media?") && !url.includes("DeadTile"));
+    expect(healed.map((url) => /\/photos\/(P\d)/.exec(url)?.[1]).sort()).toEqual(["P0", "P1", "P2", "P3"]);
   });
 
   it("without an index the heal is unchanged: the first photo, and the cache is repaired", async () => {

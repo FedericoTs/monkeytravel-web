@@ -3,7 +3,7 @@ import { createHash } from "crypto";
 import { waitUntil } from "@vercel/functions";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
-import { curatedFor, fetchPlacePhoto, readActivityTypeHint } from "@/lib/images/activity";
+import { curatedFor, fetchPlacePhotos, pickPlacePhoto, readActivityTypeHint, type PlacePhoto } from "@/lib/images/activity";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logApiCall } from "@/lib/api-gateway";
 import { PLACE_PHOTO_USD_PER_CALL } from "@/lib/api-gateway/places-sku";
@@ -52,6 +52,9 @@ const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 // Concurrent heals for one place share a single Google call. The measurements
 // behind this live in lib/places/heal-dedupe.ts.
 const healsInFlight = new InFlight<FreshPhoto | null>();
+// A hero and its gallery tiles heal different photos of one place at once.
+// One Place Details call lists them all, so the heals share it per place.
+const photoListsInFlight = new InFlight<PlacePhoto[] | null>();
 
 /** The cached row for a place, or null when it is missing or the read fails. */
 async function readCachedPhoto(placeId: string): Promise<CachedPhotoRow | null> {
@@ -414,10 +417,10 @@ async function healExpiredPhoto(
         });
         return reusable;
       }
-      return fetchPlacePhoto(placeId, {
-        endpointLabel: "places/{id}:photos (render self-heal)",
-        photoIndex,
-      });
+      const photos = await photoListsInFlight.run(placeId, () =>
+        fetchPlacePhotos(placeId, { endpointLabel: "places/{id}:photos (render self-heal)" })
+      );
+      return photos ? pickPlacePhoto(photos, photoIndex) : null;
     });
     // No photo at all, or Google handed back the same dead ref — nothing to do.
     if (!fresh || fresh.photo_resource_name === deadName) return null;
