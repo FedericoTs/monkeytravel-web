@@ -15,7 +15,13 @@
  *   - GET images.pexels.com          → cache-first, 30-day TTL
  *   - GET lh3.googleusercontent.com  → cache-first, 30-day TTL
  *   - GET /_next/static/*            → cache-first (immutable)
+ *   - Every other page navigation    → network-only, from the navigation preload
  *   - Everything else                → network-only (NEVER cache)
+ *
+ * NAVIGATION PRELOAD: the browser requests each page while this worker boots
+ * instead of after, and every navigation is answered with that response. A
+ * preload left unused is cancelled and the page requested a second time, so
+ * a version that stops answering navigations must disable it in `activate`.
  *
  * Specifically NOT cached:
  *   - /trips/new (the planner): a cached copy runs the code of the last visit
@@ -36,7 +42,7 @@
  * full app launch.
  */
 
-const CACHE_VERSION = "mt-v3";
+const CACHE_VERSION = "mt-v4";
 const CACHE_TRIPS = `${CACHE_VERSION}-trips`;
 const CACHE_IMAGES = `${CACHE_VERSION}-images`;
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
@@ -52,6 +58,9 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
+      if (self.registration.navigationPreload) {
+        await self.registration.navigationPreload.enable().catch(() => undefined);
+      }
       // Reap any cache that isn't on the current version. Keeps storage
       // bounded across deploys.
       const keys = await caches.keys();
@@ -65,6 +74,11 @@ self.addEventListener("activate", (event) => {
     })()
   );
 });
+
+// Trip detail pages: /trips/[uuid] and /[locale]/trips/[uuid], optionally /edit.
+// Only a uuid: /trips/new is the planner, and serving it from the cache ran the
+// planner of the previous visit, so a returning planner missed every fix.
+const TRIP_PAGE = /^\/(?:[a-z]{2}\/)?trips\/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}(?:\/edit)?\/?$/i;
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
@@ -88,6 +102,17 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Trip pages: network-first, with a copy for offline.
+  if (TRIP_PAGE.test(url.pathname)) {
+    event.respondWith(networkFirst(event, CACHE_TRIPS));
+    return;
+  }
+  // Any other page: the network's answer, never a cached one.
+  if (req.mode === "navigate" && self.registration.navigationPreload) {
+    event.respondWith(fromNetwork(event));
+    return;
+  }
+
   // Auth-sensitive paths — never cache.
   if (
     url.pathname.startsWith("/auth/") ||
@@ -102,22 +127,13 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Trip detail pages (HTML).
-  // Matches /trips/[uuid] and /[locale]/trips/[uuid] (with optional /edit).
-  // Only a uuid: /trips/new is the planner, and serving it from here ran the
-  // planner of the previous visit, so a returning planner missed every fix.
-  if (/^\/(?:[a-z]{2}\/)?trips\/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}(?:\/edit)?\/?$/i.test(url.pathname)) {
-    event.respondWith(networkFirst(req, CACHE_TRIPS));
-    return;
-  }
-
   // Trip JSON APIs, kept for reading the trip offline.
   if (
     /^\/api\/trips\/[^/]+(?:\/activities|\/checklist|\/votes|\/view)?$/.test(
       url.pathname
     )
   ) {
-    event.respondWith(networkFirst(req, CACHE_TRIPS));
+    event.respondWith(networkFirst(event, CACHE_TRIPS));
     return;
   }
 
@@ -142,16 +158,22 @@ self.addEventListener("fetch", (event) => {
   // Default: don't touch the request. Let the browser fetch normally.
 });
 
+/** The navigation's preloaded response, or a request of our own when there is none. */
+async function fromNetwork(event) {
+  return (await event.preloadResponse) || fetch(event.request);
+}
+
 /**
  * Network-first: the server's answer whenever there is one, so a trip page is
  * never older than the last deploy or the last edit, and a signed-out visitor
  * gets the sign-in redirect instead of the trip. The copy is for offline only.
  */
-async function networkFirst(request, cacheName) {
+async function networkFirst(event, cacheName) {
+  const request = event.request;
   const cache = await caches.open(cacheName);
   let res;
   try {
-    res = await fetch(request);
+    res = await fromNetwork(event);
   } catch {
     const cached = await cache.match(request);
     if (cached) return cached;

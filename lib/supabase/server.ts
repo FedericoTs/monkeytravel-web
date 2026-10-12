@@ -1,7 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
+import type { User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 import { SUPABASE_AUTH_COOKIE_OPTIONS } from "@/lib/supabase/cookie-options";
+import { subjectFromAccessToken } from "@/lib/supabase/middleware";
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -45,4 +47,28 @@ export async function signedInUserId(): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+/**
+ * A client plus the viewer, so a page's queries need not wait for the auth
+ * server: `claimedId` is read from the session cookie, and `verified` checks
+ * that same token with the auth server meanwhile. Only `verified` says who the
+ * viewer is; queries keyed on `claimedId` stay safe because PostgREST checks
+ * the token too and RLS applies.
+ */
+export async function createClientWithViewer(): Promise<{
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  claimedId: string | null;
+  verified: Promise<User | null>;
+}> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return {
+    supabase,
+    claimedId: subjectFromAccessToken(token),
+    verified: token
+      ? supabase.auth.getUser(token).then(({ data: { user } }) => user ?? null, () => null)
+      : Promise.resolve(null),
+  };
 }

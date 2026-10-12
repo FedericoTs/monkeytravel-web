@@ -1,5 +1,5 @@
 import { getDestinationBySlug } from "@/lib/destinations/data";
-import { createClient } from "@/lib/supabase/server";
+import { createClientWithViewer } from "@/lib/supabase/server";
 import type { Locale } from "@/lib/destinations/types";
 import NewTripWizard, { type PrefilledDestination } from "./NewTripWizard";
 
@@ -95,20 +95,22 @@ function parseTripShape(sp: SearchParams): PrefilledTripShape {
 /**
  * Signed in and already has trips: step 1 opens with the "welcome back"
  * banner. Known here, the banner is in the first paint instead of pushing the
- * form down once the client has asked. Anonymous visitors pay no round trip.
+ * form down once the client has asked. Anonymous visitors pay no round trip,
+ * and the count runs while the auth server confirms who is asking.
  */
-async function hasOwnTrips(): Promise<boolean> {
+async function ownTrips(): Promise<{ userId: string | null; hasTrips: boolean }> {
+  const notCounted = { userId: null, hasTrips: false };
   try {
-    const supabase = await createClient();
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) return false;
-    const { count } = await supabase
-      .from("trips")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", data.user.id);
-    return (count ?? 0) > 0;
+    const { supabase, claimedId, verified } = await createClientWithViewer();
+    if (!claimedId) return notCounted;
+    const [user, { count, error }] = await Promise.all([
+      verified,
+      supabase.from("trips").select("id", { count: "exact", head: true }).eq("user_id", claimedId),
+    ]);
+    if (user?.id !== claimedId || error || count === null) return notCounted;
+    return { userId: user.id, hasTrips: count > 0 };
   } catch {
-    return false;
+    return notCounted;
   }
 }
 
@@ -119,7 +121,7 @@ export default async function NewTripPage({
   params: Promise<{ locale: string }>;
   searchParams: Promise<SearchParams>;
 }) {
-  const [{ locale }, sp, returningUser] = await Promise.all([params, searchParams, hasOwnTrips()]);
+  const [{ locale }, sp, trips] = await Promise.all([params, searchParams, ownTrips()]);
 
   let prefilledDestination: PrefilledDestination | null = null;
   const rawSlug = Array.isArray(sp.destination) ? sp.destination[0] : sp.destination;
@@ -144,7 +146,8 @@ export default async function NewTripPage({
     <NewTripWizard
       prefilledDestination={prefilledDestination}
       prefilledTripShape={parseTripShape(sp)}
-      returningUser={returningUser}
+      returningUser={trips.hasTrips}
+      returningUserCheckedFor={trips.userId}
       seasonMonth={new Date().getMonth() + 1}
     />
   );

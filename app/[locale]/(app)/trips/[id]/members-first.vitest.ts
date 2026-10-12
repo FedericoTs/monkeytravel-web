@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { createServerClient } from "@supabase/ssr";
 
 /**
  * Who gets the trip editor at /trips/[id].
@@ -49,6 +50,10 @@ type World = {
 };
 let world: World;
 let lastByline: string | undefined;
+// Held open to see what the page sends while the auth server is still answering.
+let authAnswered: Promise<void>;
+const sent: string[] = [];
+const tokenFor = (sub: string) => `h.${Buffer.from(JSON.stringify({ sub })).toString("base64url")}.sig`;
 
 const trip = () => ({
   id: TRIP,
@@ -78,11 +83,32 @@ const canSee = () =>
 
 function fakeSupabase() {
   return {
-    auth: { getUser: async () => ({ data: { user: world.user ? { id: world.user, email: "a@test.local" } : null } }) },
+    auth: {
+      getSession: async () => ({ data: { session: world.user ? { access_token: tokenFor(world.user) } : null } }),
+      getUser: async () => {
+        await authAnswered;
+        return { data: { user: world.user ? { id: world.user, email: "a@test.local" } : null } };
+      },
+    },
     from(table: string) {
       const filters: Record<string, unknown> = {};
       let head = false;
       let cols = "";
+      const lookup = async () => {
+        if (table === "users") return { data: { display_name: world.displayName ?? null }, error: null };
+        if (table === "trips") {
+          if (refusedColumns(cols)) return PERMISSION_DENIED;
+          if (!canSee()) return { data: null, error: null };
+          if ("user_id" in filters && filters.user_id !== OWNER) return { data: null, error: null };
+          // Only the selected columns come back.
+          const row = trip() as Record<string, unknown>;
+          return { data: Object.fromEntries(cols.split(",").map((c) => [c.trim(), row[c.trim()]])), error: null };
+        }
+        // trip_collaborators: the caller's own membership row, with the trip.
+        if (refusedColumns(cols)) return PERMISSION_DENIED;
+        const role = world.collaborators[String(filters.user_id)];
+        return { data: role ? { role, trips: trip() } : null, error: null };
+      };
       const q = {
         select: (selected: string, opts?: { head?: boolean }) => {
           cols = selected;
@@ -93,21 +119,13 @@ function fakeSupabase() {
           filters[col] = val;
           return q;
         },
-        maybeSingle: async () => {
-          if (table === "users") return { data: { display_name: world.displayName ?? null }, error: null };
-          if (table === "trips") {
-            if (refusedColumns(cols)) return PERMISSION_DENIED;
-            if (!canSee()) return { data: null, error: null };
-            if ("user_id" in filters && filters.user_id !== OWNER) return { data: null, error: null };
-            // Only the selected columns come back.
-            const row = trip() as Record<string, unknown>;
-            return { data: Object.fromEntries(cols.split(",").map((c) => [c.trim(), row[c.trim()]])), error: null };
-          }
-          // trip_collaborators: the caller's own membership row, with the trip.
-          if (refusedColumns(cols)) return PERMISSION_DENIED;
-          const role = world.collaborators[String(filters.user_id)];
-          return { data: role ? { role, trips: trip() } : null, error: null };
-        },
+        // Like the real builder, the query is sent only once something awaits it.
+        maybeSingle: () => ({
+          then: <T>(resolve: (v: Awaited<ReturnType<typeof lookup>>) => T, reject?: (e: unknown) => T) => {
+            sent.push(table);
+            return lookup().then(resolve, reject);
+          },
+        }),
         // .single() (the pre-2026-09-25 page) answers PGRST116 for no row.
         single: async () => {
           const r = await q.maybeSingle();
@@ -121,7 +139,7 @@ function fakeSupabase() {
     },
   };
 }
-vi.mock("@/lib/supabase/server", () => ({ createClient: async () => fakeSupabase() }));
+vi.mock("@supabase/ssr", () => ({ createServerClient: vi.fn(() => fakeSupabase()) }));
 
 async function visit(locale = "en") {
   const { default: TripDetailPage } = await import("./page");
@@ -140,6 +158,28 @@ async function visit(locale = "en") {
 
 beforeEach(() => {
   world = { user: null, collaborators: {}, shareToken: TOKEN, visibility: "private" };
+  authAnswered = Promise.resolve();
+  sent.length = 0;
+});
+
+describe("the auth server's check runs alongside the trip read", () => {
+  it("asks for the owner's trip before the auth server has answered", async () => {
+    world.user = OWNER;
+    let answer = () => {};
+    authAnswered = new Promise<void>((resolve) => (answer = resolve));
+    const page = visit();
+    await vi.waitFor(() => expect(sent).toEqual(["trips"]), { timeout: 5000 });
+    answer();
+    expect(await page).toEqual({ editor: "owner" });
+  });
+
+  it("a cookie the auth server does not confirm gets no editor", async () => {
+    world.user = OWNER;
+    const fake = fakeSupabase();
+    fake.auth.getUser = async () => ({ data: { user: null } });
+    vi.mocked(createServerClient).mockReturnValueOnce(fake as never);
+    expect(await visit()).toEqual({ redirect: `/auth/login?redirect=${encodeURIComponent(`/trips/${TRIP}`)}` });
+  });
 });
 
 describe("members always get the editor, shared or not", () => {
