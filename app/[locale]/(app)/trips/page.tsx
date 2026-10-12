@@ -132,6 +132,7 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
       displayName={displayName}
       lifetimeConversions={lifetimeConversions}
       blogTips={blogTips}
+      serverNow={new Date().toISOString()}
     />
   );
 }
