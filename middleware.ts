@@ -103,7 +103,7 @@ function captureUtmCookies(request: NextRequest, response: NextResponse): void {
 /**
  * updateSession() with its duration as Server-Timing, so a slow first byte can
  * be split between this step and the page. desc="refresh" marks a rewritten
- * auth cookie, i.e. a token refresh, a round trip to Supabase from the edge.
+ * auth cookie, i.e. a token refresh, a round trip to Supabase.
  */
 async function timedUpdateSession(request: NextRequest, base?: NextResponse): Promise<NextResponse> {
   const start = performance.now();
@@ -332,6 +332,9 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // Node.js runs this in the functions' region, next to Supabase, so a session
+  // refresh is a local round trip instead of one from the visitor's edge.
+  runtime: "nodejs",
   matcher: [
     // Every path except Next internals (_next/static, _next/image), static
     // files (favicon.ico, manifest.json, sw.js, /images, /screenshots, /geo)

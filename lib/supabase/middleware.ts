@@ -65,7 +65,7 @@ export function trackPageView(
   }
 
   // Read existing session_id or mint a fresh one for first-time visitors.
-  // crypto.randomUUID() is available on the Edge runtime that powers
+  // crypto.randomUUID() is a global on the Node.js runtime that powers
   // Next.js middleware — no polyfill needed.
   const existingSessionId = request.cookies.get("mt_session_id")?.value;
   const sessionId = existingSessionId || crypto.randomUUID();
