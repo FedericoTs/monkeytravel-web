@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import ShareButton from "./ShareButton";
+import { forgetShareStatus } from "@/lib/trips/share-status";
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
@@ -29,6 +30,8 @@ vi.mock("@/components/explore/PublishTripModal", () => ({
 }));
 
 beforeEach(() => {
+  // The share status is shared across the page's readers; start each test without one.
+  forgetShareStatus();
   vi.stubGlobal(
     "fetch",
     vi.fn(async () => ({ ok: true, json: async () => ({ isShared: false, shareUrl: null, collaborators: [] }) }))

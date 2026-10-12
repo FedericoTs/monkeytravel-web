@@ -22,6 +22,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor, act } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import SharePromptOnTrip from "./SharePromptOnTrip";
+import { forgetShareStatus } from "@/lib/trips/share-status";
 
 // next/dynamic would resolve the real modal (and its i18n + BaseModal tree).
 // Stub it to a marker so the assertions are about the gate, not the modal.
@@ -101,6 +102,8 @@ async function renderReady(overrides: Partial<ComponentProps<typeof SharePromptO
 }
 
 beforeEach(() => {
+  // The share status is shared across the page's readers; start each test without one.
+  forgetShareStatus();
   vi.useFakeTimers({ shouldAdvanceTime: true });
   localStorage.clear();
   captureVariantShown.mockClear();
