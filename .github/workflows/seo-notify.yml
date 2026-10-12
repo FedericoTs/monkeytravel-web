@@ -1,17 +1,19 @@
 name: Search engine notifications
 
-# After each successful production deploy, changed blog posts go to IndexNow
-# and the sitemap is resubmitted to Search Console. Every Monday, recently
-# updated pages that Google still has not indexed are listed in one issue, so
-# "Request indexing" is only needed for those. Script: scripts/seo-notify.mjs.
+# After each successful production deploy, changed blog posts, and pages whose
+# title or copy changed in messages/, go to IndexNow and the sitemap is
+# resubmitted to Search Console. Every Monday and Thursday, recently updated
+# pages that Google still has not indexed are listed in one issue, so "Request
+# indexing" is only needed for those. Script: scripts/seo-notify.mjs.
 
 on:
   deployment_status:
   schedule:
-    - cron: "23 6 * * 1"
+    - cron: "23 6 * * 1,4"
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
   deployments: read
   issues: write
@@ -52,16 +54,37 @@ jobs:
   check:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    concurrency: seo-notify-check
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: 22
+      # What earlier runs found, so each run starts with the pages nobody has
+      # inspected since their update. Artifacts from forks are not trusted.
+      # Without one the run starts fresh.
+      - name: Restore earlier inspections
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run=$(gh api "repos/${{ github.repository }}/actions/artifacts?name=indexing-state&per_page=20" --jq '[.artifacts[] | select(.expired == false and .workflow_run.head_repository_id == .workflow_run.repository_id)][0].workflow_run.id // empty' || true)
+          [ -n "$run" ] && gh run download "$run" --repo "${{ github.repository }}" --name indexing-state --dir restored || true
+          saved=$(find restored -name indexing-state.json 2>/dev/null | head -n 1 || true)
+          if [ -n "$saved" ]; then mv "$saved" indexing-state.json; else echo "No earlier inspections: starting fresh."; fi
       - name: Inspect recently updated pages
         env:
           GSC_SERVICE_ACCOUNT_KEY: ${{ secrets.GSC_SERVICE_ACCOUNT_KEY }}
-        run: node scripts/seo-notify.mjs check --out report.md --count-file count.txt
-      # One standing issue: updated while pages are waiting, closed when none are.
+        run: node scripts/seo-notify.mjs check --state indexing-state.json --out report.md --count-file count.txt
+      - name: Save inspections for the next run
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: indexing-state
+          path: indexing-state.json
+          if-no-files-found: ignore
+          retention-days: 30
+      # One standing issue: updated while pages are waiting or not inspected
+      # yet, closed when none are.
       - name: Update the indexing issue
         env:
           GH_TOKEN: ${{ github.token }}
