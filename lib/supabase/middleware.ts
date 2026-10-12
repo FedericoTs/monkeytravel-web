@@ -107,6 +107,9 @@ export function trackPageView(
           Prefer: "return=minimal",
         },
         body: JSON.stringify(pageView),
+        // A database that stops answering must not hold this function until
+        // the platform kills it: the row is analytics and can be lost.
+        signal: AbortSignal.timeout(5000),
       }).catch(() => {
         // Silently ignore errors to not impact user experience
       })

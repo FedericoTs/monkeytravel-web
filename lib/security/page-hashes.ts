@@ -60,7 +60,9 @@ async function probe(request: NextRequest): Promise<Verdict> {
     .join("; ");
   if (vercelCookies) headers.cookie = vercelCookies;
 
-  const res = await fetch(new URL(pathname, origin), { headers, redirect: "manual" });
+  // The page comes from our own CDN. A probe that stalls fails like any other,
+  // and the caller serves this one response with the permissive policy.
+  const res = await fetch(new URL(pathname, origin), { headers, redirect: "manual", signal: AbortSignal.timeout(3000) });
   const html = await res.text();
   const isHtml = (res.headers.get("content-type") ?? "").includes("text/html");
   if (res.status !== 200 || !isHtml) return null;
