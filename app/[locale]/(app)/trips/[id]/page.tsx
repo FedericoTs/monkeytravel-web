@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClientWithViewer } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { ASSISTANT_SEEN_COOKIE } from "@/lib/trip/assistant-seen";
 import { redirect, notFound } from "next/navigation";
@@ -36,14 +36,17 @@ export default async function TripDetailPage({
   params: Promise<{ id: string; locale: string }>;
 }) {
   const { id, locale } = await params;
-  const supabase = await createClient();
+  const { supabase, claimedId, verified } = await createClientWithViewer();
 
   // `locale === "en"` → no prefix (next-intl convention for the default locale).
   const localePrefix = locale === "en" ? "" : `/${locale}`;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // The owner's read starts while the auth server confirms who is asking.
+  // Promise.resolve sends it now: a query builder runs only once awaited.
+  const ownedBy = (userId: string) =>
+    Promise.resolve(supabase.from("trips").select(TRIP_COLUMNS).eq("id", id).eq("user_id", userId).maybeSingle());
+  const early = claimedId ? ownedBy(claimedId) : null;
+  const user = await verified;
 
   // Members first: the owner and anyone invited ALWAYS get the editor here,
   // whether or not the trip has a share link.
@@ -54,9 +57,7 @@ export default async function TripDetailPage({
   // and collaborators were sent to the read-only /shared view on every visit
   // and could never edit it again — nor stop sharing, whose only button lives
   // in this editor. 109 live trips were in that state.
-  const owned = user
-    ? await supabase.from("trips").select(TRIP_COLUMNS).eq("id", id).eq("user_id", user.id).maybeSingle()
-    : null;
+  const owned = user ? await (early && user.id === claimedId ? early : ownedBy(user.id)) : null;
   let trip = owned?.data ?? null;
   let userRole: CollaboratorRole = "owner";
 

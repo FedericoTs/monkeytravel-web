@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClientWithViewer } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import TripsPageClient from "@/components/trips/TripsPageClient";
 import { getAllFrontmatter, tOr } from "@/lib/blog/api";
@@ -26,33 +26,23 @@ export async function generateMetadata({
 
 export default async function TripsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  const supabase = await createClient();
+  const { supabase, claimedId, verified } = await createClientWithViewer();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/auth/login");
-  }
-
-  // Trips and profile are independent - both need only user.id - so they run
-  // concurrently rather than stacked: every Supabase round trip is a network
-  // hop, so a needless second await is pure waiting.
-  //
-  // Both results are always used now that the zero-trip redirect is gone, so
-  // there is no longer a discarded-query case to caveat.
-  const [tripsResult, profileResult, sharedResult] = await Promise.all([
+  // Trips and profile are independent - both need only the user id - so they
+  // run concurrently rather than stacked, and while the auth server confirms
+  // who is asking: every Supabase round trip is a network hop, so a needless
+  // second await is pure waiting.
+  const listsFor = (userId: string) => Promise.all([
     supabase
       .from("trips")
       .select(TRIP_COLUMNS)
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .or("is_archived.is.null,is_archived.eq.false")
       .order("created_at", { ascending: false }),
     supabase
       .from("users")
       .select("display_name, avatar_url, lifetime_referral_conversions")
-      .eq("id", user.id)
+      .eq("id", userId)
       .single(),
     // Trips someone invited this user to. Until 2026-09-25 they appeared
     // nowhere here: after accepting an invite, the only way back to the trip
@@ -60,9 +50,18 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
     supabase
       .from("trip_collaborators")
       .select("role, trips(id, title, start_date, end_date, cover_image_url, deleted_at)")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .neq("role", "owner"),
   ]);
+  const early = claimedId ? listsFor(claimedId) : null;
+  const user = await verified;
+
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  const [tripsResult, profileResult, sharedResult] =
+    await (early && user.id === claimedId ? early : listsFor(user.id));
 
   const { data: trips } = tripsResult;
   type SharedRow = {

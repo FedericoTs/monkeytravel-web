@@ -100,6 +100,20 @@ function captureUtmCookies(request: NextRequest, response: NextResponse): void {
   if (campaign) response.cookies.set(UTM_COOKIE_NAMES.campaign, campaign, opts);
 }
 
+/**
+ * updateSession() with its duration as Server-Timing, so a slow first byte can
+ * be split between this step and the page. desc="refresh" marks a rewritten
+ * auth cookie, i.e. a token refresh, a round trip to Supabase from the edge.
+ */
+async function timedUpdateSession(request: NextRequest, base?: NextResponse): Promise<NextResponse> {
+  const start = performance.now();
+  const response = await updateSession(request, base);
+  const refreshed = response.cookies.getAll().some((c) => c.name.includes("-auth-token"));
+  const dur = (performance.now() - start).toFixed(1);
+  response.headers.append("Server-Timing", `auth;dur=${dur}${refreshed ? ';desc="refresh"' : ""}`);
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   // Block AI-training and SEO-spam bots BEFORE any other work runs.
   // Returns 403 with no body — saves bandwidth + downstream compute.
@@ -240,7 +254,7 @@ export async function middleware(request: NextRequest) {
 
   if (shouldSkipIntl) {
     // Just handle Supabase session for these routes
-    return attachSecurityHeaders(await updateSession(request));
+    return attachSecurityHeaders(await timedUpdateSession(request));
   }
 
   // Run i18n middleware first to handle locale routing
@@ -314,7 +328,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // For authenticated pages, chain Supabase session handling
-  return attachSecurityHeaders(await updateSession(request, intlResponse));
+  return attachSecurityHeaders(await timedUpdateSession(request, intlResponse));
 }
 
 export const config = {

@@ -218,6 +218,7 @@ import { claimTripCreatedEmit } from "@/lib/analytics/tripCreatedDedup";
 import { usePostHog } from "@/lib/posthog";
 import { landingAttribution, trackWizardEvent, type WizardEventStep } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip, type AutoSaveSkipReason } from "@/hooks/useAutoSaveTrip";
+import { useHasExistingTrips } from "@/hooks/useHasExistingTrips";
 import { isSameDestination } from "@/lib/trips/sameDestination";
 import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate";
 import { findRecentTwin, type RecentTwin } from "@/lib/trips/recent-twin";
@@ -437,6 +438,8 @@ interface NewTripWizardProps {
   seasonMonth: number;
   /** Server-resolved: signed in with trips already, so step 1 opens with the welcome-back banner. */
   returningUser?: boolean;
+  /** The signed-in user returningUser was counted for; null when the server did not count. */
+  returningUserCheckedFor?: string | null;
   /**
    * Trip length / budget / vibes carried in from a blog CTA, so a reader who
    * just finished "3-day Paris itinerary" doesn't have to retype the trip the
@@ -451,6 +454,7 @@ export default function NewTripPage({
   prefilledTripShape,
   seasonMonth,
   returningUser = false,
+  returningUserCheckedFor = null,
 }: NewTripWizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -549,7 +553,10 @@ export default function NewTripPage({
     });
   }, [posthog, entryResolved, authEventAtMount, prefillAtMount, claimedTripId, isAuthenticated]);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [hasExistingTrips, setHasExistingTrips] = useState(returningUser);
+  const hasExistingTrips = useHasExistingTrips(authLoading, authUser?.id ?? null, {
+    userId: returningUserCheckedFor,
+    hasTrips: returningUser,
+  });
   const [showReturningUserBanner, setShowReturningUserBanner] = useState(true);
 
   // ── Claimed trip ──────────────────────────────────────────────────────────
@@ -1036,26 +1043,6 @@ export default function NewTripPage({
       document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [STEP_NAMES_CONST]);
-
-  // Existing-trips check. Auth state itself flows from the central
-  // AuthProvider above; this effect only fetches the trips count, which gets
-  // re-evaluated whenever the user resolves or changes.
-  useEffect(() => {
-    if (authLoading) return;
-    if (!authUser) {
-      setHasExistingTrips(false);
-      return;
-    }
-    const checkExistingTrips = async () => {
-      const supabase = createClient();
-      const { count } = await supabase
-        .from("trips")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", authUser.id);
-      setHasExistingTrips((count ?? 0) > 0);
-    };
-    checkExistingTrips();
-  }, [authLoading, authUser]);
 
   // Handle pending generation after signup (when draft is restored).
   // The `pendingTripGeneration` flag lives in `prefs` because plain

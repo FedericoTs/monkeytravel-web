@@ -9,8 +9,14 @@ import { NextRequest, NextResponse } from "next/server";
  * /api/unsubscribe, token and all. Anything else still reaches the page.
  */
 
+// Set by a test to have the session step rotate the auth cookie, as a token refresh does.
+let refreshes = false;
 vi.mock("@/lib/supabase/middleware", () => ({
-  updateSession: async (_request: NextRequest, response?: NextResponse) => response ?? NextResponse.next(),
+  updateSession: async (_request: NextRequest, response?: NextResponse) => {
+    const res = response ?? NextResponse.next();
+    if (refreshes) res.cookies.set("sb-ref-auth-token", "rotated");
+    return res;
+  },
   trackPageView: () => ({ sessionId: null, label: "test" }),
 }));
 // The locale step, which may redirect: a one-click POST must not go through it.
@@ -37,7 +43,10 @@ function oneClick(path: string, headers: Record<string, string> = {}) {
 
 const rewrittenTo = (res: Response) => res.headers.get("x-middleware-rewrite");
 
-beforeEach(() => intl.mockClear());
+beforeEach(() => {
+  intl.mockClear();
+  refreshes = false;
+});
 
 describe("a one-click unsubscribe POST", () => {
   it.each(["/unsubscribe", "/es/unsubscribe", "/pt/unsubscribe"])("on %s reaches the API with its token", async (path) => {
@@ -64,5 +73,24 @@ describe("everything else on the page", () => {
   it("other POSTs are untouched", async () => {
     const res = await oneClick("/unsubscribe-me");
     expect(rewrittenTo(res) ?? "").not.toContain("/api/unsubscribe");
+  });
+});
+
+describe("Server-Timing for the session step", () => {
+  const get = (path: string) => middleware(new NextRequest(`https://monkeytravel.app${path}`));
+
+  it("app pages and API routes carry its duration", async () => {
+    for (const path of ["/trips/new", "/it/trips", "/api/trips/abc"]) {
+      expect((await get(path)).headers.get("server-timing")).toMatch(/^auth;dur=\d+\.\d$/);
+    }
+  });
+
+  it("marks a token refresh", async () => {
+    refreshes = true;
+    expect((await get("/trips")).headers.get("server-timing")).toMatch(/^auth;dur=\d+\.\d;desc="refresh"$/);
+  });
+
+  it("public pages, which skip the session step, carry none", async () => {
+    expect((await get("/blog/lisbon-in-3-days")).headers.get("server-timing")).toBeNull();
   });
 });

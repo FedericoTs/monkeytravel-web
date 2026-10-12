@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { createServerClient } from "@supabase/ssr";
 
 /**
  * My Trips lists the trips other people invited this user to.
@@ -11,6 +12,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const ME = "me-1";
 const collabFilters: Array<[string, string, unknown]> = [];
 let collabRows: Array<{ role: string; trips: Record<string, unknown> | null }>;
+// Held open to see what the page sends while the auth server is still answering.
+let authAnswered: Promise<void>;
+const sent: string[] = [];
+const token = `h.${Buffer.from(JSON.stringify({ sub: ME })).toString("base64url")}.sig`;
 
 const tripRow = (id: string, start: string, deleted: string | null = null) => ({
   id,
@@ -23,7 +28,13 @@ const tripRow = (id: string, start: string, deleted: string | null = null) => ({
 
 function fakeSupabase() {
   return {
-    auth: { getUser: async () => ({ data: { user: { id: ME, email: "me@test.local" } } }) },
+    auth: {
+      getSession: async () => ({ data: { session: { access_token: token } } }),
+      getUser: async (): Promise<{ data: { user: { id: string; email: string } | null } }> => {
+        await authAnswered;
+        return { data: { user: { id: ME, email: "me@test.local" } } };
+      },
+    },
     from(table: string) {
       const q = {
         select: () => q,
@@ -37,20 +48,26 @@ function fakeSupabase() {
         },
         or: () => q,
         order: () => q,
-        single: async () => ({ data: { display_name: "Me", lifetime_referral_conversions: 0 }, error: null }),
-        then: (resolve: (v: unknown) => void) =>
+        single: async () => {
+          sent.push(table);
+          return { data: { display_name: "Me", lifetime_referral_conversions: 0 }, error: null };
+        },
+        then: (resolve: (v: unknown) => void) => {
+          sent.push(table);
           resolve(
             table === "trip_collaborators"
               ? { data: collabRows, error: null }
               : { data: [{ id: "mine-1", title: "My own trip" }], error: null }
-          ),
+          );
+        },
       };
       return q;
     },
   };
 }
 
-vi.mock("@/lib/supabase/server", () => ({ createClient: async () => fakeSupabase() }));
+vi.mock("@supabase/ssr", () => ({ createServerClient: vi.fn(() => fakeSupabase()) }));
+vi.mock("next/headers", () => ({ cookies: async () => ({ getAll: () => [], set: () => {} }) }));
 vi.mock("next/navigation", () => ({
   redirect: (url: string) => {
     throw new Error(`redirect ${url}`);
@@ -71,6 +88,26 @@ async function renderProps() {
 beforeEach(() => {
   collabFilters.length = 0;
   collabRows = [];
+  authAnswered = Promise.resolve();
+  sent.length = 0;
+});
+
+describe("the auth server's check runs alongside the lists", () => {
+  it("asks for the trips, profile and invitations before the auth server has answered", async () => {
+    let answer = () => {};
+    authAnswered = new Promise<void>((resolve) => (answer = resolve));
+    const props = renderProps();
+    await vi.waitFor(() => expect([...sent].sort()).toEqual(["trip_collaborators", "trips", "users"]), { timeout: 5000 });
+    answer();
+    expect((await props).trips).toHaveLength(1);
+  });
+
+  it("a cookie the auth server does not confirm is sent to sign in", async () => {
+    const fake = fakeSupabase();
+    fake.auth.getUser = async () => ({ data: { user: null } });
+    vi.mocked(createServerClient).mockReturnValueOnce(fake as never);
+    await expect(renderProps()).rejects.toThrow("redirect /auth/login");
+  });
 });
 
 describe("Shared with you", () => {
