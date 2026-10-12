@@ -104,6 +104,16 @@ describe("trackPageView", () => {
       for (const [task] of handedToAfter.mock.calls) expect(task).toBeInstanceOf(Promise);
     });
 
+    // A database that stops answering held each of these until the platform
+    // killed the function at its time limit.
+    it("gives both writes a deadline", () => {
+      trackPageView(request(`/trips/${TRIP}?slot=in_trip_day_3`, PHONE, "kept-id"));
+      expect(recorded).toHaveBeenCalledTimes(2);
+      for (const call of recorded.mock.calls) {
+        expect((call as unknown as [string, RequestInit])[1].signal).toBeInstanceOf(AbortSignal);
+      }
+    });
+
     it("is not recorded for a prefetch, and outside production only for a probe session", () => {
       trackPageView(request(`/trips/${TRIP}?slot=in_trip_day_3`, { ...PHONE, "sec-purpose": "prefetch" }, "kept-id"));
       vi.stubEnv("VERCEL_ENV", "preview");

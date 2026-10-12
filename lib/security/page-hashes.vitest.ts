@@ -54,6 +54,15 @@ describe("pageScriptHashes: one probe per path, verdict remembered", () => {
     expect(init.redirect).toBe("manual");
   });
 
+  it("gives the probe a deadline, and probes again after one that timed out", async () => {
+    fetchMock.mockRejectedValueOnce(new DOMException("The operation was aborted due to timeout", "TimeoutError"));
+    const req = new NextRequest("https://example.com/es/blog");
+    await expect(pageScriptHashes(req)).rejects.toThrow(/timeout/i);
+    expect(fetchMock.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
+    respond(staticHtml, { "content-type": "text/html", "cache-control": "public" });
+    expect(await pageScriptHashes(req)).toEqual([sha("self.__next_f.push([0])")]);
+  });
+
   it("remembers the verdict and dedupes concurrent probes", async () => {
     respond(staticHtml, { "content-type": "text/html", "cache-control": "public" });
     const req = new NextRequest("https://example.com/it/blog");

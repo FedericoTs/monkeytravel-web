@@ -70,6 +70,8 @@ export function trackEmailClick(request: RequestLike, sessionId: string | null, 
           navigate: request.headers.get("sec-fetch-mode") === "navigate",
         },
       }),
+      // Like the page_views row: a stalled database can't hold the function.
+      signal: AbortSignal.timeout(5000),
     }).catch(() => {}));
   } catch {
     // Telemetry never breaks the response.
