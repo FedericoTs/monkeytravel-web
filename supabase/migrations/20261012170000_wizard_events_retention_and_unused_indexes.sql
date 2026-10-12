@@ -1,0 +1,94 @@
+-- Wizard step events are kept 180 days, like human page views, and purged
+-- nightly in batches like the other analytics rows. The function is dropped
+-- first because its result gains a column; the cron job calls it in a select
+-- list, so nothing depends on the old shape.
+
+drop function if exists public.purge_old_analytics_rows();
+
+create or replace function public.purge_old_analytics_rows()
+returns table (page_views_deleted bigint, api_logs_deleted bigint, wizard_events_deleted bigint)
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+declare
+  v_pv bigint := 0;
+  v_nh bigint := 0;
+  v_api bigint := 0;
+  v_wiz bigint := 0;
+  v_hb bigint := 0;
+begin
+  delete from public.page_views
+   where id in (
+     select id from public.page_views
+      where created_at < now() - interval '180 days'
+      order by created_at
+      limit 20000
+   );
+  get diagnostics v_pv = row_count;
+
+  delete from public.page_views
+   where id in (
+     select p.id from public.page_views p
+      where p.created_at < now() - interval '14 days'
+        and (p.is_bot or p.is_prefetch or exists (
+          select 1 from public.page_view_session_labels l
+           where l.session_id = p.session_id
+             and l.day = p.created_at::date
+             and l.is_automation))
+      order by p.created_at
+      limit 50000
+   );
+  get diagnostics v_nh = row_count;
+
+  delete from public.api_request_logs
+   where id in (
+     select id from public.api_request_logs
+      where timestamp < now() - interval '365 days'
+      order by timestamp
+      limit 5000
+   );
+  get diagnostics v_api = row_count;
+
+  delete from public.wizard_step_events
+   where id in (
+     select id from public.wizard_step_events
+      where created_at < now() - interval '180 days'
+      order by created_at
+      limit 20000
+   );
+  get diagnostics v_wiz = row_count;
+
+  -- Step-1 heartbeats, the bulk of the table, are read only by the automation
+  -- labeller, which looks back a few days.
+  delete from public.wizard_step_events
+   where id in (
+     select id from public.wizard_step_events
+      where step = 'step1_heartbeat'
+        and created_at < now() - interval '14 days'
+      order by created_at
+      limit 20000
+   );
+  get diagnostics v_hb = row_count;
+
+  page_views_deleted := v_pv + v_nh;
+  api_logs_deleted := v_api;
+  wizard_events_deleted := v_wiz + v_hb;
+  return next;
+end
+$function$;
+
+revoke execute on function public.purge_old_analytics_rows() from public, anon, authenticated;
+grant execute on function public.purge_old_analytics_rows() to service_role;
+
+-- No query can use these. Nothing filters API logs by cache_hit, city search
+-- sorts by its match expression before population, and the trips list asks
+-- for is_archived null or false, which the partial index does not cover.
+drop index if exists public.idx_api_logs_cache_hit;
+drop index if exists public.geo_cities_pop_idx;
+drop index if exists public.idx_trips_is_archived;
+
+-- Each nightly purge deletes about a day of rows. Vacuum soon after it, so the
+-- space is reused instead of the files growing until the default threshold.
+alter table public.page_views set (autovacuum_vacuum_scale_factor = 0.02, autovacuum_vacuum_threshold = 2000);
+alter table public.wizard_step_events set (autovacuum_vacuum_scale_factor = 0.02, autovacuum_vacuum_threshold = 2000);
