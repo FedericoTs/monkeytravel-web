@@ -15,7 +15,7 @@ const PHOTOS_FIELD_MASK = "photos";
 
 import { cache } from "@/lib/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { logApiCall } from "@/lib/api-gateway";
+import { logApiCall, logApiCalls } from "@/lib/api-gateway";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -292,6 +292,85 @@ async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> 
   return partial;
 }
 
+/** A places_v2 row as the lookup returns it. */
+type CachedPlace = PlaceRecord & { updated_at?: string | null };
+
+// The keys travel in the lookup's URL, so a very long trip is split into a
+// few lookups rather than one URL longer than the proxies on the way accept.
+const LOOKUP_URL_KEY_CHARS = 6000;
+
+/**
+ * The cached places_v2 row of every key that has one: one joined SELECT for
+ * the whole trip. A lookup per activity, all fired at once, queued on the
+ * database's small connection pool far longer than the queries ran. The hits
+ * are logged in one insert and counted in one call.
+ */
+async function lookupCachedPlaces(keys: string[]): Promise<Map<string, CachedPlace>> {
+  const supabase = createAdminClient();
+  const batches: string[][] = [[]];
+  let chars = 0;
+  for (const key of keys) {
+    // The key as it is encoded in the URL, plus its encoded comma.
+    const size = encodeURIComponent(key).length + 3;
+    if (chars + size > LOOKUP_URL_KEY_CHARS && batches[batches.length - 1].length > 0) {
+      batches.push([]);
+      chars = 0;
+    }
+    batches[batches.length - 1].push(key);
+    chars += size;
+  }
+
+  const results = await Promise.all(
+    batches.map((batch) =>
+      supabase
+        .from("places_v2_lookup")
+        .select("normalized_key, place_id, places_v2(*)")
+        .in("normalized_key", batch)
+    )
+  );
+
+  const hits = new Map<string, CachedPlace>();
+  for (const { data, error } of results) {
+    // A failed lookup leaves its keys to the miss path, as it always did.
+    if (error || !data) continue;
+    for (const row of data) {
+      // `places_v2` is a 1:1 join → supabase-js returns the related row as an
+      // object (or array depending on version). Normalize both shapes.
+      const cached = Array.isArray(row.places_v2) ? row.places_v2[0] : row.places_v2;
+      if (cached) hits.set(row.normalized_key, cached);
+    }
+  }
+
+  if (hits.size > 0) {
+    // Visibility: a free cache hit (0 Places spend). Logged so the cost
+    // dashboard can compute a real activity-image cache-hit rate.
+    void logApiCalls(
+      Array.from(hits.keys(), () => ({
+        apiName: "google_places_search",
+        endpoint: "places:searchText (activity, cache hit)",
+        status: 200,
+        responseTimeMs: 0,
+        cacheHit: true,
+        costUsd: 0,
+      }))
+    );
+    // hit_count + last_accessed_at on both tables, for cache-warmth analytics.
+    // then() is what sends it: a query builder that is never awaited is never
+    // sent. Until the function's migration is applied the call fails with
+    // PGRST202 and the hits go uncounted.
+    void supabase.rpc("record_places_v2_hits", { p_keys: Array.from(hits.keys()) }).then(
+      ({ error }) => {
+        if (error && error.code !== "PGRST202") {
+          console.warn("[places_v2] hit counts not recorded:", error.message);
+        }
+      },
+      () => {}
+    );
+  }
+
+  return hits;
+}
+
 /**
  * place_id-keyed cache lookup + populate.
  *
@@ -300,9 +379,9 @@ async function fetchPlaceFromGoogle(query: string): Promise<PlaceRecord | null> 
  *     row to check on every request)
  *   - `places_v2` — one row per Google place_id (full data; the row we want)
  *
- * Cache HIT path: 1 DB roundtrip via a single SELECT joining both tables,
- * then fire-and-forget hit_count updates. No Places spend unless the photo
- * ref is stale (step 1b).
+ * Cache HIT path: the row comes from the one joined SELECT lookupCachedPlaces
+ * makes for every key of the trip. No Places spend unless the photo ref is
+ * stale (step 1b).
  *
  * Cache MISS path: Text Search (then name-only if that finds nothing), plus
  * Place Details for the photo unless places_v2 already has this place_id with
@@ -321,81 +400,45 @@ async function getOrFetchPlace(
   destination: string,
   normalizedKey: string,
   paidBudget: { remaining: number },
-  photoRefreshBudget: { remaining: number }
+  photoRefreshBudget: { remaining: number },
+  cachedPlaces: Promise<Map<string, CachedPlace>>
 ): Promise<PlaceRecord | null> {
   const supabase = createAdminClient();
 
   // ---------- 1. Cache HIT path ----------
-  // Single joined SELECT: lookup row → cached place row.
-  const { data: hit, error: hitErr } = await supabase
-    .from("places_v2_lookup")
-    .select("place_id, places_v2(*)")
-    .eq("normalized_key", normalizedKey)
-    .maybeSingle();
+  // This key's row from the trip's one lookup, which logged and counted it.
+  const cached = (await cachedPlaces).get(normalizedKey);
+  if (cached) {
+    // ---------- 1b. Photo-ref freshness ----------
+    // The row never expires, but its photo ref dies after about 29 days (see
+    // PHOTO_REF_MAX_AGE_DAYS); without this check a cache hit hands a new
+    // trip a dead ref. This makes a few cache hits paid, capped by
+    // photoRefreshBudget, which is separate from paidBudget so refreshes
+    // never starve new activities.
+    const refAgeMs = cached.updated_at
+      ? Date.now() - Date.parse(cached.updated_at)
+      : Number.POSITIVE_INFINITY;
+    const refIsStale = refAgeMs > PHOTO_REF_MAX_AGE_DAYS * 86_400_000;
 
-  if (!hitErr && hit?.places_v2) {
-    // `places_v2` is a 1:1 join → supabase-js returns the related row as an
-    // object (or array depending on version). Normalize both shapes.
-    const cached = Array.isArray(hit.places_v2) ? hit.places_v2[0] : hit.places_v2;
-    if (cached) {
-      // Fire-and-forget: bump hit_count + last_accessed timestamps on both
-      // tables so future cache-warmth analytics can pick the popular spots.
-      void supabase
-        .from("places_v2_lookup")
-        .update({
-          hit_count: (cached.hit_count ?? 0) + 1,
-          last_accessed_at: new Date().toISOString(),
-        })
-        .eq("normalized_key", normalizedKey);
-      void supabase
-        .from("places_v2")
-        .update({
-          hit_count: (cached.hit_count ?? 0) + 1,
-          last_accessed_at: new Date().toISOString(),
-        })
-        .eq("place_id", cached.place_id);
-      // Visibility: a free cache hit (0 Places spend). Logged so the cost
-      // dashboard can compute a real activity-image cache-hit rate.
-      void logApiCall({
-        apiName: "google_places_search",
-        endpoint: "places:searchText (activity, cache hit)",
-        status: 200,
-        responseTimeMs: 0,
-        cacheHit: true,
-        costUsd: 0,
-      });
-
-      // ---------- 1b. Photo-ref freshness ----------
-      // The row never expires, but its photo ref dies after about 29 days (see
-      // PHOTO_REF_MAX_AGE_DAYS); without this check a cache hit hands a new
-      // trip a dead ref. This makes a few cache hits paid, capped by
-      // photoRefreshBudget, which is separate from paidBudget so refreshes
-      // never starve new activities.
-      const refAgeMs = cached.updated_at
-        ? Date.now() - Date.parse(cached.updated_at)
-        : Number.POSITIVE_INFINITY;
-      const refIsStale = refAgeMs > PHOTO_REF_MAX_AGE_DAYS * 86_400_000;
-
-      if (cached.photo_resource_name && refIsStale && photoRefreshBudget.remaining > 0) {
-        photoRefreshBudget.remaining--;
-        const fresh = await fetchPlacePhoto(cached.place_id);
-        if (fresh) {
-          void supabase
-            .from("places_v2")
-            .update({
-              photo_resource_name: fresh.photo_resource_name,
-              photo_url: fresh.photo_url,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("place_id", cached.place_id);
-          return { ...cached, ...fresh } as PlaceRecord;
-        }
-        // Refresh failed (Google down, place lost its photos). Fall through
-        // with the stale ref — the render-time self-heal gets another shot.
+    if (cached.photo_resource_name && refIsStale && photoRefreshBudget.remaining > 0) {
+      photoRefreshBudget.remaining--;
+      const fresh = await fetchPlacePhoto(cached.place_id);
+      if (fresh) {
+        void supabase
+          .from("places_v2")
+          .update({
+            photo_resource_name: fresh.photo_resource_name,
+            photo_url: fresh.photo_url,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("place_id", cached.place_id);
+        return { ...cached, ...fresh } as PlaceRecord;
       }
-
-      return cached as PlaceRecord;
+      // Refresh failed (Google down, place lost its photos). Fall through
+      // with the stale ref — the render-time self-heal gets another shot.
     }
+
+    return cached as PlaceRecord;
   }
 
   // ---------- 2. Cache MISS path: resolve the place_id first ----------
@@ -892,7 +935,8 @@ async function resolveActivityImage(
   destination: string,
   normalizedKey: string,
   paidBudget: { remaining: number },
-  photoRefreshBudget: { remaining: number }
+  photoRefreshBudget: { remaining: number },
+  cachedPlaces: Promise<Map<string, CachedPlace>>
 ): Promise<string | null> {
   // Kill switch: return null so the caller applies the curated fallback. Every
   // paid lookup fetchActivityImages makes passes through here. Activities that
@@ -903,7 +947,7 @@ async function resolveActivityImage(
   }
   // ---------- Primary path: place_id-keyed cache ----------
   try {
-    const place = await getOrFetchPlace(name, destination || "", normalizedKey, paidBudget, photoRefreshBudget);
+    const place = await getOrFetchPlace(name, destination || "", normalizedKey, paidBudget, photoRefreshBudget, cachedPlaces);
     if (place?.photo_url) {
       return place.photo_url;
     }
@@ -1064,12 +1108,20 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
   let placesHits = 0;
   let fallbackHits = 0;
 
+  // One cache lookup for every key (see lookupCachedPlaces). Each key awaits
+  // it and handles a failure itself; the catch only marks it handled.
+  const cachedPlaces =
+    RESOLVE_ACTIVITY_PHOTOS && groups.size > 0
+      ? lookupCachedPlaces(Array.from(groups.keys()))
+      : Promise.resolve(new Map<string, CachedPlace>());
+  cachedPlaces.catch(() => {});
+
   await Promise.all(
     Array.from(groups.entries()).map(async ([normalizedKey, occurrences]) => {
       const first = occurrences[0];
       let url: string | null = null;
       try {
-        url = await resolveActivityImage(first.name, destination || "", normalizedKey, paidBudget, photoRefreshBudget);
+        url = await resolveActivityImage(first.name, destination || "", normalizedKey, paidBudget, photoRefreshBudget, cachedPlaces);
       } catch (err) {
         console.error(`[Activity Images] Resolve error for "${first.name}":`, err);
       }
