@@ -13,3 +13,10 @@ export const TRIP_COLUMNS = `id, user_id, title, description, start_date, end_da
   parent_trip_id, like_count, save_count, fork_count, author_display_name, author_note,
   reported_count, is_hidden, is_editors_pick, travel_style, reminders_muted, deleted_at,
   public_slug, claim_token, claim_expires_at, itinerary_version`;
+
+/**
+ * What the My Trips cards read. The page used to select TRIP_COLUMNS, so every
+ * row, its itinerary above all, was serialized into the page unread.
+ */
+export const TRIP_CARD_COLUMNS =
+  "id, title, description, start_date, end_date, status, cover_image_url, created_at, is_archived";
