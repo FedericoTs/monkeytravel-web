@@ -19,6 +19,7 @@ import { isSupportedLanguage, resolveAiLanguage } from "@/lib/ai/language";
 import { isValidTimeZone } from "@/lib/trip/live";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { newTripTitle } from "@/lib/trips/title";
+import { pickCoverFromItinerary } from "@/lib/trips/cover";
 
 export interface TripFormState {
   destination: string;
@@ -104,20 +105,15 @@ export interface SaveResult {
 }
 
 /**
- * Walk the itinerary's activities for a usable Google Places photo URL.
- * Synchronous, local data only — safe to run in the critical save path.
+ * A cover from the itinerary's own place photos (lib/trips/cover.ts).
+ * Synchronous, local data only — safe to run in the critical save path. It
+ * used to look for googleapis.com URLs, which photos stopped being once they
+ * went through our proxy, so it never found one.
  */
 export function pickFallbackCoverImage(
   itinerary: GeneratedItinerary,
 ): string | null {
-  for (const day of itinerary.days) {
-    for (const activity of day.activities) {
-      if (activity.image_url && activity.image_url.includes("googleapis.com")) {
-        return activity.image_url;
-      }
-    }
-  }
-  return null;
+  return pickCoverFromItinerary(itinerary.days);
 }
 
 /**
@@ -130,10 +126,11 @@ export function computeDurationDays(formState: TripFormState): number {
   return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 }
 
+/** `coverImageUrl` undefined leaves the column out of the row (an update keeps the stored cover). */
 function buildTripRow(
   input: PersistInput,
   userId: string,
-  coverImageUrl: string | null,
+  coverImageUrl: string | null | undefined,
   origin?: SaveOrigin,
 ) {
   const { itinerary, formState } = input;
@@ -212,7 +209,7 @@ function buildTripRow(
     // Stored with activity ids (as the wizard's insert): photo enrichment and
     // the trip page's saves refer to activities by id.
     itinerary: ensureActivityIds(itinerary.days),
-    cover_image_url: coverImageUrl,
+    ...(coverImageUrl !== undefined ? { cover_image_url: coverImageUrl } : {}),
     budget: {
       total: itinerary.trip_summary.total_estimated_cost,
       spent: 0,
@@ -282,11 +279,12 @@ export async function insertTrip(
   if (result.reused) {
     // A row with this title and start date saved in the last minute: a
     // duplicate save, or a new plan made at once. Write this plan into it so
-    // the row holds what the planner sees; sharing and status stay as they are.
-    const { title, description, start_date, end_date, itinerary, cover_image_url, budget, tags, trip_meta, travel_style, packing_list } = row;
+    // the row holds what the planner sees; sharing, status and its cover
+    // (same destination) stay as they are.
+    const { title, description, start_date, end_date, itinerary, budget, tags, trip_meta, travel_style, packing_list } = row;
     const { error: updateError } = await supabase
       .from("trips")
-      .update({ title, description, start_date, end_date, itinerary, cover_image_url, budget, tags, trip_meta, travel_style, packing_list })
+      .update({ title, description, start_date, end_date, itinerary, budget, tags, trip_meta, travel_style, packing_list })
       .eq("id", result.trip_id);
     if (updateError) throw updateError;
     enrichTripPhotos(result.trip_id);
@@ -315,8 +313,10 @@ export async function updateTrip(
   input: PersistInput,
   userId: string,
 ): Promise<void> {
-  const fallback = pickFallbackCoverImage(input.itinerary);
-  const row = buildTripRow(input, userId, fallback);
+  // The stored cover stays: an update is the same destination (a different
+  // city starts a new trip), and writing the fallback here erased the cover
+  // whenever the itinerary had no place photo yet.
+  const row = buildTripRow(input, userId, undefined);
 
   const { error } = await supabase
     .from("trips")
