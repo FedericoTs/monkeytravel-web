@@ -702,6 +702,13 @@
     "rls_enabled": true
   },
   {
+    "table": "destination_leaderboard_cache",
+    "grants": {},
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
     "table": "destinations",
     "grants": {
       "anon": [
@@ -2458,6 +2465,13 @@
         "UPDATE"
       ]
     },
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
+    "table": "wizard_planning_stats_cache",
+    "grants": {},
     "policies": [],
     "rls_forced": false,
     "rls_enabled": true

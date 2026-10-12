@@ -12,7 +12,8 @@
  * - Floored to a round number so the copy reads "1,000+" and never shows a
  *   fake-precise or embarrassingly small figure; returns null below a floor
  *   so the UI can simply hide the line rather than show weak proof.
- * - Cached in-memory for 1h — barely touches the DB.
+ * - Cached for 1h per instance and at the CDN: the response is the same for
+ *   every visitor, since nothing is read from the request.
  */
 
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -32,9 +33,13 @@ function honestFloor(n: number): number {
 let cached: { value: number | null; timestamp: number } | null = null;
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
+// Shared by every visitor at the CDN. Reading cookies, headers or the query
+// here would hand one visitor's response to everyone: drop this header first.
+const CDN_CACHE = { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400" };
+
 export async function GET() {
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return apiSuccess({ plannedLast30d: cached.value, cached: true });
+    return apiSuccess({ plannedLast30d: cached.value, cached: true }, { headers: CDN_CACHE });
   }
 
   let value: number | null = null;
@@ -53,5 +58,5 @@ export async function GET() {
   }
 
   cached = { value, timestamp: Date.now() };
-  return apiSuccess({ plannedLast30d: value, cached: false });
+  return apiSuccess({ plannedLast30d: value, cached: false }, { headers: CDN_CACHE });
 }
