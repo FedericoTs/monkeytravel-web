@@ -70,12 +70,14 @@ export default function CountdownHero({
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         {coverImageUrl ? (
+          // Below the trip's hero, which shows the same photo: with priority it
+          // was preloaded from <head> ahead of the hero's own copy.
           <Image
             src={proxyImageUrl(coverImageUrl) || coverImageUrl}
             alt={destination}
             fill
+            sizes="(min-width: 1152px) 1120px, 100vw"
             className="object-cover"
-            priority
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-[var(--primary)] via-[var(--primary-dark)] to-[var(--secondary)]" />
