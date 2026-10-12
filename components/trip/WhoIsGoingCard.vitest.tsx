@@ -101,4 +101,22 @@ describe("WhoIsGoingCard", () => {
     await screen.findByText("Olive");
     expect(screen.getByText("share.participants.noneYet")).toBeTruthy();
   });
+
+  // The card sits above the plan: whatever it grows by when the group arrives
+  // pushes the whole page down. The group always holds the owner.
+  it("keeps the owner's row from the first paint, so the card does not grow", async () => {
+    const shape = (el: Element): string =>
+      `${el.tagName}.${[...el.classList].filter((c) => c !== "invisible").join(".")}(${[...el.children].map(shape).join(",")})`;
+    let answer: (res: Response) => void = () => {};
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>((resolve) => (answer = resolve))));
+    render(<WhoIsGoingCard tripId="trip-1" />);
+    const card = screen.getByTestId("who-is-going");
+    const loading = shape(card);
+    expect(card.querySelector("ul")?.getAttribute("aria-hidden")).toBe("true");
+
+    answer(new Response(JSON.stringify({ count: 1, participants: [group[0]] }), { status: 200 }));
+    await screen.findByText("Olive");
+    expect(shape(card)).toBe(loading);
+    expect(card.querySelector("ul")?.getAttribute("aria-hidden")).toBeNull();
+  });
 });

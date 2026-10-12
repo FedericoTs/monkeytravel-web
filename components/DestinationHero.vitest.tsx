@@ -33,6 +33,31 @@ describe("DestinationHero counts", () => {
 });
 
 /**
+ * The budget switches to the visitor's currency after load, so its width
+ * changes then. As the last chip in the row, that moves no other chip.
+ */
+describe("DestinationHero budget chip", () => {
+  it("comes last in the stat row", () => {
+    const { getByText } = render(
+      <DestinationHero
+        destination="Lisbon, Portugal"
+        title="Lisbon Trip"
+        disableApiCalls
+        dateRange="May 1 – 3"
+        days={3}
+        nights={2}
+        activitiesCount={4}
+        weatherNote="Mild and sunny"
+        budget={{ total: 900, currency: "EUR" }}
+      />
+    );
+    const chip = getByText("900 EUR");
+    expect(chip.parentElement?.children.length).toBeGreaterThan(3);
+    expect(chip.parentElement?.lastElementChild).toBe(chip);
+  });
+});
+
+/**
  * The cover is the trip page's LCP image. Places covers are stored at 1920px,
  * so the hero offers smaller sizes a phone can pick, and a retry after a
  * failed load must bust the cache on whichever size the browser picked.

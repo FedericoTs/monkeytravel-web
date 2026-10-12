@@ -345,7 +345,11 @@ export default function DestinationHero({
                   </div>
                 )}
 
-                {/* Budget */}
+                {/* Weather - minimal inline chip */}
+                {weatherNote && <WeatherChip weatherNote={weatherNote} />}
+
+                {/* Budget. Last: it switches to the visitor's currency after
+                    load, and its new width then moves no other chip. */}
                 {budget && (
                   <div className="flex items-center gap-1.5 sm:gap-2 bg-[var(--accent)]/90 text-slate-900 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full font-medium">
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -354,9 +358,6 @@ export default function DestinationHero({
                     {formatBudget(budget.total, budget.currency)}
                   </div>
                 )}
-
-                {/* Weather - minimal inline chip */}
-                {weatherNote && <WeatherChip weatherNote={weatherNote} />}
               </div>
 
               {/* Highlights - shown as inline badges on larger screens */}

@@ -25,6 +25,12 @@ interface Group {
   participants: OwnerParticipant[];
 }
 
+// The group always holds the owner, so while it loads their row keeps its
+// place invisibly, like the pill and the empty-state line.
+const LOADING_ROWS: OwnerParticipant[] = [
+  { id: "loading", display_name: null, role: "owner", going: true, in_split: true, has_account: true, has_email: false, joined_at: null, participant_id: null },
+];
+
 async function loadGroup(tripId: string): Promise<Group> {
   try {
     const res = await fetch(`/api/trips/${tripId}/participants`, { cache: "no-store" });
@@ -89,6 +95,7 @@ export default function WhoIsGoingCard({ tripId, onShare, className = "" }: WhoI
   };
 
   const rows = group?.participants ?? null;
+  const shown = rows ?? LOADING_ROWS;
   const count = group?.count ?? 0;
   const justTheOwner = !rows || rows.every((p) => p.role === "owner");
 
@@ -134,9 +141,9 @@ export default function WhoIsGoingCard({ tripId, onShare, className = "" }: WhoI
         )}
       </div>
 
-      {rows && rows.length > 0 && (
-        <ul className="mt-3 divide-y divide-slate-100">
-          {rows.map((p) => (
+      {shown.length > 0 && (
+        <ul className={`mt-3 divide-y divide-slate-100 ${rows === null ? "invisible" : ""}`} aria-hidden={rows === null || undefined}>
+          {shown.map((p) => (
             <li key={p.id} className="flex items-center gap-3 py-2" data-testid="who-is-going-row">
               <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--primary)]/15 text-[11px] font-bold text-[var(--primary-ink)]">
                 {initialsOf(p.display_name)}
