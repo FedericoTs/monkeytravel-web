@@ -7,6 +7,7 @@ import ShareAndInviteModal from "./ShareAndInviteModal";
 import PublishTripModal from "@/components/explore/PublishTripModal";
 import { CollaboratorAvatars } from "@/components/collaboration/CollaboratorAvatars";
 import { trackTripShared } from "@/lib/analytics";
+import { fetchShareStatus, forgetShareStatus } from "@/lib/trips/share-status";
 import type { TripCollaborator } from "@/types";
 
 interface ShareButtonProps {
@@ -63,7 +64,7 @@ export default function ShareButton({
     async function fetchStatus() {
       // Run both in parallel — no reason to wait serially.
       const [shareRes, collabRes] = await Promise.allSettled([
-        fetch(`/api/trips/${tripId}/share`).then((r) => (r.ok ? r.json() : null)),
+        fetchShareStatus(tripId),
         fetch(`/api/trips/${tripId}/collaborators`).then((r) => (r.ok ? r.json() : null)),
       ]);
 
@@ -97,9 +98,8 @@ export default function ShareButton({
   // the trip page's publish toggle, so the link is read again when it opens.
   const refreshShareLink = useCallback(async () => {
     try {
-      const res = await fetch(`/api/trips/${tripId}/share`);
-      if (!res.ok) return;
-      const status = await res.json();
+      const status = await fetchShareStatus(tripId, { fresh: true });
+      if (!status) return;
       setIsShared(!!status.isShared);
       setShareUrl(status.shareUrl ?? null);
       setIsInTrending(!!status.isInTrending);
@@ -120,6 +120,7 @@ export default function ShareButton({
       const response = await fetch(`/api/trips/${tripId}/share`, {
         method: "POST",
       });
+      forgetShareStatus(tripId);
 
       if (response.ok) {
         const data = await response.json();
@@ -140,6 +141,7 @@ export default function ShareButton({
       const response = await fetch(`/api/trips/${tripId}/share`, {
         method: "DELETE",
       });
+      forgetShareStatus(tripId);
 
       if (response.ok) {
         setIsShared(false);

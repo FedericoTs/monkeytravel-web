@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import { fetchShareStatus } from "@/lib/trips/share-status";
 import {
   captureSharePromptVariantShown,
   captureExploreTripPublished,
@@ -93,9 +94,8 @@ export default function SharePromptOnTrip({
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/trips/${tripId}/share`);
-        if (!res.ok) return; // can't tell → stay quiet rather than nag wrongly
-        const data = await res.json();
+        const data = await fetchShareStatus(tripId);
+        if (!data) return; // can't tell → stay quiet rather than nag wrongly
         // A trip that already has a link doesn't need this prompt; the user
         // has already done the thing we're about to ask for.
         if (!cancelled && !data?.shareToken && !data?.shareUrl) setEligible(true);

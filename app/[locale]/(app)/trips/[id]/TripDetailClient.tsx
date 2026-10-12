@@ -49,14 +49,12 @@ import DaySummary from "@/components/trip/DaySummary";
 import {
   CountdownHero,
   PreTripChecklist,
-  LiveJourneyHeader,
-  LiveActivityCard,
 } from "@/components/timeline";
 import { useChecklist } from "@/lib/hooks/useChecklist";
 import { useToast } from "@/components/ui/Toast";
 import { useCurrency } from "@/lib/locale";
 import { trackActivityRegenerated, trackTripViewed } from "@/lib/analytics";
-import { useActivityTimeline } from "@/lib/hooks/useActivityTimeline";
+import { fetchShareStatus } from "@/lib/trips/share-status";
 import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
 import { getCoordinatesForNewActivity, type Coordinates } from "@/lib/utils/geo";
 import {
@@ -130,7 +128,7 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
 
 // Lazy-load components that are hidden behind state/conditions on first paint.
 // Modals (BookingDrawer, AIAssistant, RouteOptimizationModal, VotingBottomSheet,
-// ProposeActivitySheet, ActivityRatingModal) are closed by default — no SSR
+// ProposeActivitySheet) are closed by default — no SSR
 // benefit, defer to interaction. OngoingTripView only renders for active trips,
 // CollaboratorOnboarding only for collaborative ones, and ExportMenu only
 // matters once the user opens its dropdown.
@@ -145,7 +143,6 @@ const OngoingTripView = dynamic(() => import("@/components/trip/OngoingTripView"
 const CollaboratorOnboarding = dynamic(() => import("@/components/collaboration/CollaboratorOnboarding"), { ssr: false });
 // Share ask, gated on engagement — self-contained, renders null until it fires.
 const SharePromptOnTrip = dynamic(() => import("@/components/trip/SharePromptOnTrip"), { ssr: false });
-const ActivityRatingModal = dynamic(() => import("@/components/timeline/ActivityRatingModal"), { ssr: false });
 const RouteOptimizationModal = dynamic(
   () => import("@/components/trip/RouteOptimizationModal").then((m) => ({ default: m.RouteOptimizationModal })),
   { ssr: false }
@@ -387,10 +384,8 @@ export default function TripDetailClient({
     let cancelled = false;
     (async () => {
       try {
-        const shareRes = await fetch(`/api/trips/${trip.id}/share`);
-        if (!shareRes.ok || cancelled) return;
-        const shareData = await shareRes.json();
-        if (cancelled) return;
+        const shareData = await fetchShareStatus(trip.id);
+        if (!shareData || cancelled) return;
         setCrewSharingEnabled(!!shareData.isShared);
         if (!shareData.isShared) return;
         const votesRes = await fetch(`/api/trips/${trip.id}/crew-votes`);
@@ -754,8 +749,9 @@ export default function TripDetailClient({
   const totalActivities = editedItinerary.reduce((acc, day) => acc + day.activities.length, 0);
 
   // Pre-trip checklist. Owner only: the checklist routes and their RLS admit
-  // only the owner, so loading it for a collaborator would always 404.
-  const checklist = useChecklist(trip.id, { enabled: isOwner });
+  // only the owner, so loading it for a collaborator would always 404. Loaded
+  // only before the trip, the one phase that shows it.
+  const checklist = useChecklist(trip.id, { enabled: isOwner && isPreTripPhase });
 
   // Toast notifications
   const { addToast } = useToast();
@@ -792,9 +788,6 @@ export default function TripDetailClient({
       setIsUpdatingStatus(false);
     }
   };
-
-  // Activity timeline for live journey mode
-  const activityTimeline = useActivityTimeline(trip.id);
 
   // Activity voting for collaborative trips
   const votingEnabled = isCollaborativeTrip && collaboratorCount > 1;
@@ -970,14 +963,6 @@ export default function TripDetailClient({
     setRouteOptimizationState({ isOpen: false, dayNumber: 1, activities: [] });
   }, []);
 
-  // Rating modal state
-  const [ratingModalActivity, setRatingModalActivity] = useState<{
-    id: string;
-    name: string;
-    dayNumber: number;
-    image_url?: string;
-  } | null>(null);
-
   // Calculate current day number for active trip phase
   const currentDayNumber = useMemo(() => {
     if (!isActiveTripPhase) return 1;
@@ -1027,13 +1012,6 @@ export default function TripDetailClient({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trip.id]); // Only track once per trip view
-
-  // Calculate day progress for LiveJourneyHeader
-  const dayProgress = activityTimeline.getDayProgress(allActivitiesByDay, currentDayNumber);
-
-  // Get current and next activity
-  const currentActivity = activityTimeline.getCurrentActivity(currentDayActivities);
-  const nextActivity = activityTimeline.getNextActivity(currentDayActivities);
 
   // Available days for "move to day" feature
   const availableDays = editedItinerary.map((day) => day.day_number);
@@ -2433,25 +2411,6 @@ export default function TripDetailClient({
             initialTab={crewShareRequest > 0 ? "share" : "invite"}
           />
         )}
-
-        {/* Activity Rating Modal */}
-        <ActivityRatingModal
-          isOpen={!!ratingModalActivity}
-          onClose={() => setRatingModalActivity(null)}
-          activityName={ratingModalActivity?.name || ""}
-          activityImage={ratingModalActivity?.image_url}
-          onSubmit={async (data) => {
-            if (ratingModalActivity) {
-              await activityTimeline.rateActivity(
-                ratingModalActivity.id,
-                ratingModalActivity.dayNumber,
-                data.rating,
-                data.notes,
-                data.quickTags
-              );
-            }
-          }}
-        />
 
         {/* Propose Activity Modal - Collaborative Trips */}
         {votingEnabled && (

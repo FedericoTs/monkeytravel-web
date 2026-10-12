@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Users, Vote, MessageSquare, Sparkles, X, ArrowRight, Globe, Check, Copy, Share2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { trackSharePromptShown, trackSharePromptAction } from "@/lib/analytics";
+import { forgetShareStatus } from "@/lib/trips/share-status";
 import {
   captureSharePromptShown,
   captureSharePromptAction,
@@ -334,6 +335,7 @@ export default function ShareAfterSaveModal({
     setMintFailed(false);
     try {
       const res = await fetch(`/api/trips/${tripId}/share`, { method: "POST" });
+      forgetShareStatus(tripId);
       if (!res.ok) throw new Error(`share failed: ${res.status}`);
       const data = await res.json();
       if (!data?.shareUrl) throw new Error("share response had no url");
