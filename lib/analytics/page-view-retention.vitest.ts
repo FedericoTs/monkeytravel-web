@@ -4,8 +4,9 @@ import { join } from "path";
 
 /**
  * Raw page views are kept 180 days for people and 14 days for everything the
- * human view leaves out. The nightly purge's idea of "not human" must stay the
- * complement of page_views_human: if the view changes, change the purge too.
+ * human view leaves out; wizard step events are kept 180 days. The nightly
+ * purge's idea of "not human" must stay the complement of page_views_human:
+ * if the view changes, change the purge too.
  */
 
 const DIR = join(process.cwd(), "supabase", "migrations");
@@ -20,7 +21,7 @@ describe("page view retention", () => {
   const view = latest(/create or replace view public\.page_views_human/i);
 
   it("keeps human page views 180 days and the rest 14", () => {
-    expect(purge).toContain("created_at < now() - interval '180 days'");
+    expect(purge).toContain("select id from public.page_views where created_at < now() - interval '180 days'");
     expect(purge).toContain("p.created_at < now() - interval '14 days'");
   });
 
@@ -35,5 +36,17 @@ describe("page view retention", () => {
 
   it("stays callable by the service role only", () => {
     expect(purge).toContain("revoke execute on function public.purge_old_analytics_rows() from public, anon, authenticated");
+  });
+});
+
+describe("wizard step event retention", () => {
+  const purge = latest(/create or replace function public\.purge_old_analytics_rows/i);
+
+  it("deletes rows older than 180 days in batches and reports the count", () => {
+    expect(purge).toContain(
+      "delete from public.wizard_step_events where id in ( select id from public.wizard_step_events where created_at < now() - interval '180 days' order by created_at limit 20000 );",
+    );
+    expect(purge).toContain("wizard_events_deleted bigint");
+    expect(purge).toContain("wizard_events_deleted := v_wiz;");
   });
 });
