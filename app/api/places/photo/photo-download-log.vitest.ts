@@ -32,11 +32,13 @@ vi.mock("@/lib/supabase/admin", () => ({
     }),
   }),
 }));
-const fetchPlacePhoto = vi.fn();
+const fetchPlacePhotos = vi.fn();
 vi.mock("@/lib/images/activity", () => ({
   curatedFor: () => "https://images.pexels.com/fallback.jpg",
   readActivityTypeHint: () => "",
-  fetchPlacePhoto: (...args: unknown[]) => fetchPlacePhoto(...args),
+  fetchPlacePhotos: (...args: unknown[]) => fetchPlacePhotos(...args),
+  pickPlacePhoto: ([first]: Array<{ name: string }>) =>
+    first && { photo_resource_name: first.name, photo_url: `/api/places/photo?name=${encodeURIComponent(first.name)}&w=600&h=400` },
 }));
 
 import { GET } from "./route";
@@ -54,7 +56,7 @@ const upstream = vi.fn();
 beforeEach(() => {
   logged.length = 0;
   upstream.mockReset();
-  fetchPlacePhoto.mockReset();
+  fetchPlacePhotos.mockReset();
   vi.stubGlobal("fetch", upstream);
 });
 afterEach(() => vi.unstubAllGlobals());
@@ -103,10 +105,7 @@ describe("photo downloads are logged and priced", () => {
     upstream
       .mockResolvedValueOnce(new Response("{}", { status: 400 })) // the dead name
       .mockResolvedValueOnce(jpeg()); // the fresh one
-    fetchPlacePhoto.mockResolvedValueOnce({
-      photo_resource_name: "places/ChIJplace123/photos/FreshOne",
-      photo_url: "/api/places/photo?name=places%2FChIJplace123%2Fphotos%2FFreshOne&w=600&h=400",
-    });
+    fetchPlacePhotos.mockResolvedValueOnce([{ name: "places/ChIJplace123/photos/FreshOne" }]);
     const res = await GET(photoRequest(`name=${encodeURIComponent(NAME)}&w=600&h=400`));
     expect(res.status).toBe(200);
     expect(logged.map((r) => [r.endpoint, r.status, r.costUsd])).toEqual([

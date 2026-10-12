@@ -203,6 +203,22 @@ export async function fetchPlacePhoto(
   placeId: string,
   opts: { endpointLabel?: string; photoIndex?: number } = {}
 ): Promise<{ photo_resource_name: string; photo_url: string } | null> {
+  const photos = await fetchPlacePhotos(placeId, opts);
+  return photos ? pickPlacePhoto(photos, opts.photoIndex) : null;
+}
+
+/** One entry of a place's photo list; `name` is the photo resource name. */
+export type PlacePhoto = { name?: string };
+
+/**
+ * The Place Details call behind fetchPlacePhoto: the place's whole photo list
+ * (up to 10), or null when the call fails. One call serves every photo of a
+ * place, so callers that need several can share it.
+ */
+export async function fetchPlacePhotos(
+  placeId: string,
+  opts: { endpointLabel?: string } = {}
+): Promise<PlacePhoto[] | null> {
   if (!GOOGLE_PLACES_API_KEY) {
     return null;
   }
@@ -228,33 +244,7 @@ export async function fetchPlacePhoto(
     }
 
     const detailsData = await detailsResponse.json();
-    // Take the first photo whose name is long enough to be a real token, not
-    // just [0]: Place Details sometimes returns short names that /media
-    // rejects with a 400, which renders as a broken image. The response holds
-    // up to 10 photos, so skipping costs no extra Places call.
-    const photos: Array<{ name?: string }> = Array.isArray(detailsData.photos)
-      ? detailsData.photos
-      : [];
-    // Minimum hash length empirically distinguishes "this resource name
-    // works at /media" from "Google returned a token that 400s". Full
-    // hashes are typically 300-450 chars; pathological ones run ~80-120.
-    const MIN_PHOTO_TOKEN_LEN = 200;
-    const usable = (p: { name?: string }) => typeof p?.name === "string" && p.name.length >= MIN_PHOTO_TOKEN_LEN;
-    // From `photoIndex` onwards; a list shorter than that falls back to the first.
-    const photoResourceName: string | null =
-      (photos.slice(opts.photoIndex ?? 0).find(usable) ?? photos.find(usable))?.name ?? null;
-
-    if (!photoResourceName) {
-      return null;
-    }
-
-    // Browsers can't load Google's /media URLs or the lh3.googleusercontent.com
-    // URLs they redirect to (both return 504), so photos go through our
-    // proxy, which fetches server-side and sets CDN cache headers.
-    return {
-      photo_resource_name: photoResourceName,
-      photo_url: `/api/places/photo?name=${encodeURIComponent(photoResourceName)}&w=600&h=400`,
-    };
+    return Array.isArray(detailsData.photos) ? detailsData.photos : [];
   } catch (err) {
     // Photo fetch failed — log but don't fail the whole resolution.
     console.warn(
@@ -272,6 +262,36 @@ export async function fetchPlacePhoto(
       costUsd: placesCostForCall({ kind: "details", fieldMask: PHOTOS_FIELD_MASK }).usd,
     });
   }
+}
+
+/** The first usable photo from `photoIndex` on, with its proxy URL. */
+export function pickPlacePhoto(
+  photos: PlacePhoto[],
+  photoIndex = 0
+): { photo_resource_name: string; photo_url: string } | null {
+  // Minimum hash length empirically distinguishes "this resource name
+  // works at /media" from "Google returned a token that 400s". Full
+  // hashes are typically 300-450 chars; pathological ones run ~80-120.
+  const MIN_PHOTO_TOKEN_LEN = 200;
+  const usable = (p: PlacePhoto) => typeof p?.name === "string" && p.name.length >= MIN_PHOTO_TOKEN_LEN;
+  // Take the first photo whose name is long enough to be a real token, not
+  // just [0]: Place Details sometimes returns short names that /media
+  // rejects with a 400, which renders as a broken image. From `photoIndex`
+  // onwards; a list shorter than that falls back to the first.
+  const photoResourceName: string | null =
+    (photos.slice(photoIndex).find(usable) ?? photos.find(usable))?.name ?? null;
+
+  if (!photoResourceName) {
+    return null;
+  }
+
+  // Browsers can't load Google's /media URLs or the lh3.googleusercontent.com
+  // URLs they redirect to (both return 504), so photos go through our
+  // proxy, which fetches server-side and sets CDN cache headers.
+  return {
+    photo_resource_name: photoResourceName,
+    photo_url: `/api/places/photo?name=${encodeURIComponent(photoResourceName)}&w=600&h=400`,
+  };
 }
 
 /**
