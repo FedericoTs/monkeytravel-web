@@ -71,3 +71,27 @@ export function cardSizedSrc(src: string): string {
   params.set("h", "500");
   return `${path}?${params.toString()}`;
 }
+
+/** Narrower candidates for a full-width hero: phones at 2x and at 3x. */
+const HERO_WIDTHS = [828, 1200];
+
+/**
+ * A srcset for a Places photo proxy src, so a phone downloads a phone-sized
+ * photo instead of the stored 1920px one. Every param is kept (a retry's `_r`
+ * too) and the stored aspect ratio with it. Undefined for any other src.
+ */
+export function placesPhotoSrcSet(src: string | null | undefined): string | undefined {
+  if (!src?.startsWith("/api/places/photo?")) return undefined;
+  const [path, query] = src.split("?");
+  const params = new URLSearchParams(query);
+  const w = Number(params.get("w"));
+  const h = Number(params.get("h"));
+  if (!(w > HERO_WIDTHS[0]) || !(h > 0)) return undefined;
+  const at = (width: number) => {
+    const p = new URLSearchParams(params);
+    p.set("w", String(width));
+    p.set("h", String(Math.round((width * h) / w)));
+    return `${path}?${p.toString()} ${width}w`;
+  };
+  return [...HERO_WIDTHS.filter((x) => x < w), w].map(at).join(", ");
+}

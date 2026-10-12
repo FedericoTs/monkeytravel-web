@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useImageLoaded } from "@/lib/hooks/useImageLoaded";
-import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { placesPhotoSrcSet, proxyImageUrl } from "@/lib/img/proxyUrl";
 import { useTranslations } from "next-intl";
 import { useCurrency } from "@/lib/locale";
 import { weatherCondition } from "@/lib/trips/weather-note";
@@ -229,6 +229,9 @@ export default function DestinationHero({
               key={`hero-${imageRetry}`}
               ref={heroImgRef}
               src={effectiveCoverUrl}
+              // Places covers are stored at 1920px; phones pick a smaller one.
+              srcSet={placesPhotoSrcSet(effectiveCoverUrl)}
+              sizes="100vw"
               alt={destination}
               fetchPriority="high"
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
