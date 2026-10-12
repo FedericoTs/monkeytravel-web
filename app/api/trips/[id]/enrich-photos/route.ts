@@ -4,6 +4,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { SAVE_TIME_PAID_LOOKUPS } from "@/lib/images/activity";
 import { enrichTripRecord } from "@/lib/images/enrichTrip";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { pickCoverFromItinerary } from "@/lib/trips/cover";
 
 /**
  * Enrich Activity Photos API (2026-06-30 cost pass)
@@ -37,7 +38,7 @@ export async function POST(
       supabase,
       tripId,
       user.id,
-      "id, user_id, itinerary, title, trip_meta, itinerary_version"
+      "id, user_id, itinerary, title, trip_meta, itinerary_version, cover_image_url"
     );
     if (tripError) return tripError;
 
@@ -56,6 +57,23 @@ export async function POST(
       { maxPaidLookups: SAVE_TIME_PAID_LOOKUPS, respectCooldown: false }
     );
 
+    // A trip saved without a cover (its destination matched no stock photo,
+    // or the browser's request for one never landed) gets one from its own
+    // place photos, so it never reaches My Trips bare. Only while the column is
+    // still empty: a cover set in the meantime wins.
+    let coverSet = false;
+    const cover = trip.cover_image_url ? null : pickCoverFromItinerary(outcome.itinerary);
+    if (cover) {
+      const { data: covered, error: coverError } = await supabase
+        .from("trips")
+        .update({ cover_image_url: cover })
+        .eq("id", tripId)
+        .is("cover_image_url", null)
+        .select("id");
+      if (coverError) console.error("[EnrichPhotos] cover write failed:", coverError.message);
+      coverSet = !coverError && Array.isArray(covered) && covered.length > 0;
+    }
+
     if (outcome.skipped !== "no_itinerary") {
       captureServerEvent(user.id, "photos_enriched", {
         trip_id: tripId,
@@ -65,6 +83,7 @@ export async function POST(
         real_after: outcome.after.real,
         total_activities: outcome.after.total,
         paid_budget: SAVE_TIME_PAID_LOOKUPS,
+        cover_set: coverSet,
       }).catch(() => {});
     }
 

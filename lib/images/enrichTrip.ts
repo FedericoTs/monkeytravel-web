@@ -54,6 +54,8 @@ export interface EnrichOutcome {
   skipped: "no_itinerary" | "cooldown" | null;
   before: EnrichCounts;
   after: EnrichCounts;
+  /** The itinerary this run wrote to the row; absent when it wrote nothing. */
+  itinerary?: ItineraryDay[];
 }
 
 interface TripRecordForEnrich {
@@ -140,7 +142,7 @@ export async function enrichTripRecord(
       .update({ itinerary, trip_meta: { ...meta, photos_enriched_at: stamp } })
       .eq("id", trip.id);
     if (error) throw error;
-    return { skipped: null, before, after };
+    return { skipped: null, before, after, itinerary };
   }
 
   // The photos found, by activity id: the url before and after. An activity
@@ -189,7 +191,7 @@ export async function enrichTripRecord(
   });
 
   if (outcome.status !== "written") return { skipped: null, before, after: before };
-  return { skipped: null, before, after: countRealPhotos(outcome.itinerary) };
+  return { skipped: null, before, after: countRealPhotos(outcome.itinerary), itinerary: outcome.itinerary };
 }
 
 /**
