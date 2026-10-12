@@ -16,6 +16,7 @@ declare
   v_nh bigint := 0;
   v_api bigint := 0;
   v_wiz bigint := 0;
+  v_hb bigint := 0;
 begin
   delete from public.page_views
    where id in (
@@ -58,9 +59,21 @@ begin
    );
   get diagnostics v_wiz = row_count;
 
+  -- Step-1 heartbeats, the bulk of the table, are read only by the automation
+  -- labeller, which looks back a few days.
+  delete from public.wizard_step_events
+   where id in (
+     select id from public.wizard_step_events
+      where step = 'step1_heartbeat'
+        and created_at < now() - interval '14 days'
+      order by created_at
+      limit 20000
+   );
+  get diagnostics v_hb = row_count;
+
   page_views_deleted := v_pv + v_nh;
   api_logs_deleted := v_api;
-  wizard_events_deleted := v_wiz;
+  wizard_events_deleted := v_wiz + v_hb;
   return next;
 end
 $function$;
@@ -74,3 +87,8 @@ grant execute on function public.purge_old_analytics_rows() to service_role;
 drop index if exists public.idx_api_logs_cache_hit;
 drop index if exists public.geo_cities_pop_idx;
 drop index if exists public.idx_trips_is_archived;
+
+-- Each nightly purge deletes about a day of rows. Vacuum soon after it, so the
+-- space is reused instead of the files growing until the default threshold.
+alter table public.page_views set (autovacuum_vacuum_scale_factor = 0.02, autovacuum_vacuum_threshold = 2000);
+alter table public.wizard_step_events set (autovacuum_vacuum_scale_factor = 0.02, autovacuum_vacuum_threshold = 2000);

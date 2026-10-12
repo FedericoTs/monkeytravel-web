@@ -4,7 +4,8 @@ import { join } from "path";
 
 /**
  * Raw page views are kept 180 days for people and 14 days for everything the
- * human view leaves out; wizard step events are kept 180 days. The nightly
+ * human view leaves out; wizard step events are kept 180 days, their step-1
+ * heartbeats 14, and both tables are vacuumed soon after the purge. The nightly
  * purge's idea of "not human" must stay the complement of page_views_human:
  * if the view changes, change the purge too.
  */
@@ -47,6 +48,21 @@ describe("wizard step event retention", () => {
       "delete from public.wizard_step_events where id in ( select id from public.wizard_step_events where created_at < now() - interval '180 days' order by created_at limit 20000 );",
     );
     expect(purge).toContain("wizard_events_deleted bigint");
-    expect(purge).toContain("wizard_events_deleted := v_wiz;");
+    expect(purge).toContain("wizard_events_deleted := v_wiz + v_hb;");
+  });
+
+  it("keeps step-1 heartbeats 14 days", () => {
+    expect(purge).toContain(
+      "select id from public.wizard_step_events where step = 'step1_heartbeat' and created_at < now() - interval '14 days' order by created_at limit 20000",
+    );
+  });
+
+  it("vacuums the purged tables soon after the nightly deletes", () => {
+    const tuning = latest(/autovacuum_vacuum_scale_factor/i);
+    for (const table of ["page_views", "wizard_step_events"]) {
+      expect(tuning).toContain(
+        `alter table public.${table} set (autovacuum_vacuum_scale_factor = 0.02, autovacuum_vacuum_threshold = 2000);`,
+      );
+    }
   });
 });
