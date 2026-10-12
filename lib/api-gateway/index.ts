@@ -79,6 +79,7 @@ export {
 export {
   checkApiAccess,
   logApiCall,
+  logApiCalls,
   logBlockedCall,
   getAllApiConfigs,
   invalidateConfigCache,

@@ -51,7 +51,7 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-import { logApiCall } from "./api-control";
+import { logApiCall, logApiCalls } from "./api-control";
 
 const base = { apiName: "gemini", endpoint: "/api/ai/generate", status: 500, responseTimeMs: 10, cacheHit: false };
 
@@ -84,6 +84,69 @@ describe("logApiCall cost", () => {
   it("books a cache hit at $0 whatever the cost says", async () => {
     await logApiCall({ ...base, status: 200, cacheHit: true, costUsd: 0.0174, exactCost: true });
     expect(inserts[0].cost_usd).toBe(0);
+  });
+
+  it("books a cache hit at $0 without reading api_config", async () => {
+    await logApiCall({ ...base, status: 200, cacheHit: true, costUsd: 0 });
+    expect(inserts[0].cost_usd).toBe(0);
+    expect(configReads).toEqual([]);
+  });
+});
+
+describe("logApiCalls", () => {
+  const hit = {
+    apiName: "google_places_search",
+    endpoint: "places:searchText (activity, cache hit)",
+    status: 200,
+    responseTimeMs: 0,
+    cacheHit: true,
+    costUsd: 0,
+  };
+
+  it("writes every row in one insert", async () => {
+    await logApiCalls([hit, hit, hit]);
+    expect(insertCalls).toBe(1);
+    expect(inserts[0]).toHaveLength(3);
+  });
+
+  it("writes the rows logApiCall writes", async () => {
+    vi.useFakeTimers({ toFake: ["Date"], now: new Date("2026-10-12T12:00:00.000Z") });
+    try {
+      const calls = [
+        hit,
+        { ...base, costUsd: 0 },
+        { ...base, status: 200, costUsd: 0.032, userId: "user-1", error: "partial", metadata: { place: "ChIJ1" } },
+      ];
+      for (const call of calls) await logApiCall(call);
+      const oneByOne = inserts.splice(0);
+      await logApiCalls(calls);
+      expect(inserts).toEqual([oneByOne]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("reads api_config once per API", async () => {
+    await logApiCalls([
+      { ...base, costUsd: 0 },
+      { ...base, costUsd: 0 },
+      { ...base, apiName: "open_meteo", costUsd: 0 },
+      hit,
+    ]);
+    expect([...configReads].sort()).toEqual(["gemini", "open_meteo"]);
+    expect((inserts[0] as unknown as Array<{ cost_usd: number }>).map((row) => row.cost_usd)).toEqual([0.003, 0.003, 0.003, 0]);
+  });
+
+  it("writes nothing for no calls", async () => {
+    await logApiCalls([]);
+    expect(insertCalls).toBe(0);
+  });
+
+  it("retries the batch once on a dropped connection", async () => {
+    insertResults.push({ error: { message: "TypeError: fetch failed" }, status: 0 });
+    await logApiCalls([hit, hit]);
+    expect(insertCalls).toBe(2);
+    expect(inserts).toHaveLength(1);
   });
 });
 

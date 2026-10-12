@@ -241,6 +241,65 @@ export async function getApiCostFromConfig(apiName: string): Promise<number> {
 }
 
 /**
+ * The api_request_logs row for one call. A cache hit is booked at $0 whatever
+ * its cost says, so it never needs api_config.
+ */
+async function logRow(params: LogApiCallParams, configCost: (apiName: string) => Promise<number>) {
+  // Get cost from config if not provided
+  const cost = params.cacheHit
+    ? 0
+    : params.exactCost || params.costUsd > 0
+      ? params.costUsd
+      : await configCost(params.apiName);
+
+  return {
+    api_name: params.apiName,
+    endpoint: params.endpoint,
+    response_status: params.status,
+    response_time_ms: params.responseTimeMs,
+    cache_hit: params.cacheHit,
+    cost_usd: cost,
+    error_message: params.error || null,
+    user_id: params.userId || null,
+    request_params: params.metadata || null,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+type LogRow = Awaited<ReturnType<typeof logRow>>;
+
+async function insertLogRows(
+  supabase: NonNullable<ReturnType<typeof apiLogDb>>,
+  rows: LogRow | LogRow[]
+): Promise<void> {
+  // A dropped connection (a keep-alive socket gone stale while the function
+  // idled) gets no HTTP response. supabase-js usually returns that as an error
+  // with status 0 rather than throwing, so both shapes get one retry.
+  const insert = async (): Promise<{ error: unknown; status: number }> => {
+    try {
+      const { error, status } = await supabase.from("api_request_logs").insert(rows);
+      return { error, status };
+    } catch (thrown) {
+      return { error: thrown, status: 0 };
+    }
+  };
+
+  let { error, status } = await insert();
+  if (error && status === 0) {
+    await new Promise((r) => setTimeout(r, 300));
+    ({ error, status } = await insert());
+    if (error && status === 0) {
+      console.warn("[ApiControl] API-call log dropped after retry:", error);
+      return;
+    }
+  }
+
+  if (error) {
+    console.error("[ApiControl] Failed to log API call:", error);
+  }
+}
+
+/**
  * Log an API call to the database
  * Call this AFTER every external API request (success or failure)
  */
@@ -248,53 +307,31 @@ export async function logApiCall(params: LogApiCallParams): Promise<void> {
   try {
     const supabase = apiLogDb();
     if (!supabase) return;
-
-    // Get cost from config if not provided
-    const cost = params.exactCost || params.costUsd > 0
-      ? params.costUsd
-      : await getApiCostFromConfig(params.apiName);
-
-    const row = {
-      api_name: params.apiName,
-      endpoint: params.endpoint,
-      response_status: params.status,
-      response_time_ms: params.responseTimeMs,
-      cache_hit: params.cacheHit,
-      cost_usd: params.cacheHit ? 0 : cost,
-      error_message: params.error || null,
-      user_id: params.userId || null,
-      request_params: params.metadata || null,
-      timestamp: new Date().toISOString(),
-    };
-
-    // A dropped connection (a keep-alive socket gone stale while the function
-    // idled) gets no HTTP response. supabase-js usually returns that as an error
-    // with status 0 rather than throwing, so both shapes get one retry.
-    const insert = async (): Promise<{ error: unknown; status: number }> => {
-      try {
-        const { error, status } = await supabase.from("api_request_logs").insert(row);
-        return { error, status };
-      } catch (thrown) {
-        return { error: thrown, status: 0 };
-      }
-    };
-
-    let { error, status } = await insert();
-    if (error && status === 0) {
-      await new Promise((r) => setTimeout(r, 300));
-      ({ error, status } = await insert());
-      if (error && status === 0) {
-        console.warn("[ApiControl] API-call log dropped after retry:", error);
-        return;
-      }
-    }
-
-    if (error) {
-      console.error("[ApiControl] Failed to log API call:", error);
-    }
+    await insertLogRows(supabase, await logRow(params, getApiCostFromConfig));
   } catch (err) {
     // Don't throw - logging should never break the main flow
     console.warn("[ApiControl] Error logging API call:", err);
+  }
+}
+
+/**
+ * Log several API calls in one insert: the rows logApiCall would write, in one
+ * round trip, reading api_config at most once per API.
+ */
+export async function logApiCalls(calls: LogApiCallParams[]): Promise<void> {
+  if (calls.length === 0) return;
+  try {
+    const supabase = apiLogDb();
+    if (!supabase) return;
+    const costs = new Map<string, Promise<number>>();
+    const configCost = (apiName: string) => {
+      const cost = costs.get(apiName) ?? getApiCostFromConfig(apiName);
+      costs.set(apiName, cost);
+      return cost;
+    };
+    await insertLogRows(supabase, await Promise.all(calls.map((call) => logRow(call, configCost))));
+  } catch (err) {
+    console.warn("[ApiControl] Error logging API calls:", err);
   }
 }
 
