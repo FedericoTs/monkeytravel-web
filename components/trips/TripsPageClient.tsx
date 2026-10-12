@@ -15,7 +15,7 @@ import CuratedEscapes from "@/components/templates/CuratedEscapesClient";
 import BlogTipsSection, { type BlogTip } from "@/components/blog/BlogTipsSection";
 import ReferralModal from "@/components/referral/ReferralModal";
 import TripActionModal from "@/components/trips/TripActionModal";
-import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { cardSizedSrc, proxyImageUrl } from "@/lib/img/proxyUrl";
 
 // Client-only import — the banner's localStorage-driven `isDismissed`
 // state means the SSR + first-paint render emits a placeholder, then
@@ -99,6 +99,11 @@ interface TripsPageClientProps {
   displayName: string;
   lifetimeConversions: number;
   blogTips?: BlogTip[];
+  /**
+   * The server's clock (ISO). The first render and hydration sort trips into
+   * happening now / upcoming / past by it, so no card moves after load.
+   */
+  serverNow?: string;
 }
 
 type SortOption = "newest" | "oldest" | "upcoming" | "alphabetical";
@@ -118,6 +123,8 @@ interface TripCardProps {
   locale: string;
   getStatusLabel: (status: string) => string;
   onAction: (tripId: string, tripTitle: string, action: "archive" | "delete" | "unarchive") => void;
+  /** The first card on screen: its cover loads first, the rest lazily. */
+  priority?: boolean;
 }
 
 /**
@@ -134,7 +141,7 @@ interface TripCardProps {
  * the in-flight request instead of racing. Mirrors the canonical pattern
  * in components/trip/SeasonalContextCard.tsx.
  */
-function TripCard({ trip, t, locale, getStatusLabel, onAction }: TripCardProps) {
+function TripCard({ trip, t, locale, getStatusLabel, onAction, priority = false }: TripCardProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(trip.cover_image_url || null);
   const [imageError, setImageError] = useState(false);
   // Initial imageLoading: false when trip already has a cover URL — the
@@ -333,7 +340,9 @@ function TripCard({ trip, t, locale, getStatusLabel, onAction }: TripCardProps) 
         {imageUrl && !imageError && (
           <img
             ref={imgRef}
-            src={proxyImageUrl(imageUrl) || imageUrl}
+            src={cardSizedSrc(proxyImageUrl(imageUrl) || imageUrl)}
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : undefined}
             alt={trip.title}
             onError={handleImageError}
             onLoad={handleImageLoad}
@@ -528,7 +537,41 @@ function TripCard({ trip, t, locale, getStatusLabel, onAction }: TripCardProps) 
   );
 }
 
-export default function TripsPageClient({ trips, sharedTrips = [], displayName, lifetimeConversions, blogTips = [] }: TripsPageClientProps) {
+/**
+ * One timeline section of the grid. Module scope like TripCard: declared
+ * inside TripsPageClient it was a new component type on every render, which
+ * remounted the whole grid, its cover images included.
+ */
+function TripSection({ title, trips, icon, emptyText, renderTripCard }: {
+  title: string;
+  trips: Trip[];
+  icon: React.ReactNode;
+  emptyText?: string;
+  renderTripCard: (trip: Trip) => React.ReactNode;
+}) {
+  if (trips.length === 0 && !emptyText) return null;
+
+  return (
+    <div className="mb-8">
+      <div className="flex items-center gap-2 mb-4">
+        {icon}
+        <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+        <span className="text-sm text-slate-500">({trips.length})</span>
+      </div>
+      {trips.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {trips.map(renderTripCard)}
+        </div>
+      ) : emptyText ? (
+        <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+          <p className="text-slate-500 text-sm">{emptyText}</p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export default function TripsPageClient({ trips, sharedTrips = [], displayName, lifetimeConversions, blogTips = [], serverNow }: TripsPageClientProps) {
   const t = useTranslations('common.trips');
   const tRoles = useTranslations('common.roles');
   const tNav = useTranslations('common.navigation');
@@ -648,19 +691,19 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
   const activeTrips = useMemo(() => trips.filter(t => !t.is_archived), [trips]);
   const archivedTrips = useMemo(() => trips.filter(t => t.is_archived), [trips]);
 
-  // Hydration-safe `now` — null on SSR / first client paint, then a
-  // real Date after mount. See lib/hooks/useNow.ts for the why. This
-  // prevents React error #418 from the stats + groupedTrips bucketing
-  // below that would otherwise diverge between server and client renders.
-  const now = useNow();
+  // The server's clock until mount, then the browser's (lib/hooks/useNow.ts).
+  // Server render and hydration share the server's value, so their buckets
+  // match (no React error #418) and the cards are in their final sections
+  // from the first paint instead of moving there after hydration.
+  const clientNow = useNow();
+  const serverNowDate = useMemo(() => (serverNow ? new Date(serverNow) : null), [serverNow]);
+  const now = clientNow ?? serverNowDate;
 
   // Calculate trip statistics (only for active, non-archived trips).
   //
-  // Time-bucket counts (upcoming/past/active) live in a separate `null`
-  // state until the post-mount useNow() tick lands. The render path emits
-  // a `—` placeholder for those — which is what the server emits too, since
-  // server-side `now` is also null on the first render of this client
-  // component. Match guaranteed at the text-node level.
+  // Time-bucket counts (upcoming/past/active) are null only without any clock
+  // (no serverNow), and the render path then emits a `—` placeholder on both
+  // sides. Server and hydration otherwise count with the same server `now`.
   //
   // Why null + render placeholder instead of `0` + suppressHydrationWarning:
   // empirically (2026-05-30 live audit, fiber inspection in browser),
@@ -739,11 +782,8 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
     return result;
   }, [activeTrips, searchQuery, sortBy, filterStatus]);
 
-  // Group trips by timeline. Uses the hydration-safe `now` from above;
-  // before the client-side clock is available (initial SSR + first paint),
-  // we put everything in `past` so the rendered tree is identical to what
-  // the server emitted (which also used null → past). The bucketing
-  // re-runs as soon as `now` is set, with no hydration error in between.
+  // Group trips by timeline with the `now` from above. Only without any clock
+  // (no serverNow) does everything start in `past`, identically on both sides.
   const groupedTrips = useMemo(() => {
     const upcoming: Trip[] = [];
     const current: Trip[] = [];
@@ -778,6 +818,12 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
     return t(status as 'planning' | 'confirmed' | 'cancelled');
   }, [t]);
 
+  // The first card on screen holds the largest image above the fold.
+  const groupedView = filterStatus === "all" && !searchQuery;
+  const firstTripId = groupedView
+    ? (groupedTrips.current[0] ?? groupedTrips.upcoming[0] ?? groupedTrips.past[0])?.id
+    : filteredTrips[0]?.id;
+
   const renderTripCard = useCallback((trip: Trip) => (
     <TripCard
       key={trip.id}
@@ -786,43 +832,12 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
       locale={locale}
       getStatusLabel={getStatusLabel}
       onAction={openActionModal}
+      priority={trip.id === firstTripId}
     />
     // openActionModal is a stable inline setter wrapper; intentionally
     // omitted so the callback identity stays stable across renders.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  ), [t, locale, getStatusLabel]);
-
-  const TripSection = ({ title, trips, icon, emptyText }: { title: string; trips: Trip[]; icon: React.ReactNode; emptyText?: string }) => {
-    if (trips.length === 0 && !emptyText) return null;
-
-    return (
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-4">
-          {icon}
-          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-          {/* Count is time-relative because groupedTrips bucketing depends
-              on the post-mount `now`. Pre-mount, groupedTrips lumps every
-              filtered trip into the "past" array (see useMemo above) which
-              keeps the rendered count stable across SSR → first paint as
-              long as the SAME bucket is read each side. The Past section
-              reads `trips.length` and gets the same value both renders;
-              the Upcoming + Current sections start at 0 on both. After
-              `now` lands, the buckets re-distribute and counts update
-              cleanly. No suppressHydrationWarning needed — text matches. */}
-          <span className="text-sm text-slate-500">({trips.length})</span>
-        </div>
-        {trips.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {trips.map(renderTripCard)}
-          </div>
-        ) : emptyText ? (
-          <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-            <p className="text-slate-500 text-sm">{emptyText}</p>
-          </div>
-        ) : null}
-      </div>
-    );
-  };
+  ), [t, locale, getStatusLabel, firstTripId]);
 
   // Trips other people invited this user to. They have no owner actions
   // (archive/delete). Shown after the user's own trips, or first when the user
@@ -1203,13 +1218,14 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
 
         {/* Trips Display */}
         {activeTrips.length > 0 ? (
-          filterStatus === "all" && !searchQuery ? (
+          groupedView ? (
             // Grouped view (no filters active)
             <>
               {/* Current/Active Trips */}
               <TripSection
                 title={t('happeningNow')}
                 trips={groupedTrips.current}
+                renderTripCard={renderTripCard}
                 icon={
                   <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                     <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1223,6 +1239,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
               <TripSection
                 title={t('upcoming')}
                 trips={groupedTrips.upcoming}
+                renderTripCard={renderTripCard}
                 icon={
                   <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
                     <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1237,6 +1254,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
               <TripSection
                 title={t('pastAdventures')}
                 trips={groupedTrips.past}
+                renderTripCard={renderTripCard}
                 icon={
                   <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
                     <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
