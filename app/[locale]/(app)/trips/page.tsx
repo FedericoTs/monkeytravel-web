@@ -4,7 +4,7 @@ import TripsPageClient from "@/components/trips/TripsPageClient";
 import { getAllFrontmatter, tOr } from "@/lib/blog/api";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { TRIP_COLUMNS } from "@/lib/trips/columns";
+import { TRIP_CARD_COLUMNS } from "@/lib/trips/columns";
 
 // Locale-aware <title>. Previously a static export read "My Trips" for
 // every locale — Italian browser tab showed English. Caught in audit
@@ -35,7 +35,7 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
   const listsFor = (userId: string) => Promise.all([
     supabase
       .from("trips")
-      .select(TRIP_COLUMNS)
+      .select(TRIP_CARD_COLUMNS)
       .eq("user_id", userId)
       .or("is_archived.is.null,is_archived.eq.false")
       .order("created_at", { ascending: false }),
