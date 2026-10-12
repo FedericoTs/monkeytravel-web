@@ -263,13 +263,17 @@ export function CookieConsentBanner() {
     return null;
   }
 
+  // One element per placement (the key): a visible fixed bar whose top or
+  // bottom changes is a layout shift even when a scroll moved it, while a
+  // newly inserted one is not.
   if (minimized) {
-    return <ConsentMiniBar onWizard={onWizard} />;
+    return <ConsentMiniBar key="bottom" onWizard={onWizard} />;
   }
 
   if (onPhone) {
     if (phoneTopFor?.path !== (pathname ?? "")) return null;
-    return <ConsentMiniBar onWizard={onWizard} placement={phoneTopFor.top ? "top" : "bottom"} origin="card" />;
+    const placement = phoneTopFor.top ? "top" : "bottom";
+    return <ConsentMiniBar key={placement} onWizard={onWizard} placement={placement} origin="card" />;
   }
 
   return (

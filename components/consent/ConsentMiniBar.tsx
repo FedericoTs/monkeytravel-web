@@ -83,12 +83,15 @@ export function ConsentMiniBar({
   const t = useTranslations("consent");
   const { acceptAll, acceptEssentialOnly, openSettings } = useConsent();
 
+  // The lift above the page's bottom bars is a translate, not part of
+  // `bottom`: those bars come and go as the visitor scrolls, and a fixed bar
+  // moved by a transform is not a layout shift.
   const position =
     placement === "top"
       ? "top-3"
       : onWizard
         ? "max-sm:bottom-[calc(var(--mt-footer-h,96px)+0.75rem)] sm:bottom-4"
-        : "bottom-[calc(max(var(--mt-bottom-bar-h,0px),var(--mt-nav-h,0px),var(--mt-sticky-cta-h,0px),env(safe-area-inset-bottom,0px))+0.75rem)]";
+        : "bottom-3 -translate-y-[max(var(--mt-bottom-bar-h,0px),var(--mt-nav-h,0px),var(--mt-sticky-cta-h,0px),env(safe-area-inset-bottom,0px))]";
 
   return (
     <div
