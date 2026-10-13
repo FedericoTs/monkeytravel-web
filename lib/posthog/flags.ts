@@ -210,5 +210,7 @@ export const FLAG_DEFAULTS: Record<string, boolean | string> = {
  * Remove the entry when the flag is ramped to 100% or reverted.
  */
 export const FLAG_REVIEW_DATES: Record<string, string> = {
-  // Empty since 2026-09-16: wizard-step1-editorial-v1 was ramped to 100%.
+  // Not a PostHog flag: the first-party 50/50 in lib/experiments/result-crew-first.ts.
+  // Read it with `npm run experiment:crew-first`, then keep one arm and delete the other.
+  "result-crew-first": "2026-10-27",
 };

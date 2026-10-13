@@ -251,6 +251,10 @@
       "shareAnonMessage": "Ecco il piano del mio viaggio a {destination}: {url}",
       "shareSendWhatsapp": "Invia su WhatsApp",
       "shareSendNative": "Condividi",
+      "crewFirst": {
+        "title": "Lo organizzi con gli amici? Mandalo al tuo gruppo",
+        "body": "Votano cosa fare, senza app né account, e qui vedrai le loro scelte."
+      },
       "twinTitle": "Hai già «{title}» per queste date",
       "twinBody": "Vuoi sostituire il suo piano con questo o tenere entrambi i viaggi?",
       "twinReplace": "Sostituisci il piano",
