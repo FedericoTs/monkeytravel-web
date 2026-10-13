@@ -14,6 +14,7 @@ import { Users, Vote, MessageSquare, Sparkles, X, ArrowRight, Globe, Check, Copy
 import { useTranslations } from "next-intl";
 import { trackSharePromptShown, trackSharePromptAction } from "@/lib/analytics";
 import { forgetShareStatus } from "@/lib/trips/share-status";
+import CoPlannerInvites from "@/components/trip/CoPlannerInvites";
 import {
   captureSharePromptShown,
   captureSharePromptAction,
@@ -110,6 +111,9 @@ export default function ShareAfterSaveModal({
   const [mintFailed, setMintFailed] = useState(false);
   const [copied, setCopied] = useState(false);
   const copyResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The first co-planner sent is this prompt's "invite" in the share_prompt
+  // funnel, so that funnel still reads one invite per prompt.
+  const coPlannerTracked = useRef(false);
 
   // The share-modal timing experiment (share-modal-timing-exp) ran from
   // 2025-12-25 to 2026-08-21 and is retired. Measured over its last 90 days,
@@ -154,6 +158,7 @@ export default function ShareAfterSaveModal({
       setShareUrl(null);
       setMintFailed(false);
       setCopied(false);
+      coPlannerTracked.current = false;
       if (copyResetRef.current) {
         clearTimeout(copyResetRef.current);
         copyResetRef.current = null;
@@ -353,6 +358,17 @@ export default function ShareAfterSaveModal({
     }
   };
 
+  const handleCoPlannerSent = () => {
+    if (coPlannerTracked.current) return;
+    coPlannerTracked.current = true;
+    trackSharePromptAction({ tripId, action: "invite" });
+    captureSharePromptAction({
+      trip_id: tripId,
+      action: "invite",
+      experiment_variant: "control",
+    });
+  };
+
   /** Native share sheet. `silent` suppresses logging for the auto-attempt. */
   const shareNatively = async (url: string, silent = false) => {
     const nav = typeof navigator !== "undefined" ? navigator : undefined;
@@ -406,7 +422,7 @@ export default function ShareAfterSaveModal({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", duration: 0.5 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden"
+            className="bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[calc(100dvh-2rem)] overflow-y-auto"
           >
             {/* Success Header */}
             <div className="relative bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white">
@@ -441,39 +457,53 @@ export default function ShareAfterSaveModal({
               </p>
             </div>
 
-            {/* Collaboration CTA */}
+            {/* Collaboration CTA. A group trip asks who is planning it, one
+                named invite each; the view-only link stays one tap below. */}
             <div className="p-6">
-              <h3 className="text-lg font-semibold text-slate-900 text-center mb-2">
-                {ts(`intent.${intentKey}.headline`)}
-              </h3>
-              <p className="text-slate-500 text-center text-sm mb-6">
-                {ts(`intent.${intentKey}.subhead`)}
-              </p>
+              {intentKey === "group" ? (
+                <div className="mb-6">
+                  <CoPlannerInvites
+                    tripId={tripId}
+                    tripTitle={tripTitle}
+                    surface="first_day_prompt"
+                    onSent={handleCoPlannerSent}
+                  />
+                </div>
+              ) : (
+                <>
+                  <h3 className="text-lg font-semibold text-slate-900 text-center mb-2">
+                    {ts(`intent.${intentKey}.headline`)}
+                  </h3>
+                  <p className="text-slate-500 text-center text-sm mb-6">
+                    {ts(`intent.${intentKey}.subhead`)}
+                  </p>
 
-              {/* Benefits */}
-              <div className="space-y-3 mb-6">
-                {COLLABORATION_BENEFITS.map((benefit, index) => (
-                  <motion.div
-                    key={benefit.titleKey}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 + index * 0.1 }}
-                    className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl"
-                  >
-                    <div className="p-2 bg-[var(--primary)]/10 rounded-lg">
-                      <benefit.icon className="w-4 h-4 text-[var(--primary-ink)]" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-900 text-sm">
-                        {ts(`collaborationBenefits.${benefit.titleKey}.title`)}
-                      </p>
-                      <p className="text-slate-500 text-xs">
-                        {ts(`collaborationBenefits.${benefit.titleKey}.description`)}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+                  {/* Benefits */}
+                  <div className="space-y-3 mb-6">
+                    {COLLABORATION_BENEFITS.map((benefit, index) => (
+                      <motion.div
+                        key={benefit.titleKey}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3 + index * 0.1 }}
+                        className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl"
+                      >
+                        <div className="p-2 bg-[var(--primary)]/10 rounded-lg">
+                          <benefit.icon className="w-4 h-4 text-[var(--primary-ink)]" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-900 text-sm">
+                            {ts(`collaborationBenefits.${benefit.titleKey}.title`)}
+                          </p>
+                          <p className="text-slate-500 text-xs">
+                            {ts(`collaborationBenefits.${benefit.titleKey}.description`)}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </>
+              )}
 
               {/* Actions */}
               <div className="flex flex-col gap-3">
@@ -509,6 +539,15 @@ export default function ShareAfterSaveModal({
                       </button>
                     )}
                   </div>
+                ) : intentKey === "group" ? (
+                  <button
+                    type="button"
+                    onClick={handleInvite}
+                    disabled={isMinting}
+                    className="w-full py-2 px-4 text-sm font-medium text-slate-700 underline-offset-2 hover:text-slate-900 hover:underline disabled:opacity-70"
+                  >
+                    {isMinting ? ts("afterSave.creatingLink") : ts("coplanners.orViewOnly")}
+                  </button>
                 ) : (
                   <motion.button
                     whileHover={{ scale: 1.02 }}
