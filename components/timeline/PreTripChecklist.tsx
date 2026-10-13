@@ -49,19 +49,9 @@ export default function PreTripChecklist({
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-slate-100 animate-pulse" />
-          <div className="flex-1">
-            <div className="h-4 bg-slate-100 rounded w-1/3 mb-2 animate-pulse" />
-            <div className="h-3 bg-slate-100 rounded w-1/4 animate-pulse" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // While the items load, the card already has the shape of an empty list,
+  // its text hidden: most trips have none, so nothing moves when they arrive.
+  const hidden = isLoading ? "invisible" : "";
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -97,13 +87,13 @@ export default function PreTripChecklist({
                 transition={{ duration: 0.5, ease: "easeOut" }}
               />
             </svg>
-            <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-700">
+            <span className={`absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-700 ${hidden}`}>
               {Math.round(progress)}%
             </span>
           </div>
           <div className="text-left">
             <h3 className="font-semibold text-slate-900">{t("title")}</h3>
-            <p className="text-sm text-slate-500">
+            <p className={`text-sm text-slate-500 ${hidden}`}>
               {t("progress", { completed: completedCount, total: items.length })}
             </p>
           </div>
@@ -119,8 +109,8 @@ export default function PreTripChecklist({
         </motion.svg>
       </button>
 
-      {/* Content */}
-      <AnimatePresence>
+      {/* Content. Opens without the height animation on the first render. */}
+      <AnimatePresence initial={false}>
         {isExpanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
@@ -128,7 +118,7 @@ export default function PreTripChecklist({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="px-4 pb-4 space-y-4">
+            <div className={`px-4 pb-4 space-y-4 ${hidden}`} aria-hidden={isLoading || undefined}>
               {items.length === 0 ? (
                 <p className="text-center text-slate-500 py-4">
                   {t("emptyState")}

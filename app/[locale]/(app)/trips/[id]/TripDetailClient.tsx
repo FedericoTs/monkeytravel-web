@@ -181,20 +181,18 @@ const ExpenseLedger = dynamic(
 const SettleUpView = dynamic(() => import("@/components/trip/SettleUpView"), { ssr: false });
 const expenseLedgerEnabled = process.env.NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED === "true";
 
-// Concierge chat — flag-gated + only useful after the user clicks the
-// trigger pill. Same lazy pattern as AIAssistant above.
+// Concierge chat — flag-gated, its own chunk. Server-rendered: the trigger
+// pill sits above the plan, and arriving after hydration it pushed the
+// whole page down.
 const TripConciergeChat = dynamic(
-  () => import("@/components/trip/TripConciergeChat"),
-  { ssr: false }
+  () => import("@/components/trip/TripConciergeChat")
 );
 
 // Concierge conversation history: a collapsible list of past Q+A pairs for
-// this trip. Same lazy / no-SSR pattern as the launcher; the history fetch
-// waits for the expand click, so it costs almost nothing for users who never
-// expand it.
+// this trip. Server-rendered like the launcher, for the same reason; the
+// history fetch still waits for the expand click.
 const ConciergeHistory = dynamic(
-  () => import("@/components/trip/ConciergeHistory"),
-  { ssr: false }
+  () => import("@/components/trip/ConciergeHistory")
 );
 
 interface TripDetailClientProps {
