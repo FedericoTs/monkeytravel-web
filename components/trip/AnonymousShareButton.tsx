@@ -10,7 +10,9 @@ import {
   captureAnonShareFailed,
   captureAnonShareCopied,
   captureAnonShareKeepClicked,
+  captureAnonShareSent,
 } from "@/lib/posthog/events";
+import { canShareNatively, openWhatsApp } from "@/lib/share/channels";
 
 /**
  * Share control for a trip generated while signed OUT.
@@ -144,6 +146,26 @@ export default function AnonymousShareButton({ trip, onShared, onKeep, existingS
     duration_days: Array.isArray(trip.itinerary) ? trip.itinerary.length : 0,
   };
 
+  // The words that go with the link, so a chat says what it is and that no
+  // account is needed to vote, instead of arriving as a bare URL.
+  const messageFor = (url: string) =>
+    crew
+      ? t("wizard.result.shareCrewMessage", { destination: trip.destination, url })
+      : t("wizard.result.shareAnonMessage", { destination: trip.destination, url });
+
+  async function sendNatively(url: string) {
+    try {
+      await navigator.share({ text: messageFor(url) });
+      void captureAnonShareSent({ ...analyticsBase, channel: "native" });
+    } catch {
+      // Closed, or the tap that started it went stale: the buttons stay for a fresh tap.
+    }
+  }
+
+  function sendOnWhatsApp(url: string) {
+    if (openWhatsApp(messageFor(url))) void captureAnonShareSent({ ...analyticsBase, channel: "whatsapp" });
+  }
+
   async function handleShare() {
     if (state === "creating") return; // re-entry guard: minting creates a row
     setState("creating");
@@ -166,7 +188,11 @@ export default function AnonymousShareButton({ trip, onShared, onKeep, existingS
       setState("ready");
       void captureAnonShareCreated({ ...analyticsBase, trip_id: result.tripId });
       onShared?.(buildPendingClaim(result, trip));
-      void copy(result.shareUrl, "auto");
+      // A phone hands the link straight to its share sheet; elsewhere it is
+      // copied, and WhatsApp is one tap away below.
+      const url = crewShareUrl(result.shareUrl, mode) ?? result.shareUrl;
+      if (canShareNatively()) void sendNatively(url);
+      else void copy(url, "auto");
     } catch (err) {
       setState("error");
       void captureAnonShareFailed({
@@ -207,6 +233,24 @@ export default function AnonymousShareButton({ trip, onShared, onKeep, existingS
           >
             {copied ? t("wizard.result.shareAnonCopied") : t("wizard.result.shareAnonCopy")}
           </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => sendOnWhatsApp(effectiveUrl)}
+            className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
+          >
+            {t("wizard.result.shareSendWhatsapp")}
+          </button>
+          {canShareNatively() && (
+            <button
+              type="button"
+              onClick={() => void sendNatively(effectiveUrl)}
+              className="inline-flex min-h-[40px] items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
+            >
+              {t("wizard.result.shareSendNative")}
+            </button>
+          )}
         </div>
         <p className="text-xs text-slate-500">
           {crew ? t("wizard.result.shareCrewHint") : t("wizard.result.shareAnonHint")}
