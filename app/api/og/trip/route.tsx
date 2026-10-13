@@ -9,6 +9,7 @@ import { getTripDestination } from "@/lib/trips/destination";
 import { tripCardTag } from "@/lib/seo/trip-card-cache";
 import { computeTripDayState } from "@/lib/trip/live";
 import { cardFonts } from "@/lib/og/fonts";
+import { linkCardJpeg } from "@/lib/og/link-card-jpeg";
 import {
   CARD_SIZES,
   cardFormat,
@@ -94,12 +95,20 @@ export async function GET(request: NextRequest) {
   const locale = cardLocale(url.searchParams.get("locale"));
   const logo = `${url.origin}/icon-512.png`;
   const fonts = await cardFonts();
-  const respond = (element: ReactElement, cacheControl: string, tag?: string) =>
-    new ImageResponse(element, {
-      ...CARD_SIZES[format],
-      ...(fonts.length > 0 ? { fonts } : {}),
-      headers: { "Cache-Control": cacheControl, ...(tag ? { "Vercel-Cache-Tag": tag } : {}) },
-    });
+  const respond = async (element: ReactElement, cacheControl: string, tag?: string): Promise<Response> => {
+    const headers = { "Cache-Control": cacheControl, ...(tag ? { "Vercel-Cache-Tag": tag } : {}) };
+    const draw = () =>
+      new ImageResponse(element, { ...CARD_SIZES[format], ...(fonts.length > 0 ? { fonts } : {}), headers });
+    // The square and story cards are files people save and post, so they stay PNG.
+    if (format !== "og") return draw();
+    try {
+      const jpeg = await linkCardJpeg(await draw().arrayBuffer());
+      return new Response(new Uint8Array(jpeg), { headers: { ...headers, "Content-Type": "image/jpeg" } });
+    } catch (err) {
+      console.warn("[og/trip] JPEG link card failed, sending PNG:", err instanceof Error ? err.message : err);
+      return draw();
+    }
+  };
   // Short cache for the brand card: a key can start resolving later (a trip
   // un-deleted, a replica catching up), and a year-long cache of the generic
   // card would outlive the reason for it.
