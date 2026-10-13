@@ -285,7 +285,11 @@
       "nameHint": "(so the trip owner knows who voted)",
       "namePlaceholder": "Sarah",
       "submit": "Vote",
-      "skip": "Skip"
+      "skip": "Skip",
+      "afterVote": {
+        "text": "Planning a trip of your own? Get a plan like this in about a minute.",
+        "cta": "Plan mine, free"
+      }
     },
     "metaDescription": "Check out this travel itinerary on MonkeyTravel",
     "unavailable": {

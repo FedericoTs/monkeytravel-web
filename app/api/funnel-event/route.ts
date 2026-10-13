@@ -18,6 +18,9 @@ import { errors } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 
+// Which "plan your own" button on a trip page was pressed, so each can be read.
+const PLAN_OWN_SURFACES = ["shared_footer", "public_footer", "public_top", "after_vote", "page_footer", "bottom_bar"] as const;
+
 // Only the client-fired events are accepted here; server events never POST.
 const BodySchema = z.discriminatedUnion("event_type", [
   z.object({
@@ -25,6 +28,7 @@ const BodySchema = z.discriminatedUnion("event_type", [
     trip_id: z.string().uuid().optional(),
     destination: z.string().trim().max(120).optional(),
     referral_code: z.string().trim().max(64).optional(),
+    surface: z.enum(PLAN_OWN_SURFACES).optional(),
   }),
   z.object({
     event_type: z.literal("trip_card_shared"),
@@ -93,7 +97,11 @@ export async function POST(request: NextRequest) {
     user_id: userId,
     metadata:
       body.event_type === "plan_own_clicked"
-        ? { destination: body.destination ?? null, referral_code: body.referral_code ?? null }
+        ? {
+            destination: body.destination ?? null,
+            referral_code: body.referral_code ?? null,
+            ...(body.surface ? { surface: body.surface } : {}),
+          }
         : { format: body.format, method: body.method },
   });
 

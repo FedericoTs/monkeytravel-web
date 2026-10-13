@@ -55,6 +55,14 @@ describe("client-fired funnel events", () => {
     expect(inserted[0]?.metadata).toEqual({ destination: "Lisbon", referral_code: "abc" });
   });
 
+  it("records which plan-own button was pressed, and only a known one", async () => {
+    const res = await post({ event_type: "plan_own_clicked", trip_id: TRIP, destination: "Lisbon", surface: "after_vote" });
+    expect(res.status).toBe(204);
+    expect(inserted[0]?.metadata).toEqual({ destination: "Lisbon", referral_code: null, surface: "after_vote" });
+    expect((await post({ event_type: "plan_own_clicked", trip_id: TRIP, surface: "popup" })).status).toBe(400);
+    expect(inserted).toHaveLength(1);
+  });
+
   it("rejects server-side events and card shares missing a trip or with an unknown format", async () => {
     expect((await post({ event_type: "share_link_visited", trip_id: TRIP })).status).toBe(400);
     expect((await post({ event_type: "trip_card_shared", format: "story", method: "download" })).status).toBe(400);

@@ -285,7 +285,11 @@
       "nameHint": "(così chi ha creato il viaggio sa chi ha votato)",
       "namePlaceholder": "Sara",
       "submit": "Vota",
-      "skip": "Salta"
+      "skip": "Salta",
+      "afterVote": {
+        "text": "Stai organizzando un viaggio tuo? Ottieni un piano come questo in un minuto.",
+        "cta": "Pianifica il mio, gratis"
+      }
     },
     "metaDescription": "Dai un’occhiata a questo itinerario di viaggio su MonkeyTravel",
     "unavailable": {
