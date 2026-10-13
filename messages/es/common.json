@@ -1463,6 +1463,26 @@
     "crewPrompt": {
       "title": "Tu amigo quiere tu voto",
       "body": "Vota cada idea con un pulgar arriba o abajo, sin crear cuenta."
+    },
+    "planByEmail": {
+      "title": "¿Vienes a este viaje?",
+      "body": "Confirma que vienes y te enviaremos el plan por email, para que lo tengas cuando lo necesites.",
+      "titleJoined": "¿Quieres el plan en tu email?",
+      "bodyJoined": "Te enviaremos el enlace por email, para que lo tengas cuando lo necesites.",
+      "emailLabel": "Tu email",
+      "submit": "Yo voy — envíame el plan",
+      "submitJoined": "Envíame el plan",
+      "sending": "Enviando…",
+      "sent": "El plan va de camino a {email}.",
+      "already": "Ya enviamos el plan a {email}.",
+      "notSent": "Ahora no pudimos enviarte el plan por email.",
+      "privacy": "Solo para el plan de este viaje. Nunca newsletters.",
+      "invalidEmail": "Ese email no parece correcto."
+    },
+    "planLikeThis": {
+      "lead": "¿Quieres un viaje como este?",
+      "button": "✨ Planifica tu propio viaje de {days, plural, one {# día} other {# días}} a {destination} — gratis",
+      "short": "Planifica uno así"
     }
   },
   "proposals": {
@@ -2753,5 +2773,13 @@
     "bodyDestination": "Has empezado a planificar un viaje a {destination}. Termínalo y tendrás un plan día a día en aproximadamente un minuto. Después puedes cambiar lo que quieras.",
     "cta": "Planear mi viaje",
     "signoff": "El equipo de MonkeyTravel"
+  },
+  "participantPlanEmail": {
+    "heading": "{destination}: aquí tienes el plan",
+    "intro": "Dijiste que vas. El plan cambia a medida que el grupo lo prepara, así que ábrelo cuando quieras para ver qué toca y votar las actividades que te gusten.",
+    "digest": "Durante el viaje, también te enviaremos por email el plan del día siguiente, el día antes.",
+    "cta": "Abrir el plan",
+    "footerReason": "Recibes este email porque dijiste que vas a este viaje y nos diste esta dirección.",
+    "footerLink": "Dejar de recibir emails de este viaje"
   }
 }

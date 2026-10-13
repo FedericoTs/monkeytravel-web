@@ -15,6 +15,7 @@ import { readPendingClaim, claimPendingTrip } from "@/lib/trips/anonymous-claim-
 import { onClaimedTrip, readClaimedTrip } from "@/lib/trips/claimed-trip-signal";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import ParticipantsBar from "@/components/trip/ParticipantsBar";
+import PlanByEmail from "@/components/trip/PlanByEmail";
 import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
 import TodayView from "@/components/trip/TodayView";
 import TodayPacking from "@/components/trip/TodayPacking";
@@ -435,6 +436,14 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
   // lib/trips/destination.ts. Matters for non-English / renamed trips.
   const destination = getTripDestination(trip);
 
+  // The public page asks for "a trip like this one", so its links also carry
+  // the trip's length (?days=, which the wizard takes for a single city, up
+  // to 14 days) and say where they came from (?from=trip).
+  const likeThisDays =
+    !shareToken && !destination.includes(" & ") && trip.itinerary.length >= 1 && trip.itinerary.length <= 14
+      ? trip.itinerary.length
+      : null;
+
   // "Plan your own trip" CTA target. Routes to the creation wizard
   // carrying the owner's referral code (?ref) so the new user is
   // attributed to them at signup, and seeds the destination (?destination=)
@@ -444,10 +453,14 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
   const planOwnHref = useMemo(() => {
     const params = new URLSearchParams();
     if (destination) params.set("destination", destination);
+    if (likeThisDays) {
+      params.set("days", String(likeThisDays));
+      params.set("from", "trip");
+    }
     if (referralCode) params.set("ref", referralCode);
     const qs = params.toString();
     return qs ? `/trips/new?${qs}` : "/trips/new";
-  }, [destination, referralCode]);
+  }, [destination, likeThisDays, referralCode]);
 
   // The crew loop's last measured hop — a /shared visitor converting to plan
   // their OWN trip. Fire-and-forget with keepalive so the event survives the
@@ -566,13 +579,23 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
               className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
             >
               <ShareRow url={publicPage.url} title={trip.title} />
-              <button
-                type="button"
-                onClick={() => setShowSaveModal(true)}
-                className="inline-flex min-h-[40px] items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-              >
-                {t("share.participants.saveForLater")}
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSaveModal(true)}
+                  className="inline-flex min-h-[40px] items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  {t("share.participants.saveForLater")}
+                </button>
+                <Link
+                  href={planOwnHref}
+                  onClick={firePlanOwnClicked}
+                  data-testid="public-plan-like-this"
+                  className="inline-flex min-h-[40px] items-center rounded-xl bg-[var(--primary)] px-4 text-sm font-semibold text-white hover:bg-[var(--primary-dark)]"
+                >
+                  {t("share.planLikeThis.short")}
+                </Link>
+              </div>
             </div>
           )
         ) : participantsEnabled ? (
@@ -1055,16 +1078,34 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
             data-testid="recipient-footer-cta"
             className="mt-10 rounded-2xl border border-slate-200 bg-[var(--background-warm)] p-5 text-center"
           >
-            <p className="mb-3 text-sm text-slate-600">{t("share.participants.planOwnLead")}</p>
+            {/* A share link's last ask is the group's: going, with the plan by email. */}
+            {shareToken && dayState.phase !== "past" && (
+              <div className="mb-5 border-b border-slate-200 pb-5">
+                <PlanByEmail
+                  shareToken={shareToken}
+                  source={crewAsk ? "crew_ask" : "shared"}
+                  defaultEmail={viewer?.email}
+                />
+              </div>
+            )}
+            <p className="mb-3 text-sm text-slate-600">
+              {shareToken ? t("share.participants.planOwnLead") : t("share.planLikeThis.lead")}
+            </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href={planOwnHref}
                 onClick={firePlanOwnClicked}
-                className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 text-sm font-semibold text-white shadow-lg hover:from-amber-600 hover:to-orange-600 transition-all"
+                className={
+                  shareToken
+                    ? "inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                    : "inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 text-sm font-semibold text-white shadow-lg hover:from-amber-600 hover:to-orange-600 transition-all"
+                }
               >
-                {destination
-                  ? t("share.savedHero.planOwnButton", { destination })
-                  : t("share.savedHero.planOwnButtonGeneric")}
+                {likeThisDays
+                  ? t("share.planLikeThis.button", { days: likeThisDays, destination })
+                  : destination
+                    ? t("share.savedHero.planOwnButton", { destination })
+                    : t("share.savedHero.planOwnButtonGeneric")}
               </Link>
               <button
                 type="button"

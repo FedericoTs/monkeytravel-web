@@ -1463,6 +1463,26 @@
     "crewPrompt": {
       "title": "Il tuo amico vuole il tuo voto",
       "body": "Vota ogni idea con un pollice su o giù, senza registrarti."
+    },
+    "planByEmail": {
+      "title": "Vieni anche tu?",
+      "body": "Conferma che ci sei e ti mandiamo il piano via email, così ce l'hai quando ti serve.",
+      "titleJoined": "Vuoi il piano nella tua email?",
+      "bodyJoined": "Ti mandiamo il link via email, così ce l'hai quando ti serve.",
+      "emailLabel": "La tua email",
+      "submit": "Ci sono — mandami il piano",
+      "submitJoined": "Mandami il piano",
+      "sending": "Invio…",
+      "sent": "Il piano sta arrivando a {email}.",
+      "already": "Ti abbiamo già mandato il piano a {email}.",
+      "notSent": "Ora non siamo riusciti a mandarti il piano via email.",
+      "privacy": "Solo per il piano di questo viaggio. Mai newsletter.",
+      "invalidEmail": "Questo indirizzo email non sembra corretto."
+    },
+    "planLikeThis": {
+      "lead": "Vuoi un viaggio come questo?",
+      "button": "✨ Pianifica il tuo viaggio di {days, plural, one {# giorno} other {# giorni}} a {destination} — gratis",
+      "short": "Pianificane uno così"
     }
   },
   "proposals": {
@@ -2753,5 +2773,13 @@
     "bodyDestination": "Hai iniziato a pianificare un viaggio con destinazione {destination}. Completalo e in circa un minuto avrai un piano giorno per giorno. Poi puoi cambiare tutto quello che vuoi.",
     "cta": "Pianifica il mio viaggio",
     "signoff": "Il team di MonkeyTravel"
+  },
+  "participantPlanEmail": {
+    "heading": "{destination}: ecco il piano",
+    "intro": "Hai detto che ci sei. Il piano cambia man mano che il gruppo lo prepara: aprilo quando vuoi per vedere cosa c'è in programma e votare le attività che ti piacciono.",
+    "digest": "Durante il viaggio ti manderemo anche via email il piano del giorno dopo, il giorno prima.",
+    "cta": "Apri il piano",
+    "footerReason": "Ricevi questa email perché hai detto che partecipi a questo viaggio e ci hai dato questo indirizzo.",
+    "footerLink": "Non ricevere più email su questo viaggio"
   }
 }

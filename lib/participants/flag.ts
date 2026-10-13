@@ -14,3 +14,13 @@
 export function isLiveTripParticipantsEnabled(): boolean {
   return process.env.NEXT_PUBLIC_LIVE_TRIP_PARTICIPANTS !== "off";
 }
+
+/**
+ * Also send the in-trip digest to the trip's emailed participants. OFF by
+ * default, and separate from the owner cascade so the fan-out is a deliberate
+ * rollout; TRIP_NOTIFICATIONS_SEND_CAP counts owner rows only. Server-only:
+ * the env var is not public, so in the browser this reads false.
+ */
+export function isParticipantDigestEnabled(): boolean {
+  return process.env.PARTICIPANT_DIGEST_ENABLED === "true";
+}

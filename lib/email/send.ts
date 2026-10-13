@@ -57,6 +57,11 @@ import ShareFixNoticeEmail, {
   shareFixSubject,
   type ShareFixNoticeProps,
 } from "./templates/ShareFixNotice";
+import ParticipantPlanEmail, {
+  participantPlanEmailText,
+  participantPlanSubject,
+  type ParticipantPlanEmailProps,
+} from "./templates/ParticipantPlan";
 import { buildUnsubscribeUrl, type UnsubKey } from "./unsubscribe";
 import { normalizeEmailLocale, type EmailLocale } from "./copy";
 
@@ -68,7 +73,8 @@ export type EmailTemplate =
   | { id: "trip_day_digest"; props: TripDayDigestEmailProps }
   | { id: "finish_trip"; props: FinishTripEmailProps }
   | { id: "feedback_outreach"; props: FeedbackOutreachEmailProps }
-  | { id: "share_fix_notice"; props: ShareFixNoticeProps };
+  | { id: "share_fix_notice"; props: ShareFixNoticeProps }
+  | { id: "participant_plan"; props: ParticipantPlanEmailProps };
 
 /** Stable outcome shape. */
 export interface SendOutcome {
@@ -206,6 +212,9 @@ export const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null
   // longer locks them out. About their own trips, but they didn't trigger
   // it: same gate as feedback_outreach.
   share_fix_notice: "marketingNotifications",
+  // Asked for: sent when someone gives their address on a share link, to
+  // that address. Its footer link stops this trip's emails to it.
+  participant_plan: null,
 };
 
 /**
@@ -224,6 +233,7 @@ const UNSUB_KEY: Record<EmailTemplate["id"], UnsubKey | null> = {
   finish_trip: "marketingNotifications",
   feedback_outreach: "marketingNotifications",
   share_fix_notice: "marketingNotifications",
+  participant_plan: null, // the sender passes the guest link
 };
 
 /**
@@ -776,6 +786,12 @@ async function renderTemplate(
       const html = await render(ShareFixNoticeEmail(template.props));
       const text = shareFixNoticeText(template.props);
       const subject = shareFixSubject(template.props.locale);
+      return { html, text, subject };
+    }
+    case "participant_plan": {
+      const html = await render(ParticipantPlanEmail(template.props));
+      const text = participantPlanEmailText(template.props);
+      const subject = participantPlanSubject(template.props);
       return { html, text, subject };
     }
   }

@@ -1463,6 +1463,26 @@
     "crewPrompt": {
       "title": "O seu amigo quer o seu voto",
       "body": "Vote em cada ideia com 👍 ou 👎 — sem criar conta."
+    },
+    "planByEmail": {
+      "title": "Você vai nessa viagem?",
+      "body": "Confirme que vai e a gente manda o plano por email, para você ter quando precisar.",
+      "titleJoined": "Quer o plano no seu email?",
+      "bodyJoined": "A gente manda o link por email, para você ter quando precisar.",
+      "emailLabel": "Seu email",
+      "submit": "Eu vou — me mande o plano",
+      "submitJoined": "Me mande o plano",
+      "sending": "Enviando…",
+      "sent": "O plano está a caminho de {email}.",
+      "already": "Já mandamos o plano para {email}.",
+      "notSent": "Não conseguimos mandar o plano por email agora.",
+      "privacy": "Só para o plano desta viagem. Nunca newsletters.",
+      "invalidEmail": "Esse email não parece certo."
+    },
+    "planLikeThis": {
+      "lead": "Quer uma viagem como esta?",
+      "button": "✨ Planeje sua própria viagem de {days, plural, one {# dia} other {# dias}} a {destination} — grátis",
+      "short": "Planeje uma assim"
     }
   },
   "proposals": {
@@ -2753,5 +2773,13 @@
     "bodyDestination": "Você começou a planejar uma viagem para {destination}. Finalize o planejamento e, em cerca de um minuto, você terá um roteiro dia a dia. Depois, dá para mudar o que quiser.",
     "cta": "Planejar minha viagem",
     "signoff": "Equipe MonkeyTravel"
+  },
+  "participantPlanEmail": {
+    "heading": "{destination}: aqui está o plano",
+    "intro": "Você disse que vai. O plano muda conforme o grupo planeja, então abra quando quiser para ver o que vem por aí e votar nas atividades de que gostar.",
+    "digest": "Durante a viagem, também vamos mandar por email o plano do dia seguinte, na véspera.",
+    "cta": "Abrir o plano",
+    "footerReason": "Você está recebendo este email porque disse que vai nesta viagem e nos deu este endereço.",
+    "footerLink": "Parar de receber emails desta viagem"
   }
 }

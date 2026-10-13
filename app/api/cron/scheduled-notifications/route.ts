@@ -35,6 +35,7 @@ import { domesticTripVerdict } from "@/lib/notifications/domestic-trip";
 import { normalizeTripTitle, twinDecision, type TwinCandidate } from "@/lib/notifications/twin-trips";
 import { FINISH_TRIP_NS, FINISH_TRIP_SLOT, sendFinishTripEmail } from "@/lib/notifications/finish-trip";
 import { cameBack, cameBackFrom, loadEngagement } from "@/lib/notifications/followup-engagement";
+import { isParticipantDigestEnabled } from "@/lib/participants/flag";
 
 /**
  * Trip email cron: sweeps `scheduled_notifications` and dispatches the
@@ -103,18 +104,6 @@ const FOLLOWUP_NS = "common.tripFollowupEmail";
  * is one template parameterised by day number. Same `common.` mounting rule.
  */
 const DIGEST_NS = "common.tripDayDigestEmail";
-
-/**
- * Also send the in-trip digest to the trip's emailed participants. OFF by
- * default, and a separate switch from the owner cascade so the participant
- * fan-out is a deliberate, watchable rollout (its sends are not counted by
- * TRIP_NOTIFICATIONS_SEND_CAP, which counts owner queue rows). Server-only:
- * only this cron reads it. Suppression and any signed-in participant's
- * opt-out are still honoured per send inside dispatchEmail.
- */
-function isParticipantDigestEnabled(): boolean {
-  return process.env.PARTICIPANT_DIGEST_ENABLED === "true";
-}
 
 /**
  * Headings for the per-trip enrichment blocks. Shared by both families —
