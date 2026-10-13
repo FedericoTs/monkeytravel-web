@@ -80,6 +80,7 @@ const FC = (FollowupCtaMod as any).default ?? FollowupCtaMod;
 const LC = (LocaleMod as any).default ?? LocaleMod;
 const resolveLocale = LC.resolveLocale;
 const formatDateRange = LC.formatDateRange;
+const formatDayMonth = LC.formatDayMonth;
 
 const ROOT = process.cwd();
 const APP = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
@@ -300,7 +301,7 @@ async function main() {
     }
 
     const heading = t("heading", { destination });
-    const body = t("body", { destination });
+    const body = t("body", { destination, endDate: formatDayMonth(trip.end_date, locale) });
     const ctaLabel = isFollowup(row.slot) ? t("cta") : rootT("cta");
     const finalNote = TERMINAL_FOLLOWUP_SLOTS.has(row.slot) ? rootT("finalNote") : undefined;
 

@@ -116,10 +116,11 @@ describe("next-intl itself renders the followup copy", () => {
           namespace: `common.tripFollowupEmail.${slot}`,
         });
         // Mirrors the route: destination goes to BOTH heading and body,
-        // because which of the two carries the placeholder varies by slot.
+        // because which of the two carries the placeholder varies by slot,
+        // and the body also gets the day the trip ended.
         const rendered = {
           heading: t("heading", { destination: "Lisbon" }),
-          body: t("body", { destination: "Lisbon" }),
+          body: t("body", { destination: "Lisbon", endDate: "October 10" }),
           cta: t("cta"),
         };
 
@@ -127,13 +128,16 @@ describe("next-intl itself renders the followup copy", () => {
           expect(value, `${locale}/${slot} ${key}`).not.toContain(
             "tripFollowupEmail."
           );
-          expect(value, `${locale}/${slot} ${key} left braces`).not.toContain(
-            "{destination}"
-          );
+          for (const placeholder of ["{destination}", "{endDate}"]) {
+            expect(value, `${locale}/${slot} ${key} left ${placeholder}`).not.toContain(placeholder);
+          }
           if (raw[slot][key]?.includes("{destination}")) {
             expect(value, `${locale}/${slot} ${key} substitution`).toContain(
               "Lisbon"
             );
+          }
+          if (raw[slot][key]?.includes("{endDate}")) {
+            expect(value, `${locale}/${slot} ${key} end date`).toContain("October 10");
           }
         }
       }
@@ -165,6 +169,25 @@ describe("next-intl itself renders the followup copy", () => {
       expect(messages.tripFollowupEmail?.finalNote, `${locale}/finalNote`)
         .toBeTruthy();
     }
+  });
+});
+
+/**
+ * The return email said "You got back a few days ago" to people we had no sign
+ * went at all, and promised questions about the plan that its survey does not
+ * ask. It now states when the trip ended and what the survey is about.
+ */
+describe("the return email claims only what we know", () => {
+  for (const locale of LOCALES) {
+    it(`${locale}: says when the trip ended`, () => {
+      const body = resolve(messagesFor(locale), "common.tripFollowupEmail.followup_return_3d.body");
+      expect(body).toContain("{endDate}");
+    });
+  }
+
+  it("en: no longer assumes the trip happened or promises questions about the plan", () => {
+    const body = resolve(messagesFor("en"), "common.tripFollowupEmail.followup_return_3d.body") as string;
+    expect(body).not.toMatch(/got back|plan got right|on the ground/i);
   });
 });
 
@@ -216,6 +239,16 @@ describe("the cron wires the followup family correctly", () => {
     // The exit condition. Without it, "Thinking about the next one?" lands on
     // someone who booked it last week.
     expect(source).toContain("user_has_new_trip");
+  });
+
+  it("sends the sequence only to people who came back after making the trip", () => {
+    expect(source).toMatch(/cameBack\(from, await loadEngagement\(svc, row\.user_id, user\.email, from\)\)/);
+    expect(source).toContain('"no_engagement"');
+    expect(source).toContain('"engagement_read_error"');
+  });
+
+  it("gives the body the day the trip ended", () => {
+    expect(source).toMatch(/t\("body", \{ destination, endDate \}\)/);
   });
 
   it("still refuses to send an unresolved string", () => {

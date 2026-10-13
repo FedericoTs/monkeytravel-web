@@ -29,11 +29,12 @@ import { isTripNotificationsEnabled } from "@/lib/notifications/scheduling";
 import { parseDigestDay, digestStaleReason, digestParticipantRecipients } from "@/lib/notifications/digest";
 import { postTripCtaUrl } from "@/lib/email/followup-cta";
 import { digestDayUrl } from "@/lib/trips/day-link";
-import { resolveLocale, formatDateRange } from "@/lib/email/reminder-locale";
+import { resolveLocale, formatDateRange, formatDayMonth } from "@/lib/email/reminder-locale";
 import { retryTransient } from "@/lib/notifications/retry";
 import { domesticTripVerdict } from "@/lib/notifications/domestic-trip";
 import { normalizeTripTitle, twinDecision, type TwinCandidate } from "@/lib/notifications/twin-trips";
 import { FINISH_TRIP_NS, FINISH_TRIP_SLOT, sendFinishTripEmail } from "@/lib/notifications/finish-trip";
+import { cameBack, cameBackFrom, loadEngagement } from "@/lib/notifications/followup-engagement";
 
 /**
  * Trip email cron: sweeps `scheduled_notifications` and dispatches the
@@ -366,6 +367,7 @@ type TripEmailRow = {
   title: string;
   start_date: string;
   end_date: string;
+  created_at: string;
   reminders_muted: boolean | null;
   status: string | null;
   deleted_at: string | null;
@@ -587,7 +589,7 @@ async function processRow(
   const { data: tripRow, error: tripErr } = await svc
     .from("trips")
     .select(
-      "id, title, start_date, end_date, reminders_muted, status, deleted_at, itinerary, share_token, " +
+      "id, title, start_date, end_date, created_at, reminders_muted, status, deleted_at, itinerary, share_token, " +
         "weather_note:trip_meta->>weather_note, " +
         "highlights:trip_meta->highlights, " +
         "packing_suggestions:trip_meta->packing_suggestions, " +
@@ -822,6 +824,27 @@ async function processRow(
     return "skipped";
   }
 
+  // 2c-bis. The post-trip follow-ups go only to people who came back after
+  // making the trip (lib/notifications/followup-engagement.ts). Fails closed
+  // like the trip count above: if it cannot be read, no marketing.
+  if (isFollowupSlot(row.slot)) {
+    const from = cameBackFrom(trip.created_at);
+    let returned = false;
+    if (from) {
+      try {
+        returned = cameBack(from, await loadEngagement(svc, row.user_id, user.email, from));
+      } catch (err) {
+        const message = (err as { message?: string } | null)?.message ?? String(err);
+        await persistOutcome(svc, row.id, "failed", "engagement_read_error", message);
+        return "failed";
+      }
+    }
+    if (!returned) {
+      await persistOutcome(svc, row.id, "suppressed", "no_engagement");
+      return "skipped";
+    }
+  }
+
   // 2d. Resolve locale → load the slot-specific strings.
   //
   // The namespace MUST carry the `common.` prefix. i18n.ts assembles messages
@@ -885,10 +908,14 @@ async function processRow(
   // {destination} into another heading cannot break the mail; unused values
   // are ignored.
   const heading = t("heading", { destination });
+  // The post-trip body states when the trip ended; other bodies ignore it.
+  const endDate = formatDayMonth(trip.end_date, locale);
   // A domestic trip reads the slot's bodyDomestic when the copy has one
   // (pack_early_14d and confirm_1d do); every other case reads body.
   const body =
-    domestic && t.has("bodyDomestic") ? t("bodyDomestic", { destination }) : t("body", { destination });
+    domestic && t.has("bodyDomestic")
+      ? t("bodyDomestic", { destination })
+      : t("body", { destination, endDate });
   // The reminder family shares ONE cta across all five slots, so it sits
   // at the namespace root. The followup family needs a different verb per
   // slot ("Open your trip" vs "Plan your next trip"), so its cta lives
@@ -948,6 +975,7 @@ async function processRow(
         highlights: trip.highlights,
         packingSuggestions: trip.packing_suggestions,
         day1: trip.day1,
+        itinerary: trip.itinerary,
       },
       {
         weather: weatherLabel ?? ctxT("weather"),

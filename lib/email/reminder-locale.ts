@@ -60,6 +60,17 @@ export function resolveLocale(raw: string | null | undefined): ReminderLocale {
 }
 
 /**
+ * A trip date as day and month in the recipient's locale: "October 10",
+ * "10 de octubre", "10 ottobre", "10 de outubro". Empty when unreadable.
+ * Formatted in UTC, the zone a date-only string is parsed in.
+ */
+export function formatDayMonth(date: string, locale: ReminderLocale): string {
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat(INTL_TAG[locale], { day: "numeric", month: "long", timeZone: "UTC" }).format(d);
+}
+
+/**
  * Format a date range "Sep 1 – Sep 7" in the recipient's locale.
  * Falls back gracefully when end < start or either side is invalid.
  */
