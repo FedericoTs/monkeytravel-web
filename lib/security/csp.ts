@@ -28,6 +28,7 @@
  */
 
 import { gaConsentDefaultScriptProps } from "@/lib/analytics/ga-consent";
+import { ASSISTANT_SEEN_SCRIPT } from "@/lib/trip/assistant-seen";
 
 /**
  * The four locale homepages (`localePrefix: "as-needed"` — see
@@ -217,16 +218,18 @@ export async function sha256Source(script: string): Promise<string> {
 let layoutScriptHashes: Promise<readonly string[]> | undefined;
 
 /**
- * Hashes of the inline scripts the layout renders on every page (today: the
- * GA consent default). They carry no nonce, so the nonce policy admits them
- * by hash; prerendered pages get them from the manifest instead.
+ * Hashes of the inline scripts the layout renders on every page: the GA
+ * consent default (when configured) and the assistant-seen marker. They carry
+ * no nonce, so the nonce policy admits them by hash; prerendered pages get
+ * them from the manifest instead.
  */
 export function layoutInlineScriptHashes(): Promise<readonly string[]> {
   if (!layoutScriptHashes) {
     const consent = gaConsentDefaultScriptProps();
-    layoutScriptHashes = consent
-      ? sha256Source(consent.dangerouslySetInnerHTML.__html).then((h) => [h])
-      : Promise.resolve([]);
+    const scripts = [consent?.dangerouslySetInnerHTML.__html, ASSISTANT_SEEN_SCRIPT].filter(
+      (s): s is string => !!s
+    );
+    layoutScriptHashes = Promise.all(scripts.map(sha256Source));
   }
   return layoutScriptHashes;
 }

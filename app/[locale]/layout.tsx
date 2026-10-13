@@ -10,6 +10,7 @@ import { bodyFontClassName } from "@/app/fonts";
 import { routing } from "@/lib/i18n/routing";
 import { MARKETING_CLIENT_NAMESPACES, pickMessages } from "@/lib/i18n/client-messages";
 import { gaConsentDefaultScriptProps } from "@/lib/analytics/ga-consent";
+import { assistantSeenScriptProps } from "@/lib/trip/assistant-seen";
 import {
   generateOrganizationSchema,
   generateWebSiteSchema,
@@ -207,14 +208,20 @@ export default async function LocaleLayout({
   // data-brand drives the doodle theme in globals.css: one attribute restyles
   // buttons, fields, pills and cards everywhere, so no component carries
   // brand-specific classes.
+  // suppressHydrationWarning: the assistant-seen script below may mark <html>
+  // before React hydrates it.
   return (
-    <html lang={locale} data-brand={HERO_DOODLE_ENABLED ? "doodle" : undefined}>
+    <html lang={locale} data-brand={HERO_DOODLE_ENABLED ? "doodle" : undefined} suppressHydrationWarning>
       <head>
         {/* Global Structured Data (JSON-LD) for SEO */}
         <script {...jsonLdScriptProps(organizationSchema)} />
         <script {...jsonLdScriptProps(webSiteSchema)} />
         <script {...jsonLdScriptProps(softwareApplicationSchema)} />
         {gaConsentDefault ? <script {...gaConsentDefault} /> : null}
+        {/* Before paint, so the trip page never reserves the assistant's
+            column for a browser that has already met it. The CSP admits it
+            by hash. */}
+        <script {...assistantSeenScriptProps()} />
 
         {/* DNS prefetch for deferred third-party origins (preconnect removed —
             both scripts load after idle, so early connections expire unused) */}
