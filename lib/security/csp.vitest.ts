@@ -1,6 +1,7 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { buildCspHeader, allowsThirdPartyFraming } from "./csp";
+import { buildCspHeader, allowsThirdPartyFraming, layoutInlineScriptHashes, sha256Source } from "./csp";
+import { ASSISTANT_SEEN_SCRIPT } from "@/lib/trip/assistant-seen";
 
 /**
  * The CSP has silently dropped analytics twice, the same way both times.
@@ -218,6 +219,14 @@ describe("CSP script-src: nonce policy for rendered pages, hash policy for prere
     const strip = (h: string) =>
       h.split(";").map((d) => d.trim()).filter((d) => !d.startsWith("script-src")).join("; ");
     expect(strip(buildCspHeader("/blog", { hashes: HASHES }))).toBe(strip(buildCspHeader("/blog", { nonce: "n" })));
+  });
+
+  // The layout renders it with no nonce on every page; a blocked copy would
+  // silently bring the trip page's sideways jump back.
+  it("admits the layout's assistant-seen script on rendered pages", async () => {
+    const hash = await sha256Source(ASSISTANT_SEEN_SCRIPT);
+    const src = directive("script-src", A_ROUTE, buildCspHeader(A_ROUTE, { nonce: "n", hashes: await layoutInlineScriptHashes() }));
+    expect(src).toContain(`'${hash}'`);
   });
 });
 

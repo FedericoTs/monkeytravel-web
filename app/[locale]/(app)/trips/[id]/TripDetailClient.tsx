@@ -2216,6 +2216,9 @@ export default function TripDetailClient({
         className={`max-w-6xl mx-auto px-4 py-6 sm:py-8 transition-[margin] duration-300 ease-out ${
           isAIAssistantOpen || assistantDockReserved ? "lg:mr-[420px]" : ""
         }`}
+        // Reserved, not open: globals.css drops the column when <html> says
+        // this browser has already met the assistant.
+        data-assistant-dock={assistantDockReserved && !isAIAssistantOpen ? "reserved" : undefined}
       >
         {/* Who said they're going — count, names, join times, remove.
             The share ask is "send it to the people coming", not "get

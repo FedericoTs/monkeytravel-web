@@ -1894,3 +1894,14 @@ nav[data-monkey-nav].monkey-nav-scrolled {
     display: none !important;
   }
 }
+
+/* Trip page: a first visit reserves the docked assistant's column on <main> for
+   the panel that opens by itself. A browser that has already met the assistant
+   (marked on <html> before paint by the layout's script) keeps the centred
+   column instead, so nothing moves when the page lets the reservation go.
+   Unlayered, so it beats the lg:mr-[420px] utility. */
+@media (min-width: 1024px) {
+  html[data-assistant-seen] main[data-assistant-dock="reserved"] {
+    margin-right: auto;
+  }
+}
