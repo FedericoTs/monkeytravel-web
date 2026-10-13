@@ -15,7 +15,8 @@
  *   leave  — sets left_at (the row stays, for the tap-rate history)
  *
  * Returns the same shape as GET /participants so the page can replace its
- * state in one go: { count, participants[], me }.
+ * state in one go: { count, participants[], me }. An email typed here also
+ * gets the trip's plan by email, and `plan_email` says how that went.
  *
  * Writes go through the service role: the table has RLS on and no policies.
  * Two rate limits: per IP (scripted cookie-less loops) and per cookie per
@@ -46,16 +47,20 @@ import {
   type ParticipantSource,
 } from "@/lib/participants/shared";
 import { participantsSnapshot } from "@/lib/participants/snapshot";
+import { mayEmailPlan, sendParticipantPlanEmail } from "@/lib/participants/plan-email";
 
 const ipLimiter = createRateLimiter("shared-join-ip", 30, 60_000);
 const cookieTripLimiter = createRateLimiter("shared-join-cookie-trip", 6, 60_000);
 const BOT_UA_REGEX = /^(curl|wget|python-requests|httpie|go-http-client|libwww-perl|scrapy)\b/i;
+const PLAN_EMAIL_WAIT_MS = 4000;
 
 interface JoinBody {
   action?: unknown;
   source?: unknown;
   display_name?: unknown;
   email?: unknown;
+  /** The page's language, for the plan email. */
+  locale?: unknown;
 }
 
 export async function POST(request: NextRequest, context: InviteTokenRouteContext) {
@@ -150,6 +155,8 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
     let joinedNow = false;
     let firstJoinId: string | null = null;
+    // The row an email typed now was saved on, unless it is a public page's.
+    let planRowId: string | null = null;
     if (action === "join") {
       if (!existing) {
         // Signed in, this browser's cookie can already key another account's row here.
@@ -174,6 +181,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         }
         joinedNow = true;
         firstJoinId = (inserted?.id as string | undefined) ?? null;
+        if (source !== "public") planRowId = firstJoinId;
       } else {
         const patch: Record<string, unknown> = { left_at: null };
         if (displayName) patch.display_name = displayName;
@@ -188,6 +196,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
           return errors.internal("Could not save that", "SharedJoin");
         }
         joinedNow = existing.left_at !== null;
+        if (existing.source !== "public" || source !== "public") planRowId = existing.id as string;
       }
     } else if (action === "update") {
       if (!existing || existing.left_at !== null) {
@@ -204,6 +213,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
           return errors.internal("Could not save that", "SharedJoin");
         }
       }
+      if (existing.source !== "public") planRowId = existing.id as string;
     } else {
       // leave
       if (existing && existing.left_at === null) {
@@ -260,8 +270,37 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       });
     }
 
+    // The plan email: only to an address typed in this request, never to a
+    // public page's row (the email carries the share link). Waits a few
+    // seconds so the page can say what happened; a slow send carries on.
+    let planEmail: "sent" | "already" | "not_sent" | null = null;
+    if (typeof email === "string" && planRowId) {
+      planEmail = "not_sent";
+      if (await mayEmailPlan(request, trip.id)) {
+        const sending = sendParticipantPlanEmail(admin, {
+          tripId: trip.id,
+          shareToken: token,
+          participantId: planRowId,
+          email,
+          locale: typeof body.locale === "string" ? body.locale : null,
+        });
+        waitUntil(sending);
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const status = await Promise.race([
+          sending,
+          new Promise<string>((resolve) => {
+            timer = setTimeout(() => resolve("pending"), PLAN_EMAIL_WAIT_MS);
+          }),
+        ]);
+        clearTimeout(timer);
+        if (status === "sent" || status === "pending") planEmail = "sent";
+        else if (status === "skipped_duplicate") planEmail = "already";
+        else console.warn("[Shared Join] plan email not sent:", status);
+      }
+    }
+
     const snapshot = await participantsSnapshot(admin, trip.id, cookieId, userId);
-    return apiSuccess(snapshot);
+    return apiSuccess(planEmail ? { ...snapshot, plan_email: planEmail } : snapshot);
   } catch (error) {
     console.error("[Shared Join] Unexpected error:", error);
     return errors.internal("Internal server error", "SharedJoin");

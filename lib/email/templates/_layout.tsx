@@ -48,6 +48,11 @@ interface EmailLayoutProps {
   unsubscribeUrl?: string;
   /** UI language of the recipient. Localizes the shell (tagline/footer). */
   locale?: EmailLocale;
+  /**
+   * The footer's reason line and link label, for a recipient the account
+   * wording would be wrong for: someone with no account, mailed about a trip.
+   */
+  footerCopy?: { reason: string; link: string };
   children: ReactNode;
 }
 
@@ -111,6 +116,7 @@ export function EmailLayout({
   preview,
   unsubscribeUrl,
   locale = "en",
+  footerCopy,
   children,
 }: EmailLayoutProps) {
   const finalUnsubscribeUrl =
@@ -169,9 +175,9 @@ export function EmailLayout({
           <Section style={footer}>
             <Hr style={hr} />
             <Text style={footerText}>
-              {t.footerReason}{" "}
+              {footerCopy?.reason ?? t.footerReason}{" "}
               <Link href={finalUnsubscribeUrl} style={footerLink}>
-                {t.manage}
+                {footerCopy?.link ?? t.manage}
               </Link>
             </Text>
             <Text style={footerBrand}>

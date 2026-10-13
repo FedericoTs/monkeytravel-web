@@ -22,7 +22,7 @@ const state = vi.hoisted(() => ({
   prefsSet: [] as Array<[string, string]>,
 }));
 
-vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key }));
+vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key, useLocale: () => "en" }));
 vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams() }));
 vi.mock("next/image", () => ({ default: () => null }));
 vi.mock("next/dynamic", () => ({ default: () => () => null }));
@@ -113,14 +113,26 @@ const trip = {
 
 let fetched: string[];
 
-function renderView({ token, live = false, isOwner = false }: { token?: string; live?: boolean; isOwner?: boolean }) {
+function renderView({
+  token,
+  live = false,
+  isOwner = false,
+  state,
+  shown = trip,
+}: {
+  token?: string;
+  live?: boolean;
+  isOwner?: boolean;
+  state?: TripDayState;
+  shown?: typeof trip;
+}) {
   return render(
     <SharedTripView
-      trip={trip}
+      trip={shown}
       dateRange="Oct 10 – 11"
       viewSource={token ? "shared" : "public"}
       isOwner={isOwner}
-      liveState={day(live)}
+      liveState={state ?? day(live)}
       {...(token ? { shareToken: token } : { publicPage: { slug: SLUG, url: PUBLIC_URL } })}
     />,
   );
@@ -212,5 +224,44 @@ describe("the share link keeps the group's controls", { timeout: 20_000 }, () =>
   it("acts on Today through the share link's routes", () => {
     renderView({ token: TOKEN, live: true });
     expect(screen.getByTestId("today-view").getAttribute("data-api-base")).toBe(`/api/shared/${TOKEN}`);
+  });
+});
+
+describe("what the end of the page asks", { timeout: 20_000 }, () => {
+  const linkFor = (text: string, scope: HTMLElement) => within(scope).getByText(text).closest("a")?.getAttribute("href");
+  const tramDay = (n: number) => ({ ...(trip.itinerary as unknown as Record<string, unknown>[])[0], day_number: n });
+
+  it("asks the share link's reader to come, with the plan by email, and keeps planning their own as an aside", () => {
+    renderView({ token: TOKEN });
+    const footer = screen.getByTestId("recipient-footer-cta");
+    expect(within(footer).getByTestId("plan-by-email")).toBeTruthy();
+    expect(within(footer).getByText("share.participants.planOwnLead")).toBeTruthy();
+    expect(linkFor("share.savedHero.planOwnButton", footer)).toBe("/trips/new?destination=Lisbon");
+  });
+
+  it("stops asking once the trip is over", () => {
+    renderView({ token: TOKEN, state: { ...day(false), phase: "past", daysUntilStart: -3 } });
+    expect(screen.queryByTestId("plan-by-email")).toBeNull();
+  });
+
+  it("offers the public page's reader a trip like this one, the same place and length, at the top and the end", () => {
+    renderView({});
+    const likeThis = "/trips/new?destination=Lisbon&days=1&from=trip";
+    expect(linkFor("share.planLikeThis.short", screen.getByTestId("public-trip-actions"))).toBe(likeThis);
+    const footer = screen.getByTestId("recipient-footer-cta");
+    expect(within(footer).getByText("share.planLikeThis.lead")).toBeTruthy();
+    expect(linkFor("share.planLikeThis.button", footer)).toBe(likeThis);
+    expect(within(footer).queryByTestId("plan-by-email")).toBeNull();
+  });
+
+  it("leaves the length out where the wizard can't take it: a route of cities, or more than 14 days", () => {
+    renderView({ shown: { ...trip, meta: { destination: "Porto & Lisbon" } } });
+    expect(linkFor("share.planLikeThis.short", screen.getByTestId("public-trip-actions"))).toBe(
+      "/trips/new?destination=Porto+%26+Lisbon",
+    );
+    cleanup();
+    renderView({ shown: { ...trip, itinerary: Array.from({ length: 15 }, (_, i) => tramDay(i + 1)) as never } });
+    expect(linkFor("share.planLikeThis.short", screen.getByTestId("public-trip-actions"))).toBe("/trips/new?destination=Lisbon");
+    expect(within(screen.getByTestId("recipient-footer-cta")).getByText("share.savedHero.planOwnButton")).toBeTruthy();
   });
 });

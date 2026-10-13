@@ -19,6 +19,10 @@ let cookieTaken = false;
 let log: FakeQuery[] = [];
 const setCookie = vi.fn();
 const enqueue = vi.fn();
+/** The plan emails asked for, what the send reports, and whether the limits allow one. */
+const planSends: unknown[] = [];
+let planStatus = "sent";
+let planAllowed = true;
 
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => (browserCookie ? { value: browserCookie } : undefined), set: setCookie }),
@@ -28,6 +32,13 @@ vi.mock("@/lib/api/rate-limit", () => ({ createRateLimiter: () => ({ check: asyn
 vi.mock("@/lib/participants/flag", () => ({ isLiveTripParticipantsEnabled: () => true }));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: () => {} }));
 vi.mock("@/lib/notifications/service", () => ({ enqueueNotification: async (args: unknown) => enqueue(args) }));
+vi.mock("@/lib/participants/plan-email", () => ({
+  mayEmailPlan: async () => planAllowed,
+  sendParticipantPlanEmail: async (_admin: unknown, args: unknown) => {
+    planSends.push(args);
+    return planStatus;
+  },
+}));
 vi.mock("@vercel/functions", () => ({ waitUntil: (p: Promise<unknown>) => p }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth: { getUser: async () => ({ data: { user: signedIn } }) } }),
@@ -70,6 +81,9 @@ beforeEach(() => {
   cookieTaken = false;
   setCookie.mockClear();
   enqueue.mockClear();
+  planSends.length = 0;
+  planStatus = "sent";
+  planAllowed = true;
 });
 
 describe("POST /api/shared/[token]/join", () => {
@@ -175,5 +189,53 @@ describe("POST /api/shared/[token]/join", () => {
     await send({ action: "join" });
     expect(ops("trip_participants", "insert")).toHaveLength(1);
     expect(enqueue).not.toHaveBeenCalled();
+  });
+});
+
+describe("the plan by email", () => {
+  it("emails the plan to an address typed on joining, in the page's language, and says it went", async () => {
+    const res = await send({ action: "join", email: " Ana@Example.com ", locale: "it" });
+    expect(planSends).toEqual([
+      { tripId: "trip-1", shareToken: TOKEN, participantId: "new-row-1", email: "ana@example.com", locale: "it" },
+    ]);
+    expect((await res.json()).plan_email).toBe("sent");
+  });
+
+  it("emails it to an address typed after saying they're going", async () => {
+    ownRow = { id: "row-1", left_at: null, display_name: "Bo", email: null, source: "shared" };
+    await send({ action: "update", email: "bo@example.com" });
+    expect(planSends).toEqual([expect.objectContaining({ participantId: "row-1", email: "bo@example.com", locale: null })]);
+  });
+
+  it("never emails an address nobody typed, or someone leaving", async () => {
+    signedIn = { id: "user-1", email: "acct@example.com" };
+    const res = await send({ action: "join" });
+    expect(ops("trip_participants", "insert")[0].value).toMatchObject({ email: "acct@example.com" });
+    expect(await res.json()).not.toHaveProperty("plan_email");
+    ownRow = { id: "row-1", left_at: null, display_name: null, email: "acct@example.com", source: "shared" };
+    await send({ action: "leave", email: "other@example.com" });
+    expect(planSends).toEqual([]);
+  });
+
+  it("never emails the share link to a row from the public page", async () => {
+    await send({ action: "join", source: "public", email: "pat@example.com" });
+    ownRow = { id: "row-3", left_at: null, display_name: "Pat", email: null, source: "public" };
+    await send({ action: "update", email: "pat@example.com" });
+    await send({ action: "join", source: "public", email: "pat@example.com" });
+    expect(planSends).toEqual([]);
+    // Joining through the share link confirms them, and then it goes.
+    await send({ action: "join", source: "shared", email: "pat@example.com" });
+    expect(planSends).toEqual([expect.objectContaining({ participantId: "row-3" })]);
+  });
+
+  it("says when the plan went before, and when it could not go", async () => {
+    planStatus = "skipped_duplicate";
+    expect((await (await send({ action: "join", email: "ana@example.com" })).json()).plan_email).toBe("already");
+    planStatus = "skipped_suppressed";
+    expect((await (await send({ action: "join", email: "ana@example.com" })).json()).plan_email).toBe("not_sent");
+    planAllowed = false;
+    planSends.length = 0;
+    expect((await (await send({ action: "join", email: "ana@example.com" })).json()).plan_email).toBe("not_sent");
+    expect(planSends).toEqual([]);
   });
 });

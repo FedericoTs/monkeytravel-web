@@ -15,8 +15,15 @@
  * this component holds no id — it only ever asks the server "me?".
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
-import { initialsOf, type ParticipantSource, type ParticipantsResponse } from "@/lib/participants/shared";
+import { useLocale, useTranslations } from "next-intl";
+import {
+  initialsOf,
+  type JoinResponse,
+  type ParticipantSource,
+  type ParticipantsResponse,
+  type PlanEmailOutcome,
+} from "@/lib/participants/shared";
+import { publishParticipants, subscribeParticipants } from "@/lib/participants/live-store";
 
 interface ParticipantsBarProps {
   shareToken: string;
@@ -52,6 +59,7 @@ export default function ParticipantsBar({
 }: ParticipantsBarProps) {
   // Messages are namespaced by file; share.* and shared.* live in common.json.
   const t = useTranslations("common");
+  const locale = useLocale();
   const [data, setData] = useState<ParticipantsResponse>(EMPTY);
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -59,6 +67,7 @@ export default function ParticipantsBar({
   const [step, setStep] = useState<Step>("idle");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [planEmail, setPlanEmail] = useState<{ outcome: PlanEmailOutcome; to: string } | null>(null);
   const [shared, setShared] = useState<"idle" | "copied">("idle");
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -75,6 +84,7 @@ export default function ParticipantsBar({
         if (alive && json && typeof json.count === "number") {
           setData(json);
           setName(json.me.display_name ?? "");
+          publishParticipants(shareToken, json);
         }
       } catch {
         // The row still renders with zero; the tap still works.
@@ -85,7 +95,10 @@ export default function ParticipantsBar({
     return () => {
       alive = false;
     };
-  }, [base]);
+  }, [base, shareToken]);
+
+  // The email ask at the bottom of the page can say they're going too.
+  useEffect(() => subscribeParticipants(shareToken, setData), [shareToken]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -97,19 +110,21 @@ export default function ParticipantsBar({
   }, [menuOpen]);
 
   const post = useCallback(
-    async (body: Record<string, unknown>): Promise<ParticipantsResponse | null> => {
+    async (body: Record<string, unknown>): Promise<JoinResponse | null> => {
       const res = await fetch(`${base}/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ source, ...body }),
+        body: JSON.stringify({ source, locale, ...body }),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         throw new Error(j?.error?.message || j?.message || t("share.participants.error"));
       }
-      return (await res.json()) as ParticipantsResponse;
+      const next = (await res.json()) as JoinResponse;
+      publishParticipants(shareToken, next);
+      return next;
     },
-    [base, source, t],
+    [base, source, locale, shareToken, t],
   );
 
   const join = useCallback(async () => {
@@ -185,6 +200,7 @@ export default function ParticipantsBar({
     try {
       const next = await post({ action: "update", email: value });
       if (next) setData(next);
+      if (next?.plan_email) setPlanEmail({ outcome: next.plan_email, to: value });
       setStep("done");
     } catch (e) {
       setError(e instanceof Error ? e.message : t("share.participants.error"));
@@ -410,6 +426,15 @@ export default function ParticipantsBar({
       )}
       {joined && step === "done" && (
         <p className="mt-2 text-xs text-slate-500" data-testid="participants-done">
+          {planEmail && (
+            <>
+              {planEmail.outcome === "sent"
+                ? t("share.planByEmail.sent", { email: planEmail.to })
+                : planEmail.outcome === "already"
+                  ? t("share.planByEmail.already", { email: planEmail.to })
+                  : t("share.planByEmail.notSent")}{" "}
+            </>
+          )}
           {t("share.participants.done")}
         </p>
       )}

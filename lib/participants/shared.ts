@@ -82,6 +82,13 @@ export interface ParticipantsResponse {
   };
 }
 
+/** POST /join's answer: the same, and how the plan email went when an email was typed. */
+export interface JoinResponse extends ParticipantsResponse {
+  plan_email?: PlanEmailOutcome;
+}
+
+export type PlanEmailOutcome = "sent" | "already" | "not_sent";
+
 export const PUBLIC_NAMES_MAX = 8;
 
 /**

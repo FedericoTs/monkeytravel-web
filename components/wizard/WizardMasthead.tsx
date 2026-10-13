@@ -5,7 +5,7 @@ import type { MastheadVariant } from "@/lib/wizard/entry-state";
 
 interface WizardMastheadProps {
   variant: MastheadVariant;
-  /** Read only by the prefill variant — the article's destination. */
+  /** Read only by the prefill variant — the destination a link carried in. */
   destination?: string | null;
   /** Real aggregate from /api/wizard/planning-stats; null until it resolves. */
   plannedStat: number | null;
@@ -23,7 +23,7 @@ interface WizardMastheadProps {
  * hydration:
  *   cold      — anonymous or returning arrivals
  *   firstRun  — a brand-new account (?auth_event=signup_email|signup_google)
- *   prefill   — a blog CTA carried a destination in
+ *   prefill   — a link carried a destination in (a blog CTA, a trip page)
  *
  * The proof line keeps a reserved 20px slot so the count arriving from the
  * network shifts nothing (this page has a CLS history). Coral is decoration

@@ -934,6 +934,8 @@ export default function NewTripPage({
       prefilled_vibes: vibes,
       has_destination: Boolean(prefilledDestination || searchParams?.get("destination")),
       multi_city: Boolean(isMultiDeeplink),
+      // A public trip page's "plan one like this" carries its length too.
+      from: searchParams?.get("from") === "trip" ? "trip" : "article",
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

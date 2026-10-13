@@ -1441,6 +1441,26 @@
     "crewPrompt": {
       "title": "Your friend wants your vote",
       "body": "Give each idea a thumbs up or down — no account needed."
+    },
+    "planByEmail": {
+      "title": "Coming on this trip?",
+      "body": "Say you're in and we'll email you the plan, so it's there when you need it.",
+      "titleJoined": "Want the plan in your inbox?",
+      "bodyJoined": "We'll email you the link, so it's there when you need it.",
+      "emailLabel": "Your email",
+      "submit": "I'm coming — send me the plan",
+      "submitJoined": "Send me the plan",
+      "sending": "Sending…",
+      "sent": "The plan is on its way to {email}.",
+      "already": "We already sent the plan to {email}.",
+      "notSent": "We couldn't email the plan just now.",
+      "privacy": "Only for this trip's plan. No newsletters, ever.",
+      "invalidEmail": "That email address doesn't look right."
+    },
+    "planLikeThis": {
+      "lead": "Want a trip like this one?",
+      "button": "✨ Plan your own {days, plural, one {# day} other {# days}} in {destination} — free",
+      "short": "Plan one like this"
     }
   },
   "proposals": {
@@ -2727,5 +2747,13 @@
     "bodyDestination": "You started planning a trip to {destination}. Finish it and you'll have a day-by-day plan in about a minute. You can change anything afterwards.",
     "cta": "Plan my trip",
     "signoff": "The MonkeyTravel Team"
+  },
+  "participantPlanEmail": {
+    "heading": "{destination}: here's the plan",
+    "intro": "You said you're going. The plan changes as the group plans, so open it any time to see what's next and vote on the activities you like.",
+    "digest": "During the trip, we'll also email you the next day's plan, the day before.",
+    "cta": "Open the plan",
+    "footerReason": "You're getting this because you said you're going on this trip and gave us this address.",
+    "footerLink": "Stop emails about this trip"
   }
 }

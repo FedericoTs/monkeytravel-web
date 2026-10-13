@@ -80,6 +80,7 @@ const POISON = [
   "tripFollowupEmail.",
   "tripDayDigestEmail.",
   "finishTripEmail.",
+  "participantPlanEmail.",
   "emailContext.",
   "{destination}",
   "undefined",
