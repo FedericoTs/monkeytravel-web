@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Check, Copy, Loader2, Mail, MessageCircle, Plus, Send, Share2 } from "lucide-react";
 import { captureCoPlannerInviteSent } from "@/lib/posthog/events";
+import { canShareNatively, openWhatsApp } from "@/lib/share/channels";
 
 export type CoPlannerChannel = "native" | "whatsapp" | "copy" | "email";
 
@@ -26,18 +27,6 @@ interface Row {
 
 const MAX_ROWS = 8;
 const blankRow = (key: number): Row => ({ key, name: "", email: "", showEmail: false, status: "idle" });
-
-/** Phones get their share sheet; elsewhere WhatsApp (web or desktop) is the target. */
-function canShareNatively(): boolean {
-  return (
-    typeof navigator !== "undefined" &&
-    typeof navigator.share === "function" &&
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(pointer: coarse)").matches === true
-  );
-}
-
-const whatsappUrl = (message: string) => `https://wa.me/?text=${encodeURIComponent(message)}`;
 
 export interface CoPlannerInvitesProps {
   tripId: string;
@@ -77,8 +66,7 @@ export default function CoPlannerInvites({ tripId, tripTitle, surface, onSent }:
         return;
       }
     }
-    const opened = window.open(whatsappUrl(message), "_blank", "noopener,noreferrer");
-    if (opened || via === "whatsapp") markSent(row, "whatsapp", message);
+    if (openWhatsApp(message) || via === "whatsapp") markSent(row, "whatsapp", message);
     else update(row.key, { status: "ready", message });
   };
 

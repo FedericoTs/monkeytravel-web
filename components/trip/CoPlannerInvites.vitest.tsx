@@ -78,6 +78,9 @@ describe("CoPlannerInvites", () => {
 
     await screen.findByText("Sent to Marco");
     expect(posted).toEqual([{ role: "editor" }]);
+    // No window features: with "noopener" a browser returns null for a window
+    // that opened, and the invite would read as blocked, never as sent.
+    expect(open.mock.calls[0]).toHaveLength(2);
     const url = new URL(String(open.mock.calls[0][0]));
     expect(url.origin + url.pathname).toBe("https://wa.me/");
     const text = url.searchParams.get("text") ?? "";

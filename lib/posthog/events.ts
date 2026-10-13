@@ -1244,3 +1244,8 @@ export async function captureAnonShareCopied(
 ) {
   return capture("anon_share_copied", event);
 }
+
+/** The link left with its message: the share sheet took it, or WhatsApp opened with it. */
+export async function captureAnonShareSent(event: AnonShareEvent & { channel: "native" | "whatsapp" }) {
+  return capture("anon_share_sent", event);
+}
