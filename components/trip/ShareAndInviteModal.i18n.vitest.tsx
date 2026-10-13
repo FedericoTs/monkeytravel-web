@@ -89,8 +89,23 @@ describe("ShareAndInviteModal in Italian", () => {
     await waitFor(() => expect(addToast).toHaveBeenCalledWith("Ruolo aggiornato a Votante", "success"));
   });
 
+  it("leads with the named co-planners and makes a single invite an editor by default", async () => {
+    renderInviteTab();
+    expect(screen.getByText(itCommon.share.coplanners.title)).toBeTruthy();
+    expect(screen.queryByPlaceholderText("friend@example.com")).toBeNull();
+    fireEvent.click(screen.getByText(itCommon.share.coplanners.moreOptions));
+    fireEvent.change(screen.getByPlaceholderText("friend@example.com"), { target: { value: "bea@example.com" } });
+    fireEvent.click(screen.getByText(itCommon.share.inviteEmail.send));
+    await waitFor(() => {
+      const post = vi.mocked(fetch).mock.calls.find(([url, init]) => String(url).endsWith("/invites") && init?.method === "POST");
+      expect(JSON.parse(String(post?.[1]?.body)).role).toBe("editor");
+    });
+  });
+
   it("says a typed address is wrong instead of showing the route's English", async () => {
     renderInviteTab();
+    // The single email invite sits under "More invite options", below the named co-planners.
+    fireEvent.click(screen.getByText(itCommon.share.coplanners.moreOptions));
     fireEvent.change(screen.getByPlaceholderText("friend@example.com"), { target: { value: "bea@" } });
     fireEvent.click(screen.getByText(itCommon.share.inviteEmail.send));
     await waitFor(() => expect(addToast).toHaveBeenCalledWith(itCommon.share.toast.inviteEmailInvalid, "error"));

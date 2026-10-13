@@ -18,6 +18,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { openExternal } from "@/lib/native/external-link";
 import { shareFile } from "@/lib/native/share";
 import { captureTripCardShared } from "@/lib/posthog/events";
+import CoPlannerInvites from "@/components/trip/CoPlannerInvites";
 import { tripCardPath } from "@/lib/seo/og-image";
 import { defaultShareFraming, framedShareUrl, shareTokenFromUrl, type ShareFraming } from "@/lib/trips/crew-share";
 import type { TripCollaborator, TripInvite, CollaboratorRole } from "@/types";
@@ -104,8 +105,12 @@ export default function ShareAndInviteModal({
   // Toast notifications
   const { addToast } = useToast();
 
-  // Invite state
-  const [selectedRole, setSelectedRole] = useState<Exclude<CollaboratorRole, "owner">>("voter");
+  // Invite state. Editor by default: an invite to plan together is the one
+  // people accept; a voter or viewer invite rarely is.
+  const [selectedRole, setSelectedRole] = useState<Exclude<CollaboratorRole, "owner">>("editor");
+  // The role, email and single-link controls sit behind "More invite
+  // options", under the named co-planner invites.
+  const [showMoreInviteOptions, setShowMoreInviteOptions] = useState(false);
   const [collaborators, setCollaborators] = useState<TripCollaborator[]>([]);
   const [pendingInvites, setPendingInvites] = useState<(TripInvite & { inviteUrl: string })[]>([]);
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
@@ -711,6 +716,19 @@ export default function ShareAndInviteModal({
             ) : (
               // INVITE TAB - Collaboration
               <div className="space-y-6">
+                <CoPlannerInvites tripId={tripId} tripTitle={tripTitle} surface="invite_tab" />
+
+                <button
+                  type="button"
+                  onClick={() => setShowMoreInviteOptions((open) => !open)}
+                  aria-expanded={showMoreInviteOptions}
+                  className="text-sm font-medium text-slate-700 underline-offset-2 hover:text-slate-900 hover:underline"
+                >
+                  {ts("coplanners.moreOptions")}
+                </button>
+
+                {showMoreInviteOptions && (
+                <>
                 {/* Context hint */}
                 <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100">
                   <UserPlus className="w-4 h-4 text-[var(--primary-ink)] flex-shrink-0" />
@@ -860,6 +878,8 @@ export default function ShareAndInviteModal({
                       {ts("invite.generateAnother")}
                     </button>
                   </div>
+                )}
+                </>
                 )}
 
                 {/* Current Collaborators */}

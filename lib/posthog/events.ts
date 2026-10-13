@@ -659,6 +659,19 @@ export async function captureShareLinkCopied(event: {
 }
 
 /**
+ * A named co-planner invite left the app: the share sheet or WhatsApp opened
+ * with it, the message was copied, or the invite was emailed.
+ */
+export async function captureCoPlannerInviteSent(event: {
+  trip_id: string;
+  channel: "native" | "whatsapp" | "copy" | "email";
+  surface: "first_day_prompt" | "invite_tab";
+}) {
+  const ph = await getPosthog();
+  ph.capture("coplanner_invite_sent", event);
+}
+
+/**
  * Fires when the trip card image leaves the app: the OS share sheet closed on
  * a send, or the file was downloaded.
  */

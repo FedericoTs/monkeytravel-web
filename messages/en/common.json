@@ -1153,6 +1153,28 @@
     }
   },
   "share": {
+    "coplanners": {
+      "title": "Who's planning this with you?",
+      "subtitle": "Add the people coming. Each gets their own link to see the plan and add their ideas.",
+      "namePlaceholder": "Their name",
+      "nameLabel": "Name of person {n}",
+      "emailPlaceholder": "Their email",
+      "emailLabel": "Email of person {n}",
+      "emailInstead": "Send by email instead",
+      "send": "Send",
+      "sending": "Creating link…",
+      "share": "Share",
+      "whatsapp": "WhatsApp",
+      "copy": "Copy message",
+      "copied": "Copied",
+      "sent": "Sent to {name}",
+      "emailed": "Emailed {name}",
+      "failed": "That didn't work. Try again.",
+      "addSomeone": "Add someone",
+      "message": "Hi {name}! I'm planning our trip on MonkeyTravel: {title}. Here's the plan, add your ideas: {url}",
+      "orViewOnly": "Or send one view-only link to the group",
+      "moreOptions": "More invite options"
+    },
     "title": "Share Trip",
     "titleWithInvite": "Share & Invite",
     "shareLink": "Share Link",

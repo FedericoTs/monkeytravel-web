@@ -1153,6 +1153,28 @@
     }
   },
   "share": {
+    "coplanners": {
+      "title": "Quem está planejando isso com você?",
+      "subtitle": "Adicione quem vai. Cada pessoa recebe o próprio link para ver o roteiro e dar ideias.",
+      "namePlaceholder": "Nome da pessoa",
+      "nameLabel": "Nome da pessoa {n}",
+      "emailPlaceholder": "E-mail da pessoa",
+      "emailLabel": "E-mail da pessoa {n}",
+      "emailInstead": "Enviar por e-mail",
+      "send": "Enviar",
+      "sending": "Criando link…",
+      "share": "Compartilhar",
+      "whatsapp": "WhatsApp",
+      "copy": "Copiar mensagem",
+      "copied": "Copiado",
+      "sent": "Enviado para {name}",
+      "emailed": "E-mail enviado para {name}",
+      "failed": "Não deu certo. Tente de novo.",
+      "addSomeone": "Adicionar alguém",
+      "message": "Oi, {name}! Estou planejando nossa viagem no MonkeyTravel: {title}. Aqui está o roteiro, coloque suas ideias: {url}",
+      "orViewOnly": "Ou envie um único link só de visualização para o grupo",
+      "moreOptions": "Mais opções de convite"
+    },
     "title": "Compartilhar Viagem",
     "titleWithInvite": "Compartilhar e Convidar",
     "shareLink": "Link de Compartilhamento",
