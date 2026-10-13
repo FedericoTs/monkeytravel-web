@@ -69,10 +69,20 @@ interface Props {
    * to its ready state and shows the same link.
    */
   existingShareUrl?: string | null;
+  /** "primary" makes it the main button, as the crew-first result test does. */
+  emphasis?: "primary" | "secondary";
   className?: string;
 }
 
-export default function AnonymousShareButton({ trip, onShared, onKeep, existingShareUrl, mode = "share", className = "" }: Props) {
+export default function AnonymousShareButton({
+  trip,
+  onShared,
+  onKeep,
+  existingShareUrl,
+  mode = "share",
+  emphasis = "secondary",
+  className = "",
+}: Props) {
   const crew = mode === "crew";
   const t = useTranslations("trips");
   const [state, setState] = useState<"idle" | "creating" | "ready" | "error">("idle");
@@ -297,7 +307,11 @@ export default function AnonymousShareButton({ trip, onShared, onKeep, existingS
         type="button"
         onClick={handleShare}
         disabled={effectiveState === "creating"}
-        className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-2.5 font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+        className={
+          emphasis === "primary"
+            ? "flex items-center justify-center gap-2 rounded-xl bg-[var(--secondary-ink)] px-6 py-2.5 font-semibold text-white shadow-lg shadow-[var(--secondary)]/25 transition-colors hover:bg-[var(--secondary-ink)]/90 disabled:opacity-50"
+            : "flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-2.5 font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+        }
       >
         {effectiveState === "creating" ? (
           <>

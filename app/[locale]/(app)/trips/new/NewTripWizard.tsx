@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, type SetStateAction } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, type SetStateAction } from "react";
 import { sanitizeIsoDate, maxTripStartDate } from "@/lib/dates/iso-date";
 import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/lib/i18n/routing";
@@ -216,6 +216,7 @@ import {
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
 import { claimTripCreatedEmit } from "@/lib/analytics/tripCreatedDedup";
 import { usePostHog } from "@/lib/posthog";
+import { resultCrewFirstArm, type ResultVariant } from "@/lib/experiments/result-crew-first";
 import { landingAttribution, trackWizardEvent, type WizardEventStep } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip, type AutoSaveSkipReason } from "@/hooks/useAutoSaveTrip";
 import { useHasExistingTrips } from "@/hooks/useHasExistingTrips";
@@ -1499,6 +1500,15 @@ export default function NewTripPage({
   // A share link minted in THIS session, shared by every AnonymousShareButton
   // on screen so only one ownerless trip is ever created.
   const [sessionShareUrl, setSessionShareUrl] = useState<string | null>(null);
+  // The result-screen test (lib/experiments/result-crew-first.ts): a signed-out
+  // planner of a group trip, holding an unsaved result, sees either today's
+  // screen or one that leads with the crew vote. The arm is kept per browser.
+  const crewFirstEligible = isAuthenticated === false && tripIntent === "group" && !!generatedItinerary && !savedTripId;
+  const resultVariant = useMemo<ResultVariant | null>(
+    () => (crewFirstEligible ? resultCrewFirstArm().variant : null),
+    [crewFirstEligible]
+  );
+  const crewFirst = resultVariant === "crew_first";
   const [authPromptLocation, setAuthPromptLocation] = useState<AuthPromptLocation>("wizard_save");
   // Save (default) or the anonymous free-generation cap: same sign-up, the
   // modal words it for why we're asking.
@@ -2428,12 +2438,15 @@ export default function NewTripPage({
                 ) + 1
               )
             : undefined;
+        const crewArm = isAuthenticated === false && tripIntent === "group" ? resultCrewFirstArm() : null;
+        if (crewArm?.inTest) posthog?.register({ result_variant: crewArm.variant });
         void trackWizardEvent("result", {
           destination,
           duration_days: durationDaysResult,
           group_size: tripIntent,
           backpacker_mode: travelStyle === "backpacker",
           locale,
+          ...(crewArm?.inTest ? { result_variant: crewArm.variant } : {}),
         });
         // Itinerary-level first value — the "first magical output" row the
         // funnel SQL reads alongside `result`.
@@ -3390,7 +3403,11 @@ export default function NewTripPage({
                 <button
                   onClick={handleSaveTrip}
                   disabled={loading}
-                  className="bg-[var(--secondary-ink)] text-white px-6 py-2.5 rounded-xl font-medium hover:bg-[var(--secondary-ink)]/90 transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
+                  className={
+                    crewFirst
+                      ? "border border-[var(--secondary)] bg-white text-[var(--secondary-ink)] px-6 py-2.5 rounded-xl font-medium hover:bg-[var(--secondary)]/5 transition-colors disabled:opacity-50 flex items-center gap-2"
+                      : "bg-[var(--secondary-ink)] text-white px-6 py-2.5 rounded-xl font-medium hover:bg-[var(--secondary-ink)]/90 transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
+                  }
                 >
                   {loading ? (
                     <>
@@ -3427,6 +3444,7 @@ export default function NewTripPage({
                   onKeep={handleKeepSharedTrip}
                   mode={tripIntent === "group" ? "crew" : "share"}
                   existingShareUrl={sessionShareUrl}
+                  emphasis={crewFirst ? "primary" : "secondary"}
                   trip={{
                     title: tripTitle,
                     description: generatedItinerary.destination.description,
@@ -3473,6 +3491,7 @@ export default function NewTripPage({
               onKeep={handleKeepSharedTrip}
               mode={tripIntent === "group" ? "crew" : "share"}
               existingShareUrl={sessionShareUrl}
+              emphasis={crewFirst ? "primary" : "secondary"}
               className="mb-2"
               trip={{
                 title: tripTitle,
@@ -3552,7 +3571,11 @@ export default function NewTripPage({
               <button
                 onClick={handleSaveTrip}
                 disabled={loading}
-                className="flex-1 bg-[var(--secondary-ink)] text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
+                className={
+                  crewFirst
+                    ? "flex-1 border border-[var(--secondary)] bg-white text-[var(--secondary-ink)] py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    : "flex-1 bg-[var(--secondary-ink)] text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
+                }
               >
                 {loading ? (
                   <>
@@ -3805,6 +3828,33 @@ export default function NewTripPage({
                 </div>
               </div>
             </div>
+          )}
+
+          {crewFirst && generatedItinerary && (
+            <section
+              data-testid="crew-first-card"
+              className="mb-6 rounded-2xl border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 p-4 sm:p-5"
+            >
+              <h2 className="text-base font-semibold text-slate-900">{t("wizard.result.crewFirst.title")}</h2>
+              <p className="mt-1 text-sm text-slate-700">{t("wizard.result.crewFirst.body")}</p>
+              <ShareButtonView
+                onShared={handleAnonShared}
+                onKeep={handleKeepSharedTrip}
+                mode="crew"
+                existingShareUrl={sessionShareUrl}
+                emphasis="primary"
+                className="mt-3"
+                trip={{
+                  title: tripTitle,
+                  description: generatedItinerary.destination.description,
+                  destination,
+                  startDate,
+                  endDate,
+                  itinerary: generatedItinerary.days,
+                  locale: generatedItinerary.language ?? locale,
+                }}
+              />
+            </section>
           )}
 
           {/* Value Proposition Banner - Positioned before schedule to encourage save */}
