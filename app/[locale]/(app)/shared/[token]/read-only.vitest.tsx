@@ -27,7 +27,17 @@ vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams()
 vi.mock("next/image", () => ({ default: () => null }));
 vi.mock("next/dynamic", () => ({ default: () => () => null }));
 vi.mock("@/lib/i18n/routing", () => ({
-  Link: ({ href, children }: { href: string; children: ReactNode }) => <a href={href}>{children}</a>,
+  Link: ({ href, children, onClick }: { href: string; children: ReactNode; onClick?: () => void }) => (
+    <a
+      href={href}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick?.();
+      }}
+    >
+      {children}
+    </a>
+  ),
 }));
 vi.mock("@/hooks/useCssVarHeight", () => ({ useCssVarHeight: () => {} }));
 vi.mock("@/lib/analytics", () => ({ trackShareLinkClicked: () => {} }));
@@ -70,7 +80,19 @@ vi.mock("@/components/trip/WhoIsGoingCard", () => ({ default: () => <div data-te
 vi.mock("@/components/trip/ParticipantsBar", () => ({
   default: ({ shareToken }: { shareToken: string }) => <div data-testid="participants-bar" data-token={shareToken} />,
 }));
-vi.mock("@/components/trip/AnonymousActivityVoteBar", () => ({ AnonymousActivityVoteBar: () => <div data-testid="vote-bar" /> }));
+vi.mock("@/components/trip/AnonymousActivityVoteBar", () => ({
+  AnonymousActivityVoteBar: ({
+    activityId,
+    onVote,
+  }: {
+    activityId: string;
+    onVote: (vote: { activityId: string; voteType: "up" | "down" | null }) => void;
+  }) => (
+    <div data-testid="vote-bar">
+      <button onClick={() => onVote({ activityId, voteType: "up" })}>{`vote for ${activityId}`}</button>
+    </div>
+  ),
+}));
 vi.mock("@/components/trip/TodayView", () => ({
   default: ({ apiBase }: { apiBase?: string }) => <div data-testid="today-view" data-api-base={apiBase ?? "none"} />,
 }));
@@ -112,6 +134,8 @@ const trip = {
 };
 
 let fetched: string[];
+/** Bodies sent to /api/funnel-event. */
+let funnel: Array<Record<string, unknown>>;
 
 function renderView({
   token,
@@ -143,10 +167,16 @@ beforeEach(() => {
   state.pending = null;
   state.prefsSet = [];
   fetched = [];
+  funnel = [];
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (url: string) => {
+    vi.fn(async (url: string, init?: RequestInit) => {
       fetched.push(String(url));
+      if (String(url).endsWith("/vote")) {
+        const body = JSON.parse(String(init?.body));
+        return new Response(JSON.stringify({ activity_id: body.activity_id, up: 1, down: 0, myVote: body.vote_type }), { status: 200 });
+      }
+      if (String(url) === "/api/funnel-event") funnel.push(JSON.parse(String(init?.body)));
       return new Response(JSON.stringify({ tallies: {}, myVotes: {} }), { status: 200 });
     }),
   );
@@ -263,5 +293,42 @@ describe("what the end of the page asks", { timeout: 20_000 }, () => {
     renderView({ shown: { ...trip, itinerary: Array.from({ length: 15 }, (_, i) => tramDay(i + 1)) as never } });
     expect(linkFor("share.planLikeThis.short", screen.getByTestId("public-trip-actions"))).toBe("/trips/new?destination=Lisbon");
     expect(within(screen.getByTestId("recipient-footer-cta")).getByText("share.savedHero.planOwnButton")).toBeTruthy();
+  });
+});
+
+describe("after a guest votes", { timeout: 20_000 }, () => {
+  it("offers a plan of their own once, under the activity they voted on, and says which button it was", async () => {
+    renderView({ token: TOKEN });
+    expect(screen.queryByTestId("after-vote-plan-own")).toBeNull();
+    fireEvent.click(screen.getByText("vote for a1"));
+    const nudge = await screen.findByTestId("after-vote-plan-own");
+    expect(within(nudge).getByText("shared.vote.afterVote.cta").closest("a")?.getAttribute("href")).toBe("/trips/new?destination=Lisbon");
+    fireEvent.click(within(nudge).getByText("shared.vote.afterVote.cta"));
+    expect(funnel).toEqual([expect.objectContaining({ event_type: "plan_own_clicked", trip_id: "trip-1", surface: "after_vote" })]);
+
+    // Closed, it stays closed for the rest of the visit, however much they vote.
+    fireEvent.click(within(nudge).getByLabelText("buttons.close"));
+    expect(screen.queryByTestId("after-vote-plan-own")).toBeNull();
+    fireEvent.click(screen.getByText("vote for a1"));
+    await waitFor(() => expect(fetched.filter((u) => u.endsWith("/vote"))).toHaveLength(2));
+    expect(screen.queryByTestId("after-vote-plan-own")).toBeNull();
+  });
+
+  it("does not offer it to the trip's owner", async () => {
+    renderView({ token: TOKEN, isOwner: true });
+    fireEvent.click(screen.getByText("vote for a1"));
+    await waitFor(() => expect(fetched.some((u) => u.endsWith("/vote"))).toBe(true));
+    expect(screen.queryByTestId("after-vote-plan-own")).toBeNull();
+  });
+
+  it("names each plan-own button in its click", () => {
+    renderView({});
+    fireEvent.click(within(screen.getByTestId("public-trip-actions")).getByText("share.planLikeThis.short"));
+    fireEvent.click(within(screen.getByTestId("recipient-footer-cta")).getByText("share.planLikeThis.button"));
+    fireEvent.click(screen.getByText("share.savedHero.planOwnButtonGeneric"));
+    cleanup();
+    renderView({ token: TOKEN });
+    fireEvent.click(within(screen.getByTestId("recipient-footer-cta")).getByText("share.savedHero.planOwnButton"));
+    expect(funnel.map((e) => e.surface)).toEqual(["public_top", "public_footer", "page_footer", "shared_footer"]);
   });
 });

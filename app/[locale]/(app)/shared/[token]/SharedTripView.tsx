@@ -55,6 +55,8 @@ interface VoteApiResponse {
   myVote: MyVote;
 }
 
+type PlanOwnSurface = "shared_footer" | "public_footer" | "public_top" | "after_vote" | "page_footer" | "bottom_bar";
+
 interface VotesHydrationResponse {
   tallies: Record<string, VoteTally>;
   myVotes: Record<string, "up" | "down">;
@@ -329,6 +331,12 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
     };
   }, [shareToken]);
 
+  // A guest's first vote is when the plan has been worth their time: the one
+  // moment, once per visit, to say they can have a plan like it for a trip of
+  // their own. Under that activity, never as a popup.
+  const [afterVoteId, setAfterVoteId] = useState<string | null>(null);
+  const afterVoteAsked = useRef(false);
+
   const handleVote = async ({
     activityId,
     voteType,
@@ -383,6 +391,10 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
       // Either we just collected a name, or the user skipped — either way
       // they've been through the prompt and shouldn't see it again.
       setHasDisplayName(true);
+      if (!afterVoteAsked.current && data.myVote !== null && !isOwner) {
+        afterVoteAsked.current = true;
+        setAfterVoteId(data.activity_id);
+      }
       // Capacitor-only haptic confirmation; a no-op on the web.
       hapticMedium();
     } catch {
@@ -465,9 +477,9 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
   // The crew loop's last measured hop — a /shared visitor converting to plan
   // their OWN trip. Fire-and-forget with keepalive so the event survives the
   // same-origin navigation the <Link> triggers (same pattern as
-  // trackWizardEvent). Wired to every plan-own link (the bottom CTA or sticky
-  // bar, and the footer). Never blocks navigation.
-  const firePlanOwnClicked = () => {
+  // trackWizardEvent). Wired to every plan-own link, and `surface` says which
+  // one was pressed. Never blocks navigation.
+  const firePlanOwnClicked = (surface: PlanOwnSurface) => {
     try {
       void fetch("/api/funnel-event", {
         method: "POST",
@@ -477,6 +489,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
           trip_id: trip.id,
           destination: destination || undefined,
           referral_code: referralCode || undefined,
+          surface,
         }),
         keepalive: true,
       });
@@ -484,6 +497,32 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
       // telemetry must never block the visitor's navigation
     }
   };
+
+  const afterVoteNudge = (
+    <div
+      data-testid="after-vote-plan-own"
+      className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-[var(--background-warm)] px-3 py-2"
+    >
+      <p className="text-xs text-slate-700">{t("shared.vote.afterVote.text")}</p>
+      <div className="flex shrink-0 items-center gap-1">
+        <Link
+          href={planOwnHref}
+          onClick={() => firePlanOwnClicked("after_vote")}
+          className="text-xs font-semibold text-slate-900 underline underline-offset-2"
+        >
+          {t("shared.vote.afterVote.cta")}
+        </Link>
+        <button
+          type="button"
+          onClick={() => setAfterVoteId(null)}
+          aria-label={t("buttons.close")}
+          className="px-1 text-sm leading-none text-slate-500 hover:text-slate-700"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  );
 
   // Memoize ensureActivityIds to prevent generating new UUIDs on every render
   const displayItinerary = useMemo(
@@ -589,7 +628,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
                 </button>
                 <Link
                   href={planOwnHref}
-                  onClick={firePlanOwnClicked}
+                  onClick={() => firePlanOwnClicked("public_top")}
                   data-testid="public-plan-like-this"
                   className="inline-flex min-h-[40px] items-center rounded-xl bg-[var(--primary)] px-4 text-sm font-semibold text-white hover:bg-[var(--primary-dark)]"
                 >
@@ -851,6 +890,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
                                     pending={pendingVoteId === voteActivityId}
                                     onVote={handleVote}
                                   />
+                                  {afterVoteId === voteActivityId && afterVoteNudge}
                                 </div>
                               )}
                               {/* Travel connector to next activity */}
@@ -943,6 +983,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
                                         pending={pendingVoteId === activity.id}
                                         onVote={handleVote}
                                       />
+                                      {afterVoteId === activity.id && afterVoteNudge}
                                     </div>
                                   )}
                                 </div>
@@ -1094,7 +1135,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href={planOwnHref}
-                onClick={firePlanOwnClicked}
+                onClick={() => firePlanOwnClicked(shareToken ? "shared_footer" : "public_footer")}
                 className={
                   shareToken
                     ? "inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
@@ -1133,7 +1174,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
                 </button>
                 <Link
                   href={planOwnHref}
-                  onClick={firePlanOwnClicked}
+                  onClick={() => firePlanOwnClicked("bottom_bar")}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 text-center"
                 >
                   {destination
@@ -1180,7 +1221,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
             </p>
             <Link
               href={planOwnHref}
-              onClick={firePlanOwnClicked}
+              onClick={() => firePlanOwnClicked("page_footer")}
               className="text-sm text-[var(--primary-ink)] hover:underline font-medium"
             >
               {t("share.savedHero.planOwnButtonGeneric")}

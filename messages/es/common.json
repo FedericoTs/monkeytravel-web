@@ -285,7 +285,11 @@
       "nameHint": "(para que quien creó el viaje sepa quién votó)",
       "namePlaceholder": "Sara",
       "submit": "Votar",
-      "skip": "Omitir"
+      "skip": "Omitir",
+      "afterVote": {
+        "text": "¿Planeas un viaje propio? Consigue un plan como este en un minuto.",
+        "cta": "Planear el mío, gratis"
+      }
     },
     "metaDescription": "Echa un vistazo a este itinerario de viaje en MonkeyTravel",
     "unavailable": {
