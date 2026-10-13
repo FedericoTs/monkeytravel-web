@@ -259,6 +259,16 @@ const reminderJobs: Job[] = REMINDER_SLOTS.map((slot) => {
     tripUrl: `${APP}/trips/SAMPLE`,
     locale: L,
     contextBlocks: ctxFor(slot),
+    // The cron adds this to these two slots on a group trip nobody has yet.
+    ...(slot === "pack_early_14d" || slot === "visa_check_7d"
+      ? {
+          groupAsk: {
+            text: reminderCopy.groupAsk.text,
+            label: reminderCopy.groupAsk.cta,
+            url: `${APP}/trips/SAMPLE?slot=${slot}&share=invite`,
+          },
+        }
+      : {}),
   };
   return {
     label: `trip_reminder:${slot}`,

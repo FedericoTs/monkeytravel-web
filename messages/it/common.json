@@ -2552,6 +2552,10 @@
   },
   "tripReminderEmail": {
     "cta": "Apri il tuo viaggio",
+    "groupAsk": {
+      "text": "Chi viene con te ha già il piano? Aggiungili, così possono vederlo e proporre le loro idee.",
+      "cta": "Aggiungi chi viene"
+    },
     "pack_early_14d": {
       "heading": "Due settimane al via",
       "body": "Il tuo viaggio a {destination} è tra due settimane. Momento perfetto per controllare il passaporto, abbozzare la lista bagaglio e prenotare i voli o gli hotel che stavi tenendo d'occhio.",

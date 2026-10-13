@@ -30,6 +30,16 @@ describe("emailClickFromUrl", () => {
     expect(emailClickFromUrl(at(`/trips/${TRIP}`))).toBeNull();
   });
 
+  it("tells the reminder's 'add the people coming' button from its main one", () => {
+    expect(emailClickFromUrl(at(`/trips/${TRIP}?slot=pack_early_14d&share=invite`))).toEqual({
+      slot: "pack_early_14d",
+      page: "trip",
+      tripId: TRIP,
+      share: "invite",
+    });
+    expect(emailClickFromUrl(at(`/trips/${TRIP}?slot=pack_early_14d&share=other`))).not.toHaveProperty("share");
+  });
+
   it("does not take a share token or a malformed id as the trip", () => {
     expect(emailClickFromUrl(at("/shared/tok123?slot=confirm_1d"))?.tripId).toBeNull();
     expect(emailClickFromUrl(at("/trips/not-a-uuid?slot=confirm_1d"))).toEqual({ slot: "confirm_1d", page: "other", tripId: null });
@@ -69,6 +79,11 @@ describe("trackEmailClick", () => {
       session_id: "sess-1",
       metadata: { slot: "in_trip_day_9", page: "trip", signed_in: true, navigate: true },
     });
+  });
+
+  it("records which button it was when the link says", () => {
+    trackEmailClick(request(`/trips/${TRIP}?slot=visa_check_7d&share=invite`), "sess-1", "user-1");
+    expect(body().metadata).toEqual({ slot: "visa_check_7d", page: "trip", signed_in: true, navigate: true, share: "invite" });
   });
 
   it("marks a click without a session, and one without fetch metadata", () => {

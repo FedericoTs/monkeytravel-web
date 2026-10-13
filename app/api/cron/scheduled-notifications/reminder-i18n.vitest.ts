@@ -183,6 +183,11 @@ describe("next-intl itself resolves the reminder copy", () => {
         namespace: "common.tripReminderEmail",
       });
       expect(ctaT("cta")).not.toContain("tripReminderEmail.");
+      // The group ask on the two early slots, read from the same root.
+      for (const key of ["groupAsk.text", "groupAsk.cta"]) {
+        expect(ctaT(key), `${locale} ${key}`).not.toContain("tripReminderEmail.");
+        expect(ctaT(key).trim().length, `${locale} ${key}`).toBeGreaterThan(0);
+      }
     });
   }
 
@@ -229,6 +234,13 @@ describe("the cron asks for the prefixed namespace", () => {
 
   it("uses common.tripReminderEmail", () => {
     expect(source).toContain('"common.tripReminderEmail"');
+  });
+
+  it("asks to add the people coming only on the two early slots of a group trip nobody has yet", () => {
+    expect(source).toMatch(/GROUP_ASK_SLOTS = new Set<string>\(\["pack_early_14d", "visa_check_7d"\]\)/);
+    expect(source).toMatch(/GROUP_ASK_SLOTS\.has\(row\.slot\) && trip\.trip_intent === "group" && !trip\.shared_at/);
+    expect(source).toMatch(/\.from\("trip_invites"\)/);
+    expect(source).toMatch(/\?slot=\$\{row\.slot\}&share=invite/);
   });
 
   it("never asks for the bare tripReminderEmail namespace", () => {

@@ -2552,6 +2552,10 @@
   },
   "tripReminderEmail": {
     "cta": "Open your trip",
+    "groupAsk": {
+      "text": "Does everyone coming have the plan yet? Add them, so they can see it and add their ideas.",
+      "cta": "Add the people coming"
+    },
     "pack_early_14d": {
       "heading": "Two weeks to go",
       "body": "Your {destination} trip is two weeks away. A great time to make sure your passport is valid, draft your packing list, and lock in any flights or hotels you've been eyeing.",

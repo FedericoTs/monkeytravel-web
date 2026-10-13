@@ -2552,6 +2552,10 @@
   },
   "tripReminderEmail": {
     "cta": "Abre tu viaje",
+    "groupAsk": {
+      "text": "¿Ya tienen el plan todos los que vienen? Añádelos para que lo vean y aporten sus ideas.",
+      "cta": "Añade a quienes vienen"
+    },
     "pack_early_14d": {
       "heading": "Dos semanas para el viaje",
       "body": "Tu viaje a {destination} es en dos semanas. Buen momento para revisar el pasaporte, esbozar la lista de equipaje y reservar los vuelos u hoteles que tenías en mente.",

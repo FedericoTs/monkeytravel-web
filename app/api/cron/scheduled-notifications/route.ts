@@ -131,6 +131,13 @@ const CONTEXT_NS = "common.emailContext";
 const DOMESTIC_AWARE_SLOTS = new Set<string>(["visa_check_7d", "pack_early_14d", "confirm_1d"]);
 
 /**
+ * The early reminders that also ask a group trip's organiser to add the
+ * people coming, while nobody else has the plan: most organisers never open
+ * the trip again after the day they make it, so the email is the second ask.
+ */
+const GROUP_ASK_SLOTS = new Set<string>(["pack_early_14d", "visa_check_7d"]);
+
+/**
  * How many days before departure each pre-trip slot is meant to arrive.
  *
  * Mirrors the offsets in enqueue_trip_notifications (latest definition:
@@ -380,6 +387,9 @@ type TripEmailRow = {
   // /shared/<token>, and their language is best-guessed from the trip.
   share_token: string | null;
   trip_locale: string | null;
+  // The group ask: who the trip is for, and whether a share link exists.
+  trip_intent: string | null;
+  shared_at: string | null;
 };
 
 type SlotRow = {
@@ -589,11 +599,12 @@ async function processRow(
   const { data: tripRow, error: tripErr } = await svc
     .from("trips")
     .select(
-      "id, title, start_date, end_date, created_at, reminders_muted, status, deleted_at, itinerary, share_token, " +
+      "id, title, start_date, end_date, created_at, reminders_muted, status, deleted_at, itinerary, share_token, shared_at, " +
         "weather_note:trip_meta->>weather_note, " +
         "highlights:trip_meta->highlights, " +
         "packing_suggestions:trip_meta->packing_suggestions, " +
         "trip_locale:trip_meta->>locale, " +
+        "trip_intent:trip_meta->>trip_intent, " +
         "day1:itinerary->0"
     )
     .eq("id", row.trip_id)
@@ -928,6 +939,23 @@ async function processRow(
       ? ctaT("finalNote")
       : undefined;
 
+  // The group ask (GROUP_ASK_SLOTS): a group trip with no share link and no
+  // invite yet. Optional, so a failed read just leaves it out.
+  let groupAsk: { text: string; label: string; url: string } | undefined;
+  if (!followup && GROUP_ASK_SLOTS.has(row.slot) && trip.trip_intent === "group" && !trip.shared_at) {
+    const { count, error } = await svc
+      .from("trip_invites")
+      .select("id", { count: "exact", head: true })
+      .eq("trip_id", trip.id);
+    if (!error && (count ?? 0) === 0) {
+      groupAsk = {
+        text: ctaT("groupAsk.text"),
+        label: ctaT("groupAsk.cta"),
+        url: `${APP_URL}/trips/${trip.id}?slot=${row.slot}&share=invite`,
+      };
+    }
+  }
+
   // Per-trip enrichment. Built from data the generator already wrote, so
   // this adds no Gemini or Places call. Best-effort by design: a slot with
   // nothing to show renders no block, and a whole family of trips missing
@@ -1012,6 +1040,7 @@ async function processRow(
     body,
     ctaLabel,
     ...(finalNote ? { finalNote } : {}),
+    ...(groupAsk ? { groupAskText: groupAsk.text, groupAskLabel: groupAsk.label } : {}),
   });
   if (unresolved) {
     // Deliberately a failure, not a degraded send. The row stays visible as
@@ -1054,6 +1083,7 @@ async function processRow(
           ctaLabel,
           tripUrl,
           contextBlocks,
+          ...(groupAsk ? { groupAsk } : {}),
         },
       };
 
