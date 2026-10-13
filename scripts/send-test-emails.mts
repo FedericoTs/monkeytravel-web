@@ -19,6 +19,7 @@ import * as TripReminderMod from "../lib/email/templates/TripReminder";
 import * as TripFollowupMod from "../lib/email/templates/TripFollowup";
 import * as FollowupCtaMod from "../lib/email/followup-cta";
 import * as TripContextMod from "../lib/email/trip-context";
+import * as LocaleMod from "../lib/email/reminder-locale";
 import * as ConfirmSignupMod from "../lib/email/templates/ConfirmSignup";
 import * as AuthActionMod from "../lib/email/templates/AuthAction";
 import * as BlogDigestMod from "../lib/email/templates/BlogDigest";
@@ -191,9 +192,14 @@ const SAMPLE_TRIP = {
 };
 
 const DEST = SAMPLE_TRIP.destination;
+// The return email names the day the trip ended; it goes out three days later.
+const END_DATE = ((LocaleMod as any).default ?? LocaleMod).formatDayMonth(
+  new Date(Date.now() - 3 * 86_400_000).toISOString().slice(0, 10),
+  L
+);
 // The cron interpolates via next-intl; here a plain substitution is enough
 // and keeps the script free of the i18n runtime.
-const fill = (s: string) => s.replace(/\{destination\}/g, DEST);
+const fill = (s: string) => s.replace(/\{destination\}/g, DEST).replace(/\{endDate\}/g, END_DATE);
 
 const reminderCopy = commonMessages.tripReminderEmail;
 const followupCopy = commonMessages.tripFollowupEmail;
@@ -483,7 +489,7 @@ async function main() {
       const html = await render(job.element);
       // An unresolved next-intl key or an un-substituted placeholder is
       // the exact defect that reached real inboxes for two months.
-      const leaks = ["{destination}", "tripReminderEmail.", "tripFollowupEmail."]
+      const leaks = ["{destination}", "{endDate}", "tripReminderEmail.", "tripFollowupEmail."]
         .filter((needle) => html.includes(needle) || job.subject.includes(needle));
       const ok = html.length > 500 && leaks.length === 0;
       if (!ok) bad++;

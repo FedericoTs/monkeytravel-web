@@ -2578,7 +2578,7 @@
   "tripFollowupEmail": {
     "followup_return_3d": {
       "heading": "Com’è andata a {destination}?",
-      "body": "Sei tornato qualche giorno fa. Ci piacerebbe sapere com’è andata — cosa ha funzionato nel piano e cosa no sul posto. Bastano un paio di minuti, ed è il modo più rapido per migliorare.",
+      "body": "Il tuo viaggio è finito il {endDate}. Ci farebbe piacere un minuto del tuo parere sincero: come usi MonkeyTravel e cosa ti ha quasi fatto smettere. È il modo più rapido per migliorare.",
       "cta": "Lascia un feedback"
     },
     "followup_next_21d": {

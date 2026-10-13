@@ -6,6 +6,7 @@ import {
   REMINDER_LOCALES,
   resolveLocale,
   formatDateRange,
+  formatDayMonth,
   type ReminderLocale,
 } from "@/lib/email/reminder-locale";
 
@@ -305,6 +306,16 @@ describe("locale routing reaches every locale the app supports", () => {
     expect(range("pt")).not.toBe(en);
     expect(range("it")).not.toBe(en);
     expect(range("es")).not.toBe(en);
+  });
+
+  it("names the day a trip ended in each locale, on the right day", () => {
+    // A date-only end_date is midnight UTC; formatting it in another zone
+    // would print the day before.
+    expect(formatDayMonth("2026-10-10", "en")).toBe("October 10");
+    expect(formatDayMonth("2026-10-10", "es")).toBe("10 de octubre");
+    expect(formatDayMonth("2026-10-10", "it")).toBe("10 ottobre");
+    expect(formatDayMonth("2026-10-10", "pt")).toBe("10 de outubro");
+    expect(formatDayMonth("not-a-date", "en")).toBe("");
   });
 
   it("degrades gracefully on bad dates rather than throwing", () => {

@@ -167,6 +167,8 @@ export interface TripContextSource {
   packingSuggestions?: unknown;
   /** The first element of `trips.itinerary` — the day-1 object. */
   day1?: unknown;
+  /** The whole `trips.itinerary`, for the cities the highlights come from. */
+  itinerary?: unknown;
 }
 
 // Length caps. An email is skim-read on a phone; these keep a block to a
@@ -310,6 +312,70 @@ function stringList(value: unknown, limit: number): ContextItem[] {
   return out;
 }
 
+// Words in activity names that say nothing about where a place is.
+const GENERIC_WORDS = new Set([
+  "the", "and", "with", "from", "into", "lunch", "dinner", "breakfast", "brunch", "drinks",
+  "walk", "across", "explore", "visit", "tour", "train", "evening", "morning", "afternoon",
+]);
+
+function words(text: string): string[] {
+  return text.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
+}
+
+/**
+ * The trip's cities in itinerary order, each with the words naming only its
+ * own places: a word that also names a place in another city, like "market",
+ * says nothing about which city a highlight is in.
+ */
+function itineraryCities(itinerary: unknown): Array<{ name: string; places: Set<string> }> {
+  if (!Array.isArray(itinerary)) return [];
+  const cities = new Map<string, Set<string>>();
+  for (const day of itinerary) {
+    if (!day || typeof day !== "object") continue;
+    const name = str((day as Record<string, unknown>).city, MAX_ITEM)?.toLowerCase();
+    if (!name) continue;
+    const places = cities.get(name) ?? new Set<string>();
+    const activities = (day as Record<string, unknown>).activities;
+    for (const a of Array.isArray(activities) ? activities : []) {
+      const label = a && typeof a === "object" ? str((a as Record<string, unknown>).name, MAX_ITEM) : undefined;
+      for (const w of words(label ?? "")) if (w.length >= 4 && !GENERIC_WORDS.has(w)) places.add(w);
+    }
+    cities.set(name, places);
+  }
+  const all = [...cities.entries()];
+  return all.map(([name, places]) => ({
+    name,
+    places: new Set([...places].filter((w) => all.every(([other, p]) => other === name || !p.has(w)))),
+  }));
+}
+
+/**
+ * Highlights for a trip through several cities, taken from each city in turn
+ * so the first one cannot fill the list. A highlight belongs to the city it
+ * names, or whose places it names; the generator's order is kept, and a trip
+ * with one city, or highlights that name none, reads as before.
+ */
+function highlightsAcrossCities(highlights: unknown, itinerary: unknown, limit: number): ContextItem[] {
+  const all = stringList(highlights, Number.POSITIVE_INFINITY);
+  const cities = itineraryCities(itinerary);
+  if (cities.length < 2 || all.length <= limit) return all.slice(0, limit);
+
+  const cityOf = all.map(({ text }) => {
+    const ws = new Set(words(text));
+    const named = cities.findIndex((c) => words(c.name).every((w) => ws.has(w)));
+    return named >= 0 ? named : cities.findIndex((c) => [...c.places].some((w) => ws.has(w)));
+  });
+  const picked = new Set<number>();
+  for (let round = 0; picked.size < limit && round < all.length; round++) {
+    for (let c = 0; c < cities.length && picked.size < limit; c++) {
+      const next = cityOf.findIndex((owner, i) => owner === c && !picked.has(i));
+      if (next >= 0) picked.add(next);
+    }
+  }
+  for (let i = 0; i < all.length && picked.size < limit; i++) picked.add(i);
+  return [...picked].sort((a, b) => a - b).map((i) => all[i]);
+}
+
 /**
  * Day-1 activities as "name" + a time hint.
  *
@@ -394,7 +460,7 @@ export function buildContextBlocks(
       return compact([
         {
           label: labels.goingFor,
-          items: stringList(src.highlights, MAX_LIST_ITEMS),
+          items: highlightsAcrossCities(src.highlights, src.itinerary, MAX_LIST_ITEMS),
         },
       ]);
 
@@ -418,7 +484,7 @@ export function buildContextBlocks(
       return compact([
         {
           label: labels.yourHighlights,
-          items: stringList(src.highlights, MAX_LIST_ITEMS),
+          items: highlightsAcrossCities(src.highlights, src.itinerary, MAX_LIST_ITEMS),
         },
       ]);
 

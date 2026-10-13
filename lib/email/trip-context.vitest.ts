@@ -108,6 +108,56 @@ describe("slot → block mapping", () => {
   });
 });
 
+/**
+ * The generator lists a multi-city trip's highlights city by city, so the
+ * first three were all the first city's: "How was London & Oxford?" listed
+ * three London highlights and no Oxford. Each city now takes a turn.
+ */
+describe("highlights across a multi-city trip", () => {
+  const day = (city: unknown, ...names: string[]) => ({ city, activities: names.map((name) => ({ name })) });
+  const TWO_CITIES = {
+    highlights: [
+      "Indulging in diverse cuisines at Borough Market and Dishoom",
+      "Exploring iconic landmarks like the Tower of London and Tower Bridge",
+      "Experiencing London's vibrant arts scene at Tate Modern",
+      "Exploring the historic Covered Market and its culinary delights.",
+      "Marvelling at the architecture of the Radcliffe Camera.",
+      "Experiencing Oxford's traditional pub culture.",
+    ],
+    itinerary: [
+      day("London", "Borough Market", "Tate Modern"),
+      day("London", "Tower of London", "Lunch at Dishoom Covent Garden"),
+      day("Oxford", "Train to Oxford", "Covered Market", "Radcliffe Camera & Bodleian Library"),
+    ],
+  };
+  const texts = (slot: string, src: object) => buildContextBlocks(slot, src, L)[0]?.items?.map((i) => i.text);
+
+  it("gives each city a turn, keeping the generator's order", () => {
+    const h = TWO_CITIES.highlights;
+    // "Covered Market" is Oxford's: "market" names a place in both cities, "covered" only there.
+    expect(texts("followup_return_3d", TWO_CITIES)).toEqual([h[0], h[1], h[3]]);
+  });
+
+  it("does the same for the pre-trip list of what you're going for", () => {
+    expect(texts("visa_check_7d", TWO_CITIES)).toContain(TWO_CITIES.highlights[3]);
+  });
+
+  it("reads as before for a trip in one city", () => {
+    const oneCity = { ...FULL, itinerary: [day("Paris", "Louvre Museum"), day("Paris", "Montmartre")] };
+    expect(texts("followup_return_3d", oneCity)).toEqual(FULL.highlights.slice(0, 3));
+  });
+
+  it("reads as before when the itinerary names no cities", () => {
+    const noCities = { highlights: TWO_CITIES.highlights, itinerary: [day(undefined, "Somewhere")] };
+    expect(texts("followup_return_3d", noCities)).toEqual(TWO_CITIES.highlights.slice(0, 3));
+  });
+
+  it("never throws on a junk itinerary", () => {
+    const junk = { highlights: TWO_CITIES.highlights, itinerary: [null, 5, { city: 7 }, { city: "Oxford", activities: "x" }] };
+    expect(texts("followup_return_3d", junk)).toHaveLength(3);
+  });
+});
+
 describe("caps", () => {
   it("never returns more than two blocks", () => {
     for (const slot of ["pack_early_14d", "weather_3d", "morning_of"]) {
