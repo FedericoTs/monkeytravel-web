@@ -19,10 +19,18 @@ export interface EmailClick {
   /** Where the link opened: the owner's trip, a signed day link, a share link or the wizard. */
   page: "trip" | "day" | "shared" | "wizard" | "other";
   tripId: string | null;
+  /** Set when the link was a reminder's "add the people coming" button. */
+  share?: "invite";
 }
 
 /** The email a landing URL came from, or null when it carries no known slot. */
 export function emailClickFromUrl(url: URL): EmailClick | null {
+  const click = clickTarget(url);
+  if (!click) return null;
+  return url.searchParams.get("share") === "invite" ? { ...click, share: "invite" } : click;
+}
+
+function clickTarget(url: URL): EmailClick | null {
   const slot = url.searchParams.get("slot");
   if (!slot || !EMAIL_SLOT_RE.test(slot)) return null;
   const path = url.pathname.replace(/^\/(?:en|es|it|pt)(?=\/|$)/, "") || "/";
@@ -68,6 +76,7 @@ export function trackEmailClick(request: RequestLike, sessionId: string | null, 
           page: click.page,
           signed_in: Boolean(userId),
           navigate: request.headers.get("sec-fetch-mode") === "navigate",
+          ...(click.share ? { share: click.share } : {}),
         },
       }),
       // Like the page_views row: a stalled database can't hold the function.

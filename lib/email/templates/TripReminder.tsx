@@ -59,6 +59,12 @@ export interface TripReminderEmailProps {
    * so the email must read as finished with none of it.
    */
   contextBlocks?: ContextBlock[];
+  /**
+   * A second, smaller ask under the main button: on a group trip nobody else
+   * has the plan yet, so the organiser is asked to add the people coming.
+   * Pre-translated; the cron decides when it applies.
+   */
+  groupAsk?: { text: string; label: string; url: string };
 }
 
 /** Slot → emoji. Visual hook, not load-bearing for the message. */
@@ -83,6 +89,7 @@ export default function TripReminderEmail({
   unsubscribeUrl,
   locale = "en",
   contextBlocks,
+  groupAsk,
 }: TripReminderEmailProps) {
   const preview = `${SLOT_EMOJI[slot]} ${heading} — ${destination}`;
 
@@ -110,6 +117,15 @@ export default function TripReminderEmail({
           {ctaLabel}
         </Button>
       </Section>
+
+      {groupAsk ? (
+        <Section style={groupAskBox}>
+          <Text style={groupAskText}>{groupAsk.text}</Text>
+          <Button href={groupAsk.url} style={secondaryButton}>
+            {groupAsk.label}
+          </Button>
+        </Section>
+      ) : null}
     </EmailLayout>
   );
 }
@@ -157,6 +173,7 @@ export function tripReminderEmailText(props: TripReminderEmailProps): string {
     ...contextBlocksText(props.contextBlocks),
     "",
     `${props.ctaLabel}: ${props.tripUrl}`,
+    ...(props.groupAsk ? ["", props.groupAsk.text, `${props.groupAsk.label}: ${props.groupAsk.url}`] : []),
     "",
     "—",
     "MonkeyTravel · AI-powered trip planning",
@@ -198,5 +215,34 @@ const button: React.CSSProperties = {
   textDecoration: "none",
   fontWeight: 600,
   fontSize: "16px",
+  display: "inline-block",
+};
+
+// The group ask sits under the main button, quieter than it: dark text on
+// white, so it reads as the second thing to do.
+const groupAskBox: React.CSSProperties = {
+  backgroundColor: "#FFF5EB",
+  borderRadius: "12px",
+  padding: "16px 20px",
+  margin: "0 0 8px",
+  textAlign: "center",
+};
+
+const groupAskText: React.CSSProperties = {
+  fontSize: "15px",
+  color: "#333333",
+  lineHeight: 1.5,
+  margin: "0 0 12px",
+};
+
+const secondaryButton: React.CSSProperties = {
+  backgroundColor: "#FFFFFF",
+  color: "#2D3436",
+  border: "1px solid #D9CFC4",
+  padding: "10px 24px",
+  borderRadius: "999px",
+  textDecoration: "none",
+  fontWeight: 600,
+  fontSize: "15px",
   display: "inline-block",
 };
