@@ -221,6 +221,51 @@ describe("claims the guard used to miss", () => {
   });
 });
 
+describe("wizard replies that read as done before Apply", () => {
+  // Shapes of live wizard replies that went out without the "Not applied yet"
+  // lead while their edit still waited for Apply; places are replaced.
+  const readAsDone = [
+    "Got it! Day 1 now reflects your later arrival time and includes check-in at your hotel.",
+    "Excellent choice! I've incorporated the spa visit into your Day 1.",
+    "You're right, Day 2 was getting full! I've shifted some activities around.",
+    "No problem at all! I've reverted the activities to your original budget.",
+    "The museum visit has been cleared from Day 3.",
+    "Here are the updated days.",
+    "No problem! Here's a revised Day 2 with a full-day island tour.",
+    "Excellent idea! Here's an updated Day 1 that includes time for shopping.",
+    "No problem! Here's your updated Day 1, including a stop after you land.",
+    "Got it! Here's an updated plan that extends your trip to 7 days.",
+    "Here's a revised 9-day plan with the two new cities.",
+    "¡Claro! He unificado los tres pueblos en el Día 4.",
+    "¡Claro! He intercambiado el contenido del Día 3 y el Día 4.",
+    "¡Claro! He modificado el día 6 para incluir el jardín botánico.",
+    "¡Claro! He incorporado el free tour en tu día 2.",
+    "¡Claro! Aquí tienes el día 3 actualizado con las actividades que pediste.",
+    "Ho incorporato il museo nel giorno 2.",
+    "Ecco il giorno 3 aggiornato con la cena.",
+    "Ecco l'itinerario aggiornato.",
+    "Incorporei o museu no dia 2.",
+    "Aqui está o seu dia 3 atualizado.",
+  ];
+  it.each(readAsDone)("catches: %s", (text) => {
+    expect(claimsItineraryChange(text)).toBe(true);
+  });
+
+  const suggestions = [
+    "Here are some ideas for Day 3.",
+    "Here's what Day 2 looks like right now.",
+    "Here are some new activities you could add to Day 3.",
+    "I can incorporate a food tour into Day 2 if you like.",
+    "Your plan reflects your arrival time.",
+    "Aquí tienes algunas ideas para el día 3.",
+    "Ecco alcune idee per il giorno 3.",
+    "Aqui estão algumas ideias para o dia 3.",
+  ];
+  it.each(suggestions)("leaves a suggestion alone: %s", (text) => {
+    expect(claimsItineraryChange(text)).toBe(false);
+  });
+});
+
 describe("notAppliedLead", () => {
   it("names the wizard's Apply button in each language", () => {
     expect(notAppliedLead("en")).toContain('"Apply change"');
