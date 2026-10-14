@@ -2237,6 +2237,7 @@
       "sentSubtitle": "We sent a one-tap link to {email}",
       "checkInbox": "Click the link in the email to save your trip. No password needed.",
       "useDifferent": "Use a different email",
+      "noEmailHint": "Can’t find the email? Check spam or promotions, or continue with Google.",
       "codePrompt": "Or enter the 6-digit code from the email",
       "codeSubmit": "Verify",
       "codeVerifying": "Checking…",

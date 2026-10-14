@@ -46,7 +46,7 @@ vi.mock("@/lib/posthog/events", () => ({
 }));
 
 import AuthPromptModal from "./AuthPromptModal";
-import { captureMagicLinkRequestFailed } from "@/lib/posthog/events";
+import { captureAuthMethodSwitched, captureMagicLinkRequestFailed } from "@/lib/posthog/events";
 
 /** Get to the state where the code input exists: request the link first. */
 async function reachCodeEntry() {
@@ -322,5 +322,39 @@ describe("the cap copy exists in every language", () => {
     for (const key of ["title", "subtitle", "checkInbox"]) {
       expect(copy[key]?.trim(), `${locale} ${key}`).toBeTruthy();
     }
+  });
+});
+
+/**
+ * Google needs no inbox and almost always ends in a session, so it is the
+ * main button. Once a sign-in email is out, the email that never gets opened
+ * is the dead end, so Google is offered again right there.
+ */
+describe("Google comes first", () => {
+  it("is the filled button, and sending the email is the outline one", () => {
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisboa" />);
+    expect(screen.getByRole("button", { name: "googleButton" }).className).toContain("bg-slate-900");
+    expect(screen.getByRole("button", { name: "magicLink.send" }).className).not.toContain("bg-[var(--accent)]");
+  });
+
+  it("is offered again after the email is sent, with a pointer to spam", async () => {
+    await reachCodeEntry();
+    expect(screen.getByText("magicLink.noEmailHint")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "googleButton" }));
+    await waitFor(() => expect(signInWithOAuth).toHaveBeenCalled());
+    expect(captureAuthMethodSwitched).toHaveBeenCalledWith({ location: "wizard_save", to: "google", after_code_sent: true });
+  });
+
+  it("marks only the switch made after the email", () => {
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisboa" />);
+    fireEvent.click(screen.getByRole("button", { name: "googleButton" }));
+    expect(captureAuthMethodSwitched).toHaveBeenCalledWith({ location: "wizard_save", to: "google" });
+  });
+
+  it.each(["en", "es", "it", "pt"])("has the spam pointer in %s", async (locale) => {
+    const messages = (await import(`../../messages/${locale}/common.json`)).default as {
+      authPrompt: { magicLink: Record<string, string> };
+    };
+    expect(messages.authPrompt.magicLink.noEmailHint).toContain("Google");
   });
 });
