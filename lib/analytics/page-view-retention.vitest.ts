@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
 /**
- * Raw page views are kept 180 days for people and 14 days for everything the
+ * Raw page views are kept 120 days for people and 14 days for everything the
  * human view leaves out; wizard step events are kept 180 days, their step-1
  * heartbeats 14, and both tables are vacuumed soon after the purge. The nightly
  * purge's idea of "not human" must stay the complement of page_views_human:
@@ -21,8 +21,8 @@ describe("page view retention", () => {
   const purge = latest(/create or replace function public\.purge_old_analytics_rows/i);
   const view = latest(/create or replace view public\.page_views_human/i);
 
-  it("keeps human page views 180 days and the rest 14", () => {
-    expect(purge).toContain("select id from public.page_views where created_at < now() - interval '180 days'");
+  it("keeps human page views 120 days and the rest 14", () => {
+    expect(purge).toContain("select id from public.page_views where created_at < now() - interval '120 days'");
     expect(purge).toContain("p.created_at < now() - interval '14 days'");
   });
 
@@ -64,5 +64,38 @@ describe("wizard step event retention", () => {
         `alter table public.${table} set (autovacuum_vacuum_scale_factor = 0.02, autovacuum_vacuum_threshold = 2000);`,
       );
     }
+  });
+});
+
+describe("API call retention", () => {
+  const purge = latest(/create or replace function public\.purge_old_analytics_rows/i);
+  const rollup = latest(/create or replace function public\.refresh_api_cost_daily/i);
+
+  it("keeps raw calls 90 days", () => {
+    expect(purge).toContain("select id from public.api_request_logs where timestamp < now() - interval '90 days'");
+  });
+
+  it("sums every day into api_cost_daily before the purge runs", () => {
+    expect(rollup).toContain("insert into public.api_cost_daily");
+    expect(rollup).toContain("select public.refresh_api_cost_daily(400);");
+    expect(rollup).toContain("cron.schedule('refresh-api-cost-daily', '50 2 * * *'");
+    expect(rollup).toContain("revoke execute on function public.refresh_api_cost_daily(integer) from public, anon, authenticated");
+    expect(rollup).toContain("revoke all on table public.api_cost_daily from anon, authenticated");
+  });
+});
+
+describe("label and consent retention", () => {
+  const purge = latest(/create or replace function public\.purge_old_analytics_rows/i);
+
+  it("drops a session label once nothing it hides can still be read", () => {
+    expect(purge).toContain("where x.day < current_date - 14 and (x.day < current_date - 180 or (not exists");
+    expect(purge).toContain("select 1 from public.wizard_step_events w where w.session_id = x.session_id");
+    expect(purge).toContain("select 1 from public.trip_views v where v.session_id = x.session_id and v.viewed_on = x.day");
+  });
+
+  it("keeps consent decisions 13 months and banner impressions 90 days", () => {
+    expect(purge).toContain(
+      "where (event in ('shown', 'minimized') and created_at < now() - interval '90 days') or created_at < now() - interval '395 days'",
+    );
   });
 });

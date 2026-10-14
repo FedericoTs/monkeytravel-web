@@ -496,6 +496,13 @@
     "rls_enabled": true
   },
   {
+    "table": "api_cost_daily",
+    "grants": {},
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
     "table": "api_request_logs",
     "grants": {},
     "policies": [],
