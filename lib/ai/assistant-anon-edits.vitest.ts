@@ -180,3 +180,20 @@ describe("composeReply on a pending edit that claims to be done", () => {
     expect(text).toBe("Here's Day 2 starting at 15:00.");
   });
 });
+
+describe("composeReply when the page applies edits on arrival", () => {
+  const base = { lockedDays: [], lengthRefused: false, locale: "en", currentDays: 5, autoApplied: true };
+
+  it("lets a finished edit say it is done, because it will be", () => {
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    expect(composeReply({ ...base, reply: "I've updated Day 2 to start at 15:00.", edits: [d2] })).toBe(
+      "I've updated Day 2 to start at 15:00."
+    );
+  });
+
+  it("still replaces a claim when nothing was prepared", () => {
+    expect(composeReply({ ...base, reply: "I've updated Day 2 to start at 15:00.", edits: [] })).toMatch(
+      /^I haven't changed your plan/
+    );
+  });
+});

@@ -236,6 +236,7 @@ import { resolveAiLanguage } from "@/lib/ai/language";
 import { newTripTitle } from "@/lib/trips/title";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { applyAssistantEdits, type AssistantDayEdit } from "@/lib/trips/day-edit-merge";
+import { createUndoLedger } from "@/lib/trip/assistant-undo";
 import { planDateChange, moveItineraryDates } from "@/lib/trips/change-dates";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
@@ -847,6 +848,11 @@ export default function NewTripPage({
   const startDateRef = useRef(startDate);
   const endDateRef = useRef(endDate);
   const vibesRef = useRef(selectedVibes);
+  const generatedItineraryRef = useRef(generatedItinerary);
+  // Assistant edits apply as they arrive; this undoes one while the plan is
+  // still that edit's result (lib/trip/assistant-undo.ts).
+  const assistantUndo = useRef(createUndoLedger<GeneratedItinerary, string>());
+  useEffect(() => { generatedItineraryRef.current = generatedItinerary; }, [generatedItinerary]);
   useEffect(() => { stepRef.current = step; }, [step]);
   useEffect(() => { destinationFieldRef.current = destination; }, [destination]);
 
@@ -2925,7 +2931,9 @@ export default function NewTripPage({
   // moved activity keeps its photo; lib/trips/day-edit-merge.ts), and scrolls
   // the first changed day into view.
   const handleApplyAssistantEdits = useCallback(
-    (edits: AssistantDayEdit[], tripLength?: number) => {
+    (edits: AssistantDayEdit[], tripLength?: number): string | undefined => {
+      const prev = generatedItineraryRef.current;
+      if (!prev) return undefined;
       // Remember that this session applied an assistant edit
       // (forwarded on result_exit_unsaved as edits_applied).
       editsAppliedRef.current = true;
@@ -2934,20 +2942,22 @@ export default function NewTripPage({
       // blocked safeSet just returns false; the ref covers this page's life.
       safeSet("mt_edits_applied", "1", "session");
       const start = startDateRef.current;
-      setGeneratedItinerary((prev) => {
-        if (!prev) return prev;
-        const days = applyAssistantEdits(prev.days, edits, { tripLength, startDate: start || undefined });
-        const sum = (ds: ItineraryDay[]) =>
-          ds.reduce((t, d) => t + (d.activities ?? []).reduce((s, a) => s + (a.estimated_cost?.amount || 0), 0), 0);
-        const prevTotal = prev.trip_summary?.total_estimated_cost || 0;
-        // Delta on the activities, so any non-activity share of the total stays.
-        const newTotal = Math.max(0, Math.round(prevTotal - sum(prev.days) + sum(days)));
-        return {
-          ...prev,
-          days,
-          trip_summary: { ...prev.trip_summary, total_estimated_cost: newTotal },
-        };
-      });
+      // Ids are given here, so the state keeps this exact object and Undo can
+      // tell it is still the plan on screen.
+      const days = ensureActivityIds(applyAssistantEdits(prev.days, edits, { tripLength, startDate: start || undefined }));
+      const sum = (ds: ItineraryDay[]) =>
+        ds.reduce((t, d) => t + (d.activities ?? []).reduce((s, a) => s + (a.estimated_cost?.amount || 0), 0), 0);
+      const prevTotal = prev.trip_summary?.total_estimated_cost || 0;
+      // Delta on the activities, so any non-activity share of the total stays.
+      const newTotal = Math.max(0, Math.round(prevTotal - sum(prev.days) + sum(days)));
+      const next: GeneratedItinerary = {
+        ...prev,
+        days,
+        trip_summary: { ...prev.trip_summary, total_estimated_cost: newTotal },
+      };
+      const undoId = assistantUndo.current.record(prev, next, endDateRef.current);
+      generatedItineraryRef.current = next;
+      setGeneratedItinerary(next);
       if (tripLength !== undefined && start) setEndDate(addDaysISO(start, tripLength - 1));
       const dayNumber = edits[0]?.day_number ?? tripLength ?? 1;
       setTimeout(() => {
@@ -2958,8 +2968,24 @@ export default function NewTripPage({
           setTimeout(() => el.classList.remove("ring-2", "ring-[var(--primary)]"), 2000);
         }
       }, 100);
+      return undoId;
     },
-    []
+    [setGeneratedItinerary]
+  );
+
+  // Put the plan (and end date) back as it was before an assistant edit, only
+  // while nothing else has changed it since. False when it can't.
+  const handleUndoAssistantEdits = useCallback(
+    (undoId: string): boolean => {
+      const current = generatedItineraryRef.current;
+      const entry = current ? assistantUndo.current.take(undoId, current) : null;
+      if (!entry) return false;
+      generatedItineraryRef.current = entry.before;
+      setGeneratedItinerary(entry.before);
+      setEndDate(entry.extra);
+      return true;
+    },
+    [setGeneratedItinerary]
   );
 
   // New dates for the generated trip, from the hero's date chip or from Start
@@ -3632,6 +3658,7 @@ export default function NewTripPage({
               startDate={startDate}
               endDate={endDate}
               onApplyEdits={handleApplyAssistantEdits}
+              onUndoEdits={handleUndoAssistantEdits}
               // Post-edit save bridge. Only offered while the
               // trip is unsaved AND the manual save arm owns persistence —
               // when the auto-save arm is active the edit is already being

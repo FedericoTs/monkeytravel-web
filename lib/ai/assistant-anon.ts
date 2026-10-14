@@ -91,6 +91,8 @@ export interface AssistAnonInput {
    * mean…" had nothing to refer to (2026-09-16 and 09-26 sessions).
    */
   history?: AssistTurn[];
+  /** The page applies the edits as soon as they arrive (with Undo). */
+  autoApply?: boolean;
 }
 
 export interface DayEdit {
@@ -417,7 +419,7 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
   );
 
   const currency = currencyRequested(input.message) ?? undefined;
-  const finalReply = composeReply({ reply, edits, tripLength, lockedDays, lengthRefused, locale: input.locale, currentDays: input.days.length, currency });
+  const finalReply = composeReply({ reply, edits, tripLength, lockedDays, lengthRefused, locale: input.locale, currentDays: input.days.length, currency, autoApplied: input.autoApply });
 
   return {
     reply: finalReply,
@@ -442,6 +444,8 @@ export function composeReply(p: {
   locale?: string;
   currentDays: number;
   currency?: string;
+  /** The page applies the edits on arrival, so "I've updated…" will be true. */
+  autoApplied?: boolean;
 }): string {
   const prepared = p.edits.length > 0 || p.tripLength !== undefined;
 
@@ -478,7 +482,7 @@ export function composeReply(p: {
   if (p.lengthRefused) text = `${text} ${lengthUnchangedNote(p.locale, p.currentDays)}`;
   // Told to present an unapplied edit as ready, the model still writes "I've
   // updated…" most of the time: lead with the truth so Apply isn't skipped.
-  if (claimsItineraryChange(p.reply)) text = `${notAppliedLead(p.locale)} ${text}`;
+  if (!p.autoApplied && claimsItineraryChange(p.reply)) text = `${notAppliedLead(p.locale)} ${text}`;
   if (p.currency) text = `${text} ${currencySwitchedNote(p.locale, p.currency)}`;
   return text;
 }
