@@ -54,6 +54,7 @@ import * as CoordMod from "../lib/email/trip-coordinates";
 import * as LocaleMod from "../lib/email/reminder-locale";
 import * as VerifyMod from "../lib/email/verify-render";
 import * as FollowupCtaMod from "../lib/email/followup-cta";
+import * as ReminderCtaMod from "../lib/email/reminder-cta";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const TR = (TripReminderMod as any).default;
@@ -77,6 +78,7 @@ const VF = (VerifyMod as any).default ?? VerifyMod;
 const verifyRenderedEmail = VF.verifyRenderedEmail;
 const contextLines = VF.contextLines;
 const FC = (FollowupCtaMod as any).default ?? FollowupCtaMod;
+const RC = (ReminderCtaMod as any).default ?? ReminderCtaMod;
 const LC = (LocaleMod as any).default ?? LocaleMod;
 const resolveLocale = LC.resolveLocale;
 const formatDateRange = LC.formatDateRange;
@@ -405,16 +407,17 @@ async function main() {
     if (blocks.length) stats.withEnrichment++;
 
     const tripUrl = `${APP}/trips/${trip.id}?slot=${row.slot}`;
-    // The SHARED builder, not a copy — the same one the cron uses, so this
-    // audit vets the URL that will actually ship (Phase 4.3: return → feedback).
+    // The SHARED builders, not copies — the same ones the cron uses, so this
+    // audit vets the URL that will actually ship (Phase 4.3: return → feedback;
+    // the day-before and departure-day reminders → trip day 1, signed).
     const ctaUrl = isFollowup(row.slot)
       ? FC.postTripCtaUrl(row.slot, { tripUrl, appUrl: APP, userId: row.user_id, locale })
-      : tripUrl;
+      : RC.reminderCtaUrl(row.slot, { appUrl: APP, locale, tripId: trip.id, startDate: trip.start_date });
 
     const props: any = isFollowup(row.slot)
       ? { slot: row.slot, destination, heading, body, ctaLabel, ctaUrl, finalNote,
           locale, contextBlocks: blocks }
-      : { slot: row.slot, destination, heading, body, ctaLabel, tripUrl, locale,
+      : { slot: row.slot, destination, heading, body, ctaLabel, tripUrl: ctaUrl, locale,
           tripDates: formatDateRange(trip.start_date, trip.end_date, locale),
           contextBlocks: blocks };
 

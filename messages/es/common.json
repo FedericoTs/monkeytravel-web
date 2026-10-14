@@ -2622,7 +2622,7 @@
     },
     "morning_of": {
       "heading": "Día de viaje",
-      "body": "Llegó el día. Tu itinerario completo de {destination} está a un toque — ábrelo cuando necesites direcciones, horarios o saber qué sigue."
+      "body": "Llegó el día. Tu plan de hoy en {destination} está a un toque — ábrelo cuando necesites direcciones, horarios o saber qué sigue."
     }
   },
   "tripFollowupEmail": {

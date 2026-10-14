@@ -2622,7 +2622,7 @@
     },
     "morning_of": {
       "heading": "Giorno di partenza",
-      "body": "Ci siamo. Il tuo itinerario completo per {destination} è a un tocco — aprilo quando ti servono indicazioni, orari o cosa fare dopo."
+      "body": "Ci siamo. Il programma di oggi per {destination} è a un tocco — aprilo quando ti servono indicazioni, orari o cosa fare dopo."
     }
   },
   "tripFollowupEmail": {
