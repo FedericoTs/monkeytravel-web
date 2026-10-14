@@ -1,10 +1,12 @@
 /** @vitest-environment node */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { randomBytes } from "crypto";
 
 const { handedToAfter } = vi.hoisted(() => ({ handedToAfter: vi.fn() }));
 vi.mock("next/server", () => ({ after: handedToAfter }));
 
 import { emailClickFromUrl, trackEmailClick } from "./email-click";
+import { reminderCtaUrl } from "@/lib/email/reminder-cta";
 
 const TRIP = "77e96874-2985-4867-8472-d97c1f148b65";
 const PHONE_UA =
@@ -85,6 +87,21 @@ describe("trackEmailClick", () => {
   it("records which button it was when the link says", () => {
     trackEmailClick(request(`/trips/${TRIP}?slot=visa_check_7d&share=invite`), "sess-1", "user-1");
     expect(body().metadata).toEqual({ slot: "visa_check_7d", page: "trip", signed_in: true, navigate: true, share: "invite" });
+  });
+
+  it("records the departure emails' signed day-1 links as clicks on those emails", () => {
+    vi.stubEnv("EMAIL_UNSUBSCRIBE_SECRET", randomBytes(32).toString("hex"));
+    for (const [slot, locale] of [["confirm_1d", "en"], ["morning_of", "pt"]] as const) {
+      recorded.mockClear();
+      const link = reminderCtaUrl(slot, { appUrl: "https://monkeytravel.app", locale, tripId: TRIP, startDate: "2026-10-15" });
+      trackEmailClick({ nextUrl: new URL(link), headers: new Headers({ "user-agent": PHONE_UA, "sec-fetch-mode": "navigate" }) }, "sess-1");
+      expect(body()).toEqual({
+        event_type: "email_clicked",
+        trip_id: TRIP,
+        session_id: "sess-1",
+        metadata: { slot, page: "day", signed_in: false, navigate: true },
+      });
+    }
   });
 
   it("marks a click without a session, and one without fetch metadata", () => {

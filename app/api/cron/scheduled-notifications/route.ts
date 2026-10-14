@@ -28,6 +28,7 @@ import {
 import { isTripNotificationsEnabled } from "@/lib/notifications/scheduling";
 import { parseDigestDay, digestStaleReason, digestParticipantRecipients } from "@/lib/notifications/digest";
 import { postTripCtaUrl } from "@/lib/email/followup-cta";
+import { reminderCtaUrl } from "@/lib/email/reminder-cta";
 import { digestDayUrl } from "@/lib/trips/day-link";
 import { resolveLocale, formatDateRange, formatDayMonth } from "@/lib/email/reminder-locale";
 import { retryTransient } from "@/lib/notifications/retry";
@@ -889,14 +890,14 @@ async function processRow(
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
   const tripUrl = `${APP_URL}/trips/${trip.id}?slot=${row.slot}`;
 
-  // Where the CTA points. Reminders → the trip; the post-trip family →
-  // postTripCtaUrl (followup_return_3d → the feedback survey, the later slots
-  // → the wizard) — shared with the audit + test-send scripts so the three
-  // can't drift. `slot`, not `utm_source`: a utm_* param on an internal link
-  // overwrites the stored acquisition source.
+  // Where the CTA points: reminderCtaUrl (the trip, or day 1 without sign-in
+  // the day before and the morning of departure) and postTripCtaUrl (return →
+  // feedback survey, later slots → wizard), shared with the audit script so it
+  // vets what ships. `slot`, not `utm_source`: a utm_* param on an internal
+  // link overwrites the stored acquisition source.
   const ctaUrl = followup
     ? postTripCtaUrl(row.slot as TripFollowupSlot, { tripUrl, appUrl: APP_URL, userId: row.user_id, locale })
-    : tripUrl;
+    : reminderCtaUrl(row.slot as TripReminderSlot, { appUrl: APP_URL, locale, tripId: trip.id, startDate: trip.start_date });
 
   // Resolve the copy BEFORE handing it to the mailer, so an unresolved key
   // can be caught while it is still just a string in memory.
@@ -1070,7 +1071,7 @@ async function processRow(
           heading,
           body,
           ctaLabel,
-          tripUrl,
+          tripUrl: ctaUrl,
           contextBlocks,
           ...(groupAsk ? { groupAsk } : {}),
         },
@@ -1102,8 +1103,8 @@ async function processRow(
           subject,
           html,
           destination,
-          // The real CTA target: the trip for reminders, the feedback survey
-          // for followup_return_3d, the wizard for the later followup slots.
+          // The real CTA target: the trip or its day 1 for reminders, the
+          // feedback survey for followup_return_3d, the wizard after it.
           ctaUrl,
           contextBlocks,
           // This trip's own enrichment values — the corpus containment is

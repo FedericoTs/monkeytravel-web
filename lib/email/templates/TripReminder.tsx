@@ -46,7 +46,7 @@ export interface TripReminderEmailProps {
   body: string;
   /** Pre-translated CTA label. */
   ctaLabel: string;
-  /** Pre-built absolute URL to the trip page (or focus deep-link). */
+  /** Pre-built absolute URL the button opens: the trip page, or day 1 for some slots (see lib/email/reminder-cta.ts). */
   tripUrl: string;
   /** Optional pre-built HMAC unsubscribe URL (key='tripReminders'). */
   unsubscribeUrl?: string;
