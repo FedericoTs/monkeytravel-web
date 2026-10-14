@@ -36,7 +36,7 @@ function bankDb() {
 }
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import crypto from "crypto";
-import type { Activity } from "@/types";
+import { TIME_SLOTS, type Activity, type TimeSlot } from "@/types";
 import type { Coordinates } from "@/lib/utils/geo";
 import { generateActivityId } from "@/lib/utils/activity-id";
 import { generateNearbyCoordinates } from "@/lib/utils/geo";
@@ -343,6 +343,29 @@ export async function isActivityBankPopulated(destination: string): Promise<bool
   return isPopulated;
 }
 
+// time_slot and budget_tier are varchar(20) and readers match exact values.
+// best_time is free text from the model: one long value failed a whole upsert
+// batch, and off-vocabulary values were stored where no reader matched them.
+const SLOT_WORDS: Record<TimeSlot, RegExp> = {
+  morning: /morning|sunrise|dawn|breakfast/,
+  afternoon: /afternoon|lunch|midday|noon/,
+  evening: /evening|sunset|dusk|dinner|night/,
+};
+
+/** One slot named → that slot; none or several (e.g. "lunch or dinner") → "any". */
+export function normalizeBankTimeSlot(value: unknown): TimeSlot | "any" {
+  const text = typeof value === "string" ? value.toLowerCase() : "";
+  const named = TIME_SLOTS.filter((slot) => SLOT_WORDS[slot].test(text));
+  return named.length === 1 ? named[0] : "any";
+}
+
+const BUDGET_TIERS = ["budget", "moderate", "expensive"] as const;
+
+export function normalizeBankBudgetTier(value: unknown): (typeof BUDGET_TIERS)[number] {
+  const tier = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return BUDGET_TIERS.find((t) => t === tier) ?? "moderate";
+}
+
 /**
  * Populate the activity bank for a destination
  * Generates 50+ activities across all types in ONE AI call
@@ -475,11 +498,11 @@ Return ONLY a JSON array of activities, no other text.`;
         estimated_cost: activity.estimated_cost,
         tips: activity.tips,
         booking_required: activity.booking_required,
-        time_slot: activity.best_time || "any",
+        time_slot: normalizeBankTimeSlot(activity.best_time),
       },
       activity_keywords: activity.keywords || extractKeywords(activity.name + " " + activity.description),
-      budget_tier: activity.estimated_cost?.tier || "moderate",
-      time_slot: activity.best_time || "any",
+      budget_tier: normalizeBankBudgetTier(activity.estimated_cost?.tier),
+      time_slot: normalizeBankTimeSlot(activity.best_time),
       expires_at: expiresAt.toISOString(),
       hit_count: 0,
       last_accessed_at: new Date().toISOString(),
@@ -589,7 +612,7 @@ export async function saveToActivityBank(
   }
 
   // Determine time slot
-  const timeSlot = activity.time_slot || "any";
+  const timeSlot = normalizeBankTimeSlot(activity.time_slot);
 
   const expiresAt = new Date(Date.now() + CACHE_DURATION_DAYS * 24 * 60 * 60 * 1000);
 
