@@ -110,6 +110,7 @@
       "nextMonth": "Next month",
       "previousYear": "Previous year",
       "nextYear": "Next year",
+      "chooseMonth": "Choose a month",
       "maxDaysLimit": "Trips can be up to {days} days",
       "addDates": "Add your travel dates",
       "quickHint": "Tap a length, or open the calendar for exact dates",
