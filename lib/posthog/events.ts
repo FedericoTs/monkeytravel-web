@@ -769,6 +769,8 @@ export interface AuthMethodSwitchedEvent {
   location: AuthPromptLocation;
   /** From the magic-link entry, which alternate method did they take? */
   to: "password_signup" | "password_login" | "google";
+  /** Chose Google after a sign-in email had already been sent. */
+  after_code_sent?: boolean;
 }
 
 export interface AuthPromptDismissedEvent {

@@ -2237,6 +2237,7 @@
       "sentSubtitle": "Abbiamo inviato un link a {email}",
       "checkInbox": "Clicca il link nell'email per salvare il viaggio. Nessuna password necessaria.",
       "useDifferent": "Usa un'altra email",
+      "noEmailHint": "Non trovi l’email? Controlla lo spam o le promozioni, oppure continua con Google.",
       "codePrompt": "Oppure inserisci il codice a 6 cifre dell'email",
       "codeSubmit": "Verifica",
       "codeVerifying": "Controllo…",
