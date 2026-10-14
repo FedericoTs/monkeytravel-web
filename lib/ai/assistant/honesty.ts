@@ -34,7 +34,7 @@ const words = (list: string) => `(?:${list})`;
 // reshape whole trips: "I've condensed your Rome trip into 3 days" (2026-09-26).
 // Not "reviewed"/"revisado"/"rivisto"/"revisei": those also mean "checked".
 const EN_VERBS = words(
-  "added|updated|removed|replaced|moved|changed|saved|scheduled|rescheduled|included|swapped|deleted|dedicated|adjusted|extended|shortened|reordered|put|set|condensed|combined|merged|reworked|rearranged|reorganized|reorganised|restructured|revised|trimmed"
+  "added|updated|removed|replaced|moved|changed|saved|scheduled|rescheduled|included|swapped|deleted|dedicated|adjusted|extended|shortened|reordered|put|set|condensed|combined|merged|reworked|rearranged|reorganized|reorganised|restructured|revised|trimmed|incorporated|integrated|reverted|shifted|cleared"
 );
 
 // A promise is a claim too: "I'll update your accommodation to…" went out
@@ -66,23 +66,28 @@ const CLAIM_PATTERNS: RegExp[] = [
   new RegExp(`${start}(?:i|we)(?:['’]ve|\\s+have)\\s+(?:now\\s+|also\\s+|just\\s+|already\\s+|successfully\\s+)?${EN_VERBS}${end}`, "iu"),
   new RegExp(`${start}(?:i|we)\\s+(?:just\\s+|also\\s+|now\\s+)?(?:added|updated|removed|replaced|moved|changed|swapped|deleted|scheduled|rescheduled|put|condensed|combined|merged|reworked|rearranged|reorganized|reorganised|restructured|trimmed)${end}`, "iu"),
   new RegExp(`${start}(?:is|are|it['’]s|that['’]s)\\s+now\\s+(?:dedicated|scheduled|included|set|booked|planned|structured|organized|organised|arranged|aligned|adjusted|updated|optimized|optimised|reorganized|reorganised|rearranged|part\\s+of|on\\s+day|in\\s+your)${end}`, "iu"),
-  new RegExp(`${start}(?:now|will\\s+now)\\s+(?:includes?|features?|contains?)${end}`, "iu"),
+  new RegExp(`${start}(?:now|will\\s+now)\\s+(?:includes?|features?|contains?|reflects?)${end}`, "iu"),
   // "This update integrates Akihabara…", "Day 3, now with a sunset cruise".
   new RegExp(`${start}(?:this|the)\\s+(?:update|change|revision|new\\s+version|updated\\s+plan|revised\\s+plan)\\s+(?:now\\s+)?(?:integrates|incorporates|includes|adds|brings|puts)${end}`, "iu"),
   new RegExp(`${start}(?:day\\s+\\d+|your\\s+(?:trip|itinerary|plan|day)),?\\s+now\\s+with${end}`, "iu"),
+  // A changed plan handed over as finished: "Here's an updated Day 1".
+  new RegExp(`${start}here(?:['’]s|\\s+is|\\s+are)\\s+(?:an?\\s+|the\\s+|your\\s+)?(?:updated|revised|adjusted|modified|reworked)\\s+(?:\\d+-day\\s+)?(?:plan|itinerary|version|schedule|trip|days|day(?:\\s+\\d+)?)${end}`, "iu"),
   // Spanish
-  new RegExp(`${start}(?<!no\\s)(?:he|hemos)\\s+(?:ya\\s+)?${words("añadido|agregado|actualizado|eliminado|quitado|borrado|reemplazado|sustituido|cambiado|movido|incluido|programado|guardado|puesto|ajustado|condensado|combinado|fusionado|reorganizado|reestructurado|reducido|acortado")}${end}`, "iu"),
-  new RegExp(`${start}(?:ha|han)\\s+sido\\s+${words("añadid|agregad|actualizad|eliminad|quitad|borrad|reemplazad|sustituid|cambiad|movid|incluid|programad|guardad|ajustad|condensad|combinad|fusionad|reorganizad|reestructurad|reducid|acortad")}[oa]s?${end}`, "iu"),
-  new RegExp(`${start}(?<!no\\s)${words("añadí|agregué|actualicé|eliminé|quité|reemplacé|sustituí|cambié|moví|incluí|programé|condensé|combiné|fusioné|reorganicé|reestructuré|acorté")}${end}`, "iu"),
+  new RegExp(`${start}(?<!no\\s)(?:he|hemos)\\s+(?:ya\\s+)?${words("añadido|agregado|actualizado|eliminado|quitado|borrado|reemplazado|sustituido|cambiado|movido|incluido|programado|guardado|puesto|ajustado|condensado|combinado|fusionado|reorganizado|reestructurado|reducido|acortado|incorporado|integrado|modificado|unificado|intercambiado|revertido")}${end}`, "iu"),
+  new RegExp(`${start}(?:ha|han)\\s+sido\\s+${words("añadid|agregad|actualizad|eliminad|quitad|borrad|reemplazad|sustituid|cambiad|movid|incluid|programad|guardad|ajustad|condensad|combinad|fusionad|reorganizad|reestructurad|reducid|acortad|incorporad|integrad|modificad|unificad|intercambiad|revertid")}[oa]s?${end}`, "iu"),
+  new RegExp(`${start}(?<!no\\s)${words("añadí|agregué|actualicé|eliminé|quité|reemplacé|sustituí|cambié|moví|incluí|programé|condensé|combiné|fusioné|reorganicé|reestructuré|acorté|incorporé|integré|modifiqué|unifiqué|intercambié")}${end}`, "iu"),
   new RegExp(`${start}ahora\\s+(?:incluye|está\\s+(?:dedicad|programad|organizad|estructurad|ajustad|alinead|actualizad)[oa])${end}`, "iu"),
+  new RegExp(`${start}aquí\\s+(?:tienes|está|están)\\s+(?:el|la|los|las|tu|tus|un|una)\\s+(?:plan|itinerario|versión|días?(?:\\s+\\d+)?)\\s+(?:actualizad|revisad|modificad|ajustad)[oa]s?${end}`, "iu"),
   // Italian
-  new RegExp(`${start}(?<!non\\s)(?:ho|abbiamo)\\s+(?:già\\s+|anche\\s+|ora\\s+)?${words("aggiunto|aggiornato|rimosso|eliminato|tolto|sostituito|spostato|cambiato|inserito|incluso|programmato|salvato|modificato|condensato|combinato|unito|riorganizzato|ristrutturato|ridotto|accorciato|scambiato")}${end}`, "iu"),
-  new RegExp(`${start}(?:è|sono)\\s+stat[oaie]\\s+${words("aggiunt|aggiornat|rimoss|eliminat|tolt|sostituit|spostat|cambiat|inserit|inclus|programmat|salvat|modificat|condensat|combinat|unit|riorganizzat|ristrutturat|ridott|accorciat|scambiat")}[oaie]${end}`, "iu"),
+  new RegExp(`${start}(?<!non\\s)(?:ho|abbiamo)\\s+(?:già\\s+|anche\\s+|ora\\s+)?${words("aggiunto|aggiornato|rimosso|eliminato|tolto|sostituito|spostato|cambiato|inserito|incluso|programmato|salvato|modificato|condensato|combinato|unito|riorganizzato|ristrutturato|ridotto|accorciato|scambiato|incorporato|integrato|unificato|ripristinato")}${end}`, "iu"),
+  new RegExp(`${start}(?:è|sono)\\s+stat[oaie]\\s+${words("aggiunt|aggiornat|rimoss|eliminat|tolt|sostituit|spostat|cambiat|inserit|inclus|programmat|salvat|modificat|condensat|combinat|unit|riorganizzat|ristrutturat|ridott|accorciat|scambiat|incorporat|integrat|unificat|ripristinat")}[oaie]${end}`, "iu"),
   new RegExp(`${start}(?:ora|adesso)\\s+(?:include|comprende|è\\s+(?:dedicat|organizzat|strutturat|allineat|aggiornat)[oa])${end}`, "iu"),
+  new RegExp(`${start}ecco\\s+(?:(?:il|la|i|le|un|una|il\\s+tuo|la\\s+tua|i\\s+tuoi)\\s+|l['’])(?:piano|itinerario|versione|giorn[oi](?:\\s+\\d+)?)\\s+(?:aggiornat|rivist|modificat)[oaie]${end}`, "iu"),
   // Portuguese
-  new RegExp(`${start}(?<!não\\s)${words("adicionei|acrescentei|atualizei|removi|retirei|substituí|troquei|mudei|movi|incluí|agendei|guardei|salvei|alterei|condensei|combinei|juntei|reorganizei|reestruturei|reduzi|encurtei")}${end}`, "iu"),
-  new RegExp(`${start}(?:foi|foram)\\s+${words("adicionad|acrescentad|atualizad|removid|retirad|substituíd|trocad|mudad|movid|incluíd|agendad|guardad|salv|alterad|condensad|combinad|juntad|reorganizad|reestruturad|reduzid|encurtad")}[oa]s?${end}`, "iu"),
+  new RegExp(`${start}(?<!não\\s)${words("adicionei|acrescentei|atualizei|removi|retirei|substituí|troquei|mudei|movi|incluí|agendei|guardei|salvei|alterei|condensei|combinei|juntei|reorganizei|reestruturei|reduzi|encurtei|incorporei|integrei|unifiquei|reverti")}${end}`, "iu"),
+  new RegExp(`${start}(?:foi|foram)\\s+${words("adicionad|acrescentad|atualizad|removid|retirad|substituíd|trocad|mudad|movid|incluíd|agendad|guardad|salv|alterad|condensad|combinad|juntad|reorganizad|reestruturad|reduzid|encurtad|incorporad|integrad|unificad|revertid")}[oa]s?${end}`, "iu"),
   new RegExp(`${start}agora\\s+(?:inclui|está\\s+(?:dedicad|organizad|estruturad|alinhad|ajustad|atualizad)[oa])${end}`, "iu"),
+  new RegExp(`${start}aqui\\s+(?:está|estão)\\s+(?:o|a|os|as|seu|sua|seus|suas|o\\s+seu|a\\s+sua)\\s+(?:plano|itinerário|versão|dias?(?:\\s+\\d+)?)\\s+(?:atualizad|revisad|modificad|ajustad)[oa]s?${end}`, "iu"),
   // Promises (see EN_PROMISE_VERBS above)
   new RegExp(`${start}(?:i(?:['’]ll|\\s+will)|let\\s+me|i(?:['’]m|\\s+am)\\s+(?:going|preparing|about)\\s+to)\\s+(?:now\\s+|just\\s+|also\\s+|go\\s+ahead\\s+and\\s+)?${EN_PROMISE_VERBS}${end}`, "iu"),
   new RegExp(`${start}(?<!no\\s)(?:voy\\s+a\\s+(?:lo\\s+|la\\s+|los\\s+|las\\s+)?${ES_INFINITIVES}|${ES_INFINITIVES}é)${end}`, "iu"),
