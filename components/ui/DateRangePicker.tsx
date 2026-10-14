@@ -58,6 +58,10 @@ const getFirstDayOfMonth = (year: number, month: number): number => {
   return new Date(year, month, 1).getDay();
 };
 
+// 44px targets for the calendar's arrows.
+const NAV_BUTTON =
+  "w-11 h-11 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent";
+
 /**
  * Display-formatter for the range label on the trigger.
  *
@@ -161,6 +165,8 @@ export default function DateRangePicker({
   // dropdown opened straight under it; on short laptops it was unusable.
   const [openAbove, setOpenAbove] = useState(false);
   const [selectingStart, setSelectingStart] = useState(true);
+  // The month grid: one tap to any month, instead of arrowing through them.
+  const [pickingMonth, setPickingMonth] = useState(false);
   const [viewDate, setViewDate] = useState(() => {
     const start = parseDate(startDate);
     return start || new Date();
@@ -269,6 +275,11 @@ export default function DateRangePicker({
     const end = parseDate(endDate);
     return end ? formatDate(date) === formatDate(end) : false;
   };
+
+  const isMonthBeforeMin = (year: number, month: number): boolean =>
+    !!minDateObj &&
+    (year < minDateObj.getFullYear() ||
+      (year === minDateObj.getFullYear() && month < minDateObj.getMonth()));
 
   const navigateMonth = (direction: -1 | 1) => {
     setViewDate((prev) => {
@@ -427,6 +438,7 @@ export default function DateRangePicker({
           const rect = containerRef.current?.getBoundingClientRect();
           if (rect) setOpenAbove(window.innerHeight - rect.bottom < 420 && rect.top > 420);
           setIsOpen((o) => !o);
+          setPickingMonth(false);
           if (!startDate) setSelectingStart(true);
         }}
         // A11y: SR reads the full current range (or the empty prompt).
@@ -517,68 +529,97 @@ export default function DateRangePicker({
             openAbove ? "bottom-full mb-3" : "mt-3"
           } p-4 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 animate-fade-in-up`}
         >
-          {/* Header — « ‹ jump a year / a month, month+year caption, › » */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center">
-              <button
-                onClick={() => navigateYear(-1)}
-                aria-label={t("previousYear")}
-                className="w-8 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
-                onClick={() => navigateMonth(-1)}
-                aria-label={t("previousMonth")}
-                className="w-8 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-            </div>
-            <div className="text-center">
-              <div className="font-semibold text-slate-900">
-                {MONTHS[viewDate.getMonth()]} {viewDate.getFullYear()}
+          {/* Header — ‹ month, the caption that opens the month grid, month › .
+              One arrow per side at 44px: month and year arrows side by side
+              were tapped for each other on phones. */}
+          {pickingMonth ? (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  type="button"
+                  onClick={() => navigateYear(-1)}
+                  disabled={!!minDateObj && viewDate.getFullYear() <= minDateObj.getFullYear()}
+                  aria-label={t("previousYear")}
+                  className={NAV_BUTTON}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div className="font-semibold text-slate-900 tabular-nums">{viewDate.getFullYear()}</div>
+                <button type="button" onClick={() => navigateYear(1)} aria-label={t("nextYear")} className={NAV_BUTTON}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
-              <div className="text-xs text-slate-500">
-                {selectingStart ? t("selectCheckInDate") : t("selectCheckOutDate")}
+              <div className="grid grid-cols-3 gap-2">
+                {MONTHS.map((name, month) => {
+                  const year = viewDate.getFullYear();
+                  const current = month === viewDate.getMonth();
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      disabled={isMonthBeforeMin(year, month)}
+                      aria-pressed={current}
+                      onClick={() => {
+                        setViewDate(new Date(year, month, 1));
+                        setPickingMonth(false);
+                      }}
+                      className={`h-11 rounded-xl text-sm font-medium capitalize transition-colors disabled:text-slate-300 disabled:cursor-not-allowed ${
+                        current ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-100 disabled:hover:bg-transparent"
+                      }`}
+                    >
+                      {name}
+                    </button>
+                  );
+                })}
               </div>
-            </div>
-            <div className="flex items-center">
-              <button
-                onClick={() => navigateMonth(1)}
-                aria-label={t("nextMonth")}
-                className="w-8 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-              <button
-                onClick={() => navigateYear(1)}
-                aria-label={t("nextYear")}
-                className="w-8 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M6 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-          </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <button type="button" onClick={() => navigateMonth(-1)} aria-label={t("previousMonth")} className={NAV_BUTTON}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setPickingMonth(true)}
+                    aria-label={`${MONTHS[viewDate.getMonth()]} ${viewDate.getFullYear()}: ${t("chooseMonth")}`}
+                    className="inline-flex items-center gap-1 rounded-lg px-2 py-1 font-semibold text-slate-900 capitalize hover:bg-slate-100 transition-colors"
+                  >
+                    {MONTHS[viewDate.getMonth()]} {viewDate.getFullYear()}
+                    <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div className="text-xs text-slate-500">
+                    {selectingStart ? t("selectCheckInDate") : t("selectCheckOutDate")}
+                  </div>
+                </div>
+                <button type="button" onClick={() => navigateMonth(1)} aria-label={t("nextMonth")} className={NAV_BUTTON}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
 
-          {/* Calendar Grid */}
-          {renderCalendar()}
+              {/* Calendar Grid */}
+              {renderCalendar()}
 
-          {/* Max-length hint while picking the end date — explains WHY days
-              beyond start+maxDays are greyed out instead of leaving users to
-              click disabled cells (Wave-1 replays: repeated dead clicks). */}
-          {!selectingStart && startDate && (
-            <p className="mt-3 text-xs text-slate-500 text-center">
-              {t("maxDaysLimit", { days: maxDays })}
-            </p>
+              {/* Max-length hint while picking the end date — explains WHY days
+                  beyond start+maxDays are greyed out instead of leaving users to
+                  click disabled cells (Wave-1 replays: repeated dead clicks). */}
+              {!selectingStart && startDate && (
+                <p className="mt-3 text-xs text-slate-500 text-center">
+                  {t("maxDaysLimit", { days: maxDays })}
+                </p>
+              )}
+            </>
           )}
 
           {/* Footer */}

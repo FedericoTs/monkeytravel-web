@@ -110,6 +110,7 @@
       "nextMonth": "Mes siguiente",
       "previousYear": "Año anterior",
       "nextYear": "Año siguiente",
+      "chooseMonth": "Elegir el mes",
       "maxDaysLimit": "Los viajes pueden durar hasta {days} días",
       "addDates": "Añade tus fechas de viaje",
       "quickHint": "Toca una duración o abre el calendario para fechas exactas",
