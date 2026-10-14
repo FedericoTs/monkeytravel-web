@@ -2622,7 +2622,7 @@
     },
     "morning_of": {
       "heading": "Travel day",
-      "body": "Today's the day. Your full {destination} itinerary is one tap away — open it whenever you need directions, opening hours, or what's next."
+      "body": "Today's the day. Your {destination} plan for today is one tap away — open it whenever you need directions, opening hours, or what's next."
     }
   },
   "tripFollowupEmail": {
