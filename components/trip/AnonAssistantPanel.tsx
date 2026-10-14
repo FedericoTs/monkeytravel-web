@@ -6,9 +6,10 @@
  * Talks to POST /api/ai/assistant-anon (unauthenticated, rate-limited). It can
  * answer questions AND propose edits ("make day 2 cheaper", "swap days 2 and
  * 5", "add a day in Lyngen"). One reply can change several days and the trip's
- * length. Edits are never auto-applied: the panel renders a preview card and,
- * on confirm, calls `onApplyEdits` so the parent swaps those days into the
- * in-memory itinerary (which the wizard's auto-save persists for a saved trip).
+ * length. `onApplyEdits` swaps those days into the in-memory itinerary (which
+ * the wizard's auto-save persists for a saved trip). With `onUndoEdits` an edit
+ * applies as soon as it arrives and its card offers Undo; without it, the card
+ * asks first.
  *
  * Discoverability audit 2026-07-01, Tier 3-B1 (Q&A) + B2 (editing).
  */
@@ -42,8 +43,13 @@ interface AnonAssistantPanelProps {
    * (Phase 1.3). Undefined for older drafts → UI locale.
    */
   language?: string;
-  /** Apply one reply's day revisions (and new trip length, if any) to the in-memory itinerary. */
-  onApplyEdits: (edits: AnonEdit[], tripLength?: number) => void;
+  /** Apply one reply's day revisions (and new trip length, if any) to the in-memory itinerary; returns an id for onUndoEdits. */
+  onApplyEdits: (edits: AnonEdit[], tripLength?: number) => string | void;
+  /**
+   * Put the plan back as it was before an applied edit; false when the plan
+   * has changed since and nothing was undone. When given, edits apply at once.
+   */
+  onUndoEdits?: (undoId: string) => boolean;
   /**
    * Save Sprint T5: when provided, an applied edit renders a save bridge
    * ("these edits live only in this draft → save to keep them") that invokes
@@ -69,6 +75,10 @@ interface Msg {
   /** The trip's new length, when the reply adds or removes days. */
   tripLength?: number;
   editState?: "pending" | "applied" | "discarded";
+  /** From onApplyEdits, for Undo. */
+  undoId?: string;
+  /** Undo was refused: the plan changed after this edit. */
+  undoGone?: boolean;
 }
 
 export default function AnonAssistantPanel({
@@ -79,6 +89,7 @@ export default function AnonAssistantPanel({
   endDate,
   language,
   onApplyEdits,
+  onUndoEdits,
   onRequestSave,
   shareSlot,
 }: AnonAssistantPanelProps) {
@@ -118,8 +129,9 @@ export default function AnonAssistantPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const setEditState = (idx: number, state: "applied" | "discarded") =>
-    setMessages((m) => m.map((msg, i) => (i === idx ? { ...msg, editState: state } : msg)));
+  const patchMessage = (idx: number, patch: Partial<Msg>) =>
+    setMessages((m) => m.map((msg, i) => (i === idx ? { ...msg, ...patch } : msg)));
+  const setEditState = (idx: number, state: "applied" | "discarded") => patchMessage(idx, { editState: state });
 
   const ask = async (message: string) => {
     const q = message.trim();
@@ -145,6 +157,8 @@ export default function AnonAssistantPanel({
           endDate,
           locale: language ?? locale,
           history,
+          // The server then words a finished edit as done, which it will be.
+          autoApply: !!onUndoEdits,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -178,6 +192,10 @@ export default function AnonAssistantPanel({
         capture("anon_assistant_currency_set", { destination, currency: payload.currency });
       }
       if (reply || changes) {
+        // Applied at once when Undo is on offer: an edit that waits for a
+        // tap often never lands, while its reply reads as if it had.
+        const applyNow = changes && !!onUndoEdits;
+        const undoId = applyNow ? onApplyEdits(edits, tripLength) || undefined : undefined;
         setMessages((m) => [
           ...m,
           {
@@ -185,7 +203,8 @@ export default function AnonAssistantPanel({
             text: reply,
             edits: changes ? edits : undefined,
             tripLength,
-            editState: changes ? "pending" : undefined,
+            editState: changes ? (applyNow ? "applied" : "pending") : undefined,
+            undoId,
           },
         ]);
         if (changes) {
@@ -195,6 +214,15 @@ export default function AnonAssistantPanel({
             day_count: edits.length,
             trip_length: tripLength,
           });
+          if (applyNow) {
+            capture("anon_assistant_edit_applied", {
+              destination,
+              day_number: edits[0]?.day_number,
+              day_count: edits.length,
+              trip_length: tripLength,
+              auto: true,
+            });
+          }
         }
       } else {
         setError(t("assistant.errorMsg"));
@@ -238,6 +266,8 @@ export default function AnonAssistantPanel({
     bridgeShownRef.current = bridgeMode;
     capture("save_nudge_shown", { source: bridgeSource });
   }, [showBridge, bridgeMode, bridgeSource]);
+
+  const lastApplied = messages.reduce((last, msg, idx) => (msg.editState === "applied" ? idx : last), -1);
 
   const derived = useMemo(() => deriveRefineSuggestions(days), [days]);
   const suggestions: { label: string; prompt: string; source: string }[] =
@@ -296,9 +326,13 @@ export default function AnonAssistantPanel({
                 <div className="mt-2 rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 p-3">
                   {m.edits && m.edits.length > 0 && (
                     <p className="text-sm font-semibold text-slate-900">
-                      {m.edits.length === 1
-                        ? t("assistant.editPreview", { number: m.edits[0].day_number })
-                        : t("assistant.editPreviewDays", { days: m.edits.map((e) => e.day_number).join(", ") })}
+                      {m.editState === "applied"
+                        ? m.edits.length === 1
+                          ? t("assistant.updatedDay", { number: m.edits[0].day_number })
+                          : t("assistant.updatedDays", { days: m.edits.map((e) => e.day_number).join(", ") })
+                        : m.edits.length === 1
+                          ? t("assistant.editPreview", { number: m.edits[0].day_number })
+                          : t("assistant.editPreviewDays", { days: m.edits.map((e) => e.day_number).join(", ") })}
                     </p>
                   )}
                   {m.tripLength !== undefined && (
@@ -330,7 +364,7 @@ export default function AnonAssistantPanel({
                       <button
                         type="button"
                         onClick={() => {
-                          onApplyEdits(m.edits ?? [], m.tripLength);
+                          const undoId = onApplyEdits(m.edits ?? [], m.tripLength) || undefined;
                           capture("anon_assistant_edit_applied", {
                             destination,
                             day_number: m.edits?.[0]?.day_number,
@@ -343,7 +377,7 @@ export default function AnonAssistantPanel({
                           // bridge will actually render (trip still unsaved).
                           if (onRequestSave) {
                           }
-                          setEditState(i, "applied");
+                          patchMessage(i, { editState: "applied", undoId, undoGone: false });
                         }}
                         className="rounded-lg bg-[var(--primary)] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-light)]"
                       >
@@ -366,15 +400,40 @@ export default function AnonAssistantPanel({
                     </div>
                   ) : (
                     <>
-                      <p
-                        className={`mt-2 text-sm font-medium ${
-                          m.editState === "applied" ? "text-emerald-600" : "text-slate-500"
-                        }`}
-                      >
-                        {m.editState === "applied"
-                          ? `✓ ${t("assistant.applied")}`
-                          : t("assistant.discard")}
-                      </p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <p
+                          className={`text-sm font-medium ${
+                            m.editState === "applied" ? "text-emerald-700" : "text-slate-500"
+                          }`}
+                        >
+                          {m.editState === "applied"
+                            ? `✓ ${t("assistant.applied")}`
+                            : t("assistant.discard")}
+                        </p>
+                        {/* Undo on the newest applied edit only: undoing an older
+                            one would also take back everything after it. */}
+                        {m.editState === "applied" && onUndoEdits && m.undoId && i === lastApplied && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (m.undoId && onUndoEdits(m.undoId)) {
+                                capture("anon_assistant_edit_undone", {
+                                  destination,
+                                  day_number: m.edits?.[0]?.day_number,
+                                  day_count: m.edits?.length ?? 0,
+                                });
+                                patchMessage(i, { editState: "pending", undoId: undefined });
+                              } else {
+                                patchMessage(i, { undoId: undefined, undoGone: true });
+                              }
+                            }}
+                            className="rounded-lg border border-slate-300 bg-white px-3 py-1 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                          >
+                            {t("assistant.undo")}
+                          </button>
+                        )}
+                      </div>
+                      {m.undoGone && <p className="mt-1 text-xs text-slate-500">{t("assistant.undoGone")}</p>}
                     </>
                   )}
                 </div>

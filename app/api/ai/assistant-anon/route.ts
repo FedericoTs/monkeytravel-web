@@ -87,6 +87,8 @@ const BodySchema = z.object({
     .array(z.object({ role: z.enum(["user", "assistant"]), text: z.string().max(2000) }))
     .max(12)
     .optional(),
+  // The page applies edits on arrival (with Undo) rather than waiting for Apply.
+  autoApply: z.boolean().optional(),
 });
 
 const INJECTION_RE =
@@ -181,6 +183,7 @@ export async function POST(request: NextRequest) {
         endDate: body.endDate,
         locale: body.locale,
         history: body.history,
+        autoApply: body.autoApply,
       })
     );
     waitUntil(logApiCall({
@@ -207,6 +210,7 @@ export async function POST(request: NextRequest) {
               days: result.edits.map((e) => e.day_number),
               trip_length: result.tripLength ?? null,
               ...(result.currency ? { currency: result.currency } : {}),
+              ...(body.autoApply && (result.edits.length > 0 || result.tripLength !== undefined) ? { auto_applied: true } : {}),
             }
           : undefined,
     });
