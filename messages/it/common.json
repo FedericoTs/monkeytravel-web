@@ -2762,14 +2762,32 @@
     "expiredBody": "I link al piano di una giornata funzionano per un paio di giorni. Accedi per vedere il tuo viaggio.",
     "unavailableTitle": "Questa giornata non è disponibile",
     "unavailableBody": "Il viaggio potrebbe essere stato eliminato o le sue date potrebbero essere cambiate. Accedi per vedere i tuoi viaggi.",
-    "signIn": "Accedi"
+    "signIn": "Accedi",
+    "send": {
+      "title": "Manda questa giornata al tuo gruppo",
+      "body": "Tutti ricevono il piano del giorno in chat, con un link all'intero viaggio. Non serve un account.",
+      "cta": "Manda al gruppo",
+      "sending": "Preparo il link…",
+      "whatsapp": "Invia su WhatsApp",
+      "share": "Condividi",
+      "copy": "Copia messaggio",
+      "copied": "Copiato",
+      "error": "Non siamo riusciti a ottenere il link. Riprova.",
+      "messageHeading": "{destination}, giorno {day} ({date})",
+      "messageMore": "+altri {count}",
+      "messageLink": "Il piano completo:"
+    }
   },
   "tripDayDigestEmail": {
     "heading": "Domani: Giorno {day}",
     "intro": "Ecco com'è fatto il tuo domani.",
     "cta": "Vedi il piano di domani",
     "andMore": "+altri {count}",
-    "empty": "Ancora niente in programma per il giorno {day} — apri il viaggio per organizzarlo."
+    "empty": "Ancora niente in programma per il giorno {day} — apri il viaggio per organizzarlo.",
+    "groupSend": {
+      "text": "Viaggi in gruppo? Manda il piano di domani nella chat del gruppo, così tutti sanno dove andare.",
+      "cta": "Manda il piano di domani al gruppo"
+    }
   },
   "finishTripEmail": {
     "heading": "Il tuo primo viaggio è a un passo",

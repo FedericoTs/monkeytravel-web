@@ -29,7 +29,7 @@ import { isTripNotificationsEnabled } from "@/lib/notifications/scheduling";
 import { parseDigestDay, digestStaleReason, digestParticipantRecipients } from "@/lib/notifications/digest";
 import { postTripCtaUrl } from "@/lib/email/followup-cta";
 import { reminderCtaUrl } from "@/lib/email/reminder-cta";
-import { digestDayUrl } from "@/lib/trips/day-link";
+import { daySendUrl, digestDayUrl, tripDayDate } from "@/lib/trips/day-link";
 import { resolveLocale, formatDateRange, formatDayMonth } from "@/lib/email/reminder-locale";
 import { retryTransient } from "@/lib/notifications/retry";
 import { domesticTripVerdict } from "@/lib/notifications/domestic-trip";
@@ -1240,13 +1240,24 @@ async function dispatchDayDigest(
     ctaUrl: string,
     idemSuffix: string,
     guestUnsubscribeUrl?: string,
+    groupSendUrl?: string,
   ): Promise<Awaited<ReturnType<typeof dispatchEmail>> | { ok: false; status: "failed"; error: string; i18n: true }> => {
     const heading = tr("heading", { day });
     const intro = tr("intro");
     const ctaLabel = tr("cta");
     const emptyLine = acts.length === 0 ? tr("empty", { day }) : undefined;
     const andMore = moreCount > 0 ? tr("andMore", { count: moreCount }) : undefined;
-    const unresolved = assertTranslated({ heading, intro, ctaLabel, ...(emptyLine ? { emptyLine } : {}), ...(andMore ? { andMore } : {}) });
+    const groupSend = groupSendUrl
+      ? { text: tr("groupSend.text"), label: tr("groupSend.cta"), url: groupSendUrl }
+      : undefined;
+    const unresolved = assertTranslated({
+      heading,
+      intro,
+      ctaLabel,
+      ...(emptyLine ? { emptyLine } : {}),
+      ...(andMore ? { andMore } : {}),
+      ...(groupSend ? { groupSendText: groupSend.text, groupSendLabel: groupSend.label } : {}),
+    });
     if (unresolved) return { ok: false, status: "failed", error: unresolved, i18n: true };
     // Tomorrow's plan as ONE context block: label = the day's title (not
     // containment-checked), items = activities (name + time, which ARE — and
@@ -1257,7 +1268,7 @@ async function dispatchDayDigest(
         : [];
     const template: EmailTemplate = {
       id: "trip_day_digest",
-      props: { day, destination, heading, intro, blocks, emptyLine, andMore, ctaLabel, tripUrl: ctaUrl, locale: loc },
+      props: { day, destination, heading, intro, blocks, emptyLine, andMore, ctaLabel, tripUrl: ctaUrl, locale: loc, groupSend },
     };
     return dispatchEmail({
       recipientEmail: email,
@@ -1286,7 +1297,20 @@ async function dispatchDayDigest(
   }
   // The owner's button opens that day's plan without sign-in (lib/trips/day-link.ts).
   const ownerUrl = digestDayUrl({ appUrl: APP_URL, locale, tripId: trip.id, startDate: trip.start_date, day, slot: row.slot });
-  const result = await sendDigest(recipientEmail, row.user_id, locale, ownerT, ownerUrl, "");
+  // "Send tomorrow's plan to the group": for the owner, on trips not marked
+  // solo, when there is a plan to send. Left out if the link can't be signed.
+  let groupSendUrl: string | undefined;
+  const sendDate = tripDayDate(trip.start_date, day);
+  if (trip.trip_intent !== "solo" && shown.length > 0 && sendDate) {
+    try {
+      groupSendUrl = daySendUrl({ appUrl: APP_URL, locale, tripId: trip.id, date: sendDate, slot: row.slot });
+    } catch (err) {
+      console.warn("[cron/scheduled-notifs] group send link not signed", {
+        id: row.id, error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+  const result = await sendDigest(recipientEmail, row.user_id, locale, ownerT, ownerUrl, "", undefined, groupSendUrl);
 
   // Participant fan-out (off by default): also email the trip's
   // emailed participants. Best-effort and INDEPENDENT of the owner outcome

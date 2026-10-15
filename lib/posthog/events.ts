@@ -1251,3 +1251,11 @@ export async function captureAnonShareCopied(
 export async function captureAnonShareSent(event: AnonShareEvent & { channel: "native" | "whatsapp" }) {
   return capture("anon_share_sent", event);
 }
+
+/**
+ * The owner sent a day's plan to the group from the digest's day page: the
+ * share sheet took it, WhatsApp opened with it, or it was copied.
+ */
+export async function captureDayPlanSent(event: { trip_id: string; day: number; channel: "native" | "whatsapp" | "copy" }) {
+  return capture("day_plan_sent", event);
+}

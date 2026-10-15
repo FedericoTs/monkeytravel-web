@@ -4,6 +4,7 @@ import { createHmac, randomBytes } from "crypto";
 import {
   dayLinkExpiry,
   dayLinkUrl,
+  daySendUrl,
   digestDayUrl,
   signDayLink,
   tripDayDate,
@@ -128,6 +129,31 @@ describe("dayLinkUrl", () => {
     const es = new URL(dayLinkUrl({ appUrl: "https://monkeytravel.app", locale: "es", tripId: TRIP.toUpperCase(), date: DATE }));
     expect(es.pathname).toBe(`/es/day/${TRIP}/${DATE}`);
     expect(es.searchParams.has("slot")).toBe(false);
+  });
+});
+
+describe("the send key", () => {
+  it("verifies only as a send key, and a view key never as one", () => {
+    const s = signDayLink(TRIP, DATE, undefined, "send");
+    const k = signDayLink(TRIP, DATE);
+    expect(verifyDayLink(TRIP, DATE, s, SENT_AT, "send")).toEqual({ ok: true });
+    expect(verifyDayLink(TRIP, DATE, s, SENT_AT)).toEqual({ ok: false, reason: "signature" });
+    expect(verifyDayLink(TRIP, DATE, k, SENT_AT, "send")).toEqual({ ok: false, reason: "signature" });
+    expect(verifyDayLink(OTHER_TRIP, DATE, s, SENT_AT, "send")).toEqual({ ok: false, reason: "signature" });
+  });
+
+  it("expires with the day link", () => {
+    const s = signDayLink(TRIP, DATE, undefined, "send");
+    expect(verifyDayLink(TRIP, DATE, s, dayLinkExpiry(DATE) * 1000, "send")).toEqual({ ok: false, reason: "expired" });
+  });
+
+  it("goes on the day page link with share=group, next to the view key", () => {
+    const url = new URL(daySendUrl({ appUrl: "https://monkeytravel.app", locale: "pt", tripId: TRIP, date: DATE, slot: "in_trip_day_3" }));
+    expect(url.pathname).toBe(`/pt/day/${TRIP}/${DATE}`);
+    expect(url.searchParams.get("slot")).toBe("in_trip_day_3");
+    expect(url.searchParams.get("share")).toBe("group");
+    expect(verifyDayLink(TRIP, DATE, url.searchParams.get("k"), SENT_AT)).toEqual({ ok: true });
+    expect(verifyDayLink(TRIP, DATE, url.searchParams.get("s"), SENT_AT, "send")).toEqual({ ok: true });
   });
 });
 

@@ -19,15 +19,16 @@ export interface EmailClick {
   /** Where the link opened: the owner's trip, a signed day link, a share link or the wizard. */
   page: "trip" | "day" | "shared" | "wizard" | "other";
   tripId: string | null;
-  /** Set when the link was a reminder's "add the people coming" button. */
-  share?: "invite";
+  /** A reminder's "add the people coming" button, or a digest's "send to the group". */
+  share?: "invite" | "group";
 }
 
 /** The email a landing URL came from, or null when it carries no known slot. */
 export function emailClickFromUrl(url: URL): EmailClick | null {
   const click = clickTarget(url);
   if (!click) return null;
-  return url.searchParams.get("share") === "invite" ? { ...click, share: "invite" } : click;
+  const share = url.searchParams.get("share");
+  return share === "invite" || share === "group" ? { ...click, share } : click;
 }
 
 function clickTarget(url: URL): EmailClick | null {

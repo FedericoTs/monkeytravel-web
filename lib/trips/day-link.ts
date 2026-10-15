@@ -4,11 +4,15 @@
  * date and the expiry, so a link cannot be moved to another trip or day, or
  * extended. Signed with EMAIL_UNSUBSCRIBE_SECRET; without it nothing is
  * signed and nothing verifies.
+ *
+ * A second key, `s` (purpose "send"), lets that page hand out the trip's share
+ * link. Only the owner's "send to the group" button carries it.
  */
 
 import { createHmac, timingSafeEqual } from "crypto";
 
-const PURPOSE = "mt-trip-day:v1";
+const PURPOSES = { view: "mt-trip-day:v1", send: "mt-trip-day-send:v1" } as const;
+export type DayLinkPurpose = keyof typeof PURPOSES;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const KEY_RE = /^(\d{1,12})\.([A-Za-z0-9_-]{43})$/;
 const DAY_MS = 86_400_000;
@@ -25,8 +29,10 @@ function dayStartUtc(date: string): number | null {
   return Number.isNaN(t) || new Date(t).toISOString().slice(0, 10) !== date ? null : t;
 }
 
-function mac(key: string, tripId: string, date: string, expires: number): Buffer {
-  return createHmac("sha256", key).update(`${PURPOSE}|${tripId.toLowerCase()}|${date}|${expires}`).digest();
+function mac(key: string, tripId: string, date: string, expires: number, purpose: DayLinkPurpose): Buffer {
+  return createHmac("sha256", key)
+    .update(`${PURPOSES[purpose]}|${tripId.toLowerCase()}|${date}|${expires}`)
+    .digest();
 }
 
 /** Unix seconds at the end of the day after `date`, in every time zone (UTC-12 included). */
@@ -36,12 +42,17 @@ export function dayLinkExpiry(date: string): number {
   return (start + 2 * DAY_MS + 12 * 3_600_000) / 1000;
 }
 
-/** The `k` parameter for /day/<tripId>/<date>. Throws without a usable secret. */
-export function signDayLink(tripId: string, date: string, expires: number = dayLinkExpiry(date)): string {
+/** The `k` (or, for "send", `s`) parameter for /day/<tripId>/<date>. Throws without a usable secret. */
+export function signDayLink(
+  tripId: string,
+  date: string,
+  expires: number = dayLinkExpiry(date),
+  purpose: DayLinkPurpose = "view",
+): string {
   const key = secret();
   if (!key) throw new Error("EMAIL_UNSUBSCRIBE_SECRET is not set (or too short)");
   if (!UUID_RE.test(tripId) || dayStartUtc(date) === null) throw new Error("invalid trip id or date");
-  return `${expires}.${mac(key, tripId, date, expires).toString("base64url")}`;
+  return `${expires}.${mac(key, tripId, date, expires, purpose).toString("base64url")}`;
 }
 
 export type DayLinkCheck =
@@ -54,6 +65,7 @@ export function verifyDayLink(
   date: string,
   k: string | null | undefined,
   now: number = Date.now(),
+  purpose: DayLinkPurpose = "view",
 ): DayLinkCheck {
   const key = secret();
   if (!key) {
@@ -65,7 +77,7 @@ export function verifyDayLink(
   const expires = Number(parts[1]);
   // Compared as encoded text: decoding would accept other spellings of one MAC.
   const given = Buffer.from(parts[2]);
-  const expected = Buffer.from(mac(key, tripId, date, expires).toString("base64url"));
+  const expected = Buffer.from(mac(key, tripId, date, expires, purpose).toString("base64url"));
   if (given.length !== expected.length || !timingSafeEqual(given, expected)) {
     return { ok: false, reason: "signature" };
   }
@@ -85,6 +97,17 @@ export function dayLinkUrl(opts: {
   if (opts.slot) query.set("slot", opts.slot);
   const prefix = opts.locale === "en" ? "" : `/${opts.locale}`;
   return `${opts.appUrl}${prefix}/day/${opts.tripId.toLowerCase()}/${opts.date}?${query}`;
+}
+
+/**
+ * The digest's "send to the group" button: the day page with the send key and
+ * `share=group`, which email click tracking records. Throws without a secret.
+ */
+export function daySendUrl(opts: { appUrl: string; locale: string; tripId: string; date: string; slot: string }): string {
+  const url = new URL(dayLinkUrl(opts));
+  url.searchParams.set("s", signDayLink(opts.tripId, opts.date, undefined, "send"));
+  url.searchParams.set("share", "group");
+  return url.toString();
 }
 
 /**

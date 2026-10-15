@@ -149,6 +149,8 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
   // with so recipients can be read per framing.
   const query = (await searchParams) ?? {};
   const crewAsk = query.vote === "1";
+  // ?day=K: a day the owner sent to the group from the digest email.
+  const sentDay = typeof query.day === "string" && /^\d{1,2}$/.test(query.day) ? Number(query.day) : null;
   const trip = await getSharedTrip(token);
 
   if (!trip) {
@@ -182,7 +184,7 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
     tripHasOwner: !!trip.user_id,
   });
   if (visitVerdict === "counted") {
-    void logSharedTripVisit(trip.id as string, { crewAsk });
+    void logSharedTripVisit(trip.id as string, { crewAsk, day: sentDay });
   }
 
   // PostHog twin of the funnel event above, gated by the same verdict.

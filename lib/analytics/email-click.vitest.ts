@@ -7,6 +7,7 @@ vi.mock("next/server", () => ({ after: handedToAfter }));
 
 import { emailClickFromUrl, trackEmailClick } from "./email-click";
 import { reminderCtaUrl } from "@/lib/email/reminder-cta";
+import { daySendUrl } from "@/lib/trips/day-link";
 
 const TRIP = "77e96874-2985-4867-8472-d97c1f148b65";
 const PHONE_UA =
@@ -41,6 +42,15 @@ describe("emailClickFromUrl", () => {
       share: "invite",
     });
     expect(emailClickFromUrl(at(`/trips/${TRIP}?slot=pack_early_14d&share=other`))).not.toHaveProperty("share");
+  });
+
+  it("tells the digest's 'send to the group' button from its main one", () => {
+    expect(emailClickFromUrl(at(`/it/day/${TRIP}/2026-10-15?k=1.x&slot=in_trip_day_3&s=1.y&share=group`))).toEqual({
+      slot: "in_trip_day_3",
+      page: "day",
+      tripId: TRIP,
+      share: "group",
+    });
   });
 
   it("does not take a share token or a malformed id as the trip", () => {
@@ -102,6 +112,18 @@ describe("trackEmailClick", () => {
         metadata: { slot, page: "day", signed_in: false, navigate: true },
       });
     }
+  });
+
+  it("records the digest's send button as a click on that digest", () => {
+    vi.stubEnv("EMAIL_UNSUBSCRIBE_SECRET", randomBytes(32).toString("hex"));
+    const link = daySendUrl({ appUrl: "https://monkeytravel.app", locale: "es", tripId: TRIP, date: "2026-10-16", slot: "in_trip_day_3" });
+    trackEmailClick({ nextUrl: new URL(link), headers: new Headers({ "user-agent": PHONE_UA, "sec-fetch-mode": "navigate" }) }, "sess-1");
+    expect(body()).toEqual({
+      event_type: "email_clicked",
+      trip_id: TRIP,
+      session_id: "sess-1",
+      metadata: { slot: "in_trip_day_3", page: "day", signed_in: false, navigate: true, share: "group" },
+    });
   });
 
   it("marks a click without a session, and one without fetch metadata", () => {
