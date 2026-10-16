@@ -15,6 +15,7 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { tripDayNumber, verifyDayLink } from "@/lib/trips/day-link";
+import { readShareToken } from "@/lib/trips/share-token";
 import { buildShareUrl } from "@/lib/trips/share-url";
 import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
 import { captureServerEvent } from "@/lib/posthog/server";
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   const admin = createAdminClient();
   const { data: trip, error } = await admin
     .from("trips")
-    .select("id, user_id, share_token, visibility, start_date, end_date")
+    .select("id, user_id, visibility, start_date, end_date")
     .eq("id", id)
     .is("deleted_at", null)
     .maybeSingle();
@@ -54,7 +55,12 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   const day = trip ? tripDayNumber(trip.start_date, trip.end_date, date) : null;
   if (!trip || !trip.user_id || day === null) return errors.notFound("This day isn't available");
 
-  let token = (trip.share_token as string | null) ?? null;
+  let token: string | null;
+  try {
+    token = await readShareToken(id);
+  } catch {
+    return errors.internal("Failed to load the trip", "DaySend");
+  }
   let isNew = false;
   if (!token) {
     // Only where there is still no token, so two taps (or this and the Share
@@ -69,14 +75,13 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       })
       .eq("id", id)
       .is("share_token", null)
-      .select("share_token");
+      .select("id");
     if (updateError) return errors.internal("Failed to create the link", "DaySend");
     if (updated && updated.length > 0) {
       token = minted;
       isNew = true;
     } else {
-      const { data: current } = await admin.from("trips").select("share_token").eq("id", id).maybeSingle();
-      token = (current?.share_token as string | null) ?? null;
+      token = await readShareToken(id).catch(() => null);
     }
     if (!token) return errors.internal("Failed to create the link", "DaySend");
   }

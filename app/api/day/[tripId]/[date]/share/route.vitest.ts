@@ -14,6 +14,9 @@ import { signDayLink } from "@/lib/trips/day-link";
 let client: ReturnType<typeof fakeSupabase>["client"];
 let log: ReturnType<typeof fakeSupabase>["log"];
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => client }));
+// The token is read through the one service-role helper allowed to read it.
+const readShareToken = vi.fn<(tripId: string) => Promise<string | null>>();
+vi.mock("@/lib/trips/share-token", () => ({ readShareToken: (id: string) => readShareToken(id) }));
 
 const logFunnelEventServer = vi.fn<(event: unknown) => Promise<void>>(async () => {});
 vi.mock("@/lib/analytics/funnel-events", () => ({ logFunnelEventServer: (e: unknown) => logFunnelEventServer(e) }));
@@ -38,20 +41,14 @@ const DATE = "2026-10-16";
 
 type Trip = { id: string; user_id: string | null; share_token: string | null; visibility: string; start_date: string; end_date: string };
 let trip: Trip | null;
-let updateRows: Array<{ share_token: string }> | null;
+let updateRows: Array<{ id: string }> | null;
 let updateError: unknown;
-let tokenAfterRace: string | null;
 
 function answer(q: FakeQuery) {
   if (q.op === "rpc") return { data: "OWNERCODE", error: null };
   if (q.table !== "trips") return { data: null, error: null };
-  if (q.op === "update") {
-    const minted = (q.value as { share_token: string }).share_token;
-    return { data: updateError ? null : (updateRows ?? [{ share_token: minted }]), error: updateError };
-  }
-  // The first read is the trip; a re-read after a lost race is the winner's token.
-  const reads = log.filter((r) => r.table === "trips" && r.op === "select").length;
-  return reads > 1 ? { data: { share_token: tokenAfterRace }, error: null } : { data: trip, error: null };
+  if (q.op === "update") return { data: updateError ? null : (updateRows ?? [{ id: TRIP }]), error: updateError };
+  return { data: trip, error: null };
 }
 
 const post = (s: unknown, tripId = TRIP, date = DATE, raw?: string) =>
@@ -73,7 +70,8 @@ beforeEach(() => {
   trip = { id: TRIP, user_id: OWNER, share_token: null, visibility: "private", start_date: "2026-10-14", end_date: "2026-10-18" };
   updateRows = null;
   updateError = null;
-  tokenAfterRace = null;
+  readShareToken.mockReset();
+  readShareToken.mockImplementation(async () => trip?.share_token ?? null);
   afterTasks.length = 0;
   logFunnelEventServer.mockClear();
   captureServerEvent.mockClear();
@@ -135,10 +133,16 @@ describe("POST /api/day/[tripId]/[date]/share", () => {
 
   it("uses the link another tap made first, and counts no new one", async () => {
     updateRows = [];
-    tokenAfterRace = RACED;
+    readShareToken.mockResolvedValueOnce(null).mockResolvedValueOnce(RACED);
     const res = await post(sendKey());
     expect(await res.json()).toEqual({ url: `https://monkeytravel.app/shared/${RACED}?ref=OWNERCODE&day=3`, isNew: false });
     expect(afterTasks).toHaveLength(0);
+  });
+
+  it("fails cleanly when the token can't be read", async () => {
+    readShareToken.mockRejectedValueOnce(new Error("boom"));
+    expect((await post(sendKey())).status).toBe(500);
+    expect(updates()).toHaveLength(0);
   });
 
   it("refuses the day's view key, another trip's key and a forged one", async () => {
