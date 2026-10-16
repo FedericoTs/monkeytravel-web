@@ -1658,8 +1658,8 @@ export default function NewTripPage({
   // Planning a trip again in a fresh wizard auto-saved a second copy under the
   // same name, and edits then landed on whichever copy was open. The check
   // starts with the generation, so it is answered before the result; when this
-  // account saved the same place and dates in the last week, auto-save waits
-  // for the planner to replace that trip's plan or keep both.
+  // account already saved the same place and dates, auto-save waits for the
+  // planner to update that trip with this plan or save a separate one.
   const twinKey =
     autoSaveEnabled && isAuthenticated === true && !savedTripId && !adoptedTripId && !deferAutoSave &&
     (generating || generatedItinerary) && destination && startDate && endDate
