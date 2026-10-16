@@ -19,13 +19,12 @@ function fakeClient(rows: Row[] | null, error: unknown = null) {
   return { client, calls };
 }
 
-const NOW = new Date("2026-09-30T12:00:00Z");
 const TOKYO = { destination: "Tokyo, Japan", startDate: "2026-12-20", endDate: "2026-12-29" };
 
 describe("findRecentTwin", () => {
-  it("asks for this account's live, uncancelled trips on the same dates from the last week", async () => {
+  it("asks for this account's live, uncancelled trips on the same dates, however long ago they were saved", async () => {
     const { client, calls } = fakeClient([]);
-    await findRecentTwin(client, "user-1", TOKYO, NOW);
+    await findRecentTwin(client, "user-1", TOKYO);
     expect(calls).toEqual(
       expect.arrayContaining([
         ["from", "trips"],
@@ -34,9 +33,10 @@ describe("findRecentTwin", () => {
         ["neq", "status", "cancelled"],
         ["eq", "start_date", "2026-12-20"],
         ["eq", "end_date", "2026-12-29"],
-        ["gte", "created_at", "2026-09-23T12:00:00.000Z"],
       ])
     );
+    // No window: a re-plan twelve days later is still the same trip.
+    expect(calls.some(([method]) => method === "gte")).toBe(false);
   });
 
   it("returns the trip for the same place, whatever the spelling", async () => {
@@ -44,16 +44,16 @@ describe("findRecentTwin", () => {
       { id: "kyoto", title: "Kyoto Trip", trip_meta: { destination: "Kyoto, Japan" } },
       { id: "tokyo", title: "Tokyo Trip", trip_meta: { destination: "tokyo" } },
     ]);
-    expect(await findRecentTwin(client, "user-1", TOKYO, NOW)).toEqual({ id: "tokyo", title: "Tokyo Trip" });
+    expect(await findRecentTwin(client, "user-1", TOKYO)).toEqual({ id: "tokyo", title: "Tokyo Trip" });
   });
 
   it("finds nothing for another place, on an error, or without dates", async () => {
     const other = fakeClient([{ id: "kyoto", title: "Kyoto Trip", trip_meta: { destination: "Kyoto, Japan" } }]);
-    expect(await findRecentTwin(other.client, "user-1", TOKYO, NOW)).toBeNull();
+    expect(await findRecentTwin(other.client, "user-1", TOKYO)).toBeNull();
     const failing = fakeClient(null, { message: "boom" });
-    expect(await findRecentTwin(failing.client, "user-1", TOKYO, NOW)).toBeNull();
+    expect(await findRecentTwin(failing.client, "user-1", TOKYO)).toBeNull();
     const untouched = fakeClient([{ id: "tokyo", title: "Tokyo Trip", trip_meta: { destination: "Tokyo" } }]);
-    expect(await findRecentTwin(untouched.client, "user-1", { ...TOKYO, startDate: "" }, NOW)).toBeNull();
+    expect(await findRecentTwin(untouched.client, "user-1", { ...TOKYO, startDate: "" })).toBeNull();
     expect(untouched.calls).toEqual([]);
   });
 });
