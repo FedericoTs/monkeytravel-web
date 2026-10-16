@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
 import ActivityCard from "@/components/ActivityCard";
+import SendDayToGroup from "@/components/trip/SendDayToGroup";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { tripDayNumber, verifyDayLink } from "@/lib/trips/day-link";
@@ -11,13 +12,18 @@ import type { Activity } from "@/types";
  * digest email. The signed link (lib/trips/day-link.ts) is the only access
  * check, and only that day's activities reach the page. Never indexed; it
  * sends no Referer, so the key in its URL does not leak to linked sites.
+ * The owner's "send to the group" link also carries a send key, which adds
+ * the panel that sends the day to the group chat.
  */
 export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ locale: string; tripId: string; date: string }>;
-  searchParams: Promise<{ k?: string | string[] }>;
+  searchParams: Promise<{ k?: string | string[]; s?: string | string[] }>;
 }
+
+/** Activities listed in the group message; the rest become "+N more". */
+const MESSAGE_ACTIVITIES = 6;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params;
@@ -86,7 +92,7 @@ function Notice({ title, body, href, cta }: { title: string; body: string; href:
 
 export default async function TripDayPage({ params, searchParams }: PageProps) {
   const { locale, tripId, date } = await params;
-  const { k } = await searchParams;
+  const { k, s } = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("common.tripDayPage");
   const prefix = locale === "en" ? "" : `/${locale}`;
@@ -116,6 +122,30 @@ export default async function TripDayPage({ params, searchParams }: PageProps) {
     timeZone: "UTC",
   });
 
+  // The send panel: only with a valid send key and a plan to send.
+  const sendKey = typeof s === "string" ? s : null;
+  const canSend =
+    !!sendKey && day.activities.length > 0 && verifyDayLink(tripId, date, sendKey, undefined, "send").ok;
+  let messagePrefix = "";
+  if (canSend) {
+    const shortDate = format.dateTime(new Date(`${date}T00:00:00Z`), {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      timeZone: "UTC",
+    });
+    const heading = day.destination
+      ? t("send.messageHeading", { destination: day.destination, day: day.dayNumber, date: shortDate })
+      : `${t("heading", { day: day.dayNumber })} (${shortDate})`;
+    const lines = day.activities
+      .slice(0, MESSAGE_ACTIVITIES)
+      .map((a) => (a.start_time?.trim() ? `${a.start_time.trim()} · ${a.name.trim()}` : a.name.trim()));
+    if (day.activities.length > MESSAGE_ACTIVITIES) {
+      lines.push(t("send.messageMore", { count: day.activities.length - MESSAGE_ACTIVITIES }));
+    }
+    messagePrefix = [day.title ? `${heading} · ${day.title}` : heading, ...lines, "", `${t("send.messageLink")} `].join("\n");
+  }
+
   return (
     <main className="min-h-screen min-h-dvh bg-[var(--background)] px-4 py-8 sm:py-12">
       <div className="mx-auto max-w-2xl">
@@ -126,6 +156,27 @@ export default async function TripDayPage({ params, searchParams }: PageProps) {
           {t("heading", { day: day.dayNumber })}
         </h1>
         <p className="mt-1 text-[var(--foreground-muted)]">{day.title ? `${when} · ${day.title}` : when}</p>
+
+        {canSend && sendKey ? (
+          <SendDayToGroup
+            tripId={tripId.toLowerCase()}
+            date={date}
+            dayNumber={day.dayNumber}
+            sendKey={sendKey}
+            messagePrefix={messagePrefix}
+            labels={{
+              title: t("send.title"),
+              body: t("send.body"),
+              cta: t("send.cta"),
+              sending: t("send.sending"),
+              whatsapp: t("send.whatsapp"),
+              share: t("send.share"),
+              copy: t("send.copy"),
+              copied: t("send.copied"),
+              error: t("send.error"),
+            }}
+          />
+        ) : null}
 
         {day.activities.length > 0 ? (
           <div className="mt-6 space-y-3">

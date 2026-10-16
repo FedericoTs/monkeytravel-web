@@ -2762,14 +2762,32 @@
     "expiredBody": "Links to a day's plan work for a couple of days. Sign in to see your trip.",
     "unavailableTitle": "This day isn't available",
     "unavailableBody": "The trip may have been deleted or its dates changed. Sign in to see your trips.",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "send": {
+      "title": "Send this day to your group",
+      "body": "Everyone gets the day's plan in the chat, with a link to the whole trip. Nobody needs an account.",
+      "cta": "Send to the group",
+      "sending": "Getting the link…",
+      "whatsapp": "Send on WhatsApp",
+      "share": "Share",
+      "copy": "Copy message",
+      "copied": "Copied",
+      "error": "We couldn't get the link. Try again.",
+      "messageHeading": "{destination}, day {day} ({date})",
+      "messageMore": "+{count} more",
+      "messageLink": "The whole plan:"
+    }
   },
   "tripDayDigestEmail": {
     "heading": "Tomorrow: Day {day}",
     "intro": "Here's what tomorrow looks like.",
     "cta": "See tomorrow's plan",
     "andMore": "+{count} more",
-    "empty": "Nothing planned for day {day} yet — open your trip to fill it in."
+    "empty": "Nothing planned for day {day} yet — open your trip to fill it in.",
+    "groupSend": {
+      "text": "Travelling together? Send tomorrow's plan to your group chat, so everyone knows where to be.",
+      "cta": "Send tomorrow's plan to the group"
+    }
   },
   "finishTripEmail": {
     "heading": "Your first trip is one step away",

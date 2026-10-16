@@ -52,6 +52,11 @@ export interface TripDayDigestEmailProps {
   unsubscribeUrl?: string;
   /** Recipient UI language — localizes the shared shell. */
   locale?: EmailLocale;
+  /**
+   * The owner's "send tomorrow's plan to the group" box, below the main
+   * button. Pre-translated; the cron decides when it applies.
+   */
+  groupSend?: { text: string; label: string; url: string };
 }
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
@@ -67,6 +72,7 @@ export default function TripDayDigestEmail({
   tripUrl,
   unsubscribeUrl,
   locale = "en",
+  groupSend,
 }: TripDayDigestEmailProps) {
   const preview = `📅 ${heading} — ${destination}`;
   const hasPlan = (blocks?.length ?? 0) > 0;
@@ -98,6 +104,15 @@ export default function TripDayDigestEmail({
           {ctaLabel}
         </Button>
       </Section>
+
+      {groupSend ? (
+        <Section style={groupSendBox}>
+          <Text style={groupSendText}>{groupSend.text}</Text>
+          <Button href={groupSend.url} style={secondaryButton}>
+            {groupSend.label}
+          </Button>
+        </Section>
+      ) : null}
     </EmailLayout>
   );
 }
@@ -126,6 +141,7 @@ export function tripDayDigestEmailText(props: TripDayDigestEmailProps): string {
     ...(hasPlan && props.andMore ? [props.andMore] : []),
     "",
     `${props.ctaLabel}: ${props.tripUrl}`,
+    ...(props.groupSend ? ["", props.groupSend.text, `${props.groupSend.label}: ${props.groupSend.url}`] : []),
     "",
     "—",
     "MonkeyTravel · AI-powered trip planning",
@@ -173,5 +189,33 @@ const button: React.CSSProperties = {
   textDecoration: "none",
   fontWeight: 600,
   fontSize: "16px",
+  display: "inline-block",
+};
+
+// The group box matches TripReminder's group ask.
+const groupSendBox: React.CSSProperties = {
+  backgroundColor: "#FFF5EB",
+  borderRadius: "12px",
+  padding: "16px 20px",
+  margin: "0 0 8px",
+  textAlign: "center",
+};
+
+const groupSendText: React.CSSProperties = {
+  fontSize: "15px",
+  color: "#333333",
+  lineHeight: 1.5,
+  margin: "0 0 12px",
+};
+
+const secondaryButton: React.CSSProperties = {
+  backgroundColor: "#FFFFFF",
+  color: "#2D3436",
+  border: "1px solid #D9CFC4",
+  padding: "10px 24px",
+  borderRadius: "999px",
+  textDecoration: "none",
+  fontWeight: 600,
+  fontSize: "15px",
   display: "inline-block",
 };

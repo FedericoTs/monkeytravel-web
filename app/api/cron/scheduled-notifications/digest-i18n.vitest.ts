@@ -53,6 +53,35 @@ describe("trip day digest copy resolves for every locale the cron can reach", ()
     });
   }
 
+  for (const locale of LOCALES) {
+    it(`${locale}: the group box and the day page's send panel have real copy`, () => {
+      const messages = messagesFor(locale) as Parameters<typeof createTranslator>[0]["messages"];
+      const email = createTranslator({ locale, messages, namespace: "common.tripDayDigestEmail" });
+      const page = createTranslator({ locale, messages, namespace: "common.tripDayPage" });
+      const rendered = {
+        groupSendText: email("groupSend.text"),
+        groupSendCta: email("groupSend.cta"),
+        ...Object.fromEntries(
+          ["title", "body", "cta", "sending", "whatsapp", "share", "copy", "copied", "error", "messageLink"].map((k) => [
+            k,
+            page(`send.${k}` as never),
+          ]),
+        ),
+        messageHeading: page("send.messageHeading", { destination: "Lisboa", day: 3, date: "16 oct" }),
+        messageMore: page("send.messageMore", { count: 2 }),
+      };
+      for (const [key, value] of Object.entries(rendered)) {
+        expect(value, `${locale}/${key}`).not.toMatch(/tripDay(DigestEmail|Page)\./);
+        expect(value, `${locale}/${key} left braces`).not.toMatch(/\{(day|count|destination|date)\}/);
+        expect(String(value).trim().length, `${locale}/${key} empty`).toBeGreaterThan(0);
+      }
+      expect(rendered.messageHeading).toContain("Lisboa");
+      expect(rendered.messageHeading).toContain("3");
+      expect(rendered.messageHeading).toContain("16 oct");
+      expect(rendered.messageMore).toContain("2");
+    });
+  }
+
   it("the copy is NOT reachable at the un-prefixed namespace (the classic bug)", () => {
     const messages = messagesFor("en") as Parameters<typeof createTranslator>[0]["messages"];
     const t = createTranslator({

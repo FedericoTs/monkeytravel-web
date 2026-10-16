@@ -78,10 +78,11 @@ export { CRAWLER_UA_RE } from "./share-visit-classifier";
  *
  * `crewAsk` records how the link was framed (?vote=1 = the crew ask) as
  * metadata.crew_ask, so recipients per shared trip can be read by framing.
+ * `day` is set when the link was a day the owner sent from the digest email.
  */
 export async function logSharedTripVisit(
   tripId: string,
-  opts: { crewAsk: boolean } = { crewAsk: false }
+  opts: { crewAsk: boolean; day?: number | null } = { crewAsk: false }
 ): Promise<void> {
   try {
     const c = await cookies();
@@ -90,7 +91,7 @@ export async function logSharedTripVisit(
       event_type: "share_link_visited",
       trip_id: tripId,
       session_id: sessionId,
-      metadata: { crew_ask: opts.crewAsk },
+      metadata: { crew_ask: opts.crewAsk, ...(opts.day ? { day: opts.day } : {}) },
     });
   } catch {
     // never break the render

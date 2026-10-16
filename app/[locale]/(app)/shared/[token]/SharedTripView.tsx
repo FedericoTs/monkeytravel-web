@@ -152,10 +152,17 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
     [liveState, trip.startDate, trip.endDate],
   );
   const dayState = useLiveTripState(fallbackDayState, trip.startDate, trip.endDate);
-  const [todayMode, setTodayMode] = useState(true);
+  const searchParams = useSearchParams();
+  // ?day=K, from the owner's "send to the group": opens on that day, unless
+  // it is today, which Today mode already shows.
+  const linkedDay = Number(searchParams?.get("day"));
+  const opensOnLinkedDay =
+    Number.isInteger(linkedDay) &&
+    trip.itinerary.some((d) => d.day_number === linkedDay) &&
+    !(fallbackDayState.isLive && fallbackDayState.dayNumber === linkedDay);
+  const [todayMode, setTodayMode] = useState(!opensOnLinkedDay);
   const showToday = dayState.isLive && todayMode;
   const { addToast } = useToast();
-  const searchParams = useSearchParams();
 
   // The share API appends the owner's referral code to the link as
   // ?ref=OWNERCODE. Capture it so we can (a) persist it for a later
@@ -214,7 +221,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
     }
   }, [referralCode]);
 
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [selectedDay, setSelectedDay] = useState<number | null>(opensOnLinkedDay ? linkedDay : null);
   // With participants on, a recipient lands on title · dates · going → Day 1:
   // the map is one tap away ("Show map") rather than 400px above the first
   // activity.

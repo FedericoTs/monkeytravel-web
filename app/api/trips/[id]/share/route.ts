@@ -1,6 +1,5 @@
 import { NextRequest, after } from "next/server";
 import { getAuthenticatedUser, verifyTripAccess, verifyTripOwnership } from "@/lib/api/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { readShareToken } from "@/lib/trips/share-token";
 import { enrichTripByIdAdmin } from "@/lib/images/enrichTrip";
 import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
@@ -10,27 +9,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import { purgeTripCard } from "@/lib/seo/trip-card-cache";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
-
-/**
- * Build a shared-trip URL that carries the OWNER's referral code as ?ref, so
- * every shared link is a credited acquisition surface (the dominant organic
- * channel). Falls back to a plain link if the code can't be resolved — sharing
- * must never fail just because referral attribution couldn't be stamped.
- */
-async function buildShareUrl(ownerId: string, token: string): Promise<string> {
-  let ref = "";
-  try {
-    const { data: code } = await createAdminClient().rpc("get_or_create_referral_code", {
-      p_user_id: ownerId,
-    });
-    if (code && typeof code === "string") ref = `?ref=${encodeURIComponent(code)}`;
-  } catch (e) {
-    console.error("[Share] referral-code resolve failed (link still valid):", e);
-  }
-  return `${APP_URL}/shared/${token}${ref}`;
-}
+import { buildShareUrl } from "@/lib/trips/share-url";
 
 /**
  * POST /api/trips/[id]/share - Generate a share link for a trip

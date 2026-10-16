@@ -2762,14 +2762,32 @@
     "expiredBody": "Los enlaces al plan de un día funcionan durante un par de días. Inicia sesión para ver tu viaje.",
     "unavailableTitle": "Este día no está disponible",
     "unavailableBody": "Puede que el viaje se haya eliminado o que hayan cambiado sus fechas. Inicia sesión para ver tus viajes.",
-    "signIn": "Iniciar sesión"
+    "signIn": "Iniciar sesión",
+    "send": {
+      "title": "Envía este día a tu grupo",
+      "body": "Todos reciben el plan del día en el chat, con un enlace al viaje completo. Nadie necesita cuenta.",
+      "cta": "Enviar al grupo",
+      "sending": "Preparando el enlace…",
+      "whatsapp": "Enviar por WhatsApp",
+      "share": "Compartir",
+      "copy": "Copiar mensaje",
+      "copied": "Copiado",
+      "error": "No hemos podido obtener el enlace. Inténtalo de nuevo.",
+      "messageHeading": "{destination}, día {day} ({date})",
+      "messageMore": "+{count} más",
+      "messageLink": "El plan completo:"
+    }
   },
   "tripDayDigestEmail": {
     "heading": "Mañana: Día {day}",
     "intro": "Esto es lo que te espera mañana.",
     "cta": "Ver el plan de mañana",
     "andMore": "+{count} más",
-    "empty": "Aún no hay nada planeado para el día {day} — abre tu viaje para organizarlo."
+    "empty": "Aún no hay nada planeado para el día {day} — abre tu viaje para organizarlo.",
+    "groupSend": {
+      "text": "¿Viajas en grupo? Envía el plan de mañana al chat del grupo para que todos sepan dónde estar.",
+      "cta": "Enviar el plan de mañana al grupo"
+    }
   },
   "finishTripEmail": {
     "heading": "Tu primer viaje está a un paso",
