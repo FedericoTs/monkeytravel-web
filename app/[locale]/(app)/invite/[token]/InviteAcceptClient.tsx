@@ -81,7 +81,9 @@ export default function InviteAcceptClient({
 
   // Use ref to avoid stale closure in auth callback
   const inviteTokenRef = useRef(invite.token);
-  inviteTokenRef.current = invite.token;
+  useEffect(() => {
+    inviteTokenRef.current = invite.token;
+  }, [invite.token]);
 
   // Helper to get locale-prefixed URL for OAuth redirects
   const getLocaleUrl = (path: string) => {

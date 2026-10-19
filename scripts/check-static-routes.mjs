@@ -16,13 +16,20 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
+// Newer manifests say whether an entry is a page or a route (a sitemap, an
+// icon), and on Vercel a page's HTML may no longer be in .next/server/app when
+// this runs. Older manifests have only that HTML file to go by.
+function isPage(nextDir, route, meta) {
+  if (meta.routeType) return meta.routeType === "page";
+  return existsSync(join(nextDir, "server", "app", `${route === "/" ? "index" : route}.html`));
+}
+
 export function prerenderedRoutes(nextDir) {
   const prerender = JSON.parse(readFileSync(join(nextDir, "prerender-manifest.json"), "utf8"));
   const srcRoutes = new Set();
   const revalidating = [];
   for (const [route, meta] of Object.entries(prerender.routes)) {
-    const html = join(nextDir, "server", "app", `${route === "/" ? "index" : route}.html`);
-    if (!existsSync(html)) continue; // sitemaps, icons and other non-page routes
+    if (!isPage(nextDir, route, meta)) continue; // sitemaps, icons and other non-page routes
     if (route.startsWith("/_")) continue; // _not-found and friends have no URL
     if (meta.initialRevalidateSeconds !== false) revalidating.push(route);
     srcRoutes.add(meta.srcRoute ?? route);
