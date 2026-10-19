@@ -86,16 +86,22 @@ export function usePullToRefresh(
   // again on the second crossing. Matches the iOS Mail / Safari pattern.
   const crossedThresholdRef = useRef(false);
 
-  // Keep refs in sync with their state mirrors. Listeners read refs;
-  // React renders read state. Two surfaces, one truth.
-  refreshingRef.current = isRefreshing;
-  distanceRef.current = pullDistance;
-
   useEffect(() => {
     if (!enabled || typeof window === "undefined") return;
     // Skip when running on a device with no touch — saves listener
     // overhead on the desktop web fallback.
     if (!("ontouchstart" in window)) return;
+
+    // Listeners read the refs and React renders the state, so every change
+    // sets both at once.
+    const setDistance = (distance: number) => {
+      distanceRef.current = distance;
+      setPullDistance(distance);
+    };
+    const setRefreshing = (refreshing: boolean) => {
+      refreshingRef.current = refreshing;
+      setIsRefreshing(refreshing);
+    };
 
     const handleTouchStart = (e: TouchEvent) => {
       // Only arm the gesture when the page is scrolled to the very top
@@ -116,7 +122,7 @@ export function usePullToRefresh(
       if (delta <= 0) {
         pullingRef.current = false;
         setIsPulling(false);
-        setPullDistance(0);
+        setDistance(0);
         return;
       }
 
@@ -128,7 +134,7 @@ export function usePullToRefresh(
       const clamped = Math.min(damped, maxDistance);
 
       setIsPulling(true);
-      setPullDistance(clamped);
+      setDistance(clamped);
 
       // Canonical iOS pattern: tick the haptic the moment the user
       // crosses the release threshold during the drag, NOT after the
@@ -170,11 +176,11 @@ export function usePullToRefresh(
       const distance = distanceRef.current;
 
       if (distance >= threshold) {
-        setIsRefreshing(true);
+        setRefreshing(true);
         // Keep the indicator at threshold during the spinner so the
         // visual stays in place instead of snapping back, then jerking
         // out when the refresh completes.
-        setPullDistance(threshold);
+        setDistance(threshold);
         try {
           await onRefresh();
         } catch (err) {
@@ -183,12 +189,12 @@ export function usePullToRefresh(
           // eslint-disable-next-line no-console
           console.error("[usePullToRefresh] refresh callback threw:", err);
         } finally {
-          setIsRefreshing(false);
-          setPullDistance(0);
+          setRefreshing(false);
+          setDistance(0);
         }
       } else {
         // Below threshold — snap back without firing.
-        setPullDistance(0);
+        setDistance(0);
       }
     };
 

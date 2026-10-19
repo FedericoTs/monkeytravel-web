@@ -1317,7 +1317,7 @@ export default function NewTripPage({
   // useRef, not useState: it must never trigger a render, and it must survive
   // every re-render of this very large component without changing.
   const wizardMountIdRef = useRef<string | null>(null);
-  if (wizardMountIdRef.current === null && typeof window !== "undefined") {
+  if (wizardMountIdRef.current === null) {
     wizardMountIdRef.current =
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
