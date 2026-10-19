@@ -261,9 +261,9 @@
         "body": "They vote on what to do, no app or account needed, and you'll see their picks here."
       },
       "twinTitle": "You already have “{title}” for these dates",
-      "twinBody": "Replace its plan with this one, or keep both trips?",
-      "twinReplace": "Replace its plan",
-      "twinKeepBoth": "Keep both",
+      "twinBody": "Update that trip with this plan? Its share link and the people on it stay the same.",
+      "twinReplace": "Update my saved trip",
+      "twinKeepBoth": "Save as a separate trip",
       "valueBanner": {
         "title": "Save to unlock more",
         "subtitle": "Full editing & AI features",

@@ -261,9 +261,9 @@
         "body": "Votan qué hacer, sin app ni cuenta, y verás sus elecciones aquí."
       },
       "twinTitle": "Ya tienes «{title}» para estas fechas",
-      "twinBody": "¿Reemplazar su plan por este o conservar los dos viajes?",
-      "twinReplace": "Reemplazar su plan",
-      "twinKeepBoth": "Conservar los dos",
+      "twinBody": "¿Actualizar ese viaje con este plan? Su enlace y las personas que van se mantienen.",
+      "twinReplace": "Actualizar mi viaje guardado",
+      "twinKeepBoth": "Guardar como otro viaje",
       "valueBanner": {
         "title": "Guárdalo y desbloquea más",
         "subtitle": "Edición completa y funciones de AI",

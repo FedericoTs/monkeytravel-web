@@ -261,9 +261,9 @@
         "body": "Eles votam no que fazer, sem app nem conta, e você vê as escolhas deles aqui."
       },
       "twinTitle": "Você já tem “{title}” para estas datas",
-      "twinBody": "Substituir o plano dela por este ou manter as duas viagens?",
-      "twinReplace": "Substituir o plano",
-      "twinKeepBoth": "Manter as duas",
+      "twinBody": "Atualizar essa viagem com este plano? O link de compartilhamento e as pessoas continuam os mesmos.",
+      "twinReplace": "Atualizar minha viagem salva",
+      "twinKeepBoth": "Salvar como outra viagem",
       "valueBanner": {
         "title": "Salve e desbloqueie mais",
         "subtitle": "Edição completa e recursos de AI",
