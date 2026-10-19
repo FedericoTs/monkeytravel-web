@@ -108,6 +108,18 @@ export function mergeTripEdits(days: ItineraryDay[], edits: DayEdit[]): Itinerar
 }
 
 const DAY_LABEL: Record<string, string> = { en: "Day", es: "Día", it: "Giorno", pt: "Dia" };
+const LEAVES_OUT: Record<string, string> = { en: "Leaves out", es: "Deja fuera", it: "Lascia fuori", pt: "Deixa de fora" };
+
+/** Saved activities of the revised days that none of them holds any more. */
+function leftOut(days: ItineraryDay[], revisedDays: ItineraryDay[]): string[] {
+  const kept = new Set(revisedDays.flatMap((d) => d.activities.map((a) => a.id)));
+  const revised = new Set(revisedDays.map((d) => d.day_number));
+  return days
+    .filter((d) => revised.has(d.day_number))
+    .flatMap((d) => d.activities ?? [])
+    .filter((a) => a?.id && !kept.has(a.id))
+    .map((a) => a.name);
+}
 
 export interface TripEditProposal {
   reply: string;
@@ -144,13 +156,20 @@ export async function proposeTripEdits(input: {
     result.tripLength !== undefined ? `${result.reply} ${lengthUnchangedNote(input.locale, current)}` : result.reply;
 
   const label = DAY_LABEL[input.locale] ?? DAY_LABEL.en;
+  const revisedDays = edits.length > 0 ? mergeTripEdits(input.days, edits) : [];
+  // The model can swap out a saved activity while its reply calls the change
+  // an addition, so the card names what the change takes out before Apply.
+  const removed = leftOut(input.days, revisedDays);
+  const summary = edits
+    .filter((e) => e.summary.trim())
+    .map((e) => `${label} ${e.day_number}: ${e.summary.trim()}`)
+    .join(" ");
   return {
     reply,
-    revisedDays: edits.length > 0 ? mergeTripEdits(input.days, edits) : [],
-    summary: edits
-      .filter((e) => e.summary.trim())
-      .map((e) => `${label} ${e.day_number}: ${e.summary.trim()}`)
-      .join(" "),
+    revisedDays,
+    summary: removed.length
+      ? `${summary} ${LEAVES_OUT[input.locale] ?? LEAVES_OUT.en}: ${removed.join(", ")}.`.trim()
+      : summary,
     meta: result.meta,
   };
 }

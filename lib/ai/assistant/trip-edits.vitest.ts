@@ -172,8 +172,20 @@ describe("proposeTripEdits", () => {
     assistTrip.mockResolvedValue({
       reply: "Ready: nightclubs on nights 1 and 3.",
       edits: [
-        { day_number: 1, summary: "Wigwam after dinner.", activities: [engineActivity("Wigwam", "22:00", "evening")] },
-        { day_number: 3, summary: "Index late.", activities: [engineActivity("Index", "23:00", "evening")] },
+        {
+          day_number: 1,
+          summary: "Wigwam after dinner.",
+          activities: [
+            engineActivity("Trinity College", "09:00", "morning"),
+            engineActivity("Temple Bar", "20:00", "evening"),
+            engineActivity("Wigwam", "22:00", "evening"),
+          ],
+        },
+        {
+          day_number: 3,
+          summary: "Index late.",
+          activities: [engineActivity("Howth Cliff Walk", "10:00", "morning"), engineActivity("Index", "23:00", "evening")],
+        },
       ],
       edit: null,
       meta,
@@ -199,7 +211,38 @@ describe("proposeTripEdits", () => {
     const out = await proposeTripEdits({ ...input, locale: "it" });
     expect(out?.revisedDays.map((d) => d.day_number)).toEqual([2]);
     expect(out?.reply).toContain("Il viaggio resta di 3 giorni");
-    expect(out?.summary).toBe("Giorno 2: Lighter.");
+    expect(out?.summary).toBe("Giorno 2: Lighter. Lascia fuori: Grafton Street.");
+  });
+
+  it("names a saved activity the change takes out, even when the reply calls it an addition", async () => {
+    assistTrip.mockResolvedValue({
+      reply: "I've added The Winding Stair to Day 2.",
+      edits: [
+        {
+          day_number: 2,
+          summary: "Added The Winding Stair for dinner.",
+          activities: [engineActivity("National Gallery", "10:00", "morning"), engineActivity("The Winding Stair", "19:30", "evening")],
+        },
+      ],
+      edit: null,
+      meta,
+    });
+    const out = await proposeTripEdits({ ...input, message: "Suggest a great local restaurant to add" });
+    expect(out?.summary).toBe("Day 2: Added The Winding Stair for dinner. Leaves out: Grafton Street.");
+  });
+
+  it("leaves out nothing when activities only move between days", async () => {
+    assistTrip.mockResolvedValue({
+      reply: "Days 1 and 2 swapped.",
+      edits: [
+        { day_number: 1, summary: "Museums first.", activities: [engineActivity("National Gallery", "10:00", "morning"), engineActivity("Grafton Street", "14:00", "afternoon")] },
+        { day_number: 2, summary: "Arrival plan.", activities: [engineActivity("Trinity College", "09:00", "morning"), engineActivity("Temple Bar", "20:00", "evening")] },
+      ],
+      edit: null,
+      meta,
+    });
+    const out = await proposeTripEdits({ ...input, message: "Switch days 1 & 2" });
+    expect(out?.summary).toBe("Day 1: Museums first. Day 2: Arrival plan.");
   });
 
   it("leaves a currency request to the chat: only the wizard switches currency", async () => {
