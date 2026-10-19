@@ -12,7 +12,8 @@ import { NextRequest } from "next/server";
  * mints one for whoever it is given. Stopping sharing also takes a trip off
  * Explore, so sharing it again must not report it as listed. The token comes
  * from the service role (the user-scoped client may not select it), and
- * unpublishing gives it a new one, which the status then reports.
+ * unpublishing gives it a new one, which the status then reports. A new link
+ * is counted in analytics without its token.
  */
 
 const OWNER = "owner-1";
@@ -31,15 +32,17 @@ const rpc = vi.fn(async () => ({ data: "OWNERCODE", error: null }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ rpc }) }));
 vi.mock("@/lib/images/enrichTrip", () => ({ enrichTripByIdAdmin: vi.fn() }));
 vi.mock("@/lib/analytics/funnel-events", () => ({ logFunnelEventServer: vi.fn() }));
-vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: vi.fn() }));
+vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: vi.fn(async () => {}) }));
 vi.mock("@/lib/seo/trip-card-cache", () => ({ purgeTripCard: vi.fn() }));
 vi.mock("@/lib/explore/flag", () => ({ isExploreUgcEnabled: () => true }));
 vi.mock("@/lib/explore/counters", () => ({ runTripCounter: vi.fn() }));
 // The service-role read of the stored trip's token.
 vi.mock("@/lib/trips/share-token", () => ({ readShareToken: async () => row.share_token }));
+// Work deferred past the response; a test runs it when it needs it.
+const afterTasks: Array<() => unknown> = [];
 vi.mock("next/server", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/server")>()),
-  after: () => {},
+  after: (task: () => unknown) => afterTasks.push(task),
 }));
 
 let caller = OWNER;
@@ -92,6 +95,8 @@ vi.mock("@/lib/api/auth", async (importOriginal) => {
 
 import { GET, POST, DELETE } from "./route";
 import { DELETE as UNPUBLISH } from "../publish/route";
+import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
+import { captureServerEvent } from "@/lib/posthog/server";
 
 const ctx = { params: Promise.resolve({ id: TRIP }) } as never;
 const req = (method = "GET") => new NextRequest(`https://monkeytravel.app/api/trips/${TRIP}/share`, { method });
@@ -102,6 +107,7 @@ beforeEach(() => {
   role = null;
   row = { ...LISTED };
   updates.length = 0;
+  afterTasks.length = 0;
 });
 
 const status = async () => {
@@ -142,6 +148,27 @@ describe("creating and revoking stay with the owner", () => {
     expect((await POST(req("POST"), ctx)).status).toBe(404);
     expect((await DELETE(req("DELETE"), ctx)).status).toBe(404);
     expect(updates).toEqual([]);
+  });
+});
+
+describe("creating a new link", () => {
+  it("counts it in analytics without the token, which opens the trip", async () => {
+    row = { ...LISTED, share_token: null, shared_at: null, visibility: "private", submitted_to_trending_at: null };
+    const res = await POST(req("POST"), ctx);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const minted = (body.data ?? body).shareToken as string;
+    expect(minted).toBeTruthy();
+
+    await Promise.all(afterTasks.map((task) => task()));
+    expect(logFunnelEventServer).toHaveBeenCalledWith({
+      event_type: "share_link_created",
+      trip_id: TRIP,
+      user_id: OWNER,
+      metadata: { via: "share_button" },
+    });
+    const logged = JSON.stringify([vi.mocked(logFunnelEventServer).mock.calls, vi.mocked(captureServerEvent).mock.calls]);
+    expect(logged).not.toContain(minted);
   });
 });
 

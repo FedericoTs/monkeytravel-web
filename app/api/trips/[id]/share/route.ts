@@ -74,7 +74,8 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
         event_type: "share_link_created",
         trip_id: id,
         user_id: user.id,
-        metadata: { share_token: shareToken },
+        // Never the token itself: whoever holds it can open the trip.
+        metadata: { via: "share_button" },
       });
       // Crew Loop PostHog: mirror of the funnel event above (new-mint branch
       // only, so it fires at most once per trip).
