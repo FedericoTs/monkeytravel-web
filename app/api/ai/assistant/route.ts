@@ -56,6 +56,12 @@ import {
   nothingKeptReply,
   pendingChangeReply,
 } from "@/lib/ai/assistant/honesty";
+import {
+  conversationTurns,
+  isPlainQuestion,
+  proposeTripEdits,
+  type TripEditProposal,
+} from "@/lib/ai/assistant/trip-edits";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -1064,18 +1070,67 @@ export async function POST(request: NextRequest) {
       activityCount: itinerary.reduce((sum, day) => sum + day.activities.length, 0),
     };
 
+    // Load conversation. Before the intents: the edit engine below reads it.
+    let conversation: { id: string; messages: AssistantMessage[] };
+
+    if (conversationId) {
+      const { data: existingConvo } = await supabase
+        .from("ai_conversations")
+        .select("*")
+        .eq("id", conversationId)
+        .eq("user_id", user.id)
+        .single();
+
+      conversation = existingConvo
+        ? { id: existingConvo.id, messages: existingConvo.messages as AssistantMessage[] }
+        : { id: "", messages: [] };
+    } else {
+      const { data: newConvo } = await supabase
+        .from("ai_conversations")
+        .insert({ user_id: user.id, trip_id: tripId, messages: [] })
+        .select()
+        .single();
+
+      conversation = { id: newConvo?.id || "", messages: [] };
+    }
+
     // STRUCTURAL intents first (add_day / apply_draft) — they must outrank
     // the single-activity patterns: the legacy `lowerMsg.includes("add ")`
     // fallback is what turned "can you add a day to travel to Voss" into an
     // add-activity landing on Day 1 (transcript, 2026-07). See
     // lib/ai/assistant/structural.ts for the heuristics + evidence.
     const structuralIntent = detectStructuralIntent(message);
+
+    // Then the wizard's edit engine (lib/ai/assistant/trip-edits.ts): the
+    // patterns below read only a few phrasings, so "adding X to Day 3" or two
+    // changes in one message got a promise and no change. A plain question
+    // stays with the chat, and the patterns still run when the engine
+    // proposes nothing or fails.
+    let tripEdits: TripEditProposal | null = null;
+    if (structuralIntent.type === "none" && itinerary.length > 0 && !isPlainQuestion(message)) {
+      try {
+        tripEdits = await proposeTripEdits({
+          message,
+          destination: tripContext.destination,
+          tripTitle: trip.title,
+          days: itinerary,
+          startDate: trip.start_date,
+          endDate: trip.end_date,
+          locale: userLanguage,
+          history: conversationTurns(conversation.messages),
+        });
+      } catch (err) {
+        console.error("[AI Assistant] Edit engine failed, using the patterns:", err);
+      }
+    }
+    const engineEdited = (tripEdits?.revisedDays.length ?? 0) > 0;
+
     const actionIntent =
-      structuralIntent.type === "none"
+      structuralIntent.type === "none" && !engineEdited
         ? detectActionIntent(message)
         : ({ type: "none" } as ReturnType<typeof detectActionIntent>);
     console.log(
-      `[AI Assistant] Structural intent: ${structuralIntent.type}; action intent: ${JSON.stringify(actionIntent)}`
+      `[AI Assistant] Structural intent: ${structuralIntent.type}; engine: ${tripEdits ? `${tripEdits.revisedDays.length} day(s)` : "not used"}; action intent: ${JSON.stringify(actionIntent)}`
     );
 
     // Deep clone the itinerary to avoid reference issues
@@ -1084,6 +1139,41 @@ export async function POST(request: NextRequest) {
     let replacementCard: AssistantCard | undefined;
     let replacementError: string | undefined;
     let itineraryWasModified = false;
+    let engineWriteFailed = false;
+
+    // The engine's revised days: one multi-day change, confirmed and saved
+    // like a pasted draft (apply_draft), in one write.
+    if (engineEdited && tripEdits) {
+      const fixedDays = validateAndFixCoordinates(tripEdits.revisedDays, tripContext.destination);
+      for (const day of fixedDays) {
+        const idx = modifiedItinerary.findIndex((d) => d.day_number === day.day_number);
+        if (idx !== -1) modifiedItinerary[idx] = day;
+      }
+      itineraryWasModified = true;
+      actionTaken = {
+        type: "apply_draft",
+        applied: true,
+        dayNumber: fixedDays[0].day_number,
+        dayCount: fixedDays.length,
+        revisedDays: fixedDays,
+      };
+
+      if (previewMode) {
+        itineraryWasModified = false;
+      } else {
+        const { error: updateError } = await supabase
+          .from("trips")
+          .update({ itinerary: modifiedItinerary, updated_at: new Date().toISOString() })
+          .eq("id", tripId);
+        if (updateError) {
+          console.error("[AI Assistant] Database update failed:", updateError);
+          replacementError = "Failed to save the revised days to database";
+          itineraryWasModified = false;
+          actionTaken = undefined;
+          engineWriteFailed = true;
+        }
+      }
+    }
 
     // Handle autonomous activity replacement
     if (actionIntent.type === "replace" && actionIntent.activityName) {
@@ -1983,30 +2073,6 @@ Return ONLY valid JSON:
       }
     }
 
-    // Load conversation
-    let conversation: { id: string; messages: AssistantMessage[] };
-
-    if (conversationId) {
-      const { data: existingConvo } = await supabase
-        .from("ai_conversations")
-        .select("*")
-        .eq("id", conversationId)
-        .eq("user_id", user.id)
-        .single();
-
-      conversation = existingConvo
-        ? { id: existingConvo.id, messages: existingConvo.messages as AssistantMessage[] }
-        : { id: "", messages: [] };
-    } else {
-      const { data: newConvo } = await supabase
-        .from("ai_conversations")
-        .insert({ user_id: user.id, trip_id: tripId, messages: [] })
-        .select()
-        .single();
-
-      conversation = { id: newConvo?.id || "", messages: [] };
-    }
-
     // Classify and select model
     const contextLength = JSON.stringify(tripContext).length;
     const classification = classifyTask(message, contextLength);
@@ -2085,35 +2151,46 @@ User: ${message}
 
 Respond with valid JSON only.`;
 
-    // Call AI
-    const model = genAI.getGenerativeModel({ model: modelConfig.id });
-    const result = await model.generateContent(fullPrompt);
-    const responseText = result.response.text();
+    // The engine's own reply, when it prepared the change, or answered and
+    // the patterns prepared nothing. It already read the plan and the
+    // conversation, so the chat call below is skipped.
+    const engineReply =
+      tripEdits && (engineEdited ? !engineWriteFailed : !actionTaken) ? tripEdits.reply : null;
 
-    // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts). This is
-    // the main chat-message call — buildSystemPrompt produces a long
-    // stable preamble so this site should dominate the rolling window
-    // with healthy cache hits.
-    logCacheMetrics("ai.assistant.chat", result.response.usageMetadata);
-
-    // Parse JSON response
     let parsedResponse: StructuredAssistantResponse;
-    try {
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsedResponse = JSON.parse(jsonMatch[0]);
-      } else {
-        // Fallback to plain text response
+    let responseText = "";
+    if (engineReply !== null) {
+      parsedResponse = { summary: engineReply, cards: [] };
+    } else {
+      // Call AI
+      const model = genAI.getGenerativeModel({ model: modelConfig.id });
+      const result = await model.generateContent(fullPrompt);
+      responseText = result.response.text();
+
+      // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts). This is
+      // the main chat-message call — buildSystemPrompt produces a long
+      // stable preamble so this site should dominate the rolling window
+      // with healthy cache hits.
+      logCacheMetrics("ai.assistant.chat", result.response.usageMetadata);
+
+      // Parse JSON response
+      try {
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          parsedResponse = JSON.parse(jsonMatch[0]);
+        } else {
+          // Fallback to plain text response
+          parsedResponse = {
+            summary: responseText.slice(0, 200),
+            cards: [],
+          };
+        }
+      } catch {
         parsedResponse = {
           summary: responseText.slice(0, 200),
           cards: [],
         };
       }
-    } catch {
-      parsedResponse = {
-        summary: responseText.slice(0, 200),
-        cards: [],
-      };
     }
 
     // The past-tense card is only shown once the change is REAL.
@@ -2186,16 +2263,19 @@ Respond with valid JSON only.`;
     // must still ride the message: it drives the badge and the history.
     parsedResponse.action = actionTaken;
 
-    // Estimate tokens and cost
-    const inputTokens = Math.ceil(fullPrompt.length / 4);
-    const outputTokens = Math.ceil(responseText.length / 4);
-    const costCents = estimateCost(modelConfig, inputTokens, outputTokens);
+    // Estimate tokens and cost. The engine reports its own cost; the chat
+    // call is estimated, and only counted when it ran.
+    const inputTokens = engineReply !== null ? 0 : Math.ceil(fullPrompt.length / 4);
+    const outputTokens = engineReply !== null ? 0 : Math.ceil(responseText.length / 4);
+    const costCents =
+      (engineReply !== null ? 0 : estimateCost(modelConfig, inputTokens, outputTokens)) +
+      (tripEdits ? tripEdits.meta.costUsd * 100 : 0);
 
     // Record usage in existing system
     await recordUsage({
       userId: user.id,
       tripId,
-      modelId: modelConfig.id,
+      modelId: engineReply !== null && tripEdits ? tripEdits.meta.model : modelConfig.id,
       action: actionTaken?.type || "answer_question",
       inputTokens,
       outputTokens,
@@ -2318,7 +2398,8 @@ Respond with valid JSON only.`;
           days: actionTaken.revisedDays,
           changedDayNumbers: actionTaken.revisedDays.map((d) => d.day_number),
           unmappedDayNumbers: draftUnmappedDayNumbers,
-          reason: "Mapped from your pasted draft",
+          // The engine's edits say what changes on each day.
+          reason: engineEdited ? tripEdits?.summary || undefined : "Mapped from your pasted draft",
         };
       }
     }

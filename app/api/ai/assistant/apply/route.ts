@@ -168,10 +168,15 @@ export async function POST(request: NextRequest) {
         );
       }
     } else if (changeType === "apply_draft") {
-      const locked = modifiedItinerary.flatMap((d) => lockedActivityNames(d));
+      // Only the days being replaced: the assistant's multi-day edits leave
+      // a day with a fixed plan alone, and so may this write.
+      const replacing = new Set((days ?? []).map((d) => d?.day_number));
+      const locked = modifiedItinerary
+        .filter((d) => replacing.has(d.day_number))
+        .flatMap((d) => lockedActivityNames(d));
       if (locked.length > 0) {
         return errors.badRequest(
-          `This trip is built around fixed plans (${locked.slice(0, 3).join(", ")}) and can't be rewritten from a pasted draft.`
+          `Days built around fixed plans (${locked.slice(0, 3).join(", ")}) can't be rewritten.`
         );
       }
     } else if (changeType === "shift_days") {
