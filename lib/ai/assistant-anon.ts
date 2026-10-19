@@ -160,7 +160,7 @@ function buildHistory(history: AssistTurn[] | undefined): string {
   return `\nConversation so far (oldest first):\n${lines.join("\n")}\n`;
 }
 
-function buildPrompt(input: AssistAnonInput): string {
+export function buildPrompt(input: AssistAnonInput): string {
   const language = LOCALE_LANGUAGE[input.locale ?? "en"] ?? "English";
   const cur = tripCurrency(input.days);
   const dayCount = input.days.length;
@@ -182,6 +182,8 @@ Decide:
 - A QUESTION or general advice: answer it, and return "edits": [].
 - A request to CHANGE the plan: return every day that changes, each rewritten in full, in "edits". Keep the good parts of each day and leave days that don't need to change alone.
   - Moving or swapping activities between days changes BOTH days: return both.
+  - Something to add with no day named ("add a cooking class", "suggest a restaurant to add"): pick the day with the most room where it fits, add it there without removing anything, and name that day in "reply". Don't ask which day.
+  - Asked for alternatives or other things to do: put your best picks into the plan as edits, so they can be applied, and say in "reply" what they replace.
   - Adding or removing days, or changing how many nights a city gets: set "trip_length" to the new total number of days (1-${maxDays}) and return every day whose content changes, including each NEW day in full. New days come first, before any existing day you also change. Days beyond "trip_length" are removed.${multiCity ? `
   - This is a multi-city trip: give each edited day its "city".` : ""}
   - Hotels: use only hotel names the traveller gives you or that already appear in the itinerary; never pick one for them. If they mention hotels you can't see ("the hotels I added"), ask for the names and return "edits": []. When they name where they're staying for certain nights, add a short "Check in at <place>" activity in the evening of the first of those days. The plan doesn't track hotel prices; say so if they ask for them.
@@ -217,7 +219,7 @@ Return STRICT JSON (no markdown) in this EXACT shape:
 
 Rules:
 1. JSON only. "edits" is [] for questions.
-2. Each edited day: 3-5 activities, real places, costs realistic in ${cur}. Keep "description" to a few words.
+2. Each edited day: 3-5 activities (one more when you add to a full day), real places, costs realistic in ${cur}. Keep "description" to a few words.
 3. "reply" is warm and concise (1-2 sentences) and describes exactly the edits you return. Never say you changed a day that is not in "edits". Nothing changes until the traveller taps Apply, so ${READY_WORDING[input.locale ?? "en"] ?? READY_WORDING.en} Never mention JSON.
 4. Only real, safe, legal travel. If the request is impossible or off-topic, return "edits": [] and explain kindly in "reply".
 5. USER OVERRIDE: if the user asks for a place outside ${input.destination} (e.g. a day-trip across a border), you may note the travel-time tradeoff ONCE in "reply" — but if they insist, comply and build the edit exactly as they asked. Never refuse the same request twice.

@@ -1,7 +1,7 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
 import type { ItineraryDay } from "@/types";
-import { composeReply, validateEdits } from "./assistant-anon";
+import { buildPrompt, composeReply, validateEdits } from "./assistant-anon";
 
 /**
  * The wizard assistant can change several days and the trip's length in one
@@ -195,5 +195,20 @@ describe("composeReply when the page applies edits on arrival", () => {
     expect(composeReply({ ...base, reply: "I've updated Day 2 to start at 15:00.", edits: [] })).toMatch(
       /^I haven't changed your plan/
     );
+  });
+});
+
+describe("buildPrompt", () => {
+  // "Suggest a great local restaurant to add" was answered with "which day?",
+  // and the plan stayed as it was.
+  it("adds to the day with the most room when no day is named, instead of asking", () => {
+    const prompt = buildPrompt({ message: "Suggest a great local restaurant to add", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
+    expect(prompt).toContain("pick the day with the most room where it fits, add it there without removing anything");
+    expect(prompt).toContain("Don't ask which day");
+  });
+
+  it("offers asked-for alternatives as edits that can be applied", () => {
+    const prompt = buildPrompt({ message: "Suggest alternative activities I could do", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
+    expect(prompt).toContain("put your best picks into the plan as edits");
   });
 });
