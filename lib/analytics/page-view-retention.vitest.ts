@@ -3,11 +3,11 @@ import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
 /**
- * Raw page views are kept 120 days for people and 14 days for everything the
+ * Raw page views are kept 120 days for people and 7 days for everything the
  * human view leaves out; wizard step events are kept 180 days, their step-1
- * heartbeats 14, and both tables are vacuumed soon after the purge. The nightly
- * purge's idea of "not human" must stay the complement of page_views_human:
- * if the view changes, change the purge too.
+ * heartbeats 14, and the purged tables are vacuumed right after the purge. The
+ * nightly purge's idea of "not human" must stay the complement of
+ * page_views_human: if the view changes, change the purge too.
  */
 
 const DIR = join(process.cwd(), "supabase", "migrations");
@@ -21,9 +21,10 @@ describe("page view retention", () => {
   const purge = latest(/create or replace function public\.purge_old_analytics_rows/i);
   const view = latest(/create or replace view public\.page_views_human/i);
 
-  it("keeps human page views 120 days and the rest 14", () => {
+  it("keeps human page views 120 days and the rest 7", () => {
     expect(purge).toContain("select id from public.page_views where created_at < now() - interval '120 days'");
-    expect(purge).toContain("p.created_at < now() - interval '14 days'");
+    expect(purge).toContain("p.created_at < now() - interval '7 days'");
+    expect(purge).not.toContain("p.created_at < now() - interval '14 days'");
   });
 
   it("drops exactly what the human view leaves out", () => {
@@ -81,6 +82,22 @@ describe("API call retention", () => {
     expect(rollup).toContain("cron.schedule('refresh-api-cost-daily', '50 2 * * *'");
     expect(rollup).toContain("revoke execute on function public.refresh_api_cost_daily(integer) from public, anon, authenticated");
     expect(rollup).toContain("revoke all on table public.api_cost_daily from anon, authenticated");
+  });
+});
+
+describe("database headroom", () => {
+  const headroom = latest(/cron\.schedule\(\s*'vacuum-after-purge'/i);
+
+  it("vacuums every purged table, and trips, right after the 03:10 purge", () => {
+    expect(headroom).toContain("'vacuum-after-purge', '25 3 * * *'");
+    expect(headroom).toContain(
+      "'vacuum (analyze) public.page_views, public.api_request_logs, public.page_view_session_labels, public.consent_events, public.wizard_step_events, public.trips'",
+    );
+  });
+
+  it("drops the two indexes no query uses", () => {
+    expect(headroom).toContain("drop index if exists public.idx_api_logs_api_name;");
+    expect(headroom).toContain("drop index if exists public.idx_page_views_country_code;");
   });
 });
 
