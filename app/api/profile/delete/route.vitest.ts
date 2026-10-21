@@ -15,7 +15,14 @@ const rpc = vi.fn(async () => ({ error: null }));
 const deleteUser = vi.fn(async () => ({ error: null }));
 const signInWithPassword = vi.fn(async () => ({ error: null as { message: string } | null }));
 const verifyDeletionCode = vi.fn(async () => ({ ok: true }) as { ok: boolean; kind?: string });
+const eraseElsewhere = vi.fn<(user: { id: string; email: string }) => Promise<object>>(async () => ({}));
 let allowed = true;
+
+vi.mock("next/server", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/server")>()),
+  // Outside a request scope after() throws; run the scheduled task inline.
+  after: (task: () => unknown) => void task(),
+}));
 
 vi.mock("@/lib/api/auth", () => ({
   getAuthenticatedUser: async () => ({ user: USER, errorResponse: null }),
@@ -28,6 +35,9 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 vi.mock("@/lib/auth/deletion-code", () => ({
   verifyDeletionCode: (...args: unknown[]) => verifyDeletionCode(...(args as [])),
+}));
+vi.mock("@/lib/account/erase-elsewhere", () => ({
+  eraseElsewhere: (user: { id: string; email: string }) => eraseElsewhere(user),
 }));
 vi.mock("@/lib/api/rate-limit", () => ({
   createRateLimiter: () => ({ check: async () => ({ allowed, remaining: allowed ? 1 : 0 }) }),
@@ -62,6 +72,11 @@ describe("POST /api/profile/delete", () => {
     expect(deleteUser).toHaveBeenCalledWith(USER.id);
   });
 
+  it("then removes the copies other services hold", async () => {
+    await post({ code: "482915" });
+    expect(eraseElsewhere).toHaveBeenCalledWith({ id: USER.id, email: USER.email });
+  });
+
   it("deletes nothing when the code is wrong or expired", async () => {
     verifyDeletionCode.mockResolvedValue({ ok: false, kind: "expired" });
     const { status, json } = await post({ code: "000000" });
@@ -69,6 +84,7 @@ describe("POST /api/profile/delete", () => {
     expect(json.code).toBe("CODE_INVALID");
     expect(rpc).not.toHaveBeenCalled();
     expect(deleteUser).not.toHaveBeenCalled();
+    expect(eraseElsewhere).not.toHaveBeenCalled();
   });
 
   it("says when the code could not be checked, rather than calling it wrong", async () => {
