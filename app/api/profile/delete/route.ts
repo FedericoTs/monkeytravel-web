@@ -1,6 +1,9 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { errors, apiError, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
+import { isSameOrigin } from "@/lib/api/same-origin";
+import { createRateLimiter } from "@/lib/api/rate-limit";
+import { verifyDeletionCode } from "@/lib/auth/deletion-code";
 import { createClient } from "@/lib/supabase/server";
 import type { NextRequest } from "next/server";
 
@@ -10,14 +13,12 @@ import type { NextRequest } from "next/server";
  * Permanently deletes the authenticated user's account and all associated data.
  *
  * Security:
- * - Step-up auth: caller must re-supply their password via signInWithPassword
- *   before the cascade runs. Defeats same-origin XSS / malicious extensions
- *   that can ride an existing session cookie.
- * - Same-origin check via Sec-Fetch-Site (or Origin fallback). Browsers set
- *   Sec-Fetch-Site=same-origin only when the request was actually issued
- *   from a same-origin context — extensions and cross-origin scripts get
- *   "cross-site" or "none".
- * - Confirmation text required ("delete my account").
+ * - Step-up auth: the caller proves it is them again, with the six-digit code
+ *   from /api/profile/delete/code or with their password. Defeats same-origin
+ *   XSS / malicious extensions that can ride an existing session cookie. The
+ *   code is what Google sign-ins use: they have no password.
+ * - Same-origin check via Sec-Fetch-Site (or Origin fallback).
+ * - Attempts are rate limited per user.
  * - Method changed from DELETE -> POST so it carries a body and lands in
  *   the normal CSRF-protected fetch surface.
  *
@@ -30,32 +31,11 @@ import type { NextRequest } from "next/server";
  */
 
 interface DeleteBody {
-  confirmationText?: unknown;
+  code?: unknown;
   password?: unknown;
 }
 
-const REQUIRED_CONFIRMATION = "delete my account";
-
-function isSameOrigin(req: NextRequest): boolean {
-  // Prefer Sec-Fetch-Site (modern browsers, set by the user agent and
-  // cannot be spoofed by page JS via fetch).
-  const fetchSite = req.headers.get("sec-fetch-site");
-  if (fetchSite) {
-    return fetchSite === "same-origin";
-  }
-
-  // Fallback: compare Origin against the request URL host. Older browsers
-  // or non-browser clients may omit Sec-Fetch-Site.
-  const origin = req.headers.get("origin");
-  if (!origin) return false;
-  try {
-    const originHost = new URL(origin).host;
-    const targetHost = new URL(req.url).host;
-    return originHost === targetHost;
-  } catch {
-    return false;
-  }
-}
+const attemptLimiter = createRateLimiter("account-delete", 5, 15 * 60_000);
 
 export async function POST(req: NextRequest) {
   // Same-origin / CSRF guard.
@@ -78,37 +58,52 @@ export async function POST(req: NextRequest) {
     return errors.badRequest("Invalid JSON body");
   }
 
-  const confirmationText =
-    typeof body.confirmationText === "string"
-      ? body.confirmationText.trim().toLowerCase()
-      : "";
-  const password =
-    typeof body.password === "string" ? body.password : "";
+  const code = typeof body.code === "string" ? body.code : "";
+  const password = typeof body.password === "string" ? body.password : "";
 
-  if (confirmationText !== REQUIRED_CONFIRMATION) {
-    return errors.badRequest(
-      `Confirmation text must be exactly: ${REQUIRED_CONFIRMATION}`
-    );
-  }
-  if (!password || password.length < 1) {
-    return errors.badRequest("Password is required to confirm deletion");
+  if (!code && !password) {
+    return apiError("A code or a password is required to confirm deletion", {
+      status: 400,
+      code: "CONFIRMATION_REQUIRED",
+    });
   }
 
-  // Step-up re-authentication. We use a fresh server client so this signIn
-  // attempt does not clobber the active session cookie unless it succeeds.
-  // signInWithPassword returns 400 with code "invalid_credentials" on a
-  // bad password — that is the path we treat as 401.
-  const verifyClient = await createClient();
-  const { error: signInError } = await verifyClient.auth.signInWithPassword({
-    email: user.email,
-    password,
-  });
+  const { allowed } = await attemptLimiter.check(req, user.id);
+  if (!allowed) {
+    return errors.rateLimit("Too many attempts. Try again in a few minutes.");
+  }
 
-  if (signInError) {
-    console.warn(
-      `[Profile Delete] Step-up auth failed for user ${user.id}: ${signInError.message}`
-    );
-    return errors.unauthorized("Password is incorrect");
+  if (code) {
+    const result = await verifyDeletionCode(user.email, user.id, code);
+    if (!result.ok) {
+      if (result.kind === "rate_limit") {
+        return errors.rateLimit("Too many attempts. Try again in a few minutes.");
+      }
+      if (result.kind === "network" || result.kind === "unknown") {
+        return apiError("The code could not be checked. Try again.", {
+          status: 503,
+          code: "CODE_UNCHECKED",
+        });
+      }
+      return apiError("The code is wrong or has expired", { status: 401, code: "CODE_INVALID" });
+    }
+  } else {
+    // Step-up re-authentication. We use a fresh server client so this signIn
+    // attempt does not clobber the active session cookie unless it succeeds.
+    // signInWithPassword returns 400 with code "invalid_credentials" on a
+    // bad password — that is the path we treat as 401.
+    const verifyClient = await createClient();
+    const { error: signInError } = await verifyClient.auth.signInWithPassword({
+      email: user.email,
+      password,
+    });
+
+    if (signInError) {
+      console.warn(
+        `[Profile Delete] Step-up auth failed for user ${user.id}: ${signInError.message}`
+      );
+      return apiError("Password is incorrect", { status: 401, code: "PASSWORD_INCORRECT" });
+    }
   }
 
   const userId = user.id;

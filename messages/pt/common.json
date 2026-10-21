@@ -354,12 +354,25 @@
       "checklists": "Listas de viagem e memórias"
     },
     "cannotUndo": "Esta ação não pode ser desfeita.",
-    "typeToConfirm": "Digite",
-    "deleteWord": "EXCLUIR",
-    "toConfirm": "para confirmar",
-    "typePlaceholder": "Digite EXCLUIR",
     "deleting": "Excluindo...",
-    "deleteError": "Falha ao excluir a conta. Tente novamente."
+    "deleteError": "Falha ao excluir a conta. Tente novamente.",
+    "codeIntro": "Para confirmar, vamos enviar um código de 6 dígitos para {email}.",
+    "sendCode": "Enviar código por e-mail",
+    "sendingCode": "Enviando…",
+    "codeSent": "Enviamos um código de 6 dígitos para {email}. Pode levar um minuto para chegar.",
+    "codeLabel": "Código de 6 dígitos",
+    "resendCode": "Enviar um novo código",
+    "usePassword": "Usar minha senha",
+    "useCode": "Receber um código por e-mail",
+    "passwordLabel": "Sua senha",
+    "confirm": "Excluir minha conta",
+    "deleted": "Sua conta foi excluída.",
+    "errors": {
+      "codeInvalid": "Esse código não funcionou. Confira os dígitos ou peça um novo código.",
+      "passwordIncorrect": "Essa senha não está correta. Você também pode receber um código por e-mail.",
+      "rateLimited": "Muitas tentativas. Espere alguns minutos e tente de novo.",
+      "sendFailed": "Não conseguimos enviar o código. Tente de novo em um minuto."
+    }
   },
   "earlyAccess": {
     "title": "Recursos de AI",

@@ -383,6 +383,47 @@ export const authActionCopy: Record<
   },
 };
 
+// ── Account deletion code ───────────────────────────────────────────────
+
+interface DeleteAccountCodeCopy {
+  subject: string;
+  heading: string;
+  lead: string;
+  codeLabel: string;
+  footer: string;
+}
+
+export const deleteAccountCodeCopy: Record<EmailLocale, DeleteAccountCodeCopy> = {
+  en: {
+    subject: "Your code to delete your MonkeyTravel account",
+    heading: "Confirm deleting your account",
+    lead: "Enter this code in MonkeyTravel to permanently delete your account, your trips and everything else saved in it.",
+    codeLabel: "Your code:",
+    footer: "Didn't ask to delete your account? Ignore this email. Nothing is deleted without this code.",
+  },
+  es: {
+    subject: "Tu código para eliminar tu cuenta de MonkeyTravel",
+    heading: "Confirma que quieres eliminar tu cuenta",
+    lead: "Ingresa este código en MonkeyTravel para eliminar para siempre tu cuenta, tus viajes y todo lo que guardaste en ella.",
+    codeLabel: "Tu código:",
+    footer: "¿No pediste eliminar tu cuenta? Ignora este correo. No se elimina nada sin este código.",
+  },
+  it: {
+    subject: "Il tuo codice per eliminare l'account MonkeyTravel",
+    heading: "Conferma l'eliminazione del tuo account",
+    lead: "Inserisci questo codice in MonkeyTravel per eliminare per sempre il tuo account, i tuoi viaggi e tutto ciò che hai salvato.",
+    codeLabel: "Il tuo codice:",
+    footer: "Non hai chiesto di eliminare il tuo account? Ignora questa email. Senza questo codice non viene eliminato nulla.",
+  },
+  pt: {
+    subject: "Seu código para excluir sua conta MonkeyTravel",
+    heading: "Confirme a exclusão da sua conta",
+    lead: "Digite este código no MonkeyTravel para excluir para sempre sua conta, suas viagens e tudo o que você salvou nela.",
+    codeLabel: "Seu código:",
+    footer: "Não pediu para excluir sua conta? Ignore este e-mail. Nada é excluído sem este código.",
+  },
+};
+
 // ── Collaboration notifications: trip invite ────────────────────────────
 
 type InviteRole = "editor" | "voter" | "viewer";

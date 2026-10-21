@@ -73,6 +73,8 @@ interface ProfileClientProps {
   profile: UserProfile;
   stats: TripStats;
   betaAccess: BetaAccessInfo;
+  /** The account has an email sign-in, so it may have a password. */
+  canUsePassword: boolean;
 }
 
 // Section component for expandable sections
@@ -229,7 +231,7 @@ const LANGUAGES = [
   "Hindi", "Russian", "Dutch", "Swedish", "Greek"
 ];
 
-export default function ProfileClient({ profile: initialProfile, stats, betaAccess: initialBetaAccess }: ProfileClientProps) {
+export default function ProfileClient({ profile: initialProfile, stats, betaAccess: initialBetaAccess, canUsePassword }: ProfileClientProps) {
   const router = useRouter();
   const t = useTranslations("common");
   // i18n: drive locale-aware date formatting (e.g. "Membro dal agosto 2025"
@@ -243,7 +245,6 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -396,48 +397,23 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
     router.refresh();
   };
 
-  // Delete account
-  //
-  // Sends POST with step-up credentials (confirmation phrase + password).
-  // The server re-checks the phrase, re-authenticates via signInWithPassword,
-  // then runs the transactional cascade RPC + auth.users delete.
-  const handleDeleteAccount = async (args: {
-    confirmationText: string;
-    password: string;
-  }) => {
-    setIsDeleting(true);
+  // The account is gone (the modal confirmed it): sign out and leave.
+  const handleAccountDeleted = async () => {
     try {
-      const response = await fetch("/api/profile/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          confirmationText: args.confirmationText,
-          password: args.password,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to delete account");
-      }
-
-      // Sign out and redirect to landing page
-      const supabase = createClient();
-      await supabase.auth.signOut();
-
-      // Clear any local storage
-      if (typeof window !== "undefined") {
-        localStorage.clear();
-      }
-
-      router.push("/?deleted=true");
-      router.refresh();
-    } catch (error) {
-      console.error("Delete account error:", error);
-      setIsDeleting(false);
-      // Keep modal open to show error state
-      addToast(error instanceof Error ? error.message : t("deleteAccount.deleteError"), "error");
+      await createClient().auth.signOut();
+    } catch {
+      // The session went with the account.
     }
+
+    // Clear any local storage. Blocked storage (Safari) throws here.
+    try {
+      localStorage.clear();
+    } catch {
+      // Nothing to clear.
+    }
+
+    router.push("/?deleted=true");
+    router.refresh();
   };
 
   // Export user data (GDPR Article 20)
@@ -1145,8 +1121,9 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
       <DeleteAccountModal
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={handleDeleteAccount}
-        isDeleting={isDeleting}
+        email={profile.email}
+        canUsePassword={canUsePassword}
+        onDeleted={handleAccountDeleted}
       />
 
       <MobileBottomNav activePage="profile" />

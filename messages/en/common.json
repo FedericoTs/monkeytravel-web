@@ -354,12 +354,25 @@
       "checklists": "Trip checklists and memories"
     },
     "cannotUndo": "This action cannot be undone.",
-    "typeToConfirm": "Type",
-    "deleteWord": "DELETE",
-    "toConfirm": "to confirm",
-    "typePlaceholder": "Type DELETE",
     "deleting": "Deleting...",
-    "deleteError": "Failed to delete account. Please try again."
+    "deleteError": "Failed to delete account. Please try again.",
+    "codeIntro": "To confirm, we'll email a 6-digit code to {email}.",
+    "sendCode": "Email me a code",
+    "sendingCode": "Sending…",
+    "codeSent": "We emailed a 6-digit code to {email}. It can take a minute to arrive.",
+    "codeLabel": "6-digit code",
+    "resendCode": "Send a new code",
+    "usePassword": "Use my password instead",
+    "useCode": "Get a code by email instead",
+    "passwordLabel": "Your password",
+    "confirm": "Delete my account",
+    "deleted": "Your account has been deleted.",
+    "errors": {
+      "codeInvalid": "That code didn't work. Check the digits, or send a new code.",
+      "passwordIncorrect": "That password isn't right. You can get a code by email instead.",
+      "rateLimited": "Too many tries. Wait a few minutes and try again.",
+      "sendFailed": "We couldn't send the code. Try again in a minute."
+    }
   },
   "earlyAccess": {
     "title": "AI Features",
