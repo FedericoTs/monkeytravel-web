@@ -23,14 +23,18 @@ import { getModelForPurpose, getSiblingModel } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import {
+  announcedButMissing,
   notAppliedLead,
   claimsItineraryChange,
   lengthUnchangedNote,
   lockedDayReply,
+  missingAnswerReply,
+  planCostsReply,
   uncoveredDaysNote,
   wizardFallbackReply,
   wizardNothingChangedReply,
 } from "@/lib/ai/assistant/honesty";
+import { planCosts, planCurrency, type DisplayCurrency, type PlanCosts } from "@/lib/ai/assistant/plan-costs";
 import { daysMentioned } from "@/lib/ai/assistant/day-target";
 import { currencyRequested, currencySwitchedNote, withoutCurrencyTalk } from "@/lib/ai/assistant/currency-request";
 import type { Activity, ItineraryDay } from "@/types";
@@ -93,6 +97,8 @@ export interface AssistAnonInput {
   history?: AssistTurn[];
   /** The page applies the edits as soon as they arrive (with Undo). */
   autoApply?: boolean;
+  /** The currency the page shows prices in, when it isn't the plan's own. */
+  display?: DisplayCurrency;
 }
 
 export interface DayEdit {
@@ -121,15 +127,16 @@ export interface AssistAnonResult {
   meta: { model: string; costUsd: number; generationTimeMs: number };
 }
 
-function tripCurrency(days: ItineraryDay[]): string {
-  for (const d of days) {
-    const a = Array.isArray(d.activities) ? d.activities : [];
-    for (const act of a) {
-      const c = act?.estimated_cost?.currency;
-      if (typeof c === "string" && c) return c;
-    }
-  }
-  return "USD";
+/**
+ * The plan's activity costs, as the traveller sees them, so a question about
+ * the total gets real figures rather than the model's own arithmetic.
+ */
+function costLines(costs: PlanCosts | null): string {
+  if (!costs) return "";
+  const view = costs.shown ?? costs;
+  const perDay = view.perDay.map((d) => `Day ${d.day} ~${d.amount}`).join(", ");
+  const own = costs.shown ? ` (${costs.total} ${costs.currency} in the plan's own amounts)` : "";
+  return `Activity costs, as the traveller sees them in ${view.currency}: ${perDay}. Total ~${view.total} ${view.currency}${own}. Hotels, flights and travel between cities are not in the plan.\n`;
 }
 
 function buildContext(days: ItineraryDay[]): string {
@@ -162,7 +169,9 @@ function buildHistory(history: AssistTurn[] | undefined): string {
 
 export function buildPrompt(input: AssistAnonInput): string {
   const language = LOCALE_LANGUAGE[input.locale ?? "en"] ?? "English";
-  const cur = tripCurrency(input.days);
+  const cur = planCurrency(input.days);
+  const costs = planCosts(input.days, input.display);
+  const shownCur = costs?.shown?.currency ?? input.display?.currency ?? cur;
   const dayCount = input.days.length;
   const maxDays = maxTripDays(input.days);
   const dateLine =
@@ -175,7 +184,7 @@ Destination: ${input.destination}
 ${dateLine}Currency: ${cur}
 Itinerary:
 ${buildContext(input.days)}
-${buildHistory(input.history)}
+${costLines(costs)}${buildHistory(input.history)}
 Traveller's new message: "${input.message}"
 
 Decide:
@@ -220,10 +229,19 @@ Return STRICT JSON (no markdown) in this EXACT shape:
 Rules:
 1. JSON only. "edits" is [] for questions.
 2. Each edited day: 3-5 activities (one more when you add to a full day), real places, costs realistic in ${cur}. Keep "description" to a few words.
-3. "reply" is warm and concise (1-2 sentences) and describes exactly the edits you return. Never say you changed a day that is not in "edits". Nothing changes until the traveller taps Apply, so ${READY_WORDING[input.locale ?? "en"] ?? READY_WORDING.en} Never mention JSON.
-4. Only real, safe, legal travel. If the request is impossible or off-topic, return "edits": [] and explain kindly in "reply".
-5. USER OVERRIDE: if the user asks for a place outside ${input.destination} (e.g. a day-trip across a border), you may note the travel-time tradeoff ONCE in "reply" — but if they insist, comply and build the edit exactly as they asked. Never refuse the same request twice.
-6. The app shows prices in the traveller's chosen currency by itself. A request to see prices in another currency needs no edits: never rewrite days to change the currency, and do not say what currency the prices are in.`;
+3. For a change, "reply" is warm and concise (1-2 sentences) and describes exactly the edits you return. Never say you changed a day that is not in "edits". Nothing changes until the traveller taps Apply, so ${READY_WORDING[input.locale ?? "en"] ?? READY_WORDING.en} Never mention JSON.
+4. For a question, the whole answer goes in "reply". When it needs figures (a total, a budget, what a day costs), give the numbers right there, in ${shownCur}: start from the activity costs above and add clearly labelled estimates for what the plan leaves out, such as hotels and flights. A few short lines are fine, as plain text: each on its own line starting with "- ", no * or **. Never announce an answer ("here is the total…") without giving it.
+5. Only real, safe, legal travel. If the request is impossible or off-topic, return "edits": [] and explain kindly in "reply".
+6. USER OVERRIDE: if the user asks for a place outside ${input.destination} (e.g. a day-trip across a border), you may note the travel-time tradeoff ONCE in "reply" — but if they insist, comply and build the edit exactly as they asked. Never refuse the same request twice.
+7. The app shows prices in the traveller's chosen currency by itself. A request to see prices in another currency needs no edits: never rewrite days to change the currency, and don't say which currency the plan is shown in.`;
+}
+
+/**
+ * The panel shows replies as plain text, so Markdown would print as asterisks:
+ * "**Costo attività:**", "*   Voli…". Bold is dropped and bullets become "- ".
+ */
+export function plainText(reply: string): string {
+  return reply.replace(/\*\*(.+?)\*\*/g, "$1").replace(/^[ \t]*[*•][ \t]+/gm, "- ");
 }
 
 function str(v: unknown, fallback: string): string {
@@ -349,7 +367,7 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
     throw new Error("GOOGLE_AI_API_KEY not configured");
   }
   const startedAt = Date.now();
-  const cur = tripCurrency(input.days);
+  const cur = planCurrency(input.days);
   let modelId = getModelForPurpose("concierge");
 
   const generationConfig: GenerationConfig = {
@@ -410,7 +428,7 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
     }
   }
   const obj = (parsed ?? {}) as Record<string, unknown>;
-  const reply = str(obj.reply, "").trim();
+  const reply = plainText(str(obj.reply, "").trim());
 
   // "edits" (current shape) or "edit" (the single-day shape, still accepted).
   const rawEdits = Array.isArray(obj.edits) ? obj.edits : obj.edit && typeof obj.edit === "object" ? [obj.edit] : [];
@@ -421,7 +439,18 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
   );
 
   const currency = currencyRequested(input.message) ?? undefined;
-  const finalReply = composeReply({ reply, edits, tripLength, lockedDays, lengthRefused, locale: input.locale, currentDays: input.days.length, currency, autoApplied: input.autoApply });
+  const finalReply = composeReply({
+    reply,
+    edits,
+    tripLength,
+    lockedDays,
+    lengthRefused,
+    locale: input.locale,
+    currentDays: input.days.length,
+    currency,
+    autoApplied: input.autoApply,
+    costs: planCosts(input.days, input.display),
+  });
 
   return {
     reply: finalReply,
@@ -448,6 +477,8 @@ export function composeReply(p: {
   currency?: string;
   /** The page applies the edits on arrival, so "I've updated…" will be true. */
   autoApplied?: boolean;
+  /** The plan's activity costs, for an announced total that never came. */
+  costs?: PlanCosts | null;
 }): string {
   const prepared = p.edits.length > 0 || p.tripLength !== undefined;
 
@@ -468,6 +499,9 @@ export function composeReply(p: {
   if (!prepared) {
     // Nothing prepared, so nothing may be claimed (lib/ai/assistant/honesty).
     if (p.lengthRefused || claimsItineraryChange(p.reply)) return wizardNothingChangedReply(p.locale);
+    // "Here is the total…" with no total: give the plan's own figures instead.
+    const missing = announcedButMissing(p.reply);
+    if (missing) return missing === "cost" && p.costs ? planCostsReply(p.locale, p.costs) : missingAnswerReply(p.locale);
     return p.reply || wizardFallbackReply(p.locale, false);
   }
 

@@ -11,7 +11,8 @@ vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
   useLocale: () => "en",
 }));
-vi.mock("@/lib/locale", () => ({ useLocale: () => ({ setPreferredCurrency: vi.fn() }) }));
+const prefs = vi.hoisted(() => ({ current: {} as Record<string, unknown> }));
+vi.mock("@/lib/locale", () => ({ useLocale: () => ({ setPreferredCurrency: vi.fn(), ...prefs.current }) }));
 vi.mock("@/lib/posthog/events", () => ({ capture: vi.fn(), captureRefineSuggestionClicked: vi.fn() }));
 vi.mock("@/lib/trip/refine-suggestions", () => ({ deriveRefineSuggestions: () => [] }));
 
@@ -30,6 +31,7 @@ const reply = (day: number) => ({
 const fetchMock = vi.fn();
 beforeEach(() => {
   vi.clearAllMocks();
+  prefs.current = {};
   fetchMock.mockImplementation(async () => new Response(JSON.stringify(reply(2)), { status: 200 }));
   vi.stubGlobal("fetch", fetchMock);
 });
@@ -118,5 +120,23 @@ describe("the copy exists in every language", () => {
     }
     expect(messages.assistant.updatedDay).toContain("{number}");
     expect(messages.assistant.updatedDays).toContain("{days}");
+  });
+});
+
+describe("figures in the answers", () => {
+  it("tells the server the currency the page shows prices in", async () => {
+    prefs.current = { preferences: { preferredCurrency: "EUR" }, exchangeRates: { base: "USD", rates: { EUR: 0.9 } } };
+    renderPanel({});
+    await ask("what is the total?");
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).display).toEqual({ currency: "EUR", rate: 0.9 });
+  });
+
+  it("sends none while the rates can't convert", async () => {
+    prefs.current = { preferences: { preferredCurrency: "EUR" }, exchangeRates: null };
+    renderPanel({});
+    await ask("what is the total?");
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).display).toBeUndefined();
   });
 });

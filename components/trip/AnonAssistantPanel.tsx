@@ -21,6 +21,7 @@ import { decideAssistantBridge } from "@/lib/trip/assistant-bridge";
 import { captureRefineSuggestionClicked } from "@/lib/posthog/events";
 import { capture } from "@/lib/posthog/events";
 import { useLocale as useLocalePrefs } from "@/lib/locale";
+import { displayCurrencyFor } from "@/lib/ai/assistant/plan-costs";
 import type { Activity, ItineraryDay } from "@/types";
 
 interface AnonEdit {
@@ -95,7 +96,7 @@ export default function AnonAssistantPanel({
 }: AnonAssistantPanelProps) {
   const t = useTranslations("trips");
   const locale = useLocale();
-  const { setPreferredCurrency } = useLocalePrefs();
+  const { setPreferredCurrency, preferences, exchangeRates } = useLocalePrefs();
   const [messages, setMessages] = useState<Msg[]>([]);
   // Height-capped chat: the panel used to grow unbounded with every message,
   // pushing the itinerary further off-screen each turn (replay 019f285d).
@@ -159,6 +160,8 @@ export default function AnonAssistantPanel({
           history,
           // The server then words a finished edit as done, which it will be.
           autoApply: !!onUndoEdits,
+          // So figures in the answer match the prices on the page.
+          display: displayCurrencyFor(days, preferences?.preferredCurrency, exchangeRates),
         }),
       });
       const data = await res.json().catch(() => ({}));
