@@ -399,12 +399,17 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
 
   // The account is gone (the modal confirmed it): sign out and leave.
   const handleAccountDeleted = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    try {
+      await createClient().auth.signOut();
+    } catch {
+      // The session went with the account.
+    }
 
-    // Clear any local storage
-    if (typeof window !== "undefined") {
+    // Clear any local storage. Blocked storage (Safari) throws here.
+    try {
       localStorage.clear();
+    } catch {
+      // Nothing to clear.
     }
 
     router.push("/?deleted=true");
