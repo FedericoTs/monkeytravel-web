@@ -354,12 +354,25 @@
       "checklists": "Liste di viaggio e ricordi"
     },
     "cannotUndo": "Questa azione non può essere annullata.",
-    "typeToConfirm": "Scrivi",
-    "deleteWord": "ELIMINA",
-    "toConfirm": "per confermare",
-    "typePlaceholder": "Scrivi ELIMINA",
     "deleting": "Eliminazione...",
-    "deleteError": "Impossibile eliminare l'account. Riprova."
+    "deleteError": "Impossibile eliminare l'account. Riprova.",
+    "codeIntro": "Per confermare, ti invieremo un codice di 6 cifre a {email}.",
+    "sendCode": "Inviami un codice",
+    "sendingCode": "Invio in corso…",
+    "codeSent": "Ti abbiamo inviato un codice di 6 cifre a {email}. Può volerci un minuto.",
+    "codeLabel": "Codice di 6 cifre",
+    "resendCode": "Invia un nuovo codice",
+    "usePassword": "Usa la mia password",
+    "useCode": "Ricevi un codice via email",
+    "passwordLabel": "La tua password",
+    "confirm": "Elimina il mio account",
+    "deleted": "Il tuo account è stato eliminato.",
+    "errors": {
+      "codeInvalid": "Il codice non funziona. Controlla le cifre o chiedi un nuovo codice.",
+      "passwordIncorrect": "La password non è corretta. Puoi anche ricevere un codice via email.",
+      "rateLimited": "Troppi tentativi. Aspetta qualche minuto e riprova.",
+      "sendFailed": "Non siamo riusciti a inviare il codice. Riprova tra un minuto."
+    }
   },
   "earlyAccess": {
     "title": "Funzionalità AI",

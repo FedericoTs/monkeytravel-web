@@ -158,5 +158,18 @@ export default async function ProfilePage() {
         activatedAt: undefined,
       };
 
-  return <ProfileClient profile={userProfile} stats={tripStats} betaAccess={betaAccessInfo} />;
+  // Google sign-ins have no password; they confirm a deletion with a code.
+  const providers: unknown = user.app_metadata?.providers;
+  const canUsePassword = Array.isArray(providers)
+    ? providers.includes("email")
+    : user.app_metadata?.provider === "email";
+
+  return (
+    <ProfileClient
+      profile={userProfile}
+      stats={tripStats}
+      betaAccess={betaAccessInfo}
+      canUsePassword={canUsePassword}
+    />
+  );
 }
