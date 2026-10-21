@@ -5,7 +5,8 @@ import { isSameOrigin } from "@/lib/api/same-origin";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { verifyDeletionCode } from "@/lib/auth/deletion-code";
 import { createClient } from "@/lib/supabase/server";
-import type { NextRequest } from "next/server";
+import { eraseElsewhere } from "@/lib/account/erase-elsewhere";
+import { after, type NextRequest } from "next/server";
 
 /**
  * POST /api/profile/delete
@@ -28,6 +29,8 @@ import type { NextRequest } from "next/server";
  *   Most child rows are removed via FK CASCADE.
  * - auth.users.deleteUser is a separate auth-schema call and runs AFTER
  *   the RPC succeeds.
+ * - Then, after the response, the copies other services hold (the Resend
+ *   contact, the PostHog person) are removed too: lib/account/erase-elsewhere.
  */
 
 interface DeleteBody {
@@ -138,6 +141,12 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`[Profile Delete] Successfully deleted account for user: ${userId}`);
+
+    const email = user.email;
+    after(async () => {
+      const result = await eraseElsewhere({ id: userId, email });
+      console.log(`[Profile Delete] Other services for user ${userId}:`, result);
+    });
 
     return apiSuccess({
       success: true,
