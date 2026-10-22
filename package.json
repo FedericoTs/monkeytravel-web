@@ -72,7 +72,7 @@
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.1",
     "remark-html": "^16.0.1",
-    "resend": "^6.34.0",
+    "resend": "^6.34.1",
     "tailwind-merge": "^3.7.0",
     "tsx": "^4.23.15",
     "tz-lookup": "^6.1.25",
