@@ -39,25 +39,25 @@ const EN_VERBS = words(
 
 // A promise is a claim too: "I'll update your accommodation to…" went out
 // with no action behind it, and the traveller waited for a change that never
-// came. Verbs that also open an offer ("I'll put together", "I'll include a
-// few tips") stay out.
+// came. So did "I'll create a new romantic Austin itinerary…". Verbs that also
+// open an offer ("I'll put together", "I'll include a few tips") stay out.
 const EN_PROMISE_VERBS = words(
-  "update|add|adjust|change|move|remove|replace|schedule|reschedule|extend|shorten|swap|delete|rework|restructure|reorganize|reorganise|rearrange|incorporate|modify|shift|reconfigure|integrate|insert|reorder"
+  "update|add|adjust|change|move|remove|replace|schedule|reschedule|extend|shorten|swap|delete|rework|restructure|reorganize|reorganise|rearrange|incorporate|modify|shift|reconfigure|integrate|insert|reorder|create|build|generate|redo|rebuild|recreate|remake"
 );
 const ES_INFINITIVES = words(
-  "actualizar|añadir|agregar|ajustar|cambiar|mover|eliminar|quitar|reemplazar|sustituir|programar|incorporar|modificar|acortar|extender"
+  "actualizar|añadir|agregar|ajustar|cambiar|mover|eliminar|quitar|reemplazar|sustituir|programar|incorporar|modificar|acortar|extender|crear|generar"
 );
 const IT_INFINITIVES = words(
-  "aggiornare|aggiungere|modificare|spostare|rimuovere|togliere|sostituire|programmare|inserire|cambiare|ridurre|estendere|prolungare|scambiare"
+  "aggiornare|aggiungere|modificare|spostare|rimuovere|togliere|sostituire|programmare|inserire|cambiare|ridurre|estendere|prolungare|scambiare|creare|generare|rifare"
 );
 const IT_FUTURES = words(
-  "aggiornerò|aggiungerò|modificherò|sposterò|rimuoverò|toglierò|sostituirò|programmerò|inserirò|cambierò|ridurrò|estenderò|prolungherò|scambierò"
+  "aggiornerò|aggiungerò|modificherò|sposterò|rimuoverò|toglierò|sostituirò|programmerò|inserirò|cambierò|ridurrò|estenderò|prolungherò|scambierò|creerò|genererò|rifarò"
 );
 const PT_INFINITIVES = words(
-  "atualizar|adicionar|acrescentar|ajustar|mudar|alterar|mover|remover|retirar|substituir|agendar|incluir|modificar|encurtar|prolongar|trocar"
+  "atualizar|adicionar|acrescentar|ajustar|mudar|alterar|mover|remover|retirar|substituir|agendar|incluir|modificar|encurtar|prolongar|trocar|criar|gerar|refazer"
 );
 const PT_FUTURES = words(
-  "atualizarei|adicionarei|acrescentarei|ajustarei|mudarei|alterarei|moverei|removerei|retirarei|substituirei|agendarei|incluirei|modificarei|encurtarei|prolongarei|trocarei"
+  "atualizarei|adicionarei|acrescentarei|ajustarei|mudarei|alterarei|moverei|removerei|retirarei|substituirei|agendarei|incluirei|modificarei|encurtarei|prolongarei|trocarei|criarei|gerarei|refarei"
 );
 
 const CLAIM_PATTERNS: RegExp[] = [
@@ -277,5 +277,74 @@ export function nothingKeptReply(language: string | undefined): string {
       return 'Daqui não consigo guardar dados como hotéis ou horários de voo, e só me lembro das últimas mensagens. Você pode colocá-los no plano com "Editar Viagem".';
     default:
       return 'I can\'t keep details like hotels or flight times from here, and I only remember the last few messages. Put them in the plan with "Edit Trip", or ask me for one activity at a time, like "add hotel check-in to day 1".';
+  }
+}
+
+// An answer that announces figures or a list, then stops: "Ecco un calcolo
+// del costo totale stimato per il tuo viaggio." went out three times in a row
+// (2026-10-21) with no number in any of them.
+const ANNOUNCE_LEAD = words(
+  "here(?:['’]s|\\s+is|\\s+are)|below\\s+(?:is|are)|ecco|di\\s+seguito|qui\\s+sotto|aquí\\s+(?:tienes|está|están|va|te\\s+dejo)|a\\s+continuación|aqui\\s+(?:está|estão|vai|vão)|segue(?:m)?|abaixo\\s+(?:está|estão)"
+);
+const ANNOUNCE_NOUN = words(
+  "calculation|breakdown|estimate|total|summary|list|overview|rundown|budget|calcolo|riepilogo|totale|elenco|lista|stima|preventivo|dettaglio|cálculo|calculo|desglose|resumen|estimación|estimacion|presupuesto|detalle|resumo|estimativa|orçamento|orcamento|detalhamento"
+);
+const ANNOUNCEMENT = new RegExp(`${start}${ANNOUNCE_LEAD}\\s+(?:[${L}'’-]+\\s+){0,4}?${ANNOUNCE_NOUN}${end}`, "iu");
+const COST_WORD = new RegExp(
+  `${start}${words("cost|costs|total|budget|price|prices|spend|calculation|costo|costi|totale|spesa|prezzi|calcolo|preventivo|coste|costes|precio|precios|gasto|cálculo|calculo|presupuesto|custo|custos|preço|preços|orçamento|orcamento")}${end}`,
+  "iu"
+);
+// Figures count as an answer; a lone digit ("day 3", "9 giorni") does not.
+const FIGURE = /\d{2,}|[€$£¥]\s?\d/;
+
+/**
+ * Does this reply announce an answer it doesn't give? "cost" when what it
+ * announced was a figure (a total, a budget), "other" for a list or summary.
+ */
+export function announcedButMissing(text: string | null | undefined): "cost" | "other" | null {
+  const t = (text ?? "").trim();
+  if (!t || FIGURE.test(t)) return null;
+  const sentences = t.split(/(?<=[.!?…])\s+/).filter(Boolean);
+  const last = sentences[sentences.length - 1] ?? "";
+  // A colon that ends the reply introduced something that never came.
+  const dangling = /:\s*$/.test(t);
+  if (!dangling && (/:\s*\S/.test(last) || !ANNOUNCEMENT.test(last))) return null;
+  return COST_WORD.test(dangling ? t : last) ? "cost" : "other";
+}
+
+/**
+ * Stands in for an announced total that never came: what the plan's
+ * activities add up to, in the currency the traveller sees.
+ */
+export function planCostsReply(
+  language: string | undefined,
+  costs: { currency: string; total: number; shown?: { currency: string; total: number } }
+): string {
+  const l = lang(language);
+  const shown = costs.shown ?? costs;
+  const amount = `${new Intl.NumberFormat(l).format(shown.total)} ${shown.currency}`;
+  switch (l) {
+    case "es":
+      return `Las actividades de tu plan suman unos ${amount}. Los hoteles y los vuelos no están en el plan, así que súmalos aparte.`;
+    case "it":
+      return `Le attività del tuo piano costano in tutto circa ${amount}. Hotel e voli non sono nel piano, quindi aggiungili a parte.`;
+    case "pt":
+      return `As atividades do seu plano somam cerca de ${amount}. Hotéis e voos não estão no plano, então some-os à parte.`;
+    default:
+      return `The activities in your plan come to about ${amount}. Hotels and flights aren't in the plan, so add those on top.`;
+  }
+}
+
+/** Stands in for an announced list or summary that never came. */
+export function missingAnswerReply(language: string | undefined): string {
+  switch (lang(language)) {
+    case "es":
+      return "No he podido preparar esa respuesta. Pregúntame una cosa a la vez, por ejemplo qué hacer el día 2.";
+    case "it":
+      return "Non sono riuscito a preparare questa risposta. Chiedimi una cosa alla volta, per esempio cosa fare il giorno 2.";
+    case "pt":
+      return "Não consegui preparar essa resposta. Pergunte uma coisa de cada vez, por exemplo o que fazer no dia 2.";
+    default:
+      return "I couldn't put that answer together. Ask me one thing at a time, like what to do on day 2.";
   }
 }

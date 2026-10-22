@@ -89,6 +89,10 @@ const BodySchema = z.object({
     .optional(),
   // The page applies edits on arrival (with Undo) rather than waiting for Apply.
   autoApply: z.boolean().optional(),
+  // The currency the page shows prices in, and one unit of the plan's in it.
+  display: z
+    .object({ currency: z.string().regex(/^[A-Z]{3}$/), rate: z.number().positive().max(1_000_000) })
+    .optional(),
 });
 
 const INJECTION_RE =
@@ -184,6 +188,7 @@ export async function POST(request: NextRequest) {
         locale: body.locale,
         history: body.history,
         autoApply: body.autoApply,
+        display: body.display,
       })
     );
     waitUntil(logApiCall({

@@ -1,7 +1,7 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
 import type { ItineraryDay } from "@/types";
-import { buildPrompt, composeReply, validateEdits } from "./assistant-anon";
+import { buildPrompt, composeReply, plainText, validateEdits } from "./assistant-anon";
 
 /**
  * The wizard assistant can change several days and the trip's length in one
@@ -210,5 +210,75 @@ describe("buildPrompt", () => {
   it("offers asked-for alternatives as edits that can be applied", () => {
     const prompt = buildPrompt({ message: "Suggest alternative activities I could do", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
     expect(prompt).toContain("put your best picks into the plan as edits");
+  });
+});
+
+describe("questions about money", () => {
+  // Asked for "il gran totale" (2026-10-21), the assistant answered "Ecco il
+  // calcolo…" three times and never gave a number: replies were held to 1-2
+  // sentences and it had no figures to quote.
+  const priced = (n: number, amount: number) =>
+    ({ day_number: n, activities: [{ name: `Day ${n} thing`, estimated_cost: { amount, currency: "USD", tier: "moderate" } }] }) as unknown as ItineraryDay;
+  const plan = [priced(1, 100), priced(2, 50)];
+
+  it("gives the model the plan's costs as the traveller sees them", () => {
+    const prompt = buildPrompt({ message: "Qual è il gran totale", destination: "Lisbon", tripTitle: "Lisbon", days: plan, locale: "it", display: { currency: "EUR", rate: 0.9 } });
+    expect(prompt).toContain("Activity costs, as the traveller sees them in EUR: Day 1 ~90, Day 2 ~45. Total ~135 EUR (150 USD in the plan's own amounts).");
+    expect(prompt).toContain("Hotels, flights and travel between cities are not in the plan.");
+  });
+
+  it("asks for the figures in the answer itself, in that currency", () => {
+    const prompt = buildPrompt({ message: "What's the total?", destination: "Lisbon", tripTitle: "Lisbon", days: plan, locale: "en", display: { currency: "EUR", rate: 0.9 } });
+    expect(prompt).toContain("give the numbers right there, in EUR");
+    expect(prompt).toContain('Never announce an answer ("here is the total…") without giving it.');
+    // Edits keep the plan's own currency.
+    expect(prompt).toContain('"currency": "USD"');
+  });
+
+  it("quotes the plan's own currency when the page shows it", () => {
+    const prompt = buildPrompt({ message: "What's the total?", destination: "Lisbon", tripTitle: "Lisbon", days: plan, locale: "en" });
+    expect(prompt).toContain("Activity costs, as the traveller sees them in USD: Day 1 ~100, Day 2 ~50. Total ~150 USD.");
+    expect(prompt).toContain("give the numbers right there, in USD");
+  });
+
+  it("replaces an announced total that never came with the plan's own figures", () => {
+    const base = { lockedDays: [], lengthRefused: false, locale: "it", currentDays: 2, edits: [] };
+    const costs = { currency: "USD", perDay: [], total: 150, shown: { currency: "EUR", perDay: [], total: 135 } };
+    const text = composeReply({ ...base, reply: "Mi scuso ancora per l'inconveniente! Ecco il calcolo completo del costo totale stimato per il tuo viaggio.", costs });
+    expect(text).toBe("Le attività del tuo piano costano in tutto circa 135 EUR. Hotel e voli non sono nel piano, quindi aggiungili a parte.");
+  });
+
+  it("keeps an answer that gives its figures", () => {
+    const reply = "Le attività costano circa 135 EUR; con gli ostelli (8 notti a 20-50 EUR) e i voli (800-1.200 EUR) il viaggio è sui 1.100-1.735 EUR.";
+    expect(composeReply({ lockedDays: [], lengthRefused: false, locale: "it", currentDays: 2, edits: [], reply })).toBe(reply);
+  });
+});
+
+describe("plainText", () => {
+  it("keeps a breakdown readable in a plain-text bubble", () => {
+    // The model's own formatting in a live run (2026-10-21).
+    const md = [
+      "Ecco una stima:",
+      "",
+      "*   **Costo attività:** circa 489 EUR",
+      "*   **Voli:** circa 800-1200 EUR",
+      "",
+      "**Gran totale stimato:** circa 1449-2089 EUR",
+    ].join("\n");
+    expect(plainText(md)).toBe(
+      [
+        "Ecco una stima:",
+        "",
+        "- Costo attività: circa 489 EUR",
+        "- Voli: circa 800-1200 EUR",
+        "",
+        "Gran totale stimato: circa 1449-2089 EUR",
+      ].join("\n")
+    );
+  });
+
+  it("leaves plain replies alone", () => {
+    const reply = "Day 2 now starts at 10:00 - a slower morning.";
+    expect(plainText(reply)).toBe(reply);
   });
 });

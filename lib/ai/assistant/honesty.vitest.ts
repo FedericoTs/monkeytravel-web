@@ -3,12 +3,15 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
+  announcedButMissing,
   claimsItineraryChange,
   claimsToRemember,
+  missingAnswerReply,
   nothingChangedReply,
   nothingKeptReply,
   notAppliedLead,
   pendingChangeReply,
+  planCostsReply,
 } from "./honesty";
 
 /**
@@ -40,6 +43,12 @@ const promises = [
   "Sto per spostare il museo al giorno 3.",
   "Vou atualizar o seu hotel.",
   "Adicionarei o jantar ao dia 3.",
+  // A live reply (2026-10-17) with nothing prepared, and its kin.
+  "You got it! I'll create a new romantic Austin itinerary for two, focusing on good local food.",
+  "Let me build a slower version of Day 2.",
+  "Voy a crear un nuevo itinerario para Austin.",
+  "Creerò un nuovo itinerario romantico.",
+  "Vou criar um novo roteiro para Austin.",
 ];
 
 const otherLanguageClaims = [
@@ -280,5 +289,56 @@ describe("the trip assistant's card filter", () => {
     const src = readFileSync(join(process.cwd(), "app", "api", "ai", "assistant", "route.ts"), "utf8");
     const set = src.match(/const CHANGE_CARDS = new Set\(\[([^\]]+)\]\)/)?.[1] ?? "";
     expect(set).toContain('"confirmation"');
+  });
+});
+
+describe("announcedButMissing", () => {
+  // The three live replies (2026-10-21) to "Qual è il gran totale": no number in any.
+  const empty = [
+    "Certo! Ecco un calcolo del costo totale stimato per il tuo viaggio, includendo le informazioni che mi hai fornito finora.",
+    "Mi scuso! Sembra che il costo totale non sia stato incluso nella mia risposta precedente. Ecco il calcolo completo per il tuo viaggio stimato.",
+    "Mi scuso ancora per l'inconveniente! Ecco il calcolo completo del costo totale stimato per il tuo viaggio.",
+    "Sure! Here's a breakdown of the total cost for your trip.",
+    "¡Claro! Aquí tienes el cálculo del presupuesto total.",
+    "Claro! Aqui está o cálculo do custo total da sua viagem.",
+  ];
+  it.each(empty)("catches an announced total that never came: %s", (text) => {
+    expect(announcedButMissing(text)).toBe("cost");
+  });
+
+  it("catches an announced list, and a reply that ends on a colon", () => {
+    expect(announcedButMissing("Here's a list of great spots for dinner.")).toBe("other");
+    expect(announcedButMissing("These would fit well on day 3:")).toBe("other");
+  });
+
+  const answered = [
+    "The activities come to about 1,240 EUR; with hostels (8 nights at 20-50 EUR) and flights (800-1,200 EUR) the trip is roughly 2,200-3,100 EUR.",
+    "Ecco il calcolo: attività 1.240 EUR, ostelli 160-400 EUR, voli 800-1.200 EUR. Totale circa 2.200-2.840 EUR.",
+    "Here's a list of great spots: A Cevicheria, Taberna da Rua das Flores and Cervejaria Ramiro.",
+    "Day 3 is the busiest, so book the castle ahead.",
+    "I can give you a cost estimate if you tell me your dates.",
+    "",
+  ];
+  it.each(answered)("leaves an answer that gives what it announces alone: %s", (text) => {
+    expect(announcedButMissing(text)).toBeNull();
+  });
+});
+
+describe("the replies that stand in for a missing answer", () => {
+  const costs = { currency: "USD", total: 13400, shown: { currency: "EUR", total: 12345 } };
+
+  it("gives the plan's activity total in the currency the traveller sees", () => {
+    expect(planCostsReply("en", costs)).toBe(
+      "The activities in your plan come to about 12,345 EUR. Hotels and flights aren't in the plan, so add those on top."
+    );
+    expect(planCostsReply("it", costs)).toContain("circa 12.345 EUR");
+    expect(planCostsReply("es", costs)).toContain("unos 12.345 EUR");
+    expect(planCostsReply("pt", costs)).toContain("cerca de 12.345 EUR");
+    expect(planCostsReply("en", { currency: "USD", total: 13400 })).toContain("13,400 USD");
+  });
+
+  it("asks for one thing at a time when a list never came", () => {
+    for (const l of ["en", "es", "it", "pt"]) expect(missingAnswerReply(l).length).toBeGreaterThan(20);
+    expect(missingAnswerReply("it")).toMatch(/^Non sono riuscito/);
   });
 });
