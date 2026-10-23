@@ -26,6 +26,9 @@ const NOT_A_VIEW =
 // Wikivoyage sections where travel editors put the sights. "Nearby popular
 // Wikipedia articles" was tried instead and surfaced crimes and disasters.
 const TRAVEL_SECTION = /^(see|do|understand|districts)\b/i;
+// A Districts section shows its district map as a [[File:]] whose name may not
+// say "map" (its caption does), next to photos of the districts.
+const DISTRICT_MAP = /\bmaps?\b/i;
 
 export interface CommonsFile {
   /** Commons file name, without "File:". */
@@ -77,7 +80,10 @@ export function travelSectionImages(wikitext: string): string[] {
       continue;
     }
     if (!TRAVEL_SECTION.test(section)) continue;
-    for (const m of line.matchAll(/\[\[(?:File|Image):([^|\]]+)/gi)) names.push(m[1]);
+    const districts = /^districts\b/i.test(section);
+    for (const m of line.matchAll(/\[\[(?:File|Image):([^|\]]+)(?=([^\]]*))/gi)) {
+      if (!(districts && DISTRICT_MAP.test(m[2]))) names.push(m[1]);
+    }
     for (const m of line.matchAll(/\|\s*image\s*=\s*([^|}\n]+)/gi)) names.push(m[1]);
   }
   const seen = new Set<string>();
