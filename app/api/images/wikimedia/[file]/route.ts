@@ -8,7 +8,7 @@ import { cacheAdminDb } from "@/lib/supabase/cache-admin";
  * read only on a cache miss. The ".jpg" path also keeps the middleware off it.
  */
 
-const FILE = /^[0-9a-f]{20}-(330|960|1280|1920)\.jpg$/;
+const FILE = /^[0-9a-f]{20}-(330|500|960|1280|1920)\.jpg$/;
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ file: string }> }) {
   const { file } = await params;

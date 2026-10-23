@@ -15,6 +15,7 @@ import {
 import { getActivityTypeColors } from "@/lib/constants/activityColors";
 import { openExternal } from "@/lib/native/external-link";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { PhotoCredit } from "./ui/PhotoCredit";
 
 interface ActivityCardProps {
   activity: Activity;
@@ -212,6 +213,7 @@ function ActivityCard({
               {typeLabel(activity.type)}
             </span>
           </div>
+          <PhotoCredit src={activity.image_url} />
         </div>
       )}
 

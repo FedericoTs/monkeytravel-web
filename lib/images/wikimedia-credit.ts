@@ -47,6 +47,13 @@ export function wikimediaCardSrc(url: string): string {
   return Number(STORED_WIDTH.exec(url)?.[1]) > 960 ? atStoredWidth(url, 960) : url;
 }
 
+/** A stored activity photo (500px, for cards) at its 960px copy, for the activity sheet; any other URL unchanged. */
+export function wikimediaSheetSrc(url: string): string;
+export function wikimediaSheetSrc(url: string | null | undefined): string | null | undefined;
+export function wikimediaSheetSrc(url: string | null | undefined) {
+  return url?.startsWith(WIKIMEDIA_IMAGE_PATH) && /-500\.jpg(\?|$)/.test(url) ? atStoredWidth(url, 960) : url;
+}
+
 /** A srcset for a stored cover, so phones get the 960px copy. Undefined for other URLs. */
 export function wikimediaSrcSet(url: string | null | undefined): string | undefined {
   if (!url?.startsWith(WIKIMEDIA_IMAGE_PATH)) return undefined;

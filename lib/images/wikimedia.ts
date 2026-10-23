@@ -11,7 +11,7 @@ import { WIKIMEDIA_IMAGE_PATH, withCredit } from "@/lib/images/wikimedia-credit"
 
 const UA = "MonkeyTravel/1.0 (https://monkeytravel.app; support@monkeytravel.app)";
 const WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php";
-const WIKIDATA_API = "https://www.wikidata.org/w/api.php";
+export const WIKIDATA_API = "https://www.wikidata.org/w/api.php";
 const WIKIVOYAGE_API = "https://en.wikivoyage.org/w/api.php";
 const COMMONS_API = "https://commons.wikimedia.org/w/api.php";
 
@@ -30,7 +30,7 @@ const TRAVEL_SECTION = /^(see|do|understand|districts)\b/i;
 export interface CommonsFile {
   /** Commons file name, without "File:". */
   name: string;
-  /** Thumbnail URL at 1280px, a standard Commons width. */
+  /** Thumbnail URL at a standard Commons width (1280px unless asked). */
   thumb: string;
   width: number;
   height: number;
@@ -50,13 +50,14 @@ export interface DestinationPhotos {
 const sameName = (a: string, b: string) => a.replace(/_/g, " ").toLowerCase() === b.replace(/_/g, " ").toLowerCase();
 
 /**
- * Big enough for a hero, landscape, a JPEG photo, under a free licence; under
- * an attribution licence (CC BY, CC BY-SA), with an author we can name.
+ * Big enough (a hero by default), landscape, a JPEG photo, under a free
+ * licence; under an attribution licence (CC BY, CC BY-SA), with an author we
+ * can name.
  */
-export function isUsablePhoto(f: CommonsFile): boolean {
+export function isUsablePhoto(f: CommonsFile, minWidth = 1280): boolean {
   return (
     f.mime === "image/jpeg" &&
-    f.width >= 1280 &&
+    f.width >= minWidth &&
     f.width / f.height >= 1.2 &&
     FREE_LICENSE.test(f.license.trim()) &&
     (f.artist !== "" || !/^cc by/i.test(f.license.trim())) &&
@@ -135,7 +136,7 @@ export function pickImages(
   return { cover, gallery: usable.filter((f) => f !== cover).slice(0, GALLERY_SIZE) };
 }
 
-async function wiki(base: string, params: Record<string, string | number>, signal: AbortSignal): Promise<unknown> {
+export async function wiki(base: string, params: Record<string, string | number>, signal: AbortSignal): Promise<unknown> {
   const query = new URLSearchParams({ format: "json", formatversion: "2" });
   for (const [k, v] of Object.entries(params)) query.set(k, String(v));
   const res = await fetch(`${base}?${query.toString()}`, { headers: { "User-Agent": UA }, signal });
@@ -176,8 +177,11 @@ interface ImagePage {
   imageinfo?: { thumburl?: string; width?: number; height?: number; mime?: string; extmetadata?: Record<string, { value?: string }> }[];
 }
 
-/** Commons details of the named files, in the order given; missing files are left out. */
-async function commonsFiles(names: string[], signal: AbortSignal): Promise<CommonsFile[]> {
+/**
+ * Commons details of the named files, in the order given; missing files are
+ * left out. `thumb` is at `width`, which must not exceed the stored widths.
+ */
+export async function commonsFiles(names: string[], signal: AbortSignal, width = 1280): Promise<CommonsFile[]> {
   if (names.length === 0) return [];
   const d = (await wiki(
     COMMONS_API,
@@ -186,7 +190,7 @@ async function commonsFiles(names: string[], signal: AbortSignal): Promise<Commo
       titles: names.map((n) => `File:${n}`).join("|"),
       prop: "imageinfo",
       iiprop: "url|size|mime|extmetadata",
-      iiurlwidth: 1280,
+      iiurlwidth: width,
       iiextmetadatafilter: "LicenseShortName|Artist|Restrictions",
     },
     signal,
@@ -237,7 +241,7 @@ export async function findDestinationPhotos(destination: string, signal: AbortSi
 }
 
 /** Stores the photo at the given widths, once per Commons file; returns each served URL. */
-async function storePhoto(db: SupabaseClient, f: CommonsFile, widths: number[], signal: AbortSignal): Promise<string[]> {
+export async function storePhoto(db: SupabaseClient, f: CommonsFile, widths: number[], signal: AbortSignal): Promise<string[]> {
   const id = createHash("sha1").update(f.name.replace(/ /g, "_")).digest("hex").slice(0, 20);
   const credit = { author: f.artist, license: f.license.trim(), file: f.name };
   return Promise.all(

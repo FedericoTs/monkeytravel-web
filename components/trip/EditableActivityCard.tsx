@@ -13,6 +13,7 @@ import {
 } from "@/lib/utils/pricing";
 import { getActivityTypeColors } from "@/lib/constants/activityColors";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { PhotoCredit } from "../ui/PhotoCredit";
 import { CalendarDays, Pencil, Sparkles, Trash2 } from "lucide-react";
 import TripActionsMenu, { TripActionsMenuItem } from "./TripActionsMenu";
 import MoveToDaySheet, { type MoveToDayOption } from "./MoveToDaySheet";
@@ -333,6 +334,7 @@ function EditableActivityCard({
               {typeLabel(activity.type)}
             </span>
           </div>
+          <PhotoCredit src={activity.image_url} />
         </div>
       )}
 

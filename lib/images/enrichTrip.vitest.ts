@@ -18,7 +18,23 @@ vi.mock("@/lib/images/activity", () => ({
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: vi.fn() }));
 
-import { enrichTripRecord } from "./enrichTrip";
+import { countRealPhotos, enrichTripRecord } from "./enrichTrip";
+
+describe("countRealPhotos", () => {
+  it("counts Google and stored Wikimedia place photos as real, stock images not", () => {
+    const itinerary = [
+      {
+        activities: [
+          { image_url: "/api/places/photo?name=places%2FX%2Fphotos%2FY&w=600&h=400" },
+          { image_url: "/api/images/wikimedia/0123456789abcdef0123-500.jpg?a=X&l=CC0&f=X.jpg" },
+          { image_url: "https://images.pexels.com/photos/1/a.jpeg" },
+          {},
+        ],
+      },
+    ] as unknown as ItineraryDay[];
+    expect(countRealPhotos(itinerary)).toEqual({ real: 2, total: 4 });
+  });
+});
 
 const curated = "https://images.example/curated.jpg";
 const read: ItineraryDay[] = [

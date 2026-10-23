@@ -338,9 +338,11 @@ const nextConfig: NextConfig = {
       // /images/**, favicons — 404s through the optimizer. This re-declares
       // that default.
       { pathname: '/**', search: '' },
-      // The Places-photo proxy is the one local route whose src carries a query
-      // string (?name=…). `search` omitted → any query string allowed.
+      // The Places-photo proxy's src carries a query string (?name=…).
+      // `search` omitted → any query string allowed.
       { pathname: '/api/places/**' },
+      // Stored Wikimedia photos carry their credit in the query string.
+      { pathname: '/api/images/wikimedia/**' },
     ],
     remotePatterns: [
       {
