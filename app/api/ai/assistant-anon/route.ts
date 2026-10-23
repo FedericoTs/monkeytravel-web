@@ -189,6 +189,7 @@ export async function POST(request: NextRequest) {
         history: body.history,
         autoApply: body.autoApply,
         display: body.display,
+        explainRemovals: true,
       })
     );
     waitUntil(logApiCall({

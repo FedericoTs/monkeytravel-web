@@ -107,6 +107,26 @@ const lang = (language: string | undefined): Lang => {
   return l === "es" || l === "it" || l === "pt" ? l : "en";
 };
 
+// Short words each language uses all the time and the others rarely do.
+const COMMON_WORDS: Record<Lang, Set<string>> = {
+  en: new Set("the and your you with this here have has is are to of for on at day days added from will can".split(" ")),
+  es: new Set("el los las del y para con tu tus aquí día días más muy he está son es por una un al como también hay".split(" ")),
+  it: new Set("il gli della delle dei che ho ecco più molto per giorno giorni è sono una un tuo tua ai anche alla nel con".split(" ")),
+  pt: new Set("os do da dos das em com você seu sua aqui mais muito é são dia dias não ao uma um também na para".split(" ")),
+};
+
+/**
+ * The language a reply is written in, or undefined when unsure. The model
+ * answers in the traveller's language, which can differ from the plan's.
+ */
+export function replyLanguage(text: string): Lang | undefined {
+  const words = text.toLowerCase().split(/[^\p{L}]+/u).filter(Boolean);
+  const scores = (Object.keys(COMMON_WORDS) as Lang[])
+    .map((l) => ({ l, n: words.filter((w) => COMMON_WORDS[l].has(w)).length }))
+    .sort((a, b) => b.n - a.n);
+  return scores[0].n >= 2 && scores[0].n >= 1.5 * scores[1].n ? scores[0].l : undefined;
+}
+
 /**
  * The reply when nothing was prepared or saved. It names the trip page's own
  * "Edit Trip" button (trips.detail.editTrip in each locale). Only English gets
@@ -332,6 +352,37 @@ export function planCostsReply(
       return `As atividades do seu plano somam cerca de ${amount}. Hotéis e voos não estão no plano, então some-os à parte.`;
     default:
       return `The activities in your plan come to about ${amount}. Hotels and flights aren't in the plan, so add those on top.`;
+  }
+}
+
+// Asking for something to go: "remove", "take out", "instead", "quita", "togli"…
+const REMOVAL_ASK = new RegExp(
+  `${start}${words(
+    "remove|removing|take\\s+out|delete|drop|skip|cut|get\\s+rid|without|replace|replacing|instead|swap|no\\s+more|quita|quitar|elimina|eliminar|borra|sin|en\\s+vez|en\\s+lugar|sustituye|cambia|togli|togliere|rimuovi|cancella|senza|invece|sostituisci|tira|tirar|remova|exclua|apaga|sem|em\\s+vez|troca|substitua"
+  )}${end}`,
+  "iu"
+);
+
+/** Does the traveller's message ask for something to be taken out or swapped? */
+export function asksToRemove(message: string | null | undefined): boolean {
+  return REMOVAL_ASK.test(message ?? "");
+}
+
+/**
+ * Names the activities a change takes out when the traveller only asked to
+ * add or adjust: "add a Jameson tour" quietly replaced a Guinness visit.
+ */
+export function takesOutNote(language: string | undefined, names: string[]): string {
+  const list = names.slice(0, 4).join(", ") + (names.length > 4 ? ", …" : "");
+  switch (lang(language)) {
+    case "es":
+      return `(Este cambio quita: ${list}.)`;
+    case "it":
+      return `(Questa modifica toglie: ${list}.)`;
+    case "pt":
+      return `(Esta alteração tira: ${list}.)`;
+    default:
+      return `(This change takes out: ${list}.)`;
   }
 }
 
