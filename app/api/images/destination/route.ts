@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { PEXELS_API_BASE } from "@/lib/constants/externalApis";
+import { destinationPhotos } from "@/lib/images/destination-photos";
 
 // Pexels API endpoint
 const PEXELS_API_URL = `${PEXELS_API_BASE}/search`;
@@ -274,6 +275,18 @@ export async function GET(request: NextRequest) {
     return apiSuccess({
       url: curatedUrl,
       source: "curated",
+      destination: cacheKey
+    }, { headers: cacheHeaders });
+  }
+
+  // Then Wikimedia: a photo of the place itself, stored and credited. The
+  // Pexels search below matches on words and has put London on a Trieste trip.
+  const wiki = await destinationPhotos(destination, request);
+  if (wiki) {
+    imageCache.set(cacheKey, { url: wiki.cover, timestamp: Date.now() });
+    return apiSuccess({
+      url: wiki.cover,
+      source: "wikimedia",
       destination: cacheKey
     }, { headers: cacheHeaders });
   }

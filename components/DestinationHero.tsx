@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useImageLoaded } from "@/lib/hooks/useImageLoaded";
 import { placesPhotoSrcSet, proxyImageUrl } from "@/lib/img/proxyUrl";
+import { commonsPage, readCredit, wikimediaSrcSet } from "@/lib/images/wikimedia-credit";
 import { useTranslations } from "next-intl";
 import { useCurrency } from "@/lib/locale";
 import { weatherCondition } from "@/lib/trips/weather-note";
@@ -143,6 +144,10 @@ export default function DestinationHero({
   const [imageLoaded, setImageLoaded] = useImageLoaded(heroImgRef, effectiveCoverUrl);
 
   const galleryPhotos = destinationData?.galleryPhotos ?? [];
+  // Wikimedia photos are credited where they show, as their licences require.
+  const coverCredit = imageError ? null : readCredit(destinationData?.coverImageUrl);
+  const creditText = (c: { author: string; license: string }) =>
+    t("photoCredit", { author: c.author || "Wikimedia Commons", license: c.license });
 
   // Currency conversion hook - converts to user's preferred currency
   const { convert: convertCurrency } = useCurrency();
@@ -229,8 +234,8 @@ export default function DestinationHero({
               key={`hero-${imageRetry}`}
               ref={heroImgRef}
               src={effectiveCoverUrl}
-              // Places covers are stored at 1920px; phones pick a smaller one.
-              srcSet={placesPhotoSrcSet(effectiveCoverUrl)}
+              // Covers are stored at 1920px; phones pick a smaller one.
+              srcSet={placesPhotoSrcSet(effectiveCoverUrl) ?? wikimediaSrcSet(effectiveCoverUrl)}
               sizes="100vw"
               alt={destination}
               fetchPriority="high"
@@ -251,6 +256,16 @@ export default function DestinationHero({
             />
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+            {coverCredit && (
+              <a
+                href={commonsPage(coverCredit.file)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute top-2 right-2 z-10 max-w-[70%] truncate rounded bg-black/30 px-1.5 py-0.5 text-[10px] leading-tight text-white/80 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                {creditText(coverCredit)}
+              </a>
+            )}
           </>
         ) : (
           /* Fallback gradient — also triggered on image-load failure */
@@ -401,19 +416,38 @@ export default function DestinationHero({
       {(galleryPhotos.length > 0 || (!coverImageUrl && !disableApiCalls)) && (
         <div className="hidden sm:block max-w-4xl mx-auto px-4 -mt-6 relative z-10">
           <div className="flex gap-2 justify-end h-16 md:h-20">
-            {galleryPhotos.slice(0, 3).map((photo, idx) => (
-              <div
-                key={idx}
-                className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg overflow-hidden shadow-lg border-2 border-white relative"
-              >
+            {galleryPhotos.slice(0, 3).map((photo, idx) => {
+              const credit = readCredit(photo.thumbnailUrl);
+              const image = (
                 <img
                   src={photo.thumbnailUrl}
                   alt={`${destination} gallery ${idx + 1}`}
                   className="absolute inset-0 w-full h-full object-cover"
                   loading="lazy"
                 />
-              </div>
-            ))}
+              );
+              return (
+                <div
+                  key={idx}
+                  className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg overflow-hidden shadow-lg border-2 border-white relative"
+                >
+                  {credit ? (
+                    <a
+                      href={commonsPage(credit.file)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={creditText(credit)}
+                      aria-label={creditText(credit)}
+                      className="absolute inset-0"
+                    >
+                      {image}
+                    </a>
+                  ) : (
+                    image
+                  )}
+                </div>
+              );
+            })}
             {galleryPhotos.length > 3 && (
               <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg overflow-hidden shadow-lg border-2 border-white bg-slate-900/80 flex items-center justify-center text-white text-xs sm:text-sm font-medium">
                 +{galleryPhotos.length - 3}

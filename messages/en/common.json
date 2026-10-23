@@ -678,6 +678,7 @@
     "back": "Back",
     "activities": "{count} activities",
     "highlights": "Highlights:",
+    "photoCredit": "Photo: {author} · {license}",
     "weather": {
       "sunny": "Sunny",
       "cloudy": "Cloudy",

@@ -1,3 +1,5 @@
+import { WIKIMEDIA_IMAGE_PATH, wikimediaCardSrc } from "@/lib/images/wikimedia-credit";
+
 /**
  * Wrap third-party image URLs in our same-origin proxy
  * (`/api/img/proxy?url=...`) when the host is known to occasionally
@@ -59,10 +61,12 @@ export function isApiImageSrc(src: string | null | undefined): boolean {
 }
 
 /**
- * A Places photo proxy src capped at card size. Unoptimized cards would
- * otherwise download the 1920px cover; any other src is returned unchanged.
+ * A Places photo proxy src capped at card size, or a stored Wikimedia cover at
+ * its 960px copy. Unoptimized cards would otherwise download the 1920px cover;
+ * any other src is returned unchanged.
  */
 export function cardSizedSrc(src: string): string {
+  if (src.startsWith(WIKIMEDIA_IMAGE_PATH)) return wikimediaCardSrc(src);
   if (!src.startsWith("/api/places/photo?")) return src;
   const [path, query] = src.split("?");
   const params = new URLSearchParams(query);

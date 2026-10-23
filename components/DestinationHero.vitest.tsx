@@ -2,10 +2,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render } from "@testing-library/react";
 import DestinationHero from "./DestinationHero";
+import { atStoredWidth, withCredit } from "@/lib/images/wikimedia-credit";
 
 vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string, values?: { count?: number }) =>
-    values?.count === undefined ? key : `${values.count} activities`,
+  useTranslations: () => (key: string, values?: { count?: number; author?: string; license?: string }) =>
+    values?.author !== undefined
+      ? `Photo: ${values.author} · ${values.license}`
+      : values?.count === undefined
+        ? key
+        : `${values.count} activities`,
 }));
 vi.mock("@/lib/locale", () => ({
   useCurrency: () => ({ convert: (amount: number, currency: string) => ({ formatted: `${amount} ${currency}` }) }),
@@ -90,5 +95,45 @@ describe("DestinationHero cover", () => {
     const candidates = (retried.getAttribute("srcset") ?? "").split(", ");
     expect(candidates).toHaveLength(3);
     for (const c of candidates) expect(c).toContain("_r=1");
+  });
+});
+
+/**
+ * Wikimedia photos are free to keep and show, under licences that require a
+ * credit where they appear: the cover's credit links its Commons page, and so
+ * does each gallery tile.
+ */
+describe("DestinationHero Wikimedia credits", () => {
+  const credit = { author: "Basile Morin", license: "CC BY-SA 4.0", file: "Kyoto street.jpg" };
+  const cover = withCredit("/api/images/wikimedia/0123456789abcdef0123-1920.jpg", credit);
+
+  it("credits a stored cover and offers phones its 960px copy", () => {
+    const { getByText, container } = render(
+      <DestinationHero destination="Kyoto" title="Kyoto Trip" disableApiCalls coverImageUrl={cover} />
+    );
+    const link = getByText("Photo: Basile Morin · CC BY-SA 4.0").closest("a");
+    expect(link?.getAttribute("href")).toBe("https://commons.wikimedia.org/wiki/File:Kyoto_street.jpg");
+    expect(link?.getAttribute("rel")).toContain("noopener");
+    const img = container.querySelector<HTMLImageElement>('img[alt="Kyoto"]')!;
+    expect(img.getAttribute("srcset")).toBe(`${atStoredWidth(cover, 960)} 960w, ${cover} 1920w`);
+  });
+
+  it("credits nothing on a cover from elsewhere", () => {
+    const { queryByText } = render(
+      <DestinationHero destination="Lisbon" title="Lisbon Trip" disableApiCalls coverImageUrl="https://images.pexels.com/photos/1/a.jpeg" />
+    );
+    expect(queryByText(/^Photo:/)).toBeNull();
+  });
+
+  it("links each credited gallery tile to its Commons page", async () => {
+    const thumb = withCredit("/api/images/wikimedia/aaaaaaaaaaaaaaaaaaaa-330.jpg", { author: "", license: "CC0", file: "Gion.jpg" });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ coverImageUrl: cover, galleryPhotos: [{ url: thumb, thumbnailUrl: thumb }] }), { status: 200 })),
+    );
+    const { findByLabelText } = render(<DestinationHero destination="Kyoto" title="Kyoto Trip" />);
+    const tile = await findByLabelText("Photo: Wikimedia Commons · CC0");
+    expect(tile.getAttribute("href")).toBe("https://commons.wikimedia.org/wiki/File:Gion.jpg");
+    vi.unstubAllGlobals();
   });
 });
