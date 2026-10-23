@@ -12,6 +12,8 @@ import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import { hasCoordinates } from "@/lib/trips/has-coordinates";
+import { withFoundPhotos } from "@/lib/trips/keep-place-photos";
+import { useKeptTripPhotos } from "@/hooks/useKeptTripPhotos";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
 import TodayView from "@/components/trip/TodayView";
@@ -521,6 +523,18 @@ export default function TripDetailClient({
       mountedRef.current = false;
     };
   }, []);
+  // A kept trip's stand-in photos become real ones when its owner opens it.
+  // The server already stored them; both copies change, so nothing looks edited.
+  useKeptTripPhotos({
+    enabled: isOwner,
+    tripId: trip.id,
+    itinerary: initialItinerary,
+    lastRun: (trip.meta as Record<string, unknown> | undefined)?.photos_enriched_at,
+    onPhotos: (photos) => {
+      setEditedItinerary((prev) => withFoundPhotos(prev, photos));
+      setSavedItinerary((prev) => withFoundPhotos(prev, photos));
+    },
+  });
   // Guard against auto-save retry storms: when a PATCH fails we record the
   // exact payload that failed so the debounced effect doesn't hammer the
   // server with the identical body. A NEW edit changes the payload and clears

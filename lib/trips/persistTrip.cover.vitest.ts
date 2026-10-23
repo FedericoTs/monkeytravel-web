@@ -60,6 +60,17 @@ describe("a trip's cover at creation", () => {
   });
 });
 
+describe("photos of a planner save", () => {
+  it("are not looked up: that waits until the trip is opened", async () => {
+    const { client } = fakeSupabase();
+    await insertTrip(client, input([{ type: "attraction", image_url: "https://images.pexels.com/photos/1/a.jpeg" }]), "user-1");
+    await updateTrip(client, "trip-1", input([{ type: "attraction" }]), "user-1");
+    await insertTrip(fakeSupabase(true).client, input([{ type: "attraction" }]), "user-1");
+    const calls = (fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls.map(([url]) => String(url));
+    expect(calls.filter((url) => url.includes("enrich-photos"))).toEqual([]);
+  });
+});
+
 describe("a trip's cover after creation", () => {
   it("is not written by an update", async () => {
     const { client, updates } = fakeSupabase();

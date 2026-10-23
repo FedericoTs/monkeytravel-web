@@ -13,7 +13,7 @@ const PHOTOS_FIELD_MASK = "photos";
  * name-keyed `place_search` / `activity_image` cache remains as a fallback.
  */
 
-import { cache } from "@/lib/cache";
+import { cache, generateCacheKey, getFromDatabase, saveToDatabase } from "@/lib/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logApiCall, logApiCalls } from "@/lib/api-gateway";
 
@@ -26,6 +26,10 @@ const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 // exists to avoid.
 const ACTIVITY_IMAGE_CACHE_DAYS = 365;
 
+// How long a name Google found no place for is not searched again. Shorter
+// than a found place: Google may list it later.
+const NO_MATCH_DAYS = 90;
+
 // Cost control: default cap on paid Places resolutions per fetchActivityImages
 // call (callers can pass maxPaidLookups). One resolution is one cache-miss
 // activity: up to two Text Searches and a Place Details. Cache hits don't
@@ -34,10 +38,10 @@ const ACTIVITY_IMAGE_CACHE_DAYS = 365;
 // lower is cheaper, higher gives more real photos.
 const MAX_PAID_PLACE_LOOKUPS_PER_TRIP = 4;
 
-// Paid-lookup budget for save-time enrichment (/api/trips/[id]/enrich-photos,
+// Paid-lookup budget for kept-trip enrichment (/api/trips/[id]/enrich-photos,
 // lib/images/enrichTrip.ts). Trip generation makes no paid lookups: each
 // activity gets a free cache-hit photo or a curated fallback. Real photos are
-// resolved once a trip is saved, so generations nobody saves cost nothing.
+// resolved when the owner opens a saved trip, so plans nobody keeps cost nothing.
 export const SAVE_TIME_PAID_LOOKUPS = 8;
 
 // Google expires photo resource names after about 29 days (measured). 21 days
@@ -112,11 +116,11 @@ interface PlaceRecord {
  * An ID-only Text Search plus Details may be cheaper; see the
  * text_search_essentials note in places-sku.ts before changing the masks.
  *
- * Returns null on failure or no match.
+ * Returns null when Google found no place, undefined when the call failed.
  */
-async function searchPlaceId(query: string): Promise<PlaceRecord | null> {
+async function searchPlaceId(query: string): Promise<PlaceRecord | null | undefined> {
   if (!GOOGLE_PLACES_API_KEY) {
-    return null;
+    return undefined;
   }
 
   let place: {
@@ -150,13 +154,13 @@ async function searchPlaceId(query: string): Promise<PlaceRecord | null> {
     httpStatus = searchResponse.status;
 
     if (!searchResponse.ok) {
-      return null;
+      return undefined;
     }
 
     const data = await searchResponse.json();
     place = data.places?.[0] ?? null;
   } catch {
-    return null;
+    return undefined;
   } finally {
     // Every call here is paid: cache hits return before this function is
     // reached. Fire-and-forget so logging never adds latency to the lookup.
@@ -462,6 +466,11 @@ async function getOrFetchPlace(
   }
 
   // ---------- 2. Cache MISS path: resolve the place_id first ----------
+  // A name Google already found nothing for is not searched again, and
+  // doesn't spend the budget.
+  if (paidBudget.remaining > 0 && (await isKnownNoMatch(normalizedKey))) {
+    return null;
+  }
   // Paid-lookup budget gate; cache hits above never spend it. Once exhausted,
   // return null so the caller serves a curated fallback. Check-then-decrement
   // is synchronous (no await between them), so under Promise.all at most N
@@ -473,14 +482,16 @@ async function getOrFetchPlace(
 
   // Text Search gives the canonical place_id. Query `${name} ${destination}`
   // first (matches local landmarks better), then the name alone.
-  let partial: PlaceRecord | null = null;
-  if (destination) {
-    partial = await searchPlaceId(`${name} ${destination}`);
+  let partial: PlaceRecord | null | undefined = null;
+  let failed = false;
+  for (const query of destination ? [`${name} ${destination}`, name] : [name]) {
+    partial = await searchPlaceId(query);
+    if (partial) break;
+    if (partial === undefined) failed = true;
   }
   if (!partial) {
-    partial = await searchPlaceId(name);
-  }
-  if (!partial) {
+    // Google answered and found nothing: remember it for the next save.
+    if (!failed) await recordNoMatch(normalizedKey);
     return null;
   }
 
@@ -551,6 +562,22 @@ async function getOrFetchPlace(
   }
 
   return place;
+}
+
+/**
+ * Names Google found no place for, kept as the legacy fallback's "no photo"
+ * rows (`place_search`/`activity_image`): that fallback then answers from the
+ * row instead of repeating the same searches.
+ */
+const noMatchKey = (normalizedKey: string) => generateCacheKey("place_search", `activity_img:${normalizedKey}`);
+
+async function isKnownNoMatch(normalizedKey: string): Promise<boolean> {
+  const row = await getFromDatabase<CachedActivityImage>(noMatchKey(normalizedKey), "activity_image");
+  return row !== null && !row.imageUrl;
+}
+
+async function recordNoMatch(normalizedKey: string): Promise<void> {
+  await saveToDatabase<CachedActivityImage>(noMatchKey(normalizedKey), "activity_image", { imageUrl: null }, NO_MATCH_DAYS);
 }
 
 /**

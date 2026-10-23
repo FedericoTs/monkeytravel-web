@@ -5,6 +5,7 @@ import { SAVE_TIME_PAID_LOOKUPS } from "@/lib/images/activity";
 import { enrichTripRecord } from "@/lib/images/enrichTrip";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { pickCoverFromItinerary } from "@/lib/trips/cover";
+import { foundPhotos } from "@/lib/trips/keep-place-photos";
 
 /**
  * Enrich Activity Photos API (2026-06-30 cost pass)
@@ -15,11 +16,11 @@ import { pickCoverFromItinerary } from "@/lib/trips/cover";
  * Why this exists: trip GENERATION now runs with zero paid Google Places
  * lookups (cost control) — every activity ships with a free cache-hit real
  * photo or a type-relevant curated fallback, so the pre-save result page is
- * never broken or empty. This endpoint runs once a trip is actually KEPT
- * (fired fire-and-forget from the save path in lib/trips/persistTrip.ts),
- * upgrading the curated fallbacks to real place photos. Only the small fraction
- * of generations that convert to a saved trip ever reach here — that's the cost
- * saving. Owner-only (verifyTripOwnership); a kept trip is a high-value object.
+ * never broken or empty. This endpoint runs when the owner opens a kept trip
+ * (TripDetailClient), not on each planner save, upgrading the curated
+ * fallbacks to real place photos; the response lists them for the page to
+ * show at once. Owner-only (verifyTripOwnership); a kept trip is a
+ * high-value object.
  *
  * Idempotent + cheap to re-run: real /api/places/photo proxy URLs are kept
  * (never re-paid), cross-trip cache hits are free, and the per-call paid budget
@@ -96,6 +97,7 @@ export async function POST(
       real: outcome.after.real,
       total: outcome.after.total,
       skipped: outcome.skipped,
+      photos: foundPhotos(outcome.itinerary),
     });
   } catch (error) {
     console.error("[EnrichPhotos] Error:", error);

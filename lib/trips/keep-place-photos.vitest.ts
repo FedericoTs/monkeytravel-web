@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { ItineraryDay } from "@/types";
-import { keepStoredPlacePhotos } from "./keep-place-photos";
+import { foundPhotos, hasStandInPhotos, keepStoredPlacePhotos, withFoundPhotos } from "./keep-place-photos";
 
 /**
  * A page that loaded before the save-time photo enrichment landed must not put
@@ -10,6 +10,31 @@ import { keepStoredPlacePhotos } from "./keep-place-photos";
 const photo = (name: string) => `/api/places/photo?ref=${name}`;
 const curated = "https://images.example/curated.jpg";
 const trip = (acts: Array<Record<string, unknown>>) => [{ day_number: 1, date: "2027-01-01", activities: acts }] as unknown as ItineraryDay[];
+
+describe("photos found when the trip is opened", () => {
+  it("are looked for only while an activity shows a stand-in or nothing", () => {
+    expect(hasStandInPhotos(trip([{ id: "a1", name: "Alpha", image_url: photo("Alpha") }]))).toBe(false);
+    expect(hasStandInPhotos(trip([{ id: "a1", name: "Alpha", image_url: photo("Alpha") }, { id: "a2", name: "Bravo", image_url: curated }]))).toBe(true);
+    expect(hasStandInPhotos(trip([{ id: "a1", name: "Alpha" }]))).toBe(true);
+  });
+
+  it("are listed by activity, place photos only", () => {
+    expect(foundPhotos(trip([{ id: "a1", name: "Alpha", image_url: photo("Alpha") }, { id: "a2", name: "Bravo", image_url: curated }]))).toEqual({
+      a1: photo("Alpha"),
+    });
+    expect(foundPhotos(undefined)).toEqual({});
+  });
+
+  it("go on the page's activities that still show a stand-in, never over a photo or an edit's change", () => {
+    const page = trip([
+      { id: "a1", name: "Alpha", image_url: curated },
+      { id: "a2", name: "Bravo", image_url: photo("Bravo-chosen") },
+      { id: "a3", name: "Charlie", image_url: curated },
+    ]);
+    const out = withFoundPhotos(page, { a1: photo("Alpha"), a2: photo("Bravo") });
+    expect(out[0].activities.map((a) => a.image_url)).toEqual([photo("Alpha"), photo("Bravo-chosen"), curated]);
+  });
+});
 
 describe("keepStoredPlacePhotos", () => {
   it("keeps the stored place photo when the page only has the fallback for the same activity", () => {

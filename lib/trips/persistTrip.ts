@@ -227,27 +227,6 @@ function buildTripRow(
 }
 
 /**
- * Fire-and-forget: ask the server to upgrade a KEPT trip's curated activity
- * photos to real Google Place photos (budget-capped, server-side, owner-only).
- *
- * Trip generation runs with ZERO paid Places lookups (cost control), so only
- * trips that are actually saved pay for real photos. Never throws; a saved trip
- * already has good type-relevant curated images if this no-ops. keepalive so the
- * request survives the same-tab navigation to /trips/[id] right after save
- * (mirrors `attachCoverImage`).
- */
-function enrichTripPhotos(tripId: string): void {
-  try {
-    void fetch(`/api/trips/${tripId}/enrich-photos`, {
-      method: "POST",
-      keepalive: true,
-    }).catch(() => {});
-  } catch {
-    // Best-effort — never block or fail the save on photo enrichment.
-  }
-}
-
-/**
  * INSERT a new trip row. Returns the new id + duration. Throws on RLS
  * failure or missing user. Cover image is set from the local fallback
  * only — the remote `/api/images/destination` lookup is deferred and
@@ -287,14 +266,11 @@ export async function insertTrip(
       .update({ title, description, start_date, end_date, itinerary, budget, tags, trip_meta, travel_style, packing_list })
       .eq("id", result.trip_id);
     if (updateError) throw updateError;
-    enrichTripPhotos(result.trip_id);
     return {
       tripId: result.trip_id,
       durationDays: computeDurationDays(input.formState),
     };
   }
-
-  enrichTripPhotos(result.trip_id);
 
   return {
     tripId: result.trip_id,
@@ -324,10 +300,6 @@ export async function updateTrip(
     .eq("id", tripId);
 
   if (error) throw error;
-
-  // Re-enrich photos for the updated (kept) trip — a regeneration may have
-  // introduced new curated-fallback activities to upgrade to real photos.
-  enrichTripPhotos(tripId);
 }
 
 /**

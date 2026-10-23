@@ -51,6 +51,13 @@ beforeEach(() => {
   outcome = { skipped: null, before: { real: 0, total: 1 }, after: { real: 1, total: 1 }, itinerary: enriched };
 });
 
+describe("enrich-photos tells the opened trip page what it found", () => {
+  it("lists the place photos by activity, for the page to show without a reload", async () => {
+    const res = await run();
+    expect((await res.json()).photos).toEqual({ a1: TOWER });
+  });
+});
+
 describe("enrich-photos gives a cover-less trip its cover", () => {
   it("writes the first sight's photo at cover size, only while the column is empty", async () => {
     await run();

@@ -24,7 +24,15 @@ vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => client }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => client }));
 
 const legacy: unknown[][] = [];
-vi.mock("@/lib/cache", () => ({
+/** Rows of the legacy activity_image cache, by key, for the "no match" memory. */
+const legacyRows = new Map<string, { imageUrl: string | null }>();
+const legacyWrites: unknown[][] = [];
+vi.mock("@/lib/cache", async (importOriginal) => ({
+  generateCacheKey: (await importOriginal<typeof import("@/lib/cache")>()).generateCacheKey,
+  getFromDatabase: async (key: string) => legacyRows.get(key) ?? null,
+  saveToDatabase: async (key: string, type: string, data: unknown, days: number) => {
+    legacyWrites.push([key, type, data, days]);
+  },
   cache: {
     withDatabase: async (type: string, key: string, opts: { cacheDays: number; cacheType: string }) => {
       legacy.push([type, key, opts.cacheDays, opts.cacheType]);
@@ -32,6 +40,8 @@ vi.mock("@/lib/cache", () => ({
     },
   },
 }));
+const { generateCacheKey } = await vi.importActual<typeof import("@/lib/cache")>("@/lib/cache");
+const noMatchKey = (key: string) => generateCacheKey("place_search", `activity_img:${key}`);
 
 import { curatedFor, fetchActivityImages } from "./activity";
 
@@ -65,6 +75,8 @@ let lookupError: { message: string } | null;
 let rpcError: { code: string; message: string } | null;
 /** What Text Search finds for a query; absent means no match. */
 let searchable: Record<string, { id: string; name: string }>;
+/** Text Search queries Google fails on (a 500). */
+let failing: Set<string>;
 
 const keysOf = (q: FakeQuery) =>
   q.filters.flatMap(([op, column, value]) =>
@@ -95,6 +107,7 @@ function answer(q: FakeQuery): { data: unknown; error: unknown } {
 
 const google = vi.fn(async (url: string, init?: RequestInit) => {
   if (url === "https://places.googleapis.com/v1/places:searchText") {
+    if (failing.has(JSON.parse(String(init?.body)).textQuery)) return new Response("{}", { status: 500 });
     const found = searchable[JSON.parse(String(init?.body)).textQuery];
     const place = found && {
       id: found.id,
@@ -223,9 +236,12 @@ beforeEach(() => {
     "Lunch at Roscioli Rome, Italy": { id: "ChIJroscioli", name: "Roscioli" },
     "Il Colosseo Rome, Italy": { id: "ChIJcolosseum", name: "Colosseo" },
   };
+  failing = new Set();
   lookupError = null;
   rpcError = null;
   legacy.length = 0;
+  legacyRows.clear();
+  legacyWrites.length = 0;
   google.mockClear();
 });
 
@@ -415,6 +431,26 @@ describe("enrichment (paid lookups)", () => {
     // Paid calls still log a row each as they are made (8 inserts), and the
     // misses still read and write their own cache rows (5).
     expect(result.roundTrips).toEqual({ cacheLookups: 1, configReads: 0, logInserts: 9, hitCountWrites: 1, total: 16 });
+  });
+});
+
+describe("names Google found nothing for", () => {
+  it("are remembered, and not searched again or paid for out of the budget", async () => {
+    await run([day(["Secret Garden", "park"])], { maxPaidLookups: 8 });
+    expect(legacyWrites).toEqual([[noMatchKey("secret garden|rome italy"), "activity_image", { imageUrl: null }, 90]]);
+
+    legacyRows.set(noMatchKey("secret garden|rome italy"), { imageUrl: null });
+    google.mockClear();
+    // One paid lookup: it goes to the place Google can find, listed second.
+    const result = await run([day(["Secret Garden", "park"], ["Lunch at Roscioli", "restaurant"])], { maxPaidLookups: 1 });
+    expect(result.images).toEqual([curatedFor("Secret Garden", "park"), freshPhoto("ChIJroscioli", "restaurant")]);
+    expect(google.mock.calls.map(([, init]) => (init?.body ? JSON.parse(String(init.body)).textQuery : null))).not.toContain("Secret Garden");
+  });
+
+  it("are not remembered when Google failed rather than answered", async () => {
+    failing = new Set(["Secret Garden Rome, Italy", "Secret Garden"]);
+    await run([day(["Secret Garden", "park"])], { maxPaidLookups: 8 });
+    expect(legacyWrites).toEqual([]);
   });
 });
 
