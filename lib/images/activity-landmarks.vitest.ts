@@ -41,7 +41,7 @@ vi.mock("@/lib/cache", async (importOriginal) => ({
   cache: { withDatabase: async () => ({ data: { imageUrl: null } }) },
 }));
 
-const google = vi.fn(async (url: string) => {
+const google = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(async (url) => {
   if (url.endsWith("places:searchText")) {
     return Response.json({ places: [{ id: "ChIJnew", displayName: { text: "Pantheon" }, location: { latitude: 41.8986, longitude: 12.4769 } }] });
   }
