@@ -12,6 +12,8 @@ import UndoToast, { useUndoState, type UndoState } from "./UndoToast";
 import { trackAIAssistantMessage } from "@/lib/analytics";
 import { captureAIAssistantUsed } from "@/lib/posthog/events";
 import { ItineraryWriteBlockedError } from "@/lib/trips/itinerary-sync";
+import { useLocale as useLocalePrefs } from "@/lib/locale";
+import { displayCurrencyFor } from "@/lib/ai/assistant/plan-costs";
 
 interface Message {
   role: "user" | "assistant";
@@ -186,6 +188,7 @@ export default function AIAssistantEnhanced({
   );
   const t = useTranslations("common.ai.assistant");
   const tCommon = useTranslations("common");
+  const { preferences, exchangeRates } = useLocalePrefs();
 
   // Build quick actions from translations
   const QUICK_ACTIONS = QUICK_ACTION_IDS.map((action) => ({
@@ -335,6 +338,8 @@ export default function AIAssistantEnhanced({
             conversationId,
             itinerary,
             previewMode, // Request preview mode (confirm-first)
+            // So figures in the answer match the prices on the page.
+            display: displayCurrencyFor(itinerary, preferences?.preferredCurrency, exchangeRates),
           }),
         });
 
@@ -488,7 +493,7 @@ ${t("notAppliedBody")}`,
         setIsLoading(false);
       }
     },
-    [tripId, conversationId, isLoading, onAction, onRefetchTrip, onFocusDay, itinerary, simulateLoadingStages, clearUndo, pushUndo, pendingChange, isApplyingChange, t]
+    [tripId, conversationId, isLoading, onAction, onRefetchTrip, onFocusDay, itinerary, simulateLoadingStages, clearUndo, pushUndo, pendingChange, isApplyingChange, t, preferences?.preferredCurrency, exchangeRates]
   );
 
   /**

@@ -1,5 +1,5 @@
 /**
- * Free-form edits on a saved trip, through the wizard's edit engine.
+ * Requests on a saved trip, through the wizard's edit engine.
  *
  * The trip page's assistant read requests with keyword patterns
  * (detectActionIntent in app/api/ai/assistant/route.ts): "replace X with Y",
@@ -9,58 +9,25 @@
  * The wizard's engine (lib/ai/assistant-anon.ts) has the model write the
  * revised days itself, from the whole plan and the conversation; here those
  * days are merged into the saved trip and proposed as one multi-day change.
+ * It answers questions too, with the plan's own figures.
  */
 
 import { assistTrip, type AssistTurn, type DayEdit } from "@/lib/ai/assistant-anon";
 import { lengthUnchangedNote } from "@/lib/ai/assistant/honesty";
+import type { DisplayCurrency } from "@/lib/ai/assistant/plan-costs";
 import { applyAssistantEdits } from "@/lib/trips/day-edit-merge";
 import type { Activity, ItineraryDay } from "@/types";
 
-// Words that ask for a change. English as whole words ("add" must not match
-// "address"); Spanish, Italian and Portuguese as stems, for their endings.
-const CHANGE_WORDS_EN = [
-  "add(?:s|ed|ing)?", "includ(?:e|es|ed|ing)", "put(?:s|ting)?", "insert(?:s|ed|ing)?", "fit(?:s|ting)?",
-  "squeez(?:e|es|ed|ing)", "remov(?:e|es|ed|ing)", "delet(?:e|es|ed|ing)", "drop(?:s|ped|ping)?",
-  "skip(?:s|ped|ping)?", "cut(?:s|ting)?", "take (?:out|off)", "get rid", "replac(?:e|es|ed|ing)",
-  "swap(?:s|ped|ping)?", "switch(?:es|ed|ing)?", "chang(?:e|es|ed|ing)", "mov(?:e|es|ed|ing)",
-  "shift(?:s|ed|ing)?", "reschedul(?:e|es|ed|ing)", "rearrang(?:e|es|ed|ing)", "reorder(?:s|ed|ing)?",
-  "reorgani[sz](?:e|es|ed|ing)", "optimi[sz](?:e|es|ed|ing)", "shorten(?:s|ed|ing)?", "extend(?:s|ed|ing)?",
-  "lengthen(?:s|ed|ing)?", "mak(?:e|es|ing)", "updat(?:e|es|ed|ing)", "edit(?:s|ed|ing)?",
-  "modif(?:y|ies|ied|ying)", "adjust(?:s|ed|ing)?", "instead", "prefer(?:s|red|ring)?", "rather", "less", "more",
-  "fewer", "lighter", "busier", "packed", "earlier", "later", "free up",
-];
-const CHANGE_STEMS = [
-  // es
-  "añad", "agreg", "inclu", "quit", "elimin", "borr", "cambi", "muev", "mover", "reemplaz", "sustitu",
-  "intercambi", "reorganiz", "acort", "alarg", "prefier", "prefiero", "quiero", "quisiera", "más", "menos",
-  "en vez", "en lugar",
-  // it
-  "aggiung", "inseri", "includ", "metti", "togli", "rimuov", "cancell", "spost", "sostitu", "scambi",
-  "riorganizz", "accorci", "allung", "preferi", "vorrei", "voglio", "più", "meno", "invece",
-  // pt
-  "adicion", "acrescent", "coloc", "tire", "tirar", "remov", "exclu", "apag", "troc", "mude", "mudar", "mova",
-  "substitu", "encurt", "prolong", "prefir", "quero", "queria", "mais", "em vez",
-];
-const CHANGE_WORDS = new RegExp(
-  [
-    ...CHANGE_WORDS_EN.map((w) => `(?:^|[^\\p{L}])${w}(?![\\p{L}])`),
-    ...CHANGE_STEMS.map((w) => `(?:^|[^\\p{L}])${w}`),
-  ].join("|"),
-  "iu",
-);
-
-const QUESTION_START =
-  /^\s*[¿¡]?\s*(?:what|what's|when|where|which|who|whose|why|how|is|are|was|were|do|does|did|should|would|could|can|will|qu[eé]|cu[aá]l(?:es)?|cu[aá]nto|cu[aá]ndo|d[oó]nde|c[oó]mo|por qu[eé]|che|cosa|qual[ei]?|quant[oiae]|quando|dove|come|perch[eé]|quais|onde|quanto|por que)(?=[\s?,.!]|$)/iu;
-
-/**
- * A question with no change in it ("what time does the Louvre open?") goes to
- * the chat as before. Everything else goes to the edit engine, which also
- * answers when nothing needs to change.
- */
-export function isPlainQuestion(message: string): boolean {
-  const text = message.trim();
-  if (!text || CHANGE_WORDS.test(text)) return false;
-  return text.endsWith("?") || QUESTION_START.test(text);
+/** The currency the page shows prices in, when the request names a sane one. */
+export function readDisplayCurrency(raw: unknown): DisplayCurrency | undefined {
+  const d = raw as { currency?: unknown; rate?: unknown } | null | undefined;
+  const ok =
+    typeof d?.currency === "string" &&
+    /^[A-Z]{3}$/.test(d.currency) &&
+    typeof d.rate === "number" &&
+    d.rate > 0 &&
+    d.rate <= 1_000_000;
+  return ok ? { currency: d.currency as string, rate: d.rate as number } : undefined;
 }
 
 /** The saved conversation, as the engine reads it (oldest first, last six turns). */
@@ -144,6 +111,8 @@ export async function proposeTripEdits(input: {
   endDate?: string;
   locale: string;
   history: AssistTurn[];
+  /** The currency the page shows prices in, so the reply's figures match it. */
+  display?: DisplayCurrency;
 }): Promise<TripEditProposal | null> {
   const result = await assistTrip({ ...input, autoApply: true });
   if (result.currency) return null;

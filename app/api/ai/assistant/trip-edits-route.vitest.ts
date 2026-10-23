@@ -112,11 +112,11 @@ vi.mock("@/lib/api/auth", () => ({
 
 const { POST } = await import("./route");
 
-async function send(message: string, previewMode = true) {
+async function send(message: string, previewMode = true, extra: Record<string, unknown> = {}) {
   const res = await POST(
     new NextRequest("http://localhost/api/ai/assistant", {
       method: "POST",
-      body: JSON.stringify({ tripId: "trip-1", message, conversationId: "conv-1", previewMode }),
+      body: JSON.stringify({ tripId: "trip-1", message, conversationId: "conv-1", previewMode, ...extra }),
     }),
   );
   return { status: res.status, json: await res.json() };
@@ -200,10 +200,28 @@ describe("trip-page assistant: free-form edits", () => {
     expect(chatCalls).not.toHaveBeenCalled();
   });
 
-  it("leaves a plain question to the chat", async () => {
+  it("answers a question with the engine, in the currency the page shows", async () => {
+    proposeTripEdits.mockResolvedValue({ reply: "Day 2 comes to about 22 USD.", revisedDays: [], summary: "", meta });
+    const { json } = await send("How much is day 2?", true, { display: { currency: "USD", rate: 1.08 } });
+    expect(proposeTripEdits).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "How much is day 2?", display: { currency: "USD", rate: 1.08 } }),
+    );
+    expect(chatCalls).not.toHaveBeenCalled();
+    expect(json.message.content).toBe("Day 2 comes to about 22 USD.");
+  });
+
+  it("makes a change asked as a question, which the chat could only promise", async () => {
+    proposeTripEdits.mockResolvedValue({ reply: "Ready: Wigwam on Day 3.", revisedDays: [wigwamDay3], summary: "", meta });
+    const { json } = await send("can we fix that?");
+    expect(json.pendingChange?.type).toBe("apply_draft");
+    expect(chatCalls).not.toHaveBeenCalled();
+  });
+
+  it("still answers a question from the chat when the engine fails", async () => {
+    proposeTripEdits.mockRejectedValue(new Error("model overloaded"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
     chatReply = '{"summary": "It opens at 9:30.", "cards": []}';
     const { json } = await send("What time does the Guinness Storehouse open?");
-    expect(proposeTripEdits).not.toHaveBeenCalled();
     expect(chatCalls).toHaveBeenCalledTimes(1);
     expect(json.message.content).toBe("It opens at 9:30.");
   });

@@ -10,7 +10,7 @@ import type { Activity, ItineraryDay } from "@/types";
 const assistTrip = vi.fn();
 vi.mock("@/lib/ai/assistant-anon", () => ({ assistTrip: (input: unknown) => assistTrip(input) }));
 
-const { conversationTurns, isPlainQuestion, mergeTripEdits, proposeTripEdits } = await import("./trip-edits");
+const { conversationTurns, mergeTripEdits, proposeTripEdits, readDisplayCurrency } = await import("./trip-edits");
 
 const act = (id: string, name: string, extra: Partial<Activity> = {}): Activity =>
   ({
@@ -51,40 +51,21 @@ const engineActivity = (name: string, start: string, slot: "morning" | "afternoo
 
 afterEach(() => assistTrip.mockReset());
 
-describe("isPlainQuestion: which messages stay with the chat", () => {
-  it("keeps questions with no change in them", () => {
-    for (const q of [
-      "What time does the Guinness Storehouse open?",
-      "How far is Howth from the centre?",
-      "What's the address of the hotel?",
-      "¿Qué hay cerca de Temple Bar?",
-      "Cosa c'è da vedere a Trastevere?",
-      "Quanto costa il biglietto?",
-      "Onde fica o castelo?",
-      "Is it safe to walk at night?",
-    ]) {
-      expect(isPlainQuestion(q), q).toBe(true);
+describe("readDisplayCurrency: the page's currency, when sane", () => {
+  it("takes a currency code and a positive rate", () => {
+    expect(readDisplayCurrency({ currency: "USD", rate: 1.08 })).toEqual({ currency: "USD", rate: 1.08 });
+  });
+
+  it("ignores anything else", () => {
+    for (const raw of [undefined, null, "USD", { currency: "usd", rate: 1 }, { currency: "USD", rate: 0 }, { currency: "USD", rate: "1" }, { currency: "DOLLARS", rate: 1 }]) {
+      expect(readDisplayCurrency(raw), JSON.stringify(raw)).toBeUndefined();
     }
   });
 
-  it("sends every ask for a change to the engine, however it is phrased", () => {
-    for (const m of [
-      "adding Wigwam to Day 3",
-      "you can add them on the 2nd, 4th and 6th night",
-      "Add more nightlife activities (pubs, clubs)",
-      "Keep the classics, but make it more fun for 22 year olds. Add nightclubs",
-      "Do not replace just add",
-      "Can you add a museum on day 2?",
-      "Could we swap days 1 and 2?",
-      "Walking time/taxi time should be inbetween the activities for day 2, day 3",
-      "Day 3 feels packed",
-      "I would prefer walking",
-      "Puoi aggiungere un museo il giorno 3?",
-      "¿Puedes quitar el museo del día 2?",
-      "Pode trocar o jantar do dia 1?",
-    ]) {
-      expect(isPlainQuestion(m), m).toBe(false);
-    }
+  it("is handed to the engine, so the reply's figures match the page", async () => {
+    assistTrip.mockResolvedValue({ reply: "About 120 USD.", edits: [], meta: { model: "m", costUsd: 0, generationTimeMs: 1 } });
+    await proposeTripEdits({ message: "how much is day 1?", destination: "Dublin", tripTitle: "Dublin", days: [], locale: "en", history: [], display: { currency: "USD", rate: 1.08 } });
+    expect(assistTrip).toHaveBeenCalledWith(expect.objectContaining({ display: { currency: "USD", rate: 1.08 } }));
   });
 });
 
