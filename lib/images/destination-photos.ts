@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import type { NextRequest } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { logApiCall } from "@/lib/api-gateway";
 import { buildDestinationPhotos, type DestinationPhotos } from "@/lib/images/wikimedia";
@@ -28,8 +29,10 @@ function asPhotos(data: unknown): DestinationPhotos | null {
   return typeof d?.cover === "string" ? { cover: d.cover, gallery: Array.isArray(d.gallery) ? d.gallery : [] } : null;
 }
 
+// waitUntil keeps the insert alive after the response: a bare promise was cut
+// off when the function froze, and the slow first lookups went unlogged.
 function log(startedAt: number, cacheHit: boolean, error?: string) {
-  void logApiCall({
+  waitUntil(logApiCall({
     apiName: "wikimedia",
     endpoint: "destination photos",
     status: error ? 500 : 200,
@@ -38,7 +41,7 @@ function log(startedAt: number, cacheHit: boolean, error?: string) {
     costUsd: 0,
     exactCost: true,
     error,
-  });
+  }));
 }
 
 export async function destinationPhotos(destination: string, request: NextRequest): Promise<DestinationPhotos | null> {

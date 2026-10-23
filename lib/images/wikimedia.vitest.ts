@@ -35,6 +35,13 @@ describe("isUsablePhoto", () => {
     expect(isUsablePhoto(file("Logo.jpg", { restrictions: "trademarked" }))).toBe(false);
   });
 
+  it("needs an author it can name under an attribution licence, not under public domain", () => {
+    expect(isUsablePhoto(file("Manarola.jpg", { artist: "" }))).toBe(false);
+    expect(isUsablePhoto(file("Manarola.jpg", { artist: "", license: "CC BY 2.0" }))).toBe(false);
+    expect(isUsablePhoto(file("Sedona.jpg", { artist: "", license: "Public domain" }))).toBe(true);
+    expect(isUsablePhoto(file("Sedona.jpg", { artist: "", license: "CC0" }))).toBe(true);
+  });
+
   it("leaves out maps, flags and transport hubs, but not a word that merely contains one", () => {
     for (const name of ["Pombaline Baixa Lisbon map 1756.jpg", "Aeroporto Lisboa - panoramio.jpg", "Airport_in_Tivat.jpg", "2018 Medellín - buseta en la calle 45.jpg"]) {
       expect(isUsablePhoto(file(name)), name).toBe(false);
@@ -66,6 +73,14 @@ describe("plainArtist", () => {
   it("reads the name out of Commons' HTML", () => {
     expect(plainArtist('<a href="//commons.wikimedia.org/wiki/User:X">Luis90f</a>')).toBe("Luis90f");
     expect(plainArtist("This image is a work by Mercy.\nWhen reusing, credit...")).toBe("This image is a work by Mercy.");
+  });
+
+  it("takes the name out of an author's note, which can start on a later line", () => {
+    const note =
+      '<table class="toccolours">\n\n<tbody><tr>\n<td>This Photo was taken by A. B. Photographer . Feel free to use my photos, but please mention me as the author.</td></tr></tbody></table>';
+    expect(plainArtist(note)).toBe("A. B. Photographer");
+    expect(plainArtist("\n<span>Short Name</span>")).toBe("Short Name");
+    expect(plainArtist("A very long note that never says who took the picture, only how it may be used.")).toBe("");
   });
 
   it("is empty when the field names nobody", () => {
