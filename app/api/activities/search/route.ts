@@ -17,6 +17,9 @@
  */
 
 import { NextRequest } from "next/server";
+import { waitUntil } from "@vercel/functions";
+import { logApiCall } from "@/lib/api-gateway";
+import { placesCostForCall } from "@/lib/api-gateway/places-sku";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
@@ -250,12 +253,25 @@ async function searchGooglePlaces(
     // Build search query combining destination and user query
     const searchQuery = `${query} in ${destination}`;
 
+    const startedAt = Date.now();
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/place/textsearch/json?` +
         new URLSearchParams({
           query: searchQuery,
           key: apiKey,
         })
+    );
+    // Logged like every other paid Places call. The legacy search returns
+    // every field; it is priced as the ones used here.
+    waitUntil(
+      logApiCall({
+        apiName: "google_places_search",
+        endpoint: "maps/api/place/textsearch (add activity, legacy)",
+        status: response.status,
+        responseTimeMs: Date.now() - startedAt,
+        cacheHit: false,
+        costUsd: placesCostForCall({ kind: "textSearch", fieldMask: "places.id,places.displayName,places.formattedAddress,places.location,places.photos,places.types" }).usd,
+      })
     );
 
     if (!response.ok) {
