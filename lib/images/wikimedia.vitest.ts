@@ -67,6 +67,20 @@ describe("travelSectionImages", () => {
   it("takes the See, Do and Understand sections, sub-sections included, in order", () => {
     expect(travelSectionImages(wikitext)).toEqual(["Lisboa - Vista Geral2.jpg", "LisbonCastle.jpg", "Belem_Tower.jpg"]);
   });
+
+  it("leaves out the district map of a Districts section, but not its photos", () => {
+    const districts = [
+      "==Districts==",
+      "{{Regionlist",
+      "|region1name=[[Prague/Old Town and Josefov|Old Town and Josefov]]",
+      "}}",
+      "[[File:Prague_districts_en_wv.jpg|thumb|250px|Map of the neighbourhoods of Prague]]",
+      "[[File:Korea-Seoul-Cheonggyecheon-2008-01.jpg|300px|thumb|[[Seoul/Jung#Q495437|Cheonggyecheon creek]] in central Seoul]]",
+      "== Understand ==",
+      "[[File:Prague skyline view.jpg|thumb|left|250px|View along the Vltava River]]",
+    ].join("\n");
+    expect(travelSectionImages(districts)).toEqual(["Korea-Seoul-Cheonggyecheon-2008-01.jpg", "Prague skyline view.jpg"]);
+  });
 });
 
 describe("plainArtist", () => {
