@@ -678,6 +678,7 @@
     "back": "Voltar",
     "activities": "{count} atividades",
     "highlights": "Destaques:",
+    "photoCredit": "Foto: {author} · {license}",
     "weather": {
       "sunny": "Ensolarado",
       "cloudy": "Nublado",

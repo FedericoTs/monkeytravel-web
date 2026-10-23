@@ -678,6 +678,7 @@
     "back": "Volver",
     "activities": "{count} actividades",
     "highlights": "Destacados:",
+    "photoCredit": "Foto: {author} · {license}",
     "weather": {
       "sunny": "Soleado",
       "cloudy": "Nublado",

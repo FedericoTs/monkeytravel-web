@@ -16,6 +16,7 @@ import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { withPhotoIndex } from "@/lib/places/heal-dedupe";
+import { destinationPhotos } from "@/lib/images/destination-photos";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -396,6 +397,21 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Wikimedia first: free, stored once and credited. Google's photos are
+    // paid on every view and may not be stored (lib/images/wikimedia.ts).
+    const wiki = await destinationPhotos(destination, request);
+    if (wiki) {
+      return apiSuccess({
+        placeId: "",
+        name: destination,
+        address: "",
+        location: { latitude: 0, longitude: 0 },
+        coverImageUrl: wiki.cover,
+        galleryPhotos: wiki.gallery.map((url) => ({ url, thumbnailUrl: url })),
+        source: "wikimedia",
+      });
+    }
+
     // Read auth state if present (for usage tracking + per-user rate-limit).
     // Missing user is now an expected, non-error condition.
     const supabaseAuth = await createClient();
