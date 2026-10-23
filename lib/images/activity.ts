@@ -338,9 +338,10 @@ const LOOKUP_URL_KEY_CHARS = 6000;
  * The cached places_v2 row of every key that has one: one joined SELECT for
  * the whole trip. A lookup per activity, all fired at once, queued on the
  * database's small connection pool far longer than the queries ran. The hits
- * are logged in one insert and counted in one call.
+ * are logged in one insert and counted in one call, unless only the places'
+ * names and coordinates are wanted (`countHits` false: no photo is served).
  */
-async function lookupCachedPlaces(keys: string[]): Promise<Map<string, CachedPlace>> {
+async function lookupCachedPlaces(keys: string[], countHits = true): Promise<Map<string, CachedPlace>> {
   const supabase = createAdminClient();
   const batches: string[][] = [[]];
   let chars = 0;
@@ -376,7 +377,7 @@ async function lookupCachedPlaces(keys: string[]): Promise<Map<string, CachedPla
     }
   }
 
-  if (hits.size > 0) {
+  if (hits.size > 0 && countHits) {
     // Visibility: a free cache hit (0 Places spend). Logged so the cost
     // dashboard can compute a real activity-image cache-hit rate.
     void logApiCalls(
@@ -1079,9 +1080,9 @@ async function landmarkPhotosFor(
       const [lat, lng] = isPoint(place?.latitude, place?.longitude)
         ? [place?.latitude, place?.longitude]
         : [first.activity.coordinates?.lat, first.activity.coordinates?.lng];
-      if (!isPoint(lat, lng)) continue;
       const names = [place?.display_name, first.name].filter((n): n is string => !!n);
-      lookups.push({ key, names, lat, lng: lng as number });
+      // Without a point, only a photo already found for this name can come back.
+      lookups.push(isPoint(lat, lng) ? { key, names, lat, lng: lng as number } : { key, names });
     }
     return await landmarkPhotos(lookups, { waitMs: wait ? LANDMARK_WAIT_MS : 0, maxNew: MAX_NEW_LANDMARKS });
   } catch (err) {
@@ -1116,7 +1117,7 @@ async function landmarkPhotosFor(
 export async function fetchActivityImages<T extends { activities: ActivityWithImage[] }>(
   days: T[],
   destination: string,
-  opts: { maxPaidLookups?: number; reresolveCurated?: boolean } = {}
+  opts: { maxPaidLookups?: number; reresolveCurated?: boolean; freePhotosOnly?: boolean } = {}
 ): Promise<T[]> {
   const startTime = Date.now();
   // How many PAID Google lookups this call may make. Generation passes 0
@@ -1127,6 +1128,10 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
   // re-resolved into a real place photo (used at save time to upgrade the
   // zero-cost curated images baked at generation). Real proxy URLs always stay.
   const reresolveCurated = opts.reresolveCurated ?? false;
+  // The planner's preview of a plan nobody has kept yet: Wikimedia photos and
+  // stock images only. A Google photo, even a cached one, is a paid download
+  // each time it is shown; kept trips get theirs when opened.
+  const freePhotosOnly = opts.freePhotosOnly ?? false;
 
   // ---------- Step 1+2: collect activities needing resolution. ----------
   // Each occurrence keeps a reference to its activity object so the URL is
@@ -1148,7 +1153,10 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
   // final — re-resolve it so a kept trip upgrades from stock to a real photo.
   const PROXY_ONLY_URL_RE =
     /^(\/api\/places\/photo\?name=places%2F[A-Za-z0-9_-]+%2Fphotos%2F|\/api\/places\/photo\?name=places\/[A-Za-z0-9_-]+\/photos\/|\/api\/images\/wikimedia\/)/;
-  const knownGoodRe = reresolveCurated ? PROXY_ONLY_URL_RE : KNOWN_GOOD_URL_RE;
+  // Preview mode: only a Wikimedia photo is final. A stock image is looked up
+  // again (a free photo may exist by now), and so is a Google one, never used.
+  const WIKIMEDIA_URL_RE = /^\/api\/images\/wikimedia\//;
+  const knownGoodRe = freePhotosOnly ? WIKIMEDIA_URL_RE : reresolveCurated ? PROXY_ONLY_URL_RE : KNOWN_GOOD_URL_RE;
 
   const pending: Pending[] = [];
   for (const day of days) {
@@ -1206,7 +1214,7 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
   // it and handles a failure itself; the catch only marks it handled.
   const cachedPlaces =
     RESOLVE_ACTIVITY_PHOTOS && groups.size > 0
-      ? lookupCachedPlaces(Array.from(groups.keys()))
+      ? lookupCachedPlaces(Array.from(groups.keys()), !freePhotosOnly)
       : Promise.resolve(new Map<string, CachedPlace>());
   cachedPlaces.catch(() => {});
 
@@ -1219,7 +1227,7 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
       const first = occurrences[0];
       let url: string | null = landmarks.get(normalizedKey) ?? null;
       try {
-        url ??= await resolveActivityImage(first.name, destination || "", normalizedKey, paidBudget, photoRefreshBudget, cachedPlaces);
+        if (!freePhotosOnly) url ??= await resolveActivityImage(first.name, destination || "", normalizedKey, paidBudget, photoRefreshBudget, cachedPlaces);
       } catch (err) {
         console.error(`[Activity Images] Resolve error for "${first.name}":`, err);
       }

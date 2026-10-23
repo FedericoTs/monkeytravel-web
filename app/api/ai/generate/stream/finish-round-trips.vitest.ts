@@ -148,13 +148,14 @@ describe("the end of a streamed generation", () => {
 
     for (const [trip, days] of [[short, 3], [long, 14]] as const) {
       expect(trip.eventTypes).toEqual(["metadata", ...Array(days).fill("day"), "complete"]);
-      // Every other sight is cached; the rest get curated fallbacks.
-      expect(trip.images.filter((url) => url.startsWith("/api/places/photo"))).toHaveLength(Math.ceil((days * 5) / 2));
+      // Every other sight has a Google photo cached, and none is used: the
+      // planner's preview shows free photos only (stock here: no Wikimedia one).
+      expect(trip.images.filter((url) => url.startsWith("/api/places/photo"))).toEqual([]);
+      expect(trip.images.every((url) => url.startsWith("https://images.pexels.com/"))).toBe(true);
     }
     const expected = [
-      "select places_v2_lookup",
-      "insert api_request_logs", // the cache hits, one row each
-      "rpc record_places_v2_hits",
+      "select places_v2_lookup", // names and coordinates of places Google found before
+      "select google_places_cache", // the Wikimedia photos already found, one read for the trip
       "insert api_request_logs", // the generation itself
     ];
     expect(short.afterModel.sort()).toEqual([...expected].sort());

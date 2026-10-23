@@ -48,6 +48,8 @@ interface DestinationHeroProps {
    * Falls back to gradient background if no coverImageUrl provided.
    */
   disableApiCalls?: boolean;
+  /** A plan nobody has kept yet: a Wikimedia cover, else a stock one, never Google's. */
+  freePhotosOnly?: boolean;
 }
 
 /** The destination record for a trip whose cover image is already saved. */
@@ -97,6 +99,7 @@ export default function DestinationHero({
   coverImageUrl,
   onCoverImageFetched,
   disableApiCalls = false,
+  freePhotosOnly = false,
 }: DestinationHeroProps) {
   const t = useTranslations("common.destination");
   const tTags = useTranslations("destinations.tags");
@@ -191,11 +194,16 @@ export default function DestinationHero({
       setLoading(true);
       try {
         const response = await fetch(
-          `/api/places?destination=${encodeURIComponent(destination)}`,
+          `/api/places?destination=${encodeURIComponent(destination)}${freePhotosOnly ? "&free=1" : ""}`,
           { signal: controller.signal }
         );
         if (response.ok) {
-          const data = await response.json();
+          let data = await response.json();
+          if (freePhotosOnly && !data?.coverImageUrl) {
+            const stock = await fetch(`/api/images/destination?destination=${encodeURIComponent(destination)}`, { signal: controller.signal });
+            const url = stock.ok ? (await stock.json())?.url : null;
+            data = typeof url === "string" && url ? savedCover(destination, url) : null;
+          }
           if (controller.signal.aborted) return;
           setDestinationData(data);
           // Callback to save the fetched image URL for future use
@@ -218,7 +226,7 @@ export default function DestinationHero({
     }
 
     return () => controller.abort();
-  }, [destination, coverImageUrl, onCoverImageFetched, disableApiCalls]);
+  }, [destination, coverImageUrl, onCoverImageFetched, disableApiCalls, freePhotosOnly]);
 
   return (
     <div className="relative">

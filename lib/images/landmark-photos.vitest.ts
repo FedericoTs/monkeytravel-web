@@ -79,6 +79,16 @@ describe("landmarkPhotos", () => {
     expect(upserts[0]).toMatchObject({ cache_type: "wikimedia_landmark", data: { url: url("c") } });
   });
 
+  it("answers an activity without a point from the cache, and never looks it up", async () => {
+    rows = [{ place_id: hash("colosseum|rome"), data: { url: url("a") } }];
+    const photos = await landmarkPhotos(
+      [{ key: "colosseum|rome", names: ["Colosseum"] }, { key: "pantheon|rome", names: ["Pantheon"] }],
+      { waitMs: 5000, maxNew: 12 },
+    );
+    expect([...photos]).toEqual([["colosseum|rome", url("a")]]);
+    expect(build).not.toHaveBeenCalled();
+  });
+
   it("looks up at most maxNew places per call", async () => {
     build.mockResolvedValue(null);
     await landmarkPhotos(["a", "b", "c", "d"].map(lookup), { waitMs: 5000, maxNew: 2 });

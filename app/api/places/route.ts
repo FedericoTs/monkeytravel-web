@@ -412,6 +412,20 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // The planner's preview of a plan nobody has kept yet gets no Google
+    // photo; it falls back to a stock cover (DestinationHero).
+    if (searchParams.get("free") === "1") {
+      return apiSuccess({
+        placeId: "",
+        name: destination,
+        address: "",
+        location: { latitude: 0, longitude: 0 },
+        coverImageUrl: null,
+        galleryPhotos: [],
+        source: "none",
+      });
+    }
+
     // Read auth state if present (for usage tracking + per-user rate-limit).
     // Missing user is now an expected, non-error condition.
     const supabaseAuth = await createClient();

@@ -50,6 +50,15 @@ describe("GET /api/places?destination=", () => {
     expect(createClient).not.toHaveBeenCalled();
   });
 
+  it("gives the planner's preview no photo rather than Google's when Wikimedia has none", async () => {
+    destinationPhotos.mockResolvedValue(null);
+    const res = await GET(new NextRequest("http://localhost/api/places?destination=Holmes%20County%2C%20Ohio&free=1"));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ coverImageUrl: null, galleryPhotos: [], source: "none" });
+    expect(createClient).not.toHaveBeenCalled();
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   it("goes on to Google when Wikimedia has no photo of the destination", async () => {
     destinationPhotos.mockResolvedValue(null);
     const res = await get("Holmes County, Ohio");

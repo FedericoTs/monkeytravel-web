@@ -395,20 +395,18 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       );
     }
 
-    // Assign activity images server-side (prevents a client race).
-    // maxPaidLookups:0 → ZERO paid Google calls here. Every activity still gets
-    // an image — a FREE cache-hit real photo or a type-relevant curated
-    // fallback — so the pre-save result page is never broken/empty. Real Google
-    // photos are resolved only for SAVED trips (most generations never are),
-    // when their owner opens them, via /api/trips/[id]/enrich-photos.
-    if (!cacheHit) {
-      try {
-        await fetchActivityImages(itinerary.days, params.destination, { maxPaidLookups: 0 });
-        console.log(`[AI Generate] Activity images assigned for ${itinerary.days.length} days (curated/cache, no paid lookups)`);
-      } catch (imageError) {
-        console.error("[AI Generate] Error fetching activity images:", imageError);
-        // Continue without images - not critical
-      }
+    // Assign activity images server-side (prevents a client race), cached
+    // plans included: ZERO Google here. Every activity still gets an image — a
+    // Wikimedia photo or a type-relevant stock image — so the pre-save result
+    // page is never broken/empty. Real Google photos are resolved only for
+    // SAVED trips (most generations never are), when their owner opens them,
+    // via /api/trips/[id]/enrich-photos.
+    try {
+      await fetchActivityImages(itinerary.days, params.destination, { maxPaidLookups: 0, freePhotosOnly: true });
+      console.log(`[AI Generate] Activity images assigned for ${itinerary.days.length} days (free only)`);
+    } catch (imageError) {
+      console.error("[AI Generate] Error fetching activity images:", imageError);
+      // Continue without images - not critical
     }
 
     // Sanitize AI-generated content to prevent XSS
