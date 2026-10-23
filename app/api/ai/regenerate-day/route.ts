@@ -247,9 +247,10 @@ async function regenerateDay(request: NextRequest, geminiCost: GeminiCostMeter) 
       );
     }
 
-    // Fetch images for the new activities (operates on [day] for ergonomics)
+    // Free images only (cache hits, stock): the day may be rolled again, and
+    // real photos are looked up when the trip is next opened.
     try {
-      await fetchActivityImages([newDay], destination);
+      await fetchActivityImages([newDay], destination, { maxPaidLookups: 0 });
     } catch (imgError) {
       // Image fetch failures are non-fatal — the day is still usable.
       console.warn("[AI Regenerate Day] Image fetch failed:", imgError);

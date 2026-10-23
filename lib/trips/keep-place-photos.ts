@@ -22,6 +22,30 @@ export function isPlacePhoto(url: unknown): url is string {
   return typeof url === "string" && url.includes("/api/places/photo");
 }
 
+/** Whether an activity still shows a stand-in or no photo: what opening the trip upgrades. */
+export function hasStandInPhotos(itinerary: ItineraryDay[]): boolean {
+  return itinerary.some((day) => (day.activities ?? []).some((a) => !!a.name && !isPlacePhoto(a.image_url)));
+}
+
+/** The place photos of an itinerary, by activity id. */
+export function foundPhotos(itinerary: ItineraryDay[] | undefined): Record<string, string> {
+  const photos: Record<string, string> = {};
+  for (const day of itinerary ?? []) {
+    for (const a of day.activities ?? []) if (a.id && isPlacePhoto(a.image_url)) photos[a.id] = a.image_url;
+  }
+  return photos;
+}
+
+/** Those photos on the same activities, where they still show a stand-in; anything else unchanged. */
+export function withFoundPhotos(itinerary: ItineraryDay[], photos: Record<string, string>): ItineraryDay[] {
+  return itinerary.map((day) => ({
+    ...day,
+    activities: (day.activities ?? []).map((a) =>
+      a.id && photos[a.id] && !isPlacePhoto(a.image_url) ? { ...a, image_url: photos[a.id] } : a,
+    ),
+  }));
+}
+
 type Loose = Record<string, unknown>;
 const isObject = (v: unknown): v is Loose => typeof v === "object" && v !== null && !Array.isArray(v);
 

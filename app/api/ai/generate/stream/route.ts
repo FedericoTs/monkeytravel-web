@@ -430,7 +430,7 @@ export async function POST(request: NextRequest) {
         try {
           // COST PASS 2026-06-30: zero paid Google calls at generation — free
           // cache hits + type-relevant curated fallbacks only, so every activity
-          // has a good image. Real photos resolve at save time
+          // has a good image. Real photos resolve when a saved trip is opened
           // (/api/trips/[id]/enrich-photos), only for trips that are kept.
           await fetchActivityImages(finalItinerary.days, params.destination, { maxPaidLookups: 0 });
         } catch (imgErr) {

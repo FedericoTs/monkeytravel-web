@@ -400,7 +400,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // an image — a FREE cache-hit real photo or a type-relevant curated
     // fallback — so the pre-save result page is never broken/empty. Real Google
     // photos are resolved only for SAVED trips (most generations never are),
-    // via /api/trips/[id]/enrich-photos.
+    // when their owner opens them, via /api/trips/[id]/enrich-photos.
     if (!cacheHit) {
       try {
         await fetchActivityImages(itinerary.days, params.destination, { maxPaidLookups: 0 });

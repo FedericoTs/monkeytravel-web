@@ -2744,21 +2744,6 @@ export default function NewTripPage({
       if (!dedupRow?.trip_id) throw new Error("Trip insert returned no id");
       const trip: { id: string } = { id: dedupRow.trip_id };
 
-      // Upgrade curated activity images to real place photos for the KEPT
-      // trip, as the autosave arm does via persistTrip; otherwise saved trips
-      // keep their generation-time thematic fallbacks. Fire-and-forget with
-      // keepalive so it survives the same-tab navigation to /trips/[id].
-      if (!dedupRow.reused) {
-        try {
-          void fetch(`/api/trips/${trip.id}/enrich-photos`, {
-            method: "POST",
-            keepalive: true,
-          }).catch(() => {});
-        } catch {
-          // Best-effort — never block or fail the save on photo enrichment.
-        }
-      }
-
       // Calculate trip duration
       const durationDays = Math.ceil(
         (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
