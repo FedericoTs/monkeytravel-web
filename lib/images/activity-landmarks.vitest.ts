@@ -36,7 +36,10 @@ const answer = (q: FakeQuery) => {
 const db = fakeSupabase(answer);
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => db.client }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => db.client }));
-vi.mock("@/lib/cache", () => ({ cache: { withDatabase: async () => ({ data: { imageUrl: null } }) } }));
+vi.mock("@/lib/cache", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/cache")>()),
+  cache: { withDatabase: async () => ({ data: { imageUrl: null } }) },
+}));
 
 const google = vi.fn(async (url: string) => {
   if (url.endsWith("places:searchText")) {
