@@ -29,6 +29,13 @@ describe("pickCoverFromItinerary", () => {
     expect(params(cover).get("name")).toBe("places/dinner/photos/p");
   });
 
+  it("takes a stored Wikimedia photo too, at its larger copy, credit kept", () => {
+    const wikimedia = "/api/images/wikimedia/0123456789abcdef0123-500.jpg?a=X&l=CC+BY-SA+4.0&f=Colosseo.jpg";
+    expect(pickCoverFromItinerary([day({ type: "attraction", image_url: wikimedia })])).toBe(
+      "/api/images/wikimedia/0123456789abcdef0123-960.jpg?a=X&l=CC+BY-SA+4.0&f=Colosseo.jpg",
+    );
+  });
+
   it("is null when the trip has only curated stand-ins or nothing usable", () => {
     expect(pickCoverFromItinerary([day({ type: "attraction", image_url: "https://images.pexels.com/photos/1/a.jpeg?w=600" })])).toBeNull();
     expect(pickCoverFromItinerary([day({ type: "transport", image_url: photo("airport", "transport") })])).toBeNull();

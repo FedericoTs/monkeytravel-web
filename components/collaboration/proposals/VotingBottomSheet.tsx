@@ -15,6 +15,7 @@ import type {
 import { getProposalTimeRemaining } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING, VOTE_INFO } from "@/types";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { CreditedThumb } from "@/components/ui/PhotoCredit";
 
 /**
  * 4-Level Voting Options for Proposals
@@ -399,13 +400,15 @@ export function VotingBottomSheet({
             <div className="flex items-start gap-4">
               {activity.image_url && (
                 <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-200 flex-shrink-0 shadow-sm">
-                  <Image
-                    src={proxyImageUrl(activity.image_url) || activity.image_url}
-                    alt={activity.name}
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-cover"
-                  />
+                  <CreditedThumb src={activity.image_url}>
+                    <Image
+                      src={proxyImageUrl(activity.image_url) || activity.image_url}
+                      alt={activity.name}
+                      width={80}
+                      height={80}
+                      className="w-full h-full object-cover"
+                    />
+                  </CreditedThumb>
                 </div>
               )}
 

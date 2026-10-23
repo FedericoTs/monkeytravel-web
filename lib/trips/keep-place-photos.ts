@@ -1,4 +1,5 @@
 import type { ItineraryDay } from "@/types";
+import { WIKIMEDIA_IMAGE_PATH } from "@/lib/images/wikimedia-credit";
 
 /**
  * Whole-itinerary saves must not put fallback images back over real place
@@ -17,9 +18,9 @@ import type { ItineraryDay } from "@/types";
  * activityPhoto path.
  */
 
-/** Real place photos are served through our proxy; anything else is a fallback. */
+/** Real place photos are served through our proxies (Google's or a stored Wikimedia copy); anything else is a fallback. */
 export function isPlacePhoto(url: unknown): url is string {
-  return typeof url === "string" && url.includes("/api/places/photo");
+  return typeof url === "string" && (url.includes("/api/places/photo") || url.startsWith(WIKIMEDIA_IMAGE_PATH));
 }
 
 type Loose = Record<string, unknown>;

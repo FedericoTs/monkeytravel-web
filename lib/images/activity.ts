@@ -16,6 +16,7 @@ const PHOTOS_FIELD_MASK = "photos";
 import { cache } from "@/lib/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logApiCall, logApiCalls } from "@/lib/api-gateway";
+import { landmarkPhotos, type LandmarkLookup } from "@/lib/images/landmark-photos";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -61,6 +62,16 @@ const PHOTO_REFRESH_PER_TRIP = 2;
 // PHOTO_REF_MAX_AGE_DAYS refresh and the /api/places/photo self-heal.
 const RESOLVE_ACTIVITY_PHOTOS =
   process.env.PLACES_ACTIVITY_PHOTOS_ENABLED !== "false";
+
+// Free Wikimedia photos for places Wikidata knows (lib/images/landmark-photos.ts),
+// tried before Google; on unless WIKIMEDIA_LANDMARK_PHOTOS is "false".
+const LANDMARK_PHOTOS = process.env.WIKIMEDIA_LANDMARK_PHOTOS !== "false";
+// New Wikimedia lookups per call, and how long a saved trip waits for them;
+// lookups still running go on in the background for the next save.
+const MAX_NEW_LANDMARKS = 12;
+const LANDMARK_WAIT_MS = 5000;
+// Activity types that are never a place with a photo of its own.
+const NOT_A_PLACE_TYPES = new Set(["transport", "travel", "flight", "transfer", "accommodation", "hotel"]);
 
 /**
  * Normalize an activity name + destination into a stable cache key.
@@ -1014,6 +1025,42 @@ export interface ActivityWithImage {
   name: string;
   type: string;
   image_url?: string;
+  coordinates?: { lat: number; lng: number };
+}
+
+const isPoint = (lat: unknown, lng: unknown): lat is number =>
+  typeof lat === "number" && typeof lng === "number" && Math.abs(lat) <= 90 && Math.abs(lng) <= 180 && (lat !== 0 || lng !== 0);
+
+/**
+ * Wikimedia photos for the activities that are places, by normalized key. A
+ * place Google found earlier lends its name and coordinates; otherwise the
+ * activity's own. Without `wait` (a plan being generated), new lookups run
+ * after the response for the next plan to find.
+ */
+async function landmarkPhotosFor(
+  groups: Map<string, { activity: ActivityWithImage; name: string; type: string }[]>,
+  cachedPlaces: Promise<Map<string, CachedPlace>>,
+  wait: boolean
+): Promise<Map<string, string>> {
+  if (!LANDMARK_PHOTOS || groups.size === 0) return new Map();
+  try {
+    const places = await cachedPlaces.catch(() => new Map<string, CachedPlace>());
+    const lookups: LandmarkLookup[] = [];
+    for (const [key, [first]] of groups) {
+      if (NOT_A_PLACE_TYPES.has(first.type)) continue;
+      const place = places.get(key);
+      const [lat, lng] = isPoint(place?.latitude, place?.longitude)
+        ? [place?.latitude, place?.longitude]
+        : [first.activity.coordinates?.lat, first.activity.coordinates?.lng];
+      if (!isPoint(lat, lng)) continue;
+      const names = [place?.display_name, first.name].filter((n): n is string => !!n);
+      lookups.push({ key, names, lat, lng: lng as number });
+    }
+    return await landmarkPhotos(lookups, { waitMs: wait ? LANDMARK_WAIT_MS : 0, maxNew: MAX_NEW_LANDMARKS });
+  } catch (err) {
+    console.warn("[Activity Images] Wikimedia photos unavailable:", err instanceof Error ? err.message : err);
+    return new Map();
+  }
 }
 
 /**
@@ -1068,12 +1115,12 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
   // re-resolution. Everything else (raw Google URLs, stale, hallucinated)
   // gets cleared and forced through the pipeline below.
   const KNOWN_GOOD_URL_RE =
-    /^(\/api\/places\/photo\?name=places%2F[A-Za-z0-9_-]+%2Fphotos%2F|\/api\/places\/photo\?name=places\/[A-Za-z0-9_-]+\/photos\/|https:\/\/images\.pexels\.com\/|https:\/\/images\.unsplash\.com\/)/;
-  // Save-time mode: a real /api/places/photo proxy URL is final (keep it, never
-  // re-pay), but a curated Pexels/Unsplash fallback is NOT final — re-resolve it
-  // so a kept trip upgrades from stock to a real Google place photo if one exists.
+    /^(\/api\/places\/photo\?name=places%2F[A-Za-z0-9_-]+%2Fphotos%2F|\/api\/places\/photo\?name=places\/[A-Za-z0-9_-]+\/photos\/|\/api\/images\/wikimedia\/|https:\/\/images\.pexels\.com\/|https:\/\/images\.unsplash\.com\/)/;
+  // Save-time mode: a real place photo (Google proxy or Wikimedia) is final
+  // (keep it, never re-pay), but a curated Pexels/Unsplash fallback is NOT
+  // final — re-resolve it so a kept trip upgrades from stock to a real photo.
   const PROXY_ONLY_URL_RE =
-    /^(\/api\/places\/photo\?name=places%2F[A-Za-z0-9_-]+%2Fphotos%2F|\/api\/places\/photo\?name=places\/[A-Za-z0-9_-]+\/photos\/)/;
+    /^(\/api\/places\/photo\?name=places%2F[A-Za-z0-9_-]+%2Fphotos%2F|\/api\/places\/photo\?name=places\/[A-Za-z0-9_-]+\/photos\/|\/api\/images\/wikimedia\/)/;
   const knownGoodRe = reresolveCurated ? PROXY_ONLY_URL_RE : KNOWN_GOOD_URL_RE;
 
   const pending: Pending[] = [];
@@ -1136,12 +1183,16 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
       : Promise.resolve(new Map<string, CachedPlace>());
   cachedPlaces.catch(() => {});
 
+  // Wikimedia first: a place with a free photo makes no Google call and no
+  // Google download. Generation (no paid budget) never waits for new lookups.
+  const landmarks = await landmarkPhotosFor(groups, cachedPlaces, maxPaidLookups > 0);
+
   await Promise.all(
     Array.from(groups.entries()).map(async ([normalizedKey, occurrences]) => {
       const first = occurrences[0];
-      let url: string | null = null;
+      let url: string | null = landmarks.get(normalizedKey) ?? null;
       try {
-        url = await resolveActivityImage(first.name, destination || "", normalizedKey, paidBudget, photoRefreshBudget, cachedPlaces);
+        url ??= await resolveActivityImage(first.name, destination || "", normalizedKey, paidBudget, photoRefreshBudget, cachedPlaces);
       } catch (err) {
         console.error(`[Activity Images] Resolve error for "${first.name}":`, err);
       }
@@ -1170,7 +1221,7 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
   const duration = Date.now() - startTime;
   console.log(
     `[Activity Images] Resolved ${totalActivities} activities via ${uniqueLookups} unique lookups ` +
-    `(${placesHits} places, ${fallbackHits} fallback) in ${duration}ms`
+    `(${placesHits} places, ${landmarks.size} of them Wikimedia, ${fallbackHits} fallback) in ${duration}ms`
   );
 
   return days;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cardSizedSrc } from "@/lib/img/proxyUrl";
-import { atStoredWidth, commonsPage, readCredit, wikimediaCardSrc, wikimediaSrcSet, withCredit } from "./wikimedia-credit";
+import { atStoredWidth, commonsPage, readCredit, wikimediaCardSrc, wikimediaSheetSrc, wikimediaSrcSet, withCredit } from "./wikimedia-credit";
 
 /**
  * A stored Wikimedia photo carries its credit in its URL, so every place that
@@ -34,6 +34,14 @@ describe("stored sizes", () => {
     expect(wikimediaCardSrc(cover)).toBe(atStoredWidth(cover, 960));
     expect(cardSizedSrc(cover)).toBe(atStoredWidth(cover, 960));
     expect(readCredit(atStoredWidth(cover, 960))).toEqual(credit);
+  });
+
+  it("shows an activity's card photo at its 960px copy in the activity sheet", () => {
+    const card = withCredit("/api/images/wikimedia/0123456789abcdef0123-500.jpg", credit);
+    expect(wikimediaSheetSrc(card)).toBe(atStoredWidth(card, 960));
+    expect(wikimediaSheetSrc(cover)).toBe(cover);
+    expect(wikimediaSheetSrc("/api/places/photo?name=x&w=600&h=400")).toBe("/api/places/photo?name=x&w=600&h=400");
+    expect(wikimediaSheetSrc(undefined)).toBeUndefined();
   });
 
   it("leaves a gallery thumbnail and other URLs alone", () => {

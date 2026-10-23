@@ -68,15 +68,17 @@ interface TripRecordForEnrich {
   itinerary_version?: number | null;
 }
 
-/** Real place photos are served through our proxy; everything else (Pexels
- *  curated, Unsplash, empty) is a fallback by definition. */
+/** Real place photos are served through our proxies (Google's or a stored
+ *  Wikimedia copy); everything else (Pexels curated, Unsplash, empty) is a
+ *  fallback by definition. */
 export function countRealPhotos(itinerary: ItineraryDay[]): EnrichCounts {
   let real = 0;
   let total = 0;
   for (const day of itinerary) {
     for (const activity of day.activities ?? []) {
       total += 1;
-      if (activity.image_url?.includes("/api/places/photo")) real += 1;
+      const url = activity.image_url ?? "";
+      if (url.includes("/api/places/photo") || url.startsWith("/api/images/wikimedia/")) real += 1;
     }
   }
   return { real, total };

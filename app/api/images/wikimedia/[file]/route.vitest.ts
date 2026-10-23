@@ -40,6 +40,12 @@ describe("GET /api/images/wikimedia/[file]", () => {
     expect(downloads).toEqual(["wikimedia/0123456789abcdef0123-1920.jpg"]);
   });
 
+  it("serves an activity's card copy", async () => {
+    const res = await get("0123456789abcdef0123-500.jpg");
+    expect(res.status).toBe(200);
+    expect(downloads).toEqual(["wikimedia/0123456789abcdef0123-500.jpg"]);
+  });
+
   it("answers 404 for anything else, without reading storage", async () => {
     for (const file of ["../outside.jpg", "0123456789abcdef0123-800.jpg", "0123456789abcdef0123-1920.png", "x.jpg"]) {
       expect((await get(file)).status, file).toBe(404);

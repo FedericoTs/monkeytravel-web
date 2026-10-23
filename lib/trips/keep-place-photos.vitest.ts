@@ -21,6 +21,14 @@ describe("keepStoredPlacePhotos", () => {
     expect(out.itinerary[0].activities).toEqual([{ id: "a2", name: "Bravo", image_url: photo("Bravo"), start_time: "18:00" }]);
   });
 
+  it("keeps a stored Wikimedia photo the same way", () => {
+    const wikimedia = "/api/images/wikimedia/0123456789abcdef0123-500.jpg?a=X&l=CC0&f=X.jpg";
+    const stored = trip([{ id: "a1", name: "Alpha", image_url: wikimedia }]);
+    const out = keepStoredPlacePhotos(trip([{ id: "a1", name: "Alpha", image_url: curated }]), stored);
+    expect(out.kept).toBe(1);
+    expect(out.itinerary[0].activities[0].image_url).toBe(wikimedia);
+  });
+
   it("never puts a photo on a different place that reuses the id (a replaced activity)", () => {
     const stored = trip([{ id: "a1", name: "Alpha", image_url: photo("Alpha") }]);
     const incoming = trip([{ id: "a1", name: "Something else", image_url: curated }]);

@@ -1,4 +1,5 @@
 import type { ItineraryDay } from "@/types";
+import { WIKIMEDIA_IMAGE_PATH, wikimediaSheetSrc } from "@/lib/images/wikimedia-credit";
 
 /** Activity types whose photo shows the place itself rather than a meal, a bed or a bus. */
 const SIGHT_TYPES = new Set([
@@ -14,8 +15,11 @@ const COVER_WIDTH = 1920;
 const COVER_HEIGHT = 1200;
 
 function isPlacePhoto(url: string | undefined): url is string {
-  return !!url && url.startsWith("/api/places/photo?");
+  return !!url && (url.startsWith("/api/places/photo?") || url.startsWith(WIKIMEDIA_IMAGE_PATH));
 }
+
+/** A place photo at the largest size there is: a Places photo at cover size, a Wikimedia one at its 960px copy. */
+const asCover = (src: string) => (src.startsWith(WIKIMEDIA_IMAGE_PATH) ? wikimediaSheetSrc(src) : coverSizedPlacesSrc(src));
 
 /** A Places photo proxy src at cover size, every other param kept. */
 export function coverSizedPlacesSrc(src: string): string {
@@ -37,9 +41,9 @@ export function pickCoverFromItinerary(days: ItineraryDay[] | null | undefined):
     for (const activity of day.activities ?? []) {
       if (!isPlacePhoto(activity.image_url)) continue;
       const type = String(activity.type ?? "").toLowerCase();
-      if (SIGHT_TYPES.has(type)) return coverSizedPlacesSrc(activity.image_url);
+      if (SIGHT_TYPES.has(type)) return asCover(activity.image_url);
       if (!other && !NOT_A_COVER.has(type)) other = activity.image_url;
     }
   }
-  return other ? coverSizedPlacesSrc(other) : null;
+  return other ? asCover(other) : null;
 }

@@ -33,6 +33,9 @@ vi.mock("@/lib/cache", () => ({
   },
 }));
 
+// Wikimedia photos are tested in activity-landmarks.vitest.ts; here, none.
+vi.mock("@/lib/images/landmark-photos", () => ({ landmarkPhotos: async () => new Map() }));
+
 import { curatedFor, fetchActivityImages } from "./activity";
 
 const NOW = new Date("2026-10-12T12:00:00.000Z");
