@@ -91,24 +91,72 @@ export function travelSectionImages(wikitext: string): string[] {
     });
 }
 
+/** A link that leads somewhere instead of naming anyone: "(talk)", "[2]", "Flickr", a bare URL. */
+function isNotAName(linkText: string): boolean {
+  const text = linkText.replace(/<[^>]*>/g, "").trim().replace(/^\((.*)\)$/, "$1").trim();
+  return (
+    /^(?:uploads|contribs|contributions|more photos|(?:photo )?portfolio|flickr|website|homepage|\[\d+\]|(?:https?:\/\/|www\.)\S*)$/i.test(text) ||
+    text.split("/").some((word) => /^talk$/i.test(word.trim()))
+  );
+}
+
+// What Commons puts around a name, peeled off until nothing changes: "Photo
+// by …", "The original uploader was … at English Wikipedia", "User:…",
+// "File:x.jpg: …", "(cs:…)", a URL, the rest of a sentence.
+const AROUND_A_NAME: [RegExp, string][] = [
+  [/^\(([^()]*)\)$/, "$1"],
+  [
+    /^(?:(?:this|the) (?:photo|photograph|image|picture|file|work)\b[^.]*?\bby\s+|(?:[\p{L}.]+ ){0,3}(?:photo|photograph|image|img|picture) by\s+|by\s+|(?:the )?original uploader was\s+|source:\s*|flickr user:\s*|(?:\p{L}+ )?wikipedia user\s+|(?:[a-z-]{2,3}:)?user(?::\s*|\s+)|\(WT-[a-z]+\)\s*|(?:file:)?[^:]*?\.(?:jpe?g|png|svg|gif|tiff?)\s*:\s*)/iu,
+    "",
+  ],
+  [/\s+(?:at|on) (?:the )?(?:\p{L}+ )?(?:wikipedia|wikivoyage|commons|[a-z-]+\.wiki(?:pedia|voyage))\b.*$/iu, ""],
+  [/\s+(?:-\s+)?(?:user:|derivative(?: work)?:).*$/i, ""],
+  [/\s*\((?:[a-z-]{2,3}:[^()]*|attribution required)\)/gi, ""],
+  [/[,;]?\s*(?:https?:\/\/|www\.)\S+|\s*\[\d+\]/gi, ""],
+  // "X. Feel free to use my photos…", but not the initials in "A. B. X".
+  [/(?<!(?:^|\P{L})\p{Lu})\.\s+(?=\p{Lu}\p{Ll}+\s+\p{Ll}).*$/u, ""],
+  [/(?<!(?:^|\P{L})\p{Lu}|\b(?:Jr|Sr|Inc|Ltd|Co))\.$|[\s,;:–—-]+$/u, ""],
+];
+
 /**
  * Commons' Artist field (HTML) as the author's name, or "" when it names
- * nobody. Some authors' field is a whole note ("This photo was taken by X.
- * Feel free to use my photos…"), from which the name is taken.
+ * nobody. The field often wraps the name in more ("Photo by X (talk) at
+ * English Wikipedia", Flickr's "X from Paris, France"), or is a whole note
+ * ("This photo was taken by X. Feel free to use my photos…"); the name is
+ * taken out of it.
  */
 export function plainArtist(html: string): string {
-  const first =
-    html
-      .replace(/<[^>]*>/g, " ")
-      .replace(/&amp;/g, "&")
-      .replace(/&quot;/g, '"')
-      .replace(/&#0?39;|&apos;/g, "'")
-      .replace(/&nbsp;/g, " ")
-      .split("\n")
-      .map((line) => line.replace(/\s+/g, " ").trim())
-      .find(Boolean) ?? "";
+  const lines = html
+    .replace(/<a\b[^>]*>((?:(?!<\/a>)[\s\S])*)<\/a>/gi, (link, text: string) => (isNotAName(text) ? "" : link))
+    .replace(/<br\s*\/?>|<\/(?:p|li|div|tr|td|th|dd|dt|h\d)>/gi, "\n")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
+    .replace(/&amp;/g, "&")
+    .split("\n")
+    .map((line) =>
+      line
+        .replace(/\s+/g, " ")
+        .replace(/\s+([,;:.!?)\]])/g, "$1")
+        .replace(/([(\[])\s+/g, "$1")
+        .replace(/\s*\(\)/g, "")
+        .trim(),
+    );
+  const first = lines.find((line) => /[\p{L}\p{N}]/u.test(line)) ?? "";
   if (/^(unknown|no machine-readable)/i.test(first)) return "";
-  if (first.length <= 60) return first;
+  const flickr = /flickr\.com\//i.test(html);
+  let name = first;
+  for (let before = ""; name !== before; ) {
+    before = name;
+    for (const [pattern, replacement] of AROUND_A_NAME) name = name.replace(pattern, replacement).trim();
+    if (flickr) name = name.replace(/^(.+?) from \S.*$/, "$1");
+  }
+  if (/\buser:/i.test(first)) name = name.replace(/_/g, " ");
+  if (name.length <= 60) return name;
   const named = /\bby\s+((?:\p{Lu}[\p{L}'’-]*\.?\s+){0,3}\p{Lu}[\p{L}'’-]+)/u.exec(first);
   return named ? named[1] : "";
 }
