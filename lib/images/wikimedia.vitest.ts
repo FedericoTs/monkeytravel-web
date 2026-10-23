@@ -102,6 +102,20 @@ describe("plainArtist", () => {
       ['<a href="//commons.wikimedia.org/wiki/Special:Contributions/Yuezhi_Huang">User:Yuezhi_Huang</a>', "Yuezhi Huang"],
       ["Fcb981 ; Eric Baetscher (attribution required)", "Fcb981; Eric Baetscher"],
       ["U.S. Air Force photo by Yasuo Osakabe", "Yasuo Osakabe"],
+      [
+        '<a href="https://en.wikipedia.org/wiki/User:Simisa">Simisa</a> (<a href="https://en.wikipedia.org/wiki/User_talk:Simisa">talk</a> · <a href="https://en.wikipedia.org/wiki/Special:Contributions/Simisa">contribs</a>)',
+        "Simisa",
+      ],
+      ['w00kie / <a href="https://www.flickr.com/photos/w00kie/">https://www.flickr.com/photos/w00kie/</a>', "w00kie"],
+      [
+        '<p><b>Original: </b> <a href="https://www.flickr.com/people/150102727@N06">Nina R</a> from Africa\n</p>\n<small><b>Derivative work: </b> <a href="//commons.wikimedia.org/wiki/User:UnpetitproleX">UnpetitproleX</a></small>',
+        "Nina R",
+      ],
+      ['<a href="https://en.wikipedia.org/wiki/User:Atlantacitizen">w:User:Atlantacitizen</a>', "Atlantacitizen"],
+      ['<a href="https://de.wikipedia.org/wiki/Benutzer:Olbertz">Olbertz</a> 23:14, 21. Dez. 2010 (CET)', "Olbertz"],
+      ["Pumuckel42 (Reinhard Wolf) at de:Wikipedia", "Pumuckel42 (Reinhard Wolf)"],
+      ["Franz Richter (User:FRZ)", "Franz Richter (FRZ)"],
+      ["Nicholas Even (own work)", "Nicholas Even"],
     ];
     for (const [html, name] of cases) expect(plainArtist(html)).toBe(name);
   });
@@ -129,7 +143,12 @@ describe("plainArtist", () => {
   it("is empty when the field names nobody", () => {
     expect(plainArtist("No machine-readable author provided. Sudo assumed.")).toBe("");
     expect(plainArtist("")).toBe("");
-    expect(plainArtist('<a href="https://www.flickr.com/photos/x/">https://www.flickr.com/photos/x/</a>')).toBe("");
+    expect(plainArtist('<a href="https://www.flickr.com/photos/12345678@N00/">https://www.flickr.com/photos/12345678@N00/</a>')).toBe("");
+  });
+
+  it("names the profile when the field is only a link to it", () => {
+    expect(plainArtist('<a href="https://www.flickr.com/photos/adam_jones/">https://www.flickr.com/photos/adam_jones/</a>')).toBe("adam_jones");
+    expect(plainArtist('<a href="http://en.wikipedia.org/wiki/User:DeliDumrul">http://en.wikipedia.org/wiki/User:DeliDumrul</a>')).toBe("DeliDumrul");
   });
 });
 
