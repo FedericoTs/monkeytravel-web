@@ -95,6 +95,7 @@ export function ProposeActivitySheet({
   const [results, setResults] = useState<ActivitySearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Selected activity for preview
@@ -141,7 +142,14 @@ export function ProposeActivitySheet({
   }, [isOpen, step]);
 
   // Search activities
+  // A newer search cancels the one in flight, as in AddActivityButton: its
+  // results (and their paid photo downloads) would only flash before the
+  // newer ones, or replace them when they came back last.
   const searchActivities = useCallback(async (query: string, type: string | null) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setIsSearching(true);
     try {
       const response = await fetch("/api/activities/search", {
@@ -154,16 +162,19 @@ export function ProposeActivitySheet({
           limit: 8,
           includeGoogle: query.length >= 3,
         }),
+        signal: controller.signal,
       });
 
       if (response.ok) {
         const data = await response.json();
+        if (controller.signal.aborted) return;
         setResults(data.results || []);
       }
     } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
       console.error("Activity search error:", err);
     } finally {
-      setIsSearching(false);
+      if (!controller.signal.aborted) setIsSearching(false);
     }
   }, [destination]);
 

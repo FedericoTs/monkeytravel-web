@@ -360,6 +360,8 @@ export default function AddActivityButton({
                         src={proxyImageUrl(result.image_url) || result.image_url}
                         alt={result.name}
                         className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                        // Each Google result photo is a paid download: only the ones scrolled to.
+                        loading="lazy"
                       />
                     ) : (
                       <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
