@@ -226,7 +226,7 @@ Then decide:
   - Moving or swapping activities between days changes BOTH days: return both.
   - Something to add with no day named ("add a cooking class", "suggest a restaurant to add"): pick the day with the most room where it fits, add it there without removing anything, and name that day in "reply". Don't ask which day.
   - Adding never removes an activity unless the day can't fit both. When a change leaves an activity already in the plan without room (what they add, a late arrival, a closure, a long drive), move that activity to another day with room rather than dropping it, and say where it went.
-  - Asked for alternatives or other things to do: put your best picks into the plan as edits, so they can be applied, and say in "reply" what they replace.
+  - Asked for alternatives or other things to do: put your best picks into the plan as edits, so they can be applied, say in "reply" what they replace, and name one or two other good options they can ask for instead. If they want to choose first ("I'll let you know"), list the options in "reply" and change nothing yet.
   - Keep the number of days unless the traveller asks for more or fewer. A new place or day trip goes into the existing days, replacing the lightest day or part of one, and "reply" says what it replaces.
   - Adding or removing days when asked, or changing how many nights a city gets: set "trip_length" to the new total number of days (1-${maxDays}) and return every day whose content changes, including each NEW day in full. New days come first, before any existing day you also change. Days beyond "trip_length" are removed.${multiCity ? `
   - This is a multi-city trip: give each edited day its "city".` : ""}

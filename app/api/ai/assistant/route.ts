@@ -58,8 +58,8 @@ import {
 } from "@/lib/ai/assistant/honesty";
 import {
   conversationTurns,
-  isPlainQuestion,
   proposeTripEdits,
+  readDisplayCurrency,
   type TripEditProposal,
 } from "@/lib/ai/assistant/trip-edits";
 
@@ -166,6 +166,7 @@ interface AssistantRequest {
   conversationId?: string;
   itinerary?: ItineraryDay[]; // Current itinerary for modifications
   previewMode?: boolean; // If true, return pending changes instead of auto-applying
+  display?: unknown; // The currency the page shows prices in (readDisplayCurrency)
 }
 
 interface TripContext {
@@ -1103,11 +1104,12 @@ export async function POST(request: NextRequest) {
 
     // Then the wizard's edit engine (lib/ai/assistant/trip-edits.ts): the
     // patterns below read only a few phrasings, so "adding X to Day 3" or two
-    // changes in one message got a promise and no change. A plain question
-    // stays with the chat, and the patterns still run when the engine
-    // proposes nothing or fails.
+    // changes in one message got a promise and no change. Questions go to it
+    // too: the chat answered in a sentence or two without the plan's figures,
+    // and changes asked as questions ("can we fix that", "do it") got a
+    // promise. The patterns and the chat still run when it fails.
     let tripEdits: TripEditProposal | null = null;
-    if (structuralIntent.type === "none" && itinerary.length > 0 && !isPlainQuestion(message)) {
+    if (structuralIntent.type === "none" && itinerary.length > 0) {
       try {
         tripEdits = await proposeTripEdits({
           message,
@@ -1118,6 +1120,7 @@ export async function POST(request: NextRequest) {
           endDate: trip.end_date,
           locale: userLanguage,
           history: conversationTurns(conversation.messages),
+          display: readDisplayCurrency(body.display),
         });
       } catch (err) {
         console.error("[AI Assistant] Edit engine failed, using the patterns:", err);

@@ -207,9 +207,11 @@ describe("buildPrompt", () => {
     expect(prompt).toContain("Don't ask which day");
   });
 
-  it("offers asked-for alternatives as edits that can be applied", () => {
+  it("offers asked-for alternatives as edits that can be applied, and names others to choose from", () => {
     const prompt = buildPrompt({ message: "Suggest alternative activities I could do", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
     expect(prompt).toContain("put your best picks into the plan as edits");
+    expect(prompt).toContain("name one or two other good options they can ask for instead");
+    expect(prompt).toContain("If they want to choose first");
   });
 });
 
