@@ -49,13 +49,17 @@ export interface DestinationPhotos {
 
 const sameName = (a: string, b: string) => a.replace(/_/g, " ").toLowerCase() === b.replace(/_/g, " ").toLowerCase();
 
-/** Big enough for a hero, landscape, a JPEG photo, under a free licence. */
+/**
+ * Big enough for a hero, landscape, a JPEG photo, under a free licence; under
+ * an attribution licence (CC BY, CC BY-SA), with an author we can name.
+ */
 export function isUsablePhoto(f: CommonsFile): boolean {
   return (
     f.mime === "image/jpeg" &&
     f.width >= 1280 &&
     f.width / f.height >= 1.2 &&
     FREE_LICENSE.test(f.license.trim()) &&
+    (f.artist !== "" || !/^cc by/i.test(f.license.trim())) &&
     !/trademark/i.test(f.restrictions) &&
     !NOT_A_VIEW.test(f.name.replace(/_/g, " "))
   );
@@ -86,18 +90,26 @@ export function travelSectionImages(wikitext: string): string[] {
     });
 }
 
-/** Commons' Artist field (HTML) as plain text, or "" when it names nobody. */
+/**
+ * Commons' Artist field (HTML) as the author's name, or "" when it names
+ * nobody. Some authors' field is a whole note ("This photo was taken by X.
+ * Feel free to use my photos…"), from which the name is taken.
+ */
 export function plainArtist(html: string): string {
-  const text = html
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#0?39;|&apos;/g, "'")
-    .replace(/&nbsp;/g, " ")
-    .split("\n")[0]
-    .replace(/\s+/g, " ")
-    .trim();
-  return /^(unknown|no machine-readable)/i.test(text) ? "" : text.slice(0, 80);
+  const first =
+    html
+      .replace(/<[^>]*>/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"')
+      .replace(/&#0?39;|&apos;/g, "'")
+      .replace(/&nbsp;/g, " ")
+      .split("\n")
+      .map((line) => line.replace(/\s+/g, " ").trim())
+      .find(Boolean) ?? "";
+  if (/^(unknown|no machine-readable)/i.test(first)) return "";
+  if (first.length <= 60) return first;
+  const named = /\bby\s+((?:\p{Lu}[\p{L}'’-]*\.?\s+){0,3}\p{Lu}[\p{L}'’-]+)/u.exec(first);
+  return named ? named[1] : "";
 }
 
 /** The Commons thumbnail URL at another standard width. */

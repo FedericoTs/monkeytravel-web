@@ -12,7 +12,8 @@ const build = vi.fn();
 vi.mock("@/lib/images/wikimedia", () => ({ buildDestinationPhotos: (...a: unknown[]) => build(...a) }));
 const allowed = vi.fn();
 vi.mock("@/lib/api/rate-limit", () => ({ createRateLimiter: () => ({ check: async () => ({ allowed: allowed(), remaining: 1 }) }) }));
-vi.mock("@/lib/api-gateway", () => ({ logApiCall: vi.fn() }));
+vi.mock("@/lib/api-gateway", () => ({ logApiCall: vi.fn(async () => {}) }));
+vi.mock("@vercel/functions", () => ({ waitUntil: (p: Promise<unknown>) => p }));
 
 let cachedRow: { data: unknown } | null;
 const upserts: Array<Record<string, unknown>> = [];
