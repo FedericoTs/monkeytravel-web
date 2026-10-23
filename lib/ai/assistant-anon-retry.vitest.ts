@@ -49,8 +49,8 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-async function run() {
-  const p = mod.assistTrip(input);
+async function run(i = input) {
+  const p = mod.assistTrip(i);
   // Handled by the caller's expect; marked here so it isn't reported early.
   p.catch(() => {});
   await vi.runAllTimersAsync();
@@ -75,6 +75,38 @@ describe("assistTrip on an overloaded model", () => {
     generateContent.mockRejectedValueOnce(Object.assign(new Error("Invalid argument"), { status: 400 }));
     await expect(run()).rejects.toThrow("Invalid argument");
     expect(generateContent).toHaveBeenCalledTimes(1);
+  });
+});
+
+const edited = (n: number, names: string[]) => ({
+  response: { text: () => JSON.stringify({ reply: "Done.", edits: [{ day_number: n, activities: names.map((name) => ({ name })) }] }) },
+});
+
+describe("assistTrip on a reply that breaks a rule", () => {
+  const onDay1 = { ...input, message: "add a gelato stop on day 1" };
+  const onDay2 = edited(2, ["Day 2 thing", "Gelato at Giolitti"]);
+
+  it("asks once more with the rule spelled out and keeps the better reply", async () => {
+    generateContent.mockResolvedValueOnce(onDay2).mockResolvedValueOnce(edited(1, ["Day 1 thing", "Gelato at Giolitti"]));
+    const out = await run(onDay1);
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("CORRECTION: The traveller named Day 1.");
+    expect(out.edits.map((e) => e.day_number)).toEqual([1]);
+  });
+
+  it("keeps the first reply when the second try fails, with no third call", async () => {
+    generateContent.mockResolvedValueOnce(onDay2).mockRejectedValueOnce(overloaded());
+    const out = await run(onDay1);
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(out.edits.map((e) => e.day_number)).toEqual([2]);
+  });
+
+  it("keeps the first reply when the request is already slow", async () => {
+    const now = vi.spyOn(Date, "now").mockReturnValueOnce(0).mockReturnValue(30_000);
+    generateContent.mockResolvedValueOnce(onDay2);
+    const out = await run(onDay1);
+    now.mockRestore();
+    expect(generateContent).toHaveBeenCalledTimes(1);
+    expect(out.edits.map((e) => e.day_number)).toEqual([2]);
   });
 });
 
