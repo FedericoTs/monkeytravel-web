@@ -102,21 +102,37 @@ function isNotAName(linkText: string): boolean {
 
 // What Commons puts around a name, peeled off until nothing changes: "Photo
 // by …", "The original uploader was … at English Wikipedia", "User:…",
-// "File:x.jpg: …", "(cs:…)", a URL, the rest of a sentence.
+// "File:x.jpg: …", "(cs:…)", a signature's date, a URL, the rest of a sentence.
 const AROUND_A_NAME: [RegExp, string][] = [
   [/^\(([^()]*)\)$/, "$1"],
   [
-    /^(?:(?:this|the) (?:photo|photograph|image|picture|file|work)\b[^.]*?\bby\s+|(?:[\p{L}.]+ ){0,3}(?:photo|photograph|image|img|picture) by\s+|by\s+|(?:the )?original uploader was\s+|source:\s*|flickr user:\s*|(?:\p{L}+ )?wikipedia user\s+|(?:[a-z-]{2,3}:)?user(?::\s*|\s+)|\(WT-[a-z]+\)\s*|(?:file:)?[^:]*?\.(?:jpe?g|png|svg|gif|tiff?)\s*:\s*)/iu,
+    /^(?:(?:this|the) (?:photo|photograph|image|picture|file|work)\b[^.]*?\bby\s+|(?:[\p{L}.]+ ){0,3}(?:photo|photograph|image|img|picture) by\s+|by\s+|(?:the )?original uploader was\s+|original(?: work)?:\s*|source:\s*|flickr user:\s*|(?:\p{L}+ )?wikipedia user\s+|(?:[a-z-]{1,3}:){0,2}user(?::\s*|\s+)|\(WT-[a-z]+\)\s*|(?:file:)?[^:]*?\.(?:jpe?g|png|svg|gif|tiff?)\s*:\s*)/iu,
     "",
   ],
-  [/\s+(?:at|on) (?:the )?(?:\p{L}+ )?(?:wikipedia|wikivoyage|commons|[a-z-]+\.wiki(?:pedia|voyage))\b.*$/iu, ""],
+  [/\s+(?:at|on) (?:the )?(?:\p{L}+ )?(?:[a-z-]{2,12}[.:])?(?:wikipedia|wikivoyage|commons)\b.*$/iu, ""],
   [/\s+(?:-\s+)?(?:user:|derivative(?: work)?:).*$/i, ""],
-  [/\s*\((?:[a-z-]{2,3}:[^()]*|attribution required)\)/gi, ""],
+  [/\s*\((?:[a-z-]{2,3}:[^()]*|attribution required|own work)\)/gi, ""],
+  [/\((?:[a-z]{1,3}:)?user:\s*/gi, "("],
+  [/\s*\d{1,2}:\d{2}, \d{1,2}\.? [\p{L}.]+ \d{4} \([A-Z]{2,5}\)/u, ""],
   [/[,;]?\s*(?:https?:\/\/|www\.)\S+|\s*\[\d+\]/gi, ""],
   // "X. Feel free to use my photos…", but not the initials in "A. B. X".
   [/(?<!(?:^|\P{L})\p{Lu})\.\s+(?=\p{Lu}\p{Ll}+\s+\p{Ll}).*$/u, ""],
-  [/(?<!(?:^|\P{L})\p{Lu}|\b(?:Jr|Sr|Inc|Ltd|Co))\.$|[\s,;:–—-]+$/u, ""],
+  [/(?<!(?:^|\P{L})\p{Lu}|\b(?:Jr|Sr|Inc|Ltd|Co))\.$|[\s,;:/–—-]+$/u, ""],
 ];
+
+/** The user name in a field that is only a link to a profile: a wiki user page or a Flickr page. */
+function profileName(html: string): string {
+  const user = /\/wiki\/(?:[a-z-]+:)?user:([^"'?#<>\s/]+)/i.exec(html)?.[1];
+  if (user) {
+    try {
+      return decodeURIComponent(user).replace(/_/g, " ");
+    } catch {
+      return user.replace(/_/g, " ");
+    }
+  }
+  const flickr = /flickr\.com\/(?:photos|people)\/([\w.-]+)\/?["'<\s]/i.exec(html)?.[1];
+  return flickr && !/^\d+$/.test(flickr) ? flickr : "";
+}
 
 /**
  * Commons' Artist field (HTML) as the author's name, or "" when it names
@@ -143,7 +159,7 @@ export function plainArtist(html: string): string {
         .replace(/\s+/g, " ")
         .replace(/\s+([,;:.!?)\]])/g, "$1")
         .replace(/([(\[])\s+/g, "$1")
-        .replace(/\s*\(\)/g, "")
+        .replace(/\s*\([\s·•|,;:/–—-]*\)/g, "")
         .trim(),
     );
   const first = lines.find((line) => /[\p{L}\p{N}]/u.test(line)) ?? "";
@@ -156,6 +172,7 @@ export function plainArtist(html: string): string {
     if (flickr) name = name.replace(/^(.+?) from \S.*$/, "$1");
   }
   if (/\buser:/i.test(first)) name = name.replace(/_/g, " ");
+  if (!name) return profileName(html);
   if (name.length <= 60) return name;
   const named = /\bby\s+((?:\p{Lu}[\p{L}'’-]*\.?\s+){0,3}\p{Lu}[\p{L}'’-]+)/u.exec(first);
   return named ? named[1] : "";
