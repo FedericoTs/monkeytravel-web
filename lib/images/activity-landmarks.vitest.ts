@@ -78,12 +78,13 @@ describe("fetchActivityImages with Wikimedia photos", () => {
     expect(searched).toEqual(["Pantheon Rome, Italy"]);
   });
 
-  it("asks with Google's name and coordinates for a known place, the activity's own otherwise, and not for transport or a missing point", async () => {
+  it("asks with Google's name and coordinates for a known place, the activity's own otherwise, without a point for a missing one, and not for transport", async () => {
     await fetchActivityImages(plan(), "Rome, Italy", { maxPaidLookups: 1 });
     const [lookups] = landmarkPhotos.mock.calls[0];
     expect(lookups).toEqual([
       { key: "colosseum|rome italy", names: ["Colosseo", "Colosseum"], lat: 41.8902, lng: 12.4922 },
       { key: "pantheon|rome italy", names: ["Pantheon"], lat: 41.8986, lng: 12.4769 },
+      { key: "gelato stop|rome italy", names: ["Gelato stop"] },
     ]);
   });
 
@@ -91,6 +92,30 @@ describe("fetchActivityImages with Wikimedia photos", () => {
     await fetchActivityImages(plan(), "Rome, Italy", { maxPaidLookups: 0 });
     await fetchActivityImages(plan(), "Rome, Italy", { maxPaidLookups: 8 });
     expect(landmarkPhotos.mock.calls.map(([, opts]) => opts.waitMs)).toEqual([0, 5000]);
+  });
+
+  it("gives a plan in the planner's preview free photos only: Wikimedia or stock, never Google's, cached ones included", async () => {
+    const googlePhoto = "/api/places/photo?name=places%2FChIJcol%2Fphotos%2Fp&w=600&h=400&t=attraction";
+    const days = [
+      {
+        activities: [
+          { name: "Colosseum", type: "attraction", image_url: googlePhoto },
+          { name: "Pantheon", type: "landmark", coordinates: { lat: 41.8986, lng: 12.4769 } },
+          // A stock image from when the plan was cached gets its free photo now.
+          { name: "Colosseum", type: "landmark", image_url: "https://images.pexels.com/photos/1/old.jpeg" },
+        ],
+      },
+    ];
+    const before = db.log.length;
+    await fetchActivityImages(days, "Rome, Italy", { maxPaidLookups: 0, freePhotosOnly: true });
+    expect(days[0].activities[0].image_url).toBe(KNOWN.get("colosseum|rome italy"));
+    expect(days[0].activities[1].image_url).toMatch(/^https:\/\/images\.pexels\.com\//);
+    expect(days[0].activities[2].image_url).toBe(KNOWN.get("colosseum|rome italy"));
+    expect(google).not.toHaveBeenCalled();
+    // Google's cached places lend names and coordinates, not counted as photo hits.
+    expect(db.log.slice(before).filter((q) => q.table === "api_request_logs" || q.op === "rpc")).toEqual([]);
+    expect(landmarkPhotos.mock.calls[0][0][0]).toMatchObject({ key: "colosseum|rome italy", names: ["Colosseo", "Colosseum"], lat: 41.8902 });
+    expect(landmarkPhotos.mock.calls[0][1].waitMs).toBe(0);
   });
 
   it("keeps a Wikimedia photo already in the plan, also when a save upgrades stock images", async () => {

@@ -294,6 +294,13 @@ export async function POST(request: NextRequest) {
         );
         finalItinerary = sanitizeItinerary(adjusted);
         cacheHit = true;
+        // A cached plan's photos are those of when it was cached, Google's
+        // among them: the preview shows free ones only, before any day goes out.
+        try {
+          await fetchActivityImages(finalItinerary.days, params.destination, { maxPaidLookups: 0, freePhotosOnly: true });
+        } catch (imgErr) {
+          console.error("[AI Generate Stream] image fetch error:", imgErr);
+        }
 
         // Metadata first — flag mode=cache so the client knows we
         // didn't actually stream.
@@ -309,8 +316,7 @@ export async function POST(request: NextRequest) {
 
         // Emit each day in order, same shape as the streaming path,
         // so the existing client UI lights up day-by-day with no code
-        // change. Cached itineraries already have images; we skip the
-        // image fetch on the server (step 6).
+        // change. Their images were assigned above; step 6 skips them.
         for (const day of finalItinerary.days) {
           generatedDays++;
           yield {
@@ -428,11 +434,11 @@ export async function POST(request: NextRequest) {
       }
       if (!cacheHit) {
         try {
-          // COST PASS 2026-06-30: zero paid Google calls at generation — free
-          // cache hits + type-relevant curated fallbacks only, so every activity
-          // has a good image. Real photos resolve when a saved trip is opened
+          // Zero Google at generation: Wikimedia photos and type-relevant stock
+          // images only, so the preview of a plan nobody keeps costs nothing.
+          // Real photos resolve when a saved trip is opened
           // (/api/trips/[id]/enrich-photos), only for trips that are kept.
-          await fetchActivityImages(finalItinerary.days, params.destination, { maxPaidLookups: 0 });
+          await fetchActivityImages(finalItinerary.days, params.destination, { maxPaidLookups: 0, freePhotosOnly: true });
         } catch (imgErr) {
           console.error("[AI Generate Stream] image fetch error:", imgErr);
         }

@@ -17,10 +17,15 @@ const BUILD_TIMEOUT_MS = 8000;
 // Two lookups at a time: Wikidata answers 429 to more from one client.
 const CONCURRENCY = 2;
 
-export interface LandmarkLookup extends LandmarkQuery {
+export interface LandmarkLookup extends Omit<LandmarkQuery, "lat" | "lng"> {
   /** normalizeActivityKey(name, destination) */
   key: string;
+  /** Without a point, the activity can only be answered from the cache. */
+  lat?: number;
+  lng?: number;
 }
+
+const canLookUp = (l: LandmarkLookup): l is LandmarkLookup & LandmarkQuery => typeof l.lat === "number" && typeof l.lng === "number";
 
 const cacheKey = (key: string) => createHash("md5").update(`wikimedia_landmark_v1:${key}`).digest("hex");
 
@@ -44,7 +49,7 @@ export async function cachedLandmarkPhotos(keys: string[]): Promise<Map<string, 
   return found;
 }
 
-async function buildOne(lookup: LandmarkLookup): Promise<string | null> {
+async function buildOne(lookup: LandmarkLookup & LandmarkQuery): Promise<string | null> {
   const db = cacheAdminDb();
   if (!db) return null;
   const startedAt = Date.now();
@@ -82,7 +87,7 @@ async function buildOne(lookup: LandmarkLookup): Promise<string | null> {
 }
 
 /** Finds and stores photos for these activities, two at a time; the ones found are added to `found` as they come. */
-export async function buildLandmarkPhotos(lookups: LandmarkLookup[], found = new Map<string, string>()): Promise<Map<string, string>> {
+export async function buildLandmarkPhotos(lookups: (LandmarkLookup & LandmarkQuery)[], found = new Map<string, string>()): Promise<Map<string, string>> {
   let next = 0;
   const worker = async () => {
     while (next < lookups.length) {
@@ -104,7 +109,7 @@ export async function landmarkPhotos(lookups: LandmarkLookup[], opts: { waitMs: 
   const cached = await cachedLandmarkPhotos(lookups.map((l) => l.key));
   const photos = new Map<string, string>();
   for (const [key, url] of cached) if (url) photos.set(key, url);
-  const fresh = lookups.filter((l) => !cached.has(l.key)).slice(0, opts.maxNew);
+  const fresh = lookups.filter((l) => !cached.has(l.key)).filter(canLookUp).slice(0, opts.maxNew);
   if (!fresh.length) return photos;
   const found = new Map<string, string>();
   const building = buildLandmarkPhotos(fresh, found);

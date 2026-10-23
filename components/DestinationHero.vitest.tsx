@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render } from "@testing-library/react";
+import { fireEvent, render, waitFor } from "@testing-library/react";
 import DestinationHero from "./DestinationHero";
 import { atStoredWidth, withCredit } from "@/lib/images/wikimedia-credit";
 
@@ -123,6 +123,23 @@ describe("DestinationHero Wikimedia credits", () => {
       <DestinationHero destination="Lisbon" title="Lisbon Trip" disableApiCalls coverImageUrl="https://images.pexels.com/photos/1/a.jpeg" />
     );
     expect(queryByText(/^Photo:/)).toBeNull();
+  });
+
+  it("in the planner's preview, asks for free photos only and falls back to a stock cover", async () => {
+    const stock = "https://images.pexels.com/photos/1/holmes.jpeg";
+    const fetchMock = vi.fn(async (url: string) =>
+      url.startsWith("/api/places")
+        ? new Response(JSON.stringify({ coverImageUrl: null, galleryPhotos: [], source: "none" }), { status: 200 })
+        : new Response(JSON.stringify({ url: stock, source: "curated" }), { status: 200 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { container } = render(<DestinationHero destination="Holmes County, Ohio" title="Holmes Trip" freePhotosOnly />);
+    await waitFor(() => expect(container.querySelector("img")?.getAttribute("src") ?? "").toContain("holmes.jpeg"));
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "/api/places?destination=Holmes%20County%2C%20Ohio&free=1",
+      "/api/images/destination?destination=Holmes%20County%2C%20Ohio",
+    ]);
+    vi.unstubAllGlobals();
   });
 
   it("links each credited gallery tile to its Commons page", async () => {

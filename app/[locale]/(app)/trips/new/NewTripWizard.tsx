@@ -3211,6 +3211,7 @@ export default function NewTripPage({
           days={generatedItinerary.days.length}
           tags={generatedItinerary.destination.best_for}
           showBackButton={false}
+          freePhotosOnly
         />
 
         {/* This place and these dates are already saved: replace or keep both. */}
