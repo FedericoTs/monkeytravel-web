@@ -56,6 +56,11 @@ const BodySchema = z.object({
   // values blanked (failureDetail in lib/wizard/generation-failure.ts). It
   // explains a row; failure_code stays the column to group by.
   failure_detail: z.string().trim().max(120).optional(),
+  // The generation a `generation_failed` row waited for: the id the wizard
+  // sent with it, which the server logs in api_request_logs.request_params.
+  // generation_id. And how long the wizard waited, in milliseconds.
+  request_id: z.uuid().optional(),
+  elapsed_ms: z.number().int().min(0).max(86_400_000).optional(),
   // Which step-1 arm the session saw. MUST be declared here: zod strips keys
   // it does not know, so omitting this field would leave the column NULL
   // forever while every client dutifully sent the value — exactly how
@@ -215,6 +220,8 @@ export async function POST(request: NextRequest) {
     utm_source: body.utm_source || null,
     // Only when sent: rows from other steps never name the column.
     ...(body.result_variant ? { result_variant: body.result_variant } : {}),
+    ...(body.request_id ? { request_id: body.request_id } : {}),
+    ...(body.elapsed_ms !== undefined ? { elapsed_ms: body.elapsed_ms } : {}),
   });
 
   if (error) {

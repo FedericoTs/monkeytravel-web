@@ -41,6 +41,14 @@ import DateRangePicker from "@/components/ui/DateRangePicker";
 import AnchorEditor from "@/components/trip/AnchorEditor";
 import { buildSeasonalContext, getSeasonalVibeSuggestions } from "@/lib/seasonal";
 import { streamGeneration } from "@/lib/streaming/client";
+import { GENERATION_ID_HEADER } from "@/lib/ai/generation-id";
+import {
+  GENERATION_TIMEOUT_MS,
+  generateWithRecovery,
+  postJsonWithTimeout,
+  recoverGeneration,
+  type LostGenerationError,
+} from "@/lib/wizard/generation-recovery";
 import { MultiCityRouteBuilder, type RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
@@ -2291,18 +2299,6 @@ export default function NewTripPage({
       // The page locale picks the itinerary's language.
       const requestBody = { ...params, locale, ...(opts.fresh ? { fresh: true } : {}) };
 
-      // Reset stream progress for this generation.
-      setStreamedDayCount(0);
-      setStreamedTotalDays(0);
-
-      // 1. Try the streaming endpoint first. If it fails before any data
-      //    (rate-limit, validation, network), we fall through to the
-      //    classic JSON endpoint for compatibility.
-      // Explicit annotations: TypeScript narrows let-with-null-initial to
-      // `never` when only assigned inside callbacks. The annotations keep
-      // the conditional checks below well-typed.
-      let streamedItinerary: GeneratedItinerary | null = null as GeneratedItinerary | null;
-      let streamError: { error: string; code?: string } | null = null as { error: string; code?: string } | null;
       // Multi-city and anchored trips return one merged JSON body, not an SSE
       // stream — skip the streaming endpoint and let the JSON fallback below
       // carry `destinations`/`anchors`.
@@ -2332,78 +2328,124 @@ export default function NewTripPage({
       if (mustDos.length > 0) {
         void capture("must_dos_generated", { must_do_count: mustDos.length });
       }
-      if (!isMultiCity && !isAnchored) try {
-        await streamGeneration(
-          requestBody,
-          {
-            onMetadata: (meta) => {
-              setStreamedTotalDays(meta.totalDays);
-            },
-            onDay: () => {
-              // Don't push the day into generatedItinerary mid-stream —
-              // wait for `complete` to set the canonical (sanitized,
-              // image-enriched) version. Just bump the counter so the
-              // GenerationProgress UI shows "Day N of M".
-              setStreamedDayCount((c) => c + 1);
-            },
-            onComplete: (data) => {
-              streamedItinerary = data.itinerary as GeneratedItinerary;
-            },
-            onError: (data) => {
-              streamError = data;
-            },
-          },
-          {}
-        );
-      } catch (err) {
-        // Stream failed before any events. Most common: 429 (rate limit)
-        // or 503 (Gemini disabled). We log and fall through to the JSON
-        // endpoint, which surfaces the same errors with full client UX.
-        console.warn("[generate] streaming endpoint failed, falling back to JSON:", err);
-      }
+      type GenerationAnswer = {
+        itinerary?: GeneratedItinerary;
+        usage?: { used?: number; limit?: number };
+        code?: string;
+        error?: string;
+        capped?: boolean;
+      };
 
-      // 2. Fallback to the classic JSON endpoint if streaming didn't
-      //    deliver a final itinerary. Four cases get us here:
-      //      (a) streamGeneration() threw before any events (rate-limit,
-      //          dev-key revoked, network 5xx) — caught above.
-      //      (b) it completed without a `complete` event (rare).
-      //      (c) the server emitted HTTP 200 then an SSE `error` event
-      //          mid-flight (transient Gemini upstream blip, parser
-      //          exception, model overload). Don't throw on `streamError`
-      //          before this fallback: the JSON route has cache hits + a
-      //          graceful LIMIT_REACHED UI gate, so only re-throw if it
-      //          ALSO fails to produce an itinerary.
-      //      (d) multi-city and anchored trips skip streaming entirely.
-      let data: { itinerary?: GeneratedItinerary; usage?: { used?: number; limit?: number }; code?: string; error?: string };
-      if (streamedItinerary) {
-        data = { itinerary: streamedItinerary };
-      } else {
-        const response = await fetch("/api/ai/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody),
+      // One try, under a generation id the server keeps the finished plan
+      // under. A try whose answer never arrives is recovered by that id, else
+      // run once more (lib/wizard/generation-recovery.ts).
+      const attemptGeneration = async (generationId: string): Promise<GenerationAnswer> => {
+        const idHeader = { [GENERATION_ID_HEADER]: generationId };
+        // Reset stream progress for this try.
+        setStreamedDayCount(0);
+        setStreamedTotalDays(0);
+
+        // 1. Try the streaming endpoint first. If it fails before any data
+        //    (rate-limit, validation, network), we fall through to the
+        //    classic JSON endpoint for compatibility.
+        // Explicit annotations: TypeScript narrows let-with-null-initial to
+        // `never` when only assigned inside callbacks. The annotations keep
+        // the conditional checks below well-typed.
+        let streamedItinerary: GeneratedItinerary | null = null as GeneratedItinerary | null;
+        let streamError: { error: string; code?: string } | null = null as { error: string; code?: string } | null;
+        let streamStarted = false;
+        if (!isMultiCity && !isAnchored) {
+          // A stream that goes quiet this long is given up as lost.
+          const quiet = new AbortController();
+          let quietTimer = setTimeout(() => quiet.abort(), GENERATION_TIMEOUT_MS);
+          const heard = () => {
+            clearTimeout(quietTimer);
+            quietTimer = setTimeout(() => quiet.abort(), GENERATION_TIMEOUT_MS);
+          };
+          try {
+            await streamGeneration(
+              requestBody,
+              {
+                onStart: () => {
+                  streamStarted = true;
+                  heard();
+                },
+                onMetadata: (meta) => {
+                  heard();
+                  setStreamedTotalDays(meta.totalDays);
+                },
+                onDay: () => {
+                  heard();
+                  // Don't push the day into generatedItinerary mid-stream —
+                  // wait for `complete` to set the canonical (sanitized,
+                  // image-enriched) version. Just bump the counter so the
+                  // GenerationProgress UI shows "Day N of M".
+                  setStreamedDayCount((c) => c + 1);
+                },
+                onComplete: (data) => {
+                  streamedItinerary = data.itinerary as GeneratedItinerary;
+                },
+                onError: (data) => {
+                  streamError = data;
+                },
+              },
+              { headers: idHeader, signal: quiet.signal }
+            );
+          } catch (err) {
+            // Stream failed before any events. Most common: 429 (rate limit)
+            // or 503 (Gemini disabled). We log and fall through to the JSON
+            // endpoint, which surfaces the same errors with full client UX.
+            console.warn("[generate] streaming endpoint failed, falling back to JSON:", err);
+          } finally {
+            clearTimeout(quietTimer);
+          }
+        }
+        if (streamedItinerary) return { itinerary: streamedItinerary };
+        // A stream cut once under way may still have finished on the server.
+        if (streamStarted && !streamError) {
+          const kept = await recoverGeneration<GenerationAnswer>(generationId, { attempts: 1 });
+          if (kept) return kept;
+        }
+
+        // 2. Fallback to the classic JSON endpoint if streaming didn't
+        //    deliver a final itinerary. Four cases get us here:
+        //      (a) streamGeneration() threw before any events (rate-limit,
+        //          dev-key revoked, network 5xx) — caught above.
+        //      (b) it completed without a `complete` event (rare).
+        //      (c) the server emitted HTTP 200 then an SSE `error` event
+        //          mid-flight (transient Gemini upstream blip, parser
+        //          exception, model overload). Don't throw on `streamError`
+        //          before this fallback: the JSON route has cache hits + a
+        //          graceful LIMIT_REACHED UI gate, so only re-throw if it
+        //          ALSO fails to produce an itinerary.
+        //      (d) multi-city and anchored trips skip streaming entirely.
+        const { response, data } = await postJsonWithTimeout<GenerationAnswer>("/api/ai/generate", requestBody, {
+          headers: idHeader,
+          timeoutMs: GENERATION_TIMEOUT_MS,
         });
-        data = await response.json();
-
         if (!response.ok) {
           // The anonymous free-generation cap (RATE_LIMIT from both
-          // endpoints: the stream refused, and so did this fallback). Ask
-          // for a free account, with the destination kept for the way back,
-          // instead of throwing the server's English error. Its own step,
-          // so the funnel does not count it as a generation that failed.
-          if (response.status === 429 && data.code === "RATE_LIMIT" && !authUser) {
-            void trackWizardEvent("generation_capped", { destination, locale });
-            setAuthPromptLocation("wizard_generation_limit");
-            setAuthPromptReason("generation_limit");
-            setShowAuthModal(true);
-            setGenerating(false);
-            return;
-          }
+          // endpoints: the stream refused, and so did this fallback).
+          if (response.status === 429 && data.code === "RATE_LIMIT" && !authUser) return { capped: true };
           // If the stream errored AND the JSON fallback also failed,
           // surface the stream error message (more specific) when
           // available, otherwise fall back to the JSON error.
           throw new Error(streamError?.error || data.error || "Generation failed");
         }
+        return data;
+      };
+
+      const { result: data } = await generateWithRecovery(attemptGeneration);
+      if (data.capped) {
+        // Ask for a free account, with the destination kept for the way back,
+        // instead of throwing the server's English error. Its own step, so the
+        // funnel does not count it as a generation that failed.
+        void trackWizardEvent("generation_capped", { destination, locale });
+        setAuthPromptLocation("wizard_generation_limit");
+        setAuthPromptReason("generation_limit");
+        setShowAuthModal(true);
+        setGenerating(false);
+        return;
       }
 
       // Images are fetched server-side in both endpoints; the itinerary
@@ -2503,11 +2545,15 @@ export default function NewTripPage({
       // is indistinguishable from someone closing the tab. The failure_code
       // separates the buckets without anyone reading a stack trace.
       const failureCode = classifyGenerationFailure(err);
+      const generationId = (err as LostGenerationError | null)?.generationId;
       void trackWizardEvent("generation_failed", {
         destination,
         locale,
         failure_code: failureCode,
         failure_detail: failureDetail(err, failureCode),
+        // Joins to the server's row (api_request_logs.request_params.generation_id).
+        ...(generationId ? { request_id: generationId } : {}),
+        elapsed_ms: Math.min(Date.now() - generationStartTime, 86_400_000),
       });
       captureTripGenerationCompleted({
         destination,
