@@ -511,13 +511,14 @@ export default function AuthPromptModal({
             </div>
             )}
 
-            {/* Google one-tap — the main action: it needs no inbox, and it is
-                the path that reliably ends in a session. */}
+            {/* Google one-tap, above the email field. It stays an outline:
+                as the filled main button it pushed away the people who would
+                rather not use Google, and they left instead of using email. */}
             <button
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isSending || isNavigating || googleLoading}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-slate-300 rounded-xl font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-4"
             >
               {googleLoading ? <Spinner /> : <GoogleMark />}
               {tAuth("googleButton")}
@@ -555,7 +556,7 @@ export default function AuthPromptModal({
               <button
                 type="submit"
                 disabled={isSending || isNavigating || !email.trim()}
-                className="w-full bg-white text-slate-900 border border-slate-300 py-3.5 rounded-xl font-semibold hover:bg-slate-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full bg-[var(--accent)] text-slate-900 py-3.5 rounded-xl font-semibold hover:bg-[var(--accent)]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSending ? (
                   <>

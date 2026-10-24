@@ -326,15 +326,19 @@ describe("the cap copy exists in every language", () => {
 });
 
 /**
- * Google needs no inbox and almost always ends in a session, so it is the
- * main button. Once a sign-in email is out, the email that never gets opened
- * is the dead end, so Google is offered again right there.
+ * Google sits first, as an outline: made the filled main button, it lost the
+ * savers who would rather not use Google, who left instead of using email.
+ * Once a sign-in email is out, the email that never gets opened is the dead
+ * end, so Google is offered again right there.
  */
-describe("Google comes first", () => {
-  it("is the filled button, and sending the email is the outline one", () => {
+describe("Google comes first, the email button is the main one", () => {
+  it("keeps sending the email as the filled button, and Google as the outline above it", () => {
     render(<AuthPromptModal isOpen onClose={() => {}} destination="Lisboa" />);
-    expect(screen.getByRole("button", { name: "googleButton" }).className).toContain("bg-slate-900");
-    expect(screen.getByRole("button", { name: "magicLink.send" }).className).not.toContain("bg-[var(--accent)]");
+    const google = screen.getByRole("button", { name: "googleButton" });
+    const send = screen.getByRole("button", { name: "magicLink.send" });
+    expect(send.className).toContain("bg-[var(--accent)]");
+    expect(google.className).not.toContain("bg-slate-900");
+    expect(google.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("is offered again after the email is sent, with a pointer to spam", async () => {
