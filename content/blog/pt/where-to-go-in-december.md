@@ -4,7 +4,7 @@ slug: "where-to-go-in-december"
 description: "Dezembro são duas estações com o mesmo nome: mercados de Natal, semana de abertura do esqui e aurora na noite polar ao norte; praias de estação seca e pleno verão ao sul. Doze destinos onde dezembro é a escolha certa, com normais climáticas dos serviços meteorológicos nacionais, as datas de 2026 que contam e as semanas que custam mais."
 author: "Emanuela P."
 publishedAt: "2026-07-27"
-updatedAt: "2026-09-21"
+updatedAt: "2026-10-20"
 category: "Seasonal Travel"
 tags: ["sazonal", "guia mensal de viagens", "viagem de inverno", "melhores destinos"]
 image: "/images/blog/where-to-go-in-december.jpg"
@@ -53,6 +53,10 @@ A complicação é o preço, e o calendário de 2026 é excepcionalmente claro. 
 | Tulum e a Riviera Maya | Caribe mais seco e fresco | 29,4 / 21,0 (Cancún) | 96,6 | Começa a alta temporada, sobretaxa das festas | Altas |
 
 Clima: normais 1991–2020 dos serviços meteorológicos nacionais indicados nas fontes (Rio: 1961–1990, via OMM).
+
+### Os destinos mais baratos para viajar em dezembro de 2026
+
+Com um orçamento de faixa intermediária, quatro dos doze destinos custam menos por pessoa por dia (médias do Budget Your Trip): Kochi, em Kerala ($40), Phu Quoc, no sul do Vietnã ($55), Sri Lanka ($56, média do país todo) e Krabi, na Tailândia ($71). A passagem aérea é a outra metade da conta: compare as tarifas a partir do seu aeroporto antes de escolher.
 
 ## 1. Viena, Áustria — Mercados de Natal a todo vapor
 
