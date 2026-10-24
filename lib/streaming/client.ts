@@ -37,13 +37,13 @@ export interface StreamHandlers {
 export async function streamGeneration(
   body: unknown,
   handlers: StreamHandlers,
-  options: { signal?: AbortSignal; url?: string } = {}
+  options: { signal?: AbortSignal; url?: string; headers?: Record<string, string> } = {}
 ): Promise<void> {
   const url = options.url ?? "/api/ai/generate/stream";
   const res = await fetch(url, {
     method: "POST",
     credentials: "include",
-    headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+    headers: { "Content-Type": "application/json", Accept: "text/event-stream", ...options.headers },
     body: JSON.stringify(body),
     signal: options.signal,
   });

@@ -42,6 +42,7 @@ import {
   finalize,
 } from "@/lib/streaming/day-parser";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 
 // Allow the function to run long enough for slow generations. Vercel
 // Pro plan default is 60s; this bumps it. Hobby plan caps at 60 so this
@@ -89,6 +90,9 @@ const anonGenIpLimiter = createRateLimiter("anon-generate", 40, 24 * 60 * 60 * 1
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
+  // The wizard's id for this request: the plan is kept under it, for a
+  // browser that loses the stream (lib/ai/generation-result.ts).
+  const generationId = generationIdOf(request);
 
   // 1. Pre-flight: parse body and run all checks BEFORE opening the SSE
   //    stream. Failures here can return JSON 4xx/5xx normally (better
@@ -390,7 +394,7 @@ export async function POST(request: NextRequest) {
               costUsd: generationCost,
               exactCost: true,
               error: `unparseable output: ${msg}`,
-              metadata: { user_id: user?.id ?? "anonymous" },
+              metadata: { user_id: user?.id ?? "anonymous", ...(generationId ? { generation_id: generationId } : {}) },
             }).catch(() => undefined)
           );
           yield {
@@ -501,6 +505,7 @@ export async function POST(request: NextRequest) {
                 streamed: true,
                 // "Try Different Version": a regenerate that skipped the cache.
                 fresh: wantsFresh,
+                ...(generationId ? { generation_id: generationId } : {}),
               },
             });
             // Anonymous generations are counted before the stream starts
@@ -515,20 +520,26 @@ export async function POST(request: NextRequest) {
       );
 
       // 9. Terminal complete event.
+      // Phase 1.3: the save arms read this into trip_meta.locale.
+      // Phase 1.3 language + Phase 3.1 timezone (derived server-side).
+      const completeItinerary = { ...sanitized, language: userLanguage, timezone: deriveTimezoneFromItinerary(sanitized.days) ?? undefined };
+      const completeMeta = {
+        generationTimeMs,
+        model: cacheHit ? "cache" : getModelForPurpose("trip-generation"),
+        cached: cacheHit,
+        generatedDays,
+        totalDays,
+        costUsd: generationCost,
+      };
+      // Kept before the event goes out, so a browser that misses it finds it.
+      if (generationId) {
+        await keepGeneration(generationId, generationOwner(request), { itinerary: completeItinerary, meta: completeMeta });
+      }
       yield {
         type: "complete",
         data: {
-          // Phase 1.3: the save arms read this into trip_meta.locale.
-          // Phase 1.3 language + Phase 3.1 timezone (derived server-side).
-          itinerary: { ...sanitized, language: userLanguage, timezone: deriveTimezoneFromItinerary(sanitized.days) ?? undefined },
-          meta: {
-            generationTimeMs,
-            model: cacheHit ? "cache" : getModelForPurpose("trip-generation"),
-            cached: cacheHit,
-            generatedDays,
-            totalDays,
-            costUsd: generationCost,
-          },
+          itinerary: completeItinerary,
+          meta: completeMeta,
           usage: user
             ? { ...usageCheck, used: usageCheck.used + 1 }
             : undefined,
@@ -548,7 +559,7 @@ export async function POST(request: NextRequest) {
           costUsd: generationCost,
           exactCost: true,
           error: msg,
-          metadata: { user_id: user?.id ?? "anonymous" },
+          metadata: { user_id: user?.id ?? "anonymous", ...(generationId ? { generation_id: generationId } : {}) },
         }).catch(() => undefined)
       );
       // Sanitize the SSE error payload — the raw Gemini SDK message

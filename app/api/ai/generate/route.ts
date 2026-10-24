@@ -38,6 +38,7 @@ import {
 import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
 import type { TripAnchor } from "@/types";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 
 // Feature flag: Enable Maps Grounding for cost-effective generation
 // Set USE_MAPS_GROUNDING=true in .env to enable (59% cost savings)
@@ -63,6 +64,9 @@ export async function POST(request: NextRequest) {
 
 async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
   const startTime = Date.now();
+  // The wizard's id for this request: the plan is kept under it, for a
+  // browser that loses the answer (lib/ai/generation-result.ts).
+  const generationId = generationIdOf(request);
 
   try {
     // Anonymous generation is allowed: visitors generate without signing up and
@@ -442,6 +446,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         used_maps_grounding: usedMapsGrounding,
         // "Try Different Version": a regenerate that skipped the cache.
         fresh: wantsFresh,
+        ...(generationId ? { generation_id: generationId } : {}),
       },
     });
 
@@ -486,22 +491,28 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       }
     }
 
+    // The save arms read language into trip_meta.locale and timezone (derived
+    // server-side from the itinerary coordinates) into trip_meta.timezone.
+    const finishedItinerary = { ...sanitizedItinerary, language: userLanguage, timezone: deriveTimezoneFromItinerary(sanitizedItinerary.days) ?? undefined };
+    const meta = {
+      generationTimeMs: generationTime,
+      model: cacheHit ? "cache" : usedMapsGrounding ? "maps-grounding" : getModelForPurpose("trip-generation"),
+      cached: cacheHit,
+      generatedDays,
+      totalDays,
+      // Cost tracking
+      costUsd: generationCost,
+      usedMapsGrounding,
+    };
+    // Kept before answering, so a browser that misses the answer finds it.
+    if (generationId) {
+      await keepGeneration(generationId, generationOwner(request), { itinerary: finishedItinerary, meta });
+    }
+
     return apiSuccess({
       success: true,
-      // The save arms read language into trip_meta.locale and timezone
-      // (derived server-side from the itinerary coordinates) into
-      // trip_meta.timezone.
-      itinerary: { ...sanitizedItinerary, language: userLanguage, timezone: deriveTimezoneFromItinerary(sanitizedItinerary.days) ?? undefined },
-      meta: {
-        generationTimeMs: generationTime,
-        model: cacheHit ? "cache" : usedMapsGrounding ? "maps-grounding" : getModelForPurpose("trip-generation"),
-        cached: cacheHit,
-        generatedDays,
-        totalDays,
-        // Cost tracking
-        costUsd: generationCost,
-        usedMapsGrounding,
-      },
+      itinerary: finishedItinerary,
+      meta,
       // Usage information for the client
       usage: updatedUsage,
     });
@@ -519,6 +530,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       costUsd: geminiCost.usd,
       exactCost: true,
       error: error instanceof Error ? error.message : "Unknown error",
+      metadata: generationId ? { generation_id: generationId } : undefined,
     });
 
     // Capture to Sentry too: console + DB logs alone never alert.
