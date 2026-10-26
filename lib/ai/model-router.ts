@@ -18,7 +18,6 @@
  *   email-parser                | gemini-2.5-flash-lite  | Structured extraction, low temp
  *   trip-title                  | gemini-2.5-flash-lite  | One-shot string, cheapest
  *   activity-bank               | gemini-2.5-flash       | Batch list generation
- *   mcp-trip                    | gemini-2.5-flash       | External MCP/ChatGPT endpoint
  *   maps-grounding              | gemini-2.5-flash       | Needs grounding model support
  *   assistant-suggest           | gemini-2.5-flash       | Activity suggestion w/ caching
  *   assistant-optimize          | gemini-2.5-flash       | Day optimisation w/ caching
@@ -38,7 +37,6 @@ export type GeminiPurpose =
   | "email-parser"
   | "trip-title"
   | "activity-bank"
-  | "mcp-trip"
   | "maps-grounding"
   | "assistant-suggest"
   | "assistant-optimize"
@@ -75,7 +73,6 @@ const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
   "email-parser": "gemini-2.5-flash-lite",
   "trip-title": "gemini-2.5-flash-lite",
   "activity-bank": "gemini-2.5-flash",
-  "mcp-trip": "gemini-2.5-flash",
   "maps-grounding": "gemini-2.5-flash",
   "assistant-suggest": "gemini-2.5-flash",
   "assistant-optimize": "gemini-2.5-flash",

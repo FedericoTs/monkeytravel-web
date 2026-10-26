@@ -38,12 +38,6 @@ export const APP_CLIENT_NAMESPACES = [
   "blog.index",
 ] as const;
 
-export const CHATGPT_IMPORT_CLIENT_NAMESPACES = [
-  ...MARKETING_CLIENT_NAMESPACES,
-  "trips.chatgptImport",
-  "trips.activityTypes",
-] as const;
-
 const isTree = (value: unknown): value is AbstractIntlMessages => typeof value === "object" && value !== null;
 
 /** The subtrees at `paths`, nested as in `messages`. A path below another listed path adds nothing. */

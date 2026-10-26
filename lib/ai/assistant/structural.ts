@@ -22,9 +22,8 @@ import { addIsoDays } from "@/lib/dates/iso-date";
 
 /**
  * Platform-wide trip length ceiling. Matches the generation-side limit
- * (lib/gemini.ts validateTripDuration: "Maximum trip duration is 14 days"
- * and lib/mcp/schema.ts `.max(14)`) — the assistant must not be a side door
- * past it.
+ * (lib/gemini.ts validateTripDuration: "Maximum trip duration is 14 days")
+ * — the assistant must not be a side door past it.
  */
 export const MAX_TRIP_DAYS = 14;
 

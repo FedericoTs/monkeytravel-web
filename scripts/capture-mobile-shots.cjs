@@ -27,7 +27,6 @@ const ROUTES = [
   ["07-group-trip-planner", "/group-trip-planner"],
   ["08-budget-trip-planner", "/budget-trip-planner"],
   ["09-weekend-trip-planner", "/weekend-trip-planner"],
-  ["10-from-chatgpt", "/from-chatgpt"],
 ];
 
 async function dismissOverlays(page) {
