@@ -37,6 +37,7 @@ import type { GeneratedItinerary, ItineraryDay, TripAnchor, TripCreationParams, 
 import VibeSelector from "@/components/trip/VibeSelector";
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import DestinationAutocomplete, { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
+import { isTripSentence, matchesPlace, pencilledDates, readTripSentence } from "@/lib/wizard/trip-sentence";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import AnchorEditor from "@/components/trip/AnchorEditor";
 import { buildSeasonalContext, getSeasonalVibeSuggestions } from "@/lib/seasonal";
@@ -409,6 +410,36 @@ const DESTINATION_ALLOWLIST = /^[\p{L}\p{M}\s\-,.'()&/0-9]+$/u;
 // Retry button that resends the same text. Keep it at 100, exactly where the
 // server puts it: a lower bound would block names that generate fine.
 const DESTINATION_MAX_LENGTH = 100;
+
+// Vibes for a one-sentence plan that names none: generation needs at least one.
+const EXPRESS_VIBES: TripVibe[] = ["cultural", "foodie"];
+
+/** A month's name in the page's language, capitalised for a chip ("Marzo"). */
+function monthName(month: number, locale: string): string {
+  const name = new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2000, month - 1, 15)));
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+/**
+ * The place a one-sentence plan names, as the destination search knows it
+ * (its name and coordinates), or null to keep it as typed: several places,
+ * a slow search, or a top hit that is a different place.
+ */
+async function findExpressPlace(name: string, locale: string): Promise<PlacePrediction | null> {
+  if (name.includes("&")) return null;
+  try {
+    const response = await fetch("/api/destinations/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ input: name, limit: 1, locale }),
+      signal: AbortSignal.timeout(2500),
+    });
+    const top = ((await response.json()) as { predictions?: PlacePrediction[] }).predictions?.[0];
+    return top && matchesPlace(name, top) ? top : null;
+  } catch {
+    return null;
+  }
+}
 
 // Day-inclusive trip span, matching the server's math (ceil(diff/day) + 1).
 // Returns 0 for missing/unparseable dates.
@@ -1221,6 +1252,7 @@ export default function NewTripPage({
         if (draft.tripIntent === "solo" || draft.tripIntent === "group") {
           setTripIntent(draft.tripIntent);
         }
+        if (draft.flexibleDates) setFlexibleDates(true);
         if (draft.generatedItinerary) {
           setGeneratedItinerary(draft.generatedItinerary);
           // The restored trip becomes the session stack's current entry
@@ -1284,12 +1316,13 @@ export default function NewTripPage({
       anchors,
       mustDos,
       tripIntent,
+      flexibleDates,
     });
     // tripIntent belongs here: without it the effect doesn't re-run when the
     // user changes "Who's coming?" after generating, and the draft keeps the
     // stale answer — which would quietly corrupt the very measurement this
     // field exists to produce. Same for mustDos.
-  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, tripIntent, saveDraft, savedTripId, clearDraft]);
+  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, tripIntent, flexibleDates, saveDraft, savedTripId, clearDraft]);
 
   // ── Auto-save trip orchestration ────
   // The hook owns the save state machine: INSERT-or-UPDATE, the in-flight save
@@ -1315,6 +1348,7 @@ export default function NewTripPage({
     // the database (reading it from PostHog needs a personal API key). That
     // is what makes the toggle evidence for the group-vs-solo decision.
     tripIntent,
+    flexibleDates,
   };
 
   // One id per wizard MOUNT, written into every trip this mount inserts, so a
@@ -1614,6 +1648,7 @@ export default function NewTripPage({
         mustDos,
         anchors,
         tripIntent,
+        flexibleDates,
       });
     }
     setAuthPromptLocation(location);
@@ -1848,6 +1883,7 @@ export default function NewTripPage({
       if (draft.tripIntent === "solo" || draft.tripIntent === "group") {
         setTripIntent(draft.tripIntent);
       }
+      if (draft.flexibleDates) setFlexibleDates(true);
       setGeneratedItinerary(draft.generatedItinerary);
       // Mirror the restore into the session stack so the
       // banner-restored trip is durable in the tray (and not re-pushed as a
@@ -2106,6 +2142,51 @@ export default function NewTripPage({
   const footerRef = useRef<HTMLDivElement | null>(null);
   useCssVarHeight(footerRef, "--mt-footer-h");
 
+  // A trip typed as one sentence ("5 days in Lisbon in March, food and
+  // history") is planned straight from step 1, with the dates pencilled in and
+  // the vibes it names, instead of reaching the planner as a place name.
+  const expressTrip = useMemo(() => {
+    if (step !== 1 || (MULTI_CITY_ENABLED && multiCityMode)) return null;
+    const read = readTripSentence(destination);
+    return isTripSentence(read) ? read : null;
+  }, [step, multiCityMode, destination]);
+  const expressRequestedRef = useRef(false);
+  const [expressBusy, setExpressBusy] = useState(false);
+
+  const handleExpressPlan = async () => {
+    if (!expressTrip || expressBusy) return;
+    setExpressBusy(true);
+    const trip = expressTrip;
+    const place = await findExpressPlace(trip.destination, locale);
+    // Dates the traveller picked stay; otherwise they are pencilled in.
+    const chosen = startDate && endDate && !flexibleDates;
+    const dates = chosen ? { start: startDate, end: endDate } : pencilledDates(trip, new Date().toISOString().slice(0, 10));
+    // The same text a picked suggestion puts in the field.
+    setDestination(
+      place ? (place.fullText.length <= DESTINATION_MAX_LENGTH ? place.fullText : place.mainText) : trip.destination
+    );
+    if (place?.coordinates) setDestinationCoords(place.coordinates);
+    setStartDate(dates.start);
+    setEndDate(dates.end);
+    setFlexibleDates(!chosen);
+    setSelectedVibes(trip.vibes.length > 0 ? trip.vibes : EXPRESS_VIBES);
+    if (trip.intent) setTripIntent(trip.intent);
+    if (trip.budget) setBudgetTier(trip.budget === "luxury" ? "premium" : "budget");
+    trackFieldInteraction("express_plan");
+    expressRequestedRef.current = true;
+    setExpressBusy(false);
+  };
+
+  // Generates once the fields set above have landed in state (the place name
+  // always replaces the sentence, so this runs after every express request).
+  useEffect(() => {
+    if (!expressRequestedRef.current || generating) return;
+    if (!destination || !startDate || !endDate || selectedVibes.length === 0) return;
+    expressRequestedRef.current = false;
+    void handleGenerate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [destination, startDate, endDate, selectedVibes, generating]);
+
   // Footer state B: a valid destination with no dates. The slot offers an
   // ENABLED "Use flexible dates" instead of a disabled Continue with a hint,
   // on the step where most abandons happen. Label deliberately does not
@@ -2210,6 +2291,7 @@ export default function NewTripPage({
         anchors,
         mustDos,
         tripIntent,
+        flexibleDates,
       });
     }
 
@@ -2648,6 +2730,7 @@ export default function NewTripPage({
             anchors,
             // ...and the same for the "Who's coming?" answer.
             tripIntent,
+            flexibleDates,
           });
         }
         // Funnel disambiguation: without this event we can't tell "user
@@ -4488,7 +4571,7 @@ export default function NewTripPage({
                   enforces (lib/gemini.ts DESTINATION_ALLOWLIST). Shown the
                   moment the input goes invalid instead of letting the user
                   fill the whole form and fail at generate. */}
-              {destination.length >= 2 && !DESTINATION_ALLOWLIST.test(destination) && (
+              {!expressTrip && destination.length >= 2 && !DESTINATION_ALLOWLIST.test(destination) && (
                 <p role="alert" className="mt-2 text-xs font-medium text-red-600">
                   {t("wizard.step1.destinationInvalidChars")}
                 </p>
@@ -4499,10 +4582,34 @@ export default function NewTripPage({
                   would pass both the allowlist and the bound, and generate a
                   confident itinerary for whatever the first 100 characters
                   happened to spell. */}
-              {destination.length > DESTINATION_MAX_LENGTH && (
+              {!expressTrip && destination.length > DESTINATION_MAX_LENGTH && (
                 <p role="alert" className="mt-2 text-xs font-medium text-red-600">
                   {t("wizard.step1.destinationTooLong")}
                 </p>
+              )}
+
+              {/* What a one-sentence trip was read as, before it is planned
+                  (the footer button plans it). */}
+              {expressTrip && (
+                <div className="mt-3 rounded-2xl border border-[var(--primary)]/25 bg-[var(--background-warm)] p-4" aria-live="polite">
+                  <p className="text-sm font-semibold text-[var(--foreground)]">{t("wizard.express.title")}</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {[
+                      expressTrip.destination,
+                      t("wizard.express.days", { count: expressTrip.days ?? 5 }),
+                      ...(expressTrip.month ? [monthName(expressTrip.month, locale)] : []),
+                      ...expressTrip.vibes.map((v) => t(`vibes.${v}.label`)),
+                    ].map((label) => (
+                      <span
+                        key={label}
+                        className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-[var(--foreground)] ring-1 ring-[var(--foreground)]/10"
+                      >
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-xs text-[var(--foreground-muted)]">{t("wizard.express.hint")}</p>
+                </div>
               )}
 
               {/* Popular destinations — real demand-ranked (distinct planning
@@ -4879,7 +4986,7 @@ export default function NewTripPage({
               Continue button is disabled with no visible reason, so users
               who don't realize what unlocks it just leave. Name the first
               blocker so the path forward is always obvious. */}
-          {step === 1 && !canProceed() && (
+          {step === 1 && !expressTrip && !canProceed() && (
             <p aria-live="polite" className="mb-2 text-center text-xs font-medium text-slate-500 sm:text-left">
               {footerStateB
                 ? t("wizard.step1.hintFlexibleDefault", { days: 5 })
@@ -4899,7 +5006,7 @@ export default function NewTripPage({
               auth wall sits at Save (not Generate), so many users don't realize
               they'll see the whole trip for free first; saying so here lowers
               the "is this going to make me sign up?" hesitation. */}
-          {step === 1 && canProceed() && (
+          {step === 1 && (expressTrip || canProceed()) && (
             <p className="mb-2 flex items-center justify-center gap-1.5 text-center text-xs font-medium text-emerald-600 sm:justify-start sm:text-left">
               <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -4925,7 +5032,18 @@ export default function NewTripPage({
           )}
 
           {step < TOTAL_STEPS ? (
-            footerStateB ? (
+            expressTrip ? (
+              // A one-sentence trip: plan it as read, skipping the vibes step.
+              <button
+                type="button"
+                onClick={() => void handleExpressPlan()}
+                disabled={expressBusy}
+                aria-busy={expressBusy}
+                className="bg-[var(--primary)] text-white px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 active:bg-[var(--primary)]/80 disabled:opacity-70 transition-colors min-h-[48px] sm:min-h-0"
+              >
+                {t("wizard.express.cta")} →
+              </button>
+            ) : footerStateB ? (
               // State B: a valid destination, no dates. The same slot, the
               // same coral, an ENABLED button — one tap pencils in the
               // flexible default and the slot re-renders as Continue.

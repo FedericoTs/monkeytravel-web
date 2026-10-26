@@ -132,7 +132,7 @@
       "planningStat": "{count}+ viagens planejadas nos últimos 30 dias",
       "title": "Para onde e quando?",
       "subtitle": "Escolha um destino e as datas da sua viagem",
-      "placeholder": "ex.: Paris, Tóquio, Nova York...",
+      "placeholder": "ex.: Paris, ou 4 dias em Roma",
       "popularDestinations": "Destinos populares",
       "whosComing": "Quem vai?",
       "justMe": "Só eu",
@@ -177,6 +177,12 @@
       "hintFlexibleDefault": "Ainda sem datas? Colocaremos por enquanto {days} dias daqui a cerca de três semanas — você pode mudá-las quando quiser.",
       "freeReassuranceSignedIn": "Grátis — sua viagem dia a dia completa, pronta para salvar com um toque",
       "destinationTooLong": "Isso parece um pedido em vez de um lugar. Escreva aqui o destino (máx. 100 caracteres) e acrescente os detalhes no passo seguinte."
+    },
+    "express": {
+      "title": "Sua viagem, do jeito que entendemos",
+      "days": "{count, plural, one {# dia} other {# dias}}",
+      "hint": "Completamos o que falta. Você pode mudar tudo depois que a viagem estiver pronta.",
+      "cta": "Planejar esta viagem"
     },
     "returningUser": {
       "welcomeBack": "Bem-vindo de volta!",
