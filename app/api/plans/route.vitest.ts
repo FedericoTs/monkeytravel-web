@@ -23,7 +23,7 @@ const fakeAdmin = {
         return {
           select: () => ({
             single: async () => {
-              const stored = { ...row, opens: 0, expires_at: "2026-12-01T00:00:00.000Z" } as Row;
+              const stored: Row = { ...row, token: String(row.token), opens: 0, expires_at: "2026-12-01T00:00:00.000Z" };
               rows.set(stored.token, stored);
               return { data: { expires_at: stored.expires_at }, error: null };
             },
