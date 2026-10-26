@@ -2395,7 +2395,7 @@ export default function TripDetailClient({
           </div>
         )}
 
-        {/* Active Trip Phase - Today, else the Ongoing Trip View with Gamification */}
+        {/* Active Trip Phase - Today, else the Ongoing Trip View */}
         {isActiveTripPhase && (todayView ?? (
           <>
             {backToToday}

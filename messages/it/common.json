@@ -219,34 +219,6 @@
     "regeneratingActivity": "Rigenerazione attività con AI...",
     "savedInTrips": "{count, plural, one {In # viaggio salvato} other {In # viaggi salvati}}"
   },
-  "xp": {
-    "todaysProgress": "Progresso di Oggi",
-    "activitiesCount": "{completed}/{total} attività",
-    "xpToNextLevel": "{xp} XP per {levelName}",
-    "maxLevel": "Livello Massimo!",
-    "dayComplete": "Giorno Completato!",
-    "levels": {
-      "traveler": "Viaggiatore",
-      "explorer": "Esploratore",
-      "adventurer": "Avventuriero",
-      "voyager": "Navigatore",
-      "globetrotter": "Giramondo",
-      "wayfarer": "Viandante",
-      "wanderer": "Vagabondo",
-      "pathfinder": "Pioniere",
-      "pioneer": "Precursore",
-      "legend": "Leggenda"
-    },
-    "achievement": {
-      "unlocked": "Trofeo {rarity}",
-      "rarities": {
-        "common": "Comune",
-        "rare": "Raro",
-        "epic": "Epico",
-        "legendary": "Leggendario"
-      }
-    }
-  },
   "trip": {
     "cards": "Schede",
     "timeline": "Cronologia",

@@ -13,8 +13,8 @@ export type BananaTransactionType =
   | 'referral'        // Earned from successful referral
   | 'tier_bonus'      // One-time tier unlock bonus
   | 'trip_complete'   // Earned from completing a trip (all activities done)
-  | 'activity_completion' // Earned per activity check-off (gamification loop)
-  | 'achievement_bonus'   // Earned from unlocking an achievement (gamification loop)
+  | 'activity_completion' // Retired live-trip reward per check-off; old ledger rows keep it
+  | 'achievement_bonus'   // Retired live-trip achievement reward; old ledger rows keep it
   | 'first_trip_bonus'    // One-time bonus on the user's first ever trip completion
   | 'signup_bonus'    // New user signup bonus
   | 'review'          // Earned from leaving a review

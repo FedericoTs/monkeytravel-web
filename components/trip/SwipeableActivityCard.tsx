@@ -20,14 +20,11 @@ import {
 } from "lucide-react";
 import type { Activity } from "@/types";
 import type { ActivityStatus } from "@/types/timeline";
-import { ACTIVITY_XP } from "@/types/timeline";
 import { activityTypeKey } from "@/lib/i18n/activity-type";
 
 interface SwipeableActivityCardProps {
   activity: Activity;
   status: ActivityStatus;
-  xpValue: number;
-  streakMultiplier: number;
   onComplete: () => void;
   onSkip: () => void;
   onTap?: () => void;
@@ -56,8 +53,6 @@ const TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
 export default function SwipeableActivityCard({
   activity,
   status,
-  xpValue,
-  streakMultiplier,
   onComplete,
   onSkip,
   onTap,
@@ -182,7 +177,7 @@ export default function SwipeableActivityCard({
         </div>
       </div>
 
-      {/* XP Badge or Status */}
+      {/* Status */}
       <div className="flex-shrink-0 flex items-center gap-2">
         {isCompleted ? (
           <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full">
@@ -193,12 +188,7 @@ export default function SwipeableActivityCard({
             {t("ongoing.skippedBadge")}
           </span>
         ) : (
-          <>
-            <span className="text-xs text-slate-500">
-              +{Math.round(xpValue * streakMultiplier)} XP
-            </span>
-            <ChevronRight className="w-5 h-5 text-slate-300" />
-          </>
+          <ChevronRight className="w-5 h-5 text-slate-300" />
         )}
       </div>
     </>
@@ -265,13 +255,6 @@ export default function SwipeableActivityCard({
             <Check className="w-6 h-6" />
           </motion.div>
           <span className="text-emerald-700 font-medium">{activity.name}</span>
-          <motion.span
-            className="ml-auto text-emerald-600 font-bold"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            +{Math.round(xpValue * streakMultiplier)} XP
-          </motion.span>
         </motion.div>
       </motion.div>
     );

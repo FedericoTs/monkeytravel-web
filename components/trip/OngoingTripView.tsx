@@ -7,12 +7,10 @@ import { useTranslations, useLocale } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, List, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData } from "@/types";
-import type { ActivityTimeline, AchievementId, XpGainEvent } from "@/types/timeline";
-import { useGamification } from "@/lib/hooks/useGamification";
 import { useActivityTimeline } from "@/lib/hooks/useActivityTimeline";
+import { trackActivityCompleted } from "@/lib/analytics";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import SwipeableActivityCard from "./SwipeableActivityCard";
-import XPProgressBar, { AchievementToast } from "./XPProgressBar";
 import TravelConnector from "./TravelConnector";
 import DaySummary from "./DaySummary";
 import ActivityCard from "@/components/ActivityCard";
@@ -64,8 +62,6 @@ export default function OngoingTripView({
   const t = useTranslations("trips");
   const locale = useLocale();
   const [activeTab, setActiveTab] = useState<ViewTab>("today");
-  const [recentXpGain, setRecentXpGain] = useState<XpGainEvent | null>(null);
-  const [achievementQueue, setAchievementQueue] = useState<AchievementId[]>([]);
   // For Full Plan tab - auto-select today's day initially
   const [fullPlanSelectedDay, setFullPlanSelectedDay] = useState<number | null>(null);
 
@@ -118,27 +114,11 @@ export default function OngoingTripView({
 
   // Activity timeline management
   const {
-    timelines,
     isLoading: timelinesLoading,
     completeActivity,
     skipActivity,
     getActivityStatus,
   } = useActivityTimeline(tripId);
-
-  // Gamification
-  const {
-    gamification,
-    recordCompletion,
-    recordSkip,
-    calculateActivityXp,
-    getStreakMultiplier,
-    getTotalPossibleXp,
-    getTodayProgress,
-  } = useGamification({
-    tripId,
-    itinerary: displayItinerary,
-    activityTimelines: timelines,
-  });
 
   // Travel distances for connectors
   const { travelData, isLoading: travelLoading } = useTravelDistances(displayItinerary, {
@@ -153,24 +133,13 @@ export default function OngoingTripView({
 
       try {
         await completeActivity(activity.id, currentDayNumber);
-        const xpEvent = recordCompletion(activity, currentDayNumber);
+        trackActivityCompleted({ tripId, activityId: activity.id, dayNumber: currentDayNumber });
 
-        setRecentXpGain(xpEvent);
-
-        // Queue achievements for display
-        if (xpEvent.newAchievements.length > 0) {
-          setAchievementQueue((prev) => [...prev, ...xpEvent.newAchievements]);
-        }
-
-        // Native success haptic — fires alongside the XP gain animation
-        // so users feel the reward immediately even before they look at
-        // the toast. No-op on web (zero overhead). Booking + Airbnb both
-        // fire success haptics on booking-confirmation moments; activity
-        // completion is the closest analog in our flow.
+        // Native success haptic, so users feel the completion land. No-op on
+        // web (zero overhead). Booking + Airbnb both fire success haptics on
+        // booking-confirmation moments; activity completion is the closest
+        // analog in our flow.
         hapticSuccess();
-
-        // Clear XP animation after delay
-        setTimeout(() => setRecentXpGain(null), 2500);
       } catch (error) {
         console.error("Failed to complete activity:", error);
         // Error haptic gives in-trip users an immediate "this didn't
@@ -179,7 +148,7 @@ export default function OngoingTripView({
         hapticError();
       }
     },
-    [completeActivity, currentDayNumber, recordCompletion]
+    [completeActivity, currentDayNumber, tripId]
   );
 
   // Handle activity skip
@@ -189,7 +158,6 @@ export default function OngoingTripView({
 
       try {
         await skipActivity(activity.id, currentDayNumber);
-        recordSkip(activity.id);
         // Light tap — skip is a low-stakes action, contrast with the
         // success haptic on completion keeps both feeling meaningful.
         hapticLight();
@@ -198,15 +166,13 @@ export default function OngoingTripView({
         hapticError();
       }
     },
-    [skipActivity, currentDayNumber, recordSkip]
+    [skipActivity, currentDayNumber]
   );
 
-  // Dismiss achievement toast
-  const dismissAchievement = useCallback(() => {
-    setAchievementQueue((prev) => prev.slice(1));
-  }, []);
-
-  const todayProgress = getTodayProgress(currentDayNumber);
+  const todayProgress = {
+    completed: todayActivities.filter((a) => a.id && getActivityStatus(a.id) === "completed").length,
+    total: todayActivities.length,
+  };
   const todayDate = displayItinerary.find((d) => d.day_number === currentDayNumber)?.date;
   const todayTheme = displayItinerary.find((d) => d.day_number === currentDayNumber)?.theme;
 
@@ -295,19 +261,6 @@ export default function OngoingTripView({
         </div>
       )}
 
-      {/* XP Progress Bar (only shown on Today tab) */}
-      {isTodayTab && (
-        <div className="px-4 -mt-8 relative z-10">
-          <XPProgressBar
-            totalXp={gamification.totalXp}
-            maxXp={getTotalPossibleXp()}
-            currentStreak={gamification.currentStreak}
-            todayProgress={todayProgress}
-            recentXpGain={recentXpGain}
-          />
-        </div>
-      )}
-
       {/* Tab Switcher - Always visible */}
       <div className="px-4 mt-4">
         <div className="bg-slate-100 rounded-xl p-1 flex">
@@ -364,7 +317,6 @@ export default function OngoingTripView({
                 <div className="space-y-2">
                   {todayActivities.map((activity, idx) => {
                     const status = activity.id ? getActivityStatus(activity.id) : "upcoming";
-                    const xpValue = calculateActivityXp(activity);
                     const nextActivity = todayActivities[idx + 1];
                     const dayTravelData = travelData.get(currentDayNumber);
                     const segment =
@@ -378,8 +330,6 @@ export default function OngoingTripView({
                         <SwipeableActivityCard
                           activity={activity}
                           status={status}
-                          xpValue={xpValue}
-                          streakMultiplier={getStreakMultiplier()}
                           onComplete={() => handleCompleteActivity(activity)}
                           onSkip={() => handleSkipActivity(activity)}
                           currency={budget?.currency}
@@ -576,16 +526,6 @@ export default function OngoingTripView({
                 })}
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Achievement Toasts */}
-      <AnimatePresence>
-        {achievementQueue.length > 0 && (
-          <AchievementToast
-            achievementId={achievementQueue[0]}
-            onDismiss={dismissAchievement}
-          />
         )}
       </AnimatePresence>
 

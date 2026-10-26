@@ -311,13 +311,11 @@ export function trackActivityCompleted(params: {
   tripId: string;
   activityId: string;
   dayNumber: number;
-  xpEarned: number;
 }): void {
   trackEvent("activity_completed", {
     trip_id: params.tripId,
     activity_id: params.activityId,
     day_number: params.dayNumber,
-    xp_earned: params.xpEarned,
   });
 }
 
@@ -502,23 +500,6 @@ export function trackSessionStart(params: {
           : params.tripsCount < 5
             ? "engaged"
             : "power_user",
-  });
-}
-
-/**
- * Track achievement unlock (gamification retention)
- */
-export function trackAchievementUnlocked(params: {
-  achievementId: string;
-  achievementName: string;
-  xpEarned: number;
-  totalXp: number;
-}): void {
-  trackEvent("achievement_unlocked", {
-    achievement_id: params.achievementId,
-    achievement_name: params.achievementName,
-    xp_earned: params.xpEarned,
-    total_xp: params.totalXp,
   });
 }
 
