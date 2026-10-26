@@ -37,7 +37,7 @@ import { isSafeNext } from "@/lib/security/safe-next";
 
 export const AUTH_CALLBACK_PATH = "/auth/callback";
 
-/** Must match lib/i18n/routing.ts `locales` (a test enforces it). */
+/** Must match lib/i18n/routing-config.ts `locales` (a test enforces it). */
 export const AUTH_LOCALES = ["en", "es", "it", "pt"] as const;
 export type AuthLocale = (typeof AUTH_LOCALES)[number];
 const DEFAULT_LOCALE: AuthLocale = "en";

@@ -10,7 +10,7 @@ export default function NotFound() {
       {/* Header */}
       <header className="border-b border-slate-100 bg-white/80 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
+          <Link prefetch={false} href="/" className="flex items-center gap-2">
             <Image
               src="/images/logo.png"
               alt="MonkeyTravel"
@@ -45,7 +45,7 @@ export default function NotFound() {
           </p>
 
           <div className="space-y-3">
-            <Link
+            <Link prefetch={false}
               href="/"
               className="inline-flex items-center justify-center gap-2 bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white font-semibold px-6 py-3 rounded-xl transition-all w-full sm:w-auto shadow-lg shadow-[var(--primary)]/25"
             >
@@ -67,7 +67,7 @@ export default function NotFound() {
 
             <p className="text-sm text-slate-500">
               Or{" "}
-              <Link
+              <Link prefetch={false}
                 href="/trips/new"
                 className="text-[var(--primary-ink)] hover:underline font-medium"
               >
@@ -82,7 +82,7 @@ export default function NotFound() {
       <footer className="border-t border-slate-100 py-6 text-center text-sm text-slate-500">
         <p>
           Powered by{" "}
-          <Link href="/" className="text-[var(--primary-ink)] hover:underline">
+          <Link prefetch={false} href="/" className="text-[var(--primary-ink)] hover:underline">
             MonkeyTravel
           </Link>{" "}
           AI

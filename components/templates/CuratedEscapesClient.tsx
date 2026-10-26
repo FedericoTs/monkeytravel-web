@@ -93,7 +93,7 @@ function TemplateCard({ template, preventClick, t }: TemplateCardProps) {
   };
 
   return (
-    <Link
+    <Link prefetch={false}
       href={`/trips/template/${template.id}`}
       onClick={handleClick}
       draggable={false}
@@ -201,7 +201,7 @@ function SeeAllCard({ preventClick, t }: { preventClick: boolean; t: ReturnType<
   };
 
   return (
-    <Link
+    <Link prefetch={false}
       href="/templates"
       onClick={handleClick}
       draggable={false}

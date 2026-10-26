@@ -62,7 +62,7 @@ describe("email copy covers every locale", () => {
   it("EmailLocale matches routing.locales", () => {
     // Read from source text: lib/i18n/routing.ts builds next-intl navigation
     // helpers, which pull next/navigation and cannot be imported under vitest.
-    const src = readFileSync(join(process.cwd(), "lib", "i18n", "routing.ts"), "utf8");
+    const src = readFileSync(join(process.cwd(), "lib", "i18n", "routing-config.ts"), "utf8");
     const literal = src.match(/locales:\s*\[([^\]]+)\]/)?.[1];
     expect(literal, "could not find routing.locales — has the file moved?").toBeTruthy();
     const routingLocales = [...literal!.matchAll(/["']([a-z-]+)["']/g)].map((m) => m[1]);

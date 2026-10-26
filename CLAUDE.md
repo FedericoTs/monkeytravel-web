@@ -75,7 +75,7 @@ Add to these; do not start a parallel version.
 | Modals | `components/ui/BaseModal.tsx`; over a sticky bar pass `usePortal zIndex={100}` |
 | Product analytics | `lib/posthog/` (events, `useFlag`), `lib/analytics.ts` |
 | Email | `lib/email/` |
-| Translations | `messages/{en,es,it,pt}/*.json`, routing in `lib/i18n/routing.ts` |
+| Translations | `messages/{en,es,it,pt}/*.json`, locales in `lib/i18n/routing-config.ts` |
 
 ## Tests
 
@@ -103,8 +103,9 @@ Coral primary buttons are a known, accepted AA exception; see DESIGN.md before
 
 ## Internationalization
 
-- Pages live under `app/[locale]/`. Routing is in `lib/i18n/routing.ts`; request config
-  is `i18n.ts`; locale detection is in `middleware.ts`.
+- Pages live under `app/[locale]/`. The locale list is in `lib/i18n/routing-config.ts`;
+  `Link`, `redirect`, `useRouter` and `usePathname` come from `@/lib/i18n/routing`;
+  request config is `i18n.ts`; locale detection is in `middleware.ts`.
 - Strings live in `messages/{en,es,it,pt}/<namespace>.json`, with the same keys in all
   four files. Never hardcode user-facing text, including in config arrays (store a
   `labelKey` and call `t(option.labelKey)`).
@@ -149,7 +150,9 @@ The traps that have broken indexing before:
    `Foo.tsx` for public pages and a `FooClient.tsx` for client trees.
 5. **`Link` from `@/lib/i18n/routing` is a client component.** The `<a href>` still
    renders server-side, but its children travel as RSC payload; plain `next/link` avoids
-   that where no locale handling is needed.
+   that where no locale handling is needed. Our `Link` prefetches on hover, focus or
+   touch, not on sight; give a plain `next/link` `prefetch={false}` so it does not fetch
+   every visible page in the background.
 6. **Double brand in titles.** The root layout's template appends `| MonkeyTravel`, so
    titles passed through it must not already end with it.
 7. **`<html lang>`** comes from `getLocale()` in the root layout, never a constant.

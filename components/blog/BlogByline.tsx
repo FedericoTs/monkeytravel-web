@@ -40,7 +40,7 @@ export default function BlogByline({
   if (author) {
     return (
       <div className="flex items-center gap-4">
-        <Link
+        <Link prefetch={false}
           href={author.bioUrl}
           className="shrink-0 w-11 h-11 rounded-full overflow-hidden bg-gradient-to-br from-[var(--primary)]/20 to-[var(--accent)]/30 ring-2 ring-white"
           aria-label={`View ${author.name}'s author page`}
@@ -60,7 +60,7 @@ export default function BlogByline({
         </Link>
         <div className="min-w-0 flex-1">
           <p className="text-sm">
-            <Link
+            <Link prefetch={false}
               href={author.bioUrl}
               className="font-semibold text-slate-900 hover:text-[var(--primary-ink)] transition-colors"
             >

@@ -21,7 +21,7 @@
 
 const SITE_URL = "https://monkeytravel.app";
 
-/** Locales that carry an hreflang alternate. Mirrors lib/i18n/routing.ts. */
+/** Locales that carry an hreflang alternate. Mirrors lib/i18n/routing-config.ts. */
 const HREFLANG_LOCALES = ["en", "es", "it", "pt"] as const;
 const DEFAULT_LOCALE = "en";
 

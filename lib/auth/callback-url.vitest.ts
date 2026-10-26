@@ -28,7 +28,7 @@ describe("locales", () => {
   it("are the ones the router serves", () => {
     // Read as source: importing lib/i18n/routing pulls in next-intl's client
     // navigation, which does not load under vitest.
-    const src = readFileSync(join(process.cwd(), "lib/i18n/routing.ts"), "utf8");
+    const src = readFileSync(join(process.cwd(), "lib/i18n/routing-config.ts"), "utf8");
     const listed = src.match(/locales:\s*\[([^\]]*)\]/)?.[1] ?? "";
     const routed = [...listed.matchAll(/"([a-z]{2})"/g)].map((m) => m[1]);
     expect(routed.length).toBeGreaterThan(0);
