@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import enCommon from "@/messages/en/common.json";
 import { LivePlanPreview } from "./LivePlanPreview";
-import type { SseDayData } from "@/lib/streaming/sse";
+import type { SseDayData, SseOutlineData } from "@/lib/streaming/sse";
 
 /** The plan as it streams in: the days written so far, then the one being planned. */
 
@@ -14,10 +14,10 @@ const day = (n: number, theme: string, activities: unknown[]): SseDayData => ({
   activities,
 });
 
-function renderPreview(days: SseDayData[], totalDays: number) {
+function renderPreview(days: SseDayData[], totalDays: number, outline?: SseOutlineData["days"]) {
   render(
     <NextIntlClientProvider locale="en" messages={{ common: enCommon }}>
-      <LivePlanPreview days={days} totalDays={totalDays} />
+      <LivePlanPreview days={days} outline={outline} totalDays={totalDays} />
     </NextIntlClientProvider>
   );
 }
@@ -46,5 +46,17 @@ describe("LivePlanPreview", () => {
     expect(screen.getByText("Check in")).toBeTruthy();
     expect(screen.queryByText("10:00")).toBeNull();
     expect(screen.queryByText(/Planning day/)).toBeNull();
+  });
+
+  it("shows a long trip's outline for the days still being written", () => {
+    const outline = [
+      { day_number: 1, theme: "Ancient wonders", area: "Acropolis", places: ["Acropolis of Athens"] },
+      { day_number: 2, theme: "The sea", area: "Piraeus", places: ["Mikrolimano", "Naval Museum"] },
+      { day_number: 3, theme: "Old town", area: "Plaka", places: ["Anafiotika"] },
+    ];
+    renderPreview([day(1, "Ancient wonders", [{ name: "Acropolis of Athens" }])], 3, outline);
+    expect(screen.getAllByRole("heading").map((h) => h.textContent)).toEqual(["Ancient wonders", "The sea", "Old town"]);
+    expect(screen.getByText("· Mikrolimano, Naval Museum")).toBeTruthy();
+    expect(screen.getAllByText(/Planning day/).map((p) => p.textContent)).toEqual(["Planning day 2…"]);
   });
 });

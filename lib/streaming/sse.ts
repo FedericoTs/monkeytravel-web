@@ -15,6 +15,7 @@
 
 export type SseEvent =
   | { type: "metadata"; data: SseMetadataData }
+  | { type: "outline"; data: SseOutlineData }
   | { type: "day"; data: SseDayData }
   | { type: "complete"; data: SseCompleteData }
   | { type: "error"; data: SseErrorData };
@@ -25,6 +26,11 @@ export interface SseMetadataData {
   language: string;
   /** "stream" or "cache" — cache hits send all days under one complete event. */
   mode: "stream" | "cache";
+}
+
+/** A long trip's outline, sent before its days (lib/ai/trip-outline.ts). */
+export interface SseOutlineData {
+  days: Array<{ day_number: number; theme: string; area: string; places: string[] }>;
 }
 
 export interface SseDayData {

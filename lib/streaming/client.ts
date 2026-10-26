@@ -17,10 +17,12 @@ import type {
   SseCompleteData,
   SseErrorData,
   SseMetadataData,
+  SseOutlineData,
 } from "./sse";
 
 export interface StreamHandlers {
   onMetadata?: (data: SseMetadataData) => void;
+  onOutline?: (data: SseOutlineData) => void;
   onDay?: (data: SseDayData) => void;
   onComplete: (data: SseCompleteData) => void;
   onError?: (data: SseErrorData) => void;
@@ -124,6 +126,9 @@ function dispatchEvent(raw: string, handlers: StreamHandlers): void {
   switch (eventName) {
     case "metadata":
       handlers.onMetadata?.(payload as SseMetadataData);
+      break;
+    case "outline":
+      handlers.onOutline?.(payload as SseOutlineData);
       break;
     case "day":
       handlers.onDay?.(payload as SseDayData);

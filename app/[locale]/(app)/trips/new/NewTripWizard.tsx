@@ -42,7 +42,7 @@ import DateRangePicker from "@/components/ui/DateRangePicker";
 import AnchorEditor from "@/components/trip/AnchorEditor";
 import { buildSeasonalContext, getSeasonalVibeSuggestions } from "@/lib/seasonal";
 import { streamGeneration } from "@/lib/streaming/client";
-import type { SseDayData } from "@/lib/streaming/sse";
+import type { SseDayData, SseOutlineData } from "@/lib/streaming/sse";
 import { GENERATION_ID_HEADER } from "@/lib/ai/generation-id";
 import {
   GENERATION_TIMEOUT_MS,
@@ -571,6 +571,8 @@ export default function NewTripPage({
   // GenerationProgress component shows the days as they arrive ("Day 3 of 7"
   // and the plan itself) instead of fake-percentage phases.
   const [streamedDays, setStreamedDays] = useState<SseDayData[]>([]);
+  // A long trip's outline, on screen while its days are written.
+  const [streamedOutline, setStreamedOutline] = useState<SseOutlineData["days"]>([]);
   const [streamedTotalDays, setStreamedTotalDays] = useState(0);
 
   // Solo vs group intent. Captured as PostHog `trip_intent_selected`,
@@ -2549,6 +2551,7 @@ export default function NewTripPage({
         const idHeader = { [GENERATION_ID_HEADER]: generationId };
         // Reset stream progress for this try.
         setStreamedDays([]);
+        setStreamedOutline([]);
         setStreamedTotalDays(0);
 
         // 1. Try the streaming endpoint first. If it fails before any data
@@ -2579,6 +2582,10 @@ export default function NewTripPage({
                 onMetadata: (meta) => {
                   heard();
                   setStreamedTotalDays(meta.totalDays);
+                },
+                onOutline: (outline) => {
+                  heard();
+                  setStreamedOutline(outline.days);
                 },
                 onDay: (day) => {
                   heard();
@@ -4342,6 +4349,7 @@ export default function NewTripPage({
         destination={destination}
         isGenerating={generating}
         streamedDays={streamedDays}
+        streamedOutline={streamedOutline}
         streamedTotalDays={streamedTotalDays}
       />
     );

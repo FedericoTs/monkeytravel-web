@@ -16,6 +16,8 @@ import {
 } from "./gemini-dedup";
 import { paceBudgetPromptClause } from "./trip/pace";
 import { ACTIVITY_TYPES, normalizeActivityType } from "./trip/activity-type";
+import { addIsoDays } from "./dates/iso-date";
+import type { OutlineDay } from "./ai/trip-outline";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -448,6 +450,12 @@ interface BuildPromptOptions {
    * lib/ai/anchored.ts, never by API clients.
    */
   anchorBrief?: string;
+  /**
+   * Write only days `from`..`to` of the trip, following `outline` for the
+   * whole trip (lib/ai/trip-outline.ts). Set by the stream route when a long
+   * trip is written in parts at the same time.
+   */
+  part?: { from: number; to: number; outline: OutlineDay[] };
 }
 
 /**
@@ -800,6 +808,24 @@ ${options.anchorBrief}
 `
     : "";
 
+  const part = options?.part;
+  const partSection = part
+    ? `## This Request: Days ${part.from}–${part.to} of ${duration}
+The trip is written in parts at the same time. Write ONLY days ${part.from} to ${part.to}: the "days" array holds exactly those days, numbered ${part.from} to ${part.to}, dated ${addIsoDays(params.startDate, part.from - 1)} to ${addIsoDays(params.startDate, part.to - 1)}.
+${
+  part.from === 1
+    ? 'Fill "destination", "trip_summary" and "booking_links" for the whole trip.'
+    : 'Another part fills the trip-level fields: give "destination" only its name and country, and leave "trip_summary" and "booking_links" out.'
+}
+
+The whole trip, day by day (theme, area, the places it is built around):
+${part.outline.map((d) => `- Day ${d.day_number}: ${d.theme} (${d.area}): ${d.places.join("; ")}`).join("\n")}
+
+Build each of your days around its own places, at the pace asked for above. Never use a place listed for another day.
+
+`
+    : "";
+
   // Language header intentionally at the END (see tail of this template):
   // it is the most cache-hostile token span (varies per locale), and the
   // shared-prefix cache only covers the identical head of the request.
@@ -824,7 +850,7 @@ ${params.mustDos.map((m) => `- ${m}`).join("\n")}
     : ""
 }${buildProfilePreferencesSection(params.profilePreferences)}${buildSchedulingPreferencesSection(params.profilePreferences)}
 
-${anchorSection}## Booking Link Values
+${anchorSection}${partSection}## Booking Link Values
 Substitute these into the booking_links URL templates (rule 8 of the Required Output spec) — output the final URLs, never the tokens:
 - {DEST_SLUG} = ${destSlug}
 - {DEST_ENCODED} = ${destEncoded}
