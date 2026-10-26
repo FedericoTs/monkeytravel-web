@@ -9,7 +9,7 @@ import StartOverModal from "./StartOverModal";
  * modal must not promise to discard it or list what will be lost.
  */
 
-function renderModal(props: { wasAutoSaved?: boolean; keepsSavedTrip?: boolean }) {
+function renderModal(props: { wasAutoSaved?: boolean; keepsSavedTrip?: boolean; keptPlan?: boolean }) {
   render(
     <NextIntlClientProvider locale="en" messages={{ common: enCommon }}>
       <StartOverModal
@@ -39,5 +39,12 @@ describe("Start Over modal", () => {
     expect(screen.queryByText("You'll lose:")).toBeNull();
     expect(screen.queryByText(/archived for 7 days/)).toBeNull();
     expect(screen.getByRole("button", { name: "Start Fresh" })).toBeTruthy();
+  });
+
+  it("for a signed-out planner's kept plan, says it stays under Your plans", () => {
+    renderModal({ keptPlan: true });
+    expect(screen.getByText(/Your plan for Lisbon, Portugal stays under Your plans for 30 days/)).toBeTruthy();
+    expect(screen.queryByText("You'll lose:")).toBeNull();
+    expect(screen.queryByText(/archived for 7 days/)).toBeNull();
   });
 });

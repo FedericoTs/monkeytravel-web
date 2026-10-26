@@ -74,6 +74,16 @@
     "usageLimitReached": "Usage Limit Reached",
     "usageLimitDefault": "You've used your free AI generations.",
     "yourTripTo": "Your trip to",
+    "kept": {
+      "yourPlans": "Your plans",
+      "days": "{count, plural, one {# day} other {# days}}",
+      "copyLink": "Copy link",
+      "copied": "Link copied",
+      "linkHint": "Kept for 30 days. The link opens this plan on any device, and anyone you send it to can see it.",
+      "headerNudge": "{count, plural, one {# day} other {# days}} planned — kept for 30 days",
+      "mobileNudge": "{count, plural, one {# day} other {# days}} planned — kept for 30 days on a private link",
+      "gone": "That plan's link has expired. Plans are kept for 30 days after they were last opened."
+    },
     "draftRecovery": {
       "title": "Unsaved trip found",
       "descPrefix": "You have an unsaved trip to",

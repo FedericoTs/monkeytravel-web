@@ -1068,6 +1068,13 @@
     "rls_enabled": true
   },
   {
+    "table": "kept_plans",
+    "grants": {},
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
     "table": "mcp_itineraries",
     "grants": {
       "anon": [

@@ -48,6 +48,8 @@ interface StartOverModalProps {
   wasAutoSaved?: boolean;
   /** The saved trip existed before and stays, with this plan: nothing is lost. */
   keepsSavedTrip?: boolean;
+  /** A signed-out planner's plan, kept behind its link (hooks/useKeptPlan.ts): nothing is lost either. */
+  keptPlan?: boolean;
   /** Offered when the reason is "wrong dates": keep the plan, change the dates. */
   onChangeDatesInstead?: () => void;
 }
@@ -61,9 +63,11 @@ export default function StartOverModal({
   activitiesCount,
   wasAutoSaved = false,
   keepsSavedTrip = false,
+  keptPlan = false,
   onChangeDatesInstead,
 }: StartOverModalProps) {
   const t = useTranslations("common.startOver");
+  const nothingLost = keepsSavedTrip || keptPlan;
 
   // Reason picker state. Required — confirm is disabled until selected.
   // We DON'T preselect anything so the user actively chooses (no biased
@@ -146,13 +150,15 @@ export default function StartOverModal({
         <p className="text-slate-700">
           {keepsSavedTrip
             ? t("keptMessage", { destination })
-            : wasAutoSaved
-              ? t("discardMessageSaved", { destination })
-              : t("discardMessage", { destination })}
+            : keptPlan
+              ? t("keptPlanMessage", { destination })
+              : wasAutoSaved
+                ? t("discardMessageSaved", { destination })
+                : t("discardMessage", { destination })}
         </p>
 
         {/* What will be lost */}
-        {!keepsSavedTrip && (
+        {!nothingLost && (
           <div className="bg-slate-50 rounded-xl p-4 space-y-2">
             <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">
               {t("youllLose")}
@@ -248,7 +254,7 @@ export default function StartOverModal({
         </div>
 
         {/* Tip */}
-        {!keepsSavedTrip && (
+        {!nothingLost && (
           <p className="text-sm text-slate-500">
             {t("tip")}
           </p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo, type SetStateAction } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, useSyncExternalStore, type SetStateAction } from "react";
 import { sanitizeIsoDate, maxTripStartDate } from "@/lib/dates/iso-date";
 import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/lib/i18n/routing";
@@ -162,6 +162,20 @@ function preloadResultViewChunks(): void {
 }
 import { sentry } from "@/lib/observability/sentry";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
+import { useKeptPlan } from "@/hooks/useKeptPlan";
+import type { KeptPlan } from "@/lib/plans/kept-plan";
+import {
+  entryFor,
+  forgetKeptPlan,
+  keptPlansServerSnapshot,
+  keptPlansSnapshot,
+  keptTokenFromHash,
+  openKeptPlan,
+  rememberKeptPlan,
+  subscribeKeptPlans,
+} from "@/lib/plans/kept-plans-client";
+import { KeptLinkPill } from "@/components/wizard/KeptLinkPill";
+import { KeptPlansList } from "@/components/wizard/KeptPlansList";
 // Step-1 editorial entry; see lib/wizard/entry-state.ts for the arrival model.
 import WizardMasthead from "@/components/wizard/WizardMasthead";
 import OneTapStarts, { type OneTapPlace } from "@/components/wizard/OneTapStarts";
@@ -1790,6 +1804,115 @@ export default function NewTripPage({
   const sessionTrayVisible =
     hasResult && isUnsaved && !autoSaveArmActive && sessionTrips.length >= 2;
 
+  // ── Kept plans ───────────────────────────────────────────────────────────
+  // Every plan a signed-out planner makes is kept behind a private link for 30
+  // days (hooks/useKeptPlan.ts): closing the tab or changing device loses
+  // nothing, and the plan comes back from its link or from step 1's list.
+  const keptPlanInput = useMemo<KeptPlan | null>(
+    () =>
+      generatedItinerary && destination && startDate && endDate
+        ? {
+            destination,
+            startDate,
+            endDate,
+            itinerary: generatedItinerary,
+            pace,
+            vibes: selectedVibes,
+            budgetTier,
+            travelStyle,
+            ...(tripIntent === "solo" || tripIntent === "group" ? { tripIntent } : {}),
+            ...(flexibleDates ? { flexibleDates: true } : {}),
+            ...(mustDos.length > 0 ? { mustDos } : {}),
+          }
+        : null,
+    [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, tripIntent, flexibleDates, mustDos]
+  );
+  const { kept: keptPlan, adoptOpened: adoptOpenedPlan } = useKeptPlan({
+    enabled: isAuthenticated === false && hasResult && isUnsaved && !generating,
+    planId: sessionTripCurrentId,
+    plan: keptPlanInput,
+  });
+  const keptPlans = useSyncExternalStore(subscribeKeptPlans, keptPlansSnapshot, keptPlansServerSnapshot);
+  const [openingKeptPlan, setOpeningKeptPlan] = useState<string | null>(null);
+  const [keptPlanGone, setKeptPlanGone] = useState(false);
+
+  const handleOpenKeptPlan = async (token: string, source: "link" | "list") => {
+    setOpeningKeptPlan(token);
+    const opened = await openKeptPlan(token);
+    setOpeningKeptPlan(null);
+    if (opened === "gone") {
+      forgetKeptPlan(token);
+      setKeptPlanGone(true);
+      return;
+    }
+    if (!opened) return;
+    const { plan, expiresAt } = opened;
+    // Signed in, the planner saves what it shows: a plan already among their
+    // trips is not saved twice.
+    if (isAuthenticated && authUser && (await isItinerarySaved(createClient(), authUser.id, plan.itinerary))) {
+      router.push("/trips");
+      return;
+    }
+    rememberKeptPlan(entryFor(token, plan, expiresAt));
+    adoptOpenedPlan(token, plan, expiresAt);
+    setDestination(plan.destination);
+    setStartDate(plan.startDate);
+    setEndDate(plan.endDate);
+    if (plan.pace) setPace(plan.pace);
+    if (plan.vibes?.length) setSelectedVibes(plan.vibes);
+    if (plan.budgetTier) setBudgetTier(plan.budgetTier);
+    setTravelStyle(plan.travelStyle === "backpacker" ? "backpacker" : "classic");
+    if (plan.tripIntent) setTripIntent(plan.tripIntent);
+    setFlexibleDates(plan.flexibleDates === true);
+    setMustDos(plan.mustDos ?? []);
+    setAnchors([]);
+    setDestinationCoords(null);
+    setMultiCityMode(false);
+    setKeptPlanGone(false);
+    setShowDraftRecovery(false);
+    setGeneratedItinerary(plan.itinerary);
+    registerSessionRestore({
+      destination: plan.destination,
+      startDate: plan.startDate,
+      endDate: plan.endDate,
+      dayCount: plan.itinerary.days.length,
+      itinerary: plan.itinerary,
+      pace: plan.pace ?? pace,
+      vibes: plan.vibes ?? selectedVibes,
+      budgetTier: plan.budgetTier ?? budgetTier,
+      travelStyle: plan.travelStyle === "backpacker" ? "backpacker" : "classic",
+    });
+    void capture("kept_plan_opened", { source });
+  };
+
+  // A plan's link (#plan=<token>), on arrival or pasted into this tab: taken off
+  // the address bar at once, before analytics start, then opened once sign-in
+  // state is known.
+  const linkedPlanRef = useRef<string | null>(null);
+  const [linkedPlanCount, setLinkedPlanCount] = useState(0);
+  useEffect(() => {
+    const take = () => {
+      const token = keptTokenFromHash(window.location.hash);
+      if (!token) return false;
+      window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
+      linkedPlanRef.current = token;
+      return true;
+    };
+    take();
+    const onHashChange = () => {
+      if (take()) setLinkedPlanCount((n) => n + 1);
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+  useEffect(() => {
+    const token = linkedPlanRef.current;
+    if (!token || isAuthenticated === null) return;
+    linkedPlanRef.current = null;
+    void handleOpenKeptPlan(token, "link");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, linkedPlanCount]);
+
   // save_nudge_shown for the "Not saved" pill — once per session
   // (sessionStorage once-flag; desktop + mobile pills share this one effect).
   useEffect(() => {
@@ -3296,6 +3419,7 @@ export default function NewTripPage({
           activitiesCount={totalActivities}
           wasAutoSaved={autoSaveEnabled && Boolean(autoSave.savedTripId) && !autoSave.keepsSavedTrip}
           keepsSavedTrip={autoSave.keepsSavedTrip}
+          keptPlan={Boolean(keptPlan)}
           onChangeDatesInstead={
             mcStops.length > 1
               ? undefined
@@ -3500,13 +3624,13 @@ export default function NewTripPage({
                   <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  {t("wizard.result.saveHeaderNudge", {
+                  {t(keptPlan ? "wizard.kept.headerNudge" : "wizard.result.saveHeaderNudge", {
                     count: generatedItinerary.days.length,
                   })}
                 </span>
               )}
-              {/* Unsaved-state pill (both save arms). */}
-              {isUnsaved && !autoSaving && <NotSavedPill />}
+              {/* Unsaved-state pill (both save arms); a kept plan's link instead. */}
+              {isUnsaved && !autoSaving && (keptPlan ? <KeptLinkPill token={keptPlan.token} /> : <NotSavedPill />)}
               {autoSaveEnabled && autoSave.savedTripId && autoSave.status !== "saving" ? (
                 // Auto-save flow: trip already persisted. Repurpose the
                 // primary action as a navigation to the saved detail view.
@@ -3612,7 +3736,7 @@ export default function NewTripPage({
               <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              {t("wizard.result.mobileSaveNudge", {
+              {t(keptPlan ? "wizard.kept.mobileNudge" : "wizard.result.mobileSaveNudge", {
                 count: generatedItinerary.days.length,
               })}
             </p>
@@ -3675,8 +3799,8 @@ export default function NewTripPage({
               className="flex-shrink-0"
             />
 
-            {/* Unsaved-state pill, next to the Save button. */}
-            {isUnsaved && !autoSaving && <NotSavedPill />}
+            {/* Unsaved-state pill, next to the Save button; a kept plan's link instead. */}
+            {isUnsaved && !autoSaving && (keptPlan ? <KeptLinkPill token={keptPlan.token} /> : <NotSavedPill />)}
 
             {/* Save - Mobile (Full Width) */}
             {autoSaveEnabled && autoSave.savedTripId && autoSave.status !== "saving" ? (
@@ -4408,7 +4532,29 @@ export default function NewTripPage({
                 {t("wizard.draftRecovery.expired")}
               </p>
             )}
-            {showDraftRecovery && draft && (
+            {keptPlanGone && (
+              <p className="text-sm text-slate-600" role="status">
+                {t("wizard.kept.gone")}
+              </p>
+            )}
+            {/* A signed-out planner's kept plans. The draft banner steps aside
+                when the draft is one of them: the list already brings it back. */}
+            {isAuthenticated === false && !generatedItinerary && (
+              <KeptPlansList
+                plans={keptPlans}
+                locale={locale}
+                opening={openingKeptPlan}
+                onOpen={(token) => void handleOpenKeptPlan(token, "list")}
+              />
+            )}
+            {showDraftRecovery &&
+              draft &&
+              !(
+                isAuthenticated === false &&
+                keptPlans.some(
+                  (p) => p.destination === draft.destination && p.startDate === draft.startDate && p.endDate === draft.endDate
+                )
+              ) && (
               <DraftRecoveryBanner
                 draft={draft}
                 onRestore={handleRestoreDraft}
