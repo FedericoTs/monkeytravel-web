@@ -132,7 +132,7 @@
       "planningStat": "{count}+ trips planned in the last 30 days",
       "title": "Where and when?",
       "subtitle": "Pick a destination and your travel dates",
-      "placeholder": "e.g., Paris, Tokyo, New York...",
+      "placeholder": "e.g., Paris, or 4 days in Rome",
       "popularDestinations": "Popular destinations",
       "whosComing": "Who's coming?",
       "justMe": "Just me",
@@ -177,6 +177,12 @@
       "hintFlexibleDefault": "No dates yet? We'll pencil in {days} days about three weeks out — you can change them anytime.",
       "freeReassuranceSignedIn": "Free — your full day-by-day trip, ready to save in one tap",
       "destinationTooLong": "That looks like a request rather than a place. Put the destination here (max 100 characters) and add the details on the next step."
+    },
+    "express": {
+      "title": "Your trip, as we read it",
+      "days": "{count, plural, one {# day} other {# days}}",
+      "hint": "We'll fill in what's missing. You can change anything once it's planned.",
+      "cta": "Plan this trip"
     },
     "returningUser": {
       "welcomeBack": "Welcome back!",

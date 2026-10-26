@@ -48,6 +48,8 @@ export interface ItineraryDraft {
    * toward "unspecified" precisely where the evidence matters.
    */
   tripIntent?: "solo" | "group" | "unspecified";
+  /** Dates pencilled in rather than chosen; must survive the signup redirect like the rest. */
+  flexibleDates?: boolean;
   savedAt: number;
   userId?: string;
 }

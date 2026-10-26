@@ -20,6 +20,7 @@ import { isValidTimeZone } from "@/lib/trip/live";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { newTripTitle } from "@/lib/trips/title";
 import { pickCoverFromItinerary } from "@/lib/trips/cover";
+import type { PencilledDates } from "@/lib/trips/pencilled-dates";
 
 export interface TripFormState {
   destination: string;
@@ -74,6 +75,12 @@ export interface TripFormState {
    * trip_intent means the user actively chose.
    */
   tripIntent?: "solo" | "group" | "unspecified";
+  /**
+   * The dates were pencilled in for the traveller ("flexible dates", a plan
+   * from one sentence) rather than chosen. Written as trip_meta.dates_pencilled
+   * (lib/trips/pencilled-dates.ts): the trip's emails wait until its dates change.
+   */
+  flexibleDates?: boolean;
 }
 
 /**
@@ -193,6 +200,9 @@ function buildTripRow(
     // from a deliberate choice.
     ...(formState.tripIntent === "solo" || formState.tripIntent === "group"
       ? { trip_intent: formState.tripIntent }
+      : {}),
+    ...(formState.flexibleDates
+      ? { dates_pencilled: { start: formState.startDate, end: formState.endDate } satisfies PencilledDates }
       : {}),
   };
 

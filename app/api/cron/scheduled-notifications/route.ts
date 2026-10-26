@@ -30,6 +30,7 @@ import { parseDigestDay, digestStaleReason, digestParticipantRecipients } from "
 import { postTripCtaUrl } from "@/lib/email/followup-cta";
 import { reminderCtaUrl } from "@/lib/email/reminder-cta";
 import { daySendUrl, digestDayUrl, tripDayDate } from "@/lib/trips/day-link";
+import { stillPencilled } from "@/lib/trips/pencilled-dates";
 import { resolveLocale, formatDateRange, formatDayMonth } from "@/lib/email/reminder-locale";
 import { retryTransient } from "@/lib/notifications/retry";
 import { domesticTripVerdict } from "@/lib/notifications/domestic-trip";
@@ -380,6 +381,8 @@ type TripEmailRow = {
   // The group ask: who the trip is for, and whether a share link exists.
   trip_intent: string | null;
   shared_at: string | null;
+  // The dates the planner pencilled in, if it did (lib/trips/pencilled-dates.ts).
+  dates_pencilled: unknown;
 };
 
 type SlotRow = {
@@ -595,6 +598,7 @@ async function processRow(
         "packing_suggestions:trip_meta->packing_suggestions, " +
         "trip_locale:trip_meta->>locale, " +
         "trip_intent:trip_meta->>trip_intent, " +
+        "dates_pencilled:trip_meta->dates_pencilled, " +
         "day1:itinerary->0"
     )
     .eq("id", row.trip_id)
@@ -644,6 +648,14 @@ async function processRow(
   // see; gating on 'confirmed' would silence most legitimate reminders.
   if (trip.status === "cancelled") {
     await persistOutcome(svc, row.id, "suppressed", "trip_cancelled");
+    return "skipped";
+  }
+
+  // Dates the planner pencilled in are a placeholder, not a departure: no
+  // countdown, digest or "How was it?" for them. Choosing dates ends this
+  // (the dates stop matching) and the date change re-queues the cascade.
+  if (stillPencilled(trip.dates_pencilled, trip.start_date, trip.end_date)) {
+    await persistOutcome(svc, row.id, "suppressed", "dates_pencilled");
     return "skipped";
   }
 
