@@ -45,7 +45,8 @@ export default function NotFound() {
           </p>
 
           <div className="space-y-3">
-            <Link prefetch={false}
+            <Link
+              prefetch={false}
               href="/"
               className="inline-flex items-center justify-center gap-2 bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white font-semibold px-6 py-3 rounded-xl transition-all w-full sm:w-auto shadow-lg shadow-[var(--primary)]/25"
             >
@@ -67,7 +68,8 @@ export default function NotFound() {
 
             <p className="text-sm text-slate-500">
               Or{" "}
-              <Link prefetch={false}
+              <Link
+                prefetch={false}
                 href="/trips/new"
                 className="text-[var(--primary-ink)] hover:underline font-medium"
               >

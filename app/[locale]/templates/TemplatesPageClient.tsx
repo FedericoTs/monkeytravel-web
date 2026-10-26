@@ -115,7 +115,8 @@ function FeaturedCard({ template }: { template: TemplateTrip }) {
       : "€€€";
 
   return (
-    <Link prefetch={false}
+    <Link
+      prefetch={false}
       href={`/trips/template/${template.id}`}
       className="group relative block rounded-2xl overflow-hidden active:scale-[0.99] transition-transform"
     >
@@ -226,7 +227,8 @@ function TemplateCard({ template, index }: { template: TemplateTrip; index: numb
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03, duration: 0.3 }}
     >
-      <Link prefetch={false}
+      <Link
+        prefetch={false}
         href={`/trips/template/${template.id}`}
         className="group bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-slate-300 hover:-translate-y-1 block active:scale-[0.98]"
       >
@@ -505,7 +507,8 @@ export default function TemplatesPageClient() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Top bar with back and title */}
           <div className="flex items-center justify-between py-3 border-b border-slate-100">
-            <Link prefetch={false}
+            <Link
+              prefetch={false}
               href="/trips"
               className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
             >
@@ -520,7 +523,8 @@ export default function TemplatesPageClient() {
 
             {/* Empty placeholder for layout balance on mobile, show Create Trip on desktop */}
             <div className="w-5 sm:w-auto">
-              <Link prefetch={false}
+              <Link
+                prefetch={false}
                 href="/trips/new"
                 className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
               >
@@ -704,7 +708,8 @@ export default function TemplatesPageClient() {
                 <h2 className="text-2xl font-bold text-white mb-2">{t("cta.title")}</h2>
                 <p className="text-white/80 text-sm">{t("cta.body")}</p>
               </div>
-              <Link prefetch={false}
+              <Link
+                prefetch={false}
                 href="/trips/new"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[var(--primary-ink)] font-semibold rounded-xl hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-all shadow-lg"
               >
