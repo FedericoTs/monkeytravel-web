@@ -13,8 +13,10 @@
  *
  * Tier membership below follows Google's published field lists for the
  * March 2025 structure (Essentials / Pro / Enterprise / Enterprise +
- * Atmosphere). An unknown field is treated as the top tier, so a new field
- * can only make the estimate conservative, never optimistic.
+ * Atmosphere), below which sit the free "IDs Only" SKUs: a Text Search that
+ * asks for the place id alone, and Place Details for ids and photos alone,
+ * are free without limit. An unknown field is treated as the top tier, so a
+ * new field can only make the estimate conservative, never optimistic.
  *
  * Prices are Google's LIST prices in USD per 1,000 requests. Google also
  * grants a free monthly allowance per SKU tier (published as 10,000 Essentials,
@@ -26,24 +28,26 @@
  * it. Nothing here is a limit or a block; it only prices what was already spent.
  */
 
-export type PlacesTier = "essentials" | "pro" | "enterprise" | "enterprise_atmosphere";
+export type PlacesTier = "ids_only" | "essentials" | "pro" | "enterprise" | "enterprise_atmosphere";
 export type PlacesCallKind = "details" | "textSearch" | "autocomplete";
 export type PlacesSku =
   | `details_${PlacesTier}`
   | `text_search_${PlacesTier}`
   | "autocomplete";
 
-const TIER_ORDER: PlacesTier[] = ["essentials", "pro", "enterprise", "enterprise_atmosphere"];
+const TIER_ORDER: PlacesTier[] = ["ids_only", "essentials", "pro", "enterprise", "enterprise_atmosphere"];
 
 export const PLACES_SKU_LIST_PRICE: Record<PlacesSku, { usdPer1000: number; verified: boolean; note?: string }> = {
+  details_ids_only: { usdPer1000: 0, verified: true, note: "Unlimited free on Google's price list." },
   details_essentials: { usdPer1000: 5, verified: false },
   details_pro: { usdPer1000: 17, verified: false },
   details_enterprise: { usdPer1000: 20, verified: false },
   details_enterprise_atmosphere: { usdPer1000: 25, verified: false },
+  text_search_ids_only: { usdPer1000: 0, verified: true, note: "Unlimited free on Google's price list." },
   text_search_essentials: {
     usdPer1000: 32,
     verified: false,
-    note: "ID-only tier; Google lists it separately from Pro. Confirm on the bill before relying on it: if it is free, the activity lookup should become ID-only search + Details.",
+    note: "Never produced: Text Search has no paid Essentials tier, so Essentials fields bill as Pro.",
   },
   text_search_pro: { usdPer1000: 32, verified: false },
   text_search_enterprise: { usdPer1000: 35, verified: false },
@@ -52,9 +56,10 @@ export const PLACES_SKU_LIST_PRICE: Record<PlacesSku, { usdPer1000: number; veri
 };
 
 /** Place Details field tiers. Text Search maps the Essentials set to Pro (no photos in an ID-only search). */
+const DETAILS_IDS_ONLY = new Set(["id", "name", "photos", "attributions", "consumerAlert", "movedPlace", "movedPlaceId"]);
 const DETAILS_ESSENTIALS = new Set([
-  "id", "name", "photos", "addressComponents", "adrFormatAddress", "formattedAddress", "location",
-  "plusCode", "postalAddress", "shortFormattedAddress", "types", "viewport", "attributions",
+  "addressComponents", "adrFormatAddress", "formattedAddress", "location",
+  "plusCode", "postalAddress", "shortFormattedAddress", "types", "viewport",
 ]);
 const DETAILS_PRO = new Set([
   "accessibilityOptions", "businessStatus", "displayName", "googleMapsUri", "iconBackgroundColor",
@@ -66,8 +71,10 @@ const DETAILS_ENTERPRISE = new Set([
   "priceLevel", "priceRange", "rating", "regularOpeningHours", "regularSecondaryOpeningHours",
   "userRatingCount", "websiteUri",
 ]);
-/** Fields that only matter to a Text Search response, never priced above Essentials. */
-const TEXT_SEARCH_ID_ONLY = new Set(["id", "name", "attributions", "nextPageToken", "contextualContents"]);
+/** Fields an ID-only Text Search may ask for and stay free. */
+const TEXT_SEARCH_ID_ONLY = new Set([
+  "id", "name", "attributions", "nextPageToken", "contextualContents", "consumerAlert", "movedPlace", "movedPlaceId",
+]);
 
 function fieldsOf(fieldMask: string): string[] {
   return fieldMask
@@ -78,6 +85,7 @@ function fieldsOf(fieldMask: string): string[] {
 }
 
 function detailsTierOfField(field: string): PlacesTier {
+  if (DETAILS_IDS_ONLY.has(field)) return "ids_only";
   if (DETAILS_ESSENTIALS.has(field)) return "essentials";
   if (DETAILS_PRO.has(field)) return "pro";
   if (DETAILS_ENTERPRISE.has(field)) return "enterprise";
@@ -85,7 +93,7 @@ function detailsTierOfField(field: string): PlacesTier {
 }
 
 function maxTier(tiers: PlacesTier[]): PlacesTier {
-  return tiers.reduce<PlacesTier>((acc, t) => (TIER_ORDER.indexOf(t) > TIER_ORDER.indexOf(acc) ? t : acc), "essentials");
+  return tiers.reduce<PlacesTier>((acc, t) => (TIER_ORDER.indexOf(t) > TIER_ORDER.indexOf(acc) ? t : acc), "ids_only");
 }
 
 export function placesDetailsTier(fieldMask: string): PlacesTier {
@@ -94,11 +102,11 @@ export function placesDetailsTier(fieldMask: string): PlacesTier {
 
 export function placesTextSearchTier(fieldMask: string): PlacesTier {
   const fields = fieldsOf(fieldMask);
-  if (fields.length > 0 && fields.every((f) => TEXT_SEARCH_ID_ONLY.has(f))) return "essentials";
+  if (fields.length > 0 && fields.every((f) => TEXT_SEARCH_ID_ONLY.has(f))) return "ids_only";
   const tiers = fields.map((f) => {
     if (TEXT_SEARCH_ID_ONLY.has(f)) return "pro" as PlacesTier;
     const t = detailsTierOfField(f);
-    return t === "essentials" ? "pro" : t;
+    return t === "essentials" || t === "ids_only" ? "pro" : t;
   });
   return maxTier(["pro", ...tiers]);
 }
