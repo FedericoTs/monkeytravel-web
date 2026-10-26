@@ -27,12 +27,6 @@
     "example": "Um roteiro de três dias em Lisboa deveria manter Belém em um único bloco, em vez de espalhá-lo por duas manhãs. Esse tipo de ordenação é quase todo o trabalho do gerador.",
     "honest": "Nenhum gerador acerta uma cidade de primeira. Trate o resultado como um bom primeiro rascunho para editar, não como um plano a seguir às cegas."
   },
-  "stats": {
-    "generationTime": "Tempo de Geração",
-    "destinations": "Destinos",
-    "free": "Grátis",
-    "budgetTiers": "Níveis de Orçamento"
-  },
   "features": {
     "title": "Geração de Roteiros com AI Poderosa",
     "subtitle": "Nossa AI não apenas sugere lugares — ela monta roteiros completos e estruturados que você realmente consegue seguir.",

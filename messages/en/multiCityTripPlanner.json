@@ -27,26 +27,6 @@
     "example": "Rome, Florence and Venice in ten days is not three separate trips. It is roughly seven usable days and three spent moving, and where you put the split matters.",
     "honest": "It does not book transport or read live timetables. Confirm the connections before you commit to the shape of the trip."
   },
-  "stats": {
-    "items": {
-      "cities": {
-        "value": "5",
-        "label": "Cities per trip"
-      },
-      "days": {
-        "value": "21",
-        "label": "Days per trip"
-      },
-      "free": {
-        "value": "100%",
-        "label": "Free"
-      },
-      "languages": {
-        "value": "4",
-        "label": "Languages"
-      }
-    }
-  },
   "features": {
     "title": "Built for Trips That Don't Stay in One City",
     "subtitle": "Everything the single-city planner does, extended across your whole route.",

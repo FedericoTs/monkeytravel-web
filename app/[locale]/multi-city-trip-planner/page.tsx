@@ -2,6 +2,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import EmailSubscribe from '@/components/EmailSubscribe';
 import HeroDoodleBackground from '@/components/marketing/HeroDoodleBackground';
+import LiveStats from '@/components/stats/LiveStats';
 import { HERO_DOODLE_ENABLED } from '@/components/marketing/doodle';
 import { Link, routing } from '@/lib/i18n/routing';
 import {
@@ -313,34 +314,7 @@ export default async function MultiCityTripPlannerPage({
           </div>
         </section>
 
-        {/* ================================================================
-            SOCIAL PROOF STATS BAR
-            ================================================================ */}
-        <section className="py-8 bg-white border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-16 text-center">
-              <div>
-                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary-ink)]">{t('stats.items.cities.value')}</div>
-                <div className="text-sm text-[var(--foreground-muted)]">{t('stats.items.cities.label')}</div>
-              </div>
-              <div className="hidden sm:block w-px h-12 bg-gray-200" />
-              <div>
-                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary-ink)]">{t('stats.items.days.value')}</div>
-                <div className="text-sm text-[var(--foreground-muted)]">{t('stats.items.days.label')}</div>
-              </div>
-              <div className="hidden sm:block w-px h-12 bg-gray-200" />
-              <div>
-                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary-ink)]">{t('stats.items.free.value')}</div>
-                <div className="text-sm text-[var(--foreground-muted)]">{t('stats.items.free.label')}</div>
-              </div>
-              <div className="hidden sm:block w-px h-12 bg-gray-200" />
-              <div>
-                <div className="text-3xl sm:text-4xl font-bold text-[var(--primary-ink)]">{t('stats.items.languages.value')}</div>
-                <div className="text-sm text-[var(--foreground-muted)]">{t('stats.items.languages.label')}</div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <LiveStats locale={locale} />
 
         {/* ================================================================
             FEATURES GRID

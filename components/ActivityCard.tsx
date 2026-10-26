@@ -16,6 +16,7 @@ import { getActivityTypeColors } from "@/lib/constants/activityColors";
 import { openExternal } from "@/lib/native/external-link";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { PhotoCredit } from "./ui/PhotoCredit";
+import { useSavedTrips } from "@/lib/stats/useSavedTrips";
 
 interface ActivityCardProps {
   activity: Activity;
@@ -50,6 +51,9 @@ function ActivityCard({
   const [isMobile, setIsMobile] = useState(false);
   const [verifiedPrice, setVerifiedPrice] = useState<VerifiedPriceData | null>(null);
   const [priceLoading, setPriceLoading] = useState(false);
+  // Shown over the photo only: the count arrives after the first paint, and
+  // there it moves nothing.
+  const savedTrips = useSavedTrips(activity.image_url ? activity.name : undefined, activity.coordinates);
 
   // Currency conversion hook - converts prices to user's preferred currency
   const { convert: convertCurrency, preferredCurrency } = useCurrency();
@@ -205,6 +209,16 @@ function ActivityCard({
           />
           {/* Gradient overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          {savedTrips !== null && (
+            <div className="absolute top-2 left-2">
+              <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full backdrop-blur-sm bg-white/90 text-slate-700 shadow-sm">
+                <svg aria-hidden="true" className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                {t("activity.savedInTrips", { count: savedTrips })}
+              </span>
+            </div>
+          )}
           {/* Type badge overlay */}
           <div className="absolute bottom-2 left-2">
             <span

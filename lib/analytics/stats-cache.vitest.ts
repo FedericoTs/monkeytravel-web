@@ -3,8 +3,9 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 /**
- * Two slow aggregate RPCs read small tables that pg_cron refreshes hourly: the
- * wizard's "planned in the last 30 days" figure and the homepage leaderboard.
+ * Slow aggregate RPCs read small tables that pg_cron refreshes: the wizard's
+ * "planned in the last 30 days" figure and the homepage leaderboard hourly,
+ * the planner pages' figures and the saved places every six hours.
  * These guards keep each RPC on its cache with a live fallback, the jobs
  * scheduled, the tables closed to clients, and the results what they were.
  */
@@ -136,5 +137,50 @@ describe("destination leaderboard", () => {
 
   it("the cache table is closed to clients and in the RLS baseline", () => {
     expectClosedToClients(sql, "destination_leaderboard_cache");
+  });
+});
+
+describe("public stats and saved places", () => {
+  const sql = latest(/create or replace function public\.get_public_stats\(/i);
+
+  it("the readers return the cached row and never compute live", () => {
+    for (const name of ["get_public_stats", "get_saved_places"]) {
+      const rpc = fn(sql, name);
+      expect(rpc).toContain("security definer set search_path to 'public'");
+      expect(rpc).toContain("from public.public_stats_cache s");
+      expect(rpc).not.toContain("compute_");
+    }
+  });
+
+  it("anon reads the figures; only the service role computes or refreshes them", () => {
+    for (const name of ["get_public_stats", "get_saved_places"]) {
+      expect(sql).toContain(`grant execute on function public.${name}() to anon, authenticated, service_role`);
+    }
+    for (const name of ["compute_public_stats", "compute_saved_places", "refresh_public_stats"]) {
+      expect(sql).toContain(`revoke execute on function public.${name}() from public, anon, authenticated`);
+      expect(sql).not.toMatch(new RegExp(`grant execute on function public\\.${name}\\(\\) to [^;]*anon`));
+    }
+  });
+
+  it("a place needs three independent trips by three different people", () => {
+    const compute = fn(sql, "compute_saved_places");
+    expect(compute).toContain("coalesce(t.parent_trip_id, t.id) as lineage");
+    expect(compute).toContain("having count(distinct owner) >= 3 and count(distinct lineage) >= 3");
+    expect(compute).toContain("and not coalesce(t.is_hidden, false)");
+  });
+
+  it("planning sessions leave out automation and probes", () => {
+    const compute = fn(sql, "compute_public_stats");
+    expect(compute).toContain("and w.session_id not like 'e2eprobe%'");
+    expect(compute).toContain("where l.session_id = w.session_id and l.is_automation");
+  });
+
+  it("a job refreshes the cache every six hours, with the extra memory", () => {
+    expect(sql).toContain("cron.schedule('refresh-public-stats', '15 */6 * * *', 'select public.refresh_public_stats()')");
+    expect(fn(sql, "refresh_public_stats")).toContain("security definer set search_path to 'public' set work_mem to '64mb'");
+  });
+
+  it("the cache table is closed to clients and in the RLS baseline", () => {
+    expectClosedToClients(sql, "public_stats_cache");
   });
 });

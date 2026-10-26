@@ -216,7 +216,8 @@
     "photos": "Photos",
     "loadingPhotos": "Loading photos...",
     "noPhotos": "No photos available",
-    "regeneratingActivity": "Regenerating activity with AI..."
+    "regeneratingActivity": "Regenerating activity with AI...",
+    "savedInTrips": "{count, plural, one {In # saved trip} other {In # saved trips}}"
   },
   "xp": {
     "todaysProgress": "Today's Progress",
@@ -2818,5 +2819,19 @@
     "cta": "Open the plan",
     "footerReason": "You're getting this because you said you're going on this trip and gave us this address.",
     "footerLink": "Stop emails about this trip"
+  },
+  "liveStats": {
+    "title": "Live from the planner",
+    "caption": "Real counts from planning sessions, with bots and automated traffic left out.",
+    "seconds": "s",
+    "items": {
+      "plans": "Trips planned",
+      "plans30d": "Planned in the last 30 days",
+      "group": "Group trips planned",
+      "solo": "Solo trips planned",
+      "short": "Trips of 1–3 days planned",
+      "activities": "Activities on saved itineraries",
+      "speed": "Median time to a full itinerary"
+    }
   }
 }
