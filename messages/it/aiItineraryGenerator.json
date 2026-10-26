@@ -27,12 +27,6 @@
     "example": "Un piano di tre giorni a Lisbona dovrebbe tenere Belém in un unico blocco invece di spargerlo su due mattine. Quel tipo di ordine è quasi tutto il lavoro del generatore.",
     "honest": "Nessun generatore azzecca una città al primo colpo. Consideralo una buona prima bozza da modificare, non un piano da seguire alla cieca."
   },
-  "stats": {
-    "generationTime": "Tempo di Generazione",
-    "destinations": "Destinazioni",
-    "free": "Gratis",
-    "budgetTiers": "Livelli di Budget"
-  },
   "features": {
     "title": "Generazione di Itinerari con AI Potente",
     "subtitle": "La nostra AI non suggerisce solo luoghi — costruisce itinerari completi e strutturati che puoi davvero seguire.",

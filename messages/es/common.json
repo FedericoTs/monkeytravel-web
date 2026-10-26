@@ -216,7 +216,8 @@
     "photos": "Fotos",
     "loadingPhotos": "Cargando fotos...",
     "noPhotos": "No hay fotos disponibles",
-    "regeneratingActivity": "Regenerando actividad con AI..."
+    "regeneratingActivity": "Regenerando actividad con AI...",
+    "savedInTrips": "{count, plural, one {En # viaje guardado} other {En # viajes guardados}}"
   },
   "xp": {
     "todaysProgress": "Progreso de Hoy",
@@ -2818,5 +2819,19 @@
     "cta": "Abrir el plan",
     "footerReason": "Recibes este email porque dijiste que vas a este viaje y nos diste esta dirección.",
     "footerLink": "Dejar de recibir emails de este viaje"
+  },
+  "liveStats": {
+    "title": "En directo desde el planificador",
+    "caption": "Cifras reales de sesiones de planificación, sin bots ni tráfico automatizado.",
+    "seconds": "s",
+    "items": {
+      "plans": "Viajes planificados",
+      "plans30d": "Planificados en los últimos 30 días",
+      "group": "Viajes en grupo planificados",
+      "solo": "Viajes en solitario planificados",
+      "short": "Viajes de 1 a 3 días planificados",
+      "activities": "Actividades en itinerarios guardados",
+      "speed": "Mediana hasta un itinerario completo"
+    }
   }
 }

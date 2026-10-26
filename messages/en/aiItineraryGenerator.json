@@ -27,12 +27,6 @@
     "example": "A three-day Lisbon plan should keep Belém in one block rather than scattering it across two mornings. That kind of ordering is most of what the generator is for.",
     "honest": "No generator gets a city right on the first pass. Treat the output as a strong first draft you edit, not a plan to follow blindly."
   },
-  "stats": {
-    "generationTime": "Generation Time",
-    "destinations": "Destinations",
-    "free": "Free",
-    "budgetTiers": "Budget Tiers"
-  },
   "features": {
     "title": "Powerful AI Itinerary Generation",
     "subtitle": "Our AI doesn't just suggest places — it builds complete, structured itineraries you can actually follow.",

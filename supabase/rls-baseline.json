@@ -1363,6 +1363,13 @@
     "rls_enabled": true
   },
   {
+    "table": "public_stats_cache",
+    "grants": {},
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
     "table": "push_log",
     "grants": {
       "anon": [

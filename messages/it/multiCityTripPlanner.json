@@ -27,26 +27,6 @@
     "example": "Roma, Firenze e Venezia in dieci giorni non sono tre viaggi separati. Sono circa sette giorni utili e tre passati a spostarsi, e dove metti il taglio conta.",
     "honest": "Non prenota i trasporti e non legge gli orari in tempo reale. Verifica le coincidenze prima di fissare la forma del viaggio."
   },
-  "stats": {
-    "items": {
-      "cities": {
-        "value": "5",
-        "label": "Città per viaggio"
-      },
-      "days": {
-        "value": "21",
-        "label": "Giorni per viaggio"
-      },
-      "free": {
-        "value": "100%",
-        "label": "Gratis"
-      },
-      "languages": {
-        "value": "4",
-        "label": "Lingue"
-      }
-    }
-  },
   "features": {
     "title": "Pensato Per Viaggi Che Non Si Fermano in Una Città",
     "subtitle": "Tutto ciò che fa il pianificatore per una singola città, esteso a tutto il tuo percorso.",

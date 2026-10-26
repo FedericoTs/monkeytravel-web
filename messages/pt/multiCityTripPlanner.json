@@ -27,26 +27,6 @@
     "example": "Roma, Florença e Veneza em dez dias não são três viagens separadas. São cerca de sete dias aproveitáveis e três em deslocamento, e onde você faz o corte importa.",
     "honest": "Ele não reserva transporte nem consulta horários ao vivo. Confirme as conexões antes de fechar o formato da viagem."
   },
-  "stats": {
-    "items": {
-      "cities": {
-        "value": "5",
-        "label": "Cidades por viagem"
-      },
-      "days": {
-        "value": "21",
-        "label": "Dias por viagem"
-      },
-      "free": {
-        "value": "100%",
-        "label": "Grátis"
-      },
-      "languages": {
-        "value": "4",
-        "label": "Idiomas"
-      }
-    }
-  },
   "features": {
     "title": "Feito Para Viagens Que Não Param em Uma Cidade Só",
     "subtitle": "Tudo o que o planejador de uma cidade faz, estendido para o seu roteiro inteiro.",
