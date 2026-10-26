@@ -32,7 +32,7 @@ import { ASSISTANT_SEEN_SCRIPT } from "@/lib/trip/assistant-seen";
 
 /**
  * The four locale homepages (`localePrefix: "as-needed"` — see
- * lib/i18n/routing.ts — means the default "en" locale carries no prefix).
+ * lib/i18n/routing-config.ts — means the default "en" locale carries no prefix).
  * This is deliberately an EXACT-match set, not a prefix check: a prefix
  * match on "/es" would also catch "/es/blog/...", handing every Spanish
  * page the same relaxed frame-ancestors as the homepage.

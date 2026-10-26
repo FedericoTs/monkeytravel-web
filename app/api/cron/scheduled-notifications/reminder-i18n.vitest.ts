@@ -280,7 +280,7 @@ describe("locale routing reaches every locale the app supports", () => {
     // lib/i18n/routing.ts builds next-intl navigation helpers, which pull
     // next/navigation and blow up outside a Next runtime. Parsing the literal
     // keeps the guard pointed at the real definition instead of a copy of it.
-    const src = readFileSync(join(process.cwd(), "lib", "i18n", "routing.ts"), "utf8");
+    const src = readFileSync(join(process.cwd(), "lib", "i18n", "routing-config.ts"), "utf8");
     const literal = src.match(/locales:\s*\[([^\]]+)\]/)?.[1];
     expect(literal, "could not find routing.locales — has the file moved?").toBeTruthy();
     const routingLocales = [...literal!.matchAll(/["']([a-z-]+)["']/g)].map((m) => m[1]);

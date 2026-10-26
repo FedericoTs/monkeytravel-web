@@ -72,7 +72,7 @@ async function markdownToHtml(markdown: string, locale: string): Promise<string>
 }
 
 /**
- * Locales, duplicated from lib/i18n/routing.ts rather than imported.
+ * Locales, duplicated from lib/i18n/routing-config.ts rather than imported.
  *
  * routing.ts calls createNavigation(), which pulls next-intl's React
  * navigation into whatever imports it — and this module is imported by

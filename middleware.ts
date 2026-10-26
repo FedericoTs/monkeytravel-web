@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { updateSession, trackPageView } from "@/lib/supabase/middleware";
-import { routing } from "@/lib/i18n/routing";
+import { routing } from "@/lib/i18n/routing-config";
 import {
   buildCspHeader,
   layoutInlineScriptHashes,

@@ -22,7 +22,8 @@ const LOCALE_SEG = /^\/(en|es|it|pt)(\/|$)/;
 
 describe("locale list stays in sync with routing", () => {
   /**
-   * routing.ts is read as TEXT, not imported.
+   * The list is read as TEXT from routing-config.ts, not imported from
+   * routing.ts.
    *
    * Importing it calls createNavigation(), which resolves `next/navigation`
    * and throws outside a Next runtime — which is precisely why api.ts
@@ -31,17 +32,17 @@ describe("locale list stays in sync with routing", () => {
    * it still fails loudly if someone adds a locale in one place only.
    */
   function localesFromRoutingSource(): { locales: string[]; defaultLocale: string } {
-    const src = readFileSync(join(process.cwd(), "lib/i18n/routing.ts"), "utf8");
+    const src = readFileSync(join(process.cwd(), "lib/i18n/routing-config.ts"), "utf8");
     const list = /locales:\s*\[([^\]]*)\]/.exec(src);
     const def = /defaultLocale:\s*"([a-z]{2})"/.exec(src);
-    if (!list || !def) throw new Error("routing.ts shape changed — update this parser");
+    if (!list || !def) throw new Error("routing-config.ts shape changed — update this parser");
     return {
       locales: [...list[1].matchAll(/"([a-z]{2})"/g)].map((m) => m[1]),
       defaultLocale: def[1],
     };
   }
 
-  it("api.ts's duplicated LOCALES matches lib/i18n/routing.ts", () => {
+  it("api.ts's duplicated LOCALES matches lib/i18n/routing-config.ts", () => {
     const { locales, defaultLocale } = localesFromRoutingSource();
     expect([...locales].sort()).toEqual(["en", "es", "it", "pt"].sort());
     expect(defaultLocale).toBe("en");
