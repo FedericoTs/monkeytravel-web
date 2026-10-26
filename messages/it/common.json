@@ -997,6 +997,7 @@
     "discardMessageSaved": "Stai per eliminare il tuo itinerario per {destination}. Tranquillo — resta archiviato per 7 giorni, possiamo recuperarlo se cambi idea.",
     "confirmDeleteSaved": "Elimina viaggio salvato",
     "keptMessage": "Il tuo viaggio a {destination} mantiene questo piano e resta tra I Miei Viaggi. Ricominciare svuota solo questa pagina.",
+    "keptPlanMessage": "Il tuo piano per {destination} resta tra I tuoi piani per 30 giorni, e il suo link continua a funzionare. Ricominciare svuota solo questa pagina.",
     "reasonLabel": "Cosa non ha funzionato?",
     "reasonPlaceholder": "Scegli un motivo",
     "reasons": {

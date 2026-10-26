@@ -74,6 +74,16 @@
     "usageLimitReached": "Límite de uso alcanzado",
     "usageLimitDefault": "Has usado tus generaciones de AI gratuitas.",
     "yourTripTo": "Tu viaje a",
+    "kept": {
+      "yourPlans": "Tus planes",
+      "days": "{count, plural, one {# día} other {# días}}",
+      "copyLink": "Copiar enlace",
+      "copied": "Enlace copiado",
+      "linkHint": "Lo conservamos 30 días. El enlace abre este plan en cualquier dispositivo, y quien lo reciba también puede verlo.",
+      "headerNudge": "{count, plural, one {# día} other {# días}} — lo conservamos 30 días",
+      "mobileNudge": "{count, plural, one {# día} other {# días}} — lo conservamos 30 días en un enlace privado",
+      "gone": "El enlace de ese plan ha caducado. Los planes se conservan 30 días desde la última vez que se abrieron."
+    },
     "draftRecovery": {
       "title": "Viaje sin guardar encontrado",
       "descPrefix": "Tienes un viaje sin guardar a",

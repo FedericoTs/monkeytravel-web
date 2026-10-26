@@ -1075,6 +1075,7 @@
     "discardMessageSaved": "Estás a punto de descartar tu itinerario para {destination}. Tranquilo — queda archivado 7 días, podemos restaurarlo si cambias de opinión.",
     "confirmDeleteSaved": "Descartar viaje guardado",
     "keptMessage": "Tu viaje a {destination} conserva este plan y sigue en Mis Viajes. Empezar de nuevo solo limpia esta página.",
+    "keptPlanMessage": "Tu plan para {destination} sigue en Tus planes durante 30 días, y su enlace sigue funcionando. Empezar de nuevo solo limpia esta página.",
     "reasonLabel": "¿Qué no funcionó?",
     "reasonPlaceholder": "Elige un motivo",
     "reasons": {
