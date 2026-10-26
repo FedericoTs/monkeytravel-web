@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Onde viajar em cada mês de 2027, com as datas que marcam o ano: o eclipse solar total de 2 de agosto, o Ano Santo de Santiago de Compostela, a Copa do Mundo Feminina no Brasil, as Copas do Mundo de rúgbi e de críquete e os feriados prolongados de 2027 no Reino Unido, nos Estados Unidos, na Espanha, na Itália e no Brasil."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-10-26"
 category: "Seasonal Travel"
 tags: ["sazonal", "guia mensal de viagens", "planejamento de viagem"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -21,7 +21,7 @@ schema: "Article"
 
 Este calendário coloca 2027 em uma só página: para onde ir em cada mês, os eventos com data marcada que valem uma viagem e os feriados e emendas de cinco países. As sugestões de destinos e os dados de clima vêm dos nossos guias mês a mês, cujas edições de janeiro a setembro já estão escritas para 2027. Cada data de evento e de feriado de 2027 foi conferida de novo em 5 de outubro de 2026, na página do próprio organizador, governo ou agência científica, sempre que ela existe.
 
-Quando uma data de 2027 ainda não tinha sido anunciada até 5 de outubro de 2026, dizemos isso em vez de adivinhar. As temperaturas são médias mensais de longo prazo, não previsões. As tabelas de feriados da Espanha e do Brasil estão marcadas como estimadas, porque as listas oficiais de 2027 ainda não tinham saído. Para o resto deste ano, veja o [calendário de viagens 2026](/blog/2026-travel-calendar).
+Quando uma data de 2027 ainda não tinha sido anunciada até 5 de outubro de 2026, dizemos isso em vez de adivinhar. As temperaturas são médias mensais de longo prazo, não previsões. A tabela de feriados do Brasil está marcada como estimada, porque a lista oficial de 2027 ainda não tinha saído; a da Espanha segue a lista oficial de 2027 que o BOE publicou em 13 de outubro de 2026. Para o resto deste ano, veja o [calendário de viagens 2026](/blog/2026-travel-calendar).
 
 ## 2027 em resumo
 
@@ -419,26 +419,29 @@ Os feriados nacionais mexem com os preços, porque as viagens dentro de cada pa�
 
 Quando um feriado cai num sábado ou domingo, a maioria dos servidores federais folga na sexta-feira anterior ou na segunda-feira seguinte, segundo o Office of Personnel Management (OPM); empresas privadas definem as próprias regras. **Melhores emendas:** as sextas-feiras 12 e 26 de novembro transformam o Dia dos Veteranos e o Dia de Ação de Graças em feriadões de quatro dias, e quatro dias de férias de 27 a 30 de dezembro juntam os feriados das sextas-feiras 24 e 31 de dezembro em dez dias de folga, de 24 de dezembro a 2 de janeiro.
 
-### Espanha (estimado a partir de 2026)
+### Espanha
 
-A lista de 2027 da Espanha não estava no BOE até 5 de outubro de 2026 (a de 2026 é de 17 de outubro de 2025), então esta tabela aplica o padrão de 2026 ao calendário de 2027. As comunidades autônomas acrescentam seus próprios dias e podem trocar alguns.
+O BOE publicou a lista oficial de 2027 da Espanha em 13 de outubro de 2026. Oito feriados nacionais valem no país inteiro, e todas as comunidades autônomas mantêm também a Epifania; os outros feriados nacionais dependem de cada comunidade.
 
 | Data | Feriado | Abrangência |
 |---|---|---|
 | Sex 1º jan | Año Nuevo | Nacional |
-| Qua 6 jan | Epifanía | Nacional (as regiões podem trocar) |
-| Qui 25 mar | Jueves Santo | Regional |
+| Qua 6 jan | Epifanía | Nacional (todas as comunidades mantêm) |
+| Sex 19 mar | San José | Galícia, Madri, Múrcia, Navarra, Comunidade Valenciana |
+| Qui 25 mar | Jueves Santo | Todas, exceto Catalunha e Comunidade Valenciana |
 | Sex 26 mar | Viernes Santo | Nacional |
-| Seg 29 mar | Lunes de Pascua | Regional |
+| Seg 29 mar | Lunes de Pascua | Baleares, Catalunha, Navarra, País Basco, La Rioja, Comunidade Valenciana |
 | Sáb 1º mai | Fiesta del Trabajo | Nacional |
-| Dom 15 ago | Asunción | Nacional; as regiões podem transferir para seg 16 ago |
+| Seg 16 ago | Asunción (transferida do domingo, 15) | Andaluzia, Aragão, Astúrias, Canárias, Castela e Leão, Madri |
 | Ter 12 out | Fiesta Nacional de España | Nacional |
 | Seg 1º nov | Todos los Santos | Nacional |
 | Seg 6 dez | Día de la Constitución | Nacional |
 | Qua 8 dez | Inmaculada Concepción | Nacional |
 | Sáb 25 dez | Navidad | Nacional |
 
-**Melhores emendas:** dezembro é o melhor do ano. Um dia de férias (terça-feira, 7) rende cinco dias de folga, de 4 a 8 de dezembro, e três (7, 9 e 10 de dezembro) rendem nove, de 4 a 12 de dezembro. Emendar a segunda-feira, 11 de outubro, faz um feriadão de quatro dias, e Todos los Santos rende um de três.
+Seis comunidades transferem a Asunción do domingo, 15, para a segunda-feira, 16 de agosto; a Extremadura a troca pela segunda-feira, 11 de outubro; e a Catalunha e a Comunidade Valenciana celebram o Lunes de Pascua no lugar do Jueves Santo. Cada comunidade acrescenta ainda seus próprios feriados, como o 23 de abril em Aragão e em Castela e Leão ou o 11 de setembro na Catalunha.
+
+**Melhores emendas:** dezembro é o melhor do ano. Um dia de férias (terça-feira, 7) rende cinco dias de folga, de 4 a 8 de dezembro, e três (7, 9 e 10 de dezembro) rendem nove, de 4 a 12 de dezembro. A Semana Santa rende cinco dias, de 25 a 29 de março, nas Baleares, em Navarra, no País Basco e em La Rioja, que mantêm o Jueves Santo e o Lunes de Pascua. A sexta-feira, 19 de março, e a segunda-feira, 16 de agosto, rendem feriadões de três dias onde são feriado. Emendar a segunda-feira, 11 de outubro, faz um feriadão de quatro dias (na Extremadura ela já é feriado), e Todos los Santos rende um de três.
 
 ### Itália
 
@@ -487,7 +490,7 @@ A lista de 2026 também deu aos servidores federais o 28 de outubro (Dia do Serv
 - **Planeje em torno de duas Páscoas.** A Páscoa ocidental é em 28 de março e a ortodoxa em 2 de maio, então Espanha e Itália têm o pico no fim de março, e a Grécia, no fim de abril.
 - **Fique de olho nos feriados de outros países.** Golden Week, Kurban Bayramı, Obon e a semana de Ação de Graças lotam transportes e hotéis nos próprios países.
 - **Compre óculos de eclipse certificados.** Use visores ISO 12312-2 nas fases parciais e nunca com binóculo, câmera ou telescópio.
-- **Confira de novo o que ainda não saiu.** A lista do BOE da Espanha costuma sair em outubro e a lista federal do Brasil no fim de dezembro; as datas dos mercados de Natal, o Loy Krathong, as datas finais da Feria de Sevilha e a cerimônia da Porta Santa vêm depois.
+- **Confira de novo o que ainda não saiu.** A lista federal do Brasil costuma sair no fim de dezembro; as datas dos mercados de Natal, o Loy Krathong, as datas finais da Feria de Sevilha e a cerimônia da Porta Santa vêm depois.
 
 ## Planeje suas viagens de 2027 em 30 segundos
 
@@ -549,7 +552,7 @@ Para viagens curtas a cidades do Hemisfério Norte, janeiro depois do Dia de Rei
 - [Drik Panchang: Diwali 2027, Nova Délhi](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html?geoname-id=1261481&year=2027)
 - [GOV.UK: feriados do Reino Unido (bank holidays)](https://www.gov.uk/bank-holidays)
 - [US Office of Personnel Management: feriados federais](https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/)
-- [BOE: Fiestas laborales 2026](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-21667)
+- [BOE: Fiestas laborales 2027](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-21254)
 - [Normattiva: Legge 260/1949, art. 2](https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1949-05-27;260~art2)
 - [Normattiva: Legge 151/2025](https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:2025;151)
 - [Diário Oficial da União: Portaria MGI 11.460/2025](https://www.in.gov.br/web/dou/-/portaria-mgi-n-11.460-de-29-de-dezembro-de-2025-678388627)
