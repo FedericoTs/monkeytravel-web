@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Dove andare in ogni mese del 2027, con le date che segnano l'anno: l'eclissi totale di Sole del 2 agosto, l'Anno Santo di Santiago, i Mondiali femminili in Brasile, i Mondiali di rugby e di cricket, e i ponti e le festività del 2027 nel Regno Unito, negli Stati Uniti, in Spagna, in Italia e in Brasile."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-10-26"
 category: "Seasonal Travel"
 tags: ["stagionale", "guida mensile ai viaggi", "pianificazione viaggi"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -21,7 +21,7 @@ schema: "Article"
 
 Questo calendario mette tutto il 2027 in una pagina: dove andare mese per mese, gli eventi con una data precisa attorno a cui vale la pena costruire un viaggio, e le festività nazionali e i ponti in cinque Paesi. Le mete consigliate e i dati sul clima vengono dalle nostre guide mese per mese, che da gennaio a settembre sono già scritte per il 2027. Ogni data di eventi e festività del 2027 è stata ricontrollata il 5 ottobre 2026, sulla pagina dell'organizzatore, del governo o dell'ente scientifico ogni volta che esiste.
 
-Quando una data del 2027 non era ancora stata annunciata al 5 ottobre 2026, lo diciamo invece di tirare a indovinare. Le temperature sono medie mensili di lungo periodo, non previsioni. Le tabelle delle festività di Spagna e Brasile sono indicate come ricavate dal calendario 2026, perché i calendari ufficiali del 2027 non erano ancora usciti. Per i mesi che restano di quest'anno c'è il [calendario viaggi 2026](/blog/2026-travel-calendar).
+Quando una data del 2027 non era ancora stata annunciata al 5 ottobre 2026, lo diciamo invece di tirare a indovinare. Le temperature sono medie mensili di lungo periodo, non previsioni. La tabella delle festività del Brasile è indicata come ricavata dal calendario 2026, perché quello ufficiale del 2027 non era ancora uscito; quella della Spagna segue il calendario ufficiale del 2027 pubblicato sul BOE il 13 ottobre 2026. Per i mesi che restano di quest'anno c'è il [calendario viaggi 2026](/blog/2026-travel-calendar).
 
 ## Il 2027 a colpo d'occhio
 
@@ -419,26 +419,29 @@ Le festività nazionali muovono i prezzi, perché nei ponti e nei weekend lunghi
 
 Quando una festività cade di sabato o di domenica, la maggior parte dei dipendenti federali ha libero il venerdì precedente o il lunedì successivo, secondo l'Office of Personnel Management (OPM); i datori di lavoro privati seguono regole proprie. **I ponti migliori:** i venerdì 12 e 26 novembre trasformano Veterans Day e Thanksgiving in weekend di quattro giorni, e quattro giorni di ferie dal 27 al 30 dicembre uniscono i venerdì festivi del 24 e del 31 dicembre in dieci giorni liberi, dal 24 dicembre al 2 gennaio.
 
-### Spagna (calendario ricavato dal 2026)
+### Spagna
 
-Al 5 ottobre 2026 il calendario spagnolo del 2027 non era ancora sul BOE (quello del 2026 è datato 17 ottobre 2025), quindi questa tabella applica lo schema del 2026 al calendario del 2027. Le comunità autonome aggiungono giorni propri e possono sostituirne alcuni.
+Il BOE ha pubblicato il calendario ufficiale spagnolo del 2027 il 13 ottobre 2026. Otto festività nazionali valgono in tutto il Paese e tutte le comunità autonome mantengono anche l'Epifania; le altre festività nazionali dipendono dalla comunità.
 
 | Data | Festività | Ambito |
 |---|---|---|
 | Ven 1 gen | Año Nuevo | Nazionale |
-| Mer 6 gen | Epifanía | Nazionale (le comunità autonome possono sostituirla) |
-| Gio 25 mar | Jueves Santo | Regionale |
+| Mer 6 gen | Epifanía | Nazionale (la mantengono tutte le comunità autonome) |
+| Ven 19 mar | San José | Galizia, Madrid, Murcia, Navarra, Comunità Valenciana |
+| Gio 25 mar | Jueves Santo | Ovunque tranne Catalogna e Comunità Valenciana |
 | Ven 26 mar | Viernes Santo | Nazionale |
-| Lun 29 mar | Lunes de Pascua | Regionale |
+| Lun 29 mar | Lunes de Pascua | Baleari, Catalogna, Navarra, Paesi Baschi, La Rioja, Comunità Valenciana |
 | Sab 1 mag | Fiesta del Trabajo | Nazionale |
-| Dom 15 ago | Asunción | Nazionale; le comunità autonome possono spostarla a lun 16 ago |
+| Lun 16 ago | Asunción (spostata da domenica 15) | Andalusia, Aragona, Asturie, Canarie, Castiglia e León, Madrid |
 | Mar 12 ott | Fiesta Nacional de España | Nazionale |
 | Lun 1 nov | Todos los Santos | Nazionale |
 | Lun 6 dic | Día de la Constitución | Nazionale |
 | Mer 8 dic | Inmaculada Concepción | Nazionale |
 | Sab 25 dic | Navidad | Nazionale |
 
-**I ponti migliori:** dicembre è il migliore dell'anno. Un giorno di ferie (martedì 7) dà cinque giorni liberi, dal 4 all'8 dicembre, e tre (7, 9 e 10 dicembre) ne danno nove, dal 4 al 12 dicembre. Facendo il ponte lunedì 11 ottobre si ottiene un weekend di quattro giorni, e Ognissanti ne regala uno di tre.
+Sei comunità autonome spostano l'Asunción da domenica 15 a lunedì 16 agosto, l'Estremadura la sostituisce con lunedì 11 ottobre, e Catalogna e Comunità Valenciana festeggiano il Lunes de Pascua al posto del Jueves Santo. Ogni comunità aggiunge anche giorni propri, come il 23 aprile in Aragona e in Castiglia e León o l'11 settembre in Catalogna.
+
+**I ponti migliori:** dicembre è il migliore dell'anno. Un giorno di ferie (martedì 7) dà cinque giorni liberi, dal 4 all'8 dicembre, e tre (7, 9 e 10 dicembre) ne danno nove, dal 4 al 12 dicembre. Pasqua dura cinque giorni, dal 25 al 29 marzo, alle Baleari, in Navarra, nei Paesi Baschi e a La Rioja, che mantengono sia il Jueves Santo sia il Lunes de Pascua. Venerdì 19 marzo e lunedì 16 agosto regalano weekend di tre giorni dove sono festivi. Facendo il ponte lunedì 11 ottobre si ottiene un weekend di quattro giorni (in Estremadura è già festivo), e Ognissanti ne regala uno di tre.
 
 ### Italia
 
@@ -487,7 +490,7 @@ L'elenco del 2026 dava ai dipendenti federali anche il 28 ottobre (Giornata del 
 - **Organizzati intorno a due Pasque.** La Pasqua occidentale è il 28 marzo e quella ortodossa il 2 maggio, quindi Spagna e Italia hanno il picco a fine marzo e la Grecia a fine aprile.
 - **Tieni d'occhio le feste degli altri Paesi.** Golden Week, Kurban Bayramı, Obon e la settimana del Thanksgiving riempiono trasporti e hotel nei rispettivi Paesi.
 - **Compra occhiali per eclissi a norma.** Usa filtri ISO 12312-2 per le fasi parziali, e mai dietro un binocolo, una fotocamera o un telescopio.
-- **Ricontrolla ciò che non è ancora uscito.** Il calendario spagnolo sul BOE di solito esce a ottobre e quello federale brasiliano a fine dicembre; le date dei mercatini di Natale, il Loy Krathong, le date definitive della Feria di Siviglia e la cerimonia della Porta Santa arrivano più tardi.
+- **Ricontrolla ciò che non è ancora uscito.** Il calendario federale brasiliano di solito esce a fine dicembre; le date dei mercatini di Natale, il Loy Krathong, le date definitive della Feria di Siviglia e la cerimonia della Porta Santa arrivano più tardi.
 
 ## Pianifica i tuoi viaggi del 2027 in 30 secondi
 
@@ -549,7 +552,7 @@ Per i city break nell'emisfero nord, gennaio dopo l'Epifania, quando i prezzi de
 - [Drik Panchang: Diwali 2027, Nuova Delhi](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html?geoname-id=1261481&year=2027)
 - [GOV.UK: UK bank holidays](https://www.gov.uk/bank-holidays)
 - [US Office of Personnel Management: Federal holidays](https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/)
-- [BOE: Fiestas laborales 2026](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-21667)
+- [BOE: Fiestas laborales 2027](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-21254)
 - [Normattiva: Legge 260/1949, art. 2](https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1949-05-27;260~art2)
 - [Normattiva: Legge 151/2025](https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:2025;151)
 - [Diário Oficial da União: Portaria MGI 11.460/2025](https://www.in.gov.br/web/dou/-/portaria-mgi-n-11.460-de-29-de-dezembro-de-2025-678388627)

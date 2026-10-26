@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Where to go in every month of 2027, with the dates that shape the year: the total solar eclipse on 2 August, Santiago's Holy Year, the Women's World Cup in Brazil, the Rugby and Cricket World Cups, and the 2027 long weekends in the UK, US, Spain, Italy and Brazil."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-10-26"
 category: "Seasonal Travel"
 tags: ["seasonal", "monthly travel guide", "trip planning"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -21,7 +21,7 @@ schema: "Article"
 
 This calendar puts 2027 on one page: where to go in each month, the dated events worth building a trip around, and the public holidays and bridge days in five countries. The destination picks and weather figures come from our month-by-month guides, whose January to September editions are already written for 2027. Every 2027 event and holiday date was checked again on 5 October 2026, on the organiser's, government's or scientific agency's own page wherever one exists.
 
-Where a 2027 date had not been announced by 5 October 2026, we say so instead of guessing. Temperatures are long-term monthly averages, not forecasts. The Spanish and Brazilian holiday tables are marked as derived, because their official 2027 lists were not out yet. For the rest of this year, see the [2026 travel calendar](/blog/2026-travel-calendar).
+Where a 2027 date had not been announced by 5 October 2026, we say so instead of guessing. Temperatures are long-term monthly averages, not forecasts. The Brazilian holiday table is marked as derived, because its official 2027 list was not out yet; the Spanish table follows the official 2027 list the BOE published on 13 October 2026. For the rest of this year, see the [2026 travel calendar](/blog/2026-travel-calendar).
 
 ## 2027 at a glance
 
@@ -419,26 +419,29 @@ National holidays move prices, because domestic travel spikes on long weekends. 
 
 When a holiday falls on a Saturday or Sunday, most federal employees get the Friday before or the Monday after, according to the Office of Personnel Management; private employers set their own rules. **Best bridges:** Fridays 12 and 26 November turn Veterans Day and Thanksgiving into four-day weekends, and four days of leave on 27–30 December join the Friday holidays of 24 and 31 December into ten days off, 24 December–2 January.
 
-### Spain (derived)
+### Spain
 
-Spain's 2027 list was not in the BOE by 5 October 2026 (the 2026 list is dated 17 October 2025), so this table applies the 2026 pattern to the 2027 calendar. Regions add their own days and may swap some.
+Spain's official 2027 list was published in the BOE on 13 October 2026. Eight national holidays apply everywhere, and every region also keeps Epiphany; the other national days depend on the region.
 
 | Date | Holiday | Scope |
 |---|---|---|
 | Fri 1 Jan | Año Nuevo | National |
-| Wed 6 Jan | Epifanía | National (regions may swap) |
-| Thu 25 Mar | Jueves Santo | Regional |
+| Wed 6 Jan | Epifanía | National (every region keeps it) |
+| Fri 19 Mar | San José | Galicia, Madrid, Murcia, Navarre, Valencia |
+| Thu 25 Mar | Jueves Santo | Everywhere except Catalonia and Valencia |
 | Fri 26 Mar | Viernes Santo | National |
-| Mon 29 Mar | Lunes de Pascua | Regional |
+| Mon 29 Mar | Lunes de Pascua | Balearics, Catalonia, Navarre, Basque Country, La Rioja, Valencia |
 | Sat 1 May | Fiesta del Trabajo | National |
-| Sun 15 Aug | Asunción | National; regions may move it to Mon 16 Aug |
+| Mon 16 Aug | Asunción (moved from Sunday 15) | Andalusia, Aragon, Asturias, Canary Islands, Castile and León, Madrid |
 | Tue 12 Oct | Fiesta Nacional de España | National |
 | Mon 1 Nov | Todos los Santos | National |
 | Mon 6 Dec | Día de la Constitución | National |
 | Wed 8 Dec | Inmaculada Concepción | National |
 | Sat 25 Dec | Navidad | National |
 
-**Best bridges:** December is the year's best. One day of leave (Tuesday 7) gives five days off, 4–8 December, and three (7, 9 and 10 December) give nine, 4–12 December. Monday 11 October makes a four-day weekend, and All Saints a three-day one.
+Six regions move the Sunday 15 August holiday to Monday 16 August, Extremadura uses it for Monday 11 October instead, and Catalonia and Valencia keep Easter Monday rather than Maundy Thursday. Every region also adds days of its own, such as 23 April in Aragon and in Castile and León, or 11 September in Catalonia.
+
+**Best bridges:** December is the year's best. One day of leave (Tuesday 7) gives five days off, 4–8 December, and three (7, 9 and 10 December) give nine, 4–12 December. Easter runs five days, 25–29 March, in the Balearics, Navarre, the Basque Country and La Rioja, which keep both Maundy Thursday and Easter Monday. Friday 19 March and Monday 16 August make three-day weekends where they are holidays. Monday 11 October makes a four-day weekend (Extremadura already has it off), and All Saints a three-day one.
 
 ### Italy
 
@@ -487,7 +490,7 @@ The 2026 list also gave federal staff 28 October (Public Servants' Day) and the 
 - **Plan around two Easters.** Western Easter is 28 March and Orthodox Easter 2 May, so Spain and Italy peak in late March and Greece in late April.
 - **Watch other countries' holidays.** Golden Week, Kurban Bayramı, Obon and Thanksgiving week fill transport and hotels in their own countries.
 - **Buy proper eclipse glasses.** Use ISO 12312-2 viewers for the partial phases, and never behind binoculars, a camera or a telescope.
-- **Recheck what is not out yet.** Spain's BOE list usually appears in October and Brazil's federal list at the end of December; Christmas market dates, Loy Krathong, Seville's final Feria dates and the Holy Door ceremony come later.
+- **Recheck what is not out yet.** Brazil's federal list usually appears at the end of December; Christmas market dates, Loy Krathong, Seville's final Feria dates and the Holy Door ceremony come later.
 
 ## Plan Your 2027 Trips in 30 Seconds
 
@@ -549,7 +552,7 @@ For Northern Hemisphere city breaks, January after Epiphany, when holiday prices
 - [Drik Panchang: Diwali 2027, New Delhi](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html?geoname-id=1261481&year=2027)
 - [GOV.UK: UK bank holidays](https://www.gov.uk/bank-holidays)
 - [US Office of Personnel Management: Federal holidays](https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/)
-- [BOE: Fiestas laborales 2026](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-21667)
+- [BOE: Fiestas laborales 2027](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-21254)
 - [Normattiva: Legge 260/1949, art. 2](https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1949-05-27;260~art2)
 - [Normattiva: Legge 151/2025](https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:2025;151)
 - [Diário Oficial da União: Portaria MGI 11.460/2025](https://www.in.gov.br/web/dou/-/portaria-mgi-n-11.460-de-29-de-dezembro-de-2025-678388627)

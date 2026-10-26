@@ -4,7 +4,7 @@ slug: "2027-travel-calendar"
 description: "Dónde viajar cada mes de 2027, con las fechas que marcan el año: el eclipse total de sol del 2 de agosto, el Año Santo Compostelano, el Mundial femenino en Brasil, los Mundiales de rugby y de críquet, y los puentes y festivos de 2027 en Reino Unido, Estados Unidos, España, Italia y Brasil."
 author: "Emanuela P."
 publishedAt: "2026-10-05"
-updatedAt: "2026-10-05"
+updatedAt: "2026-10-26"
 category: "Seasonal Travel"
 tags: ["estacional", "guía mensual de viajes", "planificación de viajes"]
 image: "/images/blog/2027-travel-calendar.jpg"
@@ -21,7 +21,7 @@ schema: "Article"
 
 Este calendario reúne 2027 en una sola página: dónde ir cada mes, los eventos con fecha que justifican un viaje y los festivos y puentes de cinco países. Las propuestas de destinos y los datos de clima salen de nuestras guías mes a mes, cuyas ediciones de enero a septiembre ya están escritas para 2027. Volvimos a comprobar cada fecha de eventos y festivos de 2027 el 5 de octubre de 2026, en la página del propio organizador, gobierno o agencia científica siempre que existe.
 
-Cuando una fecha de 2027 no se había anunciado a 5 de octubre de 2026, lo decimos en lugar de adivinarla. Las temperaturas son medias mensuales de largo plazo, no previsiones. Las tablas de festivos de España y Brasil aparecen como estimadas, porque sus listas oficiales de 2027 aún no se habían publicado. Para lo que queda de este año, consulta el [calendario de viajes 2026](/blog/2026-travel-calendar).
+Cuando una fecha de 2027 no se había anunciado a 5 de octubre de 2026, lo decimos en lugar de adivinarla. Las temperaturas son medias mensuales de largo plazo, no previsiones. La tabla de festivos de Brasil aparece como estimada, porque su lista oficial de 2027 aún no se había publicado; la de España sigue la lista oficial de 2027 que el BOE publicó el 13 de octubre de 2026. Para lo que queda de este año, consulta el [calendario de viajes 2026](/blog/2026-travel-calendar).
 
 ## 2027 de un vistazo
 
@@ -419,26 +419,29 @@ Los festivos nacionales mueven los precios, porque los viajes dentro de cada pa�
 
 Cuando un festivo cae en sábado o domingo, la mayoría de los empleados federales libran el viernes anterior o el lunes siguiente, según la Oficina de Gestión de Personal (OPM); las empresas privadas fijan sus propias normas. **Mejores puentes:** los viernes 12 y 26 de noviembre convierten el Día de los Veteranos y Acción de Gracias en fines de semana de cuatro días, y cuatro días de vacaciones del 27 al 30 de diciembre unen los festivos de los viernes 24 y 31 de diciembre en diez días libres, del 24 de diciembre al 2 de enero.
 
-### España (estimado a partir de 2026)
+### España
 
-La lista de 2027 no se había publicado en el BOE a 5 de octubre de 2026 (la de 2026 está fechada el 17 de octubre de 2025), así que esta tabla aplica el patrón de 2026 al calendario de 2027. Las comunidades autónomas añaden sus propios festivos y pueden sustituir algunos.
+El BOE publicó la lista oficial de 2027 el 13 de octubre de 2026. Ocho festivos nacionales rigen en todo el país y todas las comunidades mantienen además la Epifanía; los demás festivos nacionales dependen de cada comunidad.
 
 | Fecha | Festivo | Ámbito |
 |---|---|---|
 | Vie 1 ene | Año Nuevo | Nacional |
-| Mié 6 ene | Epifanía | Nacional (las comunidades pueden sustituirlo) |
-| Jue 25 mar | Jueves Santo | Autonómico |
+| Mié 6 ene | Epifanía | Nacional (todas las comunidades lo mantienen) |
+| Vie 19 mar | San José | Galicia, Madrid, Murcia, Navarra, Comunitat Valenciana |
+| Jue 25 mar | Jueves Santo | Todas salvo Cataluña y la Comunitat Valenciana |
 | Vie 26 mar | Viernes Santo | Nacional |
-| Lun 29 mar | Lunes de Pascua | Autonómico |
+| Lun 29 mar | Lunes de Pascua | Baleares, Cataluña, Navarra, País Vasco, La Rioja, Comunitat Valenciana |
 | Sáb 1 may | Fiesta del Trabajo | Nacional |
-| Dom 15 ago | Asunción | Nacional; las comunidades pueden trasladarlo al lun 16 ago |
+| Lun 16 ago | Asunción (trasladada del domingo 15) | Andalucía, Aragón, Asturias, Canarias, Castilla y León, Madrid |
 | Mar 12 oct | Fiesta Nacional de España | Nacional |
 | Lun 1 nov | Todos los Santos | Nacional |
 | Lun 6 dic | Día de la Constitución | Nacional |
 | Mié 8 dic | Inmaculada Concepción | Nacional |
 | Sáb 25 dic | Navidad | Nacional |
 
-**Mejores puentes:** diciembre es el mejor del año. Un día de vacaciones (el martes 7) da cinco días libres, del 4 al 8 de diciembre, y tres (7, 9 y 10 de diciembre) dan nueve, del 4 al 12 de diciembre. Pidiendo el lunes 11 de octubre se hace un puente de cuatro días, y Todos los Santos deja uno de tres.
+Seis comunidades trasladan la Asunción del domingo 15 al lunes 16 de agosto, Extremadura la sustituye por el lunes 11 de octubre, y Cataluña y la Comunitat Valenciana celebran el Lunes de Pascua en lugar del Jueves Santo. Cada comunidad añade además sus propios festivos, como el 23 de abril en Aragón y en Castilla y León o el 11 de septiembre en Cataluña.
+
+**Mejores puentes:** diciembre es el mejor del año. Un día de vacaciones (el martes 7) da cinco días libres, del 4 al 8 de diciembre, y tres (7, 9 y 10 de diciembre) dan nueve, del 4 al 12 de diciembre. La Semana Santa deja cinco días, del 25 al 29 de marzo, en Baleares, Navarra, el País Vasco y La Rioja, que mantienen el Jueves Santo y el Lunes de Pascua. El viernes 19 de marzo y el lunes 16 de agosto dejan fines de semana de tres días donde son festivos. Pidiendo el lunes 11 de octubre se hace un puente de cuatro días (en Extremadura ya es festivo), y Todos los Santos deja uno de tres.
 
 ### Italia
 
@@ -487,7 +490,7 @@ La lista de 2026 también daba a los funcionarios federales el 28 de octubre (D�
 - **Planifica en torno a dos Pascuas.** La Pascua occidental es el 28 de marzo y la ortodoxa el 2 de mayo, así que España e Italia viven su pico a finales de marzo y Grecia a finales de abril.
 - **Vigila los festivos de otros países.** La Golden Week, el Kurban Bayramı, el Obon y la semana de Acción de Gracias llenan el transporte y los hoteles en sus propios países.
 - **Compra gafas de eclipse homologadas.** Usa visores ISO 12312-2 para las fases parciales, y nunca detrás de unos prismáticos, una cámara o un telescopio.
-- **Vuelve a comprobar lo que aún no se ha publicado.** La lista del BOE suele salir en octubre y la lista federal de Brasil a finales de diciembre; las fechas de los mercadillos navideños, el Loy Krathong, las fechas definitivas de la Feria de Sevilla y la ceremonia de la Puerta Santa llegan más tarde.
+- **Vuelve a comprobar lo que aún no se ha publicado.** La lista federal de Brasil suele salir a finales de diciembre; las fechas de los mercadillos navideños, el Loy Krathong, las fechas definitivas de la Feria de Sevilla y la ceremonia de la Puerta Santa llegan más tarde.
 
 ## Planifica tus viajes de 2027 en 30 segundos
 
@@ -549,7 +552,7 @@ Para escapadas urbanas en el hemisferio norte, enero después de Reyes, cuando c
 - [Drik Panchang: Diwali 2027, Nueva Delhi](https://www.drikpanchang.com/diwali/diwali-puja-calendar.html?geoname-id=1261481&year=2027)
 - [GOV.UK: festivos del Reino Unido (bank holidays)](https://www.gov.uk/bank-holidays)
 - [Oficina de Gestión de Personal de EE. UU. (OPM): festivos federales](https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/)
-- [BOE: Fiestas laborales 2026](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2025-21667)
+- [BOE: Fiestas laborales 2027](https://www.boe.es/diario_boe/txt.php?id=BOE-A-2026-21254)
 - [Normattiva: Legge 260/1949, art. 2](https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1949-05-27;260~art2)
 - [Normattiva: Legge 151/2025](https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:2025;151)
 - [Diário Oficial da União: Portaria MGI 11.460/2025](https://www.in.gov.br/web/dou/-/portaria-mgi-n-11.460-de-29-de-dezembro-de-2025-678388627)
