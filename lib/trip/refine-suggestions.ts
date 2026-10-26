@@ -72,9 +72,12 @@ function findLongGap(day: ItineraryDay): DayGap | null {
   return longest;
 }
 
+// Generated plans type a meal loosely ("foodie", "food_market", "restaurante",
+// "meal"), so the type is read for what it says rather than matched to a list.
+const FOOD_TYPE = /food|restaur|ristorant|caf[eé]|meal|bakery|brunch|bistro|tapas|\bbar\b|\bpub\b/i;
+
 function isFood(a: { type?: string; name?: string }): boolean {
-  const t = (a.type ?? "").toLowerCase();
-  if (t === "restaurant" || t === "food" || t === "cafe") return true;
+  if (FOOD_TYPE.test(a.type ?? "")) return true;
   return /breakfast|lunch|dinner|trattoria|restaurant|caf[eé]|tapas|market/i.test(a.name ?? "");
 }
 
