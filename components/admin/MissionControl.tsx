@@ -23,6 +23,14 @@ export interface EngineWindow {
 
 export type SpendWindow = Partial<Record<"gemini" | "google_places" | "other", number>>;
 
+export interface LiveWindow {
+  trips?: number;
+  owned?: number;
+  owner_back?: number;
+  used_today?: number;
+  with_participants?: number;
+}
+
 /** mission_control() in the database. */
 export interface MissionData {
   days: number;
@@ -30,6 +38,7 @@ export interface MissionData {
   funnel: { cur: FunnelWindow; prev: FunnelWindow };
   engine: { cur: EngineWindow; prev: EngineWindow };
   spend: { cur: SpendWindow; prev: SpendWindow };
+  live?: { cur: LiveWindow; prev: LiveWindow };
   daily: Array<{ day: string; plans: number; usd: number }>;
 }
 
@@ -125,6 +134,8 @@ export function MissionControl({
   const perPlan = n(f.planned) ? spend / n(f.planned) : 0;
   const perPlanPrev = n(fp.planned) ? spendPrev / n(fp.planned) : 0;
   const days = data.daily.map((d) => d.day);
+  const l = data.live?.cur ?? {};
+  const lp = data.live?.prev ?? {};
 
   return (
     <div className="space-y-8">
@@ -147,6 +158,29 @@ export function MissionControl({
           <Stage label="Kept, no account" value={n(f.kept)} prev={n(fp.kept)} note={`${share(n(f.kept), n(f.planned))} of plans`} />
           <Stage label="Came back to a kept plan" value={n(f.reopened)} prev={n(fp.reopened)} note={`${share(n(f.reopened), n(f.kept))} of kept`} />
           <Stage label="Saved to an account" value={n(f.saved)} prev={n(fp.saved)} note={`${share(n(f.saved), n(f.planned))} of plans`} />
+        </div>
+      </section>
+
+      <section aria-labelledby="live-title">
+        <h2 id="live-title" className="text-lg font-semibold text-slate-900">Live trips</h2>
+        <p className="mb-3 mt-1 text-sm text-slate-600">
+          Trips under way in the window. The owner came back means the trip&apos;s account owner opened it during the trip.
+        </p>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Stage label="Under way" value={n(l.trips)} prev={n(lp.trips)} note={`${n(l.owned)} with an account`} />
+          <Stage
+            label="Owner came back"
+            value={n(l.owner_back)}
+            prev={n(lp.owner_back)}
+            note={`${share(n(l.owner_back), n(l.owned))} of those`}
+          />
+          <Stage label="Used Today" value={n(l.used_today)} prev={n(lp.used_today)} note={`${share(n(l.used_today), n(l.trips))} of trips`} />
+          <Stage
+            label="Had participants"
+            value={n(l.with_participants)}
+            prev={n(lp.with_participants)}
+            note={`${share(n(l.with_participants), n(l.trips))} of trips`}
+          />
         </div>
       </section>
 
