@@ -38,7 +38,7 @@ const SCHEMA: ResponseSchema = {
           area: { type: SchemaType.STRING, description: "The neighbourhood or nearby town the day happens in." },
           places: {
             type: SchemaType.ARRAY,
-            description: "2 to 4 real, named places the day is built around. Sights and experiences, not meals.",
+            description: "2 to 4 real, named places the day is built around: sights and experiences, and any must-do put on this day.",
             items: { type: SchemaType.STRING },
           },
         },
@@ -88,7 +88,9 @@ export async function generateTripOutline(
     params.vibes?.length ? `Vibes, most important first: ${params.vibes.join(", ")}.` : "",
     params.interests?.length ? `Interests: ${params.interests.join(", ")}.` : "",
     params.travelStyle === "backpacker" ? "Backpacker trip: free and cheap sights, walking tours, markets." : "",
-    params.mustDos?.length ? `Must-dos, each on a sensible day: ${params.mustDos.join("; ")}.` : "",
+    params.mustDos?.length
+      ? `Must-dos, each on exactly one sensible day as one of its places, meals included: ${params.mustDos.join("; ")}.`
+      : "",
     params.requirements ? `Requirements: ${params.requirements}` : "",
     "",
     `Return exactly ${totalDays} days, numbered 1 to ${totalDays}. Give each day its own area, keep each day's places close together, and never use a place on two days. The best-known sights come early; later days can go further out or off the beaten path. Use real place names as Google Maps shows them.`,

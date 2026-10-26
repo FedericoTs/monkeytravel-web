@@ -841,7 +841,8 @@ ${travelStyleSection}${vibeSection}${seasonalSection}## Traveler Preferences
 - Interests: ${params.interests.length > 0 ? params.interests.join(", ") : "general sightseeing"}
 ${params.requirements ? `- Special Requirements: ${params.requirements}` : ""}
 ${
-  params.mustDos && params.mustDos.length > 0
+  // A part follows the outline, which already put each must-do on one day.
+  params.mustDos && params.mustDos.length > 0 && !part
     ? `
 ## Traveller Must-Dos (explicitly requested — schedule every one)
 The traveller listed these by name. Include EACH as an activity on a sensible day (right area of the city, right time slot, realistic duration). Use the real place/dish/experience they named — never substitute a look-alike. If one is genuinely impossible for these dates or this destination, omit it rather than faking it.

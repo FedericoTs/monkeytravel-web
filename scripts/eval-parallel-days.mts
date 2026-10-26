@@ -26,6 +26,8 @@ function paramsFor(destination: string, days: number): TripCreationParams {
     pace: "moderate",
     vibes: ["cultural", "foodie"],
     interests: [],
+    // MUST_DOS="Roscioli carbonara; Galleria Borghese" adds must-dos.
+    ...(process.env.MUST_DOS ? { mustDos: process.env.MUST_DOS.split(";").map((m) => m.trim()) } : {}),
   } as TripCreationParams;
 }
 
@@ -105,6 +107,10 @@ for (const arg of process.argv.slice(2)) {
           usd: +(outline.costUsd + parts.reduce((s, p) => s + p.cost, 0)).toFixed(4),
           ...shape(merged, total),
           repeats: repeats(merged),
+          mustDos: params.mustDos?.map((m) => ({
+            mustDo: m,
+            days: merged.filter((d) => d.activities.some((a) => norm(a.name).includes(norm(m).split(" ")[0]))).map((d) => d.day_number),
+          })),
           summary: parts[0].itinerary.trip_summary?.highlights?.slice(0, 3),
         },
       },
