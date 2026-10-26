@@ -111,8 +111,8 @@ export default function PartnerButton({
   onBeforeNavigate,
 }: PartnerButtonProps) {
   // Look up registered partner config when available. Unknown providers
-  // (TripBookingLinks tiles emitted by Gemini) pass partner="other" and
-  // must supply partnerName + category explicitly.
+  // (booking links emitted by Gemini) pass partner="other" and must supply
+  // partnerName + category explicitly.
   const config = partner !== "other" ? PARTNERS[partner] : undefined;
   const resolvedName = partnerName ?? config?.name ?? partner;
   const resolvedCategory = category ?? config?.category ?? "unknown";

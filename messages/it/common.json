@@ -643,13 +643,6 @@
       "seatsLeft": "{count} rimasti",
       "via": "Via"
     },
-    "links": {
-      "title": "Prenota il Tuo Viaggio",
-      "subtitle": "Confronta i prezzi su diverse piattaforme",
-      "flights": "Voli",
-      "hotels": "Hotel",
-      "disclaimer": "Prezzi e disponibilità potrebbero variare. Clicca per confrontare su ogni piattaforma."
-    },
     "travelers": "viaggiatori",
     "travelersCount": "{count, plural, =1 {1 viaggiatore} other {# viaggiatori}}",
     "activitiesAttractions": "Attività e Attrazioni",
@@ -1067,17 +1060,6 @@
       "startActivities": "Inizio attività",
       "windDownBy": "Conclusione entro"
     }
-  },
-  "liveJourney": {
-    "dayOfTotal": "Giorno {current} di {total}",
-    "now": "Ora",
-    "inMinutes": "tra {minutes}m",
-    "inHoursMinutes": "tra {hours}h {minutes}m",
-    "inProgress": "In Corso",
-    "upNext": "Prossima",
-    "allComplete": "Tutte le attività di oggi sono complete!",
-    "todaysProgress": "Progresso di Oggi",
-    "activitiesCount": "{completed} / {total} attività"
   },
   "destinationSearch": {
     "placeholder": "Cerca destinazioni...",
