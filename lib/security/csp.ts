@@ -179,6 +179,10 @@ export function buildCspHeader(pathname: string, scripts: ScriptPolicy): string 
       // renders, the click registers, and the panel opens blank.
       "https://buildhop.io",
     ],
+    // Session replay (PostHog, Sentry) compresses in a worker built from a
+    // blob: URL. Without this the worker falls back to script-src, which has
+    // no blob:, and the browser refuses it.
+    "worker-src": ["'self'", "blob:"],
     "frame-ancestors": allowsThirdPartyFraming(pathname)
       ? ["'self'", ...BUILDHOP_FRAME_ANCESTORS]
       : ["'self'"],
