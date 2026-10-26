@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
+import { trackPlanKept } from "@/lib/analytics";
 import { safeGet, safeSet } from "@/lib/safe-storage";
 import type { KeptPlan } from "@/lib/plans/kept-plan";
 import {
@@ -108,6 +109,7 @@ export function useKeptPlan({
     const made = await keepPlan(current);
     keepingRef.current.delete(id);
     if (!made) return;
+    trackPlanKept({ days: current.itinerary.days.length });
     rememberKeptPlan(entryFor(made.token, current, made.expiresAt, made.key));
     setLink(id, { token: made.token, key: made.key, expiresAt: made.expiresAt, fingerprint });
   }, []);

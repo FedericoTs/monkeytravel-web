@@ -16,6 +16,7 @@
  * @see https://developers.google.com/analytics/devguides/collection/ga4/events
  */
 
+import { track } from "@vercel/analytics";
 import { sentry, sentryBreadcrumb, sentryUser } from "@/lib/observability/sentry";
 
 // Type definitions for gtag
@@ -60,6 +61,20 @@ export function trackEvent(
   // Log in development
   if (process.env.NODE_ENV === "development") {
     console.log("[Analytics] Event:", eventName, params);
+  }
+}
+
+/**
+ * The funnel's milestones also go to Vercel Web Analytics. It needs no
+ * cookies or consent, so it counts the visitors GA4 only models. Our plan
+ * keeps two properties per event.
+ */
+function trackMilestone(name: string, props: Record<string, string | number>): void {
+  if (typeof window === "undefined") return;
+  try {
+    track(name, props);
+  } catch {
+    // Telemetry never breaks the page.
   }
 }
 
@@ -114,6 +129,7 @@ export function trackSignup(method: "email" | "google"): void {
   trackEvent("sign_up", {
     method,
   });
+  trackMilestone("sign_up", { method });
 }
 
 /**
@@ -148,6 +164,10 @@ export function trackTripCreated(params: {
     currency: "USD",
     value: params.budgetTier === "premium" ? 100 : params.budgetTier === "balanced" ? 50 : 25,
   });
+  trackMilestone("trip_created", {
+    from: params.isFromChatgpt ? "chatgpt" : params.isFromTemplate ? "template" : "planner",
+    days: params.duration,
+  });
 }
 
 /**
@@ -165,6 +185,15 @@ export function trackItineraryGenerated(params: {
     budget_tier: params.budgetTier,
     generation_time_ms: params.generationTimeMs,
   });
+  trackMilestone("itinerary_generated", { days: params.duration });
+}
+
+/**
+ * A planner result kept by its link, with no account.
+ */
+export function trackPlanKept(params: { days: number }): void {
+  trackEvent("plan_kept", { duration_days: params.days });
+  trackMilestone("plan_kept", { days: params.days });
 }
 
 /**
@@ -180,6 +209,7 @@ export function trackTripShared(params: {
     item_id: params.tripId,
     method: params.shareMethod,
   });
+  trackMilestone("share", { method: params.shareMethod });
 }
 
 /**
