@@ -907,6 +907,10 @@
     },
     "elapsed": "{seconds}s elapsed",
     "streamedDay": "Day {current} of {total}",
+    "liveTitle": "Your plan is taking shape",
+    "liveNote": "Photos, the map and saving come when every day is ready.",
+    "dayLabel": "Day {n}",
+    "planningDay": "Planning day {n}…",
     "estimatedTime": "Building your personalized itinerary — this usually takes a minute or two",
     "takingLonger": "Almost there — a rich, personalized itinerary is worth the extra few seconds. Hang tight!",
     "funFacts": {

@@ -907,6 +907,10 @@
     },
     "elapsed": "{seconds}s trascorsi",
     "streamedDay": "Giorno {current} di {total}",
+    "liveTitle": "Il tuo piano sta prendendo forma",
+    "liveNote": "Foto, mappa e salvataggio arrivano quando tutti i giorni sono pronti.",
+    "dayLabel": "Giorno {n}",
+    "planningDay": "Sto pianificando il giorno {n}…",
     "estimatedTime": "Sto creando il tuo itinerario personalizzato: di solito ci vuole un minuto o due",
     "takingLonger": "Ci siamo quasi: un itinerario ricco e personalizzato vale qualche secondo in più. Un attimo!",
     "funFacts": {
