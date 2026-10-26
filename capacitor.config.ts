@@ -11,8 +11,8 @@ import type { CapacitorConfig } from "@capacitor/cli";
  * velocity > offline-first.
  *
  * The native shell only adds: native share sheet, status-bar color,
- * splash screen, custom URL scheme for deep links, and (in v1.1) push
- * notifications. Everything else is the website.
+ * splash screen and a custom URL scheme for deep links. Everything else
+ * is the website.
  *
  * Local workflow:
  *   1. User runs `npx cap add ios` / `npx cap add android` — writes the

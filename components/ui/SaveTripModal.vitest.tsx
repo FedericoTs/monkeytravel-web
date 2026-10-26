@@ -23,7 +23,6 @@ vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key, useLo
 vi.mock("@/components/auth/AuthProvider", () => ({ useAuth: () => ({ user: state.user, loading: false }) }));
 vi.mock("@/lib/analytics", () => ({ trackTemplateCopied: () => {}, trackTripCreated: () => {} }));
 vi.mock("@/lib/native/haptics", () => ({ hapticSuccess: () => {}, hapticError: () => {} }));
-vi.mock("@/components/native/PushOptInSheet", () => ({ markFirstTripSaved: () => {} }));
 vi.mock("@/lib/platform/storage", () => ({
   prefs: {
     set: async (key: string, value: string) => {

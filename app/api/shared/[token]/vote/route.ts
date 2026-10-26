@@ -19,7 +19,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { linkGuestToAccount } from "@/lib/participants/link";
 import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
-import { enqueueNotification } from "@/lib/notifications/service";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
@@ -108,10 +107,9 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
     // Resolve token → trip. We need the trip id for the FK and to confirm the
     // share link is real (defends against random uuids in the URL bar).
-    // user_id + title feed the owner "anon_vote" bell/push notification below.
     const { data: trip, error: tripError } = await supabase
       .from("trips")
-      .select("id, user_id, title")
+      .select("id")
       .eq("share_token", token)
       .is("deleted_at", null)
       .single();
@@ -159,23 +157,6 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         return errors.internal("Failed to remove vote", "SharedVote");
       }
     } else {
-      // Crew Loop: detect "first vote by this voter on THIS TRIP" before the
-      // upsert lands (after it, the count is always ≥1). Drives the owner
-      // notification throttle below — one bell/push per voter per trip, so an
-      // owner isn't pinged 30 times while one friend votes through the whole
-      // itinerary. Best-effort: on count failure we just skip the notification.
-      let isVotersFirstVoteOnTrip = false;
-      {
-        const votes = supabase
-          .from("anonymous_activity_votes")
-          .select("id", { count: "exact", head: true })
-          .eq("trip_id", trip.id);
-        const { count, error: countError } = await (userId
-          ? votes.eq("user_id", userId)
-          : votes.eq("voter_cookie_id", voterCookieId));
-        if (!countError) isVotersFirstVoteOnTrip = (count ?? 0) === 0;
-      }
-
       // Upsert. The UNIQUE (trip_id, activity_id, voter_cookie_id) constraint
       // makes this a clean update-or-insert. We bump updated_at via trigger.
       //
@@ -220,29 +201,6 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         activityId: activity_id,
         voteType: vote_type,
       }).catch(() => {});
-
-      // Crew Loop notification: tell the trip owner their crew is voting —
-      // only on this voter's FIRST vote row for the trip (throttle above),
-      // never on revotes/removals, and not for the owner's own vote.
-      // enqueueNotification is best-effort and swallows its own failures.
-      if (isVotersFirstVoteOnTrip && trip.user_id && trip.user_id !== userId) {
-        void enqueueNotification({
-          userId: trip.user_id as string,
-          notification: {
-            type: "anon_vote",
-            data: {
-              message: `${displayName || "Someone"} started voting on "${trip.title ?? "your shared trip"}"`,
-              href: `/trips/${trip.id}`,
-              trip_id: trip.id,
-              tripId: trip.id,
-              tripName: (trip.title as string | null) ?? undefined,
-              activityId: activity_id,
-              voteType: vote_type,
-              voterName: displayName,
-            },
-          },
-        });
-      }
     }
 
     // Recompute tallies for this activity. Two-query approach: one to count

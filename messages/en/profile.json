@@ -88,7 +88,7 @@
     "breadcrumbProfile": "Profile",
     "breadcrumbCurrent": "Notifications",
     "title": "Notification preferences",
-    "intro": "Choose which emails we send you. Notifications inside the app (the bell) aren't affected.",
+    "intro": "Choose which emails we send you.",
     "loading": "Loading your preferences…",
     "badgeMaster": "Master switch",
     "badgeMarketing": "Marketing",

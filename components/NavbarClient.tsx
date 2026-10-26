@@ -9,12 +9,8 @@ import { Gift } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useTranslations } from 'next-intl';
 
-// Loaded on demand: the modal when first opened, the bell only for signed-in visitors.
+// Loaded on demand, when first opened.
 const ReferralModal = dynamic(() => import('@/components/referral/ReferralModal'), { ssr: false });
-const NotificationBell = dynamic(() => import('@/components/notifications/NotificationBell'), {
-  ssr: false,
-  loading: () => <span className="inline-block h-9 w-9" aria-hidden />,
-});
 
 interface NavLink {
   href: string;
@@ -133,8 +129,6 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
             >
               {t('navigation.saved')}
             </Link>
-            {/* Bell sits between My Trips and Profile. Self-hides for anon visitors. */}
-            <NotificationBell />
             <Link
               href="/profile"
               className="p-2 rounded-full text-[var(--foreground-muted)] hover:text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"

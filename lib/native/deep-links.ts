@@ -6,9 +6,6 @@
  *   - Universal Links / App Links tapped from another app land on the
  *     correct route INSIDE our WebView (not via a cold load that would
  *     restart the JS bundle, lose state, and flash a splash).
- *   - Push notification taps with a `data.url` payload route to the
- *     right trip/explore/profile page (this becomes load-bearing when
- *     B1 push ships — see MOBILE_CONVERSION_PLAN.md).
  *   - OAuth provider redirects (Apple, Google) that bounce back into
  *     the app via Universal Link still reach /auth/callback so the
  *     existing PKCE exchange runs.

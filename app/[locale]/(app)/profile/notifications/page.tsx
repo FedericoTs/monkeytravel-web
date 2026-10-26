@@ -25,7 +25,6 @@ export async function generateMetadata({
  * via the existing /api/profile PATCH endpoint.
  *
  * Reached from:
- *   - Navbar bell dropdown "View all settings" link
  *   - "Manage preferences" footer in every email
  *   - Direct nav to /profile/notifications
  */

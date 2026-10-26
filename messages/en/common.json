@@ -1284,32 +1284,6 @@
       "prev": "← Prev",
       "next": "Next →"
     },
-    "notifications": {
-      "bellLabel": "Notifications",
-      "unreadLabel": "{count} unread notifications",
-      "title": "Notifications",
-      "markAllRead": "Mark all read",
-      "loading": "Loading…",
-      "allCaughtUp": "You're all caught up.",
-      "emptyHint": "You'll see updates here when collaborators vote, comment, or accept invites.",
-      "viewAllSettings": "View all settings",
-      "crewJoined": "{name} is going on “{trip}”",
-      "crewJoinedSomeone": "Someone is going on “{trip}”",
-      "anonVote": "{name} started voting on “{trip}”",
-      "anonVoteSomeone": "Someone started voting on “{trip}”",
-      "inviteAccepted": "{name} joined “{trip}”",
-      "inviteAcceptedNoTrip": "{name} joined your trip",
-      "collabVote": {
-        "love": "{name} loved an activity in your trip",
-        "flexible": "{name} is flexible on an activity in your trip",
-        "concerns": "{name} has concerns about an activity in your trip",
-        "no": "{name} voted no on an activity in your trip",
-        "voted": "{name} voted on an activity in your trip"
-      },
-      "collabProposal": "{name} proposed “{activity}” for day {day}",
-      "justNow": "just now",
-      "update": "Update"
-    },
     "stopSharing": {
       "button": "Stop sharing this trip",
       "confirmMessage": "Are you sure? Anyone with the link will no longer be able to view this trip.",
@@ -2678,15 +2652,6 @@
         "romantic": "Romantic",
         "family": "Family"
       }
-    }
-  },
-  "push": {
-    "optIn": {
-      "title": "Stay in the loop?",
-      "body": "Get notified when collaborators add activities, vote on your trip, or your departure date is near. Only when something needs you — no spam.",
-      "allow": "Yes, notify me",
-      "allowing": "Setting up…",
-      "notNow": "Not now"
     }
   },
   "savedPage": {
