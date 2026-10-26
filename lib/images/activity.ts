@@ -1,7 +1,8 @@
 import { placesCostForCall } from "@/lib/api-gateway/places-sku";
-// The field masks drive Google's SKU (lib/api-gateway/places-sku.ts): the
-// activity lookup is Text Search Pro, the photo fetch is Details Essentials.
-const ACTIVITY_SEARCH_FIELD_MASK = "places.id,places.displayName,places.location,places.formattedAddress";
+// The field masks drive Google's SKU (lib/api-gateway/places-sku.ts): asking
+// for the place_id alone, and for photos alone, keeps both calls in the free
+// IDs Only tiers.
+const ACTIVITY_SEARCH_FIELD_MASK = "places.id";
 const PHOTOS_FIELD_MASK = "photos";
 /**
  * Server-side activity image fetching. The generate routes call it before
@@ -117,35 +118,30 @@ interface PlaceRecord {
 }
 
 /**
- * Text Search for one activity: place_id, name, address and coords, but no
- * photo. The photo is a separate Place Details call by place_id
- * (fetchPlacePhoto), so a place already cached under another name skips it and
- * a stale photo ref is refreshed without searching again. Unique activities
- * resolve in parallel, so the extra roundtrip adds latency once per trip, not
- * once per activity.
+ * Text Search for one activity's place_id, and nothing else: the place_id is
+ * all the lookup uses, and asking for it alone is free. The photo is a
+ * separate Place Details call by place_id (fetchPlacePhoto), so a place already
+ * cached under another name skips it and a stale photo ref is refreshed
+ * without searching again. Unique activities resolve in parallel, so the extra
+ * roundtrip adds latency once per trip, not once per activity.
  *
- * An ID-only Text Search plus Details may be cheaper; see the
- * text_search_essentials note in places-sku.ts before changing the masks.
+ * The record is named after the activity (`name`) rather than Google's
+ * listing, and carries no address or coordinates.
  *
  * Returns null when Google found no place, undefined when the call failed.
  */
-async function searchPlaceId(query: string): Promise<PlaceRecord | null | undefined> {
+async function searchPlaceId(query: string, name: string = query): Promise<PlaceRecord | null | undefined> {
   if (!GOOGLE_PLACES_API_KEY) {
     return undefined;
   }
 
-  let place: {
-    id: string;
-    displayName?: { text?: string };
-    formattedAddress?: string;
-    location?: { latitude?: number; longitude?: number };
-  } | null = null;
+  let place: { id: string } | null = null;
   const startedAt = Date.now();
   let httpStatus = 0;
 
   // ---------- Text Search ----------
-  // No photos in this mask: fetchPlacePhoto gets them, only when needed. The
-  // priciest field sets the SKU of the whole call (see places-sku.ts).
+  // Any field beyond the place_id would move the whole call to a paid SKU
+  // (see places-sku.ts); fetchPlacePhoto gets the photo, only when needed.
   try {
     const searchResponse = await fetch(
       "https://places.googleapis.com/v1/places:searchText",
@@ -182,6 +178,7 @@ async function searchPlaceId(query: string): Promise<PlaceRecord | null | undefi
       responseTimeMs: Date.now() - startedAt,
       cacheHit: false,
       costUsd: placesCostForCall({ kind: "textSearch", fieldMask: ACTIVITY_SEARCH_FIELD_MASK }).usd,
+      exactCost: true,
     });
   }
 
@@ -189,13 +186,13 @@ async function searchPlaceId(query: string): Promise<PlaceRecord | null | undefi
     return null;
   }
 
-  // Partial record — place_id + metadata, no photo yet (the caller fills it).
+  // Partial record — place_id only, no photo yet (the caller fills it).
   return {
     place_id: place.id,
-    display_name: place.displayName?.text ?? query,
-    formatted_address: place.formattedAddress ?? null,
-    latitude: place.location?.latitude ?? null,
-    longitude: place.location?.longitude ?? null,
+    display_name: name,
+    formatted_address: null,
+    latitude: null,
+    longitude: null,
     photo_resource_name: null,
     photo_url: null,
   };
@@ -275,6 +272,7 @@ export async function fetchPlacePhotos(
       responseTimeMs: Date.now() - startedAt,
       cacheHit: false,
       costUsd: placesCostForCall({ kind: "details", fieldMask: PHOTOS_FIELD_MASK }).usd,
+      exactCost: true,
     });
   }
 }
@@ -497,7 +495,7 @@ async function getOrFetchPlace(
   let partial: PlaceRecord | null | undefined = null;
   let failed = false;
   for (const query of destination ? [`${name} ${destination}`, name] : [name]) {
-    partial = await searchPlaceId(query);
+    partial = await searchPlaceId(query, name);
     if (partial) break;
     if (partial === undefined) failed = true;
   }
@@ -539,7 +537,11 @@ async function getOrFetchPlace(
       partial.photo_resource_name = photo.photo_resource_name;
       partial.photo_url = photo.photo_url;
     }
-    place = partial;
+    // A row cached without a photo keeps its name, address and coordinates:
+    // the place_id-only search has none to replace them with.
+    place = existingRow
+      ? { ...(existingRow as PlaceRecord), photo_resource_name: partial.photo_resource_name, photo_url: partial.photo_url }
+      : partial;
     const { error: placeErr } = await supabase.from("places_v2").upsert(
       {
         place_id: place.place_id,

@@ -112,12 +112,8 @@ const google = vi.fn(async (url: string, init?: RequestInit) => {
   if (url === "https://places.googleapis.com/v1/places:searchText") {
     if (failing.has(JSON.parse(String(init?.body)).textQuery)) return new Response("{}", { status: 500 });
     const found = searchable[JSON.parse(String(init?.body)).textQuery];
-    const place = found && {
-      id: found.id,
-      displayName: { text: found.name },
-      formattedAddress: `${found.name}, Rome`,
-      location: { latitude: 41.9, longitude: 12.5 },
-    };
+    // The search asks for the place id alone, so Google sends nothing else.
+    const place = found && { id: found.id };
     return Response.json({ places: place ? [place] : [] });
   }
   const placeId = /^https:\/\/places\.googleapis\.com\/v1\/places\/([^/?]+)$/.exec(url)?.[1];
@@ -168,7 +164,7 @@ async function run(days: Day[], opts?: { maxPaidLookups?: number }) {
 const ONE_OF_EACH = { cacheLookups: 1, configReads: 0, logInserts: 1, hitCountWrites: 1, total: 3 };
 
 // The rows logApiCall writes for each kind of call, at the frozen clock.
-const SEARCH_MASK = "places.id,places.displayName,places.location,places.formattedAddress";
+const SEARCH_MASK = "places.id";
 const logRow = (apiName: string, endpoint: string, cacheHit: boolean, costUsd: number) => ({
   api_name: apiName,
   endpoint,
@@ -403,10 +399,10 @@ describe("enrichment (paid lookups)", () => {
           "upsert",
           {
             place_id: "ChIJroscioli",
-            display_name: "Roscioli",
-            formatted_address: "Roscioli, Rome",
-            latitude: 41.9,
-            longitude: 12.5,
+            display_name: "Lunch at Roscioli",
+            formatted_address: null,
+            latitude: null,
+            longitude: null,
             photo_resource_name: photoName("ChIJroscioli", "fresh"),
             photo_url: proxy(photoName("ChIJroscioli", "fresh")),
             updated_at: NOW.toISOString(),

@@ -38,9 +38,8 @@ const placesSku = (sku: PlacesSku, freePerMonth: number): Allowance => ({
 
 /**
  * The SKUs each API logs, told apart by the list price it books per call, with
- * Google's free calls a month as the header of places-sku.ts gives them. A
- * search at 0.032 could also be the ID-only tier; it is read as Pro, the
- * smaller allowance.
+ * Google's free calls a month as the header of places-sku.ts gives them. The
+ * free IDs Only calls log at 0 and need no allowance.
  */
 const ALLOWANCES = new Map<string, Allowance[]>([
   [

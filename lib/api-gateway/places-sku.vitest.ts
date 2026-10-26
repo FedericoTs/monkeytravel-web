@@ -2,22 +2,31 @@
 import { describe, it, expect } from "vitest";
 import { placesCostForCall, placesDetailsTier, placesTextSearchTier } from "./places-sku";
 
-// The four live field masks in the codebase on 2026-09-17.
-const ACTIVITY_SEARCH = "places.id,places.displayName,places.location,places.formattedAddress";
+const ACTIVITY_SEARCH = "places.id";
+// What the activity search asked for before it became ID-only.
+const NAMED_SEARCH = "places.id,places.displayName,places.location,places.formattedAddress";
 const PHOTOS_ONLY = "photos";
 const GALLERY_SEARCH =
   "places.id,places.displayName,places.formattedAddress,places.location,places.photos,places.rating,places.userRatingCount,places.websiteUri,places.googleMapsUri,places.priceLevel,places.priceRange,places.currentOpeningHours";
 const DESTINATION_SEARCH = "places.id,places.displayName,places.formattedAddress,places.location,places.photos";
 
 describe("Places SKU by field mask", () => {
-  it("prices the photos-only Place Details call as Essentials, not $0.017", () => {
-    expect(placesDetailsTier(PHOTOS_ONLY)).toBe("essentials");
-    expect(placesCostForCall({ kind: "details", fieldMask: PHOTOS_ONLY })).toEqual({ sku: "details_essentials", usd: 0.005 });
+  it("prices the photos-only Place Details call as the free IDs Only tier", () => {
+    expect(placesDetailsTier(PHOTOS_ONLY)).toBe("ids_only");
+    expect(placesCostForCall({ kind: "details", fieldMask: PHOTOS_ONLY })).toEqual({ sku: "details_ids_only", usd: 0 });
   });
 
-  it("prices the activity Text Search as Pro, not $0.005", () => {
-    expect(placesTextSearchTier(ACTIVITY_SEARCH)).toBe("pro");
-    expect(placesCostForCall({ kind: "textSearch", fieldMask: ACTIVITY_SEARCH }).usd).toBe(0.032);
+  it("prices the place_id-only activity Text Search as free", () => {
+    expect(placesCostForCall({ kind: "textSearch", fieldMask: ACTIVITY_SEARCH })).toEqual({ sku: "text_search_ids_only", usd: 0 });
+  });
+
+  it("prices a search that asks for names, places or addresses as Pro", () => {
+    expect(placesTextSearchTier(NAMED_SEARCH)).toBe("pro");
+    expect(placesCostForCall({ kind: "textSearch", fieldMask: NAMED_SEARCH }).usd).toBe(0.032);
+  });
+
+  it("prices Place Details with an address or location as Essentials", () => {
+    expect(placesCostForCall({ kind: "details", fieldMask: "photos,location" })).toEqual({ sku: "details_essentials", usd: 0.005 });
   });
 
   it("prices the gallery search (rating, hours, price, website) as Enterprise", () => {
@@ -28,8 +37,8 @@ describe("Places SKU by field mask", () => {
     expect(placesCostForCall({ kind: "textSearch", fieldMask: DESTINATION_SEARCH }).sku).toBe("text_search_pro");
   });
 
-  it("an ID-only Text Search is Essentials; Details with atmosphere fields is the top tier", () => {
-    expect(placesTextSearchTier("places.id,places.name")).toBe("essentials");
+  it("an ID-only Text Search is IDs Only; Details with atmosphere fields is the top tier", () => {
+    expect(placesTextSearchTier("places.id,places.name")).toBe("ids_only");
     expect(placesDetailsTier("id,displayName,editorialSummary,currentOpeningHours")).toBe("enterprise_atmosphere");
     expect(placesDetailsTier("id,displayName,rating")).toBe("enterprise");
     expect(placesDetailsTier("id,displayName")).toBe("pro");
