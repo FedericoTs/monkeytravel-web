@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { bodyFontClassName } from "@/app/fonts";
 import { routing } from "@/lib/i18n/routing";
 import { MARKETING_CLIENT_NAMESPACES, pickMessages } from "@/lib/i18n/client-messages";
@@ -252,13 +251,8 @@ export default async function LocaleLayout({
             </ConsentWrapper>
           </AuthProvider>
         </NextIntlClientProvider>
-        {/* Their scripts are served by Vercel only; elsewhere they 404. */}
-        {process.env.VERCEL === "1" && (
-          <>
-            <Analytics />
-            <SpeedInsights />
-          </>
-        )}
+        {/* Its script is served by Vercel only; elsewhere it 404s. */}
+        {process.env.VERCEL === "1" && <Analytics />}
         {/* Session tracking for retention analytics */}
         <SessionTracker />
         <PageViewBeacon />
