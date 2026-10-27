@@ -174,9 +174,9 @@ function EditableActivityCard({
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapSearchQuery}`;
   const googleSearchUrl = `https://www.google.com/search?q=${mapSearchQuery}`;
 
-  const colors = getActivityTypeColors(activity.type);
   // Trips saved before types were normalised still say "foodie" for a dinner.
   const kind = normalizeActivityType(activity.type, activity.name);
+  const colors = getActivityTypeColors(kind);
 
   const handleSaveEdit = () => {
     onUpdate({
@@ -334,7 +334,7 @@ function EditableActivityCard({
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
           <div className="absolute bottom-2 left-2">
             <span className={`text-xs px-2 py-1 rounded-full backdrop-blur-sm bg-white/90 ${colors.text} border ${colors.border}`}>
-              {typeLabel(activity.type)}
+              {typeLabel(kind)}
             </span>
           </div>
           <PhotoCredit src={activity.image_url} />
@@ -481,7 +481,7 @@ function EditableActivityCard({
                       <span
                         className={`hidden sm:inline text-xs px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} ${colors.border} border`}
                       >
-                        {typeLabel(activity.type)}
+                        {typeLabel(kind)}
                       </span>
                       {activity.booking_required && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
