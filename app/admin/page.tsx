@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin, getAdminName } from "@/lib/admin";
@@ -53,6 +54,13 @@ export default async function AdminPage() {
               <span className="text-sm text-slate-600">
                 Welcome, <span className="font-medium">{adminName}</span>
               </span>
+              <Link
+                href="/admin/mission"
+                prefetch={false}
+                className="text-sm font-medium text-slate-900 hover:text-[var(--primary-ink)] transition"
+              >
+                Mission control
+              </Link>
               <a
                 href="/admin/feedback"
                 className="text-sm text-slate-600 hover:text-[var(--primary-ink)] transition flex items-center gap-1"

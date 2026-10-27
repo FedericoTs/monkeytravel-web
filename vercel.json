@@ -86,6 +86,10 @@
     {
       "path": "/api/cron/auth-health",
       "schedule": "40 6 * * 1"
+    },
+    {
+      "path": "/api/cron/engine-health",
+      "schedule": "7 * * * *"
     }
   ],
   "redirects": [
