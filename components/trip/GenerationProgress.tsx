@@ -2,17 +2,20 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
+import type { SseDayData } from "@/lib/streaming/sse";
+import { LivePlanPreview } from "./LivePlanPreview";
 
 interface GenerationProgressProps {
   destination: string;
   isGenerating: boolean;
   onComplete?: () => void;
   /**
-   * When streaming, the number of itinerary days received so far.
-   * Falsy / zero means the fake-percentage phase UI takes over (e.g.
-   * for the JSON fallback path, where there's no per-day signal).
+   * When streaming, the itinerary days received so far: from the first one
+   * the screen shows the plan forming instead of the phases. Empty means the
+   * phase UI stays (e.g. the JSON fallback path, where there's no per-day
+   * signal).
    */
-  streamedDayCount?: number;
+  streamedDays?: SseDayData[];
   /**
    * When streaming, the total days the model is generating. Used to
    * show "Day N of M". Falsy means the badge stays hidden.
@@ -228,13 +231,16 @@ function TravelingPlane({ progress }: { progress: number }) {
   );
 }
 
+const NO_DAYS: SseDayData[] = [];
+
 export default function GenerationProgress({
   destination,
   isGenerating,
-  streamedDayCount = 0,
+  streamedDays = NO_DAYS,
   streamedTotalDays = 0,
 }: GenerationProgressProps) {
   const t = useTranslations("common.generation");
+  const streamedDayCount = streamedDays.length;
   const [progress, setProgress] = useState(0);
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
   const [factIndex, setFactIndex] = useState(0);
@@ -342,6 +348,35 @@ export default function GenerationProgress({
 
   const streaming = streamedTotalDays > 0;
   const escalated = elapsedTime > ESCALATION_THRESHOLD_MS;
+
+  // From the first day the model has written, the plan itself is the progress.
+  if (streaming && streamedDayCount > 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+        <div className="mx-auto w-full max-w-2xl px-4 pb-16 pt-8 sm:pt-12">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--primary)]/20 bg-gradient-to-r from-[var(--primary)]/10 to-[var(--accent)]/10 px-4 py-1.5">
+              <span className="h-2 w-2 rounded-full bg-[var(--primary)] motion-safe:animate-pulse" />
+              <span className="text-sm font-medium text-slate-800">{destination}</span>
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1" aria-live="polite">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 motion-safe:animate-pulse" />
+              <span className="text-xs font-semibold text-emerald-700">
+                {t("streamedDay", { current: Math.min(streamedDayCount, streamedTotalDays), total: streamedTotalDays })}
+              </span>
+            </span>
+          </div>
+          <h2 className="mt-5 text-2xl font-bold text-slate-900 sm:text-3xl">{t("liveTitle")}</h2>
+          <p className="mt-1 text-sm text-slate-600">{t("liveNote")}</p>
+          <div className="relative mb-2 mt-6 h-1 rounded-full bg-slate-200/40" style={{ overflow: "visible" }}>
+            <TravelingPlane progress={progress} />
+          </div>
+          <p className="mb-6 text-xs text-slate-500">{t("elapsed", { seconds: formatTime(elapsedTime) })}</p>
+          <LivePlanPreview days={streamedDays} totalDays={streamedTotalDays} />
+        </div>
+      </div>
+    );
+  }
 
   // The card is centred, so any change in its height moved all of it. Each
   // line whose text changes keeps every variant stacked in one grid cell

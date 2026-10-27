@@ -269,6 +269,8 @@ export async function POST(request: NextRequest) {
   //    a single `complete` event; cache-miss branch streams days.
   const sseGenerator = async function* (): AsyncGenerator<SseEvent, void, unknown> {
     let generatedDays = 0;
+    // When the planner could show day 1 of a fresh plan.
+    let firstDayMs: number | null = null;
     let cacheHit = false;
     let finalItinerary: GeneratedItinerary | null = null;
     // What the model call cost, from its token counts (set once it answers).
@@ -364,6 +366,7 @@ export async function POST(request: NextRequest) {
         const newDays = feedChunk(parser, chunk.text);
         for (const day of newDays) {
           generatedDays++;
+          firstDayMs ??= Date.now() - startTime;
           // The parser guarantees a day-shaped object (day_number + date)
           // because we only enter the days array branch after `"days":[`
           // — anything else fails the parse and we fall back below.
@@ -505,6 +508,7 @@ export async function POST(request: NextRequest) {
                 streamed: true,
                 // "Try Different Version": a regenerate that skipped the cache.
                 fresh: wantsFresh,
+                ...(firstDayMs !== null ? { first_day_ms: firstDayMs } : {}),
                 ...(generationId ? { generation_id: generationId } : {}),
               },
             });

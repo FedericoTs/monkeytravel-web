@@ -42,6 +42,7 @@ import DateRangePicker from "@/components/ui/DateRangePicker";
 import AnchorEditor from "@/components/trip/AnchorEditor";
 import { buildSeasonalContext, getSeasonalVibeSuggestions } from "@/lib/seasonal";
 import { streamGeneration } from "@/lib/streaming/client";
+import type { SseDayData } from "@/lib/streaming/sse";
 import { GENERATION_ID_HEADER } from "@/lib/ai/generation-id";
 import {
   GENERATION_TIMEOUT_MS,
@@ -567,9 +568,9 @@ export default function NewTripPage({
   const [showMap, setShowMap] = useState(true);
   const [resultViewMode, setResultViewMode] = useState<"cards" | "timeline">("cards");
   // Streaming progress — set by the SSE consumer in handleGenerate. The
-  // GenerationProgress component reads these to show real progress
-  // ("Day 3 of 7") instead of fake-percentage phases.
-  const [streamedDayCount, setStreamedDayCount] = useState(0);
+  // GenerationProgress component shows the days as they arrive ("Day 3 of 7"
+  // and the plan itself) instead of fake-percentage phases.
+  const [streamedDays, setStreamedDays] = useState<SseDayData[]>([]);
   const [streamedTotalDays, setStreamedTotalDays] = useState(0);
 
   // Solo vs group intent. Captured as PostHog `trip_intent_selected`,
@@ -2547,7 +2548,7 @@ export default function NewTripPage({
       const attemptGeneration = async (generationId: string): Promise<GenerationAnswer> => {
         const idHeader = { [GENERATION_ID_HEADER]: generationId };
         // Reset stream progress for this try.
-        setStreamedDayCount(0);
+        setStreamedDays([]);
         setStreamedTotalDays(0);
 
         // 1. Try the streaming endpoint first. If it fails before any data
@@ -2579,13 +2580,13 @@ export default function NewTripPage({
                   heard();
                   setStreamedTotalDays(meta.totalDays);
                 },
-                onDay: () => {
+                onDay: (day) => {
                   heard();
                   // Don't push the day into generatedItinerary mid-stream —
                   // wait for `complete` to set the canonical (sanitized,
-                  // image-enriched) version. Just bump the counter so the
-                  // GenerationProgress UI shows "Day N of M".
-                  setStreamedDayCount((c) => c + 1);
+                  // image-enriched) version. Until then GenerationProgress
+                  // shows the days as they arrive.
+                  setStreamedDays((days) => [...days, day]);
                 },
                 onComplete: (data) => {
                   streamedItinerary = data.itinerary as GeneratedItinerary;
@@ -4340,7 +4341,7 @@ export default function NewTripPage({
       <GenerationProgress
         destination={destination}
         isGenerating={generating}
-        streamedDayCount={streamedDayCount}
+        streamedDays={streamedDays}
         streamedTotalDays={streamedTotalDays}
       />
     );
