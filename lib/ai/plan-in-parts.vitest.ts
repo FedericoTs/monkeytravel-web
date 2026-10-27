@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TripCreationParams } from "@/types";
+import type { PartsYield } from "./plan-in-parts";
 
 /**
  * A long trip written in parts at the same time: the days reach the planner
@@ -41,10 +42,10 @@ const outline = Array.from({ length: 10 }, (_, i) => ({ day_number: i + 1, theme
 
 async function collect(totalDays = 10) {
   const days: Array<{ day_number: number; date: string }> = [];
-  let done: { itinerary: { days: Array<{ day_number: number; date: string }>; trip_summary: unknown }; parts: number } | null = null;
+  let done: Extract<PartsYield, { type: "done" }> | null = null;
   for await (const out of writeInParts(params, totalDays, outline, {})) {
     if (out.type === "day") days.push(out.day as { day_number: number; date: string });
-    else done = out as typeof done;
+    else done = out;
   }
   return { days, done: done! };
 }
