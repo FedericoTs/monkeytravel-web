@@ -58,6 +58,18 @@ describe("deriveRefineSuggestions", () => {
     expect(byName.some((x) => x.key === "noFood")).toBe(false);
   });
 
+  // 250 stops in 51 trips of two weeks were typed "foodie", and each such day
+  // was told it had nowhere to eat.
+  it.each(["foodie", "food_market", "restaurante", "meal", "wine bar"])("counts a stop typed %s as food", (type) => {
+    const s = deriveRefineSuggestions([day(1, [act("Museum"), act("Ba'Ghetto", type)])]);
+    expect(s.some((x) => x.key === "noFood")).toBe(false);
+  });
+
+  it("does not take a sight for food", () => {
+    const s = deriveRefineSuggestions([day(1, [act("Castle", "cultural"), act("Old bridge", "urban"), act("Barbican", "attraction")])]);
+    expect(s.find((x) => x.key === "noFood")?.params.day).toBe(1);
+  });
+
   it("flags a suspiciously empty day", () => {
     const s = deriveRefineSuggestions([
       day(1, [act("A"), act("B"), act("Dinner", "restaurant")]),
