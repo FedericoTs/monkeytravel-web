@@ -643,13 +643,6 @@
       "seatsLeft": "{count} left",
       "via": "Via"
     },
-    "links": {
-      "title": "Book Your Trip",
-      "subtitle": "Compare prices across platforms",
-      "flights": "Flights",
-      "hotels": "Hotels",
-      "disclaimer": "Prices and availability may vary. Click to compare on each platform."
-    },
     "travelers": "travelers",
     "travelersCount": "{count, plural, =1 {1 traveler} other {# travelers}}",
     "activitiesAttractions": "Activities & Attractions",
@@ -1041,17 +1034,6 @@
       "startActivities": "Start activities",
       "windDownBy": "Wind down by"
     }
-  },
-  "liveJourney": {
-    "dayOfTotal": "Day {current} of {total}",
-    "now": "Now",
-    "inMinutes": "in {minutes}m",
-    "inHoursMinutes": "in {hours}h {minutes}m",
-    "inProgress": "In Progress",
-    "upNext": "Up Next",
-    "allComplete": "All activities for today are complete!",
-    "todaysProgress": "Today's Progress",
-    "activitiesCount": "{completed} / {total} activities"
   },
   "destinationSearch": {
     "placeholder": "Search destinations...",

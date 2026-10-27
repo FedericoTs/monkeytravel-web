@@ -29,7 +29,6 @@ import { InlineProposalCard } from "@/components/collaboration/proposals";
 import DestinationHero from "@/components/DestinationHero";
 import EditableActivityCard from "@/components/trip/EditableActivityCard";
 import ShareButton from "@/components/trip/ShareButton";
-import TripBookingLinks from "@/components/trip/TripBookingLinks";
 import { BookingPanel, EnhancedBookingPanel, PostConfirmationBanner } from "@/components/booking";
 import { useFlag } from "@/lib/posthog/hooks";
 import { FLAG_ENHANCED_BOOKING } from "@/lib/posthog/flags";
