@@ -4,7 +4,7 @@ slug: "where-to-go-in-november"
 description: "November sits between the autumn-colour rush and the Christmas-market surge, which makes it the value month almost everywhere except US Thanksgiving week. Twelve destinations where November is the point, each with sourced climate normals, the 2026 festival and holiday dates, the entry rules that changed this year, and the trade-off no one puts in the headline."
 author: "Emanuela P."
 publishedAt: "2026-07-27"
-updatedAt: "2026-09-21"
+updatedAt: "2026-10-20"
 category: "Seasonal Travel"
 tags: ["seasonal", "monthly travel guide", "autumn travel", "shoulder season", "best destinations"]
 image: "/images/blog/where-to-go-in-november.jpg"
@@ -48,6 +48,10 @@ November is also the pivot month of the global weather map. The southwest monsoo
 | Cape Town, South Africa (airport) | Late spring before December prices | 23.7 / 13.4 | 25.3 | Cape Doctor wind closes the cableway | Moderate |
 | Vietnam's south & Mekong (Ho Chi Minh City) | Rainy season winding down | 32.4 / 24.9 | 128 | Central coast still wet, can flood | Moderate |
 | New Zealand's South Island (Queenstown) | Late spring, Great Walks reopen | 17.5 / 6.2 | 60.7 | Four-seasons-in-a-day, avalanche closures | Low–moderate |
+
+### The cheapest places to travel in November 2026
+
+On a mid-range budget, four of the twelve cost the least per person per day (Budget Your Trip averages): Luxor in Egypt ($31), Kochi in Kerala ($40), Buenos Aires ($55, a snapshot, since Argentine prices move fast) and Oaxaca ($56 outside festival week). Flights are the other half of the bill, so compare fares from your home airport before you choose.
 
 ## 1. Thailand — The Cool Dry Season Opens
 

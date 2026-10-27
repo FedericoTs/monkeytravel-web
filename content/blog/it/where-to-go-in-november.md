@@ -4,7 +4,7 @@ slug: "where-to-go-in-november"
 description: "Novembre cade tra la corsa al foliage e l'assalto ai mercatini di Natale, ed è il mese del risparmio quasi ovunque, tranne nella settimana del Thanksgiving americano. Dodici mete dove novembre è il motivo del viaggio, ciascuna con normali climatiche ufficiali, le date 2026 di festival e feste, le regole d'ingresso cambiate quest'anno e il compromesso che nessuno mette nel titolo."
 author: "Emanuela P."
 publishedAt: "2026-07-27"
-updatedAt: "2026-09-21"
+updatedAt: "2026-10-20"
 category: "Seasonal Travel"
 tags: ["stagionale", "guida mensile ai viaggi", "viaggi autunnali", "mezza stagione", "migliori destinazioni"]
 image: "/images/blog/where-to-go-in-november.jpg"
@@ -49,6 +49,10 @@ Novembre è anche il mese cerniera della mappa meteorologica globale. Il monsone
 | Città del Capo, Sudafrica (aeroporto) | Tarda primavera prima dei prezzi di dicembre | 23,7 / 13,4 | 25,3 | Il vento Cape Doctor chiude la funivia | Moderata |
 | Il sud del Vietnam e il Mekong (Ho Chi Minh City) | La stagione delle piogge si esaurisce | 32,4 / 24,9 | 128 | Costa centrale ancora bagnata, rischio alluvioni | Moderata |
 | Nuova Zelanda, Isola del Sud (Queenstown) | Tarda primavera, riaprono le Great Walks | 17,5 / 6,2 | 60,7 | Quattro stagioni in un giorno, chiusure per valanghe | Bassa–moderata |
+
+### Le mete più economiche di novembre 2026
+
+Con un budget di fascia media, quattro delle dodici mete costano meno a persona al giorno (medie Budget Your Trip): Luxor, in Egitto ($31), Kochi, in Kerala ($40), Buenos Aires ($55, un'istantanea, perché i prezzi argentini si muovono in fretta) e Oaxaca ($56 fuori dalla settimana della festa). Il volo è l'altra metà del conto: confronta le tariffe dal tuo aeroporto prima di scegliere.
 
 ## 1. Thailandia — Si apre la stagione secca e fresca
 

@@ -4,7 +4,7 @@ slug: "where-to-go-in-november"
 description: "Novembro fica entre a corrida às cores do outono e o assalto aos mercados de Natal, o que faz dele o mês de melhor valor em quase toda parte, exceto na semana do Thanksgiving americano. Doze destinos onde novembro é o motivo da viagem, cada um com normais climáticas documentadas, as datas de festivais e feriados de 2026, as regras de entrada que mudaram este ano e o compromisso que ninguém põe no título."
 author: "Emanuela P."
 publishedAt: "2026-07-27"
-updatedAt: "2026-09-21"
+updatedAt: "2026-10-20"
 category: "Seasonal Travel"
 tags: ["sazonal", "guia mensal de viagens", "viagem de outono", "meia-estação", "melhores destinos"]
 image: "/images/blog/where-to-go-in-november.jpg"
@@ -52,6 +52,10 @@ Novembro é também o mês de transição do mapa meteorológico global. A monç
 | Cidade do Cabo, África do Sul (aeroporto) | Primavera tardia antes dos preços de dezembro | 23,7 / 13,4 | 25,3 | O vento Cape Doctor fecha o teleférico | Moderadas |
 | Sul do Vietnã e Mekong (cidade de Ho Chi Minh) | Estação das chuvas terminando | 32,4 / 24,9 | 128 | Costa central ainda chuvosa, pode inundar | Moderadas |
 | Ilha do Sul da Nova Zelândia (Queenstown) | Primavera tardia, reabrem as Great Walks | 17,5 / 6,2 | 60,7 | Quatro estações num dia, fechamentos por avalanche | Baixas–moderadas |
+
+### Os destinos mais baratos para viajar em novembro de 2026
+
+Com um orçamento de faixa intermediária, quatro dos doze destinos custam menos por pessoa por dia (médias do Budget Your Trip): Luxor, no Egito ($31), Kochi, em Kerala ($40), Buenos Aires ($55, um retrato do momento, porque os preços argentinos mudam rápido) e Oaxaca ($56 fora da semana da festa). A passagem aérea é a outra metade da conta: compare as tarifas a partir do seu aeroporto antes de escolher.
 
 ## 1. Tailândia — Abre a estação seca e fresca
 
