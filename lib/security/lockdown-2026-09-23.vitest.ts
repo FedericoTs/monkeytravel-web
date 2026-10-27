@@ -34,14 +34,7 @@ describe("writers moved to the service role", () => {
     expect(fn).not.toContain("await createClient()");
   });
 
-  it("the banana award route validates the reference and credits through the locked function", () => {
-    const src = read("app/api/bananas/award/route.ts");
-    expect(src).toContain("storedAwardReference(type as AwardType, tripId, referenceId)");
-    expect(src).toMatch(/createAdminClient\(\)\.rpc\("award_gameplay_bananas"/);
-    expect(src).toContain("p_activity_cap: itineraryActivityCount(trip.itinerary)");
-    expect(src).toContain("p_daily_cap: DAILY_GAMEPLAY_AWARD_CAP");
-    // Caps checked with plain reads in the route were racy.
-    expect(src).not.toContain("addBananas(");
+  it("the gameplay banana function stays locked to the service role", () => {
     const sql = migration("20260924119000_award_gameplay_bananas.sql");
     expect(sql).toMatch(/from public\.users where id = p_user_id\s+for update;/);
     expect(sql).toContain(

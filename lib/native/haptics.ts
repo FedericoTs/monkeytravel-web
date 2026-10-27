@@ -101,7 +101,7 @@ export async function hapticLight(): Promise<void> {
 /**
  * Medium impact. Use for:
  *   - Vote cast on a group decision
- *   - Activity marked complete (gamification reward)
+ *   - Activity marked complete
  *   - Booking opened in external browser
  *
  * Slightly more weight than Light — feels like a deliberate action

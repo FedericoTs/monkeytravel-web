@@ -18,7 +18,6 @@ let ownRow: Record<string, unknown> | null = null;
 let cookieTaken = false;
 let log: FakeQuery[] = [];
 const setCookie = vi.fn();
-const enqueue = vi.fn();
 /** The plan emails asked for, what the send reports, and whether the limits allow one. */
 const planSends: unknown[] = [];
 let planStatus = "sent";
@@ -31,7 +30,6 @@ vi.mock("nanoid", () => ({ nanoid: () => "fresh-browser-id-0001" }));
 vi.mock("@/lib/api/rate-limit", () => ({ createRateLimiter: () => ({ check: async () => ({ allowed: true }) }) }));
 vi.mock("@/lib/participants/flag", () => ({ isLiveTripParticipantsEnabled: () => true }));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: () => {} }));
-vi.mock("@/lib/notifications/service", () => ({ enqueueNotification: async (args: unknown) => enqueue(args) }));
 vi.mock("@/lib/participants/plan-email", () => ({
   mayEmailPlan: async () => planAllowed,
   sendParticipantPlanEmail: async (_admin: unknown, args: unknown) => {
@@ -80,7 +78,6 @@ beforeEach(() => {
   ownRow = null;
   cookieTaken = false;
   setCookie.mockClear();
-  enqueue.mockClear();
   planSends.length = 0;
   planStatus = "sent";
   planAllowed = true;
@@ -159,36 +156,10 @@ describe("POST /api/shared/[token]/join", () => {
     expect(ops("link_guest_to_account", "rpc")).toEqual([]);
     expect(setCookie).toHaveBeenCalledTimes(1);
   });
-  it("tells the owner, in the bell, the first time someone says they're going", async () => {
-    await send({ action: "join" });
-    expect(enqueue).toHaveBeenCalledTimes(1);
-    expect(enqueue).toHaveBeenCalledWith({
-      userId: "owner-1",
-      notification: {
-        type: "crew_joined",
-        data: {
-          message: 'Someone is going on "Lisbon"',
-          href: "/trips/trip-1",
-          trip_id: "trip-1",
-          tripName: "Lisbon",
-          participant_id: "new-row-1",
-          name: null,
-        },
-      },
-    });
-  });
-
-  it("says nothing when someone who left says they're going again", async () => {
-    ownRow = { id: "row-2", left_at: "2026-10-01T10:00:00Z", display_name: "Bo", email: null };
-    await send({ action: "join" });
-    expect(enqueue).not.toHaveBeenCalled();
-  });
-
-  it("says nothing when the owner says they're going on their own trip", async () => {
+  it("lets the owner say they're going on their own trip", async () => {
     signedIn = { id: "owner-1" };
     await send({ action: "join" });
     expect(ops("trip_participants", "insert")).toHaveLength(1);
-    expect(enqueue).not.toHaveBeenCalled();
   });
 });
 

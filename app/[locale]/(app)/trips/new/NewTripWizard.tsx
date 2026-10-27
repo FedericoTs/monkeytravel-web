@@ -304,7 +304,7 @@ function formatDateRangeLocalized(startISO: string, endISO: string, locale: stri
 }
 
 // True inside the Capacitor native shell (iOS/Android WebView). Inline check
-// mirrors lib/platform/storage.ts / PushOptInSheet.tsx — the `Capacitor`
+// mirrors lib/platform/storage.ts — the `Capacitor`
 // global is injected by the runtime; in a plain browser it's undefined.
 // Used to skip the beforeunload leave-guard: WebViews don't render the
 // native leave dialog and some hang on preventDefault'd beforeunload.

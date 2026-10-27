@@ -219,34 +219,6 @@
     "regeneratingActivity": "Regenerando atividade com AI...",
     "savedInTrips": "{count, plural, one {Em # viagem salva} other {Em # viagens salvas}}"
   },
-  "xp": {
-    "todaysProgress": "Progresso de Hoje",
-    "activitiesCount": "{completed}/{total} atividades",
-    "xpToNextLevel": "{xp} XP para {levelName}",
-    "maxLevel": "Nível Máximo!",
-    "dayComplete": "Dia Concluído!",
-    "levels": {
-      "traveler": "Viajante",
-      "explorer": "Explorador",
-      "adventurer": "Aventureiro",
-      "voyager": "Navegador",
-      "globetrotter": "Cidadão do Mundo",
-      "wayfarer": "Caminhante",
-      "wanderer": "Nômade",
-      "pathfinder": "Desbravador",
-      "pioneer": "Pioneiro",
-      "legend": "Lenda"
-    },
-    "achievement": {
-      "unlocked": "Conquista {rarity}",
-      "rarities": {
-        "common": "Comum",
-        "rare": "Raro",
-        "epic": "Épico",
-        "legendary": "Lendário"
-      }
-    }
-  },
   "trip": {
     "cards": "Cartões",
     "timeline": "Linha do Tempo",
@@ -1297,32 +1269,6 @@
       "clearFilters": "Limpar filtros",
       "prev": "← Anterior",
       "next": "Próxima →"
-    },
-    "notifications": {
-      "bellLabel": "Notificações",
-      "unreadLabel": "{count} notificações não lidas",
-      "title": "Notificações",
-      "markAllRead": "Marcar todas como lidas",
-      "loading": "Carregando…",
-      "allCaughtUp": "Você está em dia.",
-      "emptyHint": "Você verá atualizações aqui quando os colaboradores votarem, comentarem ou aceitarem convites.",
-      "viewAllSettings": "Ver todas as configurações",
-      "crewJoined": "{name} vai para “{trip}”",
-      "crewJoinedSomeone": "Alguém vai para “{trip}”",
-      "anonVote": "{name} começou a votar em “{trip}”",
-      "anonVoteSomeone": "Alguém começou a votar em “{trip}”",
-      "inviteAccepted": "{name} entrou em “{trip}”",
-      "inviteAcceptedNoTrip": "{name} entrou na sua viagem",
-      "collabVote": {
-        "love": "{name} amou uma atividade da sua viagem",
-        "flexible": "{name} está flexível sobre uma atividade da sua viagem",
-        "concerns": "{name} tem dúvidas sobre uma atividade da sua viagem",
-        "no": "{name} votou não em uma atividade da sua viagem",
-        "voted": "{name} votou em uma atividade da sua viagem"
-      },
-      "collabProposal": "{name} propôs “{activity}” para o dia {day}",
-      "justNow": "agora mesmo",
-      "update": "Novidade"
     },
     "stopSharing": {
       "button": "Parar de compartilhar esta viagem",
@@ -2692,15 +2638,6 @@
         "romantic": "Romântico",
         "family": "Família"
       }
-    }
-  },
-  "push": {
-    "optIn": {
-      "title": "Quer ficar por dentro?",
-      "body": "Receba avisos quando colaboradores adicionarem atividades, votarem na sua viagem ou quando a data da partida estiver próxima. Só quando algo precisar de você — nada de spam.",
-      "allow": "Sim, me avise",
-      "allowing": "Configurando…",
-      "notNow": "Agora não"
     }
   },
   "savedPage": {

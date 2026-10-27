@@ -12,7 +12,6 @@ export const MARKETING_CLIENT_NAMESPACES = [
   "common.bottomNav",
   "common.language",
   "common.maintenance",
-  "common.share.notifications",
   "common.referral",
   "common.emailSubscribe",
   "common.pageShare",
@@ -36,12 +35,6 @@ export const APP_CLIENT_NAMESPACES = [
   "destinations.tags",
   "blog.tips",
   "blog.index",
-] as const;
-
-export const CHATGPT_IMPORT_CLIENT_NAMESPACES = [
-  ...MARKETING_CLIENT_NAMESPACES,
-  "trips.chatgptImport",
-  "trips.activityTypes",
 ] as const;
 
 const isTree = (value: unknown): value is AbstractIntlMessages => typeof value === "object" && value !== null;

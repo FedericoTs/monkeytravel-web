@@ -17,7 +17,6 @@ import { useEffect } from "react";
 import { registerServiceWorker } from "@/lib/sw/register";
 import { installBackButtonHandler } from "@/lib/native/back-button";
 import { installDeepLinkHandler } from "@/lib/native/deep-links";
-import { initPushOnce } from "@/lib/native/push";
 
 export default function NativeBoot() {
   useEffect(() => {
@@ -45,8 +44,7 @@ export default function NativeBoot() {
       })
       .catch(() => undefined);
 
-    // Deep-link routing — Universal Links / App Links / push-payload URLs
-    // (Phase B2). Without this, taps land via cold app launch which loses
+    // Deep-link routing — Universal Links / App Links (Phase B2). Without this, taps land via cold app launch which loses
     // in-flight state + flashes a splash; with it, we navigate inside the
     // WebView for a native-feel transition. No-op outside Capacitor shell.
     installDeepLinkHandler()
@@ -54,16 +52,6 @@ export default function NativeBoot() {
         unsubs.push(unsub);
       })
       .catch(() => undefined);
-
-    // Push notifications (Phase B1). initPushOnce() self-gates:
-    //   - no-op on web
-    //   - no-op on native unless the user has previously opted in
-    //     via the soft-prompt (markSoftPromptGranted in
-    //     lib/native/push.ts).
-    // Refreshes the device token on every cold launch and re-registers
-    // it with /api/devices/register if it changed. Wires the tap
-    // handler that routes deep-link payloads on notification touch.
-    void initPushOnce();
 
     return () => {
       unsubs.forEach((unsub) => unsub());

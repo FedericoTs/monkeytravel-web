@@ -32,7 +32,6 @@ import { createClient } from "@/lib/supabase/server";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
-import { enqueueNotification } from "@/lib/notifications/service";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { linkGuestToAccount } from "@/lib/participants/link";
@@ -105,7 +104,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     const admin = createAdminClient();
     const { data: trip, error: tripError } = await admin
       .from("trips")
-      .select("id, user_id, title")
+      .select("id")
       .eq("share_token", token)
       .is("deleted_at", null)
       .single();
@@ -237,25 +236,6 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         gave_name: displayName !== null,
         gave_email: email !== null && email !== undefined,
       });
-    }
-
-    // Tell the owner, once per person per trip: a rejoin after leaving or a
-    // name change says nothing new. In the bell only; nothing is sent out.
-    if (firstJoinId && trip.user_id && trip.user_id !== userId) {
-      waitUntil(enqueueNotification({
-        userId: trip.user_id as string,
-        notification: {
-          type: "crew_joined",
-          data: {
-            message: `${displayName ?? "Someone"} is going on "${trip.title}"`,
-            href: `/trips/${trip.id}`,
-            trip_id: trip.id,
-            tripName: trip.title as string,
-            participant_id: firstJoinId,
-            name: displayName,
-          },
-        },
-      }));
     }
 
     if (issuedCookie) {

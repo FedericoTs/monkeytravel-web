@@ -33,8 +33,6 @@ let caller: { id: string; email: string };
 const userLog: FakeQuery[] = [];
 const adminLog: FakeQuery[] = [];
 
-const notify = vi.fn();
-vi.mock("@/lib/notifications/service", () => ({ enqueueNotification: (...args: unknown[]) => notify(...args) }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => adminClient() }));
 vi.mock("@/lib/api/auth", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/api/auth")>();
@@ -199,7 +197,7 @@ describe("who proposed it", () => {
 });
 
 describe("proposing an activity for a day", () => {
-  it("stores Day 1 as 1, and tells the owner Day 1", async () => {
+  it("stores Day 1 as 1", async () => {
     caller = { id: MATE, email: "mate@example.com" };
     const res = await createProposal(
       request("POST", { type: "new", activityData: { name: "Rooftop bar", start_time: "09:00" }, targetDay: 1 }),
@@ -208,11 +206,6 @@ describe("proposing an activity for a day", () => {
     expect(res.status).toBe(200);
     expect(userLog.find((q) => q.table === "activity_proposals" && q.op === "insert")?.value).toMatchObject({ target_day: 1 });
     expect((await res.json()).proposal.proposer).toMatchObject({ display_name: "Luca" });
-    expect(notify).toHaveBeenCalledTimes(1);
-    const sent = notify.mock.calls[0][0];
-    expect(sent.userId).toBe(OWNER);
-    expect(sent.notification.data).toMatchObject({ day_number: 1, proposer_name: "Luca" });
-    expect(sent.notification.data.message).toContain("for day 1");
   });
 
   it.each([0, -1, 1.5])("refuses day %s", async (targetDay) => {

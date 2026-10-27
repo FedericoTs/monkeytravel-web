@@ -14,8 +14,7 @@ All analytics events are now wired up in the codebase. Here's what's tracking:
 | `itinerary_generated` | ✅ Wired | `app/trips/new/page.tsx` |
 | `trip_created` | ✅ Wired | `app/trips/new/page.tsx` |
 | `destination_selected` | ✅ Wired | `app/trips/new/page.tsx` |
-| `activity_completed` | ✅ Wired | `lib/hooks/useGamification.ts` |
-| `achievement_unlocked` | ✅ Wired | `lib/hooks/useGamification.ts` |
+| `activity_completed` | ✅ Wired | `components/trip/OngoingTripView.tsx` |
 | `early_access_redeemed` | ✅ Wired | `components/beta/BetaCodeInput.tsx` |
 | `beta_code_attempt` | ✅ Wired | `components/beta/BetaCodeInput.tsx` |
 | `session_start` | ✅ Wired | `components/analytics/SessionTracker.tsx` |
@@ -450,7 +449,6 @@ export function trackAhaMomentReached(params: {
 - [ ] `session_start` with user context
 - [ ] `user_return` with days since last visit
 - [ ] `trip_viewed` with engagement data
-- [ ] `achievement_unlocked` for gamification
 
 **Phase 3 - Funnel Events** (Week 3):
 - [ ] `referral_code_generated`

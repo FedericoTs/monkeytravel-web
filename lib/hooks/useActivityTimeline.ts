@@ -124,8 +124,8 @@ export function useActivityTimeline(tripId: string): UseActivityTimelineReturn {
   // their catch block to revert the optimistic state when the PATCH
   // fails. Without this, a network/RLS error left the user looking at a
   // "Done" badge + strikethrough that never persisted — they'd walk away
-  // believing the activity was completed (and the banana XP credited),
-  // come back next session, and see it all gone. Day-2 audit P1.
+  // believing the activity was completed, come back next session, and
+  // see it all gone. Day-2 audit P1.
   const revertTimeline = useCallback(
     (activityId: string, prev: ActivityTimeline | undefined) => {
       setTimelines((current) => {

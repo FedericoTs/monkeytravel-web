@@ -149,27 +149,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           void syncTripCacheOwner(session?.user?.id ?? null);
         }
 
-        // 2026-05-31 mobile-audit P2: re-register the push device row on
-        // in-session sign-in. NativeBoot only calls initPushOnce() on
-        // cold launch, so a user who signs in mid-session never gets a
-        // user_id-linked device row → every server-side push silently
-        // no-ops with `no_active_devices` until the next cold launch.
-        // Capacitor.isNativePlatform() gate keeps web users from paying
-        // for the dynamic import or the @capacitor/push-notifications
-        // chunk on every login.
-        if (event === "SIGNED_IN") {
-          const cap = (
-            window as typeof window & {
-              Capacitor?: { isNativePlatform?: () => boolean };
-            }
-          ).Capacitor;
-          if (cap?.isNativePlatform?.()) {
-            void import("@/lib/native/push")
-              .then(({ initPushOnce }) => initPushOnce())
-              .catch(() => undefined);
-          }
-        }
-
         // Anonymous share loop: if this browser shared a trip while signed out,
         // hand that trip to the account that is now signed in. On SIGNED_IN and
         // on INITIAL_SESSION (lib/trips/claim-trigger.ts): OAuth and emailed

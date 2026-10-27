@@ -3,7 +3,7 @@ import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripActivityRouteContext } from "@/lib/api/route-context";
 import type { VoteType, ActivityVote, ItineraryDay } from "@/types";
-import { enqueueNotification } from "@/lib/notifications/service";
+import { sendVoteEmail } from "@/lib/notifications/vote-email";
 import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 import { findActivityById } from "@/lib/utils/activity-id";
 
@@ -201,10 +201,10 @@ export async function POST(request: NextRequest, context: TripActivityRouteConte
       vote = newVote;
     }
 
-    // Notify the trip owner of a NEW vote — only when it's not the owner
+    // Email the trip owner about a NEW vote — only when it's not the owner
     // voting on their own trip, and only for first-time votes (not edits).
-    // Best-effort; enqueueNotification swallows internal failures so a
-    // notification miss never fails the vote.
+    // Best-effort; sendVoteEmail swallows its own failures so an email miss
+    // never fails the vote.
     if (!existingVote && !isOwner) {
       const { data: voterProfile } = await supabase
         .from("users")
@@ -212,9 +212,9 @@ export async function POST(request: NextRequest, context: TripActivityRouteConte
         .eq("id", user.id)
         .maybeSingle();
       const voterName = voterProfile?.display_name || "A collaborator";
-      // The owner reads this label in the push and the email. It was the
-      // activity's id until 2026-09-25 ("👍 on \"act_…\""); now its name,
-      // falling back to the id only if the activity is gone.
+      // The owner reads this label in the email. It was the activity's id
+      // until 2026-09-25; now its name, falling back to the id only if the
+      // activity is gone.
       let activityLabel = activityId;
       try {
         const { data: votedTrip } = await supabase
@@ -226,30 +226,16 @@ export async function POST(request: NextRequest, context: TripActivityRouteConte
         const found = Array.isArray(itinerary) ? findActivityById(itinerary as ItineraryDay[], activityId) : null;
         if (found?.activity?.name) activityLabel = found.activity.name;
       } catch {
-        // Best-effort, like the notification itself.
+        // Best-effort, like the email itself.
       }
-      const voteLabel =
-        voteType === "love"
-          ? "loved"
-          : voteType === "flexible"
-            ? "is flexible on"
-            : voteType === "concerns"
-              ? "has concerns about"
-              : "voted no on";
-      void enqueueNotification({
-        userId: trip.user_id,
-        notification: {
-          type: "collab_vote",
-          data: {
-            message: `${voterName} ${voteLabel} an activity in your trip`,
-            href: `/trips/${tripId}`,
-            trip_id: tripId,
-            voter_name: voterName,
-            activity_label: activityLabel,
-            vote_type: voteType === "love" ? "up" : "down",
-            vote: voteType,
-          },
-        },
+      void sendVoteEmail({
+        ownerId: trip.user_id,
+        voterId: user.id,
+        tripId,
+        activityId,
+        voterName,
+        activityLabel,
+        vote: voteType,
       });
     }
 
