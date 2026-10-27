@@ -757,57 +757,6 @@
     "rls_enabled": true
   },
   {
-    "table": "device_tokens",
-    "grants": {
-      "anon": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
-      ],
-      "authenticated": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
-      ]
-    },
-    "policies": [
-      {
-        "cmd": "DELETE",
-        "name": "users delete own device_tokens",
-        "roles": [
-          "public"
-        ],
-        "using": "(( SELECT auth.uid() AS uid) = user_id)",
-        "permissive": true,
-        "with_check": null
-      },
-      {
-        "cmd": "INSERT",
-        "name": "users insert own device_tokens",
-        "roles": [
-          "public"
-        ],
-        "using": null,
-        "permissive": true,
-        "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
-      },
-      {
-        "cmd": "SELECT",
-        "name": "users read own device_tokens",
-        "roles": [
-          "public"
-        ],
-        "using": "(( SELECT auth.uid() AS uid) = user_id)",
-        "permissive": true,
-        "with_check": null
-      }
-    ],
-    "rls_forced": false,
-    "rls_enabled": true
-  },
-  {
     "table": "distance_cache",
     "grants": {
       "anon": [
@@ -1075,88 +1024,6 @@
     "rls_enabled": true
   },
   {
-    "table": "mcp_itineraries",
-    "grants": {
-      "anon": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
-      ],
-      "authenticated": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
-      ]
-    },
-    "policies": [
-      {
-        "cmd": "SELECT",
-        "name": "Public can read unclaimed itineraries",
-        "roles": [
-          "public"
-        ],
-        "using": "((claimed_by IS NULL) OR (claimed_by = ( SELECT auth.uid() AS uid)))",
-        "permissive": true,
-        "with_check": null
-      },
-      {
-        "cmd": "UPDATE",
-        "name": "Users can claim itineraries",
-        "roles": [
-          "public"
-        ],
-        "using": "((( SELECT auth.uid() AS uid) IS NOT NULL) AND (claimed_by IS NULL))",
-        "permissive": true,
-        "with_check": "(claimed_by = ( SELECT auth.uid() AS uid))"
-      }
-    ],
-    "rls_forced": false,
-    "rls_enabled": true
-  },
-  {
-    "table": "notifications",
-    "grants": {
-      "anon": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
-      ],
-      "authenticated": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
-      ]
-    },
-    "policies": [
-      {
-        "cmd": "SELECT",
-        "name": "notifications_select_own",
-        "roles": [
-          "public"
-        ],
-        "using": "(( SELECT auth.uid() AS uid) = user_id)",
-        "permissive": true,
-        "with_check": null
-      },
-      {
-        "cmd": "UPDATE",
-        "name": "notifications_update_own",
-        "roles": [
-          "public"
-        ],
-        "using": "(( SELECT auth.uid() AS uid) = user_id)",
-        "permissive": true,
-        "with_check": "(( SELECT auth.uid() AS uid) = user_id)"
-      }
-    ],
-    "rls_forced": false,
-    "rls_enabled": true
-  },
-  {
     "table": "page_view_fingerprint",
     "grants": {
       "anon": [
@@ -1373,37 +1240,6 @@
     "table": "public_stats_cache",
     "grants": {},
     "policies": [],
-    "rls_forced": false,
-    "rls_enabled": true
-  },
-  {
-    "table": "push_log",
-    "grants": {
-      "anon": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
-      ],
-      "authenticated": [
-        "DELETE",
-        "INSERT",
-        "SELECT",
-        "UPDATE"
-      ]
-    },
-    "policies": [
-      {
-        "cmd": "SELECT",
-        "name": "users read own push_log",
-        "roles": [
-          "public"
-        ],
-        "using": "(( SELECT auth.uid() AS uid) = user_id)",
-        "permissive": true,
-        "with_check": null
-      }
-    ],
     "rls_forced": false,
     "rls_enabled": true
   },
