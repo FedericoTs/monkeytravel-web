@@ -2104,6 +2104,13 @@
     "rls_enabled": true
   },
   {
+    "table": "user_agents",
+    "grants": {},
+    "policies": [],
+    "rls_forced": false,
+    "rls_enabled": true
+  },
+  {
     "table": "user_calendar_connections",
     "grants": {
       "anon": [
