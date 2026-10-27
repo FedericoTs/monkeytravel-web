@@ -23,6 +23,7 @@
 
 import type { Activity, ItineraryDay } from "@/types";
 import { generateActivityId } from "@/lib/utils/activity-id";
+import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { addDaysISO } from "@/lib/ai/assistant/structural";
 
 export const PROPOSAL_MARKER = "<<<PROPOSAL>>>";
@@ -171,9 +172,7 @@ function sanitizeNewActivity(
   return {
     id: generateActivityId(),
     name,
-    type: (typeof raw.type === "string" && raw.type.trim()
-      ? raw.type.trim().slice(0, 40)
-      : "activity") as Activity["type"],
+    type: normalizeActivityType(raw.type, name),
     description:
       typeof raw.description === "string" ? raw.description.slice(0, 500) : "",
     location: typeof raw.location === "string" ? raw.location.slice(0, 200) : "",

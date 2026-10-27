@@ -19,6 +19,7 @@
 import type { ItineraryDay, Activity } from "@/types";
 import { generateActivityId } from "@/lib/utils/activity-id";
 import { addIsoDays } from "@/lib/dates/iso-date";
+import { normalizeActivityType } from "@/lib/trip/activity-type";
 
 /**
  * Platform-wide trip length ceiling. Matches the generation-side limit
@@ -259,7 +260,7 @@ function normalizeActivity(
     ...(existing ?? {}),
     id: existing?.id || generateActivityId(),
     name,
-    type: asString(raw.type, existing?.type || "activity"),
+    type: existing?.locked ? existing.type : normalizeActivityType(asString(raw.type, existing?.type || ""), name),
     description: asString(raw.description, existing?.description || ""),
     location: asString(raw.location, existing?.location || ""),
     address: asString(raw.address, existing?.address || "") || undefined,
