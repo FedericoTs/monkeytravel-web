@@ -51,6 +51,8 @@ vi.mock("@/lib/api/rate-limit", () => ({
   createRateLimiter: () => ({ check: async () => ({ allowed: true, remaining: 1 }) }),
 }));
 vi.mock("@/lib/cache", () => ({ cache: { withDatabase: async () => ({ data: { imageUrl: null } }) } }));
+// One stream here; lib/ai/plan-in-parts.vitest.ts covers a trip written in parts.
+vi.mock("@/lib/ai/trip-outline", () => ({ generateTripOutline: async () => null, splitIntoParts: () => [] }));
 
 // The model streams the itinerary in chunks; `modelDone` is how many queries
 // had run when it finished.

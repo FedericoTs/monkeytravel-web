@@ -42,6 +42,8 @@ import {
   finalize,
 } from "@/lib/streaming/day-parser";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { generateTripOutline } from "@/lib/ai/trip-outline";
+import { PartsError, writeInParts, writesInParts } from "@/lib/ai/plan-in-parts";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 
 // Allow the function to run long enough for slow generations. Vercel
@@ -275,6 +277,10 @@ export async function POST(request: NextRequest) {
     let finalItinerary: GeneratedItinerary | null = null;
     // What the model call cost, from its token counts (set once it answers).
     let generationCost = 0;
+    // A long trip written in parts (lib/ai/plan-in-parts.ts): how many, and
+    // when its outline was on screen.
+    let parts = 0;
+    let outlineMs: number | null = null;
 
     try {
       // 3a. Cache short-circuit (2026-05-28 — the "10-line patch" the
@@ -346,7 +352,51 @@ export async function POST(request: NextRequest) {
           },
         };
 
-      // 3b. Stream the model when there's no cached entry to serve.
+      // 3b. A long trip: an outline first, on screen at once, then the days
+      //     written in parts at the same time. Without an outline the trip
+      //     is written in one stream below.
+      const outline = writesInParts(totalDays)
+        ? await generateTripOutline(params, totalDays, userLanguage)
+        : null;
+      if (outline) {
+        generationCost += outline.costUsd;
+        outlineMs = Date.now() - startTime;
+        yield { type: "outline", data: { days: outline.days } };
+        try {
+          for await (const out of writeInParts(params, totalDays, outline.days, {
+            language: userLanguage,
+            userId: user?.id,
+          })) {
+            if (out.type === "day") {
+              generatedDays++;
+              firstDayMs ??= Date.now() - startTime;
+              yield { type: "day", data: out.day as unknown as import("@/lib/streaming/sse").SseDayData };
+            } else {
+              finalItinerary = out.itinerary;
+              generationCost += out.costUsd;
+              parts = out.parts;
+            }
+          }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          waitUntil(
+            logApiCall({
+              apiName: "gemini",
+              endpoint: "/api/ai/generate/stream",
+              status: 500,
+              responseTimeMs: Date.now() - startTime,
+              cacheHit: false,
+              costUsd: generationCost + (err instanceof PartsError ? err.costUsd : 0),
+              exactCost: true,
+              error: `parts failed: ${msg}`,
+              metadata: { user_id: user?.id ?? "anonymous", ...(generationId ? { generation_id: generationId } : {}) },
+            }).catch(() => undefined)
+          );
+          yield { type: "error", data: { error: `Generation failed: ${msg}`, code: "upstream" } };
+          return;
+        }
+      } else {
+      // 3c. Stream the model when there's no cached entry to serve.
       const parser = createDayParser();
       const stream = generateItineraryStream(params, {
         language: userLanguage,
@@ -423,6 +473,7 @@ export async function POST(request: NextRequest) {
         }
         generatedDays = finalItinerary.days.length;
       }
+      } // end one stream
       } // end if (!cacheHit) — streaming branch closes here
 
       // 6. Server-side image fetch. Same as the non-streaming path —
@@ -509,6 +560,7 @@ export async function POST(request: NextRequest) {
                 // "Try Different Version": a regenerate that skipped the cache.
                 fresh: wantsFresh,
                 ...(firstDayMs !== null ? { first_day_ms: firstDayMs } : {}),
+                ...(parts > 0 ? { parts, outline_ms: outlineMs } : {}),
                 ...(generationId ? { generation_id: generationId } : {}),
               },
             });

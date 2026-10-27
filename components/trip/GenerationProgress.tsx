@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
-import type { SseDayData } from "@/lib/streaming/sse";
+import type { SseDayData, SseOutlineData } from "@/lib/streaming/sse";
 import { LivePlanPreview } from "./LivePlanPreview";
 
 interface GenerationProgressProps {
@@ -16,6 +16,8 @@ interface GenerationProgressProps {
    * signal).
    */
   streamedDays?: SseDayData[];
+  /** A long trip's outline, shown until its days arrive. */
+  streamedOutline?: SseOutlineData["days"];
   /**
    * When streaming, the total days the model is generating. Used to
    * show "Day N of M". Falsy means the badge stays hidden.
@@ -232,11 +234,13 @@ function TravelingPlane({ progress }: { progress: number }) {
 }
 
 const NO_DAYS: SseDayData[] = [];
+const NO_OUTLINE: SseOutlineData["days"] = [];
 
 export default function GenerationProgress({
   destination,
   isGenerating,
   streamedDays = NO_DAYS,
+  streamedOutline = NO_OUTLINE,
   streamedTotalDays = 0,
 }: GenerationProgressProps) {
   const t = useTranslations("common.generation");
@@ -349,8 +353,9 @@ export default function GenerationProgress({
   const streaming = streamedTotalDays > 0;
   const escalated = elapsedTime > ESCALATION_THRESHOLD_MS;
 
-  // From the first day the model has written, the plan itself is the progress.
-  if (streaming && streamedDayCount > 0) {
+  // From the outline or the first day the model has written, the plan itself
+  // is the progress.
+  if (streaming && (streamedDayCount > 0 || streamedOutline.length > 0)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
         <div className="mx-auto w-full max-w-2xl px-4 pb-16 pt-8 sm:pt-12">
@@ -372,7 +377,7 @@ export default function GenerationProgress({
             <TravelingPlane progress={progress} />
           </div>
           <p className="mb-6 text-xs text-slate-500">{t("elapsed", { seconds: formatTime(elapsedTime) })}</p>
-          <LivePlanPreview days={streamedDays} totalDays={streamedTotalDays} />
+          <LivePlanPreview days={streamedDays} outline={streamedOutline} totalDays={streamedTotalDays} />
         </div>
       </div>
     );
