@@ -268,3 +268,20 @@ describe("CSP allows the BuildHop feedback widget to load AND to call home", () 
     }
   });
 });
+
+/**
+ * Session replay compresses in a worker built from a blob: URL. With no
+ * worker-src the browser falls back to script-src, which has no blob:, and
+ * refuses the worker: a console line in a real browser and nothing else.
+ */
+describe("CSP lets session replay start its worker", () => {
+  it("admits blob: workers on every route", () => {
+    for (const path of ["/", "/trips/new", "/blog"]) {
+      expect(directive("worker-src", path)).toEqual(["'self'", "blob:"]);
+    }
+  });
+
+  it("keeps blob: out of script-src", () => {
+    expect(directive("script-src")).not.toContain("blob:");
+  });
+});
