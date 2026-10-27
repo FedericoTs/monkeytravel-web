@@ -41,6 +41,7 @@ import { planCosts, planCurrency, type DisplayCurrency, type PlanCosts } from "@
 import { dayMentioned, daysMentioned } from "@/lib/ai/assistant/day-target";
 import { currencyRequested, currencySwitchedNote, withoutCurrencyTalk } from "@/lib/ai/assistant/currency-request";
 import type { Activity, ItineraryDay } from "@/types";
+import { ACTIVITY_TYPES, normalizeActivityType } from "@/lib/trip/activity-type";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -251,7 +252,7 @@ Return STRICT JSON (no markdown) in this EXACT shape:
           "start_time": "HH:MM",
           "duration_minutes": <integer>,
           "name": "Place or activity name (real, in the destination)",
-          "type": "attraction" | "restaurant" | "activity" | "cafe" | "bar" | "museum" | "nature" | "shopping" | "nightlife" | "transport",
+          "type": ${ACTIVITY_TYPES.map((t) => `"${t}"`).join(" | ")},
           "description": "1 short sentence in ${language}",
           "location": "neighbourhood or area",
           "estimated_cost": { "amount": <number in ${cur}>, "currency": "${cur}", "tier": "free" | "budget" | "moderate" | "expensive" },
@@ -314,7 +315,7 @@ function normalizeActivity(raw: unknown, idx: number, cur: string): Activity | n
           : "19:00",
     duration_minutes: Math.max(15, Math.round(num(a.duration_minutes, 90))),
     name,
-    type: str(a.type, "activity"),
+    type: normalizeActivityType(a.type, name),
     description: str(a.description, ""),
     location: str(a.location, ""),
     estimated_cost: {

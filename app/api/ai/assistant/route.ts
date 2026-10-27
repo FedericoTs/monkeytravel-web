@@ -48,6 +48,7 @@ import { resolveAssistantRole, ASSISTANT_FORBIDDEN_MESSAGE } from "@/lib/ai/assi
 import { destinationCityTerm } from "@/lib/api/postgrest-filter";
 import { formatMinutesToTime } from "@/lib/datetime/format";
 import { withDayTarget } from "@/lib/ai/assistant/day-target";
+import { ACTIVITY_TYPES, normalizeActivityType } from "@/lib/trip/activity-type";
 import { activityNotFoundReason, findActivityByName } from "@/lib/ai/assistant/find-activity";
 import {
   claimsItineraryChange,
@@ -557,7 +558,7 @@ ACTIVITY OBJECT FORMAT:
   "start_time": "HH:MM",
   "duration_minutes": 60-180,
   "name": "Activity Name",
-  "type": "attraction|restaurant|activity|transport",
+  "type": "${ACTIVITY_TYPES.join("|")}",
   "description": "Brief description",
   "location": "Neighborhood/Area",
   "estimated_cost": { "amount": number, "currency": "local currency code", "tier": "budget|moderate|expensive" },
@@ -829,7 +830,7 @@ ${geographicConstraint}
 Return ONLY valid JSON for the activity:
 {
   "name": "Activity Name",
-  "type": "attraction|restaurant|activity|museum|cafe|nature|shopping|nightlife|entertainment|transport",
+  "type": "${ACTIVITY_TYPES.join("|")}",
   "description": "2-3 sentence engaging description",
   "location": "Neighborhood/Area name - MUST be in the same area as other Day ${dayNumber} activities",
   "address": "Specific street address if known",
@@ -866,18 +867,10 @@ CRITICAL TIMING RULES:
   const activity = JSON.parse(jsonMatch[0]) as Activity;
   activity.id = generateActivityId();
 
-  // Clamp the type to the four the app actually knows. The prompt asks for
-  // "attraction|restaurant|activity|transport" and the model mostly complies,
-  // but a live run returned "cafe" — which threw inside the confirmation
-  // card's label lookup and left the user with NO card to accept the change
-  // with. The card no longer crashes either, but an out-of-enum value should
-  // not reach the itinerary in the first place: it goes to jsonb, which will
-  // accept anything.
-  const ALLOWED_TYPES: Activity["type"][] = ["attraction", "restaurant", "activity", "transport"];
-  if (!ALLOWED_TYPES.includes(activity.type)) {
-    console.warn(`[AI Assistant] Coercing unknown activity type "${activity.type}" -> "activity"`);
-    activity.type = "activity";
-  }
+  // Onto the app's list: a cafe stays a cafe, a vibe like "foodie" is read
+  // from the name, and nothing off the list reaches the itinerary, which is
+  // jsonb and would accept anything.
+  activity.type = normalizeActivityType(activity.type, activity.name);
 
   // Generate coordinates for the new activity
   // Priority: 1) Use existing activities centroid, 2) Use destination center

@@ -15,6 +15,7 @@ import {
   getDayDedupKey,
 } from "./gemini-dedup";
 import { paceBudgetPromptClause } from "./trip/pace";
+import { ACTIVITY_TYPES, normalizeActivityType } from "./trip/activity-type";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -685,7 +686,8 @@ Rules:
 5. INCLUDE official_website for major attractions, museums, restaurants, and hotels (they almost always have websites!). Only use null for small local shops/street vendors
 6. Activities should flow logically through each day
 7. EVERY activity MUST have PRECISE coordinates (lat/lng with 6 decimal places, e.g., 48.858370, 2.294481) - use the EXACT location of each place, not approximate city center. This is critical for accurate map display
-8. In booking_links, replace the {DEST_SLUG}, {DEST_ENCODED}, {START_DATE}, {END_DATE} tokens with the exact values given under "## Booking Link Values" in the request — output the final URLs, never the tokens`;
+8. In booking_links, replace the {DEST_SLUG}, {DEST_ENCODED}, {START_DATE}, {END_DATE} tokens with the exact values given under "## Booking Link Values" in the request — output the final URLs, never the tokens
+9. An activity's "type" says what the place is, and is one of: ${ACTIVITY_TYPES.join(", ")}. Never a travel vibe such as foodie, cultural, urban or romantic`;
 
 // Shared chat prefix for BOTH trip-generation call sites (blocking +
 // streaming). Byte-identical history across requests is what makes Gemini's
@@ -1185,7 +1187,7 @@ ${existingActivityNames.join(", ")}
   "start_time": "${activityToReplace.start_time}",
   "duration_minutes": ${activityToReplace.duration_minutes},
   "name": "Real Place Name",
-  "type": "attraction|restaurant|activity|transport",
+  "type": "${ACTIVITY_TYPES.join("|")}",
   "description": "What to do here (2-3 sentences)",
   "location": "Neighborhood or area name",
   "address": "Full street address",
@@ -1235,6 +1237,7 @@ Return ONLY the JSON object, no extra text.`;
       if (!activity.name || !activity.type || !activity.time_slot) {
         throw new Error("Invalid activity structure");
       }
+      activity.type = normalizeActivityType(activity.type, activity.name);
 
       // Add unique ID
       activity.id = generateActivityId();
@@ -1494,7 +1497,8 @@ Rules:
 2. day_number MUST be exactly ${params.dayNumber}; date MUST be exactly "${params.date}".
 3. Match the ${params.pace} pace: ${paceBudgetPromptClause(params.pace)}.
 4. Do NOT include any place from the already-visited list.
-5. Use PRECISE coordinates (6 decimal places).`;
+5. Use PRECISE coordinates (6 decimal places).
+6. Each activity's "type" is one of: ${ACTIVITY_TYPES.join(", ")}.`;
 
   const regenerateDaySystemPrompt = await getPrompt("regenerate_day");
 

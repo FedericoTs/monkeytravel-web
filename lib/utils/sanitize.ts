@@ -3,6 +3,8 @@
  * Prevents XSS attacks from potentially malicious AI responses
  */
 
+import { normalizeActivityType } from "@/lib/trip/activity-type";
+
 /**
  * HTML entities that need to be escaped
  */
@@ -129,6 +131,8 @@ export function sanitizeActivity(activity: Record<string, unknown>): Record<stri
   return {
     ...activity,
     name: sanitizeText(activity.name as string),
+    // A locked activity is the traveller's own commitment and keeps its type.
+    type: activity.locked ? activity.type : normalizeActivityType(activity.type, activity.name),
     description: sanitizeText(activity.description as string),
     location: sanitizeText(activity.location as string),
     address: activity.address ? sanitizeText(activity.address as string) : undefined,
