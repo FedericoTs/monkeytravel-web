@@ -4,6 +4,9 @@ import {
   emittableLength,
   splitAnswerAndProposal,
   resolveConciergeProposal,
+  proposalOwed,
+  proposalRequest,
+  requestedProposalJson,
 } from "./concierge-proposal";
 import type { Activity, ItineraryDay } from "@/types";
 
@@ -76,6 +79,47 @@ describe("splitAnswerAndProposal", () => {
   });
 });
 
+describe("proposalOwed (an answer that came without its proposal)", () => {
+  it("is owed when the answer hands over or claims a change", () => {
+    expect(proposalOwed("ok", "Ho ricevuto la tua conferma. Ecco la proposta per rimuovere Restaurace Mlejnice dal Giorno 2.")).toBe("promised");
+    expect(proposalOwed("add a museum", "I've added the Egyptian Museum to Day 1.")).toBe("promised");
+  });
+
+  it("is owed for a short yes, which may agree to an earlier offer", () => {
+    expect(proposalOwed("sì", "Perfetto!")).toBe("confirmed");
+  });
+
+  it("is owed for an offer that asks nothing back, not for one that asks", () => {
+    expect(proposalOwed("togliamo il ristorante alla sera", "Certo, posso rimuovere la cena al Restaurace Mlejnice dal Giorno 2.")).toBe("offered");
+    expect(proposalOwed("aggiungi la gita in battello", "Certo, posso aggiungere una gita in battello. In quale giorno?")).toBeNull();
+    expect(proposalOwed("how do I put my hotel in?", "I can add your hotel. What is its name?")).toBeNull();
+  });
+
+  it("is not owed for an answer", () => {
+    expect(proposalOwed("what's the best time to visit the castle?", "Early morning, right at opening.")).toBeNull();
+  });
+});
+
+describe("the follow-up that asks for the owed proposal", () => {
+  it("asks for the line alone, with its day, or NONE", () => {
+    const text = proposalRequest("offered");
+    expect(text).toContain(PROPOSAL_MARKER);
+    expect(text).toContain("dayNumber");
+    expect(text).toContain("NONE");
+    expect(proposalRequest("confirmed")).toContain("agrees to a change offered earlier");
+  });
+
+  it("reads the line with or without the marker, and a NONE", () => {
+    const json = '{"type":"remove","dayNumber":2,"targetActivityId":"act_x"}';
+    expect(requestedProposalJson(`${PROPOSAL_MARKER} ${json}`)).toBe(json);
+    expect(requestedProposalJson(json)).toBe(json);
+    expect(requestedProposalJson("```json\n" + json + "\n```")).toBe(json);
+    expect(requestedProposalJson("NONE")).toBe("none");
+    expect(requestedProposalJson("None.")).toBe("none");
+    expect(requestedProposalJson("Sure, here it is.")).toBeNull();
+  });
+});
+
 describe("resolveConciergeProposal", () => {
   it("resolves a remove against the STORED activity (never the model's copy)", () => {
     const p = resolveConciergeProposal(
@@ -130,12 +174,39 @@ describe("resolveConciergeProposal", () => {
       resolveConciergeProposal(JSON.stringify({ type: "shift_days", dayNumber: 1 }), ITINERARY)
     ).toBeNull();
     expect(
-      resolveConciergeProposal(JSON.stringify({ type: "remove", dayNumber: 9, targetActivityId: "act_aaa" }), ITINERARY)
+      resolveConciergeProposal(JSON.stringify({ type: "add", dayNumber: 9, newActivity: { name: "Eataly" } }), ITINERARY)
     ).toBeNull();
     expect(
       resolveConciergeProposal(JSON.stringify({ type: "remove", dayNumber: 1, targetActivityId: "nope" }), ITINERARY)
     ).toBeNull();
     expect(resolveConciergeProposal("{not json", ITINERARY)).toBeNull();
+  });
+
+  // The model followed the old field rule "remove → targetActivityId only":
+  // every removal came without its day and was dropped.
+  it("finds the day of a change to a stored activity from the activity", () => {
+    const p = resolveConciergeProposal(
+      JSON.stringify({ type: "remove", targetActivityId: "act_bbb", reason: "Too tired" }),
+      ITINERARY
+    );
+    expect(p).toMatchObject({ type: "remove", dayNumber: 1 });
+    expect((p as { oldActivity: Activity }).oldActivity.name).toBe("Mole Antonelliana");
+    expect(
+      resolveConciergeProposal(JSON.stringify({ type: "adjust_duration", targetActivityId: "act_aaa", newDuration: 60 }), ITINERARY)
+    ).toMatchObject({ type: "adjust_duration", dayNumber: 1 });
+  });
+
+  it("takes the day that holds the activity over a wrong day number", () => {
+    const p = resolveConciergeProposal(
+      JSON.stringify({ type: "remove", dayNumber: 9, targetActivityId: "act_aaa" }),
+      ITINERARY
+    );
+    expect(p).toMatchObject({ type: "remove", dayNumber: 1 });
+  });
+
+  it("still needs the day for an add, and keeps locked activities out", () => {
+    expect(resolveConciergeProposal(JSON.stringify({ type: "add", newActivity: { name: "Eataly" } }), ITINERARY)).toBeNull();
+    expect(resolveConciergeProposal(JSON.stringify({ type: "remove", targetActivityId: "act_ccc" }), ITINERARY)).toBeNull();
   });
 
   it("falls back to name matching when the model echoes the name instead of the id", () => {

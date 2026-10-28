@@ -15,6 +15,8 @@
  *     /api/ai/assistant/apply accepts — the model only ever references
  *     activities by id; the server supplies the real stored objects, so a
  *     hallucinated "oldActivity" can never reach the apply endpoint.
+ *   - telling when an answer that came without a proposal owes one, and
+ *     reading the follow-up that asks for it
  *
  * Deliberately dependency-light (types + generateActivityId only) so the
  * route imports it without dragging UI code into the server bundle, and
@@ -25,6 +27,7 @@ import type { Activity, ItineraryDay } from "@/types";
 import { generateActivityId } from "@/lib/utils/activity-id";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { addDaysISO } from "@/lib/ai/assistant/structural";
+import { announcesProposal, claimsItineraryChange, isConfirmation, offersChange } from "@/lib/ai/assistant/honesty";
 
 export const PROPOSAL_MARKER = "<<<PROPOSAL>>>";
 
@@ -97,6 +100,44 @@ export function splitAnswerAndProposal(fullText: string): {
     answer: fullText.slice(0, idx).trim(),
     proposalJson: fullText.slice(idx + PROPOSAL_MARKER.length).trim() || null,
   };
+}
+
+export type ProposalOwed = "promised" | "confirmed" | "offered";
+
+/**
+ * Why an answer that came without a proposal is owed one, or null: it handed
+ * over or claimed a change ("Ecco la proposta per rimuovere…"), the question
+ * was a bare "ok" to an earlier offer, or it offered a change ("Certo, posso
+ * rimuovere la cena…") without asking anything back. Each went out with
+ * nothing to confirm.
+ */
+export function proposalOwed(question: string, answer: string): ProposalOwed | null {
+  if (announcesProposal(answer) || claimsItineraryChange(answer)) return "promised";
+  if (isConfirmation(question)) return "confirmed";
+  // A question back ("which day?") is a fine answer to a request.
+  if (offersChange(answer) && !answer.includes("?")) return "offered";
+  return null;
+}
+
+/** The follow-up that asks for the owed proposal line alone. */
+export function proposalRequest(owed: ProposalOwed): string {
+  const why =
+    owed === "confirmed"
+      ? "The traveller's message agrees to a change offered earlier in this conversation, but your answer has no proposal line"
+      : "Your answer offers a change to the plan, but its proposal line is missing";
+  return `${why}, so there is nothing to confirm. Reply with ONLY that proposal line, for exactly that change: ${PROPOSAL_MARKER} followed by the minified JSON, with its dayNumber. If no specific change was offered or asked for, reply NONE.`;
+}
+
+/**
+ * The follow-up's reply: the proposal JSON, with or without the marker, or
+ * "none" when the model says there was no change to propose.
+ */
+export function requestedProposalJson(text: string): string | "none" | null {
+  if (/^\W*none\W*$/i.test(text)) return "none";
+  const json = (splitAnswerAndProposal(text).proposalJson ?? text.trim())
+    .replace(/^```(?:json)?\s*|\s*```$/g, "")
+    .trim();
+  return json.startsWith("{") ? json : null;
 }
 
 function isLocked(a: Activity | undefined): boolean {
@@ -216,9 +257,17 @@ export function resolveConciergeProposal(
   const type = raw.type as ProposalType;
   if (!ALLOWED_TYPES.includes(type)) return null;
 
-  const dayNumber = typeof raw.dayNumber === "number" ? raw.dayNumber : NaN;
-  const day = itinerary.find((d) => d.day_number === dayNumber);
+  // A change to a stored activity happens on the day that holds it. The field
+  // rules once asked remove for the activity's id alone, and every removal
+  // came without its day and was dropped.
+  const targetId = type !== "add" && type !== "shift_days" ? raw.targetActivityId : undefined;
+  const held =
+    typeof targetId === "string" && targetId
+      ? itinerary.find((d) => (d.activities ?? []).some((a) => a.id === targetId))
+      : undefined;
+  const day = held ?? itinerary.find((d) => d.day_number === raw.dayNumber);
   if (!day) return null;
+  const dayNumber = day.day_number;
 
   const reason =
     typeof raw.reason === "string" && raw.reason.trim()
