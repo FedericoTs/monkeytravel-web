@@ -121,6 +121,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     // root layout's block, and the route always returns an image (a brand card
     // when the token resolves to nothing), so og:image never goes missing.
     openGraph: {
+      siteName: "MonkeyTravel",
       title: trip.title,
       description: trip.description || t("metaDescription"),
       type: "website",

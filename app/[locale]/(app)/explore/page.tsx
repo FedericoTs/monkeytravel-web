@@ -103,6 +103,7 @@ export async function generateMetadata({
     // silently flip the page to noindex.
     robots: { index: true, follow: true },
     openGraph: {
+      siteName: "MonkeyTravel",
       title: `${t("pageTitle")} | MonkeyTravel`,
       description: t("metaDescription"),
       type: "website",

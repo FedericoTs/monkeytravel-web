@@ -171,6 +171,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     robots: { index: indexable, follow: true },
     alternates: { canonical, languages },
     openGraph: {
+      siteName: "MonkeyTravel",
       title,
       description,
       type: "article",

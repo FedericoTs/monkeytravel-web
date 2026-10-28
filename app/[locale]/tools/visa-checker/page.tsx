@@ -92,6 +92,7 @@ export async function generateMetadata({
       },
     },
     openGraph: {
+      siteName: "MonkeyTravel",
       title,
       description,
       url: canonical,
