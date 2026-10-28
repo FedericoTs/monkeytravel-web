@@ -230,6 +230,8 @@ Receba o seu primeiro rascunho em 30 segundos. Dedique 20 minutos para verificar
 
 [Planejar Minha Viagem — Grátis](/trips/new)
 
+*Não sabe por qual ferramenta começar? Testamos as principais na nossa [comparação dos melhores planejadores de viagem com IA em 2026](/blog/best-ai-trip-planners-2026-compared).*
+
 ---
 
 ## Perguntas frequentes

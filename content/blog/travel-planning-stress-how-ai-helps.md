@@ -164,6 +164,8 @@ You don't need the perfect plan. You need a good enough plan and the willingness
 
 [Plan your trip free — 60 seconds, no sign-up wall](/trips/new)
 
+*Not sure which tool to start with? We tested the main options in our [comparison of the best AI trip planners in 2026](/blog/best-ai-trip-planners-2026-compared).*
+
 ---
 
 ## FAQ

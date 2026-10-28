@@ -227,6 +227,8 @@ After watching thousands of people plan trips with AI, here are the patterns tha
 
 *If planning is the part that exhausts you rather than the part you enjoy, we wrote about [why it feels that way and what actually helps](/blog/travel-planning-stress-how-ai-helps).*
 
+*Not sure which tool to start with? We tested the main options in our [comparison of the best AI trip planners in 2026](/blog/best-ai-trip-planners-2026-compared).*
+
 ## FAQ: Common Questions About AI Trip Planning
 
 ### How long does it take to plan a trip with AI?

@@ -133,6 +133,8 @@ Toda empresa aqui diz que o próprio assistente pode errar. Google: "o AI Mode n
 
 E a disponibilidade é a letra miúda que morde: a reserva dentro da conversa começa pelos EUA e pelo inglês em quase todo lugar, os usuários da UE ficam de fora dos apps de viagem do ChatGPT e dos recursos de dados pessoais do Gemini, e o planejador do Booking.com é lançado país por país. As ferramentas que funcionam igual em todo lugar são os planejadores.
 
+*Quer ver mais opções? Nossa [comparação dos melhores planejadores de viagem com IA em 2026](/blog/best-ai-trip-planners-2026-compared) coloca oito ferramentas lado a lado: preço, reservas, grupos e idiomas.*
+
 ## Perguntas frequentes
 
 **Quais agentes de viagens com IA realmente conseguem reservar uma viagem para mim?**

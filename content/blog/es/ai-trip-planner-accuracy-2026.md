@@ -85,3 +85,5 @@ El modelo mental correcto para un planificador de viajes con AI en 2026: **un pr
 Prueba el borrador en tu próximo viaje: [genera uno gratis](/trips/new) y luego discute con él. Para eso está el chat.
 
 *Datos: estadísticas agregadas de peticiones de cambio de 273 itinerarios anonimizados generados por AI y 317 peticiones al asistente en MonkeyTravel, hasta agosto de 2026. Publicamos solo proporciones y categorías de intención — nunca conversaciones, viajes ni viajeros individuales. Parte de la serie del [Informe de planificación de viajes Q3 2026](/blog/q3-2026-travel-planning-report).*
+
+*¿No sabes con qué herramienta empezar? Probamos las principales en nuestra [comparativa de los mejores planificadores de viajes con IA en 2026](/blog/best-ai-trip-planners-2026-compared).*

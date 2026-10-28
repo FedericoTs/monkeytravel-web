@@ -104,3 +104,5 @@ Questo disallineamento — viaggi di gruppo, strumenti da solitari — è il sin
 Pubblicheremo la prossima edizione quando arriveranno i dati del Q4. Se vuoi che il tuo prossimo viaggio sia uno dei punti dati, [inizia a pianificare gratis](/trips/new) — ci vuole circa un minuto per ottenere un itinerario completo giorno per giorno.
 
 *Dati: 1.651 sessioni di pianificazione anonimizzate su MonkeyTravel, 31 maggio – 4 agosto 2026. Le percentuali sulla composizione dei gruppi sono calcolate sulle sessioni che hanno risposto alla domanda. Le classifiche usano un conteggio per sessione (ogni sessione di pianificazione contata una volta), quindi le quote non sono direttamente confrontabili con le cifre per itinerario delle edizioni precedenti. Giornalisti e ricercatori: siete liberi di citare qualsiasi cifra con attribuzione e link.*
+
+*Non sai da quale strumento partire? Abbiamo provato i principali nel nostro [confronto tra i migliori pianificatori di viaggio AI del 2026](/blog/best-ai-trip-planners-2026-compared).*

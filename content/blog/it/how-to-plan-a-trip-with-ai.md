@@ -228,6 +228,8 @@ Dopo aver osservato migliaia di persone pianificare viaggi con l'AI, ecco i patt
 
 *Se pianificare ti sfinisce invece di divertirti, abbiamo scritto sul [perché succede e cosa aiuta davvero](/blog/travel-planning-stress-how-ai-helps).*
 
+*Non sai da quale strumento partire? Abbiamo provato i principali nel nostro [confronto tra i migliori pianificatori di viaggio AI del 2026](/blog/best-ai-trip-planners-2026-compared).*
+
 ## FAQ: domande frequenti sulla pianificazione dei viaggi con AI
 
 ### Quanto tempo ci vuole per pianificare un viaggio con l'AI?

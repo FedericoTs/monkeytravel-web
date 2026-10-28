@@ -97,3 +97,5 @@ That mismatch — group trips, solo tools — is the single biggest gap in how t
 We'll publish the next edition when the Q4 data is in. If you want your next trip to be one of the data points, [start planning free](/trips/new) — it takes about a minute to get a full day-by-day itinerary.
 
 *Data: 1,651 anonymized planning sessions on MonkeyTravel, May 31 – August 4, 2026. Percentages for group composition are computed over sessions that answered the question. Rankings use a per-session count (each planning session counted once), so shares are not directly comparable to per-itinerary figures in earlier editions. Journalists and researchers: you're welcome to cite any figure with attribution and a link.*
+
+*Not sure which tool to start with? We tested the main options in our [comparison of the best AI trip planners in 2026](/blog/best-ai-trip-planners-2026-compared).*

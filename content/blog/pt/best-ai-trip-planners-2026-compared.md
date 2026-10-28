@@ -205,6 +205,14 @@ Se você quer o confronto direto em vez do campo inteiro:
 - [ChatGPT vs planejadores de viagens com AI](/blog/chatgpt-vs-ai-trip-planners) — quando o assistente geral basta e quando não
 - [Dá para confiar em um roteiro de viagem feito por AI?](/blog/can-you-trust-ai-travel-itinerary) — as verificações a fazer em qualquer plano gerado antes de viajar
 - [Como planejar uma viagem multicidade](/blog/how-to-plan-a-multi-city-trip) — ordem da rota, voos open-jaw e os dias que você perde em trânsito
+- [Como planejar uma viagem com IA](/blog/how-to-plan-a-trip-with-ai) — o método passo a passo e os prompts que funcionam
+- [Layla vs Wonderplan vs Lonely Planet](/blog/layla-vs-wonderplan-vs-lonely-planet) — dois planejadores com IA contra um guia de viagem clássico
+- [Modelos de roteiro de viagem](/blog/best-travel-itinerary-templates-2026) — Sheets, Notion, Canva e Wanderlog se você prefere planejar à mão
+- [Qual a precisão de um planejador de viagens com IA?](/blog/ai-trip-planner-accuracy-2026) — o que os viajantes realmente corrigem num plano gerado
+- [Planeje uma escapada de fim de semana com IA](/blog/plan-weekend-getaway-with-ai) — uma viagem de 3 dias em 15 minutos
+- [Como a IA tira o estresse de planejar viagens](/blog/travel-planning-stress-how-ai-helps) — para onde vão as horas de planejamento e quais a IA economiza
+- [Relatório de viagens 2026](/blog/travel-planning-trends-2026) — o que 1,1 milhão de buscas dizem sobre como planejamos
+- [Relatório Q3 2026](/blog/q3-2026-travel-planning-report) — como foram 1.651 viagens reais
 
 ---
 

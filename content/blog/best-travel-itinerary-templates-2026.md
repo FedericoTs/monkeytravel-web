@@ -98,6 +98,8 @@ Use the template for what it is good at, the budget and the bookings, and let so
 - **A family road trip in Excel:** the Family travel planner is free; put the driving times in the first column.
 - **You have dates and a destination and nothing else:** generate first, then pick a template for the parts that need typing.
 
+*Weighing more than these options? Our [comparison of the best AI trip planners in 2026](/blog/best-ai-trip-planners-2026-compared) puts eight tools side by side on price, booking, group features and languages.*
+
 ## FAQ
 
 **Is there a free travel itinerary template?**

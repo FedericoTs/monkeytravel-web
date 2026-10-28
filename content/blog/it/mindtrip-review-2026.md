@@ -112,6 +112,8 @@ Scegli un'alternativa come [MonkeyTravel](/trips/new) se stai coordinando un gru
 
 *Lo stai confrontando proprio con Layla? Quel confronto è [qui](/blog/layla-vs-mindtrip-2026).*
 
+*Vuoi vedere altre opzioni? Il nostro [confronto tra i migliori pianificatori di viaggio AI del 2026](/blog/best-ai-trip-planners-2026-compared) mette otto strumenti a confronto su prezzo, prenotazioni, gruppi e lingue.*
+
 ## Domande frequenti (FAQ)
 
 ### Mindtrip è davvero gratis?

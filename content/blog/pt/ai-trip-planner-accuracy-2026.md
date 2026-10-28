@@ -84,3 +84,5 @@ O modelo mental certo para um planejador de viagens com AI em 2026: **um primeir
 Experimente o rascunho na sua próxima viagem: [gere um grátis](/trips/new) e depois discuta com ele. É para isso que o chat existe.
 
 *Dados: estatísticas agregadas de pedidos de edição de 273 roteiros anonimizados gerados por AI e 317 solicitações ao assistente no MonkeyTravel, até agosto de 2026. Reportamos apenas proporções e categorias de intenção — nunca conversas, viagens ou viajantes individuais. Parte da série do [Relatório de Planejamento de Viagens do Q3 2026](/blog/q3-2026-travel-planning-report).*
+
+*Não sabe por qual ferramenta começar? Testamos as principais na nossa [comparação dos melhores planejadores de viagem com IA em 2026](/blog/best-ai-trip-planners-2026-compared).*

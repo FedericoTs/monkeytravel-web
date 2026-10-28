@@ -95,6 +95,8 @@ Se estiver disposto a criar uma conta, o campo se abre bastante e tanto Wanderlo
 
 Só saiba qual troca você está fazendo, e faça antes de digitar suas datas, não depois.
 
+*Quer ver mais opções? Nossa [comparação dos melhores planejadores de viagem com IA em 2026](/blog/best-ai-trip-planners-2026-compared) coloca oito ferramentas lado a lado: preço, reservas, grupos e idiomas.*
+
 ## Perguntas frequentes
 
 **Existe um planejador de viagens com IA realmente grátis e sem cadastro?**

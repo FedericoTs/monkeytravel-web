@@ -95,6 +95,8 @@ If you are willing to create an account, the field opens considerably and Wander
 
 Just know which trade you are making, and make it before you have typed in your dates rather than after.
 
+*Weighing more than these options? Our [comparison of the best AI trip planners in 2026](/blog/best-ai-trip-planners-2026-compared) puts eight tools side by side on price, booking, group features and languages.*
+
 ## Frequently asked questions
 
 **Is there a genuinely free AI trip planner with no signup?**

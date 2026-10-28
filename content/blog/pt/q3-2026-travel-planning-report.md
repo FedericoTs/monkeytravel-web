@@ -104,3 +104,5 @@ Esse descompasso — viagens em grupo, ferramentas solo — é a maior lacuna em
 Publicaremos a próxima edição quando os dados do Q4 chegarem. Se você quer que a sua próxima viagem seja um dos pontos de dados, [comece a planejar grátis](/trips/new) — leva cerca de um minuto para ter um roteiro completo dia a dia.
 
 *Dados: 1,651 sessões de planejamento anonimizadas no MonkeyTravel, 31 de maio – 4 de agosto de 2026. Os percentuais de composição de grupo são calculados sobre as sessões que responderam à pergunta. Os rankings usam contagem por sessão (cada sessão de planejamento contada uma vez), então as participações não são diretamente comparáveis aos números por roteiro de edições anteriores. Jornalistas e pesquisadores: fiquem à vontade para citar qualquer número com atribuição e link.*
+
+*Não sabe por qual ferramenta começar? Testamos as principais na nossa [comparação dos melhores planejadores de viagem com IA em 2026](/blog/best-ai-trip-planners-2026-compared).*

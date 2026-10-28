@@ -136,6 +136,8 @@ Drop a destination and see what your AI travel buddy comes up with.
 
 [Plan My Trip — Free](/trips/new)
 
+*Not sure which tool to start with? We tested the main options in our [comparison of the best AI trip planners in 2026](/blog/best-ai-trip-planners-2026-compared).*
+
 ---
 
 ## FAQ

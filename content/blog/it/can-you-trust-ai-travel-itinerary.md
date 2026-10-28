@@ -233,6 +233,8 @@ Ottieni la tua prima bozza in 30 secondi. Dedica 20 minuti alla verifica. Poi va
 
 [Pianifica il mio viaggio — Gratis](/trips/new)
 
+*Non sai da quale strumento partire? Abbiamo provato i principali nel nostro [confronto tra i migliori pianificatori di viaggio AI del 2026](/blog/best-ai-trip-planners-2026-compared).*
+
 ---
 
 ## FAQ

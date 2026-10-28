@@ -99,6 +99,8 @@ Usa il modello per ciò in cui è bravo, il budget e le prenotazioni, e lascia c
 - **Un viaggio in auto con la famiglia in Excel:** il Family travel planner è gratuito; metti i tempi di guida nella prima colonna.
 - **Hai le date e una destinazione e nient'altro:** genera prima, poi scegli un modello per le parti che vanno scritte a mano.
 
+*Vuoi vedere altre opzioni? Il nostro [confronto tra i migliori pianificatori di viaggio AI del 2026](/blog/best-ai-trip-planners-2026-compared) mette otto strumenti a confronto su prezzo, prenotazioni, gruppi e lingue.*
+
 ## Domande frequenti
 
 **Esiste un modello di itinerario di viaggio gratuito?**

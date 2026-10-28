@@ -107,3 +107,5 @@ Ese desajuste — viajes en grupo, herramientas para solitarios — es la mayor 
 Publicaremos la próxima edición cuando lleguen los datos del Q4. Si quieres que tu próximo viaje sea uno de los puntos de datos, [empieza a planificar gratis](/trips/new) — se tarda alrededor de un minuto en obtener un itinerario completo día a día.
 
 *Datos: 1,651 sesiones de planificación anonimizadas en MonkeyTravel, del 31 de mayo al 4 de agosto de 2026. Los porcentajes de composición de grupo se calculan sobre las sesiones que respondieron a la pregunta. Los rankings usan un recuento por sesión (cada sesión de planificación se cuenta una vez), así que las cuotas no son directamente comparables con las cifras por itinerario de ediciones anteriores. Periodistas e investigadores: son bienvenidos a citar cualquier cifra con atribución y un enlace.*
+
+*¿No sabes con qué herramienta empezar? Probamos las principales en nuestra [comparativa de los mejores planificadores de viajes con IA en 2026](/blog/best-ai-trip-planners-2026-compared).*
