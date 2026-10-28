@@ -6,7 +6,7 @@ description: >-
   cada um entrega, quanto custa e a qual pergunta cada um responde de verdade.
 author: Riccardo P.
 publishedAt: '2026-08-25'
-updatedAt: '2026-09-08'
+updatedAt: '2026-10-28'
 category: AI Travel
 tags: ["planejador de viagens com ia", "avaliação", "comparação", "tecnologia de viagens"]
 image: /images/blog/best-ai-trip-planners-2026-compared.jpg
@@ -30,6 +30,8 @@ schema: Article
 ---
 
 # Layla vs Wonderplan vs Lonely Planet: qual planeja sua viagem?
+
+> **Atualização, 28 de outubro de 2026:** a Layla mudou desde que este texto foi escrito. O site agora planeja viagens de graça e as repassa a um especialista em viagens humano, que as reserva como pacote, e não cita mais seus parceiros de preços em tempo real nem o PriceLock. O app para iOS ainda vende o Premium por US$ 49,99/ano ou US$ 9,99/mês. As seções abaixo descrevem a Layla como era no começo de 2026; nosso [comparativo de planejadores de viagens com IA](/blog/best-ai-trip-planners-2026-compared) mostra o cenário atual.
 
 Os três aparecem na mesma lista, e colocá-los ali é justamente o erro.
 

@@ -9,7 +9,7 @@ description: >-
   itinerario.
 author: Riccardo P.
 publishedAt: '2026-07-27'
-updatedAt: '2026-09-08'
+updatedAt: '2026-10-28'
 category: AI Travel
 tags: ["pianificatore di viaggio ai", "recensione", "confronto", "tecnologia di viaggio"]
 image: /images/blog/ai-travel-planning-2026.jpg
@@ -32,6 +32,8 @@ schema: Article
 ---
 
 # Recensione Layla AI 2026: prezzi, funzioni e le migliori alternative gratuite
+
+> **Aggiornamento, 28 ottobre 2026:** Layla è cambiata da quando abbiamo scritto questo articolo. Il suo sito ora pianifica i viaggi gratis e li affida a un esperto di viaggi in carne e ossa che li prenota come pacchetto, e non nomina più i suoi partner per i prezzi in tempo reale né PriceLock. L'app iOS vende ancora Premium a 49,99 $/anno o 9,99 $/mese. Le sezioni qui sotto descrivono Layla com'era all'inizio del 2026; il nostro [confronto tra pianificatori di viaggio con AI](/blog/best-ai-trip-planners-2026-compared) mostra il quadro attuale.
 
 Layla è uno dei pianificatori di viaggio con AI di cui si parla di più nel 2026 — 4,6 stelle sull'App Store iOS e 4,7 su Google Play (a settembre 2026), un contatore sul sito che supera i 2,35 milioni di viaggi pianificati, un'interfaccia curata che punta sui video per l'ispirazione sulle destinazioni e, dal 31 luglio 2026, un nuovo proprietario: Expedia Group. Ma la domanda che ci fanno più spesso è più semplice di qualsiasi elenco di funzioni: *è davvero gratis, o ti scontri con un paywall nel momento in cui vuoi i dettagli?*
 

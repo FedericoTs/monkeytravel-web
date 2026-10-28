@@ -8,7 +8,7 @@ description: >-
   para viagens em grupo e planejar sem cadastro.
 author: Riccardo P.
 publishedAt: '2026-07-27'
-updatedAt: '2026-09-08'
+updatedAt: '2026-10-28'
 category: AI Travel
 tags: ["planejador de viagens com ia", "avaliação", "comparação", "tecnologia de viagens"]
 image: /images/blog/plan-trip-with-ai.jpg
@@ -31,6 +31,8 @@ schema: Article
 ---
 
 # Avaliação do Mindtrip 2026: recursos, preços e as melhores alternativas
+
+> **Atualização, 28 de outubro de 2026:** as observações sobre a Layla nesta avaliação a descrevem como era no começo de 2026. O site da Layla agora planeja viagens de graça e as repassa a um especialista em viagens humano, que as reserva como pacote, e não cita mais seus parceiros de preços em tempo real nem o PriceLock. Nosso [comparativo de planejadores de viagens com AI](/blog/best-ai-trip-planners-2026-compared) mostra o cenário atual.
 
 No papel, o Mindtrip é uma das ferramentas de viagem com AI mais completas de 2026 — um banco de dados que, segundo o Mindtrip, passa de 11 milhões de pontos de interesse, reserva dentro do app, um lugar na lista das empresas mais inovadoras da Fast Company de 2025 e uma integração com mapas que a maioria dos concorrentes ainda erra. E é grátis. Então qual é a pegadinha, e será que é a ferramenta certa para *você*?
 

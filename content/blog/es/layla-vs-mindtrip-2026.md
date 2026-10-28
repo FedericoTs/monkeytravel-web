@@ -7,7 +7,7 @@ description: >-
   reservas a socios. Esa diferencia decide cuál te encaja.
 author: Riccardo P.
 publishedAt: '2026-08-25'
-updatedAt: '2026-09-08'
+updatedAt: '2026-10-28'
 category: AI Travel
 tags: ["planificador de viajes con ai", "reseña", "comparación", "tecnología de viajes"]
 image: /images/blog/best-ai-trip-planners-2026-compared.jpg
@@ -31,6 +31,8 @@ schema: Article
 ---
 
 # Layla vs Mindtrip 2026: ¿cuál merece la pena?
+
+> **Actualización, 28 de octubre de 2026:** Layla ha cambiado desde que escribimos esto. Su web ahora planifica viajes gratis y los pasa a un experto en viajes humano que los reserva como paquete, y ya no nombra a sus socios de precios en tiempo real ni PriceLock. La app de iOS sigue vendiendo Premium a 49,99 $/año o 9,99 $/mes. Las secciones siguientes describen Layla tal como era a principios de 2026; nuestra [comparativa de planificadores de viajes con AI](/blog/best-ai-trip-planners-2026-compared) tiene el panorama actual.
 
 Se comparan constantemente, y la comparación casi siempre se salta lo que de verdad decide.
 

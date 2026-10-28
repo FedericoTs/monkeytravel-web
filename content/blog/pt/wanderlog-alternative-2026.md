@@ -8,7 +8,7 @@ description: >-
   seja montado por ela.
 author: Riccardo P.
 publishedAt: '2026-07-27'
-updatedAt: '2026-09-08'
+updatedAt: '2026-10-28'
 category: AI Travel
 tags: ["planejador de viagens com ia", "avaliação", "comparação", "tecnologia de viagens"]
 image: /images/blog/how-ai-is-changing-travel-planning.jpg
@@ -72,7 +72,7 @@ O planejador manual em si é realmente grátis e generoso. A pegadinha é que a 
 
 **Ele é manual em primeiro lugar.** O Wanderlog espera que você faça a montagem. Isso é uma vantagem se você adora planejar e uma chatice se você só quer um bom rascunho inicial para reagir a partir dele.
 
-**Feito para coeditar, não para decidir.** Se você tem um grupo que precisa *votar* para resolver divergências, em vez de todo mundo editar a mesma lista, o Wanderlog não foi feito para isso. (Idioma não é o problema: o site do Wanderlog está disponível em 40 idiomas, embora o app para iOS apareça só em inglês.)
+**Feito para coeditar, não para decidir.** Se você tem um grupo que precisa *votar* para resolver divergências, em vez de todo mundo editar a mesma lista, o Wanderlog não foi feito para isso. (Idioma não é o problema: o site do Wanderlog está disponível em 30 idiomas, embora o app para iOS apareça só em inglês.)
 
 ## MonkeyTravel: a alternativa grátis e com AI em primeiro lugar
 
@@ -82,7 +82,7 @@ Onde o Wanderlog pede que você monte (ou pague pela AI), o [MonkeyTravel](/trip
 |---|---|---|
 | Geração de roteiro por AI | Limitada no grátis; ilimitada no Pro (US$ 39,99/ano) | Grátis, sem limite |
 | Cadastro para começar | Obrigatório | Não é necessário |
-| Idiomas | 40 na web (o app para iOS aparece em inglês) | EN, ES, IT, PT |
+| Idiomas | 30 na web (o app para iOS aparece em inglês) | EN, ES, IT, PT |
 | Recurso de grupo | Coedição | Votação (decidir, não só editar) |
 | Importação de reservas | ✅ | ❌ (focado em planejamento) |
 | App mobile | ✅ Maduro | ✅ |
@@ -120,7 +120,7 @@ Eles resolvem problemas diferentes. O Wanderlog é um planejador maduro e manual
 
 ### O Wanderlog funciona em outros idiomas?
 
-Sim. O site do Wanderlog está disponível em 40 idiomas, embora o app para iOS apareça em inglês. O MonkeyTravel planeja em inglês, espanhol, italiano e português, então idioma, sozinho, não é motivo para trocar.
+Sim. O site do Wanderlog está disponível em 30 idiomas, embora o app para iOS apareça em inglês. O MonkeyTravel planeja em inglês, espanhol, italiano e português, então idioma, sozinho, não é motivo para trocar.
 
 ## Fontes
 
