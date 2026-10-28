@@ -124,6 +124,11 @@ const nextConfig: NextConfig = {
       }
     }
 
+    // English has no prefix, and next-intl answers /en with a temporary
+    // redirect; these run first and make it permanent.
+    rules.push({ source: "/en", destination: "/", permanent: true });
+    rules.push({ source: "/en/:path*", destination: "/:path*", permanent: true });
+
     // 2026-05-31: Natural-language destination slug aliases. Italian/Spanish
     // users typing the local-language name (e.g. /it/destinations/roma)
     // were hitting 404 because lib/destinations/data.ts keys every
