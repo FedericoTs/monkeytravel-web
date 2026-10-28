@@ -99,6 +99,8 @@ Usa la plantilla para lo que se le da bien, el presupuesto y las reservas, y dej
 - **Un viaje familiar por carretera en Excel:** el Family travel planner es gratis; pon los tiempos de conducción en la primera columna.
 - **Tienes fechas y un destino y nada más:** genera primero, y luego elige una plantilla para las partes que hay que teclear.
 
+*¿Quieres ver más opciones? Nuestra [comparativa de los mejores planificadores de viajes con IA en 2026](/blog/best-ai-trip-planners-2026-compared) pone ocho herramientas lado a lado: precio, reservas, grupos e idiomas.*
+
 ## Preguntas frecuentes
 
 **¿Hay alguna plantilla de itinerario de viaje gratis?**

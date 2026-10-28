@@ -155,6 +155,8 @@ Mira lo que el AI planifica para tu próximo viaje, y luego decide si necesitas 
 
 [Planifica mi viaje — Gratis](/es/free-ai-trip-planner)
 
+*¿No sabes con qué herramienta empezar? Probamos las principales en nuestra [comparativa de los mejores planificadores de viajes con IA en 2026](/blog/best-ai-trip-planners-2026-compared).*
+
 ---
 
 ## FAQ

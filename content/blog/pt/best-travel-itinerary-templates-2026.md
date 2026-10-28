@@ -99,6 +99,8 @@ Use o modelo para aquilo em que ele é bom, o orçamento e as reservas, e deixe 
 - **Uma viagem de carro em família no Excel:** o Family travel planner é gratuito; ponha os tempos de deslocamento de carro na primeira coluna.
 - **Você tem datas e um destino e nada mais:** gere primeiro, depois escolha um modelo para as partes que precisam ser digitadas.
 
+*Quer ver mais opções? Nossa [comparação dos melhores planejadores de viagem com IA em 2026](/blog/best-ai-trip-planners-2026-compared) coloca oito ferramentas lado a lado: preço, reservas, grupos e idiomas.*
+
 ## Perguntas frequentes
 
 **Existe um modelo de roteiro de viagem gratuito?**

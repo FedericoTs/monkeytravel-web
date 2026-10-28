@@ -228,6 +228,8 @@ Get your first draft in 30 seconds. Spend 20 minutes verifying. Then go enjoy yo
 
 [Plan My Trip — Free](/trips/new)
 
+*Not sure which tool to start with? We tested the main options in our [comparison of the best AI trip planners in 2026](/blog/best-ai-trip-planners-2026-compared).*
+
 ---
 
 ## FAQ

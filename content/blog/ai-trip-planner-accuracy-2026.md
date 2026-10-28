@@ -76,3 +76,5 @@ The right mental model for an AI trip planner in 2026: **a very fast first draft
 Try the draft on your own next trip: [generate one free](/trips/new), then argue with it. That's what the chat is for.
 
 *Data: aggregated edit-request statistics from 273 anonymized AI-generated itineraries and 317 assistant requests on MonkeyTravel, through August 2026. We report proportions and intent categories only — never individual conversations, trips, or travelers. Part of the [Q3 2026 Travel Planning Report](/blog/q3-2026-travel-planning-report) series.*
+
+*Not sure which tool to start with? We tested the main options in our [comparison of the best AI trip planners in 2026](/blog/best-ai-trip-planners-2026-compared).*

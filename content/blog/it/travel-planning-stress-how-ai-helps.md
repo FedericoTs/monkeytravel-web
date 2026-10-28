@@ -169,6 +169,8 @@ Non ti serve il piano perfetto. Ti serve un piano abbastanza buono e la volontà
 
 [Pianifica il tuo viaggio gratis — 60 secondi, nessun muro di registrazione](/trips/new)
 
+*Non sai da quale strumento partire? Abbiamo provato i principali nel nostro [confronto tra i migliori pianificatori di viaggio AI del 2026](/blog/best-ai-trip-planners-2026-compared).*
+
 ---
 
 ## FAQ

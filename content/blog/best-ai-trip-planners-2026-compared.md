@@ -213,6 +213,14 @@ If you want the head-to-head rather than the full field:
 - [ChatGPT vs AI trip planners](/blog/chatgpt-vs-ai-trip-planners) — when the general assistant is enough and when it is not
 - [Can you trust an AI travel itinerary?](/blog/can-you-trust-ai-travel-itinerary) — the checks to run on any generated plan before you travel
 - [How to plan a multi-city trip](/blog/how-to-plan-a-multi-city-trip) — route order, open-jaw flights and the days you lose in transit
+- [How to plan a trip with AI](/blog/how-to-plan-a-trip-with-ai) — the step-by-step method and the prompts that work
+- [Layla vs Wonderplan vs Lonely Planet](/blog/layla-vs-wonderplan-vs-lonely-planet) — two AI planners against a classic guidebook brand
+- [Travel itinerary templates](/blog/best-travel-itinerary-templates-2026) — Sheets, Notion, Canva and Wanderlog if you would rather plan by hand
+- [How accurate is an AI trip planner?](/blog/ai-trip-planner-accuracy-2026) — what travelers actually fix in a generated plan
+- [Plan a weekend getaway with AI](/blog/plan-weekend-getaway-with-ai) — a 3-day trip in 15 minutes
+- [How AI takes the stress out of trip planning](/blog/travel-planning-stress-how-ai-helps) — where the planning hours go and which ones AI saves
+- [2026 travel planning report](/blog/travel-planning-trends-2026) — what 1.1 million searches say about how people plan
+- [Q3 2026 travel planning report](/blog/q3-2026-travel-planning-report) — what 1,651 real trips looked like
 
 ---
 

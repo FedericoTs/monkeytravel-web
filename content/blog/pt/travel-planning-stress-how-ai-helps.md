@@ -169,6 +169,8 @@ Você não precisa do plano perfeito. Você precisa de um plano bom o suficiente
 
 [Planeje sua viagem grátis — 60 segundos, sem barreira de cadastro](/trips/new)
 
+*Não sabe por qual ferramenta começar? Testamos as principais na nossa [comparação dos melhores planejadores de viagem com IA em 2026](/blog/best-ai-trip-planners-2026-compared).*
+
 ---
 
 ## FAQ

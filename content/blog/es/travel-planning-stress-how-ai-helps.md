@@ -167,6 +167,8 @@ No necesitas el plan perfecto. Necesitas un plan suficientemente bueno y la volu
 
 [Planifica tu viaje gratis — 60 segundos, sin registro obligatorio](/trips/new)
 
+*¿No sabes con qué herramienta empezar? Probamos las principales en nuestra [comparativa de los mejores planificadores de viajes con IA en 2026](/blog/best-ai-trip-planners-2026-compared).*
+
 ---
 
 ## FAQ

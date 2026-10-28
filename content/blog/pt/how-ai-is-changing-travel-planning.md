@@ -135,6 +135,8 @@ Digite um destino e veja o que o seu parceiro de viagem com AI vai sugerir.
 
 [Planejar Minha Viagem — Gratis](/trips/new)
 
+*Não sabe por qual ferramenta começar? Testamos as principais na nossa [comparação dos melhores planejadores de viagem com IA em 2026](/blog/best-ai-trip-planners-2026-compared).*
+
 ---
 
 ## Perguntas Frequentes

@@ -233,6 +233,8 @@ Obtén tu primer borrador en 30 segundos. Dedica 20 minutos a verificar. Luego v
 
 [Planifica mi viaje — Gratis](/trips/new)
 
+*¿No sabes con qué herramienta empezar? Probamos las principales en nuestra [comparativa de los mejores planificadores de viajes con IA en 2026](/blog/best-ai-trip-planners-2026-compared).*
+
 ---
 
 ## FAQ
