@@ -8,7 +8,7 @@ description: >-
   and no-signup planning.
 author: Riccardo P.
 publishedAt: '2026-07-27'
-updatedAt: '2026-09-08'
+updatedAt: '2026-10-28'
 category: AI Travel
 tags: ["ai trip planner", "review", "comparison", "travel technology"]
 image: /images/blog/plan-trip-with-ai.jpg
@@ -31,6 +31,8 @@ schema: Article
 ---
 
 # Mindtrip Review 2026: Features, Pricing & the Best Alternatives
+
+> **Update, 28 October 2026:** the Layla notes in this review describe it as it was earlier in 2026. Layla's website now plans trips for free and hands them to a human travel expert who books them as a package, and it no longer names its live-pricing partners or PriceLock. Our [AI trip planner comparison](/blog/best-ai-trip-planners-2026-compared) has the current picture.
 
 Mindtrip is, on paper, one of the most complete AI travel tools of 2026 — a database Mindtrip says covers over 11 million points of interest, in-app booking, a place on Fast Company's Most Innovative Companies 2025 list, and a maps integration most competitors still get wrong. It's also free. So what's the catch, and is it the right tool for *you*?
 

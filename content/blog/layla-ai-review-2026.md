@@ -7,7 +7,7 @@ description: >-
   best free alternatives if you don't want a paywall on your itinerary.
 author: Riccardo P.
 publishedAt: '2026-07-27'
-updatedAt: '2026-09-08'
+updatedAt: '2026-10-28'
 category: AI Travel
 tags: ["ai trip planner", "review", "comparison", "travel technology"]
 image: /images/blog/ai-travel-planning-2026.jpg
@@ -30,6 +30,8 @@ schema: Article
 ---
 
 # Layla AI Review 2026: Pricing, Features & the Best Free Alternatives
+
+> **Update, 28 October 2026:** Layla has changed since this was written. Its website now plans trips for free and hands them to a human travel expert who books them as a package, and it no longer names its live-pricing partners or PriceLock. The iOS app still sells Premium at $49.99/year or $9.99/month. The sections below describe Layla as it was earlier in 2026; our [AI trip planner comparison](/blog/best-ai-trip-planners-2026-compared) has the current picture.
 
 Layla is one of the most talked-about AI travel planners of 2026 — 4.6 stars on the iOS App Store and 4.7 on Google Play (as of September 2026), a homepage counter past 2.35 million trips planned, a slick interface that leans on video for destination inspiration, and, since 31 July 2026, a new owner in Expedia Group. But the question we get asked most is simpler than any feature list: *is it actually free, or do you hit a paywall the moment you want the details?*
 
