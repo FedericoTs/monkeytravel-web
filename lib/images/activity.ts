@@ -75,6 +75,9 @@ const LANDMARK_PHOTOS = process.env.WIKIMEDIA_LANDMARK_PHOTOS !== "false";
 // lookups still running go on in the background for the next save.
 const MAX_NEW_LANDMARKS = 12;
 const LANDMARK_WAIT_MS = 5000;
+// A plan being generated waits for none: every place is looked up in the
+// background, and the planner picks the photos up (/api/images/landmarks).
+const MAX_NEW_LANDMARKS_IN_BACKGROUND = 40;
 // Activity types that are never a place with a photo of its own.
 const NOT_A_PLACE_TYPES = new Set(["transport", "travel", "flight", "transfer", "accommodation", "hotel"]);
 
@@ -1065,7 +1068,7 @@ const isPoint = (lat: unknown, lng: unknown): lat is number =>
  * Wikimedia photos for the activities that are places, by normalized key. A
  * place Google found earlier lends its name and coordinates; otherwise the
  * activity's own. Without `wait` (a plan being generated), new lookups run
- * after the response for the next plan to find.
+ * after the response, for the planner to pick up.
  */
 async function landmarkPhotosFor(
   groups: Map<string, { activity: ActivityWithImage; name: string; type: string }[]>,
@@ -1086,7 +1089,10 @@ async function landmarkPhotosFor(
       // Without a point, only a photo already found for this name can come back.
       lookups.push(isPoint(lat, lng) ? { key, names, lat, lng: lng as number } : { key, names });
     }
-    return await landmarkPhotos(lookups, { waitMs: wait ? LANDMARK_WAIT_MS : 0, maxNew: MAX_NEW_LANDMARKS });
+    return await landmarkPhotos(lookups, {
+      waitMs: wait ? LANDMARK_WAIT_MS : 0,
+      maxNew: wait ? MAX_NEW_LANDMARKS : MAX_NEW_LANDMARKS_IN_BACKGROUND,
+    });
   } catch (err) {
     console.warn("[Activity Images] Wikimedia photos unavailable:", err instanceof Error ? err.message : err);
     return new Map();

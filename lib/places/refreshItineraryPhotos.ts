@@ -1,6 +1,8 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { carryTypeHint } from "@/lib/images/activity";
+import { carryTypeHint, normalizeActivityKey } from "@/lib/images/activity";
+import { cachedLandmarkPhotos } from "@/lib/images/landmark-photos";
+import { isPlacePhoto } from "@/lib/trips/keep-place-photos";
 import type { ItineraryDay } from "@/types";
 
 /**
@@ -202,8 +204,39 @@ export async function refreshItineraryPhotos<T extends DayLike>(
  * unchanged. Cast is safe because the generic preserves the input type.
  */
 export async function refreshTripItinerary(
-  itinerary: ItineraryDay[] | undefined | null
+  itinerary: ItineraryDay[] | undefined | null,
+  destination?: string
 ): Promise<ItineraryDay[]> {
-  const refreshed = await refreshItineraryPhotos(itinerary ?? []);
-  return refreshed as unknown as ItineraryDay[];
+  const refreshed = (await refreshItineraryPhotos(itinerary ?? [])) as unknown as ItineraryDay[];
+  return destination ? withLandmarkPhotos(refreshed, destination) : refreshed;
+}
+
+/**
+ * Stand-in images replaced by the Wikimedia photos found for those places
+ * since the plan was made (lib/images/landmark-photos.ts), keyed the way the
+ * plan was: by name and destination. For this read only; the stored trip is
+ * not changed, and a cache error leaves the stand-ins.
+ */
+async function withLandmarkPhotos(days: ItineraryDay[], destination: string): Promise<ItineraryDay[]> {
+  const keys = new Map<string, string>();
+  for (const day of days) {
+    for (const a of day.activities ?? []) {
+      if (a.name && !isPlacePhoto(a.image_url)) keys.set(a.name, normalizeActivityKey(a.name, destination));
+    }
+  }
+  if (keys.size === 0) return days;
+  let found: Map<string, string | null>;
+  try {
+    found = await cachedLandmarkPhotos([...new Set(keys.values())]);
+  } catch {
+    return days;
+  }
+  if (![...found.values()].some(Boolean)) return days;
+  return days.map((day) => ({
+    ...day,
+    activities: (day.activities ?? []).map((a) => {
+      const url = a.name && !isPlacePhoto(a.image_url) ? found.get(keys.get(a.name) ?? "") : null;
+      return url ? { ...a, image_url: url } : a;
+    }),
+  }));
 }

@@ -199,11 +199,15 @@ export default async function PublicTripPage({ params }: PageProps) {
   const { trip, author } = result;
 
   // Read-time itinerary photo refresh (same as /shared) — replaces stale
-  // baked-in activity image URLs with the canonical ones from places_v2 — and
+  // baked-in activity image URLs with the canonical ones from places_v2, and
+  // stand-ins with Wikimedia photos found since — and
   // the viewer lookup need only the trip, so they run together. getUser() is
   // a local no-op for anonymous visitors, the common case on this page.
   const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
-  const [itinerary, viewerUserId] = await Promise.all([refreshTripItinerary(rawItinerary), signedInUserId()]);
+  const [itinerary, viewerUserId] = await Promise.all([
+    refreshTripItinerary(rawItinerary, getTripDestination(trip)),
+    signedInUserId(),
+  ]);
 
   const budget = trip.budget as { total: number; currency: string } | null;
   const tripMeta = (trip.trip_meta as TripMeta) || {};

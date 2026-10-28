@@ -164,6 +164,7 @@ function preloadResultViewChunks(): void {
 import { sentry } from "@/lib/observability/sentry";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
 import { useKeptPlan } from "@/hooks/useKeptPlan";
+import { usePlanPhotos } from "@/hooks/usePlanPhotos";
 import type { KeptPlan } from "@/lib/plans/kept-plan";
 import {
   entryFor,
@@ -1835,6 +1836,8 @@ export default function NewTripPage({
     planId: sessionTripCurrentId,
     plan: keptPlanInput,
   });
+  // Free photos found for the plan's places after it was shown.
+  usePlanPhotos({ plan: generatedItinerary, destination, onPlan: setGeneratedItinerary });
   const keptPlans = useSyncExternalStore(subscribeKeptPlans, keptPlansSnapshot, keptPlansServerSnapshot);
   const [openingKeptPlan, setOpeningKeptPlan] = useState<string | null>(null);
   const [keptPlanGone, setKeptPlanGone] = useState(false);
