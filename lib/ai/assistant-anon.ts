@@ -19,7 +19,7 @@
 
 import { GoogleGenerativeAI, type GenerateContentResult, type GenerationConfig } from "@/lib/ai/genai-compat";
 import { logCacheMetrics } from "@/lib/gemini";
-import { getModelForPurpose, getSiblingModel } from "@/lib/ai/model-router";
+import { getModelForPurpose, getSiblingModel, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import {
@@ -637,7 +637,7 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
     // A small, fixed thinking budget. With none, multi-part and whole-trip
     // requests came back half done; unbounded, thinking ate the output cap
     // and the replies arrived truncated or slow.
-    thinkingConfig: { thinkingBudget: THINKING_BUDGET },
+    thinkingConfig: thinkingConfigFor(modelId, THINKING_BUDGET),
   };
   let costUsd = 0;
 
@@ -660,7 +660,10 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
         if (attempt === attempts - 1 || !isModelOverloaded(err)) throw err;
         console.warn(`assistant-anon: ${modelId} overloaded, retrying on its sibling`);
         modelId = getSiblingModel(modelId);
-        model = genAI.getGenerativeModel({ model: modelId, generationConfig });
+        model = genAI.getGenerativeModel({
+          model: modelId,
+          generationConfig: { ...generationConfig, thinkingConfig: thinkingConfigFor(modelId, THINKING_BUDGET) },
+        });
         await new Promise((resolve) => setTimeout(resolve, 1000));
         continue;
       }

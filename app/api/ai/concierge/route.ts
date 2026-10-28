@@ -26,7 +26,7 @@
 import { NextRequest } from "next/server";
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import { logCacheMetrics } from "@/lib/gemini";
-import { getModelForPurpose } from "@/lib/ai/model-router";
+import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
@@ -412,7 +412,7 @@ export async function POST(request: NextRequest) {
         maxOutputTokens: MAX_RESPONSE_TOKENS,
         // Thinking off: flash thinks by default and its thinking tokens count
         // against the cap, which spent it before the answer was written.
-        thinkingConfig: { thinkingBudget: 0 },
+        thinkingConfig: thinkingConfigFor(conciergeModel),
       },
     });
 

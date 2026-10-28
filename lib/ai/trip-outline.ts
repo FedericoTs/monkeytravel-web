@@ -6,7 +6,7 @@
  */
 
 import { GoogleGenerativeAI, SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
-import { getModelForPurpose } from "@/lib/ai/model-router";
+import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import type { TripCreationParams } from "@/types";
 import type { SupportedLanguage } from "@/lib/ai/language";
@@ -78,7 +78,7 @@ export async function generateTripOutline(
       responseMimeType: "application/json",
       responseSchema: SCHEMA,
       maxOutputTokens: 2048,
-      thinkingConfig: { thinkingBudget: 0 },
+      thinkingConfig: thinkingConfigFor(modelName),
     },
   });
 
