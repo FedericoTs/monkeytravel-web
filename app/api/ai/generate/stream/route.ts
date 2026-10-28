@@ -277,9 +277,10 @@ export async function POST(request: NextRequest) {
     let finalItinerary: GeneratedItinerary | null = null;
     // What the model call cost, from its token counts (set once it answers).
     let generationCost = 0;
-    // A long trip written in parts (lib/ai/plan-in-parts.ts): how many, and
-    // when its outline was on screen.
+    // A long trip written in parts (lib/ai/plan-in-parts.ts): how many, how
+    // many were written twice, and when its outline was on screen.
     let parts = 0;
+    let partRetries = 0;
     let outlineMs: number | null = null;
 
     try {
@@ -375,6 +376,7 @@ export async function POST(request: NextRequest) {
               finalItinerary = out.itinerary;
               generationCost += out.costUsd;
               parts = out.parts;
+              partRetries = out.retries;
             }
           }
         } catch (err) {
@@ -561,6 +563,7 @@ export async function POST(request: NextRequest) {
                 fresh: wantsFresh,
                 ...(firstDayMs !== null ? { first_day_ms: firstDayMs } : {}),
                 ...(parts > 0 ? { parts, outline_ms: outlineMs } : {}),
+                ...(partRetries > 0 ? { part_retries: partRetries } : {}),
                 ...(generationId ? { generation_id: generationId } : {}),
               },
             });

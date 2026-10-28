@@ -5,19 +5,27 @@ import type { PartsYield } from "./plan-in-parts";
 /**
  * A long trip written in parts at the same time: the days reach the planner
  * in trip order whichever part finishes first, each numbered and dated by its
- * place in the trip, and a part that fails stops the plan.
+ * place in the trip. A part that fails is written again once; failing twice
+ * stops the plan.
  */
 
 type Part = { from: number; to: number };
-type Behaviour = { delayMs: number; numberFromOne?: boolean; days?: number; fail?: boolean };
+type Behaviour = {
+  delayMs: number;
+  numberFromOne?: boolean;
+  days?: number;
+  fail?: boolean;
+  firstAttempt?: "throws" | "breaks" | "short";
+};
 let behaviour: Record<number, Behaviour> = {};
+let attempts: Record<number, number> = {};
 
-const itineraryFor = (part: Part, b: Behaviour) => ({
+const itineraryFor = (part: Part, b: Behaviour, attempt: number, days = b.days ?? part.to - part.from + 1) => ({
   destination: { name: "Rome", country: "Italy" },
-  days: Array.from({ length: b.days ?? part.to - part.from + 1 }, (_, i) => ({
+  days: Array.from({ length: days }, (_, i) => ({
     day_number: b.numberFromOne ? i + 1 : part.from + i,
     date: "1999-01-01",
-    theme: `Theme ${part.from + i}`,
+    theme: `Theme ${part.from + i}, attempt ${attempt}`,
     activities: [{ name: `Place ${part.from + i}` }],
   })),
   trip_summary: { highlights: [`summary from part ${part.from}`] },
@@ -26,9 +34,13 @@ const itineraryFor = (part: Part, b: Behaviour) => ({
 vi.mock("@/lib/gemini", () => ({
   generateItineraryStream: async function* (_params: unknown, opts: { part: Part }) {
     const b = behaviour[opts.part.from] ?? { delayMs: 0 };
-    const text = JSON.stringify(itineraryFor(opts.part, b));
+    const attempt = (attempts[opts.part.from] = (attempts[opts.part.from] ?? 0) + 1);
+    const first = attempt === 1 ? b.firstAttempt : undefined;
+    let text = JSON.stringify(itineraryFor(opts.part, b, attempt, first === "short" ? 1 : undefined));
+    // Broken JSON inside the part's second day, as the model sometimes writes.
+    if (first === "breaks") text = text.replace(`"Theme ${opts.part.from + 1}, attempt 1"`, `Theme ${opts.part.from + 1}`);
     await new Promise((resolve) => setTimeout(resolve, b.delayMs));
-    if (b.fail) throw new Error("model said no");
+    if (b.fail || first === "throws") throw new Error("model said no");
     for (let i = 0; i < text.length; i += 50) yield { text: text.slice(i, i + 50), done: false };
     yield { text: "", done: true, fullText: text, latencyMs: 1 };
   },
@@ -52,6 +64,7 @@ async function collect(totalDays = 10) {
 
 beforeEach(() => {
   behaviour = {};
+  attempts = {};
 });
 
 describe("writeInParts", () => {
@@ -79,7 +92,36 @@ describe("writeInParts", () => {
     expect(done.itinerary.days.map((d) => d.day_number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
 
-  it("stops with a PartsError when a part fails, after the days before it", async () => {
+  it("writes a part that fails again and finishes the plan", async () => {
+    behaviour = { 5: { delayMs: 0, firstAttempt: "throws" } };
+    const { days, done } = await collect();
+    expect(days.map((d) => d.day_number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(done.retries).toBe(1);
+    expect(attempts[5]).toBe(2);
+    expect(attempts[1]).toBe(1);
+  });
+
+  it("writes a part with broken JSON again, without handing a day on twice", async () => {
+    behaviour = { 5: { delayMs: 0, firstAttempt: "breaks" } };
+    const { days, done } = await collect();
+    expect(days.map((d) => d.day_number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(done.retries).toBe(1);
+    // The finished plan holds the second attempt's days for that part.
+    expect(done.itinerary.days.slice(4, 7).map((d) => d.theme)).toEqual([
+      "Theme 5, attempt 2",
+      "Theme 6, attempt 2",
+      "Theme 7, attempt 2",
+    ]);
+  });
+
+  it("writes a part that comes back short again", async () => {
+    behaviour = { 8: { delayMs: 0, firstAttempt: "short" } };
+    const { done } = await collect();
+    expect(done.itinerary.days.map((d) => d.day_number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(done.retries).toBe(1);
+  });
+
+  it("stops with a PartsError when a part fails twice, after the days before it", async () => {
     behaviour = { 5: { delayMs: 0, fail: true } };
     const days: number[] = [];
     await expect(async () => {
@@ -88,9 +130,10 @@ describe("writeInParts", () => {
       }
     }).rejects.toBeInstanceOf(PartsError);
     expect(days).toEqual([1, 2, 3, 4]);
+    expect(attempts[5]).toBe(2);
   });
 
-  it("stops when a part comes back short", async () => {
+  it("stops when a part comes back short twice", async () => {
     behaviour = { 8: { delayMs: 0, days: 1 } };
     await expect(collect()).rejects.toThrow(/days 8-10 came back with 1 days/);
   });
