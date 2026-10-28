@@ -4,7 +4,7 @@ import { estimateCost } from "@/lib/posthog/llm-analytics";
 import { generateActivityId } from "./utils/activity-id";
 import { getPrompt, DEFAULT_PROMPTS } from "./prompts";
 import { captureLLMGeneration, type GeminiUsageMetadata } from "./posthog/llm-analytics";
-import { getModelForPurpose, getSiblingModel } from "./ai/model-router";
+import { getModelForPurpose, getSiblingModel, thinkingConfigFor } from "./ai/model-router";
 import { recordGeminiUsage } from "./ai/gemini-cost";
 import type { SupportedLanguage } from "./ai/language";
 import {
@@ -922,7 +922,7 @@ async function generateItineraryInternal(
       // Keep in sync with generateItineraryStream (same model, same prompt).
       maxOutputTokens: 16000,
       responseMimeType: "application/json",
-      thinkingConfig: { thinkingBudget: 0 },
+      thinkingConfig: thinkingConfigFor(modelName),
     },
   });
 
@@ -1446,7 +1446,7 @@ async function regenerateSingleDayInternal(
       // maxOutputTokens, so with thinking on the 2048 cap is spent thinking and
       // the visible JSON comes out cut mid-object. The sibling-model retry
       // handles genuinely bad output.
-      thinkingConfig: { thinkingBudget: 0 },
+      thinkingConfig: thinkingConfigFor(modelName),
     },
   });
 
@@ -1925,7 +1925,7 @@ export async function* generateItineraryStream(
       // thinking budget can push the answer past the cap: the SSE stream then
       // emits a valid prefix of an invalid JSON ("Unterminated string" in
       // parseStreamedItinerary).
-      thinkingConfig: { thinkingBudget: 0 },
+      thinkingConfig: thinkingConfigFor(modelName),
     },
   });
 

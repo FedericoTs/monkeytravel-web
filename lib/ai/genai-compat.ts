@@ -8,6 +8,7 @@
  */
 import {
   GoogleGenAI,
+  ThinkingLevel,
   Type,
   type Chat,
   type Content,
@@ -18,6 +19,7 @@ import {
 } from "@google/genai";
 
 export type { Content, Part };
+export { ThinkingLevel };
 export type ResponseSchema = Schema;
 
 export const SchemaType = {
@@ -38,7 +40,14 @@ export interface GenerationConfig {
   stopSequences?: string[];
   responseMimeType?: string;
   responseSchema?: ResponseSchema;
-  thinkingConfig?: { thinkingBudget?: number; includeThoughts?: boolean };
+  thinkingConfig?: ThinkingConfig;
+}
+
+/** 2.5 models take a token budget; later ones a level, and refuse the other. */
+export interface ThinkingConfig {
+  thinkingBudget?: number;
+  thinkingLevel?: ThinkingLevel;
+  includeThoughts?: boolean;
 }
 
 export interface ModelParams {

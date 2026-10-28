@@ -28,6 +28,8 @@
  *   dev (`GEMINI_MODEL_OVERRIDE=gemini-2.5-flash-lite` to keep costs zero).
  */
 
+import { ThinkingLevel, type ThinkingConfig } from "@/lib/ai/genai-compat";
+
 export type GeminiPurpose =
   | "trip-generation"
   | "day-regenerate"
@@ -45,7 +47,11 @@ export type GeminiPurpose =
 export type GeminiModelId =
   | "gemini-2.5-pro"
   | "gemini-2.5-flash"
-  | "gemini-2.5-flash-lite";
+  | "gemini-2.5-flash-lite"
+  | "gemini-3.8-flash"
+  | "gemini-3.6-flash"
+  | "gemini-3.5-flash-lite"
+  | "gemini-3.1-flash-lite";
 
 const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
   // 2026-06-01 P0 ROOT-CAUSE FIX: switched from gemini-2.5-pro → 2.5-flash.
@@ -86,14 +92,18 @@ const ALLOWED_OVERRIDES = new Set<string>([
   "gemini-2.5-pro",
   "gemini-2.5-flash",
   "gemini-2.5-flash-lite",
+  "gemini-3.8-flash",
+  "gemini-3.6-flash",
+  "gemini-3.5-flash-lite",
+  "gemini-3.1-flash-lite",
 ]);
 
 /**
  * Resolve a Gemini model id for a given purpose.
  *
- * If `process.env.GEMINI_MODEL_OVERRIDE` is set to a known Gemini 2.5
- * model id, that wins over the purpose map — but unknown values are
- * silently ignored (a typo shouldn't crash trip generation).
+ * If `process.env.GEMINI_MODEL_OVERRIDE` is set to a known model id, that
+ * wins over the purpose map — but unknown values are silently ignored (a
+ * typo shouldn't crash trip generation).
  */
 export function getModelForPurpose(purpose: GeminiPurpose): GeminiModelId {
   const override = process.env.GEMINI_MODEL_OVERRIDE;
@@ -120,10 +130,28 @@ const SIBLING_MODEL: Record<GeminiModelId, GeminiModelId> = {
   // pro's sibling is flash (never flash-lite): pro callers chose it for
   // quality, so degrade one step, not two.
   "gemini-2.5-pro": "gemini-2.5-flash",
+  "gemini-3.8-flash": "gemini-3.6-flash",
+  "gemini-3.6-flash": "gemini-3.8-flash",
+  "gemini-3.5-flash-lite": "gemini-3.1-flash-lite",
+  "gemini-3.1-flash-lite": "gemini-3.5-flash-lite",
 };
 
 export function getSiblingModel(model: GeminiModelId): GeminiModelId {
   return SIBLING_MODEL[model];
+}
+
+/**
+ * The thinking a model may do: `budget` tokens on 2.5 models, a level on later
+ * ones. They can't turn thinking off, and each refuses a level it doesn't
+ * have (3.8 Flash has no minimal, 3.5 Flash-Lite takes no budget at all), so
+ * "none" is their lowest level. 2.5 Pro can't go below 128.
+ */
+export function thinkingConfigFor(model: GeminiModelId, budget = 0): ThinkingConfig {
+  if (model.startsWith("gemini-2.5-")) {
+    return { thinkingBudget: model === "gemini-2.5-pro" ? Math.max(budget, 128) : budget };
+  }
+  if (budget > 0) return { thinkingLevel: ThinkingLevel.LOW };
+  return { thinkingLevel: model === "gemini-3.8-flash" ? ThinkingLevel.LOW : ThinkingLevel.MINIMAL };
 }
 
 /**
