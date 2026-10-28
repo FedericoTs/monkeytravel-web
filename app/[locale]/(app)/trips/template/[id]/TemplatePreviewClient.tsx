@@ -240,6 +240,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
           <div className="flex items-center gap-2">
             <Link
               href="/trips"
+              rel="nofollow"
               className="flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-slate-900 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
