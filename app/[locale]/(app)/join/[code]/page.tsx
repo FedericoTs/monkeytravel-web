@@ -38,6 +38,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: `${referrerName} invited you to MonkeyTravel!`,
     description: "Plan a trip together in about 30 seconds. 30 AI-planned itineraries a month, free — no card, no trial.",
     openGraph: {
+      siteName: "MonkeyTravel",
       title: `${referrerName} invited you to MonkeyTravel!`,
       description: "Plan a trip together in about 30 seconds. 30 AI-planned itineraries a month, free — no card, no trial.",
       type: "website",

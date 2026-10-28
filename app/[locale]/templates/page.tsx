@@ -31,6 +31,7 @@ export async function generateMetadata({
     description,
     alternates: { canonical, languages },
     openGraph: {
+      siteName: "MonkeyTravel",
       title: `${title} | MonkeyTravel`,
       description,
       type: "website",

@@ -103,6 +103,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     // emitted og:title, og:description and og:url and zero og:image tags,
     // while every sibling page emitted one.
     openGraph: {
+      siteName: "MonkeyTravel",
       title,
       description,
       url: languages[locale],

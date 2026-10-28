@@ -80,6 +80,7 @@ export async function generateMetadata({
       },
     },
     openGraph: {
+      siteName: "MonkeyTravel",
       title: meta.title,
       description: meta.description,
       type: 'website',

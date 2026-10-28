@@ -64,6 +64,7 @@ export async function generateMetadata({
       },
     },
     openGraph: {
+      siteName: "MonkeyTravel",
       title: m.title,
       description: m.description,
       url: canonical,

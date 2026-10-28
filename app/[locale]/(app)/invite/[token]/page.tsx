@@ -253,6 +253,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: t("gate.title", { trip: data.trip.title }),
     description: t("meta.description", { destination: data.trip.destination || data.trip.title }),
     openGraph: {
+      siteName: "MonkeyTravel",
       title: t("gate.title", { trip: data.trip.title }),
       description: t("meta.ogDescription", { name: data.inviter?.displayName || data.owner.displayName }),
       images: data.trip.shareToken

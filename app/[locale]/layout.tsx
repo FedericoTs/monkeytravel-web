@@ -226,6 +226,14 @@ export default async function LocaleLayout({
             both scripts load after idle, so early connections expire unused) */}
         <link rel="dns-prefetch" href="https://emrldco.com" />
         <link rel="dns-prefetch" href="https://o4510503013122048.ingest.de.sentry.io" />
+        {/* Here rather than in metadata.alternates, which pages replace with
+            their own canonical. */}
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="MonkeyTravel Blog"
+          href={locale === routing.defaultLocale ? "/feed.xml" : `/${locale}/feed.xml`}
+        />
       </head>
       <body className={bodyFontClassName}>
         <NextIntlClientProvider messages={pickMessages(messages, MARKETING_CLIENT_NAMESPACES)} locale={locale}>
