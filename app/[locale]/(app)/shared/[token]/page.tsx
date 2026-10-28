@@ -165,7 +165,7 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
   // alongside.
   const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
   const [itinerary, { isOwner, isMember, viewerUserId }] = await Promise.all([
-    refreshTripItinerary(rawItinerary),
+    refreshTripItinerary(rawItinerary, getTripDestination(trip)),
     resolveViewer(trip.id as string, (trip.user_id as string | null) ?? null),
   ]);
 
