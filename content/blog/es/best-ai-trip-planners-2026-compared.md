@@ -10,7 +10,7 @@ description: >-
   de Mindtrip y el planificador Canvas de Google — para que elijas el adecuado.
 author: Riccardo P.
 publishedAt: '2026-03-25'
-updatedAt: '2026-09-07'
+updatedAt: '2026-10-28'
 category: AI Travel
 tags: ["planificador de viajes con ai", "comparación", "reseña", "tecnología de viajes"]
 image: /images/blog/best-ai-trip-planners-2026-compared.jpg
@@ -45,7 +45,7 @@ Esta es la brecha que importa. Entre los viajeros que sí han usado AI generativ
 
 A quien pasa del primer intento, en general le gusta. La mayoría nunca pasa del primer intento. Eso es un problema de producto, no de entusiasmo, y por eso importa más de lo que debería con cuál empiezas.
 
-Probamos a fondo siete planificadores de viajes con AI en destinos reales, con restricciones reales — distintos presupuestos, tamaños de grupo y estilos de viaje — y evaluamos un octavo, Wanderlog, a partir de sus planes publicados y de reseñas independientes. Esto es lo que encontramos, actualizado con los grandes cambios de 2026: Mindtrip ahora reserva vuelos y hoteles dentro del chat, Google añadió un planificador de viajes día a día como es debido (Canvas, dentro de AI Mode en el Buscador de Google), Wanderlog limita la ayuda de la AI en su plan gratuito y vende AI ilimitada en Pro, y Expedia adquirió Layla por completo.
+Probamos a fondo siete planificadores de viajes con AI en destinos reales, con restricciones reales — distintos presupuestos, tamaños de grupo y estilos de viaje — y evaluamos un octavo, Wanderlog, a partir de sus planes publicados y de reseñas independientes. Esto es lo que encontramos, actualizado con los grandes cambios de 2026: Mindtrip ahora reserva vuelos y hoteles dentro del chat, Google añadió un planificador de viajes día a día como es debido (Canvas, dentro de AI Mode en el Buscador de Google), Wanderlog limita la ayuda de la AI en su plan gratuito y vende AI ilimitada en Pro, y Expedia adquirió Layla por completo, tras lo cual Layla pasó a viajes que reservan por ti expertos en viajes humanos.
 
 ## Cómo hicimos la prueba
 
@@ -63,14 +63,14 @@ Para un análisis más amplio de cómo estas herramientas están transformando e
 |---|---|---|---|---|---|---|
 | **MonkeyTravel** | Gratis | No | Sí (votaciones + viaje en vivo) | EN, ES, IT, PT | No | Planificar itinerarios, un compañero de viaje en vivo día a día, votaciones en grupo |
 | **Mindtrip** | Gratis | Sí (vuelos, hoteles, actividades) | Sí | 8 (incl. ES, IT, PT) | Sí | Investigación + reserva en un solo sitio |
-| **Layla AI** | Gratis / $49.99/año o $9.99/mes | Sí (Skyscanner/Booking) | Limitado | EN (apps); Layla dice 16 en la web | Sí (precios en vivo) | Precios en vivo, viajes en solitario o en pareja |
-| **Wanderlog** | Gratis / desde $39.99/año (AI ilimitada en Pro) | Hoteles (comparación de precios de partners) | Sí (colaboración) | 40 (web); app en EN | Solo precios de hoteles | Planificación colaborativa, itinerario + mapa en una sola vista |
+| **Layla AI** | Gratis para planificar; Premium en la app $49.99/año o $9.99/mes | Sí (expertos en viajes humanos reservan el paquete) | Limitado | EN (apps) | Presupuestos de paquetes | Traspaso a un experto humano que lo reserva |
+| **Wanderlog** | Gratis / desde $39.99/año (AI ilimitada en Pro) | Hoteles (comparación de precios de partners) | Sí (colaboración) | 30 (web); app en EN | Solo precios de hoteles | Planificación colaborativa, itinerario + mapa en una sola vista |
 | **Wonderplan** | Gratis | No | No | EN | No | Planes rápidos con presupuesto ajustado |
 | **Google Gemini** | Gratis | Hoteles (EE.UU., en despliegue) | No | Muchos | Sí (datos de Google) | Precisión de datos + un itinerario gratis en el ecosistema Google (Canvas solo en EE.UU.) |
-| **ChatGPT** | Gratis / desde $8/mes | Vía apps (Expedia, Booking.com; no en la UE/Reino Unido) | No | Muchos | Parcial (apps, fuera de la UE) | Inspiración e investigación |
+| **ChatGPT** | Gratis / planes de pago (Go, Plus, Pro) | Vía apps (Expedia, Booking.com; no en la UE/Reino Unido) | No | Muchos | Parcial (apps, fuera de la UE) | Inspiración e investigación |
 | **iPlan.ai** | Gratis de descargar; AI desde $3.99 | Solo tours (en la app) | Básico (compartir/coeditar) | 8 (incl. ES, IT, PT) | No | Itinerarios rápidos desde el móvil |
 
-*Los precios y funciones reflejan la información publicada por cada herramienta a fecha de septiembre de 2026 y pueden cambiar — consulta el sitio de cada proveedor para ver la información más reciente.*
+*Los precios y funciones reflejan la información publicada por cada herramienta a fecha de octubre de 2026 y pueden cambiar — consulta el sitio de cada proveedor para ver la información más reciente.*
 
 ---
 
@@ -90,7 +90,7 @@ Para un análisis más amplio de cómo estas herramientas están transformando e
 
 ## 2. Mindtrip
 
-**Qué hace:** Mindtrip es una de las herramientas de viaje con AI más completas disponibles en 2026. Mindtrip afirma que su base de datos cubre más de 11 millones de puntos de interés, y con ella investigas destinos y construyes itinerarios mediante AI conversacional. Este año apostó fuerte por las reservas: **Mindtrip Flights** se lanzó en **mayo de 2026** — presentado como la primera experiencia todo en uno de reserva de vuelos con AI agéntica del sector de los viajes, construida sobre una alianza con **Sabre y PayPal** — y **Mindtrip Stays** llegó en **julio de 2026**, reconstruyendo la búsqueda de hoteles en torno a la conversación en lugar de paneles de filtros. Ahora puedes pasar de la pregunta al vuelo o la habitación reservados sin salir del chat.
+**Qué hace:** Mindtrip es una de las herramientas de viaje con AI más completas disponibles en 2026. Mindtrip afirmó en una nota de prensa de 2025 que su base de datos cubre más de 11 millones de puntos de interés, y con ella investigas destinos y construyes itinerarios mediante AI conversacional. Este año apostó fuerte por las reservas: **Mindtrip Flights** se lanzó en **mayo de 2026** — presentado como la primera experiencia todo en uno de reserva de vuelos con AI agéntica del sector de los viajes, construida sobre una alianza con **Sabre y PayPal** — y **Mindtrip Stays** llegó en **julio de 2026**, reconstruyendo la búsqueda de hoteles en torno a la conversación en lugar de paneles de filtros. Ahora puedes pasar de la pregunta al vuelo o la habitación reservados sin salir del chat. El **30 de septiembre de 2026** añadió un **Personal Travel Assistant** que recuerda tus preferencias, sigue vigilando tarifas, precios de hoteles y eventos de los viajes que estás planificando, y prepara resúmenes y listas de equipaje.
 
 **Puntos fuertes:** La base de datos de POIs es profunda, y la integración de mapas permite ver el itinerario geográficamente, algo que la mayoría de competidores todavía no hace bien. Con Flights y Stays, es lo más cercano de esta lista a que "planifícame una semana en Japón" termine en una reserva real sin salir de la conversación. Mindtrip entró en la lista World's Most Innovative Companies de Fast Company de 2025, y la planificación colaborativa te permite compartir y afinar viajes con otras personas. Es gratis, y las reservas las gestionan partners externos. Además es **más multilingüe de lo que la mayoría supone** — la app lista ocho idiomas, incluidos español, italiano y portugués.
 
@@ -102,21 +102,21 @@ Para un análisis más amplio de cómo estas herramientas están transformando e
 
 ## 3. Layla AI
 
-**Qué hace:** Layla es un asistente de viaje con AI especializado. El contador de su propia página de inicio superó los **2,35 millones de viajes planificados** a 7 de septiembre de 2026, y a esa misma fecha tiene una valoración de **4,6 en la App Store de iOS** y de **4,7 en Google Play**. Premium cuesta **$49.99/año o $9.99/mes** en iOS (el propio sitio web de Layla indica $49/año), y desbloquea precios en vivo extraídos de Skyscanner, Booking.com y GetYourGuide, además de un algoritmo PriceLock que sigue las tarifas y te avisa cuando baja una ruta. También usa contenido en vídeo para inspirarte con destinos, lo que le da un aire distinto al de competidores más centrados en el texto. (Para el análisis completo, lee nuestra [reseña de Layla AI](/blog/layla-ai-review-2026).)
+**Qué hace:** Layla empezó como un asistente de viaje con AI especializado, y su sitio web ahora vende otra idea: la AI planifica el viaje y un experto en viajes humano lo convierte en un paquete y lo reserva. En la web, planificar no conlleva suscripción ni tarifa de planificación, y Layla sugiere un presupuesto mínimo de unos 100 € por persona y noche para los viajes que reservan sus expertos. La app de iOS sigue vendiendo **Premium a $49.99/año o $9.99/mes** y tiene una valoración de **4,6 en la App Store** (214 valoraciones, consultada el 28 de octubre de 2026). A principios de 2026, Layla vendía Premium por los precios en vivo de Skyscanner, Booking.com y GetYourGuide más una alerta de tarifas PriceLock; su sitio web actual ya no nombra esos partners ni PriceLock, y en su lugar habla de una garantía de precio del paquete. (Para el análisis completo, lee nuestra [reseña de Layla AI](/blog/layla-ai-review-2026).)
 
 **Algo que conviene saber de entrada:** Layla ya no es independiente. **Expedia Group la adquirió el 31 de julio de 2026.** Eso no hace peor la herramienta, pero en una comparativa merece decirse sin rodeos — un planificador propiedad de una OTA tiene interés en dónde acaba tu reserva.
 
-**Puntos fuertes:** La integración de precios en vivo es de las pocas cosas en esta categoría que funciona de verdad como se anuncia. Si te importa el precio y tienes flexibilidad de fechas, PriceLock puede encontrarte ahorros reales. Es un [generador de itinerarios con AI muy bien construido](/ai-itinerary-generator) que va más allá de los planes día a día.
+**Puntos fuertes:** Si prefieres no reservarlo todo tú, pasar el borrador de la AI a una persona que reserva el paquete completo es una diferencia real frente a todas las demás herramientas de esta lista. La planificación en sí es gratis, y sigue siendo un [generador de itinerarios con AI muy bien construido](/ai-itinerary-generator) que va más allá de los planes día a día.
 
-**Limitaciones:** Premium se renueva automáticamente, y si Layla te ofrece un periodo de prueba (las reseñas de principios de 2026 describían uno de tres días), ponte un recordatorio para cancelar antes de que se convierta en pago. Ten en cuenta que la línea entre lo gratis y lo de pago se ha ido moviendo: las reseñas de principios de 2026 describen un nivel gratuito limitado a un resumen del viaje y el precio total, mientras que los propios textos de Layla de mediados de 2026 dicen que lo gratuito cubre la generación completa del itinerario y que solo los precios en vivo y PriceLock son de pago. Comprueba qué obtienes realmente antes de suscribirte.
+**Limitaciones:** El producto ha cambiado dos veces este año, así que la mayoría de las reseñas que encontrarás describen una Layla que ya no existe. Los paquetes que reservan los expertos están pensados para un presupuesto medio o superior, lo que los descarta para viajes de mochilero. Y la suscripción Premium de la app se renueva automáticamente, así que si usas un periodo de prueba, ponte un recordatorio para cancelar antes de que se convierta en pago. Comprueba qué obtienes realmente en el propio sitio de Layla antes de pagar.
 
-**Ideal para:** Viajeros con presupuesto ajustado y fechas flexibles que quieren aprovechar bajadas de precio. Viajeros solos o parejas que quieren precios en vivo sin suscribirse a una OTA completa.
+**Ideal para:** Viajeros con un presupuesto medio que quieren un borrador hecho con AI y luego una persona que les reserve el viaje completo.
 
 ---
 
 ## 4. Wanderlog
 
-**Qué hace:** Wanderlog es un planificador de viajes pulido y pensado para colaborar, conocido sobre todo por poner **el itinerario y un mapa en una sola vista**. El plan gratuito cubre buena parte del flujo básico — construir un itinerario, colaborar en vivo con tus compañeros de viaje, importar reservas, recomendaciones y presupuesto. Su asistente de AI está limitado en el plan gratuito — una reseña práctica de febrero de 2026 contó cinco mensajes de AI por viaje — y **la asistencia de AI ilimitada es una función de Pro**. Pro empieza en $39.99/año según la propia página de precios de Wanderlog (consultada en septiembre de 2026) y añade además acceso sin conexión, escaneo automático de Gmail para detectar reservas, exportación a Google Maps, optimización de rutas y ofertas de vuelos y alquiler de coches.
+**Qué hace:** Wanderlog es un planificador de viajes pulido y pensado para colaborar, conocido sobre todo por poner **el itinerario y un mapa en una sola vista**. El plan gratuito cubre buena parte del flujo básico — construir un itinerario, colaborar en vivo con tus compañeros de viaje, importar reservas, recomendaciones y presupuesto. Su asistente de AI está limitado en el plan gratuito — una reseña práctica de febrero de 2026 contó cinco mensajes de AI por viaje — y **la asistencia de AI ilimitada es una función de Pro**. Pro empieza en $39.99/año según la propia página de precios de Wanderlog (consultada el 28 de octubre de 2026) y añade además acceso sin conexión, escaneo automático de Gmail para detectar reservas, exportación a Google Maps, optimización de rutas y ofertas de vuelos y alquiler de coches.
 
 **Puntos fuertes:** La disposición de itinerario más mapa es de las mejores de la categoría, y las funciones gratuitas de colaboración son realmente útiles para un grupo que construye un viaje junto. Importar reservas existentes y las herramientas de presupuesto lo convierten en un buen organizador incluso antes de tocar la AI.
 
@@ -142,7 +142,7 @@ Para un análisis más amplio de cómo estas herramientas están transformando e
 
 ## 6. Google Gemini
 
-**Qué hace:** Google Gemini no es una herramienta de viaje dedicada, pero tiene algo que ninguna otra de esta lista tiene: acceso nativo a Google Maps, Google Flights, Google Hotels y tus confirmaciones de viaje en Gmail. Y Google ha cerrado su mayor carencia: el **planificador de viajes Canvas dentro de AI Mode en el Buscador de Google** (lanzado para usuarios de Labs en EE.UU. en noviembre de 2025 y ampliado a lo largo de 2026) convierte esos datos en un itinerario día a día editable — planes diarios, restaurantes, atracciones — en un panel lateral, en lugar del muro de párrafos que Gemini solía devolver. Mientras escribimos esto, solo está disponible en EE.UU. En la app de Gemini, los Gems personalizados que puedes configurar como planificador de viajes son gratis para todo el mundo.
+**Qué hace:** Google Gemini no es una herramienta de viaje dedicada, pero tiene algo que ninguna otra de esta lista tiene: acceso nativo a Google Maps, Google Flights, Google Hotels y tus confirmaciones de viaje en Gmail. Y Google ha cerrado su mayor carencia: el **planificador de viajes Canvas dentro de AI Mode en el Buscador de Google** (lanzado para usuarios de Labs en EE.UU. en noviembre de 2025 y ampliado a lo largo de 2026) convierte esos datos en un itinerario día a día editable — planes diarios, restaurantes, atracciones — en un panel lateral, en lugar del muro de párrafos que Gemini solía devolver. Mientras escribimos esto, solo está disponible en EE.UU. En la app de Gemini, Google está sustituyendo los Gems personalizados por "skills": en las cuentas personales, los Gems pasan a ser de solo lectura el 17 de noviembre de 2026 y se eliminan el 17 de diciembre de 2026.
 
 **Puntos fuertes:** El acceso a datos no tiene rival. Cuando Gemini dice que un restaurante abre a las 11h, lo está sacando de Google Maps, no adivinando. Precios de vuelos en tiempo real, valoraciones reales de hoteles y mapas integrados son la mejor combinación de datos en vivo de cualquier asistente de AI — y con Canvas (en EE.UU.) ahora obtienes además un itinerario estructurado, gratis, si ya vives en el ecosistema Google.
 
@@ -154,7 +154,7 @@ Para un análisis más amplio de cómo estas herramientas están transformando e
 
 ## 7. ChatGPT
 
-**Qué hace:** ChatGPT es la herramienta con la que empieza la mayoría, porque ya la tienen. Para viajes, es genuinamente útil para inspirarse con destinos, investigar costumbres locales, construir itinerarios aproximados y redactar listas de equipaje. Hay un nivel gratuito utilizable; los planes de pago ahora empiezan en **$8/mes (ChatGPT Go)**, con **Plus a $20/mes** para límites más altos. Las apps de Expedia y Booking.com dentro de ChatGPT, que devuelven precios en vivo, también están en el nivel gratuito — pero, en el momento de escribir esto, solo fuera de la UE, el Reino Unido y Suiza.
+**Qué hace:** ChatGPT es la herramienta con la que empieza la mayoría, porque ya la tienen. Para viajes, es genuinamente útil para inspirarse con destinos, investigar costumbres locales, construir itinerarios aproximados y redactar listas de equipaje. Hay un nivel gratuito utilizable, y los planes de pago (Go, Plus y Pro) amplían los límites; los precios varían según el país, así que consulta la propia página de precios de OpenAI. Las apps de Expedia y Booking.com dentro de ChatGPT, que devuelven precios en vivo, también están en el nivel gratuito — pero cuando se lanzaron, OpenAI dejó fuera la UE, el Reino Unido y Suiza.
 
 **Puntos fuertes:** Si sabes cómo pedirle las cosas, ChatGPT puede producir investigación de viaje detallada más rápido que cualquier búsqueda manual. Es especialmente bueno para preguntas con matices — "mejor barrio para alojarse en Lisboa si viajo con niños pequeños y quiero buenos restaurantes cerca" — donde Google devuelve listículos genéricos. Para la fase de planificación e ideación, es difícil de superar.
 
@@ -182,7 +182,7 @@ Para un análisis más amplio de cómo estas herramientas están transformando e
 
 **Quieres investigar Y reservar en un solo sitio:** Mindtrip. Con vuelos, hoteles y actividades dentro del chat, es la herramienta más completa de principio a fin disponible ahora mismo.
 
-**Buscas el mejor precio y tienes fechas flexibles:** Layla AI. Los precios en vivo y la función PriceLock valen el plan premium si viajas con frecuencia.
+**Quieres que alguien te reserve el viaje completo:** Layla AI. La AI lo planifica gratis y después un experto en viajes humano arma el paquete y lo reserva.
 
 **Quieres los datos más precisos en tiempo real:** Google Gemini. Acceso a datos insuperable, y ahora Canvas también te da un itinerario de verdad — siempre que estés a gusto dentro del ecosistema Google.
 
@@ -223,11 +223,11 @@ Para viajeros independientes que planifican viajes estándar, los planificadores
 
 ### ¿Algún planificador de viajes con AI muestra precios de vuelos y hoteles en tiempo real?
 
-Sí. Layla AI extrae precios en vivo de Skyscanner, Booking.com y GetYourGuide. Mindtrip integra vuelos (vía Sabre y PayPal), hoteles y actividades para reservar dentro del chat. Google Gemini muestra datos de Google Flights y Google Hotels. ChatGPT muestra precios en vivo solo a través de sus apps de Expedia y Booking.com, que todavía no están disponibles en la UE ni en el Reino Unido. MonkeyTravel, Wonderplan e iPlan.ai no ofrecen precios en vivo actualmente; Wanderlog muestra precios de hoteles de partners, pero no precios de vuelos en vivo en el plan gratuito.
+Sí. Mindtrip integra vuelos (vía Sabre y PayPal), hoteles y actividades para reservar dentro del chat. Google Gemini muestra datos de Google Flights y Google Hotels. ChatGPT muestra precios en vivo solo a través de sus apps de Expedia y Booking.com, que se lanzaron sin la UE, el Reino Unido ni Suiza. Layla ahora presupuesta paquetes preparados por expertos en lugar de mostrar tarifas en vivo. MonkeyTravel, Wonderplan e iPlan.ai no ofrecen precios en vivo actualmente; Wanderlog muestra precios de hoteles de partners, pero no precios de vuelos en vivo en el plan gratuito.
 
 ### ¿Son precisos los itinerarios generados por AI?
 
-Varía mucho según la herramienta. Las herramientas con conexión a datos en vivo (Gemini, Mindtrip, Layla) son más fiables en información actual. Las herramientas sin conexión a datos en vivo (Wonderplan, iPlan.ai — y MonkeyTravel) tienen mayor riesgo de alucinaciones en detalles como horarios, precios y disponibilidad. Verifica siempre los datos del lugar antes de presentarte.
+Varía mucho según la herramienta. Las herramientas con conexión a datos en vivo (Gemini, Mindtrip) son más fiables en información actual. Las herramientas sin conexión a datos en vivo (Wonderplan, iPlan.ai — y MonkeyTravel) tienen mayor riesgo de alucinaciones en detalles como horarios, precios y disponibilidad. Verifica siempre los datos del lugar antes de presentarte.
 
 ### ¿Qué planificador de viajes con AI es mejor para grupos?
 
@@ -244,15 +244,16 @@ MonkeyTravel tiene una función de planificación en grupo con un sistema de vot
 - Lanzamiento de Mindtrip Flights (alianza Sabre + PayPal), 6 de mayo de 2026 — PR Newswire, investors.sabre.com, mindtrip.ai/press
 - Lanzamiento de Mindtrip Stays (búsqueda y reserva conversacional de hoteles), 15 de julio de 2026 — PR Newswire
 - Mindtrip "más de 11 millones de puntos de interés" (cifra declarada por la empresa), 18 de noviembre de 2025 — nota de prensa de Mindtrip vía PR Newswire
-- Mindtrip gratis, e idiomas admitidos (EN, NL, FR, DE, IT, NB, PT, ES) — ficha de la Apple App Store, consultada el 7 de septiembre de 2026
+- Lanzamiento del Personal Travel Assistant de Mindtrip, 30 de septiembre de 2026 — PR Newswire
+- Mindtrip gratis, e idiomas admitidos (EN, NL, FR, DE, IT, NB, PT, ES) — ficha de la Apple App Store, consultada el 28 de octubre de 2026
 - Expedia Group adquiere Layla, 31 de julio de 2026 — relaciones con inversores de Expedia Group, ir.expediagroup.com
-- Contador de viajes planificados de Layla (2.358.000+), partners (Booking.com, Skyscanner, GetYourGuide) y precios web — layla.ai y layla.ai/about, consultados el 7 de septiembre de 2026
-- Valoraciones y precios in-app de Layla — Apple App Store (4,6 con 179 valoraciones; $49.99/año, $9.99/mes) y Google Play (4,7 con 420 reseñas), consultados el 7 de septiembre de 2026
-- Niveles gratuito y de pago de Layla y PriceLock — blog de layla.ai, 3 de junio de 2026; reseña de Layla en aitravel.tools (práctica), 26 de febrero de 2026
-- Planificación de viajes con Canvas en AI Mode de Google — blog.google, 17 de noviembre de 2025 (lanzamiento), 14 de enero de 2026 (itinerarios día a día), 27 de agosto de 2026 (despliegue de la reserva de hoteles en EE.UU.); planificación de viajes con Gemini y Gems gratuitos — gemini.google, blog.google
-- Precios de Wanderlog Pro y reparto de funciones gratis/Pro — wanderlog.com/pro, consultada el 7 de septiembre de 2026; compras in-app en la Apple App Store; wanderlog.com/hotels (comparación de precios de partners); reseña de Wanderlog en aitravel.tools (práctica, límite de mensajes de AI en el nivel gratuito), 23 de febrero de 2026
+- Viajes reservados por expertos de Layla, planificación gratuita, presupuesto sugerido y garantía de precio del paquete — layla.ai, consultado el 28 de octubre de 2026
+- Valoración y precios in-app de Layla — Apple App Store (4,6 con 214 valoraciones; $49.99/año, $9.99/mes), consultados el 28 de octubre de 2026
+- Anteriores partners de precios en vivo de Layla y PriceLock — blog de layla.ai, 3 de junio de 2026; reseña de Layla en aitravel.tools (práctica), 26 de febrero de 2026
+- Planificación de viajes con Canvas en AI Mode de Google — blog.google, 17 de noviembre de 2025 (lanzamiento), 14 de enero de 2026 (itinerarios día a día), 27 de agosto de 2026 (despliegue de la reserva de hoteles en EE.UU.); Gems sustituidos por skills — Ayuda de Gemini Apps (support.google.com/gemini/answer/18560919), consultada el 28 de octubre de 2026
+- Precios de Wanderlog Pro, reparto de funciones gratis/Pro y los 30 idiomas del sitio — wanderlog.com/pro, consultada el 28 de octubre de 2026; compras in-app en la Apple App Store; wanderlog.com/hotels (comparación de precios de partners); reseña de Wanderlog en aitravel.tools (práctica, límite de mensajes de AI en el nivel gratuito), 23 de febrero de 2026
 - Wonderplan es gratis (FAQ de la empresa) — wonderplan.ai; reseña de Wonderplan en aitravel.tools (práctica: sin niveles de pago, sin chat, una ciudad cada vez), 20 de abril de 2026
-- Compras in-app de iPlan.ai (AI Powered Itinerary Builder $3.99; Pro Membership $9.99), idiomas y funciones — ficha de la Apple App Store, consultada el 7 de septiembre de 2026
-- ChatGPT Go ($8/mes), 16 de enero de 2026, y apps en ChatGPT (Expedia, Booking.com; no disponibles en el EEE, el Reino Unido ni Suiza), 6 de octubre de 2025 — openai.com; precios de ChatGPT Plus y vista de mapa en la búsqueda — OpenAI Help Center
+- Compras in-app de iPlan.ai (AI Powered Itinerary Builder $3.99; Pro Membership $9.99), idiomas y funciones — ficha de la Apple App Store, consultada el 28 de octubre de 2026
+- Planes de ChatGPT (Free, Go, Plus, Pro) — chatgpt.com/pricing, consultada el 28 de octubre de 2026; apps en ChatGPT (Expedia, Booking.com; lanzadas sin el EEE, el Reino Unido ni Suiza), 6 de octubre de 2025 — openai.com; vista de mapa en la búsqueda — OpenAI Help Center
 
-*Todas las cifras anteriores se volvieron a verificar contra la fuente citada el 7 de septiembre de 2026. Cuando un número es una cifra de marketing declarada por la propia empresa y no una auditada de forma independiente, lo decimos en el texto.*
+*Todas las cifras anteriores se volvieron a verificar contra la fuente citada el 28 de octubre de 2026, salvo las cifras de las encuestas de McKinsey y YouGov y los anuncios de lanzamiento fechados, que son fijos en el tiempo. Cuando un número es una cifra de marketing declarada por la propia empresa y no una auditada de forma independiente, lo decimos en el texto.*
