@@ -4,12 +4,16 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   announcedButMissing,
+  announcesProposal,
   claimsItineraryChange,
   claimsToRemember,
+  isConfirmation,
   missingAnswerReply,
+  noProposalNote,
   nothingChangedReply,
   nothingKeptReply,
   notAppliedLead,
+  offersChange,
   pendingChangeReply,
   planCostsReply,
 } from "./honesty";
@@ -129,8 +133,79 @@ describe("claimsItineraryChange", () => {
   });
 });
 
+// Live replies sent with no change attached, and how they read in es/pt.
+const handedOver = [
+  "Ho ricevuto la tua conferma.\n\nEcco la proposta per rimuovere Restaurace Mlejnice dal Giorno 2. Se sei d'accordo, fammelo sapere.",
+  "Ok, I'll propose adding a Beer Spa on Day 2. I'll place it in the afternoon.\n\nHere is the proposed addition:",
+  "Got it. I will propose shifting your entire trip to start on October 17th.",
+  "I can certainly help with that. On Day 9, I propose replacing the Tsukiji Outer Market with Ameyoko.",
+  "Ho capito. Per rimuovere il Restaurace Mlejnice dal Giorno 2, ti propongo la seguente modifica:",
+  "Here's a proposal to add a pub experience to Day 3.",
+  "Aquí tienes la propuesta para quitar la cena del día 2.",
+  "Aqui está a proposta para remover o jantar do dia 2.",
+];
+const offers = [
+  "Certo, posso rimuovere la cena al Restaurace Mlejnice dal tuo itinerario del Giorno 2.",
+  "I can add nightclubs to your itinerary on nights 2, 4, and 6.",
+  "I can certainly propose adding Lucky's Souvlakis to your itinerary for Day 7",
+  "Vuoi che ti suggerisca un'opzione per una gita in battello da aggiungere al tuo piano?",
+  "Would you like me to add a beer spa on Day 2?",
+  "Puedo quitar la cena del día 2.",
+  "Posso adicionar um passeio de barco no dia 2.",
+];
+const notOffers = [
+  "Non posso aggiungere attività al giorno 3: è il giorno della partenza.",
+  "I can't add that, the venue closed.",
+  "No puedo reemplazarlo por completo.",
+  "Your itinerary has you visiting the castle on Day 1 at 9:00.",
+  "Il bus 59 è un'ottima alternativa per raggiungere il centro.",
+  "Here's the plan for Day 2: the market, then lunch.",
+  "Ecco il piano per il giorno 2.",
+];
+
+describe("announcesProposal", () => {
+  it.each(handedOver)("catches a change handed over: %s", (text) => {
+    expect(announcesProposal(text)).toBe(true);
+  });
+
+  it.each([...offers, ...notOffers])("leaves an offer or an answer alone: %s", (text) => {
+    expect(announcesProposal(text)).toBe(false);
+  });
+});
+
+describe("offersChange", () => {
+  it.each(offers)("catches an offer: %s", (text) => {
+    expect(offersChange(text)).toBe(true);
+  });
+
+  it.each(notOffers)("leaves a refusal or an answer alone: %s", (text) => {
+    expect(offersChange(text)).toBe(false);
+  });
+});
+
+describe("isConfirmation", () => {
+  it.each(["ok", "si", "sì", "Si aggiungi", "ok giorno 2", "Yes", "yes please", "Please do that", "dale", "va bene", "sim, pode ser", "vale!"])(
+    "is a short yes: %s",
+    (text) => {
+      expect(isConfirmation(text)).toBe(true);
+    }
+  );
+
+  it.each(["no dobbiamo partire", "grazie", "il giorno 2", "si piove?", "okay let's add the boat trip on day two please", "togliamo il ristorante alla sera", ""])(
+    "is not: %s",
+    (text) => {
+      expect(isConfirmation(text)).toBe(false);
+    }
+  );
+});
+
 describe("the replies the server puts in their place", () => {
   const languages = ["en", "es", "it", "pt"];
+
+  it.each(languages)("say a handed-over change isn't ready, without claiming one (%s)", (lng) => {
+    expect(claimsItineraryChange(noProposalNote(lng))).toBe(false);
+    expect(announcesProposal(noProposalNote(lng))).toBe(false);
+  });
 
   it.each(languages)("never claim a change themselves (%s)", (lng) => {
     expect(claimsItineraryChange(nothingChangedReply(lng))).toBe(false);

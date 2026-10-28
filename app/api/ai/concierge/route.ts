@@ -41,8 +41,13 @@ import {
   emittableLength,
   splitAnswerAndProposal,
   resolveConciergeProposal,
+  proposalOwed,
+  proposalRequest,
+  requestedProposalJson,
   type ConciergeProposal,
 } from "@/lib/ai/concierge-proposal";
+import { noProposalNote, replyLanguage } from "@/lib/ai/assistant/honesty";
+import { LANGUAGE_NAMES, tripLocale } from "@/lib/ai/language";
 
 /**
  * Persist a Concierge Q&A turn to `ai_conversations`.
@@ -205,7 +210,7 @@ EDIT PROPOSAL protocol:
 - Write your conversational answer first (explain what you suggest and why, in their language).
 - Then output, as the VERY LAST line: ${PROPOSAL_MARKER} followed on the same line by minified JSON:
   {"type":"replace"|"add"|"remove"|"adjust_duration"|"shift_days","dayNumber":<n>,"targetActivityId":"<the activity's id from the itinerary JSON>","newActivity":{"name":"...","type":"restaurant|attraction|activity|nature","description":"1-2 sentences","location":"neighborhood","address":"street address if known","start_time":"HH:MM","duration_minutes":<n>,"estimated_cost":{"amount":<n>,"currency":"<trip currency>","tier":"budget"|"moderate"|"premium"}},"newDuration":<minutes>,"shiftByDays":<1-7>,"reason":"one short sentence"}
-- Field rules: replace → targetActivityId + newActivity. add → newActivity only. remove → targetActivityId only. adjust_duration → targetActivityId + newDuration. shift_days → dayNumber (the FIRST day to push later) + shiftByDays.
+- Field rules: every type has dayNumber. replace → targetActivityId + newActivity. add → newActivity. remove → targetActivityId. adjust_duration → targetActivityId + newDuration. shift_days → dayNumber (the FIRST day to push later) + shiftByDays.
 - shift_days is for schedule disruptions ("our flight got cancelled, push everything from tomorrow back a day"): EVERY day from dayNumber to the end of the trip moves later by shiftByDays and the trip's end date extends. Never propose it when any affected day contains a "locked": true activity.
 - Use the EXACT activity id from the itinerary JSON. Only propose real venues you are confident exist. Never target an activity marked "locked": true — those are the traveller's fixed plans.
 - At most ONE proposal per reply. Nothing may follow the JSON.`;
@@ -378,6 +383,17 @@ export async function POST(request: NextRequest) {
     const tripContext = buildTripContext(trip, todaySlice, completionByActivityId);
     const tripCurrency =
       (trip.budget as { currency?: string } | null)?.currency || "USD";
+    const tripLanguage = tripLocale(trip.trip_meta);
+    // The traveller's language, named when it shows: in the question, or for a
+    // reply of a word or two ("ok", "si aggiungi") in their earlier questions,
+    // else the trip's. Left to the model, Italian questions were answered in
+    // English, and the English answers replayed below kept the next ones so.
+    const writesIn =
+      replyLanguage(question) ??
+      (question.split(/\s+/).length <= 3
+        ? (replyLanguage(historyTurns.map((t) => t.question).join(" ")) ?? tripLanguage ?? undefined)
+        : undefined);
+    const languageRule = writesIn ? `\n\nAnswer in ${LANGUAGE_NAMES[writesIn]}.` : "";
 
     // Call Gemini. Routed via model-router → concierge maps to
     // gemini-2.5-flash per the 2026-05-31 audit (audit bumped this from
@@ -420,11 +436,45 @@ export async function POST(request: NextRequest) {
         role: "user" as const,
         parts: [
           {
-            text: `TRIP CONTEXT (JSON):\n${tripContext}\n\nUSER QUESTION:\n${question}`,
+            text: `TRIP CONTEXT (JSON):\n${tripContext}\n\nUSER QUESTION:\n${question}${languageRule}`,
           },
         ],
       },
     ];
+
+    // An answer owed a proposal it came without (proposalOwed) gets one more
+    // call for the proposal line alone. When a change it handed over still
+    // can't be attached, a note says so: the words are already on screen.
+    const settleProposal = async (
+      answer: string
+    ): Promise<{ proposal: ConciergeProposal | null; note: string | null; costUsd: number }> => {
+      const owed = proposalOwed(question, answer);
+      if (!owed) return { proposal: null, note: null, costUsd: 0 };
+      let proposal: ConciergeProposal | null = null;
+      let none = false;
+      let costUsd = 0;
+      try {
+        const result = await model.generateContent({
+          contents: [
+            ...promptContents,
+            { role: "model" as const, parts: [{ text: answer }] },
+            { role: "user" as const, parts: [{ text: proposalRequest(owed) }] },
+          ],
+        });
+        logCacheMetrics("ai.concierge.proposal", result.response.usageMetadata, conciergeModel);
+        costUsd = geminiCostUsd(conciergeModel, result.response.usageMetadata);
+        const json = requestedProposalJson(result.response.text());
+        none = json === "none";
+        proposal = json && json !== "none" ? resolveConciergeProposal(json, itinerary, tripCurrency) : null;
+      } catch (err) {
+        console.warn("[concierge] proposal follow-up failed", err);
+      }
+      const note =
+        !proposal && !none && owed === "promised"
+          ? noProposalNote(replyLanguage(answer) ?? tripLanguage ?? undefined)
+          : null;
+      return { proposal, note, costUsd };
+    };
 
     // STREAMING PATH (perf task #245).
     // When the client sends `Accept: text/event-stream` we pipe Gemini's
@@ -514,6 +564,19 @@ export async function POST(request: NextRequest) {
               /* usageMetadata is best-effort — don't fail the request */
             }
 
+            let answerText = finalAnswer;
+            if (!proposal) {
+              const settled = await settleProposal(finalAnswer);
+              costUsd += settled.costUsd;
+              proposal = settled.proposal;
+              if (proposal) {
+                emit({ type: "proposal", proposal });
+              } else if (settled.note) {
+                emit({ type: "chunk", text: `\n\n${settled.note}` });
+                answerText = `${finalAnswer}\n\n${settled.note}`;
+              }
+            }
+
             emit({
               type: "done",
               isLiveTrip: todaySlice !== null,
@@ -561,7 +624,7 @@ export async function POST(request: NextRequest) {
               // Persist only the conversational answer — the proposal JSON
               // is machine-payload, not something history replay should
               // feed back into the prompt as prose.
-              answer: finalAnswer,
+              answer: answerText,
               model: conciergeModel,
               isLiveTrip: todaySlice !== null,
               dayNumber: todaySlice?.dayNumber ?? null,
@@ -666,9 +729,16 @@ export async function POST(request: NextRequest) {
     // as the streaming branch — see lib/ai/concierge-proposal.ts.
     const { answer: nsAnswer, proposalJson: nsProposalJson } =
       splitAnswerAndProposal(responseText);
-    const nsProposal = nsProposalJson
+    let nsProposal = nsProposalJson
       ? resolveConciergeProposal(nsProposalJson, itinerary, tripCurrency)
       : null;
+    let nsAnswerText = nsAnswer;
+    if (!nsProposal) {
+      const settled = await settleProposal(nsAnswer);
+      costUsd += settled.costUsd;
+      nsProposal = settled.proposal;
+      if (settled.note) nsAnswerText = `${nsAnswer}\n\n${settled.note}`;
+    }
 
     // Bump the per-user quota. Fire-and-forget — never block the answer
     // on the counter update.
@@ -708,7 +778,7 @@ export async function POST(request: NextRequest) {
       userId: user.id,
       tripId,
       question,
-      answer: nsAnswer,
+      answer: nsAnswerText,
       model: conciergeModel,
       isLiveTrip: todaySlice !== null,
       dayNumber: todaySlice?.dayNumber ?? null,
@@ -717,7 +787,7 @@ export async function POST(request: NextRequest) {
     });
 
     return apiSuccess({
-      answer: nsAnswer,
+      answer: nsAnswerText,
       isLiveTrip: todaySlice !== null,
       dayNumber: todaySlice?.dayNumber ?? null,
       ...(nsProposal ? { proposal: nsProposal } : {}),

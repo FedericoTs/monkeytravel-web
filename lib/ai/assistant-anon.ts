@@ -24,7 +24,10 @@ import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import {
   announcedButMissing,
+  announcesProposal,
   asksToRemove,
+  isConfirmation,
+  offersChange,
   replyLanguage,
   takesOutNote,
   notAppliedLead,
@@ -542,6 +545,13 @@ export function correctionFor(
 ): string | null {
   const current = input.days.length;
   const prepared = o.edits.length > 0 || o.tripLength !== undefined;
+  if (!prepared && announcesProposal(o.reply)) {
+    return `Your "reply" hands over a change, but "edits" is empty. Put that change in "edits" now, or say plainly in "reply" that you couldn't make it.`;
+  }
+  const last = input.history?.at(-1);
+  if (!prepared && isConfirmation(input.message) && last?.role === "assistant" && (offersChange(last.text) || announcesProposal(last.text))) {
+    return `The traveller said yes to the change your last message offered. Make exactly that change now, in "edits".`;
+  }
   if (!prepared && announcedButMissing(o.reply)) {
     return 'Your "reply" announced an answer without giving it. Put the whole answer in "reply" now.';
   }
@@ -778,8 +788,11 @@ export function composeReply(p: {
     return lockedDayReply(locale, d.dayNumber, d.names);
   }
   if (!prepared) {
-    // Nothing prepared, so nothing may be claimed (lib/ai/assistant/honesty).
-    if (p.lengthRefused || claimsItineraryChange(p.reply)) return wizardNothingChangedReply(locale);
+    // Nothing prepared, so nothing may be claimed or handed over
+    // (lib/ai/assistant/honesty).
+    if (p.lengthRefused || claimsItineraryChange(p.reply) || announcesProposal(p.reply)) {
+      return wizardNothingChangedReply(locale);
+    }
     // "Here is the total…" with no total: give the plan's own figures instead.
     const missing = announcedButMissing(p.reply);
     if (missing) return missing === "cost" && p.costs ? planCostsReply(locale, p.costs) : missingAnswerReply(locale);

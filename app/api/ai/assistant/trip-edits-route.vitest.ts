@@ -192,6 +192,20 @@ describe("trip-page assistant: free-form edits", () => {
     expect(json.pendingChange?.reason).toBeUndefined();
   });
 
+  it("lets a prepared change be called a proposal, and replaces the words when nothing was prepared", async () => {
+    proposeTripEdits.mockResolvedValue({ reply: "Here's the proposal: Wigwam on Day 3.", revisedDays: [wigwamDay3], summary: "", meta });
+    expect((await send("adding Wigwam to Day 3")).json.message.content).toBe("Here's the proposal: Wigwam on Day 3.");
+
+    proposeTripEdits.mockRejectedValue(new Error("model overloaded"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    chatReply = '{"summary": "Here is the proposed change: no dinner on Day 2.", "cards": []}';
+    const { json } = await send("togliamo il ristorante alla sera");
+    expect(json.pendingChange).toBeNull();
+    expect(json.message.content).toMatch(/^I haven't changed your itinerary/);
+    expect(savedAssistantMessage().guarded).toBe(true);
+  });
+
   it("uses the engine's answer when nothing needs to change", async () => {
     proposeTripEdits.mockResolvedValue({ reply: "Which nights would you like?", revisedDays: [], summary: "", meta });
     const { json } = await send("add nightclubs");

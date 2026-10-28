@@ -23,6 +23,14 @@ export const AI_LANGUAGES = ["en", "es", "it", "pt"] as const;
 
 export type SupportedLanguage = (typeof AI_LANGUAGES)[number];
 
+/** Each language's name, as prompts name it. */
+export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
+  en: "English",
+  es: "Spanish",
+  it: "Italian",
+  pt: "Portuguese",
+};
+
 export const DEFAULT_LANGUAGE: SupportedLanguage = "en";
 
 export function isSupportedLanguage(value: unknown): value is SupportedLanguage {

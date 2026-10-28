@@ -51,6 +51,7 @@ import { withDayTarget } from "@/lib/ai/assistant/day-target";
 import { ACTIVITY_TYPES, normalizeActivityType } from "@/lib/trip/activity-type";
 import { activityNotFoundReason, findActivityByName } from "@/lib/ai/assistant/find-activity";
 import {
+  announcesProposal,
   claimsItineraryChange,
   claimsToRemember,
   nothingChangedReply,
@@ -2230,7 +2231,11 @@ Respond with valid JSON only.`;
     // "Noted" and "recorded" claim a memory this assistant does not have:
     // only the last few messages come back with the next prompt.
     let honestyGuarded = false;
-    const claimedChange = claimsItineraryChange(parsedResponse.summary);
+    // "Here's the proposal" is true of a prepared change, so it counts only
+    // when there is none.
+    const claimedChange =
+      claimsItineraryChange(parsedResponse.summary) ||
+      (!actionTaken && announcesProposal(parsedResponse.summary));
     if (!changeWasSaved && (claimedChange || claimsToRemember(parsedResponse.summary))) {
       console.warn(
         `[AI Assistant] honesty guard replaced a ${claimedChange ? "change" : "memory"} claim (${actionTaken ? "change pending" : "nothing prepared"}): "${String(parsedResponse.summary).slice(0, 120)}"`

@@ -101,6 +101,68 @@ export function claimsItineraryChange(text: string | null | undefined): boolean 
   return CLAIM_PATTERNS.some((re) => re.test(text));
 }
 
+// Handing over a proposal: "Ecco la proposta per rimuovere…", "Here is the
+// proposed addition:", "I'll propose adding a Beer Spa…". True only with the
+// change attached, so it is read only when nothing was prepared (unlike
+// claimsItineraryChange, which also runs on a prepared change).
+const PROPOSAL_PATTERNS: RegExp[] = [
+  new RegExp(`${start}here(?:['’]s|\\s+is)\\s+(?:the|a|my)\\s+(?:proposal|proposed|suggested\\s+change)${end}`, "iu"),
+  new RegExp(`${start}i(?:['’]ll|\\s+will|['’]m\\s+going\\s+to|\\s+am\\s+going\\s+to)?\\s+(?:now\\s+|also\\s+)?propose${end}`, "iu"),
+  new RegExp(`${start}i(?:['’]m|\\s+am)\\s+proposing${end}`, "iu"),
+  new RegExp(`${start}ecco\\s+(?:la\\s+mia|la|una)\\s+(?:proposta|modifica)${end}`, "iu"),
+  new RegExp(`${start}(?:ti|vi)\\s+propongo\\s+(?:la|una|questa)\\s+(?:seguente\\s+)?(?:proposta|modifica)${end}`, "iu"),
+  new RegExp(`${start}(?<!non\\s)(?:ti\\s+|vi\\s+)?proporrò${end}`, "iu"),
+  new RegExp(`${start}aquí\\s+(?:tienes|está|va)\\s+(?:mi|la|una)\\s+propuesta${end}`, "iu"),
+  new RegExp(`${start}te\\s+propongo\\s+(?:el|este|un|el\\s+siguiente)\\s+cambio${end}`, "iu"),
+  new RegExp(`${start}(?<!no\\s)(?:te\\s+)?propondré${end}`, "iu"),
+  new RegExp(`${start}aqui\\s+(?:está|vai)\\s+(?:a\\s+minha|a|uma|minha)\\s+proposta${end}`, "iu"),
+  new RegExp(`${start}(?:te\\s+)?proponho\\s+(?:a\\s+seguinte|a|esta|uma)\\s+(?:alteração|mudança)${end}`, "iu"),
+  new RegExp(`${start}(?<!não\\s)(?:vou\\s+(?:te\\s+)?propor|proporei)${end}`, "iu"),
+];
+
+/** Does this reply say it comes with a proposed change? */
+export function announcesProposal(text: string | null | undefined): boolean {
+  if (!text) return false;
+  return PROPOSAL_PATTERNS.some((re) => re.test(text));
+}
+
+// Offering a change: "posso rimuovere la cena…", "I can add nightclubs on
+// nights 2, 4 and 6", "vuoi che aggiunga…?".
+const OFFER_PATTERNS: RegExp[] = [
+  new RegExp(`${start}i\\s+(?:can|could)\\s+(?:also\\s+|certainly\\s+)?(?:add|remove|replace|swap|move|include|put|schedule|take\\s+out|drop|switch|insert|fit|slot|propose)${end}`, "iu"),
+  new RegExp(`${start}(?:would\\s+you\\s+like|do\\s+you\\s+want|want)\\s+me\\s+to\\s+(?:add|remove|replace|swap|move|include|put|schedule|take|drop|switch|insert|fit|suggest|find)${end}`, "iu"),
+  new RegExp(`${start}(?:shall|should)\\s+i\\s+(?:add|remove|replace|swap|move|include|put|schedule|take|drop|switch|insert|fit)${end}`, "iu"),
+  new RegExp(`${start}(?<!non\\s)(?:posso|potrei|potremmo)\\s+(?:anche\\s+)?(?:aggiung|rimuov|togl|elimin|sostitu|spost|inser|includ|mett)\\p{L}*`, "iu"),
+  new RegExp(`${start}(?:(?:ti|vi|te)\\s+)?propongo${end}`, "iu"),
+  new RegExp(`${start}vuoi\\s+che\\s+(?:ti\\s+|lo\\s+|la\\s+|li\\s+|le\\s+)?(?:aggiung|rimuov|tolg|elimin|sostitu|spost|inser|includ|mett|suggerisc|propong)\\p{L}*`, "iu"),
+  new RegExp(`${start}(?<!no\\s)(?:puedo|podría|podríamos)\\s+(?:también\\s+)?(?:añad|agreg|quit|elimin|sustitu|reemplaz|mov|inclu|pon)\\p{L}*`, "iu"),
+  new RegExp(`${start}quieres\\s+que\\s+(?:te\\s+|lo\\s+|la\\s+|los\\s+|las\\s+)?(?:añad|agregu|quit|elimin|sustituy|reemplac|muev|incluy|pong|sugier|propong)\\p{L}*`, "iu"),
+  new RegExp(`${start}(?<!não\\s)(?:posso|poderia|poderíamos)\\s+(?:também\\s+)?(?:adicion|acrescent|remov|tir|troc|substitu|mov|inclu|coloc)\\p{L}*`, "iu"),
+  new RegExp(`${start}proponho${end}`, "iu"),
+  new RegExp(`${start}quer\\s+que\\s+eu\\s+(?:adicion|acrescent|remov|tir|troqu|substitu|mov|inclu|coloqu|sugir|propon)\\p{L}*`, "iu"),
+];
+
+/** Does this reply offer to change the plan? */
+export function offersChange(text: string | null | undefined): boolean {
+  if (!text) return false;
+  return OFFER_PATTERNS.some((re) => re.test(text));
+}
+
+// A short yes, maybe with a word or two more: "ok", "sì aggiungi", "dale".
+const YES = new RegExp(
+  `^${words(
+    "yes|yeah|yep|yup|ok|okay|okey|k|sure|alright|fine|great|perfect|agreed|confirm|confirmed|go\\s+ahead|do\\s+it|do\\s+that|please\\s+do|sounds\\s+good|si|sì|sí|vale|dale|claro|perfecto|genial|venga|de\\s+acuerdo|hazlo|adelante|certo|perfetto|ottimo|va\\s+bene|d['’]accordo|procedi|fallo|confermo|esatto|sim|perfeito|ótimo|otimo|beleza|pode\\s+ser|combinado|isso|tudo\\s+bem|faz\\s+isso|faça\\s+isso"
+  )}${end}`,
+  "iu"
+);
+
+/** Is the message a short yes, the answer to an offer? */
+export function isConfirmation(message: string | null | undefined): boolean {
+  const t = (message ?? "").trim().replace(/^[^\p{L}]+/u, "");
+  if (!t || t.includes("?")) return false;
+  return t.split(/[^\p{L}\p{N}'’]+/u).filter(Boolean).length <= 4 && YES.test(t);
+}
+
 type Lang = "en" | "es" | "it" | "pt";
 const lang = (language: string | undefined): Lang => {
   const l = (language || "en").slice(0, 2).toLowerCase();
@@ -142,6 +204,23 @@ export function nothingChangedReply(language: string | undefined): string {
       return 'Não alterei o seu itinerário: não consegui fazer essa alteração daqui. Você pode fazê-la com "Editar Viagem".';
     default:
       return 'I haven\'t changed your itinerary: I couldn\'t make that change from here. You can make it with "Edit Trip", or ask me for one activity at a time, like "add a boat tour to day 5".';
+  }
+}
+
+/**
+ * Appended when an answer handed over a change that could not be attached. The
+ * concierge streams its words before it knows whether the change came with them.
+ */
+export function noProposalNote(language: string | undefined): string {
+  switch (lang(language)) {
+    case "es":
+      return "(Este cambio no está listo: no hay nada que confirmar. Pídemelo de nuevo con el día y la actividad.)";
+    case "it":
+      return "(Questa modifica non è pronta: non c'è niente da confermare. Chiedimela di nuovo indicando giorno e attività.)";
+    case "pt":
+      return "(Esta alteração não está pronta: não há nada para confirmar. Peça de novo com o dia e a atividade.)";
+    default:
+      return "(That change isn't ready: there's nothing to confirm. Ask me again with the day and the activity.)";
   }
 }
 

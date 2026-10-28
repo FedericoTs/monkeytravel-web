@@ -86,6 +86,14 @@ describe("composeReply", () => {
     expect(text).toMatch(/^I haven't changed your plan/);
   });
 
+  it("a proposal handed over with nothing prepared becomes an honest reply", () => {
+    const text = composeReply({ ...base, locale: "it", reply: "Ecco la proposta per rimuovere Restaurace Mlejnice dal Giorno 2.", edits: [] });
+    expect(text).toMatch(/^Non ho modificato il tuo piano/);
+    // With the change prepared, the same words are true.
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    expect(composeReply({ ...base, reply: "Here's the proposal for Day 2.", edits: [d2] })).toBe("Here's the proposal for Day 2.");
+  });
+
   it("an answer with nothing prepared stays as it is", () => {
     const reply = "Tromsø's aurora season runs from September to March.";
     expect(composeReply({ ...base, reply, edits: [] })).toBe(reply);

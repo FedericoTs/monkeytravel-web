@@ -228,6 +228,28 @@ describe("correctionFor", () => {
     ).toBeNull();
   });
 
+  it("asks for the change a reply hands over with no edits", () => {
+    const empty = (reply: string) => correctionFor({ message: "togliamo il ristorante alla sera", days }, { reply, edits: [] });
+    expect(empty("Ecco la proposta per rimuovere Restaurace Mlejnice dal Giorno 2.")).toContain('"edits" is empty');
+    expect(empty("Ok, I'll propose adding a Beer Spa on Day 2.")).toContain('"edits" is empty');
+    // With the change attached, the words are true.
+    expect(correctionFor({ message: "add a beer spa on day 2", days }, { reply: "Here's the proposal.", edits: [edit(2, ["B", "Beer spa"])] })).toBeNull();
+  });
+
+  it("makes the change a short yes agrees to, and only when one was offered", () => {
+    const after = (text: string) => [{ role: "assistant" as const, text }];
+    const offered = after("Certo, posso rimuovere la cena al Restaurace Mlejnice dal Giorno 2.");
+    expect(correctionFor({ message: "ok", days, history: offered }, { reply: "Perfetto!", edits: [] })).toContain("said yes");
+    expect(correctionFor({ message: "sì", days, history: after("Vuoi che aggiunga una gita in battello?") }, { reply: "Ok!", edits: [] })).toContain(
+      "said yes"
+    );
+    // Nothing offered: asking what to change is the right answer.
+    expect(
+      correctionFor({ message: "ok", days, history: after("Day 2 has a market and a museum.") }, { reply: "What would you like to change?", edits: [] })
+    ).toBeNull();
+    expect(correctionFor({ message: "ok", days, history: offered }, { reply: "Done.", edits: [edit(2, ["B"])] })).toBeNull();
+  });
+
   it("asks again for an answer that was announced and not given", () => {
     const c = correctionFor({ message: "give hotels", days }, { reply: "I'll suggest a few areas and specific hotels that align well with your itinerary.", edits: [] });
     expect(c).toBeNull();
