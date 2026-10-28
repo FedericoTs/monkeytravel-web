@@ -18,6 +18,8 @@ import { cache, generateCacheKey, getFromDatabase, saveToDatabase } from "@/lib/
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logApiCall, logApiCalls } from "@/lib/api-gateway";
 import { landmarkPhotos, type LandmarkLookup } from "@/lib/images/landmark-photos";
+import { namesAgree, placeName } from "@/lib/images/wikimedia-landmark";
+import { normalizeActivityType } from "@/lib/trip/activity-type";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -80,6 +82,8 @@ const LANDMARK_WAIT_MS = 5000;
 const MAX_NEW_LANDMARKS_IN_BACKGROUND = 40;
 // Activity types that are never a place with a photo of its own.
 const NOT_A_PLACE_TYPES = new Set(["transport", "travel", "flight", "transfer", "accommodation", "hotel"]);
+// Meals and drinks: the later parts of their names say where they are.
+const MEAL_TYPES = new Set(["restaurant", "cafe", "bar", "food"]);
 
 /**
  * Normalize an activity name + destination into a stable cache key.
@@ -1081,13 +1085,19 @@ async function landmarkPhotosFor(
     const lookups: LandmarkLookup[] = [];
     for (const [key, [first]] of groups) {
       if (NOT_A_PLACE_TYPES.has(first.type)) continue;
-      const place = places.get(key);
+      // Google's place lends its name and point only when it is this place:
+      // a "Dinner at Felice a Testaccio" that Google found as the Colosseum
+      // would get the Colosseum's photo.
+      const found = places.get(key);
+      const googleName = found?.display_name ? placeName(found.display_name) : undefined;
+      const place = googleName && namesAgree(first.name, googleName) ? found : undefined;
       const [lat, lng] = isPoint(place?.latitude, place?.longitude)
         ? [place?.latitude, place?.longitude]
         : [first.activity.coordinates?.lat, first.activity.coordinates?.lng];
-      const names = [place?.display_name, first.name].filter((n): n is string => !!n);
+      const names = [place && googleName, first.name].filter((n): n is string => !!n);
+      const meal = MEAL_TYPES.has(normalizeActivityType(first.type, first.name));
       // Without a point, only a photo already found for this name can come back.
-      lookups.push(isPoint(lat, lng) ? { key, names, lat, lng: lng as number } : { key, names });
+      lookups.push(isPoint(lat, lng) ? { key, names, lat, lng: lng as number, meal } : { key, names, meal });
     }
     return await landmarkPhotos(lookups, {
       waitMs: wait ? LANDMARK_WAIT_MS : 0,

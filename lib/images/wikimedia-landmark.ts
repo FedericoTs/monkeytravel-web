@@ -14,6 +14,8 @@ export interface LandmarkQuery {
   names: string[];
   lat: number;
   lng: number;
+  /** A meal or a drink: the later parts of its name say where it is ("Afuri Ramen (Harajuku)"). */
+  meal?: boolean;
 }
 
 const RADIUS_M = 1500;
@@ -65,6 +67,12 @@ const KIND_WORDS: Record<string, string[]> = {
   quarter: ["quarter", "district", "barrio", "bairro", "quartier", "quartiere", "neighborhood", "neighbourhood"],
   fountain: ["fountain", "fuente", "fontana", "fontaine", "brunnen", "font"],
   theatre: ["theatre", "theater", "teatro", "opera"],
+  amphitheatre: ["amphitheatre", "amphitheater", "anfiteatro", "amphitheatrum"],
+  stadium: ["stadium", "estadio", "stadio", "stade", "stadion"],
+  baths: ["bath", "terme", "terma", "therme", "thermae"],
+  cemetery: ["cemetery", "cementerio", "cimitero", "cemiterio", "cimetiere", "friedhof"],
+  library: ["library", "biblioteca", "bibliotheque", "bibliothek"],
+  synagogue: ["synagogue", "sinagoga", "synagoge"],
   gate: ["gate", "puerta", "porta", "porte"],
   wall: ["wall", "muralla", "mura", "muralha", "muraille"],
   island: ["island", "isla", "isola", "ilha"],
@@ -96,14 +104,19 @@ export function nameTokens(name: string): string[] {
     .map((t) => KIND.get(t) ?? t);
 }
 
-/** The ways an activity can name its place: whole, without "Lunch at", and its parts ("A | B", "A (B)"). */
-export function nameVariants(names: string[]): string[] {
+/**
+ * The ways an activity can name its place: whole, without "Lunch at", and its
+ * parts ("A | B", "A (B)"). A meal's later parts name where it is ("Afuri
+ * Ramen (Harajuku)"), so a meal keeps its first part only.
+ */
+export function nameVariants(names: string[], meal = false): string[] {
   const out: string[] = [];
   for (const name of names) {
     const bare = name.replace(ACTIVITY_WORDS, "");
-    for (const n of [name, bare, ...bare.split(/\s+[|–—-]\s+|\s*\|\s*|\s*&\s*|[()]/)]) {
+    // A part that is only kinds of place ("Restaurant") names nothing.
+    const parts = bare.split(/\s+[|–—-]\s+|\s*\|\s*|\s*&\s*|[()]/).filter((p) => nameTokens(p).some((t) => !isKind(t)));
+    for (const n of [name, bare, ...(meal ? parts.slice(0, 1) : parts)]) {
       const v = n.trim();
-      // A part that is only kinds of place ("Restaurant") names nothing.
       if (v && !out.includes(v) && nameTokens(v).some((t) => !isKind(t))) out.push(v);
     }
   }
@@ -130,8 +143,47 @@ export function nameMatch(activity: string[], item: string[]): number {
   const kindsA = [...a].filter(isKind);
   const kindsB = [...b].filter(isKind);
   if (kindsA.length && kindsB.length && !kindsA.some((k) => b.has(k))) return 0;
+  // A kind on the item's name that the activity's lacks makes it the place
+  // next door: the bridge's museum, or, while one of the activity's words is
+  // still unmatched, the theatre beside an "Ancient Odeon" (a kind this list
+  // doesn't know).
+  if (kindsB.some((k) => !a.has(k)) && (kindsA.length > 0 || common < a.size)) return 0;
   if (bCover < 0.75 && [...b].some((t) => !a.has(t) && !isKind(t))) return 0;
   return aCover + bCover;
+}
+
+/**
+ * The place a Google name names: its first part, as the rest says where it is
+ * or what it offers ("Tablao Flamenco Cordobes | Barcelona", "Hamdi Restaurant
+ * - Eminönü").
+ */
+export function placeName(name: string): string {
+  return name.split(/\s*\|\s*|\s+[–—-]\s+/).find((p) => nameTokens(p).some((t) => !isKind(t)))?.trim() ?? name;
+}
+
+/**
+ * Whether two names can be the same place: a word in common, spelled alike or
+ * not. Google's name for an activity is only lent when it agrees with the
+ * activity's.
+ */
+export function namesAgree(a: string, b: string): boolean {
+  const tokens = (n: string) => nameTokens(n.replace(ACTIVITY_WORDS, "")).filter((t) => t.length > 2);
+  const own = (t: string[]) => t.filter((w) => !isKind(w));
+  let [ta, tb] = [tokens(a), tokens(b)];
+  // Kinds of place count only when a name has nothing else ("Castle District").
+  if (own(ta).length && own(tb).length) [ta, tb] = [own(ta), own(tb)];
+  return ta.some((x) => tb.some((y) => wordsAlike(x, y)));
+}
+
+/** The same word, or two starting alike or a letter apart: "Colosseo" and "Colosseum", "Jemaa" and "Djemaa". */
+function wordsAlike(x: string, y: string): boolean {
+  if (x === y) return true;
+  if (x.length < 4 || y.length < 4) return false;
+  if (x.slice(0, 4) === y.slice(0, 4)) return true;
+  if (x.length < 5 || y.length < 5 || Math.abs(x.length - y.length) > 1) return false;
+  let i = 0;
+  while (x[i] === y[i]) i++;
+  return x.slice(i + 1) === y.slice(i + 1) || x.slice(i + 1) === y.slice(i) || x.slice(i) === y.slice(i + 1);
 }
 
 /** Metres between two points. */
@@ -188,7 +240,7 @@ async function entities(ids: string[], props: string, signal: AbortSignal): Prom
 
 /** The Commons photo of the place the activity names, or null when Wikidata has no usable one. */
 export async function findLandmarkPhoto(q: LandmarkQuery, signal: AbortSignal): Promise<CommonsFile | null> {
-  const variants = nameVariants(q.names);
+  const variants = nameVariants(q.names, q.meal);
   if (!variants.length) return null;
   // All of the name's words first; any of them when that finds nothing named alike.
   let ranked: { id: string; score: number }[] = [];
@@ -215,6 +267,9 @@ export async function findLandmarkPhoto(q: LandmarkQuery, signal: AbortSignal): 
     if (distanceM(q.lat, q.lng, at.latitude, at.longitude) > RADIUS_M) continue;
     const kinds = (claims.P31 ?? []).map((c) => (c.mainsnak?.datavalue?.value as { id?: string } | undefined)?.id);
     if (kinds.some((k) => k && NOT_A_SIGHT.has(k))) continue;
+    // A meal is never the town or district it is in, which has a population:
+    // "Ciudad Condal" is also Barcelona, whose photo is the Sagrada Família.
+    if (q.meal && claims.P1082?.length) continue;
     const names = IMAGE_PROPERTIES.flatMap((p) => (claims[p] ?? []).map((c) => c.mainsnak?.datavalue?.value)).filter(
       (n): n is string => typeof n === "string",
     );

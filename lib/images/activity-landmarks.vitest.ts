@@ -18,16 +18,22 @@ const landmarkPhotos = vi.fn<(lookups: { key: string }[], opts: { waitMs: number
 });
 vi.mock("@/lib/images/landmark-photos", () => ({ landmarkPhotos: (...a: Parameters<typeof landmarkPhotos>) => landmarkPhotos(...a) }));
 
-// The Colosseum is a place Google found before, under another name.
+// The Colosseum is a place Google found before, under another name; so are a
+// dinner Google took for the Colosseum and a show whose name says its city.
+const GOOGLE_FOUND: Record<string, string> = {
+  "colosseum|rome italy": "Colosseo",
+  "dinner at felice a testaccio|rome italy": "Colosseum",
+  "flamenco show at tablao cordobes|rome italy": "Tablao Flamenco Cordobes | Barcelona",
+};
 const answer = (q: FakeQuery) => {
   if (q.table === "places_v2_lookup" && q.op === "select") {
     const keys = (q.filters.find(([op]) => op === "in")?.[2] ?? []) as string[];
     const rows = keys
-      .filter((k) => k === "colosseum|rome italy")
+      .filter((k) => k in GOOGLE_FOUND)
       .map((k) => ({
         normalized_key: k,
         place_id: "ChIJcol",
-        places_v2: { place_id: "ChIJcol", display_name: "Colosseo", latitude: 41.8902, longitude: 12.4922, photo_resource_name: null, photo_url: null, updated_at: new Date().toISOString() },
+        places_v2: { place_id: "ChIJcol", display_name: GOOGLE_FOUND[k], latitude: 41.8902, longitude: 12.4922, photo_resource_name: null, photo_url: null, updated_at: new Date().toISOString() },
       }));
     return { data: rows, error: null };
   }
@@ -82,9 +88,27 @@ describe("fetchActivityImages with Wikimedia photos", () => {
     await fetchActivityImages(plan(), "Rome, Italy", { maxPaidLookups: 1 });
     const [lookups] = landmarkPhotos.mock.calls[0];
     expect(lookups).toEqual([
-      { key: "colosseum|rome italy", names: ["Colosseo", "Colosseum"], lat: 41.8902, lng: 12.4922 },
-      { key: "pantheon|rome italy", names: ["Pantheon"], lat: 41.8986, lng: 12.4769 },
-      { key: "gelato stop|rome italy", names: ["Gelato stop"] },
+      { key: "colosseum|rome italy", names: ["Colosseo", "Colosseum"], lat: 41.8902, lng: 12.4922, meal: false },
+      { key: "pantheon|rome italy", names: ["Pantheon"], lat: 41.8986, lng: 12.4769, meal: false },
+      { key: "gelato stop|rome italy", names: ["Gelato stop"], meal: true },
+    ]);
+  });
+
+  it("does not lend Google's name or point when its place is another one", async () => {
+    const days = [{ activities: [{ name: "Dinner at Felice a Testaccio", type: "restaurant", coordinates: { lat: 41.8765, lng: 12.4762 } }] }];
+    await fetchActivityImages(days, "Rome, Italy", { maxPaidLookups: 0 });
+    const [lookups] = landmarkPhotos.mock.calls[0];
+    expect(lookups).toEqual([
+      { key: "dinner at felice a testaccio|rome italy", names: ["Dinner at Felice a Testaccio"], lat: 41.8765, lng: 12.4762, meal: true },
+    ]);
+  });
+
+  it("lends the first part of Google's name only: the rest says where the place is", async () => {
+    const days = [{ activities: [{ name: "Flamenco Show at Tablao Cordobes", type: "entertainment" }] }];
+    await fetchActivityImages(days, "Rome, Italy", { maxPaidLookups: 0 });
+    const [lookups] = landmarkPhotos.mock.calls[0];
+    expect(lookups).toEqual([
+      { key: "flamenco show at tablao cordobes|rome italy", names: ["Tablao Flamenco Cordobes", "Flamenco Show at Tablao Cordobes"], lat: 41.8902, lng: 12.4922, meal: false },
     ]);
   });
 

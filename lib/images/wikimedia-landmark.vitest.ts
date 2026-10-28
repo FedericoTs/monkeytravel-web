@@ -9,7 +9,7 @@ import type { CommonsFile } from "./wikimedia";
  * none, so anything uncertain finds nothing.
  */
 
-type Item = { labels: string[]; aliases?: string[]; at?: [number, number]; kinds?: string[]; images?: Record<string, string[]> };
+type Item = { labels: string[]; aliases?: string[]; at?: [number, number]; kinds?: string[]; people?: number; images?: Record<string, string[]> };
 let items: Record<string, Item>;
 let found: Record<string, string[]>;
 const searches: string[] = [];
@@ -32,6 +32,7 @@ const wiki = vi.fn(async (_base: string, params: Record<string, string | number>
             claims: {
               ...(item.at ? { P625: [{ mainsnak: { datavalue: { value: { latitude: item.at[0], longitude: item.at[1] } } } }] } : {}),
               P31: (item.kinds ?? []).map((k) => ({ mainsnak: { datavalue: { value: { id: k } } } })),
+              ...(item.people ? { P1082: [{ mainsnak: { datavalue: { value: { amount: `+${item.people}` } } } }] } : {}),
               ...Object.fromEntries(Object.entries(item.images ?? {}).map(([p, names]) => [p, names.map((n) => ({ mainsnak: { datavalue: { value: n } } }))])),
             },
           }
@@ -52,7 +53,7 @@ vi.mock("@/lib/images/wikimedia", async (importOriginal) => ({
   storePhoto: (...a: Parameters<typeof storePhoto>) => storePhoto(...a),
 }));
 
-const { buildLandmarkPhoto, findLandmarkPhoto, itemMatch, nameMatch, nameTokens, nameVariants } = await import("./wikimedia-landmark");
+const { buildLandmarkPhoto, findLandmarkPhoto, itemMatch, nameMatch, namesAgree, nameTokens, nameVariants, placeName } = await import("./wikimedia-landmark");
 
 const photo = (name: string, extra: Partial<CommonsFile> = {}): CommonsFile => ({
   name,
@@ -95,6 +96,13 @@ describe("nameVariants", () => {
   it("drops a part that only says what kind of place it is", () => {
     expect(nameVariants(["Restaurant - Cervejaria Ramiro"])).not.toContain("Restaurant");
   });
+
+  it("keeps a meal's first part only: the others say where it is", () => {
+    expect(nameVariants(["Lunch at Afuri Ramen (Harajuku)"], true)).toEqual(["Lunch at Afuri Ramen (Harajuku)", "Afuri Ramen (Harajuku)", "Afuri Ramen"]);
+    expect(nameVariants(["Levain Bakery (Flatiron)"], true)).not.toContain("Flatiron");
+    expect(nameVariants(["Dinner at Omoide Yokocho (Piss Alley)"], true)).toContain("Omoide Yokocho");
+    expect(nameVariants(["Restaurant - Cervejaria Ramiro"], true)).toContain("Cervejaria Ramiro");
+  });
 });
 
 describe("nameMatch", () => {
@@ -110,8 +118,23 @@ describe("nameMatch", () => {
       ["Hamarikyu Gardens", "Hama-rikyū Gardens"],
       ["Hachiko Statue", "Statue of Hachikō"],
       ["Eiffel Tower", "Tour Eiffel"],
+      ["Brukenthal National Museum", "Brukenthal Museum"],
+      ["Ancient Roman Theatre of Plovdiv", "Roman theatre of Plovdiv"],
+      ["Gion", "Gion District"],
     ]) {
       expect(match(a, b), `${a} / ${b}`).toBeGreaterThan(0);
+    }
+  });
+
+  it("does not take the landmark next door, another kind of place named alike", () => {
+    for (const [a, b] of [
+      ["Ancient Stadium of Philippopolis", "Ancient theatre of Philippopolis"],
+      // A kind the list doesn't know is still a word the item's name lacks.
+      ["Ancient Odeon of Philippopolis", "Ancient theatre of Philippopolis"],
+      ["Charles Bridge", "Charles Bridge Museum"],
+      ["Roman Baths of Plovdiv", "Roman Stadium of Plovdiv"],
+    ]) {
+      expect(match(a, b), `${a} / ${b}`).toBe(0);
     }
   });
 
@@ -129,6 +152,26 @@ describe("nameMatch", () => {
     ]) {
       expect(match(a, b), `${a} / ${b}`).toBe(0);
     }
+  });
+
+  it("names Google's place by its first part: the rest says where it is", () => {
+    expect(placeName("Tablao Flamenco Cordobes | Barcelona")).toBe("Tablao Flamenco Cordobes");
+    expect(placeName("Hamdi Restaurant - Eminönü")).toBe("Hamdi Restaurant");
+    expect(placeName("Restaurant - Cervejaria Ramiro")).toBe("Cervejaria Ramiro");
+    expect(placeName("Ben & Jerry's")).toBe("Ben & Jerry's");
+    expect(placeName("Kinkaku-ji")).toBe("Kinkaku-ji");
+  });
+
+  it("tells Google's name for an activity's place apart from a place Google took it for", () => {
+    expect(namesAgree("Colosseum", "Colosseo")).toBe(true);
+    expect(namesAgree("Visit the Sagrada Familia", "Basílica de la Sagrada Família")).toBe(true);
+    expect(namesAgree("Longshan Temple", "Lungshan Temple")).toBe(true);
+    expect(namesAgree("Cena ai banchi di cibo di Djemaa el-Fna", "Jemaa el-Fnaa")).toBe(true);
+    expect(namesAgree("Parque Ueno y Museo Nacional de Tokio", "Tokyo National Museum")).toBe(true);
+    expect(namesAgree("Buda Castle District Exploration", "Castle District")).toBe(true);
+    expect(namesAgree("Dinner at Felice a Testaccio", "Colosseum")).toBe(false);
+    expect(namesAgree("Check-out and Departure", "Duck Creek Village")).toBe(false);
+    expect(namesAgree("Lunch in the Latin Quarter", "Cathédrale Notre-Dame de Paris")).toBe(false);
   });
 
   it("ranks a label above an alias with the same words", () => {
@@ -170,6 +213,15 @@ describe("findLandmarkPhoto", () => {
     const result = await findLandmarkPhoto({ names: ["Sacred Monkey Forest Sanctuary"], lat: -8.5188, lng: 115.2585 }, signal);
     expect(result?.name).toBe("Forest.jpg");
     expect(searches).toHaveLength(2);
+  });
+
+  it("finds nothing for a meal named like the town it is in", async () => {
+    found["Ciudad Condal"] = ["Q8"];
+    items.Q8 = { labels: ["Barcelona"], aliases: ["Ciudad Condal"], at: [41.3825, 2.1769], people: 1620343, images: { P18: ["Sagrada.jpg"] } };
+    files = [photo("Sagrada.jpg")];
+    const q = { names: ["Ciudad Condal"], lat: 41.387, lng: 2.17 };
+    expect(await findLandmarkPhoto({ ...q, meal: true }, signal)).toBeNull();
+    expect((await findLandmarkPhoto(q, signal))?.name).toBe("Sagrada.jpg");
   });
 
   it("finds nothing for a restaurant Wikidata doesn't know", async () => {
