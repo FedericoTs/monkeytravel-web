@@ -69,9 +69,11 @@ export default function MobileBottomNav({ activePage }: MobileBottomNavProps) {
             <span className={`text-xs ${isActive("home") ? "font-medium" : ""}`}>{t("home")}</span>
           </Link>
 
-          {/* My Trips */}
+          {/* My Trips: /trips redirects signed-out visitors to the login page,
+              which robots.txt blocks, so crawlers are told not to follow it. */}
           <Link
             href="/trips"
+            rel="nofollow"
             className={`flex flex-col items-center gap-1 px-3 py-2 ${
               isActive("trips") || isActive("trip-detail") ? "text-[var(--primary-ink)]" : "text-slate-500"
             }`}
