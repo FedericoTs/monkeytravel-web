@@ -156,8 +156,8 @@ describe("nameMatch", () => {
 
   it("names Google's place by its first part: the rest says where it is", () => {
     expect(placeName("Tablao Flamenco Cordobes | Barcelona")).toBe("Tablao Flamenco Cordobes");
-    expect(placeName("Hamdi Restaurant - Eminönü")).toBe("Hamdi Restaurant");
-    expect(placeName("Restaurant - Cervejaria Ramiro")).toBe("Cervejaria Ramiro");
+    expect(placeName("Restaurant | Cervejaria Ramiro")).toBe("Cervejaria Ramiro");
+    expect(placeName("Akvariet i Bergen - The National Aquarium")).toBe("Akvariet i Bergen - The National Aquarium");
     expect(placeName("Ben & Jerry's")).toBe("Ben & Jerry's");
     expect(placeName("Kinkaku-ji")).toBe("Kinkaku-ji");
   });
@@ -222,6 +222,14 @@ describe("findLandmarkPhoto", () => {
     const q = { names: ["Ciudad Condal"], lat: 41.387, lng: 2.17 };
     expect(await findLandmarkPhoto({ ...q, meal: true }, signal)).toBeNull();
     expect((await findLandmarkPhoto(q, signal))?.name).toBe("Sagrada.jpg");
+  });
+
+  it("gives a meal in a district the district's photo when the district is all it names", async () => {
+    found["Trastevere"] = ["Q9"];
+    items.Q9 = { labels: ["Trastevere"], at: [41.8894, 12.4703], people: 38000, images: { P18: ["Trastevere.jpg"] } };
+    files = [photo("Trastevere.jpg")];
+    const result = await findLandmarkPhoto({ names: ["Dinner in Trastevere"], lat: 41.8889, lng: 12.4695, meal: true }, signal);
+    expect(result?.name).toBe("Trastevere.jpg");
   });
 
   it("finds nothing for a restaurant Wikidata doesn't know", async () => {

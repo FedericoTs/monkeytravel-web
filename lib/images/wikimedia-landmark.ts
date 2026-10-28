@@ -153,12 +153,13 @@ export function nameMatch(activity: string[], item: string[]): number {
 }
 
 /**
- * The place a Google name names: its first part, as the rest says where it is
- * or what it offers ("Tablao Flamenco Cordobes | Barcelona", "Hamdi Restaurant
- * - Eminönü").
+ * The place a Google name names: what comes after a "|" says where it is or
+ * what it offers ("Tablao Flamenco Cordobes | Barcelona"). A " - " part can be
+ * the same name in another language ("Akvariet i Bergen - The National
+ * Aquarium"), so it stays.
  */
 export function placeName(name: string): string {
-  return name.split(/\s*\|\s*|\s+[–—-]\s+/).find((p) => nameTokens(p).some((t) => !isKind(t)))?.trim() ?? name;
+  return name.split(/\s*\|\s*/).find((p) => nameTokens(p).some((t) => !isKind(t)))?.trim() ?? name;
 }
 
 /**
@@ -267,9 +268,10 @@ export async function findLandmarkPhoto(q: LandmarkQuery, signal: AbortSignal): 
     if (distanceM(q.lat, q.lng, at.latitude, at.longitude) > RADIUS_M) continue;
     const kinds = (claims.P31 ?? []).map((c) => (c.mainsnak?.datavalue?.value as { id?: string } | undefined)?.id);
     if (kinds.some((k) => k && NOT_A_SIGHT.has(k))) continue;
-    // A meal is never the town or district it is in, which has a population:
-    // "Ciudad Condal" is also Barcelona, whose photo is the Sagrada Família.
-    if (q.meal && claims.P1082?.length) continue;
+    // A meal is never the town or district it is in, which has a population,
+    // unless that place is all it names ("Dinner in Trastevere"): "Ciudad
+    // Condal" is also Barcelona, whose photo is the Sagrada Família.
+    if (q.meal && claims.P1082?.length && score < 2) continue;
     const names = IMAGE_PROPERTIES.flatMap((p) => (claims[p] ?? []).map((c) => c.mainsnak?.datavalue?.value)).filter(
       (n): n is string => typeof n === "string",
     );
