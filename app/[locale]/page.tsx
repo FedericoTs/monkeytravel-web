@@ -115,9 +115,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   // Destination leaderboard ranked from real trips, fetched with a cookie-free
   // anon client so unstable_cache can hold it for an hour. Returns [] on any
   // failure, and the hand-maintained grid below renders instead.
-  // Diagnostic: the English homepage shows the grid it had before the
-  // leaderboard, and the other locales keep the board as the control, while
-  // the homepage's rank on the "ai trip planner" family is read against both.
+  // English keeps the hand-maintained grid: its rank on the "ai trip planner"
+  // queries fell with the board and came back without it.
   const leaderboard = locale === "en" ? [] : await getDestinationLeaderboard(6);
 
   // Build FAQ data from translations for both display and structured data (SEO)
