@@ -23,6 +23,9 @@ export function writesInParts(totalDays: number): boolean {
   return totalDays >= PARTS_FROM_DAYS && process.env.PLAN_IN_PARTS !== "off";
 }
 
+/** A part that fails or comes back short is written again, once. */
+const PART_ATTEMPTS = 2;
+
 type Range = { from: number; to: number };
 
 interface PartRun {
@@ -31,13 +34,14 @@ interface PartRun {
   done: boolean;
   itinerary?: GeneratedItinerary;
   costUsd: number;
+  retried: boolean;
   error?: Error;
   waiters: Array<() => void>;
 }
 
 export type PartsYield =
   | { type: "day"; day: Record<string, unknown> }
-  | { type: "done"; itinerary: GeneratedItinerary; costUsd: number; parts: number };
+  | { type: "done"; itinerary: GeneratedItinerary; costUsd: number; parts: number; retries: number };
 
 /** Thrown when a part fails; carries what the parts that answered cost. */
 export class PartsError extends Error {
@@ -67,27 +71,42 @@ function startPart(
   outline: OutlineDay[],
   opts: { language?: SupportedLanguage; userId?: string }
 ): PartRun {
-  const run: PartRun = { range, days: [], done: false, costUsd: 0, waiters: [] };
+  const run: PartRun = { range, days: [], done: false, costUsd: 0, retried: false, waiters: [] };
   const wake = () => run.waiters.splice(0).forEach((w) => w());
+  const want = range.to - range.from + 1;
   void (async () => {
-    const parser = createDayParser();
-    let fullText = "";
-    try {
-      for await (const chunk of generateItineraryStream(params, { ...opts, part: { ...range, outline } })) {
-        if (chunk.done) {
-          fullText = chunk.fullText;
-          run.costUsd = geminiCostUsd(getModelForPurpose("trip-generation"), chunk.usageMetadata);
-          break;
+    for (let attempt = 1; attempt <= PART_ATTEMPTS; attempt++) {
+      const parser = createDayParser();
+      let fullText = "";
+      try {
+        for await (const chunk of generateItineraryStream(params, { ...opts, part: { ...range, outline } })) {
+          if (chunk.done) {
+            fullText = chunk.fullText;
+            run.costUsd += geminiCostUsd(getModelForPurpose("trip-generation"), chunk.usageMetadata);
+            break;
+          }
+          const newDays = feedChunk(parser, chunk.text);
+          if (newDays.length > 0) {
+            run.days.push(...newDays);
+            wake();
+          }
         }
-        const newDays = feedChunk(parser, chunk.text);
-        if (newDays.length > 0) {
-          run.days.push(...newDays);
-          wake();
+        const itinerary = parseStreamedItinerary(fullText, params);
+        if (itinerary.days.length < want) {
+          throw new Error(`days ${range.from}-${range.to} came back with ${itinerary.days.length} days`);
+        }
+        run.itinerary = itinerary;
+        run.error = undefined;
+        break;
+      } catch (err) {
+        run.error = err instanceof Error ? err : new Error(String(err));
+        if (attempt < PART_ATTEMPTS) {
+          console.warn(`[plan-in-parts] days ${range.from}-${range.to} written again: ${run.error.message}`);
+          run.retried = true;
+          // Days already handed on stay; the next attempt's days follow on from them.
+          run.days = [];
         }
       }
-      run.itinerary = parseStreamedItinerary(fullText, params);
-    } catch (err) {
-      run.error = err instanceof Error ? err : new Error(String(err));
     }
     run.done = true;
     wake();
@@ -97,7 +116,7 @@ function startPart(
 
 const changed = (run: PartRun) => new Promise<void>((resolve) => run.waiters.push(resolve));
 
-/** Write the trip in parts. Throws PartsError when a part fails or comes back short. */
+/** Write the trip in parts. Throws PartsError when a part fails or comes back short twice. */
 export async function* writeInParts(
   params: TripCreationParams,
   totalDays: number,
@@ -118,9 +137,6 @@ export async function* writeInParts(
     }
     if (run.error) throw new PartsError(run.error.message, spent());
     const days = run.itinerary!.days;
-    if (days.length < run.range.to - run.range.from + 1) {
-      throw new PartsError(`days ${run.range.from}-${run.range.to} came back with ${days.length} days`, spent());
-    }
     // Days the progressive parser missed come from the full parse.
     for (const day of placeDays(days, run.range, params.startDate).slice(handed)) {
       yield { type: "day", day: { ...day } };
@@ -131,5 +147,5 @@ export async function* writeInParts(
     ...runs[0].itinerary!,
     days: runs.flatMap((run) => placeDays<ItineraryDay>(run.itinerary!.days, run.range, params.startDate)),
   };
-  yield { type: "done", itinerary, costUsd: spent(), parts: runs.length };
+  yield { type: "done", itinerary, costUsd: spent(), parts: runs.length, retries: runs.filter((run) => run.retried).length };
 }
