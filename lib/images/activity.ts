@@ -4,6 +4,10 @@ import { placesCostForCall } from "@/lib/api-gateway/places-sku";
 // IDs Only tiers.
 const ACTIVITY_SEARCH_FIELD_MASK = "places.id";
 const PHOTOS_FIELD_MASK = "photos";
+// A new place's photo comes with its name and point, so a photo of another
+// place is never shown (isAnotherPlace). That is the Pro tier, in Google's free
+// allowance at the rate new places are looked up.
+const PLACE_FIELD_MASK = "photos,displayName,location";
 /**
  * Server-side activity image fetching. The generate routes call it before
  * responding, so images are in the itinerary before the user can save it.
@@ -18,7 +22,7 @@ import { cache, generateCacheKey, getFromDatabase, saveToDatabase } from "@/lib/
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logApiCall, logApiCalls } from "@/lib/api-gateway";
 import { landmarkPhotos, type LandmarkLookup } from "@/lib/images/landmark-photos";
-import { namesAgree, placeName } from "@/lib/images/wikimedia-landmark";
+import { distanceM, namesAgree, placeName } from "@/lib/images/wikimedia-landmark";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
@@ -238,13 +242,43 @@ export async function fetchPlacePhotos(
   placeId: string,
   opts: { endpointLabel?: string } = {}
 ): Promise<PlacePhoto[] | null> {
+  // Asking ONLY for `photos` — the minimum to get a photo_resource_name.
+  const details = await placeDetails(placeId, PHOTOS_FIELD_MASK, opts.endpointLabel);
+  return details ? (Array.isArray(details.photos) ? (details.photos as PlacePhoto[]) : []) : null;
+}
+
+/** A newly found place: its first usable photo, and Google's name and point for it. */
+async function fetchNewPlace(placeId: string): Promise<{
+  photo: { photo_resource_name: string; photo_url: string } | null;
+  display_name: string | null;
+  point: { latitude: number; longitude: number } | null;
+} | null> {
+  const details = await placeDetails(placeId, PLACE_FIELD_MASK);
+  if (!details) return null;
+  const at = details.location as { latitude?: unknown; longitude?: unknown } | undefined;
+  const name = (details.displayName as { text?: unknown } | undefined)?.text;
+  return {
+    photo: pickPlacePhoto(Array.isArray(details.photos) ? (details.photos as PlacePhoto[]) : []),
+    display_name: typeof name === "string" && name ? name : null,
+    point:
+      typeof at?.latitude === "number" && typeof at.longitude === "number"
+        ? { latitude: at.latitude, longitude: at.longitude }
+        : null,
+  };
+}
+
+/** One Place Details call for these fields: Google's answer, or null when it failed. */
+async function placeDetails(
+  placeId: string,
+  fieldMask: string,
+  endpointLabel = "places/{id}:photos (activity)"
+): Promise<Record<string, unknown> | null> {
   if (!GOOGLE_PLACES_API_KEY) {
     return null;
   }
   const startedAt = Date.now();
   let httpStatus = 0;
 
-  // Asking ONLY for `photos` — the minimum to get a photo_resource_name.
   try {
     const detailsResponse = await fetch(
       `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`,
@@ -252,7 +286,7 @@ export async function fetchPlacePhotos(
         method: "GET",
         headers: {
           "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
-          "X-Goog-FieldMask": PHOTOS_FIELD_MASK,
+          "X-Goog-FieldMask": fieldMask,
         },
       }
     );
@@ -262,8 +296,7 @@ export async function fetchPlacePhotos(
       return null;
     }
 
-    const detailsData = await detailsResponse.json();
-    return Array.isArray(detailsData.photos) ? detailsData.photos : [];
+    return (await detailsResponse.json()) as Record<string, unknown>;
   } catch (err) {
     // Photo fetch failed — log but don't fail the whole resolution.
     console.warn(
@@ -274,11 +307,11 @@ export async function fetchPlacePhotos(
   } finally {
     void logApiCall({
       apiName: "google_places_details",
-      endpoint: opts.endpointLabel ?? "places/{id}:photos (activity)",
+      endpoint: endpointLabel,
       status: httpStatus || 500,
       responseTimeMs: Date.now() - startedAt,
       cacheHit: false,
-      costUsd: placesCostForCall({ kind: "details", fieldMask: PHOTOS_FIELD_MASK }).usd,
+      costUsd: placesCostForCall({ kind: "details", fieldMask }).usd,
       exactCost: true,
     });
   }
@@ -539,16 +572,20 @@ async function getOrFetchPlace(
   } else {
     // Unknown place (or cached without a photo) — pay for the photo and
     // upsert the full row.
-    const photo = await fetchPlacePhoto(partial.place_id);
-    if (photo) {
-      partial.photo_resource_name = photo.photo_resource_name;
-      partial.photo_url = photo.photo_url;
+    const found = await fetchNewPlace(partial.place_id);
+    if (found?.photo) {
+      partial.photo_resource_name = found.photo.photo_resource_name;
+      partial.photo_url = found.photo.photo_url;
     }
-    // A row cached without a photo keeps its name, address and coordinates:
-    // the place_id-only search has none to replace them with.
-    place = existingRow
-      ? { ...(existingRow as PlaceRecord), photo_resource_name: partial.photo_resource_name, photo_url: partial.photo_url }
-      : partial;
+    // A row without a point takes Google's name and point for the place: what
+    // tells it from another (isAnotherPlace). A row cached with them keeps its own.
+    const base = (existingRow as PlaceRecord | null) ?? partial;
+    place = {
+      ...base,
+      ...(base.latitude == null && found?.point ? { display_name: found.display_name ?? base.display_name, ...found.point } : {}),
+      photo_resource_name: partial.photo_resource_name,
+      photo_url: partial.photo_url,
+    };
     const { error: placeErr } = await supabase.from("places_v2").upsert(
       {
         place_id: place.place_id,
@@ -1004,7 +1041,8 @@ async function resolveActivityImage(
   normalizedKey: string,
   paidBudget: { remaining: number },
   photoRefreshBudget: { remaining: number },
-  cachedPlaces: Promise<Map<string, CachedPlace>>
+  cachedPlaces: Promise<Map<string, CachedPlace>>,
+  point?: { lat?: number; lng?: number }
 ): Promise<string | null> {
   // Kill switch: return null so the caller applies the curated fallback. Every
   // paid lookup fetchActivityImages makes passes through here. Activities that
@@ -1017,6 +1055,19 @@ async function resolveActivityImage(
   try {
     const place = await getOrFetchPlace(name, destination || "", normalizedKey, paidBudget, photoRefreshBudget, cachedPlaces);
     if (place?.photo_url) {
+      // Google's place may be another one than the activity names: then no
+      // paid photo, and no legacy lookup either, which finds the same place.
+      if (isAnotherPlace(name, point, place)) {
+        void logApiCall({
+          apiName: "google_places_search",
+          endpoint: "places:searchText (activity, another place)",
+          status: 200,
+          responseTimeMs: 0,
+          cacheHit: true,
+          costUsd: 0,
+        });
+        return null;
+      }
       return place.photo_url;
     }
   } catch (err) {
@@ -1067,6 +1118,35 @@ export interface ActivityWithImage {
 
 const isPoint = (lat: unknown, lng: unknown): lat is number =>
   typeof lat === "number" && typeof lng === "number" && Math.abs(lat) <= 90 && Math.abs(lng) <= 180 && (lat !== 0 || lng !== 0);
+
+/**
+ * Whether Google's place for an activity is another place: named otherwise and
+ * over 2 km from the activity (a trattoria's dinner found as the Colosseum), or
+ * over 1,000 km away whatever its name (a namesake on another continent).
+ * Nearer, a different name is often the same place in another language, and a
+ * different point often the model's own. Names in two scripts can't be told
+ * apart, and one name spaced two ways ("L'Uni Vert", "L'UniVert") is the same;
+ * without Google's name and point it can't tell either, and says no.
+ */
+export function isAnotherPlace(
+  name: string,
+  point: { lat?: number; lng?: number } | undefined,
+  place: { display_name?: string | null; latitude?: number | string | null; longitude?: number | string | null }
+): boolean {
+  const lat = place.latitude == null ? NaN : Number(place.latitude);
+  const lng = place.longitude == null ? NaN : Number(place.longitude);
+  if (!point || !isPoint(point.lat, point.lng) || !isPoint(lat, lng)) return false;
+  const km = distanceM(point.lat, point.lng as number, lat, lng) / 1000;
+  if (km > 1000) return true;
+  const google = place.display_name ? placeName(place.display_name) : "";
+  if (!google || hasLatin(google) !== hasLatin(name) || spelledWithin(google, name)) return false;
+  return km > 2 && !namesAgree(name, google);
+}
+
+const letters = (s: string) => s.normalize("NFD").replace(/[^\p{L}\p{N}]/gu, "").toLowerCase();
+const hasLatin = (s: string) => /[a-z]/i.test(s.normalize("NFD"));
+/** A name found in another once spaces and marks are gone: "Taotaoju" in "Dinner at Tao Tao Ju". */
+const spelledWithin = (part: string, whole: string) => letters(part).length >= 5 && letters(whole).includes(letters(part));
 
 /**
  * Wikimedia photos for the activities that are places, by normalized key. A
@@ -1245,7 +1325,7 @@ export async function fetchActivityImages<T extends { activities: ActivityWithIm
       const first = occurrences[0];
       let url: string | null = landmarks.get(normalizedKey) ?? null;
       try {
-        if (!freePhotosOnly) url ??= await resolveActivityImage(first.name, destination || "", normalizedKey, paidBudget, photoRefreshBudget, cachedPlaces);
+        if (!freePhotosOnly) url ??= await resolveActivityImage(first.name, destination || "", normalizedKey, paidBudget, photoRefreshBudget, cachedPlaces, first.activity.coordinates);
       } catch (err) {
         console.error(`[Activity Images] Resolve error for "${first.name}":`, err);
       }
