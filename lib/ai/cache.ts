@@ -58,12 +58,26 @@ function getServiceClient(): SupabaseClient {
 
 export type { SupportedLanguage } from "./language";
 import type { SupportedLanguage } from "./language";
+import { destinationKey, type DestinationKey } from "./destination-key";
 export type TravelStyle = "classic" | "backpacker";
 
-/** MD5 of the lowercased + collapsed destination. Stable across casing. */
-export function hashDestination(destination: string): string {
-  const normalized = destination.toLowerCase().trim().replace(/\s+/g, " ");
-  return crypto.createHash("md5").update(normalized).digest("hex");
+/**
+ * The cache key's destination: one for every way a place is written ("Tokyo",
+ * "Tokyo, Japan"), its country taken from the plan when the request names none.
+ */
+export function hashDestination(key: DestinationKey): string {
+  return crypto.createHash("md5").update(`${key.city}|${key.country ?? ""}`).digest("hex");
+}
+
+/**
+ * The country most of a city's plans are for: what a destination written
+ * without one means. "Manchester" is never answered with a plan for
+ * Manchester in the United States when most Manchester plans are English.
+ */
+export function usualCountry(countries: Array<string | null>): string | null {
+  const counts = new Map<string | null, number>();
+  for (const c of countries) counts.set(c, (counts.get(c) ?? 0) + 1);
+  return [...counts].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 }
 
 /**
@@ -131,24 +145,35 @@ export async function getCachedItinerary(
    */
   requestedDays?: number,
 ): Promise<GeneratedItinerary | null> {
-  const destinationHash = hashDestination(destination);
+  const key = destinationKey(destination);
   const sortedVibes = [...vibes].sort();
   const supabase = getServiceClient();
 
   // Fetch a few candidates rather than one: the most-hit entry may be too
   // short for this request while an older, longer one would serve perfectly.
   // `.single()` on limit(1) would have thrown that away and generated instead.
-  const { data: rows, error } = await supabase
+  const now = new Date().toISOString();
+  let query = supabase
     .from("destination_activity_cache")
     .select("*")
-    .eq("destination_hash", destinationHash)
+    .eq("destination_city", key.city)
     .eq("budget_tier", budgetTier)
     .eq("language", language)
     .eq("travel_style", travelStyle)
     .contains("vibes", sortedVibes)
-    .gt("expires_at", new Date().toISOString())
-    .order("hit_count", { ascending: false })
-    .limit(5);
+    .gt("expires_at", now);
+  if (key.country) query = query.eq("destination_country", key.country);
+  const [{ data: rows, error }, country] = await Promise.all([
+    query.order("hit_count", { ascending: false }).limit(10),
+    key.country ??
+      supabase
+        .from("destination_activity_cache")
+        .select("destination_country")
+        .eq("destination_city", key.city)
+        .gt("expires_at", now)
+        .limit(100)
+        .then(({ data: all }) => usualCountry((all ?? []).map((r) => r.destination_country))),
+  ]);
 
   if (error || !rows?.length) return null;
 
@@ -156,7 +181,7 @@ export async function getCachedItinerary(
     !requestedDays ||
     (Array.isArray(row.activities) && row.activities.length >= requestedDays);
 
-  const data = rows.find(longEnough);
+  const data = rows.filter((row) => row.destination_country === country).find(longEnough);
   if (!data) return null;
 
   // Background hit-count bump. Atomic RPC preferred; .then() update is
@@ -209,7 +234,7 @@ export async function cacheItinerary(
   itinerary: GeneratedItinerary,
   travelStyle: TravelStyle = "classic",
 ): Promise<void> {
-  const destinationHash = hashDestination(destination);
+  const key = destinationKey(destination, itinerary.destination?.country);
   const sortedVibes = [...vibes].sort();
   const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
   const supabase = getServiceClient();
@@ -217,7 +242,9 @@ export async function cacheItinerary(
   try {
     const { error } = await supabase.from("destination_activity_cache").upsert(
       {
-        destination_hash: destinationHash,
+        destination_hash: hashDestination(key),
+        destination_city: key.city,
+        destination_country: key.country,
         destination_name: destination,
         vibes: sortedVibes,
         budget_tier: budgetTier,

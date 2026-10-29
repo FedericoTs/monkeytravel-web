@@ -51,15 +51,17 @@ export async function GET(request: NextRequest) {
 
   // The SECURITY DEFINER refresh_activity_index() function wraps
   // REFRESH MATERIALIZED VIEW CONCURRENTLY so the service role doesn't need
-  // to own the MV. Defined in the migration alongside the MV itself.
-  const { error } = await svc.rpc("refresh_activity_index");
-
-  if (error) {
-    console.error("[refresh-activity-index] RPC failed:", error);
-    return NextResponse.json(
-      { error: "Refresh failed", detail: error.message },
-      { status: 500 }
-    );
+  // to own the MV. Defined in the migration alongside the MV itself. The
+  // places travellers kept (public.known_places) are rebuilt the same way.
+  for (const rpc of ["refresh_activity_index", "refresh_known_places"]) {
+    const { error } = await svc.rpc(rpc);
+    if (error) {
+      console.error(`[refresh-activity-index] ${rpc} failed:`, error);
+      return NextResponse.json(
+        { error: "Refresh failed", detail: error.message },
+        { status: 500 }
+      );
+    }
   }
 
   return NextResponse.json({

@@ -18,6 +18,7 @@ import { paceBudgetPromptClause } from "./trip/pace";
 import { ACTIVITY_TYPES, normalizeActivityType } from "./trip/activity-type";
 import { addIsoDays } from "./dates/iso-date";
 import type { OutlineDay } from "./ai/trip-outline";
+import type { KnownPlace } from "./ai/known-places";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -456,6 +457,12 @@ interface BuildPromptOptions {
    * trip is written in parts at the same time.
    */
   part?: { from: number; to: number; outline: OutlineDay[] };
+  /**
+   * Places travellers kept for this destination that suit the trip
+   * (lib/ai/known-places.ts): the plan is built from them first. A part
+   * follows its outline instead, which was given them.
+   */
+  knownPlaces?: KnownPlace[];
 }
 
 /**
@@ -826,6 +833,15 @@ Build each of your days around its own places, at the pace asked for above. Neve
 `
     : "";
 
+  const knownPlaces = part ? [] : (options?.knownPlaces ?? []);
+  const knownSection = knownPlaces.length
+    ? `
+## Places Travellers Kept Here
+Travellers on trips like this one kept these places in their plans. Build the days from them first${params.mustDos?.length ? ", after the must-dos" : ""}: use the ones that suit this trip's vibes, budget, pace, season and requirements, each at most once and named exactly as listed, then add other real places to complete the days.
+${knownPlaces.map((p) => `- ${p.name} (${p.type})`).join("\n")}
+`
+    : "";
+
   // Language header intentionally at the END (see tail of this template):
   // it is the most cache-hostile token span (varies per locale), and the
   // shared-prefix cache only covers the identical head of the request.
@@ -849,7 +865,7 @@ The traveller listed these by name. Include EACH as an activity on a sensible da
 ${params.mustDos.map((m) => `- ${m}`).join("\n")}
 `
     : ""
-}${buildProfilePreferencesSection(params.profilePreferences)}${buildSchedulingPreferencesSection(params.profilePreferences)}
+}${knownSection}${buildProfilePreferencesSection(params.profilePreferences)}${buildSchedulingPreferencesSection(params.profilePreferences)}
 
 ${anchorSection}${partSection}## Booking Link Values
 Substitute these into the booking_links URL templates (rule 8 of the Required Output spec) — output the final URLs, never the tokens:

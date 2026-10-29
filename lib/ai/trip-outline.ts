@@ -10,6 +10,7 @@ import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import type { TripCreationParams } from "@/types";
 import type { SupportedLanguage } from "@/lib/ai/language";
+import type { KnownPlace } from "@/lib/ai/known-places";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -68,7 +69,8 @@ const normalize = (place: string) =>
 export async function generateTripOutline(
   params: TripCreationParams,
   totalDays: number,
-  language?: SupportedLanguage
+  language?: SupportedLanguage,
+  knownPlaces: KnownPlace[] = []
 ): Promise<TripOutline | null> {
   const modelName = getModelForPurpose("trip-generation");
   const model = genAI.getGenerativeModel({
@@ -90,6 +92,9 @@ export async function generateTripOutline(
     params.travelStyle === "backpacker" ? "Backpacker trip: free and cheap sights, walking tours, markets." : "",
     params.mustDos?.length
       ? `Must-dos, each on exactly one sensible day as one of its places, meals included: ${params.mustDos.join("; ")}.`
+      : "",
+    knownPlaces.length
+      ? `Places travellers kept here, to build the days from first where they suit this trip, each on one day at most and named exactly as listed: ${knownPlaces.map((p) => p.name).join("; ")}.`
       : "",
     params.requirements ? `Requirements: ${params.requirements}` : "",
     "",
