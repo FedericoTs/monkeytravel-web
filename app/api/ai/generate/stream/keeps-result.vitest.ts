@@ -28,8 +28,9 @@ vi.mock("@/lib/usage-limits", () => ({
   checkUsageLimit: async () => ({ allowed: true, used: 0, remaining: 10, limit: 10 }),
   incrementUsage: async () => {},
 }));
+let cached: object | null = null;
 vi.mock("@/lib/ai/cache", () => ({
-  getCachedItinerary: async () => null,
+  getCachedItinerary: async () => cached,
   cacheItinerary: async () => {},
   adjustItineraryDates: (itinerary: unknown) => itinerary,
 }));
@@ -76,5 +77,31 @@ describe("a streamed generation", () => {
     const complete = JSON.parse(events[events.length - 1].split("\ndata: ")[1]);
     expect(events[events.length - 1].startsWith("event: complete")).toBe(true);
     expect(await findGeneration(id, "s1")).toEqual({ itinerary: complete.itinerary, meta: complete.meta });
+  });
+});
+
+describe("a cached plan", () => {
+  it("gets booking links for this request's dates, not the ones it was cached with", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const links = { flights: [], hotels: [{ provider: "Airbnb", url: "https://www.airbnb.com/s/Rome/homes?checkin=2026-01-05&checkout=2026-01-06", label: "Browse Airbnb stays" }] };
+    cached = { ...itinerary, booking_links: links };
+    try {
+      const res = await POST(
+        new NextRequest("http://localhost/api/ai/generate/stream", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ destination: "Rome, Italy", startDate: "2026-11-01", endDate: "2026-11-02", vibes: ["cultural"] }),
+        })
+      );
+      const events = (await res.text()).split("\n\n").filter(Boolean);
+      const complete = JSON.parse(events[events.length - 1].split("\ndata: ")[1]);
+      expect(events.some((e) => e.includes('"mode":"cache"'))).toBe(true);
+      expect(complete.itinerary.booking_links.hotels.map((l: { url: string }) => l.url)).toEqual([
+        "https://www.booking.com/searchresults.html?ss=Rome%2C%20Italy&checkin=2026-11-01&checkout=2026-11-02",
+        "https://www.airbnb.com/s/Rome%2C%20Italy/homes?checkin=2026-11-01&checkout=2026-11-02",
+      ]);
+    } finally {
+      cached = null;
+    }
   });
 });

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { checkAnonymousRateLimit, recordAnonymousGeneration } from "@/lib/anonymous/rate-limit";
 import type { User } from "@supabase/supabase-js";
 import { generateItinerary, validateTripParams } from "@/lib/gemini";
+import { bookingLinksFor } from "@/lib/ai/server-fields";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import {
@@ -314,7 +315,11 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       // The cache key omits trip length, so `>= totalDays` is the invariant
       // that stops a shorter entry answering a longer trip;
       // adjustItineraryDates slices a longer entry down to fit.
-      itinerary = sanitizeItinerary(adjustItineraryDates(cachedItinerary, params.startDate, params.endDate));
+      // Booking links for this request's dates, not the cached plan's.
+      itinerary = sanitizeItinerary({
+        ...adjustItineraryDates(cachedItinerary, params.startDate, params.endDate),
+        booking_links: bookingLinksFor(params),
+      });
       cacheHit = true;
       console.log(`[AI Generate] Using cached itinerary for ${params.destination}`);
     } else {
