@@ -45,6 +45,7 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 import { generateTripOutline } from "@/lib/ai/trip-outline";
 import { PartsError, writeInParts, writesInParts } from "@/lib/ai/plan-in-parts";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
+import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known-places";
 
 // Allow the function to run long enough for slow generations. Vercel
 // Pro plan default is 60s; this bumps it. Hobby plan caps at 60 so this
@@ -224,6 +225,15 @@ export async function POST(request: NextRequest) {
   // on a hit — a much larger win on the conversion-critical first-day
   // event.
   const userIsAdmin = user ? isAdmin(user.email) : false;
+  const totalDays =
+    Math.ceil(
+      (new Date(params.endDate).getTime() -
+        new Date(params.startDate).getTime()) /
+        (1000 * 60 * 60 * 24)
+    ) + 1;
+  // Places travellers kept here, read alongside the cache and used only when a
+  // plan is written. "Try Different Version" asks for a plan unlike the last.
+  const knownPlacesRead = wantsFresh ? Promise.resolve([]) : knownPlacesFor(params, totalDays, userLanguage);
   const [usageCheck, preflightCachedItinerary] = await Promise.all([
     user
       ? checkUsageLimit(user.id, "aiGenerations", user.email)
@@ -242,13 +252,7 @@ export async function POST(request: NextRequest) {
       userLanguage,
       params.travelStyle ?? "classic",
       // Never accept a cached entry SHORTER than the trip being asked for.
-      // Computed inline because `totalDays` below is derived after this
-      // parallel block and the lookup needs the number now.
-      Math.ceil(
-        (new Date(params.endDate).getTime() -
-          new Date(params.startDate).getTime()) /
-          (1000 * 60 * 60 * 24)
-      ) + 1,
+      totalDays,
     ),
   ]);
 
@@ -259,13 +263,6 @@ export async function POST(request: NextRequest) {
       { usage: usageCheck, upgradeUrl: "/pricing" }
     );
   }
-
-  const totalDays =
-    Math.ceil(
-      (new Date(params.endDate).getTime() -
-        new Date(params.startDate).getTime()) /
-        (1000 * 60 * 60 * 24)
-    ) + 1;
 
   // 2. The actual generator — yields SSE events. Cache-hit branch returns
   //    a single `complete` event; cache-miss branch streams days.
@@ -282,6 +279,7 @@ export async function POST(request: NextRequest) {
     let parts = 0;
     let partRetries = 0;
     let outlineMs: number | null = null;
+    let knownPlaces: KnownPlace[] = [];
 
     try {
       // 3a. Cache short-circuit (2026-05-28 — the "10-line patch" the
@@ -353,11 +351,13 @@ export async function POST(request: NextRequest) {
           },
         };
 
+      knownPlaces = await knownPlacesRead;
+
       // 3b. A long trip: an outline first, on screen at once, then the days
       //     written in parts at the same time. Without an outline the trip
       //     is written in one stream below.
       const outline = writesInParts(totalDays)
-        ? await generateTripOutline(params, totalDays, userLanguage)
+        ? await generateTripOutline(params, totalDays, userLanguage, knownPlaces)
         : null;
       if (outline) {
         generationCost += outline.costUsd;
@@ -403,6 +403,7 @@ export async function POST(request: NextRequest) {
       const stream = generateItineraryStream(params, {
         language: userLanguage,
         userId: user?.id,
+        knownPlaces,
       });
 
       let fullText = "";
@@ -564,6 +565,9 @@ export async function POST(request: NextRequest) {
                 ...(firstDayMs !== null ? { first_day_ms: firstDayMs } : {}),
                 ...(parts > 0 ? { parts, outline_ms: outlineMs } : {}),
                 ...(partRetries > 0 ? { part_retries: partRetries } : {}),
+                ...(knownPlaces.length > 0
+                  ? { known_places: knownPlaces.length, known_places_used: knownPlacesUsed(sanitized.days, knownPlaces) }
+                  : {}),
                 ...(generationId ? { generation_id: generationId } : {}),
               },
             });

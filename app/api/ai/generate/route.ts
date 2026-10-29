@@ -36,6 +36,7 @@ import {
   type CityLeg,
 } from "@/lib/ai/multi-city";
 import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
+import { knownPlacesFor } from "@/lib/ai/known-places";
 import type { TripAnchor } from "@/types";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
@@ -319,6 +320,9 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     } else {
       // Cache miss - generate fresh itinerary
       console.log(`[AI Generate] Cache MISS for ${params.destination}, generating fresh...`);
+      // Built first from the places travellers kept here, unless the traveller
+      // asked for a plan unlike the last.
+      const knownPlaces = wantsFresh ? [] : await knownPlacesFor(params, totalDays, userLanguage);
 
       // Try Maps Grounding first (59% cost savings)
       // Falls back to traditional Gemini if Maps Grounding fails or is disabled
@@ -349,10 +353,10 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         } catch (mapsError) {
           console.error(`[AI Generate] Maps Grounding failed, falling back to Gemini:`, mapsError);
           // Fall through to traditional generation
-          itinerary = await generateItinerary(params, { language: userLanguage });
+          itinerary = await generateItinerary(params, { language: userLanguage, knownPlaces });
         }
       } else {
-        itinerary = await generateItinerary(params, { language: userLanguage });
+        itinerary = await generateItinerary(params, { language: userLanguage, knownPlaces });
       }
 
       // Backpacker results have their own cache pool. Personalized

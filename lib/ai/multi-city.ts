@@ -12,6 +12,7 @@
  */
 import type { GeneratedItinerary, TripCreationParams } from "@/types";
 import { generateItinerary } from "@/lib/gemini";
+import { knownPlacesFor } from "./known-places";
 import {
   type CityLeg,
   addDaysISO,
@@ -51,9 +52,15 @@ export async function generateMultiCityItinerary(
     return { ...base, destination: leg.city, startDate: cityStart, endDate: cityEnd };
   });
 
-  // Parallel: wall-clock = slowest single city, not the sum.
+  // Parallel: wall-clock = slowest single city, not the sum. Each city starts
+  // from the places travellers kept there.
   const results = await Promise.all(
-    perCityParams.map((p) => generateItinerary(p, options))
+    perCityParams.map(async (p, i) =>
+      generateItinerary(p, {
+        ...options,
+        knownPlaces: await knownPlacesFor(p, legs[i].nights, options?.language ?? "en"),
+      })
+    )
   );
 
   // Transfer-leg labels follow the same language the per-city generations

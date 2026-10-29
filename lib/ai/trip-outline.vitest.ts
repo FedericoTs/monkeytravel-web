@@ -73,4 +73,16 @@ describe("generateTripOutline", () => {
     await generateTripOutline(params, 3, "en");
     expect(prompts[1]).not.toContain("Write each theme and area");
   });
+
+  it("builds the days from the places travellers kept, when there are some", async () => {
+    answer = JSON.stringify({ days: [day(1, ["a"]), day(2, ["b"]), day(3, ["c"])] });
+    await generateTripOutline(params, 3, "en", [
+      { name: "Colosseum", type: "landmark" },
+      { name: "Roscioli", type: "restaurant" },
+    ]);
+    expect(prompts[0]).toContain("Places travellers kept here");
+    expect(prompts[0]).toContain("Colosseum; Roscioli.");
+    await generateTripOutline(params, 3, "en");
+    expect(prompts[1]).not.toContain("Places travellers kept here");
+  });
 });
