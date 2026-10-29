@@ -13,7 +13,9 @@ users save it, edit it with the assistant, share it and plan it with friends.
 - Gemini for itineraries and the assistants
 - next-intl with four locales: `en` (no URL prefix), `es`, `it`, `pt`
 - The GitHub repo is **public**: https://github.com/FedericoTs/monkeytravel-web.
-  `master` deploys to production; every pull request gets a Vercel preview.
+  `master` deploys to production. A pull request gets a Vercel preview only when
+  asked (`ignoreCommand` in vercel.json): push it to a branch named `preview/…`,
+  or put `[preview]` in a commit message. CI builds every pull request anyway.
 
 ## Commands
 
