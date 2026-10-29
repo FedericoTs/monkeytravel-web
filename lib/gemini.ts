@@ -19,6 +19,7 @@ import { ACTIVITY_TYPES, normalizeActivityType } from "./trip/activity-type";
 import { addIsoDays } from "./dates/iso-date";
 import type { OutlineDay } from "./ai/trip-outline";
 import type { KnownPlace } from "./ai/known-places";
+import { withServerFields } from "./ai/server-fields";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -629,9 +630,9 @@ export function validateAndFixCoordinates(days: ItineraryDay[], destination: str
 // tokens. The blocking and streaming call sites both use
 // buildStaticChatHistory, so they share one cache entry.
 //
-// Everything here MUST stay request-independent: the four booking-link URLs
-// use {DEST_SLUG}/{DEST_ENCODED}/{START_DATE}/{END_DATE} template tokens whose
-// concrete values arrive in the dynamic user message (## Booking Link Values).
+// Everything here MUST stay request-independent. What the server can work out
+// itself (booking links, each activity's part of the day) is not asked for:
+// every token the model writes is paid for (withServerFields).
 const TRIP_OUTPUT_SPEC = `## Required Output
 
 Generate a complete day-by-day itinerary in JSON format with this exact structure:
@@ -651,7 +652,6 @@ Generate a complete day-by-day itinerary in JSON format with this exact structur
       "theme": "Day theme (e.g., Historic Center)",
       "activities": [
         {
-          "time_slot": "morning",
           "start_time": "09:00",
           "duration_minutes": 120,
           "name": "Real Place Name",
@@ -670,7 +670,7 @@ Generate a complete day-by-day itinerary in JSON format with this exact structur
             "tier": "moderate"
           },
           "tips": ["One helpful tip"],
-          "booking_required": false
+          "booking_required": true
         }
       ]
     }
@@ -680,16 +680,6 @@ Generate a complete day-by-day itinerary in JSON format with this exact structur
     "currency": "USD",
     "highlights": ["Highlight 1", "Highlight 2", "Highlight 3"],
     "packing_suggestions": ["Item 1", "Item 2", "Item 3", "Item 4", "Item 5"]
-  },
-  "booking_links": {
-    "flights": [
-      {"provider": "Skyscanner", "url": "https://www.skyscanner.com/transport/flights/nyc/{DEST_SLUG}/{START_DATE}", "label": "Search flights on Skyscanner"},
-      {"provider": "Google Flights", "url": "https://www.google.com/travel/flights?q=flights+to+{DEST_ENCODED}", "label": "Search on Google Flights"}
-    ],
-    "hotels": [
-      {"provider": "Booking.com", "url": "https://www.booking.com/searchresults.html?ss={DEST_ENCODED}&checkin={START_DATE}&checkout={END_DATE}", "label": "Find hotels on Booking.com"},
-      {"provider": "Airbnb", "url": "https://www.airbnb.com/s/{DEST_ENCODED}/homes?checkin={START_DATE}&checkout={END_DATE}", "label": "Browse Airbnb stays"}
-    ]
   }
 }
 
@@ -701,7 +691,7 @@ Rules:
 5. INCLUDE official_website for major attractions, museums, restaurants, and hotels (they almost always have websites!). Only use null for small local shops/street vendors
 6. Activities should flow logically through each day
 7. EVERY activity MUST have PRECISE coordinates (lat/lng with 6 decimal places, e.g., 48.858370, 2.294481) - use the EXACT location of each place, not approximate city center. This is critical for accurate map display
-8. In booking_links, replace the {DEST_SLUG}, {DEST_ENCODED}, {START_DATE}, {END_DATE} tokens with the exact values given under "## Booking Link Values" in the request — output the final URLs, never the tokens
+8. Write "booking_required": true only on an activity that must be booked ahead; leave the field out on every other activity
 9. An activity's "type" says what the place is, and is one of: ${ACTIVITY_TYPES.join(", ")}. Never a travel vibe such as foodie, cultural, urban or romantic`;
 
 // Shared chat prefix for BOTH trip-generation call sites (blocking +
@@ -735,10 +725,6 @@ function buildUserPrompt(params: TripCreationParams, options?: BuildPromptOption
     ) + 1;
 
   const duration = totalDuration;
-
-  // Pre-compute URL-safe destination for booking links
-  const destEncoded = encodeURIComponent(params.destination);
-  const destSlug = params.destination.split(",")[0].toLowerCase().replace(/\s+/g, "");
 
   // Build vibe section with weighted influence
   const vibeLabels: Record<string, string> = {
@@ -821,8 +807,8 @@ ${options.anchorBrief}
 The trip is written in parts at the same time. Write ONLY days ${part.from} to ${part.to}: the "days" array holds exactly those days, numbered ${part.from} to ${part.to}, dated ${addIsoDays(params.startDate, part.from - 1)} to ${addIsoDays(params.startDate, part.to - 1)}.
 ${
   part.from === 1
-    ? 'Fill "destination", "trip_summary" and "booking_links" for the whole trip.'
-    : 'Another part fills the trip-level fields: give "destination" only its name and country, and leave "trip_summary" and "booking_links" out.'
+    ? 'Fill "destination" and "trip_summary" for the whole trip.'
+    : 'Another part fills the trip-level fields: give "destination" only its name and country, and leave "trip_summary" out.'
 }
 
 The whole trip, day by day (theme, area, the places it is built around):
@@ -867,14 +853,7 @@ ${params.mustDos.map((m) => `- ${m}`).join("\n")}
     : ""
 }${knownSection}${buildProfilePreferencesSection(params.profilePreferences)}${buildSchedulingPreferencesSection(params.profilePreferences)}
 
-${anchorSection}${partSection}## Booking Link Values
-Substitute these into the booking_links URL templates (rule 8 of the Required Output spec) — output the final URLs, never the tokens:
-- {DEST_SLUG} = ${destSlug}
-- {DEST_ENCODED} = ${destEncoded}
-- {START_DATE} = ${params.startDate}
-- {END_DATE} = ${params.endDate}
-
-Generate the itinerary now, following the system rules and the Required Output schema exactly.${languageSection}`;
+${anchorSection}${partSection}Generate the itinerary now, following the system rules and the Required Output schema exactly.${languageSection}`;
 }
 
 /**
@@ -1030,6 +1009,7 @@ async function generateItineraryInternal(
     // Backfill trip_summary when missing (truncated tail) so wizard render
     // + persistTrip don't crash on `.trip_summary.total_estimated_cost`.
     ensureTripSummary(itinerary);
+    withServerFields(itinerary, params);
 
     // Capture LLM analytics (fire and forget)
     captureLLMGeneration({
@@ -2027,7 +2007,7 @@ export function parseStreamedItinerary(
     }
     obj.days = validateAndFixCoordinates(obj.days, params.destination);
     ensureTripSummary(obj);
-    return obj;
+    return withServerFields(obj, params);
   };
   try {
     return validate(JSON.parse(fullText) as GeneratedItinerary);

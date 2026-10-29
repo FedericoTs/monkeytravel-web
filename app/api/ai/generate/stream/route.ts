@@ -13,6 +13,7 @@ import {
   parseStreamedItinerary,
   validateTripParams,
 } from "@/lib/gemini";
+import { bookingLinksFor, withActivityDefaults, withServerFields } from "@/lib/ai/server-fields";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { isAdmin } from "@/lib/admin";
@@ -303,7 +304,8 @@ export async function POST(request: NextRequest) {
           params.startDate,
           params.endDate,
         );
-        finalItinerary = sanitizeItinerary(adjusted);
+        // Booking links for this request's dates, not the cached plan's.
+        finalItinerary = sanitizeItinerary({ ...adjusted, booking_links: bookingLinksFor(params) });
         cacheHit = true;
         // A cached plan's photos are those of when it was cached, Google's
         // among them: the preview shows free ones only, before any day goes out.
@@ -423,7 +425,7 @@ export async function POST(request: NextRequest) {
           // The parser guarantees a day-shaped object (day_number + date)
           // because we only enter the days array branch after `"days":[`
           // — anything else fails the parse and we fall back below.
-          yield { type: "day", data: day as unknown as import("@/lib/streaming/sse").SseDayData };
+          yield { type: "day", data: withActivityDefaults(day) as unknown as import("@/lib/streaming/sse").SseDayData };
         }
       }
 
@@ -435,7 +437,7 @@ export async function POST(request: NextRequest) {
         // Try the parser's accumulated buffer as a last-ditch rescue.
         const rescued = finalize(parser);
         if (rescued && typeof rescued === "object") {
-          finalItinerary = rescued as GeneratedItinerary;
+          finalItinerary = withServerFields(rescued as GeneratedItinerary, params);
         } else {
           const msg = err instanceof Error ? err.message : String(err);
           // The model answered, so Google billed it: log the failure and
