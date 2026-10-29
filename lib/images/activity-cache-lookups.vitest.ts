@@ -46,7 +46,7 @@ const noMatchKey = (key: string) => generateCacheKey("place_search", `activity_i
 // Wikimedia photos are tested in activity-landmarks.vitest.ts; here, none.
 vi.mock("@/lib/images/landmark-photos", () => ({ landmarkPhotos: async () => new Map() }));
 
-import { curatedFor, fetchActivityImages } from "./activity";
+import { curatedFor, fetchActivityImages, isAnotherPlace } from "./activity";
 
 const NOW = new Date("2026-10-12T12:00:00.000Z");
 const DEST = "Rome, Italy";
@@ -78,6 +78,8 @@ let lookupError: { message: string } | null;
 let rpcError: { code: string; message: string } | null;
 /** What Text Search finds for a query; absent means no match. */
 let searchable: Record<string, { id: string; name: string }>;
+/** Google's own name and point for a place, sent when Place Details asks for them. */
+let googleFacts: Record<string, { name: string; lat: number; lng: number }>;
 /** Text Search queries Google fails on (a 500). */
 let failing: Set<string>;
 
@@ -117,7 +119,15 @@ const google = vi.fn(async (url: string, init?: RequestInit) => {
     return Response.json({ places: place ? [place] : [] });
   }
   const placeId = /^https:\/\/places\.googleapis\.com\/v1\/places\/([^/?]+)$/.exec(url)?.[1];
-  if (placeId) return Response.json({ photos: [{ name: photoName(placeId, "fresh") }] });
+  if (placeId) {
+    // Google's name and point for the place, when the call asks for them.
+    const facts = googleFacts[placeId];
+    const mask = (init?.headers as Record<string, string> | undefined)?.["X-Goog-FieldMask"] ?? "";
+    return Response.json({
+      photos: [{ name: photoName(placeId, "fresh") }],
+      ...(facts && mask.includes("displayName") ? { displayName: { text: facts.name }, location: { latitude: facts.lat, longitude: facts.lng } } : {}),
+    });
+  }
   return new Response("{}", { status: 404 });
 });
 
@@ -190,6 +200,12 @@ const DETAILS = logRow(
   false,
   placesCostForCall({ kind: "details", fieldMask: "photos" }).usd
 );
+const NEW_PLACE = logRow(
+  "google_places_details",
+  "places/{id}:photos (activity)",
+  false,
+  placesCostForCall({ kind: "details", fieldMask: "photos,displayName,location" }).usd
+);
 const DEDUP = logRow("google_places_details", "places/{id}:photos (activity, place_id dedup)", true, 0);
 const rows = (...items: object[]) => items.map((item) => JSON.stringify(item)).sort();
 
@@ -236,6 +252,7 @@ beforeEach(() => {
     "Il Colosseo Rome, Italy": { id: "ChIJcolosseum", name: "Colosseo" },
   };
   failing = new Set();
+  googleFacts = {};
   lookupError = null;
   rpcError = null;
   legacy.length = 0;
@@ -379,11 +396,12 @@ describe("enrichment (paid lookups)", () => {
       SEARCH_MASK,
       { textQuery, maxResultCount: 1 },
     ];
-    const details = (placeId: string) => ["GET", `https://places.googleapis.com/v1/places/${placeId}`, "photos", null];
+    const details = (placeId: string, mask = "photos") => ["GET", `https://places.googleapis.com/v1/places/${placeId}`, mask, null];
     expect(result.google).toEqual(
       rows(
         search("Lunch at Roscioli Rome, Italy"),
-        details("ChIJroscioli"),
+        // A new place: its photo comes with Google's name and point for it.
+        details("ChIJroscioli", "photos,displayName,location"),
         details("ChIJtrevi"),
         details("ChIJsteps"),
         search("Il Colosseo Rome, Italy"),
@@ -421,7 +439,7 @@ describe("enrichment (paid lookups)", () => {
     );
 
     expect(result.logRows).toEqual(
-      rows(HIT, HIT, HIT, HIT, HIT, DETAILS, DETAILS, DETAILS, SEARCH, SEARCH, SEARCH, SEARCH, DEDUP)
+      rows(HIT, HIT, HIT, HIT, HIT, NEW_PLACE, DETAILS, DETAILS, SEARCH, SEARCH, SEARCH, SEARCH, DEDUP)
     );
   });
 
@@ -487,5 +505,77 @@ describe("kill switch", () => {
     await fresh.fetchActivityImages(days, DEST, { maxPaidLookups: 0 });
     expect(db.log).toEqual([]);
     expect(days[0].activities[0].image_url).toBe(curatedFor("Colosseum", "attraction"));
+  });
+});
+
+describe("a Google photo of another place", () => {
+  const at = (lat: number, lng: number) => ({ lat, lng });
+  const activity = (name: string, type: string, point: { lat: number; lng: number }) =>
+    ({ activities: [{ name, type, coordinates: point }] }) as unknown as Day;
+  const anotherPlaceRow = logRow("google_places_search", "places:searchText (activity, another place)", true, 0);
+
+  it("is not shown for a cached place named otherwise far from the activity, and nothing else is looked up", async () => {
+    places.set("ChIJakrotiri", { ...placeRow("ChIJakrotiri", "Akrotiri", { updatedDaysAgo: 3 }), latitude: 36.3517, longitude: 25.4033 });
+    lookups.set("ancient thera|rome italy", "ChIJakrotiri");
+    const result = await run([activity("Ancient Thera", "landmark", at(36.3615, 25.4772))], { maxPaidLookups: 8 });
+    expect(result.images).toEqual([curatedFor("Ancient Thera", "landmark")]);
+    expect(result.legacy).toEqual([]);
+    expect(result.google).toEqual([]);
+    expect(result.logRows).toContain(JSON.stringify(anotherPlaceRow));
+  });
+
+  it("is not shown for a new place either, which is still stored as Google names it", async () => {
+    searchable["Dinner at Felice a Testaccio Rome, Italy"] = { id: "ChIJfound", name: "Colosseum" };
+    googleFacts.ChIJfound = { name: "Colosseum", lat: 41.8902, lng: 12.4922 };
+    const result = await run([activity("Dinner at Felice a Testaccio", "restaurant", at(41.8705, 12.47))], { maxPaidLookups: 8 });
+    expect(result.images).toEqual([curatedFor("Dinner at Felice a Testaccio", "restaurant")]);
+    expect(result.cacheWrites).toContain(
+      JSON.stringify([
+        "places_v2",
+        "upsert",
+        {
+          place_id: "ChIJfound",
+          display_name: "Colosseum",
+          formatted_address: null,
+          latitude: 41.8902,
+          longitude: 12.4922,
+          photo_resource_name: photoName("ChIJfound", "fresh"),
+          photo_url: proxy(photoName("ChIJfound", "fresh")),
+          updated_at: NOW.toISOString(),
+        },
+      ])
+    );
+  });
+
+  it("is shown for the place itself, named in another language or with the model's point far off", async () => {
+    searchable["Monumento y Museo del 11-S Rome, Italy"] = { id: "ChIJmemorial", name: "9/11 Memorial" };
+    googleFacts.ChIJmemorial = { name: "9/11 Memorial & Museum", lat: 40.7115, lng: -74.0134 };
+    places.set("ChIJhakone", { ...placeRow("ChIJhakone", "The Hakone Open-Air Museum", { updatedDaysAgo: 3 }), latitude: 35.2446, longitude: 139.0518 });
+    lookups.set("museo all aperto di hakone|rome italy", "ChIJhakone");
+    const result = await run(
+      [activity("Monumento y Museo del 11-S", "museum", at(40.7118, -74.0131)), activity("Museo all'aperto di Hakone", "museum", at(35.6762, 139.6503))],
+      { maxPaidLookups: 8 }
+    );
+    expect(result.images).toEqual([freshPhoto("ChIJmemorial", "museum"), cachedPhoto("ChIJhakone", "museum")]);
+    expect(result.logRows).not.toContain(JSON.stringify(anotherPlaceRow));
+  });
+});
+
+describe("isAnotherPlace", () => {
+  const place = (display_name: string | null, latitude: number | string | null, longitude: number | string | null) => ({ display_name, latitude, longitude });
+
+  it.each([
+    ["named otherwise, over 2 km away", "Romantic Dinner at La Baignoire", { lat: 48.8566, lng: 2.3522 }, place("La Galerie", 48.8566, 2.4013), true],
+    ["a namesake on another continent", "Dinner at Hangar 32", { lat: 38.7223, lng: -9.1393 }, place("Hangar 32 - Snacks, Soda, Coffee & More!", 40.7128, -74.006), true],
+    ["the same place in another language, nearby", "Monumento y Museo Nacional del 11 de Septiembre", { lat: 40.7118, lng: -74.0131 }, place("9/11 Memorial & Museum", 40.7115, -74.0134), false],
+    ["its own place, with the model's point far off", "Museo all'aperto di Hakone", { lat: 35.6762, lng: 139.6503 }, place("The Hakone Open-Air Museum", "35.2446", "139.0518"), false],
+    ["its own name in another script", "Dinner at Goules Taverna (Rethymno)", { lat: 35.3666, lng: 24.4746 }, place("Γουλές Ταβέρνα", 35.3195, 24.4993), false],
+    ["its own name spaced another way", "Lunch at L'Uni Vert", { lat: 48.8566, lng: 2.3522 }, place("L'UniVert", 48.8566, 2.4148), false],
+    ["its own name run together", "Dinner at Tao Tao Ju (陶陶居)", { lat: 23.1291, lng: 113.2644 }, place("Taotaoju", 23.1167, 113.2833), false],
+    ["another restaurant, a few km away", "Dinner at The Alpine Inn", { lat: 37.3946, lng: -122.2178 }, place("1885 Steakhouse & Saloon", 37.4132, -122.2004), true],
+    ["a place without Google's point", "Dinner at Hangar 32", { lat: 38.7223, lng: -9.1393 }, place("Hangar 32", null, null), false],
+    ["an activity without a point", "Dinner at Hangar 32", undefined, place("Hangar 32", 40.7128, -74.006), false],
+  ])("%s → %s", (_label, name, point, row, another) => {
+    expect(isAnotherPlace(name, point, row)).toBe(another);
   });
 });
