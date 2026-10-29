@@ -15,6 +15,7 @@ import {
   getDayDedupKey,
 } from "./gemini-dedup";
 import { paceBudgetPromptClause } from "./trip/pace";
+import { PLACEHOLDER_POINT } from "./trip/placeholder-point";
 import { ACTIVITY_TYPES, normalizeActivityType } from "./trip/activity-type";
 import { addIsoDays } from "./dates/iso-date";
 import type { OutlineDay } from "./ai/trip-outline";
@@ -568,7 +569,7 @@ export function validateAndFixCoordinates(days: ItineraryDay[], destination: str
 
   // Default fallback (center of Europe if nothing matches)
   if (!destCoords) {
-    destCoords = { lat: 48.0, lng: 10.0 };
+    destCoords = { ...PLACEHOLDER_POINT };
     console.warn(`[Gemini] No known coordinates for destination: ${destination}, using default`);
   }
 
