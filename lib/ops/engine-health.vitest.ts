@@ -11,7 +11,7 @@ describe("engineVerdict", () => {
   it("flags a server failure rate of a fifth or more", () => {
     const v = engineVerdict({ ...quiet, errors: 3 });
     expect(v.ok).toBe(false);
-    expect(v.ok ? [] : v.reasons).toEqual(["3 of 12 generation requests failed in the last 60 min."]);
+    expect(v.ok ? [] : v.reasons).toEqual(["3 of 12 generations failed in the last 60 min."]);
   });
 
   it("flags planners who saw their generation fail, which the server may never log", () => {

@@ -1,7 +1,7 @@
 /** The plan engine over the last stretch of minutes (engine_health() in the database). */
 export interface EngineHealth {
   minutes: number;
-  /** Generation requests the server logged, and how many of them failed. */
+  /** Generations the server logged, and how many failed. A retry under the same id that succeeds rescues one. */
   requests: number;
   errors: number;
   /** Planners who started a generation, and how many saw it fail. */
@@ -21,7 +21,7 @@ const MAX_FAILURE_RATE = 0.2;
 export function engineVerdict(h: EngineHealth): EngineVerdict {
   const reasons: string[] = [];
   if (h.requests >= MIN_SAMPLE && h.errors / h.requests >= MAX_FAILURE_RATE) {
-    reasons.push(`${h.errors} of ${h.requests} generation requests failed in the last ${h.minutes} min.`);
+    reasons.push(`${h.errors} of ${h.requests} generations failed in the last ${h.minutes} min.`);
   }
   if (h.client_generating >= MIN_SAMPLE && h.client_failed / h.client_generating >= MAX_FAILURE_RATE) {
     reasons.push(`${h.client_failed} of ${h.client_generating} planners saw their generation fail in the last ${h.minutes} min.`);
