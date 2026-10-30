@@ -24,6 +24,7 @@ import { logApiCall, logApiCalls } from "@/lib/api-gateway";
 import { landmarkPhotos, type LandmarkLookup } from "@/lib/images/landmark-photos";
 import { distanceM, namesAgree, placeName } from "@/lib/images/wikimedia-landmark";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
+import { isPlaceholderPoint } from "@/lib/trip/placeholder-point";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -1126,7 +1127,8 @@ const isPoint = (lat: unknown, lng: unknown): lat is number =>
  * Nearer, a different name is often the same place in another language, and a
  * different point often the model's own. Names in two scripts can't be told
  * apart, and one name spaced two ways ("L'Uni Vert", "L'UniVert") is the same;
- * without Google's name and point it can't tell either, and says no.
+ * without Google's name and point, or with the placeholder point of an activity
+ * the model gave none, it can't tell either, and says no.
  */
 export function isAnotherPlace(
   name: string,
@@ -1135,7 +1137,7 @@ export function isAnotherPlace(
 ): boolean {
   const lat = place.latitude == null ? NaN : Number(place.latitude);
   const lng = place.longitude == null ? NaN : Number(place.longitude);
-  if (!point || !isPoint(point.lat, point.lng) || !isPoint(lat, lng)) return false;
+  if (!point || !isPoint(point.lat, point.lng) || isPlaceholderPoint(point.lat, point.lng as number) || !isPoint(lat, lng)) return false;
   const km = distanceM(point.lat, point.lng as number, lat, lng) / 1000;
   if (km > 1000) return true;
   const google = place.display_name ? placeName(place.display_name) : "";

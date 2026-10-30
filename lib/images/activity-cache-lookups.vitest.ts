@@ -573,6 +573,7 @@ describe("isAnotherPlace", () => {
     ["its own name spaced another way", "Lunch at L'Uni Vert", { lat: 48.8566, lng: 2.3522 }, place("L'UniVert", 48.8566, 2.4148), false],
     ["its own name run together", "Dinner at Tao Tao Ju (陶陶居)", { lat: 23.1291, lng: 113.2644 }, place("Taotaoju", 23.1167, 113.2833), false],
     ["another restaurant, a few km away", "Dinner at The Alpine Inn", { lat: 37.3946, lng: -122.2178 }, place("1885 Steakhouse & Saloon", 37.4132, -122.2004), true],
+    ["an activity on the placeholder point", "Sunset Dining at Mister A's", { lat: 48.0027, lng: 10.0072 }, place("Mister A's", 32.7319, -117.1606), false],
     ["a place without Google's point", "Dinner at Hangar 32", { lat: 38.7223, lng: -9.1393 }, place("Hangar 32", null, null), false],
     ["an activity without a point", "Dinner at Hangar 32", undefined, place("Hangar 32", 40.7128, -74.006), false],
   ])("%s → %s", (_label, name, point, row, another) => {
