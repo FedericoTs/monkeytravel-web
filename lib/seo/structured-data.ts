@@ -8,6 +8,8 @@
  * @see https://schema.org
  */
 
+import { isRealPoint } from "@/lib/trip/placeholder-point";
+
 const SITE_URL = "https://monkeytravel.app";
 const SITE_NAME = "MonkeyTravel";
 const LOGO_URL = `${SITE_URL}/icon-512.png`;
@@ -364,13 +366,11 @@ export function generateTouristAttractionSchema(
   const address = activity.address || activity.location;
   if (address) node.address = address;
 
-  const lat = activity.coordinates?.lat;
-  const lng = activity.coordinates?.lng;
-  if (typeof lat === "number" && typeof lng === "number") {
+  if (isRealPoint(activity.coordinates)) {
     node.geo = {
       "@type": "GeoCoordinates",
-      latitude: lat,
-      longitude: lng,
+      latitude: activity.coordinates.lat,
+      longitude: activity.coordinates.lng,
     };
   }
 

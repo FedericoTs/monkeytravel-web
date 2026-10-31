@@ -10,6 +10,7 @@ import {
   calculateHaversineDistance,
   toRadians as toRad,
 } from '@/lib/math/distance';
+import { isRealPoint } from '@/lib/trip/placeholder-point';
 
 export interface Coordinates {
   lat: number;
@@ -33,7 +34,7 @@ export function extractActivityCoordinates(
 
   for (const day of itinerary) {
     for (const activity of day.activities) {
-      if (activity.coordinates?.lat && activity.coordinates?.lng) {
+      if (isRealPoint(activity.coordinates)) {
         coordinates.push({
           lat: activity.coordinates.lat,
           lng: activity.coordinates.lng,
@@ -198,7 +199,7 @@ export function getCoordinatesForNewActivity(
 ): Coordinates | undefined {
   // Try to get centroid of existing activities with coordinates
   const activityCoords = existingActivities
-    .filter(a => a.coordinates?.lat && a.coordinates?.lng)
+    .filter(a => isRealPoint(a.coordinates))
     .map(a => a.coordinates as Coordinates);
 
   if (activityCoords.length > 0) {

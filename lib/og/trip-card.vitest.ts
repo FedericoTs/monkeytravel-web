@@ -113,6 +113,11 @@ describe("routeSketch", () => {
     expect(routeSketch([day(1, ["A"], [[0, 0]])], { width: 300, height: 300 })).toBeNull();
   });
 
+  it("leaves out an activity at the placeholder point", () => {
+    const s = routeSketch([day(1, ["Colosseum", "No pin", "Forum"], [[41.8902, 12.4922], [48.004, 10.003], [41.8925, 12.4853]])], { width: 300, height: 300 })!;
+    expect(s.points).toHaveLength(2);
+  });
+
   it("fits every stop inside the box, in order, and labels cities only when there are several", () => {
     const s = routeSketch(rome(), { width: 300, height: 200, padding: 20 });
     expect(s).not.toBeNull();

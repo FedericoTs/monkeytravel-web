@@ -18,6 +18,7 @@ import {
   formatDuration,
   midpoint,
 } from "@/lib/map/geo";
+import { isRealPoint } from "@/lib/trip/placeholder-point";
 
 // Env flag: gate the per-day polyline + walking-time labels.
 // Default OFF until we flip NEXT_PUBLIC_MAP_ROUTES_ENABLED=true on Vercel.
@@ -191,7 +192,8 @@ export default function TripMap({
       for (const day of days) {
         for (const activity of day.activities) {
           // If activity already has coordinates, use them directly (no API call needed!)
-          if (activity.coordinates?.lat && activity.coordinates?.lng) {
+          // A placeholder point is no location: pinned, it pulled the map out to Europe.
+          if (isRealPoint(activity.coordinates)) {
             mappedActivities.push({
               ...activity,
               dayNumber: day.day_number,
