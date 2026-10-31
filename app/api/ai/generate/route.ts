@@ -39,6 +39,7 @@ import {
 } from "@/lib/ai/multi-city";
 import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
 import { knownPlacesFor } from "@/lib/ai/known-places";
+import { placesToEatCheck } from "@/lib/places/places-to-eat";
 import type { TripAnchor } from "@/types";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
@@ -409,6 +410,27 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       );
     }
 
+    // A diet plan's places to eat that Maps has as closed, or doesn't have,
+    // replaced by open ones or left out (lib/places/places-to-eat.ts). A cached plan
+    // has no diet. The check meters its own model calls.
+    const placesCheck = cacheHit
+      ? null
+      : placesToEatCheck({
+          destination: params.destination,
+          dietary: profilePreferences.dietaryPreferences ?? [],
+          budgetTier: params.budgetTier,
+          travelStyle: params.travelStyle,
+          language: userLanguage,
+          userId: user?.id,
+        });
+    const placesToEat = placesCheck
+      ? await placesCheck.finish(itinerary.days).catch((checkErr) => {
+          console.error("[AI Generate] places-to-eat check error:", checkErr);
+          return null;
+        })
+      : null;
+    if (placesToEat) geminiCost.add(placesToEat.costUsd);
+
     // Assign activity images server-side (prevents a client race), cached
     // plans included: ZERO Google here. Every activity still gets an image — a
     // Wikimedia photo or a type-relevant stock image — so the pre-save result
@@ -457,6 +479,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         // "Try Different Version": a regenerate that skipped the cache.
         fresh: wantsFresh,
         ...(profilePreferences.dietaryPreferences?.length ? { dietary: profilePreferences.dietaryPreferences } : {}),
+        ...(placesToEat ? { places_to_eat: placesToEat } : {}),
         ...(generationId ? { generation_id: generationId } : {}),
       },
     });

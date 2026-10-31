@@ -50,6 +50,7 @@ import { formatMinutesToTime } from "@/lib/datetime/format";
 import { withDayTarget } from "@/lib/ai/assistant/day-target";
 import { ACTIVITY_TYPES, normalizeActivityType } from "@/lib/trip/activity-type";
 import { dietsFrom } from "@/lib/trips/diet";
+import { placesToEatCheck } from "@/lib/places/places-to-eat";
 import { activityNotFoundReason, findActivityByName } from "@/lib/ai/assistant/find-activity";
 import {
   announcesProposal,
@@ -1858,6 +1859,18 @@ Return ONLY a JSON array with the optimal order of activity indices:
             userId: user.id,
           });
           if (lastDay.city && !newDay.city) newDay.city = lastDay.city;
+          // A diet trip's places to eat that Maps has as closed, or doesn't
+          // have, replaced by open ones or left out (lib/places/places-to-eat.ts).
+          await placesToEatCheck({
+            destination: tripContext.destination,
+            dietary: dietsFrom(tripMeta.dietary),
+            budgetTier,
+            travelStyle: tripMeta.travel_style === "backpacker" ? "backpacker" : "classic",
+            language: userLanguage,
+            userId: user.id,
+          })
+            ?.finish([newDay], modifiedItinerary)
+            .catch((checkErr) => console.error("[AI Assistant] places-to-eat check error:", checkErr));
 
           const newEndDate = computeExtendedEndDate(trip.end_date, newDate) ?? undefined;
 

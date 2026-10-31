@@ -48,6 +48,7 @@ import { generateTripOutline } from "@/lib/ai/trip-outline";
 import { PartsError, writeInParts, writesInParts } from "@/lib/ai/plan-in-parts";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known-places";
+import { placesToEatCheck, type PlacesToEatResult } from "@/lib/places/places-to-eat";
 
 // Allow the function to run long enough for slow generations. Vercel
 // Pro plan default is 60s; this bumps it. Hobby plan caps at 60 so this
@@ -282,6 +283,17 @@ export async function POST(request: NextRequest) {
     let partRetries = 0;
     let outlineMs: number | null = null;
     let knownPlaces: KnownPlace[] = [];
+    // A diet plan's places to eat, looked up on Maps as the days come
+    // (lib/places/places-to-eat.ts); null without a diet.
+    const placesCheck = placesToEatCheck({
+      destination: params.destination,
+      dietary: profilePreferences.dietaryPreferences ?? [],
+      budgetTier: params.budgetTier,
+      travelStyle: params.travelStyle,
+      language: userLanguage,
+      userId: user?.id,
+    });
+    let placesToEat: PlacesToEatResult | null = null;
 
     try {
       // 3a. Cache short-circuit (2026-05-28 — the "10-line patch" the
@@ -374,6 +386,7 @@ export async function POST(request: NextRequest) {
             if (out.type === "day") {
               generatedDays++;
               firstDayMs ??= Date.now() - startTime;
+              placesCheck?.look(out.day);
               yield { type: "day", data: out.day as unknown as import("@/lib/streaming/sse").SseDayData };
             } else {
               finalItinerary = out.itinerary;
@@ -423,6 +436,7 @@ export async function POST(request: NextRequest) {
         for (const day of newDays) {
           generatedDays++;
           firstDayMs ??= Date.now() - startTime;
+          placesCheck?.look(day);
           // The parser guarantees a day-shaped object (day_number + date)
           // because we only enter the days array branch after `"days":[`
           // — anything else fails the parse and we fall back below.
@@ -496,6 +510,16 @@ export async function POST(request: NextRequest) {
         };
         return;
       }
+      // 5b. A diet plan's places to eat that Maps has as closed, or doesn't
+      //     have, replaced by open ones or left out before the plan is kept.
+      if (placesCheck && !cacheHit) {
+        try {
+          placesToEat = await placesCheck.finish(finalItinerary.days);
+          generationCost += placesToEat.costUsd;
+        } catch (checkErr) {
+          console.error("[AI Generate Stream] places-to-eat check error:", checkErr);
+        }
+      }
       if (!cacheHit) {
         try {
           // Zero Google at generation: Wikimedia photos and type-relevant stock
@@ -566,6 +590,7 @@ export async function POST(request: NextRequest) {
                 // "Try Different Version": a regenerate that skipped the cache.
                 fresh: wantsFresh,
                 ...(profilePreferences.dietaryPreferences?.length ? { dietary: profilePreferences.dietaryPreferences } : {}),
+                ...(placesToEat ? { places_to_eat: placesToEat } : {}),
                 ...(firstDayMs !== null ? { first_day_ms: firstDayMs } : {}),
                 ...(parts > 0 ? { parts, outline_ms: outlineMs } : {}),
                 ...(partRetries > 0 ? { part_retries: partRetries } : {}),
