@@ -301,8 +301,10 @@ export function convertAndFormatCurrency(
   rates: ExchangeRates | null,
   locale?: string
 ): FormattedCurrency {
-  // If no rates available or same currency, return original
-  if (!rates || fromCurrency === toCurrency) {
+  const known = (c: CurrencyCode) => !!rates && (c === rates.base || typeof rates.rates[c] === "number");
+  // No rates, the same currency, or a currency the rates don't have (TWD,
+  // AED…): the original, never its amount under the other's symbol.
+  if (!rates || fromCurrency === toCurrency || !known(fromCurrency) || !known(toCurrency)) {
     return {
       value: amount,
       formatted: formatCurrencyValue(amount, fromCurrency, locale),
