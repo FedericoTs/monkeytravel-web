@@ -4109,13 +4109,13 @@ export default function NewTripPage({
                   <div className="flex flex-wrap gap-2">
                     {generatedItinerary.booking_links.hotels.map((link) => (
                       <a
-                        key={link.provider}
+                        key={link.url}
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-4 py-2 bg-white border border-amber-200 rounded-lg text-sm text-amber-900 hover:bg-amber-50 hover:border-amber-300 transition-colors shadow-sm"
                       >
-                        {link.provider} ↗
+                        {link.city ? `${link.provider} · ${link.city}` : link.provider} ↗
                       </a>
                     ))}
                   </div>

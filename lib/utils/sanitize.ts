@@ -210,6 +210,7 @@ export function sanitizeItinerary<T extends object>(itinerary: T): T {
         return {
           provider: sanitizeText(l.provider as string),
           url: sanitizeUrl(l.url as string),
+          ...(typeof l.city === "string" && l.city ? { city: sanitizeText(l.city) } : {}),
         };
       }),
     };

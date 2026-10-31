@@ -4,6 +4,8 @@ import {
   estimateTransfer,
   buildTransferActivity,
   buildJourneyStops,
+  dayWithTransfer,
+  inRailRegion,
 } from "./transfer-legs";
 import { mergeCityItineraries, splitCities, type CityLeg } from "./multi-city-core";
 import type { Activity, GeneratedItinerary, ItineraryDay } from "@/types";
@@ -166,5 +168,101 @@ describe("splitCities (the un-escaped \\s regex fix)", () => {
     expect(splitCities("Naples & Rome")).toEqual(["Naples", "Rome"]);
     // No " & " → not a route; "City, Country" freetext stays whole.
     expect(splitCities("Paris, France")).toEqual(["Paris, France"]);
+  });
+});
+
+const HANOI = { lat: 21.0285, lng: 105.8542 };
+const HA_LONG = { lat: 20.9101, lng: 107.1839 };
+const PLACEHOLDER = { lat: 48.0012, lng: 10.0034 };
+const timed = (name: string, start: string, minutes: number): Activity => ({ ...act(name), start_time: start, duration_minutes: minutes });
+
+describe("transfer modes", () => {
+  it("knows where trains are the usual way between cities", () => {
+    expect(inRailRegion(ROME)).toBe(true);
+    expect(inRailRegion({ lat: 35.68, lng: 139.69 })).toBe(true);
+    expect(inRailRegion(HANOI)).toBe(false);
+    expect(inRailRegion({ lat: 13.75, lng: 100.5 })).toBe(false);
+  });
+
+  it("names no mode for a ground hop elsewhere, and flies the long ones", () => {
+    expect(estimateTransfer(150, false)).toMatchObject({ mode: "ground", durationMinutes: 180 });
+    expect(estimateTransfer(600, false).mode).toBe("flight");
+    expect(estimateTransfer(null, false)).toMatchObject({ mode: "ground", durationMinutes: 180 });
+  });
+
+  it("calls Hanoi to Ha Long a transfer, not a train, on the card and the ribbon", () => {
+    const merged = mergeCityItineraries(
+      [{ city: "Hanoi", nights: 1 }, { city: "Ha Long Bay", nights: 1 }],
+      [cityResult("Hanoi", 1, HANOI), cityResult("Ha Long Bay", 1, HA_LONG)],
+      "2026-11-01"
+    );
+    expect(merged.days[1].activities[0]).toMatchObject({ transport_mode: "ground", name: "Transfer to Ha Long Bay" });
+    expect(buildJourneyStops(merged.days)[1].transitFromPrev).toMatch(/^TRANSFER · /);
+  });
+
+  it("prices the hop in USD when the trip's currency isn't dollar-sized", () => {
+    const leg = (currency: string) =>
+      buildTransferActivity({ fromCity: "Hanoi", toCity: "Ha Long Bay", fromDays: [], toDays: [], currency }).estimated_cost?.currency;
+    expect(leg("VND")).toBe("USD");
+    expect(leg("EUR")).toBe("EUR");
+  });
+
+  it("measures the hop from real pins, not the placeholder point", () => {
+    const transfer = buildTransferActivity({
+      fromCity: "Cape Town",
+      toCity: "Durban",
+      fromDays: [{ day_number: 1, date: "2026-11-01", activities: [act("Table Mountain", { lat: -33.96, lng: 18.4 })] }],
+      toDays: [{ day_number: 1, date: "2026-11-02", activities: [act("Somewhere", PLACEHOLDER), act("Moses Mabhida", { lat: -29.83, lng: 31.03 })] }],
+      currency: "ZAR",
+    });
+    expect(transfer.transport_mode).toBe("flight");
+    expect(transfer.duration_minutes).toBeLessThan(6 * 60);
+  });
+});
+
+describe("dayWithTransfer", () => {
+  const transfer = { ...act("Train to Florence"), type: "transport", start_time: "08:30", duration_minutes: 180 } as Activity;
+
+  it("keeps what ends before leaving or starts after arriving, and moves what overlaps to the first gap that holds it", () => {
+    const day = dayWithTransfer(transfer, [
+      timed("Breakfast", "07:30", 45),
+      timed("Uffizi", "09:00", 120),
+      timed("Lunch", "13:00", 60),
+      timed("Boboli", "15:00", 120),
+      timed("Dinner", "19:30", 90),
+    ]);
+    expect(day.map((a) => `${a.start_time} ${a.name}`)).toEqual([
+      "07:30 Breakfast",
+      "08:30 Train to Florence",
+      "13:00 Lunch",
+      "15:00 Boboli",
+      "17:00 Uffizi",
+      "19:30 Dinner",
+    ]);
+    expect(day.find((a) => a.name === "Uffizi")?.time_slot).toBe("evening");
+  });
+
+  it("leaves out a meal that would move far from its time, and the plan's own trip from the last city", () => {
+    const flight = { ...transfer, name: "Flight to Hoi An", location: "Hanoi", duration_minutes: 200 } as Activity;
+    const day = dayWithTransfer(flight, [
+      { ...timed("Transfer from Hanoi to Hoi An", "07:30", 60), type: "transport" } as Activity,
+      { ...timed("Lunch at Banh Mi Phuong", "12:00", 90), type: "restaurant" } as Activity,
+      timed("Japanese Covered Bridge", "13:30", 90),
+      timed("Silk Village", "15:00", 150),
+      { ...timed("Dinner at Morning Glory", "19:00", 120), type: "restaurant" } as Activity,
+    ]);
+    expect(day.map((a) => a.name)).toEqual(["Flight to Hoi An", "Japanese Covered Bridge", "Silk Village", "Dinner at Morning Glory"]);
+    // A short move keeps it: arriving 12:20, lunch planned at 12:00 can be at 12:20.
+    const near = dayWithTransfer(flight, [{ ...timed("Lunch at Banh Mi Phuong", "12:00", 60), type: "restaurant" } as Activity, timed("Bridge", "14:00", 60)]);
+    expect(near.map((a) => `${a.start_time} ${a.name}`)).toEqual(["08:30 Flight to Hoi An", "12:20 Lunch at Banh Mi Phuong", "14:00 Bridge"]);
+  });
+
+  it("leaves out what no gap holds by 20:00", () => {
+    // Arriving at 17:00, three hours of museum would run into dinner and past 20:00.
+    const day = dayWithTransfer({ ...transfer, duration_minutes: 480 }, [timed("Museum", "09:00", 180), timed("Dinner", "19:00", 90)]);
+    expect(day.map((a) => a.name)).toEqual(["Train to Florence", "Dinner"]);
+    // Arriving at 16:00, it fits right before dinner.
+    const fits = dayWithTransfer({ ...transfer, duration_minutes: 420 }, [timed("Museum", "09:00", 180), timed("Dinner", "19:00", 90)]);
+    expect(fits.map((a) => `${a.start_time} ${a.name}`)).toEqual(["08:30 Train to Florence", "16:00 Museum", "19:00 Dinner"]);
   });
 });

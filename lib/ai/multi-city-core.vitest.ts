@@ -156,12 +156,30 @@ describe("mergeCityItineraries", () => {
     expect(merged.trip_summary.packing_suggestions).toEqual(["shoes", "umbrella"]);
     expect(merged.trip_summary.highlights).toEqual(["Colosseum", "Louvre"]);
   });
-  it("merges hotels across cities, flights from the first", () => {
-    expect(merged.booking_links?.hotels.map((h) => h.label)).toEqual([
-      "Rome hotel",
-      "Paris hotel",
+  it("searches a stay per city, to the morning the next city starts, and flies one way into the first", () => {
+    const hotels = merged.booking_links?.hotels ?? [];
+    expect(hotels.map((h) => `${h.provider} · ${h.city}`)).toEqual([
+      "Booking.com · Rome",
+      "Airbnb · Rome",
+      "Booking.com · Paris",
+      "Airbnb · Paris",
     ]);
-    expect(merged.booking_links?.flights).toHaveLength(1);
+    expect(hotels[0].url).toContain("checkin=2026-05-10&checkout=2026-05-13");
+    expect(hotels[2].url).toContain("checkin=2026-05-13&checkout=2026-05-14");
+    const flights = merged.booking_links?.flights ?? [];
+    expect(flights).toHaveLength(1);
+    expect(new URL(flights[0].url).searchParams.get("q")).toBe("One way flights to Rome on 2026-05-10");
+  });
+
+  it("gives a one-night stop a one-night stay", () => {
+    const short = mergeCityItineraries(
+      [{ city: "Rome", nights: 1 }, { city: "Paris", nights: 1 }],
+      [cityResult("Rome", 1), cityResult("Paris", 1)],
+      "2026-05-10"
+    );
+    const hotels = short.booking_links?.hotels ?? [];
+    expect(hotels[0].url).toContain("checkin=2026-05-10&checkout=2026-05-11");
+    expect(hotels[2].url).toContain("checkin=2026-05-11&checkout=2026-05-12");
   });
   it("throws when legs and results lengths differ", () => {
     expect(() => mergeCityItineraries(legs, [results[0]], "2026-05-10")).toThrow(

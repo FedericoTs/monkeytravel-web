@@ -4,26 +4,12 @@
  * booking_required when the model left it out.
  */
 import { determineTimeSlot } from "@/lib/utils/activity-id";
+import { bookingLinksFor } from "./booking-links";
 import type { Activity, GeneratedItinerary, TripCreationParams } from "@/types";
 
-type TripDates = Pick<TripCreationParams, "destination" | "startDate" | "endDate">;
+export { bookingLinksFor };
 
-/** The links to book flights and stays for a trip. */
-export function bookingLinksFor(params: TripDates): NonNullable<GeneratedItinerary["booking_links"]> {
-  const encoded = encodeURIComponent(params.destination);
-  const slug = params.destination.split(",")[0].toLowerCase().replace(/\s+/g, "");
-  const { startDate: start, endDate: end } = params;
-  return {
-    flights: [
-      { provider: "Skyscanner", url: `https://www.skyscanner.com/transport/flights/nyc/${slug}/${start}`, label: "Search flights on Skyscanner" },
-      { provider: "Google Flights", url: `https://www.google.com/travel/flights?q=flights+to+${encoded}`, label: "Search on Google Flights" },
-    ],
-    hotels: [
-      { provider: "Booking.com", url: `https://www.booking.com/searchresults.html?ss=${encoded}&checkin=${start}&checkout=${end}`, label: "Find hotels on Booking.com" },
-      { provider: "Airbnb", url: `https://www.airbnb.com/s/${encoded}/homes?checkin=${start}&checkout=${end}`, label: "Browse Airbnb stays" },
-    ],
-  };
-}
+type TripDates = Pick<TripCreationParams, "destination" | "startDate" | "endDate">;
 
 /** A day's activities with their part of the day, from the start time, and booking_required false unless the model said true. */
 export function withActivityDefaults<T extends { activities?: Partial<Activity>[] }>(day: T): T {

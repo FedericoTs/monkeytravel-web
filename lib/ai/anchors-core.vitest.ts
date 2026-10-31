@@ -380,6 +380,13 @@ describe("mergeAnchoredItinerary (Italy fixture)", () => {
     destinationLabel: "Venice & Friuli",
   });
 
+  it("searches one stay and one round trip for the whole trip", () => {
+    const links = itinerary.booking_links;
+    expect(links?.hotels.map((h) => h.provider)).toEqual(["Booking.com", "Airbnb"]);
+    expect(links?.hotels[0].url).toContain("checkin=2026-09-08&checkout=2026-09-15");
+    expect(links?.flights).toHaveLength(1);
+  });
+
   it("produces 8 sequential days numbered 1..8", () => {
     expect(itinerary.days).toHaveLength(8);
     expect(itinerary.days.map((d) => d.day_number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
