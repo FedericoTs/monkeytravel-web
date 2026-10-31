@@ -71,11 +71,15 @@ export type PendingChange =
     }
   | {
       type: "apply_draft";
-      /** Revised replacement days, persisted in ONE /apply write. */
+      /** Revised replacement days, then any new days, persisted in ONE /apply write. */
       days: ItineraryDay[];
       changedDayNumbers: number[];
       /** Current days the draft didn't cover — they stay untouched. */
       unmappedDayNumbers?: number[];
+      /** trips.end_date once the new days are added (moves in the same /apply write). */
+      newEndDate?: string;
+      /** end_date before them — powers a consistent undo. */
+      previousEndDate?: string;
       reason?: string;
     }
   | {
@@ -299,6 +303,11 @@ export default function PreviewChangeCard({
             {(change.unmappedDayNumbers?.length ?? 0) > 0 && (
               <p className="text-[11px] text-slate-500">
                 {t("unmappedDays", { days: change.unmappedDayNumbers!.join(", ") })}
+              </p>
+            )}
+            {change.newEndDate && (
+              <p className="text-[11px] text-slate-500">
+                {t("tripExtendedTo", { date: change.newEndDate })}
               </p>
             )}
           </div>

@@ -13,9 +13,11 @@
  */
 
 import { assistTrip, type AssistTurn, type DayEdit } from "@/lib/ai/assistant-anon";
-import { lengthUnchangedNote } from "@/lib/ai/assistant/honesty";
+import { lengthUnchangedNote, ownerAddsDaysNote } from "@/lib/ai/assistant/honesty";
 import type { DisplayCurrency } from "@/lib/ai/assistant/plan-costs";
+import { addDaysISO } from "@/lib/ai/assistant/structural";
 import { applyAssistantEdits } from "@/lib/trips/day-edit-merge";
+import { generateActivityId } from "@/lib/utils/activity-id";
 import type { Activity, ItineraryDay } from "@/types";
 
 /** The currency the page shows prices in, when the request names a sane one. */
@@ -30,15 +32,43 @@ export function readDisplayCurrency(raw: unknown): DisplayCurrency | undefined {
   return ok ? { currency: d.currency as string, rate: d.rate as number } : undefined;
 }
 
-/** The saved conversation, as the engine reads it (oldest first, last six turns). */
+/**
+ * The saved conversation, as the engine reads it, oldest first: the last six
+ * turns, and before them the traveller's own messages (what they said about
+ * the trip, like when they land, still holds).
+ */
 export function conversationTurns(messages: { role?: unknown; content?: unknown }[] | null | undefined): AssistTurn[] {
-  return (messages ?? [])
+  const turns = (messages ?? [])
     .filter(
       (m): m is { role: "user" | "assistant"; content: string } =>
         (m?.role === "user" || m?.role === "assistant") && typeof m.content === "string" && m.content.trim() !== "",
     )
-    .slice(-6)
     .map((m) => ({ role: m.role, text: m.content }));
+  const earlier = turns.slice(0, -6).filter((t) => t.role === "user").slice(-10);
+  return [...earlier, ...turns.slice(-6)];
+}
+
+/**
+ * The engine's new days as days of the saved trip: numbered and dated after
+ * its last day, in that day's city unless the edit names another, every
+ * activity with an id. /apply numbers and dates them again from the stored trip.
+ */
+export function newTripDays(days: ItineraryDay[], edits: DayEdit[], endDate?: string): ItineraryDay[] {
+  const last = days[days.length - 1];
+  const from = last?.date || endDate;
+  return edits
+    .filter((e) => e.day_number > days.length)
+    .sort((a, b) => a.day_number - b.day_number)
+    .map((e, i) => {
+      const city = e.city ?? last?.city;
+      return {
+        day_number: days.length + 1 + i,
+        date: addDaysISO(from, i + 1) ?? "",
+        ...(e.theme ? { theme: e.theme } : {}),
+        ...(city ? { city } : {}),
+        activities: e.activities.map((a) => ({ ...a, id: generateActivityId() })),
+      };
+    });
 }
 
 /**
@@ -90,8 +120,10 @@ function leftOut(days: ItineraryDay[], revisedDays: ItineraryDay[]): string[] {
 
 export interface TripEditProposal {
   reply: string;
-  /** The revised days, merged into the saved trip; empty when nothing changes. */
+  /** The revised days, merged into the saved trip, then any new days; empty when nothing changes. */
   revisedDays: ItineraryDay[];
+  /** The trip's new number of days, when the change adds days. */
+  tripLength?: number;
   /** What changes, day by day, for the preview card. */
   summary: string;
   meta: { model: string; costUsd: number; generationTimeMs: number };
@@ -113,29 +145,40 @@ export async function proposeTripEdits(input: {
   history: AssistTurn[];
   /** The currency the page shows prices in, so the reply's figures match it. */
   display?: DisplayCurrency;
+  /** The trip's owner may add days: they move its dates (lib/ai/assistant-access.ts). */
+  canAddDays?: boolean;
 }): Promise<TripEditProposal | null> {
-  const result = await assistTrip({ ...input, autoApply: true });
+  const { canAddDays, ...ask } = input;
+  // The change waits for this page's button, which the route's reply names.
+  const result = await assistTrip({ ...ask, autoApply: false, ownLead: true });
   if (result.currency) return null;
 
-  // Days are added with "add a day" and dates move on the trip page, so this
-  // path keeps the trip's length. Edits to its existing days still stand.
+  // The owner's longer trip gets its new days ("aggiungi altri 7 giorni" used
+  // to answer that the trip stays at 7 days). A shorter trip is made by moving
+  // the dates, so that one keeps its length. Edits to the existing days stand.
   const current = input.days.length;
+  const longer = result.tripLength !== undefined && result.tripLength > current;
+  const adds = longer && canAddDays === true;
   const edits = result.edits.filter((e) => e.day_number <= current);
   const reply =
-    result.tripLength !== undefined ? `${result.reply} ${lengthUnchangedNote(input.locale, current)}` : result.reply;
+    result.tripLength === undefined || adds
+      ? result.reply
+      : `${result.reply} ${longer ? ownerAddsDaysNote(input.locale, current) : lengthUnchangedNote(input.locale, current)}`;
 
   const label = DAY_LABEL[input.locale] ?? DAY_LABEL.en;
-  const revisedDays = edits.length > 0 ? mergeTripEdits(input.days, edits) : [];
+  const added = adds ? newTripDays(input.days, result.edits, input.endDate) : [];
+  const revisedDays = [...(edits.length > 0 ? mergeTripEdits(input.days, edits) : []), ...added];
   // The model can swap out a saved activity while its reply calls the change
   // an addition, so the card names what the change takes out before Apply.
   const removed = leftOut(input.days, revisedDays);
-  const summary = edits
+  const summary = (adds ? result.edits : edits)
     .filter((e) => e.summary.trim())
     .map((e) => `${label} ${e.day_number}: ${e.summary.trim()}`)
     .join(" ");
   return {
     reply,
     revisedDays,
+    ...(added.length > 0 ? { tripLength: current + added.length } : {}),
     summary: removed.length
       ? `${summary} ${LEAVES_OUT[input.locale] ?? LEAVES_OUT.en}: ${removed.join(", ")}.`.trim()
       : summary,

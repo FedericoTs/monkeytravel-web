@@ -161,6 +161,115 @@ describe("assistTrip on a change about more days than one reply holds", () => {
   });
 });
 
+// Live, 2026-10-24: "aggiungi altri 7 giorni" came back as 6 days, the most
+// one reply holds, so the longer trip was refused.
+describe("assistTrip adding more days than one reply holds", () => {
+  const week = Array.from({ length: 7 }, (_, i) => ({
+    ...day(i + 1),
+    activities: [{ name: `Day ${i + 1} thing`, time_slot: "morning", start_time: "09:00" }],
+  })) as unknown as ItineraryDay[];
+  const more = { ...input, message: "aggiungi altri 7 giorni a questo viaggio", days: week, locale: "it" };
+  const newDays = (days: number[], extra: Record<string, unknown> = {}) => ({
+    response: {
+      text: () =>
+        JSON.stringify({
+          reply: "Ecco 7 giorni in più: Kyoto, Nara e Osaka.",
+          edits: days.map((n) => ({ day_number: n, summary: `Giorno ${n}`, activities: [{ name: `Sight ${n}` }] })),
+          ...extra,
+        }),
+    },
+  });
+
+  it("asks for the rest of the new days and adds them all", async () => {
+    generateContent
+      .mockResolvedValueOnce(newDays([8, 9, 10, 11, 12, 13], { trip_length: 14, more_days: [14] }))
+      .mockResolvedValueOnce(newDays([14]));
+    const out = await run(more);
+    const part = JSON.stringify(generateContent.mock.calls[1][0]);
+    expect(part).toContain("Days 14 are new days at the end of the trip, which now has 14 days");
+    expect(part).toContain('\\"trip_length\\" is 14');
+    // The part sees the new days already planned, so it repeats none of them.
+    expect(part).toContain("Day 13: Sight 13");
+    expect(out.tripLength).toBe(14);
+    expect(out.edits.map((e) => e.day_number)).toEqual([8, 9, 10, 11, 12, 13, 14]);
+    expect(out.reply).toBe("Ecco 7 giorni in più: Kyoto, Nara e Osaka.");
+  });
+
+  it("adds the new days that came back, and names the rest", async () => {
+    generateContent
+      .mockResolvedValueOnce(newDays([8, 9, 10, 11, 12, 13], { trip_length: 14, more_days: [14] }))
+      .mockRejectedValueOnce(overloaded());
+    const out = await run(more);
+    expect(out.tripLength).toBe(13);
+    expect(out.edits.map((e) => e.day_number)).toEqual([8, 9, 10, 11, 12, 13]);
+    expect(out.reply).toContain('(Il giorno 14 non è ancora aggiunto: scrivi "continua" e lo aggiungerò.)');
+  });
+
+  it("keeps the trip's length when none of its new days came back", async () => {
+    const now = vi.spyOn(Date, "now").mockReturnValueOnce(0).mockReturnValue(40_000);
+    generateContent.mockResolvedValueOnce(newDays([], { trip_length: 14, more_days: [8, 9, 10, 11, 12, 13, 14] }));
+    const out = await run(more);
+    now.mockRestore();
+    expect(out.tripLength).toBeUndefined();
+    expect(out.edits).toEqual([]);
+    expect(out.reply).toMatch(/^Non ho modificato il tuo piano/);
+  });
+});
+
+// Live, 2026-10-29: told of a 14:00 flight home, the last day kept lunch at
+// 12:30; the traveller asked again three turns later.
+describe("assistTrip on a day that doesn't fit when they leave", () => {
+  const fiveDays = Array.from({ length: 5 }, (_, i) => day(i + 1));
+  const message = { ...input, message: "Monday flight from BKK at 2 pm", days: fiveDays };
+  const lastDay = (names: [string, string][]) => ({
+    response: {
+      text: () =>
+        JSON.stringify({
+          reply: "Day 5 is set for your 2 PM flight.",
+          travel_times: [{ day: 5, leaves: "14:00", by: "flight" }],
+          edits: [{ day_number: 5, activities: names.map(([name, start_time]) => ({ name, start_time, duration_minutes: 60 })) }],
+        }),
+    },
+  });
+
+  it("asks once more with the times spelled out, and keeps the day that fits", async () => {
+    generateContent
+      .mockResolvedValueOnce(lastDay([["Breakfast near the hotel", "08:30"], ["Lunch at Baan Khanitha", "12:30"]]))
+      .mockResolvedValueOnce(lastDay([["Breakfast near the hotel", "08:30"], ["Transfer to BKK airport", "11:00"]]));
+    const out = await run(message);
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain(
+      "CORRECTION: Day 5: they leave at 14:00, so everything must end by 11:00. Lunch at Baan Khanitha (12:30) doesn't fit.",
+    );
+    expect(out.edits[0].activities.map((a) => a.name)).toEqual(["Breakfast near the hotel", "Transfer to BKK airport"]);
+  });
+
+  it("says what still doesn't fit when the second try can't be had", async () => {
+    generateContent
+      .mockResolvedValueOnce(lastDay([["Breakfast near the hotel", "08:30"], ["Lunch at Baan Khanitha", "12:30"]]))
+      .mockRejectedValueOnce(overloaded());
+    const out = await run(message);
+    expect(out.reply).toBe(
+      "Day 5 is set for your 2 PM flight. (Check Day 5: you leave at 14:00, so plans should end by 11:00, and the day still has: Lunch at Baan Khanitha (12:30).)",
+    );
+  });
+
+  it("holds the second try to the first one's times, even when it leaves them out", async () => {
+    const noTimes = {
+      response: {
+        text: () =>
+          JSON.stringify({
+            reply: "Day 5 ends with shopping.",
+            edits: [{ day_number: 5, activities: [{ name: "Shopping at MBK", start_time: "13:00", duration_minutes: 60 }] }],
+          }),
+      },
+    };
+    generateContent.mockResolvedValueOnce(lastDay([["Breakfast near the hotel", "08:30"], ["Lunch at Baan Khanitha", "12:30"]])).mockResolvedValueOnce(noTimes);
+    const out = await run(message);
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(out.edits[0].activities.map((a) => a.name)).toEqual(["Breakfast near the hotel", "Lunch at Baan Khanitha"]);
+  });
+});
+
 describe("isModelOverloaded", () => {
   it("is true only for 429, 500 and 503", () => {
     expect([429, 500, 503].map((status) => mod.isModelOverloaded({ status }))).toEqual([true, true, true]);

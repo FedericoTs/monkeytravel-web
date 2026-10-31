@@ -1106,8 +1106,11 @@ export async function POST(request: NextRequest) {
     // too: the chat answered in a sentence or two without the plan's figures,
     // and changes asked as questions ("can we fix that", "do it") got a
     // promise. The patterns and the chat still run when it fails.
+    // It adds days too, as many as asked: "aggiungi altri 7 giorni" got "the
+    // trip stays at 7 days", and add_day below appends one. That one runs only
+    // when the engine can't.
     let tripEdits: TripEditProposal | null = null;
-    if (structuralIntent.type === "none" && itinerary.length > 0) {
+    if (structuralIntent.type !== "apply_draft" && itinerary.length > 0) {
       try {
         tripEdits = await proposeTripEdits({
           message,
@@ -1119,6 +1122,7 @@ export async function POST(request: NextRequest) {
           locale: userLanguage,
           history: conversationTurns(conversation.messages),
           display: readDisplayCurrency(body.display),
+          canAddDays: assistantRole === "owner",
         });
       } catch (err) {
         console.error("[AI Assistant] Edit engine failed, using the patterns:", err);
@@ -1143,12 +1147,19 @@ export async function POST(request: NextRequest) {
     let engineWriteFailed = false;
 
     // The engine's revised days: one multi-day change, confirmed and saved
-    // like a pasted draft (apply_draft), in one write.
+    // like a pasted draft (apply_draft), in one write. New days go after the
+    // last one, and the trip's end date moves with them.
+    let engineEndDate: string | undefined;
     if (engineEdited && tripEdits) {
       const fixedDays = validateAndFixCoordinates(tripEdits.revisedDays, tripContext.destination);
       for (const day of fixedDays) {
         const idx = modifiedItinerary.findIndex((d) => d.day_number === day.day_number);
         if (idx !== -1) modifiedItinerary[idx] = day;
+        else modifiedItinerary.push(day);
+      }
+      const lastDate = modifiedItinerary[modifiedItinerary.length - 1]?.date;
+      if (modifiedItinerary.length > itinerary.length && lastDate) {
+        engineEndDate = computeExtendedEndDate(trip.end_date, lastDate) ?? undefined;
       }
       itineraryWasModified = true;
       actionTaken = {
@@ -1157,6 +1168,7 @@ export async function POST(request: NextRequest) {
         dayNumber: fixedDays[0].day_number,
         dayCount: fixedDays.length,
         revisedDays: fixedDays,
+        ...(engineEndDate ? { newEndDate: engineEndDate } : {}),
       };
 
       if (previewMode) {
@@ -1164,7 +1176,11 @@ export async function POST(request: NextRequest) {
       } else {
         const { error: updateError } = await supabase
           .from("trips")
-          .update({ itinerary: modifiedItinerary, updated_at: new Date().toISOString() })
+          .update({
+            itinerary: modifiedItinerary,
+            ...(engineEndDate ? { end_date: engineEndDate } : {}),
+            updated_at: new Date().toISOString(),
+          })
           .eq("id", tripId);
         if (updateError) {
           console.error("[AI Assistant] Database update failed:", updateError);
@@ -1799,8 +1815,8 @@ Return ONLY a JSON array with the optimal order of activity indices:
     // the old pipeline narrated "extended with a new Day 12" while the
     // logged action was {type: add_activity, dayNumber: 1}. This path
     // proposes a real Day N+1 (confirm-first) and moves the trip's end date
-    // together with the itinerary on apply.
-    if (structuralIntent.type === "add_day") {
+    // together with the itinerary on apply. The edit engine handles it first.
+    if (structuralIntent.type === "add_day" && !tripEdits) {
       const currentDayCount = modifiedItinerary.length;
       const requestedTotal = structuralIntent.requestedTotalDays;
 
@@ -2422,6 +2438,10 @@ Respond with valid JSON only.`;
           unmappedDayNumbers: draftUnmappedDayNumbers,
           // The engine's edits say what changes on each day.
           reason: engineEdited ? tripEdits?.summary || undefined : "Mapped from your pasted draft",
+          // New days move the end date on apply; the undo puts it back.
+          ...(actionTaken.newEndDate
+            ? { newEndDate: actionTaken.newEndDate, previousEndDate: trip.end_date as string | undefined }
+            : {}),
         };
       }
     }

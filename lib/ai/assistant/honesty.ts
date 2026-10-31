@@ -459,6 +459,83 @@ export function daysLeftNote(language: string | undefined, days: number[]): stri
   }
 }
 
+/** Appended when a longer trip got some of its new days but not the last ones in time. */
+export function daysNotAddedNote(language: string | undefined, days: number[]): string {
+  const one = days.length === 1;
+  const list = days.join(", ");
+  switch (lang(language)) {
+    case "es":
+      return one
+        ? `(El día ${list} aún no está añadido: di "continúa" y lo añadiré.)`
+        : `(Los días ${list} aún no están añadidos: di "continúa" y los añadiré.)`;
+    case "it":
+      return one
+        ? `(Il giorno ${list} non è ancora aggiunto: scrivi "continua" e lo aggiungerò.)`
+        : `(I giorni ${list} non sono ancora aggiunti: scrivi "continua" e li aggiungerò.)`;
+    case "pt":
+      return one
+        ? `(O dia ${list} ainda não foi adicionado: diga "continue" e eu o adiciono.)`
+        : `(Os dias ${list} ainda não foram adicionados: diga "continue" e eu os adiciono.)`;
+    default:
+      return one
+        ? `(Day ${list} isn't added yet: say "continue" and I'll add it.)`
+        : `(Days ${list} aren't added yet: say "continue" and I'll add them.)`;
+  }
+}
+
+/**
+ * Appended when a changed day still plans something outside the hours around
+ * an arrival or a departure, after the model was asked to fix it.
+ */
+export function travelTimesNote(
+  language: string | undefined,
+  v: { day: number; arrives?: string; leaves?: string; from: string | null; until: string | null; names: string[] },
+): string {
+  const names = v.names.join(", ");
+  const late = v.from !== null && v.from >= "22:00";
+  const d = v.day;
+  switch (lang(language)) {
+    case "es":
+      return v.leaves
+        ? `(Revisa el día ${d}: sales a las ${v.leaves}, así que los planes deberían terminar a las ${v.until}, y el día aún tiene: ${names}.)`
+        : late
+          ? `(Revisa el día ${d}: llegas a las ${v.arrives}, demasiado tarde para hacer planes, y el día aún tiene: ${names}.)`
+          : `(Revisa el día ${d}: llegas a las ${v.arrives}, así que los planes deberían empezar después de las ${v.from}, y el día aún tiene: ${names}.)`;
+    case "it":
+      return v.leaves
+        ? `(Controlla il giorno ${d}: parti alle ${v.leaves}, quindi i programmi dovrebbero finire entro le ${v.until}, e il giorno ha ancora: ${names}.)`
+        : late
+          ? `(Controlla il giorno ${d}: arrivi alle ${v.arrives}, troppo tardi per altri programmi, e il giorno ha ancora: ${names}.)`
+          : `(Controlla il giorno ${d}: arrivi alle ${v.arrives}, quindi i programmi dovrebbero iniziare dopo le ${v.from}, e il giorno ha ancora: ${names}.)`;
+    case "pt":
+      return v.leaves
+        ? `(Confira o dia ${d}: você parte às ${v.leaves}, então os planos deveriam terminar até as ${v.until}, e o dia ainda tem: ${names}.)`
+        : late
+          ? `(Confira o dia ${d}: você chega às ${v.arrives}, tarde demais para outros planos, e o dia ainda tem: ${names}.)`
+          : `(Confira o dia ${d}: você chega às ${v.arrives}, então os planos deveriam começar depois das ${v.from}, e o dia ainda tem: ${names}.)`;
+    default:
+      return v.leaves
+        ? `(Check Day ${d}: you leave at ${v.leaves}, so plans should end by ${v.until}, and the day still has: ${names}.)`
+        : late
+          ? `(Check Day ${d}: you arrive at ${v.arrives}, too late for other plans, and the day still has: ${names}.)`
+          : `(Check Day ${d}: you arrive at ${v.arrives}, so plans should start after ${v.from}, and the day still has: ${names}.)`;
+  }
+}
+
+/** Appended on the trip page when an editor asked for more days: they move the trip's dates. */
+export function ownerAddsDaysNote(language: string | undefined, days: number): string {
+  switch (lang(language)) {
+    case "es":
+      return `(Solo el propietario del viaje puede añadir días, así que el viaje sigue teniendo ${days} días.)`;
+    case "it":
+      return `(Solo il proprietario del viaggio può aggiungere giorni, quindi il viaggio resta di ${days} giorni.)`;
+    case "pt":
+      return `(Só o proprietário da viagem pode adicionar dias, então a viagem continua com ${days} dias.)`;
+    default:
+      return `(Only the trip owner can add days, so the trip stays at ${days} days.)`;
+  }
+}
+
 /**
  * Opens a trip-page reply that talks as if a change waiting for the button
  * were already saved. The reply itself stays: it is the answer.

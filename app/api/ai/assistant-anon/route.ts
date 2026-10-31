@@ -82,10 +82,11 @@ const BodySchema = z.object({
   startDate: z.string().trim().max(10).optional(),
   endDate: z.string().trim().max(10).optional(),
   locale: z.string().trim().max(10).optional(),
-  // The conversation so far, so "yes" and "No I mean…" can be understood.
+  // The conversation so far, so "yes" and "No I mean…" can be understood:
+  // the last six messages, and before them up to ten of the traveller's own.
   history: z
     .array(z.object({ role: z.enum(["user", "assistant"]), text: z.string().max(2000) }))
-    .max(12)
+    .max(20)
     .optional(),
   // The page applies edits on arrival (with Undo) rather than waiting for Apply.
   autoApply: z.boolean().optional(),
