@@ -10,3 +10,17 @@ export const PLACEHOLDER_POINT = { lat: 48.0, lng: 10.0 };
 export function isPlaceholderPoint(lat: number, lng: number): boolean {
   return Math.abs(lat - PLACEHOLDER_POINT.lat) < 0.1 && Math.abs(lng - PLACEHOLDER_POINT.lng) < 0.1;
 }
+
+/**
+ * Whether an activity's coordinates say where it is, so a map can pin it and a
+ * route can measure to it: a point on the globe, not 0,0 and not the placeholder.
+ */
+export function isRealPoint<T extends { lat?: number | null; lng?: number | null }>(
+  point: T | null | undefined
+): point is T & { lat: number; lng: number } {
+  const lat = point?.lat;
+  const lng = point?.lng;
+  if (typeof lat !== "number" || typeof lng !== "number" || !Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+  if ((lat === 0 && lng === 0) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return false;
+  return !isPlaceholderPoint(lat, lng);
+}

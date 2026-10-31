@@ -11,6 +11,7 @@ import {
   calculateHaversineDistance,
   estimateRoadDistance,
 } from "@/lib/math/distance";
+import { isRealPoint } from "@/lib/trip/placeholder-point";
 
 export interface OptimizationResult {
   originalOrder: Activity[];
@@ -45,7 +46,7 @@ export interface OptimizationConstraints {
  * Get distance between two activities in meters
  */
 function getDistanceBetween(a: Activity, b: Activity): number {
-  if (!a.coordinates?.lat || !a.coordinates?.lng || !b.coordinates?.lat || !b.coordinates?.lng) {
+  if (!isRealPoint(a.coordinates) || !isRealPoint(b.coordinates)) {
     return 0; // Can't calculate without coordinates
   }
   const straightLine = calculateHaversineDistance(a.coordinates, b.coordinates, "m");
@@ -255,7 +256,7 @@ export function optimizeRoute(
 
   // Filter out activities without coordinates
   const activitiesWithCoords = activities.filter(
-    a => a.coordinates?.lat && a.coordinates?.lng
+    a => isRealPoint(a.coordinates)
   );
 
   if (activitiesWithCoords.length <= 2) {

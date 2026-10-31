@@ -40,6 +40,7 @@ import {
 import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
 import { knownPlacesFor } from "@/lib/ai/known-places";
 import { placesToEatCheck } from "@/lib/places/places-to-eat";
+import { isRealPoint } from "@/lib/trip/placeholder-point";
 import type { TripAnchor } from "@/types";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
@@ -389,7 +390,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       // Try to get coordinates from the first activity that has them
       const firstActivityWithCoords = itinerary.days
         ?.flatMap(d => d.activities || [])
-        ?.find(a => a.coordinates?.lat && a.coordinates?.lng);
+        ?.find(a => isRealPoint(a.coordinates));
       const destinationCoords: Coordinates | undefined = firstActivityWithCoords?.coordinates;
 
       // waitUntil keeps the function alive until the promise resolves

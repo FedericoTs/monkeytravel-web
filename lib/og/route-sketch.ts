@@ -5,6 +5,7 @@
  * points into a box, which is all a card needs to show the shape of a trip.
  */
 import { dayColor } from "@/lib/map/day-colors";
+import { isPlaceholderPoint } from "@/lib/trip/placeholder-point";
 
 export interface SketchDay {
   day_number: number;
@@ -38,7 +39,7 @@ export function routeSketch(
       const lat = Number(a?.coordinates?.lat);
       const lng = Number(a?.coordinates?.lng);
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
-      if ((lat === 0 && lng === 0) || Math.abs(lat) > 90 || Math.abs(lng) > 180) continue;
+      if ((lat === 0 && lng === 0) || Math.abs(lat) > 90 || Math.abs(lng) > 180 || isPlaceholderPoint(lat, lng)) continue;
       raw.push({ lat, lng, day: d.day_number, city: d.city?.trim() || null, firstOfDay: first });
       first = false;
     }

@@ -12,6 +12,7 @@ import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import { hasCoordinates } from "@/lib/trips/has-coordinates";
+import { isRealPoint } from "@/lib/trip/placeholder-point";
 import { withFoundPhotos } from "@/lib/trips/keep-place-photos";
 import { useKeptTripPhotos } from "@/hooks/useKeptTripPhotos";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
@@ -1174,7 +1175,7 @@ export default function TripDetailClient({
     // Try to find coordinates from any existing activity in the itinerary
     for (const day of editedItinerary) {
       for (const activity of day.activities) {
-        if (activity.coordinates?.lat && activity.coordinates?.lng) {
+        if (isRealPoint(activity.coordinates)) {
           return activity.coordinates;
         }
       }

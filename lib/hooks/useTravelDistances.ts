@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import type { ItineraryDay, CachedDayTravelData } from "@/types";
 import type { Coordinates } from "@/lib/utils/geo";
+import { isRealPoint } from "@/lib/trip/placeholder-point";
 
 export interface TravelSegment {
   fromActivityId: string;
@@ -280,11 +281,12 @@ export function useTravelDistances(
           const fromId = fromActivity.id || `${day.day_number}-${i}`;
           const toId = toActivity.id || `${day.day_number}-${i + 1}`;
 
-          // Check if we have coordinates for both activities
+          // Check if we have coordinates for both activities (a placeholder
+          // point made the leg thousands of kilometres)
           const fromCoords = fromActivity.coordinates;
           const toCoords = toActivity.coordinates;
 
-          if (fromCoords?.lat && fromCoords?.lng && toCoords?.lat && toCoords?.lng) {
+          if (isRealPoint(fromCoords) && isRealPoint(toCoords)) {
             // Calculate travel estimate locally - NO API CALL!
             const estimate = estimateTravelTime(fromCoords, toCoords);
 

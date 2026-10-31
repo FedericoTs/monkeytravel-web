@@ -11,6 +11,7 @@ import {
 } from "@/lib/optimization/routeOptimizer";
 import type { Activity } from "@/types";
 import { activityTypeKey } from "@/lib/i18n/activity-type";
+import { isRealPoint } from "@/lib/trip/placeholder-point";
 
 interface RouteOptimizationModalProps {
   isOpen: boolean;
@@ -94,7 +95,7 @@ export function RouteOptimizationModal({
 
   // Check if there are enough activities with coordinates
   const activitiesWithCoords = useMemo(() => {
-    return activities.filter(a => a.coordinates?.lat && a.coordinates?.lng);
+    return activities.filter(a => isRealPoint(a.coordinates));
   }, [activities]);
 
   const canOptimize = activitiesWithCoords.length >= 3;

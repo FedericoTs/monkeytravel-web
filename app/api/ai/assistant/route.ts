@@ -49,6 +49,7 @@ import { destinationCityTerm } from "@/lib/api/postgrest-filter";
 import { formatMinutesToTime } from "@/lib/datetime/format";
 import { withDayTarget } from "@/lib/ai/assistant/day-target";
 import { ACTIVITY_TYPES, normalizeActivityType } from "@/lib/trip/activity-type";
+import { isRealPoint } from "@/lib/trip/placeholder-point";
 import { dietsFrom } from "@/lib/trips/diet";
 import { placesToEatCheck } from "@/lib/places/places-to-eat";
 import { activityNotFoundReason, findActivityByName } from "@/lib/ai/assistant/find-activity";
@@ -710,7 +711,7 @@ async function generateNewActivity(
     // Generate coordinates if missing
     if (!cachedActivity.coordinates) {
       const existingCoords = sameDayActivities
-        .filter(a => a.coordinates?.lat && a.coordinates?.lng)
+        .filter(a => isRealPoint(a.coordinates))
         .map(a => a.coordinates as Coordinates);
 
       if (existingCoords.length > 0) {
@@ -879,7 +880,7 @@ CRITICAL TIMING RULES:
   // Generate coordinates for the new activity
   // Priority: 1) Use existing activities centroid, 2) Use destination center
   const existingCoords = sameDayActivities
-    .filter(a => a.coordinates?.lat && a.coordinates?.lng)
+    .filter(a => isRealPoint(a.coordinates))
     .map(a => a.coordinates as Coordinates);
 
   if (existingCoords.length > 0) {
