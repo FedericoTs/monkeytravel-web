@@ -81,7 +81,7 @@ const KIND_WORDS: Record<string, string[]> = {
   restaurant: ["restaurant", "restaurante", "ristorante", "trattoria", "osteria", "taverna", "tavern", "bistro", "brasserie", "cafe", "bar", "pizzeria"],
 };
 const KIND = new Map(Object.entries(KIND_WORDS).flatMap(([kind, words]) => words.map((w) => [w, kind] as const)));
-const isKind = (t: string) => t in KIND_WORDS;
+export const isKind = (t: string) => t in KIND_WORDS;
 // On the item's name only, these make it another thing than the activity.
 const OTHER_THING = new Set(
   "hotel hostel apartment suite station estacion stazione gare bahnhof airport aeropuerto aeroporto aeroport terminal metro subway stop memorial statue relief plaque grave tomb bust sculpture painting company corporation".split(" "),
@@ -104,6 +104,9 @@ export function nameTokens(name: string): string[] {
     .map((t) => KIND.get(t) ?? t);
 }
 
+/** An activity's name without what it says besides the place: "Lunch at". */
+export const bareName = (name: string) => name.replace(ACTIVITY_WORDS, "");
+
 /**
  * The ways an activity can name its place: whole, without "Lunch at", and its
  * parts ("A | B", "A (B)"). A meal's later parts name where it is ("Afuri
@@ -112,7 +115,7 @@ export function nameTokens(name: string): string[] {
 export function nameVariants(names: string[], meal = false): string[] {
   const out: string[] = [];
   for (const name of names) {
-    const bare = name.replace(ACTIVITY_WORDS, "");
+    const bare = bareName(name);
     // A part that is only kinds of place ("Restaurant") names nothing.
     const parts = bare.split(/\s+[|–—-]\s+|\s*\|\s*|\s*&\s*|[()]/).filter((p) => nameTokens(p).some((t) => !isKind(t)));
     for (const n of [name, bare, ...(meal ? parts.slice(0, 1) : parts)]) {

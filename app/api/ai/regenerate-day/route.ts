@@ -32,6 +32,7 @@ import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { errors, apiSuccess, apiError } from "@/lib/api/response-wrapper";
 import { getTripDestination } from "@/lib/trips/destination";
 import { dietsFrom } from "@/lib/trips/diet";
+import { placesToEatCheck } from "@/lib/places/places-to-eat";
 import { casUpdateItinerary, type CasOutcome } from "@/lib/trips/itinerary-cas";
 import type { ItineraryDay, TripVibe } from "@/types";
 
@@ -250,6 +251,24 @@ async function regenerateDay(request: NextRequest, geminiCost: GeminiCostMeter) 
       );
     }
 
+    // A diet trip's places to eat that Maps has as closed, or doesn't have,
+    // replaced by open ones or left out (lib/places/places-to-eat.ts).
+    const placesCheck = placesToEatCheck({
+      destination,
+      dietary: dietsFrom(tripMeta.dietary),
+      budgetTier: budgetTier ?? "balanced",
+      travelStyle,
+      language,
+      userId: user.id,
+    });
+    const placesToEat = placesCheck
+      ? await placesCheck.finish([newDay], surroundingDays).catch((checkErr) => {
+          console.error("[AI Regenerate Day] places-to-eat check error:", checkErr);
+          return null;
+        })
+      : null;
+    if (placesToEat) geminiCost.add(placesToEat.costUsd);
+
     // Free images only (cache hits, stock): the day may be rolled again, and
     // real photos are looked up when the trip is next opened.
     try {
@@ -360,6 +379,7 @@ async function regenerateDay(request: NextRequest, geminiCost: GeminiCostMeter) 
         activities_count: writtenDay.activities.length,
         // Whether the traveller said what the day should be about.
         has_instructions: typeof instructions === "string" && instructions.trim().length > 0,
+        ...(placesToEat ? { places_to_eat: placesToEat } : {}),
       },
     });
 
