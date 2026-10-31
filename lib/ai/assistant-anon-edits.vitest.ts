@@ -234,7 +234,7 @@ describe("questions about money", () => {
   it("gives the model the plan's costs as the traveller sees them", () => {
     const prompt = buildPrompt({ message: "Qual è il gran totale", destination: "Lisbon", tripTitle: "Lisbon", days: plan, locale: "it", display: { currency: "EUR", rate: 0.9 } });
     expect(prompt).toContain("Activity costs, as the traveller sees them in EUR: Day 1 ~90, Day 2 ~45. Total ~135 EUR (150 USD in the plan's own amounts).");
-    expect(prompt).toContain("Hotels, flights and travel between cities are not in the plan.");
+    expect(prompt).toContain("These count only what the plan lists: hotels, and any travel it doesn't list, cost extra.");
   });
 
   it("asks for the figures in the answer itself, in that currency", () => {

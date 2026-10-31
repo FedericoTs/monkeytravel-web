@@ -134,6 +134,8 @@ export function mergeCityItineraries(
   const mergedDays: ItineraryDay[] = [];
   // Each city's first and last date, for its stay's search.
   const stays: { city: string; first: string; last: string }[] = [];
+  // The transfers are priced cards of the plan, so part of its total.
+  let transfersCost = 0;
   let globalIndex = 0;
   for (let i = 0; i < results.length; i++) {
     const city = legs[i].city.trim();
@@ -148,20 +150,19 @@ export function mergeCityItineraries(
       // Distance comes from the neighbouring activities' own coordinates —
       // pure heuristic, no API. See lib/ai/transfer-legs.ts. The day's own
       // plan makes room for it (dayWithTransfer).
-      const activities =
-        insertTransfers && i > 0 && d === 0
-          ? dayWithTransfer(
-              buildTransferActivity({
-                fromCity: legs[i - 1].city.trim(),
-                toCity: city,
-                fromDays: results[i - 1].days ?? [],
-                toDays: cityDays,
-                currency,
-                language: opts?.language,
-              }),
-              day.activities ?? [],
-            )
-          : day.activities;
+      let activities = day.activities;
+      if (insertTransfers && i > 0 && d === 0) {
+        const transfer = buildTransferActivity({
+          fromCity: legs[i - 1].city.trim(),
+          toCity: city,
+          fromDays: results[i - 1].days ?? [],
+          toDays: cityDays,
+          currency,
+          language: opts?.language,
+        });
+        if (transfer.estimated_cost?.currency === currency) transfersCost += transfer.estimated_cost.amount;
+        activities = dayWithTransfer(transfer, day.activities ?? []);
+      }
       mergedDays.push({
         ...day,
         activities,
@@ -189,7 +190,7 @@ export function mergeCityItineraries(
     trip_summary: {
       total_estimated_cost: results.reduce(
         (sum, r) => sum + (r.trip_summary?.total_estimated_cost ?? 0),
-        0
+        transfersCost
       ),
       currency: first.trip_summary?.currency ?? "USD",
       highlights: results.flatMap((r) => r.trip_summary?.highlights ?? []),
