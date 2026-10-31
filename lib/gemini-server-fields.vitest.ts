@@ -48,17 +48,16 @@ beforeEach(() => {
 });
 
 describe("bookingLinksFor", () => {
-  it("builds the links the model used to copy from the templates", () => {
+  it("builds a flight search for the trip's dates and stays for its nights", () => {
     const links = bookingLinksFor(params);
     expect(links.flights.map((l) => l.url)).toEqual([
-      "https://www.skyscanner.com/transport/flights/nyc/paris/2027-05-01",
-      "https://www.google.com/travel/flights?q=flights+to+Paris%2C%20France",
+      "https://www.google.com/travel/flights?q=Flights%20to%20Paris%2C%20France%20on%202027-05-01%20through%202027-05-04",
     ]);
     expect(links.hotels.map((l) => l.url)).toEqual([
       "https://www.booking.com/searchresults.html?ss=Paris%2C%20France&checkin=2027-05-01&checkout=2027-05-04",
       "https://www.airbnb.com/s/Paris%2C%20France/homes?checkin=2027-05-01&checkout=2027-05-04",
     ]);
-    expect(links.flights.map((l) => l.provider)).toEqual(["Skyscanner", "Google Flights"]);
+    expect(links.flights.map((l) => l.provider)).toEqual(["Google Flights"]);
     expect(links.hotels.map((l) => l.provider)).toEqual(["Booking.com", "Airbnb"]);
   });
 });

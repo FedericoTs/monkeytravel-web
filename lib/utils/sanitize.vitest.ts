@@ -25,4 +25,12 @@ describe("sanitizeItinerary", () => {
   it("leaves a locked activity, the traveller's own commitment, as it is", () => {
     expect(typesOf([{ day_number: 1, activities: [{ name: "Hotel Aurora", type: "lodging", locked: true }] }])).toEqual([["lodging"]]);
   });
+
+  it("keeps the city a stay is searched in", () => {
+    const out = sanitizeItinerary({
+      days: [],
+      booking_links: { flights: [], hotels: [{ provider: "Booking.com", url: "https://www.booking.com/searchresults.html?ss=Lisboa", label: "x", city: "Lisboa" }] },
+    }) as { booking_links: { hotels: { city?: string }[] } };
+    expect(out.booking_links.hotels[0].city).toBe("Lisboa");
+  });
 });
