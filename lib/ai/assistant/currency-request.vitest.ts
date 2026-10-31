@@ -22,7 +22,19 @@ describe("currencyRequested", () => {
     expect(currencyRequested("Show the budget in canadian dollars")).toBe("CAD");
   });
 
+  it("reads a request with no verb, as two planners sent it", () => {
+    expect(currencyRequested("In euro, not usd. I arrive at 10 am to Malaga. Then breakfast, after a small visit.")).toBe("EUR");
+    expect(currencyRequested("In Euro, not Usd")).toBe("EUR");
+    expect(currencyRequested("in euros please")).toBe("EUR");
+    expect(currencyRequested("euros, not dollars")).toBe("EUR");
+    expect(currencyRequested("Prezzi in euro, non in dollari")).toBe("EUR");
+    expect(currencyRequested("GBP")).toBe("GBP");
+  });
+
   it("leaves amounts and places alone", () => {
+    expect(currencyRequested("In Rome we want to see the Colosseum")).toBeNull();
+    expect(currencyRequested("We land in Lisbon at 10")).toBeNull();
+    expect(currencyRequested("In $100 a day, what can we do?")).toBeNull();
     expect(currencyRequested("Add a restaurant under 30 euros on day 2")).toBeNull();
     expect(currencyRequested("Make day 3 cheaper, max 50 dollars a day")).toBeNull();
     expect(currencyRequested("Is 100 euros a day enough?")).toBeNull();

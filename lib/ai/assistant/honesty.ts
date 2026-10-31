@@ -34,7 +34,7 @@ const words = (list: string) => `(?:${list})`;
 // reshape whole trips: "I've condensed your Rome trip into 3 days" (2026-09-26).
 // Not "reviewed"/"revisado"/"rivisto"/"revisei": those also mean "checked".
 const EN_VERBS = words(
-  "added|updated|removed|replaced|moved|changed|saved|scheduled|rescheduled|included|swapped|deleted|dedicated|adjusted|extended|shortened|reordered|put|set|condensed|combined|merged|reworked|rearranged|reorganized|reorganised|restructured|revised|trimmed|incorporated|integrated|reverted|shifted|cleared"
+  "added|updated|removed|replaced|moved|changed|saved|scheduled|rescheduled|included|swapped|deleted|dedicated|adjusted|extended|shortened|reordered|put|set|condensed|combined|merged|reworked|rearranged|reorganized|reorganised|restructured|revised|trimmed|incorporated|integrated|reverted|shifted|cleared|freed"
 );
 
 // A promise is a claim too: "I'll update your accommodation to…" went out
@@ -88,6 +88,11 @@ const CLAIM_PATTERNS: RegExp[] = [
   new RegExp(`${start}(?:foi|foram)\\s+${words("adicionad|acrescentad|atualizad|removid|retirad|substituíd|trocad|mudad|movid|incluíd|agendad|guardad|salv|alterad|condensad|combinad|juntad|reorganizad|reestruturad|reduzid|encurtad|incorporad|integrad|unificad|revertid")}[oa]s?${end}`, "iu"),
   new RegExp(`${start}agora\\s+(?:inclui|está\\s+(?:dedicad|organizad|estruturad|alinhad|ajustad|atualizad)[oa])${end}`, "iu"),
   new RegExp(`${start}aqui\\s+(?:está|estão)\\s+(?:o|a|os|as|seu|sua|seus|suas|o\\s+seu|a\\s+sua)\\s+(?:plano|itinerário|versão|dias?(?:\\s+\\d+)?)\\s+(?:atualizad|revisad|modificad|ajustad)[oa]s?${end}`, "iu"),
+  // A day said to be free now: "Day 3 is now free", "o dia 2 está agora livre".
+  new RegExp(`${start}(?:is|are|it['’]s|they['’]re|that['’]s)\\s+now\\s+(?:free|clear|empty)${end}`, "iu"),
+  new RegExp(`${start}(?:(?:está|están)\\s+ahora\\s+libres?|ahora\\s+(?:está|están|quedan?)\\s+libres?|(?:quedó|quedaron|ha\\s+quedado|han\\s+quedado)\\s+libres?)${end}`, "iu"),
+  new RegExp(`${start}(?:(?:è|sono)\\s+ora\\s+liber[oiae]|ora\\s+(?:è|sono)\\s+liber[oiae]|(?:è|sono)\\s+stat[oaie]\\s+liberat[oaie])${end}`, "iu"),
+  new RegExp(`${start}(?:(?:está|estão)\\s+agora\\s+livres?|agora\\s+(?:está|estão|fica|ficam)\\s+livres?|(?:ficou|ficaram)\\s+livres?)${end}`, "iu"),
   // Promises (see EN_PROMISE_VERBS above)
   new RegExp(`${start}(?:i(?:['’]ll|\\s+will)|let\\s+me|i(?:['’]m|\\s+am)\\s+(?:going|preparing|about)\\s+to)\\s+(?:now\\s+|just\\s+|also\\s+|go\\s+ahead\\s+and\\s+)?${EN_PROMISE_VERBS}${end}`, "iu"),
   new RegExp(`${start}(?<!no\\s)(?:voy\\s+a\\s+(?:lo\\s+|la\\s+|los\\s+|las\\s+)?${ES_INFINITIVES}|${ES_INFINITIVES}é)${end}`, "iu"),
@@ -396,19 +401,79 @@ const COST_WORD = new RegExp(
 // Figures count as an answer; a lone digit ("day 3", "9 giorni") does not.
 const FIGURE = /\d{2,}|[€$£¥]\s?\d/;
 
+/** Does the text give figures (a price, a time), not just a day number? */
+export function hasFigures(text: string | null | undefined): boolean {
+  return FIGURE.test(text ?? "");
+}
+
 /**
  * Does this reply announce an answer it doesn't give? "cost" when what it
  * announced was a figure (a total, a budget), "other" for a list or summary.
+ * A colon that ends the reply introduced something that never came, even
+ * after figures ("…the 22nd. Here are the updates:").
  */
 export function announcedButMissing(text: string | null | undefined): "cost" | "other" | null {
   const t = (text ?? "").trim();
-  if (!t || FIGURE.test(t)) return null;
+  const dangling = /:\s*$/.test(t);
+  if (!t || (!dangling && FIGURE.test(t))) return null;
   const sentences = t.split(/(?<=[.!?…])\s+/).filter(Boolean);
   const last = sentences[sentences.length - 1] ?? "";
-  // A colon that ends the reply introduced something that never came.
-  const dangling = /:\s*$/.test(t);
   if (!dangling && (/:\s*\S/.test(last) || !ANNOUNCEMENT.test(last))) return null;
-  return COST_WORD.test(dangling ? t : last) ? "cost" : "other";
+  return COST_WORD.test(dangling && !FIGURE.test(t) ? t : last) ? "cost" : "other";
+}
+
+/** The reply without a last sentence that ends on a colon with nothing after it. */
+export function withoutDanglingLead(text: string): string {
+  const t = text.trim();
+  if (!/:\s*$/.test(t)) return t;
+  return t.split(/(?<=[.!?…])\s+/).filter(Boolean).slice(0, -1).join(" ").trim();
+}
+
+// Saying the trip got longer: "I've added two extra days", "esto extiende el viaje".
+const LONGER_TRIP: RegExp[] = [
+  new RegExp(`${start}(?:extend(?:s|ed)?|lengthen(?:s|ed)?)\\s+(?:your|the)\\s+(?:trip|itinerary|stay)${end}`, "iu"),
+  new RegExp(`${start}(?:added|adding|adds)\\s+(?:an?|one|two|three|\\d{1,2})\\s+(?:extra\\s+|more\\s+|new\\s+|additional\\s+)?days?${end}`, "iu"),
+  new RegExp(`${start}(?:trip|itinerary|plan)\\s+(?:is\\s+|now\\s+has\\s+)?now\\s+\\d{1,2}\\s+days${end}`, "iu"),
+  new RegExp(`${start}(?:(?:extiende|alarga|amplía)\\s+(?:el|tu)\\s+viaje|un\\s+día\\s+más|(?:añadido|agregado|añadí|agregué)\\s+(?:un|dos|tres|\\d{1,2})\\s+días?)${end}`, "iu"),
+  new RegExp(`${start}(?:(?:allunga|allungato|estende|esteso|prolunga|prolungato)\\s+il\\s+(?:tuo\\s+)?viaggio|un\\s+giorno\\s+in\\s+più|aggiunt[oi]\\s+(?:un|due|tre|\\d{1,2})\\s+giorn[oi])${end}`, "iu"),
+  new RegExp(`${start}(?:(?:estende|prolonga|alonga)\\s+a\\s+(?:sua\\s+)?viagem|mais\\s+um\\s+dia|(?:adicionei|acrescentei)\\s+(?:um|dois|três|\\d{1,2})\\s+dias?)${end}`, "iu"),
+];
+
+/** Does this reply say the trip got longer? */
+export function claimsLongerTrip(text: string | null | undefined): boolean {
+  return !!text && LONGER_TRIP.some((re) => re.test(text));
+}
+
+/** Appended when a change concerned more days than could be prepared in time. */
+export function daysLeftNote(language: string | undefined, days: number[]): string {
+  const list = days.join(", ");
+  switch (lang(language)) {
+    case "es":
+      return `(Los días ${list} aún no han cambiado: di "continúa" y haré lo mismo allí.)`;
+    case "it":
+      return `(I giorni ${list} non sono ancora cambiati: scrivi "continua" e farò lo stesso lì.)`;
+    case "pt":
+      return `(Os dias ${list} ainda não mudaram: diga "continue" e faço o mesmo neles.)`;
+    default:
+      return `(Days ${list} aren't changed yet: say "continue" and I'll do the same there.)`;
+  }
+}
+
+/**
+ * Opens a trip-page reply that talks as if a change waiting for the button
+ * were already saved. The reply itself stays: it is the answer.
+ */
+export function pendingChangeLead(language: string | undefined, buttonLabel: string): string {
+  switch (lang(language)) {
+    case "es":
+      return `Aún no guardado: toca "${buttonLabel}" abajo para actualizar tu viaje.`;
+    case "it":
+      return `Non ancora salvato: tocca "${buttonLabel}" qui sotto per aggiornare il tuo viaggio.`;
+    case "pt":
+      return `Ainda não salvo: toque em "${buttonLabel}" abaixo para atualizar a sua viagem.`;
+    default:
+      return `Not saved yet: tap "${buttonLabel}" below to update your trip.`;
+  }
 }
 
 /**

@@ -184,10 +184,12 @@ describe("trip-page assistant: free-form edits", () => {
     expect(recordUsage).toHaveBeenCalledWith(expect.objectContaining({ modelId: "gemini-2.5-flash", costCents: 0.2 }));
   });
 
-  it("keeps the honesty rule: a reply claiming the change is done is replaced", async () => {
-    proposeTripEdits.mockResolvedValue({ reply: "I've added Wigwam to Day 3.", revisedDays: [wigwamDay3], summary: "", meta });
+  it("keeps the honesty rule: a reply claiming the change is done says first that it isn't saved, and keeps its answer", async () => {
+    proposeTripEdits.mockResolvedValue({ reply: "I've added Wigwam to Day 3. It's a 10-minute walk from Grafton Street.", revisedDays: [wigwamDay3], summary: "", meta });
     const { json } = await send("adding Wigwam to Day 3");
-    expect(json.message.content).toBe(`I've prepared this change. Nothing is saved until you tap "Save to my trip" below.`);
+    expect(json.message.content).toBe(
+      `Not saved yet: tap "Save to my trip" below to update your trip. I've added Wigwam to Day 3. It's a 10-minute walk from Grafton Street.`
+    );
     expect(json.pendingChange?.type).toBe("apply_draft");
     expect(json.pendingChange?.reason).toBeUndefined();
   });

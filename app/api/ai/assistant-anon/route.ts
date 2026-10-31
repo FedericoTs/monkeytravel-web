@@ -14,7 +14,7 @@ import { z } from "zod";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
-import { assistTrip } from "@/lib/ai/assistant-anon";
+import { assistTrip, MAX_TRIP_DAYS_MULTI } from "@/lib/ai/assistant-anon";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -78,7 +78,7 @@ const BodySchema = z.object({
   message: z.string().trim().min(3).max(1500),
   destination: z.string().trim().min(1).max(120),
   tripTitle: z.string().trim().min(1).max(160),
-  days: z.array(z.unknown()).min(1).max(20),
+  days: z.array(z.unknown()).min(1).max(MAX_TRIP_DAYS_MULTI),
   startDate: z.string().trim().max(10).optional(),
   endDate: z.string().trim().max(10).optional(),
   locale: z.string().trim().max(10).optional(),

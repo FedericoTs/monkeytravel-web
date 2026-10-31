@@ -6,7 +6,9 @@ import {
   announcedButMissing,
   announcesProposal,
   claimsItineraryChange,
+  claimsLongerTrip,
   claimsToRemember,
+  daysLeftNote,
   isConfirmation,
   missingAnswerReply,
   noProposalNote,
@@ -14,8 +16,10 @@ import {
   nothingKeptReply,
   notAppliedLead,
   offersChange,
+  pendingChangeLead,
   pendingChangeReply,
   planCostsReply,
+  withoutDanglingLead,
 } from "./honesty";
 
 /**
@@ -415,5 +419,46 @@ describe("the replies that stand in for a missing answer", () => {
   it("asks for one thing at a time when a list never came", () => {
     for (const l of ["en", "es", "it", "pt"]) expect(missingAnswerReply(l).length).toBeGreaterThan(20);
     expect(missingAnswerReply("it")).toMatch(/^Non sono riuscito/);
+  });
+});
+
+describe("more claims the guard used to miss", () => {
+  it("catches a day said to be free, in each language", () => {
+    expect(claimsItineraryChange("Com certeza! O dia 22 de dezembro e o dia 2 de janeiro estão agora livres para você aproveitar como preferir.")).toBe(true);
+    expect(claimsItineraryChange("Day 3 is now free for you to explore.")).toBe(true);
+    expect(claimsItineraryChange("I've freed up Day 4.")).toBe(true);
+    expect(claimsItineraryChange("El día 2 ahora está libre.")).toBe(true);
+    expect(claimsItineraryChange("Il giorno 2 ora è libero.")).toBe(true);
+    // An offer, or a fact about a place, is not a claim.
+    expect(claimsItineraryChange("I can leave Day 3 free if you like.")).toBe(false);
+    expect(claimsItineraryChange("Entry is free on the first Sunday of the month.")).toBe(false);
+  });
+
+  it("catches a reply that ends on a colon, even after figures", () => {
+    const reply = "Com certeza! O dia 22 de dezembro e o dia 2 de janeiro estão livres. Aqui estão as atualizações:";
+    expect(announcedButMissing(reply)).toBe("other");
+    expect(withoutDanglingLead(reply)).toBe("Com certeza! O dia 22 de dezembro e o dia 2 de janeiro estão livres.");
+    expect(announcedButMissing("Day 1 costs about 120 EUR. Here's how the revised costs look for your trip:")).toBe("cost");
+    expect(withoutDanglingLead("No colon here.")).toBe("No colon here.");
+  });
+
+  it("knows a reply that says the trip got longer", () => {
+    expect(claimsLongerTrip("Esto extiende el viaje un día más.")).toBe(true);
+    expect(claimsLongerTrip("I've added two extra days in Kyoto.")).toBe(true);
+    expect(claimsLongerTrip("Ho aggiunto un giorno in più a Firenze.")).toBe(true);
+    expect(claimsLongerTrip("Adicionei mais um dia em Lisboa.")).toBe(true);
+    expect(claimsLongerTrip("Day 3 now ends with dinner in Gion.")).toBe(false);
+  });
+});
+
+describe("the notes for a change in parts and for one waiting for the button", () => {
+  it("names the days still to do, and how to ask for them", () => {
+    expect(daysLeftNote("en", [7, 8, 9])).toBe(`(Days 7, 8, 9 aren't changed yet: say "continue" and I'll do the same there.)`);
+    expect(daysLeftNote("it", [13])).toContain(`"continua"`);
+  });
+
+  it("names the trip page's button", () => {
+    expect(pendingChangeLead("en", "Save to my trip")).toBe(`Not saved yet: tap "Save to my trip" below to update your trip.`);
+    expect(pendingChangeLead("pt", "Salvar na minha viagem")).toContain(`"Salvar na minha viagem"`);
   });
 });
