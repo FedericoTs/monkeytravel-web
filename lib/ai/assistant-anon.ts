@@ -160,7 +160,8 @@ function costLines(costs: PlanCosts | null): string {
   const view = costs.shown ?? costs;
   const perDay = view.perDay.map((d) => `Day ${d.day} ~${d.amount}`).join(", ");
   const own = costs.shown ? ` (${costs.total} ${costs.currency} in the plan's own amounts)` : "";
-  return `Activity costs, as the traveller sees them in ${view.currency}: ${perDay}. Total ~${view.total} ${view.currency}${own}. Hotels, flights and travel between cities are not in the plan.\n`;
+  // Travel between a multi-city plan's cities is a priced card of the plan.
+  return `Activity costs, as the traveller sees them in ${view.currency}: ${perDay}. Total ~${view.total} ${view.currency}${own}. These count only what the plan lists: hotels, and any travel it doesn't list, cost extra.\n`;
 }
 
 // Each price names its currency, and the one the traveller sees when that

@@ -150,8 +150,10 @@ describe("mergeCityItineraries", () => {
   it("builds the combined destination label", () => {
     expect(merged.destination.name).toBe("Rome & Paris");
   });
-  it("sums cost and merges/dedupes summary fields", () => {
-    expect(merged.trip_summary.total_estimated_cost).toBe(500);
+  it("sums cost, the transfer between the cities included, and merges/dedupes summary fields", () => {
+    const transfer = merged.days[3].activities.find((a) => a.transport_mode)!;
+    expect(transfer.estimated_cost).toMatchObject({ amount: 40, currency: "USD" });
+    expect(merged.trip_summary.total_estimated_cost).toBe(540);
     expect(merged.destination.best_for).toEqual(["food", "art", "wine"]);
     expect(merged.trip_summary.packing_suggestions).toEqual(["shoes", "umbrella"]);
     expect(merged.trip_summary.highlights).toEqual(["Colosseum", "Louvre"]);
@@ -180,6 +182,18 @@ describe("mergeCityItineraries", () => {
     const hotels = short.booking_links?.hotels ?? [];
     expect(hotels[0].url).toContain("checkin=2026-05-10&checkout=2026-05-11");
     expect(hotels[2].url).toContain("checkin=2026-05-11&checkout=2026-05-12");
+  });
+  it("adds a transfer to the total only in the trip's currency, and none when transfers are off", () => {
+    const vnd = (name: string) => {
+      const r = cityResult(name, 1, { cost: 1_000_000 });
+      r.trip_summary.currency = "VND";
+      return r;
+    };
+    const twoCities = [{ city: "Hanoi", nights: 1 }, { city: "Hue", nights: 1 }];
+    expect(mergeCityItineraries(twoCities, [vnd("Hanoi"), vnd("Hue")], "2026-05-10").trip_summary.total_estimated_cost).toBe(2_000_000);
+    expect(
+      mergeCityItineraries(legs, results, "2026-05-10", { insertTransfers: false }).trip_summary.total_estimated_cost
+    ).toBe(500);
   });
   it("throws when legs and results lengths differ", () => {
     expect(() => mergeCityItineraries(legs, [results[0]], "2026-05-10")).toThrow(
