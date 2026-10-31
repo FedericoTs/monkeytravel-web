@@ -46,6 +46,17 @@ const TARGETS = [
   new RegExp(`${B}(?:s[ií]mbolo|signo|segno|sinal)\\s+(?:(?:de|del|do|da|dell['’]|della|dello)\\s*)?${ARTICLE}(?<cur>${CURRENCY})${E}`, "giu"),
 ];
 
+// No verb at all: "In euro, not usd", "in euros please", "euros, not dollars",
+// or just the currency.
+const VERBLESS = [
+  new RegExp(`^\\W*(?:in|en|em|nel|nella)\\s+${ARTICLE}(?<cur>${CURRENCY})${E}`, "iu"),
+  new RegExp(
+    `${B}(?<cur>${CURRENCY})\\s*,?\\s*(?:not|no|non|não|instead\\s+of|en\\s+vez\\s+de|en\\s+lugar\\s+de|invece\\s+(?:di|che)|em\\s+vez\\s+de)\\s+(?:(?:in|en|em)\\s+)?${ARTICLE}(?:${CURRENCY})${E}`,
+    "iu"
+  ),
+  new RegExp(`^\\W*(?<cur>${CURRENCY})\\s*(?:please|pls|por\\s+favor|per\\s+favore|grazie|gracias|obrigad[oa]|thanks?)?\\W*$`, "iu"),
+];
+
 // Codes that are also words ("want to try"): these count only in capitals.
 const CODES_THAT_ARE_WORDS = new Set(["TRY", "RON", "CAD", "PHP"]);
 
@@ -61,23 +72,34 @@ function toCode(token: string): string | null {
 /** The currency the message asks prices to be shown in, or null. */
 export function currencyRequested(message: string | null | undefined): string | null {
   const text = (message ?? "").trim();
-  if (!text || !INTENT.test(text)) return null;
-  for (const re of TARGETS) {
-    for (const match of text.matchAll(re)) {
-      const code = match.groups?.cur ? toCode(match.groups.cur.replace(/\s+/g, " ")) : null;
-      if (code) return code;
+  if (!text) return null;
+  if (INTENT.test(text)) {
+    for (const re of TARGETS) {
+      for (const match of text.matchAll(re)) {
+        const code = match.groups?.cur ? toCode(match.groups.cur.replace(/\s+/g, " ")) : null;
+        if (code) return code;
+      }
     }
+  }
+  for (const re of VERBLESS) {
+    const cur = re.exec(text)?.groups?.cur;
+    const code = cur ? toCode(cur.replace(/\s+/g, " ")) : null;
+    if (code) return code;
   }
   return null;
 }
 
 const CURRENCY_TALK = new RegExp(`${B}(?:${CURRENCY}|currenc\\p{L}*|moneda|divisa|valuta|moeda)${E}`, "iu");
 
-/** The reply without its sentences about currency, which the switch now makes true or false. */
-export function withoutCurrencyTalk(text: string | null | undefined): string {
+/**
+ * The reply without its sentences about currency, which the switch now makes
+ * true or false. With `keepPrices`, a sentence with figures stays: it prices
+ * the change rather than talking about the currency.
+ */
+export function withoutCurrencyTalk(text: string | null | undefined, keepPrices = false): string {
   return (text ?? "")
     .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => !CURRENCY_TALK.test(sentence))
+    .filter((sentence) => !CURRENCY_TALK.test(sentence) || (keepPrices && /\d/.test(sentence)))
     .join(" ")
     .trim();
 }

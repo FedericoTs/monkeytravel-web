@@ -262,7 +262,7 @@ describe("buildPrompt", () => {
 
   it("asks the model to read what the traveller means before acting", () => {
     expect(prompt).toContain("A statement about their trip asks you to fit the plan to it");
-    expect(prompt).toContain('A short "yes", "ok" or "do it" answers your previous message');
+    expect(prompt).toContain('A short "yes", "ok", "do it" or "continue" answers your previous message');
     expect(prompt).toContain("do every one");
     expect(prompt).toContain("make it instead of asking for permission");
   });

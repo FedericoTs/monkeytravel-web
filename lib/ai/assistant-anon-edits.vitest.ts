@@ -1,7 +1,7 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
 import type { ItineraryDay } from "@/types";
-import { buildPrompt, composeReply, plainText, validateEdits } from "./assistant-anon";
+import { asksForFreeDay, buildPrompt, composeReply, plainText, validateEdits } from "./assistant-anon";
 
 /**
  * The wizard assistant can change several days and the trip's length in one
@@ -290,5 +290,80 @@ describe("plainText", () => {
   it("leaves plain replies alone", () => {
     const reply = "Day 2 now starts at 10:00 - a slower morning.";
     expect(plainText(reply)).toBe(reply);
+  });
+});
+
+describe("composeReply: what a change said and didn't do", () => {
+  const base = { lockedDays: [], lengthRefused: false, locale: "en", currentDays: 5, autoApplied: true };
+  const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+
+  it("names the days a change in parts didn't reach", () => {
+    const text = composeReply({ ...base, reply: "Every day is gluten-free now.", edits: [d2], daysLeft: [4, 5] });
+    expect(text).toBe(`Every day is gluten-free now. (Days 4, 5 aren't changed yet: say "continue" and I'll do the same there.)`);
+  });
+
+  it("gives the figures a change's reply announced, from the plan as changed", () => {
+    const costsAfter = { currency: "EUR", perDay: [], total: 640 };
+    const text = composeReply({ ...base, reply: "Here's how the revised costs look for your trip:", edits: [d2], costsAfter });
+    expect(text).toBe("The activities in your plan come to about 640 EUR. Hotels and flights aren't in the plan, so add those on top.");
+  });
+
+  it("lists what each day now does when a change's reply ends on a colon", () => {
+    expect(composeReply({ ...base, reply: "Done! Here are the updates:", edits: [d2] })).toBe("Done!\n- Day 2: Day 2 updated");
+  });
+
+  it("keeps the figures that came before a closing announcement, with nothing prepared", () => {
+    expect(composeReply({ ...base, reply: "Day 1 costs about 120 EUR. Here's the breakdown:", edits: [] })).toBe("Day 1 costs about 120 EUR.");
+  });
+
+  it("says a day called free wasn't freed when nothing was prepared", () => {
+    const reply = "Com certeza! O dia 22 de dezembro e o dia 2 de janeiro estão agora livres para você aproveitar como preferir. Aqui estão as atualizações:";
+    expect(composeReply({ ...base, locale: "pt", reply, edits: [] })).toMatch(/^Não alterei o seu plano/);
+  });
+
+  it("says the trip keeps its length when the reply claims a longer one", () => {
+    const text = composeReply({ ...base, locale: "es", reply: "Esto extiende el viaje un día más.", edits: [d2], askedForMoreDays: true });
+    expect(text).toContain("El viaje sigue teniendo 5 días");
+    // Not when nobody asked for a longer trip.
+    expect(composeReply({ ...base, reply: "I've added an extra day of beaches.", edits: [d2] })).not.toContain("stays at");
+  });
+
+  it("drops 'already in EUR' next to an edit, and keeps the change's prices", () => {
+    const reply = "I've moved the Alcazaba to Day 2. Lunch there is about 25 EUR. The plan already shows costs in EUR, so no change was needed.";
+    expect(composeReply({ ...base, reply, edits: [d2], currency: "EUR" })).toBe(
+      "I've moved the Alcazaba to Day 2. Lunch there is about 25 EUR. Done: prices now show in EUR."
+    );
+  });
+});
+
+describe("a free day", () => {
+  it("is asked for in each language", () => {
+    expect(asksForFreeDay("deixe o dia 22 e o dia 2 livres")).toBe(true);
+    expect(asksForFreeDay("leave day 3 free")).toBe(true);
+    expect(asksForFreeDay("lascia libero il giorno 2")).toBe(true);
+    expect(asksForFreeDay("quiero el día 4 libre")).toBe(true);
+    expect(asksForFreeDay("add a cooking class on day 3")).toBe(false);
+  });
+
+  it("empties a day only when the traveller asked for one", () => {
+    const raw = { edits: [{ day_number: 2, activities: [] }], tripLength: null };
+    expect(validateEdits(trip(), raw, "EUR").edits).toEqual([]);
+    expect(validateEdits(trip(), raw, "EUR", true).edits.map((e) => [e.day_number, e.activities.length])).toEqual([[2, 0]]);
+    // An edit with no activities array at all is still a broken one.
+    expect(validateEdits(trip(), { edits: [{ day_number: 2 }], tripLength: null }, "EUR", true).edits).toEqual([]);
+  });
+});
+
+describe("start times", () => {
+  it("reads 12-hour times instead of falling back to the part of the day", () => {
+    const activities = [
+      { name: "A", time_slot: "afternoon", start_time: "1:30 PM" },
+      { name: "B", time_slot: "morning", start_time: "9 am" },
+      { name: "C", time_slot: "evening", start_time: "21h00" },
+      { name: "D", time_slot: "evening", start_time: "12:15 a.m." },
+      { name: "E", time_slot: "evening", start_time: "25:00" },
+    ];
+    const { edits } = validateEdits(trip(), { edits: [{ day_number: 1, activities }], tripLength: null }, "EUR");
+    expect(edits[0].activities.map((a) => a.start_time)).toEqual(["13:30", "09:00", "21:00", "00:15", "19:00"]);
   });
 });

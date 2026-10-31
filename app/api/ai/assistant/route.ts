@@ -58,6 +58,7 @@ import {
   claimsToRemember,
   nothingChangedReply,
   nothingKeptReply,
+  pendingChangeLead,
   pendingChangeReply,
 } from "@/lib/ai/assistant/honesty";
 import {
@@ -2255,8 +2256,12 @@ Respond with valid JSON only.`;
       console.warn(
         `[AI Assistant] honesty guard replaced a ${claimedChange ? "change" : "memory"} claim (${actionTaken ? "change pending" : "nothing prepared"}): "${String(parsedResponse.summary).slice(0, 120)}"`
       );
+      // The engine's words are the answer and say what each day gets: they
+      // stay, after the truth about the button.
       parsedResponse.summary = actionTaken
-        ? pendingChangeReply(userLanguage, applyButtonLabel(userLanguage))
+        ? engineReply !== null && claimedChange
+          ? `${pendingChangeLead(userLanguage, applyButtonLabel(userLanguage))} ${engineReply}`
+          : pendingChangeReply(userLanguage, applyButtonLabel(userLanguage))
         : claimedChange
           ? nothingChangedReply(userLanguage)
           : nothingKeptReply(userLanguage);

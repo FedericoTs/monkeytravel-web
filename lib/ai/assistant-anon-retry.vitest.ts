@@ -110,6 +110,57 @@ describe("assistTrip on a reply that breaks a rule", () => {
   });
 });
 
+describe("assistTrip on a change about more days than one reply holds", () => {
+  const days = Array.from({ length: 9 }, (_, i) => ({
+    ...day(i + 1),
+    activities: [{ name: `Day ${i + 1} thing`, time_slot: "morning", start_time: "09:00" }],
+  })) as unknown as ItineraryDay[];
+  const long = { ...input, message: "im gluten free", days };
+  const daysReply = (days: number[], more: number[] = []) => ({
+    response: {
+      text: () =>
+        JSON.stringify({
+          reply: "Every day is gluten-free now.",
+          more_days: more,
+          edits: days.map((n) => ({ day_number: n, summary: `GF day ${n}`, activities: [{ name: `GF place ${n}` }] })),
+        }),
+    },
+  });
+
+  it("asks for the other days together and returns every day", async () => {
+    generateContent.mockResolvedValueOnce(daysReply([1, 2, 3, 4, 5, 6], [7, 8, 9])).mockResolvedValueOnce(daysReply([7, 8, 9]));
+    const out = await run(long);
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(JSON.stringify(generateContent.mock.calls[1][0])).toContain("Now return Days 7, 8, 9");
+    expect(out.edits.map((e) => e.day_number)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(out.reply).toBe("Every day is gluten-free now.");
+  });
+
+  it("names the days a part didn't bring back", async () => {
+    generateContent.mockResolvedValueOnce(daysReply([1, 2, 3, 4, 5, 6], [7, 8, 9])).mockRejectedValueOnce(overloaded());
+    const out = await run(long);
+    expect(out.edits.map((e) => e.day_number)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(out.reply).toContain("Days 7, 8, 9 aren't changed yet");
+  });
+
+  it("keeps a day a part left as it was out of the change", async () => {
+    const same = { response: { text: () => JSON.stringify({ reply: "ok", edits: [{ day_number: 7, activities: [{ name: "Day 7 thing", time_slot: "morning" }] }] }) } };
+    generateContent.mockResolvedValueOnce(daysReply([1, 2, 3, 4, 5, 6], [7])).mockResolvedValueOnce(same);
+    const out = await run(long);
+    expect(out.edits.map((e) => e.day_number)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(out.reply).toBe("Every day is gluten-free now.");
+  });
+
+  it("doesn't start the rest when the request is already slow, and says so", async () => {
+    const now = vi.spyOn(Date, "now").mockReturnValueOnce(0).mockReturnValue(40_000);
+    generateContent.mockResolvedValueOnce(daysReply([1, 2, 3, 4, 5, 6], [7, 8, 9]));
+    const out = await run(long);
+    now.mockRestore();
+    expect(generateContent).toHaveBeenCalledTimes(1);
+    expect(out.reply).toContain("Days 7, 8, 9 aren't changed yet");
+  });
+});
+
 describe("isModelOverloaded", () => {
   it("is true only for 429, 500 and 503", () => {
     expect([429, 500, 503].map((status) => mod.isModelOverloaded({ status }))).toEqual([true, true, true]);

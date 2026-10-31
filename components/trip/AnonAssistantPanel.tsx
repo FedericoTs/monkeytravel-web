@@ -184,9 +184,8 @@ export default function AnonAssistantPanel({
       const reply: string = payload.reply ?? "";
       // "edits" (several days) or the older single "edit".
       const rawEdits: unknown[] = Array.isArray(payload.edits) ? payload.edits : payload.edit ? [payload.edit] : [];
-      const edits = rawEdits.filter(
-        (e): e is AnonEdit => !!e && Array.isArray((e as AnonEdit).activities) && (e as AnonEdit).activities.length > 0
-      );
+      // A day with no activities is one asked to be left free (the server checks).
+      const edits = rawEdits.filter((e): e is AnonEdit => !!e && Array.isArray((e as AnonEdit).activities));
       const tripLength: number | undefined = typeof payload.tripLength === "number" ? payload.tripLength : undefined;
       const changes = edits.length > 0 || tripLength !== undefined;
       // Prices follow the viewer's currency, so a currency request is applied here.
@@ -527,7 +526,7 @@ export default function AnonAssistantPanel({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={t("assistant.placeholder")}
-          maxLength={500}
+          maxLength={1500}
           className="min-w-0 flex-1 rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-[var(--primary)] focus:outline-none"
         />
         <button
