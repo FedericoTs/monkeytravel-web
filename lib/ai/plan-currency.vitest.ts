@@ -59,7 +59,7 @@ describe("withPricesIn", () => {
     );
     expect(costs(out)).toEqual(["20 USD", "13 USD", "25 USD"]);
     expect(out.trip_summary).toMatchObject({ total_estimated_cost: 450, currency: "USD" });
-    expect(out.days[0].activities[0].estimated_cost.tier).toBe("moderate");
+    expect(out.days[0].activities[0].estimated_cost?.tier).toBe("moderate");
   });
 
   it("keeps free things free, and never rounds a price down to free", () => {
