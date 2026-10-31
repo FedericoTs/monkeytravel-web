@@ -31,6 +31,7 @@ import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { errors, apiSuccess, apiError } from "@/lib/api/response-wrapper";
 import { getTripDestination } from "@/lib/trips/destination";
+import { dietsFrom } from "@/lib/trips/diet";
 import { casUpdateItinerary, type CasOutcome } from "@/lib/trips/itinerary-cas";
 import type { ItineraryDay, TripVibe } from "@/types";
 
@@ -188,7 +189,7 @@ async function regenerateDay(request: NextRequest, geminiCost: GeminiCostMeter) 
     // rest of the itinerary. Bug fix 2026-05-28: without this, a "regen
     // day 3" on a backpacker trip returned a classic day and the trip
     // became internally inconsistent (hostels everywhere except day 3).
-    const tripMeta = (trip!.trip_meta ?? {}) as { travel_style?: "classic" | "backpacker" };
+    const tripMeta = (trip!.trip_meta ?? {}) as { travel_style?: "classic" | "backpacker"; dietary?: unknown };
     const travelStyle: "classic" | "backpacker" =
       tripMeta.travel_style === "backpacker" ? "backpacker" : "classic";
 
@@ -205,6 +206,8 @@ async function regenerateDay(request: NextRequest, geminiCost: GeminiCostMeter) 
         surroundingDays,
         instructions: typeof instructions === "string" ? instructions : undefined,
         travelStyle,
+        // The diet the trip was planned for.
+        profilePreferences: { dietaryPreferences: dietsFrom(tripMeta.dietary) },
         language,
         userId: user.id,
       });

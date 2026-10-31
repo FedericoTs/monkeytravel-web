@@ -29,6 +29,7 @@ import {
   adjustItineraryDates,
 } from "@/lib/ai/cache";
 import { loadUserContext } from "@/lib/ai/user-context";
+import { withTripDiet } from "@/lib/trips/diet";
 import { requestLocale } from "@/lib/ai/language";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import {
@@ -116,7 +117,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       return errors.badRequest("Body must be valid JSON");
     }
 
-    const { profilePreferences } = userContext;
+    const profilePreferences = withTripDiet(userContext.profilePreferences, body.dietary);
     // The page's own locale wins: next-intl writes NEXT_LOCALE only when it
     // differs from the browser language, so the cookie is usually absent.
     const userLanguage = requestLocale(body.locale) ?? userContext.userLanguage;
@@ -154,9 +155,9 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
 
     // Personalized generations must not read OR write the cross-user cache:
     // a cached generic itinerary would silently ignore the traveller's wishes
-    // (same reasoning as the anchored branch below), and a wish-tailored
+    // or diet (same reasoning as the anchored branch below), and a tailored
     // itinerary must not poison the generic pool for everyone else.
-    const isPersonalized = Boolean(params.mustDos?.length);
+    const isPersonalized = Boolean(params.mustDos?.length || profilePreferences.dietaryPreferences?.length);
     // "Try Different Version": skip the cache READ so the traveller gets a new
     // plan, not the one on screen (same rule as the stream route).
     const wantsFresh = body.fresh === true;
@@ -455,6 +456,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         used_maps_grounding: usedMapsGrounding,
         // "Try Different Version": a regenerate that skipped the cache.
         fresh: wantsFresh,
+        ...(profilePreferences.dietaryPreferences?.length ? { dietary: profilePreferences.dietaryPreferences } : {}),
         ...(generationId ? { generation_id: generationId } : {}),
       },
     });

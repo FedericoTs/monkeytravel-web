@@ -10,6 +10,7 @@
 
 import type { GeneratedItinerary, TripVibe } from "@/types";
 import { isIsoDate, MAX_TRIP_DAYS } from "@/lib/trips/anonymous-share";
+import { dietsFrom, type Diet } from "@/lib/trips/diet";
 
 const PACES = ["relaxed", "moderate", "active"] as const;
 const BUDGET_TIERS = ["budget", "balanced", "premium"] as const;
@@ -30,6 +31,7 @@ export interface KeptPlan {
   tripIntent?: "solo" | "group";
   flexibleDates?: boolean;
   mustDos?: string[];
+  dietary?: Diet[];
 }
 
 function oneOf<T extends string>(options: readonly T[], v: unknown): T | undefined {
@@ -125,6 +127,7 @@ export function parseKeptPlan(input: unknown): KeptPlan | null {
     ? input.vibes.map((v) => oneOf(VIBES, v)).filter((v): v is TripVibe => !!v).slice(0, 6)
     : undefined;
   const mustDos = strings(input.mustDos, 10, 120);
+  const dietary = dietsFrom(input.dietary);
   return {
     destination,
     startDate,
@@ -137,5 +140,6 @@ export function parseKeptPlan(input: unknown): KeptPlan | null {
     ...(input.tripIntent === "solo" || input.tripIntent === "group" ? { tripIntent: input.tripIntent } : {}),
     ...(input.flexibleDates === true ? { flexibleDates: true } : {}),
     ...(mustDos?.length ? { mustDos } : {}),
+    ...(dietary.length ? { dietary } : {}),
   };
 }

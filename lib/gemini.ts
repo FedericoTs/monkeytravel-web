@@ -345,21 +345,15 @@ function buildProfilePreferencesSection(profilePreferences?: UserProfilePreferen
   // Dietary preferences - CRITICAL for food recommendations
   if (profilePreferences.dietaryPreferences && profilePreferences.dietaryPreferences.length > 0) {
     const dietLabels: Record<string, string> = {
-      "vegetarian": "Vegetarian (no meat)",
+      "vegetarian": "Vegetarian (no meat or fish)",
       "vegan": "Vegan (no animal products)",
       "halal": "Halal (Islamic dietary laws)",
       "kosher": "Kosher (Jewish dietary laws)",
       "gluten-free": "Gluten-Free",
-      "no-restrictions": "No dietary restrictions",
     };
-    const formatted = profilePreferences.dietaryPreferences
-      .filter(d => d !== "no-restrictions")
-      .map(d => dietLabels[d] || d)
-      .join(", ");
-    if (formatted) {
-      sections.push(`- Dietary Requirements: ${formatted}
-  IMPORTANT: ALL restaurant suggestions MUST accommodate these dietary needs. Prioritize restaurants known for these options.`);
-    }
+    const formatted = profilePreferences.dietaryPreferences.map(d => dietLabels[d] || d).join(", ");
+    sections.push(`- Dietary Requirements: ${formatted}
+  IMPORTANT: every place to eat or drink (restaurants, cafés, bars, markets, food tours) MUST suit these needs. Choose real, named, long-established places well known for these options, not new or little-known ones; a popular restaurant with clearly marked dishes for these needs is a good choice. In each one's description, say what the traveller can eat there.`);
   }
 
   // Accessibility needs - affects venue selection
@@ -1120,6 +1114,8 @@ export interface RegenerateActivityParams {
    * at the call site. Defaults to "classic".
    */
   travelStyle?: "classic" | "backpacker";
+  /** The trip's diets (trip_meta.dietary): a replacement place to eat must suit them. */
+  dietary?: string[];
 }
 
 // The activity regeneration prompt loads from the database via getPrompt();
@@ -1201,6 +1197,7 @@ async function regenerateSingleActivityInternal(
 ${preferences?.category ? `- Category preference: ${preferences.category}` : ""}
 ${preferences?.similarTo ? "- Should be similar in type/style to the replaced activity" : "- Should be different/fresh compared to the replaced activity"}
 ${params.travelStyle === "backpacker" ? `- BACKPACKER TRIP: prefer hostels (not hotels), street food / markets / casual eateries, free walking tours, viewpoints, public transit. Avoid expensive guided tours, taxis, and upscale dining. Favour social spots where solo travellers can meet others.` : ""}
+${params.dietary?.length ? `- Diet: ${params.dietary.join(", ")}. A place to eat must suit it.` : ""}
 
 ## Do NOT suggest any of these places (already in itinerary):
 ${existingActivityNames.join(", ")}

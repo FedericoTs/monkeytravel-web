@@ -9,6 +9,7 @@ import { findActivityById, getAllActivityNames } from "@/lib/utils/activity-id";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import type { ItineraryDay } from "@/types";
+import { dietsFrom } from "@/lib/trips/diet";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { recordAiOutcome } from "@/lib/ai/observability";
 
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest) {
     // the rest of the trip. Bug fix 2026-05-28: without this, the
     // assistant could swap a hostel recommendation in a backpacker trip
     // for a boutique hotel.
-    const tripMeta = (trip.trip_meta ?? {}) as { travel_style?: "classic" | "backpacker" };
+    const tripMeta = (trip.trip_meta ?? {}) as { travel_style?: "classic" | "backpacker"; dietary?: unknown };
     const travelStyle: "classic" | "backpacker" =
       tripMeta.travel_style === "backpacker" ? "backpacker" : "classic";
 
@@ -148,6 +149,7 @@ export async function POST(request: NextRequest) {
       existingActivityNames,
       preferences,
       travelStyle,
+      dietary: dietsFrom(tripMeta.dietary),
       language,
     }));
 

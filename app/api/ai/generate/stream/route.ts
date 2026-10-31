@@ -27,6 +27,7 @@ import {
   adjustItineraryDates,
 } from "@/lib/ai/cache";
 import { loadUserContext } from "@/lib/ai/user-context";
+import { withTripDiet } from "@/lib/trips/diet";
 import { requestLocale } from "@/lib/ai/language";
 import type {
   TripCreationParams,
@@ -158,7 +159,7 @@ export async function POST(request: NextRequest) {
   }
   const body = parsedBody;
 
-  const { profilePreferences } = userContext;
+  const profilePreferences = withTripDiet(userContext.profilePreferences, body.dietary);
   // The page's own locale wins: next-intl writes NEXT_LOCALE only when it
   // differs from the browser language, so the cookie is usually absent.
   const userLanguage = requestLocale(body.locale) ?? userContext.userLanguage;
@@ -195,9 +196,9 @@ export async function POST(request: NextRequest) {
   };
 
   // Personalized generations bypass the cross-user cache in BOTH directions —
-  // a cached generic itinerary would ignore the wishes, and a wish-tailored
-  // result must not poison the shared pool (same rule as the JSON route).
-  const isPersonalized = Boolean(params.mustDos?.length);
+  // a cached generic itinerary would ignore the wishes or the diet, and a
+  // tailored result must not poison the shared pool (same rule as the JSON route).
+  const isPersonalized = Boolean(params.mustDos?.length || profilePreferences.dietaryPreferences?.length);
   // "Try Different Version" (the wizard's Regenerate) asks for a NEW plan.
   // The shared cache would hand back the very one on screen: 23 of 51
   // identical re-generations in 14 days came back in under 3 s (2026-09-26).
@@ -564,6 +565,7 @@ export async function POST(request: NextRequest) {
                 streamed: true,
                 // "Try Different Version": a regenerate that skipped the cache.
                 fresh: wantsFresh,
+                ...(profilePreferences.dietaryPreferences?.length ? { dietary: profilePreferences.dietaryPreferences } : {}),
                 ...(firstDayMs !== null ? { first_day_ms: firstDayMs } : {}),
                 ...(parts > 0 ? { parts, outline_ms: outlineMs } : {}),
                 ...(partRetries > 0 ? { part_retries: partRetries } : {}),

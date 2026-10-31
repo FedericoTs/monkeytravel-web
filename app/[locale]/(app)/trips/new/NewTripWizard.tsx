@@ -33,6 +33,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { prefs } from "@/lib/platform/storage";
 import type { GeneratedItinerary, ItineraryDay, TripAnchor, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
+import { DIETS, dietsFrom, type Diet } from "@/lib/trips/diet";
 // Step-1 components (above-the-fold) stay eager.
 import VibeSelector from "@/components/trip/VibeSelector";
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
@@ -664,7 +665,8 @@ export default function NewTripPage({
   }, [isFreshSignup, authEventAtMount]);
 
   // Personalization preferences live in profile settings; the AI generation
-  // API reads them from the database, so the wizard does not send them.
+  // API reads them from the database. The wizard sends only this trip's diet
+  // (step 2), which replaces the profile's when one is picked.
 
 
   // Form state. A deep-linked destination is known before the first render,
@@ -730,6 +732,9 @@ export default function NewTripPage({
   // the requirements prose. Caps mirror validateTripParams (10 × 80 chars).
   const [mustDos, setMustDos] = useState<string[]>([]);
   const [mustDoInput, setMustDoInput] = useState("");
+  // Diets the plan's places to eat must suit (step 2 chips).
+  const [dietary, setDietary] = useState<Diet[]>([]);
+  const tDiet = useTranslations("common.onboarding.dietary");
   const [seasonalContext, setSeasonalContext] = useState<SeasonalContext | null>(null);
 
   // UX enhancement state
@@ -1258,6 +1263,7 @@ export default function NewTripPage({
         setSelectedVibes(draft.vibes as TripVibe[]);
         setBudgetTier(draft.budgetTier as "budget" | "balanced" | "premium");
         if (Array.isArray(draft.mustDos)) setMustDos(draft.mustDos as string[]);
+        setDietary(dietsFrom(draft.dietary));
         // travelStyle may be missing from a stored draft → stays "classic"
         if (draft.travelStyle === "backpacker") {
           setTravelStyle("backpacker");
@@ -1333,14 +1339,15 @@ export default function NewTripPage({
       travelStyle,
       anchors,
       mustDos,
+      dietary,
       tripIntent,
       flexibleDates,
     });
     // tripIntent belongs here: without it the effect doesn't re-run when the
     // user changes "Who's coming?" after generating, and the draft keeps the
     // stale answer — which would quietly corrupt the very measurement this
-    // field exists to produce. Same for mustDos.
-  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, tripIntent, flexibleDates, saveDraft, savedTripId, clearDraft]);
+    // field exists to produce. Same for mustDos and dietary.
+  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, dietary, tripIntent, flexibleDates, saveDraft, savedTripId, clearDraft]);
 
   // ── Auto-save trip orchestration ────
   // The hook owns the save state machine: INSERT-or-UPDATE, the in-flight save
@@ -1362,6 +1369,7 @@ export default function NewTripPage({
     locale,
     anchors,
     mustDos,
+    dietary,
     // "Who's coming?" is written to the trip so the answer is queryable from
     // the database (reading it from PostHog needs a personal API key). That
     // is what makes the toggle evidence for the group-vs-solo decision.
@@ -1664,6 +1672,7 @@ export default function NewTripPage({
         budgetTier,
         travelStyle,
         mustDos,
+        dietary,
         anchors,
         tripIntent,
         flexibleDates,
@@ -1827,9 +1836,10 @@ export default function NewTripPage({
             ...(tripIntent === "solo" || tripIntent === "group" ? { tripIntent } : {}),
             ...(flexibleDates ? { flexibleDates: true } : {}),
             ...(mustDos.length > 0 ? { mustDos } : {}),
+            ...(dietary.length > 0 ? { dietary } : {}),
           }
         : null,
-    [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, tripIntent, flexibleDates, mustDos]
+    [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, tripIntent, flexibleDates, mustDos, dietary]
   );
   const { kept: keptPlan, adoptOpened: adoptOpenedPlan } = useKeptPlan({
     enabled: isAuthenticated === false && hasResult && isUnsaved && !generating,
@@ -1871,6 +1881,7 @@ export default function NewTripPage({
     if (plan.tripIntent) setTripIntent(plan.tripIntent);
     setFlexibleDates(plan.flexibleDates === true);
     setMustDos(plan.mustDos ?? []);
+    setDietary(plan.dietary ?? []);
     setAnchors([]);
     setDestinationCoords(null);
     setMultiCityMode(false);
@@ -2006,6 +2017,7 @@ export default function NewTripPage({
       setSelectedVibes(draft.vibes as TripVibe[]);
       setBudgetTier(draft.budgetTier as "budget" | "balanced" | "premium");
       if (Array.isArray(draft.mustDos)) setMustDos(draft.mustDos as string[]);
+      setDietary(dietsFrom(draft.dietary));
       if (draft.travelStyle === "backpacker") {
         setTravelStyle("backpacker");
       }
@@ -2149,6 +2161,7 @@ export default function NewTripPage({
     setSelectedVibes([]);
     setRequirements("");
     setMustDos([]);
+    setDietary([]);
     setMustDoInput("");
     setSeasonalContext(null);
     // Reset the multi-city rows too, or the sync effect rebuilds
@@ -2419,6 +2432,7 @@ export default function NewTripPage({
         travelStyle,
         anchors,
         mustDos,
+        dietary,
         tripIntent,
         flexibleDates,
       });
@@ -2507,8 +2521,9 @@ export default function NewTripPage({
         ...(!isMultiCity && anchors.length > 0 ? { anchors } : {}),
       };
       // Regenerate asks for a different plan: the server then skips its cache.
-      // The page locale picks the itinerary's language.
-      const requestBody = { ...params, locale, ...(opts.fresh ? { fresh: true } : {}) };
+      // The page locale picks the itinerary's language. A diet also skips the
+      // shared cache, server-side.
+      const requestBody = { ...params, locale, ...(dietary.length > 0 ? { dietary } : {}), ...(opts.fresh ? { fresh: true } : {}) };
 
       // Multi-city and anchored trips return one merged JSON body, not an SSE
       // stream — skip the streaming endpoint and let the JSON fallback below
@@ -2857,8 +2872,9 @@ export default function NewTripPage({
             // generate-time draft write; without it the post-signup restore
             // silently drops the flag.
             travelStyle,
-            // Same for the must-do wishlist.
+            // Same for the must-do wishlist and the diet.
             mustDos,
+            dietary,
             // Same for anchors: without this, the post-signup save would
             // silently drop trip_meta.anchors.
             anchors,
@@ -2960,8 +2976,9 @@ export default function NewTripPage({
         // Anchors: persist the fixed commitments this trip was built
         // around so regeneration/editing keeps honouring them.
         ...(anchors.length > 0 ? { anchors } : {}),
-        // Must-dos: same source-of-truth reasoning as anchors.
+        // Must-dos and diet: same source-of-truth reasoning as anchors.
         ...(mustDos.length > 0 ? { must_dos: mustDos } : {}),
+        ...(dietary.length > 0 ? { dietary } : {}),
         // Pace the trip was generated at — the feasibility strip on the
         // detail/share views reads it to pick the day-time budget.
         pace,
@@ -5041,6 +5058,37 @@ export default function NewTripPage({
                   className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors text-sm"
                 />
               )}
+            </div>
+
+            {/* Diet: every place to eat in the plan must suit the ones picked. */}
+            <div role="group" aria-labelledby="diet-label">
+              <p id="diet-label" className="text-sm font-medium text-slate-700 mb-1">
+                {tDiet("title")}{" "}
+                <span className="font-normal text-slate-500">{t("wizard.step2.mustDos.optional")}</span>
+              </p>
+              <p className="text-xs text-slate-500 mb-2">{tDiet("subtitle")}</p>
+              <div className="flex flex-wrap gap-2">
+                {DIETS.map((diet) => {
+                  const picked = dietary.includes(diet);
+                  return (
+                    <button
+                      key={diet}
+                      type="button"
+                      aria-pressed={picked}
+                      onClick={() =>
+                        setDietary((prev) => dietsFrom(picked ? prev.filter((d) => d !== diet) : [...prev, diet]))
+                      }
+                      className={`min-h-[40px] rounded-full border-2 px-3.5 text-sm font-medium transition-colors ${
+                        picked
+                          ? "border-[var(--primary)] bg-[var(--primary)]/5 text-slate-900"
+                          : "border-slate-200 text-slate-600 hover:border-slate-300"
+                      }`}
+                    >
+                      {tDiet(`options.${diet === "gluten-free" ? "glutenFree" : diet}.label`)}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Collapsible Advanced Preferences */}

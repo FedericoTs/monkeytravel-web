@@ -62,6 +62,8 @@ export interface TripFormState {
    * while the wish still stands.
    */
   mustDos?: string[];
+  /** Diets the planner was asked to plan for (lib/trips/diet.ts); later AI edits keep to them. */
+  dietary?: string[];
   /**
    * Whether the user said they were travelling solo or with others, from the
    * "Who's coming?" toggle on wizard step 1.
@@ -180,8 +182,9 @@ function buildTripRow(
     // (rather than an empty array) on the overwhelming majority of rows — the
     // publish guard reads it with `Array.isArray`, which treats both alike.
     ...(formState.anchors?.length ? { anchors: formState.anchors } : {}),
-    // Same absent-when-empty convention for the must-do wishlist.
+    // Same absent-when-empty convention for the must-do wishlist and the diet.
     ...(formState.mustDos?.length ? { must_dos: formState.mustDos } : {}),
+    ...(formState.dietary?.length ? { dietary: formState.dietary } : {}),
     // Pace the trip was generated at. Always present on the form, so
     // always written — the feasibility strip on the detail/share views reads
     // it to pick the day-time budget; absent (older rows) reads as moderate.

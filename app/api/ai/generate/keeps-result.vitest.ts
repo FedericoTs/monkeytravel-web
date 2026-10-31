@@ -20,7 +20,7 @@ vi.mock("@/lib/anonymous/rate-limit", () => ({
   recordAnonymousGeneration: async () => {},
 }));
 vi.mock("@/lib/ai/user-context", () => ({
-  loadUserContext: async () => ({ profilePreferences: undefined, userLanguage: "en" }),
+  loadUserContext: async () => ({ profilePreferences: {}, userLanguage: "en" }),
 }));
 const logged: Array<Record<string, unknown>> = [];
 vi.mock("@/lib/api-gateway", () => ({

@@ -85,4 +85,12 @@ describe("generateTripOutline", () => {
     await generateTripOutline(params, 3, "en");
     expect(prompts[1]).not.toContain("Places travellers kept here");
   });
+
+  it("keeps every place to eat to the trip's diet", async () => {
+    answer = JSON.stringify({ days: [day(1, ["a"]), day(2, ["b"]), day(3, ["c"])] });
+    await generateTripOutline({ ...params, profilePreferences: { dietaryPreferences: ["vegan", "gluten-free"] } }, 3);
+    expect(prompts[0]).toContain("Diet: vegan, gluten-free. Every place to eat must suit it.");
+    await generateTripOutline(params, 3);
+    expect(prompts[1]).not.toContain("Diet:");
+  });
 });

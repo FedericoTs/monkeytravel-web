@@ -30,7 +30,7 @@ vi.mock("@vercel/functions", () => ({
   waitUntil: (p: Promise<unknown>) => void Promise.resolve(p).catch(() => {}),
 }));
 vi.mock("@/lib/ai/user-context", () => ({
-  loadUserContext: async () => ({ profilePreferences: undefined, userLanguage: "en" }),
+  loadUserContext: async () => ({ profilePreferences: {}, userLanguage: "en" }),
 }));
 vi.mock("@/lib/api-gateway", () => ({
   checkApiAccess: async () => ({ allowed: true }),
@@ -110,6 +110,18 @@ describe("anonymous quota on the streaming route", () => {
     cached = { days: [{}, {}, {}, {}] };
     await call({ mustDos: ["Stalin Museum"] });
     expect(recordAnonymousGeneration).toHaveBeenCalledTimes(1);
+  });
+
+  it("so does a request with a diet: a shared plan would ignore it", async () => {
+    cached = { days: [{}, {}, {}, {}] };
+    await call({ dietary: ["vegan"] });
+    expect(recordAnonymousGeneration).toHaveBeenCalledTimes(1);
+  });
+
+  it("a diet the planner doesn't offer changes nothing", async () => {
+    cached = { days: [{}, {}, {}, {}] };
+    await call({ dietary: ["carnivore"] });
+    expect(recordAnonymousGeneration).not.toHaveBeenCalled();
   });
 
   it("a signed-in user is not on the anonymous counter", async () => {
