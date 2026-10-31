@@ -32,7 +32,7 @@ vi.mock("@/lib/anonymous/rate-limit", () => ({
   recordAnonymousGeneration: async () => {},
 }));
 vi.mock("@/lib/ai/user-context", () => ({
-  loadUserContext: async () => ({ profilePreferences: undefined, userLanguage: "en" }),
+  loadUserContext: async () => ({ profilePreferences: {}, userLanguage: "en" }),
 }));
 vi.mock("@/lib/api-gateway", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api-gateway")>()),

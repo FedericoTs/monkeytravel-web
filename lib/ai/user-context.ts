@@ -20,6 +20,7 @@
 import { cookies } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { UserProfilePreferences } from "@/types";
+import { dietsFrom } from "@/lib/trips/diet";
 
 export type { SupportedLanguage } from "./language";
 import { isSupportedLanguage, resolveAiLanguage, type SupportedLanguage } from "./language";
@@ -108,9 +109,7 @@ export async function loadUserContext(
   if (profileRow) {
     if (profileRow.preferences && typeof profileRow.preferences === "object") {
       const prefs = profileRow.preferences as Record<string, unknown>;
-      profilePreferences.dietaryPreferences = prefs.dietaryPreferences as
-        | string[]
-        | undefined;
+      profilePreferences.dietaryPreferences = dietsFrom(prefs.dietaryPreferences);
       profilePreferences.travelStyles = prefs.travelStyles as
         | string[]
         | undefined;

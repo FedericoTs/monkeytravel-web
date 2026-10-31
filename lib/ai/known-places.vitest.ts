@@ -140,6 +140,14 @@ describe("pickKnownPlaces", () => {
     expect(picked.filter((p) => p.type === "restaurant").length).toBeLessThanOrEqual(2);
   });
 
+  it("offers a trip with a diet no places to eat: they were kept whatever the traveller ate", () => {
+    const meals = ["Le Consulat", "L'As du Fallafel", "Du Pain et des Idées"];
+    const vegan = names(PARIS, { vibes: ["cultural", "foodie"], profilePreferences: { dietaryPreferences: ["vegan"] } });
+    expect(vegan).toContain("Louvre Museum");
+    expect(vegan.filter((name) => meals.includes(name))).toEqual([]);
+    expect(names(PARIS, { vibes: ["cultural", "foodie"] })).toContain("Le Consulat");
+  });
+
   it("offers nothing to an off-the-beaten-path trip, and half as much when it is a touch", () => {
     expect(names(PARIS, { vibes: ["offbeat"] })).toEqual([]);
     const many = Array.from({ length: 20 }, (_, i) => row(`Sight ${i}`, { type: "museum", vibes: { cultural: 3 } }));

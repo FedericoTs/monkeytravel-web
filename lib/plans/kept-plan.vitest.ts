@@ -30,6 +30,7 @@ const plan = () => ({
   tripIntent: "group",
   flexibleDates: true,
   mustDos: ["Pastéis de Belém", 42],
+  dietary: ["vegan", "carnivore"],
 });
 
 describe("parseKeptPlan", () => {
@@ -46,6 +47,7 @@ describe("parseKeptPlan", () => {
       tripIntent: "group",
       flexibleDates: true,
       mustDos: ["Pastéis de Belém"],
+      dietary: ["vegan"],
     });
     expect(kept.itinerary.days).toHaveLength(1);
   });

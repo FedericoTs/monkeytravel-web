@@ -248,7 +248,10 @@ export function pickKnownPlaces(rows: KnownPlaceRow[], params: TripCreationParam
   const perDay = PACE_BUDGETS[normalizePace(params.pace)].targetActivities;
   let limit = Math.min(MAX_PLACES, Math.max(4, Math.round(totalDays * perDay * 0.5)));
   if (vibes.includes("offbeat")) limit = Math.round(limit / 2);
-  const mealLimit = Math.max(1, Math.min(totalDays, Math.floor(limit * 0.4)));
+  // Places to eat were kept whatever the traveller ate, so a trip with a diet is offered none.
+  const mealLimit = params.profilePreferences?.dietaryPreferences?.length
+    ? 0
+    : Math.max(1, Math.min(totalDays, Math.floor(limit * 0.4)));
   const wished = (params.mustDos ?? []).map(coreWords);
 
   const scored = mergePlaces(rows)

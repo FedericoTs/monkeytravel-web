@@ -39,6 +39,8 @@ export interface ItineraryDraft {
    * round-trip survival reasoning as anchors above.
    */
   mustDos?: string[];
+  /** Diets from step 2; must survive the signup redirect like the must-dos. */
+  dietary?: string[];
   /**
    * "Who's coming?" answer from step 1. Same round-trip lesson as travelStyle
    * and anchors above: the wizard remounts with fresh state after the signup

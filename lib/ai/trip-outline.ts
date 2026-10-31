@@ -97,6 +97,9 @@ export async function generateTripOutline(
       ? `Places travellers kept here, to build the days from first where they suit this trip, each on one day at most and named exactly as listed: ${knownPlaces.map((p) => p.name).join("; ")}.`
       : "",
     params.requirements ? `Requirements: ${params.requirements}` : "",
+    params.profilePreferences?.dietaryPreferences?.length
+      ? `Diet: ${params.profilePreferences.dietaryPreferences.join(", ")}. Every place to eat must suit it.`
+      : "",
     "",
     `Return exactly ${totalDays} days, numbered 1 to ${totalDays}. Give each day its own area, keep each day's places close together, and never use a place on two days. The best-known sights come early; later days can go further out or off the beaten path. Use real place names as Google Maps shows them.`,
     language && language !== "en" ? `Write each theme and area in ${LANGUAGE_NAMES[language]}.` : "",

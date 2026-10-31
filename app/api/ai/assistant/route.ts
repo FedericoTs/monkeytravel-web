@@ -49,6 +49,7 @@ import { destinationCityTerm } from "@/lib/api/postgrest-filter";
 import { formatMinutesToTime } from "@/lib/datetime/format";
 import { withDayTarget } from "@/lib/ai/assistant/day-target";
 import { ACTIVITY_TYPES, normalizeActivityType } from "@/lib/trip/activity-type";
+import { dietsFrom } from "@/lib/trips/diet";
 import { activityNotFoundReason, findActivityByName } from "@/lib/ai/assistant/find-activity";
 import {
   announcesProposal,
@@ -1835,7 +1836,7 @@ Return ONLY a JSON array with the optimal order of activity indices:
           const vibes = tags.filter((t): t is TripVibe =>
             ["adventure", "cultural", "foodie", "wellness", "romantic", "urban", "nature", "offbeat", "wonderland", "movie-magic", "fairytale", "retro"].includes(t)
           );
-          const tripMeta = (trip.trip_meta ?? {}) as { travel_style?: "classic" | "backpacker" };
+          const tripMeta = (trip.trip_meta ?? {}) as { travel_style?: "classic" | "backpacker"; dietary?: unknown };
 
           // Reuses the single-day generation contract — day shape, activity
           // IDs via generateActivityId, coordinate backfill via
@@ -1852,6 +1853,7 @@ Return ONLY a JSON array with the optimal order of activity indices:
             surroundingDays: modifiedItinerary,
             instructions: message.slice(0, 500),
             travelStyle: tripMeta.travel_style === "backpacker" ? "backpacker" : "classic",
+            profilePreferences: { dietaryPreferences: dietsFrom(tripMeta.dietary) },
             language: userLanguage,
             userId: user.id,
           });
