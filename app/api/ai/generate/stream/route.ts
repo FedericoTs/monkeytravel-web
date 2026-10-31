@@ -14,6 +14,7 @@ import {
   validateTripParams,
 } from "@/lib/gemini";
 import { bookingLinksFor, withActivityDefaults, withServerFields } from "@/lib/ai/server-fields";
+import { inPlanCurrency } from "@/lib/ai/plan-currency";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { isAdmin } from "@/lib/admin";
@@ -531,6 +532,8 @@ export async function POST(request: NextRequest) {
           console.error("[AI Generate Stream] image fetch error:", imgErr);
         }
       }
+      // 5c. Every price in one currency, a plan written in parts or cached included.
+      finalItinerary = await inPlanCurrency(finalItinerary);
 
       // 6b. Cache write — only when we actually generated fresh.
       // Backpacker + classic each have their own cache pool (Tier 1.2

@@ -39,6 +39,7 @@ import {
 } from "@/lib/ai/multi-city";
 import { generateAnchoredItinerary, validateAnchors } from "@/lib/ai/anchored";
 import { knownPlacesFor } from "@/lib/ai/known-places";
+import { inPlanCurrency } from "@/lib/ai/plan-currency";
 import { placesToEatCheck } from "@/lib/places/places-to-eat";
 import type { TripAnchor } from "@/types";
 import { createRateLimiter } from "@/lib/api/rate-limit";
@@ -444,6 +445,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       console.error("[AI Generate] Error fetching activity images:", imageError);
       // Continue without images - not critical
     }
+    // Every price in one currency, a cached or grounded plan included.
+    await inPlanCurrency(itinerary);
 
     // Sanitize AI-generated content to prevent XSS
     const sanitizedItinerary = sanitizeItinerary(itinerary);

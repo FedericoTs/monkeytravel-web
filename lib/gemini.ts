@@ -21,6 +21,8 @@ import { addIsoDays } from "./dates/iso-date";
 import type { OutlineDay } from "./ai/trip-outline";
 import type { KnownPlace } from "./ai/known-places";
 import { withServerFields } from "./ai/server-fields";
+import { inPlanCurrency } from "./ai/plan-currency";
+import { planCurrency } from "./ai/assistant/plan-costs";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -687,7 +689,8 @@ Rules:
 6. Activities should flow logically through each day
 7. EVERY activity MUST have PRECISE coordinates (lat/lng with 6 decimal places, e.g., 48.858370, 2.294481) - use the EXACT location of each place, not approximate city center. This is critical for accurate map display
 8. Write "booking_required": true only on an activity that must be booked ahead; leave the field out on every other activity
-9. An activity's "type" says what the place is, and is one of: ${ACTIVITY_TYPES.join(", ")}. Never a travel vibe such as foodie, cultural, urban or romantic`;
+9. An activity's "type" says what the place is, and is one of: ${ACTIVITY_TYPES.join(", ")}. Never a travel vibe such as foodie, cultural, urban or romantic
+10. Every price, and the trip total, is in US dollars ("currency": "USD") whatever the destination: the app shows prices in the traveller's own currency`;
 
 // Shared chat prefix for BOTH trip-generation call sites (blocking +
 // streaming). Byte-identical history across requests is what makes Gemini's
@@ -1005,6 +1008,8 @@ async function generateItineraryInternal(
     // + persistTrip don't crash on `.trip_summary.total_estimated_cost`.
     ensureTripSummary(itinerary);
     withServerFields(itinerary, params);
+    // In one currency before a multi-city or fixed-plan trip adds its parts up.
+    await inPlanCurrency(itinerary);
 
     // Capture LLM analytics (fire and forget)
     captureLLMGeneration({
@@ -1287,6 +1292,8 @@ async function regenerateSingleActivityInternal(
 /** What to ask for in place of an activity; `options` asks for that many, best first, in a JSON array. */
 function replacementPrompt(params: RegenerateActivityParams, options?: number): string {
   const { activityToReplace, dayContext, existingActivityNames, preferences } = params;
+  // Priced like the rest of the trip.
+  const currency = activityToReplace.estimated_cost?.currency || planCurrency([dayContext]);
 
   const languageInstruction = getLanguageInstruction(params.language);
 
@@ -1335,7 +1342,7 @@ ${options ? `${options} different options, best first, as a JSON array of object
   "official_website": null,
   "estimated_cost": {
     "amount": 0,
-    "currency": "USD",
+    "currency": "${currency}",
     "tier": "free|budget|moderate|expensive"
   },
   "tips": ["Tip 1", "Tip 2"],
@@ -1534,6 +1541,8 @@ async function regenerateSingleDayInternal(
       params.surroundingDays.flatMap((d) => d.activities.map((a) => a.name))
     )
   ).join(", ");
+  // Priced like the rest of the trip.
+  const currency = planCurrency(params.surroundingDays);
 
   const languageInstruction = getLanguageInstruction(params.language);
   const profileSection = buildProfilePreferencesSection(params.profilePreferences);
@@ -1581,7 +1590,7 @@ Return ONE day object (NOT an array) with this exact shape:
       "address": "Full street address",
       "coordinates": { "lat": 48.858370, "lng": 2.294481 },
       "official_website": "https://...",
-      "estimated_cost": { "amount": 25, "currency": "USD", "tier": "moderate" },
+      "estimated_cost": { "amount": 25, "currency": "${currency}", "tier": "moderate" },
       "tips": ["One tip"],
       "booking_required": false
     }
