@@ -25,6 +25,7 @@ import type {
   TripAnchor,
 } from "@/types";
 import { addDaysISO } from "./multi-city-core";
+import { bookingLinksFor } from "./booking-links";
 
 /** Max anchors per trip in v1 (keeps segmentation + prompts sane). */
 export const MAX_ANCHORS = 20;
@@ -544,7 +545,7 @@ export function mergeAnchoredItinerary(
   const currency =
     opts.currency ?? segmentResults[0]?.trip_summary?.currency ?? "USD";
 
-  // Primary result (for destination block + booking links): longest segment.
+  // Primary result (for the destination block): longest segment.
   let primary: GeneratedItinerary | undefined;
   let primaryLen = -1;
   layout.segments.forEach((seg, i) => {
@@ -617,12 +618,8 @@ export function mergeAnchoredItinerary(
         segmentResults.flatMap((r) => r.trip_summary?.packing_suggestions ?? [])
       ),
     },
-    booking_links: primary?.booking_links
-      ? {
-          flights: primary.booking_links.flights ?? [],
-          hotels: segmentResults.flatMap((r) => r.booking_links?.hotels ?? []),
-        }
-      : undefined,
+    // One trip, one stay: each segment's own links cover only its dates.
+    booking_links: bookingLinksFor({ destination: opts.destinationLabel, startDate: layout.startDate, endDate: layout.endDate }),
   };
 
   return { itinerary, issues };

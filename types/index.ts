@@ -119,7 +119,7 @@ export interface Activity {
    * (lib/ai/transfer-legs.ts) so the JourneyRibbon can label the hop
    * ("TRAIN · 4h 10m") without string-matching activity names.
    */
-  transport_mode?: "train" | "flight";
+  transport_mode?: "train" | "flight" | "ground";
   description: string;
   location: string;
   address?: string; // Full street address for map links
@@ -205,6 +205,8 @@ export interface BookingLink {
   provider: string;
   url: string;
   label: string;
+  /** On a trip across several cities, the city a stay is in. */
+  city?: string;
 }
 
 // Place autocomplete prediction (Google Places API)
