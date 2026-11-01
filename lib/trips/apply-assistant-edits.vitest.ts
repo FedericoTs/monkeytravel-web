@@ -3,10 +3,10 @@ import type { Activity, ItineraryDay } from "@/types";
 import { applyAssistantEdits } from "./day-edit-merge";
 
 /**
- * One assistant reply can now change several days (a move or swap between
- * days) and the trip's length. Moved activities keep their id and photo; ids
- * stay unique across the trip. (2026-09-26: a swap request came back as a
- * one-day edit, and "add one more day" couldn't be done at all.)
+ * One assistant reply can change several days (a move or swap between days)
+ * and the trip's length. Moved activities keep their id and photo; ids stay
+ * unique across the trip, since deleting one of two activities that share an
+ * id deletes both on the trip page.
  */
 
 const act = (name: string, extra: Partial<Activity> = {}) => ({ name, start_time: "10:00", ...extra }) as unknown as Activity;
@@ -87,5 +87,57 @@ describe("applyAssistantEdits", () => {
     const out = applyAssistantEdits(trip(), [{ day_number: 9, activities: [act("Nowhere")] }]);
     expect(out).toHaveLength(3);
     expect(out.flatMap(names)).not.toContain("Nowhere");
+  });
+});
+
+describe("applyAssistantEdits on one day", () => {
+  const paris = (day2: Activity[]): ItineraryDay[] =>
+    [
+      { day_number: 1, date: "2027-01-01", activities: [act("Louvre Museum", { id: "d1a" }), act("Cafe", { id: "d1b" })] },
+      { day_number: 2, date: "2027-01-02", activities: day2 },
+    ] as unknown as ItineraryDay[];
+  const day2 = () => [
+    act("Free time", { id: "X1", coordinates: { lat: 1, lng: 1 } as never }),
+    act("Orsay", { id: "X2", image_url: "/api/places/photo?ref=orsay" }),
+    act("Free time", { id: "X3" }),
+  ];
+  const edit = (days: ItineraryDay[], activities: Activity[]) => applyAssistantEdits(days, [{ day_number: 2, activities }])[1].activities;
+  const ids = (acts: Activity[]) => acts.map((a) => a.id);
+
+  it("two same-named entries keep their two different ids", () => {
+    const out = edit(paris(day2()), [act("Free time"), act("Orsay"), act("Free time")]);
+    expect(ids(out)).toEqual(["X1", "X2", "X3"]);
+  });
+
+  it("a revisit (the same place twice in the new day) gets its own id but keeps the place's photo", () => {
+    const out = edit(paris(day2()), [act("Orsay"), act("Lunch"), act("Orsay")]);
+    expect(out[0].id).toBe("X2");
+    expect(new Set(ids(out)).size).toBe(3);
+    expect(out[2].id).toMatch(/^edit-2-2-orsay/);
+    expect(out[2].image_url).toBe("/api/places/photo?ref=orsay");
+  });
+
+  it("dropping the earlier of two same-named activities keeps the later one's id and place (closest start time)", () => {
+    const days = paris([
+      act("Free time", { id: "F1", start_time: "10:00", coordinates: { lat: 48.86, lng: 2.36 } as never }),
+      act("Louvre", { id: "L" }),
+      act("Free time", { id: "F2", start_time: "17:00", coordinates: { lat: 48.88, lng: 2.34 } as never }),
+    ]);
+    const out = edit(days, [act("Cafe X", { start_time: "09:00" }), act("Louvre"), act("Free time", { start_time: "17:00" })]);
+    expect(out[2].id).toBe("F2");
+    expect(out[2].coordinates).toEqual({ lat: 48.88, lng: 2.34 });
+    expect(out[1].id).toBe("L");
+  });
+
+  it("carries coordinates and photos over from the same-named activity", () => {
+    const out = edit(paris(day2()), [act("Orsay"), act("Free time")]);
+    expect(out[0].image_url).toBe("/api/places/photo?ref=orsay");
+    expect(out[1].coordinates).toEqual({ lat: 1, lng: 1 });
+  });
+
+  it("never reuses an id that belongs to another day, nor one the assistant repeated", () => {
+    const out = edit(paris(day2()), [act("New A", { id: "d1a" }), act("New B", { id: "dup" }), act("New C", { id: "dup" })]);
+    const all = [...ids(out), "d1a", "d1b"];
+    expect(new Set(all).size).toBe(all.length);
   });
 });

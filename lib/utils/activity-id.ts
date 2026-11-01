@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
 import type { Activity, ItineraryDay } from "@/types";
-import type { Coordinates } from "@/lib/utils/geo";
 import {
   calculateHaversineDistance,
   estimateRoadDistance,
@@ -345,38 +344,6 @@ export function findActivityById(
   return null;
 }
 
-/**
- * Move an activity up or down within its day
- */
-export function moveActivityInDay(
-  itinerary: ItineraryDay[],
-  activityId: string,
-  direction: "up" | "down"
-): ItineraryDay[] {
-  const location = findActivityById(itinerary, activityId);
-  if (!location) return itinerary;
-
-  const { dayIndex, activityIndex } = location;
-  const day = itinerary[dayIndex];
-  const newIndex = direction === "up" ? activityIndex - 1 : activityIndex + 1;
-
-  // Check bounds
-  if (newIndex < 0 || newIndex >= day.activities.length) {
-    return itinerary;
-  }
-
-  // Swap activities
-  const newActivities = [...day.activities];
-  [newActivities[activityIndex], newActivities[newIndex]] = [
-    newActivities[newIndex],
-    newActivities[activityIndex],
-  ];
-
-  return itinerary.map((d, i) =>
-    i === dayIndex ? { ...d, activities: newActivities } : d
-  );
-}
-
 function timeToMinutes(time: string | undefined): number | null {
   const m = typeof time === "string" ? time.match(/^(\d{1,2}):(\d{2})/) : null;
   return m ? Number(m[1]) * 60 + Number(m[2]) : null;
@@ -630,7 +597,6 @@ export function recalculateActivityTimes(
 
   const DEFAULT_BUFFER_MINUTES = 30; // Fallback when coordinates missing
   const TRANSITION_BUFFER_MINUTES = 5; // Extra time for settling in
-  const LATE_SCHEDULE_THRESHOLD = 22 * 60; // Warn if activity starts after 22:00
 
   // Build updated activities array incrementally so we can reference previous updates
   const updatedActivities: Activity[] = [];

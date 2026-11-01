@@ -181,7 +181,6 @@ describe("proposeTripEdits", () => {
           activities: [engineActivity("Howth Cliff Walk", "10:00", "morning"), engineActivity("Index", "23:00", "evening")],
         },
       ],
-      edit: null,
       meta,
     });
     const out = await proposeTripEdits(input);
@@ -202,7 +201,6 @@ describe("proposeTripEdits", () => {
       { day_number: 4, summary: "New day.", activities: [engineActivity("Malahide Castle", "10:00", "morning")] },
     ],
     tripLength: 4,
-    edit: null,
     meta,
   };
 
@@ -271,7 +269,6 @@ describe("proposeTripEdits", () => {
           activities: [engineActivity("National Gallery", "10:00", "morning"), engineActivity("The Winding Stair", "19:30", "evening")],
         },
       ],
-      edit: null,
       meta,
     });
     const out = await proposeTripEdits({ ...input, message: "Suggest a great local restaurant to add" });
@@ -285,7 +282,6 @@ describe("proposeTripEdits", () => {
         { day_number: 1, summary: "Museums first.", activities: [engineActivity("National Gallery", "10:00", "morning"), engineActivity("Grafton Street", "14:00", "afternoon")] },
         { day_number: 2, summary: "Arrival plan.", activities: [engineActivity("Trinity College", "09:00", "morning"), engineActivity("Temple Bar", "20:00", "evening")] },
       ],
-      edit: null,
       meta,
     });
     const out = await proposeTripEdits({ ...input, message: "Switch days 1 & 2" });
@@ -293,12 +289,12 @@ describe("proposeTripEdits", () => {
   });
 
   it("leaves a currency request to the chat: only the wizard switches currency", async () => {
-    assistTrip.mockResolvedValue({ reply: "Prices now in USD.", edits: [], edit: null, currency: "USD", meta });
+    assistTrip.mockResolvedValue({ reply: "Prices now in USD.", edits: [], currency: "USD", meta });
     expect(await proposeTripEdits({ ...input, message: "show prices in dollars" })).toBeNull();
   });
 
   it("returns an answer with no days when nothing needs to change", async () => {
-    assistTrip.mockResolvedValue({ reply: "Which nights would you like?", edits: [], edit: null, meta });
+    assistTrip.mockResolvedValue({ reply: "Which nights would you like?", edits: [], meta });
     const out = await proposeTripEdits(input);
     expect(out).toEqual({ reply: "Which nights would you like?", revisedDays: [], summary: "", meta });
   });

@@ -3,12 +3,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { captureAssistantClaimUnverified } from "@/lib/posthog/events";
-import type { ItineraryDay, AssistantCard, Activity } from "@/types";
+import type { ItineraryDay, AssistantCard } from "@/types";
 import AssistantCards from "./AssistantCards";
 import StagedLoadingIndicator, { type LoadingStage } from "./StagedLoadingIndicator";
 import PreviewChangeCard, { type PendingChange } from "./PreviewChangeCard";
-import MatchConfirmationDialog, { type MatchOption } from "./MatchConfirmationDialog";
-import UndoToast, { useUndoState, type UndoState } from "./UndoToast";
+import UndoToast, { useUndoState } from "./UndoToast";
 import { trackAIAssistantMessage } from "@/lib/analytics";
 import { captureAIAssistantUsed } from "@/lib/posthog/events";
 import { ItineraryWriteBlockedError } from "@/lib/trips/itinerary-sync";
@@ -48,7 +47,6 @@ interface AIAssistantEnhancedProps {
   itinerary: ItineraryDay[];
   isOpen: boolean;
   onClose: () => void;
-  onAction?: (action: string, data?: Record<string, unknown>) => void;
   onRefetchTrip?: () => Promise<void>;
   /**
    * The trip page's itinerary save queue. Apply and undo run inside it so the
@@ -177,7 +175,6 @@ export default function AIAssistantEnhanced({
   itinerary,
   isOpen,
   onClose,
-  onAction,
   onRefetchTrip,
   onFocusDay,
   runItineraryWrite,
@@ -212,10 +209,6 @@ export default function AIAssistantEnhanced({
   // Enhanced state for new features
   const [loadingStage, setLoadingStage] = useState<LoadingStage>("parsing");
   const [pendingChange, setPendingChange] = useState<PendingChange | null>(null);
-  const [matchConfirmation, setMatchConfirmation] = useState<{
-    query: string;
-    matches: MatchOption[];
-  } | null>(null);
   const [isApplyingChange, setIsApplyingChange] = useState(false);
 
   // Undo state management
@@ -391,11 +384,6 @@ export default function AIAssistantEnhanced({
           };
           setMessages((prev) => [...prev, assistantMsg]);
         }
-        // Check if there are ambiguous matches that need confirmation
-        else if (data.matchConfirmation) {
-          setMatchConfirmation(data.matchConfirmation);
-          setMessages((prev) => [...prev, data.message]);
-        }
         // Normal flow - action was applied or no action needed
         else {
           // TRUST GUARD: only believe `action.applied` when the server proves
@@ -479,13 +467,6 @@ ${t("notAppliedBody")}`,
           model: data.model || "unknown",
         });
 
-        // Handle action callback
-        if (data.message?.action && onAction) {
-          onAction(data.message.action.type, {
-            ...data.message.action,
-            modifiedItinerary: data.modifiedItinerary,
-          });
-        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
         setMessages((prev) => prev.slice(0, -1));
@@ -493,7 +474,7 @@ ${t("notAppliedBody")}`,
         setIsLoading(false);
       }
     },
-    [tripId, conversationId, isLoading, onAction, onRefetchTrip, onFocusDay, itinerary, simulateLoadingStages, clearUndo, pushUndo, pendingChange, isApplyingChange, t, preferences?.preferredCurrency, exchangeRates]
+    [tripId, conversationId, isLoading, onRefetchTrip, onFocusDay, itinerary, simulateLoadingStages, clearUndo, pushUndo, pendingChange, isApplyingChange, t, preferences?.preferredCurrency, exchangeRates]
   );
 
   /**
@@ -702,22 +683,6 @@ ${t("notAppliedBody")}`,
     setMessages((prev) => [...prev, cancelMessage]);
   }, [t]);
 
-  // Handle match selection
-  const handleMatchSelect = useCallback(
-    async (activity: Activity, dayNumber: number) => {
-      setMatchConfirmation(null);
-      // Re-send with specific activity context
-      const lastUserMessage = messages.filter((m) => m.role === "user").pop();
-      if (lastUserMessage) {
-        sendMessage(
-          `${lastUserMessage.content} (I mean the "${activity.name}" on Day ${dayNumber})`,
-          true
-        );
-      }
-    },
-    [messages, sendMessage]
-  );
-
   // Handle undo
   const handleUndo = useCallback(async () => {
     if (!currentUndo) return;
@@ -789,7 +754,6 @@ ${t("notAppliedBody")}`,
     setConversationId(null);
     setUsageInfo(null);
     setPendingChange(null);
-    setMatchConfirmation(null);
     clearUndo();
   };
 
@@ -1008,20 +972,6 @@ ${t("notAppliedBody")}`,
                       onTryDifferent={handleTryDifferent}
                       onCancel={handleCancelChange}
                       isApplying={isApplyingChange}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Match Confirmation Dialog */}
-              {matchConfirmation && (
-                <div className="flex justify-start">
-                  <div className="max-w-[88%]">
-                    <MatchConfirmationDialog
-                      query={matchConfirmation.query}
-                      matches={matchConfirmation.matches}
-                      onSelect={handleMatchSelect}
-                      onCancel={() => setMatchConfirmation(null)}
                     />
                   </div>
                 </div>

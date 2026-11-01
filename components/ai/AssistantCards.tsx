@@ -230,13 +230,7 @@ function ActivitySuggestionCard({ card }: { card: AssistantActivityCard }) {
 }
 
 // Activity Replacement Card with animation
-function ActivityReplacementCard({
-  card,
-  onUndo,
-}: {
-  card: AssistantReplacementCard;
-  onUndo?: () => void;
-}) {
+function ActivityReplacementCard({ card }: { card: AssistantReplacementCard }) {
   const t = useTranslations("common.ai.cards");
   const [showNew, setShowNew] = useState(false);
 
@@ -247,7 +241,6 @@ function ActivityReplacementCard({
   }, []);
 
   const oldStyle = ACTIVITY_STYLES[card.oldActivity.type] || ACTIVITY_STYLES.activity;
-  const newStyle = ACTIVITY_STYLES[card.newActivity.type] || ACTIVITY_STYLES.activity;
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white">
@@ -340,20 +333,6 @@ function ActivityReplacementCard({
         </div>
       )}
 
-      {/* Undo button */}
-      {card.autoApplied && onUndo && (
-        <div className="px-3 pb-3">
-          <button
-            onClick={onUndo}
-            className="text-[11px] text-violet-600 hover:text-violet-700 font-medium flex items-center gap-1"
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-            </svg>
-            {t("undoChange")}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
@@ -482,13 +461,7 @@ function ConfirmationCard({ card }: { card: AssistantConfirmationCard }) {
 }
 
 // Main AssistantCards component that renders the appropriate card type
-export default function AssistantCards({
-  cards,
-  onUndo,
-}: {
-  cards: AssistantCard[];
-  onUndo?: (cardIndex: number) => void;
-}) {
+export default function AssistantCards({ cards }: { cards: AssistantCard[] }) {
   if (!cards || cards.length === 0) return null;
 
   return (
@@ -499,13 +472,7 @@ export default function AssistantCards({
           case "activity_added":
             return <ActivitySuggestionCard key={index} card={card} />;
           case "activity_replacement":
-            return (
-              <ActivityReplacementCard
-                key={index}
-                card={card}
-                onUndo={onUndo ? () => onUndo(index) : undefined}
-              />
-            );
+            return <ActivityReplacementCard key={index} card={card} />;
           case "tip":
             return <TipCard key={index} card={card} />;
           case "comparison":
@@ -534,12 +501,4 @@ export default function AssistantCards({
   );
 }
 
-// Export individual components for direct use
-export {
-  MiniActivityCard,
-  ActivitySuggestionCard,
-  ActivityReplacementCard,
-  TipCard,
-  ComparisonCard,
-  ConfirmationCard,
-};
+export { MiniActivityCard };
