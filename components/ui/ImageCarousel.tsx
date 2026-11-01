@@ -43,9 +43,6 @@ export default function ImageCarousel({
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
   const lastTouchRef = useRef({ x: 0, y: 0 });
   const velocityRef = useRef(0);
-  // useImageLoaded is invoked lower down, once currentImage is resolved —
-  // but still above every early return, because the reset effect below
-  // closes over its setter.
   const imageRef = useRef<HTMLImageElement>(null);
   const thumbnailContainerRef = useRef<HTMLDivElement>(null);
 
@@ -57,9 +54,8 @@ export default function ImageCarousel({
   // Escape, scroll lock, focus in and back, Tab kept inside (always open when rendered).
   const { panelRef: containerRef } = useModalBehavior({ isOpen: true, onClose });
 
-  // Reset state when image changes
+  // Reset zoom when the image changes
   useEffect(() => {
-    setImageLoaded(false);
     setIsZoomed(false);
     setZoomScale(1);
     setPanOffset({ x: 0, y: 0 });
@@ -93,6 +89,14 @@ export default function ImageCarousel({
     return () => clearTimeout(timer);
   }, []);
 
+  const goToNext = useCallback(() => {
+    setCurrentIndex((prev) => Math.min(prev + 1, images.length - 1));
+  }, [images.length]);
+
+  const goToPrev = useCallback(() => {
+    setCurrentIndex((prev) => Math.max(prev - 1, 0));
+  }, []);
+
   // Keyboard navigation (escape handled by useModalBehavior)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -105,20 +109,7 @@ export default function ImageCarousel({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isZoomed]);
-
-  const goToNext = useCallback(() => {
-    if (currentIndex < images.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-    }
-  }, [currentIndex, images.length]);
-
-  const goToPrev = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-    }
-  }, [currentIndex]);
+  }, [isZoomed, goToNext, goToPrev]);
 
   const getDistance = (touches: React.TouchList) => {
     if (touches.length < 2) return 0;
@@ -209,13 +200,9 @@ export default function ImageCarousel({
 
     // Determine if we should navigate
     if (swipeDistance > threshold || velocity > velocityThreshold) {
-      if (currentIndex > 0) {
-        setCurrentIndex((prev) => prev - 1);
-      }
+      goToPrev();
     } else if (swipeDistance < -threshold || velocity < -velocityThreshold) {
-      if (currentIndex < images.length - 1) {
-        setCurrentIndex((prev) => prev + 1);
-      }
+      goToNext();
     }
 
     // Reset drag
@@ -255,9 +242,7 @@ export default function ImageCarousel({
   // navigating to an image the browser already has cached left the slide
   // at opacity:0 until the next swipe.
   //
-  // This MUST stay above the `!mounted` early return: it is a hook, and the
-  // reset effect near the top of this component calls `setImageLoaded`, so
-  // the const has to exist on every render, including the server one.
+  // A hook, so it stays above the `!mounted` early return.
   const [imageLoaded, setImageLoaded] = useImageLoaded(imageRef, currentImage?.url);
 
   if (!mounted) return null;
