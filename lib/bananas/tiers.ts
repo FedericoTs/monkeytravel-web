@@ -136,18 +136,20 @@ export function getTierBenefits(tier: ReferralTierLevel) {
 }
 
 /**
- * Get user's current referral tier level (quick lookup)
+ * Get user's current referral tier level (quick lookup). Tier 0 when it can't
+ * be read: an award at the base rate beats none, and the failure is logged.
  */
 export async function getUserReferralTier(
   supabase: SupabaseClient,
   userId: string
 ): Promise<ReferralTierLevel> {
-  const { data: user } = await supabase
+  const { data: user, error } = await supabase
     .from('users')
     .select('referral_tier')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
+  if (error) console.error('[bananas] referral tier read failed:', error.message);
   return (user?.referral_tier ?? 0) as ReferralTierLevel;
 }
 

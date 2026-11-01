@@ -219,8 +219,9 @@ export async function completeReferralIfEligible(
     let tierBonusBananas = 0;
 
     try {
-      // Get referrer's current tier for bonus calculation
-      const referrerTier = await getUserReferralTier(supabase, referralCode.user_id);
+      // The referrer's tier sets the rate. It sits on their users row, which
+      // the referee's client cannot read (users_select_own).
+      const referrerTier = await getUserReferralTier(adminDb, referralCode.user_id);
 
       // Award bananas to referrer (cross-user → admin client, see note above)
       const bananaResult = await addReferralBananas(
