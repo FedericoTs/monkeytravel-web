@@ -1,6 +1,6 @@
 /**
  * How a consent choice maps onto PostHog when the SDK runs in
- * `cookieless_mode: 'on_reject'` (2026-09-16).
+ * `cookieless_mode: 'on_reject'`.
  *
  * The SDK's own semantics (posthog-js 1.310, read from the source):
  *   - no choice yet   → consent PENDING: nothing is captured at all

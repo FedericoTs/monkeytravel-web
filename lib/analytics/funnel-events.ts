@@ -23,7 +23,7 @@ export const FUNNEL_EVENT_TYPES = [
   "share_link_visited",
   "vote_cast",
   "plan_own_clicked",
-  // 2026-09-02: an anonymous trip taken over by a signup (app/api/trips/claim).
+  // An anonymous trip taken over by a signup (app/api/trips/claim).
   // The claim RPC also stamps trip_meta.claimed_at, so the count survives
   // funnel_events retention; this row carries the user for cohort joins.
   "trip_claimed",
@@ -74,8 +74,8 @@ export { CRAWLER_UA_RE } from "./share-visit-classifier";
  * share-visit-classifier.ts: a document navigation, not a crawler, not the
  * owner, on a trip that has an owner) and calls this only for "counted";
  * the same verdict gates the PostHog twin so the two counters stay
- * comparable. Before 2026-09-18 every render that passed the UA test was a
- * row: router fetches, owners and fleets on the demo trips included.
+ * comparable. Router fetches, the owner and fleets on the demo trips are not
+ * visits.
  *
  * `crewAsk` records how the link was framed (?vote=1 = the crew ask) as
  * metadata.crew_ask, so recipients per shared trip can be read by framing.

@@ -1,50 +1,20 @@
 "use client";
 /**
- * Third-party tags and the visitor's consent.
+ * Third-party tags and the visitor's consent: the banner governs what loads.
+ * A banner that does not govern the tags tells the visitor something untrue.
  *
- * WHAT WAS WRONG (measured 2026-09-01)
- * ------------------------------------
- * GA4 was mounted in app/layout.tsx gated only on the presence of
- * NEXT_PUBLIC_GA_MEASUREMENT_ID, and the Travelpayouts loader was mounted
- * unconditionally. Neither knew the consent banner existed. Against
- * production with a fresh profile:
- *
- *   BEFORE any consent choice, banner still on screen:
- *     3 GA4 requests, 1 doubleclick request, and the persistent cookies
- *     `_ga` + `_ga_VDJ39DLTNX` already written. window.dataLayer contained no
- *     gtag('consent', ...) call at all.
- *   AFTER clicking "Essential Only" (analytics:false, marketing:false):
- *     7 Travelpayouts requests.
- *   AFTER a further navigation, with analytics:false stored:
- *     4 more GA4 requests.
- *
- * So every visitor was assigned a persistent Google identifier before
- * consenting, and the ones who explicitly declined were tracked anyway. A
- * banner that does not govern the tags is worse than no banner: it tells the
- * visitor something untrue.
- *
- * TWO DECISIONS, DATED
- * --------------------
- * 2026-09-02, gate the MOUNT: GA4 and the affiliate loader were not mounted
- * until the visitor agreed, and no gtag('consent') call was made, because
- * Consent Mode still loads gtag.js and still sends cookieless pings before
- * consent. Measured cost over the next fortnight: GA4 fell from ~20% to ~11%
- * of real visitors, because 73% of visitors leave within four seconds and
- * never decide, and the ones who do accept at roughly 60%.
- *
- * 2026-09-16, Consent Mode v2 "advanced": Federico chose to take Google's
- * modelling. gtag.js now loads with every storage type DENIED (the default is
- * pushed from <head> by app/layout.tsx, before this component exists, via
- * lib/analytics/ga-consent.ts), sends cookieless pings until the visitor
- * accepts, and Google models the non-consented majority in its own reports.
- * Nothing is stored on the device before acceptance. The consented path is
- * unchanged, and the withdrawal path still deletes the identifiers Google set
- * while consent was granted. NEXT_PUBLIC_GA_CONSENT_MODE=gated restores the
- * 2026-09-02 behaviour without a code change.
+ * GA4 runs in Consent Mode v2 "advanced": gtag.js loads with every storage
+ * type DENIED (the default is pushed from <head> by app/layout.tsx, before
+ * this component exists, via lib/analytics/ga-consent.ts), sends cookieless
+ * pings until the visitor accepts, and Google models the non-consented
+ * majority in its own reports. Nothing is stored on the device before
+ * acceptance, and withdrawing consent deletes the identifiers Google set
+ * while it was granted. NEXT_PUBLIC_GA_CONSENT_MODE=gated instead mounts GA4
+ * only after acceptance, without a code change.
  *
  * The affiliate loader stays gated on marketing consent: it has no
  * cookieless mode, and its four services are disabled at account level
- * anyway, so it currently carries privacy exposure for zero revenue.
+ * anyway, so it carries privacy exposure for no revenue.
  *
  * The banner's provider mounts inside the locale layout, below this
  * component's slot in the root layout, so this reads the stored record
@@ -118,8 +88,7 @@ function pushConsentUpdate(consent: ConsentState) {
  * Remove the identifiers Google already set.
  *
  * Without this, a visitor who accepts and later withdraws keeps the `_ga`
- * client id that was written while they were consenting, and anyone who
- * loaded the site before the 2026-09-02 fix is still carrying one.
+ * client id that was written while they were consenting.
  */
 function clearGoogleCookies() {
   if (typeof document === "undefined") return;

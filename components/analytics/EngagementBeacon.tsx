@@ -4,12 +4,10 @@
  * Fires once per session, after a few seconds of VISIBLE time on any page.
  *
  * This is the signal that lets a session be counted as a visit rather than as
- * a request. `page_views.is_bot` is a user-agent regex, and the traffic that
- * doubled the wizard denominator on 2026-08-17 defeats it: 629 localized
- * step-1 sessions from CN/SG/HK sharing 29 rotating user agents, none flagged,
- * six sessions across three regions that ever had an account. The wizard could
- * already tell them apart because it has `step1_heartbeat`; everywhere else a
- * blog reader and a scraper produced identical rows.
+ * a request. `page_views.is_bot` is a user-agent regex, and fleets rotating
+ * ordinary browser user agents defeat it. The wizard can tell them apart by
+ * its `step1_heartbeat`; everywhere else a blog reader and a scraper would
+ * produce identical rows.
  *
  * Why this discriminates without judging anyone by identity or geography:
  *

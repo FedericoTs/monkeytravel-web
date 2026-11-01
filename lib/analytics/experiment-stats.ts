@@ -4,17 +4,10 @@
  *
  * WHY THIS EXISTS
  * ---------------
- * The step-1 flag review (2026-09-09) is the second rollout in a row whose
- * naive reading points the wrong way. Its raw step-1→step-2 rate reads 31.2%
- * before ship and 41.3% after — a large, entirely fake "win" produced by the
- * denominator pollution of 2026-08-17. The dwell-qualified rate over the same
- * window reads 74.5% (n=745) before and 69.0% (n=42) after: flat, or slightly
- * down, and on 42 observations it is indistinguishable from noise either way.
- *
- * A 5.5-point gap on n=42 has a 95% interval roughly ±14 points wide. Reading
- * that as "the redesign hurt" would be as wrong as reading the raw rate as
- * "the redesign won". Both errors are avoided by printing an interval next to
- * every rate, which is all this module is for.
+ * A raw before/after rate can point the wrong way: a polluted denominator
+ * makes a fake win, and a gap of a few points on a few dozen sessions is
+ * noise. Printing an interval next to every rate avoids both errors, which is
+ * all this module is for.
  *
  * Everything here is a pure function of counts so it can be unit-tested, and
  * deliberately plain: a normal approximation, no dependencies, no simulation.

@@ -1,14 +1,12 @@
 /**
  * One-time analytics-emission guard for a saved trip, keyed on the trip id.
  *
- * WHY (2026-07-02): on the `/trips/new?auth_event=login_google` return the
- * wizard remounts and can invoke the save flow 2-3x for ONE trip. Every save
- * run emits `trip_created` + `first_trip_saved` + the `saved` funnel event, and
- * those calls sit OUTSIDE the 60s server-side row-dedup — so one saved trip
- * produced `trip_created` x3 / `first_trip_saved` x3 in a real session
- * (019f20dc-b045-7c10-8fc6-84419c2be9ca, trip ea09db72), inflating the
- * activation metrics we optimize against. Every in-wizard guard was a `useRef`
- * that resets on remount, so nothing durable stopped re-emission.
+ * WHY: on the `/trips/new?auth_event=login_google` return the wizard remounts
+ * and can run the save flow more than once for ONE trip. Every run emits
+ * `trip_created` + `first_trip_saved` + the `saved` funnel event, outside the
+ * server-side row-dedup, so without a guard one trip would count several
+ * times in the activation metrics. A `useRef` resets on remount, so it can't
+ * be the guard.
  *
  * This guard is module-scoped (survives component remounts within the tab,
  * unlike a `useRef`) and mirrors to `sessionStorage` (survives a hard reload

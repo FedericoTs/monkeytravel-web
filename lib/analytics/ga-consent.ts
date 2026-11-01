@@ -1,22 +1,19 @@
 /**
  * Google Consent Mode v2 for GA4.
  *
- * DECISION 2026-09-16
- * From 2026-09-02 GA4 was not mounted at all before consent (the banner had
- * been decorative before that; see components/analytics/ConsentGatedTags.tsx).
- * Correct, and it left GA4 with ~11% of real visitors: 73% of visitors leave
- * within four seconds and never decide. Federico chose Consent Mode v2 in its
- * "advanced" form: gtag.js loads with every storage type DENIED, sends
- * cookieless pings (no cookies, no client id, nothing stored on the device)
- * until the visitor accepts, and Google models the non-consented majority in
- * its own reports. The consented path is unchanged.
+ * The "advanced" form (the default): gtag.js loads with every storage type
+ * DENIED and sends cookieless pings (no cookies, no client id, nothing stored
+ * on the device) until the visitor accepts; Google models the non-consented
+ * majority in its own reports. Most visitors leave without ever answering the
+ * banner, so mounting GA4 only after consent leaves it with a small minority
+ * of them. The consented path is the same either way.
  *
  * What this does not change: page_views_human stays the count of people who
  * came (docs/ANALYTICS_SOURCES_OF_TRUTH.md). Modeled GA4 numbers are Google's
  * estimate, never ours.
  *
- * NEXT_PUBLIC_GA_CONSENT_MODE=gated restores the 2026-09-02 behaviour (GA4
- * mounted only after acceptance) without a code change.
+ * NEXT_PUBLIC_GA_CONSENT_MODE=gated mounts GA4 only after acceptance, without
+ * a code change.
  *
  * Pure: the component and the root layout call these; the mapping is tested.
  */

@@ -28,9 +28,8 @@ const REAL_BROWSERS = [
 
 const KNOWN_BOTS = [
   "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
-  // Tools that named themselves but not with the monkeytravel- convention
-  // (2026-09-21): each was a single-view, referrer-less session counted as
-  // a person.
+  // Tools that name themselves but not with the monkeytravel- convention:
+  // single-view, referrer-less sessions that would count as people.
   "undici",
   "vibecheck/0.1 (+github.com/FedericoTs/vibecheck)",
   "Mozilla/5.0 (compatible; FreeScan.app favicon proxy)",
@@ -63,7 +62,7 @@ const KNOWN_BOTS = [
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 HeadlessChrome/128.0.0.0 Safari/537.36",
   "Mozilla/5.0 (Macintosh) Chrome-Lighthouse",
   "UptimeRobot/2.0",
-  // Our own prod sweeps self-identify; 1,244 rows in 48s on 2026-09-12.
+  // Our own prod sweeps self-identify.
   "monkeytravel-sitemap-health/1 (+internal)",
 ];
 

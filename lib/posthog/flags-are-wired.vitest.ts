@@ -4,14 +4,9 @@ import path from "node:path";
 import * as flags from "./flags";
 
 /**
- * Keeps lib/posthog/flags.ts honest.
- *
- * Audited 2026-08-21: the file declared 23 flag constants and application code
- * read 3. Several carried a "Wired in: <file>" line naming a consumer that did
- * not reference the flag, so there was no way to tell a live flag from a dead
- * one by reading it. This test makes that state impossible to reach silently:
- * every constant must either have a real consumer or be declared unwired on
- * purpose.
+ * Keeps lib/posthog/flags.ts honest: every flag constant must either have a
+ * real consumer or be declared unwired on purpose, so a live flag can be told
+ * from a dead one by reading the file.
  */
 
 const repoRoot = path.resolve(__dirname, "..", "..");

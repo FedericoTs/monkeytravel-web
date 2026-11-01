@@ -9,11 +9,9 @@
  * search engines or inflate the analytics.
  *
  * WHY THIS MATTERS
- * Measured on 2026-08-26: 3,232 of 14,087 page views (23%) came from
- * self-declared bots, up 6.4x in a week. Underneath that, engaged sessions —
- * anyone viewing more than one page — actually FELL from 1,187 to 777 over the
- * same period. The chart said traffic was doubling while the audience shrank.
- * Any decision taken off the raw table was being made on crawler volume.
+ * Self-declared bots are a large and changing share of page views. Counted as
+ * visitors, they can make traffic look like it is growing while the real
+ * audience shrinks.
  *
  * DELIBERATELY CONSERVATIVE
  * This only matches self-declared bots. A crawler presenting a plain Chrome
@@ -105,19 +103,14 @@ const BOT_SIGNATURES: readonly string[] = [
   "amazonbot",
   "meta-externalagent",
   "diffbot",
-  // Our own tooling. Anything we run against prod announces itself with a
-  // "monkeytravel-<tool>/<n> (+internal)" UA. Measured 2026-09-12: one
-  // sitemap-health sweep wrote 1,244 rows in 48 seconds, all from one city,
-  // none matching a signature above — it showed up as Italy's biggest
-  // "audience" of the day. Label at write time so it never reaches
-  // page_views_human.
+  // Our own tooling: anything we run against prod announces itself with a
+  // "monkeytravel-<tool>/<n> (+internal)" UA. A sweep writes many rows in
+  // seconds and matches no signature above, so it is labelled at write time
+  // and never reaches page_views_human.
   "monkeytravel-",
   "(+internal)",
-  // Third-party checkers and our own scripts that name themselves but
-  // not with the convention above. Measured 2026-09-21 (Aug 20 - Sep 21):
-  // undici 331 sessions, vibecheck 78, FreeScan favicon proxy 16,
-  // BuildHopFrameCheck 6 - every one a single view with no referrer and
-  // no sign-in, all still counted as people at the time.
+  // Checkers and scripts that name themselves without the convention above:
+  // single views, no referrer, never signed in.
   "undici",
   "vibecheck",
   "freescan",
@@ -134,19 +127,10 @@ const BOT_SIGNATURES: readonly string[] = [
  * blur into "anything that looks a bit odd".
  *
  * The evidence required before a string goes in here is a session count in the
- * tens of thousands with ZERO signed-in users. Measured 2026-09-01 for the
- * entry below:
- *
- *   rows                     203,038   (37% of all page_views_human)
- *   sessions                  68,432
- *   sessions with a user_id        0   <-- the disqualifier
- *   countries                     43
- *   avg views/session           2.97   (5.68 for everyone else)
- *   Chrome version pinned at 149.0.0.0 since 2026-06-10
- *
- * Real Chrome auto-updates; a fleet frozen on one build for three months
- * across 43 countries is not 68,432 people. Every other X11/Linux variant in
- * the data is 1-3 orders of magnitude smaller with plausible ratios, so this
+ * tens of thousands with ZERO signed-in users. The entry below is a Linux
+ * Chrome frozen on one build across dozens of countries, with no signed-in
+ * session at all; real Chrome auto-updates. Every other X11/Linux variant in
+ * the data is orders of magnitude smaller with plausible ratios, so this
  * deliberately does NOT match "X11; Linux" generally - desktop Linux users are
  * real, just rare, and excluding all of them would be a worse error.
  *
@@ -158,10 +142,8 @@ const BOT_SIGNATURES: readonly string[] = [
 const AUTOMATION_EXACT_UA: readonly string[] = [
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
   // The bare product token with nothing after it. No browser sends this;
-  // HTTP libraries whose default UA was trimmed do. Measured 2026-09-21
-  // (Aug 20 - Sep 21): 241 sessions, 241 single-view, 0 signed in, 1 with a
-  // referrer. 89 of them hit the homepage in 100 minutes on Aug 26 right
-  // after a deploy and read as a traffic spike.
+  // HTTP libraries whose default UA was trimmed do: single views, never
+  // signed in, arriving in bursts that read as traffic spikes.
   "Mozilla/5.0",
 ];
 

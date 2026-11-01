@@ -12,11 +12,8 @@ import path from "node:path";
  *     const finalRedirect = next !== "/trips" ? next : "/trips/new";
  *
  * A newly signed-up user is therefore ALWAYS redirected somewhere other than
- * /trips, so the tracker never mounted on the landing page and the event was
- * never fired. Measured over the 30 days to 2026-08-21: 146 real signups in
- * auth.users, 4 user_signed_up events in PostHog (2.7%). Correctly-wired
- * events over the same window captured ~59% (148 trips created -> 87
- * trip_created), so the missing ~95 points were this bug, not consent loss.
+ * /trips, so the tracker never mounted on the landing page and almost no
+ * signup was ever recorded.
  *
  * These tests pin the two properties that keep it working.
  */

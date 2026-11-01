@@ -22,24 +22,13 @@ const SESSION_COUNT_KEY = "mt_session_count";
  * - User returns (how long since last visit)
  * - User properties for GA4 segmentation
  *
- * AUTH-SOURCE POST-MORTEM (2026-05-29, task #212):
- * This component lives in app/layout.tsx (root layout, locale-agnostic) while
- * AuthProvider lives in app/[locale]/layout.tsx — i.e. SessionTracker is a
- * SIBLING of {children}, not a descendant. Cycle-5 task #181 attempted to
- * consolidate it onto useAuth() from AuthProvider and the resulting
- * `useContext` returned undefined → useAuth() threw "must be used within
- * AuthProvider" → every SSR render 500'd (P0 incident 2026-05-29).
- *
- * The P0 patch swapped to useAuthOptional() which returns
- * `{user: null, loading: false}` outside the provider tree, restoring SSR but
- * silently breaking retention analytics: every logged-in user was tracked as
- * anonymous because `user` was always null here.
- *
- * Fix: revert to the pre-#181 pattern — SessionTracker makes its own
- * supabase.auth.getUser() call. We accept one extra round-trip; the
- * "consolidation" goal of #181 only applies to [locale]-subtree consumers
- * (Navbar, NotificationBell, etc.) — root-layout siblings cannot share
- * the provider's state by definition.
+ * WHY IT READS THE USER ITSELF: this component lives in app/layout.tsx (root
+ * layout, locale-agnostic) while AuthProvider lives in app/[locale]/layout.tsx,
+ * so SessionTracker is a SIBLING of {children}, not a descendant. useAuth()
+ * would throw here ("must be used within AuthProvider") and break every SSR
+ * render; useAuthOptional() would see `user: null` and track every signed-in
+ * user as anonymous. So it makes its own supabase.auth.getUser() call, one
+ * extra round-trip.
  */
 export default function SessionTracker() {
   const hasTracked = useRef(false);
