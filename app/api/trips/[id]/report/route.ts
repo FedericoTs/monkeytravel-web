@@ -121,23 +121,30 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
     console.error("[trip-report] counter drift after insert:", bumpErr);
   }
   const newReportCount = typeof newCount === "number" ? newCount : 0;
+  // Hidden only if the write landed; the report itself is recorded either way.
+  let autoHidden = false;
   if (newReportCount >= AUTO_HIDE_THRESHOLD) {
-    await svc
+    const { error: hideErr } = await svc
       .from("trips")
       .update({ is_hidden: true })
       .eq("id", tripId);
-    // A hidden trip's public card is the brand card; drop the cached one.
-    after(() => purgeTripCard(tripId));
+    if (hideErr) {
+      console.error("[trip-report] auto-hide failed:", hideErr);
+    } else {
+      autoHidden = true;
+      // A hidden trip's public card is the brand card; drop the cached one.
+      after(() => purgeTripCard(tripId));
+    }
   }
 
   void captureServerEvent(user?.id ?? "anon", "explore_trip_reported", {
     trip_id: tripId,
-    auto_hidden: newReportCount >= AUTO_HIDE_THRESHOLD,
+    auto_hidden: autoHidden,
     report_count: newReportCount,
   });
 
   return apiSuccess({
     reported: true,
-    autoHidden: newReportCount >= AUTO_HIDE_THRESHOLD,
+    autoHidden,
   });
 }
