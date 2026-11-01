@@ -26,13 +26,11 @@ const photoLimiter = createRateLimiter("places-photo", 600, 60 * 60 * 1000);
  *
  * Server-side image proxy for Google Places "New API" photos.
  *
- * **Why this exists** — 2026-05-24 live-test:
- * Google's Places photo endpoints (`places.googleapis.com/v1/.../media`
- * and even the resolved `lh3.googleusercontent.com/place-photos/...`)
- * return HTTP 504 to direct browser loads. Verified via the
- * browser network panel: every photo request from anonymous result
- * pages 504'd, so every activity card and the destination hero showed
- * a broken image silently.
+ * **Why this exists:** Google's Places photo endpoints
+ * (`places.googleapis.com/v1/.../media`, and even the resolved
+ * `lh3.googleusercontent.com/place-photos/...`) answer direct browser loads
+ * with HTTP 504, so activity cards and destination heroes would show broken
+ * images.
  *
  * This route resolves the photo server-side (where Google's endpoint
  * works fine), streams the resulting JPEG bytes back to the browser
@@ -77,11 +75,9 @@ async function readCachedPhoto(placeId: string): Promise<CachedPhotoRow | null> 
  *
  * A request that reaches this function (a CDN miss) and passes validation
  * downloads the photo from Google, which bills each download ("Place Details
- * Photos", see PLACE_PHOTO_USD_PER_CALL). Until 2026-09-26 these were the one
- * Google call nobody logged, and by Vercel's counts (~400-480 invocations a
- * day) they are the likely bulk of the Google bill, while everything the log
- * did show sat inside Google's free allowances. `photo` (photoKey) and the
- * size make repeat downloads of one photo countable; `place` groups them.
+ * Photos", see PLACE_PHOTO_USD_PER_CALL), likely the bulk of the Google bill.
+ * `photo` (photoKey) and the size make repeat downloads of one photo
+ * countable; `place` groups them.
  *
  * Priced only on a 2xx. A 4xx (an expired photo name) is logged at $0: whether
  * Google bills those is unverified, and the bill settles it.
@@ -122,11 +118,10 @@ const NAME_RE = /^places\/[A-Za-z0-9_-]+\/photos\/[A-Za-z0-9_-]+$/;
 // LEGACY Places API photo references. /api/activities/search still
 // calls the old `maps/api/place/photo` endpoint,
 // which is keyed by an opaque `photo_reference` rather than a New-API
-// resource name, so NAME_RE rejects them. Before 2026-07-21 those two
-// routes worked around that by embedding GOOGLE_PLACES_API_KEY directly
-// in a URL handed to the browser — leaking the key AND producing a URL
-// that 504s on direct browser loads (see the docblock above). Accepting
-// the legacy shape here lets them use this proxy like everything else.
+// resource name, so NAME_RE rejects them. Accepting the legacy shape here
+// lets them use this proxy like everything else, instead of handing the
+// browser a URL that carries GOOGLE_PLACES_API_KEY (and 504s anyway; see the
+// docblock above).
 //
 // Google's legacy references are long, opaque, and base64url-ish; they
 // have historically also contained unpadded `=`. Kept deliberately
@@ -137,11 +132,10 @@ const REF_RE = /^[A-Za-z0-9_=-]{20,1000}$/;
 /**
  * Retry transient 5xx + network errors from Google's media endpoint.
  *
- * Live observation 2026-05-30 (hero-image intermittent-load bug):
  * Google's `places.googleapis.com/.../media` returns occasional 503/504
- * even on repeat fetches that succeed seconds later. Without a retry,
- * the failure surfaces in the browser as a broken <img> → DestinationHero
- * flips to its gradient fallback → user has to hard-refresh to recover.
+ * even on repeat fetches that succeed seconds later. Without a retry, the
+ * browser gets a broken <img> and DestinationHero falls back to its gradient
+ * until a hard refresh.
  *
  * Strategy: one retry, 250ms backoff, only for 5xx and network errors
  * (NEVER for 4xx — those are legit failures we shouldn't paper over).
@@ -193,10 +187,10 @@ export async function GET(request: NextRequest) {
   const wRaw = parseInt(searchParams.get("w") || "600", 10);
   const hRaw = parseInt(searchParams.get("h") || "400", 10);
   // Activity type this photo belongs to, so a dead photo falls back to a
-  // matching image rather than generic scenery. Absent on every URL written
-  // before 2026-08-04 and on non-activity callers (hotels, destination heroes)
-  // — validated to "" in that case, never rejected: a missing hint must degrade
-  // the fallback, never fail the image request.
+  // matching image rather than generic scenery. Older stored URLs and
+  // non-activity callers (hotels, destination heroes) have none: it becomes
+  // "", never a rejection, since a missing hint must degrade the fallback,
+  // never fail the image request.
   const typeHint = readActivityTypeHint(searchParams.get("t"));
   // Gallery tiles carry their photo's index (withPhotoIndex), so a dead name
   // heals to that photo instead of every tile healing to the first one.
@@ -265,13 +259,10 @@ export async function GET(request: NextRequest) {
     name ? { place: namePlaceId, photo: photoKey(name), w, h } : { legacy: true, photo: photoKey(ref!), w, h }
   );
 
-  // **2026-06-04 fix:** on a 4xx from Google's /media endpoint (most
-  // often happens when the photo resource name points at a deleted /
-  // private / never-existed photo — Google's Place Details Pro returned
-  // the token but the photo itself can't be served), redirect to a
-  // curated Pexels fallback so the <img> tag still renders something.
-  // Without this, the browser shows the broken-image icon — the exact
-  // symptom this whole stack of fixes is trying to eliminate.
+  // On a 4xx from Google's /media endpoint (the photo resource name points
+  // at a deleted, private or never-existing photo), heal it below if we can,
+  // else redirect to a curated Pexels fallback, so the <img> still renders
+  // something rather than the broken-image icon.
   //
   // 5xx still propagates (handled upstream by fetchWithRetry); 4xx is
   // a deterministic "this photo doesn't work" signal, so a one-time
@@ -286,24 +277,20 @@ export async function GET(request: NextRequest) {
       // payload (it's a JSON error from Google, useless to the browser).
       try { await res.arrayBuffer(); } catch { /* ignore */ }
 
-      // ---------- SELF-HEAL (2026-07-21) ----------
+      // ---------- SELF-HEAL ----------
       // A permanent 4xx here usually does NOT mean "this place has no photo".
-      // It means the photo RESOURCE NAME has expired. Google rotates those
-      // tokens; lib/images/activity.ts cached them for 365 days on the
-      // (wrong) assumption that they were stable, and the resulting dead refs
-      // got baked into trips.itinerary JSONB, where they are frozen forever.
+      // It means the photo RESOURCE NAME has expired: Google rotates those
+      // tokens, and expired ones are stored in trips.itinerary JSONB.
       //
       // The saving grace is that a dead ref still carries its place_id, so we
       // can ask Google for a CURRENT photo for the same place and serve that.
       // This repairs already-persisted itineraries, not just future ones —
       // the stored URL keeps working, it just resolves through a fresh token.
       //
-      // Cost was meant to be one Place Details call per dead ref. Measured
-      // 2026-09-13 it was not: the CDN pins bytes per URL and per region, so
-      // one page load at several sizes, and later views from other regions,
-      // re-healed the same place (four heals in one second for one place;
-      // 20 heals for 6 places in a two-hour window). healExpiredPhoto now
-      // dedupes before paying: in-flight sharing plus a free places_v2 re-read.
+      // The CDN pins bytes per URL and per region, so one page load at
+      // several sizes, and later views from other regions, would heal the
+      // same place again; healExpiredPhoto dedupes before paying (in-flight
+      // sharing plus a free places_v2 re-read).
       //
       // Cost is bounded and self-limiting: one Place Details call per dead
       // ref, and because a success is streamed back with the same immutable
@@ -322,19 +309,15 @@ export async function GET(request: NextRequest) {
       // Reaching here means BOTH the original ref and the self-heal failed, so
       // the user gets a stock image instead of the real place.
       //
-      // Measured 2026-08-04 (200 sampled itinerary URLs against prod): this
-      // fires for ~0% of them. 73% of stored refs were already dead, and the
-      // heal above rescued every single one. So a NON-TRIVIAL rate here is not
-      // "a few unlucky photos" — it means the heal itself has stopped working,
-      // and the whole product is quietly serving stock photography. That has a
-      // plausible cause with precedent in this repo: a banned or rotated Google
-      // key, or exhausted quota.
+      // The heal rescues practically every dead ref, so a NON-TRIVIAL rate
+      // here is not "a few unlucky photos": it means the heal itself has
+      // stopped working and the product is quietly serving stock photography,
+      // most plausibly from a banned or rotated Google key, or exhausted quota.
       //
       // Logged at warn (not info) precisely so it is alertable, and deliberately
-      // not sampled — at the measured rate the volume is ~nil, and if that stops
-      // being true the volume IS the signal. `reason` separates the transient
-      // quota case from a genuinely dead reference so a spike can be triaged
-      // without re-running the probe campaign that produced these numbers.
+      // not sampled: normally the volume is ~nil, and if that stops being
+      // true the volume IS the signal. `reason` separates the transient quota
+      // case from a genuinely dead reference so a spike can be triaged.
       //
       // Read the count as ORIGIN MISSES, not user impressions: the permanent
       // branch below caches the redirect at the edge for an hour, so one log
@@ -396,9 +379,9 @@ async function healExpiredPhoto(
   photoIndex = 0
 ): Promise<Response | null> {
   try {
-    // Dedupe before paying (2026-09-13): 772 of a fortnight's 2,268 photo
-    // detail calls were heals, and the same place was healed up to four times
-    // in one second. Concurrent heals share one call, and a ref that a
+    // Dedupe before paying: heals are a large share of photo detail calls,
+    // and one place can be healed several times in a second. Concurrent heals
+    // share one call, and a ref that a
     // save-time pass or an earlier heal already refreshed is reused straight
     // from places_v2 at no cost. The heal's own cache write below is what
     // makes that reuse true for every later request from every region.
