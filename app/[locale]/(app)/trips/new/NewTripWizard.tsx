@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo, useSyncExternalStore, type SetStateAction } from "react";
-import { sanitizeIsoDate, maxTripStartDate } from "@/lib/dates/iso-date";
+import { sanitizeIsoDate, maxTripStartDate, addIsoDaysOrThrow } from "@/lib/dates/iso-date";
 import { localTodayISO, parseLocalDate } from "@/lib/utils/date-local";
 import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/lib/i18n/routing";
@@ -56,7 +56,7 @@ import {
 import { MultiCityRouteBuilder, type RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
-import { joinCities, addDaysISO } from "@/lib/ai/multi-city-core";
+import { joinCities } from "@/lib/ai/multi-city-core";
 
 // Multi-city planning (docs/MULTI_CITY_PLAN.md §2.5/§3.2). Env-gated so the
 // single-city funnel is unchanged while the flag is off.
@@ -939,7 +939,7 @@ export default function NewTripPage({
     const valid = cityRows.filter((r) => r.city.trim() && r.nights > 0);
     setDestination(joinCities(valid.map((r) => r.city.trim())));
     const total = valid.reduce((s, r) => s + r.nights, 0);
-    if (startDate && total > 0) setEndDate(addDaysISO(startDate, total - 1));
+    if (startDate && total > 0) setEndDate(addIsoDaysOrThrow(startDate, total - 1));
   }, [multiCityMode, cityRows, startDate]);
   useEffect(() => { startDateRef.current = startDate; }, [startDate]);
   useEffect(() => { endDateRef.current = endDate; }, [endDate]);
@@ -982,9 +982,9 @@ export default function NewTripPage({
     const isMultiDeeplink = MULTI_CITY_ENABLED && searchParams?.get("multi") === "1";
     if (days && !isMultiDeeplink) {
       const today = localTodayISO();
-      const start = addDaysISO(today, 21);
+      const start = addIsoDaysOrThrow(today, 21);
       setStartDate(start);
-      setEndDate(addDaysISO(start, days - 1));
+      setEndDate(addIsoDaysOrThrow(start, days - 1));
       setFlexibleDates(true);
     }
 
@@ -2163,8 +2163,8 @@ export default function NewTripPage({
   // 5-day trip) so they can reach a generated trip and fine-tune dates anytime.
   const handleFlexibleDates = () => {
     const today = localTodayISO();
-    const start = addDaysISO(today, 21);
-    const end = addDaysISO(start, 4);
+    const start = addIsoDaysOrThrow(today, 21);
+    const end = addIsoDaysOrThrow(start, 4);
     setStartDate(start);
     setEndDate(end);
     setFlexibleDates(true);
@@ -3005,7 +3005,7 @@ export default function NewTripPage({
       const undoId = assistantUndo.current.record(prev, next, endDateRef.current);
       generatedItineraryRef.current = next;
       setGeneratedItinerary(next);
-      if (tripLength !== undefined && start) setEndDate(addDaysISO(start, tripLength - 1));
+      if (tripLength !== undefined && start) setEndDate(addIsoDaysOrThrow(start, tripLength - 1));
       const dayNumber = edits[0]?.day_number ?? tripLength ?? 1;
       setTimeout(() => {
         const el = document.getElementById(`day-${dayNumber}`);
@@ -3066,7 +3066,7 @@ export default function NewTripPage({
       };
     });
     setStartDate(start);
-    setEndDate(addDaysISO(start, keep - 1));
+    setEndDate(addIsoDaysOrThrow(start, keep - 1));
     // The traveller chose these dates, so they are not pencilled in.
     setFlexibleDates(false);
     setDatesPencilled(false);
@@ -3087,7 +3087,7 @@ export default function NewTripPage({
           tripTitle: newTripTitle(itinerary.destination.name, locale),
           days: moved,
           startDate: start,
-          endDate: addDaysISO(start, current - 1),
+          endDate: addIsoDaysOrThrow(start, current - 1),
           locale: itinerary.language ?? locale,
           history: [],
         }),

@@ -1,4 +1,4 @@
-import { addDaysISO } from "@/lib/ai/multi-city-core";
+import { addIsoDaysOrThrow } from "@/lib/dates/iso-date";
 import type { Activity, ItineraryDay } from "@/types";
 
 const nameKey = (a: Activity) => (typeof a.name === "string" ? a.name : "").trim().toLowerCase();
@@ -52,7 +52,7 @@ export function applyAssistantEdits(
     else
       resized.push({
         day_number: n,
-        date: start ? addDaysISO(start, n - 1) : "",
+        date: start ? addIsoDaysOrThrow(start, n - 1) : "",
         activities: [],
         ...(last?.city ? { city: last.city } : {}),
       });

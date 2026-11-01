@@ -11,8 +11,7 @@
  * - shorter: the first days stay, the last ones go;
  * - longer: the days move, and the new ones are planned by the assistant.
  */
-import { addDaysISO } from "@/lib/ai/multi-city-core";
-import { isValidIsoDate } from "@/lib/dates/iso-date";
+import { addIsoDaysOrThrow, isValidIsoDate } from "@/lib/dates/iso-date";
 import type { ItineraryDay } from "@/types";
 
 export type DateChange =
@@ -47,6 +46,6 @@ export function moveItineraryDates(days: ItineraryDay[], start: string, length: 
   return days.slice(0, Math.max(0, length)).map((d, i) => ({
     ...d,
     day_number: i + 1,
-    date: addDaysISO(start, i),
+    date: addIsoDaysOrThrow(start, i),
   }));
 }

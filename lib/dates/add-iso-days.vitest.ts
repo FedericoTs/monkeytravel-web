@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { addIsoDays } from "./iso-date";
+import { addIsoDays, addIsoDaysOrThrow } from "./iso-date";
 import { addDaysISO as assistantAddDays } from "@/lib/ai/assistant/structural";
 import { addDaysISO as multiCityAddDays, MultiCityError } from "@/lib/ai/multi-city-core";
 
@@ -28,7 +28,19 @@ describe("addIsoDays", () => {
   });
 });
 
-describe("the two callers keep their own error handling", () => {
+describe("addIsoDaysOrThrow", () => {
+  it("shifts a real date like addIsoDays", () => {
+    expect(addIsoDaysOrThrow("2026-12-31", 1)).toBe("2027-01-01");
+    expect(addIsoDaysOrThrow("2026-03-01", -1)).toBe("2026-02-28");
+  });
+
+  it("throws a RangeError naming the value that is not a date", () => {
+    expect(() => addIsoDaysOrThrow("20220-05-01", 1)).toThrow(RangeError);
+    expect(() => addIsoDaysOrThrow("", 1)).toThrow(/""/);
+  });
+});
+
+describe("the two AI helpers keep their own error handling", () => {
   it("the assistant helper answers null for a missing or unparseable date", () => {
     expect(assistantAddDays(null, 1)).toBeNull();
     expect(assistantAddDays("nope", 1)).toBeNull();

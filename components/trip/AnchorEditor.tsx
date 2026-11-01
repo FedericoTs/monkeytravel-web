@@ -16,7 +16,7 @@
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { AnchorSlot, AnchorType, TripAnchor } from "@/types";
-import { addDaysISO } from "@/lib/ai/multi-city-core";
+import { addIsoDaysOrThrow } from "@/lib/dates/iso-date";
 import { captureAnchorPanelOpened, capturePlanImported } from "@/lib/posthog/events";
 
 // Mirrors lib/ai/anchors-core.MAX_ANCHORS (kept local so the solver module
@@ -103,7 +103,7 @@ export default function AnchorEditor({
     if (!ISO_DATE.test(startDate) || !ISO_DATE.test(endDate) || endDate < startDate) return [];
     const out: string[] = [];
     for (let i = 0; i < 31; i++) {
-      const d = addDaysISO(startDate, i);
+      const d = addIsoDaysOrThrow(startDate, i);
       if (d > endDate) break;
       out.push(d);
     }
