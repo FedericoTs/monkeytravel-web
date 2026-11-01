@@ -170,6 +170,20 @@ export interface TripOwnershipFailure {
 export type TripOwnershipResult = TripOwnershipSuccess | TripOwnershipFailure;
 
 /**
+ * A read that found nothing: no row for .single(), or an id that isn't a
+ * UUID. Both mean "not found"; any other error is a failed read, which used
+ * to be answered 404 too (a select of a dropped column 404'd every request).
+ */
+function isNoRow(error: { code?: string } | null | undefined): boolean {
+  return error?.code === "PGRST116" || error?.code === "22P02";
+}
+
+function tripReadFailed(error: unknown): Response {
+  console.error("[auth] trip access read failed", error);
+  return errors.internal("Failed to load the trip", "TripAccess");
+}
+
+/**
  * Verify user owns a trip
  *
  * Consolidates the common pattern of verifying trip ownership (49+ occurrences).
@@ -199,7 +213,10 @@ export async function verifyTripOwnership(
     .eq("user_id", userId)
     .single();
 
-  if (error || !trip) {
+  if (error && !isNoRow(error)) {
+    return { trip: null, errorResponse: tripReadFailed(error) };
+  }
+  if (!trip) {
     return {
       trip: null,
       errorResponse: errors.notFound("Trip not found"),
@@ -280,7 +297,10 @@ export async function verifyTripAccess(
     .eq("id", tripId)
     .single();
 
-  if (error || !trip) {
+  if (error && !isNoRow(error)) {
+    return { trip: null, isOwner: false, collaboratorRole: null, errorResponse: tripReadFailed(error) };
+  }
+  if (!trip) {
     return {
       trip: null,
       isOwner: false,
@@ -304,13 +324,16 @@ export async function verifyTripAccess(
   }
 
   // Check collaborator access
-  const { data: collab } = await supabase
+  const { data: collab, error: collabError } = await supabase
     .from("trip_collaborators")
     .select("role")
     .eq("trip_id", tripId)
     .eq("user_id", userId)
     .single();
 
+  if (collabError && !isNoRow(collabError)) {
+    return { trip: null, isOwner: false, collaboratorRole: null, errorResponse: tripReadFailed(collabError) };
+  }
   if (!collab || !requiredRoles.includes(collab.role)) {
     return {
       trip: null,
