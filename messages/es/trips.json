@@ -510,9 +510,7 @@
     "moreInfo": "Más Info",
     "booking": "Reservar",
     "insiderTips": "Consejos Locales",
-    "aiEstimate": "Estimación AI",
-    "googleVerified": "Verificado por Google",
-    "venueTierEstimate": "Estimación de categoría"
+    "aiEstimate": "Estimación AI"
   },
   "detail": {
     "cancelTrip": {
