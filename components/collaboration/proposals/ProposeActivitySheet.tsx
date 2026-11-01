@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Search, X, MapPin, Clock, Loader2, ChevronLeft, AlertCircle } from "lucide-react";
 import Image from "next/image";
@@ -8,24 +8,7 @@ import type { Activity, ProposalType } from "@/types";
 import BaseModal from "@/components/ui/BaseModal";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
-
-// Reuse activity search result type
-interface ActivitySearchResult {
-  id: string;
-  name: string;
-  type: string;
-  description?: string;
-  address?: string;
-  coordinates?: { lat: number; lng: number };
-  duration_minutes?: number;
-  estimated_cost?: {
-    amount: number;
-    currency: string;
-    tier: "free" | "budget" | "moderate" | "expensive";
-  };
-  image_url?: string;
-  source: "bank" | "google";
-}
+import { useActivitySearch, type ActivitySearchResult } from "@/hooks/useActivitySearch";
 
 interface ProposeActivitySheetProps {
   isOpen: boolean;
@@ -90,12 +73,15 @@ export function ProposeActivitySheet({
   const [step, setStep] = useState<Step>('search');
 
   // Search state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [results, setResults] = useState<ActivitySearchResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
+  const {
+    query: searchQuery,
+    category: selectedCategory,
+    results,
+    isSearching,
+    changeQuery: handleSearchChange,
+    toggleCategory: handleCategorySelect,
+    reset: resetSearch,
+  } = useActivitySearch(destination, isOpen && step === "search");
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Selected activity for preview
@@ -123,15 +109,13 @@ export function ProposeActivitySheet({
   useEffect(() => {
     if (isOpen) {
       setStep('search');
-      setSearchQuery("");
-      setSelectedCategory(null);
-      setResults([]);
+      resetSearch();
       setSelectedActivity(null);
       setCustomActivity({ name: "", type: "activity", description: "", duration: 90 });
       setNote("");
       setError(null);
     }
-  }, [isOpen]);
+  }, [isOpen, resetSearch]);
 
   // Focus input when search step is shown
   useEffect(() => {
@@ -140,64 +124,6 @@ export function ProposeActivitySheet({
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen, step]);
-
-  // Search activities
-  // A newer search cancels the one in flight, as in AddActivityButton: its
-  // results (and their paid photo downloads) would only flash before the
-  // newer ones, or replace them when they came back last.
-  const searchActivities = useCallback(async (query: string, type: string | null) => {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setIsSearching(true);
-    try {
-      const response = await fetch("/api/activities/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          destination,
-          query,
-          types: type ? [type] : [],
-          limit: 8,
-          includeGoogle: query.length >= 3,
-        }),
-        signal: controller.signal,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (controller.signal.aborted) return;
-        setResults(data.results || []);
-      }
-    } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") return;
-      console.error("Activity search error:", err);
-    } finally {
-      if (!controller.signal.aborted) setIsSearching(false);
-    }
-  }, [destination]);
-
-  // Handle search input
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-
-    // Debounce search
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    debounceRef.current = setTimeout(() => {
-      searchActivities(value, selectedCategory);
-    }, 300);
-  };
-
-  // Handle category selection
-  const handleCategorySelect = (type: string) => {
-    const newCategory = selectedCategory === type ? null : type;
-    setSelectedCategory(newCategory);
-    searchActivities(searchQuery, newCategory);
-  };
 
   // Handle selecting a search result
   const handleSelectResult = (result: ActivitySearchResult) => {
@@ -261,13 +187,6 @@ export function ProposeActivitySheet({
       setIsSubmitting(false);
     }
   };
-
-  // Load initial suggestions when opened
-  useEffect(() => {
-    if (isOpen && step === 'search' && results.length === 0 && !searchQuery) {
-      searchActivities("", null);
-    }
-  }, [isOpen, step, results.length, searchQuery, searchActivities]);
 
   // Navigate back
   const handleBack = () => {
