@@ -1767,7 +1767,8 @@
         "locked": "Isso mudaria um plano fixo ({names}), então não dá para fazer aqui.",
         "tooManyDays": "Uma viagem pode ter no máximo {max} dias.",
         "applyFailed": "Não foi possível aplicar a alteração. Tente novamente.",
-        "undoFailed": "Não foi possível desfazer a alteração. Tente novamente."
+        "undoFailed": "Não foi possível desfazer a alteração. Tente novamente.",
+        "undoOutdated": "Sua viagem mudou desde então, então não dá para desfazer aqui."
       }
     },
     "cards": {

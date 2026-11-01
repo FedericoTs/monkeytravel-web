@@ -598,6 +598,7 @@ ${t("notAppliedBody")}`,
           pendingChange.type === "add_day" || pendingChange.type === "apply_draft"
             ? pendingChange.previousEndDate
             : undefined,
+        appliedVersion: typeof data.itineraryVersion === "number" ? data.itineraryVersion : undefined,
         action: {
           type: pendingChange.type,
           description: undoDescription,
@@ -676,10 +677,13 @@ ${t("notAppliedBody")}`,
             previousItinerary: currentUndo.previousItinerary,
             // add_day undos also roll trips.end_date back (see /undo route)
             previousEndDate: currentUndo.previousEndDate,
+            expectedVersion: currentUndo.appliedVersion,
           }),
         });
 
         if (!res.ok) {
+          // 409: the trip moved on after the change, and undoing it would wipe that.
+          if (res.status === 409) throw new ShownError(t("errors.undoOutdated"));
           throw failure(res.status, await res.json().catch(() => null), t("errors.undoFailed"));
         }
 

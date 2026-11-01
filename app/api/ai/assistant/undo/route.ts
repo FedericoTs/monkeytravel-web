@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { ItineraryDay } from "@/types";
-import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { errors, apiError, apiSuccess } from "@/lib/api/response-wrapper";
 import { resolveAssistantRole, ASSISTANT_FORBIDDEN_MESSAGE } from "@/lib/ai/assistant-access";
 import { ASSISTANT_ERROR_CODES } from "@/lib/ai/assistant/error-message";
 import { recordAiOutcome } from "@/lib/ai/observability";
@@ -13,6 +13,8 @@ interface UndoRequest {
   // so the undo must restore BOTH in the same write or the trip ends a day
   // after its own itinerary.
   previousEndDate?: string;
+  /** The trip's itinerary_version right after the change: undo writes only onto it. */
+  expectedVersion?: number;
 }
 
 export async function POST(request: NextRequest) {
@@ -23,9 +25,9 @@ export async function POST(request: NextRequest) {
     if (errorResponse) return errorResponse;
 
     const body: UndoRequest = await request.json();
-    const { tripId, previousItinerary, previousEndDate } = body;
+    const { tripId, previousItinerary, previousEndDate, expectedVersion } = body;
 
-    if (!tripId || !previousItinerary) {
+    if (!tripId || !Array.isArray(previousItinerary)) {
       return errors.badRequest("Missing tripId or previousItinerary");
     }
 
@@ -53,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Restore the previous itinerary (and, for add_day undos, the end date)
-    const { error: updateError } = await supabase
+    let write = supabase
       .from("trips")
       .update({
         itinerary: previousItinerary,
@@ -63,9 +65,25 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", tripId);
+    // Only while the trip is as the change left it: putting the old copy back
+    // over a later save would wipe that save.
+    if (typeof expectedVersion === "number") write = write.eq("itinerary_version", expectedVersion);
+    const { data: written, error: updateError } = await write.select("id");
 
     if (updateError) {
       console.error("[AI Assistant Undo] Database update failed:", updateError);
+      return errors.internal("Failed to undo changes", "AI Assistant Undo");
+    }
+
+    if (!written || written.length === 0) {
+      if (typeof expectedVersion === "number") {
+        const { data: now } = await supabase.from("trips").select("itinerary_version").eq("id", tripId).maybeSingle();
+        const nowVersion = (now as { itinerary_version?: unknown } | null)?.itinerary_version;
+        if (typeof nowVersion === "number" && nowVersion !== expectedVersion) {
+          return apiError("The trip changed after this change", { status: 409, code: ASSISTANT_ERROR_CODES.outdated });
+        }
+      }
+      console.error("[AI Assistant Undo] Update matched no rows", { tripId });
       return errors.internal("Failed to undo changes", "AI Assistant Undo");
     }
 

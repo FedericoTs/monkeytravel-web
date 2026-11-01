@@ -1767,7 +1767,8 @@
         "locked": "This would change a fixed plan ({names}), so it can't be done here.",
         "tooManyDays": "Trips can have at most {max} days.",
         "applyFailed": "Couldn't apply the change. Please try again.",
-        "undoFailed": "Couldn't undo the change. Please try again."
+        "undoFailed": "Couldn't undo the change. Please try again.",
+        "undoOutdated": "Your trip has changed since then, so this can't be undone here."
       }
     },
     "cards": {
