@@ -9,6 +9,7 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { invalidateConfigCache } from "@/lib/api-gateway";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { readJsonBody } from "@/lib/api/json-body";
 
 export interface ApiConfig {
   id: string;
@@ -64,7 +65,8 @@ export async function PATCH(request: NextRequest) {
     if (errorResponse) return errorResponse;
 
     // Parse request body
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { api_name, enabled, block_mode, daily_limit, monthly_limit } = body;
 
     if (!api_name) {
@@ -131,7 +133,8 @@ export async function POST(request: NextRequest) {
     const { user, supabase, errorResponse } = await getAuthenticatedAdmin();
     if (errorResponse) return errorResponse;
 
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { action, api_name } = body;
 
     if (action === "reset_daily") {

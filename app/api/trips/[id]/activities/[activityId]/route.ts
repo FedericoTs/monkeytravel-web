@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripOwnership, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripActivityRouteContext } from "@/lib/api/route-context";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * GET /api/trips/[id]/activities/[activityId] - Get timeline for a specific activity
@@ -63,7 +64,8 @@ export async function PATCH(request: NextRequest, context: TripActivityRouteCont
     );
     if (tripError) return tripError;
 
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const updates: Record<string, unknown> = {};
 
     // Handle status update

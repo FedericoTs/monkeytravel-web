@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useId, useState, type ReactNode } from "react";
+import { useCallback, useId, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
@@ -209,15 +209,3 @@ export default function BaseModal({
   return modalContent;
 }
 
-/**
- * Hook for modal state management
- */
-export function useModal(initialState = false) {
-  const [isOpen, setIsOpen] = useState(initialState);
-
-  const open = useCallback(() => setIsOpen(true), []);
-  const close = useCallback(() => setIsOpen(false), []);
-  const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
-
-  return { isOpen, open, close, toggle, setIsOpen };
-}

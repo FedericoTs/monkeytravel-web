@@ -42,14 +42,6 @@ export const SEASON_EMOJI: Record<Season, string> = {
   winter: "❄️",
 };
 
-// Season descriptions
-export const SEASON_DESCRIPTIONS: Record<Season, string> = {
-  spring: "Pleasant temperatures, blooming flowers, and longer days",
-  summer: "Warm weather, peak tourist season, and outdoor activities",
-  autumn: "Mild temperatures, fall colors, and harvest festivals",
-  winter: "Cold weather, holiday atmosphere, and winter activities",
-};
-
 // Vibe suggestions based on season and events
 export interface SeasonalVibeSuggestion {
   vibeId: TripVibe;
@@ -497,16 +489,3 @@ export function buildSeasonalContext(
   };
 }
 
-/**
- * Legacy export kept for backward compat — some callers may import the
- * old flat list. New code should use HOLIDAYS_BY_MONTH (typed entries)
- * or relevantHolidaysForDestination() (filtered names).
- *
- * @deprecated Use HOLIDAYS_BY_MONTH + destinationCountryCode instead.
- */
-export const MAJOR_HOLIDAYS: Record<number, string[]> = Object.fromEntries(
-  Object.entries(HOLIDAYS_BY_MONTH).map(([month, entries]) => [
-    Number(month),
-    entries.map((e) => e.name),
-  ])
-);

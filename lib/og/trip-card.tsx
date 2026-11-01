@@ -77,10 +77,6 @@ const COPY = {
   },
 } as const;
 
-export function cardCopy(locale: CardLocale) {
-  return COPY[locale];
-}
-
 // Brand tokens (app/globals.css). Coral stays decorative: chips and pills,
 // never small text on paper.
 const NAVY = "#2D3436";

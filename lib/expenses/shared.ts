@@ -134,16 +134,6 @@ export function splitEquallyCents(totalCents: number, n: number): number[] {
   });
 }
 
-/** A person the cost is split across (owner or participant), unified. */
-export interface ExpenseActor {
-  /** Stable key: "u:<userId>" for authed, "c:<cookie>" for anonymous. */
-  key: string;
-  userId: string | null;
-  cookieId: string | null;
-  name: string | null;
-  isOwner: boolean;
-}
-
 export function actorKey(userId: string | null, cookieId: string | null): string {
   return userId ? `u:${userId}` : cookieId ? `c:${cookieId}` : "c:unknown";
 }

@@ -10,6 +10,7 @@ import { captureServerEvent } from "@/lib/posthog/server";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import { copyableTripMeta } from "@/lib/trips/copy-meta";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { readJsonBody } from "@/lib/api/json-body";
 
 
 /**
@@ -29,7 +30,8 @@ export async function POST(request: NextRequest) {
     if (errorResponse) return errors.unauthorized("Please sign in to save this trip");
 
     // Get share token (or, from the public page, the slug) and optional start date
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { shareToken, publicSlug, startDate } = body;
     const bySlug = shareToken === undefined;
     const ref: unknown = bySlug ? publicSlug : shareToken;

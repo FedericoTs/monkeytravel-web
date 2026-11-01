@@ -7,6 +7,7 @@ import type { TripRouteContext } from "@/lib/api/route-context";
 import type { CollaboratorRole, TripInvite } from "@/types";
 import { dispatchEmail } from "@/lib/email/send";
 import { normalizeEmailLocale } from "@/lib/email/copy";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /** Uses allowed on an open (no-recipient) invite link: enough for any travel group. */
 const DEFAULT_LINK_MAX_USES = 20;
@@ -72,7 +73,8 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const {
       role = "voter",
       // An open link goes to a group chat: it must let the whole group in

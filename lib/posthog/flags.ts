@@ -45,7 +45,6 @@ export const FLAG_ENHANCED_BOOKING = "enhanced-booking-panel";
  * Not wired: AuthPromptModal.tsx does not read it.
  */
 export const FLAG_AUTH_WALL_VARIANT = "auth-wall-variant";
-export type AuthWallVariant = "magic-link-primary" | "dual-prominent" | "magic-link-only";
 
 /**
  * Concierge surface gate
@@ -60,7 +59,6 @@ export type AuthWallVariant = "magic-link-primary" | "dual-prominent" | "magic-l
  * only switch.
  */
 export const FLAG_CONCIERGE_SURFACE = "concierge-surface";
-export type ConciergeSurfaceVariant = "always" | "live-only" | "off";
 
 /**
  * Anonymous engagement on /explore
@@ -73,7 +71,6 @@ export type ConciergeSurfaceVariant = "always" | "live-only" | "off";
  * Not wired: EngagementBar.tsx does not read it.
  */
 export const FLAG_EXPLORE_ANON_ENGAGEMENT = "explore-anon-engagement";
-export type ExploreAnonEngagementVariant = "cookie-keyed" | "auth-gated";
 
 /**
  * Wizard step layout
@@ -86,7 +83,6 @@ export type ExploreAnonEngagementVariant = "cookie-keyed" | "auth-gated";
  * Not wired: NewTripWizard.tsx does not read it.
  */
 export const FLAG_WIZARD_LAYOUT = "wizard-layout";
-export type WizardLayoutVariant = "two-step" | "one-screen";
 
 /**
  * Wizard mobile-first redesign (P11)

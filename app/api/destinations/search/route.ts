@@ -13,6 +13,7 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { readJsonBody } from "@/lib/api/json-body";
 
 // Country name to ISO code mapping
 const countryToCode: Record<string, string> = {
@@ -276,7 +277,9 @@ export interface LocalDestinationPrediction {
 
 export async function POST(request: NextRequest) {
   try {
-    const { input, limit = 8, locale } = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
+    const { input, limit = 8, locale } = body;
 
     if (!input || input.length < 2) {
       return apiSuccess({ predictions: [], source: "local" });

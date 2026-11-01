@@ -79,33 +79,6 @@ export async function getAuthenticatedUser(): Promise<AuthResult> {
 }
 
 /**
- * Require authenticated user (throws-style pattern)
- *
- * Use this when you want a simpler pattern and can handle errors
- * at a higher level.
- *
- * @example
- * try {
- *   const { user, supabase } = await requireAuthenticatedUser();
- *   // user is guaranteed to exist here
- * } catch (e) {
- *   return e as Response; // Return the unauthorized response
- * }
- */
-export async function requireAuthenticatedUser(): Promise<{
-  user: User;
-  supabase: SupabaseClient;
-}> {
-  const { user, supabase, errorResponse } = await getAuthenticatedUser();
-
-  if (errorResponse || !user) {
-    throw errorResponse || errors.unauthorized();
-  }
-
-  return { user, supabase };
-}
-
-/**
  * Check if user is admin
  *
  * Uses the centralized ADMIN_EMAILS list from lib/admin.ts

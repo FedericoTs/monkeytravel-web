@@ -78,12 +78,6 @@ export interface ContentViewedEvent {
   [key: string]: unknown;
 }
 
-export interface ContentInteractionEvent {
-  action: string;
-  content_group: string;
-  [key: string]: unknown;
-}
-
 // ============================================================================
 // CONVERSION EVENTS
 // ============================================================================
@@ -148,87 +142,9 @@ export interface SharePromptActionEvent {
   experiment_variant?: "control" | "delayed-2s" | "delayed-5s";
 }
 
-export interface TripSharedEvent {
-  trip_id: string;
-  method: "link" | "whatsapp" | "twitter" | "facebook" | "email" | "qr";
-}
-
-export interface ReferralConvertedEvent {
-  referral_code: string;
-  reward_amount: number;
-  referrer_id: string;
-  referee_id: string;
-}
-
-// ============================================================================
-// MONETIZATION EVENTS
-// ============================================================================
-
-export interface LimitReachedEvent {
-  limit_type: "generation" | "regeneration" | "assistant";
-  current_usage: number;
-  limit: number;
-  utilization_percent: number;
-}
-
-export interface UpgradePromptShownEvent {
-  trigger: "limit_reached" | "feature_gate" | "trial_ending" | "upsell";
-  limit_type?: string;
-  location: string;
-}
-
-export interface UpgradePromptActionEvent {
-  trigger: string;
-  action: "clicked" | "dismissed" | "later";
-}
-
-export interface TrialStartedEvent {
-  trial_days: number;
-}
-
-export interface SubscriptionStartedEvent {
-  plan: "pro" | "premium";
-  billing_period: "monthly" | "annual";
-  value: number;
-}
-
-// ============================================================================
-// ONBOARDING EVENTS
-// ============================================================================
-
-export interface OnboardingStepViewedEvent {
-  step_number: number;
-  step_name: string;
-}
-
-export interface OnboardingStepCompletedEvent {
-  step_number: number;
-  step_name: string;
-  selections_count: number;
-  selections?: string[];
-}
-
-export interface OnboardingCompletedEvent {
-  total_steps: number;
-  was_skipped: boolean;
-  travel_styles_count: number;
-  dietary_count: number;
-  accessibility_count: number;
-}
-
 // ============================================================================
 // ACTIVATION FUNNEL EVENTS
 // ============================================================================
-
-export interface WelcomePageViewedEvent {
-  has_beta_access: boolean;
-  has_completed_onboarding: boolean;
-}
-
-export interface WelcomeCompletedEvent {
-  action: "continue" | "skip" | "beta_code_entered";
-  has_beta_code: boolean;
-}
 
 export interface TripWizardStepViewedEvent {
   step_number: number;
@@ -332,32 +248,6 @@ export interface TripGenerationCompletedEvent {
 // AHA MOMENT & RETENTION EVENTS
 // ============================================================================
 
-export interface AhaMomentReachedEvent {
-  /** Which aha moment was reached */
-  moment_type: "first_trip_saved" | "first_activity_modified" | "first_share" | "first_collaboration";
-  /** Time from signup to aha moment in hours */
-  time_to_aha_hours: number;
-  /** User's trip count at this moment */
-  trips_count: number;
-  /** Whether this happened in first session */
-  is_first_session: boolean;
-}
-
-export interface RetentionCheckpointEvent {
-  /** Days since signup */
-  days_since_signup: number;
-  /** Checkpoint type */
-  checkpoint: "d1" | "d3" | "d7" | "d14" | "d30";
-  /** Total trips created */
-  trips_count: number;
-  /** Total activities modified */
-  activities_modified_count: number;
-  /** Has shared a trip */
-  has_shared: boolean;
-  /** Has collaborated */
-  has_collaborated: boolean;
-}
-
 export interface FirstTripSavedEvent {
   trip_id: string;
   destination: string;
@@ -389,25 +279,9 @@ export interface ActivityModifiedEvent {
   from_day_number?: number;
 }
 
-export interface ReturnVisitEvent {
-  /** Days since last visit */
-  days_since_last_visit: number;
-  /** Total visit count */
-  visit_count: number;
-  /** Did user have incomplete trip */
-  has_incomplete_trip: boolean;
-}
-
 // ============================================================================
 // ENGAGEMENT EVENTS
 // ============================================================================
-
-export interface ActivityCompletedEvent {
-  trip_id: string;
-  activity_id: string;
-  day_number: number;
-  xp_earned: number;
-}
 
 export interface AIAssistantUsedEvent {
   trip_id?: string;
@@ -427,11 +301,6 @@ export interface AIAssistantUsedEvent {
   action_type?: string;
   /** Assistant round-trip latency in ms — lets us measure p50/p95 turn time. */
   response_time_ms?: number;
-}
-
-export interface FeatureFlagExposedEvent {
-  flag_key: string;
-  variant: string | boolean;
 }
 
 // ============================================================================
@@ -495,15 +364,6 @@ export async function captureSharePromptShown(event: SharePromptShownEvent) {
 export async function captureSharePromptAction(event: SharePromptActionEvent) {
   const ph = await getPosthog();
   ph.capture("share_prompt_action", event);
-}
-
-
-/**
- * Capture referral conversion
- */
-export async function captureReferralConverted(event: ReferralConvertedEvent) {
-  const ph = await getPosthog();
-  ph.capture("referral_converted", event);
 }
 
 /**
@@ -1018,13 +878,6 @@ export interface ExploreTripForkedEvent {
   trip_id: string;
   surface: ExploreSurface;
   required_auth: boolean;
-}
-
-export interface ExploreFilterAppliedEvent {
-  /** Which dropdown / chip the user adjusted. */
-  filter_type: "destination" | "duration" | "vibe" | "budget" | "sort";
-  /** The value they picked, stringified. */
-  value: string;
 }
 
 export interface ExploreTripPublishedEvent {

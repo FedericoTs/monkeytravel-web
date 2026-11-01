@@ -66,20 +66,3 @@ export function daysBetweenLocal(from: Date, to: Date): number {
   return Math.round((to.getTime() - from.getTime()) / 86_400_000);
 }
 
-/**
- * Convenience formatter — parses a YYYY-MM-DD string in local TZ and
- * passes it through toLocaleDateString with the given options.
- *
- * Returns the original string if parsing fails (defensive — never
- * shows "Invalid Date" to the user).
- */
-export function formatLocalDate(
-  iso: string | null | undefined,
-  options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" },
-  locale: string = "en-US"
-): string {
-  if (!iso) return "";
-  const d = parseLocalDate(iso);
-  if (!d) return iso;
-  return d.toLocaleDateString(locale, options);
-}

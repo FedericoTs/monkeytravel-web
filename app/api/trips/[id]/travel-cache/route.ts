@@ -3,6 +3,7 @@ import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import type { CachedDayTravelData, TripMeta } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { readJsonBody } from "@/lib/api/json-body";
 
 interface TravelCacheBody {
   travel_distances: CachedDayTravelData[];
@@ -30,7 +31,8 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     if (tripError) return tripError;
 
     // Parse request body
-    const body: TravelCacheBody = await request.json();
+    const { body, invalidBody } = await readJsonBody<TravelCacheBody>(request);
+    if (invalidBody) return invalidBody;
 
     if (!body.travel_distances || !body.travel_distances_hash) {
       return errors.badRequest("Missing travel_distances or travel_distances_hash");

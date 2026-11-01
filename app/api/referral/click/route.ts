@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 import { createHash } from "crypto";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * POST /api/referral/click
@@ -11,7 +12,9 @@ import { logReadError } from "@/lib/supabase/log-read-error";
  */
 export async function POST(request: NextRequest) {
   try {
-    const { code, utm_source, utm_medium, utm_campaign } = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
+    const { code, utm_source, utm_medium, utm_campaign } = body;
 
     if (!code) {
       return errors.badRequest("Referral code is required");

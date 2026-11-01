@@ -232,24 +232,6 @@ function adjustToPreferredTime(
 }
 
 /**
- * Schedule warning types
- */
-export interface ScheduleWarning {
-  activityId: string;
-  activityName: string;
-  type: "late_schedule" | "type_mismatch" | "compressed";
-  message: string;
-}
-
-/**
- * Result of schedule optimization
- */
-export interface ScheduleResult {
-  itinerary: ItineraryDay[];
-  warnings: ScheduleWarning[];
-}
-
-/**
  * Generate a unique activity ID using UUID v4
  */
 export function generateActivityId(): string {

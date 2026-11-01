@@ -112,19 +112,6 @@ export function tripToIcalEvents(trip: TripForFeedEvents): IcalEvent[] {
   return events;
 }
 
-/**
- * Convert multiple trips at once. Convenience for the feed route.
- */
-export function tripsToIcalEvents(
-  trips: readonly TripForFeedEvents[]
-): IcalEvent[] {
-  const out: IcalEvent[] = [];
-  for (const trip of trips) {
-    out.push(...tripToIcalEvents(trip));
-  }
-  return out;
-}
-
 // ---------------------------------------------------------------------------
 // Internals
 // ---------------------------------------------------------------------------

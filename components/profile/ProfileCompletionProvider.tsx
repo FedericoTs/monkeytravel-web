@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useState, useEffect, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { safeGet } from "@/lib/safe-storage";
@@ -19,14 +19,6 @@ interface ProfileCompletionContextType {
 const ProfileCompletionContext = createContext<ProfileCompletionContextType | undefined>(
   undefined
 );
-
-export function useProfileCompletion() {
-  const context = useContext(ProfileCompletionContext);
-  if (!context) {
-    throw new Error("useProfileCompletion must be used within ProfileCompletionProvider");
-  }
-  return context;
-}
 
 interface ProfileCompletionProviderProps {
   children: ReactNode;

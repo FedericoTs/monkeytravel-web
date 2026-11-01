@@ -81,15 +81,6 @@ export interface ActivityPhoto {
   created_at: string;
 }
 
-/**
- * Request payload for uploading a photo
- */
-export interface PhotoUploadRequest {
-  tripId: string;
-  activityId: string;
-  caption?: string;
-}
-
 // ============================================================================
 // CHECKLIST
 // ============================================================================
@@ -115,15 +106,6 @@ export interface ChecklistItem {
   // Timestamps
   created_at: string;
   checked_at?: string;
-}
-
-/**
- * Request payload for creating a checklist item
- */
-export interface CreateChecklistItemRequest {
-  text: string;
-  category?: ChecklistCategory;
-  due_date?: string;
 }
 
 // ============================================================================
@@ -229,75 +211,6 @@ export interface DayProgress {
 }
 
 // ============================================================================
-// API RESPONSES
-// ============================================================================
-
-/**
- * Response from GET /api/trips/[id]/timeline
- */
-export interface TimelineResponse {
-  timeline: TimelineState;
-  trip: {
-    id: string;
-    title: string;
-    start_date: string;
-    end_date: string;
-    status: string;
-  };
-}
-
-/**
- * Response from POST /api/trips/[id]/activities/[activityId]/complete
- */
-export interface CompleteActivityResponse {
-  success: boolean;
-  activity_timeline: ActivityTimeline;
-  next_activity_id?: string;
-  day_completed: boolean;
-  trip_completed: boolean;
-}
-
-/**
- * Response from POST /api/trips/[id]/photos
- */
-export interface PhotoUploadResponse {
-  success: boolean;
-  photo: ActivityPhoto;
-}
-
-// ============================================================================
-// HOOKS TYPES
-// ============================================================================
-
-/**
- * Return type for useTimeline hook
- */
-export interface UseTimelineReturn {
-  timeline: TimelineState | null;
-  isLoading: boolean;
-  error: Error | null;
-
-  // Actions
-  startActivity: (activityId: string) => Promise<void>;
-  completeActivity: (activityId: string, rating?: number, notes?: string) => Promise<void>;
-  skipActivity: (activityId: string, reason?: string) => Promise<void>;
-  rateActivity: (activityId: string, rating: number) => Promise<void>;
-
-  // Checklist
-  toggleChecklistItem: (itemId: string) => Promise<void>;
-  addChecklistItem: (text: string, category?: ChecklistCategory) => Promise<void>;
-  deleteChecklistItem: (itemId: string) => Promise<void>;
-
-  // Photos
-  uploadPhoto: (activityId: string, file: File, caption?: string) => Promise<ActivityPhoto>;
-  deletePhoto: (photoId: string) => Promise<void>;
-  togglePhotoFavorite: (photoId: string) => Promise<void>;
-
-  // Refresh
-  refresh: () => Promise<void>;
-}
-
-// ============================================================================
 // COMPONENT PROPS
 // ============================================================================
 
@@ -344,32 +257,4 @@ export interface PreTripChecklistProps {
   onToggle: (id: string) => void;
   onAdd: (text: string, category: ChecklistCategory) => void;
   onDelete: (id: string) => void;
-}
-
-/**
- * Props for PhotoAlbum component
- */
-export interface PhotoAlbumProps {
-  tripId: string;
-  photos: ActivityPhoto[];
-  groupByDay?: boolean;
-  onPhotoClick?: (photo: ActivityPhoto) => void;
-  onToggleFavorite?: (photoId: string) => void;
-  onDeletePhoto?: (photoId: string) => void;
-  onAddPhotos?: (activityId: string) => void;
-}
-
-/**
- * Props for TripStats component
- */
-export interface TripStatsProps {
-  stats: TripStats;
-  tripTitle: string;
-  favoriteActivity?: {
-    id: string;
-    name: string;
-    photo_url?: string;
-    rating?: number;
-    notes?: string;
-  };
 }

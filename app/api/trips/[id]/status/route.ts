@@ -7,6 +7,7 @@ import {
   isValidStatusTransition,
   calculateTripStatus,
 } from '@/lib/trips/status';
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * GET /api/trips/[id]/status
@@ -75,7 +76,8 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const newStatus = body.status as TripStatus;
 
     if (!newStatus) {

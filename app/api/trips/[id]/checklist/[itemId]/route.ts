@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripChecklistItemRouteContext } from "@/lib/api/route-context";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * PATCH /api/trips/[id]/checklist/[itemId] - Update a checklist item
@@ -26,7 +27,8 @@ export async function PATCH(request: NextRequest, context: TripChecklistItemRout
     }
 
     // Parse request body
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const updates: Record<string, unknown> = {};
 
     // Handle toggleable fields

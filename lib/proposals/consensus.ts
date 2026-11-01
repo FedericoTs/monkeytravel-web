@@ -20,13 +20,7 @@
  * 7. Otherwise → Continue voting
  */
 
-import {
-  ProposalVote,
-  ProposalVoteType,
-  ProposalConsensusResult,
-  VOTE_WEIGHTS,
-  PROPOSAL_TIMING,
-} from '@/types';
+import { ProposalVote, ProposalConsensusResult, VOTE_WEIGHTS, PROPOSAL_TIMING } from '@/types';
 
 export interface ProposalConsensusInput {
   votes: ProposalVote[];
@@ -222,105 +216,6 @@ export function calculateProposalConsensus({
 }
 
 /**
- * Get display information for a proposal consensus status
- * Returns translation keys (labelKey/descriptionKey) matching the pattern
- * used in lib/voting/consensus.ts for i18n consistency.
- *
- * Translation keys resolve against the `common.activityStatus` namespace.
- */
-export function getProposalConsensusDisplayInfo(result: ProposalConsensusResult): {
-  labelKey: string;
-  color: string;
-  bgColor: string;
-  icon: string;
-  descriptionKey: string;
-  descriptionParams?: Record<string, string | number>;
-} {
-  switch (result.status) {
-    case 'waiting':
-      return {
-        labelKey: 'waiting',
-        color: 'text-slate-600',
-        bgColor: 'bg-slate-100',
-        icon: 'clock',
-        descriptionKey: 'waitingDesc',
-        descriptionParams: { percent: Math.round(result.participation * 100) },
-      };
-    case 'voting':
-      return {
-        labelKey: 'voting',
-        color: 'text-blue-600',
-        bgColor: 'bg-blue-100',
-        icon: 'vote',
-        descriptionKey: result.hasStrongObjection
-          ? 'votingConcerns'
-          : 'votingInProgress',
-      };
-    case 'likely_approve':
-      return {
-        labelKey: 'likelyApproved',
-        color: 'text-emerald-600',
-        bgColor: 'bg-emerald-100',
-        icon: 'trending-up',
-        descriptionKey: 'likelyApprovedDesc',
-      };
-    case 'approved':
-      return {
-        labelKey: 'confirmed',
-        color: 'text-green-600',
-        bgColor: 'bg-green-100',
-        icon: 'check',
-        descriptionKey: 'confirmedDesc',
-      };
-    case 'rejected':
-      return {
-        labelKey: 'rejected',
-        color: 'text-red-600',
-        bgColor: 'bg-red-100',
-        icon: 'x',
-        descriptionKey: 'rejectedDesc',
-      };
-    case 'deadlock':
-      return {
-        labelKey: 'deadlock',
-        color: 'text-amber-600',
-        bgColor: 'bg-amber-100',
-        icon: 'alert',
-        descriptionKey: 'deadlockDesc',
-      };
-    case 'expired':
-      return {
-        labelKey: 'expired',
-        color: 'text-gray-500',
-        bgColor: 'bg-gray-100',
-        icon: 'clock',
-        descriptionKey: 'expiredDesc',
-      };
-  }
-}
-
-/**
- * Check if a user has already voted on a proposal
- */
-export function getUserProposalVote(
-  votes: ProposalVote[],
-  userId: string
-): ProposalVote | undefined {
-  return votes.find(v => v.user_id === userId);
-}
-
-/**
- * Get vote type for a user on a proposal
- */
-export function getUserProposalVoteType(
-  votes: ProposalVote[],
-  userId: string
-): ProposalVoteType | null {
-  const vote = getUserProposalVote(votes, userId);
-  return vote?.vote_type ?? null;
-}
-
-/**
  * Calculate time remaining until auto-action
  */
 export function getProposalTimeRemaining(
@@ -354,23 +249,6 @@ export function getProposalTimeRemaining(
   }
 
   return { hours, minutes, isPast, formatted };
-}
-
-/**
- * Aggregate votes by proposal for a batch of proposals
- */
-export function aggregateVotesByProposal(
-  votes: ProposalVote[]
-): Map<string, ProposalVote[]> {
-  const map = new Map<string, ProposalVote[]>();
-
-  for (const vote of votes) {
-    const existing = map.get(vote.proposal_id) || [];
-    existing.push(vote);
-    map.set(vote.proposal_id, existing);
-  }
-
-  return map;
 }
 
 /**

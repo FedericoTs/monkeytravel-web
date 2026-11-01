@@ -330,28 +330,3 @@ export async function completeReferralIfEligible(
   }
 }
 
-/**
- * Check if a user is eligible for first-trip rewards
- *
- * Returns true if:
- * - User was referred (has referred_by_code)
- * - Referral not yet completed (referral_completed_at is null)
- */
-export async function isEligibleForFirstTripReward(
-  supabase: SupabaseClient,
-  userId: string
-): Promise<boolean> {
-  try {
-    const { data, error } = await supabase
-      .from("users")
-      .select("referred_by_code, referral_completed_at")
-      .eq("id", userId)
-      .single();
-
-    if (error || !data) return false;
-
-    return !!(data.referred_by_code && !data.referral_completed_at);
-  } catch {
-    return false;
-  }
-}

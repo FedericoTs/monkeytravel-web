@@ -73,86 +73,6 @@ export function hashDestination(destination: string): string {
 }
 
 /**
- * Search the activity bank for matching activities
- * Returns activities that match the query, type, or keywords
- */
-export async function searchActivityBank(
-  destination: string,
-  options: {
-    query?: string;
-    type?: string;
-    budgetTier?: string;
-    timeSlot?: string;
-    limit?: number;
-  } = {}
-): Promise<Activity[]> {
-  const supabase = bankDb();
-  const destinationHash = hashDestination(destination);
-  const { query, type, budgetTier, timeSlot, limit = 10 } = options;
-
-  let queryBuilder = supabase
-    .from("destination_activity_bank")
-    .select("activity_data, hit_count")
-    .eq("destination_hash", destinationHash)
-    .gt("expires_at", new Date().toISOString());
-
-  // Apply filters
-  if (type) {
-    queryBuilder = queryBuilder.eq("activity_type", type);
-  }
-  if (budgetTier) {
-    queryBuilder = queryBuilder.eq("budget_tier", budgetTier);
-  }
-  if (timeSlot && timeSlot !== "any") {
-    queryBuilder = queryBuilder.or(`time_slot.eq.${timeSlot},time_slot.eq.any`);
-  }
-
-  // Text search on name
-  if (query) {
-    const searchTerm = query.toLowerCase().trim();
-    queryBuilder = queryBuilder.ilike("activity_name_lower", `%${searchTerm}%`);
-  }
-
-  queryBuilder = queryBuilder
-    .order("hit_count", { ascending: false })
-    .limit(limit);
-
-  const { data, error } = await queryBuilder;
-
-  if (error) {
-    console.error("[ActivityBank] Search error:", error);
-    return [];
-  }
-
-  if (!data || data.length === 0) {
-    return [];
-  }
-
-  // Update hit counts asynchronously
-  const ids = data.map((d: { activity_data: Activity }) =>
-    hashDestination(destination) + "_" + (d.activity_data as Activity).name?.toLowerCase()
-  );
-
-  // Increment hit counts in background (don't await)
-  supabase
-    .from("destination_activity_bank")
-    .update({
-      hit_count: data[0].hit_count + 1,
-      last_accessed_at: new Date().toISOString()
-    })
-    .eq("destination_hash", destinationHash)
-    .in("activity_name_lower", ids.slice(0, 5))
-    .then(() => {});
-
-  console.log(`[ActivityBank] Found ${data.length} activities for "${destination}" (query: "${query || "none"}")`);
-
-  return data.map((d: { activity_data: Activity }) => ({
-    ...d.activity_data,
-    id: generateActivityId(), // Generate fresh ID for each use
-  }));
-}
-
-/**
  * Find a single activity from the bank that best matches the user's request
  */
 export async function findMatchingActivity(
@@ -536,44 +456,6 @@ Return ONLY a JSON array of activities, no other text.`;
     console.error("[ActivityBank] Population error:", err);
     return { count: 0, cost: 0.003 };
   }
-}
-
-/**
- * Get bank statistics for a destination
- */
-export async function getActivityBankStats(destination: string): Promise<{
-  totalActivities: number;
-  byType: Record<string, number>;
-  hitCount: number;
-  expiresAt: string | null;
-}> {
-  const supabase = bankDb();
-  const destinationHash = hashDestination(destination);
-
-  const { data, error } = await supabase
-    .from("destination_activity_bank")
-    .select("activity_type, hit_count, expires_at")
-    .eq("destination_hash", destinationHash)
-    .gt("expires_at", new Date().toISOString());
-
-  if (error || !data) {
-    return { totalActivities: 0, byType: {}, hitCount: 0, expiresAt: null };
-  }
-
-  const byType: Record<string, number> = {};
-  let totalHits = 0;
-
-  for (const row of data) {
-    byType[row.activity_type] = (byType[row.activity_type] || 0) + 1;
-    totalHits += row.hit_count || 0;
-  }
-
-  return {
-    totalActivities: data.length,
-    byType,
-    hitCount: totalHits,
-    expiresAt: data[0]?.expires_at || null,
-  };
 }
 
 /**

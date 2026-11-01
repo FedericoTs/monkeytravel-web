@@ -4,18 +4,14 @@
  * Prevents duplicate concurrent API requests by coalescing identical
  * in-flight requests. When multiple callers request the same resource
  * before the first request completes, they all share the same promise.
- *
- * Benefits:
- * - Reduces API calls by 30-70% during concurrent operations
- * - Works alongside caching (dedup handles concurrent requests, cache handles sequential)
- * - Zero-config for simple cases
+ * It works alongside caching: dedup handles concurrent requests, the cache
+ * sequential ones.
  *
  * @example
- * // Simple usage
  * const result = await deduplicatedFetch('place:123', () => fetchPlaceDetails('123'));
  *
- * // With custom key generator
- * const result = await requestDedup.execute(
+ * // With a key built from parameters
+ * const result = await deduplicatedFetch(
  *   generateKey('geocode', { address }),
  *   () => geocodeAddress(address)
  * );
@@ -126,45 +122,3 @@ export function resetDedupStats(): void {
   };
 }
 
-/**
- * Class-based API for more control
- */
-export class RequestDeduplicator {
-  private inflight = new Map<string, Promise<unknown>>();
-  private stats = { total: 0, deduped: 0 };
-
-  async execute<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
-    this.stats.total++;
-
-    const existing = this.inflight.get(key);
-    if (existing) {
-      this.stats.deduped++;
-      return existing as Promise<T>;
-    }
-
-    const promise = fetcher().finally(() => {
-      this.inflight.delete(key);
-    });
-
-    this.inflight.set(key, promise);
-    return promise;
-  }
-
-  getStats() {
-    return {
-      total: this.stats.total,
-      deduplicated: this.stats.deduped,
-      rate: this.stats.total > 0
-        ? `${((this.stats.deduped / this.stats.total) * 100).toFixed(1)}%`
-        : '0%',
-    };
-  }
-
-  clear() {
-    this.inflight.clear();
-    this.stats = { total: 0, deduped: 0 };
-  }
-}
-
-// Export a default instance for simple usage
-export const requestDedup = new RequestDeduplicator();

@@ -12,6 +12,7 @@ import type { ItineraryDay } from "@/types";
 import { dietsFrom } from "@/lib/trips/diet";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { recordAiOutcome } from "@/lib/ai/observability";
+import { readJsonBody } from "@/lib/api/json-body";
 
 
 
@@ -35,7 +36,8 @@ export async function POST(request: NextRequest) {
     if (errorResponse) return errorResponse;
 
     // Parse request body
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const {
       tripId,
       activityId,

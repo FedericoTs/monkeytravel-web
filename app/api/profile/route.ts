@@ -5,6 +5,7 @@ import {
   PAYMENT_PROVIDERS,
 } from "@/lib/payments/handle-links";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { readJsonBody } from "@/lib/api/json-body";
 
 export async function GET() {
   try {
@@ -73,7 +74,8 @@ export async function PATCH(request: Request) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    const updates = await request.json();
+    const { body: updates, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
 
     // Validate allowed fields
     const allowedFields = [

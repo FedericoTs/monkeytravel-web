@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { readJsonBody } from "@/lib/api/json-body";
 
 export interface SiteConfig {
   id: number;
@@ -71,7 +72,8 @@ export async function PATCH(request: NextRequest) {
     const { user, supabase, errorResponse } = await getAuthenticatedAdmin();
     if (errorResponse) return errorResponse;
 
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const updates: Record<string, unknown> = {
       updated_by: user.id,
     };

@@ -79,16 +79,3 @@ export async function batchFetchUserProfiles(
   return profileMap;
 }
 
-/**
- * Get a formatted profile from the map with fallbacks
- */
-export function getProfileFromMap(
-  profileMap: Map<string, UserProfile>,
-  userId: string
-): { display_name: string; avatar_url: string | undefined } {
-  const profile = profileMap.get(userId);
-  return {
-    display_name: profile?.display_name || "Unknown User",
-    avatar_url: profile?.avatar_url || undefined,
-  };
-}

@@ -93,17 +93,6 @@ export interface ActivityDedupParams {
 }
 
 /**
- * Parameters for more days generation deduplication key
- */
-export interface MoreDaysDedupParams {
-  destination: string;
-  startFromDay: number;
-  daysToGenerate: number;
-  budgetTier: string;
-  pace: string;
-}
-
-/**
  * Parameters for single-day regeneration deduplication key
  */
 export interface DayDedupParams {
@@ -140,19 +129,6 @@ export function getActivityDedupKey(params: ActivityDedupParams): string {
     slot: params.timeSlot,
     day: params.dayNumber,
     budget: params.budgetTier,
-  })}`;
-}
-
-/**
- * Generate deduplication key for more days generation
- */
-export function getMoreDaysDedupKey(params: MoreDaysDedupParams): string {
-  return `moredays:${hashParams({
-    dest: params.destination.toLowerCase().trim(),
-    from: params.startFromDay,
-    count: params.daysToGenerate,
-    budget: params.budgetTier,
-    pace: params.pace,
   })}`;
 }
 
@@ -234,9 +210,3 @@ export function resetDedupStats(): void {
   stats.cacheHits = 0;
 }
 
-/**
- * Clear all in-flight requests (for testing/cleanup)
- */
-export function clearInflightRequests(): void {
-  inflightRequests.clear();
-}
