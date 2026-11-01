@@ -26,8 +26,8 @@ function anchor(partial: Partial<TripAnchor> & Pick<TripAnchor, "id" | "date" | 
 }
 
 /**
- * THE acceptance fixture — Federico's real Italy trip (plan §5):
- * land Venice Sep 8, Alyssa arrives Sep 9, night of Sep 11 MUST be Trieste,
+ * THE acceptance fixture, a real-world Italy trip (plan §5):
+ * land Venice Sep 8, a friend arrives Sep 9, night of Sep 11 MUST be Trieste,
  * Sep 12 wedding, Sep 13 family day, Sep 14 Venice sleeping near Mestre
  * station, Sep 15 fly out.
  */
@@ -39,7 +39,7 @@ const MESTRE = { lat: 45.4825, lng: 12.2313 };
 
 const ITALY_ANCHORS: TripAnchor[] = [
   anchor({ id: "a1", date: "2026-09-08", type: "transport", time_slot: "morning", start_time: "09:40", title: "Land at Venice Marco Polo", location: "Venice Marco Polo Airport", place: VCE }),
-  anchor({ id: "a2", date: "2026-09-09", type: "meetup", time_slot: "morning", title: "Alyssa arrives", location: "Venice" }),
+  anchor({ id: "a2", date: "2026-09-09", type: "meetup", time_slot: "morning", title: "Friend arrives", location: "Venice" }),
   anchor({ id: "a3", date: "2026-09-11", type: "lodging", title: "Night in Trieste", location: "Trieste", place: TRIESTE }),
   anchor({ id: "a4", date: "2026-09-12", type: "event", title: "Wedding", location: "Trieste" }),
   anchor({ id: "a5", date: "2026-09-13", type: "event", title: "Family & friends day", location: "Trieste" }),
@@ -176,7 +176,7 @@ describe("segmentTrip (Italy fixture)", () => {
     expect(layout.totalDays).toBe(8);
     expect(layout.days.map((d) => d.kind)).toEqual([
       "partial", // Sep 8  — morning landing, plan the rest
-      "partial", // Sep 9  — Alyssa arrives in the morning
+      "partial", // Sep 9  — a friend arrives in the morning
       "free",    // Sep 10
       "partial", // Sep 11 — lodging only: full day plannable, must end Trieste
       "locked",  // Sep 12 — wedding

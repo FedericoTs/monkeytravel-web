@@ -23,7 +23,7 @@ describe("coerceAnchorType", () => {
     expect(coerceAnchorType(undefined, "Fly to Venice")).toBe("transport");
     expect(coerceAnchorType(undefined, "Wedding in Trieste")).toBe("event");
     expect(coerceAnchorType(undefined, "Night in Trieste")).toBe("lodging");
-    expect(coerceAnchorType(undefined, "Meet Alyssa at the station")).toBe("meetup");
+    expect(coerceAnchorType(undefined, "Meet Sam at the station")).toBe("meetup");
   });
   it("falls back to custom", () => {
     expect(coerceAnchorType(undefined, "Something vague")).toBe("custom");
@@ -77,7 +77,7 @@ describe("normalizeImportedAnchors — the Italy paste", () => {
   // date formats, missing types, loose times.
   const raw = [
     { date: "Day 1", title: "Land at Venice Marco Polo", time: "09:40", location: "Venice Marco Polo Airport" },
-    { date: "day 2", title: "Alyssa arrives", type: "meetup", location: "Venice" },
+    { date: "day 2", title: "Friend arrives", type: "meetup", location: "Venice" },
     { date: "2026-09-11", title: "Night in Trieste", type: "hotel", location: "Trieste" },
     { date: "Day 5", title: "Wedding", type: "event", time: "all day", location: "Trieste" },
     { date: "2026-09-15", title: "Fly home", type: "flight" },

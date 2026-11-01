@@ -4,8 +4,8 @@ import { useTranslations } from "next-intl";
 
 /**
  * Shown when a save was refused because the itinerary changed elsewhere after
- * this page loaded (a trip mate, or this person in another tab). Until
- * 2026-09-24 the later save simply overwrote the earlier one, and nobody knew.
+ * this page loaded (a trip mate, or this person in another tab), so the later
+ * save doesn't silently overwrite the earlier one.
  *
  * Two choices, both explicit: take the newer version (drops this tab's
  * unsaved changes) or keep this tab's version (saved on top of the newer

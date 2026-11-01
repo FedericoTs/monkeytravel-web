@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Session trips tray — the "sampler fix" (Save Sprint 2026-07-20).
+ * Session trips tray.
  *
  * Users often generate 2-5 trips in one sitting; each new generation used to
  * silently replace the previous one, so comparing options meant losing them.

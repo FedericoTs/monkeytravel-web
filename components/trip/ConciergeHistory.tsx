@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Compass, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 
 /**
- * In-trip Concierge conversation history (F4 follow-up, 2026-06-07).
+ * In-trip Concierge conversation history.
  *
  * Renders past Q&A pairs with the Concierge for THIS trip, newest first,
  * inside a collapsible section that sits below the Concierge launcher

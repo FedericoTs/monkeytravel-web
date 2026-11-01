@@ -49,10 +49,7 @@ interface ShareAfterSaveModalProps {
   tripDays: number;
   destination: string;
   /**
-   * What the user said on wizard step 1. Measured 2026-08-04: 71% pick
-   * "with friends" (stable all-time and 30d, 34% answer rate) — yet only 7%
-   * of savers ever mint a share link. The prompt used to ignore this and ask
-   * everyone the same way, which is the gap this branch closes.
+   * What the user said on wizard step 1, so the ask fits how they travel.
    *
    * Only `group` gets the voting pitch. Showing "get your crew to vote" to
    * someone who explicitly said they travel alone is the same mistake in
@@ -114,23 +111,6 @@ export default function ShareAfterSaveModal({
   // The first co-planner sent is this prompt's "invite" in the share_prompt
   // funnel, so that funnel still reads one invite per prompt.
   const coPlannerTracked = useRef(false);
-
-  // The share-modal timing experiment (share-modal-timing-exp) ran from
-  // 2025-12-25 to 2026-08-21 and is retired. Measured over its last 90 days,
-  // real conversion — publish + invite, excluding "skip" — was:
-  //
-  //     control     26.3%  (10 of 38)
-  //     delayed-5s  26.5%  ( 9 of 34)
-  //     delayed-2s  17.1%  ( 7 of 41)
-  //
-  // ~35-40 exposures per arm after eight months. At this traffic the split
-  // could never reach significance, and it was diluting an already-small
-  // sample three ways. Shipped `control`: the delay hypothesis showed no
-  // upside, and no delay is the simplest code.
-  //
-  // Collapsing this also deleted a real UX liability — the modal used to
-  // block on PostHog for up to 1.5s before it could appear at all, purely to
-  // learn which delay bucket the user was in.
 
   // Re-arm the checkbox each time the modal opens, so a reopen can't inherit
   // a stale tick — and so an `isAnchored` that arrives a render late (the
