@@ -249,22 +249,19 @@ describe("buildPrompt", () => {
     expect(prompt).toContain("Don't ask which day");
   });
 
-  // The planner makes a change as it arrives, yet its replies read "Ready to
-  // update Day 2…" (2026-10-30): the prompt worded every edit as waiting.
+  // A change the page makes at once is told as done, not as "Ready to…".
   it("words a change as done when the page makes it at once, and as ready when it waits for a button", () => {
     const ask = (autoApply?: boolean) =>
       buildPrompt({ message: "swap days 1 and 2", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "it", autoApply });
     expect(ask(true)).toContain(`quindi di' cosa hai fatto: "Ho aggiunto un corso di cucina al giorno 3"`);
     expect(ask(true)).not.toContain("Nothing changes until the traveller saves it");
     expect(ask(false)).toContain("Nothing changes until the traveller saves it, so presenta le modifiche come pronte da salvare");
-    // "I've extended your trip" slipped past the list of verbs (2026-11-01).
+    // "I've extended your trip" is a done-claim too.
     expect(ask(false)).toContain(`"Ho esteso"`);
     expect(ask(undefined)).toContain("Nothing changes until the traveller saves it");
   });
 
-  // Live, 2026-11-01: an editor's "add 2 more days" got "Happy to add two
-  // more days… Here are some ideas for Day 4 and Day 5", the days were
-  // dropped, and no ideas were left.
+  // An editor's new days are dropped, so their ideas must be in the reply.
   it("tells the model when the traveller can't add days, and to give the ideas in the reply", () => {
     const ask = (canAddDays?: boolean) =>
       buildPrompt({ message: "add 2 more days", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en", canAddDays });
@@ -275,8 +272,7 @@ describe("buildPrompt", () => {
     expect(ask(true)).not.toContain("isn't the owner");
   });
 
-  // Live, 2026-10-26: "llegamos tarde sobre las 23 horas", then four messages
-  // later "organize the missing meals" put lunch and dinner on Day 1.
+  // A late arrival said early on still shapes Day 1 several messages later.
   it("keeps what the traveller said before the last six turns, in their words only", () => {
     const history = [
       { role: "user" as const, text: "El primer día llegamos tarde sobre las 23 horas" },

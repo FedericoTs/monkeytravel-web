@@ -49,8 +49,7 @@ describe("keepSavedActivities", () => {
     expect(out.activities[0].start_time).toBe("10:30");
   });
 
-  // Live, 2026-10-31: "add the missing meals" turned a lunch in the Ribeira
-  // into a second "Ribeira walk", and the lunch was gone.
+  // A lunch in the Ribeira is not the "Ribeira walk".
   it("never takes a meal for a sight that shares its words", () => {
     const porto = [
       { day_number: 2, activities: [act("Ribeira walk", "16:00", { type: "attraction" }), act("Mercado do Bolhão", "11:00", { type: "market" })] },
@@ -266,8 +265,7 @@ describe("correctionFor", () => {
     expect(correctionFor({ message: "ok", days, history: offered }, { reply: "Done.", edits: [edit(2, ["B"])] })).toBeNull();
   });
 
-  // Live, 2026-10-29: a 14:00 flight home, and the last day kept lunch at
-  // 12:30 and shopping after it; the traveller had to ask three turns later.
+  // A 14:00 flight home leaves no lunch at 12:30 or shopping after it.
   it("sends back a day that doesn't fit when they arrive or leave", () => {
     const lastDay: DayEdit = {
       day_number: 5,

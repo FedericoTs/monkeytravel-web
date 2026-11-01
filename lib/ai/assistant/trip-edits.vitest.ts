@@ -204,8 +204,7 @@ describe("proposeTripEdits", () => {
     meta,
   };
 
-  // Live, 2026-10-24: "aggiungi altri 7 giorni a questo viaggio in giappone"
-  // got "Ho esteso il tuo viaggio a 14 giorni" and the trip stayed at 7.
+  // "Add 7 more days" must add them, not only say so.
   it("adds the owner's new days after the last one, dated, with ids", async () => {
     assistTrip.mockResolvedValue(longer);
     const out = await proposeTripEdits({ ...input, canAddDays: true });
@@ -233,8 +232,7 @@ describe("proposeTripEdits", () => {
     expect(out?.summary).toBe("Giorno 2: Lighter. Lascia fuori: Grafton Street.");
   });
 
-  // Live, 2026-11-01: an editor's "add 2 more days" got "Happy to add two more
-  // days… Here are some ideas for Day 4 and Day 5" and no ideas.
+  // The ideas themselves, not "Here are some ideas" with none after it.
   it("answers an editor who only asked for more days with the ideas for them", async () => {
     assistTrip.mockResolvedValue({
       ...longer,
