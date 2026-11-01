@@ -111,12 +111,4 @@ export interface PageContext {
   targetCurrency: CurrencyCode;
 }
 
-/**
- * Typography scale definition
- */
-export interface TypographyScale {
-  size: number;
-  lineHeight: number;
-}
-
 // ActivityTypeConfig is now imported from @/types

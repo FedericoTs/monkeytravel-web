@@ -161,11 +161,3 @@ export function getAllAuthors(): Author[] {
   return AUTHORS;
 }
 
-/**
- * Posts that don't have a recognized author fall back to the first author
- * (the founder). Used by the byline so a typo in frontmatter never produces
- * a blank author page.
- */
-export function getDefaultAuthor(): Author {
-  return AUTHORS[0];
-}

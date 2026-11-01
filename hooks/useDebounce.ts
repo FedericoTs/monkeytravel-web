@@ -42,34 +42,4 @@ export function useDebounce<T>(value: T, delay: number = 300): T {
   return debouncedValue;
 }
 
-/**
- * Hook that returns both the debounced value and a boolean
- * indicating if the value is currently being debounced
- */
-export function useDebounceWithPending<T>(
-  value: T,
-  delay: number = 300
-): { debouncedValue: T; isPending: boolean } {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-  const [isPending, setIsPending] = useState(false);
-
-  useEffect(() => {
-    // Mark as pending when value changes
-    if (value !== debouncedValue) {
-      setIsPending(true);
-    }
-
-    const timer = setTimeout(() => {
-      setDebouncedValue(value);
-      setIsPending(false);
-    }, delay);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [value, delay, debouncedValue]);
-
-  return { debouncedValue, isPending };
-}
-
 export default useDebounce;

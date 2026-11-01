@@ -131,22 +131,6 @@ export async function handleTripCreatedWithReferral(
 }
 
 /**
- * Check if the current user might be eligible for referral rewards
- *
- * This is a quick client-side check using localStorage.
- * The actual eligibility is verified server-side.
- */
-export function mightBeEligibleForReferralReward(): boolean {
-  // `typeof window === "undefined"` is an SSR check, not a storage check. It
-  // passes in a real Safari with "block all cookies", where the localStorage
-  // identifier is unresolvable and the access below throws — the same
-  // ReferenceError that took the login page down (JAVASCRIPT-NEXTJS-28).
-  // safeGet answers null instead, which for a "might be eligible" hint is the
-  // right degradation: the server verifies eligibility anyway.
-  return !!safeGet("referral_code");
-}
-
-/**
  * Put the referral code this browser is holding (from a friend's shared trip,
  * /join/<code> or a ?ref link: all store "referral_code") on an auth callback
  * URL, so a new account made through it is credited to that friend. The

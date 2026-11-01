@@ -109,12 +109,3 @@ export async function sendEmail(input: SendInput): Promise<SendResult> {
   }
 }
 
-/**
- * Helper for routes that want to gate UI features on whether the email
- * pipeline is actually operational. Don't use this for security decisions
- * (a misconfigured key still appears "ready") — just for "should we show
- * the email-invite tab in the share modal?" type checks.
- */
-export function isEmailConfigured(): boolean {
-  return apiKey !== undefined && apiKey.length > 0;
-}

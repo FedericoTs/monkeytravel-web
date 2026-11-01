@@ -51,11 +51,6 @@ export type TripChecklistItemRouteContext = RouteContext<{ id: string; itemId: s
 export type TripCollaboratorRouteContext = RouteContext<{ id: string; userId: string }>;
 
 /**
- * Routes: /api/trips/[id]/invites/[inviteId]
- */
-export type TripInviteRouteContext = RouteContext<{ id: string; inviteId: string }>;
-
-/**
  * Routes: /api/trips/[id]/proposals/[proposalId]/*
  * Used by: proposals/[proposalId]/route.ts, vote/route.ts
  */
@@ -69,33 +64,3 @@ export type TripProposalRouteContext = RouteContext<{ id: string; proposalId: st
  * Routes: /api/invites/[token]
  */
 export type InviteTokenRouteContext = RouteContext<{ token: string }>;
-
-// ============================================================================
-// TEMPLATE ROUTES
-// ============================================================================
-
-/**
- * Routes: /api/templates/[id]/*
- */
-export type TemplateRouteContext = RouteContext<{ id: string }>;
-
-// ============================================================================
-// REFERRAL ROUTES (for future use)
-// ============================================================================
-
-/**
- * Routes: /api/referral/[code]
- */
-export type ReferralCodeRouteContext = RouteContext<{ code: string }>;
-
-// ============================================================================
-// HELPER TYPE GUARDS
-// ============================================================================
-
-/**
- * Extract params type from a RouteContext
- * @example
- * type TripParams = ExtractParams<TripRouteContext>;
- * // Result: { id: string }
- */
-export type ExtractParams<T> = T extends RouteContext<infer P> ? P : never;

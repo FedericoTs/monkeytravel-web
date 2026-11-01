@@ -143,13 +143,6 @@ export const TIER_BADGE_IMAGES: Record<ReferralTierLevel, string | null> = {
   3: '/images/badges/champion.png',
 };
 
-export const TIER_DESCRIPTIONS: Record<ReferralTierLevel, string> = {
-  0: 'Start inviting friends to unlock rewards!',
-  1: 'You\'re on a roll! Keep inviting for more perks.',
-  2: 'Travel Ambassador! Your friends love MonkeyTravel.',
-  3: 'Champion status unlocked! Maximum rewards.',
-};
-
 // =============================================================================
 // EXPIRATION
 // =============================================================================
@@ -194,7 +187,6 @@ export const CLAWBACK_WINDOW_DAYS = 7;
 // =============================================================================
 
 export const LEADERBOARD_SIZE = 10;
-export const LEADERBOARD_REFRESH_MINUTES = 15;
 
 // =============================================================================
 // HELPER FUNCTIONS
@@ -242,21 +234,6 @@ export function getBananasForReferral(tier: ReferralTierLevel): number {
  */
 export function isUnlimited(value: number): boolean {
   return value === -1;
-}
-
-/**
- * Get tier badge info for display
- */
-export function getTierBadgeInfo(tier: ReferralTierLevel, unlockedAt?: string) {
-  return {
-    tier,
-    name: TIER_NAMES[tier],
-    emoji: TIER_EMOJIS[tier],
-    color: TIER_COLORS[tier],
-    description: TIER_DESCRIPTIONS[tier],
-    unlocked: tier > 0,
-    unlockedAt,
-  };
 }
 
 /**

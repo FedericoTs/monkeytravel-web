@@ -70,13 +70,6 @@ export function metersToMiles(meters: number): number {
 }
 
 /**
- * Convert miles to meters
- */
-export function milesToMeters(miles: number): number {
-  return miles * METERS_PER_MILE;
-}
-
-/**
  * Convert meters to feet
  */
 export function metersToFeet(meters: number): number {

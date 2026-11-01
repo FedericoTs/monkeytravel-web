@@ -1,4 +1,4 @@
-import type { Activity, TripForExport } from "@/types";
+import type { TripForExport } from "@/types";
 import { parseLocalDate } from "@/lib/utils/date-local";
 
 /**
@@ -123,37 +123,3 @@ export function downloadICS(trip: TripForExport): void {
   URL.revokeObjectURL(url);
 }
 
-/**
- * Generate Google Calendar URL for a single activity
- */
-export function getGoogleCalendarUrl(activity: Activity, date: string): string {
-  const startDateTime = formatICSDateTime(date, activity.start_time);
-  const endTime = calculateEndTime(activity.start_time, activity.duration_minutes);
-  const endDateTime = formatICSDateTime(date, endTime);
-
-  const params = new URLSearchParams({
-    action: "TEMPLATE",
-    text: activity.name,
-    dates: `${startDateTime}/${endDateTime}`,
-    details: activity.description,
-    location: activity.address || activity.location,
-  });
-
-  return `https://calendar.google.com/calendar/render?${params.toString()}`;
-}
-
-/**
- * Generate Google Calendar URL for entire trip
- */
-export function getGoogleCalendarUrlForTrip(trip: TripForExport): string {
-  // For full trip, we'll just use the first activity as a starting point
-  // Google Calendar doesn't support importing multiple events via URL
-  const firstDay = trip.itinerary[0];
-  const firstActivity = firstDay?.activities[0];
-
-  if (!firstActivity || !firstDay) {
-    return "https://calendar.google.com/calendar";
-  }
-
-  return getGoogleCalendarUrl(firstActivity, firstDay.date);
-}

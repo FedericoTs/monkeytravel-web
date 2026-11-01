@@ -74,13 +74,6 @@ export const LIMIT_DISPLAY_NAMES: Record<keyof TierLimits, string> = {
 };
 
 /**
- * Get the limit for a specific tier and limit type
- */
-export function getLimit(tier: SubscriptionTier, limitType: keyof TierLimits): number {
-  return TIER_LIMITS[tier][limitType];
-}
-
-/**
  * Check if a limit is unlimited (-1)
  */
 export function isUnlimited(limit: number): boolean {

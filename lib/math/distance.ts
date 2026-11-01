@@ -120,28 +120,3 @@ export function getAverageSpeed(
   return 35;
 }
 
-/**
- * Calculate travel time between two points
- *
- * @param origin - Starting coordinates
- * @param destination - Ending coordinates
- * @param mode - WALKING or DRIVING (auto-detected if not provided)
- * @returns Travel time in minutes
- */
-export function calculateTravelTime(
-  origin: Coordinates,
-  destination: Coordinates,
-  mode?: "WALKING" | "DRIVING"
-): number {
-  const straightLineM = calculateHaversineDistance(origin, destination, "m");
-  const roadDistanceM = estimateRoadDistance(straightLineM);
-
-  // Auto-detect mode: walk if < 1.2km
-  const travelMode = mode ?? (straightLineM < 1200 ? "WALKING" : "DRIVING");
-  const speedKmH = getAverageSpeed(travelMode, roadDistanceM);
-
-  // Convert: (meters / 1000) / (km/h) * 60 = minutes
-  const travelMinutes = (roadDistanceM / 1000 / speedKmH) * 60;
-
-  return Math.round(travelMinutes);
-}

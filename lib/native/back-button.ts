@@ -3,43 +3,16 @@
  *
  * Without this, Android's hardware/gesture back inside the WebView
  * triggers the WebView's default — which on Capacitor v6 is "exit app
- * if at the root, otherwise navigate web history." That sounds right
- * but breaks in two cases:
- *   1. Programmatic navigations (Next.js `router.push`) sometimes don't
- *      register as history entries that "back" can pop.
- *   2. Modals — back should close the modal, not pop the route.
+ * if at the root, otherwise navigate web history." That breaks when a
+ * programmatic navigation (Next.js `router.push`) doesn't register as a
+ * history entry that "back" can pop.
  *
  * Our handler:
- *   - If a registered "modal interceptor" handles it, stop there
- *   - Else if window.history.length > 1, history.back()
+ *   - If window.history.length > 1, history.back()
  *   - Else exit the app
  *
- * The modal-interceptor API lets a modal subscribe to back-button
- * events while open. Pattern:
- *   useEffect(() => {
- *     const off = onBackButton(() => { close(); return true; });
- *     return off;
- *   }, [close]);
- *
- * Returning true = "I handled it, don't propagate."
+ * An open modal does not intercept it: back pops the route under it.
  */
-
-type BackHandler = () => boolean | Promise<boolean>;
-
-const handlers: BackHandler[] = [];
-
-/**
- * Register a back-button handler. Returns an unsubscribe function.
- * Handlers are LIFO — most-recently-registered (i.e. topmost modal)
- * gets first crack.
- */
-export function onBackButton(handler: BackHandler): () => void {
-  handlers.push(handler);
-  return () => {
-    const idx = handlers.indexOf(handler);
-    if (idx >= 0) handlers.splice(idx, 1);
-  };
-}
 
 /**
  * Install the global handler. Called once from the layout-level
@@ -58,25 +31,13 @@ export async function installBackButtonHandler(): Promise<() => void> {
 
   try {
     const { App } = await import("@capacitor/app");
-    const listener = await App.addListener("backButton", async () => {
-      // Try each registered handler in LIFO order.
-      for (let i = handlers.length - 1; i >= 0; i--) {
-        try {
-          const handled = await handlers[i]();
-          if (handled) return;
-        } catch (err) {
-          // A throwing handler shouldn't break navigation.
-          console.warn("[back-button] handler threw:", err);
-        }
-      }
-
-      // No handler took it. Fall back to web history if we can.
+    const listener = await App.addListener("backButton", () => {
       if (window.history.length > 1) {
         window.history.back();
         return;
       }
 
-      // At the root with no handlers — exit the app.
+      // At the root — exit the app.
       App.exitApp();
     });
     return () => listener.remove();

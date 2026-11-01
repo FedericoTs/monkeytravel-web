@@ -130,63 +130,6 @@ export async function captureLLMGeneration(
 }
 
 /**
- * Helper to wrap Gemini API calls with analytics
- *
- * @example
- * const result = await withLLMAnalytics(
- *   'anonymous',
- *   'gemini-2.5-flash-lite',
- *   'generateItinerary',
- *   async () => {
- *     const result = await chat.sendMessage(prompt);
- *     return {
- *       response: result.response.text(),
- *       usageMetadata: result.response.usageMetadata,
- *     };
- *   },
- *   { destination: 'Paris' }
- * );
- */
-export async function withLLMAnalytics<T>(
-  distinctId: string,
-  model: string,
-  endpoint: string,
-  fn: () => Promise<{ response: T; usageMetadata?: GeminiUsageMetadata }>,
-  properties?: Record<string, unknown>
-): Promise<T> {
-  const startTime = performance.now();
-  let usageMetadata: GeminiUsageMetadata | undefined;
-  let success = false;
-  let error: string | undefined;
-
-  try {
-    const result = await fn();
-    usageMetadata = result.usageMetadata;
-    success = true;
-    return result.response;
-  } catch (err) {
-    error = err instanceof Error ? err.message : "Unknown error";
-    throw err;
-  } finally {
-    const latencyMs = performance.now() - startTime;
-
-    // Fire and forget - don't block on analytics
-    captureLLMGeneration({
-      distinctId,
-      model,
-      endpoint,
-      usageMetadata,
-      latencyMs,
-      success,
-      error,
-      properties,
-    }).catch((e) => {
-      console.error("[LLM Analytics] Failed to capture event:", e);
-    });
-  }
-}
-
-/**
  * Get cost estimate for a model and token count
  * Useful for pre-flight cost warnings
  */

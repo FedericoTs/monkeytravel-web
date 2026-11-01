@@ -38,9 +38,6 @@ function oneOf<T extends string>(options: readonly T[], v: unknown): T | undefin
   return options.find((o) => o === v);
 }
 
-/** Days a plan lives after it was kept or last opened. */
-export const KEPT_PLAN_DAYS = 30;
-
 /** Raw body cap for keeping or changing a plan. */
 export const MAX_KEPT_PLAN_BYTES = 256 * 1024;
 
