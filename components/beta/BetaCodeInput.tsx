@@ -78,7 +78,7 @@ export default function BetaCodeInput({
 
       setSuccess(true);
       onSuccess?.(data.access);
-    } catch (err) {
+    } catch {
       const errorMessage = t("genericError");
       setError(errorMessage);
       onError?.(errorMessage);

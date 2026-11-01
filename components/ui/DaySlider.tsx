@@ -120,9 +120,8 @@ export default function DaySlider({
         </button>
 
         {/* Day buttons */}
-        {days.map((day, index) => {
+        {days.map((day) => {
           const isSelected = selectedDay === day.day_number;
-          const isLast = index === days.length - 1;
 
           return (
             <button

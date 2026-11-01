@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, memo } from "react";
+import { useState, useEffect, memo } from "react";
 import { useTranslations } from "next-intl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import type { Activity } from "@/types";
@@ -39,7 +39,6 @@ interface ActivityCardProps {
 
 function ActivityCard({
   activity,
-  index,
   currency = "USD",
   showGallery = true,
   disableAutoFetch = false,
@@ -50,14 +49,14 @@ function ActivityCard({
   const [expanded, setExpanded] = useState(false);
   const [showMobileSheet, setShowMobileSheet] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [verifiedPrice, setVerifiedPrice] = useState<VerifiedPriceData | null>(null);
+  const [verifiedPrice] = useState<VerifiedPriceData | null>(null);
   const [priceLoading, setPriceLoading] = useState(false);
   // Shown over the photo only: the count arrives after the first paint, and
   // there it moves nothing.
   const savedTrips = useSavedTrips(activity.image_url ? activity.name : undefined, activity.coordinates);
 
   // Currency conversion hook - converts prices to user's preferred currency
-  const { convert: convertCurrency, preferredCurrency } = useCurrency();
+  const { convert: convertCurrency } = useCurrency();
 
   // Helper to format price with currency conversion
   const formatPriceWithConversion = (amount: number, fromCurrency: string): string => {
@@ -72,12 +71,6 @@ function ActivityCard({
       onPhotoCapture(activity.id, photoUrl);
     }
   };
-
-  // Use stable activity key to track what we've fetched (survives re-renders but not remounts)
-  const fetchedActivityRef = useRef<string>("");
-
-  // Create stable key from activity properties (not id, since we want to fetch for same place)
-  const activityKey = `${activity.name}|${activity.address || activity.location}|${activity.type}`;
 
   // Detect mobile viewport.
   // Bug-bounty 2026-05-24 P2: previously `useState(false)` then this
@@ -98,13 +91,6 @@ function ActivityCard({
     mql.addListener(onChange);
     return () => mql.removeListener(onChange);
   }, []);
-
-  // Types that typically have price information in Google Places
-  const priceableTypes = [
-    "restaurant", "attraction", "food", "cafe", "bar", "foodie",
-    "market", "shopping", "cultural", "museum", "landmark",
-    "spa", "wellness", "entertainment", "nightlife", "wine bar"
-  ];
 
   // DISABLED: Price verification via Google Places API
   // This was causing $0.032 per activity card = massive costs

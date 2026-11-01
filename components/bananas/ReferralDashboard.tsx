@@ -26,7 +26,6 @@ export default function ReferralDashboard({
   const [data, setData] = useState<BananasDashboardResponse | null>(initialData ?? null);
   const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"overview" | "history" | "rewards">("overview");
 
   useEffect(() => {
     if (!initialData) {

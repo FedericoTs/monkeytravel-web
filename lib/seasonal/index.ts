@@ -322,8 +322,7 @@ export function destinationCountryCode(destination: string): string | null {
 // Crowd level estimation based on season and holidays
 export function estimateCrowdLevel(
   season: Season,
-  holidays: string[],
-  destination: string
+  holidays: string[]
 ): SeasonalContext["crowdLevel"] {
   // Major holiday periods are always busy
   const isHolidayPeriod = holidays.some(
@@ -497,7 +496,7 @@ export function buildSeasonalContext(
     weather: getWeatherDescription(season, hemisphere),
     holidays: relevantHolidays.slice(0, 3),
     events: [], // Would be populated by external API
-    crowdLevel: estimateCrowdLevel(season, relevantHolidays, destination),
+    crowdLevel: estimateCrowdLevel(season, relevantHolidays),
   };
 }
 

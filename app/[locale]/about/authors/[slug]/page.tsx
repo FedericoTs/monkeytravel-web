@@ -30,7 +30,7 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { locale, slug } = await params;
+  const { slug } = await params;
   const author = getAuthorBySlug(slug);
   if (!author) return {};
 

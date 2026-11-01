@@ -6,14 +6,6 @@ import ImageCarousel from "./ui/ImageCarousel";
 import { usePlaceCache, generatePlaceCacheKey, CachedPlaceData } from "@/lib/context/PlaceCacheContext";
 /* eslint-disable @next/next/no-img-element */
 
-interface PlacePhoto {
-  url: string;
-  thumbnailUrl: string;
-  width: number;
-  height: number;
-  attribution: string;
-}
-
 // Using CachedPlaceData from context, but defining PlaceData for API response
 type PlaceData = Omit<CachedPlaceData, "cachedAt">;
 

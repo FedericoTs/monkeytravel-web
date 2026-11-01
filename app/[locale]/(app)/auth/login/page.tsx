@@ -54,15 +54,6 @@ function LoginForm() {
   const KNOWN_LINK_ERRORS = ["link_wrong_device_or_expired", "auth_incomplete"];
   const linkError = errorParam && KNOWN_LINK_ERRORS.includes(errorParam) ? errorParam : null;
 
-  // Helper to get locale-prefixed URL for OAuth redirects
-  const getLocaleUrl = (path: string) => {
-    const baseUrl = window.location.origin;
-    if (locale === "en") {
-      return `${baseUrl}${path}`;
-    }
-    return `${baseUrl}/${locale}${path}`;
-  };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);

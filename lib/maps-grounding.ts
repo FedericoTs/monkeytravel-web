@@ -372,15 +372,7 @@ function parseGroundedItinerary(
 
   const days: ItineraryDay[] = [];
 
-  // Parse text by day patterns
-  const dayPatterns = [
-    /day\s*(\d+)[:\s-]*([^\n]*)?/gi,
-    /\*\*day\s*(\d+)\*\*/gi,
-    /##\s*day\s*(\d+)/gi,
-  ];
-
   // Split text into sections by day
-  const textLower = text.toLowerCase();
   const sections: { dayNum: number; content: string }[] = [];
 
   for (let d = 1; d <= duration; d++) {

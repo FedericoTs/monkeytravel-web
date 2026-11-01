@@ -568,7 +568,6 @@ export function validateAndFixCoordinates(days: ItineraryDay[], destination: str
     console.warn(`[Gemini] No known coordinates for destination: ${destination}, using default`);
   }
 
-  let missingCount = 0;
   let fixedCount = 0;
 
   const fixedDays = days.map(day => ({
@@ -591,8 +590,6 @@ export function validateAndFixCoordinates(days: ItineraryDay[], destination: str
       }
 
       // Coordinates are missing or invalid - apply fallback
-      missingCount++;
-
       // Generate a small random offset (within ~1-2km of city center)
       // This spreads out activities on the map rather than stacking them
       const offsetLat = (Math.random() - 0.5) * 0.02 + (idx * 0.003);
@@ -2020,7 +2017,6 @@ export async function* generateItineraryStream(
   // final aggregated response after the stream completes.
   const result = await chat.sendMessageStream(userPrompt);
 
-  let fullText = "";
   try {
     for await (const partial of result.stream) {
       // Each partial may yield zero text if it's a control message
@@ -2028,7 +2024,6 @@ export async function* generateItineraryStream(
       // there's actual text.
       const delta = partial.text();
       if (delta) {
-        fullText += delta;
         yield { text: delta, done: false };
       }
     }
@@ -2039,7 +2034,7 @@ export async function* generateItineraryStream(
   }
 
   // Aggregate final response. CRITICAL: the canonical text is
-  // finalResponse.text(), NOT the accumulated `fullText` from deltas.
+  // finalResponse.text(), NOT the deltas joined together.
   // The async-iter `for await` can silently drop chunks under back-
   // pressure, while the final aggregate is complete. Use it as truth.
   const finalResponse = await result.response;

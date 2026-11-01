@@ -50,7 +50,6 @@ export default function OngoingTripView({
   tripId,
   destination,
   startDate,
-  endDate,
   itinerary,
   meta,
   budget,
@@ -114,7 +113,6 @@ export default function OngoingTripView({
 
   // Activity timeline management
   const {
-    isLoading: timelinesLoading,
     completeActivity,
     skipActivity,
     getActivityStatus,

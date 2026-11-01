@@ -60,7 +60,6 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
 
   // Local state synced with localStorage
   const [preferences, setPreferences] = useState<OnboardingPreferences>({
@@ -79,7 +78,6 @@ export default function OnboardingPage() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
-      setUserId(user?.id || null);
     };
     checkAuth();
   }, []);

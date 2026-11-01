@@ -848,7 +848,7 @@ async function fetchCohortRetention(
   // Only show last 8 cohorts for readability
   const recentCohorts = sortedCohorts.slice(-8);
 
-  recentCohorts.forEach(([weekKey, { users: cohortUsers, weekStart }]) => {
+  recentCohorts.forEach(([_weekKey, { users: cohortUsers, weekStart }]) => {
     const cohortSize = cohortUsers.length;
     const retention: number[] = [];
 
@@ -859,8 +859,6 @@ async function fetchCohortRetention(
 
     // Calculate retention for each week (Week 0 to current week)
     for (let week = 0; week <= Math.min(weeksSinceCohort, 7); week++) {
-      const weekEnd = new Date(weekStart.getTime() + (week + 1) * 7 * 24 * 60 * 60 * 1000);
-
       // FIX: Count users who were active DURING this specific week (non-cumulative)
       // Previously this was cumulative (>= week start), now checks if active within week boundaries
       const weekNStart = new Date(weekStart.getTime() + week * 7 * 24 * 60 * 60 * 1000);

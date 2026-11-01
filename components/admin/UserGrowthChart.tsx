@@ -146,7 +146,7 @@ export default function UserGrowthChart({ data }: UserGrowthChartProps) {
     const step = Math.ceil(filteredData.length / 6);
     return filteredData
       .filter((_, i) => i % step === 0 || i === filteredData.length - 1)
-      .map((d, _, arr) => ({
+      .map((d) => ({
         date: d.date,
         index: filteredData.indexOf(d),
       }));

@@ -29,7 +29,6 @@ interface BlogBylineProps {
 export default function BlogByline({
   author,
   authorLabel,
-  publishedDate,
   updatedDate,
   publishedLabel,
   updatedLabel,
