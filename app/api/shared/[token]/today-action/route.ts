@@ -30,6 +30,7 @@ import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { PARTICIPANT_COOKIE, PARTICIPANT_COOKIE_MAX_AGE_SECONDS, isUuid } from "@/lib/participants/shared";
 import { todayActionsSnapshot } from "@/lib/today/snapshot";
 import { announceTodayChange, writeTodayAction, type TodayActionBody } from "@/lib/today/write";
+import { readSharedTrip } from "@/lib/trips/shared-trip";
 
 const ipLimiter = createRateLimiter("today-action-ip", 40, 60_000);
 const cookieTripLimiter = createRateLimiter("today-action-cookie-trip", 20, 60_000);
@@ -55,13 +56,12 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     if (!body || typeof body !== "object") return errors.badRequest("Invalid request body");
 
     const admin = createAdminClient();
-    const { data: trip, error: tripError } = await admin
-      .from("trips")
-      .select("id, user_id, trip_meta")
-      .eq("share_token", token)
-      .is("deleted_at", null)
-      .single();
-    if (tripError || !trip) return errors.notFound("Shared trip not found");
+    const { trip, errorResponse } = await readSharedTrip<{ id: string; user_id: string | null; trip_meta: unknown }>(
+      admin,
+      token,
+      "id, user_id, trip_meta",
+    );
+    if (errorResponse) return errorResponse;
 
     let cookieId = existingCookie;
     let issuedCookie = false;

@@ -47,6 +47,7 @@ import {
 } from "@/lib/participants/shared";
 import { participantsSnapshot } from "@/lib/participants/snapshot";
 import { mayEmailPlan, sendParticipantPlanEmail } from "@/lib/participants/plan-email";
+import { readSharedTrip } from "@/lib/trips/shared-trip";
 
 const ipLimiter = createRateLimiter("shared-join-ip", 30, 60_000);
 const cookieTripLimiter = createRateLimiter("shared-join-cookie-trip", 6, 60_000);
@@ -102,15 +103,8 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     }
 
     const admin = createAdminClient();
-    const { data: trip, error: tripError } = await admin
-      .from("trips")
-      .select("id")
-      .eq("share_token", token)
-      .is("deleted_at", null)
-      .single();
-    if (tripError || !trip) {
-      return errors.notFound("Shared trip not found");
-    }
+    const { trip, errorResponse } = await readSharedTrip<{ id: string }>(admin, token, "id");
+    if (errorResponse) return errorResponse;
 
     // Read or mint the shared identity cookie (same rules as /vote).
     let cookieId = existingCookie;
