@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { ilikeOrTerm } from "@/lib/api/postgrest-filter";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { dedupeFeedRows, durationDaysOf } from "@/lib/explore/dedupe";
 import { asBudgetTier } from "@/lib/explore/budget-tier";
@@ -134,27 +135,12 @@ export async function GET(request: NextRequest) {
 
     // Apply filters
     if (destination) {
-      // Day-5 backstop on top of Day-4 P1.2: PostgREST `.or()` syntax
-      // uses comma as the clause separator. Backslash-escaping commas
-      // inside a value (the old approach below) does NOT work — PostgREST
-      // still parses them as separators and returns 400. Live logs caught
-      // 5 such 400s for "Paris, France" / "Tokyo, Japan" / "Rome, Italy"
-      // / "Barcelona, Spain" / "Parigi, Francia" — the /destinations/[slug]
-      // page calls fetchExploreFeed({destination: cityName}) and cityName
-      // is "City, Country" in the curated dataset.
-      //
-      // Fix: split on the first comma and only match against the city
-      // portion. The country suffix doesn't add matching value (trips
-      // typically have just "Paris" in title, not "Paris, France"), and
-      // we still escape % + _ (the genuine ILIKE wildcards) plus parens
-      // and colons (PostgREST operator syntax) for the rare city names
-      // that include them.
-      const cityOnly = destination.split(",")[0].trim();
-      const escaped = cityOnly.replace(/[()%_:]/g, "\\$&");
-      // `trip_meta->>destination` uses `->>` (text extraction). The earlier
-      // single-arrow form returned JSONB and ILIKE could not apply →
-      // 42883 → 500 on every /destinations/[slug] page (Day-4 P1.2).
-      query = query.or(`title.ilike.%${escaped}%,trip_meta->>destination.ilike.%${escaped}%`);
+      // Matched on the city: "City, Country" destinations (the curated
+      // /destinations pages) would put a comma, or()'s clause separator, in
+      // the filter, and trips name the city anyway. ilikeOrTerm makes the term
+      // safe inside or(); `->>` reads the destination as text for ilike.
+      const city = ilikeOrTerm(destination.split(",")[0]);
+      if (city) query = query.or(`title.ilike.%${city}%,trip_meta->>destination.ilike.%${city}%`);
     }
 
     if (durationMin) {
