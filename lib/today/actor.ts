@@ -53,10 +53,19 @@ export async function resolveTodayPerson(
   cookieId: string | null,
 ): Promise<TodayPerson> {
   const isOwner = !!user && user.id === trip.user_id;
-  const isMember =
-    isOwner ||
-    (!!user &&
-      !!(await admin.from("trip_collaborators").select("user_id").eq("trip_id", trip.id).eq("user_id", user.id).maybeSingle()).data);
+  let isMember = isOwner;
+  if (user && !isOwner) {
+    // A refused read throws: as "not a member" it would file a collaborator's
+    // payment as a guest's, which their account could then no longer edit.
+    const { data: membership, error } = await admin
+      .from("trip_collaborators")
+      .select("user_id")
+      .eq("trip_id", trip.id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (error) throw new Error(`Could not read trip membership: ${error.message}`);
+    isMember = !!membership;
+  }
   const person = { userId: user?.id ?? null, cookieId, isOwner, isMember };
 
   if (user && isMember) {

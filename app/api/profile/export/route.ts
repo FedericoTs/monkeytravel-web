@@ -28,13 +28,18 @@ export async function GET() {
     // Check rate limit (1 export per day)
     const oneDay = 24 * 60 * 60 * 1000;
 
-    // For simplicity, we'll track in user metadata
-    // In production, you might use Redis or a dedicated rate limit table
-    const { data: userData } = await supabase
+    // Tracked in preferences.lastDataExport. The stamp below writes
+    // `preferences` back whole, so a failed read stops here: read as empty, it
+    // would skip the limit and replace the person's preferences with the stamp.
+    const { data: userData, error: preferencesError } = await supabase
       .from("users")
       .select("preferences")
       .eq("id", userId)
       .single();
+    if (preferencesError) {
+      console.error("[Data Export] preferences read failed:", preferencesError);
+      return errors.internal("Failed to export data", "Data Export");
+    }
 
     const lastExport = userData?.preferences?.lastDataExport;
     if (lastExport && Date.now() - new Date(lastExport).getTime() < oneDay) {

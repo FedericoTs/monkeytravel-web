@@ -14,11 +14,13 @@ const TRIP = { id: "trip-1", user_id: "owner-1" };
 
 function world(opts: {
   collaborators?: string[];
+  membershipFails?: boolean;
   profiles?: Record<string, string>;
   participants?: Array<{ user_id?: string; cookie?: string; name: string }>;
 }) {
   return fakeSupabase((q) => {
     if (q.table === "trip_collaborators") {
+      if (opts.membershipFails) return { data: null, error: { message: "canceling statement due to statement timeout" } };
       const id = eqOf(q, "user_id");
       return { data: opts.collaborators?.includes(id as string) ? { user_id: id } : null, error: null };
     }
@@ -59,6 +61,17 @@ describe("resolveTodayPerson", () => {
   it("names a guest by the name they gave on this browser", async () => {
     const person = await resolveTodayPerson(world({ participants: [{ cookie: "guest-cookie-1", name: "Bo" }] }), TRIP, null, "guest-cookie-1");
     expect(person).toEqual({ userId: null, cookieId: "guest-cookie-1", isOwner: false, isMember: false, name: "Bo" });
+  });
+
+  it("refuses to guess when membership can't be read, instead of treating a collaborator as a guest", async () => {
+    await expect(
+      resolveTodayPerson(world({ collaborators: ["mate-1"], membershipFails: true }), TRIP, { id: "mate-1" }, "browser-cookie-2"),
+    ).rejects.toThrow(/membership/);
+  });
+
+  it("knows the owner without reading membership", async () => {
+    const person = await resolveTodayPerson(world({ membershipFails: true, profiles: { "owner-1": "Marta" } }), TRIP, { id: "owner-1" }, null);
+    expect(person).toMatchObject({ isOwner: true, isMember: true, name: "Marta" });
   });
 });
 
