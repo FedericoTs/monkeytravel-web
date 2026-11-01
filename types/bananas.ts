@@ -82,47 +82,6 @@ export interface TierBenefits {
 }
 
 // =============================================================================
-// REDEMPTION CATALOG
-// =============================================================================
-
-export type RedemptionCategory = 'feature' | 'partner' | 'subscription';
-
-export interface RedemptionItem {
-  id: string;
-  name: string;
-  description?: string;
-  iconUrl?: string;        // Emoji or image URL
-  category: RedemptionCategory;
-  bananaCost: number;
-  isActive: boolean;
-  availableFrom?: string;
-  availableUntil?: string;
-  stockLimit?: number;
-  stockRemaining?: number;
-  perUserLimit?: number;
-  cooldownHours?: number;
-  sortOrder: number;
-
-  // For partner items (future)
-  partnerId?: string;
-  discountType?: 'percentage' | 'fixed' | 'upgrade';
-  discountValue?: number;
-}
-
-export interface UserRedemption {
-  id: string;
-  userId: string;
-  catalogItemId: string;
-  catalogItem: RedemptionItem;
-  bananasSpent: number;
-  status: 'pending' | 'fulfilled' | 'expired' | 'refunded';
-  fulfilledAt?: string;
-  expiresAt?: string;
-  partnerReference?: string;
-  createdAt: string;
-}
-
-// =============================================================================
 // LEADERBOARD
 // =============================================================================
 
@@ -162,14 +121,6 @@ export interface BananasDashboardResponse {
   };
 }
 
-export interface RedeemResponse {
-  success: boolean;
-  redemption?: UserRedemption;
-  newBalance: number;
-  error?: string;
-  errorCode?: 'INSUFFICIENT_BALANCE' | 'OUT_OF_STOCK' | 'LIMIT_REACHED' | 'COOLDOWN_ACTIVE';
-}
-
 // =============================================================================
 // DATABASE ROW TYPES (snake_case for Supabase)
 // =============================================================================
@@ -199,42 +150,6 @@ export interface ReferralTierRow {
   updated_at: string;
 }
 
-export interface RedemptionCatalogRow {
-  id: string;
-  name: string;
-  description: string | null;
-  icon_url: string | null;
-  category: RedemptionCategory;
-  banana_cost: number;
-  is_active: boolean;
-  available_from: string | null;
-  available_until: string | null;
-  stock_limit: number | null;
-  stock_used: number;
-  per_user_limit: number | null;
-  cooldown_hours: number | null;
-  partner_id: string | null;
-  partner_config: Record<string, unknown>;
-  discount_type: 'percentage' | 'fixed' | 'upgrade' | null;
-  discount_value: number | null;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface BananaRedemptionRow {
-  id: string;
-  user_id: string;
-  catalog_item_id: string;
-  bananas_spent: number;
-  status: 'pending' | 'fulfilled' | 'expired' | 'refunded';
-  fulfilled_at: string | null;
-  expires_at: string | null;
-  partner_reference: string | null;
-  partner_response: Record<string, unknown>;
-  created_at: string;
-}
-
 // =============================================================================
 // CONVERSION UTILITIES
 // =============================================================================
@@ -251,27 +166,5 @@ export function transactionRowToApi(row: BananaTransactionRow): BananaTransactio
     expiresAt: row.expires_at ?? undefined,
     expired: row.expired,
     createdAt: row.created_at,
-  };
-}
-
-export function catalogRowToApi(row: RedemptionCatalogRow): RedemptionItem {
-  return {
-    id: row.id,
-    name: row.name,
-    description: row.description ?? undefined,
-    iconUrl: row.icon_url ?? undefined,
-    category: row.category,
-    bananaCost: row.banana_cost,
-    isActive: row.is_active,
-    availableFrom: row.available_from ?? undefined,
-    availableUntil: row.available_until ?? undefined,
-    stockLimit: row.stock_limit ?? undefined,
-    stockRemaining: row.stock_limit ? row.stock_limit - row.stock_used : undefined,
-    perUserLimit: row.per_user_limit ?? undefined,
-    cooldownHours: row.cooldown_hours ?? undefined,
-    sortOrder: row.sort_order,
-    partnerId: row.partner_id ?? undefined,
-    discountType: row.discount_type ?? undefined,
-    discountValue: row.discount_value ?? undefined,
   };
 }
