@@ -65,6 +65,7 @@ const admin = fakeSupabase((q) => {
 });
 
 const member = fakeSupabase((q) => {
+  if (failing === q.table) return { data: null, error: { message: "boom" } };
   if (q.table === "trips") return { data: { id: "trip-1", user_id: "owner-1", title: "Lisbon" }, error: null };
   return { data: null, error: null };
 });
@@ -112,6 +113,14 @@ describe("GET /api/trips/[id]/settlements", () => {
     failing = "trip_expense_splits";
     const res = await call();
     expect(res.status).toBe(500);
+  });
+
+  it("fails rather than turn a member away when membership can't be read", async () => {
+    userId = "mate-1";
+    failing = "trip_collaborators";
+    const res = await call();
+    expect(res.status).toBe(500);
+    expect(admin.log).toEqual([]);
   });
 
   it("is for the trip's members", async () => {

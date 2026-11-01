@@ -43,8 +43,8 @@ export async function getTripViewerState(
         .eq("trip_id", tripId)
         .eq("user_id", viewerUserId),
     ]);
-    hasLiked = (likeR.count ?? 0) > 0;
-    hasSaved = (saveR.count ?? 0) > 0;
+    hasLiked = (logReadError("explore: like", likeR).count ?? 0) > 0;
+    hasSaved = (logReadError("explore: save", saveR).count ?? 0) > 0;
   } else {
     // Anon: cookie save lookup only (no anon likes).
     const cookieStore = await cookies();
