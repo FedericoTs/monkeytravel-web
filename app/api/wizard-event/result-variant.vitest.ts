@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 /**
- * The result-screen test's arm reaches wizard_step_events.result_variant on
- * the row that carries it, other rows never name the column, and a value
- * outside the test's vocabulary is refused.
+ * Pages cached while the result-screen test ran still send their arm
+ * (`result_variant`). The event lands, and the arm is not stored: the column
+ * keeps the test's sessions only.
  */
 
 const inserted: Array<Record<string, unknown>> = [];
@@ -38,19 +38,13 @@ beforeEach(() => {
   inserted.length = 0;
 });
 
-describe("result_variant", () => {
-  it("is stored on the row that carries it", async () => {
-    expect((await post({ step: "result", group_size: "group", result_variant: "crew_first" })).status).toBe(204);
-    expect(inserted[0]).toMatchObject({ step: "result", session_id: "e2eprobe-crew-first", result_variant: "crew_first" });
-  });
-
-  it("is left out of rows that do not carry it", async () => {
-    await post({ step: "saved" });
-    expect(inserted[0]).not.toHaveProperty("result_variant");
-  });
-
-  it("refuses a value outside the test", async () => {
-    expect((await post({ step: "result", result_variant: "treatment" })).status).toBe(400);
-    expect(inserted).toEqual([]);
+describe("result_variant from a cached page", () => {
+  it("is accepted and not stored", async () => {
+    for (const result_variant of ["crew_first", "control", "treatment"]) {
+      inserted.length = 0;
+      expect((await post({ step: "result", group_size: "group", result_variant })).status).toBe(204);
+      expect(inserted[0]).toMatchObject({ step: "result", session_id: "e2eprobe-crew-first" });
+      expect(inserted[0]).not.toHaveProperty("result_variant");
+    }
   });
 });

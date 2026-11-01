@@ -166,6 +166,16 @@ export const FLAG_EXPLORE_UGC = "explore-ugc-v1";
  * archived; nothing reads it any more.
  */
 
+/*
+ * RETIRED — no constant, nothing to re-wire.
+ *
+ * result-crew-first (first-party, not a PostHog flag): signed-out planners of
+ * group trips saw either today's result screen or one that led with the crew
+ * vote, 50/50. Crew-first did not lift shares, the bar the test had to clear,
+ * so today's screen stays. The arm each session saw is in
+ * wizard_step_events.result_variant.
+ */
+
 // ============================================================================
 // FLAG CONFIGURATION
 // ============================================================================
@@ -209,8 +219,4 @@ export const FLAG_DEFAULTS: Record<string, boolean | string> = {
  * week past a date here, so a flag cannot sit at 90/10 with nobody watching.
  * Remove the entry when the flag is ramped to 100% or reverted.
  */
-export const FLAG_REVIEW_DATES: Record<string, string> = {
-  // Not a PostHog flag: the first-party 50/50 in lib/experiments/result-crew-first.ts.
-  // Read it with `npm run experiment:crew-first`, then keep one arm and delete the other.
-  "result-crew-first": "2026-10-27",
-};
+export const FLAG_REVIEW_DATES: Record<string, string> = {};

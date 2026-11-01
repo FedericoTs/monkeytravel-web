@@ -22,7 +22,6 @@
     "video:render": "tsx scripts/render-video.ts",
     "verify:deploy": "tsx scripts/verify-deploy-smoke.ts",
     "test:bananas": "tsx scripts/banana-load-test.mts",
-    "experiment:crew-first": "tsx scripts/experiment-crew-first.mts",
     "rls:check": "tsx scripts/rls-baseline.mts",
     "email:audit": "tsx scripts/audit-queued-emails.mts",
     "audit:account-deletion": "tsx scripts/audit-account-deletion.mts",
