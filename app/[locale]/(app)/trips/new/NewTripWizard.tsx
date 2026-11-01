@@ -192,7 +192,6 @@ import {
 } from "@/lib/wizard/entry-state";
 import {
   captureClaimedTripBanner,
-  captureAnonShareKeepClicked,
   capturePendingClaimBanner,
   type AuthPromptLocation,
   captureWizardFirstRunViewed,
@@ -220,7 +219,6 @@ import {
   trackDestinationSelected,
 } from "@/lib/analytics";
 import {
-  captureTripCreated,
   captureTripUpdated,
   captureItineraryGenerated,
   captureTripWizardStepViewed,
