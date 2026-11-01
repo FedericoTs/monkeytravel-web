@@ -6,8 +6,8 @@ import { rateLimitWindowStart } from "@/lib/notifications/queue";
  * One email per trip per CALENDAR DAY, not per rolling 24 hours. The cron
  * runs once a day at 07:00 UTC; a rolling window sees yesterday's 07:00:30
  * send from today's 07:00:20 run as "within 24h" and suppresses today's row.
- * Measured 2026-09-13..16: 31 of 37 rate-limit suppressions were exactly
- * that, 28 of them the in-trip digests, which are daily by design.
+ * Most rate-limit suppressions were exactly that, mostly the in-trip digests,
+ * which are daily by design.
  */
 describe("rateLimitWindowStart", () => {
   it("is midnight UTC of the run's own day", () => {

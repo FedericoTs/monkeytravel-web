@@ -8,7 +8,7 @@ import { pickCoverFromItinerary } from "@/lib/trips/cover";
 import { foundPhotos } from "@/lib/trips/keep-place-photos";
 
 /**
- * Enrich Activity Photos API (2026-06-30 cost pass)
+ * Enrich Activity Photos API
  *
  * Resolves REAL Google Place photos for a SAVED trip's activities and writes
  * them back into the itinerary.

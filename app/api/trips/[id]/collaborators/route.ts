@@ -125,7 +125,7 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
 }
 
 /**
- * POST /api/trips/[id]/collaborators — retired 2026-09-23.
+ * POST /api/trips/[id]/collaborators — retired.
  *
  * Nothing called it: collaborators join by accepting an invite
  * (app/api/invites/[token] -> accept_trip_invite, service role). It inserted

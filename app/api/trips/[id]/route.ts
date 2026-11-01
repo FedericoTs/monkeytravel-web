@@ -20,9 +20,8 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
     if (errorResponse) return errorResponse;
 
     // The owner and the trip's members may read it (RLS already lets them;
-    // the trip page reads it for them too). Owner-only until 2026-09-25, so an
-    // invited editor's assistant change was saved and then the page's re-read
-    // answered 404: an error banner and a stale plan.
+    // the trip page reads it for them too, including right after an editor's
+    // assistant change).
     const { trip, errorResponse: tripError } = await verifyTripAccess(
       supabase,
       id,
@@ -72,9 +71,8 @@ const OWNER_ONLY_FIELDS = ["status", "start_date", "end_date", "reminders_muted"
 /**
  * PATCH /api/trips/[id] - Update trip (supports itinerary updates)
  *
- * Owner, or an invited EDITOR (trip_collaborators.role = 'editor'). Until
- * 2026-09-24 this was owner-only while the trip page showed editors an
- * "Edit trip" button, so an editor's Save answered 404 "Trip not found".
+ * Owner, or an invited EDITOR (trip_collaborators.role = 'editor'): the trip
+ * page shows editors an "Edit trip" button.
  */
 export async function PATCH(request: NextRequest, context: TripRouteContext) {
   try {
@@ -340,13 +338,9 @@ async function applyActivityPhoto(
 /**
  * DELETE /api/trips/[id] - Soft-delete a trip
  *
- * Changed from hard DELETE to UPDATE deleted_at = NOW() on 2026-06-07.
- *
- * Why: a June 2026 incident showed how lossy hard-delete is. He
- * signed up, generated a trip, chatted with the Concierge 7 times over
- * 17 minutes, then the trip disappeared (likely a misclick or UI
- * confusion). With hard-delete we lost the row, the conversation
- * context, the cover image work — everything. With soft-delete the
+ * It sets deleted_at = NOW() instead of a hard DELETE: a misclick would
+ * otherwise lose the row, its conversation context and its cover image work
+ * for good. With soft-delete the
  * row stays put: RLS hides it from every read path, but we can
  * recover it on demand and we keep ai_conversations + activity
  * timeline foreign-keys valid.
@@ -367,13 +361,10 @@ async function applyActivityPhoto(
  * Recovery: `UPDATE trips SET deleted_at = NULL WHERE id = '...'` from
  * the Supabase SQL editor. Self-serve restore UI is a follow-up.
  *
- * 2026-08-19 — WHY THIS GOES THROUGH AN RPC
- * The direct UPDATE above never worked. From the day soft-delete shipped
- * (2026-06-08) until today, every user's delete failed with 42501 "new row
- * violates row-level security policy", surfaced as a 500. It read as rare
- * (2 error events, 1 user) only because deleting a trip is rare; the write
- * was impossible, not flaky. The 14 rows carrying deleted_at were all
- * written by the service role, which bypasses RLS.
+ * WHY THIS GOES THROUGH AN RPC
+ * A direct UPDATE cannot write the tombstone: it fails for every user with
+ * 42501 "new row violates row-level security policy" (only the service role,
+ * which bypasses RLS, can).
  *
  * Two policies blocked it independently, which is why the first fix was not
  * enough:
@@ -386,8 +377,8 @@ async function applyActivityPhoto(
  *      `deleted_at IS NULL AND (...)`, so a tombstone matches NO select
  *      branch and the new row is unreachable.
  *
- * Relaxing (2) was rejected: 61 files query `trips` and only one filters
- * deleted_at itself, so that policy is what hides deleted trips everywhere.
+ * Relaxing (2) was rejected: almost no query of `trips` filters deleted_at
+ * itself, so that policy is what hides deleted trips everywhere.
  * Loosening it would make deleted trips reappear across the product.
  *
  * So the one write that must legitimately produce an invisible row goes

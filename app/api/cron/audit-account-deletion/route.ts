@@ -26,11 +26,9 @@ import {
  * ON DELETE NO ACTION makes phase 2 fail AFTER phase 1 destroyed the person's
  * trips — data gone, account still there, and a 500 that names no constraint.
  *
- * It has happened twice. The 2026-08-04 pass fixed four such keys, measured 0
- * accounts affected and was filed as latent; by 2026-08-31 six more existed
- * and 283 of 495 real accounts could not be deleted. The only symptom is a
- * real person hitting a 500 at the moment they are trying to leave, which is
- * why it went a month unnoticed.
+ * New keys like that keep appearing, and the only symptom is a real person
+ * hitting a 500 at the moment they are trying to leave, which is easy to miss
+ * for weeks.
  *
  * FAILURE IS LOUD ON PURPOSE
  * --------------------------

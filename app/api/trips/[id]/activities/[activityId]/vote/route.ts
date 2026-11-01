@@ -212,9 +212,8 @@ export async function POST(request: NextRequest, context: TripActivityRouteConte
         .eq("id", user.id)
         .maybeSingle();
       const voterName = voterProfile?.display_name || "A collaborator";
-      // The owner reads this label in the email. It was the activity's id
-      // until 2026-09-25; now its name, falling back to the id only if the
-      // activity is gone.
+      // The owner reads this label in the email: the activity's name,
+      // falling back to the id only if the activity is gone.
       let activityLabel = activityId;
       try {
         const { data: votedTrip } = await supabase

@@ -12,15 +12,12 @@ const imgProxyLimiter = createRateLimiter("img-proxy", 600, 60 * 60 * 1000);
  * Generic server-side proxy for hotlinked images that intermittently
  * return 5xx to direct browser requests but succeed from Vercel egress.
  *
- * **Why this exists** — 2026-05-31 live audit:
- * Pexels CDN (`images.pexels.com`) intermittently 504s direct browser
- * loads even when curl from the same machine succeeds. Verified via
- * Chrome network panel on /it/shared/<token>: cover image got
- * `504 Gateway Timeout` twice in a row, including with cache-bust
- * `?_r=1` retry. Suspected cause: Cloudflare anti-scraping signature
- * on browser User-Agent + Referer combo. Affects every shared trip
- * cover, every /explore card, every /destinations card, every saved
- * trip hero whose `cover_image_url` points at Pexels.
+ * **Why this exists:** the Pexels CDN (`images.pexels.com`) intermittently
+ * answers direct browser loads with 504 (even with a cache-busting retry)
+ * while a server fetch of the same URL succeeds, most likely Cloudflare
+ * anti-scraping keyed on the browser's User-Agent + Referer. That would hit
+ * every shared trip cover, /explore card, /destinations card and saved trip
+ * hero whose `cover_image_url` points at Pexels.
  *
  * Server-side fetches don't trip whatever bot heuristic browser
  * requests do, so the same URL resolves cleanly from a Vercel function.

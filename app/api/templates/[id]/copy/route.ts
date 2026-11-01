@@ -134,8 +134,8 @@ export async function POST(
     }
 
     // Increment the template's copy count atomically via RPC.
-    // Bug-bounty 2026-05-24 P1: previously read-modify-write — two
-    // simultaneous "Use this template" clicks dropped one increment.
+    // Not read-modify-write: two simultaneous "Use this template" clicks
+    // would drop one increment.
     // Migration 20260524_atomic_counters.sql defines the RPC. It runs as the
     // service role (lib/explore/counters.ts); the template lookup and the
     // insert above are the gate. Never throws. In after(), not a floating

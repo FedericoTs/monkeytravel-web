@@ -46,9 +46,8 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // SECURITY (bug-bounty 2026-05-24 P0): any authenticated user
-    // could fetch any proposal — including voter PII — just by knowing
-    // tripId + proposalId. Require trip access first.
+    // SECURITY: trip access first, or any signed-in user could fetch any
+    // proposal (including voter PII) just by knowing tripId + proposalId.
     const { errorResponse: accessError } = await verifyTripAccess(
       supabase,
       tripId,

@@ -6,11 +6,8 @@ import { completeReferralIfEligible } from "@/lib/referral/completion";
  * POST /api/referral/complete
  *
  * Thin auth + dispatch shim over the canonical implementation in
- * lib/referral/completion.ts. Previously this route held ~180 lines of
- * business logic that duplicated completeReferralIfEligible almost
- * verbatim — every bug fix had to be applied in two places. The
- * 2026-05-30 lifetime_referral_conversions column-drift bug was a direct
- * consequence of that split (the broken UPDATE existed in both files).
+ * lib/referral/completion.ts, so a fix lands in one place rather than in two
+ * copies of the same logic.
  *
  * Callable when a referred user creates their first trip outside of the
  * standard /api/trips/duplicate and /api/templates/[id]/copy paths

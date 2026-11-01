@@ -39,8 +39,8 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
     // is now belt-and-suspenders (the RPC has already filtered out
     // exhausted / expired / revoked invites — they appear as NOT_FOUND).
     //
-    // `message` is the inviter's personal note (added 2026-05-23 with
-    // the recipient_email flow) — surfaced in the accept-page UI.
+    // `message` is the inviter's personal note (part of the recipient_email
+    // flow), surfaced in the accept-page UI.
     const { data: invites, error: inviteError } = await supabaseAdmin
       .rpc("get_invite_by_token", { p_token: token });
 
@@ -223,7 +223,7 @@ type AcceptInviteRpcResult =
  * row), so concurrent callers serialise and the second one bounces
  * with MAX_USES instead of slipping through.
  *
- * The RECIPIENT_MISMATCH check (bug-bounty 2026-05-24 P0) stays in
+ * The RECIPIENT_MISMATCH check stays in
  * route code because it depends on the authenticated user's email,
  * which we don't want to pass into SQL. We do a cheap RPC-level read
  * of recipient_email first via get_invite_by_token (still
@@ -258,7 +258,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
     const previewInvite = Array.isArray(invites) ? invites[0] : null;
 
-    // SECURITY (bug-bounty 2026-05-24 P0): when the invite was sent
+    // SECURITY: when the invite was sent
     // to a specific email address (recipient_email set), enforce that
     // ONLY that recipient can accept. Without this an email-scoped
     // invite was acceptable by anyone with the token — defeating the

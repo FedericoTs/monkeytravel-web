@@ -110,10 +110,9 @@ export async function POST(request: Request) {
     }
 
     // Increment code usage atomically.
-    // Bug-bounty 2026-05-24 P1: previous read-modify-write let two
-    // concurrent redemptions both pass the "uses < max" check and both
-    // bump +1, silently exceeding max_uses. The RPC moves the limit
-    // check into the UPDATE WHERE clause so it's enforced atomically.
+    // A read-modify-write would let two concurrent redemptions both pass
+    // the "uses < max" check and exceed max_uses. The RPC puts the limit
+    // check in the UPDATE WHERE clause, so it is enforced atomically.
     // Migration: 20260524_atomic_counters.sql.
     const { error: consumeErr } = await supabase.rpc("consume_tester_code", {
       code_id: testerCode.id,

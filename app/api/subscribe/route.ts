@@ -15,8 +15,7 @@ export async function POST(request: NextRequest) {
       return errors.rateLimit("Too many subscription attempts. Please try again later.");
     }
 
-    // Bug-bounty 2026-05-24 P1: unwrapped request.json() crashes on
-    // malformed body — should 400 not 500.
+    // A malformed body is a 400, not an unwrapped request.json() crash.
     let body: { email?: string; source?: string };
     try {
       body = (await request.json()) as { email?: string; source?: string };
@@ -42,10 +41,9 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     }
 
-    // Insert through the service role (2026-09-23). The read-back below used
-    // to run on the anon client and needed a SELECT policy that let the
-    // public anon key list every subscriber's email; that policy goes in
-    // 20260924123000.
+    // Insert through the service role. A read-back on the anon client would
+    // need a SELECT policy letting the public anon key list every subscriber's
+    // email; 20260924123000 removes that policy.
     const { data, error } = await createAdminClient()
       .from('email_subscribers')
       .insert({

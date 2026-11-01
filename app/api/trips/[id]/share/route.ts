@@ -45,9 +45,8 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
 
     // Everything that must survive the response runs inside after(): the
     // function is frozen once the response is sent, so a bare fire-and-forget
-    // promise here was cut off about half the time — 43 share_link_created
-    // rows for 82 shares in the 90 days to 2026-09-18 (the anonymous route,
-    // which already used after(), matched its trips one to one). Telemetry
+    // promise here would be cut off about half the time (the anonymous route,
+    // which uses after(), matches its trips one to one). Telemetry
     // first because it is cheap; a telemetry failure must never fail the
     // share, and logFunnelEventServer never throws.
     after(async () => {
