@@ -35,7 +35,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
 
       # No npm install needed — the script uses only Node built-ins
       # (fetch, fs/promises). Keeping it dep-free means a refresh never
