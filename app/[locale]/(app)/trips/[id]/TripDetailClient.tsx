@@ -1217,7 +1217,6 @@ export default function TripDetailClient({
 
   const handleActivityRegenerate = useCallback(
     async (activityId: string, dayIndex: number) => {
-      pushUndo("Regenerate activity");
       setRegeneratingActivityId(activityId);
       try {
         const response = await fetch("/api/ai/regenerate-activity", {
@@ -1232,32 +1231,35 @@ export default function TripDetailClient({
           }),
         });
 
-        if (!response.ok) {
-          throw new Error("Failed to regenerate activity");
+        const data = response.ok ? await response.json() : null;
+        if (!data?.activity) {
+          throw Object.assign(new Error("Failed to regenerate activity"), { status: response.status });
         }
-
-        const data = await response.json();
-        if (data.activity) {
-          setEditedItinerary((prev) =>
-            replaceActivity(prev, activityId, {
-              ...data.activity,
-              id: activityId,
-            })
-          );
-          // Track activity regeneration for retention analytics
-          trackActivityRegenerated({
-            tripId: trip.id,
-            activityType: data.activity.type || "unknown",
-          });
-        }
+        // Undo is offered for a change that happened: a failed attempt leaves
+        // nothing to undo, and the redo stack as it was.
+        pushUndo("Regenerate activity");
+        setEditedItinerary((prev) =>
+          replaceActivity(prev, activityId, {
+            ...data.activity,
+            id: activityId,
+          })
+        );
+        // Track activity regeneration for retention analytics
+        trackActivityRegenerated({
+          tripId: trip.id,
+          activityType: data.activity.type || "unknown",
+        });
       } catch (error) {
         console.error("Error regenerating activity:", error);
-        setSaveError(t("detail.activityRegenerateFailed"));
+        const status = (error as { status?: number } | null)?.status;
+        const msg = status === 429 ? t("detail.activityRegenerateLimit") : t("detail.activityRegenerateFailed");
+        setSaveError(msg);
+        addToast(msg, "error");
       } finally {
         setRegeneratingActivityId(null);
       }
     },
-    [trip.id, destination, editedItinerary, pushUndo, t]
+    [trip.id, destination, editedItinerary, pushUndo, addToast, t]
   );
 
   // Per-day regeneration: replaces all activities of a single day with a

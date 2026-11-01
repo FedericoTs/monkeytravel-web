@@ -558,6 +558,7 @@
     "pageTitle": "Detalles del viaje",
     "exitEditing": "Salir",
     "activityRegenerateFailed": "No se pudo regenerar la actividad. Inténtalo de nuevo.",
+    "activityRegenerateLimit": "Has alcanzado el límite de regeneraciones de este mes. La actividad no ha cambiado.",
     "saveChangesFailed": "No se pudieron guardar los cambios. Inténtalo de nuevo.",
     "estBudget": "Presupuesto Est.",
     "noItinerary": "Sin Itinerario Aún",

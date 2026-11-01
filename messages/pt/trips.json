@@ -558,6 +558,7 @@
     "pageTitle": "Detalhes da viagem",
     "exitEditing": "Sair",
     "activityRegenerateFailed": "Não foi possível gerar a atividade de novo. Tente novamente.",
+    "activityRegenerateLimit": "Você atingiu o limite de gerações deste mês. A atividade não mudou.",
     "saveChangesFailed": "Não foi possível salvar as alterações. Tente novamente.",
     "estBudget": "Orçamento Est.",
     "noItinerary": "Nenhum Roteiro Ainda",
