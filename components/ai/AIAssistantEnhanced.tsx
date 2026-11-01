@@ -632,10 +632,11 @@ ${t("notAppliedBody")}`,
       // Set up undo
       pushUndo({
         previousItinerary,
-        // add_day also extended trips.end_date — the undo must restore it
-        // together with the itinerary (see /api/ai/assistant/undo).
+        // add_day, and apply_draft adding days, also extended trips.end_date —
+        // the undo must restore it together with the itinerary (see
+        // /api/ai/assistant/undo).
         previousEndDate:
-          pendingChange.type === "add_day"
+          pendingChange.type === "add_day" || pendingChange.type === "apply_draft"
             ? pendingChange.previousEndDate
             : undefined,
         action: {

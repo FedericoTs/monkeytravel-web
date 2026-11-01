@@ -27,6 +27,18 @@ import { normalizeActivityType } from "@/lib/trip/activity-type";
  * — the assistant must not be a side door past it.
  */
 export const MAX_TRIP_DAYS = 14;
+/** The wizard's cap for a trip across several cities. */
+export const MAX_TRIP_DAYS_MULTI = 21;
+
+/**
+ * The longest this trip may be: its own cap, or its current length when it is
+ * already past it. Before this, a three-city trip longer than the single-city
+ * cap lost every edit to its last days, and a request about them was refused.
+ */
+export function maxTripDays(days: ItineraryDay[]): number {
+  const cap = days.some((d) => d.city) ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS;
+  return Math.max(cap, days.length);
+}
 
 export type StructuralIntent =
   | {

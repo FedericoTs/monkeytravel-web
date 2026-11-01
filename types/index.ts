@@ -645,8 +645,8 @@ export interface StructuredAssistantResponse {
     // Structural actions (transcript-driven: "add a day to travel to Voss",
     // pasted multi-day drafts — see lib/ai/assistant/structural.ts):
     newDay?: ItineraryDay;   // add_day: the generated day awaiting confirm
-    newEndDate?: string;     // add_day: trips.end_date after the append
-    revisedDays?: ItineraryDay[]; // apply_draft: replacement days
+    newEndDate?: string;     // add_day, or apply_draft adding days: trips.end_date after the change
+    revisedDays?: ItineraryDay[]; // apply_draft: replacement days, then any new days
     dayCount?: number;       // apply_draft: how many days changed (badge "{count} days updated")
   };
 }

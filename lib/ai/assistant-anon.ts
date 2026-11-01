@@ -28,11 +28,13 @@ import {
   asksToRemove,
   claimsLongerTrip,
   daysLeftNote,
+  daysNotAddedNote,
   hasFigures,
   isConfirmation,
   offersChange,
   replyLanguage,
   takesOutNote,
+  travelTimesNote,
   notAppliedLead,
   claimsItineraryChange,
   lengthUnchangedNote,
@@ -47,8 +49,12 @@ import {
 import { planCosts, planCurrency, type DisplayCurrency, type PlanCosts } from "@/lib/ai/assistant/plan-costs";
 import { dayMentioned, daysMentioned } from "@/lib/ai/assistant/day-target";
 import { currencyRequested, currencySwitchedNote, withoutCurrencyTalk } from "@/lib/ai/assistant/currency-request";
+import { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI, maxTripDays } from "@/lib/ai/assistant/structural";
 import type { Activity, ItineraryDay } from "@/types";
 import { ACTIVITY_TYPES, normalizeActivityType } from "@/lib/trip/activity-type";
+
+// Shared with the trip page, whose Apply checks a longer trip against them.
+export { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI, maxTripDays };
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -68,23 +74,19 @@ const READY_WORDING: Record<string, string> = {
   pt: `apresente as mudanças como prontas, não feitas: "Aqui está um novo dia 6 com…", "Pronto para trocar os dias 1 e 2:…". Nunca escreva "Adicionei", "Movi", "Troquei" nem "Feito".`,
 };
 
+// How a reply presents an edit the page makes as it arrives (with Undo): told
+// to word every edit as ready, the planner said "Ready to update Day 2…" of
+// changes it had already made.
+const DONE_WORDING: Record<string, string> = {
+  en: `the page makes the change as soon as you reply, and they can undo it, so say what you did: "I've added a cooking class to Day 3", "Days 1 and 2 are swapped". Never write "Ready to…" or ask them to apply it.`,
+  it: `la pagina fa la modifica appena rispondi, e si può annullare, quindi di' cosa hai fatto: "Ho aggiunto un corso di cucina al giorno 3", "Ho scambiato i giorni 1 e 2". Non scrivere mai "Pronto a…" e non chiedere di applicarla.`,
+  es: `la página hace el cambio en cuanto respondes, y se puede deshacer, así que di lo que hiciste: "He añadido una clase de cocina al día 3", "He cambiado los días 1 y 2". Nunca escribas "Listo para…" ni pidas que lo apliquen.`,
+  pt: `a página faz a mudança assim que você responde, e dá para desfazer, então diga o que fez: "Adicionei uma aula de culinária no dia 3", "Troquei os dias 1 e 2". Nunca escreva "Pronto para…" nem peça para aplicar.`,
+};
+
 const VALID_TIME_SLOTS = new Set(["morning", "afternoon", "evening"]);
 const VALID_TIERS = new Set(["free", "budget", "moderate", "expensive"]);
 
-/** Same cap as the wizard and the signed-in assistant (lib/ai/assistant/structural). */
-export const MAX_TRIP_DAYS = 14;
-/** The wizard's cap for a trip across several cities. */
-export const MAX_TRIP_DAYS_MULTI = 21;
-
-/**
- * The longest this trip may be: its own cap, or its current length when it is
- * already past it. Before this, a three-city trip longer than the single-city
- * cap lost every edit to its last days, and a request about them was refused.
- */
-export function maxTripDays(days: ItineraryDay[]): number {
-  const cap = days.some((d) => d.city) ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS;
-  return Math.max(cap, days.length);
-}
 /** Days one reply may rewrite; more would not fit the output budget. */
 const MAX_DAYS_PER_REPLY = 6;
 /** A change about more days asks for the rest at once, if it can start by now… */
@@ -111,11 +113,17 @@ export interface AssistAnonInput {
   locale?: string;
   /**
    * The conversation so far, oldest first. Without it "sure", "yes" or "No I
-   * mean…" had nothing to refer to (2026-09-16 and 09-26 sessions).
+   * mean…" had nothing to refer to (2026-09-16 and 09-26 sessions). Before
+   * the last six turns it may hold only the traveller's own messages.
    */
   history?: AssistTurn[];
   /** The page applies the edits as soon as they arrive (with Undo). */
   autoApply?: boolean;
+  /**
+   * The page itself says that a change waits for its button (the trip page),
+   * so the reply gets no "Not applied yet" lead here.
+   */
+  ownLead?: boolean;
   /**
    * The reply names activities a change takes out that weren't asked to go.
    * The wizard's card shows only the new day; the trip page's card lists them.
@@ -190,13 +198,27 @@ function buildContext(days: ItineraryDay[], display?: DisplayCurrency): string {
     .join("\n");
 }
 
+/** Turns the prompt shows in full; before them, only what the traveller said. */
+const RECENT_TURNS = 6;
+const EARLIER_MESSAGES = 10;
+
 function buildHistory(history: AssistTurn[] | undefined): string {
-  const turns = (history ?? []).slice(-6);
+  const all = history ?? [];
+  const turns = all.slice(-RECENT_TURNS);
   if (turns.length === 0) return "";
+  // What they told us about the trip holds after it leaves the last turns: a
+  // 23:00 arrival said four messages earlier got lunch and dinner on Day 1
+  // (2026-10-26).
+  const earlier = all
+    .slice(0, -RECENT_TURNS)
+    .filter((t) => t.role === "user")
+    .slice(-EARLIER_MESSAGES)
+    .map((t) => `- ${t.text.slice(0, 400)}`);
+  const said = earlier.length > 0 ? `\nEarlier, the traveller said (oldest first):\n${earlier.join("\n")}\n` : "";
   const lines = turns.map((t) => `${t.role === "user" ? "Traveller" : "You"}: ${t.text.slice(0, 600)}`);
   // Undo and Skip leave the conversation as it was: "already done" was the
   // answer to a request repeated after an Undo.
-  return `\nConversation so far (oldest first):\n${lines.join("\n")}\nThe itinerary above is the plan as it is now. A change from earlier in the conversation that isn't in it was only offered, skipped or undone: if they ask for it, make it.\n`;
+  return `${said}\nConversation so far (oldest first):\n${lines.join("\n")}\nThe itinerary above is the plan as it is now. A change from earlier in the conversation that isn't in it was only offered, skipped or undone: if they ask for it, make it.\n`;
 }
 
 export function buildPrompt(input: AssistAnonInput): string {
@@ -221,6 +243,7 @@ Traveller's new message: "${input.message}"
 
 First work out what the traveller actually wants, the way a good travel agent would:
 - A statement about their trip asks you to fit the plan to it: "we have a car", "my hotel is near X", "we land at 11:00 on day 1", "my wife is vegetarian", "I'm travelling with my 70-year-old mother". Change every day it affects.
+- What they told you about their trip, in this message or earlier in the conversation, still holds unless they changed it: when they arrive and leave, who is travelling, a car, a diet, where they stay. Every day you edit or add must fit it. Their earlier requests were already answered: don't make them again unless asked.
 - A misspelled or partial name means the most likely real place near the destination ("aya sofya" is Hagia Sophia).
 - Ambiguous wording takes the meaning a travel agent would assume ("activities under 18" means suitable for under-18s). Ask one short question only when the readings would lead to very different plans.
 - A short "yes", "ok", "do it" or "continue" answers your previous message: make exactly the change you offered there, or the one it said some days still needed, nothing more. With nothing offered before it, ask what they'd like to change.
@@ -244,7 +267,7 @@ Then decide:
   - Adding or removing days when asked, or changing how many nights a city gets: set "trip_length" to the new total number of days (1-${maxDays}) and return every day whose content changes, including each NEW day in full. New days come first, before any existing day you also change. Days beyond "trip_length" are removed.${multiCity ? `
   - This is a multi-city trip: give each edited day its "city".` : ""}
   - Hotels in the plan: use only hotel names the traveller gives you or that already appear in the itinerary. If they mention hotels you can't see ("the hotels I added"), ask for the names and return "edits": []. When they name where they're staying for certain nights, add a short "Check in at <place>" activity in the evening of the first of those days. The plan doesn't track hotel prices; give a typical range if they ask.
-  - At most ${MAX_DAYS_PER_REPLY} days in "edits". When the change concerns more days, return the first ${MAX_DAYS_PER_REPLY} and list every other day it concerns in "more_days": those are made right after, the same way, so "reply" describes the whole change as done for every day it concerns, never as "the first ${MAX_DAYS_PER_REPLY} days".
+  - At most ${MAX_DAYS_PER_REPLY} days in "edits". When the change concerns more days, new days included, return the first ${MAX_DAYS_PER_REPLY} and list every other day it concerns in "more_days": those are made right after, the same way, so "reply" describes the whole change for every day it concerns, never only "the first ${MAX_DAYS_PER_REPLY} days".
 - Use only real places, where they really are. If something they ask for doesn't exist nearby, say so and offer the closest real alternative. Give prices and travel times you're unsure of as rough ranges.
 - If you can't do what they ask, say so plainly and return "edits": [].
 
@@ -253,6 +276,7 @@ Return STRICT JSON (no markdown) in this EXACT shape:
   "reply": "Short chat reply in the language of the traveller's new message (${language} if unclear).",
   "trip_length": null OR <new total number of days, only when adding or removing days>,
   "more_days": [] OR [the other day numbers this change concerns, past the ${MAX_DAYS_PER_REPLY} in "edits"],
+  "travel_times": [] OR [{ "day": <day number>, "arrives": "HH:MM" or null, "leaves": "HH:MM" or null, "by": "flight" | "train" | "bus" | "boat" | "car" }],
   "edits": [
     {
       "day_number": <1-${maxDays}>,${multiCity ? `
@@ -279,12 +303,17 @@ Return STRICT JSON (no markdown) in this EXACT shape:
 Rules:
 1. JSON only. "edits" is [] for questions.
 2. Each edited day: 3-5 activities (fewer when the traveller asks to remove things, one more when you add to a full day), real places, costs realistic in ${cur}. Never fill a gap with a placeholder like "free time for lunch". A day they want free has no activities: "activities": []. Keep "description" to a few words.
-3. For a change, "reply" is warm and brief and says what changed, one short line per day when several days change, describing exactly the edits you return. Never say you changed a day that is not in "edits". Nothing changes until the traveller taps Apply, so ${READY_WORDING[input.locale ?? "en"] ?? READY_WORDING.en} Never mention JSON.
+3. For a change, "reply" is warm and brief and says what changed, one short line per day when several days change, describing exactly the edits you return. Never say you changed a day that is not in "edits". ${
+    input.autoApply
+      ? `For the wording, ${DONE_WORDING[input.locale ?? "en"] ?? DONE_WORDING.en}`
+      : `Nothing changes until the traveller taps Apply, so ${READY_WORDING[input.locale ?? "en"] ?? READY_WORDING.en}`
+  } Never mention JSON.
 4. For a question, the whole answer goes in "reply". When it needs figures (a total, a budget, what a day costs), give the numbers right there, in ${shownCur}: start from the activity costs above and add clearly labelled estimates for what the plan leaves out, such as hotels and flights. A few short lines are fine, as plain text: each on its own line starting with "- ", no * or **. Never announce an answer ("here is the total…") without giving it. A practical answer ends with what to do about it (what to pack, what to book ahead).
 5. Only real, safe, legal travel. If the request is impossible or off-topic, return "edits": [] and explain kindly in "reply".
 6. USER OVERRIDE: if the user asks for a place outside ${input.destination} (e.g. a day-trip across a border), you may note the travel-time tradeoff ONCE in "reply" — but if they insist, comply and build the edit exactly as they asked. Never refuse the same request twice.
 7. The app shows prices in the traveller's chosen currency by itself. A request to see prices in another currency needs no edits: never rewrite days to change the currency, and don't say which currency the plan is shown in. Prices are per person: asked for a group's costs ("for 2 people"), give that many people's totals in "reply" and change nothing.
-8. Times are "HH:MM" and the plan shows them in 24-hour form. A request for AM/PM times needs no edits: say the plan shows 24-hour times.`;
+8. Times are "HH:MM" and the plan shows them in 24-hour form. A request for AM/PM times needs no edits: say the plan shows 24-hour times.
+9. "travel_times" lists every time the traveller has said they arrive or leave, in this message or earlier (the latest wins), on the day it happens, whether or not you change that day; "by" is "flight" when they fly or land, or when it's unclear. On those days plan nothing before about 1.5 hours after landing (45 minutes after a train, bus or boat), and end everything by when they must set off: about 3 hours before a flight, 1 hour before a train, bus or boat. Only the arrival, the transfer, the check-in and the way to the airport or station may sit outside those hours.`;
 }
 
 /**
@@ -353,15 +382,16 @@ function normalizeActivity(raw: unknown, idx: number, cur: string): Activity | n
  * Validate the model's edits against the trip. Pure, so the rules are
  * unit-tested (lib/ai/assistant-anon-edits.vitest.ts).
  *
- * - A new trip length counts only if every added day comes back in full; a
- *   shorter one may not drop a day holding a fixed plan (F1 anchor).
+ * - A new trip length counts only if every added day comes back in full, or
+ *   is one of "more_days", which the next parts bring; a shorter one may not
+ *   drop a day holding a fixed plan (F1 anchor).
  * - A day holding a fixed plan is never rewritten: an edit REPLACES the whole
  *   day, and anchors are the traveller's to remove.
  * - Edits for days outside the trip are dropped; one per day (the last wins).
  */
 export function validateEdits(
   days: ItineraryDay[],
-  raw: { edits: unknown[]; tripLength: unknown },
+  raw: { edits: unknown[]; tripLength: unknown; moreDays?: unknown },
   cur: string,
   /** The traveller asked for a free day, so a day emptied is the change. */
   allowEmpty = false
@@ -393,9 +423,10 @@ export function validateEdits(
   const wanted = Math.round(num(raw.tripLength, current));
   if (wanted !== current && wanted >= 1 && wanted <= max) {
     const added = Array.from({ length: Math.max(0, wanted - current) }, (_, i) => current + 1 + i);
+    const later = new Set((Array.isArray(raw.moreDays) ? raw.moreDays : []).map((n) => Math.round(num(n, 0))));
     const dropped = days.filter((d) => d.day_number > wanted);
     const lockedDrop = dropped.some((d) => lockedActivityNames(d).length > 0);
-    if (added.every((n) => byDay.has(n)) && !lockedDrop) length = wanted;
+    if (added.every((n) => byDay.has(n) || later.has(n)) && !lockedDrop) length = wanted;
     else lengthRefused = true;
   }
 
@@ -465,7 +496,12 @@ function sameWord(a: string, b: string): boolean {
  * translated "Explore Plaza Botero…" for a Spanish reader). A returned
  * activity with a saved one's name, or most of its words and none of its own,
  * stays the saved activity at its new time; "Guided tour of…" is a change.
+ * A meal is never taken for a sight by its words: "Almuerzo en la Ribeira"
+ * became a second "Ribeira walk", and the lunch was lost.
  */
+const MEAL_TYPES = new Set(["restaurant", "cafe", "bar", "food", "market"]);
+const isMeal = (a: Activity) => MEAL_TYPES.has(normalizeActivityType(a.type, a.name));
+
 export function keepSavedActivities(
   days: ItineraryDay[],
   edits: DayEdit[],
@@ -487,7 +523,7 @@ export function keepSavedActivities(
       for (const s of saved) {
         if (used.has(s.a)) continue;
         let score = s.a.name.trim().toLowerCase() === n.name.trim().toLowerCase() ? 2 : 0;
-        if (!score && mine.length && mine.every((t) => s.tokens.some((u) => sameWord(t, u)))) {
+        if (!score && mine.length && isMeal(s.a) === isMeal(n) && mine.every((t) => s.tokens.some((u) => sameWord(t, u)))) {
           score = s.tokens.filter((u) => mine.some((t) => sameWord(t, u))).length / s.tokens.length;
         }
         if (score >= 0.6 && (!best || score > best.score)) best = { a: s.a, score };
@@ -557,14 +593,111 @@ function tellsWhereTheyStay(message: string): boolean {
   return !!m && !message.includes("?") && !NEAR.test(message.slice(m.index + m[0].length));
 }
 
-type Outcome = ReturnType<typeof validateEdits> & { reply: string; moreDays: number[] };
+/** A time the traveller arrives or leaves on a day ("travel_times"). */
+export interface TravelTime {
+  day: number;
+  arrives?: string;
+  leaves?: string;
+  by?: string;
+}
+
+// Minutes from arriving to being free, and from setting off to the departure.
+const TRAVEL_MARGIN: Record<string, { after: number; before: number }> = {
+  flight: { after: 90, before: 180 },
+  train: { after: 45, before: 60 },
+  bus: { after: 45, before: 60 },
+  boat: { after: 45, before: 60 },
+  car: { after: 30, before: 30 },
+};
+// The journey itself: getting from the airport, checking in, getting there.
+const JOURNEY =
+  /(?<![\p{L}])(?:airports?|aeropuertos?|aeroport[oi]s?|aéroport|transfers?|traslados?|trasferiment[oi]|translados?|arrival|arrive|arriving|arriv[oi]|llegadas?|chegadas?|departure|depart|departing|salidas?|partenz[ae]|partidas?|check[\s-]?(?:in|out)|flights?|vuelos?|vol[oi]|voos?|stations?|estaci[oó]n|stazion[ei]|esta[cç][aã]o|luggage|baggage|equipaje|bagagli|bagagem)(?![\p{L}])/iu;
+/** Slack before a time counts as outside it. */
+const TRAVEL_SLACK = 15;
+// A clock time: "23:00", "21h30", "3pm", "2 p.m.", "las 23 horas", "alle 14", "às 9h".
+const TELLS_TIME = /(?<![\p{L}\p{N}])(?:\d{1,2}[:.h]\d{2}|\d{1,2}\s*[ap]\.?m\.?(?![\p{L}])|(?:las|alle|às|as)\s+\d{1,2}(?![\p{N}]))/iu;
+
+/** Minutes into the day of "H:MM", "HH:MM" or "9:30 AM"; NaN when it doesn't read. */
+const minutesOf = (time: unknown) => {
+  const m = /^(\d{1,2}):(\d{2})/.exec(clockTime(time) ?? "");
+  return m ? Number(m[1]) * 60 + Number(m[2]) : NaN;
+};
+const clockOf = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+
+/** A day's activities outside the hours around an arrival or a departure. */
+export interface OutsideTravelTimes {
+  day: number;
+  arrives?: string;
+  leaves?: string;
+  /** Free from, after arriving. */
+  from: string | null;
+  /** Done by, to set off. */
+  until: string | null;
+  /** The activities outside, with their start times. */
+  names: string[];
+}
+
+/** "travel_times" as the model wrote them, kept when the day and a time read. */
+export function readTravelTimes(raw: unknown, length: number): TravelTime[] {
+  return (Array.isArray(raw) ? raw : []).flatMap((r) => {
+    const t = (r ?? {}) as Record<string, unknown>;
+    const day = Math.round(num(t.day, 0));
+    const arrives = clockTime(t.arrives) ?? undefined;
+    const leaves = clockTime(t.leaves) ?? undefined;
+    if (day < 1 || day > length || (!arrives && !leaves)) return [];
+    return [{ day, arrives, leaves, by: typeof t.by === "string" ? t.by.trim().toLowerCase() : undefined }];
+  });
+}
+
+/**
+ * Activities the edited days plan before the traveller is free after arriving,
+ * or after they must set off (pure; unit-tested). Live, the model kept lunch
+ * and shopping on a day with a 14:00 flight, and put lunch and dinner on a day
+ * that lands at 23:00 (2026-10-26/29).
+ */
+export function outsideTravelTimes(
+  edits: Pick<DayEdit, "day_number" | "activities">[],
+  times: TravelTime[],
+): OutsideTravelTimes[] {
+  return edits.flatMap((e) => {
+    const t = times.find((x) => x.day === e.day_number);
+    if (!t) return [];
+    const margin = TRAVEL_MARGIN[t.by ?? ""] ?? TRAVEL_MARGIN.flight;
+    const from = t.arrives ? minutesOf(t.arrives) + margin.after : 0;
+    const until = t.leaves ? minutesOf(t.leaves) - margin.before : 24 * 60;
+    const names = e.activities
+      .filter((a) => a.type !== "transport" && a.type !== "accommodation" && !a.transport_mode && !JOURNEY.test(a.name))
+      .filter((a) => {
+        const start = minutesOf(a.start_time);
+        if (Number.isNaN(start)) return false;
+        return start < from - TRAVEL_SLACK || start + (a.duration_minutes || 0) > until + TRAVEL_SLACK;
+      })
+      .map((a) => `${a.name} (${a.start_time})`);
+    if (names.length === 0) return [];
+    return [{
+      day: e.day_number,
+      arrives: t.arrives,
+      leaves: t.leaves,
+      from: t.arrives ? clockOf(Math.min(from, 24 * 60 - 1)) : null,
+      until: t.leaves ? clockOf(Math.max(until, 0)) : null,
+      names,
+    }];
+  });
+}
+
+type Outcome = ReturnType<typeof validateEdits> & { reply: string; moreDays: number[]; travelTimes: TravelTime[] };
 
 /** The model's JSON, as the reply and checked edits this engine works with. */
 function readOutcome(input: AssistAnonInput, obj: Record<string, unknown>, cur: string): Outcome {
   const reply = plainText(str(obj.reply, "").trim());
   // "edits" (current shape) or "edit" (the single-day shape, still accepted).
   const rawEdits = Array.isArray(obj.edits) ? obj.edits : obj.edit && typeof obj.edit === "object" ? [obj.edit] : [];
-  const checked = validateEdits(input.days, { edits: rawEdits, tripLength: obj.trip_length }, cur, asksForFreeDay(input.message));
+  const checked = validateEdits(
+    input.days,
+    { edits: rawEdits, tripLength: obj.trip_length, moreDays: obj.more_days },
+    cur,
+    asksForFreeDay(input.message),
+  );
   const edits = keepSavedActivities(input.days, checked.edits, { reply, message: input.message });
   // The other days the change concerns, past what one reply holds. A day with
   // a fixed plan is never rewritten (validateEdits), so it is not one of them.
@@ -574,16 +707,25 @@ function readOutcome(input: AssistAnonInput, obj: Record<string, unknown>, cur: 
     .filter((n) => n >= 1 && n <= length && !done.has(n))
     .filter((n) => lockedActivityNames(input.days.find((d) => d.day_number === n)).length === 0)
     .sort((a, b) => a - b);
-  return { ...checked, edits, reply, moreDays };
+  return { ...checked, edits, reply, moreDays, travelTimes: readTravelTimes(obj.travel_times, length) };
 }
 
-/** The days with these edits made, for the next part of a change and its costs. */
+/**
+ * The days with these edits made, new days added at the end, for the next
+ * part of a change and its costs.
+ */
 function withEdits(days: ItineraryDay[], edits: DayEdit[]): ItineraryDay[] {
   const byDay = new Map(edits.map((e) => [e.day_number, e]));
-  return days.map((d) => {
-    const e = byDay.get(d.day_number);
-    return e ? { ...d, theme: e.theme ?? d.theme, activities: e.activities } : d;
-  });
+  const added = edits
+    .filter((e) => e.day_number > days.length)
+    .map((e): ItineraryDay => ({ day_number: e.day_number, date: "", theme: e.theme, activities: e.activities, ...(e.city ? { city: e.city } : {}) }));
+  return [
+    ...days.map((d) => {
+      const e = byDay.get(d.day_number);
+      return e ? { ...d, theme: e.theme ?? d.theme, activities: e.activities } : d;
+    }),
+    ...added,
+  ];
 }
 
 /** Does the edit leave its day as it was (same activities at the same times)? */
@@ -592,9 +734,14 @@ function leavesDayAsItWas(days: ItineraryDay[], e: DayEdit): boolean {
   return old.length === e.activities.length && old.every((a, i) => a?.name === e.activities[i].name && a?.start_time === e.activities[i].start_time);
 }
 
-/** What the next part of a change is asked with. */
-function continuePrompt(reply: string, done: number[], group: number[]): string {
-  return `CONTINUE: you are partway through this change. Your reply was: "${reply.slice(0, 600)}". Days ${done.join(", ")} are done, and the itinerary above shows them. Now return Days ${group.join(", ")} in "edits", each in full, changed the same way, and no other day. "more_days" is [], "trip_length" is null, and "reply" is one short line.`;
+/** What the next part of a change is asked with; `length` when the trip gets longer. */
+function continuePrompt(reply: string, done: number[], group: number[], current: number, length?: number): string {
+  const fresh = length !== undefined ? group.filter((n) => n > current) : [];
+  const newDays =
+    fresh.length > 0
+      ? ` Days ${fresh.join(", ")} are new days at the end of the trip, which now has ${length} days: plan each in full, carrying on from the day before and repeating nothing the trip already holds.`
+      : "";
+  return `CONTINUE: you are partway through this change. Your reply was: "${reply.slice(0, 600)}". Days ${done.join(", ")} are done, and the itinerary above shows them. Now return Days ${group.join(", ")} in "edits", each in full, changed the same way, and no other day.${newDays} "more_days" is [], "trip_length" is ${length ?? "null"}, and "reply" is one short line.`;
 }
 
 /** The promise's value, or a rejection once `ms` have passed. */
@@ -609,7 +756,7 @@ function within<T>(promise: Promise<T>, ms: number): Promise<T> {
 /** What a reply got wrong that one more try may fix, or null. Pure; unit-tested. */
 export function correctionFor(
   input: Pick<AssistAnonInput, "message" | "history" | "days">,
-  o: Pick<Outcome, "reply" | "edits" | "tripLength">,
+  o: Pick<Outcome, "reply" | "edits" | "tripLength"> & Partial<Pick<Outcome, "travelTimes">>,
 ): string | null {
   const current = input.days.length;
   const prepared = o.edits.length > 0 || o.tripLength !== undefined;
@@ -629,6 +776,23 @@ export function correctionFor(
   }
   if (tellsWhereTheyStay(input.message) && !o.edits.some((e) => e.activities.some((a) => CHECK_IN.test(a.name)))) {
     return `The traveller told you where they are staying. Add a short "Check in at <place>" activity on the first day of that stay (evening, or after their arrival), keeping everything else.`;
+  }
+  // The days this reply changes, and every day when the message gives a time:
+  // that is when the plan must first be fitted to it.
+  const timed = TELLS_TIME.test(input.message) ? withEdits(input.days, o.edits) : o.edits;
+  const outside = outsideTravelTimes(timed, o.travelTimes ?? [])[0];
+  if (outside) {
+    const late = outside.from !== null && minutesOf(outside.from) >= 22 * 60;
+    const when = [
+      outside.arrives &&
+        (late
+          ? `they arrive at ${outside.arrives}, too late for anything but getting to where they stay`
+          : `they arrive at ${outside.arrives}, so plan nothing before ${outside.from}`),
+      outside.leaves && `they leave at ${outside.leaves}, so everything must end by ${outside.until}`,
+    ]
+      .filter(Boolean)
+      .join(", and ");
+    return `Day ${outside.day}: ${when}. ${outside.names.join(", ")} ${outside.names.length > 1 ? "don't" : "doesn't"} fit. Move what matters to a day with room, or leave it out, and say so in "reply".`;
   }
   const recent = [input.message, ...(input.history ?? []).slice(-2).map((t) => t.text)].join("\n");
   if (o.tripLength !== undefined && o.tripLength > current && !asksForMoreDays(recent)) {
@@ -760,28 +924,40 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
   if (correction && Date.now() - startedAt < CORRECTION_DEADLINE_MS) {
     try {
       const retried = readOutcome(input, await ask(`${prompt}\n\nCORRECTION: ${correction}`, 1), cur);
-      if (!correctionFor(input, retried)) outcome = retried;
+      // Held to the first reply's travel times too, in case it drops them.
+      const times = [...retried.travelTimes, ...outcome.travelTimes];
+      if (!correctionFor(input, { ...retried, travelTimes: times })) outcome = retried;
     } catch (err) {
       console.warn("assistant-anon: correction failed, keeping the first reply:", err instanceof Error ? err.message : err);
     }
   }
-  const { reply, tripLength, lockedDays, lengthRefused } = outcome;
+  const { reply, lockedDays } = outcome;
+  let { tripLength, lengthRefused } = outcome;
   let edits = outcome.edits;
+  const current = input.days.length;
+  // The new days of a longer trip.
+  const added =
+    tripLength !== undefined && tripLength > current
+      ? Array.from({ length: tripLength - current }, (_, i) => current + 1 + i)
+      : [];
 
   // A change about more days than one reply holds: the first reply names the
-  // other days ("more_days"), they are asked for together, the same way, and
-  // the days of a part that doesn't come back in time are named in the reply.
-  let daysLeft = tripLength === undefined ? outcome.moreDays : [];
+  // other days ("more_days"), a longer trip's new days too ("aggiungi altri 7
+  // giorni" could not be done in one reply). They are asked for together, the
+  // same way, and the days of a part that doesn't come back in time are named
+  // in the reply.
+  let daysLeft = outcome.moreDays;
   if (daysLeft.length > 0 && Date.now() - startedAt < MORE_DAYS_START_MS) {
     const sofar = withEdits(input.days, edits);
     const done = edits.map((e) => e.day_number);
     const groups = Array.from({ length: Math.ceil(daysLeft.length / MAX_DAYS_PER_REPLY) }, (_, i) =>
       daysLeft.slice(i * MAX_DAYS_PER_REPLY, (i + 1) * MAX_DAYS_PER_REPLY),
     );
+    const longer = added.length > 0 ? tripLength : undefined;
     const parts = await Promise.allSettled(
       groups.map((group) =>
         within(
-          ask(`${buildPrompt({ ...input, days: sofar })}\n\n${continuePrompt(reply, done, group)}`, 1),
+          ask(`${buildPrompt({ ...input, days: sofar })}\n\n${continuePrompt(reply, done, group, current, longer)}`, 1),
           MORE_DAYS_DEADLINE_MS - (Date.now() - startedAt),
         ),
       ),
@@ -791,12 +967,28 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
       if (part.status !== "fulfilled") return;
       const group = new Set(groups[i]);
       groups[i].forEach((n) => answered.add(n));
-      const more = readOutcome(input, { ...part.value, trip_length: null }, cur).edits;
+      // Read at the trip's new length, so the new days a part brings count.
+      const more = readOutcome(input, { ...part.value, trip_length: tripLength ?? null, more_days: added }, cur).edits;
       edits = [...edits, ...more.filter((e) => group.has(e.day_number) && !leavesDayAsItWas(input.days, e))];
     });
     edits.sort((a, b) => a.day_number - b.day_number);
     daysLeft = daysLeft.filter((n) => !answered.has(n));
   }
+
+  // A longer trip goes as far as its new days came back. The rest are named,
+  // to be asked for again; with none back, the trip keeps its length.
+  let notAdded: number[] = [];
+  const firstMissing = added.find((n) => !edits.some((e) => e.day_number === n));
+  if (firstMissing !== undefined) {
+    notAdded = added.filter((n) => n >= firstMissing);
+    edits = edits.filter((e) => e.day_number < firstMissing);
+    daysLeft = daysLeft.filter((n) => n < firstMissing);
+    tripLength = firstMissing - 1 > current ? firstMissing - 1 : undefined;
+    lengthRefused = tripLength === undefined;
+  }
+  // Rarely, a changed day still doesn't fit an arrival or a departure after
+  // the correction: the reply says so rather than leave it for the airport.
+  const outsideTimes = outsideTravelTimes(edits, outcome.travelTimes);
 
   const currency = currencyRequested(input.message) ?? undefined;
   const finalReply = composeReply({
@@ -806,12 +998,15 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
     lockedDays,
     lengthRefused,
     locale: input.locale,
-    currentDays: input.days.length,
+    currentDays: current,
     currency,
     autoApplied: input.autoApply,
+    ownLead: input.ownLead,
     costs: planCosts(input.days, input.display),
     costsAfter: planCosts(withEdits(input.days, edits), input.display),
     daysLeft,
+    notAdded,
+    outsideTimes,
     askedForMoreDays: asksForMoreDays(input.message),
     takenOut: input.explainRemovals && !asksToRemove(input.message) ? takenOut(input.days, edits) : [],
   });
@@ -874,12 +1069,18 @@ export function composeReply(p: {
   currency?: string;
   /** The page applies the edits on arrival, so "I've updated…" will be true. */
   autoApplied?: boolean;
+  /** The page says itself that the change waits for its button. */
+  ownLead?: boolean;
   /** The plan's activity costs, for an announced total that never came. */
   costs?: PlanCosts | null;
   /** The same, once the change is made. */
   costsAfter?: PlanCosts | null;
   /** Days the change concerns that could not be prepared in time. */
   daysLeft?: number[];
+  /** New days of a longer trip that could not be prepared in time. */
+  notAdded?: number[];
+  /** Changed days that still plan past an arrival or a departure. */
+  outsideTimes?: OutsideTravelTimes[];
   /** The traveller asked for a longer trip. */
   askedForMoreDays?: boolean;
   /** Activities the change takes out that the traveller didn't ask to remove. */
@@ -940,9 +1141,14 @@ export function composeReply(p: {
       ? Array.from({ length: p.currentDays - p.tripLength }, (_, i) => p.tripLength! + 1 + i)
       : [];
   const left = p.daysLeft ?? [];
-  const uncovered = daysMentioned(text).filter((n) => !covered.includes(n) && !removed.includes(n) && !left.includes(n));
+  const notAdded = p.lengthRefused ? [] : (p.notAdded ?? []);
+  const uncovered = daysMentioned(text).filter(
+    (n) => !covered.includes(n) && !removed.includes(n) && !left.includes(n) && !notAdded.includes(n),
+  );
   if (uncovered.length > 0 && covered.length > 0) text = `${text} ${uncoveredDaysNote(locale, covered, uncovered)}`;
   if (left.length > 0) text = `${text} ${daysLeftNote(locale, left)}`;
+  if (notAdded.length > 0) text = `${text} ${daysNotAddedNote(locale, notAdded)}`;
+  for (const v of p.outsideTimes ?? []) text = `${text} ${travelTimesNote(locale, v)}`;
   if (p.lengthRefused || (p.tripLength === undefined && p.askedForMoreDays && claimsLongerTrip(text))) {
     text = `${text} ${lengthUnchangedNote(locale, p.currentDays)}`;
   }
@@ -958,7 +1164,7 @@ export function composeReply(p: {
   if (unmentioned.length > 0) text = `${text} ${takesOutNote(locale, unmentioned)}`;
   // Told to present an unapplied edit as ready, the model still writes "I've
   // updated…" most of the time: lead with the truth so Apply isn't skipped.
-  if (!p.autoApplied && claimsItineraryChange(p.reply)) text = `${notAppliedLead(locale)} ${text}`;
+  if (!p.autoApplied && !p.ownLead && claimsItineraryChange(p.reply)) text = `${notAppliedLead(locale)} ${text}`;
   if (p.currency) text = `${text} ${currencySwitchedNote(locale, p.currency)}`;
   return text;
 }

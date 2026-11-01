@@ -252,6 +252,57 @@ describe("trip-page assistant: free-form edits", () => {
     expect(json.pendingChange).toBeNull();
   });
 
+  // Live, 2026-10-24: "aggiungi altri 7 giorni a questo viaggio in giappone"
+  // got "Ho esteso il tuo viaggio a 14 giorni" and the trip stayed at 7.
+  const howthDay4: ItineraryDay = {
+    day_number: 4,
+    date: "2027-03-14",
+    theme: "Howth",
+    activities: [act("act_howth1", "Howth Cliff Walk", "10:00", "morning")] as ItineraryDay["activities"],
+  };
+
+  it("proposes the days the engine adds, with the end date they move", async () => {
+    proposeTripEdits.mockResolvedValue({ reply: "Ecco il giorno 4 a Howth.", revisedDays: [howthDay4], tripLength: 4, summary: "Giorno 4: Howth.", meta });
+    const { json } = await send("aggiungi un altro giorno a Howth");
+    expect(proposeTripEdits).toHaveBeenCalledWith(expect.objectContaining({ canAddDays: true }));
+    expect(json.pendingChange).toEqual({
+      type: "apply_draft",
+      days: [howthDay4],
+      changedDayNumbers: [4],
+      unmappedDayNumbers: [],
+      reason: "Giorno 4: Howth.",
+      newEndDate: "2027-03-14",
+      previousEndDate: "2027-03-13",
+    });
+    expect(calls.some((c) => c.table === "trips" && c.op === "update")).toBe(false);
+  });
+
+  it("sends 'add a day' to the engine, and to the one-day handler only when the engine fails", async () => {
+    const gemini = await import("@/lib/gemini");
+    const regenerateSingleDay = vi.mocked(gemini.regenerateSingleDay);
+    regenerateSingleDay.mockReset();
+    proposeTripEdits.mockResolvedValue({ reply: "Here's Day 4 in Howth.", revisedDays: [howthDay4], tripLength: 4, summary: "", meta });
+    await send("add a day to go to Howth");
+    expect(proposeTripEdits).toHaveBeenCalledTimes(1);
+    expect(regenerateSingleDay).not.toHaveBeenCalled();
+
+    proposeTripEdits.mockRejectedValue(new Error("model overloaded"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    regenerateSingleDay.mockResolvedValue(howthDay4 as never);
+    const { json } = await send("add a day to go to Howth");
+    expect(regenerateSingleDay).toHaveBeenCalledTimes(1);
+    expect(json.pendingChange).toMatchObject({ type: "add_day", dayNumber: 4, newEndDate: "2027-03-14" });
+  });
+
+  it("writes new days and the end date together when the owner asks for no preview", async () => {
+    proposeTripEdits.mockResolvedValue({ reply: "Done: Day 4 in Howth.", revisedDays: [howthDay4], tripLength: 4, summary: "", meta });
+    await send("add a day in Howth", false);
+    const write = calls.find((c) => c.table === "trips" && c.op === "update");
+    const value = write?.value as { itinerary: ItineraryDay[]; end_date?: string };
+    expect(value.itinerary.map((d) => d.day_number)).toEqual([1, 2, 3, 4]);
+    expect(value.end_date).toBe("2027-03-14");
+  });
+
   it("writes the days at once when the owner asks for no preview", async () => {
     proposeTripEdits.mockResolvedValue({ reply: "Done: Wigwam on Day 3.", revisedDays: [wigwamDay3], summary: "", meta });
     const { json } = await send("adding Wigwam to Day 3", false);

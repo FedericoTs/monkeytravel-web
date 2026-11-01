@@ -14,6 +14,7 @@ import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { isLockedActivity, lockedActivityNames } from "@/lib/ai/anchors-core";
 import {
   MAX_TRIP_DAYS,
+  maxTripDays,
   nextDateISO,
   computeExtendedEndDate,
   addDaysISO,
@@ -41,7 +42,8 @@ interface ApplyChangeRequest {
   // Voss"): the fully generated day proposed in preview.
   day?: ItineraryDay;
   // For apply_draft (structural — users pasting whole multi-day drafts):
-  // the revised replacement days, persisted in ONE write.
+  // the revised replacement days, persisted in ONE write. Days past the
+  // trip's end are the assistant adding days (owner only).
   days?: ItineraryDay[];
   // For shift_days (P2 Stage C — the cancelled-flight primitive): every day
   // from `dayNumber` onward moves this many days LATER (1-7). The resulting
@@ -355,12 +357,20 @@ export async function POST(request: NextRequest) {
       console.log(`[AI Assistant Apply] Appending Day ${appended.day_number} (${appended.date}), end_date → ${newEndDate ?? "unchanged"}`);
     } else if (changeType === "apply_draft" && days) {
       // Replace matching days in place; days the draft didn't cover stay
-      // untouched. No length change here by contract (that's add_day).
+      // untouched. Days past the end are new days the assistant added
+      // ("aggiungi altri 7 giorni"): appended below.
       const indexByNumber = new Map(modifiedItinerary.map((d, i) => [d.day_number, i] as const));
+      const lastNumber = modifiedItinerary[modifiedItinerary.length - 1]?.day_number ?? modifiedItinerary.length;
+      const appended: ItineraryDay[] = [];
       let updated = 0;
       for (const revised of days) {
         const idx = indexByNumber.get(revised?.day_number);
-        if (idx === undefined) continue; // unknown day — skip, never grow
+        if (idx === undefined) {
+          if (revised?.day_number > lastNumber && Array.isArray(revised.activities) && revised.activities.length > 0) {
+            appended.push(revised);
+          }
+          continue; // unknown day: skip
+        }
         // Identity fields stay pinned to the stored day (defense in depth —
         // the assistant route already pins them, see structural.ts).
         modifiedItinerary[idx] = {
@@ -372,11 +382,42 @@ export async function POST(request: NextRequest) {
         if (updated === 0) appliedDayNumber = modifiedItinerary[idx].day_number;
         updated++;
       }
+      if (appended.length > 0) {
+        // New days move the trip's end date, which stays with the owner.
+        if (assistantRole !== "owner") {
+          return errors.forbidden(ASSISTANT_DATES_OWNER_ONLY_MESSAGE);
+        }
+        const cap = maxTripDays(modifiedItinerary);
+        if (modifiedItinerary.length + appended.length > cap) {
+          return errors.badRequest(`Trips can have at most ${cap} days`);
+        }
+        // Numbered and dated from the STORED last day, as add_day does, so a
+        // stale preview can't leave a gap or a duplicate day.
+        for (const day of appended.sort((a, b) => a.day_number - b.day_number)) {
+          const last = modifiedItinerary[modifiedItinerary.length - 1];
+          const date = nextDateISO([last?.date, trip.end_date as string | undefined]);
+          const city = day.city || last?.city;
+          modifiedItinerary.push({
+            ...day,
+            day_number: (last?.day_number ?? modifiedItinerary.length) + 1,
+            ...(date ? { date } : {}),
+            ...(city ? { city } : {}),
+          });
+        }
+        if (updated === 0) appliedDayNumber = lastNumber + 1;
+        newEndDate = computeExtendedEndDate(
+          trip.end_date as string | undefined,
+          modifiedItinerary[modifiedItinerary.length - 1].date,
+        );
+        updated += appended.length;
+      }
       if (updated === 0) {
         return errors.badRequest("None of the revised days matched the trip");
       }
       daysUpdatedCount = updated;
-      console.log(`[AI Assistant Apply] Applied draft revision to ${updated} day(s)`);
+      console.log(
+        `[AI Assistant Apply] Applied draft revision to ${updated} day(s)${appended.length ? `, ${appended.length} added, end_date → ${newEndDate ?? "unchanged"}` : ""}`,
+      );
     }
 
     if (changeType === "add_day" || changeType === "apply_draft") {

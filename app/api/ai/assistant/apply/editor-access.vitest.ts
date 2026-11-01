@@ -135,6 +135,45 @@ describe("assistant apply: who may change what", () => {
     expect(updates[0].end_date).toBe("2026-11-26");
   });
 
+  // The assistant's multi-day change adds days too ("aggiungi altri 7 giorni").
+  const draftAdding = (...numbers: number[]) => ({
+    changeType: "apply_draft",
+    dayNumber: 2,
+    days: [
+      { day_number: 2, date: "2026-11-25", activities: [act("b1", "Echo"), act("b2", "Night tour")] },
+      ...numbers.map((n) => ({ day_number: n, date: "2099-01-01", theme: `New ${n}`, activities: [act(`n${n}`, `Day ${n} sight`)] })),
+    ],
+  });
+
+  it("the owner's multi-day change adds days after the stored last one, and the end date moves", async () => {
+    // A stale preview's numbers and dates give way to the stored trip's.
+    const { status, json } = await apply(draftAdding(3, 5));
+    expect(status).toBe(200);
+    const days = updates[0].itinerary as Array<{ day_number: number; date: string; theme?: string }>;
+    expect(days.map((d) => [d.day_number, d.date, d.theme])).toEqual([
+      [1, "2026-11-24", undefined],
+      [2, "2026-11-25", undefined],
+      [3, "2026-11-26", "New 3"],
+      [4, "2026-11-27", "New 5"],
+    ]);
+    expect(updates[0].end_date).toBe("2026-11-27");
+    expect(json.newEndDate).toBe("2026-11-27");
+    expect(json.action).toMatchObject({ type: "apply_draft", dayCount: 3 });
+  });
+
+  it("an editor's multi-day change cannot add days", async () => {
+    caller = "mate-1";
+    const { status } = await apply(draftAdding(3));
+    expect(status).toBe(403);
+    expect(updates).toHaveLength(0);
+  });
+
+  it("a multi-day change cannot take the trip past its cap", async () => {
+    const { status } = await apply(draftAdding(...Array.from({ length: 13 }, (_, i) => 3 + i)));
+    expect(status).toBe(400);
+    expect(updates).toHaveLength(0);
+  });
+
   it("voters and viewers get 403 and nothing is written", async () => {
     for (const who of ["voter-1", "viewer-1", "stranger"]) {
       caller = who;

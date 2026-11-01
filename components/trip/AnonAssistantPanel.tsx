@@ -140,8 +140,10 @@ export default function AnonAssistantPanel({
     setError(null);
     setInput("");
     // The conversation so far, so "yes" or "No I mean…" can be understood
-    // (the model used to see only this one message).
-    const history = messages.slice(-6).map((m) => ({ role: m.role, text: m.text.slice(0, 1500) }));
+    // (the model used to see only this one message). Before the last six
+    // messages, the traveller's own: a 23:00 arrival still holds.
+    const earlier = messages.slice(0, -6).filter((m) => m.role === "user").slice(-10);
+    const history = [...earlier, ...messages.slice(-6)].map((m) => ({ role: m.role, text: m.text.slice(0, 1500) }));
     setMessages((m) => [...m, { role: "user", text: q }]);
     capture("anon_assistant_question_asked", { destination, message_length: q.length });
     setLoading(true);

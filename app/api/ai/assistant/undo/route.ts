@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       .update({
         itinerary: previousItinerary,
         // Only the owner's undo restores the end date: an editor's change never
-        // moved it (add_day is owner-only in /apply).
+        // moved it (adding days is owner-only in /apply).
         ...(restoreEndDate && assistantRole === "owner" ? { end_date: restoreEndDate } : {}),
         updated_at: new Date().toISOString(),
       })

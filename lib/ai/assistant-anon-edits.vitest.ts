@@ -36,6 +36,13 @@ describe("validateEdits", () => {
     expect(refused.edits.map((e) => e.day_number)).toEqual([3]);
   });
 
+  it("counts a longer trip whose other new days come in the next parts", () => {
+    const out = validateEdits(trip(), { edits: [edit(6)], tripLength: 8, moreDays: [7, 8] }, "EUR");
+    expect(out).toMatchObject({ tripLength: 8, lengthRefused: false });
+    expect(out.edits.map((e) => e.day_number)).toEqual([6]);
+    expect(validateEdits(trip(), { edits: [edit(6)], tripLength: 8, moreDays: [7] }, "EUR").lengthRefused).toBe(true);
+  });
+
   it("shortens the trip, but never by dropping a day with a fixed plan", () => {
     expect(validateEdits(trip(), { edits: [], tripLength: 4 }, "EUR").tripLength).toBe(4);
     const locked = [...trip().slice(0, 4), day(5, { activities: [{ ...act("Wedding"), locked: true }] as never })];
@@ -204,6 +211,33 @@ describe("composeReply when the page applies edits on arrival", () => {
       /^I haven't changed your plan/
     );
   });
+
+  it("says when a changed day still runs past a departure", () => {
+    const [d5] = validateEdits(trip(), { edits: [edit(5)], tripLength: null }, "EUR").edits;
+    const outsideTimes = [{ day: 5, leaves: "14:00", from: null, until: "11:00", names: ["Lunch at Baan Khanitha (12:30)"] }];
+    expect(composeReply({ ...base, reply: "Day 5 is set for your flight.", edits: [d5], outsideTimes })).toBe(
+      "Day 5 is set for your flight. (Check Day 5: you leave at 14:00, so plans should end by 11:00, and the day still has: Lunch at Baan Khanitha (12:30).)",
+    );
+  });
+
+  it("names the new days a longer trip didn't get in time", () => {
+    const { edits, tripLength } = validateEdits(trip(), { edits: [edit(6), edit(7)], tripLength: 7 }, "EUR");
+    const text = composeReply({ ...base, reply: "I've added Days 6 to 8 in Sintra and Cascais.", edits, tripLength, notAdded: [8] });
+    expect(text).toBe(`I've added Days 6 to 8 in Sintra and Cascais. (Day 8 isn't added yet: say "continue" and I'll add it.)`);
+    const italian = composeReply({ ...base, locale: "it", reply: "Ecco i giorni 6 e 7.", edits, tripLength, notAdded: [8, 9] });
+    expect(italian).toContain(`(I giorni 8, 9 non sono ancora aggiunti: scrivi "continua" e li aggiungerò.)`);
+  });
+});
+
+describe("composeReply on a page that says itself the change waits for its button", () => {
+  const base = { lockedDays: [], lengthRefused: false, locale: "en", currentDays: 5, ownLead: true };
+
+  it("adds no lead of its own", () => {
+    const [d2] = validateEdits(trip(), { edits: [edit(2)], tripLength: null }, "EUR").edits;
+    expect(composeReply({ ...base, reply: "I've updated Day 2 to start at 15:00.", edits: [d2] })).toBe(
+      "I've updated Day 2 to start at 15:00."
+    );
+  });
 });
 
 describe("buildPrompt", () => {
@@ -213,6 +247,33 @@ describe("buildPrompt", () => {
     const prompt = buildPrompt({ message: "Suggest a great local restaurant to add", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en" });
     expect(prompt).toContain("pick the day with the most room where it fits, add it there without removing anything");
     expect(prompt).toContain("Don't ask which day");
+  });
+
+  // The planner makes a change as it arrives, yet its replies read "Ready to
+  // update Day 2…" (2026-10-30): the prompt worded every edit as waiting.
+  it("words a change as done when the page makes it at once, and as ready when it waits for a button", () => {
+    const ask = (autoApply?: boolean) =>
+      buildPrompt({ message: "swap days 1 and 2", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "it", autoApply });
+    expect(ask(true)).toContain(`quindi di' cosa hai fatto: "Ho aggiunto un corso di cucina al giorno 3"`);
+    expect(ask(true)).not.toContain("Nothing changes until the traveller taps Apply");
+    expect(ask(false)).toContain("Nothing changes until the traveller taps Apply, so presenta le modifiche come pronte");
+    expect(ask(undefined)).toContain("Nothing changes until the traveller taps Apply");
+  });
+
+  // Live, 2026-10-26: "llegamos tarde sobre las 23 horas", then four messages
+  // later "organize the missing meals" put lunch and dinner on Day 1.
+  it("keeps what the traveller said before the last six turns, in their words only", () => {
+    const history = [
+      { role: "user" as const, text: "El primer día llegamos tarde sobre las 23 horas" },
+      { role: "assistant" as const, text: "He ajustado el primer día para tu llegada." },
+      ...Array.from({ length: 6 }, (_, i) => ({ role: i % 2 ? ("assistant" as const) : ("user" as const), text: `turn ${i}` })),
+    ];
+    const prompt = buildPrompt({ message: "Y las comidas que faltan, organizarlas", destination: "Porto", tripTitle: "Porto", days: trip(), locale: "es", history });
+    expect(prompt).toContain("Earlier, the traveller said (oldest first):\n- El primer día llegamos tarde sobre las 23 horas\n");
+    expect(prompt).not.toContain("He ajustado el primer día");
+    expect(prompt).toContain("Traveller: turn 0");
+    expect(prompt).toContain("still holds unless they changed it: when they arrive and leave");
+    expect(prompt).toContain('"travel_times" lists every time the traveller has said they arrive or leave');
   });
 
   it("offers asked-for alternatives as edits that can be applied, and names others to choose from", () => {

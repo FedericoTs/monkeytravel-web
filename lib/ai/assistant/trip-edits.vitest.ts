@@ -70,13 +70,14 @@ describe("readDisplayCurrency: the page's currency, when sane", () => {
 });
 
 describe("conversationTurns", () => {
-  it("passes the last six turns with text, oldest first", () => {
+  it("passes the last six turns with text, and before them the traveller's own messages, oldest first", () => {
     const messages = [
       { role: "system", content: "x" },
       ...Array.from({ length: 7 }, (_, i) => ({ role: i % 2 ? "assistant" : "user", content: `m${i}` })),
       { role: "assistant", content: "  " },
     ];
     expect(conversationTurns(messages)).toEqual([
+      { role: "user", text: "m0" },
       { role: "assistant", text: "m1" },
       { role: "user", text: "m2" },
       { role: "assistant", text: "m3" },
@@ -85,6 +86,18 @@ describe("conversationTurns", () => {
       { role: "user", text: "m6" },
     ]);
     expect(conversationTurns(undefined)).toEqual([]);
+  });
+
+  it("keeps what the traveller said long ago, up to ten messages", () => {
+    const messages = [
+      { role: "user", content: "We land at 23:00 on day 1" },
+      ...Array.from({ length: 30 }, (_, i) => ({ role: i % 2 ? "user" : "assistant", content: `m${i}` })),
+    ];
+    const turns = conversationTurns(messages);
+    expect(turns).toHaveLength(16);
+    expect(turns.slice(0, 10).every((t) => t.role === "user")).toBe(true);
+    expect(turns.slice(-6).map((t) => t.text)).toEqual(["m24", "m25", "m26", "m27", "m28", "m29"]);
+    expect(conversationTurns(messages.slice(0, 9))[0]).toEqual({ role: "user", text: "We land at 23:00 on day 1" });
   });
 });
 
@@ -172,27 +185,58 @@ describe("proposeTripEdits", () => {
       meta,
     });
     const out = await proposeTripEdits(input);
-    expect(assistTrip).toHaveBeenCalledWith(expect.objectContaining({ autoApply: true, history: input.history, locale: "en" }));
+    // A proposal waiting for this page's button, which the route's lead names.
+    expect(assistTrip).toHaveBeenCalledWith(
+      expect.objectContaining({ autoApply: false, ownLead: true, history: input.history, locale: "en" }),
+    );
+    expect(assistTrip.mock.calls[0][0]).not.toHaveProperty("canAddDays");
     expect(out?.revisedDays.map((d) => d.day_number)).toEqual([1, 3]);
     expect(out?.summary).toBe("Day 1: Wigwam after dinner. Day 3: Index late.");
     expect(out?.reply).toBe("Ready: nightclubs on nights 1 and 3.");
   });
 
-  it("keeps the trip's length: new days are dropped and the reply says so", async () => {
-    assistTrip.mockResolvedValue({
-      reply: "Here is a new Day 4 and a lighter Day 2.",
-      edits: [
-        { day_number: 2, summary: "Lighter.", activities: [engineActivity("National Gallery", "10:00", "morning")] },
-        { day_number: 4, summary: "New day.", activities: [engineActivity("Malahide Castle", "10:00", "morning")] },
-      ],
-      tripLength: 4,
-      edit: null,
-      meta,
-    });
+  const longer = {
+    reply: "Here is a new Day 4 and a lighter Day 2.",
+    edits: [
+      { day_number: 2, summary: "Lighter.", activities: [engineActivity("National Gallery", "10:00", "morning")] },
+      { day_number: 4, summary: "New day.", activities: [engineActivity("Malahide Castle", "10:00", "morning")] },
+    ],
+    tripLength: 4,
+    edit: null,
+    meta,
+  };
+
+  // Live, 2026-10-24: "aggiungi altri 7 giorni a questo viaggio in giappone"
+  // got "Ho esteso il tuo viaggio a 14 giorni" and the trip stayed at 7.
+  it("adds the owner's new days after the last one, dated, with ids", async () => {
+    assistTrip.mockResolvedValue(longer);
+    const out = await proposeTripEdits({ ...input, canAddDays: true });
+    expect(out?.revisedDays.map((d) => [d.day_number, d.date])).toEqual([
+      [2, "2027-03-12"],
+      [4, "2027-03-14"],
+    ]);
+    expect(out?.tripLength).toBe(4);
+    const [malahide] = out!.revisedDays[1].activities;
+    expect(malahide.name).toBe("Malahide Castle");
+    expect(malahide.id).toMatch(/^act_/);
+    expect(out?.reply).toBe("Here is a new Day 4 and a lighter Day 2.");
+    expect(out?.summary).toBe("Day 2: Lighter. Day 4: New day. Leaves out: Grafton Street.");
+  });
+
+  it("keeps the trip's length for an editor: new days are dropped and the reply says only the owner adds them", async () => {
+    assistTrip.mockResolvedValue(longer);
     const out = await proposeTripEdits({ ...input, locale: "it" });
     expect(out?.revisedDays.map((d) => d.day_number)).toEqual([2]);
-    expect(out?.reply).toContain("Il viaggio resta di 3 giorni");
+    expect(out?.tripLength).toBeUndefined();
+    expect(out?.reply).toContain("Solo il proprietario del viaggio può aggiungere giorni, quindi il viaggio resta di 3 giorni");
     expect(out?.summary).toBe("Giorno 2: Lighter. Lascia fuori: Grafton Street.");
+  });
+
+  it("keeps the trip's length when the change would shorten it", async () => {
+    assistTrip.mockResolvedValue({ ...longer, reply: "Two days are enough.", edits: [longer.edits[0]], tripLength: 2 });
+    const out = await proposeTripEdits({ ...input, locale: "it", canAddDays: true });
+    expect(out?.revisedDays.map((d) => d.day_number)).toEqual([2]);
+    expect(out?.reply).toContain("Il viaggio resta di 3 giorni");
   });
 
   it("names a saved activity the change takes out, even when the reply calls it an addition", async () => {

@@ -7,6 +7,8 @@ import {
   composeReply,
   correctionFor,
   keepSavedActivities,
+  outsideTravelTimes,
+  readTravelTimes,
   takenOut,
   type DayEdit,
 } from "./assistant-anon";
@@ -45,6 +47,20 @@ describe("keepSavedActivities", () => {
       "Clase de Salsa en Dancefree",
     ]);
     expect(out.activities[0].start_time).toBe("10:30");
+  });
+
+  // Live, 2026-10-31: "add the missing meals" turned a lunch in the Ribeira
+  // into a second "Ribeira walk", and the lunch was gone.
+  it("never takes a meal for a sight that shares its words", () => {
+    const porto = [
+      { day_number: 2, activities: [act("Ribeira walk", "16:00", { type: "attraction" }), act("Mercado do Bolhão", "11:00", { type: "market" })] },
+    ] as unknown as ItineraryDay[];
+    const lunch = (name: string) => act(name, "13:30", { type: "restaurant" });
+    const [out] = keepSavedActivities(porto, [{ day_number: 2, summary: "", activities: [lunch("Almuerzo en la Ribeira"), act("Ribeira walk", "15:00", { type: "attraction" })] }]);
+    expect(out.activities.map((a) => a.name)).toEqual(["Almuerzo en la Ribeira", "Ribeira walk"]);
+    // A market is a place to eat: lunch there stays the saved visit.
+    const [market] = keepSavedActivities(porto, [{ day_number: 2, summary: "", activities: [lunch("Almoço no Mercado do Bolhão")] }]);
+    expect(market.activities[0].name).toBe("Mercado do Bolhão");
   });
 
   it("does not mistake a different place that shares a few words", () => {
@@ -250,10 +266,87 @@ describe("correctionFor", () => {
     expect(correctionFor({ message: "ok", days, history: offered }, { reply: "Done.", edits: [edit(2, ["B"])] })).toBeNull();
   });
 
+  // Live, 2026-10-29: a 14:00 flight home, and the last day kept lunch at
+  // 12:30 and shopping after it; the traveller had to ask three turns later.
+  it("sends back a day that doesn't fit when they arrive or leave", () => {
+    const lastDay: DayEdit = {
+      day_number: 5,
+      summary: "",
+      activities: [act("Breakfast at Gallery Drip", "08:30", { duration_minutes: 60 }), act("Lunch at Baan Khanitha", "12:30", { duration_minutes: 60 })],
+    };
+    const leaving = [{ day: 5, leaves: "14:00", by: "flight" }];
+    expect(correctionFor({ message: "make the last day relaxed", days }, { reply: "Done.", edits: [lastDay], travelTimes: leaving })).toBe(
+      `Day 5: they leave at 14:00, so everything must end by 11:00. Lunch at Baan Khanitha (12:30) doesn't fit. Move what matters to a day with room, or leave it out, and say so in "reply".`,
+    );
+    const firstDay: DayEdit = {
+      day_number: 1,
+      summary: "",
+      activities: [act("Lunch at O Afonso", "13:00", { duration_minutes: 60 }), act("Dinner at Traça", "20:00", { duration_minutes: 90 })],
+    };
+    expect(
+      correctionFor({ message: "Y las comidas que faltan, organizarlas", days }, { reply: "Hecho.", edits: [firstDay], travelTimes: [{ day: 1, arrives: "23:00" }] }),
+    ).toContain("Day 1: they arrive at 23:00, too late for anything but getting to where they stay. Lunch at O Afonso (13:00), Dinner at Traça (20:00) don't fit.");
+    // Times on days the reply doesn't change are not its to fix.
+    expect(correctionFor({ message: "make the last day relaxed", days }, { reply: "Done.", edits: [firstDay], travelTimes: leaving })).toBeNull();
+  });
+
+  it("fits the whole plan to a time the message gives, not only the days the reply changes", () => {
+    const saved = [day(1, ["Lunch at O Afonso", "Dinner at Traça"]), day(2, ["B"])];
+    const second = edit(2, ["B", "C"]);
+    const landing = [{ day: 1, arrives: "23:00" }];
+    expect(
+      correctionFor({ message: "El primer día llegamos tarde sobre las 23 horas", days: saved }, { reply: "Hecho.", edits: [second], travelTimes: landing }),
+    ).toContain("Day 1: they arrive at 23:00, too late for anything but getting to where they stay. Lunch at O Afonso (9:00), Dinner at Traça (11:00) don't fit.");
+    expect(correctionFor({ message: "add a market to day 2", days: saved }, { reply: "Done.", edits: [second], travelTimes: landing })).toBeNull();
+  });
+
   it("asks again for an answer that was announced and not given", () => {
     const c = correctionFor({ message: "give hotels", days }, { reply: "I'll suggest a few areas and specific hotels that align well with your itinerary.", edits: [] });
     expect(c).toBeNull();
     expect(correctionFor({ message: "total?", days }, { reply: "Ecco il calcolo completo del costo totale stimato per il tuo viaggio.", edits: [] })).toContain("announced an answer");
+  });
+});
+
+describe("travel times", () => {
+  const planned = (n: number, items: [string, string, number, Record<string, unknown>?][]): DayEdit => ({
+    day_number: n,
+    summary: "",
+    activities: items.map(([name, start, minutes, extra]) => act(name, start, { duration_minutes: minutes, ...extra })),
+  });
+
+  it("reads the model's times, keeping days of the trip that have one", () => {
+    const raw = [{ day: 5, leaves: "2 PM", by: "Flight" }, { day: 9, arrives: "10:00" }, { day: 1 }, "junk"];
+    expect(readTravelTimes(raw, 5)).toEqual([{ day: 5, arrives: undefined, leaves: "14:00", by: "flight" }]);
+    expect(readTravelTimes(undefined, 5)).toEqual([]);
+  });
+
+  it("finds what a departure day plans after they set off, but not the trip to the airport", () => {
+    const lastDay = planned(5, [
+      ["Breakfast at Gallery Drip", "08:30", 60],
+      ["Bangkok Art and Culture Centre", "09:30", 90],
+      ["Transfer to Suvarnabhumi", "11:00", 60, { type: "transport" }],
+      ["Lunch at Baan Khanitha", "12:30", 60],
+    ]);
+    expect(outsideTravelTimes([lastDay], [{ day: 5, leaves: "14:00", by: "flight" }])).toEqual([
+      { day: 5, arrives: undefined, leaves: "14:00", from: null, until: "11:00", names: ["Lunch at Baan Khanitha (12:30)"] },
+    ]);
+  });
+
+  it("leaves a day that lands late to the arrival itself", () => {
+    const firstDay = planned(1, [
+      ["Arrival in Porto and transfer to the apartment", "23:00", 60],
+      ["Lunch at O Afonso", "13:00", 60],
+      ["Dinner at Traça", "20:00", 90],
+    ]);
+    const [out] = outsideTravelTimes([firstDay], [{ day: 1, arrives: "23:00" }]);
+    expect(out.names).toEqual(["Lunch at O Afonso (13:00)", "Dinner at Traça (20:00)"]);
+  });
+
+  it("gives a train less time than a flight, and leaves days without a time alone", () => {
+    const stroll = planned(2, [["Stroll in Ribeira", "16:00", 60]]);
+    expect(outsideTravelTimes([stroll], [{ day: 2, arrives: "15:00", by: "train" }])).toEqual([]);
+    expect(outsideTravelTimes([stroll], [{ day: 2, arrives: "15:00" }])).toHaveLength(1);
+    expect(outsideTravelTimes([stroll], [{ day: 3, leaves: "09:00" }])).toEqual([]);
   });
 });
 
