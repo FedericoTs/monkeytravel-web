@@ -10,18 +10,12 @@
  *     `next="/trips"` to `"/trips/new"` and emits `signup_google`, but that
  *     block is gated on `!existingProfile`, and the `on_auth_user_created`
  *     trigger inserts public.users in the SAME transaction as auth.users —
- *     so the row always exists and the block has never run for a real signup
- *     (measured 2026-09-02: 100/100 Google signups in 30 days have a
- *     public.users row and 0/100 carry the flags that block sets). Every
- *     fresh Google account therefore took the returning path and was sent to
+ *     so the row always exists and the block never runs for a real signup.
+ *     Every fresh Google account would take the returning path and be sent to
  *     `next` verbatim, which is "/trips" for anyone who signed in from the
- *     login page.
- *
- * That was invisible until 2026-09-02, because /trips redirected zero-trip
- * users to /trips/new and quietly repaired it. Removing that redirect (#87)
- * dropped 42 of every 100 Google signups onto an empty trip list — including
- * ~20/month who had generated an itinerary signed-out and whose localStorage
- * draft only auto-restores on the wizard.
+ *     login page: an empty trip list, even for people who generated an
+ *     itinerary signed-out (their localStorage draft only auto-restores on
+ *     the wizard).
  *
  * `login_count` alone cannot answer the question: accounts predating the
  * counter still sit at 0, and a magic-link login from one of them must not

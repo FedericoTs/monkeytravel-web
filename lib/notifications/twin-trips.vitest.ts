@@ -90,9 +90,8 @@ describe("twinKeeper", () => {
 });
 
 describe("the cron over a twin set (first pass + final pass)", () => {
-  // The measured case: three live copies of Sedona, all pending for
-  // pack_early_14d, dispatched in one run (07:00:59, 07:01:00, 07:01:08 on
-  // 2026-09-23). Exactly one may send, whatever the row order.
+  // Three live copies of Sedona, all pending for pack_early_14d, dispatched
+  // in one run seconds apart. Exactly one may send, whatever the row order.
   it("Sedona x3: exactly one email, the newest copy, in either order", () => {
     expect(simulateRun(SEDONA, ["sedona-1", "sedona-2", "sedona-3"]).sent).toEqual(["sedona-3"]);
     expect(simulateRun(SEDONA, ["sedona-3", "sedona-2", "sedona-1"]).sent).toEqual(["sedona-3"]);

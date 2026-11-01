@@ -7,7 +7,7 @@
  *   CHECK allowlist entries, no UNIQUE index for idempotency) meant ~zero
  *   bananas had been credited via `add_bananas` since the gamification path
  *   shipped. Every layer above the DB was happy. The bugs only surfaced when
- *   Alyssa reported "I have 4 trips and 0 bananas".
+ *   a user reported "I have 4 trips and 0 bananas".
  *
  *   This script catches that class of regression by exercising the real RPC
  *   end-to-end against the real schema and verifying both ledger sums and

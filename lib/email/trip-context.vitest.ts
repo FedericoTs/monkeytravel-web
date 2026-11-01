@@ -431,14 +431,11 @@ describe("formatTempRange", () => {
 describe("packing suggestions must not argue with the forecast", () => {
   /**
    * pack_early_14d renders the real forecast and the packing list one above
-   * the other. The forecast is now measured; the packing list is still model
-   * output from generation time. Measured 2026-08-31: of 13 queued trips whose
-   * packing list made a one-way weather claim AND whose forecast could be
-   * checked, 2 were contradicted by it — e.g. a Tokyo trip forecast at 19-35°C
-   * carrying "Layered clothing (cool autumn weather)".
+   * the other. The forecast is measured; the packing list is model output
+   * from generation time, so the two can disagree — e.g. a trip forecast at
+   * 19-35°C carrying "Layered clothing (cool autumn weather)".
    *
-   * Every string below is verbatim from the production corpus of 954 packing
-   * items across the queued packing emails.
+   * Every string below is verbatim from real packing lists.
    */
 
   it.each([

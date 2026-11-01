@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 /**
- * The pending-claim record and the claim's concurrency contract (2026-09-02).
+ * The pending-claim record and the claim's concurrency contract.
  *
  * Two callers race the claim on sign-in — AuthProvider on SIGNED_IN and the
  * wizard when it decides the draft on screen is the shared trip. If both went

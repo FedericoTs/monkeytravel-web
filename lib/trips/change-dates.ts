@@ -1,10 +1,10 @@
 /**
  * Changing a generated trip's dates without starting over.
  *
- * "Wrong dates" was the top reason people gave for Start Over (16 of 40
- * deletions in 60 days, 2026-09-26): the plan was fine, the dates were not,
- * and the only way to fix them was to throw the plan away. Many had tapped
- * "I'm flexible", which pencils in dates for them.
+ * "Wrong dates" is the top reason people give for Start Over: the plan is
+ * fine, the dates are not, and without this the only way to fix them is to
+ * throw the plan away. Many tap "I'm flexible", which pencils in dates for
+ * them.
  *
  * The plan follows the new dates:
  * - same length: every day moves, nothing else changes;

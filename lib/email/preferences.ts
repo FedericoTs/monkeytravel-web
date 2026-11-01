@@ -4,9 +4,8 @@
  * The notification settings page (/profile/notifications, the "Manage
  * preferences" link in every email footer) renders exactly EMAIL_PREFERENCES,
  * and a test holds them to lib/email/send.ts: every category the pipeline
- * gates has a switch, and every switch gates something. Until 2026-09-25 the
- * page offered four switches no email ever read ("Weekly digest", "Proposed
- * activities", "Comments", "Invite accepted") and none for trip reminders or
+ * gates has a switch, and every switch gates something. So the page cannot
+ * offer a switch no email reads, or lack one for trip reminders or
  * marketing, which most emails are.
  */
 

@@ -68,9 +68,9 @@ describe("resolveAuthLanding", () => {
 describe("returnsToPage", () => {
   // The login and signup pages skip their first-visit detours (the retired
   // /welcome, onboarding, the wizard) only when the sign-in was asked for on
-  // the way to a real page. 93% of accounts still have welcome_completed =
-  // false, so until 2026-09-25 signing in from an invite, a shared trip or a
-  // trip link ended in the wizard.
+  // the way to a real page. Most accounts still have welcome_completed =
+  // false, so signing in from an invite, a shared trip or a trip link must
+  // not end in the wizard.
   it("is true for a page to come back to, with or without a locale prefix", () => {
     for (const next of ["/trips/abc-123", "/it/trips/abc-123", "/invite/tok", "/pt/invite/tok", "/shared/tok?ref=X", "/profile"]) {
       expect(returnsToPage(next)).toBe(true);
