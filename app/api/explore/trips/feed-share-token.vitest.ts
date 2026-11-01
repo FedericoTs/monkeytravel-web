@@ -130,3 +130,29 @@ describe.each([
     expect(filters).toContainEqual(["not", "public_slug", "is", null]);
   });
 });
+
+describe("the destination filter", () => {
+  beforeEach(() => {
+    ugcOn = true;
+    grantApplied = true;
+  });
+  const filterFor = async (destination: string) => {
+    await GET(new NextRequest(`https://monkeytravel.app/api/explore/trips?destination=${encodeURIComponent(destination)}`));
+    return filters.filter(([name]) => name === "or").map(([, value]) => value);
+  };
+
+  it("matches the city of a 'City, Country' destination", async () => {
+    expect(await filterFor("Paris, France")).toEqual(["title.ilike.%Paris%,trip_meta->>destination.ilike.%Paris%"]);
+  });
+
+  // A closing bracket in the destination broke or(), and the feed answered 500.
+  it("keeps or()'s delimiters out of the term, and wildcards literal", async () => {
+    expect(await filterFor('Saint-Martin (FR) "x" 50%')).toEqual([
+      "title.ilike.%Saint-Martin FR x 50\\%%,trip_meta->>destination.ilike.%Saint-Martin FR x 50\\%%",
+    ]);
+  });
+
+  it("adds no filter when nothing is left to match", async () => {
+    expect(await filterFor('"()"')).toEqual([]);
+  });
+});
