@@ -19,6 +19,7 @@ import {
   getConversionsToNextTier,
   getNextTierThreshold,
 } from './config';
+import { logReadError } from '@/lib/supabase/log-read-error';
 
 /**
  * Get user's referral tier info
