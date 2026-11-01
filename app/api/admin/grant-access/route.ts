@@ -3,6 +3,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isNoRow } from "@/lib/supabase/no-row";
 import { readJsonBody } from "@/lib/api/json-body";
+import { requireRow } from "@/lib/api/require-row";
 
 /**
  * Admin endpoint to grant early access to a user
@@ -32,15 +33,12 @@ export async function POST(request: Request) {
     }
 
     // Find the target user by email
-    const { data: targetUser, error: userError } = await supabase
+    const { row: targetUser, errorResponse: userError } = await requireRow("user", supabase
       .from("users")
       .select("id, email, display_name")
       .eq("email", user_email.toLowerCase().trim())
-      .single();
-
-    if (userError || !targetUser) {
-      return errors.notFound(`User not found: ${user_email}`);
-    }
+      .single(), `User not found: ${user_email}`);
+    if (userError) return userError;
 
     // Check if user already has access
     const { data: existingAccess, error: existingError } = await supabase
@@ -171,15 +169,12 @@ export async function GET(request: Request) {
     }
 
     // Find the target user
-    const { data: targetUser, error: userError } = await supabase
+    const { row: targetUser, errorResponse: userError } = await requireRow("user", supabase
       .from("users")
       .select("id, email, display_name")
       .eq("email", email.toLowerCase().trim())
-      .single();
-
-    if (userError || !targetUser) {
-      return errors.notFound(`User not found: ${email}`);
-    }
+      .single(), `User not found: ${email}`);
+    if (userError) return userError;
 
     // Get their access status
     const { data: access, error: accessError } = await supabase

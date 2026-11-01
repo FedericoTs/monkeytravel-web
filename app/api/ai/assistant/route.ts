@@ -74,6 +74,7 @@ import { logWriteError } from "@/lib/supabase/log-write-error";
 import { isNoRow } from "@/lib/supabase/no-row";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { readJsonBody } from "@/lib/api/json-body";
+import { requireRow } from "@/lib/api/require-row";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -974,15 +975,12 @@ export async function POST(request: NextRequest) {
     // and invited editors may use the assistant (lib/ai/assistant-access.ts).
     // This used to filter on user_id = caller, so every collaborator's first
     // message answered "Trip not found".
-    const { data: trip, error: tripError } = await supabase
+    const { row: trip, errorResponse: tripError } = await requireRow("trip", supabase
       .from("trips")
       .select(TRIP_COLUMNS)
       .eq("id", tripId)
-      .single();
-
-    if (tripError || !trip) {
-      return errors.notFound("Trip not found");
-    }
+      .single(), "Trip not found");
+    if (tripError) return tripError;
 
     const assistantRole = await resolveAssistantRole(supabase, trip, user.id);
     if (!assistantRole) {

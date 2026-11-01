@@ -13,6 +13,7 @@ import { dietsFrom } from "@/lib/trips/diet";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { readJsonBody } from "@/lib/api/json-body";
+import { requireRow } from "@/lib/api/require-row";
 
 
 
@@ -65,16 +66,13 @@ export async function POST(request: NextRequest) {
     // Verify trip ownership. Include trip_meta so we can read the
     // travel_style preset and pass it to regenerateSingleActivity (else
     // a backpacker trip's replacement would default to classic).
-    const { data: trip, error: tripError } = await supabase
+    const { row: trip, errorResponse: tripError } = await requireRow("trip", supabase
       .from("trips")
       .select("id, user_id, budget, trip_meta")
       .eq("id", tripId)
       .eq("user_id", user.id)
-      .single();
-
-    if (tripError || !trip) {
-      return errors.notFound("Trip not found");
-    }
+      .single(), "Trip not found");
+    if (tripError) return tripError;
 
     // Find the activity to replace
     const activityLocation = findActivityById(itinerary, activityId);

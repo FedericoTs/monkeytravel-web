@@ -9,6 +9,7 @@ import { PROPOSAL_TIMING } from "@/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { approveProposal } from "@/lib/proposals/approve";
 import { readJsonBody } from "@/lib/api/json-body";
+import { requireRow } from "@/lib/api/require-row";
 
 /**
  * GET /api/trips/[id]/proposals/[proposalId]/vote
@@ -30,16 +31,13 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
     if (accessError) return accessError;
 
     // Verify proposal exists and belongs to trip
-    const { data: proposal, error: proposalError } = await supabase
+    const { errorResponse: proposalError } = await requireRow("proposal", supabase
       .from("activity_proposals")
       .select("id, trip_id")
       .eq("id", proposalId)
       .eq("trip_id", tripId)
-      .single();
-
-    if (proposalError || !proposal) {
-      return errors.notFound("Proposal not found");
-    }
+      .single(), "Proposal not found");
+    if (proposalError) return proposalError;
 
     // Fetch votes with user info
     const { data: votes, error } = await supabase
@@ -140,16 +138,13 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
     }
 
     // Verify proposal exists and is votable
-    const { data: proposal, error: proposalError } = await supabase
+    const { row: proposal, errorResponse: proposalError } = await requireRow("proposal", supabase
       .from("activity_proposals")
       .select("id, trip_id, status, proposed_by, target_day, activity_data")
       .eq("id", proposalId)
       .eq("trip_id", tripId)
-      .single();
-
-    if (proposalError || !proposal) {
-      return errors.notFound("Proposal not found");
-    }
+      .single(), "Proposal not found");
+    if (proposalError) return proposalError;
 
     // Check if proposal is still open for voting
     if (!['pending', 'voting'].includes(proposal.status)) {
@@ -385,16 +380,13 @@ export async function DELETE(request: NextRequest, context: TripProposalRouteCon
     if (errorResponse) return errorResponse;
 
     // Verify proposal exists
-    const { data: proposal, error: proposalError } = await supabase
+    const { row: proposal, errorResponse: proposalError } = await requireRow("proposal", supabase
       .from("activity_proposals")
       .select("id, trip_id, status")
       .eq("id", proposalId)
       .eq("trip_id", tripId)
-      .single();
-
-    if (proposalError || !proposal) {
-      return errors.notFound("Proposal not found");
-    }
+      .single(), "Proposal not found");
+    if (proposalError) return proposalError;
 
     // Check if proposal is still open
     if (!['pending', 'voting'].includes(proposal.status)) {

@@ -13,6 +13,7 @@ import {
 } from "@/lib/bananas";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { requireRow } from "@/lib/api/require-row";
 
 /**
  * GET /api/invites/[token] - Get invite details and trip preview (public, no auth required)
@@ -94,7 +95,7 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
     }
 
     // Fetch trip preview (limited info for non-authenticated users)
-    const { data: trip, error: tripError } = await supabaseAdmin
+    const { row: trip, errorResponse: tripError } = await requireRow("trip", supabaseAdmin
       .from("trips")
       .select(`
         id,
@@ -107,11 +108,8 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
       `)
       .eq("id", invite.trip_id)
       .is("deleted_at", null)
-      .single();
-
-    if (tripError || !trip) {
-      return errors.notFound("Trip not found");
-    }
+      .single(), "Trip not found");
+    if (tripError) return tripError;
 
     // Fetch trip owner info from users table
     const { data: owner } = logReadError("invite: owner", await supabaseAdmin

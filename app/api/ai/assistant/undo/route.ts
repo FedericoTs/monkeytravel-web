@@ -7,6 +7,7 @@ import { ASSISTANT_ERROR_CODES } from "@/lib/ai/assistant/error-message";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { readJsonBody } from "@/lib/api/json-body";
+import { requireRow } from "@/lib/api/require-row";
 
 interface UndoRequest {
   tripId: string;
@@ -42,15 +43,12 @@ export async function POST(request: NextRequest) {
 
     // The owner and invited editors may undo an assistant change
     // (lib/ai/assistant-access.ts).
-    const { data: trip, error: tripError } = await supabase
+    const { row: trip, errorResponse: tripError } = await requireRow("trip", supabase
       .from("trips")
       .select("id, user_id")
       .eq("id", tripId)
-      .single();
-
-    if (tripError || !trip) {
-      return errors.notFound("Trip not found");
-    }
+      .single(), "Trip not found");
+    if (tripError) return tripError;
 
     const assistantRole = await resolveAssistantRole(supabase, trip, user.id);
     if (!assistantRole) {

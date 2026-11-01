@@ -9,6 +9,7 @@ import { captureServerEvent } from "@/lib/posthog/server";
 import { incrementTemplateCopyCount } from "@/lib/explore/counters";
 import { templateItinerary, templateLocale, templateMeta, templatePacking, templateText } from "@/lib/templates/text";
 import { readJsonBody } from "@/lib/api/json-body";
+import { requireRow } from "@/lib/api/require-row";
 
 /**
  * POST /api/templates/[id]/copy
@@ -55,16 +56,13 @@ export async function POST(
     }
 
     // Fetch the template
-    const { data: template, error: fetchError } = await supabase
+    const { row: template, errorResponse: fetchError } = await requireRow("template", supabase
       .from("trips")
       .select(TRIP_COLUMNS)
       .eq("id", templateId)
       .eq("is_template", true)
-      .single();
-
-    if (fetchError || !template) {
-      return errors.notFound("Template not found");
-    }
+      .single(), "Template not found");
+    if (fetchError) return fetchError;
 
     // Calculate end date based on template duration
     const start = new Date(startDate);
