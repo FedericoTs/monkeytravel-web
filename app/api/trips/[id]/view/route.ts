@@ -9,13 +9,13 @@ import { PARTICIPANT_COOKIE, isParticipantCookieId } from "@/lib/participants/sh
 import {
   VIEW_SESSION_COOKIE,
   clientIp,
-  isUuid,
   parseTripViewSource,
   isOpenTrip,
   resolveViewSessionId,
   utcDay,
   verifiedSource,
 } from "@/lib/analytics/trip-view";
+import { isUuid } from "@/lib/utils/uuid";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { logReadError } from "@/lib/supabase/log-read-error";
 

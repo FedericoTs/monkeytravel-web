@@ -3,12 +3,12 @@ import {
   TRIP_VIEW_SOURCES,
   clientIp,
   isOpenTrip,
-  isUuid,
   parseTripViewSource,
   resolveViewSessionId,
   utcDay,
   verifiedSource,
 } from "./trip-view";
+import { isUuid } from "@/lib/utils/uuid";
 
 /**
  * The dedupe itself is enforced by the database — UNIQUE

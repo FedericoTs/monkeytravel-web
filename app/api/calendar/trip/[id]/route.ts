@@ -48,6 +48,7 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { TripRouteContext } from "@/lib/api/route-context";
+import { isUuid } from "@/lib/utils/uuid";
 
 export const runtime = "nodejs";
 // Personalised body keyed off auth state + (optional) share token —
@@ -55,9 +56,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const ICS_CONTENT_TYPE = "text/calendar; charset=utf-8";
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 // 30 downloads/min/IP. See module header for rationale.
 const rateLimiter = createRateLimiter("calendar-download", 30, 60_000);
 
@@ -127,7 +125,7 @@ async function loadTrip(
 
   // ---- Path 1: share-token access (anonymous, no auth required) ----
   if (shareToken) {
-    if (!UUID_RE.test(shareToken)) return null;
+    if (!isUuid(shareToken)) return null;
     const admin = createAdminClient();
     const { data, error } = await admin
       .from("trips")
@@ -197,7 +195,7 @@ export async function GET(request: NextRequest, ctx: TripRouteContext) {
   // 2. Validate the trip id format up front. UUIDs only — cheap reject
   //    of random scanner traffic.
   const { id: tripId } = await ctx.params;
-  if (typeof tripId !== "string" || !UUID_RE.test(tripId)) {
+  if (typeof tripId !== "string" || !isUuid(tripId)) {
     return notFound();
   }
 

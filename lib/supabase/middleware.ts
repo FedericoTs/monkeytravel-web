@@ -6,6 +6,7 @@ import { geolocation } from "@vercel/functions";
 import { SUPABASE_AUTH_COOKIE_OPTIONS } from "@/lib/supabase/cookie-options";
 import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
 import { trackEmailClick } from "@/lib/analytics/email-click";
+import { isUuid } from "@/lib/utils/uuid";
 
 /**
  * Records one page_views row (with geo data, without holding up the
@@ -298,9 +299,6 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
   const excludedFromProtection = ["/trips/new", "/trips/template"];
   // UUID v4 pattern — 8-4-4-4-12 hex chars. We match this against the path
   // segment AFTER /trips/ to identify trip-detail URLs.
-  const UUID_RE =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
   const isProtectedPath = protectedPaths.some((path) =>
     pathWithoutLocale.startsWith(path)
   );
@@ -310,7 +308,7 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
   // Check if this is /trips/[uuid] (with optional trailing segments like
   // /trips/[uuid]/edit). Match the first segment after /trips/.
   const tripIdMatch = pathWithoutLocale.match(/^\/trips\/([^/]+)(\/|$)/);
-  const isTripDetailUuid = tripIdMatch ? UUID_RE.test(tripIdMatch[1]) : false;
+  const isTripDetailUuid = tripIdMatch ? isUuid(tripIdMatch[1]) : false;
 
   if (isProtectedPath && !isExcluded && !isTripDetailUuid && !user) {
     const url = request.nextUrl.clone();

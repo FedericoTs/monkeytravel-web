@@ -24,6 +24,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { readSharedTrip } from "@/lib/trips/shared-trip";
+import { isUuid } from "@/lib/utils/uuid";
 
 const COOKIE_NAME = "mt_anon_voter";
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365; // 1 year — votes are durable
@@ -44,12 +45,6 @@ interface VoteRequestBody {
   vote_type?: unknown;
   display_name?: unknown;
   comment?: unknown;
-}
-
-function isUuid(token: string): boolean {
-  // Loose check — Supabase will reject malformed uuids at query time anyway,
-  // this just short-circuits obvious junk so we don't burn a roundtrip.
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token);
 }
 
 export async function POST(request: NextRequest, context: InviteTokenRouteContext) {

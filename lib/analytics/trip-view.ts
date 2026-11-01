@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { isUuid } from "@/lib/utils/uuid";
 
 /**
  * trip_views — the North Star's row.
@@ -31,12 +32,6 @@ export type TripViewSource = (typeof TRIP_VIEW_SOURCES)[number];
 
 /** The cookie middleware sets on every response; page_views keys on it too. */
 export const VIEW_SESSION_COOKIE = "mt_session_id";
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-export function isUuid(value: string | null | undefined): value is string {
-  return typeof value === "string" && UUID_RE.test(value);
-}
 
 /** Accepts exactly the vocabulary the renderers send; anything else is null. */
 export function parseTripViewSource(value: unknown): TripViewSource | null {
@@ -107,7 +102,7 @@ export function resolveViewSessionId(
   now: Date = new Date(),
 ): ResolvedViewSession {
   const cookie = cookieValue?.trim();
-  if (cookie && UUID_RE.test(cookie)) {
+  if (cookie && isUuid(cookie)) {
     return { sessionId: cookie.toLowerCase(), fromCookie: true };
   }
   const digest = createHash("sha256")

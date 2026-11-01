@@ -15,9 +15,10 @@ import { createClient } from "@/lib/supabase/server";
 import { verifyTripOwnership } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
-import { isUuid, type OwnerParticipant } from "@/lib/participants/shared";
+import { type OwnerParticipant } from "@/lib/participants/shared";
 import { publicNameOrNull } from "@/lib/profile/public-name";
 import { sharesExpenses, tripRoster } from "@/lib/trips/roster";
+import { isUuid } from "@/lib/utils/uuid";
 
 export async function GET(_request: NextRequest, context: TripRouteContext) {
   try {
