@@ -6,10 +6,8 @@ import Footer from '@/components/Footer';
 const BASE_URL = 'https://monkeytravel.app';
 
 export async function generateMetadata(): Promise<Metadata> {
-  // **2026-05-25 fix**: was "Terms of Service - MonkeyTravel" which combined
-  // with the root template "%s | MonkeyTravel" produced
-  // "Terms of Service - MonkeyTravel | MonkeyTravel" (double brand). Drop
-  // the suffix here. The terms are English in every locale, so every locale
+  // No brand suffix: the root template "%s | MonkeyTravel" adds it.
+  // The terms are English in every locale, so every locale
   // points at the English page, like the author pages.
   return {
     title: 'Terms of Service',
@@ -34,8 +32,8 @@ export default async function TermsOfService({
   const lastUpdated = 'November 28, 2025';
   const contactEmail = 'legal@monkeytravel.app';
 
-  // **2026-05-25**: body still English-only; banner on /it /es until
-  // a reviewed legal translation lands.
+  // The body is English-only until a reviewed legal translation exists,
+  // so non-English routes show a banner saying so.
   const NON_EN_BANNER: Record<string, { msg: string; cta: string }> = {
     it: {
       msg: "I nostri Termini di Servizio sono attualmente disponibili solo in inglese. Stiamo lavorando alla traduzione.",

@@ -287,19 +287,13 @@ export async function GET(request: Request) {
   // Open the confirmation email on your phone after signing up on a laptop and
   // that cookie is not there, so the exchange fails — while Supabase has
   // ALREADY stamped email_confirmed_at server-side before redirecting here.
-  //
-  // Measured 2026-09-01: of 95 users who signed up since 2026-07-01 and never
-  // created a trip, 41 had no authenticated page view at all. 40 of them had
-  // `user_confirmation_requested`, 21 have `email_confirmed_at` set, and only 4
-  // ever produced a `login` event. They clicked the link, got confirmed, and
-  // were handed "Could not authenticate" on the login page — a dead end that
-  // reads as though the account is broken.
+  // That person is confirmed and only needs to sign in, which the failure
+  // redirect at the bottom tells them (link_wrong_device_or_expired).
   if (code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    // Previously this error was discarded entirely and the request fell
-    // through to the generic failure at the bottom, so the single most common
-    // auth failure in production was invisible in logs.
+    // Logged: a link opened on a device other than the one that signed up is
+    // the usual way this exchange fails.
     if (error) {
       console.error(
         "[Auth Callback] PKCE code exchange failed (likely opened on a different device than signup):",
@@ -412,9 +406,6 @@ export async function GET(request: Request) {
           // supabase.auth.signUp() stamps the true UI locale into auth
           // user_metadata before that round-trip, so it survives. Prefer it,
           // and fall back to the query param for OAuth where it does not exist.
-          //
-          // Measured 2026-08-27: 64 users browse in es/it/pt while stored as
-          // 'en', 19 of them with reminders already queued.
           preferred_language:
             normalizeSignupLocale(data.user.user_metadata?.locale) ?? locale,
           preferences: {}, // Will be filled by complete-profile page if from onboarding
@@ -533,10 +524,10 @@ export async function GET(request: Request) {
         accountCreatedAt: data.user.created_at,
       });
 
-      // Referral attribution for a fresh Google/Apple account. The attach in
-      // the isNewUser block above never runs (see the comment above), so until
-      // 2026-09-25 no Google signup was ever credited to the friend whose link
-      // brought them. First arrival only, like the email branch.
+      // Referral attribution for a fresh Google/Apple account: the attach in
+      // the isNewUser block above never runs in production (see the comment
+      // above), so it happens here, on the account's first arrival only, like
+      // the email branch.
       if (referralCode && firstLogin) {
         try {
           await createAdminClient().rpc("attach_referral_on_signup", {
@@ -558,9 +549,7 @@ export async function GET(request: Request) {
   // Return the user to the login page with an actionable reason.
   //
   // A stable CODE rather than prose: the login page localises it and adds a
-  // suggestion. The old value was the literal string "Could not authenticate",
-  // rendered raw and untranslated, which told the user nothing they could act
-  // on — and is what the confirm-on-another-device cohort above was shown.
+  // suggestion the user can act on.
   const failureCode = code ? "link_wrong_device_or_expired" : "auth_incomplete";
   return noIndexRedirect(
     `${origin}${getLocalePath(`/auth/login?error=${failureCode}`)}`
@@ -648,10 +637,8 @@ async function mergeAnonymousSaves(userId: string): Promise<void> {
 
     // 3b. A cookie save was never in trips.save_count; now it is an
     //     account's save, so it counts. Recount those trips after the
-    //     redirect goes out (lib/explore/counters.ts). Without this the
-    //     number left it out until the next like or save on the trip, and
-    //     while the counter stepped by one (before 2026-09-23) the account's
-    //     later unsave took off a save somebody else had made.
+    //     redirect goes out (lib/explore/counters.ts), or the count would
+    //     leave them out until the trip's next like or save.
     const rekeyedTripIds = [
       ...new Set(
         (rekeyed ?? []).map((r) => (r as { trip_id: string }).trip_id).filter(Boolean)
