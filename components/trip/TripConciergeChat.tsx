@@ -7,6 +7,7 @@ import BaseModal from "@/components/ui/BaseModal";
 import { useToast } from "@/components/ui/Toast";
 import PreviewChangeCard, { type PendingChange } from "@/components/ai/PreviewChangeCard";
 import type { ItineraryDay } from "@/types";
+import { localTodayISO } from "@/lib/utils/date-local";
 import {
   captureConciergeOpened,
   captureConciergeQuestionSent,
@@ -62,15 +63,6 @@ export default function TripConciergeChat(props: TripConciergeChatProps) {
     return null;
   }
   return <TripConciergeChatInner {...props} />;
-}
-
-/** Local calendar date as YYYY-MM-DD — the user's "today", not the server's. */
-function localToday(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
 }
 
 function TripConciergeChatInner({
@@ -172,7 +164,7 @@ function TripConciergeChatInner({
         body: JSON.stringify({
           tripId,
           question: q,
-          clientToday: localToday(),
+          clientToday: localTodayISO(),
           itineraryVersion,
         }),
       });

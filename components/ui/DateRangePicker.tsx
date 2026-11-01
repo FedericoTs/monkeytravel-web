@@ -16,7 +16,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { daysBetweenLocal } from "@/lib/utils/date-local";
+import { daysBetweenLocal, toLocalISODate } from "@/lib/utils/date-local";
 
 interface DateRangePickerProps {
   startDate: string;
@@ -35,14 +35,8 @@ interface DateRangePickerProps {
 }
 
 // Helper functions
-// IMPORTANT: Use local timezone formatting to avoid off-by-one day bugs
-// toISOString() converts to UTC which shifts dates for users ahead of UTC
-const formatDate = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
+// Local calendar days: toISOString() would give UTC's, a day off for many users.
+const formatDate = toLocalISODate;
 
 const parseDate = (dateStr: string): Date | null => {
   if (!dateStr) return null;

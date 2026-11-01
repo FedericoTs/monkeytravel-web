@@ -15,6 +15,7 @@ import AmountChoices from "@/components/trip/AmountChoices";
 import SettleUpView from "@/components/trip/SettleUpView";
 import { centsToAmount, formatAmount, readAmount } from "@/lib/expenses/shared";
 import { sentry } from "@/lib/observability/sentry";
+import { localTodayISO } from "@/lib/utils/date-local";
 import {
   captureExpenseAdded,
   captureExpenseDeleted,
@@ -77,18 +78,6 @@ const CATEGORIES: ExpenseRow["category"][] = [
   "other",
 ];
 
-/**
- * Today's date as YYYY-MM-DD in the *user's local* timezone. Using
- * `new Date().toISOString().slice(0, 10)` gives UTC date, which is wrong
- * pre-fill for Tokyo at 02:00 (yesterday UTC) or PST at 23:00 (tomorrow UTC).
- */
-function todayLocalISO(): string {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
 
 export default function ExpenseLedger({
   tripId,
@@ -140,7 +129,7 @@ function ExpenseLedgerInner({
   const [currency, setCurrency] = useState(defaultCurrency);
   const [category, setCategory] = useState<ExpenseRow["category"]>("food");
   const [description, setDescription] = useState("");
-  const [spentOn, setSpentOn] = useState(() => todayLocalISO());
+  const [spentOn, setSpentOn] = useState(() => localTodayISO());
 
   const loadExpenses = useCallback(
     async (signal?: AbortSignal) => {
@@ -258,7 +247,7 @@ function ExpenseLedgerInner({
     setCurrency(defaultCurrency);
     setCategory("food");
     setDescription("");
-    setSpentOn(todayLocalISO());
+    setSpentOn(localTodayISO());
   };
 
   /** `pickedCents` is the reading chosen when the typed amount read two ways. */
