@@ -5,9 +5,7 @@ import { NextRequest } from "next/server";
 /**
  * Who may apply an assistant change.
  *
- * Owner-only until 2026-09-25 while the trip page offered the assistant to
- * every role: an invited editor's first message answered "Trip not found".
- * The owner and editors may now apply content changes; adding days and
+ * The owner and editors may apply content changes; adding days and
  * shifting them move the trip's dates, which stay with the owner (as on
  * PATCH /api/trips/[id]). Voters and viewers get 403. The real route runs
  * against a fake Supabase.

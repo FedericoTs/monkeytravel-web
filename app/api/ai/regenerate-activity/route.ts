@@ -133,9 +133,8 @@ export async function POST(request: NextRequest) {
     const language = tripLocale(trip.trip_meta) ?? (await getUserLanguage());
 
     // Read the trip's travel style so the suggested replacement matches
-    // the rest of the trip. Bug fix 2026-05-28: without this, the
-    // assistant could swap a hostel recommendation in a backpacker trip
-    // for a boutique hotel.
+    // the rest of the trip (no boutique hotel in place of a backpacker's
+    // hostel).
     const tripMeta = (trip.trip_meta ?? {}) as { travel_style?: "classic" | "backpacker"; dietary?: unknown };
     const travelStyle: "classic" | "backpacker" =
       tripMeta.travel_style === "backpacker" ? "backpacker" : "classic";

@@ -202,9 +202,8 @@ export async function POST(request: NextRequest) {
   // tailored result must not poison the shared pool (same rule as the JSON route).
   const isPersonalized = Boolean(params.mustDos?.length || profilePreferences.dietaryPreferences?.length);
   // "Try Different Version" (the wizard's Regenerate) asks for a NEW plan.
-  // The shared cache would hand back the very one on screen: 23 of 51
-  // identical re-generations in 14 days came back in under 3 s (2026-09-26).
-  // So the cache is not READ for it; the fresh result is still written, and
+  // The shared cache would hand back the very one on screen, so the cache is
+  // not READ for it; the fresh result is still written, and
   // replaces the entry.
   const wantsFresh = body.fresh === true;
 
@@ -297,13 +296,8 @@ export async function POST(request: NextRequest) {
     let placesToEat: PlacesToEatResult | null = null;
 
     try {
-      // 3a. Cache short-circuit (2026-05-28 — the "10-line patch" the
-      //     original streaming author noted was missing). Before this,
-      //     the streaming endpoint NEVER hit the cache — confirmed by
-      //     prod data: 0 cache hits across 158 generations in 30 days.
-      //     Now: backpacker + classic each have their own cache pool
-      //     (Tier 1.2 migration) and the streaming path checks them
-      //     before calling Gemini.
+      // 3a. Cache short-circuit: backpacker and classic each have their
+      //     own cache pool, checked before calling Gemini.
       // PERF (#190): the cache read was hoisted out of the SSE generator
       // and is now part of the pre-flight Promise.all above. We just
       // consume the pre-resolved value here.
@@ -679,11 +673,9 @@ export async function POST(request: NextRequest) {
 
   // 9b. Count an anonymous generation NOW, while the response headers can
   //     still carry the cookie. recordAnonymousGeneration() sets mt_anon
-  //     through cookies(); it used to run after the stream (in the
-  //     waitUntil above), when the headers were long sent, so the cookie
-  //     never reached the browser and the 5-a-day anonymous cap never
-  //     applied to the wizard (verified on production 2026-09-25: a fresh
-  //     14-day generation left no mt_anon). Cache hits stay free, with the
+  //     through cookies(), which only works before the headers are sent:
+  //     after the stream the cookie would never reach the browser and the
+  //     5-a-day anonymous cap would never apply. Cache hits stay free, with the
   //     generator's own short-circuit predicate. A generation that then
   //     fails still counts: one of five, against no cap at all.
   const willHitCache =
