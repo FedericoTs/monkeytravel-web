@@ -1,7 +1,7 @@
 /** @vitest-environment node */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { fakeSupabase } from "@/tests/fake-supabase";
+import { eqOf, fakeSupabase } from "@/tests/fake-supabase";
 
 /**
  * The owner's "Who's going" is the group the expense split uses: the owner,
@@ -22,7 +22,12 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () =>
     fakeSupabase((q) => {
       if (failing === q.table) return { data: null, error: { message: "boom" } };
-      if (q.table === "trips") return { data: { id: TRIP_ID, user_id: "owner-1" }, error: null };
+      if (q.table === "trips") {
+        // The ownership read filters on user_id: someone else's trip is no row.
+        const asked = eqOf(q, "user_id");
+        if (asked && asked !== "owner-1") return { data: null, error: { code: "PGRST116", message: "no rows" } };
+        return { data: { id: TRIP_ID, user_id: "owner-1" }, error: null };
+      }
       if (q.table === "trip_collaborators") {
         return {
           data: [

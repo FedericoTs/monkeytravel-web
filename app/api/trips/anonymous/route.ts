@@ -13,6 +13,7 @@ import {
   MAX_BODY_BYTES,
 } from "@/lib/trips/anonymous-share";
 import { logWriteError } from "@/lib/supabase/log-write-error";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * POST /api/trips/anonymous — mint a shareable trip for a signed-OUT planner.
@@ -202,11 +203,11 @@ export async function POST(request: NextRequest) {
 async function backfillCoverFromItinerary(tripId: string): Promise<void> {
   try {
     const admin = createAdminClient();
-    const { data: trip } = await admin
+    const { data: trip } = logReadError("anonymous trip: cover backfill", await admin
       .from("trips")
       .select("cover_image_url, itinerary")
       .eq("id", tripId)
-      .single();
+      .single());
 
     if (!trip || trip.cover_image_url) return;
 

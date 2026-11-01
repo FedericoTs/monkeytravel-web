@@ -259,11 +259,13 @@ async function itineraryConflict(
   base: number
 ) {
   if (!supabase) return null;
-  const { data: current } = await supabase
+  const { data: current, error } = await supabase
     .from("trips")
     .select("itinerary, itinerary_version")
     .eq("id", tripId)
     .maybeSingle();
+  // A failed read is not "no conflict", which the caller would answer 403.
+  if (error) throw error;
   if (!current || current.itinerary_version === base) return null;
   const itinerary = Array.isArray(current.itinerary)
     ? await refreshItineraryPhotos(current.itinerary as Array<{ activities?: Array<{ image_url?: string | null }> }>)

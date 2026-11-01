@@ -9,6 +9,7 @@ import { completeReferralIfEligible } from "@/lib/referral/completion";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import { copyableTripMeta } from "@/lib/trips/copy-meta";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 
 /**
@@ -208,16 +209,16 @@ export async function POST(request: NextRequest) {
             sourceTrip.user_id &&
             sourceTrip.user_id !== user.id
           ) {
-            const { data: refUser } = await supabase
+            const { data: refUser } = logReadError("duplicate: referral attribution", await supabase
               .from("users")
               .select("referred_by_code")
               .eq("id", user.id)
-              .single();
+              .single());
             if (!refUser?.referred_by_code) {
               const admin = createAdminClient();
-              const { data: ownerCode } = await admin.rpc("get_or_create_referral_code", {
+              const { data: ownerCode } = logReadError("duplicate: owner referral code", await admin.rpc("get_or_create_referral_code", {
                 p_user_id: sourceTrip.user_id,
-              });
+              }));
               if (ownerCode && typeof ownerCode === "string") {
                 await admin.rpc("attach_referral_on_signup", {
                   p_user_id: user.id,

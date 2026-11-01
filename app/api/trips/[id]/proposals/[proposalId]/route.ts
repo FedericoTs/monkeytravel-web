@@ -6,6 +6,7 @@ import type { TripProposalRouteContext } from "@/lib/api/route-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { approveProposal, type ApproveOutcome } from "@/lib/proposals/approve";
 import { publicProposer } from "@/lib/proposals/proposer";
+import { logReadError } from "@/lib/supabase/log-read-error";
 import type {
   Activity,
   ProposalVote,
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
 
     // SECURITY: trip access first, or any signed-in user could fetch any
     // proposal (including voter PII) just by knowing tripId + proposalId.
-    const { errorResponse: accessError } = await verifyTripAccess(
+    const { trip, errorResponse: accessError } = await verifyTripAccess(
       supabase,
       tripId,
       user.id
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
     }
 
     // Fetch votes for this proposal
-    const { data: votes } = await supabase
+    const { data: votes, error: votesError } = await supabase
       .from("proposal_votes")
       .select(`
         id,
@@ -99,19 +100,15 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
       `)
       .eq("proposal_id", proposalId)
       .order("voted_at", { ascending: true });
+    if (votesError) throw votesError;
 
     // Get total voter count
-    const { data: trip } = await supabase
-      .from("trips")
-      .select("user_id")
-      .eq("id", tripId)
-      .single();
-
-    const { data: collaborators } = await supabase
+    const { data: collaborators, error: collaboratorsError } = await supabase
       .from("trip_collaborators")
       .select("user_id, role")
       .eq("trip_id", tripId)
       .in("role", ["owner", "editor", "voter"]);
+    if (collaboratorsError) throw collaboratorsError;
 
     const voterIds = new Set<string>();
     if (trip?.user_id) voterIds.add(trip.user_id);
@@ -235,14 +232,9 @@ export async function PATCH(request: NextRequest, context: TripProposalRouteCont
       return errors.badRequest("This proposal has already been resolved");
     }
 
-    // Get trip owner
-    const { data: trip } = await supabase
-      .from("trips")
-      .select("user_id")
-      .eq("id", tripId)
-      .single();
-
-    const isOwner = trip?.user_id === user.id;
+    // The owner may force-resolve; the proposer may withdraw.
+    const { isOwner, errorResponse: accessError } = await verifyTripAccess(supabase, tripId, user.id);
+    if (accessError) return accessError;
     const isProposer = proposal.proposed_by === user.id;
 
     // Permission checks
@@ -283,11 +275,11 @@ export async function PATCH(request: NextRequest, context: TripProposalRouteCont
     if (action === 'approve') {
       const outcome = await approveProposal(createAdminClient(), proposal, { method, resolvedBy: user.id });
       if (!outcome.ok) return approveFailed(outcome.reason, proposal.target_day);
-      const { data: approved } = await supabase
+      const { data: approved } = logReadError("proposal approve: re-read", await supabase
         .from("activity_proposals")
         .select()
         .eq("id", proposalId)
-        .single();
+        .single());
       return apiSuccess({ success: true, proposal: approved, action, activityAdded: true });
     }
 

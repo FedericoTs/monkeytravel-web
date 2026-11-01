@@ -1,5 +1,5 @@
 import { NextRequest, after } from "next/server";
-import { getAuthenticatedUser } from "@/lib/api/auth";
+import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { captureServerEvent } from "@/lib/posthog/server";
@@ -272,13 +272,9 @@ export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
   const { user, supabase, errorResponse } = await getAuthenticatedUser();
   if (errorResponse) return errorResponse;
 
-  const { data: trip } = await supabase
-    .from("trips")
-    .select("id, user_id")
-    .eq("id", tripId)
-    .single();
-  if (!trip) return errors.notFound("Trip not found");
-  if (trip.user_id !== user.id) {
+  const { isOwner, errorResponse: accessError } = await verifyTripAccess(supabase, tripId, user.id);
+  if (accessError) return accessError;
+  if (!isOwner) {
     return errors.forbidden("Only the trip owner can unpublish");
   }
 

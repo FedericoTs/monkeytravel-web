@@ -6,6 +6,7 @@
 import { NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { verifyTripOwnership } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { RouteContext } from "@/lib/api/route-context";
 import { isUuid } from "@/lib/participants/shared";
@@ -24,12 +25,8 @@ export async function DELETE(_request: NextRequest, context: Ctx) {
     if (!auth.user) return errors.unauthorized("Sign in required");
 
     const admin = createAdminClient();
-    const { data: trip } = await admin
-      .from("trips")
-      .select("id, user_id")
-      .eq("id", id)
-      .maybeSingle();
-    if (!trip || trip.user_id !== auth.user.id) return errors.notFound("Trip not found");
+    const { trip, errorResponse: ownerError } = await verifyTripOwnership(admin, id, auth.user.id);
+    if (ownerError) return ownerError;
 
     const { data: row, error } = await admin
       .from("trip_participants")

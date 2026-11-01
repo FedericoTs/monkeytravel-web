@@ -44,6 +44,8 @@ function fakeSupabase() {
           if (table === "proposal_votes" && inserting) return { data: vote, error: null };
           return { data: null, error: { code: "PGRST116", message: "no rows" } };
         },
+        // No earlier vote by this voter.
+        maybeSingle: async () => ({ data: null, error: null }),
         then: (resolve: (v: unknown) => void) =>
           resolve(table === "trip_collaborators" ? voterCount : { data: [vote], error: null }),
       };
@@ -51,9 +53,9 @@ function fakeSupabase() {
     },
   };
 }
-vi.mock("@/lib/api/auth", () => ({
+vi.mock("@/lib/api/auth", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/auth")>()),
   getAuthenticatedUser: async () => ({ user: { id: OWNER }, supabase: fakeSupabase(), errorResponse: null }),
-  verifyTripAccess: vi.fn(),
 }));
 
 async function castLove() {
