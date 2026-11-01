@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { safeGet, safeSet } from "@/lib/safe-storage";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 
 const STORAGE_KEY = "monkeytravel_collab_onboarding_seen";
 
@@ -52,6 +53,9 @@ export default function CollaboratorOnboarding({ isOwner }: CollaboratorOnboardi
     if (step > 0) setStep(step - 1);
   };
 
+  const { panelRef } = useModalBehavior({ isOpen, onClose: handleClose });
+  const titleId = useId();
+
   if (!isOpen) return null;
 
   const current = STEPS[step];
@@ -76,7 +80,12 @@ export default function CollaboratorOnboarding({ isOwner }: CollaboratorOnboardi
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto"
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            tabIndex={-1}
+            className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto outline-none"
           >
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
               {/* Progress dots */}
@@ -106,7 +115,7 @@ export default function CollaboratorOnboarding({ isOwner }: CollaboratorOnboardi
                   className="px-6 py-6 text-center"
                 >
                   <span className="text-5xl block mb-4">{current.emoji}</span>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 id={titleId} className="text-lg font-semibold text-gray-900 mb-2">
                     {t(`${current.key}.title`)}
                   </h3>
                   <p className="text-sm text-gray-600 leading-relaxed">

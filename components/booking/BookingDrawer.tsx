@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useId } from "react";
 import { useTranslations } from "next-intl";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 import { X, Plane, MapPin, Clock } from "lucide-react";
 import { getCityIATA, CITY_IATA_CODES } from "@/lib/affiliates";
 import { openExternal } from "@/lib/native/external-link";
@@ -154,6 +155,10 @@ export default function BookingDrawer({
     setSuggestions([]);
   };
 
+  const tButtons = useTranslations("common.buttons");
+  const { panelRef } = useModalBehavior({ isOpen, onClose });
+  const titleId = useId();
+
   if (!isOpen) return null;
 
   return (
@@ -165,7 +170,14 @@ export default function BookingDrawer({
       />
 
       {/* Drawer - positioned above bottom nav on mobile */}
-      <div className="fixed left-0 right-0 bg-white rounded-t-2xl z-[60] shadow-xl animate-in slide-in-from-bottom duration-300 bottom-20 sm:bottom-0">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="fixed left-0 right-0 bg-white rounded-t-2xl z-[60] shadow-xl outline-none animate-in slide-in-from-bottom duration-300 bottom-20 sm:bottom-0"
+      >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1.5 bg-slate-200 rounded-full" />
@@ -180,7 +192,7 @@ export default function BookingDrawer({
                 <Plane className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-slate-900">
+                <h3 id={titleId} className="font-semibold text-slate-900">
                   {t("whereFlying")}
                 </h3>
                 <p className="text-sm text-slate-500">
@@ -190,6 +202,7 @@ export default function BookingDrawer({
             </div>
             <button
               onClick={onClose}
+              aria-label={tButtons("closeModal")}
               className="p-2 text-slate-500 hover:text-slate-600 rounded-full hover:bg-slate-100"
             >
               <X className="w-5 h-5" />

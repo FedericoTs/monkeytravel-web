@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { createPortal } from "react-dom";
 import { Gift, Copy, Check, X, Mail, Users, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -20,6 +20,8 @@ interface ReferralModalProps {
 
 export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
   const t = useTranslations("common.referral");
+  const tButtons = useTranslations("common.buttons");
+  const titleId = useId();
   const [code, setCode] = useState<string | null>(null);
   const [stats, setStats] = useState<ReferralStats>({ clicks: 0, signups: 0, conversions: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -89,8 +91,8 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
-  // Unified modal behavior: escape key only (no scroll lock for this modal)
-  useModalBehavior({ isOpen, onClose, lockScroll: false });
+  // Escape, focus in and back, Tab kept inside; no scroll lock for this modal.
+  const { panelRef } = useModalBehavior({ isOpen, onClose, lockScroll: false });
 
   // Don't render on server or if not open
   if (!mounted || !isOpen) return null;
@@ -114,12 +116,18 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
         onClick={onClose}
       >
         <div
-          className="relative bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden animate-scale-up"
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          tabIndex={-1}
+          className="relative bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden outline-none animate-scale-up"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close button */}
           <button
             onClick={onClose}
+            aria-label={tButtons("closeModal")}
             className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-600 transition-colors z-10"
           >
             <X className="w-5 h-5" />
@@ -132,7 +140,7 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                 <Gift className="w-7 h-7 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-slate-900">
+                <h3 id={titleId} className="text-xl font-bold text-slate-900">
                   {t("title")}
                 </h3>
                 <p className="text-sm text-slate-600 mt-0.5">

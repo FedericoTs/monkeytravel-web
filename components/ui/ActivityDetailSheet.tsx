@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import type { Activity } from "@/types";
@@ -39,7 +39,6 @@ export default function ActivityDetailSheet({
   disableAutoFetch = false,
   onPhotoCapture,
 }: ActivityDetailSheetProps) {
-  const sheetRef = useRef<HTMLDivElement>(null);
   const typeLabel = useActivityTypeLabel();
   const t = useTranslations("common");
 
@@ -53,8 +52,9 @@ export default function ActivityDetailSheet({
   const kind = normalizeActivityType(activity.type, activity.name);
   const colors = getActivityTypeColors(kind);
 
-  // Unified modal behavior: escape key + scroll lock
-  useModalBehavior({ isOpen, onClose });
+  // Escape, scroll lock, focus in and back, Tab kept inside the sheet.
+  const { panelRef: sheetRef } = useModalBehavior({ isOpen, onClose });
+  const titleId = useId();
 
   // Handle drag to close
   const handleDragStart = useRef<{ y: number; startTime: number } | null>(null);
@@ -94,7 +94,11 @@ export default function ActivityDetailSheet({
       {/* Sheet */}
       <div
         ref={sheetRef}
-        className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl animate-slide-up max-h-[85vh] overflow-hidden flex flex-col"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl outline-none animate-slide-up max-h-[85vh] overflow-hidden flex flex-col"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
@@ -149,7 +153,7 @@ export default function ActivityDetailSheet({
                   </span>
                 )}
               </div>
-              <h2 className="text-xl font-bold text-slate-900 line-clamp-2">
+              <h2 id={titleId} className="text-xl font-bold text-slate-900 line-clamp-2">
                 {activity.name}
               </h2>
             </div>

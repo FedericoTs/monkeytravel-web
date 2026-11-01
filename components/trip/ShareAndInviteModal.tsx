@@ -185,8 +185,9 @@ export default function ShareAndInviteModal({
     }
   }, [tripId]);
 
-  // Unified modal behavior: escape key + scroll lock
-  useModalBehavior({ isOpen, onClose });
+  // The desktop dialog's Escape, scroll lock, focus and Tab. On mobile the
+  // BottomSheet is the dialog and does all of this itself.
+  const { panelRef } = useModalBehavior({ isOpen: isOpen && !isMobile, onClose });
 
   // Handle trending toggle
   const handleTrendingToggle = async () => {
@@ -941,28 +942,13 @@ export default function ShareAndInviteModal({
     );
   }
 
-  // Desktop: Traditional centered modal
-  //
-  // a11y note (task #238, 2026-05-30 round-2): screen readers must see
-  // this as a dialog. Bare divs without role/aria-modal don't trigger
-  // SR dialog announcement and bypass focus management. We don't fully
-  // migrate to BaseModal here (the share modal pre-dates that wrapper
-  // and has its own desktop-vs-mobile split via BottomSheet for ≤sm),
-  // but the desktop branch gets the three required attributes:
-  //   role="dialog", aria-modal="true", aria-labelledby={id}
-  // plus an Esc keydown handler.
+  // Desktop: a centered dialog.
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="share-and-invite-title"
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          e.stopPropagation();
-          onClose();
-        }
-      }}
     >
       {/* Backdrop */}
       <div
@@ -990,7 +976,9 @@ export default function ShareAndInviteModal({
         onClick={onClose}
       >
         <div
-          className="relative bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden"
+          ref={panelRef}
+          tabIndex={-1}
+          className="relative bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden outline-none"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close button.

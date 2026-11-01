@@ -44,7 +44,6 @@ export default function ImageCarousel({
   // useImageLoaded is invoked lower down, once currentImage is resolved —
   // but still above every early return, because the reset effect below
   // closes over its setter.
-  const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const thumbnailContainerRef = useRef<HTMLDivElement>(null);
 
@@ -53,8 +52,8 @@ export default function ImageCarousel({
   const initialZoomScale = useRef(1);
   const isPinching = useRef(false);
 
-  // Unified modal behavior: escape key + scroll lock (always open when rendered)
-  useModalBehavior({ isOpen: true, onClose });
+  // Escape, scroll lock, focus in and back, Tab kept inside (always open when rendered).
+  const { panelRef: containerRef } = useModalBehavior({ isOpen: true, onClose });
 
   useEffect(() => {
     setMounted(true);
@@ -271,7 +270,11 @@ export default function ImageCarousel({
   const carouselContent = (
     <div
       ref={containerRef}
-      className={`fixed inset-0 z-[9999] flex flex-col transition-opacity duration-300 ${
+      role="dialog"
+      aria-modal="true"
+      aria-label={placeName || undefined}
+      tabIndex={-1}
+      className={`fixed inset-0 z-[9999] flex flex-col outline-none transition-opacity duration-300 ${
         isAnimating ? "opacity-0" : "opacity-100"
       }`}
       style={{
