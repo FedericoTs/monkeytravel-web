@@ -72,11 +72,10 @@ const QUICK_ACTION_IDS = [
 // ---------------------------------------------------------------------------
 // Deterministic action badge (trust loop).
 //
-// Transcript evidence (persisted ai_conversations, 2026-07): 3 of 17 recent
-// conversations contain "I don't see the updates on the webpage" / "I don't
-// see it on the right" / "where to see the updated version?" — and one reply
-// narrated "extended with a new Day 12" while its logged action was
-// {type: add_activity, dayNumber: 1}. The badge is therefore generated ONLY
+// People can't always tell where an edit landed ("I don't see the updates on
+// the webpage"), and model prose can disagree with what was done (a reply
+// narrating "a new Day 12" for an activity added to day 1). The badge is
+// therefore generated ONLY
 // from the action metadata, never from model prose: when narration and
 // metadata disagree, the badge sides with the metadata.
 // ---------------------------------------------------------------------------

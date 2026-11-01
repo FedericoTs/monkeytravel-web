@@ -9,10 +9,8 @@ interface DestinationCTAProps {
    * Country name in the current locale (e.g. "France", "Portugal").
    * Concatenated with `cityName` for the wizard pre-fill so the
    * destination field matches the "City, Country" format used by the
-   * step-1 destination chips and the autocomplete.
-   * **2026-05-24 live-test fix:** previously the CTA passed just the
-   * slug → wizard showed "paris" alone, mildly disorienting and forced
-   * the user to re-disambiguate via autocomplete.
+   * step-1 destination chips and the autocomplete, rather than a bare slug
+   * ("paris") the user would have to disambiguate again.
    */
   countryName?: string;
   locale: Locale;

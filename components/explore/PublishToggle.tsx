@@ -28,8 +28,7 @@ export default function PublishToggle({
   defaultAuthorName,
 }: PublishToggleProps) {
   const router = useRouter();
-  // i18n: the three button strings + confirm dialog were hardcoded English.
-  // Caught 2026-05-29 audit on /it/trips/[id].
+  // The three button strings and the confirm dialog come from the catalog.
   const t = useTranslations("common.share.explore");
   const [modalOpen, setModalOpen] = useState(false);
   const [busy, setBusy] = useState(false);

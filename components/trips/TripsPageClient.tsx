@@ -137,11 +137,8 @@ function TripCard({ trip, t, locale, getStatusLabel, onAction, priority = false 
   const [imageError, setImageError] = useState(false);
   // Initial imageLoading: false when trip already has a cover URL — the
   // <img> mounts with that src and either fires onLoad from the network
-  // OR (for cached images) skips onLoad entirely. The pre-fix behaviour
-  // — initial true + relying on onLoad — left repeat visitors stuck at
-  // opacity:0 forever because browser-cached images don't trigger
-  // onLoad. Live audit 2026-05-28 caught the user's "all 6 covers
-  // missing" report despite the network actually returning the bytes.
+  // OR (for cached images) skips onLoad entirely, so starting at true and
+  // waiting for onLoad would leave repeat visitors stuck at opacity:0.
   // For the lazy-fetch path (no cover_image_url yet) we flip to true so
   // the skeleton still shimmers while we wait for /api/images/destination.
   const [imageLoading, setImageLoading] = useState(!trip.cover_image_url);
@@ -566,9 +563,8 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
   const t = useTranslations('common.trips');
   const tRoles = useTranslations('common.roles');
   const tNav = useTranslations('common.navigation');
-  // i18n: pass current locale to date formatters so trip cards show
-  // "24-29 mag 2026" on /it/ instead of "May 24-29, 2026". Caught
-  // 2026-05-29 audit.
+  // The locale for the date formatters: trip cards show "24-29 mag 2026" on
+  // /it/.
   const locale = useLocale();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
@@ -697,7 +693,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
   // sides. Server and hydration otherwise count with the same server `now`.
   //
   // Why null + render placeholder instead of `0` + suppressHydrationWarning:
-  // empirically (2026-05-30 live audit, fiber inspection in browser),
+  // empirically (fiber inspection in the browser),
   // `suppressHydrationWarning` ONLY silences the dev-mode console warning
   // in React 19. The recoverable error still throws in prod, gets caught
   // by error reporting, and pollutes Sentry. Rendering an identical text

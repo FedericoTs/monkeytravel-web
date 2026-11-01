@@ -28,13 +28,10 @@ import Script from "next/script";
 // pollutes local console/network traces during dev (UX10X Phase 0.4). Gate the
 // whole component to production.
 //
-// CORRECTION (2026-08-19): "prod is unaffected" was wrong. The same
-// "config is not valid" error was firing on monkeytravel.app itself — not from
-// the loader's host allowlist, but because our own CSP had emrldco.com in
-// script-src and NOT connect-src, so the entrypoint_config fetch was refused
-// and no affiliate link ever rendered. Two different causes producing an
-// identical console line, which is why it read as a dev-only annoyance.
-// connect-src now allows it; see the note in lib/security/csp.ts.
+// The same "config is not valid" line also appears in production when our
+// own CSP refuses the entrypoint_config fetch: emrldco.com must be in
+// connect-src as well as script-src, or no affiliate link renders (see the
+// note in lib/security/csp.ts).
 const AFFILIATE_ENABLED = process.env.NODE_ENV === "production";
 
 export default function AffiliateScript() {

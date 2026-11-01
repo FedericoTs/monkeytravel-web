@@ -148,7 +148,7 @@ export function VotingBottomSheet({
       setComment("");
       setShowCommentInput(false);
       setSelectedOption(null);
-      // 2026-05-31 audit P2: this is the mobile-first voting surface
+      // This is the mobile-first voting surface
       // (per the file docstring "Premium mobile-first voting
       // experience"), so the missing haptic is worse here than the
       // ProposalVoteButtons sibling — which DOES fire hapticMedium on

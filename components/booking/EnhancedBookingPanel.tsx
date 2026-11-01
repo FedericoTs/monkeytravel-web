@@ -307,9 +307,7 @@ export default function EnhancedBookingPanel({
 // Helper function.
 //
 // Accepts the active locale so the month abbreviation matches the user's
-// language ("mag" on /it, "may" on /es, "May" on /en). Previously hardcoded
-// "en-US" and showed English month abbreviations on every locale — caught
-// in live UI test 2026-05-30, task #241.
+// language ("mag" on /it, "may" on /es, "May" on /en).
 function formatDateRange(start: string, end: string, locale: string): string {
   const startDate = new Date(start);
   const endDate = new Date(end);

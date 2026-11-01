@@ -70,11 +70,10 @@ export default function BlogDestinationPicks({
 
   const stayWindow = seasonalStayWindow(postSlug);
 
-  // The stay CTA renders whether or not the affiliate is live — a product
-  // decision (2026-08-26): the link is useful to the reader on its own, and
-  // no partner program is live (Travelpayouts returns 400 for this account,
-  // no AWIN id set). getStaySearchUrl() returns an untracked Booking.com
-  // search today and has a single seam for tracking if that changes.
+  // The stay CTA renders whether or not an affiliate is live (a product
+  // decision): the link is useful to the reader on its own. Without a partner
+  // program getStaySearchUrl() returns an untracked Booking.com search, and
+  // it is the single seam for tracking if that changes.
   //
   // What DOES depend on the affiliate being live is how the link is labelled:
   // rel="sponsored" and an "Affiliate link" note are disclosures. Putting

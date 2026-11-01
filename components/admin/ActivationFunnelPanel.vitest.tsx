@@ -4,8 +4,7 @@ import { render, screen, within } from "@testing-library/react";
 import ActivationFunnelPanel from "./ActivationFunnelPanel";
 import { buildFunnelWindow, loopFromRpc, type ActivationFunnelStats } from "@/lib/admin/activation-funnel";
 
-// The production numbers on 2026-09-02, the day this shipped. If the panel
-// can say these correctly it can say any.
+// Realistic numbers: if the panel can say these correctly it can say any.
 const GOOGLE = { provider: "google", signups: 99, confirmed: 99, reached_wizard: 98, generated: 82, has_trip: 79, generated_no_trip: 3, save_failed_users: 0 };
 const EMAIL = { provider: "email", signups: 47, confirmed: 37, reached_wizard: 28, generated: 23, has_trip: 20, generated_no_trip: 3, save_failed_users: 0 };
 const LOOP = { anon_created: 55, anon_visited: 33, share_visits: 72, plan_own_clicks: 0, claimed: 0, claimed_any: 0, unclaimed_live: 55, expired: 0 };

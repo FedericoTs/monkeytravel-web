@@ -3,12 +3,8 @@
 /**
  * Save-trip auth wall — magic-link-first.
  *
- * 2026-06-04 redesign: the previous flow funneled anon-result viewers into
- * /auth/signup (full account + password). 4 days of post-instrumentation
- * data showed 0 saves from anon users despite ~30% step_1 → result
- * conversion — the auth wall at peak intent was the leak.
- *
- * New shape:
+ * A full account-and-password signup at the moment someone wants to save is
+ * where signed-out planners are lost, so the wall asks for an email only:
  *   1. Single email field + "Email me the link" — Supabase signInWithOtp.
  *      Returning users get logged in; new users get an account auto-created
  *      on magic-link click. Either way the trip draft is restored via
@@ -121,7 +117,7 @@ export default function AuthPromptModal({
   const [verifying, setVerifying] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);
 
-  // Funnel tracking — task 2026-06-06 PostHog refresh.
+  // Funnel tracking.
   // Refs make the captures fire-and-forget without re-rendering on every
   // PostHog Promise resolution. They also let us read the latest email
   // state from the dismiss handler without subscribing to changes.

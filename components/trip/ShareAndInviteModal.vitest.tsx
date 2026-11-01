@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 /**
- * The share tab's framing (2026-09-18): a trip planned "with friends" opens on
+ * The share tab's framing: a trip planned "with friends" opens on
  * the crew ask — the link carries ?vote=1 and the recipient page leads with
  * the vote — while solo trips and unanswered intent open on the plain link.
  * The owner can flip either way, and whatever they copy is what they chose.
@@ -143,7 +143,7 @@ describe("ShareAndInviteModal framing", () => {
 });
 
 /**
- * Collaborators (2026-09-24). Turning the link on or off and listing the trip
+ * Collaborators. Turning the link on or off and listing the trip
  * in Explore are the owner's (POST/DELETE /share and /submit-trending admit
  * only the owner), so an editor's click there used to fail silently. The
  * trip page passes canManageSharing={isOwner}; the default keeps the owner's
