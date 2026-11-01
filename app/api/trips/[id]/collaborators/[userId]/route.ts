@@ -104,8 +104,7 @@ export async function DELETE(request: NextRequest, context: TripCollaboratorRout
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // Members can remove themselves; owners (the trip's, or a collaborator
-    // with the owner role) can remove anyone.
+    // Any member, a collaborator with the owner role included.
     const { trip, isOwner, collaboratorRole, errorResponse: accessError } = await verifyTripAccess(
       supabase,
       tripId,
