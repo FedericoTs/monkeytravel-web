@@ -29,7 +29,6 @@ import * as BlogApiMod from "../lib/blog/api";
 // tsx transpiles these .tsx files to CJS, so the ESM namespace's `.default`
 // is the whole module.exports object ({ default: Component, <textFn> }).
 // Unwrap one level to reach the real bindings.
-/* eslint-disable @typescript-eslint/no-explicit-any */
 const Invite = (InviteMod as any).default;
 const VoteCast = (VoteCastMod as any).default;
 const TripReminder = (TripReminderMod as any).default;

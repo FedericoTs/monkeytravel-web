@@ -56,7 +56,6 @@ import * as VerifyMod from "../lib/email/verify-render";
 import * as FollowupCtaMod from "../lib/email/followup-cta";
 import * as ReminderCtaMod from "../lib/email/reminder-cta";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 const TR = (TripReminderMod as any).default;
 const TripReminderEmail = TR.default;
 const tripReminderSubject = TR.tripReminderSubject;

@@ -199,7 +199,6 @@ export default function SessionTracker() {
     }
     // hasTracked.current guards against React-StrictMode double-fire in dev.
     // No external dependencies — getUser() is called inside trackSession.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // This component doesn't render anything

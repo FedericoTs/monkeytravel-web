@@ -25,7 +25,6 @@ import type { EmailLocale } from "../lib/email/copy";
 // tsx + ESM interop wraps the module twice: ReleaseMod.default is the
 // actual module object, and .default on THAT is the React component.
 // Mirrors the pattern in scripts/send-test-emails.mts.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Release = (ReleaseMod as any).default ?? ReleaseMod;
 const ReleaseEmail = Release.default ?? Release;
 const releaseEmailSubject = Release.releaseEmailSubject;

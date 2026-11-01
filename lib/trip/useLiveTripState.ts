@@ -46,7 +46,6 @@ export function useLiveTripState(
     const timer = setTimeout(recompute, Math.max(1000, nextMidnight.getTime() - now.getTime()));
     return () => clearTimeout(timer);
     // initial is a server-computed value stable across renders for a given trip.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate, endDate, initial.timeZone, initial.timeZoneSource]);
 
   return state;

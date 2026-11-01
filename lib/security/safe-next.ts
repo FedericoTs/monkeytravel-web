@@ -38,7 +38,6 @@ export function isSafeNext(next: string | null | undefined): next is string {
   // Reject control chars (CR/LF/tab + the whole C0 + DEL range). These
   // would let an attacker inject a second header or terminate the
   // Location value early.
-  // eslint-disable-next-line no-control-regex
   if (/[\x00-\x1F\x7F]/.test(next)) return false;
   // Reject any backslash — see rule above.
   if (next.includes("\\")) return false;
