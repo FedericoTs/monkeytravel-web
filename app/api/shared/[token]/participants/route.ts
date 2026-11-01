@@ -15,6 +15,7 @@ import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { PARTICIPANT_COOKIE, isUuid } from "@/lib/participants/shared";
 import { participantsSnapshot } from "@/lib/participants/snapshot";
+import { readSharedTrip } from "@/lib/trips/shared-trip";
 
 export async function GET(_request: NextRequest, context: InviteTokenRouteContext) {
   try {
@@ -26,15 +27,8 @@ export async function GET(_request: NextRequest, context: InviteTokenRouteContex
       return errors.badRequest("Invalid share token");
     }
     const admin = createAdminClient();
-    const { data: trip, error } = await admin
-      .from("trips")
-      .select("id")
-      .eq("share_token", token)
-      .is("deleted_at", null)
-      .single();
-    if (error || !trip) {
-      return errors.notFound("Shared trip not found");
-    }
+    const { trip, errorResponse } = await readSharedTrip<{ id: string }>(admin, token, "id");
+    if (errorResponse) return errorResponse;
     const cookieId = (await cookies()).get(PARTICIPANT_COOKIE)?.value;
     const { data: auth } = await (await createClient()).auth.getUser();
     return apiSuccess(await participantsSnapshot(admin, trip.id, cookieId, auth.user?.id ?? null));

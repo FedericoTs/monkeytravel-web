@@ -20,6 +20,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
+import { readSharedTrip } from "@/lib/trips/shared-trip";
 
 const COOKIE_NAME = "mt_anon_voter";
 
@@ -37,16 +38,8 @@ export async function GET(_request: NextRequest, context: InviteTokenRouteContex
 
     const supabase = createAdminClient();
 
-    const { data: trip, error: tripError } = await supabase
-      .from("trips")
-      .select("id")
-      .eq("share_token", token)
-      .is("deleted_at", null)
-      .single();
-
-    if (tripError || !trip) {
-      return errors.notFound("Shared trip not found");
-    }
+    const { trip, errorResponse } = await readSharedTrip<{ id: string }>(supabase, token, "id");
+    if (errorResponse) return errorResponse;
 
     // Pull every vote for the trip in one query. For a typical 7-day trip
     // with ~30 activities and maybe 5-10 voters, this is <300 rows — cheaper

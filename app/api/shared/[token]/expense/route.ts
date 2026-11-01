@@ -23,6 +23,7 @@ import { PARTICIPANT_COOKIE, PARTICIPANT_COOKIE_MAX_AGE_SECONDS, isUuid } from "
 import { expensesSnapshot } from "@/lib/expenses/snapshot";
 import { writeTripExpense, type TripExpenseBody } from "@/lib/expenses/write";
 import { announceTodayChange } from "@/lib/today/write";
+import { readSharedTrip } from "@/lib/trips/shared-trip";
 
 const ipLimiter = createRateLimiter("expense-ip", 30, 60_000);
 const cookieTripLimiter = createRateLimiter("expense-cookie-trip", 15, 60_000);
@@ -48,13 +49,12 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     if (!body || typeof body !== "object") return errors.badRequest("Invalid request body");
 
     const admin = createAdminClient();
-    const { data: trip, error: tripError } = await admin
-      .from("trips")
-      .select("id, user_id, trip_meta, budget")
-      .eq("share_token", token)
-      .is("deleted_at", null)
-      .single();
-    if (tripError || !trip) return errors.notFound("Shared trip not found");
+    const { trip, errorResponse } = await readSharedTrip<{ id: string; user_id: string | null; trip_meta: unknown; budget: unknown }>(
+      admin,
+      token,
+      "id, user_id, trip_meta, budget",
+    );
+    if (errorResponse) return errorResponse;
 
     let cookieId = existingCookie;
     let issuedCookie = false;

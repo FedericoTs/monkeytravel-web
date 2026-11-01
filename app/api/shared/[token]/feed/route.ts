@@ -17,6 +17,7 @@ import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { PARTICIPANT_COOKIE, isUuid } from "@/lib/participants/shared";
 import { feedSnapshot } from "@/lib/feed/snapshot";
 import type { ItineraryDay } from "@/types";
+import { readSharedTrip } from "@/lib/trips/shared-trip";
 
 export async function GET(_request: NextRequest, context: InviteTokenRouteContext) {
   try {
@@ -26,12 +27,12 @@ export async function GET(_request: NextRequest, context: InviteTokenRouteContex
 
     const admin = createAdminClient();
     // The trip lookup, the participant cookie and the viewer are independent.
-    const [{ data: trip, error }, cookieStore, userId] = await Promise.all([
-      admin.from("trips").select("id, user_id, itinerary").eq("share_token", token).is("deleted_at", null).single(),
+    const [{ trip, errorResponse }, cookieStore, userId] = await Promise.all([
+      readSharedTrip<{ id: string; user_id: string | null; itinerary: ItineraryDay[] | null }>(admin, token, "id, user_id, itinerary"),
       cookies(),
       signedInUserId(),
     ]);
-    if (error || !trip) return errors.notFound("Shared trip not found");
+    if (errorResponse) return errorResponse;
 
     const cookieId = cookieStore.get(PARTICIPANT_COOKIE)?.value;
     const events = await feedSnapshot(
