@@ -39,11 +39,14 @@ vi.mock("next-intl/server", async () => {
 // The invite lookup: `rpc` answers per function name, `from` per table.
 const db = vi.hoisted(() => ({
   rpc: {} as Record<string, unknown[]>,
+  // Functions the database refuses to run.
+  rpcErrors: {} as Record<string, { message: string }>,
   tables: {} as Record<string, unknown>,
 }));
 vi.mock("@supabase/supabase-js", () => ({
   createClient: () => ({
-    rpc: async (name: string) => ({ data: db.rpc[name] ?? [], error: null }),
+    rpc: async (name: string) =>
+      db.rpcErrors[name] ? { data: null, error: db.rpcErrors[name] } : { data: db.rpc[name] ?? [], error: null },
     from: (table: string) => {
       const result = db.tables[table];
       const chain: Record<string, unknown> = {
@@ -135,6 +138,7 @@ describe("the invite page's title and link preview", () => {
 
   beforeEach(() => {
     db.rpc = {};
+    db.rpcErrors = {};
     db.tables = {
       trips: {
         data: {
@@ -170,6 +174,17 @@ describe("the invite page's title and link preview", () => {
     const metadata = await metadataFor("en");
     expect(metadata.title).toBe("Join Lisbon Trip");
     expect(metadata.openGraph?.description).toBe("Ana invited you to join their trip.");
+  });
+
+  it("is not an invalid link when the database refused both reads", async () => {
+    db.rpcErrors = { get_invite_by_token: { message: "timeout" }, get_invite_status_by_token: { message: "timeout" } };
+    await expect(metadataFor("en")).rejects.toMatchObject({ message: "timeout" });
+  });
+
+  it("still names a dead invite when only the first read failed", async () => {
+    db.rpcErrors = { get_invite_by_token: { message: "timeout" } };
+    db.rpc.get_invite_status_by_token = [{ ...usable, expires_at: "2020-01-01T00:00:00Z" }];
+    expect((await metadataFor("it")).title).toBe(itCommon.invitePage.errors.expired);
   });
 
   it("names what is wrong with a dead invite", async () => {

@@ -21,6 +21,7 @@ import {
 import { isTripIndexable, publicTripAlternates } from "@/lib/seo/public-trip";
 import { clipMetaDescription } from "@/lib/seo/meta-description";
 import { tripLocale } from "@/lib/ai/language";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 const SITE_URL = "https://monkeytravel.app";
 
@@ -103,11 +104,11 @@ const getPublicTrip = cache(async (slug: string) => {
   // without the author byline + Person node.
   let author: PublicAuthor | null = null;
   if (trip.user_id) {
-    const { data: userRow } = await supabase
+    const { data: userRow } = logReadError("public trip: author", await supabase
       .from("users")
       .select(AUTHOR_COLS)
       .eq("id", trip.user_id)
-      .maybeSingle();
+      .maybeSingle());
 
     if (userRow) {
       const priv = (userRow.privacy_settings ?? {}) as Record<string, unknown>;

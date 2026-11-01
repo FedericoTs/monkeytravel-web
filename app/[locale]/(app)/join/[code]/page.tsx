@@ -3,6 +3,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ReferralLandingClient from "./ReferralLandingClient";
+import { logReadError } from "@/lib/supabase/log-read-error";
+import { isNoRow } from "@/lib/supabase/no-row";
 
 interface PageProps {
   params: Promise<{ code: string }>;
@@ -14,20 +16,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   // Find the referrer. Codes are looked up here, on the server: only a
   // code's owner can read it from the client.
-  const { data: referralCode } = await createAdminClient()
+  const { data: referralCode } = logReadError("referral page metadata: code", await createAdminClient()
     .from("referral_codes")
     .select("user_id")
     .eq("code", code.toUpperCase())
-    .single();
+    .single());
 
   let referrerName = "A friend";
 
   if (referralCode) {
-    const { data: referrer } = await supabase
+    const { data: referrer } = logReadError("referral page metadata: referrer", await supabase
       .from("public_profiles")
       .select("display_name")
       .eq("id", referralCode.user_id)
-      .single();
+      .single());
 
     if (referrer) {
       referrerName = referrer.display_name;
@@ -66,16 +68,18 @@ export default async function ReferralLandingPage({ params }: PageProps) {
     .eq("code", code.toUpperCase())
     .single();
 
-  if (error || !referralCode) {
+  // A refused read is not an unknown code.
+  if (error && !isNoRow(error)) throw error;
+  if (!referralCode) {
     notFound();
   }
 
   // Get referrer info
-  const { data: referrer } = await supabase
+  const { data: referrer } = logReadError("referral page: referrer", await supabase
     .from("public_profiles")
     .select("display_name, avatar_url")
     .eq("id", referralCode.user_id)
-    .single();
+    .single());
 
   return (
     <ReferralLandingClient

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 export const metadata = {
   // Root layout appends " | MonkeyTravel" — don't double it.
@@ -45,20 +46,22 @@ export default async function AdminFeedbackPage() {
   if (!isAdmin(user.email)) redirect("/");
 
   const admin = createAdminClient();
-  const { data } = await admin
+  const { data, error } = await admin
     .from("user_feedback")
     .select(
       "id, user_id, source, uses_for, almost_stopped, last_booked_where, would_book_through_us, open_to_chat, contact_email, created_at"
     )
     .order("created_at", { ascending: false })
     .limit(500);
+  // A refused read is not "No responses yet".
+  if (error) throw error;
   const rows = (data ?? []) as FeedbackRow[];
 
   // Exact total — the row fetch is capped at 500, so rows.length silently
   // under-counts once the table grows past the cap.
-  const { count: totalCount } = await admin
+  const { count: totalCount } = logReadError("admin feedback: total", await admin
     .from("user_feedback")
-    .select("id", { count: "exact", head: true });
+    .select("id", { count: "exact", head: true }));
   const total = totalCount ?? rows.length;
   const truncated = total > rows.length;
 

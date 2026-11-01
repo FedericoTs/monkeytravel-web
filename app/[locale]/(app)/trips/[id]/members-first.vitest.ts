@@ -46,6 +46,7 @@ type World = {
   visibility: "private" | "public";
   isHidden?: boolean;
   displayName?: string | null; // the viewer's public.users.display_name
+  refusing?: "trips" | "trip_collaborators"; // a table whose reads the database refuses
 };
 let world: World;
 let lastByline: string | undefined;
@@ -94,6 +95,7 @@ function fakeSupabase() {
       let head = false;
       let cols = "";
       const lookup = async () => {
+        if (world.refusing === table) return { data: null, error: { code: "57014", message: "canceling statement due to statement timeout" } };
         if (table === "users") return { data: { display_name: world.displayName ?? null }, error: null };
         if (table === "trips") {
           if (refusedColumns(cols)) return PERMISSION_DENIED;
@@ -178,6 +180,23 @@ describe("the auth server's check runs alongside the trip read", () => {
     fake.auth.getUser = async () => ({ data: { user: null } });
     vi.mocked(createServerClient).mockReturnValueOnce(fake as never);
     expect(await visit()).toEqual({ redirect: `/auth/login?redirect=${encodeURIComponent(`/trips/${TRIP}`)}` });
+  });
+});
+
+describe("a read the database refused", () => {
+  // Each read decides between the editor, the public page and a 404, so a
+  // refused one goes to the error page instead of reading as "not yours".
+  it("for the owner's trip is the error page, not a 404", async () => {
+    world.user = OWNER;
+    world.refusing = "trips";
+    await expect(visit()).rejects.toMatchObject({ code: "57014" });
+  });
+
+  it("for a member's membership is the error page, not a 404", async () => {
+    world.user = "mate-1";
+    world.collaborators = { "mate-1": "editor" };
+    world.refusing = "trip_collaborators";
+    await expect(visit()).rejects.toMatchObject({ code: "57014" });
   });
 });
 

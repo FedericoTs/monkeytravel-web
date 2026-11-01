@@ -19,6 +19,7 @@ import { returnsToPage } from "@/lib/auth/first-login";
 import { splitLocalePrefix } from "@/lib/auth/callback-url";
 import { withStoredReferral } from "@/lib/referral/client";
 import { logWriteError } from "@/lib/supabase/log-write-error";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -104,11 +105,11 @@ function LoginForm() {
         });
 
         // Check if user needs to complete welcome flow first
-        const { data: profile } = await supabase
+        const { data: profile } = logReadError("login: profile", await supabase
           .from("users")
           .select("welcome_completed, onboarding_completed, login_count")
           .eq("id", user.id)
-          .single();
+          .single());
 
         // Increment login count for returning users
         if (profile) {
