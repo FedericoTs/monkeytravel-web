@@ -72,14 +72,19 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       return errors.badRequest("Invalid category");
     }
 
-    // Get max sort_order for this trip
-    const { data: maxOrderItem } = await supabase
+    // Get max sort_order for this trip (none yet: the item goes first)
+    const { data: maxOrderItem, error: orderError } = await supabase
       .from("trip_checklists")
       .select("sort_order")
       .eq("trip_id", tripId)
       .order("sort_order", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
+
+    if (orderError) {
+      console.error("[Checklist] Error reading the last position:", orderError);
+      return errors.internal("Failed to create checklist item", "Checklist");
+    }
 
     const sortOrder = (maxOrderItem?.sort_order || 0) + 1;
 
