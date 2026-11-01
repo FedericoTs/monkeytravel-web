@@ -34,9 +34,10 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
       # next/font/google downloads the fonts during the build, and a dropped
-      # download fails it, so the build gets a second try.
+      # download fails it. The build gets two more tries, a while apart and
+      # without .next: a retry that reuses it fails again at once.
       - name: Build
-        run: npm run build || npm run build
+        run: npm run build || (rm -rf .next && sleep 30 && npm run build) || (rm -rf .next && sleep 90 && npm run build)
       - name: Test the public pages
         env:
           BASE_URL: http://localhost:3000
