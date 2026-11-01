@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
         : null;
 
     // The owner and invited editors may undo an assistant change
-    // (lib/ai/assistant-access.ts); this was owner-only until 2026-09-25.
+    // (lib/ai/assistant-access.ts).
     const { data: trip, error: tripError } = await supabase
       .from("trips")
       .select("id, user_id")

@@ -392,9 +392,8 @@ export async function POST(request: NextRequest) {
     const languageRule = writesIn ? `\n\nAnswer in ${LANGUAGE_NAMES[writesIn]}.` : "";
 
     // Call Gemini. Routed via model-router → concierge maps to
-    // gemini-2.5-flash per the 2026-05-31 audit (audit bumped this from
-    // the previous flash-lite to flash for better contextual answers on
-    // longer trip plans — flash-lite struggled with multi-day context).
+    // gemini-2.5-flash, not flash-lite, which struggles with multi-day
+    // context.
     const apiKey = process.env.GOOGLE_AI_API_KEY;
     if (!apiKey) {
       return errors.serviceUnavailable("AI not configured");

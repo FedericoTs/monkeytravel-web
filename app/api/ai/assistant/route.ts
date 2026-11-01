@@ -1070,9 +1070,8 @@ export async function POST(request: NextRequest) {
 
     // STRUCTURAL intents first (add_day / apply_draft) — they must outrank
     // the single-activity patterns: the legacy `lowerMsg.includes("add ")`
-    // fallback is what turned "can you add a day to travel to Voss" into an
-    // add-activity landing on Day 1 (transcript, 2026-07). See
-    // lib/ai/assistant/structural.ts for the heuristics + evidence.
+    // fallback would turn "can you add a day to travel to Voss" into an
+    // add-activity landing on Day 1. See lib/ai/assistant/structural.ts.
     const structuralIntent = detectStructuralIntent(message);
 
     // Then the wizard's edit engine (lib/ai/assistant/trip-edits.ts): the
@@ -1263,9 +1262,9 @@ export async function POST(request: NextRequest) {
       console.log(`[AI Assistant] Attempting to add activity: "${actionIntent.preference}"`);
 
       try {
-        // The day the user named. It used to default to Day 1, which is how a
-        // Day 5 cruise-port stop landed on Day 1 (2026-09-20); a one-day trip
-        // is the only case where there is nothing to ask.
+        // The day the user named, never a default Day 1 (a "day 5" stop would
+        // land on Day 1); a one-day trip is the only case where there is
+        // nothing to ask.
         const targetDayNumber = actionIntent.dayNumber ?? (modifiedItinerary.length === 1 ? 1 : undefined);
         const targetDayIndex = targetDayNumber === undefined ? -1 : targetDayNumber - 1;
         const targetDay = targetDayIndex >= 0 ? modifiedItinerary[targetDayIndex] : undefined;
@@ -1641,10 +1640,8 @@ Return ONLY a JSON array with the optimal order of activity indices:
     // untouched and the reply must say so).
     let draftUnmappedDayNumbers: number[] = [];
 
-    // Handle ADD_DAY (structural): append ONE new day after the last one.
-    // Transcript evidence (2026-07): "can you add a day to travel to Voss" —
-    // the old pipeline narrated "extended with a new Day 12" while the
-    // logged action was {type: add_activity, dayNumber: 1}. This path
+    // Handle ADD_DAY (structural): append ONE new day after the last one
+    // ("can you add a day to travel to Voss"). This path
     // proposes a real Day N+1 (confirm-first) and moves the trip's end date
     // together with the itinerary on apply. The edit engine handles it first.
     if (structuralIntent.type === "add_day" && !tripEdits) {
@@ -1741,10 +1738,9 @@ Return ONLY a JSON array with the optimal order of activity indices:
       }
     }
 
-    // Handle APPLY_DRAFT (structural): the user pasted a multi-day plan.
-    // Transcript evidence (2026-07): three different users pasted full
-    // drafts — "rearrange as per my own draft", "update all days according
-    // to my input" — and the single-activity tools could only mangle them.
+    // Handle APPLY_DRAFT (structural): the user pasted a multi-day plan
+    // ("rearrange as per my own draft", "update all days according to my
+    // input"), which the single-activity tools could only mangle.
     // Maps the draft onto the CURRENT trip length and proposes ONE bulk
     // multi-day edit. Never changes trip length (that's add_day's job).
     if (structuralIntent.type === "apply_draft") {
@@ -1992,9 +1988,8 @@ Respond with valid JSON only.`;
     }
 
     // The words as well as the cards. Nothing was saved on this turn, so the
-    // reply may not say otherwise, whatever the prompt got out of the model:
-    // one user got eight such replies in three days (2026-09-20..22) with the
-    // prompt rule in place, and deleted the trip. lib/ai/assistant/honesty.ts.
+    // reply may not say otherwise, whatever the prompt got out of the model
+    // (the prompt rule alone doesn't hold). lib/ai/assistant/honesty.ts.
     // "Noted" and "recorded" claim a memory this assistant does not have:
     // only the last few messages come back with the next prompt.
     let honestyGuarded = false;

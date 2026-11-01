@@ -70,9 +70,8 @@ export async function POST(request: NextRequest) {
     const { tripId, changeType, oldActivity, newActivity, dayNumber, activity, oldDuration, newDuration, activities, day, days, shiftByDays, conversationId } = body;
 
     // Validate based on change type.
-    // Bug-bounty 2026-05-24 P1: `!dayNumber` rejected `dayNumber === 0`
-    // (falsy) — but 0 is a perfectly valid first day in trips that use
-    // 0-indexed day numbering. Check type explicitly instead.
+    // A type check, not `!dayNumber`: 0 is a valid first day in trips that
+    // use 0-indexed day numbering.
     if (!tripId || !changeType || typeof dayNumber !== "number") {
       return errors.badRequest("Missing required fields: tripId, changeType, dayNumber");
     }
@@ -109,7 +108,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch current trip. The owner and invited editors may apply
-    // (lib/ai/assistant-access.ts); this was owner-only until 2026-09-25.
+    // (lib/ai/assistant-access.ts).
     const { data: trip, error: tripError } = await supabase
       .from("trips")
       .select(TRIP_COLUMNS)
