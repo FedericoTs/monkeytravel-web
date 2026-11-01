@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * A guest's way out of a trip's daily plan. The digest fan-out mails the
@@ -17,9 +18,12 @@ function fail(stage: "read" | "write", err: { message: string }): never {
 
 /** The trip's name as the digest shows it, for the unsubscribe page; null when unknown. */
 export async function guestDigestTripName(admin: SupabaseClient, participantId: string): Promise<string | null> {
-  const { data: row } = await admin.from("trip_participants").select("trip_id").eq("id", participantId).maybeSingle();
+  const { data: row } = logReadError(
+    "unsubscribe: participant",
+    await admin.from("trip_participants").select("trip_id").eq("id", participantId).maybeSingle(),
+  );
   if (!row?.trip_id) return null;
-  const { data: trip } = await admin.from("trips").select("title").eq("id", row.trip_id).maybeSingle();
+  const { data: trip } = logReadError("unsubscribe: trip name", await admin.from("trips").select("title").eq("id", row.trip_id).maybeSingle());
   const name = typeof trip?.title === "string" ? trip.title.replace(/\s+Trip\s*$/i, "").trim() : "";
   return name || null;
 }

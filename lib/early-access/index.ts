@@ -7,6 +7,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
+import { isNoRow } from "@/lib/supabase/no-row";
 
 export interface EarlyAccessStatus {
   hasAccess: boolean;
@@ -109,11 +110,19 @@ export async function redeemTesterCode(
   const normalizedCode = code.trim().toUpperCase();
 
   // Check if user already has access
-  const { data: existingAccess } = await supabase
+  const { data: existingAccess, error: accessError } = await supabase
     .from("user_tester_access")
     .select("code_used")
     .eq("user_id", userId)
     .single();
+
+  if (accessError && !isNoRow(accessError)) {
+    console.error("[early-access] access read failed:", accessError.message);
+    return {
+      success: false,
+      error: "Failed to redeem code. Please try again.",
+    };
+  }
 
   if (existingAccess) {
     return {

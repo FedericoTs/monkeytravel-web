@@ -9,6 +9,7 @@ import { formatDateRange, resolveLocale } from "@/lib/email/reminder-locale";
 import { blockingDefects, summarizeDefects, verifyRenderedEmail } from "@/lib/email/verify-render";
 import { getTripDestination } from "@/lib/trips/destination";
 import { isParticipantDigestEnabled } from "./flag";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * "Here's the plan" (lib/email/templates/ParticipantPlan.tsx) for an address
@@ -42,11 +43,12 @@ interface PlanEmailArgs {
 /** Sends the plan email. Never throws; what happened is the return value, for the log. */
 export async function sendParticipantPlanEmail(admin: SupabaseClient, args: PlanEmailArgs): Promise<string> {
   try {
-    const { data: trip } = await admin
+    const { data: trip, error: tripError } = await admin
       .from("trips")
       .select("title, start_date, end_date, destination:trip_meta->>destination, trip_locale:trip_meta->>locale")
       .eq("id", args.tripId)
       .maybeSingle();
+    if (tripError) throw tripError;
     if (!trip) return "no_trip";
     // "You said you're going" is wrong once the trip is over.
     const today = new Date().toISOString().slice(0, 10);
@@ -63,13 +65,13 @@ export async function sendParticipantPlanEmail(admin: SupabaseClient, args: Plan
     // The daily plan is promised only when it is queued for this trip and goes to participants.
     let digest = false;
     if (isParticipantDigestEnabled()) {
-      const { data: queued } = await admin
+      const { data: queued } = logReadError("plan email: queued digest", await admin
         .from("scheduled_notifications")
         .select("id")
         .eq("trip_id", args.tripId)
         .like("slot", "in_trip_day_%")
         .eq("status", "pending")
-        .limit(1);
+        .limit(1));
       digest = (queued?.length ?? 0) > 0;
     }
 

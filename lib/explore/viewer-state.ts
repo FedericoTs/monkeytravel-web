@@ -2,6 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 const SAVER_COOKIE = "mt_saver_cookie";
 
@@ -58,11 +59,11 @@ export async function getTripViewerState(
         const svc = createServiceClient(url, key, {
           auth: { persistSession: false, autoRefreshToken: false },
         });
-        const { count } = await svc
+        const { count } = logReadError("explore: guest save", await svc
           .from("trip_saves")
           .select("id", { head: true, count: "exact" })
           .eq("trip_id", tripId)
-          .eq("saver_cookie_id", cookieId);
+          .eq("saver_cookie_id", cookieId));
         hasSaved = (count ?? 0) > 0;
       }
     }

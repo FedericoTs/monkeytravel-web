@@ -97,7 +97,8 @@ export async function approveProposal(
     if (statusError) throw statusError;
     if (rows?.length) return { ok: true };
 
-    const { data: now } = await admin.from("activity_proposals").select("status").eq("id", proposal.id).maybeSingle();
+    const { data: now, error: nowError } = await admin.from("activity_proposals").select("status").eq("id", proposal.id).maybeSingle();
+    if (nowError) throw nowError;
     return now?.status === "approved" ? { ok: true } : { ok: false, reason: "resolved" };
   } catch (error) {
     console.error("[proposals] approval failed", {

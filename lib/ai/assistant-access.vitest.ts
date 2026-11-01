@@ -40,6 +40,17 @@ describe("resolveAssistantRole", () => {
   it("an ownerless trip belongs to nobody", async () => {
     expect(await resolveAssistantRole(supabase, { id: "t", user_id: null }, "stranger")).toBeNull();
   });
+
+  it("does not answer for an editor whose role can't be read", async () => {
+    const failing = {
+      from: () => {
+        const q = { select: () => q, eq: () => q, maybeSingle: async () => ({ data: null, error: { message: "timeout" } }) };
+        return q;
+      },
+    } as unknown as SupabaseClient;
+    await expect(resolveAssistantRole(failing, trip, "mate-1")).rejects.toThrow(/assistant role/);
+    expect(await resolveAssistantRole(failing, trip, "owner-1")).toBe("owner");
+  });
 });
 
 describe("date-changing assistant changes", () => {

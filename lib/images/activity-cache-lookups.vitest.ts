@@ -75,6 +75,8 @@ type PlaceRow = ReturnType<typeof placeRow>;
 let places: Map<string, PlaceRow>;
 let lookups: Map<string, string>;
 let lookupError: { message: string } | null;
+/** The place_id dedup read (places_v2 by place_id) fails with this. */
+let dedupError: { message: string } | null;
 let rpcError: { code: string; message: string } | null;
 /** What Text Search finds for a query; absent means no match. */
 let searchable: Record<string, { id: string; name: string }>;
@@ -97,6 +99,7 @@ function answer(q: FakeQuery): { data: unknown; error: unknown } {
     return { data: q.end === "list" ? rows : (rows[0] ?? null), error: null };
   }
   if (q.table === "places_v2" && q.op === "select") {
+    if (dedupError) return { data: null, error: dedupError };
     return { data: places.get(eqOf(q, "place_id") as string) ?? null, error: null };
   }
   if (q.table === "api_config") {
@@ -254,6 +257,7 @@ beforeEach(() => {
   failing = new Set();
   googleFacts = {};
   lookupError = null;
+  dedupError = null;
   rpcError = null;
   legacy.length = 0;
   legacyRows.clear();
@@ -448,6 +452,17 @@ describe("enrichment (paid lookups)", () => {
     // Paid calls still log a row each as they are made (8 inserts), and the
     // misses still read and write their own cache rows (5).
     expect(result.roundTrips).toEqual({ cacheLookups: 1, configReads: 0, logInserts: 9, hitCountWrites: 1, total: 16 });
+  });
+});
+
+describe("a place_id dedup read the database refused", () => {
+  it("goes to the legacy cache, without paying for the place again or rewriting its row", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    dedupError = { message: "canceling statement due to statement timeout" };
+    const result = await run([day(["Il Colosseo", "attraction"])], { maxPaidLookups: 8 });
+    expect(result.google.filter((call) => call.includes("/places/ChIJcolosseum"))).toEqual([]);
+    expect(result.cacheWrites.filter((write) => write.startsWith('["places_v2",'))).toEqual([]);
+    expect(result.legacy).toHaveLength(1);
   });
 });
 

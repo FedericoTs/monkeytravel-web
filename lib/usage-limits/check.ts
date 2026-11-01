@@ -67,11 +67,12 @@ const getUserReferralTier = cache(
   async (userId: string): Promise<ReferralTierLevel> => {
     try {
       const supabase = await createClient();
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("users")
         .select("referral_tier")
         .eq("id", userId)
         .single();
+      if (error) throw error;
 
       return (data?.referral_tier ?? 0) as ReferralTierLevel;
     } catch (err) {
