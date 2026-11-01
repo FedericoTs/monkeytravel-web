@@ -6,11 +6,6 @@ import PlaceGallery from "../PlaceGallery";
 import VotingSection from "../collaboration/VotingSection";
 import { useTranslations } from "next-intl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
-import {
-  convertPriceLevelToRange,
-  formatEstimatedPrice,
-  type VerifiedPriceData,
-} from "@/lib/utils/pricing";
 import { getActivityTypeColors } from "@/lib/constants/activityColors";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { PhotoCredit } from "../ui/PhotoCredit";
@@ -100,8 +95,6 @@ function EditableActivityCard({
     name: activity.name,
     description: activity.description,
   });
-  const [verifiedPrice] = useState<VerifiedPriceData | null>(null);
-  const [priceLoading] = useState(false);
 
   // Handle photo capture from PlaceGallery
   const handlePhotoCapture = (photoUrl: string) => {
@@ -109,50 +102,6 @@ function EditableActivityCard({
       onPhotoCapture(activity.id, photoUrl);
     }
   };
-
-  // DISABLED: Price verification via Google Places API
-  // This was causing $0.032 per activity card = massive costs
-  // Each page view with 15 activities = $0.48
-  // TODO: Re-enable with proper caching (localStorage + server cache) or lazy-load on "More" click
-  //
-  // useEffect(() => {
-  //   if (!priceableTypes.includes(activity.type)) return;
-  //   if (fetchedActivityRef.current === activityKey) return;
-  //
-  //   const fetchVerifiedPrice = async () => {
-  //     fetchedActivityRef.current = activityKey;
-  //     setPriceLoading(true);
-  //     try {
-  //       const response = await fetch("/api/places", {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({
-  //           query: `${activity.name} ${activity.address || activity.location}`,
-  //           maxPhotos: 1,
-  //         }),
-  //       });
-  //       if (response.ok) {
-  //         const data = await response.json();
-  //         if (data.priceRange || data.priceLevel !== undefined || data.priceLevelSymbol) {
-  //           setVerifiedPrice({
-  //             priceRange: data.priceRange,
-  //             priceLevel: data.priceLevel,
-  //             priceLevelSymbol: data.priceLevelSymbol,
-  //             priceLevelLabel: data.priceLevelLabel,
-  //           });
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error("Failed to fetch verified price:", error);
-  //     } finally {
-  //       setPriceLoading(false);
-  //     }
-  //   };
-  //   fetchVerifiedPrice();
-  // }, [activityKey, activity.name, activity.address, activity.location, activity.type]);
-
-  // Always show AI estimate instead - no API call needed (priceLoading stays
-  // at its initial false; the old reset-effect was a no-op).
 
   // Generate URLs
   const mapSearchQuery = encodeURIComponent(
@@ -505,58 +454,15 @@ function EditableActivityCard({
               {/* Price */}
               {!isEditing && (
                 <div className="sm:text-right flex-shrink-0 mt-1 sm:mt-0">
-                  {priceLoading ? (
-                    <div className="h-6 w-16 bg-slate-100 rounded animate-pulse" />
-                  ) : verifiedPrice?.priceRange ? (
-                    // Show verified Google price range when available (e.g., "EUR 40-50")
-                    <>
-                      <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
-                        {verifiedPrice.priceRange}
-                      </div>
-                      <div className="text-[10px] text-green-600 hidden sm:flex items-center gap-1 justify-end">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        {t('activity.googleVerified')}
-                      </div>
-                    </>
-                  ) : verifiedPrice?.priceLevel !== undefined ? (
-                    // Convert price level to estimated range (don't show $$ symbols)
-                    (() => {
-                      const priceCurrency = activity.estimated_cost?.currency || currency;
-                      const range = convertPriceLevelToRange(verifiedPrice.priceLevel, activity.type, priceCurrency);
-                      const displayPrice = range
-                        ? formatEstimatedPrice(range.min, range.max, priceCurrency)
-                        : `${priceCurrency} ${activity.estimated_cost?.amount || 0}`;
-                      return (
-                        <>
-                          <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
-                            <span className="text-slate-500 font-normal text-xs sm:text-sm">~</span>
-                            {displayPrice}
-                          </div>
-                          <div className="text-[10px] text-blue-600 hidden sm:flex items-center gap-1 justify-end" title={`Based on ${verifiedPrice.priceLevelLabel} venue tier`}>
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                            </svg>
-                            {t('activity.venueTierEstimate')}
-                          </div>
-                        </>
-                      );
-                    })()
-                  ) : (
-                    // Fallback to AI estimate
-                    <>
-                      <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
-                        <span className="text-slate-500 font-normal text-xs sm:text-sm">~</span>
-                        {activity.estimated_cost?.amount == null
-                          ? t('activity.aiEstimate')
-                          : activity.estimated_cost.amount === 0
-                          ? t('activity.free')
-                          : `${activity.estimated_cost.currency || currency} ${activity.estimated_cost.amount}`}
-                      </div>
-                      <div className="text-[10px] text-slate-500 hidden sm:block">{t('activity.aiEstimate')}</div>
-                    </>
-                  )}
+                  <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
+                    <span className="text-slate-500 font-normal text-xs sm:text-sm">~</span>
+                    {activity.estimated_cost?.amount == null
+                      ? t('activity.aiEstimate')
+                      : activity.estimated_cost.amount === 0
+                      ? t('activity.free')
+                      : `${activity.estimated_cost.currency || currency} ${activity.estimated_cost.amount}`}
+                  </div>
+                  <div className="text-[10px] text-slate-500 hidden sm:block">{t('activity.aiEstimate')}</div>
                 </div>
               )}
             </div>

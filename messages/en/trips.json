@@ -510,9 +510,7 @@
     "moreInfo": "More Info",
     "booking": "Booking",
     "insiderTips": "Insider Tips",
-    "aiEstimate": "AI estimate",
-    "googleVerified": "Google verified",
-    "venueTierEstimate": "Venue tier estimate"
+    "aiEstimate": "AI estimate"
   },
   "detail": {
     "cancelTrip": {

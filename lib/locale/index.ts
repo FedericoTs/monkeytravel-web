@@ -63,8 +63,6 @@ export {
   getCurrencySymbol,
   convertAndFormatCurrency,
   isCurrencySupported,
-  parsePriceRange,
-  parseCurrencyString,
   SUPPORTED_CURRENCIES,
 } from "./currency";
 
