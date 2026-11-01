@@ -5,13 +5,11 @@ import { NextRequest } from "next/server";
 /**
  * The wizard's anonymous generations count against the 5-a-day cap.
  *
- * The streaming route recorded an anonymous generation after the stream
- * ended, by setting the mt_anon cookie through cookies(). By then the
- * response headers were long sent, so the cookie never reached the browser
- * and the cap (and the "sign up to keep generating" ask it drives) never
- * applied to the wizard. Verified on production 2026-09-25: a fresh 14-day
- * generation left no mt_anon cookie. It is now recorded before the stream
- * starts. These tests call the route WITHOUT reading the stream: anything
+ * The streaming route records an anonymous generation (the mt_anon cookie,
+ * through cookies()) before the stream starts: after it, the response
+ * headers are long sent, the cookie never reaches the browser, and the cap
+ * (and the "sign up to keep generating" ask it drives) never applies. These
+ * tests call the route WITHOUT reading the stream: anything
  * recorded by then was recorded while the headers could still carry it.
  */
 

@@ -21,15 +21,14 @@ import { createClient } from "@/lib/supabase/server";
 import type { ItineraryDay } from "@/types";
 
 // Fire-and-forget observability write (anon_assistant_logs, service-role
-// only). The anon assistant is the highest-traffic AI surface but left no
-// transcripts — refusal/friction patterns (e.g. the Legoland case in the
-// session replays, 2026-07-03 diagnosis) were invisible in our data while
-// the authed assistant persists to ai_conversations. Never blocks or fails
-// the response.
+// only). The anon assistant is the highest-traffic AI surface; without this
+// its refusal and friction patterns would be invisible in our data, while the
+// signed-in assistant persists to ai_conversations. Never blocks or fails the
+// response.
 //
-// waitUntil, not a dangling promise (2026-09-26): the insert used to land only
-// if the instance happened to serve another request, so ~15% of turns (23 of
-// 156 in 14 days) never reached the table, the monitoring's main lens on it.
+// waitUntil, not a dangling promise: a dangling insert lands only if the
+// instance happens to serve another request, so some turns would never reach
+// the table.
 function logAnonExchange(row: {
   session_id?: string;
   locale?: string;
@@ -57,9 +56,9 @@ function logAnonExchange(row: {
 }
 
 // 60s, not the 30s default: Gemini edit round-trips occasionally exceed 30s
-// and were dying as "Vercel Runtime Timeout Error" (17 hits / 14 users in the
-// 7 days to 2026-07-18). generate/stream uses 120s; assistant replies are
-// smaller, so 60s covers the tail without doubling worst-case compute cost.
+// and would die as "Vercel Runtime Timeout Error". generate/stream uses 120s;
+// assistant replies are smaller, so 60s covers the tail without doubling
+// worst-case compute cost.
 export const maxDuration = 60;
 
 // Anon abuse limiters. Slightly tighter per-IP than the read-only concierge
@@ -67,9 +66,9 @@ export const maxDuration = 60;
 const assistIpLimiter = createRateLimiter("anon-assistant", 30, 24 * 60 * 60 * 1000);
 const assistBurstLimiter = createRateLimiter("anon-assistant-burst", 5, 60 * 1000);
 // Signed-in travellers use this same assistant in the wizard, and heavy
-// editors send a dozen or more messages a trip (one did 16 in 20 minutes,
-// 2026-09-26). They were capped per IP like strangers and told to "sign up
-// (it's free)". Their own allowance, keyed by account, with a true message.
+// editors send a dozen or more messages a trip. Capped per IP like
+// strangers, they would be told to "sign up (it's free)"; they get their own
+// allowance, keyed by account, with a true message.
 const assistUserLimiter = createRateLimiter("assistant-signed-in", 150, 24 * 60 * 60 * 1000);
 const assistUserBurstLimiter = createRateLimiter("assistant-signed-in-burst", 12, 60 * 1000);
 
