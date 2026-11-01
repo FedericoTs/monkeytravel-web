@@ -33,7 +33,7 @@ export interface AdminStats {
     sharedTripPct: number;           // % of trips that have a share_token
     atRiskUsers: number;             // signed up but no trip + signed in >7d ago
   };
-  // Consent-free cohort funnel by signup provider (2026-09-02), plus the
+  // Consent-free cohort funnel by signup provider, plus the
   // signed-out share loop. Definitions in lib/admin/activation-funnel.ts.
   activationFunnel: ActivationFunnelStats;
   // Churn Metrics
@@ -664,7 +664,7 @@ async function fetchUserMetricsDirect(supabase: SupabaseClient) {
   // here. public.users.last_sign_in_at is NULL for every row — the column
   // exists and nothing writes it. The real value lives in auth.users, which
   // PostgREST does not expose, so only get_user_metrics() (SECURITY DEFINER)
-  // can read it. Measured 2026-08-28: 0 here versus 129 actually active.
+  // can read it.
   //
   // This runs only if that RPC errors, so treat a 0 in this field as "the RPC
   // failed", not as a real number.

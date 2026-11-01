@@ -30,8 +30,7 @@ import { ensureShareToken, readShareToken } from "@/lib/trips/share-token";
  *   - itinerary has < 3 activities total
  *   - duration > 30 days
  *   - user has > 10 trips published in last 7 days
- *   (the "trip must be N hours old" gate was removed 2026-05-28 to
- *   unblock the post-save auto-prompt — see MIN_TRIP_AGE_HOURS below)
+ *   (no "trip must be N hours old" gate: see MIN_TRIP_AGE_HOURS below)
  *
  * DELETE = unpublish: off Explore; a trip with a share link stays 'shared'
  * under a new token, else 'private'. is_hidden untouched (only moderators
@@ -42,9 +41,8 @@ type RouteCtx = { params: Promise<{ id: string }> };
 
 const MAX_PUBLISHED_PER_WEEK = 10;
 /**
- * Originally 48h to give users time to edit before going public. Relaxed
- * to 0 on 2026-05-28 so the post-save auto-prompt can actually publish
- * (the prompt fires seconds after save — a 48h gate would always reject).
+ * 0, so the post-save auto-prompt can publish: it fires seconds after save,
+ * and any age gate would always reject it.
  *
  * Anti-spam is still well-defended by the remaining guards:
  *   - MIN_ACTIVITIES (≥3) — generated trips always pass; empty drafts don't
@@ -188,9 +186,9 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
   }
 
   // Anti-spam: per-user publish rate.
-  // 2026-05-28: when MIN_TRIP_AGE_HOURS dropped to 0 (auto-prompt
-  // requirement) we lost the buffer that used to slow new-account abuse.
-  // Compensate with an age-aware cap: accounts under 7 days old can
+  // MIN_TRIP_AGE_HOURS is 0 (the auto-prompt needs it), so there is no
+  // buffer against new-account abuse. An age-aware cap instead: accounts
+  // under 7 days old can
   // publish at most 3 trips/week. Older accounts retain the full 10.
   // Still permissive enough that any honest backpacker hitting the
   // auto-prompt once per trip won't notice.

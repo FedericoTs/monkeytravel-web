@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET (validate a code without redeeming) was removed 2026-09-23. Nothing
+// There is no GET (validate a code without redeeming). Nothing
 // called it (BetaCodeInput and useEarlyAccess POST), it had no auth and no
 // rate limit, and once code lookups moved to the service role it would have
 // told an anonymous caller which strings are real codes and whether each is

@@ -11,9 +11,8 @@ import { staleReason } from "@/lib/notifications/queue";
  * that has no idea what it is talking about.
  *
  * This cannot fire while the queue is punctual. It exists for the release of a
- * held or backed-up batch, which has already happened: 670 rows were held
- * under `manual_hold_2026_08_27`, and on 2026-08-31 one live row was a
- * `morning_of` for a trip that had started the day before.
+ * held or backed-up batch, which happens: after a manual hold, a `morning_of`
+ * row can come due for a trip that started the day before.
  */
 
 const TODAY = new Date("2026-09-10T07:00:00Z");
@@ -71,7 +70,7 @@ describe("a reminder sent on time is sent", () => {
 
 describe("a reminder whose moment has passed is suppressed", () => {
   it("does not tell someone their trip is tomorrow when it began yesterday", () => {
-    // The live row found on 2026-08-31.
+    // The case a held batch produces.
     expect(staleReason("morning_of", startsIn(-1), TODAY)).toMatch(/^stale_morning_of/);
   });
 

@@ -13,10 +13,9 @@ import { normalizeRecipient } from "@/lib/email/recipient";
  *   lib/email/send.ts     .eq("recipient_email", recipient)
  *   optOutMarketing       .ilike("email", e)
  *
- * so "jane doe <jane.doe@example.com>" matched neither. Production held
- * exactly one such row (fixed 2026-08-27): a hard bounce for a registered
- * user that had never suppressed a single send. The row LOOKED right in the
- * table, which is why nothing surfaced it.
+ * so "jane doe <jane.doe@example.com>" would match neither: a hard bounce for
+ * a registered user that never suppresses a single send, while the row LOOKS
+ * right in the table.
  *
  * The cost is asymmetric — a false suppression drops mail to a good address,
  * a missed one torches domain reputation — so the display-name cases matter

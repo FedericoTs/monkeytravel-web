@@ -32,10 +32,10 @@ export async function GET() {
     // referrer_id and status. Neither column exists (the referrer is reached
     // through referral_code_id, and the status column is reward_status), so
     // the query failed with 42703 on every call and the dashboard always
-    // showed 0 pending. Counting events would still be wrong: before
-    // 2026-09-23 the conversion-event insert ran on the user's client, which
-    // cannot insert there, so conversions are missing from referral_events
-    // while total_conversions has them. Signed up but not yet converted is
+    // showed 0 pending. Counting events would still be wrong: older
+    // conversions are missing from referral_events (the insert once ran on the
+    // user's client, which cannot insert there) while total_conversions has
+    // them. Signed up but not yet converted is
     // total_signups - total_conversions; attach_referral_on_signup and
     // increment_referral_conversions keep both counters atomically.
     // maybeSingle: an account with no code yet is not an error.

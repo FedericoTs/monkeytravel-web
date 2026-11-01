@@ -1,8 +1,8 @@
 /**
  * Batch geocoding — INTENTIONALLY DORMANT, DO NOT DELETE AS DEAD CODE.
  *
- * `google_geocoding` has been disabled in `api_config` since 2025-12-06 on cost
- * grounds, so this route returns 503. It has no callers left:
+ * `google_geocoding` is disabled in `api_config` on cost grounds, so this
+ * route returns 503. It has no callers left:
  * c91cb8e removed the three that remained, because a 503 is not a useful thing
  * to send a user (HotelRecommendations was rendering "Could not find
  * destination coordinates" at them, for a failure no retry could fix).

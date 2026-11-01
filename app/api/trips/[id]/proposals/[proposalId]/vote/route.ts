@@ -19,9 +19,8 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // SECURITY (bug-bounty 2026-05-24 P0): trip-access check first.
-    // Previously any authenticated user could read votes on any proposal
-    // just by knowing the IDs.
+    // SECURITY: trip-access check first, or any signed-in user could read
+    // votes on any proposal just by knowing the IDs.
     const { errorResponse: accessError } = await verifyTripAccess(
       supabase,
       tripId,

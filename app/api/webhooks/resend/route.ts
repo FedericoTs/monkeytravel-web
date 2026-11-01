@@ -320,8 +320,8 @@ export async function POST(request: NextRequest) {
 
   // ── Inbound mail (privacy@ / legal@ / anything at the root) ──────────────
   //
-  // The root MX went live 2026-08-05 and both privacy@ and legal@ were
-  // confirmed receiving. But Resend's inbox is pull-only: mail lands and
+  // privacy@ and legal@ receive mail on the root MX. But Resend's inbox is
+  // pull-only: mail lands and
   // nothing tells anyone. A GDPR erasure request carries a 30-day statutory
   // clock, so "we'll notice next time we log in" is not a mechanism.
   //

@@ -191,11 +191,9 @@ export async function POST(request: Request) {
   // signing up on your laptop - or in any browser that dropped the verifier -
   // and you end up confirmed with no session and no way in.
   //
-  // That is not hypothetical. Measured 2026-09-02 over 60 days: email signup
-  // lost 41.3% of users before their first session (92 signups, 20 never
-  // confirmed, 18 confirmed-then-stuck) against 0.5% for Google. And the 18
-  // were not drifters - 18 of 18 requested another confirmation link, 5 tried
-  // signing up again, 3 tried a password reset. They fought to get in.
+  // That is not hypothetical: email signups lost far more people before
+  // their first session than Google signups, and the ones stuck confirmed
+  // kept asking for new links, signing up again and resetting passwords.
   //
   // token_hash + verifyOtp has no browser-bound secret, so any device can
   // complete it. app/auth/callback/route.ts:96-98 already implements exactly

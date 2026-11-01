@@ -13,9 +13,7 @@ const ALLOWED_TOPICS = new Set(["support", "partnership", "press", "feedback", "
 
 // Domains we flag as VIP in the subject line so an inbox glance is enough
 // to spot a partner-quality lead. Add freely — false positives are harmless.
-// Triggered by 2026-05-28: Hostelworld contact arrived and we had no
-// notification path, no admin UI. This is the minimum guardrail until
-// the proper /admin Messages tab ships.
+// The minimum guardrail until an /admin Messages tab exists.
 const VIP_DOMAINS = new Set([
   "hostelworld.com",
   "booking.com",
@@ -81,8 +79,8 @@ export async function POST(request: NextRequest) {
     // entry (rate limit + shape checks above). The anon-RLS WITH CHECK
     // duplicated these rules with subtle drift — JS string .length counts
     // UTF-16 units while Postgres length() counts characters, so emoji-short
-    // messages passed the route and died at RLS with 42501, silently losing
-    // real user messages (6 in the 7 days to 2026-07-18).
+    // messages would pass the route and die at RLS with 42501, silently
+    // losing real messages.
     let db;
     try {
       db = createAdminClient();

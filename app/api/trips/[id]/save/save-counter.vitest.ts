@@ -9,8 +9,8 @@ import { NextRequest } from "next/server";
  * next request mints a fresh one. Counting those would let anyone push any
  * public trip's save count and trending score up with one cookieless request
  * per point. They were never counted in practice (the anon role cannot execute
- * the counter), and when the calls moved to the service role on 2026-09-23 the
- * route had to say so explicitly, or anonymous saves would start counting and
+ * the counter), and since the calls run as the service role the route has to
+ * say so explicitly, or anonymous saves would start counting and
  * anonymous unsaves would subtract saves that signed-in people made.
  */
 

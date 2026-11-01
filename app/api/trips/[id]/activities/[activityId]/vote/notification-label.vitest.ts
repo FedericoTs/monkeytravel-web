@@ -5,9 +5,8 @@ import { NextRequest } from "next/server";
 /**
  * What the vote email tells the owner.
  *
- * The owner reads the activity label in the email. Until 2026-09-25 it was
- * the activity's id, so owners were told a friend loved "act_7f3…"; it is now
- * the activity's name.
+ * The owner reads the activity label in the email: the activity's name, not
+ * its id (a friend loving "act_7f3…" tells them nothing).
  */
 
 const TRIP = "trip-1";

@@ -190,9 +190,9 @@ export async function GET(request: NextRequest) {
 
     // Shape check before any I/O. The wizard's date field reports partial
     // years while they are typed ("0201-10-30" is a valid date to the input),
-    // and each one used to become a cache miss, an Open-Meteo request for the
-    // year 201 (HTTP 400: 82 of 626 calls in the fortnight to 2026-09-12), an
-    // api_request_logs row and a 500 to the client. Answer 400 and touch
+    // and each one would become a cache miss, an Open-Meteo request for the
+    // year 201 (HTTP 400), an api_request_logs row and a 500 to the client.
+    // Answer 400 and touch
     // nothing. SeasonalContextCard carries the same guard, so a request that
     // trips this one was not sent by the wizard.
     const latNum = Number(latitude);

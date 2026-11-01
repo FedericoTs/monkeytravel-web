@@ -82,7 +82,7 @@ describe("GET /api/bananas referral stats", () => {
 
 describe("profile page beta access", () => {
   it("reads only columns user_tester_access actually has", () => {
-    // Production columns, 2026-09-24. created_at is not one of them: selecting
+    // The table's real columns. created_at is not one of them: selecting
     // it failed every profile load with 42703.
     const columns = new Set([
       "id", "user_id", "code_id", "code_used", "ai_generations_limit", "ai_generations_used",

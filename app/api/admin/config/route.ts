@@ -41,8 +41,7 @@ export async function GET() {
     // Public response: only expose maintenance info, never allowed_emails.
     // Cache at the edge: maintenance toggles are rare and a 60s lag is
     // perfectly fine. Without this header every visitor's first request
-    // re-queries Supabase, which was a top contributor to function
-    // GB-Hours per the runtime-log audit on 2026-05-02.
+    // re-queries Supabase, a top contributor to function GB-Hours.
     return apiSuccess(
       {
         maintenance_mode: data.maintenance_mode,

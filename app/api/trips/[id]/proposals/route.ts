@@ -28,9 +28,9 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // SECURITY: any authenticated caller previously could list proposals
-    // + voter PII for ANY trip just by knowing its UUID. Caught in the
-    // 2026-05-24 bug-bounty audit (P0). Owner or any collaborator
+    // SECURITY: trip access first, or any signed-in caller could list
+    // proposals + voter PII for ANY trip just by knowing its UUID. Owner or
+    // any collaborator
     // (editor / voter / viewer) can read proposals — same scope as
     // who can see the trip itself.
     const { errorResponse: accessError } = await verifyTripAccess(
