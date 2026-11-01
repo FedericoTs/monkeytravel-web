@@ -113,8 +113,10 @@ describe("the save paths use it", () => {
   });
 
   it("new trips are stored with activity ids, in every creation path that can store id-less days", () => {
-    expect(read("app/[locale]/(app)/trips/new/NewTripWizard.tsx")).toContain("itinerary: ensureActivityIds(generatedItinerary.days),");
+    // Both wizard arms insert through persistTrip's row builder.
     expect(read("lib/trips/persistTrip.ts")).toContain("itinerary: ensureActivityIds(itinerary.days),");
+    expect(read("app/[locale]/(app)/trips/new/NewTripWizard.tsx")).toContain("{ arm: \"manual\", mountId: wizardMountIdRef.current }");
+    expect(read("app/[locale]/(app)/trips/new/NewTripWizard.tsx")).not.toContain(".rpc(\"insert_trip_dedup\"");
     // Anonymous shares are stamped by their validator (which also lets odd shapes through).
     expect(read("lib/trips/anonymous-share.ts")).toContain("itinerary: withActivityIds(b.itinerary),");
     expect(read("app/api/trips/duplicate/route.ts")).toMatch(/itinerary: Array\.isArray\(adjustedItinerary\) \? ensureActivityIds\(/);
