@@ -1187,19 +1187,6 @@ export async function capturePlanImported(event: PlanImportedEvent) {
   ph.capture("plan_imported", event);
 }
 
-/**
- * The assistant told the user it changed their plan, and the server did not
- * confirm a write. The model's own claim is not evidence, so this rate is the
- * honest measure of whether the agent does what it says. Drive it toward zero
- * by widening intent coverage, not by hiding the message.
- */
-export async function captureAssistantClaimUnverified(props: {
-  trip_id: string;
-  action_type: string;
-}) {
-  return capture("assistant_claim_unverified", props);
-}
-
 // ============================================================================
 // ANONYMOUS SHARE LOOP (hop one)
 // ============================================================================

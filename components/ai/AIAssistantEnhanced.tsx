@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { captureAssistantClaimUnverified } from "@/lib/posthog/events";
 import type { ItineraryDay, AssistantCard } from "@/types";
 import AssistantCards from "./AssistantCards";
 import StagedLoadingIndicator, { type LoadingStage } from "./StagedLoadingIndicator";
@@ -280,7 +279,7 @@ export default function AIAssistantEnhanced({
   }, []);
 
   const sendMessage = useCallback(
-    async (content: string, previewMode: boolean = true) => {
+    async (content: string) => {
       if (!content.trim() || isLoading) return;
 
       // A proposal is on screen. What happens next used to be: it is destroyed,
@@ -343,7 +342,6 @@ export default function AIAssistantEnhanced({
             message: content.trim(),
             conversationId,
             itinerary,
-            previewMode, // Request preview mode (confirm-first)
             // So figures in the answer match the prices on the page.
             display: displayCurrencyFor(itinerary, preferences?.preferredCurrency, exchangeRates),
           }),
@@ -371,7 +369,7 @@ export default function AIAssistantEnhanced({
           messageLength: content.trim().length,
         });
         // Only emit the PostHog "used" event for COMPLETED outcomes here —
-        // a chat answer or an auto-applied edit (no pending change). When the
+        // a chat answer (no pending change). When the
         // assistant PROPOSES a change (data.pendingChange), the outcome is
         // decided later: handleApplyChange emits the definitive applied event
         // on confirm, and a cancel is a non-event. This keeps ai_assistant_used
@@ -387,8 +385,9 @@ export default function AIAssistantEnhanced({
           });
         }
 
-        // Check if there's a pending change that needs confirmation
-        if (data.pendingChange && previewMode) {
+        // A prepared change waits on its card for the user's confirm; the
+        // route never saves one itself.
+        if (data.pendingChange) {
           setPendingChange(data.pendingChange);
           // Add assistant message without the "applied" indicator
           const assistantMsg = {
@@ -396,81 +395,8 @@ export default function AIAssistantEnhanced({
             action: { ...data.message.action, applied: false },
           };
           setMessages((prev) => [...prev, assistantMsg]);
-        }
-        // Normal flow - action was applied or no action needed
-        else {
-          // TRUST GUARD: only believe `action.applied` when the server proves
-          // it — `modifiedItinerary` is present iff the trips row was actually
-          // written (the route drops it on DB failure, and a model-fabricated
-          // `action` in the JSON reply never has it). Otherwise downgrade to
-          // not-applied so the honest "no changes" badge renders instead of a
-          // green confirmation for an edit that never landed. (transcripts:
-          // "I don't see the updates on the webpage")
-          const verifiedApplied =
-            !!data.message?.action?.applied && !!data.modifiedItinerary;
-
-          // The badge downgrade below was not enough on its own. Users read the
-          // PROSE, not the badge — so when the model wrote "Done! I've added it
-          // to Day 2" and nothing had been written, they saw a success sentence
-          // next to an unchanged plan and asked again. And again.
-          //
-          // Measured 2026-08-04 from ai_conversations: one session ran 14 user
-          // turns against 1 real action, cycling "have you changed the
-          // itinerary?" / "when are you gonna update it" / "i can't see the
-          // changes". That is the single most repeated utterance in the product.
-          //
-          // So when the server did NOT confirm a write, replace the claim
-          // outright instead of letting contradictory copy stand. Saying "I
-          // couldn't do that, here's what does work" ends the loop; a cheerful
-          // lie restarts it.
-          const claimedButUnverified =
-            !!data.message?.action?.applied && !verifiedApplied;
-
-          const assistantMsg: Message = claimedButUnverified
-            ? {
-                ...data.message,
-                content: `${t("notAppliedTitle")}
-
-${t("notAppliedBody")}`,
-                action: { ...data.message.action, applied: false },
-              }
-            : data.message;
-          setMessages((prev) => [...prev, assistantMsg]);
-
-          if (claimedButUnverified) {
-            // This was completely invisible before: the model's claim was
-            // persisted as applied:true server-side, so the DB said "success"
-            // while the user was typing "i really can't see any changes".
-            void captureAssistantClaimUnverified({
-              trip_id: tripId,
-              action_type: String(data.message?.action?.type ?? "unknown"),
-            }).catch(() => {});
-          }
-
-          // If action was applied, set up undo state
-          if (verifiedApplied && data.previousItinerary) {
-            pushUndo({
-              previousItinerary: data.previousItinerary,
-              action: {
-                type: data.message.action.type.replace("_activity", ""),
-                description: data.message.content,
-                activityName: data.message.action.activityName,
-                dayNumber: data.message.action.dayNumber,
-              },
-            });
-          }
-
-          if (verifiedApplied) {
-            // Refetch trip data so the itinerary UI re-renders the change
-            // (in the page's save queue, like every itinerary write).
-            if (onRefetchTrip) {
-              await run(() => onRefetchTrip());
-            }
-            // APPLY → SEE: anchor the user on the day that changed.
-            if (typeof data.message.action?.dayNumber === "number") {
-              onFocusDay?.(data.message.action.dayNumber);
-            }
-          }
+        } else {
+          setMessages((prev) => [...prev, data.message]);
         }
 
         setUsageInfo({
@@ -487,7 +413,7 @@ ${t("notAppliedBody")}`,
         setIsLoading(false);
       }
     },
-    [tripId, conversationId, isLoading, onRefetchTrip, onFocusDay, itinerary, simulateLoadingStages, clearUndo, pushUndo, pendingChange, isApplyingChange, t, failure, preferences?.preferredCurrency, exchangeRates]
+    [tripId, conversationId, isLoading, itinerary, simulateLoadingStages, clearUndo, pendingChange, isApplyingChange, t, failure, preferences, exchangeRates, setInput]
   );
 
   /**
@@ -657,7 +583,7 @@ ${t("notAppliedBody")}`,
     // Re-send the last user message with a "try different" modifier
     const lastUserMessage = messages.filter((m) => m.role === "user").pop();
     if (lastUserMessage) {
-      sendMessage(t("tryDifferent", { message: lastUserMessage.content }), true);
+      sendMessage(t("tryDifferent", { message: lastUserMessage.content }));
     }
   }, [messages, sendMessage, t]);
 
