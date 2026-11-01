@@ -20,6 +20,18 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    files: ["tests/e2e/**"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.property.name='isVisible'] > ObjectExpression > Property[key.name='timeout']",
+          message: "isVisible() ignores its timeout and answers at once: use visibleWithin() from tests/e2e/helpers.ts.",
+        },
+      ],
+    },
+  },
+  {
     files: ["scripts/**"],
     rules: {
       "@typescript-eslint/no-require-imports": "off",

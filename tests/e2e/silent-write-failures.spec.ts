@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync, existsSync } from "node:fs";
+import { visibleWithin } from "./helpers";
 
 /**
  * Writes that reported success without verifying it, and model output shown as
@@ -81,12 +82,12 @@ async function preConsent(page: import("@playwright/test").Page) {
 async function clearOverlays(page: import("@playwright/test").Page) {
   for (let attempt = 0; attempt < 3; attempt++) {
     const essential = page.getByRole("button", { name: /essential only/i });
-    if (await essential.isVisible({ timeout: attempt === 0 ? 3000 : 800 }).catch(() => false)) {
+    if (await visibleWithin(essential, attempt === 0 ? 3000 : 800)) {
       await essential.click({ force: true }).catch(() => {});
     }
     // "Skip" is not exposed as a button role, so match the text.
     const skip = page.getByText(/^\s*Skip\s*$/).first();
-    if (await skip.isVisible({ timeout: 2500 }).catch(() => false)) {
+    if (await visibleWithin(skip, 2500)) {
       await skip.click({ force: true }).catch(() => {});
       await skip.waitFor({ state: "hidden", timeout: 4000 }).catch(() => {});
     }
@@ -94,7 +95,7 @@ async function clearOverlays(page: import("@playwright/test").Page) {
     // it intercepts clicks on the page beneath — which is how this test failed
     // against production while passing locally on different timing.
     const closeAssistant = page.getByRole("button", { name: /^close$/i }).first();
-    if (await closeAssistant.isVisible({ timeout: 2000 }).catch(() => false)) {
+    if (await visibleWithin(closeAssistant, 2000)) {
       await closeAssistant.click({ force: true }).catch(() => {});
       await closeAssistant.waitFor({ state: "hidden", timeout: 4000 }).catch(() => {});
     }
