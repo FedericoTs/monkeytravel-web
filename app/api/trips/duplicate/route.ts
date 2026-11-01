@@ -11,6 +11,7 @@ import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import { copyableTripMeta } from "@/lib/trips/copy-meta";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { readJsonBody } from "@/lib/api/json-body";
+import { requireRow } from "@/lib/api/require-row";
 
 
 /**
@@ -73,16 +74,13 @@ export async function POST(request: NextRequest) {
     // user-client read refused those, and so does fork. The public page has no
     // token: by slug, only a public trip answers, as on /trip/[slug].
     const trips = createAdminClient().from("trips").select("*");
-    const { data: sourceTrip, error: fetchError } = await (bySlug
+    const { row: sourceTrip, errorResponse: fetchError } = await requireRow("shared trip", (bySlug
       ? trips.eq("public_slug", ref).eq("visibility", "public")
       : trips.eq("share_token", ref))
       .is("deleted_at", null)
       .not("is_hidden", "is", true)
-      .maybeSingle();
-
-    if (fetchError || !sourceTrip) {
-      return errors.notFound("Shared trip not found");
-    }
+      .maybeSingle(), "Shared trip not found");
+    if (fetchError) return fetchError;
 
     // Note: We allow users to duplicate the same trip multiple times
     // Each duplication creates a completely independent copy

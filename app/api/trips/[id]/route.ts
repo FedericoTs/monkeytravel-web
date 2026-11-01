@@ -9,6 +9,7 @@ import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
 import { refreshItineraryPhotos } from "@/lib/places/refreshItineraryPhotos";
 import { keepStoredPlacePhotos } from "@/lib/trips/keep-place-photos";
 import { TRIP_COLUMNS } from "@/lib/trips/columns";
+import { requireRow } from "@/lib/api/require-row";
 
 /**
  * GET /api/trips/[id] - Fetch a single trip
@@ -302,12 +303,12 @@ async function applyActivityPhoto(
   if (!supabase) return errors.internal("Failed to update trip", "Trips");
 
   for (let attempt = 0; attempt < 2; attempt++) {
-    const { data: current, error: readError } = await supabase
+    const { row: current, errorResponse: readError } = await requireRow("trip", supabase
       .from("trips")
       .select("itinerary, updated_at")
       .eq("id", tripId)
-      .single();
-    if (readError || !current) return errors.notFound("Trip not found");
+      .single(), "Trip not found");
+    if (readError) return readError;
 
     const itinerary = (Array.isArray(current.itinerary) ? current.itinerary : []) as ItineraryDay[];
     let applied = false;
