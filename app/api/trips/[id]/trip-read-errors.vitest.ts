@@ -91,3 +91,17 @@ describe("a trip that isn't there", () => {
     expect((await call()).status).toBe(404);
   });
 });
+
+describe("a row the route needs, read the database refused", () => {
+  const editItem = async () =>
+    (await import("./checklist/[itemId]/route")).PATCH(req("PATCH", { is_checked: true }), ctx({ id: TRIP, itemId: "item-1" }));
+  it.each([
+    ["activity_proposals", "voting on a proposal", handlers[1][1]],
+    ["activity_proposals", "resolving a proposal", handlers[3][1]],
+    ["trip_checklists", "editing a checklist item", editItem],
+  ] as const)("is a 500, not a 404, when %s can't be read for %s", async (table, _, call) => {
+    tripRead = { data: { id: TRIP, user_id: "user-1" }, error: null };
+    refusing = table;
+    expect((await call()).status).toBe(500);
+  });
+});

@@ -22,6 +22,7 @@ import {
 } from "@/lib/ai/assistant/structural";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { requireRow } from "@/lib/api/require-row";
 
 interface ApplyChangeRequest {
   tripId: string;
@@ -110,15 +111,12 @@ export async function POST(request: NextRequest) {
 
     // Fetch current trip. The owner and invited editors may apply
     // (lib/ai/assistant-access.ts).
-    const { data: trip, error: tripError } = await supabase
+    const { row: trip, errorResponse: tripError } = await requireRow("trip", supabase
       .from("trips")
       .select(TRIP_COLUMNS)
       .eq("id", tripId)
-      .single();
-
-    if (tripError || !trip) {
-      return errors.notFound("Trip not found");
-    }
+      .single(), "Trip not found");
+    if (tripError) return tripError;
 
     const assistantRole = await resolveAssistantRole(supabase, trip, user.id);
     if (!assistantRole) {

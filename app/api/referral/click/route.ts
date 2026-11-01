@@ -5,6 +5,7 @@ import { createHash } from "crypto";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { readJsonBody } from "@/lib/api/json-body";
+import { requireRow } from "@/lib/api/require-row";
 
 /**
  * POST /api/referral/click
@@ -23,15 +24,12 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     // Find the referral code, on the server: only a code's owner can read it.
-    const { data: referralCode, error: codeError } = await createAdminClient()
+    const { row: referralCode, errorResponse: codeError } = await requireRow("referral code", createAdminClient()
       .from("referral_codes")
       .select("id, user_id")
       .eq("code", code.toUpperCase())
-      .single();
-
-    if (codeError || !referralCode) {
-      return errors.notFound("Invalid referral code");
-    }
+      .single(), "Invalid referral code");
+    if (codeError) return codeError;
 
     // Get referrer's display name.
     //

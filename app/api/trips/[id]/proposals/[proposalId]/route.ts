@@ -21,6 +21,7 @@ import {
   calculateVoteSummary,
 } from "@/lib/proposals/consensus";
 import { readJsonBody } from "@/lib/api/json-body";
+import { requireRow } from "@/lib/api/require-row";
 
 /** Why an owner's approval did not land. */
 function approveFailed(reason: Extract<ApproveOutcome, { ok: false }>["reason"], day: number) {
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
     if (accessError) return accessError;
 
     // Fetch proposal
-    const { data: proposal, error: proposalError } = await supabase
+    const { row: proposal, errorResponse: proposalError } = await requireRow("proposal", supabase
       .from("activity_proposals")
       .select(`
         id,
@@ -80,11 +81,8 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
       `)
       .eq("id", proposalId)
       .eq("trip_id", tripId)
-      .single();
-
-    if (proposalError || !proposal) {
-      return errors.notFound("Proposal not found");
-    }
+      .single(), "Proposal not found");
+    if (proposalError) return proposalError;
 
     // Fetch votes for this proposal
     const { data: votes, error: votesError } = await supabase
@@ -218,16 +216,13 @@ export async function PATCH(request: NextRequest, context: TripProposalRouteCont
     }
 
     // Get proposal and trip info
-    const { data: proposal, error: proposalError } = await supabase
+    const { row: proposal, errorResponse: proposalError } = await requireRow("proposal", supabase
       .from("activity_proposals")
       .select("id, trip_id, proposed_by, status, target_day, activity_data")
       .eq("id", proposalId)
       .eq("trip_id", tripId)
-      .single();
-
-    if (proposalError || !proposal) {
-      return errors.notFound("Proposal not found");
-    }
+      .single(), "Proposal not found");
+    if (proposalError) return proposalError;
 
     // Check if proposal can be modified
     if (!['pending', 'voting'].includes(proposal.status)) {
@@ -325,16 +320,13 @@ export async function DELETE(request: NextRequest, context: TripProposalRouteCon
     if (errorResponse) return errorResponse;
 
     // Get proposal
-    const { data: proposal, error: proposalError } = await supabase
+    const { row: proposal, errorResponse: proposalError } = await requireRow("proposal", supabase
       .from("activity_proposals")
       .select("id, proposed_by, status")
       .eq("id", proposalId)
       .eq("trip_id", tripId)
-      .single();
-
-    if (proposalError || !proposal) {
-      return errors.notFound("Proposal not found");
-    }
+      .single(), "Proposal not found");
+    if (proposalError) return proposalError;
 
     // Check permissions (only proposer can delete)
     if (proposal.proposed_by !== user.id) {

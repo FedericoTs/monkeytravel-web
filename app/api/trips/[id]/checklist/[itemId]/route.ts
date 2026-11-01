@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripChecklistItemRouteContext } from "@/lib/api/route-context";
 import { readJsonBody } from "@/lib/api/json-body";
+import { requireRow } from "@/lib/api/require-row";
 
 /**
  * PATCH /api/trips/[id]/checklist/[itemId] - Update a checklist item
@@ -14,17 +15,14 @@ export async function PATCH(request: NextRequest, context: TripChecklistItemRout
     if (errorResponse) return errorResponse;
 
     // Verify item ownership
-    const { data: existingItem, error: fetchError } = await supabase
+    const { errorResponse: fetchError } = await requireRow("checklist item", supabase
       .from("trip_checklists")
       .select("*")
       .eq("id", itemId)
       .eq("trip_id", tripId)
       .eq("user_id", user.id)
-      .single();
-
-    if (fetchError || !existingItem) {
-      return errors.notFound("Item not found");
-    }
+      .single(), "Item not found");
+    if (fetchError) return fetchError;
 
     // Parse request body
     const { body, invalidBody } = await readJsonBody(request);
