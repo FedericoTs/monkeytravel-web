@@ -69,6 +69,9 @@ async function type(input: HTMLElement, text: string) {
   fireEvent.change(input, { target: { value: text } });
 }
 
+/** Let pending fetches and the renders they cause land. */
+const settle = () => act(() => new Promise((r) => setTimeout(r, 0)));
+
 /** Focus shows the popular list first; wait for the actual search results. */
 const searchResults = () => screen.findByRole("option", { name: /^Lisbon\s*Portugal$/ });
 
@@ -144,6 +147,7 @@ describe("destination field (WAI-ARIA combobox)", () => {
       })
     );
     const { input } = renderField();
+    await settle();
     await type(input, "Lisbe");
     fireEvent.keyDown(input, { key: "Escape" });
     await act(async () => {
@@ -154,6 +158,63 @@ describe("destination field (WAI-ARIA combobox)", () => {
     expect(screen.queryByRole("listbox")).toBeNull();
     fireEvent.keyDown(input, { key: "ArrowDown" });
     expect(await searchResults()).toBeTruthy();
+  });
+
+  it("the popular list arriving late keeps the row the keyboard is on", async () => {
+    let releasePopular: () => void = () => {};
+    const popularHeld = new Promise<void>((r) => (releasePopular = r));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url.includes("/api/destinations/popular")) {
+          await popularHeld;
+          return { json: async () => ({ predictions: POPULAR }) };
+        }
+        const { input } = JSON.parse(String(init?.body ?? "{}"));
+        return { json: async () => ({ predictions: results(input) }) };
+      })
+    );
+    // The popular list is fetched once per module: a fresh one still waits for it.
+    vi.resetModules();
+    const { default: Fresh } = await import("./DestinationAutocomplete");
+    function Harness() {
+      const [value, setValue] = useState("");
+      return <Fresh value={value} onChange={setValue} onSelect={() => {}} />;
+    }
+    render(<Harness />);
+    const input = screen.getByRole("combobox");
+    await type(input, "Lisbg");
+    await searchResults();
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    await act(async () => {
+      releasePopular();
+      await popularHeld;
+    });
+    await settle();
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    expect(input.getAttribute("aria-activedescendant")).toBe(screen.getAllByRole("option")[1].id);
+  });
+
+  it("shortening the query while a search runs stops the spinner", async () => {
+    let release: (v: unknown) => void = () => {};
+    const held = new Promise((r) => (release = r));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (url.includes("/api/destinations/popular")) return { json: async () => ({ predictions: POPULAR }) };
+        await held;
+        return { json: async () => ({ predictions: results("Lisbh") }) };
+      })
+    );
+    const { input } = renderField();
+    await type(input, "Lisbh");
+    await waitFor(() => expect(document.querySelector(".animate-spin")).not.toBeNull());
+    fireEvent.change(input, { target: { value: "Li" } });
+    expect(document.querySelector(".animate-spin")).toBeNull();
+    await act(async () => {
+      release(null);
+      await held;
+    });
   });
 
   it("Escape on the no-results panel closes it and keeps focus in the field", async () => {
