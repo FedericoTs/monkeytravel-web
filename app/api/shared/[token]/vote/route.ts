@@ -23,6 +23,7 @@ import { captureServerEvent } from "@/lib/posthog/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
+import { readSharedTrip } from "@/lib/trips/shared-trip";
 
 const COOKIE_NAME = "mt_anon_voter";
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365; // 1 year — votes are durable
@@ -107,16 +108,8 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
     // Resolve token → trip. We need the trip id for the FK and to confirm the
     // share link is real (defends against random uuids in the URL bar).
-    const { data: trip, error: tripError } = await supabase
-      .from("trips")
-      .select("id")
-      .eq("share_token", token)
-      .is("deleted_at", null)
-      .single();
-
-    if (tripError || !trip) {
-      return errors.notFound("Shared trip not found");
-    }
+    const { trip, errorResponse } = await readSharedTrip<{ id: string }>(supabase, token, "id");
+    if (errorResponse) return errorResponse;
 
     // Read or mint the voter cookie. httpOnly so the page can't read it —
     // forces all voter-identity logic through this route.

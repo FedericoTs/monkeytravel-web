@@ -49,7 +49,8 @@ describe("links to a deleted trip stop answering", () => {
   it("every /api/shared/[token] route looks its trip up by share token", () => {
     const routes = sourceFiles(path.join("app", "api", "shared", "[token]")).filter((f) => f.endsWith("route.ts"));
     expect(routes.length).toBeGreaterThan(0);
-    for (const route of routes) expect(read(route), route).toMatch(/\.eq\("share_token", token\)/);
+    // readSharedTrip (lib/trips/shared-trip.ts) is the lookup the test above checks.
+    for (const route of routes) expect(read(route), route).toMatch(/\.eq\("share_token", token\)|readSharedTrip[<(][\s\S]*?\b\w+,\s*token\b/);
   });
 
   it("an invite to a deleted trip shows trip-not-found", () => {
