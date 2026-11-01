@@ -63,7 +63,6 @@ import {
   ensureActivityIds,
   ensureActivityIdsStable,
   findActivityById,
-  moveActivityInDay,
   moveActivityToDay,
   deleteActivity,
   updateActivity,
@@ -1137,25 +1136,9 @@ export default function TripDetailClient({
     addToast(t(ambientEdit ? "detail.routeOptimized" : "detail.routeOptimizedSave"), "success");
   }, [pushUndo, addToast, ambientEdit, t]);
 
-  // Edit handlers (with undo support)
-  const handleActivityMove = useCallback(
-    (activityId: string, direction: "up" | "down") => {
-      pushUndo(`Move activity ${direction}`);
-      setEditedItinerary((prev) => {
-        // Find which day the activity is in
-        const location = findActivityById(prev, activityId);
-        if (!location) return prev;
-
-        // Move the activity and recalculate times
-        const moved = moveActivityInDay(prev, activityId, direction);
-        return recalculateActivityTimes(moved, location.dayIndex);
-      });
-    },
-    [pushUndo]
-  );
-
-  // handleActivityMoveToDay and the drag handlers live further down, after
-  // handleFocusDayCard, which they use to scroll to the destination day.
+  // Edit handlers (with undo support). handleActivityMoveToDay and the drag
+  // handlers live further down, after handleFocusDayCard, which they use to
+  // scroll to the destination day.
 
   const handleActivityDelete = useCallback((activityId: string) => {
     pushUndo("Delete activity");
@@ -1750,71 +1733,6 @@ export default function TripDetailClient({
       void flushRef.current();
     };
   }, []);
-
-  // Handle AI assistant suggested actions
-  const handleAIAction = useCallback(
-    (action: string, data?: Record<string, unknown>) => {
-      // A proposal still waiting for Apply changes nothing here. Acting on it
-      // would delete a proposed removal before it is confirmed: an ambient
-      // owner's autosave would store it at once, and an editor's page would go
-      // into edit mode with an unsaved deletion that blocks Apply. The
-      // confirmed change arrives through handleRefetchTrip.
-      if (data?.pending === true) return;
-
-      // For actions that were already applied by the AI (replace_activity, add_activity),
-      // the refetch has already updated the itinerary - don't overwrite it!
-      const actionWasApplied = data?.applied === true;
-
-      // Only enter edit mode and reset itinerary for non-applied actions.
-      // Ambient trips are ALWAYS editing (no mode) and their editedItinerary
-      // is the live source of truth — resetting it to the SSR prop would wipe
-      // unsaved local edits, so skip this branch entirely for them.
-      if (!actionWasApplied && !isEditMode && !ambientEdit) {
-        // From the last SAVED copy, not the page's first render: that one is
-        // stale after any save, and editing from it would silently revert them.
-        setEditedItinerary(JSON.parse(JSON.stringify(savedItinerary)));
-        setIsEditMode(true);
-      }
-
-      // Handle different action types
-      switch (action) {
-        case "replace_activity":
-        case "add_activity":
-          // These are already handled by onRefetchTrip - just log for debugging
-          console.log("AI action (already applied via refetch):", action, data);
-          break;
-        case "remove_activity":
-          if (data?.activityId) {
-            handleActivityDelete(data.activityId as string);
-          }
-          break;
-        case "move_activity":
-          if (data?.activityId && data?.direction) {
-            handleActivityMove(data.activityId as string, data.direction as "up" | "down");
-          }
-          break;
-        case "reorder_day":
-          // Suggest reordering - user can then manually reorder
-          console.log("AI suggested reordering day:", data);
-          break;
-        case "optimize_budget":
-          // Show budget optimization suggestions
-          console.log("AI suggested budget optimization:", data);
-          break;
-        case "regenerate_activity":
-          if (data?.activityId && data?.dayIndex !== undefined) {
-            handleActivityRegenerate(data.activityId as string, data.dayIndex as number);
-          }
-          break;
-        case "suggest_activity":
-        default:
-          // General suggestion - user can act on it manually
-          console.log("AI suggestion:", action, data);
-          break;
-      }
-    },
-    [isEditMode, ambientEdit, savedItinerary, handleActivityDelete, handleActivityMove, handleActivityRegenerate]
-  );
 
   // Changes from the assistant reach the page through handleRefetchTrip,
   // inside the save queue.
@@ -3620,7 +3538,6 @@ export default function TripDetailClient({
           itinerary={displayItinerary}
           isOpen={isAIAssistantOpen}
           onClose={() => setIsAIAssistantOpen(false)}
-          onAction={handleAIAction}
           onRefetchTrip={async () => {
             await handleRefetchTrip();
           }}

@@ -158,8 +158,6 @@ export interface AssistAnonResult {
   edits: DayEdit[];
   /** The trip's new total number of days, when the reply adds or removes days. */
   tripLength?: number;
-  /** Legacy single-day field for clients from before multi-day edits. */
-  edit: DayEdit | null;
   /** The currency the planner asked prices in; the page switches its preference to it. */
   currency?: string;
   meta: { model: string; costUsd: number; generationTimeMs: number };
@@ -1025,7 +1023,6 @@ export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResu
     reply: finalReply,
     edits,
     tripLength,
-    edit: edits.length === 1 && tripLength === undefined ? edits[0] : null,
     currency,
     meta: { model: modelId, costUsd, generationTimeMs: Date.now() - startedAt },
   };
