@@ -1,13 +1,9 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * Dates relative to the run, not hardcoded.
- *
- * These were fixed strings ("2026-07-15"). /api/ai/generate rejects a start
- * date in the past, so the moment the wall-clock passed them the suite began
- * returning 400 and two @prod tests went permanently red — nothing to do with
- * the API, which answers 200 for the identical body with future dates.
- * A verification suite with permanent reds cannot verify anything.
+ * Dates relative to the run, not hardcoded: /api/ai/generate rejects a start
+ * date in the past, so a fixed date turns the @prod tests red the day it
+ * passes, with nothing wrong in the API.
  */
 function daysFromNow(n: number): string {
   const d = new Date();
@@ -17,11 +13,8 @@ function daysFromNow(n: number): string {
 
 
 /**
- * Anonymous trip generation — the critical conversion path.
- *
- * Pre-2026-05-23: clicking Generate forced a signup modal. 75% of users
- * dropped here. The fix: anonymous generation works end-to-end, auth wall
- * only fires at Save.
+ * Anonymous trip generation — the critical conversion path. Generating works
+ * end-to-end without an account; the auth wall only fires at Save.
  *
  * These tests run against the live URL (BASE_URL) so they double as
  * post-deploy smoke checks. Tag @prod = safe to hit production.

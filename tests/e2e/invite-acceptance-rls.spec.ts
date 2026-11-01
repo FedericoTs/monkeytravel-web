@@ -1,19 +1,17 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * Invite-acceptance flow — RLS-lockdown coverage (task #186).
+ * Invite-acceptance flow — coverage for the trip_invites RLS lockdown.
  *
  * Context
  * -------
- * Commit f769dc4 (task #170) closed a P0 security hole: the trip_invites
- * table was readable by anon via `USING (true)` policies. The fix dropped
- * those policies and routed both the public invite-preview page and
- * /api/invites/[token] through a SECURITY DEFINER RPC
+ * anon cannot read trip_invites. The public invite-preview page and
+ * /api/invites/[token] go through a SECURITY DEFINER RPC
  * (`get_invite_by_token`) that returns at most one row, and only for
  * invites that are still usable (is_active=true, expires_at>now(),
  * use_count<max_uses). The POST path additionally enforces a
  * recipient_email match against the authenticated user's email
- * (RECIPIENT_MISMATCH, status 403) — the bug-bounty fix from 2026-05-24.
+ * (RECIPIENT_MISMATCH, status 403).
  *
  * What this spec verifies (contract-level, no DB seeding required):
  *   1. /invite/[bogus-token] renders the invalid-invite shell, not a 500

@@ -23,8 +23,7 @@ import type {
 
 /**
  * Relative, not hardcoded: /api/ai/generate rejects a past start date, so a
- * fixed string silently turns this whole file red the day it expires. The
- * previous value was 2026-09-01 — already today when this was written.
+ * fixed string silently turns this whole file red the day it expires.
  */
 function daysFromNow(n: number): string {
   const d = new Date();

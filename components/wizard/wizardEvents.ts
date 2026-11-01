@@ -1,46 +1,39 @@
 // components/wizard/wizardEvents.ts
 //
-// Shared, module-scoped wizard funnel telemetry. Hoisted OUT of
-// NewTripWizard.tsx (was its lines 165-190) when the decision-first arm
-// shared the funnel (2026-07 → 2026-08; the arm was deleted 2026-09-18). It
-// stays here because the wizard and components/ui/AuthPromptModal.tsx both
-// import it without a bracketed [locale] path.
+// Shared, module-scoped wizard funnel telemetry. It lives outside the
+// [locale] route folder because the wizard and
+// components/ui/AuthPromptModal.tsx both import it.
 //
 // MUST stay module-scoped (never nested in a component) — the wizard's
 // step-view effect relies on a stable function identity so it doesn't
-// invalidate effect deps that pass it around (load-bearing note originally at
-// NewTripWizard.tsx 154-164).
+// invalidate effect deps that pass it around.
 //
 // WIZARD_EVENT_STEPS below feeds the /api/wizard-event zod enum, and the test
 // beside this file checks it against the wizard_step_events_step_check CHECK
 // constraint in the newest migration. Adding a step means one entry here plus
 // a migration. The decision-arm values stay for the rows already written.
 
-// front_door: every row is stamped "wizard". The value dates from the
-// front-door A/B (wizard vs decision-first, 2026-07-01 → 2026-08-17; the
-// decision arm was deleted 2026-09-18) and stays because the funnel SQL
-// (get_ux10x_rates, get_live_trip_baseline) and the experiment-era PostHog
-// insights filter on it. The DB CHECK only allows ('wizard' | 'decision') —
-// never send another value or the insert fails with a non-23505 error (NOT
-// swallowed as dedupe) → 500.
+// front_door: every row is stamped "wizard". The value comes from the
+// front-door experiment (wizard vs decision-first, whose decision arm is
+// gone) and stays because the funnel SQL (get_ux10x_rates,
+// get_live_trip_baseline) and PostHog insights filter on it. The DB CHECK
+// only allows ('wizard' | 'decision') — never send another value or the
+// insert fails with a non-23505 error (NOT swallowed as dedupe) → 500.
 const FRONT_DOOR = "wizard" as const;
 
-// step1_variant (2026-09-03 → 2026-09-16) rode step_1_destination_dates and
-// step1_heartbeat while wizard-step1-editorial-v1 was split; the editorial
-// step 1 is the only one now, so nothing sends it. The API still accepts the
-// field so bundles cached from before the ramp keep posting cleanly.
+// step1_variant is no longer sent: step 1 has one version. The API still
+// accepts the field so older cached bundles that send it keep posting cleanly.
 
 export const WIZARD_EVENT_STEPS = [
   "step_1_destination_dates",
-  // UX10X Phase 0.3: 10s dwell heartbeat while a session sits on step 1.
-  // 56% of step-1 abandoner sessions log exactly ONE event, making dwell
-  // (bounce vs struggle) unmeasurable — this makes it measurable. Persists as
-  // distinct rows (10s spacing never hits the 1s dedupe bucket).
+  // A 10s dwell heartbeat while a session sits on step 1, which tells a
+  // bounce from a struggle. Each beat is its own row: 10s spacing never hits
+  // the 1s dedupe bucket.
   "step1_heartbeat",
   "step_2_vibes",
   "generating",
   "result",
-  // Decision-first arm (retired 2026-09-18; kept for its rows + the DB CHECK):
+  // Decision-first arm (retired; kept for its rows + the DB CHECK):
   "options_requested", // decide-LLM call dispatched (≈ generating)
   "options_shown", // 2-3 proposals rendered (decision arm's first value)
   "first_value", // shared cross-arm "first magical output"
@@ -49,35 +42,28 @@ export const WIZARD_EVENT_STEPS = [
   "save_failed",
   "saved",
   "abandoned",
-  // Draft recovery (2026-09-02). The generated itinerary lives in a
-  // localStorage draft, and until now it auto-restored ONLY on the Save-modal
-  // path; every other way back into an account met a blank wizard. Nothing
-  // server-side recorded a restore, so the loss was invisible.
+  // Draft recovery. The generated itinerary lives in a localStorage draft;
+  // these record a draft restored into the wizard, or one that had expired.
   "draft_restored",
   "draft_expired",
-  // A generation that reached the server and came back an error (2026-09-02).
+  // A generation that reached the server and came back an error.
   // `abandoned` cannot follow `generating`, so without this a failure and a
-  // closed tab were the same row: nothing.
+  // closed tab would look the same: no row.
   "generation_failed",
-  // The anonymous free-generation cap. Before this step the refusal wrote
-  // no row of its own: `generating` followed a moment later by
-  // `auth_modal_shown` was the only trace, and the funnel read that pair
-  // as a generation that silently failed.
+  // The anonymous free-generation cap. Without its own row, the refusal
+  // would read as `generating` then `auth_modal_shown`: a generation that
+  // silently failed.
   "generation_capped",
-  // The save-click-to-account step, which the funnel could not see at all
-  // (2026-09-02). 186 sessions clicked Save signed out, 87 ended signed in,
-  // and the 99 that did not left no trace of WHY: never typed an address,
-  // asked for a link that never arrived, or opened it and still got nothing
-  // are three different problems that were one number.
+  // The steps from a signed-out Save click to an account. They tell apart
+  // someone who never typed an address, one whose link never arrived, and one
+  // who opened it and still got no session.
   "auth_modal_shown",
   "otp_requested",
   // Written server-side by the auth callback — see lib/analytics/wizard-event-server.ts.
   "otp_link_opened",
-  // The in-tab redemption (2026-09-03). Magic-link sign-ups reach a session
-  // 63.0% of the time against Google's 99.0% (n=142, p=1.8e-9) because the
-  // link means leaving the browser. These two split "typed the code" from
-  // "the code worked", so a failure to redeem is never mistaken for someone
-  // who simply walked away.
+  // The in-tab code redemption. These two split "typed the code" from "the
+  // code worked", so a failure to redeem is never mistaken for someone who
+  // simply walked away.
   "otp_code_submitted",
   "otp_code_verified",
 ] as const;

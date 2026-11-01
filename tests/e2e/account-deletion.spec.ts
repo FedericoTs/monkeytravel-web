@@ -1,16 +1,17 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * Account deletion — the regression that 4caffc0 fixed.
+ * Account deletion for an account whose id sits in a column that references
+ * auth.users.
  *
  * THIS SPEC PERMANENTLY DESTROYS THE ACCOUNT IT RUNS AS. Read the guards
  * below before setting any env var.
  *
  * What it reproduces
  * ------------------
- * delete_user_account() cleared four tables. Four other columns REFERENCE
- * auth.users(id) with no ON DELETE clause, so Postgres applied NO ACTION —
- * which BLOCKS the delete rather than leaving the row behind:
+ * These columns REFERENCE auth.users(id) with no ON DELETE clause, so
+ * Postgres applies NO ACTION — which BLOCKS the delete rather than leaving
+ * the row behind:
  *
  *   trip_invites.created_by       <- written by POST /api/trips/[id]/invites
  *   trip_collaborators.invited_by
@@ -18,18 +19,13 @@ import { test, expect } from "@playwright/test";
  *   mcp_itineraries.claimed_by
  *
  * /api/profile/delete runs in two phases: the RPC over the public schema,
- * then adminClient.auth.admin.deleteUser(). For a user whose id sat in one
- * of those columns, phase 2 raised a foreign-key violation and the route
- * returned "Account data deleted but auth record removal failed" — trips
- * destroyed, email still in auth.users.
+ * then adminClient.auth.admin.deleteUser(). If delete_user_account() left
+ * the user's id in one of those columns, phase 2 would raise a foreign-key
+ * violation and the route would answer "Account data deleted but auth record
+ * removal failed" — trips destroyed, email still in auth.users.
  *
- * Measured 2026-08-04: 0 accounts had ever hit this. Only 5 rows total sit
- * in those columns and all 5 belong to live users, so no deletion had yet
- * been performed by anyone who had created an invite. The bug was real but
- * latent, which is exactly why it needs a test — the natural data will not
- * reproduce it, and it gets more likely as the crew loop gets used.
- *
- * So the spec MANUFACTURES the trigger: create an invite (landing this
+ * Few accounts are in that state when they are deleted, so real use rarely
+ * reproduces it. The spec MANUFACTURES the trigger: create an invite (landing this
  * user's id in trip_invites.created_by), THEN delete the account, then
  * assert the delete fully succeeded.
  *

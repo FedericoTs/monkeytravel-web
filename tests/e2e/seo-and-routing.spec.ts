@@ -50,9 +50,9 @@ test.describe("SEO / routing regressions @prod", () => {
   });
 
   test.skip("EN-only pillars canonicalize to the EN URL on /es and /it", async () => {
-    // As of 2026-05-23 every post in content/blog/*.md has matching es/
-    // and it/ translations, so there is no EN-only post available to
-    // exercise the fallback canonical path. The code path itself is still
+    // Every post in content/blog/*.md has matching es/ and it/
+    // translations, so there is no EN-only post available to exercise the
+    // fallback canonical path. The code path itself is still
     // in app/[locale]/blog/[slug]/page.tsx (currentLocaleHasTranslation
     // check) — re-enable this test when a new EN-only post lands so we
     // catch regressions in that fallback.

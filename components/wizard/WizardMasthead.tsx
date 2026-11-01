@@ -14,9 +14,8 @@ interface WizardMastheadProps {
 
 /**
  * Step-1 masthead — the sentence a cold visitor needs in the first three
- * seconds. The old heading ("Where and when?") named the form; this names the
- * output: a day-by-day itinerary, about 30 seconds (p50 27.9s measured
- * 2026-09-02), free, no account needed to see it.
+ * seconds. It names the output rather than the form: a day-by-day itinerary
+ * in about 30 seconds, free, with no account needed to see it.
  *
  * Three variants, chosen ONCE at mount from latched values (see
  * lib/wizard/entry-state.ts) so the h1 is SSR-stable and never swaps after
@@ -26,8 +25,8 @@ interface WizardMastheadProps {
  *   prefill   — a link carried a destination in (a blog CTA, a trip page)
  *
  * The proof line keeps a reserved 20px slot so the count arriving from the
- * network shifts nothing (this page has a CLS history). Coral is decoration
- * only — the rule — never text: --primary-ink is the brand coral at 2.68:1.
+ * network shifts nothing. Coral is decoration only, never text:
+ * --primary-ink is the brand coral at 2.68:1.
  */
 export default function WizardMasthead({
   variant,

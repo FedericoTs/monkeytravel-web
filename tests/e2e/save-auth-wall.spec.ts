@@ -1,10 +1,9 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * The Save Trip flow now hosts the auth wall (moved from Generate as of
- * 2026-05-23). An anonymous visitor should be able to walk all the way
- * through the wizard + see their generated itinerary; the signup modal
- * should ONLY appear when they click Save.
+ * The auth wall sits on Save, not on Generate. An anonymous visitor can walk
+ * all the way through the wizard and see their generated itinerary; the
+ * signup modal should ONLY appear when they click Save.
  *
  * Heavy UI test — slow because it includes a real Gemini generation.
  * Tagged @prod for post-deploy smoke; can be skipped via CI env in

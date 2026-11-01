@@ -3,12 +3,11 @@ import { test, expect } from "@playwright/test";
 /**
  * /tools/visa-checker — read-only smoke tests against the live tool.
  *
- * Guards against the bug class found on 2026-05-25:
- *  - matrix.json keys uppercase but lookup lowercased → "no data" for
- *    every pair (commit 7818103)
- *  - t() call missing `status.` prefix → renders raw key path like
- *    "tools.visaChecker.eta days" instead of localized label
- *    (commit a25564d)
+ * Guards against two failure modes:
+ *  - matrix.json keys are uppercase, so a lowercased lookup finds "no data"
+ *    for every pair;
+ *  - a t() call missing the `status.` prefix renders a raw key path like
+ *    "tools.visaChecker.eta days" instead of the localized label.
  *
  * All @prod-safe.
  */

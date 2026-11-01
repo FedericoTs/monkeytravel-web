@@ -4,24 +4,21 @@ import { readFileSync, existsSync } from "node:fs";
 /**
  * trips lockdown — the blanket share_token read must stay closed.
  *
- * WHAT WAS WRONG
+ * WHAT IT GUARDS
  * --------------
- * `trips_select_consolidated` carried a bare `OR (share_token IS NOT NULL)`
- * with nothing comparing a caller-supplied token, so every row that merely HAD
- * a share_token was readable by anyone holding the anon key — which ships in
- * the browser bundle and is public by design.
- *
- * Measured 2026-09-01 as role anon, before the fix:
- *   118 trips readable, 42 of them visibility='private', 39 exposing a live
- *   claim_token, across 51 real users. `select=*` returned full itinerary,
- *   notes, budget and emergency_contacts.
+ * A trips SELECT policy must never pass a row just because it HAS a
+ * share_token (a bare `OR (share_token IS NOT NULL)` with nothing comparing
+ * a caller-supplied token). Every such row would be readable by anyone
+ * holding the anon key — which ships in the browser bundle and is public by
+ * design — private trips included, with their itinerary, notes, budget,
+ * emergency_contacts and live claim_token.
  *
  * claim_token is the worse half: /api/trips/claim needs only any authenticated
  * session plus the token string to transfer ownership permanently.
  *
  * WHY THIS SPEC ASSERTS ON DATA, NOT STATUS
  * -----------------------------------------
- * RLS never errors — it returns fewer rows. Both the broken and the fixed world
+ * RLS never errors — it returns fewer rows. An open and a closed policy both
  * answer 200. Only the CONTENT distinguishes them, so every assertion here is
  * about which rows and which columns actually came back.
  *
@@ -54,9 +51,8 @@ function anonCreds() {
 
 /**
  * Service credentials, for cleanup only. The anonymous trip this spec mints
- * has no owner, so nothing else ever deletes it: each run used to leave one
- * "E2E share lockdown probe" row in production, inflating the anonymous-trip
- * count (10 found on 2026-09-02, another on 2026-09-25).
+ * has no owner, so nothing else ever deletes it; without this cleanup each
+ * run would leave an "E2E share lockdown probe" row in production.
  */
 function serviceCreds(): { url: string; key: string } | null {
   let url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";

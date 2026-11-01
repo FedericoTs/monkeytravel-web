@@ -10,10 +10,9 @@
  *      the form's last row until the first scroll; that overlap is measured
  *      and recorded as an annotation, not asserted away;
  *   2. after the visitor's first scroll (or first interaction outside the
- *      card) the card is gone and the mini bar is in its place — at EVERY
- *      viewport since 2026-09-22, where before it was a desktop-only pill
- *      and nothing at all on mobile; it must not intersect the CTA, nor any
- *      fixed bottom bar the page publishes;
+ *      card) the card is gone and the mini bar is in its place, at every
+ *      viewport; it must not intersect the CTA, nor any fixed bottom bar the
+ *      page publishes;
  *   3. BOTH decisions stay reachable in ZERO further clicks, and the two
  *      buttons are provably equal — same box, same computed style, refusal
  *      first. That is the assertion the law actually cares about: EDPB
