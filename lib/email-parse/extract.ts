@@ -211,11 +211,9 @@ export async function extractBooking(emailBody: string): Promise<ParseResult> {
   }
 
   const model = genAI.getGenerativeModel({
-    // email-parser → routed via model-router (gemini-2.5-flash-lite per
-    // the 2026-05-31 audit). Historical note: the original code used
-    // flash for "reliable structured output" — but with the responseSchema
-    // contract enforcing the shape, flash-lite is enough and ~3x cheaper.
-    // If we see a regression in extraction quality we can flip
+    // email-parser → routed via model-router (gemini-2.5-flash-lite): with
+    // the responseSchema contract enforcing the shape, flash-lite is enough
+    // and ~3x cheaper than flash. If extraction quality regresses, flip
     // GEMINI_MODEL_OVERRIDE=gemini-2.5-flash as a hot fix.
     model: getModelForPurpose("email-parser"),
     generationConfig: {

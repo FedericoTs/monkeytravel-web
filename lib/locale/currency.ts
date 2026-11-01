@@ -70,10 +70,8 @@ export function getCachedPair(
  * Resilience:
  *   - 5s AbortController timeout so a slow Frankfurter can't hang React
  *   - Skip subsequent attempts in the same browser session if the last
- *     one failed within FAIL_BACKOFF_MS — prevents the "200-frame
- *     recursive stack trace" we saw in 2026-05-28 audit when CSP was
- *     blocking the host. Even after the CSP fix lands, this gives us
- *     a much quieter degradation path if Frankfurter is ever down.
+ *     one failed within FAIL_BACKOFF_MS, so a blocked or down Frankfurter
+ *     degrades quietly instead of in a long recursive stack trace.
  *   - On any error: graceful throw — caller already handles it as
  *     "no conversion, show original currency".
  */

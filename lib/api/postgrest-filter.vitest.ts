@@ -6,9 +6,9 @@ import { destinationCityTerm, ilikeOrTerm } from "./postgrest-filter";
 /**
  * Text going into a PostgREST or() filter.
  *
- * "Chennai, India" put a comma inside or(), PostgREST read it as a second
- * condition and answered 400, and the AI assistant got no coordinates for the
- * trip (seen twice on 2026-09-24).
+ * "Chennai, India" puts a comma inside or(): PostgREST reads it as a second
+ * condition and answers 400, and the AI assistant gets no coordinates for the
+ * trip.
  */
 
 describe("destinationCityTerm", () => {

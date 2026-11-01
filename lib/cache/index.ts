@@ -82,10 +82,10 @@ interface DatabaseCacheOptions<T> {
  * TTL values in milliseconds
  * Organized by volatility - shorter TTLs for frequently changing data
  *
- * OPTIMIZATION NOTE (2025-12):
- * - IATA codes (locations) never change - extended to 90 days
- * - Hotel lists are very stable - extended to 30 days
- * - Weather historical data doesn't change - extended to 24 hours in memory
+ * Long TTLs where the data does not move:
+ * - IATA codes (locations) never change - 90 days
+ * - Hotel lists are very stable - 30 days
+ * - Weather historical data doesn't change - 24 hours in memory
  */
 export const CACHE_TTL: Record<CacheType, number> = {
   // Highly volatile (minutes)
@@ -95,7 +95,7 @@ export const CACHE_TTL: Record<CacheType, number> = {
 
   // Moderately stable (hours)
   hotels: 2 * 60 * 60 * 1000,         // 2 hours
-  weather: 24 * 60 * 60 * 1000,       // 24 hours (was 3h - historical data is stable)
+  weather: 24 * 60 * 60 * 1000,       // 24 hours (historical data is stable)
 
   // Very stable (days) - these also use database caching
   autocomplete: 30 * 24 * 60 * 60 * 1000,   // 30 days — normalized prefix keys; top city suggestions don't change minute-by-minute

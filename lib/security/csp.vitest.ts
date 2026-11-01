@@ -4,14 +4,13 @@ import { buildCspHeader, allowsThirdPartyFraming, layoutInlineScriptHashes, sha2
 import { ASSISTANT_SEEN_SCRIPT } from "@/lib/trip/assistant-seen";
 
 /**
- * The CSP has silently dropped analytics twice, the same way both times.
+ * A CSP slip drops analytics silently.
  *
  * A `connect-src` entry of `https://analytics.google.com` matches ONLY that
  * exact host. GA4 sends the collect beacon to the apex for some traffic and to
  * regional subdomains (region1.analytics.google.com, region2., ...) for EU/UK
- * traffic. The 2026-07-02 fix added the apex and restored US measurement; every
- * EU hit stayed blocked and nobody noticed for six weeks, because a blocked
- * beacon looks exactly like no traffic.
+ * traffic, so allowing one but not the other blocks a whole region, and a
+ * blocked beacon looks exactly like no traffic.
  *
  * Nothing about that failure is visible from the server: the page renders, the
  * request 200s, and the only evidence is a console line in a real browser. So

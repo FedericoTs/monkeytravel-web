@@ -8,12 +8,11 @@ import type { ItineraryDay } from "@/types";
 /**
  * Read-time itinerary photo refresher.
  *
- * **The problem this fixes (2026-06-04):**
- * Activity `image_url` strings baked into `trips.itinerary` JSONB go stale.
- * In production: 17/76 trips had activities pointing at `/api/places/photo`
- * URLs whose `photo_resource_name` was truncated or had since been rotated
- * by Google, causing the proxy to forward a 400 from Google's `/media`
- * endpoint — broken-image icon on the activity card.
+ * **The problem:**
+ * Activity `image_url` strings baked into `trips.itinerary` JSONB go stale:
+ * an `/api/places/photo` URL whose `photo_resource_name` was truncated or
+ * has since been rotated by Google makes the proxy forward a 400 from
+ * Google's `/media` endpoint — a broken-image icon on the activity card.
  *
  * The places_v2 table IS being kept current with the canonical resource
  * name for each place_id (writer path: lib/images/activity.ts). The bug

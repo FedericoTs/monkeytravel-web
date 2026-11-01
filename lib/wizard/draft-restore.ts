@@ -2,14 +2,10 @@
  * What should the wizard do with the itinerary draft it found on mount?
  *
  * The generated itinerary survives an auth round-trip only as a localStorage
- * draft. Until 2026-09-02 the wizard auto-restored it ONLY when
- * `pendingTripGeneration` was set — a flag written in exactly four places, all
- * inside AuthPromptModal. So the Save-modal path worked and every other way
- * back into an account (header Sign-in, /auth/login, a magic link, a return
- * the next day) landed on a blank wizard with the itinerary sitting unread
- * beside it. Measured over 30 days: 96 signed-out result sessions end with a
- * signed-in user on the same session cookie, and 13 of those finished with no
- * trip at all.
+ * draft, and the Save modal is not the only way back into an account: a
+ * header Sign-in, /auth/login, a magic link or a return the next day must
+ * restore it too, or the user lands on a blank wizard with the itinerary
+ * sitting unread beside it.
  *
  * The decision lives here, out of the 4,000-line component, because its
  * sharpest edge is a state most tests never simulate: `isAuthenticated` is
@@ -51,11 +47,9 @@ export interface DraftRestoreInput {
    * (lib/wizard/draft-saved-check.ts). null until that check has answered;
    * it only runs for a signed-in user.
    *
-   * Restoring such a draft is how duplicates were made: the wizard used to
-   * keep re-writing the draft after its trip was saved, a later visit
-   * restored it, and the auto-save arm inserted it as a second trip (five
-   * since 2026-08-26). The wizard no longer writes those drafts, but ones
-   * written before the fix can sit in a browser for up to 7 days.
+   * Restoring such a draft would insert it as a second trip through the
+   * auto-save arm. The wizard does not re-write a draft after its trip is
+   * saved, but an older one can sit in a browser for up to 7 days.
    */
   draftIsSavedTrip: boolean | null;
 }

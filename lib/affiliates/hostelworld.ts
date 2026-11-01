@@ -1,8 +1,8 @@
 /**
  * Hostelworld affiliate link generator.
  *
- * Strategic context (shipped 2026-05-28 as part of the Hostelworld
- * partnership wedge — see Backpacker Mode in lib/gemini.ts):
+ * Strategic context (part of the Hostelworld partnership wedge — see
+ * Backpacker Mode in lib/gemini.ts):
  *
  * Hostelworld is NOT on the Travelpayouts network we use for other
  * partners (Booking, Agoda, Expedia, etc.). They run their affiliate
@@ -52,8 +52,7 @@ export interface HostelSearchParams {
  * @deprecated DO NOT USE — the URL this returns is dead.
  *
  * https://www.hostelworld.com/pwa/wds/s?... 301s to /pwa/s, which returns 404.
- * Every surface that rendered it was linking users to a broken page. Verified
- * 2026-08-27.
+ * Every surface that rendered it was linking users to a broken page.
  *
  * Hostelworld's working city pages (/hostels/<city>) were rejected as a
  * replacement because unknown terms do not 404 — they resolve confidently to

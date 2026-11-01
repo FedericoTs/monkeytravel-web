@@ -11,8 +11,8 @@ export const DRAFT_SAVED_CHECK_TIMEOUT_MS = 3000;
  * saved row (#181), and the draft and the trip were written in step, so a trip
  * of this user holding the draft's first activity id is that draft, saved.
  * decideDraftRestore then discards the draft instead of restoring it into a
- * second insert. (Measured 2026-09-26: of 543 trips, no first activity id is
- * shared between two users, so a match is never someone else's trip.)
+ * second insert. (Activity ids are random, so a match is that draft, not a
+ * coincidence.)
  *
  * Soft-deleted trips are invisible here (trips RLS reads deleted_at IS NULL
  * only), so a draft of a trip the user has since deleted still restores, as

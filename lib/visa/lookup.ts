@@ -17,9 +17,8 @@ import type {
   VisaStatus,
 } from "./types";
 
-// The JSON ships with ISO-2 codes in UPPERCASE keys (e.g. "US", "GB"
-// — verified 2026-05-25 by inspecting the snapshot). We normalize
-// inputs to uppercase before lookup.
+// The JSON ships with ISO-2 codes in UPPERCASE keys (e.g. "US", "GB").
+// We normalize inputs to uppercase before lookup.
 const matrix = matrixData as Record<string, Record<string, RawVisaCell | number>>;
 
 /**

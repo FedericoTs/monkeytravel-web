@@ -83,7 +83,7 @@ export function rlsDrift(baseline: RlsSnapshot, live: RlsSnapshot): string[] {
 }
 
 /**
- * The specific shape behind the 2026-08-19 incident: a permissive write
+ * The most dangerous shape: a permissive write
  * policy whose expression is literally `true`, reachable by anon or public.
  * Reported apart from drift because it is worth shouting about even when the
  * baseline was updated to include it.

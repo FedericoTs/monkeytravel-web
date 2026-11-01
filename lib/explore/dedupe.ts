@@ -1,11 +1,9 @@
 /**
  * /explore feed hygiene — collapse duplicates before the page is cut.
  *
- * Measured 2026-09-05 on the 55 feed-eligible trips: one fork was listed
- * next to its parent, and 8 rows were extra copies of the same
- * (title, author, duration) — the same trip published twice, or saved
- * and re-published. Both read as a broken feed to a visitor. Live Trip
- * plan, Phase 1.4.
+ * A fork can be listed next to its parent, and a row can be an extra copy
+ * of the same (title, author, duration): the same trip published twice, or
+ * saved and re-published. Both read as a broken feed to a visitor.
  *
  * Two passes, both order-preserving (the input arrives ranked, so "first"
  * means "highest ranked"):

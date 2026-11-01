@@ -14,8 +14,7 @@ describe("first-run detection keys on the callback's vocabulary", () => {
   });
 
   it("returning logins are NOT a first run", () => {
-    // email_confirmed is what a returning magic-link login carries; before
-    // 2026-09-02 the callback stamped first confirmations with it too.
+    // email_confirmed is what a returning magic-link login carries.
     expect(isFirstRunAuthEvent("email_confirmed")).toBe(false);
     expect(isFirstRunAuthEvent("login_google")).toBe(false);
     expect(isFirstRunAuthEvent(null)).toBe(false);

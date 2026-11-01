@@ -55,16 +55,14 @@ export function formatDateShort(datetime: string | Date): string {
 /**
  * Format date range: "Jun 15 – 20, 2025" / "15–20 giu 2025" / "15 – 20 de jun. de 2025"
  *
- * Locale-aware as of 2026-05-29 — was hardcoded en-US, leaving Italian
- * and Spanish users with English month names on trip cards. Pass the
- * caller's locale (e.g. from next-intl's useLocale()) to render the
- * native abbreviation. Defaults to en-US for backward compatibility
- * with the 11 existing callers; client components on /[locale]/ pages
- * should pass useLocale() explicitly.
+ * Locale-aware: pass the caller's locale (e.g. from next-intl's
+ * useLocale()) to render the native month abbreviation. Defaults to
+ * en-US; client components on /[locale]/ pages should pass useLocale()
+ * explicitly, or Italian and Spanish users get English month names.
  *
  * Handles same-month and cross-month ranges intelligently.
  *
- * TZ HANDLING (2026-05-31): Trip dates are wall-clock DATE values in
+ * TZ HANDLING: Trip dates are wall-clock DATE values in
  * Postgres ("2026-05-31"), which `new Date(s)` parses as UTC midnight.
  * Without an explicit `timeZone`, the server (Vercel = UTC) and the
  * client (user's local TZ) call `getDate()` / `getMonth()` against the
@@ -76,7 +74,7 @@ export function formatDateShort(datetime: string | Date): string {
  * pins both sides to the same calendar arithmetic, eliminating the
  * mismatch. Correct semantics too: a trip starting "May 31" should
  * read May 31 in Tokyo and May 31 in Los Angeles — it's a wall-clock
- * date, not a zoned moment. Bug #266.
+ * date, not a zoned moment.
  */
 export function formatDateRange(start: Date | string, end: Date | string, locale: string = "en-US"): string {
   const s = typeof start === "string" ? new Date(start) : start;

@@ -5,10 +5,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
  * the trending score they feed. Every call to the counter functions goes
  * through here.
  *
- * WHY THE SERVICE ROLE (2026-09-23)
+ * WHY THE SERVICE ROLE
  * The counter functions are SECURITY DEFINER and check nothing about the
  * caller: give them a trip id and they add one, then recompute the trip's
- * trending score. While `authenticated` could execute them, any signed-in
+ * trending score. If `authenticated` could execute them, any signed-in
  * account could call POST /rest/v1/rpc/increment_trip_fork_count in a loop
  * and push any trip up /explore (a fork is worth 10 points of trending
  * score, a like 3). Migration 20260924100000 makes them service-role only,

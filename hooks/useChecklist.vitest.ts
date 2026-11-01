@@ -5,8 +5,8 @@ import { useChecklist } from "./useChecklist";
 
 /**
  * The checklist is the owner's (its routes and RLS admit only the owner), so
- * the trip page turns the hook off for collaborators. Before 2026-09-24 it
- * fetched for everyone and 404'd on every collaborator's page load.
+ * the trip page turns the hook off for collaborators; fetching for everyone
+ * would 404 on every collaborator's page load.
  */
 
 const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ items: [{ id: "c1", text: "Passport" }] }) }));

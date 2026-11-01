@@ -33,9 +33,8 @@ describe("the invite page for an emailed invite", () => {
   const page = readFileSync(join(process.cwd(), "app/[locale]/(app)/invite/[token]/page.tsx"), "utf8");
 
   it("renders the sign-in gate, not a dead-end error, when the visitor is not the invitee", () => {
-    // 2026-09-24: this was an error screen whose only button was "Create Your
-    // Own Trip". 0 of 5 emailed invites to people without an account were
-    // accepted.
+    // Not an error screen whose only button is "Create Your Own Trip": an
+    // invitee without an account must be able to sign in and accept.
     expect(page).toMatch(/data\.error === "RECIPIENT_MISMATCH"\) \{\s*return \(\s*<InviteRecipientGate/);
     expect(page).toContain("maskedRecipient: maskEmail(String(invite.recipient_email))");
   });

@@ -6,16 +6,16 @@ import { captureServerEvent } from "@/lib/posthog/server";
 import { casUpdateItinerary } from "@/lib/trips/itinerary-cas";
 
 /**
- * Shared photo-enrichment core (2026-08 co-creation plan, P1).
+ * Shared photo-enrichment core.
  *
- * Why this exists: enrichment used to be reachable only through the owner-authed
- * /api/trips/[id]/enrich-photos route, and that route was only ever called from
- * the auto-save arm — so the surfaces where OTHER people look at a trip (the
- * /shared voting page, /explore) mostly showed the curated thematic fallbacks
- * baked at generation time. Voters were judging "Zhangjiajie National Park"
- * by a stock mountain photo. This module lets the share, publish, and cron
- * sweep paths run the same enrichment server-side, where the triggering
- * request's auth has already been verified.
+ * Why this exists: the owner-authed /api/trips/[id]/enrich-photos route runs
+ * only from the auto-save arm, so without this the surfaces where OTHER
+ * people look at a trip (the /shared voting page, /explore) would show the
+ * curated thematic fallbacks baked at generation time, and voters would
+ * judge a national park by a stock mountain photo. This module lets the
+ * share, publish, and cron sweep paths run the same enrichment
+ * server-side, where the triggering request's auth has already been
+ * verified.
  *
  * Budget tiers:
  * - SAVE_TIME_PAID_LOOKUPS (8): save-path top-up. Bounded small because saves

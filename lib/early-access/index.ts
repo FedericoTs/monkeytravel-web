@@ -122,10 +122,10 @@ export async function redeemTesterCode(
     };
   }
 
-  // Look up the code. Service role (2026-09-23): tester_codes is no longer
-  // readable by signed-in users (20260924122000) — every active code was
-  // listable with the public anon key, and a code is the only thing standing
-  // between a user and its AI limits.
+  // Look up the code. Service role: tester_codes is not readable by signed-in
+  // users (20260924122000), or every active code would be listable with the
+  // public anon key, and a code is the only thing standing between a user and
+  // its AI limits.
   const admin = createAdminClient();
   const { data: testerCode, error: codeError } = await admin
     .from("tester_codes")
@@ -160,11 +160,10 @@ export async function redeemTesterCode(
     };
   }
 
-  // Create user access record. Service role (2026-09-23): users can no
-  // longer write their own user_tester_access row (20260924122000) — the
-  // self INSERT/UPDATE policies let anyone give themselves any AI limit and
-  // reset its used counts. The code was validated above; userId comes from
-  // the route's session.
+  // Create user access record. Service role: users cannot write their own
+  // user_tester_access row (20260924122000), since self INSERT/UPDATE would
+  // let anyone give themselves any AI limit and reset its used counts. The
+  // code was validated above; userId comes from the route's session.
   const { error: insertError } = await admin.from("user_tester_access").insert({
     user_id: userId,
     code_id: testerCode.id,

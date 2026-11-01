@@ -82,11 +82,11 @@ const MAX_YEARS_BACK = 1;
  * `isValidIsoDate` accepts "0201-10-30": four digits, a real month, a real
  * day. That is exactly what `<input type="date">` reports while someone is
  * still typing the year of 2026 (0002 → 0020 → 0202 → 2026), and each of those
- * keystrokes reached /api/weather, which asked Open-Meteo for the weather of
- * the year 201 and got HTTP 400 — 82 of the 626 weather calls in the fortnight
- * to 2026-09-12 were that. The sanitiser above cannot reject them: they ARE
- * valid dates. This guard adds the one thing that separates a typed year from
- * a real one: it is within a year behind, or MAX_YEARS_AHEAD ahead, of today.
+ * keystrokes can reach /api/weather, which asks Open-Meteo for the weather
+ * of the year 201 and gets HTTP 400. The sanitiser above cannot reject them:
+ * they ARE valid dates. This guard adds the one thing that separates a typed
+ * year from a real one: it is within a year behind, or MAX_YEARS_AHEAD
+ * ahead, of today.
  */
 export function isPlausibleTripDate(
   value: string,

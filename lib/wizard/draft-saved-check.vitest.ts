@@ -6,7 +6,7 @@ import { firstActivityId, isItinerarySaved } from "./draft-saved-check";
 
 /**
  * Has the draft's itinerary already been saved as one of the user's trips?
- * Restoring such a draft is how the wizard made duplicate trips (2026-09-26).
+ * Restoring such a draft would make a duplicate trip.
  */
 
 const itinerary = (ids: Array<string | undefined>[]) =>

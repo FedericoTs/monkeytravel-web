@@ -131,13 +131,11 @@ export function getSeasonalVibeSuggestions(
 }
 
 // ---------------------------------------------------------------------------
-// Country-aware holiday data.
-// **2026-05-24 live-test fix:** the previous data was a flat list keyed by
-// month, with the only filter being "drop (US) holidays unless destination
-// is US". This produced absurd output like "Day of the Dead (Mexico)" on a
-// trip to Reykjavik and "Diwali" on a trip to Lisbon.
+// Country-aware holiday data. A flat list keyed by month would surface "Day
+// of the Dead (Mexico)" on a trip to Reykjavik and "Diwali" on a trip to
+// Lisbon.
 //
-// New model: each entry has an optional `countries` allowlist. Empty / undefined
+// Each entry has an optional `countries` allowlist. Empty / undefined
 // means the holiday is globally observed (e.g. New Year, Christmas in most of
 // the world). Otherwise we only surface the holiday when the destination's
 // country code is in the list.
@@ -410,11 +408,10 @@ export function relevantHolidaysForDestination(
    * keep the legacy month-only behavior — we don't compute moveable-feast
    * dates here.
    *
-   * **Why this exists** — 2026-05-25 live-test: a Trieste trip May 28–30
-   * incorrectly surfaced "Labor Day" (May 1) and "Mother's Day" (May 10),
-   * both clearly outside the trip window. Adding `dayOfMonth` to each
-   * fixed-date holiday + filtering here fixes the false positives without
-   * dropping the variable holidays we can't pin.
+   * **Why this exists** — a month-only match would surface "Labor Day"
+   * (May 1) and "Mother's Day" (May 10) on a May 28–30 trip. `dayOfMonth`
+   * on each fixed-date holiday + filtering here removes those false
+   * positives without dropping the variable holidays we can't pin.
    */
   tripWindow?: { startDate: string; endDate: string }
 ): string[] {
@@ -467,7 +464,7 @@ export function buildSeasonalContext(
   endDate?: string
 ): SeasonalContext {
   // Parse YYYY-MM-DD as local midnight (not UTC) so we don't shift -1 day
-  // in negative-offset zones — same bug class fixed elsewhere on 2026-05-24.
+  // in negative-offset zones.
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startDate);
   const date = m
     ? new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10))

@@ -1,15 +1,13 @@
 /**
  * Google Places API (New): which SKU a request buys, and its list price.
  *
- * WHY (2026-09-17)
- * cost_usd in api_request_logs was a flat guess per api_name: every Place
- * Details call booked at $0.017, the activity Text Search at $0.005. Google
- * prices by the FIELDS in X-Goog-FieldMask, in four tiers, so the guesses had
- * the picture inverted: the photos-only Details call is the cheapest tier
- * ($5 per 1,000) while the activity Text Search, which asks for displayName,
- * location and formattedAddress, is Pro ($32 per 1,000). Over the 30 days to
- * 2026-09-17 that turns "photos $72, search $16" into "search ~$102, photos
- * ~$25" at list price. Optimising the wrong line is the expensive mistake.
+ * WHY
+ * A flat cost_usd per api_name (every Place Details call at $0.017, the
+ * activity Text Search at $0.005) gets the picture inverted. Google prices by
+ * the FIELDS in X-Goog-FieldMask, in four tiers: the photos-only Details call
+ * is the cheapest tier ($5 per 1,000) while the activity Text Search, which
+ * asks for displayName, location and formattedAddress, is Pro ($32 per
+ * 1,000). Optimising the wrong line is the expensive mistake.
  *
  * Tier membership below follows Google's published field lists for the
  * March 2025 structure (Essentials / Pro / Enterprise / Enterprise +

@@ -1,13 +1,11 @@
 /**
  * Consent-free activation funnel for the admin dashboard.
  *
- * Every activation number the dashboard showed before 2026-09-02 came from
- * PostHog, which sees only the browsers that accepted analytics cookies and
- * run no ad blocker (about 59% at best, measured 2026-08-25). The browsers
- * that lose trips are exactly the ones PostHog cannot see. This module reads
- * the two RPCs that join what the database already knows -- auth.users,
- * wizard_step_events, trips, funnel_events -- into one cohort funnel per
- * signup provider, plus the signed-out share loop.
+ * PostHog sees only the browsers that accepted analytics cookies and run no
+ * ad blocker, and the browsers that lose trips are exactly the ones it cannot
+ * see. So this module reads the two RPCs that join what the database
+ * already knows -- auth.users, wizard_step_events, trips, funnel_events --
+ * into one cohort funnel per signup provider, plus the signed-out share loop.
  *
  * The RPCs live in supabase/migrations/20260902120000_activation_funnel_rpcs.sql
  * and are callable by service_role only; pass the admin client.
