@@ -570,23 +570,35 @@ ${t("notAppliedBody")}`,
       const changedName =
         pendingChange.type === "replace" || pendingChange.type === "add"
           ? pendingChange.newActivity.name
-          : pendingChange.type === "adjust_duration"
-            ? pendingChange.activity.name
-            : pendingChange.type === "add_day"
-              ? pendingChange.day.theme
-              : undefined;
-      const undoDescription =
-        pendingChange.type === "replace"
-          ? `Replaced with ${changedName}`
-          : pendingChange.type === "add"
-            ? `Added ${changedName}`
+          : pendingChange.type === "remove"
+            ? pendingChange.oldActivity.name
             : pendingChange.type === "adjust_duration"
-              ? `Adjusted ${changedName}`
+              ? pendingChange.activity.name
               : pendingChange.type === "add_day"
-                ? `Added Day ${confirmedDayNumber}`
-                : pendingChange.type === "apply_draft"
-                  ? `Updated ${pendingChange.days.length} days`
-                  : `Reordered Day ${pendingChange.dayNumber}`;
+                ? pendingChange.day.theme
+                : undefined;
+      // What the change did, in the traveller's language: the undo toast and
+      // the "reverted" note show it.
+      const undoDescription = (() => {
+        switch (pendingChange.type) {
+          case "replace":
+            return t("undoActions.replaced", { name: pendingChange.newActivity.name });
+          case "add":
+            return t("undoActions.added", { name: pendingChange.newActivity.name });
+          case "remove":
+            return t("undoActions.removed", { name: pendingChange.oldActivity.name });
+          case "adjust_duration":
+            return t("undoActions.adjusted", { name: pendingChange.activity.name });
+          case "add_day":
+            return t("undoActions.addedDay", { number: confirmedDayNumber });
+          case "apply_draft":
+            return t("undoActions.updatedDays", { count: pendingChange.days.length });
+          case "reorder":
+            return t("undoActions.reordered", { number: pendingChange.dayNumber });
+          case "shift_days":
+            return t("undoActions.shifted", { number: pendingChange.dayNumber, count: pendingChange.shiftByDays });
+        }
+      })();
 
       // Set up undo
       pushUndo({

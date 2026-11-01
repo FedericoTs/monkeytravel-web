@@ -1769,6 +1769,16 @@
         "applyFailed": "Non è stato possibile applicare la modifica. Riprova.",
         "undoFailed": "Non è stato possibile annullare la modifica. Riprova.",
         "undoOutdated": "Il viaggio è cambiato da allora, quindi non si può annullare da qui."
+      },
+      "undoActions": {
+        "replaced": "Sostituita con {name}",
+        "added": "Aggiunta: {name}",
+        "removed": "Tolta: {name}",
+        "adjusted": "Modificata: {name}",
+        "addedDay": "Aggiunto il giorno {number}",
+        "updatedDays": "{count, plural, one {# giorno aggiornato} other {# giorni aggiornati}}",
+        "reordered": "Riordinato il giorno {number}",
+        "shifted": "Dal giorno {number} in poi, {count, plural, one {# giorno} other {# giorni}} più tardi"
       }
     },
     "cards": {
