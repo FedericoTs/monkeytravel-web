@@ -59,7 +59,7 @@ import {
   claimsToRemember,
   nothingChangedReply,
   nothingKeptReply,
-  pendingChangeLead,
+  pendingChangeNote,
   pendingChangeReply,
 } from "@/lib/ai/assistant/honesty";
 import {
@@ -2274,10 +2274,11 @@ Respond with valid JSON only.`;
         `[AI Assistant] honesty guard replaced a ${claimedChange ? "change" : "memory"} claim (${actionTaken ? "change pending" : "nothing prepared"}): "${String(parsedResponse.summary).slice(0, 120)}"`
       );
       // The engine's words are the answer and say what each day gets: they
-      // stay, after the truth about the button.
+      // stay, and the truth about the button follows them, just above it.
+      // Put first, it read "Not saved yet: … Absolutely! I've extended…".
       parsedResponse.summary = actionTaken
         ? engineReply !== null && claimedChange
-          ? `${pendingChangeLead(userLanguage, applyButtonLabel(userLanguage))} ${engineReply}`
+          ? `${engineReply}\n\n${pendingChangeNote(userLanguage, applyButtonLabel(userLanguage))}`
           : pendingChangeReply(userLanguage, applyButtonLabel(userLanguage))
         : claimedChange
           ? nothingChangedReply(userLanguage)
