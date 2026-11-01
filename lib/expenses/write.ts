@@ -4,12 +4,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { errors } from "@/lib/api/response-wrapper";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { linkGuestToAccount } from "@/lib/participants/link";
-import { isUuid } from "@/lib/participants/shared";
 import { isTodayActor, resolveTodayPerson, storedCookie } from "@/lib/today/actor";
 import type { TodayRequester } from "@/lib/today/write";
 import { expenseCohort, tripRoster } from "@/lib/trips/roster";
 import { centsToAmount, normalizeCurrency, parseAmountToCents, parseExpenseCategory, splitEquallyCents } from "./shared";
 import { logWriteError } from "@/lib/supabase/log-write-error";
+import { isUuid } from "@/lib/utils/uuid";
 
 /**
  * "Who paid?" on a live trip's Today, shared by the share-link route

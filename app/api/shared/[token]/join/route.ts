@@ -38,7 +38,6 @@ import { linkGuestToAccount } from "@/lib/participants/link";
 import {
   PARTICIPANT_COOKIE,
   PARTICIPANT_COOKIE_MAX_AGE_SECONDS,
-  isUuid,
   normalizeDisplayName,
   normalizeEmail,
   parseJoinAction,
@@ -48,6 +47,7 @@ import {
 import { participantsSnapshot } from "@/lib/participants/snapshot";
 import { mayEmailPlan, sendParticipantPlanEmail } from "@/lib/participants/plan-email";
 import { readSharedTrip } from "@/lib/trips/shared-trip";
+import { isUuid } from "@/lib/utils/uuid";
 
 const ipLimiter = createRateLimiter("shared-join-ip", 30, 60_000);
 const cookieTripLimiter = createRateLimiter("shared-join-cookie-trip", 6, 60_000);

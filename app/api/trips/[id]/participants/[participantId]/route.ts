@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { verifyTripOwnership } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { RouteContext } from "@/lib/api/route-context";
-import { isUuid } from "@/lib/participants/shared";
+import { isUuid } from "@/lib/utils/uuid";
 
 type Ctx = RouteContext<{ id: string; participantId: string }>;
 

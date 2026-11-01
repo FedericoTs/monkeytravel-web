@@ -1,3 +1,4 @@
+import { isUuid } from "@/lib/utils/uuid";
 /**
  * The account-free crew ask: turning an anonymous share link into a request
  * for votes, and reading the answer back.
@@ -69,13 +70,11 @@ export function framedShareUrl(rawUrl: string | null | undefined, framing: Share
  * validation in app/api/shared/[token]/votes/route.ts, so anything this
  * returns is a token that route will accept.
  */
-const SHARE_TOKEN_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 export function shareTokenFromUrl(url: string | null | undefined): string | null {
   if (!url) return null;
   const path = url.split("#")[0].split("?")[0].replace(/\/+$/, "");
   const last = path.split("/").pop();
-  return last && SHARE_TOKEN_RE.test(last) ? last : null;
+  return last && isUuid(last) ? last : null;
 }
 
 /**

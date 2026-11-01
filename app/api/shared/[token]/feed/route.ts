@@ -14,10 +14,11 @@ import { signedInUserId } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
-import { PARTICIPANT_COOKIE, isUuid } from "@/lib/participants/shared";
+import { PARTICIPANT_COOKIE } from "@/lib/participants/shared";
 import { feedSnapshot } from "@/lib/feed/snapshot";
 import type { ItineraryDay } from "@/types";
 import { readSharedTrip } from "@/lib/trips/shared-trip";
+import { isUuid } from "@/lib/utils/uuid";
 
 export async function GET(_request: NextRequest, context: InviteTokenRouteContext) {
   try {

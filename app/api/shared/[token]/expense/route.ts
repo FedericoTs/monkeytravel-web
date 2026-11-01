@@ -19,11 +19,12 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
-import { PARTICIPANT_COOKIE, PARTICIPANT_COOKIE_MAX_AGE_SECONDS, isUuid } from "@/lib/participants/shared";
+import { PARTICIPANT_COOKIE, PARTICIPANT_COOKIE_MAX_AGE_SECONDS } from "@/lib/participants/shared";
 import { expensesSnapshot } from "@/lib/expenses/snapshot";
 import { writeTripExpense, type TripExpenseBody } from "@/lib/expenses/write";
 import { announceTodayChange } from "@/lib/today/write";
 import { readSharedTrip } from "@/lib/trips/shared-trip";
+import { isUuid } from "@/lib/utils/uuid";
 
 const ipLimiter = createRateLimiter("expense-ip", 30, 60_000);
 const cookieTripLimiter = createRateLimiter("expense-cookie-trip", 15, 60_000);

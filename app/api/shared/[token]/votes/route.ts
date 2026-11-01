@@ -21,12 +21,9 @@ import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { readSharedTrip } from "@/lib/trips/shared-trip";
+import { isUuid } from "@/lib/utils/uuid";
 
 const COOKIE_NAME = "mt_anon_voter";
-
-function isUuid(token: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token);
-}
 
 export async function GET(_request: NextRequest, context: InviteTokenRouteContext) {
   try {

@@ -26,6 +26,7 @@
  */
 
 import { createHmac, timingSafeEqual } from "crypto";
+import { isUuid } from "@/lib/utils/uuid";
 
 const DEFAULT_TTL_DAYS = 365;
 
@@ -243,7 +244,6 @@ export function unsubKeyToSettingPatch(key: UnsubKey): Record<string, boolean> {
  * day link (lib/trips/day-link.ts) never verify as one another.
  */
 const PARTICIPANT_PURPOSE = "mt-participant-unsub:v1";
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface ParticipantUnsubPayload {
   t: "participant";
@@ -262,7 +262,7 @@ export function signParticipantUnsubscribeToken(
   participantId: string,
   ttlDays: number = DEFAULT_TTL_DAYS
 ): string {
-  if (!UUID_RE.test(participantId)) throw new Error("invalid participant id");
+  if (!isUuid(participantId)) throw new Error("invalid participant id");
   const payload: ParticipantUnsubPayload = {
     t: "participant",
     p: participantId,
@@ -306,7 +306,7 @@ export function verifyParticipantUnsubscribeToken(token: string): ParticipantVer
   if (
     payload?.t !== "participant" ||
     typeof payload.p !== "string" ||
-    !UUID_RE.test(payload.p) ||
+    !isUuid(payload.p) ||
     typeof payload.e !== "number"
   ) {
     return { ok: false, reason: "format" };

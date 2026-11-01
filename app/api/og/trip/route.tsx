@@ -22,6 +22,7 @@ import {
   type CardFormat,
 } from "@/lib/og/trip-card";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { isUuid } from "@/lib/utils/uuid";
 
 /**
  * The trip card as an image: the link preview (1200x630, the default), a
@@ -55,7 +56,6 @@ import { logReadError } from "@/lib/supabase/log-read-error";
 
 export const runtime = "nodejs";
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,120}$/i;
 
 type TripRow = {
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
     .from("trips")
     .select("id, title, trip_meta, start_date, end_date, cover_image_url, itinerary, budget, is_hidden")
     .is("deleted_at", null);
-  if (token && UUID_RE.test(token)) query = query.eq("share_token", token);
+  if (token && isUuid(token)) query = query.eq("share_token", token);
   // A slug only names a published trip: the predicate /trip/[slug] uses.
   else if (slug && SLUG_RE.test(slug)) query = query.eq("public_slug", slug).eq("visibility", "public");
   else return fallback();
@@ -184,7 +184,7 @@ export async function GET(request: NextRequest) {
     const metadata = {
       format,
       locale,
-      via: token && UUID_RE.test(token) ? "share_token" : "public_slug",
+      via: token && isUuid(token) ? "share_token" : "public_slug",
       client: previewClient(request.headers.get("user-agent")),
     };
     after(() =>

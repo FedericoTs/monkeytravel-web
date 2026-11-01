@@ -27,10 +27,11 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
-import { PARTICIPANT_COOKIE, PARTICIPANT_COOKIE_MAX_AGE_SECONDS, isUuid } from "@/lib/participants/shared";
+import { PARTICIPANT_COOKIE, PARTICIPANT_COOKIE_MAX_AGE_SECONDS } from "@/lib/participants/shared";
 import { todayActionsSnapshot } from "@/lib/today/snapshot";
 import { announceTodayChange, writeTodayAction, type TodayActionBody } from "@/lib/today/write";
 import { readSharedTrip } from "@/lib/trips/shared-trip";
+import { isUuid } from "@/lib/utils/uuid";
 
 const ipLimiter = createRateLimiter("today-action-ip", 40, 60_000);
 const cookieTripLimiter = createRateLimiter("today-action-cookie-trip", 20, 60_000);

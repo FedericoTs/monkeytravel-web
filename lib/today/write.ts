@@ -4,9 +4,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { errors } from "@/lib/api/response-wrapper";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { suggestNearbyAlternative } from "@/lib/ai/nearby-alternative";
-import { isUuid } from "@/lib/participants/shared";
 import { parseTodayActionType, RUNNING_LATE_STEP_MINUTES, TODAY_CHANGED_EVENT, TODAY_CHANNEL_OPTIONS, todayChannel } from "./actions";
 import { isTodayActor, resolveTodayPerson, storedCookie } from "./actor";
+import { isUuid } from "@/lib/utils/uuid";
 
 /**
  * Applying and undoing a chip on a live trip's Today, shared by the

@@ -1,6 +1,7 @@
 import { after } from "next/server";
 import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
+import { isUuid } from "@/lib/utils/uuid";
 
 /**
  * Clicks on the trip emails, whose links carry `?slot=`: a queue slot of
@@ -12,7 +13,6 @@ import { writesTelemetry } from "@/lib/analytics/telemetry-env";
 const EMAIL_SLOT_RE =
   /^(?:pack_early_14d|visa_check_7d|weather_3d|confirm_1d|morning_of|followup_(?:return_3d|next_21d|final_45d|dormant)|in_trip_day_(?:[2-9]|1\d|2[01])|finish_trip_1d|participant_plan)$/;
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export interface EmailClick {
   slot: string;
@@ -36,9 +36,9 @@ function clickTarget(url: URL): EmailClick | null {
   if (!slot || !EMAIL_SLOT_RE.test(slot)) return null;
   const path = url.pathname.replace(/^\/(?:en|es|it|pt)(?=\/|$)/, "") || "/";
   const trip = path.match(/^\/trips\/([^/]+)\/?$/);
-  if (trip && UUID_RE.test(trip[1])) return { slot, page: "trip", tripId: trip[1].toLowerCase() };
+  if (trip && isUuid(trip[1])) return { slot, page: "trip", tripId: trip[1].toLowerCase() };
   const day = path.match(/^\/day\/([^/]+)\/\d{4}-\d{2}-\d{2}\/?$/);
-  if (day && UUID_RE.test(day[1])) return { slot, page: "day", tripId: day[1].toLowerCase() };
+  if (day && isUuid(day[1])) return { slot, page: "day", tripId: day[1].toLowerCase() };
   if (path === "/trips/new") return { slot, page: "wizard", tripId: null };
   if (path.startsWith("/shared/")) return { slot, page: "shared", tripId: null };
   return { slot, page: "other", tripId: null };

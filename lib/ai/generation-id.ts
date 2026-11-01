@@ -1,3 +1,5 @@
+import { isUuid } from "@/lib/utils/uuid";
+
 /**
  * The id the wizard sends with each generation request. The server keeps the
  * finished plan under it for a while (lib/ai/generation-result.ts), and logs it
@@ -8,10 +10,8 @@
 
 export const GENERATION_ID_HEADER = "x-generation-id";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 export function isGenerationId(value: string | null | undefined): value is string {
-  return !!value && UUID.test(value);
+  return isUuid(value);
 }
 
 /** A random (v4) id for one generation request. */

@@ -10,10 +10,10 @@
  */
 
 import { createHmac, timingSafeEqual } from "crypto";
+import { isUuid } from "@/lib/utils/uuid";
 
 const PURPOSES = { view: "mt-trip-day:v1", send: "mt-trip-day-send:v1" } as const;
 export type DayLinkPurpose = keyof typeof PURPOSES;
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const KEY_RE = /^(\d{1,12})\.([A-Za-z0-9_-]{43})$/;
 const DAY_MS = 86_400_000;
 
@@ -51,7 +51,7 @@ export function signDayLink(
 ): string {
   const key = secret();
   if (!key) throw new Error("EMAIL_UNSUBSCRIBE_SECRET is not set (or too short)");
-  if (!UUID_RE.test(tripId) || dayStartUtc(date) === null) throw new Error("invalid trip id or date");
+  if (!isUuid(tripId) || dayStartUtc(date) === null) throw new Error("invalid trip id or date");
   return `${expires}.${mac(key, tripId, date, expires, purpose).toString("base64url")}`;
 }
 
@@ -73,7 +73,7 @@ export function verifyDayLink(
     return { ok: false, reason: "secret_missing" };
   }
   const parts = KEY_RE.exec(k ?? "");
-  if (!parts || !UUID_RE.test(tripId) || dayStartUtc(date) === null) return { ok: false, reason: "format" };
+  if (!parts || !isUuid(tripId) || dayStartUtc(date) === null) return { ok: false, reason: "format" };
   const expires = Number(parts[1]);
   // Compared as encoded text: decoding would accept other spellings of one MAC.
   const given = Buffer.from(parts[2]);
