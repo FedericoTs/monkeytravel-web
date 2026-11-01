@@ -80,18 +80,21 @@ const savedMessages = [
 
 type Call = { table: string; op: string; value?: unknown };
 let calls: Call[];
+// The row a conversation id finds, and the rows a trip's history lists.
+let storedConversation: Record<string, unknown>;
+let conversationRows: Record<string, unknown>[];
 function fakeSupabase() {
   const from = (table: string) => {
     let op = "select";
     let value: unknown;
-    const result = () => {
+    const result = (list = false) => {
       calls.push({ table, op, value });
       if (table === "users") return { data: { preferred_language: "en" }, error: null };
       if (table === "trips") return op === "update" ? { data: null, error: null } : { data: storedTrip, error: null };
       if (table === "ai_conversations") {
         if (op === "insert") return { data: { id: "conv-new" }, error: null };
         if (op === "update") return { data: null, error: null };
-        return { data: { id: "conv-1", messages: savedMessages }, error: null };
+        return { data: list ? conversationRows : storedConversation, error: null };
       }
       return { data: null, error: null };
     };
@@ -101,7 +104,7 @@ function fakeSupabase() {
     chain.update = (v: unknown) => ((op = "update"), (value = v), chain);
     chain.single = async () => result();
     chain.maybeSingle = async () => result();
-    chain.then = (res: (r: unknown) => unknown, rej?: (e: unknown) => unknown) => Promise.resolve(result()).then(res, rej);
+    chain.then = (res: (r: unknown) => unknown, rej?: (e: unknown) => unknown) => Promise.resolve(result(true)).then(res, rej);
     return chain;
   };
   return { from };
@@ -110,7 +113,7 @@ vi.mock("@/lib/api/auth", () => ({
   getAuthenticatedUser: async () => ({ user: { id: "user-1", email: "owner@example.com" }, supabase: fakeSupabase(), errorResponse: null }),
 }));
 
-const { POST } = await import("./route");
+const { POST, GET } = await import("./route");
 
 async function send(message: string, previewMode = true, extra: Record<string, unknown> = {}) {
   const res = await POST(
@@ -139,6 +142,8 @@ const savedAssistantMessage = () => {
 
 beforeEach(() => {
   calls = [];
+  storedConversation = { id: "conv-1", messages: savedMessages, context: {} };
+  conversationRows = [];
   proposeTripEdits.mockReset();
   chatCalls.mockReset();
   recordUsage.mockReset();
@@ -313,5 +318,28 @@ describe("trip-page assistant: free-form edits", () => {
     expect(days[2].activities.map((a) => a.name)).toEqual(["Grafton Street", "Wigwam"]);
     expect(json.modifiedItinerary?.[2].activities.map((a: { name: string }) => a.name)).toEqual(["Grafton Street", "Wigwam"]);
     expect(json.pendingChange).toBeNull();
+  });
+});
+
+// The concierge keeps one row per question in the same table.
+describe("trip-page assistant: its own conversations only", () => {
+  it("starts a new thread when the id it's given is a concierge row", async () => {
+    storedConversation = { id: "conv-1", messages: savedMessages, context: { surface: "concierge_f4" } };
+    proposeTripEdits.mockResolvedValue({ reply: "Ready: Wigwam on Day 3.", revisedDays: [wigwamDay3], summary: "", meta });
+    const { json } = await send("adding Wigwam to Day 3");
+    const insert = calls.find((c) => c.table === "ai_conversations" && c.op === "insert");
+    expect(insert?.value).toMatchObject({ context: { surface: "trip_assistant" } });
+    expect(json.conversationId).toBe("conv-new");
+    expect(proposeTripEdits.mock.calls[0][0].history).toEqual([]);
+  });
+
+  it("lists a trip's threads without the concierge's rows", async () => {
+    conversationRows = [
+      { id: "c-1", created_at: "t", updated_at: "t", messages: [], context: { surface: "concierge_f4" } },
+      { id: "a-1", created_at: "t", updated_at: "t", messages: [], context: {} },
+    ];
+    const res = await GET(new NextRequest("http://localhost/api/ai/assistant?tripId=trip-1"));
+    const json = await res.json();
+    expect(json.conversations.map((c: { id: string }) => c.id)).toEqual(["a-1"]);
   });
 });

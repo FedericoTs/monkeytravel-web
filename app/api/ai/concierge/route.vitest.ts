@@ -65,7 +65,8 @@ const trip = {
   ],
 };
 let history: [string, string][] = [];
-const persisted: { messages: { content: string }[]; context: { proposal_type?: string } }[] = [];
+const persisted: { messages: { content: string }[]; context: { proposal_type?: string; surface?: string } }[] = [];
+const memoryFilters: [string, unknown][] = [];
 
 vi.mock("@/lib/api/auth", () => ({
   getAuthenticatedUser: async () => ({
@@ -85,7 +86,8 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
     from() {
       const chain: Record<string, unknown> = {};
-      for (const m of ["select", "eq", "order"]) chain[m] = () => chain;
+      for (const m of ["select", "order"]) chain[m] = () => chain;
+      chain.eq = (column: string, value: unknown) => (memoryFilters.push([column, value]), chain);
       chain.limit = async () => ({
         data: [...history].reverse().map(([q, a]) => ({ messages: [{ role: "user", content: q }, { role: "assistant", content: a }] })),
         error: null,
@@ -135,6 +137,7 @@ beforeEach(() => {
   streamRequests.length = 0;
   history = [];
   persisted.length = 0;
+  memoryFilters.length = 0;
 });
 
 describe("concierge proposals", () => {
@@ -200,6 +203,14 @@ describe("concierge proposals", () => {
     expect(answer).toBe("Early morning, right at opening, before the tour groups.");
     expect(proposal).toBeNull();
     expect(followUpRequests).toHaveLength(0);
+  });
+
+  // The trip assistant keeps its threads in the same table.
+  it("remembers and stores only concierge turns", async () => {
+    streamReply = "Early morning, right at opening.";
+    await ask("what's the best time to visit the castle?");
+    expect(memoryFilters).toContainEqual(["context->>surface", "concierge_f4"]);
+    expect(persisted.at(-1)?.context.surface).toBe("concierge_f4");
   });
 
   it("names the language the traveller writes in", async () => {

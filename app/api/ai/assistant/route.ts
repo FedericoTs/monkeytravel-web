@@ -53,6 +53,7 @@ import { isRealPoint } from "@/lib/trip/placeholder-point";
 import { dietsFrom } from "@/lib/trips/diet";
 import { placesToEatCheck } from "@/lib/places/places-to-eat";
 import { activityNotFoundReason, findActivityByName } from "@/lib/ai/assistant/find-activity";
+import { ASSISTANT_SURFACE, isConciergeRow } from "@/lib/ai/conversations";
 import {
   announcesProposal,
   claimsItineraryChange,
@@ -1070,7 +1071,8 @@ export async function POST(request: NextRequest) {
     };
 
     // Load conversation. Before the intents: the edit engine below reads it.
-    let conversation: { id: string; messages: AssistantMessage[] };
+    // A concierge row, or one that's gone, starts a new thread.
+    let conversation: { id: string; messages: AssistantMessage[] } | null = null;
 
     if (conversationId) {
       const { data: existingConvo } = await supabase
@@ -1080,13 +1082,14 @@ export async function POST(request: NextRequest) {
         .eq("user_id", user.id)
         .single();
 
-      conversation = existingConvo
-        ? { id: existingConvo.id, messages: existingConvo.messages as AssistantMessage[] }
-        : { id: "", messages: [] };
-    } else {
+      if (existingConvo && !isConciergeRow(existingConvo.context)) {
+        conversation = { id: existingConvo.id, messages: existingConvo.messages as AssistantMessage[] };
+      }
+    }
+    if (!conversation) {
       const { data: newConvo } = await supabase
         .from("ai_conversations")
-        .insert({ user_id: user.id, trip_id: tripId, messages: [] })
+        .insert({ user_id: user.id, trip_id: tripId, messages: [], context: { surface: ASSISTANT_SURFACE } })
         .select()
         .single();
 
@@ -2510,6 +2513,7 @@ export async function GET(request: NextRequest) {
     const tripId = searchParams.get("tripId");
     const conversationId = searchParams.get("conversationId");
 
+    // The concierge's rows share the table; this chat never shows them.
     if (conversationId) {
       const { data: conversation } = await supabase
         .from("ai_conversations")
@@ -2518,17 +2522,20 @@ export async function GET(request: NextRequest) {
         .eq("user_id", user.id)
         .single();
 
-      return apiSuccess({ conversation });
+      return apiSuccess({ conversation: conversation && !isConciergeRow(conversation.context) ? conversation : null });
     }
 
     if (tripId) {
-      const { data: conversations } = await supabase
+      const { data: rows } = await supabase
         .from("ai_conversations")
-        .select("id, created_at, updated_at, messages")
+        .select("id, created_at, updated_at, messages, context")
         .eq("trip_id", tripId)
         .eq("user_id", user.id)
         .order("updated_at", { ascending: false });
 
+      const conversations = (rows ?? [])
+        .filter((row) => !isConciergeRow(row.context))
+        .map(({ id, created_at, updated_at, messages }) => ({ id, created_at, updated_at, messages }));
       return apiSuccess({ conversations });
     }
 

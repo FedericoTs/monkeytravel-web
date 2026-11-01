@@ -79,6 +79,12 @@ describe("GET concierge-history", () => {
     expect(historyFilters).not.toContainEqual(["user_id", OWNER]);
   });
 
+  // The trip assistant keeps its threads in the same table.
+  it("lists only concierge turns", async () => {
+    expect((await call()).status).toBe(200);
+    expect(historyFilters).toContainEqual(["context->>surface", "concierge_f4"]);
+  });
+
   it("still answers the owner", async () => {
     expect((await call()).status).toBe(200);
     expect(historyFilters).toContainEqual(["user_id", OWNER]);

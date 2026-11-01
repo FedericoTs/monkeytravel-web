@@ -48,6 +48,7 @@ import {
 } from "@/lib/ai/concierge-proposal";
 import { noProposalNote, replyLanguage } from "@/lib/ai/assistant/honesty";
 import { LANGUAGE_NAMES, tripLocale } from "@/lib/ai/language";
+import { CONCIERGE_SURFACE } from "@/lib/ai/conversations";
 
 /**
  * Persist a Concierge Q&A turn to `ai_conversations`.
@@ -61,14 +62,9 @@ import { LANGUAGE_NAMES, tripLocale } from "@/lib/ai/language";
  *   - mine common asks for FAQ / canned-answer surfaces
  *   - reconstruct user sessions when a trip later disappears
  *
- * One row per turn (Q + A pair) — simpler than maintaining a thread.
- * Group by (user_id, trip_id, day_bucket) at query time if we ever want
- * conversation threading.
- *
- * Service-role client — `ai_conversations` has RLS enabled with zero
- * policies (service-role-only), which is correct: there's no UI yet
- * that reads these rows, and an accidental anon-readable policy would
- * leak prompt content.
+ * One row per turn (Q + A pair) — simpler than maintaining a thread —
+ * marked `context.surface` so the trip assistant, which keeps its threads in
+ * the same table, never reads it (lib/ai/conversations.ts).
  *
  * Fire-and-forget. Never blocks the user's answer.
  */
@@ -103,7 +99,7 @@ async function persistConciergeTurn(input: {
         },
       ],
       context: {
-        surface: "concierge_f4",
+        surface: CONCIERGE_SURFACE,
         is_live_trip: input.isLiveTrip,
         day_number: input.dayNumber,
         streamed: input.streamed,
@@ -354,9 +350,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Stage A: multi-turn memory. Replay the last few persisted turns so
-    // "make it shorter" after "propose a dinner spot" resolves. Admin client
-    // by design — ai_conversations is RLS service-role-only (zero policies);
-    // the explicit user_id+trip_id filters scope it to this user's own turns.
+    // "make it shorter" after "propose a dinner spot" resolves. The user_id
+    // and trip_id filters scope it to this user's own concierge turns.
     let historyTurns: { question: string; answer: string }[] = [];
     try {
       const admin = createAdminClient();
@@ -365,6 +360,7 @@ export async function POST(request: NextRequest) {
         .select("messages")
         .eq("user_id", user.id)
         .eq("trip_id", tripId)
+        .eq("context->>surface", CONCIERGE_SURFACE)
         .order("created_at", { ascending: false })
         .limit(3);
       historyTurns = (convRows ?? [])
