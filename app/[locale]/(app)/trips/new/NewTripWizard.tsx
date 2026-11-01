@@ -56,7 +56,7 @@ import {
 import { MultiCityRouteBuilder, type RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
-import { joinCities, splitCities, addDaysISO } from "@/lib/ai/multi-city-core";
+import { joinCities, addDaysISO } from "@/lib/ai/multi-city-core";
 
 // Multi-city planning (docs/MULTI_CITY_PLAN.md §2.5/§3.2). Env-gated so the
 // single-city funnel is unchanged while the flag is off.
@@ -258,7 +258,6 @@ import {
   type TripFormState as PersistTripFormState,
   type PersistInput,
 } from "@/lib/trips/persistTrip";
-import { resolveAiLanguage } from "@/lib/ai/language";
 import { newTripTitle } from "@/lib/trips/title";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { applyAssistantEdits, type AssistantDayEdit } from "@/lib/trips/day-edit-merge";
@@ -2809,119 +2808,18 @@ export default function NewTripPage({
         return;
       }
 
-      // Fetch a proper cover image for this destination
-      let coverImageUrl: string | undefined;
-      try {
-        const imageResponse = await fetch(
-          `/api/images/destination?destination=${encodeURIComponent(generatedItinerary.destination.name)}`
-        );
-        if (imageResponse.ok) {
-          const imageData = await imageResponse.json();
-          coverImageUrl = imageData.url;
-        }
-      } catch (imageError) {
-        console.error("Failed to fetch cover image:", imageError);
-      }
-
-      // Fallback: Try to find a high-quality activity image
-      if (!coverImageUrl) {
-        for (const day of generatedItinerary.days) {
-          for (const activity of day.activities) {
-            // Prefer Google Places photos (they have maps.googleapis.com)
-            if (activity.image_url && activity.image_url.includes("googleapis.com")) {
-              coverImageUrl = activity.image_url;
-              break;
-            }
-          }
-          if (coverImageUrl) break;
-        }
-      }
-
-      // Build trip metadata from generated itinerary (preserves AI-generated data)
-      const tripMeta = {
-        // Provenance - the same two keys the auto arm writes via SaveOrigin,
-        // so a duplicate pair states which arm produced each row and whether
-        // they came from the same wizard mount. Never infer the arm from
-        // trip_meta.destination's absence: both arms write that key (see
-        // below).
-        save_arm: "manual" as const,
-        ...(wizardMountIdRef.current
-          ? { wizard_mount_id: wizardMountIdRef.current }
-          : {}),
-        // Canonical user-specified destination + structured route legs, as
-        // the auto arm (lib/trips/persistTrip.ts buildTripRow) writes them.
-        // Without them getTripDestination() falls back to stripping " Trip"
-        // off the title, which is documented to break on non-English,
-        // renamed, and multi-city titles. `destination` holds joinCities(...)
-        // for multi-city, so `cities` is derivable the same way the auto arm
-        // derives it. Gated on a non-empty value so we never store "".
-        ...(destination.trim()
-          ? {
-              destination: destination.trim(),
-              ...(splitCities(destination.trim()).length > 1
-                ? { cities: splitCities(destination.trim()) }
-                : {}),
-            }
-          : {}),
-        weather_note: generatedItinerary.destination.weather_note,
-        highlights: generatedItinerary.trip_summary.highlights,
-        booking_links: generatedItinerary.booking_links,
-        destination_best_for: generatedItinerary.destination.best_for,
-        // The language the text was generated in (stamped by the generate
-        // routes; the UI locale covers responses without it). Every later
-        // AI edit reads this before the visitor's cookie.
-        locale: generatedItinerary.language ?? resolveAiLanguage(locale),
-        packing_suggestions: generatedItinerary.trip_summary.packing_suggestions,
-        // Anchors: persist the fixed commitments this trip was built
-        // around so regeneration/editing keeps honouring them.
-        ...(anchors.length > 0 ? { anchors } : {}),
-        // Must-dos and diet: same source-of-truth reasoning as anchors.
-        ...(mustDos.length > 0 ? { must_dos: mustDos } : {}),
-        ...(dietary.length > 0 ? { dietary } : {}),
-        // Pace the trip was generated at — the feasibility strip on the
-        // detail/share views reads it to pick the day-time budget.
-        pace,
-      };
-
-      // Atomic server-side dedupe: a client check-then-insert catches slow
-      // double-clicks but not concurrency (e.g. this path racing the
-      // auto-save arm). The insert_trip_dedup RPC advisory-locks (user,
-      // title, start_date), runs the 60s-window reuse check, and inserts —
-      // atomically. It also catches cross-tab double-save,
-      // hard-refresh-then-resave, and any client guard regression. RLS
-      // applies (SECURITY INVOKER); user_id is taken from auth.uid()
-      // server-side.
-      const tripTitle = newTripTitle(generatedItinerary.destination.name, locale);
-      const { data: dedupSave, error: tripError } = await supabase
-        .rpc("insert_trip_dedup", {
-          p_row: {
-            title: tripTitle,
-            description: generatedItinerary.destination.description,
-            start_date: startDate,
-            end_date: endDate,
-            status: "planning",
-            visibility: "private",
-            // Stored with activity ids: the photo enrichment fired right after
-            // this insert merges by id, and an id-less trip would make the
-            // trip page mint and save ids of its own, racing it.
-            itinerary: ensureActivityIds(generatedItinerary.days),
-            cover_image_url: coverImageUrl,
-            budget: {
-              total: generatedItinerary.trip_summary.total_estimated_cost,
-              spent: 0,
-              currency: generatedItinerary.trip_summary.currency,
-            },
-            tags: deriveInterestsFromVibes(), // Auto-derived from vibes
-            trip_meta: tripMeta, // Preserve AI-generated metadata
-            packing_list: generatedItinerary.trip_summary.packing_suggestions, // Also store in packing_list column
-          },
-        })
-        .single();
-
-      if (tripError) throw tripError;
-      const dedupRow = dedupSave as { trip_id: string; reused: boolean } | null;
-      if (!dedupRow?.trip_id) throw new Error("Trip insert returned no id");
-      const trip: { id: string } = { id: dedupRow.trip_id };
+      // The row the auto-save writes (lib/trips/persistTrip.ts), marked as this
+      // arm's: one builder, so neither arm can drop a field the other stores.
+      // The insert_trip_dedup RPC inside it makes a double save reuse the
+      // first row. The cover follows once the row exists, as for auto-save.
+      const { tripId: savedId } = await persistInsertTrip(
+        supabase,
+        { itinerary: generatedItinerary, formState: autoSaveFormState },
+        user.id,
+        { arm: "manual", mountId: wizardMountIdRef.current },
+      );
+      void autoAttachCoverImage(savedId, autoSaveFormState.destination);
+      const trip: { id: string } = { id: savedId };
 
       // Calculate trip duration
       const durationDays = tripSpanDaysInclusive(startDate, endDate);
