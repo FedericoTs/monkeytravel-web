@@ -558,6 +558,7 @@
     "pageTitle": "Trip Details",
     "exitEditing": "Exit",
     "activityRegenerateFailed": "Failed to regenerate activity. Please try again.",
+    "activityRegenerateLimit": "You've reached this month's regeneration limit. The activity is unchanged.",
     "saveChangesFailed": "Failed to save changes. Please try again.",
     "estBudget": "Est. Budget",
     "noItinerary": "No Itinerary Yet",
