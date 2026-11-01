@@ -132,17 +132,3 @@ export function estimateTravelTime(
   };
 }
 
-/**
- * Batch estimate travel times for multiple coordinate pairs
- */
-export function batchEstimateTravelTimes(
-  pairs: Array<{
-    origin: Coordinates;
-    destination: Coordinates;
-    preferredMode?: "WALKING" | "DRIVING" | "AUTO";
-  }>
-): TravelEstimate[] {
-  return pairs.map(({ origin, destination, preferredMode }) =>
-    estimateTravelTime(origin, destination, preferredMode)
-  );
-}

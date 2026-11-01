@@ -508,22 +508,3 @@ export async function incrementUsage(
   }
 }
 
-/**
- * Batch check multiple limits at once (optimization)
- */
-export async function checkMultipleLimits(
-  userId: string,
-  limitTypes: UsageLimitType[],
-  userEmail?: string | null
-): Promise<Record<UsageLimitType, UsageCheckResult>> {
-  const results = await Promise.all(
-    limitTypes.map((type) => checkUsageLimit(userId, type, userEmail))
-  );
-
-  const resultMap: Partial<Record<UsageLimitType, UsageCheckResult>> = {};
-  limitTypes.forEach((type, index) => {
-    resultMap[type] = results[index];
-  });
-
-  return resultMap as Record<UsageLimitType, UsageCheckResult>;
-}

@@ -277,12 +277,3 @@ export function isValidPaymentHandle(
 export const PAYMENT_PROVIDERS = ["paypal", "venmo", "wise"] as const;
 export type PaymentProvider = (typeof PAYMENT_PROVIDERS)[number];
 
-/**
- * Column-name mapping. Keeps the SettleUpView free of hardcoded
- * "paypal_handle" strings sprinkled through render code.
- */
-export const PAYMENT_HANDLE_COLUMN: Record<PaymentProvider, string> = {
-  paypal: "paypal_handle",
-  venmo: "venmo_handle",
-  wise: "wise_handle",
-};

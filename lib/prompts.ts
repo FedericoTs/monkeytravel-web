@@ -137,27 +137,3 @@ export function clearPromptCache(): void {
   promptCache.clear();
 }
 
-/**
- * Preload all prompts into cache
- */
-export async function preloadPrompts(): Promise<void> {
-  try {
-    const { data, error } = await supabase
-      .from("ai_prompts")
-      .select("name, prompt_text")
-      .eq("is_active", true);
-
-    if (!error && data) {
-      for (const prompt of data) {
-        if (prompt.name in DEFAULT_PROMPTS) {
-          promptCache.set(prompt.name, {
-            text: prompt.prompt_text,
-            timestamp: Date.now(),
-          });
-        }
-      }
-    }
-  } catch {
-    // Silently fail - will use defaults
-  }
-}

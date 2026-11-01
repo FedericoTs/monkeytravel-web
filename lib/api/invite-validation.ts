@@ -92,35 +92,3 @@ export function validateInvite(invite: InviteData | null): InviteValidationResul
   return { valid: true };
 }
 
-/**
- * Check if an invite is still valid (boolean version for quick checks)
- *
- * @param invite - Invite data from database
- * @returns true if invite is valid and can be used
- */
-export function isInviteValid(invite: InviteData | null): boolean {
-  return validateInvite(invite).valid;
-}
-
-/**
- * Get remaining uses for an invite
- *
- * @param invite - Invite data from database
- * @returns Number of remaining uses, or Infinity if unlimited
- */
-export function getRemainingUses(invite: InviteData): number {
-  if (invite.max_uses === 0) {
-    return Infinity;
-  }
-  return Math.max(0, invite.max_uses - invite.use_count);
-}
-
-/**
- * Calculate time until invite expires
- *
- * @param invite - Invite data from database
- * @returns Milliseconds until expiry, or negative if already expired
- */
-export function getTimeUntilExpiry(invite: InviteData): number {
-  return new Date(invite.expires_at).getTime() - Date.now();
-}

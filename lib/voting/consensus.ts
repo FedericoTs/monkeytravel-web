@@ -18,13 +18,7 @@
  * 6. Otherwise → Continue voting
  */
 
-import {
-  ActivityVote,
-  ConsensusResult,
-  VoteType,
-  VOTE_WEIGHTS,
-  VOTING_TIMING,
-} from '@/types';
+import { ActivityVote, ConsensusResult, VOTE_WEIGHTS, VOTING_TIMING } from '@/types';
 
 export interface ConsensusInput {
   votes: ActivityVote[];
@@ -245,63 +239,6 @@ export function getConsensusDisplayInfo(result: ConsensusResult): {
         descriptionKey: 'deadlockDesc',
       };
   }
-}
-
-/**
- * Check if a user has already voted on an activity
- */
-export function getUserVote(
-  votes: ActivityVote[],
-  userId: string
-): ActivityVote | undefined {
-  return votes.find(v => v.user_id === userId);
-}
-
-/**
- * Get vote type for a user
- */
-export function getUserVoteType(
-  votes: ActivityVote[],
-  userId: string
-): VoteType | null {
-  const vote = getUserVote(votes, userId);
-  return vote?.vote_type ?? null;
-}
-
-/**
- * Calculate time remaining until auto-action
- */
-export function getTimeRemaining(
-  proposedAt: Date | string,
-  targetHours: number
-): {
-  hours: number;
-  minutes: number;
-  isPast: boolean;
-  formatted: string;
-} {
-  const proposedDate = typeof proposedAt === 'string' ? new Date(proposedAt) : proposedAt;
-  const targetTime = proposedDate.getTime() + targetHours * 60 * 60 * 1000;
-  const remaining = targetTime - Date.now();
-
-  const isPast = remaining <= 0;
-  const absRemaining = Math.abs(remaining);
-  const hours = Math.floor(absRemaining / (1000 * 60 * 60));
-  const minutes = Math.floor((absRemaining % (1000 * 60 * 60)) / (1000 * 60));
-
-  let formatted: string;
-  if (isPast) {
-    formatted = 'Time elapsed';
-  } else if (hours >= 24) {
-    const days = Math.floor(hours / 24);
-    formatted = `${days}d ${hours % 24}h`;
-  } else if (hours > 0) {
-    formatted = `${hours}h ${minutes}m`;
-  } else {
-    formatted = `${minutes}m`;
-  }
-
-  return { hours, minutes, isPast, formatted };
 }
 
 /**

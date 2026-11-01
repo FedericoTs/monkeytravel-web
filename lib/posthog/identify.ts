@@ -91,19 +91,6 @@ export async function setOnceUserProperty(key: string, value: unknown) {
 }
 
 /**
- * Increment a numeric property (e.g., login count)
- */
-export async function incrementUserProperty(key: string, amount: number = 1) {
-  if (typeof window === "undefined") return;
-
-  const posthog = await getPosthog();
-  // PostHog doesn't have a direct increment, use capture with $set
-  posthog.capture("$set", {
-    $set: { [key]: amount }, // This will be handled differently
-  });
-}
-
-/**
  * Reset user identification
  *
  * Call on logout to:

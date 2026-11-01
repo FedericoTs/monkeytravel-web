@@ -165,5 +165,3 @@ export function isAnalyticsBot(userAgent: string | null | undefined): boolean {
 /** Exported for the SQL backfill and for tests to assert coverage. */
 export const BOT_SIGNATURE_LIST = BOT_SIGNATURES;
 
-/** Exported for the same backfill: these need an equality test, not LIKE. */
-export const AUTOMATION_EXACT_UA_LIST = AUTOMATION_EXACT_UA;

@@ -149,22 +149,3 @@ export interface ReferralTierRow {
   highest_tier_achieved: number;
   updated_at: string;
 }
-
-// =============================================================================
-// CONVERSION UTILITIES
-// =============================================================================
-
-export function transactionRowToApi(row: BananaTransactionRow): BananaTransaction {
-  return {
-    id: row.id,
-    userId: row.user_id,
-    amount: row.amount,
-    balanceAfter: row.balance_after,
-    transactionType: row.transaction_type,
-    referenceId: row.reference_id ?? undefined,
-    description: row.description ?? undefined,
-    expiresAt: row.expires_at ?? undefined,
-    expired: row.expired,
-    createdAt: row.created_at,
-  };
-}

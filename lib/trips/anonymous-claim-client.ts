@@ -149,15 +149,6 @@ export async function shareAnonymousTrip(payload: {
   return json;
 }
 
-/** True when this browser is holding a trip that could still be claimed. */
-export async function hasPendingClaim(): Promise<boolean> {
-  try {
-    return Boolean(await prefs.get(CLAIM_TOKEN_KEY));
-  } catch {
-    return false;
-  }
-}
-
 /**
  * Attempt to attach a previously shared anonymous trip to the now-signed-in
  * user. Safe to call on every auth transition: with no stored token it is a
@@ -214,9 +205,6 @@ async function claimPendingTripOnce(): Promise<string | null> {
     return null;
   }
 }
-
-/** Exported for tests and for the rare case a caller must clear state by hand. */
-export const PENDING_CLAIM_STORAGE_KEY = CLAIM_TOKEN_KEY;
 
 // Two callers race the claim on sign-in: AuthProvider on SIGNED_IN and the
 // wizard once it knows the draft on screen is the shared trip. Sent twice,

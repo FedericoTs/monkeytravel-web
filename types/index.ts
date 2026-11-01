@@ -509,16 +509,7 @@ export interface TripCreationParams {
   profilePreferences?: UserProfilePreferences;
 }
 
-// AI Assistant structured response types
-export type AssistantCardType =
-  | "activity_suggestion"  // Suggesting a new activity
-  | "activity_replacement" // Replacing an existing activity
-  | "activity_added"       // Confirmation that activity was added
-  | "tip"                  // Quick tip or info
-  | "comparison"           // Comparing multiple options
-  | "confirmation"         // Action completed confirmation
-  | "error"                // Error message
-  | "duration_adjusted";   // Duration was adjusted
+   // Duration was adjusted
 
 export interface AssistantActivityCard {
   type: "activity_suggestion" | "activity_added";
@@ -743,8 +734,6 @@ export type VoteType = 'love' | 'flexible' | 'concerns' | 'no';
 
 export type ActivityVotingStatus = (typeof ACTIVITY_VOTING_STATUSES)[number];
 
-export type ReactionEmoji = 'fire' | 'money' | 'walking' | 'camera' | 'food' | 'clock' | 'heart' | 'star' | 'warning';
-
 export interface ActivityVote {
   id: string;
   trip_id: string;
@@ -777,15 +766,6 @@ export interface ActivityConfirmationRecord {
   confirmed_at?: string;
   rejected_at?: string;
   confirmation_method?: 'unanimous' | 'majority' | 'auto_confirm' | 'owner_override' | 'timeout';
-}
-
-export interface ActivityReaction {
-  id: string;
-  trip_id: string;
-  activity_id: string;
-  user_id: string;
-  emoji: ReactionEmoji;
-  created_at: string;
 }
 
 export interface ConsensusResult {
@@ -853,23 +833,6 @@ export const VOTE_INFO: Record<VoteType, {
     requiresComment: true,
     descriptionKey: 'types.no.description',
   },
-};
-
-// Reaction display information
-export const REACTION_INFO: Record<ReactionEmoji, {
-  label: string;
-  emoji: string;
-  description: string;
-}> = {
-  fire: { label: 'Must do', emoji: '🔥', description: 'Bucket list item!' },
-  money: { label: 'Expensive', emoji: '💰', description: 'Pricey option' },
-  walking: { label: 'Tiring', emoji: '🚶', description: 'Lots of walking' },
-  camera: { label: 'Photo spot', emoji: '📸', description: 'Great for photos' },
-  food: { label: 'Good food', emoji: '🍽️', description: 'Food highlight' },
-  clock: { label: 'Time-sensitive', emoji: '⏰', description: 'Book early/specific time' },
-  heart: { label: 'Romantic', emoji: '❤️', description: 'Couples favorite' },
-  star: { label: 'Highlight', emoji: '⭐', description: 'Trip highlight' },
-  warning: { label: 'Heads up', emoji: '⚠️', description: 'Note something' },
 };
 
 // Voting timing constants
@@ -1002,31 +965,11 @@ export interface ProposalWithVotes extends ActivityProposal {
 }
 
 /**
- * Slot key format for grouping proposals
- * Format: "day-{dayIndex}-{timeSlot}" e.g., "day-0-morning"
- */
-export type ProposalSlotKey = `day-${number}-${string}`;
-
-/**
- * Generate a slot key from day and time slot
- */
-export function getProposalSlotKey(day: number, timeSlot?: string): ProposalSlotKey {
-  return `day-${day}-${timeSlot || 'any'}` as ProposalSlotKey;
-}
-
-/**
  * Vote weights for proposal consensus calculation
  * Now uses unified VOTE_WEIGHTS for consistency with activity voting
  * @deprecated Use VOTE_WEIGHTS instead
  */
 export const PROPOSAL_VOTE_WEIGHTS = VOTE_WEIGHTS;
-
-/**
- * Proposal vote display information
- * Now uses unified VOTE_INFO for consistency with activity voting
- * @deprecated Use VOTE_INFO instead
- */
-export const PROPOSAL_VOTE_INFO = VOTE_INFO;
 
 /**
  * Proposal timing constants (similar to voting)
