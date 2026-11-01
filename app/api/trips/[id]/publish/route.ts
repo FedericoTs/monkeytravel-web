@@ -9,7 +9,7 @@ import { runTripCounter } from "@/lib/explore/counters";
 import { randomUUID } from "node:crypto";
 import { publicNameOrNull } from "@/lib/profile/public-name";
 import { purgeTripCard } from "@/lib/seo/trip-card-cache";
-import { readShareToken } from "@/lib/trips/share-token";
+import { ensureShareToken, readShareToken } from "@/lib/trips/share-token";
 
 /**
  * POST /api/trips/[id]/publish — owner opts a trip into the public
@@ -210,13 +210,18 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
     );
   }
 
-  // Flip visibility + stamp metadata.
-  const existingToken = await readShareToken(tripId);
+  // The trip's link, made now if it has none (one link however many requests
+  // ask at once). Then flip visibility + stamp metadata.
+  let shareToken: string;
+  try {
+    ({ token: shareToken } = await ensureShareToken(tripId, "public"));
+  } catch {
+    return errors.internal("Failed to publish trip", "trips.update");
+  }
   const update: Record<string, unknown> = {
     visibility: "public",
     submitted_to_trending_at: new Date().toISOString(),
   };
-  if (!existingToken) update.share_token = randomUUID();
   // shared_at acts as the recency boost anchor. Set on first publish only.
   update.shared_at = new Date().toISOString();
   if (authorDisplayName !== null) update.author_display_name = authorDisplayName;
@@ -251,7 +256,7 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
 
   return apiSuccess({
     tripId: updated.id,
-    shareToken: existingToken ?? update.share_token,
+    shareToken,
     visibility: "public",
     explorePath: "/explore",
   });

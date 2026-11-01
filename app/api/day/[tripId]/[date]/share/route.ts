@@ -10,12 +10,11 @@
  * scanner opening the email's link cannot share the trip.
  */
 import { NextRequest, after } from "next/server";
-import { randomUUID } from "crypto";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { tripDayNumber, verifyDayLink } from "@/lib/trips/day-link";
-import { readShareToken } from "@/lib/trips/share-token";
+import { ensureShareToken } from "@/lib/trips/share-token";
 import { buildShareUrl } from "@/lib/trips/share-url";
 import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
 import { captureServerEvent } from "@/lib/posthog/server";
@@ -55,35 +54,14 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
   const day = trip ? tripDayNumber(trip.start_date, trip.end_date, date) : null;
   if (!trip || !trip.user_id || day === null) return errors.notFound("This day isn't available");
 
-  let token: string | null;
+  // The trip's link, made on this tap when it has none (two taps, or this and
+  // the Share button together, still end with one link).
+  let token: string;
+  let isNew: boolean;
   try {
-    token = await readShareToken(id);
+    ({ token, isNew } = await ensureShareToken(id, trip.visibility === "public" ? "public" : "shared"));
   } catch {
-    return errors.internal("Failed to load the trip", "DaySend");
-  }
-  let isNew = false;
-  if (!token) {
-    // Only where there is still no token, so two taps (or this and the Share
-    // button together) end with one link.
-    const minted = randomUUID();
-    const { data: updated, error: updateError } = await admin
-      .from("trips")
-      .update({
-        share_token: minted,
-        shared_at: new Date().toISOString(),
-        visibility: trip.visibility === "public" ? "public" : "shared",
-      })
-      .eq("id", id)
-      .is("share_token", null)
-      .select("id");
-    if (updateError) return errors.internal("Failed to create the link", "DaySend");
-    if (updated && updated.length > 0) {
-      token = minted;
-      isNew = true;
-    } else {
-      token = await readShareToken(id).catch(() => null);
-    }
-    if (!token) return errors.internal("Failed to create the link", "DaySend");
+    return errors.internal("Failed to create the link", "DaySend");
   }
 
   const ownerId = trip.user_id as string;

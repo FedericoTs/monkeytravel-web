@@ -27,7 +27,8 @@
 
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
-import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { errors, apiSuccess, apiError } from "@/lib/api/response-wrapper";
+import { casUpdateItinerary, type CasOutcome } from "@/lib/trips/itinerary-cas";
 import {
   generateActivityId,
   determineTimeSlot,
@@ -224,7 +225,7 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       supabase,
       tripId,
       user.id,
-      "id, user_id, start_date, end_date, itinerary"
+      "id, user_id, start_date, end_date, itinerary, itinerary_version"
     );
     if (tripError) return tripError;
 
@@ -316,30 +317,45 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     // splice-by-time) so the user can manually reorder it after if
     // needed — the existing reorder/recalculate flow on the trip page
     // does the time-aware shuffle better than we could synchronously
-    // here.
-    const updatedItinerary = currentItinerary.map((day, idx) => {
-      if (idx + 1 !== targetDay) return day;
-      return {
-        ...day,
-        activities: [...(day.activities || []), newActivity],
-      };
-    });
-
-    const { error: updateError } = await supabase
-      .from("trips")
-      .update({
-        itinerary: updatedItinerary,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", tripId)
-      .eq("user_id", user.id);
-
-    if (updateError) {
+    // here. The write lands only on the version it was computed from, so
+    // a save made meanwhile stays; the day is found by its number.
+    let outcome: CasOutcome;
+    try {
+      outcome = await casUpdateItinerary(supabase, {
+        tripId,
+        ownerId: user.id,
+        from: { itinerary: currentItinerary, itinerary_version: Number(trip.itinerary_version ?? 0) },
+        change: (row) => {
+          const current = (Array.isArray(row.itinerary) ? row.itinerary : []) as ItineraryDay[];
+          if (!current.some((day) => day.day_number === targetDay)) return null;
+          return {
+            itinerary: current.map((day) =>
+              day.day_number === targetDay
+                ? { ...day, activities: [...(day.activities || []), newActivity] }
+                : day
+            ),
+            extra: { updated_at: new Date().toISOString() },
+          };
+        },
+      });
+    } catch (updateError) {
       console.error("[from-booking] update failed", updateError);
       return errors.internal(
         "Failed to add booking to trip",
         "from-booking"
       );
+    }
+    if (outcome.status === "skipped") {
+      return errors.conflict(`Day ${targetDay} is no longer in this trip.`);
+    }
+    if (outcome.status === "busy") {
+      return apiError("This trip is being edited right now. Please try again.", {
+        status: 409,
+        code: "ITINERARY_BUSY",
+      });
+    }
+    if (outcome.status !== "written") {
+      return errors.notFound("Trip not found");
     }
 
     return apiSuccess({
