@@ -7,6 +7,7 @@ import { sendVoteEmail } from "@/lib/notifications/vote-email";
 import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 import { findActivityById } from "@/lib/utils/activity-id";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * GET /api/trips/[id]/activities/[activityId]/vote
@@ -106,7 +107,8 @@ export async function POST(request: NextRequest, context: TripActivityRouteConte
     if (errorResponse) return errorResponse;
 
     // Parse request body
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { voteType, comment } = body as {
       voteType: VoteType;
       comment?: string;

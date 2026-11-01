@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from "@/lib/api/auth";
 import { redeemTesterCode } from "@/lib/early-access";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { readJsonBody } from "@/lib/api/json-body";
 
 // 5 redemption attempts per IP per hour
 const limiter = createRateLimiter("early-access-redeem", 5, 60 * 60 * 1000);
@@ -18,7 +19,8 @@ export async function POST(request: NextRequest) {
     const { user, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errors.unauthorized("You must be logged in to redeem a code");
 
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { code } = body;
 
     if (!code || typeof code !== "string") {

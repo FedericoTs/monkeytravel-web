@@ -8,6 +8,7 @@ import { completeReferralIfEligible } from "@/lib/referral/completion";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { incrementTemplateCopyCount } from "@/lib/explore/counters";
 import { templateItinerary, templateLocale, templateMeta, templatePacking, templateText } from "@/lib/templates/text";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * POST /api/templates/[id]/copy
@@ -29,7 +30,8 @@ export async function POST(
     if (errorResponse) return errorResponse;
 
     // Parse request body
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { startDate } = body;
     const locale = templateLocale(body.locale);
 

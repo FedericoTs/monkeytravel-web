@@ -3,6 +3,7 @@ import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import fs from "fs/promises";
 import path from "path";
+import { readJsonBody } from "@/lib/api/json-body";
 
 const MESSAGES_DIR = path.join(process.cwd(), "messages");
 const SUPPORTED_LANGUAGES = ["en", "es", "it"] as const;
@@ -88,7 +89,8 @@ export async function PUT(request: NextRequest) {
     const { user, errorResponse } = await getAuthenticatedAdmin();
     if (errorResponse) return errorResponse;
 
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { language, key, value } = body as {
       language: SupportedLanguage;
       key: string;

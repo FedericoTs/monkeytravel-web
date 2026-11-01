@@ -6,6 +6,7 @@ import { resolveAssistantRole, ASSISTANT_FORBIDDEN_MESSAGE } from "@/lib/ai/assi
 import { ASSISTANT_ERROR_CODES } from "@/lib/ai/assistant/error-message";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { readJsonBody } from "@/lib/api/json-body";
 
 interface UndoRequest {
   tripId: string;
@@ -25,7 +26,8 @@ export async function POST(request: NextRequest) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    const body: UndoRequest = await request.json();
+    const { body, invalidBody } = await readJsonBody<UndoRequest>(request);
+    if (invalidBody) return invalidBody;
     const { tripId, previousItinerary, previousEndDate, expectedVersion } = body;
 
     if (!tripId || !Array.isArray(previousItinerary)) {

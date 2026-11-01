@@ -8,6 +8,7 @@ import { calculateProposalConsensus } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING } from "@/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { approveProposal } from "@/lib/proposals/approve";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * GET /api/trips/[id]/proposals/[proposalId]/vote
@@ -120,7 +121,8 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
     if (errorResponse) return errorResponse;
 
     // Parse request body
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { voteType, comment } = body as {
       voteType: ProposalVoteType;
       comment?: string;
