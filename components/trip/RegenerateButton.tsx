@@ -10,20 +10,11 @@ interface RegenerateButtonProps {
   className?: string;
 }
 
-export default function RegenerateButton({
-  onRegenerate,
-  isRegenerating,
-  disabled = false,
-  variant = "default",
-  className = "",
-}: RegenerateButtonProps) {
-  const t = useTranslations("common.regenerate");
-  const isDisabled = disabled || isRegenerating;
-
-  // Refresh/regenerate icon with rotation animation when loading
-  const RefreshIcon = () => (
+// Refresh/regenerate icon, spinning while it works
+function RefreshIcon({ spinning }: { spinning: boolean }) {
+  return (
     <svg
-      className={`w-5 h-5 ${isRegenerating ? "animate-spin" : ""}`}
+      className={`w-5 h-5 ${spinning ? "animate-spin" : ""}`}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -36,9 +27,11 @@ export default function RegenerateButton({
       />
     </svg>
   );
+}
 
-  // Sparkles icon for the magic feel
-  const SparkleIcon = () => (
+// Sparkles icon for the magic feel
+function SparkleIcon() {
+  return (
     <svg
       className="w-4 h-4"
       fill="currentColor"
@@ -47,6 +40,17 @@ export default function RegenerateButton({
       <path d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744l.52 2.078 2.078.52a1 1 0 010 1.936l-2.078.52-.52 2.078a1 1 0 01-1.936 0l-.52-2.078-2.078-.52a1 1 0 010-1.936l2.078-.52.52-2.078A1 1 0 0112 2z" />
     </svg>
   );
+}
+
+export default function RegenerateButton({
+  onRegenerate,
+  isRegenerating,
+  disabled = false,
+  variant = "default",
+  className = "",
+}: RegenerateButtonProps) {
+  const t = useTranslations("common.regenerate");
+  const isDisabled = disabled || isRegenerating;
 
   if (variant === "icon-only") {
     return (
@@ -63,7 +67,7 @@ export default function RegenerateButton({
         `}
         title={isRegenerating ? t("generating") : t("tryDifferent")}
       >
-        <RefreshIcon />
+        <RefreshIcon spinning={isRegenerating} />
       </button>
     );
   }
@@ -83,7 +87,7 @@ export default function RegenerateButton({
           ${className}
         `}
       >
-        <RefreshIcon />
+        <RefreshIcon spinning={isRegenerating} />
         <span className="hidden sm:inline">
           {isRegenerating ? t("generating") : t("regenerate")}
         </span>
@@ -117,7 +121,7 @@ export default function RegenerateButton({
           group-hover:bg-[var(--primary)] group-hover:text-white
           transition-colors duration-200
         `}>
-          <RefreshIcon />
+          <RefreshIcon spinning={isRegenerating} />
         </div>
 
         <div className="text-left">
