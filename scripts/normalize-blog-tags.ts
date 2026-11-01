@@ -7,8 +7,8 @@
  * definition into each markdown file's `tags:` field and verifies the result.
  *
  * Usage:
- *   npx tsx scripts/normalize-blog-tags.mts --dry    # report only
- *   npx tsx scripts/normalize-blog-tags.mts --write  # rewrite frontmatter
+ *   npx tsx scripts/normalize-blog-tags.ts --dry    # report only
+ *   npx tsx scripts/normalize-blog-tags.ts --write  # rewrite frontmatter
  *
  * Safe to re-run: it is idempotent, and --write reports 0 written once the
  * files already match.

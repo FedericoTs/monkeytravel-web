@@ -11,7 +11,7 @@ import { CONCEPTS, DESTINATION_NAMES, POSTS, tagsFor } from "./tag-taxonomy";
  * The blog tags were free-form per post: 276-296 distinct tags per locale
  * across 84 posts, 84-88% of them appearing exactly once. A singleton tag
  * cannot match a related post and its archive is noindexed as thin, so the
- * vocabulary was doing almost no work. scripts/normalize-blog-tags.mts moved
+ * vocabulary was doing almost no work. scripts/normalize-blog-tags.ts moved
  * every post onto a fixed taxonomy.
  *
  * These tests pin the properties that make that worth having, and the two

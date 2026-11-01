@@ -20,7 +20,7 @@
  * WHERE THE SOURCE OF TRUTH LIVES
  * Post frontmatter, still — the app reads tags from the markdown and nothing
  * here runs at request time. This module is the definition that
- * scripts/normalize-blog-tags.mts writes INTO the frontmatter, kept in lib/ so
+ * scripts/normalize-blog-tags.ts writes INTO the frontmatter, kept in lib/ so
  * it is typechecked and so lib/blog/tag-taxonomy.vitest.ts can assert the files
  * on disk still match it.
  *
