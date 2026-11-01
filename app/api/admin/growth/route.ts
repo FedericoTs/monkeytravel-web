@@ -184,12 +184,6 @@ export async function GET() {
     const now = new Date();
     const nowISO = now.toISOString();
 
-    // Calculate date thresholds
-    const d1Ago = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString();
-    const d7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    const d30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const d60Ago = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000).toISOString();
-
     // Fetch all data in parallel
     const [
       usersResult,

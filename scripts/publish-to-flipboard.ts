@@ -11,11 +11,6 @@
  *   - Playwright installed (npx playwright install chromium)
  *   - You'll need to log in to Flipboard manually on first run
  *     (the script saves cookies for subsequent runs)
- *
- * Environment:
- *   FLIPBOARD_MAGAZINE_EN=<magazine-url>   (e.g., https://flipboard.com/@user/travel-planning-xxx)
- *   FLIPBOARD_MAGAZINE_ES=<magazine-url>
- *   FLIPBOARD_MAGAZINE_IT=<magazine-url>
  */
 
 import { chromium, type BrowserContext } from "playwright";
@@ -58,10 +53,6 @@ const MAGAZINE_EDIT_URLS = {
 };
 
 async function main() {
-  const magazineEn = process.env.FLIPBOARD_MAGAZINE_EN || "https://flipboard.com/@federicosciuca/monkeytravel-travel-planning-c2mhu1h3y";
-  const magazineEs = process.env.FLIPBOARD_MAGAZINE_ES || "https://flipboard.com/@federicosciuca/monkeytravel-viajes-r4v69m7ty";
-  const magazineIt = process.env.FLIPBOARD_MAGAZINE_IT || "https://flipboard.com/@federicosciuca/monkeytravel-viaggi-j4petf13y";
-
   const slugs = getAllSlugs();
   const state = loadState();
   console.log(`\n📋 Found ${slugs.length} blog posts`);

@@ -29,25 +29,6 @@ import { sentry } from "@/lib/observability/sentry";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { PlacePrediction } from "@/types";
 
-// Helper to normalize destination names for deduplication
-function normalizeForDedup(mainText: string, secondaryText: string): string {
-  return `${mainText.toLowerCase().trim()}|${secondaryText.toLowerCase().trim()}`;
-}
-
-// Deduplicate predictions by normalized name, preferring local results
-function deduplicatePredictions(predictions: PlacePrediction[]): PlacePrediction[] {
-  const seen = new Map<string, PlacePrediction>();
-  for (const pred of predictions) {
-    const key = normalizeForDedup(pred.mainText, pred.secondaryText);
-    const existing = seen.get(key);
-    // Prefer local/popular over google (has coordinates, no API cost)
-    if (!existing || (existing.source === "google" && pred.source !== "google")) {
-      seen.set(key, pred);
-    }
-  }
-  return Array.from(seen.values());
-}
-
 // Create a manual prediction for destinations not in our database
 function createManualPrediction(text: string): PlacePrediction {
   return {

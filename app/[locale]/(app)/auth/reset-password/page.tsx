@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useSearchParams } from "next/navigation";
 import { useRouter, Link } from "@/lib/i18n/routing";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
@@ -16,7 +15,6 @@ function ResetPasswordForm() {
   const [sessionChecked, setSessionChecked] = useState(false);
   const [hasValidSession, setHasValidSession] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
   const t = useTranslations("auth.resetPassword");
 
   // Establish the recovery session that arrives from the email link.

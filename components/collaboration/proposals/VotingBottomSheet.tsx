@@ -219,7 +219,6 @@ export function VotingBottomSheet({
   const noCount = proposal?.vote_summary.no ?? 0;
   // Positive = love + flexible, used for progress bar
   const positiveCount = loveCount + flexibleCount;
-  const negativeCount = concernsCount + noCount;
   const positivePercent = totalVoters > 0 ? (positiveCount / totalVoters) * 100 : 0;
 
   // ======================================================================

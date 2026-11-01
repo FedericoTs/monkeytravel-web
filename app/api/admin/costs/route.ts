@@ -171,7 +171,6 @@ export async function GET() {
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
     const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const hours24Ago = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
 
     // Fetch all data in parallel
     const [

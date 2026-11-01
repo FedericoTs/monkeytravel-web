@@ -21,7 +21,7 @@ import { captureTripCardShared } from "@/lib/posthog/events";
 import CoPlannerInvites from "@/components/trip/CoPlannerInvites";
 import { tripCardPath } from "@/lib/seo/og-image";
 import { defaultShareFraming, framedShareUrl, shareTokenFromUrl, type ShareFraming } from "@/lib/trips/crew-share";
-import type { TripCollaborator, TripInvite, CollaboratorRole } from "@/types";
+import type { TripCollaborator, CollaboratorRole } from "@/types";
 
 type TabType = "share" | "invite";
 
@@ -112,7 +112,6 @@ export default function ShareAndInviteModal({
   // options", under the named co-planner invites.
   const [showMoreInviteOptions, setShowMoreInviteOptions] = useState(false);
   const [collaborators, setCollaborators] = useState<TripCollaborator[]>([]);
-  const [pendingInvites, setPendingInvites] = useState<(TripInvite & { inviteUrl: string })[]>([]);
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const [inviteCopied, setInviteCopied] = useState(false);
   const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);

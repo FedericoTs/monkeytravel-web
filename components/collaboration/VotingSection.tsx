@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import VoteButtons from "./VoteButtons";
 import StatusBadge from "./StatusBadge";
 import { VoteType, ActivityVote, ConsensusResult, VOTE_INFO, ActivityVotingStatus } from "@/types";
-import { getConsensusDisplayInfo } from "@/lib/voting/consensus";
 
 interface VotingSectionProps {
   activityId: string;
@@ -21,7 +20,6 @@ interface VotingSectionProps {
 }
 
 export default function VotingSection({
-  activityId,
   votes,
   consensus,
   status,
@@ -44,16 +42,6 @@ export default function VotingSection({
   if (status === "completed" || status === "skipped") {
     return null;
   }
-
-  const displayInfo = consensus
-    ? getConsensusDisplayInfo(consensus)
-    : {
-        labelKey: "noVotesYet",
-        color: "text-slate-500",
-        bgColor: "bg-slate-100",
-        icon: "clock",
-        descriptionKey: "beFirstToVote",
-      };
 
   const votedCount = votes.length;
   const participationPercent = totalVoters > 0 ? Math.round((votedCount / totalVoters) * 100) : 0;

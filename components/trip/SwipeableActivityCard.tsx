@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import {
   Check,
@@ -56,16 +56,10 @@ export default function SwipeableActivityCard({
   onComplete,
   onSkip,
   onTap,
-  isExpanded = false,
-  currency = "USD",
 }: SwipeableActivityCardProps) {
   // i18n — matches the sibling OngoingTripView namespace convention
-  // (useTranslations("trips") then t("ongoing.<key>")). Locale flows
-  // into the Intl.NumberFormat call so €/£/¥ currency strings render
-  // with the user's regional grouping/decimal marks (e.g. "1.234 €"
-  // on /it vs "€1,234" on /en).
+  // (useTranslations("trips") then t("ongoing.<key>")).
   const t = useTranslations("trips");
-  const locale = useLocale();
 
   const constraintsRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -106,18 +100,7 @@ export default function SwipeableActivityCard({
   const Icon = TYPE_ICONS[activityTypeKey(activity.type) ?? ""] || Sparkles;
   const isCompleted = status === "completed";
   const isSkipped = status === "skipped";
-  const isUpcoming = status === "upcoming";
   const isInProgress = status === "in_progress";
-
-  // Format price
-  const formatPrice = (amount: number) => {
-    if (amount === 0) return t("ongoing.freePrice");
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency,
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
 
   // Card content for both expanded and collapsed states
   const CardContent = () => (

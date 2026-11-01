@@ -110,47 +110,6 @@ export function canChangeStatus(currentStatus: TripStatus): boolean {
 }
 
 /**
- * Get available status options for a trip based on current status and dates
- */
-export function getAvailableStatusOptions(
-  currentStatus: TripStatus,
-  startDate: string,
-  endDate: string
-): TripStatus[] {
-  const now = new Date();
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
-  // Completed trips have no options
-  if (currentStatus === 'completed') {
-    return [];
-  }
-
-  // Cancelled trips can only be restored to planning
-  if (currentStatus === 'cancelled') {
-    return ['planning'];
-  }
-
-  // Active trips can only be cancelled (completion is automatic)
-  if (currentStatus === 'active') {
-    return ['cancelled'];
-  }
-
-  // For planning/confirmed trips
-  const options: TripStatus[] = [];
-
-  if (currentStatus === 'planning') {
-    options.push('confirmed');
-  } else if (currentStatus === 'confirmed') {
-    options.push('planning'); // Allow going back to planning
-  }
-
-  options.push('cancelled');
-
-  return options;
-}
-
-/**
  * Check if a trip should auto-update its status
  * Returns the new status if an update is needed, null otherwise
  */

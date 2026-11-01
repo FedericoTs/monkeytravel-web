@@ -194,7 +194,6 @@ export function CookieSettingsModal() {
  * Individual consent category toggle
  */
 function ConsentCategoryToggle({
-  categoryId,
   isEnabled,
   isRequired,
   services,

@@ -139,7 +139,7 @@ export function renderDayPage(
   doc.line(timelineX, timelineStartY, timelineX, timelineEndY);
 
   // Render activities
-  day.activities.forEach((activity, idx) => {
+  day.activities.forEach((activity) => {
     // Check for page break
     if (y + cardHeight > pageHeight - 40) {
       doc.addPage();

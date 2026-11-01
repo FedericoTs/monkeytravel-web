@@ -36,7 +36,6 @@ interface InlineProposalCardProps {
  */
 function InlineProposalCardComponent({
   proposal,
-  currentUserId,
   canVote = true,
   onTapToVote,
   totalVoters = 5,

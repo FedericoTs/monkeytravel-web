@@ -27,7 +27,6 @@ export async function GET() {
   try {
     // Check rate limit (1 export per day)
     const oneDay = 24 * 60 * 60 * 1000;
-    const rateLimitKey = `data_export:${userId}`;
 
     // For simplicity, we'll track in user metadata
     // In production, you might use Redis or a dedicated rate limit table

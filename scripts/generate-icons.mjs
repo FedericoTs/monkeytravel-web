@@ -35,14 +35,7 @@ async function generateIcons() {
     console.log(`Created: ${name} (${size}x${size})`);
   }
 
-  // 2. Create favicon.ico (multi-size ICO file)
-  // Sharp can create PNG, we'll use the 32x32 as the main favicon
-  const favicon32 = await sharp(logoBuffer)
-    .resize(32, 32, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } })
-    .png()
-    .toBuffer();
-
-  // For ICO format, we'll create a PNG and rename it (browsers support PNG favicons)
+  // 2. The favicon: a 32x32 PNG (browsers support PNG favicons)
   const faviconPath = path.join(appDir, 'icon.png');
   await sharp(logoBuffer)
     .resize(32, 32, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } })
