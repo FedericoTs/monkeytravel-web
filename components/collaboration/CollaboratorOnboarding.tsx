@@ -4,7 +4,7 @@ import { useState, useEffect, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { safeGet, safeSet } from "@/lib/safe-storage";
-import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 
 const STORAGE_KEY = "monkeytravel_collab_onboarding_seen";
 

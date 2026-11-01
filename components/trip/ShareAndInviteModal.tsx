@@ -13,7 +13,7 @@ import { RoleSelector } from "@/components/collaboration/RoleSelector";
 import { CollaboratorRow } from "@/components/collaboration/CollaboratorRow";
 import { useToast } from "@/components/ui/Toast";
 import BottomSheet from "@/components/ui/BottomSheet";
-import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { openExternal } from "@/lib/native/external-link";
 import { shareFile } from "@/lib/native/share";

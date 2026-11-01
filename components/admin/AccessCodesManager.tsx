@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useId } from "react";
-import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 import {
   Key,
   Plus,

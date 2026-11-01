@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useImageLoaded } from "@/lib/hooks/useImageLoaded";
+import { useImageLoaded } from "@/hooks/useImageLoaded";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
-import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 
 interface CarouselImage {
   url: string;
@@ -253,7 +253,7 @@ export default function ImageCarousel({
   };
 
   const currentImage = images[currentIndex];
-  // Cached-image race shim — see lib/hooks/useImageLoaded.ts. Without it,
+  // Cached-image race shim — see hooks/useImageLoaded.ts. Without it,
   // navigating to an image the browser already has cached left the slide
   // at opacity:0 until the next swipe.
   //

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useId } from "react";
 import { useTranslations } from "next-intl";
-import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 import { X, Plane, MapPin, Clock } from "lucide-react";
 import { getCityIATA, CITY_IATA_CODES } from "@/lib/affiliates";
 import { openExternal } from "@/lib/native/external-link";

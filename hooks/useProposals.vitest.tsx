@@ -99,7 +99,7 @@ describe("useProposals reports approvals", () => {
 });
 
 describe("the day a proposal shows under", () => {
-  const read = (p: string) => readFileSync(path.resolve(__dirname, "../..", p), "utf8");
+  const read = (p: string) => readFileSync(path.resolve(__dirname, "..", p), "utf8");
 
   it("is its target_day, read as the day's number everywhere", () => {
     const page = read("app/[locale]/(app)/trips/[id]/TripDetailClient.tsx");

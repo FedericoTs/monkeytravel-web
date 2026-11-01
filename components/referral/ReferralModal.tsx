@@ -4,7 +4,7 @@ import { useState, useEffect, useId } from "react";
 import { createPortal } from "react-dom";
 import { Gift, Copy, Check, X, Mail, Users, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 import { openExternal } from "@/lib/native/external-link";
 
 interface ReferralStats {

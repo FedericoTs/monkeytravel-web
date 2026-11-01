@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { usePullToRefresh } from "@/lib/hooks/usePullToRefresh";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/ui/PullToRefreshIndicator";
 import { hapticLight } from "@/lib/native/haptics";
 

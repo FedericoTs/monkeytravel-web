@@ -16,7 +16,7 @@ vi.mock("@/lib/i18n/routing", () => ({
   ),
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
 }));
-vi.mock("@/lib/hooks/usePullToRefresh", () => ({
+vi.mock("@/hooks/usePullToRefresh", () => ({
   usePullToRefresh: () => ({ isRefreshing: false, pullDistance: 0 }),
 }));
 vi.mock("@/lib/native/haptics", () => ({ hapticLight: vi.fn() }));

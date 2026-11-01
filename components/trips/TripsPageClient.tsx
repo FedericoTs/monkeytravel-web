@@ -2,8 +2,8 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef, useId } from "react";
 import dynamic from "next/dynamic";
-import { useNow } from "@/lib/hooks/useNow";
-import { usePullToRefresh } from "@/lib/hooks/usePullToRefresh";
+import { useNow } from "@/hooks/useNow";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import Image from "next/image";
@@ -682,7 +682,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
   const activeTrips = useMemo(() => trips.filter(t => !t.is_archived), [trips]);
   const archivedTrips = useMemo(() => trips.filter(t => t.is_archived), [trips]);
 
-  // The server's clock until mount, then the browser's (lib/hooks/useNow.ts).
+  // The server's clock until mount, then the browser's (hooks/useNow.ts).
   // Server render and hydration share the server's value, so their buckets
   // match (no React error #418) and the cards are in their final sections
   // from the first paint instead of moving there after hydration.

@@ -16,7 +16,7 @@ import TravelConnector from "@/components/trip/TravelConnector";
 import DaySummary from "@/components/trip/DaySummary";
 import SaveTripModal from "@/components/ui/SaveTripModal";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
-import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
+import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
 import {

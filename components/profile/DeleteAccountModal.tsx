@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { isCompleteOtpCode, normalizeOtpCode } from "@/lib/auth/otp-code";
-import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 
 interface DeleteAccountModalProps {
   isOpen: boolean;

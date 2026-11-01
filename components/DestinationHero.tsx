@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useImageLoaded } from "@/lib/hooks/useImageLoaded";
+import { useImageLoaded } from "@/hooks/useImageLoaded";
 import { placesPhotoSrcSet, proxyImageUrl } from "@/lib/img/proxyUrl";
 import { commonsPage, readCredit, wikimediaSrcSet } from "@/lib/images/wikimedia-credit";
 import { useTranslations } from "next-intl";
@@ -141,7 +141,7 @@ export default function DestinationHero({
       ? baseCoverUrl
       : `${baseCoverUrl}${baseCoverUrl.includes("?") ? "&" : "?"}_r=${imageRetry}`
     : null;
-  // Cached-image race shim — see lib/hooks/useImageLoaded.ts. Without it,
+  // Cached-image race shim — see hooks/useImageLoaded.ts. Without it,
   // the hero photo stayed at opacity:0 for repeat visitors. Track the
   // *effective* (retry-suffixed) src so a remount on retry resets state.
   const [imageLoaded, setImageLoaded] = useImageLoaded(heroImgRef, effectiveCoverUrl);
