@@ -463,8 +463,7 @@ describe("the notes for a change in parts and for one waiting for the button", (
     expect(pendingChangeNote("pt", "Salvar na minha viagem")).toContain(`"Salvar na minha viagem"`);
   });
 
-  // Live, 2026-11-01: an editor's "add 2 more days" got "Here are some ideas
-  // for Day 4 and Day 5" and no ideas.
+  // The ideas themselves, not a promise of ideas.
   it("tells an editor that only the owner adds days, with the ideas for those days", () => {
     expect(ownerAddsDaysReply("en", 3, ["Day 4: Guimarães for the day.", "Day 5: Braga and Bom Jesus."])).toBe(
       "Only the trip owner can add days, so the trip stays at 3 days. Ideas for those days, to suggest to them:\n- Day 4: Guimarães for the day.\n- Day 5: Braga and Bom Jesus."

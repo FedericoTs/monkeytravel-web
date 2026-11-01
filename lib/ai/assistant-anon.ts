@@ -113,9 +113,9 @@ export interface AssistAnonInput {
   endDate?: string;
   locale?: string;
   /**
-   * The conversation so far, oldest first. Without it "sure", "yes" or "No I
-   * mean…" had nothing to refer to (2026-09-16 and 09-26 sessions). Before
-   * the last six turns it may hold only the traveller's own messages.
+   * The conversation so far, oldest first, so "sure", "yes" or "No I mean…"
+   * have something to refer to. Before the last six turns it may hold only
+   * the traveller's own messages.
    */
   history?: AssistTurn[];
   /** The page applies the edits as soon as they arrive (with Undo). */
@@ -211,8 +211,7 @@ function buildHistory(history: AssistTurn[] | undefined): string {
   const turns = all.slice(-RECENT_TURNS);
   if (turns.length === 0) return "";
   // What they told us about the trip holds after it leaves the last turns: a
-  // 23:00 arrival said four messages earlier got lunch and dinner on Day 1
-  // (2026-10-26).
+  // 23:00 arrival said four messages earlier still rules out dinner on Day 1.
   const earlier = all
     .slice(0, -RECENT_TURNS)
     .filter((t) => t.role === "user")
@@ -659,9 +658,9 @@ export function readTravelTimes(raw: unknown, length: number): TravelTime[] {
 
 /**
  * Activities the edited days plan before the traveller is free after arriving,
- * or after they must set off (pure; unit-tested). Live, the model kept lunch
- * and shopping on a day with a 14:00 flight, and put lunch and dinner on a day
- * that lands at 23:00 (2026-10-26/29).
+ * or after they must set off (pure; unit-tested): the model will keep lunch
+ * on a day with a 14:00 flight home, or plan dinner on a day that lands at
+ * 23:00.
  */
 export function outsideTravelTimes(
   edits: Pick<DayEdit, "day_number" | "activities">[],

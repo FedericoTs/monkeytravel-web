@@ -161,8 +161,7 @@ describe("assistTrip on a change about more days than one reply holds", () => {
   });
 });
 
-// Live, 2026-10-24: "aggiungi altri 7 giorni" came back as 6 days, the most
-// one reply holds, so the longer trip was refused.
+// One reply holds fewer new days than "add 7 more days" asks for.
 describe("assistTrip adding more days than one reply holds", () => {
   const week = Array.from({ length: 7 }, (_, i) => ({
     ...day(i + 1),
@@ -216,8 +215,7 @@ describe("assistTrip adding more days than one reply holds", () => {
   });
 });
 
-// Live, 2026-10-29: told of a 14:00 flight home, the last day kept lunch at
-// 12:30; the traveller asked again three turns later.
+// A day must end in time for the traveller's departure.
 describe("assistTrip on a day that doesn't fit when they leave", () => {
   const fiveDays = Array.from({ length: 5 }, (_, i) => day(i + 1));
   const message = { ...input, message: "Monday flight from BKK at 2 pm", days: fiveDays };

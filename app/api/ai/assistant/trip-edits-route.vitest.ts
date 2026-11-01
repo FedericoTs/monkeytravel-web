@@ -189,7 +189,8 @@ describe("trip-page assistant: free-form edits", () => {
     expect(recordUsage).toHaveBeenCalledWith(expect.objectContaining({ modelId: "gemini-2.5-flash", costCents: 0.2 }));
   });
 
-  // Put first, the note read "Not saved yet: … Absolutely! I've extended…" (2026-11-01).
+  // The note follows the answer: put first, it would read "Not saved yet: …
+  // Absolutely! I've extended…".
   it("keeps the honesty rule: a reply claiming the change is done keeps its answer, then says it isn't saved", async () => {
     proposeTripEdits.mockResolvedValue({ reply: "I've added Wigwam to Day 3. It's a 10-minute walk from Grafton Street.", revisedDays: [wigwamDay3], summary: "", meta });
     const { json } = await send("adding Wigwam to Day 3");
@@ -258,8 +259,7 @@ describe("trip-page assistant: free-form edits", () => {
     expect(json.pendingChange).toBeNull();
   });
 
-  // Live, 2026-10-24: "aggiungi altri 7 giorni a questo viaggio in giappone"
-  // got "Ho esteso il tuo viaggio a 14 giorni" and the trip stayed at 7.
+  // "Add 7 more days" must add them, not only say so.
   const howthDay4: ItineraryDay = {
     day_number: 4,
     date: "2027-03-14",
