@@ -51,13 +51,18 @@ export async function PATCH(request: NextRequest, context: TripCollaboratorRoute
 
     // The role before the change: lowering it switches off the trip's open
     // invite links (lib/invites/links.ts), or a demoted editor could leave and
-    // rejoin as an editor through one.
-    const { data: previousCollab } = await supabase
+    // rejoin as an editor through one. Unread, a demotion would keep them.
+    const { data: previousCollab, error: previousError } = await supabase
       .from("trip_collaborators")
       .select("role")
       .eq("trip_id", tripId)
       .eq("user_id", targetUserId)
       .maybeSingle();
+
+    if (previousError) {
+      console.error("[Collaborators] Error reading the current role:", previousError);
+      return errors.internal("Failed to update role", "Collaborators");
+    }
 
     // Update the collaborator's role
     const { data: updatedCollab, error } = await supabase

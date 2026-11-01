@@ -12,10 +12,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const USER = "user-1";
 const selects: Record<string, string[]> = {};
 let failing: string | null;
+let preferencesReadFails: boolean;
 let stamped: boolean;
+let stampedWith: Record<string, unknown> | null;
 
 const ROWS: Record<string, unknown> = {
-  users: { id: USER, email: "traveller@example.com", preferences: {} },
+  users: { id: USER, email: "traveller@example.com", preferences: { travelStyles: ["food"] } },
   trips: [{ id: "t1", title: "Lisbon" }],
   ai_conversations: [],
   activity_timelines: [{ id: "tl1", experience_notes: "Lovely" }],
@@ -29,9 +31,13 @@ function fakeSupabase() {
     from(table: string) {
       let columns = "";
       const result = () =>
-        failing === table && columns !== "preferences"
-          ? { data: null, error: { message: `column ${table}.gone does not exist` } }
-          : { data: ROWS[table], error: null };
+        columns === "preferences"
+          ? preferencesReadFails
+            ? { data: null, error: { message: "canceling statement due to statement timeout" } }
+            : { data: ROWS.users, error: null }
+          : failing === table
+            ? { data: null, error: { message: `column ${table}.gone does not exist` } }
+            : { data: ROWS[table], error: null };
       const q = {
         select(c: string) {
           columns = c.replace(/\s+/g, " ").trim();
@@ -42,8 +48,9 @@ function fakeSupabase() {
         order: () => q,
         limit: () => q,
         single: async () => result(),
-        update: () => {
+        update: (payload: Record<string, unknown>) => {
           stamped = true;
+          stampedWith = payload;
           return { eq: async () => ({ error: null }) };
         },
         then: (resolve: (v: unknown) => unknown) => Promise.resolve(result()).then(resolve),
@@ -63,7 +70,25 @@ const { GET } = await import("./route");
 beforeEach(() => {
   for (const k of Object.keys(selects)) delete selects[k];
   failing = null;
+  preferencesReadFails = false;
   stamped = false;
+  stampedWith = null;
+});
+
+describe("the daily stamp in preferences", () => {
+  it("keeps the person's preferences when it stamps the export", async () => {
+    const res = await GET();
+    expect(res.status).toBe(200);
+    expect(stampedWith?.preferences).toMatchObject({ travelStyles: ["food"], lastDataExport: expect.any(String) });
+  });
+
+  it("exports nothing, and overwrites nothing, when the preferences can't be read", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    preferencesReadFails = true;
+    const res = await GET();
+    expect(res.status).toBe(500);
+    expect(stamped).toBe(false);
+  });
 });
 
 describe("GET /api/profile/export", () => {

@@ -85,11 +85,14 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
     const since = new Date(
       Date.now() - REPORT_RATE_WINDOW_HOURS * 3_600_000
     ).toISOString();
-    const { count: recentCount } = await serviceClient()
+    const { count: recentCount, error: countErr } = await serviceClient()
       .from("trip_reports")
       .select("id", { count: "exact", head: true })
       .eq("reporter_ip", ip)
       .gte("created_at", since);
+    if (countErr) {
+      return errors.internal("Failed to record report", "trip_reports.count");
+    }
     if ((recentCount ?? 0) >= REPORT_RATE_LIMIT_PER_IP) {
       return errors.badRequest(
         "Report rate limit reached. Try again later."

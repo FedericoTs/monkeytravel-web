@@ -17,6 +17,7 @@ const OWNER = "owner-1";
 
 let caller: string;
 let roles: Record<string, string>;
+let roleReadError: { message: string } | null;
 const inviteUpdates: Array<{ values: Record<string, unknown>; filters: Array<[string, string, unknown]> }> = [];
 
 function fakeSupabase() {
@@ -74,7 +75,10 @@ function fakeSupabase() {
           }
           return { data: roles[uid] ? { role: roles[uid] } : null, error: null };
         },
-        maybeSingle: async () => ({ data: roles[String(filters.user_id)] ? { role: roles[String(filters.user_id)] } : null, error: null }),
+        maybeSingle: async () =>
+          roleReadError
+            ? { data: null, error: roleReadError }
+            : { data: roles[String(filters.user_id)] ? { role: roles[String(filters.user_id)] } : null, error: null },
         then: (resolve: (v: unknown) => void) => {
           if (op === "delete") delete roles[String(filters.user_id)];
           resolve({ error: null });
@@ -113,6 +117,7 @@ async function changeRole(userId: string, role: string) {
 beforeEach(() => {
   caller = OWNER;
   roles = { "mate-1": "editor", "voter-1": "voter" };
+  roleReadError = null;
   inviteUpdates.length = 0;
 });
 
@@ -152,5 +157,14 @@ describe("changing a role", () => {
     expect(status).toBe(200);
     expect(inviteUpdates).toHaveLength(0);
     expect(json.invitesReset).toBe(0);
+  });
+
+  it("changes nothing when the current role can't be read", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    roleReadError = { message: "canceling statement due to statement timeout" };
+    const { status } = await changeRole("mate-1", "voter");
+    expect(status).toBe(500);
+    expect(roles["mate-1"]).toBe("editor");
+    expect(inviteUpdates).toHaveLength(0);
   });
 });
