@@ -89,8 +89,8 @@ function ActivityCard({
   // Stable DOM id for scroll targeting from map pin clicks.
   // Falls back to a name-derived slug when the activity has no id yet
   // (anonymous generation never persists an id until Save).
-  // **2026-05-24 live-test:** map pin clicks open the InfoWindow but
-  // the result page passes `onActivityClick` to scroll the page to the
+  // Map pin clicks open the InfoWindow, and the result page passes
+  // `onActivityClick` to scroll the page to the
   // matching card. That handler needs to find the DOM node — this id
   // is the address.
   const activityDomId = activity.id

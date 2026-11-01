@@ -113,7 +113,7 @@ function TemplateCard({ template, preventClick, t }: TemplateCardProps) {
           <Image
             // Proxy Pexels/Unsplash through same-origin route — direct
             // browser loads to Pexels CDN intermittently 504 (Cloudflare).
-            // See lib/img/proxyUrl.ts. Live-confirmed 2026-05-31.
+            // See lib/img/proxyUrl.ts.
             src={proxyImageUrl(template.coverImageUrl) || template.coverImageUrl}
             alt={template.title}
             fill

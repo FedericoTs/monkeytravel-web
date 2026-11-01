@@ -132,13 +132,9 @@ export default function TripMap({
   }, [showRoutesProp]);
   const locale = useLocale();
   // Internal day-filter state — initialized from the prop but driven by
-  // the in-map Day chip clicks below. **2026-05-24 live-test fix:** the
-  // Day chip onClick previously only called fitBounds and never updated
-  // any filter state, so `filteredActivities` (which depends on
-  // selectedDay) was always the full set. UX-wise, the "Days" chip
-  // looked like a filter but did nothing to the pins. Now clicking a
-  // day toggles the filter (click same day again → clear), and we also
-  // fitBounds so the user sees the chosen day's pins zoomed in.
+  // the in-map Day chip clicks below. Clicking a day toggles the filter
+  // (click the same day again to clear) that `filteredActivities` depends
+  // on, and fitBounds zooms to the chosen day's pins.
   const [selectedDayInternal, setSelectedDayInternal] = useState<number | null>(
     selectedDayProp ?? null
   );
@@ -239,12 +235,8 @@ export default function TripMap({
 
       // Step 2: activities that only have an address get no marker.
       //
-      // This used to batch-geocode them through /api/travel/geocode. That API
-      // has been disabled in api_config since 2025-12-06 on cost grounds, so
-      // every call returned 503 and fell straight into the failure branch that
-      // pushed these activities without a location — exactly what the loop
-      // below does. The request was pure latency plus a logged error, and
-      // removing it changes nothing a user sees.
+      // No batch geocoding: /api/travel/geocode is disabled in api_config on
+      // cost grounds and answers 503, so the call would only add latency.
       //
       // Step 1 still groups these by address into addressToActivityMap, so if
       // geocoding is ever re-enabled the batch call slots back in here.
@@ -546,13 +538,10 @@ export default function TripMap({
                 })}
               >
                 <div
-                  // `whitespace-nowrap` is the fix for the 2026-05-30 bug
-                  // where travel-time pills wrapped to 2–4 lines (e.g.
-                  // "1 / h / 14 / min" stacked vertically). OverlayView
-                  // mounts the div with shrink-to-fit width — without
-                  // nowrap, even short labels broke at every space. The
-                  // `leading-none` keeps the pill pleasingly compact now
-                  // that height is single-line.
+                  // `whitespace-nowrap`: OverlayView mounts the div with
+                  // shrink-to-fit width, so without it travel-time pills
+                  // wrap at every space ("1 / h / 14 / min" stacked).
+                  // `leading-none` keeps the single-line pill compact.
                   className="pointer-events-none select-none whitespace-nowrap leading-none rounded-full bg-white/95 backdrop-blur-sm px-2 py-1 text-[10px] font-semibold text-slate-700 shadow-sm border"
                   style={{ borderColor: seg.color }}
                   title={t("segmentDuration", { minutes: seg.minutes })}

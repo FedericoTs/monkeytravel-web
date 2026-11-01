@@ -4,13 +4,11 @@ import { routing } from "@/lib/i18n/routing";
 /**
  * Visible links to the same page in the other locales.
  *
- * WHY (2026-09-17)
- * The site declared its translations only through hreflang <link> tags and a
- * language switcher made of buttons, so an English article carried not one
- * crawlable link to its Italian, Spanish or Portuguese version. Of the 112
- * sitemap pages Google had crawled or discovered but not indexed on
- * 2026-09-17, 84 were localized blog posts and destination pages: pages that
- * only other unindexed localized pages linked to. hreflang says "this is the
+ * WHY
+ * hreflang <link> tags and a language switcher made of buttons give an English
+ * article no crawlable link to its Italian, Spanish or Portuguese version, and
+ * localized pages that only other unindexed localized pages link to tend to
+ * stay unindexed. hreflang says "this is the
  * same content in another language"; it passes no link equity. A plain
  * anchor from the indexed English page does.
  *

@@ -4,9 +4,9 @@ interface AcquisitionEngagementProps {
   acquisition: {
     /**
      * Entry channel of each SESSION, from our own page views — not GA4, and
-     * not page views. Since 2026-09-01 (c17abc3) the GA tags obey the cookie
-     * banner and only ~3% of visitors accept, so GA4's channel report shows a
-     * collapse that did not happen. This is consent-free: first-party,
+     * not page views. Since 2026-09-01 the GA tags obey the cookie banner and
+     * few visitors accept, so GA4's channel report shows a collapse that did
+     * not happen. This is consent-free: first-party,
      * cookieless, aggregate.
      */
     channels: {

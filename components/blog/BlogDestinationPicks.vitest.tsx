@@ -1,9 +1,9 @@
 /**
  * Tests for the stay-CTA disclosure logic on BlogDestinationPicks.
  *
- * The CTA renders whether or not the Hostelworld affiliate is live (product
- * decision 2026-08-26 — there is no AWIN account yet and the link is useful
- * on its own). That makes one invariant load-bearing:
+ * The CTA renders whether or not the Hostelworld affiliate is live (a product
+ * decision: the link is useful on its own). That makes one invariant
+ * load-bearing:
  *
  *   rel="sponsored" and the "Affiliate link" note are DISCLOSURES. Both must
  *   appear only when the link actually pays us, and both must appear together.

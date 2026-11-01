@@ -24,18 +24,13 @@ export default async function Footer() {
   const footerLinks = {
     product: [
       { label: t('destinations'), href: '/destinations' },
-      // **2026-05-29 (/explore Week 3)**: surface the community feed +
-      // bookmarked-trips list site-wide. /saved had ZERO entry points
-      // outside direct URL; /explore was only reachable via post-save
-      // auto-prompt or the new Navbar entry. Sitewide footer link flows
-      // PageRank to both and gives users a stable backstop.
+      // The community feed and the bookmarked-trips list, site-wide: the
+      // footer link is their stable entry point and flows PageRank to both.
       { label: t('explore'), href: '/explore' },
       { label: t('saved'), href: '/saved' },
       { label: t('blog'), href: '/blog' },
-      // **2026-05-25**: Tools row added — previously the Packing List
-      // and Visa Checker tools had no entry-points outside their own
-      // URLs. Listing two specific tool deep-links keeps the Product
-      // column scannable and gives both surfaces a footer-wide backlink.
+      // Two specific tool deep-links keep the Product column scannable and
+      // give both tools a footer-wide backlink.
       { label: t('packingList'), href: '/tools/packing-list' },
       { label: t('visaChecker'), href: '/tools/visa-checker' },
       { label: t('features'), href: '/#features' },
@@ -43,9 +38,8 @@ export default async function Footer() {
       { label: t('joinWaitlist'), href: '/#hero' },
     ],
     support: [
-      // **2026-05-25 fix**: previously linked to `/#support` (no FAQ page
-      // exists, anchor doesn't exist on /). Point users to /contact where
-      // they can actually reach us; we can revisit when an FAQ page lands.
+      // No FAQ page exists yet, so FAQ points to /contact, where people can
+      // actually reach us.
       { label: t('faq'), href: '/contact' },
       { label: t('contact'), href: '/contact' },
       { label: t('sendFeedback'), href: 'mailto:feedback@monkeytravel.app' },

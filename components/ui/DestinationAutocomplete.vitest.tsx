@@ -11,7 +11,7 @@ import type { PlacePrediction } from "@/types";
  * nor the highlighted one; Enter with nothing highlighted did nothing (typing
  * "Lisbon" + Enter picked no destination, and the open list then covered the
  * date presets); and every row was a Tab stop. Found in an end-to-end check
- * of production on 2026-09-25.
+ * of production.
  */
 
 vi.mock("next-intl", () => ({
