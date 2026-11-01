@@ -29,7 +29,7 @@ export interface ApiErrorOptions {
   category?: string;
 }
 
-export interface ApiSuccessOptions<T> {
+export interface ApiSuccessOptions {
   /** HTTP status code (default: 200) */
   status?: number;
   /** Response metadata */
@@ -156,7 +156,7 @@ export const errors = {
  */
 export function apiSuccess<T>(
   data: T,
-  options: ApiSuccessOptions<T> = {}
+  options: ApiSuccessOptions = {}
 ): NextResponse {
   const { status = 200, meta, wrap = false, headers } = options;
 

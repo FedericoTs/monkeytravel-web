@@ -134,7 +134,7 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
 
   // ==================== ITINERARY PAGES ====================
 
-  trip.itinerary.forEach((day, dayIndex) => {
+  trip.itinerary.forEach((day) => {
     // Check if we need a new page for this day
     checkNewPage(40);
 
@@ -160,7 +160,7 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
     yPosition += 25;
 
     // Activities
-    day.activities.forEach((activity, actIndex) => {
+    day.activities.forEach((activity) => {
       // Check if we need a new page
       checkNewPage(35);
 

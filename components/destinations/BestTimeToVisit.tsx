@@ -8,20 +8,6 @@ interface BestTimeToVisitProps {
 
 const SEASONS = ["spring", "summer", "autumn", "winter"] as const;
 
-function getMonthSeason(month: number, isSouthern: boolean): string {
-  const m = month;
-  if (isSouthern) {
-    if (m >= 9 && m <= 11) return "spring";
-    if (m === 12 || m <= 2) return "summer";
-    if (m >= 3 && m <= 5) return "autumn";
-    return "winter";
-  }
-  if (m >= 3 && m <= 5) return "spring";
-  if (m >= 6 && m <= 8) return "summer";
-  if (m >= 9 && m <= 11) return "autumn";
-  return "winter";
-}
-
 function getMonthStatus(
   month: number,
   bestMonths: number[]
@@ -49,35 +35,19 @@ const statusColors = {
   off: "bg-slate-200 text-slate-900",
 };
 
-const crowdLabels: Record<number, string> = {
-  1: "low",
-  2: "moderate",
-  3: "high",
-};
-
 const crowdDots: Record<number, string> = {
   1: "bg-emerald-400",
   2: "bg-amber-400",
   3: "bg-red-400",
 };
 
-const SOUTHERN_CONTINENTS = new Set(["oceania"]);
-const SOUTHERN_SLUGS = new Set([
-  "buenos-aires",
-  "cape-town",
-  "bali",
-  "melbourne",
-]);
-
 export default function BestTimeToVisit({
   destination,
   locale,
   t,
 }: BestTimeToVisitProps) {
-  const { stats, climate, seasonNotes, continent, slug } = destination;
+  const { stats, climate, seasonNotes } = destination;
   const cityName = destination.name[locale];
-  const isSouthern =
-    SOUTHERN_CONTINENTS.has(continent) || SOUTHERN_SLUGS.has(slug);
 
   return (
     <section className="py-16 bg-[var(--background-alt)]">

@@ -171,8 +171,8 @@ const queries = await pullDimension(["query"], "queries.json");
 const pages = await pullDimension(["page"], "pages.json");
 const countries = await pullDimension(["country"], "countries.json");
 const devices = await pullDimension(["device"], "devices.json");
-const queriesByPage = await pullDimension(["page", "query"], "queries-by-page.json");
-const dailyTimeseries = await pullDimension(["date"], "daily.json");
+await pullDimension(["page", "query"], "queries-by-page.json");
+await pullDimension(["date"], "daily.json");
 
 // ----------------------------------------------------------------------------
 // Summary

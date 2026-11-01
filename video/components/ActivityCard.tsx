@@ -34,7 +34,7 @@ export const ActivityCard: React.FC<{
   description: string;
   index: number;
   imageSlug: string;
-}> = ({ time, type, title, description, index, imageSlug }) => {
+}> = ({ time, type, title, description, imageSlug }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 

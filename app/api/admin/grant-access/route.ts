@@ -67,7 +67,7 @@ export async function POST(request: Request) {
 
     // Create user access record (admin-granted, bypasses RLS via service role in production)
     // For now, we use an RPC function that has SECURITY DEFINER
-    const { data: accessRecord, error: insertError } = await supabase.rpc(
+    const { error: insertError } = await supabase.rpc(
       "admin_grant_early_access",
       {
         p_user_id: targetUser.id,

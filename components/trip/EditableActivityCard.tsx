@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, memo } from "react";
+import { useState, memo } from "react";
 import type { Activity, VoteType, ActivityVote, ConsensusResult, ActivityVotingStatus } from "@/types";
 import PlaceGallery from "../PlaceGallery";
 import VotingSection from "../collaboration/VotingSection";
@@ -100,8 +100,8 @@ function EditableActivityCard({
     name: activity.name,
     description: activity.description,
   });
-  const [verifiedPrice, setVerifiedPrice] = useState<VerifiedPriceData | null>(null);
-  const [priceLoading, setPriceLoading] = useState(false);
+  const [verifiedPrice] = useState<VerifiedPriceData | null>(null);
+  const [priceLoading] = useState(false);
 
   // Handle photo capture from PlaceGallery
   const handlePhotoCapture = (photoUrl: string) => {
@@ -109,19 +109,6 @@ function EditableActivityCard({
       onPhotoCapture(activity.id, photoUrl);
     }
   };
-
-  // Use stable activity key to track what we've fetched (survives re-renders but not remounts)
-  const fetchedActivityRef = useRef<string>("");
-
-  // Create stable key from activity properties (not id, since we want to fetch for same place)
-  const activityKey = `${activity.name}|${activity.address || activity.location}|${activity.type}`;
-
-  // Types that typically have price information in Google Places
-  const priceableTypes = [
-    "restaurant", "attraction", "food", "cafe", "bar", "foodie",
-    "market", "shopping", "cultural", "museum", "landmark",
-    "spa", "wellness", "entertainment", "nightlife", "wine bar"
-  ];
 
   // DISABLED: Price verification via Google Places API
   // This was causing $0.032 per activity card = massive costs

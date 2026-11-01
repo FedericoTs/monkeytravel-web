@@ -54,15 +54,6 @@ function SignupForm() {
   const hasDestination = returnsToPage(safeNextOrDefault(searchParams.get("redirect"), ""));
   const fromOnboarding = searchParams.get("from") === "onboarding";
 
-  // Helper to get locale-prefixed URL for OAuth redirects
-  const getLocaleUrl = (path: string) => {
-    const baseUrl = window.location.origin;
-    if (locale === "en") {
-      return `${baseUrl}${path}`;
-    }
-    return `${baseUrl}/${locale}${path}`;
-  };
-
   // Check for localStorage preferences and referral code on mount
   useEffect(() => {
     setHasOnboardingPrefs(hasLocalOnboardingPreferences());

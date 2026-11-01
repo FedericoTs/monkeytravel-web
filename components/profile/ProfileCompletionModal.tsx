@@ -66,7 +66,6 @@ export default function ProfileCompletionModal({
   initialData = {},
 }: ProfileCompletionModalProps) {
   const t = useTranslations("common.profileCompletion");
-  const tc = useTranslations("common.buttons");
 
   const [displayName, setDisplayName] = useState(initialData.display_name || "");
   const [homeCountry, setHomeCountry] = useState(initialData.home_country || "");

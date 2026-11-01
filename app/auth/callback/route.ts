@@ -389,9 +389,6 @@ export async function GET(request: Request) {
         // Used for partner reporting (e.g. "users from Hostelworld").
         const acquisitionSource = await readUtmSource();
 
-        // Check if user already completed onboarding before signup
-        // If from_onboarding=true, they completed anonymous onboarding first
-        const onboardingCompleted = fromOnboarding;
         // Capture `error` here. Previously this upsert was fire-and-forget:
         // if RLS rejected the row or the network blipped, the user proceeded
         // to /trips/new with NO users row — silently breaking paywall, usage
