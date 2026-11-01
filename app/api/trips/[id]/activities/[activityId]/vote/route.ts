@@ -6,6 +6,7 @@ import type { VoteType, ActivityVote, ItineraryDay } from "@/types";
 import { sendVoteEmail } from "@/lib/notifications/vote-email";
 import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 import { findActivityById } from "@/lib/utils/activity-id";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * GET /api/trips/[id]/activities/[activityId]/vote
@@ -122,44 +123,29 @@ export async function POST(request: NextRequest, context: TripActivityRouteConte
       return errors.badRequest(`A comment is required when voting "${voteType}"`);
     }
 
-    // Check if user has permission to vote (owner or collaborator with vote rights)
-    const { data: trip } = await supabase
-      .from("trips")
-      .select("id, user_id")
-      .eq("id", tripId)
-      .single();
-
-    if (!trip) {
-      return errors.notFound("Trip not found");
-    }
-
-    const isOwner = trip.user_id === user.id;
-
-    // Check collaborator role if not owner
-    let canVote = isOwner;
-    if (!isOwner) {
-      const { data: collab } = await supabase
-        .from("trip_collaborators")
-        .select("role")
-        .eq("trip_id", tripId)
-        .eq("user_id", user.id)
-        .single();
-
-      canVote = collab?.role === "editor" || collab?.role === "voter";
-    }
-
-    if (!canVote) {
-      return errors.forbidden("You don't have permission to vote on this trip");
-    }
+    // The owner, editors and voters may vote.
+    const { trip, isOwner, errorResponse: accessError } = await verifyTripAccess(
+      supabase,
+      tripId,
+      user.id,
+      "id, user_id",
+      ["editor", "voter"]
+    );
+    if (accessError) return accessError;
 
     // Check if user already voted (upsert)
-    const { data: existingVote } = await supabase
+    const { data: existingVote, error: existingError } = await supabase
       .from("activity_votes")
       .select("id")
       .eq("trip_id", tripId)
       .eq("activity_id", activityId)
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
+
+    if (existingError) {
+      console.error("[Activity Vote] Error reading the existing vote:", existingError);
+      return errors.internal("Failed to cast vote", "Activity Vote");
+    }
 
     let vote;
     if (existingVote) {
@@ -206,21 +192,21 @@ export async function POST(request: NextRequest, context: TripActivityRouteConte
     // Best-effort; sendVoteEmail swallows its own failures so an email miss
     // never fails the vote.
     if (!existingVote && !isOwner) {
-      const { data: voterProfile } = await supabase
+      const { data: voterProfile } = logReadError("activity vote email: voter name", await supabase
         .from("users")
         .select("display_name")
         .eq("id", user.id)
-        .maybeSingle();
+        .maybeSingle());
       const voterName = voterProfile?.display_name || "A collaborator";
       // The owner reads this label in the email: the activity's name,
       // falling back to the id only if the activity is gone.
       let activityLabel = activityId;
       try {
-        const { data: votedTrip } = await supabase
+        const { data: votedTrip } = logReadError("activity vote email: activity name", await supabase
           .from("trips")
           .select("itinerary")
           .eq("id", tripId)
-          .maybeSingle();
+          .maybeSingle());
         const itinerary = votedTrip?.itinerary;
         const found = Array.isArray(itinerary) ? findActivityById(itinerary as ItineraryDay[], activityId) : null;
         if (found?.activity?.name) activityLabel = found.activity.name;

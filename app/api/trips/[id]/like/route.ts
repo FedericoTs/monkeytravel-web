@@ -4,6 +4,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { runTripCounter } from "@/lib/explore/counters";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * Trip-level Likes — POST = like, DELETE = unlike.
@@ -58,11 +59,11 @@ export async function POST(_req: NextRequest, { params }: RouteCtx) {
     // the current count and return success so the client UI stays
     // consistent (avoids "like" → error → no UI update).
     if (insertErr.code === "23505") {
-      const { data: cur } = await supabase
+      const { data: cur } = logReadError("likes: like_count", await supabase
         .from("trips")
         .select("like_count")
         .eq("id", tripId)
-        .single();
+        .single());
       return apiSuccess({ liked: true, count: cur?.like_count ?? 0 });
     }
     return errors.internal("Failed to record like", "trip_likes.insert");
@@ -105,11 +106,11 @@ export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
     newCount = c ?? 0;
   } else {
     // No row deleted — return the current count without changing it.
-    const { data: cur } = await supabase
+    const { data: cur } = logReadError("likes: like_count", await supabase
       .from("trips")
       .select("like_count")
       .eq("id", tripId)
-      .single();
+      .single());
     newCount = cur?.like_count ?? 0;
   }
 
