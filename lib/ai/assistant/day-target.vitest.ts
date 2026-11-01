@@ -4,8 +4,7 @@ import { dayMentioned, isUsableActivityName, stripDayMention, withDayTarget } fr
 
 /**
  * The trip assistant must act on the day the user named, and ask rather than
- * guess when they named none. The quoted messages are from production
- * (2026-09-20).
+ * guess when they named none. The messages are real-world phrasings.
  */
 
 describe("dayMentioned", () => {

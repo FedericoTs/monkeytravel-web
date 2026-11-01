@@ -856,9 +856,8 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   const generationConfig: GenerationConfig = {
     temperature: 0.3,
     responseMimeType: "application/json",
-    // Several full days of 3-5 activity objects, plus the reply. 4096 fit
-    // one day; "add one more day" failed twice as non-JSON (2026-09-15),
-    // the truncation this budget prevents.
+    // Several full days of 3-5 activity objects, plus the reply. 4096 fits
+    // one day: "add one more day" would be cut off into non-JSON.
     // Thinking counts against this cap, hence the budget on top of the reply.
     maxOutputTokens: 8192 + THINKING_BUDGET,
     // A small, fixed thinking budget. With none, multi-part and whole-trip

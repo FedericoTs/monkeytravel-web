@@ -4,10 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Who may use the trip assistant (/api/ai/assistant, its /apply and /undo).
  *
  * The owner and invited editors: the people who can change the trip by hand.
- * Until 2026-09-25 all three routes read the trip with `user_id = caller`, so
- * they were owner-only while the trip page showed the assistant to every role
- * (and opened it by itself on a first visit): a collaborator's first message
- * answered "Trip not found".
+ * All three routes use this, so an editor's message doesn't answer "Trip not
+ * found" while the trip page shows them the assistant.
  *
  * Voters and viewers cannot change the trip, so they get no assistant; the
  * trip page hides it for them.

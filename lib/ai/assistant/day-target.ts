@@ -1,15 +1,12 @@
 /**
  * Which day of the trip an edit request is about.
  *
- * WHY (2026-09-26)
- * The trip assistant's action parser only read a day from one phrasing, "add
- * X to day N", and the add handler fell back to Day 1 whenever it found none.
- * So "I need to get rid of day 5 info and add the part where we go to
- * Civitavecchia port" added the port stop to Day 1. And "Can we delete it day
- * 5" searched the whole trip for an activity called "it day 5", which the
- * fuzzy matcher found on Day 6 ("Cruise Day: Enjoy Ship Amenities") through
- * the word "day". Both happened, in one session, to a user who then deleted
- * the trip.
+ * WHY
+ * Reading the day from one phrasing only ("add X to day N") sends every other
+ * phrasing to the wrong place: "get rid of day 5 info and add the port" would
+ * add the port to Day 1, and "can we delete it day 5" would search the whole
+ * trip for an activity called "it day 5", which a fuzzy matcher can find on
+ * another day through the word "day".
  *
  * withDayTarget reads the day from anywhere in the message, takes "day N" out
  * of the activity name, and drops a name that is only a pronoun ("it") so the

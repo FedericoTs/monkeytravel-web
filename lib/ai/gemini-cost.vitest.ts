@@ -9,7 +9,7 @@ import { GeminiCostMeter, geminiCostUsd, recordGeminiUsage } from "./gemini-cost
 
 describe("geminiCostUsd", () => {
   it("prices a trip generation at Google's paid-tier rates for 2.5 Flash", () => {
-    // A production generation, 2026-09-26: prompt=1882, output=6029.
+    // A real generation's token counts: prompt=1882, output=6029.
     const usd = geminiCostUsd("gemini-2.5-flash", { promptTokenCount: 1882, candidatesTokenCount: 6029 });
     expect(usd).toBeCloseTo((1882 * 0.3 + 6029 * 2.5) / 1e6, 10);
     expect(usd).toBeGreaterThan(0.015);

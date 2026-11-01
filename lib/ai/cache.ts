@@ -4,13 +4,9 @@
  * Shared between /api/ai/generate (JSON) and /api/ai/generate/stream
  * (SSE). Both paths use the same cache key:
  *   (destination_hash, budget_tier, vibes, language, travel_style)
- * — extended 2026-05-28 to include travel_style (Tier 1.2 migration).
  *
- * Originally lived inside the JSON route only; extracted to a shared
- * module so the streaming route — which is the PRIMARY generation
- * path (~40% of all generations) — can also short-circuit on cache
- * hit instead of always calling Gemini. Before this extraction the
- * cache hit rate was 0% across 158 generations in 30 days.
+ * Shared so the streaming route, the primary generation path, can also
+ * short-circuit on a cache hit instead of always calling Gemini.
  */
 
 import crypto from "crypto";
@@ -21,11 +17,9 @@ import type { GeneratedItinerary } from "@/types";
 /**
  * Service-role client for cache reads/writes.
  *
- * Bug investigation 2026-05-28: 158 generations in 30 days produced
- * zero cache rows. Root cause: the per-request `supabase` client
- * created via @/lib/supabase/server uses cookies(), and waitUntil()
- * tasks fire AFTER the request lifecycle ends → cookie reads throw,
- * upserts silently fail. The JSON endpoint awaits the write so cookies
+ * The per-request `supabase` client from @/lib/supabase/server uses
+ * cookies(), and waitUntil() tasks fire AFTER the request lifecycle ends:
+ * cookie reads throw and upserts silently fail. The JSON endpoint awaits the write so cookies
  * are still live there, but it shared the same bug for a different
  * reason — the existing RLS policies appear to allow the write but
  * something in the @supabase/ssr lifecycle kept dropping it.
@@ -131,8 +125,7 @@ export async function getCachedItinerary(
    * THE CACHE KEY DOES NOT INCLUDE TRIP LENGTH — it is
    * (destination_hash, budget_tier, vibes, language, travel_style). So a
    * 5-day Valencia entry was a hit for a 14-day Valencia request, and the
-   * caller got five days for a fortnight. Reproduced 2026-09-01: requested
-   * 14 days, `cached: true`, five days returned.
+   * caller got five days for a fortnight.
    *
    * Serving a LONGER entry is fine and stays supported — adjustItineraryDates
    * slices it to the requested range — so this only rejects entries that are

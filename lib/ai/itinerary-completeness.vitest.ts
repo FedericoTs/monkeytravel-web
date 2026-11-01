@@ -8,12 +8,10 @@ import type { GeneratedItinerary } from "@/types";
 /**
  * Guards for the "one in five itineraries is silently short" defect.
  *
- * Measured 2026-09-01 across 428 saved trips: 93 (21.7%) held FEWER days than
- * their own date range and 0 held more — strictly one-directional, so
- * truncation rather than noise. It scaled with length: 7d 6% short, 10d 70%,
- * 14d 90%. Two of the wizard's five one-tap presets therefore failed most of
- * the time, and the result header still showed the full requested date range
- * beside the smaller day count, so nobody noticed.
+ * Saved trips held FEWER days than their own date range, never more, so
+ * truncation rather than noise, and more often the longer the trip. The result
+ * header still showed the full requested date range beside the smaller day
+ * count, so nobody noticed.
  *
  * There were FOUR independent causes. These cover the parts that are pure
  * functions; the cache-lookup and Maps-Grounding fallbacks are exercised
