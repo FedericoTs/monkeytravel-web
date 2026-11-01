@@ -12,22 +12,14 @@
 export * from './config';
 
 // Balance operations
-export {
-  getBananaBalance,
-  getAvailableBalance,
-  hasEnoughBananas,
-  getExpiringBananas,
-} from './balance';
+export { getBananaBalance } from './balance';
 
 // Transaction operations
 export {
   addBananas,
-  spendBananas,
   getTransactionHistory,
   addReferralBananas,
   addCollaborationBananas,
-  addTierBonus,
-  clawbackBananas,
   getReferralBananasEarned,
 } from './transactions';
 
