@@ -1,4 +1,4 @@
-import { routing } from "@/lib/i18n/routing";
+import { routing } from "@/lib/i18n/routing-config";
 import staticRoutes from "./static-routes.json";
 
 /**
