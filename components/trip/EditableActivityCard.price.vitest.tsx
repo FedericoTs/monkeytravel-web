@@ -17,6 +17,7 @@ function priceOf(estimated_cost: Activity["estimated_cost"]) {
     description: "Spanish masters.",
     location: "Madrid",
     tips: [],
+    booking_required: false,
     estimated_cost,
   };
   render(
