@@ -17,7 +17,7 @@ import ts from "typescript";
  *   whole result.
  */
 const UNCHECKED_WRITES_CEILING = 0;
-const DROPPED_ERRORS_CEILING = 3;
+const DROPPED_ERRORS_CEILING = 0;
 
 const WRITES = new Set(["insert", "update", "upsert", "delete"]);
 const HANDLED = new Set(["then", "catch", "finally"]);
