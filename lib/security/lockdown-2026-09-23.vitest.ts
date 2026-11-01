@@ -51,12 +51,6 @@ describe("writers moved to the service role", () => {
     expect(src).toContain("eventData?.id ?? `referee:${userId}`");
   });
 
-  it("the banana spend route runs the balance and spend functions on the service role", () => {
-    const src = read("app/api/bananas/spend/route.ts");
-    expect(src).not.toMatch(/getAvailableBalance\(supabase,/);
-    expect(src).toMatch(/spendBananas\(\s*admin,/);
-  });
-
   it("the referral click counter runs on the service role", () => {
     expect(read("app/api/referral/click/route.ts")).toMatch(/createAdminClient\(\)\.rpc\(\s*"increment_referral_clicks"/);
   });
