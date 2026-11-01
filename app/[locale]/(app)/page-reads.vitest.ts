@@ -37,8 +37,6 @@ vi.mock("@/components/creator/CreatorProfile", () => ({ default: () => null }));
 vi.mock("@/components/ActivityCard", () => ({ default: () => null }));
 vi.mock("@/components/trip/SendDayToGroup", () => ({ default: () => null }));
 vi.mock("./trips/template/[id]/TemplatePreviewClient", () => ({ default: () => null }));
-// The routing barrel also re-exports client navigation, which node can't load here.
-vi.mock("@/lib/i18n/routing", async () => ({ routing: (await import("@/lib/i18n/routing-config")).routing }));
 
 const { default: CreatorPage } = await import("./creator/[username]/page");
 const { default: TripDayPage } = await import("./day/[tripId]/[date]/page");
