@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { prioritizeDueRows } from "./route";
+import { prioritizeDueRows } from "@/lib/notifications/queue";
 
 /**
  * Under TRIP_NOTIFICATIONS_SEND_CAP a run stops after N sends and leaves the

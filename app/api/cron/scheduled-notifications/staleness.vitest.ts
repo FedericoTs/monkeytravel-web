@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { staleReason } from "./route";
+import { staleReason } from "@/lib/notifications/queue";
 
 /**
  * A pre-trip reminder whose moment has passed is not late — it is WRONG.

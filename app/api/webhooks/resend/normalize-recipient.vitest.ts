@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { normalizeRecipient } from "./route";
+import { normalizeRecipient } from "@/lib/email/recipient";
 
 /**
  * Guards the suppression key.
