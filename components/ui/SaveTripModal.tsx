@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useId } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -8,6 +8,7 @@ import { Calendar, Copy, Check, Loader2, X, Sparkles } from "lucide-react";
 import { trackTemplateCopied, trackTripCreated } from "@/lib/analytics";
 import { prefs } from "@/lib/platform/storage";
 import { hapticSuccess, hapticError } from "@/lib/native/haptics";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 
 interface SaveTripModalProps {
   isOpen: boolean;
@@ -77,6 +78,8 @@ export default function SaveTripModal({
 }: SaveTripModalProps) {
   const router = useRouter();
   const t = useTranslations("common.saveTrip");
+  const tb = useTranslations("common.buttons");
+  const titleId = useId();
   // 2026-05-31 audit P2: formatDate below was pinned to "en-US" so
   // /it and /es users saw "Wed, Jun 3, 2026" instead of "mer, 3 giu
   // 2026" / "mié, 3 jun 2026". Read the active next-intl locale and
@@ -245,23 +248,21 @@ export default function SaveTripModal({
     }
   };
 
+  // Escape, scroll lock, focus in and back, Tab kept inside.
+  const { panelRef } = useModalBehavior({ isOpen, onClose });
+
   if (!isOpen) return null;
 
   return (
-    // 2026-05-31 audit P1 / task #302: outer container was
-    // `fixed inset-0 flex items-center justify-center p-4` with no
-    // scroll recovery. On iPhone SE with the native date picker
-    // open the close button clipped ~52px off-screen and the
-    // primary CTA was unreachable on 300px-tall reduced viewports.
-    // Mirror BaseModal.tsx:184-216 (commit 7fdde8d): outer becomes
-    // a scroll container, inner handles dvh + safe-area positioning.
-    // `min-h-screen` stays as a fallback for ancient browsers that
-    // don't support dvh.
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    // The outer layer scrolls, as in BaseModal, so the close button and the
+    // main action stay reachable on short screens and with the date picker
+    // open. `min-h-screen` is the fallback where dvh isn't supported.
+    <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby={titleId}>
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Positioning container — dvh excludes iOS Safari URL bar +
@@ -270,10 +271,11 @@ export default function SaveTripModal({
       <div className="relative min-h-screen min-h-dvh flex items-center justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]">
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-up">
+      <div ref={panelRef} tabIndex={-1} className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-up outline-none">
         {/* Close button */}
         <button
           onClick={onClose}
+          aria-label={tb("close")}
           className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-600 transition-colors z-10"
         >
           <X className="w-5 h-5" />
@@ -285,7 +287,7 @@ export default function SaveTripModal({
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-emerald-600" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">
+            <h3 id={titleId} className="text-xl font-bold text-slate-900 mb-2">
               {t("tripSaved")}
             </h3>
             <p className="text-slate-600">
@@ -301,7 +303,7 @@ export default function SaveTripModal({
                   {getFlagEmoji(tripCountryCode || "")}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">
+                  <h3 id={titleId} className="text-xl font-bold text-slate-900">
                     {tripDestination}
                   </h3>
                   <p className="text-sm text-slate-500">

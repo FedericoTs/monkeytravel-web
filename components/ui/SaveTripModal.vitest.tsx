@@ -98,3 +98,16 @@ describe("saving from a shared link is unchanged", () => {
     expect(state.pushed[0]).toBe(`/auth/login?redirect=${encodeURIComponent(`/shared/${TOKEN}`)}`);
   });
 });
+
+describe("as a dialog", () => {
+  it("is named by the destination, takes focus, and closes on Escape", async () => {
+    const onClose = vi.fn();
+    render(<SaveTripModal isOpen onClose={onClose} tripTitle="Lisbon Trip" tripDestination="Lisbon" durationDays={3} onSuccess={() => {}} shareToken={TOKEN} />);
+    const dialog = screen.getByRole("dialog", { name: "Lisbon" });
+    await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true));
+    expect(screen.getByRole("button", { name: "close" })).toBeTruthy();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});

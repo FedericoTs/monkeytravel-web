@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useId } from "react";
 import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import Image from "next/image";
 import { hapticMedium, hapticError } from "@/lib/native/haptics";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 import type {
   ProposalWithVotes,
   ProposalVoteType,
@@ -125,6 +126,10 @@ export function VotingBottomSheet({
   const [selectedOption, setSelectedOption] = useState<VoteType | null>(null);
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [comment, setComment] = useState("");
+  const titleId = useId();
+  // Escape, scroll lock, focus in and back, Tab kept inside; focus starts on
+  // the first control, as in BottomSheet.
+  const { panelRef } = useModalBehavior({ isOpen, onClose, initialFocus: "first" });
 
   const handleVote = useCallback(async (option: typeof PROPOSAL_VOTE_OPTIONS[number]) => {
     if (isSubmitting) return;
@@ -268,6 +273,7 @@ export function VotingBottomSheet({
           exit={{ opacity: 0 }}
           onClick={onClose}
           className="fixed inset-0 bg-black/40 z-50"
+          aria-hidden="true"
         />
         <motion.div
           initial={{ y: '100%' }}
@@ -284,7 +290,12 @@ export function VotingBottomSheet({
               onClose();
             }
           }}
-          className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6"
+          className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6 outline-none"
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('noProposalSelected')}
+          tabIndex={-1}
         >
           <div
             className="flex justify-center py-3 cursor-grab active:cursor-grabbing"
@@ -313,6 +324,7 @@ export function VotingBottomSheet({
           exit={{ opacity: 0 }}
           onClick={onClose}
           className="fixed inset-0 bg-black/40 z-50"
+          aria-hidden="true"
         />
         <motion.div
           initial={{ y: '100%' }}
@@ -329,7 +341,12 @@ export function VotingBottomSheet({
               onClose();
             }
           }}
-          className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6"
+          className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6 outline-none"
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('unableToLoad')}
+          tabIndex={-1}
         >
           <div
             className="flex justify-center py-3 cursor-grab active:cursor-grabbing"
@@ -360,6 +377,7 @@ export function VotingBottomSheet({
         exit={{ opacity: 0 }}
         onClick={onClose}
         className="fixed inset-0 bg-black/40 z-50"
+        aria-hidden="true"
       />
 
       {/* Bottom Sheet */}
@@ -379,7 +397,12 @@ export function VotingBottomSheet({
             onClose();
           }
         }}
-        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[90dvh] overflow-hidden"
+        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[90dvh] overflow-hidden outline-none"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
       >
         {/* Drag Handle - Swipe down to close */}
         <div
@@ -412,7 +435,7 @@ export function VotingBottomSheet({
               )}
 
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-lg text-gray-900 leading-tight">
+                <h3 id={titleId} className="font-semibold text-lg text-gray-900 leading-tight">
                   {activity.name}
                 </h3>
 
