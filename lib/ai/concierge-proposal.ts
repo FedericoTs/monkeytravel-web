@@ -23,6 +23,7 @@
  * vitest imports it without Next.js machinery.
  */
 
+import type { PendingChange } from "@/lib/ai/assistant/pending-change";
 import type { Activity, ItineraryDay } from "@/types";
 import { generateActivityId } from "@/lib/utils/activity-id";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
@@ -39,36 +40,8 @@ export const PROPOSAL_MARKER = "<<<PROPOSAL>>>";
 const ALLOWED_TYPES = ["replace", "add", "remove", "adjust_duration", "shift_days"] as const;
 type ProposalType = (typeof ALLOWED_TYPES)[number];
 
-/**
- * Structurally identical to the corresponding PendingChange variants in
- * components/ai/PreviewChangeCard.tsx (which also gains `remove` for this
- * feature). Kept as its own type so lib/server code never imports from a
- * component file.
- */
-export type ConciergeProposal =
-  | { type: "replace"; oldActivity: Activity; newActivity: Activity; dayNumber: number; reason?: string }
-  | { type: "add"; newActivity: Activity; dayNumber: number; reason?: string }
-  | { type: "remove"; oldActivity: Activity; dayNumber: number; reason?: string }
-  | {
-      type: "adjust_duration";
-      activity: { id: string; name: string; type: string };
-      oldDuration: number;
-      newDuration: number;
-      dayNumber: number;
-      reason?: string;
-    }
-  | {
-      type: "shift_days";
-      /** First day_number to push later; every day through the end moves. */
-      dayNumber: number;
-      /** 1-7 days later. */
-      shiftByDays: number;
-      /** Last affected day_number — display only. */
-      lastDayNumber: number;
-      /** The last day's post-shift date — display only. */
-      newLastDate?: string;
-      reason?: string;
-    };
+/** The proposals the concierge may make: these types of the shared PendingChange. */
+export type ConciergeProposal = Extract<PendingChange, { type: ProposalType }>;
 
 /**
  * How many chars of the accumulated stream are safe to emit to the client

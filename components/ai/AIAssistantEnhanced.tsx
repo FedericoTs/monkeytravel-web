@@ -7,6 +7,7 @@ import type { ItineraryDay, AssistantCard } from "@/types";
 import AssistantCards from "./AssistantCards";
 import StagedLoadingIndicator, { type LoadingStage } from "./StagedLoadingIndicator";
 import PreviewChangeCard, { type PendingChange } from "./PreviewChangeCard";
+import { buildApplyBody } from "@/lib/ai/assistant/pending-change";
 import UndoToast, { useUndoState } from "./UndoToast";
 import { trackAIAssistantMessage } from "@/lib/analytics";
 import { captureAIAssistantUsed } from "@/lib/posthog/events";
@@ -509,46 +510,11 @@ ${t("notAppliedBody")}`,
       // Save current state for undo
       const previousItinerary = JSON.parse(JSON.stringify(itinerary));
 
-      // The /apply route validates DIFFERENT fields per change type. Sending
-      // {oldActivity,newActivity} for adjust_duration/reorder returns 400
-      // ("Missing activity/newDuration" / "Missing activities"). Build the
-      // exact payload the route expects for each discriminant.
-      //
-      // apply_draft spans several days and has no single dayNumber — the
-      // route (and the focus/badge below) key on the FIRST changed day.
-      const appliedDayNumber =
-        pendingChange.type === "apply_draft"
-          ? pendingChange.changedDayNumbers[0] ?? 1
-          : pendingChange.dayNumber;
-      const applyBody: Record<string, unknown> = {
-        tripId,
-        changeType: pendingChange.type,
-        dayNumber: appliedDayNumber,
-        // So the transcript can record that this proposal was actually taken
-        // up. Without it, a reload cannot tell an applied change from an
-        // abandoned one and both render as "No changes made to your
-        // itinerary" — which sends people back to ask for the same edit a
-        // second time.
-        conversationId,
-      };
-      if (pendingChange.type === "replace") {
-        applyBody.oldActivity = pendingChange.oldActivity;
-        applyBody.newActivity = pendingChange.newActivity;
-      } else if (pendingChange.type === "add") {
-        applyBody.newActivity = pendingChange.newActivity;
-      } else if (pendingChange.type === "remove") {
-        applyBody.oldActivity = pendingChange.oldActivity;
-      } else if (pendingChange.type === "adjust_duration") {
-        applyBody.activity = pendingChange.activity;
-        applyBody.oldDuration = pendingChange.oldDuration;
-        applyBody.newDuration = pendingChange.newDuration;
-      } else if (pendingChange.type === "reorder") {
-        applyBody.activities = pendingChange.activities;
-      } else if (pendingChange.type === "add_day") {
-        applyBody.day = pendingChange.day;
-      } else if (pendingChange.type === "apply_draft") {
-        applyBody.days = pendingChange.days;
-      }
+      // The conversation id lets a reload tell an applied change from an
+      // abandoned one. A multi-day draft keys on its first changed day,
+      // here and for the focus and badge below.
+      const applyBody = buildApplyBody(pendingChange, { tripId, conversationId });
+      const appliedDayNumber = applyBody.dayNumber;
 
       const res = await fetch("/api/ai/assistant/apply", {
         method: "POST",

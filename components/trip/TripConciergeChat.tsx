@@ -6,6 +6,7 @@ import { Compass, Send, Sparkles, Loader2 } from "lucide-react";
 import BaseModal from "@/components/ui/BaseModal";
 import { useToast } from "@/components/ui/Toast";
 import PreviewChangeCard, { type PendingChange } from "@/components/ai/PreviewChangeCard";
+import { buildApplyBody } from "@/lib/ai/assistant/pending-change";
 import type { ItineraryDay } from "@/types";
 import { localTodayISO } from "@/lib/utils/date-local";
 import {
@@ -298,25 +299,7 @@ function TripConciergeChatInner({
     if (!proposal || isApplying) return;
     setIsApplying(true);
     try {
-      const body: Record<string, unknown> = {
-        tripId,
-        changeType: proposal.type,
-        dayNumber: "dayNumber" in proposal ? proposal.dayNumber : 0,
-      };
-      if (proposal.type === "replace") {
-        body.oldActivity = proposal.oldActivity;
-        body.newActivity = proposal.newActivity;
-      } else if (proposal.type === "add") {
-        body.newActivity = proposal.newActivity;
-      } else if (proposal.type === "remove") {
-        body.oldActivity = proposal.oldActivity;
-      } else if (proposal.type === "adjust_duration") {
-        body.activity = proposal.activity;
-        body.oldDuration = proposal.oldDuration;
-        body.newDuration = proposal.newDuration;
-      } else if (proposal.type === "shift_days") {
-        body.shiftByDays = proposal.shiftByDays;
-      }
+      const body = buildApplyBody(proposal, { tripId });
 
       // In the trip page's save queue: its pending edits are saved first, and
       // it adopts the reply's itinerary together with its version.
