@@ -6,7 +6,7 @@
  *
  * Usage:
  * ```typescript
- * import { checkUsageLimit, incrementUsage, getUserUsageStats } from '@/lib/usage-limits';
+ * import { checkUsageLimit, incrementUsage } from '@/lib/usage-limits';
  *
  * // Check if user can perform action
  * const check = await checkUsageLimit(userId, 'aiGenerations', 'monthly');

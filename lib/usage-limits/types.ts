@@ -68,25 +68,6 @@ export interface UsageCheckResult {
 }
 
 /**
- * Full usage statistics for a user
- */
-export interface UserUsageStats {
-  userId: string;
-  tier: SubscriptionTier;
-  subscriptionExpiresAt: string | null;
-
-  // AI usage (monthly)
-  aiGenerations: UsageCheckResult;
-  aiRegenerations: UsageCheckResult;
-  aiAssistantMessages: UsageCheckResult;
-
-  // Places usage (daily)
-  placesAutocomplete: UsageCheckResult;
-  placesSearch: UsageCheckResult;
-  placesDetails: UsageCheckResult;
-}
-
-/**
  * Database row for user_usage table
  */
 export interface UserUsageRow {
