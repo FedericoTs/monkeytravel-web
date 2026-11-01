@@ -1755,8 +1755,6 @@
           "prompt": "Sugira atividades alternativas que eu poderia fazer"
         }
       },
-      "notAppliedTitle": "Não consegui fazer essa alteração",
-      "notAppliedBody": "Entendi o que você queria, mas a alteração não foi aplicada ao seu plano — por isso nada mudou. Tente indicar uma atividade de cada vez (\"substitua X por Y\", \"adicione Z ao dia 2\"), ou edite o dia diretamente no plano.",
       "tryDifferent": "Tente outra opção para: {message}",
       "errors": {
         "limitDay": "Você atingiu o limite diário do assistente. Tente de novo amanhã.",

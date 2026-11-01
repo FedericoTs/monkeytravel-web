@@ -1755,8 +1755,6 @@
           "prompt": "Suggest alternative activities I could do"
         }
       },
-      "notAppliedTitle": "I couldn't make that change",
-      "notAppliedBody": "I understood what you wanted, but the change didn't get applied to your plan — so nothing has moved. Try naming one activity at a time (\"replace X with Y\", \"add Z to day 2\"), or edit the day directly on the plan.",
       "tryDifferent": "Try a different option for: {message}",
       "errors": {
         "limitDay": "You've reached today's assistant limit. Try again tomorrow.",

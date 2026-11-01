@@ -115,11 +115,11 @@ vi.mock("@/lib/api/auth", () => ({
 
 const { POST, GET } = await import("./route");
 
-async function send(message: string, previewMode = true, extra: Record<string, unknown> = {}) {
+async function send(message: string, extra: Record<string, unknown> = {}) {
   const res = await POST(
     new NextRequest("http://localhost/api/ai/assistant", {
       method: "POST",
-      body: JSON.stringify({ tripId: "trip-1", message, conversationId: "conv-1", previewMode, ...extra }),
+      body: JSON.stringify({ tripId: "trip-1", message, conversationId: "conv-1", ...extra }),
     }),
   );
   return { status: res.status, json: await res.json() };
@@ -225,7 +225,7 @@ describe("trip-page assistant: free-form edits", () => {
 
   it("answers a question with the engine, in the currency the page shows", async () => {
     proposeTripEdits.mockResolvedValue({ reply: "Day 2 comes to about 22 USD.", revisedDays: [], summary: "", meta });
-    const { json } = await send("How much is day 2?", true, { display: { currency: "USD", rate: 1.08 } });
+    const { json } = await send("How much is day 2?", { display: { currency: "USD", rate: 1.08 } });
     expect(proposeTripEdits).toHaveBeenCalledWith(
       expect.objectContaining({ message: "How much is day 2?", display: { currency: "USD", rate: 1.08 } }),
     );
@@ -300,24 +300,13 @@ describe("trip-page assistant: free-form edits", () => {
     expect(json.pendingChange).toMatchObject({ type: "add_day", dayNumber: 4, newEndDate: "2027-03-14" });
   });
 
-  it("writes new days and the end date together when the owner asks for no preview", async () => {
+  it("never writes the trip, even when the caller asks for no preview", async () => {
     proposeTripEdits.mockResolvedValue({ reply: "Done: Day 4 in Howth.", revisedDays: [howthDay4], tripLength: 4, summary: "", meta });
-    await send("add a day in Howth", false);
-    const write = calls.find((c) => c.table === "trips" && c.op === "update");
-    const value = write?.value as { itinerary: ItineraryDay[]; end_date?: string };
-    expect(value.itinerary.map((d) => d.day_number)).toEqual([1, 2, 3, 4]);
-    expect(value.end_date).toBe("2027-03-14");
-  });
-
-  it("writes the days at once when the owner asks for no preview", async () => {
-    proposeTripEdits.mockResolvedValue({ reply: "Done: Wigwam on Day 3.", revisedDays: [wigwamDay3], summary: "", meta });
-    const { json } = await send("adding Wigwam to Day 3", false);
-    const write = calls.find((c) => c.table === "trips" && c.op === "update");
-    const days = (write?.value as { itinerary: ItineraryDay[] }).itinerary;
-    expect(days.map((d) => d.day_number)).toEqual([1, 2, 3]);
-    expect(days[2].activities.map((a) => a.name)).toEqual(["Grafton Street", "Wigwam"]);
-    expect(json.modifiedItinerary?.[2].activities.map((a: { name: string }) => a.name)).toEqual(["Grafton Street", "Wigwam"]);
-    expect(json.pendingChange).toBeNull();
+    const { json } = await send("add a day in Howth", { previewMode: false });
+    expect(calls.some((c) => c.table === "trips" && c.op === "update")).toBe(false);
+    expect(json.modifiedItinerary).toBeUndefined();
+    expect(json.message.action).toMatchObject({ type: "apply_draft", applied: false, pending: true });
+    expect(json.pendingChange).toMatchObject({ type: "apply_draft", changedDayNumbers: [4], newEndDate: "2027-03-14" });
   });
 });
 

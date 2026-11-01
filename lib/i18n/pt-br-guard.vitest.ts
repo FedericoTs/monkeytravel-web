@@ -20,7 +20,6 @@ const REWRITTEN: Record<string, string[]> = {
     "share.framing.crewHint",
     "share.framing.plainHint",
     "share.crewPrompt.body",
-    "ai.assistant.notAppliedBody",
     "ai.preview.suggestedChange",
     "ai.preview.previewBadge",
     "ai.preview.applying",

@@ -174,7 +174,6 @@ interface AssistantRequest {
   message: string;
   conversationId?: string;
   itinerary?: ItineraryDay[]; // Current itinerary for modifications
-  previewMode?: boolean; // If true, return pending changes instead of auto-applying
   display?: unknown; // The currency the page shows prices in (readDisplayCurrency)
 }
 
@@ -437,26 +436,9 @@ function applyButtonLabel(language: string): string {
 }
 
 /**
- * What the model is allowed to tell the user about a change.
- *
- * THIS IS THE BUG THIS FUNCTION EXISTS TO KILL
- * --------------------------------------------
- * The assistant is confirm-first: for most actions the server prepares the
- * change, saves NOTHING, and shows a card with an Apply button. But the text
- * fed to the model said, unconditionally:
- *
- *   "I have already replaced X with Y ... The change has been saved to the
- *    database and will appear in the itinerary."
- *
- * So it told users the work was done. They looked, saw nothing, and wrote
- * back - "It is still showing as southern steak and oyster", "i really can't
- * see any changes", one of them for 21 turns. `add_day` and `apply_draft`
- * already branched on previewMode and said "do NOT claim it was already
- * added"; the three commonest actions did not, and two more (adjust_duration,
- * reorder) got no context at all and were left to improvise.
- *
- * Every caller now goes through here, so a new action type cannot quietly
- * inherit the old behaviour: it gets a correct frame or none.
+ * What the model is allowed to tell the user about a prepared change. Nothing
+ * is saved until the user confirms it on the card, so the reply must not say
+ * it is done. Every action type goes through here.
  */
 function pendingActionContext(change: string, buttonLabel: string): string {
   return `
@@ -471,17 +453,7 @@ NEVER say it is done, made, added, replaced, removed, moved, updated, changed
 or saved. Never use the past tense about their itinerary.`;
 }
 
-function appliedActionContext(change: string): string {
-  return `
-IMPORTANT - THIS IS SAVED. The itinerary now shows it.
-What changed: ${change}.
-Confirm it in ONE short sentence, in the past tense.`;
-}
-
-/**
- * One plain-language phrase naming the change, shared by both frames above so
- * the wording cannot drift between the pending and applied cases.
- */
+/** One plain-language phrase naming the change, for the frame above. */
 function describeChange(
   action: NonNullable<StructuredAssistantResponse["action"]>,
   card: AssistantCard | undefined
@@ -959,12 +931,11 @@ export async function POST(request: NextRequest) {
     console.log(`[AI Assistant] User language: ${userLanguage}`);
 
     const body: AssistantRequest = await request.json();
-    const { tripId, message, conversationId, itinerary: clientItinerary, previewMode: requestedPreviewMode = false } = body;
+    const { tripId, message, conversationId, itinerary: clientItinerary } = body;
 
     console.log(`[AI Assistant] Message: "${message}"`);
     console.log(`[AI Assistant] Trip ID: ${tripId}`);
     console.log(`[AI Assistant] Client itinerary provided: ${!!clientItinerary}`);
-    console.log(`[AI Assistant] Preview mode requested: ${requestedPreviewMode}`);
 
     if (!tripId || !message) {
       return errors.badRequest("Missing tripId or message");
@@ -1013,10 +984,9 @@ export async function POST(request: NextRequest) {
     if (!assistantRole) {
       return errors.forbidden(ASSISTANT_FORBIDDEN_MESSAGE, ASSISTANT_ERROR_CODES.notAllowed);
     }
-    // An editor's changes are always proposals: they land only through
-    // /apply, which keeps the trip's dates with the owner. The direct-write
-    // (non-preview) paths below may move end_date.
-    const previewMode = requestedPreviewMode || assistantRole !== "owner";
+    // This route never writes the trip: it prepares a change and returns it as
+    // a pendingChange. The change lands only through /apply, which checks the
+    // role, the fixed plans and the itinerary version again.
 
     // Phase 1.3: an existing trip is edited in ITS language, not the
     // language of the tab the owner opened it from. Older trips without
@@ -1148,8 +1118,6 @@ export async function POST(request: NextRequest) {
     let actionTaken: StructuredAssistantResponse["action"] | undefined;
     let replacementCard: AssistantCard | undefined;
     let replacementError: string | undefined;
-    let itineraryWasModified = false;
-    let engineWriteFailed = false;
 
     // The engine's revised days: one multi-day change, confirmed and saved
     // like a pasted draft (apply_draft), in one write. New days go after the
@@ -1166,35 +1134,14 @@ export async function POST(request: NextRequest) {
       if (modifiedItinerary.length > itinerary.length && lastDate) {
         engineEndDate = computeExtendedEndDate(trip.end_date, lastDate) ?? undefined;
       }
-      itineraryWasModified = true;
       actionTaken = {
         type: "apply_draft",
-        applied: true,
+        applied: false,
         dayNumber: fixedDays[0].day_number,
         dayCount: fixedDays.length,
         revisedDays: fixedDays,
         ...(engineEndDate ? { newEndDate: engineEndDate } : {}),
       };
-
-      if (previewMode) {
-        itineraryWasModified = false;
-      } else {
-        const { error: updateError } = await supabase
-          .from("trips")
-          .update({
-            itinerary: modifiedItinerary,
-            ...(engineEndDate ? { end_date: engineEndDate } : {}),
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", tripId);
-        if (updateError) {
-          console.error("[AI Assistant] Database update failed:", updateError);
-          replacementError = "Failed to save the revised days to database";
-          itineraryWasModified = false;
-          actionTaken = undefined;
-          engineWriteFailed = true;
-        }
-      }
     }
 
     // Handle autonomous activity replacement
@@ -1238,11 +1185,10 @@ export async function POST(request: NextRequest) {
 
           // Apply the replacement to our deep-cloned itinerary
           modifiedItinerary[found.dayIndex].activities[found.activityIndex] = newActivity;
-          itineraryWasModified = true;
 
           actionTaken = {
             type: "replace_activity",
-            applied: true,
+            applied: false,
             activityId: found.activity.id,
             dayNumber: found.dayIndex + 1,
             newActivity,
@@ -1258,33 +1204,7 @@ export async function POST(request: NextRequest) {
             newActivity,
             dayNumber: found.dayIndex + 1,
             reason: `Replaced based on your preference`,
-            autoApplied: !previewMode, // Only auto-applied if not in preview mode
           };
-
-          // In preview mode, don't save - just prepare the pending change
-          if (previewMode) {
-            console.log(`[AI Assistant] Preview mode: Preparing pending change for user confirmation`);
-            // Keep itineraryWasModified false since we haven't actually saved
-            itineraryWasModified = false;
-          } else {
-            // Save to database (auto-apply mode)
-            console.log(`[AI Assistant] Saving modified itinerary to database...`);
-            const { error: updateError } = await supabase
-              .from("trips")
-              .update({
-                itinerary: modifiedItinerary,
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", tripId);
-
-            if (updateError) {
-              console.error("[AI Assistant] Database update failed:", updateError);
-              replacementError = "Failed to save changes to database";
-              itineraryWasModified = false;
-            } else {
-              console.log(`[AI Assistant] Successfully replaced "${found.activity.name}" with "${newActivity.name}"`);
-            }
-          }
         } catch (err) {
           console.error("[AI Assistant] Failed to generate replacement activity:", err);
           replacementError = `Failed to generate replacement: ${err instanceof Error ? err.message : "Unknown error"}`;
@@ -1317,11 +1237,10 @@ export async function POST(request: NextRequest) {
       } else if (found) {
         const removed = found.activity;
         modifiedItinerary[found.dayIndex].activities.splice(found.activityIndex, 1);
-        itineraryWasModified = true;
 
         actionTaken = {
           type: "remove_activity",
-          applied: true,
+          applied: false,
           activityId: removed.id,
           dayNumber: found.dayIndex + 1,
         };
@@ -1335,23 +1254,6 @@ export async function POST(request: NextRequest) {
           dayNumber: found.dayIndex + 1,
           reason: "Removed at your request",
         } as unknown as AssistantCard;
-
-        if (previewMode) {
-          console.log(`[AI Assistant] Preview mode: Preparing pending removal`);
-          itineraryWasModified = false;
-        } else {
-          const { error: updateError } = await supabase
-            .from("trips")
-            .update({ itinerary: modifiedItinerary, updated_at: new Date().toISOString() })
-            .eq("id", tripId);
-          if (updateError) {
-            console.error("[AI Assistant] Database update failed:", updateError);
-            replacementError = "Failed to save changes to database";
-            itineraryWasModified = false;
-          } else {
-            console.log(`[AI Assistant] Removed "${removed.name}" from Day ${found.dayIndex + 1}`);
-          }
-        }
       } else {
         replacementError = activityNotFoundReason(itinerary, actionIntent.activityName, actionIntent.dayNumber);
       }
@@ -1438,11 +1340,10 @@ export async function POST(request: NextRequest) {
           modifiedItinerary[targetDayIndex].activities.sort((a, b) =>
             a.start_time.localeCompare(b.start_time)
           );
-          itineraryWasModified = true;
 
           actionTaken = {
             type: "add_activity",
-            applied: true,
+            applied: false,
             dayNumber: targetDayNumber,
             newActivity,
           };
@@ -1453,33 +1354,7 @@ export async function POST(request: NextRequest) {
             activity: newActivity,
             dayNumber: targetDayNumber,
             reason: `Added based on your request`,
-            autoApplied: !previewMode, // Only auto-applied if not in preview mode
           } as AssistantCard;
-
-          // In preview mode, don't save - just prepare the pending change
-          if (previewMode) {
-            console.log(`[AI Assistant] Preview mode: Preparing pending add for user confirmation`);
-            // Keep itineraryWasModified false since we haven't actually saved
-            itineraryWasModified = false;
-          } else {
-            // Save to database (auto-apply mode)
-            console.log(`[AI Assistant] Saving modified itinerary with new activity to database...`);
-            const { error: updateError } = await supabase
-              .from("trips")
-              .update({
-                itinerary: modifiedItinerary,
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", tripId);
-
-            if (updateError) {
-              console.error("[AI Assistant] Database update failed:", updateError);
-              replacementError = "Failed to save changes to database";
-              itineraryWasModified = false;
-            } else {
-              console.log(`[AI Assistant] Successfully added "${newActivity.name}" to Day ${targetDayNumber}`);
-            }
-          }
         }
       } catch (err) {
         console.error("[AI Assistant] Failed to generate new activity:", err);
@@ -1530,11 +1405,9 @@ export async function POST(request: NextRequest) {
           dayActivities[i].start_time = `${String(newHours).padStart(2, "0")}:${String(newMins).padStart(2, "0")}`;
         }
 
-        itineraryWasModified = true;
-
         actionTaken = {
           type: "adjust_duration",
-          applied: true,
+          applied: false,
           activityId: found.activity.id,
           dayNumber: found.dayIndex + 1,
         };
@@ -1550,29 +1423,7 @@ export async function POST(request: NextRequest) {
           newDuration,
           dayNumber: found.dayIndex + 1,
           reason: `Duration adjusted from ${Math.floor(oldDuration / 60)}h${oldDuration % 60 > 0 ? ` ${oldDuration % 60}m` : ""} to ${Math.floor(newDuration / 60)}h${newDuration % 60 > 0 ? ` ${newDuration % 60}m` : ""}`,
-          autoApplied: !previewMode,
         } as AssistantCard;
-
-        if (previewMode) {
-          console.log(`[AI Assistant] Preview mode: Preparing pending duration change`);
-          itineraryWasModified = false;
-        } else {
-          const { error: updateError } = await supabase
-            .from("trips")
-            .update({
-              itinerary: modifiedItinerary,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", tripId);
-
-          if (updateError) {
-            console.error("[AI Assistant] Database update failed:", updateError);
-            replacementError = "Failed to save changes to database";
-            itineraryWasModified = false;
-          } else {
-            console.log(`[AI Assistant] Successfully adjusted duration for "${found.activity.name}"`);
-          }
-        }
       } else {
         replacementError = activityNotFoundReason(itinerary, actionIntent.activityName, actionIntent.dayNumber);
       }
@@ -1657,12 +1508,11 @@ export async function POST(request: NextRequest) {
                 currentTime += (act.duration_minutes || 60) + 30; // Add 30 min buffer between activities
               }
 
-              itineraryWasModified = true;
               modifiedItinerary[targetDayIndex] = targetDay;
 
               actionTaken = {
                 type: "reorder",
-                applied: true,
+                applied: false,
                 dayNumber: targetDayNumber,
               };
 
@@ -1676,7 +1526,6 @@ export async function POST(request: NextRequest) {
                   time: a.start_time,
                   timeSlot: a.time_slot,
                 })),
-                autoApplied: !previewMode,
               } as AssistantCard;
             } else {
               replacementError = `Could not find activity "${actionIntent.activityName}" on Day ${targetDayNumber}`;
@@ -1753,11 +1602,10 @@ Return ONLY a JSON array with the optimal order of activity indices:
               }
 
               modifiedItinerary[targetDayIndex].activities = reorderedActivities;
-              itineraryWasModified = true;
 
               actionTaken = {
                 type: "reorder",
-                applied: true,
+                applied: false,
                 dayNumber: targetDayNumber,
               };
 
@@ -1771,31 +1619,9 @@ Return ONLY a JSON array with the optimal order of activity indices:
                   time: a.start_time,
                   timeSlot: a.time_slot,
                 })),
-                autoApplied: !previewMode,
               } as AssistantCard;
             } else {
               replacementError = "Failed to generate optimized schedule";
-            }
-          }
-
-          if (itineraryWasModified && previewMode) {
-            console.log(`[AI Assistant] Preview mode: Preparing pending reorder`);
-            itineraryWasModified = false;
-          } else if (itineraryWasModified && !previewMode) {
-            const { error: updateError } = await supabase
-              .from("trips")
-              .update({
-                itinerary: modifiedItinerary,
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", tripId);
-
-            if (updateError) {
-              console.error("[AI Assistant] Database update failed:", updateError);
-              replacementError = "Failed to save changes to database";
-              itineraryWasModified = false;
-            } else {
-              console.log(`[AI Assistant] Successfully optimized Day ${targetDayNumber} schedule`);
             }
           }
         }
@@ -1898,41 +1724,15 @@ Return ONLY a JSON array with the optimal order of activity indices:
           const newEndDate = computeExtendedEndDate(trip.end_date, newDate) ?? undefined;
 
           modifiedItinerary.push(newDay);
-          itineraryWasModified = true;
 
           actionTaken = {
             type: "add_day",
-            applied: true,
+            applied: false,
             dayNumber: newDayNumber,
             newDay,
             newEndDate,
           };
-
-          if (previewMode) {
-            console.log(`[AI Assistant] Preview mode: Prepared new Day ${newDayNumber} for confirmation`);
-            itineraryWasModified = false;
-          } else {
-            // Auto-apply mode: end_date moves in the SAME write as the
-            // itinerary — a +1-day itinerary with a stale end date is
-            // exactly the inconsistency the trust loop exists to prevent.
-            const { error: updateError } = await supabase
-              .from("trips")
-              .update({
-                itinerary: modifiedItinerary,
-                ...(newEndDate ? { end_date: newEndDate } : {}),
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", tripId);
-
-            if (updateError) {
-              console.error("[AI Assistant] Database update failed:", updateError);
-              replacementError = "Failed to save the new day to database";
-              itineraryWasModified = false;
-              actionTaken = undefined;
-            } else {
-              console.log(`[AI Assistant] Added Day ${newDayNumber}, end date → ${newEndDate ?? trip.end_date}`);
-            }
-          }
+          console.log(`[AI Assistant] Prepared new Day ${newDayNumber} for confirmation`);
         } catch (err) {
           console.error("[AI Assistant] Failed to generate new day:", err);
           replacementError = `Failed to generate the new day: ${err instanceof Error ? err.message : "Unknown error"}`;
@@ -2066,39 +1866,16 @@ Return ONLY valid JSON:
               );
               if (idx !== -1) modifiedItinerary[idx] = day;
             }
-            itineraryWasModified = true;
             draftUnmappedDayNumbers = normalized.unmappedDayNumbers;
 
             actionTaken = {
               type: "apply_draft",
-              applied: true,
+              applied: false,
               dayNumber: normalized.changedDayNumbers[0],
               dayCount: normalized.changedDayNumbers.length,
               revisedDays: fixedDays,
             };
-
-            if (previewMode) {
-              console.log(`[AI Assistant] Preview mode: Prepared draft revision of days ${normalized.changedDayNumbers.join(", ")}`);
-              itineraryWasModified = false;
-            } else {
-              // Auto-apply mode: all revised days persist in ONE write.
-              const { error: updateError } = await supabase
-                .from("trips")
-                .update({
-                  itinerary: modifiedItinerary,
-                  updated_at: new Date().toISOString(),
-                })
-                .eq("id", tripId);
-
-              if (updateError) {
-                console.error("[AI Assistant] Database update failed:", updateError);
-                replacementError = "Failed to save the revised days to database";
-                itineraryWasModified = false;
-                actionTaken = undefined;
-              } else {
-                console.log(`[AI Assistant] Applied draft to days ${normalized.changedDayNumbers.join(", ")}`);
-              }
-            }
+            console.log(`[AI Assistant] Prepared draft revision of days ${normalized.changedDayNumbers.join(", ")}`);
           }
         } catch (err) {
           console.error("[AI Assistant] Failed to map draft:", err);
@@ -2119,37 +1896,15 @@ Return ONLY valid JSON:
       .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
       .join("\n");
 
-    // Build prompt with action context
-    // ------------------------------------------------------------------
-    // WHAT ACTUALLY HAPPENED. Decided here, once, from the write itself.
-    //
-    // `itineraryWasModified` is the only honest signal in scope: each handler
-    // sets it true when it mutates the working copy, clears it in preview mode
-    // (where no write is attempted at all) and clears it again on updateError.
-    // So at this point it means exactly "a database write succeeded".
-    //
-    // Everything the user is told is derived from it. Nothing is derived from
-    // the model's own claim, which is what made `applied` a constant: it was
-    // written as a literal `true` at seven construction sites, before any
-    // write had been attempted.
-    // ------------------------------------------------------------------
+    // Build prompt with action context. What the user is told comes from what
+    // the server prepared, never from the model's own claim.
     if (replacementError) {
-      // A failed change must not leave a card behind advertising success.
-      // add_day and apply_draft already cleared themselves on updateError;
-      // replace / add / adjust_duration / reorder did not, so a genuine
-      // database failure reached the user as "saved to the database" and the
-      // error branch below was unreachable.
+      // A change that failed leaves no action or card behind.
       actionTaken = undefined;
       replacementCard = undefined;
     }
-    const changeWasSaved = Boolean(actionTaken) && itineraryWasModified;
-    if (actionTaken) {
-      actionTaken = {
-        ...actionTaken,
-        applied: changeWasSaved,
-        pending: !changeWasSaved,
-      };
-    }
+    // A prepared change waits for the user's confirm: nothing is saved here.
+    if (actionTaken) actionTaken = { ...actionTaken, pending: true };
 
     let actionContext = "";
     if (replacementError) {
@@ -2167,10 +1922,7 @@ of it succeeded.`;
         actionTaken.type === "apply_draft" && draftUnmappedDayNumbers.length > 0
           ? ` Days ${draftUnmappedDayNumbers.join(", ")} could not be read from the draft and are unchanged - say so explicitly.`
           : "";
-      actionContext =
-        (changeWasSaved
-          ? appliedActionContext(change)
-          : pendingActionContext(change, applyButtonLabel(userLanguage))) + extra;
+      actionContext = pendingActionContext(change, applyButtonLabel(userLanguage)) + extra;
     } else if (structuralNote) {
       actionContext = `
 NOTE: ${structuralNote}`;
@@ -2189,8 +1941,7 @@ Respond with valid JSON only.`;
     // The engine's own reply, when it prepared the change, or answered and
     // the patterns prepared nothing. It already read the plan and the
     // conversation, so the chat call below is skipped.
-    const engineReply =
-      tripEdits && (engineEdited ? !engineWriteFailed : !actionTaken) ? tripEdits.reply : null;
+    const engineReply = tripEdits && (engineEdited || !actionTaken) ? tripEdits.reply : null;
 
     let parsedResponse: StructuredAssistantResponse;
     let responseText = "";
@@ -2228,38 +1979,16 @@ Respond with valid JSON only.`;
       }
     }
 
-    // The past-tense card is only shown once the change is REAL.
-    //
-    // In preview mode the server still builds `replacementCard`, because the
-    // pendingChange below is assembled from it — but rendering it was the
-    // single most misleading thing on the screen. ActivityReplacementCard is
-    // titled "Activity Replaced" and runs a 400ms animation striking the old
-    // activity through in red and fading it out; the add variant shows a green
-    // "NEW" pill beside the day number. Both are the universal idiom for "this
-    // is done", they render ABOVE the confirmation card, and on a phone the
-    // confirm button is below the fold.
-    //
-    // Correcting the assistant's sentence does nothing about this, because it
-    // is not a sentence. The PreviewChangeCard already shows the before/after,
-    // so suppressing this while pending also removes a duplicate rendering of
-    // the same activity.
-    // Cards that ASSERT a change are the server's to emit, never the model's.
-    //
-    // Removing them from the prompt's card list is not enough on its own: the
-    // model had been emitting `activity_replacement` itself, which renders as
-    // "Activity Replaced" with a strike-through animation — the completed-look
-    // card this fix is meant to suppress, arriving by a second route. Filter
-    // whatever it produces rather than trusting it to have stopped.
-    // Model-written "confirmation" cards ("Akihabara Added") assert a change too.
+    // Cards that show a change as done ("Activity Replaced", "Added") never
+    // reach the reply: nothing is saved on this turn, and the confirm card
+    // already shows the before and after. The model writes such cards too, so
+    // whatever it produces is filtered. `replacementCard` only feeds the
+    // pendingChange below.
     const CHANGE_CARDS = new Set(["activity_replacement", "activity_added", "activity_suggestion", "confirmation"]);
-    if (!changeWasSaved && Array.isArray(parsedResponse.cards)) {
+    if (Array.isArray(parsedResponse.cards)) {
       parsedResponse.cards = parsedResponse.cards.filter(
         (c) => !CHANGE_CARDS.has((c as { type?: string })?.type ?? "")
       );
-    }
-
-    if (replacementCard && changeWasSaved) {
-      parsedResponse.cards = [replacementCard, ...(parsedResponse.cards || [])];
     }
 
     // The words as well as the cards. Nothing was saved on this turn, so the
@@ -2274,7 +2003,7 @@ Respond with valid JSON only.`;
     const claimedChange =
       claimsItineraryChange(parsedResponse.summary) ||
       (!actionTaken && announcesProposal(parsedResponse.summary));
-    if (!changeWasSaved && (claimedChange || claimsToRemember(parsedResponse.summary))) {
+    if (claimedChange || claimsToRemember(parsedResponse.summary)) {
       console.warn(
         `[AI Assistant] honesty guard replaced a ${claimedChange ? "change" : "memory"} claim (${actionTaken ? "change pending" : "nothing prepared"}): "${String(parsedResponse.summary).slice(0, 120)}"`
       );
@@ -2371,9 +2100,9 @@ Respond with valid JSON only.`;
       remaining: Math.max(0, usageCheck.remaining - 1),
     };
 
-    // Build pending change object for preview mode
+    // The change waiting for the user's confirm.
     let pendingChange = null;
-    if (previewMode && actionTaken && !replacementError) {
+    if (actionTaken && !replacementError) {
       if (actionTaken.type === "replace_activity") {
         const rc = replacementCard as { oldActivity: { id: string; name: string; type: string }; newActivity: Activity };
         // IMPORTANT: Use the oldActivity from replacementCard which was set during the replace logic
@@ -2452,17 +2181,11 @@ Respond with valid JSON only.`;
       }
     }
 
-    // CRITICAL: Always return modifiedItinerary if it was actually modified
     const responsePayload = {
       message: assistantMessage,
       conversationId: conversation.id,
       model: modelConfig.name,
       complexity: classification.complexity,
-      // Return modified itinerary if we actually made changes
-      modifiedItinerary: itineraryWasModified ? modifiedItinerary : undefined,
-      // Return previous itinerary for undo functionality (when auto-applied)
-      previousItinerary: itineraryWasModified ? itinerary : undefined,
-      // Return pending change for confirm-first flow
       pendingChange,
       usage: {
         inputTokens,
@@ -2477,13 +2200,11 @@ Respond with valid JSON only.`;
       debug: {
         actionIntent: actionIntent.type,
         activityName: actionIntent.activityName,
-        itineraryWasModified,
         replacementError,
-        previewMode,
       },
     };
 
-    console.log(`[AI Assistant] Response: modifiedItinerary=${!!responsePayload.modifiedItinerary}, itineraryWasModified=${itineraryWasModified}`);
+    console.log(`[AI Assistant] Response: pendingChange=${pendingChange?.type ?? "none"}`);
 
     return apiSuccess(responsePayload);
   } catch (error) {
