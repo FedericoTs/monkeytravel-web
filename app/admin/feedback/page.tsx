@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -71,16 +72,16 @@ export default async function AdminFeedbackPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <a href="/admin" className="flex items-center gap-2">
+              <Link prefetch={false} href="/admin" className="flex items-center gap-2">
                 <img src="/images/logo.png" alt="MonkeyTravel" className="h-8 w-8" />
                 <span className="font-semibold text-lg text-[var(--foreground)]">MonkeyTravel</span>
-              </a>
+              </Link>
               <span className="text-slate-300">|</span>
               <span className="text-[var(--primary-ink)] font-medium">Feedback</span>
             </div>
-            <a href="/admin" className="text-sm text-[var(--primary-ink)] hover:underline">
+            <Link prefetch={false} href="/admin" className="text-sm text-[var(--primary-ink)] hover:underline">
               Back to Dashboard
-            </a>
+            </Link>
           </div>
         </div>
       </header>

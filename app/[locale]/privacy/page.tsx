@@ -60,12 +60,13 @@ export default async function PrivacyPolicy({
           {banner && (
             <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
               <p className="text-amber-900">{banner.msg}</p>
-              <a
+              <Link
                 href="/privacy"
+                locale="en"
                 className="mt-1.5 inline-block text-amber-900 underline font-medium hover:no-underline"
               >
                 {banner.cta} →
-              </a>
+              </Link>
             </div>
           )}
           <div className="mb-8">
@@ -86,7 +87,7 @@ export default async function PrivacyPolicy({
             <section className="mb-8">
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">1. Introduction</h2>
               <p className="text-[var(--foreground-muted)] mb-4">
-                MonkeyTravel ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and website (collectively, the "Service").
+                MonkeyTravel (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application and website (collectively, the &quot;Service&quot;).
               </p>
               <p className="text-[var(--foreground-muted)]">
                 Please read this Privacy Policy carefully. By using the Service, you agree to the collection and use of information in accordance with this policy.
@@ -146,7 +147,7 @@ export default async function PrivacyPolicy({
             <section className="mb-8">
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">5. Cookies and Tracking Technologies</h2>
               <p className="text-[var(--foreground-muted)] mb-4">
-                We use cookies and similar tracking technologies to collect and track information about your activity on our Service. You can manage your cookie preferences at any time through our cookie settings banner or by clicking "Cookie Settings" in the footer.
+                We use cookies and similar tracking technologies to collect and track information about your activity on our Service. You can manage your cookie preferences at any time through our cookie settings banner or by clicking &quot;Cookie Settings&quot; in the footer.
               </p>
               <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">Types of Cookies We Use:</h3>
               <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2 mb-4">
@@ -205,14 +206,14 @@ export default async function PrivacyPolicy({
               <ul className="list-disc pl-6 text-[var(--foreground-muted)] space-y-2">
                 <li><strong>Access (Art. 15):</strong> Request a copy of your personal data</li>
                 <li><strong>Correction (Art. 16):</strong> Request correction of inaccurate data</li>
-                <li><strong>Deletion (Art. 17):</strong> Request deletion of your personal data ("Right to be Forgotten")</li>
+                <li><strong>Deletion (Art. 17):</strong> Request deletion of your personal data (&quot;Right to be Forgotten&quot;)</li>
                 <li><strong>Portability (Art. 20):</strong> Export your data in a machine-readable format via your profile settings</li>
                 <li><strong>Restrict Processing (Art. 18):</strong> Request limitation of data processing</li>
                 <li><strong>Object (Art. 21):</strong> Object to processing based on legitimate interests</li>
                 <li><strong>Withdraw Consent (Art. 7):</strong> Withdraw consent at any time via cookie settings</li>
               </ul>
               <p className="text-[var(--foreground-muted)] mt-4">
-                To exercise these rights, use the "Export My Data" button in your profile settings, or contact us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary-ink)] hover:underline">{contactEmail}</a>. We will respond within 30 days.
+                To exercise these rights, use the &quot;Export My Data&quot; button in your profile settings, or contact us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary-ink)] hover:underline">{contactEmail}</a>. We will respond within 30 days.
               </p>
             </section>
 
@@ -224,7 +225,7 @@ export default async function PrivacyPolicy({
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">10. Children's Privacy</h2>
+              <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">10. Children&apos;s Privacy</h2>
               <p className="text-[var(--foreground-muted)]">
                 Our Service is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us at <a href={`mailto:${contactEmail}`} className="text-[var(--primary-ink)] hover:underline">{contactEmail}</a>, and we will delete such information.
               </p>
@@ -240,7 +241,7 @@ export default async function PrivacyPolicy({
             <section className="mb-8">
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">12. Changes to This Privacy Policy</h2>
               <p className="text-[var(--foreground-muted)]">
-                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date. You are advised to review this Privacy Policy periodically for any changes.
+                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the &quot;Last updated&quot; date. You are advised to review this Privacy Policy periodically for any changes.
               </p>
             </section>
 
@@ -251,7 +252,7 @@ export default async function PrivacyPolicy({
               </p>
               <ul className="text-[var(--foreground-muted)] space-y-2">
                 <li><strong>Email:</strong> <a href={`mailto:${contactEmail}`} className="text-[var(--primary-ink)] hover:underline">{contactEmail}</a></li>
-                <li><strong>Website:</strong> <a href="/" className="text-[var(--primary-ink)] hover:underline">monkeytravel.app</a></li>
+                <li><strong>Website:</strong> <Link href="/" className="text-[var(--primary-ink)] hover:underline">monkeytravel.app</Link></li>
               </ul>
             </section>
           </div>
