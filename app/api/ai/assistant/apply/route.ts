@@ -2,7 +2,8 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { TRIP_COLUMNS } from "@/lib/trips/columns";
 import type { ItineraryDay, Activity } from "@/types";
-import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { errors, apiError, apiSuccess } from "@/lib/api/response-wrapper";
+import { ASSISTANT_ERROR_CODES as CODES } from "@/lib/ai/assistant/error-message";
 import {
   resolveAssistantRole,
   DATE_CHANGING_ASSISTANT_CHANGES,
@@ -120,13 +121,13 @@ export async function POST(request: NextRequest) {
 
     const assistantRole = await resolveAssistantRole(supabase, trip, user.id);
     if (!assistantRole) {
-      return errors.forbidden(ASSISTANT_FORBIDDEN_MESSAGE);
+      return errors.forbidden(ASSISTANT_FORBIDDEN_MESSAGE, CODES.notAllowed);
     }
     // Adding days or shifting them moves the trip's dates, which stay with
     // the owner (as on PATCH /api/trips/[id]). Checked before any work, so
     // an editor never gets as far as a write the database would refuse.
     if (assistantRole !== "owner" && DATE_CHANGING_ASSISTANT_CHANGES.has(changeType)) {
-      return errors.forbidden(ASSISTANT_DATES_OWNER_ONLY_MESSAGE);
+      return errors.forbidden(ASSISTANT_DATES_OWNER_ONLY_MESSAGE, CODES.datesOwnerOnly);
     }
 
     const itinerary = (trip.itinerary || []) as ItineraryDay[];
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest) {
     // apply to apply_draft: its days are matched one by one below, and the
     // page sends the first changed day, which is a new day when days are added.
     if (changeType !== "add_day" && changeType !== "apply_draft" && (dayIndex < 0 || dayIndex >= itinerary.length)) {
-      return errors.badRequest("Invalid day number");
+      return errors.badRequest("Invalid day number", { code: CODES.outdated });
     }
 
     // Deep clone for modification
@@ -161,14 +162,16 @@ export async function POST(request: NextRequest) {
       );
       if (isLockedActivity(target)) {
         return errors.badRequest(
-          `"${target?.name}" is a fixed plan and can't be changed here. Edit it in the trip's fixed plans instead.`
+          `"${target?.name}" is a fixed plan and can't be changed here. Edit it in the trip's fixed plans instead.`,
+          { code: CODES.locked, names: [target?.name].filter(Boolean) }
         );
       }
     } else if (changeType === "reorder") {
       const locked = lockedActivityNames(modifiedItinerary[dayIndex]);
       if (locked.length > 0) {
         return errors.badRequest(
-          `Day ${dayNumber} is built around a fixed plan (${locked.join(", ")}) and can't be reshuffled.`
+          `Day ${dayNumber} is built around a fixed plan (${locked.join(", ")}) and can't be reshuffled.`,
+          { code: CODES.locked, names: locked }
         );
       }
     } else if (changeType === "apply_draft") {
@@ -180,7 +183,8 @@ export async function POST(request: NextRequest) {
         .flatMap((d) => lockedActivityNames(d));
       if (locked.length > 0) {
         return errors.badRequest(
-          `Days built around fixed plans (${locked.slice(0, 3).join(", ")}) can't be rewritten.`
+          `Days built around fixed plans (${locked.slice(0, 3).join(", ")}) can't be rewritten.`,
+          { code: CODES.locked, names: locked }
         );
       }
     } else if (changeType === "shift_days") {
@@ -192,7 +196,8 @@ export async function POST(request: NextRequest) {
         .flatMap((d) => lockedActivityNames(d));
       if (locked.length > 0) {
         return errors.badRequest(
-          `Days ${dayNumber} onward include fixed plans (${locked.slice(0, 3).join(", ")}) whose dates can't be moved.`
+          `Days ${dayNumber} onward include fixed plans (${locked.slice(0, 3).join(", ")}) whose dates can't be moved.`,
+          { code: CODES.locked, names: locked }
         );
       }
     }
@@ -204,7 +209,7 @@ export async function POST(request: NextRequest) {
       );
 
       if (activityIndex === -1) {
-        return errors.notFound("Activity not found in itinerary");
+        return apiError("Activity not found in itinerary", { status: 404, code: CODES.outdated });
       }
 
       // Preserve original time slot and start time
@@ -227,7 +232,7 @@ export async function POST(request: NextRequest) {
       );
 
       if (activityIndex === -1) {
-        return errors.notFound("Activity not found in itinerary");
+        return apiError("Activity not found in itinerary", { status: 404, code: CODES.outdated });
       }
 
       modifiedItinerary[dayIndex].activities.splice(activityIndex, 1);
@@ -239,7 +244,7 @@ export async function POST(request: NextRequest) {
       );
 
       if (activityIndex === -1) {
-        return errors.notFound("Activity not found in itinerary");
+        return apiError("Activity not found in itinerary", { status: 404, code: CODES.outdated });
       }
 
       // Update the duration
@@ -333,7 +338,7 @@ export async function POST(request: NextRequest) {
       // cap first — the 14-day platform maximum must hold even if the
       // itinerary grew between preview and confirm.
       if (modifiedItinerary.length >= MAX_TRIP_DAYS) {
-        return errors.badRequest(`Trip is already at the ${MAX_TRIP_DAYS}-day maximum`);
+        return errors.badRequest(`Trip is already at the ${MAX_TRIP_DAYS}-day maximum`, { code: CODES.tooManyDays, max: MAX_TRIP_DAYS });
       }
 
       const lastDay = modifiedItinerary[modifiedItinerary.length - 1];
@@ -387,11 +392,11 @@ export async function POST(request: NextRequest) {
       if (appended.length > 0) {
         // New days move the trip's end date, which stays with the owner.
         if (assistantRole !== "owner") {
-          return errors.forbidden(ASSISTANT_DATES_OWNER_ONLY_MESSAGE);
+          return errors.forbidden(ASSISTANT_DATES_OWNER_ONLY_MESSAGE, CODES.datesOwnerOnly);
         }
         const cap = maxTripDays(modifiedItinerary);
         if (modifiedItinerary.length + appended.length > cap) {
-          return errors.badRequest(`Trips can have at most ${cap} days`);
+          return errors.badRequest(`Trips can have at most ${cap} days`, { code: CODES.tooManyDays, max: cap });
         }
         // Numbered and dated from the STORED last day, as add_day does, so a
         // stale preview can't leave a gap or a duplicate day.
@@ -414,7 +419,7 @@ export async function POST(request: NextRequest) {
         updated += appended.length;
       }
       if (updated === 0) {
-        return errors.badRequest("None of the revised days matched the trip");
+        return errors.badRequest("None of the revised days matched the trip", { code: CODES.outdated });
       }
       daysUpdatedCount = updated;
       console.log(

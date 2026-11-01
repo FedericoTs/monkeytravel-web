@@ -45,6 +45,7 @@ import {
 } from "@/lib/utils/geo";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { resolveAssistantRole, ASSISTANT_FORBIDDEN_MESSAGE } from "@/lib/ai/assistant-access";
+import { ASSISTANT_ERROR_CODES } from "@/lib/ai/assistant/error-message";
 import { destinationCityTerm } from "@/lib/api/postgrest-filter";
 import { formatMinutesToTime } from "@/lib/datetime/format";
 import { withDayTarget } from "@/lib/ai/assistant/day-target";
@@ -1009,7 +1010,7 @@ export async function POST(request: NextRequest) {
 
     const assistantRole = await resolveAssistantRole(supabase, trip, user.id);
     if (!assistantRole) {
-      return errors.forbidden(ASSISTANT_FORBIDDEN_MESSAGE);
+      return errors.forbidden(ASSISTANT_FORBIDDEN_MESSAGE, ASSISTANT_ERROR_CODES.notAllowed);
     }
     // An editor's changes are always proposals: they land only through
     // /apply, which keeps the trip's dates with the owner. The direct-write

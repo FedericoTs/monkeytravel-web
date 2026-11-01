@@ -84,8 +84,9 @@ describe("apply_draft on a trip with a fixed plan", () => {
   });
 
   it("refuses to rewrite the day that holds it", async () => {
-    const { status } = await apply([{ day_number: 1, date: "2026-11-24", activities: [act("x1", "Brunch")] }]);
+    const { status, json } = await apply([{ day_number: 1, date: "2026-11-24", activities: [act("x1", "Brunch")] }]);
     expect(status).toBe(400);
+    expect(json).toMatchObject({ code: "LOCKED", names: ["Wedding"] });
     expect(updates).toHaveLength(0);
   });
 });
