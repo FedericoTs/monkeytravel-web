@@ -59,9 +59,7 @@ const NAV_BUTTON =
 /**
  * Display-formatter for the range label on the trigger.
  *
- * Pre-2026-05-25 this was hardcoded to "en-US" + "Select date" fallback,
- * so the IT/ES wizards showed English dates and an English placeholder.
- * Now the locale comes from the active next-intl locale and the empty
+ * The locale comes from the active next-intl locale, and the empty
  * placeholder is passed in by the caller (already localized via t()).
  */
 const formatDisplayDate = (
@@ -142,9 +140,8 @@ export default function DateRangePicker({
   className = "",
   triggerRef,
 }: DateRangePickerProps) {
-  // **2026-05-25**: localized to IT + ES. Pre-fix, every label, the
-  // placeholder, the calendar header caption, the months and weekday
-  // headings, and the day/night plurals were hardcoded English.
+  // Labels, placeholder, caption, month and weekday headings and the
+  // day/night plurals all follow the page's locale.
   const locale = useLocale();
   const t = useTranslations("trips.wizard.datePicker");
   const { months: MONTHS, weekdays: WEEKDAYS } = useMemo(

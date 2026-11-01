@@ -80,11 +80,9 @@ export default function SaveTripModal({
   const t = useTranslations("common.saveTrip");
   const tb = useTranslations("common.buttons");
   const titleId = useId();
-  // 2026-05-31 audit P2: formatDate below was pinned to "en-US" so
-  // /it and /es users saw "Wed, Jun 3, 2026" instead of "mer, 3 giu
-  // 2026" / "mié, 3 jun 2026". Read the active next-intl locale and
-  // pass it to toLocaleDateString. The `weekday: "short"` option
-  // resolves through the browser's CLDR for every locale we ship.
+  // formatDate below uses the active next-intl locale ("mer, 3 giu 2026" on
+  // /it); the `weekday: "short"` option resolves through the browser's CLDR
+  // for every locale we ship.
   const locale = useLocale();
   // Task #181 cleanup: read auth from the single AuthProvider. We expose
   // a tri-state through `isAuthenticated` (true / false / null) to preserve
@@ -110,10 +108,8 @@ export default function SaveTripModal({
 
   // Parse YYYY-MM-DD strings as LOCAL midnight (not UTC midnight) so
   // toLocaleDateString below renders the day the user actually picked.
-  // Shared helper because both `startLocal` and `endDate` need it.
-  // Bug-bounty 2026-05-24 P1 (end), Live-test 2026-05-24 P1 (start):
-  // the same bug existed on the Start display line below — input
-  // "2026-07-07" was rendered as "Jul 6" in any negative-offset zone.
+  // Shared helper because both `startLocal` and `endDate` need it: UTC
+  // midnight would show the day before west of UTC (Jul 7 as "Jul 6").
   const parseLocal = (yyyymmdd: string): Date => {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(yyyymmdd);
     return m

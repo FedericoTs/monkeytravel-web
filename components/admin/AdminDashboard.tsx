@@ -18,25 +18,19 @@ import {
 } from "@/lib/lazy";
 
 // ---------------------------------------------------------------------------
-// AdminDashboard — 2026-05-28 refactor
+// AdminDashboard
 //
-// The user's brief:
-//   - KEEP what works: the 4 KPI cards, the user-growth chart, recent activity
-//   - IMPROVE everything else — many panels were "not telling much"
-//   - MOBILE-FIRST — every section must look right at 360px before desktop
-//   - No DB schema changes
-//
-// What changed vs the prior version:
-//   * MetricCard now shows a week-over-week delta chip ("+12%" / "-4%")
-//   * "User Metrics" + "Churn Analysis" → one ActivationCard that tells the
-//     real activation story (signup → first trip → repeat → at-risk)
-//   * "AI Agent Usage" 3-column grid → a mobile-friendly stat strip with a
-//     cost-per-trip headline and compact action/model lists
-//   * "Visitor Analytics" 3-column geo block → tabbed (Pages | Countries |
-//     Cities) on mobile, 3-up on desktop
-//   * "Email Subscribers" 4-card grid → single horizontal stat strip
-//   * Tab bar now horizontally scrolls on mobile so all tabs are reachable
-//   * Sections reordered: headline KPIs → user growth → activation → traffic
+// Mobile-first: every section must look right at 360px before desktop.
+//   * MetricCard shows a week-over-week delta chip ("+12%" / "-4%")
+//   * ActivationCard tells the activation story (signup → first trip →
+//     repeat → at-risk)
+//   * AI usage is a stat strip with a cost-per-trip headline and compact
+//     action/model lists
+//   * Visitor geo is tabbed (Pages | Countries | Cities) on mobile, 3-up on
+//     desktop
+//   * Email subscribers are a single horizontal stat strip
+//   * The tab bar scrolls horizontally on mobile so all tabs are reachable
+//   * Section order: headline KPIs → user growth → activation → traffic
 //     → acquisition → AI → visitors → trips → subscribers → cohort → activity
 // ---------------------------------------------------------------------------
 

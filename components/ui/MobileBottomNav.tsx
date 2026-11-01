@@ -7,10 +7,9 @@ import { useTranslations } from "next-intl";
 import { useCssVarHeight } from "@/hooks/useCssVarHeight";
 
 interface MobileBottomNavProps {
-  // Added "explore" 2026-05-30 (Phase B3 mobile): Booking/Airbnb both
-  // use 5-tab bottom navs with Explore as a peer tab. Discovery loop
-  // matters for retention — putting /explore in thumb-reach turns it
-  // from a "marketing surface" into a real engagement surface.
+  // "explore" is a peer tab, as in Booking's and Airbnb's 5-tab bottom navs:
+  // in thumb reach, /explore is an engagement surface, not only a marketing
+  // one.
   activePage:
     | "home"
     | "trips"

@@ -20,14 +20,11 @@ export default async function Navbar() {
     { href: '/#features', label: t('navigation.features') },
     { href: '/#how-it-works', label: t('navigation.howItWorks') },
     { href: '/destinations', label: t('navigation.destinations') },
-    // **2026-05-29 (/explore Week 3)**: /explore was orphaned — no link
-    // from any primary nav surface, only reachable via post-save auto
-    // prompt or direct URL. Adding here so Googlebot's first-pass crawl
-    // sees the freshest-content page on the site, and authed users have
-    // a constant entry point. Mobile menu picks it up automatically.
+    // /explore in the primary nav: Googlebot's first-pass crawl sees the
+    // freshest-content page on the site, and signed-in users have a constant
+    // entry point. The mobile menu picks it up automatically.
     { href: '/explore', label: t('navigation.explore') },
-    // **2026-05-25**: Tools were live but orphaned — no link from any
-    // nav surface. Adding here so the funnel works.
+    // The tools' entry point from the nav.
     { href: '/tools', label: t('navigation.tools') },
     { href: '/blog', label: t('navigation.blog') },
   ];

@@ -116,11 +116,11 @@ export default function DestinationHero({
   // optimizer 400, CORS quirk), the element ends up `complete=true`
   // + `naturalWidth=0` + opacity:0. The hero then renders as a pure
   // grey block. Track the failure so we can swap to the gradient
-  // fallback. Caught via live audit 2026-05-29 on /it/trips/[id].
+  // fallback.
   const [imageError, setImageError] = useState(false);
   // Retry-once shim for intermittent <img> load failures.
-  // 2026-05-30 bug: hero photo sometimes never renders until hard refresh.
-  // Root cause is upstream (Google Places /media transient 5xx — also
+  // Without it the hero photo can stay blank until a hard refresh. The cause
+  // is upstream (Google Places /media transient 5xx — also
   // mitigated server-side in /api/places/photo retry). Belt-and-braces:
   // if onError fires once, bump the retry counter, which appends `?_r=N`
   // to the src and forces the browser to re-fetch (defeating the negative
@@ -133,8 +133,7 @@ export default function DestinationHero({
   // proxy (it ignores unknown params) and defeats the browser's image cache.
   // Route hotlinked Pexels/Unsplash through our same-origin proxy.
   // Direct browser loads to Pexels intermittently 504 (Cloudflare
-  // anti-scraping); server-fetched bytes resolve cleanly. Live-confirmed
-  // 2026-05-31 on /it/shared/<token>.
+  // anti-scraping); server-fetched bytes resolve cleanly.
   const baseCoverUrl = proxyImageUrl(destinationData?.coverImageUrl);
   const effectiveCoverUrl = baseCoverUrl
     ? imageRetry === 0

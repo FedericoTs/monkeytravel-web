@@ -180,8 +180,8 @@ describe("redeeming", () => {
 
 /**
  * Every way out of the prompt has to keep the user's language, and none of
- * them may point at /pt/auth/callback. That route does not exist, and from
- * 2026-06-04 to 2026-09-24 every es/it/pt sign-in started here hit its 404.
+ * them may point at /pt/auth/callback. That route does not exist, so a
+ * sign-in started there would end in a 404.
  */
 describe("sign-in from a Portuguese page", () => {
   beforeEach(() => {
