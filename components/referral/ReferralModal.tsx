@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Gift, Copy, Check, X, Mail, Users, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
+import { useIsClient } from "@/hooks/useIsClient";
 import { openExternal } from "@/lib/native/external-link";
 
 interface ReferralStats {
@@ -27,12 +28,8 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  // Only render portal after component mounts (client-side)
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // The portal needs document.body, so it renders in the browser only.
+  const mounted = useIsClient();
 
   const referralUrl = code ? `${typeof window !== "undefined" ? window.location.origin : ""}/join/${code}` : "";
 

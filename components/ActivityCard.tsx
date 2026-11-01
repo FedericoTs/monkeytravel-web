@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, memo } from "react";
+import { useState, memo } from "react";
 import { useTranslations } from "next-intl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import type { Activity } from "@/types";
@@ -13,6 +13,7 @@ import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { PhotoCredit } from "./ui/PhotoCredit";
 import { useSavedTrips } from "@/lib/stats/useSavedTrips";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
+import { useIsPhone } from "@/hooks/useMediaQuery";
 
 interface ActivityCardProps {
   activity: Activity;
@@ -43,7 +44,7 @@ function ActivityCard({
   const typeLabel = useActivityTypeLabel();
   const [expanded, setExpanded] = useState(false);
   const [showMobileSheet, setShowMobileSheet] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsPhone();
   // Shown over the photo only: the count arrives after the first paint, and
   // there it moves nothing.
   const savedTrips = useSavedTrips(activity.image_url ? activity.name : undefined, activity.coordinates);
@@ -64,26 +65,6 @@ function ActivityCard({
       onPhotoCapture(activity.id, photoUrl);
     }
   };
-
-  // Detect mobile viewport.
-  // Bug-bounty 2026-05-24 P2: previously `useState(false)` then this
-  // effect flipped it after mount. On real mobile devices that produced
-  // a one-frame "desktop layout, then snap to mobile" flash visible
-  // around hydration. matchMedia is sync at mount — read it eagerly
-  // in the effect and use the matchMedia change event to keep up.
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const mql = window.matchMedia("(max-width: 639px)");
-    setIsMobile(mql.matches);
-    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    if (mql.addEventListener) {
-      mql.addEventListener("change", onChange);
-      return () => mql.removeEventListener("change", onChange);
-    }
-    // Legacy Safari fallback
-    mql.addListener(onChange);
-    return () => mql.removeListener(onChange);
-  }, []);
 
   // Handle More button click - different behavior for mobile vs desktop
   const handleMoreClick = () => {

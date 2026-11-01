@@ -5,6 +5,7 @@ import { useImageLoaded } from "@/hooks/useImageLoaded";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
+import { useIsClient } from "@/hooks/useIsClient";
 
 interface CarouselImage {
   url: string;
@@ -35,7 +36,8 @@ export default function ImageCarousel({
   const [isAnimating, setIsAnimating] = useState(true);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  // The portal needs document.body, so it renders in the browser only.
+  const mounted = useIsClient();
 
   // Touch tracking refs
   const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
@@ -54,10 +56,6 @@ export default function ImageCarousel({
 
   // Escape, scroll lock, focus in and back, Tab kept inside (always open when rendered).
   const { panelRef: containerRef } = useModalBehavior({ isOpen: true, onClose });
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Reset state when image changes
   useEffect(() => {
@@ -257,12 +255,9 @@ export default function ImageCarousel({
   // navigating to an image the browser already has cached left the slide
   // at opacity:0 until the next swipe.
   //
-  // This MUST stay above the `!mounted` early return. It is a hook (so it
-  // cannot be called conditionally), and the reset effect near the top of
-  // this component calls `setImageLoaded` — on the first render `mounted`
-  // is false, so an early return here left that const in its temporal dead
-  // zone while React still mounted the effect: "Cannot access ... before
-  // initialization" (Sentry JAVASCRIPT-NEXTJS-2N / -23).
+  // This MUST stay above the `!mounted` early return: it is a hook, and the
+  // reset effect near the top of this component calls `setImageLoaded`, so
+  // the const has to exist on every render, including the server one.
   const [imageLoaded, setImageLoaded] = useImageLoaded(imageRef, currentImage?.url);
 
   if (!mounted) return null;

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { useIsClient } from "@/hooks/useIsClient";
 
 interface CountdownHeroProps {
   destination: string;
@@ -47,11 +48,8 @@ export default function CountdownHero({
   }, [startDate]);
 
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft());
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // Zeros in the server HTML: the time left has moved on by hydration.
+  const mounted = useIsClient();
 
   useEffect(() => {
     const timer = setInterval(() => {
