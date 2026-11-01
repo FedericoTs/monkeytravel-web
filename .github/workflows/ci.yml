@@ -40,6 +40,6 @@ jobs:
       # Errors fail, and so does any warning past today's count: lower the
       # number when a change removes warnings, never raise it.
       - name: Lint
-        run: npm run lint -- --max-warnings=502
+        run: npm run lint -- --max-warnings=273
       - name: Unit tests
         run: npm test

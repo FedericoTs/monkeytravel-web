@@ -56,12 +56,13 @@ export default async function TermsOfService({
           {banner && (
             <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
               <p className="text-amber-900">{banner.msg}</p>
-              <a
+              <Link
                 href="/terms"
+                locale="en"
                 className="mt-1.5 inline-block text-amber-900 underline font-medium hover:no-underline"
               >
                 {banner.cta} →
-              </a>
+              </Link>
             </div>
           )}
           <div className="mb-8">
@@ -82,7 +83,7 @@ export default async function TermsOfService({
             <section className="mb-8">
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">1. Acceptance of Terms</h2>
               <p className="text-[var(--foreground-muted)] mb-4">
-                By accessing or using the MonkeyTravel mobile application and website (the "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Service.
+                By accessing or using the MonkeyTravel mobile application and website (the &quot;Service&quot;), you agree to be bound by these Terms of Service (&quot;Terms&quot;). If you do not agree to these Terms, do not use the Service.
               </p>
               <p className="text-[var(--foreground-muted)]">
                 We reserve the right to modify these Terms at any time. Your continued use of the Service after any changes indicates your acceptance of the modified Terms.
@@ -119,7 +120,7 @@ export default async function TermsOfService({
                 <li>Infringe on the rights of others</li>
                 <li>Upload malicious code, viruses, or harmful content</li>
                 <li>Attempt to gain unauthorized access to the Service</li>
-                <li>Interfere with or disrupt the Service's operation</li>
+                <li>Interfere with or disrupt the Service&apos;s operation</li>
                 <li>Collect or harvest user data without consent</li>
                 <li>Use the Service for commercial purposes without authorization</li>
                 <li>Create multiple accounts for abusive purposes</li>
@@ -143,7 +144,7 @@ export default async function TermsOfService({
             <section className="mb-8">
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">6. User Content</h2>
               <p className="text-[var(--foreground-muted)] mb-4">
-                You retain ownership of content you create or upload to the Service ("User Content"). By submitting User Content, you grant us a non-exclusive, worldwide, royalty-free license to use, display, and distribute your content in connection with operating the Service.
+                You retain ownership of content you create or upload to the Service (&quot;User Content&quot;). By submitting User Content, you grant us a non-exclusive, worldwide, royalty-free license to use, display, and distribute your content in connection with operating the Service.
               </p>
               <p className="text-[var(--foreground-muted)]">
                 You are solely responsible for your User Content and represent that you have all necessary rights to submit it.
@@ -167,7 +168,7 @@ export default async function TermsOfService({
             <section className="mb-8">
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">9. Disclaimer of Warranties</h2>
               <p className="text-[var(--foreground-muted)]">
-                THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, SECURE, OR ERROR-FREE. WE MAKE NO WARRANTIES REGARDING THE ACCURACY OR RELIABILITY OF ANY INFORMATION OBTAINED THROUGH THE SERVICE.
+                THE SERVICE IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, SECURE, OR ERROR-FREE. WE MAKE NO WARRANTIES REGARDING THE ACCURACY OR RELIABILITY OF ANY INFORMATION OBTAINED THROUGH THE SERVICE.
               </p>
             </section>
 
@@ -181,7 +182,7 @@ export default async function TermsOfService({
             <section className="mb-8">
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">11. Indemnification</h2>
               <p className="text-[var(--foreground-muted)]">
-                You agree to indemnify and hold harmless MonkeyTravel and its officers, directors, employees, and agents from any claims, damages, losses, or expenses (including reasonable attorneys' fees) arising from your use of the Service or violation of these Terms.
+                You agree to indemnify and hold harmless MonkeyTravel and its officers, directors, employees, and agents from any claims, damages, losses, or expenses (including reasonable attorneys&apos; fees) arising from your use of the Service or violation of these Terms.
               </p>
             </section>
 
@@ -209,7 +210,7 @@ export default async function TermsOfService({
             <section className="mb-8">
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">15. Changes to Terms</h2>
               <p className="text-[var(--foreground-muted)]">
-                We reserve the right to modify these Terms at any time. We will notify users of material changes by posting the updated Terms on this page and updating the "Last updated" date. Your continued use of the Service after changes constitutes acceptance of the modified Terms.
+                We reserve the right to modify these Terms at any time. We will notify users of material changes by posting the updated Terms on this page and updating the &quot;Last updated&quot; date. Your continued use of the Service after changes constitutes acceptance of the modified Terms.
               </p>
             </section>
 
@@ -220,7 +221,7 @@ export default async function TermsOfService({
               </p>
               <ul className="text-[var(--foreground-muted)] space-y-2">
                 <li><strong>Email:</strong> <a href={`mailto:${contactEmail}`} className="text-[var(--primary-ink)] hover:underline">{contactEmail}</a></li>
-                <li><strong>Website:</strong> <a href="/" className="text-[var(--primary-ink)] hover:underline">monkeytravel.app</a></li>
+                <li><strong>Website:</strong> <Link href="/" className="text-[var(--primary-ink)] hover:underline">monkeytravel.app</Link></li>
               </ul>
             </section>
           </div>
