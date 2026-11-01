@@ -5,31 +5,20 @@ import { createClient } from "@supabase/supabase-js";
 /**
  * A signed-in user whose PostHog never loads must still keep their trip.
  *
- * WHAT THIS REPRODUCES
- * --------------------
- * /trips/new had two persistence paths behind one three-state flag:
- *
- *   auto-save-v1 === true       useAutoSaveTrip persists every generation
- *   auto-save-v1 === false      hook inert; the post-auth redemption effect runs
- *   auto-save-v1 === undefined  NEITHER ran
- *
- * undefined is not a transient loading state. Analytics consent declined, an ad
- * blocker, or a failed PostHog request leave it undefined permanently — there is
- * no later evaluation to wait for. Those users generated an itinerary and
- * nothing wrote it down.
- *
- * Measured 2026-09-01, before the fix: 30 users burned 44 successful
- * generations and finished with ZERO trips. Among users who reached generation,
- * the ones who lost it were half as likely to have analytics consent
- * (36.7% vs 69.9%) — the signature of an unresolved flag, not of a user who
- * changed their mind. auto-save-v1 has been at rollout 100% since 2026-07-02,
- * so ON was the intended behaviour for all of them.
+ * WHAT THIS GUARDS
+ * ----------------
+ * Which path persists a generated itinerary is decided by an environment
+ * variable (lib/trips/autoSaveGate.ts), never by a client-side flag. Analytics
+ * consent declined, an ad blocker, or a failed PostHog request leave a flag
+ * unresolved for good — there is no later evaluation to wait for — so if
+ * saving depended on one, those users would generate an itinerary that nothing
+ * writes down.
  *
  * WHY IT ASSERTS ON THE DATABASE
  * ------------------------------
  * The wizard renders the itinerary on screen either way. Only a trips row
- * distinguishes "saved" from "shown once and lost" — which is exactly why this
- * went unnoticed: it looks like it worked.
+ * distinguishes "saved" from "shown once and lost": on screen, a lost trip
+ * looks like it worked.
  *
  * REQUIRES
  *   npx tsx scripts/e2e-fixtures.mts --seed

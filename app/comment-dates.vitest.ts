@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
  * got here, which the git history keeps and the comment lets go stale. The
  * count can only go down: lower CEILING when a change removes some.
  */
-const CEILING = 177;
+const CEILING = 150;
 
 const DATED = /^\s*(\/\/|\*|\/\*).*\b20\d{2}-\d{2}(-\d{2})?\b/;
 const SOURCE = /^(app|lib|components|hooks|scripts|tests|types)\/.*\.(ts|tsx|mts|cts|js|mjs)$/;

@@ -13,16 +13,13 @@ interface ClaimedTripBannerProps {
 /**
  * "Your trip came with you."
  *
- * A person who generated a trip anonymously, then signed up, had that trip
- * claimed into their account by AuthProvider — and until 2026-09-02 the id it
- * came back with was thrown away. They landed on an empty wizard while the
- * trip they had just built moved silently into My Trips. This is the missing
- * sentence, with the one action that matters.
+ * A trip generated before signing up is claimed into the new account by
+ * AuthProvider, which moves it into My Trips. This banner says where it went,
+ * with the one action that matters: opening it.
  *
- * A banner, not a redirect: the claim resolves seconds after landing, and a
- * silent navigation away from a form is the class of bug the share loop
- * already fought. The week-one "opened" rate decides whether a redirect is
- * ever warranted. No entrance animation — it may appear after first paint.
+ * A banner, not a redirect: the claim resolves seconds after landing, and
+ * navigating away from a form the person may already be filling in would lose
+ * their place. No entrance animation — it may appear after first paint.
  *
  * Coral carries the primary fill only (the accepted white-label exception);
  * all text is --foreground / slate.

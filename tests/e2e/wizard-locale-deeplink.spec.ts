@@ -1,12 +1,9 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * `?destination=<city>` deeplink pre-fill on the wizard.
- *
- * Worked on /trips/new but BROKE on /it/trips/new (2026-05-25 live
- * test — Milan deeplink left the field empty on the Italian wizard).
- * The fix lives in chip #4 (DateRangePicker localization PR); these
- * tests will fail on the IT/ES cases until that ships, then turn green.
+ * `?destination=<city>` deeplink pre-fill on the wizard, in every locale:
+ * the Italian and Spanish wizards fill the destination field just as the
+ * English one does.
  */
 
 const CASES = [

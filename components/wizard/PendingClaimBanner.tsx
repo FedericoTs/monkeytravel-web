@@ -13,12 +13,9 @@ interface PendingClaimBannerProps {
 /**
  * Return-visit reminder for a browser still holding an unclaimed shared trip.
  *
- * Before 2026-09-02 nothing in the product ever told a signed-out sharer that
- * a trip was waiting: `hasPendingClaim` had no callers. Of 56 signed-out
- * shares in 30 days, 23 were never even opened by anyone and none were
- * claimed. This sits above the step-1 masthead, mirrors ClaimedTripBanner,
- * and offers the same sign-up path the Save button uses (which converts 46%
- * of signed-out planners who hit it).
+ * Nothing else tells a signed-out sharer that their trip is waiting. This
+ * sits above the step-1 masthead, mirrors ClaimedTripBanner, and offers the
+ * same sign-up path as the Save button.
  */
 export default function PendingClaimBanner({ pending, onKeep, onOpenLink, onDismiss }: PendingClaimBannerProps) {
   const t = useTranslations("trips");

@@ -3,12 +3,11 @@ import { test, expect } from "@playwright/test";
 /**
  * Static pages: /contact, /privacy, /terms.
  *
- * Locks the fixes from 2026-05-25:
- *  - /contact was rendered without Navbar/Footer (commit fe6aca8)
- *  - /privacy + /terms had "X - MonkeyTravel" in <title>, combined with
- *    the root template "%s | MonkeyTravel" → "X - MonkeyTravel |
- *    MonkeyTravel" double-brand. Also missing locale canonical/hreflang
- *    (commit 2524d10).
+ * Checks that:
+ *  - /contact renders with the Navbar and Footer;
+ *  - /privacy and /terms titles leave the brand to the root template
+ *    "%s | MonkeyTravel", so it never shows twice ("X - MonkeyTravel |
+ *    MonkeyTravel"), and they carry locale canonical/hreflang links.
  */
 
 test.describe("static pages — chrome + metadata @prod", () => {
