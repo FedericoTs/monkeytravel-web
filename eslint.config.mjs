@@ -6,8 +6,14 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    // Style and React Compiler advice (the compiler is not enabled). CI fails
-    // on errors only, so these stay visible without blocking a merge.
+    // A disable comment that no longer disables anything fails: delete it
+    // (eslint --fix does).
+    linterOptions: { reportUnusedDisableDirectives: "error" },
+  },
+  {
+    // Style and React Compiler advice (the compiler is not enabled): warnings,
+    // so they stay visible without blocking a merge, and CI only stops their
+    // count from growing.
     files: ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"],
     rules: {
       "@next/next/no-html-link-for-pages": "warn",
