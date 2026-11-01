@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isTripIndexable, itineraryFingerprint, publicTripAlternates } from "@/lib/seo/public-trip";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * /sitemap-trips.xml — one URL per published community trip: the locale its
@@ -45,7 +46,7 @@ export async function GET() {
 
   try {
     const supabase = createAdminClient();
-    const { data } = await supabase
+    const { data } = logReadError("sitemap-trips", await supabase
       .from("trips")
       // Published predicate: visibility='public' AND coalesce(is_hidden,false)
       // = false AND deleted_at IS NULL AND public_slug IS NOT NULL.
@@ -55,7 +56,7 @@ export async function GET() {
       .not("public_slug", "is", null)
       .not("is_hidden", "is", true)
       .order("shared_at", { ascending: false, nullsFirst: false })
-      .limit(MAX_TRIPS);
+      .limit(MAX_TRIPS));
     rows = data ?? [];
   } catch {
     // Never 500 the sitemap — return an empty (but valid) urlset so crawlers

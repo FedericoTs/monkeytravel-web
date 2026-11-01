@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isCreatorIndexable } from "@/lib/seo/creator-indexable";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * /sitemap-creators.xml — every public creator profile, across all 4 locales.
@@ -41,14 +42,14 @@ export async function GET() {
 
     // 1. Distinct user_ids that own at least one published trip, with the
     //    freshest shared_at per owner as the lastmod signal.
-    const { data: tripRows } = await supabase
+    const { data: tripRows } = logReadError("sitemap-creators: trips", await supabase
       .from("trips")
       .select("user_id, shared_at, updated_at")
       .eq("visibility", "public")
       .is("deleted_at", null)
       .not("public_slug", "is", null)
       .not("is_hidden", "is", true)
-      .order("shared_at", { ascending: false, nullsFirst: false });
+      .order("shared_at", { ascending: false, nullsFirst: false }));
 
     const latestByUser = new Map<string, string>();
     const tripCountByUser = new Map<string, number>();
@@ -65,10 +66,10 @@ export async function GET() {
     if (userIds.length > 0) {
       // 2. Resolve those users — public-safe allowlist only — and drop
       //    private profiles + username-less rows.
-      const { data: userRows } = await supabase
+      const { data: userRows } = logReadError("sitemap-creators: users", await supabase
         .from("users")
         .select("id, username, privacy_settings, bio")
-        .in("id", userIds);
+        .in("id", userIds));
 
       for (const u of userRows ?? []) {
         const username = u.username as string | null;

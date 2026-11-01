@@ -352,7 +352,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
     // Fresh join — fetch the trip title and the new collaborator row
     // so the response keeps the same shape callers already consume.
-    const [{ data: trip }, { data: newCollab }] = await Promise.all([
+    const [tripRead, collaboratorRead] = await Promise.all([
       supabaseAdmin
         .from("trips")
         .select("id, title")
@@ -364,8 +364,10 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
             .select("*")
             .eq("id", result.collaborator_id)
             .single()
-        : Promise.resolve({ data: null }),
+        : Promise.resolve({ data: null, error: null }),
     ]);
+    const { data: trip } = logReadError("invite: trip title", tripRead);
+    const { data: newCollab } = logReadError("invite: new collaborator", collaboratorRead);
 
     // Crew Loop PostHog: server-side accept event. Fire-and-forget — a
     // telemetry failure must never fail the join.

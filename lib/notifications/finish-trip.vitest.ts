@@ -39,6 +39,8 @@ interface FakeDb {
   countError?: string;
   paths?: string[];
   destinations?: (string | null)[];
+  /** Refuses the page view and wizard step reads. */
+  historyError?: string;
 }
 
 /** A Supabase stand-in: answers the reads finish-trip makes and records every filter. */
@@ -46,6 +48,9 @@ function fakeSvc(db: FakeDb) {
   const filters: Array<[string, string, unknown]> = [];
   const from = (table: string) => {
     const result = () => {
+      if (db.historyError && (table === "page_views" || table === "wizard_step_events")) {
+        return { data: null, error: { message: db.historyError } };
+      }
       if (table === "page_views") return { data: (db.paths ?? []).map((path) => ({ path })), error: null };
       if (table === "wizard_step_events") {
         return { data: (db.destinations ?? []).map((destination) => ({ destination })), error: null };
@@ -201,6 +206,17 @@ describe("sendFinishTripEmail: what it sends", () => {
     expect(call.template.props.ctaUrl).toBe("https://monkeytravel.app/trips/new?slot=finish_trip_1d");
     const html = await render(FinishTripEmail(call.template.props));
     expect(call.verify({ html, text: "", subject: call.template.props.heading })).toEqual({ ok: true });
+  });
+
+  it("sends English with nothing prefilled when the account's history can't be read, and logs it", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await sendFinishTripEmail(fakeSvc({ historyError: "timeout" }).svc, ROW, translatorFor)).toEqual({ status: "sent", reason: "sent" });
+    const call = dispatchEmail.mock.calls[0][0];
+    expect(call.locale).toBe("en");
+    expect(call.template.props.ctaUrl).toBe("https://monkeytravel.app/trips/new?slot=finish_trip_1d");
+    expect(logged).toHaveBeenCalledWith("[finish trip: page views] read failed:", "timeout");
+    expect(logged).toHaveBeenCalledWith("[finish trip: wizard steps] read failed:", "timeout");
+    logged.mockRestore();
   });
 
   it("records an opt-out or a bounce as suppressed and a send error as failed", async () => {

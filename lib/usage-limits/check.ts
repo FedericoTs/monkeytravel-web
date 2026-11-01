@@ -13,7 +13,6 @@ import {
   type UsageLimitType,
   type UsagePeriodType,
   type UsageCheckResult,
-  type UserUsageStats,
   type TierLimits,
   LIMIT_TYPE_TO_COLUMN,
   LIMIT_TYPE_TO_PERIOD,
@@ -60,8 +59,7 @@ function getReferralTierBonus(
  * Get user's referral tier from database
  *
  * Wrapped in React `cache()` so that multiple `checkUsageLimit` calls
- * within the same request (e.g. the 6 calls made by `getUserUsageStats`
- * for the dashboard) share a single Supabase round-trip per user.
+ * within the same request share a single Supabase round-trip per user.
  */
 const getUserReferralTier = cache(
   async (userId: string): Promise<ReferralTierLevel> => {
@@ -307,9 +305,8 @@ export async function checkUsageLimit(
     // `getCurrentUsage` query is fired conditionally as a second RTT only
     // when the user actually has a finite limit to check against.
     //
-    // Each of these fetchers is also wrapped in React `cache()` so that
-    // `getUserUsageStats` — which invokes `checkUsageLimit` 6 times for
-    // the dashboard — pays only one round-trip per fetcher per request
+    // Each of these fetchers is also wrapped in React `cache()`, so several
+    // `checkUsageLimit` calls in one request pay one round-trip per fetcher
     // instead of one per (call × fetcher).
     const [earlyAccessLimits, tier, referralTier] = await Promise.all([
       getEarlyAccessLimits(userId),
@@ -501,16 +498,7 @@ export async function incrementUsage(
 
     if (error) {
       console.error("[UsageLimits] Error incrementing usage:", error);
-      // Fallback: try direct update
-      const { data: fallbackData } = await supabase
-        .from("user_usage")
-        .select(columnName)
-        .eq("user_id", userId)
-        .eq("period_type", periodType)
-        .eq("period_key", periodKey)
-        .single();
-
-      return (((fallbackData as Record<string, unknown> | null)?.[columnName] as number) || 0) + amount;
+      return 0;
     }
 
     return data as number;
@@ -518,59 +506,6 @@ export async function incrementUsage(
     console.error("[UsageLimits] Error in incrementUsage:", error);
     return 0;
   }
-}
-
-/**
- * Get full usage statistics for a user
- * Used for the usage dashboard
- */
-export async function getUserUsageStats(
-  userId: string,
-  userEmail?: string | null
-): Promise<UserUsageStats> {
-  const tier = await getUserTier(userId, userEmail);
-  const supabase = await createClient();
-
-  // Get subscription expiry
-  const { data: userData } = await supabase
-    .from("users")
-    .select("subscription_expires_at")
-    .eq("id", userId)
-    .single();
-
-  // Check all limit types
-  const limitTypes: UsageLimitType[] = [
-    "aiGenerations",
-    "aiRegenerations",
-    "aiAssistantMessages",
-    "placesAutocomplete",
-    "placesSearch",
-    "placesDetails",
-  ];
-
-  const results = await Promise.all(
-    limitTypes.map((type) => checkUsageLimit(userId, type, userEmail))
-  );
-
-  return {
-    userId,
-    tier,
-    subscriptionExpiresAt: userData?.subscription_expires_at || null,
-    aiGenerations: results[0],
-    aiRegenerations: results[1],
-    aiAssistantMessages: results[2],
-    placesAutocomplete: results[3],
-    placesSearch: results[4],
-    placesDetails: results[5],
-  };
-}
-
-/**
- * Check if user is on free tier (for upgrade prompts)
- */
-export async function isFreeTier(userId: string, userEmail?: string | null): Promise<boolean> {
-  const tier = await getUserTier(userId, userEmail);
-  return tier === "free";
 }
 
 /**

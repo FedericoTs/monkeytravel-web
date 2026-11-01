@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { API_COSTS } from "@/lib/api-gateway/config";
 import { circuitBreakerManager } from "@/lib/api-gateway";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * Enhanced Cost Analytics API
@@ -255,17 +256,17 @@ export async function GET() {
         .select("id, email"),
     ]);
 
-    const allLogs = allLogsResult.data || [];
-    const allCosts = allCostsResult.data || [];
-    const todayLogs = todayLogsResult.data || [];
-    const last7DaysLogs = last7DaysLogsResult.data || [];
-    const last30DaysLogs = last30DaysLogsResult.data || [];
-    const recentLogs = recentLogsResult.data || [];
-    const geocodeCache = geocodeCacheResult.data || [];
-    const distanceCache = distanceCacheResult.data || [];
-    const placesCache = placesCacheResult.data || [];
-    const activitiesCache = activitiesCacheResult.data || [];
-    const users = userStatsResult.data || [];
+    const allLogs = logReadError("admin costs: 30-day logs", allLogsResult).data || [];
+    const allCosts = logReadError("admin costs: all-time costs", allCostsResult).data || [];
+    const todayLogs = logReadError("admin costs: today's logs", todayLogsResult).data || [];
+    const last7DaysLogs = logReadError("admin costs: 7-day costs", last7DaysLogsResult).data || [];
+    const last30DaysLogs = logReadError("admin costs: 30-day costs", last30DaysLogsResult).data || [];
+    const recentLogs = logReadError("admin costs: recent logs", recentLogsResult).data || [];
+    const geocodeCache = logReadError("admin costs: geocode cache", geocodeCacheResult).data || [];
+    const distanceCache = logReadError("admin costs: distance cache", distanceCacheResult).data || [];
+    const placesCache = logReadError("admin costs: places cache", placesCacheResult).data || [];
+    const activitiesCache = logReadError("admin costs: activities cache", activitiesCacheResult).data || [];
+    const users = logReadError("admin costs: users", userStatsResult).data || [];
 
     // Create user lookup map
     const userMap = new Map(users.map(u => [u.id, u.email]));

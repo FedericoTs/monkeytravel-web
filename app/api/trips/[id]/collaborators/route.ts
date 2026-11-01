@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
+import { isNoRow } from "@/lib/supabase/no-row";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 import type { TripRouteContext } from "@/lib/api/route-context";
@@ -44,8 +45,13 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
         .order("joined_at", { ascending: true }),
     ]);
 
-    const trip = tripResult.data;
+    const { data: trip, error: tripError } = tripResult;
     const { data: collaborators, error } = collaboratorsResult;
+
+    if (tripError && !isNoRow(tripError)) {
+      console.error("[Collaborators] Error fetching trip:", tripError);
+      return errors.internal("Failed to fetch collaborators", "Collaborators");
+    }
 
     if (!trip) {
       return errors.notFound("Trip not found");

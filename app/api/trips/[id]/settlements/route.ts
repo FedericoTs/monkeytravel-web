@@ -101,8 +101,9 @@ export async function GET(_req: NextRequest, context: TripRouteContext) {
         .maybeSingle(),
     ]);
 
-    if (tripProbe.error) {
-      console.error("[settlements GET] trip probe failed", tripProbe.error);
+    const probeError = tripProbe.error ?? collabProbe.error;
+    if (probeError) {
+      console.error("[settlements GET] membership probe failed", probeError);
       return errors.internal("Failed to load settlements", "settlements");
     }
     if (!tripProbe.data) {

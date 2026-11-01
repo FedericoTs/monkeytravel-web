@@ -74,62 +74,6 @@ export async function addBananas(
 }
 
 /**
- * Spend bananas from user's account
- * Uses FIFO (oldest expire first)
- */
-export async function spendBananas(
-  supabase: SupabaseClient,
-  userId: string,
-  amount: number,
-  type: BananaTransactionType = 'spend',
-  referenceId?: string,
-  description?: string
-): Promise<AddBananasResult> {
-  if (amount <= 0) {
-    return {
-      success: false,
-      newBalance: 0,
-      transactionId: null,
-      error: 'Amount must be positive',
-    };
-  }
-
-  const { data, error } = await supabase.rpc('spend_bananas', {
-    p_user_id: userId,
-    p_amount: amount,
-    p_type: type,
-    p_reference_id: referenceId || null,
-    p_description: description || null,
-  });
-
-  if (error) {
-    console.error('Error spending bananas:', error);
-    return {
-      success: false,
-      newBalance: 0,
-      transactionId: null,
-      error: error.message,
-    };
-  }
-
-  const result = data?.[0];
-  if (!result?.success) {
-    return {
-      success: false,
-      newBalance: result?.new_balance ?? 0,
-      transactionId: null,
-      error: 'Insufficient balance',
-    };
-  }
-
-  return {
-    success: true,
-    newBalance: result.new_balance,
-    transactionId: result.transaction_id,
-  };
-}
-
-/**
  * Get user's transaction history
  */
 export async function getTransactionHistory(
@@ -210,56 +154,6 @@ export async function addCollaborationBananas(
     'collaboration',
     joinId,
     `Friend joined your trip${userTier > 0 ? ` (Tier ${userTier} bonus)` : ''}`
-  );
-}
-
-/**
- * Add tier unlock bonus
- */
-export async function addTierBonus(
-  supabase: SupabaseClient,
-  userId: string,
-  tier: ReferralTierLevel
-): Promise<AddBananasResult> {
-  const { TIER_UNLOCK_BONUSES, TIER_NAMES } = await import('./config');
-  const amount = TIER_UNLOCK_BONUSES[tier];
-
-  if (amount <= 0) {
-    return {
-      success: false,
-      newBalance: 0,
-      transactionId: null,
-      error: 'No bonus for this tier',
-    };
-  }
-
-  return addBananas(
-    supabase,
-    userId,
-    amount,
-    'tier_bonus',
-    undefined,
-    `${TIER_NAMES[tier]} tier unlock bonus!`
-  );
-}
-
-/**
- * Clawback bananas due to fraud
- */
-export async function clawbackBananas(
-  supabase: SupabaseClient,
-  userId: string,
-  amount: number,
-  originalTransactionId: string,
-  reason: string
-): Promise<AddBananasResult> {
-  return spendBananas(
-    supabase,
-    userId,
-    amount,
-    'clawback',
-    originalTransactionId,
-    `Clawback: ${reason}`
   );
 }
 
