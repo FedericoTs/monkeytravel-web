@@ -35,6 +35,7 @@
 
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 interface ContentApiResponse {
   title?: string;
@@ -191,14 +192,14 @@ async function readDbCache(
   if (!supabase) return null;
 
   try {
-    const { data, error } = await supabase
+    const { data } = logReadError("advisory cache", await supabase
       .from("fcdo_advisory_cache")
       .select("summary, url, updated_at, expires_at")
       .eq("country_code", cacheKey)
       .gt("expires_at", new Date().toISOString())
-      .maybeSingle();
+      .maybeSingle());
 
-    if (error || !data) return null;
+    if (!data) return null;
 
     // Cached negative — row exists but no usable advisory.
     if (!data.summary || !data.url) {

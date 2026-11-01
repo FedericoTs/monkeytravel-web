@@ -26,6 +26,7 @@
 
 import crypto from "crypto";
 import { cacheAdminDb } from "@/lib/supabase/cache-admin";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 // ============================================================================
 // Types
@@ -291,15 +292,15 @@ export async function getFromDatabase<T>(
     const db = cacheAdminDb();
     if (!db) return null;
 
-    const { data, error } = await db
+    const { data } = logReadError("database cache", await db
       .from("google_places_cache")
       .select("id, data, hit_count") // Optimized: only fetch needed fields
       .eq("place_id", cacheKey)
       .eq("cache_type", cacheType)
       .gt("expires_at", new Date().toISOString())
-      .single();
+      .single());
 
-    if (error || !data) return null;
+    if (!data) return null;
 
     // Update hit count asynchronously (fire and forget)
     db

@@ -18,6 +18,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { withPhotoIndex } from "@/lib/places/heal-dedupe";
 import { destinationPhotos } from "@/lib/images/destination-photos";
 import { readJsonBody } from "@/lib/api/json-body";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -106,14 +107,14 @@ async function getFromCache(cacheKey: string): Promise<unknown | null> {
     const db = cacheAdminDb();
     if (!db) return null;
 
-    const { data, error } = await db
+    const { data } = logReadError("places cache", await db
       .from("google_places_cache")
       .select("*")
       .eq("place_id", cacheKey)
       .gt("expires_at", new Date().toISOString())
-      .single();
+      .single());
 
-    if (error || !data) return null;
+    if (!data) return null;
 
     // Update hit count asynchronously
     db

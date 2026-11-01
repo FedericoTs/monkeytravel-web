@@ -1,5 +1,5 @@
 /** @vitest-environment node */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { findRecentTwin } from "./recent-twin";
 
@@ -55,5 +55,13 @@ describe("findRecentTwin", () => {
     const untouched = fakeClient([{ id: "tokyo", title: "Tokyo Trip", trip_meta: { destination: "Tokyo" } }]);
     expect(await findRecentTwin(untouched.client, "user-1", { ...TOKYO, startDate: "" })).toBeNull();
     expect(untouched.calls).toEqual([]);
+  });
+
+  it("logs a read the database refused, and still finds nothing", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    const failing = fakeClient(null, { code: "57014", message: "timeout" });
+    expect(await findRecentTwin(failing.client, "user-1", TOKYO)).toBeNull();
+    expect(logged).toHaveBeenCalledWith("[recent twin] read failed:", "timeout");
+    logged.mockRestore();
   });
 });

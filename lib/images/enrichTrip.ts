@@ -4,6 +4,7 @@ import { fetchActivityImages, SAVE_TIME_PAID_LOOKUPS } from "@/lib/images/activi
 import { createAdminClient } from "@/lib/supabase/admin";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { casUpdateItinerary } from "@/lib/trips/itinerary-cas";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * Shared photo-enrichment core.
@@ -207,13 +208,13 @@ export async function enrichTripByIdAdmin(
 
   try {
     const admin = createAdminClient();
-    const { data: trip, error } = await admin
+    const { data: trip } = logReadError("enrich trip", await admin
       .from("trips")
       .select("id, user_id, title, itinerary, trip_meta, itinerary_version")
       .eq("id", tripId)
       .is("deleted_at", null)
-      .single();
-    if (error || !trip) return null;
+      .single());
+    if (!trip) return null;
 
     const outcome = await enrichTripRecord(admin, trip, {
       maxPaidLookups,
