@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useId } from "react";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
@@ -10,6 +10,7 @@ import DeleteAccountModal from "@/components/profile/DeleteAccountModal";
 import { BetaCodeInput } from "@/components/beta";
 import { ReferralDashboard } from "@/components/bananas";
 import { createClient } from "@/lib/supabase/client";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 
 // Types
 interface UserProfile {
@@ -244,6 +245,11 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const { panelRef: signOutPanelRef } = useModalBehavior({
+    isOpen: showSignOutConfirm,
+    onClose: () => setShowSignOutConfirm(false),
+  });
+  const signOutTitleId = useId();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -1077,14 +1083,21 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowSignOutConfirm(false)}
           />
-          <div className="relative bg-white rounded-2xl sm:rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
+          <div
+            ref={signOutPanelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={signOutTitleId}
+            tabIndex={-1}
+            className="relative bg-white rounded-2xl sm:rounded-3xl w-full max-w-sm p-6 shadow-2xl outline-none animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300"
+          >
             <div className="text-center">
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
                 <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-[var(--foreground)]">{t("profile.signOutModal.title")}</h3>
+              <h3 id={signOutTitleId} className="text-xl font-bold text-[var(--foreground)]">{t("profile.signOutModal.title")}</h3>
               <p className="text-slate-500 mt-2">
                 {t("profile.signOutModal.message")}
               </p>
