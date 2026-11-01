@@ -1,10 +1,7 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useEffectEvent, useRef } from "react";
 
-/**
- * Options for the useModalBehavior hook
- */
 export interface UseModalBehaviorOptions {
   /** Whether the modal is currently open */
   isOpen: boolean;
@@ -14,35 +11,34 @@ export interface UseModalBehaviorOptions {
   closeOnEscape?: boolean;
   /** Whether to lock body scroll when modal is open (default: true) */
   lockScroll?: boolean;
+  /**
+   * Where focus goes on open: the panel itself, so a screen reader announces
+   * the dialog first (default), or its first control.
+   */
+  initialFocus?: "panel" | "first";
 }
 
+const FOCUSABLE =
+  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+// Open dialogs, innermost last: only the innermost one answers the keyboard.
+const openDialogs: symbol[] = [];
+// Dialogs holding the page's scroll lock: it lifts when the last one closes.
+let scrollLocks = 0;
+let overflowBeforeLock = "";
+
 /**
- * useModalBehavior Hook
- *
- * Consolidates common modal behavior patterns:
- * - Escape key handling
- * - Body scroll locking
- *
- * Used by: BottomSheet, BaseModal, ActivityDetailSheet, ImageCarousel,
- *          ShareModal, ReferralModal, StartOverModal
+ * What every dialog does while open: Escape closes it, Tab stays inside it,
+ * the page behind it doesn't scroll, and focus moves in on open and back to
+ * where it was on close. The focus parts need `panelRef` on the dialog's
+ * panel (with tabIndex={-1}); without it, Escape and the scroll lock still
+ * apply.
  *
  * @example
  * ```tsx
- * function MyModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
- *   useModalBehavior({ isOpen, onClose });
- *
- *   if (!isOpen) return null;
- *   return <div>Modal content</div>;
- * }
- * ```
- *
- * @example With custom options
- * ```tsx
- * // Only escape key, no scroll lock
- * useModalBehavior({ isOpen, onClose, lockScroll: false });
- *
- * // Only scroll lock, no escape handling
- * useModalBehavior({ isOpen, onClose, closeOnEscape: false });
+ * const { panelRef } = useModalBehavior({ isOpen, onClose });
+ * if (!isOpen) return null;
+ * return <div ref={panelRef} role="dialog" aria-modal="true" tabIndex={-1}>…</div>;
  * ```
  */
 export function useModalBehavior({
@@ -50,41 +46,65 @@ export function useModalBehavior({
   onClose,
   closeOnEscape = true,
   lockScroll = true,
-}: UseModalBehaviorOptions): void {
-  // Memoize the escape key handler
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape" && closeOnEscape) {
-        onClose();
-      }
-    },
-    [closeOnEscape, onClose]
-  );
+  initialFocus = "panel",
+}: UseModalBehaviorOptions) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const close = useEffectEvent(() => onClose());
 
-  // Handle escape key and scroll lock
   useEffect(() => {
     if (!isOpen) return;
+    const dialog = Symbol("dialog");
+    openDialogs.push(dialog);
 
-    // Add escape key listener
-    if (closeOnEscape) {
-      document.addEventListener("keydown", handleKeyDown);
-    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (openDialogs[openDialogs.length - 1] !== dialog) return;
+      if (e.key === "Escape" && closeOnEscape) close();
+      else if (e.key === "Tab" && panelRef.current) keepTabInside(e, panelRef.current);
+    };
+    document.addEventListener("keydown", onKeyDown);
 
-    // Lock body scroll
-    if (lockScroll) {
+    if (lockScroll && scrollLocks++ === 0) {
+      overflowBeforeLock = document.body.style.overflow;
       document.body.style.overflow = "hidden";
     }
 
-    // Cleanup
+    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    // Next frame: a portal or an animation may still be mounting the panel.
+    const frame = requestAnimationFrame(() => {
+      const panel = panelRef.current;
+      if (!panel) return;
+      const first = initialFocus === "first" ? panel.querySelector<HTMLElement>(FOCUSABLE) : null;
+      (first ?? panel).focus();
+    });
+
     return () => {
-      if (closeOnEscape) {
-        document.removeEventListener("keydown", handleKeyDown);
-      }
-      if (lockScroll) {
-        document.body.style.overflow = "";
-      }
+      cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", onKeyDown);
+      openDialogs.splice(openDialogs.indexOf(dialog), 1);
+      if (lockScroll && --scrollLocks === 0) document.body.style.overflow = overflowBeforeLock;
+      // Back to the control that opened it, if that is still on the page.
+      if (previous && document.contains(previous)) previous.focus();
     };
-  }, [isOpen, closeOnEscape, lockScroll, handleKeyDown]);
+  }, [isOpen, closeOnEscape, lockScroll, initialFocus]);
+
+  return { panelRef };
+}
+
+function keepTabInside(e: KeyboardEvent, panel: HTMLElement) {
+  const controls = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE));
+  if (controls.length === 0) {
+    e.preventDefault();
+    return;
+  }
+  // -1: focus is on the panel itself, or somehow outside it.
+  const at = controls.indexOf(document.activeElement as HTMLElement);
+  if (e.shiftKey && at <= 0) {
+    e.preventDefault();
+    controls[controls.length - 1].focus();
+  } else if (!e.shiftKey && (at === -1 || at === controls.length - 1)) {
+    e.preventDefault();
+    controls[0].focus();
+  }
 }
 
 export default useModalBehavior;

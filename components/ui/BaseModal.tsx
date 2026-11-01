@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useCallback, useRef, useState, type ReactNode } from "react";
+import { useEffect, useCallback, useId, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 
 export interface BaseModalProps {
   /** Whether the modal is visible */
@@ -91,107 +92,15 @@ export default function BaseModal({
 }: BaseModalProps) {
   const t = useTranslations("common.buttons");
   const [mounted, setMounted] = useState(false);
-  const modalRef = useRef<HTMLDivElement>(null);
-  // Element that had focus before the modal opened, so we can restore it on close.
-  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+  const titleId = useId();
+  // Escape, scroll lock, focus in and back out, Tab kept inside. Focus goes
+  // to the panel itself, so screen readers announce the dialog's name first.
+  const { panelRef } = useModalBehavior({ isOpen, onClose, closeOnEscape, lockScroll });
 
   // Client-side only mounting for portal
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Handle escape key
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape" && closeOnEscape) {
-        onClose();
-      }
-    },
-    [closeOnEscape, onClose]
-  );
-
-  // Handle escape key and scroll lock
-  useEffect(() => {
-    if (!isOpen) return;
-
-    if (closeOnEscape) {
-      document.addEventListener("keydown", handleKeyDown);
-    }
-
-    if (lockScroll) {
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      if (lockScroll) {
-        document.body.style.overflow = "";
-      }
-    };
-  }, [isOpen, closeOnEscape, lockScroll, handleKeyDown]);
-
-  // Focus trap — keep Tab cycling within the modal
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleTab = (e: KeyboardEvent) => {
-      if (e.key !== "Tab" || !modalRef.current) return;
-
-      const focusable = modalRef.current.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
-      );
-      if (focusable.length === 0) return;
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleTab);
-    return () => document.removeEventListener("keydown", handleTab);
-  }, [isOpen]);
-
-  // Move focus into the dialog on open, restore it on close (WCAG 2.4.3).
-  // Without this, focus stays on the background — critical for auto-opened
-  // modals (e.g. the feedback survey) where the user never clicked a trigger,
-  // so the focus trap only engages after a manual Tab.
-  useEffect(() => {
-    if (!isOpen) return;
-    if (typeof document === "undefined") return; // SSR guard
-
-    // Remember what was focused before opening so we can restore it later.
-    const activeEl = document.activeElement;
-    previouslyFocusedRef.current =
-      activeEl instanceof HTMLElement ? activeEl : null;
-
-    // Focus the panel container itself (tabIndex={-1} on modalRef) rather than
-    // the first field, so screen readers announce the dialog name first.
-    // rAF ensures the panel is mounted/painted before we focus it.
-    const raf = requestAnimationFrame(() => {
-      modalRef.current?.focus();
-    });
-
-    return () => {
-      cancelAnimationFrame(raf);
-      // Restore focus to the trigger element if it's still in the document.
-      const toRestore = previouslyFocusedRef.current;
-      previouslyFocusedRef.current = null;
-      if (
-        toRestore &&
-        typeof toRestore.focus === "function" &&
-        document.contains(toRestore)
-      ) {
-        toRestore.focus();
-      }
-    };
-  }, [isOpen]);
 
   // Handle backdrop click
   const handleBackdropClick = useCallback(() => {
@@ -222,7 +131,7 @@ export default function BaseModal({
       style={zIndexValue ? { zIndex: zIndexValue } : undefined}
       role="dialog"
       aria-modal="true"
-      aria-labelledby={title ? "modal-title" : undefined}
+      aria-labelledby={title ? titleId : undefined}
       aria-label={!title && ariaLabel ? ariaLabel : undefined}
     >
       {/* Backdrop */}
@@ -253,7 +162,7 @@ export default function BaseModal({
       >
         {/* Modal panel */}
         <div
-          ref={modalRef}
+          ref={panelRef}
           tabIndex={-1}
           className={`
             relative bg-white rounded-2xl shadow-xl w-full ${maxWidth}
@@ -279,7 +188,7 @@ export default function BaseModal({
                 <div>
                   {title && (
                     <h2
-                      id="modal-title"
+                      id={titleId}
                       className="text-xl font-bold text-slate-900 pr-8"
                     >
                       {title}
