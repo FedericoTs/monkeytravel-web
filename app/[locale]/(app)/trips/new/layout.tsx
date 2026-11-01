@@ -9,9 +9,8 @@ import { getTranslations } from "next-intl/server";
  * stays server-rendered, and provides per-locale metadata that wins
  * over the root layout's default ("Free AI Trip Planner | …").
  *
- * Before this file existed, every locale tab read "Free AI Trip Planner —
- * Day-by-Day Itineraries in Minutes" — caught in audit 2026-05-29
- * because the /it/ wizard's body was already Italian.
+ * Without it every locale's tab would read the English default, beside a
+ * wizard body in the page's language.
  *
  * robots: noindex because the wizard is a private interactive surface,
  * not a marketing landing page. The locale-aware version of THAT story

@@ -369,8 +369,7 @@ function SkeletonCard() {
 }
 
 export default function TemplatesPageClient() {
-  // i18n: header H1 + chrome were hardcoded English, leaking onto
-  // /it/templates + /es/templates. 2026-05-31 launch-night fix.
+  // Header H1 and chrome come from the catalog, in the page's language.
   const t = useTranslations("common.curatedEscapes");
   const tNav = useTranslations("common.navigation");
   const locale = useLocale();

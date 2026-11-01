@@ -13,9 +13,9 @@ import itCommon from "@/messages/it/common.json";
  * Trip dates are calendar days ("2026-11-24"), which new Date() reads as UTC
  * midnight. The page formatted them in the viewer's time zone, so anyone west
  * of UTC was shown the day before (a Nov 24-25 trip read "Nov 23, 2026 - Nov
- * 24, 2026"), and the server (UTC) and the browser rendered different text:
- * React #418 on production, 2026-09-25. It now formats in UTC like every
- * other trip date (lib/datetime formatDateRange).
+ * 24, 2026"), and the server (UTC) and the browser rendered different text
+ * (React #418). It formats in UTC like every other trip date (lib/datetime
+ * formatDateRange).
  */
 
 vi.mock("@/lib/i18n/routing", () => ({

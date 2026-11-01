@@ -9,9 +9,9 @@ import { EMAIL_PREFERENCES } from "@/lib/email/preferences";
 
 /**
  * The notification settings and unsubscribe pages are where every email's
- * "Manage preferences" link lands, in the reader's language. Until
- * 2026-09-25 both were English-only. Every locale carries the same keys, with
- * the same placeholders and link tags, and nothing empty.
+ * "Manage preferences" link lands, in the reader's language. Every locale
+ * carries the same keys, with the same placeholders and link tags, and nothing
+ * empty.
  */
 
 type Tree = { [key: string]: string | Tree };

@@ -3,10 +3,9 @@
 /**
  * Root locale error boundary.
  *
- * Before this file existed (2026-05-28), any uncaught render error on any
- * /[locale]/* route fell through to Next's default global-error screen —
- * no branding, no recovery CTA, no Sentry tag. Only `/[locale]/shared/[token]`
- * had its own error.tsx.
+ * Without it an uncaught render error on a /[locale]/* route falls through to
+ * Next's default global-error screen: no branding, no recovery CTA, no Sentry
+ * tag. `/[locale]/shared/[token]` has its own error.tsx.
  *
  * This boundary catches everything else (homepage, /trips, /explore,
  * /profile, blog, tools, destinations, etc.) and:

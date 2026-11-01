@@ -3,10 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 /**
- * Guards the invariant that made password reset silently fail for every
- * user who ever tried it (13 users, 24 recovery requests, ZERO successful
- * password changes — auth.audit_log_entries had no `user_modified` event
- * after 2025-10-14).
+ * Guards the invariant whose break makes password reset fail silently for
+ * everyone: the recovery link works, and no password ever changes.
  *
  * The mechanism: `resetPasswordForEmail({ redirectTo })` produces a link to
  * Supabase's `/auth/v1/verify`, which consumes the token server-side and

@@ -7,10 +7,7 @@ import { buildAlternates } from "@/lib/seo/canonical";
 /**
  * Locale-aware metadata for /templates ("Curated Escapes").
  *
- * Previously this was a static `export const metadata = { title: "Curated
- * Escapes" }` which leaked English copy onto /it and /es. Live-caught
- * 2026-05-31: `<title>` on /it/templates rendered "Curated Escapes |
- * MonkeyTravel" while every other surface on the locale was Italian.
+ * Generated per locale, so /it and /es don't get an English `<title>`.
  *
  * Keys live under `common.curatedEscapes.meta.{title,description}` —
  * sibling of the existing `title` + `subtitle` that already had IT/ES

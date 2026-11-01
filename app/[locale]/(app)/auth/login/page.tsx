@@ -119,10 +119,10 @@ function LoginForm() {
         }
 
         // New users need to see welcome page first (to enter beta code / join waitlist).
-        // /welcome is retired (it redirects to the wizard) but 93% of accounts
-        // still have welcome_completed = false, so until 2026-09-25 signing in
-        // from a trip, an invite or a shared trip dropped nearly everyone in
-        // the wizard and lost where they were going.
+        // /welcome is retired (it redirects to the wizard) and most accounts
+        // still have welcome_completed = false, so someone signing in from a
+        // trip, an invite or a shared trip skips it and keeps where they were
+        // going.
         if (profile && !profile.welcome_completed && !hasDestination) {
           router.push("/welcome");
           router.refresh();
@@ -147,10 +147,8 @@ function LoginForm() {
    * Send a fresh confirmation link to someone who never confirmed.
    *
    * WHY THIS LIVES ON THE LOGIN PAGE
-   * Measured 2026-09-01: 36 of 181 email signups (19.9%) have
-   * email_confirmed_at IS NULL. Every one had a confirmation email SENT, none
-   * ever signed in, and all hold zero trips — hard-locked out of accounts they
-   * created. Still accruing: 9 in the last 30 days.
+   * Some email signups never confirm: the confirmation email was sent, they
+   * never signed in, and they are locked out of the account they created.
    *
    * They were told "check your inbox for the confirmation email", which is a
    * dead end when that message is weeks old and the link has expired. The only

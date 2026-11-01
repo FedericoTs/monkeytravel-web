@@ -194,8 +194,7 @@ const LANGUAGES = [
 export default function ProfileClient({ profile: initialProfile, stats, betaAccess: initialBetaAccess, canUsePassword }: ProfileClientProps) {
   const router = useRouter();
   const t = useTranslations("common");
-  // i18n: drive locale-aware date formatting (e.g. "Membro dal agosto 2025"
-  // instead of "Membro dal August 2025"). Caught in audit 2026-05-29.
+  // Locale-aware date formatting ("Membro dal agosto 2025", not "August").
   const locale = useLocale();
   const { addToast } = useToast();
   const [profile, setProfile] = useState(initialProfile);
@@ -411,8 +410,8 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
 
   // Format member since date — locale-aware so /it/ shows "agosto 2025"
   // instead of "August 2025". The translation key uses {date} interpolation
-  // and just inserts the formatted string verbatim, so locale-formatting
-  // here is the cleanest fix point. Caught 2026-05-29 audit.
+  // and just inserts the formatted string verbatim, so the date is
+  // formatted for the locale here.
   const memberSince = new Date(profile.created_at).toLocaleDateString(locale, {
     month: "long",
     year: "numeric",

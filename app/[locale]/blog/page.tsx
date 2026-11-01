@@ -199,11 +199,8 @@ export default async function BlogIndexPage({ params }: PageProps) {
           // that's the case the frontmatter (which is already authored in
           // the active locale, see content/blog/{locale}/*.md) is the
           // correct fallback. Matches BlogGrid / BlogLane / BlogTipsSection.
-          //
-          // 2026-05-30: caught via live UI verify — the /it featured card
-          // was rendering the EN description because the per-post key was
-          // missing in messages/it/blog.json and t() was falling back to
-          // the EN default locale instead of the IT frontmatter.
+          // (t() would otherwise fall back to the English default, not to
+          // the post's own frontmatter, when a per-post key is missing.)
           const titleKey = `posts.${featured.slug}.title`;
           const descKey = `posts.${featured.slug}.description`;
           const catKey = `categories.${featured.category}`;

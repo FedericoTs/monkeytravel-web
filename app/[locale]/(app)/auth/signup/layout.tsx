@@ -7,8 +7,6 @@ import { getTranslations } from "next-intl/server";
  * Same pattern as the login layout — see neighbouring file for context.
  * The signup page is "use client" so metadata has to come from this
  * server-rendered layout wrapper.
- *
- * 2026-05-30 (task #250).
  */
 export async function generateMetadata({
   params,

@@ -120,10 +120,8 @@ export default async function BlogTagPage({ params }: PageProps) {
   const localePrefix = locale === routing.defaultLocale ? "" : `/${locale}`;
 
   // A tag that no longer resolves (renamed/removed) or has lost all its posts
-  // after a blog restructure used to hard-404 here. Google had indexed ~347 of
-  // these /blog/tag/* URLs (en/es/it); the bulk 404 spiked in late April,
-  // drained crawl budget, and FAILED Search Console validation on 2026-06-12.
-  // Serve a permanent (308) redirect to the locale's blog index instead: Google
+  // after a blog restructure gets a permanent (308) redirect to the locale's
+  // blog index instead of a 404, since many of these URLs are indexed: Google
   // drops the dead tag URLs cleanly, link equity consolidates onto /blog, and
   // crawlers stop hammering pages that will never return. Valid tags (>=1 post)
   // fall through and render normally below.

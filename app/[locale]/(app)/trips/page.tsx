@@ -6,9 +6,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { TRIP_CARD_COLUMNS } from "@/lib/trips/columns";
 
-// Locale-aware <title>. Previously a static export read "My Trips" for
-// every locale — Italian browser tab showed English. Caught in audit
-// 2026-05-29 (along with the /trips/new equivalent fix in 4c3e2a3+).
+// Locale-aware <title>.
 export async function generateMetadata({
   params,
 }: {
@@ -44,9 +42,8 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
       .select("display_name, avatar_url, lifetime_referral_conversions")
       .eq("id", userId)
       .single(),
-    // Trips someone invited this user to. Until 2026-09-25 they appeared
-    // nowhere here: after accepting an invite, the only way back to the trip
-    // was the original link or a notification.
+    // Trips someone invited this user to, so accepting an invite isn't the
+    // last time they can find the trip without the original link.
     supabase
       .from("trip_collaborators")
       .select("role, trips(id, title, start_date, end_date, cover_image_url, deleted_at)")
