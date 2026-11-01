@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { isCompleteOtpCode, normalizeOtpCode } from "@/lib/auth/otp-code";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 
 interface DeleteAccountModalProps {
   isOpen: boolean;
@@ -41,6 +42,16 @@ export default function DeleteAccountModal({
   const [deleting, setDeleting] = useState(false);
   const [deleted, setDeleted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleClose = () => {
+    if (deleting || deleted) return;
+    setMode("code");
+    setCode("");
+    setPassword("");
+    setError(null);
+    onClose();
+  };
+  const { panelRef } = useModalBehavior({ isOpen, onClose: handleClose });
 
   if (!isOpen) return null;
 
@@ -107,15 +118,6 @@ export default function DeleteAccountModal({
     setError(null);
   };
 
-  const handleClose = () => {
-    if (deleting || deleted) return;
-    setMode("code");
-    setCode("");
-    setPassword("");
-    setError(null);
-    onClose();
-  };
-
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
       {/* Backdrop */}
@@ -126,10 +128,12 @@ export default function DeleteAccountModal({
 
       {/* Modal */}
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-account-title"
-        className="relative bg-white rounded-2xl sm:rounded-3xl w-full max-w-md p-6 shadow-2xl animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300"
+        tabIndex={-1}
+        className="relative bg-white rounded-2xl sm:rounded-3xl w-full max-w-md p-6 shadow-2xl outline-none animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300"
       >
         {deleted ? (
           <div role="status" className="py-6 text-center">

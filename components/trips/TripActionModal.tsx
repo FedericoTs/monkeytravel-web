@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useToast } from "@/components/ui/Toast";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 
 interface TripActionModalProps {
   isOpen: boolean;
@@ -23,6 +24,8 @@ export default function TripActionModal({
   const tButtons = useTranslations("common.buttons");
   const { addToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const { panelRef } = useModalBehavior({ isOpen, onClose });
+  const titleId = useId();
 
   if (!isOpen) return null;
 
@@ -117,7 +120,14 @@ export default function TripActionModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in fade-in zoom-in-95 duration-200">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 outline-none animate-in fade-in zoom-in-95 duration-200"
+      >
         {/* Icon */}
         <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${
           action === "delete" ? "bg-red-100" :
@@ -127,7 +137,7 @@ export default function TripActionModal({
         </div>
 
         {/* Title */}
-        <h3 className="text-lg font-bold text-slate-900 text-center mb-2">
+        <h3 id={titleId} className="text-lg font-bold text-slate-900 text-center mb-2">
           {getTitle()}
         </h3>
 

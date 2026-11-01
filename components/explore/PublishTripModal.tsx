@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 import {
   captureExploreTripPublished,
   captureExploreTripPublishFailed,
@@ -121,6 +122,8 @@ export default function PublishTripModal({
     }
   }, [busy, authorName, authorNote, tripId, onPublished, router, onClose, t]);
 
+  const { panelRef } = useModalBehavior({ isOpen, onClose });
+
   if (!isOpen) return null;
 
   return (
@@ -136,7 +139,7 @@ export default function PublishTripModal({
         aria-hidden="true"
       />
 
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div ref={panelRef} tabIndex={-1} className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden outline-none">
         <div className="bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 px-6 py-7 text-white">
           <h2 id="publish-modal-title" className="text-2xl font-bold mb-1">
             {t("title")}

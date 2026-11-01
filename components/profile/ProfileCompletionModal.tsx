@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { useTranslations } from "next-intl";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 import { createClient } from "@/lib/supabase/client";
 import { getPostHog } from "@/lib/posthog/client";
 import { safeSet } from "@/lib/safe-storage";
@@ -83,6 +84,14 @@ export default function ProfileCompletionModal({
       safeSet("profile_modal_shown", "true", "session");
     }
   }, [isOpen]);
+
+  const handleDismiss = () => {
+    getPostHog()?.capture("profile_modal_dismissed");
+    onClose();
+  };
+  // Like the backdrop, Escape waits while the profile is saving.
+  const { panelRef } = useModalBehavior({ isOpen, onClose: handleDismiss, closeOnEscape: !saving });
+  const titleId = useId();
 
   if (!isOpen) return null;
 
@@ -175,11 +184,6 @@ export default function ProfileCompletionModal({
     onClose();
   };
 
-  const handleDismiss = () => {
-    getPostHog()?.capture("profile_modal_dismissed");
-    onClose();
-  };
-
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
       {/* Backdrop */}
@@ -189,7 +193,14 @@ export default function ProfileCompletionModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl sm:rounded-3xl w-full max-w-lg p-6 shadow-2xl animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="relative bg-white rounded-2xl sm:rounded-3xl w-full max-w-lg p-6 shadow-2xl outline-none animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto"
+      >
         {/* Header Icon */}
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[var(--primary)]/20 to-[var(--secondary)]/20 flex items-center justify-center">
           <svg
@@ -207,7 +218,7 @@ export default function ProfileCompletionModal({
           </svg>
         </div>
 
-        <h3 className="text-xl font-bold text-center text-slate-900 mb-2">
+        <h3 id={titleId} className="text-xl font-bold text-center text-slate-900 mb-2">
           {t("title")}
         </h3>
 

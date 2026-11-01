@@ -7,8 +7,10 @@
  * Allows granular control over each consent category.
  */
 
+import { useId } from "react";
 import { useTranslations } from "next-intl";
 import { useConsent, CONSENT_CATEGORIES, ConsentCategory } from "@/lib/consent";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 
 /**
  * The two blanket choices share one class, for the same reason the banner
@@ -31,11 +33,11 @@ export function CookieSettingsModal() {
     saveSettings,
     closeSettings,
   } = useConsent();
+  const isOpen = bannerStatus === "settings_open";
+  const { panelRef } = useModalBehavior({ isOpen, onClose: closeSettings });
+  const titleId = useId();
 
-  // Don't render if modal should be hidden
-  if (bannerStatus !== "settings_open") {
-    return null;
-  }
+  if (!isOpen) return null;
 
   // Saving the granular choice is a DECISION: it stores the state, closes
   // the banner for good and records one event. Before 2026-09-22 it was
@@ -57,7 +59,14 @@ export function CookieSettingsModal() {
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden outline-none animate-in zoom-in-95 duration-200"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-200">
           <div className="flex items-center gap-3">
@@ -82,7 +91,7 @@ export function CookieSettingsModal() {
                 />
               </svg>
             </div>
-            <h2 className="text-lg font-bold text-[var(--foreground)]">
+            <h2 id={titleId} className="text-lg font-bold text-[var(--foreground)]">
               {t("settings.title")}
             </h2>
           </div>
