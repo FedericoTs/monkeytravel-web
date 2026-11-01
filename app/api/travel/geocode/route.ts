@@ -2,7 +2,7 @@
  * Batch geocoding — INTENTIONALLY DORMANT, DO NOT DELETE AS DEAD CODE.
  *
  * `google_geocoding` has been disabled in `api_config` since 2025-12-06 on cost
- * grounds, so this route returns 503 to every caller. It has no callers left:
+ * grounds, so this route returns 503. It has no callers left:
  * c91cb8e removed the three that remained, because a 503 is not a useful thing
  * to send a user (HotelRecommendations was rendering "Could not find
  * destination coordinates" at them, for a failure no retry could fix).
@@ -28,6 +28,7 @@ import crypto from "crypto";
 import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -72,7 +73,11 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    // Check API access control first
+    // Signed in only: anyone else could spend the API's quota once it is on,
+    // and fill the request log while it is off.
+    const { errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
+
     const access = await checkApiAccess("google_geocoding");
     if (!access.allowed) {
       await logApiCall({
