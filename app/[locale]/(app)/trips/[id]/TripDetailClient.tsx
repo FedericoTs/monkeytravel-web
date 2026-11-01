@@ -7,7 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Undo2, Redo2, RefreshCw, Sparkles } from "lucide-react";
 import TripActionsMenu, { TripActionsMenuItem, TripActionsMenuSlot } from "@/components/trip/TripActionsMenu";
-import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType, ProposalVoteType, ActivityProposal } from "@/types";
+import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, ActivityProposal } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
@@ -803,9 +803,6 @@ export default function TripDetailClient({
   // Activity voting for collaborative trips
   const votingEnabled = isCollaborativeTrip && collaboratorCount > 1;
   const {
-    votes: allVotes,
-    consensus: allConsensus,
-    currentUserVotes,
     voterCount,
     castVote,
     removeVote,
@@ -858,13 +855,10 @@ export default function TripDetailClient({
 
   const {
     proposals,
-    isLoading: proposalsLoading,
     createProposal,
     voteOnProposal,
     removeVote: removeProposalVote,
-    withdrawProposal,
     forceResolve,
-    getProposalsForSlot,
   } = useProposals({
     tripId: trip.id,
     enabled: votingEnabled,
@@ -973,26 +967,6 @@ export default function TripDetailClient({
   const closeRouteOptimization = useCallback(() => {
     setRouteOptimizationState({ isOpen: false, dayNumber: 1, activities: [] });
   }, []);
-
-  // Calculate current day number for active trip phase
-  const currentDayNumber = useMemo(() => {
-    if (!isActiveTripPhase) return 1;
-    const daysDiff = Math.floor(
-      (now.getTime() - tripStartDate.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    return Math.min(Math.max(1, daysDiff + 1), tripDaysCount);
-  }, [isActiveTripPhase, now, tripStartDate, tripDaysCount]);
-
-  // Get current day's activities
-  const currentDayActivities = useMemo(() => {
-    const dayData = editedItinerary.find((d) => d.day_number === currentDayNumber);
-    return dayData?.activities || [];
-  }, [editedItinerary, currentDayNumber]);
-
-  // Get all activities grouped by day for progress calculation
-  const allActivitiesByDay = useMemo(() => {
-    return editedItinerary.map((day) => day.activities);
-  }, [editedItinerary]);
 
   // Track trip view for retention analytics (runs once on mount)
   useEffect(() => {
@@ -1593,7 +1567,7 @@ export default function TripDetailClient({
     });
 
     return timeline;
-  }, [editedItinerary, getProposalsForDay, proposals, recentlyApproved]);
+  }, [editedItinerary, getProposalsForDay, recentlyApproved]);
 
   // Keyboard shortcuts for edit mode (Cmd+Z, Cmd+Shift+Z, Cmd+S, Escape)
   useEffect(() => {
@@ -3068,7 +3042,7 @@ export default function TripDetailClient({
                       ) : (
                         /* View Mode - Merged Timeline with Activities and Inline Proposals */
                         <div className="grid gap-0">
-                          {getMergedTimeline(day.day_number).map((item, timelineIdx) => {
+                          {getMergedTimeline(day.day_number).map((item) => {
                             if (item.type === 'activity') {
                               const activity = item.data;
                               const idx = item.index;
