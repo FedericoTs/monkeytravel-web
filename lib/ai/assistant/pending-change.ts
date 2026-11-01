@@ -25,7 +25,7 @@ export type PendingChange =
     }
   | {
       /**
-       * P2 (2026-08): produced by the in-trip concierge's edit channel
+       * Produced by the in-trip concierge's edit channel
        * ("we're behind — drop something"). The result-page assistant still
        * never previews removals; /apply has always supported them.
        */

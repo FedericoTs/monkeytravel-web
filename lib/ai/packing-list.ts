@@ -74,10 +74,10 @@ const LOCALE_NAME: Record<NonNullable<PackingListInput["locale"]>, string> = {
 
 /**
  * Per-locale example contextNote demonstrating the expected length and
- * richness. Pre-2026-05-31 the prompt only showed the EN example — IT/ES
- * generations came back ~25% the length (often a single dependent clause,
- * sometimes empty for ES) because the model anchored on the example.
- * Now we anchor each locale on its own native-language reference so the
+ * richness. With only the English example, Italian and Spanish notes come
+ * back much shorter (sometimes a single clause, or empty) because the model
+ * anchors on the example. Each locale is anchored on its own native-language
+ * reference so the
  * model treats fluent length parity as the target. Keep these long
  * enough (~30+ words) that the model doesn't truncate.
  */
@@ -189,7 +189,7 @@ export async function generatePackingList(
   const { result: response, modelUsed } = await generateContentResilient({
     purpose: "packing-list",
     generationConfig: {
-      // 2026-05-31: lowered from 0.4 → 0.2 (deterministic utility task).
+      // Low temperature: a deterministic utility task.
       // Packing lists for the same destination/dates/preferences should be
       // near-identical across calls — that's a feature, not a bug. Tighter
       // sampling → higher prompt-cache hit rate, lower output cost, and

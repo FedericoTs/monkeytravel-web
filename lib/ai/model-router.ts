@@ -6,7 +6,7 @@
  * here means a single line change in this file rolls cost/quality
  * tradeoffs across the entire app — no hunt-and-replace through 15 routes.
  *
- * Routing matrix (set per the 2026-05-31 API optimization audit):
+ * Routing matrix:
  *
  *   Purpose                     | Model                  | Why
  *   ----------------------------|------------------------|----------------------------
@@ -56,14 +56,9 @@ export type GeminiModelId =
   | "gemini-3.1-flash-lite";
 
 const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
-  // 2026-06-01 P0 ROOT-CAUSE FIX: switched from gemini-2.5-pro → 2.5-flash.
-  //
-  // The fresh Google AI key worked in direct REST test against pro
-  // (returned 200 OK in 14s for a 1-char prompt → 1433 *thoughts*
-  // tokens). For a real itinerary prompt (1500+ input, 6000 output
-  // cap), default thinking consistently blew past
-  // AI_REQUEST_TIMEOUT_MS (30s) → every attempt timed out, route
-  // returned 500 after retries (Sentry 123983732).
+  // gemini-2.5-flash, not 2.5-pro: for a real itinerary prompt, pro's
+  // default thinking runs past AI_REQUEST_TIMEOUT_MS (30s), so every attempt
+  // would time out.
   //
   // We CAN'T disable thinking on pro — direct REST test with
   // `thinkingConfig: { thinkingBudget: 0 }` returned 400
@@ -119,10 +114,9 @@ export function getModelForPurpose(purpose: GeminiPurpose): GeminiModelId {
 /**
  * Sibling model for last-resort fallback (UX10X Phase 0.1).
  *
- * api_request_logs (2026-06-19→07-03) showed the flash-lite endpoints
- * failing hard (decide 25%, packing-list 58% — GoogleGenerativeAI 500/503)
- * while flash held 0.46%. Retrying the SAME model rides out blips but not
- * model-specific serving outages; the sibling runs on a different pool.
+ * Flash-lite can fail hard (GoogleGenerativeAI 500/503) while flash holds.
+ * Retrying the SAME model rides out blips but not model-specific serving
+ * outages; the sibling runs on a different pool.
  * Also used by regenerateSingleDay's final attempt: its parse-failure
  * retry lowers temperature, which deterministically reproduces the same
  * malformed output on the same model — a different model breaks the loop.

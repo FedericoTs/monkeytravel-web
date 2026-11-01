@@ -5,7 +5,7 @@ import { asksForFreeDay, buildPrompt, composeReply, plainText, validateEdits } f
 
 /**
  * The wizard assistant can change several days and the trip's length in one
- * reply, and says only what it prepared. Cases from production (2026-09-15..26):
+ * reply, and says only what it prepared. Real-world cases:
  * a swap came back as one day with a reply claiming both; "add one more day"
  * could not be done; a claim was made with nothing prepared.
  */
@@ -155,8 +155,8 @@ describe("composeReply", () => {
     expect(composeReply({ ...base, locale: "it", reply: "Ho aggiunto una cena al giorno 7.", edits: [] })).toMatch(/^Non ho modificato il tuo piano/);
   });
 
-  // Live, 2026-09-26: Gemini kept answering "Ho aggiunto un sesto giorno…" for
-  // an edit still waiting for Apply, despite the prompt.
+  // Gemini can answer "Ho aggiunto un sesto giorno…" for an edit still
+  // waiting for Apply, despite the prompt.
   it("an edit described as done says it waits for Apply", () => {
     const { edits, tripLength } = validateEdits(trip(), { edits: [edit(6)], tripLength: 6 }, "EUR");
     const text = composeReply({ ...base, locale: "it", reply: "Certo! Ho aggiunto un sesto giorno al tuo itinerario.", edits, tripLength });
@@ -296,9 +296,9 @@ describe("buildPrompt", () => {
 });
 
 describe("questions about money", () => {
-  // Asked for "il gran totale" (2026-10-21), the assistant answered "Ecco il
-  // calcolo…" three times and never gave a number: replies were held to 1-2
-  // sentences and it had no figures to quote.
+  // Asked for "il gran totale", the assistant can answer "Ecco il calcolo…"
+  // and never give a number when replies are held to 1-2 sentences and it has
+  // no figures to quote.
   const priced = (n: number, amount: number) =>
     ({ day_number: n, activities: [{ name: `Day ${n} thing`, estimated_cost: { amount, currency: "USD", tier: "moderate" } }] }) as unknown as ItineraryDay;
   const plan = [priced(1, 100), priced(2, 50)];
@@ -338,7 +338,7 @@ describe("questions about money", () => {
 
 describe("plainText", () => {
   it("keeps a breakdown readable in a plain-text bubble", () => {
-    // The model's own formatting in a live run (2026-10-21).
+    // The model's own formatting in a live run.
     const md = [
       "Ecco una stima:",
       "",

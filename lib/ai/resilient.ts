@@ -1,14 +1,9 @@
 /**
- * Resilient Gemini call for the small structured endpoints (packing-list, …;
- * decide, until its 2026-09-18 retirement). UX10X Master Plan Phase 0.1.
+ * Resilient Gemini call for the small structured endpoints (packing-list, …).
  *
- * Why this exists: api_request_logs (2026-06-19 → 2026-07-03) showed
- * /api/ai/decide failing 25% and /api/tools/packing-list 58% — every
- * failure a GoogleGenerativeAI 500/503 on gemini-2.5-flash-lite, called
- * exactly ONCE with no timeout, no retry, no fallback. Meanwhile the main
- * trip-generation path (hardened wrapper in lib/gemini.ts) fails 0.46%.
- * The decision-first front door depends on /api/ai/decide, so its
- * reliability is the hard gate before the front-door flag flips.
+ * Why this exists: a single gemini-2.5-flash-lite call with no timeout, retry
+ * or fallback fails often (GoogleGenerativeAI 500/503), while the main
+ * trip-generation path (the hardened wrapper in lib/gemini.ts) rarely does.
  *
  * Strategy: attempt the purpose's primary model twice (500ms backoff
  * between attempts — rides out transient 500s), then once on the sibling

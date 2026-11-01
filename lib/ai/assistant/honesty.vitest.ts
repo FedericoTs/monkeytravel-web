@@ -25,8 +25,8 @@ import {
 
 /**
  * The trip assistant must not say it changed the itinerary when it did not.
- * The first eight cases are real replies from production (2026-09-20..22), each
- * sent with no change prepared or saved.
+ * The first eight cases are real replies, each sent with no change prepared
+ * or saved.
  */
 
 const productionClaims = [
@@ -41,7 +41,7 @@ const productionClaims = [
   "Your itinerary is now structured to align with your flight schedule and hotel logistics, optimizing your time by grouping activities efficiently.",
 ];
 
-// Promises with nothing behind them; the first is a live reply (2026-09-28).
+// Promises with nothing behind them; the first is a live reply.
 const promises = [
   "I'll update your accommodation to Residencia Livia Milena in Santa Maria for your trip to Espargos, Cape Verde.",
   "Let me move the Vatican to Day 2.",
@@ -52,7 +52,7 @@ const promises = [
   "Sto per spostare il museo al giorno 3.",
   "Vou atualizar o seu hotel.",
   "Adicionarei o jantar ao dia 3.",
-  // A live reply (2026-10-17) with nothing prepared, and its kin.
+  // A live reply with nothing prepared, and its kin.
   "You got it! I'll create a new romantic Austin itinerary for two, focusing on good local food.",
   "Let me build a slower version of Day 2.",
   "Voy a crear un nuevo itinerario para Austin.",
@@ -72,8 +72,8 @@ const otherLanguageClaims = [
   "A viagem de comboio foi adicionada ao dia 1.",
 ];
 
-// The wizard assistant reshapes whole trips; the first is a live reply
-// (2026-09-26) for an edit that still waited for Apply.
+// The wizard assistant reshapes whole trips; the first is a live reply for
+// an edit that still waited for Apply.
 const restructuringClaims = [
   "No problem! I've condensed your Rome trip into 3 exciting days.",
   "I rearranged Days 1 and 2 so the Vatican comes first.",
@@ -234,7 +234,7 @@ describe("the replies the server puts in their place", () => {
   });
 });
 
-// Live replies (2026-09-28) to a hotel address and to flight times, each with
+// Live replies to a hotel address and to flight times, each with
 // no action; the assistant only sees the last few messages afterwards.
 const memoryClaims = [
   "Your accommodation at Parral 14 Boutique in Condesa for your Mexico City trip has been noted.",
@@ -373,7 +373,7 @@ describe("the trip assistant's card filter", () => {
 });
 
 describe("announcedButMissing", () => {
-  // The three live replies (2026-10-21) to "Qual è il gran totale": no number in any.
+  // Three live replies to "Qual è il gran totale": no number in any.
   const empty = [
     "Certo! Ecco un calcolo del costo totale stimato per il tuo viaggio, includendo le informazioni che mi hai fornito finora.",
     "Mi scuso! Sembra che il costo totale non sia stato incluso nella mia risposta precedente. Ecco il calcolo completo per il tuo viaggio stimato.",

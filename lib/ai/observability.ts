@@ -1,12 +1,9 @@
 /**
  * AI endpoint observability.
  *
- * Why this exists (task #223, 2026-05-30): every AI route (/api/ai/generate,
- * /api/ai/regenerate-activity, /api/ai/assistant, …) had a catch block that
- * console.error'd + wrote a row to api_calls_log and returned a 500. None
- * of them captured to Sentry. So when Gemini timed out, rate-limited, or
- * returned a malformed JSON, the failure was invisible to alerting — we'd
- * only notice when a user complained or someone scanned the DB by hand.
+ * Why this exists: an AI route's catch block that only logs and writes a row
+ * to api_calls_log leaves a Gemini timeout, rate limit or malformed JSON
+ * invisible to alerting.
  *
  * This module wraps the existing logApiCall flow with a Sentry capture so
  * AI failures fire alerts and show up in dashboards. It also emits a

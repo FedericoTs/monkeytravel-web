@@ -2,16 +2,11 @@
  * Keeps the trip assistant from telling someone it changed their itinerary
  * when nothing changed.
  *
- * WHY (2026-09-26)
- * One signed-in user planning a cruise got eight such replies in three days,
- * none with a change prepared or saved:
- *   "Your Day 5 is now dedicated to cruise embarkation from Civitavecchia."
- *   "Your Day 5 itinerary has been updated to include travel from Rome..."
- *   "Parea Tavern has been added for dinner on Day 7 in Santorini..."
- *   "I've added the train journey to your Day 1 itinerary. It's now scheduled..."
- * They wrote back "day 5 is still showing the Borghese Gallery", then
- * "everything is messed up", and deleted three hours of work. On the copy they
- * kept, a later reply had to concede "it hasn't been added".
+ * WHY
+ * Replies like "Your Day 5 itinerary has been updated to include…" or "I've
+ * added the train journey to your Day 1 itinerary", with no change prepared or
+ * saved, tell someone their plan changed when it didn't; they find out on the
+ * page, and stop trusting the trip.
  *
  * The prompt already forbids this (buildSystemPrompt: never state or imply a
  * change unless a NOTE says it was saved), and the model broke the rule anyway.
@@ -31,7 +26,7 @@ const end = `(?![${L}])`;
 const words = (list: string) => `(?:${list})`;
 
 // Restructuring verbs (condensed, rearranged…) since the wizard assistant can
-// reshape whole trips: "I've condensed your Rome trip into 3 days" (2026-09-26).
+// reshape whole trips: "I've condensed your Rome trip into 3 days".
 // Not "reviewed"/"revisado"/"rivisto"/"revisei": those also mean "checked".
 const EN_VERBS = words(
   "added|updated|removed|replaced|moved|changed|saved|scheduled|rescheduled|included|swapped|deleted|dedicated|adjusted|extended|shortened|reordered|put|set|condensed|combined|merged|reworked|rearranged|reorganized|reorganised|restructured|revised|trimmed|incorporated|integrated|reverted|shifted|cleared|freed"
@@ -385,8 +380,7 @@ export function nothingKeptReply(language: string | undefined): string {
 }
 
 // An answer that announces figures or a list, then stops: "Ecco un calcolo
-// del costo totale stimato per il tuo viaggio." went out three times in a row
-// (2026-10-21) with no number in any of them.
+// del costo totale stimato per il tuo viaggio." with no number after it.
 const ANNOUNCE_LEAD = words(
   "here(?:['’]s|\\s+is|\\s+are)|below\\s+(?:is|are)|ecco|di\\s+seguito|qui\\s+sotto|aquí\\s+(?:tienes|está|están|va|te\\s+dejo)|a\\s+continuación|aqui\\s+(?:está|estão|vai|vão)|segue(?:m)?|abaixo\\s+(?:está|estão)"
 );

@@ -3,18 +3,13 @@ import { AsyncLocalStorage } from "node:async_hooks";
 /**
  * What a Gemini response costs, and what one request's Gemini calls cost.
  *
- * WHY (2026-09-26)
- * A $100 Google Cloud budget alert arrived while api_request_logs said Gemini
- * had cost ~$3 that month. The log was wrong twice over: the trip-generation
- * routes booked a flat $0.003 per request (other AI routes flat guesses of
- * $0.0002-0.002), and [LLM Analytics] priced 2.5 Flash at preview-era rates,
- * $0.15 in / $0.60 out per 1M tokens. Google's paid-tier price is $0.30 in /
- * $2.50 out, and a trip is ~1.9k tokens in and 3-13k out (production logs,
- * 2026-09-26), so one generation costs ~$0.01-0.03. Priced properly, September
- * comes to roughly $20, not $3.
+ * WHY
+ * Flat per-request guesses, or preview-era token prices, understate what
+ * Gemini costs: a trip is a few thousand tokens in and several thousand out,
+ * so its cost depends on the tokens, priced at the paid-tier rates below.
  *
  * Prices are LIST prices, USD per 1M tokens: paid tier, Standard, text input,
- * from https://ai.google.dev/gemini-api/docs/pricing (read 2026-09-26), prompts
+ * from https://ai.google.dev/gemini-api/docs/pricing, prompts
  * under 200k tokens. A key on the free tier pays nothing, so the bill (Cloud
  * console → Billing → Reports) remains the source of truth.
  */

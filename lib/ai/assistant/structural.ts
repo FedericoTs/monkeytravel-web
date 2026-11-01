@@ -1,15 +1,11 @@
 /**
  * Structural-edit intent detection + pure helpers for the trip AI assistant.
  *
- * Transcript evidence (persisted ai_conversations, 2026-07): users
- * systematically ask for STRUCTURAL changes the single-activity tools can't
- * express — "can you add a day to travel to Voss" (the reply claimed a
- * "new Day 12" while the logged action landed on day 1), three different
- * users PASTED entire multi-day draft itineraries ("rearrange as per my own
- * draft", "update all days according to my input"), and "I'd like a 14-day
- * trip". These helpers power the two structural actions built from that
- * evidence: `add_day` (append one day) and `apply_draft` (bulk multi-day
- * revision).
+ * Users ask for STRUCTURAL changes the single-activity tools can't express:
+ * "can you add a day to travel to Voss", whole multi-day drafts pasted in
+ * ("rearrange as per my own draft", "update all days according to my input"),
+ * "I'd like a 14-day trip". These helpers power the two structural actions:
+ * `add_day` (append one day) and `apply_draft` (bulk multi-day revision).
  *
  * Kept pure (no Gemini, no Supabase, no Next imports) so the heuristics are
  * unit-testable — see structural.vitest.ts, same pattern as
@@ -138,9 +134,8 @@ export function detectDraftPaste(message: string): boolean {
 
 /**
  * Detect structural intents. Must run BEFORE detectActionIntent(): the
- * legacy "simple add detection" (`lowerMsg.includes("add ")`) is what
- * swallowed "can you add a day to travel to Voss" and landed the action on
- * day 1 (transcript, 2026-07).
+ * legacy "simple add detection" (`lowerMsg.includes("add ")`) would
+ * swallow "can you add a day to travel to Voss" and land the action on day 1.
  */
 export function detectStructuralIntent(message: string): StructuralIntent {
   // Draft paste first — it's the most specific signal, and a pasted plan
