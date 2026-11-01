@@ -22,7 +22,8 @@ vi.mock("next/server", async (importOriginal) => ({
 }));
 // The service-role read; the user-scoped client may not select the token.
 vi.mock("@/lib/trips/share-token", () => ({ readShareToken: async () => shareToken }));
-vi.mock("@/lib/api/auth", () => ({
+vi.mock("@/lib/api/auth", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/auth")>()),
   getAuthenticatedUser: async () => ({
     user: { id: OWNER },
     errorResponse: null,

@@ -67,10 +67,11 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
     }
 
     // Get all voters (owner + collaborators with voting rights)
-    const { data: collaborators } = await supabase
+    const { data: collaborators, error: collaboratorsError } = await supabase
       .from("trip_collaborators")
       .select("user_id, role")
       .eq("trip_id", tripId);
+    if (collaboratorsError) throw collaboratorsError;
 
     // Build list of all voter IDs
     const voterIds: string[] = [trip.user_id]; // Owner can always vote

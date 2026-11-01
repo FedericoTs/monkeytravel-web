@@ -26,6 +26,7 @@ import { centsToAmount, readAmount, splitEquallyCents } from "@/lib/expenses/sha
 import { publicNameOrNull } from "@/lib/profile/public-name";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { expenseCohort, tripRoster } from "@/lib/trips/roster";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * Equal shares across the trip's group (lib/trips/roster), the payer
@@ -71,7 +72,11 @@ async function resplit(supabase: SupabaseClient, tripId: string, expenseId: stri
     return readError;
   }
   if (!existing || existing.length === 0) {
-    const { data: expense } = await supabase.from("trip_expenses").select("paid_by_user_id").eq("id", expenseId).maybeSingle();
+    const { data: expense, error: payerError } = await supabase.from("trip_expenses").select("paid_by_user_id").eq("id", expenseId).maybeSingle();
+    if (payerError) {
+      console.error("[expenses] payer read failed", payerError);
+      return payerError;
+    }
     return insertMemberSplits(supabase, tripId, expenseId, amount, (expense?.paid_by_user_id as string | null) ?? null);
   }
   const shares = splitEquallyCents(Math.round(amount * 100), existing.length);
@@ -244,7 +249,7 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     }
 
     // The shared ledger shows the payer's name to anyone with the link.
-    const { data: profile } = await supabase.from("users").select("display_name").eq("id", user.id).maybeSingle();
+    const { data: profile } = logReadError("expenses: payer name", await supabase.from("users").select("display_name").eq("id", user.id).maybeSingle());
     const payerName = publicNameOrNull(profile?.display_name as string | null | undefined, user.email);
 
     // RLS WITH CHECK clause requires created_by = auth.uid() AND
@@ -336,12 +341,16 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     // The shares follow the amount. If they can't, the edit is undone.
     let before: Record<string, unknown> | null = null;
     if (typeof update.amount === "number") {
-      const { data: previous } = await supabase
+      const { data: previous, error: previousError } = await supabase
         .from("trip_expenses")
         .select("amount, currency, category, description, spent_on")
         .eq("id", expenseId)
         .eq("trip_id", tripId)
         .maybeSingle();
+      if (previousError) {
+        console.error("[expenses PATCH] snapshot read failed", previousError);
+        return errors.internal("Failed to update expense", "expenses");
+      }
       before = previous;
     }
 
