@@ -12,6 +12,7 @@ import {
   getUserReferralTier,
 } from "@/lib/bananas";
 import { logWriteError } from "@/lib/supabase/log-write-error";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * GET /api/invites/[token] - Get invite details and trip preview (public, no auth required)
@@ -53,8 +54,10 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
     // back to the status-only RPC (no usability filter) so the shared
     // validator below can surface the right code.
     if (inviteError || !invite) {
-      const { data: statusRows } = await supabaseAdmin
+      const { data: statusRows, error: statusError } = await supabaseAdmin
         .rpc("get_invite_status_by_token", { p_token: token });
+      // Both reads refused is not an invalid link.
+      if (inviteError && statusError) throw statusError;
       const statusInvite = Array.isArray(statusRows) ? statusRows[0] : null;
       if (!statusInvite) {
         return errors.notFound("Invalid invite link");
@@ -111,36 +114,36 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
     }
 
     // Fetch trip owner info from users table
-    const { data: owner } = await supabaseAdmin
+    const { data: owner } = logReadError("invite: owner", await supabaseAdmin
       .from("users")
       .select("display_name, avatar_url")
       .eq("id", trip.user_id)
-      .single();
+      .single());
 
     // Fetch inviter info (if different from owner)
     let inviter = null;
     if (invite.created_by && invite.created_by !== trip.user_id) {
-      const { data: inviterProfile } = await supabaseAdmin
+      const { data: inviterProfile } = logReadError("invite: inviter", await supabaseAdmin
         .from("users")
         .select("display_name, avatar_url")
         .eq("id", invite.created_by)
-        .single();
+        .single());
       inviter = inviterProfile;
     }
 
     // Count existing collaborators
-    const { count: collaboratorCount } = await supabaseAdmin
+    const { count: collaboratorCount } = logReadError("invite: member count", await supabaseAdmin
       .from("trip_collaborators")
       .select("id", { count: "exact", head: true })
-      .eq("trip_id", invite.trip_id);
+      .eq("trip_id", invite.trip_id));
 
     // Fetch first destination from itinerary if available
-    const { data: tripData } = await supabaseAdmin
+    const { data: tripData } = logReadError("invite: destination", await supabaseAdmin
       .from("trips")
       .select("itinerary")
       .eq("id", invite.trip_id)
       .is("deleted_at", null)
-      .single();
+      .single());
 
     let destination = null;
     if (tripData?.itinerary && Array.isArray(tripData.itinerary) && tripData.itinerary.length > 0) {
@@ -331,11 +334,11 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     // no seat consumed, no banana award. Look up the trip title for
     // the response payload (cheap single-row read).
     if (result.already_member) {
-      const { data: trip } = await supabaseAdmin
+      const { data: trip } = logReadError("invite: trip title", await supabaseAdmin
         .from("trips")
         .select("id, title")
         .eq("id", result.trip_id)
-        .single();
+        .single());
 
       return apiSuccess({
         success: true,

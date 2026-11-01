@@ -82,7 +82,7 @@ const getCreator = cache(async (username: string): Promise<CreatorProfileData | 
   if (String(priv.privateProfile ?? "") === "true") return null;
 
   // Fetch this creator's published trips, newest first.
-  const { data: tripRows } = await supabase
+  const { data: tripRows, error: tripsError } = await supabase
     .from("trips")
     .select(
       "id, title, public_slug, cover_image_url, template_destination, trip_meta, like_count, save_count, created_at, shared_at",
@@ -94,6 +94,8 @@ const getCreator = cache(async (username: string): Promise<CreatorProfileData | 
     .not("is_hidden", "is", true)
     .order("shared_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
+  // A refused read is not "no published trips", which is a 404 and noindex.
+  if (tripsError) throw tripsError;
 
   const rows = tripRows ?? [];
 

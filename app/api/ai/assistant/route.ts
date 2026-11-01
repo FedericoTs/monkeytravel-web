@@ -71,6 +71,8 @@ import {
   type TripEditProposal,
 } from "@/lib/ai/assistant/trip-edits";
 import { logWriteError } from "@/lib/supabase/log-write-error";
+import { isNoRow } from "@/lib/supabase/no-row";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -91,11 +93,11 @@ async function getUserLanguage(
   if (localeCookie?.value) return resolveAiLanguage(localeCookie.value);
 
   try {
-    const { data: profile } = await supabase
+    const { data: profile } = logReadError("assistant: preferred language", await supabase
       .from("users")
       .select("preferred_language")
       .eq("id", userId)
-      .single();
+      .single());
 
     if (profile?.preferred_language) {
       return resolveAiLanguage(profile.preferred_language);
@@ -1047,23 +1049,27 @@ export async function POST(request: NextRequest) {
     let conversation: { id: string; messages: AssistantMessage[] } | null = null;
 
     if (conversationId) {
-      const { data: existingConvo } = await supabase
+      const { data: existingConvo, error: convoError } = await supabase
         .from("ai_conversations")
         .select("*")
         .eq("id", conversationId)
         .eq("user_id", user.id)
         .single();
 
+      // A refused read is not a missing thread: answering anyway would fork it.
+      if (convoError && !isNoRow(convoError)) throw convoError;
       if (existingConvo && !isConciergeRow(existingConvo.context)) {
         conversation = { id: existingConvo.id, messages: existingConvo.messages as AssistantMessage[] };
       }
     }
     if (!conversation) {
-      const { data: newConvo } = await supabase
+      const { data: newConvo, error: newConvoError } = await supabase
         .from("ai_conversations")
         .insert({ user_id: user.id, trip_id: tripId, messages: [], context: { surface: ASSISTANT_SURFACE } })
         .select()
         .single();
+      // Without a thread the reply could not be kept.
+      if (newConvoError) throw newConvoError;
 
       conversation = { id: newConvo?.id || "", messages: [] };
     }
@@ -2233,23 +2239,25 @@ export async function GET(request: NextRequest) {
 
     // The concierge's rows share the table; this chat never shows them.
     if (conversationId) {
-      const { data: conversation } = await supabase
+      const { data: conversation, error } = await supabase
         .from("ai_conversations")
         .select("*")
         .eq("id", conversationId)
         .eq("user_id", user.id)
         .single();
+      if (error && !isNoRow(error)) throw error;
 
       return apiSuccess({ conversation: conversation && !isConciergeRow(conversation.context) ? conversation : null });
     }
 
     if (tripId) {
-      const { data: rows } = await supabase
+      const { data: rows, error } = await supabase
         .from("ai_conversations")
         .select("id, created_at, updated_at, messages, context")
         .eq("trip_id", tripId)
         .eq("user_id", user.id)
         .order("updated_at", { ascending: false });
+      if (error) throw error;
 
       const conversations = (rows ?? [])
         .filter((row) => !isConciergeRow(row.context))

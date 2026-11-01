@@ -1,6 +1,7 @@
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isNoRow } from "@/lib/supabase/no-row";
 
 /**
  * Admin endpoint to grant early access to a user
@@ -40,12 +41,13 @@ export async function POST(request: Request) {
     }
 
     // Check if user already has access
-    const { data: existingAccess } = await supabase
+    const { data: existingAccess, error: existingError } = await supabase
       .from("user_tester_access")
       .select("code_used, redeemed_at")
       .eq("user_id", targetUser.id)
       .single();
 
+    if (existingError && !isNoRow(existingError)) throw existingError;
     if (existingAccess) {
       return errors.badRequest(
         `User already has access via code: ${existingAccess.code_used} (redeemed ${existingAccess.redeemed_at})`
@@ -178,11 +180,12 @@ export async function GET(request: Request) {
     }
 
     // Get their access status
-    const { data: access } = await supabase
+    const { data: access, error: accessError } = await supabase
       .from("user_tester_access")
       .select("*")
       .eq("user_id", targetUser.id)
       .single();
+    if (accessError && !isNoRow(accessError)) throw accessError;
 
     return apiSuccess({
       user: {

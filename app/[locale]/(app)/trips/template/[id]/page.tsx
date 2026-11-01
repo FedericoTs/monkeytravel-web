@@ -5,6 +5,7 @@ import { refreshItineraryPhotos } from "@/lib/places/refreshItineraryPhotos";
 import { countryName, templateItinerary, templateMeta, templatePacking, templateText } from "@/lib/templates/text";
 import { buildAlternates } from "@/lib/seo/canonical";
 import { publicTripAlternates } from "@/lib/seo/public-trip";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 interface TemplatePageProps {
   params: Promise<{ id: string; locale: string }>;
@@ -14,12 +15,12 @@ export async function generateMetadata({ params }: TemplatePageProps) {
   const { id, locale } = await params;
   const supabase = await createClient();
 
-  const { data: template } = await supabase
+  const { data: template } = logReadError("template metadata", await supabase
     .from("trips")
     .select("id, title, description, template_destination, template_short_description, public_slug, visibility, trip_meta")
     .eq("id", id)
     .eq("is_template", true)
-    .single();
+    .single());
 
   if (!template) {
     return { title: "Template Not Found" };

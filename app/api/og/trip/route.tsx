@@ -21,6 +21,7 @@ import {
   type CardDay,
   type CardFormat,
 } from "@/lib/og/trip-card";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * The trip card as an image: the link preview (1200x630, the default), a
@@ -154,11 +155,11 @@ export async function GET(request: NextRequest) {
 
   // "N going" = active participants (the same count /shared shows). A HEAD
   // count query — no rows pulled — so it adds negligible cost to the unfurl.
-  const { count } = await supabase
+  const { count } = logReadError("trip card: going count", await supabase
     .from("trip_participants")
     .select("*", { count: "exact", head: true })
     .eq("trip_id", data.id)
-    .is("left_at", null);
+    .is("left_at", null));
 
   // Live state, in the trip's OWN timezone, so the card matches what a viewer
   // would see on Today. A trip without a stored zone reads as not-live.

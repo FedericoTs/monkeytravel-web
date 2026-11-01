@@ -22,6 +22,7 @@ import {
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
 import { publicTripAlternates } from "@/lib/seo/public-trip";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 interface PageProps {
   params: Promise<{ locale: string; token: string }>;
@@ -67,12 +68,12 @@ async function resolveViewer(tripId: string, ownerId: string | null) {
   if (viewerUserId && !isOwner) {
     try {
       const supabase = await createClient();
-      const { data: membership } = await supabase
+      const { data: membership } = logReadError("shared page: membership", await supabase
         .from("trip_collaborators")
         .select("role")
         .eq("trip_id", tripId)
         .eq("user_id", viewerUserId)
-        .maybeSingle();
+        .maybeSingle());
       isMember = !!membership;
     } catch {
       isMember = false;

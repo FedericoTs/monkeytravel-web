@@ -40,6 +40,7 @@ import { FINISH_TRIP_NS, FINISH_TRIP_SLOT, sendFinishTripEmail } from "@/lib/not
 import { cameBack, cameBackFrom, loadEngagement } from "@/lib/notifications/followup-engagement";
 import { isParticipantDigestEnabled } from "@/lib/participants/flag";
 import { logWriteError } from "@/lib/supabase/log-write-error";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * Trip email cron: sweeps `scheduled_notifications` and dispatches the
@@ -663,14 +664,14 @@ async function processRow(
   if (DOMESTIC_AWARE_SLOTS.has(row.slot)) {
     let viewerCountry: string | null = null;
     try {
-      const { data: lastView } = await svc
+      const { data: lastView } = logReadError("reminders: viewer country", await svc
         .from("page_views")
         .select("country_code")
         .eq("user_id", row.user_id)
         .not("country_code", "is", null)
         .order("created_at", { ascending: false })
         .limit(1)
-        .maybeSingle();
+        .maybeSingle());
       viewerCountry = (lastView as { country_code?: string | null } | null)?.country_code ?? null;
     } catch {
       viewerCountry = null;
@@ -1200,7 +1201,7 @@ async function dispatchDayDigest(
   // any signed-in participant's opt-out are enforced per send by dispatchEmail.
   if (isParticipantDigestEnabled() && trip.share_token) {
     try {
-      const { data: parts } = await svc
+      const { data: parts } = logReadError("reminders: participants", await svc
         .from("trip_participants")
         .select("id, email, user_id, participant_cookie_id")
         .eq("trip_id", row.trip_id)
@@ -1208,7 +1209,7 @@ async function dispatchDayDigest(
         // carries the share link, and joining through it would confirm them.
         .neq("source", "public")
         .is("left_at", null)
-        .not("email", "is", null);
+        .not("email", "is", null));
       const recipients = digestParticipantRecipients(parts ?? [], recipientEmail);
       if (recipients.length > 0) {
         const partLocale = resolveLocale(trip.trip_locale);

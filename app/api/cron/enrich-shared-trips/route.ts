@@ -4,6 +4,7 @@ import {
   enrichTripByIdAdmin,
   BACKFILL_PAID_LOOKUPS,
 } from "@/lib/images/enrichTrip";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * Daily cron + manual backfill — real photos for every voter-facing trip.
@@ -98,12 +99,12 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const { count: remaining } = await db
+  const { count: remaining } = logReadError("enrich shared trips: remaining", await db
     .from("trips")
     .select("id", { count: "exact", head: true })
     .is("deleted_at", null)
     .or("shared_at.not.is.null,visibility.eq.public")
-    .is("trip_meta->>photos_enriched_at", null);
+    .is("trip_meta->>photos_enriched_at", null));
 
   return NextResponse.json({
     processed: results.length,

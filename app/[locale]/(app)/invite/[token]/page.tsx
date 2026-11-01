@@ -9,6 +9,7 @@ import { validateInvite, type InviteData } from "@/lib/api/invite-validation";
 import InviteAcceptClient from "./InviteAcceptClient";
 import InviteRecipientGate from "./InviteRecipientGate";
 import { maskEmail } from "@/lib/invites/recipient";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 interface PageProps {
   params: Promise<{ token: string; locale: string }>;
@@ -63,8 +64,10 @@ async function getInviteData(token: string, unnamed: UnnamedLabels) {
   // status-only RPC (no usability filter) and re-run the shared
   // validator so we can surface the precise error_code.
   if (inviteError || !invite) {
-    const { data: statusRows } = await supabase
+    const { data: statusRows, error: statusError } = await supabase
       .rpc("get_invite_status_by_token", { p_token: token });
+    // Both reads refused is not an invalid link.
+    if (inviteError && statusError) throw statusError;
     const statusInvite = Array.isArray(statusRows) ? statusRows[0] : null;
     if (!statusInvite) {
       return { error: "INVALID_TOKEN" as const };
@@ -124,28 +127,28 @@ async function getInviteData(token: string, unnamed: UnnamedLabels) {
   }
 
   // Fetch owner profile from users table
-  const { data: owner } = await supabase
+  const { data: owner } = logReadError("invite page: owner", await supabase
     .from("users")
     .select("display_name, avatar_url")
     .eq("id", trip.user_id)
-    .single();
+    .single());
 
   // Fetch inviter profile (if different from owner)
   let inviter = null;
   if (invite.created_by && invite.created_by !== trip.user_id) {
-    const { data: inviterProfile } = await supabase
+    const { data: inviterProfile } = logReadError("invite page: inviter", await supabase
       .from("users")
       .select("display_name, avatar_url")
       .eq("id", invite.created_by)
-      .single();
+      .single());
     inviter = inviterProfile;
   }
 
   // Count collaborators
-  const { count: collaboratorCount } = await supabase
+  const { count: collaboratorCount } = logReadError("invite page: member count", await supabase
     .from("trip_collaborators")
     .select("id", { count: "exact", head: true })
-    .eq("trip_id", invite.trip_id);
+    .eq("trip_id", invite.trip_id));
 
   // Extract destination from itinerary
   let destination = null;
