@@ -29,6 +29,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 /**
  * Service-role client for api_request_logs.
@@ -347,7 +348,7 @@ export async function logBlockedCall(
     const supabase = apiLogDb();
     if (!supabase) return;
 
-    await supabase.from("api_request_logs").insert({
+    logWriteError("api-gateway: request log", await supabase.from("api_request_logs").insert({
       api_name: apiName,
       endpoint: endpoint,
       response_status: 503, // Service Unavailable
@@ -356,7 +357,7 @@ export async function logBlockedCall(
       cost_usd: 0,
       error_message: `BLOCKED: ${reason}`,
       timestamp: new Date().toISOString(),
-    });
+    }));
   } catch (err) {
     console.error("[ApiControl] Error logging blocked call:", err);
   }

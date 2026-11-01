@@ -19,6 +19,7 @@
  */
 import { createAdminClient } from "@/lib/supabase/admin";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 export interface WizardStepServerInput {
   /** Must exist in all THREE copies of the step vocabulary. */
@@ -40,12 +41,12 @@ export async function logWizardStepServer(input: WizardStepServerInput): Promise
     // unique index on (session_id, step, dedupe_bucket) makes a duplicate a
     // 23505 rather than a second row — which is the desired outcome here, so
     // the error is swallowed like any other.
-    await supabase.from("wizard_step_events").insert({
+    logWriteError("wizard-event", await supabase.from("wizard_step_events").insert({
       session_id: input.sessionId,
       step: input.step,
       user_id: input.userId ?? null,
       locale: input.locale ?? null,
-    });
+    }));
   } catch {
     // never break the caller
   }

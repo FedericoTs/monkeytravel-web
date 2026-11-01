@@ -5,6 +5,7 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 import { logApiCall } from "@/lib/api-gateway";
 import { buildDestinationPhotos, type DestinationPhotos } from "@/lib/images/wikimedia";
 import { cacheAdminDb } from "@/lib/supabase/cache-admin";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 /**
  * A destination's Wikimedia photos, from the shared cache or found and stored
@@ -67,7 +68,7 @@ export async function destinationPhotos(destination: string, request: NextReques
   try {
     const photos = await buildDestinationPhotos(db, destination, controller.signal);
     const now = Date.now();
-    await db.from("google_places_cache").upsert(
+    logWriteError("destination-photos: cache", await db.from("google_places_cache").upsert(
       {
         place_id: key,
         cache_type: CACHE_TYPE,
@@ -79,7 +80,7 @@ export async function destinationPhotos(destination: string, request: NextReques
         last_accessed_at: new Date(now).toISOString(),
       },
       { onConflict: "place_id" },
-    );
+    ));
     log(startedAt, false);
     return photos;
   } catch (err) {

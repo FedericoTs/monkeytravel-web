@@ -70,6 +70,7 @@ import {
   readDisplayCurrency,
   type TripEditProposal,
 } from "@/lib/ai/assistant/trip-edits";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -2355,13 +2356,13 @@ Respond with valid JSON only.`;
       timestamp: new Date().toISOString(),
     };
 
-    await supabase
+    logWriteError("assistant: conversation", await supabase
       .from("ai_conversations")
       .update({
         messages: [...conversation.messages, userMessage, assistantMessage],
         updated_at: new Date().toISOString(),
       })
-      .eq("id", conversation.id);
+      .eq("id", conversation.id));
 
     // Update usage info for response
     const updatedUsage = {

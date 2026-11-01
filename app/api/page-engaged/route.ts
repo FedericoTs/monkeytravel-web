@@ -18,6 +18,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { errors } from "@/lib/api/response-wrapper";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 export const runtime = "nodejs";
 
@@ -64,9 +65,9 @@ export async function POST(request: NextRequest) {
   try {
     // ON CONFLICT DO NOTHING: the row is the session's FIRST engagement and is
     // never updated, so a chatty client cannot rewrite history.
-    await createAdminClient()
+    logWriteError("page-engaged", await createAdminClient()
       .from("session_engagement")
-      .upsert({ session_id: sessionId, first_path: path, locale }, { onConflict: "session_id", ignoreDuplicates: true });
+      .upsert({ session_id: sessionId, first_path: path, locale }, { onConflict: "session_id", ignoreDuplicates: true }));
   } catch {
     // Telemetry must never surface to the visitor.
   }

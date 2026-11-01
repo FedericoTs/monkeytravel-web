@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 /**
  * GET /api/profile/export
@@ -236,7 +237,7 @@ export async function GET() {
     };
 
     // Update last export timestamp
-    await supabase
+    logWriteError("profile/export: last export", await supabase
       .from("users")
       .update({
         preferences: {
@@ -244,7 +245,7 @@ export async function GET() {
           lastDataExport: new Date().toISOString(),
         },
       })
-      .eq("id", userId);
+      .eq("id", userId));
 
     // Return as JSON download
     const filename = `monkeytravel-data-export-${new Date().toISOString().split("T")[0]}.json`;
