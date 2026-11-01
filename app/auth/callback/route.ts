@@ -606,10 +606,13 @@ async function mergeAnonymousSaves(userId: string): Promise<void> {
     const admin = createAdminClient();
 
     // 1. Trips the user already has under user_id
-    const { data: ownedRows } = await admin
+    // A failed step throws: the catch below keeps the cookie, so the next
+    // sign-in merges again instead of leaving the visitor's saves behind.
+    const { data: ownedRows, error: ownedError } = await admin
       .from("trip_saves")
       .select("trip_id")
       .eq("user_id", userId);
+    if (ownedError) throw ownedError;
     const ownedTripIds = (ownedRows ?? [])
       .map((r) => (r as { trip_id: string }).trip_id)
       .filter(Boolean);
@@ -617,11 +620,12 @@ async function mergeAnonymousSaves(userId: string): Promise<void> {
     // 2. Cookie-saved trips that overlap with owned → would violate
     //    UNIQUE(trip_id, user_id) on re-key. Delete them.
     if (ownedTripIds.length > 0) {
-      const { data: dupes } = await admin
+      const { data: dupes, error: dupesError } = await admin
         .from("trip_saves")
         .select("trip_id")
         .eq("saver_cookie_id", cookieValue)
         .in("trip_id", ownedTripIds);
+      if (dupesError) throw dupesError;
       const dupeIds = (dupes ?? [])
         .map((r) => (r as { trip_id: string }).trip_id)
         .filter(Boolean);
@@ -635,11 +639,12 @@ async function mergeAnonymousSaves(userId: string): Promise<void> {
     }
 
     // 3. Re-key remaining cookie rows to the user.
-    const { data: rekeyed } = await admin
+    const { data: rekeyed, error: rekeyError } = await admin
       .from("trip_saves")
       .update({ user_id: userId, saver_cookie_id: null })
       .eq("saver_cookie_id", cookieValue)
       .select("trip_id");
+    if (rekeyError) throw rekeyError;
 
     // 3b. A cookie save was never in trips.save_count; now it is an
     //     account's save, so it counts. Recount those trips after the

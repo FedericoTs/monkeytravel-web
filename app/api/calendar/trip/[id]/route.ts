@@ -174,13 +174,17 @@ async function loadTrip(
 
   // Not the owner — check collaborator role. Any role grants read
   // access (the calendar is read-only data anyway).
-  const { data: collab } = await supabase
+  const { data: collab, error: collabError } = await supabase
     .from("trip_collaborators")
     .select("role")
     .eq("trip_id", tripId)
     .eq("user_id", user.id)
     .maybeSingle();
 
+  if (collabError) {
+    console.error("[calendar-download] collaborator lookup failed:", collabError);
+    return null;
+  }
   if (!collab) return null;
   return typedTrip;
 }

@@ -1,6 +1,7 @@
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * GET /api/admin/feedback
@@ -28,9 +29,9 @@ export async function GET() {
   }
 
   const rows = data ?? [];
-  const { count: totalCount } = await admin
+  const { count: totalCount } = logReadError("admin feedback: total", await admin
     .from("user_feedback")
-    .select("id", { count: "exact", head: true });
+    .select("id", { count: "exact", head: true }));
   const summary = {
     total: totalCount ?? rows.length,
     returned: rows.length,

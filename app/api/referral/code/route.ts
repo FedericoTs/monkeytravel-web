@@ -7,6 +7,7 @@ import {
 } from "@/lib/bananas";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
+import { isNoRow } from "@/lib/supabase/no-row";
 
 /**
  * GET /api/referral/code
@@ -19,11 +20,13 @@ export async function GET() {
     if (errorResponse) return errorResponse;
 
     // Check if user already has a referral code
-    const { data: existingCode } = await supabase
+    const { data: existingCode, error: codeError } = await supabase
       .from("referral_codes")
       .select("code, total_clicks, total_signups, total_conversions")
       .eq("user_id", user.id)
       .single();
+    // A refused read is not "no code yet", which answers zero stats.
+    if (codeError && !isNoRow(codeError)) throw codeError;
 
     if (existingCode) {
       // Fetch banana stats in parallel

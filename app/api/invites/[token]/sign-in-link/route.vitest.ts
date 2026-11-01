@@ -13,12 +13,13 @@ import { NextRequest } from "next/server";
 
 const INVITED = "invitee.person@example.com";
 let inviteRow: Record<string, unknown> | null;
+let inviteReadError: { message: string } | null = null;
 const signInWithOtp = vi.fn();
 
 vi.mock("@supabase/supabase-js", () => ({
   createClient: (_url: string, key: string) =>
     key === "service-key"
-      ? { rpc: async () => ({ data: inviteRow ? [inviteRow] : [], error: null }) }
+      ? { rpc: async () => (inviteReadError ? { data: null, error: inviteReadError } : { data: inviteRow ? [inviteRow] : [], error: null }) }
       : { auth: { signInWithOtp: (...a: unknown[]) => signInWithOtp(...a) } },
 }));
 
@@ -71,6 +72,17 @@ describe("POST /api/invites/[token]/sign-in-link", () => {
     inviteRow = null;
     expect((await call("tokenAAAA3")).status).toBe(404);
     expect(signInWithOtp).not.toHaveBeenCalled();
+  });
+
+  it("mails nothing when the invite can't be read, and does not call it unusable", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    inviteReadError = { message: "canceling statement due to statement timeout" };
+    try {
+      expect((await call("tokenAAAA7")).status).toBe(500);
+      expect(signInWithOtp).not.toHaveBeenCalled();
+    } finally {
+      inviteReadError = null;
+    }
   });
 
   it("refuses a shareable-link invite (no address to mail)", async () => {

@@ -5,6 +5,7 @@ import { ilikeOrTerm } from "@/lib/api/postgrest-filter";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { dedupeFeedRows, durationDaysOf } from "@/lib/explore/dedupe";
 import { asBudgetTier } from "@/lib/explore/budget-tier";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * How many ranked rows to pull before deduping and cutting the page.
@@ -189,10 +190,10 @@ export async function GET(request: NextRequest) {
       if (userIds.length > 0) {
         const { createAdminClient } = await import("@/lib/supabase/admin");
         const admin = createAdminClient();
-        const { data: userRows } = await admin
+        const { data: userRows } = logReadError("explore: author usernames", await admin
           .from("users")
           .select("id, username, privacy_settings")
-          .in("id", userIds);
+          .in("id", userIds));
         for (const u of userRows ?? []) {
           const username = u.username as string | null;
           if (!username) continue;

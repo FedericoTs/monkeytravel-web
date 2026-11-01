@@ -1,5 +1,7 @@
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { isNoRow } from "@/lib/supabase/no-row";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 // Generate a random code
 function generateCode(length: number = 8): string {
@@ -31,9 +33,9 @@ export async function GET() {
     }
 
     // Get code usage stats
-    const { data: usageStats } = await supabase
+    const { data: usageStats } = logReadError("admin access codes: usage", await supabase
       .from("user_tester_access")
-      .select("code_id, ai_generations_used, ai_regenerations_used, ai_assistant_used");
+      .select("code_id, ai_generations_used, ai_regenerations_used, ai_assistant_used"));
 
     // Aggregate usage by code
     const usageByCode: Record<string, {
@@ -91,12 +93,13 @@ export async function POST(request: Request) {
     }
 
     // Check if code already exists
-    const { data: existing } = await supabase
+    const { data: existing, error: existingError } = await supabase
       .from("tester_codes")
       .select("id")
       .eq("code", code)
       .single();
 
+    if (existingError && !isNoRow(existingError)) throw existingError;
     if (existing) {
       return errors.badRequest("Code already exists");
     }
