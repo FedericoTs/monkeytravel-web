@@ -56,6 +56,13 @@ export function addIsoDays(iso: string, days: number): string | null {
   return d.toISOString().slice(0, 10);
 }
 
+/** `addIsoDays` for a date the caller knows is real: throws RangeError when it isn't. */
+export function addIsoDaysOrThrow(iso: string, days: number): string {
+  const shifted = addIsoDays(iso, days);
+  if (shifted === null) throw new RangeError(`Not a YYYY-MM-DD date: "${iso}"`);
+  return shifted;
+}
+
 /** Upper bound for the wizard's start-date input, as YYYY-MM-DD. */
 export function maxTripStartDate(now: Date = new Date()): string {
   const d = new Date(now);
