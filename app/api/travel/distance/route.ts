@@ -18,7 +18,7 @@ import { NextRequest } from "next/server";
 import { cacheAdminDb } from "@/lib/supabase/cache-admin";
 import crypto from "crypto";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
-import { estimateTravelTime, calculateHaversineDistance, determineOptimalMode } from "@/lib/utils/travel-estimation";
+import { estimateTravelTime, determineOptimalMode } from "@/lib/utils/travel-estimation";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { Coordinates } from "@/lib/utils/geo";
