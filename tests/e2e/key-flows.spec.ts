@@ -1,4 +1,5 @@
 import { test, expect, type APIRequestContext } from "@playwright/test";
+import { visibleWithin } from "./helpers";
 
 /**
  * The flows that must not break: signup, login, password reset, invitation
@@ -41,7 +42,7 @@ function payload(body: Record<string, unknown>): Record<string, unknown> {
  *  never remove the node, which crashes React (#185) and looks like a bug. */
 async function declineConsent(page: import("@playwright/test").Page) {
   const btn = page.getByRole("button", { name: /essential only/i });
-  if (await btn.isVisible({ timeout: 4000 }).catch(() => false)) await btn.click();
+  if (await visibleWithin(btn, 4000)) await btn.click();
 }
 
 // ---------------------------------------------------------------------------
