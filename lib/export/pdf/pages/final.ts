@@ -1,6 +1,6 @@
 import type jsPDF from "jspdf";
 import type { PageContext, PremiumTripForExport } from "../types";
-import { COLORS, TYPOGRAPHY, LAYOUT } from "../config";
+import { COLORS } from "../config";
 import { getImageFormat, hasImage } from "../utils/images";
 import { parseLocalDate } from "@/lib/utils/date-local";
 

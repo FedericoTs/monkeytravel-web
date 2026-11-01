@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { ReferralTierLevel, ReferralTierInfo } from "@/types/bananas";
 import { TIER_THRESHOLDS, TIER_BADGE_IMAGES } from "@/lib/bananas/config";
-import TierBadge from "./TierBadge";
 
 interface TierProgressProps {
   tierInfo: ReferralTierInfo;

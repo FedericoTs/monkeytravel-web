@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, memo } from "react";
+import { useState, useRef, memo } from "react";
 import type { Activity, VoteType, ActivityVote, ConsensusResult, ActivityVotingStatus } from "@/types";
 import PlaceGallery from "../PlaceGallery";
 import VotingSection from "../collaboration/VotingSection";

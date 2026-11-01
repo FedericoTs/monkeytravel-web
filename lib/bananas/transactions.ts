@@ -9,7 +9,6 @@ import type {
   BananaTransaction,
   BananaTransactionType,
   BananaTransactionRow,
-  transactionRowToApi,
 } from '@/types/bananas';
 import { TIER_EARNING_MULTIPLIERS } from './config';
 import type { ReferralTierLevel } from '@/types/bananas';

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { ActivityStatus, QuickTag, ActivityTimeline, DayProgress } from "@/types/timeline";
 
 interface Activity {

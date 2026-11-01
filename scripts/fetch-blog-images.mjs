@@ -7,7 +7,7 @@
  *   or: source .env.local && node scripts/fetch-blog-images.mjs
  */
 
-import { writeFile, mkdir, stat } from "node:fs/promises";
+import { mkdir, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";

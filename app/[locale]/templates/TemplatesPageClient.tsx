@@ -5,16 +5,13 @@ import { useImageLoaded } from "@/hooks/useImageLoaded";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
-import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Sparkles,
   Search,
   X,
   ChevronRight,
-  ChevronLeft,
   Users,
-  MapPin,
   Calendar,
   Wallet,
   ArrowLeft,

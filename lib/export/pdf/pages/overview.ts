@@ -1,5 +1,5 @@
 import type { PageContext, PremiumTripForExport } from "../types";
-import { COLORS, TYPOGRAPHY, LAYOUT } from "../config";
+import { COLORS, TYPOGRAPHY } from "../config";
 import { formatDateRangeWithWeekdays } from "@/lib/datetime";
 
 /**

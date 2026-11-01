@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { motion, useMotionValue, useTransform, AnimatePresence, PanInfo } from "framer-motion";
+import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import {
   Check,
   X,

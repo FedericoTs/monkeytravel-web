@@ -1,5 +1,5 @@
 import type jsPDF from "jspdf";
-import type { PremiumTripForExport, RGB, ActivityTypeConfig } from "@/types";
+import type { RGB } from "@/types";
 import type { ExchangeRates, CurrencyCode } from "@/lib/locale/types";
 
 // Re-export for backward compatibility

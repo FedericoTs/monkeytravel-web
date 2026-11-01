@@ -8,7 +8,7 @@ import {
   spring,
   useVideoConfig,
 } from 'remotion';
-import { COLORS, FONTS, GRADIENTS } from '../theme';
+import { COLORS, FONTS } from '../theme';
 
 /**
  * Highlight slide — shows a destination highlight (icon + title + description)

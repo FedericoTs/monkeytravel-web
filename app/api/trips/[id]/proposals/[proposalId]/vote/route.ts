@@ -4,7 +4,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 import type { TripProposalRouteContext } from "@/lib/api/route-context";
 import type { ProposalVote, ProposalVoteType } from "@/types";
-import { calculateProposalConsensus, calculateVoteSummary } from "@/lib/proposals/consensus";
+import { calculateProposalConsensus } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING } from "@/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { approveProposal } from "@/lib/proposals/approve";

@@ -11,7 +11,7 @@ import { cacheAdminDb } from "@/lib/supabase/cache-admin";
 import { createClient } from "@/lib/supabase/server";
 import crypto from "crypto";
 import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
-import { checkApiAccess, logApiCall, ApiBlockedError } from "@/lib/api-gateway";
+import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";

@@ -5,7 +5,7 @@ import { useNow } from "@/hooks/useNow";
 import dynamic from "next/dynamic";
 import { useTranslations, useLocale } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, List, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, List, MapPin } from "lucide-react";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData } from "@/types";
 import { useActivityTimeline } from "@/hooks/useActivityTimeline";
 import { trackActivityCompleted } from "@/lib/analytics";

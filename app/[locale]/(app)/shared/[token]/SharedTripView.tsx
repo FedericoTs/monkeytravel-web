@@ -43,7 +43,7 @@ import {
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
-import { Copy, Check, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { hapticMedium, hapticError } from "@/lib/native/haptics";
 import { useToast } from "@/components/ui/Toast";

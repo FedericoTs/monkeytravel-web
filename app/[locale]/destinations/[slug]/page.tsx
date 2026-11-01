@@ -5,7 +5,7 @@ import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/lib/i18n/routing";
 import type { Locale } from "@/lib/destinations/types";
-import { destinations, getDestinationBySlug, getAllSlugs, getRelatedDestinations, getDestinationsByTag, getPrevNextDestinations } from "@/lib/destinations/data";
+import { getDestinationBySlug, getAllSlugs, getRelatedDestinations, getDestinationsByTag, getPrevNextDestinations } from "@/lib/destinations/data";
 import { getBlogPostsForDestination } from "@/lib/cross-links";
 import {
   generateTouristDestinationSchema,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useId } from "react";
+import { useState, useCallback, useId } from "react";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
 import {
   Key,
@@ -15,7 +15,6 @@ import {
   MessageCircle,
   Calendar,
   X,
-  Edit2,
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
