@@ -72,7 +72,6 @@ export async function installDeepLinkHandler(): Promise<() => void> {
       try {
         const targetPath = resolveInAppPath(event.url);
         if (!targetPath) {
-          // eslint-disable-next-line no-console
           console.log(
             "[deep-links] external/unrecognized URL — Capacitor will handle:",
             event.url
@@ -84,12 +83,10 @@ export async function installDeepLinkHandler(): Promise<() => void> {
         // re-fires appUrlOpen on app resume with the original launch URL.
         const currentPath = window.location.pathname + window.location.search;
         if (currentPath === targetPath) {
-          // eslint-disable-next-line no-console
           console.log("[deep-links] already at target, ignoring:", targetPath);
           return;
         }
 
-        // eslint-disable-next-line no-console
         console.log("[deep-links] routing in-WebView to:", targetPath);
 
         // Same-origin navigation. Next.js App Router's link interceptor
@@ -99,14 +96,12 @@ export async function installDeepLinkHandler(): Promise<() => void> {
       } catch (err) {
         // Never let a routing bug bubble up and tear down the listener
         // — better to log and stay subscribed for the next event.
-        // eslint-disable-next-line no-console
         console.error("[deep-links] handler threw:", err);
       }
     });
   } catch (err) {
     // @capacitor/app missing or failed to load. Shouldn't happen in
     // the native shell but defensive against partial install states.
-    // eslint-disable-next-line no-console
     console.warn("[deep-links] failed to register appUrlOpen listener:", err);
   }
 

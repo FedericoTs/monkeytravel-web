@@ -21,7 +21,6 @@ import * as BlogAnnounceMod from "../lib/email/templates/BlogAnnounce";
 import * as BlogApiMod from "../lib/blog/api";
 import * as PopularityMod from "../lib/blog/popularity";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 const BlogDigest = (BlogDigestMod as any).default;
 const BlogDigestEmail = BlogDigest.default;
 const blogDigestSubject = BlogDigest.blogDigestSubject;

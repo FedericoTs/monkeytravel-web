@@ -488,7 +488,6 @@ export function useProposals({
       }
     };
   // Note: Using proposalsRef instead of proposals to avoid recreating subscription
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, tripId, fetchProposals, onProposalChange]);
 
   return {

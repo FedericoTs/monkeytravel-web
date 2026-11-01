@@ -186,7 +186,6 @@ export function usePullToRefresh(
         } catch (err) {
           // Don't swallow silently — caller may have shown an error
           // already, but log so we notice in console during dev.
-          // eslint-disable-next-line no-console
           console.error("[usePullToRefresh] refresh callback threw:", err);
         } finally {
           setRefreshing(false);

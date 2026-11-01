@@ -119,7 +119,6 @@ export async function getCachedItinerary(
   // First arg kept for source-compat with existing callers (they pass
   // their per-request supabase client). We ignore it and use the
   // service-role client so the read works regardless of caller context.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _supabaseIgnored: SupabaseClient | null,
   destination: string,
   vibes: string[],
@@ -225,7 +224,6 @@ export async function getCachedItinerary(
 export async function cacheItinerary(
   // First arg kept for source-compat. Always uses service-role client
   // internally — see getServiceClient() comment for the why.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _supabaseIgnored: SupabaseClient | null,
   destination: string,
   vibes: string[],

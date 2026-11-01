@@ -827,7 +827,6 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
     />
     // openActionModal is a stable inline setter wrapper; intentionally
     // omitted so the callback identity stays stable across renders.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   ), [t, locale, getStatusLabel, firstTripId]);
 
   // Trips other people invited this user to. They have no owner actions

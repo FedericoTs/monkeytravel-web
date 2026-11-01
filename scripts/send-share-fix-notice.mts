@@ -30,7 +30,6 @@ for (const line of fs.readFileSync(path.join(process.cwd(), ".env.local"), "utf8
   if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, "");
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // tsx loads the app's TS modules as CommonJS, whose namespace `default` is
 // the whole module.exports; loaded as ESM, the namespace is the exports.
 const exportsOf = (mod: any) => (mod.default && typeof mod.default === "object" ? mod.default : mod);

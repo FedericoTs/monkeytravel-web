@@ -296,7 +296,6 @@ async function applyActivityPhoto(
   const input = raw as { activityId?: unknown; imageUrl?: unknown } | null;
   const activityId = typeof input?.activityId === "string" ? input.activityId : "";
   const imageUrl = typeof input?.imageUrl === "string" ? input.imageUrl : "";
-  // eslint-disable-next-line no-control-regex
   if (!activityId || activityId.length > 200 || !imageUrl || imageUrl.length > 2048 || /[\x00-\x1F]/.test(imageUrl)) {
     return errors.badRequest("Invalid activityPhoto");
   }

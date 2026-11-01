@@ -14,7 +14,6 @@ import { existsSync, readFileSync } from "node:fs";
 // CJS, so named exports are not statically detectable.
 import * as ReviewModule from "../lib/experiments/result-crew-first-review";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const R = ((ReviewModule as any).default ?? ReviewModule) as typeof ReviewModule;
 
 function creds() {

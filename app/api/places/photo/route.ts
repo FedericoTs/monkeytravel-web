@@ -155,7 +155,6 @@ async function fetchWithRetry(
 ): Promise<Response> {
   let attempt = 0;
   // We re-enter the loop only on retryable failure; success or 4xx returns immediately.
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
       const res = await fetch(url, init);
