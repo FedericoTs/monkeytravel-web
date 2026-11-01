@@ -6,7 +6,6 @@
  */
 
 import type { Activity } from "@/types";
-import type { Coordinates } from "@/lib/utils/geo";
 import {
   calculateHaversineDistance,
   estimateRoadDistance,

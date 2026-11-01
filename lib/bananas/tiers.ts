@@ -12,7 +12,6 @@ import type {
   ReferralTierRow,
 } from '@/types/bananas';
 import {
-  TIER_THRESHOLDS,
   TIER_NAMES,
   TIER_EMOJIS,
   TIER_BENEFITS,

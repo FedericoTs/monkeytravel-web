@@ -13,7 +13,6 @@ import {
 } from "@/lib/analytics";
 import {
   useOnboardingPreferences,
-  type LocalOnboardingPreferences,
 } from "@/hooks/useOnboardingPreferences";
 import { safeNextOrDefault } from "@/lib/security/safe-next";
 

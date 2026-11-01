@@ -8,7 +8,7 @@ import {
   spring,
   useVideoConfig,
 } from 'remotion';
-import { COLORS, FONTS, GRADIENTS } from '../theme';
+import { COLORS, FONTS } from '../theme';
 
 const ACTIVITY_ICONS: Record<string, string> = {
   breakfast: '🥐',

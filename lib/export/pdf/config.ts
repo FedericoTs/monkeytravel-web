@@ -3,7 +3,7 @@
  * Magazine-style design system with sophisticated colors and typography
  */
 
-import type { RGB, ActivityTypeConfig } from "@/types";
+import type { ActivityTypeConfig } from "@/types";
 
 // ============================================================================
 // COLOR PALETTE - Sophisticated, premium travel magazine aesthetic

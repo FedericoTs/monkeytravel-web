@@ -9,7 +9,6 @@ import {
   ConsensusResult,
   ActivityVotingStatus,
 } from "@/types";
-import { calculateConsensus } from "@/lib/voting/consensus";
 
 interface UseActivityVotesOptions {
   tripId: string;

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { errors } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 

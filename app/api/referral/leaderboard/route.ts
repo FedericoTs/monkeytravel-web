@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { errors, apiSuccess } from '@/lib/api/response-wrapper';
 import { getAuthenticatedUser } from '@/lib/api/auth';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { LEADERBOARD_SIZE, TIER_NAMES, TIER_EMOJIS, getTierForConversions } from '@/lib/bananas';
+import { LEADERBOARD_SIZE, TIER_NAMES, TIER_EMOJIS } from '@/lib/bananas';
 import type {
   LeaderboardEntry,
   LeaderboardResponse,

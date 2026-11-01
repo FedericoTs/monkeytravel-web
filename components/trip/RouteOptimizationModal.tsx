@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
 import {
   optimizeDayRoute,
-  calculateTotalDistance,
   type OptimizationResult,
   type OptimizationConstraints,
 } from "@/lib/optimization/routeOptimizer";

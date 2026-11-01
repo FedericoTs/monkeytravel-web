@@ -8,7 +8,6 @@
  */
 
 import {
-  captureReferralConverted,
   captureTripCreated,
 } from "@/lib/posthog/events";
 import { safeGet } from "@/lib/safe-storage";

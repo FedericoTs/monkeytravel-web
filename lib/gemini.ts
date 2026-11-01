@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import type { GeneratedItinerary, TripCreationParams, Activity, ItineraryDay, UserProfilePreferences } from "@/types";
 import { estimateCost } from "@/lib/posthog/llm-analytics";
 import { generateActivityId } from "./utils/activity-id";
-import { getPrompt, DEFAULT_PROMPTS } from "./prompts";
+import { getPrompt } from "./prompts";
 import { captureLLMGeneration, type GeminiUsageMetadata } from "./posthog/llm-analytics";
 import { getModelForPurpose, getSiblingModel, thinkingConfigFor } from "./ai/model-router";
 import { recordGeminiUsage } from "./ai/gemini-cost";
@@ -11,7 +11,6 @@ import {
   withDeduplication,
   getItineraryDedupKey,
   getActivityDedupKey,
-  getMoreDaysDedupKey,
   getDayDedupKey,
 } from "./gemini-dedup";
 import { paceBudgetPromptClause } from "./trip/pace";

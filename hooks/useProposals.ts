@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/client";
 import type {
   Activity,
   ActivityProposal,
-  ProposalVote,
   ProposalVoteType,
   ProposalType,
   ProposalWithVotes,

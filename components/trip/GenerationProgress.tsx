@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import type { SseDayData, SseOutlineData } from "@/lib/streaming/sse";
 import { LivePlanPreview } from "./LivePlanPreview";
