@@ -3,6 +3,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchActivationFunnel, type ActivationFunnelStats } from "@/lib/admin/activation-funnel";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 // Cohort retention data for matrix visualization
 export interface CohortData {
@@ -668,7 +669,7 @@ async function fetchUserMetricsDirect(supabase: SupabaseClient) {
   //
   // This runs only if that RPC errors, so treat a 0 in this field as "the RPC
   // failed", not as a real number.
-  const { data: users } = await supabase.from("users").select("id, created_at, last_sign_in_at");
+  const { data: users } = logReadError("admin stats: users", await supabase.from("users").select("id, created_at, last_sign_in_at"));
   const now = new Date();
   const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -686,10 +687,10 @@ async function fetchTripMetricsDirect(supabase: SupabaseClient) {
   // tombstones as trips: 417 reported against 394 live, a 5.8% overstatement
   // sitting on the dashboard. get_trip_metrics() filters the same way, so
   // the RPC path and this fallback cannot disagree.
-  const { data: trips } = await supabase
+  const { data: trips } = logReadError("admin stats: trips", await supabase
     .from("trips")
     .select("id, created_at, share_token")
-    .is("deleted_at", null);
+    .is("deleted_at", null));
   const now = new Date();
   const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -703,7 +704,7 @@ async function fetchTripMetricsDirect(supabase: SupabaseClient) {
 }
 
 async function fetchAiMetricsDirect(supabase: SupabaseClient) {
-  const { data: usage } = await supabase.from("ai_usage").select("id, created_at");
+  const { data: usage } = logReadError("admin stats: AI usage", await supabase.from("ai_usage").select("id, created_at"));
   const now = new Date();
   const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -716,7 +717,7 @@ async function fetchAiMetricsDirect(supabase: SupabaseClient) {
 }
 
 async function fetchSubscriberMetricsDirect(supabase: SupabaseClient) {
-  const { data: subs } = await supabase.from("email_subscribers").select("id, subscribed_at, verified, unsubscribed_at");
+  const { data: subs } = logReadError("admin stats: subscribers", await supabase.from("email_subscribers").select("id, subscribed_at, verified, unsubscribed_at"));
   const now = new Date();
   const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -734,11 +735,11 @@ async function fetchRecentActivity(supabase: SupabaseClient) {
   const activities: AdminStats["recentActivity"] = [];
 
   // Recent users
-  const { data: recentUsers } = await supabase
+  const { data: recentUsers } = logReadError("admin stats: recent users", await supabase
     .from("users")
     .select("email, created_at")
     .order("created_at", { ascending: false })
-    .limit(5);
+    .limit(5));
 
   recentUsers?.forEach((u) => {
     activities.push({
@@ -749,11 +750,11 @@ async function fetchRecentActivity(supabase: SupabaseClient) {
   });
 
   // Recent trips
-  const { data: recentTrips } = await supabase
+  const { data: recentTrips } = logReadError("admin stats: recent trips", await supabase
     .from("trips")
     .select("title, created_at")
     .order("created_at", { ascending: false })
-    .limit(5);
+    .limit(5));
 
   recentTrips?.forEach((t) => {
     activities.push({
@@ -764,11 +765,11 @@ async function fetchRecentActivity(supabase: SupabaseClient) {
   });
 
   // Recent AI usage
-  const { data: recentAi } = await supabase
+  const { data: recentAi } = logReadError("admin stats: recent AI", await supabase
     .from("ai_usage")
     .select("action, created_at")
     .order("created_at", { ascending: false })
-    .limit(5);
+    .limit(5));
 
   recentAi?.forEach((a) => {
     activities.push({
@@ -814,10 +815,10 @@ async function fetchCohortRetention(
   activityByUser: Map<string, number[]>,
 ): Promise<CohortData[]> {
   // Get all users with their signup dates (activity comes from activityByUser)
-  const { data: users } = await supabase
+  const { data: users } = logReadError("admin stats: cohort users", await supabase
     .from("users")
     .select("id, created_at")
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true }));
 
   if (!users || users.length === 0) return [];
 
@@ -1173,10 +1174,10 @@ async function fetchGeoMetrics(
 
 // Fetch daily user registration trend for the last 90 days
 async function fetchUserTrend(supabase: SupabaseClient): Promise<AdminStats["userTrend"]> {
-  const { data: users } = await supabase
+  const { data: users } = logReadError("admin stats: user trend", await supabase
     .from("users")
     .select("created_at")
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true }));
 
   if (!users || users.length === 0) {
     return {

@@ -21,6 +21,7 @@ import {
   addDaysISO,
 } from "@/lib/ai/assistant/structural";
 import { logWriteError } from "@/lib/supabase/log-write-error";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 interface ApplyChangeRequest {
   tripId: string;
@@ -474,7 +475,7 @@ export async function POST(request: NextRequest) {
       // was refused. Saying "saved" here would be indistinguishable, to the
       // user, from the bug.
       if (typeof readVersion === "number") {
-        const { data: now } = await supabase.from("trips").select("itinerary_version").eq("id", tripId).maybeSingle();
+        const { data: now } = logReadError("assistant apply: version re-read", await supabase.from("trips").select("itinerary_version").eq("id", tripId).maybeSingle());
         const nowVersion = (now as { itinerary_version?: unknown } | null)?.itinerary_version;
         if (typeof nowVersion === "number" && nowVersion !== readVersion) {
           return apiError("The trip changed while this change was being applied", { status: 409, code: CODES.outdated });
@@ -495,11 +496,11 @@ export async function POST(request: NextRequest) {
     // already succeeded.
     if (typeof conversationId === "string" && conversationId) {
       try {
-        const { data: conv } = await supabase
+        const { data: conv } = logReadError("assistant apply: conversation", await supabase
           .from("ai_conversations")
           .select("messages")
           .eq("id", conversationId)
-          .maybeSingle();
+          .maybeSingle());
         const msgs = Array.isArray(conv?.messages) ? [...(conv!.messages as unknown[])] : [];
         // The proposal is the most recent assistant message still marked
         // pending — walk backwards so an older one is never overwritten.

@@ -49,6 +49,7 @@ import {
 import { noProposalNote, replyLanguage } from "@/lib/ai/assistant/honesty";
 import { LANGUAGE_NAMES, tripLocale } from "@/lib/ai/language";
 import { CONCIERGE_SURFACE } from "@/lib/ai/conversations";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * Persist a Concierge Q&A turn to `ai_conversations`.
@@ -336,11 +337,11 @@ export async function POST(request: NextRequest) {
     let completionByActivityId = new Map<string, string>();
     if (todaySlice) {
       try {
-        const { data: timelineRows } = await supabase
+        const { data: timelineRows } = logReadError("concierge: activity progress", await supabase
           .from("activity_timelines")
           .select("activity_id, status")
           .eq("trip_id", tripId)
-          .eq("day_number", todaySlice.dayNumber);
+          .eq("day_number", todaySlice.dayNumber));
         completionByActivityId = new Map(
           (timelineRows ?? []).map((r) => [String(r.activity_id), String(r.status)])
         );
@@ -355,14 +356,14 @@ export async function POST(request: NextRequest) {
     let historyTurns: { question: string; answer: string }[] = [];
     try {
       const admin = createAdminClient();
-      const { data: convRows } = await admin
+      const { data: convRows } = logReadError("concierge: history", await admin
         .from("ai_conversations")
         .select("messages")
         .eq("user_id", user.id)
         .eq("trip_id", tripId)
         .eq("context->>surface", CONCIERGE_SURFACE)
         .order("created_at", { ascending: false })
-        .limit(3);
+        .limit(3));
       historyTurns = (convRows ?? [])
         .map((r) => {
           const msgs = r.messages as { role?: string; content?: string }[] | null;

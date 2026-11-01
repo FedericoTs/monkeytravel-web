@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { NextRequest } from "next/server";
 import { createHash } from "crypto";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * POST /api/referral/click
@@ -37,11 +38,11 @@ export async function POST(request: NextRequest) {
     // 42501. The error is not checked (deliberately: click tracking is
     // best-effort), so the only symptom was referrer_name below silently
     // degrading to "A friend" on every referral landing.
-    const { data: referrer } = await supabase
+    const { data: referrer } = logReadError("referral click: referrer name", await supabase
       .from("public_profiles")
       .select("display_name, avatar_url")
       .eq("id", referralCode.user_id)
-      .single();
+      .single());
 
     // Hash IP for privacy-conscious fraud detection
     const forwarded = request.headers.get("x-forwarded-for");

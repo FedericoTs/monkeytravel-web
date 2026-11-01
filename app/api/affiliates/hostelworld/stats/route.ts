@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * GET /api/affiliates/hostelworld/stats
@@ -44,10 +45,10 @@ export async function GET() {
 
   if (error) {
     // RPC may not exist on first deploy — fall back to plain count.
-    const { count } = await supabase
+    const { count } = logReadError("hostelworld stats: clicks", await supabase
       .from("hostelworld_clicks")
       .select("id", { count: "exact", head: true })
-      .gte("created_at", thirtyDaysAgo);
+      .gte("created_at", thirtyDaysAgo));
     return NextResponse.json(
       {
         clicks30d: count ?? 0,

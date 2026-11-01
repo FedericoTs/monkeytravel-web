@@ -83,6 +83,8 @@ let calls: Call[];
 // The row a conversation id finds, and the rows a trip's history lists.
 let storedConversation: Record<string, unknown>;
 let conversationRows: Record<string, unknown>[];
+// Reads of ai_conversations fail with this when set.
+let conversationReadError: { code: string; message: string } | null;
 function fakeSupabase() {
   const from = (table: string) => {
     let op = "select";
@@ -94,6 +96,7 @@ function fakeSupabase() {
       if (table === "ai_conversations") {
         if (op === "insert") return { data: { id: "conv-new" }, error: null };
         if (op === "update") return { data: null, error: null };
+        if (conversationReadError) return { data: null, error: conversationReadError };
         return { data: list ? conversationRows : storedConversation, error: null };
       }
       return { data: null, error: null };
@@ -144,6 +147,7 @@ beforeEach(() => {
   calls = [];
   storedConversation = { id: "conv-1", messages: savedMessages, context: {} };
   conversationRows = [];
+  conversationReadError = null;
   proposeTripEdits.mockReset();
   chatCalls.mockReset();
   recordUsage.mockReset();
@@ -330,5 +334,21 @@ describe("trip-page assistant: its own conversations only", () => {
     const res = await GET(new NextRequest("http://localhost/api/ai/assistant?tripId=trip-1"));
     const json = await res.json();
     expect(json.conversations.map((c: { id: string }) => c.id)).toEqual(["a-1"]);
+  });
+
+  it("answers nothing, and starts no second thread, when the thread can't be read", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    conversationReadError = { code: "57014", message: "canceling statement due to statement timeout" };
+    const { status } = await send("adding Wigwam to Day 3");
+    expect(status).toBe(500);
+    expect(calls.some((c) => c.table === "ai_conversations" && c.op === "insert")).toBe(false);
+    expect(proposeTripEdits).not.toHaveBeenCalled();
+  });
+
+  it("does not answer an empty history when the threads can't be read", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    conversationReadError = { code: "57014", message: "canceling statement due to statement timeout" };
+    expect((await GET(new NextRequest("http://localhost/api/ai/assistant?tripId=trip-1"))).status).toBe(500);
+    expect((await GET(new NextRequest("http://localhost/api/ai/assistant?conversationId=conv-1"))).status).toBe(500);
   });
 });

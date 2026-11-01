@@ -4,6 +4,7 @@ import {
   isValidPaymentHandle,
   PAYMENT_PROVIDERS,
 } from "@/lib/payments/handle-links";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 export async function GET() {
   try {
@@ -42,10 +43,10 @@ export async function GET() {
     }
 
     // Fetch trip statistics
-    const { data: trips } = await supabase
+    const { data: trips } = logReadError("profile: trip stats", await supabase
       .from("trips")
       .select("id, start_date, end_date, status")
-      .eq("user_id", user.id);
+      .eq("user_id", user.id));
 
     const stats = {
       totalTrips: trips?.length || 0,

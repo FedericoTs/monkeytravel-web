@@ -5,6 +5,7 @@ import { errors, apiError, apiSuccess } from "@/lib/api/response-wrapper";
 import { resolveAssistantRole, ASSISTANT_FORBIDDEN_MESSAGE } from "@/lib/ai/assistant-access";
 import { ASSISTANT_ERROR_CODES } from "@/lib/ai/assistant/error-message";
 import { recordAiOutcome } from "@/lib/ai/observability";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 interface UndoRequest {
   tripId: string;
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     if (!written || written.length === 0) {
       if (typeof expectedVersion === "number") {
-        const { data: now } = await supabase.from("trips").select("itinerary_version").eq("id", tripId).maybeSingle();
+        const { data: now } = logReadError("assistant undo: version re-read", await supabase.from("trips").select("itinerary_version").eq("id", tripId).maybeSingle());
         const nowVersion = (now as { itinerary_version?: unknown } | null)?.itinerary_version;
         if (typeof nowVersion === "number" && nowVersion !== expectedVersion) {
           return apiError("The trip changed after this change", { status: 409, code: ASSISTANT_ERROR_CODES.outdated });

@@ -54,7 +54,11 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
       auth: { persistSession: false },
     });
-    const { data: rows } = await admin.rpc("get_invite_by_token", { p_token: token });
+    const { data: rows, error: inviteError } = await admin.rpc("get_invite_by_token", { p_token: token });
+    if (inviteError) {
+      console.error("[invite sign-in link] invite read failed:", inviteError);
+      return errors.internal("Could not send the sign-in email", "Invite sign-in link");
+    }
     const invite = Array.isArray(rows) ? (rows[0] as { recipient_email?: string | null } | undefined) : undefined;
     if (!invite) return errors.notFound("This invite link is no longer valid");
     if (!invite.recipient_email) {
