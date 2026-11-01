@@ -3,10 +3,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createServerClient } from "@supabase/ssr";
 
 /**
- * My Trips lists the trips other people invited this user to.
- *
- * Until 2026-09-25 they appeared nowhere: after accepting an invite, the only
- * way back to the trip was the original link or a notification.
+ * My Trips lists the trips other people invited this user to: without it,
+ * after accepting an invite, the only way back to the trip is the original
+ * link or a notification.
  */
 
 const ME = "me-1";

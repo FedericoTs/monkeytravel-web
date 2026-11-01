@@ -46,9 +46,9 @@ async function getInviteData(token: string, unnamed: UnnamedLabels) {
   // is the only case that returns data. Any non-usable state collapses
   // to "INVALID_TOKEN" here, matching the safer anon-callable contract.
   //
-  // `message` was added 2026-05-23 along with recipient_email + recipient_locale
-  // for the invite-by-email flow — it's the inviter's personal note shown
-  // above the trip summary on this page. The RPC returns it.
+  // `message` (with recipient_email and recipient_locale, for the
+  // invite-by-email flow) is the inviter's personal note shown above the trip
+  // summary on this page. The RPC returns it.
   const { data: invites, error: inviteError } = await supabase
     .rpc("get_invite_by_token", { p_token: token });
 
@@ -113,8 +113,7 @@ async function getInviteData(token: string, unnamed: UnnamedLabels) {
     const expected = String(invite.recipient_email).toLowerCase().trim();
     if (!viewerEmail || viewerEmail !== expected) {
       // Rendered as InviteRecipientGate, which signs the visitor in as the
-      // invited address (until 2026-09-24 this was an error screen with no
-      // way to sign in). Only a masked hint of that address goes to the page.
+      // invited address. Only a masked hint of that address goes to the page.
       return {
         error: "RECIPIENT_MISMATCH" as const,
         tripTitle: trip.title as string,

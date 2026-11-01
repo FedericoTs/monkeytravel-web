@@ -51,12 +51,11 @@ export default async function TripDetailPage({
   // Members first: the owner and anyone invited ALWAYS get the editor here,
   // whether or not the trip has a share link.
   //
-  // Until 2026-09-25 the non-member redirect below ran before this check, for
-  // everyone: once a trip had a share_token (the "Share" button, the share
-  // prompt, publishing, a signed-out share that was later claimed), its owner
-  // and collaborators were sent to the read-only /shared view on every visit
-  // and could never edit it again — nor stop sharing, whose only button lives
-  // in this editor. 109 live trips were in that state.
+  // This runs before the non-member redirect below: otherwise, once a trip has
+  // a share_token (the "Share" button, the share prompt, publishing, a
+  // signed-out share that was later claimed), its owner and collaborators
+  // would be sent to the read-only /shared view on every visit and could never
+  // edit it again, nor stop sharing, whose only button lives in this editor.
   const owned = user ? await (early && user.id === claimedId ? early : ownedBy(user.id)) : null;
   let trip = owned?.data ?? null;
   let userRole: CollaboratorRole = "owner";
@@ -117,7 +116,7 @@ export default async function TripDetailPage({
   const tripMeta = (trip.trip_meta as TripMeta) || {};
   // An EMPTY ARRAY is truthy, so `||` never reached the fallback: a trip whose
   // packing_list column is `[]` showed no packing block at all even when
-  // trip_meta.packing_suggestions was full. Measured 2026-08-31: 12 live trips.
+  // trip_meta.packing_suggestions was full.
   const packingColumn = trip.packing_list as string[] | null | undefined;
   const packingList =
     (Array.isArray(packingColumn) && packingColumn.length > 0
@@ -129,16 +128,14 @@ export default async function TripDetailPage({
   const cachedTravelDistances = tripMeta.travel_distances;
   const cachedTravelHash = tripMeta.travel_distances_hash;
 
-  // **2026-05-25 (/explore Week 3)**: owner-side engagement bar +
-  // publish toggle. Server-rendered into a prop slot so the existing
+  // Owner-side engagement bar + publish toggle. Server-rendered into a prop slot so the existing
   // TripDetailClient client component doesn't need to know about the
   // explore feature at all.
   const isOwnerView = userRole === "owner";
   const isPublic = trip.visibility === "public" && !trip.is_hidden;
-  // The profile's name (name-first since 2026-09-01), never the email's local
-  // part: this is the Explore byline the share prompt publishes with. It used
-  // to read the sign-in metadata, which has no display_name for Google
-  // accounts, and fall back to the email's local part (lib/profile/public-name.ts).
+  // The profile's name, never the email's local part: this is the Explore
+  // byline the share prompt publishes with. The sign-in metadata has no
+  // display_name for Google accounts (lib/profile/public-name.ts).
   const ownerName =
     publicNameOrNull((viewerProfile as { display_name?: string | null } | null)?.display_name, user.email) ?? undefined;
 

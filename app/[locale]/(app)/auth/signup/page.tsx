@@ -163,8 +163,8 @@ function SignupForm() {
         // When a referral is present, forward it through the confirm-email
         // round-trip so the PKCE callback can attribute the signup server-side
         // (validated). A destination (an invite, a shared trip) travels the
-        // same way: until 2026-09-25 the confirmation link always ended in
-        // the wizard. Plain signups keep the default redirect.
+        // same way, so the confirmation link ends there and not in the wizard.
+        // Plain signups keep the default redirect.
         ...((referralCode || hasDestination) && {
           emailRedirectTo: (() => {
             const cb = new URL(buildAuthCallbackUrl(window.location.origin, { next: redirectUrl, locale }));

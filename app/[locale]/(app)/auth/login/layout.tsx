@@ -6,11 +6,8 @@ import { getTranslations } from "next-intl/server";
  *
  * The page itself is "use client" (form state, supabase client, etc.),
  * which means it can't export `metadata`. We hoist it here so the title
- * resolves on the server with the user's locale — fixing the regression
- * where /it/auth/login and /es/auth/login both shipped "Sign In" in
- * English in the browser tab + social previews.
- *
- * 2026-05-30 (task #250).
+ * resolves on the server in the user's locale, in the browser tab and in
+ * social previews.
  */
 export async function generateMetadata({
   params,

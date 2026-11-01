@@ -11,8 +11,8 @@ import ptProfile from "@/messages/pt/profile.json";
 
 /**
  * /unsubscribe: where the one-click link in an email's footer lands.
- * English-only until 2026-09-25; now in the page's language, with the phrase
- * for what is being stopped shaped to fit each language's sentence.
+ * In the page's language, with the phrase for what is being stopped shaped
+ * to fit each language's sentence.
  */
 
 const PROFILE = { en: enProfile, es: esProfile, it: itProfile, pt: ptProfile } as const;

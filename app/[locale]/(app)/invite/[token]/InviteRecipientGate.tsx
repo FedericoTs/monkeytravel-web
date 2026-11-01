@@ -9,10 +9,8 @@ import { buildAuthCallbackUrl } from "@/lib/auth/callback-url";
  * The invite page for an invite sent to a specific email, when the visitor
  * is not signed in as that email.
  *
- * Until 2026-09-24 this was an error screen: "Sign in with that email to view
- * and accept the invite", with one button, "Create Your Own Trip", and no
- * way to sign in. Every emailed invite to someone without an account stopped
- * there. Now it signs them in as the invited address and brings them back.
+ * It signs them in as the invited address and brings them back, so an
+ * emailed invite works for someone without an account.
  *
  * Two states:
  * - signed out: email a sign-in link to the invited address (the page never

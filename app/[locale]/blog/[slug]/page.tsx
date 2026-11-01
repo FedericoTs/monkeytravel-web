@@ -101,8 +101,7 @@ export async function generateMetadata({
     title: { absolute: title },
     description,
     // Optional-chained: a post without an seo: frontmatter block must degrade
-    // to no keywords, not 500 the route (2026-07-12: august post shipped
-    // without the block and took down all 4 locale URLs).
+    // to no keywords, not 500 the route in every locale.
     keywords: frontmatter.seo?.keywords,
     alternates: {
       canonical: canonicalUrl,

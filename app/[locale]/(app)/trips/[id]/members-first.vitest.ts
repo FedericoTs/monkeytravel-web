@@ -5,10 +5,9 @@ import { createServerClient } from "@supabase/ssr";
 /**
  * Who gets the trip editor at /trips/[id].
  *
- * Until 2026-09-25 the share-link redirect ran first, for everyone: once a
- * trip had a share_token its owner and collaborators were sent to the
- * read-only /shared view on every visit and could never edit it again (109
- * live trips). Members now always get the editor. A non-member of a public
+ * Members always get the editor, even once the trip has a share_token (the
+ * share-link redirect must not send them to the read-only /shared view, where
+ * they could never edit it again). A non-member of a public
  * trip goes to its public page, never to the share link, which lets its
  * holder join the group. The real page runs against a fake Supabase that
  * applies the same visibility and the column grant (no share_token, no *).
@@ -126,7 +125,7 @@ function fakeSupabase() {
             return lookup().then(resolve, reject);
           },
         }),
-        // .single() (the pre-2026-09-25 page) answers PGRST116 for no row.
+        // .single() would answer PGRST116 for no row.
         single: async () => {
           const r = await q.maybeSingle();
           return r.data ? r : { data: null, error: { code: "PGRST116" } };
