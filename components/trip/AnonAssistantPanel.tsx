@@ -184,8 +184,7 @@ export default function AnonAssistantPanel({
       }
       const payload = data?.data ?? data ?? {};
       const reply: string = payload.reply ?? "";
-      // "edits" (several days) or the older single "edit".
-      const rawEdits: unknown[] = Array.isArray(payload.edits) ? payload.edits : payload.edit ? [payload.edit] : [];
+      const rawEdits: unknown[] = Array.isArray(payload.edits) ? payload.edits : [];
       // A day with no activities is one asked to be left free (the server checks).
       const edits = rawEdits.filter((e): e is AnonEdit => !!e && Array.isArray((e as AnonEdit).activities));
       const tripLength: number | undefined = typeof payload.tripLength === "number" ? payload.tripLength : undefined;
@@ -375,12 +374,6 @@ export default function AnonAssistantPanel({
                             day_count: m.edits?.length ?? 0,
                             trip_length: m.tripLength,
                           });
-                          // Save Sprint T5: the keep-your-edits save bridge
-                          // renders with the "applied" state below — one
-                          // shown-event per applied edit, only when the
-                          // bridge will actually render (trip still unsaved).
-                          if (onRequestSave) {
-                          }
                           patchMessage(i, { editState: "applied", undoId, undoGone: false });
                         }}
                         className="rounded-lg bg-[var(--primary)] px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[var(--primary-light)]"

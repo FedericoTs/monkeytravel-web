@@ -28,7 +28,7 @@ import { recordUsage } from "@/lib/ai/usage";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { recordAiOutcome } from "@/lib/ai/observability";
-import { findMatchingActivity, isRelevantBankMatch, populateActivityBank, isActivityBankPopulated, saveToActivityBank } from "@/lib/activity-bank";
+import { findMatchingActivity, isRelevantBankMatch, saveToActivityBank } from "@/lib/activity-bank";
 import { getTripDestination } from "@/lib/trips/destination";
 import type {
   ItineraryDay,

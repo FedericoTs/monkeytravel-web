@@ -123,7 +123,6 @@ const MEDIUM_PATTERNS = [
  * Classify a user message to determine task complexity
  */
 export function classifyTask(message: string, contextLength: number = 0): TaskClassification {
-  const lowerMessage = message.toLowerCase();
   const wordCount = message.split(/\s+/).length;
 
   // Check for complex patterns first
@@ -189,64 +188,3 @@ export function estimateCost(
   return (totalTokens / 1000) * model.costPer1kTokens;
 }
 
-// Rate limiting configuration
-export interface RateLimitConfig {
-  maxRequestsPerMinute: number;
-  maxRequestsPerHour: number;
-  maxTokensPerDay: number;
-  cooldownMinutes: number;
-}
-
-export const RATE_LIMITS: Record<string, RateLimitConfig> = {
-  free: {
-    // 2026-07-24: raised the hourly/daily ceilings alongside the free-tier
-    // monthly cap (TIER_LIMITS.free.aiGenerations 3→30) so a legit day of
-    // multiple generations doesn't trip THIS secondary throttle after the
-    // primary cap was loosened. Still bounds runaway/abuse.
-    maxRequestsPerMinute: 5,
-    maxRequestsPerHour: 60,
-    maxTokensPerDay: 250000,
-    cooldownMinutes: 1,
-  },
-  premium: {
-    maxRequestsPerMinute: 20,
-    maxRequestsPerHour: 200,
-    maxTokensPerDay: 500000,
-    cooldownMinutes: 0,
-  },
-};
-
-// Action types the AI assistant can perform
-export type AssistantAction =
-  | "answer_question"
-  | "suggest_activity"
-  | "edit_activity"
-  | "add_activity"
-  | "remove_activity"
-  | "move_activity"
-  | "regenerate_activity"
-  | "reorder_day"
-  | "swap_days"
-  | "optimize_budget"
-  | "suggest_alternatives"
-  | "full_redesign"
-  | "explain"
-  | "tips";
-
-// Action to tier mapping for forced tier selection
-export const ACTION_TIERS: Record<AssistantAction, ModelTier> = {
-  answer_question: "fast",
-  explain: "fast",
-  tips: "fast",
-  suggest_activity: "standard",
-  edit_activity: "standard",
-  add_activity: "standard",
-  remove_activity: "fast",
-  move_activity: "fast",
-  regenerate_activity: "standard",
-  reorder_day: "standard",
-  swap_days: "fast",
-  optimize_budget: "standard",
-  suggest_alternatives: "standard",
-  full_redesign: "powerful",
-};

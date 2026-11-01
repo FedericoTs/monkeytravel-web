@@ -221,7 +221,7 @@ export async function POST(request: NextRequest) {
             }
           : undefined,
     });
-    return apiSuccess({ reply: result.reply, edits: result.edits, tripLength: result.tripLength, edit: result.edit, currency: result.currency });
+    return apiSuccess({ reply: result.reply, edits: result.edits, tripLength: result.tripLength, currency: result.currency });
   } catch (err) {
     console.error("[assistant-anon] error:", err);
     logAnonExchange({
