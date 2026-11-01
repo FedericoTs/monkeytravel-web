@@ -6,14 +6,11 @@ import { useAnalyticsConsent } from "@/lib/consent/hooks";
 /**
  * First-touch acquisition capture for ORGANIC traffic.
  *
- * Why this exists — measured 2026-08-04: `users.acquisition_source` was
- * populated for 0 of 370 users. It was not broken. middleware.ts already
- * captures `?utm_source=` into an `mt_utm_source` cookie and the auth callback
- * already stamps it onto the row at signup. That chain works — it just only
- * fires for UTM-TAGGED links (built for the Hostelworld partnership). Organic
- * Google, Reddit, direct and referral traffic carry no UTM, so the column was
- * structurally blind to ~100% of real acquisition and we could not answer
- * "where do users come from".
+ * Why this exists: middleware.ts captures `?utm_source=` into an
+ * `mt_utm_source` cookie and the auth callback stamps it onto
+ * `users.acquisition_source` at signup — but only UTM-TAGGED links carry it.
+ * Organic search, social, direct and referral traffic carry no UTM, so on its
+ * own that chain is blind to most real acquisition.
  *
  * This fills that gap by deriving a coarse channel from document.referrer and
  * writing it into the SAME cookie the callback already reads, so nothing
@@ -31,30 +28,19 @@ import { useAnalyticsConsent } from "@/lib/consent/hooks";
  * attributed, so channel mix will UNDER-count. Partial and consented beats
  * complete and not. Read the resulting numbers as "of consenting users".
  *
- * MEASURED OUTCOME, 2026-08-27 — READ THIS BEFORE "FIXING" ANYTHING.
- * users.acquisition_source is NULL for 478 of 478 users, including 113
- * signups since this component shipped and 36 in the preceding week. The
- * under-count is not partial, it is total.
+ * READ THIS BEFORE "FIXING" ANYTHING: users.acquisition_source stays almost
+ * entirely NULL, and that is NOT a bug. Every link in the chain works
+ * (consent writes mt_utm_source/mt_utm_medium at once, the path=/ samesite=lax
+ * cookie reaches /auth/callback, which stamps it). The column is empty because
+ * the cookie is only written AFTER a visitor accepts analytics, analytics
+ * defaults to false (DEFAULT_CONSENT_STATE in lib/consent/types.ts), and
+ * almost nobody accepts before signing up.
  *
- * This is NOT a bug, and it was verified rather than assumed. On production,
- * accepting analytics consent writes mt_utm_source/mt_utm_medium immediately
- * (observed: source=direct, medium=none), the cookie survives a full page
- * load, it is path=/ samesite=lax so a top-level GET carries it to
- * /auth/callback, and the callback does read and stamp it. Every link in the
- * chain works.
- *
- * The column is empty because the cookie is only ever written AFTER a user
- * accepts analytics, and analytics defaults to false (DEFAULT_CONSENT_STATE
- * in lib/consent/types.ts). In practice essentially nobody accepts before
- * signing up — the wizard is the front door and signup happens fast.
- *
- * DECISION 2026-08-27: leave it. DB-side acquisition stays blind; the
- * question is answered from GA4/GSC instead. The alternatives were both
- * rejected deliberately — bucketing server-side at signup would populate the
- * column but stores a channel without analytics consent, and prompting for
- * consent earlier would add friction to the funnel that converts at 48.7%.
- * Revisit only if DB-level attribution becomes genuinely necessary, and treat
- * the consent question as the actual blocker rather than the plumbing.
+ * Leaving it is deliberate: acquisition is read from GA4/GSC instead.
+ * Bucketing server-side at signup would store a channel without analytics
+ * consent, and asking for consent earlier would add friction to the funnel.
+ * If DB-level attribution ever becomes necessary, the consent question is the
+ * blocker, not the plumbing.
  *
  * Deliberately coarse: a bucket name only. No full referrer URL, no query
  * string, no path, nothing that identifies a person.

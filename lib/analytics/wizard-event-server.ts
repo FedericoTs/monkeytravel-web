@@ -14,8 +14,7 @@
  * Fire-and-forget, and it swallows every error: telemetry must never break an
  * auth callback. Schedule it with `after()` from next/server rather than a
  * bare `void` — a route that returns immediately can be frozen before the
- * insert lands, which is how the `trip_claimed` row went missing in
- * production on 2026-09-02 (fixed in #94).
+ * insert lands, and the row is lost.
  */
 import { createAdminClient } from "@/lib/supabase/admin";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";

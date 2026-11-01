@@ -25,7 +25,7 @@ export interface PostHogUserProperties {
 }
 
 /**
- * BUNDLE NOTE (perf task #179, 2026-05-29): posthog-js is lazy-loaded via
+ * posthog-js is lazy-loaded via
  * `getPosthog()` instead of a top-level import so this module doesn't pull
  * the ~120 KB SDK into every component chunk that calls `identifyUser`
  * (SessionTracker, ShareAfterSaveModal, etc.). The SDK is initialized

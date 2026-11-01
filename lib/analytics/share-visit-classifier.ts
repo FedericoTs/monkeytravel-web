@@ -3,10 +3,9 @@
  * both sinks the shared page writes — funnel_events.share_link_visited and the
  * PostHog crew_link_visited twin — so the two counters stay comparable.
  *
- * Why it exists (read of 2026-09-18, 30 days): 1,494 share_link_visited rows
- * were 946 cookieless, non-document renders of one trip in one hour, ~70
- * scraper-fleet hits on the ownerless demo trips, and 27 sessions of owners
- * opening their own link. About 65 rows were recipients.
+ * Why it exists: counted naively, most share_link_visited rows are not
+ * recipients — cookieless non-document renders, scraper fleets on the
+ * ownerless demo trips, and owners opening their own link.
  *
  * Pure: takes header values, never reads next/headers, so it is unit-tested
  * (share-visit-classifier.vitest.ts) the same way as page-view-classifier.ts.

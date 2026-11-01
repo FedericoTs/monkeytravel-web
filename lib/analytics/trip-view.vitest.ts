@@ -96,8 +96,8 @@ describe("isUuid / clientIp", () => {
 });
 
 /**
- * Since 2026-09-23 the route writes through the service role and is the only
- * writer, so it makes the checks the old insert policy never made. A view on
+ * The route writes through the service role and is the only writer, so it
+ * makes the checks itself. A view on
  * a trip nobody can open is dropped; "owner"/"collaborator" are only kept
  * when true, because they feed the North Star's "opened during travel".
  */

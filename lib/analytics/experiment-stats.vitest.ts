@@ -90,12 +90,9 @@ describe("requiredN", () => {
     expect(requiredN(0.745, 0.02)).toBeGreaterThan(requiredN(0.745, 0.10));
   });
 
-  it("shows the 2026-09-09 review date is too early", () => {
-    // This assertion is the finding, not a bound I guessed: resolving a 5pp
-    // move against the 74.5% baseline needs ~597 dwelled sessions in the new
-    // arm. Post-ship supplies ~40/day (42 in the first 25h), so that is about
-    // 15 days from the 2026-09-02 ship — the 09-09 review lands at ~280,
-    // enough for ~7pp and no finer. Decide on 09-09 knowing that, or extend.
+  it("sizes a review: a 5-point move needs far more sessions than a 7-point one", () => {
+    // Resolving a 5pp move against a 74.5% baseline needs ~597 sessions in the
+    // new arm; ~280 resolves about 7pp and no finer.
     expect(requiredN(0.745, 0.05)).toBe(597);
     expect(requiredN(0.745, 0.073)).toBeLessThanOrEqual(280);
   });

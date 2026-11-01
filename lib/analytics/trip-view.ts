@@ -66,8 +66,8 @@ export function isOpenTrip(trip: ViewedTrip): boolean {
  * The renderers send owner/collaborator from TripDetailClient and
  * public/shared from SharedTripView. The last two are taken as sent — they
  * claim nothing. The first two are only kept when true; otherwise the view is
- * recorded as what the visitor could actually have opened. Before 2026-09-23
- * the source was written as sent, so any visitor could log an "owner" open.
+ * recorded as what the visitor could actually have opened, so no visitor can
+ * log an "owner" open.
  */
 export function verifiedSource(
   claimed: TripViewSource,
