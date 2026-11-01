@@ -8,7 +8,7 @@ import PlaceGallery from "@/components/PlaceGallery";
 import { getActivityTypeColors } from "@/lib/constants/activityColors";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
-import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { wikimediaSheetSrc } from "@/lib/images/wikimedia-credit";
 import { PhotoCredit } from "./PhotoCredit";

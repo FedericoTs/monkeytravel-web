@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useImageLoaded } from "@/lib/hooks/useImageLoaded";
+import { useImageLoaded } from "@/hooks/useImageLoaded";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
@@ -103,7 +103,7 @@ function getFlagEmoji(countryCode: string): string {
 function FeaturedCard({ template }: { template: TemplateTrip }) {
   const t = useTranslations("common.curatedEscapes");
   const imgRef = useRef<HTMLImageElement | null>(null);
-  // Cached-image race shim — see lib/hooks/useImageLoaded.ts.
+  // Cached-image race shim — see hooks/useImageLoaded.ts.
   const [imageLoaded, setImageLoaded] = useImageLoaded(imgRef, template.coverImageUrl);
   const gradient = getGradient(template.destination);
 
@@ -209,7 +209,7 @@ function TemplateCard({ template, index }: { template: TemplateTrip; index: numb
   const t = useTranslations("common.curatedEscapes");
   const moodLabel = useMoodLabel();
   const imgRef = useRef<HTMLImageElement | null>(null);
-  // Cached-image race shim — see lib/hooks/useImageLoaded.ts.
+  // Cached-image race shim — see hooks/useImageLoaded.ts.
   const [imageLoaded, setImageLoaded] = useImageLoaded(imgRef, template.coverImageUrl);
   const [imageError, setImageError] = useState(false);
   const gradient = getGradient(template.destination);

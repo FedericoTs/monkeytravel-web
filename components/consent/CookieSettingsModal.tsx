@@ -10,7 +10,7 @@
 import { useId } from "react";
 import { useTranslations } from "next-intl";
 import { useConsent, CONSENT_CATEGORIES, ConsentCategory } from "@/lib/consent";
-import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 
 /**
  * The two blanket choices share one class, for the same reason the banner

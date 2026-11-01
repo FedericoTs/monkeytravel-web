@@ -24,8 +24,8 @@ import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import DownloadIcsButton from "@/components/calendar/DownloadIcsButton";
 // TravelAdvisoryBanner / ExpenseLedger / TripConciergeChat are loaded with
 // next/dynamic further down, which keeps the initial trip-page chunk lean.
-import { useActivityVotes } from "@/lib/hooks/useActivityVotes";
-import { useProposals } from "@/lib/hooks/useProposals";
+import { useActivityVotes } from "@/hooks/useActivityVotes";
+import { useProposals } from "@/hooks/useProposals";
 import { InlineProposalCard } from "@/components/collaboration/proposals";
 import DestinationHero from "@/components/DestinationHero";
 import EditableActivityCard from "@/components/trip/EditableActivityCard";
@@ -52,12 +52,12 @@ import {
   CountdownHero,
   PreTripChecklist,
 } from "@/components/timeline";
-import { useChecklist } from "@/lib/hooks/useChecklist";
+import { useChecklist } from "@/hooks/useChecklist";
 import { useToast } from "@/components/ui/Toast";
 import { useCurrency } from "@/lib/locale";
 import { trackActivityRegenerated, trackTripViewed } from "@/lib/analytics";
 import { fetchShareStatus } from "@/lib/trips/share-status";
-import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
+import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { getCoordinatesForNewActivity, type Coordinates } from "@/lib/utils/geo";
 import {
   ensureActivityIds,

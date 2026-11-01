@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useId } from "react";
 import { useTranslations } from "next-intl";
-import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 import { createClient } from "@/lib/supabase/client";
 import { getPostHog } from "@/lib/posthog/client";
 import { safeSet } from "@/lib/safe-storage";

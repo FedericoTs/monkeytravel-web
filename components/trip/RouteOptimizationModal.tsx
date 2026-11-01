@@ -3,7 +3,7 @@
 import { useState, useEffect, useId, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
-import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 import {
   optimizeDayRoute,
   calculateTotalDistance,

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { useNow } from "@/lib/hooks/useNow";
+import { useNow } from "@/hooks/useNow";
 import dynamic from "next/dynamic";
 import { useTranslations, useLocale } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, List, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData } from "@/types";
-import { useActivityTimeline } from "@/lib/hooks/useActivityTimeline";
+import { useActivityTimeline } from "@/hooks/useActivityTimeline";
 import { trackActivityCompleted } from "@/lib/analytics";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import SwipeableActivityCard from "./SwipeableActivityCard";
@@ -17,7 +17,7 @@ import ActivityCard from "@/components/ActivityCard";
 import DaySlider from "@/components/ui/DaySlider";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
-import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
+import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { daysBetweenLocal, parseLocalDate } from "@/lib/utils/date-local";
 import { hapticSuccess, hapticLight, hapticError } from "@/lib/native/haptics";
 
@@ -76,7 +76,7 @@ export default function OngoingTripView({
   // user IN their actual Day 1 would have currentDayNumber = 2 and the
   // "today" highlight would land on tomorrow's activities. parseLocalDate
   // gives us local midnight of the picked date, which is correct.
-  // Hydration-safe `now` — see lib/hooks/useNow.ts. Same pattern as
+  // Hydration-safe `now` — see hooks/useNow.ts. Same pattern as
   // TripsPageClient. Without this, currentDayNumber differs between
   // server and client renders when the SSR HTML is cached past a midnight
   // boundary → React error #418.

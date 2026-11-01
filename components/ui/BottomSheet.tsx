@@ -3,7 +3,7 @@
 import { useId } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
-import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 
 interface BottomSheetProps {
   isOpen: boolean;

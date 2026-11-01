@@ -10,7 +10,7 @@ import DeleteAccountModal from "@/components/profile/DeleteAccountModal";
 import { BetaCodeInput } from "@/components/beta";
 import { ReferralDashboard } from "@/components/bananas";
 import { createClient } from "@/lib/supabase/client";
-import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 
 // Types
 interface UserProfile {

@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Route, Clock, Footprints, Car, Bus, TrendingUp, CalendarClock, AlertTriangle } from "lucide-react";
-import type { TravelSegment } from "@/lib/hooks/useTravelDistances";
+import type { TravelSegment } from "@/hooks/useTravelDistances";
 import {
   PACE_BUDGETS,
   isOverpacked,

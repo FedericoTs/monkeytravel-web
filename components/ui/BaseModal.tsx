@@ -4,7 +4,7 @@ import { useEffect, useCallback, useId, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
-import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
+import { useModalBehavior } from "@/hooks/useModalBehavior";
 
 export interface BaseModalProps {
   /** Whether the modal is visible */

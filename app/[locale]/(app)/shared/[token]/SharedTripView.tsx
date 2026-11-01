@@ -40,7 +40,7 @@ import {
   type MyVote,
   type VoteTally,
 } from "@/components/trip/AnonymousActivityVoteBar";
-import { useTravelDistances } from "@/lib/hooks/useTravelDistances";
+import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
 import { Copy, Check, Sparkles } from "lucide-react";
