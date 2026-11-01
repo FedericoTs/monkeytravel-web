@@ -252,9 +252,14 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     // We need recipient_email to enforce RECIPIENT_MISMATCH before
     // locking the row in the accept RPC. NOT_FOUND here can mean the
     // invite is exhausted/expired/revoked — the atomic RPC below will
-    // surface the precise error_code, so we don't short-circuit on it.
-    const { data: invites } = await supabaseAdmin
+    // surface the precise error_code, so we don't short-circuit on it. A read
+    // that failed does stop here: without it the recipient check cannot run.
+    const { data: invites, error: previewError } = await supabaseAdmin
       .rpc("get_invite_by_token", { p_token: token });
+    if (previewError) {
+      console.error("[Invites] get_invite_by_token RPC error:", previewError);
+      return errors.internal("Failed to join trip", "Invites");
+    }
 
     const previewInvite = Array.isArray(invites) ? invites[0] : null;
 

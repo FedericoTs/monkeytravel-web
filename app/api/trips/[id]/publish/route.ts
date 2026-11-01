@@ -196,12 +196,15 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
     (Date.now() - new Date(user.created_at).getTime()) / 86_400_000;
   const weeklyCap = accountAgeDays < 7 ? 3 : MAX_PUBLISHED_PER_WEEK;
   const oneWeekAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
-  const { count: recentPublishes } = await supabase
+  const { count: recentPublishes, error: countErr } = await supabase
     .from("trips")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id)
     .eq("visibility", "public")
     .gte("shared_at", oneWeekAgo);
+  if (countErr) {
+    return errors.internal("Failed to publish trip", "trips.count");
+  }
   if ((recentPublishes ?? 0) >= weeklyCap) {
     return errors.badRequest(
       `You can publish up to ${weeklyCap} trips per week`

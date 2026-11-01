@@ -259,13 +259,13 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
     // After vote is recorded, check for consensus and auto-update proposal status
     try {
       // Get all votes for this proposal
-      const { data: allVotes } = await supabase
+      const { data: allVotes, error: votesError } = await supabase
         .from("proposal_votes")
         .select("id, proposal_id, user_id, vote_type, comment, voted_at")
         .eq("proposal_id", proposalId);
 
       // Get total voter count (owner + all editors/voters)
-      const { count: collaboratorCount } = await supabase
+      const { count: collaboratorCount, error: countError } = await supabase
         .from("trip_collaborators")
         .select("id", { count: "exact", head: true })
         .eq("trip_id", tripId)
@@ -274,11 +274,18 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
       const totalVoters = 1 + (collaboratorCount || 0); // +1 for owner
 
       // Get proposal created_at and expires_at
-      const { data: proposalDetails } = await supabase
+      const { data: proposalDetails, error: detailsError } = await supabase
         .from("activity_proposals")
         .select("created_at, expires_at")
         .eq("id", proposalId)
         .single();
+
+      // Nothing is decided on a failed read: without the voter count one
+      // vote is a quorum. The vote stays saved and the next one re-checks.
+      const readError = votesError ?? countError ?? detailsError;
+      if (readError) {
+        throw new Error(`Could not read the proposal's votes: ${readError.message}`);
+      }
 
       if (proposalDetails && allVotes) {
         const expiresAt = proposalDetails.expires_at ||
