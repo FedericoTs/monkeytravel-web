@@ -161,6 +161,34 @@ describe("assistant apply: who may change what", () => {
     expect(json.action).toMatchObject({ type: "apply_draft", dayCount: 3 });
   });
 
+  it("a change that only adds days saves with the day number the trip page sends: the first new day", async () => {
+    const { status, json } = await apply({
+      changeType: "apply_draft",
+      dayNumber: 3,
+      days: [3, 4].map((n) => ({ day_number: n, date: "2099-01-01", theme: `New ${n}`, activities: [act(`n${n}`, `Day ${n} sight`)] })),
+    });
+    expect(status).toBe(200);
+    const days = updates[0].itinerary as Array<{ day_number: number; date: string }>;
+    expect(days.map((d) => [d.day_number, d.date])).toEqual([
+      [1, "2026-11-24"],
+      [2, "2026-11-25"],
+      [3, "2026-11-26"],
+      [4, "2026-11-27"],
+    ]);
+    expect(updates[0].end_date).toBe("2026-11-27");
+    expect(json.action).toMatchObject({ type: "apply_draft", dayNumber: 3, dayCount: 2 });
+  });
+
+  it("a multi-day change that matches no day is still refused", async () => {
+    const { status } = await apply({
+      changeType: "apply_draft",
+      dayNumber: 9,
+      days: [{ day_number: 9, date: "2099-01-01", activities: [] }],
+    });
+    expect(status).toBe(400);
+    expect(updates).toHaveLength(0);
+  });
+
   it("an editor's multi-day change cannot add days", async () => {
     caller = "mate-1";
     const { status } = await apply(draftAdding(3));

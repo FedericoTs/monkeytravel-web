@@ -133,8 +133,10 @@ export async function POST(request: NextRequest) {
     const dayIndex = dayNumber - 1;
 
     // add_day APPENDS: its dayNumber sits one past the current end by
-    // design, so the in-range check below would always reject it.
-    if (changeType !== "add_day" && (dayIndex < 0 || dayIndex >= itinerary.length)) {
+    // design, so the in-range check below would always reject it. Nor does it
+    // apply to apply_draft: its days are matched one by one below, and the
+    // page sends the first changed day, which is a new day when days are added.
+    if (changeType !== "add_day" && changeType !== "apply_draft" && (dayIndex < 0 || dayIndex >= itinerary.length)) {
       return errors.badRequest("Invalid day number");
     }
 
