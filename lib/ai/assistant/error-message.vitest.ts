@@ -36,7 +36,7 @@ describe("assistantErrorMessage", () => {
   });
 
   it("every message key exists in all four languages", () => {
-    const keys = ["limitDay", "limitMonth", "notAllowed", "datesOwnerOnly", "outdated", "locked", "tooManyDays", "applyFailed", "undoFailed"];
+    const keys = ["limitDay", "limitMonth", "notAllowed", "datesOwnerOnly", "outdated", "locked", "tooManyDays", "applyFailed", "undoFailed", "undoOutdated"];
     for (const locale of ["en", "es", "it", "pt"]) {
       const assistant = JSON.parse(readFileSync(`messages/${locale}/common.json`, "utf8")).ai.assistant;
       for (const key of keys) expect(assistant.errors?.[key], `${locale} errors.${key}`).toBeTruthy();

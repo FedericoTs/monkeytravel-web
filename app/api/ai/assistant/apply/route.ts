@@ -446,7 +446,7 @@ export async function POST(request: NextRequest) {
     // the user and being told a change was saved when it was not, which is
     // the exact failure this whole change exists to remove. Asking for the
     // row back turns the ambiguous 204 into an answer.
-    const { data: written, error: updateError } = await supabase
+    let write = supabase
       .from("trips")
       .update({
         itinerary: modifiedItinerary,
@@ -456,10 +456,14 @@ export async function POST(request: NextRequest) {
         ...(newStartDate ? { start_date: newStartDate } : {}),
         updated_at: new Date().toISOString(),
       })
-      .eq("id", tripId)
-      // itinerary_version: the concierge adopts this reply without a refetch,
-      // so it needs the version its new copy was written at.
-      .select("id, itinerary_version");
+      .eq("id", tripId);
+    // Only onto the version the change was computed from: a save that landed
+    // in between would otherwise be overwritten with this older copy.
+    const readVersion = (trip as { itinerary_version?: unknown }).itinerary_version;
+    if (typeof readVersion === "number") write = write.eq("itinerary_version", readVersion);
+    // itinerary_version: the concierge adopts this reply without a refetch,
+    // so it needs the version its new copy was written at.
+    const { data: written, error: updateError } = await write.select("id, itinerary_version");
 
     if (updateError) {
       console.error("[AI Assistant Apply] Database update failed:", updateError);
@@ -467,8 +471,16 @@ export async function POST(request: NextRequest) {
     }
 
     if (!written || written.length === 0) {
-      // No error and no row: the write was refused or matched nothing. Saying
-      // "saved" here would be indistinguishable, to the user, from the bug.
+      // No error and no row: the trip moved on since it was read, or the write
+      // was refused. Saying "saved" here would be indistinguishable, to the
+      // user, from the bug.
+      if (typeof readVersion === "number") {
+        const { data: now } = await supabase.from("trips").select("itinerary_version").eq("id", tripId).maybeSingle();
+        const nowVersion = (now as { itinerary_version?: unknown } | null)?.itinerary_version;
+        if (typeof nowVersion === "number" && nowVersion !== readVersion) {
+          return apiError("The trip changed while this change was being applied", { status: 409, code: CODES.outdated });
+        }
+      }
       console.error("[AI Assistant Apply] Update matched no rows", { tripId });
       return errors.internal("Failed to save changes", "AI Assistant Apply");
     }

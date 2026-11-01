@@ -1767,7 +1767,8 @@
         "locked": "Esto cambiaría un plan fijo ({names}), así que no se puede hacer aquí.",
         "tooManyDays": "Los viajes pueden tener como máximo {max} días.",
         "applyFailed": "No se pudo aplicar el cambio. Inténtalo de nuevo.",
-        "undoFailed": "No se pudo deshacer el cambio. Inténtalo de nuevo."
+        "undoFailed": "No se pudo deshacer el cambio. Inténtalo de nuevo.",
+        "undoOutdated": "Tu viaje ha cambiado desde entonces, así que no se puede deshacer aquí."
       }
     },
     "cards": {
