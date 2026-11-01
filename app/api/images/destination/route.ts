@@ -13,18 +13,10 @@ const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days - images rarely change
 
 // Curated high-quality destination images.
 //
-// HISTORY, and the lesson in it: this map was originally annotated "These are
-// stable Pexels URLs that won't change" — false, Pexels deletes and rotates
-// images. A 2026-05-28 audit removed 4 IDs that had become 404.
-//
-// That audit checked only that each URL RESOLVED, which turned out to be the
-// wrong question. A 2026-07-21 audit opened all 73 images and looked at them:
-// 20 showed the wrong place and 5 were unusable. Venice was the London Eye,
-// Boston was Big Ben, Budapest was Rio de Janeiro, Milan was a macro shot of a
-// wet leaf, Naples was a pond insect, and Cairo was Pexels' own grey
-// "missing image" placeholder — which is served with HTTP 200, so every
-// existence check had passed it. Kyoto and Osaka were effectively swapped.
-// All 25 were replaced with photos that were individually verified by eye.
+// Pexels deletes and rotates images, and a URL that resolves can still show
+// the wrong thing: a different city, a close-up of a leaf, or Pexels' own grey
+// "missing image" placeholder, which is served with HTTP 200 and so passes any
+// existence check. Every entry here was chosen by looking at it.
 //
 // SO: when re-validating, a 200 response proves nothing. Look at the picture.
 // design/audit/probe-images.mjs checks resolution and intra-map duplicates;
@@ -98,19 +90,16 @@ const CURATED_DESTINATIONS: Record<string, string> = {
   oslo: "https://images.pexels.com/photos/18170373/pexels-photo-18170373.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   helsinki: "https://images.pexels.com/photos/17408748/pexels-photo-17408748.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   dublin: "https://images.pexels.com/photos/2416653/pexels-photo-2416653.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-  // edinburgh: removed 2026-05-28 — pexels id 803512 returns 404.
   brussels: "https://images.pexels.com/photos/1595085/pexels-photo-1595085.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
 
   // Italian cities
   naples: "https://images.pexels.com/photos/12496244/pexels-photo-12496244.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   amalfi: "https://images.pexels.com/photos/12464291/pexels-photo-12464291.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-  // trieste: removed 2026-05-28 — pexels id 5007066 returns 404.
 
   // Asian cities
   kyoto: "https://images.pexels.com/photos/33229939/pexels-photo-33229939.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   osaka: "https://images.pexels.com/photos/30957218/pexels-photo-30957218.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   hanoi: "https://images.pexels.com/photos/34277875/pexels-photo-34277875.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
-  // "ho chi minh": removed 2026-05-28 — pexels id 3019797 returns 404.
   taipei: "https://images.pexels.com/photos/28617722/pexels-photo-28617722.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   mumbai: "https://images.pexels.com/photos/6522114/pexels-photo-6522114.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   delhi: "https://images.pexels.com/photos/789750/pexels-photo-789750.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
@@ -125,11 +114,9 @@ const CURATED_DESTINATIONS: Record<string, string> = {
   marrakech: "https://images.pexels.com/photos/3889843/pexels-photo-3889843.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   "cape town": "https://images.pexels.com/photos/259447/pexels-photo-259447.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
 
-  // Restored / added 2026-07-21. The first four were deleted by the 404 sweep
-  // and never replaced, so trips to them fell through to a live Pexels search
-  // — which is what put a photo of London on a Trieste trip. The rest are
-  // destinations real published trips point at. Every one was chosen by
-  // looking at the candidates, not by trusting the search ranking.
+  // Destinations that published trips point at. Without an entry a trip falls
+  // through to a live Pexels search, which can return another city; these were
+  // chosen by looking at the candidates, not by trusting the search ranking.
   edinburgh: "https://images.pexels.com/photos/21235066/pexels-photo-21235066.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   trieste: "https://images.pexels.com/photos/29336031/pexels-photo-29336031.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",
   "ho chi minh": "https://images.pexels.com/photos/32755075/pexels-photo-32755075.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop",

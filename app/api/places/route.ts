@@ -20,12 +20,10 @@ import { destinationPhotos } from "@/lib/images/destination-photos";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
-// Cache duration: 30 days for place details (they rarely change)
-// 2026-07-02 cost: was 30. Destination covers + place searches are effectively
-// immutable, and this cache bills a paid Text Search Pro ($0.017) on every cold
-// entry — the #2 Google Places line ($12.93/30d). A longer TTL means far fewer
-// re-fetches on views. Consistent with the 180d place_details TTL already in
-// lib/cache. Covers are re-fetchable, so a stale hero photo is harmless.
+// Cache duration for destination covers and place searches. A cold entry
+// bills a paid Text Search Pro and these results barely change, so the TTL is
+// long, like lib/cache's place_details TTL. Covers are re-fetchable, so a
+// stale hero photo is harmless.
 const CACHE_DURATION_DAYS = 180;
 
 interface PlacePhoto {
@@ -65,10 +63,6 @@ interface PlaceResult {
  *   2. Google 504s those media endpoints for direct browser loads anyway
  *      (see the long note in app/api/places/photo/route.ts), so the image
  *      silently fails to render even when the key is fine.
- *
- * The GET handler was migrated to this pattern on 2026-05-25; the POST
- * handler that PlaceGallery calls was missed and kept doing both wrong
- * things until 2026-07-21.
  */
 function placePhotoUrl(photoName: string, w: number, h: number): string {
   return `/api/places/photo?name=${encodeURIComponent(photoName)}&w=${w}&h=${h}`;
@@ -377,16 +371,11 @@ export async function POST(request: NextRequest) {
 }
 
 // Get destination cover image and info.
-// **2026-05-24 P0 (live-test):** This GET previously required authentication,
-// but DestinationHero on /trips/new calls it for the result-view hero
-// image. Anonymous users (the entire pre-save funnel) hit 401 → cover
-// never loads → user sees a flat pink gradient on the most important
-// "wow" moment of the conversion. Cost-protection is already provided by:
-//   (a) 30-day server-side cache (most destinations hit cache → $0)
-//   (b) checkApiAccess() circuit breaker (kill switch for cost runaway)
-//   (c) usage limit gate for authenticated users (kept below)
-// We DO NOT add a per-IP rate-limiter here yet; if abuse shows up in
-// logs, layer it on. POST (used for generic searches) stays auth-gated.
+// Open to signed-out visitors: DestinationHero on /trips/new shows this cover
+// to everyone before they save. Cost is held by the server-side cache (most
+// destinations are hits), the checkApiAccess() kill switch, and the usage
+// limit for signed-in users (below). No per-IP rate limit yet. POST (generic
+// searches) stays signed-in only.
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
   const { searchParams } = new URL(request.url);
@@ -464,19 +453,13 @@ export async function GET(request: NextRequest) {
       return errors.internal("Google Places API key not configured", "Places Destination");
     }
 
-    // Check cache first.
-    // **Cache version bumps 2026-05-24:**
-    //   v1 → v2: dropped because the legacy `/media?key=...` URLs 504'd
-    //            in the browser.
-    //   v2 → v3: dropped because the resolved `lh3.googleusercontent.com`
-    //            URLs ALSO 504'd. v3 entries store internal proxy URLs
-    //            (`/api/places/photo?name=...`) which always render.
-    // Old entries expire naturally after 30 days.
-    // Normalize the destination for the cache key (2026-07-02 cost): the raw
-    // string made "Tokyo" / "tokyo" / "  Tokyo " separate cache rows, each
-    // triggering its own paid Text Search. Collapse case + whitespace so
-    // variants share one cached cover. Deliberately NOT stripping the country
-    // suffix — that would collide same-name cities (Portland OR vs ME).
+    // Check cache first. v3 entries store our own proxy URLs
+    // (`/api/places/photo?name=...`): Google's photo URLs, which v1 and v2
+    // stored, 504 in the browser.
+    // The key collapses case and whitespace, so "Tokyo", "tokyo" and
+    // "  Tokyo " share one cached cover (each miss is a paid Text Search).
+    // The country suffix stays, or same-name cities (Portland OR vs ME) would
+    // collide.
     const normalizedDestinationKey = destination.toLowerCase().trim().replace(/\s+/g, " ");
     const cacheKey = generateCacheKey(normalizedDestinationKey, "destination_v3");
     const cachedResult = await getFromCache(cacheKey);
@@ -534,23 +517,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Return proxy URLs that stream the photo through our /api/places/photo
-    // route. **2026-05-24 live-test fix (revision 2):** Direct browser
-    // loads of both `places.googleapis.com/.../media` AND the resolved
-    // `lh3.googleusercontent.com/place-photos/...` URLs return HTTP 504.
-    // Proxying through our own server (which sets X-Goog-Api-Key and
-    // streams the bytes back) is the only path that reliably renders.
-    // Vercel CDN caches the proxy response for a year so cost = near-zero.
+    // route: browsers get HTTP 504 from Google's photo URLs, and the proxy
+    // keeps the API key server-side. The CDN caches the proxied bytes.
     const proxyUrl = (photoName: string, w: number, h: number): string =>
       `/api/places/photo?name=${encodeURIComponent(photoName)}&w=${w}&h=${h}`;
 
     const coverPhoto = place.photos?.[0];
     const coverImageUrl = coverPhoto ? proxyUrl(coverPhoto.name, 1920, 1200) : null;
 
-    // **2026-05-25 P1 fix**: Google returns photos at their NATIVE aspect
-    // ratio capped to the requested box, so a portrait original asked for
-    // at 200x150 comes back as 68x150 — looks empty/letterboxed in our
-    // landscape gallery tiles. Filter to roughly-landscape photos before
-    // building the gallery so users see meaningful imagery.
+    // Google returns photos at their NATIVE aspect ratio capped to the
+    // requested box, so a portrait original asked for at 200x150 comes back
+    // as 68x150, letterboxed in our landscape gallery tiles. The gallery
+    // keeps roughly landscape photos.
     const isLandscapeFriendly = (p: PlacePhoto): boolean => {
       if (!p.widthPx || !p.heightPx) return true; // Be permissive on missing meta
       const ratio = p.widthPx / p.heightPx;
@@ -583,15 +561,8 @@ export async function GET(request: NextRequest) {
       description: place.editorialSummary?.text,
     };
 
-    // Save to cache and log API usage.
-    // This destination-cover cache never populated for months: cache_type
-    // "destination" violated the google_places_cache cache_type CHECK, so the
-    // upsert threw → was caught + swallowed in saveToCache → every trip hero
-    // re-ran a paid Text Search (~88% of our Google Places spend, 0% cache
-    // hit). Fixed by migration 20260621_drop_places_cache_type_check (applied
-    // 2026-06-21), which dropped the over-restrictive CHECK. Awaited so the
-    // write isn't dropped when the serverless function freezes after sending
-    // the response.
+    // Save to cache and log API usage. Awaited so the write isn't dropped
+    // when the serverless function freezes after sending the response.
     await saveToCache(cacheKey, "destination", result);
     await logPlacesApiRequest("/places:searchText (destination)", {
         fieldMask: DESTINATION_SEARCH_FIELD_MASK,

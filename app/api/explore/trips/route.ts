@@ -8,9 +8,8 @@ import { asBudgetTier } from "@/lib/explore/budget-tier";
 
 /**
  * How many ranked rows to pull before deduping and cutting the page.
- * The feed is 55 trips today (2026-09-05); the window is a bound, not a
- * target. Deduping needs the ranked list, not one DB page of it — a fork
- * and its parent can land on different pages.
+ * The window is a bound, not a target. Deduping needs the ranked list, not
+ * one DB page of it — a fork and its parent can land on different pages.
  */
 const FEED_WINDOW = 400;
 
@@ -18,12 +17,10 @@ const FEED_WINDOW = 400;
  * GET /api/explore/trips
  * Returns trending public trips with optional filters.
  *
- * **2026-05-25 (Week 1 of /explore UGC build)**: extended the response
- * to include author info + engagement counts (likes/saves/forks) +
- * Editor's Picks flag. NOTE: this GET is intentionally NOT gated by
- * EXPLORE_UGC_ENABLED — the existing /explore page (template/featured
- * trips) is already live + indexed and shouldn't 404 during the rollout
- * window. Only the WRITE endpoints (like/save/fork/publish/report) are
+ * The response includes author info, engagement counts (likes/saves/forks)
+ * and the Editor's Picks flag. This GET is intentionally NOT gated by
+ * EXPLORE_UGC_ENABLED: the /explore page (template/featured trips) is live
+ * and indexed. Only the WRITE endpoints (like/save/fork/publish/report) are
  * env-flag-gated.
  */
 export async function GET(request: NextRequest) {
@@ -47,15 +44,13 @@ export async function GET(request: NextRequest) {
     const durationMax = searchParams.get("duration_max");
     const budgetTier = searchParams.get("budget");
     const tags = searchParams.get("tags")?.split(",").filter(Boolean);
-    // 2026-05-28 — Tier 1.1 column is now live; we filter on the real
-    // trips.travel_style column rather than parsing trip_meta JSONB.
-    // Whitelist to avoid an arbitrary string flowing into the WHERE.
+    // Filter on the trips.travel_style column rather than parsing trip_meta
+    // JSONB. Whitelist to avoid an arbitrary string flowing into the WHERE.
     const travelStyleParam = searchParams.get("travel_style");
     const travelStyle: "backpacker" | null =
       travelStyleParam === "backpacker" ? "backpacker" : null;
-    // Bug-bounty 2026-05-24 P1: parseInt of arbitrary strings produces
-    // NaN which then flowed into query.range(NaN, NaN) — undefined
-    // Supabase behaviour. Clamp + default.
+    // parseInt of an arbitrary string is NaN, and query.range(NaN, NaN) is
+    // undefined Supabase behaviour: clamp and default.
     const rawPage = parseInt(searchParams.get("page") || "1", 10);
     const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
     const rawPerPage = parseInt(searchParams.get("per_page") || "12", 10);
@@ -105,16 +100,11 @@ export async function GET(request: NextRequest) {
     const base = supabase
       .from("trips")
       .select(
-        // 2026-05-29 FIX #188 — dropped `itinerary` + `budget` JSONB
-        // from the SELECT: neither flowed through to the response
-        // (itinerary was scanned only as a cover-image fallback, but
-        // every published trip in prod already has cover_image_url
-        // set — verified 7/7). `budget` had no consumer at all.
-        // Wire format unchanged; payload ~10-20x lighter per row.
-        // public_slug + user_id added 2026-07-03 for the indexable UGC
-        // trip-page + creator-profile linking (card → /trip/{slug}, byline →
-        // /creator/{username}). user_id feeds a batched, privacy-safe
-        // username lookup below (never exposes email/payment handles).
+        // No `itinerary` or `budget` JSONB: the response uses neither, and
+        // they are the heavy columns. public_slug and user_id link the card
+        // to /trip/{slug} and the byline to /creator/{username}; user_id
+        // feeds a batched, privacy-safe username lookup below (never email
+        // or payment handles).
         ugcOn
           ? "id, parent_trip_id, title, description, start_date, end_date, tags, cover_image_url, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta, like_count, save_count, fork_count, author_display_name, author_note, is_editors_pick, travel_style"
           : "id, parent_trip_id, title, description, start_date, end_date, tags, cover_image_url, shared_at, public_slug, user_id, trending_score, view_count, template_copy_count, trip_meta",
@@ -222,16 +212,11 @@ export async function GET(request: NextRequest) {
     //
     // Dedupe first (lib/explore/dedupe.ts): one trip per lineage — the
     // original beats its fork — and one per (title, author, duration).
-    // Measured 2026-09-05: 1 fork beside its parent + 8 same-title copies
-    // in a 55-trip feed.
     const rankedRows = dedupeFeedRows((trips ?? []) as unknown as TripRow[]);
     const processedTrips = rankedRows.map((trip) => {
       const durationDays = durationDaysOf(trip);
 
-      // 2026-05-29 FIX #188 — itinerary fallback scan removed along
-      // with the JSONB column SELECT. Every published trip in prod has
-      // cover_image_url set; TripCard renders a gradient placeholder
-      // when null (TripCard.tsx L44-57).
+      // TripCard renders a gradient placeholder when there is no cover.
       const coverImage = trip.cover_image_url;
 
       const meta = trip.trip_meta as Record<string, unknown> || {};
@@ -246,8 +231,7 @@ export async function GET(request: NextRequest) {
         durationDays,
         coverImage,
         tags: trip.tags || [],
-        // null when unknown — the card hides the pill rather than invent
-        // "$$" (it was null on every feed trip on 2026-09-05).
+        // null when unknown: the card hides the pill rather than invent "$$".
         budgetTier: asBudgetTier(meta.budget_tier),
         trendingScore: trip.trending_score,
         viewCount: trip.view_count || 0,
