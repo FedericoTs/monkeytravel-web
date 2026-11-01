@@ -13,6 +13,7 @@ import TripEngagementSection from "@/components/explore/TripEngagementSection";
 import { refreshTripItinerary } from "@/lib/places/refreshItineraryPhotos";
 import { publicNameOrNull } from "@/lib/profile/public-name";
 import { TRIP_COLUMNS } from "@/lib/trips/columns";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 export async function generateMetadata({
   params,
@@ -107,11 +108,14 @@ export default async function TripDetailPage({
   // of truth, see lib/places/refreshItineraryPhotos.ts) need only the trip
   // and the viewer, so they go out in one round trip.
   const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
-  const [{ count: collaboratorCount }, { data: viewerProfile }, itinerary] = await Promise.all([
+  const [{ count: collaboratorCount, error: countError }, viewerRead, itinerary] = await Promise.all([
     supabase.from("trip_collaborators").select("*", { count: "exact", head: true }).eq("trip_id", id),
     supabase.from("users").select("display_name").eq("id", user.id).maybeSingle(),
     refreshTripItinerary(rawItinerary),
   ]);
+  // Without the count a group trip would show as a solo one, with no voting.
+  if (countError) throw countError;
+  const { data: viewerProfile } = logReadError("trip page: viewer name", viewerRead);
 
   // Total voters = collaborators + owner
   const totalVoters = (collaboratorCount || 0) + 1;

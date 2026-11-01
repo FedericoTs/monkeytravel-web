@@ -214,7 +214,7 @@ async function viewerOnTrip(tripId: string): Promise<boolean | null> {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
-  const [{ data: trip }, { data: collaborator }] = await Promise.all([
+  const [tripRead, collaboratorRead] = await Promise.all([
     supabase.from("trips").select("user_id").eq("id", tripId).maybeSingle(),
     supabase
       .from("trip_collaborators")
@@ -223,6 +223,8 @@ async function viewerOnTrip(tripId: string): Promise<boolean | null> {
       .eq("user_id", userId)
       .maybeSingle(),
   ]);
+  const { data: trip } = logReadError("invite page: trip owner", tripRead);
+  const { data: collaborator } = logReadError("invite page: membership", collaboratorRead);
   return trip?.user_id === userId || Boolean(collaborator);
 }
 
