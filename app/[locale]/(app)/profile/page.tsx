@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { logReadError } from "@/lib/supabase/log-read-error";
+import { isNoRow } from "@/lib/supabase/no-row";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
@@ -70,9 +72,12 @@ export default async function ProfilePage() {
       .maybeSingle(),
   ]);
 
+  // The settings form saves whole objects, so defaults shown for a refused
+  // read would be saved over the stored settings.
+  if (profileResult.error && !isNoRow(profileResult.error)) throw profileResult.error;
   const { data: profile } = profileResult;
-  const { data: trips } = tripsResult;
-  const { data: betaAccess } = betaAccessResult;
+  const { data: trips } = logReadError("profile: trips", tripsResult);
+  const { data: betaAccess } = logReadError("profile: beta access", betaAccessResult);
 
   // Calculate stats
   const tripStats = {

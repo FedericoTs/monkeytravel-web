@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { hasSessionCookie } from "@/lib/supabase/session-cookie";
+import { isNoRow } from "@/lib/supabase/no-row";
 import {
   trackSessionStart,
   trackUserReturn,
@@ -85,12 +86,7 @@ export default function SessionTracker() {
       setUserId(user.id);
 
       // Fetch all user data in parallel for better performance
-      const [
-        { data: userData },
-        { count: tripsCount },
-        { count: activeTripsCount },
-        { data: betaAccess },
-      ] = await Promise.all([
+      const [userRead, tripsRead, activeTripsRead, betaRead] = await Promise.all([
         // User profile data
         supabase
           .from("users")
@@ -117,6 +113,17 @@ export default function SessionTracker() {
           .eq("user_id", user.id)
           .maybeSingle(),
       ]);
+      // Properties built from a refused read would overwrite the person's
+      // real ones with defaults. The next page load tracks the session.
+      const failed = [userRead, tripsRead, activeTripsRead, betaRead].find((r) => r.error && !isNoRow(r.error));
+      if (failed) {
+        console.error("[SessionTracker] read failed:", failed.error?.message);
+        return;
+      }
+      const { data: userData } = userRead;
+      const { count: tripsCount } = tripsRead;
+      const { count: activeTripsCount } = activeTripsRead;
+      const { data: betaAccess } = betaRead;
 
       // Calculate account age
       const accountCreated = userData?.created_at ? new Date(userData.created_at) : new Date();

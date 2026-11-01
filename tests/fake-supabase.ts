@@ -42,6 +42,7 @@ export function fakeSupabase(answer: FakeAnswer = () => ({ data: null, error: nu
       gt: (c: string, v: unknown) => (q.filters.push(["gt", c, v]), chain),
       gte: (c: string, v: unknown) => (q.filters.push(["gte", c, v]), chain),
       like: (c: string, v: unknown) => (q.filters.push(["like", c, v]), chain),
+      or: () => chain,
       order: () => chain,
       limit: () => chain,
       single: async () => done("single"),

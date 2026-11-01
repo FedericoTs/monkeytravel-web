@@ -46,7 +46,7 @@ type World = {
   visibility: "private" | "public";
   isHidden?: boolean;
   displayName?: string | null; // the viewer's public.users.display_name
-  refusing?: "trips" | "trip_collaborators"; // a table whose reads the database refuses
+  refusing?: "trips" | "trip_collaborators" | "users"; // a table whose reads the database refuses
 };
 let world: World;
 let lastByline: string | undefined;
@@ -134,7 +134,13 @@ function fakeSupabase() {
         },
         // The collaborator count query is awaited on the builder itself.
         then: (resolve: (v: unknown) => void) =>
-          resolve(head ? { count: Object.keys(world.collaborators).length, error: null } : { data: [], error: null }),
+          resolve(
+            world.refusing === table
+              ? { count: null, error: { code: "57014", message: "canceling statement due to statement timeout" } }
+              : head
+                ? { count: Object.keys(world.collaborators).length, error: null }
+                : { data: [], error: null },
+          ),
       };
       return q;
     },
@@ -198,6 +204,13 @@ describe("a read the database refused", () => {
     world.refusing = "trip_collaborators";
     await expect(visit()).rejects.toMatchObject({ code: "57014" });
   });
+
+  it("for the collaborator count is the error page, not a solo trip without voting", async () => {
+    world.user = OWNER;
+    world.collaborators = { "mate-1": "editor" };
+    world.refusing = "trip_collaborators";
+    await expect(visit()).rejects.toMatchObject({ code: "57014" });
+  });
 });
 
 describe("members always get the editor, shared or not", () => {
@@ -232,6 +245,17 @@ describe("the byline the owner would publish with", () => {
     world.displayName = "Ana Lopez";
     await visit();
     expect(lastByline).toBe("Ana Lopez");
+  });
+
+  it("is left out, and the failure logged, when the profile can't be read", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    world.user = OWNER;
+    world.displayName = "Ana Lopez";
+    world.refusing = "users";
+    expect(await visit()).toEqual({ editor: "owner" });
+    expect(lastByline).toBeUndefined();
+    expect(logged).toHaveBeenCalledWith("[trip page: viewer name] read failed:", "canceling statement due to statement timeout");
+    logged.mockRestore();
   });
 
   it("is never the email's local part (62 of 70 public trips showed it)", async () => {
