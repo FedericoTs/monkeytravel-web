@@ -3,7 +3,7 @@
  * (docs/PRODUCT_PLAN_COCREATION_2026_08.md, Priority 4).
  *
  * The multi-city merge concatenated city blocks with NOTHING between them —
- * "otherwise it's just a list of activities" (Ivan). This module estimates the
+ * "otherwise it's just a list of activities". This module estimates the
  * transfer between consecutive cities from pure code + a distance heuristic
  * (no API): a `transport` activity on each leg-boundary morning, and the
  * "TRAIN · 4h 10m" transit label the JourneyRibbon has had a slot for since

@@ -4,10 +4,9 @@
  * A planner who shares while signed out mints an ownerless trip row and their
  * browser keeps a claim token (lib/trips/anonymous-claim-client.ts). When they
  * sign in, two things would persist the same itinerary at once: AuthProvider
- * claims that row, and the wizard's auto-save inserts a fresh one. Measured
- * 2026-09-02: 56 signed-out shares in 30 days, 0 claims, so the collision had
- * never been seen — the "keep this trip" nudge makes it routine, so the rule
- * is pinned here and tested, away from the 4,000-line wizard.
+ * claims that row, and the wizard's auto-save inserts a fresh one. The "keep
+ * this trip" nudge makes that collision routine, so the rule is pinned here
+ * and tested, away from the 4,000-line wizard.
  *
  *   matches     the draft on screen is the trip that was shared (same
  *               destination and dates)

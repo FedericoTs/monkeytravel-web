@@ -2,16 +2,14 @@
  * Quantified pace budgets — the single definition of what "relaxed",
  * "moderate" and "active" actually mean in activities and hours.
  *
- * WHY (P3b, Ivan feedback 2026-08): pace was a bare word passed through the
- * whole system — the wizard collected it, the prompt echoed it, and nothing
- * ever measured a generated day against it. The result: days that LOOK fine
- * as a list but are 11 hours of scheduled activity on a "moderate" trip.
+ * WHY: as a bare word passed through the whole system (the wizard collects
+ * it, the prompt echoes it), pace measures nothing, and a day can LOOK fine
+ * as a list while holding 11 hours of scheduled activity on a "moderate" trip.
  * Feasibility has to be a number before the UI or the model can be held to it.
  *
- * Calibration: measured across saved trips 2026-08 the generator averages
- * 3.99 activities/day at ~127 min each (~8.4h). Budgets bracket that reality
- * rather than aspiring to a different one, so the overpacked flag stays a
- * signal, not wallpaper.
+ * Calibration: the generator averages about four activities a day of a
+ * couple of hours each. Budgets bracket that reality rather than aspiring to
+ * a different one, so the overpacked flag stays a signal, not wallpaper.
  *
  * Pure and dependency-free — imported by client components (DaySummary),
  * server prompts (lib/gemini.ts) and unit tests alike.

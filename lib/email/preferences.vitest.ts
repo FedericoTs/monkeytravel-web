@@ -6,9 +6,8 @@ import { NOTIFICATION_SETTING_KEY } from "./send";
 /**
  * The settings page's switches are the ones the email pipeline reads.
  *
- * Until 2026-09-25 /profile/notifications offered four switches no email ever
- * read ("Weekly digest", "Proposed activities", "Comments", "Invite
- * accepted") and none for trip reminders or marketing, which most emails are.
+ * A switch no email reads does nothing, and a missing one leaves a category
+ * with no way to stop it (trip reminders and marketing are most emails).
  */
 
 describe("email switches", () => {

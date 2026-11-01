@@ -70,8 +70,8 @@ describe("classifyOtpError", () => {
   });
 
   it("reads a 5xx as the gateway, not the code", () => {
-    // Live 2026-09-13: /auth/v1/verify answered 504 in 66 ms on a correct
-    // code. Whatever the body says, a 5xx never judged the digits.
+    // /auth/v1/verify can answer 504 on a correct code. Whatever the body
+    // says, a 5xx never judged the digits.
     expect(classifyOtpError("Gateway Timeout", 504)).toBe("network");
     expect(classifyOtpError("<html>502 Bad Gateway</html>", 502)).toBe("network");
     expect(classifyOtpError("Token has expired or is invalid", 503)).toBe("network");

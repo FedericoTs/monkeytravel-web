@@ -129,9 +129,9 @@ export function validateAnonymousTripPayload(body: unknown): ValidationResult {
  * load invents a new id for the same activity. Votes are keyed on that id, so
  * a vote is written against something nobody will ever look up again.
  *
- * Measured 2026-09-03: 78.1% of activities on anonymous trips had no stored
- * id, and 13 of the 51 anonymous votes ever cast (25%) already point at an
- * activity id that exists nowhere in their trip.
+ * Most activities on anonymous trips carry no stored id, so without this a
+ * share of anonymous votes point at an activity id that exists nowhere in
+ * their trip.
  *
  * Deliberately NOT `ensureActivityIds` from lib/utils/activity-id: that helper
  * assumes a well-formed ItineraryDay[] and throws on a day with no

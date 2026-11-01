@@ -1,6 +1,6 @@
 /**
- * One-off notice (2026-09-25) to the owners of shared trips: sharing a trip
- * used to lock its owner out of editing it (fixed in #183/#184/#185).
+ * One-off notice to the owners of shared trips: sharing a trip used to lock
+ * its owner out of editing it, and no longer does.
  *
  * A message about the recipient's own trips, sent one by one through the
  * app's pipeline (lib/email/send.ts, template id "share_fix_notice") by

@@ -4,11 +4,9 @@
  * updateSession() records the page view and sets `mt_session_id` on
  * `supabaseResponse`, and four branches then return a FRESH
  * NextResponse.redirect(). A fresh response carries none of the first one's
- * cookies, so before 2026-09-22 those views landed under a session id that
- * was never persisted: the visitor's next request minted another one, and
- * that request carried a same-origin Referer. Measured 18-21 Sep: 56
- * anonymous views across 54 distinct sessions on redirect-prone /trips*
- * paths, ~14/day.
+ * cookies, so without carrying them those views land under a session id
+ * that is never persisted: the visitor's next request mints another one, and
+ * that request carries a same-origin Referer.
  *
  * This asserts the carrying behaviour on the real NextResponse objects rather
  * than on a mock, because the bug was precisely that two real response objects

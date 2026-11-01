@@ -11,7 +11,6 @@ describe("countryFromAddress", () => {
   });
 
   it("reads a US state and zip when the country is implied", () => {
-    // Stillwater, Minnesota — the reply that started this.
     expect(countryFromAddress("101 Water St S, Stillwater, MN 55082")).toBe("US");
     expect(countryFromAddress("Hood River, OR 97031")).toBe("US");
     expect(countryFromAddress("512 Main St, Chatham, MA 02633, USA")).toBe("US");

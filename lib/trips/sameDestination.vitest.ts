@@ -6,10 +6,9 @@ import { isSameDestination } from "./sameDestination";
  * auto-save already persisted, or insert a new one.
  *
  * Getting this wrong is asymmetric. A false negative leaves a duplicate trip
- * in the user's list — annoying, recoverable, and exactly the bug measured on
- * 2026-08-25 (31 pairs across 24 users). A false POSITIVE overwrites a saved
- * trip with a different city — silent data loss. So every ambiguous case here
- * must resolve to `false`.
+ * in the user's list — annoying and recoverable. A false POSITIVE overwrites
+ * a saved trip with a different city — silent data loss. So every ambiguous
+ * case here must resolve to `false`.
  */
 
 describe("isSameDestination", () => {

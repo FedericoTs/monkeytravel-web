@@ -15,9 +15,9 @@ import {
 /**
  * The return trip from Google or an emailed link.
  *
- * Until 2026-09-24 the save prompt built /pt/auth/callback, a route that does
- * not exist, so every es/it/pt sign-in from it ended on a 404. And the
- * send-email hook nested the callback URL inside `next`, which sent a
+ * A save prompt building /pt/auth/callback (a route that does not exist)
+ * would end every es/it/pt sign-in from it on a 404. And a send-email hook
+ * nesting the callback URL inside `next` would send a
  * signed-in user through the callback twice and out to the login page with an
  * error. These pin each piece of the fix.
  */

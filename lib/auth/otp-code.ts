@@ -4,22 +4,12 @@
  *
  * WHY THIS EXISTS
  * ---------------
- * Measured 2026-09-03 over 30 days, people who started a sign-up:
- *
- *     Google  (stays in the tab)         96 started, 95 got in   99.0%
- *     Magic link (leaves for the mail)   46 started, 29 got in   63.0%
- *
- * p = 1.8e-9. The same mechanism shows up by device: of the sessions that
- * clicked Save on a finished itinerary, desktop ends up with a trip 67.8% of
- * the time and mobile 39.2% (p = 0.0001) — while the CLICK rates are
- * identical, 20.5% and 22.1%. Mobile planners want their trip just as much;
- * they are simply more exposed to "leave the browser, come back somewhere
- * else". 17 people a month ask for a magic link and never get in.
- *
- * It is not the old cross-device confirmation bug — that was fixed by
- * switching the link to token_hash + verifyOtp, and weekly signup->got-in now
- * runs 85-94%. It is not a broken modal either; the surface was driven at
- * 390x844 and is fine. What was missing is any email path that keeps the user
+ * A sign-up that stays in the tab (Google) gets people in far more often than
+ * one that leaves for the mail (a magic link), and the same mechanism shows
+ * up by device: mobile planners click Save as often as desktop ones, but are
+ * more exposed to "leave the browser, come back somewhere else". It is not the
+ * cross-device confirmation issue (the link uses token_hash + verifyOtp) and
+ * not the modal. What was missing is any email path that keeps the user
  * where they already are.
  *
  * THE CODE WAS ALREADY THERE
@@ -72,10 +62,10 @@ export function classifyOtpError(
   message: string | undefined | null,
   status?: number | null,
 ): OtpErrorKind {
-  // A 5xx never looked at the code. Seen live 2026-09-13: POST /auth/v1/verify
-  // answered 504 in 66 ms while the instance was swapping; the correct code
-  // was reported as a generic failure, the user fell back to the emailed link
-  // in another browser, and the trip they had just built was never claimed.
+  // A 5xx never looked at the code (/auth/v1/verify can answer 504 while the
+  // instance is swapping): reported as a wrong code, it sends the user to the
+  // emailed link in another browser, where the trip they just built is never
+  // claimed.
   if (typeof status === "number" && status >= 500) return "network";
   const m = (message ?? "").toLowerCase();
   if (!m) return "unknown";

@@ -7,10 +7,9 @@ import { authSharedCopy, type EmailLocale } from "../copy";
  * The signup email must carry the six-digit code.
  *
  * This is the template a NEW address receives, because the save modal calls
- * `signInWithOtp({ shouldCreateUser: true })`. Until 2026-09-03 it took no
- * token at all — so the people the funnel loses were precisely the ones who
- * got a link and nothing else. Magic-link sign-ups reach a session 63.0% of
- * the time against Google's 99.0% (n=142, p=1.8e-9).
+ * `signInWithOtp({ shouldCreateUser: true })`. Without the code a new address
+ * gets a link and nothing else, and a sign-up that leaves the tab for the
+ * mail gets in far less often than one that stays (see lib/auth/otp-code.ts).
  *
  * The code is optional in the props because the dashboard-template rendering
  * path has no token, which makes it quietly droppable — hence these tests.

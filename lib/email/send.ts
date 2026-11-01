@@ -208,9 +208,9 @@ export const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null
   // marketingNotifications so an in-app marketing opt-out always suppresses
   // it. NOT transactional: the recipient didn't trigger this send.
   feedback_outreach: "marketingNotifications",
-  // One-off notice (2026-09-25) to owners of shared trips that sharing no
-  // longer locks them out. About their own trips, but they didn't trigger
-  // it: same gate as feedback_outreach.
+  // One-off notice to owners of shared trips that sharing no longer locks
+  // them out. About their own trips, but they didn't trigger it: same gate
+  // as feedback_outreach.
   share_fix_notice: "marketingNotifications",
   // Asked for: sent when someone gives their address on a share link, to
   // that address. Its footer link stops this trip's emails to it.

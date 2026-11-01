@@ -7,26 +7,22 @@ import { isSafeNext } from "@/lib/security/safe-next";
  * not under `[locale]`. The UI language travels as a `locale` query param
  * instead, and the callback puts the prefix back on the page it lands on.
  *
- * WHY THIS MODULE EXISTS (2026-09-24)
+ * WHY THIS MODULE EXISTS
  *
- * The save-trip prompt built `${origin}/${locale}/auth/callback?next=...` for
- * every language but English. No route matches that path, and middleware only
- * exempted the unprefixed one from i18n routing, so every es/it/pt sign-in
- * that started from the save prompt ended on a 404:
- *   - Google: the `?code=` was never exchanged. Supabase had already created
- *     the account, but no session was set. 46 sessions hit the 404 between
- *     2026-06-07 and 2026-09-24. One Portuguese user retried and ended up
- *     with two accounts.
- *   - Emailed link: the send-email hook turned the whole redirect URL into
- *     `next`, so the callback signed the user in and then redirected to
- *     `/pt/auth/callback?next=...`, which is the same 404.
+ * No route matches `/${locale}/auth/callback`, and middleware exempts only
+ * the unprefixed one from i18n routing, so a locale-prefixed callback 404s:
+ *   - Google: the `?code=` is never exchanged. Supabase has already created
+ *     the account, but no session is set (a retry can create a second
+ *     account).
+ *   - Emailed link: if the send-email hook turns the whole redirect URL into
+ *     `next`, the callback signs the user in and then redirects to
+ *     `/pt/auth/callback?next=...`, the same 404.
  *
- * The emailed link was broken in English too. `next` became
- * `/auth/callback?next=/trips/new`, the callback ran a second time with no
- * code, and a signed-in user was sent to /auth/login?error=auth_incomplete.
- * In the page-view log that shows as `/auth/callback > /auth/callback >
- * /auth/login`: 3 of the 10 link sign-ins in the 60 days to 2026-09-24.
- * Referred email signups did the same, because the signup page's
+ * A nested callback breaks the emailed link in English too: `next` becomes
+ * `/auth/callback?next=/trips/new`, the callback runs a second time with no
+ * code, and a signed-in user is sent to /auth/login?error=auth_incomplete (in
+ * the page-view log: `/auth/callback > /auth/callback > /auth/login`).
+ * Referred email signups hit the same, because the signup page's
  * emailRedirectTo is also a callback URL.
  *
  * So there are three things here:

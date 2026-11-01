@@ -7,10 +7,9 @@ import type { Activity, ItineraryDay } from "@/types";
 /**
  * Guards the failure mode this change actually has: a message key that doesn't
  * exist renders as the raw key path in the UI ("assistant.dyn.busyDay"), which
- * is exactly the bug that shipped with wizard.anchors.cta on 2026-08-01. A
- * browser check catches it only if you happen to generate a trip that triggers
- * that particular suggestion; this catches all of them, in every locale, for
- * free.
+ * is easy to ship. A browser check catches it only if you happen to generate a
+ * trip that triggers that particular suggestion; this catches all of them, in
+ * every locale, for free.
  */
 
 const LOCALES = ["en", "it", "es", "pt"] as const;
