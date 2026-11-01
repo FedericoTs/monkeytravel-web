@@ -34,10 +34,10 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
       trip.end_date as string
     );
 
-    const needsUpdate = calculatedStatus !== trip.status;
-
-    // Auto-update if needed
-    if (needsUpdate) {
+    // Auto-update if needed. The answer says updated only when the write
+    // landed; otherwise the stored status stands and the next read retries.
+    let updated = false;
+    if (calculatedStatus !== trip.status) {
       const { error: updateError } = await supabase
         .from('trips')
         .update({ status: calculatedStatus, updated_at: new Date().toISOString() })
@@ -45,13 +45,15 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
 
       if (updateError) {
         console.error('[Trip Status] Error auto-updating:', updateError);
+      } else {
+        updated = true;
       }
     }
 
     return apiSuccess({
-      status: needsUpdate ? calculatedStatus : trip.status,
-      previousStatus: needsUpdate ? trip.status : null,
-      wasAutoUpdated: needsUpdate,
+      status: updated ? calculatedStatus : trip.status,
+      previousStatus: updated ? trip.status : null,
+      wasAutoUpdated: updated,
       isArchived: trip.is_archived,
     });
   } catch (error) {

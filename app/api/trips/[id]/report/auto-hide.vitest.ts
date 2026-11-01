@@ -9,6 +9,7 @@ import { NextRequest } from "next/server";
 const purgeTripCard = vi.fn<(tripId: string) => Promise<void>>(async () => undefined);
 const tripUpdates: unknown[] = [];
 let countAfterReport = 5;
+let hideError: unknown = null;
 
 vi.mock("next/server", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/server")>()),
@@ -31,7 +32,7 @@ vi.mock("@supabase/supabase-js", () => ({
   createClient: () => ({
     from: () => ({
       insert: async () => ({ error: null }),
-      update: (value: unknown) => ({ eq: async () => (tripUpdates.push(value), { error: null }) }),
+      update: (value: unknown) => ({ eq: async () => (tripUpdates.push(value), { error: hideError }) }),
     }),
     rpc: async () => ({ data: countAfterReport, error: null }),
   }),
@@ -53,6 +54,7 @@ const report = () =>
 beforeEach(() => {
   purgeTripCard.mockClear();
   tripUpdates.length = 0;
+  hideError = null;
 });
 
 describe("POST /api/trips/[id]/report", () => {
@@ -62,6 +64,16 @@ describe("POST /api/trips/[id]/report", () => {
     expect(res.status).toBe(200);
     expect(tripUpdates).toEqual([{ is_hidden: true }]);
     expect(purgeTripCard).toHaveBeenCalledWith("trip-1");
+  });
+
+  it("says the trip wasn't hidden when the write fails, and keeps its card", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    countAfterReport = 5;
+    hideError = { message: "boom" };
+    const res = await report();
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ reported: true, autoHidden: false });
+    expect(purgeTripCard).not.toHaveBeenCalled();
   });
 
   it("leaves the card alone while the trip stays up", async () => {

@@ -33,6 +33,12 @@ function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
+/** A step that didn't land: the run answers 500 instead of reporting success. */
+function failed(step: string, error: unknown) {
+  console.error(`[editors-picks-cron] ${step} failed:`, error);
+  return NextResponse.json({ error: `${step} failed` }, { status: 500 });
+}
+
 function serviceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -78,29 +84,32 @@ export async function GET(request: NextRequest) {
 
   // 2. Clear flag on everything that was previously a pick but no
   //    longer qualifies.
-  const { data: previouslyPicked } = await svc
+  const { data: previouslyPicked, error: pickedErr } = await svc
     .from("trips")
     .select("id")
     .eq("is_editors_pick", true);
+  if (pickedErr) return failed("current picks query", pickedErr);
 
   const toUnflag = (previouslyPicked ?? [])
     .map((t) => t.id)
     .filter((id) => !eligibleIds.has(id));
 
   if (toUnflag.length > 0) {
-    await svc
+    const { error } = await svc
       .from("trips")
       .update({ is_editors_pick: false })
       .in("id", toUnflag);
+    if (error) return failed("unflag", error);
   }
 
   // 3. Set flag on newly-eligible trips. (Idempotent — re-setting true
   //    on existing picks is a no-op.)
   if (eligibleIds.size > 0) {
-    await svc
+    const { error } = await svc
       .from("trips")
       .update({ is_editors_pick: true })
       .in("id", Array.from(eligibleIds));
+    if (error) return failed("flag", error);
   }
 
   return NextResponse.json({
