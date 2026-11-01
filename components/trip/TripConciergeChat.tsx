@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { assistantErrorMessage } from "@/lib/ai/assistant/error-message";
 import { Compass, Send, Sparkles, Loader2 } from "lucide-react";
 import BaseModal from "@/components/ui/BaseModal";
 import { useToast } from "@/components/ui/Toast";
@@ -73,6 +74,7 @@ function TripConciergeChatInner({
   className = "",
 }: TripConciergeChatProps) {
   const t = useTranslations("common.concierge");
+  const tAssistant = useTranslations("common.ai.assistant");
   const { addToast } = useToast();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -175,7 +177,7 @@ function TripConciergeChatInner({
           setAnswer(t("errorQuota"));
           void captureConciergeQuotaBlocked({ trip_id: tripId }).catch(() => {});
         } else {
-          setAnswer(err?.error || t("errorGeneric"));
+          setAnswer(t("errorGeneric"));
           void captureConciergeError({
             trip_id: tripId,
             error_type: "unknown",
@@ -337,7 +339,8 @@ function TripConciergeChatInner({
         const verified =
           res.ok && data.action?.applied === true && Array.isArray(data.modifiedItinerary);
         if (!verified) {
-          addToast(data.error || t("applyError"), "error");
+          const m = assistantErrorMessage(res.status, data);
+          addToast(m ? tAssistant(`errors.${m.key}`, m.values) : t("applyError"), "error");
           return false;
         }
 
@@ -362,7 +365,7 @@ function TripConciergeChatInner({
     } finally {
       setIsApplying(false);
     }
-  }, [proposal, isApplying, tripId, onItineraryChange, addToast, t, runItineraryWrite]);
+  }, [proposal, isApplying, tripId, onItineraryChange, addToast, t, tAssistant, runItineraryWrite]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Enter to send, Shift+Enter for newline — standard chat convention.
