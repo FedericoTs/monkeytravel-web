@@ -1922,6 +1922,11 @@ export default function TripDetailClient({
           aiUpdateRef.current = null;
         }, 2000);
 
+        // The hero and countdown read the dates and day count from props, and
+        // adding days or undoing them moves end_date: take fresh props then.
+        // The effect above keeps the itinerary just read (same version).
+        if (data.trip.start_date !== trip.startDate || data.trip.end_date !== trip.endDate) router.refresh();
+
         console.log("[TripDetailClient] State update complete - UI should re-render now");
         return true;
       } else {
@@ -1932,7 +1937,7 @@ export default function TripDetailClient({
       console.error("[TripDetailClient] Failed to refetch trip:", error);
       throw error;
     }
-  }, [trip.id, editedItinerary, sync, setConflict, clearHistory]);
+  }, [trip.id, trip.startDate, trip.endDate, router, editedItinerary, sync, setConflict, clearHistory]);
   useEffect(() => {
     refetchTripRef.current = handleRefetchTrip;
   }, [handleRefetchTrip]);
