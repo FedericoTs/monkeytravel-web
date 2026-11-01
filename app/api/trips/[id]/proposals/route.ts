@@ -33,7 +33,7 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
     // any collaborator
     // (editor / voter / viewer) can read proposals — same scope as
     // who can see the trip itself.
-    const { errorResponse: accessError } = await verifyTripAccess(
+    const { trip, errorResponse: accessError } = await verifyTripAccess(
       supabase,
       tripId,
       user.id
@@ -126,17 +126,12 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
     }
 
     // Get total voter count (owner + collaborators with vote rights)
-    const { data: trip } = await supabase
-      .from("trips")
-      .select("user_id")
-      .eq("id", tripId)
-      .single();
-
-    const { data: collaborators } = await supabase
+    const { data: collaborators, error: collaboratorsError } = await supabase
       .from("trip_collaborators")
       .select("user_id, role")
       .eq("trip_id", tripId)
       .in("role", ["owner", "editor", "voter"]);
+    if (collaboratorsError) throw collaboratorsError;
 
     // Count unique voters (owner + eligible collaborators)
     const voterIds = new Set<string>();
@@ -279,34 +274,12 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       return errors.badRequest("Target activity ID is required for replacement proposals");
     }
 
-    // Check trip exists and user has permission
-    const { data: trip } = await supabase
-      .from("trips")
-      .select("id, user_id")
-      .eq("id", tripId)
-      .single();
+    // The owner, editors and voters may propose (voters can suggest). The
+    // propose sheet shows this route's own 403 text, so the role is checked here.
+    const { isOwner, collaboratorRole, errorResponse: accessError } = await verifyTripAccess(supabase, tripId, user.id);
+    if (accessError) return accessError;
 
-    if (!trip) {
-      return errors.notFound("Trip not found");
-    }
-
-    const isOwner = trip.user_id === user.id;
-
-    // Check collaborator role if not owner
-    let canPropose = isOwner;
-    if (!isOwner) {
-      const { data: collab } = await supabase
-        .from("trip_collaborators")
-        .select("role")
-        .eq("trip_id", tripId)
-        .eq("user_id", user.id)
-        .single();
-
-      // Voters can suggest (canSuggest permission)
-      canPropose = collab?.role === "editor" || collab?.role === "voter";
-    }
-
-    if (!canPropose) {
+    if (!isOwner && collaboratorRole !== "editor" && collaboratorRole !== "voter") {
       return errors.forbidden("You don't have permission to propose activities on this trip");
     }
 

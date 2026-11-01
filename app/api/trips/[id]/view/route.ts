@@ -17,6 +17,7 @@ import {
   verifiedSource,
 } from "@/lib/analytics/trip-view";
 import { logWriteError } from "@/lib/supabase/log-write-error";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * POST /api/trips/[id]/view — record that someone opened a trip.
@@ -95,11 +96,11 @@ export async function POST(
     } = await supabase.auth.getUser();
 
     const admin = createAdminClient();
-    const { data: trip } = await admin
+    const { data: trip } = logReadError("trip view: trip", await admin
       .from("trips")
       .select("id, user_id, visibility, share_token, is_hidden, deleted_at")
       .eq("id", id)
-      .maybeSingle();
+      .maybeSingle());
     if (!trip || trip.deleted_at) {
       return apiSuccess({ recorded: false, fromCookie });
     }
@@ -107,11 +108,11 @@ export async function POST(
     const isOwner = !!user && trip.user_id === user.id;
     let isCollaborator = false;
     if (user && !isOwner && (source === "collaborator" || !isOpenTrip(trip))) {
-      const { count } = await admin
+      const { count } = logReadError("trip view: collaborator", await admin
         .from("trip_collaborators")
         .select("id", { count: "exact", head: true })
         .eq("trip_id", id)
-        .eq("user_id", user.id);
+        .eq("user_id", user.id));
       isCollaborator = (count ?? 0) > 0;
     }
     if (!isOpenTrip(trip) && !isOwner && !isCollaborator) {
@@ -123,13 +124,13 @@ export async function POST(
     let participantId: string | null = null;
     const participantCookie = cookieStore.get(PARTICIPANT_COOKIE)?.value;
     if (!isOwner && !isCollaborator && isParticipantCookieId(participantCookie)) {
-      const { data: participant } = await admin
+      const { data: participant } = logReadError("trip view: participant", await admin
         .from("trip_participants")
         .select("id")
         .eq("trip_id", id)
         .eq("participant_cookie_id", participantCookie)
         .is("left_at", null)
-        .maybeSingle();
+        .maybeSingle());
       participantId = participant?.id ?? null;
     }
 

@@ -85,7 +85,8 @@ function fakeSupabase() {
   };
 }
 
-vi.mock("@/lib/api/auth", () => ({
+vi.mock("@/lib/api/auth", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/auth")>()),
   getAuthenticatedUser: async () => ({ user: { id: caller }, supabase: fakeSupabase(), errorResponse: null }),
 }));
 vi.mock("@/lib/supabase/admin", () => ({

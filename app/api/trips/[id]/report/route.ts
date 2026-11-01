@@ -5,6 +5,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { purgeTripCard } from "@/lib/seo/trip-card-cache";
+import { isNoRow } from "@/lib/supabase/no-row";
 
 /**
  * POST /api/trips/[id]/report — flag a public trip for moderation.
@@ -62,11 +63,14 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
 
   // Validate the trip is publicly reportable. (Can't report private
   // trips; can't report already-hidden trips.)
-  const { data: trip } = await supabase
+  const { data: trip, error: tripErr } = await supabase
     .from("trips")
     .select("id, visibility, is_hidden")
     .eq("id", tripId)
     .single();
+  if (tripErr && !isNoRow(tripErr)) {
+    return errors.internal("Failed to record report", "trips.select");
+  }
   if (!trip) return errors.notFound("Trip not found");
   if (trip.visibility !== "public" || trip.is_hidden) {
     return errors.notFound("Trip not found");

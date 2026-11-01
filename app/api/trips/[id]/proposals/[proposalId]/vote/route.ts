@@ -154,43 +154,22 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
       return errors.badRequest("This proposal is no longer open for voting");
     }
 
-    // Check if user has permission to vote
-    const { data: trip } = await supabase
-      .from("trips")
-      .select("id, user_id")
-      .eq("id", tripId)
-      .single();
-
-    if (!trip) {
-      return errors.notFound("Trip not found");
-    }
-
-    const isOwner = trip.user_id === user.id;
-
-    // Check collaborator role if not owner
-    let canVote = isOwner;
-    if (!isOwner) {
-      const { data: collab } = await supabase
-        .from("trip_collaborators")
-        .select("role")
-        .eq("trip_id", tripId)
-        .eq("user_id", user.id)
-        .single();
-
-      canVote = collab?.role === "editor" || collab?.role === "voter";
-    }
-
-    if (!canVote) {
-      return errors.forbidden("You don't have permission to vote on this trip");
-    }
+    // The owner, editors and voters may vote.
+    const { errorResponse: accessError } = await verifyTripAccess(supabase, tripId, user.id, "id, user_id", ["editor", "voter"]);
+    if (accessError) return accessError;
 
     // Check if user already voted (upsert)
-    const { data: existingVote } = await supabase
+    const { data: existingVote, error: existingError } = await supabase
       .from("proposal_votes")
       .select("id")
       .eq("proposal_id", proposalId)
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
+
+    if (existingError) {
+      console.error("[Proposal Vote] Error reading the existing vote:", existingError);
+      return errors.internal("Failed to cast vote", "Proposal Vote");
+    }
 
     // Whether the consensus follow-up work actually landed. Both start true
     // and only the failure paths below can clear them, so a route that never

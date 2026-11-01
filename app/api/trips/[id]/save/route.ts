@@ -6,6 +6,7 @@ import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { runTripCounter } from "@/lib/explore/counters";
 import { randomBytes } from "node:crypto";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * Trip-level Saves — POST = save to "for later", DELETE = unsave.
@@ -176,11 +177,11 @@ async function currentSaveCount(
   supabase: Awaited<ReturnType<typeof createClient>>,
   tripId: string
 ): Promise<number | null> {
-  const { data: cur } = await supabase
+  const { data: cur } = logReadError("saves: save_count", await supabase
     .from("trips")
     .select("save_count")
     .eq("id", tripId)
-    .single();
+    .single());
   return cur?.save_count ?? null;
 }
 
