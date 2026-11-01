@@ -2,10 +2,10 @@
  * Distance Matrix — INTENTIONALLY DORMANT, DO NOT DELETE AS DEAD CODE.
  *
  * `google_distance_matrix` has been disabled in `api_config` since 2025-12-06
- * on cost grounds, so this route returns 503. It had ZERO callers even before
- * that: nothing in app/, lib/, components/ or hooks/ references it, and the
- * scheduler falls back to the local haversine estimate in
- * lib/utils/travel-estimation (already imported below).
+ * on cost grounds, so this route answers with the local haversine estimate
+ * from lib/utils/travel-estimation, as the scheduler does. It had ZERO
+ * callers even before that: nothing in app/, lib/, components/ or hooks/
+ * references it.
  *
  * Kept deliberately so reconnecting is cheap. To bring it back, flip
  * api_config.enabled for 'google_distance_matrix' and wire a caller; the
@@ -20,6 +20,7 @@ import crypto from "crypto";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { estimateTravelTime, calculateHaversineDistance, determineOptimalMode } from "@/lib/utils/travel-estimation";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { Coordinates } from "@/lib/utils/geo";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
@@ -109,7 +110,11 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    // Check API access control first
+    // Signed in only: anyone else could spend the API's quota once it is on,
+    // and fill the request log while it is off.
+    const { errorResponse } = await getAuthenticatedUser();
+    if (errorResponse) return errorResponse;
+
     const access = await checkApiAccess("google_distance_matrix");
     const useLocalEstimation = !access.allowed || !GOOGLE_MAPS_API_KEY;
 
