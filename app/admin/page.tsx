@@ -37,7 +37,7 @@ export default async function AdminPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <a href="/" className="flex items-center gap-2">
+              <Link prefetch={false} href="/" className="flex items-center gap-2">
                 <img
                   src="/images/logo.png"
                   alt="MonkeyTravel"
@@ -46,7 +46,7 @@ export default async function AdminPage() {
                 <span className="font-semibold text-lg text-[var(--foreground)]">
                   MonkeyTravel
                 </span>
-              </a>
+              </Link>
               <span className="text-slate-300">|</span>
               <span className="text-[var(--primary-ink)] font-medium">Admin</span>
             </div>
@@ -61,7 +61,7 @@ export default async function AdminPage() {
               >
                 Mission control
               </Link>
-              <a
+              <Link prefetch={false}
                 href="/admin/feedback"
                 className="text-sm text-slate-600 hover:text-[var(--primary-ink)] transition flex items-center gap-1"
               >
@@ -69,8 +69,8 @@ export default async function AdminPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.8L3 20l1.3-3.9A7.96 7.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
                 Feedback
-              </a>
-              <a
+              </Link>
+              <Link prefetch={false}
                 href="/admin/translations"
                 className="text-sm text-slate-600 hover:text-[var(--primary-ink)] transition flex items-center gap-1"
               >
@@ -78,13 +78,13 @@ export default async function AdminPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
                 </svg>
                 Translations
-              </a>
-              <a
+              </Link>
+              <Link prefetch={false}
                 href="/trips"
                 className="text-sm text-[var(--primary-ink)] hover:underline"
               >
                 Back to App
-              </a>
+              </Link>
             </div>
           </div>
         </div>

@@ -170,6 +170,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                 Try again
               </button>
 
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- a full page load: this boundary replaces a crashed app shell */}
               <a
                 href="/"
                 style={{
