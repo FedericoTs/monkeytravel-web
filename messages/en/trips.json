@@ -272,10 +272,6 @@
       "shareAnonMessage": "Here's the plan for my trip to {destination}: {url}",
       "shareSendWhatsapp": "Send on WhatsApp",
       "shareSendNative": "Share",
-      "crewFirst": {
-        "title": "Planning this with friends? Send it to your crew",
-        "body": "They vote on what to do, no app or account needed, and you'll see their picks here."
-      },
       "twinTitle": "You already have “{title}” for these dates",
       "twinBody": "Update that trip with this plan? Its share link and the people on it stay the same.",
       "twinReplace": "Update my saved trip",

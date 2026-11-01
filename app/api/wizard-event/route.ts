@@ -31,7 +31,6 @@ import { errors } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { WIZARD_EVENT_STEPS } from "@/components/wizard/wizardEvents";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
-import { RESULT_VARIANTS } from "@/lib/experiments/result-crew-first";
 
 const BodySchema = z.object({
   step: z.enum(WIZARD_EVENT_STEPS),
@@ -69,9 +68,6 @@ const BodySchema = z.object({
   // sends it any more, but bundles cached from before the ramp still do, so
   // it stays accepted rather than turning those posts into 400s.
   step1_variant: z.enum(["editorial", "classic"]).optional(),
-  // The result-screen arm (lib/experiments/result-crew-first.ts), on the
-  // `result` row of a session in that test only.
-  result_variant: z.enum(RESULT_VARIANTS).optional(),
   // Where the session came from, on the step-1 row only: the wizard
   // document's referrer (host and path) and the URL's utm_source.
   referrer: z.string().trim().max(256).optional(),
@@ -219,7 +215,6 @@ export async function POST(request: NextRequest) {
     referrer: body.referrer || null,
     utm_source: body.utm_source || null,
     // Only when sent: rows from other steps never name the column.
-    ...(body.result_variant ? { result_variant: body.result_variant } : {}),
     ...(body.request_id ? { request_id: body.request_id } : {}),
     ...(body.elapsed_ms !== undefined ? { elapsed_ms: body.elapsed_ms } : {}),
   });

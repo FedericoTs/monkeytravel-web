@@ -50,10 +50,10 @@ function asPhone(share: (data: ShareData) => Promise<void>) {
   Object.defineProperty(navigator, "share", { configurable: true, value: vi.fn(share) });
 }
 
-function renderButton(mode: "crew" | "share" = "crew", emphasis?: "primary" | "secondary") {
+function renderButton(mode: "crew" | "share" = "crew") {
   render(
     <NextIntlClientProvider locale="en" messages={{ trips: enTrips }}>
-      <AnonymousShareButton trip={trip} mode={mode} emphasis={emphasis} />
+      <AnonymousShareButton trip={trip} mode={mode} />
     </NextIntlClientProvider>,
   );
 }
@@ -118,13 +118,5 @@ describe("AnonymousShareButton", () => {
     fireEvent.click(screen.getByRole("button", { name: copy.shareAnonCta }));
     fireEvent.click(await screen.findByRole("button", { name: copy.shareSendWhatsapp }));
     expect(events.sent).toEqual([]);
-  });
-
-  it("can be the main button, as the crew-first result asks", () => {
-    renderButton("crew", "primary");
-    expect(screen.getByRole("button", { name: copy.shareCrewCta }).className).toContain("bg-[var(--secondary-ink)]");
-    cleanup();
-    renderButton("crew");
-    expect(screen.getByRole("button", { name: copy.shareCrewCta }).className).toContain("bg-white");
   });
 });
