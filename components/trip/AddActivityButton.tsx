@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Plus, Search, X, MapPin, Clock, Loader2 } from "lucide-react";
 import { Activity } from "@/types";
-import { ActivitySearchResult } from "@/app/api/activities/search/route";
+import { useActivitySearch, type ActivitySearchResult } from "@/hooks/useActivitySearch";
 import { useTranslations } from "next-intl";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
@@ -34,19 +34,18 @@ export default function AddActivityButton({
   const tTrip = useTranslations("common.trip");
   const typeLabel = useActivityTypeLabel();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [results, setResults] = useState<ActivitySearchResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const {
+    query: searchQuery,
+    category: selectedCategory,
+    results,
+    isSearching,
+    changeQuery: handleSearchChange,
+    toggleCategory: handleCategorySelect,
+    reset: resetSearch,
+  } = useActivitySearch(destination, isExpanded);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  // Mirrors the canonical pattern from DestinationAutocomplete (#160): abort
-  // the previous in-flight /api/activities/search when a newer keystroke (or
-  // category click, or initial-suggestion fetch) supersedes it. Without this,
-  // a slow "Barc" response can land on top of newer "Barcelona" results.
-  const abortRef = useRef<AbortController | null>(null);
 
   // Focus input when expanded
   useEffect(() => {
@@ -70,73 +69,6 @@ export default function AddActivityButton({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isExpanded]);
 
-  // Search activities. Cancels any prior in-flight request so a stale
-  // "Barc" response can't overwrite newer "Barcelona" results — same race
-  // shape as DestinationAutocomplete pre-#160. AbortError is the expected
-  // path when a newer call supersedes; everything else is logged.
-  const searchActivities = useCallback(async (query: string, type: string | null) => {
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setIsSearching(true);
-    try {
-      const response = await fetch("/api/activities/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          destination,
-          query,
-          types: type ? [type] : [],
-          limit: 8,
-          includeGoogle: query.length >= 3,
-        }),
-        signal: controller.signal,
-      });
-
-      if (controller.signal.aborted) return;
-
-      if (response.ok) {
-        const data = await response.json();
-        if (controller.signal.aborted) return;
-        setResults(data.results || []);
-      }
-    } catch (error) {
-      // Newer keystroke aborted this one — drop silently, the newer call
-      // owns the UI state now.
-      if (error instanceof Error && error.name === "AbortError") return;
-      console.error("Activity search error:", error);
-    } finally {
-      // Only the most recent request should clear the spinner; an aborted
-      // older one leaving `isSearching=false` while a newer one is still
-      // in flight would flash "no results" between keystrokes.
-      if (!controller.signal.aborted) {
-        setIsSearching(false);
-      }
-    }
-  }, [destination]);
-
-  // Handle search input
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-
-    // Debounce search
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    debounceRef.current = setTimeout(() => {
-      searchActivities(value, selectedCategory);
-    }, 300);
-  };
-
-  // Handle category selection
-  const handleCategorySelect = (type: string) => {
-    const newCategory = selectedCategory === type ? null : type;
-    setSelectedCategory(newCategory);
-    searchActivities(searchQuery, newCategory);
-  };
-
   // Handle selecting a search result
   const handleSelectResult = (result: ActivitySearchResult) => {
     onAdd({
@@ -150,9 +82,7 @@ export default function AddActivityButton({
       image_url: result.image_url,
     });
     setIsExpanded(false);
-    setSearchQuery("");
-    setResults([]);
-    setSelectedCategory(null);
+    resetSearch();
   };
 
   // Custom activity form state
@@ -178,23 +108,6 @@ export default function AddActivityButton({
     setShowCustomForm(false);
     setIsExpanded(false);
   };
-
-  // Load initial suggestions when expanded
-  useEffect(() => {
-    if (isExpanded && results.length === 0 && !searchQuery) {
-      searchActivities("", null);
-    }
-  }, [isExpanded, results.length, searchQuery, searchActivities]);
-
-  // Abort any in-flight request on unmount so a late response can't try to
-  // setState on a torn-down component (React warns, and it's a real bug if
-  // the user closes the panel mid-search).
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, []);
 
   if (!isExpanded) {
     return (
