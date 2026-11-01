@@ -2956,8 +2956,11 @@ export default function TripDetailClient({
           >
           <div className="space-y-8" key={`itinerary-v${renderEpoch}`}>
             {(dragPreview ?? displayItinerary)
-              .filter((day) => selectedDay === null || day.day_number === selectedDay)
-              .map((day, dayIndex) => (
+              // dayIndex is the day's place in the whole trip, which the edit
+              // handlers index by; with a day selected it's the only one shown.
+              .map((day, dayIndex) => ({ day, dayIndex }))
+              .filter(({ day }) => selectedDay === null || day.day_number === selectedDay)
+              .map(({ day, dayIndex }, shownIndex) => (
                 <div
                   key={`day-${day.day_number}-v${renderEpoch}`}
                   // Stable per-day anchor for the assistant's APPLY → SEE loop
@@ -3058,8 +3061,8 @@ export default function TripDetailClient({
                       {editingActive ? (
                         /* Edit Mode with Drag-and-Drop */
                         <>
-                          {/* Edit mode reorder hint - only show on first day */}
-                          {dayIndex === 0 && (
+                          {/* Edit mode reorder hint - only on the first day shown */}
+                          {shownIndex === 0 && (
                             <div className="mb-4 px-1">
                               <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-slate-50 to-slate-100/50 rounded-lg border border-slate-200/60">
                                 <div className="w-6 h-6 rounded bg-slate-200/80 flex items-center justify-center">

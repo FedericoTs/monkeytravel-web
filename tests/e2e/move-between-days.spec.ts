@@ -264,4 +264,36 @@ test.describe("Move an activity between days", () => {
     await expect(cardIn(page, 1, "m-d1a1")).toHaveCount(0);
     await expect(page.getByText(/moved to day 3/i)).toBeVisible();
   });
+
+  // The day slider shows one day; the editors still act on that day.
+  test.describe("with one day selected in the day slider", () => {
+    test("Add activity adds to that day", async ({ page }) => {
+      await openTrip(page, tripId);
+      await page.locator('button[data-day="3"]').click();
+      await expect(page.getByTestId("day-drop-list-1")).toHaveCount(0);
+
+      await page.getByRole("button", { name: /^add activity$/i }).click();
+      await expect(page.getByText(/add activity - day 3/i)).toBeVisible();
+      // The custom form: the search box would query Google Places.
+      await page.getByRole("button", { name: /add custom activity/i }).click();
+      const form = page.locator("form").filter({ hasText: /activity name/i });
+      await form.locator("input[type='text']").first().fill("Sunset at Cabo da Roca");
+      await form.getByRole("button", { name: /^add activity$/i }).click();
+
+      await expect(page.getByTestId("day-drop-list-3").getByText("Sunset at Cabo da Roca")).toBeVisible({ timeout: 10_000 });
+      await page.getByRole("button", { name: /^all$/i }).click();
+      expect(await dayOrder(page, 1)).toEqual(["activity-card-m-d1a1", "activity-card-m-d1a2"]);
+    });
+
+    test("the move sheet marks that day as the current one", async ({ page }) => {
+      await openTrip(page, tripId);
+      await page.locator('button[data-day="2"]').click();
+
+      await cardIn(page, 2, "m-d2a1").getByRole("button", { name: /more actions/i }).click();
+      await page.getByRole("menuitem", { name: /move to another day/i }).click();
+      await page.getByTestId("move-to-day-list").waitFor({ state: "visible", timeout: 10_000 });
+      await expect(page.getByTestId("move-to-day-2")).toBeDisabled();
+      await expect(page.getByTestId("move-to-day-1")).toBeEnabled();
+    });
+  });
 });
