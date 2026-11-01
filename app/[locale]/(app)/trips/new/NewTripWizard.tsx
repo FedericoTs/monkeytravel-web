@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo, useSyncExternalStore, type SetStateAction } from "react";
 import { sanitizeIsoDate, maxTripStartDate } from "@/lib/dates/iso-date";
+import { localTodayISO, parseLocalDate } from "@/lib/utils/date-local";
 import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
@@ -813,14 +814,7 @@ export default function NewTripPage({
         destination: destinationFieldRef.current || undefined,
         duration_days:
           startDateRef.current && endDateRef.current
-            ? Math.max(
-                1,
-                Math.ceil(
-                  (new Date(endDateRef.current).getTime() -
-                    new Date(startDateRef.current).getTime()) /
-                    (1000 * 60 * 60 * 24)
-                ) + 1
-              )
+            ? Math.max(1, tripSpanDaysInclusive(startDateRef.current, endDateRef.current))
             : undefined,
         group_size: tripIntent,
         backpacker_mode: travelStyle === "backpacker",
@@ -990,7 +984,7 @@ export default function NewTripPage({
     // to earn a 400 from the generate call.
     const isMultiDeeplink = MULTI_CITY_ENABLED && searchParams?.get("multi") === "1";
     if (days && !isMultiDeeplink) {
-      const today = new Date().toISOString().split("T")[0];
+      const today = localTodayISO();
       const start = addDaysISO(today, 21);
       setStartDate(start);
       setEndDate(addDaysISO(start, days - 1));
@@ -1078,14 +1072,7 @@ export default function NewTripPage({
         destination: destinationFieldRef.current || undefined,
         duration_days:
           startDateRef.current && endDateRef.current
-            ? Math.max(
-                1,
-                Math.ceil(
-                  (new Date(endDateRef.current).getTime() -
-                    new Date(startDateRef.current).getTime()) /
-                    (1000 * 60 * 60 * 24)
-                ) + 1
-              )
+            ? Math.max(1, tripSpanDaysInclusive(startDateRef.current, endDateRef.current))
             : undefined,
         locale,
         // Surface the last in-wizard step the user reached, plus the
@@ -2237,7 +2224,7 @@ export default function NewTripPage({
   // gate to advance. One tap fills a sensible default (start ~3 weeks out,
   // 5-day trip) so they can reach a generated trip and fine-tune dates anytime.
   const handleFlexibleDates = () => {
-    const today = new Date().toISOString().split("T")[0];
+    const today = localTodayISO();
     const start = addDaysISO(today, 21);
     const end = addDaysISO(start, 4);
     setStartDate(start);
@@ -2302,7 +2289,7 @@ export default function NewTripPage({
     const place = await findExpressPlace(trip.destination, locale);
     // Dates the traveller picked stay; otherwise they are pencilled in.
     const chosen = startDate && endDate && !flexibleDates;
-    const dates = chosen ? { start: startDate, end: endDate } : pencilledDates(trip, new Date().toISOString().slice(0, 10));
+    const dates = chosen ? { start: startDate, end: endDate } : pencilledDates(trip, localTodayISO());
     // The same text a picked suggestion puts in the field.
     setDestination(
       place ? (place.fullText.length <= DESTINATION_MAX_LENGTH ? place.fullText : place.mainText) : trip.destination
@@ -2457,9 +2444,7 @@ export default function NewTripPage({
     wizardCompletedRef.current = true;
     captureTripGenerationStarted({
       destination,
-      duration_days: startDate && endDate
-        ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))
-        : 0,
+      duration_days: tripSpanDaysInclusive(startDate, endDate),
       budget_tier: budgetTier,
       // Forward the intent signal so PostHog funnels can filter
       // "started generation" by intent (solo vs group) and downstream
@@ -2471,16 +2456,7 @@ export default function NewTripPage({
     void trackWizardEvent("generating", {
       destination,
       duration_days:
-        startDate && endDate
-          ? Math.max(
-              1,
-              Math.ceil(
-                (new Date(endDate).getTime() -
-                  new Date(startDate).getTime()) /
-                  (1000 * 60 * 60 * 24)
-              ) + 1
-            )
-          : undefined,
+        startDate && endDate ? Math.max(1, tripSpanDaysInclusive(startDate, endDate)) : undefined,
       group_size: tripIntent,
       backpacker_mode: travelStyle === "backpacker",
       locale,
@@ -2533,11 +2509,7 @@ export default function NewTripPage({
       // Anchor telemetry: how constrained is this trip? Fired at Generate (not at
       // panel-add) so it counts intent that actually reached generation.
       if (isAnchored) {
-        const tripDays =
-          Math.round(
-            (new Date(`${endDate}T00:00:00Z`).getTime() -
-              new Date(`${startDate}T00:00:00Z`).getTime()) / 86_400_000
-          ) + 1;
+        const tripDays = tripSpanDaysInclusive(startDate, endDate);
         captureAnchorsGenerated({
           anchor_count: anchors.length,
           anchor_types: Array.from(new Set(anchors.map((a) => a.type))),
@@ -2707,16 +2679,7 @@ export default function NewTripPage({
       // itinerary to render.
       if (data.itinerary) {
         const durationDaysResult =
-          startDate && endDate
-            ? Math.max(
-                1,
-                Math.ceil(
-                  (new Date(endDate).getTime() -
-                    new Date(startDate).getTime()) /
-                    (1000 * 60 * 60 * 24)
-                ) + 1
-              )
-            : undefined;
+          startDate && endDate ? Math.max(1, tripSpanDaysInclusive(startDate, endDate)) : undefined;
         const crewArm = isAuthenticated === false && tripIntent === "group" ? resultCrewFirstArm() : null;
         if (crewArm?.inTest) posthog?.register({ result_variant: crewArm.variant });
         void trackWizardEvent("result", {
@@ -2740,9 +2703,7 @@ export default function NewTripPage({
       // request (`Date.now() - performance.now()` would be Unix-epoch minus
       // page-life-ms, a meaningless number).
       const generationTime = Date.now() - generationStartTime;
-      const durationDaysGenerated = Math.ceil(
-        (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
-      ) + 1;
+      const durationDaysGenerated = tripSpanDaysInclusive(startDate, endDate);
 
       // GA4 tracking
       trackItineraryGenerated({
@@ -2788,9 +2749,7 @@ export default function NewTripPage({
       });
       captureTripGenerationCompleted({
         destination,
-        duration_days: startDate && endDate
-          ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))
-          : 0,
+        duration_days: tripSpanDaysInclusive(startDate, endDate),
         budget_tier: budgetTier,
         generation_time_seconds: Math.round((Date.now() - generationStartTime) / 1000),
         success: false,
@@ -2829,16 +2788,7 @@ export default function NewTripPage({
     void trackWizardEvent("save_clicked", {
       destination,
       duration_days:
-        startDate && endDate
-          ? Math.max(
-              1,
-              Math.ceil(
-                (new Date(endDate).getTime() -
-                  new Date(startDate).getTime()) /
-                  (1000 * 60 * 60 * 24)
-              ) + 1
-            )
-          : undefined,
+        startDate && endDate ? Math.max(1, tripSpanDaysInclusive(startDate, endDate)) : undefined,
       group_size: tripIntent,
       backpacker_mode: travelStyle === "backpacker",
       locale,
@@ -3025,9 +2975,7 @@ export default function NewTripPage({
       const trip: { id: string } = { id: dedupRow.trip_id };
 
       // Calculate trip duration
-      const durationDays = Math.ceil(
-        (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
-      ) + 1;
+      const durationDays = tripSpanDaysInclusive(startDate, endDate);
 
       // Analytics emission — gated on the durable, trip-id-keyed idempotency
       // guard. handleSaveTrip can run several times for ONE trip on the
@@ -3400,7 +3348,7 @@ export default function NewTripPage({
           endDate={endDate}
           currentDays={generatedItinerary.days.length}
           maxDays={effectiveMaxTripDays}
-          minDate={new Date().toISOString().split("T")[0]}
+          minDate={localTodayISO()}
           maxStartDate={MAX_TRIP_START_DATE}
           onConfirm={(start, end) => void handleChangeDates(start, end)}
         />
@@ -4845,7 +4793,7 @@ export default function NewTripPage({
                   <input
                     type="date"
                     value={startDate}
-                    min={new Date().toISOString().split("T")[0]}
+                    min={localTodayISO()}
                     // Bounded on BOTH ends. Without a max, a typed year of
                     // "20220" is a perfectly acceptable <input type="date">
                     // value (the spec allows years to 275760), and in
@@ -4887,7 +4835,7 @@ export default function NewTripPage({
                     setEndDate(d);
                   }}
                   maxDays={effectiveMaxTripDays}
-                  minDate={new Date().toISOString().split("T")[0]}
+                  minDate={localTodayISO()}
                 />
               )}
 
@@ -5285,7 +5233,7 @@ export default function NewTripPage({
                   startDate
                 ) {
                   try {
-                    const month = new Date(startDate).getMonth() + 1; // 1-12
+                    const month = (parseLocalDate(startDate) ?? new Date()).getMonth() + 1; // 1-12
                     const suggestions = getSeasonalVibeSuggestions(
                       seasonalContext.season,
                       seasonalContext.holidays || [],

@@ -41,6 +41,22 @@ export function parseLocalDate(iso: string | null | undefined): Date | null {
   return new Date(y, mo - 1, d);
 }
 
+/** A date's local calendar day as YYYY-MM-DD: the inverse of parseLocalDate. */
+export function toLocalISODate(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * The user's "today" as YYYY-MM-DD. `toISOString()` gives UTC's day, which in
+ * the evening west of UTC is already tomorrow.
+ */
+export function localTodayISO(): string {
+  return toLocalISODate(new Date());
+}
+
 /**
  * Whole days from one local midnight to another. Rounded, never floored or
  * ceiled: across a daylight-saving change the gap is a day plus or minus an
