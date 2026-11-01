@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { CONCIERGE_SURFACE } from "@/lib/ai/conversations";
 import type { TripRouteContext } from "@/lib/api/route-context";
 
 /**
@@ -25,12 +26,9 @@ import type { TripRouteContext } from "@/lib/api/route-context";
  *     (intentional: deleted trips shouldn't surface their old chats either).
  *     This used to be verifyTripOwnership, which 404'd every collaborator
  *     although they can ask the Concierge on the same page.
- *   - Each person only ever sees their OWN turns (`.eq("user_id", ...)`
- *     below), collaborators included.
- *   - Service-role client to READ ai_conversations because the table is
- *     RLS-locked to service_role. The ownership check above is the
- *     real gate; service-role here just bypasses the missing read
- *     policy without weakening the access model.
+ *   - Each person only ever sees their OWN concierge turns (the user_id
+ *     and surface filters below), collaborators included: the trip
+ *     assistant keeps its threads in the same table.
  */
 
 interface ConciergeTurn {
@@ -77,6 +75,7 @@ export async function GET(_req: NextRequest, context: TripRouteContext) {
       .select("id, trip_id, messages, context, created_at")
       .eq("trip_id", tripId)
       .eq("user_id", user.id)
+      .eq("context->>surface", CONCIERGE_SURFACE)
       .order("created_at", { ascending: false })
       .limit(100);
 
