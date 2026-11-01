@@ -22,6 +22,7 @@ import { estimateTravelTime, determineOptimalMode } from "@/lib/utils/travel-est
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { Coordinates } from "@/lib/utils/geo";
+import { readJsonBody } from "@/lib/api/json-body";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -122,7 +123,9 @@ export async function POST(request: NextRequest) {
       console.log("[Distance API] Using local coordinate-based estimation (API disabled or no key)");
     }
 
-    const { pairs }: DistanceRequest = await request.json();
+    const { body, invalidBody } = await readJsonBody<DistanceRequest>(request);
+    if (invalidBody) return invalidBody;
+    const { pairs } = body;
 
     if (!pairs?.length) {
       return errors.badRequest("Pairs array is required");

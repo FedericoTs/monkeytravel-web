@@ -2,6 +2,7 @@ import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isNoRow } from "@/lib/supabase/no-row";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * Admin endpoint to grant early access to a user
@@ -18,7 +19,8 @@ export async function POST(request: Request) {
     if (errorResponse) return errorResponse;
     const supabase = createAdminClient();
 
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { user_email, code } = body;
 
     if (!user_email) {

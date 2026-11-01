@@ -73,6 +73,7 @@ import {
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { isNoRow } from "@/lib/supabase/no-row";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { readJsonBody } from "@/lib/api/json-body";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -932,7 +933,8 @@ export async function POST(request: NextRequest) {
     let userLanguage = await getUserLanguage(supabase, user.id);
     console.log(`[AI Assistant] User language: ${userLanguage}`);
 
-    const body: AssistantRequest = await request.json();
+    const { body, invalidBody } = await readJsonBody<AssistantRequest>(request);
+    if (invalidBody) return invalidBody;
     const { tripId, message, conversationId, itinerary: clientItinerary } = body;
 
     console.log(`[AI Assistant] Message: "${message}"`);

@@ -17,6 +17,7 @@ import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { withPhotoIndex } from "@/lib/places/heal-dedupe";
 import { destinationPhotos } from "@/lib/images/destination-photos";
+import { readJsonBody } from "@/lib/api/json-body";
 
 const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -202,7 +203,9 @@ export async function POST(request: NextRequest) {
     const { user, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    const { query, maxPhotos = 5 } = await request.json();
+    const { body: payload, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
+    const { query, maxPhotos = 5 } = payload;
 
     if (!query) {
       return errors.badRequest("Query is required");

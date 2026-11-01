@@ -2,6 +2,7 @@ import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isNoRow } from "@/lib/supabase/no-row";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { readJsonBody } from "@/lib/api/json-body";
 
 // Generate a random code
 function generateCode(length: number = 8): string {
@@ -72,7 +73,8 @@ export async function POST(request: Request) {
     const { user, supabase, errorResponse } = await getAuthenticatedAdmin();
     if (errorResponse) return errorResponse;
 
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const {
       code: customCode,
       display_name,
@@ -142,7 +144,8 @@ export async function PATCH(request: Request) {
     const { supabase, errorResponse } = await getAuthenticatedAdmin();
     if (errorResponse) return errorResponse;
 
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { id, ...updates } = body;
 
     if (!id) {

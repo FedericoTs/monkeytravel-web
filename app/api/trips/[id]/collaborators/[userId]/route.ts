@@ -6,6 +6,7 @@ import type { TripCollaboratorRouteContext } from "@/lib/api/route-context";
 import type { CollaboratorRole } from "@/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isDemotion, resetInviteLinks } from "@/lib/invites/links";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * PATCH /api/trips/[id]/collaborators/[userId] - Update a collaborator's role
@@ -16,7 +17,8 @@ export async function PATCH(request: NextRequest, context: TripCollaboratorRoute
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { role } = body as { role: CollaboratorRole };
 
     if (!role || !["owner", "editor", "voter", "viewer"].includes(role)) {

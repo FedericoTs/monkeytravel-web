@@ -9,6 +9,7 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { clearPromptCache } from "@/lib/prompts";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { readJsonBody } from "@/lib/api/json-body";
 
 export interface AiPrompt {
   id: string;
@@ -68,7 +69,8 @@ export async function PATCH(request: NextRequest) {
     if (errorResponse) return errorResponse;
 
     // Parse request body
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { id, name, prompt_text, is_active, description, token_estimate } = body;
 
     if (!id && !name) {
@@ -150,7 +152,8 @@ export async function POST(request: NextRequest) {
     const { user, supabase, errorResponse } = await getAuthenticatedAdmin();
     if (errorResponse) return errorResponse;
 
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { action, name, display_name, prompt_text, category, description } = body;
 
     // Handle revert to default action

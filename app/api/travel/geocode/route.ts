@@ -29,6 +29,7 @@ import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
+import { readJsonBody } from "@/lib/api/json-body";
 
 const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_PLACES_API_KEY || "";
 
@@ -92,7 +93,9 @@ export async function POST(request: NextRequest) {
       return errors.serviceUnavailable(access.message || "Geocoding API is currently disabled");
     }
 
-    const { addresses }: GeocodeRequest = await request.json();
+    const { body, invalidBody } = await readJsonBody<GeocodeRequest>(request);
+    if (invalidBody) return invalidBody;
+    const { addresses } = body;
 
     if (!addresses?.length) {
       return errors.badRequest("Addresses array is required");

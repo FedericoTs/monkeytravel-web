@@ -20,6 +20,7 @@ import {
   calculateProposalConsensus,
   calculateVoteSummary,
 } from "@/lib/proposals/consensus";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /** Why an owner's approval did not land. */
 function approveFailed(reason: Extract<ApproveOutcome, { ok: false }>["reason"], day: number) {
@@ -205,7 +206,8 @@ export async function PATCH(request: NextRequest, context: TripProposalRouteCont
     if (errorResponse) return errorResponse;
 
     // Parse request body
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { action, resolutionMethod } = body as {
       action: 'withdraw' | 'approve' | 'reject';
       resolutionMethod?: ProposalResolutionMethod;

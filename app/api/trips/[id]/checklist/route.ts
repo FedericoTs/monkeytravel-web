@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * GET /api/trips/[id]/checklist - Fetch checklist items for a trip
@@ -59,7 +60,8 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     if (tripError) return tripError;
 
     // Parse request body
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { text, category = "custom", due_date, source_activity_id } = body;
 
     if (!text || typeof text !== "string" || text.trim().length === 0) {

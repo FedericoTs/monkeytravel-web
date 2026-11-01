@@ -6,6 +6,7 @@ import { getAuthenticatedUser } from "@/lib/api/auth";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { safeImageFetch, readCapped, imageContentType, MAX_IMAGE_BYTES } from "@/lib/api/safe-image-fetch";
 import { logWriteError } from "@/lib/supabase/log-write-error";
+import { readJsonBody } from "@/lib/api/json-body";
 
 // Cache TTL: 30 days (Google Places images are stable)
 const IMAGE_CACHE_DAYS = 30;
@@ -248,7 +249,8 @@ export async function POST(request: NextRequest) {
   if (!allowed) return errors.rateLimit("Too many image requests");
 
   try {
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const { urls } = body as { urls: string[] };
 
     if (!urls || !Array.isArray(urls)) {

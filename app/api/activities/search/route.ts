@@ -23,6 +23,7 @@ import { placesCostForCall } from "@/lib/api-gateway/places-sku";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
+import { readJsonBody } from "@/lib/api/json-body";
 
 // 30 req/min/IP — covers a fast typist hammering AddActivityButton's debounced
 // search, blocks bots. Mirrors task #200 (places-autocomplete) cap.
@@ -93,7 +94,8 @@ export async function POST(request: NextRequest) {
       return errors.rateLimit("Too many activity searches. Please slow down.");
     }
 
-    const body: SearchRequest = await request.json();
+    const { body, invalidBody } = await readJsonBody<SearchRequest>(request);
+    if (invalidBody) return invalidBody;
     const { destination, query = "", types = [], limit: requestedLimit = 10, includeGoogle: requestedIncludeGoogle = true } = body;
     // Capped: the body is caller-controlled and this route is open to anon,
     // so an uncapped limit was a cheap way to page through the whole index

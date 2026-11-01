@@ -17,6 +17,7 @@ import {
   calculateVoteSummary,
 } from "@/lib/proposals/consensus";
 import { publicProposer } from "@/lib/proposals/proposer";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * GET /api/trips/[id]/proposals
@@ -239,7 +240,8 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     if (errorResponse) return errorResponse;
 
     // Parse request body
-    const body = await request.json();
+    const { body, invalidBody } = await readJsonBody(request);
+    if (invalidBody) return invalidBody;
     const {
       type,
       activityData,
