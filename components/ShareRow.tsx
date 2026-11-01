@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { shareLink, copyToClipboard, isNative } from "@/lib/native/share";
+import { useIsClient } from "@/hooks/useIsClient";
 
 interface ShareRowProps {
   url: string;
@@ -17,16 +18,9 @@ interface ShareRowProps {
 export default function ShareRow({ url, title }: ShareRowProps) {
   const t = useTranslations("common.pageShare");
   const [copied, setCopied] = useState(false);
-  const [canNativeShare, setCanNativeShare] = useState(false);
-
-  useEffect(() => {
-    // Show the native-share button if EITHER the Web Share API is
-    // available OR we're inside the Capacitor shell (which always has
-    // a native share sheet via @capacitor/share).
-    if (typeof navigator !== "undefined" && ("share" in navigator || isNative())) {
-      setCanNativeShare(true);
-    }
-  }, []);
+  // The native-share button needs the Web Share API or the app shell's own
+  // share sheet (@capacitor/share), so never in the server HTML.
+  const canNativeShare = useIsClient() && ("share" in navigator || isNative());
 
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
   const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;

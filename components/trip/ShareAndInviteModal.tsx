@@ -14,6 +14,7 @@ import { CollaboratorRow } from "@/components/collaboration/CollaboratorRow";
 import { useToast } from "@/components/ui/Toast";
 import BottomSheet from "@/components/ui/BottomSheet";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
+import { useIsPhone } from "@/hooks/useMediaQuery";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { openExternal } from "@/lib/native/external-link";
 import { shareFile } from "@/lib/native/share";
@@ -100,7 +101,7 @@ export default function ShareAndInviteModal({
   const [showStopConfirm, setShowStopConfirm] = useState(false);
   const [trendingEnabled, setTrendingEnabled] = useState(isInTrending);
   const [trendingLoading, setTrendingLoading] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsPhone();
 
   // Toast notifications
   const { addToast } = useToast();
@@ -124,14 +125,6 @@ export default function ShareAndInviteModal({
   const [emailRecipient, setEmailRecipient] = useState("");
   const [emailMessage, setEmailMessage] = useState("");
   const [emailOutcome, setEmailOutcome] = useState<string | null>(null);
-
-  // Detect mobile viewport
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 640);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   // Current user from AuthContext.
   //

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useCallback, useId, useState, type ReactNode } from "react";
+import { useCallback, useId, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
+import { useIsClient } from "@/hooks/useIsClient";
 
 export interface BaseModalProps {
   /** Whether the modal is visible */
@@ -91,16 +92,12 @@ export default function BaseModal({
   ariaLabel,
 }: BaseModalProps) {
   const t = useTranslations("common.buttons");
-  const [mounted, setMounted] = useState(false);
+  // A portal needs document.body, so it renders in the browser only.
+  const mounted = useIsClient();
   const titleId = useId();
   // Escape, scroll lock, focus in and back out, Tab kept inside. Focus goes
   // to the panel itself, so screen readers announce the dialog's name first.
   const { panelRef } = useModalBehavior({ isOpen, onClose, closeOnEscape, lockScroll });
-
-  // Client-side only mounting for portal
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Handle backdrop click
   const handleBackdropClick = useCallback(() => {

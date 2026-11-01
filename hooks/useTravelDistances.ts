@@ -228,7 +228,6 @@ export function useTravelDistances(
     new Map()
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [hasMounted, setHasMounted] = useState(false);
   const [error, setError] = useState<string>();
 
   // Track what we've calculated to prevent re-calculating
@@ -362,15 +361,8 @@ export function useTravelDistances(
     }
   }, [itinerary, itineraryHash, tripId]);
 
-  // Track mount state to prevent hydration mismatch
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
   // Load from cache if available, otherwise calculate locally
   useEffect(() => {
-    if (!hasMounted) return;
-
     // Use cached data if available and hash matches
     if (canUseCache && cachedTravelData && !hasUsedCacheRef.current) {
       hasUsedCacheRef.current = true;
@@ -408,7 +400,7 @@ export function useTravelDistances(
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasMounted, itineraryHash, canUseCache]);
+  }, [itineraryHash, canUseCache]);
 
   // Helper to get segment between two activities
   const getSegmentBetween = useCallback(
