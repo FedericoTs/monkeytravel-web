@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MonkeyTravel
 
-## Getting Started
+An AI trip planner: describe a trip, get a day-by-day plan, refine it with the
+assistant, and plan it together with the people coming. Live at
+[monkeytravel.app](https://monkeytravel.app).
 
-First, run the development server:
+## Stack
+
+- [Next.js](https://nextjs.org) 16 (App Router), React 19, TypeScript, Tailwind CSS 4
+- [Supabase](https://supabase.com): Postgres with row-level security, auth; schema in `supabase/migrations`
+- Gemini for trip generation and the assistants (`lib/ai`)
+- [next-intl](https://next-intl.dev) in English, Spanish, Italian and Portuguese (`messages/`)
+- Vercel for hosting and crons (`vercel.json`), Resend for email, PostHog and Sentry
+
+## Getting started
+
+Node 24 and npm 11 (npm 11 writes `package-lock.json`).
 
 ```bash
+npm ci
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`.env.example` lists the feature flags. The app also needs:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | For |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | the Supabase project |
+| `SUPABASE_SERVICE_ROLE_KEY` | server-side writes that row-level security doesn't allow a user |
+| `GOOGLE_AI_API_KEY` | Gemini |
+| `GOOGLE_PLACES_API_KEY` | places and photos |
+| `RESEND_API_KEY` | email |
+| `CRON_SECRET` | the cron routes under `app/api/cron` |
+| `NEXT_PUBLIC_APP_URL` | absolute links in emails and shares |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+A local server uses whichever Supabase project `.env.local` points at: with
+production keys, what you do locally writes production data.
 
-## Learn More
+## Checks
 
-To learn more about Next.js, take a look at the following resources:
+| Command | Runs |
+|---|---|
+| `npm run typecheck` | TypeScript over the app and the tests |
+| `npm run lint` | ESLint. CI fails on an error, or on more warnings than the ceiling in `.github/workflows/ci.yml` |
+| `npm test` | Vitest: unit, route and guard tests (`*.vitest.ts`) |
+| `npm run test:e2e` | Playwright (`tests/e2e`) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+CI runs the public-page E2E specs on every pull request. The signed-in specs
+run against a server you start, with seeded fixtures and a saved sign-in:
+`npm run e2e:fixtures -- --seed`, then `npm run e2e:login`; each spec's header
+says what it needs. `npm run e2e:fixtures -- --teardown` removes the fixtures.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Layout
 
-## Deploy on Vercel
+| Path | Holds |
+|---|---|
+| `app/[locale]/` | pages, per language |
+| `app/api/` | API routes. A route file exports only its handlers and segment config (`app/route-exports.vitest.ts`) |
+| `components/`, `hooks/` | UI and React hooks |
+| `lib/` | the logic behind them: `lib/ai` (generation, assistants), `lib/trips` (saving, sharing), `lib/wizard`, `lib/notifications`, … |
+| `messages/<locale>/` | translation catalogs |
+| `supabase/migrations/` | database schema and policies |
+| `scripts/` | maintenance, audit and content scripts, run through `npm run …` or `npx tsx` |
+| `docs/` | design notes and plans |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Conventions
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- One concern per pull request. A merge to `master` deploys to production.
+- Comments describe the code as it is now: no dates or incident stories.
+- User-facing text lives in `messages/`, in all four languages.
