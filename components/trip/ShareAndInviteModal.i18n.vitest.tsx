@@ -21,7 +21,6 @@ vi.mock("@/lib/analytics", () => ({
 }));
 const { addToast } = vi.hoisted(() => ({ addToast: vi.fn() }));
 vi.mock("@/components/ui/Toast", () => ({ useToast: () => ({ addToast }) }));
-vi.mock("@/lib/hooks/useModalBehavior", () => ({ useModalBehavior: () => undefined, default: () => undefined }));
 vi.mock("@/components/auth/AuthProvider", () => ({ useAuth: () => ({ user: { id: "owner-1" } }) }));
 vi.mock("@/lib/native/external-link", () => ({ openExternal: vi.fn() }));
 vi.mock("@/components/collaboration/RoleSelector", () => ({ RoleSelector: () => null }));

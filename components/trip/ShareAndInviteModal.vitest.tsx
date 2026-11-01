@@ -33,10 +33,6 @@ const { addToast } = vi.hoisted(() => ({ addToast: vi.fn() }));
 vi.mock("@/components/ui/Toast", () => ({
   useToast: () => ({ addToast }),
 }));
-vi.mock("@/lib/hooks/useModalBehavior", () => ({
-  useModalBehavior: () => undefined,
-  default: () => undefined,
-}));
 vi.mock("@/components/auth/AuthProvider", () => ({
   useAuth: () => ({ user: null }),
 }));

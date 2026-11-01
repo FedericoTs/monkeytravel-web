@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useTranslations } from "next-intl";
 import { VoteType, VOTE_INFO } from "@/types";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 
 interface VoteButtonsProps {
   currentVote: VoteType | null;
@@ -26,6 +27,19 @@ export default function VoteButtons({
   const [pendingVote, setPendingVote] = useState<VoteType | null>(null);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [comment, setComment] = useState("");
+
+  const cancelComment = () => {
+    setShowCommentModal(false);
+    setComment("");
+    setPendingVote(null);
+  };
+  // Focus lands in the comment box, the dialog's first control.
+  const { panelRef } = useModalBehavior({
+    isOpen: showCommentModal && pendingVote !== null,
+    onClose: cancelComment,
+    initialFocus: "first",
+  });
+  const titleId = useId();
 
   const handleVoteClick = async (voteType: VoteType) => {
     if (disabled || isVoting) return;
@@ -124,11 +138,18 @@ export default function VoteButtons({
       {/* Comment Modal for Concerns/No votes */}
       {showCommentModal && pendingVote && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-200">
+          <div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            tabIndex={-1}
+            className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 outline-none animate-in fade-in zoom-in-95 duration-200"
+          >
             <div className="flex items-center gap-3 mb-4">
               <span className="text-2xl">{VOTE_INFO[pendingVote].emoji}</span>
               <div>
-                <h3 className="font-semibold text-slate-900">
+                <h3 id={titleId} className="font-semibold text-slate-900">
                   {t(`types.${pendingVote}.label`)}
                 </h3>
                 <p className="text-sm text-slate-500">
@@ -151,11 +172,7 @@ export default function VoteButtons({
 
             <div className="flex gap-3 mt-4">
               <button
-                onClick={() => {
-                  setShowCommentModal(false);
-                  setComment("");
-                  setPendingVote(null);
-                }}
+                onClick={cancelComment}
                 className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors"
               >
                 {t("cancel")}

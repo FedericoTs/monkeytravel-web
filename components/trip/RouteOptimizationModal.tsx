@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useId, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 import {
   optimizeDayRoute,
   calculateTotalDistance,
@@ -64,6 +65,9 @@ export function RouteOptimizationModal({
   onApplyOptimization,
 }: RouteOptimizationModalProps) {
   const t = useTranslations("common.routeOptimization");
+  const tButtons = useTranslations("common.buttons");
+  const { panelRef } = useModalBehavior({ isOpen, onClose });
+  const titleId = useId();
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [result, setResult] = useState<OptimizationResult | null>(null);
   const [constraints, setConstraints] = useState<OptimizationConstraints>({
@@ -137,14 +141,19 @@ export function RouteOptimizationModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            tabIndex={-1}
             className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2
                        md:w-[600px] md:max-h-[80vh] bg-white rounded-2xl shadow-2xl z-50
-                       flex flex-col overflow-hidden"
+                       flex flex-col overflow-hidden outline-none"
           >
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 id={titleId} className="text-lg font-semibold text-gray-900">
                   {t("title")}
                 </h2>
                 <p className="text-sm text-gray-500">
@@ -153,6 +162,7 @@ export function RouteOptimizationModal({
               </div>
               <button
                 onClick={onClose}
+                aria-label={tButtons("closeModal")}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">

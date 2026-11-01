@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useId } from "react";
+import { useModalBehavior } from "@/lib/hooks/useModalBehavior";
 import {
   Key,
   Plus,
@@ -66,6 +67,11 @@ export default function AccessCodesManager() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const { panelRef: createPanelRef } = useModalBehavior({
+    isOpen: showCreateModal,
+    onClose: () => setShowCreateModal(false),
+  });
+  const createTitleId = useId();
   const [formData, setFormData] = useState<NewCodeForm>(defaultForm);
   const [isCreating, setIsCreating] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -396,13 +402,21 @@ export default function AccessCodesManager() {
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowCreateModal(false)}
           />
-          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+          <div
+            ref={createPanelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={createTitleId}
+            tabIndex={-1}
+            className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden outline-none"
+          >
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-[var(--foreground)]">
+              <h3 id={createTitleId} className="text-lg font-semibold text-[var(--foreground)]">
                 Create Access Code
               </h3>
               <button
                 onClick={() => setShowCreateModal(false)}
+                aria-label="Close"
                 className="p-1 hover:bg-slate-100 rounded transition"
               >
                 <X className="w-5 h-5 text-slate-500" />
