@@ -7,6 +7,7 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 import { safeImageFetch, readCapped, imageContentType, MAX_IMAGE_BYTES } from "@/lib/api/safe-image-fetch";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { readJsonBody } from "@/lib/api/json-body";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 // Cache TTL: 30 days (Google Places images are stable)
 const IMAGE_CACHE_DAYS = 30;
@@ -48,14 +49,14 @@ async function getCachedImage(cacheKey: string): Promise<{ dataUrl: string; cont
     const db = cacheAdminDb();
     if (!db) return null;
 
-    const { data, error } = await db
+    const { data } = logReadError("image cache", await db
       .from("google_places_cache")
       .select("*")
       .eq("place_id", `img:${cacheKey}`)
       .gt("expires_at", new Date().toISOString())
-      .single();
+      .single());
 
-    if (error || !data) return null;
+    if (!data) return null;
 
     // Update hit count (fire and forget)
     db

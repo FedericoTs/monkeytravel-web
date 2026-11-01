@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getTripDestination } from "@/lib/trips/destination";
 import { isSameDestination } from "@/lib/trips/sameDestination";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 export interface RecentTwin {
   id: string;
@@ -22,7 +23,7 @@ export async function findRecentTwin(
   trip: { destination: string; startDate: string; endDate: string },
 ): Promise<RecentTwin | null> {
   if (!trip.destination || !trip.startDate || !trip.endDate) return null;
-  const { data, error } = await supabase
+  const { data } = logReadError("recent twin", await supabase
     .from("trips")
     .select("id, title, trip_meta")
     .eq("user_id", userId)
@@ -31,8 +32,8 @@ export async function findRecentTwin(
     .eq("start_date", trip.startDate)
     .eq("end_date", trip.endDate)
     .order("created_at", { ascending: false })
-    .limit(10);
-  if (error || !data) return null;
+    .limit(10));
+  if (!data) return null;
   const match = data.find((row) => isSameDestination(getTripDestination(row), trip.destination));
   return match ? { id: match.id, title: match.title } : null;
 }
