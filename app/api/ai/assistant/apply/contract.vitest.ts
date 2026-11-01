@@ -17,7 +17,18 @@ vi.mock("@/lib/ai/observability", () => ({ recordAiOutcome: vi.fn() }));
 
 const updates: Array<Record<string, unknown>> = [];
 
-const act = (id: string, name: string, start = "09:00") => ({ id, name, type: "culture", start_time: start, duration_minutes: 60, time_slot: "morning" });
+const act = (id: string, name: string, start = "09:00") => ({
+  id,
+  name,
+  type: "culture",
+  start_time: start,
+  duration_minutes: 60,
+  time_slot: "morning" as const,
+  description: "",
+  location: "",
+  tips: [],
+  booking_required: false,
+});
 const storedTrip = () => ({
   id: TRIP,
   user_id: OWNER,
