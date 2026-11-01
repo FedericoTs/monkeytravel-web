@@ -1,20 +1,13 @@
 /**
- * The wizard's trip assistant — Q&A + EDITS for the result view (signed out or
- * in; the trip may or may not be saved yet).
+ * The assistant's edit engine: answers a question about a plan, or proposes
+ * revised days for it, in one model call. It writes nothing; each caller shows
+ * the revised days and applies them on the traveller's confirm. Used by the
+ * wizard's assistant (app/api/ai/assistant-anon, signed out or in, saved or
+ * not) and the trip page's assistant (lib/ai/assistant/trip-edits.ts).
  *
- * Supersedes lib/ai/concierge-anon.ts (read-only). Same unauth, no-DB model, but
- * this one can also PROPOSE edits: when the traveller asks to change the plan
- * the model returns the revised days. The client previews them and applies
- * them to the in-memory itinerary on confirm; the wizard's auto-save persists
- * a saved trip from there.
- *
- * One reply may change several days and the trip's length (2026-09-26). It
- * used to be one day only, so a swap between two days came back as one day
- * with a reply claiming both, and "add one more day" or "Quito 2 nights,
- * Baños 1" could not be done at all: people regenerated the whole trip and
- * lost their edits. The defensive normalizer still guarantees every revised
- * activity has the fields the result view needs, so a partial model response
- * never breaks the render.
+ * One reply may change several days and the trip's length. The normalizer
+ * guarantees every revised activity has the fields the views need, so a
+ * partial model response never breaks the render.
  */
 
 import { GoogleGenerativeAI, type GenerateContentResult, type GenerationConfig } from "@/lib/ai/genai-compat";
@@ -104,7 +97,7 @@ export interface AssistTurn {
   text: string;
 }
 
-export interface AssistAnonInput {
+export interface AssistInput {
   message: string;
   destination: string;
   tripTitle: string;
@@ -152,7 +145,7 @@ export interface DayEdit {
   city?: string;
 }
 
-export interface AssistAnonResult {
+export interface AssistResult {
   reply: string;
   /** Every day this reply changes (or adds), in day order. Empty for answers. */
   edits: DayEdit[];
@@ -224,7 +217,7 @@ function buildHistory(history: AssistTurn[] | undefined): string {
   return `${said}\nConversation so far (oldest first):\n${lines.join("\n")}\nThe itinerary above is the plan as it is now. A change from earlier in the conversation that isn't in it was only offered, skipped or undone: if they ask for it, make it.\n`;
 }
 
-export function buildPrompt(input: AssistAnonInput): string {
+export function buildPrompt(input: AssistInput): string {
   const language = LOCALE_LANGUAGE[input.locale ?? "en"] ?? "English";
   const cur = planCurrency(input.days);
   const costs = planCosts(input.days, input.display);
@@ -387,7 +380,7 @@ function normalizeActivity(raw: unknown, idx: number, cur: string): Activity | n
 
 /**
  * Validate the model's edits against the trip. Pure, so the rules are
- * unit-tested (lib/ai/assistant-anon-edits.vitest.ts).
+ * unit-tested (lib/ai/assistant/engine-edits.vitest.ts).
  *
  * - A new trip length counts only if every added day comes back in full, or
  *   is one of "more_days", which the next parts bring; a shorter one may not
@@ -695,7 +688,7 @@ export function outsideTravelTimes(
 type Outcome = ReturnType<typeof validateEdits> & { reply: string; moreDays: number[]; travelTimes: TravelTime[] };
 
 /** The model's JSON, as the reply and checked edits this engine works with. */
-function readOutcome(input: AssistAnonInput, obj: Record<string, unknown>, cur: string): Outcome {
+function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: string): Outcome {
   const reply = plainText(str(obj.reply, "").trim());
   // "edits" (current shape) or "edit" (the single-day shape, still accepted).
   const rawEdits = Array.isArray(obj.edits) ? obj.edits : obj.edit && typeof obj.edit === "object" ? [obj.edit] : [];
@@ -762,7 +755,7 @@ function within<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 /** What a reply got wrong that one more try may fix, or null. Pure; unit-tested. */
 export function correctionFor(
-  input: Pick<AssistAnonInput, "message" | "history" | "days">,
+  input: Pick<AssistInput, "message" | "history" | "days">,
   o: Pick<Outcome, "reply" | "edits" | "tripLength"> & Partial<Pick<Outcome, "travelTimes">>,
 ): string | null {
   const current = input.days.length;
@@ -852,13 +845,13 @@ export function isModelOverloaded(err: unknown): boolean {
  * Answer or propose edits. Throws on missing key / empty output — the route
  * maps those to a 500. Input validation is the route's job.
  */
-export async function assistTrip(input: AssistAnonInput): Promise<AssistAnonResult> {
+export async function assistTrip(input: AssistInput): Promise<AssistResult> {
   if (!process.env.GOOGLE_AI_API_KEY) {
     throw new Error("GOOGLE_AI_API_KEY not configured");
   }
   const startedAt = Date.now();
   const cur = planCurrency(input.days);
-  let modelId = getModelForPurpose("concierge");
+  let modelId = getModelForPurpose("assistant-edits");
 
   const generationConfig: GenerationConfig = {
     temperature: 0.3,

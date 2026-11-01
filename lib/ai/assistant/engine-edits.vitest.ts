@@ -1,7 +1,7 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
 import type { ItineraryDay } from "@/types";
-import { asksForFreeDay, buildPrompt, composeReply, plainText, validateEdits } from "./assistant-anon";
+import { asksForFreeDay, buildPrompt, composeReply, plainText, validateEdits } from "./engine";
 
 /**
  * The wizard assistant can change several days and the trip's length in one

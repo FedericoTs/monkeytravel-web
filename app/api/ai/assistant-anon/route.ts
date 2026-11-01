@@ -14,7 +14,7 @@ import { z } from "zod";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
-import { assistTrip, MAX_TRIP_DAYS_MULTI } from "@/lib/ai/assistant-anon";
+import { assistTrip, MAX_TRIP_DAYS_MULTI } from "@/lib/ai/assistant/engine";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";

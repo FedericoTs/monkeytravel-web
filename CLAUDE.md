@@ -63,7 +63,7 @@ Add to these; do not start a parallel version.
 | Area | Owner |
 |---|---|
 | Itinerary generation (prompt, parsing) | `lib/gemini.ts`, `app/api/ai/generate/` (incl. `stream/`) |
-| Wizard assistant (before the trip is saved) | `lib/ai/assistant-anon.ts`, `app/api/ai/assistant-anon/` |
+| Wizard assistant (before the trip is saved) | `lib/ai/assistant/engine.ts`, `app/api/ai/assistant-anon/` |
 | Trip-page assistant | `app/api/ai/assistant/route.ts` |
 | Shared assistant rules (honest replies, day targeting) | `lib/ai/assistant/` |
 | Saving a trip | `lib/trips/persistTrip.ts`; wizard auto-save `hooks/useAutoSaveTrip.ts`, gated by `lib/trips/autoSaveGate.ts` |

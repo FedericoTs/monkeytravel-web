@@ -8,7 +8,7 @@ import type { Activity, ItineraryDay } from "@/types";
  */
 
 const assistTrip = vi.fn();
-vi.mock("@/lib/ai/assistant-anon", () => ({ assistTrip: (input: unknown) => assistTrip(input) }));
+vi.mock("./engine", () => ({ assistTrip: (input: unknown) => assistTrip(input) }));
 
 const { conversationTurns, mergeTripEdits, proposeTripEdits, readDisplayCurrency } = await import("./trip-edits");
 
