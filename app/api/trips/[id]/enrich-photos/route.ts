@@ -53,7 +53,7 @@ export async function POST(
         title: trip.title as string | null,
         itinerary: trip.itinerary,
         trip_meta: trip.trip_meta,
-        itinerary_version: trip.itinerary_version as number | null,
+        itinerary_version: Number(trip.itinerary_version ?? 0),
       },
       { maxPaidLookups: SAVE_TIME_PAID_LOOKUPS, respectCooldown: false }
     );

@@ -1,10 +1,9 @@
 import { NextRequest, after } from "next/server";
 import { getAuthenticatedUser, verifyTripAccess, verifyTripOwnership } from "@/lib/api/auth";
-import { readShareToken } from "@/lib/trips/share-token";
+import { ensureShareToken, readShareToken } from "@/lib/trips/share-token";
 import { enrichTripByIdAdmin } from "@/lib/images/enrichTrip";
 import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
 import { captureServerEvent } from "@/lib/posthog/server";
-import { v4 as uuidv4 } from "uuid";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import { purgeTripCard } from "@/lib/seo/trip-card-cache";
@@ -20,44 +19,28 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // Verify ownership, then read the share status
-    const { errorResponse: tripError } = await verifyTripOwnership(supabase, id, user.id);
+    // Verify ownership, then hand out the trip's link, made on the first ask
+    // (one link however many taps arrive at once). A listed trip stays listed.
+    const { trip, errorResponse: tripError } = await verifyTripOwnership(supabase, id, user.id, "id, user_id, visibility");
     if (tripError) return tripError;
-    const existingToken = await readShareToken(id);
+    const { token: shareToken, isNew, sharedAt } = await ensureShareToken(
+      id,
+      trip.visibility === "public" ? "public" : "shared"
+    );
 
     // If already shared, return existing token
-    if (existingToken) {
+    if (!isNew) {
       // Voters are about to look at this trip again — make sure its activity
       // photos are real, not the curated generation-time fallbacks. Runs after
       // the response (next/server `after`); 24h cooldown makes repeats free.
       after(() => enrichTripByIdAdmin(id, "share"));
-      const shareUrl = await buildShareUrl(user.id, existingToken);
+      const shareUrl = await buildShareUrl(user.id, shareToken);
       return apiSuccess({
         success: true,
-        shareToken: existingToken,
+        shareToken,
         shareUrl,
         isNew: false,
       });
-    }
-
-    // Generate new share token
-    const shareToken = uuidv4();
-    const sharedAt = new Date().toISOString();
-
-    // Update trip with share token
-    const { error: updateError } = await supabase
-      .from("trips")
-      .update({
-        share_token: shareToken,
-        shared_at: sharedAt,
-        visibility: "shared",
-      })
-      .eq("id", id)
-      .eq("user_id", user.id);
-
-    if (updateError) {
-      console.error("[Share] Error enabling sharing:", updateError);
-      return errors.internal("Failed to enable sharing", "Share");
     }
 
     // Everything that must survive the response runs inside after(): the

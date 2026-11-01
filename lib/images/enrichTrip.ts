@@ -64,8 +64,8 @@ interface TripRecordForEnrich {
   title?: string | null;
   itinerary: unknown;
   trip_meta: unknown;
-  /** Compare-and-set token (20260924125000). Callers select it. */
-  itinerary_version?: number | null;
+  /** Compare-and-set token: the write lands only on this version. */
+  itinerary_version: number;
 }
 
 /** Real place photos are served through our proxies (Google's or a stored
@@ -134,18 +134,7 @@ export async function enrichTripRecord(
     reresolveCurated: true,
   });
 
-  const after = countRealPhotos(itinerary);
   const stamp = new Date().toISOString();
-
-  // Older callers without the version: the previous blind write.
-  if (typeof trip.itinerary_version !== "number") {
-    const { error } = await db
-      .from("trips")
-      .update({ itinerary, trip_meta: { ...meta, photos_enriched_at: stamp } })
-      .eq("id", trip.id);
-    if (error) throw error;
-    return { skipped: null, before, after, itinerary };
-  }
 
   // The photos found, by activity id: the url before and after. An activity
   // read without an id (trips stored before ids were stamped at creation; the

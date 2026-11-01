@@ -19,7 +19,10 @@ vi.mock("@/lib/explore/flag", () => ({ isExploreUgcEnabled: () => true }));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: vi.fn() }));
 vi.mock("@/lib/images/enrichTrip", () => ({ enrichTripByIdAdmin: vi.fn() }));
 vi.mock("@/lib/explore/counters", () => ({ runTripCounter: vi.fn() }));
-vi.mock("@/lib/trips/share-token", () => ({ readShareToken: async () => null }));
+vi.mock("@/lib/trips/share-token", () => ({
+  readShareToken: async () => null,
+  ensureShareToken: async () => ({ token: "tok-1", isNew: true }),
+}));
 vi.mock("next/server", async (importOriginal) => {
   const actual = await importOriginal<typeof import("next/server")>();
   return { ...actual, after: () => {} };

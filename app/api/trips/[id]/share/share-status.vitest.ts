@@ -36,8 +36,16 @@ vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: vi.fn(async () => {
 vi.mock("@/lib/seo/trip-card-cache", () => ({ purgeTripCard: vi.fn() }));
 vi.mock("@/lib/explore/flag", () => ({ isExploreUgcEnabled: () => true }));
 vi.mock("@/lib/explore/counters", () => ({ runTripCounter: vi.fn() }));
-// The service-role read of the stored trip's token.
-vi.mock("@/lib/trips/share-token", () => ({ readShareToken: async () => row.share_token }));
+// The service-role read of the stored trip's token, and the mint on it
+// (the guard itself is tested in lib/trips/share-token.vitest.ts).
+vi.mock("@/lib/trips/share-token", () => ({
+  readShareToken: async () => row.share_token,
+  ensureShareToken: async (_id: string, visibility: string) => {
+    if (row.share_token) return { token: row.share_token, isNew: false };
+    row = { ...row, share_token: "tok-new", shared_at: "2026-11-01T10:00:00Z", visibility };
+    return { token: "tok-new", isNew: true, sharedAt: row.shared_at };
+  },
+}));
 // Work deferred past the response; a test runs it when it needs it.
 const afterTasks: Array<() => unknown> = [];
 vi.mock("next/server", async (importOriginal) => ({

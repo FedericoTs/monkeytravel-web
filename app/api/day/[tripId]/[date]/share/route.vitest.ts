@@ -14,9 +14,9 @@ import { signDayLink } from "@/lib/trips/day-link";
 let client: ReturnType<typeof fakeSupabase>["client"];
 let log: ReturnType<typeof fakeSupabase>["log"];
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => client }));
-// The token is read through the one service-role helper allowed to read it.
-const readShareToken = vi.fn<(tripId: string) => Promise<string | null>>();
-vi.mock("@/lib/trips/share-token", () => ({ readShareToken: (id: string) => readShareToken(id) }));
+// The link comes from the guarded mint (lib/trips/share-token.vitest.ts).
+const ensureShareToken = vi.fn<(tripId: string, visibility: string) => Promise<{ token: string; isNew: boolean }>>();
+vi.mock("@/lib/trips/share-token", () => ({ ensureShareToken: (id: string, v: string) => ensureShareToken(id, v) }));
 
 const logFunnelEventServer = vi.fn<(event: unknown) => Promise<void>>(async () => {});
 vi.mock("@/lib/analytics/funnel-events", () => ({ logFunnelEventServer: (e: unknown) => logFunnelEventServer(e) }));
@@ -37,17 +37,15 @@ const TRIP = "3f6c2a8e-91d4-4b7a-a5e2-6c0d8b1f4e29";
 const OTHER_TRIP = "0b5c3a52-6f0e-4c1e-9d3b-8a7f6e5d4c3b";
 const SHARE = "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d";
 const RACED = "5d4c3b2a-1f0e-4d9c-8b7a-6f5e4d3c2b1a";
+const MINTED = "7e6d5c4b-3a29-4180-8f7e-6d5c4b3a2918";
 const DATE = "2026-10-16";
 
 type Trip = { id: string; user_id: string | null; share_token: string | null; visibility: string; start_date: string; end_date: string };
 let trip: Trip | null;
-let updateRows: Array<{ id: string }> | null;
-let updateError: unknown;
 
 function answer(q: FakeQuery) {
   if (q.op === "rpc") return { data: "OWNERCODE", error: null };
   if (q.table !== "trips") return { data: null, error: null };
-  if (q.op === "update") return { data: updateError ? null : (updateRows ?? [{ id: TRIP }]), error: updateError };
   return { data: trip, error: null };
 }
 
@@ -68,10 +66,10 @@ beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2026-10-15T09:00:00Z"));
   trip = { id: TRIP, user_id: OWNER, share_token: null, visibility: "private", start_date: "2026-10-14", end_date: "2026-10-18" };
-  updateRows = null;
-  updateError = null;
-  readShareToken.mockReset();
-  readShareToken.mockImplementation(async () => trip?.share_token ?? null);
+  ensureShareToken.mockReset();
+  ensureShareToken.mockImplementation(async () =>
+    trip?.share_token ? { token: trip.share_token, isNew: false } : { token: MINTED, isNew: true },
+  );
   afterTasks.length = 0;
   logFunnelEventServer.mockClear();
   captureServerEvent.mockClear();
@@ -101,18 +99,8 @@ describe("POST /api/day/[tripId]/[date]/share", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.isNew).toBe(true);
-
-    const [update] = updates();
-    const value = update.value as { share_token: string; shared_at: string; visibility: string };
-    expect(value.visibility).toBe("shared");
-    expect(typeof value.shared_at).toBe("string");
-    expect(update.filters).toEqual(
-      expect.arrayContaining([
-        ["eq", "id", TRIP],
-        ["is", "share_token", null],
-      ]),
-    );
-    expect(body.url).toBe(`https://monkeytravel.app/shared/${value.share_token}?ref=OWNERCODE&day=3`);
+    expect(ensureShareToken).toHaveBeenCalledWith(TRIP, "shared");
+    expect(body.url).toBe(`https://monkeytravel.app/shared/${MINTED}?ref=OWNERCODE&day=3`);
 
     await Promise.all(afterTasks.map((task) => task()));
     expect(logFunnelEventServer).toHaveBeenCalledWith({
@@ -128,22 +116,16 @@ describe("POST /api/day/[tripId]/[date]/share", () => {
   it("keeps a listed trip public", async () => {
     trip!.visibility = "public";
     await post(sendKey());
-    expect((updates()[0].value as { visibility: string }).visibility).toBe("public");
+    expect(ensureShareToken).toHaveBeenCalledWith(TRIP, "public");
   });
 
   it("uses the link another tap made first, and counts no new one", async () => {
-    updateRows = [];
-    readShareToken.mockResolvedValueOnce(null).mockResolvedValueOnce(RACED);
+    ensureShareToken.mockResolvedValueOnce({ token: RACED, isNew: false });
     const res = await post(sendKey());
     expect(await res.json()).toEqual({ url: `https://monkeytravel.app/shared/${RACED}?ref=OWNERCODE&day=3`, isNew: false });
     expect(afterTasks).toHaveLength(0);
   });
 
-  it("fails cleanly when the token can't be read", async () => {
-    readShareToken.mockRejectedValueOnce(new Error("boom"));
-    expect((await post(sendKey())).status).toBe(500);
-    expect(updates()).toHaveLength(0);
-  });
 
   it("refuses the day's view key, another trip's key and a forged one", async () => {
     for (const s of [signDayLink(TRIP, DATE), sendKey(OTHER_TRIP), sendKey(TRIP, "2026-10-17"), "123.abc", ""]) {
@@ -179,9 +161,8 @@ describe("POST /api/day/[tripId]/[date]/share", () => {
     }
   });
 
-  it("fails cleanly when the link cannot be written", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    updateError = { message: "boom" };
+  it("fails cleanly when the link can't be read or written", async () => {
+    ensureShareToken.mockRejectedValueOnce(new Error("boom"));
     expect((await post(sendKey())).status).toBe(500);
     expect(afterTasks).toHaveLength(0);
   });
