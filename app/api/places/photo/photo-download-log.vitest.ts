@@ -2,9 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 
 /**
- * Every Google photo download is logged and priced. They were the one Google
- * call nobody logged (2026-09-26), and they were most of the Google bill: ~400-480
- * CDN misses a day, each a billed "Place Details Photos" request.
+ * Every Google photo download is logged and priced: each CDN miss is a billed
+ * "Place Details Photos" request, likely most of the Google bill.
  */
 
 // The route reads the key at import time, and imports are hoisted above plain

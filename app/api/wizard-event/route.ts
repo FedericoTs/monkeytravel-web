@@ -40,7 +40,7 @@ const BodySchema = z.object({
   backpacker_mode: z.boolean().optional(),
   locale: z.string().trim().min(2).max(8).optional(),
   // Which front-door arm fired this event. NULL = pre-experiment baseline,
-  // "decision" = the retired 2026-07 → 2026-08 arm, "wizard" = everything
+  // "decision" = the retired arm, "wizard" = everything
   // the wizard has sent since (still sent, so the funnel SQL's filter holds).
   front_door: z.enum(["wizard", "decision"]).optional(),
   // Why a generation failed, for `generation_failed` rows only. The vocabulary
@@ -64,8 +64,8 @@ const BodySchema = z.object({
   // it does not know, so omitting this field would leave the column NULL
   // forever while every client dutifully sent the value — exactly how
   // failure_code was lost the first time.
-  // Retired 2026-09-16 (wizard-step1-editorial-v1 ramped to 100%): nothing
-  // sends it any more, but bundles cached from before the ramp still do, so
+  // Retired (the editorial variant ramped to 100%): nothing sends it any
+  // more, but bundles cached from before the ramp still do, so
   // it stays accepted rather than turning those posts into 400s.
   step1_variant: z.enum(["editorial", "classic"]).optional(),
   // Where the session came from, on the step-1 row only: the wizard

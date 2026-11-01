@@ -114,10 +114,9 @@ describe("twin copies of one trip", () => {
 describe("a cancelled trip must never generate mail", () => {
   it("suppresses a queued row whose trip has since been cancelled", () => {
     // Checked at DISPATCH, not only at enqueue, because cancelling happens
-    // after the cascade is already queued. Measured 2026-08-28: five
-    // cancelled trips still held 23 scheduled rows, all future-dated, none
-    // muted — including a Sicily trip cancelled in July that would have sent
-    // "Three days to Palermo" in August.
+    // after the cascade is already queued: a cancelled trip can still hold
+    // future-dated rows that would send "Three days to …" for a trip that
+    // isn't happening.
     expect(SRC).toContain("trip_cancelled");
     expect(SRC).toMatch(/trip\.status === "cancelled"/);
   });

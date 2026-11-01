@@ -3,10 +3,8 @@
 // One call per session, the first time a real browser keeps a page visible
 // long enough to count as a visit.
 //
-// `page_views.is_bot` is a user-agent regex and the traffic that doubled the
-// wizard denominator on 2026-08-17 defeats it entirely — 629 localized step-1
-// sessions from CN/SG/HK sharing 29 rotating user agents, 0.0% flagged, and
-// six sessions across three regions that ever had an account. Identity cannot
+// `page_views.is_bot` is a user-agent regex, and automated traffic that
+// rotates real-looking user agents defeats it entirely. Identity cannot
 // separate that from a real visitor, and neither can page-view timing, which
 // is dominated by prefetch. Time-on-page can, and outside the wizard nothing
 // measured it.

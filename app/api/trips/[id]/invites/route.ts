@@ -75,11 +75,9 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     const body = await request.json();
     const {
       role = "voter",
-      // An open link goes to a group chat: it must let the whole group in.
-      // Until 2026-09-25 it defaulted to 1 and the UI never sent another
-      // value, so only the first person to tap "Invite link" could join and
-      // everyone else hit "Invite Already Used". Email invites stay
-      // single-use (below).
+      // An open link goes to a group chat: it must let the whole group in
+      // (the UI never sends a use count). Email invites stay single-use
+      // (below).
       maxUses = DEFAULT_LINK_MAX_USES,
       expiresInDays = 3650, // ~10 years, effectively never expires
       recipientEmail,
@@ -132,9 +130,7 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
       user.id,
       // NOT "destination" — public.trips has no such column; the destination
       // lives in trip_meta->>'destination'. verifyTripAccess passes this
-      // straight to PostgREST and collapses ANY error into notFound, so the
-      // bad column made every invite creation return 404 "Trip not found".
-      // trip_invites last gained a row on 2026-01-04.
+      // straight to PostgREST, so a bad column fails every invite creation.
       "id, user_id, title, trip_meta",
       ["editor"]
     );

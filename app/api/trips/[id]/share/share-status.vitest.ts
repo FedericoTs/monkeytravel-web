@@ -5,9 +5,9 @@ import { NextRequest } from "next/server";
 /**
  * Reading a trip's share status.
  *
- * ShareButton asks on mount for every role, and the route was owner-only, so
- * every collaborator's trip page logged a 404 (seen 2026-09-24). Any member
- * may now read it; creating and revoking the link stay with the owner. The
+ * ShareButton asks on mount for every role, so any member may read it (an
+ * owner-only read would log a 404 on every collaborator's trip page);
+ * creating and revoking the link stay with the owner. The
  * link must carry the OWNER's referral code: get_or_create_referral_code
  * mints one for whoever it is given. Stopping sharing also takes a trip off
  * Explore, so sharing it again must not report it as listed. The token comes

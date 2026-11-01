@@ -16,9 +16,6 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
  * Caching: edge-cached for 1 hour (s-maxage=3600). The counter is
  * social proof, not real-time analytics — a slightly stale number is
  * fine and we don't want every /backpacker pageload hammering Supabase.
- *
- * Shipped 2026-05-28 alongside the Hostelworld Phase A push (live
- * stats counter for the partner pitch).
  */
 export async function GET() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

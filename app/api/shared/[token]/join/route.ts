@@ -127,9 +127,8 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
     // A signed-in recipient is linked to their account; anonymous stays anonymous.
     // Their account email doubles as the notification email unless they type
-    // another one: the digest fan-out only mails rows with an email, and until
-    // 2026-09-18 a signed-in joiner who skipped the optional email step was
-    // never mailed at all.
+    // another one: the digest fan-out only mails rows with an email, and a
+    // signed-in joiner who skips the optional email step would never be mailed.
     let userId: string | null = null;
     let accountEmail: string | null = null;
     try {

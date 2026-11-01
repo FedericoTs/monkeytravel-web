@@ -5,10 +5,9 @@ import { NextRequest } from "next/server";
 /**
  * How many people one invite link lets in.
  *
- * An open link goes to a group chat. Until 2026-09-25 it defaulted to one use
- * and the share modal never sends another value, so the first friend to tap
- * it joined and everyone after hit "Invite Already Used". Open links now take
- * a group; an email invite names one person and stays single-use.
+ * An open link goes to a group chat, so it takes a group (the share modal
+ * never sends a use count; one use would let only the first friend in). An
+ * email invite names one person and stays single-use.
  */
 
 const TRIP = "trip-1";

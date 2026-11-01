@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
 
     // Parse query parameters.
-    // Bug-bounty 2026-05-24 P1: unchecked parseInt produced NaN that
-    // flowed into Supabase filters. Validate + clamp.
+    // Validate and clamp: an unchecked parseInt yields NaN, which would flow
+    // into Supabase filters.
     const moods = searchParams.get("mood")?.split(",").filter(Boolean) || [];
     const durationRaw = searchParams.get("duration");
     const durationParsed = durationRaw ? parseInt(durationRaw, 10) : NaN;

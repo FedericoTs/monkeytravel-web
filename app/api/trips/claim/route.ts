@@ -72,9 +72,9 @@ export async function POST(request: NextRequest) {
 
     // Consent-free record of the conversion. The RPC also stamps
     // trip_meta.claimed_at; this row carries the user for cohort joins.
-    // Scheduled with after(): a bare `void` insert here was dropped on
-    // production (verified 2026-09-02) because the function returns
-    // immediately and can be frozen before the write lands. Telemetry must
+    // Scheduled with after(): a bare `void` insert would be dropped, because
+    // the function returns immediately and can be frozen before the write
+    // lands. Telemetry must
     // never fail a claim that succeeded, and logFunnelEventServer never throws.
     const claimedTripId = (row?.trip_id as string | undefined) ?? null;
     after(() =>

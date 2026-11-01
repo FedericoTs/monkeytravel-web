@@ -34,10 +34,10 @@ import { logWriteError } from "@/lib/supabase/log-write-error";
  * page_views uses, so the two tables join — or a one-way daily digest when
  * the cookie is absent (see lib/analytics/trip-view).
  *
- * Writes go through the service role (since 2026-09-23). The table used to
- * take inserts from the anon key directly, with only `trip_id IS NOT NULL`
- * checked, so anyone could write rows for any trip with any viewer_id,
- * source, day or bot flag and forge the North Star. 20260924121000 closes
+ * Writes go through the service role. Inserts straight from the anon key,
+ * with only `trip_id IS NOT NULL` checked, would let anyone write rows for any
+ * trip with any viewer_id, source, day or bot flag and forge the North Star.
+ * 20260924121000 closes
  * the table to anon/authenticated, which makes this route the only writer,
  * so the checks the policy never made happen here:
  *   - the trip must exist and not be deleted;

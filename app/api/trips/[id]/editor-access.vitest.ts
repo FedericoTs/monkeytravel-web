@@ -5,10 +5,9 @@ import { NextRequest } from "next/server";
 /**
  * Who may PATCH a trip.
  *
- * Until 2026-09-24 this was owner-only while the trip page showed invited
- * editors an "Edit trip" button, so an editor's Save answered 404 "Trip not
- * found" (seen in production that morning). Editors may now save the trip's
- * content. Dates, status and the reminders mute stay with the owner, and the
+ * Invited editors see an "Edit trip" button, so their Save must not answer
+ * 404 "Trip not found": editors may save the trip's content. Dates, status and
+ * the reminders mute stay with the owner, and the
  * reminder cascade is always re-planned for the OWNER: given anyone else's id,
  * enqueue_trip_notifications finds no trip and wipes the owner's schedule.
  * The real verifyTripAccess runs against a fake Supabase.

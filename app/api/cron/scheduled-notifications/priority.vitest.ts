@@ -8,7 +8,7 @@ import { prioritizeDueRows } from "@/lib/notifications/queue";
  * that could wait ("One week out" is still true at six days) and deferred the
  * ones that could not — "Tomorrow — final checks", "Travel day", the
  * evening-before digest — which staleReason then rightly refused the next
- * morning. Two `morning_of` rows died that way on 2026-09-12.
+ * morning.
  */
 
 function row(slot: string, scheduled_for: string) {

@@ -3,9 +3,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 /**
  * The link inside the sign-in email.
  *
- * Until 2026-09-24 the hook copied the whole redirect_to path into the
- * callback's `next`. The save prompt's redirect_to IS a callback URL, so the
- * email linked /auth/callback?token_hash=...&next=/auth/callback?next=/trips/new.
+ * The hook must not copy the whole redirect_to path into the callback's
+ * `next`: the save prompt's redirect_to IS a callback URL, so the email would
+ * link /auth/callback?token_hash=...&next=/auth/callback?next=/trips/new.
  * The first callback signed the user in, the second had no code, and a
  * signed-in user landed on /auth/login?error=auth_incomplete. For es/it/pt the
  * nested URL was /pt/auth/callback, which is a 404. These drive the real

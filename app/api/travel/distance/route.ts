@@ -1,8 +1,8 @@
 /**
  * Distance Matrix — INTENTIONALLY DORMANT, DO NOT DELETE AS DEAD CODE.
  *
- * `google_distance_matrix` has been disabled in `api_config` since 2025-12-06
- * on cost grounds, so this route answers with the local haversine estimate
+ * `google_distance_matrix` is disabled in `api_config` on cost grounds, so
+ * this route answers with the local haversine estimate
  * from lib/utils/travel-estimation, as the scheduler does. It had ZERO
  * callers even before that: nothing in app/, lib/, components/ or hooks/
  * references it.

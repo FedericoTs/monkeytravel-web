@@ -10,13 +10,10 @@ import type { InviteTokenRouteContext } from "@/lib/api/route-context";
  * POST /api/invites/[token]/sign-in-link — email a sign-in link to the
  * address an invite was sent to.
  *
- * WHY THIS EXISTS (2026-09-24)
+ * WHY THIS EXISTS
  * An invite sent to a specific email can only be accepted by that account,
- * so the invite page shows a signed-out visitor "Sign in with that email to
- * view and accept the invite". It offered no way to sign in: its one button
- * went to "Create Your Own Trip". Every emailed invite to someone without an
- * account ended there (0 of 5 accepted, against 3 of 3 for recipients who
- * already had one), and a user reported it the same day.
+ * so a signed-out visitor needs a way to sign in as that address; without
+ * one, every emailed invite to someone without an account dead-ends.
  *
  * The page cannot put the address in a form (links get forwarded, and the
  * page shows only a masked hint), so the link goes to the invited address

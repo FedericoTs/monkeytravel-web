@@ -15,26 +15,22 @@ const imgProxyTokenLimiter = createRateLimiter(
  * Generic server-side proxy for hotlinked images that intermittently
  * return 5xx to direct browser requests but succeed from Vercel egress.
  *
- * **Why this exists** — 2026-05-31 live audit:
- * Pexels CDN (`images.pexels.com`) intermittently 504s direct browser
- * loads even when curl from the same machine succeeds. Verified via
- * Chrome network panel on /it/shared/<token>: cover image got
- * `504 Gateway Timeout` twice in a row, including with cache-bust
- * `?_r=1` retry. Suspected cause: Cloudflare anti-scraping signature
- * on browser User-Agent + Referer combo. Affects every shared trip
- * cover, every /explore card, every /destinations card, every saved
- * trip hero whose `cover_image_url` points at Pexels.
+ * **Why this exists:** the Pexels CDN (`images.pexels.com`) intermittently
+ * answers direct browser loads with 504 (even with a cache-busting retry)
+ * while a server fetch of the same URL succeeds, most likely Cloudflare
+ * anti-scraping keyed on the browser's User-Agent + Referer. That would hit
+ * every shared trip cover, /explore card, /destinations card and saved trip
+ * hero whose `cover_image_url` points at Pexels.
  *
  * Server-side fetches don't trip whatever bot heuristic browser
  * requests do, so the same URL resolves cleanly from a Vercel function.
  * Proxying through this route is the user-visible fix.
  *
- * **2026-06-01 reshape** — was `/api/img/proxy?url=<encoded>` until
- * Sentry issue 124107340 surfaced: Next.js 16 requires
+ * **A path segment, not `?url=`:** Next.js 16 requires
  * `images.localPatterns` to allow-list query strings on local
  * `<Image src=...>` URLs, and the `search` field only accepts an
  * exact string — no wildcards — so `?url=<varies>` is unrepresentable
- * in config. Moving the URL into a path segment makes this route
+ * in config. The URL in a path segment makes this route
  * compatible with both `<Image>` and plain `<img>` everywhere, AND
  * keeps Next image optimization on the proxied bytes (which improves
  * LCP and saves bandwidth vs. shipping the raw upstream JPEG).

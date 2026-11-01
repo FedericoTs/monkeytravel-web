@@ -172,8 +172,7 @@ const DESTINATION_ALIASES: Record<string, string[]> = {
 
   // Italian endonyms (cities + countries) — Italian users typing
   // "Roma" expect Rome, not Bucharest (whose country "Romania" matched
-  // `%roma%` by accident). Live audit 2026-05-31 caught this on
-  // /it/trips/new. Same logic for IT-localized country names.
+  // `%roma%` by accident). Same logic for IT-localized country names.
   "roma": ["Rome"],
   "firenze": ["Florence"],
   "venezia": ["Venice"],
@@ -241,8 +240,7 @@ function expandSearchWithAliases(input: string): string[] {
     // Keeping the raw term caused false country matches: "roma" (→ Rome)
     // also matched country.ilike.%roma% → "Romania", so Bucharest surfaced
     // as a suggestion for Italian users typing their own capital. The curated
-    // alias IS the intent, so search the mapped cities alone. Completes the
-    // partial fix from task #360 (live-caught on a 2026-07-02 re-probe).
+    // alias IS the intent, so search the mapped cities alone.
     return aliases.map(a => a.toLowerCase());
   }
 
@@ -506,8 +504,8 @@ const PHOTON_PLACE_TYPES = new Set(["city", "town", "village", "island"]);
 // worst-converting locale (it: step1→2 25.6% vs en 47.7%). For unsupported
 // locales (it/es/pt/…) we use "default", which returns endonyms
 // ("Firenze, Italia", "Sevilla, España") that match what native-language
-// users actually type. Live-confirmed 2026-07-03: `lang=it` → 400
-// {"message":"Language is not supported. Supported are: default, de, en, fr"}.
+// users actually type. `lang=it` answers 400 {"message":"Language is not
+// supported. Supported are: default, de, en, fr"}.
 const PHOTON_SUPPORTED_LANGS = new Set(["de", "en", "fr"]);
 
 function resolvePhotonLang(

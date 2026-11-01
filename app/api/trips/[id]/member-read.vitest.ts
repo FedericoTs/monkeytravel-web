@@ -5,10 +5,10 @@ import { NextRequest } from "next/server";
 /**
  * Who may read a trip through GET /api/trips/[id].
  *
- * Owner-only until 2026-09-25. The trip page re-reads through it after every
- * assistant change, so once invited editors could use the assistant, their
- * change was saved and the re-read answered 404: an error banner and a stale
- * plan, and their next save conflicted with their own change. Members may now
+ * The trip page re-reads through it after every assistant change, so an
+ * owner-only read would answer an editor's re-read with 404: an error banner,
+ * a stale plan, and a next save that conflicts with their own change. Members
+ * may
  * read the trip, as RLS and the trip page already let them. The real
  * verifyTripAccess runs against a fake Supabase.
  */
