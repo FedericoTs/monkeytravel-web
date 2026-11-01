@@ -130,9 +130,16 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { data: subs } = await svc
+  const { data: subs, error: subsErr } = await svc
     .from("email_subscribers")
     .select("email, unsubscribed_at");
+  if (subsErr) {
+    console.error("[sync-resend-audience] subscribers query failed:", subsErr);
+    return NextResponse.json(
+      { error: "Subscribers query failed", detail: subsErr.message },
+      { status: 500 }
+    );
+  }
 
   // Merge into a single deduped contact map.
   type Contact = {

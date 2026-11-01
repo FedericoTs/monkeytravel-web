@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
 import { apiSuccess } from "@/lib/api/response-wrapper";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * GET /api/auth/maintenance-bypass
@@ -33,11 +34,11 @@ export async function GET() {
   if (isAdmin(user.email)) return apiSuccess({ bypass: true });
 
   try {
-    const { data: config } = await supabase
+    const { data: config } = logReadError("maintenance bypass: allowed emails", await supabase
       .from("site_config")
       .select("allowed_emails")
       .eq("id", 1)
-      .single();
+      .single());
     const allowed: string[] = (config?.allowed_emails || []).map((e: string) =>
       e.toLowerCase(),
     );
@@ -49,11 +50,11 @@ export async function GET() {
   }
 
   try {
-    const { data: tester } = await supabase
+    const { data: tester } = logReadError("maintenance bypass: tester access", await supabase
       .from("user_tester_access")
       .select("id, expires_at")
       .eq("user_id", user.id)
-      .single();
+      .single());
     if (
       tester &&
       (!tester.expires_at || new Date(tester.expires_at) >= new Date())

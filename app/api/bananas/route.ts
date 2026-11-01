@@ -8,6 +8,7 @@ import {
   getReferralBananasEarned,
 } from '@/lib/bananas';
 import type { BananasDashboardResponse } from '@/types/bananas';
+import { logReadError } from '@/lib/supabase/log-read-error';
 
 /**
  * GET /api/bananas - Get user's banana balance, tier info, and recent transactions
@@ -39,11 +40,11 @@ export async function GET() {
     // total_signups - total_conversions; attach_referral_on_signup and
     // increment_referral_conversions keep both counters atomically.
     // maybeSingle: an account with no code yet is not an error.
-    const { data: referralCode } = await supabase
+    const { data: referralCode } = logReadError("bananas: referral counters", await supabase
       .from('referral_codes')
       .select('total_signups, total_conversions')
       .eq('user_id', user.id)
-      .maybeSingle();
+      .maybeSingle());
 
     const conversions = referralCode?.total_conversions ?? 0;
     const signups = referralCode?.total_signups ?? 0;

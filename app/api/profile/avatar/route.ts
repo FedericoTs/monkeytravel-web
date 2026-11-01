@@ -1,5 +1,6 @@
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 export async function POST(request: Request) {
   try {
@@ -30,11 +31,11 @@ export async function POST(request: Request) {
     const fileName = `${user.id}/avatar-${Date.now()}.${fileExt}`;
 
     // Delete old avatar if exists
-    const { data: userData } = await supabase
+    const { data: userData } = logReadError("avatar: old file", await supabase
       .from("users")
       .select("avatar_url")
       .eq("id", user.id)
-      .single();
+      .single());
 
     if (userData?.avatar_url) {
       // Extract old file path from URL
@@ -98,18 +99,28 @@ export async function DELETE() {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    // Get current avatar URL
-    const { data: userData } = await supabase
+    // Get current avatar URL. The file is in a public bucket, so the avatar
+    // is only gone once the file is: a failed read or removal stops here
+    // rather than clear avatar_url and report a deletion that didn't happen.
+    const { data: userData, error: readError } = await supabase
       .from("users")
       .select("avatar_url")
       .eq("id", user.id)
       .single();
+    if (readError) {
+      console.error("[Profile Avatar] profile read failed:", readError);
+      return errors.internal("Failed to update profile", "Profile Avatar");
+    }
 
     if (userData?.avatar_url) {
       // Extract file path from URL
       const oldPath = userData.avatar_url.split("/avatars/").pop();
       if (oldPath) {
-        await supabase.storage.from("avatars").remove([oldPath]);
+        const { error: removeError } = await supabase.storage.from("avatars").remove([oldPath]);
+        if (removeError) {
+          console.error("[Profile Avatar] file removal failed:", removeError);
+          return errors.internal("Failed to update profile", "Profile Avatar");
+        }
       }
     }
 

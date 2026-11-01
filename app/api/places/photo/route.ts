@@ -15,6 +15,7 @@ import {
   type FreshPhoto,
 } from "@/lib/places/heal-dedupe";
 import { logWriteError } from "@/lib/supabase/log-write-error";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 // Abuse ceiling, not a UX cap: a trip page loads ~15-30 photos, so 600/h/IP
 // never touches real browsing but stops scripted hammering of a route that
@@ -59,11 +60,11 @@ const photoListsInFlight = new InFlight<PlacePhoto[] | null>();
 async function readCachedPhoto(placeId: string): Promise<CachedPhotoRow | null> {
   try {
     const supabase = createAdminClient();
-    const { data } = await supabase
+    const { data } = logReadError("place photo: cached ref", await supabase
       .from("places_v2")
       .select("photo_resource_name, photo_url, updated_at")
       .eq("place_id", placeId)
-      .maybeSingle();
+      .maybeSingle());
     return (data as CachedPhotoRow | null) ?? null;
   } catch {
     return null;
