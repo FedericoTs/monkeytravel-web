@@ -1769,6 +1769,16 @@
         "applyFailed": "Couldn't apply the change. Please try again.",
         "undoFailed": "Couldn't undo the change. Please try again.",
         "undoOutdated": "Your trip has changed since then, so this can't be undone here."
+      },
+      "undoActions": {
+        "replaced": "Replaced with {name}",
+        "added": "Added {name}",
+        "removed": "Removed {name}",
+        "adjusted": "Adjusted {name}",
+        "addedDay": "Added Day {number}",
+        "updatedDays": "Updated {count, plural, one {# day} other {# days}}",
+        "reordered": "Reordered Day {number}",
+        "shifted": "Moved Day {number} on {count, plural, one {# day} other {# days}} later"
       }
     },
     "cards": {
