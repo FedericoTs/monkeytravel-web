@@ -117,7 +117,7 @@ Step-1→2 conversion is a historically fragile metric (launch-blocker #371). Th
 | Params extension has exact precedent | `TripCreationParams.destinations?` — same optional-array wedge, types/index.ts:366 |
 | Per-leg parallel generation + merge exists | `lib/ai/multi-city.ts`, `multi-city-core.ts` (`mergeCityItineraries`, 15 passing tests) |
 | Strict date validation at boundary | Shipped `b9e3ab6` + regression tests (proven failing pre-fix) |
-| Day-scoped LLM edits proven in prod | `lib/ai/assistant-anon.ts` (single-day revise), `assistant/structural.ts` (`normalizeDraftDays`) |
+| Day-scoped LLM edits proven in prod | `lib/ai/assistant/engine.ts` (single-day revise), `assistant/structural.ts` (`normalizeDraftDays`) |
 | Locked-day UI has precedent | Per-day regenerate button + EditableActivityCard already per-day scoped |
 | JSONB persistence without migration | `trip_meta.cities` precedent |
 

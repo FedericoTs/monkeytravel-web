@@ -6,13 +6,13 @@
  * "add X to day N" and a few more produced a change, anything else none.
  * "Adding Wigwam to Day 3", "nightclubs on the 2nd, 4th and 6th night" or two
  * changes in one message got a reply promising the change, and no change.
- * The wizard's engine (lib/ai/assistant-anon.ts) has the model write the
+ * The wizard's engine (lib/ai/assistant/engine.ts) has the model write the
  * revised days itself, from the whole plan and the conversation; here those
  * days are merged into the saved trip and proposed as one multi-day change.
  * It answers questions too, with the plan's own figures.
  */
 
-import { assistTrip, type AssistTurn, type DayEdit } from "@/lib/ai/assistant-anon";
+import { assistTrip, type AssistTurn, type DayEdit } from "./engine";
 import { lengthUnchangedNote, ownerAddsDaysReply } from "@/lib/ai/assistant/honesty";
 import type { DisplayCurrency } from "@/lib/ai/assistant/plan-costs";
 import { addDaysISO } from "@/lib/ai/assistant/structural";

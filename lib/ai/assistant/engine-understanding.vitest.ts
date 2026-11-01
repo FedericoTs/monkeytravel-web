@@ -11,8 +11,8 @@ import {
   readTravelTimes,
   takenOut,
   type DayEdit,
-} from "./assistant-anon";
-import { asksToRemove, replyLanguage } from "./assistant/honesty";
+} from "./engine";
+import { asksToRemove, replyLanguage } from "./honesty";
 
 /**
  * The trip assistant should understand what a traveller means and do what

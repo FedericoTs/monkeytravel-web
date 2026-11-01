@@ -35,14 +35,14 @@ const day = (n: number) =>
   ({ day_number: n, date: `2027-11-1${n}`, activities: [{ name: `Day ${n} thing`, time_slot: "morning" }] }) as unknown as ItineraryDay;
 const input = { message: "What is on day 1?", destination: "Rome, Italy", tripTitle: "Rome", days: [day(1), day(2)], locale: "en" };
 
-let mod: typeof import("./assistant-anon");
+let mod: typeof import("./engine");
 
 beforeEach(async () => {
   process.env.GOOGLE_AI_API_KEY = "test-key";
   generateContent.mockReset();
   modelsAsked.length = 0;
   vi.useFakeTimers({ toFake: ["setTimeout"] });
-  mod = await import("./assistant-anon");
+  mod = await import("./engine");
 });
 
 afterEach(() => {
