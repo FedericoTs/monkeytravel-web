@@ -56,8 +56,6 @@ export default function OngoingTripView({
   cachedTravelDistances,
   cachedTravelHash,
 }: OngoingTripViewProps) {
-  // i18n — was rendering 'Day N', 'Today', 'Full Plan', 'TODAY' badge
-  // in English on /it/ and /es/. Caught 2026-05-29 audit.
   const t = useTranslations("trips");
   const locale = useLocale();
   const [activeTab, setActiveTab] = useState<ViewTab>("today");
@@ -68,13 +66,10 @@ export default function OngoingTripView({
   const displayItinerary = useMemo(() => ensureActivityIds(itinerary), [itinerary]);
 
   // Calculate current day based on trip dates.
-  // parseLocalDate (vs `new Date(iso)` which the previous version used)
-  // matters here: in negative-offset timezones the old code parsed
-  // "2026-06-15" as UTC midnight = local 4 PM June 14, then
-  // setHours(0,0,0,0) shifted it to LOCAL midnight on June 14 — so a
-  // user IN their actual Day 1 would have currentDayNumber = 2 and the
-  // "today" highlight would land on tomorrow's activities. parseLocalDate
-  // gives us local midnight of the picked date, which is correct.
+  // parseLocalDate gives local midnight of the picked date. `new Date(iso)`
+  // would be UTC midnight, which west of UTC is the afternoon before: on
+  // day 1 the trip would count as day 2 and "today" would highlight
+  // tomorrow's activities.
   // Hydration-safe `now` — see hooks/useNow.ts. Same pattern as
   // TripsPageClient. Without this, currentDayNumber differs between
   // server and client renders when the SSR HTML is cached past a midnight
@@ -174,8 +169,7 @@ export default function OngoingTripView({
   const todayDate = displayItinerary.find((d) => d.day_number === currentDayNumber)?.date;
   const todayTheme = displayItinerary.find((d) => d.day_number === currentDayNumber)?.theme;
 
-  // Format date for display — locale-aware (was hardcoded en-US, caught
-  // 2026-05-29 audit; the badge showed "Thursday, May 28" even on /it/).
+  // Format date for display, in the page's locale.
   const formatDate = (dateStr: string) => {
     const date = parseLocalDate(dateStr) ?? new Date(dateStr);
     return date.toLocaleDateString(locale, {

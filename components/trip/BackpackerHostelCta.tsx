@@ -21,11 +21,9 @@ interface BackpackerHostelCtaProps {
 }
 
 /**
- * Fire-and-forget click tracker. Posts to /api/affiliates/hostelworld/click
- * which writes one row in public.hostelworld_clicks (shipped 2026-05-28
- * as Tier 1.3 of MIGRATION_PLAN.md). Used to power the headline metric
- * for the Hostelworld partnership conversation:
- *   "We drove N hostel searches to you in the last 30 days."
+ * Fire-and-forget click tracker. Posts to /api/affiliates/hostelworld/click,
+ * which writes one row in public.hostelworld_clicks: the count of hostel
+ * searches sent to Hostelworld.
  *
  * keepalive=true: the click navigates the browser away (target=_blank in
  * a new tab — usually fine — but on some browsers/extensions it might
@@ -62,26 +60,15 @@ function logClick(payload: {
  * trip_meta.travel_style === "backpacker" (the parent gates that — we
  * keep this component dumb so it's reusable).
  *
- * Strategic context (shipped 2026-05-28): part of the Hostelworld
- * partnership wedge. The button is live in production immediately,
- * even before any formal Awin affiliate ID is configured, so we can
- * start measuring CTR. Once HOSTELWORLD_AWIN_AFFILIATE_ID is set in
- * Vercel env, the same button starts earning commission with zero
- * code change. The displayed badge below the button switches based
- * on isHostelworldAffiliateActive() to keep the affiliate disclosure
- * accurate.
+ * The button works before an Awin affiliate ID is configured; once
+ * HOSTELWORLD_AWIN_AFFILIATE_ID is set, the same link earns commission with
+ * no code change. The badge below it follows isHostelworldAffiliateActive()
+ * so the affiliate disclosure stays accurate.
  *
- * Consolidated 2026-05-31 (task #340 Day-8): was the 6th divergent
- * affiliate-CTA implementation — rendered as a <button> (invisible to
- * Google as sponsored, broken middle-click), used openExternal()
- * unconditionally (lost modifier-click semantics in normal browsers),
- * fired NO PostHog event (the data-analytics-event attribute on a
- * <button> is dead weight — PostHog autocapture won't infer the click
- * as an affiliate-funnel event without the unified payload). Now a
- * thin wrapper over PartnerButton with the canonical
- * `booking_partner_click` event + the existing first-party
- * /api/affiliates/hostelworld/click log piggybacked through
- * `onBeforeNavigate`. Visual treatment preserved via variant="custom".
+ * A thin wrapper over PartnerButton (a real link marked sponsored, with the
+ * canonical `booking_partner_click` event); the first-party
+ * /api/affiliates/hostelworld/click log rides on `onBeforeNavigate`.
+ * variant="custom" keeps its own look.
  */
 export default function BackpackerHostelCta({
   destination,

@@ -48,16 +48,10 @@ export default function ShareButton({
 
   // Fetch current share status and collaborators on mount.
   //
-  // 2026-05-30 P0 bug (Alyssa): in some mobile WebView contexts these mount-time
-  // fetches were stalling (service-worker shadow, slow auth refresh, network
-  // blip) and the share button — previously `disabled={isLoading}` — stayed
-  // permanently dead. Tap did nothing, no toast, no recovery.
-  //
-  // Fix: split the two concerns. These fetches drive only the badge/avatar
-  // *decoration* state (isShared label, collaborator count) — the modal itself
-  // already manages its own loading state and refetches on open. So we DO NOT
-  // block the button on these resolving. Worst case: badge is stale for ~1s.
-  // Best case: button is always tappable, modal opens instantly.
+  // These drive only the badge's decoration (shared label, collaborator
+  // count); the modal loads its own data when it opens. So the button never
+  // waits on them: in some mobile web views they can stall, and a button
+  // gated on them would stay dead.
   useEffect(() => {
     let cancelled = false;
 
@@ -241,11 +235,9 @@ export default function ShareButton({
           <button
             onClick={() => handleOpen("share")}
             aria-label={isShared ? t("shared") : t("share")}
-            // NOTE: deliberately NOT `disabled={isLoading}` — we used to gate
-            // the button on the mount-time share+collaborators fetches, and a
-            // stalled fetch left the share button permanently dead with no
-            // recovery (P0 reported by Alyssa, 2026-05-30). The modal handles
-            // its own loading state via the `isLoading` prop below.
+            // Deliberately not `disabled={isLoading}`: a stalled mount-time
+            // fetch would leave the button dead. The modal handles its own
+            // loading state via the `isLoading` prop below.
             className={cn(
               "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
               hasCollaborators

@@ -10,8 +10,6 @@
  * the wizard's auto-save persists for a saved trip). With `onUndoEdits` an edit
  * applies as soon as it arrives and its card offers Undo; without it, the card
  * asks first.
- *
- * Discoverability audit 2026-07-01, Tier 3-B1 (Q&A) + B2 (editing).
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -239,13 +237,10 @@ export default function AnonAssistantPanel({
 
   // Suggestions derived from THIS itinerary, falling back to the static chips.
   //
-  // The static chips ("Make day 1 more relaxed") shipped months ago and
-  // result→save_clicked never moved: 24.9% → 24.7%. They're wallpaper — the
-  // same three strings whatever we generated. The 2026-08-01 funnel read says
-  // the sessions that refine are the ones that keep (9.7% save at one
-  // generation vs 26.3% at three), so the chip has to earn the first tap by
-  // being an observation about the plan on screen, not a generic offer.
-  // Falls back rather than inventing a flaw the itinerary doesn't have.
+  // Generic chips ("Make day 1 more relaxed") read the same whatever was
+  // generated, and the people who refine a plan are the ones who keep it, so
+  // a chip earns the first tap by observing something about the plan on
+  // screen. It falls back rather than inventing a flaw the plan doesn't have.
   // The bridge shows once the assistant has actually answered — that is the
   // moment of investment, whether or not the exchange produced an edit. It
   // stays hidden after the trip is persisted, because the parent then passes

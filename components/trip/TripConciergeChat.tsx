@@ -22,15 +22,12 @@ import {
 import { ItineraryWriteBlockedError } from "@/lib/trips/itinerary-sync";
 
 /**
- * In-trip AI Concierge — context-aware chat modal (F4 / task #242, upgraded
- * by P2 "live replanning" 2026-08-16).
+ * In-trip AI Concierge — context-aware chat modal.
  *
- * What changed in P2:
- *   - No longer read-only. The API can attach ONE edit proposal to an
- *     answer; we render the same PreviewChangeCard the planning assistant
+ *   - The API can attach ONE edit proposal to an answer; we render the same PreviewChangeCard the planning assistant
  *     uses, and Apply posts to the existing /api/ai/assistant/apply
  *     (anchor guards + single write live there). Confirm-first, always.
- *   - Today-aware for real: we send the client's LOCAL date so "today"
+ *   - Today-aware: we send the client's LOCAL date so "today"
  *     can't be off by one for evening users west of UTC.
  *   - Multi-turn: the server replays recent persisted turns, so
  *     follow-ups ("make it cheaper") resolve. The UI still shows the
@@ -38,7 +35,7 @@ import { ItineraryWriteBlockedError } from "@/lib/trips/itinerary-sync";
  *   - itineraryVersion counter rides on every ask and busts the server's
  *     60s trip-context cache after an applied edit.
  *
- * v1 access rule: only the trip owner can APPLY (all /apply write paths
+ * Access rule: only the trip owner can APPLY (all /apply write paths
  * are owner-scoped). Collaborators get the prose suggestion without a
  * card — widening writes is a separate decision.
  *
