@@ -12,9 +12,10 @@ import ts from "typescript";
  *
  * - A write whose result is thrown away: read `error` (or `.then`/`.catch`
  *   it), return the promise, or mark a deliberate fire-and-forget with `void`.
- * - A result destructured without `error` (`const { data } = await
- *   db.from(...)...`, or `(await ...).data`): take `error` too, or keep the
- *   whole result.
+ * - A result taken without `error`: `const { data } = await db.from(...)...`,
+ *   `(await ...).data`, the same from `await Promise.all([...])`, or a result
+ *   kept whole and only ever read for `.data` or `.count`. Take `error` too,
+ *   pass the result to `logReadError`, or hand it to code that checks it.
  */
 const UNCHECKED_WRITES_CEILING = 0;
 const DROPPED_ERRORS_CEILING = 0;
@@ -37,13 +38,71 @@ function methodChain(expression: ts.Expression): string[] {
   return names;
 }
 
-/** An awaited query or RPC: `await db.from(...).select(...)`, `await db.rpc(...)`. */
-function isAwaitedQuery(expression: ts.Expression): boolean {
+/** A query or RPC: `db.from(...).select(...)`, `db.rpc(...)`. */
+function isQuery(expression: ts.Expression): boolean {
+  const names = methodChain(expression);
+  return (names.includes("from") && names.some((n) => n === "select" || WRITES.has(n))) || names.includes("rpc");
+}
+
+function unwrap(expression: ts.Expression): ts.Expression {
   let e = expression;
   while (ts.isParenthesizedExpression(e) || ts.isNonNullExpression(e) || ts.isAsExpression(e)) e = e.expression;
-  if (!ts.isAwaitExpression(e)) return false;
-  const names = methodChain(e.expression);
-  return (names.includes("from") && names.some((n) => n === "select" || WRITES.has(n))) || names.includes("rpc");
+  return e;
+}
+
+/** An awaited query or RPC: `await db.from(...).select(...)`, `await db.rpc(...)`. */
+function isAwaitedQuery(expression: ts.Expression): boolean {
+  const e = unwrap(expression);
+  return ts.isAwaitExpression(e) && isQuery(e.expression);
+}
+
+/** The elements of `await Promise.all([...])`, or null for anything else. */
+function promiseAllElements(expression: ts.Expression): readonly ts.Expression[] | null {
+  const e = unwrap(expression);
+  if (!ts.isAwaitExpression(e) || !ts.isCallExpression(e.expression)) return null;
+  const { expression: callee, arguments: [list] } = e.expression;
+  const isPromiseAll =
+    ts.isPropertyAccessExpression(callee) && ts.isIdentifier(callee.expression) && callee.expression.text === "Promise" && callee.name.text === "all";
+  return isPromiseAll && list && ts.isArrayLiteralExpression(list) ? list.elements : null;
+}
+
+const keepsError = (pattern: ts.ObjectBindingPattern, file: ts.SourceFile) =>
+  pattern.elements.some((el) => el.dotDotDotToken || (el.propertyName ?? el.name).getText(file) === "error");
+
+/**
+ * Whether a result kept whole is only ever read for its data: `r.data`,
+ * `r.count`, or `const { data } = r`. Reading `r.error` or passing `r` on
+ * counts as checking it.
+ */
+function onlyDataIsRead(name: ts.Identifier, file: ts.SourceFile): boolean {
+  let scope: ts.Node = name.parent;
+  while (!ts.isBlock(scope) && !ts.isSourceFile(scope) && !ts.isCaseOrDefaultClause(scope) && !ts.isModuleBlock(scope)) scope = scope.parent;
+  let checked = false;
+  const visit = (node: ts.Node): void => {
+    if (checked) return;
+    if (ts.isIdentifier(node) && node !== name && node.text === name.text && isReference(node)) {
+      const use = node.parent;
+      const field = ts.isNonNullExpression(use) ? use.parent : use;
+      const takesData =
+        (ts.isPropertyAccessExpression(field) && (field.name.text === "data" || field.name.text === "count")) ||
+        (ts.isVariableDeclaration(use) && use.initializer === node && ts.isObjectBindingPattern(use.name) && !keepsError(use.name, file));
+      if (!takesData) checked = true;
+      return;
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(scope);
+  return !checked;
+}
+
+/** An identifier that refers to a variable, not a property name or a new declaration. */
+function isReference(node: ts.Identifier): boolean {
+  const p = node.parent;
+  if (ts.isPropertyAccessExpression(p) && p.name === node) return false;
+  if ((ts.isPropertyAssignment(p) || ts.isMethodDeclaration(p) || ts.isPropertyDeclaration(p)) && p.name === node) return false;
+  if (ts.isBindingElement(p) && (p.propertyName === node || p.name === node)) return false;
+  if ((ts.isVariableDeclaration(p) || ts.isParameter(p) || ts.isFunctionDeclaration(p)) && p.name === node) return false;
+  return true;
 }
 
 export interface SupabaseResultFindings {
@@ -68,11 +127,22 @@ export function supabaseResultFindings(fileName: string, source: string): Supaba
         }
       }
     }
-    if (ts.isVariableDeclaration(node) && node.initializer && ts.isObjectBindingPattern(node.name) && isAwaitedQuery(node.initializer)) {
-      const keepsError = node.name.elements.some(
-        (el) => el.dotDotDotToken || (el.propertyName ?? el.name).getText(file) === "error",
-      );
-      if (!keepsError) found.droppedErrors.push(lineOf(node));
+    if (ts.isVariableDeclaration(node) && node.initializer && isAwaitedQuery(node.initializer)) {
+      const dropped = ts.isObjectBindingPattern(node.name)
+        ? !keepsError(node.name, file)
+        : ts.isIdentifier(node.name) && onlyDataIsRead(node.name, file);
+      if (dropped) found.droppedErrors.push(lineOf(node));
+    }
+    if (ts.isVariableDeclaration(node) && node.initializer && ts.isArrayBindingPattern(node.name)) {
+      const elements = promiseAllElements(node.initializer);
+      node.name.elements.forEach((binding, i) => {
+        const query = elements?.[i];
+        if (!ts.isBindingElement(binding) || !query || !isQuery(query)) return;
+        const dropped = ts.isObjectBindingPattern(binding.name)
+          ? !keepsError(binding.name, file)
+          : ts.isIdentifier(binding.name) && onlyDataIsRead(binding.name, file);
+        if (dropped) found.droppedErrors.push(lineOf(binding));
+      });
     }
     if (ts.isPropertyAccessExpression(node) && (node.name.text === "data" || node.name.text === "count") && isAwaitedQuery(node.expression)) {
       found.droppedErrors.push(lineOf(node));
@@ -129,8 +199,20 @@ describe("Supabase results nobody checks", () => {
     expect(count(`const { data, error } = await db.from("trips").select("id");`)).toBe(0);
     expect(count(`const { data: trip, error: tripError } = await db.from("trips").select("id");`)).toBe(0);
     expect(count(`const { data, ...rest } = await db.from("trips").select("id");`)).toBe(0);
-    expect(count(`const result = await db.from("trips").select("id");`)).toBe(0);
+    expect(count(`const result = await db.from("trips").select("id"); return result;`)).toBe(0);
     expect(count(`const { data } = await db.storage.from("avatars").download("a.png");`)).toBe(0);
     expect(count(`const { data } = await db.auth.getUser();`)).toBe(0);
+  });
+
+  it("counts results from Promise.all, and whole results only read for their data", () => {
+    const count = (code: string) => supabaseResultFindings("x.ts", `async function f(db: any) {\n${code}\n}`).droppedErrors.length;
+    expect(count(`const [{ data: a }, { count: b }] = await Promise.all([db.from("a").select("id"), db.rpc("b")]);`)).toBe(2);
+    expect(count(`const [{ data: a, error }, b] = await Promise.all([db.from("a").select("id"), load()]);`)).toBe(0);
+    expect(count(`const r = await db.from("trips").select("id"); return r.data;`)).toBe(1);
+    expect(count(`const [r] = await Promise.all([db.from("trips").select("id")]); const { data } = r; return data ?? r?.count;`)).toBe(1);
+    expect(count(`const r = await db.from("trips").select("id"); if (r.error) throw r.error; return r.data;`)).toBe(0);
+    expect(count(`const [r] = await Promise.all([db.from("trips").select("id")]); return logReadError("trips", r).data;`)).toBe(0);
+    expect(count(`const [r] = await Promise.all([db.from("trips").select("id")]); const { data, error } = r; return error ? null : data;`)).toBe(0);
+    expect(count(`const [a, b] = await Promise.all([load(), db.from("trips").select("id")]); return [a, b];`)).toBe(0);
   });
 });
