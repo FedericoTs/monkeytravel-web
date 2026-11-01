@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { rateLimitWindowStart } from "./route";
+import { rateLimitWindowStart } from "@/lib/notifications/queue";
 
 /**
  * One email per trip per CALENDAR DAY, not per rolling 24 hours. The cron

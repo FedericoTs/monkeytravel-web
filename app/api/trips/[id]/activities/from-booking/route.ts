@@ -43,10 +43,8 @@ const VALID_TIME_SLOTS: TimeSlot[] = ["morning", "afternoon", "evening"];
  * Pure helper: given the trip's start date (YYYY-MM-DD) and the
  * booking's startAt ISO string, return the 1-based day number it falls
  * on. Clamps to [1, dayCount].
- *
- * Exported for unit testing.
  */
-export function inferDayNumber(
+function inferDayNumber(
   tripStartDate: string,
   bookingStartAt: string,
   dayCount: number
