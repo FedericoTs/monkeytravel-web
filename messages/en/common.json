@@ -1756,7 +1756,19 @@
         }
       },
       "notAppliedTitle": "I couldn't make that change",
-      "notAppliedBody": "I understood what you wanted, but the change didn't get applied to your plan — so nothing has moved. Try naming one activity at a time (\"replace X with Y\", \"add Z to day 2\"), or edit the day directly on the plan."
+      "notAppliedBody": "I understood what you wanted, but the change didn't get applied to your plan — so nothing has moved. Try naming one activity at a time (\"replace X with Y\", \"add Z to day 2\"), or edit the day directly on the plan.",
+      "tryDifferent": "Try a different option for: {message}",
+      "errors": {
+        "limitDay": "You've reached today's assistant limit. Try again tomorrow.",
+        "limitMonth": "You've reached this month's assistant limit.",
+        "notAllowed": "Only the trip owner and editors can use the assistant on this trip.",
+        "datesOwnerOnly": "Only the trip owner can add days or move the trip's dates. Ask them to make this change.",
+        "outdated": "Your trip has changed since this suggestion. Ask again for a fresh one.",
+        "locked": "This would change a fixed plan ({names}), so it can't be done here.",
+        "tooManyDays": "Trips can have at most {max} days.",
+        "applyFailed": "Couldn't apply the change. Please try again.",
+        "undoFailed": "Couldn't undo the change. Please try again."
+      }
     },
     "cards": {
       "addToTrip": "Add to trip",

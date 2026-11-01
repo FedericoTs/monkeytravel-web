@@ -11,6 +11,7 @@ import UndoToast, { useUndoState } from "./UndoToast";
 import { trackAIAssistantMessage } from "@/lib/analytics";
 import { captureAIAssistantUsed } from "@/lib/posthog/events";
 import { ItineraryWriteBlockedError } from "@/lib/trips/itinerary-sync";
+import { assistantErrorMessage } from "@/lib/ai/assistant/error-message";
 import { useLocale as useLocalePrefs } from "@/lib/locale";
 import { displayCurrencyFor } from "@/lib/ai/assistant/plan-costs";
 
@@ -169,6 +170,9 @@ export function isAffirmative(text: string): boolean {
   ].includes(t);
 }
 
+/** An error whose message is written for the traveller; any other shows a generic one. */
+class ShownError extends Error {}
+
 export default function AIAssistantEnhanced({
   tripId,
   tripTitle,
@@ -185,6 +189,14 @@ export default function AIAssistantEnhanced({
   );
   const t = useTranslations("common.ai.assistant");
   const tCommon = useTranslations("common");
+  // The catalog's message for a failed response, else `fallback`.
+  const failure = useCallback(
+    (status: number, body: unknown, fallback: string) => {
+      const m = assistantErrorMessage(status, body);
+      return new ShownError(m ? t(`errors.${m.key}`, m.values) : fallback);
+    },
+    [t]
+  );
   const { preferences, exchangeRates } = useLocalePrefs();
 
   // Build quick actions from translations
@@ -339,10 +351,10 @@ export default function AIAssistantEnhanced({
         stopStages();
         setLoadingStage("complete");
 
-        const data = await res.json();
+        const data = await res.json().catch(() => null);
 
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to get response");
+        if (!res.ok || !data) {
+          throw failure(res.status, data, t("error"));
         }
 
         if (data.conversationId && !conversationId) {
@@ -468,13 +480,13 @@ ${t("notAppliedBody")}`,
         });
 
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Something went wrong");
+        setError(err instanceof ShownError ? err.message : t("error"));
         setMessages((prev) => prev.slice(0, -1));
       } finally {
         setIsLoading(false);
       }
     },
-    [tripId, conversationId, isLoading, onRefetchTrip, onFocusDay, itinerary, simulateLoadingStages, clearUndo, pushUndo, pendingChange, isApplyingChange, t, preferences?.preferredCurrency, exchangeRates]
+    [tripId, conversationId, isLoading, onRefetchTrip, onFocusDay, itinerary, simulateLoadingStages, clearUndo, pushUndo, pendingChange, isApplyingChange, t, failure, preferences?.preferredCurrency, exchangeRates]
   );
 
   /**
@@ -544,10 +556,10 @@ ${t("notAppliedBody")}`,
         body: JSON.stringify(applyBody),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
 
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to apply change");
+      if (!res.ok || !data) {
+        throw failure(res.status, data, t("errors.applyFailed"));
       }
 
       // Update the last message to show "applied". Thread the /apply
@@ -650,11 +662,11 @@ ${t("notAppliedBody")}`,
       onFocusDay?.(confirmedDayNumber);
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to apply change");
+      setError(err instanceof ShownError || err instanceof ItineraryWriteBlockedError ? err.message : t("errors.applyFailed"));
     } finally {
       setIsApplyingChange(false);
     }
-  }, [pendingChange, isApplyingChange, tripId, itinerary, pushUndo, onRefetchTrip, onFocusDay, conversationId, run]);
+  }, [pendingChange, isApplyingChange, tripId, itinerary, pushUndo, onRefetchTrip, onFocusDay, conversationId, run, failure, t]);
 
   useEffect(() => {
     applyPendingRef.current = handleApplyChange;
@@ -666,9 +678,9 @@ ${t("notAppliedBody")}`,
     // Re-send the last user message with a "try different" modifier
     const lastUserMessage = messages.filter((m) => m.role === "user").pop();
     if (lastUserMessage) {
-      sendMessage(`Try a different option for: ${lastUserMessage.content}`, true);
+      sendMessage(t("tryDifferent", { message: lastUserMessage.content }), true);
     }
-  }, [messages, sendMessage]);
+  }, [messages, sendMessage, t]);
 
   // Cancel pending change
   const handleCancelChange = useCallback(() => {
@@ -702,7 +714,7 @@ ${t("notAppliedBody")}`,
         });
 
         if (!res.ok) {
-          throw new Error("Failed to undo");
+          throw failure(res.status, await res.json().catch(() => null), t("errors.undoFailed"));
         }
 
         // Clear undo and refetch
@@ -729,9 +741,9 @@ ${t("notAppliedBody")}`,
       };
       setMessages((prev) => [...prev, undoMessage]);
     } catch (err) {
-      setError(err instanceof ItineraryWriteBlockedError ? err.message : "Failed to undo change");
+      setError(err instanceof ShownError || err instanceof ItineraryWriteBlockedError ? err.message : t("errors.undoFailed"));
     }
-  }, [currentUndo, tripId, clearUndo, onRefetchTrip, run]);
+  }, [currentUndo, tripId, clearUndo, onRefetchTrip, run, failure, t]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

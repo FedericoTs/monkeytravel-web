@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from "@/lib/api/auth";
 import type { ItineraryDay } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { resolveAssistantRole, ASSISTANT_FORBIDDEN_MESSAGE } from "@/lib/ai/assistant-access";
+import { ASSISTANT_ERROR_CODES } from "@/lib/ai/assistant/error-message";
 import { recordAiOutcome } from "@/lib/ai/observability";
 
 interface UndoRequest {
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     const assistantRole = await resolveAssistantRole(supabase, trip, user.id);
     if (!assistantRole) {
-      return errors.forbidden(ASSISTANT_FORBIDDEN_MESSAGE);
+      return errors.forbidden(ASSISTANT_FORBIDDEN_MESSAGE, ASSISTANT_ERROR_CODES.notAllowed);
     }
 
     // Restore the previous itinerary (and, for add_day undos, the end date)

@@ -119,6 +119,7 @@ describe("assistant apply: who may change what", () => {
     const { status, json } = await apply(addDay);
     expect(status).toBe(403);
     expect(JSON.stringify(json)).toMatch(/only the trip owner can add days/i);
+    expect(json.code).toBe("DATES_OWNER_ONLY");
     expect(updates).toHaveLength(0);
   });
 
@@ -180,12 +181,13 @@ describe("assistant apply: who may change what", () => {
   });
 
   it("a multi-day change that matches no day is still refused", async () => {
-    const { status } = await apply({
+    const { status, json } = await apply({
       changeType: "apply_draft",
       dayNumber: 9,
       days: [{ day_number: 9, date: "2099-01-01", activities: [] }],
     });
     expect(status).toBe(400);
+    expect(json.code).toBe("OUTDATED");
     expect(updates).toHaveLength(0);
   });
 
@@ -197,16 +199,18 @@ describe("assistant apply: who may change what", () => {
   });
 
   it("a multi-day change cannot take the trip past its cap", async () => {
-    const { status } = await apply(draftAdding(...Array.from({ length: 13 }, (_, i) => 3 + i)));
+    const { status, json } = await apply(draftAdding(...Array.from({ length: 13 }, (_, i) => 3 + i)));
     expect(status).toBe(400);
+    expect(json).toMatchObject({ code: "TOO_MANY_DAYS", max: expect.any(Number) });
     expect(updates).toHaveLength(0);
   });
 
   it("voters and viewers get 403 and nothing is written", async () => {
     for (const who of ["voter-1", "viewer-1", "stranger"]) {
       caller = who;
-      const { status } = await apply(removeBravo);
+      const { status, json } = await apply(removeBravo);
       expect(status).toBe(403);
+      expect(json.code).toBe("NOT_ALLOWED");
     }
     expect(updates).toHaveLength(0);
   });

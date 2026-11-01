@@ -1756,7 +1756,19 @@
         }
       },
       "notAppliedTitle": "No he podido hacer ese cambio",
-      "notAppliedBody": "Entendí lo que querías, pero el cambio no se aplicó a tu plan, así que nada se ha movido. Prueba a nombrar una actividad cada vez (\"sustituye X por Y\", \"añade Z al día 2\"), o edita el día directamente en el plan."
+      "notAppliedBody": "Entendí lo que querías, pero el cambio no se aplicó a tu plan, así que nada se ha movido. Prueba a nombrar una actividad cada vez (\"sustituye X por Y\", \"añade Z al día 2\"), o edita el día directamente en el plan.",
+      "tryDifferent": "Prueba otra opción para: {message}",
+      "errors": {
+        "limitDay": "Has alcanzado el límite diario del asistente. Inténtalo de nuevo mañana.",
+        "limitMonth": "Has alcanzado el límite mensual del asistente.",
+        "notAllowed": "Solo el propietario del viaje y los editores pueden usar el asistente en este viaje.",
+        "datesOwnerOnly": "Solo el propietario del viaje puede añadir días o cambiar las fechas. Pídele que haga este cambio.",
+        "outdated": "Tu viaje ha cambiado desde esta sugerencia. Vuelve a pedirla para obtener una nueva.",
+        "locked": "Esto cambiaría un plan fijo ({names}), así que no se puede hacer aquí.",
+        "tooManyDays": "Los viajes pueden tener como máximo {max} días.",
+        "applyFailed": "No se pudo aplicar el cambio. Inténtalo de nuevo.",
+        "undoFailed": "No se pudo deshacer el cambio. Inténtalo de nuevo."
+      }
     },
     "cards": {
       "addToTrip": "Añadir al viaje",
