@@ -89,7 +89,7 @@ export default function ShareAndInviteModal({
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [copied, setCopied] = useState(false);
   const [imageBusy, setImageBusy] = useState<"story" | "square" | null>(null);
-  // Share framing (2026-09-18): which link the owner hands out. Defaults from
+  // Share framing: which link the owner hands out. Defaults from
   // the trip's intent (lib/trips/crew-share.ts); the owner can flip it.
   // Re-derived when the modal is reused for another trip.
   const [framing, setFraming] = useState<ShareFraming>(() => defaultShareFraming(tripIntent));
@@ -126,14 +126,8 @@ export default function ShareAndInviteModal({
   const [emailMessage, setEmailMessage] = useState("");
   const [emailOutcome, setEmailOutcome] = useState<string | null>(null);
 
-  // Current user from AuthContext.
-  //
-  // 2026-05-31 P1 fix (Task #312): this previously called fetch("/api/auth/session")
-  // which is a 404 — no such endpoint exists. currentUserId never set →
-  // `canManage` (line 723: collaborators[0].user_id === currentUserId) was
-  // always false → role-change dropdown + remove-collaborator button never
-  // rendered. Owner was read-only inside their own share modal. AuthContext
-  // gives us the user directly with no extra round-trip.
+  // Current user from AuthContext: `canManage` compares it with the owner,
+  // which shows the role dropdown and the remove button.
   const { user: authUser } = useAuth();
   useEffect(() => {
     if (isOpen && authUser?.id) {
@@ -223,11 +217,8 @@ export default function ShareAndInviteModal({
     }
   };
 
-  // Social sharing.
-  // 2026-05-31 P1 fix (Task #313): `window.open(_, "_blank")` is silently
-  // swallowed by the iOS WKWebView in Capacitor — taps did nothing on
-  // native. openExternal() routes through @capacitor/browser
-  // (SFSafariViewController) on native, falls back to window.open on web.
+  // Social sharing. openExternal() opens @capacitor/browser in the app (the
+  // iOS web view swallows window.open "_blank") and window.open on the web.
   const handleShareTwitter = () => {
     const text = encodeURIComponent(ts(crew ? "socialText.twitterCrew" : "socialText.twitterShare", { tripTitle }));
     const url = encodeURIComponent(framedUrl);
@@ -911,14 +902,11 @@ export default function ShareAndInviteModal({
 
   // Mobile: Use BottomSheet for better UX
   //
-  // 2026-05-31 P1 fix (Task #311): TabButtons + ModalContent are arrow
-  // functions defined INSIDE this component (lines 341, 392). Used as
-  // `<TabButtons />` they were treated by React as fresh component types
-  // on every parent render — unmounting + remounting the entire subtree,
-  // killing the email input's focus on every keystroke and dismissing
-  // iOS's on-screen keyboard. Calling them as plain functions
-  // (`{TabButtons({})}` / `{ModalContent()}`) sidesteps the type-identity
-  // remount: React just sees the returned JSX as part of the parent.
+  // TabButtons and ModalContent are functions defined inside this component,
+  // so they are called (`{TabButtons({})}`, `{ModalContent()}`), not rendered
+  // as `<TabButtons />`: as components they would be a new type on every
+  // render, remounting the subtree and dropping the email input's focus (and
+  // the iOS keyboard) on each keystroke.
   if (isMobile) {
     return (
       <BottomSheet isOpen={isOpen} onClose={onClose} title={ts("titleWithInvite")}>

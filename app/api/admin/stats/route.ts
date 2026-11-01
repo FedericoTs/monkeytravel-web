@@ -177,12 +177,10 @@ export async function GET() {
 
     // 2. THEN swap to the service-role client for every cross-user metric
     //    query below. The user-context client honours RLS on `trips`,
-    //    `users`, `activity_timelines`, etc. — so counts came back filtered
-    //    to "trips the admin user can see" rather than "all trips in the
-    //    DB." Result: Alyssa's private trips never appeared in /admin
-    //    stats (reported 2026-05-31). The admin email check above is the
-    //    authorization boundary; once past it, queries should see the
-    //    whole dataset.
+    //    `users`, `activity_timelines`, etc., so counts would cover only
+    //    what the admin can see (no one else's private trips). The admin
+    //    check above is the authorization boundary; past it, queries see
+    //    the whole dataset.
     const supabase: SupabaseClient = createAdminClient();
 
     // Fetch all metrics in parallel — use allSettled so one failure doesn't crash the dashboard

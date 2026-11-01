@@ -164,8 +164,7 @@ export default function SeasonalContextCard({
     setIsLoading(true);
 
     // Build seasonal context with latitude for accurate hemisphere detection.
-    // endDate enables the trip-window holiday filter (2026-05-25 fix —
-    // previously surfaced holidays outside the trip range).
+    // endDate keeps the holidays to the ones inside the trip.
     const context = buildSeasonalContext(
       destination,
       startDate,
@@ -175,10 +174,8 @@ export default function SeasonalContextCard({
     setSeasonalContext(context);
 
     // Get vibe suggestions based on season and holidays.
-    // Bug-bounty 2026-05-24 P1: getMonth() on `new Date("2026-12-31")`
-    // in negative-offset zones returns 10 (November) instead of 11
-    // (December) because the UTC midnight parse rolls back a day in
-    // local time. Parse YYYY-MM-DD as local instead.
+    // Parse YYYY-MM-DD as local: `new Date(iso)` is UTC midnight, which west
+    // of UTC is the day before, so the 1st would count in the previous month.
     const localStart = (() => {
       const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(startDate);
       if (!m) return new Date(startDate);
@@ -210,12 +207,10 @@ export default function SeasonalContextCard({
   }
 
   const formatDateRange = () => {
-    // Parse YYYY-MM-DD as a LOCAL date (not UTC).
-    // `new Date("2026-06-15")` parses as UTC midnight — in negative-offset
-    // timezones (e.g. US Pacific) toLocaleDateString then shows the
-    // previous day. Caught live in LIVE_AUDIT F3 — user picked Jun 15-20,
-    // card showed Jun 14-19. Splitting the ISO string + using the
-    // multi-arg Date constructor avoids the UTC interpretation.
+    // Parse YYYY-MM-DD as a LOCAL date (not UTC). `new Date(iso)` is UTC
+    // midnight, which toLocaleDateString shows as the previous day west of
+    // UTC (Jun 15-20 would read Jun 14-19). The multi-arg Date constructor
+    // avoids the UTC interpretation.
     const parseLocal = (iso: string): Date => {
       const [y, m, d] = iso.split("-").map((n) => parseInt(n, 10));
       return new Date(y, m - 1, d);
