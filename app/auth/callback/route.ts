@@ -9,6 +9,7 @@ import { logWizardStepServer } from "@/lib/analytics/wizard-event-server";
 import { runTripCounter } from "@/lib/explore/counters";
 import { localizePath, normalizeAuthLocale, unwrapCallbackNext } from "@/lib/auth/callback-url";
 import type { EmailOtpType } from "@supabase/supabase-js";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 const SAVER_COOKIE_NAME = "mt_saver_cookie";
 
@@ -628,11 +629,11 @@ async function mergeAnonymousSaves(userId: string): Promise<void> {
         .map((r) => (r as { trip_id: string }).trip_id)
         .filter(Boolean);
       if (dupeIds.length > 0) {
-        await admin
+        logWriteError("auth/callback: duplicate saves", await admin
           .from("trip_saves")
           .delete()
           .eq("saver_cookie_id", cookieValue)
-          .in("trip_id", dupeIds);
+          .in("trip_id", dupeIds));
       }
     }
 

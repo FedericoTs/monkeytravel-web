@@ -20,6 +20,7 @@ import {
   computeExtendedEndDate,
   addDaysISO,
 } from "@/lib/ai/assistant/structural";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 interface ApplyChangeRequest {
   tripId: string;
@@ -496,10 +497,10 @@ export async function POST(request: NextRequest) {
           if (!m || m.role !== "assistant" || !m.action) continue;
           if (m.action.applied === true) break;
           msgs[i] = { ...m, action: { ...m.action, applied: true, pending: false } };
-          await supabase
+          logWriteError("assistant apply: conversation note", await supabase
             .from("ai_conversations")
             .update({ messages: msgs, updated_at: new Date().toISOString() })
-            .eq("id", conversationId);
+            .eq("id", conversationId));
           break;
         }
       } catch (err) {

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { getPostHog } from "@/lib/posthog/client";
 import { safeSet } from "@/lib/safe-storage";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 interface ProfileCompletionModalProps {
   isOpen: boolean;
@@ -158,13 +159,13 @@ export default function ProfileCompletionModal({
 
       if (user) {
         // Mark as completed even when skipped to not show again
-        await supabase
+        logWriteError("profile completion: skip", await supabase
           .from("users")
           .update({
             profile_completed: true,
             profile_completed_at: new Date().toISOString(),
           })
-          .eq("id", user.id);
+          .eq("id", user.id));
       }
     } catch (err) {
       console.error("Skip error:", err);

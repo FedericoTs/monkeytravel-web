@@ -22,6 +22,7 @@ import TravelStyleStep from "@/components/onboarding/TravelStyleStep";
 import DietaryStep from "@/components/onboarding/DietaryStep";
 import AccessibilityStep from "@/components/onboarding/AccessibilityStep";
 import ActiveHoursStep from "@/components/onboarding/ActiveHoursStep";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 export interface OnboardingPreferences {
   travelStyles: string[];
@@ -193,14 +194,14 @@ export default function OnboardingPage() {
       // AUTHENTICATED: Save directly to database
       try {
         const dbPrefs = getPreferencesForDatabase();
-        await supabase
+        logWriteError("onboarding: preferences", await supabase
           .from("users")
           .update({
             preferences: dbPrefs.preferences,
             notification_settings: dbPrefs.notification_settings,
             onboarding_completed: true,
           })
-          .eq("id", user.id);
+          .eq("id", user.id));
 
         // Redirect to intended destination
         router.push(redirectUrl);

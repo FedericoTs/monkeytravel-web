@@ -12,6 +12,7 @@ import {
   checkAndUnlockTier,
   getUserReferralTier,
 } from "@/lib/bananas";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 /**
  * GET /api/invites/[token] - Get invite details and trip preview (public, no auth required)
@@ -395,10 +396,10 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
         }
 
         // Track that this user joined via trip invite (for future referral attribution)
-        await supabaseAdmin
+        logWriteError("invites: trip-invite signup", await supabaseAdmin
           .from("users")
           .update({ signed_up_via_trip_invite: result.invite_id })
-          .eq("id", user.id);
+          .eq("id", user.id));
       } catch (bananaError) {
         console.error("[Invites] Error awarding collaboration bananas:", bananaError);
         // Don't fail the join - it's already successful

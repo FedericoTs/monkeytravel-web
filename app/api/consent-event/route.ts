@@ -15,6 +15,7 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 import { errors } from "@/lib/api/response-wrapper";
 import { parseConsentEvent } from "@/lib/consent/consent-event-schema";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 export const runtime = "nodejs";
 
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
   if (!writesTelemetry(sessionId)) return new NextResponse(null, { status: 204 });
 
   try {
-    await createAdminClient().from("consent_events").insert({
+    logWriteError("consent-event", await createAdminClient().from("consent_events").insert({
       session_id: sessionId,
       event: payload.event,
       variant: payload.variant,
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
       path: payload.path,
       locale: payload.locale,
       origin: payload.origin,
-    });
+    }));
   } catch {
     // Telemetry must never surface to the visitor.
   }

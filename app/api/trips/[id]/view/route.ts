@@ -16,6 +16,7 @@ import {
   utcDay,
   verifiedSource,
 } from "@/lib/analytics/trip-view";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 /**
  * POST /api/trips/[id]/view — record that someone opened a trip.
@@ -148,13 +149,13 @@ export async function POST(
       // If they joined since that open, the day's row still gets credited.
       if (error.code === "23505") {
         if (participantId) {
-          await admin
+          logWriteError("trips/view", await admin
             .from("trip_views")
             .update({ participant_id: participantId })
             .eq("trip_id", id)
             .eq("session_id", sessionId)
             .eq("viewed_on", viewedOn)
-            .is("participant_id", null);
+            .is("participant_id", null));
         }
         return apiSuccess({ recorded: false, duplicate: true, fromCookie });
       }

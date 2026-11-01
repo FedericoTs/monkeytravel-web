@@ -39,6 +39,7 @@ import { normalizeTripTitle, twinDecision, type TwinCandidate } from "@/lib/noti
 import { FINISH_TRIP_NS, FINISH_TRIP_SLOT, sendFinishTripEmail } from "@/lib/notifications/finish-trip";
 import { cameBack, cameBackFrom, loadEngagement } from "@/lib/notifications/followup-engagement";
 import { isParticipantDigestEnabled } from "@/lib/participants/flag";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 /**
  * Trip email cron: sweeps `scheduled_notifications` and dispatches the
@@ -371,7 +372,7 @@ export async function GET(request: NextRequest) {
         error: err instanceof Error ? err.message : String(err),
       });
       // Best-effort failure persist so we don't keep retrying a poison row.
-      await svc
+      logWriteError("cron/scheduled-notifs: mark failed", await svc
         .from("scheduled_notifications")
         .update({
           status: "failed",
@@ -381,7 +382,7 @@ export async function GET(request: NextRequest) {
               : String(err).slice(0, 500),
           updated_at: new Date().toISOString(),
         })
-        .eq("id", row.id);
+        .eq("id", row.id));
     }
   };
 

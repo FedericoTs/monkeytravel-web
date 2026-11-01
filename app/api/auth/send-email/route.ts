@@ -40,6 +40,7 @@ import AuthActionEmail, {
 } from "@/lib/email/templates/AuthAction";
 import { normalizeEmailLocale, type EmailLocale } from "@/lib/email/copy";
 import { callbackIntentFromRedirect } from "@/lib/auth/callback-url";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -312,9 +313,9 @@ export async function POST(request: Request) {
   // (app/api/cron/auth-health). No address is stored, only a hash.
   try {
     const recipientHash = createHash("sha256").update(recipient.toLowerCase()).digest("hex");
-    await createAdminClient()
+    logWriteError("auth/send-email: email event", await createAdminClient()
       .from("auth_email_events")
-      .insert({ action: data.email_action_type, recipient_hash: recipientHash });
+      .insert({ action: data.email_action_type, recipient_hash: recipientHash }));
   } catch (err) {
     console.warn("[auth/send-email] could not record the email event:", err);
   }

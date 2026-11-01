@@ -21,6 +21,7 @@ import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { newTripTitle } from "@/lib/trips/title";
 import { pickCoverFromItinerary } from "@/lib/trips/cover";
 import type { PencilledDates } from "@/lib/trips/pencilled-dates";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 export interface TripFormState {
   destination: string;
@@ -374,10 +375,10 @@ export async function attachCoverImage(
     // next attempt.
     if (data.source === "fallback") return;
 
-    await supabase
+    logWriteError("persistTrip: cover image", await supabase
       .from("trips")
       .update({ cover_image_url: data.url })
-      .eq("id", tripId);
+      .eq("id", tripId));
   } catch (err) {
     console.error("[trips/persistTrip] attachCoverImage failed:", err);
     // Don't rethrow. Console only: a caught error never reaches Sentry's

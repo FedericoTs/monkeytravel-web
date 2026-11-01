@@ -11,7 +11,7 @@ import ts from "typescript";
  * deliberate fire-and-forget with `void`. The count can only go down: lower
  * CEILING when a change checks some.
  */
-const CEILING = 27;
+const CEILING = 0;
 
 const WRITES = new Set(["insert", "update", "upsert", "delete"]);
 const HANDLED = new Set(["then", "catch", "finally"]);

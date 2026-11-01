@@ -22,6 +22,7 @@ import crypto from "crypto";
 import { getHistoricalDateRange } from "@/lib/weather/historical-range";
 import { isPlausibleTripRange } from "@/lib/dates/iso-date";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 // Lazy service-role client for the RLS-locked weather_cache table. The weather
 // route runs server-side only, so a service-role client is the correct caller
@@ -158,7 +159,7 @@ async function cacheWeather(cacheKey: string, weatherData: WeatherData, requestM
     const admin = getWeatherAdmin();
     const expiresAt = new Date(Date.now() + WEATHER_CACHE_DAYS * 24 * 60 * 60 * 1000);
 
-    await admin.from("weather_cache").upsert(
+    logWriteError("weather: cache", await admin.from("weather_cache").upsert(
       {
         cache_key: cacheKey,
         weather: weatherData,
@@ -169,7 +170,7 @@ async function cacheWeather(cacheKey: string, weatherData: WeatherData, requestM
         last_accessed_at: new Date().toISOString(),
       },
       { onConflict: "cache_key" }
-    );
+    ));
   } catch (error) {
     console.error("[Weather Cache] Save error:", error);
   }
