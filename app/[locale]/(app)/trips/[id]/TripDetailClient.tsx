@@ -1445,7 +1445,7 @@ export default function TripDetailClient({
     setSaveStatus("saved");
     setRenderEpoch((v) => v + 1);
     addToast(t("detail.conflictLoadedLatest"), "success");
-  }, [sync, clearHistory, setConflict, ambientEdit, addToast, t]);
+  }, [trip.id, sync, clearHistory, setConflict, ambientEdit, addToast, t]);
 
   // Conflict choice 2: keep my version, saved on top of the newer one (a
   // rebase: the base becomes the server's version, the content stays mine).
@@ -1465,7 +1465,7 @@ export default function TripDetailClient({
     } else {
       void saveExplicit(payload, editedItinerary, c.server.version);
     }
-  }, [sync, setConflict, editedItinerary, flushPendingSave, saveExplicit]);
+  }, [trip.id, sync, setConflict, editedItinerary, flushPendingSave, saveExplicit]);
 
   const handleDiscardChanges = useCallback(() => {
     // With a conflict pending, "discard" means the version saved elsewhere,
@@ -1653,7 +1653,7 @@ export default function TripDetailClient({
       clearHistory();
       setRenderEpoch((v) => v + 1);
     });
-  }, [propsVersion, trip.itinerary, sync, clearHistory]);
+  }, [trip.id, propsVersion, trip.itinerary, sync, clearHistory]);
 
   // Ambient auto-save. For solo owners there's no Save button — every
   // drag/delete/edit/add persists in the background after a short debounce.

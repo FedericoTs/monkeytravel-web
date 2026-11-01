@@ -1020,7 +1020,7 @@ export default function NewTripPage({
         });
       }
     },
-    [STEP_NAMES_CONST]
+    []
   );
 
   // Memoized VibeSelector handler so the child's React.memo can short-circuit;
@@ -1098,7 +1098,7 @@ export default function NewTripPage({
       window.removeEventListener("pagehide", fireAbandoned);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [STEP_NAMES_CONST]);
+  }, [locale]);
 
   // Handle pending generation after signup (when draft is restored).
   // The `pendingTripGeneration` flag lives in `prefs` because plain
