@@ -1,5 +1,5 @@
 /** @vitest-environment node */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { eqOf, fakeSupabase } from "@/tests/fake-supabase";
 import { isTodayActor, resolveTodayPerson, storedCookie } from "./actor";
@@ -15,6 +15,7 @@ const TRIP = { id: "trip-1", user_id: "owner-1" };
 function world(opts: {
   collaborators?: string[];
   membershipFails?: boolean;
+  profileFails?: boolean;
   profiles?: Record<string, string>;
   participants?: Array<{ user_id?: string; cookie?: string; name: string }>;
 }) {
@@ -24,7 +25,10 @@ function world(opts: {
       const id = eqOf(q, "user_id");
       return { data: opts.collaborators?.includes(id as string) ? { user_id: id } : null, error: null };
     }
-    if (q.table === "users") return { data: { display_name: opts.profiles?.[eqOf(q, "id") as string] ?? null }, error: null };
+    if (q.table === "users") {
+      if (opts.profileFails) return { data: null, error: { message: "canceling statement due to statement timeout" } };
+      return { data: { display_name: opts.profiles?.[eqOf(q, "id") as string] ?? null }, error: null };
+    }
     if (q.table === "trip_participants") {
       const byUser = eqOf(q, "user_id");
       const byCookie = eqOf(q, "participant_cookie_id");
@@ -67,6 +71,19 @@ describe("resolveTodayPerson", () => {
     await expect(
       resolveTodayPerson(world({ collaborators: ["mate-1"], membershipFails: true }), TRIP, { id: "mate-1" }, "browser-cookie-2"),
     ).rejects.toThrow(/membership/);
+  });
+
+  it("falls back to the name given when joining when the profile can't be read, and logs it", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    const person = await resolveTodayPerson(
+      world({ collaborators: ["mate-1"], profileFails: true, participants: [{ user_id: "mate-1", name: "Luca G" }] }),
+      TRIP,
+      { id: "mate-1" },
+      null,
+    );
+    expect(person).toMatchObject({ isMember: true, name: "Luca G" });
+    expect(logged).toHaveBeenCalledWith("[today: profile name] read failed:", expect.any(String));
+    logged.mockRestore();
   });
 
   it("knows the owner without reading membership", async () => {

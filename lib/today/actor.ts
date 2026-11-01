@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { publicNameOrNull } from "@/lib/profile/public-name";
 import { PARTICIPANT_COOKIE } from "@/lib/participants/shared";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * Who taps a chip or logs a payment on a live trip's Today. Signed in, a
@@ -69,27 +70,27 @@ export async function resolveTodayPerson(
   const person = { userId: user?.id ?? null, cookieId, isOwner, isMember };
 
   if (user && isMember) {
-    const { data: profile } = await admin.from("users").select("display_name").eq("id", user.id).maybeSingle();
+    const { data: profile } = logReadError("today: profile name", await admin.from("users").select("display_name").eq("id", user.id).maybeSingle());
     const name = publicNameOrNull(profile?.display_name as string | null | undefined, user.email);
     if (name) return { ...person, name: name.slice(0, NAME_MAX) };
   }
   if (user) {
-    const { data: joined } = await admin
+    const { data: joined } = logReadError("today: name given when joining", await admin
       .from("trip_participants")
       .select("display_name")
       .eq("trip_id", trip.id)
       .eq("user_id", user.id)
       .order("joined_at", { ascending: false })
       .limit(1)
-      .maybeSingle();
+      .maybeSingle());
     if (joined?.display_name) return { ...person, name: joined.display_name as string };
   }
   if (!cookieId) return { ...person, name: null };
-  const { data: participant } = await admin
+  const { data: participant } = logReadError("today: guest name", await admin
     .from("trip_participants")
     .select("display_name")
     .eq("trip_id", trip.id)
     .eq("participant_cookie_id", cookieId)
-    .maybeSingle();
+    .maybeSingle());
   return { ...person, name: (participant?.display_name as string | null) ?? null };
 }
