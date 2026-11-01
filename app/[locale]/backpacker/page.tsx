@@ -10,7 +10,6 @@ import {
 import LastUpdated from "@/components/seo/LastUpdated";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
-// /explore Week 3 (2026-05-29): surface real backpacker trips on the
 // NOTE: the CTAs below deliberately carry NO utm_source. They are INTERNAL
 // links, and a UTM on an internal link is a self-referral: it does not record
 // where someone came from, it fires when someone already on the site clicks a
@@ -79,10 +78,8 @@ async function fetchBackpackerTrips(): Promise<ExploreFeedResponse | null> {
 }
 
 /**
- * /backpacker landing page.
- *
- * Shipped 2026-05-28 as Phase B3 of the Backpacker Mode / Hostelworld
- * partnership wedge. Purpose:
+ * /backpacker landing page, part of the Backpacker Mode / Hostelworld
+ * partnership. Purpose:
  *   1. SEO surface for "backpacker trip planner / AI hostel itinerary /
  *      backpacker route europe" type queries.
  *   2. Cold-open asset — the URL we send to Hostelworld (and any other
@@ -91,10 +88,10 @@ async function fetchBackpackerTrips(): Promise<ExploreFeedResponse | null> {
  *   3. Single-purpose conversion funnel: every CTA lands on /trips/new
  *      where the Backpacker Mode toggle is one click away.
  *
- * Localised 2026-05-29 (task #141) — copy now flows through the
- * `backpacker` next-intl namespace for en / es / it. Sample-route city
- * names stay in English (proper nouns / SEO-stable), but neighbourhood
- * labels translate through the per-route `items.*.neighbourhood` keys.
+ * Copy comes from the `backpacker` next-intl namespace for en / es / it.
+ * Sample-route city names stay in English (proper nouns / SEO-stable), but
+ * neighbourhood labels translate through the per-route
+ * `items.*.neighbourhood` keys.
  */
 
 const BASE_URL = "https://monkeytravel.app";
@@ -239,10 +236,9 @@ export default async function BackpackerLandingPage({
       stats.uniqueTrips30d > 0 ||
       stats.uniqueVisitors30d > 0);
 
-  // /explore Week 3 (2026-05-29): live backpacker trips for the
-  // social-proof block below sample routes. Renders nothing when there
-  // are no published trips yet — empty section would weaken the
-  // partnership narrative more than its absence would.
+  // Live backpacker trips for the social-proof block below the sample
+  // routes. Renders nothing when there are no published trips yet: an
+  // empty section would weaken the page more than its absence.
   const backpackerFeed = await fetchBackpackerTrips();
   const backpackerTrips = backpackerFeed?.trips?.slice(0, 6) ?? [];
 
