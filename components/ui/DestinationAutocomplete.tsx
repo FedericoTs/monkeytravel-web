@@ -74,6 +74,15 @@ const FALLBACK_POPULAR: PlacePrediction[] = [
 let popularDestinationsCache: PlacePrediction[] | null = null;
 let popularFetchPromise: Promise<PlacePrediction[]> | null = null;
 
+/**
+ * The list opens itself only while the field has focus, and not after Escape
+ * closed it: an external setValue (a popular-destination pill in the parent,
+ * a ?destination= deeplink) must not pop it over the rest of the form.
+ */
+function mayOpenList(input: HTMLInputElement | null, dismissed: boolean): boolean {
+  return typeof document !== "undefined" && document.activeElement === input && !dismissed;
+}
+
 async function fetchPopularDestinations(): Promise<PlacePrediction[]> {
   // Return cached if available
   if (popularDestinationsCache) {
@@ -237,7 +246,25 @@ export default function DestinationAutocomplete({
   // Google Places API removed - we now use local-only search to minimize costs
   // If a destination isn't in our database, users can still type it manually
 
-  // Fetch predictions when debounced value changes - LOCAL FIRST, with caching.
+  // Short queries show the popular list once the field has had focus, or
+  // nothing. The list can arrive after that, so it is applied again then. It
+  // is kept apart from the search below: the list arriving must not restart a
+  // search or move the row the keyboard is on.
+  useEffect(() => {
+    if (justSelectedRef.current || debouncedValue.length >= 3) return;
+    if (showPopular) {
+      // Show popular destinations (from database, no Google API call)
+      setPredictions(popularDestinations);
+      setSearchSource("popular");
+      setIsOpen(mayOpenList(inputRef.current, dismissedRef.current));
+      setHighlightedIndex(-1);
+    } else {
+      setPredictions([]);
+      setIsOpen(false);
+    }
+  }, [debouncedValue, showPopular, popularDestinations]);
+
+  // Search when the query changes - LOCAL FIRST, with caching.
   // Wraps the request in an AbortController so rapid typing can't land a
   // stale "Bar" response on top of a newer "Barcelona" one (P0 funnel bug —
   // direct conversion hit on the wizard's #1 input). Mirrors the canonical
@@ -245,6 +272,7 @@ export default function DestinationAutocomplete({
   // cleanup aborts the in-flight fetch and flips a cancelled flag that
   // covers the gap between response arrival and abort being observable.
   useEffect(() => {
+    if (debouncedValue.length < 3) return;
     const controller = new AbortController();
     let cancelled = false;
 
@@ -255,39 +283,13 @@ export default function DestinationAutocomplete({
         return;
       }
 
-      // Only auto-open the dropdown when the input is actually focused.
-      // Without this guard, an external setValue (e.g. clicking a popular-
-      // destination pill in the parent, or a ?destination= deeplink) used
-      // to trigger the search and pop a "no results" overlay over the rest
-      // of the form. (Bug verified 2026-05-03 via Playwright mobile run.)
-      // ...and not after Escape closed it for this query.
-      const mayOpen =
-        typeof document !== "undefined" &&
-        document.activeElement === inputRef.current &&
-        !dismissedRef.current;
-
-      // Show popular destinations when input is empty or very short
-      if (!debouncedValue || debouncedValue.length < 3) {
-        if (showPopular && debouncedValue.length < 3) {
-          // Show popular destinations (from database, no Google API call)
-          setPredictions(popularDestinations);
-          setSearchSource("popular");
-          setIsOpen(mayOpen);
-          setHighlightedIndex(-1);
-        } else {
-          setPredictions([]);
-          setIsOpen(false);
-        }
-        return;
-      }
-
       // Check client-side cache first
       const cachedResults = getCachedResults(debouncedValue);
       if (cachedResults) {
         console.log("[Autocomplete] Using cached results for:", debouncedValue);
         setPredictions(cachedResults);
         setSearchSource("local");
-        setIsOpen(mayOpen && cachedResults.length > 0);
+        setIsOpen(mayOpenList(inputRef.current, dismissedRef.current) && cachedResults.length > 0);
         setHighlightedIndex(-1);
         return;
       }
@@ -300,6 +302,9 @@ export default function DestinationAutocomplete({
 
         // Drop result if a newer keystroke has already superseded this one.
         if (cancelled || controller.signal.aborted) return;
+        // Asked now, not when the search started: Escape or a click away
+        // while it ran keeps the list closed.
+        const mayOpen = mayOpenList(inputRef.current, dismissedRef.current);
 
         if (localResults.length > 0) {
           // Found local results - use them and cache
@@ -346,8 +351,11 @@ export default function DestinationAutocomplete({
     return () => {
       cancelled = true;
       controller.abort();
+      // An aborted search never clears isLoading itself, so the spinner and
+      // Enter's "results are current" check would wait for the next search.
+      setIsLoading(false);
     };
-  }, [debouncedValue, searchLocal, showPopular, popularDestinations]);
+  }, [debouncedValue, searchLocal]);
 
 
   // Handle selection - use local coordinates directly (no API calls)
