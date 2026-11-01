@@ -73,6 +73,7 @@ describe("approveProposal", () => {
   // Someone else saves the trip right before the next write lands.
   let bumpBeforeWrite: boolean;
   let failStatusWrite: boolean;
+  let failStatusRead: boolean;
   let log: FakeQuery[];
 
   function admin() {
@@ -96,7 +97,9 @@ describe("approveProposal", () => {
         status = (q.value as { status: string }).status;
         return { data: [{ id: PROPOSAL_ID }], error: null };
       }
-      if (q.table === "activity_proposals" && q.op === "select") return { data: { status }, error: null };
+      if (q.table === "activity_proposals" && q.op === "select") {
+        return failStatusRead ? { data: null, error: { message: "timeout" } } : { data: { status }, error: null };
+      }
       return { data: null, error: null };
     });
     log = fake.log;
@@ -111,6 +114,7 @@ describe("approveProposal", () => {
     status = "voting";
     bumpBeforeWrite = false;
     failStatusWrite = false;
+    failStatusRead = false;
   });
 
   it("adds the activity on its day, compare-and-set, then marks the proposal approved", async () => {
@@ -163,5 +167,11 @@ describe("approveProposal", () => {
     status = "rejected";
     expect(await approveProposal(admin(), proposal(1), resolution)).toEqual({ ok: false, reason: "resolved" });
     expect(status).toBe("rejected");
+  });
+
+  it("calls a status it couldn't re-read an error, not someone else's resolution", async () => {
+    status = "rejected";
+    failStatusRead = true;
+    expect(await approveProposal(admin(), proposal(1), resolution)).toEqual({ ok: false, reason: "error" });
   });
 });

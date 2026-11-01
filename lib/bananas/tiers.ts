@@ -19,6 +19,7 @@ import {
   getConversionsToNextTier,
   getNextTierThreshold,
 } from './config';
+import { logReadError } from '@/lib/supabase/log-read-error';
 
 /**
  * Get user's referral tier info
@@ -28,18 +29,18 @@ export async function getReferralTierInfo(
   userId: string
 ): Promise<ReferralTierInfo> {
   // Get tier record
-  const { data: tierData } = await supabase
+  const { data: tierData } = logReadError('bananas: tier record', await supabase
     .from('referral_tiers')
     .select('*')
     .eq('user_id', userId)
-    .single();
+    .single());
 
   // Get conversion count from referral_codes
-  const { data: referralCode } = await supabase
+  const { data: referralCode } = logReadError('bananas: conversions', await supabase
     .from('referral_codes')
     .select('total_conversions')
     .eq('user_id', userId)
-    .single();
+    .single());
 
   const conversions = referralCode?.total_conversions ?? 0;
   const tier = tierData as ReferralTierRow | null;

@@ -552,11 +552,12 @@ async function getOrFetchPlace(
   // names. With the place_id from Text Search, check places_v2 directly: if
   // it already has a photo, skip the Place Details call and just record the
   // new lookup.
-  const { data: existingRow } = await supabase
+  const { data: existingRow, error: existingError } = await supabase
     .from("places_v2")
     .select("*")
     .eq("place_id", partial.place_id)
     .maybeSingle();
+  if (existingError) throw existingError;
 
   let place: PlaceRecord;
   if (existingRow?.photo_url) {

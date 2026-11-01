@@ -29,6 +29,7 @@ type Locale = keyof typeof MESSAGES;
 
 const sent: Array<{ template: { props: ParticipantPlanEmailProps } } & Record<string, unknown>> = [];
 let tripRow: Record<string, unknown> | null;
+let tripReadFails: boolean;
 let digestQueued: boolean;
 let unsubscribeWorks: boolean;
 let log: FakeQuery[] = [];
@@ -63,7 +64,7 @@ const { mayEmailPlan, sendParticipantPlanEmail } = await import("./plan-email");
 
 const admin = () => {
   const fake = fakeSupabase((q) => {
-    if (q.table === "trips") return { data: tripRow, error: null };
+    if (q.table === "trips") return tripReadFails ? { data: null, error: { message: "timeout" } } : { data: tripRow, error: null };
     if (q.table === "scheduled_notifications") return { data: digestQueued ? [{ id: "n-1" }] : [], error: null };
     return { data: null, error: null };
   });
@@ -76,6 +77,7 @@ const sendTo = (locale: string | null, email = "ana@example.com") =>
 beforeEach(() => {
   sent.length = 0;
   tripRow = { title: "Lisbon Trip", start_date: "2099-11-12", end_date: "2099-11-14", destination: "Lisbon", trip_locale: "pt" };
+  tripReadFails = false;
   digestQueued = true;
   unsubscribeWorks = true;
   limits.ip = true;
@@ -133,6 +135,16 @@ describe("sendParticipantPlanEmail", () => {
     await sendTo("en");
     expect(sent[2].template.props.digestLine).toBeUndefined();
     expect(log.filter((q) => q.table === "scheduled_notifications")).toEqual([]);
+  });
+
+  it("logs a trip it couldn't read as an error, not as a trip that doesn't exist", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    tripReadFails = true;
+    expect(await sendTo("en")).toBe("error");
+    tripReadFails = false;
+    tripRow = null;
+    expect(await sendTo("en")).toBe("no_trip");
+    expect(sent).toEqual([]);
   });
 
   it("sends nothing about a trip that is over, or without a link that stops it", async () => {

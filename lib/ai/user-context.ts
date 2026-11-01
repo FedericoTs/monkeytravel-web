@@ -65,11 +65,12 @@ async function loadUserProfileRow(
   preferred_language: unknown;
 } | null> {
   try {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("users")
       .select("preferences, notification_settings, preferred_language")
       .eq("id", userId)
       .single();
+    if (error) throw error;
     return (data as {
       preferences: unknown;
       notification_settings: unknown;

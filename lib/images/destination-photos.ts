@@ -6,6 +6,7 @@ import { logApiCall } from "@/lib/api-gateway";
 import { buildDestinationPhotos, type DestinationPhotos } from "@/lib/images/wikimedia";
 import { cacheAdminDb } from "@/lib/supabase/cache-admin";
 import { logWriteError } from "@/lib/supabase/log-write-error";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
  * A destination's Wikimedia photos, from the shared cache or found and stored
@@ -51,12 +52,12 @@ export async function destinationPhotos(destination: string, request: NextReques
   const startedAt = Date.now();
   const key = cacheKey(destination);
 
-  const { data: row } = await db
+  const { data: row } = logReadError("destination photos: cache", await db
     .from("google_places_cache")
     .select("data")
     .eq("place_id", key)
     .gt("expires_at", new Date().toISOString())
-    .maybeSingle();
+    .maybeSingle());
   if (row) {
     log(startedAt, true);
     return asPhotos(row.data);

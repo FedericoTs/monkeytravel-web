@@ -23,12 +23,14 @@ export async function resolveAssistantRole(
   userId: string,
 ): Promise<AssistantRole | null> {
   if (trip.user_id === userId) return "owner";
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("trip_collaborators")
     .select("role")
     .eq("trip_id", trip.id)
     .eq("user_id", userId)
     .maybeSingle();
+  // Null is a 403; a read the database refused is not an answer.
+  if (error) throw new Error(`Could not read the assistant role: ${error.message}`);
   return data?.role === "editor" ? "editor" : null;
 }
 

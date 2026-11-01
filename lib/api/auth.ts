@@ -8,6 +8,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { errors } from "@/lib/api/response-wrapper";
 import { isAdmin as isAdminCheck } from "@/lib/admin";
+import { isNoRow } from "@/lib/supabase/no-row";
 import type { User } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -168,15 +169,6 @@ export interface TripOwnershipFailure {
  * Union type for trip ownership verification
  */
 export type TripOwnershipResult = TripOwnershipSuccess | TripOwnershipFailure;
-
-/**
- * A read that found nothing: no row for .single(), or an id that isn't a
- * UUID. Both mean "not found"; any other error is a failed read, which used
- * to be answered 404 too (a select of a dropped column 404'd every request).
- */
-function isNoRow(error: { code?: string } | null | undefined): boolean {
-  return error?.code === "PGRST116" || error?.code === "22P02";
-}
 
 function tripReadFailed(error: unknown): Response {
   console.error("[auth] trip access read failed", error);

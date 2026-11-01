@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from "
 import dynamic from "next/dynamic";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { safeGet } from "@/lib/safe-storage";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 // Loaded only when the modal opens: it carries the Supabase client and the
 // form, which the pages that never show it should not download.
@@ -80,11 +81,11 @@ export default function ProfileCompletionProvider({
 
       const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
-      const { data: profile } = await supabase
+      const { data: profile } = logReadError("profile completion", await supabase
         .from("users")
         .select("login_count, profile_completed, display_name, home_country, home_city, languages, bio")
         .eq("id", user.id)
-        .single();
+        .single());
 
       if (!profile) {
         setHasChecked(true);

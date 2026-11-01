@@ -7,6 +7,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import type { BananaBalanceInfo, BananaTransactionRow } from '@/types/bananas';
 import { EXPIRATION_WARNING_DAYS } from './config';
+import { logReadError } from '@/lib/supabase/log-read-error';
 
 /**
  * Get user's banana balance with expiration details
@@ -16,18 +17,18 @@ export async function getBananaBalance(
   userId: string
 ): Promise<BananaBalanceInfo> {
   // Get user's cached balance
-  const { data: user } = await supabase
+  const { data: user } = logReadError('bananas: balance', await supabase
     .from('users')
     .select('banana_balance')
     .eq('id', userId)
-    .single();
+    .single());
 
   // Get transaction history for detailed info
-  const { data: transactions } = await supabase
+  const { data: transactions } = logReadError('bananas: transactions', await supabase
     .from('banana_transactions')
     .select('*')
     .eq('user_id', userId)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true }));
 
   const txs = (transactions || []) as BananaTransactionRow[];
   const now = new Date();
