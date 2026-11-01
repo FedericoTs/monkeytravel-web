@@ -53,13 +53,15 @@ export function uncheckedWrites(fileName: string, source: string): number[] {
 }
 
 describe("Supabase writes with their result thrown away", () => {
+  // Parses every source file, which takes longer than the default 5 s when
+  // the whole suite runs in parallel.
   it(`stay at or under ${CEILING}`, () => {
     const files = execSync("git ls-files", { encoding: "utf8" })
       .split("\n")
       .filter((f) => /^(app|lib|components|hooks)\/.*\.(ts|tsx)$/.test(f) && !/\.vitest\.tsx?$/.test(f));
     const found = files.flatMap((f) => uncheckedWrites(f, readFileSync(f, "utf8")).map((line) => `${f}:${line}`));
     expect(found.length, `${found.length} unchecked writes (ceiling ${CEILING}):\n${found.join("\n")}`).toBeLessThanOrEqual(CEILING);
-  });
+  }, 60_000);
 
   it("counts a discarded write, and not a checked, returned or void one", () => {
     const count = (code: string) => uncheckedWrites("x.ts", `async function f(db: any) {\n${code}\n}`).length;
