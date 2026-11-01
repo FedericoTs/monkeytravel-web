@@ -92,7 +92,8 @@ const getPublicTrip = cache(async (slug: string) => {
     .is("deleted_at", null)
     .maybeSingle();
 
-  if (error || !trip) return null;
+  if (error) throw error;
+  if (!trip) return null;
 
   // Enforce the rest of the published predicate in code (is_hidden may be
   // null on legacy rows; coalesce to false).

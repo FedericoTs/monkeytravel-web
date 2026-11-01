@@ -6,6 +6,7 @@ import { countryName, templateItinerary, templateMeta, templatePacking, template
 import { buildAlternates } from "@/lib/seo/canonical";
 import { publicTripAlternates } from "@/lib/seo/public-trip";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { isNoRow } from "@/lib/supabase/no-row";
 
 interface TemplatePageProps {
   params: Promise<{ id: string; locale: string }>;
@@ -80,7 +81,8 @@ export default async function TemplatePage({ params }: TemplatePageProps) {
     .eq("visibility", "public")
     .single();
 
-  if (error || !template) {
+  if (error && !isNoRow(error)) throw error;
+  if (!template) {
     notFound();
   }
 

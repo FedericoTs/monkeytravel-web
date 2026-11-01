@@ -7,7 +7,7 @@ export interface FakeQuery {
   table: string;
   op: "select" | "insert" | "update" | "upsert" | "delete" | "rpc";
   value?: unknown;
-  filters: Array<[op: "eq" | "neq" | "is" | "not" | "in" | "lt" | "lte" | "gt" | "gte" | "like", column: string, value: unknown]>;
+  filters: Array<[op: "eq" | "neq" | "is" | "not" | "in" | "lt" | "lte" | "gt" | "gte" | "like" | "ilike", column: string, value: unknown]>;
   /** How the query was awaited: a single row, or the whole list. */
   end: "single" | "maybeSingle" | "list";
 }
@@ -42,6 +42,7 @@ export function fakeSupabase(answer: FakeAnswer = () => ({ data: null, error: nu
       gt: (c: string, v: unknown) => (q.filters.push(["gt", c, v]), chain),
       gte: (c: string, v: unknown) => (q.filters.push(["gte", c, v]), chain),
       like: (c: string, v: unknown) => (q.filters.push(["like", c, v]), chain),
+      ilike: (c: string, v: unknown) => (q.filters.push(["ilike", c, v]), chain),
       or: () => chain,
       order: () => chain,
       limit: () => chain,

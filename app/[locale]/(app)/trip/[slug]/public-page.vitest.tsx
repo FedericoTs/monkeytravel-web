@@ -47,6 +47,8 @@ const ROW = {
 };
 
 const selects: Record<string, string[]> = {};
+/** Whether the database refuses the trips read. */
+let tripsRefused = false;
 
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
@@ -60,7 +62,9 @@ vi.mock("@/lib/supabase/admin", () => ({
         is: () => q,
         maybeSingle: async () =>
           table === "trips"
-            ? { data: { ...ROW }, error: null }
+            ? tripsRefused
+              ? { data: null, error: { code: "57014", message: "canceling statement due to statement timeout" } }
+              : { data: { ...ROW }, error: null }
             : { data: { username: "traveller", display_name: "Traveller", avatar_url: null, bio: null, privacy_settings: {} }, error: null },
       };
       return q;
@@ -103,6 +107,7 @@ function findView(node: unknown): Record<string, unknown> | null {
 
 beforeEach(() => {
   for (const key of Object.keys(selects)) delete selects[key];
+  tripsRefused = false;
 });
 
 describe("the public trip page holds no share token", () => {
@@ -128,5 +133,13 @@ describe("the public trip page holds no share token", () => {
   it("puts the token nowhere in its metadata", async () => {
     const metadata = await generateMetadata({ params });
     expect(JSON.stringify(metadata)).not.toContain(TOKEN);
+  });
+});
+
+describe("a published trip the database couldn't read", () => {
+  // A 404 tells search engines the page is gone; the error page is a 5xx, which they retry.
+  it("goes to the error page, not a 404", async () => {
+    tripsRefused = true;
+    await expect(PublicTripPage({ params: Promise.resolve({ locale: "en", slug: "refused-trip-abc123" }) })).rejects.toMatchObject({ code: "57014" });
   });
 });

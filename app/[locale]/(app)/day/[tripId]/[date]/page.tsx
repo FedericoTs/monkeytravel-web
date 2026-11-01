@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { tripDayNumber, verifyDayLink } from "@/lib/trips/day-link";
 import type { Activity } from "@/types";
+import { isNoRow } from "@/lib/supabase/no-row";
 
 /**
  * One day of a trip, read-only and without sign-in, opened from the in-trip
@@ -51,7 +52,8 @@ async function loadTripDay(tripId: string, date: string): Promise<TripDay | null
     .eq("id", tripId.toLowerCase())
     .is("deleted_at", null)
     .maybeSingle();
-  if (error || !data) return null;
+  if (error && !isNoRow(error)) throw error;
+  if (!data) return null;
 
   const dayNumber = tripDayNumber(data.start_date, data.end_date, date);
   if (dayNumber === null) return null;
