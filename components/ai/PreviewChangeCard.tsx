@@ -2,98 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import type { Activity, ItineraryDay } from "@/types";
+import type { PendingChange } from "@/lib/ai/assistant/pending-change";
 import { MiniActivityCard } from "./AssistantCards";
 
-/**
- * The confirm-first "proposed change" shape.
- *
- * Mirrors EXACTLY what `POST /api/ai/assistant` returns in `pendingChange`
- * when `previewMode: true` (see app/api/ai/assistant/route.ts ~1585-1631).
- * Discriminated union on `type` — only these six are ever produced in
- * preview mode (there is no `remove` preview path server-side). Keeping the
- * type here (the card is the primary consumer) avoids a circular import with
- * AIAssistantEnhanced, which imports it from this file.
- *
- * add_day / apply_draft are the STRUCTURAL actions (transcripts 2026-07:
- * "can you add a day to travel to Voss"; users pasting whole multi-day
- * drafts — "rearrange as per my own draft").
- */
-export type PendingChange =
-  | {
-      type: "replace";
-      oldActivity: Activity;
-      newActivity: Activity;
-      dayNumber: number;
-      reason?: string;
-    }
-  | {
-      type: "add";
-      newActivity: Activity;
-      dayNumber: number;
-      reason?: string;
-    }
-  | {
-      /**
-       * P2 (2026-08): produced by the in-trip concierge's edit channel
-       * ("we're behind — drop something"). The result-page assistant still
-       * never previews removals; /apply has always supported them.
-       */
-      type: "remove";
-      oldActivity: Activity;
-      dayNumber: number;
-      reason?: string;
-    }
-  | {
-      type: "adjust_duration";
-      activity: { id: string; name: string; type: string };
-      oldDuration: number;
-      newDuration: number;
-      dayNumber: number;
-      reason?: string;
-    }
-  | {
-      type: "reorder";
-      dayNumber: number;
-      activities: { id: string; name: string; time: string; timeSlot: string }[];
-      reason?: string;
-    }
-  | {
-      type: "add_day";
-      /** The fully generated new day (IDs + coordinates already stamped). */
-      day: ItineraryDay;
-      dayNumber: number;
-      /** trips.end_date after the append (moves in the same /apply write). */
-      newEndDate?: string;
-      /** end_date before the append — powers a consistent undo. */
-      previousEndDate?: string;
-      reason?: string;
-    }
-  | {
-      type: "apply_draft";
-      /** Revised replacement days, then any new days, persisted in ONE /apply write. */
-      days: ItineraryDay[];
-      changedDayNumbers: number[];
-      /** Current days the draft didn't cover — they stay untouched. */
-      unmappedDayNumbers?: number[];
-      /** trips.end_date once the new days are added (moves in the same /apply write). */
-      newEndDate?: string;
-      /** end_date before them — powers a consistent undo. */
-      previousEndDate?: string;
-      reason?: string;
-    }
-  | {
-      /**
-       * P2 Stage C (concierge): push days dayNumber..lastDayNumber
-       * `shiftByDays` days later — the cancelled-flight primitive.
-       */
-      type: "shift_days";
-      dayNumber: number;
-      shiftByDays: number;
-      lastDayNumber: number;
-      newLastDate?: string;
-      reason?: string;
-    };
+export type { PendingChange };
 
 interface PreviewChangeCardProps {
   change: PendingChange;
