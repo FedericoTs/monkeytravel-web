@@ -103,7 +103,7 @@ export default function SwipeableActivityCard({
   const isInProgress = status === "in_progress";
 
   // Card content for both expanded and collapsed states
-  const CardContent = () => (
+  const cardContent = (
     <>
       {/* Activity Type Icon */}
       <div
@@ -283,7 +283,7 @@ export default function SwipeableActivityCard({
             : "border-slate-200 hover:border-slate-300"
         }`}
       >
-        <CardContent />
+        {cardContent}
 
         {/* Swipe hint for in_progress */}
         {isInProgress && !isDragging && (

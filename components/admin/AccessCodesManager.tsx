@@ -181,7 +181,7 @@ export default function AccessCodesManager() {
     return new Date(date).toLocaleDateString();
   };
 
-  const EmptyState = () => (
+  const emptyState = (
     <div className="min-h-[400px] bg-white rounded-2xl border border-slate-200 flex items-center justify-center">
       <div className="text-center">
         <div className="w-16 h-16 rounded-full bg-cyan-100 flex items-center justify-center mx-auto mb-4">
@@ -270,7 +270,7 @@ export default function AccessCodesManager() {
 
       {/* Content */}
       {codes.length === 0 && !isLoading ? (
-        <EmptyState />
+        emptyState
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           {isLoading && codes.length === 0 ? (
