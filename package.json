@@ -19,7 +19,7 @@
     "test:e2e:prod": "BASE_URL=https://monkeytravel.app playwright test --grep @prod",
     "test:e2e:ui": "playwright test --ui",
     "video:preview": "remotion studio video/index.ts",
-    "video:render": "ts-node scripts/render-video.ts",
+    "video:render": "tsx scripts/render-video.ts",
     "verify:deploy": "tsx scripts/verify-deploy-smoke.ts",
     "test:bananas": "tsx scripts/banana-load-test.mts",
     "experiment:crew-first": "tsx scripts/experiment-crew-first.mts",
