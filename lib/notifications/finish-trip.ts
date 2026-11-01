@@ -7,6 +7,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { dispatchEmail } from "@/lib/email/send";
+import { logReadError } from "@/lib/supabase/log-read-error";
 import { resolveLocale, type ReminderLocale } from "@/lib/email/reminder-locale";
 import { verifyRenderedEmail, blockingDefects, summarizeDefects } from "@/lib/email/verify-render";
 
@@ -104,10 +105,12 @@ export async function sendFinishTripEmail(
       .order("created_at", { ascending: false }).limit(20),
   ]);
   const locale = finishTripLocale(
-    ((views.data ?? []) as { path: string | null }[]).map((v) => v.path ?? ""),
+    ((logReadError("finish trip: page views", views).data ?? []) as { path: string | null }[]).map((v) => v.path ?? ""),
     user.user_metadata?.locale,
   );
-  const destination = clearDestination(((steps.data ?? []) as { destination: string | null }[]).map((s) => s.destination));
+  const destination = clearDestination(
+    ((logReadError("finish trip: wizard steps", steps).data ?? []) as { destination: string | null }[]).map((s) => s.destination),
+  );
 
   let t: FinishTripTranslator;
   try {

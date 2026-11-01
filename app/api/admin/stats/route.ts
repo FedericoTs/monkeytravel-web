@@ -532,11 +532,11 @@ async function fetchWoWDeltas(supabase: SupabaseClient): Promise<WoWDeltas> {
   const d14 = new Date(now - 14 * 86_400_000).toISOString();
 
   const countBetween = async (table: string, dateCol: string, gte: string, lt: string) => {
-    const r = await supabase
+    const r = logReadError(`admin stats: ${table} count`, await supabase
       .from(table)
       .select("id", { count: "exact", head: true })
       .gte(dateCol, gte)
-      .lt(dateCol, lt);
+      .lt(dateCol, lt));
     return r.count ?? 0;
   };
 
@@ -803,9 +803,9 @@ async function fetchActivityByUser(supabase: SupabaseClient): Promise<Map<string
     supabase.from("ai_conversations").select("user_id, created_at"),
     supabase.from("banana_transactions").select("user_id, created_at"),
   ]);
-  (tripsRes.data ?? []).forEach((r) => add(r.user_id, r.created_at));
-  (aiRes.data ?? []).forEach((r) => add(r.user_id, r.created_at));
-  (bananaRes.data ?? []).forEach((r) => add(r.user_id, r.created_at));
+  (logReadError("admin stats: trip activity", tripsRes).data ?? []).forEach((r) => add(r.user_id, r.created_at));
+  (logReadError("admin stats: AI activity", aiRes).data ?? []).forEach((r) => add(r.user_id, r.created_at));
+  (logReadError("admin stats: banana activity", bananaRes).data ?? []).forEach((r) => add(r.user_id, r.created_at));
   return m;
 }
 

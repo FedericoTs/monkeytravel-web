@@ -51,6 +51,7 @@ const handlers: Array<[string, () => Promise<Response>]> = [
     async () => (await import("./proposals/route")).POST(req("POST", { type: "new", activityData: { name: "Rooftop bar" }, targetDay: 1 }), ctx({ id: TRIP })),
   ],
   ["resolving a proposal", async () => (await import("./proposals/[proposalId]/route")).PATCH(req("PATCH", { action: "approve" }), ctx({ id: TRIP, proposalId: "prop-1" }))],
+  ["listing the collaborators", async () => (await import("./collaborators/route")).GET(req("GET"), ctx({ id: TRIP }))],
   ["changing a role", async () => (await import("./collaborators/[userId]/route")).PATCH(req("PATCH", { role: "voter" }), ctx({ id: TRIP, userId: "mate-1" }))],
   ["removing a member", async () => (await import("./collaborators/[userId]/route")).DELETE(req("DELETE"), ctx({ id: TRIP, userId: "mate-1" }))],
   ["listing who's going", async () => (await import("./participants/route")).GET(req("GET"), ctx({ id: TRIP }))],
