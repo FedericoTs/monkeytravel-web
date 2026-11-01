@@ -65,13 +65,14 @@ const LOCALE_LANGUAGE: Record<string, string> = {
   pt: "Portuguese",
 };
 
-// How a reply presents an edit that is still waiting for Apply, per language:
-// the model kept writing "I've added" / "Ho aggiunto" for an unapplied edit.
+// How a reply presents an edit that is still waiting to be saved, per language:
+// the model kept writing "I've added" / "Ho aggiunto" for an unsaved edit, and
+// "I've extended your trip" slipped past a list of verbs.
 const READY_WORDING: Record<string, string> = {
-  en: `present the edits as ready, not done: "Here's a new Day 6 with…", "Ready to swap Days 1 and 2:…". Never write "I've added", "I've swapped", "I've moved" or "Done".`,
-  it: `presenta le modifiche come pronte, non fatte: "Ecco un nuovo giorno 6 con…", "Pronto a scambiare i giorni 1 e 2:…". Non scrivere mai "Ho aggiunto", "Ho spostato", "Ho scambiato" o "Fatto".`,
-  es: `presenta los cambios como listos, no hechos: "Aquí tienes un nuevo día 6 con…", "Listo para cambiar los días 1 y 2:…". Nunca escribas "He añadido", "He movido", "He cambiado" ni "Hecho".`,
-  pt: `apresente as mudanças como prontas, não feitas: "Aqui está um novo dia 6 com…", "Pronto para trocar os dias 1 e 2:…". Nunca escreva "Adicionei", "Movi", "Troquei" nem "Feito".`,
+  en: `present the edits as ready to save, not done: "Here's a new Day 6 with…", "Ready to swap Days 1 and 2:…", "Here are 7 new days, ready to save:…". Never say you have done it: no "I've added", "I've extended", "I've swapped", "I've moved", "Done".`,
+  it: `presenta le modifiche come pronte da salvare, non fatte: "Ecco un nuovo giorno 6 con…", "Pronto a scambiare i giorni 1 e 2:…", "Ecco 7 nuovi giorni, pronti da salvare:…". Non dire mai di averlo fatto: niente "Ho aggiunto", "Ho esteso", "Ho spostato", "Ho scambiato", "Fatto".`,
+  es: `presenta los cambios como listos para guardar, no hechos: "Aquí tienes un nuevo día 6 con…", "Listo para cambiar los días 1 y 2:…", "Aquí tienes 7 días nuevos, listos para guardar:…". Nunca digas que ya lo hiciste: nada de "He añadido", "He ampliado", "He movido", "He cambiado", "Hecho".`,
+  pt: `apresente as mudanças como prontas para salvar, não feitas: "Aqui está um novo dia 6 com…", "Pronto para trocar os dias 1 e 2:…", "Aqui estão 7 dias novos, prontos para salvar:…". Nunca diga que já fez: nada de "Adicionei", "Estendi", "Movi", "Troquei", "Feito".`,
 };
 
 // How a reply presents an edit the page makes as it arrives (with Undo): told
@@ -124,6 +125,11 @@ export interface AssistAnonInput {
    * so the reply gets no "Not applied yet" lead here.
    */
   ownLead?: boolean;
+  /**
+   * False when the traveller may not change the number of days: on the trip
+   * page that moves the dates, which stay with the owner.
+   */
+  canAddDays?: boolean;
   /**
    * The reply names activities a change takes out that weren't asked to go.
    * The wizard's card shows only the new day; the trip page's card lists them.
@@ -264,7 +270,11 @@ Then decide:
   - Adding never removes an activity unless the day can't fit both. When a change leaves an activity already in the plan without room (what they add, a late arrival, a closure, a long drive), move that activity to another day with room rather than dropping it, and say where it went.
   - Asked for alternatives or other things to do: put your best picks into the plan as edits, so they can be applied, say in "reply" what they replace, and name one or two other good options they can ask for instead. If they want to choose first ("I'll let you know"), list the options in "reply" and change nothing yet.
   - Keep the number of days unless the traveller asks for more or fewer. A new place or day trip goes into the existing days, replacing the lightest day or part of one, and "reply" says what it replaces.
-  - Adding or removing days when asked, or changing how many nights a city gets: set "trip_length" to the new total number of days (1-${maxDays}) and return every day whose content changes, including each NEW day in full. New days come first, before any existing day you also change. Days beyond "trip_length" are removed.${multiCity ? `
+  - ${
+    input.canAddDays === false
+      ? `Only the trip's owner can change how many days it has, and this traveller isn't the owner: keep "trip_length" null and add no days. Asked for more days, say that only the owner can add them, and give your ideas for those days in "reply" instead, one short line each.`
+      : `Adding or removing days when asked, or changing how many nights a city gets: set "trip_length" to the new total number of days (1-${maxDays}) and return every day whose content changes, including each NEW day in full. New days come first, before any existing day you also change. Days beyond "trip_length" are removed.`
+  }${multiCity ? `
   - This is a multi-city trip: give each edited day its "city".` : ""}
   - Hotels in the plan: use only hotel names the traveller gives you or that already appear in the itinerary. If they mention hotels you can't see ("the hotels I added"), ask for the names and return "edits": []. When they name where they're staying for certain nights, add a short "Check in at <place>" activity in the evening of the first of those days. The plan doesn't track hotel prices; give a typical range if they ask.
   - At most ${MAX_DAYS_PER_REPLY} days in "edits". When the change concerns more days, new days included, return the first ${MAX_DAYS_PER_REPLY} and list every other day it concerns in "more_days": those are made right after, the same way, so "reply" describes the whole change for every day it concerns, never only "the first ${MAX_DAYS_PER_REPLY} days".
@@ -306,7 +316,7 @@ Rules:
 3. For a change, "reply" is warm and brief and says what changed, one short line per day when several days change, describing exactly the edits you return. Never say you changed a day that is not in "edits". ${
     input.autoApply
       ? `For the wording, ${DONE_WORDING[input.locale ?? "en"] ?? DONE_WORDING.en}`
-      : `Nothing changes until the traveller taps Apply, so ${READY_WORDING[input.locale ?? "en"] ?? READY_WORDING.en}`
+      : `Nothing changes until the traveller saves it, so ${READY_WORDING[input.locale ?? "en"] ?? READY_WORDING.en}`
   } Never mention JSON.
 4. For a question, the whole answer goes in "reply". When it needs figures (a total, a budget, what a day costs), give the numbers right there, in ${shownCur}: start from the activity costs above and add clearly labelled estimates for what the plan leaves out, such as hotels and flights. A few short lines are fine, as plain text: each on its own line starting with "- ", no * or **. Never announce an answer ("here is the total…") without giving it. A practical answer ends with what to do about it (what to pack, what to book ahead).
 5. Only real, safe, legal travel. If the request is impossible or off-topic, return "edits": [] and explain kindly in "reply".

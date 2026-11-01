@@ -13,7 +13,7 @@
  */
 
 import { assistTrip, type AssistTurn, type DayEdit } from "@/lib/ai/assistant-anon";
-import { lengthUnchangedNote, ownerAddsDaysNote } from "@/lib/ai/assistant/honesty";
+import { lengthUnchangedNote, ownerAddsDaysReply } from "@/lib/ai/assistant/honesty";
 import type { DisplayCurrency } from "@/lib/ai/assistant/plan-costs";
 import { addDaysISO } from "@/lib/ai/assistant/structural";
 import { applyAssistantEdits } from "@/lib/trips/day-edit-merge";
@@ -150,7 +150,8 @@ export async function proposeTripEdits(input: {
 }): Promise<TripEditProposal | null> {
   const { canAddDays, ...ask } = input;
   // The change waits for this page's button, which the route's reply names.
-  const result = await assistTrip({ ...ask, autoApply: false, ownLead: true });
+  // Only the owner adds days, and the engine is told so.
+  const result = await assistTrip({ ...ask, canAddDays: canAddDays === true, autoApply: false, ownLead: true });
   if (result.currency) return null;
 
   // The owner's longer trip gets its new days ("aggiungi altri 7 giorni" used
@@ -160,12 +161,20 @@ export async function proposeTripEdits(input: {
   const longer = result.tripLength !== undefined && result.tripLength > current;
   const adds = longer && canAddDays === true;
   const edits = result.edits.filter((e) => e.day_number <= current);
-  const reply =
-    result.tripLength === undefined || adds
-      ? result.reply
-      : `${result.reply} ${longer ? ownerAddsDaysNote(input.locale, current) : lengthUnchangedNote(input.locale, current)}`;
-
   const label = DAY_LABEL[input.locale] ?? DAY_LABEL.en;
+  let reply = result.reply;
+  if (longer && !adds) {
+    // New days an editor got anyway become ideas to pass on to the owner; the
+    // reply about them goes too, unless it also covers changes that stand.
+    const ideas = result.edits
+      .filter((e) => e.day_number > current)
+      .map((e) => `${label} ${e.day_number}: ${e.summary.trim() || e.activities.map((a) => a.name).join(", ")}`);
+    const owner = ownerAddsDaysReply(input.locale, current, ideas);
+    reply = edits.length > 0 ? `${result.reply}\n\n${owner}` : owner;
+  } else if (result.tripLength !== undefined && !adds) {
+    reply = `${result.reply} ${lengthUnchangedNote(input.locale, current)}`;
+  }
+
   const added = adds ? newTripDays(input.days, result.edits, input.endDate) : [];
   const revisedDays = [...(edits.length > 0 ? mergeTripEdits(input.days, edits) : []), ...added];
   // The model can swap out a saved activity while its reply calls the change

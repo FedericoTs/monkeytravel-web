@@ -522,25 +522,30 @@ export function travelTimesNote(
   }
 }
 
-/** Appended on the trip page when an editor asked for more days: they move the trip's dates. */
-export function ownerAddsDaysNote(language: string | undefined, days: number): string {
+/**
+ * The trip page's answer when an editor asked for more days: they move the
+ * trip's dates, which stay with the owner. The days made anyway are listed as
+ * ideas: "Here are some ideas for Day 4 and Day 5" was followed by none.
+ */
+export function ownerAddsDaysReply(language: string | undefined, days: number, ideas: string[]): string {
+  const list = ideas.map((idea) => `\n- ${idea}`).join("");
   switch (lang(language)) {
     case "es":
-      return `(Solo el propietario del viaje puede añadir días, así que el viaje sigue teniendo ${days} días.)`;
+      return `Solo el propietario del viaje puede añadir días, así que el viaje sigue teniendo ${days} días.${list && ` Ideas para esos días, para proponérselas:${list}`}`;
     case "it":
-      return `(Solo il proprietario del viaggio può aggiungere giorni, quindi il viaggio resta di ${days} giorni.)`;
+      return `Solo il proprietario del viaggio può aggiungere giorni, quindi il viaggio resta di ${days} giorni.${list && ` Idee per quei giorni, da proporgli:${list}`}`;
     case "pt":
-      return `(Só o proprietário da viagem pode adicionar dias, então a viagem continua com ${days} dias.)`;
+      return `Só o proprietário da viagem pode adicionar dias, então a viagem continua com ${days} dias.${list && ` Ideias para esses dias, para sugerir ao proprietário:${list}`}`;
     default:
-      return `(Only the trip owner can add days, so the trip stays at ${days} days.)`;
+      return `Only the trip owner can add days, so the trip stays at ${days} days.${list && ` Ideas for those days, to suggest to them:${list}`}`;
   }
 }
 
 /**
- * Opens a trip-page reply that talks as if a change waiting for the button
- * were already saved. The reply itself stays: it is the answer.
+ * Follows a trip-page reply that talks as if a change waiting for the button
+ * were already saved. The reply comes first: it is the answer.
  */
-export function pendingChangeLead(language: string | undefined, buttonLabel: string): string {
+export function pendingChangeNote(language: string | undefined, buttonLabel: string): string {
   switch (lang(language)) {
     case "es":
       return `Aún no guardado: toca "${buttonLabel}" abajo para actualizar tu viaje.`;

@@ -186,10 +186,10 @@ describe("proposeTripEdits", () => {
     });
     const out = await proposeTripEdits(input);
     // A proposal waiting for this page's button, which the route's lead names.
+    // Only the owner adds days, and the engine is told when this traveller can't.
     expect(assistTrip).toHaveBeenCalledWith(
-      expect.objectContaining({ autoApply: false, ownLead: true, history: input.history, locale: "en" }),
+      expect.objectContaining({ autoApply: false, ownLead: true, canAddDays: false, history: input.history, locale: "en" }),
     );
-    expect(assistTrip.mock.calls[0][0]).not.toHaveProperty("canAddDays");
     expect(out?.revisedDays.map((d) => d.day_number)).toEqual([1, 3]);
     expect(out?.summary).toBe("Day 1: Wigwam after dinner. Day 3: Index late.");
     expect(out?.reply).toBe("Ready: nightclubs on nights 1 and 3.");
@@ -228,8 +228,30 @@ describe("proposeTripEdits", () => {
     const out = await proposeTripEdits({ ...input, locale: "it" });
     expect(out?.revisedDays.map((d) => d.day_number)).toEqual([2]);
     expect(out?.tripLength).toBeUndefined();
-    expect(out?.reply).toContain("Solo il proprietario del viaggio può aggiungere giorni, quindi il viaggio resta di 3 giorni");
+    // The reply also covers Day 2's change, which stands, so it stays.
+    expect(out?.reply).toBe(
+      "Here is a new Day 4 and a lighter Day 2.\n\nSolo il proprietario del viaggio può aggiungere giorni, quindi il viaggio resta di 3 giorni. Idee per quei giorni, da proporgli:\n- Giorno 4: New day."
+    );
     expect(out?.summary).toBe("Giorno 2: Lighter. Lascia fuori: Grafton Street.");
+  });
+
+  // Live, 2026-11-01: an editor's "add 2 more days" got "Happy to add two more
+  // days… Here are some ideas for Day 4 and Day 5" and no ideas.
+  it("answers an editor who only asked for more days with the ideas for them", async () => {
+    assistTrip.mockResolvedValue({
+      ...longer,
+      reply: "Happy to add two more days! Here are some ideas for Day 4 and Day 5.",
+      edits: [
+        { day_number: 4, summary: "Malahide Castle and the coast.", activities: [engineActivity("Malahide Castle", "10:00", "morning")] },
+        { day_number: 5, summary: "", activities: [engineActivity("Glendalough", "09:00", "morning")] },
+      ],
+      tripLength: 5,
+    });
+    const out = await proposeTripEdits(input);
+    expect(out?.revisedDays).toEqual([]);
+    expect(out?.reply).toBe(
+      "Only the trip owner can add days, so the trip stays at 3 days. Ideas for those days, to suggest to them:\n- Day 4: Malahide Castle and the coast.\n- Day 5: Glendalough"
+    );
   });
 
   it("keeps the trip's length when the change would shorten it", async () => {

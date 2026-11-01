@@ -255,9 +255,24 @@ describe("buildPrompt", () => {
     const ask = (autoApply?: boolean) =>
       buildPrompt({ message: "swap days 1 and 2", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "it", autoApply });
     expect(ask(true)).toContain(`quindi di' cosa hai fatto: "Ho aggiunto un corso di cucina al giorno 3"`);
-    expect(ask(true)).not.toContain("Nothing changes until the traveller taps Apply");
-    expect(ask(false)).toContain("Nothing changes until the traveller taps Apply, so presenta le modifiche come pronte");
-    expect(ask(undefined)).toContain("Nothing changes until the traveller taps Apply");
+    expect(ask(true)).not.toContain("Nothing changes until the traveller saves it");
+    expect(ask(false)).toContain("Nothing changes until the traveller saves it, so presenta le modifiche come pronte da salvare");
+    // "I've extended your trip" slipped past the list of verbs (2026-11-01).
+    expect(ask(false)).toContain(`"Ho esteso"`);
+    expect(ask(undefined)).toContain("Nothing changes until the traveller saves it");
+  });
+
+  // Live, 2026-11-01: an editor's "add 2 more days" got "Happy to add two
+  // more days… Here are some ideas for Day 4 and Day 5", the days were
+  // dropped, and no ideas were left.
+  it("tells the model when the traveller can't add days, and to give the ideas in the reply", () => {
+    const ask = (canAddDays?: boolean) =>
+      buildPrompt({ message: "add 2 more days", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale: "en", canAddDays });
+    expect(ask(false)).toContain(`this traveller isn't the owner: keep "trip_length" null and add no days`);
+    expect(ask(false)).toContain(`give your ideas for those days in "reply" instead`);
+    expect(ask(false)).not.toContain(`set "trip_length" to the new total`);
+    expect(ask(undefined)).toContain(`set "trip_length" to the new total`);
+    expect(ask(true)).not.toContain("isn't the owner");
   });
 
   // Live, 2026-10-26: "llegamos tarde sobre las 23 horas", then four messages
