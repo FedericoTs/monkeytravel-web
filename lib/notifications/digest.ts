@@ -1,17 +1,17 @@
 /**
- * In-trip evening-before digest — Live Trip plan, Phase 4.1.
+ * In-trip evening-before digest.
  *
  * One digest per trip day (from day 2 on): "Tomorrow: Day 3 — Alfama. Lunch
- * 13:00 …", deep-linked to Today. It is the re-open trigger for the ~7.8 days
- * of a trip, so that Today mode doesn't rely on the traveller remembering.
+ * 13:00 …", deep-linked to Today. It is the re-open trigger for the days of
+ * a trip, so that Today mode doesn't rely on the traveller remembering.
  *
- * DELIVERY MODEL (decided 2026-09-06). The notifications cron runs ONCE daily
- * at 07:00 UTC (vercel.json). A slot stamped for "19:00 trip-local" would not
- * be due at that run and would slip to the next day — the exact 22h-lag bug the
- * pre-trip cascade already fixed by stamping 06:00 UTC, below the cron hour
- * (see 20260827120000). So the digest for day K is stamped 06:00 UTC on the
- * trip-local calendar day BEFORE day K, i.e. it is a reliable ~1-day-ahead
- * heads-up delivered by the same 07:00 UTC run — not literally 19:00 local.
+ * DELIVERY MODEL. The notifications cron runs ONCE daily at 07:00 UTC
+ * (vercel.json). A slot stamped for "19:00 trip-local" would not be due at
+ * that run and would slip to the next day, a 22h lag the pre-trip cascade
+ * avoids by stamping 06:00 UTC, below the cron hour (see 20260827120000). So
+ * the digest for day K is stamped 06:00 UTC on the trip-local calendar day
+ * BEFORE day K, i.e. it is a reliable ~1-day-ahead heads-up delivered by the
+ * same 07:00 UTC run — not literally 19:00 local.
  * True evening-local delivery would need an hourly cron; that's a separate
  * infra call.
  *

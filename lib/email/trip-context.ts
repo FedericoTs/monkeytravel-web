@@ -75,28 +75,20 @@
  * Only the headings are localised, via common.emailContext. Passing them in
  * (rather than importing next-intl) keeps this module pure and unit-testable.
  *
- * Block CONTENT is never translated here, and an earlier version of this
- * comment justified that by claiming the generator already writes trip
- * content in the user's own language. That is false in a way that matters.
- *
- * The generator writes in whatever users.preferred_language said AT
- * GENERATION TIME — and that column was 'en' for all 478 users until it was
- * repaired on 2026-08-27 (see app/auth/callback/route.ts for the signup bug
- * that caused it). Measured immediately after that repair: 63 users now hold
- * es/it/pt, they own 57 trips between them, and ZERO of those trips were
- * created after the repair.
- *
- * So for every one of them the email shell is correctly Spanish or Italian
- * while these blocks are English:
+ * Block CONTENT is never translated here, and the generator does not
+ * guarantee the user's current language either: it writes in whatever
+ * users.preferred_language said AT GENERATION TIME. A trip generated before
+ * that column held the user's language gets an email whose shell is
+ * correctly Spanish or Italian while these blocks are English:
  *
  *   [El tiempo durante tu viaje] Expected cool temperatures (10-18°C)…
  *
- * That is a deliberate accepted state, not an oversight. It is strictly
- * better than the fully-English email those users received before, it costs
- * no Gemini call to leave alone, and it self-heals: the next trip they
- * generate comes out in their real language. Anyone tempted to "fix" it by
- * translating at send time should price the per-email model call first —
- * fewer calls per trip is a standing constraint on this product.
+ * That is a deliberate accepted state, not an oversight. It is better than a
+ * fully-English email, it costs no Gemini call to leave alone, and it heals
+ * itself: the next trip they generate comes out in their real language.
+ * Anyone tempted to "fix" it by translating at send time should price the
+ * per-email model call first — fewer calls per trip is a standing constraint
+ * on this product.
  */
 
 /**
@@ -207,10 +199,8 @@ function str(value: unknown, cap: number): string | undefined {
  *   Weather for your first 2 days   19-35C
  *   Worth packing                   Layered clothing (cool autumn weather)
  *
- * Measured 2026-08-31: of 13 queued trips whose packing list made a one-way
- * weather claim AND whose forecast could be checked, 2 were contradicted by
- * it. 84 of 122 queued packing emails carry such a claim, and 64 of 954
- * packing items justify themselves with the weather.
+ * Most packing emails carry such a weather claim, and some of those claims
+ * are contradicted by the forecast printed right above them.
  *
  * WHAT IS REMOVED, AND WHAT IS NOT
  * --------------------------------

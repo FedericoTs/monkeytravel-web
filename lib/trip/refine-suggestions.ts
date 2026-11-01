@@ -1,14 +1,10 @@
 /**
  * Itinerary-derived refine suggestions for the result-page assistant.
  *
- * WHY THIS EXISTS (2026-08-01 funnel read): 78% of result-viewers generate
- * exactly once and convert at 9.7%, while sessions that generate 3+ times
- * convert at 26.3%. Making the plan yours is what precedes keeping it. The
- * assistant, its inline placement AND static suggestion chips were all already
- * shipped — and result→save_clicked still didn't move (24.9% → 24.7%). The one
- * thing never tried is making the prompt about THIS trip instead of any trip:
- * "Make day 1 more relaxed" is wallpaper; "Day 3 has 6 stops — lighten it?"
- * is an observation about your plan.
+ * WHY THIS EXISTS: sessions that refine their plan are the ones that keep it,
+ * and generic chips don't move that. So the prompt is about THIS trip instead
+ * of any trip: "Make day 1 more relaxed" is wallpaper; "Day 3 has 6 stops —
+ * lighten it?" is an observation about your plan.
  *
  * Pure and dependency-free so it can be unit-tested against real itineraries.
  * Returns i18n descriptors, never prose — the panel renders them.
@@ -129,9 +125,8 @@ export function deriveRefineSuggestions(
     });
   }
 
-  // 3. A long dead gap inside a day (P3b — declared in the key union since
-  // launch, first implemented 2026-08-16). Concrete and checkable: the
-  // traveller can see the 4-hour hole between the museum and dinner.
+  // 3. A long dead gap inside a day. Concrete and checkable: the traveller
+  // can see the 4-hour hole between the museum and dinner.
   for (const d of usable) {
     const gap = findLongGap(d);
     if (gap) {

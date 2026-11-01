@@ -7,25 +7,17 @@ import { SUPABASE_AUTH_COOKIE_OPTIONS } from "@/lib/supabase/cookie-options";
 import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
 import { trackEmailClick } from "@/lib/analytics/email-click";
 
-// Track page views with geo data (non-blocking).
-// Returns the session_id that was used (so the caller can set the cookie on
-// the response when this was a brand-new session).
-//
-// **2026-05-30 fix**: previously read `request.cookies.get("session_id")` but
-// NOTHING in the codebase ever SET that cookie — so 100% of inserts had
-// session_id=null. GSC + Supabase analytics couldn't count unique sessions.
-// Now generates a UUID on first visit and the caller persists it as a cookie.
 /**
- * Records one page_views row per page view and returns the session id
- * (existing or freshly minted) plus a label naming what was decided, which
- * updateSession() exposes as the x-mt-pv response header.
+ * Records one page_views row (with geo data, without holding up the
+ * response) per page view and returns the session id plus a label naming
+ * what was decided, which updateSession() exposes as the x-mt-pv response
+ * header. The session id is the mt_session_id cookie's, or a fresh one the
+ * caller then sets as that cookie.
  *
  * What counts as a page view lives in lib/analytics/page-view-classifier.ts
- * (and its tests): browser navigations only. Next strips every Flight header
- * (rsc, next-router-*) before middleware runs, so the 2026-06-07 prefetch
- * guard on next-router-prefetch never fired and until 2026-09-17 every Link
- * prefetch was a "view" (~3x inflation in multi-page sessions; sessions
- * unaffected). In-app navigations are recorded by
+ * (and its tests): browser navigations only, told apart by fetch metadata
+ * because Next strips every Flight header (rsc, next-router-*) before
+ * middleware runs. In-app navigations are recorded by
  * components/analytics/PageViewBeacon.tsx through /api/page-view, which
  * builds the same row.
  */
@@ -51,13 +43,11 @@ export function trackPageView(
   }
   const path = request.nextUrl.pathname;
 
-  // **2026-06-04 fix**: dev environment was POSTing to the prod page_views
-  // table because middleware ran against prod Supabase from `npm run dev`.
-  // Over 30 days this leaked 2,765 spurious views from 5 localhost sessions
-  // (17% of total traffic) and one template alone took 1,726 ghost views
-  // from a single dev tab in a refresh loop. VERCEL_ENV is only set on
-  // Vercel deployments ('production' | 'preview' | 'development'), so a
-  // missing/non-production value catches both local dev and preview builds.
+  // `npm run dev` runs middleware against the prod Supabase, so outside
+  // production no row is written (a dev tab in a refresh loop would flood
+  // page_views). VERCEL_ENV is only set on Vercel deployments
+  // ('production' | 'preview' | 'development'), so a missing/non-production
+  // value catches both local dev and preview builds.
   if (process.env.VERCEL_ENV !== "production") {
     // Writes only for a probe session here (writesTelemetry).
     trackEmailClick(request, request.cookies.get("mt_session_id")?.value ?? null, userId);
@@ -280,15 +270,10 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
    * header. trackPageView() has already written the row by then, so without
    * this the view lands under a session id that is never persisted: the
    * visitor's next request mints another one, and that request carries a
-   * same-origin Referer. Measured 2026-09-18 to 21, before the fix: 56
-   * anonymous views across 54 distinct sessions on redirect-prone /trips*
-   * paths plus one signed-in /auth/* view (~14/day, 0.4% of raw sessions).
-   *
-   * Small, but it is the one part of the "22% of sessions have an internal
-   * referrer" finding that was genuinely ours, and a label that hid it would
-   * have been the wrong fix. The auth cookies matter too: supabaseResponse may
-   * carry a refreshed Supabase token, and dropping it on a redirect makes the
-   * visitor re-authenticate on the very next request.
+   * same-origin Referer, so it reads as an internal referrer. The auth
+   * cookies matter too: supabaseResponse may carry a refreshed Supabase
+   * token, and dropping it on a redirect makes the visitor re-authenticate on
+   * the very next request.
    */
   const carryAnalytics = (redirect: NextResponse): NextResponse => {
     for (const cookie of supabaseResponse.cookies.getAll()) {
@@ -302,9 +287,8 @@ export async function updateSession(request: NextRequest, baseResponse?: NextRes
   // Protected routes - redirect to login if not authenticated
   // Note: /trips/new is excluded to allow gradual engagement (users can fill form before signup)
   // Note: /trips/template/* is public so curated escapes can drive traffic & conversions
-  // Note (2026-06-09): /trips/[uuid] is excluded so the page itself can run its
-  //   published-trip check first. Google has been indexing /trips/[uuid] URLs (see
-  //   today's daily routine — 22 organic clicks/14d landing on these), and the
+  // Note: /trips/[uuid] is excluded so the page itself can run its
+  //   published-trip check first. Google indexes /trips/[uuid] URLs, and the
   //   page-level logic redirects anon visitors to /trip/[slug] when the trip
   //   is published. If we redirect them to /auth/login here, those Google
   //   sessions never reach the page logic and drop straight off the site.

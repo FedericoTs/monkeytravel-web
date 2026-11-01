@@ -1,13 +1,13 @@
 /**
  * Retry a Supabase read that failed for a transient reason.
  *
- * WHY THIS EXISTS (2026-09-14, 07:00:29 UTC)
+ * WHY THIS EXISTS
  * The reminder cron runs once a day and starts with one SELECT of the due
- * rows. That morning the database answered "Gateway Timeout" (the instance was
- * swapping; see the 2026-09-12 diagnostic), the route returned 500 and nothing
- * was sent. Because every pre-trip subject line makes a claim about WHEN, the
- * next run could only suppress most of those rows as stale: 39 emails lost to
- * one eight-second timeout at the wrong moment.
+ * rows. If the database answers "Gateway Timeout" (as it can while the
+ * instance is swapping), the route returns 500 and nothing is sent. Because
+ * every pre-trip subject line makes a claim about WHEN, the next run can only
+ * suppress most of those rows as stale: a day's reminders lost to one timeout
+ * at the wrong moment.
  *
  * A single bounded retry turns that into a ten-second delay. Only messages
  * that look like a timeout or a dropped connection are retried; any other

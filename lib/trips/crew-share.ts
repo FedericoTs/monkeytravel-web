@@ -4,17 +4,12 @@
  *
  * WHY THIS EXISTS
  * ---------------
- * Group planning is the thing people say they came for and the thing the
- * product has never delivered. Measured 2026-09-03 over 30 days: 531 wizard
- * sessions answered "with friends" at step 1 against 225 solo, and 477 of the
- * group sessions generated a trip. Across 449 live trips, all-time, there are
- * 3 collaborator rows, 6 invites, 0 activity votes and 0 proposals.
- *
- * The one multiplayer feature anyone uses is the one that needs no account:
- * `anonymous_activity_votes` has 51 rows. Every other group feature sits
- * behind a sign-up, and group-intent planners already save at a HIGHER rate
- * than solo ones (12.4% vs 9.6%) — they are not the reluctant ones, they were
- * just never given a way to include anybody.
+ * Most planners say at step 1 that they travel with friends, yet the
+ * group features behind a sign-up (collaborators, invites, votes, proposals)
+ * go almost unused. The multiplayer feature people do use is the one that
+ * needs no account (anonymous activity votes), and group-intent planners
+ * save at least as often as solo ones: they are not the reluctant ones, they
+ * need a way to include anybody.
  *
  * So the crew ask rides the anonymous share mint (shipped in the anon
  * share/keep loop) rather than the invite system: send a link, friends vote
@@ -47,9 +42,8 @@ export type ShareFraming = "crew" | "plain";
 /**
  * The framing a signed-in owner's share modal opens on.
  *
- * Read of 2026-09-18 (30 days): the anonymous crew ask, whose link opens on
- * the vote, reached a real recipient on 28 of 76 trips; the generic link a
- * signed-in owner copies reached one on 8 of 43, and on 0 of 3 solo trips.
+ * The anonymous crew ask, whose link opens on the vote, reaches a real
+ * recipient far more often than the generic link a signed-in owner copies.
  * So a trip whose planner said "with friends" at step 1 opens on the crew
  * ask; everyone else keeps the plain link. Both stay one tap away.
  */

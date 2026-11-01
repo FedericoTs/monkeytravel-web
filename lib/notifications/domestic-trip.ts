@@ -2,16 +2,14 @@
  * Is this trip inside the traveller's own country? — the visa-check reminder
  * must not fire for it.
  *
- * Why (2026-09-19): a recipient replied to "One week out — visa check —
- * Stillwater" that he was travelling inside Minnesota. The slot was timed on
- * days-to-departure only; nothing compared where the person is with where
- * they are going. Across the 60 days before the fix, 41 of 167 visa reminders
- * pending or sent were domestic (Sedona for a US viewer, Baguio for a
- * Philippine one, Valencia for a Spanish one).
+ * Why: the slot is timed on days-to-departure, which says nothing about
+ * where the person is compared with where they are going, so a "visa check"
+ * could land on a trip inside the traveller's own country (Sedona for a US
+ * viewer, Baguio for a Philippine one, Valencia for a Spanish one).
  *
  * What we can compare. The trip's destination string names a country on
- * about half the trips and the profile home-country field is empty for 593
- * of 601 users, so neither is the source. Every trip's itinerary carries
+ * only some trips and the profile home-country field is almost always
+ * empty, so neither is the source. Every trip's itinerary carries
  * activity addresses written by Google Places ("... Kyoto, 605-0071, Japan",
  * "... Stillwater, MN 55082, USA"), and every user with a pending reminder
  * has a country on their last page view. Those two are what this compares.
@@ -24,8 +22,8 @@
  * the reminder exactly as before.
  *
  * Known limit, accepted: someone abroad when they plan a trip home is
- * "domestic" by their last page view (1 of 167 users in the sample). The
- * profile field could correct it once people fill it in.
+ * "domestic" by their last page view. The profile field could correct it
+ * once people fill it in.
  */
 
 export interface DomesticVerdict {

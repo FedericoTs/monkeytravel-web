@@ -1,16 +1,13 @@
 /**
  * Twin trips: one reminder per real trip, not one per saved copy.
  *
- * WHY (2026-09-23)
+ * WHY
  * People regenerate a trip and save the result without deleting the first
  * one, so they end up with two or three live trips that are the same trip:
  * same owner, same destination title, same start date. Each copy carries its
- * own reminder cascade, and the per-trip rate limit cannot see the siblings.
- * Measured on the queue: 19 of 217 reminders sent since 16 Sep (8.8%) were
- * extra copies, reaching 7 of 59 recipients — "Two weeks to go — Sedona" went
- * out three times at 07:00:59, 07:01:00 and 07:01:08; a Bari traveller got
- * every in-trip digest twice a day for six days. 111 pending rows due in the
- * next 30 days sat on trips with a live twin.
+ * own reminder cascade, and the per-trip rate limit cannot see the siblings,
+ * so without this a reminder goes out once per copy, seconds apart, and
+ * every in-trip digest arrives twice.
  *
  * The decision is made at DISPATCH, per slot, with the state as it is at that
  * moment — not at enqueue — so deleting the kept copy later simply lets the
@@ -19,10 +16,9 @@
  * A LOST REMINDER IS WORSE THAN A DUPLICATE. So a copy is only ever
  * suppressed once another copy has actually SENT the slot. While the chosen
  * copy is still pending, the others wait (see twinDecision), and if the
- * chosen copy then fails, one of them sends instead. Found in review of the
- * first version, which suppressed the others up front: had the chosen copy
- * then failed its own send, nobody would have received the email, and which
- * outcome happened depended on the order the rows ran in.
+ * chosen copy then fails, one of them sends instead. Suppressing the others
+ * up front would lose the email whenever the chosen copy failed its own
+ * send, and which outcome happened would depend on the order the rows ran in.
  */
 
 export interface TwinCandidate {

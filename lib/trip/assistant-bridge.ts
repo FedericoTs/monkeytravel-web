@@ -1,20 +1,10 @@
 /**
  * Should the anonymous assistant offer the planner anything, and what?
  *
- * The bridge used to live inside the edit-preview card, gated on
- * `editState === "applied"`. So a session that only ASKED questions — no
- * proposed edit, nothing to apply — was never offered anything at all.
- *
- * Measured over the 30 days to 2026-09-02, joining anon_assistant_logs to
- * wizard_step_events on session_id (both consent-free, so this is every
- * session and not a sampled one):
- *
- *   edit proposed  70 sessions  saw a bridge   57.1% clicked Save
- *   Q&A only       50 sessions  saw NOTHING    34.0% clicked Save
- *
- * The gap is correlational — someone who applies an edit is more invested to
- * begin with — but the mechanism is not in doubt: one half was asked and the
- * other half was not.
+ * An offer gated on `editState === "applied"` (inside the edit-preview card)
+ * never reaches a session that only ASKED questions (no proposed edit,
+ * nothing to apply), and sessions that are offered the bridge save more
+ * often.
  *
  * The decision lives here rather than in the 365-line panel so the guarantee
  * that matters ("a question-only conversation still gets an offer") is pinned
