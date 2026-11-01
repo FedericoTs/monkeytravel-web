@@ -1,11 +1,10 @@
 /**
  * Why did a generation fail?
  *
- * A failed generation used to leave nothing behind that anyone could count.
  * `abandoned` cannot follow `generating` (wizardCompletedRef is set before the
- * request fires), and no failure step existed — so the 22 sessions in the 30
- * days to 2026-09-02 that reached `generating` and never reached `result` were
- * indistinguishable, in the funnel, from someone closing their laptop.
+ * request fires), so without a failure step a session that reached
+ * `generating` and never reached `result` is indistinguishable, in the
+ * funnel, from someone closing their laptop.
  *
  * This turns the thrown error into one of a few buckets that imply different
  * fixes, so the next person can act on a count instead of a stack trace:

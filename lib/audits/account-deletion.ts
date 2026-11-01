@@ -9,11 +9,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * the person's trips. Their data is gone and their account is not, and the 500
  * names no constraint, so the logs do not say which table did it.
  *
- * THIS HAS HAPPENED TWICE. A pass on 2026-08-04 fixed four such keys and
- * measured 0 accounts affected, so it was filed as latent. By 2026-08-31 six
- * more existed that it never covered, one it DID fix was NO ACTION again, and
- * 283 of 495 real accounts could not be deleted. Nobody noticed, because the
- * only symptom is a real person hitting a 500 at the moment they try to leave.
+ * A one-off pass that fixes the keys it knows about does not stay fixed: new
+ * keys arrive without the right action, and a fixed one can be recreated as
+ * NO ACTION. Nobody notices, because the only symptom is a real person
+ * hitting a 500 at the moment they try to leave.
  *
  * This module is the shared core so the script and the cron cannot disagree
  * about what "correct" means — the same mistake the subject-line rule made

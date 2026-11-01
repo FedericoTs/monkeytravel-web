@@ -11,9 +11,9 @@ import { WIKIMEDIA_IMAGE_PATH, wikimediaCardSrc } from "@/lib/images/wikimedia-c
  * Why server-fetch helps when the browser fetch 504s: Pexels'
  * Cloudflare layer appears to apply different rate / bot signatures
  * to browser User-Agent + hot-link Referer combos vs. anonymous
- * Vercel egress. Live-confirmed 2026-05-31: same JPEG curl-able at
- * 200 OK, but `<img src="https://images.pexels.com/...">` 504s twice
- * in a row including a cache-bust retry.
+ * Vercel egress: the same JPEG can be curl-able at 200 OK while
+ * `<img src="https://images.pexels.com/...">` 504s twice in a row,
+ * cache-bust retry included.
  *
  * Add hosts here as you discover them. Sync with the allowlist in
  * `app/api/img/proxy/route.ts` — that route rejects anything not
@@ -45,7 +45,7 @@ export function proxyImageUrl(url: string | null | undefined): string | null {
   // allow-listed. Encoding the URL into a path segment sidesteps that
   // constraint entirely. The proxy route reads it from params.token.
   //
-  // Sentry issue 124107340 (2026-06-01 11:45 UTC, release 368a5da):
+  // A query-string src fails with:
   //   "Image with src \"/api/img/proxy?url=...\" is using a query string
   //    which is not configured in images.localPatterns."
   return `/api/img/proxy/${encodeURIComponent(url)}`;

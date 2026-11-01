@@ -5,15 +5,13 @@ import type { GeneratedItinerary } from "@/types";
 import type { TripFormState } from "@/lib/trips/persistTrip";
 
 /**
- * Resilience + observability of the auto-save (2026-09-02).
+ * Resilience + observability of the auto-save.
  *
- * Six signed-in users in 30 days reached a rendered itinerary and no save was
- * ever ATTEMPTED — the edge logs show their browsers authenticated before and
- * after, and not one getUser or insert_trip_dedup call in between. Every
- * early return in the hook was silent and every failure ended in a
- * console.error nobody could read. These tests pin the two properties that
- * make that impossible to miss again: a skip is reported with its reason,
- * and a failure is retried before it is reported with its attempt count.
+ * A signed-in user can reach a rendered itinerary without a save ever being
+ * ATTEMPTED, and a silent early return or a console.error nobody reads would
+ * hide it. These tests pin the two properties that make it visible: a skip
+ * is reported with its reason, and a failure is retried before it is
+ * reported with its attempt count.
  */
 
 function makeItinerary(seed = 1): GeneratedItinerary {

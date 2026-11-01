@@ -196,12 +196,10 @@ export function useActivityVotes({
     }
   }, [enabled, tripId, fetchVotes]);
 
-  // Bug-bounty 2026-05-24 P1: `votes` was in the dep array, so the
-  // Realtime channel was torn down + recreated on every vote refresh
-  // — defeating the purpose of subscriptions AND racing with the
-  // subsequent vote that triggered it. Read the latest votes through
-  // a ref instead so the effect only re-mounts when tripId/enabled
-  // actually change.
+  // Read the latest votes through a ref, so the effect re-mounts only when
+  // tripId/enabled change. With `votes` in the deps, the Realtime channel
+  // would be torn down and recreated on every vote refresh, defeating the
+  // subscription and racing with the vote that triggered the refresh.
   const votesRef = useRef(votes);
   useEffect(() => {
     votesRef.current = votes;

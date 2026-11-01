@@ -1,19 +1,17 @@
 /**
  * Self-heal dedupe for /api/places/photo.
  *
- * WHY THIS EXISTS (measured 2026-09-13, api_request_logs, 14 days)
- * Google photo resource names die after ~29 days, and 4,851 of the 7,811 refs
- * in places_v2 were already dead. The render-time self-heal in
+ * WHY THIS EXISTS
+ * Google photo resource names die after ~29 days, so many stored refs in
+ * places_v2 are dead. The render-time self-heal in
  * app/api/places/photo/route.ts repairs a dead ref on first view with one
  * Place Details call ($0.017), which is the lazy model working as intended:
  * pay when someone actually looks.
  *
- * What was not intended: 772 of the fortnight's 2,268 photo-detail calls
- * ($13.12 of $38.56) were heals, and the Vercel logs showed the SAME place
- * healed four times in the same second (a page loads the photo at several
- * sizes, each a different URL, each a CDN miss) and again minutes later from
- * another region. Over one two-hour window: 20 heals for 6 distinct places.
- * Every duplicate bought the answer we already had.
+ * What is not intended: the SAME place healed several times in the same
+ * second (a page loads the photo at several sizes, each a different URL,
+ * each a CDN miss) and again minutes later from another region. Every
+ * duplicate buys the answer we already have.
  *
  * Two guards, both free:
  *   1. InFlight — concurrent heals for the same place inside one function
@@ -30,8 +28,8 @@
 /**
  * Mirrors PHOTO_REF_MAX_AGE_DAYS in lib/images/activity.ts: a ref refreshed
  * more recently than this is trusted without another Google call. Google's
- * measured lifetime is ~29 days (2026-07-21 probe), so 21 keeps the same
- * ~8-day margin the enrichment path uses.
+ * measured lifetime is ~29 days, so 21 keeps the same ~8-day margin the
+ * enrichment path uses.
  */
 export const HEAL_REUSE_MAX_AGE_DAYS = 21;
 

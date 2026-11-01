@@ -3,10 +3,10 @@
 /**
  * Session-scoped generation counter + trip stack for /trips/new.
  *
- * Save Sprint (2026-07-20): 74% of users who receive a completed itinerary
- * leave without saving — many of them "sample" several generations in one
- * sitting and each new generation silently destroys the previous one. This
- * hook keeps the last MAX_STACK generated trips of the browser session in
+ * Many users who receive a completed itinerary leave without saving, and
+ * some "sample" several generations in one sitting, each new generation
+ * silently destroying the previous one. This hook keeps the last
+ * MAX_STACK generated trips of the browser session in
  * sessionStorage so the result view can (a) show how many unsaved trips the
  * session has produced and (b) let the user flip back to an earlier one.
  *

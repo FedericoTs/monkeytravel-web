@@ -3,9 +3,8 @@ import { describe, it, expect, vi } from "vitest";
 
 /**
  * A bank activity is offered only when it answers the request. The bank
- * matches on any one shared word, so a long message matched anything: the
- * assistant offered "Traditional Roman Aperitivo in Monti" for "add the part
- * where we go to civitavecchia port" (production, 2026-09-20 and 2026-09-26).
+ * matches on any one shared word, so a long message would match anything,
+ * e.g. "Traditional Roman Aperitivo in Monti" for a cruise-port transfer.
  */
 
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({}) }));

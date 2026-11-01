@@ -8,8 +8,8 @@ interface RateLimitRecord {
 
 const stores = new Map<string, Map<string, RateLimitRecord>>();
 
-// Detect Upstash Redis at module load. Accept BOTH env-var naming conventions
-// (2026-07-24): the classic Upstash-for-Vercel integration injects
+// Detect Upstash Redis at module load. Accept BOTH env-var naming
+// conventions: the classic Upstash-for-Vercel integration injects
 // UPSTASH_REDIS_REST_URL / _TOKEN, but the "Vercel KV powered by Upstash"
 // Marketplace product injects KV_REST_API_URL / KV_REST_API_TOKEN for the same
 // REST endpoint. Reading both means the limiter picks up shared state whichever

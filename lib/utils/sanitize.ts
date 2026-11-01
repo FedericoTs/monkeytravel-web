@@ -60,13 +60,10 @@ export function sanitizeArray(arr: unknown): string[] {
  * Validate and sanitize a URL
  * Only allows http, https protocols, OR same-origin relative paths.
  *
- * **2026-05-24 live-test fix:** previously this used `new URL(url)`
- * with no base, which throws for relative paths. Our Google Places
- * photo proxy returns `/api/places/photo?name=...` URLs, and the
- * sanitizer was rejecting them silently — every activity card lost
- * its image because the sanitized field came back as "" (falsy).
- *
- * Same-origin relative paths starting with "/" are accepted as-is.
+ * `new URL(url)` with no base throws for relative paths, and our Google
+ * Places photo proxy returns `/api/places/photo?name=...` URLs; rejecting
+ * them would blank every activity card's image. So same-origin relative
+ * paths starting with "/" are accepted as-is.
  * Protocol-relative URLs ("//evil.com") are NOT allowed since they
  * would inherit the page protocol but point to a foreign origin.
  */

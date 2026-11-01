@@ -117,11 +117,8 @@ export async function completeReferralIfEligible(
     const now = new Date().toISOString();
 
     // 1. Grant reward to referee (current user)
-    // Note: free_trips_remaining column was deprecated 2026-05-31 — it was
-    // written here but never read anywhere (checkUsageLimit ignores it and
-    // decrementFreeTrips() is a hardcoded `return 999`). The actual reward
-    // path is the banana + tier flow below (addReferralBananas /
-    // checkAndUnlockTier), which IS read by checkUsageLimit.
+    // The reward is the banana + tier flow below (addReferralBananas /
+    // checkAndUnlockTier), which checkUsageLimit reads.
     //
     // The `AND referral_completed_at IS NULL` guard makes this a single-
     // statement atomic claim: concurrent runs race on the same row and only
@@ -131,7 +128,7 @@ export async function completeReferralIfEligible(
     // (migration 20260531_atomic_referral_conversion.sql) which makes the
     // conversion-row insert race-safe at the DB layer too.
     //
-    // The claim runs on the service role (2026-09-23). users guard
+    // The claim runs on the service role. users guard
     // 20260924116000 keeps referral_completed_at at its stored value for any
     // write from the user's own client, so on `supabase` this UPDATE would
     // still match and return the row while leaving the column NULL: every
@@ -170,12 +167,8 @@ export async function completeReferralIfEligible(
       };
     }
 
-    // 2. (Referrer-side free_trips_remaining write removed 2026-05-31)
-    // The previous UPDATE here only wrote free_trips_remaining for the
-    // referrer, which — same as for the referee — is a dead column not
-    // read by checkUsageLimit. The referrer is now rewarded purely via
-    // the banana + tier path (addReferralBananas / checkAndUnlockTier
-    // below), which IS read by checkUsageLimit.
+    // 2. The referrer is rewarded through the banana + tier path below
+    // (addReferralBananas / checkAndUnlockTier), which checkUsageLimit reads.
     const referrerRewarded = true;
 
     // 3. Record conversion event. Service role: users have no INSERT on
@@ -201,14 +194,14 @@ export async function completeReferralIfEligible(
     // (a different user than the referee whose session is active here), so it
     // legitimately needs to cross the RLS/ownership boundary. The underlying
     // RPCs (increment_referral_conversions / add_bananas / check_and_unlock_tier)
-    // are SECURITY DEFINER and — as of the 2026-06-09 lockdown migration —
-    // refuse cross-user calls from the `authenticated` role. Routing these
-    // three writes through the service-role admin client is the correct,
+    // are SECURITY DEFINER and refuse cross-user calls from the
+    // `authenticated` role. Routing these three writes through the
+    // service-role admin client is the correct,
     // server-trusted path; everything else in this function stays on the
     // user-scoped `supabase` client so RLS still applies to the referee's
     // own rows. See the migration's guard for the matching role check.
-    // 4. Update conversion count in referral_codes (atomic RPC — replaces
-    //    racy read-modify-write closed by 2026-05-31 audit Task #318).
+    // 4. Update conversion count in referral_codes (an atomic RPC, not a
+    //    racy read-modify-write).
     const { data: rpcCount, error: rpcErr } = await adminDb
       .rpc("increment_referral_conversions", { p_code_id: referralCode.id });
     if (rpcErr) {

@@ -112,11 +112,10 @@ export async function handleTripCreatedWithReferral(
       result.referralCompleted = true;
 
       // Track additional events if referral was processed.
-      // Note: first_trip_saved is no longer fired here — it's fired
-      // unconditionally from the trip-save success handler in
-      // NewTripWizard so organic (non-referred) users get the event too
-      // (Task #319, 2026-05-31). Referral-specific telemetry stays at
-      // lib/referral/completion.ts (referral_converted, server-side).
+      // first_trip_saved is fired from the trip-save success handlers in
+      // NewTripWizard, so organic (non-referred) users get the event too.
+      // Referral-specific telemetry lives in lib/referral/completion.ts
+      // (referral_converted, server-side).
       if (referralResult.wasReferred && referralResult.referee_rewarded) {
         // Track bananas if awarded
         if (referralResult.bananas?.awarded) {

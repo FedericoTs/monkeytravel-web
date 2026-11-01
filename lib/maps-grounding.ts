@@ -113,10 +113,9 @@ const DESTINATION_COORDINATES: Record<string, Coordinates> = {
  * Look up a destination in the hardcoded coordinate table, or null.
  *
  * Split out from getDestinationCoordinates so callers can ask "can this even
- * be grounded?" BEFORE paying for the call. Grounding an unknown city silently
- * used Paris coordinates, which is both wrong and slow: measured 2026-09-01,
- * a Valencia request logged "Unknown destination ... using Paris coordinates"
- * and then spent 44s to ground ZERO places.
+ * be grounded?" BEFORE paying for the call. For an unknown city
+ * getDestinationCoordinates falls back to Paris, which is both wrong and
+ * slow: the call can spend most of a minute and ground ZERO places.
  */
 export function lookupDestinationCoordinates(
   destination: string
@@ -204,11 +203,11 @@ function buildGroundingPrompt(params: TripCreationParams): string {
   };
   const paceDescription = paceOptions[params.pace] || "3-4 activities per day";
 
-  // Backpacker Mode mirror of buildUserPrompt() in lib/gemini.ts.
-  // Bug fix 2026-05-28: maps-grounding has its own prompt builder, so
-  // the backpacker directive in lib/gemini.ts didn't reach this path.
-  // When USE_MAPS_GROUNDING=true, omitting this would silently turn
-  // Backpacker Mode into a no-op for the entire itinerary.
+  // Backpacker Mode mirror of buildUserPrompt() in lib/gemini.ts:
+  // maps-grounding has its own prompt builder, so the backpacker directive
+  // in lib/gemini.ts doesn't reach this path. When USE_MAPS_GROUNDING=true,
+  // omitting this would silently turn Backpacker Mode into a no-op for the
+  // entire itinerary.
   const backpackerDirective = params.travelStyle === "backpacker"
     ? `
 
@@ -283,7 +282,7 @@ export async function callMapsGrounding(
       },
     },
     generationConfig: {
-      // 2026-05-31: lowered from 0.7 → 0.4 (structured grounded output).
+      // Low temperature for structured grounded output.
       // Maps Grounding produces a constrained list of nearby places + facts;
       // the value is in the retrieval (latLng) layer, not the sampler. Lower
       // temp tightens the JSON-ish shape the downstream parser expects,
@@ -291,12 +290,11 @@ export async function callMapsGrounding(
       // debugging. Cannot use responseMimeType: "application/json" with Maps
       // Grounding, so deterministic-leaning sampling is our shape guarantee.
       temperature: 0.4,
-      // 2026-09-01: 8192 -> 16000. This path answers most fresh generations,
-      // and parseGroundedItinerary reads day sections out of FREE TEXT --
+      // Room for long trips. This path answers most fresh generations, and
+      // parseGroundedItinerary reads day sections out of FREE TEXT --
       // `if (!startMatch) continue;` silently skips any "Day N" header the
       // model never got to emit. So a truncated response does not error, it
-      // just returns fewer days and the route logs SUCCESS. Measured on a
-      // 14-day request: 8 days one run, 2 days the next.
+      // just returns fewer days and the route logs SUCCESS.
       maxOutputTokens: 16000,
     },
   };

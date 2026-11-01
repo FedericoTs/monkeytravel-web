@@ -6,12 +6,11 @@ import type { GeneratedItinerary, TripAnchor } from "@/types";
 import { safeGet, safeRemove } from "@/lib/safe-storage";
 
 const DRAFT_KEY = "monkeytravel-itinerary-draft";
-// 7 days, not 24 hours. Measured 2026-09-02: of the signed-out planners who
-// come back on a later day, 79 of 87 return within a week — under the old
-// window their itinerary was deleted on read, so they met a blank form having
-// already generated one. 7 days is also the most worth buying: Safari's ITP
-// caps script-writable storage at 7 days from last use, so a longer TTL would
-// only be honoured in some browsers.
+// 7 days, not 24 hours: most signed-out planners who come back on a later day
+// return within a week, and a shorter window would delete their itinerary on
+// read, leaving a blank form for someone who already generated one. 7 days is
+// also the most worth buying: Safari's ITP caps script-writable storage at 7
+// days from last use, so a longer TTL would only be honoured in some browsers.
 const DRAFT_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export interface ItineraryDraft {
@@ -23,9 +22,8 @@ export interface ItineraryDraft {
   vibes: string[];
   budgetTier: string;
   /**
-   * Wizard travel-style preset. Optional for back-compat with drafts
-   * saved before 2026-05-28 (they'll restore as undefined → treated as
-   * "classic" in the wizard).
+   * Wizard travel-style preset. Optional for back-compat with older drafts
+   * (they restore as undefined → treated as "classic" in the wizard).
    */
   travelStyle?: "classic" | "backpacker";
   /**

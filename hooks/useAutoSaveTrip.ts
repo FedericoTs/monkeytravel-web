@@ -44,9 +44,8 @@ export type AutoSaveStatus = "idle" | "saving" | "saved" | "error";
  * Why an itinerary was NOT auto-saved. `not_authenticated` is the ordinary
  * anonymous case; `auth_pending` means the result landed before the client
  * resolved auth (the save runs once it does); `disabled` is the env kill
- * switch. Reported once per itinerary identity — until 2026-09-02 every one
- * of these was a silent early return, which is how six signed-in users lost
- * generations in a month with no event of any kind.
+ * switch. Reported once per itinerary identity, so a lost generation leaves
+ * an event instead of a silent early return.
  */
 export type AutoSaveSkipReason = "not_authenticated" | "disabled" | "auth_pending" | "pending_claim" | "pending_choice";
 
@@ -210,12 +209,11 @@ export function useAutoSaveTrip({
 
       setStatus("saving");
       setError(null);
-      // Retry with backoff (2026-09-02). One transient network or PostgREST
-      // error used to be terminal: a single throw, a console.error nobody
-      // could see, and the itinerary was never attempted again. Each attempt
-      // re-reads savedTripIdRef, so a retry after an INSERT that succeeded
-      // server-side but failed to report becomes an UPDATE, never a second
-      // INSERT (the insert_trip_dedup advisory lock backstops that too).
+      // Retry with backoff, so one transient network or PostgREST error does
+      // not leave the itinerary unsaved. Each attempt re-reads savedTripIdRef,
+      // so a retry after an INSERT that succeeded server-side but failed to
+      // report becomes an UPDATE, never a second INSERT (the insert_trip_dedup
+      // advisory lock backstops that too).
       const delays = retryDelaysRef.current;
       let attempt = 0;
       for (;;) {
@@ -261,19 +259,16 @@ export function useAutoSaveTrip({
 
   // Auto-save trigger.
   //
-  // Serialization (2026-08-10): a new itinerary object identity landing while
-  // an INSERT is still in flight used to start a SECOND concurrent persist —
-  // savedTripIdRef was still null, so both took the INSERT branch, and the
-  // server's 60s dedupe was check-then-insert so both passed (19 duplicate
-  // trips measured, gaps 0.0-0.35s: streaming finalize / day-edit apply /
-  // draft restore all mint new identities). Chaining on the pending promise
-  // means the second persist waits, sees savedTripIdRef set, and correctly
-  // becomes an UPDATE with the latest content. The server-side advisory-lock
-  // RPC (insert_trip_dedup) backstops paths this ref can't see (two tabs,
-  // remounts).
-  // Every early return below used to be silent. Report a skipped save once per
-  // itinerary identity so "rendered a result, never attempted a save" is
-  // visible — the signature six signed-in users left in 30 days (2026-09).
+  // Serialization: a new itinerary object identity can land while an INSERT
+  // is still in flight (streaming finalize, day-edit apply and draft restore
+  // all mint new identities). savedTripIdRef is still null then, so a second
+  // concurrent persist would also take the INSERT branch and save a duplicate.
+  // Chaining on the pending promise means the second persist waits, sees
+  // savedTripIdRef set, and becomes an UPDATE with the latest content. The
+  // server-side advisory-lock RPC (insert_trip_dedup) backstops paths this
+  // ref can't see (two tabs, remounts).
+  // A skipped save is reported once per itinerary identity, so "rendered a
+  // result, never attempted a save" is visible.
   // Adopt a row that already holds this itinerary (a claimed anonymous
   // share). Declared before the persist effect below so that, in the render
   // where the deferral lifts and the id arrives together, adoption runs

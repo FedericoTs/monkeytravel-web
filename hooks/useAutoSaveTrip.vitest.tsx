@@ -78,10 +78,9 @@ function makeMocks(): MockHandles {
 
 interface RenderOpts {
   /**
-   * These tests predate the retry loop (2026-09-02) and assert a single
-   * failure surfaces as `error` before a manual retry; default to no
-   * internal retries so their semantics are unchanged. The retry behaviour
-   * has its own file: useAutoSaveTrip.resilience.vitest.tsx.
+   * These tests assert a single failure surfaces as `error` before a
+   * manual retry, so they default to no internal retries. The retry
+   * behaviour has its own file: useAutoSaveTrip.resilience.vitest.tsx.
    */
   retryDelaysMs?: readonly number[];
   itinerary?: GeneratedItinerary | null;
@@ -235,11 +234,10 @@ describe("useAutoSaveTrip", () => {
   });
 
   it("serializes a new itinerary identity arriving mid-INSERT: one INSERT, then UPDATE (the 0.0-0.35s duplicate-trip bug)", async () => {
-    // Regression for the 2026-08-10 duplicate-trips finding: streaming
-    // finalize / day-edit apply / draft restore mint a NEW itinerary object
-    // while the first INSERT is still in flight. Before serialization the
-    // hook started a second concurrent persist that also took the INSERT
-    // branch (savedTripId not yet known) — two rows 0.0-0.35s apart.
+    // Streaming finalize / day-edit apply / draft restore mint a NEW
+    // itinerary object while the first INSERT is still in flight. Without
+    // serialization the hook would start a second concurrent persist that
+    // also takes the INSERT branch (savedTripId not yet known): two rows.
     const first = makeItinerary(1);
     const second = makeItinerary(2);
     const mocks = makeMocks();

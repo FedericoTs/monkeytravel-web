@@ -9,7 +9,7 @@
  *
  * Hostelworld's working alternative is a path-based city page
  * (/hostels/<city>), and it was rejected for a specific reason: unknown terms
- * do not 404, they silently resolve to an unrelated city. Measured 2026-08-27:
+ * do not 404, they silently resolve to an unrelated city. For example:
  *
  *   /hostels/bali                 -> /hostels/asia/bahrain/            (wrong country)
  *   /hostels/asia/indonesia/bali  -> /hostels/europe/france/paris/     (wrong continent)

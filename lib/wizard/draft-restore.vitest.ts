@@ -67,9 +67,8 @@ describe("a spent or absent draft is left alone", () => {
 });
 
 describe("a draft that is already one of the user's trips is never inserted again", () => {
-  // The cruise planner, 2026-09-20: 80 minutes of wizard edits after the trip
-  // auto-saved kept re-writing the draft; reopening the wizard restored it and
-  // the auto-save arm inserted a second copy.
+  // Wizard edits after the trip auto-saved re-write the draft; reopening the
+  // wizard would restore it and the auto-save arm would insert a second copy.
   it("waits for the check before restoring for a signed-in user", () => {
     expect(decide({ isAuthenticated: true, draftIsSavedTrip: null })).toBe("wait");
   });

@@ -8,9 +8,8 @@
  * so the user sees the official UK position on travel safety alongside
  * the AI's itinerary.
  *
- * (Earlier draft used /api/world/{slug}/travel-advice — that endpoint
- * 404s; verified live via curl against gov.uk on 2026-05-30 that the
- * Content API path above is the right one.)
+ * (/api/world/{slug}/travel-advice 404s; the Content API path above is
+ * the one that answers.)
  *
  * Why FCDO and not just State Dept?
  *   - Open API, no key, no rate limit (within reason)

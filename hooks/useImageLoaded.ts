@@ -11,20 +11,15 @@ import { useState, useEffect, useRef, type RefObject, type Dispatch, type SetSta
  * is `complete` with the bytes already decoded, but the state stays at
  * `false` and the image renders at `opacity:0` forever.
  *
- * 2026-05-31 (Day-12) revision — second-order bug found via user report:
+ * Nor may the effect flip the state back to false. On first mount with a
+ * fresh src, the <img> exists but has not started loading, so
+ * `img.complete === false` right after commit. If `onLoad` fired BEFORE
+ * the effect ran (a cached image with no network round trip, or a React 19
+ * scheduling reorder), an effect that set false from `img.complete` would
+ * end the onLoad → true → effect → false sequence at `false`: the image
+ * fully decoded but rendered at opacity:0 until a refresh.
  *
- * The previous fix used `useState(Boolean(src))` (eager-true on first
- * mount) but then the effect ALWAYS evaluated `img.complete` and called
- * `setLoaded(false)` when it wasn't. Problem: on first mount with a
- * fresh src, the <img> exists but has not yet started loading, so
- * `img.complete === false`. The effect runs immediately after commit
- * and clobbers the eager-true to false. If `onLoad` fired in the same
- * microtask BEFORE this effect ran (cached image with no network round
- * trip, or React 19 render scheduling reorder), the onLoad → true →
- * effect → false sequence ended at `false`. The image was fully decoded
- * but rendered at opacity:0 until the user refreshed the page.
- *
- * New approach:
+ * So:
  *
  *   - Initial state: eager-true when src is present.
  *   - Effect ONLY confirms-positively (`setLoaded(true)` if the ref
@@ -41,10 +36,9 @@ import { useState, useEffect, useRef, type RefObject, type Dispatch, type SetSta
  * Tradeoff: an image that fails very slowly (>1s) is briefly shown at
  * opacity:1 before bytes arrive. That's fine — the browser renders the
  * progressive bytes as they arrive; users see image-arriving-into-place
- * rather than an opaque-then-fade-in. The previous fade-in was a nicety
- * that was costing us a real bug.
+ * rather than an opaque-then-fade-in.
  *
- * Usage (unchanged):
+ * Usage:
  *   const imgRef = useRef<HTMLImageElement | null>(null);
  *   const [loaded, setLoaded] = useImageLoaded(imgRef, src);
  *

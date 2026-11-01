@@ -14,10 +14,8 @@ import { useEffect, useState } from "react";
  *
  *   The canonical fix is to defer all `new Date()` reads to *after*
  *   hydration, accepting that the very first paint won't have the
- *   time-relative result. This hook codifies that pattern so callers
- *   don't reinvent it (we hit this twice in 2026-05-30 — TripsPageClient
- *   and OngoingTripView — and would have hit it again on every new
- *   time-relative surface).
+ *   time-relative result. This hook codifies that pattern so each new
+ *   time-relative surface doesn't reinvent it.
  *
  * Usage:
  *

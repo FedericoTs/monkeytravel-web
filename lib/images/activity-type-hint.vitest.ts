@@ -62,7 +62,7 @@ describe("readActivityTypeHint", () => {
   });
 
   it("returns '' for absent or junk hints instead of throwing", () => {
-    // Every itinerary URL written before 2026-08-04 hits this path.
+    // Older itinerary URLs carry no hint and hit this path.
     expect(readActivityTypeHint(null)).toBe("");
     expect(readActivityTypeHint(undefined)).toBe("");
     expect(readActivityTypeHint("../../etc/passwd")).toBe("");

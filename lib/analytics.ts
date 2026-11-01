@@ -4,7 +4,7 @@
  * Centralized analytics tracking for Google Analytics 4 and Sentry.
  * Provides type-safe event tracking functions for key conversion events.
  *
- * BUNDLE NOTE (perf task #179, 2026-05-29): @sentry/nextjs is lazy-loaded
+ * BUNDLE NOTE: @sentry/nextjs is lazy-loaded
  * via `sentry()` instead of `import * as Sentry from "@sentry/nextjs"`.
  * 23+ client components import helpers from this file (auth pages,
  * SaveTripModal, AIAssistant, ShareModal, etc.); a static Sentry import

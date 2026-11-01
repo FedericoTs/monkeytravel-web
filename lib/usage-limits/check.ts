@@ -478,12 +478,12 @@ export async function incrementUsage(
   amount: number = 1
 ): Promise<number> {
   try {
-    // Service role (2026-09-23): increment_usage is closed to signed-in
-    // callers (20260924122000). It took any column name and any amount, so a
-    // user could call it on their own row with a negative amount and reset
-    // their AI quota. userId is always the caller's own, from the route's
-    // session. The upsert that used to precede this call was dead — RLS gives
-    // users no INSERT on user_usage — and the function creates the row itself.
+    // Service role: increment_usage is closed to signed-in callers
+    // (20260924122000). It takes any column name and any amount, so a user
+    // could call it on their own row with a negative amount and reset their
+    // AI quota. userId is always the caller's own, from the route's session.
+    // No upsert precedes the call: RLS gives users no INSERT on user_usage,
+    // and the function creates the row itself.
     const supabase = createAdminClient();
     const periodType = LIMIT_TYPE_TO_PERIOD[limitType];
     const periodKey = getCurrentPeriodKey(periodType);

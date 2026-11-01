@@ -5,11 +5,11 @@ import { useAutoSaveTrip, type UseAutoSaveTripOptions } from "./useAutoSaveTrip"
 import type { GeneratedItinerary } from "@/types";
 
 /**
- * A claimed anonymous share must become THE saved trip (2026-09-02).
+ * A claimed anonymous share must become THE saved trip.
  *
- * Before: the hook only knew "no saved id → insert". A trip row that already
- * held the itinerary (claimed by AuthProvider on sign-in) was invisible to it,
- * so the first authenticated render inserted a second copy. Two options fix
+ * Knowing only "no saved id → insert", the hook cannot see a trip row that
+ * already holds the itinerary (claimed by AuthProvider on sign-in), so the
+ * first authenticated render would insert a second copy. Two options prevent
  * that: `deferred` parks the hook while the claim is unresolved, and
  * `adoptedTripId` hands it the row so later edits UPDATE instead of INSERT.
  */

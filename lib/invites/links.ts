@@ -3,9 +3,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 /**
  * Invite links after the group changes.
  *
- * An open invite link lets 20 people in and lasts ~10 years (since
- * 2026-09-25, so a group chat can use one link). Accepting only checks uses
- * left, active and expiry: a member the owner removed could walk straight back
+ * An open invite link lets 20 people in and lasts ~10 years (so a group
+ * chat can use one link). Accepting only checks uses left, active and
+ * expiry: a member the owner removed could walk straight back
  * in through the same link, and a demoted editor could leave and rejoin
  * through an editor link. So when the owner removes someone or lowers their
  * role, the trip's open links are switched off, along with any unused email
