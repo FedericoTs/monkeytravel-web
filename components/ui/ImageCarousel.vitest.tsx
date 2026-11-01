@@ -45,4 +45,25 @@ describe("ImageCarousel", () => {
     });
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it("steps through the photos with the arrow keys and stops at either end", () => {
+    const three = [...images, { url: "https://example.com/c.jpg", alt: "Third" }];
+    render(
+      <NextIntlClientProvider locale="en" messages={{ common }}>
+        <ImageCarousel images={three} onClose={() => {}} />
+      </NextIntlClientProvider>
+    );
+    const press = (key: string) => act(() => void window.dispatchEvent(new KeyboardEvent("keydown", { key })));
+
+    press("ArrowRight");
+    press("ArrowRight");
+    press("ArrowRight");
+    expect(screen.getByAltText("Third")).toBeTruthy();
+
+    press("ArrowLeft");
+    expect(screen.getByAltText("Second")).toBeTruthy();
+    press("ArrowLeft");
+    press("ArrowLeft");
+    expect(screen.getByAltText("First")).toBeTruthy();
+  });
 });
