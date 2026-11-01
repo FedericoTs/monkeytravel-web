@@ -75,7 +75,8 @@ const getCreator = cache(async (username: string): Promise<CreatorProfileData | 
     .ilike("username", username)
     .maybeSingle();
 
-  if (error || !userRow) return null;
+  if (error) throw error;
+  if (!userRow) return null;
 
   // Gate private profiles.
   const priv = (userRow.privacy_settings ?? {}) as Record<string, unknown>;
