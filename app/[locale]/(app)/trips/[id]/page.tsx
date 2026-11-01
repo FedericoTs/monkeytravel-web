@@ -57,16 +57,20 @@ export default async function TripDetailPage({
   // would be sent to the read-only /shared view on every visit and could never
   // edit it again, nor stop sharing, whose only button lives in this editor.
   const owned = user ? await (early && user.id === claimedId ? early : ownedBy(user.id)) : null;
+  // Each read below decides between the editor, the public page and a 404, so
+  // a refused one goes to the error page instead of reading as "not yours".
+  if (owned?.error) throw owned.error;
   let trip = owned?.data ?? null;
   let userRole: CollaboratorRole = "owner";
 
   if (user && !trip) {
-    const { data: collaborator } = await supabase
+    const { data: collaborator, error: collaboratorError } = await supabase
       .from("trip_collaborators")
       .select(`role, trips(${TRIP_COLUMNS})`)
       .eq("trip_id", id)
       .eq("user_id", user.id)
       .maybeSingle();
+    if (collaboratorError) throw collaboratorError;
     if (collaborator?.trips) {
       // One row (the embed follows trip_id), typed as a list without a schema.
       trip = collaborator.trips as unknown as (typeof collaborator.trips)[number];
@@ -79,11 +83,12 @@ export default async function TripDetailPage({
     // here) goes to its public page. Never to /shared/<token>: that link lets
     // its holder join the group, vote and add expenses, so only members get
     // it. RLS shows a non-member no trip but a public one.
-    const { data: publicTrip } = await supabase
+    const { data: publicTrip, error: publicError } = await supabase
       .from("trips")
       .select("public_slug, visibility, is_hidden")
       .eq("id", id)
       .maybeSingle();
+    if (publicError) throw publicError;
     if (publicTrip?.visibility === "public" && publicTrip.public_slug && !publicTrip.is_hidden) {
       redirect(`${localePrefix}/trip/${publicTrip.public_slug}`);
     }
