@@ -181,11 +181,12 @@ export async function DELETE(request: Request) {
       return errors.badRequest("Code ID required");
     }
 
-    // Delete user access records first
-    await supabase
+    // Delete user access records first; the code goes only once they have.
+    const { error: accessError } = await supabase
       .from("user_tester_access")
       .delete()
       .eq("code_id", id);
+    if (accessError) throw accessError;
 
     // Delete the code
     const { error } = await supabase

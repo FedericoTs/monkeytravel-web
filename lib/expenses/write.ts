@@ -9,6 +9,7 @@ import { isTodayActor, resolveTodayPerson, storedCookie } from "@/lib/today/acto
 import type { TodayRequester } from "@/lib/today/write";
 import { expenseCohort, tripRoster } from "@/lib/trips/roster";
 import { centsToAmount, normalizeCurrency, parseAmountToCents, parseExpenseCategory, splitEquallyCents } from "./shared";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 /**
  * "Who paid?" on a live trip's Today, shared by the share-link route
@@ -128,7 +129,7 @@ export async function writeTripExpense(
   if (splitErr) {
     // Compensate: an expense with no splits would skew the summary.
     console.error("[expense] split insert failed, rolling back expense:", splitErr);
-    await admin.from("trip_expenses").delete().eq("id", inserted.id);
+    logWriteError("expenses: rollback", await admin.from("trip_expenses").delete().eq("id", inserted.id));
     return errors.internal("Could not save the expense", "Expense");
   }
 

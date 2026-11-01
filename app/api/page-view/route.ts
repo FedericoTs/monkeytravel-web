@@ -25,6 +25,7 @@ import { errors } from "@/lib/api/response-wrapper";
 import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
 import { isPageViewPath, landingReferrer } from "@/lib/analytics/page-view-classifier";
 import { subjectFromAccessToken } from "@/lib/supabase/middleware";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 export const runtime = "nodejs";
 
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
     const geo = geolocation(request);
     const userAgent = request.headers.get("user-agent") || null;
     const userId = await userIdFromCookies(request);
-    await createAdminClient().from("page_views").insert({
+    logWriteError("page-view", await createAdminClient().from("page_views").insert({
       path,
       // The page the visitor navigated from, on this site; for a prefetched
       // landing (no `from`), the external referrer the beacon passed on.
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
       user_id: userId,
       session_id: sessionId,
       is_bot: isAnalyticsBot(userAgent),
-    });
+    }));
   } catch {
     // Telemetry must never surface to the visitor.
   }

@@ -3,6 +3,7 @@ import { waitUntil } from "@vercel/functions";
 import { logApiCall } from "@/lib/api-gateway";
 import { buildLandmarkPhoto, type LandmarkQuery } from "@/lib/images/wikimedia-landmark";
 import { cacheAdminDb } from "@/lib/supabase/cache-admin";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 /**
  * Activities' Wikimedia photos (lib/images/wikimedia-landmark.ts), from the
@@ -59,7 +60,7 @@ async function buildOne(lookup: LandmarkLookup & LandmarkQuery): Promise<string 
     const url = await buildLandmarkPhoto(db, lookup, controller.signal);
     const now = Date.now();
     const hash = cacheKey(lookup.key);
-    await db.from("google_places_cache").upsert(
+    logWriteError("landmark-photos: cache", await db.from("google_places_cache").upsert(
       {
         place_id: hash,
         cache_type: CACHE_TYPE,
@@ -71,7 +72,7 @@ async function buildOne(lookup: LandmarkLookup & LandmarkQuery): Promise<string 
         last_accessed_at: new Date(now).toISOString(),
       },
       { onConflict: "place_id" },
-    );
+    ));
     waitUntil(logApiCall({ apiName: "wikimedia", endpoint: "landmark photo", status: 200, responseTimeMs: now - startedAt, cacheHit: false, costUsd: 0, exactCost: true }));
     return url;
   } catch (err) {

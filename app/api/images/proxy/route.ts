@@ -5,6 +5,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { safeImageFetch, readCapped, imageContentType, MAX_IMAGE_BYTES } from "@/lib/api/safe-image-fetch";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 // Cache TTL: 30 days (Google Places images are stable)
 const IMAGE_CACHE_DAYS = 30;
@@ -82,7 +83,7 @@ async function cacheImage(cacheKey: string, dataUrl: string, contentType: string
 
     const expiresAt = new Date(Date.now() + IMAGE_CACHE_DAYS * 24 * 60 * 60 * 1000);
 
-    await db.from("google_places_cache").upsert(
+    logWriteError("images/proxy: cache", await db.from("google_places_cache").upsert(
       {
         place_id: `img:${cacheKey}`,
         cache_type: "image_base64",
@@ -93,7 +94,7 @@ async function cacheImage(cacheKey: string, dataUrl: string, contentType: string
         last_accessed_at: new Date().toISOString(),
       },
       { onConflict: "place_id" }
-    );
+    ));
   } catch (error) {
     console.error("[Image Cache] Save error:", error);
   }

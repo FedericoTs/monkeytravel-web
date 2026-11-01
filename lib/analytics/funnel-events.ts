@@ -15,6 +15,7 @@
 
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 /** The event vocabulary, in step with the funnel_events CHECK (funnel-events.vitest.ts). */
 export const FUNNEL_EVENT_TYPES = [
@@ -50,14 +51,14 @@ export async function logFunnelEventServer(
 ): Promise<void> {
   try {
     const supabase = createAdminClient();
-    await supabase.from("funnel_events").insert({
+    logWriteError("funnel-events", await supabase.from("funnel_events").insert({
       event_type: input.event_type,
       trip_id: input.trip_id ?? null,
       session_id: input.session_id ?? null,
       user_id: input.user_id ?? null,
       anon_id: input.anon_id ?? null,
       metadata: input.metadata ?? null,
-    });
+    }));
   } catch {
     // never break the caller
   }

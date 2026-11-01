@@ -12,6 +12,7 @@ import {
   claimExpiryFrom,
   MAX_BODY_BYTES,
 } from "@/lib/trips/anonymous-share";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 /**
  * POST /api/trips/anonymous — mint a shareable trip for a signed-OUT planner.
@@ -227,11 +228,11 @@ async function backfillCoverFromItinerary(tripId: string): Promise<void> {
 
     // `is("cover_image_url", null)` repeated on the write: between the read and
     // here the trip could have been claimed and given a cover by its new owner.
-    await admin
+    logWriteError("trips/anonymous: cover", await admin
       .from("trips")
       .update({ cover_image_url: cover })
       .eq("id", tripId)
-      .is("cover_image_url", null);
+      .is("cover_image_url", null));
   } catch (err) {
     // A missing hero is a cosmetic degradation, never a reason to surface an
     // error for a link that was already handed to the planner successfully.

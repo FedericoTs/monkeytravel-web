@@ -18,6 +18,7 @@ import { safeNextOrDefault } from "@/lib/security/safe-next";
 import { returnsToPage } from "@/lib/auth/first-login";
 import { splitLocalePrefix } from "@/lib/auth/callback-url";
 import { withStoredReferral } from "@/lib/referral/client";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -120,10 +121,10 @@ function LoginForm() {
 
         // Increment login count for returning users
         if (profile) {
-          await supabase
+          logWriteError("login: login count", await supabase
             .from("users")
             .update({ login_count: (profile.login_count || 0) + 1 })
-            .eq("id", user.id);
+            .eq("id", user.id));
         }
 
         // New users need to see welcome page first (to enter beta code / join waitlist).

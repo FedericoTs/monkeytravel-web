@@ -3,6 +3,7 @@
  */
 
 import { createClient } from "@/lib/supabase/server";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 export async function recordUsage(params: {
   userId: string;
@@ -15,7 +16,7 @@ export async function recordUsage(params: {
 }): Promise<void> {
   const supabase = await createClient();
 
-  await supabase.from("ai_usage").insert({
+  logWriteError("ai usage", await supabase.from("ai_usage").insert({
     user_id: params.userId,
     trip_id: params.tripId,
     model_id: params.modelId,
@@ -24,5 +25,5 @@ export async function recordUsage(params: {
     output_tokens: params.outputTokens,
     cost_cents: params.costCents,
     created_at: new Date().toISOString(),
-  });
+  }));
 }

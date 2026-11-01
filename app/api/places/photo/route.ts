@@ -14,6 +14,7 @@ import {
   type CachedPhotoRow,
   type FreshPhoto,
 } from "@/lib/places/heal-dedupe";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 // Abuse ceiling, not a UX cap: a trip page loads ~15-30 photos, so 600/h/IP
 // never touches real browsing but stops scripted hammering of a route that
@@ -450,14 +451,14 @@ async function healExpiredPhoto(
       if (photoIndex) return;
       try {
         const supabase = createAdminClient();
-        await supabase
+        logWriteError("places/photo: cache", await supabase
           .from("places_v2")
           .update({
             photo_resource_name: fresh.photo_resource_name,
             photo_url: fresh.photo_url,
             updated_at: new Date().toISOString(),
           })
-          .eq("place_id", placeId);
+          .eq("place_id", placeId));
       } catch (err) {
         console.warn(
           `[places/photo] heal: cache refresh failed for ${placeId}:`,
