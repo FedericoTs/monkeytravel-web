@@ -164,7 +164,7 @@ function preloadResultViewChunks(): void {
   warm(import("@/components/trip/AnonymousShareButton").then((m) => { warmedShareButton = m.default; }));
 }
 import { sentry } from "@/lib/observability/sentry";
-import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
+import { useItineraryDraft, DraftRecoveryBanner, type ItineraryDraft } from "@/hooks/useItineraryDraft";
 import { useKeptPlan } from "@/hooks/useKeptPlan";
 import { usePlanPhotos } from "@/hooks/usePlanPhotos";
 import type { KeptPlan } from "@/lib/plans/kept-plan";
@@ -202,6 +202,7 @@ import { clearClaimedTrip, onClaimedTrip, readClaimedTrip } from "@/lib/trips/cl
 import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim-client";
 import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
 import { decideDraftRestore } from "@/lib/wizard/draft-restore";
+import { applyDraft } from "@/lib/wizard/apply-draft";
 import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
 import {
   classifyGenerationFailure,
@@ -1193,6 +1194,35 @@ export default function NewTripPage({
   const draftIsSavedTrip =
     draftSavedCheck && draftSavedCheck.key === draftCheckKey ? draftSavedCheck.saved : null;
 
+  // Put a stored draft back into the wizard: the silent restore below and the
+  // banner's Restore both come through here.
+  const applyStoredDraft = useCallback(
+    (stored: ItineraryDraft) => {
+      applyDraft(stored, {
+        setDestination,
+        setStartDate,
+        setEndDate,
+        setPace,
+        setSelectedVibes,
+        setBudgetTier,
+        setMustDos,
+        setDietary,
+        setTravelStyle,
+        setAnchors,
+        setTripIntent,
+        setFlexibleDates,
+        setGeneratedItinerary,
+        registerRestore: registerSessionRestore,
+      });
+      void trackWizardEvent("draft_restored", {
+        destination: stored.destination,
+        duration_days: stored.generatedItinerary?.days.length,
+        locale,
+      });
+    },
+    [setGeneratedItinerary, registerSessionRestore, locale]
+  );
+
   // Check for unsaved draft on mount - AUTO-RESTORE it for a signed-in user.
   // The `pendingTripGeneration` flag lives in `prefs` (async on native
   // Capacitor) — wrap the read in an inner async fn and use `cancelled`
@@ -1241,54 +1271,11 @@ export default function NewTripPage({
         // Restore the itinerary too, not just the form: with no itinerary on
         // screen the pending-generation effect above re-runs handleGenerate()
         // and silently replaces the itinerary the user clicked Save on.
-        setDestination(draft.destination);
-        setStartDate(draft.startDate);
-        setEndDate(draft.endDate);
-        setPace(draft.pace as "relaxed" | "moderate" | "active");
-        setSelectedVibes(draft.vibes as TripVibe[]);
-        setBudgetTier(draft.budgetTier as "budget" | "balanced" | "premium");
-        if (Array.isArray(draft.mustDos)) setMustDos(draft.mustDos as string[]);
-        setDietary(dietsFrom(draft.dietary));
-        // travelStyle may be missing from a stored draft → stays "classic"
-        if (draft.travelStyle === "backpacker") {
-          setTravelStyle("backpacker");
-        }
-        if (draft.anchors && draft.anchors.length > 0) {
-          setAnchors(draft.anchors);
-        }
-        // Restore the "Who's coming?" answer. When a stored draft lacks it,
-        // the wizard keeps its "unspecified" default.
-        if (draft.tripIntent === "solo" || draft.tripIntent === "group") {
-          setTripIntent(draft.tripIntent);
-        }
-        if (draft.flexibleDates) setFlexibleDates(true);
-        if (draft.generatedItinerary) {
-          setGeneratedItinerary(draft.generatedItinerary);
-          // The restored trip becomes the session stack's current entry
-          // (adopting a pre-auth entry from this same tab when one matches,
-          // so the OAuth round trip doesn't duplicate a chip).
-          registerSessionRestore({
-            destination: draft.destination,
-            startDate: draft.startDate,
-            endDate: draft.endDate,
-            dayCount: draft.generatedItinerary.days.length,
-            itinerary: draft.generatedItinerary,
-            pace: draft.pace,
-            vibes: draft.vibes,
-            budgetTier: draft.budgetTier,
-            travelStyle: draft.travelStyle === "backpacker" ? "backpacker" : "classic",
-          });
-        }
-        // Don't restore coordinates - they'll be re-fetched if needed
+        applyStoredDraft(draft);
         setDraftAutoRestored(true);
         // Don't show the banner since we're auto-restoring — and close it if a
         // pass before auth resolved had already opened it.
         setShowDraftRecovery(false);
-        void trackWizardEvent("draft_restored", {
-          destination: draft.destination,
-          duration_days: draft.generatedItinerary?.days.length,
-          locale,
-        });
       } else if (decision === "offer-banner") {
         // Signed out: let them choose rather than restoring under them.
         setShowDraftRecovery(true);
@@ -1298,7 +1285,7 @@ export default function NewTripPage({
     return () => {
       cancelled = true;
     };
-  }, [hasDraft, draft, generatedItinerary, draftAutoRestored, registerSessionRestore, isAuthenticated, savedTripId, locale, draftIsSavedTrip, clearDraft]);
+  }, [hasDraft, draft, generatedItinerary, draftAutoRestored, applyStoredDraft, isAuthenticated, savedTripId, draftIsSavedTrip, clearDraft]);
 
   // Keep a draft of the itinerary until the trip is saved, then none.
   //
@@ -1995,44 +1982,8 @@ export default function NewTripPage({
   // Handle draft restoration
   const handleRestoreDraft = () => {
     if (draft) {
-      setDestination(draft.destination);
-      setStartDate(draft.startDate);
-      setEndDate(draft.endDate);
-      setPace(draft.pace as "relaxed" | "moderate" | "active");
-      setSelectedVibes(draft.vibes as TripVibe[]);
-      setBudgetTier(draft.budgetTier as "budget" | "balanced" | "premium");
-      if (Array.isArray(draft.mustDos)) setMustDos(draft.mustDos as string[]);
-      setDietary(dietsFrom(draft.dietary));
-      if (draft.travelStyle === "backpacker") {
-        setTravelStyle("backpacker");
-      }
-      if (draft.tripIntent === "solo" || draft.tripIntent === "group") {
-        setTripIntent(draft.tripIntent);
-      }
-      if (draft.flexibleDates) setFlexibleDates(true);
-      setGeneratedItinerary(draft.generatedItinerary);
-      // Mirror the restore into the session stack so the
-      // banner-restored trip is durable in the tray (and not re-pushed as a
-      // duplicate if it already came from this session).
-      if (draft.generatedItinerary) {
-        registerSessionRestore({
-          destination: draft.destination,
-          startDate: draft.startDate,
-          endDate: draft.endDate,
-          dayCount: draft.generatedItinerary.days.length,
-          itinerary: draft.generatedItinerary,
-          pace: draft.pace,
-          vibes: draft.vibes,
-          budgetTier: draft.budgetTier,
-          travelStyle: draft.travelStyle === "backpacker" ? "backpacker" : "classic",
-        });
-      }
+      applyStoredDraft(draft);
       setShowDraftRecovery(false);
-      void trackWizardEvent("draft_restored", {
-        destination: draft.destination,
-        duration_days: draft.generatedItinerary?.days.length,
-        locale,
-      });
     }
   };
 
