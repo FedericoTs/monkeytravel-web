@@ -1,45 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { flushSync } from "react-dom";
 import type { TocItem } from "@/lib/blog/api";
 
 interface BlogContentClientProps {
-  html: string;
   toc: TocItem[];
   tocLabel?: string;
 }
 
 /**
- * Client component for interactive blog features:
- * - Collapsible Table of Contents
- * - Table wrapper styling for scroll/rounded corners
- *
- * The actual blog HTML is rendered by the server-side BlogContent parent.
- * The ToC and the heading ids come from the server (lib/blog/api), the same
- * list the desktop sidebar shows.
+ * The collapsible Table of Contents of a blog post. The article is rendered
+ * by the server-side BlogContent parent; the ToC and the heading ids come
+ * from the server (lib/blog/api), the same list the desktop sidebar shows.
  */
-export default function BlogContentClient({ html, toc, tocLabel = "Table of Contents" }: BlogContentClientProps) {
+export default function BlogContentClient({ toc, tocLabel = "Table of Contents" }: BlogContentClientProps) {
   const [tocOpen, setTocOpen] = useState(false);
-
-  useEffect(() => {
-    // Find the server-rendered article element
-    const article = document.querySelector("article.blog-prose");
-    if (!article) return;
-
-    // Wrap each <table> in a styled container for rounded corners and scroll
-    const tables = article.querySelectorAll("table");
-    tables.forEach((table) => {
-      if (table.parentElement?.classList.contains("table-wrapper-scroll")) return;
-      const wrapper = document.createElement("div");
-      wrapper.className = "table-wrapper";
-      const scroll = document.createElement("div");
-      scroll.className = "table-wrapper-scroll";
-      table.parentNode?.insertBefore(wrapper, table);
-      wrapper.appendChild(scroll);
-      scroll.appendChild(table);
-    });
-  }, [html]);
 
   const h2Items = toc.filter((item) => item.level === 2);
 
