@@ -3544,7 +3544,12 @@ export default function NewTripPage({
                   {showsDayBudget(day) && (
                     <DayBudget
                       label={t("wizard.result.dailyBudget")}
-                      value={dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, t("activity.free"))}
+                      value={dayBudgetLabel(
+                        day,
+                        { convert: convertCurrency, format: formatCurrency },
+                        t("activity.free"),
+                        generatedItinerary.trip_summary.currency
+                      )}
                     />
                   )}
                 </DayHeader>

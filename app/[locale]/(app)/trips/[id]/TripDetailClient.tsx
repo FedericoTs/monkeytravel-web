@@ -284,7 +284,7 @@ export default function TripDetailClient({
   const { convert: convertCurrency, format: formatCurrency } = useCurrency();
 
   const formatDayBudget = (day: ItineraryDay): string =>
-    dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, tCommon('activity.free'));
+    dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, tCommon('activity.free'), trip.budget?.currency || "USD");
 
   // Check for share query param (used to auto-open share modal after trip save)
   const searchParams = useSearchParams();

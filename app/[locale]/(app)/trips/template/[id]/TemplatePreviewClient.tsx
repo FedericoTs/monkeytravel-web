@@ -101,7 +101,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
   const { convert: convertCurrency, format: formatCurrency } = useCurrency();
 
   const formatDayBudget = (day: ItineraryDay): string =>
-    dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, t('price.free'));
+    dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, t('price.free'), template.budget?.currency || "EUR");
 
   // Memoize ensureActivityIds
   const displayItinerary = useMemo(
