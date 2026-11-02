@@ -21,6 +21,7 @@ import TodayView from "@/components/trip/TodayView";
 import TodayPacking from "@/components/trip/TodayPacking";
 import { useLiveTripState } from "@/lib/trip/useLiveTripState";
 import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
+import { dayBudgetLabel } from "@/lib/trip/day-budget";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { GUEST_LINK_KEY } from "@/lib/participants/link-trigger";
 import { prefs } from "@/lib/platform/storage";
@@ -419,7 +420,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
   };
 
   // Currency conversion hook - converts to user's preferred currency
-  const { convert: convertCurrency, format: formatCurrency, preferredCurrency } = useCurrency();
+  const { convert: convertCurrency, format: formatCurrency } = useCurrency();
 
   // Format price with currency conversion
   const formatPrice = (amount: number, fromCurrency: string): string => {
@@ -428,31 +429,8 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
     return converted.formatted;
   };
 
-  // The day's "Est. Budget" sums the FX-converted activity costs so it matches
-  // the rows below it: `day.daily_budget.total` is in the activities' source
-  // currency (e.g. JPY), not `trip.budget.currency`. Until exchangeRates loads
-  // (client-side), convertCurrency returns the source amount and currency, so
-  // format in the currency it ACTUALLY returns, never `preferredCurrency`
-  // (¥27,600 on the server, €178 after hydration, never €27,600). The first
-  // costed activity's currency wins for the day total.
-  const formatDayBudget = (day: ItineraryDay): string => {
-    let total = 0;
-    let displayCurrency = preferredCurrency;
-    let displaySet = false;
-    for (const activity of day.activities) {
-      const amount = activity.estimated_cost?.amount;
-      const currency = activity.estimated_cost?.currency;
-      if (!amount || !currency) continue;
-      const converted = convertCurrency(amount, currency);
-      total += converted.value;
-      if (!displaySet) {
-        displayCurrency = converted.currency;
-        displaySet = true;
-      }
-    }
-    if (total === 0) return t('activity.free');
-    return formatCurrency(total, displayCurrency);
-  };
+  const formatDayBudget = (day: ItineraryDay): string =>
+    dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, t('activity.free'));
 
   // Prefer trip_meta.destination (canonical) over title-strip — see
   // lib/trips/destination.ts. Matters for non-English / renamed trips.

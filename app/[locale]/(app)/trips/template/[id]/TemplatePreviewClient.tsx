@@ -19,6 +19,7 @@ import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
+import { dayBudgetLabel } from "@/lib/trip/day-budget";
 import {
   Sparkles,
   Copy,
@@ -94,7 +95,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
   }, [template.id, template.title]);
 
   // Currency conversion hook
-  const { convert: convertCurrency, format: formatCurrency, preferredCurrency } = useCurrency();
+  const { convert: convertCurrency, format: formatCurrency } = useCurrency();
 
   // Format price with currency conversion
   const formatPrice = (amount: number, fromCurrency: string): string => {
@@ -103,41 +104,8 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
     return converted.formatted;
   };
 
-  // P1 bug fix (currency conversion): compute the day's "Est. Budget" by
-  // summing the FX-converted activity costs. Mirrors the Day-6 fix already
-  // shipped in SharedTripView.tsx — the persisted `day.daily_budget.total`
-  // is denominated in the activities' source currency (e.g. JPY) but the
-  // legacy code treated it as `template.budget?.currency || "EUR"`, producing
-  // 100x+ inflated values whenever the template was generated in a different
-  // currency. Summing the converted per-activity amounts is the single
-  // source of truth — eliminates the entire bug class.
-  // Day-9 SSR-null fix: on initial server-render exchangeRates is null
-  // (loaded in a client useEffect). convertCurrency() then returns the
-  // unconverted source-currency value but the OLD code formatted that
-  // raw integer in `preferredCurrency` — producing €27,600 (raw JPY
-  // with EUR symbol) for a Tokyo template. Track the currency the
-  // converter ACTUALLY returns and format in that, so SSR shows
-  // ¥27,600 (correct source currency) and client-after-hydration
-  // shows €178 (correctly converted). First activity's returned
-  // currency wins for consistency across the day total.
-  const formatDayBudget = (day: ItineraryDay): string => {
-    let total = 0;
-    let displayCurrency = preferredCurrency;
-    let displaySet = false;
-    for (const activity of day.activities) {
-      const amount = activity.estimated_cost?.amount;
-      const currency = activity.estimated_cost?.currency;
-      if (!amount || !currency) continue;
-      const converted = convertCurrency(amount, currency);
-      total += converted.value;
-      if (!displaySet) {
-        displayCurrency = converted.currency;
-        displaySet = true;
-      }
-    }
-    if (total === 0) return t('price.free');
-    return formatCurrency(total, displayCurrency);
-  };
+  const formatDayBudget = (day: ItineraryDay): string =>
+    dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, t('price.free'));
 
   // Memoize ensureActivityIds
   const displayItinerary = useMemo(
