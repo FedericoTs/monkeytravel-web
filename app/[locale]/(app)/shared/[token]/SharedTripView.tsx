@@ -718,6 +718,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
                 budget: trip.budget,
                 itinerary: displayItinerary,
               }}
+              surface={publicPage ? "public_trip" : "shared_view"}
             />
           </div>
         </div>

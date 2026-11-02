@@ -2406,6 +2406,7 @@ export default function TripDetailClient({
                       budget: trip.budget,
                       itinerary: displayItinerary,
                     }}
+                    surface="trip_detail"
                   />
                 </TripActionsMenuSlot>
 

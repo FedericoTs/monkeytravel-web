@@ -20,12 +20,19 @@ const state = vi.hoisted(() => ({
   viewer: null as { id: string } | null,
   pending: null as Record<string, unknown> | null,
   prefsSet: [] as Array<[string, string]>,
+  // Props given to the view's lazily loaded components (rendered as nothing).
+  lazyProps: [] as Array<Record<string, unknown>>,
 }));
 
 vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key, useLocale: () => "en" }));
 vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams() }));
 vi.mock("next/image", () => ({ default: () => null }));
-vi.mock("next/dynamic", () => ({ default: () => () => null }));
+vi.mock("next/dynamic", () => ({
+  default: () => (props: Record<string, unknown>) => {
+    state.lazyProps.push(props);
+    return null;
+  },
+}));
 vi.mock("@/lib/i18n/routing", () => ({
   Link: ({ href, children, onClick }: { href: string; children: ReactNode; onClick?: () => void }) => (
     <a
@@ -166,6 +173,7 @@ beforeEach(() => {
   state.viewer = null;
   state.pending = null;
   state.prefsSet = [];
+  state.lazyProps = [];
   fetched = [];
   funnel = [];
   vi.stubGlobal(
@@ -201,6 +209,16 @@ describe("the public page's view is read-only", { timeout: 20_000 }, () => {
   it("shows a live trip's Today without the group's routes", () => {
     renderView({ live: true });
     expect(screen.getByTestId("today-view").getAttribute("data-api-base")).toBe("none");
+  });
+
+  it("counts its exports as the public page's, and a share link's as the share link's", () => {
+    const exportSurface = () => state.lazyProps.find((props) => "surface" in props)?.surface;
+    renderView({});
+    expect(exportSurface()).toBe("public_trip");
+    cleanup();
+    state.lazyProps = [];
+    renderView({ token: TOKEN });
+    expect(exportSurface()).toBe("shared_view");
   });
 
   it("shares the public URL and saves by the slug", () => {
