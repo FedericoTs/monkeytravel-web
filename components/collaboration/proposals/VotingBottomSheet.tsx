@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useMemo, useId } from "react";
-import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
+import { useState, useCallback, useMemo, useId, type ReactNode, type RefObject } from "react";
+import { motion, AnimatePresence, useDragControls, type DragControls, type PanInfo } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import Image from "next/image";
@@ -131,6 +131,7 @@ export function VotingBottomSheet({
   // Escape, scroll lock, focus in and back, Tab kept inside; focus starts on
   // the first control, as in BottomSheet.
   const { panelRef } = useModalBehavior({ isOpen, onClose, initialFocus: "first" });
+  const frame = { panelRef, dragControls, onClose };
 
   const handleVote = useCallback(async (option: typeof PROPOSAL_VOTE_OPTIONS[number]) => {
     if (isSubmitting) return;
@@ -259,145 +260,18 @@ export function VotingBottomSheet({
   if (!isOpen) return null;
 
   if (!proposal) {
-    return (
-      <>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="fixed inset-0 bg-black/40 z-50"
-          aria-hidden="true"
-        />
-        <motion.div
-          initial={{ y: '100%' }}
-          animate={{ y: 0 }}
-          exit={{ y: '100%' }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          drag="y"
-          dragConstraints={{ top: 0, bottom: 0 }}
-          dragElastic={{ top: 0, bottom: 0.5 }}
-          dragListener={false}
-          dragControls={dragControls}
-          onDragEnd={(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-            if (info.offset.y > 100 || info.velocity.y > 500) {
-              onClose();
-            }
-          }}
-          className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6 outline-none"
-          ref={panelRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('noProposalSelected')}
-          tabIndex={-1}
-        >
-          <div
-            className="flex justify-center py-3 cursor-grab active:cursor-grabbing"
-            onPointerDown={(e) => dragControls.start(e)}
-            style={{ touchAction: 'none' }}
-          >
-            <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
-          </div>
-          <div className="text-center py-8">
-            <p className="text-gray-500 mb-4">{t('noProposalSelected')}</p>
-            <button onClick={onClose} className="px-4 py-2 bg-gray-100 rounded-lg text-gray-700">
-              {tc('close')}
-            </button>
-          </div>
-        </motion.div>
-      </>
-    );
+    return <SheetNotice frame={frame} message={t("noProposalSelected")} tone="text-gray-500" closeLabel={tc("close")} />;
   }
 
   if (!isValidActivity || !activity) {
-    return (
-      <>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="fixed inset-0 bg-black/40 z-50"
-          aria-hidden="true"
-        />
-        <motion.div
-          initial={{ y: '100%' }}
-          animate={{ y: 0 }}
-          exit={{ y: '100%' }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          drag="y"
-          dragConstraints={{ top: 0, bottom: 0 }}
-          dragElastic={{ top: 0, bottom: 0.5 }}
-          dragListener={false}
-          dragControls={dragControls}
-          onDragEnd={(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-            if (info.offset.y > 100 || info.velocity.y > 500) {
-              onClose();
-            }
-          }}
-          className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6 outline-none"
-          ref={panelRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('unableToLoad')}
-          tabIndex={-1}
-        >
-          <div
-            className="flex justify-center py-3 cursor-grab active:cursor-grabbing"
-            onPointerDown={(e) => dragControls.start(e)}
-            style={{ touchAction: 'none' }}
-          >
-            <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
-          </div>
-          <div className="text-center py-8">
-            <p className="text-red-600 mb-4">{t('unableToLoad')}</p>
-            <button onClick={onClose} className="px-4 py-2 bg-gray-100 rounded-lg text-gray-700">
-              {tc('close')}
-            </button>
-          </div>
-        </motion.div>
-      </>
-    );
+    return <SheetNotice frame={frame} message={t("unableToLoad")} tone="text-red-600" closeLabel={tc("close")} />;
   }
 
   const userSelectedOption = getUserSelectedOption();
 
   return (
     <AnimatePresence>
-      {/* Backdrop */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 bg-black/40 z-50"
-        aria-hidden="true"
-      />
-
-      {/* Bottom Sheet */}
-      <motion.div
-        initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        exit={{ y: '100%' }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={{ top: 0, bottom: 0.5 }}
-        dragListener={false}
-        dragControls={dragControls}
-        onDragEnd={(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-          // Close if dragged down more than 100px or with velocity
-          if (info.offset.y > 100 || info.velocity.y > 500) {
-            onClose();
-          }
-        }}
-        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[90dvh] overflow-hidden outline-none"
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        tabIndex={-1}
-      >
+      <SheetFrame {...frame} className="max-h-[90dvh] overflow-hidden" label={{ "aria-labelledby": titleId }}>
         {/* Drag Handle - Swipe down to close */}
         <div
           className="flex justify-center py-4 cursor-grab active:cursor-grabbing select-none"
@@ -729,7 +603,100 @@ export function VotingBottomSheet({
             </details>
           )}
         </div>
-      </motion.div>
+      </SheetFrame>
     </AnimatePresence>
+  );
+}
+
+
+type SheetFrameProps = {
+  panelRef: RefObject<HTMLDivElement | null>;
+  dragControls: DragControls;
+  onClose: () => void;
+};
+
+/**
+ * The sliding sheet every view of the voting sheet sits in: a dimmed backdrop
+ * and a panel that springs up from the bottom and closes when dragged down
+ * far or fast. Only the view's handle starts a drag, so its content scrolls.
+ */
+function SheetFrame({
+  panelRef,
+  dragControls,
+  onClose,
+  className,
+  label,
+  children,
+}: SheetFrameProps & {
+  className: string;
+  label: { "aria-label": string } | { "aria-labelledby": string };
+  children: ReactNode;
+}) {
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/40 z-50"
+        aria-hidden="true"
+      />
+      <motion.div
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: 0 }}
+        dragElastic={{ top: 0, bottom: 0.5 }}
+        dragListener={false}
+        dragControls={dragControls}
+        onDragEnd={(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+          if (info.offset.y > 100 || info.velocity.y > 500) {
+            onClose();
+          }
+        }}
+        className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 ${className} outline-none`}
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        {...label}
+        tabIndex={-1}
+      >
+        {children}
+      </motion.div>
+    </>
+  );
+}
+
+/** A short message in the sheet, for a proposal that is missing or cannot be shown. */
+function SheetNotice({
+  frame,
+  message,
+  tone,
+  closeLabel,
+}: {
+  frame: SheetFrameProps;
+  message: string;
+  tone: string;
+  closeLabel: string;
+}) {
+  return (
+    <SheetFrame {...frame} className="p-6" label={{ "aria-label": message }}>
+      <div
+        className="flex justify-center py-3 cursor-grab active:cursor-grabbing"
+        onPointerDown={(e) => frame.dragControls.start(e)}
+        style={{ touchAction: 'none' }}
+      >
+        <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
+      </div>
+      <div className="text-center py-8">
+        <p className={`${tone} mb-4`}>{message}</p>
+        <button onClick={frame.onClose} className="px-4 py-2 bg-gray-100 rounded-lg text-gray-700">
+          {closeLabel}
+        </button>
+      </div>
+    </SheetFrame>
   );
 }
