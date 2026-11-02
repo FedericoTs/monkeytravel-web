@@ -174,7 +174,7 @@ export default async function AIItineraryGeneratorPage({
 
         <LandingHowItWorks namespace="aiItineraryGenerator" steps={STEP_CONFIGS} />
 
-        <LandingComparison namespace="aiItineraryGenerator" keys={COMPARISON_KEYS} otherLabel="ChatGPT / Gemini" otherKey="chatgpt" />
+        <LandingComparison namespace="aiItineraryGenerator" keys={COMPARISON_KEYS} otherKey="chatgpt" />
 
         <LandingFaq title={t('faq.title')} items={faqItems} />
 

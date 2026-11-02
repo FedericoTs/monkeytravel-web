@@ -77,6 +77,7 @@
   "comparison": {
     "title": "MonkeyTravel vs. Generic AI",
     "subtitle": "ChatGPT and Gemini give text lists. MonkeyTravel generates structured, actionable itineraries.",
+    "otherHeader": "ChatGPT / Gemini",
     "items": {
       "dayByDay": {
         "label": "Day-by-day structure",
