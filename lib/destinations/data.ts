@@ -2192,9 +2192,7 @@ export const destinations: Destination[] = [
   },
 
   // =========================================================================
-  // BENIDORM — Costa Blanca, Spain. Added 2026-06-04 to close the demand/
-  // coverage gap: #2 wizard search destination over 30 days with zero
-  // dedicated landing page.
+  // BENIDORM — Costa Blanca, Spain.
   // =========================================================================
   {
     slug: "benidorm",
@@ -2251,9 +2249,8 @@ export const destinations: Destination[] = [
   },
 
   // =========================================================================
-  // HONG KONG — Special Administrative Region, China. Added 2026-06-04.
-  // #4 wizard search destination over 30 days with no landing page; also
-  // catches CN/SG/MY users that the en/it/es locale strategy underserves.
+  // HONG KONG — Special Administrative Region, China. Also serves CN/SG/MY
+  // visitors, whom the en/it/es locales underserve.
   // =========================================================================
   {
     slug: "hong-kong",
@@ -2310,12 +2307,8 @@ export const destinations: Destination[] = [
   },
 
   // =========================================================================
-  // TAIPEI — Taiwan. Added 2026-06-09.
-  // Highest-organic-traffic user trip on the site (8 organic Google views in
-  // 14d to /trips/b7049d13... — a 9-day "Taipei Trip"). Google is sending
-  // real intent traffic for "Taipei itinerary" / "Taipei trip" queries to
-  // user-generated trip pages because we had no canonical destination page
-  // to rank for. This fills the gap.
+  // TAIPEI — Taiwan. The canonical page for "Taipei itinerary" / "Taipei
+  // trip" queries, which would otherwise land on user trip pages.
   // =========================================================================
   {
     slug: "taipei",
@@ -2371,12 +2364,7 @@ export const destinations: Destination[] = [
   },
 
   // =========================================================================
-  // HOUSTON — Texas, USA. Added 2026-06-09.
-  // 2nd-highest organic Google traffic among unindexed trip destinations
-  // (4 organic clicks/14d to /trips/4b1b2814... "Houston Trip"). Houston
-  // is the USA's 4th-largest metro but criminally under-covered in travel
-  // SEO — search results are mostly chamber-of-commerce pages and stale
-  // Wikitravel. We fill a real gap.
+  // HOUSTON — Texas, USA. A large metro that travel guides cover thinly.
   // =========================================================================
   {
     slug: "houston",
@@ -2433,12 +2421,8 @@ export const destinations: Destination[] = [
   },
 
   // =========================================================================
-  // LIMA — Peru. Added 2026-06-09.
-  // South America gap-filler. Lima had a user trip getting 1 organic Google
-  // click in 14d (small but signal: zero South American destination pages
-  // before this). Lima is also the canonical gateway for the
-  // Cusco/Machu Picchu circuit — high SEO value as the "first stop"
-  // anchor of a Peru itinerary.
+  // LIMA — Peru. The gateway to the Cusco/Machu Picchu circuit, so the
+  // "first stop" of a Peru itinerary.
   // =========================================================================
   {
     slug: "lima",
@@ -2495,9 +2479,8 @@ export const destinations: Destination[] = [
   },
 
   // =========================================================================
-  // NAIROBI — Kenya. Added 2026-06-04. Top-10 wizard destination, no page.
-  // Africa's only city with a National Park inside city limits — unique
-  // SEO position for "safari from Nairobi" / "Nairobi day trip" queries.
+  // NAIROBI — Kenya. Africa's only city with a National Park inside city
+  // limits, for "safari from Nairobi" / "Nairobi day trip" queries.
   // =========================================================================
   {
     slug: "nairobi",
@@ -2552,9 +2535,8 @@ export const destinations: Destination[] = [
   },
 
   // =========================================================================
-  // XIAMEN — Fujian Province, China. Added 2026-06-04. Significant
-  // Chinese-language wizard search demand that en/it/es coverage was
-  // missing. Catches both Chinese-script and English-script queries.
+  // XIAMEN — Fujian Province, China. Matches both Chinese-script and
+  // English-script searches.
   // =========================================================================
   {
     slug: "xiamen",
@@ -2609,9 +2591,8 @@ export const destinations: Destination[] = [
   },
 
   // =========================================================================
-  // BUDAPEST — Hungary. Added 2026-06-04. Top wizard search with no page
-  // and a confirmed save signal. Thermal baths + ruin bars + Danube give
-  // a distinctive SEO niche that Prague/Vienna competitors don't own.
+  // BUDAPEST — Hungary. Thermal baths, ruin bars and the Danube set it
+  // apart from Prague and Vienna.
   // =========================================================================
   {
     slug: "budapest",
@@ -2666,9 +2647,8 @@ export const destinations: Destination[] = [
   },
 
   // =========================================================================
-  // BORDEAUX — Nouvelle-Aquitaine, France. Added 2026-06-04. Strong wine-
-  // search seasonal demand (vendanges Sep-Oct) plus growing weekend-break
-  // signal from London/Paris/Madrid TGV connections. No competing page.
+  // BORDEAUX — Nouvelle-Aquitaine, France. Wine country, busiest at the
+  // harvest (vendanges, Sep-Oct), and a weekend break by TGV from Paris.
   // =========================================================================
   {
     slug: "bordeaux",

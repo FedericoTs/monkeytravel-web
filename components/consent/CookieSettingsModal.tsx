@@ -40,12 +40,12 @@ export function CookieSettingsModal() {
   if (!isOpen) return null;
 
   // Saving the granular choice is a DECISION: it stores the state, closes
-  // the banner for good and records one event. Before 2026-09-22 it was
-  // `closeSettings()` alone, and closeSettings falls back to "visible" while
-  // hasConsented is false — so a visitor who switched everything off and
-  // pressed Save got the banner straight back, for ever, while Accept All
-  // was one click and gone. That is refusal costing more than acceptance,
-  // which is the one thing the law is unambiguous about.
+  // the banner for good and records one event. `closeSettings()` alone
+  // would not do: it falls back to "visible" while hasConsented is false, so
+  // a visitor who switched everything off and pressed Save would get the
+  // banner straight back, for ever, while Accept All was one click and gone.
+  // That is refusal costing more than acceptance, which is the one thing the
+  // law is unambiguous about.
   const handleSaveSettings = () => {
     saveSettings();
   };

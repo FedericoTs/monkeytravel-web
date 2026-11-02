@@ -5,12 +5,10 @@ import { useEffect } from "react";
 /**
  * The app's providers must keep one tree shape from the first render.
  *
- * ConsentProvider returned <>{children}</> until the stored consent had loaded
- * and <ConsentContext.Provider> after, and a PostHog wrapper (since removed)
- * swapped in a provider once PostHog loaded. Each change of shape made React
- * unmount and remount EVERYTHING below: measured 2026-09-25 on a production
- * build, the trip page mounted 4 times per load (local state lost, every mount
- * effect run 4 times).
+ * A provider that returns <>{children}</> until the stored consent has loaded
+ * and <ConsentContext.Provider> after changes the tree's shape, and each
+ * change of shape makes React unmount and remount EVERYTHING below: the page
+ * mounts again, losing local state and running every mount effect again.
  */
 
 vi.mock("./consent-event-client", () => ({

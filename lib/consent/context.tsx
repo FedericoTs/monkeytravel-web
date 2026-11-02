@@ -191,10 +191,10 @@ export function ConsentProvider({ children, userId }: ConsentProviderProps) {
   );
 
   /**
-   * Commit the granular choice. Before 2026-09-22 "Save Settings" only closed
-   * the modal, and closeSettings falls back to "visible" while hasConsented
-   * is false — so switching everything off and pressing Save brought the
-   * banner straight back, for ever, while Accept All was one click and gone.
+   * Commit the granular choice. Closing the modal is not enough:
+   * closeSettings falls back to "visible" while hasConsented is false, so
+   * switching everything off and pressing Save would bring the banner
+   * straight back, for ever, while Accept All was one click and gone.
    * Refusal cannot cost more than acceptance.
    */
   const saveSettings = useCallback(() => {
