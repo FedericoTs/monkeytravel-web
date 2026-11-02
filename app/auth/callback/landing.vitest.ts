@@ -3,12 +3,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 /**
  * Where the callback sends someone after a successful sign-in.
  *
- * Two ways this went wrong before 2026-09-24:
- *   - `next` could itself be a callback URL (the send-email hook nested it).
- *     The route redirected into a second callback with no code, and a
- *     signed-in user landed on /auth/login?error=auth_incomplete.
- *   - The locale prefix was added unconditionally, so a `next` that already
- *     carried one became /pt/pt/...
+ * Two ways it can go wrong:
+ *   - `next` can itself be a callback URL (the send-email hook nests it).
+ *     Redirecting into a second callback with no code would land a signed-in
+ *     user on /auth/login?error=auth_incomplete.
+ *   - Adding the locale prefix unconditionally would turn a `next` that
+ *     already carries one into /pt/pt/...
  * Supabase is mocked; the route's own redirect logic runs for real.
  */
 
