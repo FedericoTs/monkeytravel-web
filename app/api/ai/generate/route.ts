@@ -45,6 +45,7 @@ import { isRealPoint } from "@/lib/trip/placeholder-point";
 import type { TripAnchor } from "@/types";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
+import { tripSpanDays } from "@/lib/dates/iso-date";
 
 // Feature flag: Enable Maps Grounding for cost-effective generation
 // Set USE_MAPS_GROUNDING=true in .env to enable (59% cost savings)
@@ -237,10 +238,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // which is authoritative; single-city: derived from the date range).
     const totalDays = isMultiCity
       ? legs!.reduce((sum, l) => sum + l.nights, 0)
-      : Math.ceil(
-          (new Date(params.endDate).getTime() - new Date(params.startDate).getTime()) /
-            (1000 * 60 * 60 * 24)
-        ) + 1;
+      : tripSpanDays(params.startDate, params.endDate);
 
     const userIsAdmin = user ? isAdmin(user.email) : false;
 

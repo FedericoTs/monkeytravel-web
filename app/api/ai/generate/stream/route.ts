@@ -50,6 +50,7 @@ import { PartsError, writeInParts, writesInParts } from "@/lib/ai/plan-in-parts"
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known-places";
 import { placesToEatCheck, type PlacesToEatResult } from "@/lib/places/places-to-eat";
+import { tripSpanDays } from "@/lib/dates/iso-date";
 
 // Allow the function to run long enough for slow generations. Vercel
 // Pro plan default is 60s; this bumps it. Hobby plan caps at 60 so this
@@ -228,12 +229,7 @@ export async function POST(request: NextRequest) {
   // on a hit — a much larger win on the conversion-critical first-day
   // event.
   const userIsAdmin = user ? isAdmin(user.email) : false;
-  const totalDays =
-    Math.ceil(
-      (new Date(params.endDate).getTime() -
-        new Date(params.startDate).getTime()) /
-        (1000 * 60 * 60 * 24)
-    ) + 1;
+  const totalDays = tripSpanDays(params.startDate, params.endDate);
   // Places travellers kept here, read alongside the cache and used only when a
   // plan is written. "Try Different Version" asks for a plan unlike the last.
   const knownPlacesRead = wantsFresh ? Promise.resolve([]) : knownPlacesFor(params, totalDays, userLanguage);
