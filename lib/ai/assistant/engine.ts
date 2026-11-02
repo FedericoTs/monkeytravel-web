@@ -45,6 +45,7 @@ import { currencyRequested, currencySwitchedNote, withoutCurrencyTalk } from "@/
 import { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI, maxTripDays } from "@/lib/ai/assistant/structural";
 import type { Activity, ItineraryDay } from "@/types";
 import { ACTIVITY_TYPES, normalizeActivityType } from "@/lib/trip/activity-type";
+import { formatMinutesToTime } from "@/lib/datetime/format";
 
 // Shared with the trip page, whose Apply checks a longer trip against them.
 export { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI, maxTripDays };
@@ -622,7 +623,6 @@ const minutesOf = (time: unknown) => {
   const m = /^(\d{1,2}):(\d{2})/.exec(clockTime(time) ?? "");
   return m ? Number(m[1]) * 60 + Number(m[2]) : NaN;
 };
-const clockOf = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 
 /** A day's activities outside the hours around an arrival or a departure. */
 export interface OutsideTravelTimes {
@@ -678,8 +678,8 @@ export function outsideTravelTimes(
       day: e.day_number,
       arrives: t.arrives,
       leaves: t.leaves,
-      from: t.arrives ? clockOf(Math.min(from, 24 * 60 - 1)) : null,
-      until: t.leaves ? clockOf(Math.max(until, 0)) : null,
+      from: t.arrives ? formatMinutesToTime(Math.min(from, 24 * 60 - 1)) : null,
+      until: t.leaves ? formatMinutesToTime(Math.max(until, 0)) : null,
       names,
     }];
   });

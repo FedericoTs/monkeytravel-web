@@ -16,6 +16,7 @@
 
 import type { Activity, ItineraryDay } from "@/types";
 import { isPlaceholderPoint } from "@/lib/trip/placeholder-point";
+import { formatMinutesToTime } from "@/lib/datetime/format";
 
 /** "ground" names no mode: where trains aren't the usual way, it may be a bus, a car or a boat. */
 export type TransferMode = "train" | "flight" | "ground";
@@ -207,7 +208,6 @@ const minutesOf = (time?: string): number | null => {
   const m = /^(\d{1,2}):(\d{2})/.exec(time ?? "");
   return m ? Number(m[1]) * 60 + Number(m[2]) : null;
 };
-const clock = (mins: number) => `${String(Math.floor(mins / 60)).padStart(2, "0")}:${String(mins % 60).padStart(2, "0")}`;
 /** Time from arriving to the first stop in the new city. */
 const ARRIVAL_BUFFER_MINUTES = 30;
 /** Latest an activity moved past the transfer may end. */
@@ -251,7 +251,7 @@ export function dayWithTransfer(transfer: Activity, activities: Activity[]): Act
     if (MEAL.test(plain(`${a.type} ${a.name}`)) && at - minutesOf(a.start_time)! > MEAL_MOVE_MINUTES) continue;
     busy.push([at, at + length(a)]);
     from = at + length(a);
-    moved.push({ ...a, start_time: clock(at), time_slot: at < 12 * 60 ? "morning" : at < 17 * 60 ? "afternoon" : "evening" });
+    moved.push({ ...a, start_time: formatMinutesToTime(at), time_slot: at < 12 * 60 ? "morning" : at < 17 * 60 ? "afternoon" : "evening" });
   }
   const order = (a: Activity) => minutesOf(a.start_time) ?? 24 * 60;
   return [transfer, ...kept, ...moved].sort((x, y) => order(x) - order(y));
