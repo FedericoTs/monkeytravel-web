@@ -84,7 +84,7 @@ describe("safeImageFetch — legitimate traffic must keep working", () => {
     expect(r.ok).toBe(true);
   });
 
-  it("uses the caller's fetchImpl, so fetchWithRetry keeps working", async () => {
+  it("uses the caller's fetchImpl, so fetchWithOneRetry keeps working", async () => {
     const f = scriptedFetch({ "https://images.pexels.com/a.jpg": { status: 200 } });
     await safeImageFetch("https://images.pexels.com/a.jpg", { allowedHosts: EXACT, fetchImpl: f });
     expect(f).toHaveBeenCalledTimes(1);

@@ -42,8 +42,8 @@ export interface SafeImageFetchInit extends Omit<RequestInit, "redirect"> {
   /** Hops to follow before giving up. 3 is well clear of real CDN chains. */
   maxHops?: number;
   /**
-   * Fetch to use per hop. img/proxy passes its fetchWithRetry so the existing
-   * 5xx retry survives; a 3xx is never retried, so redirects are unaffected.
+   * Fetch to use per hop. The img proxies pass fetchWithOneRetry so a 5xx
+   * still gets its retry; a 3xx is never retried, so redirects are unaffected.
    */
   fetchImpl?: (url: string, init: RequestInit) => Promise<Response>;
 }
