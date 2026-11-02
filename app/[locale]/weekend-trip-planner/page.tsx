@@ -1,11 +1,7 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import EmailSubscribe from '@/components/EmailSubscribe';
 import FromTheBlog from '@/components/blog/FromTheBlog';
-import HeroDoodleBackground from '@/components/marketing/HeroDoodleBackground';
 import LiveStats from '@/components/stats/LiveStats';
-import { HERO_DOODLE_ENABLED } from '@/components/marketing/doodle';
-import { Link } from '@/lib/i18n/routing';
 import {
   generateFAQSchema,
   generateBreadcrumbSchema,
@@ -19,6 +15,9 @@ import LandingWhatIs from '@/components/landing/LandingWhatIs';
 import LandingFeatures, { type LandingFeature } from '@/components/landing/LandingFeatures';
 import LandingHowItWorks from '@/components/landing/LandingHowItWorks';
 import LandingFaq from '@/components/landing/LandingFaq';
+import LandingHero from '@/components/landing/LandingHero';
+import LandingComparison from '@/components/landing/LandingComparison';
+import LandingFinalCta from '@/components/landing/LandingFinalCta';
 
 const BASE_URL = 'https://monkeytravel.app';
 /**
@@ -243,75 +242,7 @@ export default async function WeekendTripPlannerPage({
       <Navbar />
 
       <main className="min-h-screen">
-        {/* ================================================================
-            HERO SECTION
-            ================================================================ */}
-        <section className="relative min-h-[80vh] pt-20 pb-16 overflow-hidden hero-gradient">
-          {HERO_DOODLE_ENABLED ? (
-            <HeroDoodleBackground layout="centered" />
-          ) : (
-            <>
-              {/* Grid overlay */}
-              <div className="absolute inset-0 bg-grid-pattern-light opacity-50" />
-
-              {/* Animated orbs */}
-              <div className="absolute top-32 left-[10%] w-72 h-72 bg-[var(--accent)]/10 rounded-full blur-[100px] animate-pulse-glow" />
-              <div className="absolute top-64 right-[5%] w-96 h-96 bg-[var(--primary)]/8 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
-            </>
-          )}
-
-          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-[60vh] text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/25 mb-8">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span className="text-sm font-semibold text-emerald-700">
-                {t('hero.badge')}
-              </span>
-            </div>
-
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[var(--foreground)] leading-[1.08] tracking-tight mb-6">
-              {t('hero.title')}
-            </h1>
-
-            <p className="text-lg sm:text-xl text-[var(--foreground-muted)] mb-10 max-w-2xl leading-relaxed">
-              {t('hero.subtitle')}
-            </p>
-
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Link
-                href="/trips/new"
-                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--foreground)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/30"
-              >
-                <span>{t('hero.cta')}</span>
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
-              <a
-                href="#how-it-works"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-gray-200 text-[var(--foreground)] font-semibold rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary-ink)] transition-all"
-              >
-                {t('hero.secondaryCta')}
-              </a>
-            </div>
-
-            {/* Trust Signals */}
-            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm text-[var(--foreground-muted)]">
-              {(['free', 'noCard', 'instant'] as const).map((key) => (
-                <div key={key} className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span>{t(`hero.trustSignals.${key}`)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <LandingHero namespace="weekendTripPlanner" />
 
         <LandingWhatIs namespace="weekendTripPlanner" />
 
@@ -321,58 +252,7 @@ export default async function WeekendTripPlannerPage({
 
         <LandingHowItWorks namespace="weekendTripPlanner" steps={STEP_CONFIGS} />
 
-        {/* ================================================================
-            COMPARISON TABLE (MonkeyTravel vs Google + Spreadsheets)
-            ================================================================ */}
-        <section className="py-24 bg-white">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
-                {t('comparison.title')}
-              </h2>
-              <p className="text-lg text-[var(--foreground-muted)]">
-                {t('comparison.subtitle')}
-              </p>
-            </div>
-
-            <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
-              {/* Header */}
-              <div className="grid grid-cols-3 border-b border-gray-200 bg-[var(--background-alt)] text-sm font-semibold">
-                <div className="p-4 text-[var(--foreground-muted)]" />
-                <div className="border-l border-gray-200 p-4 text-center text-[var(--primary-ink)]">
-                  MonkeyTravel
-                </div>
-                <div className="border-l border-gray-200 p-4 text-center text-[var(--foreground-muted)]">
-                  Google + Spreadsheets
-                </div>
-              </div>
-
-              {/* Rows */}
-              {COMPARISON_KEYS.map((key, i) => (
-                <div
-                  key={key}
-                  className={`grid grid-cols-3 text-sm ${i < COMPARISON_KEYS.length - 1 ? 'border-b border-gray-100' : ''}`}
-                >
-                  <div className="p-4 font-medium text-[var(--foreground)]">
-                    {t(`comparison.items.${key}.label`)}
-                  </div>
-                  <div className="flex items-start gap-2 border-l border-gray-100 p-4 text-[var(--foreground)]">
-                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    <span>{t(`comparison.items.${key}.monkey`)}</span>
-                  </div>
-                  <div className="flex items-start gap-2 border-l border-gray-100 p-4 text-[var(--foreground-muted)]">
-                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                    <span>{t(`comparison.items.${key}.chatgpt`)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <LandingComparison namespace="weekendTripPlanner" keys={COMPARISON_KEYS} otherLabel="Google + Spreadsheets" otherKey="chatgpt" />
 
         <LandingFaq title={t('faq.title')} items={faqItems} />
 
@@ -384,60 +264,7 @@ export default async function WeekendTripPlannerPage({
           locale={locale}
         />
 
-        {/* ================================================================
-            FINAL CTA
-            ================================================================ */}
-        <section className="py-24 bg-white">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="relative overflow-hidden rounded-[2.5rem] mesh-gradient p-12 sm:p-16 lg:p-20">
-              {/* Grid overlay */}
-              <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
-
-              {/* Decorative elements */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--accent)]/20 rounded-full blur-[100px]" />
-              <div className="absolute bottom-0 left-0 w-48 h-48 bg-[var(--primary-light)]/20 rounded-full blur-[80px]" />
-
-              <div className="relative text-center">
-                {/* Live badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm font-semibold text-white/90 mb-8">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-                  </span>
-                  {t('hero.trustSignals.free')}
-                </div>
-
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 tracking-tight">
-                  {t('cta.title')}
-                </h2>
-                <p className="text-lg sm:text-xl text-white/70 mb-10 max-w-2xl mx-auto leading-relaxed">
-                  {t('cta.subtitle')}
-                </p>
-
-                {/* CTA button */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-                  <Link
-                    href="/trips/new"
-                    className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--accent)] text-[var(--foreground)] font-bold rounded-xl hover:bg-[var(--accent-light)] transition-all"
-                  >
-                    <span>{t('cta.button')}</span>
-                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </Link>
-                </div>
-
-                {/* Newsletter signup */}
-                <div className="pt-8 border-t border-white/10 max-w-md mx-auto">
-                  <p className="text-sm text-white/55 mb-4">
-                    {t('cta.mobileNotify')}
-                  </p>
-                  <EmailSubscribe variant="dark" source="weekend-trip-planner-cta" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <LandingFinalCta namespace="weekendTripPlanner" subscribeSource="weekend-trip-planner-cta" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 text-center">
           <LastUpdated date={CONTENT_UPDATED} />
         </div>
