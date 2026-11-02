@@ -16,6 +16,7 @@ import {
   LazyGrowthDashboard,
   preloadAdminTab,
 } from "@/lib/lazy";
+import { flagEmoji } from "@/lib/utils/flag-emoji";
 
 // ---------------------------------------------------------------------------
 // AdminDashboard
@@ -923,7 +924,7 @@ function VisitorAnalyticsCard({ geo }: { geo: AdminStats["geo"] }) {
       {/* Mobile: single tab content */}
       <div className="md:hidden p-5">
         {tab === "pages" && <GeoList rows={geo.topPages.map((p) => ({ label: p.path === "/" ? "Home" : p.path, value: p.count }))} />}
-        {tab === "countries" && <GeoList rows={geo.byCountry.map((c) => ({ label: `${getCountryFlag(c.countryCode)} ${c.country}`, value: c.count, extra: `${c.percentage}%` }))} />}
+        {tab === "countries" && <GeoList rows={geo.byCountry.map((c) => ({ label: `${flagEmoji(c.countryCode)} ${c.country}`, value: c.count, extra: `${c.percentage}%` }))} />}
         {tab === "cities" && <GeoList rows={geo.byCity.map((c) => ({ label: c.city, value: c.count, extra: c.country }))} />}
       </div>
 
@@ -935,7 +936,7 @@ function VisitorAnalyticsCard({ geo }: { geo: AdminStats["geo"] }) {
         </div>
         <div className="p-5">
           <h3 className="text-sm font-semibold text-slate-600 mb-3">Top Countries</h3>
-          <GeoList rows={geo.byCountry.map((c) => ({ label: `${getCountryFlag(c.countryCode)} ${c.country}`, value: c.count, extra: `${c.percentage}%` }))} />
+          <GeoList rows={geo.byCountry.map((c) => ({ label: `${flagEmoji(c.countryCode)} ${c.country}`, value: c.count, extra: `${c.percentage}%` }))} />
         </div>
         <div className="p-5">
           <h3 className="text-sm font-semibold text-slate-600 mb-3">Top Cities</h3>
@@ -1517,13 +1518,4 @@ function getRetentionColor(percentage: number): string {
   if (percentage >= 40) return "#eab308";
   if (percentage >= 20) return "#f97316";
   return "#ef4444";
-}
-
-function getCountryFlag(countryCode: string | undefined): string {
-  if (!countryCode || countryCode.length !== 2) return "🌍";
-  const codePoints = countryCode
-    .toUpperCase()
-    .split("")
-    .map((char) => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
 }
