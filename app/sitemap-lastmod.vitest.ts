@@ -48,6 +48,7 @@ const COVERAGE: Record<string, string[]> = {
     "app/[locale]/weekend-trip-planner",
     "app/[locale]/multi-city-trip-planner",
     "app/[locale]/ai-itinerary-generator",
+    "components/landing",
   ],
   LASTMOD_TOOLS: ["app/[locale]/tools"],
   LASTMOD_EXPLORE: ["app/[locale]/(app)/explore"],
