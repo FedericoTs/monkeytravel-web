@@ -6,7 +6,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isValidEmail, normalizeEmail } from "@/lib/validation";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { sendEmail } from "@/lib/email/client";
-import { ADMIN_EMAILS } from "@/lib/admin";
+import { adminEmails } from "@/lib/admin";
 
 const limiter = createRateLimiter("contact", 5, 60 * 60 * 1000);
 const ALLOWED_TOPICS = new Set(["support", "partnership", "press", "feedback", "other"]);
@@ -193,8 +193,10 @@ async function notifyAdmins(payload: {
 
   // Send to each admin in parallel. We override replyTo so the admin can
   // hit "Reply" and go straight to the user (not back to noreply@).
+  const recipients = adminEmails();
+  if (recipients.length === 0) console.error("[contact] no ADMIN_EMAILS: message", payload.id, "notified nobody");
   await Promise.allSettled(
-    ADMIN_EMAILS.map((to) =>
+    recipients.map((to) =>
       sendEmail({
         to,
         subject,

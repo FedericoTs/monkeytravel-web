@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Link } from '@/lib/i18n/routing';
-import { isAdmin } from '@/lib/admin';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { Gift } from 'lucide-react';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -48,6 +47,24 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
   // We intentionally ignore `loading` here for the reason above.
   const { user } = useAuth();
   const loading = false;
+  // Whether this visitor is an admin comes from the server
+  // (/api/auth/admin), so the admin list stays out of the page's JavaScript.
+  const userId = user?.id;
+  const [adminId, setAdminId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!userId) return;
+    let alive = true;
+    fetch('/api/auth/admin')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body) => {
+        if (alive && body?.admin === true) setAdminId(userId);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [userId]);
+  const showAdmin = Boolean(userId) && adminId === userId;
   const [referralModalOpen, setReferralModalOpen] = useState(false);
   const [referralModalMounted, setReferralModalMounted] = useState(false);
   const openReferralModal = () => {
@@ -94,7 +111,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
           </div>
         ) : user ? (
           <>
-            {isAdmin(user.email) && (
+            {showAdmin && (
               <Link
                 href="/admin"
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-slate-900 text-white font-medium text-sm hover:bg-slate-800 transition-colors"
@@ -190,7 +207,7 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
               ))}
               {user ? (
                 <>
-                  {isAdmin(user.email) && (
+                  {showAdmin && (
                     <Link
                       href="/admin"
                       className="mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white font-medium"

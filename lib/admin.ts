@@ -1,33 +1,44 @@
-/**
- * Admin access control utility
- * Only whitelisted emails can access the admin dashboard
- */
-
-// Whitelisted admin emails - ONLY these users can access /admin
-export const ADMIN_EMAILS = [
-  "federicosciuca@gmail.com",
-  "azzolina.francesca@gmail.com",
-  "marinoenrico3@gmail.com",
-] as const;
-
-export type AdminEmail = (typeof ADMIN_EMAILS)[number];
+import "server-only";
 
 /**
- * Check if an email is an admin
+ * Admin access control. The admins come from ADMIN_EMAILS in the
+ * deployment's environment: a comma-separated list where each entry is an
+ * email or `Name <email>`. Read on the server only, so the addresses are in
+ * neither the repository nor any page's JavaScript; a page learns whether its
+ * viewer is an admin from /api/auth/admin.
  */
-export function isAdmin(email: string | null | undefined): boolean {
-  if (!email) return false;
-  return ADMIN_EMAILS.includes(email.toLowerCase() as AdminEmail);
+
+interface Admin {
+  email: string;
+  name: string;
 }
 
-/**
- * Get admin display name from email
- */
+function admins(): Admin[] {
+  return (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      const named = entry.match(/^(.*)<([^>]+)>$/);
+      const email = (named ? named[2] : entry).trim().toLowerCase();
+      return { email, name: named?.[1].trim() || email.split("@")[0] };
+    });
+}
+
+/** The admins' email addresses, in the order configured. */
+export function adminEmails(): string[] {
+  return admins().map((admin) => admin.email);
+}
+
+/** Whether an email is an admin's. */
+export function isAdmin(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const wanted = email.trim().toLowerCase();
+  return admins().some((admin) => admin.email === wanted);
+}
+
+/** An admin's configured name, else the local part of the email. */
 export function getAdminName(email: string): string {
-  const names: Record<string, string> = {
-    "federicosciuca@gmail.com": "Federico",
-    "azzolina.francesca@gmail.com": "Francesca",
-    "marinoenrico3@gmail.com": "Enrico",
-  };
-  return names[email.toLowerCase()] || email.split("@")[0];
+  const wanted = email.trim().toLowerCase();
+  return admins().find((admin) => admin.email === wanted)?.name ?? email.split("@")[0];
 }
