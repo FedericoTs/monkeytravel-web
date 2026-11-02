@@ -110,12 +110,11 @@ export function TravelConnector({
     durationText ||
     (durationSeconds ? formatDuration(durationSeconds / 60) : "");
 
-  // Format distance using user's preferred unit system (metric or imperial)
-  const displayDistance =
-    distanceText ||
-    (distanceMeters
-      ? formatDistanceLocale(distanceMeters, preferences.distanceUnit)
-      : "");
+  // In the viewer's unit (km or mi) whenever the metres are known; an
+  // estimate keeps its "~".
+  const displayDistance = distanceMeters
+    ? `${distanceText?.startsWith("~") ? "~" : ""}${formatDistanceLocale(distanceMeters, preferences.distanceUnit)}`
+    : distanceText || "";
 
   // Compact mode for timeline view
   if (compact) {
