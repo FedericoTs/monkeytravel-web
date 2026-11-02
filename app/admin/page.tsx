@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin, getAdminName } from "@/lib/admin";
@@ -38,9 +39,11 @@ export default async function AdminPage() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <Link prefetch={false} href="/" className="flex items-center gap-2">
-                <img
+                <Image
                   src="/images/logo.png"
                   alt="MonkeyTravel"
+                  width={32}
+                  height={32}
                   className="h-8 w-8"
                 />
                 <span className="font-semibold text-lg text-[var(--foreground)]">

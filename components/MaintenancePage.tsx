@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 interface MaintenancePageProps {
@@ -18,9 +19,11 @@ export default function MaintenancePage({
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col items-center justify-center p-6">
       {/* Logo */}
       <div className="mb-8">
-        <img
+        <Image
           src="/images/logo.png"
           alt="MonkeyTravel"
+          width={64}
+          height={64}
           className="h-16 w-16 mx-auto"
         />
       </div>
