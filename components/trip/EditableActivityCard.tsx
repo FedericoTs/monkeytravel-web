@@ -17,7 +17,7 @@ import { ActivityCardDetails, ActivityKindIcon } from "./ActivityCardParts";
 import { Spinner } from "@/components/ui/Spinner";
 import { formatDuration } from "@/lib/datetime/duration";
 
-interface EditableActivityCardProps {
+export interface EditableActivityCardProps {
   activity: Activity;
   index: number;
   currency?: string;
