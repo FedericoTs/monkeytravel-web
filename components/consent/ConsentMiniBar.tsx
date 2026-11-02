@@ -3,22 +3,16 @@
 /**
  * The minimised consent state, carrying both decisions.
  *
- * WHY THIS REPLACED THE PILL
- * --------------------------
- * Measured over the seven days to 2026-09-22: 4,636 banner impressions,
- * 3,215 (69%) minimised without a decision, 1,193 (26%) left without
- * interacting at all, and 228 decisions — 141 accept, 85 essential only,
- * 2 in the modal. A 4.9% decision rate.
+ * WHY IT CARRIES THE DECISION
+ * ---------------------------
+ * The card withdraws after 40px of scroll, which on an article happens
+ * within a second of arriving, and most visitors never decide while it is
+ * up. A minimised state that only reopened the card (a "Cookie settings"
+ * pill), or showed nothing on phones, would leave the footer's Cookie
+ * Settings, several screens away, as the only way to decide.
  *
- * The card withdraws after 40px of scroll, which on a blog article (2,375 of
- * those 4,636 impressions) happens within a second of arriving. What it left
- * behind was a dead end: a desktop-only "Cookie settings" pill that cost a
- * click before any choice was even visible, and below 640px nothing at all
- * for the rest of the page view — on a site whose traffic is mostly mobile.
- * The only way back was the footer's Cookie Settings, several screens away.
- *
- * So the minimised state now carries the decision itself, at every
- * breakpoint. One tap decides, from either direction.
+ * So the minimised state carries the decision itself, at every breakpoint.
+ * One tap decides, from either direction.
  *
  * WHAT IS DELIBERATE HERE, AND MUST SURVIVE EDITS
  * -----------------------------------------------

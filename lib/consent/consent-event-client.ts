@@ -12,9 +12,7 @@ import {
 /**
  * `opts.path` exists because reading window.location at SEND time attributes
  * an event fired around a client-side navigation to the page the visitor went
- * TO, not the one the banner was shown on. That is why the seven days to
- * 2026-09-22 show 245 minimisations against 219 impressions on trip/shared.
- * Callers inside the banner pass Next's `usePathname()`, which is the page
+ * TO, not the one the banner was shown on. Callers inside the banner pass Next's `usePathname()`, which is the page
  * the component is keyed to.
  */
 export function buildConsentEvent(

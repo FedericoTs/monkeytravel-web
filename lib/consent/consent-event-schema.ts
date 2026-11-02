@@ -1,14 +1,14 @@
 import { CONSENT_ORIGINS, type ConsentOrigin } from "./types";
 
 /**
- * Consent events: the one thing about the cookie banner nobody measured.
+ * Consent events: how the cookie banner is answered.
  *
- * WHY (2026-09-16)
- * After the banner started governing the tags (2026-09-02) GA4 fell to ~11%
- * of real visitors. The only stored consent choices were the ones signed-in
- * users made (users.cookie_consent), so the acceptance rate of the 99% of
- * traffic that is anonymous was unknowable, and nothing about the banner
- * could be tested. These events fix that: one row per banner impression,
+ * WHY
+ * The banner governs the analytics tags, so GA4 only sees visitors who
+ * accepted, and the only stored consent choices are the ones signed-in users
+ * make (users.cookie_consent). Without these events the acceptance rate of
+ * anonymous traffic would be unknowable, and nothing about the banner could
+ * be tested. They record it: one row per banner impression,
  * minimisation and decision, with the banner variant and the page, no
  * identifier beyond the existing analytics session cookie.
  *

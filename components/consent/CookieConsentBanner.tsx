@@ -6,89 +6,48 @@
  * GDPR-compliant banner that appears on first visit.
  * Allows users to accept all, essential only, or customize settings.
  *
- * Mounts after a 1.5s delay so the hero LCP completes first. Caught
- * live in LIVE_AUDIT.md B4 — the banner was previously rendering
- * immediately, partially obscuring the hero CTAs on first paint AND
- * stealing main-thread budget that made the phone-mockup image take
- * 3-8s to appear. Per Gmail/Outlook bulk-sender deliverability research
- * the consent banner is at most ~1s of "delay" the user notices; this
- * trade-off prioritises perceived speed of the hero.
+ * It mounts once the page's own LCP is in (see readyToShow below), so it
+ * never competes with the hero's first paint.
  *
- * IT WAS STILL OBSCURING THE HERO, JUST LATER (fixed 2026-09-01)
- * -------------------------------------------------------------
- * Delaying the mount postponed the overlap rather than removing it. On
- * desktop this was a 282px card pinned to the bottom, and the homepage hero
- * sits at roughly y=524. Measured with RAW clicks at the initial scroll
- * position — Playwright's .click() auto-scrolls, which moves the hero out from
- * under a fixed element and hides the bug entirely:
+ * IT MUST NEVER SIT ON THE PAGE'S PRIMARY ACTION
+ * ----------------------------------------------
+ * A fixed card over the field or button a visitor came for, with no cue that
+ * the card is modal, reads as a broken site. Check it with RAW clicks at the
+ * initial scroll position: Playwright's .click() auto-scrolls, which moves
+ * the target out from under a fixed element and hides the problem.
  *
- *     1280x800   destination field + "Plan my trip"  UNREACHABLE
- *     1280x720   UNREACHABLE
- *     1366x768   UNREACHABLE
- *     1440x900   fine
- *
- * i.e. broken on the three most common laptop shapes. A visitor lands, clicks
- * the field, types a destination, and nothing happens — with no visual cue
- * that the banner is modal, that reads as a broken site. The homepage converts
- * at 48.7% and is the highest-intent entry point in the funnel.
- *
- * Two things fix it, and BOTH are needed:
+ * Two things keep the homepage hero clear, and BOTH are needed:
  *   1. pointer-events-none on the full-width wrapper (auto on the card), so
- *      the transparent gutter either side stops swallowing clicks.
- *   2. The layout is ONE ROW on md+ — text left, buttons right — instead of
- *      three stacked blocks plus a separate privacy line. That is what
- *      actually clears the hero; (1) alone fixed none of the three failing
- *      sizes, because what sat over the field was the card itself.
+ *      the transparent gutter either side does not swallow clicks.
+ *   2. ONE ROW on md+, text left and buttons right, instead of stacked
+ *      blocks. What sits over the field is the card itself, so (1) alone does
+ *      not clear it at the common laptop sizes (1280x800, 1280x720, 1366x768).
  *
- * "Customize" also now renders at EVERY width. It was `hidden sm:flex`, which
- * left mobile visitors with accept-all or essential-only and no granular
- * choice at all — the control is a legal requirement, not a nicety. The
- * privacy link moved inline for the same reason: it was desktop-only.
+ * "Customize" renders at EVERY width, and so does the inline privacy link:
+ * the granular choice is a legal requirement, not a nicety.
  *
- * IT MINIMISES AFTER THE FIRST SCROLL OR INTERACTION (2026-09-05, Phase 1.1)
- * ------------------------------------------------------------------------
- * The one-row card cleared the homepage hero, but two surfaces still had a
- * primary action under it at the initial scroll position (2026-09-04 app
- * review, 1280x800 and 390x844): the wizard's inline Continue at 1280x800 —
- * desktop has no fixed footer, so the card sits on the form's last row — and
- * the top of /trip and /shared on mobile, where the top pin covers the trip
- * title and the Back control for every recipient of a shared link, the
- * surface the Live Trip plan is built on.
+ * IT MINIMISES AFTER THE FIRST SCROLL OR INTERACTION
+ * --------------------------------------------------
+ * Even one row covers a primary action on some surfaces at the initial scroll
+ * position: the wizard's inline Continue on desktop (no fixed footer there,
+ * so the card sits on the form's last row), and on mobile the top of /trip
+ * and /shared, where a top pin covers the trip title and the Back control for
+ * every recipient of a shared link.
  *
  * Nothing non-essential loads before a choice, so the card does not need to
  * stay in the way to be compliant. After the visitor's first scroll or first
- * pointer/keyboard interaction OUTSIDE the card it minimises:
- *   - desktop: a small bottom-left pill that reopens the card. Bottom-left is
- *     the one corner no surface uses (help widget and proposals badge sit
- *     bottom-right; the save bars are full-width and right-weighted).
- *   - mobile: hidden for this page view. Every corner is taken there (Back
- *     top-left, badges top-right, nav and help widget at the bottom). It
- *     returns on the next navigation until a choice is made, and the footer's
- *     Cookie Settings is the always-available path.
- * A click inside the card never minimises it, so the e2e specs whose first
- * action is "Essential only" are unaffected; Tab and modifier keys are
- * ignored so keyboard users can reach the buttons without dismissing them.
- * tests/e2e/consent-overlap.spec.ts guards all of this on four surfaces at
- * both viewports.
- *
- * THE MINIMISED STATE WAS A DEAD END (2026-09-22)
- * -----------------------------------------------
- * Stepping out of the way was right; leaving nothing behind was not. Seven
- * days of consent_events to 2026-09-22: 4,636 impressions, 3,215 (69%)
- * minimised without deciding, 1,193 (26%) gone without touching it, 228
- * decisions — a 4.9% decision rate. Blog alone was 2,375 impressions and
- * 1,718 minimisations, because a reader scrolls past 40px within a second.
- * Desktop kept a pill that cost a click before a choice was visible; below
- * 640px there was nothing at all until the next navigation.
- *
- * The state machine above is unchanged — threshold, listeners, path keying,
- * dedupe refs. Only what the minimised branch RENDERS changed: ConsentMiniBar
- * carries both decisions at equal weight, at every width. See that file for
- * what must not be "tidied up" (the buttons are unfilled on purpose).
+ * pointer/keyboard interaction OUTSIDE the card it minimises into
+ * ConsentMiniBar, which carries both decisions at equal weight at every
+ * width (see that file for what must not be "tidied up": the buttons are
+ * unfilled on purpose). A click inside the card never minimises it, so the
+ * e2e specs whose first action is "Essential only" are unaffected; Tab and
+ * modifier keys are ignored so keyboard users can reach the buttons without
+ * dismissing them. tests/e2e/consent-overlap.spec.ts guards all of this on
+ * four surfaces at both viewports.
  *
  * PHONES OPEN ON THE BAR
  * ----------------------
- * Below 640px the tall top-pinned card covered the menu and, on compact
+ * Below 640px the tall top-pinned card would cover the menu and, on compact
  * headers, the page's heading. Phones get the compact ConsentMiniBar instead,
  * placed per screen by phoneBarOnTop() so it never covers the button the
  * visitor came for, and at the bottom once minimised. The full card is
@@ -136,20 +95,19 @@ function phoneBarOnTop(): boolean {
  * ONE constant for both decisions, and it is a legal requirement rather than
  * a style preference.
  *
- * Until 2026-09-22 "Accept All" was coral-filled with a shadow and "Essential
- * Only" was flat slate. That is the highlighted-button pattern EDPB
- * Guidelines 03/2022 names directly, and it is what the January 2022 CNIL
- * decisions against Google (EUR 150M) and Meta (EUR 60M) turned on: refusal
- * must be as easy — and as visible — as acceptance. 226 of the 228 decisions
- * recorded in the seven days to 2026-09-22 were made on this pair, so this is
- * where the asymmetry actually mattered.
+ * A filled "Accept All" beside a flat "Essential Only" is the
+ * highlighted-button pattern EDPB Guidelines 03/2022 names directly, and it
+ * is what the January 2022 CNIL decisions against Google (EUR 150M) and Meta
+ * (EUR 60M) turned on: refusal must be as easy — and as visible — as
+ * acceptance. Nearly every decision is made on this pair, so this is where an
+ * asymmetry would matter.
  *
  * Keeping it as ONE string is the point: a single diffable constant is what
  * makes "the two buttons are identical" auditable, and it is the thing a
  * well-meaning future change ("the accept button lost its primary fill")
- * would otherwise quietly undo. Padding, radius, font-size and font-weight
- * are unchanged from the old pair, so the card's rendered height does not
- * move and tests/e2e/consent-overlap.spec.ts assertion 1 is unaffected.
+ * would otherwise quietly undo. Its padding, radius, font-size and
+ * font-weight set the card's rendered height, which
+ * tests/e2e/consent-overlap.spec.ts assertion 1 depends on.
  */
 const CARD_DECISION_BTN =
   "flex-1 md:flex-none px-3 sm:px-4 py-2.5 rounded-lg sm:rounded-xl border border-slate-300 " +
@@ -167,8 +125,7 @@ export function CookieConsentBanner() {
   // /trip/[slug] and /shared/[token] (both SharedTripView) publish their
   // fixed "Save this trip" bar's height as --mt-bottom-bar-h. That bar is
   // fixed at EVERY width, so the card sits above it at every width — never on
-  // the primary action of a recipient's first visit (2026-09-05, Phase 1.1;
-  // measured 26,400px² of card-over-button at 1280x800 before this).
+  // the primary action of a recipient's first visit.
   const onTripView = /\/(trip|shared)\/[^/]+/.test(pathname ?? "");
   // On the wizard, a trip or a shared trip the visitor is holding a plan, so
   // the card can say what the consent is FOR. Logged with every consent event
