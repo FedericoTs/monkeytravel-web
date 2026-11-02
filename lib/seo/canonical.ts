@@ -19,7 +19,7 @@
  * English (unprefixed) URL, matching every other page on the site.
  */
 
-const SITE_URL = "https://monkeytravel.app";
+export const SITE_URL = "https://monkeytravel.app";
 
 /** Locales that carry an hreflang alternate. Mirrors lib/i18n/routing-config.ts. */
 const HREFLANG_LOCALES = ["en", "es", "it", "pt"] as const;
