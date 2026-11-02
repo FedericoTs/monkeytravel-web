@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   enrichTripByIdAdmin,
   BACKFILL_PAID_LOOKUPS,
@@ -37,15 +37,6 @@ function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
-function serviceClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error("Supabase env missing for cron");
-  return createServiceClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
 export async function GET(request: NextRequest) {
   const auth = request.headers.get("authorization");
   const secret = process.env.CRON_SECRET;
@@ -56,7 +47,7 @@ export async function GET(request: NextRequest) {
   if (auth !== `Bearer ${secret}`) return unauthorized();
 
   const started = Date.now();
-  const db = serviceClient();
+  const db = createAdminClient();
 
   // photos_enriched_at lives inside trip_meta; ->> on a missing key is NULL.
   const { data: candidates, error } = await db

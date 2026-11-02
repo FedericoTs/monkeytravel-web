@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getTranslations } from "next-intl/server";
 import { dispatchEmail, type EmailTemplate } from "@/lib/email/send";
 import { buildParticipantUnsubscribeUrl } from "@/lib/email/unsubscribe";
@@ -269,15 +269,6 @@ function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
-function serviceClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error("Supabase env missing for cron");
-  return createServiceClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
 export async function GET(request: NextRequest) {
   const auth = request.headers.get("authorization");
   const secret = process.env.CRON_SECRET;
@@ -297,7 +288,7 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const svc = serviceClient();
+  const svc = createAdminClient();
   const startedAt = Date.now();
 
   // 1. Fetch due rows. ORDER BY scheduled_for keeps the oldest-first;
@@ -445,7 +436,7 @@ export async function GET(request: NextRequest) {
  * (or skip), persist outcome. Returns the bucket the row falls into.
  */
 async function processRow(
-  svc: ReturnType<typeof serviceClient>,
+  svc: ReturnType<typeof createAdminClient>,
   row: SlotRow,
   finalPass = false
 ): Promise<"sent" | "skipped" | "failed" | "deferred"> {
@@ -1049,7 +1040,7 @@ async function processRow(
  * trip checks above apply. finish-trip.ts decides and sends; this records it.
  */
 async function processFinishTripRow(
-  svc: ReturnType<typeof serviceClient>,
+  svc: ReturnType<typeof createAdminClient>,
   row: DueRow
 ): Promise<"sent" | "skipped" | "failed"> {
   const outcome = await sendFinishTripEmail(svc, row, (locale) =>
@@ -1070,7 +1061,7 @@ async function processFinishTripRow(
  * trip data, so it is passed OUTSIDE the context block the gate inspects.
  */
 async function dispatchDayDigest(
-  svc: ReturnType<typeof serviceClient>,
+  svc: ReturnType<typeof createAdminClient>,
   row: SlotRow,
   trip: TripEmailRow,
   recipientEmail: string,
@@ -1278,7 +1269,7 @@ async function dispatchDayDigest(
  * twins). Two small reads, and only for trips with a start date.
  */
 async function loadTwins(
-  svc: ReturnType<typeof serviceClient>,
+  svc: ReturnType<typeof createAdminClient>,
   row: SlotRow,
   trip: { title: string | null; start_date: string | null }
 ): Promise<TwinCandidate[] | null> {
@@ -1321,7 +1312,7 @@ async function loadTwins(
 }
 
 async function persistOutcome(
-  svc: ReturnType<typeof serviceClient>,
+  svc: ReturnType<typeof createAdminClient>,
   id: string,
   status: "sent" | "suppressed" | "failed",
   reason: string,
