@@ -254,7 +254,9 @@ import { newTripTitle } from "@/lib/trips/title";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { applyAssistantEdits, type AssistantDayEdit } from "@/lib/trips/day-edit-merge";
 import { createUndoLedger } from "@/lib/trip/assistant-undo";
-import { dayBudgetLabel } from "@/lib/trip/day-budget";
+import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
+import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
+import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { isNativePlatform } from "@/lib/native/platform";
 import { planDateChange, moveItineraryDates } from "@/lib/trips/change-dates";
 
@@ -3785,26 +3787,14 @@ export default function NewTripPage({
           <div className="space-y-8">
             {generatedItinerary.days.map((day) => (
               <div key={day.day_number} id={`day-${day.day_number}`} className="scroll-mt-24">
-                {/* Day Header */}
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 text-white flex items-center justify-center font-bold text-lg shadow-lg">
-                      {day.day_number}
-                    </div>
-                    <div>
-                      <h2 className="font-bold text-xl text-slate-900">{t("wizard.result.dayLabel", { n: day.day_number })}</h2>
-                      {day.theme && <p className="text-slate-500 text-sm">{day.theme}</p>}
-                    </div>
-                  </div>
-                  {day.daily_budget && (
-                    <div className="ml-auto text-right">
-                      <div className="text-sm text-slate-500">{t("wizard.result.dailyBudget")}</div>
-                      <div className="font-semibold text-slate-900">
-                        {dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, t("activity.free"))}
-                      </div>
-                    </div>
+                <DayHeader dayNumber={day.day_number} title={t("wizard.result.dayLabel", { n: day.day_number })} theme={day.theme}>
+                  {showsDayBudget(day) && (
+                    <DayBudget
+                      label={t("wizard.result.dailyBudget")}
+                      value={dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, t("activity.free"))}
+                    />
                   )}
-                </div>
+                </DayHeader>
 
                 {/* Activities — Cards or Timeline view */}
                 {resultViewMode === "cards" ? (
@@ -3944,22 +3934,9 @@ export default function NewTripPage({
             </div>
           )}
 
-          {/* AI Disclaimer */}
-          <div className="mt-10 p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl">
-            <div className="flex gap-4">
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-              <div>
-                <h4 className="font-semibold text-amber-900 mb-1">{t("wizard.result.aiVerifiedTitle")}</h4>
-                <p className="text-sm text-amber-800">{t("wizard.result.aiVerifiedBody")}</p>
-              </div>
-            </div>
-          </div>
+          <AiDisclaimer title={t("wizard.result.aiVerifiedTitle")} className="mt-10">
+            {t("wizard.result.aiVerifiedBody")}
+          </AiDisclaimer>
 
           {/* Simple Regenerate CTA for users who scrolled to the bottom */}
           <div className="mt-8 flex flex-col items-center gap-4 pb-4">
