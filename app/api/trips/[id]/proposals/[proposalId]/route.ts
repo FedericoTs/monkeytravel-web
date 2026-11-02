@@ -5,21 +5,15 @@ import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 import type { TripProposalRouteContext } from "@/lib/api/route-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { approveProposal, type ApproveOutcome } from "@/lib/proposals/approve";
-import { publicProposer } from "@/lib/proposals/proposer";
-import { logReadError } from "@/lib/supabase/log-read-error";
-import type {
-  Activity,
-  ProposalVote,
-  ProposalType,
-  ProposalStatus,
-  ProposalVoteType,
-  ProposalResolutionMethod,
-  ProposalWithVotes,
-} from "@/types";
 import {
-  calculateProposalConsensus,
-  calculateVoteSummary,
-} from "@/lib/proposals/consensus";
+  PROPOSAL_COLUMNS,
+  VOTE_COLUMNS,
+  toProposalVote,
+  toProposalWithVotes,
+  tripVoterIds,
+} from "@/lib/proposals/read";
+import { logReadError } from "@/lib/supabase/log-read-error";
+import type { ProposalStatus, ProposalResolutionMethod } from "@/types";
 import { readJsonBody } from "@/lib/api/json-body";
 import { requireRow } from "@/lib/api/require-row";
 
@@ -58,134 +52,35 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
     );
     if (accessError) return accessError;
 
-    // Fetch proposal
     const { row: proposal, errorResponse: proposalError } = await requireRow("proposal", supabase
       .from("activity_proposals")
-      .select(`
-        id,
-        trip_id,
-        proposed_by,
-        type,
-        activity_data,
-        target_activity_id,
-        target_day,
-        target_time_slot,
-        note,
-        status,
-        resolved_at,
-        resolved_by,
-        resolution_method,
-        created_at,
-        updated_at,
-        expires_at
-      `)
+      .select(PROPOSAL_COLUMNS)
       .eq("id", proposalId)
       .eq("trip_id", tripId)
       .single(), "Proposal not found");
     if (proposalError) return proposalError;
 
-    // Fetch votes for this proposal
     const { data: votes, error: votesError } = await supabase
       .from("proposal_votes")
-      .select(`
-        id,
-        proposal_id,
-        user_id,
-        vote_type,
-        comment,
-        rank,
-        voted_at,
-        updated_at
-      `)
+      .select(VOTE_COLUMNS)
       .eq("proposal_id", proposalId)
       .order("voted_at", { ascending: true });
     if (votesError) throw votesError;
 
-    // Get total voter count
-    const { data: collaborators, error: collaboratorsError } = await supabase
-      .from("trip_collaborators")
-      .select("user_id, role")
-      .eq("trip_id", tripId)
-      .in("role", ["owner", "editor", "voter"]);
-    if (collaboratorsError) throw collaboratorsError;
-
-    const voterIds = new Set<string>();
-    if (trip?.user_id) voterIds.add(trip.user_id);
-    collaborators?.forEach((c) => voterIds.add(c.user_id));
-    const totalVoters = voterIds.size;
-
-    // Voter and proposer names come from public_profiles rather than an embed
-    // on users. Those people are mostly not the caller, and public.users only
-    // exposes the caller's own row — an embed there would not error, it would
-    // return null for everyone else and silently label them "Unknown".
-    const profileMap = await batchFetchUserProfiles(supabase, [
+    const voterIds = await tripVoterIds(supabase, tripId, trip?.user_id);
+    const profiles = await batchFetchUserProfiles(supabase, [
       ...(votes || []).map((v) => v.user_id as string),
       proposal.proposed_by as string,
     ]);
 
-    // Transform votes
-    const transformedVotes: ProposalVote[] = (votes || []).map((v) => {
-      const profile = profileMap.get(v.user_id as string) ?? null;
-
-      return {
-        id: v.id,
-        proposal_id: v.proposal_id,
-        user_id: v.user_id,
-        vote_type: v.vote_type as ProposalVoteType,
-        comment: v.comment,
-        rank: v.rank,
-        voted_at: v.voted_at,
-        updated_at: v.updated_at,
-        user: profile
-          ? {
-              display_name: profile.display_name || "Unknown",
-              avatar_url: profile.avatar_url || undefined,
-            }
-          : undefined,
-      };
-    });
-
-    // Calculate consensus
-    const voteSummary = calculateVoteSummary(transformedVotes);
-    const consensus = calculateProposalConsensus({
-      votes: transformedVotes,
-      totalVoters,
-      createdAt: proposal.created_at,
-      expiresAt: proposal.expires_at,
-      allVoterIds: Array.from(voterIds),
-    });
-
-    // Transform proposal
-    const currentUserVote = transformedVotes.find((v) => v.user_id === user.id);
-
-    const transformedProposal: ProposalWithVotes = {
-      id: proposal.id,
-      trip_id: proposal.trip_id,
-      proposed_by: proposal.proposed_by,
-      type: proposal.type as ProposalType,
-      activity_data: proposal.activity_data as Activity,
-      target_activity_id: proposal.target_activity_id || undefined,
-      target_day: proposal.target_day,
-      target_time_slot: proposal.target_time_slot as 'morning' | 'afternoon' | 'evening' | undefined,
-      note: proposal.note || undefined,
-      status: proposal.status as ProposalStatus,
-      resolved_at: proposal.resolved_at || undefined,
-      resolved_by: proposal.resolved_by || undefined,
-      resolution_method: proposal.resolution_method as ProposalResolutionMethod | undefined,
-      created_at: proposal.created_at,
-      updated_at: proposal.updated_at,
-      expires_at: proposal.expires_at,
-      proposer: publicProposer(profileMap.get(proposal.proposed_by as string)),
-      votes: transformedVotes,
-      vote_summary: voteSummary,
-      consensus,
-      current_user_vote: currentUserVote?.vote_type,
-    };
-
     return apiSuccess({
       success: true,
-      proposal: transformedProposal,
-      totalVoters,
+      proposal: toProposalWithVotes(proposal, (votes || []).map((v) => toProposalVote(v, profiles)), {
+        voterIds,
+        profiles,
+        callerId: user.id,
+      }),
+      totalVoters: voterIds.length,
     });
   } catch (error) {
     console.error("[Proposals] Error fetching proposal:", error);
