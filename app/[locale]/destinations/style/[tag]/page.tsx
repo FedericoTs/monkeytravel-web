@@ -11,7 +11,7 @@ import Footer from "@/components/Footer";
 import { DestinationGrid } from "@/components/destinations";
 import { Link } from "@/lib/i18n/routing";
 import { ogImages, twitterImages } from "@/lib/seo/og-image";
-import { buildAlternates, SITE_URL } from "@/lib/seo/canonical";
+import { buildAlternates, openGraphLocales, SITE_URL } from "@/lib/seo/canonical";
 
 
 // Style tags surfaced as landing pages. Pulled from the destination data —
@@ -49,9 +49,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const alternates = buildAlternates(`/destinations/style/${tag}`, { locale });
 
-  const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT", pt: "pt_BR" };
-  const ogLocale = ogLocaleMap[locale] ?? "en_US";
-  const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
 
   return {
     // `absolute` opts out of the root "%s | MonkeyTravel" template. The tag
@@ -69,8 +66,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: alternates.canonical,
       siteName: "MonkeyTravel",
       type: "website",
-      locale: ogLocale,
-      alternateLocale,
+      ...openGraphLocales(locale),
       images: ogImages(title),
     },
     twitter: { card: "summary_large_image", title, description, images: twitterImages },

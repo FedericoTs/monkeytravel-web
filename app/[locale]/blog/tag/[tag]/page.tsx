@@ -15,7 +15,7 @@ import Footer from "@/components/Footer";
 import { BlogCard } from "@/components/blog";
 import { Link } from "@/lib/i18n/routing";
 import { ogImages, twitterImages } from "@/lib/seo/og-image";
-import { SITE_URL } from "@/lib/seo/canonical";
+import { openGraphLocales, SITE_URL } from "@/lib/seo/canonical";
 
 
 // ============================================================================
@@ -72,9 +72,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     languages["x-default"] = languages[routing.defaultLocale];
   }
 
-  const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT", pt: "pt_BR" };
-  const ogLocale = ogLocaleMap[locale] ?? "en_US";
-  const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
 
   // Thin tag archives get noindex,follow — page renders for users who land
   // on it, but Google drops it from the index (matches the sitemap exclusion
@@ -96,8 +93,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: languages[locale],
       siteName: "MonkeyTravel",
       type: "website",
-      locale: ogLocale,
-      alternateLocale,
+      ...openGraphLocales(locale),
       images: ogImages(title),
     },
     twitter: {
