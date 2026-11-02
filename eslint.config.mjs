@@ -23,6 +23,10 @@ const eslintConfig = defineConfig([
       "react-hooks/purity": "warn",
       "react-hooks/immutability": "warn",
       "react-hooks/preserve-manual-memoization": "warn",
+      // The compiler crashed on this component, so none of its other checks
+      // ran there, the error-level ones included. Rewrite the construct it
+      // points at, e.g. a catch binding used in a callback, or an IIFE in JSX.
+      "react-hooks/invariant": "error",
       // A leading _ marks a binding unused on purpose; a rest sibling omits a key.
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_", destructuredArrayIgnorePattern: "^_", ignoreRestSiblings: true }],
     },
