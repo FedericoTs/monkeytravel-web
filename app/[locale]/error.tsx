@@ -22,6 +22,7 @@
  */
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { reportBoundaryError } from "@/lib/observability/report-boundary-error";
 import { Link } from "@/lib/i18n/routing";
 
@@ -31,6 +32,7 @@ interface ErrorProps {
 }
 
 export default function LocaleError({ error, reset }: ErrorProps) {
+  const t = useTranslations("common.errorPage");
   useEffect(() => {
     // Rich capture: keeps error.digest and the RAW stack string, so the event
     // stays diagnosable even when Sentry parses no frames — which is exactly
@@ -57,30 +59,25 @@ export default function LocaleError({ error, reset }: ErrorProps) {
             />
           </svg>
         </div>
-        <h1 className="text-xl font-semibold text-slate-900 mb-2">
-          Something went wrong
-        </h1>
-        <p className="text-slate-500 mb-6">
-          We hit an unexpected error loading this page. The team has been
-          notified — please try again or head back home.
-        </p>
+        <h1 className="text-xl font-semibold text-slate-900 mb-2">{t("title")}</h1>
+        <p className="text-slate-500 mb-6">{t("body")}</p>
         <div className="flex gap-3 justify-center">
           <button
             onClick={reset}
             className="px-5 py-2.5 bg-[var(--primary)] text-white rounded-lg font-medium text-sm hover:opacity-90 transition-opacity"
           >
-            Try again
+            {t("retry")}
           </button>
           <Link
             href="/"
             className="px-5 py-2.5 bg-white text-[var(--primary-ink)] border border-slate-200 rounded-lg font-medium text-sm hover:bg-slate-50 transition-colors"
           >
-            Go home
+            {t("home")}
           </Link>
         </div>
         {error.digest && (
           <p className="mt-6 text-xs text-slate-500">
-            Error ID: {error.digest}
+            {t("errorId", { digest: error.digest })}
           </p>
         )}
       </div>

@@ -2777,6 +2777,20 @@
       "speed": "Tempo mediano per un itinerario completo"
     }
   },
+  "errorPage": {
+    "title": "Qualcosa è andato storto",
+    "body": "Si è verificato un errore imprevisto nel caricare questa pagina. Il team è stato avvisato: riprova o torna alla home.",
+    "retry": "Riprova",
+    "home": "Torna alla home",
+    "errorId": "ID errore: {digest}"
+  },
+  "notFoundPage": {
+    "imageAlt": "404 - Pagina non trovata",
+    "body": "Sembra che tu abbia sbagliato strada. La pagina che cerchi non esiste o è stata spostata.",
+    "home": "Torna alla home",
+    "planTrip": "Oppure <link>pianifica un nuovo viaggio</link>",
+    "poweredBy": "Realizzato con <link>MonkeyTravel</link> AI"
+  },
   "referralLanding": {
     "friendFallback": "Un amico",
     "signIn": "Hai già un account? Accedi",
