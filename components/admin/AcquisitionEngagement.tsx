@@ -1,38 +1,8 @@
 "use client";
 
-interface AcquisitionEngagementProps {
-  acquisition: {
-    /**
-     * Entry channel of each SESSION, from our own page views — not GA4, and
-     * not page views. Since 2026-09-01 the GA tags obey the cookie banner and
-     * few visitors accept, so GA4's channel report shows a collapse that did
-     * not happen. This is consent-free: first-party,
-     * cookieless, aggregate.
-     */
-    channels: {
-      channel: string;
-      entrySessions: number;
-      reachedWizard: number;
-      wizardPct: number;
-      sharePct: number;
-    }[];
-    windowDays: number;
-  };
-  engagement: {
-    dau: number;
-    wau: number;
-    mau: number;
-    stickinessPct: number;
-    timeToFirstTrip: {
-      avgHours: number;
-      medianHours: number;
-      usersCount: number;
-      within1h: number;
-      within24h: number;
-      within7d: number;
-    };
-  };
-}
+import type { AdminStats } from "@/app/api/admin/stats/route";
+
+type AcquisitionEngagementProps = Pick<AdminStats, "acquisition" | "engagement">;
 
 const SOURCE_LABELS: Record<string, string> = {
   direct: "Direct",
