@@ -2,7 +2,7 @@ import { WIKIMEDIA_IMAGE_PATH, wikimediaCardSrc } from "@/lib/images/wikimedia-c
 
 /**
  * Wrap third-party image URLs in our same-origin proxy
- * (`/api/img/proxy?url=...`) when the host is known to occasionally
+ * (`/api/img/proxy/<encoded-url>`) when the host is known to occasionally
  * 504 to direct browser loads (Pexels via Cloudflare, the worst
  * offender). Passes through untouched for hosts not on the list
  * — including own-domain URLs, data: URIs, and anything that's
@@ -15,9 +15,8 @@ import { WIKIMEDIA_IMAGE_PATH, wikimediaCardSrc } from "@/lib/images/wikimedia-c
  * `<img src="https://images.pexels.com/...">` 504s twice in a row,
  * cache-bust retry included.
  *
- * Add hosts here as you discover them. Sync with the allowlist in
- * `app/api/img/proxy/route.ts` — that route rejects anything not
- * explicitly allowed.
+ * Add hosts here as you discover them, and to IMG_PROXY_HOSTS in
+ * `lib/api/img-proxy.ts`: the proxy rejects anything not on it.
  */
 
 const PROXIED_HOSTS = new Set<string>([
