@@ -7,10 +7,7 @@ import { getTranslations } from 'next-intl/server';
 const BASE_URL = 'https://monkeytravel.app';
 
 export async function generateMetadata(): Promise<Metadata> {
-  // **2026-05-25 fix**: was "Privacy Policy - MonkeyTravel" which combined
-  // with the root template "%s | MonkeyTravel" produced
-  // "Privacy Policy - MonkeyTravel | MonkeyTravel" (double brand). Drop
-  // the suffix here; let the root template own brand placement.
+  // No brand suffix: the root template "%s | MonkeyTravel" adds it.
   // The policy text is English in every locale, so every locale points at
   // the English page, like the author pages.
   return {
@@ -37,9 +34,8 @@ export default async function PrivacyPolicy({
   const lastUpdated = 'January 25, 2026';
   const contactEmail = 'privacy@monkeytravel.app';
 
-  // **2026-05-25**: page body is still English-only. Until we ship a
-  // properly reviewed legal translation, surface a banner on non-EN
-  // routes so IT/ES users aren't surprised by the English content.
+  // The body is English-only until a reviewed legal translation exists,
+  // so non-English routes show a banner saying so.
   const NON_EN_BANNER: Record<string, { msg: string; cta: string }> = {
     it: {
       msg: "La nostra Informativa sulla Privacy è attualmente disponibile solo in inglese. Stiamo lavorando alla traduzione.",

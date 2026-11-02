@@ -102,12 +102,10 @@ export default async function DestinationStylePage({ params }: PageProps) {
     { name: tagLabel, url: `${SITE_URL}${localePrefix}/destinations/style/${tag}` },
   ]);
 
-  // Editorial layer (2026-07-06): these pages sat in GSC's "Crawled -
-  // currently not indexed" bucket at ~330 words of card labels — a filtered
-  // grid with no unique text. Per-style intro + top picks + FAQs (authored
+  // Editorial layer: a filtered grid of card labels has no unique text for
+  // search engines to index. A per-style intro, top picks and FAQs (authored
   // per style in all 4 locales, style.content.* in destinations.json) give
-  // each of the 48 URLs real standalone content plus FAQ rich-result
-  // eligibility. Top picks reuse the destinations' existing localized
+  // each style URL standalone content and FAQ rich-result eligibility. Top picks reuse the destinations' existing localized
   // taglines — a unique combination per style, zero new strings.
   const intro = t(`style.content.${tag}.intro`);
   const faqItems = [1, 2].map((n) => ({

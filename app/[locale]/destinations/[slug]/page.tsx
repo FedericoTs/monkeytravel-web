@@ -29,11 +29,9 @@ import {
   DestinationSectionNav,
 } from "@/components/destinations";
 import { Link } from "@/lib/i18n/routing";
-// **2026-05-29 (/explore Week 3)**: surface real community trips on the
-// per-destination page. Highest-intent integration miss in the audit —
-// visitors browsing /destinations/paris should see actual itineraries for
-// Paris, not just static "sample day" copy. Lives below SampleDay so it
-// catches the user who liked the sample and wants real examples.
+// Real community trips on the destination page: someone browsing
+// /destinations/paris sees actual itineraries for Paris, below SampleDay, for
+// the visitor who liked the sample and wants real examples.
 import { fetchExploreFeed } from "@/lib/explore/fetcher";
 import TripCard from "@/components/explore/TripCard";
 
@@ -179,8 +177,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
   const relatedBlogSlugs = getBlogPostsForDestination(slug, 3);
   const { prev: prevDest, next: nextDest } = getPrevNextDestinations(slug, loc);
 
-  // /explore Week 3 (2026-05-29): pull live community trips for this
-  // destination. Server-side fetch with the default 60s revalidate
+  // Live community trips for this destination. Server-side fetch with the default 60s revalidate
   // — page is statically generated per locale so this hits the cached
   // response for ~all production traffic. Falls back to nothing when
   // the explore flag is off OR there are no matching trips.

@@ -98,11 +98,10 @@ export default function VisaCheckerForm({
               {t("selectPassport")}
             </option>
             {sortedOptions.map((opt) => (
-              // **2026-05-25 cosmetic fix**: Windows native <select> renders
+              // Country names only: Windows' native <select> renders
               // regional-indicator flag emojis as literal "us"/"jp" letters
-              // (no emoji font in the system control). Showing just the
-              // country name in the option avoids the gibberish; if we
-              // want flags later, we'll need a custom dropdown component.
+              // (no emoji font in the system control). Flags would need a
+              // custom dropdown.
               <option key={`from-${opt.iso2}`} value={opt.iso2}>
                 {opt.name}
               </option>

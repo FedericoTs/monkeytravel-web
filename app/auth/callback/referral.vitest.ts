@@ -3,12 +3,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 /**
  * Referral credit at the auth callback.
  *
- * A fresh Google/Apple account never reached the only attach on the OAuth
- * path: it sits in the isNewUser block, which cannot run because
- * handle_new_user creates public.users first. Until 2026-09-25 no Google
- * signup was credited to the friend whose link brought them. The credit now
- * happens on the account's FIRST arrival, on both paths, and never for a
- * returning login, whose link may carry a code from a trip it looked at.
+ * The isNewUser block cannot run in production (handle_new_user creates
+ * public.users first), so a fresh Google/Apple account is credited outside
+ * it. The credit happens on the account's FIRST arrival, on both paths, and
+ * never for a returning login, whose link may carry a code from a trip it
+ * looked at.
  * Supabase is mocked; the route runs for real.
  */
 

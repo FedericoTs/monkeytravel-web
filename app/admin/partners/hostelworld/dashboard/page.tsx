@@ -12,9 +12,8 @@ export const metadata: Metadata = {
 /**
  * /admin/partners/hostelworld/dashboard
  *
- * Internal report surface for the Hostelworld partner-sync conversation.
- * Shipped 2026-05-29 as Phase C of the Hostelworld partnership push (Phase
- * A = live counter on /backpacker, Phase B = UTM signup attribution).
+ * Internal report for the Hostelworld partnership, next to the live counter
+ * on /backpacker and UTM signup attribution.
  *
  * Mirrors the existing /admin auth pattern: server component, isAdmin(email)
  * gate, returns the dashboard client component with no per-user data —

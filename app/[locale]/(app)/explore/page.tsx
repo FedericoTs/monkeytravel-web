@@ -25,14 +25,10 @@ import { ogImages } from "@/lib/seo/og-image";
 const SITE_URL = "https://monkeytravel.app";
 
 /**
- * /explore — public UGC + seed-data trip feed.
- *
- * Rewritten 2026-05-28 (Week 2 closure, task #117): replaced the legacy
- * client-only `ExploreClient` with a server-rendered page that consumes
- * `fetchExploreFeed` + the new `TripCard` (engagement counts, Backpacker
- * badge, Editor's Pick) + URL-state `ExploreFilters`. This is the
- * surface the publish auto-prompt feeds into; the legacy renderer was
- * missing the new fields the auto-prompt depends on.
+ * /explore — public UGC + seed-data trip feed: a server-rendered page over
+ * `fetchExploreFeed`, with `TripCard` (engagement counts, Backpacker badge,
+ * Editor's Pick) and URL-state `ExploreFilters`. The publish auto-prompt
+ * sends people here.
  *
  * Architecture:
  *   - Server-rendered grid (good for SEO + initial paint with 7+ seeds)
@@ -47,27 +43,19 @@ const SITE_URL = "https://monkeytravel.app";
 // copy would be a snapshot from the deploy.
 export const dynamic = "force-dynamic";
 
-// Locale-aware metadata generator. The previous static export hardcoded
-// English titles, breaking SEO + hreflang signals for /it /es. Localized
-// 2026-05-28 (bug-fix sweep). Hardened 2026-05-29 (tasks #209 + #210):
-//   - setRequestLocale is now called BEFORE getTranslations so the
-//     request scope is set for metadata resolution; without it next-intl
-//     can render with a fallback locale and Next's metadata cache may
-//     drop dynamically-built `alternates.languages` keys.
-//   - `alternates.languages` is now an inline object literal (matching
-//     the homepage + weekend-trip-planner pattern that ships hreflang
-//     correctly), not a computed for-loop. Computed bracket-assignment
-//     on a Record<string, string> was the only shape difference between
-//     this page and the pages where hreflang emits — swap eliminates the
-//     variable while we keep the parent route's default robots policy.
-//   - `robots` is now explicit. The root layout already publishes
-//     `index, follow`, but stating it on this leaf prevents any parent
-//     metadata cascade or Next.js error-fallback from silently turning
-//     /explore into `noindex` (which is what the #210 probe caught on
-//     /it/explore: the conflicting tags came from an error-boundary
-//     render falling back to noindex on top of the root's `index, follow`).
-//     /explore is the public discovery surface for /it /es /en — must
-//     be indexable.
+// Locale-aware metadata, so /it and /es keep their own titles and hreflang:
+//   - setRequestLocale runs BEFORE getTranslations, so the request scope is
+//     set for metadata resolution; without it next-intl can render with a
+//     fallback locale and Next's metadata cache may drop dynamically-built
+//     `alternates.languages` keys.
+//   - `alternates.languages` is an inline object literal, like the homepage
+//     and the weekend-trip-planner, whose hreflang emits; a computed
+//     bracket-assignment on a Record<string, string> did not.
+//   - `robots` is explicit. The root layout already publishes
+//     `index, follow`, but stating it here keeps a parent metadata cascade
+//     or an error-boundary render from turning /explore into `noindex`.
+//     /explore is the public discovery surface in every locale: it must be
+//     indexable.
 export async function generateMetadata({
   params,
 }: {
