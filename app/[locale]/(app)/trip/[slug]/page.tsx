@@ -8,6 +8,7 @@ import { signedInUserId } from "@/lib/supabase/server";
 import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta } from "@/types";
 import SharedTripView from "../../shared/[token]/SharedTripView";
+import { sharedViewTrip } from "../../shared/[token]/view-trip";
 import { computeTripDayState } from "@/lib/trip/live";
 import TripEngagementSection from "@/components/explore/TripEngagementSection";
 import { getTripDestination } from "@/lib/trips/destination";
@@ -212,17 +213,7 @@ export default async function PublicTripPage({ params }: PageProps) {
     signedInUserId(),
   ]);
 
-  const budget = trip.budget as { total: number; currency: string } | null;
   const tripMeta = (trip.trip_meta as TripMeta) || {};
-  // An EMPTY packing_list array is truthy, so a bare `||` never reached the
-  // trip_meta fallback — a trip with packing_list=[] showed no packing at all
-  // (same bug fixed in trips/[id]/page.tsx). Prefer a non-empty column, else
-  // the suggestions.
-  const packingColumn = trip.packing_list as string[] | null | undefined;
-  const packingList =
-    (Array.isArray(packingColumn) && packingColumn.length > 0 ? packingColumn : tripMeta.packing_suggestions) || [];
-  const cachedTravelDistances = tripMeta.travel_distances;
-  const cachedTravelHash = tripMeta.travel_distances_hash;
 
   const destination = getTripDestination(trip);
 
@@ -282,22 +273,7 @@ export default async function PublicTripPage({ params }: PageProps) {
           endDate: trip.end_date,
           timeZone: tripMeta.timezone ?? null,
         })}
-        trip={{
-          id: trip.id,
-          title: trip.title,
-          description: trip.description,
-          status: trip.status,
-          startDate: trip.start_date,
-          endDate: trip.end_date,
-          tags: trip.tags,
-          budget,
-          itinerary,
-          sharedAt: trip.shared_at,
-          meta: tripMeta,
-          packingList,
-          cachedTravelDistances,
-          cachedTravelHash,
-        }}
+        trip={sharedViewTrip(trip, itinerary)}
         // No share token: anyone can open this page, so it renders read-only
         // and shares and saves by its own URL and slug.
         publicPage={{ slug, url: tripUrl }}

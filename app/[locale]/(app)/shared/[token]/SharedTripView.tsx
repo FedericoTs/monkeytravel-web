@@ -86,6 +86,9 @@ const TripMap = dynamic(() => import("@/components/TripMap"), {
 // PDF/iCal generation libs out of the initial /shared/[token] bundle.
 const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: false });
 
+/** The trip as the view shows it (see view-trip.ts for a stored row's). */
+export type SharedTrip = SharedTripViewProps["trip"];
+
 interface SharedTripViewProps {
   trip: {
     id: string;
