@@ -12,6 +12,7 @@ import type { TripCreationParams, Activity, ItineraryDay, GeneratedItinerary } f
 import type { Coordinates } from "@/lib/utils/geo";
 import { generateActivityId } from "./utils/activity-id";
 import { getModelEndpointForPurpose } from "./ai/model-router";
+import { tripSpanDays } from "@/lib/dates/iso-date";
 
 // Maps Grounding API endpoint — routed through the model-router so the
 // endpoint stays in sync with the rest of the codebase. The router maps
@@ -165,11 +166,7 @@ function getDestinationCoordinates(destination: string): Coordinates {
  * Optimized for extracting places with grounding metadata
  */
 function buildGroundingPrompt(params: TripCreationParams): string {
-  const duration =
-    Math.ceil(
-      (new Date(params.endDate).getTime() - new Date(params.startDate).getTime()) /
-        (1000 * 60 * 60 * 24)
-    ) + 1;
+  const duration = tripSpanDays(params.startDate, params.endDate);
 
   const vibeLabels: Record<string, string> = {
     adventure: "adventure activities and outdoor experiences",
@@ -356,11 +353,7 @@ function parseGroundedItinerary(
   places: GroundedPlace[],
   params: TripCreationParams
 ): ItineraryDay[] {
-  const duration =
-    Math.ceil(
-      (new Date(params.endDate).getTime() - new Date(params.startDate).getTime()) /
-        (1000 * 60 * 60 * 24)
-    ) + 1;
+  const duration = tripSpanDays(params.startDate, params.endDate);
 
   // Create a map of place titles (lowercase) to their grounded data
   const placeMap = new Map<string, GroundedPlace>();

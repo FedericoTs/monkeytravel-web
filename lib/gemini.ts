@@ -48,16 +48,6 @@ export function itineraryTimeoutMs(days?: number): number {
   return Math.min(90_000, AI_REQUEST_TIMEOUT_MS + (days - 7) * 6_000);
 }
 
-/** Days a params object covers, inclusive. */
-function tripDayCount(p: { startDate: string; endDate: string }): number {
-  return (
-    Math.ceil(
-      (new Date(p.endDate).getTime() - new Date(p.startDate).getTime()) /
-        (1000 * 60 * 60 * 24)
-    ) + 1
-  );
-}
-
 /**
  * Backfill a missing or partial trip_summary so downstream consumers
  * (wizard render, persistTrip) don't crash when the model truncates the
@@ -711,12 +701,7 @@ export function buildStaticChatHistory(systemPrompt: string) {
 }
 
 function buildUserPrompt(params: TripCreationParams, options?: BuildPromptOptions): string {
-  const totalDuration =
-    Math.ceil(
-      (new Date(params.endDate).getTime() -
-        new Date(params.startDate).getTime()) /
-        (1000 * 60 * 60 * 24)
-    ) + 1;
+  const totalDuration = tripSpanDays(params.startDate, params.endDate);
 
   const duration = totalDuration;
 
@@ -931,7 +916,7 @@ async function generateItineraryInternal(
   try {
     const result = await withTimeout(
       chat.sendMessage(userPrompt),
-      itineraryTimeoutMs(tripDayCount(params)),
+      itineraryTimeoutMs(tripSpanDays(params.startDate, params.endDate)),
       "Itinerary generation"
     );
     const response = result.response;

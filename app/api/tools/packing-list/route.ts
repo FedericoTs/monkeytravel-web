@@ -9,6 +9,7 @@ import {
 } from "@/lib/ai/packing-list";
 import { createClient } from "@/lib/supabase/server";
 import { readJsonBody } from "@/lib/api/json-body";
+import { tripSpanDays } from "@/lib/dates/iso-date";
 
 /**
  * POST /api/tools/packing-list
@@ -131,11 +132,7 @@ export async function POST(request: NextRequest) {
   if (new Date(endDate).getTime() < new Date(startDate).getTime()) {
     return errors.badRequest("endDate must be on or after startDate");
   }
-  const days =
-    Math.ceil(
-      (new Date(endDate).getTime() - new Date(startDate).getTime()) /
-        (1000 * 60 * 60 * 24)
-    ) + 1;
+  const days = tripSpanDays(startDate, endDate);
   if (days > 30) {
     return errors.badRequest("Trip length capped at 30 days for the packing tool");
   }

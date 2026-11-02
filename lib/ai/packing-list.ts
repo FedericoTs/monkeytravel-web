@@ -14,6 +14,7 @@
 
 import { logCacheMetrics } from "@/lib/gemini";
 import { generateContentResilient } from "@/lib/ai/resilient";
+import { tripSpanDays } from "@/lib/dates/iso-date";
 
 export interface PackingListInput {
   destination: string;
@@ -96,11 +97,7 @@ const CONTEXT_NOTE_EXAMPLE: Record<
 };
 
 function buildPrompt(input: PackingListInput): string {
-  const days =
-    Math.ceil(
-      (new Date(input.endDate).getTime() - new Date(input.startDate).getTime()) /
-        (1000 * 60 * 60 * 24)
-    ) + 1;
+  const days = tripSpanDays(input.startDate, input.endDate);
   const locale = input.locale || "en";
   const language = LOCALE_NAME[locale];
   const contextExample = CONTEXT_NOTE_EXAMPLE[locale];
