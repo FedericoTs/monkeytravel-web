@@ -3,6 +3,7 @@
 import { createBrowserClient } from "@supabase/ssr";
 
 import { migrateAuthStorageOnce } from "@/lib/native/migrate-auth";
+import { isNativePlatform } from "@/lib/native/platform";
 import { capacitorPreferencesStorage } from "@/lib/supabase/native-storage";
 import { SUPABASE_AUTH_COOKIE_OPTIONS } from "@/lib/supabase/cookie-options";
 
@@ -10,14 +11,6 @@ import { SUPABASE_AUTH_COOKIE_OPTIONS } from "@/lib/supabase/cookie-options";
 // constructed. Self-gated to native + already-migrated, so it's a
 // near-zero-cost no-op on web.
 migrateAuthStorageOnce();
-
-function isNativePlatform(): boolean {
-  if (typeof window === "undefined") return false;
-  const cap = (
-    window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }
-  ).Capacitor;
-  return Boolean(cap?.isNativePlatform?.());
-}
 
 export function createClient() {
   // On the Capacitor native shell, swap WebView localStorage for the

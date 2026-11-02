@@ -18,25 +18,14 @@
  * app. Avoids loading native plugin code in the web bundle.
  */
 
+import { isNativePlatform } from "./platform";
+
 interface ShareOptions {
   title?: string;
   text?: string;
   url: string;
   /** Native dialog title (Android). Default "Share". */
   dialogTitle?: string;
-}
-
-/**
- * Detect whether we're running inside the Capacitor native shell. The
- * `Capacitor` global is injected by the runtime; in a plain browser
- * it's undefined.
- */
-function isNativePlatform(): boolean {
-  if (typeof window === "undefined") return false;
-  const cap = (
-    window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }
-  ).Capacitor;
-  return Boolean(cap?.isNativePlatform?.());
 }
 
 /**

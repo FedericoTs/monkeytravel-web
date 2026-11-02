@@ -14,6 +14,8 @@
  * An open modal does not intercept it: back pops the route under it.
  */
 
+import { isNativePlatform } from "./platform";
+
 /**
  * Install the global handler. Called once from the layout-level
  * client island. Dynamic-imports @capacitor/app so the plugin code
@@ -24,10 +26,7 @@ export async function installBackButtonHandler(): Promise<() => void> {
 
   // Detect Capacitor — bail in the regular web context, where the
   // browser's back button already does the right thing.
-  const cap = (
-    window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }
-  ).Capacitor;
-  if (!cap?.isNativePlatform?.()) return () => undefined;
+  if (!isNativePlatform()) return () => undefined;
 
   try {
     const { App } = await import("@capacitor/app");

@@ -29,17 +29,11 @@
  * Preferences entry over the legacy localStorage one.
  */
 
+import { isNativePlatform } from "./platform";
+
 const MIGRATION_FLAG_KEY = "mt_auth_migrated_v1";
 
 let migrationPromise: Promise<void> | null = null;
-
-function isNativePlatform(): boolean {
-  if (typeof window === "undefined") return false;
-  const cap = (
-    window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }
-  ).Capacitor;
-  return Boolean(cap?.isNativePlatform?.());
-}
 
 async function runMigration(): Promise<void> {
   if (!isNativePlatform()) return;

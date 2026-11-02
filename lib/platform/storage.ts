@@ -32,24 +32,12 @@
  * adding the async hop is just noise.
  */
 
+import { isNativePlatform } from "@/lib/native/platform";
+
 export interface Storage {
   get(key: string): Promise<string | null>;
   set(key: string, value: string): Promise<void>;
   remove(key: string): Promise<void>;
-}
-
-/**
- * True when we're running inside the Capacitor native shell (iOS or
- * Android WebView). Matches the pattern used by other lib/native
- * helpers — the `Capacitor` global is injected by the runtime; in a
- * plain browser it's undefined.
- */
-function isNative(): boolean {
-  if (typeof window === "undefined") return false;
-  const cap = (
-    window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }
-  ).Capacitor;
-  return Boolean(cap?.isNativePlatform?.());
 }
 
 /**
@@ -130,9 +118,9 @@ const capacitorPrefs: Storage = {
 /**
  * The platform-appropriate storage backend.
  *
- * Note: the `isNative()` check runs at module-load time on the
+ * Note: the `isNativePlatform()` check runs at module-load time on the
  * client (the file is "use client"-imported through the call sites).
- * On the server `isNative()` returns false, so SSR gets the web
+ * On the server `isNativePlatform()` returns false, so SSR gets the web
  * wrapper — which itself is a no-op when `window` is undefined.
  */
-export const prefs: Storage = isNative() ? capacitorPrefs : webPrefs;
+export const prefs: Storage = isNativePlatform() ? capacitorPrefs : webPrefs;

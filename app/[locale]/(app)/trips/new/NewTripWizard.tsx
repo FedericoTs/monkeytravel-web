@@ -261,6 +261,7 @@ import { newTripTitle } from "@/lib/trips/title";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { applyAssistantEdits, type AssistantDayEdit } from "@/lib/trips/day-edit-merge";
 import { createUndoLedger } from "@/lib/trip/assistant-undo";
+import { isNativePlatform } from "@/lib/native/platform";
 import { planDateChange, moveItineraryDates } from "@/lib/trips/change-dates";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
@@ -301,19 +302,6 @@ function formatDateRangeLocalized(startISO: string, endISO: string, locale: stri
   } catch {
     return `${startISO} – ${endISO}`;
   }
-}
-
-// True inside the Capacitor native shell (iOS/Android WebView). Inline check
-// mirrors lib/platform/storage.ts — the `Capacitor`
-// global is injected by the runtime; in a plain browser it's undefined.
-// Used to skip the beforeunload leave-guard: WebViews don't render the
-// native leave dialog and some hang on preventDefault'd beforeunload.
-function isCapacitorNative(): boolean {
-  if (typeof window === "undefined") return false;
-  const cap = (
-    window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }
-  ).Capacitor;
-  return Boolean(cap?.isNativePlatform?.());
 }
 
 // Small amber "● Not saved" pill rendered next to the Save button (desktop
@@ -1917,7 +1905,7 @@ export default function NewTripPage({
   // navigations never fire beforeunload, so in-app moves are unaffected.
   useEffect(() => {
     if (!hasResult || !isUnsaved || showAuthModal) return;
-    if (isCapacitorNative()) return;
+    if (isNativePlatform()) return;
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
       e.returnValue = "";
