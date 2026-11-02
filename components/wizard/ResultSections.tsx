@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import { usePaceLabel } from "@/lib/i18n/pace";
 import { useCurrency } from "@/lib/locale";
+import { activityDomId } from "@/lib/trip/activity-dom-id";
 import type { Activity, BookingLink, GeneratedItinerary } from "@/types";
 
 // Sections of the wizard's result view that only render the generated
@@ -93,65 +94,57 @@ export function ResultTimeline({ activities, currency }: { activities: Activity[
   const { convert } = useCurrency();
   return (
     <div className="relative pl-8 border-l-2 border-slate-200 space-y-2">
-      {activities.map((activity, idx) => {
-        const activityDomId = activity.id
-          ? `activity-${activity.id}`
-          : `activity-${(activity.name || "unknown")
-              .toLowerCase()
-              .replace(/[^a-z0-9]+/g, "-")
-              .slice(0, 60)}`;
-        return (
-          <div key={activity.id || idx} id={activityDomId} className="relative scroll-mt-24">
-            <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary)] border-4 border-white shadow" />
-            <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-                    <span className="font-medium">{activity.start_time}</span>
-                    {activity.duration_minutes && (
-                      <>
-                        <span>·</span>
-                        <span>{activity.duration_minutes} min</span>
-                      </>
-                    )}
-                  </div>
-                  <h4 className="font-semibold text-slate-900">
-                    {activity.locked && (
-                      <span className="mr-1" title={t("wizard.anchors.lockedBadge")} aria-label={t("wizard.anchors.lockedBadge")}>
-                        📌
-                      </span>
-                    )}
-                    {activity.name}
-                  </h4>
-                  {activity.description && <p className="text-sm text-slate-600 mt-1 line-clamp-2">{activity.description}</p>}
-                  {(activity.address || activity.location) && (
-                    <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-500">
-                      <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <span className="truncate">{activity.address || activity.location}</span>
-                    </div>
+      {activities.map((activity, idx) => (
+        <div key={activity.id || idx} id={activityDomId(activity)} className="relative scroll-mt-24">
+          <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary)] border-4 border-white shadow" />
+          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
+                  <span className="font-medium">{activity.start_time}</span>
+                  {activity.duration_minutes && (
+                    <>
+                      <span>·</span>
+                      <span>{activity.duration_minutes} min</span>
+                    </>
                   )}
                 </div>
-                {activity.estimated_cost?.amount != null && (
-                  <div className="text-right shrink-0">
-                    <div className="font-medium text-slate-900 text-sm">
-                      {convert(activity.estimated_cost.amount, activity.estimated_cost.currency || currency).formatted}
-                    </div>
-                    <span className="text-xs text-slate-500 capitalize">{typeLabel(activity.type)}</span>
+                <h4 className="font-semibold text-slate-900">
+                  {activity.locked && (
+                    <span className="mr-1" title={t("wizard.anchors.lockedBadge")} aria-label={t("wizard.anchors.lockedBadge")}>
+                      📌
+                    </span>
+                  )}
+                  {activity.name}
+                </h4>
+                {activity.description && <p className="text-sm text-slate-600 mt-1 line-clamp-2">{activity.description}</p>}
+                {(activity.address || activity.location) && (
+                  <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-500">
+                    <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="truncate">{activity.address || activity.location}</span>
                   </div>
                 )}
               </div>
+              {activity.estimated_cost?.amount != null && (
+                <div className="text-right shrink-0">
+                  <div className="font-medium text-slate-900 text-sm">
+                    {convert(activity.estimated_cost.amount, activity.estimated_cost.currency || currency).formatted}
+                  </div>
+                  <span className="text-xs text-slate-500 capitalize">{typeLabel(activity.type)}</span>
+                </div>
+              )}
             </div>
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 }

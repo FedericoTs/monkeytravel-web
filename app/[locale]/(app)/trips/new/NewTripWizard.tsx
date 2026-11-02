@@ -250,6 +250,7 @@ import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { applyAssistantEdits, type AssistantDayEdit } from "@/lib/trips/day-edit-merge";
 import { createUndoLedger } from "@/lib/trip/assistant-undo";
 import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
+import { activityDomId } from "@/lib/trip/activity-dom-id";
 import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { ResultBookingLinks, ResultPacking, ResultStats, ResultTimeline } from "@/components/wizard/ResultSections";
@@ -3522,17 +3523,10 @@ export default function NewTripPage({
                 destination={fullDestination}
                 className="h-[350px]"
                 onActivityClick={(activity) => {
-                  // Map pin click → scroll to the matching activity card. The
-                  // InfoWindow "View Details" button calls this; ActivityCard
-                  // exposes a stable `id` attribute we target here.
-                  const slug =
-                    activity.id
-                      ? `activity-${activity.id}`
-                      : `activity-${(activity.name || "unknown")
-                          .toLowerCase()
-                          .replace(/[^a-z0-9]+/g, "-")
-                          .slice(0, 60)}`;
-                  const el = document.getElementById(slug);
+                  // Map pin click → scroll to the matching activity. The
+                  // InfoWindow "View Details" button calls this; the card and
+                  // the timeline row both carry activityDomId() as their id.
+                  const el = document.getElementById(activityDomId(activity));
                   if (el) {
                     el.scrollIntoView({ behavior: "smooth", block: "start" });
                     el.classList.add("ring-2", "ring-[var(--primary)]");
