@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Search, X, MapPin, Clock, Loader2, ChevronLeft, AlertCircle } from "lucide-react";
+import { Search, X, Loader2, ChevronLeft, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import type { Activity, ProposalType } from "@/types";
 import BaseModal from "@/components/ui/BaseModal";
@@ -10,6 +10,7 @@ import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import { useActivitySearch, type ActivitySearchResult } from "@/hooks/useActivitySearch";
 import { formatDuration } from "@/lib/datetime/duration";
+import { ActivityResultRow } from "@/components/trip/ActivityResultRow";
 
 interface ProposeActivitySheetProps {
   isOpen: boolean;
@@ -288,54 +289,7 @@ export function ProposeActivitySheet({
             <div className="max-h-64 overflow-y-auto space-y-2">
               {results.length > 0 ? (
                 results.map((result) => (
-                  <button
-                    key={result.id}
-                    onClick={() => handleSelectResult(result)}
-                    className="w-full text-left p-3 rounded-lg hover:bg-slate-50
-                               transition-colors border border-slate-100 group"
-                  >
-                    <div className="flex items-start gap-3">
-                      {result.image_url ? (
-                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
-                          <Image
-                            src={proxyImageUrl(result.image_url) || result.image_url}
-                            alt={result.name}
-                            width={48}
-                            height={48}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                          <MapPin className="w-5 h-5 text-slate-500" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-slate-800 truncate">
-                            {result.name}
-                          </span>
-                          {result.source === "google" && (
-                            <span className="px-1.5 py-0.5 text-[10px] bg-blue-100 text-blue-700 rounded">
-                              Google
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
-                          <span className="capitalize">{typeLabel(result.type)}</span>
-                          {result.duration_minutes && (
-                            <>
-                              <span>•</span>
-                              <span className="flex items-center gap-0.5">
-                                <Clock className="w-3 h-3" />
-                                {formatDuration(result.duration_minutes)}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </button>
+                  <ActivityResultRow key={result.id} result={result} onSelect={() => handleSelectResult(result)} />
                 ))
               ) : !isSearching && searchQuery.length >= 2 ? (
                 <div className="text-center py-6 text-slate-500">
