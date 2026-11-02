@@ -14,6 +14,10 @@ import {
 import LastUpdated from '@/components/seo/LastUpdated';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import type { Metadata } from 'next';
+import LandingWhatIs from '@/components/landing/LandingWhatIs';
+import LandingFeatures, { type LandingFeature } from '@/components/landing/LandingFeatures';
+import LandingHowItWorks from '@/components/landing/LandingHowItWorks';
+import LandingFaq from '@/components/landing/LandingFaq';
 
 const BASE_URL = 'https://monkeytravel.app';
 /**
@@ -103,15 +107,9 @@ export async function generateMetadata({
   };
 }
 
-const FEATURE_KEYS = [
-  'dayAllocation',
-  'journeyOverview',
-  'citiesAndDays',
-  'groupVoting',
-] as const;
-
-const FEATURE_CONFIGS = [
+const FEATURES: LandingFeature[] = [
   {
+    key: 'dayAllocation',
     color: 'bg-amber-50 text-amber-500',
     icon: (
       <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -120,6 +118,7 @@ const FEATURE_CONFIGS = [
     ),
   },
   {
+    key: 'journeyOverview',
     color: 'bg-blue-50 text-blue-500',
     icon: (
       <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -128,6 +127,7 @@ const FEATURE_CONFIGS = [
     ),
   },
   {
+    key: 'citiesAndDays',
     color: 'bg-emerald-50 text-emerald-500',
     icon: (
       <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -136,6 +136,7 @@ const FEATURE_CONFIGS = [
     ),
   },
   {
+    key: 'groupVoting',
     color: 'bg-rose-50 text-rose-500',
     icon: (
       <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -288,123 +289,13 @@ export default async function MultiCityTripPlannerPage({
           </div>
         </section>
 
-        {/* ================================================================
-            WHAT IS … — definitional block
-            ================================================================
-            One self-contained answer to the page's own category question,
-            sized to the 134-167 word band extraction models favour. The
-            landing pages previously opened on a benefit claim and never
-            defined the thing they sell, so they could not answer a "what is"
-            query at all. See docs/GEO-ANALYSIS.md.
-
-            Copy lives under `whatIs` in this page's messages/*.json, in all
-            four locales — keep it inside that band when editing.
-            ================================================================ */}
-        <section className="py-20 bg-white">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-6">
-              {t('whatIs.heading')}
-            </h2>
-            <div className="space-y-4 text-lg leading-relaxed text-[var(--foreground-muted)]">
-              <p>{t('whatIs.definition')}</p>
-              <p>{t('whatIs.distinguish')}</p>
-              <p>{t('whatIs.product')}</p>
-              <p>{t('whatIs.example')}</p>
-              <p>{t('whatIs.honest')}</p>
-            </div>
-          </div>
-        </section>
+        <LandingWhatIs namespace="multiCityTripPlanner" />
 
         <LiveStats locale={locale} />
 
-        {/* ================================================================
-            FEATURES GRID
-            ================================================================ */}
-        <section id="features" className="py-24 bg-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-grid-pattern-accent opacity-30" />
+        <LandingFeatures namespace="multiCityTripPlanner" features={FEATURES} columns={4} />
 
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 text-[var(--foreground)] text-sm font-semibold mb-6">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                </svg>
-                {t('features.title')}
-              </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
-                {t('features.title')}
-              </h2>
-              <p className="text-lg text-[var(--foreground-muted)] max-w-2xl mx-auto">
-                {t('features.subtitle')}
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {FEATURE_KEYS.map((key, i) => (
-                <div
-                  key={key}
-                  className="group relative p-8 rounded-3xl bg-[var(--background-alt)] border border-gray-100 card-hover"
-                >
-                  <div className={`w-14 h-14 rounded-2xl ${FEATURE_CONFIGS[i].color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                    {FEATURE_CONFIGS[i].icon}
-                  </div>
-                  <h3 className="text-xl font-semibold text-[var(--foreground)] mb-3">
-                    {t(`features.items.${key}.title`)}
-                  </h3>
-                  <p className="text-[var(--foreground-muted)] leading-relaxed">
-                    {t(`features.items.${key}.description`)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ================================================================
-            HOW IT WORKS
-            ================================================================ */}
-        <section id="how-it-works" className="py-24 bg-[var(--background-alt)]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/5 text-[var(--primary-ink)] text-sm font-semibold mb-6">
-                {t('howItWorks.title')}
-              </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[var(--foreground)] mb-6 tracking-tight">
-                {t('howItWorks.title')}
-              </h2>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              {STEP_CONFIGS.map((item, index) => (
-                <div key={item.key} className="relative text-center">
-                  {/* Connector line */}
-                  {index < 2 && (
-                    <div className="hidden md:block absolute top-12 left-[60%] w-full h-0.5 bg-gradient-to-r from-[var(--accent)] to-transparent" />
-                  )}
-
-                  {/* Step icon */}
-                  <div className="relative inline-flex items-center justify-center w-24 h-24 mb-8">
-                    <div className="absolute inset-0 bg-[var(--accent)]/10 rounded-3xl rotate-6" />
-                    <div className="absolute inset-0 bg-white rounded-3xl shadow-lg border border-gray-100" />
-                    <div className="relative text-[var(--primary-ink)]">
-                      {item.icon}
-                    </div>
-                    <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-[var(--accent)] text-[var(--foreground)] font-bold text-sm flex items-center justify-center shadow-lg">
-                      {index + 1}
-                    </div>
-                  </div>
-
-                  <h3 className="text-xl font-bold text-[var(--foreground)] mb-3">
-                    {t(`howItWorks.steps.${item.key}.title`)}
-                  </h3>
-                  <p className="text-[var(--foreground-muted)] leading-relaxed max-w-xs mx-auto">
-                    {t(`howItWorks.steps.${item.key}.description`)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <LandingHowItWorks namespace="multiCityTripPlanner" steps={STEP_CONFIGS} />
 
         {/* ================================================================
             POPULAR MULTI-CITY ROUTES
@@ -455,54 +346,7 @@ export default async function MultiCityTripPlannerPage({
           </div>
         </section>
 
-        {/* ================================================================
-            FAQ
-            ================================================================ */}
-        <section className="py-24 bg-[var(--background-alt)]">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--primary)]/5 text-[var(--primary-ink)] text-sm font-semibold mb-6">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {t('faq.badge')}
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-4 tracking-tight">
-                {t('faq.title')}
-              </h2>
-            </div>
-
-            <div className="space-y-4">
-              {FAQ_KEYS.map((key) => (
-                <details
-                  key={key}
-                  className="group bg-white rounded-2xl overflow-hidden shadow-sm"
-                >
-                  <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                    <h3 className="font-semibold text-[var(--foreground)] pr-4">
-                      {t(`faq.items.${key}.question`)}
-                    </h3>
-                    <div className="w-8 h-8 rounded-full bg-[var(--background-alt)] flex items-center justify-center flex-shrink-0 group-open:bg-[var(--accent)] transition-colors shadow-sm">
-                      <svg
-                        className="w-4 h-4 text-[var(--foreground-muted)] group-open:text-[var(--primary-ink)] group-open:rotate-180 transition-all"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </summary>
-                  <div className="px-6 pb-6">
-                    <p className="text-[var(--foreground-muted)] leading-relaxed">
-                      {t(`faq.items.${key}.answer`)}
-                    </p>
-                  </div>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
+        <LandingFaq title={t('faq.title')} items={faqItems} badge={t('faq.badge')} />
 
         {/* ================================================================
             FINAL CTA

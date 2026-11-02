@@ -24,6 +24,7 @@ import type { Metadata } from "next";
 // TripCard) but had no link from /backpacker — closing the loop.
 import TripCard from "@/components/explore/TripCard";
 import type { ExploreFeedResponse } from "@/lib/explore/types";
+import LandingWhatIs from "@/components/landing/LandingWhatIs";
 
 // Fixed origin, not the request's host: the page prerenders, so these fetches
 // run once at build time against production's public API and the page shows
@@ -320,32 +321,7 @@ export default async function BackpackerLandingPage({
           </div>
         </section>
 
-        {/* ================================================================
-            WHAT IS … — definitional block
-            ================================================================
-            One self-contained answer to the page's own category question,
-            sized to the 134-167 word band extraction models favour. The
-            landing pages previously opened on a benefit claim and never
-            defined the thing they sell, so they could not answer a "what is"
-            query at all. See docs/GEO-ANALYSIS.md.
-
-            Copy lives under `whatIs` in this page's messages/*.json, in all
-            four locales — keep it inside that band when editing.
-            ================================================================ */}
-        <section className="py-20 bg-white">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-6">
-              {t('whatIs.heading')}
-            </h2>
-            <div className="space-y-4 text-lg leading-relaxed text-[var(--foreground-muted)]">
-              <p>{t('whatIs.definition')}</p>
-              <p>{t('whatIs.distinguish')}</p>
-              <p>{t('whatIs.product')}</p>
-              <p>{t('whatIs.example')}</p>
-              <p>{t('whatIs.honest')}</p>
-            </div>
-          </div>
-        </section>
+        <LandingWhatIs namespace="backpacker" />
 
         {/* ============== SOCIAL PROOF (live Hostelworld clicks) ============== */}
         {/* Render only when stats are meaningful (≥10 clicks in 30d) — see
