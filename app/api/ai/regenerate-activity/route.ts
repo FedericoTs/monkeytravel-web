@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { resolveAiLanguage, tripLocale, type SupportedLanguage } from "@/lib/ai/language";
-import { cookies } from "next/headers";
+import { DEFAULT_LANGUAGE, tripLocale } from "@/lib/ai/language";
+import { readLocaleCookie } from "@/lib/ai/user-context";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { regenerateSingleActivity } from "@/lib/gemini";
 import { getModelForPurpose } from "@/lib/ai/model-router";
@@ -14,18 +14,6 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { readJsonBody } from "@/lib/api/json-body";
 import { requireRow } from "@/lib/api/require-row";
-
-
-
-async function getUserLanguage(): Promise<SupportedLanguage> {
-  const cookieStore = await cookies();
-  const localeCookie = cookieStore.get("NEXT_LOCALE");
-  // Regional tags ("pt-BR") must resolve to their base language rather than
-  // fall through to English — a strict membership test silently downgraded
-  // those users to an English itinerary.
-  if (localeCookie?.value) return resolveAiLanguage(localeCookie.value);
-  return "en";
-}
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -130,7 +118,7 @@ export async function POST(request: NextRequest) {
 
     // Get user language for localized output
     // Phase 1.3: the trip's own language first, the visitor's cookie after.
-    const language = tripLocale(trip.trip_meta) ?? (await getUserLanguage());
+    const language = tripLocale(trip.trip_meta) ?? (await readLocaleCookie()) ?? DEFAULT_LANGUAGE;
 
     // Read the trip's travel style so the suggested replacement matches
     // the rest of the trip (no boutique hotel in place of a backpacker's

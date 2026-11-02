@@ -23,7 +23,7 @@ import type { UserProfilePreferences } from "@/types";
 import { dietsFrom } from "@/lib/trips/diet";
 
 export type { SupportedLanguage } from "./language";
-import { isSupportedLanguage, resolveAiLanguage, type SupportedLanguage } from "./language";
+import { requestLocale, resolveAiLanguage, type SupportedLanguage } from "./language";
 
 export interface UserGenerationContext {
   profilePreferences: UserProfilePreferences;
@@ -35,21 +35,18 @@ export interface UserGenerationContext {
 /**
  * Read locale cookie (next-intl sets NEXT_LOCALE). Works for both
  * authenticated and anonymous users — anon users get language detection
- * purely from this path.
+ * purely from this path. A regional tag ("pt-BR") resolves to its base
+ * language; an absent or unrecognised value is null — not "en" — so the
+ * caller can still fall through to the profile.
  */
-async function readLocaleCookie(): Promise<SupportedLanguage | null> {
+export async function readLocaleCookie(): Promise<SupportedLanguage | null> {
   try {
     const cookieStore = await cookies();
-    const localeCookie = cookieStore.get("NEXT_LOCALE");
-    // Base subtag, so a regional tag ("pt-BR") resolves instead of being
-    // silently downgraded to English. Returns null — not "en" — for an
-    // unrecognised value, so the caller can still fall through to the profile.
-    const base = localeCookie?.value?.trim().toLowerCase().split(/[-_]/)[0];
-    if (base && isSupportedLanguage(base)) return base;
+    return requestLocale(cookieStore.get("NEXT_LOCALE")?.value);
   } catch {
     // cookies() can throw in odd contexts; treat as no preference set.
+    return null;
   }
-  return null;
 }
 
 /**
