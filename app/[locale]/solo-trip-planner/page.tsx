@@ -19,7 +19,7 @@ import { landingMetadata } from '@/lib/seo/landing-metadata';
  * changes — never automate it. A date that moves on every build tells Google
  * the whole site churns and teaches it to discount lastmod everywhere.
  */
-const CONTENT_UPDATED = '2026-07-24';
+const CONTENT_UPDATED = '2026-11-02';
 const PAGE_PATH = '/solo-trip-planner';
 
 const META: Record<string, { title: string; description: string }> = {
@@ -175,7 +175,7 @@ export default async function SoloTripPlannerPage({
 
         <LandingHowItWorks namespace="soloTripPlanner" steps={STEP_CONFIGS} />
 
-        <LandingComparison namespace="soloTripPlanner" keys={COMPARISON_KEYS} otherLabel="Reddit + Forums" otherKey="other" />
+        <LandingComparison namespace="soloTripPlanner" keys={COMPARISON_KEYS} otherKey="other" />
 
         <LandingFaq title={t('faq.title')} items={faqItems} />
 
