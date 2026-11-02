@@ -427,7 +427,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
   const { convert: convertCurrency, format: formatCurrency } = useCurrency();
 
   const formatDayBudget = (day: ItineraryDay): string =>
-    dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, t('activity.free'));
+    dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, t('activity.free'), trip.budget?.currency || "USD");
 
   // Prefer trip_meta.destination (canonical) over title-strip — see
   // lib/trips/destination.ts. Matters for non-English / renamed trips.
