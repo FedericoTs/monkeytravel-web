@@ -15,7 +15,7 @@ import { destinations } from '@/lib/destinations/data';
 import { DestinationCard } from '@/components/destinations';
 import type { Locale } from '@/lib/destinations/types';
 import type { Metadata } from 'next';
-import { buildAlternates, SITE_URL } from '@/lib/seo/canonical';
+import { buildAlternates, openGraphLocales, SITE_URL } from '@/lib/seo/canonical';
 
 
 const META: Record<string, { title: string; description: string }> = {
@@ -41,9 +41,6 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   const meta = META[locale] || META.en;
 
-  const ogLocaleMap: Record<string, string> = { en: 'en_US', es: 'es_ES', it: 'it_IT', pt: 'pt_BR' };
-  const ogLocale = ogLocaleMap[locale] ?? 'en_US';
-  const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
   const alternates = buildAlternates('', { locale });
 
   return {
@@ -56,8 +53,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       type: 'website',
       url: alternates.canonical,
       siteName: 'MonkeyTravel',
-      locale: ogLocale,
-      alternateLocale,
+      ...openGraphLocales(locale),
       // Must be repeated here: a page-level `openGraph` replaces the root
       // layout's block instead of deep-merging, so without `images` the
       // homepage, the most-shared URL on the site, has no og:image.

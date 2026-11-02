@@ -34,7 +34,7 @@ import { Link } from "@/lib/i18n/routing";
 // the visitor who liked the sample and wants real examples.
 import { fetchExploreFeed } from "@/lib/explore/fetcher";
 import TripCard from "@/components/explore/TripCard";
-import { buildAlternates, SITE_URL } from "@/lib/seo/canonical";
+import { buildAlternates, openGraphLocales, SITE_URL } from "@/lib/seo/canonical";
 
 
 // ============================================================================
@@ -80,9 +80,6 @@ export async function generateMetadata({
   // Build hreflang alternates
   const alternates = buildAlternates(`/destinations/${slug}`, { locale });
 
-  const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT", pt: "pt_BR" };
-  const ogLocale = ogLocaleMap[locale] ?? "en_US";
-  const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
 
   return {
     title,
@@ -101,8 +98,7 @@ export async function generateMetadata({
       description,
       url: alternates.canonical,
       siteName: "MonkeyTravel",
-      locale: ogLocale,
-      alternateLocale,
+      ...openGraphLocales(locale),
       images: [`/images/destinations/${slug}.jpg`],
       type: "website",
     },
