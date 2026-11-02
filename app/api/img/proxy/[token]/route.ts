@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
-import { fetchWithOneRetry } from "@/lib/api/fetch-with-one-retry";
 import { createRateLimiter } from "@/lib/api/rate-limit";
-import { safeImageFetch } from "@/lib/api/safe-image-fetch";
+import { proxyImage } from "@/lib/api/img-proxy";
 
 // Shares the same abuse posture as /api/img/proxy (query variant).
 const imgProxyTokenLimiter = createRateLimiter(
@@ -13,19 +12,8 @@ const imgProxyTokenLimiter = createRateLimiter(
 /**
  * GET /api/img/proxy/<encoded-url>
  *
- * Generic server-side proxy for hotlinked images that intermittently
- * return 5xx to direct browser requests but succeed from Vercel egress.
- *
- * **Why this exists:** the Pexels CDN (`images.pexels.com`) intermittently
- * answers direct browser loads with 504 (even with a cache-busting retry)
- * while a server fetch of the same URL succeeds, most likely Cloudflare
- * anti-scraping keyed on the browser's User-Agent + Referer. That would hit
- * every shared trip cover, /explore card, /destinations card and saved trip
- * hero whose `cover_image_url` points at Pexels.
- *
- * Server-side fetches don't trip whatever bot heuristic browser
- * requests do, so the same URL resolves cleanly from a Vercel function.
- * Proxying through this route is the user-visible fix.
+ * The image proxy (lib/api/img-proxy.ts), with the image URL encoded into
+ * the path: lib/img/proxyUrl.ts builds these.
  *
  * **A path segment, not `?url=`:** Next.js 16 requires
  * `images.localPatterns` to allow-list query strings on local
@@ -35,24 +23,7 @@ const imgProxyTokenLimiter = createRateLimiter(
  * compatible with both `<Image>` and plain `<img>` everywhere, AND
  * keeps Next image optimization on the proxied bytes (which improves
  * LCP and saves bandwidth vs. shipping the raw upstream JPEG).
- *
- * **Allowlist** — strict. Open proxy = SSRF + bandwidth-abuse vector.
- * Only third-party CDNs we actually hotlink land here.
- *
- * Cousins: `/api/places/photo` (Google Places-specific, needs API key).
- * This one is generic and key-free.
  */
-
-const ALLOWED_HOSTS = new Set<string>([
-  "images.pexels.com",
-  "images.unsplash.com",
-  "lh3.googleusercontent.com",
-  "maps.gstatic.com",
-  "maps.googleapis.com",
-]);
-
-const MAX_BYTES = 10 * 1024 * 1024; // 10 MB upper bound — cover photos are well under 1 MB
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
@@ -70,62 +41,5 @@ export async function GET(
     return new Response("Invalid token encoding", { status: 400 });
   }
 
-  let parsed: URL;
-  try {
-    parsed = new URL(raw);
-  } catch {
-    return new Response("Invalid url", { status: 400 });
-  }
-  if (parsed.protocol !== "https:") {
-    return new Response("Only https allowed", { status: 400 });
-  }
-  if (!ALLOWED_HOSTS.has(parsed.hostname)) {
-    return new Response("Host not allowed", { status: 400 });
-  }
-
-  // See app/api/img/proxy/route.ts — same reasoning. ALLOWED_HOSTS is
-  // re-checked on every redirect target rather than only on hop zero, and the
-  // internal-address block comes with it.
-  const fetched = await safeImageFetch(parsed.toString(), {
-    allowedHosts: ALLOWED_HOSTS,
-    fetchImpl: fetchWithOneRetry,
-    headers: {
-      // Identify as a generic fetcher. Some CDNs (Pexels via Cloudflare)
-      // serve 504 to browser User-Agents but 200 to non-browser fetches.
-      "User-Agent": "MonkeyTravelImageProxy/1.0 (+https://monkeytravel.app)",
-      Accept: "image/*",
-    },
-  });
-
-  if (!fetched.ok) {
-    return new Response(fetched.reason, { status: fetched.status });
-  }
-  const upstream = fetched.response;
-
-  if (!upstream.ok || !upstream.body) {
-    return new Response(`Upstream ${upstream.status}`, { status: upstream.status });
-  }
-
-  const contentLengthHeader = upstream.headers.get("content-length");
-  if (contentLengthHeader) {
-    const cl = parseInt(contentLengthHeader, 10);
-    if (Number.isFinite(cl) && cl > MAX_BYTES) {
-      return new Response("Payload too large", { status: 413 });
-    }
-  }
-
-  const ct = upstream.headers.get("content-type") || "image/jpeg";
-  if (!ct.startsWith("image/")) {
-    return new Response("Non-image content-type", { status: 415 });
-  }
-
-  return new Response(upstream.body, {
-    status: 200,
-    headers: {
-      "Content-Type": ct,
-      // 30 days browser cache, 1 year edge cache, immutable hint.
-      "Cache-Control": "public, max-age=2592000, s-maxage=31536000, immutable",
-      "X-Image-Proxy": "1",
-    },
-  });
+  return proxyImage(raw);
 }
