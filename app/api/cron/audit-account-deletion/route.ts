@@ -4,6 +4,7 @@ import {
   auditAccountDeletion,
   BLOCKER_REMEDY,
 } from "@/lib/audits/account-deletion";
+import { refuseUnlessCron } from "@/lib/api/cron-auth";
 
 /**
  * Daily cron — can every account still be deleted?
@@ -43,18 +44,9 @@ import {
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-function unauthorized() {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-}
-
 export async function GET(request: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  // Never run unauthenticated, even if the secret is unset — an unguarded
-  // route that reads the schema is not something to leave open by accident.
-  if (!secret) return unauthorized();
-  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
-    return unauthorized();
-  }
+  const refused = refuseUnlessCron(request);
+  if (refused) return refused;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;

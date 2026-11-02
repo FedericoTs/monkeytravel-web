@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { recoveryLooksBroken, type RecoveryHealth } from "@/lib/ops/auth-health";
 import { sendOpsAlert } from "@/lib/ops/alert";
+import { refuseUnlessCron } from "@/lib/api/cron-auth";
 
 /**
  * Weekly: is the password reset still working? A reset that fails silently
@@ -16,10 +17,8 @@ export const maxDuration = 60;
 const WINDOW_DAYS = 14;
 
 export async function GET(request: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const refused = refuseUnlessCron(request);
+  if (refused) return refused;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {

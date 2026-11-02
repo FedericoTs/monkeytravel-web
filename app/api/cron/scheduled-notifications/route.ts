@@ -41,6 +41,7 @@ import { cameBack, cameBackFrom, loadEngagement } from "@/lib/notifications/foll
 import { isParticipantDigestEnabled } from "@/lib/participants/flag";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { refuseUnlessCron } from "@/lib/api/cron-auth";
 
 /**
  * Trip email cron: sweeps `scheduled_notifications` and dispatches the
@@ -265,15 +266,9 @@ type SlotRow = {
 /** A due row as read. A DB CHECK keeps trip_id null for FINISH_TRIP_SLOT only. */
 type DueRow = Omit<SlotRow, "trip_id"> & { trip_id: string | null };
 
-function unauthorized() {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-}
-
 export async function GET(request: NextRequest) {
-  const auth = request.headers.get("authorization");
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return unauthorized();
-  if (auth !== `Bearer ${secret}`) return unauthorized();
+  const refused = refuseUnlessCron(request);
+  if (refused) return refused;
 
   // Kill switch: skip the whole sweep when the feature is disabled. This is
   // the switch that controls sending: the AFTER INSERT trigger fills the queue
