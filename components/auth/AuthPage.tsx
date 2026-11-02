@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { InputHTMLAttributes, ReactNode } from "react";
 import Image from "next/image";
 import { Link } from "@/lib/i18n/routing";
 import { Spinner } from "@/components/ui/Spinner";
@@ -68,6 +68,55 @@ export function AuthSubmitButton({
         children
       )}
     </button>
+  );
+}
+
+/**
+ * A labelled input of the card, red while `invalid`. `labelAside` sits
+ * beside the label (the "Forgot password?" link), `hint` under the input.
+ * The input is named after its id unless `name` is given.
+ */
+export function AuthField({
+  id,
+  label,
+  invalid = false,
+  labelAside,
+  hint,
+  ...input
+}: {
+  id: string;
+  label: ReactNode;
+  invalid?: boolean;
+  labelAside?: ReactNode;
+  hint?: ReactNode;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "className">) {
+  const labelColor = invalid ? "text-red-600" : "text-slate-700";
+  return (
+    <div>
+      {labelAside ? (
+        <div className="flex items-center justify-between mb-1">
+          <label htmlFor={id} className={`block text-sm font-medium ${labelColor}`}>
+            {label}
+          </label>
+          {labelAside}
+        </div>
+      ) : (
+        <label htmlFor={id} className={`block text-sm font-medium mb-1 ${labelColor}`}>
+          {label}
+        </label>
+      )}
+      <input
+        id={id}
+        name={id}
+        {...input}
+        className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
+          invalid
+            ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+            : "border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20"
+        }`}
+      />
+      {hint && <p className="text-xs text-slate-500 mt-1">{hint}</p>}
+    </div>
   );
 }
 
