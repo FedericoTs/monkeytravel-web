@@ -11,8 +11,8 @@ import Footer from "@/components/Footer";
 import { DestinationGrid } from "@/components/destinations";
 import { Link } from "@/lib/i18n/routing";
 import { ogImages, twitterImages } from "@/lib/seo/og-image";
+import { SITE_URL } from "@/lib/seo/canonical";
 
-const SITE_URL = "https://monkeytravel.app";
 
 // Style tags surfaced as landing pages. Pulled from the destination data —
 // these are the high-level vibe taxonomies, not activity-level tags.

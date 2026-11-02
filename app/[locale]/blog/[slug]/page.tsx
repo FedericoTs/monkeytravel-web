@@ -32,8 +32,8 @@ import TopicLinks from "@/components/blog/TopicLinks";
 import { getIndexableTagsForPost } from "@/lib/blog/tags";
 import ContentTracker from "@/components/analytics/ContentTracker";
 import { Link } from "@/lib/i18n/routing";
+import { SITE_URL } from "@/lib/seo/canonical";
 
-const SITE_URL = "https://monkeytravel.app";
 
 // ============================================================================
 // Static params — all slug × locale combinations

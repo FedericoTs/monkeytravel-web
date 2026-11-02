@@ -13,8 +13,8 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BlogCard from "@/components/blog/BlogCard";
+import { SITE_URL } from "@/lib/seo/canonical";
 
-const SITE_URL = "https://monkeytravel.app";
 
 // Every valid param is listed below; anything else is a 404, never a render.
 export const dynamicParams = false;

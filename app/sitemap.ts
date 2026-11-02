@@ -5,6 +5,7 @@ import { getAllTagSlugs, getPostsByTagSlug, TAG_MIN_POSTS_FOR_INDEX } from "@/li
 import { getAllAuthors } from "@/lib/blog/authors";
 import { competitorSlugs } from "@/lib/comparison/competitors";
 import { allPassportSlugs } from "@/lib/visa/passport-pages";
+import { SITE_URL } from "@/lib/seo/canonical";
 
 const locales = ["en", "es", "it", "pt"] as const;
 const defaultLocale = "en";
@@ -66,44 +67,43 @@ const PRIORITY_DESTINATION_DETAIL = 0.7;
 const PRIORITY_LEGAL = 0.3;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://monkeytravel.app";
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     // Homepage (all locales)
     {
-      url: baseUrl,
+      url: SITE_URL,
       lastModified: LASTMOD_HOMEPAGE,
       changeFrequency: "weekly",
       priority: PRIORITY_HOMEPAGE,
     },
     {
-      url: `${baseUrl}/es`,
+      url: `${SITE_URL}/es`,
       lastModified: LASTMOD_HOMEPAGE,
       changeFrequency: "weekly",
       priority: PRIORITY_LOCALE_HOMEPAGE,
     },
     {
-      url: `${baseUrl}/it`,
+      url: `${SITE_URL}/it`,
       lastModified: LASTMOD_HOMEPAGE,
       changeFrequency: "weekly",
       priority: PRIORITY_LOCALE_HOMEPAGE,
     },
     {
-      url: `${baseUrl}/pt`,
+      url: `${SITE_URL}/pt`,
       lastModified: LASTMOD_PT_CONTENT,
       changeFrequency: "weekly",
       priority: PRIORITY_LOCALE_HOMEPAGE,
     },
     // Legal pages (English only — content is not translated)
     {
-      url: `${baseUrl}/privacy`,
+      url: `${SITE_URL}/privacy`,
       lastModified: LASTMOD_LEGAL,
       changeFrequency: "yearly",
       priority: PRIORITY_LEGAL,
     },
     {
-      url: `${baseUrl}/terms`,
+      url: `${SITE_URL}/terms`,
       lastModified: LASTMOD_LEGAL,
       changeFrequency: "yearly",
       priority: PRIORITY_LEGAL,
@@ -117,7 +117,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const locale of locales) {
     const prefix = locale === defaultLocale ? "" : `/${locale}`;
     contactPages.push({
-      url: `${baseUrl}${prefix}/contact`,
+      url: `${SITE_URL}${prefix}/contact`,
       lastModified: ptAware(locale, LASTMOD_LANDING),
       changeFrequency: "monthly",
       priority: 0.5,
@@ -166,7 +166,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const prefix = locale === defaultLocale ? '' : `/${locale}`;
     for (const path of seoLandingPaths) {
       landingPages.push({
-        url: `${baseUrl}${prefix}${path}`,
+        url: `${SITE_URL}${prefix}${path}`,
         lastModified: ptAware(locale, LASTMOD_LANDING),
         changeFrequency: 'monthly',
         priority: PRIORITY_LANDING,
@@ -174,7 +174,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
     for (const path of toolPaths) {
       landingPages.push({
-        url: `${baseUrl}${prefix}${path}`,
+        url: `${SITE_URL}${prefix}${path}`,
         lastModified: ptAware(locale, LASTMOD_TOOLS),
         changeFrequency: 'monthly',
         priority: PRIORITY_LANDING,
@@ -182,7 +182,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
     for (const path of comparePaths) {
       landingPages.push({
-        url: `${baseUrl}${prefix}${path}`,
+        url: `${SITE_URL}${prefix}${path}`,
         lastModified: ptAware(locale, LASTMOD_LANDING),
         changeFrequency: 'monthly',
         priority: PRIORITY_LANDING,
@@ -190,7 +190,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
     for (const path of passportPaths) {
       landingPages.push({
-        url: `${baseUrl}${prefix}${path}`,
+        url: `${SITE_URL}${prefix}${path}`,
         lastModified: ptAware(locale, LASTMOD_LANDING),
         changeFrequency: 'weekly',
         priority: PRIORITY_LANDING,
@@ -198,7 +198,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
     for (const path of explorePaths) {
       landingPages.push({
-        url: `${baseUrl}${prefix}${path}`,
+        url: `${SITE_URL}${prefix}${path}`,
         lastModified: ptAware(locale, LASTMOD_EXPLORE),
         // Daily — explore feed re-ranks via trending_score every cron tick
         // and new UGC trips land continuously. We want Googlebot to come
@@ -217,7 +217,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Index page per locale
     destinationPages.push({
-      url: `${baseUrl}${prefix}/destinations`,
+      url: `${SITE_URL}${prefix}/destinations`,
       lastModified: ptAware(locale, LASTMOD_DESTINATIONS),
       changeFrequency: "monthly",
       priority: PRIORITY_INDEX,
@@ -226,7 +226,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Detail page per destination per locale
     for (const dest of destinations) {
       destinationPages.push({
-        url: `${baseUrl}${prefix}/destinations/${dest.slug}`,
+        url: `${SITE_URL}${prefix}/destinations/${dest.slug}`,
         lastModified: ptAware(locale, LASTMOD_DESTINATIONS),
         changeFrequency: "monthly",
         priority: PRIORITY_DESTINATION_DETAIL,
@@ -245,7 +245,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // sees fresh activity each time we publish there.
     const localeSlugs = blogSlugs.filter((slug) => hasLocaleTranslation(slug, locale));
     blogPages.push({
-      url: `${baseUrl}${prefix}/blog`,
+      url: `${SITE_URL}${prefix}/blog`,
       lastModified: ptAware(
         locale,
         newestDate(localeSlugs.map((slug) => getPostDates(slug, locale)?.updatedAt)),
@@ -262,7 +262,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const slug of localeSlugs) {
       const dates = getPostDates(slug, locale);
       blogPages.push({
-        url: `${baseUrl}${prefix}/blog/${slug}`,
+        url: `${SITE_URL}${prefix}/blog/${slug}`,
         // ptAware here too: frontmatter `updatedAt` belongs to the POST, not to
         // the pt translation of it. 39 /pt/blog/ URLs were declaring dates from
         // Feb-May 2026 — before the pt locale existed — which is the same
@@ -280,7 +280,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // and /it/ URLs render the same English text via locale routing and are
   // canonicalized to the EN version (see app/[locale]/about/authors/[slug]).
   const authorPages: MetadataRoute.Sitemap = getAllAuthors().map((author) => ({
-    url: `${baseUrl}/about/authors/${author.slug}`,
+    url: `${SITE_URL}/about/authors/${author.slug}`,
     lastModified: LASTMOD_HOMEPAGE,
     changeFrequency: "monthly",
     priority: 0.5,
@@ -301,7 +301,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const tagged = getPostsByTagSlug(tagSlug, locale);
       if (tagged.length < TAG_MIN_POSTS_FOR_INDEX) continue;
       tagPages.push({
-        url: `${baseUrl}${prefix}/blog/tag/${tagSlug}`,
+        url: `${SITE_URL}${prefix}/blog/tag/${tagSlug}`,
         // The archive changes when one of its own posts does.
         lastModified: ptAware(locale, newestDate(tagged.map((fm) => fm.updatedAt))),
         changeFrequency: "weekly",
@@ -323,7 +323,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const prefix = locale === defaultLocale ? "" : `/${locale}`;
     for (const styleTag of STYLE_TAGS) {
       stylePages.push({
-        url: `${baseUrl}${prefix}/destinations/style/${styleTag}`,
+        url: `${SITE_URL}${prefix}/destinations/style/${styleTag}`,
         lastModified: ptAware(locale, LASTMOD_DESTINATIONS),
         changeFrequency: "monthly",
         priority: 0.6,

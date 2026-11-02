@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { Link } from '@/lib/i18n/routing';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { SITE_URL } from '@/lib/seo/canonical';
 
-const BASE_URL = 'https://monkeytravel.app';
 
 export async function generateMetadata(): Promise<Metadata> {
   // No brand suffix: the root template "%s | MonkeyTravel" adds it.
@@ -14,10 +14,10 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       'Terms of Service for MonkeyTravel — Read our terms and conditions for using the app.',
     alternates: {
-      canonical: `${BASE_URL}/terms`,
+      canonical: `${SITE_URL}/terms`,
       languages: {
-        en: `${BASE_URL}/terms`,
-        'x-default': `${BASE_URL}/terms`,
+        en: `${SITE_URL}/terms`,
+        'x-default': `${SITE_URL}/terms`,
       },
     },
   };

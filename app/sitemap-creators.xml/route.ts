@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isCreatorIndexable } from "@/lib/seo/creator-indexable";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { escapeXml } from "@/lib/utils/escape-xml";
+import { SITE_URL } from "@/lib/seo/canonical";
 
 /**
  * /sitemap-creators.xml — every public creator profile, across all 4 locales.
@@ -15,7 +16,6 @@ import { escapeXml } from "@/lib/utils/escape-xml";
  * Referenced from `app/robots.ts`.
  */
 
-const SITE_URL = "https://monkeytravel.app";
 
 const LOCALES = ["en", "es", "it", "pt"] as const;
 const DEFAULT_LOCALE = "en";

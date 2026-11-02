@@ -21,8 +21,8 @@ import ExploreFilters from "@/components/explore/ExploreFilters";
 import { fetchExploreFeed } from "@/lib/explore/fetcher";
 import type { BudgetTier } from "@/lib/explore/types";
 import { ogImages } from "@/lib/seo/og-image";
+import { SITE_URL } from "@/lib/seo/canonical";
 
-const SITE_URL = "https://monkeytravel.app";
 
 /**
  * /explore — public UGC + seed-data trip feed: a server-rendered page over

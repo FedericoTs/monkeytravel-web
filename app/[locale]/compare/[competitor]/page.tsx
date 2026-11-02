@@ -19,8 +19,8 @@ import {
   type CompareLocale,
 } from '@/lib/comparison/competitors';
 import type { Metadata } from 'next';
+import { SITE_URL } from '@/lib/seo/canonical';
 
-const BASE_URL = 'https://monkeytravel.app';
 /**
  * Content freshness signal. Bump ONLY when this page's copy actually
  * changes — never automate it. A date that moves on every build tells Google
@@ -172,13 +172,13 @@ export async function generateMetadata({
     title: { absolute: meta.title },
     description: meta.description,
     alternates: {
-      canonical: `${BASE_URL}${prefix}${path}`,
+      canonical: `${SITE_URL}${prefix}${path}`,
       languages: {
-        en: `${BASE_URL}${path}`,
-        es: `${BASE_URL}/es${path}`,
-        it: `${BASE_URL}/it${path}`,
-        pt: `${BASE_URL}/pt${path}`,
-        'x-default': `${BASE_URL}${path}`,
+        en: `${SITE_URL}${path}`,
+        es: `${SITE_URL}/es${path}`,
+        it: `${SITE_URL}/it${path}`,
+        pt: `${SITE_URL}/pt${path}`,
+        'x-default': `${SITE_URL}${path}`,
       },
     },
     openGraph: {
@@ -186,10 +186,10 @@ export async function generateMetadata({
       title: meta.title,
       description: meta.description,
       type: 'website',
-      url: `${BASE_URL}${prefix}${path}`,
+      url: `${SITE_URL}${prefix}${path}`,
       images: [
         {
-          url: `${BASE_URL}/og-image.png`,
+          url: `${SITE_URL}/og-image.png`,
           width: 1200,
           height: 630,
           alt: `MonkeyTravel vs ${c.name}`,
@@ -200,7 +200,7 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title: meta.title,
       description: meta.description,
-      images: [`${BASE_URL}/og-image.png`],
+      images: [`${SITE_URL}/og-image.png`],
     },
   };
 }
@@ -275,9 +275,9 @@ export default async function ComparePage({
 
   const faqItems = c.faqs[l].map((f) => ({ question: f.q, answer: f.a }));
   const breadcrumbItems = [
-    { name: ui.home, url: `${BASE_URL}${prefix}` },
-    { name: ui.breadcrumbCompare, url: `${BASE_URL}${prefix}/compare` },
-    { name: `MonkeyTravel vs ${c.name}`, url: `${BASE_URL}${prefix}${path}` },
+    { name: ui.home, url: `${SITE_URL}${prefix}` },
+    { name: ui.breadcrumbCompare, url: `${SITE_URL}${prefix}/compare` },
+    { name: `MonkeyTravel vs ${c.name}`, url: `${SITE_URL}${prefix}${path}` },
   ];
 
   const verifiedDate = new Intl.DateTimeFormat(l, {

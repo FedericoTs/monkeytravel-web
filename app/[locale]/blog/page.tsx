@@ -14,8 +14,8 @@ import { BlogLane, FeaturedHero } from "@/components/blog";
 import ContentTracker from "@/components/analytics/ContentTracker";
 import { Link } from "@/lib/i18n/routing";
 import type { BlogFrontmatter } from "@/lib/blog/types";
+import { SITE_URL } from "@/lib/seo/canonical";
 
-const SITE_URL = "https://monkeytravel.app";
 
 // ============================================================================
 // Static params
