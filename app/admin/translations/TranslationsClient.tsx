@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 type Language = "en" | "es" | "it";
 type TranslationData = Record<string, unknown>;
@@ -171,7 +172,7 @@ export default function TranslationsClient() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <Link href="/admin" className="flex items-center gap-2">
-                <img src="/images/logo.png" alt="MonkeyTravel" className="h-8 w-8" />
+                <Image src="/images/logo.png" alt="MonkeyTravel" width={32} height={32} className="h-8 w-8" />
                 <span className="font-semibold text-lg text-slate-900">MonkeyTravel</span>
               </Link>
               <span className="text-slate-300">|</span>

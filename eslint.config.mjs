@@ -46,6 +46,26 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-explicit-any": "off",
     },
   },
+  {
+    // Plain <img> on purpose. Photos come through proxyImageUrl already sized,
+    // and next/image would process them again. Uploaded avatars are served
+    // from Supabase Storage, which images.remotePatterns doesn't list. The
+    // hero doodles are small decorative webp.
+    files: [
+      "**/InviteAcceptClient.tsx",
+      "**/TemplatesPageClient.tsx",
+      "components/ActivityCard.tsx",
+      "components/trip/AddActivityButton.tsx",
+      "components/trip/EditableActivityCard.tsx",
+      "components/trips/TripsPageClient.tsx",
+      "components/ui/ActivityDetailSheet.tsx",
+      "components/collaboration/CollaboratorAvatars.tsx",
+      "components/collaboration/CollaboratorRow.tsx",
+      "components/collaboration/VotingSection.tsx",
+      "components/marketing/HeroDoodleBackground.tsx",
+    ],
+    rules: { "@next/next/no-img-element": "off" },
+  },
   globalIgnores([
     ".next/**",
     "out/**",
