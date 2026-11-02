@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { estimateTravelTime } from "./travel-estimation";
+import { estimateTravelTime, formatMetricDistance } from "./travel-estimation";
 
 /** A point `meters` north of the origin (Earth radius 6,371 km). */
 const METERS_PER_DEGREE = (2 * Math.PI * 6371000) / 360;
@@ -31,5 +31,14 @@ describe("estimateTravelTime", () => {
 
   it("states long durations in hours", () => {
     expect(estimateTravelTime(ORIGIN, north(50000)).durationText).toMatch(/^\d+ hr( \d+ min)?$/);
+  });
+});
+
+describe("formatMetricDistance", () => {
+  it("gives metres below a kilometre and kilometres to one decimal from one", () => {
+    expect(formatMetricDistance(849.6)).toBe("850 m");
+    expect(formatMetricDistance(1000)).toBe("1.0 km");
+    expect(formatMetricDistance(3420)).toBe("3.4 km");
+    expect(formatMetricDistance(23460)).toBe("23.5 km");
   });
 });

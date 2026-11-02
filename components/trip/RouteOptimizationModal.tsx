@@ -12,6 +12,7 @@ import {
 import type { Activity } from "@/types";
 import { activityTypeKey } from "@/lib/i18n/activity-type";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
+import { formatMetricDistance } from "@/lib/utils/travel-estimation";
 
 interface RouteOptimizationModalProps {
   isOpen: boolean;
@@ -19,16 +20,6 @@ interface RouteOptimizationModalProps {
   dayNumber: number;
   activities: Activity[];
   onApplyOptimization: (optimizedActivities: Activity[]) => void;
-}
-
-/**
- * Format distance for display
- */
-function formatDistance(meters: number): string {
-  if (meters < 1000) {
-    return `${Math.round(meters)} m`;
-  }
-  return `${(meters / 1000).toFixed(1)} km`;
 }
 
 /**
@@ -217,7 +208,7 @@ export function RouteOptimizationModal({
                               {t("potentialSavings")}
                             </p>
                             <p className="text-2xl font-bold text-green-800">
-                              {t("lessTravel", { distance: formatDistance(result.savingsMeters) })}
+                              {t("lessTravel", { distance: formatMetricDistance(result.savingsMeters) })}
                             </p>
                             <p className="text-sm text-green-600">
                               {t("shorterRoute", { percent: result.savingsPercent })}
@@ -244,7 +235,7 @@ export function RouteOptimizationModal({
                         {t("currentDistance")}
                       </p>
                       <p className="text-lg font-semibold text-gray-700">
-                        {formatDistance(result.originalDistanceMeters)}
+                        {formatMetricDistance(result.originalDistanceMeters)}
                       </p>
                     </div>
                     <div className={`p-3 rounded-lg ${
@@ -256,7 +247,7 @@ export function RouteOptimizationModal({
                       <p className={`text-lg font-semibold ${
                         result.savingsPercent > 0 ? "text-green-700" : "text-gray-700"
                       }`}>
-                        {formatDistance(result.optimizedDistanceMeters)}
+                        {formatMetricDistance(result.optimizedDistanceMeters)}
                       </p>
                     </div>
                   </div>
