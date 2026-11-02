@@ -321,7 +321,6 @@
       "add": "Add fixed plan",
       "remove": "Remove",
       "limit": "Maximum {max} fixed plans",
-      "lockedBadge": "Fixed plan",
       "import": {
         "cta": "Paste a plan you already have",
         "label": "Paste your plan — we'll pull out the fixed parts",

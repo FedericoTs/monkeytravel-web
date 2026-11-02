@@ -321,7 +321,6 @@
       "add": "Adicionar plano fixo",
       "remove": "Remover",
       "limit": "Máximo de {max} planos fixos",
-      "lockedBadge": "Plano fixo",
       "import": {
         "cta": "Cole um plano que você já tem",
         "label": "Cole seu plano — extraímos as partes fixas",

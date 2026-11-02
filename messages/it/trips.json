@@ -321,7 +321,6 @@
       "add": "Aggiungi impegno fisso",
       "remove": "Rimuovi",
       "limit": "Massimo {max} impegni fissi",
-      "lockedBadge": "Impegno fisso",
       "import": {
         "cta": "Incolla un piano che hai già",
         "label": "Incolla il tuo piano — estraiamo le parti fisse",

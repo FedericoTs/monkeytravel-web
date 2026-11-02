@@ -10,7 +10,6 @@ import TripActionsMenu, { TripActionsMenuItem, TripActionsMenuSlot } from "@/com
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, ActivityProposal } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
-import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import { hasCoordinates } from "@/lib/trips/has-coordinates";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
 import { withFoundPhotos } from "@/lib/trips/keep-place-photos";
@@ -277,7 +276,6 @@ export default function TripDetailClient({
   // addFromEmail.*, today.*): re-namespacing tTrips would mean touching
   // every one of its call sites.
   const tCommon = useTranslations('common');
-  const typeLabel = useActivityTypeLabel();
 
   // Currency conversion hook — converts source-currency activity costs into
   // the user's preferred currency. Backs formatDayBudget below.
@@ -3075,7 +3073,6 @@ export default function TripDetailClient({
                       travel={travelData.get(day.day_number)}
                       travelLoading={travelLoading}
                       pace={trip.meta?.pace}
-                      typeLabel={typeLabel}
                       currency={trip.budget?.currency || "USD"}
                     />
                   )}

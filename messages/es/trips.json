@@ -321,7 +321,6 @@
       "add": "Añadir plan fijo",
       "remove": "Eliminar",
       "limit": "Máximo {max} planes fijos",
-      "lockedBadge": "Plan fijo",
       "import": {
         "cta": "Pega un plan que ya tengas",
         "label": "Pega tu plan — extraemos las partes fijas",

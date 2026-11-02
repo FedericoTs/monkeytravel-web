@@ -1,16 +1,23 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import type { Activity, ItineraryDay } from "@/types";
 import type { DayTravelData } from "@/hooks/useTravelDistances";
 import type { TripPace } from "@/lib/trip/pace";
 import { useActivityPrice } from "@/lib/i18n/activity-price";
+import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
+import { activityDomId } from "@/lib/trip/activity-dom-id";
 import TravelConnector from "./TravelConnector";
 import DaySummary from "./DaySummary";
 
 /**
- * A day as a timeline, the alternative to the cards on the shared trip, the
- * template preview and the trip page: a dot per activity with its time,
- * name, description, place, price and type, a compact travel leg to the next
- * one, then the day's travel and feasibility summary.
+ * A day as a timeline, the alternative to the cards on the wizard's result,
+ * the shared trip, the template preview and the trip page: a dot per activity
+ * with its time, name (pinned when it is a fixed plan), description, place,
+ * price and type, a compact travel leg to the next one, then the day's travel
+ * and feasibility summary. Each row carries the activity's DOM id, which a map
+ * pin's "View details" scrolls to.
  *
  * Prices are in the viewer's currency; `currency` is the trip's, for an
  * estimate that names none.
@@ -21,7 +28,6 @@ export function DayTimeline({
   travel,
   travelLoading,
   pace,
-  typeLabel,
   currency,
   extra,
 }: {
@@ -29,10 +35,11 @@ export function DayTimeline({
   travel: DayTravelData | undefined;
   travelLoading: boolean;
   pace: TripPace | string | undefined;
-  typeLabel: (type: string | undefined) => string;
   currency: string;
   extra?: (activity: Activity) => ReactNode;
 }) {
+  const t = useTranslations("common");
+  const typeLabel = useActivityTypeLabel();
   const priceOf = useActivityPrice();
   return (
     <>
@@ -45,7 +52,7 @@ export function DayTimeline({
 
           return (
             <div key={activity.id || idx}>
-              <div className="relative">
+              <div id={activityDomId(activity)} className="relative scroll-mt-24">
                 {/* Timeline dot */}
                 <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary)] border-4 border-white shadow" />
 
@@ -54,10 +61,19 @@ export function DayTimeline({
                     <div className="flex-1">
                       <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
                         <span className="font-medium">{activity.start_time}</span>
-                        <span>·</span>
-                        <span>{activity.duration_minutes} min</span>
+                        {activity.duration_minutes > 0 && (
+                          <>
+                            <span>·</span>
+                            <span>{activity.duration_minutes} min</span>
+                          </>
+                        )}
                       </div>
                       <h4 className="font-semibold text-slate-900">
+                        {activity.locked && (
+                          <span className="mr-1" title={t("lockedActivity")} aria-label={t("lockedActivity")}>
+                            📌
+                          </span>
+                        )}
                         {activity.name}
                       </h4>
                       <p className="text-sm text-slate-600 mt-1">
