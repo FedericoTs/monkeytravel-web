@@ -4,7 +4,7 @@
  * Dynamic imports for heavy code that loads on demand:
  * - the Admin Dashboard tabs, with skeletons that hold the layout while a
  *   tab's chunk loads;
- * - the PDF export (jspdf + html2canvas).
+ * - the PDF export (jspdf).
  *
  * @example
  * import { LazyGrowthDashboard, preloadAdminTab } from '@/lib/lazy';
