@@ -29,6 +29,7 @@ import { EmailLayout } from "./_layout";
 import { ContextBlocks, contextBlocksText } from "./_context-blocks";
 import type { ContextBlock } from "../trip-context";
 import type { EmailLocale } from "../copy";
+import { h1, leadText, bodyText, button } from "./_styles";
 
 /**
  * Slot discriminator. Matches the CHECK constraint in
@@ -172,41 +173,7 @@ export function tripFollowupSubject(props: {
   return props.heading;
 }
 
-// Inline styles — deliberately identical to TripReminder's so the two
-// halves of the trip lifecycle read as one brand, not two products.
-
-const h1: React.CSSProperties = {
-  fontSize: "24px",
-  fontWeight: 700,
-  color: "#1A1A1A",
-  margin: "0 0 16px",
-  lineHeight: 1.3,
-};
-
-const leadText: React.CSSProperties = {
-  fontSize: "18px",
-  color: "#555555",
-  margin: "0 0 24px",
-  fontWeight: 600,
-};
-
-const bodyText: React.CSSProperties = {
-  fontSize: "16px",
-  color: "#333333",
-  lineHeight: 1.6,
-  margin: "16px 0",
-};
-
-const button: React.CSSProperties = {
-  backgroundColor: "#FF6B6B",
-  color: "#FFFFFF",
-  padding: "12px 32px",
-  borderRadius: "999px",
-  textDecoration: "none",
-  fontWeight: 600,
-  fontSize: "16px",
-  display: "inline-block",
-};
+// This email's own inline styles; the shared ones are in ./_styles.
 
 const finalNoteText: React.CSSProperties = {
   fontSize: "14px",

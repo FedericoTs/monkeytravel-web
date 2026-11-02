@@ -21,6 +21,7 @@ import { EmailLayout } from "./_layout";
 import { ContextBlocks, contextBlocksText } from "./_context-blocks";
 import type { ContextBlock } from "../trip-context";
 import type { EmailLocale } from "../copy";
+import { h1, leadText, bodyText, button, secondaryButton } from "./_styles";
 
 /**
  * Slot discriminator. Matches the CHECK constraint in
@@ -182,41 +183,7 @@ export function tripReminderEmailText(props: TripReminderEmailProps): string {
   return lines.filter((l) => l !== undefined).join("\n");
 }
 
-// Inline styles — mirror the Invite + VoteCast templates so all 3
-// transactional emails render the same brand language.
-
-const h1: React.CSSProperties = {
-  fontSize: "24px",
-  fontWeight: 700,
-  color: "#1A1A1A",
-  margin: "0 0 16px",
-  lineHeight: 1.3,
-};
-
-const leadText: React.CSSProperties = {
-  fontSize: "18px",
-  color: "#555555",
-  margin: "0 0 24px",
-  fontWeight: 600,
-};
-
-const bodyText: React.CSSProperties = {
-  fontSize: "16px",
-  color: "#333333",
-  lineHeight: 1.6,
-  margin: "16px 0",
-};
-
-const button: React.CSSProperties = {
-  backgroundColor: "#FF6B6B",
-  color: "#FFFFFF",
-  padding: "12px 32px",
-  borderRadius: "999px",
-  textDecoration: "none",
-  fontWeight: 600,
-  fontSize: "16px",
-  display: "inline-block",
-};
+// This email's own inline styles; the shared ones are in ./_styles.
 
 // The group ask sits under the main button, quieter than it: dark text on
 // white, so it reads as the second thing to do.
@@ -235,14 +202,3 @@ const groupAskText: React.CSSProperties = {
   margin: "0 0 12px",
 };
 
-const secondaryButton: React.CSSProperties = {
-  backgroundColor: "#FFFFFF",
-  color: "#2D3436",
-  border: "1px solid #D9CFC4",
-  padding: "10px 24px",
-  borderRadius: "999px",
-  textDecoration: "none",
-  fontWeight: 600,
-  fontSize: "15px",
-  display: "inline-block",
-};

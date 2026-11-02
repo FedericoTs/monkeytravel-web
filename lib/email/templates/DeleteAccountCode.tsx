@@ -7,6 +7,7 @@
 import { Heading, Section, Text } from "@react-email/components";
 import { EmailLayout, otpCodeBox, otpCodeLabel, otpCodeText } from "./_layout";
 import { deleteAccountCodeCopy, layoutCopy, type EmailLocale } from "../copy";
+import { h1 } from "./_styles";
 
 export interface DeleteAccountCodeEmailProps {
   code: string;
@@ -61,15 +62,7 @@ export function deleteAccountCodeSubject(locale: EmailLocale = "en"): string {
   return deleteAccountCodeCopy[locale].subject;
 }
 
-// Inline styles — mirror AuthAction.
-const h1: React.CSSProperties = {
-  fontSize: "24px",
-  fontWeight: 700,
-  color: "#1A1A1A",
-  margin: "0 0 16px",
-  lineHeight: 1.3,
-};
-
+// This email's own inline styles; the shared ones are in ./_styles.
 const leadText: React.CSSProperties = {
   fontSize: "17px",
   color: "#444444",
