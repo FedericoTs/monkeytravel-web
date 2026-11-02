@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { NextIntlClientProvider } from "next-intl";
+import { NextIntlClientProvider, type AbstractIntlMessages } from "next-intl";
 import type { ReactNode } from "react";
 import en from "@/messages/en/common.json";
 import es from "@/messages/es/common.json";
@@ -55,9 +55,13 @@ import ReferralLandingClient from "./ReferralLandingClient";
 import ReferralLandingPage, { generateMetadata } from "./page";
 
 const strip = (message: string) => message.replace(/<\/?\w+>/g, "");
+// The messages the (app) layout serializes. The cast is for common.roles, whose
+// string arrays (read with t.raw) AbstractIntlMessages does not describe.
+const clientMessages = (locale: Locale) =>
+  pickMessages({ common: COMMON[locale] } as unknown as AbstractIntlMessages, APP_CLIENT_NAMESPACES);
 const inLocale = (locale: Locale, ui: ReactNode) =>
   render(
-    <NextIntlClientProvider locale={locale} messages={pickMessages({ common: COMMON[locale] }, APP_CLIENT_NAMESPACES)}>
+    <NextIntlClientProvider locale={locale} messages={clientMessages(locale)}>
       {ui}
     </NextIntlClientProvider>,
   );
