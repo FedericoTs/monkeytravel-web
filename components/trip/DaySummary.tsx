@@ -11,7 +11,7 @@ import {
   sumPlannedMinutes,
   type TripPace,
 } from "@/lib/trip/pace";
-import { formatMetricDistance } from "@/lib/utils/travel-estimation";
+import { useDistance } from "@/lib/locale";
 import { formatDuration } from "@/lib/datetime/duration";
 
 interface DaySummaryProps {
@@ -41,6 +41,7 @@ export function DaySummary({
   className = "",
 }: DaySummaryProps) {
   const t = useTranslations("trips");
+  const { convert: formatDistance } = useDistance();
   const stats = useMemo(() => {
     const totals = segments.reduce(
       (acc, seg) => ({
@@ -65,12 +66,12 @@ export function DaySummary({
 
     return {
       ...totals,
-      distanceText: formatMetricDistance(totals.distance),
+      distanceText: formatDistance(totals.distance),
       durationText: formatDuration(totals.duration / 60),
-      walkingDistanceText: formatMetricDistance(totals.walkingDistance),
-      drivingDistanceText: formatMetricDistance(totals.drivingDistance),
+      walkingDistanceText: formatDistance(totals.walkingDistance),
+      drivingDistanceText: formatDistance(totals.drivingDistance),
     };
-  }, [segments]);
+  }, [segments, formatDistance]);
 
   const feasibility = useMemo(() => {
     const plannedMinutes = sumPlannedMinutes(activities);
