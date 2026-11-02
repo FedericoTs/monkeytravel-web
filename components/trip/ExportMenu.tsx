@@ -1,17 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import type { ItineraryDay, TripMeta } from "@/types";
-// Types only (zero bundle impact) - functions loaded dynamically on demand
-import type { PremiumTripForExport } from "@/lib/export/pdf";
+import type { ItineraryDay } from "@/types";
 import { downloadICS } from "@/lib/export/calendar";
 import { useTranslations } from "next-intl";
 import { capture } from "@/lib/posthog/events";
 import { sentry } from "@/lib/observability/sentry";
 
-// Lazy loaders for PDF export (~75KB saved from initial bundle)
+// Lazy loader for PDF export (~75KB saved from initial bundle)
 const lazyLoadPdfExport = () => import("@/lib/export/pdf");
-const lazyLoadPremiumPdfExport = () => import("@/lib/export/pdf/index");
 
 interface ExportMenuProps {
   trip: {
@@ -22,11 +19,6 @@ interface ExportMenuProps {
     budget?: { total: number; currency: string } | null;
     itinerary: ItineraryDay[];
   };
-  // Optional props for premium PDF
-  destination?: string;
-  meta?: TripMeta;
-  coverImageUrl?: string;
-  galleryPhotos?: { url: string; thumbnailUrl: string }[];
   /**
    * Where this menu lives — feeds the trip_exported / trip_export_failed
    * PostHog events so we can segment anon-result exports (peak-intent,
@@ -35,11 +27,10 @@ interface ExportMenuProps {
   surface?: string;
 }
 
-export default function ExportMenu({ trip, destination, meta, coverImageUrl, galleryPhotos, surface = "trip_detail" }: ExportMenuProps) {
+export default function ExportMenu({ trip, surface = "trip_detail" }: ExportMenuProps) {
   const t = useTranslations('common.export');
   const [isOpen, setIsOpen] = useState(false);
-  const [isExporting, setIsExporting] = useState<"pdf" | "premium-pdf" | "ics" | null>(null);
-  const [exportProgress, setExportProgress] = useState<{ step: string; progress: number } | null>(null);
+  const [isExporting, setIsExporting] = useState<"pdf" | "ics" | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -47,7 +38,7 @@ export default function ExportMenu({ trip, destination, meta, coverImageUrl, gal
   // the previous swallow-with-console.error (the spinner just stopped and
   // nothing downloaded — a silent dead end). Lazy-imports Sentry so a
   // missing/failed Sentry never breaks the menu (mirrors ExpenseLedger).
-  const reportExportFailure = (format: "pdf" | "premium-pdf" | "ical", error: unknown) => {
+  const reportExportFailure = (format: "pdf" | "ical", error: unknown) => {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error(`[ExportMenu] ${format} export failed`, message);
     setExportError(t("exportFailed"));
@@ -95,41 +86,6 @@ export default function ExportMenu({ trip, destination, meta, coverImageUrl, gal
     }
   };
 
-  const handleExportPremiumPDF = async () => {
-    setIsExporting("premium-pdf");
-    setExportProgress({ step: "Starting...", progress: 0 });
-
-    try {
-      // Dynamically load premium PDF export on first use
-      const { downloadPremiumPDF } = await lazyLoadPremiumPdfExport();
-
-      // Build the premium trip data
-      const premiumTrip: PremiumTripForExport = {
-        title: trip.title,
-        description: trip.description,
-        destination: destination || trip.title.replace(/ Trip$/, ""),
-        startDate: trip.startDate,
-        endDate: trip.endDate,
-        budget: trip.budget,
-        itinerary: trip.itinerary,
-        meta: meta,
-        coverImageUrl: coverImageUrl,
-        galleryPhotos: galleryPhotos,
-      };
-
-      await downloadPremiumPDF(premiumTrip, (step, progress) => {
-        setExportProgress({ step, progress });
-      });
-      capture("trip_exported", { format: "premium-pdf", surface });
-    } catch (error) {
-      reportExportFailure("premium-pdf", error);
-    } finally {
-      setIsExporting(null);
-      setExportProgress(null);
-      setIsOpen(false);
-    }
-  };
-
   const handleExportICS = () => {
     setIsExporting("ics");
     setExportError(null);
@@ -173,7 +129,6 @@ export default function ExportMenu({ trip, destination, meta, coverImageUrl, gal
             </span>
           </div>
 
-          {/* Premium PDF - Hidden for now, code preserved for future improvements */}
 
           {/* PDF */}
           <button

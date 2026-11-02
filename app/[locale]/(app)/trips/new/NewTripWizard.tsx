@@ -3109,7 +3109,6 @@ export default function NewTripPage({
                     },
                     itinerary: generatedItinerary.days,
                   }}
-                  destination={fullDestination}
                   surface="anon_result"
                 />
               )}

@@ -2409,8 +2409,6 @@ export default function TripDetailClient({
                       budget: trip.budget,
                       itinerary: displayItinerary,
                     }}
-                    destination={destination}
-                    meta={trip.meta}
                   />
                 </TripActionsMenuSlot>
 

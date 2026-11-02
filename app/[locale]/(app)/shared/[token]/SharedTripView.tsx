@@ -722,8 +722,6 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
                 budget: trip.budget,
                 itinerary: displayItinerary,
               }}
-              destination={destination}
-              meta={trip.meta}
             />
           </div>
         </div>
