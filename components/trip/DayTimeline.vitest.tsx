@@ -18,6 +18,7 @@ vi.mock("./DaySummary", () => ({
 }));
 
 vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key }));
+vi.mock("@/lib/i18n/activity-type", () => ({ useActivityTypeLabel: () => (t?: string) => (t ? `type:${t}` : "") }));
 vi.mock("@/lib/locale", () => ({
   useCurrency: () => ({ convert: (amount: number, from: string) => ({ formatted: `${from}→GBP ${amount}` }) }),
 }));
@@ -37,6 +38,10 @@ const day = {
 } as ItineraryDay;
 const leg = { fromActivityId: "a1", toActivityId: "a2", distanceMeters: 900, durationSeconds: 660, distanceText: "0.9 km", durationText: "11 min", mode: "walking" };
 
+function showDay(d: ItineraryDay) {
+  return render(<DayTimeline day={d} travel={undefined} travelLoading={false} pace="relaxed" currency="EUR" />);
+}
+
 function show(extra?: (a: Activity) => React.ReactNode, travelLoading = false) {
   connectors.mockClear();
   summaries.mockClear();
@@ -46,7 +51,6 @@ function show(extra?: (a: Activity) => React.ReactNode, travelLoading = false) {
       travel={{ segments: [leg], isLoading: false } as never}
       travelLoading={travelLoading}
       pace="relaxed"
-      typeLabel={(t) => `type:${t}`}
       currency="EUR"
       extra={extra}
     />
@@ -85,5 +89,24 @@ describe("a day as a timeline", () => {
   it("adds what the page shows under an activity", () => {
     show((a) => (a.id === "a1" ? <p>2 votes</p> : null));
     expect(screen.getByText("2 votes")).toBeTruthy();
+  });
+
+  it("gives each row the id a map pin scrolls to", () => {
+    const { container } = show();
+    expect([...container.querySelectorAll(".scroll-mt-24")].map((row) => row.id)).toEqual(["activity-a1", "activity-a2", "activity-a3"]);
+  });
+
+  it("pins a fixed plan", () => {
+    showDay({ ...day, activities: [activity("a9", "Concert", { locked: true }), activity("a10", "Dinner")] });
+    expect(screen.getAllByLabelText("lockedActivity").map((pin) => pin.textContent)).toEqual(["📌"]);
+  });
+
+  it("leaves out a duration it does not know", () => {
+    showDay({
+      ...day,
+      activities: [activity("b1", "Walk", { duration_minutes: 0 }), activity("b2", "Drinks", { duration_minutes: undefined as unknown as number })],
+    });
+    expect(screen.queryByText(/ min$/)).toBeNull();
+    expect(screen.queryByText("·")).toBeNull();
   });
 });

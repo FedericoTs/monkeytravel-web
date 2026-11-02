@@ -5,7 +5,6 @@ import { Link } from "@/lib/i18n/routing";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import type { ItineraryDay, TripMeta } from "@/types";
 import { trackTemplateBrowsed } from "@/lib/analytics";
 import DestinationHero from "@/components/DestinationHero";
@@ -83,7 +82,6 @@ interface TemplatePreviewClientProps {
 
 export default function TemplatePreviewClient({ template }: TemplatePreviewClientProps) {
   const t = useTranslations('trips.template');
-  const typeLabel = useActivityTypeLabel();
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
@@ -318,7 +316,6 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                       travel={travelData.get(day.day_number)}
                       travelLoading={travelLoading}
                       pace={template.meta?.pace}
-                      typeLabel={typeLabel}
                       currency={template.budget?.currency || "EUR"}
                     />
                   )}

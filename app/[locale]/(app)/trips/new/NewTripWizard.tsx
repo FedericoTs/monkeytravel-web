@@ -253,8 +253,10 @@ import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
 import { activityDomId } from "@/lib/trip/activity-dom-id";
 import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
-import { ResultBookingLinks, ResultPacking, ResultStats, ResultTimeline } from "@/components/wizard/ResultSections";
-import { ViewModeToggle } from "@/components/trip/ViewControls";
+import { ResultBookingLinks, ResultPacking, ResultStats } from "@/components/wizard/ResultSections";
+import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
+import { DayTimeline } from "@/components/trip/DayTimeline";
+import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { isNativePlatform } from "@/lib/native/platform";
 import { planDateChange, moveItineraryDates } from "@/lib/trips/change-dates";
 
@@ -537,6 +539,8 @@ export default function NewTripPage({
   // the map (mobile screen real estate) and pick Cards or Timeline.
   const [showMap, setShowMap] = useState(true);
   const [resultViewMode, setResultViewMode] = useState<"cards" | "timeline">("cards");
+  // The timeline's travel legs: estimated from coordinates, no API call.
+  const { travelData, isLoading: travelLoading } = useTravelDistances(generatedItinerary?.days);
   // Streaming progress — set by the SSE consumer in handleGenerate. The
   // GenerationProgress component shows the days as they arrive ("Day 3 of 7"
   // and the plan itself) instead of fake-percentage phases.
@@ -3485,19 +3489,11 @@ export default function NewTripPage({
                   labels={{ cards: t("wizard.result.viewCards"), timeline: t("wizard.result.viewTimeline") }}
                 />
 
-                <button
-                  type="button"
-                  onClick={() => setShowMap((v) => !v)}
-                  title={showMap ? t("wizard.result.hideMap") : t("wizard.result.showMap")}
-                  aria-pressed={showMap}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    showMap
-                      ? "bg-[var(--primary)] text-white"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  }`}
-                >
-                  {showMap ? t("wizard.result.hideMap") : t("wizard.result.showMap")}
-                </button>
+                <MapToggle
+                  shown={showMap}
+                  onToggle={() => setShowMap((v) => !v)}
+                  labels={{ show: t("wizard.result.showMap"), hide: t("wizard.result.hideMap") }}
+                />
               </div>
             </div>
 
@@ -3572,7 +3568,13 @@ export default function NewTripPage({
                     ))}
                   </div>
                 ) : (
-                  <ResultTimeline activities={day.activities} currency={generatedItinerary.trip_summary.currency} />
+                  <DayTimeline
+                    day={day}
+                    travel={travelData.get(day.day_number)}
+                    travelLoading={travelLoading}
+                    pace={pace}
+                    currency={generatedItinerary.trip_summary.currency}
+                  />
                 )}
               </div>
             ))}
