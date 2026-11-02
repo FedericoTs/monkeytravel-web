@@ -501,7 +501,6 @@
     "freePrice": "Gratis"
   },
   "activity": {
-    "duration": "{duration} min",
     "cost": "Costo",
     "free": "Gratis",
     "tips": "Consigli",

@@ -139,9 +139,7 @@
     "night": "Night",
     "today": "Today",
     "tomorrow": "Tomorrow",
-    "yesterday": "Yesterday",
-    "minutes": "{count} min",
-    "hours": "{count} hr"
+    "yesterday": "Yesterday"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong. Please try again.",
@@ -216,7 +214,7 @@
     "insiderTips": "Insider Tips",
     "startTime": "Start Time",
     "estCost": "Est. Cost",
-    "durationMinutes": "<b>{minutes} min</b> duration",
+    "durationMinutes": "<b>{duration}</b> duration",
     "about": "About",
     "location": "Location",
     "photos": "Photos",
@@ -692,7 +690,6 @@
     "viewDetails": "View Details",
     "showRoute": "Show route",
     "hideRoute": "Hide route",
-    "segmentDuration": "{minutes} min walk",
     "disclaimerStraightLine": "Straight-line estimate — actual walking time may be longer."
   },
   "maintenance": {
@@ -1499,9 +1496,7 @@
       "unknown": "Unknown",
       "day": "Day {number}",
       "description": "Description",
-      "votes": "Votes",
-      "minutes": "{count} min",
-      "duration": "{minutes} min"
+      "votes": "Votes"
     },
     "owner": {
       "needsDecision": "This proposal needs your decision as trip owner."

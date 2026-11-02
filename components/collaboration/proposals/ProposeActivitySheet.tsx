@@ -9,6 +9,7 @@ import BaseModal from "@/components/ui/BaseModal";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import { useActivitySearch, type ActivitySearchResult } from "@/hooks/useActivitySearch";
+import { formatDuration } from "@/lib/datetime/duration";
 
 interface ProposeActivitySheetProps {
   isOpen: boolean;
@@ -327,7 +328,7 @@ export function ProposeActivitySheet({
                               <span>•</span>
                               <span className="flex items-center gap-0.5">
                                 <Clock className="w-3 h-3" />
-                                {result.duration_minutes} min
+                                {formatDuration(result.duration_minutes)}
                               </span>
                             </>
                           )}
@@ -462,7 +463,7 @@ export function ProposeActivitySheet({
                   {selectedActivity.duration_minutes && (
                     <>
                       <span>•</span>
-                      <span>{selectedActivity.duration_minutes} min</span>
+                      <span>{formatDuration(selectedActivity.duration_minutes)}</span>
                     </>
                   )}
                 </div>

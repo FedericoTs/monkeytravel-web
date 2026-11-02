@@ -48,7 +48,6 @@ export {
   metersToYards,
   metersToKm,
   formatDistance,
-  formatWalkingTime,
   isWalkableDistance,
   formatAltitude,
 } from "./conversions";

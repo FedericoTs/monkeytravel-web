@@ -15,6 +15,7 @@ import MoveToDaySheet, { type MoveToDayOption } from "./MoveToDaySheet";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { ActivityCardDetails, ActivityKindIcon } from "./ActivityCardParts";
 import { Spinner } from "@/components/ui/Spinner";
+import { formatDuration } from "@/lib/datetime/duration";
 
 interface EditableActivityCardProps {
   activity: Activity;
@@ -306,7 +307,7 @@ function EditableActivityCard({
               />
             ) : (
               <div className="text-xs text-slate-500">
-                {t('activity.duration', { duration: activity.duration_minutes })}
+                {formatDuration(activity.duration_minutes)}
               </div>
             )}
             <div
@@ -348,7 +349,7 @@ function EditableActivityCard({
                 <>
                   <span className="font-medium text-slate-900">{activity.start_time}</span>
                   <span className="text-slate-500">·</span>
-                  <span className="text-slate-500">{t('activity.duration', { duration: activity.duration_minutes })}</span>
+                  <span className="text-slate-500">{formatDuration(activity.duration_minutes)}</span>
                 </>
               )}
             </div>

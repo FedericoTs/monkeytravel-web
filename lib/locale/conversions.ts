@@ -128,26 +128,6 @@ export function formatDistance(
 }
 
 /**
- * Format walking time estimate based on distance
- * Assumes average walking speed of 5 km/h (3.1 mph)
- */
-export function formatWalkingTime(meters: number): string {
-  const WALKING_SPEED_KMH = 5;
-  const hours = meters / 1000 / WALKING_SPEED_KMH;
-  const minutes = Math.round(hours * 60);
-
-  if (minutes < 1) {
-    return "< 1 min";
-  } else if (minutes < 60) {
-    return `${minutes} min`;
-  } else {
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return m > 0 ? `${h}h ${m}min` : `${h}h`;
-  }
-}
-
-/**
  * Determine if the given distance is walkable (< 2km / 1.2 miles)
  */
 export function isWalkableDistance(meters: number): boolean {

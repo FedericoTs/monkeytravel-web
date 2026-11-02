@@ -10,6 +10,7 @@ import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import { activityDomId } from "@/lib/trip/activity-dom-id";
 import TravelConnector from "./TravelConnector";
 import DaySummary from "./DaySummary";
+import { formatDuration } from "@/lib/datetime/duration";
 
 /**
  * A day as a timeline, the alternative to the cards on the wizard's result,
@@ -64,7 +65,7 @@ export function DayTimeline({
                         {activity.duration_minutes > 0 && (
                           <>
                             <span>·</span>
-                            <span>{activity.duration_minutes} min</span>
+                            <span>{formatDuration(activity.duration_minutes)}</span>
                           </>
                         )}
                       </div>

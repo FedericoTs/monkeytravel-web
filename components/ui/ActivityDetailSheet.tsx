@@ -13,6 +13,7 @@ import { useModalBehavior } from "@/hooks/useModalBehavior";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { wikimediaSheetSrc } from "@/lib/images/wikimedia-credit";
 import { PhotoCredit } from "./PhotoCredit";
+import { formatDuration } from "@/lib/datetime/duration";
 
 interface ActivityDetailSheetProps {
   activity: Activity;
@@ -213,7 +214,7 @@ export default function ActivityDetailSheet({
               </svg>
               <span className="text-sm text-slate-600">
                 {t.rich("activity.durationMinutes", {
-                  minutes: activity.duration_minutes,
+                  duration: formatDuration(activity.duration_minutes),
                   b: (chunks) => <span className="font-medium">{chunks}</span>,
                 })}
               </span>

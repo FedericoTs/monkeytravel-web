@@ -17,6 +17,7 @@ import { getProposalTimeRemaining } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING, VOTE_INFO } from "@/types";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { CreditedThumb } from "@/components/ui/PhotoCredit";
+import { formatDuration } from "@/lib/datetime/duration";
 
 /**
  * 4-Level Voting Options for Proposals
@@ -239,13 +240,6 @@ export function VotingBottomSheet({
     return `${h12}:${minutes} ${ampm}`;
   };
 
-  const formatDuration = (mins: number) => {
-    if (!mins) return '';
-    if (mins < 60) return `${mins} min`;
-    const hours = Math.floor(mins / 60);
-    const remaining = mins % 60;
-    return remaining > 0 ? `${hours}h ${remaining}m` : `${hours}h`;
-  };
 
   const formatTimeRemaining = (hours: number): string => {
     if (hours <= 0) return t('expiringSoon');
@@ -451,7 +445,7 @@ export function VotingBottomSheet({
                   )}
                   {activity.duration_minutes && (
                     <span className="flex items-center gap-1">
-                      <span>⏱️</span> {formatDuration(activity.duration_minutes)}
+                      <span>⏱️</span> {activity.duration_minutes ? formatDuration(activity.duration_minutes) : ""}
                     </span>
                   )}
                 </div>

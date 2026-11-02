@@ -66,7 +66,7 @@ describe("a day as a timeline", () => {
     expect(screen.getByText("EUR→GBP 15")).toBeTruthy();
     expect(screen.getByText("activity.free")).toBeTruthy();
     expect(screen.getAllByText("type:museum")).toHaveLength(3);
-    expect(screen.getAllByText("60 min")).toHaveLength(3);
+    expect(screen.getAllByText("1 h")).toHaveLength(3);
   });
 
   it("puts a compact travel leg between activities, with the leg the day's travel has", () => {

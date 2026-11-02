@@ -30,7 +30,7 @@ describe("estimateTravelTime", () => {
   });
 
   it("states long durations in hours", () => {
-    expect(estimateTravelTime(ORIGIN, north(50000)).durationText).toMatch(/^\d+ hr( \d+ min)?$/);
+    expect(estimateTravelTime(ORIGIN, north(50000)).durationText).toMatch(/^\d+ h( \d+ min)?$/);
   });
 });
 

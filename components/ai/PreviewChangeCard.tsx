@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import type { PendingChange } from "@/lib/ai/assistant/pending-change";
 import { MiniActivityCard } from "./AssistantCards";
 import { Spinner } from "@/components/ui/Spinner";
+import { formatDuration } from "@/lib/datetime/duration";
 
 export type { PendingChange };
 
@@ -16,13 +17,9 @@ interface PreviewChangeCardProps {
   isApplying?: boolean;
 }
 
-function formatDuration(mins: number): string {
-  if (!Number.isFinite(mins) || mins <= 0) return "—";
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  if (h && m) return `${h}h ${m}m`;
-  if (h) return `${h}h`;
-  return `${m}m`;
+// A change with no known length shows a dash rather than "0 min".
+function durationOrDash(mins: number): string {
+  return Number.isFinite(mins) && mins > 0 ? formatDuration(mins) : "—";
 }
 
 export default function PreviewChangeCard({
@@ -136,11 +133,11 @@ export default function PreviewChangeCard({
             <div className="min-w-0 flex-1">
               <div className="text-sm font-medium text-slate-800 truncate">{change.activity.name}</div>
               <div className="mt-0.5 flex items-center gap-2 text-xs">
-                <span className="text-slate-500 line-through">{formatDuration(change.oldDuration)}</span>
+                <span className="text-slate-500 line-through">{durationOrDash(change.oldDuration)}</span>
                 <svg className="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
-                <span className="font-semibold text-emerald-600">{formatDuration(change.newDuration)}</span>
+                <span className="font-semibold text-emerald-600">{durationOrDash(change.newDuration)}</span>
               </div>
             </div>
           </div>
