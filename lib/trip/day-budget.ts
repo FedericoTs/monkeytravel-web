@@ -8,6 +8,15 @@ interface DayBudgetCurrency {
 }
 
 /**
+ * Whether a day header shows the day's budget: only for days that carry a
+ * stored daily_budget, which only older trips and the templates have. The
+ * figure itself never reads it (dayBudgetLabel).
+ */
+export function showsDayBudget(day: ItineraryDay): boolean {
+  return Boolean(day.daily_budget);
+}
+
+/**
  * A day's "Est. Budget": its activities' costs, each converted, summed in the
  * currency the converter returned for the first costed one; `freeLabel` when
  * nothing costs anything.

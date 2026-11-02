@@ -20,7 +20,9 @@ import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
 import TodayView from "@/components/trip/TodayView";
 import { useLiveTripState } from "@/lib/trip/useLiveTripState";
 import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
-import { dayBudgetLabel } from "@/lib/trip/day-budget";
+import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
+import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
+import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import DownloadIcsButton from "@/components/calendar/DownloadIcsButton";
 // TravelAdvisoryBanner / ExpenseLedger / TripConciergeChat are loaded with
@@ -2861,24 +2863,12 @@ export default function TripDetailClient({
                   )}
                   {/* Day Header — a drop target while a card is being dragged (lands at the start of this day) */}
                   <DayDropHeader dayNumber={day.day_number} dragging={activeDragId !== null}>
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-full text-white flex items-center justify-center font-bold text-lg shadow-lg ${
-                        isEditMode
-                          ? "bg-gradient-to-br from-amber-500 to-amber-600"
-                          : "bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80"
-                      }`}>
-                        {day.day_number}
-                      </div>
-                      <div>
-                        <h2 className="font-bold text-xl text-slate-900">
-                          {t('day.label', { number: day.day_number })}
-                        </h2>
-                        {day.theme && (
-                          <p className="text-slate-500 text-sm">{day.theme}</p>
-                        )}
-                      </div>
-                    </div>
+                  <DayHeader
+                    dayNumber={day.day_number}
+                    title={t('day.label', { number: day.day_number })}
+                    theme={day.theme}
+                    editing={isEditMode}
+                  >
                     <div className="ml-auto flex items-center gap-3">
                       {/* Regenerate Day Button - icon-only; owner only; subtle */}
                       {userRole === "owner" && (
@@ -2915,16 +2905,11 @@ export default function TripDetailClient({
                           <span className="sm:hidden">{t('detail.optimize')}</span>
                         </button>
                       )}
-                      {day.daily_budget && (
-                        <div className="text-right">
-                          <div className="text-sm text-slate-500">{t('detail.estBudget')}</div>
-                          <div className="font-semibold text-slate-900">
-                            {formatDayBudget(day)}
-                          </div>
-                        </div>
+                      {showsDayBudget(day) && (
+                        <DayBudget label={t('detail.estBudget')} value={formatDayBudget(day)} className="text-right" />
                       )}
                     </div>
-                  </div>
+                  </DayHeader>
                   </DayDropHeader>
 
                   {/* Activities */}
@@ -3245,27 +3230,10 @@ export default function TripDetailClient({
           />
         )}
 
-        {/* AI Disclaimer */}
         {!isEditMode && (
-          <div className="mt-12 p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl">
-            <div className="flex gap-4">
-              <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-              <div>
-                <h4 className="font-semibold text-amber-900 mb-1">
-                  {t('detail.aiGenerated')}
-                </h4>
-                <p className="text-sm text-amber-800">
-                  {t('detail.aiGeneratedDescription')} {t('detail.clickMoreInfo')}
-                </p>
-              </div>
-            </div>
-          </div>
+          <AiDisclaimer title={t('detail.aiGenerated')}>
+            {t('detail.aiGeneratedDescription')} {t('detail.clickMoreInfo')}
+          </AiDisclaimer>
         )}
 
         {/* Edit Mode Instructions */}
