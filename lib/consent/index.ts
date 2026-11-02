@@ -66,9 +66,4 @@ export {
 } from "./context";
 
 // Additional hooks
-export {
-  useClientConsent,
-  useShouldShowBanner,
-  useAnalyticsConsent,
-  useSessionRecordingConsent,
-} from "./hooks";
+export { useAnalyticsConsent } from "./hooks";
