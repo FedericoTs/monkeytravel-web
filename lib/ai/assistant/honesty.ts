@@ -20,6 +20,7 @@
  */
 
 import { resolveAiLanguage, type SupportedLanguage } from "@/lib/ai/language";
+import { note } from "./notes";
 
 const L = "\\p{L}";
 /** Word boundaries that also hold around accented letters (JS \b is ASCII-only). */
@@ -191,16 +192,7 @@ export function replyLanguage(text: string): SupportedLanguage | undefined {
  * a chat example, because the action parser only understands English commands.
  */
 export function nothingChangedReply(language: string | undefined): string {
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return 'No he cambiado tu itinerario: no he podido hacer ese cambio desde aquí. Puedes hacerlo tú con "Editar Viaje".';
-    case "it":
-      return 'Non ho modificato il tuo itinerario: da qui non sono riuscito a fare questa modifica. Puoi farla tu con "Modifica Viaggio".';
-    case "pt":
-      return 'Não alterei o seu itinerário: não consegui fazer essa alteração daqui. Você pode fazê-la com "Editar Viagem".';
-    default:
-      return 'I haven\'t changed your itinerary: I couldn\'t make that change from here. You can make it with "Edit Trip", or ask me for one activity at a time, like "add a boat tour to day 5".';
-  }
+  return note(language, "nothingChanged");
 }
 
 /**
@@ -208,30 +200,12 @@ export function nothingChangedReply(language: string | undefined): string {
  * concierge streams its words before it knows whether the change came with them.
  */
 export function noProposalNote(language: string | undefined): string {
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return "(Este cambio no está listo: no hay nada que confirmar. Pídemelo de nuevo con el día y la actividad.)";
-    case "it":
-      return "(Questa modifica non è pronta: non c'è niente da confermare. Chiedimela di nuovo indicando giorno e attività.)";
-    case "pt":
-      return "(Esta alteração não está pronta: não há nada para confirmar. Peça de novo com o dia e a atividade.)";
-    default:
-      return "(That change isn't ready: there's nothing to confirm. Ask me again with the day and the activity.)";
-  }
+  return note(language, "noProposal");
 }
 
 /** The reply when a change is prepared but waits for the Apply button. */
 export function pendingChangeReply(language: string | undefined, buttonLabel: string): string {
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return `He preparado este cambio. No se guarda nada hasta que toques "${buttonLabel}" abajo.`;
-    case "it":
-      return `Ho preparato questa modifica. Non viene salvato nulla finché non tocchi "${buttonLabel}" qui sotto.`;
-    case "pt":
-      return `Preparei esta alteração. Nada é salvo até você tocar em "${buttonLabel}" abaixo.`;
-    default:
-      return `I've prepared this change. Nothing is saved until you tap "${buttonLabel}" below.`;
-  }
+  return note(language, "pendingChangeReply", { button: buttonLabel });
 }
 
 /**
@@ -240,16 +214,7 @@ export function pendingChangeReply(language: string | undefined, buttonLabel: st
  * language, so the example is the traveller's own.
  */
 export function wizardNothingChangedReply(language: string | undefined): string {
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return 'No he cambiado tu plan: no he podido hacer ese cambio. Prueba a pedírmelo día por día, por ejemplo "haz que el día 3 sea de avistamiento de ballenas".';
-    case "it":
-      return 'Non ho modificato il tuo piano: non sono riuscito a fare questa modifica. Prova a chiedermela giorno per giorno, per esempio "fai del giorno 3 una giornata di whale watching".';
-    case "pt":
-      return 'Não alterei o seu plano: não consegui fazer essa alteração. Tente pedir dia a dia, por exemplo "faça do dia 3 um dia de observação de baleias".';
-    default:
-      return 'I haven\'t changed your plan: I couldn\'t make that change. Try asking for it day by day, like "make day 3 about whale watching".';
-  }
+  return note(language, "wizardNothingChanged");
 }
 
 /**
@@ -257,17 +222,7 @@ export function wizardNothingChangedReply(language: string | undefined): string 
  * "swap" that only prepared one side of it.
  */
 export function uncoveredDaysNote(language: string | undefined, covered: number[], uncovered: number[]): string {
-  const list = (ns: number[]) => ns.join(", ");
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return `(Este cambio incluye solo el día ${list(covered)}. Pídeme el día ${list(uncovered)} si también quieres cambiarlo.)`;
-    case "it":
-      return `(Questa modifica riguarda solo il giorno ${list(covered)}. Chiedimi il giorno ${list(uncovered)} se vuoi cambiare anche quello.)`;
-    case "pt":
-      return `(Esta alteração inclui só o dia ${list(covered)}. Peça-me o dia ${list(uncovered)} se também o quiser alterar.)`;
-    default:
-      return `(This change covers Day ${list(covered)} only. Ask me for Day ${list(uncovered)} if you want that changed too.)`;
-  }
+  return note(language, "uncoveredDays", { covered: covered.join(", "), uncovered: uncovered.join(", ") });
 }
 
 /**
@@ -276,59 +231,22 @@ export function uncoveredDaysNote(language: string | undefined, covered: number[
  * label is the wizard's button (trips.assistant.apply in each locale).
  */
 export function notAppliedLead(language: string | undefined): string {
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return 'Aún no aplicado: toca "Aplicar cambio" abajo para actualizar tu plan.';
-    case "it":
-      return 'Non ancora applicato: tocca "Applica modifica" qui sotto per aggiornare il tuo piano.';
-    case "pt":
-      return 'Ainda não aplicado: toque em "Aplicar alteração" abaixo para atualizar o seu plano.';
-    default:
-      return 'Not applied yet: tap "Apply change" below to update your plan.';
-  }
+  return note(language, "notAppliedLead");
 }
 
 /** The wizard assistant's reply when the only day it could change is fixed. */
 export function lockedDayReply(language: string | undefined, dayNumber: number, names: string[]): string {
-  const fixed = names.join(", ");
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return `El día ${dayNumber} gira en torno a un plan fijo (${fixed}), así que lo he dejado como estaba. Puedo rehacer los otros días.`;
-    case "it":
-      return `Il giorno ${dayNumber} è costruito attorno a un impegno fisso (${fixed}), quindi l'ho lasciato com'è. Posso rifare gli altri giorni.`;
-    case "pt":
-      return `O dia ${dayNumber} é organizado em torno de um compromisso fixo (${fixed}), então deixei como está. Posso refazer os outros dias.`;
-    default:
-      return `Day ${dayNumber} is built around a fixed plan (${fixed}), so I left it as it is. I can rework the other days instead.`;
-  }
+  return note(language, "lockedDay", { day: String(dayNumber), fixed: names.join(", ") });
 }
 
 /** The wizard assistant's fallbacks when the model returned no reply text. */
 export function wizardFallbackReply(language: string | undefined, prepared: boolean): string {
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return prepared ? "Aquí tienes el cambio." : "Aquí estoy para ayudarte: pregúntame lo que quieras sobre tu viaje.";
-    case "it":
-      return prepared ? "Ecco la modifica." : "Sono qui per aiutarti: chiedimi qualsiasi cosa sul tuo viaggio.";
-    case "pt":
-      return prepared ? "Aqui está a alteração." : "Estou aqui para ajudar: pergunte o que quiser sobre a sua viagem.";
-    default:
-      return prepared ? "Here's the change." : "Here to help — ask me anything about your trip.";
-  }
+  return note(language, prepared ? "wizardFallbackPrepared" : "wizardFallbackIdle");
 }
 
 /** Appended when the reply meant to change the trip's length but couldn't. */
 export function lengthUnchangedNote(language: string | undefined, days: number): string {
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return `(El viaje sigue teniendo ${days} días: no he podido preparar los días nuevos. Pídemelo otra vez, un día cada vez.)`;
-    case "it":
-      return `(Il viaggio resta di ${days} giorni: non sono riuscito a preparare i giorni nuovi. Chiedimelo di nuovo, un giorno alla volta.)`;
-    case "pt":
-      return `(A viagem continua com ${days} dias: não consegui preparar os dias novos. Peça de novo, um dia de cada vez.)`;
-    default:
-      return `(The trip stays at ${days} days: I couldn't prepare the new days. Ask me again, one day at a time.)`;
-  }
+  return note(language, "lengthUnchanged", { days });
 }
 
 // "Noted" and "recorded" tell the traveller that their hotel or flight is
@@ -363,16 +281,7 @@ export function claimsToRemember(text: string | null | undefined): boolean {
  * only English gets a chat example, for the same reason.
  */
 export function nothingKeptReply(language: string | undefined): string {
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return 'Desde aquí no puedo guardar datos como hoteles u horarios de vuelo, y solo recuerdo los últimos mensajes. Puedes ponerlos en el plan con "Editar Viaje".';
-    case "it":
-      return 'Da qui non posso conservare dati come hotel od orari dei voli, e ricordo solo gli ultimi messaggi. Puoi inserirli nel piano con "Modifica Viaggio".';
-    case "pt":
-      return 'Daqui não consigo guardar dados como hotéis ou horários de voo, e só me lembro das últimas mensagens. Você pode colocá-los no plano com "Editar Viagem".';
-    default:
-      return 'I can\'t keep details like hotels or flight times from here, and I only remember the last few messages. Put them in the plan with "Edit Trip", or ask me for one activity at a time, like "add hotel check-in to day 1".';
-  }
+  return note(language, "nothingKept");
 }
 
 // An answer that announces figures or a list, then stops: "Ecco un calcolo
@@ -436,41 +345,12 @@ export function claimsLongerTrip(text: string | null | undefined): boolean {
 
 /** Appended when a change concerned more days than could be prepared in time. */
 export function daysLeftNote(language: string | undefined, days: number[]): string {
-  const list = days.join(", ");
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return `(Los días ${list} aún no han cambiado: di "continúa" y haré lo mismo allí.)`;
-    case "it":
-      return `(I giorni ${list} non sono ancora cambiati: scrivi "continua" e farò lo stesso lì.)`;
-    case "pt":
-      return `(Os dias ${list} ainda não mudaram: diga "continue" e faço o mesmo neles.)`;
-    default:
-      return `(Days ${list} aren't changed yet: say "continue" and I'll do the same there.)`;
-  }
+  return note(language, "daysLeft", { list: days.join(", ") });
 }
 
 /** Appended when a longer trip got some of its new days but not the last ones in time. */
 export function daysNotAddedNote(language: string | undefined, days: number[]): string {
-  const one = days.length === 1;
-  const list = days.join(", ");
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return one
-        ? `(El día ${list} aún no está añadido: di "continúa" y lo añadiré.)`
-        : `(Los días ${list} aún no están añadidos: di "continúa" y los añadiré.)`;
-    case "it":
-      return one
-        ? `(Il giorno ${list} non è ancora aggiunto: scrivi "continua" e lo aggiungerò.)`
-        : `(I giorni ${list} non sono ancora aggiunti: scrivi "continua" e li aggiungerò.)`;
-    case "pt":
-      return one
-        ? `(O dia ${list} ainda não foi adicionado: diga "continue" e eu o adiciono.)`
-        : `(Os dias ${list} ainda não foram adicionados: diga "continue" e eu os adiciono.)`;
-    default:
-      return one
-        ? `(Day ${list} isn't added yet: say "continue" and I'll add it.)`
-        : `(Days ${list} aren't added yet: say "continue" and I'll add them.)`;
-  }
+  return note(language, "daysNotAdded", { count: days.length, list: days.join(", ") });
 }
 
 /**
@@ -482,34 +362,10 @@ export function travelTimesNote(
   v: { day: number; arrives?: string; leaves?: string; from: string | null; until: string | null; names: string[] },
 ): string {
   const names = v.names.join(", ");
-  const late = v.from !== null && v.from >= "22:00";
-  const d = v.day;
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return v.leaves
-        ? `(Revisa el día ${d}: sales a las ${v.leaves}, así que los planes deberían terminar a las ${v.until}, y el día aún tiene: ${names}.)`
-        : late
-          ? `(Revisa el día ${d}: llegas a las ${v.arrives}, demasiado tarde para hacer planes, y el día aún tiene: ${names}.)`
-          : `(Revisa el día ${d}: llegas a las ${v.arrives}, así que los planes deberían empezar después de las ${v.from}, y el día aún tiene: ${names}.)`;
-    case "it":
-      return v.leaves
-        ? `(Controlla il giorno ${d}: parti alle ${v.leaves}, quindi i programmi dovrebbero finire entro le ${v.until}, e il giorno ha ancora: ${names}.)`
-        : late
-          ? `(Controlla il giorno ${d}: arrivi alle ${v.arrives}, troppo tardi per altri programmi, e il giorno ha ancora: ${names}.)`
-          : `(Controlla il giorno ${d}: arrivi alle ${v.arrives}, quindi i programmi dovrebbero iniziare dopo le ${v.from}, e il giorno ha ancora: ${names}.)`;
-    case "pt":
-      return v.leaves
-        ? `(Confira o dia ${d}: você parte às ${v.leaves}, então os planos deveriam terminar até as ${v.until}, e o dia ainda tem: ${names}.)`
-        : late
-          ? `(Confira o dia ${d}: você chega às ${v.arrives}, tarde demais para outros planos, e o dia ainda tem: ${names}.)`
-          : `(Confira o dia ${d}: você chega às ${v.arrives}, então os planos deveriam começar depois das ${v.from}, e o dia ainda tem: ${names}.)`;
-    default:
-      return v.leaves
-        ? `(Check Day ${d}: you leave at ${v.leaves}, so plans should end by ${v.until}, and the day still has: ${names}.)`
-        : late
-          ? `(Check Day ${d}: you arrive at ${v.arrives}, too late for other plans, and the day still has: ${names}.)`
-          : `(Check Day ${d}: you arrive at ${v.arrives}, so plans should start after ${v.from}, and the day still has: ${names}.)`;
-  }
+  const day = String(v.day);
+  if (v.leaves) return note(language, "travelTimesLeaves", { day, leaves: v.leaves, until: String(v.until), names });
+  if (v.from !== null && v.from >= "22:00") return note(language, "travelTimesLate", { day, arrives: String(v.arrives), names });
+  return note(language, "travelTimesArrives", { day, arrives: String(v.arrives), from: String(v.from), names });
 }
 
 /**
@@ -519,16 +375,8 @@ export function travelTimesNote(
  */
 export function ownerAddsDaysReply(language: string | undefined, days: number, ideas: string[]): string {
   const list = ideas.map((idea) => `\n- ${idea}`).join("");
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return `Solo el propietario del viaje puede añadir días, así que el viaje sigue teniendo ${days} días.${list && ` Ideas para esos días, para proponérselas:${list}`}`;
-    case "it":
-      return `Solo il proprietario del viaggio può aggiungere giorni, quindi il viaggio resta di ${days} giorni.${list && ` Idee per quei giorni, da proporgli:${list}`}`;
-    case "pt":
-      return `Só o proprietário da viagem pode adicionar dias, então a viagem continua com ${days} dias.${list && ` Ideias para esses dias, para sugerir ao proprietário:${list}`}`;
-    default:
-      return `Only the trip owner can add days, so the trip stays at ${days} days.${list && ` Ideas for those days, to suggest to them:${list}`}`;
-  }
+  const reply = note(language, "ownerAddsDays", { days });
+  return list ? `${reply} ${note(language, "ownerAddsDaysIdeas", { list })}` : reply;
 }
 
 /**
@@ -536,16 +384,7 @@ export function ownerAddsDaysReply(language: string | undefined, days: number, i
  * were already saved. The reply comes first: it is the answer.
  */
 export function pendingChangeNote(language: string | undefined, buttonLabel: string): string {
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return `Aún no guardado: toca "${buttonLabel}" abajo para actualizar tu viaje.`;
-    case "it":
-      return `Non ancora salvato: tocca "${buttonLabel}" qui sotto per aggiornare il tuo viaggio.`;
-    case "pt":
-      return `Ainda não salvo: toque em "${buttonLabel}" abaixo para atualizar a sua viagem.`;
-    default:
-      return `Not saved yet: tap "${buttonLabel}" below to update your trip.`;
-  }
+  return note(language, "pendingChangeNote", { button: buttonLabel });
 }
 
 /**
@@ -558,17 +397,7 @@ export function planCostsReply(
 ): string {
   const l = resolveAiLanguage(language);
   const shown = costs.shown ?? costs;
-  const amount = `${new Intl.NumberFormat(l).format(shown.total)} ${shown.currency}`;
-  switch (l) {
-    case "es":
-      return `Las actividades de tu plan suman unos ${amount}. Los hoteles y los vuelos no están en el plan, así que súmalos aparte.`;
-    case "it":
-      return `Le attività del tuo piano costano in tutto circa ${amount}. Hotel e voli non sono nel piano, quindi aggiungili a parte.`;
-    case "pt":
-      return `As atividades do seu plano somam cerca de ${amount}. Hotéis e voos não estão no plano, então some-os à parte.`;
-    default:
-      return `The activities in your plan come to about ${amount}. Hotels and flights aren't in the plan, so add those on top.`;
-  }
+  return note(l, "planCosts", { amount: `${new Intl.NumberFormat(l).format(shown.total)} ${shown.currency}` });
 }
 
 // Asking for something to go: "remove", "take out", "instead", "quita", "togli"…
@@ -590,28 +419,10 @@ export function asksToRemove(message: string | null | undefined): boolean {
  */
 export function takesOutNote(language: string | undefined, names: string[]): string {
   const list = names.slice(0, 4).join(", ") + (names.length > 4 ? ", …" : "");
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return `(Este cambio quita: ${list}.)`;
-    case "it":
-      return `(Questa modifica toglie: ${list}.)`;
-    case "pt":
-      return `(Esta alteração tira: ${list}.)`;
-    default:
-      return `(This change takes out: ${list}.)`;
-  }
+  return note(language, "takesOut", { list });
 }
 
 /** Stands in for an announced list or summary that never came. */
 export function missingAnswerReply(language: string | undefined): string {
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return "No he podido preparar esa respuesta. Pregúntame una cosa a la vez, por ejemplo qué hacer el día 2.";
-    case "it":
-      return "Non sono riuscito a preparare questa risposta. Chiedimi una cosa alla volta, per esempio cosa fare il giorno 2.";
-    case "pt":
-      return "Não consegui preparar essa resposta. Pergunte uma coisa de cada vez, por exemplo o que fazer no dia 2.";
-    default:
-      return "I couldn't put that answer together. Ask me one thing at a time, like what to do on day 2.";
-  }
+  return note(language, "missingAnswer");
 }
