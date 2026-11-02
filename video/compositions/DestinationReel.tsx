@@ -61,7 +61,7 @@ export const DestinationReel: React.FC<DestinationReelProps> = ({
         }}
       >
         <div style={{ color: '#2D3436', fontSize: 32 }}>
-          Destination "{destination}" not found
+          Destination &quot;{destination}&quot; not found
         </div>
       </AbsoluteFill>
     );
