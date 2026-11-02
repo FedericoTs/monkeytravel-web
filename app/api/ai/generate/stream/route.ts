@@ -19,14 +19,12 @@ import { getModelForPurpose } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { isAdmin } from "@/lib/admin";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
-import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
+import { incrementUsage } from "@/lib/usage-limits";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
-import {
-  getCachedItinerary,
-  cacheItinerary,
-  adjustItineraryDates,
-} from "@/lib/ai/cache";
+import { cacheItinerary, adjustItineraryDates } from "@/lib/ai/cache";
+import { cachePolicy, mayCachePlan, servableCachedPlan } from "@/lib/ai/cache-policy";
+import { generationQuotaReached, readGenerationPreflight } from "@/lib/ai/generation-preflight";
 import { loadUserContext } from "@/lib/ai/user-context";
 import { withTripDiet } from "@/lib/trips/diet";
 import { requestLocale } from "@/lib/ai/language";
@@ -198,14 +196,8 @@ export async function POST(request: NextRequest) {
     profilePreferences,
   };
 
-  // Personalized generations bypass the cross-user cache in BOTH directions —
-  // a cached generic itinerary would ignore the wishes or the diet, and a
-  // tailored result must not poison the shared pool (same rule as the JSON route).
-  const isPersonalized = Boolean(params.mustDos?.length || profilePreferences.dietaryPreferences?.length);
-  // "Try Different Version" (the wizard's Regenerate) asks for a NEW plan.
-  // The shared cache would hand back the very one on screen, so the cache is
-  // not READ for it; the fresh result is still written, and
-  // replaces the entry.
+  // "Try Different Version" (the wizard's Regenerate) asks for a NEW plan, not
+  // the one on screen (lib/ai/cache-policy).
   const wantsFresh = body.fresh === true;
 
   const validation = validateTripParams(params);
@@ -221,47 +213,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Authenticated-tier quota check + cross-user cache read in parallel.
-  // They hit different tables (usage_limits vs activity_cache) and the
-  // cache read needs userLanguage which is already resolved above. The
-  // TTFB tradeoff is documented: hoisting the cache read here delays
-  // SSE byte-0 by ~20-30ms but lets us skip the entire Gemini stream
-  // on a hit — a much larger win on the conversion-critical first-day
-  // event.
+  // The quota and the cross-user cache are read before the stream starts:
+  // that delays its first byte, but a cache hit skips the model call.
   const userIsAdmin = user ? isAdmin(user.email) : false;
   const totalDays = tripSpanDays(params.startDate, params.endDate);
   // Places travellers kept here, read alongside the cache and used only when a
   // plan is written. "Try Different Version" asks for a plan unlike the last.
   const knownPlacesRead = wantsFresh ? Promise.resolve([]) : knownPlacesFor(params, totalDays, userLanguage);
-  const [usageCheck, preflightCachedItinerary] = await Promise.all([
-    user
-      ? checkUsageLimit(user.id, "aiGenerations", user.email)
-      : Promise.resolve({
-          allowed: true as const,
-          used: 0,
-          remaining: 999,
-          limit: 999,
-          message: undefined as string | undefined,
-        }),
-    getCachedItinerary(
-      supabase,
-      params.destination,
-      params.vibes,
-      params.budgetTier,
-      userLanguage,
-      params.travelStyle ?? "classic",
-      // Never accept a cached entry SHORTER than the trip being asked for.
-      totalDays,
-    ),
-  ]);
-
+  const { usage: usageCheck, cached: preflightCachedItinerary } =
+    await readGenerationPreflight(user, params, userLanguage, totalDays);
   if (user && !usageCheck.allowed) {
-    return errors.rateLimit(
-      ("message" in usageCheck && usageCheck.message) ||
-        "Monthly trip generation limit reached.",
-      { usage: usageCheck, upgradeUrl: "/pricing" }
-    );
+    return generationQuotaReached(usageCheck);
   }
+  const cacheRules = cachePolicy(params, wantsFresh, totalDays);
+  const cacheHitPlan = servableCachedPlan(preflightCachedItinerary, cacheRules);
 
   // 2. The actual generator — yields SSE events. Cache-hit branch returns
   //    a single `complete` event; cache-miss branch streams days.
@@ -293,18 +258,10 @@ export async function POST(request: NextRequest) {
 
     try {
       // 3a. Cache short-circuit: backpacker and classic each have their
-      //     own cache pool, checked before calling Gemini.
-      // PERF (#190): the cache read was hoisted out of the SSE generator
-      // and is now part of the pre-flight Promise.all above. We just
-      // consume the pre-resolved value here.
-      const cached = isPersonalized || wantsFresh ? null : preflightCachedItinerary;
-      // `>= totalDays`, not `>= 1`. The cache key omits trip length, so a
-      // 5-day entry used to answer a 14-day request and the user silently got
-      // 5 days. adjustItineraryDates slices a LONGER entry down to fit, so
-      // only too-short entries are rejected here.
-      if (cached && cached.days.length >= totalDays) {
+      //     own cache pool, read in the preflight above.
+      if (cacheHitPlan) {
         const adjusted = adjustItineraryDates(
-          cached,
+          cacheHitPlan,
           params.startDate,
           params.endDate,
         );
@@ -528,15 +485,8 @@ export async function POST(request: NextRequest) {
       // 6b. Cache write — only when we actually generated fresh.
       // Backpacker + classic each have their own cache pool (Tier 1.2
       // migration). Fire-and-forget via waitUntil so it never blocks
-      // the complete event. Personalized (must-do) results never enter
-      // the shared pool.
-      // A fresh regenerate never replaces a LONGER entry: that entry still
-      // answers requests up to its length (a 3-day redo would otherwise cost
-      // every later 7-day request for the city a new generation).
-      const shorterThanCached =
-        wantsFresh &&
-        (preflightCachedItinerary?.days.length ?? 0) > finalItinerary.days.length;
-      if (!cacheHit && !isPersonalized && !shorterThanCached) {
+      // the complete event.
+      if (!cacheHit && mayCachePlan(finalItinerary, preflightCachedItinerary, cacheRules)) {
         const cacheWriteItinerary = finalItinerary;
         waitUntil(
           cacheItinerary(
@@ -671,15 +621,10 @@ export async function POST(request: NextRequest) {
   //     still carry the cookie. recordAnonymousGeneration() sets mt_anon
   //     through cookies(), which only works before the headers are sent:
   //     after the stream the cookie would never reach the browser and the
-  //     5-a-day anonymous cap would never apply. Cache hits stay free, with the
-  //     generator's own short-circuit predicate. A generation that then
-  //     fails still counts: one of five, against no cap at all.
-  const willHitCache =
-    !isPersonalized &&
-    !wantsFresh &&
-    !!preflightCachedItinerary &&
-    preflightCachedItinerary.days.length >= totalDays;
-  if (isAnonymous && !willHitCache) {
+  //     5-a-day anonymous cap would never apply. Cache hits stay free. A
+  //     generation that then fails still counts: one of five, against no cap
+  //     at all.
+  if (isAnonymous && !cacheHitPlan) {
     await recordAnonymousGeneration();
   }
 
