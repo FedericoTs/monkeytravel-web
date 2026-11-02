@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { Resend } from "resend";
 import { isMarketingOptedOut } from "@/lib/email/preferences";
 
@@ -58,15 +58,6 @@ function unauthorized() {
 // Contact creation stops after this; vercel.json gives the function 300 s.
 const CREATE_BUDGET_MS = 240_000;
 
-function serviceClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error("Supabase env missing for cron");
-  return createServiceClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
 function isExcluded(email: string): boolean {
   const e = email.toLowerCase();
   if (e.startsWith("loadtest+")) return true;
@@ -115,7 +106,7 @@ export async function GET(request: NextRequest) {
 
   const startedAt = Date.now();
   const resend = new Resend(apiKey);
-  const svc = serviceClient();
+  const svc = createAdminClient();
 
   // Step 1: pull Supabase user list + waitlist subscribers.
   const { data: users, error: usersErr } = await svc

@@ -1,6 +1,6 @@
 import { NextRequest, after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { captureServerEvent } from "@/lib/posthog/server";
@@ -26,15 +26,6 @@ const REPORT_RATE_LIMIT_PER_IP = 3;
 const REPORT_RATE_WINDOW_HOURS = 24;
 const AUTO_HIDE_THRESHOLD = 5;
 const MAX_REASON_LENGTH = 500;
-
-function serviceClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error("Supabase env missing for service client");
-  return createServiceClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
 
 function getClientIp(request: NextRequest): string | null {
   // Vercel sets x-forwarded-for; first IP in the list is the client.
@@ -85,7 +76,7 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
     const since = new Date(
       Date.now() - REPORT_RATE_WINDOW_HOURS * 3_600_000
     ).toISOString();
-    const { count: recentCount, error: countErr } = await serviceClient()
+    const { count: recentCount, error: countErr } = await createAdminClient()
       .from("trip_reports")
       .select("id", { count: "exact", head: true })
       .eq("reporter_ip", ip)
@@ -101,7 +92,7 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
   }
 
   // Insert report (service role — trip_reports has no public policies).
-  const svc = serviceClient();
+  const svc = createAdminClient();
   const { error: insertErr } = await svc.from("trip_reports").insert({
     trip_id: tripId,
     reporter_ip: ip,

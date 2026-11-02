@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { captureServerEvent } from "@/lib/posthog/server";
@@ -35,14 +35,6 @@ function generateCookieId(): string {
 }
 
 /** Service-role client for anon writes (RLS would block the JWT-less path). */
-function serviceClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error("Supabase env missing for service client");
-  return createServiceClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
 
 export async function POST(request: NextRequest, { params }: RouteCtx) {
   if (!isExploreUgcEnabled()) return errors.notFound("Not Found");
@@ -80,7 +72,7 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
       cookieId = generateCookieId();
       cookieIdToSet = cookieId; // attach to response below
     }
-    const r = await serviceClient()
+    const r = await createAdminClient()
       .from("trip_saves")
       .insert({ trip_id: tripId, saver_cookie_id: cookieId });
     insertErr = r.error;
@@ -149,7 +141,7 @@ export async function DELETE(request: NextRequest, { params }: RouteCtx) {
   } else {
     const cookieId = request.cookies.get(COOKIE_NAME)?.value;
     if (cookieId) {
-      const r = await serviceClient()
+      const r = await createAdminClient()
         .from("trip_saves")
         .delete()
         .eq("trip_id", tripId)
