@@ -6,8 +6,6 @@ import { localTodayISO, parseLocalDate } from "@/lib/utils/date-local";
 import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
-import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
-import { usePaceLabel } from "@/lib/i18n/pace";
 import dynamic from "next/dynamic";
 
 // ./page.tsx resolves the optional `?destination=<slug>` deeplink server-side
@@ -257,6 +255,7 @@ import { createUndoLedger } from "@/lib/trip/assistant-undo";
 import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
 import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
+import { ResultBookingLinks, ResultPacking, ResultStats, ResultTimeline } from "@/components/wizard/ResultSections";
 import { isNativePlatform } from "@/lib/native/platform";
 import { planDateChange, moveItineraryDates } from "@/lib/trips/change-dates";
 
@@ -508,8 +507,6 @@ export default function NewTripPage({
   // lives up here because the PostHog super-property effect reads it.
   const [claimedTripId, setClaimedTripId] = useState<string | null>(null);
   const t = useTranslations("trips");
-  const typeLabel = useActivityTypeLabel();
-  const paceLabel = usePaceLabel();
   const AssistantPanelView = warmedAssistantPanel ?? AnonAssistantPanel;
   const ShareButtonView = warmedShareButton ?? AnonymousShareButton;
   const RegenerateButtonView = warmedRegenerateButton ?? RegenerateButton;
@@ -3647,78 +3644,9 @@ export default function NewTripPage({
             )}
           </div>
 
-          {/* Summary Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <div className="text-sm text-slate-500">{t("wizard.result.duration")}</div>
-              <div className="font-semibold text-xl text-slate-900">{t("wizard.result.days", { count: generatedItinerary.days.length })}</div>
-            </div>
-            <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <div className="text-sm text-slate-500">{t("wizard.result.estBudget")}</div>
-              <div className="font-semibold text-xl text-slate-900">
-                {convertCurrency(
-                  generatedItinerary.trip_summary.total_estimated_cost,
-                  generatedItinerary.trip_summary.currency
-                ).formatted}
-              </div>
-            </div>
-            <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <div className="text-sm text-slate-500">{t("wizard.result.activities")}</div>
-              <div className="font-semibold text-xl text-slate-900">
-                {generatedItinerary.days.reduce((acc, day) => acc + day.activities.length, 0)}
-              </div>
-            </div>
-            <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <div className="text-sm text-slate-500">{t("wizard.result.pace")}</div>
-              <div className="font-semibold text-xl text-slate-900">{paceLabel(pace)}</div>
-            </div>
-          </div>
+          <ResultStats itinerary={generatedItinerary} pace={pace} />
 
-          {/* Booking Links */}
-          {generatedItinerary.booking_links && (
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6 mb-8">
-              <h3 className="font-semibold text-amber-900 mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {t("wizard.result.bookYourTravel")}
-              </h3>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <div className="text-sm font-medium text-amber-800 mb-3">{t("wizard.result.flights")}</div>
-                  <div className="flex flex-wrap gap-2">
-                    {generatedItinerary.booking_links.flights.map((link) => (
-                      <a
-                        key={link.provider}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 bg-white border border-amber-200 rounded-lg text-sm text-amber-900 hover:bg-amber-50 hover:border-amber-300 transition-colors shadow-sm"
-                      >
-                        {link.provider} ↗
-                      </a>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-amber-800 mb-3">{t("wizard.result.hotels")}</div>
-                  <div className="flex flex-wrap gap-2">
-                    {generatedItinerary.booking_links.hotels.map((link) => (
-                      <a
-                        key={link.url}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 bg-white border border-amber-200 rounded-lg text-sm text-amber-900 hover:bg-amber-50 hover:border-amber-300 transition-colors shadow-sm"
-                      >
-                        {link.city ? `${link.provider} · ${link.city}` : link.provider} ↗
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {generatedItinerary.booking_links && <ResultBookingLinks links={generatedItinerary.booking_links} />}
 
           {/* Value Proposition Banner - Positioned before schedule to encourage save */}
           <div className="mb-8 hidden sm:block">
@@ -3760,124 +3688,14 @@ export default function NewTripPage({
                     ))}
                   </div>
                 ) : (
-                  // Compact vertical-rail Timeline view (parity with
-                  // /trips/template/[id]). Easier to skim than full Cards —
-                  // no images, just time/title/location.
-                  <div className="relative pl-8 border-l-2 border-slate-200 space-y-2">
-                    {day.activities.map((activity, idx) => {
-                      const activityDomId = activity.id
-                        ? `activity-${activity.id}`
-                        : `activity-${(activity.name || "unknown")
-                            .toLowerCase()
-                            .replace(/[^a-z0-9]+/g, "-")
-                            .slice(0, 60)}`;
-                      return (
-                        <div
-                          key={activity.id || idx}
-                          id={activityDomId}
-                          className="relative scroll-mt-24"
-                        >
-                          <div className="absolute -left-[25px] w-4 h-4 rounded-full bg-[var(--primary)] border-4 border-white shadow" />
-                          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-                                  <span className="font-medium">
-                                    {activity.start_time}
-                                  </span>
-                                  {activity.duration_minutes && (
-                                    <>
-                                      <span>·</span>
-                                      <span>{activity.duration_minutes} min</span>
-                                    </>
-                                  )}
-                                </div>
-                                <h4 className="font-semibold text-slate-900">
-                                  {activity.locked && (
-                                    <span
-                                      className="mr-1"
-                                      title={t("wizard.anchors.lockedBadge")}
-                                      aria-label={t("wizard.anchors.lockedBadge")}
-                                    >
-                                      📌
-                                    </span>
-                                  )}
-                                  {activity.name}
-                                </h4>
-                                {activity.description && (
-                                  <p className="text-sm text-slate-600 mt-1 line-clamp-2">
-                                    {activity.description}
-                                  </p>
-                                )}
-                                {(activity.address || activity.location) && (
-                                  <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-500">
-                                    <svg
-                                      className="w-3.5 h-3.5 shrink-0"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                      />
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                                      />
-                                    </svg>
-                                    <span className="truncate">
-                                      {activity.address || activity.location}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                              {activity.estimated_cost?.amount != null && (
-                                <div className="text-right shrink-0">
-                                  <div className="font-medium text-slate-900 text-sm">
-                                    {convertCurrency(
-                                      activity.estimated_cost.amount,
-                                      activity.estimated_cost.currency ||
-                                        generatedItinerary.trip_summary.currency
-                                    ).formatted}
-                                  </div>
-                                  <span className="text-xs text-slate-500 capitalize">
-                                    {typeLabel(activity.type)}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <ResultTimeline activities={day.activities} currency={generatedItinerary.trip_summary.currency} />
                 )}
               </div>
             ))}
           </div>
 
-          {/* Packing Suggestions */}
           {generatedItinerary.trip_summary.packing_suggestions.length > 0 && (
-            <div className="mt-10 bg-slate-50 rounded-xl p-6">
-              <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-                {t("wizard.result.packingSuggestions")}
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {generatedItinerary.trip_summary.packing_suggestions.map((item) => (
-                  <span key={item} className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 shadow-sm">
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
+            <ResultPacking items={generatedItinerary.trip_summary.packing_suggestions} />
           )}
 
           <AiDisclaimer title={t("wizard.result.aiVerifiedTitle")} className="mt-10">
