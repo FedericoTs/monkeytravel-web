@@ -420,6 +420,17 @@ function ComparisonCard({ card }: { card: AssistantComparisonCard }) {
   );
 }
 
+// Where the celebration's sparkles sit, in % of the card: scattered, and the
+// same on every render.
+const SPARKLES = [
+  { left: 27, top: 34 },
+  { left: 71, top: 25 },
+  { left: 48, top: 62 },
+  { left: 22, top: 71 },
+  { left: 66, top: 77 },
+  { left: 79, top: 48 },
+];
+
 // Confirmation Card with celebration animation
 function ConfirmationCard({ card }: { card: AssistantConfirmationCard }) {
   const iconStyle = CONFIRMATION_ICONS[card.icon] || CONFIRMATION_ICONS.check;
@@ -435,13 +446,13 @@ function ConfirmationCard({ card }: { card: AssistantConfirmationCard }) {
       {/* Sparkle effects */}
       {showSparkles && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {[...Array(6)].map((_, i) => (
+          {SPARKLES.map(({ left, top }, i) => (
             <div
               key={i}
               className="absolute w-1 h-1 bg-amber-400 rounded-full animate-ping"
               style={{
-                left: `${20 + Math.random() * 60}%`,
-                top: `${20 + Math.random() * 60}%`,
+                left: `${left}%`,
+                top: `${top}%`,
                 animationDelay: `${i * 0.15}s`,
                 animationDuration: "1s",
               }}

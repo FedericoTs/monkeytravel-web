@@ -136,6 +136,21 @@ export default function ShareAndInviteModal({
     }
   }, [isOpen, authUser?.id]);
 
+  const fetchCollaborators = useCallback(async () => {
+    setIsLoadingCollaborators(true);
+    try {
+      const response = await fetch(`/api/trips/${tripId}/collaborators`);
+      if (response.ok) {
+        const data = await response.json();
+        setCollaborators(data.collaborators || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch collaborators:", error);
+    } finally {
+      setIsLoadingCollaborators(false);
+    }
+  }, [tripId]);
+
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -155,22 +170,7 @@ export default function ShareAndInviteModal({
       // Fetch collaborators
       fetchCollaborators();
     }
-  }, [isOpen, initialTab, isInTrending, tripId, tripTitle]);
-
-  const fetchCollaborators = useCallback(async () => {
-    setIsLoadingCollaborators(true);
-    try {
-      const response = await fetch(`/api/trips/${tripId}/collaborators`);
-      if (response.ok) {
-        const data = await response.json();
-        setCollaborators(data.collaborators || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch collaborators:", error);
-    } finally {
-      setIsLoadingCollaborators(false);
-    }
-  }, [tripId]);
+  }, [isOpen, initialTab, isInTrending, tripId, tripTitle, fetchCollaborators]);
 
   // The desktop dialog's Escape, scroll lock, focus and Tab. On mobile the
   // BottomSheet is the dialog and does all of this itself.
