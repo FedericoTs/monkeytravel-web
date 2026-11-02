@@ -72,8 +72,8 @@ describe("a day as a timeline", () => {
   it("puts a compact travel leg between activities, with the leg the day's travel has", () => {
     show();
     expect(screen.getAllByTestId("leg")).toHaveLength(2);
-    expect(connectors.mock.calls[0][0]).toMatchObject({ distanceMeters: 900, durationText: "11 min", mode: "walking", compact: true, isLoading: false });
-    expect(connectors.mock.calls[1][0]).toMatchObject({ distanceMeters: undefined, compact: true });
+    expect(connectors.mock.calls[0][0]).toMatchObject({ segment: leg, compact: true, isLoading: false });
+    expect(connectors.mock.calls[1][0]).toMatchObject({ segment: undefined, compact: true });
   });
 
   it("shows the legs as loading while the trip's travel is", () => {

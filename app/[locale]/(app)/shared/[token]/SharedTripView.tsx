@@ -45,7 +45,7 @@ import {
   type MyVote,
   type VoteTally,
 } from "@/components/trip/AnonymousActivityVoteBar";
-import { useTravelDistances } from "@/hooks/useTravelDistances";
+import { segmentBetween, useTravelDistances } from "@/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
 import { Sparkles } from "lucide-react";
@@ -786,9 +786,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
                         {day.activities.map((activity, idx) => {
                           const nextActivity = day.activities[idx + 1];
                           const dayTravelData = travelData.get(day.day_number);
-                          const segment = nextActivity && dayTravelData?.segments.find(
-                            (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
-                          );
+                          const segment = segmentBetween(dayTravelData, activity, nextActivity);
 
                           const voteActivityId = activity.id;
                           return (
@@ -816,11 +814,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
                               {/* Travel connector to next activity */}
                               {idx < day.activities.length - 1 && (
                                 <TravelConnector
-                                  distanceMeters={segment?.distanceMeters}
-                                  durationSeconds={segment?.durationSeconds}
-                                  distanceText={segment?.distanceText}
-                                  durationText={segment?.durationText}
-                                  mode={segment?.mode}
+                                  segment={segment}
                                   isLoading={travelLoading || dayTravelData?.isLoading}
                                 />
                               )}

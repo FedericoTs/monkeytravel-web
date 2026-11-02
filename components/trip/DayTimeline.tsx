@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { Activity, ItineraryDay } from "@/types";
-import type { DayTravelData } from "@/hooks/useTravelDistances";
+import { segmentBetween, type DayTravelData } from "@/hooks/useTravelDistances";
 import type { TripPace } from "@/lib/trip/pace";
 import { useActivityPrice } from "@/lib/i18n/activity-price";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
@@ -47,9 +47,7 @@ export function DayTimeline({
       <div className="relative pl-8 border-l-2 border-slate-200 space-y-2">
         {day.activities.map((activity, idx) => {
           const nextActivity = day.activities[idx + 1];
-          const segment = nextActivity && travel?.segments.find(
-            (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
-          );
+          const segment = segmentBetween(travel, activity, nextActivity);
 
           return (
             <div key={activity.id || idx}>
@@ -103,11 +101,7 @@ export function DayTimeline({
               {/* Compact travel connector */}
               {idx < day.activities.length - 1 && (
                 <TravelConnector
-                  distanceMeters={segment?.distanceMeters}
-                  durationSeconds={segment?.durationSeconds}
-                  distanceText={segment?.distanceText}
-                  durationText={segment?.durationText}
-                  mode={segment?.mode}
+                  segment={segment}
                   isLoading={travelLoading || travel?.isLoading}
                   compact={true}
                 />

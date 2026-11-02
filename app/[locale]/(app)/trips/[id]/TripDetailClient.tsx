@@ -63,7 +63,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useCurrency } from "@/lib/locale";
 import { trackActivityRegenerated, trackTripViewed } from "@/lib/analytics";
 import { fetchShareStatus } from "@/lib/trips/share-status";
-import { useTravelDistances } from "@/hooks/useTravelDistances";
+import { segmentBetween, useTravelDistances } from "@/hooks/useTravelDistances";
 import { getCoordinatesForNewActivity, type Coordinates } from "@/lib/utils/geo";
 import {
   ensureActivityIds,
@@ -2888,9 +2888,7 @@ export default function TripDetailClient({
                                 const isAIUpdated = aiUpdatedActivityId === activity.id;
                                 const nextActivity = day.activities[idx + 1];
                                 const dayTravelData = travelData.get(day.day_number);
-                                const segment = nextActivity && dayTravelData?.segments.find(
-                                  (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
-                                );
+                                const segment = segmentBetween(dayTravelData, activity, nextActivity);
 
                                 return (
                                   <div key={`${activity.id || idx}-v${renderEpoch}`}>
@@ -2930,11 +2928,7 @@ export default function TripDetailClient({
                                     {/* Travel connector to next activity */}
                                     {idx < day.activities.length - 1 && (
                                       <TravelConnector
-                                        distanceMeters={segment?.distanceMeters}
-                                        durationSeconds={segment?.durationSeconds}
-                                        distanceText={segment?.distanceText}
-                                        durationText={segment?.durationText}
-                                        mode={segment?.mode}
+                                        segment={segment}
                                         isLoading={travelLoading || dayTravelData?.isLoading}
                                       />
                                     )}
@@ -2955,9 +2949,7 @@ export default function TripDetailClient({
                               const isAIUpdated = aiUpdatedActivityId === activity.id;
                               const nextActivity = day.activities[idx + 1];
                               const dayTravelData = travelData.get(day.day_number);
-                              const segment = nextActivity && dayTravelData?.segments.find(
-                                (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
-                              );
+                              const segment = segmentBetween(dayTravelData, activity, nextActivity);
 
                               return (
                                 <div key={`activity-${activity.id || idx}-v${renderEpoch}`}>
@@ -2995,11 +2987,7 @@ export default function TripDetailClient({
                                   {/* Travel connector to next activity */}
                                   {idx < day.activities.length - 1 && (
                                     <TravelConnector
-                                      distanceMeters={segment?.distanceMeters}
-                                      durationSeconds={segment?.durationSeconds}
-                                      distanceText={segment?.distanceText}
-                                      durationText={segment?.durationText}
-                                      mode={segment?.mode}
+                                      segment={segment}
                                       isLoading={travelLoading || dayTravelData?.isLoading}
                                     />
                                   )}

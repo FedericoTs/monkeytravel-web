@@ -17,7 +17,7 @@ import ActivityCard from "@/components/ActivityCard";
 import DaySlider from "@/components/ui/DaySlider";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
-import { useTravelDistances } from "@/hooks/useTravelDistances";
+import { segmentBetween, useTravelDistances } from "@/hooks/useTravelDistances";
 import { daysBetweenLocal, parseLocalDate } from "@/lib/utils/date-local";
 import { hapticSuccess, hapticLight, hapticError } from "@/lib/native/haptics";
 
@@ -311,11 +311,7 @@ export default function OngoingTripView({
                     const status = activity.id ? getActivityStatus(activity.id) : "upcoming";
                     const nextActivity = todayActivities[idx + 1];
                     const dayTravelData = travelData.get(currentDayNumber);
-                    const segment =
-                      nextActivity &&
-                      dayTravelData?.segments.find(
-                        (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
-                      );
+                    const segment = segmentBetween(dayTravelData, activity, nextActivity);
 
                     return (
                       <div key={activity.id || idx}>
@@ -332,11 +328,7 @@ export default function OngoingTripView({
                           status !== "completed" &&
                           status !== "skipped" && (
                             <TravelConnector
-                              distanceMeters={segment?.distanceMeters}
-                              durationSeconds={segment?.durationSeconds}
-                              distanceText={segment?.distanceText}
-                              durationText={segment?.durationText}
-                              mode={segment?.mode}
+                              segment={segment}
                               isLoading={travelLoading || dayTravelData?.isLoading}
                               compact={true}
                             />
@@ -456,11 +448,7 @@ export default function OngoingTripView({
                           const isSkipped = status === "skipped";
                           const nextActivity = day.activities[idx + 1];
                           const dayTravelData = travelData.get(day.day_number);
-                          const segment =
-                            nextActivity &&
-                            dayTravelData?.segments.find(
-                              (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
-                            );
+                          const segment = segmentBetween(dayTravelData, activity, nextActivity);
 
                           return (
                             <div key={activity.id || idx}>
@@ -492,11 +480,7 @@ export default function OngoingTripView({
                               {/* Travel connector to next activity */}
                               {idx < day.activities.length - 1 && (
                                 <TravelConnector
-                                  distanceMeters={segment?.distanceMeters}
-                                  durationSeconds={segment?.durationSeconds}
-                                  distanceText={segment?.distanceText}
-                                  durationText={segment?.durationText}
-                                  mode={segment?.mode}
+                                  segment={segment}
                                   isLoading={travelLoading || dayTravelData?.isLoading}
                                 />
                               )}

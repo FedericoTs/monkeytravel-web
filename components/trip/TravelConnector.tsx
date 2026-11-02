@@ -4,13 +4,11 @@ import { useMemo } from "react";
 import { Footprints, Car, Bus, ArrowDown, Clock, MapPin } from "lucide-react";
 import { useLocale, formatDistance as formatDistanceLocale } from "@/lib/locale";
 import { formatDuration } from "@/lib/datetime/duration";
+import type { TravelSegment } from "@/hooks/useTravelDistances";
 
 interface TravelConnectorProps {
-  distanceMeters?: number;
-  durationSeconds?: number;
-  durationText?: string;
-  distanceText?: string;
-  mode?: "WALKING" | "DRIVING" | "TRANSIT";
+  /** The leg to the next activity, or what is known of it. */
+  segment?: Partial<Pick<TravelSegment, "distanceMeters" | "durationSeconds" | "distanceText" | "durationText" | "mode">>;
   isLoading?: boolean;
   compact?: boolean;
   className?: string;
@@ -21,15 +19,12 @@ interface TravelConnectorProps {
  * Uses Fresh Voyager theme colors
  */
 export function TravelConnector({
-  distanceMeters,
-  durationSeconds,
-  durationText,
-  distanceText,
-  mode = "WALKING",
+  segment,
   isLoading = false,
   compact = false,
   className = "",
 }: TravelConnectorProps) {
+  const { distanceMeters, durationSeconds, durationText, distanceText, mode = "WALKING" } = segment ?? {};
   // Get user's distance unit preference (metric or imperial)
   const { preferences } = useLocale();
 
