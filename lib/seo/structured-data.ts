@@ -10,8 +10,8 @@
 
 import { isRealPoint } from "@/lib/trip/placeholder-point";
 import { tripSpanDays } from "@/lib/dates/iso-date";
+import { SITE_URL } from "@/lib/seo/canonical";
 
-const SITE_URL = "https://monkeytravel.app";
 const SITE_NAME = "MonkeyTravel";
 const LOGO_URL = `${SITE_URL}/icon-512.png`;
 

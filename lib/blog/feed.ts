@@ -1,7 +1,7 @@
 import { getAllFrontmatter } from "@/lib/blog/api";
 import { escapeXml } from "@/lib/utils/escape-xml";
+import { SITE_URL } from "@/lib/seo/canonical";
 
-const SITE_URL = "https://monkeytravel.app";
 
 /** Each locale's feed: its URL prefix and how its channel introduces itself. */
 const CHANNELS = {

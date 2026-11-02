@@ -3,8 +3,8 @@ import { Link } from '@/lib/i18n/routing';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getTranslations } from 'next-intl/server';
+import { SITE_URL } from '@/lib/seo/canonical';
 
-const BASE_URL = 'https://monkeytravel.app';
 
 export async function generateMetadata(): Promise<Metadata> {
   // No brand suffix: the root template "%s | MonkeyTravel" adds it.
@@ -15,10 +15,10 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       'Privacy Policy for MonkeyTravel — Learn how we collect, use, and protect your personal information.',
     alternates: {
-      canonical: `${BASE_URL}/privacy`,
+      canonical: `${SITE_URL}/privacy`,
       languages: {
-        en: `${BASE_URL}/privacy`,
-        'x-default': `${BASE_URL}/privacy`,
+        en: `${SITE_URL}/privacy`,
+        'x-default': `${SITE_URL}/privacy`,
       },
     },
   };

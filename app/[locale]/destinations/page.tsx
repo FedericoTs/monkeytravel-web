@@ -12,8 +12,8 @@ import ContentTracker from "@/components/analytics/ContentTracker";
 import { DestinationGrid, DestinationFeatured, DestinationLane } from "@/components/destinations";
 import { Link } from "@/lib/i18n/routing";
 import { ogImages } from "@/lib/seo/og-image";
+import { SITE_URL } from "@/lib/seo/canonical";
 
-const SITE_URL = "https://monkeytravel.app";
 
 // ============================================================================
 // Metadata

@@ -10,7 +10,7 @@ import {
   generateBreadcrumbSchema,
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
-import { buildAlternates } from "@/lib/seo/canonical";
+import { buildAlternates, SITE_URL } from "@/lib/seo/canonical";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
@@ -18,7 +18,6 @@ import CreatorProfile, {
   type CreatorProfileData,
 } from "@/components/creator/CreatorProfile";
 
-const SITE_URL = "https://monkeytravel.app";
 
 /**
  * /creator/[username] — the PUBLIC, INDEXABLE creator-profile page.

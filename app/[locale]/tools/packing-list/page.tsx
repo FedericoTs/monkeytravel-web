@@ -9,8 +9,8 @@ import {
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
 import { ogImages } from "@/lib/seo/og-image";
+import { SITE_URL } from "@/lib/seo/canonical";
 
-const BASE_URL = "https://monkeytravel.app";
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
@@ -47,7 +47,7 @@ export async function generateMetadata({
   const { locale } = await params;
   const m = META[locale] || META.en;
   const localePrefix = locale === "en" ? "" : `/${locale}`;
-  const canonical = `${BASE_URL}${localePrefix}/tools/packing-list`;
+  const canonical = `${SITE_URL}${localePrefix}/tools/packing-list`;
   return {
     // `absolute` opts out of the root "%s | MonkeyTravel" template.
     // Generic commercial terms; the brand costs 15 of ~60 chars.
@@ -56,11 +56,11 @@ export async function generateMetadata({
     alternates: {
       canonical,
       languages: {
-        en: `${BASE_URL}/tools/packing-list`,
-        it: `${BASE_URL}/it/tools/packing-list`,
-        es: `${BASE_URL}/es/tools/packing-list`,
-        pt: `${BASE_URL}/pt/tools/packing-list`,
-        "x-default": `${BASE_URL}/tools/packing-list`,
+        en: `${SITE_URL}/tools/packing-list`,
+        it: `${SITE_URL}/it/tools/packing-list`,
+        es: `${SITE_URL}/es/tools/packing-list`,
+        pt: `${SITE_URL}/pt/tools/packing-list`,
+        "x-default": `${SITE_URL}/tools/packing-list`,
       },
     },
     openGraph: {
@@ -90,11 +90,11 @@ export default async function PackingListPage({
 
   const localePrefix = locale === "en" ? "" : `/${locale}`;
   const breadcrumbSchema = generateBreadcrumbSchema([
-    { name: tBreadcrumbs("home"), url: BASE_URL },
-    { name: tToolsLanding("breadcrumb"), url: `${BASE_URL}${localePrefix}/tools` },
+    { name: tBreadcrumbs("home"), url: SITE_URL },
+    { name: tToolsLanding("breadcrumb"), url: `${SITE_URL}${localePrefix}/tools` },
     {
       name: t("breadcrumb"),
-      url: `${BASE_URL}${localePrefix}/tools/packing-list`,
+      url: `${SITE_URL}${localePrefix}/tools/packing-list`,
     },
   ]);
 

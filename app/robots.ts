@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { locales, defaultLocale } from "@/i18n";
 import { BLOCKED_BOT_AGENTS } from "@/lib/security/bots";
+import { SITE_URL } from "@/lib/seo/canonical";
 
 // Locale-aware disallow paths. Next.js's locale routing means every private
 // surface ships at the un-prefixed (default-locale) path AND under every
@@ -76,7 +77,6 @@ function expandLocales(path: string): string[] {
 }
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = "https://monkeytravel.app";
 
   const disallow = DISALLOW_PATHS.flatMap(expandLocales);
   // Share images are served under the disallowed /api/; the longer Allow wins,
@@ -102,10 +102,10 @@ export default function robots(): MetadataRoute.Robots {
     // UGC sitemaps (published trips + public creator profiles). Google reads
     // every Sitemap: line, so listing all three surfaces the UGC-SEO corpus.
     sitemap: [
-      `${baseUrl}/sitemap.xml`,
-      `${baseUrl}/sitemap-trips.xml`,
-      `${baseUrl}/sitemap-creators.xml`,
+      `${SITE_URL}/sitemap.xml`,
+      `${SITE_URL}/sitemap-trips.xml`,
+      `${SITE_URL}/sitemap-creators.xml`,
     ],
-    host: baseUrl,
+    host: SITE_URL,
   };
 }

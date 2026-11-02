@@ -34,8 +34,8 @@ import { Link } from "@/lib/i18n/routing";
 // the visitor who liked the sample and wants real examples.
 import { fetchExploreFeed } from "@/lib/explore/fetcher";
 import TripCard from "@/components/explore/TripCard";
+import { SITE_URL } from "@/lib/seo/canonical";
 
-const SITE_URL = "https://monkeytravel.app";
 
 // ============================================================================
 // Static params — generates all slug × locale combinations at build time

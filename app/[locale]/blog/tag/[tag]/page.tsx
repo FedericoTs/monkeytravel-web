@@ -15,8 +15,8 @@ import Footer from "@/components/Footer";
 import { BlogCard } from "@/components/blog";
 import { Link } from "@/lib/i18n/routing";
 import { ogImages, twitterImages } from "@/lib/seo/og-image";
+import { SITE_URL } from "@/lib/seo/canonical";
 
-const SITE_URL = "https://monkeytravel.app";
 
 // ============================================================================
 // Static params + ISR — every (locale, tag) combination

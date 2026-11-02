@@ -15,8 +15,8 @@ import { destinations } from '@/lib/destinations/data';
 import { DestinationCard } from '@/components/destinations';
 import type { Locale } from '@/lib/destinations/types';
 import type { Metadata } from 'next';
+import { SITE_URL } from '@/lib/seo/canonical';
 
-const BASE_URL = 'https://monkeytravel.app';
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
@@ -49,20 +49,20 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     title: meta.title,
     description: meta.description,
     alternates: {
-      canonical: locale === 'en' ? BASE_URL : `${BASE_URL}/${locale}`,
+      canonical: locale === 'en' ? SITE_URL : `${SITE_URL}/${locale}`,
       languages: {
-        en: BASE_URL,
-        es: `${BASE_URL}/es`,
-        it: `${BASE_URL}/it`,
-        pt: `${BASE_URL}/pt`,
-        'x-default': BASE_URL,
+        en: SITE_URL,
+        es: `${SITE_URL}/es`,
+        it: `${SITE_URL}/it`,
+        pt: `${SITE_URL}/pt`,
+        'x-default': SITE_URL,
       },
     },
     openGraph: {
       title: meta.title,
       description: meta.description,
       type: 'website',
-      url: locale === 'en' ? BASE_URL : `${BASE_URL}/${locale}`,
+      url: locale === 'en' ? SITE_URL : `${SITE_URL}/${locale}`,
       siteName: 'MonkeyTravel',
       locale: ogLocale,
       alternateLocale,
@@ -71,7 +71,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       // homepage, the most-shared URL on the site, has no og:image.
       images: [
         {
-          url: `${BASE_URL}/og-image.png`,
+          url: `${SITE_URL}/og-image.png`,
           width: 1200,
           height: 630,
           alt: meta.title,

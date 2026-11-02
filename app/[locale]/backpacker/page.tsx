@@ -25,6 +25,7 @@ import type { Metadata } from "next";
 import TripCard from "@/components/explore/TripCard";
 import type { ExploreFeedResponse } from "@/lib/explore/types";
 import LandingWhatIs from "@/components/landing/LandingWhatIs";
+import { SITE_URL } from "@/lib/seo/canonical";
 
 // Fixed origin, not the request's host: the page prerenders, so these fetches
 // run once at build time against production's public API and the page shows
@@ -95,7 +96,6 @@ async function fetchBackpackerTrips(): Promise<ExploreFeedResponse | null> {
  * `items.*.neighbourhood` keys.
  */
 
-const BASE_URL = "https://monkeytravel.app";
 /**
  * Content freshness signal. Bump ONLY when this page's copy actually
  * changes — never automate it. A date that moves on every build tells Google
@@ -123,13 +123,13 @@ export async function generateMetadata({
     title: { absolute: title },
     description,
     alternates: {
-      canonical: `${BASE_URL}${prefix}${PAGE_PATH}`,
+      canonical: `${SITE_URL}${prefix}${PAGE_PATH}`,
       languages: {
-        en: `${BASE_URL}${PAGE_PATH}`,
-        es: `${BASE_URL}/es${PAGE_PATH}`,
-        it: `${BASE_URL}/it${PAGE_PATH}`,
-        pt: `${BASE_URL}/pt${PAGE_PATH}`,
-        "x-default": `${BASE_URL}${PAGE_PATH}`,
+        en: `${SITE_URL}${PAGE_PATH}`,
+        es: `${SITE_URL}/es${PAGE_PATH}`,
+        it: `${SITE_URL}/it${PAGE_PATH}`,
+        pt: `${SITE_URL}/pt${PAGE_PATH}`,
+        "x-default": `${SITE_URL}${PAGE_PATH}`,
       },
     },
     openGraph: {
@@ -137,10 +137,10 @@ export async function generateMetadata({
       title,
       description,
       type: "website",
-      url: `${BASE_URL}${prefix}${PAGE_PATH}`,
+      url: `${SITE_URL}${prefix}${PAGE_PATH}`,
       images: [
         {
-          url: `${BASE_URL}/og-image.png`,
+          url: `${SITE_URL}/og-image.png`,
           width: 1200,
           height: 630,
           alt: t("meta.ogAlt"),
@@ -151,7 +151,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title,
       description,
-      images: [`${BASE_URL}/og-image.png`],
+      images: [`${SITE_URL}/og-image.png`],
     },
   };
 }
@@ -204,8 +204,8 @@ export default async function BackpackerLandingPage({
   const prefix = locale === "en" ? "" : `/${locale}`;
 
   const breadcrumbItems = [
-    { name: t("breadcrumbs.home"), url: `${BASE_URL}${prefix}` },
-    { name: t("breadcrumbs.backpacker"), url: `${BASE_URL}${prefix}${PAGE_PATH}` },
+    { name: t("breadcrumbs.home"), url: `${SITE_URL}${prefix}` },
+    { name: t("breadcrumbs.backpacker"), url: `${SITE_URL}${prefix}${PAGE_PATH}` },
   ];
 
   // Build FAQ entries for both the JSON-LD schema and the rendered list

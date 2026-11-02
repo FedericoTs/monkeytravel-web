@@ -19,8 +19,8 @@ import { visaDataAsOfLabel } from "@/lib/visa/dataset";
 import PassportStatusChart from "@/components/passport/PassportStatusChart";
 import PassportMap from "@/components/passport/PassportMap";
 import { ogImages, twitterImages } from "@/lib/seo/og-image";
+import { SITE_URL } from "@/lib/seo/canonical";
 
-const BASE_URL = "https://monkeytravel.app";
 
 /**
  * "Where can I actually go with this passport" — one page per passport.
@@ -85,9 +85,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const languages: Record<string, string> = {};
   for (const l of routing.locales) {
     const prefix = l === routing.defaultLocale ? "" : `/${l}`;
-    languages[l] = `${BASE_URL}${prefix}/passport/${slug}`;
+    languages[l] = `${SITE_URL}${prefix}/passport/${slug}`;
   }
-  languages["x-default"] = `${BASE_URL}/passport/${slug}`;
+  languages["x-default"] = `${SITE_URL}/passport/${slug}`;
 
   return {
     // `absolute` opts out of the root "%s | MonkeyTravel" template — the
@@ -128,11 +128,11 @@ export default async function PassportPage({ params }: PageProps) {
   const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
 
   const breadcrumb = generateBreadcrumbSchema([
-    { name: "MonkeyTravel", url: `${BASE_URL}${prefix}` },
-    { name: t("breadcrumb"), url: `${BASE_URL}${prefix}/passport/${slug}` },
+    { name: "MonkeyTravel", url: `${SITE_URL}${prefix}` },
+    { name: t("breadcrumb"), url: `${SITE_URL}${prefix}/passport/${slug}` },
     {
       name: summary.name,
-      url: `${BASE_URL}${prefix}/passport/${slug}`,
+      url: `${SITE_URL}${prefix}/passport/${slug}`,
     },
   ]);
 

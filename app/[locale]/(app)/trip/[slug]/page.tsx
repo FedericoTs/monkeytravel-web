@@ -22,8 +22,8 @@ import { isTripIndexable, publicTripAlternates } from "@/lib/seo/public-trip";
 import { clipMetaDescription } from "@/lib/seo/meta-description";
 import { tripLocale } from "@/lib/ai/language";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { SITE_URL } from "@/lib/seo/canonical";
 
-const SITE_URL = "https://monkeytravel.app";
 
 /**
  * /trip/[slug] — the PUBLIC, INDEXABLE trip page.

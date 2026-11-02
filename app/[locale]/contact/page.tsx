@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import ContactForm from "@/components/contact/ContactForm";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SITE_URL } from "@/lib/seo/canonical";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -12,18 +13,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "contact.meta" });
   const path = locale === "en" ? "/contact" : `/${locale}/contact`;
-  const baseUrl = "https://monkeytravel.app";
   return {
     title: t("title"),
     description: t("description"),
     alternates: {
-      canonical: `${baseUrl}${path}`,
+      canonical: `${SITE_URL}${path}`,
       languages: {
-        en: `${baseUrl}/contact`,
-        es: `${baseUrl}/es/contact`,
-        it: `${baseUrl}/it/contact`,
-        pt: `${baseUrl}/pt/contact`,
-        "x-default": `${baseUrl}/contact`,
+        en: `${SITE_URL}/contact`,
+        es: `${SITE_URL}/es/contact`,
+        it: `${SITE_URL}/it/contact`,
+        pt: `${SITE_URL}/pt/contact`,
+        "x-default": `${SITE_URL}/contact`,
       },
     },
     robots: { index: true, follow: true },

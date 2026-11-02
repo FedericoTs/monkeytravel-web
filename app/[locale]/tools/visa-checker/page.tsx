@@ -18,8 +18,8 @@ import VisaCheckerSsrTracker from "./VisaCheckerSsrTracker";
 import PassportLinks from "@/components/tools/PassportLinks";
 import { PASSPORT_PAGE_CODES, passportSlug } from "@/lib/visa/passport-pages";
 import { ogImages } from "@/lib/seo/og-image";
+import { SITE_URL } from "@/lib/seo/canonical";
 
-const BASE_URL = "https://monkeytravel.app";
 
 const META: Record<string, { title: string; description: string }> = {
   pt: {
@@ -55,7 +55,7 @@ export async function generateMetadata({
   const sp = await searchParams;
   const m = META[locale] || META.en;
   const localePrefix = locale === "en" ? "" : `/${locale}`;
-  const canonical = `${BASE_URL}${localePrefix}/tools/visa-checker`;
+  const canonical = `${SITE_URL}${localePrefix}/tools/visa-checker`;
 
   // When the user has selected a specific pair, surface it in OG +
   // description so the social card is meaningful when shared.
@@ -84,11 +84,11 @@ export async function generateMetadata({
     alternates: {
       canonical,
       languages: {
-        en: `${BASE_URL}/tools/visa-checker`,
-        it: `${BASE_URL}/it/tools/visa-checker`,
-        es: `${BASE_URL}/es/tools/visa-checker`,
-        pt: `${BASE_URL}/pt/tools/visa-checker`,
-        "x-default": `${BASE_URL}/tools/visa-checker`,
+        en: `${SITE_URL}/tools/visa-checker`,
+        it: `${SITE_URL}/it/tools/visa-checker`,
+        es: `${SITE_URL}/es/tools/visa-checker`,
+        pt: `${SITE_URL}/pt/tools/visa-checker`,
+        "x-default": `${SITE_URL}/tools/visa-checker`,
       },
     },
     openGraph: {
@@ -124,11 +124,11 @@ export default async function VisaCheckerPage({
 
   const localePrefix = locale === "en" ? "" : `/${locale}`;
   const breadcrumbSchema = generateBreadcrumbSchema([
-    { name: tBreadcrumbs("home"), url: BASE_URL },
-    { name: tToolsLanding("breadcrumb"), url: `${BASE_URL}${localePrefix}/tools` },
+    { name: tBreadcrumbs("home"), url: SITE_URL },
+    { name: tToolsLanding("breadcrumb"), url: `${SITE_URL}${localePrefix}/tools` },
     {
       name: t("breadcrumb"),
-      url: `${BASE_URL}${localePrefix}/tools/visa-checker`,
+      url: `${SITE_URL}${localePrefix}/tools/visa-checker`,
     },
   ]);
 
