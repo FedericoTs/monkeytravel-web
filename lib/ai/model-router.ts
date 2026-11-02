@@ -19,8 +19,7 @@
  *   trip-title                  | gemini-2.5-flash-lite  | One-shot string, cheapest
  *   activity-bank               | gemini-2.5-flash       | Batch list generation
  *   maps-grounding              | gemini-2.5-flash       | Needs grounding model support
- *   assistant-suggest           | gemini-2.5-flash       | Activity suggestion w/ caching
- *   assistant-optimize          | gemini-2.5-flash       | Day optimisation w/ caching
+ *   assistant-optimize          | gemini-2.5-flash       | A pasted multi-day draft mapped onto the trip
  *   assistant-edits             | gemini-2.5-flash       | The assistant's edit engine (wizard + trip page)
  *
  * Env override:
@@ -41,7 +40,6 @@ export type GeminiPurpose =
   | "trip-title"
   | "activity-bank"
   | "maps-grounding"
-  | "assistant-suggest"
   | "assistant-optimize"
   | "assistant-edits"
   | "anchor-import";
@@ -77,7 +75,6 @@ const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
   "trip-title": "gemini-2.5-flash-lite",
   "activity-bank": "gemini-2.5-flash",
   "maps-grounding": "gemini-2.5-flash",
-  "assistant-suggest": "gemini-2.5-flash",
   "assistant-optimize": "gemini-2.5-flash",
   "assistant-edits": "gemini-2.5-flash",
   // Paste-a-plan import (docs/CONSTRAINT_PLANNER_PLAN.md F2): pasted text →

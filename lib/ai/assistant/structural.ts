@@ -133,9 +133,8 @@ export function detectDraftPaste(message: string): boolean {
 }
 
 /**
- * Detect structural intents. Must run BEFORE detectActionIntent(): the
- * legacy "simple add detection" (`lowerMsg.includes("add ")`) would
- * swallow "can you add a day to travel to Voss" and land the action on day 1.
+ * Detect structural intents: a pasted multi-day draft, or a request to add
+ * a day ("can you add a day to travel to Voss").
  */
 export function detectStructuralIntent(message: string): StructuralIntent {
   // Draft paste first — it's the most specific signal, and a pasted plan

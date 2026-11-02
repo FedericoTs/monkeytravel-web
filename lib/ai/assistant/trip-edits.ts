@@ -1,15 +1,12 @@
 /**
  * Requests on a saved trip, through the wizard's edit engine.
  *
- * The trip page's assistant read requests with keyword patterns
- * (detectActionIntent in app/api/ai/assistant/route.ts): "replace X with Y",
- * "add X to day N" and a few more produced a change, anything else none.
- * "Adding Wigwam to Day 3", "nightclubs on the 2nd, 4th and 6th night" or two
- * changes in one message got a reply promising the change, and no change.
- * The wizard's engine (lib/ai/assistant/engine.ts) has the model write the
- * revised days itself, from the whole plan and the conversation; here those
- * days are merged into the saved trip and proposed as one multi-day change.
- * It answers questions too, with the plan's own figures.
+ * The engine (lib/ai/assistant/engine.ts) has the model write the revised
+ * days itself, from the whole plan and the conversation, so a change asked in
+ * any words ("adding Wigwam to Day 3", "nightclubs on the 2nd, 4th and 6th
+ * night", two changes in one message) is made. Here those days are merged
+ * into the saved trip and proposed as one multi-day change. It answers
+ * questions too, with the plan's own figures.
  */
 
 import { assistTrip, type AssistTurn, type DayEdit } from "./engine";

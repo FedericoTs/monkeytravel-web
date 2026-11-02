@@ -37,11 +37,8 @@ vi.mock("@/lib/gemini", () => ({
   validateAndFixCoordinates: (days: unknown) => days,
 }));
 vi.mock("@/lib/activity-bank", () => ({
-  findMatchingActivity: vi.fn(async () => null),
-  isRelevantBankMatch: vi.fn(() => false),
   populateActivityBank: vi.fn(async () => {}),
   isActivityBankPopulated: vi.fn(async () => true),
-  saveToActivityBank: vi.fn(async () => {}),
 }));
 vi.mock("@/lib/api-gateway", () => ({ checkApiAccess: async () => ({ allowed: true }), logApiCall: vi.fn() }));
 vi.mock("@/lib/usage-limits", () => ({
@@ -253,7 +250,7 @@ describe("trip-page assistant: free-form edits", () => {
     expect(json.message.content).toBe("It opens at 9:30.");
   });
 
-  it("falls back to the patterns and the chat when the engine fails", async () => {
+  it("falls back to the chat when the engine fails", async () => {
     proposeTripEdits.mockRejectedValue(new Error("model overloaded"));
     vi.spyOn(console, "error").mockImplementation(() => {});
     const { status, json } = await send("add a museum");

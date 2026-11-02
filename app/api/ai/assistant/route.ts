@@ -23,37 +23,28 @@ import {
   estimateCost,
 } from "@/lib/ai/config";
 import { getModelForPurpose } from "@/lib/ai/model-router";
-import { isLockedActivity, lockedActivityNames } from "@/lib/ai/anchors-core";
+import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import { recordUsage } from "@/lib/ai/usage";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { recordAiOutcome } from "@/lib/ai/observability";
-import { findMatchingActivity, isRelevantBankMatch, saveToActivityBank } from "@/lib/activity-bank";
 import { getTripDestination } from "@/lib/trips/destination";
 import type {
   ItineraryDay,
-  Activity,
   AssistantCard,
   StructuredAssistantResponse,
   TripVibe,
 } from "@/types";
-import { generateActivityId } from "@/lib/utils/activity-id";
 import {
-  generateNearbyCoordinates,
-  calculateCentroid,
   type Coordinates,
 } from "@/lib/utils/geo";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { resolveAssistantRole, ASSISTANT_FORBIDDEN_MESSAGE } from "@/lib/ai/assistant-access";
 import { ASSISTANT_ERROR_CODES } from "@/lib/ai/assistant/error-message";
 import { destinationCityTerm } from "@/lib/api/postgrest-filter";
-import { formatMinutesToTime } from "@/lib/datetime/format";
-import { withDayTarget } from "@/lib/ai/assistant/day-target";
-import { ACTIVITY_TYPES, normalizeActivityType } from "@/lib/trip/activity-type";
-import { isRealPoint } from "@/lib/trip/placeholder-point";
+import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { dietsFrom } from "@/lib/trips/diet";
 import { placesToEatCheck } from "@/lib/places/places-to-eat";
-import { activityNotFoundReason, findActivityByName } from "@/lib/ai/assistant/find-activity";
 import { ASSISTANT_SURFACE, isConciergeRow } from "@/lib/ai/conversations";
 import { applyButtonLabel } from "@/lib/ai/assistant/apply-button";
 import {
@@ -190,231 +181,6 @@ interface TripContext {
   activityCount: number;
 }
 
-// Parse duration from text (returns minutes)
-function parseDuration(text: string): number | null {
-  const lowerText = text.toLowerCase();
-
-  // Match patterns like "2 hours", "90 minutes", "1.5 hours", "1h30m"
-  const hourMatch = lowerText.match(/(\d+(?:\.\d+)?)\s*(?:hours?|hrs?|h)/);
-  const minuteMatch = lowerText.match(/(\d+)\s*(?:minutes?|mins?|m)/);
-  const hourMinMatch = lowerText.match(/(\d+)\s*h\s*(\d+)\s*m/);
-
-  if (hourMinMatch) {
-    return parseInt(hourMinMatch[1]) * 60 + parseInt(hourMinMatch[2]);
-  }
-
-  let totalMinutes = 0;
-  if (hourMatch) {
-    totalMinutes += parseFloat(hourMatch[1]) * 60;
-  }
-  if (minuteMatch && !hourMatch) {
-    totalMinutes += parseInt(minuteMatch[1]);
-  } else if (minuteMatch && hourMatch) {
-    totalMinutes += parseInt(minuteMatch[1]);
-  }
-
-  return totalMinutes > 0 ? Math.round(totalMinutes) : null;
-}
-
-// Detect if user wants to replace/add an activity. The day comes from
-// anywhere in the message, and "day N" / pronouns are taken out of the name
-// (lib/ai/assistant/day-target.ts).
-function detectActionIntent(message: string): ReturnType<typeof detectActionIntentRaw> {
-  return withDayTarget(detectActionIntentRaw(message), message);
-}
-
-function detectActionIntentRaw(message: string): {
-  type: "replace" | "add" | "remove" | "adjust_duration" | "reorder" | "none";
-  activityName?: string;
-  dayNumber?: number;
-  preference?: string;
-  newDuration?: number; // in minutes
-  targetTimeSlot?: "morning" | "afternoon" | "evening";
-} {
-  const lowerMsg = message.toLowerCase();
-
-  // Duration adjustment patterns - check first as they're specific
-  const durationPatterns = [
-    /(?:make|change|set|adjust)\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:to\s+)?(\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m))/i,
-    /(?:extend|lengthen)\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:to\s+)?(\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m))?/i,
-    /(?:shorten|reduce)\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:to\s+)?(\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m))?/i,
-    /["']?([^"']+?)["']?\s+(?:should\s+be|needs?\s+to\s+be)\s+(\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m))/i,
-    /(?:change|set|adjust)\s+(?:the\s+)?duration\s+(?:of\s+)?["']?([^"']+?)["']?\s+(?:to\s+)?(\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m))/i,
-    /(?:spend|allocate)\s+(\d+(?:\.\d+)?\s*(?:hours?|hrs?|h|minutes?|mins?|m))\s+(?:at|for|on)\s+(?:the\s+)?["']?([^"']+?)["']?/i,
-  ];
-
-  for (const pattern of durationPatterns) {
-    const match = message.match(pattern);
-    if (match) {
-      // Handle different capture group orders
-      let activityName: string;
-      let durationText: string;
-
-      if (pattern.source.startsWith("(?:spend|allocate)")) {
-        durationText = match[1];
-        activityName = match[2];
-      } else {
-        activityName = match[1];
-        durationText = match[2] || "";
-      }
-
-      const duration = parseDuration(durationText || message);
-
-      // For extend/shorten without specific duration, we'll handle it differently
-      if (lowerMsg.includes("extend") || lowerMsg.includes("lengthen")) {
-        console.log(`[AI Assistant] Detected EXTEND duration for: "${activityName}"`);
-        return {
-          type: "adjust_duration",
-          activityName: activityName.trim(),
-          newDuration: duration || -1, // -1 means "extend by default amount"
-          preference: "extend",
-        };
-      }
-      if (lowerMsg.includes("shorten") || lowerMsg.includes("reduce")) {
-        console.log(`[AI Assistant] Detected SHORTEN duration for: "${activityName}"`);
-        return {
-          type: "adjust_duration",
-          activityName: activityName.trim(),
-          newDuration: duration || -2, // -2 means "shorten by default amount"
-          preference: "shorten",
-        };
-      }
-
-      if (duration) {
-        console.log(`[AI Assistant] Detected ADJUST_DURATION for: "${activityName}" to ${duration} minutes`);
-        return {
-          type: "adjust_duration",
-          activityName: activityName.trim(),
-          newDuration: duration,
-        };
-      }
-    }
-  }
-
-  // Reorder/Optimize patterns
-  const reorderPatterns = [
-    /(?:optimize|reorganize|reorder)\s+(?:my\s+)?(?:day\s+)?(\d+)?(?:\s+schedule)?/i,
-    /(?:minimize|reduce)\s+(?:travel|walking|transit)\s+time/i,
-    /(?:rearrange|shuffle|resequence)\s+(?:the\s+)?activities/i,
-    /(?:make|create)\s+(?:a\s+)?(?:more\s+)?efficient\s+(?:schedule|route|order)/i,
-    /(?:move|shift)\s+(?:the\s+)?["']?([^"']+?)["']?\s+to\s+(?:the\s+)?(morning|afternoon|evening)/i,
-    /(?:better|optimal|efficient)\s+(?:order|sequence|route)/i,
-  ];
-
-  for (const pattern of reorderPatterns) {
-    const match = message.match(pattern);
-    if (match) {
-      // Check if it's a "move X to morning/afternoon/evening" request
-      if (pattern.source.includes("move|shift")) {
-        console.log(`[AI Assistant] Detected MOVE activity: "${match[1]}" to ${match[2]}`);
-        return {
-          type: "reorder",
-          activityName: match[1]?.trim(),
-          targetTimeSlot: match[2]?.toLowerCase() as "morning" | "afternoon" | "evening",
-          dayNumber: undefined,
-          preference: message,
-        };
-      }
-
-      const dayNum = match[1] ? parseInt(match[1]) : undefined;
-      console.log(`[AI Assistant] Detected REORDER/OPTIMIZE for day: ${dayNum || "all"}`);
-      return {
-        type: "reorder",
-        dayNumber: dayNum,
-        preference: message,
-      };
-    }
-  }
-
-  // Replace patterns - more flexible matching
-  const replacePatterns = [
-    /replace\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:with|by|for)\s+/i,
-    /swap\s+(?:out\s+)?(?:the\s+)?["']?([^"']+?)["']?\s+(?:with|for)\s+/i,
-    /change\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:to|with)\s+/i,
-    /instead\s+of\s+(?:the\s+)?["']?([^"']+?)["']?/i,
-    /(?:i\s+)?don['']?t\s+(?:want|like)\s+(?:the\s+)?["']?([^"']+?)["']?/i,
-    /(?:can\s+you\s+)?replace\s+(?:the\s+)?["']?([^"']+?)["']?$/i,
-    /(?:can\s+you\s+)?replace\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:with|to|for|by)/i,
-    /switch\s+(?:the\s+)?["']?([^"']+?)["']?\s+(?:to|with|for)\s+/i,
-    /(?:let['']?s\s+)?(?:do\s+)?something\s+(?:else\s+)?instead\s+of\s+(?:the\s+)?["']?([^"']+?)["']?/i,
-  ];
-
-  for (const pattern of replacePatterns) {
-    const match = message.match(pattern);
-    if (match) {
-      const activityName = match[1].trim();
-      console.log(`[AI Assistant] Detected REPLACE intent for activity: "${activityName}"`);
-      return {
-        type: "replace",
-        activityName,
-        preference: message,
-      };
-    }
-  }
-
-  // Add patterns
-  const addPatterns = [
-    /add\s+(?:a\s+)?(?:new\s+)?(.+?)\s+(?:to|on|for)\s+day\s+(\d+)/i,
-    /include\s+(?:a\s+)?(.+?)\s+(?:on|for)\s+day\s+(\d+)/i,
-    /add\s+(?:a\s+)?(.+?)\s+(?:for\s+)?(?:lunch|dinner|breakfast|morning|afternoon|evening)/i,
-    /suggest\s+(?:a\s+)?(.+?)\s+(?:to\s+add|for)/i,
-    /recommend\s+(?:a\s+)?(.+?)\s+(?:to\s+add|for)/i,
-  ];
-
-  for (const pattern of addPatterns) {
-    const match = message.match(pattern);
-    if (match) {
-      return {
-        type: "add",
-        preference: match[1].trim(),
-        dayNumber: match[2] ? parseInt(match[2]) : undefined,
-      };
-    }
-  }
-
-  // Simple add detection
-  if (
-    lowerMsg.includes("add ") ||
-    lowerMsg.includes("suggest a ") ||
-    lowerMsg.includes("recommend a ")
-  ) {
-    return { type: "add", preference: message };
-  }
-
-  // Remove patterns.
-  //
-  // The name matters: without it the route had nothing to act on, no handler
-  // ran, and the model filled the silence — "The Harbour Museum Tour has been
-  // removed from your Day 1 plans", for an activity still sitting in the trip.
-  // 12 such removals are recorded in production as `applied: true`.
-  const removePatterns = [
-    /(?:remove|delete|drop|cancel)\s+(?:the\s+)?["']?(.+?)["']?\s+from\s+/i,
-    /(?:remove|delete|drop|cancel)\s+(?:the\s+)?["']?(.+?)["']?\s+(?:on|for)\s+day\s+\d+/i,
-    /take\s+(?:the\s+)?["']?(.+?)["']?\s+(?:out|off)\b/i,
-    /(?:get\s+)?rid\s+of\s+(?:the\s+)?["']?(.+?)["']?$/i,
-    /(?:remove|delete|drop|cancel)\s+(?:the\s+)?["']?(.+?)["']?$/i,
-  ];
-  for (const pattern of removePatterns) {
-    const match = message.match(pattern);
-    if (match?.[1]) {
-      const activityName = match[1].trim().replace(/\s+(?:entirely|completely|please)$/i, "").trim();
-      if (activityName) {
-        console.log(`[AI Assistant] Detected REMOVE intent for activity: "${activityName}"`);
-        return { type: "remove", activityName, preference: message };
-      }
-    }
-  }
-  if (
-    lowerMsg.includes("remove ") ||
-    lowerMsg.includes("delete ") ||
-    lowerMsg.includes("take out ")
-  ) {
-    return { type: "remove", preference: message };
-  }
-
-  return { type: "none" };
-}
-
 /**
  * What the model is allowed to tell the user about a prepared change. Nothing
  * is saved until the user confirms it on the card, so the reply must not say
@@ -434,31 +200,9 @@ or saved. Never use the past tense about their itinerary.`;
 }
 
 /** One plain-language phrase naming the change, for the frame above. */
-function describeChange(
-  action: NonNullable<StructuredAssistantResponse["action"]>,
-  card: AssistantCard | undefined
-): string {
+function describeChange(action: NonNullable<StructuredAssistantResponse["action"]>): string {
   const day = action.dayNumber;
   switch (action.type) {
-    case "replace_activity": {
-      const c = card as { oldActivity?: { name?: string }; newActivity?: { name?: string } } | undefined;
-      const from = c?.oldActivity?.name ?? "an activity";
-      const to = c?.newActivity?.name ?? action.newActivity?.name ?? "a new activity";
-      return `swap "${from}" for "${to}" on Day ${day}`;
-    }
-    case "add_activity": {
-      const c = card as { activity?: { name?: string } } | undefined;
-      const name = c?.activity?.name ?? action.newActivity?.name ?? "a new activity";
-      return `add "${name}" to Day ${day}`;
-    }
-    case "remove_activity": {
-      const c = card as { activity?: { name?: string } } | undefined;
-      return `take "${c?.activity?.name ?? "that activity"}" off Day ${day}`;
-    }
-    case "adjust_duration":
-      return `change how long they spend at that stop on Day ${day}`;
-    case "reorder":
-      return `put Day ${day} in a different order`;
     case "add_day": {
       const nd = action.newDay;
       if (!nd) return `add a new Day ${day}`;
@@ -538,362 +282,6 @@ GUIDELINES:
 - For tips/advice, use tip cards with appropriate icons
 - For comparisons, use comparison cards with pros/cons
 - Keep the trip's existing style and budget level in mind`;
-}
-
-// Extract geographic context from activities (neighborhoods, areas, addresses)
-function extractGeographicContext(activities: Activity[]): {
-  neighborhoods: string[];
-  addresses: string[];
-  summary: string;
-} {
-  const neighborhoods = new Set<string>();
-  const addresses: string[] = [];
-
-  for (const activity of activities) {
-    // Extract location/neighborhood
-    if (activity.location) {
-      neighborhoods.add(activity.location);
-    }
-    // Extract address
-    if (activity.address) {
-      addresses.push(`${activity.name}: ${activity.address}`);
-    }
-  }
-
-  const neighborhoodList = Array.from(neighborhoods);
-  const summary = neighborhoodList.length > 0
-    ? `Activities are concentrated in: ${neighborhoodList.join(", ")}`
-    : addresses.length > 0
-      ? `Activities are located at: ${addresses.slice(0, 3).join("; ")}`
-      : "";
-
-  return {
-    neighborhoods: neighborhoodList,
-    addresses,
-    summary,
-  };
-}
-
-// Detect activity type from user preference text
-function detectActivityType(preference: string): string | undefined {
-  const lowerPref = preference.toLowerCase();
-
-  const typeKeywords: Record<string, string[]> = {
-    restaurant: ["restaurant", "food", "eat", "lunch", "dinner", "breakfast", "meal", "dining"],
-    museum: ["museum", "gallery", "exhibit", "art", "history"],
-    cafe: ["cafe", "coffee", "bakery", "tea", "pastry"],
-    attraction: ["attraction", "tourist", "famous", "landmark", "monument", "sight"],
-    nature: ["nature", "park", "garden", "beach", "hike", "walk", "outdoor"],
-    shopping: ["shop", "shopping", "market", "store", "mall", "boutique"],
-    nightlife: ["nightlife", "bar", "club", "pub", "drink", "night"],
-    entertainment: ["entertainment", "show", "theater", "cinema", "concert", "performance"],
-    activity: ["activity", "tour", "experience", "class", "workshop"],
-  };
-
-  for (const [type, keywords] of Object.entries(typeKeywords)) {
-    if (keywords.some(kw => lowerPref.includes(kw))) {
-      return type;
-    }
-  }
-
-  return undefined; // Let the bank search across all types
-}
-
-// Get default start time for a time slot
-function getDefaultStartTime(timeSlot: "morning" | "afternoon" | "evening"): string {
-  switch (timeSlot) {
-    case "morning": return "10:00";
-    case "afternoon": return "14:00";
-    case "evening": return "19:00";
-    default: return "12:00";
-  }
-}
-
-// Typical operating hours by activity type
-const TYPICAL_OPERATING_HOURS: Record<string, { open: string; close: string; bestTimes: string }> = {
-  attraction: { open: "09:00", close: "18:00", bestTimes: "Morning (09:00-12:00) or early afternoon (13:00-16:00)" },
-  museum: { open: "10:00", close: "18:00", bestTimes: "Morning (10:00-13:00) or early afternoon (14:00-17:00)" },
-  restaurant: { open: "12:00", close: "23:00", bestTimes: "Lunch (12:00-14:00) or Dinner (19:00-21:30)" },
-  cafe: { open: "08:00", close: "19:00", bestTimes: "Morning (08:00-11:00) or afternoon break (15:00-17:00)" },
-  activity: { open: "09:00", close: "20:00", bestTimes: "Depends on activity, generally daylight hours" },
-  nature: { open: "06:00", close: "20:00", bestTimes: "Morning (07:00-11:00) or late afternoon (16:00-19:00)" },
-  shopping: { open: "10:00", close: "20:00", bestTimes: "Afternoon (14:00-18:00)" },
-  nightlife: { open: "20:00", close: "03:00", bestTimes: "Evening/Night (21:00-02:00)" },
-  entertainment: { open: "10:00", close: "23:00", bestTimes: "Afternoon or evening (14:00-22:00)" },
-  transport: { open: "00:00", close: "23:59", bestTimes: "Any time" },
-};
-
-// Generate a new activity using AI with geographic and schedule awareness
-// OPTIMIZATION: First tries activity bank (FREE), falls back to AI if no match
-async function generateNewActivity(
-  genAI: GoogleGenerativeAI,
-  destination: string,
-  preference: string,
-  existingActivity: Activity | null,
-  dayNumber: number,
-  timeSlot: "morning" | "afternoon" | "evening" = "afternoon",
-  sameDayActivities: Activity[] = [], // Other activities on the same day for geographic context
-  suggestedStartTime?: string, // Optional: caller-suggested start time (AI can override if unreasonable)
-  destinationCoords?: Coordinates, // Destination center coordinates for fallback
-  language: SupportedLanguage = "en" // User's language for localization
-): Promise<Activity> {
-  console.log(`[AI Assistant] Generating new activity for ${destination}, preference: "${preference}"`);
-
-  // OPTIMIZATION: Try activity bank first (FREE - no AI call)
-  const existingActivityNames = sameDayActivities.map(a => a.name).filter(Boolean);
-  const activityType = detectActivityType(preference);
-
-  const bankHit = await findMatchingActivity(destination, preference, {
-    type: activityType,
-    timeSlot: timeSlot,
-    existingActivityNames,
-  });
-  // Only when it answers the request: the bank matches on any one shared word,
-  // which offered an aperitivo for "add the part where we go to Civitavecchia
-  // port" (lib/activity-bank isRelevantBankMatch).
-  const cachedActivity = bankHit && isRelevantBankMatch(bankHit.name, preference) ? bankHit : null;
-  if (bankHit && !cachedActivity) {
-    console.log(`[AI Assistant] Bank match "${bankHit.name}" doesn't answer "${preference.slice(0, 80)}"; generating instead`);
-  }
-
-  if (cachedActivity) {
-    console.log(`[AI Assistant] CACHE HIT: Found "${cachedActivity.name}" in activity bank (FREE)`);
-
-    // Adjust the cached activity for this context
-    cachedActivity.time_slot = timeSlot;
-    cachedActivity.start_time = suggestedStartTime || getDefaultStartTime(timeSlot);
-
-    // Generate coordinates if missing
-    if (!cachedActivity.coordinates) {
-      const existingCoords = sameDayActivities
-        .filter(a => isRealPoint(a.coordinates))
-        .map(a => a.coordinates as Coordinates);
-
-      if (existingCoords.length > 0) {
-        const centroid = calculateCentroid(existingCoords);
-        if (centroid) {
-          cachedActivity.coordinates = generateNearbyCoordinates(centroid, 0.4);
-        }
-      } else if (destinationCoords) {
-        cachedActivity.coordinates = generateNearbyCoordinates(destinationCoords, 1.5);
-      }
-    }
-
-    return cachedActivity;
-  }
-
-  console.log(`[AI Assistant] Cache MISS - falling back to AI generation`);
-  console.log(`[AI Assistant] Same-day activities for context: ${sameDayActivities.map(a => `${a.name} (${a.start_time}) (${a.location || a.address || 'no location'})`).join(", ")}`);
-  console.log(`[AI Assistant] Suggested start time: ${suggestedStartTime || "not specified"}`);
-
-  // assistant-suggest → gemini-2.5-flash (single activity suggestion with
-  // implicit caching across same-day requests).
-  const model = genAI.getGenerativeModel({
-    model: getModelForPurpose("assistant-suggest"),
-  });
-
-  // Extract geographic context from other activities on the same day
-  const geoContext = extractGeographicContext(sameDayActivities);
-
-  // Build full schedule context with times
-  const scheduleContext = sameDayActivities.length > 0
-    ? `\nCURRENT SCHEDULE for Day ${dayNumber} (you MUST find an appropriate gap):
-${sameDayActivities
-  .sort((a, b) => (a.start_time || "").localeCompare(b.start_time || ""))
-  .map(a => {
-    const endTime = a.start_time && a.duration_minutes
-      ? (() => {
-          const [h, m] = a.start_time.split(":").map(Number);
-          const endMins = h * 60 + m + a.duration_minutes;
-          return formatMinutesToTime(endMins);
-        })()
-      : "TBD";
-    return `  ${a.start_time || "TBD"} - ${endTime}: ${a.name} (${a.type}) - ${a.location || a.address || "location unspecified"}`;
-  }).join("\n")}
-\nFree time slots to consider:
-${(() => {
-  // Calculate free slots
-  const sorted = [...sameDayActivities].sort((a, b) => (a.start_time || "99:99").localeCompare(b.start_time || "99:99"));
-  const freeSlots: string[] = [];
-  let lastEnd = 9 * 60; // Day starts at 9:00
-
-  for (const act of sorted) {
-    if (!act.start_time) continue;
-    const [h, m] = act.start_time.split(":").map(Number);
-    const startMins = h * 60 + m;
-    if (startMins > lastEnd + 30) { // At least 30 min gap
-      const gapStart = formatMinutesToTime(lastEnd);
-      const gapEnd = formatMinutesToTime(startMins);
-      freeSlots.push(`  ${gapStart} - ${gapEnd} (${startMins - lastEnd} min available)`);
-    }
-    lastEnd = startMins + (act.duration_minutes || 60);
-  }
-  // Add evening slot if day ends before 22:00
-  if (lastEnd < 22 * 60) {
-    const gapStart = formatMinutesToTime(lastEnd);
-    freeSlots.push(`  ${gapStart} - 22:00 (${22 * 60 - lastEnd} min available)`);
-  }
-  return freeSlots.length > 0 ? freeSlots.join("\n") : "  No obvious gaps - consider adjusting existing activities";
-})()}
-`
-    : "";
-
-  // Build geographic constraint section
-  let geographicConstraint = "";
-  if (geoContext.neighborhoods.length > 0 || geoContext.addresses.length > 0) {
-    geographicConstraint = `
-GEOGRAPHIC CONSTRAINT (CRITICAL):
-The other activities on Day ${dayNumber} are located in these areas:
-${geoContext.neighborhoods.map(n => `- ${n}`).join("\n")}
-${geoContext.addresses.length > 0 ? `\nSpecific locations:\n${geoContext.addresses.map(a => `- ${a}`).join("\n")}` : ""}
-
-You MUST suggest an activity that is:
-1. In the SAME neighborhood/district as the other Day ${dayNumber} activities
-2. Within walking distance (max 15-20 minutes walk) from the other activities
-3. Geographically logical to visit on the same day without excessive travel
-
-DO NOT suggest activities in other parts of the city that would require long transit.
-The goal is to keep Day ${dayNumber} activities clustered together for efficient travel.
-
-USER OVERRIDE EXCEPTION: if the user has already been told about the distance or
-logistics and still explicitly insists on a specific place (even far away or across
-a border), comply — add exactly what they asked for, mention the travel-time
-tradeoff in ONE short sentence, and do not push back again. The user decides.
-`;
-  }
-
-  // Build operating hours guidance
-  const operatingHoursGuide = `
-OPERATING HOURS GUIDANCE (CRITICAL - you MUST respect these):
-${Object.entries(TYPICAL_OPERATING_HOURS).map(([type, hours]) =>
-  `- ${type}: typically open ${hours.open}-${hours.close}. Best times: ${hours.bestTimes}`
-).join("\n")}
-
-NEVER schedule:
-- Museums/attractions after 18:00 (they close!)
-- Restaurants outside 12:00-14:30 (lunch) or 19:00-22:00 (dinner)
-- Outdoor activities after dark
-- Any activity at unrealistic hours (e.g., museum at 23:00 is WRONG)
-`;
-
-  const langInstruction = getLanguageInstruction(language);
-  const prompt = `Generate a travel activity for ${destination}.${langInstruction}
-${existingActivity ? `Replacing: ${existingActivity.name} (${existingActivity.type}) at ${existingActivity.start_time || "TBD"} - was located in: ${existingActivity.location || existingActivity.address || "unspecified"}` : "New activity to ADD to the schedule"}
-User preference: ${preference}
-Preferred time slot: ${timeSlot}
-${suggestedStartTime ? `Caller suggested: ${suggestedStartTime} - BUT you should IGNORE this if it's unrealistic for the activity type!` : ""}
-Day: ${dayNumber}
-${scheduleContext}
-${operatingHoursGuide}
-${geographicConstraint}
-
-Return ONLY valid JSON for the activity:
-{
-  "name": "Activity Name",
-  "type": "${ACTIVITY_TYPES.join("|")}",
-  "description": "2-3 sentence engaging description",
-  "location": "Neighborhood/Area name - MUST be in the same area as other Day ${dayNumber} activities",
-  "address": "Specific street address if known",
-  "start_time": "HH:MM - MUST be a realistic time when this type of venue would be OPEN and fits in the schedule gaps",
-  "duration_minutes": 60-180,
-  "estimated_cost": { "amount": number, "currency": "EUR", "tier": "budget|moderate|expensive" },
-  "tips": ["1 helpful tip"],
-  "booking_required": true/false
-}
-
-CRITICAL TIMING RULES:
-1. The "start_time" MUST be during the venue's typical operating hours
-2. Museums/attractions should be scheduled between 09:00-17:00
-3. Restaurants should be scheduled at lunch (12:00-14:00) or dinner (19:00-21:30)
-4. Find a gap in the existing schedule - don't overlap with other activities
-5. If the user's suggested time is unrealistic (like a museum at 23:00), pick a SENSIBLE time instead`;
-
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
-
-  // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts). The new-
-  // activity prompt has a long stable preamble (rules + schema) so we
-  // expect a high implicit-cache-hit rate. A drop signals someone shoved
-  // a timestamp / user-id into the prefix.
-  logCacheMetrics("ai.assistant.new_activity", result.response.usageMetadata);
-
-  // Parse JSON from response
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    console.error("[AI Assistant] Failed to parse activity JSON from response:", text);
-    throw new Error("Failed to generate activity");
-  }
-
-  const activity = JSON.parse(jsonMatch[0]) as Activity;
-  activity.id = generateActivityId();
-
-  // Onto the app's list: a cafe stays a cafe, a vibe like "foodie" is read
-  // from the name, and nothing off the list reaches the itinerary, which is
-  // jsonb and would accept anything.
-  activity.type = normalizeActivityType(activity.type, activity.name);
-
-  // Generate coordinates for the new activity
-  // Priority: 1) Use existing activities centroid, 2) Use destination center
-  const existingCoords = sameDayActivities
-    .filter(a => isRealPoint(a.coordinates))
-    .map(a => a.coordinates as Coordinates);
-
-  if (existingCoords.length > 0) {
-    // Generate coordinates near the centroid of existing activities
-    const centroid = calculateCentroid(existingCoords);
-    if (centroid) {
-      activity.coordinates = generateNearbyCoordinates(centroid, 0.4); // 400m radius
-      console.log(`[AI Assistant] Generated coordinates near activity cluster: ${activity.coordinates.lat.toFixed(5)}, ${activity.coordinates.lng.toFixed(5)}`);
-    }
-  } else if (destinationCoords) {
-    // Fall back to destination center with larger offset
-    activity.coordinates = generateNearbyCoordinates(destinationCoords, 1.5); // 1.5km radius
-    console.log(`[AI Assistant] Generated coordinates near destination center: ${activity.coordinates.lat.toFixed(5)}, ${activity.coordinates.lng.toFixed(5)}`);
-  }
-
-  // Validate and fix the time if AI returned something unreasonable
-  const [hours] = (activity.start_time || "12:00").split(":").map(Number);
-  const finalActivityType = activity.type?.toLowerCase() || "activity";
-  const typeHours = TYPICAL_OPERATING_HOURS[finalActivityType] || TYPICAL_OPERATING_HOURS.activity;
-  const [openH] = typeHours.open.split(":").map(Number);
-  const [closeH] = typeHours.close.split(":").map(Number);
-
-  // Check if time is within operating hours
-  const isNightlife = finalActivityType === "nightlife";
-  const isValidTime = isNightlife
-    ? (hours >= 20 || hours <= 3) // Nightlife: 20:00-03:00
-    : (hours >= openH && hours < closeH); // Normal: within open-close
-
-  if (!isValidTime) {
-    console.log(`[AI Assistant] Time ${activity.start_time} is outside operating hours for ${finalActivityType}. Adjusting...`);
-    // Pick a sensible default based on time slot
-    if (timeSlot === "morning") {
-      activity.start_time = finalActivityType === "restaurant" || finalActivityType === "cafe" ? "09:00" : "10:00";
-    } else if (timeSlot === "afternoon") {
-      activity.start_time = finalActivityType === "restaurant" ? "13:00" : "14:00";
-    } else {
-      activity.start_time = finalActivityType === "restaurant" ? "19:30" : finalActivityType === "nightlife" ? "21:00" : "17:00";
-    }
-    console.log(`[AI Assistant] Adjusted to ${activity.start_time}`);
-  }
-
-  // Set time slot based on actual start time
-  const finalHours = parseInt(activity.start_time?.split(":")[0] || "12");
-  if (finalHours < 12) activity.time_slot = "morning";
-  else if (finalHours < 17) activity.time_slot = "afternoon";
-  else activity.time_slot = "evening";
-
-  console.log(`[AI Assistant] Generated activity: "${activity.name}" at ${activity.start_time} in location: "${activity.location}"`);
-
-  // OPTIMIZATION: Save AI-generated activity to bank for future cache hits (fire-and-forget)
-  // This ensures subsequent users asking for similar activities get FREE cache hits
-  saveToActivityBank(destination, activity).then((saved) => {
-    if (saved) {
-      console.log(`[AI Assistant] Activity saved to bank for future use`);
-    }
-  });
-
-  return activity;
 }
 
 export async function POST(request: NextRequest) {
@@ -1050,21 +438,15 @@ export async function POST(request: NextRequest) {
       conversation = { id: newConvo?.id || "", messages: [] };
     }
 
-    // STRUCTURAL intents first (add_day / apply_draft) — they must outrank
-    // the single-activity patterns: the legacy `lowerMsg.includes("add ")`
-    // fallback would turn "can you add a day to travel to Voss" into an
-    // add-activity landing on Day 1. See lib/ai/assistant/structural.ts.
+    // STRUCTURAL intents first (add_day / apply_draft). See
+    // lib/ai/assistant/structural.ts.
     const structuralIntent = detectStructuralIntent(message);
 
-    // Then the wizard's edit engine (lib/ai/assistant/trip-edits.ts): the
-    // patterns below read only a few phrasings, so "adding X to Day 3" or two
-    // changes in one message got a promise and no change. Questions go to it
-    // too: the chat answered in a sentence or two without the plan's figures,
-    // and changes asked as questions ("can we fix that", "do it") got a
-    // promise. The patterns and the chat still run when it fails.
-    // It adds days too, as many as asked: "aggiungi altri 7 giorni" got "the
-    // trip stays at 7 days", and add_day below appends one. That one runs only
-    // when the engine can't.
+    // Then the wizard's edit engine (lib/ai/assistant/trip-edits.ts), which
+    // makes the edits asked for in any words, several in one message, and
+    // answers questions with the plan's figures. The chat runs when it fails.
+    // It adds days too, as many as asked; add_day below appends one, and runs
+    // only when the engine can't.
     let tripEdits: TripEditProposal | null = null;
     if (structuralIntent.type !== "apply_draft" && itinerary.length > 0) {
       try {
@@ -1081,23 +463,18 @@ export async function POST(request: NextRequest) {
           canAddDays: assistantRole === "owner",
         });
       } catch (err) {
-        console.error("[AI Assistant] Edit engine failed, using the patterns:", err);
+        console.error("[AI Assistant] Edit engine failed, using the chat:", err);
       }
     }
     const engineEdited = (tripEdits?.revisedDays.length ?? 0) > 0;
 
-    const actionIntent =
-      structuralIntent.type === "none" && !engineEdited
-        ? detectActionIntent(message)
-        : ({ type: "none" } as ReturnType<typeof detectActionIntent>);
     console.log(
-      `[AI Assistant] Structural intent: ${structuralIntent.type}; engine: ${tripEdits ? `${tripEdits.revisedDays.length} day(s)` : "not used"}; action intent: ${JSON.stringify(actionIntent)}`
+      `[AI Assistant] Structural intent: ${structuralIntent.type}; engine: ${tripEdits ? `${tripEdits.revisedDays.length} day(s)` : "not used"}`
     );
 
     // Deep clone the itinerary to avoid reference issues
     const modifiedItinerary: ItineraryDay[] = JSON.parse(JSON.stringify(itinerary));
     let actionTaken: StructuredAssistantResponse["action"] | undefined;
-    let replacementCard: AssistantCard | undefined;
     let replacementError: string | undefined;
 
     // The engine's revised days: one multi-day change, confirmed and saved
@@ -1123,495 +500,6 @@ export async function POST(request: NextRequest) {
         revisedDays: fixedDays,
         ...(engineEndDate ? { newEndDate: engineEndDate } : {}),
       };
-    }
-
-    // Handle autonomous activity replacement
-    if (actionIntent.type === "replace" && actionIntent.activityName) {
-      console.log(`[AI Assistant] Attempting to replace activity: "${actionIntent.activityName}"`);
-
-      const found = findActivityByName(itinerary, actionIntent.activityName, actionIntent.dayNumber);
-
-      if (found && isLockedActivity(found.activity)) {
-        // F1 anchors are user-owned. The panel promises "they never move", so
-        // the assistant must honour that too — not just the regen routes.
-        replacementError = `"${found.activity.name}" is a fixed plan, so I won't replace it. If it really changed, edit it in the trip's fixed plans first.`;
-        console.log(`[AI Assistant] Refused replace on locked activity: "${found.activity.name}"`);
-      } else if (found) {
-        console.log(`[AI Assistant] Found activity to replace: "${found.activity.name}" on Day ${found.dayIndex + 1}`);
-
-        try {
-          // Get other activities on the same day (excluding the one being replaced) for geographic context
-          const sameDayActivities = itinerary[found.dayIndex].activities.filter(
-            (a, idx) => idx !== found.activityIndex
-          );
-          console.log(`[AI Assistant] Same-day activities for geographic context: ${sameDayActivities.map(a => a.name).join(", ")}`);
-
-          // Generate replacement activity with geographic awareness
-          const newActivity = await generateNewActivity(
-            genAI,
-            tripContext.destination,
-            message,
-            found.activity,
-            found.dayIndex + 1,
-            found.activity.time_slot,
-            sameDayActivities, // Pass other activities for geographic clustering
-            undefined, // suggestedStartTime - use original
-            destinationCoords, // Destination center for coordinate fallback
-            userLanguage // User's language for localization
-          );
-
-          // Preserve time from original
-          newActivity.start_time = found.activity.start_time;
-          newActivity.duration_minutes = found.activity.duration_minutes || newActivity.duration_minutes;
-
-          // Apply the replacement to our deep-cloned itinerary
-          modifiedItinerary[found.dayIndex].activities[found.activityIndex] = newActivity;
-
-          actionTaken = {
-            type: "replace_activity",
-            applied: false,
-            activityId: found.activity.id,
-            dayNumber: found.dayIndex + 1,
-            newActivity,
-          };
-
-          replacementCard = {
-            type: "activity_replacement",
-            oldActivity: {
-              id: found.activity.id || "",
-              name: found.activity.name,
-              type: found.activity.type,
-            },
-            newActivity,
-            dayNumber: found.dayIndex + 1,
-            reason: `Replaced based on your preference`,
-          };
-        } catch (err) {
-          console.error("[AI Assistant] Failed to generate replacement activity:", err);
-          replacementError = `Failed to generate replacement: ${err instanceof Error ? err.message : "Unknown error"}`;
-          // Reset actionTaken since replacement failed
-          actionTaken = undefined;
-          replacementCard = undefined;
-        }
-      } else {
-        console.log(`[AI Assistant] Could not find activity matching "${actionIntent.activityName}"`);
-        replacementError = activityNotFoundReason(itinerary, actionIntent.activityName, actionIntent.dayNumber);
-      }
-    }
-
-    // A removal with no activity to match ("delete it day 5", "clear day 5"):
-    // ask, rather than hand the fuzzy matcher a pronoun.
-    if (actionIntent.type === "remove" && !actionIntent.activityName) {
-      replacementError = actionIntent.dayNumber
-        ? `I can't clear a whole day at once. Tell me which activity on Day ${actionIntent.dayNumber} to remove, and I'll take it off.`
-        : "Tell me which activity to remove, and on which day.";
-    }
-
-    // Handle autonomous activity ADD
-    // Handle activity removal
-    if (actionIntent.type === "remove" && actionIntent.activityName) {
-      console.log(`[AI Assistant] Attempting to remove activity: "${actionIntent.activityName}"`);
-      const found = findActivityByName(itinerary, actionIntent.activityName, actionIntent.dayNumber);
-
-      if (found && isLockedActivity(found.activity)) {
-        replacementError = `"${found.activity.name}" is a fixed plan, so I won't remove it. If it really changed, edit it in the trip's fixed plans first.`;
-      } else if (found) {
-        const removed = found.activity;
-        modifiedItinerary[found.dayIndex].activities.splice(found.activityIndex, 1);
-
-        actionTaken = {
-          type: "remove_activity",
-          applied: false,
-          activityId: removed.id,
-          dayNumber: found.dayIndex + 1,
-        };
-        // Not a member of the AssistantCard union, and deliberately so: a
-        // removal has no chat card to render (AssistantCards falls through to
-        // null). It is carried here only so the pending-change builder and the
-        // action description below can name what is going.
-        replacementCard = {
-          type: "activity_removed",
-          activity: removed,
-          dayNumber: found.dayIndex + 1,
-          reason: "Removed at your request",
-        } as unknown as AssistantCard;
-      } else {
-        replacementError = activityNotFoundReason(itinerary, actionIntent.activityName, actionIntent.dayNumber);
-      }
-    }
-
-    if (actionIntent.type === "add") {
-      console.log(`[AI Assistant] Attempting to add activity: "${actionIntent.preference}"`);
-
-      try {
-        // The day the user named, never a default Day 1 (a "day 5" stop would
-        // land on Day 1); a one-day trip is the only case where there is
-        // nothing to ask.
-        const targetDayNumber = actionIntent.dayNumber ?? (modifiedItinerary.length === 1 ? 1 : undefined);
-        const targetDayIndex = targetDayNumber === undefined ? -1 : targetDayNumber - 1;
-        const targetDay = targetDayIndex >= 0 ? modifiedItinerary[targetDayIndex] : undefined;
-
-        if (targetDayNumber === undefined) {
-          replacementError = `Which day should it go on? This trip has ${modifiedItinerary.length} days. Say, for example, "add it to day 3".`;
-        } else if (!targetDay) {
-          console.error(`[AI Assistant] Day ${targetDayNumber} not found in itinerary`);
-          replacementError = `There is no Day ${targetDayNumber}: this trip has ${modifiedItinerary.length} days.`;
-        } else {
-          // Determine time slot based on existing activities
-          const existingSlots = new Set(targetDay.activities.map(a => a.time_slot));
-          let targetTimeSlot: "morning" | "afternoon" | "evening" = "afternoon";
-          let startTime = "12:00";
-
-          // Find an available slot or insert between activities
-          if (!existingSlots.has("morning")) {
-            targetTimeSlot = "morning";
-            startTime = "09:00";
-          } else if (!existingSlots.has("afternoon")) {
-            targetTimeSlot = "afternoon";
-            startTime = "14:00";
-          } else if (!existingSlots.has("evening")) {
-            targetTimeSlot = "evening";
-            startTime = "18:00";
-          } else {
-            // All slots taken, find the best insertion point
-            const lastActivity = targetDay.activities[targetDay.activities.length - 1];
-            if (lastActivity) {
-              // Parse the last activity end time and add after it
-              const [hours, mins] = lastActivity.start_time.split(":").map(Number);
-              const endMinutes = hours * 60 + mins + (lastActivity.duration_minutes || 90);
-              const newHours = Math.floor(endMinutes / 60);
-              const newMins = endMinutes % 60;
-              startTime = `${String(newHours).padStart(2, "0")}:${String(newMins).padStart(2, "0")}`;
-
-              if (newHours < 12) targetTimeSlot = "morning";
-              else if (newHours < 17) targetTimeSlot = "afternoon";
-              else targetTimeSlot = "evening";
-            }
-          }
-
-          console.log(`[AI Assistant] Adding to Day ${targetDayNumber}, slot: ${targetTimeSlot}, suggested time: ${startTime}`);
-
-          // Get existing activities on this day for geographic and schedule context
-          const existingDayActivities = targetDay.activities;
-          console.log(`[AI Assistant] Existing activities on Day ${targetDayNumber}: ${existingDayActivities.map(a => `${a.name} at ${a.start_time}`).join(", ")}`);
-
-          // Generate the new activity with full schedule awareness
-          // The AI will pick an appropriate time based on:
-          // 1. The activity type's typical operating hours
-          // 2. The gaps in the existing schedule
-          // 3. The suggested time slot preference
-          const newActivity = await generateNewActivity(
-            genAI,
-            tripContext.destination,
-            actionIntent.preference || message,
-            null,
-            targetDayNumber,
-            targetTimeSlot,
-            existingDayActivities, // Pass existing activities for geographic clustering
-            startTime, // Pass as a SUGGESTION - AI can override if unrealistic
-            destinationCoords, // Destination center for coordinate fallback
-            userLanguage // User's language for localization
-          );
-
-          // DO NOT override the AI's chosen time - it has considered operating hours
-          console.log(`[AI Assistant] AI chose time: ${newActivity.start_time} for ${newActivity.name} (${newActivity.type})`);
-
-          // Add to the day's activities and sort by time
-          modifiedItinerary[targetDayIndex].activities.push(newActivity);
-          modifiedItinerary[targetDayIndex].activities.sort((a, b) =>
-            a.start_time.localeCompare(b.start_time)
-          );
-
-          actionTaken = {
-            type: "add_activity",
-            applied: false,
-            dayNumber: targetDayNumber,
-            newActivity,
-          };
-
-          // Create an activity_added card for the added activity
-          replacementCard = {
-            type: "activity_added",
-            activity: newActivity,
-            dayNumber: targetDayNumber,
-            reason: `Added based on your request`,
-          } as AssistantCard;
-        }
-      } catch (err) {
-        console.error("[AI Assistant] Failed to generate new activity:", err);
-        replacementError = `Failed to generate activity: ${err instanceof Error ? err.message : "Unknown error"}`;
-        actionTaken = undefined;
-        replacementCard = undefined;
-      }
-    }
-
-    // Handle duration adjustment
-    if (actionIntent.type === "adjust_duration" && actionIntent.activityName) {
-      console.log(`[AI Assistant] Attempting to adjust duration for: "${actionIntent.activityName}"`);
-
-      const found = findActivityByName(itinerary, actionIntent.activityName, actionIntent.dayNumber);
-
-      if (found && isLockedActivity(found.activity)) {
-        // A wedding doesn't become 30 minutes shorter because the AI said so.
-        replacementError = `"${found.activity.name}" is a fixed plan, so I won't change how long it runs.`;
-        console.log(`[AI Assistant] Refused duration change on locked activity: "${found.activity.name}"`);
-      } else if (found) {
-        const oldDuration = found.activity.duration_minutes || 60;
-        let newDuration: number;
-
-        if (actionIntent.newDuration === -1) {
-          // Extend by 30 minutes (default)
-          newDuration = oldDuration + 30;
-          console.log(`[AI Assistant] Extending ${found.activity.name} from ${oldDuration} to ${newDuration} minutes`);
-        } else if (actionIntent.newDuration === -2) {
-          // Shorten by 30 minutes (minimum 30 minutes)
-          newDuration = Math.max(30, oldDuration - 30);
-          console.log(`[AI Assistant] Shortening ${found.activity.name} from ${oldDuration} to ${newDuration} minutes`);
-        } else {
-          newDuration = actionIntent.newDuration!;
-          console.log(`[AI Assistant] Setting ${found.activity.name} duration to ${newDuration} minutes`);
-        }
-
-        // Update the activity duration
-        modifiedItinerary[found.dayIndex].activities[found.activityIndex].duration_minutes = newDuration;
-
-        // Adjust subsequent activities' start times on the same day
-        const dayActivities = modifiedItinerary[found.dayIndex].activities;
-        for (let i = found.activityIndex + 1; i < dayActivities.length; i++) {
-          const prevActivity = dayActivities[i - 1];
-          const [prevHours, prevMins] = prevActivity.start_time.split(":").map(Number);
-          const prevEnd = prevHours * 60 + prevMins + (prevActivity.duration_minutes || 60);
-          const newHours = Math.floor(prevEnd / 60);
-          const newMins = prevEnd % 60;
-          dayActivities[i].start_time = `${String(newHours).padStart(2, "0")}:${String(newMins).padStart(2, "0")}`;
-        }
-
-        actionTaken = {
-          type: "adjust_duration",
-          applied: false,
-          activityId: found.activity.id,
-          dayNumber: found.dayIndex + 1,
-        };
-
-        replacementCard = {
-          type: "duration_adjusted",
-          activity: {
-            id: found.activity.id || "",
-            name: found.activity.name,
-            type: found.activity.type,
-          },
-          oldDuration,
-          newDuration,
-          dayNumber: found.dayIndex + 1,
-          reason: `Duration adjusted from ${Math.floor(oldDuration / 60)}h${oldDuration % 60 > 0 ? ` ${oldDuration % 60}m` : ""} to ${Math.floor(newDuration / 60)}h${newDuration % 60 > 0 ? ` ${newDuration % 60}m` : ""}`,
-        } as AssistantCard;
-      } else {
-        replacementError = activityNotFoundReason(itinerary, actionIntent.activityName, actionIntent.dayNumber);
-      }
-    }
-
-    // Handle schedule optimization/reordering
-    if (actionIntent.type === "reorder") {
-      console.log(`[AI Assistant] Attempting to reorder/optimize schedule`);
-
-      try {
-        // The day the user named, else the day the named activity is on; a
-        // one-day trip needs no asking. (It used to default to Day 1 and
-        // clamp any number to the last day.)
-        let targetDayNumber = actionIntent.dayNumber;
-        if (targetDayNumber === undefined && actionIntent.activityName) {
-          const where = findActivityByName(modifiedItinerary, actionIntent.activityName);
-          if (where) targetDayNumber = where.dayIndex + 1;
-        }
-        if (targetDayNumber === undefined && modifiedItinerary.length === 1) targetDayNumber = 1;
-        const targetDayIndex = (targetDayNumber ?? 0) - 1;
-        const targetDay = targetDayIndex >= 0 ? modifiedItinerary[targetDayIndex] : undefined;
-
-        const lockedOnDay = lockedActivityNames(targetDay);
-
-        if (targetDayNumber === undefined) {
-          replacementError = `Which day should I reorganize? This trip has ${modifiedItinerary.length} days. Say, for example, "reorganize day 3".`;
-        } else if (!targetDay || targetDay.activities.length < 2) {
-          replacementError = targetDay
-            ? `Day ${targetDayNumber} has only ${targetDay.activities.length} activities - nothing to reorder`
-            : `There is no Day ${targetDayNumber}: this trip has ${modifiedItinerary.length} days.`;
-        } else if (lockedOnDay.length > 0) {
-          // Guarded at DAY level, not just the named activity: reordering
-          // shuffles start times across the whole day, so a pinned commitment
-          // would move even when it isn't the thing the user named.
-          replacementError = `Day ${targetDayNumber} is built around a fixed plan (${lockedOnDay.join(", ")}), so I won't reshuffle it.`;
-          console.log(`[AI Assistant] Refused reorder on day ${targetDayNumber} with locked: ${lockedOnDay.join(", ")}`);
-        } else {
-          // If moving a specific activity to a time slot
-          if (actionIntent.activityName && actionIntent.targetTimeSlot) {
-            const found = findActivityByName([targetDay], actionIntent.activityName);
-            if (found) {
-              const activity = targetDay.activities.splice(found.activityIndex, 1)[0];
-
-              // Determine new position based on target time slot
-              let insertIndex = 0;
-              let newStartTime = "09:00";
-
-              if (actionIntent.targetTimeSlot === "morning") {
-                insertIndex = 0;
-                newStartTime = "09:00";
-                activity.time_slot = "morning";
-              } else if (actionIntent.targetTimeSlot === "afternoon") {
-                // Find first afternoon activity or insert in middle
-                insertIndex = targetDay.activities.findIndex(a =>
-                  a.time_slot === "afternoon" || a.time_slot === "evening"
-                );
-                if (insertIndex === -1) insertIndex = Math.floor(targetDay.activities.length / 2);
-                newStartTime = "13:00";
-                activity.time_slot = "afternoon";
-              } else {
-                // Evening - insert at end
-                insertIndex = targetDay.activities.length;
-                newStartTime = "18:00";
-                activity.time_slot = "evening";
-              }
-
-              activity.start_time = newStartTime;
-              targetDay.activities.splice(insertIndex, 0, activity);
-
-              // Recalculate all start times based on new order
-              let currentTime = 9 * 60; // Start at 9:00 AM
-              for (const act of targetDay.activities) {
-                const hours = Math.floor(currentTime / 60);
-                const mins = currentTime % 60;
-                act.start_time = `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
-
-                // Update time slot based on actual time
-                if (hours < 12) act.time_slot = "morning";
-                else if (hours < 17) act.time_slot = "afternoon";
-                else act.time_slot = "evening";
-
-                currentTime += (act.duration_minutes || 60) + 30; // Add 30 min buffer between activities
-              }
-
-              modifiedItinerary[targetDayIndex] = targetDay;
-
-              actionTaken = {
-                type: "reorder",
-                applied: false,
-                dayNumber: targetDayNumber,
-              };
-
-              replacementCard = {
-                type: "schedule_reordered",
-                dayNumber: targetDayNumber,
-                reason: `Moved "${activity.name}" to ${actionIntent.targetTimeSlot}`,
-                activities: targetDay.activities.map(a => ({
-                  id: a.id || "",
-                  name: a.name,
-                  time: a.start_time,
-                  timeSlot: a.time_slot,
-                })),
-              } as AssistantCard;
-            } else {
-              replacementError = `Could not find activity "${actionIntent.activityName}" on Day ${targetDayNumber}`;
-            }
-          } else {
-            // Full day optimization - use AI to suggest optimal order
-            // assistant-optimize → gemini-2.5-flash (day-level reasoning
-            // benefits from implicit caching across repeated optimisations).
-  const model = genAI.getGenerativeModel({
-    model: getModelForPurpose("assistant-optimize"),
-  });
-
-            const activitiesInfo = targetDay.activities.map((a, i) => ({
-              index: i,
-              name: a.name,
-              type: a.type,
-              location: a.location || a.address || "unknown",
-              duration: a.duration_minutes || 60,
-              currentTime: a.start_time,
-            }));
-
-            const optimizePrompt = `You are optimizing a day's travel itinerary for ${tripContext.destination}.
-
-Current activities on Day ${targetDayNumber}:
-${activitiesInfo.map(a => `${a.index}. ${a.name} (${a.type}) at ${a.location} - ${a.duration}min`).join("\n")}
-
-Suggest the optimal order for these activities considering:
-1. Geographic proximity (minimize travel between locations)
-2. Typical opening hours (museums morning, restaurants lunch/dinner, nightlife evening)
-3. Activity type flow (don't have two heavy meals back-to-back)
-
-Return ONLY a JSON array with the optimal order of activity indices:
-{"optimalOrder": [0, 2, 1, 3], "reason": "Brief explanation of why this order is better"}`;
-
-            const result = await model.generateContent(optimizePrompt);
-            const text = result.response.text();
-
-            // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts).
-            // The day-optimization prompt is short and largely per-trip, so
-            // expect lower cache-hit rate here than other call sites — but
-            // we still want the metric to catch a sudden drop to ~0%.
-            logCacheMetrics("ai.assistant.optimize_day", result.response.usageMetadata);
-
-            const jsonMatch = text.match(/\{[\s\S]*\}/);
-
-            if (jsonMatch) {
-              const optimization = JSON.parse(jsonMatch[0]) as { optimalOrder: number[]; reason: string };
-
-              // Reorder activities based on AI suggestion
-              const reorderedActivities = optimization.optimalOrder
-                .filter(idx => idx < targetDay.activities.length)
-                .map(idx => targetDay.activities[idx]);
-
-              // If some activities weren't included, add them at the end
-              const includedIndices = new Set(optimization.optimalOrder);
-              for (let i = 0; i < targetDay.activities.length; i++) {
-                if (!includedIndices.has(i)) {
-                  reorderedActivities.push(targetDay.activities[i]);
-                }
-              }
-
-              // Recalculate start times
-              let currentTime = 9 * 60;
-              for (const act of reorderedActivities) {
-                const hours = Math.floor(currentTime / 60);
-                const mins = currentTime % 60;
-                act.start_time = `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
-
-                if (hours < 12) act.time_slot = "morning";
-                else if (hours < 17) act.time_slot = "afternoon";
-                else act.time_slot = "evening";
-
-                currentTime += (act.duration_minutes || 60) + 30;
-              }
-
-              modifiedItinerary[targetDayIndex].activities = reorderedActivities;
-
-              actionTaken = {
-                type: "reorder",
-                applied: false,
-                dayNumber: targetDayNumber,
-              };
-
-              replacementCard = {
-                type: "schedule_optimized",
-                dayNumber: targetDayNumber,
-                reason: optimization.reason || "Optimized for efficient travel and activity flow",
-                activities: reorderedActivities.map(a => ({
-                  id: a.id || "",
-                  name: a.name,
-                  time: a.start_time,
-                  timeSlot: a.time_slot,
-                })),
-              } as AssistantCard;
-            } else {
-              replacementError = "Failed to generate optimized schedule";
-            }
-          }
-        }
-      } catch (err) {
-        console.error("[AI Assistant] Failed to optimize schedule:", err);
-        replacementError = `Failed to optimize schedule: ${err instanceof Error ? err.message : "Unknown error"}`;
-        actionTaken = undefined;
-        replacementCard = undefined;
-      }
     }
 
     // Structural no-op note (cap reached, nothing mappable, …) — injected
@@ -1741,13 +629,13 @@ Return ONLY a JSON array with the optimal order of activity indices:
       } else {
         console.log(`[AI Assistant] Attempting to map pasted draft onto ${modifiedItinerary.length} days`);
         try {
-          // assistant-optimize → gemini-2.5-flash (same purpose class as
-          // day optimization: reasoning over the whole trip structure).
+          // assistant-optimize → gemini-2.5-flash: reasoning over the whole
+          // trip structure.
           const draftModel = genAI.getGenerativeModel({
             model: getModelForPurpose("assistant-optimize"),
             generationConfig: {
               temperature: 0.4,
-              // Up to 14 revised days — far beyond the optimize call's needs.
+              // Up to 14 revised days.
               maxOutputTokens: 16384,
               responseMimeType: "application/json",
             },
@@ -1877,9 +765,8 @@ Return ONLY valid JSON:
     // Build prompt with action context. What the user is told comes from what
     // the server prepared, never from the model's own claim.
     if (replacementError) {
-      // A change that failed leaves no action or card behind.
+      // A change that failed leaves no action behind.
       actionTaken = undefined;
-      replacementCard = undefined;
     }
     // A prepared change waits for the user's confirm: nothing is saved here.
     if (actionTaken) actionTaken = { ...actionTaken, pending: true };
@@ -1895,7 +782,7 @@ Tell the user plainly that it did not work and why, in one or two short
 sentences, then offer what they can try instead. Never suggest that any part
 of it succeeded.`;
     } else if (actionTaken) {
-      const change = describeChange(actionTaken, replacementCard);
+      const change = describeChange(actionTaken);
       const extra =
         actionTaken.type === "apply_draft" && draftUnmappedDayNumbers.length > 0
           ? ` Days ${draftUnmappedDayNumbers.join(", ")} could not be read from the draft and are unchanged - say so explicitly.`
@@ -1917,7 +804,7 @@ User: ${message}
 Respond with valid JSON only.`;
 
     // The engine's own reply, when it prepared the change, or answered and
-    // the patterns prepared nothing. It already read the plan and the
+    // nothing else was prepared. It already read the plan and the
     // conversation, so the chat call below is skipped.
     const engineReply = tripEdits && (engineEdited || !actionTaken) ? tripEdits.reply : null;
 
@@ -1960,8 +847,7 @@ Respond with valid JSON only.`;
     // Cards that show a change as done ("Activity Replaced", "Added") never
     // reach the reply: nothing is saved on this turn, and the confirm card
     // already shows the before and after. The model writes such cards too, so
-    // whatever it produces is filtered. `replacementCard` only feeds the
-    // pendingChange below.
+    // whatever it produces is filtered.
     const CHANGE_CARDS = new Set(["activity_replacement", "activity_added", "activity_suggestion", "confirmation"]);
     if (Array.isArray(parsedResponse.cards)) {
       parsedResponse.cards = parsedResponse.cards.filter(
@@ -2001,7 +887,7 @@ Respond with valid JSON only.`;
     // the server did nothing, in which case it is `undefined` and the model's
     // own claim is discarded.
     //
-    // This assignment used to sit behind `if (replacementCard) ... else if
+    // This assignment used to sit behind `if (<the change's card>) ... else if
     // (actionTaken)`, so whenever neither existed the model's invented action
     // survived into the response and the saved history. That is how 12
     // "remove_activity ... applied: true" records exist for an intent that has
@@ -2080,58 +966,7 @@ Respond with valid JSON only.`;
     // The change waiting for the user's confirm.
     let pendingChange = null;
     if (actionTaken && !replacementError) {
-      if (actionTaken.type === "replace_activity") {
-        const rc = replacementCard as { oldActivity: { id: string; name: string; type: string }; newActivity: Activity };
-        // IMPORTANT: Use the oldActivity from replacementCard which was set during the replace logic
-        // Do NOT re-search with findActivityByName() as fuzzy matching could find a different activity
-        // The replacementCard.oldActivity was captured at line 542-548 using the correct found.activity
-
-        // Get the full activity data from the itinerary using the exact ID we already found
-        const oldActivityFull = itinerary
-          .flatMap(day => day.activities)
-          .find(a => a.id === rc.oldActivity.id) || rc.oldActivity;
-
-        pendingChange = {
-          type: "replace" as const,
-          oldActivity: oldActivityFull,
-          newActivity: actionTaken.newActivity,
-          dayNumber: actionTaken.dayNumber,
-          reason: "Suggested based on your preference",
-        };
-      } else if (actionTaken.type === "remove_activity") {
-        const rc = replacementCard as unknown as { activity: Activity };
-        pendingChange = {
-          type: "remove" as const,
-          oldActivity: rc.activity,
-          dayNumber: actionTaken.dayNumber,
-          reason: "Removed at your request",
-        };
-      } else if (actionTaken.type === "add_activity") {
-        pendingChange = {
-          type: "add" as const,
-          newActivity: actionTaken.newActivity,
-          dayNumber: actionTaken.dayNumber,
-          reason: "Suggested based on your request",
-        };
-      } else if (actionTaken.type === "adjust_duration") {
-        const dc = replacementCard as { activity: { id: string; name: string; type: string }; oldDuration: number; newDuration: number; dayNumber: number };
-        pendingChange = {
-          type: "adjust_duration" as const,
-          activity: dc.activity,
-          oldDuration: dc.oldDuration,
-          newDuration: dc.newDuration,
-          dayNumber: dc.dayNumber,
-          reason: `Duration change: ${Math.floor(dc.oldDuration / 60)}h${dc.oldDuration % 60 > 0 ? dc.oldDuration % 60 + "m" : ""} → ${Math.floor(dc.newDuration / 60)}h${dc.newDuration % 60 > 0 ? dc.newDuration % 60 + "m" : ""}`,
-        };
-      } else if (actionTaken.type === "reorder") {
-        const rc = replacementCard as { dayNumber: number; reason: string; activities: { id: string; name: string; time: string; timeSlot: string }[] };
-        pendingChange = {
-          type: "reorder" as const,
-          dayNumber: rc.dayNumber,
-          activities: rc.activities,
-          reason: rc.reason || "Optimized schedule for better flow",
-        };
-      } else if (actionTaken.type === "add_day" && actionTaken.newDay) {
+      if (actionTaken.type === "add_day" && actionTaken.newDay) {
         pendingChange = {
           type: "add_day" as const,
           day: actionTaken.newDay,
@@ -2175,8 +1010,6 @@ Respond with valid JSON only.`;
       },
       // Debug info
       debug: {
-        actionIntent: actionIntent.type,
-        activityName: actionIntent.activityName,
         replacementError,
       },
     };
