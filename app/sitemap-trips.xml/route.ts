@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isTripIndexable, itineraryFingerprint, publicTripAlternates } from "@/lib/seo/public-trip";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { escapeXml } from "@/lib/utils/escape-xml";
 
 /**
  * /sitemap-trips.xml — one URL per published community trip: the locale its
@@ -25,15 +26,6 @@ export const revalidate = 3600;
 // bound is reading every trip's itinerary JSON here. Shard (paginate
 // `.range()` behind a sitemap index) before published trips approach this.
 const MAX_TRIPS = 11000;
-
-function xmlEscape(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
 
 export async function GET() {
   let rows: Array<{
@@ -79,7 +71,7 @@ export async function GET() {
     const lastmodTag = lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : "";
     const loc = publicTripAlternates(row.public_slug, row.trip_meta).canonical;
     urls.push(
-      `  <url>\n    <loc>${xmlEscape(loc)}</loc>${lastmodTag}\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`,
+      `  <url>\n    <loc>${escapeXml(loc)}</loc>${lastmodTag}\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`,
     );
   }
 
