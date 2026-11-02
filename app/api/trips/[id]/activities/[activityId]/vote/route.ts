@@ -2,9 +2,9 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripActivityRouteContext } from "@/lib/api/route-context";
-import type { VoteType, ActivityVote, ItineraryDay } from "@/types";
+import type { VoteType, ItineraryDay } from "@/types";
 import { sendVoteEmail } from "@/lib/notifications/vote-email";
-import { batchFetchUserProfiles } from "@/lib/api/batch-users";
+import { readActivityVotes } from "@/lib/voting/read-votes";
 import { findActivityById } from "@/lib/utils/activity-id";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { readJsonBody } from "@/lib/api/json-body";
@@ -27,58 +27,11 @@ export async function GET(request: NextRequest, context: TripActivityRouteContex
     );
     if (accessError) return accessError;
 
-    // Fetch votes with user info
-    const { data: votes, error } = await supabase
-      .from("activity_votes")
-      .select(`
-        id,
-        trip_id,
-        activity_id,
-        user_id,
-        vote_type,
-        comment,
-        vote_weight,
-        voted_at,
-        updated_at
-      `)
-      .eq("trip_id", tripId)
-      .eq("activity_id", activityId)
-      .order("voted_at", { ascending: true });
-
+    const { votes: transformedVotes, error } = await readActivityVotes(supabase, tripId, activityId);
     if (error) {
       console.error("[Activity Vote] Error fetching votes:", error);
       return errors.internal("Failed to fetch votes", "Activity Vote");
     }
-
-    // Names come from public_profiles, not an embed on users: a trip's voters
-    // are by definition other people, and `users` only exposes the caller's
-    // own row.
-    const profileMap = await batchFetchUserProfiles(
-      supabase,
-      (votes || []).map((v) => v.user_id as string)
-    );
-
-    // Transform to include user info at top level
-    const transformedVotes: ActivityVote[] = (votes || []).map((v) => {
-      const profile = profileMap.get(v.user_id as string) ?? null;
-      return {
-        id: v.id,
-        trip_id: v.trip_id,
-        activity_id: v.activity_id,
-        user_id: v.user_id,
-        vote_type: v.vote_type as VoteType,
-        comment: v.comment,
-        vote_weight: v.vote_weight,
-        voted_at: v.voted_at,
-        updated_at: v.updated_at,
-        user: profile
-          ? {
-              display_name: profile.display_name || "Unknown",
-              avatar_url: profile.avatar_url || undefined,
-            }
-          : undefined,
-      };
-    });
 
     // Get current user's vote
     const currentUserVote = transformedVotes.find(

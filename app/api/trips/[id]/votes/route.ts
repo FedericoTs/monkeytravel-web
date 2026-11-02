@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
-import { batchFetchUserProfiles } from "@/lib/api/batch-users";
+import { readActivityVotes } from "@/lib/voting/read-votes";
 import type { TripRouteContext } from "@/lib/api/route-context";
-import type { VoteType, ActivityVote, ActivityConfirmationRecord } from "@/types";
+import type { VoteType, ActivityConfirmationRecord } from "@/types";
 import { calculateConsensus, aggregateVotesByActivity } from "@/lib/voting/consensus";
 
 /**
@@ -24,36 +24,11 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
     );
     if (accessError) return accessError;
 
-    // Fetch all votes for the trip (without user join - FK points to auth.users, not public.users)
-    const { data: votes, error: votesError } = await supabase
-      .from("activity_votes")
-      .select(`
-        id,
-        trip_id,
-        activity_id,
-        user_id,
-        vote_type,
-        comment,
-        vote_weight,
-        voted_at,
-        updated_at
-      `)
-      .eq("trip_id", tripId)
-      .order("voted_at", { ascending: true });
-
+    const { votes: transformedVotes, error: votesError } = await readActivityVotes(supabase, tripId);
     if (votesError) {
       console.error("[Votes] Error fetching votes:", votesError);
       return errors.internal("Failed to fetch votes", "Votes");
     }
-
-    // Collect all user IDs from votes to batch fetch profiles
-    const voteUserIds = new Set<string>();
-    for (const v of votes || []) {
-      voteUserIds.add(v.user_id);
-    }
-
-    // Batch fetch user profiles using shared utility
-    const userProfileMap = await batchFetchUserProfiles(supabase, voteUserIds);
 
     // Fetch activity statuses
     const { data: statuses, error: statusError } = await supabase
@@ -80,28 +55,6 @@ export async function GET(request: NextRequest, context: TripRouteContext) {
         voterIds.push(c.user_id);
       }
     }
-
-    // Transform votes using the profile map
-    const transformedVotes: ActivityVote[] = (votes || []).map((v) => {
-      const profile = userProfileMap.get(v.user_id);
-      return {
-        id: v.id,
-        trip_id: v.trip_id,
-        activity_id: v.activity_id,
-        user_id: v.user_id,
-        vote_type: v.vote_type as VoteType,
-        comment: v.comment,
-        vote_weight: v.vote_weight,
-        voted_at: v.voted_at,
-        updated_at: v.updated_at,
-        user: profile
-          ? {
-              display_name: profile.display_name || "Unknown",
-              avatar_url: profile.avatar_url || undefined,
-            }
-          : undefined,
-      };
-    });
 
     // Group votes by activity
     const votesByActivity = aggregateVotesByActivity(transformedVotes);
