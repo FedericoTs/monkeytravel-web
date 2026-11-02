@@ -1,6 +1,6 @@
 import { trackTripCreated } from "@/lib/analytics";
 import { claimTripCreatedEmit } from "@/lib/analytics/tripCreatedDedup";
-import { captureFirstTripSaved } from "@/lib/posthog/events";
+import { captureFirstTripSaved, type TripIntent } from "@/lib/posthog/events";
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
 import { trackWizardEvent } from "@/components/wizard/wizardEvents";
 
@@ -10,7 +10,7 @@ export interface SavedTripReport {
   durationDays: number;
   destination: string;
   budgetTier: "budget" | "balanced" | "premium";
-  tripIntent: "solo" | "group";
+  tripIntent: TripIntent;
   travelStyle: "classic" | "backpacker";
   anchorCount: number;
   locale: string;

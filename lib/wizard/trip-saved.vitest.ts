@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const sent = vi.hoisted(() => ({
   tripCreated: vi.fn(),
-  wizardEvent: vi.fn(async () => {}),
+  wizardEvent: vi.fn(async (_step: string, _props: Record<string, unknown>) => {}),
   firstTripSaved: vi.fn(),
-  referral: vi.fn(async () => {}),
+  referral: vi.fn(async (..._args: unknown[]) => {}),
 }));
 vi.mock("@/lib/analytics", () => ({ trackTripCreated: sent.tripCreated }));
 vi.mock("@/lib/posthog/events", () => ({ captureFirstTripSaved: sent.firstTripSaved }));
