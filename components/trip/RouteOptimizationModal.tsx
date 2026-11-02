@@ -12,7 +12,7 @@ import {
 import type { Activity } from "@/types";
 import { activityTypeKey } from "@/lib/i18n/activity-type";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
-import { formatMetricDistance } from "@/lib/utils/travel-estimation";
+import { useDistance } from "@/lib/locale";
 
 interface RouteOptimizationModalProps {
   isOpen: boolean;
@@ -55,6 +55,7 @@ export function RouteOptimizationModal({
   onApplyOptimization,
 }: RouteOptimizationModalProps) {
   const t = useTranslations("common.routeOptimization");
+  const { convert: formatDistance } = useDistance();
   const tButtons = useTranslations("common.buttons");
   const { panelRef } = useModalBehavior({ isOpen, onClose });
   const titleId = useId();
@@ -208,7 +209,7 @@ export function RouteOptimizationModal({
                               {t("potentialSavings")}
                             </p>
                             <p className="text-2xl font-bold text-green-800">
-                              {t("lessTravel", { distance: formatMetricDistance(result.savingsMeters) })}
+                              {t("lessTravel", { distance: formatDistance(result.savingsMeters) })}
                             </p>
                             <p className="text-sm text-green-600">
                               {t("shorterRoute", { percent: result.savingsPercent })}
@@ -235,7 +236,7 @@ export function RouteOptimizationModal({
                         {t("currentDistance")}
                       </p>
                       <p className="text-lg font-semibold text-gray-700">
-                        {formatMetricDistance(result.originalDistanceMeters)}
+                        {formatDistance(result.originalDistanceMeters)}
                       </p>
                     </div>
                     <div className={`p-3 rounded-lg ${
@@ -247,7 +248,7 @@ export function RouteOptimizationModal({
                       <p className={`text-lg font-semibold ${
                         result.savingsPercent > 0 ? "text-green-700" : "text-gray-700"
                       }`}>
-                        {formatMetricDistance(result.optimizedDistanceMeters)}
+                        {formatDistance(result.optimizedDistanceMeters)}
                       </p>
                     </div>
                   </div>
