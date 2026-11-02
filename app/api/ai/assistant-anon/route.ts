@@ -17,7 +17,7 @@ import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { assistTrip, MAX_TRIP_DAYS_MULTI } from "@/lib/ai/assistant/engine";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+import { signedInUserId } from "@/lib/supabase/server";
 import type { ItineraryDay } from "@/types";
 import { readJsonBody } from "@/lib/api/json-body";
 
@@ -125,6 +125,7 @@ export async function POST(request: NextRequest) {
   }
 
   const sessionId = request.cookies.get("mt_session_id")?.value || undefined;
+  // Signed in or not, the assistant answers; the account only picks the allowance.
   const userId = await signedInUserId();
   const limited = (reason: string) => {
     // Logged, so a traveller hitting the cap is visible in monitoring.
@@ -241,16 +242,5 @@ export async function POST(request: NextRequest) {
     // The panel shows its own localized text for a 500 (big multi-day asks
     // are the ones that fail, so it suggests one or two days at a time).
     return errors.internal("Assistant request failed.", "assistant-anon");
-  }
-}
-
-/** The signed-in account, if any. The assistant works for both; this only picks the allowance. */
-async function signedInUserId(): Promise<string | null> {
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase.auth.getUser();
-    return data.user?.id ?? null;
-  } catch {
-    return null;
   }
 }
