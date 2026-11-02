@@ -9,6 +9,7 @@
  */
 
 import { isRealPoint } from "@/lib/trip/placeholder-point";
+import { tripSpanDays } from "@/lib/dates/iso-date";
 
 const SITE_URL = "https://monkeytravel.app";
 const SITE_NAME = "MonkeyTravel";
@@ -279,9 +280,7 @@ export interface TripSchemaInput {
 export type TripSchema = Record<string, unknown>;
 
 export function generateTripSchema(trip: TripSchemaInput): TripSchema {
-  const dayCount = trip.startDate && trip.endDate
-    ? Math.ceil((new Date(trip.endDate).getTime() - new Date(trip.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1
-    : undefined;
+  const dayCount = tripSpanDays(trip.startDate, trip.endDate) || undefined;
 
   const schema: Record<string, unknown> = {
     "@context": "https://schema.org",

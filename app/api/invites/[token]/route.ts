@@ -14,6 +14,7 @@ import {
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { requireRow } from "@/lib/api/require-row";
+import { tripSpanDays } from "@/lib/dates/iso-date";
 
 /**
  * GET /api/invites/[token] - Get invite details and trip preview (public, no auth required)
@@ -153,9 +154,7 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
     }
 
     // Calculate trip duration
-    const startDate = new Date(trip.start_date);
-    const endDate = new Date(trip.end_date);
-    const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const durationDays = tripSpanDays(trip.start_date, trip.end_date);
 
     return apiSuccess({
       success: true,

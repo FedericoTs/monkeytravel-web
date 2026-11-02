@@ -215,7 +215,7 @@ export default function DateRangePicker({
       } else {
         // Check max days constraint
         if (startDateObj) {
-          const daysDiff = Math.ceil((date.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+          const daysDiff = daysBetweenLocal(startDateObj, date) + 1;
           if (daysDiff > maxDays) {
             // Adjust to max days
             const maxEndDate = new Date(startDateObj);

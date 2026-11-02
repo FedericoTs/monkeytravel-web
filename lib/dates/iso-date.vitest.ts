@@ -5,6 +5,7 @@ import {
   maxTripStartDate,
   isPlausibleTripDate,
   isPlausibleTripRange,
+  tripSpanDays,
 } from "./iso-date";
 import { addDaysISO } from "@/lib/ai/multi-city-core";
 
@@ -118,5 +119,28 @@ describe("isPlausibleTripRange", () => {
   it("rejects a range with a partial year at either end", () => {
     expect(isPlausibleTripRange("0202-10-30", "2026-11-06", NOW)).toBe(false);
     expect(isPlausibleTripRange("2026-10-30", "0202-11-06", NOW)).toBe(false);
+  });
+});
+
+describe("tripSpanDays", () => {
+  it("counts both the first and the last day", () => {
+    expect(tripSpanDays("2026-06-01", "2026-06-03")).toBe(3);
+    expect(tripSpanDays("2026-06-01", "2026-06-01")).toBe(1);
+    expect(tripSpanDays("2026-12-30", "2027-01-02")).toBe(4);
+    expect(tripSpanDays("2028-02-28", "2028-03-01")).toBe(3);
+  });
+
+  it("counts the same across a daylight-saving change", () => {
+    // Each range holds a night when Europe or the US changes clocks: 23 or 25 hours in local time.
+    expect(tripSpanDays("2026-10-24", "2026-10-26")).toBe(3);
+    expect(tripSpanDays("2026-10-31", "2026-11-02")).toBe(3);
+    expect(tripSpanDays("2026-03-28", "2026-03-30")).toBe(3);
+  });
+
+  it("is 0 when a date is missing or not a date", () => {
+    expect(tripSpanDays("", "2026-06-03")).toBe(0);
+    expect(tripSpanDays("2026-06-01", null)).toBe(0);
+    expect(tripSpanDays(undefined, undefined)).toBe(0);
+    expect(tripSpanDays("not a date", "2026-06-03")).toBe(0);
   });
 });

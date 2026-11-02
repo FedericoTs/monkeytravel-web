@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo, useSyncExternalStore, type SetStateAction } from "react";
-import { sanitizeIsoDate, maxTripStartDate, addIsoDaysOrThrow } from "@/lib/dates/iso-date";
+import { sanitizeIsoDate, maxTripStartDate, addIsoDaysOrThrow, tripSpanDays } from "@/lib/dates/iso-date";
 import { localTodayISO, parseLocalDate } from "@/lib/utils/date-local";
 import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/lib/i18n/routing";
@@ -456,16 +456,6 @@ async function findExpressPlace(name: string, locale: string): Promise<PlacePred
   }
 }
 
-// Day-inclusive trip span, matching the server's math (ceil(diff/day) + 1).
-// Returns 0 for missing/unparseable dates.
-function tripSpanDaysInclusive(startISO: string, endISO: string): number {
-  if (!startISO || !endISO) return 0;
-  const start = new Date(startISO).getTime();
-  const end = new Date(endISO).getTime();
-  if (Number.isNaN(start) || Number.isNaN(end)) return 0;
-  return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-}
-
 // LOAD-BEARING: declared OUTSIDE the component so the array identity is stable
 // across renders. A new reference per render would recreate
 // trackFieldInteraction and handleVibesChange (breaking VibeSelector's
@@ -811,7 +801,7 @@ export default function NewTripPage({
         destination: destinationFieldRef.current || undefined,
         duration_days:
           startDateRef.current && endDateRef.current
-            ? Math.max(1, tripSpanDaysInclusive(startDateRef.current, endDateRef.current))
+            ? Math.max(1, tripSpanDays(startDateRef.current, endDateRef.current))
             : undefined,
         group_size: tripIntent,
         backpacker_mode: travelStyle === "backpacker",
@@ -1069,7 +1059,7 @@ export default function NewTripPage({
         destination: destinationFieldRef.current || undefined,
         duration_days:
           startDateRef.current && endDateRef.current
-            ? Math.max(1, tripSpanDaysInclusive(startDateRef.current, endDateRef.current))
+            ? Math.max(1, tripSpanDays(startDateRef.current, endDateRef.current))
             : undefined,
         locale,
         // Surface the last in-wizard step the user reached, plus the
@@ -2147,7 +2137,7 @@ export default function NewTripPage({
         ) {
           return false;
         }
-        const span = tripSpanDaysInclusive(startDate, endDate);
+        const span = tripSpanDays(startDate, endDate);
         return span >= 2 && span <= effectiveMaxTripDays;
       }
       case 2:
@@ -2287,7 +2277,7 @@ export default function NewTripPage({
     // row after step 1. Both leave a 21-day span heading for a single-city
     // request the server rejects. Block it here - before the telemetry - so a
     // doomed attempt costs no round-trip and records no phantom "generating".
-    const plannedSpan = tripSpanDaysInclusive(startDate, endDate);
+    const plannedSpan = tripSpanDays(startDate, endDate);
     if (plannedSpan > effectiveMaxTripDays) {
       setError(t("wizard.datePicker.maxDaysLimit", { days: effectiveMaxTripDays }));
       setStep(1);
@@ -2382,7 +2372,7 @@ export default function NewTripPage({
     wizardCompletedRef.current = true;
     captureTripGenerationStarted({
       destination,
-      duration_days: tripSpanDaysInclusive(startDate, endDate),
+      duration_days: tripSpanDays(startDate, endDate),
       budget_tier: budgetTier,
       // Forward the intent signal so PostHog funnels can filter
       // "started generation" by intent (solo vs group) and downstream
@@ -2394,7 +2384,7 @@ export default function NewTripPage({
     void trackWizardEvent("generating", {
       destination,
       duration_days:
-        startDate && endDate ? Math.max(1, tripSpanDaysInclusive(startDate, endDate)) : undefined,
+        startDate && endDate ? Math.max(1, tripSpanDays(startDate, endDate)) : undefined,
       group_size: tripIntent,
       backpacker_mode: travelStyle === "backpacker",
       locale,
@@ -2447,7 +2437,7 @@ export default function NewTripPage({
       // Anchor telemetry: how constrained is this trip? Fired at Generate (not at
       // panel-add) so it counts intent that actually reached generation.
       if (isAnchored) {
-        const tripDays = tripSpanDaysInclusive(startDate, endDate);
+        const tripDays = tripSpanDays(startDate, endDate);
         captureAnchorsGenerated({
           anchor_count: anchors.length,
           anchor_types: Array.from(new Set(anchors.map((a) => a.type))),
@@ -2617,7 +2607,7 @@ export default function NewTripPage({
       // itinerary to render.
       if (data.itinerary) {
         const durationDaysResult =
-          startDate && endDate ? Math.max(1, tripSpanDaysInclusive(startDate, endDate)) : undefined;
+          startDate && endDate ? Math.max(1, tripSpanDays(startDate, endDate)) : undefined;
         void trackWizardEvent("result", {
           destination,
           duration_days: durationDaysResult,
@@ -2638,7 +2628,7 @@ export default function NewTripPage({
       // request (`Date.now() - performance.now()` would be Unix-epoch minus
       // page-life-ms, a meaningless number).
       const generationTime = Date.now() - generationStartTime;
-      const durationDaysGenerated = tripSpanDaysInclusive(startDate, endDate);
+      const durationDaysGenerated = tripSpanDays(startDate, endDate);
 
       // GA4 tracking
       trackItineraryGenerated({
@@ -2684,7 +2674,7 @@ export default function NewTripPage({
       });
       captureTripGenerationCompleted({
         destination,
-        duration_days: tripSpanDaysInclusive(startDate, endDate),
+        duration_days: tripSpanDays(startDate, endDate),
         budget_tier: budgetTier,
         generation_time_seconds: Math.round((Date.now() - generationStartTime) / 1000),
         success: false,
@@ -2723,7 +2713,7 @@ export default function NewTripPage({
     void trackWizardEvent("save_clicked", {
       destination,
       duration_days:
-        startDate && endDate ? Math.max(1, tripSpanDaysInclusive(startDate, endDate)) : undefined,
+        startDate && endDate ? Math.max(1, tripSpanDays(startDate, endDate)) : undefined,
       group_size: tripIntent,
       backpacker_mode: travelStyle === "backpacker",
       locale,
@@ -2809,7 +2799,7 @@ export default function NewTripPage({
       const trip: { id: string } = { id: savedId };
 
       // Calculate trip duration
-      const durationDays = tripSpanDaysInclusive(startDate, endDate);
+      const durationDays = tripSpanDays(startDate, endDate);
 
       // Analytics emission — gated on the durable, trip-id-keyed idempotency
       // guard. handleSaveTrip can run several times for ONE trip on the
@@ -4434,14 +4424,14 @@ export default function NewTripPage({
               !multiCityMode &&
               startDate &&
               endDate &&
-              tripSpanDaysInclusive(startDate, endDate) >= 12 && (
+              tripSpanDays(startDate, endDate) >= 12 && (
                 <button
                   type="button"
                   onClick={() => setMultiCityMode(true)}
                   className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs font-medium text-amber-800 transition-colors hover:bg-amber-100"
                 >
                   {t("wizard.multiCity.longTripNudge", {
-                    days: tripSpanDaysInclusive(startDate, endDate),
+                    days: tripSpanDays(startDate, endDate),
                   })}
                 </button>
               )}
@@ -4947,7 +4937,7 @@ export default function NewTripPage({
                 ? t("wizard.step1.destinationTooLong")
                 : !DESTINATION_ALLOWLIST.test(destination)
                 ? t("wizard.step1.destinationInvalidChars")
-                : tripSpanDaysInclusive(startDate, endDate) > effectiveMaxTripDays
+                : tripSpanDays(startDate, endDate) > effectiveMaxTripDays
                 ? t("wizard.datePicker.maxDaysLimit", { days: effectiveMaxTripDays })
                 : t("wizard.step1.hintNeedDates")}
             </p>

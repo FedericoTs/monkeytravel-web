@@ -11,7 +11,7 @@
  * - shorter: the first days stay, the last ones go;
  * - longer: the days move, and the new ones are planned by the assistant.
  */
-import { addIsoDaysOrThrow, isValidIsoDate } from "@/lib/dates/iso-date";
+import { addIsoDaysOrThrow, isValidIsoDate, tripSpanDays } from "@/lib/dates/iso-date";
 import type { ItineraryDay } from "@/types";
 
 export type DateChange =
@@ -23,8 +23,7 @@ export type DateChange =
 /** Days from start to end, both included; null when either date is not a real day. */
 export function inclusiveDays(start: string, end: string): number | null {
   if (!isValidIsoDate(start) || !isValidIsoDate(end)) return null;
-  const ms = Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`);
-  return Math.round(ms / 86_400_000) + 1;
+  return tripSpanDays(start, end);
 }
 
 /** What a new date range does to a plan of `currentDays` days. */

@@ -22,6 +22,7 @@ import { newTripTitle } from "@/lib/trips/title";
 import { pickCoverFromItinerary } from "@/lib/trips/cover";
 import type { PencilledDates } from "@/lib/trips/pencilled-dates";
 import { logWriteError } from "@/lib/supabase/log-write-error";
+import { tripSpanDays } from "@/lib/dates/iso-date";
 
 export interface TripFormState {
   destination: string;
@@ -126,14 +127,9 @@ export function pickFallbackCoverImage(
   return pickCoverFromItinerary(itinerary.days);
 }
 
-/**
- * Compute trip duration in days, inclusive of the end date (matches the
- * handleSaveTrip math in app/[locale]/(app)/trips/new/NewTripWizard.tsx).
- */
+/** Trip duration in days, inclusive of the end date. */
 export function computeDurationDays(formState: TripFormState): number {
-  const start = new Date(formState.startDate).getTime();
-  const end = new Date(formState.endDate).getTime();
-  return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  return tripSpanDays(formState.startDate, formState.endDate);
 }
 
 /** `coverImageUrl` undefined leaves the column out of the row (an update keeps the stored cover). */

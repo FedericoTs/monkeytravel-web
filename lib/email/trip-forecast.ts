@@ -36,6 +36,8 @@
  * this module is that a number appears only when it came from the API.
  */
 
+import { tripSpanDays } from "@/lib/dates/iso-date";
+
 /** Open-Meteo's published horizon. Requesting more is silently clamped. */
 export const MAX_FORECAST_DAYS = 16;
 
@@ -246,10 +248,8 @@ export function tripLengthDays(
   startDate: string,
   endDate: string
 ): number | null {
-  const start = Date.parse(`${startDate}T00:00:00Z`);
-  const end = Date.parse(`${endDate}T00:00:00Z`);
-  if (Number.isNaN(start) || Number.isNaN(end) || end < start) return null;
-  return Math.round((end - start) / 86_400_000) + 1;
+  const days = tripSpanDays(startDate, endDate);
+  return days > 0 ? days : null;
 }
 
 /**

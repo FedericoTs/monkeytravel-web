@@ -10,6 +10,7 @@ import InviteAcceptClient from "./InviteAcceptClient";
 import InviteRecipientGate from "./InviteRecipientGate";
 import { maskEmail } from "@/lib/invites/recipient";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { tripSpanDays } from "@/lib/dates/iso-date";
 
 interface PageProps {
   params: Promise<{ token: string; locale: string }>;
@@ -160,9 +161,7 @@ async function getInviteData(token: string, unnamed: UnnamedLabels) {
   }
 
   // Calculate duration
-  const startDate = new Date(trip.start_date);
-  const endDate = new Date(trip.end_date);
-  const durationDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const durationDays = tripSpanDays(trip.start_date, trip.end_date);
 
   return {
     invite: {
