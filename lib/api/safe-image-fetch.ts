@@ -178,7 +178,7 @@ export async function safeImageFetch(
 }
 
 /**
- * Upper bound on a proxied image, matching app/api/img/proxy.
+ * Upper bound on a proxied image, shared with lib/api/img-proxy.ts.
  *
  * This route had NO size limit at all, which mattered more here than in the
  * sibling proxies: they stream the upstream body straight through, whereas
