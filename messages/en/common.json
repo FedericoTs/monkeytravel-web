@@ -2007,16 +2007,15 @@
         }
       }
     },
-    "modal": {
-      "personalizeTrip": "Personalize Your Trip",
-      "toDestination": "to {destination}",
+    "page": {
       "stepOf": "Step {step} of {total}",
       "back": "Back",
-      "next": "Next",
       "skipForNow": "Skip for now",
       "createAccount": "Create Account",
-      "closeLabel": "Close",
-      "valueProposition": "These preferences help us create a personalized itinerary just for you"
+      "valueProposition": "Your preferences help us create personalized, tailored itineraries just for you!",
+      "banner": "<strong>Personalize your experience:</strong> These preferences help our AI create itineraries perfectly tailored to your travel style.",
+      "continuing": "Continuing...",
+      "saveAndContinue": "Save & Continue"
     }
   },
   "referral": {

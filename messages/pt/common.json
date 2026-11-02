@@ -2007,16 +2007,15 @@
         }
       }
     },
-    "modal": {
-      "personalizeTrip": "Personalize Sua Viagem",
-      "toDestination": "para {destination}",
+    "page": {
       "stepOf": "Passo {step} de {total}",
       "back": "Voltar",
-      "next": "Próximo",
       "skipForNow": "Pular por enquanto",
       "createAccount": "Criar Conta",
-      "closeLabel": "Fechar",
-      "valueProposition": "Essas preferências nos ajudam a criar um roteiro personalizado só para você"
+      "valueProposition": "Essas preferências nos ajudam a criar um roteiro personalizado só para você",
+      "banner": "<strong>Personalize sua experiência:</strong> essas preferências ajudam nossa AI a criar roteiros sob medida para o seu estilo de viagem.",
+      "continuing": "Continuando...",
+      "saveAndContinue": "Salvar e continuar"
     }
   },
   "referral": {
