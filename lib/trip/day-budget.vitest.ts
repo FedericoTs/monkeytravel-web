@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { Activity, ItineraryDay } from "@/types";
-import { dayBudgetLabel } from "./day-budget";
+import { dayBudgetLabel, showsDayBudget } from "./day-budget";
 
 const act = (amount?: number, currency?: string): Activity =>
   ({
@@ -60,5 +60,13 @@ describe("dayBudgetLabel", () => {
       daily_budget: { total: 27600, breakdown: { activities: 27600, food: 0, transport: 0 } },
     } as ItineraryDay;
     expect(dayBudgetLabel(withStored, loaded, "Free")).toBe("EUR 40.00");
+  });
+});
+
+describe("showsDayBudget", () => {
+  it("shows the budget only for days that carry a stored daily_budget", () => {
+    expect(showsDayBudget(day(act(40, "EUR")))).toBe(false);
+    const stored = { ...day(), daily_budget: { total: 0, breakdown: { activities: 0, food: 0, transport: 0 } } } as ItineraryDay;
+    expect(showsDayBudget(stored)).toBe(true);
   });
 });

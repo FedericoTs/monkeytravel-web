@@ -21,7 +21,9 @@ import TodayView from "@/components/trip/TodayView";
 import TodayPacking from "@/components/trip/TodayPacking";
 import { useLiveTripState } from "@/lib/trip/useLiveTripState";
 import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
-import { dayBudgetLabel } from "@/lib/trip/day-budget";
+import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
+import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
+import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { GUEST_LINK_KEY } from "@/lib/participants/link-trigger";
 import { prefs } from "@/lib/platform/storage";
@@ -822,30 +824,9 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
               .filter((day) => selectedDay === null || day.day_number === selectedDay)
               .map((day) => (
                 <div key={day.day_number}>
-                  {/* Day Header */}
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 text-white flex items-center justify-center font-bold text-lg shadow-lg">
-                        {day.day_number}
-                      </div>
-                      <div>
-                        <h2 className="font-bold text-xl text-slate-900">
-                          {t("trip.dayLabel", { number: day.day_number })}
-                        </h2>
-                        {day.theme && (
-                          <p className="text-slate-500 text-sm">{day.theme}</p>
-                        )}
-                      </div>
-                    </div>
-                    {day.daily_budget && (
-                      <div className="ml-auto text-right">
-                        <div className="text-sm text-slate-500">{t('shared.estBudget')}</div>
-                        <div className="font-semibold text-slate-900">
-                          {formatDayBudget(day)}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <DayHeader dayNumber={day.day_number} title={t("trip.dayLabel", { number: day.day_number })} theme={day.theme}>
+                    {showsDayBudget(day) && <DayBudget label={t('shared.estBudget')} value={formatDayBudget(day)} />}
+                  </DayHeader>
 
                   {/* Activities */}
                   {viewMode === "cards" ? (
@@ -1026,26 +1007,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
           />
         )}
 
-        {/* AI Disclaimer */}
-        <div className="mt-12 p-5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl">
-          <div className="flex gap-4">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-                <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold text-amber-900 mb-1">
-                {t("share.savedHero.aiTitle")}
-              </h4>
-              <p className="text-sm text-amber-800">
-                {t("share.savedHero.aiDescription")}
-              </p>
-            </div>
-          </div>
-        </div>
+        <AiDisclaimer title={t("share.savedHero.aiTitle")}>{t("share.savedHero.aiDescription")}</AiDisclaimer>
 
         {/* The mid-page Save hero shows only in the flag-off layout. */}
         {!participantsEnabled && (

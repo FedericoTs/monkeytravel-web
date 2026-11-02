@@ -19,7 +19,8 @@ import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
-import { dayBudgetLabel } from "@/lib/trip/day-budget";
+import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
+import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
 import {
   Sparkles,
   Copy,
@@ -290,30 +291,13 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
               .filter((day) => selectedDay === null || day.day_number === selectedDay)
               .map((day) => (
                 <div key={day.day_number}>
-                  {/* Day Header */}
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary)]/80 text-white flex items-center justify-center font-bold text-lg shadow-lg">
-                        {day.day_number}
-                      </div>
-                      <div>
-                        <h2 className="font-bold text-xl text-slate-900">
-                          {day.title || t('dayFallback', { number: day.day_number })}
-                        </h2>
-                        {day.theme && (
-                          <p className="text-slate-500 text-sm">{day.theme}</p>
-                        )}
-                      </div>
-                    </div>
-                    {day.daily_budget && (
-                      <div className="ml-auto text-right">
-                        <div className="text-sm text-slate-500">{t('estBudget')}</div>
-                        <div className="font-semibold text-slate-900">
-                          {formatDayBudget(day)}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <DayHeader
+                    dayNumber={day.day_number}
+                    title={day.title || t('dayFallback', { number: day.day_number })}
+                    theme={day.theme}
+                  >
+                    {showsDayBudget(day) && <DayBudget label={t('estBudget')} value={formatDayBudget(day)} />}
+                  </DayHeader>
 
                   {/* Activities */}
                   {viewMode === "cards" ? (
