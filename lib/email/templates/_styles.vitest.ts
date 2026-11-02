@@ -6,7 +6,7 @@ import { expect, it } from "vitest";
 /**
  * The templates take their common styles from ./_styles. A template holding
  * its own copy of one would drift from the rest unnoticed, which is how
- * fourteen copies of the heading style came about.
+ * eleven copies of the heading style came about.
  */
 
 const dir = path.join(process.cwd(), "lib/email/templates");
