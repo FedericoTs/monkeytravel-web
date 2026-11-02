@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import { useRouter, Link } from "@/lib/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
-import Image from "next/image";
 import { trackSignup, setUserId } from "@/lib/analytics";
 import { captureUserSignedUp } from "@/lib/posthog/events";
 import { identify, aliasAnonToUser } from "@/lib/posthog/identify";
@@ -25,6 +24,7 @@ import { buildAuthCallbackUrl, splitLocalePrefix } from "@/lib/auth/callback-url
 import { returnsToPage } from "@/lib/auth/first-login";
 import { safeGet, safeSet } from "@/lib/safe-storage";
 import { OAuthButtons } from "@/components/auth/OAuthButtons";
+import { AuthPage, AuthPageLoading, AuthStatusIcon, AuthSubmitButton } from "@/components/auth/AuthPage";
 
 function SignupForm() {
   const [email, setEmail] = useState("");
@@ -321,326 +321,232 @@ function SignupForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex flex-col">
-        <header className="p-4">
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/images/logo.png"
-              alt="MonkeyTravel"
-              width={40}
-              height={40}
-              className="rounded-lg"
-            />
-            <span className="font-bold text-xl text-[var(--primary-ink)]">
-              MonkeyTravel
-            </span>
+      <AuthPage centered>
+        <AuthStatusIcon status="done" />
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">
+          {t("checkEmailTitle")}
+        </h1>
+        <p className="text-slate-600 mb-6">
+          {t.rich("checkEmailMessage", {
+            email,
+            strong: (chunks) => <strong>{chunks}</strong>,
+          })}
+        </p>
+        <div className="flex flex-col items-center gap-3">
+          <Link
+            href="/auth/login"
+            className="text-[var(--primary-ink)] font-medium hover:underline"
+          >
+            {t("backToLogin")}
           </Link>
-        </header>
-
-        <div className="flex-1 flex items-center justify-center px-4">
-          <div className="w-full max-w-md">
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-200 text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  className="w-8 h-8 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <h1 className="text-2xl font-bold text-slate-900 mb-2">
-                {t("checkEmailTitle")}
-              </h1>
-              <p className="text-slate-600 mb-6">
-                {t.rich("checkEmailMessage", {
-                  email,
-                  strong: (chunks) => <strong>{chunks}</strong>,
-                })}
-              </p>
-              <div className="flex flex-col items-center gap-3">
-                <Link
-                  href="/auth/login"
-                  className="text-[var(--primary-ink)] font-medium hover:underline"
-                >
-                  {t("backToLogin")}
-                </Link>
-                <button
-                  onClick={handleResendEmail}
-                  disabled={resending || resent}
-                  className="text-sm text-slate-500 hover:text-slate-700 transition-colors disabled:opacity-50"
-                >
-                  {resent
-                    ? t("emailResent")
-                    : resending
-                    ? t("resendingEmail")
-                    : t("resendEmail")}
-                </button>
-                {resendError && (
-                  <p className="text-sm text-red-600 text-center" role="alert">
-                    {resendError}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
+          <button
+            onClick={handleResendEmail}
+            disabled={resending || resent}
+            className="text-sm text-slate-500 hover:text-slate-700 transition-colors disabled:opacity-50"
+          >
+            {resent
+              ? t("emailResent")
+              : resending
+              ? t("resendingEmail")
+              : t("resendEmail")}
+          </button>
+          {resendError && (
+            <p className="text-sm text-red-600 text-center" role="alert">
+              {resendError}
+            </p>
+          )}
         </div>
-      </div>
+      </AuthPage>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex flex-col">
-      {/* Header */}
-      <header className="p-4">
-        <Link href="/" className="flex items-center gap-2">
-          <Image
-            src="/images/logo.png"
-            alt="MonkeyTravel"
-            width={40}
-            height={40}
-            className="rounded-lg"
-          />
-          <span className="font-bold text-xl text-[var(--primary-ink)]">
-            MonkeyTravel
-          </span>
-        </Link>
-      </header>
+    <AuthPage>
+      <h1 className="text-2xl font-bold text-slate-900 mb-2">
+        {hasOnboardingPrefs ? t("titleWithPrefs") : t("title")}
+      </h1>
+      <p className="text-slate-600 mb-6">
+        {hasOnboardingPrefs
+          ? t("subtitleWithPrefs")
+          : t("subtitle")}
+      </p>
 
-      {/* Signup Form */}
-      <div className="flex-1 flex items-center justify-center px-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-200">
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">
-              {hasOnboardingPrefs ? t("titleWithPrefs") : t("title")}
-            </h1>
-            <p className="text-slate-600 mb-6">
-              {hasOnboardingPrefs
-                ? t("subtitleWithPrefs")
-                : t("subtitle")}
-            </p>
-
-            {/* Show referral banner if coming from referral link */}
-            {referralCode && (
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-amber-800">
-                      {t("referralInvited")}
-                    </p>
-                    <p className="text-xs text-amber-700">
-                      {t("referralBenefit")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Show preferences saved badge if from onboarding */}
-            {hasOnboardingPrefs && !referralCode && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-6">
-                <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-sm font-medium text-emerald-800">
-                    {t("prefsReady")}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert">
-                <p className="font-medium">{error.message}</p>
-                {error.suggestion && (
-                  <p className="text-sm text-red-600 mt-1">{error.suggestion}</p>
-                )}
-              </div>
-            )}
-
-            <OAuthButtons
-              redirectTo={buildOAuthCallback}
-              disabled={loading}
-              setError={setError}
-              appleLabel={t("appleButton")}
-              googleLabel={t("googleButton")}
-            />
-
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-slate-500">{t("orContinueWithEmail")}</span>
-              </div>
+      {/* Show referral banner if coming from referral link */}
+      {referralCode && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+              </svg>
             </div>
-
-            <form onSubmit={handleSignup} className="space-y-4">
-              <div>
-                <label
-                  htmlFor="displayName"
-                  className="block text-sm font-medium text-slate-700 mb-1"
-                >
-                  {t("nameLabel")} <span className="text-slate-500 font-normal">{t("nameOptional")}</span>
-                </label>
-                <input
-                  id="displayName"
-                  type="text"
-                  autoComplete="name"
-                  name="name"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  maxLength={50}
-                  className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
-                  placeholder={t("namePlaceholder")}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="email"
-                  className={`block text-sm font-medium mb-1 ${
-                    error?.field === 'email' ? 'text-red-600' : 'text-slate-700'
-                  }`}
-                >
-                  {t("emailLabel")}
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  name="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (error?.field === 'email') setError(null);
-                  }}
-                  required
-                  className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
-                    error?.field === 'email'
-                      ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                      : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
-                  }`}
-                  placeholder={t("emailPlaceholder")}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="password"
-                  className={`block text-sm font-medium mb-1 ${
-                    error?.field === 'password' ? 'text-red-600' : 'text-slate-700'
-                  }`}
-                >
-                  {t("passwordLabel")}
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  autoComplete="new-password"
-                  name="password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (error?.field === 'password') setError(null);
-                  }}
-                  required
-                  minLength={6}
-                  className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
-                    error?.field === 'password'
-                      ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                      : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
-                  }`}
-                  placeholder={t("passwordPlaceholder")}
-                />
-                <p className="text-xs text-slate-500 mt-1">{t("passwordHint")}</p>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-[var(--primary)] text-white py-3 rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <svg
-                      className="animate-spin h-5 w-5"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    {t("creatingAccount")}
-                  </>
-                ) : (
-                  t("submitButton")
-                )}
-              </button>
-            </form>
-
-            {/* Free trip benefit reminder */}
-            {hasOnboardingPrefs && (
-              <div className="mt-4 text-center">
-                <p className="text-xs text-slate-500">
-                  {t.rich("freeTripBenefit", {
-                    strong: (chunks) => <strong>{chunks}</strong>,
-                  })}
-                </p>
-              </div>
-            )}
-
-            <div className="mt-6 text-center">
-              <p className="text-slate-600">
-                {t("hasAccount")}{" "}
-                <Link
-                  href="/auth/login"
-                  className="text-[var(--primary-ink)] font-medium hover:underline"
-                >
-                  {t("signInLink")}
-                </Link>
+            <div>
+              <p className="text-sm font-semibold text-amber-800">
+                {t("referralInvited")}
+              </p>
+              <p className="text-xs text-amber-700">
+                {t("referralBenefit")}
               </p>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Show preferences saved badge if from onboarding */}
+      {hasOnboardingPrefs && !referralCode && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-6">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-sm font-medium text-emerald-800">
+              {t("prefsReady")}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4" role="alert">
+          <p className="font-medium">{error.message}</p>
+          {error.suggestion && (
+            <p className="text-sm text-red-600 mt-1">{error.suggestion}</p>
+          )}
+        </div>
+      )}
+
+      <OAuthButtons
+        redirectTo={buildOAuthCallback}
+        disabled={loading}
+        setError={setError}
+        appleLabel={t("appleButton")}
+        googleLabel={t("googleButton")}
+      />
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-slate-200"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-4 bg-white text-slate-500">{t("orContinueWithEmail")}</span>
+        </div>
       </div>
-    </div>
+
+      <form onSubmit={handleSignup} className="space-y-4">
+        <div>
+          <label
+            htmlFor="displayName"
+            className="block text-sm font-medium text-slate-700 mb-1"
+          >
+            {t("nameLabel")} <span className="text-slate-500 font-normal">{t("nameOptional")}</span>
+          </label>
+          <input
+            id="displayName"
+            type="text"
+            autoComplete="name"
+            name="name"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            maxLength={50}
+            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
+            placeholder={t("namePlaceholder")}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="email"
+            className={`block text-sm font-medium mb-1 ${
+              error?.field === 'email' ? 'text-red-600' : 'text-slate-700'
+            }`}
+          >
+            {t("emailLabel")}
+          </label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            name="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (error?.field === 'email') setError(null);
+            }}
+            required
+            className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
+              error?.field === 'email'
+                ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
+            }`}
+            placeholder={t("emailPlaceholder")}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="password"
+            className={`block text-sm font-medium mb-1 ${
+              error?.field === 'password' ? 'text-red-600' : 'text-slate-700'
+            }`}
+          >
+            {t("passwordLabel")}
+          </label>
+          <input
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            name="password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (error?.field === 'password') setError(null);
+            }}
+            required
+            minLength={6}
+            className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
+              error?.field === 'password'
+                ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
+            }`}
+            placeholder={t("passwordPlaceholder")}
+          />
+          <p className="text-xs text-slate-500 mt-1">{t("passwordHint")}</p>
+        </div>
+
+        <AuthSubmitButton loading={loading} loadingLabel={t("creatingAccount")}>
+          {t("submitButton")}
+        </AuthSubmitButton>
+      </form>
+
+      {/* Free trip benefit reminder */}
+      {hasOnboardingPrefs && (
+        <div className="mt-4 text-center">
+          <p className="text-xs text-slate-500">
+            {t.rich("freeTripBenefit", {
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
+          </p>
+        </div>
+      )}
+
+      <div className="mt-6 text-center">
+        <p className="text-slate-600">
+          {t("hasAccount")}{" "}
+          <Link
+            href="/auth/login"
+            className="text-[var(--primary-ink)] font-medium hover:underline"
+          >
+            {t("signInLink")}
+          </Link>
+        </p>
+      </div>
+    </AuthPage>
   );
 }
 
 export default function SignupPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
-          <div className="animate-spin h-8 w-8 border-2 border-[var(--primary)] border-t-transparent rounded-full" />
-        </div>
-      }
-    >
+    <Suspense fallback={<AuthPageLoading />}>
       <SignupForm />
     </Suspense>
   );
