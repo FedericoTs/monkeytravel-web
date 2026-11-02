@@ -17,17 +17,15 @@ import {
 } from "@/lib/maps-grounding";
 import { isAdmin } from "@/lib/admin";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
-import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
+import { incrementUsage } from "@/lib/usage-limits";
 import { isActivityBankPopulated, populateActivityBank } from "@/lib/activity-bank";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
 import type { TripCreationParams, GeneratedItinerary } from "@/types";
 import type { Coordinates } from "@/lib/utils/geo";
-import {
-  getCachedItinerary,
-  cacheItinerary,
-  adjustItineraryDates,
-} from "@/lib/ai/cache";
+import { cacheItinerary, adjustItineraryDates } from "@/lib/ai/cache";
+import { cachePolicy, mayCachePlan, servableCachedPlan } from "@/lib/ai/cache-policy";
+import { generationQuotaReached, readGenerationPreflight } from "@/lib/ai/generation-preflight";
 import { loadUserContext } from "@/lib/ai/user-context";
 import { withTripDiet } from "@/lib/trips/diet";
 import { requestLocale } from "@/lib/ai/language";
@@ -157,13 +155,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       profilePreferences,
     };
 
-    // Personalized generations must not read OR write the cross-user cache:
-    // a cached generic itinerary would silently ignore the traveller's wishes
-    // or diet (same reasoning as the anchored branch below), and a tailored
-    // itinerary must not poison the generic pool for everyone else.
-    const isPersonalized = Boolean(params.mustDos?.length || profilePreferences.dietaryPreferences?.length);
-    // "Try Different Version": skip the cache READ so the traveller gets a new
-    // plan, not the one on screen (same rule as the stream route).
+    // "Try Different Version": the traveller gets a new plan, not the one on
+    // screen (lib/ai/cache-policy).
     const wantsFresh = body.fresh === true;
 
 
@@ -228,12 +221,6 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       return errors.serviceUnavailable(access.message || "AI generation is currently disabled");
     }
 
-    // Authenticated-tier usage limits (anonymous is rate-limited above by
-    // cookie and IP). Free users are NOT unlimited: checkUsageLimit →
-    // TIER_LIMITS enforces the monthly cap, and the route returns 429 below
-    // when over. checkUsageLimit runs alongside the cross-user cache read:
-    // different tables (user_usage vs destination_activity_cache), no shared state.
-
     // Calculate total trip duration (multi-city: the sum of per-city nights,
     // which is authoritative; single-city: derived from the date range).
     const totalDays = isMultiCity
@@ -242,36 +229,16 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
 
     const userIsAdmin = user ? isAdmin(user.email) : false;
 
-    // The cache keys on travel_style, so backpacker and classic trips never
-    // share a cache pool.
-    const [usageCheck, cachedItinerary] = await Promise.all([
-      user
-        ? checkUsageLimit(user.id, "aiGenerations", user.email)
-        : Promise.resolve({
-            allowed: true as const,
-            used: 0,
-            remaining: 999,
-            limit: 999,
-            message: undefined as string | undefined,
-          }),
-      getCachedItinerary(
-        supabase,
-        params.destination,
-        params.vibes,
-        params.budgetTier,
-        userLanguage,
-        params.travelStyle ?? "classic",
-        // Never accept an entry SHORTER than the trip being asked for.
-        totalDays,
-      ),
-    ]);
-
+    // Free users are NOT unlimited: the monthly cap answers 429 once it is used
+    // up (anonymous visitors are capped above, by cookie and IP). The cache
+    // keys on travel_style, so backpacker and classic trips never share a pool.
+    const { usage: usageCheck, cached: cachedItinerary } =
+      await readGenerationPreflight(user, params, userLanguage, totalDays);
     if (user && !usageCheck.allowed) {
-      return errors.rateLimit(
-        ("message" in usageCheck && usageCheck.message) || "Monthly trip generation limit reached.",
-        { usage: usageCheck, upgradeUrl: "/pricing" }
-      );
+      return generationQuotaReached(usageCheck);
     }
+    const cacheRules = cachePolicy(params, wantsFresh, totalDays);
+    const cacheHitPlan = servableCachedPlan(cachedItinerary, cacheRules);
 
     // Check cross-user cache first for same destination + vibes + budget
     // This can reduce AI costs by 40-60% for popular destinations
@@ -306,20 +273,11 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       if (anchored.issues.length > 0) {
         console.warn(`[AI Generate] anchored issues: ${anchored.issues.join(" | ")}`);
       }
-    } else if (
-      !isPersonalized &&
-      !wantsFresh &&
-      cachedItinerary &&
-      cachedItinerary.days.length >= totalDays
-    ) {
+    } else if (cacheHitPlan) {
       // Cache hit - adjust dates and sanitize (defense-in-depth: treat cached data as untrusted)
-      //
-      // The cache key omits trip length, so `>= totalDays` is the invariant
-      // that stops a shorter entry answering a longer trip;
-      // adjustItineraryDates slices a longer entry down to fit.
       // Booking links for this request's dates, not the cached plan's.
       itinerary = sanitizeItinerary({
-        ...adjustItineraryDates(cachedItinerary, params.startDate, params.endDate),
+        ...adjustItineraryDates(cacheHitPlan, params.startDate, params.endDate),
         booking_links: bookingLinksFor(params),
       });
       cacheHit = true;
@@ -366,13 +324,8 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         itinerary = await generateItinerary(params, { language: userLanguage, knownPlaces });
       }
 
-      // Backpacker results have their own cache pool. Personalized
-      // (must-do) results never enter the shared pool.
-      // A fresh regenerate never replaces a LONGER entry (same rule as the
-      // stream route).
-      const shorterThanCached =
-        wantsFresh && (cachedItinerary?.days.length ?? 0) > itinerary.days.length;
-      if (!isPersonalized && !shorterThanCached) {
+      // Backpacker results have their own cache pool.
+      if (mayCachePlan(itinerary, cachedItinerary, cacheRules)) {
         await cacheItinerary(
           supabase,
           params.destination,
