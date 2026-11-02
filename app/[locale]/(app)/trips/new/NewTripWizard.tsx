@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
 import dynamic from "next/dynamic";
+import { Spinner } from "@/components/ui/Spinner";
 
 // ./page.tsx resolves the optional `?destination=<slug>` deeplink server-side
 // and passes only this payload in as `prefilledDestination`. Keep this file
@@ -3186,10 +3187,7 @@ export default function NewTripPage({
                   disabled
                   className="bg-[var(--secondary-ink)] text-white px-6 py-2.5 rounded-xl font-medium opacity-60 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
                 >
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
+                  <Spinner className="w-4 h-4" />
                   {t("result.saving")}
                 </button>
               ) : autoSaveEnabled && autoSave.status === "error" ? (
@@ -3209,10 +3207,7 @@ export default function NewTripPage({
                 >
                   {loading ? (
                     <>
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
+                      <Spinner className="w-4 h-4" />
                       {t("wizard.result.saving")}
                     </>
                   ) : (
@@ -3350,10 +3345,7 @@ export default function NewTripPage({
                 disabled
                 className="flex-1 bg-[var(--secondary-ink)] text-white py-3 rounded-xl font-semibold opacity-60 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
               >
-                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
+                <Spinner className="w-5 h-5" />
                 {t("result.saving")}
               </button>
             ) : autoSaveEnabled && autoSave.status === "error" ? (
@@ -3371,10 +3363,7 @@ export default function NewTripPage({
               >
                 {loading ? (
                   <>
-                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
+                    <Spinner className="w-5 h-5" />
                     {t("wizard.result.saving")}
                   </>
                 ) : (
