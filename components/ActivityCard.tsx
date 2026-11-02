@@ -12,6 +12,7 @@ import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { PhotoCredit } from "./ui/PhotoCredit";
 import { useSavedTrips } from "@/lib/stats/useSavedTrips";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
+import { activityDomId } from "@/lib/trip/activity-dom-id";
 import { useIsPhone } from "@/hooks/useMediaQuery";
 import { ActivityCardDetails, ActivityKindIcon } from "@/components/trip/ActivityCardParts";
 
@@ -86,20 +87,9 @@ function ActivityCard({
   const kind = normalizeActivityType(activity.type, activity.name);
   const colors = getActivityTypeColors(kind);
 
-  // Stable DOM id for scroll targeting from map pin clicks.
-  // Falls back to a name-derived slug when the activity has no id yet
-  // (anonymous generation never persists an id until Save).
-  // Map pin clicks open the InfoWindow, and the result page passes
-  // `onActivityClick` to scroll the page to the
-  // matching card. That handler needs to find the DOM node — this id
-  // is the address.
-  const activityDomId = activity.id
-    ? `activity-${activity.id}`
-    : `activity-${(activity.name || "unknown").toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 60)}`;
-
   return (
     <div
-      id={activityDomId}
+      id={activityDomId(activity)}
       data-activity-name={activity.name}
       className={`bg-white rounded-xl border transition-all duration-300 scroll-mt-24 ${
         expanded ? "shadow-lg border-slate-300" : "shadow-sm border-slate-200 hover:shadow-md"
