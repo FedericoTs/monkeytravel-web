@@ -5,43 +5,12 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { useTranslations } from "next-intl";
-import type { Activity, VoteType, ActivityVote, ConsensusResult, ActivityVotingStatus } from "@/types";
-import EditableActivityCard from "./EditableActivityCard";
-import type { MoveToDayOption } from "./MoveToDaySheet";
-
-interface SortableActivityCardProps {
-  activity: Activity;
-  index: number;
-  currency?: string;
-  showGallery?: boolean;
-  isEditMode: boolean;
-  onDelete: () => void;
-  onUpdate: (updates: Partial<Activity>) => void;
-  onMoveToDay: (dayIndex: number) => void;
-  onRegenerate: () => void;
-  availableDays: number[];
-  currentDayIndex: number;
-  /** Days for the "Move to another day" sheet (passed through). */
-  dayOptions?: MoveToDayOption[];
-  isRegenerating?: boolean;
-  disableAutoFetch?: boolean;
-  onPhotoCapture?: (activityId: string, photoUrl: string) => void;
-  // Voting props (passed through to EditableActivityCard)
-  votingEnabled?: boolean;
-  votes?: ActivityVote[];
-  consensus?: ConsensusResult | null;
-  activityStatus?: ActivityVotingStatus;
-  currentUserVote?: VoteType | null;
-  canVote?: boolean;
-  totalVoters?: number;
-  onVote?: (voteType: VoteType, comment?: string) => Promise<void>;
-  onRemoveVote?: () => Promise<void>;
-}
+import EditableActivityCard, { type EditableActivityCardProps } from "./EditableActivityCard";
 
 function SortableActivityCard({
   activity,
   ...props
-}: SortableActivityCardProps) {
+}: EditableActivityCardProps) {
   const t = useTranslations("common.drag");
   const {
     attributes,
