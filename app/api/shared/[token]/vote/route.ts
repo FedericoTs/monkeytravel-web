@@ -25,20 +25,14 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { readSharedTrip } from "@/lib/trips/shared-trip";
 import { isUuid } from "@/lib/utils/uuid";
-
-const COOKIE_NAME = "mt_anon_voter";
-const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365; // 1 year — votes are durable
+import { PARTICIPANT_COOKIE } from "@/lib/participants/shared";
+import { isCookielessScript, participantCookieId, setParticipantCookie } from "@/lib/participants/request";
 
 // Cookie-reset abuse guard: an attacker who curls in a loop with no cookie
 // would get a fresh voter id minted on every request and ballot-stuff. We
 // cap per-IP attempts well above honest usage (a real voter casts <5 votes
 // in a session) so legit no-cookie first-time voters still go through.
 const voteLimiter = createRateLimiter("shared-vote", 20, 60_000); // 20 votes/min/IP
-
-// Bot UAs that should never hit this endpoint without a cookie — they're
-// almost always abuse scripts. Honest browsers always send a UA and never
-// match these prefixes.
-const BOT_UA_REGEX = /^(curl|wget|python-requests|httpie|go-http-client|libwww-perl|scrapy)\b/i;
 
 interface VoteRequestBody {
   activity_id?: unknown;
@@ -63,15 +57,9 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       return errors.rateLimit("Too many votes. Please slow down.");
     }
 
-    // Cookie-less requests from obvious scripting UAs are abuse. Honest
-    // browsers always send a UA that doesn't match these. First-time
-    // voters from real browsers (no cookie yet) still pass through.
-    const existingCookie = (await cookies()).get(COOKIE_NAME)?.value;
-    if (!existingCookie) {
-      const ua = request.headers.get("user-agent") ?? "";
-      if (!ua || BOT_UA_REGEX.test(ua)) {
-        return errors.badRequest("Invalid request");
-      }
+    const existingCookie = (await cookies()).get(PARTICIPANT_COOKIE)?.value;
+    if (isCookielessScript(request, existingCookie)) {
+      return errors.badRequest("Invalid request");
     }
 
     const body = (await request.json().catch(() => null)) as VoteRequestBody | null;
@@ -106,15 +94,9 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     const { trip, errorResponse } = await readSharedTrip<{ id: string }>(supabase, token, "id");
     if (errorResponse) return errorResponse;
 
-    // Read or mint the voter cookie. httpOnly so the page can't read it —
-    // forces all voter-identity logic through this route.
+    // Read or mint the voter cookie.
     const cookieStore = await cookies();
-    let voterCookieId = cookieStore.get(COOKIE_NAME)?.value;
-    let issuedCookie = false;
-    if (!voterCookieId || voterCookieId.length < 10 || voterCookieId.length > 60) {
-      voterCookieId = nanoid(21); // ~zero-collision over the projected user base
-      issuedCookie = true;
-    }
+    const { cookieId: voterCookieId, issued: issuedCookie } = participantCookieId(existingCookie);
 
     let userId: string | null = null;
     try {
@@ -219,17 +201,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
     // Set/refresh the voter cookie. Cookies.set on a route response persists
     // through the NextResponse layer (Next 15 cookies() API).
-    if (issuedCookie) {
-      cookieStore.set({
-        name: COOKIE_NAME,
-        value: voterCookieId,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: COOKIE_MAX_AGE_SECONDS,
-        path: "/",
-      });
-    }
+    if (issuedCookie) setParticipantCookie(cookieStore, voterCookieId);
 
     return apiSuccess({ activity_id, up, down, myVote });
   } catch (error) {
