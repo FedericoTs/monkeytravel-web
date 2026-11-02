@@ -33,8 +33,8 @@
       "placeholder": "Seleziona il tuo paese"
     },
     "homeCity": {
-      "label": "Citta di Origine",
-      "placeholder": "La tua citta"
+      "label": "Città di Origine",
+      "placeholder": "La tua città"
     },
     "dateOfBirth": {
       "label": "Data di Nascita",
@@ -55,7 +55,7 @@
       "description": "Hai preferenze o restrizioni alimentari?"
     },
     "accessibilityNeeds": {
-      "label": "Esigenze di Accessibilita",
+      "label": "Esigenze di Accessibilità",
       "description": "Aiutaci a consigliare opzioni accessibili"
     }
   },
@@ -63,11 +63,11 @@
     "title": "Abbonamento",
     "free": {
       "title": "Piano Gratuito",
-      "description": "Funzionalita base di pianificazione"
+      "description": "Funzionalità base di pianificazione"
     },
     "premium": {
       "title": "Premium",
-      "description": "Viaggi illimitati e funzionalita avanzate"
+      "description": "Viaggi illimitati e funzionalità avanzate"
     },
     "upgrade": "Aggiorna a Premium",
     "manage": "Gestisci Abbonamento"
@@ -75,7 +75,7 @@
   "actions": {
     "signOut": "Esci",
     "deleteAccount": "Elimina Account",
-    "deleteConfirm": "Sei sicuro di voler eliminare il tuo account? Questa azione non puo essere annullata."
+    "deleteConfirm": "Sei sicuro di voler eliminare il tuo account? Questa azione non può essere annullata."
   },
   "status": {
     "saving": "Salvataggio...",

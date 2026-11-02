@@ -354,7 +354,7 @@
   "vibes": {
     "adventure": {
       "label": "Avventuriero",
-      "description": "Attivita all'aperto, sentieri escursionistici ed esperienze adrenalitiche"
+      "description": "Attività all'aperto, sentieri escursionistici ed esperienze adrenalitiche"
     },
     "cultural": {
       "label": "Esploratore Culturale",
@@ -370,11 +370,11 @@
     },
     "romantic": {
       "label": "Fuga Romantica",
-      "description": "Luoghi panoramici, tramonti, cene intime e attivita di coppia"
+      "description": "Luoghi panoramici, tramonti, cene intime e attività di coppia"
     },
     "urban": {
       "label": "Esploratore Urbano",
-      "description": "Vita di citta, zone commerciali, vita notturna e attrazioni moderne"
+      "description": "Vita di città, zone commerciali, vita notturna e attrazioni moderne"
     },
     "nature": {
       "label": "Amante della Natura",
@@ -394,7 +394,7 @@
     },
     "local-life": {
       "label": "Vita Locale",
-      "description": "Quartieri, caffe locali, mercati ed esperienze autentiche"
+      "description": "Quartieri, caffè locali, mercati ed esperienze autentiche"
     },
     "night-owl": {
       "label": "Nottambulo",
@@ -423,15 +423,15 @@
     "title": "Ritmo",
     "relaxed": {
       "label": "Rilassato",
-      "description": "2-3 attivita/giorno"
+      "description": "2-3 attività/giorno"
     },
     "moderate": {
       "label": "Moderato",
-      "description": "3-4 attivita/giorno"
+      "description": "3-4 attività/giorno"
     },
     "active": {
       "label": "Attivo",
-      "description": "5+ attivita/giorno"
+      "description": "5+ attività/giorno"
     }
   },
   "requirements": {
@@ -442,7 +442,7 @@
   "generation": {
     "generating": "Creazione del tuo itinerario perfetto...",
     "analyzing": "Analisi di {destination}...",
-    "findingActivities": "Ricerca delle migliori attivita...",
+    "findingActivities": "Ricerca delle migliori attività...",
     "optimizingRoute": "Ottimizzazione dei tuoi percorsi giornalieri...",
     "almostDone": "Quasi fatto...",
     "error": "Impossibile generare l'itinerario. Riprova.",
@@ -701,7 +701,7 @@
   },
   "startOver": {
     "title": "Ricominciare?",
-    "message": "Questo eliminera il tuo itinerario attuale e ripartira da zero.",
+    "message": "Questo eliminerà il tuo itinerario attuale e ripartirà da zero.",
     "confirm": "Si, Ricomincia",
     "cancel": "Mantieni Viaggio Attuale"
   },

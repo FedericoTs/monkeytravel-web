@@ -3,16 +3,16 @@
   "subtitle": "Gestiona tu cuenta y preferencias",
   "sections": {
     "personalInfo": {
-      "title": "Informacion Personal",
-      "description": "Tu informacion basica de perfil"
+      "title": "Información Personal",
+      "description": "Tu información básica de perfil"
     },
     "travelPreferences": {
       "title": "Preferencias de Viaje",
-      "description": "Ayudanos a personalizar tus recomendaciones de viaje"
+      "description": "Ayúdanos a personalizar tus recomendaciones de viaje"
     },
     "account": {
       "title": "Configuración de Cuenta",
-      "description": "Gestiona tu cuenta y suscripcion"
+      "description": "Gestiona tu cuenta y suscripción"
     }
   },
   "fields": {
@@ -25,12 +25,12 @@
       "placeholder": "tu@email.com"
     },
     "bio": {
-      "label": "Biografia",
-      "placeholder": "Cuentanos un poco sobre ti..."
+      "label": "Biografía",
+      "placeholder": "Cuéntanos un poco sobre ti..."
     },
     "homeCountry": {
-      "label": "Pais de Origen",
-      "placeholder": "Selecciona tu pais"
+      "label": "País de Origen",
+      "placeholder": "Selecciona tu país"
     },
     "homeCity": {
       "label": "Ciudad de Origen",
@@ -38,7 +38,7 @@
     },
     "dateOfBirth": {
       "label": "Fecha de Nacimiento",
-      "placeholder": "Selecciona tu cumpleanos"
+      "placeholder": "Selecciona tu cumpleaños"
     },
     "languages": {
       "label": "Idiomas que Hablas",
@@ -48,34 +48,34 @@
   "preferences": {
     "travelStyles": {
       "label": "Estilos de Viaje",
-      "description": "¿Que tipo de viajes disfrutas?"
+      "description": "¿Qué tipo de viajes disfrutas?"
     },
     "dietaryPreferences": {
       "label": "Preferencias Alimentarias",
-      "description": "¿Alguna preferencia o restriccion alimentaria?"
+      "description": "¿Alguna preferencia o restricción alimentaria?"
     },
     "accessibilityNeeds": {
       "label": "Necesidades de Accesibilidad",
-      "description": "Ayudanos a recomendar opciones accesibles"
+      "description": "Ayúdanos a recomendar opciones accesibles"
     }
   },
   "subscription": {
-    "title": "Suscripcion",
+    "title": "Suscripción",
     "free": {
       "title": "Plan Gratuito",
-      "description": "Funciones basicas de planificacion"
+      "description": "Funciones básicas de planificación"
     },
     "premium": {
       "title": "Premium",
       "description": "Viajes ilimitados y funciones avanzadas"
     },
     "upgrade": "Actualizar a Premium",
-    "manage": "Gestionar Suscripcion"
+    "manage": "Gestionar Suscripción"
   },
   "actions": {
-    "signOut": "Cerrar Sesion",
+    "signOut": "Cerrar Sesión",
     "deleteAccount": "Eliminar Cuenta",
-    "deleteConfirm": "¿Estas seguro de que quieres eliminar tu cuenta? Esta accion no se puede deshacer."
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer."
   },
   "status": {
     "saving": "Guardando...",
