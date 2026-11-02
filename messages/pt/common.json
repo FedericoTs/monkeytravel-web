@@ -2789,5 +2789,38 @@
     "home": "Voltar ao início",
     "planTrip": "Ou <link>planeje uma nova viagem</link>",
     "poweredBy": "Com tecnologia <link>MonkeyTravel</link> AI"
+  },
+  "referralLanding": {
+    "friendFallback": "Um amigo",
+    "signIn": "Já tem uma conta? Entrar",
+    "invitedYou": "<strong>{name}</strong> convidou você",
+    "titleLead": "Planejem a viagem juntos.",
+    "titleOffer": "<highlight>30 viagens com AI por mês</highlight>, de graça",
+    "subtitle": "{name} já está planejando no MonkeyTravel. Crie uma conta para salvar seus roteiros, compartilhá-los e votar no plano juntos.",
+    "whatYouGet": "O que você ganha",
+    "whatYouGetNote": "De graça, sem cartão e sem período de teste para expirar",
+    "perks": {
+      "itinerary": "Roteiro completo gerado com AI",
+      "days": "Atividades e dicas dia a dia",
+      "budget": "Estimativas de orçamento e listas de bagagem",
+      "saved": "Suas viagens salvas, não presas a um navegador"
+    },
+    "cta": "Comece a planejar de graça",
+    "noCard": "Não precisa de cartão de crédito",
+    "features": {
+      "anywhereTitle": "Qualquer destino",
+      "anywhereBody": "De Tóquio a Paris, planeje viagens para qualquer lugar do mundo",
+      "aiTitle": "Com AI",
+      "aiBody": "Roteiros personalizados em cerca de 30 segundos",
+      "editableTitle": "Totalmente editável",
+      "editableBody": "Personalize cada detalhe do seu jeito"
+    },
+    "trusted": "A escolha de viajantes do mundo todo",
+    "rating": "Nota 4,9/5",
+    "meta": {
+      "title": "{name} convidou você para o MonkeyTravel!",
+      "description": "Planejem uma viagem juntos em cerca de 30 segundos. 30 roteiros com AI por mês, de graça: sem cartão e sem teste.",
+      "shortDescription": "Planejem uma viagem juntos em cerca de 30 segundos. De graça: sem cartão e sem teste."
+    }
   }
 }

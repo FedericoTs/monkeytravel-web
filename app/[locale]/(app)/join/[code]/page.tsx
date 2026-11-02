@@ -2,16 +2,18 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import ReferralLandingClient from "./ReferralLandingClient";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { isNoRow } from "@/lib/supabase/no-row";
 
 interface PageProps {
-  params: Promise<{ code: string }>;
+  params: Promise<{ code: string; locale: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { code } = await params;
+  const { code, locale } = await params;
+  const t = await getTranslations({ locale, namespace: "common.referralLanding" });
   const supabase = await createClient();
 
   // Find the referrer. Codes are looked up here, on the server: only a
@@ -22,7 +24,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     .eq("code", code.toUpperCase())
     .single());
 
-  let referrerName = "A friend";
+  let referrerName = t("friendFallback");
 
   if (referralCode) {
     const { data: referrer } = logReadError("referral page metadata: referrer", await supabase
@@ -31,25 +33,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       .eq("id", referralCode.user_id)
       .single());
 
-    if (referrer) {
+    if (referrer?.display_name) {
       referrerName = referrer.display_name;
     }
   }
 
+  const title = t("meta.title", { name: referrerName });
   return {
-    title: `${referrerName} invited you to MonkeyTravel!`,
-    description: "Plan a trip together in about 30 seconds. 30 AI-planned itineraries a month, free — no card, no trial.",
+    title,
+    description: t("meta.description"),
     openGraph: {
       siteName: "MonkeyTravel",
-      title: `${referrerName} invited you to MonkeyTravel!`,
-      description: "Plan a trip together in about 30 seconds. 30 AI-planned itineraries a month, free — no card, no trial.",
+      title,
+      description: t("meta.description"),
       type: "website",
       images: ["/images/og-referral.jpg"],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${referrerName} invited you to MonkeyTravel!`,
-      description: "Plan a trip together in about 30 seconds. Free — no card, no trial.",
+      title,
+      description: t("meta.shortDescription"),
       // Matches this page's OWN openGraph image, not the site-wide card:
       // a referral landing page should preview as a referral.
       images: ["/images/og-referral.jpg"],
@@ -84,7 +87,7 @@ export default async function ReferralLandingPage({ params }: PageProps) {
   return (
     <ReferralLandingClient
       code={referralCode.code}
-      referrerName={referrer?.display_name || "A friend"}
+      referrerName={referrer?.display_name || null}
       referrerAvatar={referrer?.avatar_url}
     />
   );
