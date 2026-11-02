@@ -254,6 +254,7 @@ import { activityDomId } from "@/lib/trip/activity-dom-id";
 import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { ResultBookingLinks, ResultPacking, ResultStats, ResultTimeline } from "@/components/wizard/ResultSections";
+import { ViewModeToggle } from "@/components/trip/ViewControls";
 import { isNativePlatform } from "@/lib/native/platform";
 import { planDateChange, moveItineraryDates } from "@/lib/trips/change-dates";
 
@@ -3478,28 +3479,11 @@ export default function NewTripPage({
                   /trips/template/[id]. Cards is the dense rich view; Timeline
                   is a vertical-rail compact view for skim-reading. */}
               <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-                <div className="hidden sm:flex items-center bg-slate-100 rounded-lg p-1">
-                  <button
-                    onClick={() => setResultViewMode("cards")}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                      resultViewMode === "cards"
-                        ? "bg-white text-slate-900 shadow-sm"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    {t("wizard.result.viewCards")}
-                  </button>
-                  <button
-                    onClick={() => setResultViewMode("timeline")}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                      resultViewMode === "timeline"
-                        ? "bg-white text-slate-900 shadow-sm"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    {t("wizard.result.viewTimeline")}
-                  </button>
-                </div>
+                <ViewModeToggle
+                  value={resultViewMode}
+                  onChange={setResultViewMode}
+                  labels={{ cards: t("wizard.result.viewCards"), timeline: t("wizard.result.viewTimeline") }}
+                />
 
                 <button
                   type="button"

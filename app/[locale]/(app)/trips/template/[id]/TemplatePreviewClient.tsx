@@ -15,6 +15,7 @@ import DaySlider from "@/components/ui/DaySlider";
 import TravelConnector from "@/components/trip/TravelConnector";
 import DaySummary from "@/components/trip/DaySummary";
 import { DayTimeline } from "@/components/trip/DayTimeline";
+import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
 import SaveTripModal from "@/components/ui/SaveTripModal";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
@@ -222,45 +223,18 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
 
           {/* Right side - Controls */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* View Mode Toggle */}
-            <div className="hidden sm:flex items-center bg-slate-100 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode("cards")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                  viewMode === "cards"
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <LayoutGrid className="w-4 h-4" />
-                {t('cards')}
-              </button>
-              <button
-                onClick={() => setViewMode("timeline")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                  viewMode === "timeline"
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <List className="w-4 h-4" />
-                {t('timeline')}
-              </button>
-            </div>
-
-            {/* Map Toggle */}
-            <button
-              onClick={() => setShowMap(!showMap)}
-              className={`flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium transition-colors ${
-                showMap
-                  ? "bg-[var(--primary)] text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
-              title={showMap ? t('hideMap') : t('showMap')}
-            >
-              {showMap ? <MapPinOff className="w-5 h-5 sm:w-4 sm:h-4" /> : <Map className="w-5 h-5 sm:w-4 sm:h-4" />}
-              <span className="hidden sm:inline">{showMap ? t('hideMap') : t('showMap')}</span>
-            </button>
+            <ViewModeToggle
+              value={viewMode}
+              onChange={setViewMode}
+              labels={{ cards: t('cards'), timeline: t('timeline') }}
+              icons={{ cards: <LayoutGrid className="w-4 h-4" />, timeline: <List className="w-4 h-4" /> }}
+            />
+            <MapToggle
+              shown={showMap}
+              onToggle={() => setShowMap(!showMap)}
+              labels={{ show: t('showMap'), hide: t('hideMap') }}
+              icon={showMap ? <MapPinOff className="w-5 h-5 sm:w-4 sm:h-4" /> : <Map className="w-5 h-5 sm:w-4 sm:h-4" />}
+            />
           </div>
         </div>
 
