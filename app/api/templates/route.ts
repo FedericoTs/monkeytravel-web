@@ -1,17 +1,8 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { ilikeSearchTerm } from "@/lib/api/postgrest-filter";
 import { countryName, templateLocale, templateText } from "@/lib/templates/text";
-
-/**
- * Escape special characters for PostgREST ilike queries
- */
-function escapeForPostgrest(input: string): string {
-  return input
-    .replace(/[%_]/g, "\\$&")
-    .replace(/[,.()\[\]{}]/g, "")
-    .replace(/'/g, "''");
-}
 
 /**
  * GET /api/templates
@@ -98,7 +89,7 @@ export async function GET(request: NextRequest) {
 
     // Apply destination search (case-insensitive partial match)
     if (destination) {
-      const escapedDest = escapeForPostgrest(destination.toLowerCase().trim());
+      const escapedDest = ilikeSearchTerm(destination.toLowerCase().trim());
       query = query.or(
         `template_destination.ilike.%${escapedDest}%,template_country.ilike.%${escapedDest}%`
       );

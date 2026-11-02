@@ -17,6 +17,15 @@ export function ilikeOrTerm(input: string): string {
 }
 
 /**
+ * What a visitor typed into a search box, as an ilike term: dots and
+ * brackets dropped, so "Washington D.C." still finds "Washington DC", then
+ * ilikeOrTerm.
+ */
+export function ilikeSearchTerm(input: string): string {
+  return ilikeOrTerm(input.replace(/[.[\]{}]/g, ""));
+}
+
+/**
  * The single city of a trip destination, ready for an exact (wildcard-free,
  * case-insensitive) ilike inside or(). Empty when there is no one city to look
  * up.
