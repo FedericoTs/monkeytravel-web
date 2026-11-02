@@ -20,20 +20,20 @@ import { DaySummary } from "./DaySummary";
 describe("a travel leg's distance", () => {
   it("is in the viewer's unit even when the leg carries a metric text", () => {
     viewer.unit = "imperial";
-    render(<TravelConnector distanceMeters={3218.7} distanceText="3.2 km" durationText="12 min" mode="DRIVING" />);
+    render(<TravelConnector segment={{ distanceMeters: 3218.7, distanceText: "3.2 km", durationText: "12 min", mode: "DRIVING" }} />);
     expect(screen.getByText("2.0 mi")).toBeTruthy();
     expect(screen.queryByText("3.2 km")).toBeNull();
   });
 
   it("keeps an estimate's ~", () => {
     viewer.unit = "metric";
-    render(<TravelConnector distanceMeters={850} distanceText="~850 m" durationText="~11 min" mode="WALKING" />);
+    render(<TravelConnector segment={{ distanceMeters: 850, distanceText: "~850 m", durationText: "~11 min", mode: "WALKING" }} />);
     expect(screen.getByText("~850 m")).toBeTruthy();
   });
 
   it("falls back to the leg's text when the metres are unknown", () => {
     viewer.unit = "imperial";
-    render(<TravelConnector durationSeconds={1200} distanceText="~5 km" durationText="~20 min" mode="DRIVING" />);
+    render(<TravelConnector segment={{ durationSeconds: 1200, distanceText: "~5 km", durationText: "~20 min", mode: "DRIVING" }} />);
     expect(screen.getByText("~5 km")).toBeTruthy();
   });
 });

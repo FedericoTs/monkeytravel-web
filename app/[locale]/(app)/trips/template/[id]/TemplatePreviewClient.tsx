@@ -17,7 +17,7 @@ import { DayTimeline } from "@/components/trip/DayTimeline";
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
 import SaveTripModal from "@/components/ui/SaveTripModal";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
-import { useTravelDistances } from "@/hooks/useTravelDistances";
+import { segmentBetween, useTravelDistances } from "@/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
 import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
@@ -272,9 +272,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                         {day.activities.map((activity, idx) => {
                           const nextActivity = day.activities[idx + 1];
                           const dayTravelData = travelData.get(day.day_number);
-                          const segment = nextActivity && dayTravelData?.segments.find(
-                            (s) => s.fromActivityId === activity.id && s.toActivityId === nextActivity.id
-                          );
+                          const segment = segmentBetween(dayTravelData, activity, nextActivity);
 
                           return (
                             <div key={activity.id || idx}>
@@ -288,11 +286,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                               {/* Travel connector */}
                               {idx < day.activities.length - 1 && (
                                 <TravelConnector
-                                  distanceMeters={segment?.distanceMeters}
-                                  durationSeconds={segment?.durationSeconds}
-                                  distanceText={segment?.distanceText}
-                                  durationText={segment?.durationText}
-                                  mode={segment?.mode}
+                                  segment={segment}
                                   isLoading={travelLoading || dayTravelData?.isLoading}
                                 />
                               )}

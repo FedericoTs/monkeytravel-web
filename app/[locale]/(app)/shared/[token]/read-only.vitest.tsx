@@ -65,7 +65,10 @@ vi.mock("@/lib/platform/storage", () => ({
 vi.mock("@/components/auth/AuthProvider", () => ({ useAuth: () => ({ user: state.viewer, loading: false }) }));
 vi.mock("@/components/ui/Toast", () => ({ useToast: () => ({ addToast: () => {} }) }));
 vi.mock("@/lib/native/haptics", () => ({ hapticMedium: () => {}, hapticError: () => {} }));
-vi.mock("@/hooks/useTravelDistances", () => ({ useTravelDistances: () => ({ travelData: new Map(), isLoading: false }) }));
+vi.mock("@/hooks/useTravelDistances", () => ({
+  useTravelDistances: () => ({ travelData: new Map(), isLoading: false }),
+  segmentBetween: () => undefined,
+}));
 vi.mock("@/lib/locale", () => ({
   useCurrency: () => ({
     convert: (value: number, currency: string) => ({ value, currency, formatted: `${value} ${currency}` }),

@@ -29,12 +29,21 @@ export interface DayTravelData {
   error?: string;
 }
 
+/** The leg from one activity to the next on a day, once it is worked out. */
+export function segmentBetween(
+  day: DayTravelData | undefined,
+  from: { id?: string },
+  to: { id?: string } | undefined
+): TravelSegment | undefined {
+  if (!to) return undefined;
+  return day?.segments.find((s) => s.fromActivityId === from.id && s.toActivityId === to.id);
+}
+
 interface UseTravelDistancesResult {
   travelData: Map<number, DayTravelData>;
   isLoading: boolean;
   error?: string;
   refetch: () => void;
-  getSegmentBetween: (fromActivityId: string, toActivityId: string) => TravelSegment | undefined;
 }
 
 /** Options for the useTravelDistances hook */
@@ -264,20 +273,6 @@ export function useTravelDistances(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itineraryHash, canUseCache]);
 
-  // Helper to get segment between two activities
-  const getSegmentBetween = useCallback(
-    (fromActivityId: string, toActivityId: string): TravelSegment | undefined => {
-      for (const [, dayData] of travelData) {
-        const segment = dayData.segments.find(
-          (s) => s.fromActivityId === fromActivityId && s.toActivityId === toActivityId
-        );
-        if (segment) return segment;
-      }
-      return undefined;
-    },
-    [travelData]
-  );
-
   // Force recalculate function
   const refetch = useCallback(() => {
     hasUsedCacheRef.current = false;
@@ -289,6 +284,5 @@ export function useTravelDistances(
     isLoading,
     error,
     refetch,
-    getSegmentBetween,
   };
 }
