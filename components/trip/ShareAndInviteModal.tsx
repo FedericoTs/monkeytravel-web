@@ -23,6 +23,7 @@ import CoPlannerInvites from "@/components/trip/CoPlannerInvites";
 import { tripCardPath } from "@/lib/seo/og-image";
 import { defaultShareFraming, framedShareUrl, shareTokenFromUrl, type ShareFraming } from "@/lib/trips/crew-share";
 import type { TripCollaborator, CollaboratorRole } from "@/types";
+import { Spinner } from "@/components/ui/Spinner";
 
 type TabType = "share" | "invite";
 
@@ -791,10 +792,7 @@ export default function ShareAndInviteModal({
                   >
                     {isGeneratingInvite ? (
                       <>
-                        <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
+                        <Spinner className="w-5 h-5" />
                         {ts("invite.generating")}
                       </>
                     ) : emailRecipient.trim() ? (
@@ -874,10 +872,7 @@ export default function ShareAndInviteModal({
                     </h4>
                     {isLoadingCollaborators ? (
                       <div className="flex items-center justify-center py-8">
-                        <svg className="w-6 h-6 animate-spin text-slate-500" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
+                        <Spinner className="w-6 h-6 text-slate-500" />
                       </div>
                     ) : (
                       <div className="space-y-1 max-h-64 overflow-y-auto">

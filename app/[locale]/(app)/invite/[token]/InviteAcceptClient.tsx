@@ -10,6 +10,7 @@ import { ROLE_INFO, type CollaboratorRole } from "@/types";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { formatDateRange } from "@/lib/datetime";
 import { classifyOtpError } from "@/lib/auth/otp-code";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface InviteAcceptClientProps {
   invite: {
@@ -363,10 +364,7 @@ export default function InviteAcceptClient({
           {/* Auth Actions */}
           {isCheckingAuth ? (
             <div className="flex items-center justify-center py-8">
-              <svg className="w-8 h-8 animate-spin text-[var(--primary-ink)]" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
+              <Spinner className="w-8 h-8 text-[var(--primary-ink)]" />
             </div>
           ) : user ? (
             // Already signed in - show join button
@@ -378,10 +376,7 @@ export default function InviteAcceptClient({
               >
                 {isLoading ? (
                   <>
-                    <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
+                    <Spinner className="w-5 h-5" />
                     {t("joining")}
                   </>
                 ) : (
