@@ -16,7 +16,7 @@ const intl = vi.hoisted(() => ({
 }));
 vi.mock("next-intl", () => ({ useTranslations: () => intl.t, useLocale: () => "en" }));
 vi.mock("@/components/trip/SettleUpView", () => ({ default: () => null }));
-vi.mock("@/lib/observability/sentry", () => ({ sentry: async () => ({}) }));
+vi.mock("@/lib/observability/sentry", () => ({ sentryException: () => {} }));
 vi.mock("@/lib/posthog/events", () => ({ captureExpenseAdded: async () => undefined, captureExpenseDeleted: async () => undefined }));
 
 const row = (id: string, amount: number, description: string) => ({

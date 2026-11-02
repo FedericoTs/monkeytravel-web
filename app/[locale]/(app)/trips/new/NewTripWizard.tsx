@@ -155,7 +155,7 @@ function preloadResultViewChunks(): void {
   warm(import("@/components/trip/ExportMenu"));
   warm(import("@/components/trip/AnonymousShareButton").then((m) => { warmedShareButton = m.default; }));
 }
-import { sentry } from "@/lib/observability/sentry";
+import { sentryException } from "@/lib/observability/sentry";
 import { useItineraryDraft, DraftRecoveryBanner, type ItineraryDraft } from "@/hooks/useItineraryDraft";
 import { useKeptPlan } from "@/hooks/useKeptPlan";
 import { usePlanPhotos } from "@/hooks/usePlanPhotos";
@@ -1438,18 +1438,10 @@ export default function NewTripPage({
             : /invalid|required|missing|validation/i.test(errMsg)
               ? "validation"
               : "unknown";
-    sentry()
-      .then((Sentry) => {
-        Sentry.withScope((scope) => {
-          scope.setTag("feature", "auto_save");
-          scope.setTag("arm", "auto");
-          scope.setTag("error_class", errorClass);
-          scope.setExtra("attempts", info.attempts);
-          scope.setExtra("destination", destination);
-          Sentry.captureException(err);
-        });
-      })
-      .catch(() => {});
+    sentryException(err, {
+      tags: { feature: "auto_save", arm: "auto", error_class: errorClass },
+      extra: { attempts: info.attempts, destination },
+    });
     void trackWizardEvent(
       "save_failed",
       { destination, group_size: tripIntent, backpacker_mode: travelStyle === "backpacker", locale }

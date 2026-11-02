@@ -13,7 +13,7 @@ import { UNDO_WINDOW_MS } from "@/hooks/useUndoableRemoval";
 import ExpenseLedger from "./ExpenseLedger";
 
 vi.mock("@/components/trip/SettleUpView", () => ({ default: () => null }));
-vi.mock("@/lib/observability/sentry", () => ({ sentry: async () => ({}) }));
+vi.mock("@/lib/observability/sentry", () => ({ sentryException: () => {} }));
 vi.mock("@/lib/posthog/events", () => ({ captureExpenseAdded: async () => undefined, captureExpenseDeleted: async () => undefined }));
 
 const row = {

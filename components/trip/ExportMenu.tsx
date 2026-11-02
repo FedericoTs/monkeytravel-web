@@ -5,7 +5,7 @@ import type { ItineraryDay } from "@/types";
 import { downloadICS } from "@/lib/export/calendar";
 import { useTranslations } from "next-intl";
 import { capture } from "@/lib/posthog/events";
-import { sentry } from "@/lib/observability/sentry";
+import { sentryException } from "@/lib/observability/sentry";
 import { Spinner } from "@/components/ui/Spinner";
 
 // Lazy loader for PDF export (~75KB saved from initial bundle)
@@ -37,24 +37,18 @@ export default function ExportMenu({ trip, surface = "trip_detail" }: ExportMenu
 
   // Surface an export failure to the user + analytics + Sentry, instead of
   // the previous swallow-with-console.error (the spinner just stopped and
-  // nothing downloaded — a silent dead end). Lazy-imports Sentry so a
-  // missing/failed Sentry never breaks the menu (mirrors ExpenseLedger).
+  // nothing downloaded — a silent dead end). sentryException never throws,
+  // so a missing or failed Sentry never breaks the menu.
   const reportExportFailure = (format: "pdf" | "ical", error: unknown) => {
     const message = error instanceof Error ? error.message : "Unknown error";
     console.error(`[ExportMenu] ${format} export failed`, message);
     setExportError(t("exportFailed"));
     capture("trip_export_failed", { format, surface });
-    sentry()
-      .then((Sentry) => {
-        Sentry.captureException?.(error instanceof Error ? error : new Error(message), {
-          tags: { source: "ExportMenu", subsystem: "export" },
-          level: "warning",
-          extra: { format, surface },
-        });
-      })
-      .catch(() => {
-        /* Sentry not available — console.error above is the fallback */
-      });
+    sentryException(error instanceof Error ? error : new Error(message), {
+      tags: { source: "ExportMenu", subsystem: "export" },
+      level: "warning",
+      extra: { format, surface },
+    });
   };
 
   // Close menu when clicking outside

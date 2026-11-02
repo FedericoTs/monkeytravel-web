@@ -17,7 +17,7 @@ const addToast = vi.hoisted(() => vi.fn());
 vi.mock("next-intl", () => ({ useTranslations: () => intl.t, useLocale: () => intl.locale }));
 vi.mock("@/components/ui/Toast", () => ({ useToast: () => ({ addToast }) }));
 vi.mock("@/components/trip/SettleUpView", () => ({ default: () => null }));
-vi.mock("@/lib/observability/sentry", () => ({ sentry: async () => ({}) }));
+vi.mock("@/lib/observability/sentry", () => ({ sentryException: () => {} }));
 vi.mock("@/lib/posthog/events", () => ({ captureExpenseAdded: async () => undefined, captureExpenseDeleted: async () => undefined }));
 
 let posted: Array<Record<string, unknown>> = [];
