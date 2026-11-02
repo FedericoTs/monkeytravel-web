@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isCreatorIndexable } from "@/lib/seo/creator-indexable";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { escapeXml } from "@/lib/utils/escape-xml";
 
 /**
  * /sitemap-creators.xml — every public creator profile, across all 4 locales.
@@ -24,15 +25,6 @@ export const revalidate = 3600;
 
 // Cap: 4 locale variants per creator, so ~11k creators fills a 50k-URL file.
 const MAX_CREATORS = 11000;
-
-function xmlEscape(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
 
 export async function GET() {
   let creators: Array<{ username: string; lastmod: string }> = [];
@@ -96,7 +88,7 @@ export async function GET() {
     for (const locale of LOCALES) {
       const loc = `${SITE_URL}${localePrefix(locale)}/creator/${creator.username}`;
       urls.push(
-        `  <url>\n    <loc>${xmlEscape(loc)}</loc>${lastmodTag}\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`,
+        `  <url>\n    <loc>${escapeXml(loc)}</loc>${lastmodTag}\n    <changefreq>weekly</changefreq>\n    <priority>0.6</priority>\n  </url>`,
       );
     }
   }
