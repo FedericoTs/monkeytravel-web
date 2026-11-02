@@ -97,6 +97,14 @@
     "more": "More",
     "less": "Less"
   },
+  "a11y": {
+    "dismiss": "Dismiss",
+    "breadcrumb": "Breadcrumb",
+    "pagination": "Pagination",
+    "articleNavigation": "Article navigation",
+    "sectionNavigation": "Section navigation",
+    "destinationNavigation": "Destination navigation"
+  },
   "drag": {
     "title": "Hold and drag to reorder or move to another day",
     "ariaLabel": "Drag handle — hold and drag to reorder or move to another day",

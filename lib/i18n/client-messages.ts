@@ -8,6 +8,7 @@ import type { AbstractIntlMessages } from "next-intl";
  */
 export const MARKETING_CLIENT_NAMESPACES = [
   "common.buttons",
+  "common.a11y",
   "common.navigation",
   "common.bottomNav",
   "common.language",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useId } from "react";
+import { useTranslations } from "next-intl";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
@@ -29,6 +30,7 @@ export default function BottomSheet({
   showCloseButton = true,
   desktopCentered = false,
 }: BottomSheetProps) {
+  const t = useTranslations("common.buttons");
   const dragControls = useDragControls();
 
   // Escape, scroll lock, focus in and back out, Tab kept inside. Focus goes
@@ -108,7 +110,7 @@ export default function BottomSheet({
                   <button
                     onClick={onClose}
                     className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
-                    aria-label="Close"
+                    aria-label={t("close")}
                   >
                     <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

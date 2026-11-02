@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 /** An inline action on a toast — e.g. "Undo" after a move. */
 export interface ToastAction {
@@ -89,6 +90,7 @@ function ToastItem({
   toast: Toast;
   onRemove: (id: string) => void;
 }) {
+  const t = useTranslations("common.a11y");
   const [isLeaving, setIsLeaving] = useState(false);
 
   const handleRemove = useCallback(() => {
@@ -176,7 +178,7 @@ function ToastItem({
       <button
         onClick={handleRemove}
         className="text-slate-500 hover:text-slate-600 transition-colors"
-        aria-label="Dismiss"
+        aria-label={t("dismiss")}
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path

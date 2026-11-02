@@ -46,12 +46,13 @@ export default async function CreatorProfile({
   locale,
 }: CreatorProfileProps) {
   const t = await getTranslations({ locale, namespace: "common.creator" });
+  const tA11y = await getTranslations({ locale, namespace: "common.a11y" });
   const name = creator.displayName || t("fallbackName");
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 w-full">
       {/* Breadcrumb */}
-      <nav className="text-sm text-slate-500 mb-6" aria-label="Breadcrumb">
+      <nav className="text-sm text-slate-500 mb-6" aria-label={tA11y("breadcrumb")}>
         <Link href="/" className="hover:text-slate-700">
           {t("breadcrumbHome")}
         </Link>

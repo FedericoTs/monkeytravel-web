@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/routing";
 import type { Destination, Locale } from "@/lib/destinations/types";
 
@@ -21,10 +22,11 @@ export default function DestinationPrevNext({
   prevLabel,
   nextLabel,
 }: DestinationPrevNextProps) {
+  const t = useTranslations("common.a11y");
   if (!prev && !next) return null;
 
   return (
-    <nav className="my-12 grid sm:grid-cols-2 gap-4" aria-label="Destination navigation">
+    <nav className="my-12 grid sm:grid-cols-2 gap-4" aria-label={t("destinationNavigation")}>
       {prev ? (
         <Link
           href={`/destinations/${prev.slug}`}

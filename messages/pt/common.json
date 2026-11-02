@@ -97,6 +97,14 @@
     "more": "Mais",
     "less": "Menos"
   },
+  "a11y": {
+    "dismiss": "Dispensar",
+    "breadcrumb": "Trilha de navegação",
+    "pagination": "Paginação",
+    "articleNavigation": "Navegação entre artigos",
+    "sectionNavigation": "Navegação entre seções",
+    "destinationNavigation": "Navegação entre destinos"
+  },
   "drag": {
     "title": "Segure e arraste para reordenar ou mover para outro dia",
     "ariaLabel": "Alça: segure e arraste para reordenar ou mover para outro dia",
