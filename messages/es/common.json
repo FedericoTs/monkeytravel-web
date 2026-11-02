@@ -2776,5 +2776,19 @@
       "activities": "Actividades en itinerarios guardados",
       "speed": "Mediana hasta un itinerario completo"
     }
+  },
+  "errorPage": {
+    "title": "Algo salió mal",
+    "body": "Hubo un error inesperado al cargar esta página. El equipo ya está avisado: inténtalo de nuevo o vuelve al inicio.",
+    "retry": "Intentar de nuevo",
+    "home": "Ir al inicio",
+    "errorId": "ID del error: {digest}"
+  },
+  "notFoundPage": {
+    "imageAlt": "404 - Página no encontrada",
+    "body": "Parece que te has equivocado de camino. La página que buscas no existe o se ha movido.",
+    "home": "Volver al inicio",
+    "planTrip": "O <link>planifica un nuevo viaje</link>",
+    "poweredBy": "Funciona con <link>MonkeyTravel</link> AI"
   }
 }

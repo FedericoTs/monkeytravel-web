@@ -2776,5 +2776,19 @@
       "activities": "Activities on saved itineraries",
       "speed": "Median time to a full itinerary"
     }
+  },
+  "errorPage": {
+    "title": "Something went wrong",
+    "body": "We hit an unexpected error loading this page. The team has been notified — please try again or head back home.",
+    "retry": "Try again",
+    "home": "Go home",
+    "errorId": "Error ID: {digest}"
+  },
+  "notFoundPage": {
+    "imageAlt": "404 - Page not found",
+    "body": "Looks like you took a wrong turn. The page you're looking for doesn't exist or has been moved.",
+    "home": "Back to Home",
+    "planTrip": "Or <link>plan a new trip</link>",
+    "poweredBy": "Powered by <link>MonkeyTravel</link> AI"
   }
 }
