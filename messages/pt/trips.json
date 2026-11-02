@@ -507,9 +507,9 @@
     "tips": "Dicas",
     "directions": "Como chegar",
     "moreInfo": "Mais Informações",
-    "booking": "Reservar",
-    "insiderTips": "Dicas de Quem Conhece",
-    "aiEstimate": "Estimativa da AI"
+    "booking": "Reserva",
+    "insiderTips": "Dicas Locais",
+    "aiEstimate": "Estimativa de AI"
   },
   "detail": {
     "cancelTrip": {
@@ -554,7 +554,7 @@
     "activityRegenerateLimit": "Você atingiu o limite de gerações deste mês. A atividade não mudou.",
     "saveChangesFailed": "Não foi possível salvar as alterações. Tente novamente.",
     "estBudget": "Orçamento Est.",
-    "noItinerary": "Nenhum Roteiro Ainda",
+    "noItinerary": "Ainda sem roteiro",
     "noItineraryMessage": "Esta viagem ainda não tem atividades planejadas.",
     "reorderActivities": "Arraste para reordenar, ou solte em outro dia. Use ⋯ para mover com precisão.",
     "unsavedChanges": "Alterações não salvas",
