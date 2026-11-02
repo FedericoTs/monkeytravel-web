@@ -10,6 +10,7 @@ vi.mock("@/lib/i18n/routing", () => ({
   ),
 }));
 
+import { Link } from "@/lib/i18n/routing";
 import { AuthField, AuthPage, AuthPageLoading, AuthStatusIcon, AuthSubmitButton } from "./AuthPage";
 
 describe("the sign-in page frame", () => {
@@ -86,7 +87,7 @@ describe("a field of the card", () => {
   });
 
   it("puts an aside next to the label, and a hint under the input", () => {
-    render(<AuthField id="password" label="Password" labelAside={<a href="/auth/forgot-password">Forgot?</a>} hint="6 characters or more" />);
+    render(<AuthField id="password" label="Password" labelAside={<Link href="/auth/forgot-password">Forgot?</Link>} hint="6 characters or more" />);
     const label = screen.getByText("Password");
     expect(label.parentElement?.className).toBe("flex items-center justify-between mb-1");
     expect(label.parentElement?.querySelector("a")?.textContent).toBe("Forgot?");
