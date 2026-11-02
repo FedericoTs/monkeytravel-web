@@ -12,6 +12,7 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { flagEmoji } from "@/lib/utils/flag-emoji";
 
 // Country name to ISO code mapping
 const countryToCode: Record<string, string> = {
@@ -32,27 +33,8 @@ const countryToCode: Record<string, string> = {
   "Tanzania": "TZ", "Seychelles": "SC", "Zimbabwe": "ZW", "Bolivia": "BO",
 };
 
-// Country code to flag emoji
-const countryFlags: Record<string, string> = {
-  FR: "🇫🇷", JP: "🇯🇵", US: "🇺🇸", GB: "🇬🇧", IT: "🇮🇹", ES: "🇪🇸",
-  ID: "🇮🇩", AE: "🇦🇪", TH: "🇹🇭", AU: "🇦🇺", GR: "🇬🇷", PT: "🇵🇹",
-  DE: "🇩🇪", NL: "🇳🇱", MX: "🇲🇽", BR: "🇧🇷", KR: "🇰🇷", CN: "🇨🇳",
-  IN: "🇮🇳", SG: "🇸🇬", VN: "🇻🇳", TR: "🇹🇷", EG: "🇪🇬", MA: "🇲🇦",
-  ZA: "🇿🇦", PE: "🇵🇪", AR: "🇦🇷", CL: "🇨🇱", NZ: "🇳🇿", CA: "🇨🇦",
-  CH: "🇨🇭", AT: "🇦🇹", CZ: "🇨🇿", HU: "🇭🇺", PL: "🇵🇱", IE: "🇮🇪",
-  HR: "🇭🇷", DK: "🇩🇰", SE: "🇸🇪", NO: "🇳🇴", FI: "🇫🇮", BE: "🇧🇪",
-  IL: "🇮🇱", JO: "🇯🇴", MV: "🇲🇻", LK: "🇱🇰", PH: "🇵🇭", MY: "🇲🇾",
-  KH: "🇰🇭", TW: "🇹🇼", HK: "🇭🇰", IS: "🇮🇸", PF: "🇵🇫", EC: "🇪🇨",
-  CO: "🇨🇴", KE: "🇰🇪", TZ: "🇹🇿", SC: "🇸🇨", ZW: "🇿🇼", BO: "🇧🇴",
-};
-
 function getCountryCode(country: string): string | null {
   return countryToCode[country] || null;
-}
-
-function getCountryFlag(countryCode: string | null): string {
-  if (!countryCode) return "🌍";
-  return countryFlags[countryCode.toUpperCase()] || "🌍";
 }
 
 // In-memory cache for popular destinations (1 hour TTL)
@@ -98,7 +80,7 @@ export async function GET(request: NextRequest) {
         secondaryText: dest.country,
         fullText: `${dest.name}, ${dest.country}`,
         countryCode,
-        flag: getCountryFlag(countryCode),
+        flag: flagEmoji(countryCode),
         types: ["(cities)"],
         coordinates: {
           latitude: dest.latitude,
