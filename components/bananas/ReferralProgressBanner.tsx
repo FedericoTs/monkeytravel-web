@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import {
@@ -12,7 +11,7 @@ import {
   getConversionsToNextTier,
 } from "@/lib/bananas/config";
 import type { ReferralTierLevel } from "@/types/bananas";
-import { safeGet, safeSet } from "@/lib/safe-storage";
+import { useStoredFlag } from "@/hooks/useStoredFlag";
 
 // Map tier level to translation key
 const TIER_NAME_KEYS: Record<ReferralTierLevel, string> = {
@@ -37,23 +36,9 @@ export default function ReferralProgressBanner({
 }: ReferralProgressBannerProps) {
   const t = useTranslations("bananas");
   const tA11y = useTranslations("common.a11y");
-  // Tri-state: null = pre-mount (don't know yet), true = dismissed, false = visible.
-  //
-  // Previously initialised to `true` ("hidden by default to prevent flash"),
-  // which had the side effect of: SSR rendered `null` → first client paint
-  // rendered `null` → useEffect read localStorage → setIsDismissed(false) →
-  // re-render inserts the whole banner into the DOM. That insertion shifts
-  // every sibling that comes after on /trips, and the resulting DOM no
-  // longer aligns with what the SSR HTML emitted → React 19 throws #418
-  // ("Text content does not match server-rendered HTML") even though the
-  // BANNER itself never produced mismatched text.
-  //
-  // The fix: render the banner's footprint as a transparent placeholder
-  // sized like the real banner BEFORE we know whether to show it. SSR
-  // emits the placeholder; first client paint emits the same placeholder
-  // (deterministic); then post-mount the real banner or `null` replaces
-  // it in place. Siblings don't shift. No hydration mismatch.
-  const [isDismissed, setIsDismissed] = useState<boolean | null>(null);
+  // null on the server and while hydrating, so the first client render
+  // matches the server's HTML.
+  const [isDismissed, dismiss] = useStoredFlag(STORAGE_KEY);
 
   // Get translated tier name
   const getTierName = (tier: ReferralTierLevel): string => {
@@ -65,14 +50,8 @@ export default function ReferralProgressBanner({
   const conversionsToNext = getConversionsToNextTier(lifetimeConversions);
   const nextTier = currentTier < 3 ? ((currentTier + 1) as ReferralTierLevel) : null;
 
-  // Check localStorage on mount
-  useEffect(() => {
-    const dismissed = safeGet(STORAGE_KEY);
-    setIsDismissed(dismissed === "true");
-  }, []);
-
-  // Pre-mount placeholder: same outer wrapper as the real banner so layout
-  // is stable across SSR → first paint → post-effect render. Empty content
+  // Placeholder while hydrating: same outer wrapper as the real banner so
+  // layout is stable from the server render through hydration. Empty content
   // (aria-hidden, visually invisible because no inner text or padding-driven
   // background) means it costs ~0 vertical space if the user has dismissed,
   // and ~64px if the real banner is about to appear. That's a worst-case
@@ -90,11 +69,6 @@ export default function ReferralProgressBanner({
   // Don't show if dismissed or max tier reached
   if (isDismissed || currentTier === 3) return null;
 
-  const handleDismiss = () => {
-    safeSet(STORAGE_KEY, "true");
-    setIsDismissed(true);
-  };
-
   const nextTierBonus = nextTier ? TIER_BENEFITS[nextTier].aiGenerationsBonus : 0;
 
   return (
@@ -103,7 +77,7 @@ export default function ReferralProgressBanner({
     >
       {/* Dismiss button */}
       <button
-        onClick={handleDismiss}
+        onClick={dismiss}
         className="absolute top-2 right-2 p-1 rounded-full text-amber-400 hover:text-amber-600 hover:bg-amber-100 transition-colors"
         aria-label={tA11y("dismiss")}
       >
