@@ -59,7 +59,7 @@ const eslintConfig = defineConfig([
       "**/InviteAcceptClient.tsx",
       "**/TemplatesPageClient.tsx",
       "components/ActivityCard.tsx",
-      "components/trip/AddActivityButton.tsx",
+      "components/trip/ActivityResultRow.tsx",
       "components/trip/EditableActivityCard.tsx",
       "components/trips/TripsPageClient.tsx",
       "components/ui/ActivityDetailSheet.tsx",

@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Plus, Search, X, MapPin, Clock, Loader2 } from "lucide-react";
+import { Plus, Search, X, MapPin, Loader2 } from "lucide-react";
 import { Activity } from "@/types";
 import { useActivitySearch, type ActivitySearchResult } from "@/hooks/useActivitySearch";
 import { useTranslations } from "next-intl";
-import { proxyImageUrl } from "@/lib/img/proxyUrl";
-import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
-import { formatDuration } from "@/lib/datetime/duration";
+import { ActivityResultRow } from "./ActivityResultRow";
 
 interface AddActivityButtonProps {
   dayIndex: number;
@@ -33,7 +31,6 @@ export default function AddActivityButton({
 }: AddActivityButtonProps) {
   const t = useTranslations("common.addActivity");
   const tTrip = useTranslations("common.trip");
-  const typeLabel = useActivityTypeLabel();
   const [isExpanded, setIsExpanded] = useState(false);
   const {
     query: searchQuery,
@@ -263,58 +260,21 @@ export default function AddActivityButton({
           <div className="max-h-64 overflow-y-auto space-y-2">
             {results.length > 0 ? (
               results.map((result) => (
-                <button
+                <ActivityResultRow
                   key={result.id}
-                  onClick={() => handleSelectResult(result)}
-                  className="w-full text-left p-3 rounded-lg hover:bg-slate-50 transition-colors border border-slate-100 group"
-                >
-                  <div className="flex items-start gap-3">
-                    {result.image_url ? (
-                      <img
-                        src={proxyImageUrl(result.image_url) || result.image_url}
-                        alt={result.name}
-                        className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
-                        // Each Google result photo is a paid download: only the ones scrolled to.
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                        <MapPin className="w-5 h-5 text-slate-500" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-slate-800 truncate">
-                          {result.name}
-                        </span>
-                        {result.source === "google" && (
-                          <span className="px-1.5 py-0.5 text-[10px] bg-blue-100 text-blue-700 rounded">
-                            Google
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
-                        <span className="capitalize">{typeLabel(result.type)}</span>
-                        {result.duration_minutes && (
-                          <>
-                            <span>•</span>
-                            <span className="flex items-center gap-0.5">
-                              <Clock className="w-3 h-3" />
-                              {formatDuration(result.duration_minutes)}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                      {result.address && (
-                        <p className="text-xs text-slate-500 mt-1 line-clamp-1 flex items-center gap-1">
-                          <MapPin className="w-3 h-3 flex-shrink-0" />
-                          {result.address}
-                        </p>
-                      )}
-                    </div>
+                  result={result}
+                  onSelect={() => handleSelectResult(result)}
+                  trailing={
                     <Plus className="w-5 h-5 text-slate-300 group-hover:text-[var(--primary-ink)] transition-colors flex-shrink-0" />
-                  </div>
-                </button>
+                  }
+                >
+                  {result.address && (
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-1 flex items-center gap-1">
+                      <MapPin className="w-3 h-3 flex-shrink-0" />
+                      {result.address}
+                    </p>
+                  )}
+                </ActivityResultRow>
               ))
             ) : !isSearching && searchQuery.length >= 2 ? (
               <div className="text-center py-6 text-slate-500">
