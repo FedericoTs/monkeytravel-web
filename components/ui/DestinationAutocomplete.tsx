@@ -25,7 +25,7 @@
 
 import { useState, useEffect, useRef, useCallback, useId, KeyboardEvent } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { sentry } from "@/lib/observability/sentry";
+import { sentryException } from "@/lib/observability/sentry";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { PlacePrediction } from "@/types";
 
@@ -312,13 +312,9 @@ export default function DestinationAutocomplete({
         const isAbort = error instanceof Error && error.name === "AbortError";
         if (isAbort || cancelled || controller.signal.aborted) return;
         console.error("Autocomplete fetch error:", error);
-        sentry()
-          .then((Sentry) =>
-            Sentry.captureException(error, {
-              tags: { component: "DestinationAutocomplete", endpoint: "/api/destinations/search" },
-            })
-          )
-          .catch(() => {});
+        sentryException(error, {
+          tags: { component: "DestinationAutocomplete", endpoint: "/api/destinations/search" },
+        });
         setPredictions([]);
       } finally {
         if (!cancelled && !controller.signal.aborted) {

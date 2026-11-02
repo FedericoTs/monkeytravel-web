@@ -14,7 +14,7 @@ import { useToast } from "@/components/ui/Toast";
 import AmountChoices from "@/components/trip/AmountChoices";
 import SettleUpView from "@/components/trip/SettleUpView";
 import { centsToAmount, formatAmount, readAmount } from "@/lib/expenses/shared";
-import { sentry } from "@/lib/observability/sentry";
+import { sentryException } from "@/lib/observability/sentry";
 import { localTodayISO } from "@/lib/utils/date-local";
 import {
   captureExpenseAdded,
@@ -143,17 +143,11 @@ function ExpenseLedgerInner({
           setLoadError(message);
           addToast(t("errorLoadFailed"), "error");
           console.error("[ExpenseLedger] load failed", message);
-          sentry()
-            .then((Sentry) => {
-              Sentry.captureException?.(new Error(message), {
-                tags: { source: "ExpenseLedger", subsystem: "load" },
-                level: "warning",
-                extra: { tripId, status: res.status },
-              });
-            })
-            .catch(() => {
-              /* Sentry not available — console.error above is the fallback */
-            });
+          sentryException(new Error(message), {
+            tags: { source: "ExpenseLedger", subsystem: "load" },
+            level: "warning",
+            extra: { tripId, status: res.status },
+          });
           return;
         }
         const data = (await res.json()) as {
@@ -170,17 +164,11 @@ function ExpenseLedgerInner({
         setLoadError(message);
         addToast(t("errorLoadFailed"), "error");
         console.error("[ExpenseLedger] load failed", err);
-        sentry()
-          .then((Sentry) => {
-            Sentry.captureException?.(err, {
-              tags: { source: "ExpenseLedger", subsystem: "load" },
-              level: "warning",
-              extra: { tripId },
-            });
-          })
-          .catch(() => {
-            /* Sentry not available — console.error above is the fallback */
-          });
+        sentryException(err, {
+          tags: { source: "ExpenseLedger", subsystem: "load" },
+          level: "warning",
+          extra: { tripId },
+        });
       } finally {
         setLoading(false);
       }

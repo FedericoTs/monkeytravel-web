@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { execSync } from "child_process";
+import { readFileSync } from "fs";
 
 /**
  * The SDK must stay out of every page's first bundle, yet an error thrown
@@ -57,7 +59,7 @@ describe("sentry()", () => {
     window.dispatchEvent(new ErrorEvent("error", { error: early }));
     await flush();
     await flush();
-    expect(captureException).toHaveBeenCalledWith(early);
+    expect(captureException).toHaveBeenCalledWith(early, undefined);
 
     // Hooks are gone: later errors are the SDK's business.
     expect(removed.mock.calls.map((call) => call[0])).toEqual(
@@ -89,5 +91,34 @@ describe("sentry()", () => {
     configureSentry(() => flush().then(() => void (finished = true)));
     await sentryReady();
     expect(finished).toBe(true);
+  });
+});
+
+describe("sentryException", () => {
+  it("reports the error with its context once the SDK is fetched", async () => {
+    const { configureSentry, sentryException } = await import("./sentry");
+    configureSentry(() => {});
+    const error = new Error("load failed");
+    sentryException(error, { tags: { source: "test" }, level: "warning" });
+    await flush();
+    await flush();
+    expect(captureException).toHaveBeenCalledWith(error, { tags: { source: "test" }, level: "warning" });
+  });
+
+  it("drops the error, without throwing or rejecting, where nothing configured the SDK", async () => {
+    const { sentryException } = await import("./sentry");
+    expect(() => sentryException(new Error("on the server"))).not.toThrow();
+    await flush();
+    expect(captureException).not.toHaveBeenCalled();
+  });
+
+  it("is how the app reports an exception outside lib/observability: no hand-written sentry().then(...)", () => {
+    const files = execSync("git ls-files --cached --others --exclude-standard -- app components hooks lib", { encoding: "utf8" })
+      .split("\n")
+      .filter((f) => /\.tsx?$/.test(f) && !f.includes(".vitest.") && !f.startsWith("lib/observability/"));
+    const handWritten = files.filter((f) =>
+      /sentry\(\)\s*\.then\(\s*\(?\s*\w+\s*\)?\s*=>\s*\{?\s*\w+\.(captureException|withScope)/.test(readFileSync(f, "utf8"))
+    );
+    expect(handWritten).toEqual([]);
   });
 });

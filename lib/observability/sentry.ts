@@ -4,6 +4,7 @@ type Sdk = typeof SentrySdk;
 type Setup = (sentry: Sdk) => Promise<void> | void;
 type Breadcrumb = Parameters<Sdk["addBreadcrumb"]>[0];
 type User = Parameters<Sdk["setUser"]>[0];
+type CaptureContext = Parameters<Sdk["captureException"]>[1];
 
 let setup: Setup | null = null;
 let sdk: Promise<Sdk> | null = null;
@@ -11,13 +12,8 @@ let ready: Promise<Sdk> | null = null;
 let loaded: Sdk | null = null;
 const pending: { breadcrumbs: Breadcrumb[]; user?: User } = { breadcrumbs: [] };
 
-const report = (error: unknown) => {
-  sentry()
-    .then((Sentry) => Sentry.captureException(error))
-    .catch(() => {});
-};
-const onEarlyError = (event: ErrorEvent) => report(event.error ?? new Error(event.message));
-const onEarlyRejection = (event: PromiseRejectionEvent) => report(event.reason);
+const onEarlyError = (event: ErrorEvent) => sentryException(event.error ?? new Error(event.message));
+const onEarlyRejection = (event: PromiseRejectionEvent) => sentryException(event.reason);
 
 /**
  * Makes the SDK loadable on demand instead of shipping it with every page:
@@ -50,6 +46,16 @@ export function sentry(): Promise<Sdk> {
     return Sentry;
   });
   return sdk;
+}
+
+/**
+ * Reports an exception, fetching the SDK if need be. Never throws or
+ * rejects: where nothing configured the SDK, the error is dropped.
+ */
+export function sentryException(error: unknown, context?: CaptureContext): void {
+  sentry()
+    .then((Sentry) => Sentry.captureException(error, context))
+    .catch(() => {});
 }
 
 /** A breadcrumb for the trail behind a later error: kept (the last 30) until the SDK exists, never a reason to fetch it. */
