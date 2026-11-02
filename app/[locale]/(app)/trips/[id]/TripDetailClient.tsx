@@ -20,6 +20,7 @@ import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
 import TodayView from "@/components/trip/TodayView";
 import { useLiveTripState } from "@/lib/trip/useLiveTripState";
 import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
+import { dayBudgetLabel } from "@/lib/trip/day-budget";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import DownloadIcsButton from "@/components/calendar/DownloadIcsButton";
 // TravelAdvisoryBanner / ExpenseLedger / TripConciergeChat are loaded with
@@ -276,33 +277,10 @@ export default function TripDetailClient({
 
   // Currency conversion hook — converts source-currency activity costs into
   // the user's preferred currency. Backs formatDayBudget below.
-  const { convert: convertCurrency, format: formatCurrency, preferredCurrency } = useCurrency();
+  const { convert: convertCurrency, format: formatCurrency } = useCurrency();
 
-  // The day's "Est. Budget" is the sum of the FX-converted activity costs
-  // (same logic as SharedTripView.tsx): the stored `day.daily_budget.total` is
-  // in the activities' source currency (e.g. JPY), not the trip's. Exchange
-  // rates load in a client effect, so until then (always on the server render)
-  // convertCurrency() returns the unconverted source amount: format in the
-  // currency it ACTUALLY returns, not preferredCurrency. The first activity's
-  // returned currency wins.
-  const formatDayBudget = (day: ItineraryDay): string => {
-    let total = 0;
-    let displayCurrency = preferredCurrency;
-    let displaySet = false;
-    for (const activity of day.activities) {
-      const amount = activity.estimated_cost?.amount;
-      const currency = activity.estimated_cost?.currency;
-      if (!amount || !currency) continue;
-      const converted = convertCurrency(amount, currency);
-      total += converted.value;
-      if (!displaySet) {
-        displayCurrency = converted.currency;
-        displaySet = true;
-      }
-    }
-    if (total === 0) return tCommon('activity.free');
-    return formatCurrency(total, displayCurrency);
-  };
+  const formatDayBudget = (day: ItineraryDay): string =>
+    dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, tCommon('activity.free'));
 
   // Check for share query param (used to auto-open share modal after trip save)
   const searchParams = useSearchParams();
