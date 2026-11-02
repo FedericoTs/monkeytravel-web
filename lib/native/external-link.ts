@@ -28,6 +28,8 @@
  * browser is slow to open.
  */
 
+import { isNativePlatform } from "./platform";
+
 interface OpenExternalOptions {
   /**
    * iOS SFSafariViewController presentation style. "popover" matches
@@ -48,14 +50,10 @@ export async function openExternal(
 ): Promise<void> {
   if (typeof window === "undefined") return;
 
-  const cap = (
-    window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }
-  ).Capacitor;
-
   // 1. Native shell — use @capacitor/browser so the URL opens in
   //    SFSafariViewController / Chrome Custom Tabs instead of being
   //    swallowed by the WebView.
-  if (cap?.isNativePlatform?.()) {
+  if (isNativePlatform()) {
     try {
       const { Browser } = await import("@capacitor/browser");
       await Browser.open({

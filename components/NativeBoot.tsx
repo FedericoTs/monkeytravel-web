@@ -17,14 +17,14 @@ import { useEffect } from "react";
 import { registerServiceWorker } from "@/lib/sw/register";
 import { installBackButtonHandler } from "@/lib/native/back-button";
 import { installDeepLinkHandler } from "@/lib/native/deep-links";
+import { isNativePlatform } from "@/lib/native/platform";
 
 export default function NativeBoot() {
   useEffect(() => {
     // On native (Capacitor) the SW would shadow the live-URL strategy.
     // Purge any caches a previous build may have left behind so the
     // WebView always hits the network on cold launch.
-    const cap = (window as typeof window & { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
-    if (cap?.isNativePlatform?.() && "caches" in window) {
+    if (isNativePlatform() && "caches" in window) {
       caches
         .keys()
         .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))

@@ -28,19 +28,7 @@
  *   hapticSuccess(); // user feels success without needing to look
  */
 
-/**
- * Detect whether we're running inside the Capacitor native shell.
- * Same check as share.ts — kept duplicated rather than imported to
- * keep this module loadable without share.ts. If we ever consolidate
- * into a lib/native/platform.ts, fold these.
- */
-function isNativePlatform(): boolean {
-  if (typeof window === "undefined") return false;
-  const cap = (
-    window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }
-  ).Capacitor;
-  return Boolean(cap?.isNativePlatform?.());
-}
+import { isNativePlatform } from "./platform";
 
 /**
  * Internal: dynamic-import the plugin only when we're inside the
