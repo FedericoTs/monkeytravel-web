@@ -91,7 +91,7 @@ export default function TripReminderEmail({
   contextBlocks,
   groupAsk,
 }: TripReminderEmailProps) {
-  const preview = `${SLOT_EMOJI[slot]} ${heading} — ${destination}`;
+  const preview = `${SLOT_EMOJI[slot]} ${tripReminderSubject({ heading, destination })}`;
 
   return (
     <EmailLayout

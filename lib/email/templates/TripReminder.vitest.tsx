@@ -55,3 +55,15 @@ describe("TripReminder group ask", () => {
     expect(defects).toEqual([]);
   });
 });
+
+describe("TripReminder preview line", () => {
+  it("names the destination once when the heading already does", async () => {
+    const html = await render(TripReminderEmail({ ...base, slot: "weather_3d", heading: "Three days to Lisbon" }));
+    expect(html).toContain("Three days to Lisbon");
+    expect(html).not.toContain("Three days to Lisbon — Lisbon");
+  });
+
+  it("adds the destination when the heading lacks it", async () => {
+    expect(await render(TripReminderEmail(base))).toContain("Two weeks to go — Lisbon");
+  });
+});
