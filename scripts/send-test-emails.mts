@@ -25,6 +25,7 @@ import * as AuthActionMod from "../lib/email/templates/AuthAction";
 import * as BlogDigestMod from "../lib/email/templates/BlogDigest";
 import * as BlogAnnounceMod from "../lib/email/templates/BlogAnnounce";
 import * as BlogApiMod from "../lib/blog/api";
+import * as AdminMod from "../lib/admin";
 
 // tsx transpiles these .tsx files to CJS, so the ESM namespace's `.default`
 // is the whole module.exports object ({ default: Component, <textFn> }).
@@ -75,19 +76,10 @@ const apiKey = process.env.RESEND_API_KEY;
 /**
  * Recipients. Comma-separated TEST_TO wins; otherwise the admin allowlist
  * from lib/admin.ts, so "send the team a review set" needs no arguments.
- *
- * The old default was federicosciuca@droplab.com — which has been on
- * Resend's SUPPRESSION list as a hard bounce since 2026-05-30. Every test
- * send using the default was silently dropped by Resend and never reached
- * an inbox, while this script printed a message id and a tick. Suppressed
- * addresses are checked explicitly below rather than trusted to the
- * default, because that failure is invisible from here.
+ * Suppressed addresses are checked explicitly below: Resend drops a send to
+ * one silently while still returning a message id.
  */
-const ADMIN_EMAILS = [
-  "federicosciuca@gmail.com",
-  "azzolina.francesca@gmail.com",
-  "marinoenrico3@gmail.com",
-];
+const { ADMIN_EMAILS } = ((AdminMod as any).default ?? AdminMod) as { ADMIN_EMAILS: readonly string[] };
 const to = (process.env.TEST_TO || ADMIN_EMAILS.join(","))
   .split(",")
   .map((s) => s.trim())
@@ -433,9 +425,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /**
  * Resend silently drops mail to a suppressed address and still returns a
  * message id, so a green tick here proves nothing about delivery. Check
- * up front and say so — this is exactly how the old default recipient
- * (federicosciuca@droplab.com, hard-bounced 2026-05-30) went on
- * "succeeding" for months.
+ * up front and say so.
  *
  * Best-effort: an API shape change must not block a design review, so a
  * failed lookup warns and continues rather than exiting.
