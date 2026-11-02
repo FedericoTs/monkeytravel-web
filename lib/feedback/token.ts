@@ -37,20 +37,6 @@ function getSecret(): string {
   return s;
 }
 
-function b64urlEncode(buf: Buffer): string {
-  return buf
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-}
-
-function b64urlDecode(s: string): Buffer {
-  const pad = "=".repeat((4 - (s.length % 4)) % 4);
-  const b64 = s.replace(/-/g, "+").replace(/_/g, "/") + pad;
-  return Buffer.from(b64, "base64");
-}
-
 /**
  * Mint a feedback-link token for a user. Expires `ttlDays` from now
  * (default 30 — outreach campaigns are time-boxed; a leaked old email
@@ -65,10 +51,8 @@ export function signFeedbackToken(
     t: PURPOSE,
     e: Math.floor(Date.now() / 1000) + ttlDays * 86400,
   };
-  const payloadB64 = b64urlEncode(Buffer.from(JSON.stringify(payload), "utf8"));
-  const hmacB64 = b64urlEncode(
-    createHmac("sha256", getSecret()).update(payloadB64).digest()
-  );
+  const payloadB64 = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+  const hmacB64 = createHmac("sha256", getSecret()).update(payloadB64).digest("base64url");
   return `${payloadB64}.${hmacB64}`;
 }
 
@@ -108,12 +92,7 @@ export function verifyFeedbackToken(token: string): FeedbackVerifyResult {
   }
 
   const expectedHmac = createHmac("sha256", secret).update(parts[0]).digest();
-  let providedHmac: Buffer;
-  try {
-    providedHmac = b64urlDecode(parts[1]);
-  } catch {
-    return { ok: false, reason: "format" };
-  }
+  const providedHmac = Buffer.from(parts[1], "base64url");
   if (providedHmac.length !== expectedHmac.length) {
     return { ok: false, reason: "signature" };
   }
@@ -123,7 +102,7 @@ export function verifyFeedbackToken(token: string): FeedbackVerifyResult {
 
   let payload: FeedbackPayload;
   try {
-    payload = JSON.parse(b64urlDecode(parts[0]).toString("utf8")) as FeedbackPayload;
+    payload = JSON.parse(Buffer.from(parts[0], "base64url").toString("utf8")) as FeedbackPayload;
   } catch {
     return { ok: false, reason: "format" };
   }
