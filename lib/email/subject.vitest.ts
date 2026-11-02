@@ -102,6 +102,7 @@ describe("one definition, used everywhere", () => {
     ["lib/email/send.ts", ["lib", "email", "send.ts"]],
     ["scripts/audit-queued-emails.mts", ["scripts", "audit-queued-emails.mts"]],
     ["scripts/send-test-emails.mts", ["scripts", "send-test-emails.mts"]],
+    ["lib/email/templates/TripDayDigest.tsx", ["lib", "email", "templates", "TripDayDigest.tsx"]],
   ])("%s uses the shared tripReminderSubject", (_label, parts) => {
     expect(read(...parts)).toContain("tripReminderSubject");
   });
@@ -110,6 +111,7 @@ describe("one definition, used everywhere", () => {
     ["lib/email/send.ts", ["lib", "email", "send.ts"]],
     ["scripts/audit-queued-emails.mts", ["scripts", "audit-queued-emails.mts"]],
     ["scripts/send-test-emails.mts", ["scripts", "send-test-emails.mts"]],
+    ["lib/email/templates/TripDayDigest.tsx", ["lib", "email", "templates", "TripDayDigest.tsx"]],
   ])("%s does not re-implement the rule locally", (_label, parts) => {
     // The inlined form, in any of its spellings. TripReminder.tsx itself is
     // excluded — it is where the rule legitimately lives.

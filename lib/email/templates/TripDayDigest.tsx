@@ -16,6 +16,7 @@
 
 import { Button, Heading, Section, Text } from "@react-email/components";
 import { EmailLayout } from "./_layout";
+import { tripReminderSubject } from "./TripReminder";
 import { ContextBlocks, contextBlocksText } from "./_context-blocks";
 import type { ContextBlock } from "../trip-context";
 import type { EmailLocale } from "../copy";
@@ -74,7 +75,7 @@ export default function TripDayDigestEmail({
   locale = "en",
   groupSend,
 }: TripDayDigestEmailProps) {
-  const preview = `📅 ${heading} — ${destination}`;
+  const preview = `📅 ${tripReminderSubject({ heading, destination })}`;
   const hasPlan = (blocks?.length ?? 0) > 0;
 
   return (
@@ -118,15 +119,10 @@ export default function TripDayDigestEmail({
 }
 
 /**
- * Subject for a day digest. Appends the destination unless the heading already
- * carries it — the same rule and reason as tripReminderSubject (a heading that
- * already names the place would otherwise print it twice).
+ * Subject for a day digest: tripReminderSubject's rule, which appends the
+ * destination unless the heading already names it.
  */
-export function tripDayDigestSubject(props: { heading: string; destination: string }): string {
-  return props.heading.includes(props.destination)
-    ? props.heading
-    : `${props.heading} — ${props.destination}`;
-}
+export const tripDayDigestSubject = tripReminderSubject;
 
 /** Plain-text fallback, mirroring tripReminderEmailText. */
 export function tripDayDigestEmailText(props: TripDayDigestEmailProps): string {
