@@ -1,0 +1,495 @@
+{
+  "generatedItinerary": {
+    "destination": {
+      "name": "Paris",
+      "country": "France",
+      "description": "A romantic 7-day journey through the City of Light, blending iconic landmarks with hidden local treasures",
+      "best_for": [
+        "romantic",
+        "cultural"
+      ],
+      "weather_note": "Mild spring days; bring a light layer for the evenings."
+    },
+    "days": [
+      {
+        "date": "2027-05-10",
+        "notes": "Take it easy on Day 1 to adjust to the time zone. The Eiffel Tower sparkle is a magical way to start your Parisian adventure.",
+        "theme": "Iconic Paris Introduction",
+        "title": "Arrival & Eiffel Tower Magic",
+        "activities": [
+          {
+            "id": "paris-d1-a1",
+            "name": "Check-in & Le Marais Stroll",
+            "tips": [
+              "Pick up falafel from L'As du Fallafel for a quick snack",
+              "Download offline maps for Paris"
+            ],
+            "type": "activity",
+            "address": "Rue des Francs-Bourgeois, 75003 Paris",
+            "location": "Le Marais, Paris",
+            "image_url": null,
+            "time_slot": "afternoon",
+            "start_time": "14:00",
+            "coordinates": {
+              "lat": 48.8566,
+              "lng": 2.3608
+            },
+            "description": "Settle into your hotel in the charming Le Marais district. Take a leisurely stroll through the historic Jewish quarter, admiring 17th-century architecture and browsing boutique shops.",
+            "estimated_cost": {
+              "tier": "free",
+              "amount": 0,
+              "currency": "EUR"
+            },
+            "booking_required": false,
+            "duration_minutes": 120
+          },
+          {
+            "id": "paris-d1-a2",
+            "name": "Café de Flore Experience",
+            "tips": [
+              "Request terrace seating for the best atmosphere",
+              "The hot chocolate is legendary"
+            ],
+            "type": "cafe",
+            "address": "172 Boulevard Saint-Germain, 75006 Paris",
+            "location": "Café de Flore, Saint-Germain-des-Prés",
+            "image_url": "/api/images/wikimedia/ca4b469dc531d5f2edce-500.jpg?a=Celette&l=CC+BY-SA+4.0&f=Caf%C3%A9+de+Flore%2C+172+boulevard+Saint-Germain%2C+Paris+6e.jpg",
+            "time_slot": "afternoon",
+            "start_time": "16:30",
+            "coordinates": {
+              "lat": 48.8541,
+              "lng": 2.3325
+            },
+            "description": "Indulge in classic Parisian café culture at the legendary Café de Flore in Saint-Germain-des-Prés. Order a café crème and watch the world go by from the terrace where Sartre and Simone de Beauvoir once philosophized.",
+            "estimated_cost": {
+              "tier": "moderate",
+              "amount": 25,
+              "currency": "EUR"
+            },
+            "booking_required": false,
+            "duration_minutes": 90,
+            "official_website": "https://www.cafedeflore.fr"
+          },
+          {
+            "id": "paris-d1-a3",
+            "name": "Eiffel Tower at Sunset",
+            "tips": [
+              "Book summit tickets online 60 days in advance",
+              "Arrive 30 mins before your time slot",
+              "The sparkle happens every hour after dark until 11 PM"
+            ],
+            "type": "landmark",
+            "address": "Champ de Mars, 5 Av. Anatole France, 75007 Paris",
+            "location": "Eiffel Tower",
+            "image_url": "/api/images/wikimedia/a3ec24871c4de3854dc9-500.jpg?a=Suicasmo&l=CC+BY-SA+4.0&f=Eiffel+Tower+at+night+20150801-2.jpg",
+            "time_slot": "evening",
+            "start_time": "19:00",
+            "booking_url": "https://www.toureiffel.paris/en",
+            "coordinates": {
+              "lat": 48.8584,
+              "lng": 2.2945
+            },
+            "description": "Ascend the Eiffel Tower as the sun sets over Paris. Watch the city transform from golden hour to twinkling lights. Stay for the hourly sparkle show that illuminates the tower for 5 magical minutes.",
+            "estimated_cost": {
+              "tier": "moderate",
+              "amount": 35,
+              "currency": "EUR"
+            },
+            "booking_required": true,
+            "duration_minutes": 150,
+            "official_website": "https://www.toureiffel.paris"
+          },
+          {
+            "id": "paris-d1-a4",
+            "name": "Romantic Dinner at La Baignoire",
+            "tips": [
+              "Reserve a table by the window",
+              "Try the duck confit or beef bourguignon"
+            ],
+            "type": "restaurant",
+            "address": "25 Rue Vavin, 75006 Paris",
+            "location": "La Baignoire",
+            "image_url": "https://images.pexels.com/photos/14885437/pexels-photo-14885437.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop",
+            "time_slot": "evening",
+            "start_time": "21:30",
+            "coordinates": {
+              "lat": 48.8426,
+              "lng": 2.3295
+            },
+            "description": "End your first day at this charming bistro known for its romantic ambiance, starched white tablecloths, and vintage silverware. The intimate setting is perfect for a quiet dinner featuring refined French classics.",
+            "estimated_cost": {
+              "tier": "moderate",
+              "amount": 80,
+              "currency": "EUR"
+            },
+            "booking_required": true,
+            "duration_minutes": 90
+          }
+        ],
+        "day_number": 1,
+        "daily_budget": {
+          "total": 140,
+          "breakdown": {
+            "food": 105,
+            "transport": 0,
+            "activities": 35
+          }
+        }
+      },
+      {
+        "date": "2027-05-11",
+        "notes": "The Left Bank is the intellectual heart of Paris. Take your time in the museum and savor the gardens.",
+        "theme": "Museums & Luxembourg Gardens",
+        "title": "Art & Gardens of the Left Bank",
+        "activities": [
+          {
+            "id": "paris-d2-a1",
+            "name": "Musée d'Orsay Masterpieces",
+            "tips": [
+              "Book timed entry online to skip the queue",
+              "The café behind the giant clock offers stunning views",
+              "Thursday evenings are open late with live music"
+            ],
+            "type": "museum",
+            "address": "1 Rue de la Légion d'Honneur, 75007 Paris",
+            "location": "Musée d'Orsay",
+            "image_url": "/api/images/wikimedia/0ae1ef94c19be249f7fe-500.jpg?a=Sanchezn&l=CC+BY-SA+3.0&f=MuseeDOrsay.jpg",
+            "time_slot": "morning",
+            "start_time": "09:00",
+            "booking_url": "https://www.musee-orsay.fr",
+            "coordinates": {
+              "lat": 48.86,
+              "lng": 2.3266
+            },
+            "description": "Explore the world's finest collection of Impressionist art in a stunning converted railway station. Marvel at Monet's water lilies, Van Gogh's self-portraits, and Renoir's luminous scenes of Parisian life.",
+            "estimated_cost": {
+              "tier": "moderate",
+              "amount": 16,
+              "currency": "EUR"
+            },
+            "booking_required": true,
+            "duration_minutes": 180,
+            "official_website": "https://www.musee-orsay.fr"
+          },
+          {
+            "id": "paris-d2-a2",
+            "name": "Lunch at Le Comptoir du Panthéon",
+            "tips": [
+              "Request outdoor seating facing the Panthéon",
+              "The croque-monsieur is excellent"
+            ],
+            "type": "restaurant",
+            "address": "5 Rue Soufflot, 75005 Paris",
+            "location": "Le Comptoir du Panthéon",
+            "image_url": null,
+            "time_slot": "afternoon",
+            "start_time": "12:30",
+            "coordinates": {
+              "lat": 48.8462,
+              "lng": 2.3454
+            },
+            "description": "Enjoy lunch at this quintessential Parisian café overlooking the majestic Panthéon. The classic bistro fare and prime people-watching location make it a local favorite.",
+            "estimated_cost": {
+              "tier": "moderate",
+              "amount": 35,
+              "currency": "EUR"
+            },
+            "booking_required": false,
+            "duration_minutes": 90
+          },
+          {
+            "id": "paris-d2-a3",
+            "name": "Luxembourg Gardens Romance",
+            "tips": [
+              "Sailboat rental is 5 EUR and incredibly romantic",
+              "The beekeeping school sometimes sells honey",
+              "Find the Statue of Liberty replica hidden in the garden"
+            ],
+            "type": "park",
+            "address": "Jardin du Luxembourg, 75006 Paris",
+            "location": "Luxembourg Gardens",
+            "image_url": "/api/images/wikimedia/2dbce69037bf5de3500a-500.jpg?a=Kirua&l=Public+domain&f=LuxembourgMontparnasse+2.jpg",
+            "time_slot": "afternoon",
+            "start_time": "14:30",
+            "coordinates": {
+              "lat": 48.8462,
+              "lng": 2.3371
+            },
+            "description": "Wander through Paris's most beloved garden. Rent traditional sailboats at the fountain, admire the Medici Fountain's romantic grotto, and find a quiet bench in the English garden section.",
+            "estimated_cost": {
+              "tier": "free",
+              "amount": 0,
+              "currency": "EUR"
+            },
+            "booking_required": false,
+            "duration_minutes": 120,
+            "official_website": "https://www.senat.fr/visite/jardin"
+          },
+          {
+            "id": "paris-d2-a4",
+            "name": "Saint-Sulpice Church",
+            "tips": [
+              "The organ concerts on Sundays are spectacular",
+              "Look for the brass meridian line on the floor"
+            ],
+            "type": "cultural",
+            "address": "2 Rue Palatine, 75006 Paris",
+            "location": "Église Saint-Sulpice",
+            "image_url": "/api/images/wikimedia/75976316a95f1df5ed00-500.jpg?a=Zairon&l=CC+BY-SA+4.0&f=Paris+Saint-Sulpice+Fassade+4-5+A.jpg",
+            "time_slot": "evening",
+            "start_time": "17:00",
+            "coordinates": {
+              "lat": 48.851,
+              "lng": 2.3346
+            },
+            "description": "Visit this magnificent church featured in The Da Vinci Code. Admire Delacroix's stunning murals and the famous gnomon, an astronomical instrument built into the floor.",
+            "estimated_cost": {
+              "tier": "free",
+              "amount": 0,
+              "currency": "EUR"
+            },
+            "booking_required": false,
+            "duration_minutes": 90
+          },
+          {
+            "id": "paris-d2-a5",
+            "name": "Dinner at Verjus",
+            "tips": [
+              "Book weeks in advance for the main dining room",
+              "The hidden wine bar downstairs serves small plates"
+            ],
+            "type": "restaurant",
+            "address": "52 Rue de Richelieu, 75001 Paris",
+            "location": "Verjus",
+            "image_url": null,
+            "time_slot": "evening",
+            "start_time": "19:30",
+            "booking_url": "https://verjusparis.com",
+            "coordinates": {
+              "lat": 48.8675,
+              "lng": 2.3387
+            },
+            "description": "Experience farm-to-table excellence at this intimate restaurant by American chefs. The seasonal tasting menu changes nightly and features produce from their own garden.",
+            "estimated_cost": {
+              "tier": "expensive",
+              "amount": 98,
+              "currency": "EUR"
+            },
+            "booking_required": true,
+            "duration_minutes": 120
+          }
+        ],
+        "day_number": 2,
+        "daily_budget": {
+          "total": 149,
+          "breakdown": {
+            "food": 133,
+            "transport": 0,
+            "activities": 16
+          }
+        }
+      },
+      {
+        "date": "2027-05-12",
+        "theme": "Artistic Heart of Paris",
+        "title": "Montmartre: Art, Views & Bohemian Spirit",
+        "activities": [
+          {
+            "id": "paris-d3-a1",
+            "name": "Sunrise at Sacré-Cœur",
+            "tips": [
+              "Arrive by 8:30 AM for the least crowds",
+              "The dome climb costs 8 EUR but offers 360 degree views"
+            ],
+            "type": "landmark",
+            "address": "35 Rue du Chevalier de la Barre, 75018 Paris",
+            "location": "Sacré-Cœur Basilica",
+            "image_url": "/api/images/wikimedia/f704f673841585d66b0c-500.jpg?a=Yannpassays&l=Public+domain&f=Basilique+de+nuit.JPG",
+            "time_slot": "morning",
+            "start_time": "09:00",
+            "coordinates": {
+              "lat": 48.8867,
+              "lng": 2.3431
+            },
+            "description": "Start early to climb to the Sacré-Cœur Basilica before the crowds. The panoramic view of Paris from the steps is breathtaking in the morning light.",
+            "estimated_cost": {
+              "tier": "free",
+              "amount": 0,
+              "currency": "EUR"
+            },
+            "booking_required": false,
+            "duration_minutes": 60,
+            "official_website": "https://www.sacre-coeur-montmartre.com"
+          },
+          {
+            "id": "paris-d3-a2",
+            "name": "Montmartre Walking Tour",
+            "tips": [
+              "Walk down Rue de l'Abreuvoir - Paris's most beautiful street",
+              "Avoid the scam artists with bracelets near Sacré-Cœur"
+            ],
+            "type": "activity",
+            "address": "Place du Tertre, 75018 Paris",
+            "location": "Montmartre Quarter",
+            "image_url": "/api/images/wikimedia/8ffe859e9203c1e6a8c4-500.jpg?a=Christophe+Meneboeuf&l=CC+BY-SA+3.0&f=Montmarte+2+%28pixinn.net%29.jpg",
+            "time_slot": "morning",
+            "start_time": "10:30",
+            "coordinates": {
+              "lat": 48.8864,
+              "lng": 2.3408
+            },
+            "description": "Explore the winding streets where Picasso, Van Gogh, and Toulouse-Lautrec once lived. Visit Place du Tertre with its portrait artists and discover the Wall of Love.",
+            "estimated_cost": {
+              "tier": "free",
+              "amount": 0,
+              "currency": "EUR"
+            },
+            "booking_required": false,
+            "duration_minutes": 150
+          },
+          {
+            "id": "paris-d3-a3",
+            "name": "Lunch at Le Pantruche",
+            "tips": [
+              "The lunch menu is excellent value at 22 EUR",
+              "Leave room for the desserts"
+            ],
+            "type": "restaurant",
+            "address": "3 Rue Victor Massé, 75009 Paris",
+            "location": "Le Pantruche",
+            "image_url": null,
+            "time_slot": "afternoon",
+            "start_time": "13:00",
+            "coordinates": {
+              "lat": 48.881,
+              "lng": 2.3373
+            },
+            "description": "A relaxed Neo-bistro combining authentic setting with modern twists on classic French cuisine.",
+            "estimated_cost": {
+              "tier": "moderate",
+              "amount": 35,
+              "currency": "EUR"
+            },
+            "booking_required": true,
+            "duration_minutes": 90
+          },
+          {
+            "id": "paris-d3-a4",
+            "name": "Musée de Montmartre & Renoir Gardens",
+            "tips": [
+              "The garden café is perfect for afternoon refreshments"
+            ],
+            "type": "museum",
+            "address": "12 Rue Cortot, 75018 Paris",
+            "location": "Musée de Montmartre",
+            "image_url": "/api/images/wikimedia/4459888c7cfd90f0e53f-500.jpg?a=Mus%C3%A9e+de+Montmartre&l=CC+BY-SA+3.0&f=Mus%C3%A9e+de+Montmartre+-+maison+du+Bel+Air.jpg",
+            "time_slot": "afternoon",
+            "start_time": "15:00",
+            "coordinates": {
+              "lat": 48.8878,
+              "lng": 2.3406
+            },
+            "description": "Discover the history of Montmartre in the oldest house on the hill, where Renoir once had his studio.",
+            "estimated_cost": {
+              "tier": "moderate",
+              "amount": 15,
+              "currency": "EUR"
+            },
+            "booking_required": false,
+            "duration_minutes": 90,
+            "official_website": "https://museedemontmartre.fr"
+          },
+          {
+            "id": "paris-d3-a5",
+            "name": "Moulin Rouge Cabaret Show",
+            "tips": [
+              "Book the dinner + show package for the full experience",
+              "Dress code is smart casual"
+            ],
+            "type": "entertainment",
+            "address": "82 Boulevard de Clichy, 75018 Paris",
+            "location": "Moulin Rouge",
+            "image_url": "/api/images/wikimedia/8ded6b90084cc9a3bf82-500.jpg?a=Juanedc&l=CC+BY+2.0&f=Moulin+Rouge%2C+17+April+2011.jpg",
+            "time_slot": "evening",
+            "start_time": "19:00",
+            "booking_url": "https://www.moulinrouge.fr",
+            "coordinates": {
+              "lat": 48.8841,
+              "lng": 2.3323
+            },
+            "description": "Experience the world-famous Moulin Rouge cabaret, birthplace of the can-can.",
+            "estimated_cost": {
+              "tier": "expensive",
+              "amount": 120,
+              "currency": "EUR"
+            },
+            "booking_required": true,
+            "duration_minutes": 120,
+            "official_website": "https://www.moulinrouge.fr"
+          }
+        ],
+        "day_number": 3,
+        "daily_budget": {
+          "total": 170,
+          "breakdown": {
+            "food": 35,
+            "transport": 0,
+            "activities": 135
+          }
+        }
+      }
+    ],
+    "language": "en",
+    "timezone": "Europe/Paris",
+    "trip_summary": {
+      "total_estimated_cost": 900,
+      "currency": "EUR",
+      "highlights": [
+        "Iconic Paris Introduction",
+        "Museums & Luxembourg Gardens",
+        "Artistic Heart of Paris"
+      ],
+      "packing_suggestions": [
+        "Passport and travel documents",
+        "Comfortable walking shoes",
+        "Light layers for variable weather",
+        "Smart casual evening wear",
+        "Universal power adapter",
+        "Camera with extra memory cards",
+        "Compact umbrella",
+        "Sunglasses and sunscreen"
+      ]
+    },
+    "booking_links": {
+      "flights": [
+        {
+          "provider": "Skyscanner",
+          "url": "https://www.skyscanner.net/transport/flights-to/pari/",
+          "label": "Flights to Paris"
+        }
+      ],
+      "hotels": [
+        {
+          "provider": "Booking.com",
+          "url": "https://www.booking.com/searchresults.html?ss=Paris",
+          "label": "Hotels in Paris"
+        }
+      ]
+    }
+  },
+  "destination": "Paris, France",
+  "startDate": "2027-05-10",
+  "endDate": "2027-05-12",
+  "pace": "moderate",
+  "vibes": [
+    "cultural",
+    "foodie"
+  ],
+  "budgetTier": "balanced",
+  "travelStyle": "classic",
+  "anchors": [],
+  "mustDos": [],
+  "dietary": [],
+  "tripIntent": "unspecified",
+  "flexibleDates": false
+}
