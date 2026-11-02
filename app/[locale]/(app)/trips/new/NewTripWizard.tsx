@@ -195,7 +195,7 @@ import { clearClaimedTrip, onClaimedTrip, readClaimedTrip } from "@/lib/trips/cl
 import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim-client";
 import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
 import { decideDraftRestore } from "@/lib/wizard/draft-restore";
-import { applyDraft, applyKeptPlan } from "@/lib/wizard/apply-draft";
+import { applyDraft, applyKeptPlan, type DraftTargets } from "@/lib/wizard/apply-draft";
 import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
 import {
   classifyGenerationFailure,
@@ -1166,33 +1166,39 @@ export default function NewTripPage({
   const draftIsSavedTrip =
     draftSavedCheck && draftSavedCheck.key === draftCheckKey ? draftSavedCheck.saved : null;
 
+  // What a restored draft or an opened kept plan fills in.
+  const draftTargets: DraftTargets = useMemo(
+    () => ({
+      setDestination,
+      setStartDate,
+      setEndDate,
+      setPace,
+      setSelectedVibes,
+      setBudgetTier,
+      setMustDos,
+      setDietary,
+      setTravelStyle,
+      setAnchors,
+      setTripIntent,
+      setFlexibleDates,
+      setGeneratedItinerary,
+      registerRestore: registerSessionRestore,
+    }),
+    [setGeneratedItinerary, registerSessionRestore]
+  );
+
   // Put a stored draft back into the wizard: the silent restore below and the
   // banner's Restore both come through here.
   const applyStoredDraft = useCallback(
     (stored: ItineraryDraft) => {
-      applyDraft(stored, {
-        setDestination,
-        setStartDate,
-        setEndDate,
-        setPace,
-        setSelectedVibes,
-        setBudgetTier,
-        setMustDos,
-        setDietary,
-        setTravelStyle,
-        setAnchors,
-        setTripIntent,
-        setFlexibleDates,
-        setGeneratedItinerary,
-        registerRestore: registerSessionRestore,
-      });
+      applyDraft(stored, draftTargets);
       void trackWizardEvent("draft_restored", {
         destination: stored.destination,
         duration_days: stored.generatedItinerary?.days.length,
         locale,
       });
     },
-    [setGeneratedItinerary, registerSessionRestore, locale]
+    [draftTargets, locale]
   );
 
   // Check for unsaved draft on mount - AUTO-RESTORE it for a signed-in user.
@@ -1259,21 +1265,11 @@ export default function NewTripPage({
     };
   }, [hasDraft, draft, generatedItinerary, draftAutoRestored, applyStoredDraft, isAuthenticated, savedTripId, draftIsSavedTrip, clearDraft]);
 
-  // Keep a draft of the itinerary until the trip is saved, then none.
-  //
-  // Once the trip exists, the row is the copy that survives: the auto-save arm
-  // UPDATEs it on every edit. A draft written after that has no link to the
-  // row, so a later visit to the wizard would auto-restore it and the
-  // auto-save arm would insert it as a second trip. So a saved trip clears the
-  // draft instead.
-  useEffect(() => {
-    if (!generatedItinerary) return;
-    if (savedTripId) {
-      clearDraft();
-      return;
-    }
-    saveDraft({
-      generatedItinerary,
+  // Every answer on the form, which a draft keeps beside the itinerary so a
+  // restore (after sign-in, a reload, a failed generation) puts them all back.
+  // A field left out here is silently lost on that round trip.
+  const draftFields = useMemo(
+    () => ({
       destination,
       startDate,
       endDate,
@@ -1286,12 +1282,29 @@ export default function NewTripPage({
       dietary,
       tripIntent,
       flexibleDates,
-    });
-    // tripIntent belongs here: without it the effect doesn't re-run when the
-    // user changes "Who's coming?" after generating, and the draft keeps the
-    // stale answer — which would quietly corrupt the very measurement this
-    // field exists to produce. Same for mustDos and dietary.
-  }, [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, dietary, tripIntent, flexibleDates, saveDraft, savedTripId, clearDraft]);
+    }),
+    [destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, anchors, mustDos, dietary, tripIntent, flexibleDates]
+  );
+
+  // Keep a draft of the itinerary until the trip is saved, then none.
+  //
+  // Once the trip exists, the row is the copy that survives: the auto-save arm
+  // UPDATEs it on every edit. A draft written after that has no link to the
+  // row, so a later visit to the wizard would auto-restore it and the
+  // auto-save arm would insert it as a second trip. So a saved trip clears the
+  // draft instead.
+  //
+  // draftFields changes with any answer, so a "Who's coming?" changed after
+  // generating reaches the draft too; a stale one would corrupt the very
+  // measurement that field exists for.
+  useEffect(() => {
+    if (!generatedItinerary) return;
+    if (savedTripId) {
+      clearDraft();
+      return;
+    }
+    saveDraft({ generatedItinerary, ...draftFields });
+  }, [generatedItinerary, draftFields, saveDraft, savedTripId, clearDraft]);
 
   // ── Auto-save trip orchestration ────
   // The hook owns the save state machine: INSERT-or-UPDATE, the in-flight save
@@ -1597,21 +1610,7 @@ export default function NewTripPage({
   // round-trip.
   const openKeepAuth = (location: AuthPromptLocation) => {
     if (generatedItinerary) {
-      saveDraft({
-        generatedItinerary,
-        destination,
-        startDate,
-        endDate,
-        pace,
-        vibes: selectedVibes,
-        budgetTier,
-        travelStyle,
-        mustDos,
-        dietary,
-        anchors,
-        tripIntent,
-        flexibleDates,
-      });
+      saveDraft({ generatedItinerary, ...draftFields });
     }
     setAuthPromptLocation(location);
     setAuthPromptReason("save");
@@ -1810,24 +1809,7 @@ export default function NewTripPage({
     setShowDraftRecovery(false);
     applyKeptPlan(
       plan,
-      {
-        setDestination,
-        setStartDate,
-        setEndDate,
-        setPace,
-        setSelectedVibes,
-        setBudgetTier,
-        setMustDos,
-        setDietary,
-        setTravelStyle,
-        setAnchors,
-        setTripIntent,
-        setFlexibleDates,
-        setGeneratedItinerary,
-        setDestinationCoords,
-        setMultiCityMode,
-        registerRestore: registerSessionRestore,
-      },
+      { ...draftTargets, setDestinationCoords, setMultiCityMode },
       { pace, vibes: selectedVibes, budgetTier }
     );
     void capture("kept_plan_opened", { source });
@@ -2318,18 +2300,7 @@ export default function NewTripPage({
         generatedItinerary: (isSameDestination(draft?.destination, destination)
           ? draft?.generatedItinerary ?? null
           : null) as unknown as GeneratedItinerary,
-        destination,
-        startDate,
-        endDate,
-        pace,
-        vibes: selectedVibes,
-        budgetTier,
-        travelStyle,
-        anchors,
-        mustDos,
-        dietary,
-        tripIntent,
-        flexibleDates,
+        ...draftFields,
       });
     }
 
@@ -2619,28 +2590,7 @@ export default function NewTripPage({
         // account. The draft logic (saveDraft + pendingTripGeneration flag)
         // persists the trip so it'll be restored after signup.
         if (generatedItinerary) {
-          saveDraft({
-            generatedItinerary,
-            destination,
-            startDate,
-            endDate,
-            pace,
-            vibes: selectedVibes,
-            budgetTier,
-            // Backpacker mode must survive the auth round trip, like the
-            // generate-time draft write; without it the post-signup restore
-            // silently drops the flag.
-            travelStyle,
-            // Same for the must-do wishlist and the diet.
-            mustDos,
-            dietary,
-            // Same for anchors: without this, the post-signup save would
-            // silently drop trip_meta.anchors.
-            anchors,
-            // ...and the same for the "Who's coming?" answer.
-            tripIntent,
-            flexibleDates,
-          });
+          saveDraft({ generatedItinerary, ...draftFields });
         }
         // Funnel disambiguation: without this event we can't tell "user
         // bounced at auth wall" from "save genuinely errored" in the
