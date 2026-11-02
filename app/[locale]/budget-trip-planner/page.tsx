@@ -2,15 +2,8 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import FromTheBlog from '@/components/blog/FromTheBlog';
 import LiveStats from '@/components/stats/LiveStats';
-import {
-  generateFAQSchema,
-  generateBreadcrumbSchema,
-  generateWebPageSchema,
-  jsonLdScriptProps,
-} from '@/lib/seo/structured-data';
 import LastUpdated from '@/components/seo/LastUpdated';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import type { Metadata } from 'next';
 import LandingWhatIs from '@/components/landing/LandingWhatIs';
 import LandingFeatures, { type LandingFeature } from '@/components/landing/LandingFeatures';
 import LandingHowItWorks from '@/components/landing/LandingHowItWorks';
@@ -18,8 +11,9 @@ import LandingFaq from '@/components/landing/LandingFaq';
 import LandingHero from '@/components/landing/LandingHero';
 import LandingComparison from '@/components/landing/LandingComparison';
 import LandingFinalCta from '@/components/landing/LandingFinalCta';
+import LandingStructuredData from '@/components/landing/LandingStructuredData';
+import { landingMetadata } from '@/lib/seo/landing-metadata';
 
-const BASE_URL = 'https://monkeytravel.app';
 /**
  * Content freshness signal. Bump ONLY when this page's copy actually
  * changes — never automate it. A date that moves on every build tells Google
@@ -53,54 +47,7 @@ const META: Record<string, { title: string; description: string }> = {
   },
 };
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
-  const { locale } = await params;
-  const meta = META[locale] || META.en;
-  const prefix = locale === 'en' ? '' : `/${locale}`;
-
-  return {
-    // `absolute` opts out of the root "%s | MonkeyTravel" template.
-    // These pages target generic commercial terms where the brand buys
-    // nothing and costs 15 of ~60 rendered characters. Homepage keeps it.
-    title: { absolute: meta.title },
-    description: meta.description,
-    alternates: {
-      canonical: `${BASE_URL}${prefix}${PAGE_PATH}`,
-      languages: {
-        en: `${BASE_URL}${PAGE_PATH}`,
-        es: `${BASE_URL}/es${PAGE_PATH}`,
-        it: `${BASE_URL}/it${PAGE_PATH}`,
-        pt: `${BASE_URL}/pt${PAGE_PATH}`,
-        'x-default': `${BASE_URL}${PAGE_PATH}`,
-      },
-    },
-    openGraph: {
-      siteName: "MonkeyTravel",
-      title: meta.title,
-      description: meta.description,
-      type: 'website',
-      url: `${BASE_URL}${prefix}${PAGE_PATH}`,
-      images: [
-        {
-          url: `${BASE_URL}/og-image.png`,
-          width: 1200,
-          height: 630,
-          alt: 'MonkeyTravel — Budget Trip Planner',
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: meta.title,
-      description: meta.description,
-      images: [`${BASE_URL}/og-image.png`],
-    },
-  };
-}
+export const generateMetadata = landingMetadata(META, PAGE_PATH, 'MonkeyTravel — Budget Trip Planner');
 
 const FEATURES: LandingFeature[] = [
   {
@@ -197,7 +144,6 @@ export default async function BudgetTripPlannerPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('budgetTripPlanner');
-  const prefix = locale === 'en' ? '' : `/${locale}`;
 
   // Build FAQ data
   const faqItems = FAQ_KEYS.map((key) => ({
@@ -205,28 +151,14 @@ export default async function BudgetTripPlannerPage({
     answer: t(`faq.items.${key}.answer`),
   }));
 
-  // Build breadcrumb data
-  const breadcrumbItems = [
-    { name: t('breadcrumbs.home'), url: `${BASE_URL}${prefix}` },
-    {
-      name: t('breadcrumbs.budgetTripPlanner'),
-      url: `${BASE_URL}${prefix}${PAGE_PATH}`,
-    },
-  ];
-
-
   return (
     <>
-      <script
-        {...jsonLdScriptProps([
-          generateFAQSchema(faqItems),
-          generateBreadcrumbSchema(breadcrumbItems),
-          generateWebPageSchema({
-            name: breadcrumbItems[breadcrumbItems.length - 1].name,
-            url: breadcrumbItems[breadcrumbItems.length - 1].url,
-            dateModified: CONTENT_UPDATED,
-          }),
-        ])}
+      <LandingStructuredData
+        namespace="budgetTripPlanner"
+        locale={locale}
+        path={PAGE_PATH}
+        contentUpdated={CONTENT_UPDATED}
+        faqItems={faqItems}
       />
 
       <Navbar />
