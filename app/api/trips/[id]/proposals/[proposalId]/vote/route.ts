@@ -3,13 +3,14 @@ import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 import type { TripProposalRouteContext } from "@/lib/api/route-context";
-import type { ProposalVote, ProposalVoteType } from "@/types";
+import type { ProposalVoteType } from "@/types";
 import { calculateProposalConsensus } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING } from "@/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { approveProposal } from "@/lib/proposals/approve";
 import { readJsonBody } from "@/lib/api/json-body";
 import { requireRow } from "@/lib/api/require-row";
+import { VOTE_COLUMNS, toProposalVote } from "@/lib/proposals/read";
 
 /**
  * GET /api/trips/[id]/proposals/[proposalId]/vote
@@ -39,19 +40,9 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
       .single(), "Proposal not found");
     if (proposalError) return proposalError;
 
-    // Fetch votes with user info
     const { data: votes, error } = await supabase
       .from("proposal_votes")
-      .select(`
-        id,
-        proposal_id,
-        user_id,
-        vote_type,
-        comment,
-        rank,
-        voted_at,
-        updated_at
-      `)
+      .select(VOTE_COLUMNS)
       .eq("proposal_id", proposalId)
       .order("voted_at", { ascending: true });
 
@@ -60,37 +51,11 @@ export async function GET(request: NextRequest, context: TripProposalRouteContex
       return errors.internal("Failed to fetch votes", "Proposal Vote");
     }
 
-    // Transform to include user info at top level
-    // Voter names come from public_profiles rather than an embed on users.
-    // The people who voted on a proposal are by definition not the caller, and
-    // public.users only exposes the caller's own row — an embed there would not
-    // error, it would return null for everyone and silently label the whole
-    // crew "Unknown".
-    const profileMap = await batchFetchUserProfiles(
+    const profiles = await batchFetchUserProfiles(
       supabase,
       (votes || []).map((v) => v.user_id as string)
     );
-
-    const transformedVotes: ProposalVote[] = (votes || []).map((v) => {
-      const profile = profileMap.get(v.user_id as string) ?? null;
-
-      return {
-        id: v.id,
-        proposal_id: v.proposal_id,
-        user_id: v.user_id,
-        vote_type: v.vote_type as ProposalVoteType,
-        comment: v.comment,
-        rank: v.rank,
-        voted_at: v.voted_at,
-        updated_at: v.updated_at,
-        user: profile
-          ? {
-              display_name: profile.display_name || "Unknown",
-              avatar_url: profile.avatar_url || undefined,
-            }
-          : undefined,
-      };
-    });
+    const transformedVotes = (votes || []).map((v) => toProposalVote(v, profiles));
 
     // Get current user's vote
     const currentUserVote = transformedVotes.find(
@@ -186,16 +151,7 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
           comment: comment?.trim() || null,
         })
         .eq("id", existingVote.id)
-        .select(`
-          id,
-          proposal_id,
-          user_id,
-          vote_type,
-          comment,
-          rank,
-          voted_at,
-          updated_at
-        `)
+        .select(VOTE_COLUMNS)
         .single();
 
       if (updateError) {
@@ -213,16 +169,7 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
           vote_type: voteType,
           comment: comment?.trim() || null,
         })
-        .select(`
-          id,
-          proposal_id,
-          user_id,
-          vote_type,
-          comment,
-          rank,
-          voted_at,
-          updated_at
-        `)
+        .select(VOTE_COLUMNS)
         .single();
 
       if (insertError) {
