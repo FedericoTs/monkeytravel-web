@@ -53,6 +53,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isDmarcReport } from "@/lib/email/inbound-alerts";
 import { unsubKeyToSettingPatch } from "@/lib/email/unsubscribe";
+import { adminEmails } from "@/lib/admin";
 
 const WEBHOOK_SECRET = process.env.RESEND_WEBHOOK_SECRET;
 
@@ -331,7 +332,7 @@ export async function POST(request: NextRequest) {
   // would silently disable our own alerting. Ops alerts must not be
   // suppressible by the thing they are alerting about.
   if (eventType === "email.received") {
-    const alertTo = process.env.INBOUND_ALERT_TO || "federicosciuca@gmail.com";
+    const alertTo = process.env.INBOUND_ALERT_TO || adminEmails()[0];
     const inboundFrom = String(payload.data?.from ?? "unknown sender");
     const inboundTo = (payload.data?.to ?? []).join(", ") || "unknown recipient";
     const inboundSubject = String(payload.data?.subject ?? "(no subject)");
@@ -361,6 +362,11 @@ export async function POST(request: NextRequest) {
     if (/@monkeytravel\.app>?\s*$/i.test(inboundFrom.trim())) {
       console.log("[resend-webhook] inbound from own domain — not alerting", inboundFrom);
       return NextResponse.json({ ok: true, ignored: "inbound_self" });
+    }
+
+    if (!alertTo) {
+      console.error("[resend-webhook] no INBOUND_ALERT_TO or ADMIN_EMAILS — cannot alert on inbound");
+      return NextResponse.json({ ok: true, alerted: false, reason: "no recipient" });
     }
 
     try {

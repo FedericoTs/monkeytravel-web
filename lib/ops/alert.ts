@@ -1,5 +1,5 @@
 import { sendEmail } from "@/lib/email/client";
-import { ADMIN_EMAILS } from "@/lib/admin";
+import { adminEmails } from "@/lib/admin";
 
 const escapeHtml = (s: string) =>
   s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c] as string);
@@ -9,9 +9,13 @@ const escapeHtml = (s: string) =>
  * also appears in the runtime error view. Returns whether the email was sent.
  */
 export async function sendOpsAlert(subject: string, lines: string[]): Promise<boolean> {
-  const to = process.env.OPS_ALERT_EMAIL || ADMIN_EMAILS[0];
+  const to = process.env.OPS_ALERT_EMAIL || adminEmails()[0];
   const text = lines.join("\n");
   console.error(`[ops-alert] ${subject}\n${text}`);
+  if (!to) {
+    console.error("[ops-alert] no recipient: set OPS_ALERT_EMAIL or ADMIN_EMAILS");
+    return false;
+  }
   const result = await sendEmail({
     to,
     subject: `[MonkeyTravel ops] ${subject}`,
