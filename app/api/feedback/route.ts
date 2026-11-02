@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { verifyFeedbackToken } from "@/lib/feedback/token";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * POST /api/feedback
@@ -50,12 +51,8 @@ function clean(v: unknown, max = 2000): string | null {
 export async function POST(request: NextRequest) {
   const { user } = await getAuthenticatedUser();
 
-  let body: Record<string, unknown>;
-  try {
-    body = await request.json();
-  } catch {
-    return errors.badRequest("Invalid JSON");
-  }
+  const { body, invalidBody } = await readJsonBody<Record<string, unknown>>(request);
+  if (invalidBody) return invalidBody;
 
   // Identity: a signed email-link token wins (the /feedback/[token] page has
   // no session), else the logged-in user. A present-but-invalid/expired token

@@ -13,6 +13,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { normalizeActivityKey } from "@/lib/images/activity";
 import { cachedLandmarkPhotos } from "@/lib/images/landmark-photos";
+import { readJsonBody } from "@/lib/api/json-body";
 
 const limiter = createRateLimiter("landmark-photos", 60, 60_000);
 
@@ -25,12 +26,8 @@ export async function POST(request: NextRequest) {
   const { allowed } = await limiter.check(request);
   if (!allowed) return errors.rateLimit();
 
-  let body: { destination?: unknown; names?: unknown };
-  try {
-    body = await request.json();
-  } catch {
-    return errors.badRequest("Invalid JSON");
-  }
+  const { body, invalidBody } = await readJsonBody<{ destination?: unknown; names?: unknown }>(request);
+  if (invalidBody) return invalidBody;
   const { destination, names } = body;
   if (!isText(destination) || !Array.isArray(names) || names.length === 0 || names.length > MAX_NAMES || !names.every(isText)) {
     return errors.badRequest(`A destination and 1-${MAX_NAMES} names are required`);

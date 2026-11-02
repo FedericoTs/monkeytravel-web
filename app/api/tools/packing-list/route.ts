@@ -8,6 +8,7 @@ import {
   type PackingCategoryId,
 } from "@/lib/ai/packing-list";
 import { createClient } from "@/lib/supabase/server";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * POST /api/tools/packing-list
@@ -108,12 +109,8 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  let body: Record<string, unknown>;
-  try {
-    body = await request.json();
-  } catch {
-    return errors.badRequest("Body must be valid JSON");
-  }
+  const { body, invalidBody } = await readJsonBody<Record<string, unknown>>(request);
+  if (invalidBody) return invalidBody;
 
   const destination = typeof body.destination === "string" ? body.destination.trim() : "";
   const startDate = typeof body.startDate === "string" ? body.startDate : "";

@@ -19,6 +19,7 @@ import { buildShareUrl } from "@/lib/trips/share-url";
 import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { enrichTripByIdAdmin } from "@/lib/images/enrichTrip";
+import { readJsonBody } from "@/lib/api/json-body";
 
 const BodySchema = z.object({ s: z.string().max(100) });
 
@@ -28,12 +29,8 @@ interface RouteContext {
 
 export async function POST(request: NextRequest, { params }: RouteContext) {
   const { tripId, date } = await params;
-  let raw: unknown;
-  try {
-    raw = await request.json();
-  } catch {
-    return errors.badRequest("Body must be valid JSON");
-  }
+  const { body: raw, invalidBody } = await readJsonBody<unknown>(request);
+  if (invalidBody) return invalidBody;
   const parsed = BodySchema.safeParse(raw);
   if (!parsed.success) return errors.badRequest("Missing send key");
 

@@ -23,6 +23,7 @@ import {
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { requireRow } from "@/lib/api/require-row";
+import { readJsonBody } from "@/lib/api/json-body";
 
 interface ApplyChangeRequest {
   tripId: string;
@@ -63,12 +64,8 @@ export async function POST(request: NextRequest) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    let body: ApplyChangeRequest;
-    try {
-      body = (await request.json()) as ApplyChangeRequest;
-    } catch {
-      return errors.badRequest("Body must be valid JSON");
-    }
+    const { body, invalidBody } = await readJsonBody<ApplyChangeRequest>(request);
+    if (invalidBody) return invalidBody;
     const { tripId, changeType, oldActivity, newActivity, dayNumber, activity, oldDuration, newDuration, activities, day, days, shiftByDays, conversationId } = body;
 
     // Validate based on change type.

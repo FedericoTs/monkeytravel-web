@@ -38,6 +38,7 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { extractBooking, isParseError } from "@/lib/email-parse/extract";
 import type { TripRouteContext } from "@/lib/api/route-context";
+import { readJsonBody } from "@/lib/api/json-body";
 
 // 20 parses / min / IP — generous for a human pasting a sequence of
 // confirmations, low enough to keep a scripted attacker off the Gemini
@@ -93,12 +94,8 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     }
 
     // Parse + validate body.
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return errors.badRequest("Invalid JSON body");
-    }
+    const { body, invalidBody } = await readJsonBody<unknown>(request);
+    if (invalidBody) return invalidBody;
     const emailBody =
       body && typeof body === "object" && "emailBody" in body
         ? (body as { emailBody: unknown }).emailBody
