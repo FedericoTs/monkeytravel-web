@@ -19,6 +19,8 @@
  * for an honest one, which costs little.
  */
 
+import { resolveAiLanguage, type SupportedLanguage } from "@/lib/ai/language";
+
 const L = "\\p{L}";
 /** Word boundaries that also hold around accented letters (JS \b is ASCII-only). */
 const start = `(?<![${L}'’])`;
@@ -163,14 +165,8 @@ export function isConfirmation(message: string | null | undefined): boolean {
   return t.split(/[^\p{L}\p{N}'’]+/u).filter(Boolean).length <= 4 && YES.test(t);
 }
 
-type Lang = "en" | "es" | "it" | "pt";
-const lang = (language: string | undefined): Lang => {
-  const l = (language || "en").slice(0, 2).toLowerCase();
-  return l === "es" || l === "it" || l === "pt" ? l : "en";
-};
-
 // Short words each language uses all the time and the others rarely do.
-const COMMON_WORDS: Record<Lang, Set<string>> = {
+const COMMON_WORDS: Record<SupportedLanguage, Set<string>> = {
   en: new Set("the and your you with this here have has is are to of for on at day days added from will can".split(" ")),
   es: new Set("el los las del y para con tu tus aquí día días más muy he está son es por una un al como también hay".split(" ")),
   it: new Set("il gli della delle dei che ho ecco più molto per giorno giorni è sono una un tuo tua ai anche alla nel con".split(" ")),
@@ -181,9 +177,9 @@ const COMMON_WORDS: Record<Lang, Set<string>> = {
  * The language a reply is written in, or undefined when unsure. The model
  * answers in the traveller's language, which can differ from the plan's.
  */
-export function replyLanguage(text: string): Lang | undefined {
+export function replyLanguage(text: string): SupportedLanguage | undefined {
   const words = text.toLowerCase().split(/[^\p{L}]+/u).filter(Boolean);
-  const scores = (Object.keys(COMMON_WORDS) as Lang[])
+  const scores = (Object.keys(COMMON_WORDS) as SupportedLanguage[])
     .map((l) => ({ l, n: words.filter((w) => COMMON_WORDS[l].has(w)).length }))
     .sort((a, b) => b.n - a.n);
   return scores[0].n >= 2 && scores[0].n >= 1.5 * scores[1].n ? scores[0].l : undefined;
@@ -195,7 +191,7 @@ export function replyLanguage(text: string): Lang | undefined {
  * a chat example, because the action parser only understands English commands.
  */
 export function nothingChangedReply(language: string | undefined): string {
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return 'No he cambiado tu itinerario: no he podido hacer ese cambio desde aquí. Puedes hacerlo tú con "Editar Viaje".';
     case "it":
@@ -212,7 +208,7 @@ export function nothingChangedReply(language: string | undefined): string {
  * concierge streams its words before it knows whether the change came with them.
  */
 export function noProposalNote(language: string | undefined): string {
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return "(Este cambio no está listo: no hay nada que confirmar. Pídemelo de nuevo con el día y la actividad.)";
     case "it":
@@ -226,7 +222,7 @@ export function noProposalNote(language: string | undefined): string {
 
 /** The reply when a change is prepared but waits for the Apply button. */
 export function pendingChangeReply(language: string | undefined, buttonLabel: string): string {
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return `He preparado este cambio. No se guarda nada hasta que toques "${buttonLabel}" abajo.`;
     case "it":
@@ -244,7 +240,7 @@ export function pendingChangeReply(language: string | undefined, buttonLabel: st
  * language, so the example is the traveller's own.
  */
 export function wizardNothingChangedReply(language: string | undefined): string {
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return 'No he cambiado tu plan: no he podido hacer ese cambio. Prueba a pedírmelo día por día, por ejemplo "haz que el día 3 sea de avistamiento de ballenas".';
     case "it":
@@ -262,7 +258,7 @@ export function wizardNothingChangedReply(language: string | undefined): string 
  */
 export function uncoveredDaysNote(language: string | undefined, covered: number[], uncovered: number[]): string {
   const list = (ns: number[]) => ns.join(", ");
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return `(Este cambio incluye solo el día ${list(covered)}. Pídeme el día ${list(uncovered)} si también quieres cambiarlo.)`;
     case "it":
@@ -280,7 +276,7 @@ export function uncoveredDaysNote(language: string | undefined, covered: number[
  * label is the wizard's button (trips.assistant.apply in each locale).
  */
 export function notAppliedLead(language: string | undefined): string {
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return 'Aún no aplicado: toca "Aplicar cambio" abajo para actualizar tu plan.';
     case "it":
@@ -295,7 +291,7 @@ export function notAppliedLead(language: string | undefined): string {
 /** The wizard assistant's reply when the only day it could change is fixed. */
 export function lockedDayReply(language: string | undefined, dayNumber: number, names: string[]): string {
   const fixed = names.join(", ");
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return `El día ${dayNumber} gira en torno a un plan fijo (${fixed}), así que lo he dejado como estaba. Puedo rehacer los otros días.`;
     case "it":
@@ -309,7 +305,7 @@ export function lockedDayReply(language: string | undefined, dayNumber: number, 
 
 /** The wizard assistant's fallbacks when the model returned no reply text. */
 export function wizardFallbackReply(language: string | undefined, prepared: boolean): string {
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return prepared ? "Aquí tienes el cambio." : "Aquí estoy para ayudarte: pregúntame lo que quieras sobre tu viaje.";
     case "it":
@@ -323,7 +319,7 @@ export function wizardFallbackReply(language: string | undefined, prepared: bool
 
 /** Appended when the reply meant to change the trip's length but couldn't. */
 export function lengthUnchangedNote(language: string | undefined, days: number): string {
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return `(El viaje sigue teniendo ${days} días: no he podido preparar los días nuevos. Pídemelo otra vez, un día cada vez.)`;
     case "it":
@@ -367,7 +363,7 @@ export function claimsToRemember(text: string | null | undefined): boolean {
  * only English gets a chat example, for the same reason.
  */
 export function nothingKeptReply(language: string | undefined): string {
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return 'Desde aquí no puedo guardar datos como hoteles u horarios de vuelo, y solo recuerdo los últimos mensajes. Puedes ponerlos en el plan con "Editar Viaje".';
     case "it":
@@ -441,7 +437,7 @@ export function claimsLongerTrip(text: string | null | undefined): boolean {
 /** Appended when a change concerned more days than could be prepared in time. */
 export function daysLeftNote(language: string | undefined, days: number[]): string {
   const list = days.join(", ");
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return `(Los días ${list} aún no han cambiado: di "continúa" y haré lo mismo allí.)`;
     case "it":
@@ -457,7 +453,7 @@ export function daysLeftNote(language: string | undefined, days: number[]): stri
 export function daysNotAddedNote(language: string | undefined, days: number[]): string {
   const one = days.length === 1;
   const list = days.join(", ");
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return one
         ? `(El día ${list} aún no está añadido: di "continúa" y lo añadiré.)`
@@ -488,7 +484,7 @@ export function travelTimesNote(
   const names = v.names.join(", ");
   const late = v.from !== null && v.from >= "22:00";
   const d = v.day;
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return v.leaves
         ? `(Revisa el día ${d}: sales a las ${v.leaves}, así que los planes deberían terminar a las ${v.until}, y el día aún tiene: ${names}.)`
@@ -523,7 +519,7 @@ export function travelTimesNote(
  */
 export function ownerAddsDaysReply(language: string | undefined, days: number, ideas: string[]): string {
   const list = ideas.map((idea) => `\n- ${idea}`).join("");
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return `Solo el propietario del viaje puede añadir días, así que el viaje sigue teniendo ${days} días.${list && ` Ideas para esos días, para proponérselas:${list}`}`;
     case "it":
@@ -540,7 +536,7 @@ export function ownerAddsDaysReply(language: string | undefined, days: number, i
  * were already saved. The reply comes first: it is the answer.
  */
 export function pendingChangeNote(language: string | undefined, buttonLabel: string): string {
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return `Aún no guardado: toca "${buttonLabel}" abajo para actualizar tu viaje.`;
     case "it":
@@ -560,7 +556,7 @@ export function planCostsReply(
   language: string | undefined,
   costs: { currency: string; total: number; shown?: { currency: string; total: number } }
 ): string {
-  const l = lang(language);
+  const l = resolveAiLanguage(language);
   const shown = costs.shown ?? costs;
   const amount = `${new Intl.NumberFormat(l).format(shown.total)} ${shown.currency}`;
   switch (l) {
@@ -594,7 +590,7 @@ export function asksToRemove(message: string | null | undefined): boolean {
  */
 export function takesOutNote(language: string | undefined, names: string[]): string {
   const list = names.slice(0, 4).join(", ") + (names.length > 4 ? ", …" : "");
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return `(Este cambio quita: ${list}.)`;
     case "it":
@@ -608,7 +604,7 @@ export function takesOutNote(language: string | undefined, names: string[]): str
 
 /** Stands in for an announced list or summary that never came. */
 export function missingAnswerReply(language: string | undefined): string {
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return "No he podido preparar esa respuesta. Pregúntame una cosa a la vez, por ejemplo qué hacer el día 2.";
     case "it":
