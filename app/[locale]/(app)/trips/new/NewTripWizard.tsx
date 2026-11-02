@@ -209,7 +209,6 @@ import { useCurrency } from "@/lib/locale";
 import WizardReplay from "@/components/trip/WizardReplay";
 import {
   trackItineraryGenerated,
-  trackTripCreated,
   trackDestinationSelected,
 } from "@/lib/analytics";
 import {
@@ -222,7 +221,6 @@ import {
   captureTripGenerationStarted,
   captureTripGenerationCompleted,
   captureTripIntentSelected,
-  captureFirstTripSaved,
   captureAnchorsGenerated,
 } from "@/lib/posthog/events";
 import type { TripWizardFieldInteractedEvent, TripIntent } from "@/lib/posthog/events";
@@ -232,8 +230,7 @@ import {
   captureResultExitUnsaved,
   capture,
 } from "@/lib/posthog/events";
-import { handleTripCreatedWithReferral } from "@/lib/referral/client";
-import { claimTripCreatedEmit } from "@/lib/analytics/tripCreatedDedup";
+import { reportTripSaved } from "@/lib/wizard/trip-saved";
 import { usePostHog } from "@/lib/posthog";
 import { landingAttribution, trackWizardEvent, type WizardEventStep } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip, type AutoSaveSkipReason } from "@/hooks/useAutoSaveTrip";
@@ -1386,59 +1383,13 @@ export default function NewTripPage({
   const handlePersisted = useCallback(
     (tripId: string, durationDays: number, mode: "insert" | "update") => {
       if (mode === "insert") {
-        // GA4 + referral + bananas + side-effects (mirrors the manual
-        // handleSaveTrip post-insert block).
-        //
-        // On the login-return remount this insert block can run several times
-        // for ONE trip (the row is reused by the 60s dedup, but the analytics
-        // would fire every time). Gate the WHOLE emit group on the durable,
-        // trip-id-keyed guard so each event fires exactly once per trip. It
-        // does not gate clearDraft / setSavedTripId below, which must still run.
-        if (claimTripCreatedEmit(tripId)) {
-          trackTripCreated({
-            tripId,
-            destination,
-            duration: durationDays,
-            budgetTier,
-            isFromTemplate: false,
-          });
-          // Supabase funnel mirror — `saved` terminal state for the
-          // auto-save path. Only on insert (first save), so we don't
-          // double-count regenerates as separate funnel completions.
-          void trackWizardEvent("saved", {
-            destination,
-            duration_days: durationDays,
-            group_size: tripIntent,
-            backpacker_mode: travelStyle === "backpacker",
-            locale,
-          });
-          // Fire first_trip_saved for organic and referred users alike, as
-          // the manual handleSaveTrip path does. Both save paths emit the
-          // event so cohort math works regardless of which flow the user
-          // falls through.
-          try {
-            captureFirstTripSaved({
-              trip_id: tripId,
-              destination,
-              duration_days: durationDays,
-              time_to_value_minutes: 0,
-              from_template: false,
-              is_anchored: anchors.length > 0,
-              anchor_count: anchors.length,
-            });
-          } catch (e) {
-            console.error("[Auto-save] first_trip_saved error:", e);
-          }
-          handleTripCreatedWithReferral(
-            tripId,
-            destination,
-            durationDays,
-            budgetTier,
-            false,
-          ).catch((err) => {
-            console.error("[Auto-save] referral/tracking error:", err);
-          });
-        }
+        // Only on insert, so a regenerate is not another completion. The
+        // report runs once per trip; clearDraft / setSavedTripId below run
+        // every time.
+        reportTripSaved(
+          { tripId, durationDays, destination, budgetTier, tripIntent, travelStyle, anchorCount: anchors.length, locale },
+          "Auto-save"
+        );
         clearDraft();
         if (typeof window !== "undefined") {
           safeSet("profile_modal_shown", "true", "session");
@@ -2635,62 +2586,12 @@ export default function NewTripPage({
       // Calculate trip duration
       const durationDays = tripSpanDays(startDate, endDate);
 
-      // Analytics emission — gated on the durable, trip-id-keyed idempotency
-      // guard. handleSaveTrip can run several times for ONE trip on the
-      // login-return remount (auto-invoked by the save-intent effect on each
-      // mount, plus a possible manual re-click); the 60s dedup reuses the row
-      // (dedupRow.reused above) but these captures don't check that, so they
-      // would inflate activation metrics. The guard makes each fire exactly
-      // once per trip.
-      if (claimTripCreatedEmit(trip.id)) {
-        // Track trip creation (GA4)
-        trackTripCreated({
-          tripId: trip.id,
-          destination,
-          duration: durationDays,
-          budgetTier,
-          isFromTemplate: false,
-        });
-
-        // Supabase funnel mirror — fired on successful manual-save INSERT.
-        // The auto-save path fires its own `saved` event in handlePersisted
-        // above so both flows reach this terminal funnel state.
-        void trackWizardEvent("saved", {
-          destination,
-          duration_days: durationDays,
-          group_size: tripIntent,
-          backpacker_mode: travelStyle === "backpacker",
-          locale,
-        });
-
-        // Fire first_trip_saved here for organic and referred users alike
-        // (handleTripCreatedWithReferral does not fire it). Deduped on
-        // trip.id by the guard above.
-        try {
-          captureFirstTripSaved({
-            trip_id: trip.id,
-            destination,
-            duration_days: durationDays,
-            time_to_value_minutes: 0, // signup-time not threaded here
-            from_template: false,
-            is_anchored: anchors.length > 0,
-            anchor_count: anchors.length,
-          });
-        } catch (e) {
-          console.error("[Trip Save] first_trip_saved error:", e);
-        }
-
-        // Track in PostHog + Complete referral if eligible (async, non-blocking)
-        handleTripCreatedWithReferral(
-          trip.id,
-          destination,
-          durationDays,
-          budgetTier,
-          false // not from template
-        ).catch((err) => {
-          console.error("[Trip Save] Error in referral/tracking:", err);
-        });
-      }
+      // Once per trip, though a login-return remount can run this save again
+      // for the same row.
+      reportTripSaved(
+        { tripId: trip.id, durationDays, destination, budgetTier, tripIntent, travelStyle, anchorCount: anchors.length, locale },
+        "Trip Save"
+      );
 
       // Clear draft on successful save
       clearDraft();
