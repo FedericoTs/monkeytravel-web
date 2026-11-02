@@ -64,10 +64,8 @@ export function determineOptimalMode(
   return straightLine < 1200 ? "WALKING" : "DRIVING";
 }
 
-/**
- * Format distance for display
- */
-function formatDistance(meters: number): string {
+/** A distance in metres for display: "850 m" below a kilometre, "3.4 km" from one. */
+export function formatMetricDistance(meters: number): string {
   if (meters < 1000) {
     return `${Math.round(meters)} m`;
   }
@@ -126,7 +124,7 @@ export function estimateTravelTime(
     mode,
     distanceMeters: travelDistance,
     durationSeconds: totalDurationSeconds,
-    distanceText: formatDistance(travelDistance),
+    distanceText: formatMetricDistance(travelDistance),
     durationText: formatDuration(totalDurationSeconds),
     isEstimate: true,
   };

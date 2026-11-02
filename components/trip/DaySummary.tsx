@@ -11,6 +11,7 @@ import {
   sumPlannedMinutes,
   type TripPace,
 } from "@/lib/trip/pace";
+import { formatMetricDistance } from "@/lib/utils/travel-estimation";
 
 interface DaySummaryProps {
   dayNumber: number;
@@ -63,10 +64,10 @@ export function DaySummary({
 
     return {
       ...totals,
-      distanceText: formatDistance(totals.distance),
+      distanceText: formatMetricDistance(totals.distance),
       durationText: formatDuration(totals.duration),
-      walkingDistanceText: formatDistance(totals.walkingDistance),
-      drivingDistanceText: formatDistance(totals.drivingDistance),
+      walkingDistanceText: formatMetricDistance(totals.walkingDistance),
+      drivingDistanceText: formatMetricDistance(totals.drivingDistance),
     };
   }, [segments]);
 
@@ -179,16 +180,6 @@ export function DaySummary({
       )}
     </div>
   );
-}
-
-/**
- * Format distance in meters to human readable string
- */
-function formatDistance(meters: number): string {
-  if (meters < 1000) {
-    return `${Math.round(meters)} m`;
-  }
-  return `${(meters / 1000).toFixed(1)} km`;
 }
 
 /**

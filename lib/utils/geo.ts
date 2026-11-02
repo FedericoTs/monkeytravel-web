@@ -133,16 +133,6 @@ export function getHotelSearchCenter(itinerary: ItineraryDay[]): GeoCenter | nul
 }
 
 /**
- * Format distance for display
- */
-export function formatDistance(km: number): string {
-  if (km < 1) {
-    return `${Math.round(km * 1000)}m`;
-  }
-  return `${km.toFixed(1)}km`;
-}
-
-/**
  * Get a human-readable proximity description
  */
 export function getProximityLabel(km: number): {
