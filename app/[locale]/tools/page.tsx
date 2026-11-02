@@ -16,7 +16,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
 import { ogImages } from "@/lib/seo/og-image";
 import PassportLinks from "@/components/tools/PassportLinks";
-import { SITE_URL } from "@/lib/seo/canonical";
+import { buildAlternates } from "@/lib/seo/canonical";
 
 
 const META: Record<string, { title: string; description: string }> = {
@@ -51,29 +51,19 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const m = META[locale] || META.en;
-  const localePrefix = locale === "en" ? "" : `/${locale}`;
-  const canonical = `${SITE_URL}${localePrefix}/tools`;
+  const alternates = buildAlternates("/tools", { locale });
   return {
     // `absolute` opts out of the root "%s | MonkeyTravel" template.
     // These pages target generic commercial terms where the brand buys
     // nothing and costs 15 of ~60 rendered characters. Homepage keeps it.
     title: { absolute: m.title },
     description: m.description,
-    alternates: {
-      canonical,
-      languages: {
-        en: `${SITE_URL}/tools`,
-        it: `${SITE_URL}/it/tools`,
-        es: `${SITE_URL}/es/tools`,
-        pt: `${SITE_URL}/pt/tools`,
-        "x-default": `${SITE_URL}/tools`,
-      },
-    },
+    alternates,
     openGraph: {
       siteName: "MonkeyTravel",
       title: m.title,
       description: m.description,
-      url: canonical,
+      url: alternates.canonical,
       type: "website",
       images: ogImages(m.title),
     },

@@ -11,7 +11,7 @@ import Footer from "@/components/Footer";
 import { DestinationGrid } from "@/components/destinations";
 import { Link } from "@/lib/i18n/routing";
 import { ogImages, twitterImages } from "@/lib/seo/og-image";
-import { SITE_URL } from "@/lib/seo/canonical";
+import { buildAlternates, SITE_URL } from "@/lib/seo/canonical";
 
 
 // Style tags surfaced as landing pages. Pulled from the destination data —
@@ -47,12 +47,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const title = t("style.metaTitle", { tag: tagLabel });
   const description = t("style.metaDescription", { tag: tagLabel, count: matched.length });
 
-  const languages: Record<string, string> = {};
-  for (const l of routing.locales) {
-    const prefix = l === routing.defaultLocale ? "" : `/${l}`;
-    languages[l] = `${SITE_URL}${prefix}/destinations/style/${tag}`;
-  }
-  languages["x-default"] = `${SITE_URL}/destinations/style/${tag}`;
+  const alternates = buildAlternates(`/destinations/style/${tag}`, { locale });
 
   const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT", pt: "pt_BR" };
   const ogLocale = ogLocaleMap[locale] ?? "en_US";
@@ -67,11 +62,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     // back inside the budget.
     title: { absolute: title },
     description,
-    alternates: { canonical: languages[locale], languages },
+    alternates,
     openGraph: {
       title,
       description,
-      url: languages[locale],
+      url: alternates.canonical,
       siteName: "MonkeyTravel",
       type: "website",
       locale: ogLocale,

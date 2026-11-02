@@ -19,7 +19,7 @@ import { visaDataAsOfLabel } from "@/lib/visa/dataset";
 import PassportStatusChart from "@/components/passport/PassportStatusChart";
 import PassportMap from "@/components/passport/PassportMap";
 import { ogImages, twitterImages } from "@/lib/seo/og-image";
-import { SITE_URL } from "@/lib/seo/canonical";
+import { buildAlternates, SITE_URL } from "@/lib/seo/canonical";
 
 
 /**
@@ -82,12 +82,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     total: summary.total,
   });
 
-  const languages: Record<string, string> = {};
-  for (const l of routing.locales) {
-    const prefix = l === routing.defaultLocale ? "" : `/${l}`;
-    languages[l] = `${SITE_URL}${prefix}/passport/${slug}`;
-  }
-  languages["x-default"] = `${SITE_URL}/passport/${slug}`;
+  const alternates = buildAlternates(`/passport/${slug}`, { locale });
 
   return {
     // `absolute` opts out of the root "%s | MonkeyTravel" template — the
@@ -95,7 +90,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     // brand suffix would push them past what Google renders.
     title: { absolute: title },
     description,
-    alternates: { canonical: languages[locale], languages },
+    alternates,
     // images is load-bearing, not decoration. Declaring an `openGraph` object
     // here REPLACES the root layout's, so omitting images dropped og:image
     // entirely and a pasted passport link previewed as a bare URL with no
@@ -106,7 +101,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       siteName: "MonkeyTravel",
       title,
       description,
-      url: languages[locale],
+      url: alternates.canonical,
       type: "website",
       images: ogImages(title),
     },

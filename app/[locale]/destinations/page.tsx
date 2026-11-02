@@ -12,7 +12,7 @@ import ContentTracker from "@/components/analytics/ContentTracker";
 import { DestinationGrid, DestinationFeatured, DestinationLane } from "@/components/destinations";
 import { Link } from "@/lib/i18n/routing";
 import { ogImages } from "@/lib/seo/og-image";
-import { SITE_URL } from "@/lib/seo/canonical";
+import { buildAlternates, SITE_URL } from "@/lib/seo/canonical";
 
 
 // ============================================================================
@@ -32,12 +32,7 @@ export async function generateMetadata({
   const title = t("meta.titleIndex");
   const description = t("meta.descriptionIndex");
 
-  const languages: Record<string, string> = {};
-  for (const l of routing.locales) {
-    const prefix = l === routing.defaultLocale ? "" : `/${l}`;
-    languages[l] = `${SITE_URL}${prefix}/destinations`;
-  }
-  languages["x-default"] = `${SITE_URL}/destinations`;
+  const alternates = buildAlternates("/destinations", { locale });
 
   const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT", pt: "pt_BR" };
   const ogLocale = ogLocaleMap[locale] ?? "en_US";
@@ -46,14 +41,11 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: {
-      canonical: languages[locale],
-      languages,
-    },
+    alternates,
     openGraph: {
       title,
       description,
-      url: languages[locale],
+      url: alternates.canonical,
       siteName: "MonkeyTravel",
       locale: ogLocale,
       alternateLocale,

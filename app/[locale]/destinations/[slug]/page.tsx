@@ -34,7 +34,7 @@ import { Link } from "@/lib/i18n/routing";
 // the visitor who liked the sample and wants real examples.
 import { fetchExploreFeed } from "@/lib/explore/fetcher";
 import TripCard from "@/components/explore/TripCard";
-import { SITE_URL } from "@/lib/seo/canonical";
+import { buildAlternates, SITE_URL } from "@/lib/seo/canonical";
 
 
 // ============================================================================
@@ -78,12 +78,7 @@ export async function generateMetadata({
   });
 
   // Build hreflang alternates
-  const languages: Record<string, string> = {};
-  for (const l of routing.locales) {
-    const prefix = l === routing.defaultLocale ? "" : `/${l}`;
-    languages[l] = `${SITE_URL}${prefix}/destinations/${slug}`;
-  }
-  languages["x-default"] = `${SITE_URL}/destinations/${slug}`;
+  const alternates = buildAlternates(`/destinations/${slug}`, { locale });
 
   const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT", pt: "pt_BR" };
   const ogLocale = ogLocaleMap[locale] ?? "en_US";
@@ -100,14 +95,11 @@ export async function generateMetadata({
       `AI itinerary ${cityName}`,
       `best time to visit ${cityName}`,
     ],
-    alternates: {
-      canonical: languages[locale],
-      languages,
-    },
+    alternates,
     openGraph: {
       title,
       description,
-      url: languages[locale],
+      url: alternates.canonical,
       siteName: "MonkeyTravel",
       locale: ogLocale,
       alternateLocale,

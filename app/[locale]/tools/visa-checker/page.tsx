@@ -18,7 +18,7 @@ import VisaCheckerSsrTracker from "./VisaCheckerSsrTracker";
 import PassportLinks from "@/components/tools/PassportLinks";
 import { PASSPORT_PAGE_CODES, passportSlug } from "@/lib/visa/passport-pages";
 import { ogImages } from "@/lib/seo/og-image";
-import { SITE_URL } from "@/lib/seo/canonical";
+import { buildAlternates, SITE_URL } from "@/lib/seo/canonical";
 
 
 const META: Record<string, { title: string; description: string }> = {
@@ -54,8 +54,7 @@ export async function generateMetadata({
   const { locale } = await params;
   const sp = await searchParams;
   const m = META[locale] || META.en;
-  const localePrefix = locale === "en" ? "" : `/${locale}`;
-  const canonical = `${SITE_URL}${localePrefix}/tools/visa-checker`;
+  const alternates = buildAlternates("/tools/visa-checker", { locale });
 
   // When the user has selected a specific pair, surface it in OG +
   // description so the social card is meaningful when shared.
@@ -81,21 +80,12 @@ export async function generateMetadata({
     // page targets generic terms where the brand costs 15 of ~60 chars.
     title: { absolute: title },
     description,
-    alternates: {
-      canonical,
-      languages: {
-        en: `${SITE_URL}/tools/visa-checker`,
-        it: `${SITE_URL}/it/tools/visa-checker`,
-        es: `${SITE_URL}/es/tools/visa-checker`,
-        pt: `${SITE_URL}/pt/tools/visa-checker`,
-        "x-default": `${SITE_URL}/tools/visa-checker`,
-      },
-    },
+    alternates,
     openGraph: {
       siteName: "MonkeyTravel",
       title,
       description,
-      url: canonical,
+      url: alternates.canonical,
       type: "website",
       images: ogImages(title),
     },
