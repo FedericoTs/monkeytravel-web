@@ -7,6 +7,7 @@ import {
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { tripSpanDays } from "@/lib/dates/iso-date";
 import { readJsonBody } from "@/lib/api/json-body";
+import { PROFILE_COLUMNS } from "@/lib/profile/columns";
 
 export async function GET() {
   try {
@@ -16,26 +17,7 @@ export async function GET() {
     // Fetch user profile
     const { data: profile, error } = await supabase
       .from("users")
-      .select(`
-        id,
-        email,
-        display_name,
-        avatar_url,
-        bio,
-        home_country,
-        home_city,
-        date_of_birth,
-        languages,
-        preferences,
-        notification_settings,
-        privacy_settings,
-        stats,
-        created_at,
-        last_sign_in_at,
-        paypal_handle,
-        venmo_handle,
-        wise_handle
-      `)
+      .select(`${PROFILE_COLUMNS}, paypal_handle, venmo_handle, wise_handle`)
       .eq("id", user.id)
       .single();
 
