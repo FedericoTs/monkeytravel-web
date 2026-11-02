@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import enTrips from "@/messages/en/trips.json";
 import esTrips from "@/messages/es/trips.json";
@@ -71,6 +71,14 @@ describe("ValuePropositionBanner", () => {
     for (const key of ["stickyCta", "stickyHint", "remindersTitle", "shareTitle"] as const) {
       expect(sticky).toContain(copy[key]);
     }
+  });
+
+  it("stays closed once dismissed", () => {
+    const first = renderBanner("en", "inline");
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+    expect(first.container.innerHTML).toBe("");
+    first.unmount();
+    expect(renderBanner("en", "inline").container.innerHTML).toBe("");
   });
 
   it("reads naturally in Italian", () => {

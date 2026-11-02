@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { safeGet, safeSet } from "@/lib/safe-storage";
+import { useStoredFlag } from "@/hooks/useStoredFlag";
 import { Spinner } from "@/components/ui/Spinner";
 
 interface ValuePropositionBannerProps {
@@ -53,25 +52,9 @@ export default function ValuePropositionBanner({
   className = "",
 }: ValuePropositionBannerProps) {
   const t = useTranslations("trips.wizard.result.valueBanner");
-  const [isVisible, setIsVisible] = useState(true);
-  const [isDismissed, setIsDismissed] = useState(false);
+  const [isDismissed, dismiss] = useStoredFlag("value-banner-dismissed");
 
-  // Check if user has dismissed this banner before
-  useEffect(() => {
-    const dismissed = safeGet("value-banner-dismissed");
-    if (dismissed) {
-      setIsDismissed(true);
-      setIsVisible(false);
-    }
-  }, []);
-
-  const handleDismiss = () => {
-    setIsVisible(false);
-    safeSet("value-banner-dismissed", "true");
-    setIsDismissed(true);
-  };
-
-  if (!isVisible || isDismissed) return null;
+  if (isDismissed) return null;
 
   // Sticky bottom variant for mobile
   if (variant === "sticky-bottom") {
@@ -128,7 +111,7 @@ export default function ValuePropositionBanner({
     <div className={`relative ${className}`}>
       {/* Dismiss button */}
       <button
-        onClick={handleDismiss}
+        onClick={dismiss}
         className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white/80 flex items-center justify-center text-slate-500 hover:text-slate-600 hover:bg-white transition-colors z-10"
         aria-label={t("dismiss")}
       >
