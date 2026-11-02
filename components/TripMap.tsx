@@ -2,7 +2,7 @@
 
 import { DAY_COLORS } from "@/lib/map/day-colors";
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -130,7 +130,6 @@ export default function TripMap({
       setShowRoutes(showRoutesProp);
     }
   }, [showRoutesProp]);
-  const locale = useLocale();
   // Internal day-filter state — initialized from the prop but driven by
   // the in-map Day chip clicks below. Clicking a day toggles the filter
   // (click the same day again to clear) that `filteredActivities` depends
@@ -546,7 +545,7 @@ export default function TripMap({
                   style={{ borderColor: seg.color }}
                   title={t("segmentDuration", { minutes: seg.minutes })}
                 >
-                  {formatDuration(seg.minutes, locale)}
+                  {formatDuration(seg.minutes)}
                 </div>
               </OverlayView>
             ))
