@@ -35,12 +35,12 @@
     "title": "Actividad Reciente",
     "types": {
       "referral": "Recompensa por referido",
-      "collaboration": "Bonus de colaboracion",
+      "collaboration": "Bonus de colaboración",
       "tier_bonus": "Bonus por desbloqueo de nivel",
       "spend": "Canje",
       "trip_complete": "Viaje completado",
       "signup_bonus": "Bonus de bienvenida",
-      "review": "Recompensa por resena",
+      "review": "Recompensa por reseña",
       "clawback": "Ajuste",
       "expiration": "Expirado",
       "admin": "Ajuste administrativo"
@@ -52,24 +52,24 @@
   "catalog": {
     "title": "Canjea tus Bananas",
     "available": "Disponible Ahora",
-    "comingSoon": "Proximamente",
+    "comingSoon": "Próximamente",
     "cost": "{cost} bananas",
     "outOfStock": "Agotado",
-    "limitReached": "Limite Alcanzado",
+    "limitReached": "Límite Alcanzado",
     "cooldown": "Disponible de nuevo {date}",
     "redeem": "Canjear"
   },
   "leaderboard": {
-    "title": "Tabla de Lideres",
-    "rank": "Posicion",
-    "you": "Tu",
+    "title": "Tabla de Líderes",
+    "rank": "Posición",
+    "you": "Tú",
     "participants": "{count} participantes"
   },
   "benefits": {
-    "title": "Tus Limites de Generacion AI",
+    "title": "Tus Límites de Generación AI",
     "currentLimit": "{count} generaciones de viajes AI por mes",
     "bonusActive": "+{bonus} bonus del nivel {tier}!",
-    "inviteToUnlock": "Invita {count} amigos mas para desbloquear +{bonus} generaciones extra!",
+    "inviteToUnlock": "Invita {count} amigos más para desbloquear +{bonus} generaciones extra!",
     "tierBenefits": "Beneficios de Referidos",
     "unlocked": "Desbloqueado",
     "explorer": "Explorer (3 refs): +2 generaciones AI/mes",
@@ -77,7 +77,7 @@
     "champion": "Champion (10 refs): +12 generaciones AI/mes, regeneraciones ilimitadas"
   },
   "banner": {
-    "title": "Desbloquea Mas Viajes AI",
+    "title": "Desbloquea Más Viajes AI",
     "progress": "{current}/{target} referidos para {tier}",
     "benefit": "+{bonus} generaciones AI/mes",
     "cta": "Invitar Amigos",

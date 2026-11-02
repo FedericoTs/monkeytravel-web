@@ -225,7 +225,7 @@
       "selectUpTo": "Selecciona hasta {count} estilos"
     },
     "step4": {
-      "title": "Ultimos detalles",
+      "title": "Últimos detalles",
       "subtitle": "Configura tu presupuesto, ritmo y requisitos especiales"
     },
     "result": {
@@ -358,19 +358,19 @@
     },
     "cultural": {
       "label": "Explorador Cultural",
-      "description": "Museos, sitios historicos, tradiciones locales y maravillas del pasado"
+      "description": "Museos, sitios históricos, tradiciones locales y maravillas del pasado"
     },
     "foodie": {
-      "label": "Gastronomico",
-      "description": "Cocina local, tours gastronomicos, mercados y experiencias culinarias"
+      "label": "Gastronómico",
+      "description": "Cocina local, tours gastronómicos, mercados y experiencias culinarias"
     },
     "wellness": {
-      "label": "Bienestar y Relajacion",
+      "label": "Bienestar y Relajación",
       "description": "Spas, retiros de yoga, jardines tranquilos y experiencias rejuvenecedoras"
     },
     "romantic": {
-      "label": "Escapada Romantica",
-      "description": "Lugares pintorescos, puestas de sol, cenas intimas y actividades en pareja"
+      "label": "Escapada Romántica",
+      "description": "Lugares pintorescos, puestas de sol, cenas íntimas y actividades en pareja"
     },
     "urban": {
       "label": "Explorador Urbano",
@@ -381,12 +381,12 @@
       "description": "Parques, jardines, paisajes escenicso y encuentros con la fauna"
     },
     "offbeat": {
-      "label": "Fuera de lo Comun",
+      "label": "Fuera de lo Común",
       "description": "Joyas escondidas, secretos locales y experiencias poco convencionales"
     },
     "time-traveler": {
       "label": "Viajero del Tiempo",
-      "description": "Ruinas antiguas, castillos medievales y monumentos historicos"
+      "description": "Ruinas antiguas, castillos medievales y monumentos históricos"
     },
     "photo-hunter": {
       "label": "Cazador de Fotos",
@@ -394,50 +394,50 @@
     },
     "local-life": {
       "label": "Vida Local",
-      "description": "Barrios, cafes locales, mercados y experiencias autenticas"
+      "description": "Barrios, cafés locales, mercados y experiencias auténticas"
     },
     "night-owl": {
-      "label": "Noctambulo",
+      "label": "Noctámbulo",
       "description": "Entretenimiento nocturno, bares, clubs y comida de madrugada"
     }
   },
   "budget": {
     "title": "Presupuesto",
     "budget": {
-      "label": "Economico",
+      "label": "Económico",
       "description": "Atracciones gratuitas, comida callejera, transporte publico",
-      "range": "< 100€/dia"
+      "range": "< 100€/día"
     },
     "balanced": {
       "label": "Equilibrado",
       "description": "Mezcla de experiencias, restaurantes locales, algunos tours",
-      "range": "100-250€/dia"
+      "range": "100-250€/día"
     },
     "premium": {
       "label": "Premium",
       "description": "Sin colas, alta cocina, tours privados",
-      "range": "250+€/dia"
+      "range": "250+€/día"
     }
   },
   "pace": {
     "title": "Ritmo",
     "relaxed": {
       "label": "Relajado",
-      "description": "2-3 actividades/dia"
+      "description": "2-3 actividades/día"
     },
     "moderate": {
       "label": "Moderado",
-      "description": "3-4 actividades/dia"
+      "description": "3-4 actividades/día"
     },
     "active": {
       "label": "Activo",
-      "description": "5+ actividades/dia"
+      "description": "5+ actividades/día"
     }
   },
   "requirements": {
     "title": "Requisitos Especiales",
-    "placeholder": "ej., accesible en silla de ruedas, restaurantes vegetarianos, apto para ninos...",
-    "hint": "Opcional - cuentanos sobre cualquier necesidad especifica"
+    "placeholder": "ej., accesible en silla de ruedas, restaurantes vegetarianos, apto para niños...",
+    "hint": "Opcional - cuéntanos sobre cualquier necesidad específica"
   },
   "generation": {
     "generating": "Creando tu itinerario perfecto...",
@@ -445,7 +445,7 @@
     "findingActivities": "Buscando las mejores actividades...",
     "optimizingRoute": "Optimizando tus rutas diarias...",
     "almostDone": "Casi listo...",
-    "error": "Error al generar el itinerario. Por favor, intentalo de nuevo.",
+    "error": "Error al generar el itinerario. Por favor, inténtalo de nuevo.",
     "errorTimeout": "La solicitud tardó demasiado. Esto puede pasar con viajes complejos — inténtalo de nuevo.",
     "errorNetwork": "Problema de conexión. Verifica tu internet e inténtalo de nuevo.",
     "errorServerBusy": "Nuestra AI está tardando más de lo habitual. Inténtalo de nuevo en un momento — o prueba con un viaje más corto.",
@@ -462,7 +462,7 @@
   },
   "result": {
     "title": "Tu Itinerario en {destination}",
-    "daysCount": "{count} Dias",
+    "daysCount": "{count} Días",
     "saveTrip": "Guardar Viaje",
     "startOver": "Empezar de Nuevo",
     "regenerate": "Regenerar",
@@ -688,16 +688,16 @@
   "limits": {
     "freeTripsRemaining": "Te quedan {count} viajes gratuitos",
     "noTripsRemaining": "Has usado todos tus viajes gratuitos",
-    "upgradePrompt": "Actualiza para planificacion ilimitada",
-    "enterCode": "¿Tienes un codigo de acceso?",
-    "joinWaitlist": "Unete a la lista de espera para acceso anticipado"
+    "upgradePrompt": "Actualiza para planificación ilimitada",
+    "enterCode": "¿Tienes un código de acceso?",
+    "joinWaitlist": "Únete a la lista de espera para acceso anticipado"
   },
   "save": {
     "title": "Guardar Tu Viaje",
     "subtitle": "Crea una cuenta para guardar y acceder a tu viaje en cualquier momento",
     "saving": "Guardando tu viaje...",
     "success": "¡Viaje guardado exitosamente!",
-    "error": "Error al guardar el viaje. Por favor, intentalo de nuevo."
+    "error": "Error al guardar el viaje. Por favor, inténtalo de nuevo."
   },
   "startOver": {
     "title": "¿Empezar de Nuevo?",

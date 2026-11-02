@@ -32,7 +32,7 @@
     "earned": "Guadagnati"
   },
   "activity": {
-    "title": "Attivita Recente",
+    "title": "Attività Recente",
     "types": {
       "referral": "Premio referral",
       "collaboration": "Bonus collaborazione",
@@ -77,7 +77,7 @@
     "champion": "Champion (10 refs): +12 generazioni AI/mese, rigenerazioni illimitate"
   },
   "banner": {
-    "title": "Sblocca Piu Viaggi AI",
+    "title": "Sblocca Più Viaggi AI",
     "progress": "{current}/{target} referral per {tier}",
     "benefit": "+{bonus} generazioni AI/mese",
     "cta": "Invita Amici",
