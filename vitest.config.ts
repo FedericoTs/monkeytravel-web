@@ -11,6 +11,9 @@ export default defineConfig({
     // wanders into the .next/ build output.
     include: ["**/*.vitest.ts", "**/*.vitest.tsx"],
     exclude: ["node_modules/**", ".next/**", "dist/**"],
+    // The guards that read the whole source tree take a second or two alone,
+    // and longer than the 5 s default while every worker is busy.
+    testTimeout: 20_000,
   },
   resolve: {
     alias: {
