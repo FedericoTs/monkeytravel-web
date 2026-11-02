@@ -35,9 +35,9 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { linkGuestToAccount } from "@/lib/participants/link";
+import { isCookielessScript, participantCookieId, setParticipantCookie } from "@/lib/participants/request";
 import {
   PARTICIPANT_COOKIE,
-  PARTICIPANT_COOKIE_MAX_AGE_SECONDS,
   normalizeDisplayName,
   normalizeEmail,
   parseJoinAction,
@@ -51,7 +51,6 @@ import { isUuid } from "@/lib/utils/uuid";
 
 const ipLimiter = createRateLimiter("shared-join-ip", 30, 60_000);
 const cookieTripLimiter = createRateLimiter("shared-join-cookie-trip", 6, 60_000);
-const BOT_UA_REGEX = /^(curl|wget|python-requests|httpie|go-http-client|libwww-perl|scrapy)\b/i;
 const PLAN_EMAIL_WAIT_MS = 4000;
 
 interface JoinBody {
@@ -80,11 +79,8 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
     const cookieStore = await cookies();
     const existingCookie = cookieStore.get(PARTICIPANT_COOKIE)?.value;
-    if (!existingCookie) {
-      const ua = request.headers.get("user-agent") ?? "";
-      if (!ua || BOT_UA_REGEX.test(ua)) {
-        return errors.badRequest("Invalid request");
-      }
+    if (isCookielessScript(request, existingCookie)) {
+      return errors.badRequest("Invalid request");
     }
 
     const body = (await request.json().catch(() => null)) as JoinBody | null;
@@ -107,12 +103,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     if (errorResponse) return errorResponse;
 
     // Read or mint the shared identity cookie (same rules as /vote).
-    let cookieId = existingCookie;
-    let issuedCookie = false;
-    if (!cookieId || cookieId.length < 10 || cookieId.length > 60) {
-      cookieId = nanoid(21);
-      issuedCookie = true;
-    }
+    const { cookieId, issued: issuedCookie } = participantCookieId(existingCookie);
 
     const { allowed: cookieAllowed } = await cookieTripLimiter.check(request, `${cookieId}:${trip.id}`);
     if (!cookieAllowed) {
@@ -231,17 +222,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
       });
     }
 
-    if (issuedCookie) {
-      cookieStore.set({
-        name: PARTICIPANT_COOKIE,
-        value: cookieId,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: PARTICIPANT_COOKIE_MAX_AGE_SECONDS,
-        path: "/",
-      });
-    }
+    if (issuedCookie) setParticipantCookie(cookieStore, cookieId);
 
     // The plan email: only to an address typed in this request, never to a
     // public page's row (the email carries the share link). Waits a few
