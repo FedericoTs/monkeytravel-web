@@ -18,8 +18,8 @@
  */
 
 import { NextRequest } from "next/server";
-import { resolveAiLanguage, tripLocale, type SupportedLanguage } from "@/lib/ai/language";
-import { cookies } from "next/headers";
+import { DEFAULT_LANGUAGE, tripLocale } from "@/lib/ai/language";
+import { readLocaleCookie } from "@/lib/ai/user-context";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { regenerateSingleDay } from "@/lib/gemini";
 import { getModelForPurpose } from "@/lib/ai/model-router";
@@ -35,18 +35,6 @@ import { dietsFrom } from "@/lib/trips/diet";
 import { placesToEatCheck } from "@/lib/places/places-to-eat";
 import { casUpdateItinerary, type CasOutcome } from "@/lib/trips/itinerary-cas";
 import type { ItineraryDay, TripVibe } from "@/types";
-
-
-
-async function getUserLanguage(): Promise<SupportedLanguage> {
-  const cookieStore = await cookies();
-  const localeCookie = cookieStore.get("NEXT_LOCALE");
-  // Regional tags ("pt-BR") must resolve to their base language rather than
-  // fall through to English — a strict membership test silently downgraded
-  // those users to an English itinerary.
-  if (localeCookie?.value) return resolveAiLanguage(localeCookie.value);
-  return "en";
-}
 
 const MAX_INSTRUCTIONS_LEN = 500;
 
@@ -180,7 +168,7 @@ async function regenerateDay(request: NextRequest, geminiCost: GeminiCostMeter) 
     const destination = getTripDestination(trip as { title?: string; trip_meta?: unknown });
 
     // Phase 1.3: the trip's own language first, the visitor's cookie after.
-    const language = tripLocale(trip!.trip_meta) ?? (await getUserLanguage());
+    const language = tripLocale(trip!.trip_meta) ?? (await readLocaleCookie()) ?? DEFAULT_LANGUAGE;
 
     // The surrounding days are everything except the one we're replacing.
     const surroundingDays = itinerary.filter((_, i) => i !== dayIndex);

@@ -16,7 +16,7 @@ import {
   computeExtendedEndDate,
   MAX_TRIP_DAYS,
 } from "@/lib/ai/assistant/structural";
-import { cookies } from "next/headers";
+import { readLocaleCookie } from "@/lib/ai/user-context";
 import {
   classifyTask,
   selectModel,
@@ -87,12 +87,8 @@ async function getUserLanguage(
   supabase: SupabaseClient,
   userId: string
 ): Promise<SupportedLanguage> {
-  const cookieStore = await cookies();
-  const localeCookie = cookieStore.get("NEXT_LOCALE");
-  // Regional tags ("pt-BR") must resolve to their base language rather than
-  // fall through to English — a strict membership test silently downgraded
-  // those users to an English itinerary.
-  if (localeCookie?.value) return resolveAiLanguage(localeCookie.value);
+  const fromCookie = await readLocaleCookie();
+  if (fromCookie) return fromCookie;
 
   try {
     const { data: profile } = logReadError("assistant: preferred language", await supabase

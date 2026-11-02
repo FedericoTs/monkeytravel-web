@@ -69,14 +69,22 @@ describe("the AI language list", () => {
 
 describe("the entry points actually use it", () => {
   /** Every place that turns a cookie or profile column into a language. */
-  const ENTRY_POINTS = [
-    "lib/ai/user-context.ts",
+  const PARSERS = ["lib/ai/user-context.ts", "app/api/ai/assistant/route.ts"];
+  /** Routes that fall back to the visitor's locale cookie. */
+  const COOKIE_READERS = [
     "app/api/ai/assistant/route.ts",
     "app/api/ai/regenerate-activity/route.ts",
     "app/api/ai/regenerate-day/route.ts",
   ];
+  const ENTRY_POINTS = [...new Set([...PARSERS, ...COOKIE_READERS])];
 
-  it.each(ENTRY_POINTS)("%s resolves the locale instead of membership-testing it", (file) => {
+  it.each(COOKIE_READERS)("%s reads the locale cookie through readLocaleCookie", (file) => {
+    const src = readFileSync(join(process.cwd(), file), "utf8");
+    expect(src).toContain("readLocaleCookie()");
+    expect(src).not.toContain('"NEXT_LOCALE"');
+  });
+
+  it.each(PARSERS)("%s resolves the locale instead of membership-testing it", (file) => {
     // Shipping the helper is not the same as calling it. The first pass at this
     // fix swapped the inline ["en","es","it"] arrays for isSupportedLanguage()
     // and the unit tests above all passed — but a strict membership test still
