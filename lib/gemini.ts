@@ -966,8 +966,9 @@ async function generateItineraryInternal(
         }
       }
       if (!itinerary) {
-        // Unrepairable: log, then retry or throw.
-        console.error(
+        // Unrepairable: log, then retry or throw. Only the last attempt is an
+        // error; one that is retried is a warning.
+        (retryCount < MAX_RETRIES ? console.warn : console.error)(
           `JSON parse error (attempt ${retryCount + 1}):`,
           firstParseError instanceof Error ? firstParseError.message : "Unknown",
           "\nResponse preview:",
@@ -1223,7 +1224,7 @@ async function regenerateSingleActivityInternal(
 
       return activity;
     } catch (parseError) {
-      console.error(
+      (retryCount < MAX_RETRIES ? console.warn : console.error)(
         `Activity regeneration JSON parse error (attempt ${retryCount + 1}):`,
         parseError instanceof Error ? parseError.message : "Unknown",
         "\nResponse preview:",
@@ -1672,7 +1673,7 @@ Rules:
 
       return fixed;
     } catch (parseError) {
-      console.error(
+      (retryCount < MAX_RETRIES ? console.warn : console.error)(
         `Day regeneration JSON parse error (attempt ${retryCount + 1}):`,
         parseError instanceof Error ? parseError.message : "Unknown",
         // MAX_TOKENS here means the output cap was hit (e.g. spent on
