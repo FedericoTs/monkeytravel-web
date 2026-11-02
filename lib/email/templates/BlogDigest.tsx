@@ -22,6 +22,7 @@ import {
 } from "@react-email/components";
 import { EmailLayout } from "./_layout";
 import { blogEmailCopy, type EmailLocale } from "../copy";
+import { largeButton as button } from "./_styles";
 
 export interface BlogPostCard {
   title: string;
@@ -190,14 +191,3 @@ const hr: React.CSSProperties = {
   margin: "32px 0 24px",
 };
 
-const button: React.CSSProperties = {
-  backgroundColor: "#FF6B6B",
-  color: "#FFFFFF",
-  padding: "14px 36px",
-  borderRadius: "999px",
-  textDecoration: "none",
-  fontWeight: 700,
-  fontSize: "16px",
-  display: "inline-block",
-  boxShadow: "0 4px 12px rgba(255,107,107,0.35)",
-};

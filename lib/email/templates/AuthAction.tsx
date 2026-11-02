@@ -16,6 +16,7 @@ import {
   type AuthActionKind,
   type EmailLocale,
 } from "../copy";
+import { h1, linkText, largeButton as button } from "./_styles";
 
 export type { AuthActionKind };
 
@@ -100,15 +101,7 @@ export function authActionSubject(
   return authActionCopy[locale][kind].subject;
 }
 
-// Inline styles — mirror the other templates.
-const h1: React.CSSProperties = {
-  fontSize: "24px",
-  fontWeight: 700,
-  color: "#1A1A1A",
-  margin: "0 0 16px",
-  lineHeight: 1.3,
-};
-
+// This email's own inline styles; the shared ones are in ./_styles.
 const leadText: React.CSSProperties = {
   fontSize: "17px",
   color: "#444444",
@@ -122,21 +115,5 @@ const smallText: React.CSSProperties = {
   lineHeight: 1.6,
   margin: "16px 0 0",
   wordBreak: "break-all",
-};
-
-const linkText: React.CSSProperties = {
-  color: "#FF6B6B",
-};
-
-const button: React.CSSProperties = {
-  backgroundColor: "#FF6B6B",
-  color: "#FFFFFF",
-  padding: "14px 36px",
-  borderRadius: "999px",
-  textDecoration: "none",
-  fontWeight: 700,
-  fontSize: "16px",
-  display: "inline-block",
-  boxShadow: "0 4px 12px rgba(255,107,107,0.35)",
 };
 

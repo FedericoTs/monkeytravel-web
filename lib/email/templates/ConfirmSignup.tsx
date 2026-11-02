@@ -17,6 +17,7 @@
 import { Button, Heading, Section, Text } from "@react-email/components";
 import { EmailLayout, otpCodeBox, otpCodeLabel, otpCodeText } from "./_layout";
 import { authSharedCopy, confirmSignupCopy, layoutCopy, type EmailLocale } from "../copy";
+import { h1, bodyText, linkText, largeButton as button } from "./_styles";
 
 export interface ConfirmSignupEmailProps {
   /** Display name if known (falls back to a generic greeting). */
@@ -115,28 +116,13 @@ export function confirmSignupSubject(locale: EmailLocale = "en"): string {
   return confirmSignupCopy[locale].subject;
 }
 
-// Inline styles — mirror the invite/vote/reminder templates.
-const h1: React.CSSProperties = {
-  fontSize: "24px",
-  fontWeight: 700,
-  color: "#1A1A1A",
-  margin: "0 0 16px",
-  lineHeight: 1.3,
-};
-
+// This email's own inline styles; the shared ones are in ./_styles.
 const leadText: React.CSSProperties = {
   fontSize: "18px",
   color: "#555555",
   margin: "0 0 8px",
   fontWeight: 600,
   lineHeight: 1.5,
-};
-
-const bodyText: React.CSSProperties = {
-  fontSize: "16px",
-  color: "#333333",
-  lineHeight: 1.6,
-  margin: "16px 0",
 };
 
 const smallText: React.CSSProperties = {
@@ -147,18 +133,3 @@ const smallText: React.CSSProperties = {
   wordBreak: "break-all",
 };
 
-const linkText: React.CSSProperties = {
-  color: "#FF6B6B",
-};
-
-const button: React.CSSProperties = {
-  backgroundColor: "#FF6B6B",
-  color: "#FFFFFF",
-  padding: "14px 36px",
-  borderRadius: "999px",
-  textDecoration: "none",
-  fontWeight: 700,
-  fontSize: "16px",
-  display: "inline-block",
-  boxShadow: "0 4px 12px rgba(255,107,107,0.35)",
-};

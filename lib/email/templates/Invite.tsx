@@ -12,6 +12,7 @@
 import { Button, Heading, Section, Text } from "@react-email/components";
 import { EmailLayout } from "./_layout";
 import { inviteCopy, layoutCopy, type EmailLocale } from "../copy";
+import { h1, leadText, bodyText, linkText, button } from "./_styles";
 
 export interface InviteEmailProps {
   inviterName: string;
@@ -127,38 +128,12 @@ export function inviteSubject(
 }
 
 // Inline styles
-const h1: React.CSSProperties = {
-  fontSize: "24px",
-  fontWeight: 700,
-  color: "#1A1A1A",
-  margin: "0 0 16px",
-  lineHeight: 1.3,
-};
-
-const leadText: React.CSSProperties = {
-  fontSize: "18px",
-  color: "#555555",
-  margin: "0 0 24px",
-  fontWeight: 600,
-};
-
-const bodyText: React.CSSProperties = {
-  fontSize: "16px",
-  color: "#333333",
-  lineHeight: 1.6,
-  margin: "16px 0",
-};
-
 const smallText: React.CSSProperties = {
   fontSize: "12px",
   color: "#888888",
   lineHeight: 1.5,
   margin: "16px 0 0",
   wordBreak: "break-all",
-};
-
-const linkText: React.CSSProperties = {
-  color: "#FF6B6B",
 };
 
 const messageBox: React.CSSProperties = {
@@ -183,13 +158,3 @@ const messageAttribution: React.CSSProperties = {
   margin: 0,
 };
 
-const button: React.CSSProperties = {
-  backgroundColor: "#FF6B6B",
-  color: "#FFFFFF",
-  padding: "12px 32px",
-  borderRadius: "999px",
-  textDecoration: "none",
-  fontWeight: 600,
-  fontSize: "16px",
-  display: "inline-block",
-};
