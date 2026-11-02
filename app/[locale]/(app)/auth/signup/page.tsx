@@ -24,7 +24,7 @@ import { buildAuthCallbackUrl, splitLocalePrefix } from "@/lib/auth/callback-url
 import { returnsToPage } from "@/lib/auth/first-login";
 import { safeGet, safeSet } from "@/lib/safe-storage";
 import { OAuthButtons } from "@/components/auth/OAuthButtons";
-import { AuthPage, AuthPageLoading, AuthStatusIcon, AuthSubmitButton } from "@/components/auth/AuthPage";
+import { AuthField, AuthPage, AuthPageLoading, AuthStatusIcon, AuthSubmitButton } from "@/components/auth/AuthPage";
 
 function SignupForm() {
   const [email, setEmail] = useState("");
@@ -433,85 +433,53 @@ function SignupForm() {
       </div>
 
       <form onSubmit={handleSignup} className="space-y-4">
-        <div>
-          <label
-            htmlFor="displayName"
-            className="block text-sm font-medium text-slate-700 mb-1"
-          >
-            {t("nameLabel")} <span className="text-slate-500 font-normal">{t("nameOptional")}</span>
-          </label>
-          <input
-            id="displayName"
-            type="text"
-            autoComplete="name"
-            name="name"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            maxLength={50}
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
-            placeholder={t("namePlaceholder")}
-          />
-        </div>
+        <AuthField
+          id="displayName"
+          name="name"
+          type="text"
+          autoComplete="name"
+          label={
+            <>
+              {t("nameLabel")} <span className="text-slate-500 font-normal">{t("nameOptional")}</span>
+            </>
+          }
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          maxLength={50}
+          placeholder={t("namePlaceholder")}
+        />
 
-        <div>
-          <label
-            htmlFor="email"
-            className={`block text-sm font-medium mb-1 ${
-              error?.field === 'email' ? 'text-red-600' : 'text-slate-700'
-            }`}
-          >
-            {t("emailLabel")}
-          </label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            name="email"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (error?.field === 'email') setError(null);
-            }}
-            required
-            className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
-              error?.field === 'email'
-                ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
-            }`}
-            placeholder={t("emailPlaceholder")}
-          />
-        </div>
+        <AuthField
+          id="email"
+          type="email"
+          autoComplete="email"
+          label={t("emailLabel")}
+          invalid={error?.field === 'email'}
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (error?.field === 'email') setError(null);
+          }}
+          required
+          placeholder={t("emailPlaceholder")}
+        />
 
-        <div>
-          <label
-            htmlFor="password"
-            className={`block text-sm font-medium mb-1 ${
-              error?.field === 'password' ? 'text-red-600' : 'text-slate-700'
-            }`}
-          >
-            {t("passwordLabel")}
-          </label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="new-password"
-            name="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              if (error?.field === 'password') setError(null);
-            }}
-            required
-            minLength={6}
-            className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
-              error?.field === 'password'
-                ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
-            }`}
-            placeholder={t("passwordPlaceholder")}
-          />
-          <p className="text-xs text-slate-500 mt-1">{t("passwordHint")}</p>
-        </div>
+        <AuthField
+          id="password"
+          type="password"
+          autoComplete="new-password"
+          label={t("passwordLabel")}
+          hint={t("passwordHint")}
+          invalid={error?.field === 'password'}
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            if (error?.field === 'password') setError(null);
+          }}
+          required
+          minLength={6}
+          placeholder={t("passwordPlaceholder")}
+        />
 
         <AuthSubmitButton loading={loading} loadingLabel={t("creatingAccount")}>
           {t("submitButton")}

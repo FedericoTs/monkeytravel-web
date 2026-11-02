@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/lib/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
-import { AuthPage, AuthPageLoading, AuthStatusIcon, AuthSubmitButton } from "@/components/auth/AuthPage";
+import { AuthField, AuthPage, AuthPageLoading, AuthStatusIcon, AuthSubmitButton } from "@/components/auth/AuthPage";
 
 function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -132,25 +132,16 @@ function ForgotPasswordForm() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-slate-700 mb-1"
-          >
-            {t("emailLabel")}
-          </label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            name="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
-            placeholder={t("emailPlaceholder")}
-          />
-        </div>
+        <AuthField
+          id="email"
+          type="email"
+          autoComplete="email"
+          label={t("emailLabel")}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          placeholder={t("emailPlaceholder")}
+        />
 
         <AuthSubmitButton loading={loading} loadingLabel={t("sending")}>
           {t("submitButton")}

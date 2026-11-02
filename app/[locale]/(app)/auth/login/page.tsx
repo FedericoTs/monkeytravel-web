@@ -20,7 +20,7 @@ import { withStoredReferral } from "@/lib/referral/client";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { OAuthButtons } from "@/components/auth/OAuthButtons";
-import { AuthPage, AuthPageLoading, AuthSubmitButton } from "@/components/auth/AuthPage";
+import { AuthField, AuthPage, AuthPageLoading, AuthSubmitButton } from "@/components/auth/AuthPage";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -286,71 +286,43 @@ function LoginForm() {
       </div>
 
       <form onSubmit={handleLogin} className="space-y-4">
-        <div>
-          <label
-            htmlFor="email"
-            className={`block text-sm font-medium mb-1 ${
-              error?.field === 'email' ? 'text-red-600' : 'text-slate-700'
-            }`}
-          >
-            {t("emailLabel")}
-          </label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            name="email"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (error?.field === 'email') setError(null);
-            }}
-            required
-            className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
-              error?.field === 'email'
-                ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
-            }`}
-            placeholder={t("emailPlaceholder")}
-          />
-        </div>
+        <AuthField
+          id="email"
+          type="email"
+          autoComplete="email"
+          label={t("emailLabel")}
+          invalid={error?.field === 'email'}
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (error?.field === 'email') setError(null);
+          }}
+          required
+          placeholder={t("emailPlaceholder")}
+        />
 
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label
-              htmlFor="password"
-              className={`block text-sm font-medium ${
-                error?.field === 'password' ? 'text-red-600' : 'text-slate-700'
-              }`}
-            >
-              {t("passwordLabel")}
-            </label>
+        <AuthField
+          id="password"
+          type="password"
+          autoComplete="current-password"
+          label={t("passwordLabel")}
+          labelAside={
             <Link
               href="/auth/forgot-password"
               className="text-sm text-[var(--primary-ink)] hover:underline"
             >
               {t("forgotPassword")}
             </Link>
-          </div>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            name="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              if (error?.field === 'password') setError(null);
-            }}
-            required
-            className={`w-full px-4 py-2.5 rounded-lg border outline-none transition-colors ${
-              error?.field === 'password'
-                ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                : 'border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20'
-            }`}
-            placeholder={t("passwordPlaceholder")}
-          />
-        </div>
+          }
+          invalid={error?.field === 'password'}
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            if (error?.field === 'password') setError(null);
+          }}
+          required
+          placeholder={t("passwordPlaceholder")}
+        />
 
         <AuthSubmitButton loading={loading} loadingLabel={t("signingIn")}>
           {t("submitButton")}

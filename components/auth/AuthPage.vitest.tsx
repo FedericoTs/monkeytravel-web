@@ -10,7 +10,8 @@ vi.mock("@/lib/i18n/routing", () => ({
   ),
 }));
 
-import { AuthPage, AuthPageLoading, AuthStatusIcon, AuthSubmitButton } from "./AuthPage";
+import { Link } from "@/lib/i18n/routing";
+import { AuthField, AuthPage, AuthPageLoading, AuthStatusIcon, AuthSubmitButton } from "./AuthPage";
 
 describe("the sign-in page frame", () => {
   it("puts the logo, linking home, above the card", () => {
@@ -58,4 +59,38 @@ it.each([
 it("waits with a spinner", () => {
   const { container } = render(<AuthPageLoading />);
   expect(container.querySelector(".animate-spin")).not.toBeNull();
+});
+
+describe("a field of the card", () => {
+  it("labels its input, names it after its id, and passes the input's own attributes on", () => {
+    render(<AuthField id="password" type="password" autoComplete="new-password" label="New password" minLength={6} required placeholder="••••••" />);
+    const input = screen.getByLabelText("New password") as HTMLInputElement;
+    expect(input.id).toBe("password");
+    expect(input.name).toBe("password");
+    expect(input.type).toBe("password");
+    expect(input.minLength).toBe(6);
+    expect(input.required).toBe(true);
+    expect(input.getAttribute("autocomplete")).toBe("new-password");
+    expect(input.className).toContain("border-slate-300");
+    expect(screen.getByText("New password").className).toContain("text-slate-700");
+  });
+
+  it("keeps a name that differs from its id", () => {
+    render(<AuthField id="displayName" name="name" label="Name" />);
+    expect((screen.getByLabelText("Name") as HTMLInputElement).name).toBe("name");
+  });
+
+  it("turns label and border red while invalid", () => {
+    render(<AuthField id="email" type="email" label="Email" invalid />);
+    expect(screen.getByText("Email").className).toContain("text-red-600");
+    expect(screen.getByLabelText("Email").className).toContain("border-red-300");
+  });
+
+  it("puts an aside next to the label, and a hint under the input", () => {
+    render(<AuthField id="password" label="Password" labelAside={<Link href="/auth/forgot-password">Forgot?</Link>} hint="6 characters or more" />);
+    const label = screen.getByText("Password");
+    expect(label.parentElement?.className).toBe("flex items-center justify-between mb-1");
+    expect(label.parentElement?.querySelector("a")?.textContent).toBe("Forgot?");
+    expect(screen.getByText("6 characters or more").tagName).toBe("P");
+  });
 });

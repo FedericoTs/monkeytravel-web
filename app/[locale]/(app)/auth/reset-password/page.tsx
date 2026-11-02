@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, Link } from "@/lib/i18n/routing";
 import { useTranslations } from "next-intl";
-import { AuthPage, AuthPageLoading, AuthStatusIcon, AuthSubmitButton } from "@/components/auth/AuthPage";
+import { AuthField, AuthPage, AuthPageLoading, AuthStatusIcon, AuthSubmitButton } from "@/components/auth/AuthPage";
 
 function ResetPasswordForm() {
   const [password, setPassword] = useState("");
@@ -180,47 +180,29 @@ function ResetPasswordForm() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-slate-700 mb-1"
-          >
-            {t("newPasswordLabel")}
-          </label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="new-password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
-            placeholder={t("newPasswordPlaceholder")}
-          />
-        </div>
+        <AuthField
+          id="password"
+          type="password"
+          autoComplete="new-password"
+          label={t("newPasswordLabel")}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          minLength={6}
+          placeholder={t("newPasswordPlaceholder")}
+        />
 
-        <div>
-          <label
-            htmlFor="confirmPassword"
-            className="block text-sm font-medium text-slate-700 mb-1"
-          >
-            {t("confirmPasswordLabel")}
-          </label>
-          <input
-            id="confirmPassword"
-            type="password"
-            autoComplete="new-password"
-            name="confirmPassword"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            minLength={6}
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors"
-            placeholder={t("confirmPasswordPlaceholder")}
-          />
-        </div>
+        <AuthField
+          id="confirmPassword"
+          type="password"
+          autoComplete="new-password"
+          label={t("confirmPasswordLabel")}
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          minLength={6}
+          placeholder={t("confirmPasswordPlaceholder")}
+        />
 
         <AuthSubmitButton loading={loading} loadingLabel={t("updating")}>
           {t("updateButton")}
