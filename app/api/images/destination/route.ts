@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { readJsonBody } from "@/lib/api/json-body";
 import { PEXELS_API_BASE } from "@/lib/constants/externalApis";
 import { destinationPhotos } from "@/lib/images/destination-photos";
 
@@ -298,19 +299,17 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const { destination } = await request.json();
+  const { body, invalidBody } = await readJsonBody(request);
+  if (invalidBody) return invalidBody;
+  const { destination } = body;
 
-    if (!destination) {
-      return errors.badRequest("Destination is required");
-    }
-
-    // Redirect to GET with destination as query param
-    const url = new URL(request.url);
-    url.searchParams.set("destination", destination);
-
-    return GET(new NextRequest(url));
-  } catch {
-    return errors.badRequest("Invalid request body");
+  if (!destination) {
+    return errors.badRequest("Destination is required");
   }
+
+  // Redirect to GET with destination as query param
+  const url = new URL(request.url);
+  url.searchParams.set("destination", destination);
+
+  return GET(new NextRequest(url));
 }

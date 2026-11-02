@@ -7,6 +7,7 @@ import { verifyDeletionCode } from "@/lib/auth/deletion-code";
 import { createClient } from "@/lib/supabase/server";
 import { eraseElsewhere } from "@/lib/account/erase-elsewhere";
 import { after, type NextRequest } from "next/server";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * POST /api/profile/delete
@@ -54,12 +55,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Parse + validate body.
-  let body: DeleteBody;
-  try {
-    body = (await req.json()) as DeleteBody;
-  } catch {
-    return errors.badRequest("Invalid JSON body");
-  }
+  const { body, invalidBody } = await readJsonBody<DeleteBody>(req);
+  if (invalidBody) return invalidBody;
 
   const code = typeof body.code === "string" ? body.code : "";
   const password = typeof body.password === "string" ? body.password : "";

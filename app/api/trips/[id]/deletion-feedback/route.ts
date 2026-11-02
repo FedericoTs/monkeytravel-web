@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripRouteContext } from "@/lib/api/route-context";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * POST /api/trips/[id]/deletion-feedback
@@ -56,12 +57,8 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    let body: DeletionFeedbackBody;
-    try {
-      body = (await request.json()) as DeletionFeedbackBody;
-    } catch {
-      return errors.badRequest("Invalid JSON body");
-    }
+    const { body, invalidBody } = await readJsonBody<DeletionFeedbackBody>(request);
+    if (invalidBody) return invalidBody;
 
     const reason = typeof body.reason === "string" ? body.reason : "";
     if (!VALID_REASONS.has(reason)) {

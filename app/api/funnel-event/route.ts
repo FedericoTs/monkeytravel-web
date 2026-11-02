@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/server";
 import { errors } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
+import { readJsonBody } from "@/lib/api/json-body";
 
 // Which "plan your own" button on a trip page was pressed, so each can be read.
 const PLAN_OWN_SURFACES = ["shared_footer", "public_footer", "public_top", "after_vote", "page_footer", "bottom_bar"] as const;
@@ -46,12 +47,8 @@ const ipLimiter = createRateLimiter("funnel-event-ip", 300, 60 * 1000);
 const sessionLimiter = createRateLimiter("funnel-event-session", 60, 60 * 1000);
 
 export async function POST(request: NextRequest) {
-  let raw: unknown;
-  try {
-    raw = await request.json();
-  } catch {
-    return errors.badRequest("Body must be valid JSON");
-  }
+  const { body: raw, invalidBody } = await readJsonBody<unknown>(request);
+  if (invalidBody) return invalidBody;
 
   const parsed = BodySchema.safeParse(raw);
   if (!parsed.success) {

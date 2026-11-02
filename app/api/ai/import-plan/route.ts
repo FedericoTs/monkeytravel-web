@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { extractPlan, isPlanExtractError } from "@/lib/ai/anchor-import";
 import { normalizeImportedAnchors } from "@/lib/ai/anchor-import-core";
 import { MAX_ANCHORED_TRIP_DAYS, assertISODate, inclusiveDaySpan } from "@/lib/ai/anchors-core";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * POST /api/ai/import-plan
@@ -70,12 +71,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    let body: Record<string, unknown>;
-    try {
-      body = await request.json();
-    } catch {
-      return errors.badRequest("Body must be valid JSON");
-    }
+    const { body, invalidBody } = await readJsonBody<Record<string, unknown>>(request);
+    if (invalidBody) return invalidBody;
 
     const text = typeof body.text === "string" ? body.text : "";
     const startDate = typeof body.startDate === "string" ? body.startDate : "";

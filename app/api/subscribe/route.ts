@@ -6,6 +6,7 @@ import { createRateLimiter } from '@/lib/api/rate-limit'
 
 // 5 subscriptions per IP per hour
 const limiter = createRateLimiter("subscribe", 5, 60 * 60 * 1000);
+import { readJsonBody } from "@/lib/api/json-body";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,12 +17,8 @@ export async function POST(request: NextRequest) {
     }
 
     // A malformed body is a 400, not an unwrapped request.json() crash.
-    let body: { email?: string; source?: string };
-    try {
-      body = (await request.json()) as { email?: string; source?: string };
-    } catch {
-      return errors.badRequest('Body must be valid JSON');
-    }
+    const { body, invalidBody } = await readJsonBody<{ email?: string; source?: string }>(request);
+    if (invalidBody) return invalidBody;
     const { email, source = 'website' } = body
 
     // Validate email

@@ -27,6 +27,7 @@ import { publicNameOrNull } from "@/lib/profile/public-name";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { expenseCohort, tripRoster } from "@/lib/trips/roster";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * Equal shares across the trip's group (lib/trips/roster), the payer
@@ -225,12 +226,8 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return errors.badRequest("Invalid JSON body");
-    }
+    const { body, invalidBody } = await readJsonBody<unknown>(request);
+    if (invalidBody) return invalidBody;
     const parsed = normalizeBody(body);
 
     if (typeof parsed.amount !== "number" || parsed.amount < 0) {
@@ -303,12 +300,8 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return errors.badRequest("Invalid JSON body");
-    }
+    const { body, invalidBody } = await readJsonBody<unknown>(request);
+    if (invalidBody) return invalidBody;
     const raw = body as { id?: unknown } | null;
     const expenseId =
       raw && typeof raw.id === "string" ? raw.id : null;
@@ -402,12 +395,8 @@ export async function DELETE(request: NextRequest, context: TripRouteContext) {
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
     if (errorResponse) return errorResponse;
 
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return errors.badRequest("Invalid JSON body");
-    }
+    const { body, invalidBody } = await readJsonBody<unknown>(request);
+    if (invalidBody) return invalidBody;
     const raw = body as { id?: unknown } | null;
     const expenseId =
       raw && typeof raw.id === "string" ? raw.id : null;
