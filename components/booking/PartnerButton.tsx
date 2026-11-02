@@ -5,6 +5,7 @@ import { PARTNERS, type PartnerKey, type PartnerCategory } from "@/lib/affiliate
 import { openExternal } from "@/lib/native/external-link";
 import { capture } from "@/lib/posthog";
 import { ExternalLink } from "lucide-react";
+import { isNativePlatform } from "@/lib/native/platform";
 
 /**
  * Canonical affiliate/partner CTA button.
@@ -164,11 +165,7 @@ export default function PartnerButton({
 
     // Only intercept the navigation inside the Capacitor mobile shell,
     // where target="_blank" is silently swallowed by the iOS WKWebView.
-    const cap = (
-      window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }
-    ).Capacitor;
-
-    if (cap?.isNativePlatform?.()) {
+    if (isNativePlatform()) {
       e.preventDefault();
       void openExternal(href);
     }

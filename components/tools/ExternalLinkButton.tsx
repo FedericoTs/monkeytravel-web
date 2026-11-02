@@ -44,6 +44,7 @@
 import type { MouseEvent, ReactNode } from "react";
 import { openExternal } from "@/lib/native/external-link";
 import { capture } from "@/lib/posthog";
+import { isNativePlatform } from "@/lib/native/platform";
 
 interface ExternalLinkButtonProps {
   href: string;
@@ -121,11 +122,7 @@ export default function ExternalLinkButton({
       return;
     }
 
-    const cap = (
-      window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }
-    ).Capacitor;
-
-    if (cap?.isNativePlatform?.()) {
+    if (isNativePlatform()) {
       e.preventDefault();
       void openExternal(href);
     }

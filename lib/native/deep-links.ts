@@ -40,6 +40,8 @@
  * console output during TestFlight saves debugging cycles later.
  */
 
+import { isNativePlatform } from "./platform";
+
 // The Universal-Link host(s) we recognize as "this is us, route
 // in-app." Add staging/preview domains here if they ever serve
 // production-equivalent traffic that needs to in-app-route.
@@ -58,11 +60,7 @@ const APP_SCHEMES = new Set(["monkeytravel:", "capacitor:"]);
  * callers can use the same useEffect cleanup shape.
  */
 export async function installDeepLinkHandler(): Promise<() => void> {
-  if (typeof window === "undefined") return () => undefined;
-  const cap = (
-    window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }
-  ).Capacitor;
-  if (!cap?.isNativePlatform?.()) return () => undefined;
+  if (!isNativePlatform()) return () => undefined;
 
   let listenerHandle: { remove: () => Promise<void> } | null = null;
 
