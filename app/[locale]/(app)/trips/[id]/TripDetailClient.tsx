@@ -52,6 +52,7 @@ import DaySlider from "@/components/ui/DaySlider";
 import TravelConnector from "@/components/trip/TravelConnector";
 import DaySummary from "@/components/trip/DaySummary";
 import { DayTimeline } from "@/components/trip/DayTimeline";
+import { tripNights } from "@/lib/dates/iso-date";
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
 import {
   CountdownHero,
@@ -571,8 +572,8 @@ export default function TripDetailClient({
   // Version counter to force re-render after AI updates
   const [renderEpoch, setRenderEpoch] = useState(0);
 
-  // Ref to track if we just updated from AI (for animations)
-  const aiUpdateRef = useRef<{ dayIndex: number; activityId: string } | null>(null);
+  // The activity an AI change just added or replaced, highlighted for a moment
+  const [aiUpdatedActivityId, setAiUpdatedActivityId] = useState<string | null>(null);
 
   // Track if there are unsaved changes (compare against saved state, not prop)
   const hasChanges = JSON.stringify(editedItinerary) !== JSON.stringify(savedItinerary);
@@ -694,6 +695,11 @@ export default function TripDetailClient({
   const MAX_HISTORY = 20;
   const [undoStack, setUndoStack] = useState<HistoryEntry[]>([]);
   const [redoStack, setRedoStack] = useState<HistoryEntry[]>([]);
+  // Clear the undo/redo stacks
+  const clearHistory = useCallback(() => {
+    setUndoStack([]);
+    setRedoStack([]);
+  }, []);
 
   // Viewing a trip never pays for an external API to backfill coordinates:
   // only activities that already have coordinates get a map marker.
@@ -1066,12 +1072,6 @@ export default function TripDetailClient({
     setRedoStack(prev => prev.slice(0, -1));
     lastFailedSaveRef.current = null;
   }, [redoStack, editedItinerary]);
-
-  // Clear undo/redo stacks when entering/exiting edit mode
-  const clearHistory = useCallback(() => {
-    setUndoStack([]);
-    setRedoStack([]);
-  }, []);
 
   // Apply optimized route to a day (with undo support)
   const applyOptimizedRoute = useCallback((dayNumber: number, optimizedActivities: Activity[]) => {
@@ -1738,6 +1738,7 @@ export default function TripDetailClient({
         });
 
         // Find changed activities for animation
+        let changedId: string | undefined;
         for (let dayIdx = 0; dayIdx < processedItinerary.length; dayIdx++) {
           const newDay = processedItinerary[dayIdx];
           const oldDay = editedItinerary[dayIdx];
@@ -1749,7 +1750,7 @@ export default function TripDetailClient({
                 const exists = oldDay.activities.some((a: Activity) => a.id === act.id || a.name === act.name);
                 if (!exists) {
                   console.log("[TripDetailClient] Found new activity:", act.name);
-                  aiUpdateRef.current = { dayIndex: dayIdx, activityId: act.id || "" };
+                  changedId = act.id;
                   break;
                 }
               }
@@ -1760,7 +1761,7 @@ export default function TripDetailClient({
                 const oldAct = oldDay.activities[actIdx];
                 if (oldAct && newAct.name !== oldAct.name) {
                   console.log("[TripDetailClient] Found replaced activity:", oldAct.name, "->", newAct.name);
-                  aiUpdateRef.current = { dayIndex: dayIdx, activityId: newAct.id || "" };
+                  changedId = newAct.id;
                   break;
                 }
               }
@@ -1792,10 +1793,12 @@ export default function TripDetailClient({
           return newVersion;
         });
 
-        // Clear the AI update ref after animation time
-        setTimeout(() => {
-          aiUpdateRef.current = null;
-        }, 2000);
+        // Highlight it until the animation ends, unless a newer change took over
+        if (changedId) {
+          const highlighted = changedId;
+          setAiUpdatedActivityId(highlighted);
+          setTimeout(() => setAiUpdatedActivityId((id) => (id === highlighted ? null : id)), 2000);
+        }
 
         // The hero and countdown read the dates and day count from props, and
         // adding days or undoing them moves end_date: take fresh props then.
@@ -2059,11 +2062,7 @@ export default function TripDetailClient({
         dateRange={dateRange}
         budget={trip.budget?.total ? trip.budget : undefined}
         days={trip.itinerary.length}
-        nights={(() => {
-          const start = new Date(trip.startDate);
-          const end = new Date(trip.endDate);
-          return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-        })()}
+        nights={tripNights(trip.startDate, trip.endDate)}
         activitiesCount={displayItinerary.reduce((acc, day) => acc + day.activities.length, 0)}
         weatherNote={trip.meta?.weather_note}
         highlights={trip.meta?.highlights}
@@ -2885,7 +2884,7 @@ export default function TripDetailClient({
                             >
                               <div className="grid gap-0">
                               {day.activities.map((activity, idx) => {
-                                const isAIUpdated = aiUpdateRef.current?.activityId === activity.id;
+                                const isAIUpdated = aiUpdatedActivityId === activity.id;
                                 const nextActivity = day.activities[idx + 1];
                                 const dayTravelData = travelData.get(day.day_number);
                                 const segment = nextActivity && dayTravelData?.segments.find(
@@ -2952,7 +2951,7 @@ export default function TripDetailClient({
                             if (item.type === 'activity') {
                               const activity = item.data;
                               const idx = item.index;
-                              const isAIUpdated = aiUpdateRef.current?.activityId === activity.id;
+                              const isAIUpdated = aiUpdatedActivityId === activity.id;
                               const nextActivity = day.activities[idx + 1];
                               const dayTravelData = travelData.get(day.day_number);
                               const segment = nextActivity && dayTravelData?.segments.find(
