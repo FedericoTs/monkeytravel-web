@@ -9,6 +9,7 @@ import { trackTemplateCopied, trackTripCreated } from "@/lib/analytics";
 import { prefs } from "@/lib/platform/storage";
 import { hapticSuccess, hapticError } from "@/lib/native/haptics";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
+import { flagEmoji } from "@/lib/utils/flag-emoji";
 
 interface SaveTripModalProps {
   isOpen: boolean;
@@ -40,16 +41,6 @@ interface PendingSave {
   tripTitle: string;
   startDate?: string;
   timestamp: number;
-}
-
-// Country code to flag emoji
-function getFlagEmoji(countryCode: string): string {
-  if (!countryCode) return "🌍";
-  const codePoints = countryCode
-    .toUpperCase()
-    .split("")
-    .map((char) => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
 }
 
 /**
@@ -296,7 +287,7 @@ export default function SaveTripModal({
             <div className="p-6 border-b border-slate-100 bg-gradient-to-br from-slate-50 to-white">
               <div className="flex items-center gap-4">
                 <div className="text-4xl">
-                  {getFlagEmoji(tripCountryCode || "")}
+                  {flagEmoji(tripCountryCode)}
                 </div>
                 <div>
                   <h3 id={titleId} className="text-xl font-bold text-slate-900">

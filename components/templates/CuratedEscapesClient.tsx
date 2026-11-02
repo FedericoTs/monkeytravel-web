@@ -6,6 +6,8 @@ import Image from "next/image";
 import { Sparkles, ChevronRight, ChevronLeft, Users, ArrowRight, MapPin } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
+import { flagEmoji } from "@/lib/utils/flag-emoji";
+import { MOOD_EMOJIS, destinationGradient } from "./visuals";
 
 interface TemplateTrip {
   id: string;
@@ -19,48 +21,6 @@ interface TemplateTrip {
   budgetTier: "budget" | "moderate" | "luxury";
   moodTags: string[];
   copyCount: number;
-}
-
-const MOOD_EMOJIS: Record<string, string> = {
-  romantic: "💕",
-  adventure: "🏔️",
-  cultural: "🏛️",
-  relaxation: "🌴",
-  foodie: "🍝",
-  family: "👨‍👩‍👧‍👦",
-  nature: "🌿",
-  offbeat: "🧭",
-  urban: "🏙️",
-  wellness: "🧘",
-};
-
-function getFlagEmoji(countryCode: string): string {
-  if (!countryCode) return "🌍";
-  const codePoints = countryCode
-    .toUpperCase()
-    .split("")
-    .map((char) => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
-}
-
-const DESTINATION_GRADIENTS: Record<string, { from: string; to: string }> = {
-  paris: { from: "#E8B4B8", to: "#D4919A" },
-  rome: { from: "#C9A86C", to: "#9E7B4F" },
-  tokyo: { from: "#FFB7C5", to: "#FF6B9D" },
-  barcelona: { from: "#F6AD55", to: "#ED8936" },
-  bali: { from: "#4FD1C5", to: "#38B2AC" },
-  london: { from: "#6B7B8C", to: "#4A5568" },
-  dubai: { from: "#D69E2E", to: "#B7791F" },
-  amsterdam: { from: "#68D391", to: "#48BB78" },
-  santorini: { from: "#63B3ED", to: "#4299E1" },
-  iceland: { from: "#A0AEC0", to: "#718096" },
-  "new york": { from: "#667EEA", to: "#764BA2" },
-  default: { from: "#718096", to: "#4A5568" },
-};
-
-function getGradient(destination: string) {
-  const key = destination.toLowerCase().split(",")[0].trim();
-  return DESTINATION_GRADIENTS[key] || DESTINATION_GRADIENTS.default;
 }
 
 interface TemplateCardProps {
@@ -77,7 +37,7 @@ function TemplateCard({ template, preventClick, t }: TemplateCardProps) {
   // underlying <img>; eager-true is the next-best.)
   const [imageLoaded, setImageLoaded] = useState(Boolean(template.coverImageUrl));
   const [imageError, setImageError] = useState(false);
-  const gradient = getGradient(template.destination);
+  const gradient = destinationGradient(template.destination);
 
   const budgetLabel =
     template.budgetTier === "budget"
@@ -142,7 +102,7 @@ function TemplateCard({ template, preventClick, t }: TemplateCardProps) {
 
         <div className="absolute bottom-0 left-0 right-0 p-4">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg drop-shadow-md">{getFlagEmoji(template.countryCode)}</span>
+            <span className="text-lg drop-shadow-md">{flagEmoji(template.countryCode)}</span>
             <span className="text-white/90 text-xs font-medium tracking-wide uppercase">{template.country}</span>
           </div>
           <h3 className="text-lg md:text-xl font-bold text-white drop-shadow-lg leading-tight line-clamp-1">

@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import BottomSheet from "@/components/ui/BottomSheet";
+import { flagEmoji } from "@/lib/utils/flag-emoji";
+import { destinationGradient } from "@/components/templates/visuals";
 
 interface TemplateTrip {
   id: string;
@@ -72,37 +74,13 @@ function useMoodLabel() {
 }
 
 // Gradient fallbacks for destinations
-const DESTINATION_GRADIENTS: Record<string, { from: string; to: string }> = {
-  paris: { from: "#E8B4B8", to: "#D4919A" },
-  rome: { from: "#C9A86C", to: "#9E7B4F" },
-  tokyo: { from: "#FFB7C5", to: "#FF6B9D" },
-  barcelona: { from: "#F6AD55", to: "#ED8936" },
-  bali: { from: "#4FD1C5", to: "#38B2AC" },
-  "new york": { from: "#667EEA", to: "#764BA2" },
-  default: { from: "#718096", to: "#4A5568" },
-};
-
-function getGradient(destination: string) {
-  const key = destination.toLowerCase().split(",")[0].trim();
-  return DESTINATION_GRADIENTS[key] || DESTINATION_GRADIENTS.default;
-}
-
-function getFlagEmoji(countryCode: string): string {
-  if (!countryCode) return "🌍";
-  const codePoints = countryCode
-    .toUpperCase()
-    .split("")
-    .map((char) => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
-}
-
 // Featured Template Card - Mobile-first Hero style
 function FeaturedCard({ template }: { template: TemplateTrip }) {
   const t = useTranslations("common.curatedEscapes");
   const imgRef = useRef<HTMLImageElement | null>(null);
   // Cached-image race shim — see hooks/useImageLoaded.ts.
   const [imageLoaded, setImageLoaded] = useImageLoaded(imgRef, template.coverImageUrl);
-  const gradient = getGradient(template.destination);
+  const gradient = destinationGradient(template.destination);
 
   const budgetLabel =
     template.budgetTier === "budget"
@@ -167,7 +145,7 @@ function FeaturedCard({ template }: { template: TemplateTrip }) {
           <div className="max-w-xl">
             {/* Country & Flag */}
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl md:text-2xl drop-shadow-md">{getFlagEmoji(template.countryCode)}</span>
+              <span className="text-xl md:text-2xl drop-shadow-md">{flagEmoji(template.countryCode)}</span>
               <span className="text-white/90 text-xs sm:text-sm font-medium tracking-wide uppercase">{template.country}</span>
             </div>
 
@@ -209,7 +187,7 @@ function TemplateCard({ template, index }: { template: TemplateTrip; index: numb
   // Cached-image race shim — see hooks/useImageLoaded.ts.
   const [imageLoaded, setImageLoaded] = useImageLoaded(imgRef, template.coverImageUrl);
   const [imageError, setImageError] = useState(false);
-  const gradient = getGradient(template.destination);
+  const gradient = destinationGradient(template.destination);
 
   const budgetLabel =
     template.budgetTier === "budget"
@@ -270,7 +248,7 @@ function TemplateCard({ template, index }: { template: TemplateTrip; index: numb
           {/* Destination info - at bottom of image */}
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-lg drop-shadow-md">{getFlagEmoji(template.countryCode)}</span>
+              <span className="text-lg drop-shadow-md">{flagEmoji(template.countryCode)}</span>
               <span className="text-white/90 text-xs font-medium tracking-wide uppercase">{template.country}</span>
             </div>
             <h3 className="text-xl sm:text-2xl font-bold text-white drop-shadow-lg leading-tight">
