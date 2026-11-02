@@ -100,13 +100,6 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
   // Currency conversion hook
   const { convert: convertCurrency, format: formatCurrency } = useCurrency();
 
-  // Format price with currency conversion
-  const formatPrice = (amount: number, fromCurrency: string): string => {
-    if (amount === 0) return t('price.free');
-    const converted = convertCurrency(amount, fromCurrency);
-    return converted.formatted;
-  };
-
   const formatDayBudget = (day: ItineraryDay): string =>
     dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, t('price.free'));
 
@@ -326,15 +319,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
                       travelLoading={travelLoading}
                       pace={template.meta?.pace}
                       typeLabel={typeLabel}
-                      price={(activity) =>
-                        // estimated_cost is optional in practice; omit rather than claim "Free".
-                        activity.estimated_cost
-                          ? formatPrice(
-                              activity.estimated_cost.amount,
-                              activity.estimated_cost.currency || template.budget?.currency || "EUR"
-                            )
-                          : null
-                      }
+                      currency={template.budget?.currency || "EUR"}
                     />
                   )}
                 </div>

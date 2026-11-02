@@ -86,7 +86,7 @@ describe("a day in the result view's timeline", () => {
     expect(screen.queryByText("1er")).toBeNull();
   });
 
-  it("prices an activity in its own currency, else the trip's, and leaves out a price it does not know", () => {
+  it("prices an activity from its own currency, else the trip's, says free at 0 and leaves out a price it does not know", () => {
     render(
       <ResultTimeline
         activities={[
@@ -98,7 +98,7 @@ describe("a day in the result view's timeline", () => {
       />
     );
     expect(screen.getByText("GBP 22")).toBeTruthy();
-    expect(screen.getByText("EUR 0")).toBeTruthy();
+    expect(screen.getByText("activity.free")).toBeTruthy();
     expect(screen.getAllByText("type:museum")).toHaveLength(2);
   });
 

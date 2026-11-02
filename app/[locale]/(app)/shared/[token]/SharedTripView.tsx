@@ -426,13 +426,6 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
   // Currency conversion hook - converts to user's preferred currency
   const { convert: convertCurrency, format: formatCurrency } = useCurrency();
 
-  // Format price with currency conversion
-  const formatPrice = (amount: number, fromCurrency: string): string => {
-    if (amount === 0) return t('activity.free');
-    const converted = convertCurrency(amount, fromCurrency);
-    return converted.formatted;
-  };
-
   const formatDayBudget = (day: ItineraryDay): string =>
     dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, t('activity.free'));
 
@@ -859,17 +852,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
                       travelLoading={travelLoading}
                       pace={trip.meta?.pace}
                       typeLabel={typeLabel}
-                      price={(activity) =>
-                        // Gemini often omits estimated_cost. Render nothing when it is
-                        // missing — defaulting to 0 would print "Free", inventing a claim
-                        // about price.
-                        activity.estimated_cost
-                          ? formatPrice(
-                              activity.estimated_cost.amount,
-                              activity.estimated_cost.currency || trip.budget?.currency || "USD"
-                            )
-                          : null
-                      }
+                      currency={trip.budget?.currency || "USD"}
                       extra={(activity) =>
                         canVote && activity.id && (
                           <div className="mt-3">

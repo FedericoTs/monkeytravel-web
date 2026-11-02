@@ -1,9 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import enCommon from "@/messages/en/common.json";
 import enTrips from "@/messages/en/trips.json";
 import type { Activity } from "@/types";
+
+vi.mock("@/lib/locale", () => ({
+  useCurrency: () => ({ convert: (amount: number, from: string) => ({ formatted: `${from}→GBP ${amount}` }) }),
+}));
+
 import EditableActivityCard from "./EditableActivityCard";
 
 function priceOf(estimated_cost: Activity["estimated_cost"]) {
@@ -37,20 +42,25 @@ function priceOf(estimated_cost: Activity["estimated_cost"]) {
       />
     </NextIntlClientProvider>
   );
-  const label = screen.getByText(enTrips.activity.aiEstimate, { selector: "div.text-\\[10px\\]" });
-  return label.parentElement!.textContent!.replace(label.textContent!, "");
+  const label = screen.queryByText(enTrips.activity.aiEstimate, { selector: "div.text-\\[10px\\]" });
+  return label && label.parentElement!.textContent!.replace(label.textContent!, "");
 }
 
 describe("EditableActivityCard's price", () => {
-  it("shows the AI estimate in the activity's currency", () => {
-    expect(priceOf({ amount: 25, currency: "EUR", tier: "moderate" })).toBe("~EUR 25");
+  it("shows the AI estimate converted to the viewer's currency", () => {
+    expect(priceOf({ amount: 25, currency: "EUR", tier: "moderate" })).toBe("~EUR→GBP 25");
+  });
+
+  it("converts from the trip's currency when the estimate names none", () => {
+    expect(priceOf({ amount: 25, currency: "", tier: "moderate" })).toBe("~USD→GBP 25");
   });
 
   it("says free for a zero estimate", () => {
-    expect(priceOf({ amount: 0, currency: "EUR", tier: "free" })).toBe(`~${enTrips.activity.free}`);
+    expect(priceOf({ amount: 0, currency: "EUR", tier: "free" })).toBe(`~${enCommon.activity.free}`);
   });
 
-  it("names a missing estimate rather than inventing one", () => {
-    expect(priceOf(undefined)).toBe(`~${enTrips.activity.aiEstimate}`);
+  it("shows no price for a missing estimate rather than inventing one", () => {
+    expect(priceOf(undefined)).toBeNull();
+    expect(screen.queryByText(enCommon.activity.free)).toBeNull();
   });
 });

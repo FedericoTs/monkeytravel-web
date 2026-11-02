@@ -3076,16 +3076,7 @@ export default function TripDetailClient({
                       travelLoading={travelLoading}
                       pace={trip.meta?.pace}
                       typeLabel={typeLabel}
-                      price={(activity) =>
-                        // estimated_cost is model-generated and frequently absent, so guard
-                        // it. Only "Free" when the model actually said 0 — a missing block
-                        // means unknown, not free.
-                        !activity.estimated_cost
-                          ? null
-                          : activity.estimated_cost.amount === 0
-                            ? t('activity.free')
-                            : `${activity.estimated_cost.currency || trip.budget?.currency || "USD"} ${activity.estimated_cost.amount}`
-                      }
+                      currency={trip.budget?.currency || "USD"}
                     />
                   )}
                 </div>

@@ -5,6 +5,7 @@ import type { Activity, VoteType, ActivityVote, ConsensusResult, ActivityVotingS
 import VotingSection from "../collaboration/VotingSection";
 import { useTranslations } from "next-intl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
+import { useActivityPrice } from "@/lib/i18n/activity-price";
 import { getActivityTypeColors } from "@/lib/constants/activityColors";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { PhotoCredit } from "../ui/PhotoCredit";
@@ -84,6 +85,8 @@ function EditableActivityCard({
 }: EditableActivityCardProps) {
   const t = useTranslations('trips');
   const tc = useTranslations('common');
+  const priceOf = useActivityPrice();
+  const price = priceOf(activity, currency);
   const typeLabel = useActivityTypeLabel();
   const [expanded, setExpanded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -411,16 +414,12 @@ function EditableActivityCard({
                 </div>
               </div>
 
-              {/* Price */}
-              {!isEditing && (
+              {/* Price, in the viewer's currency, when there is an estimate */}
+              {!isEditing && price != null && (
                 <div className="sm:text-right flex-shrink-0 mt-1 sm:mt-0">
                   <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
                     <span className="text-slate-500 font-normal text-xs sm:text-sm">~</span>
-                    {activity.estimated_cost?.amount == null
-                      ? t('activity.aiEstimate')
-                      : activity.estimated_cost.amount === 0
-                      ? t('activity.free')
-                      : `${activity.estimated_cost.currency || currency} ${activity.estimated_cost.amount}`}
+                    {price}
                   </div>
                   <div className="text-[10px] text-slate-500 hidden sm:block">{t('activity.aiEstimate')}</div>
                 </div>
