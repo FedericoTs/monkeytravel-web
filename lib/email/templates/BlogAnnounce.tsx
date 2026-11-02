@@ -10,6 +10,7 @@ import { Button, Heading, Img, Link, Section, Text } from "@react-email/componen
 import { EmailLayout } from "./_layout";
 import { blogEmailCopy, type EmailLocale } from "../copy";
 import type { BlogPostCard } from "./BlogDigest";
+import { largeButton as button } from "./_styles";
 
 export interface BlogAnnounceEmailProps {
   locale?: EmailLocale;
@@ -129,18 +130,6 @@ const excerpt: React.CSSProperties = {
   color: "#444444",
   lineHeight: 1.7,
   margin: "0 0 8px",
-};
-
-const button: React.CSSProperties = {
-  backgroundColor: "#FF6B6B",
-  color: "#FFFFFF",
-  padding: "14px 36px",
-  borderRadius: "999px",
-  textDecoration: "none",
-  fontWeight: 700,
-  fontSize: "16px",
-  display: "inline-block",
-  boxShadow: "0 4px 12px rgba(255,107,107,0.35)",
 };
 
 const secondaryLink: React.CSSProperties = {

@@ -14,6 +14,7 @@
 import { Button, Heading, Section, Text } from "@react-email/components";
 import { EmailLayout } from "./_layout";
 import { layoutCopy, type EmailLocale } from "../copy";
+import { h1 } from "./_styles";
 
 export interface ShareFixNoticeProps {
   locale?: EmailLocale;
@@ -173,14 +174,6 @@ export function shareFixNoticeText({
     unsubscribeUrl,
   ].join("\n");
 }
-
-const h1: React.CSSProperties = {
-  fontSize: "24px",
-  fontWeight: 700,
-  color: "#1A1A1A",
-  margin: "0 0 16px",
-  lineHeight: 1.3,
-};
 
 const bodyText: React.CSSProperties = {
   fontSize: "16px",

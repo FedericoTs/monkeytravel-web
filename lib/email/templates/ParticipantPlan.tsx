@@ -9,6 +9,7 @@
 import { Button, Heading, Section, Text } from "@react-email/components";
 import { EmailLayout } from "./_layout";
 import type { EmailLocale } from "../copy";
+import { h1, leadText, bodyText, button } from "./_styles";
 
 export interface ParticipantPlanEmailProps {
   /** "Lisbon: here's the plan". Also the subject. */
@@ -88,37 +89,3 @@ export function participantPlanEmailText(props: ParticipantPlanEmailProps): stri
   ].join("\n");
 }
 
-// Inline styles, the same as TripDayDigest's.
-
-const h1: React.CSSProperties = {
-  fontSize: "24px",
-  fontWeight: 700,
-  color: "#1A1A1A",
-  margin: "0 0 16px",
-  lineHeight: 1.3,
-};
-
-const leadText: React.CSSProperties = {
-  fontSize: "18px",
-  color: "#555555",
-  margin: "0 0 24px",
-  fontWeight: 600,
-};
-
-const bodyText: React.CSSProperties = {
-  fontSize: "16px",
-  color: "#333333",
-  lineHeight: 1.6,
-  margin: "16px 0",
-};
-
-const button: React.CSSProperties = {
-  backgroundColor: "#FF6B6B",
-  color: "#FFFFFF",
-  padding: "12px 32px",
-  borderRadius: "999px",
-  textDecoration: "none",
-  fontWeight: 600,
-  fontSize: "16px",
-  display: "inline-block",
-};

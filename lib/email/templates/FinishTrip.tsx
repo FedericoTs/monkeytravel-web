@@ -8,6 +8,7 @@
 import { Button, Heading, Section, Text } from "@react-email/components";
 import { EmailLayout } from "./_layout";
 import { layoutCopy, type EmailLocale } from "../copy";
+import { h1, bodyText, signOff, button } from "./_styles";
 
 export interface FinishTripEmailProps {
   heading: string;
@@ -78,35 +79,3 @@ export function finishTripEmailText(props: FinishTripEmailProps): string {
   ].join("\n");
 }
 
-const h1: React.CSSProperties = {
-  fontSize: "24px",
-  fontWeight: 700,
-  color: "#1A1A1A",
-  margin: "0 0 16px",
-  lineHeight: 1.3,
-};
-
-const bodyText: React.CSSProperties = {
-  fontSize: "16px",
-  color: "#333333",
-  lineHeight: 1.6,
-  margin: "16px 0",
-};
-
-const signOff: React.CSSProperties = {
-  fontSize: "15px",
-  color: "#555555",
-  fontWeight: 600,
-  margin: "28px 0 0",
-};
-
-const button: React.CSSProperties = {
-  backgroundColor: "#FF6B6B",
-  color: "#FFFFFF",
-  padding: "12px 32px",
-  borderRadius: "999px",
-  textDecoration: "none",
-  fontWeight: 600,
-  fontSize: "16px",
-  display: "inline-block",
-};

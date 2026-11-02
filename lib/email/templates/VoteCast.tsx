@@ -11,6 +11,7 @@ import { Button, Heading, Section, Text } from "@react-email/components";
 import { EmailLayout } from "./_layout";
 import { voteCastCopy, layoutCopy, type EmailLocale } from "../copy";
 import { VOTE_INFO } from "@/types";
+import { button } from "./_styles";
 
 export interface VoteCastEmailProps {
   voterName: string;
@@ -144,17 +145,6 @@ const activityText: React.CSSProperties = {
   color: "#1A1A1A",
   margin: 0,
   lineHeight: 1.4,
-};
-
-const button: React.CSSProperties = {
-  backgroundColor: "#FF6B6B",
-  color: "#FFFFFF",
-  padding: "12px 32px",
-  borderRadius: "999px",
-  textDecoration: "none",
-  fontWeight: 600,
-  fontSize: "16px",
-  display: "inline-block",
 };
 
 const smallText: React.CSSProperties = {
