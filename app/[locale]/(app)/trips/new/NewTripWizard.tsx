@@ -261,6 +261,7 @@ import { newTripTitle } from "@/lib/trips/title";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { applyAssistantEdits, type AssistantDayEdit } from "@/lib/trips/day-edit-merge";
 import { createUndoLedger } from "@/lib/trip/assistant-undo";
+import { dayBudgetLabel } from "@/lib/trip/day-budget";
 import { isNativePlatform } from "@/lib/native/platform";
 import { planDateChange, moveItineraryDates } from "@/lib/trips/change-dates";
 
@@ -740,7 +741,7 @@ export default function NewTripPage({
   } = useSessionTripStack();
 
   // Currency conversion hook - converts prices to user's preferred currency
-  const { convert: convertCurrency } = useCurrency();
+  const { convert: convertCurrency, format: formatCurrency } = useCurrency();
 
   // 2-step wizard: Destination+Dates -> Vibes+Preferences.
   const TOTAL_STEPS = 2;
@@ -3902,10 +3903,7 @@ export default function NewTripPage({
                     <div className="ml-auto text-right">
                       <div className="text-sm text-slate-500">{t("wizard.result.dailyBudget")}</div>
                       <div className="font-semibold text-slate-900">
-                        {convertCurrency(
-                          day.daily_budget.total,
-                          generatedItinerary.trip_summary.currency
-                        ).formatted}
+                        {dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, t("activity.free"))}
                       </div>
                     </div>
                   )}
