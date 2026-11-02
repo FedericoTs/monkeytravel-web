@@ -15,7 +15,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
  * Otherwise false. The flag is recomputed from scratch every day, so
  * trips can both enter and exit the set as engagement changes.
  *
- * Schedule: daily via Vercel cron (vercel.json — to be added). For
+ * Schedule: daily, from the crons in vercel.json. For
  * manual triggers, hit /api/cron/recompute-editors-picks with
  * `Authorization: Bearer ${CRON_SECRET}`.
  *
