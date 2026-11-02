@@ -1,10 +1,15 @@
-import Link from "next/link";
+"use client";
+
+import { Link } from "@/lib/i18n/routing";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 // Keep this free of request-time reads: Next renders the not-found boundary
 // into every page of the tree, so one here would make all of them dynamic.
 // Unknown URLs reach it through app/[locale]/[...rest]/page.tsx per request.
+// The copy comes from the locale layout's client messages, so no read here.
 export default function NotFound() {
+  const t = useTranslations("common.notFoundPage");
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col">
       {/* Header */}
@@ -32,7 +37,7 @@ export default function NotFound() {
           <div className="relative w-64 h-48 sm:w-80 sm:h-60 md:w-96 md:h-72 mx-auto mb-6">
             <Image
               src="/images/404.png"
-              alt="404 - Page Not Found"
+              alt={t("imageAlt")}
               fill
               className="object-contain"
               priority
@@ -40,8 +45,7 @@ export default function NotFound() {
           </div>
 
           <p className="text-slate-600 text-sm sm:text-base mb-6 max-w-sm mx-auto">
-            Looks like you took a wrong turn. The page you&apos;re looking for
-            doesn&apos;t exist or has been moved.
+            {t("body")}
           </p>
 
           <div className="space-y-3">
@@ -63,18 +67,21 @@ export default function NotFound() {
                   d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
                 />
               </svg>
-              Back to Home
+              {t("home")}
             </Link>
 
             <p className="text-sm text-slate-500">
-              Or{" "}
-              <Link
-                prefetch={false}
-                href="/trips/new"
-                className="text-[var(--primary-ink)] hover:underline font-medium"
-              >
-                plan a new trip
-              </Link>
+              {t.rich("planTrip", {
+                link: (chunks) => (
+                  <Link
+                    prefetch={false}
+                    href="/trips/new"
+                    className="text-[var(--primary-ink)] hover:underline font-medium"
+                  >
+                    {chunks}
+                  </Link>
+                ),
+              })}
             </p>
           </div>
         </div>
@@ -83,11 +90,13 @@ export default function NotFound() {
       {/* Footer */}
       <footer className="border-t border-slate-100 py-6 text-center text-sm text-slate-500">
         <p>
-          Powered by{" "}
-          <Link prefetch={false} href="/" className="text-[var(--primary-ink)] hover:underline">
-            MonkeyTravel
-          </Link>{" "}
-          AI
+          {t.rich("poweredBy", {
+            link: (chunks) => (
+              <Link prefetch={false} href="/" className="text-[var(--primary-ink)] hover:underline">
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       </footer>
     </div>

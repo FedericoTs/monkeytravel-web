@@ -16,6 +16,8 @@ export const MARKETING_CLIENT_NAMESPACES = [
   "common.emailSubscribe",
   "common.pageShare",
   "common.curatedEscapes",
+  "common.errorPage",
+  "common.notFoundPage",
   "consent",
   "contact",
 ] as const;
