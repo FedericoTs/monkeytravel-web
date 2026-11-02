@@ -5,6 +5,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { v4 as uuidv4 } from "uuid";
 import type { ItineraryDay, Activity } from "@/types";
 import { ensureActivityIds, generateActivityId } from "@/lib/utils/activity-id";
+import { tripNights, tripSpanDays } from "@/lib/dates/iso-date";
 import { completeReferralIfEligible } from "@/lib/referral/completion";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { scheduleTripNotifications } from "@/lib/notifications/scheduling";
@@ -94,17 +95,11 @@ export async function POST(request: NextRequest) {
     let adjustedItinerary = sourceTrip.itinerary;
 
     if (startDate) {
-      // Calculate duration from original trip
-      const originalStart = new Date(sourceTrip.start_date);
-      const originalEnd = new Date(sourceTrip.end_date);
-      const durationDays = Math.ceil(
-        (originalEnd.getTime() - originalStart.getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      // Set new dates
+      // The copy keeps the original's length: the same nights from the new start.
+      const nights = tripNights(sourceTrip.start_date, sourceTrip.end_date);
       const newStart = new Date(startDate);
       const newEnd = new Date(newStart);
-      newEnd.setDate(newEnd.getDate() + durationDays);
+      newEnd.setDate(newEnd.getDate() + nights);
 
       tripStartDate = newStart.toISOString().split("T")[0];
       tripEndDate = newEnd.toISOString().split("T")[0];
@@ -177,12 +172,7 @@ export async function POST(request: NextRequest) {
         // Extract destination from trip title (e.g., "Paris Trip" -> "Paris")
         const destination = sourceTrip.title?.replace(/ Trip$/i, "") || "Unknown";
 
-        // Calculate duration from dates
-        const start = new Date(tripStartDate);
-        const end = new Date(tripEndDate);
-        const durationDays = Math.ceil(
-          (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
-        ) + 1;
+        const durationDays = tripSpanDays(tripStartDate, tripEndDate);
 
         // Track trip creation in PostHog
         await captureServerEvent(user.id, "trip_created", {

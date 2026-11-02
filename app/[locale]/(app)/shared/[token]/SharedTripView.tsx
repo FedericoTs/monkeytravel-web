@@ -34,6 +34,7 @@ import DaySlider from "@/components/ui/DaySlider";
 import TravelConnector from "@/components/trip/TravelConnector";
 import DaySummary from "@/components/trip/DaySummary";
 import { DayTimeline } from "@/components/trip/DayTimeline";
+import { tripNights } from "@/lib/dates/iso-date";
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
 import SaveTripModal, { usePendingSaveTripAction } from "@/components/ui/SaveTripModal";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -521,12 +522,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
     cachedHash: trip.cachedTravelHash,
   });
 
-  // Calculate nights
-  const nights = useMemo(() => {
-    const start = new Date(trip.startDate);
-    const end = new Date(trip.endDate);
-    return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  }, [trip.startDate, trip.endDate]);
+  const nights = tripNights(trip.startDate, trip.endDate);
 
   // Calculate total activities
   const activitiesCount = useMemo(

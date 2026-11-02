@@ -13,6 +13,7 @@ import crypto from "crypto";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { GeneratedItinerary } from "@/types";
+import { tripSpanDays } from "@/lib/dates/iso-date";
 
 /**
  * Service-role client for cache reads/writes.
@@ -85,10 +86,7 @@ export function adjustItineraryDates(
   endDate: string,
 ): GeneratedItinerary {
   const start = new Date(startDate);
-  const requestedDays =
-    Math.ceil(
-      (new Date(endDate).getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
-    ) + 1;
+  const requestedDays = tripSpanDays(startDate, endDate);
 
   const adjustedDays = itinerary.days.slice(0, requestedDays).map((day, index) => {
     const dayDate = new Date(start);

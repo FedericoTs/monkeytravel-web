@@ -13,6 +13,7 @@
  */
 
 import { PARTNERS, MARKER, type PartnerKey } from "./partners";
+import { tripNights } from "@/lib/dates/iso-date";
 
 // Base domain for Travelpayouts click tracking
 const TP_BASE = "travelpayouts.com/click";
@@ -82,7 +83,7 @@ export function generateAgodaLink(params: HotelSearchParams): string {
   const targetUrl = new URL("https://www.agoda.com/search");
   targetUrl.searchParams.set("city", destination);
   targetUrl.searchParams.set("checkIn", checkIn);
-  targetUrl.searchParams.set("los", String(calculateNights(checkIn, checkOut)));
+  targetUrl.searchParams.set("los", String(tripNights(checkIn, checkOut)));
   targetUrl.searchParams.set("adults", String(guests));
   targetUrl.searchParams.set("rooms", String(rooms));
 
@@ -467,20 +468,6 @@ export function createDeepLink(
     targetUrl,
     subId
   );
-}
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Calculate number of nights between two dates
- */
-function calculateNights(checkIn: string, checkOut: string): number {
-  const start = new Date(checkIn);
-  const end = new Date(checkOut);
-  const diffTime = Math.abs(end.getTime() - start.getTime());
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 }
 
 // ============================================================================
