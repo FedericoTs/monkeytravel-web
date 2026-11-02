@@ -14,6 +14,7 @@ import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { readJsonBody } from "@/lib/api/json-body";
+import { ilikeSearchTerm } from "@/lib/api/postgrest-filter";
 
 // Country name to ISO code mapping
 const countryToCode: Record<string, string> = {
@@ -248,18 +249,6 @@ function expandSearchWithAliases(input: string): string[] {
   return [normalized];
 }
 
-/**
- * Escape special characters for PostgREST ilike queries
- * PostgREST uses commas, dots, parentheses as operators
- */
-function escapeForPostgrest(input: string): string {
-  // Remove or escape characters that break PostgREST queries
-  return input
-    .replace(/[%_]/g, "\\$&") // Escape SQL wildcards
-    .replace(/[,.()\[\]{}]/g, "") // Remove PostgREST operators
-    .replace(/'/g, "''"); // Escape single quotes
-}
-
 export interface LocalDestinationPrediction {
   placeId: string; // "local_" + destination id
   mainText: string;
@@ -293,7 +282,7 @@ export async function POST(request: NextRequest) {
 
     // Build OR conditions for all search terms
     const orConditions = searchTerms.map(term => {
-      const escapedTerm = escapeForPostgrest(term);
+      const escapedTerm = ilikeSearchTerm(term);
       return `name.ilike.%${escapedTerm}%,country.ilike.%${escapedTerm}%,city.ilike.%${escapedTerm}%`;
     }).join(",");
 
