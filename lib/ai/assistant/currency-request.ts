@@ -1,3 +1,4 @@
+import { resolveAiLanguage } from "@/lib/ai/language";
 import { SUPPORTED_CURRENCIES } from "@/lib/locale/currency";
 
 /**
@@ -104,15 +105,9 @@ export function withoutCurrencyTalk(text: string | null | undefined, keepPrices 
     .trim();
 }
 
-type Lang = "en" | "es" | "it" | "pt";
-const lang = (language: string | undefined): Lang => {
-  const l = (language || "en").slice(0, 2).toLowerCase();
-  return l === "es" || l === "it" || l === "pt" ? l : "en";
-};
-
 /** What the planner reads once the page shows prices in `code`. */
 export function currencySwitchedNote(language: string | undefined, code: string): string {
-  switch (lang(language)) {
+  switch (resolveAiLanguage(language)) {
     case "es":
       return `Hecho: ahora los precios se muestran en ${code}.`;
     case "it":
