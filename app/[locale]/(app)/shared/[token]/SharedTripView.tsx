@@ -271,6 +271,9 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
   useEffect(() => {
     if (!ownerPending) return;
     const go = (id: string) => {
+      // A full load: the claim lands on sign-in, and this page was rendered
+      // for the signed-out sharer.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       if (id === trip.id) window.location.assign(`/trips/${id}`);
     };
     const already = readClaimedTrip();

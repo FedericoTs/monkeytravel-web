@@ -133,7 +133,7 @@ export default function PromptEditor() {
           <div>
             <h3 className="font-semibold text-amber-900">Database Migration Required</h3>
             <p className="text-sm text-amber-800 mt-1">
-              The <code className="bg-amber-100 px-1 rounded">ai_prompts</code> table doesn't exist yet.
+              The <code className="bg-amber-100 px-1 rounded">ai_prompts</code> table doesn&apos;t exist yet.
               Run the migration to enable prompt editing:
             </p>
             <pre className="mt-3 p-3 bg-amber-100 rounded-lg text-xs overflow-x-auto">
