@@ -5,6 +5,7 @@ import { redirect, notFound } from "next/navigation";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 import { formatDateRange } from "@/lib/datetime";
 import type { ItineraryDay, TripMeta, CollaboratorRole } from "@/types";
+import { tripPackingList } from "@/lib/trips/packing";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import TripDetailClient from "./TripDetailClient";
@@ -123,14 +124,7 @@ export default async function TripDetailPage({
 
   const budget = trip.budget as { total: number; currency: string } | null;
   const tripMeta = (trip.trip_meta as TripMeta) || {};
-  // An EMPTY ARRAY is truthy, so `||` never reached the fallback: a trip whose
-  // packing_list column is `[]` showed no packing block at all even when
-  // trip_meta.packing_suggestions was full.
-  const packingColumn = trip.packing_list as string[] | null | undefined;
-  const packingList =
-    (Array.isArray(packingColumn) && packingColumn.length > 0
-      ? packingColumn
-      : (tripMeta.packing_suggestions as string[] | undefined)) || [];
+  const packingList = tripPackingList(trip.packing_list, tripMeta);
   const packingChecked = tripMeta.packing_checked || [];
 
   // Extract cached travel distances from trip_meta (calculated locally, no API cost)
