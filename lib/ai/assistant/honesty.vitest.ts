@@ -10,6 +10,7 @@ import {
   claimsToRemember,
   daysLeftNote,
   isConfirmation,
+  lengthUnchangedNote,
   missingAnswerReply,
   noProposalNote,
   nothingChangedReply,
@@ -469,5 +470,12 @@ describe("the notes for a change in parts and for one waiting for the button", (
       "Only the trip owner can add days, so the trip stays at 3 days. Ideas for those days, to suggest to them:\n- Day 4: Guimarães for the day.\n- Day 5: Braga and Bom Jesus."
     );
     expect(ownerAddsDaysReply("it", 3, [])).toBe("Solo il proprietario del viaggio può aggiungere giorni, quindi il viaggio resta di 3 giorni.");
+  });
+
+  it("counts a one-day trip in the singular", () => {
+    expect(ownerAddsDaysReply("en", 1, [])).toBe("Only the trip owner can add days, so the trip stays at 1 day.");
+    expect(ownerAddsDaysReply("es", 1, [])).toContain("sigue teniendo 1 día.");
+    expect(lengthUnchangedNote("it", 1)).toContain("resta di 1 giorno:");
+    expect(lengthUnchangedNote("pt", 1)).toContain("continua com 1 dia:");
   });
 });

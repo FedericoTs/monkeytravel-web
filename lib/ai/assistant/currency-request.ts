@@ -1,5 +1,5 @@
-import { resolveAiLanguage } from "@/lib/ai/language";
 import { SUPPORTED_CURRENCIES } from "@/lib/locale/currency";
+import { note } from "./notes";
 
 /**
  * "Convert the budget to euros", "add euro sign everywhere": the planner wants
@@ -107,14 +107,5 @@ export function withoutCurrencyTalk(text: string | null | undefined, keepPrices 
 
 /** What the planner reads once the page shows prices in `code`. */
 export function currencySwitchedNote(language: string | undefined, code: string): string {
-  switch (resolveAiLanguage(language)) {
-    case "es":
-      return `Hecho: ahora los precios se muestran en ${code}.`;
-    case "it":
-      return `Fatto: ora i prezzi sono mostrati in ${code}.`;
-    case "pt":
-      return `Pronto: agora os preços aparecem em ${code}.`;
-    default:
-      return `Done: prices now show in ${code}.`;
-  }
+  return note(language, "currencySwitched", { code });
 }
