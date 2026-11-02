@@ -2,19 +2,17 @@ import { getTranslations } from "next-intl/server";
 
 /**
  * MonkeyTravel against the usual way of planning this kind of trip:
- * `comparison.title`, `.subtitle` and `.items.<key>` in the page's namespace,
- * each item with a `label`, a `monkey` cell and an `otherKey` cell.
+ * `comparison.title`, `.subtitle`, `.otherHeader` (the right-hand column) and
+ * `.items.<key>` in the page's namespace, each item with a `label`, a
+ * `monkey` cell and an `otherKey` cell.
  */
 export default async function LandingComparison({
   namespace,
   keys,
-  otherLabel,
   otherKey,
 }: {
   namespace: string;
   keys: readonly string[];
-  /** Header of the right-hand column. */
-  otherLabel: string;
   otherKey: string;
 }) {
   const t = await getTranslations(namespace);
@@ -38,7 +36,7 @@ export default async function LandingComparison({
               MonkeyTravel
             </div>
             <div className="border-l border-gray-200 p-4 text-center text-[var(--foreground-muted)]">
-              {otherLabel}
+              {t("comparison.otherHeader")}
             </div>
           </div>
 

@@ -77,6 +77,7 @@
   "comparison": {
     "title": "MonkeyTravel vs. Blog di Viaggi Economici",
     "subtitle": "I blog danno consigli. MonkeyTravel ti dà un itinerario completo con prezzi.",
+    "otherHeader": "Blog di Viaggi Economici + Fogli di Calcolo",
     "items": {
       "pricing": {
         "label": "Prezzi reali",

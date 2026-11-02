@@ -77,6 +77,7 @@
   "comparison": {
     "title": "¿Por Qué MonkeyTravel vs. ChatGPT?",
     "subtitle": "ChatGPT puede sugerir lugares. MonkeyTravel construye itinerarios reales y reservables.",
+    "otherHeader": "ChatGPT",
     "items": {
       "realData": {
         "label": "Datos de lugares reales",

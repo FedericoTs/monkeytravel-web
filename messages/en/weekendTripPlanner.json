@@ -77,6 +77,7 @@
   "comparison": {
     "title": "MonkeyTravel vs. Manual Weekend Planning",
     "subtitle": "Stop spending your weekday evenings researching. Let AI do the heavy lifting.",
+    "otherHeader": "Google + Spreadsheets",
     "items": {
       "planningTime": {
         "label": "Planning time",

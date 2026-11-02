@@ -224,7 +224,7 @@ export default async function FreeTripPlannerPage({
 
         <LandingHowItWorks namespace="freeTripPlanner" steps={STEP_CONFIGS} />
 
-        <LandingComparison namespace="freeTripPlanner" keys={COMPARISON_KEYS} otherLabel="ChatGPT" otherKey="chatgpt" />
+        <LandingComparison namespace="freeTripPlanner" keys={COMPARISON_KEYS} otherKey="chatgpt" />
 
         <LandingFaq title={t('faq.title')} items={faqItems} />
 
