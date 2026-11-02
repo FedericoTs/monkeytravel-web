@@ -35,11 +35,11 @@ function splitAtNthH2(html: string, n: number): [string, string] {
 }
 
 /**
- * Server component that renders blog HTML as static content.
- * Article is emitted FIRST so it's present in the initial SSR HTML
- * (Googlebot's first-pass crawl reads this before any RSC streaming).
- * The interactive ToC client child is wrapped in Suspense so it can't
- * pull the article into the streaming bucket.
+ * Server component that renders blog HTML as static content, in the
+ * initial SSR HTML (Googlebot's first-pass crawl reads it before any RSC
+ * streaming). The collapsible ToC comes first, above the article, on screens
+ * without the desktop sidebar. It renders on the server too; its Suspense
+ * boundary keeps the client child from ever holding the article back.
  *
  * If `inlineSlot` is provided, it's injected mid-article right before
  * the Nth <h2> heading (default 3rd) — a single <article> is preserved
@@ -56,14 +56,14 @@ export default function BlogContent({
 
   return (
     <>
+      <Suspense fallback={null}>
+        <BlogContentClient toc={toc} tocLabel={tocLabel} />
+      </Suspense>
       <article className="blog-prose">
         <div dangerouslySetInnerHTML={{ __html: before }} />
         {after && inlineSlot}
         {after && <div dangerouslySetInnerHTML={{ __html: after }} />}
       </article>
-      <Suspense fallback={null}>
-        <BlogContentClient toc={toc} tocLabel={tocLabel} />
-      </Suspense>
     </>
   );
 }

@@ -10,9 +10,10 @@ interface BlogContentClientProps {
 }
 
 /**
- * The collapsible Table of Contents of a blog post. The article is rendered
- * by the server-side BlogContent parent; the ToC and the heading ids come
- * from the server (lib/blog/api), the same list the desktop sidebar shows.
+ * The collapsible Table of Contents of a blog post, above the article below
+ * `lg`, where the desktop sidebar (BlogSidebar) takes over with the same
+ * list. The article is rendered by the server-side BlogContent parent; the
+ * ToC and the heading ids come from the server (lib/blog/api).
  */
 export default function BlogContentClient({ toc, tocLabel = "Table of Contents" }: BlogContentClientProps) {
   const [tocOpen, setTocOpen] = useState(false);
@@ -22,7 +23,7 @@ export default function BlogContentClient({ toc, tocLabel = "Table of Contents" 
   if (h2Items.length <= 2) return null;
 
   return (
-    <nav className="my-8 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden">
+    <nav className="my-8 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden lg:hidden">
       <button
         onClick={() => setTocOpen(!tocOpen)}
         className="flex items-center justify-between w-full px-5 py-4 text-left font-semibold text-slate-800 hover:bg-slate-100 transition-colors"
