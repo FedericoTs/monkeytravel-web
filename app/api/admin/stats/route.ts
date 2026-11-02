@@ -117,7 +117,8 @@ export interface AdminStats {
       conversionFunnel: { step: string; count: number }[];
     };
   };
-  // Acquisition - entry channel per SESSION, from our own page views
+  // Acquisition - entry channel per SESSION, from our own page views: first-party,
+  // cookieless and aggregate, so it does not depend on consent as GA4 does.
   acquisition: {
     channels: {
       channel: string;
