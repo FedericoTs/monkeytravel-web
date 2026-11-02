@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { tripSpanDays } from "@/lib/dates/iso-date";
 import { isNoRow } from "@/lib/supabase/no-row";
+import { PROFILE_COLUMNS } from "@/lib/profile/columns";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
@@ -38,23 +39,7 @@ export default async function ProfilePage() {
   const [profileResult, tripsResult, betaAccessResult] = await Promise.all([
     supabase
       .from("users")
-      .select(`
-        id,
-        email,
-        display_name,
-        avatar_url,
-        bio,
-        home_country,
-        home_city,
-        date_of_birth,
-        languages,
-        preferences,
-        notification_settings,
-        privacy_settings,
-        stats,
-        created_at,
-        last_sign_in_at
-      `)
+      .select(PROFILE_COLUMNS)
       .eq("id", user.id)
       .single(),
     supabase
