@@ -202,7 +202,7 @@ import { clearClaimedTrip, onClaimedTrip, readClaimedTrip } from "@/lib/trips/cl
 import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim-client";
 import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
 import { decideDraftRestore } from "@/lib/wizard/draft-restore";
-import { applyDraft } from "@/lib/wizard/apply-draft";
+import { applyDraft, applyKeptPlan } from "@/lib/wizard/apply-draft";
 import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
 import {
   classifyGenerationFailure,
@@ -1813,34 +1813,30 @@ export default function NewTripPage({
     }
     rememberKeptPlan(entryFor(token, plan, expiresAt));
     adoptOpenedPlan(token, plan, expiresAt);
-    setDestination(plan.destination);
-    setStartDate(plan.startDate);
-    setEndDate(plan.endDate);
-    if (plan.pace) setPace(plan.pace);
-    if (plan.vibes?.length) setSelectedVibes(plan.vibes);
-    if (plan.budgetTier) setBudgetTier(plan.budgetTier);
-    setTravelStyle(plan.travelStyle === "backpacker" ? "backpacker" : "classic");
-    if (plan.tripIntent) setTripIntent(plan.tripIntent);
-    setFlexibleDates(plan.flexibleDates === true);
-    setMustDos(plan.mustDos ?? []);
-    setDietary(plan.dietary ?? []);
-    setAnchors([]);
-    setDestinationCoords(null);
-    setMultiCityMode(false);
     setKeptPlanGone(false);
     setShowDraftRecovery(false);
-    setGeneratedItinerary(plan.itinerary);
-    registerSessionRestore({
-      destination: plan.destination,
-      startDate: plan.startDate,
-      endDate: plan.endDate,
-      dayCount: plan.itinerary.days.length,
-      itinerary: plan.itinerary,
-      pace: plan.pace ?? pace,
-      vibes: plan.vibes ?? selectedVibes,
-      budgetTier: plan.budgetTier ?? budgetTier,
-      travelStyle: plan.travelStyle === "backpacker" ? "backpacker" : "classic",
-    });
+    applyKeptPlan(
+      plan,
+      {
+        setDestination,
+        setStartDate,
+        setEndDate,
+        setPace,
+        setSelectedVibes,
+        setBudgetTier,
+        setMustDos,
+        setDietary,
+        setTravelStyle,
+        setAnchors,
+        setTripIntent,
+        setFlexibleDates,
+        setGeneratedItinerary,
+        setDestinationCoords,
+        setMultiCityMode,
+        registerRestore: registerSessionRestore,
+      },
+      { pace, vibes: selectedVibes, budgetTier }
+    );
     void capture("kept_plan_opened", { source });
   };
 
