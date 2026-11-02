@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { refuseUnlessCron } from "@/lib/api/cron-auth";
 
 /**
  * Daily cron — deletes ownerless anonymous trips nobody ever claimed.
@@ -36,15 +37,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // ever saturates, the leftovers simply go on the next day's run.
 const MAX_DELETIONS_PER_RUN = 500;
 
-function unauthorized() {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-}
-
 export async function GET(request: NextRequest) {
-  const auth = request.headers.get("authorization");
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return unauthorized();
-  if (auth !== `Bearer ${secret}`) return unauthorized();
+  const refused = refuseUnlessCron(request);
+  if (refused) return refused;
 
   const svc = createAdminClient();
   const nowIso = new Date().toISOString();

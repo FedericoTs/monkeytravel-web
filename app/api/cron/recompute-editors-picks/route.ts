@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { refuseUnlessCron } from "@/lib/api/cron-auth";
 
 /**
  * Daily cron — recomputes `trips.is_editors_pick`.
@@ -29,10 +30,6 @@ const ELIGIBILITY = {
   MIN_TRENDING_SCORE: 50,
 };
 
-function unauthorized() {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-}
-
 /** A step that didn't land: the run answers 500 instead of reporting success. */
 function failed(step: string, error: unknown) {
   console.error(`[editors-picks-cron] ${step} failed:`, error);
@@ -40,13 +37,8 @@ function failed(step: string, error: unknown) {
 }
 
 export async function GET(request: NextRequest) {
-  const auth = request.headers.get("authorization");
-  const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    // Don't run unauthenticated, even if CRON_SECRET isn't set.
-    return unauthorized();
-  }
-  if (auth !== `Bearer ${secret}`) return unauthorized();
+  const refused = refuseUnlessCron(request);
+  if (refused) return refused;
 
   const svc = createAdminClient();
   const cutoffDate = new Date(

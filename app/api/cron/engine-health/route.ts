@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { sendOpsAlert } from "@/lib/ops/alert";
 import { engineVerdict, type EngineHealth } from "@/lib/ops/engine-health";
+import { refuseUnlessCron } from "@/lib/api/cron-auth";
 
 /**
  * Hourly: is the plan engine failing the people using it? (engine_health(),
@@ -17,10 +18,8 @@ export const dynamic = "force-dynamic";
 const alertThrottle = createRateLimiter("engine-alert", 1, 6 * 60 * 60_000);
 
 export async function GET(request: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const refused = refuseUnlessCron(request);
+  if (refused) return refused;
 
   const { data, error } = await createAdminClient().rpc("engine_health", { p_minutes: 60 });
   if (error || !data) {

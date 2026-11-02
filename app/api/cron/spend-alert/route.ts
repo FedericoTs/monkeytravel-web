@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { summarizeSpend, previousUtcDay, monthToDateBefore, type SpendGroup } from "@/lib/ops/spend";
 import { sendOpsAlert } from "@/lib/ops/alert";
+import { refuseUnlessCron } from "@/lib/api/cron-auth";
 
 /**
  * Daily: yesterday's paid-API spend, estimated after Google's free monthly
@@ -18,10 +19,8 @@ const row = (api: string, calls: string, list: string, estimated: string) =>
   `${api.padEnd(28)} ${calls.padStart(7)} ${list.padStart(10)} ${estimated.padStart(10)}`;
 
 export async function GET(request: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const refused = refuseUnlessCron(request);
+  if (refused) return refused;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {

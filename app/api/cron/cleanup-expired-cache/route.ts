@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { refuseUnlessCron } from "@/lib/api/cron-auth";
 
 /**
  * Daily cron — deletes EXPIRED rows from the DB cache tables.
@@ -39,18 +40,9 @@ const EXPIRING_CACHE_TABLES = [
   "destination_activity_cache",
 ] as const;
 
-function unauthorized() {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-}
-
 export async function GET(request: NextRequest) {
-  const auth = request.headers.get("authorization");
-  const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    // Don't run unauthenticated, even if CRON_SECRET isn't set.
-    return unauthorized();
-  }
-  if (auth !== `Bearer ${secret}`) return unauthorized();
+  const refused = refuseUnlessCron(request);
+  if (refused) return refused;
 
   const svc = createAdminClient();
   const nowIso = new Date().toISOString();

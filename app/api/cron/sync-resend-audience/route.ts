@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { Resend } from "resend";
 import { isMarketingOptedOut } from "@/lib/email/preferences";
+import { refuseUnlessCron } from "@/lib/api/cron-auth";
 
 /**
  * Weekly cron — incremental sync of new Supabase users into the Resend
@@ -51,10 +52,6 @@ import { isMarketingOptedOut } from "@/lib/email/preferences";
  *   curl -H "Authorization: Bearer $CRON_SECRET" /api/cron/sync-resend-audience
  */
 
-function unauthorized() {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-}
-
 // Contact creation stops after this; vercel.json gives the function 300 s.
 const CREATE_BUDGET_MS = 240_000;
 
@@ -84,10 +81,8 @@ function firstName(displayName?: string | null): string | undefined {
 }
 
 export async function GET(request: NextRequest) {
-  const auth = request.headers.get("authorization");
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return unauthorized();
-  if (auth !== `Bearer ${secret}`) return unauthorized();
+  const refused = refuseUnlessCron(request);
+  if (refused) return refused;
 
   const apiKey = process.env.RESEND_API_KEY;
   const audienceId = process.env.RESEND_AUDIENCE_ID;
