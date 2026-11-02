@@ -2,65 +2,30 @@
 
 import { useEffect, useState } from "react";
 import { flushSync } from "react-dom";
-
-interface TocItem {
-  id: string;
-  text: string;
-  level: number;
-}
+import type { TocItem } from "@/lib/blog/api";
 
 interface BlogContentClientProps {
   html: string;
+  toc: TocItem[];
   tocLabel?: string;
-}
-
-// Mirrors slugifyHeading in lib/blog/api.ts — server and client must
-// produce identical IDs so the ToC anchors line up after hydration.
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/<[^>]*>/g, "")
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim();
 }
 
 /**
  * Client component for interactive blog features:
- * - Table of Contents (extracted from headings after hydration)
+ * - Collapsible Table of Contents
  * - Table wrapper styling for scroll/rounded corners
  *
  * The actual blog HTML is rendered by the server-side BlogContent parent.
- * This component adds IDs to headings and builds the ToC on mount.
+ * The ToC and the heading ids come from the server (lib/blog/api), the same
+ * list the desktop sidebar shows.
  */
-export default function BlogContentClient({ html, tocLabel = "Table of Contents" }: BlogContentClientProps) {
-  const [toc, setToc] = useState<TocItem[]>([]);
+export default function BlogContentClient({ html, toc, tocLabel = "Table of Contents" }: BlogContentClientProps) {
   const [tocOpen, setTocOpen] = useState(false);
 
   useEffect(() => {
     // Find the server-rendered article element
     const article = document.querySelector("article.blog-prose");
     if (!article) return;
-
-    // Generate anchor IDs for headings and build ToC
-    const headings = article.querySelectorAll("h2, h3");
-    const items: TocItem[] = [];
-
-    headings.forEach((heading) => {
-      const text = heading.textContent || "";
-      const id = slugify(text);
-      heading.id = id;
-      items.push({
-        id,
-        text,
-        level: heading.tagName === "H2" ? 2 : 3,
-      });
-    });
-
-    setToc(items);
 
     // Wrap each <table> in a styled container for rounded corners and scroll
     const tables = article.querySelectorAll("table");

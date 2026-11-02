@@ -434,6 +434,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
                 />
                 <BlogContent
                   html={html}
+                  toc={toc}
                   tocLabel={t("detail.tableOfContents")}
                   inlineSlot={
                     <BlogInlineAiCta
