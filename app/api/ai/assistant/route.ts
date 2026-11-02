@@ -55,6 +55,7 @@ import { dietsFrom } from "@/lib/trips/diet";
 import { placesToEatCheck } from "@/lib/places/places-to-eat";
 import { activityNotFoundReason, findActivityByName } from "@/lib/ai/assistant/find-activity";
 import { ASSISTANT_SURFACE, isConciergeRow } from "@/lib/ai/conversations";
+import { applyButtonLabel } from "@/lib/ai/assistant/apply-button";
 import {
   announcesProposal,
   claimsItineraryChange,
@@ -412,27 +413,6 @@ function detectActionIntentRaw(message: string): {
   }
 
   return { type: "none" };
-}
-
-/**
- * The Apply button's label, in the user's language.
- *
- * Mirrors `common.ai.preview.applyChange` in messages/<locale>/common.json.
- * Duplicated deliberately rather than importing next-intl into an API route
- * outside [locale]/ — but duplication drifts, so tests/ai-assistant-honesty
- * asserts these four strings still match the message files exactly.
- */
-function applyButtonLabel(language: string): string {
-  switch ((language || "en").slice(0, 2).toLowerCase()) {
-    case "es":
-      return "Guardar en mi viaje";
-    case "it":
-      return "Salva nel mio viaggio";
-    case "pt":
-      return "Salvar na minha viagem";
-    default:
-      return "Save to my trip";
-  }
 }
 
 /**
@@ -1920,7 +1900,7 @@ of it succeeded.`;
         actionTaken.type === "apply_draft" && draftUnmappedDayNumbers.length > 0
           ? ` Days ${draftUnmappedDayNumbers.join(", ")} could not be read from the draft and are unchanged - say so explicitly.`
           : "";
-      actionContext = pendingActionContext(change, applyButtonLabel(userLanguage)) + extra;
+      actionContext = pendingActionContext(change, await applyButtonLabel(userLanguage)) + extra;
     } else if (structuralNote) {
       actionContext = `
 NOTE: ${structuralNote}`;
@@ -2009,8 +1989,8 @@ Respond with valid JSON only.`;
       // Put first, it read "Not saved yet: … Absolutely! I've extended…".
       parsedResponse.summary = actionTaken
         ? engineReply !== null && claimedChange
-          ? `${engineReply}\n\n${pendingChangeNote(userLanguage, applyButtonLabel(userLanguage))}`
-          : pendingChangeReply(userLanguage, applyButtonLabel(userLanguage))
+          ? `${engineReply}\n\n${pendingChangeNote(userLanguage, await applyButtonLabel(userLanguage))}`
+          : pendingChangeReply(userLanguage, await applyButtonLabel(userLanguage))
         : claimedChange
           ? nothingChangedReply(userLanguage)
           : nothingKeptReply(userLanguage);
