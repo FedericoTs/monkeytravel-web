@@ -38,8 +38,8 @@ function splitAtNthH2(html: string, n: number): [string, string] {
  * Server component that renders blog HTML as static content.
  * Article is emitted FIRST so it's present in the initial SSR HTML
  * (Googlebot's first-pass crawl reads this before any RSC streaming).
- * The interactive ToC/table-wrap client child is wrapped in Suspense
- * so it can't pull the article into the streaming bucket.
+ * The interactive ToC client child is wrapped in Suspense so it can't
+ * pull the article into the streaming bucket.
  *
  * If `inlineSlot` is provided, it's injected mid-article right before
  * the Nth <h2> heading (default 3rd) — a single <article> is preserved
@@ -62,7 +62,7 @@ export default function BlogContent({
         {after && <div dangerouslySetInnerHTML={{ __html: after }} />}
       </article>
       <Suspense fallback={null}>
-        <BlogContentClient html={html} toc={toc} tocLabel={tocLabel} />
+        <BlogContentClient toc={toc} tocLabel={tocLabel} />
       </Suspense>
     </>
   );

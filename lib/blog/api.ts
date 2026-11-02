@@ -67,7 +67,19 @@ async function markdownToHtml(markdown: string, locale: string): Promise<string>
     .use(html, { sanitize: true })
     .process(preprocessed);
   return styleDestinationLinks(
-    localizeInternalLinks(addHeadingIds(result.toString()), locale)
+    localizeInternalLinks(wrapTables(addHeadingIds(result.toString())), locale)
+  );
+}
+
+/**
+ * Wrap each <table> in the two divs that give it rounded corners and a
+ * horizontal scroll on narrow screens (.blog-prose .table-wrapper in
+ * app/globals.css).
+ */
+function wrapTables(html: string): string {
+  return html.replace(
+    /<table[\s>][\s\S]*?<\/table>/g,
+    (table) => `<div class="table-wrapper"><div class="table-wrapper-scroll">${table}</div></div>`
   );
 }
 

@@ -22,7 +22,7 @@ describe("BlogContentClient", () => {
     document.body.innerHTML =
       '<article class="blog-prose"><h2 id="antes-de-ir-lo-practico">Antes de Ir: Lo Práctico</h2>' +
       "<div><h3>Sáltate la planificación, empieza el viaje</h3></div></article>";
-    render(<BlogContentClient html="" toc={toc} tocLabel="Índice" />);
+    render(<BlogContentClient toc={toc} tocLabel="Índice" />);
 
     fireEvent.click(screen.getByRole("button", { name: "Índice" }));
 
@@ -32,11 +32,11 @@ describe("BlogContentClient", () => {
   });
 
   it("is in the server-rendered HTML", () => {
-    expect(renderToString(<BlogContentClient html="" toc={toc} tocLabel="Índice" />)).toContain("Índice");
+    expect(renderToString(<BlogContentClient toc={toc} tocLabel="Índice" />)).toContain("Índice");
   });
 
   it("renders nothing for an article with two sections or fewer", () => {
-    const { container } = render(<BlogContentClient html="" toc={toc.slice(0, 3)} tocLabel="Índice" />);
+    const { container } = render(<BlogContentClient toc={toc.slice(0, 3)} tocLabel="Índice" />);
     expect(container.innerHTML).toBe("");
   });
 });
