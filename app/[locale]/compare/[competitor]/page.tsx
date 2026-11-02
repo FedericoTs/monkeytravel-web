@@ -19,7 +19,7 @@ import {
   type CompareLocale,
 } from '@/lib/comparison/competitors';
 import type { Metadata } from 'next';
-import { SITE_URL } from '@/lib/seo/canonical';
+import { buildAlternates, SITE_URL } from '@/lib/seo/canonical';
 
 /**
  * Content freshness signal. Bump ONLY when this page's copy actually
@@ -162,8 +162,7 @@ export async function generateMetadata({
 
   const l = asCompareLocale(locale);
   const meta = c.meta[l];
-  const prefix = locale === 'en' ? '' : `/${locale}`;
-  const path = `/compare/${c.slug}`;
+  const alternates = buildAlternates(`/compare/${c.slug}`, { locale });
 
   return {
     // `absolute` opts out of the root "%s | MonkeyTravel" template.
@@ -171,22 +170,13 @@ export async function generateMetadata({
     // nothing and costs 15 of ~60 rendered characters. Homepage keeps it.
     title: { absolute: meta.title },
     description: meta.description,
-    alternates: {
-      canonical: `${SITE_URL}${prefix}${path}`,
-      languages: {
-        en: `${SITE_URL}${path}`,
-        es: `${SITE_URL}/es${path}`,
-        it: `${SITE_URL}/it${path}`,
-        pt: `${SITE_URL}/pt${path}`,
-        'x-default': `${SITE_URL}${path}`,
-      },
-    },
+    alternates,
     openGraph: {
       siteName: "MonkeyTravel",
       title: meta.title,
       description: meta.description,
       type: 'website',
-      url: `${SITE_URL}${prefix}${path}`,
+      url: alternates.canonical,
       images: [
         {
           url: `${SITE_URL}/og-image.png`,

@@ -14,7 +14,7 @@ import { BlogLane, FeaturedHero } from "@/components/blog";
 import ContentTracker from "@/components/analytics/ContentTracker";
 import { Link } from "@/lib/i18n/routing";
 import type { BlogFrontmatter } from "@/lib/blog/types";
-import { SITE_URL } from "@/lib/seo/canonical";
+import { buildAlternates, SITE_URL } from "@/lib/seo/canonical";
 
 
 // ============================================================================
@@ -44,12 +44,7 @@ export async function generateMetadata({
   const title = t("meta.title");
   const description = t("meta.description");
 
-  const languages: Record<string, string> = {};
-  for (const l of routing.locales) {
-    const prefix = l === routing.defaultLocale ? "" : `/${l}`;
-    languages[l] = `${SITE_URL}${prefix}/blog`;
-  }
-  languages["x-default"] = `${SITE_URL}/blog`;
+  const alternates = buildAlternates("/blog", { locale });
 
   const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT", pt: "pt_BR" };
   const ogLocale = ogLocaleMap[locale] ?? "en_US";
@@ -58,14 +53,11 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: {
-      canonical: languages[locale],
-      languages,
-    },
+    alternates,
     openGraph: {
       title,
       description,
-      url: languages[locale],
+      url: alternates.canonical,
       siteName: "MonkeyTravel",
       locale: ogLocale,
       alternateLocale,

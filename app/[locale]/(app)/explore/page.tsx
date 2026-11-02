@@ -21,7 +21,7 @@ import ExploreFilters from "@/components/explore/ExploreFilters";
 import { fetchExploreFeed } from "@/lib/explore/fetcher";
 import type { BudgetTier } from "@/lib/explore/types";
 import { ogImages } from "@/lib/seo/og-image";
-import { SITE_URL } from "@/lib/seo/canonical";
+import { buildAlternates } from "@/lib/seo/canonical";
 
 
 /**
@@ -48,9 +48,8 @@ export const dynamic = "force-dynamic";
 //     set for metadata resolution; without it next-intl can render with a
 //     fallback locale and Next's metadata cache may drop dynamically-built
 //     `alternates.languages` keys.
-//   - `alternates.languages` is an inline object literal, like the homepage
-//     and the weekend-trip-planner, whose hreflang emits; a computed
-//     bracket-assignment on a Record<string, string> did not.
+//   - The canonical and hreflang URLs come from buildAlternates(), like the
+//     other public pages'.
 //   - `robots` is explicit. The root layout already publishes
 //     `index, follow`, but stating it here keeps a parent metadata cascade
 //     or an error-boundary render from turning /explore into `noindex`.
@@ -65,20 +64,9 @@ export async function generateMetadata({
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "common.share.explore" });
 
-  // hreflang map — inline literal matching homepage shape (task #209
-  // fix). Routing uses `localePrefix: 'as-needed'` with default 'en',
-  // so English URLs are unprefixed and es/it/pt carry the locale segment.
-  // Without these tags Google can't deduplicate /explore and its locale
+  // Without hreflang tags Google can't deduplicate /explore and its locale
   // twins — they get treated as competing pages.
-  const languages = {
-    en: `${SITE_URL}/explore`,
-    es: `${SITE_URL}/es/explore`,
-    it: `${SITE_URL}/it/explore`,
-    pt: `${SITE_URL}/pt/explore`,
-    "x-default": `${SITE_URL}/explore`,
-  } as const;
-  const canonical =
-    languages[locale as keyof typeof languages] ?? languages["x-default"];
+  const alternates = buildAlternates("/explore", { locale });
 
   return {
     // Root layout's title.template appends " | MonkeyTravel" — don't add
@@ -95,13 +83,10 @@ export async function generateMetadata({
       title: `${t("pageTitle")} | MonkeyTravel`,
       description: t("metaDescription"),
       type: "website",
-      url: canonical,
+      url: alternates.canonical,
       images: ogImages(`${t("pageTitle")} | MonkeyTravel`),
     },
-    alternates: {
-      canonical,
-      languages,
-    },
+    alternates,
   };
 }
 

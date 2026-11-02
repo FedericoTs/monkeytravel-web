@@ -9,7 +9,7 @@ import {
   jsonLdScriptProps,
 } from "@/lib/seo/structured-data";
 import { ogImages } from "@/lib/seo/og-image";
-import { SITE_URL } from "@/lib/seo/canonical";
+import { buildAlternates, SITE_URL } from "@/lib/seo/canonical";
 
 
 const META: Record<string, { title: string; description: string }> = {
@@ -46,28 +46,18 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const m = META[locale] || META.en;
-  const localePrefix = locale === "en" ? "" : `/${locale}`;
-  const canonical = `${SITE_URL}${localePrefix}/tools/packing-list`;
+  const alternates = buildAlternates("/tools/packing-list", { locale });
   return {
     // `absolute` opts out of the root "%s | MonkeyTravel" template.
     // Generic commercial terms; the brand costs 15 of ~60 chars.
     title: { absolute: m.title },
     description: m.description,
-    alternates: {
-      canonical,
-      languages: {
-        en: `${SITE_URL}/tools/packing-list`,
-        it: `${SITE_URL}/it/tools/packing-list`,
-        es: `${SITE_URL}/es/tools/packing-list`,
-        pt: `${SITE_URL}/pt/tools/packing-list`,
-        "x-default": `${SITE_URL}/tools/packing-list`,
-      },
-    },
+    alternates,
     openGraph: {
       siteName: "MonkeyTravel",
       title: m.title,
       description: m.description,
-      url: canonical,
+      url: alternates.canonical,
       type: "website",
       images: ogImages(m.title),
     },

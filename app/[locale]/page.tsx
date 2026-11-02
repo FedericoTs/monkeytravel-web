@@ -15,7 +15,7 @@ import { destinations } from '@/lib/destinations/data';
 import { DestinationCard } from '@/components/destinations';
 import type { Locale } from '@/lib/destinations/types';
 import type { Metadata } from 'next';
-import { SITE_URL } from '@/lib/seo/canonical';
+import { buildAlternates, SITE_URL } from '@/lib/seo/canonical';
 
 
 const META: Record<string, { title: string; description: string }> = {
@@ -44,25 +44,17 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const ogLocaleMap: Record<string, string> = { en: 'en_US', es: 'es_ES', it: 'it_IT', pt: 'pt_BR' };
   const ogLocale = ogLocaleMap[locale] ?? 'en_US';
   const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
+  const alternates = buildAlternates('', { locale });
 
   return {
     title: meta.title,
     description: meta.description,
-    alternates: {
-      canonical: locale === 'en' ? SITE_URL : `${SITE_URL}/${locale}`,
-      languages: {
-        en: SITE_URL,
-        es: `${SITE_URL}/es`,
-        it: `${SITE_URL}/it`,
-        pt: `${SITE_URL}/pt`,
-        'x-default': SITE_URL,
-      },
-    },
+    alternates,
     openGraph: {
       title: meta.title,
       description: meta.description,
       type: 'website',
-      url: locale === 'en' ? SITE_URL : `${SITE_URL}/${locale}`,
+      url: alternates.canonical,
       siteName: 'MonkeyTravel',
       locale: ogLocale,
       alternateLocale,

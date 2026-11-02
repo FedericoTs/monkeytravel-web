@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import ContactForm from "@/components/contact/ContactForm";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { SITE_URL } from "@/lib/seo/canonical";
+import { buildAlternates } from "@/lib/seo/canonical";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -12,20 +12,10 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "contact.meta" });
-  const path = locale === "en" ? "/contact" : `/${locale}/contact`;
   return {
     title: t("title"),
     description: t("description"),
-    alternates: {
-      canonical: `${SITE_URL}${path}`,
-      languages: {
-        en: `${SITE_URL}/contact`,
-        es: `${SITE_URL}/es/contact`,
-        it: `${SITE_URL}/it/contact`,
-        pt: `${SITE_URL}/pt/contact`,
-        "x-default": `${SITE_URL}/contact`,
-      },
-    },
+    alternates: buildAlternates("/contact", { locale }),
     robots: { index: true, follow: true },
   };
 }

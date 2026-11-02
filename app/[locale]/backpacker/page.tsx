@@ -25,7 +25,7 @@ import type { Metadata } from "next";
 import TripCard from "@/components/explore/TripCard";
 import type { ExploreFeedResponse } from "@/lib/explore/types";
 import LandingWhatIs from "@/components/landing/LandingWhatIs";
-import { SITE_URL } from "@/lib/seo/canonical";
+import { buildAlternates, SITE_URL } from "@/lib/seo/canonical";
 
 // Fixed origin, not the request's host: the page prerenders, so these fetches
 // run once at build time against production's public API and the page shows
@@ -111,7 +111,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "backpacker" });
-  const prefix = locale === "en" ? "" : `/${locale}`;
+  const alternates = buildAlternates(PAGE_PATH, { locale });
   const title = t("meta.title");
   const description = t("meta.description");
   return {
@@ -122,22 +122,13 @@ export async function generateMetadata({
     // buy nothing here and cost the end of the headline.
     title: { absolute: title },
     description,
-    alternates: {
-      canonical: `${SITE_URL}${prefix}${PAGE_PATH}`,
-      languages: {
-        en: `${SITE_URL}${PAGE_PATH}`,
-        es: `${SITE_URL}/es${PAGE_PATH}`,
-        it: `${SITE_URL}/it${PAGE_PATH}`,
-        pt: `${SITE_URL}/pt${PAGE_PATH}`,
-        "x-default": `${SITE_URL}${PAGE_PATH}`,
-      },
-    },
+    alternates,
     openGraph: {
       siteName: "MonkeyTravel",
       title,
       description,
       type: "website",
-      url: `${SITE_URL}${prefix}${PAGE_PATH}`,
+      url: alternates.canonical,
       images: [
         {
           url: `${SITE_URL}/og-image.png`,
