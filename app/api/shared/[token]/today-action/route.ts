@@ -20,14 +20,14 @@
  */
 import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { nanoid } from "nanoid";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
-import { PARTICIPANT_COOKIE, PARTICIPANT_COOKIE_MAX_AGE_SECONDS } from "@/lib/participants/shared";
+import { PARTICIPANT_COOKIE } from "@/lib/participants/shared";
+import { isCookielessScript, participantCookieId, setParticipantCookie } from "@/lib/participants/request";
 import { todayActionsSnapshot } from "@/lib/today/snapshot";
 import { announceTodayChange, writeTodayAction, type TodayActionBody } from "@/lib/today/write";
 import { readSharedTrip } from "@/lib/trips/shared-trip";
@@ -35,7 +35,6 @@ import { isUuid } from "@/lib/utils/uuid";
 
 const ipLimiter = createRateLimiter("today-action-ip", 40, 60_000);
 const cookieTripLimiter = createRateLimiter("today-action-cookie-trip", 20, 60_000);
-const BOT_UA_REGEX = /^(curl|wget|python-requests|httpie|go-http-client|libwww-perl|scrapy)\b/i;
 
 export async function POST(request: NextRequest, context: InviteTokenRouteContext) {
   try {
@@ -48,10 +47,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
     const cookieStore = await cookies();
     const existingCookie = cookieStore.get(PARTICIPANT_COOKIE)?.value;
-    if (!existingCookie) {
-      const ua = request.headers.get("user-agent") ?? "";
-      if (!ua || BOT_UA_REGEX.test(ua)) return errors.badRequest("Invalid request");
-    }
+    if (isCookielessScript(request, existingCookie)) return errors.badRequest("Invalid request");
 
     const body = (await request.json().catch(() => null)) as TodayActionBody | null;
     if (!body || typeof body !== "object") return errors.badRequest("Invalid request body");
@@ -64,12 +60,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     );
     if (errorResponse) return errorResponse;
 
-    let cookieId = existingCookie;
-    let issuedCookie = false;
-    if (!cookieId || cookieId.length < 10 || cookieId.length > 60) {
-      cookieId = nanoid(21);
-      issuedCookie = true;
-    }
+    const { cookieId, issued: issuedCookie } = participantCookieId(existingCookie);
 
     const { allowed: cookieAllowed } = await cookieTripLimiter.check(request, `${cookieId}:${trip.id}`);
     if (!cookieAllowed) return errors.rateLimit("Too many changes. Please slow down.");
@@ -86,17 +77,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     const failed = await writeTodayAction(admin, trip, { user, cookieId }, body);
     if (failed) return failed;
     announceTodayChange(admin, trip.id);
-    if (issuedCookie) {
-      cookieStore.set({
-        name: PARTICIPANT_COOKIE,
-        value: cookieId,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: PARTICIPANT_COOKIE_MAX_AGE_SECONDS,
-        path: "/",
-      });
-    }
+    if (issuedCookie) setParticipantCookie(cookieStore, cookieId);
     return apiSuccess(await todayActionsSnapshot(admin, trip.id, cookieId, user?.id ?? null));
   } catch (error) {
     console.error("[today-action] Unexpected error:", error);
