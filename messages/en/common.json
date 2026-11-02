@@ -2776,5 +2776,38 @@
       "activities": "Activities on saved itineraries",
       "speed": "Median time to a full itinerary"
     }
+  },
+  "referralLanding": {
+    "friendFallback": "A friend",
+    "signIn": "Already have an account? Sign in",
+    "invitedYou": "<strong>{name}</strong> invited you",
+    "titleLead": "Plan the trip together.",
+    "titleOffer": "<highlight>30 AI trips a month</highlight>, free",
+    "subtitle": "{name} is already planning on MonkeyTravel. Create an account to keep your itineraries, share them, and vote on the plan together.",
+    "whatYouGet": "What you get",
+    "whatYouGetNote": "Free, with no card and no trial to expire",
+    "perks": {
+      "itinerary": "Full AI-generated itinerary",
+      "days": "Day-by-day activities & tips",
+      "budget": "Budget estimates & packing lists",
+      "saved": "Your trips saved, not stuck in one browser"
+    },
+    "cta": "Start planning — free",
+    "noCard": "No credit card required",
+    "features": {
+      "anywhereTitle": "Any Destination",
+      "anywhereBody": "From Tokyo to Paris, plan trips anywhere in the world",
+      "aiTitle": "AI-Powered",
+      "aiBody": "Get personalized itineraries in about 30 seconds",
+      "editableTitle": "Fully Editable",
+      "editableBody": "Customize every detail to match your style"
+    },
+    "trusted": "Trusted by travelers worldwide",
+    "rating": "4.9/5 rating",
+    "meta": {
+      "title": "{name} invited you to MonkeyTravel!",
+      "description": "Plan a trip together in about 30 seconds. 30 AI-planned itineraries a month, free — no card, no trial.",
+      "shortDescription": "Plan a trip together in about 30 seconds. Free — no card, no trial."
+    }
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter, Link } from "@/lib/i18n/routing";
 import Image from "next/image";
 import { Gift, Sparkles, MapPin, Calendar, Zap, Check, ChevronRight } from "lucide-react";
@@ -8,7 +9,8 @@ import { safeSet } from "@/lib/safe-storage";
 
 interface ReferralLandingClientProps {
   code: string;
-  referrerName: string;
+  /** Null when the referrer has no name to show. */
+  referrerName: string | null;
   referrerAvatar?: string | null;
 }
 
@@ -17,6 +19,8 @@ export default function ReferralLandingClient({
   referrerName,
   referrerAvatar,
 }: ReferralLandingClientProps) {
+  const t = useTranslations("common.referralLanding");
+  const tFooter = useTranslations("common.footer");
   const router = useRouter();
   const [isTracking, setIsTracking] = useState(true);
 
@@ -56,8 +60,8 @@ export default function ReferralLandingClient({
     router.push(`/auth/signup?ref=${code}`);
   };
 
-  // Get first name only
-  const firstName = referrerName.split(" ")[0];
+  // First name only; the fallback is shown whole.
+  const firstName = referrerName?.split(" ")[0] || t("friendFallback");
 
   return (
     <div className="min-h-screen min-h-dvh bg-gradient-to-b from-slate-50 to-white">
@@ -80,7 +84,7 @@ export default function ReferralLandingClient({
             href="/auth/login"
             className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
           >
-            Already have an account? Sign in
+            {t("signIn")}
           </Link>
         </div>
       </nav>
@@ -94,7 +98,7 @@ export default function ReferralLandingClient({
               {referrerAvatar ? (
                 <Image
                   src={referrerAvatar}
-                  alt={referrerName}
+                  alt={referrerName || firstName}
                   width={32}
                   height={32}
                   className="w-8 h-8 rounded-full"
@@ -107,7 +111,10 @@ export default function ReferralLandingClient({
                 </div>
               )}
               <span className="text-slate-600">
-                <strong className="text-slate-900">{firstName}</strong> invited you
+                {t.rich("invitedYou", {
+                  name: firstName,
+                  strong: (chunks) => <strong className="text-slate-900">{chunks}</strong>,
+                })}
               </span>
             </div>
           </div>
@@ -115,27 +122,24 @@ export default function ReferralLandingClient({
           {/* Main heading */}
           <div className="text-center mb-12">
             {/*
-              Was "Get 1 FREE AI Trip When You Sign Up" — wrong in both
-              directions. Anonymous visitors already get 5 trips a day without
-              an account (lib/anonymous/rate-limit.ts), and signing up gives 30
-              a month (TIER_LIMITS.free.aiGenerations), not one. It undersold
-              the product by 30x while also promising a gate that isn't there.
-
-              The real reason to sign up is that anonymous trips live only in
-              that browser — the result page says so itself ("saved only on
-              this browser"). So the pitch is keeping them, not unlocking them.
+              The pitch is keeping trips, not unlocking them: anonymous visitors
+              already plan without an account (lib/anonymous/rate-limit.ts), but
+              those trips live only in that browser. An account gets 30 a month
+              (TIER_LIMITS.free.aiGenerations).
             */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
-              Plan the trip together.
+              {t("titleLead")}
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500">
-                30 AI trips a month
-              </span>
-              , free
+              {t.rich("titleOffer", {
+                highlight: (chunks) => (
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500">
+                    {chunks}
+                  </span>
+                ),
+              })}
             </h1>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              {firstName} is already planning on MonkeyTravel. Create an account
-              to keep your itineraries, share them, and vote on the plan together.
+              {t("subtitle", { name: firstName })}
             </p>
           </div>
 
@@ -150,10 +154,10 @@ export default function ReferralLandingClient({
 
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                  What you get
+                  {t("whatYouGet")}
                 </h2>
                 <p className="text-slate-600">
-                  Free, with no card and no trial to expire
+                  {t("whatYouGetNote")}
                 </p>
               </div>
 
@@ -162,25 +166,25 @@ export default function ReferralLandingClient({
                   <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
                     <Check className="w-5 h-5 text-emerald-600" />
                   </div>
-                  <span className="text-slate-700">Full AI-generated itinerary</span>
+                  <span className="text-slate-700">{t("perks.itinerary")}</span>
                 </div>
                 <div className="flex items-center gap-3 bg-white/60 rounded-xl p-3">
                   <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
                     <Check className="w-5 h-5 text-emerald-600" />
                   </div>
-                  <span className="text-slate-700">Day-by-day activities & tips</span>
+                  <span className="text-slate-700">{t("perks.days")}</span>
                 </div>
                 <div className="flex items-center gap-3 bg-white/60 rounded-xl p-3">
                   <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
                     <Check className="w-5 h-5 text-emerald-600" />
                   </div>
-                  <span className="text-slate-700">Budget estimates & packing lists</span>
+                  <span className="text-slate-700">{t("perks.budget")}</span>
                 </div>
                 <div className="flex items-center gap-3 bg-white/60 rounded-xl p-3">
                   <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
                     <Check className="w-5 h-5 text-emerald-600" />
                   </div>
-                  <span className="text-slate-700">Your trips saved, not stuck in one browser</span>
+                  <span className="text-slate-700">{t("perks.saved")}</span>
                 </div>
               </div>
 
@@ -190,12 +194,12 @@ export default function ReferralLandingClient({
                 className="w-full px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-300/50 transition-all hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-5 h-5" />
-                <span>Start planning — free</span>
+                <span>{t("cta")}</span>
                 <ChevronRight className="w-5 h-5" />
               </button>
 
               <p className="text-center text-sm text-slate-500 mt-4">
-                No credit card required
+                {t("noCard")}
               </p>
             </div>
           </div>
@@ -206,34 +210,34 @@ export default function ReferralLandingClient({
               <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mx-auto mb-4">
                 <MapPin className="w-6 h-6 text-blue-600" />
               </div>
-              <h3 className="font-semibold text-slate-900 mb-2">Any Destination</h3>
+              <h3 className="font-semibold text-slate-900 mb-2">{t("features.anywhereTitle")}</h3>
               <p className="text-sm text-slate-600">
-                From Tokyo to Paris, plan trips anywhere in the world
+                {t("features.anywhereBody")}
               </p>
             </div>
             <div className="text-center p-6">
               <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center mx-auto mb-4">
                 <Zap className="w-6 h-6 text-purple-600" />
               </div>
-              <h3 className="font-semibold text-slate-900 mb-2">AI-Powered</h3>
+              <h3 className="font-semibold text-slate-900 mb-2">{t("features.aiTitle")}</h3>
               <p className="text-sm text-slate-600">
-                Get personalized itineraries in about 30 seconds
+                {t("features.aiBody")}
               </p>
             </div>
             <div className="text-center p-6">
               <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center mx-auto mb-4">
                 <Calendar className="w-6 h-6 text-emerald-600" />
               </div>
-              <h3 className="font-semibold text-slate-900 mb-2">Fully Editable</h3>
+              <h3 className="font-semibold text-slate-900 mb-2">{t("features.editableTitle")}</h3>
               <p className="text-sm text-slate-600">
-                Customize every detail to match your style
+                {t("features.editableBody")}
               </p>
             </div>
           </div>
 
           {/* Social proof */}
           <div className="mt-16 text-center">
-            <p className="text-sm text-slate-500 mb-4">Trusted by travelers worldwide</p>
+            <p className="text-sm text-slate-500 mb-4">{t("trusted")}</p>
             <div className="flex items-center justify-center gap-1">
               {[1, 2, 3, 4, 5].map((i) => (
                 <svg
@@ -245,7 +249,7 @@ export default function ReferralLandingClient({
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
               ))}
-              <span className="ml-2 text-slate-600 font-medium">4.9/5 rating</span>
+              <span className="ml-2 text-slate-600 font-medium">{t("rating")}</span>
             </div>
           </div>
         </div>
@@ -255,7 +259,7 @@ export default function ReferralLandingClient({
       <footer className="py-8 border-t border-slate-100">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="text-sm text-slate-500">
-            &copy; {new Date().getFullYear()} MonkeyTravel. All rights reserved.
+            {tFooter("copyright", { year: new Date().getFullYear() })}
           </p>
         </div>
       </footer>
