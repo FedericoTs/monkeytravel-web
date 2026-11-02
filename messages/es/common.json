@@ -97,6 +97,14 @@
     "more": "Más",
     "less": "Menos"
   },
+  "a11y": {
+    "dismiss": "Cerrar",
+    "breadcrumb": "Ruta de navegación",
+    "pagination": "Paginación",
+    "articleNavigation": "Navegación entre artículos",
+    "sectionNavigation": "Navegación por secciones",
+    "destinationNavigation": "Navegación entre destinos"
+  },
   "drag": {
     "title": "Mantén pulsado y arrastra para reordenar o mover a otro día",
     "ariaLabel": "Tirador: mantén pulsado y arrastra para reordenar o mover a otro día",

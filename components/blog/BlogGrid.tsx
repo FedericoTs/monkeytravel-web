@@ -20,6 +20,7 @@ interface BlogGridProps {
 
 export default function BlogGrid({ posts }: BlogGridProps) {
   const t = useTranslations("blog");
+  const tA11y = useTranslations("common.a11y");
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeRegion, setActiveRegion] = useState<BlogRegion | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -216,7 +217,7 @@ export default function BlogGrid({ posts }: BlogGridProps) {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <nav className="flex items-center justify-center gap-2 mt-12" aria-label="Pagination">
+        <nav className="flex items-center justify-center gap-2 mt-12" aria-label={tA11y("pagination")}>
           {/* Previous */}
           <button
             onClick={() => handlePageChange(Math.max(1, currentPage - 1))}

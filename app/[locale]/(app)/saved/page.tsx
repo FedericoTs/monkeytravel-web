@@ -119,6 +119,7 @@ export default async function SavedPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "common.savedPage" });
+  const tA11y = await getTranslations({ locale, namespace: "common.a11y" });
 
   // NOTE: don't manually concat /${locale} into hrefs — `Link` is
   // next-intl's locale-aware variant (createNavigation from
@@ -203,7 +204,7 @@ export default async function SavedPage({
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 sm:py-12 w-full">
-        <nav className="text-sm text-slate-500 mb-4" aria-label="Breadcrumb">
+        <nav className="text-sm text-slate-500 mb-4" aria-label={tA11y("breadcrumb")}>
           <Link href="/" className="hover:text-slate-700">
             {t("breadcrumb.home")}
           </Link>

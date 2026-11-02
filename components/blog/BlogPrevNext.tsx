@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/routing";
 import type { BlogFrontmatter } from "@/lib/blog/types";
 
@@ -22,10 +23,11 @@ export default function BlogPrevNext({
   prevLabel,
   nextLabel,
 }: BlogPrevNextProps) {
+  const t = useTranslations("common.a11y");
   if (!prev && !next) return null;
 
   return (
-    <nav className="my-12 not-prose grid sm:grid-cols-2 gap-4" aria-label="Article navigation">
+    <nav className="my-12 not-prose grid sm:grid-cols-2 gap-4" aria-label={t("articleNavigation")}>
       {prev && prevTitle ? (
         <Link
           href={`/blog/${prev.slug}`}

@@ -36,6 +36,7 @@ export default function ReferralProgressBanner({
   onInvite,
 }: ReferralProgressBannerProps) {
   const t = useTranslations("bananas");
+  const tA11y = useTranslations("common.a11y");
   // Tri-state: null = pre-mount (don't know yet), true = dismissed, false = visible.
   //
   // Previously initialised to `true` ("hidden by default to prevent flash"),
@@ -104,7 +105,7 @@ export default function ReferralProgressBanner({
       <button
         onClick={handleDismiss}
         className="absolute top-2 right-2 p-1 rounded-full text-amber-400 hover:text-amber-600 hover:bg-amber-100 transition-colors"
-        aria-label="Dismiss"
+        aria-label={tA11y("dismiss")}
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path

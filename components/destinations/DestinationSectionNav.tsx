@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 interface SectionEntry {
   id: string;
@@ -22,6 +23,7 @@ interface DestinationSectionNavProps {
  * behaviour (with offset for the navbar + this nav).
  */
 export default function DestinationSectionNav({ sections }: DestinationSectionNavProps) {
+  const t = useTranslations("common.a11y");
   const [activeId, setActiveId] = useState<string | null>(sections[0]?.id ?? null);
 
   useEffect(() => {
@@ -67,7 +69,7 @@ export default function DestinationSectionNav({ sections }: DestinationSectionNa
   return (
     <div className="sticky top-16 z-40 bg-white/90 backdrop-blur-sm border-b border-slate-200/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <nav className="flex items-center gap-1.5 overflow-x-auto py-3 scrollbar-hide" aria-label="Section navigation">
+        <nav className="flex items-center gap-1.5 overflow-x-auto py-3 scrollbar-hide" aria-label={t("sectionNavigation")}>
           {sections.map(({ id, label }) => {
             const active = activeId === id;
             return (

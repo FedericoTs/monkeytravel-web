@@ -7,11 +7,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, renderHook, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { NextIntlClientProvider } from "next-intl";
 import { ToastProvider } from "@/components/ui/Toast";
 import { UNDO_WINDOW_MS, useUndoableRemoval, type SendRemoval } from "./useUndoableRemoval";
 
 const labels = { removed: "Expense removed.", undo: "Undo" };
-const wrapper = ({ children }: { children: ReactNode }) => <ToastProvider>{children}</ToastProvider>;
+// The toast names its dismiss button from common.a11y.
+const Toasts = ({ children }: { children: ReactNode }) => (
+  <NextIntlClientProvider locale="en" messages={{ common: { a11y: { dismiss: "Dismiss" } } }}>
+    <ToastProvider>{children}</ToastProvider>
+  </NextIntlClientProvider>
+);
+const wrapper = Toasts;
 const setup = (send: SendRemoval) => renderHook(() => useUndoableRemoval(send, labels), { wrapper });
 const wait = (ms: number) => act(async () => void (await vi.advanceTimersByTimeAsync(ms)));
 
@@ -83,7 +90,7 @@ describe("useUndoableRemoval", () => {
       return <button onClick={() => remove("exp-1")}>{hidden.has("exp-1") ? "Removed" : "Remove"}</button>;
     }
     // The toasts outlive the panel, as on the trip page.
-    const page = (open: boolean) => <ToastProvider>{open && <Panel />}</ToastProvider>;
+    const page = (open: boolean) => <Toasts>{open && <Panel />}</Toasts>;
     const { rerender } = render(page(true));
     fireEvent.click(screen.getByText("Remove"));
     expect(screen.getByRole("button", { name: "Undo" })).toBeTruthy();
