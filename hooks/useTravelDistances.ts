@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import type { ItineraryDay, CachedDayTravelData } from "@/types";
 import type { Coordinates } from "@/lib/utils/geo";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
+import { estimateTravelTime as estimateLeg } from "@/lib/utils/travel-estimation";
 
 export interface TravelSegment {
   fromActivityId: string;
@@ -46,150 +47,11 @@ interface UseTravelDistancesOptions {
   cachedHash?: string;
 }
 
-// ============================================================
-// LOCAL HAVERSINE-BASED TRAVEL ESTIMATION
-// No API calls needed - all calculations done in browser
-// ============================================================
-
-/**
- * Calculate straight-line distance using Haversine formula
- * @returns Distance in meters
- */
-function calculateHaversineDistance(
-  origin: Coordinates,
-  destination: Coordinates
-): number {
-  const R = 6371000; // Earth's radius in meters
-  const lat1Rad = (origin.lat * Math.PI) / 180;
-  const lat2Rad = (destination.lat * Math.PI) / 180;
-  const deltaLat = ((destination.lat - origin.lat) * Math.PI) / 180;
-  const deltaLng = ((destination.lng - origin.lng) * Math.PI) / 180;
-
-  const a =
-    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-    Math.cos(lat1Rad) *
-      Math.cos(lat2Rad) *
-      Math.sin(deltaLng / 2) *
-      Math.sin(deltaLng / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-}
-
-/**
- * Estimate road distance from straight-line distance
- * Research-based road factors accounting for urban grid patterns
- */
-function estimateRoadDistance(straightLineMeters: number): number {
-  let factor: number;
-  if (straightLineMeters < 500) {
-    factor = 1.2;
-  } else if (straightLineMeters < 2000) {
-    factor = 1.3;
-  } else if (straightLineMeters < 5000) {
-    factor = 1.35;
-  } else {
-    factor = 1.4;
-  }
-  return Math.round(straightLineMeters * factor);
-}
-
-/**
- * Estimate walking path distance (more direct than driving)
- */
-function estimateWalkingDistance(straightLineMeters: number): number {
-  const factor = straightLineMeters < 1000 ? 1.15 : 1.2;
-  return Math.round(straightLineMeters * factor);
-}
-
-/**
- * Get average speed based on mode and distance
- */
-function getAverageSpeed(mode: "WALKING" | "DRIVING", distanceMeters: number): number {
-  if (mode === "WALKING") {
-    return 4.8; // km/h - comfortable walking pace
-  }
-  // Driving speeds vary by distance
-  if (distanceMeters < 2000) return 18;
-  if (distanceMeters < 5000) return 22;
-  if (distanceMeters < 10000) return 28;
-  return 35;
-}
-
-/**
- * Format distance for display
- */
-function formatDistance(meters: number): string {
-  if (meters < 1000) {
-    return `${Math.round(meters)} m`;
-  }
-  return `${(meters / 1000).toFixed(1)} km`;
-}
-
-/**
- * Format duration for display
- */
-function formatDuration(seconds: number): string {
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) {
-    return `${minutes} min`;
-  }
-  const hours = Math.floor(minutes / 60);
-  const remainingMins = minutes % 60;
-  return remainingMins > 0 ? `${hours} hr ${remainingMins} min` : `${hours} hr`;
-}
-
-/**
- * Determine optimal travel mode based on distance
- * Walk if under 1.2km (about 15-20 min walk)
- */
-function determineOptimalMode(
-  origin: Coordinates,
-  destination: Coordinates
-): "WALKING" | "DRIVING" {
-  const straightLine = calculateHaversineDistance(origin, destination);
-  return straightLine < 1200 ? "WALKING" : "DRIVING";
-}
-
-/**
- * Calculate travel estimate between two coordinates locally
- * No API call needed!
- */
-function estimateTravelTime(
-  origin: Coordinates,
-  destination: Coordinates
-): {
-  mode: "WALKING" | "DRIVING";
-  distanceMeters: number;
-  durationSeconds: number;
-  distanceText: string;
-  durationText: string;
-} {
-  const straightLineDistance = calculateHaversineDistance(origin, destination);
-  const mode = determineOptimalMode(origin, destination);
-
-  const travelDistance = mode === "WALKING"
-    ? estimateWalkingDistance(straightLineDistance)
-    : estimateRoadDistance(straightLineDistance);
-
-  const avgSpeedKmh = getAverageSpeed(mode, travelDistance);
-  const avgSpeedMs = avgSpeedKmh * 1000 / 3600;
-  const durationSeconds = Math.round(travelDistance / avgSpeedMs);
-
-  // Buffer time for crossings/traffic
-  const bufferSeconds = mode === "WALKING"
-    ? Math.round(travelDistance / 200) * 15
-    : Math.round(travelDistance / 500) * 30;
-
-  const totalDurationSeconds = durationSeconds + bufferSeconds;
-
-  return {
-    mode,
-    distanceMeters: travelDistance,
-    durationSeconds: totalDurationSeconds,
-    distanceText: `~${formatDistance(travelDistance)}`,
-    durationText: `~${formatDuration(totalDurationSeconds)}`,
-  };
+// Haversine estimates (lib/utils/travel-estimation), worked out in the
+// browser with no API call; "~" marks them as approximate.
+function estimateTravelTime(origin: Coordinates, destination: Coordinates) {
+  const { mode, distanceMeters, durationSeconds, distanceText, durationText } = estimateLeg(origin, destination);
+  return { mode, distanceMeters, durationSeconds, distanceText: `~${distanceText}`, durationText: `~${durationText}` };
 }
 
 // ============================================================
