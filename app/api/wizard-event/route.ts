@@ -31,6 +31,7 @@ import { errors } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { WIZARD_EVENT_STEPS } from "@/components/wizard/wizardEvents";
 import { writesTelemetry } from "@/lib/analytics/telemetry-env";
+import { readJsonBody } from "@/lib/api/json-body";
 
 const BodySchema = z.object({
   step: z.enum(WIZARD_EVENT_STEPS),
@@ -110,12 +111,8 @@ const sessionLimiter = createRateLimiter(
 
 export async function POST(request: NextRequest) {
   // 1. Parse the body. Malformed JSON → 400, not 500.
-  let raw: unknown;
-  try {
-    raw = await request.json();
-  } catch {
-    return errors.badRequest("Body must be valid JSON");
-  }
+  const { body: raw, invalidBody } = await readJsonBody<unknown>(request);
+  if (invalidBody) return invalidBody;
 
   const parsed = BodySchema.safeParse(raw);
   if (!parsed.success) {

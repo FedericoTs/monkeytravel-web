@@ -19,6 +19,7 @@ import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { ItineraryDay } from "@/types";
+import { readJsonBody } from "@/lib/api/json-body";
 
 // Fire-and-forget observability write (anon_assistant_logs, service-role
 // only). The anon assistant is the highest-traffic AI surface; without this
@@ -101,12 +102,8 @@ const INJECTION_RE =
 export async function POST(request: NextRequest) {
   const startedAt = Date.now();
 
-  let raw: unknown;
-  try {
-    raw = await request.json();
-  } catch {
-    return errors.badRequest("Body must be valid JSON");
-  }
+  const { body: raw, invalidBody } = await readJsonBody<unknown>(request);
+  if (invalidBody) return invalidBody;
 
   const parsed = BodySchema.safeParse(raw);
   if (!parsed.success) {

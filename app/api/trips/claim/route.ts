@@ -5,6 +5,7 @@ import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
 import { logWizardStepServer } from "@/lib/analytics/wizard-event-server";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * POST /api/trips/claim — take ownership of an anonymous trip after signing up.
@@ -38,12 +39,9 @@ export async function POST(request: NextRequest) {
       return errors.rateLimit("Too many claim attempts. Try again later.");
     }
 
-    let claimToken: unknown;
-    try {
-      ({ claimToken } = (await request.json()) as { claimToken?: unknown });
-    } catch {
-      return errors.badRequest("Invalid JSON body.");
-    }
+    const { body, invalidBody } = await readJsonBody<{ claimToken?: unknown }>(request);
+    if (invalidBody) return invalidBody;
+    const { claimToken } = body;
 
     if (typeof claimToken !== "string" || claimToken.length < 20 || claimToken.length > 200) {
       return errors.badRequest("Invalid claim token.");

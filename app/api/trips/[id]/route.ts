@@ -10,6 +10,7 @@ import { refreshItineraryPhotos } from "@/lib/places/refreshItineraryPhotos";
 import { keepStoredPlacePhotos } from "@/lib/trips/keep-place-photos";
 import { TRIP_COLUMNS } from "@/lib/trips/columns";
 import { requireRow } from "@/lib/api/require-row";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * GET /api/trips/[id] - Fetch a single trip
@@ -85,12 +86,8 @@ export async function PATCH(request: NextRequest, context: TripRouteContext) {
     // (a save superseded mid-upload by a newer one, or a tab closed while the
     // debounced PATCH was in flight) — answer 400, not a 500 that reads as a
     // server failure in the logs and in Sentry.
-    let body: Record<string, unknown>;
-    try {
-      body = await request.json();
-    } catch {
-      return errors.badRequest("Invalid or empty JSON body");
-    }
+    const { body, invalidBody } = await readJsonBody<Record<string, unknown>>(request);
+    if (invalidBody) return invalidBody;
 
     // Owner or editor. Voters, viewers and non-members get 403; a trip the
     // caller cannot see at all gets 404. user_id must be in the select:

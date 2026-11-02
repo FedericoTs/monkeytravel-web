@@ -36,6 +36,7 @@ import {
 import type { TripRouteContext } from "@/lib/api/route-context";
 import type { Activity, ItineraryDay, TimeSlot } from "@/types";
 import type { ParsedBooking } from "@/lib/email-parse/extract";
+import { readJsonBody } from "@/lib/api/json-body";
 
 const VALID_TIME_SLOTS: TimeSlot[] = ["morning", "afternoon", "evening"];
 
@@ -228,12 +229,8 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     if (tripError) return tripError;
 
     // Parse body.
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return errors.badRequest("Invalid JSON body");
-    }
+    const { body, invalidBody } = await readJsonBody<unknown>(request);
+    if (invalidBody) return invalidBody;
     if (!body || typeof body !== "object") {
       return errors.badRequest("Body must be an object");
     }

@@ -50,6 +50,7 @@ import { noProposalNote, replyLanguage } from "@/lib/ai/assistant/honesty";
 import { LANGUAGE_NAMES, tripLocale } from "@/lib/ai/language";
 import { CONCIERGE_SURFACE } from "@/lib/ai/conversations";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { readJsonBody } from "@/lib/api/json-body";
 
 /**
  * Persist a Concierge Q&A turn to `ai_conversations`.
@@ -248,12 +249,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let body: ConciergeRequestBody;
-    try {
-      body = (await request.json()) as ConciergeRequestBody;
-    } catch {
-      return errors.badRequest("Invalid JSON body");
-    }
+    const { body, invalidBody } = await readJsonBody<ConciergeRequestBody>(request);
+    if (invalidBody) return invalidBody;
 
     const tripId = typeof body.tripId === "string" ? body.tripId : null;
     const question =
