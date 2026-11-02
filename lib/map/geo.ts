@@ -70,32 +70,24 @@ export function walkingMinutes(
 }
 
 /**
- * Format a duration in minutes as a short, locale-aware string.
+ * Format a duration in minutes as a short string. "min" and "h" read the
+ * same in every language the app speaks, so there is one spelling:
  *  - 0    → "0 min"
  *  - 12   → "12 min"
  *  - 83   → "1 h 23 min"
  *  - 120  → "2 h"
- *
- * Locale is currently used to choose the unit label ("min" / "h").
- * We keep this simple to avoid pulling Intl.RelativeTimeFormat plurals
- * for a UI label that only ever needs two units.
  */
-export function formatDuration(minutes: number, locale: string): string {
+export function formatDuration(minutes: number): string {
   const safe = Math.max(0, Math.round(minutes));
-  const isIt = locale?.toLowerCase().startsWith("it");
-  const isEs = locale?.toLowerCase().startsWith("es");
-  const minLabel = isIt || isEs ? "min" : "min";
-  const hourLabel = isIt ? "h" : isEs ? "h" : "h";
-
   if (safe < 60) {
-    return `${safe} ${minLabel}`;
+    return `${safe} min`;
   }
   const hours = Math.floor(safe / 60);
   const rem = safe % 60;
   if (rem === 0) {
-    return `${hours} ${hourLabel}`;
+    return `${hours} h`;
   }
-  return `${hours} ${hourLabel} ${rem} ${minLabel}`;
+  return `${hours} h ${rem} min`;
 }
 
 /**
