@@ -17,6 +17,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { errors } from "@/lib/api/response-wrapper";
 import { logWriteError } from "@/lib/supabase/log-write-error";
+import { beaconLocale, beaconPath } from "@/lib/analytics/beacon-fields";
 
 export const runtime = "nodejs";
 
@@ -26,16 +27,6 @@ export const runtime = "nodejs";
 // to exclude. Same composite shape as /api/wizard-event and /api/funnel-event.
 const ipLimiter = createRateLimiter("page-engaged-ip", 120, 60 * 1000);
 const sessionLimiter = createRateLimiter("page-engaged-session", 10, 60 * 1000);
-
-/** Keep only what a dashboard needs; never store a query string. */
-function safePath(raw: unknown): string | null {
-  if (typeof raw !== "string" || !raw.startsWith("/")) return null;
-  return raw.split(/[?#]/)[0].slice(0, 120);
-}
-
-function safeLocale(raw: unknown): string | null {
-  return typeof raw === "string" && /^[a-z]{2}(-[A-Z]{2})?$/.test(raw) ? raw : null;
-}
 
 export async function POST(request: NextRequest) {
   const sessionId = request.cookies.get("mt_session_id")?.value;
@@ -54,8 +45,8 @@ export async function POST(request: NextRequest) {
   let locale: string | null = null;
   try {
     const body = (await request.json()) as { path?: unknown; locale?: unknown };
-    path = safePath(body.path);
-    locale = safeLocale(body.locale);
+    path = beaconPath(body.path);
+    locale = beaconLocale(body.locale);
   } catch {
     // A malformed body still counts as engagement; the columns are optional.
   }

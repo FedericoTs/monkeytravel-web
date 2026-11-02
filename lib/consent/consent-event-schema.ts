@@ -1,3 +1,4 @@
+import { beaconLocale, beaconPath } from "@/lib/analytics/beacon-fields";
 import { CONSENT_ORIGINS, type ConsentOrigin } from "./types";
 
 /**
@@ -57,15 +58,6 @@ export function bannerVariantFor(pathname: string | null | undefined): ConsentBa
   return /\/(trips|trip|shared)(\/|$)/.test(pathname) ? "contextual" : "generic";
 }
 
-function safePath(raw: unknown): string | null {
-  if (typeof raw !== "string" || !raw.startsWith("/")) return null;
-  return raw.split(/[?#]/)[0].slice(0, 120);
-}
-
-function safeLocale(raw: unknown): string | null {
-  return typeof raw === "string" && /^[a-z]{2}(-[A-Z]{2})?$/.test(raw) ? raw : null;
-}
-
 function safeOrigin(raw: unknown): ConsentOrigin | null {
   return typeof raw === "string" && (CONSENT_ORIGINS as readonly string[]).includes(raw)
     ? (raw as ConsentOrigin)
@@ -95,8 +87,8 @@ export function parseConsentEvent(body: unknown): ConsentEventPayload | null {
     analytics: boolOrNull(b.analytics),
     marketing: boolOrNull(b.marketing),
     sessionRecording: boolOrNull(b.sessionRecording),
-    path: safePath(b.path),
-    locale: safeLocale(b.locale),
+    path: beaconPath(b.path),
+    locale: beaconLocale(b.locale),
     origin: safeOrigin(b.origin),
   };
 }

@@ -2,6 +2,7 @@
  * Browser side of consent events: build the payload from the page and send
  * it without waiting. See consent-event-schema.ts for why these exist.
  */
+import { beaconLocale, beaconPath } from "@/lib/analytics/beacon-fields";
 import type { ConsentOrigin, ConsentState } from "./types";
 import {
   bannerVariantFor,
@@ -29,8 +30,8 @@ export function buildConsentEvent(
     analytics: consent ? consent.analytics : null,
     marketing: consent ? consent.marketing : null,
     sessionRecording: consent ? consent.sessionRecording : null,
-    path: pathname ? pathname.split(/[?#]/)[0].slice(0, 120) : null,
-    locale: /^[a-z]{2}(-[A-Z]{2})?$/.test(lang) ? lang : null,
+    path: beaconPath(pathname),
+    locale: beaconLocale(lang),
     origin: opts?.origin ?? null,
   };
 }

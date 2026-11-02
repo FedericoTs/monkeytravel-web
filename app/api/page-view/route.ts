@@ -24,6 +24,7 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 import { errors } from "@/lib/api/response-wrapper";
 import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
 import { isPageViewPath, landingReferrer } from "@/lib/analytics/page-view-classifier";
+import { beaconPath } from "@/lib/analytics/beacon-fields";
 import { subjectFromAccessToken } from "@/lib/supabase/middleware";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 
@@ -34,11 +35,14 @@ export const runtime = "nodejs";
 const ipLimiter = createRateLimiter("page-view-ip", 240, 60 * 1000);
 const sessionLimiter = createRateLimiter("page-view-session", 60, 60 * 1000);
 
-/** Pathname only, never a query string; same cap as the other beacons. */
+/**
+ * Pathname only, never a query string, and never a protocol-relative "//"
+ * URL. Page paths get a longer cap than the other beacons' 120.
+ */
 function safePath(raw: unknown): string | null {
-  if (typeof raw !== "string" || !raw.startsWith("/") || raw.startsWith("//")) return null;
-  const path = raw.split(/[?#]/)[0].slice(0, 200);
-  return isPageViewPath(path) ? path : null;
+  if (typeof raw === "string" && raw.startsWith("//")) return null;
+  const path = beaconPath(raw, 200);
+  return path !== null && isPageViewPath(path) ? path : null;
 }
 
 /** The signed-in user, from the auth cookie alone: no network round-trip. */
