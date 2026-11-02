@@ -35,8 +35,8 @@
  * every recipient of a shared link.
  *
  * Nothing non-essential loads before a choice, so the card does not need to
- * stay in the way to be compliant. After the visitor's first scroll or first
- * pointer/keyboard interaction OUTSIDE the card it minimises into
+ * stay in the way to be compliant. After the visitor's first scroll, click or
+ * key press OUTSIDE the card it minimises into
  * ConsentMiniBar, which carries both decisions at equal weight at every
  * width (see that file for what must not be "tidied up": the buttons are
  * unfilled on purpose). A click inside the card never minimises it, so the
@@ -200,16 +200,19 @@ export function CookieConsentBanner() {
       if (event instanceof KeyboardEvent && NAVIGATION_KEYS.has(event.key)) return;
       const target = event.target;
       if (target instanceof Node && cardRef.current?.contains(target)) return;
-      // The phone's first view is the bar; a tap on it must not move it mid-tap.
+      // The phone's first view is the bar; a tap on it must not move it.
       if (target instanceof Element && target.closest("[data-consent-bar]")) return;
       setMinimized(true);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-    document.addEventListener("pointerdown", onInteract, true);
+    // On the click, not the pointerdown: the minimised bar lands at the
+    // bottom, and moving it while a finger is down would take the tap from
+    // whatever it now covers.
+    document.addEventListener("click", onInteract, true);
     document.addEventListener("keydown", onInteract, true);
     return () => {
       window.removeEventListener("scroll", onScroll);
-      document.removeEventListener("pointerdown", onInteract, true);
+      document.removeEventListener("click", onInteract, true);
       document.removeEventListener("keydown", onInteract, true);
     };
   }, [bannerStatus, readyToShow, minimized, pathname, setMinimized]);
