@@ -32,7 +32,7 @@ import TopicLinks from "@/components/blog/TopicLinks";
 import { getIndexableTagsForPost } from "@/lib/blog/tags";
 import ContentTracker from "@/components/analytics/ContentTracker";
 import { Link } from "@/lib/i18n/routing";
-import { SITE_URL } from "@/lib/seo/canonical";
+import { openGraphLocales, SITE_URL } from "@/lib/seo/canonical";
 
 
 // ============================================================================
@@ -89,9 +89,6 @@ export async function generateMetadata({
     ? languages[locale]
     : `${SITE_URL}/blog/${slug}`;
 
-  const ogLocaleMap: Record<string, string> = { en: "en_US", es: "es_ES", it: "it_IT", pt: "pt_BR" };
-  const ogLocale = ogLocaleMap[locale] ?? "en_US";
-  const alternateLocale = Object.values(ogLocaleMap).filter((l) => l !== ogLocale);
 
   return {
     // `absolute` opts out of the root "%s | MonkeyTravel" template
@@ -112,8 +109,7 @@ export async function generateMetadata({
       description,
       url: canonicalUrl,
       siteName: "MonkeyTravel",
-      locale: ogLocale,
-      alternateLocale,
+      ...openGraphLocales(locale),
       images: [
         {
           url: `${SITE_URL}${frontmatter.image}`,

@@ -66,3 +66,21 @@ export function buildAlternates(
 
   return { canonical, languages };
 }
+
+/** Each hreflang locale's Open Graph code (`pt` is Brazilian Portuguese). */
+const OG_LOCALES: Record<(typeof HREFLANG_LOCALES)[number], string> = {
+  en: "en_US",
+  es: "es_ES",
+  it: "it_IT",
+  pt: "pt_BR",
+};
+
+/**
+ * `openGraph.locale` and `openGraph.alternateLocale` for a page rendered in
+ * `locale`: its own code, and the other locales' codes. English for a locale
+ * without one.
+ */
+export function openGraphLocales(locale: string): { locale: string; alternateLocale: string[] } {
+  const own = OG_LOCALES[locale as keyof typeof OG_LOCALES] ?? OG_LOCALES.en;
+  return { locale: own, alternateLocale: Object.values(OG_LOCALES).filter((code) => code !== own) };
+}
