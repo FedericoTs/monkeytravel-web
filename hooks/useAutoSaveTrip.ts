@@ -217,7 +217,7 @@ export function useAutoSaveTrip({
       // advisory lock backstops that too).
       const delays = retryDelaysRef.current;
       let attempt = 0;
-      for (;;) {
+      while (true) {
         attempt += 1;
         try {
           if (savedTripIdRef.current) {
