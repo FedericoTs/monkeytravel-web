@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { Activity, ItineraryDay } from "@/types";
 import type { DayTravelData } from "@/hooks/useTravelDistances";
 import type { TripPace } from "@/lib/trip/pace";
+import { useActivityPrice } from "@/lib/i18n/activity-price";
 import TravelConnector from "./TravelConnector";
 import DaySummary from "./DaySummary";
 
@@ -11,7 +12,8 @@ import DaySummary from "./DaySummary";
  * name, description, place, price and type, a compact travel leg to the next
  * one, then the day's travel and feasibility summary.
  *
- * `price` renders an activity's price, the way the page shows prices.
+ * Prices are in the viewer's currency; `currency` is the trip's, for an
+ * estimate that names none.
  * `extra` adds what a page shows under an activity, such as its votes.
  */
 export function DayTimeline({
@@ -20,7 +22,7 @@ export function DayTimeline({
   travelLoading,
   pace,
   typeLabel,
-  price,
+  currency,
   extra,
 }: {
   day: ItineraryDay;
@@ -28,9 +30,10 @@ export function DayTimeline({
   travelLoading: boolean;
   pace: TripPace | string | undefined;
   typeLabel: (type: string | undefined) => string;
-  price: (activity: Activity) => ReactNode;
+  currency: string;
   extra?: (activity: Activity) => ReactNode;
 }) {
+  const priceOf = useActivityPrice();
   return (
     <>
       <div className="relative pl-8 border-l-2 border-slate-200 space-y-2">
@@ -70,7 +73,7 @@ export function DayTimeline({
                     </div>
                     <div className="text-right">
                       <div className="font-medium text-slate-900">
-                        {price(activity)}
+                        {priceOf(activity, currency)}
                       </div>
                       <span className="text-xs text-slate-500 capitalize">
                         {typeLabel(activity.type)}

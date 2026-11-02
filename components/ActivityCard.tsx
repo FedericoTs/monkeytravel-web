@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import type { Activity } from "@/types";
 import ActivityDetailSheet from "./ui/ActivityDetailSheet";
-import { useCurrency } from "@/lib/locale";
+import { useActivityPrice } from "@/lib/i18n/activity-price";
 import { getActivityTypeColors } from "@/lib/constants/activityColors";
 import { openExternal } from "@/lib/native/external-link";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
@@ -50,15 +50,9 @@ function ActivityCard({
   // there it moves nothing.
   const savedTrips = useSavedTrips(activity.image_url ? activity.name : undefined, activity.coordinates);
 
-  // Currency conversion hook - converts prices to user's preferred currency
-  const { convert: convertCurrency } = useCurrency();
-
-  // Helper to format price with currency conversion
-  const formatPriceWithConversion = (amount: number, fromCurrency: string): string => {
-    if (amount === 0) return t('activity.free');
-    const converted = convertCurrency(amount, fromCurrency);
-    return converted.formatted;
-  };
+  // The estimate in the viewer's currency, or null when there is none.
+  const priceOf = useActivityPrice();
+  const price = priceOf(activity, currency);
 
   // Handle photo capture from PlaceGallery
   const handlePhotoCapture = (photoUrl: string) => {
@@ -201,15 +195,12 @@ function ActivityCard({
 
               {/* Price - shown inline on mobile */}
               <div className="sm:text-right flex-shrink-0 mt-1 sm:mt-0">
-                {activity.estimated_cost?.amount != null ? (
+                {price != null ? (
                   // AI estimate, converted to the user's currency
                   <>
                     <div className="text-base sm:text-lg font-semibold text-slate-900 inline-flex items-center gap-1.5">
                       <span className="text-slate-500 font-normal text-xs sm:text-sm">~</span>
-                      {formatPriceWithConversion(
-                        activity.estimated_cost.amount,
-                        activity.estimated_cost.currency || currency
-                      )}
+                      {price}
                     </div>
                     <div className="text-[10px] text-slate-500 hidden sm:block">{t('activity.aiEstimate')}</div>
                   </>

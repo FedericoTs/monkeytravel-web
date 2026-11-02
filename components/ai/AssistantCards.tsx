@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
+import { useActivityPrice } from "@/lib/i18n/activity-price";
 import type {
   AssistantCard,
   AssistantActivityCard,
@@ -110,6 +111,9 @@ function MiniActivityCard({
 }) {
   const t = useTranslations("common.ai.cards");
   const typeLabel = useActivityTypeLabel();
+  // The estimate names its own currency; USD only when it names none.
+  const priceOf = useActivityPrice();
+  const price = priceOf(activity, "USD");
   const style = ACTIVITY_STYLES[activity.type] || ACTIVITY_STYLES.activity;
 
   return (
@@ -187,9 +191,9 @@ function MiniActivityCard({
               {activity.duration_minutes}min
             </span>
           )}
-          {activity.estimated_cost?.amount != null && (
+          {price != null && (
             <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-white/60 text-slate-600">
-              {activity.estimated_cost.currency} {activity.estimated_cost.amount}
+              {price}
             </span>
           )}
         </div>

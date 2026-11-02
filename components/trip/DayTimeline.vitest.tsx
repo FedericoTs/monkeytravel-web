@@ -17,6 +17,11 @@ vi.mock("./DaySummary", () => ({
   },
 }));
 
+vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key }));
+vi.mock("@/lib/locale", () => ({
+  useCurrency: () => ({ convert: (amount: number, from: string) => ({ formatted: `${from}→GBP ${amount}` }) }),
+}));
+
 import { DayTimeline } from "./DayTimeline";
 
 const activity = (id: string, name: string, extra: Partial<Activity> = {}) =>
@@ -24,7 +29,11 @@ const activity = (id: string, name: string, extra: Partial<Activity> = {}) =>
 const day = {
   day_number: 3,
   date: "2026-11-03",
-  activities: [activity("a1", "Museum", { address: "Via Roma 1" }), activity("a2", "Lunch"), activity("a3", "Walk")],
+  activities: [
+    activity("a1", "Museum", { address: "Via Roma 1" }),
+    activity("a2", "Lunch", { estimated_cost: { amount: 15, currency: "", tier: "moderate" } }),
+    activity("a3", "Walk", { estimated_cost: { amount: 0, currency: "EUR", tier: "free" } }),
+  ],
 } as ItineraryDay;
 const leg = { fromActivityId: "a1", toActivityId: "a2", distanceMeters: 900, durationSeconds: 660, distanceText: "0.9 km", durationText: "11 min", mode: "walking" };
 
@@ -38,19 +47,20 @@ function show(extra?: (a: Activity) => React.ReactNode, travelLoading = false) {
       travelLoading={travelLoading}
       pace="relaxed"
       typeLabel={(t) => `type:${t}`}
-      price={(a) => (a.id === "a2" ? "€15" : null)}
+      currency="EUR"
       extra={extra}
     />
   );
 }
 
 describe("a day as a timeline", () => {
-  it("lists each activity with its time, place, price and type", () => {
+  it("lists each activity with its time, place, price in the viewer's currency and type", () => {
     show();
     expect(screen.getAllByRole("heading").map((h) => h.textContent)).toEqual(["Museum", "Lunch", "Walk"]);
     expect(screen.getByText("Via Roma 1")).toBeTruthy();
     expect(screen.getAllByText("Centro")).toHaveLength(2);
-    expect(screen.getByText("€15")).toBeTruthy();
+    expect(screen.getByText("EUR→GBP 15")).toBeTruthy();
+    expect(screen.getByText("activity.free")).toBeTruthy();
     expect(screen.getAllByText("type:museum")).toHaveLength(3);
     expect(screen.getAllByText("60 min")).toHaveLength(3);
   });

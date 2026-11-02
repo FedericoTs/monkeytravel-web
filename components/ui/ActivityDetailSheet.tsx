@@ -7,6 +7,7 @@ import type { Activity } from "@/types";
 import PlaceGallery from "@/components/PlaceGallery";
 import { getActivityTypeColors } from "@/lib/constants/activityColors";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
+import { useActivityPrice } from "@/lib/i18n/activity-price";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
@@ -41,6 +42,7 @@ export default function ActivityDetailSheet({
 }: ActivityDetailSheetProps) {
   const typeLabel = useActivityTypeLabel();
   const t = useTranslations("common");
+  const priceOf = useActivityPrice();
 
   // Generate URLs
   const mapSearchQuery = encodeURIComponent(
@@ -198,11 +200,7 @@ export default function ActivityDetailSheet({
                 <div>
                   <div className="text-sm text-slate-500">{t("activity.estCost")}</div>
                   <div className="font-semibold text-slate-900">
-                    {activity.estimated_cost?.amount == null
-                      ? "—"
-                      : activity.estimated_cost.amount === 0
-                      ? t("activity.free")
-                      : `${activity.estimated_cost.currency || currency} ${activity.estimated_cost.amount}`}
+                    {priceOf(activity, currency) ?? "—"}
                   </div>
                 </div>
               </div>
