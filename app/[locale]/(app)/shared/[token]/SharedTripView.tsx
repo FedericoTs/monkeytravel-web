@@ -35,6 +35,7 @@ import DaySlider from "@/components/ui/DaySlider";
 import TravelConnector from "@/components/trip/TravelConnector";
 import DaySummary from "@/components/trip/DaySummary";
 import { DayTimeline } from "@/components/trip/DayTimeline";
+import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
 import SaveTripModal, { usePendingSaveTripAction } from "@/components/ui/SaveTripModal";
 import { useAuth } from "@/components/auth/AuthProvider";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
@@ -717,45 +718,8 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
 
           {/* Right side - Controls */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* View Mode Toggle - Hidden on mobile */}
-            <div className="hidden sm:flex items-center bg-slate-100 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode("cards")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === "cards"
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                {t('trip.cards')}
-              </button>
-              <button
-                onClick={() => setViewMode("timeline")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === "timeline"
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                {t('trip.timeline')}
-              </button>
-            </div>
-
-            {/* Map Toggle - Icon only on mobile */}
-            <button
-              onClick={() => setShowMap(!showMap)}
-              className={`flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium transition-colors ${
-                showMap
-                  ? "bg-[var(--primary)] text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
-              title={showMap ? t('trip.hideMap') : t('trip.showMap')}
-            >
-              <svg className="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-              </svg>
-              <span className="hidden sm:inline">{showMap ? t('trip.hideMap') : t('trip.showMap')}</span>
-            </button>
+            <ViewModeToggle value={viewMode} onChange={setViewMode} labels={{ cards: t('trip.cards'), timeline: t('trip.timeline') }} />
+            <MapToggle shown={showMap} onToggle={() => setShowMap(!showMap)} labels={{ show: t('trip.showMap'), hide: t('trip.hideMap') }} />
 
             {/* Export Menu */}
             <ExportMenu
