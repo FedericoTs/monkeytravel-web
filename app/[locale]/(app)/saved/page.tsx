@@ -13,7 +13,6 @@ import type { ExploreTripCard } from "@/lib/explore/types";
 import { asBudgetTier } from "@/lib/explore/budget-tier";
 import { isExploreUgcEnabled } from "@/lib/explore/flag";
 
-const BASE_URL = "https://monkeytravel.app";
 const COOKIE_NAME = "mt_saver_cookie";
 
 export async function generateMetadata({
@@ -262,7 +261,6 @@ export default async function SavedPage({
         )}
       </main>
       <Footer />
-      <p className="sr-only">Site: {BASE_URL}</p>
 
       {/* Native polish layer — pull-to-refresh on the saved-trips list
           and the bottom tab bar matching /trips + /explore + /profile.
