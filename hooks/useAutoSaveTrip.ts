@@ -27,6 +27,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { GeneratedItinerary } from "@/types";
+import { tripSpanDays } from "@/lib/dates/iso-date";
 import type {
   PersistInput,
   SaveResult,
@@ -223,7 +224,7 @@ export function useAutoSaveTrip({
             // UPDATE path — preserve trip id across regenerations.
             const id = savedTripIdRef.current;
             await cbs.updateTrip(id, input);
-            const durationDays = computeDurationDaysLocal(form);
+            const durationDays = tripSpanDays(form.startDate, form.endDate);
             cbs.onPersisted?.(id, durationDays, "update");
             setStatus("saved");
           } else {
@@ -392,12 +393,6 @@ export function useAutoSaveTrip({
     keepsSavedTrip: savedTripId !== null && savedTripId === replacedTripId,
     discard,
   };
-}
-
-function computeDurationDaysLocal(form: TripFormState): number {
-  const start = new Date(form.startDate).getTime();
-  const end = new Date(form.endDate).getTime();
-  return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 }
 
 function defaultOnError(err: Error, info: { attempts: number }): void {

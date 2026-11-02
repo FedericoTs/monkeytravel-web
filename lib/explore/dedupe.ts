@@ -16,6 +16,8 @@
  * and so the route stays a thin mapping layer.
  */
 
+import { tripSpanDays } from "@/lib/dates/iso-date";
+
 export interface FeedRowLike {
   id: string;
   user_id: string | null;
@@ -26,10 +28,7 @@ export interface FeedRowLike {
 }
 
 export function durationDaysOf(row: Pick<FeedRowLike, "start_date" | "end_date">): number {
-  const start = new Date(row.start_date).getTime();
-  const end = new Date(row.end_date).getTime();
-  if (!Number.isFinite(start) || !Number.isFinite(end)) return 0;
-  return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  return tripSpanDays(row.start_date, row.end_date);
 }
 
 export function dedupeFeedRows<T extends FeedRowLike>(rows: T[]): T[] {

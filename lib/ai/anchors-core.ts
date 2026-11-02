@@ -26,6 +26,7 @@ import type {
 } from "@/types";
 import { addDaysISO } from "./multi-city-core";
 import { bookingLinksFor } from "./booking-links";
+import { tripSpanDays } from "@/lib/dates/iso-date";
 
 /** Max anchors per trip in v1 (keeps segmentation + prompts sane). */
 export const MAX_ANCHORS = 20;
@@ -68,9 +69,7 @@ export function assertISODate(date: string, label: string): void {
 
 /** Whole days from a to b inclusive of both ends (a === b ⇒ 1). */
 export function inclusiveDaySpan(startISO: string, endISO: string): number {
-  const a = new Date(`${startISO}T00:00:00Z`).getTime();
-  const b = new Date(`${endISO}T00:00:00Z`).getTime();
-  return Math.round((b - a) / 86_400_000) + 1;
+  return tripSpanDays(startISO, endISO);
 }
 
 /**

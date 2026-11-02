@@ -5,6 +5,7 @@ import {
   PAYMENT_PROVIDERS,
 } from "@/lib/payments/handle-links";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { tripSpanDays } from "@/lib/dates/iso-date";
 import { readJsonBody } from "@/lib/api/json-body";
 
 export async function GET() {
@@ -54,9 +55,7 @@ export async function GET() {
       upcomingTrips: trips?.filter((t) => new Date(t.start_date) > new Date()).length || 0,
       totalTravelDays: trips?.reduce((acc, trip) => {
         if (trip.start_date && trip.end_date) {
-          const start = new Date(trip.start_date);
-          const end = new Date(trip.end_date);
-          return acc + Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+          return acc + tripSpanDays(trip.start_date, trip.end_date);
         }
         return acc;
       }, 0) || 0,

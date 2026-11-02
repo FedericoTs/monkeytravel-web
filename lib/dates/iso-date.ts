@@ -114,3 +114,18 @@ export function isPlausibleTripRange(
     start <= end
   );
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * The days a trip covers, its end date included: the 1st to the 3rd is 3.
+ * YYYY-MM-DD dates parse as UTC midnights, so a daylight-saving change in
+ * between can't add or drop a day. 0 when either date is missing or not a date.
+ */
+export function tripSpanDays(start: string | null | undefined, end: string | null | undefined): number {
+  if (!start || !end) return 0;
+  const from = Date.parse(start);
+  const to = Date.parse(end);
+  if (Number.isNaN(from) || Number.isNaN(to)) return 0;
+  return Math.ceil((to - from) / DAY_MS) + 1;
+}

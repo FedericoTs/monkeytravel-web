@@ -16,7 +16,7 @@ import {
 import { paceBudgetPromptClause } from "./trip/pace";
 import { PLACEHOLDER_POINT } from "./trip/placeholder-point";
 import { ACTIVITY_TYPES, normalizeActivityType } from "./trip/activity-type";
-import { addIsoDays } from "./dates/iso-date";
+import { addIsoDays, tripSpanDays } from "./dates/iso-date";
 import type { OutlineDay } from "./ai/trip-outline";
 import type { KnownPlace } from "./ai/known-places";
 import { withServerFields } from "./ai/server-fields";
@@ -1884,8 +1884,7 @@ export function validateTripParams(
     return { valid: false, error: "End date must be after start date" };
   }
 
-  const days =
-    Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const days = tripSpanDays(params.startDate, params.endDate);
   if (days > maxDays) {
     return { valid: false, error: `Maximum trip duration is ${maxDays} days` };
   }
