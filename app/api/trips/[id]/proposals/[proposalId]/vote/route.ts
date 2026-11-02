@@ -5,12 +5,11 @@ import { batchFetchUserProfiles } from "@/lib/api/batch-users";
 import type { TripProposalRouteContext } from "@/lib/api/route-context";
 import type { ProposalVoteType } from "@/types";
 import { calculateProposalConsensus } from "@/lib/proposals/consensus";
-import { PROPOSAL_TIMING } from "@/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { approveProposal } from "@/lib/proposals/approve";
 import { readJsonBody } from "@/lib/api/json-body";
 import { requireRow } from "@/lib/api/require-row";
-import { VOTE_COLUMNS, toProposalVote } from "@/lib/proposals/read";
+import { VOTE_COLUMNS, toProposalVote, tripVoterIds } from "@/lib/proposals/read";
 
 /**
  * GET /api/trips/[id]/proposals/[proposalId]/vote
@@ -105,7 +104,7 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
     // Verify proposal exists and is votable
     const { row: proposal, errorResponse: proposalError } = await requireRow("proposal", supabase
       .from("activity_proposals")
-      .select("id, trip_id, status, proposed_by, target_day, activity_data")
+      .select("id, trip_id, status, proposed_by, target_day, activity_data, created_at, expires_at")
       .eq("id", proposalId)
       .eq("trip_id", tripId)
       .single(), "Proposal not found");
@@ -117,7 +116,7 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
     }
 
     // The owner, editors and voters may vote.
-    const { errorResponse: accessError } = await verifyTripAccess(supabase, tripId, user.id, "id, user_id", ["editor", "voter"]);
+    const { trip, errorResponse: accessError } = await verifyTripAccess(supabase, tripId, user.id, "id, user_id", ["editor", "voter"]);
     if (accessError) return accessError;
 
     // Check if user already voted (upsert)
@@ -181,52 +180,25 @@ export async function POST(request: NextRequest, context: TripProposalRouteConte
 
     // After vote is recorded, check for consensus and auto-update proposal status
     try {
-      // Get all votes for this proposal
       const { data: allVotes, error: votesError } = await supabase
         .from("proposal_votes")
-        .select("id, proposal_id, user_id, vote_type, comment, voted_at")
+        .select(VOTE_COLUMNS)
         .eq("proposal_id", proposalId);
-
-      // Get total voter count (owner + all editors/voters)
-      const { count: collaboratorCount, error: countError } = await supabase
-        .from("trip_collaborators")
-        .select("id", { count: "exact", head: true })
-        .eq("trip_id", tripId)
-        .in("role", ["editor", "voter"]);
-
-      const totalVoters = 1 + (collaboratorCount || 0); // +1 for owner
-
-      // Get proposal created_at and expires_at
-      const { data: proposalDetails, error: detailsError } = await supabase
-        .from("activity_proposals")
-        .select("created_at, expires_at")
-        .eq("id", proposalId)
-        .single();
 
       // Nothing is decided on a failed read: without the voter count one
       // vote is a quorum. The vote stays saved and the next one re-checks.
-      const readError = votesError ?? countError ?? detailsError;
-      if (readError) {
-        throw new Error(`Could not read the proposal's votes: ${readError.message}`);
+      if (votesError) {
+        throw new Error(`Could not read the proposal's votes: ${votesError.message}`);
       }
+      // The same voters the proposal's page counts (tripVoterIds throws on a failed read).
+      const voterIds = await tripVoterIds(supabase, tripId, trip?.user_id);
 
-      if (proposalDetails && allVotes) {
-        const expiresAt = proposalDetails.expires_at ||
-          new Date(new Date(proposalDetails.created_at).getTime() + PROPOSAL_TIMING.EXPIRY_DAYS * 24 * 60 * 60 * 1000).toISOString();
-
+      if (allVotes) {
         const consensus = calculateProposalConsensus({
-          votes: allVotes.map(v => ({
-            id: v.id,
-            proposal_id: v.proposal_id,
-            user_id: v.user_id,
-            vote_type: v.vote_type as ProposalVoteType,
-            comment: v.comment,
-            voted_at: v.voted_at,
-            updated_at: v.voted_at, // Use voted_at as updated_at for simplicity
-          })),
-          totalVoters,
-          createdAt: proposalDetails.created_at,
-          expiresAt,
+          votes: allVotes.map((v) => toProposalVote(v)),
+          totalVoters: voterIds.length,
+          createdAt: proposal.created_at,
+          expiresAt: proposal.expires_at,
         });
 
         // Auto-update proposal status if consensus is reached.

@@ -56,8 +56,8 @@ export interface ProposalRow {
  * public.users shows a caller only their own row, so everyone else read
  * "Unknown".
  */
-export function toProposalVote(v: VoteRow, profiles: Map<string, UserProfile>): ProposalVote {
-  const profile = profiles.get(v.user_id) ?? null;
+export function toProposalVote(v: VoteRow, profiles?: Map<string, UserProfile>): ProposalVote {
+  const profile = profiles?.get(v.user_id) ?? null;
   return {
     id: v.id,
     proposal_id: v.proposal_id,
