@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import Image from "next/image";
 import { Link } from "@/lib/i18n/routing";
@@ -41,6 +42,9 @@ const STEP_NAMES: Record<number, string> = {
 };
 
 export default function OnboardingPage() {
+  const t = useTranslations("common.onboarding.page");
+  const tCommon = useTranslations("common");
+  const tAuth = useTranslations("auth.signup");
   const router = useRouter();
   const searchParams = useSearchParams();
   // Validate redirect — onboarding ultimately calls router.push(redirectUrl)
@@ -277,10 +281,10 @@ export default function OnboardingPage() {
           onClick={handleSkip}
           className="text-slate-500 hover:text-slate-700 text-sm font-medium group relative"
         >
-          Skip for now
+          {t("skipForNow")}
           {/* Tooltip explaining importance */}
           <span className="absolute right-0 top-full mt-2 w-48 p-2 bg-slate-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-            Your preferences help us create personalized, tailored itineraries just for you!
+            {t("valueProposition")}
           </span>
         </button>
       </header>
@@ -293,7 +297,7 @@ export default function OnboardingPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
             <p className="text-sm text-amber-800">
-              <strong>Personalize your experience:</strong> These preferences help our AI create itineraries perfectly tailored to your travel style.
+              {t.rich("banner", { strong: (chunks) => <strong>{chunks}</strong> })}
             </p>
           </div>
         </div>
@@ -312,7 +316,7 @@ export default function OnboardingPage() {
           ))}
         </div>
         <div className="text-center text-sm text-slate-500 mt-2">
-          Step {step} of {TOTAL_STEPS}
+          {t("stepOf", { step, total: TOTAL_STEPS })}
         </div>
       </div>
 
@@ -331,7 +335,7 @@ export default function OnboardingPage() {
               onClick={handleBack}
               className="px-6 py-3 text-slate-600 font-medium rounded-xl hover:bg-slate-100 transition-colors"
             >
-              Back
+              {t("back")}
             </button>
           )}
           <button
@@ -345,12 +349,12 @@ export default function OnboardingPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                {isAuthenticated ? "Saving..." : "Continuing..."}
+                {isAuthenticated ? tCommon("status.saving") : t("continuing")}
               </>
             ) : step === TOTAL_STEPS ? (
-              isAuthenticated ? "Save & Continue" : "Create Account"
+              isAuthenticated ? t("saveAndContinue") : t("createAccount")
             ) : (
-              "Continue"
+              tCommon("buttons.continue")
             )}
           </button>
         </div>
@@ -359,9 +363,9 @@ export default function OnboardingPage() {
         {!isAuthenticated && (
           <div className="max-w-md mx-auto text-center mt-4">
             <p className="text-sm text-slate-500">
-              Already have an account?{" "}
+              {tAuth("hasAccount")}{" "}
               <Link href="/auth/login" className="text-[var(--primary-ink)] font-medium hover:underline">
-                Sign in
+                {tAuth("signInLink")}
               </Link>
             </p>
           </div>
