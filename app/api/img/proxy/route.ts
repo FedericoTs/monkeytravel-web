@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { fetchWithOneRetry } from "@/lib/api/fetch-with-one-retry";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { safeImageFetch } from "@/lib/api/safe-image-fetch";
 
@@ -40,39 +41,6 @@ const ALLOWED_HOSTS = new Set<string>([
 
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB upper bound — cover photos are well under 1 MB
 
-async function fetchWithRetry(
-  url: string,
-  init: RequestInit,
-  maxRetries = 1,
-  delayMs = 300
-): Promise<Response> {
-  let attempt = 0;
-  while (true) {
-    try {
-      const res = await fetch(url, init);
-      const retryable = res.status >= 500 && res.status < 600;
-      if (retryable && attempt < maxRetries) {
-        try {
-          await res.arrayBuffer();
-        } catch {
-          /* ignore drain */
-        }
-        attempt += 1;
-        await new Promise((r) => setTimeout(r, delayMs));
-        continue;
-      }
-      return res;
-    } catch (err) {
-      if (attempt < maxRetries) {
-        attempt += 1;
-        await new Promise((r) => setTimeout(r, delayMs));
-        continue;
-      }
-      throw err;
-    }
-  }
-}
-
 export async function GET(request: NextRequest) {
   const { allowed } = await imgProxyLimiter.check(request);
   if (!allowed) return new Response("Too many requests", { status: 429 });
@@ -98,10 +66,10 @@ export async function GET(request: NextRequest) {
   // against each target, because the checks above only ever guarded hop zero:
   // an allowlisted host answering 302 could previously send us anywhere.
   // safeImageFetch also applies the internal-address block this route never
-  // had. fetchWithRetry is passed through so the existing 5xx retry survives.
+  // had. fetchWithOneRetry is passed through so a 5xx still gets its retry.
   const fetched = await safeImageFetch(parsed.toString(), {
     allowedHosts: ALLOWED_HOSTS,
-    fetchImpl: (u, i) => fetchWithRetry(u, i),
+    fetchImpl: fetchWithOneRetry,
     headers: {
       // Identify as a generic fetcher. Some CDNs (Pexels via Cloudflare)
       // serve 504 to browser User-Agents but 200 to non-browser fetches.

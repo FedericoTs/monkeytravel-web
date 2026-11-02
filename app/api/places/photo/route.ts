@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { createHash } from "crypto";
 import { waitUntil } from "@vercel/functions";
+import { fetchWithOneRetry } from "@/lib/api/fetch-with-one-retry";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
 import { curatedFor, fetchPlacePhotos, pickPlacePhoto, readActivityTypeHint, type PlacePhoto } from "@/lib/images/activity";
@@ -130,54 +131,6 @@ const NAME_RE = /^places\/[A-Za-z0-9_-]+\/photos\/[A-Za-z0-9_-]+$/;
 // at another path or host.
 const REF_RE = /^[A-Za-z0-9_=-]{20,1000}$/;
 
-/**
- * Retry transient 5xx + network errors from Google's media endpoint.
- *
- * Google's `places.googleapis.com/.../media` returns occasional 503/504
- * even on repeat fetches that succeed seconds later. Without a retry, the
- * browser gets a broken <img> and DestinationHero falls back to its gradient
- * until a hard refresh.
- *
- * Strategy: one retry, 250ms backoff, only for 5xx and network errors
- * (NEVER for 4xx — those are legit failures we shouldn't paper over).
- * Total worst-case latency added on the success path: 0ms. On retry:
- * ~250ms + one extra Google round-trip. Acceptable for the cure.
- */
-async function fetchWithRetry(
-  url: string,
-  init: RequestInit,
-  maxRetries = 1,
-  delayMs = 250
-): Promise<Response> {
-  let attempt = 0;
-  // We re-enter the loop only on retryable failure; success or 4xx returns immediately.
-  while (true) {
-    try {
-      const res = await fetch(url, init);
-      const retryable = res.status >= 500 && res.status < 600;
-      if (retryable && attempt < maxRetries) {
-        // Drain the body so the connection can be reused; ignore drain errors.
-        try {
-          await res.arrayBuffer();
-        } catch {
-          /* ignore */
-        }
-        attempt += 1;
-        await new Promise((r) => setTimeout(r, delayMs));
-        continue;
-      }
-      return res;
-    } catch (err) {
-      if (attempt < maxRetries) {
-        attempt += 1;
-        await new Promise((r) => setTimeout(r, delayMs));
-        continue;
-      }
-      throw err;
-    }
-  }
-}
-
 export async function GET(request: NextRequest) {
   const { allowed } = await photoLimiter.check(request);
   if (!allowed) return new Response("Too many requests", { status: 429 });
@@ -243,7 +196,7 @@ export async function GET(request: NextRequest) {
   const startedAt = Date.now();
   let res: Response;
   try {
-    res = await fetchWithRetry(upstream, {
+    res = await fetchWithOneRetry(upstream, {
       headers: name ? { "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY } : {},
       // Server-side fetches follow the 302 redirect to the actual image.
       // The legacy endpoint ALWAYS redirects (to lh3.googleusercontent.com),
@@ -265,7 +218,7 @@ export async function GET(request: NextRequest) {
   // else redirect to a curated Pexels fallback, so the <img> still renders
   // something rather than the broken-image icon.
   //
-  // 5xx still propagates (handled upstream by fetchWithRetry); 4xx is
+  // 5xx still propagates (handled upstream by fetchWithOneRetry); 4xx is
   // a deterministic "this photo doesn't work" signal, so a one-time
   // redirect is correct and the CDN will cache it for the photo's
   // lifetime. Status 307 (temporary redirect) preserves the request
@@ -410,7 +363,7 @@ async function healExpiredPhoto(
     if (!fresh || fresh.photo_resource_name === deadName) return null;
 
     const startedAt = Date.now();
-    const res = await fetchWithRetry(
+    const res = await fetchWithOneRetry(
       `https://places.googleapis.com/v1/${fresh.photo_resource_name}/media?maxHeightPx=${h}&maxWidthPx=${w}`,
       { headers: { "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY }, redirect: "follow" }
     );
