@@ -11,6 +11,12 @@ import { Spinner } from "@/components/ui/Spinner";
 // Lazy loader for PDF export (~75KB saved from initial bundle)
 const lazyLoadPdfExport = () => import("@/lib/export/pdf");
 
+/**
+ * Where an export menu lives: the wizard's unsaved result, a saved trip's
+ * page, a trip opened from a share link, or a trip's public page.
+ */
+export type ExportSurface = "anon_result" | "trip_detail" | "shared_view" | "public_trip";
+
 interface ExportMenuProps {
   trip: {
     title: string;
@@ -21,14 +27,13 @@ interface ExportMenuProps {
     itinerary: ItineraryDay[];
   };
   /**
-   * Where this menu lives — feeds the trip_exported / trip_export_failed
-   * PostHog events so we can segment anon-result exports (peak-intent,
-   * pre-save) from saved trip-detail and shared-view exports.
+   * Feeds the trip_exported / trip_export_failed PostHog events, so exports
+   * can be segmented by where they happen.
    */
-  surface?: string;
+  surface: ExportSurface;
 }
 
-export default function ExportMenu({ trip, surface = "trip_detail" }: ExportMenuProps) {
+export default function ExportMenu({ trip, surface }: ExportMenuProps) {
   const t = useTranslations('common.export');
   const [isOpen, setIsOpen] = useState(false);
   const [isExporting, setIsExporting] = useState<"pdf" | "ics" | null>(null);
