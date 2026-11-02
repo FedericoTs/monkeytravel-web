@@ -10,9 +10,9 @@
     "progressToNext": "Progresso verso {tier}",
     "remaining": "{count} referral in più per sbloccare il prossimo livello",
     "milestones": "Livelli",
-    "maxTierReached": "Stato Champion Raggiunto!",
+    "maxTierReached": "Stato Campione Raggiunto!",
     "maxTierDescription": "Hai raggiunto il livello massimo. Goditi tutti i benefici!",
-    "refs": "refs"
+    "refs": "invitati"
   },
   "tierNames": {
     "traveler": "Viaggiatore",
@@ -72,9 +72,9 @@
     "inviteToUnlock": "Invita altri {count} amici per sbloccare +{bonus} generazioni extra!",
     "tierBenefits": "Vantaggi dei Referral",
     "unlocked": "Sbloccato",
-    "explorer": "Explorer (3 refs): +2 generazioni AI/mese",
-    "ambassador": "Ambassador (6 refs): +5 generazioni AI/mese, supporto prioritario",
-    "champion": "Champion (10 refs): +12 generazioni AI/mese, rigenerazioni illimitate"
+    "explorer": "Esploratore (3 invitati): +2 generazioni AI/mese",
+    "ambassador": "Ambasciatore (6 invitati): +5 generazioni AI/mese, supporto prioritario",
+    "champion": "Campione (10 invitati): +12 generazioni AI/mese, rigenerazioni illimitate"
   },
   "banner": {
     "title": "Sblocca Più Viaggi AI",

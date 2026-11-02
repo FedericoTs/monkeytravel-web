@@ -10,9 +10,9 @@
     "progressToNext": "Progreso hacia {tier}",
     "remaining": "{count} referidos más para desbloquear el siguiente nivel",
     "milestones": "Niveles",
-    "maxTierReached": "¡Nivel Champion Alcanzado!",
+    "maxTierReached": "¡Nivel Campeón Alcanzado!",
     "maxTierDescription": "Has alcanzado el nivel máximo. ¡Disfruta todos los beneficios!",
-    "refs": "refs"
+    "refs": "referidos"
   },
   "tierNames": {
     "traveler": "Viajero",
@@ -68,19 +68,19 @@
   "benefits": {
     "title": "Tus Límites de Generación AI",
     "currentLimit": "{count} generaciones de viajes AI por mes",
-    "bonusActive": "+{bonus} bonus del nivel {tier}!",
-    "inviteToUnlock": "Invita {count} amigos más para desbloquear +{bonus} generaciones extra!",
+    "bonusActive": "¡+{bonus} bonus del nivel {tier}!",
+    "inviteToUnlock": "¡Invita {count} amigos más para desbloquear +{bonus} generaciones extra!",
     "tierBenefits": "Beneficios de Referidos",
     "unlocked": "Desbloqueado",
-    "explorer": "Explorer (3 refs): +2 generaciones AI/mes",
-    "ambassador": "Ambassador (6 refs): +5 generaciones AI/mes, soporte prioritario",
-    "champion": "Champion (10 refs): +12 generaciones AI/mes, regeneraciones ilimitadas"
+    "explorer": "Explorador (3 referidos): +2 generaciones AI/mes",
+    "ambassador": "Embajador (6 referidos): +5 generaciones AI/mes, soporte prioritario",
+    "champion": "Campeón (10 referidos): +12 generaciones AI/mes, regeneraciones ilimitadas"
   },
   "banner": {
     "title": "Desbloquea Más Viajes AI",
     "progress": "{current}/{target} referidos para {tier}",
     "benefit": "+{bonus} generaciones AI/mes",
     "cta": "Invitar Amigos",
-    "maxTier": "Has desbloqueado todos los niveles!"
+    "maxTier": "¡Has desbloqueado todos los niveles!"
   }
 }

@@ -10,7 +10,7 @@
     "progressToNext": "Progresso até {tier}",
     "remaining": "Mais {count} indicações para desbloquear o próximo nível",
     "milestones": "Níveis",
-    "maxTierReached": "Status Champion Conquistado!",
+    "maxTierReached": "Status Campeão Conquistado!",
     "maxTierDescription": "Você alcançou o nível mais alto. Aproveite todos os benefícios!",
     "refs": "indic."
   },
@@ -72,9 +72,9 @@
     "inviteToUnlock": "Convide mais {count} amigos para desbloquear +{bonus} gerações extras!",
     "tierBenefits": "Benefícios de Indicação",
     "unlocked": "Desbloqueado",
-    "explorer": "Explorer (3 indic.): +2 gerações com AI/mês",
-    "ambassador": "Ambassador (6 indic.): +5 gerações com AI/mês, suporte prioritário",
-    "champion": "Champion (10 indic.): +12 gerações com AI/mês, regenerações ilimitadas"
+    "explorer": "Explorador (3 indic.): +2 gerações com AI/mês",
+    "ambassador": "Embaixador (6 indic.): +5 gerações com AI/mês, suporte prioritário",
+    "champion": "Campeão (10 indic.): +12 gerações com AI/mês, regenerações ilimitadas"
   },
   "banner": {
     "title": "Desbloqueie Mais Viagens com AI",
