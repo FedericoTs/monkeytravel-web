@@ -152,8 +152,6 @@ function styleDestinationLinks(html: string): string {
 
 /**
  * Slugify a heading's plain text into a URL anchor id.
- * Matches the algorithm in components/blog/BlogContentClient.tsx so server
- * and client converge on the same id for the same heading text.
  *
  * The NFKD step normalizes accented characters (e.g. "Día 1" -> "dia-1")
  * before the ASCII filter; without it, JS `\w` would strip the accent
@@ -174,10 +172,9 @@ export function slugifyHeading(text: string): string {
 const NAMED_ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: "\u00a0" };
 
 /**
- * A heading's text as the browser reads it: tags stripped, entities decoded.
- * BlogContentClient re-derives every id from textContent, so an id built from
- * the renderer's "&#x26;" sent the sidebar's links nowhere and the ToC and
- * JSON-LD printed the entity.
+ * A heading's text as the browser reads it: tags stripped, entities decoded,
+ * so the ids, the ToC and the JSON-LD list never carry the renderer's
+ * "&#x26;".
  */
 function headingText(html: string): string {
   return html
@@ -219,7 +216,7 @@ export interface TocItem {
 /**
  * Extract a flat ToC from rendered article HTML. Run after markdownToHtml
  * so the ids match the ones we injected. Used by the sticky desktop
- * sidebar.
+ * sidebar and the collapsible ToC in BlogContent.
  */
 export function extractToc(html: string): TocItem[] {
   const items: TocItem[] = [];

@@ -1,8 +1,11 @@
 import { Suspense, type ReactNode } from "react";
+import type { TocItem } from "@/lib/blog/api";
 import BlogContentClient from "./BlogContentClient";
 
 interface BlogContentProps {
   html: string;
+  /** The article's headings, from extractToc(html). */
+  toc: TocItem[];
   tocLabel?: string;
   /**
    * Optional content (typically an inline CTA) injected immediately
@@ -44,6 +47,7 @@ function splitAtNthH2(html: string, n: number): [string, string] {
  */
 export default function BlogContent({
   html,
+  toc,
   tocLabel = "Table of Contents",
   inlineSlot,
   inlineSlotBeforeH2Index = 3,
@@ -58,7 +62,7 @@ export default function BlogContent({
         {after && <div dangerouslySetInnerHTML={{ __html: after }} />}
       </article>
       <Suspense fallback={null}>
-        <BlogContentClient html={html} tocLabel={tocLabel} />
+        <BlogContentClient html={html} toc={toc} tocLabel={tocLabel} />
       </Suspense>
     </>
   );
