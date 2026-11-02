@@ -107,9 +107,9 @@ async function firstInteraction(page: Page) {
   const stillOpen = await page.getByTestId("consent-card").isVisible().catch(() => false);
   if (stillOpen) {
     // The page did not move (short viewport content). A person would click
-    // into the form; dispatch that pointerdown on the document body.
+    // into the form; dispatch that click on the document body.
     await page.evaluate(() => {
-      document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+      document.body.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
   }
 }
