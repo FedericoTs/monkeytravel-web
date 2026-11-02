@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import type { TripForExport, ItineraryDay } from "@/types";
 import type { CurrencyCode, ExchangeRates } from "@/lib/locale/types";
 import { formatDateFull } from "@/lib/datetime";
+import { formatDuration } from "@/lib/datetime/duration";
 import { convertCurrency, formatCurrencyValue, getExchangeRates } from "@/lib/locale/currency";
 
 /**
@@ -199,7 +200,7 @@ export async function generateTripPDF(trip: TripForExport): Promise<Blob> {
       doc.setTextColor(...mutedColor);
       doc.setFontSize(8);
       doc.setFont("helvetica", "normal");
-      if (activity.duration_minutes) doc.text(`${activity.duration_minutes} min`, pageWidth - margin - 15, yPosition + 9);
+      if (activity.duration_minutes) doc.text(formatDuration(activity.duration_minutes), pageWidth - margin - 15, yPosition + 9);
 
       // Description (truncated)
       const description = activity.description ?? "";

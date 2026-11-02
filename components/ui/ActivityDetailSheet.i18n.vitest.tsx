@@ -48,7 +48,7 @@ describe("ActivityDetailSheet in Italian", () => {
     ]) {
       expect(screen.getByText(label)).toBeTruthy();
     }
-    expect(screen.getByText("90 min")).toBeTruthy();
+    expect(screen.getByText("1 h 30 min")).toBeTruthy();
     expect(screen.getByLabelText(itCommon.buttons.close)).toBeTruthy();
 
     const text = document.body.textContent ?? "";

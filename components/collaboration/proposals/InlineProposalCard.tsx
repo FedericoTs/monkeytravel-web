@@ -14,6 +14,7 @@ import { getProposalTimeRemaining } from "@/lib/proposals/consensus";
 import { PROPOSAL_TIMING, VOTE_INFO } from "@/types";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { CreditedThumb } from "@/components/ui/PhotoCredit";
+import { formatDuration } from "@/lib/datetime/duration";
 
 interface InlineProposalCardProps {
   proposal: ProposalWithVotes;
@@ -159,13 +160,6 @@ function InlineProposalCardComponent({
     return `${h12}:${minutes} ${ampm}`;
   };
 
-  // Format duration
-  const formatDuration = (mins: number) => {
-    if (mins < 60) return `${mins}m`;
-    const hours = Math.floor(mins / 60);
-    const remaining = mins % 60;
-    return remaining > 0 ? `${hours}h ${remaining}m` : `${hours}h`;
-  };
 
   // Time remaining display
   const formatTimeRemaining = (hours: number): string => {

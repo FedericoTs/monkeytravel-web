@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { Footprints, Car, Bus, ArrowDown, Clock, MapPin } from "lucide-react";
 import { useLocale, formatDistance as formatDistanceLocale } from "@/lib/locale";
+import { formatDuration } from "@/lib/datetime/duration";
 
 interface TravelConnectorProps {
   distanceMeters?: number;
@@ -107,7 +108,7 @@ export function TravelConnector({
   // Format duration if not provided
   const displayDuration =
     durationText ||
-    (durationSeconds ? `${Math.round(durationSeconds / 60)} min` : "");
+    (durationSeconds ? formatDuration(durationSeconds / 60) : "");
 
   // Format distance using user's preferred unit system (metric or imperial)
   const displayDistance =

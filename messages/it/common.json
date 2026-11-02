@@ -139,9 +139,7 @@
     "night": "Notte",
     "today": "Oggi",
     "tomorrow": "Domani",
-    "yesterday": "Ieri",
-    "minutes": "{count} min",
-    "hours": "{count} h"
+    "yesterday": "Ieri"
   },
   "errors": {
     "somethingWentWrong": "Qualcosa è andato storto. Riprova.",
@@ -216,7 +214,7 @@
     "insiderTips": "Consigli Locali",
     "startTime": "Ora di inizio",
     "estCost": "Costo stimato",
-    "durationMinutes": "<b>{minutes} min</b> di durata",
+    "durationMinutes": "<b>{duration}</b> di durata",
     "about": "Descrizione",
     "location": "Posizione",
     "photos": "Foto",
@@ -692,7 +690,6 @@
     "viewDetails": "Vedi dettagli",
     "showRoute": "Mostra percorso",
     "hideRoute": "Nascondi percorso",
-    "segmentDuration": "{minutes} min a piedi",
     "disclaimerStraightLine": "Stima in linea d'aria — il tempo reale a piedi potrebbe essere maggiore."
   },
   "maintenance": {
@@ -1499,9 +1496,7 @@
       "unknown": "Sconosciuto",
       "day": "Giorno {number}",
       "description": "Descrizione",
-      "votes": "Voti",
-      "minutes": "{count} min",
-      "duration": "{minutes} min"
+      "votes": "Voti"
     },
     "owner": {
       "needsDecision": "Questa proposta richiede la tua decisione come proprietario del viaggio."

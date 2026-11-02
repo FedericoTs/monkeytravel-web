@@ -16,6 +16,7 @@ import {
   estimateRoadDistance,
   getAverageSpeed,
 } from "@/lib/math/distance";
+import { formatDuration } from "@/lib/datetime/duration";
 
 export type { Coordinates };
 
@@ -72,18 +73,6 @@ export function formatMetricDistance(meters: number): string {
   return `${(meters / 1000).toFixed(1)} km`;
 }
 
-/**
- * Format duration for display
- */
-function formatDuration(seconds: number): string {
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) {
-    return `${minutes} min`;
-  }
-  const hours = Math.floor(minutes / 60);
-  const remainingMins = minutes % 60;
-  return remainingMins > 0 ? `${hours} hr ${remainingMins} min` : `${hours} hr`;
-}
 
 /**
  * Estimate travel time between two coordinates
@@ -125,7 +114,7 @@ export function estimateTravelTime(
     distanceMeters: travelDistance,
     durationSeconds: totalDurationSeconds,
     distanceText: formatMetricDistance(travelDistance),
-    durationText: formatDuration(totalDurationSeconds),
+    durationText: formatDuration(totalDurationSeconds / 60),
     isEstimate: true,
   };
 }

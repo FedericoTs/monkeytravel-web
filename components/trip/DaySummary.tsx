@@ -12,6 +12,7 @@ import {
   type TripPace,
 } from "@/lib/trip/pace";
 import { formatMetricDistance } from "@/lib/utils/travel-estimation";
+import { formatDuration } from "@/lib/datetime/duration";
 
 interface DaySummaryProps {
   dayNumber: number;
@@ -65,7 +66,7 @@ export function DaySummary({
     return {
       ...totals,
       distanceText: formatMetricDistance(totals.distance),
-      durationText: formatDuration(totals.duration),
+      durationText: formatDuration(totals.duration / 60),
       walkingDistanceText: formatMetricDistance(totals.walkingDistance),
       drivingDistanceText: formatMetricDistance(totals.drivingDistance),
     };
@@ -76,8 +77,8 @@ export function DaySummary({
     if (plannedMinutes === 0) return null;
     const normalizedPace = normalizePace(pace);
     return {
-      plannedText: formatMinutes(plannedMinutes),
-      budgetText: formatMinutes(PACE_BUDGETS[normalizedPace].maxActivityMinutes),
+      plannedText: formatDuration(plannedMinutes),
+      budgetText: formatDuration(PACE_BUDGETS[normalizedPace].maxActivityMinutes),
       overpacked: isOverpacked(activities, normalizedPace),
     };
   }, [activities, pace]);
@@ -182,24 +183,6 @@ export function DaySummary({
   );
 }
 
-/**
- * Format duration in seconds to human readable string
- */
-function formatDuration(seconds: number): string {
-  return formatMinutes(Math.round(seconds / 60));
-}
 
-/**
- * Format a minute count to human readable string ("5h 30m", "45 min")
- */
-function formatMinutes(totalMinutes: number): string {
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-
-  if (hours > 0) {
-    return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
-  }
-  return `${minutes} min`;
-}
 
 export default DaySummary;

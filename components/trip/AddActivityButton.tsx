@@ -7,6 +7,7 @@ import { useActivitySearch, type ActivitySearchResult } from "@/hooks/useActivit
 import { useTranslations } from "next-intl";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
+import { formatDuration } from "@/lib/datetime/duration";
 
 interface AddActivityButtonProps {
   dayIndex: number;
@@ -299,7 +300,7 @@ export default function AddActivityButton({
                             <span>•</span>
                             <span className="flex items-center gap-0.5">
                               <Clock className="w-3 h-3" />
-                              {result.duration_minutes} min
+                              {formatDuration(result.duration_minutes)}
                             </span>
                           </>
                         )}

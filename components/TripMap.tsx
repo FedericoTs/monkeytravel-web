@@ -15,10 +15,10 @@ import type { Activity, ItineraryDay, TimeSlot } from "@/types";
 import {
   haversineKm,
   walkingMinutes,
-  formatDuration,
   midpoint,
 } from "@/lib/map/geo";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
+import { formatDuration } from "@/lib/datetime/duration";
 
 // Env flag: gate the per-day polyline + walking-time labels.
 // Default OFF until we flip NEXT_PUBLIC_MAP_ROUTES_ENABLED=true on Vercel.

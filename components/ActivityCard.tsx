@@ -15,6 +15,7 @@ import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { activityDomId } from "@/lib/trip/activity-dom-id";
 import { useIsPhone } from "@/hooks/useMediaQuery";
 import { ActivityCardDetails, ActivityKindIcon } from "@/components/trip/ActivityCardParts";
+import { formatDuration } from "@/lib/datetime/duration";
 
 interface ActivityCardProps {
   activity: Activity;
@@ -131,7 +132,7 @@ function ActivityCard({
               {activity.start_time}
             </div>
             <div className="text-xs text-slate-500">
-              {t('time.minutes', { count: activity.duration_minutes })}
+              {formatDuration(activity.duration_minutes)}
             </div>
             <div
               className={`mt-2 w-8 h-8 mx-auto rounded-full ${colors.bg} ${colors.text} flex items-center justify-center`}
@@ -151,7 +152,7 @@ function ActivityCard({
               </div>
               <span className="font-medium text-slate-900">{activity.start_time}</span>
               <span className="text-slate-500">·</span>
-              <span className="text-slate-500">{t('time.minutes', { count: activity.duration_minutes })}</span>
+              <span className="text-slate-500">{formatDuration(activity.duration_minutes)}</span>
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
