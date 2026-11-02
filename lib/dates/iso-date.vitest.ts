@@ -6,6 +6,7 @@ import {
   isPlausibleTripDate,
   isPlausibleTripRange,
   tripSpanDays,
+  tripNights,
 } from "./iso-date";
 import { addDaysISO } from "@/lib/ai/multi-city-core";
 
@@ -142,5 +143,20 @@ describe("tripSpanDays", () => {
     expect(tripSpanDays("2026-06-01", null)).toBe(0);
     expect(tripSpanDays(undefined, undefined)).toBe(0);
     expect(tripSpanDays("not a date", "2026-06-03")).toBe(0);
+  });
+});
+
+describe("tripNights", () => {
+  it("is the days between the first and the last", () => {
+    expect(tripNights("2026-06-01", "2026-06-03")).toBe(2);
+    expect(tripNights("2026-06-01", "2026-06-01")).toBe(0);
+    expect(tripNights("2026-12-30", "2027-01-02")).toBe(3);
+    expect(tripNights("2026-10-24", "2026-10-26")).toBe(2);
+  });
+
+  it("is 0, never negative or NaN, for a missing date, a non-date or an end before the start", () => {
+    expect(tripNights(null, "2026-06-03")).toBe(0);
+    expect(tripNights("2026-06-01", "soon")).toBe(0);
+    expect(tripNights("2026-06-05", "2026-06-01")).toBe(0);
   });
 });

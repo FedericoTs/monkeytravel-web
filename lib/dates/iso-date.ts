@@ -129,3 +129,11 @@ export function tripSpanDays(start: string | null | undefined, end: string | nul
   if (Number.isNaN(from) || Number.isNaN(to)) return 0;
   return Math.ceil((to - from) / DAY_MS) + 1;
 }
+
+/**
+ * The nights a trip covers: the 1st to the 3rd is 2. 0 when either date is
+ * missing or not a date, or the end comes before the start.
+ */
+export function tripNights(start: string | null | undefined, end: string | null | undefined): number {
+  return Math.max(0, tripSpanDays(start, end) - 1);
+}
