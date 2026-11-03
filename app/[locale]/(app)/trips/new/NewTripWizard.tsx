@@ -87,7 +87,6 @@ const AnonAssistantPanel = dynamic(() => import("@/components/trip/AnonAssistant
 // the post-generation UI.
 const SessionTripsTray = dynamic(() => import("@/components/trip/SessionTripsTray"), { ssr: false });
 const AuthPromptModal = dynamic(() => import("@/components/ui/AuthPromptModal"), { ssr: false });
-const PendingClaimBanner = dynamic(() => import("@/components/wizard/PendingClaimBanner"), { ssr: false });
 // Share button for signed-out planners only, so it stays out of the bundle for
 // signed-in users. The placeholder is the button's height so the mobile save
 // bar does not grow when it lands.
@@ -131,17 +130,15 @@ function preloadResultViewChunks(): void {
   warm(import("@/components/trip/AnonymousShareButton").then((m) => { warmedShareButton = m.default; }));
 }
 import { sentryException } from "@/lib/observability/sentry";
-import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
+import { useItineraryDraft } from "@/hooks/useItineraryDraft";
 import { useDraftRestore } from "@/hooks/useDraftRestore";
 import { useKeptPlan } from "@/hooks/useKeptPlan";
 import { useKeptPlanOpening } from "@/hooks/useKeptPlanOpening";
 import { usePlanPhotos } from "@/hooks/usePlanPhotos";
 import type { KeptPlan } from "@/lib/plans/kept-plan";
-import { KeptPlansList } from "@/components/wizard/KeptPlansList";
 // Step-1 editorial entry; see lib/wizard/entry-state.ts for the arrival model.
 import WizardMasthead from "@/components/wizard/WizardMasthead";
 import type { OneTapPlace } from "@/components/wizard/OneTapStarts";
-import ClaimedTripBanner from "@/components/wizard/ClaimedTripBanner";
 import { useCssVarHeight } from "@/hooks/useCssVarHeight";
 import {
   deriveEntryState,
@@ -211,6 +208,7 @@ import WizardFooter from "@/components/wizard/WizardFooter";
 import DestinationField from "@/components/wizard/DestinationField";
 import TripDatesField from "@/components/wizard/TripDatesField";
 import TripOptions from "@/components/wizard/TripOptions";
+import Step1Notices from "@/components/wizard/Step1Notices";
 import { safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
@@ -2457,67 +2455,25 @@ export default function NewTripPage({
             under the first-visit cookie banner. */}
         {step === 1 && (
           <div className="flex flex-col gap-6">
-            {/* The trip a signup claimed — above draft recovery (a finished
-                trip outranks an unsaved one), above the masthead. Not
-                flag-gated: without it a claimed trip is a dead end. */}
-            {claimedTripId && (
-              <ClaimedTripBanner
-                tripId={claimedTripId}
-                onOpen={() => dismissClaimedTrip("opened")}
-                onPlanAnother={() => dismissClaimedTrip("plan_another")}
-                onDismiss={() => dismissClaimedTrip("dismissed")}
-              />
-            )}
-            {showPendingClaimBanner && pendingClaim && (
-              <PendingClaimBanner
-                pending={pendingClaim}
-                onKeep={() => handlePendingClaimAction("keep")}
-                onOpenLink={() => handlePendingClaimAction("open_link")}
-                onDismiss={() => handlePendingClaimAction("dismissed")}
-              />
-            )}
-            {/* Returning-visitor draft recovery. A valid unsaved draft exists
-                within the draft TTL (useItineraryDraft) — the banner lets the
-                user recover straight into the Save moment instead of
-                re-running the wizard and burning another scarce anon
-                generation. */}
-            {/* A draft that aged out. useItineraryDraft deletes it on read and
-                returns isExpired; say so once, plainly, rather than let the
-                plan disappear without a word. */}
-            {isExpired && !draft && !generatedItinerary && (
-              <p className="mb-2 text-sm text-slate-600" role="status" data-draft-expired>
-                {t("wizard.draftRecovery.expired")}
-              </p>
-            )}
-            {keptPlanGone && (
-              <p className="text-sm text-slate-600" role="status">
-                {t("wizard.kept.gone")}
-              </p>
-            )}
-            {/* A signed-out planner's kept plans. The draft banner steps aside
-                when the draft is one of them: the list already brings it back. */}
-            {isAuthenticated === false && !generatedItinerary && (
-              <KeptPlansList
-                plans={keptPlans}
-                locale={locale}
-                opening={openingKeptPlan}
-                onOpen={(token) => void handleOpenKeptPlan(token, "list")}
-              />
-            )}
-            {showDraftRecovery &&
-              draft &&
-              !(
-                isAuthenticated === false &&
-                keptPlans.some(
-                  (p) => p.destination === draft.destination && p.startDate === draft.startDate && p.endDate === draft.endDate
-                )
-              ) && (
-              <DraftRecoveryBanner
-                draft={draft}
-                onRestore={handleRestoreDraft}
-                onDiscard={handleDiscardDraft}
-              />
-            )}
+            <Step1Notices
+              claimedTripId={claimedTripId}
+              dismissClaimedTrip={dismissClaimedTrip}
+              showPendingClaimBanner={showPendingClaimBanner}
+              pendingClaim={pendingClaim}
+              handlePendingClaimAction={handlePendingClaimAction}
+              isExpired={isExpired}
+              draft={draft}
+              generatedItinerary={generatedItinerary}
+              keptPlanGone={keptPlanGone}
+              isAuthenticated={isAuthenticated}
+              keptPlans={keptPlans}
+              locale={locale}
+              openingKeptPlan={openingKeptPlan}
+              handleOpenKeptPlan={handleOpenKeptPlan}
+              showDraftRecovery={showDraftRecovery}
+              handleRestoreDraft={handleRestoreDraft}
+              handleDiscardDraft={handleDiscardDraft}
+            />
             <WizardMasthead
               variant={mastheadVariant}
               destination={prefilledDestination?.name ?? searchParams?.get("destination") ?? null}
