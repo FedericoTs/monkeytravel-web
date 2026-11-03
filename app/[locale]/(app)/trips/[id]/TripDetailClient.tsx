@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
-import { Link } from "@/lib/i18n/routing";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { RefreshCw, Sparkles } from "lucide-react";
-import TripActionsMenu, { TripActionsMenuItem, TripActionsMenuSlot } from "@/components/trip/TripActionsMenu";
+import { RefreshCw } from "lucide-react";
 import { CrewShareNudge, CrewVotePill, CrewVotesSummary, useCrewVotes } from "@/components/trip/CrewVotes";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, ActivityProposal } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
@@ -23,7 +21,6 @@ import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
 import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
-import DownloadIcsButton from "@/components/calendar/DownloadIcsButton";
 // TravelAdvisoryBanner / ExpenseLedger / TripConciergeChat are loaded with
 // next/dynamic further down, which keeps the initial trip-page chunk lean.
 import { useActivityVotes } from "@/hooks/useActivityVotes";
@@ -36,6 +33,7 @@ import { BookingPanel, EnhancedBookingPanel, PostConfirmationBanner } from "@/co
 import { useFlag } from "@/lib/posthog/hooks";
 import { FLAG_ENHANCED_BOOKING } from "@/lib/posthog/flags";
 import TripEditControls from "@/components/trip/TripEditControls";
+import TripControlsBar from "@/components/trip/TripControlsBar";
 import TripEditBar from "@/components/trip/TripEditBar";
 import TripAssistantButton from "@/components/trip/TripAssistantButton";
 import RegenerateDayDialog, { type DayRegenerationPrompt } from "@/components/trip/RegenerateDayDialog";
@@ -52,7 +50,6 @@ import TravelConnector from "@/components/trip/TravelConnector";
 import DaySummary from "@/components/trip/DaySummary";
 import { DayTimeline } from "@/components/trip/DayTimeline";
 import { tripNights } from "@/lib/dates/iso-date";
-import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
 import {
   CountdownHero,
   PreTripChecklist,
@@ -132,7 +129,6 @@ const BookingDrawer = dynamic(() => import("@/components/booking/BookingDrawer")
 // PreviewChangeCard and changes the plan only when the user applies it (with
 // undo).
 const AIAssistant = dynamic(() => import("@/components/ai/AIAssistantEnhanced"), { ssr: false });
-const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: false });
 const OngoingTripView = dynamic(() => import("@/components/trip/OngoingTripView"), { ssr: false });
 const CollaboratorOnboarding = dynamic(() => import("@/components/collaboration/CollaboratorOnboarding"), { ssr: false });
 // Share ask, gated on engagement — self-contained, renders null until it fires.
@@ -1401,128 +1397,46 @@ export default function TripDetailClient({
         )}
 
         {/* Controls Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-6">
-          {/* Left side - Back button */}
-          <div className="flex items-center gap-2">
-            <Link
-              href="/trips"
-              className="flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-slate-900 px-2 sm:px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              <span className="hidden sm:inline">{t('detail.backToTrips')}</span>
-            </Link>
-          </div>
-
-          {/* Right side - Controls */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <ViewModeToggle value={viewMode} onChange={setViewMode} labels={{ cards: t('detail.cards'), timeline: t('detail.timeline') }} />
-            <MapToggle shown={showMap} onToggle={() => setShowMap(!showMap)} labels={{ show: t('detail.showMap'), hide: t('detail.hideMap') }} />
-
-            {/* Share Button.
-                Crew Loop: the key remounts ShareButton whenever a crew
-                banner button fires (crewShareRequest++), so its mount-time
-                autoOpen/initialTab props — the exact mechanism the
-                ?share=invite deep link uses — re-trigger with the SHARE tab,
-                without modifying ShareButton itself. */}
-            {!isEditMode && (
-              <ShareButton
-                key={`share-${crewShareRequest}`}
-                tripId={trip.id}
-                tripTitle={trip.title}
-                tripIntent={trip.meta?.trip_intent}
-                canManageSharing={isOwner}
-                autoOpen={shouldAutoOpenShareModal || crewShareRequest > 0}
-                initialTab={
-                  crewShareRequest > 0
-                    ? "share"
-                    : shouldAutoOpenShareModal
-                      ? "invite"
-                      : "share"
-                }
-              />
-            )}
-
-            {/* Edit with AI — the primary edit path, surfaced in the bar.
-                Opens the same AIAssistant the floating trigger does. */}
-            {!isEditMode && canUseAssistant && (
-              <button
-                onClick={() => setIsAIAssistantOpen(true)}
-                className="flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium bg-[var(--accent)] text-slate-900 hover:bg-[var(--accent)]/90 transition-colors"
-                title={t('detail.editWithAi')}
-              >
-                <Sparkles className="w-5 h-5 sm:w-4 sm:h-4" aria-hidden="true" />
-                <span className="hidden sm:inline">{t('detail.editWithAi')}</span>
-              </button>
-            )}
-
-            {/* More — the secondary export utilities collapse into one ⋯
-                menu so the bar reads Share · Edit with AI · More. Each keeps
-                its own component. */}
-            {!isEditMode && (
-              <TripActionsMenu label={t('detail.more')}>
-                <TripActionsMenuSlot>
-                  <ExportMenu
-                    trip={{
-                      title: trip.title,
-                      description: trip.description,
-                      startDate: trip.startDate,
-                      endDate: trip.endDate,
-                      budget: trip.budget,
-                      itinerary: displayItinerary,
-                    }}
-                    surface="trip_detail"
-                  />
-                </TripActionsMenuSlot>
-
-                {/* Add to Calendar (.ics). Self-gates on the calendar flag —
-                    renders nothing when off, so the slot is safe unconditionally. */}
-                <TripActionsMenuSlot>
-                  <DownloadIcsButton tripId={trip.id} showSubtext={false} />
-                </TripActionsMenuSlot>
-
-                {/* Add from email (paste booking → Gemini parse). Flag-gated. */}
-                {emailParseEnabled && (
-                  <TripActionsMenuItem
-                    onClick={() => setIsPasteBookingOpen(true)}
-                    icon={
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                    }
-                  >
-                    {tCommon('addFromEmail.button')}
-                  </TripActionsMenuItem>
-                )}
-              </TripActionsMenu>
-            )}
-
-            {/* Editing controls. Ambient (solo) owners edit inline with
-                auto-save — no mode toggle, just undo/redo + a status pill.
-                Other editors use the explicit edit mode. */}
-            <TripEditControls
-              ambientEdit={ambientEdit}
-              undo={undo}
-              redo={redo}
-              canUndo={canUndo}
-              canRedo={canRedo}
-              saveStatus={saveStatus}
-              onRetrySave={() => {
-                lastFailedSaveRef.current = null;
-                setEditedItinerary((prev) => [...prev]);
-              }}
-              isEditMode={isEditMode}
-              canEdit={canEdit}
-              handleEnterEditMode={handleEnterEditMode}
-              handleDiscardChanges={handleDiscardChanges}
-              handleSaveChanges={handleSaveChanges}
-              isSaving={isSaving}
-              itineraryWritesInFlight={itineraryWritesInFlight}
-              hasChanges={hasChanges}
-            />
-          </div>
-        </div>
+        <TripControlsBar
+          trip={trip}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          showMap={showMap}
+          setShowMap={setShowMap}
+          isEditMode={isEditMode}
+          crewShareRequest={crewShareRequest}
+          isOwner={isOwner}
+          shouldAutoOpenShareModal={shouldAutoOpenShareModal}
+          canUseAssistant={canUseAssistant}
+          onOpenAssistant={() => setIsAIAssistantOpen(true)}
+          displayItinerary={displayItinerary}
+          emailParseEnabled={emailParseEnabled}
+          onPasteBooking={() => setIsPasteBookingOpen(true)}
+        >
+          {/* Editing controls. Ambient (solo) owners edit inline with
+              auto-save — no mode toggle, just undo/redo + a status pill.
+              Other editors use the explicit edit mode. */}
+          <TripEditControls
+            ambientEdit={ambientEdit}
+            undo={undo}
+            redo={redo}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            saveStatus={saveStatus}
+            onRetrySave={() => {
+              lastFailedSaveRef.current = null;
+              setEditedItinerary((prev) => [...prev]);
+            }}
+            isEditMode={isEditMode}
+            canEdit={canEdit}
+            handleEnterEditMode={handleEnterEditMode}
+            handleDiscardChanges={handleDiscardChanges}
+            handleSaveChanges={handleSaveChanges}
+            isSaving={isSaving}
+            itineraryWritesInFlight={itineraryWritesInFlight}
+            hasChanges={hasChanges}
+          />
+        </TripControlsBar>
 
         {/* Ambient-edit hint — one subtle line telling solo owners the plan
             is directly editable and saves itself, so the manual editor is
