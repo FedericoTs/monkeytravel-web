@@ -61,3 +61,21 @@ describe("share prompt closing button", () => {
     expect(screen.getByRole("button", { name: "Pubblica su Explore" })).toBeTruthy();
   });
 });
+
+describe("share prompt, opened again", () => {
+  it("has the box ticked again", () => {
+    const prompt = (isOpen: boolean) => (
+      <NextIntlClientProvider locale="en" messages={{ common: enCommon }}>
+        <ShareAfterSaveModal isOpen={isOpen} onClose={vi.fn()} onInvite={vi.fn()} onPublish={vi.fn()} tripId="trip-1" tripTitle="Lisbon Trip" tripDays={4} destination="Lisbon" />
+      </NextIntlClientProvider>
+    );
+    const { rerender } = render(prompt(true));
+    fireEvent.click(screen.getByRole("checkbox"));
+    expect(screen.getByRole("button", { name: "Maybe Later" })).toBeTruthy();
+    rerender(prompt(false));
+    expect(screen.queryByRole("checkbox")).toBeNull();
+    rerender(prompt(true));
+    expect((screen.getByRole("checkbox") as HTMLInputElement).checked).toBe(true);
+    expect(screen.getByRole("button", { name: "Publish to Explore" })).toBeTruthy();
+  });
+});

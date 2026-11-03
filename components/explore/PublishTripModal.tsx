@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useChanged } from "@/hooks/useChanged";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
@@ -58,15 +59,14 @@ export default function PublishTripModal({
    */
   const [anchorsToConfirm, setAnchorsToConfirm] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (isOpen) {
-      setError(null);
-      setAnchorsToConfirm([]);
-      // Don't reset authorName/Note across opens — preserve user typing
-      // in case the publish failed for an anti-spam reason and they want
-      // to retry later.
-    }
-  }, [isOpen]);
+  const openChanged = useChanged(isOpen);
+  if (openChanged && isOpen) {
+    setError(null);
+    setAnchorsToConfirm([]);
+    // Don't reset authorName/Note across opens — preserve user typing
+    // in case the publish failed for an anti-spam reason and they want
+    // to retry later.
+  }
 
   const submit = useCallback(async (confirmAnchored = false) => {
     if (busy) return;

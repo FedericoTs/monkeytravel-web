@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useChanged } from "@/hooks/useChanged";
 import { TrendingUp, Globe, Users, Copy, Check, Mail, Share2, Eye, UserPlus } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
@@ -94,9 +95,9 @@ export default function ShareAndInviteModal({
   // the trip's intent (lib/trips/crew-share.ts); the owner can flip it.
   // Re-derived when the modal is reused for another trip.
   const [framing, setFraming] = useState<ShareFraming>(() => defaultShareFraming(tripIntent));
-  useEffect(() => {
-    setFraming(defaultShareFraming(tripIntent));
-  }, [tripIntent, tripId]);
+  const tripChanged = useChanged(tripId);
+  const intentChanged = useChanged(tripIntent);
+  if (tripChanged || intentChanged) setFraming(defaultShareFraming(tripIntent));
   const framedUrl = framedShareUrl(shareUrl, framing) ?? shareUrl;
   const crew = framing === "crew";
   const [showStopConfirm, setShowStopConfirm] = useState(false);
@@ -118,7 +119,6 @@ export default function ShareAndInviteModal({
   const [inviteCopied, setInviteCopied] = useState(false);
   const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);
   const [isLoadingCollaborators, setIsLoadingCollaborators] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // Email-invite state. Empty recipient = legacy shareable-link path.
   // Filled = single-recipient invite via the new /api/trips/[id]/invites
@@ -130,11 +130,7 @@ export default function ShareAndInviteModal({
   // Current user from AuthContext: `canManage` compares it with the owner,
   // which shows the role dropdown and the remove button.
   const { user: authUser } = useAuth();
-  useEffect(() => {
-    if (isOpen && authUser?.id) {
-      setCurrentUserId(authUser.id);
-    }
-  }, [isOpen, authUser?.id]);
+  const currentUserId = authUser?.id ?? null;
 
   const fetchCollaborators = useCallback(async () => {
     setIsLoadingCollaborators(true);

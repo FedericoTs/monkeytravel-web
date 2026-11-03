@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useId } from "react";
+import { useState, useCallback, useId } from "react";
+import { useChanged } from "@/hooks/useChanged";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -84,18 +85,22 @@ export default function SaveTripModal({
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState("");
+  // Tomorrow, or the date picked before signing in.
+  const defaultStartDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return initialStartDate || tomorrow.toISOString().split("T")[0];
+  };
+  const [startDate, setStartDate] = useState(() => (isOpen ? defaultStartDate() : ""));
 
-  // Set default date to tomorrow (or the one picked before signing in)
-  useEffect(() => {
-    if (isOpen) {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      setStartDate(initialStartDate || tomorrow.toISOString().split("T")[0]);
-      setError(null);
-      setSaveSuccess(false);
-    }
-  }, [isOpen, initialStartDate]);
+  // Each open starts again from the default date, as does a newly picked one.
+  const openChanged = useChanged(isOpen);
+  const initialStartDateChanged = useChanged(initialStartDate);
+  if (isOpen && (openChanged || initialStartDateChanged)) {
+    setStartDate(defaultStartDate());
+    setError(null);
+    setSaveSuccess(false);
+  }
 
   // Parse YYYY-MM-DD strings as LOCAL midnight (not UTC midnight) so
   // toLocaleDateString below renders the day the user actually picked.

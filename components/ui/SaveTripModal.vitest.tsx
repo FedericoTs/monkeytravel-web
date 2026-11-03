@@ -111,3 +111,30 @@ describe("as a dialog", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("the start date", () => {
+  const props = { onClose: () => {}, tripTitle: "Lisbon Trip", tripDestination: "Lisbon", durationDays: 3, onSuccess: () => {} };
+  const dateInput = () => document.querySelector<HTMLInputElement>('input[type="date"]')!;
+  const tomorrow = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
+  };
+
+  it("starts on tomorrow, and again on each open", () => {
+    const { rerender } = render(<SaveTripModal isOpen {...props} />);
+    expect(dateInput().value).toBe(tomorrow());
+    fireEvent.change(dateInput(), { target: { value: "2027-01-15" } });
+    expect(dateInput().value).toBe("2027-01-15");
+    rerender(<SaveTripModal isOpen={false} {...props} />);
+    rerender(<SaveTripModal isOpen {...props} />);
+    expect(dateInput().value).toBe(tomorrow());
+  });
+
+  it("starts on the date picked before signing in, and follows a new one", () => {
+    const { rerender } = render(<SaveTripModal isOpen {...props} initialStartDate="2027-03-01" />);
+    expect(dateInput().value).toBe("2027-03-01");
+    rerender(<SaveTripModal isOpen {...props} initialStartDate="2027-04-10" />);
+    expect(dateInput().value).toBe("2027-04-10");
+  });
+});

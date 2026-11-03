@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useChanged } from "@/hooks/useChanged";
 import { useTranslations } from "next-intl";
 import BaseModal from "@/components/ui/BaseModal";
 
@@ -76,13 +77,12 @@ export default function StartOverModal({
   const [customReason, setCustomReason] = useState("");
 
   // Reset state every time the modal opens so a previous abandonment
-  // doesn't pre-fill the next one. (`isOpen` is the open-edge trigger.)
-  useEffect(() => {
-    if (isOpen) {
-      setReason("");
-      setCustomReason("");
-    }
-  }, [isOpen]);
+  // doesn't pre-fill the next one.
+  const openChanged = useChanged(isOpen);
+  if (openChanged && isOpen) {
+    setReason("");
+    setCustomReason("");
+  }
 
   const handleConfirm = () => {
     if (!reason) return;
