@@ -10,8 +10,6 @@ import WizardSaveButton from "@/components/wizard/WizardSaveButton";
 import type { AutoSaveStatus } from "@/hooks/useAutoSaveTrip";
 import type { KeptState } from "@/hooks/useKeptPlan";
 import { useRouter } from "@/lib/i18n/routing";
-import type { TripIntent } from "@/lib/posthog/events";
-import type { PendingClaim } from "@/lib/trips/anonymous-claim-client";
 import type { GeneratedItinerary } from "@/types";
 
 // Export (PDF / iCal) on the result view, rendered only once the trip is saved.
@@ -61,11 +59,8 @@ export default function ResultActionBars({
   generatedItinerary,
   totalCost,
   tripTitle,
-  destination,
   startDate,
   endDate,
-  locale,
-  tripIntent,
   isAuthenticated,
   savedTripId,
   autoSave,
@@ -77,9 +72,7 @@ export default function ResultActionBars({
   onStartOver,
   requestRegenerate,
   regenerating,
-  sessionShareUrl,
-  onShared,
-  onKeep,
+  share,
   ShareButton,
   RegenerateButton,
 }: {
@@ -87,11 +80,8 @@ export default function ResultActionBars({
   /** The trip's estimated total, in the planner's currency. */
   totalCost: string;
   tripTitle: string;
-  destination: string;
   startDate: string;
   endDate: string;
-  locale: string;
-  tripIntent: TripIntent;
   isAuthenticated: boolean | null;
   /** The trip the manual save stored. */
   savedTripId: string | null;
@@ -108,24 +98,14 @@ export default function ResultActionBars({
   onStartOver: () => void;
   requestRegenerate: () => void;
   regenerating: boolean;
-  sessionShareUrl: string | null;
-  onShared: (pending: PendingClaim) => void;
-  onKeep: () => void;
+  /** The no-account share, as the page builds it for every place that offers it. */
+  share: Omit<ShareButtonProps, "className">;
   /** The share and regenerate buttons, as the page loaded them. */
   ShareButton: ComponentType<ShareButtonProps>;
   RegenerateButton: ComponentType<RegenerateButtonProps>;
 }) {
   const t = useTranslations("trips");
   const router = useRouter();
-  const shareTrip = {
-    title: tripTitle,
-    description: generatedItinerary.destination.description,
-    destination,
-    startDate,
-    endDate,
-    itinerary: generatedItinerary.days,
-    locale: generatedItinerary.language ?? locale,
-  };
   // Unsaved-state pill (both save arms); a kept plan's link instead.
   const unsavedPill =
     isUnsaved && !autoSaving && (keptPlan ? <KeptLinkPill token={keptPlan.token} /> : <NotSavedPill />);
@@ -235,13 +215,7 @@ export default function ResultActionBars({
                 in. Also hidden once a trip is saved — at that point the
                 owner-based share flow is the right one. */}
             {isAuthenticated === false && !savedTripId && (
-              <ShareButton
-                onShared={onShared}
-                onKeep={onKeep}
-                mode={tripIntent === "group" ? "crew" : "share"}
-                existingShareUrl={sessionShareUrl}
-                trip={shareTrip}
-              />
+              <ShareButton {...share} />
             )}
           </div>
         </div>
@@ -271,14 +245,7 @@ export default function ResultActionBars({
             `null` means still resolving and must not flash a share button at
             someone who turns out to be signed in. */}
         {!savedTripId && !autoSaving && (isAuthenticated === false ? (
-          <ShareButton
-            onShared={onShared}
-            onKeep={onKeep}
-            mode={tripIntent === "group" ? "crew" : "share"}
-            existingShareUrl={sessionShareUrl}
-            className="mb-2"
-            trip={shareTrip}
-          />
+          <ShareButton {...share} className="mb-2" />
         ) : (
           <button
             type="button"

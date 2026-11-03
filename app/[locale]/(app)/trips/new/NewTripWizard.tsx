@@ -214,6 +214,7 @@ import ReturningUserBanner from "@/components/wizard/ReturningUserBanner";
 import GenerationErrorNotice from "@/components/wizard/GenerationErrorNotice";
 import RegenerateConfirmModal from "@/components/wizard/RegenerateConfirmModal";
 import ResultDatesNotice from "@/components/wizard/ResultDatesNotice";
+import { anonymousShare } from "@/lib/wizard/anonymous-share";
 import { safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
@@ -1954,6 +1955,22 @@ export default function NewTripPage({
     // Calculate total activities for modal
     const totalActivities = generatedItinerary.days.reduce((acc, day) => acc + day.activities.length, 0);
 
+    // The no-account share the header bar, the phone bar and the assistant offer.
+    const anonShare = {
+      ...anonymousShare({
+        itinerary: generatedItinerary,
+        tripTitle,
+        destination,
+        startDate,
+        endDate,
+        locale,
+        tripIntent,
+        sessionShareUrl,
+      }),
+      onShared: handleAnonShared,
+      onKeep: handleKeepSharedTrip,
+    };
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white pb-24 sm:pb-8">
         <ChangeDatesModal
@@ -2067,11 +2084,8 @@ export default function NewTripPage({
             ).formatted
           }
           tripTitle={tripTitle}
-          destination={destination}
           startDate={startDate}
           endDate={endDate}
-          locale={locale}
-          tripIntent={tripIntent}
           isAuthenticated={isAuthenticated}
           savedTripId={savedTripId}
           autoSave={autoSaveEnabled ? autoSave : null}
@@ -2083,9 +2097,7 @@ export default function NewTripPage({
           onStartOver={() => setShowStartOverModal(true)}
           requestRegenerate={requestRegenerate}
           regenerating={isRegenerating || generating}
-          sessionShareUrl={sessionShareUrl}
-          onShared={handleAnonShared}
-          onKeep={handleKeepSharedTrip}
+          share={anonShare}
           ShareButton={ShareButtonView}
           RegenerateButton={RegenerateButtonView}
         />
@@ -2143,21 +2155,7 @@ export default function NewTripPage({
               // else the owner-based share flow is the right one.
               shareSlot={
                 isAuthenticated === false && !savedTripId && generatedItinerary ? (
-                  <ShareButtonView
-                    trip={{
-                      title: tripTitle,
-                      description: generatedItinerary.destination.description,
-                      destination,
-                      startDate,
-                      endDate,
-                      itinerary: generatedItinerary.days,
-                      locale: generatedItinerary.language ?? locale,
-                    }}
-                    onShared={handleAnonShared}
-                    onKeep={handleKeepSharedTrip}
-                    mode={tripIntent === "group" ? "crew" : "share"}
-                    existingShareUrl={sessionShareUrl}
-                  />
+                  <ShareButtonView {...anonShare} />
                 ) : undefined
               }
             />

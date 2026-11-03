@@ -54,15 +54,27 @@ const on = {
   shared: vi.fn(),
   keep: vi.fn(),
 };
+const share: Props["share"] = {
+  trip: {
+    title: "Lisbon",
+    description: "Lisbon in spring",
+    destination: "Lisbon, Portugal",
+    startDate: "2027-05-10",
+    endDate: "2027-05-11",
+    itinerary: itinerary.days,
+    locale: "en",
+  },
+  mode: "share",
+  existingShareUrl: null,
+  onShared: on.shared,
+  onKeep: on.keep,
+};
 const props = (over: Partial<Props> = {}): Props => ({
   generatedItinerary: itinerary,
   totalCost: "€900",
   tripTitle: "Lisbon",
-  destination: "Lisbon, Portugal",
   startDate: "2027-05-10",
   endDate: "2027-05-11",
-  locale: "en",
-  tripIntent: "unspecified",
   isAuthenticated: false,
   savedTripId: null,
   autoSave: null,
@@ -74,9 +86,7 @@ const props = (over: Partial<Props> = {}): Props => ({
   onStartOver: on.startOver,
   requestRegenerate: on.regenerate,
   regenerating: false,
-  sessionShareUrl: null,
-  onShared: on.shared,
-  onKeep: on.keep,
+  share,
   ShareButton,
   RegenerateButton,
   ...over,
@@ -105,20 +115,8 @@ describe("ResultActionBars", () => {
     expect(bar.queryByRole("button", { name: crew })).toBeNull();
     expect(header.getByRole("button", { name: "share" })).toBeTruthy();
     expect(bar.getByRole("button", { name: "share" })).toBeTruthy();
-    expect(shared.map((p) => p.className)).toEqual([undefined, "mb-2"]);
-    expect(shared[0]).toMatchObject({
-      mode: "share",
-      existingShareUrl: null,
-      trip: {
-        title: "Lisbon",
-        description: "Lisbon in spring",
-        destination: "Lisbon, Portugal",
-        startDate: "2027-05-10",
-        endDate: "2027-05-11",
-        itinerary: itinerary.days,
-        locale: "en",
-      },
-    });
+    // Both carry the page's share; the phone bar's keeps its margin.
+    expect(shared).toEqual([share, { ...share, className: "mb-2" }]);
     expect(header.getByText("wizard.result.notSavedPill")).toBeTruthy();
     expect(bar.getByText("wizard.result.notSavedPill")).toBeTruthy();
     expect(header.getByText("wizard.result.saveHeaderNudge")).toBeTruthy();
@@ -127,14 +125,6 @@ describe("ResultActionBars", () => {
 
     fireEvent.click(header.getByRole("button", { name: "wizard.result.saveTrip" }));
     expect(on.save).toHaveBeenCalledTimes(1);
-  });
-
-  it("shares a group trip as the crew's vote ask, with the link already made", () => {
-    bars({ tripIntent: "group", sessionShareUrl: "https://monkeytravel.app/shared/abc" });
-    expect(shared.map((p) => [p.mode, p.existingShareUrl])).toEqual([
-      ["crew", "https://monkeytravel.app/shared/abc"],
-      ["crew", "https://monkeytravel.app/shared/abc"],
-    ]);
   });
 
   it("puts a kept plan's link where the not-saved pill was, and says it is kept", () => {
