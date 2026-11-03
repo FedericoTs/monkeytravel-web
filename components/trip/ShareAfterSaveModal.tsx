@@ -90,6 +90,8 @@ export default function ShareAfterSaveModal({
   // Helper to access share translations with proper prefix
   const ts = (key: string, params?: Record<string, string | number>) => t(`share.${key}`, params);
   const [isExiting, setIsExiting] = useState(false);
+  // The exit animation's timer, one at a time.
+  const exitTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const hasTrackedView = useRef(false);
   // Opt-out for ordinary trips, opt-in for anchored ones.
   const [publishChecked, setPublishChecked] = useState(!isAnchored);
@@ -108,6 +110,15 @@ export default function ShareAfterSaveModal({
   const [mintFailed, setMintFailed] = useState(false);
   const [copied, setCopied] = useState(false);
   const copyResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Timers still running when the dialog is removed go with it: onClose and
+  // the copy reset never reach a page that has moved on.
+  useEffect(
+    () => () => {
+      clearTimeout(exitTimerRef.current);
+      if (copyResetRef.current) clearTimeout(copyResetRef.current);
+    },
+    []
+  );
   // The first co-planner sent is this prompt's "invite" in the share_prompt
   // funnel, so that funnel still reads one invite per prompt.
   const coPlannerTracked = useRef(false);
@@ -209,7 +220,8 @@ export default function ShareAfterSaveModal({
       if (e.key === "Escape") {
         trackSharePromptAction({ tripId, action: "skip" });
         setIsExiting(true);
-        setTimeout(() => {
+        clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = setTimeout(() => {
           setIsExiting(false);
           onClose();
         }, 200);
@@ -261,7 +273,8 @@ export default function ShareAfterSaveModal({
 
   const closeWithExitAnimation = () => {
     setIsExiting(true);
-    setTimeout(() => {
+    clearTimeout(exitTimerRef.current);
+    exitTimerRef.current = setTimeout(() => {
       setIsExiting(false);
       onClose();
     }, 200);
