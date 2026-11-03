@@ -4,6 +4,7 @@ import type { KeptPlan } from "@/lib/plans/kept-plan";
 import type { TripIntent } from "@/lib/posthog/events";
 import { dietsFrom, type Diet } from "@/lib/trips/diet";
 import type { GeneratedItinerary, TripAnchor, TripVibe } from "@/types";
+import { FRESH_ANSWERS, type WizardAnswers } from "./answers";
 
 /** Where a restored draft goes: the wizard's fields, and the session tray. */
 export interface DraftTargets {
@@ -22,6 +23,25 @@ export interface DraftTargets {
   setGeneratedItinerary: (value: GeneratedItinerary) => void;
   /** Makes the restored trip the tray's current one, adopting a matching entry. */
   registerRestore: (trip: SessionTripData) => void;
+}
+
+/** The wizard's fields for its answers. */
+export type AnswerTargets = Omit<DraftTargets, "setGeneratedItinerary" | "registerRestore">;
+
+/** Every answer onto the wizard's fields, in place of what is there. */
+export function applyAnswers(answers: WizardAnswers, to: AnswerTargets): void {
+  to.setDestination(answers.destination);
+  to.setStartDate(answers.startDate);
+  to.setEndDate(answers.endDate);
+  to.setPace(answers.pace);
+  to.setSelectedVibes(answers.vibes);
+  to.setBudgetTier(answers.budgetTier);
+  to.setTravelStyle(answers.travelStyle);
+  to.setAnchors(answers.anchors);
+  to.setMustDos(answers.mustDos);
+  to.setDietary(answers.dietary);
+  to.setTripIntent(answers.tripIntent);
+  to.setFlexibleDates(answers.flexibleDates);
 }
 
 /**
@@ -123,18 +143,23 @@ export function applyKeptPlan(
  * lacks, no coordinates and one city. The tray has already made it current.
  */
 export function applySessionTrip(trip: SessionTripSnapshot, to: KeptPlanTargets): void {
-  to.setDestination(trip.destination);
-  to.setStartDate(trip.startDate);
-  to.setEndDate(trip.endDate);
-  to.setPace(trip.pace as "relaxed" | "moderate" | "active");
-  to.setSelectedVibes(trip.vibes as TripVibe[]);
-  to.setBudgetTier(trip.budgetTier as "budget" | "balanced" | "premium");
-  to.setTravelStyle(trip.travelStyle === "backpacker" ? "backpacker" : "classic");
-  to.setAnchors(trip.anchors ?? []);
-  to.setMustDos(trip.mustDos ?? []);
-  to.setDietary(dietsFrom(trip.dietary));
-  to.setTripIntent(trip.tripIntent ?? "unspecified");
-  to.setFlexibleDates(trip.flexibleDates === true);
+  applyAnswers(
+    {
+      destination: trip.destination,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      pace: trip.pace as WizardAnswers["pace"],
+      vibes: trip.vibes as TripVibe[],
+      budgetTier: trip.budgetTier as WizardAnswers["budgetTier"],
+      travelStyle: trip.travelStyle === "backpacker" ? "backpacker" : "classic",
+      anchors: trip.anchors ?? FRESH_ANSWERS.anchors,
+      mustDos: trip.mustDos ?? FRESH_ANSWERS.mustDos,
+      dietary: dietsFrom(trip.dietary),
+      tripIntent: trip.tripIntent ?? FRESH_ANSWERS.tripIntent,
+      flexibleDates: trip.flexibleDates === true,
+    },
+    to
+  );
   to.setDestinationCoords(null);
   to.setMultiCityMode(false);
   to.setGeneratedItinerary(trip.itinerary);
