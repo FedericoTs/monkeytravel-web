@@ -27,7 +27,9 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { GeneratedItinerary } from "@/types";
+import type { TripIntent } from "@/lib/posthog/events";
+import type { Diet } from "@/lib/trips/diet";
+import type { GeneratedItinerary, TripAnchor } from "@/types";
 
 const STACK_KEY = "mt_session_trips";
 const CURRENT_KEY = "mt_session_trips_current";
@@ -45,6 +47,12 @@ export interface SessionTripSnapshot {
   vibes: string[];
   budgetTier: string;
   travelStyle?: "classic" | "backpacker";
+  /** The plan's other answers. Entries kept before they were stored lack them. */
+  anchors?: TripAnchor[];
+  mustDos?: string[];
+  dietary?: Diet[];
+  tripIntent?: TripIntent;
+  flexibleDates?: boolean;
   /**
    * True when this entry got onto the screen via a restore (post-auth silent
    * draft restore, draft-recovery banner, or a tray chip click) rather than a
