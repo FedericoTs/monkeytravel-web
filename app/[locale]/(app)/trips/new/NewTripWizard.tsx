@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo, useSyncExternalStore, type SetStateAction } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, type SetStateAction } from "react";
 import { sanitizeIsoDate, maxTripStartDate, addIsoDaysOrThrow, tripSpanDays } from "@/lib/dates/iso-date";
 import { localTodayISO, parseLocalDate } from "@/lib/utils/date-local";
 import { useSearchParams } from "next/navigation";
@@ -157,18 +157,9 @@ import { sentryException } from "@/lib/observability/sentry";
 import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
 import { useDraftRestore } from "@/hooks/useDraftRestore";
 import { useKeptPlan } from "@/hooks/useKeptPlan";
+import { useKeptPlanOpening } from "@/hooks/useKeptPlanOpening";
 import { usePlanPhotos } from "@/hooks/usePlanPhotos";
 import type { KeptPlan } from "@/lib/plans/kept-plan";
-import {
-  entryFor,
-  forgetKeptPlan,
-  keptPlansServerSnapshot,
-  keptPlansSnapshot,
-  keptTokenFromHash,
-  openKeptPlan,
-  rememberKeptPlan,
-  subscribeKeptPlans,
-} from "@/lib/plans/kept-plans-client";
 import { KeptLinkPill } from "@/components/wizard/KeptLinkPill";
 import { KeptPlansList } from "@/components/wizard/KeptPlansList";
 // Step-1 editorial entry; see lib/wizard/entry-state.ts for the arrival model.
@@ -188,10 +179,9 @@ import {
   captureAutoSaveSkipped,
 } from "@/lib/posthog/events";
 import { saveErrorClass } from "@/lib/wizard/save-failure";
-import { applyAnswers, applyKeptPlan, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
+import { applyAnswers, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
 import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, tripFormState, type WizardAnswers } from "@/lib/wizard/answers";
 import { generationRequest, routeLegs } from "@/lib/wizard/generation-request";
-import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
 import {
   classifyGenerationFailure,
   failureDetail,
@@ -1248,66 +1238,21 @@ export default function NewTripPage({
   });
   // Free photos found for the plan's places after it was shown.
   usePlanPhotos({ plan: generatedItinerary, destination, onPlan: setGeneratedItinerary });
-  const keptPlans = useSyncExternalStore(subscribeKeptPlans, keptPlansSnapshot, keptPlansServerSnapshot);
-  const [openingKeptPlan, setOpeningKeptPlan] = useState<string | null>(null);
-  const [keptPlanGone, setKeptPlanGone] = useState(false);
-
-  const handleOpenKeptPlan = async (token: string, source: "link" | "list") => {
-    setOpeningKeptPlan(token);
-    const opened = await openKeptPlan(token);
-    setOpeningKeptPlan(null);
-    if (opened === "gone") {
-      forgetKeptPlan(token);
-      setKeptPlanGone(true);
-      return;
-    }
-    if (!opened) return;
-    const { plan, expiresAt } = opened;
-    // Signed in, the planner saves what it shows: a plan already among their
-    // trips is not saved twice.
-    if (isAuthenticated && authUser && (await isItinerarySaved(createClient(), authUser.id, plan.itinerary))) {
-      router.push("/trips");
-      return;
-    }
-    rememberKeptPlan(entryFor(token, plan, expiresAt));
-    adoptOpenedPlan(token, plan, expiresAt);
-    setKeptPlanGone(false);
-    setShowDraftRecovery(false);
-    applyKeptPlan(
-      plan,
-      { ...draftTargets, setDestinationCoords, setMultiCityMode },
-      { pace, vibes: selectedVibes, budgetTier, tripIntent }
-    );
-    void capture("kept_plan_opened", { source });
-  };
-
-  // A plan's link (#plan=<token>), on arrival or pasted into this tab: taken off
-  // the address bar at once, before analytics start, then opened once sign-in
-  // state is known.
-  const linkedPlanRef = useRef<string | null>(null);
-  const [linkedPlanCount, setLinkedPlanCount] = useState(0);
-  useEffect(() => {
-    const take = () => {
-      const token = keptTokenFromHash(window.location.hash);
-      if (!token) return false;
-      window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search);
-      linkedPlanRef.current = token;
-      return true;
-    };
-    take();
-    const onHashChange = () => {
-      if (take()) setLinkedPlanCount((n) => n + 1);
-    };
-    window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
-  }, []);
-  useEffect(() => {
-    const token = linkedPlanRef.current;
-    if (!token || isAuthenticated === null) return;
-    linkedPlanRef.current = null;
-    void handleOpenKeptPlan(token, "link");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, linkedPlanCount]);
+  // A kept plan opened from step 1's list or its link (hooks/useKeptPlanOpening.ts).
+  const { keptPlans, openingKeptPlan, keptPlanGone, handleOpenKeptPlan } = useKeptPlanOpening({
+    isAuthenticated,
+    authUser,
+    router,
+    adoptOpenedPlan,
+    setShowDraftRecovery,
+    draftTargets,
+    setDestinationCoords,
+    setMultiCityMode,
+    pace,
+    selectedVibes,
+    budgetTier,
+    tripIntent,
+  });
 
   // A plan on screen and not saved: the save nudges, the leave guard and the
   // exit event (hooks/useUnsavedPlan.ts).
