@@ -182,16 +182,11 @@ import {
   pickMastheadVariant,
 } from "@/lib/wizard/entry-state";
 import {
-  captureClaimedTripBanner,
-  capturePendingClaimBanner,
   type AuthPromptLocation,
   captureWizardFirstRunViewed,
   captureWizardOneTapStart,
   captureAutoSaveSkipped,
 } from "@/lib/posthog/events";
-import { clearClaimedTrip, onClaimedTrip, readClaimedTrip } from "@/lib/trips/claimed-trip-signal";
-import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim-client";
-import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
 import { saveErrorClass } from "@/lib/wizard/save-failure";
 import { applyAnswers, applyKeptPlan, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
 import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, tripFormState, type WizardAnswers } from "@/lib/wizard/answers";
@@ -230,6 +225,8 @@ import { reportTripSaved } from "@/lib/wizard/trip-saved";
 import { usePostHog } from "@/lib/posthog";
 import { trackWizardEvent } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip, type AutoSaveSkipReason } from "@/hooks/useAutoSaveTrip";
+import { useClaimedTrip } from "@/hooks/useClaimedTrip";
+import { usePendingClaim } from "@/hooks/usePendingClaim";
 import { useUnsavedPlan } from "@/hooks/useUnsavedPlan";
 import { useWizardFunnel, WIZARD_STEP_NAMES } from "@/hooks/useWizardFunnel";
 import { useHasExistingTrips } from "@/hooks/useHasExistingTrips";
@@ -498,9 +495,6 @@ export default function NewTripPage({
   );
   const isFreshSignup = isFirstRunAuthEvent(authEventAtMount);
   const mastheadVariant = pickMastheadVariant({ authEventAtMount, prefillAtMount });
-  // The trip a signup claimed (see lib/trips/claimed-trip-signal.ts). State
-  // lives up here because the PostHog super-property effect reads it.
-  const [claimedTripId, setClaimedTripId] = useState<string | null>(null);
   const t = useTranslations("trips");
   const AssistantPanelView = warmedAssistantPanel ?? AnonAssistantPanel;
   const ShareButtonView = warmedShareButton ?? AnonymousShareButton;
@@ -555,6 +549,9 @@ export default function NewTripPage({
   // the JSX gating relies on null meaning "not known yet".
   const { user: authUser, loading: authLoading } = useAuth();
   const isAuthenticated: boolean | null = authLoading ? null : !!authUser;
+  // The trip a signup claimed, for its banner (hooks/useClaimedTrip.ts); the
+  // PostHog super-property effect below reads it.
+  const { claimedTripId, setClaimedTripId, dismissClaimedTrip } = useClaimedTrip({ isFreshSignup, authLoading, authUser });
 
   // Every event is stamped front_door = "wizard" (in wizard_step_events via
   // wizardEvents.ts and in PostHog via the super-property below) because the
@@ -584,42 +581,6 @@ export default function NewTripPage({
     hasTrips: returningUser,
   });
   const [showReturningUserBanner, setShowReturningUserBanner] = useState(true);
-
-  // ── Claimed trip ──────────────────────────────────────────────────────────
-  // AuthProvider claims a pending anonymous trip on SIGNED_IN and publishes
-  // the id (lib/trips/claimed-trip-signal.ts). The two sides race — SIGNED_IN
-  // usually fires during hydration, before this effect subscribes — so read
-  // the stored id AND subscribe. The post-callback landing may emit SIGNED_IN
-  // or INITIAL_SESSION, so a fresh signup also claims directly, once:
-  // claimPendingTrip is idempotent (the token is removed on any terminal
-  // outcome, kept only on 401).
-  useEffect(() => {
-    const stored = readClaimedTrip();
-    if (stored) setClaimedTripId(stored);
-    return onClaimedTrip((id) => setClaimedTripId(id));
-  }, []);
-  const directClaimFiredRef = useRef(false);
-  useEffect(() => {
-    if (!isFreshSignup || authLoading || !authUser || directClaimFiredRef.current) return;
-    directClaimFiredRef.current = true;
-    void import("@/lib/trips/anonymous-claim-client")
-      .then(({ claimPendingTrip }) => claimPendingTrip())
-      .then((id) => {
-        if (id) setClaimedTripId(id);
-      })
-      .catch(() => undefined);
-  }, [isFreshSignup, authLoading, authUser]);
-  const claimedSurfacedRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!claimedTripId || claimedSurfacedRef.current === claimedTripId) return;
-    claimedSurfacedRef.current = claimedTripId;
-    void captureClaimedTripBanner({ action: "surfaced", trip_id: claimedTripId });
-  }, [claimedTripId]);
-  const dismissClaimedTrip = (action: "opened" | "plan_another" | "dismissed") => {
-    if (claimedTripId) void captureClaimedTripBanner({ action, trip_id: claimedTripId });
-    clearClaimedTrip();
-    setClaimedTripId(null);
-  };
 
   // First-run view, once per mount. Keyed on the latched param, not on auth
   // state, so it fires only for someone who just created an account.
@@ -1142,23 +1103,6 @@ export default function NewTripPage({
     void captureAutoSaveSkipped({ reason, destination });
   };
 
-  // -- Pending anonymous share ----------------------------------------------
-  // A signed-out planner who shared this itinerary minted an ownerless trip
-  // row, and this browser holds its claim token. On sign-in TWO things would
-  // persist the same itinerary: AuthProvider claims that row, and the
-  // auto-save hook inserts a fresh one; the keep-it nudge on the share row
-  // makes that collision routine.
-  // Rule (lib/trips/pending-claim.ts): while the draft on screen matches the
-  // shared trip and the claim is unresolved, auto-save waits; a claimed id is
-  // adopted as THE saved trip; a released claim (expired, taken, no token)
-  // hands persistence back to auto-save.
-  const [pendingClaim, setPendingClaim] = useState<PendingClaim | null>(null);
-  const [claimResolution, setClaimResolution] = useState<ClaimResolution>("none");
-  const [adoptedTripId, setAdoptedTripId] = useState<string | null>(null);
-  const [pendingClaimDismissed, setPendingClaimDismissed] = useState(false);
-  // A share link minted in THIS session, shared by every AnonymousShareButton
-  // on screen so only one ownerless trip is ever created.
-  const [sessionShareUrl, setSessionShareUrl] = useState<string | null>(null);
   const [authPromptLocation, setAuthPromptLocation] = useState<AuthPromptLocation>("wizard_save");
   // Save (default) or the anonymous free-generation cap: same sign-up, the
   // modal words it for why we're asking.
@@ -1169,70 +1113,6 @@ export default function NewTripPage({
     authPromptReason === "generation_limit" && destination
       ? `/trips/new?destination=${encodeURIComponent(destination)}`
       : undefined;
-  useEffect(() => {
-    let alive = true;
-    void readPendingClaim().then((p) => {
-      if (!alive || !p) return;
-      setPendingClaim(p);
-      setClaimResolution("unresolved");
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
-  const pendingMatchesDraft = pendingClaimMatchesDraft(pendingClaim, { destination, startDate, endDate });
-  const deferAutoSave = shouldDeferAutoSave({ matches: pendingMatchesDraft, resolution: claimResolution });
-  const adoptClaimedTrip = useCallback((id: string) => {
-    setAdoptedTripId(id);
-    setSavedTripId(id);
-    setClaimedTripId(id);
-    setClaimResolution("adopted");
-    setPendingClaim(null);
-  }, []);
-  // The claim can complete on either side (AuthProvider publishes the signal;
-  // the wizard asks directly below). Whichever reports first wins.
-  useEffect(() => {
-    if (claimResolution !== "unresolved" || !pendingClaim || !pendingMatchesDraft) return;
-    if (claimedTripId === pendingClaim.tripId) adoptClaimedTrip(claimedTripId);
-  }, [claimedTripId, pendingClaim, pendingMatchesDraft, claimResolution, adoptClaimedTrip]);
-  useEffect(() => {
-    if (claimResolution !== "unresolved" || !pendingClaim || !pendingMatchesDraft || isAuthenticated !== true) return;
-    let alive = true;
-    const tripId = pendingClaim.tripId;
-    if (readClaimedTrip() === tripId) {
-      adoptClaimedTrip(tripId);
-      return;
-    }
-    void import("@/lib/trips/anonymous-claim-client")
-      .then(({ claimPendingTrip }) => claimPendingTrip())
-      .then((id) => {
-        if (!alive) return;
-        if (id) adoptClaimedTrip(id);
-        else if (readClaimedTrip() === tripId) adoptClaimedTrip(tripId);
-        else {
-          setClaimResolution("released");
-          setPendingClaim(null);
-        }
-      })
-      .catch(() => {
-        if (!alive) return;
-        setClaimResolution("released");
-        setPendingClaim(null);
-      });
-    return () => {
-      alive = false;
-    };
-  }, [claimResolution, pendingClaim, pendingMatchesDraft, isAuthenticated, adoptClaimedTrip]);
-  const handleAnonShared = (pending: PendingClaim) => {
-    // Every share button on screen adopts this one link. Minting twice would
-    // create a second ownerless trip whose claim token the browser has
-    // already overwritten, stranding the first and inflating the
-    // anonymous-share counts the /admin panel reads.
-    setSessionShareUrl(pending.shareUrl);
-    setPendingClaim(pending);
-    setClaimResolution("unresolved");
-    setPendingClaimDismissed(false);
-  };
   // The same door the Save button opens for a signed-out planner, with the
   // draft parked first so the itinerary is on screen again after the auth
   // round-trip.
@@ -1273,19 +1153,30 @@ export default function NewTripPage({
     });
     openKeepAuth("anon_share_keep");
   };
-  const showPendingClaimBanner =
-    isAuthenticated === false && !!pendingClaim && !pendingClaimDismissed && !generatedItinerary && step === 1;
-  const pendingSurfacedRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!showPendingClaimBanner || !pendingClaim || pendingSurfacedRef.current === pendingClaim.tripId) return;
-    pendingSurfacedRef.current = pendingClaim.tripId;
-    void capturePendingClaimBanner({ action: "surfaced", destination: pendingClaim.destination, trip_id: pendingClaim.tripId });
-  }, [showPendingClaimBanner, pendingClaim]);
-  const handlePendingClaimAction = (action: "keep" | "open_link" | "dismissed") => {
-    void capturePendingClaimBanner({ action, destination: pendingClaim?.destination, trip_id: pendingClaim?.tripId });
-    if (action === "keep") openKeepAuth("pending_claim");
-    if (action === "dismissed") setPendingClaimDismissed(true);
-  };
+  // -- Pending anonymous share ----------------------------------------------
+  // A plan this browser shared while signed out, and the claim that makes it
+  // this account's trip on sign-in (hooks/usePendingClaim.ts). Auto-save waits
+  // while that claim is unresolved for the trip on screen.
+  const {
+    pendingClaim,
+    deferAutoSave,
+    adoptedTripId,
+    sessionShareUrl,
+    handleAnonShared,
+    showPendingClaimBanner,
+    handlePendingClaimAction,
+  } = usePendingClaim({
+    destination,
+    startDate,
+    endDate,
+    isAuthenticated,
+    generatedItinerary,
+    step,
+    claimedTripId,
+    setClaimedTripId,
+    setSavedTripId,
+    openKeepAuth,
+  });
   // -- The same trip, already saved ------------------------------------------
   // Asked before auto-save when this account already saved the place and
   // dates (hooks/useSameTripCheck.ts).
