@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo, type SetStateAction 
 import { maxTripStartDate, addIsoDaysOrThrow, tripSpanDays } from "@/lib/dates/iso-date";
 import { localTodayISO, parseLocalDate } from "@/lib/utils/date-local";
 import { useSearchParams } from "next/navigation";
-import { Link, useRouter } from "@/lib/i18n/routing";
+import { useRouter } from "@/lib/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
 import dynamic from "next/dynamic";
 
@@ -210,6 +210,8 @@ import TripDatesField from "@/components/wizard/TripDatesField";
 import TripOptions from "@/components/wizard/TripOptions";
 import Step1Notices from "@/components/wizard/Step1Notices";
 import { MultiCityRoute, MultiCityToggle } from "@/components/wizard/MultiCityControls";
+import WizardHeader from "@/components/wizard/WizardHeader";
+import ReturningUserBanner from "@/components/wizard/ReturningUserBanner";
 import { safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
@@ -2317,32 +2319,7 @@ export default function NewTripPage({
       />
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link
-            href={isAuthenticated ? "/trips" : "/"}
-            className="flex items-center gap-1.5 text-slate-600 hover:text-slate-900 px-2 py-1.5 -ml-2 rounded-lg hover:bg-slate-100 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            <span className="hidden sm:inline">{t("wizard.back")}</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-              <div
-                key={i}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i + 1 <= step ? "bg-[var(--primary)] w-8" : "bg-slate-200 w-4"
-                }`}
-              />
-            ))}
-          </div>
-          <div className="text-sm text-slate-500">
-            {step}/{TOTAL_STEPS}
-          </div>
-        </div>
-      </header>
+      <WizardHeader isAuthenticated={isAuthenticated} step={step} totalSteps={TOTAL_STEPS} />
 
       {/* Form Content — extra bottom padding on mobile for sticky nav */}
       <main className="max-w-2xl mx-auto px-4 py-6 sm:py-8 pb-28 sm:pb-8">
@@ -2352,44 +2329,7 @@ export default function NewTripPage({
             back — you already have trips" would contradict "your trip came
             with you" for someone who created the account a minute ago. */}
         {isAuthenticated !== false && hasExistingTrips && showReturningUserBanner && step === 1 && !claimedTripId && !isFreshSignup && (
-          <div className="mb-6 p-4 bg-gradient-to-r from-[var(--primary)]/5 to-[var(--secondary)]/5 border border-[var(--primary)]/20 rounded-xl">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-[var(--primary-ink)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-slate-900">{t("wizard.returningUser.welcomeBack")}</h3>
-                <p className="text-sm text-slate-600 mt-1">
-                  {t("wizard.returningUser.subtitle")}
-                </p>
-                <div className="flex items-center gap-3 mt-3">
-                  <Link
-                    href="/trips"
-                    className="px-4 py-2 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary)]/90 transition-colors"
-                  >
-                    {t("wizard.returningUser.goToMyTrips")}
-                  </Link>
-                  <button
-                    onClick={() => setShowReturningUserBanner(false)}
-                    className="px-4 py-2 text-slate-600 text-sm font-medium hover:text-slate-900 transition-colors"
-                  >
-                    {t("wizard.returningUser.startNewTrip")}
-                  </button>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowReturningUserBanner(false)}
-                className="p-1 text-slate-500 hover:text-slate-600 transition-colors"
-                aria-label={t("wizard.returningUser.dismiss")}
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
+          <ReturningUserBanner onDismiss={() => setShowReturningUserBanner(false)} />
         )}
 
         {error && (
