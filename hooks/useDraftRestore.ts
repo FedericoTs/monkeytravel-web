@@ -6,9 +6,11 @@ import { trackWizardEvent } from "@/components/wizard/wizardEvents";
 import type { ItineraryDraft } from "@/hooks/useItineraryDraft";
 import { prefs } from "@/lib/platform/storage";
 import { createClient } from "@/lib/supabase/client";
+import { readPendingClaim } from "@/lib/trips/anonymous-claim-client";
+import { readClaimedTrip } from "@/lib/trips/claimed-trip-signal";
 import { applyDraft, type DraftTargets } from "@/lib/wizard/apply-draft";
 import { decideDraftRestore } from "@/lib/wizard/draft-restore";
-import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
+import { savedTripOf } from "@/lib/wizard/draft-saved-check";
 import type { GeneratedItinerary, TripVibe } from "@/types";
 
 /**
@@ -93,6 +95,11 @@ export function useDraftRestore({
   // draft, only while it could still be restored (signed in, nothing on
   // screen yet). decideDraftRestore waits for the answer and discards a draft
   // that is already saved instead of restoring it into a second insert.
+  //
+  // Except the plan this browser shared while signed out: signing in claims
+  // it, so it can read as saved before or while the claim lands. That trip is
+  // the plan coming back, adopted as the save (hooks/usePendingClaim.ts), not
+  // a copy saved before.
   const draftCheckKey =
     isAuthenticated === true && authUser && draft?.generatedItinerary && !generatedItinerary && !draftAutoRestored
       ? `${authUser.id}:${draft.savedAt}`
@@ -101,9 +108,13 @@ export function useDraftRestore({
   useEffect(() => {
     if (!draftCheckKey || !authUser || !draft?.generatedItinerary) return;
     let alive = true;
-    void isItinerarySaved(createClient(), authUser.id, draft.generatedItinerary).then((saved) => {
-      if (alive) setDraftSavedCheck({ key: draftCheckKey, saved });
-    });
+    const itinerary = draft.generatedItinerary;
+    void (async () => {
+      const shared = (await readPendingClaim())?.tripId ?? null;
+      const savedId = await savedTripOf(createClient(), authUser.id, itinerary);
+      const comingBack = savedId !== null && (savedId === shared || savedId === readClaimedTrip());
+      if (alive) setDraftSavedCheck({ key: draftCheckKey, saved: savedId !== null && !comingBack });
+    })();
     return () => {
       alive = false;
     };
