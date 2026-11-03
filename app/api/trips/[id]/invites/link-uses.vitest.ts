@@ -74,3 +74,24 @@ describe("invite link uses", () => {
     expect(inserted).toHaveLength(0);
   });
 });
+
+// The role a link lets people in as: an editor, a voter or a viewer, never the owner.
+describe("invite roles", () => {
+  it.each(["editor", "voter", "viewer"])("lets people in as %s", async (role) => {
+    expect(await createInvite({ role })).toBe(200);
+    expect(inserted[0]).toMatchObject({ role });
+  });
+
+  it("refuses the owner, an unknown role and a role that is not text, naming the roles it takes", async () => {
+    const { POST } = await import("./route");
+    for (const role of ["owner", "admin", 42, null]) {
+      const res = await POST(
+        new NextRequest(`http://localhost/api/trips/${TRIP}/invites`, { method: "POST", body: JSON.stringify({ role }) }),
+        { params: Promise.resolve({ id: TRIP }) }
+      );
+      expect(res.status, String(role)).toBe(400);
+      expect(JSON.stringify(await res.json())).toContain("editor, voter, viewer");
+    }
+    expect(inserted).toHaveLength(0);
+  });
+});
