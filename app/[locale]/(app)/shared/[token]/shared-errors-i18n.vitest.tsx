@@ -34,6 +34,7 @@ vi.mock("next-intl/server", async () => {
 });
 
 import SharedTripNotFound, { generateMetadata } from "./not-found";
+import { reportBoundaryError } from "@/lib/observability/report-boundary-error";
 import SharedTripError from "./error";
 
 const ENGLISH = [
@@ -76,4 +77,14 @@ describe("shared trip that failed to load", () => {
     expect(screen.getByRole("button").textContent).toBe(copy.retry);
     expect(container.textContent).toContain("abc123");
   });
+});
+
+it("reports the crash under the shared trip's tag", () => {
+  const error = new Error("boom");
+  render(
+    <NextIntlClientProvider locale="en" messages={{ common: COMMON.en }}>
+      <SharedTripError error={error} reset={() => {}} />
+    </NextIntlClientProvider>
+  );
+  expect(reportBoundaryError).toHaveBeenCalledWith(error, "shared-trip-error");
 });

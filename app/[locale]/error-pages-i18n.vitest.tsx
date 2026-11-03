@@ -24,6 +24,7 @@ vi.mock("next/image", () => ({
 }));
 vi.mock("@/lib/observability/report-boundary-error", () => ({ reportBoundaryError: vi.fn() }));
 
+import { reportBoundaryError } from "@/lib/observability/report-boundary-error";
 import LocaleError from "./error";
 import NotFound from "./not-found";
 
@@ -67,4 +68,10 @@ describe.each(LOCALES)("in %s", (locale) => {
     expect(screen.getByText(planTrip).getAttribute("href")).toBe("/trips/new");
     expect(container.textContent).not.toMatch(/notFoundPage\.|<link>/);
   });
+});
+
+it("reports the crash under the locale root's tag", () => {
+  const error = new Error("boom");
+  inLocale("en", <LocaleError error={error} reset={() => {}} />);
+  expect(reportBoundaryError).toHaveBeenCalledWith(error, "locale-root-error");
 });
