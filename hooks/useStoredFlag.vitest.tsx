@@ -53,6 +53,23 @@ describe("useStoredFlag", () => {
     expect(localStorage.getItem(KEY)).toBe("true");
   });
 
+  it("reads and stores the value it was given for a set flag", () => {
+    function OneProbe() {
+      const [value, set] = useStoredFlag(KEY, "1");
+      return (
+        <button data-testid="one" onClick={set}>
+          {String(value)}
+        </button>
+      );
+    }
+    localStorage.setItem(KEY, "true");
+    render(<OneProbe />);
+    expect(screen.getByTestId("one").textContent).toBe("false");
+    fireEvent.click(screen.getByTestId("one"));
+    expect(localStorage.getItem(KEY)).toBe("1");
+    expect(screen.getByTestId("one").textContent).toBe("true");
+  });
+
   it("still holds where storage is blocked", () => {
     const blocked = () => {
       throw new DOMException("The operation is insecure.", "SecurityError");

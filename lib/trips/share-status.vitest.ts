@@ -70,15 +70,17 @@ describe("fetchShareStatus", () => {
 describe("the trip page's requests on load", () => {
   const read = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
   const TRIP_PAGE = "app/[locale]/(app)/trips/[id]/TripDetailClient.tsx";
-  const READERS = [TRIP_PAGE, "components/trip/ShareButton.tsx", "components/trip/SharePromptOnTrip.tsx"];
+  const READERS = ["components/trip/CrewVotes.tsx", "components/trip/ShareButton.tsx", "components/trip/SharePromptOnTrip.tsx"];
+  // A fetch of the share URL with no options is a GET.
+  const OWN_GET = /fetch\(`\/api\/trips\/\$\{[^}]+\}\/share`\)/;
 
   it("reads the share status through fetchShareStatus, never with its own GET", () => {
     for (const path of READERS) {
       const src = read(path);
       expect(src, path).toContain("fetchShareStatus(");
-      // A fetch of the share URL with no options is a GET.
-      expect(src, path).not.toMatch(/fetch\(`\/api\/trips\/\$\{[^}]+\}\/share`\)/);
+      expect(src, path).not.toMatch(OWN_GET);
     }
+    expect(read(TRIP_PAGE)).not.toMatch(OWN_GET);
   });
 
   it("does not load the activity timeline it never shows", () => {
