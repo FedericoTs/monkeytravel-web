@@ -12,6 +12,7 @@ import { hasCoordinates } from "@/lib/trips/has-coordinates";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
 import { withFoundPhotos } from "@/lib/trips/keep-place-photos";
 import { useKeptTripPhotos } from "@/hooks/useKeptTripPhotos";
+import { useEditShortcuts } from "@/hooks/useEditShortcuts";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
 import TodayView from "@/components/trip/TodayView";
@@ -1018,47 +1019,18 @@ export default function TripDetailClient({
   );
 
   // Keyboard shortcuts for edit mode (Cmd+Z, Cmd+Shift+Z, Cmd+S, Escape)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!editingActive) return;
-
-      // Don't intercept when user is typing in an input/textarea
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        return;
-      }
-
-      const cmd = e.metaKey || e.ctrlKey;
-
-      // Cmd+Z = Undo
-      if (cmd && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        undo();
-      }
-      // Cmd+Shift+Z = Redo
-      if (cmd && e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
-        e.preventDefault();
-        redo();
-      }
-      // Cmd+S = Save. Ambient trips auto-save, so just swallow the browser's
-      // Save dialog and let the debounced auto-save own persistence — running
-      // handleSaveChanges here would double-PATCH, double-count the edit metric,
-      // and pop a redundant success toast next to the status pill.
-      if (cmd && e.key === 's') {
-        e.preventDefault();
-        if (!ambientEdit && hasChanges && !isSaving && !conflict && itineraryWritesInFlight === 0) {
-          handleSaveChanges();
-        }
-      }
-      // Escape = Exit edit mode (only if no changes; no-op for ambient)
-      if (e.key === 'Escape' && !hasChanges) {
-        setIsEditMode(false);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [editingActive, ambientEdit, hasChanges, isSaving, conflict, itineraryWritesInFlight, undo, redo, handleSaveChanges]);
+  useEditShortcuts({
+    editingActive,
+    ambientEdit,
+    hasChanges,
+    isSaving,
+    conflict: conflict !== null,
+    itineraryWritesInFlight,
+    undo,
+    redo,
+    save: handleSaveChanges,
+    setIsEditMode,
+  });
 
 
   // APPLY → SEE loop: after the AI assistant applies a change — or when the
