@@ -2,17 +2,19 @@ import { test, expect, type Page } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { existsSync, readFileSync } from "node:fs";
 import draft from "./fixtures/wizard-draft-paris.json";
+import { stubGeneration, stubPlan } from "./generation-stub";
 
 /**
  * A signed-in planner who comes back to the wizard with an unsaved plan gets it
  * back without being asked, and auto-save keeps it as one of their trips: the
  * row holds every day and activity, and the trip page shows them. When they
  * already saved a trip to the same place on the same dates, the wizard asks
- * first: update that trip, or save this one as a separate trip.
+ * first: update that trip, or save this one as a separate trip. A trip they
+ * generate is saved the same way.
  *
- * The plans are the restored-draft fixture, so no generation runs. Analytics,
- * photos and maps are blocked; the saves are real, and the trips are removed
- * afterwards.
+ * The plans are the restored-draft fixture, and a generation is answered by
+ * the test (generation-stub.ts), so no model is called. Analytics, photos and
+ * maps are blocked; the saves are real, and the trips are removed afterwards.
  *
  * Needs the fixture accounts (scripts/e2e-fixtures.mts --seed, then
  * scripts/e2e-login.mts) and service credentials:
@@ -208,5 +210,72 @@ test.describe("wizard: a signed-in planner's unsaved plan", () => {
     await expect
       .poll(async () => (await savedCopies()).map((t) => [t.id, activityNames(t.itinerary)[0][0]]), { timeout: 30_000 })
       .toEqual([[earlierId, "Breakfast at Du Pain et des Idées"]]);
+  });
+});
+
+test.describe("wizard: a trip a signed-in planner generates", () => {
+  const { url, key } = creds();
+  const owner = ownerId();
+  test.skip(!AUTH_STATE || !owner || !url || !key, "run e2e-fixtures --seed and e2e-login, and set KEY_FLOWS_AUTH_STATE");
+  test.use({ storageState: AUTH_STATE });
+
+  let db: SupabaseClient;
+  let dates: { start: string; end: string } | null = null;
+
+  async function removeGenerated() {
+    if (!dates) return;
+    const { error } = await db
+      .from("trips")
+      .delete()
+      .eq("user_id", owner!)
+      .eq("start_date", dates.start)
+      .eq("end_date", dates.end);
+    expect(error, "could not remove the saved trip").toBeNull();
+  }
+
+  test.beforeEach(async ({ page }) => {
+    db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+    await isolate(page);
+  });
+
+  test.afterEach(async () => {
+    await removeGenerated();
+  });
+
+  test("is saved with every day it was given", async ({ page }) => {
+    // After the catch-all: the last route registered is asked first.
+    const generation = await stubGeneration(page);
+    await page.goto("/trips/new");
+
+    const pick = page.getByRole("group", { name: "Popular right now" }).getByRole("button").first();
+    await pick.click({ timeout: 60_000 });
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page.getByRole("heading", { name: "Set your travel style" }).waitFor();
+    // The cards animate in, and a click landing mid-entrance is lost.
+    const foodie = page.getByText("Foodie Journey", { exact: true }).filter({ visible: true }).first();
+    const generate = page.getByRole("button", { name: "Generate Itinerary" });
+    await expect(async () => {
+      if (await generate.isDisabled()) await foodie.click();
+      await expect(generate).toBeEnabled({ timeout: 1_500 });
+    }).toPass({ timeout: 15_000 });
+    await generate.click();
+
+    const viewTrip = page.getByRole("link", { name: /View trip/ }).first();
+    await expect(viewTrip, "auto-save did not finish").toBeVisible({ timeout: 60_000 });
+    expect(generation.streamed).toHaveLength(1);
+    const request = generation.streamed[0];
+    dates = { start: request.startDate, end: request.endDate };
+    const plan = stubPlan(request);
+
+    const { data, error } = await db
+      .from("trips")
+      .select("id, itinerary")
+      .eq("user_id", owner!)
+      .eq("start_date", dates.start)
+      .eq("end_date", dates.end);
+    expect(error).toBeNull();
+    expect(data, "the plan should be saved exactly once").toHaveLength(1);
+    expect(activityNames(data![0].itinerary as Day[])).toEqual(activityNames(plan.days));
+    await expect(viewTrip).toHaveAttribute("href", new RegExp(`/trips/${data![0].id}$`));
   });
 });
