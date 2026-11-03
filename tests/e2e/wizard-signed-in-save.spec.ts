@@ -249,7 +249,7 @@ test.describe("wizard: a trip a signed-in planner generates", () => {
 
     const pick = page.getByRole("group", { name: "Popular right now" }).getByRole("button").first();
     await pick.click({ timeout: 60_000 });
-    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page.getByRole("button", { name: /^Continue/ }).click();
     await page.getByRole("heading", { name: "Set your travel style" }).waitFor();
     // The cards animate in, and a click landing mid-entrance is lost.
     const foodie = page.getByText("Foodie Journey", { exact: true }).filter({ visible: true }).first();

@@ -67,7 +67,7 @@ test.describe("wizard: planning a trip", () => {
     await pick.click();
     await expect(page.getByRole("combobox").first()).toHaveValue(place!);
 
-    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page.getByRole("button", { name: /^Continue/ }).click();
     await page.getByRole("heading", { name: "Set your travel style" }).waitFor();
     // The cards animate in, and a click landing mid-entrance is lost: click
     // until the pick registers, as a person clicks again.
