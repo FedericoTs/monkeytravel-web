@@ -1,4 +1,6 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { errors } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { logWriteError } from "@/lib/supabase/log-write-error";
@@ -14,6 +16,9 @@ import { logWriteError } from "@/lib/supabase/log-write-error";
  * - Likes, saves, referral codes, bananas, trip reminders, calendar links and
  *   tester access
  * - Usage counts and AI usage history
+ * - Activity records: pages viewed, trip-planner steps, request logs, partner
+ *   links opened, votes cast before signing in, trips joined as a guest, saved
+ *   itinerary versions and feedback sent (the newest 1,000 of each)
  *
  * Never in it: credentials (share, claim and invite tokens, calendar tokens and
  * the key that signs calendar links), and what other people entered about
@@ -43,6 +48,12 @@ interface Section {
   /** Newest first by this column. */
   newestBy?: string;
   limit?: number;
+  /**
+   * Read with the service role: no policy lets a person read their own rows
+   * in this table. The owner filter is the only thing between them and
+   * everyone else's.
+   */
+  admin?: true;
 }
 
 const SECTIONS = {
@@ -182,10 +193,96 @@ const SECTIONS = {
       ai_assistant_limit, ai_assistant_used, redeemed_at, expires_at`,
     owner: "user_id",
   },
+  pageViews: {
+    table: "page_views",
+    columns: `id, path, referrer, country, country_code, city, region, latitude, longitude, user_agent, session_id,
+      is_bot, is_prefetch, created_at`,
+    owner: "user_id",
+    newestBy: "created_at",
+    limit: 1000,
+    admin: true,
+  },
+  plannerSteps: {
+    table: "wizard_step_events",
+    columns: `id, session_id, step, entered_at, destination, duration_days, group_size, backpacker_mode, locale,
+      front_door, step1_variant, result_variant, failure_code, failure_detail, referrer, utm_source, elapsed_ms,
+      created_at`,
+    owner: "user_id",
+    newestBy: "created_at",
+    limit: 1000,
+    admin: true,
+  },
+  funnelEvents: {
+    table: "funnel_events",
+    columns: "id, event_type, trip_id, session_id, anon_id, metadata, created_at",
+    owner: "user_id",
+    newestBy: "created_at",
+    limit: 1000,
+    admin: true,
+  },
+  apiRequests: {
+    table: "api_request_logs",
+    columns: `id, api_name, endpoint, request_params, response_status, response_time_ms, cache_hit, error_message,
+      cost_usd, timestamp`,
+    owner: "user_id",
+    newestBy: "timestamp",
+    limit: 1000,
+    admin: true,
+  },
+  partnerLinksOpened: {
+    table: "hostelworld_clicks",
+    columns: "id, trip_id, destination, start_date, end_date, source_path, device_class, created_at",
+    owner: "user_id",
+    newestBy: "created_at",
+    limit: 1000,
+    admin: true,
+  },
+  // Not the share link's token.
+  votesBeforeSignIn: {
+    table: "anonymous_activity_votes",
+    columns: "id, trip_id, activity_id, voter_display_name, vote_type, comment, created_at, updated_at",
+    owner: "user_id",
+    newestBy: "created_at",
+    limit: 1000,
+    admin: true,
+  },
+  tripsJoinedAsGuest: {
+    table: "trip_participants",
+    columns: "id, trip_id, display_name, email, joined_at, source, left_at",
+    owner: "user_id",
+    newestBy: "joined_at",
+    limit: 1000,
+    admin: true,
+  },
+  itineraryVersions: {
+    table: "trip_itinerary_snapshots",
+    columns: "id, trip_id, label, itinerary, created_at",
+    owner: "created_by",
+    newestBy: "created_at",
+    limit: 1000,
+    admin: true,
+  },
+  feedback: {
+    table: "user_feedback",
+    columns: `id, source, uses_for, almost_stopped, last_booked_where, would_book_through_us, open_to_chat,
+      contact_email, extra, created_at`,
+    owner: "user_id",
+    newestBy: "created_at",
+    limit: 1000,
+    admin: true,
+  },
+  tripDeletionFeedback: {
+    table: "trip_deletion_feedback",
+    columns: "id, trip_id, destination, reason, custom_reason, trip_age_seconds, was_auto_saved, created_at",
+    owner: "user_id",
+    newestBy: "created_at",
+    limit: 1000,
+    admin: true,
+  },
 } satisfies Record<string, Section>;
 
-function readSection(supabase: Awaited<ReturnType<typeof createClient>>, section: Section, userId: string) {
-  let query = supabase.from(section.table).select(section.columns);
+function readSection(db: SupabaseClient, section: Section, userId: string) {
+  let query = db.from(section.table).select(section.columns);
   query =
     typeof section.owner === "string"
       ? query.eq(section.owner, userId)
@@ -227,10 +324,11 @@ export async function GET() {
       );
     }
 
-    const sections = Object.entries(SECTIONS);
+    const sections = Object.entries(SECTIONS) as Array<[string, Section]>;
+    const admin = createAdminClient();
     const [profileResult, sectionResults] = await Promise.all([
       supabase.from("users").select(EXPORTED_PROFILE_COLUMNS).eq("id", userId).single(),
-      Promise.all(sections.map(([, section]) => readSection(supabase, section, userId))),
+      Promise.all(sections.map(([, section]) => readSection(section.admin ? admin : supabase, section, userId))),
     ]);
 
     // The file says what it holds, so a section that failed to load fails the
@@ -252,14 +350,13 @@ export async function GET() {
       exportInfo: {
         exportedAt: new Date().toISOString(),
         userId,
-        version: "1.2",
+        version: "1.3",
         dataRetentionNote:
-          "This export contains your personal data stored by MonkeyTravel, except records kept for " +
-          "analytics and security (the pages you viewed, your steps in the trip planner, request logs, " +
-          "partner links you opened), votes you cast before signing in, trips you joined as a guest, " +
-          "earlier saved versions of your itineraries, and feedback you sent through forms. Write to " +
-          "privacy@monkeytravel.app to receive those too. Links that open your trips or calendar to " +
-          "others are left out.",
+          "This export contains your personal data stored by MonkeyTravel. Each activity record (pages " +
+          "you viewed, your steps in the trip planner, request logs, partner links you opened, votes, " +
+          "saved itinerary versions, feedback) is the newest 1,000 entries; write to " +
+          "privacy@monkeytravel.app for older ones. Links that open your trips or calendar to others " +
+          "are left out.",
       },
       profile: profileResult.data || null,
       ...Object.fromEntries(sections.map(([name], i) => [name, sectionResults[i].data || []])),
