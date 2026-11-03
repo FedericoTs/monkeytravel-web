@@ -2,10 +2,9 @@
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { Link } from "@/lib/i18n/routing";
-import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Undo2, Redo2, RefreshCw, Sparkles } from "lucide-react";
+import { RefreshCw, Sparkles } from "lucide-react";
 import TripActionsMenu, { TripActionsMenuItem, TripActionsMenuSlot } from "@/components/trip/TripActionsMenu";
 import { CrewShareNudge, CrewVotePill, CrewVotesSummary, useCrewVotes } from "@/components/trip/CrewVotes";
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, ActivityProposal } from "@/types";
@@ -37,6 +36,9 @@ import { BookingPanel, EnhancedBookingPanel, PostConfirmationBanner } from "@/co
 import { useFlag } from "@/lib/posthog/hooks";
 import { FLAG_ENHANCED_BOOKING } from "@/lib/posthog/flags";
 import TripEditControls from "@/components/trip/TripEditControls";
+import TripEditBar from "@/components/trip/TripEditBar";
+import TripAssistantButton from "@/components/trip/TripAssistantButton";
+import RegenerateDayDialog, { type DayRegenerationPrompt } from "@/components/trip/RegenerateDayDialog";
 
 // Affiliate booking surfaces stay hidden behind a default-off env gate; they
 // are not the current focus. NEXT_PUBLIC_BOOKINGS_ENABLED=true shows them.
@@ -130,7 +132,6 @@ const BookingDrawer = dynamic(() => import("@/components/booking/BookingDrawer")
 // PreviewChangeCard and changes the plan only when the user applies it (with
 // undo).
 const AIAssistant = dynamic(() => import("@/components/ai/AIAssistantEnhanced"), { ssr: false });
-const BaseModal = dynamic(() => import("@/components/ui/BaseModal"), { ssr: false });
 const ExportMenu = dynamic(() => import("@/components/trip/ExportMenu"), { ssr: false });
 const OngoingTripView = dynamic(() => import("@/components/trip/OngoingTripView"), { ssr: false });
 const CollaboratorOnboarding = dynamic(() => import("@/components/collaboration/CollaboratorOnboarding"), { ssr: false });
@@ -382,7 +383,7 @@ export default function TripDetailClient({
   const [regeneratingDayNumber, setRegeneratingDayNumber] = useState<number | null>(null);
   // The day-regeneration dialog: which day, and what the traveller wants it to
   // be about, so a regeneration can be steered instead of rerolled blind.
-  const [dayRegenPrompt, setDayRegenPrompt] = useState<{ dayNumber: number; text: string } | null>(null);
+  const [dayRegenPrompt, setDayRegenPrompt] = useState<DayRegenerationPrompt | null>(null);
   // "Cancel Trip" asks first: it turns off the countdown, checklist and
   // reminders.
   const [confirmCancelTrip, setConfirmCancelTrip] = useState(false);
@@ -2017,52 +2018,7 @@ export default function TripDetailClient({
 
       {/* Edit Mode Undo/Redo Bar - Minimal, with status indicator */}
       {isEditMode && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-200 z-50">
-          <div className="max-w-6xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
-              {/* Left: Undo/Redo and status */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={undo}
-                    disabled={!canUndo}
-                    className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    title={`${t("detail.undo")} (Cmd+Z)`}
-                  >
-                    <Undo2 className="w-4 h-4 text-slate-600" />
-                  </button>
-                  <button
-                    onClick={redo}
-                    disabled={!canRedo}
-                    className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    title={`${t("detail.redo")} (Cmd+Shift+Z)`}
-                  >
-                    <Redo2 className="w-4 h-4 text-slate-600" />
-                  </button>
-                </div>
-                {hasChanges && (
-                  <span className="px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full animate-pulse">
-                    {t('detail.unsavedChanges')}
-                  </span>
-                )}
-                {saveError && (
-                  <span className="text-sm text-red-600">{saveError}</span>
-                )}
-              </div>
-              {/* Right: Keyboard hint */}
-              <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
-                <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">⌘Z</kbd>
-                <span>{t("detail.undo")}</span>
-                <span className="mx-1">•</span>
-                <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">⌘⇧Z</kbd>
-                <span>{t("detail.redo")}</span>
-                <span className="mx-1">•</span>
-                <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-500">Esc</kbd>
-                <span>{t("detail.exitEditing")}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <TripEditBar undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo} hasChanges={hasChanges} saveError={saveError} />
       )}
 
       {/* Bottom padding when edit bar is showing */}
@@ -2070,58 +2026,12 @@ export default function TripDetailClient({
 
       {/* AI Assistant Floating Button — primary CTA. Bigger + accented +
           pulses for first-time visitors so the assistant is hard to miss. */}
-      {!isEditMode && canUseAssistant && (
-        <button
-          onClick={() => setIsAIAssistantOpen(true)}
-          className={`fixed bottom-24 sm:bottom-6 left-6 lg:bottom-8 lg:left-8 z-40 group ${!hasSeenAssistant ? "animate-pulse" : ""}`}
-          title={t('detail.aiTripAssistant')}
-        >
-          <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] text-white shadow-xl shadow-[var(--primary)]/30 hover:shadow-2xl hover:scale-[1.04] transition-all duration-300 ring-2 ring-white">
-            {/* AI Agent Image with ring on white background for contrast */}
-            <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl overflow-hidden shadow-md bg-white">
-              <Image
-                src="/images/ai-agent.png"
-                alt={t("detail.aiAssistant")}
-                fill
-                className="object-cover"
-              />
-            </div>
-            {/* Label - hidden on very small screens */}
-            <div className="hidden sm:flex flex-col items-start leading-none">
-              <span className="text-sm font-bold text-white">{t('detail.aiAssistant')}</span>
-              <span className="text-[12px] text-white/85">{t('detail.customizeTrip')}</span>
-            </div>
-            {/* Arrow indicator */}
-            <svg className="w-4 h-4 text-white/80 group-hover:translate-x-0.5 transition-all hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-          {/* First-time visual nudge — small dot like a notification badge */}
-          {!hasSeenAssistant && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[var(--accent)] ring-2 ring-white animate-ping" />
-          )}
-        </button>
-      )}
-
-      {/* Edit mode AI button - compact version above save bar */}
-      {isEditMode && canUseAssistant && (
-        <button
-          onClick={() => setIsAIAssistantOpen(true)}
-          className="fixed bottom-24 left-6 z-40 group"
-          title={t('detail.aiTripAssistant')}
-        >
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/95 backdrop-blur-xl border border-slate-200/80 shadow-lg shadow-slate-900/10 hover:shadow-xl hover:bg-white transition-all duration-300">
-            <div className="relative w-9 h-9 rounded-lg overflow-hidden shadow-sm">
-              <Image
-                src="/images/ai-agent.png"
-                alt={t("detail.aiAssistant")}
-                fill
-                className="object-cover"
-              />
-            </div>
-            <span className="text-sm font-medium text-slate-700 hidden sm:inline">{t('detail.aiHelp')}</span>
-          </div>
-        </button>
+      {canUseAssistant && (
+        <TripAssistantButton
+          isEditMode={isEditMode}
+          hasSeenAssistant={hasSeenAssistant}
+          onOpen={() => setIsAIAssistantOpen(true)}
+        />
       )}
 
       <CancelTripDialog
@@ -2134,53 +2044,11 @@ export default function TripDetailClient({
       />
 
       {/* Regenerate one day, optionally steered ("boarding the cruise"). */}
-      <BaseModal
-        isOpen={dayRegenPrompt !== null}
-        onClose={() => setDayRegenPrompt(null)}
-        usePortal
-        zIndex={100}
-        title={dayRegenPrompt ? t('detail.regenerateDay.title', { number: dayRegenPrompt.dayNumber }) : ""}
-      >
-        {dayRegenPrompt && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const { dayNumber, text } = dayRegenPrompt;
-              setDayRegenPrompt(null);
-              void handleDayRegenerate(dayNumber, text);
-            }}
-          >
-            <p className="text-sm text-slate-600">{t('detail.regenerateDay.body')}</p>
-            <label htmlFor="day-regen-instructions" className="mt-4 block text-sm font-medium text-slate-800">
-              {t('detail.regenerateDay.label')}
-            </label>
-            <textarea
-              id="day-regen-instructions"
-              value={dayRegenPrompt.text}
-              onChange={(e) => setDayRegenPrompt({ ...dayRegenPrompt, text: e.target.value })}
-              maxLength={500}
-              rows={3}
-              placeholder={t('detail.regenerateDay.placeholder')}
-              className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-[var(--primary)] focus:outline-none"
-            />
-            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={() => setDayRegenPrompt(null)}
-                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-              >
-                {t('detail.regenerateDay.cancel')}
-              </button>
-              <button
-                type="submit"
-                className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--primary-light)]"
-              >
-                {t('detail.regenerateDay.confirm')}
-              </button>
-            </div>
-          </form>
-        )}
-      </BaseModal>
+      <RegenerateDayDialog
+        prompt={dayRegenPrompt}
+        onChange={setDayRegenPrompt}
+        onRegenerate={(dayNumber, text) => void handleDayRegenerate(dayNumber, text)}
+      />
 
       {/* AI Assistant Sidebar/Bottom Sheet */}
       {canUseAssistant && (
