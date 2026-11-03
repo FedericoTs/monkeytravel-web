@@ -171,6 +171,7 @@ function VibeCard({
     <button
       onClick={onClick}
       disabled={isDisabled}
+      aria-pressed={isSelected}
       className={`
         relative p-4 rounded-xl text-left transition-all duration-300 overflow-hidden min-h-[80px]
         ${
