@@ -1,5 +1,6 @@
 import { test, expect, type APIRequestContext } from "@playwright/test";
 import { visibleWithin } from "./helpers";
+import { serviceCreds } from "./env";
 
 /**
  * The flows that must not break: signup, login, password reset, invitation
@@ -212,18 +213,7 @@ test.describe("signup", () => {
     // Assert on the DATABASE, not the UI: the profile row is what actually
     // broke, and the UI never surfaces its absence.
     const { createClient } = await import("@supabase/supabase-js");
-    const { readFileSync, existsSync } = await import("node:fs");
-    let url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-    let key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-    if ((!url || !key) && existsSync(".env.local")) {
-      for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
-        const m = line.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/);
-        if (!m) continue;
-        const v = m[2].trim().replace(/^["']|["']$/g, "");
-        if (m[1] === "NEXT_PUBLIC_SUPABASE_URL") url ||= v;
-        if (m[1] === "SUPABASE_SERVICE_ROLE_KEY") key ||= v;
-      }
-    }
+    const { url, key } = serviceCreds();
     test.skip(!url || !key, "no service credentials available to verify/clean up");
     const db = createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },

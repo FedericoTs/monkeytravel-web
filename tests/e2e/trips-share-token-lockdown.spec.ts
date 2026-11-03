@@ -1,5 +1,5 @@
 import { test, expect, request as pwRequest } from "@playwright/test";
-import { readFileSync, existsSync } from "node:fs";
+import { envVar } from "./env";
 
 /**
  * trips lockdown — the blanket share_token read must stay closed.
@@ -35,18 +35,7 @@ import { readFileSync, existsSync } from "node:fs";
  */
 
 function anonCreds() {
-  let url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-  let key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-  if ((!url || !key) && existsSync(".env.local")) {
-    for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
-      const m = line.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/);
-      if (!m) continue;
-      const v = m[2].trim().replace(/^["']|["']$/g, "");
-      if (m[1] === "NEXT_PUBLIC_SUPABASE_URL" && !url) url = v;
-      if (m[1] === "NEXT_PUBLIC_SUPABASE_ANON_KEY" && !key) key = v;
-    }
-  }
-  return { url, key };
+  return { url: envVar("NEXT_PUBLIC_SUPABASE_URL"), key: envVar("NEXT_PUBLIC_SUPABASE_ANON_KEY") };
 }
 
 /**
@@ -55,17 +44,8 @@ function anonCreds() {
  * run would leave an "E2E share lockdown probe" row in production.
  */
 function serviceCreds(): { url: string; key: string } | null {
-  let url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-  let key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-  if ((!url || !key) && existsSync(".env.local")) {
-    for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
-      const m = line.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/);
-      if (!m) continue;
-      const v = m[2].trim().replace(/^["']|["']$/g, "");
-      if (m[1] === "NEXT_PUBLIC_SUPABASE_URL" && !url) url = v;
-      if (m[1] === "SUPABASE_SERVICE_ROLE_KEY" && !key) key = v;
-    }
-  }
+  const url = envVar("NEXT_PUBLIC_SUPABASE_URL");
+  const key = envVar("SUPABASE_SERVICE_ROLE_KEY");
   return url && key ? { url, key } : null;
 }
 

@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { existsSync, readFileSync } from "node:fs";
 import draft from "./fixtures/wizard-draft-paris.json";
 import { stubGeneration, stubPlan } from "./generation-stub";
+import { serviceCreds } from "./env";
 
 /**
  * A signed-in planner who comes back to the wizard with an unsaved plan gets it
@@ -32,21 +33,6 @@ type Day = { activities: { id?: string; name: string }[] };
 const AUTH_STATE = process.env.KEY_FLOWS_AUTH_STATE;
 const MANIFEST = ".auth/e2e-fixtures.json";
 const DRAFT_KEY = "monkeytravel-itinerary-draft";
-
-function creds() {
-  let url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-  let key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-  if ((!url || !key) && existsSync(".env.local")) {
-    for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
-      const m = line.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/);
-      if (!m) continue;
-      const v = m[2].trim().replace(/^["']|["']$/g, "");
-      if (m[1] === "NEXT_PUBLIC_SUPABASE_URL") url ||= v;
-      if (m[1] === "SUPABASE_SERVICE_ROLE_KEY") key ||= v;
-    }
-  }
-  return { url, key };
-}
 
 function ownerId(): string | null {
   if (!existsSync(MANIFEST)) return null;
@@ -119,7 +105,7 @@ async function openWithDraft(page: Page, plan: Draft) {
 }
 
 test.describe("wizard: a signed-in planner's unsaved plan", () => {
-  const { url, key } = creds();
+  const { url, key } = serviceCreds();
   const owner = ownerId();
   test.skip(!AUTH_STATE || !owner || !url || !key, "run e2e-fixtures --seed and e2e-login, and set KEY_FLOWS_AUTH_STATE");
   test.use({ storageState: AUTH_STATE });
@@ -269,7 +255,7 @@ test.describe("wizard: a signed-in planner's unsaved plan", () => {
 });
 
 test.describe("wizard: a trip a signed-in planner generates", () => {
-  const { url, key } = creds();
+  const { url, key } = serviceCreds();
   const owner = ownerId();
   test.skip(!AUTH_STATE || !owner || !url || !key, "run e2e-fixtures --seed and e2e-login, and set KEY_FLOWS_AUTH_STATE");
   test.use({ storageState: AUTH_STATE });
@@ -324,7 +310,7 @@ test.describe("wizard: a trip a signed-in planner generates", () => {
 });
 
 test.describe("wizard: a plan shared before signing in", () => {
-  const { url, key } = creds();
+  const { url, key } = serviceCreds();
   const owner = ownerId();
   test.skip(!AUTH_STATE || !owner || !url || !key, "run e2e-fixtures --seed and e2e-login, and set KEY_FLOWS_AUTH_STATE");
   // No storageState: the planner starts signed out and signs in halfway.
@@ -462,7 +448,7 @@ test.describe("wizard: a plan shared before signing in", () => {
 });
 
 test.describe("wizard: the free-generation cap", () => {
-  const { url, key } = creds();
+  const { url, key } = serviceCreds();
   const owner = ownerId();
   test.skip(!AUTH_STATE || !owner || !url || !key, "run e2e-fixtures --seed and e2e-login, and set KEY_FLOWS_AUTH_STATE");
   // No storageState: the planner reaches the cap signed out.
