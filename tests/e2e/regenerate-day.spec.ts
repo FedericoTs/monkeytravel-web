@@ -1,7 +1,8 @@
 /**
  * Regenerating one day of a trip, as a solo owner: the new day replaces the
  * old one and the rest of the plan stays, an edit made just before is saved
- * first and kept, and a refused regeneration says why and changes nothing.
+ * first and kept, Undo takes a regenerated day back, and a refused
+ * regeneration says why and changes nothing, Undo and Redo included.
  *
  * The regenerate call is answered by the test the way the server answers it:
  * the new day is written to the trip with the service client, which moves
@@ -224,5 +225,39 @@ test.describe("regenerate a day", () => {
     await expect(page.getByText("You've reached this month's regeneration limit. Your day is unchanged.").first()).toBeVisible({ timeout: 30_000 });
     await expect(cardIn(page, 2, "r-d2a1")).toBeVisible();
     expect(idsByDay(await stored())).toEqual(idsByDay(itinerary() as Day[]));
+  });
+
+  // The bar's Undo and Redo carry a title; a toast's Undo does not.
+  const undoButton = (page: Page) => page.getByTitle("Undo", { exact: true });
+  const redoButton = (page: Page) => page.getByTitle("Redo", { exact: true });
+
+  test("a regenerated day can be undone", async ({ page }) => {
+    await answerAsServer(page);
+    await openTrip(page, tripId);
+    await regenerateDay2(page);
+    await expect(page.getByText("Day 2 regenerated")).toBeVisible({ timeout: 30_000 });
+    await expect(cardIn(page, 2, "r-new-1")).toBeVisible();
+
+    await undoButton(page).click();
+    await expect(cardIn(page, 2, "r-d2a1")).toBeVisible();
+    await expect.poll(async () => idsByDay(await stored()), { timeout: 30_000 }).toEqual(idsByDay(itinerary() as Day[]));
+  });
+
+  test("a refused regeneration leaves undo and redo as they were", async ({ page }) => {
+    await page.route("**/api/ai/regenerate-day", (route) =>
+      route.fulfill({ status: 429, contentType: "application/json", body: JSON.stringify({ error: { message: "limit" } }) }),
+    );
+    await openTrip(page, tripId);
+    // An edit, undone: nothing left to undo, and the edit to redo.
+    await moveLunchToDay3(page);
+    await undoButton(page).click();
+    await expect(cardIn(page, 1, "r-d1a2")).toBeVisible();
+    await expect(undoButton(page)).toBeDisabled();
+    await expect(redoButton(page)).toBeEnabled();
+
+    await regenerateDay2(page);
+    await expect(page.getByText("You've reached this month's regeneration limit. Your day is unchanged.").first()).toBeVisible({ timeout: 30_000 });
+    await expect(undoButton(page)).toBeDisabled();
+    await expect(redoButton(page)).toBeEnabled();
   });
 });
