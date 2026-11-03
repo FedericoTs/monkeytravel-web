@@ -45,7 +45,6 @@ import {
   captureEditModeEntered,
   captureEditModeSaved,
   captureEditModeDiscarded,
-  captureActivityModified,
 } from "@/lib/posthog/events";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
@@ -68,8 +67,6 @@ import { getCoordinatesForNewActivity, type Coordinates } from "@/lib/utils/geo"
 import {
   ensureActivityIds,
   ensureActivityIdsStable,
-  findActivityById,
-  moveActivityToDay,
   deleteActivity,
   updateActivity,
   replaceActivity,
@@ -77,20 +74,15 @@ import {
   addActivity,
   calculateNextTimeSlot,
   determineTimeSlot,
-  recalculateActivityTimes,
 } from "@/lib/utils/activity-id";
 import AddActivityButton from "@/components/trip/AddActivityButton";
 import SortableActivityCard from "@/components/trip/SortableActivityCard";
-import { hapticSelection } from "@/lib/native/haptics";
 import { useTranslations, useLocale } from "next-intl";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
 import {
   DndContext,
-  DragEndEvent,
-  DragOverEvent,
   DragOverlay,
-  DragStartEvent,
   KeyboardSensor,
   MeasuringStrategy,
   PointerSensor,
@@ -103,7 +95,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { applyMove, describeMove, isSameDayTarget, locateActivity } from "@/lib/trip/itinerary-dnd";
+import { useItineraryMoves } from "@/hooks/useItineraryMoves";
 import {
   ActivityDragGhost,
   DayDropHeader,
@@ -916,20 +908,6 @@ export default function TripDetailClient({
   // day's contents actually change.
   const dayOptions = useMemo(() => dayOptionsOf(editedItinerary), [editedItinerary]);
 
-  // Cross-day drag: while a card is being dragged, the days render from
-  // `dragPreview` (the itinerary with the card already moved to wherever it
-  // is hovering) instead of the saved state, so the plan reflows live and
-  // what you see is what gets committed on drop. Nothing is written — no
-  // undo entry, no auto-save — until the drop.
-  const [dragPreview, setDragPreview] = useState<ItineraryDay[] | null>(null);
-  const [activeDragId, setActiveDragId] = useState<string | null>(null);
-  const dragStartRef = useRef<ItineraryDay[] | null>(null);
-  // The preview as of the last drag-over, read synchronously, and a one-frame
-  // hold after each cross-day step: the step reflows the days under the
-  // pointer, and reacting to that reflow in the same frame bounced the card
-  // between two days until React stopped the update loop.
-  const dragPreviewRef = useRef<ItineraryDay[] | null>(null);
-  const crossDayHoldRef = useRef(false);
   const collisionDetection = useMemo(() => makeItineraryCollisionDetection(), []);
   // Re-measure every droppable on each move. dnd-kit measures droppables once
   // when a drag starts and only re-measures sortable ITEMS when a list
@@ -1015,8 +993,8 @@ export default function TripDetailClient({
     addToast(t(ambientEdit ? "detail.routeOptimized" : "detail.routeOptimizedSave"), "success");
   }, [pushUndo, addToast, ambientEdit, t]);
 
-  // Edit handlers (with undo support). handleActivityMoveToDay and the drag
-  // handlers live further down, after handleFocusDayCard, which they use to
+  // Edit handlers (with undo support). Moves between days come from
+  // useItineraryMoves further down, after handleFocusDayCard, which it uses to
   // scroll to the destination day.
 
   const handleActivityDelete = useCallback((activityId: string) => {
@@ -1091,8 +1069,8 @@ export default function TripDetailClient({
     [editedItinerary, destination, trip.budget?.currency, pushUndo, destinationCoords]
   );
 
-  // Drag-and-drop (within a day and across days) is handled by
-  // handleDragStart/Over/End/Cancel below handleFocusDayCard.
+  // Drag-and-drop (within a day and across days) is useItineraryMoves, below
+  // handleFocusDayCard.
 
   // Handle photo capture from PlaceGallery - persists to database
   const handlePhotoCapture = useCallback(
@@ -1773,147 +1751,15 @@ export default function TripDetailClient({
     aiFocusTimerRef.current = window.setTimeout(() => setAiFocusDay(null), 2200);
   }, []);
 
-  // ── Moving activities between days ──────────────────────────────────────
-  // Two ways in, one commit: drag a card across days (live preview, committed
-  // on drop) or pick a day in the card's "Move to another day" sheet. Both
-  // recalculate the times of the source and destination days, push a single
-  // undo entry, scroll to and flash the destination day, and confirm with a
-  // toast that offers Undo.
-  const firstModificationRef = useRef(true);
-
-  // The toast's Undo fires seconds after the move, from a callback created
-  // BEFORE pushUndo/setEditedItinerary landed — so a captured `undo` would
-  // close over the stack without the move and undo nothing. Always call the
-  // latest one.
-  const undoRef = useRef(undo);
-  useEffect(() => {
-    undoRef.current = undo;
-  }, [undo]);
-
-  const commitMove = useCallback(
-    (
-      next: ItineraryDay[],
-      activityId: string,
-      sourceDayIndex: number,
-      targetDayIndex: number,
-      method: "drag" | "menu",
-    ) => {
-      const targetDayNumber = next[targetDayIndex]?.day_number ?? targetDayIndex + 1;
-      const sourceDayNumber = next[sourceDayIndex]?.day_number ?? sourceDayIndex + 1;
-      pushUndo(`Move activity to day ${targetDayNumber}`);
-      const withSourceTimes = recalculateActivityTimes(next, sourceDayIndex);
-      setEditedItinerary(recalculateActivityTimes(withSourceTimes, targetDayIndex));
-      hapticSelection();
-      handleFocusDayCard(targetDayNumber);
-      addToast(t("editActivity.movedToDay", { day: targetDayNumber }), "success", 6000, {
-        label: t("detail.undo"),
-        onClick: () => undoRef.current(),
-      });
-      captureActivityModified({
-        trip_id: trip.id,
-        activity_id: activityId,
-        modification_type: "move_day",
-        is_first_modification: firstModificationRef.current,
-        day_number: targetDayNumber,
-        from_day_number: sourceDayNumber,
-        method,
-      });
-      firstModificationRef.current = false;
-    },
-    [pushUndo, handleFocusDayCard, addToast, t, trip.id],
-  );
-
-  // The sheet path: land in the chronological slot of the chosen day, so a
-  // morning activity stays a morning activity.
-  const handleActivityMoveToDay = useCallback(
-    (activityId: string, targetDayIndex: number) => {
-      const location = findActivityById(editedItinerary, activityId);
-      if (!location || location.dayIndex === targetDayIndex) return;
-      const moved = moveActivityToDay(editedItinerary, activityId, targetDayIndex, "auto");
-      if (moved === editedItinerary) return;
-      commitMove(moved, activityId, location.dayIndex, targetDayIndex, "menu");
-    },
-    [editedItinerary, commitMove],
-  );
-
-  const handleDragStart = useCallback(
-    (event: DragStartEvent) => {
-      dragStartRef.current = editedItinerary;
-      dragPreviewRef.current = editedItinerary;
-      setDragPreview(editedItinerary);
-      setActiveDragId(String(event.active.id));
-      hapticSelection();
-    },
-    [editedItinerary],
-  );
-
-  // Cross-day steps are applied to the preview as the card is dragged over
-  // another day, so its cards part to make room. Within the card's own day,
-  // dnd-kit's sortable strategy already animates the reorder; the final
-  // order is committed once, on drop.
-  const handleDragOver = useCallback((event: DragOverEvent) => {
-    const { active, over } = event;
-    const prev = dragPreviewRef.current;
-    if (!over || !prev || crossDayHoldRef.current) return;
-    const activeId = String(active.id);
-    if (isSameDayTarget(prev, activeId, over.id)) return;
-    const activeTop = active.rect.current.translated?.top;
-    const after = activeTop !== undefined && over.rect ? activeTop > over.rect.top + over.rect.height / 2 : false;
-    const next = applyMove(prev, activeId, over.id, { after });
-    if (next === prev) return;
-    dragPreviewRef.current = next;
-    setDragPreview(next);
-    crossDayHoldRef.current = true;
-    requestAnimationFrame(() => {
-      crossDayHoldRef.current = false;
-    });
-  }, []);
-
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-      const start = dragStartRef.current;
-      const preview = dragPreview;
-      dragStartRef.current = null;
-      dragPreviewRef.current = null;
-      setDragPreview(null);
-      setActiveDragId(null);
-      if (!start || !preview) return;
-
-      const activeId = String(active.id);
-      const settled = over ? applyMove(preview, activeId, over.id) : preview;
-      const move = describeMove(start, settled, activeId);
-      const from = locateActivity(start, activeId);
-      const to = locateActivity(settled, activeId);
-      if (!move || !from || !to) return;
-
-      if (move.crossedDays) {
-        commitMove(settled, activeId, move.sourceDayIndex, move.targetDayIndex, "drag");
-        return;
-      }
-      if (from.index === to.index) return; // dropped where it started
-
-      pushUndo("Reorder activities");
-      setEditedItinerary(recalculateActivityTimes(settled, move.targetDayIndex));
-      hapticSelection();
-    },
-    [dragPreview, commitMove, pushUndo],
-  );
-
-  const handleDragCancel = useCallback(() => {
-    dragStartRef.current = null;
-    dragPreviewRef.current = null;
-    setDragPreview(null);
-    setActiveDragId(null);
-  }, []);
-
-  // The card the DragOverlay ghost shows while dragging.
-  const activeDragActivity = useMemo(() => {
-    if (!activeDragId) return null;
-    const source = dragPreview ?? editedItinerary;
-    const loc = locateActivity(source, activeDragId);
-    return loc ? source[loc.dayIndex].activities[loc.index] : null;
-  }, [activeDragId, dragPreview, editedItinerary]);
+  // Moving activities between days, by drag or by the card's sheet.
+  const moves = useItineraryMoves({
+    tripId: trip.id,
+    itinerary: editedItinerary,
+    setItinerary: setEditedItinerary,
+    pushUndo,
+    undo,
+    focusDay: handleFocusDayCard,
+  });
 
   // Render from state, not trip.itinerary: the prop is the server-rendered
   // copy and goes stale after any save, so an applied edit would vanish the
@@ -2635,13 +2481,13 @@ export default function TripDetailClient({
             sensors={sensors}
             collisionDetection={collisionDetection}
             measuring={dndMeasuring}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDragEnd={handleDragEnd}
-            onDragCancel={handleDragCancel}
+            onDragStart={moves.onDragStart}
+            onDragOver={moves.onDragOver}
+            onDragEnd={moves.onDragEnd}
+            onDragCancel={moves.onDragCancel}
           >
           <div className="space-y-8" key={`itinerary-v${renderEpoch}`}>
-            {(dragPreview ?? displayItinerary)
+            {(moves.preview ?? displayItinerary)
               // dayIndex is the day's place in the whole trip, which the edit
               // handlers index by; with a day selected it's the only one shown.
               .map((day, dayIndex) => ({ day, dayIndex }))
@@ -2674,7 +2520,7 @@ export default function TripDetailClient({
                     </div>
                   )}
                   {/* Day Header — a drop target while a card is being dragged (lands at the start of this day) */}
-                  <DayDropHeader dayNumber={day.day_number} dragging={activeDragId !== null}>
+                  <DayDropHeader dayNumber={day.day_number} dragging={moves.dragging}>
                   <DayHeader
                     dayNumber={day.day_number}
                     title={t('day.label', { number: day.day_number })}
@@ -2747,7 +2593,7 @@ export default function TripDetailClient({
                           )}
                           <DayDropList
                             dayNumber={day.day_number}
-                            dragging={activeDragId !== null}
+                            dragging={moves.dragging}
                             isEmpty={day.activities.length === 0}
                           >
                             <SortableContext
@@ -2776,7 +2622,7 @@ export default function TripDetailClient({
                                         isEditMode={true}
                                         onDelete={() => handleActivityDelete(activity.id!)}
                                         onUpdate={(updates) => handleActivityUpdate(activity.id!, updates)}
-                                        onMoveToDay={(targetDayIdx) => handleActivityMoveToDay(activity.id!, targetDayIdx)}
+                                        onMoveToDay={(targetDayIdx) => moves.moveToDay(activity.id!, targetDayIdx)}
                                         onRegenerate={() => handleActivityRegenerate(activity.id!, dayIndex)}
                                         availableDays={availableDays}
                                         dayOptions={dayOptions}
@@ -2930,7 +2776,7 @@ export default function TripDetailClient({
           </div>
           {/* The card that follows the pointer; the source card stays as a faded placeholder. */}
           <DragOverlay dropAnimation={{ duration: 200, easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)" }}>
-            <ActivityDragGhost activity={activeDragActivity} />
+            <ActivityDragGhost activity={moves.draggedActivity} />
           </DragOverlay>
           </DndContext>
         ) : (
