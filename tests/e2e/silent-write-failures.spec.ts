@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync, existsSync } from "node:fs";
 import { visibleWithin } from "./helpers";
+import { serviceCreds } from "./env";
 
 /**
  * Writes that reported success without verifying it, and model output shown as
@@ -19,24 +20,9 @@ import { visibleWithin } from "./helpers";
 
 const MANIFEST = ".auth/e2e-fixtures.json";
 
-function creds() {
-  let url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-  let key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-  if ((!url || !key) && existsSync(".env.local")) {
-    for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
-      const m = line.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/);
-      if (!m) continue;
-      const v = m[2].trim().replace(/^["']|["']$/g, "");
-      if (m[1] === "NEXT_PUBLIC_SUPABASE_URL") url ||= v;
-      if (m[1] === "SUPABASE_SERVICE_ROLE_KEY") key ||= v;
-    }
-  }
-  return { url, key };
-}
-
 async function db() {
   const { createClient } = await import("@supabase/supabase-js");
-  const { url, key } = creds();
+  const { url, key } = serviceCreds();
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -105,7 +91,7 @@ async function clearOverlays(page: import("@playwright/test").Page) {
 
 test.describe("a packing tick that cannot save must say so", () => {
   test.skip(!manifest, "no fixtures — run scripts/e2e-fixtures.mts --seed");
-  test.skip(!creds().url || !creds().key, "no service credentials");
+  test.skip(!serviceCreds().url || !serviceCreds().key, "no service credentials");
 
   /**
    * This spec builds its own trip rather than using the shared fixture.
@@ -119,7 +105,7 @@ test.describe("a packing tick that cannot save must say so", () => {
   let ownTripId = "";
 
   test.beforeAll(async () => {
-    if (!manifest || !creds().url || !creds().key) return;
+    if (!manifest || !serviceCreds().url || !serviceCreds().key) return;
     const sb = await db();
     const start = new Date(Date.now() + 20 * 86_400_000).toISOString().slice(0, 10);
     const end = new Date(Date.now() + 22 * 86_400_000).toISOString().slice(0, 10);
@@ -281,7 +267,7 @@ test.describe("the destination hero states no temperature it invented", () => {
 });
 
 test.describe("the referral sync reaches the referrer's row", () => {
-  test.skip(!creds().url || !creds().key, "no service credentials");
+  test.skip(!serviceCreds().url || !serviceCreds().key, "no service credentials");
 
   /**
    * lib/referral/completion.ts updated the REFERRER's users row through the

@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync, existsSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
+import { serviceCreds } from "./env";
 
 /**
  * A signed-in user whose PostHog never loads must still keep their trip.
@@ -28,21 +29,6 @@ import { createClient } from "@supabase/supabase-js";
 
 const MANIFEST = ".auth/e2e-fixtures.json";
 
-function creds() {
-  let url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-  let key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-  if ((!url || !key) && existsSync(".env.local")) {
-    for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
-      const m = line.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/);
-      if (!m) continue;
-      const v = m[2].trim().replace(/^["']|["']$/g, "");
-      if (m[1] === "NEXT_PUBLIC_SUPABASE_URL" && !url) url = v;
-      if (m[1] === "SUPABASE_SERVICE_ROLE_KEY" && !key) key = v;
-    }
-  }
-  return { url, key };
-}
-
 function ownerId(): string {
   const raw = JSON.parse(readFileSync(MANIFEST, "utf8"));
   const id = raw.owner?.id ?? raw.users?.owner?.id ?? raw.owner?.userId;
@@ -63,7 +49,7 @@ test.describe("auto-save survives an unresolved PostHog flag", () => {
   }) => {
     test.setTimeout(240_000); // AI generation is allowed up to 120s server-side
 
-    const { url, key } = creds();
+    const { url, key } = serviceCreds();
     test.skip(!url || !key, "service credentials unavailable");
     const db = createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },

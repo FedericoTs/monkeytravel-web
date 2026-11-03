@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync, existsSync } from "node:fs";
 import { visibleWithin } from "./helpers";
+import { serviceCreds } from "./env";
 
 /**
  * The AI assistant must never say it changed the trip unless it did.
@@ -54,24 +55,9 @@ import { visibleWithin } from "./helpers";
 const AUTH_STATE = process.env.ASSISTANT_AUTH_STATE ?? ".auth/owner.json";
 const MANIFEST = ".auth/e2e-fixtures.json";
 
-function creds() {
-  let url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-  let key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-  if ((!url || !key) && existsSync(".env.local")) {
-    for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
-      const m = line.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/);
-      if (!m) continue;
-      const v = m[2].trim().replace(/^["']|["']$/g, "");
-      if (m[1] === "NEXT_PUBLIC_SUPABASE_URL") url ||= v;
-      if (m[1] === "SUPABASE_SERVICE_ROLE_KEY") key ||= v;
-    }
-  }
-  return { url, key };
-}
-
 async function db() {
   const { createClient } = await import("@supabase/supabase-js");
-  const { url, key } = creds();
+  const { url, key } = serviceCreds();
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -195,13 +181,13 @@ async function lastReply(page: Page): Promise<string> {
 test.describe("assistant honesty", () => {
   test.use({ storageState: AUTH_STATE });
   test.skip(!ownerId, "no fixture owner — run scripts/e2e-fixtures.mts --seed");
-  test.skip(!creds().url || !creds().key, "no service credentials to assert on the database");
+  test.skip(!serviceCreds().url || !serviceCreds().key, "no service credentials to assert on the database");
 
   let before: string[] = [];
   let snapshot: unknown = null;
 
   test.beforeAll(async () => {
-    if (!ownerId || !creds().url || !creds().key) return;
+    if (!ownerId || !serviceCreds().url || !serviceCreds().key) return;
     const sb = await db();
     const start = new Date(Date.now() + 21 * 86_400_000).toISOString().slice(0, 10);
     const end = new Date(Date.now() + 23 * 86_400_000).toISOString().slice(0, 10);

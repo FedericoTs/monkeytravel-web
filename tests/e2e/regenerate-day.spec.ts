@@ -13,20 +13,12 @@
  *     npx playwright test tests/e2e/regenerate-day.spec.ts --project=chromium
  */
 import { test, expect, type Page } from "@playwright/test";
-import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { envVar } from "./env";
 
-const env: Record<string, string> = {};
-if (existsSync(".env.local")) {
-  for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
-    const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
-    if (m) env[m[1]] = m[2].replace(/^["']|["']$/g, "");
-  }
-}
-const need = (k: string) => process.env[k] ?? env[k] ?? "";
-const SUPA_URL = need("NEXT_PUBLIC_SUPABASE_URL");
-const SERVICE_KEY = need("SUPABASE_SERVICE_ROLE_KEY");
+const SUPA_URL = envVar("NEXT_PUBLIC_SUPABASE_URL");
+const SERVICE_KEY = envVar("SUPABASE_SERVICE_ROLE_KEY");
 const FIXTURE_TRIP_ID = process.env.KEY_FLOWS_TRIP_ID;
 const AUTH_STATE = process.env.KEY_FLOWS_AUTH_STATE;
 

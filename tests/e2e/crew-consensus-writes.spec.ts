@@ -1,5 +1,6 @@
 import { test, expect, request as pwRequest } from "@playwright/test";
 import { readFileSync, existsSync } from "node:fs";
+import { serviceCreds } from "./env";
 
 /**
  * When a crew approves a proposal, the activity must actually reach the trip.
@@ -42,24 +43,9 @@ import { readFileSync, existsSync } from "node:fs";
 
 const MANIFEST = ".auth/e2e-fixtures.json";
 
-function creds() {
-  let url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-  let key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-  if ((!url || !key) && existsSync(".env.local")) {
-    for (const line of readFileSync(".env.local", "utf8").split(/\r?\n/)) {
-      const m = line.match(/^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/);
-      if (!m) continue;
-      const v = m[2].trim().replace(/^["']|["']$/g, "");
-      if (m[1] === "NEXT_PUBLIC_SUPABASE_URL") url ||= v;
-      if (m[1] === "SUPABASE_SERVICE_ROLE_KEY") key ||= v;
-    }
-  }
-  return { url, key };
-}
-
 async function db() {
   const { createClient } = await import("@supabase/supabase-js");
-  const { url, key } = creds();
+  const { url, key } = serviceCreds();
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -85,7 +71,7 @@ test.describe("crew consensus actually writes", () => {
   // activity land at once and the "added exactly once" check sees both.
   test.describe.configure({ mode: "serial" });
   test.skip(!tripId, "no fixture trip — run scripts/e2e-fixtures.mts --seed");
-  test.skip(!creds().url || !creds().key, "no service credentials to assert on the database");
+  test.skip(!serviceCreds().url || !serviceCreds().key, "no service credentials to assert on the database");
 
   let snapshot: unknown = null;
   let proposalId = "";
