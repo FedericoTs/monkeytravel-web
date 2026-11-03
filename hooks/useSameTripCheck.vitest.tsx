@@ -56,6 +56,15 @@ describe("useSameTripCheck", () => {
     expect(result.current).toMatchObject({ awaiting: false, replaceTripId: "trip-1" });
   });
 
+  it("asks again after the answer is dropped, as Start Over does", async () => {
+    lookup.mockResolvedValue(TWIN);
+    const { result } = renderHook(() => useSameTripCheck(PARIS, true));
+    await waitFor(() => expect(result.current.twin).toEqual(TWIN));
+    act(() => result.current.choose("trip-1"));
+    act(() => result.current.forget());
+    expect(result.current).toMatchObject({ awaiting: true, replaceTripId: null });
+  });
+
   it("saves a separate trip when the planner says so", async () => {
     lookup.mockResolvedValue(TWIN);
     const { result } = renderHook(() => useSameTripCheck(PARIS, true));

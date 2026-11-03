@@ -1940,7 +1940,7 @@ export default function NewTripPage({
       await autoSave.discard();
     }
     // Planning the same trip again asks again, instead of reusing this choice.
-    setTwinChoice(null);
+    sameTrip.forget();
     clearDraft();
     // Nothing is displayed after Start Over — drop the
     // session stack's current pointer. The stacked snapshots themselves

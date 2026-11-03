@@ -13,6 +13,8 @@ export interface SameTripCheck {
   replaceTripId: string | null;
   /** The planner's answer: a trip id to update it, null to save a separate trip. */
   choose: (replaceTripId: string | null) => void;
+  /** Drops the answer, so planning the same trip again asks again. */
+  forget: () => void;
 }
 
 /**
@@ -63,5 +65,6 @@ export function useSameTripCheck(
     choose: (replaceTripId) => {
       if (key) setChoice({ key, replaceTripId });
     },
+    forget: () => setChoice(null),
   };
 }
