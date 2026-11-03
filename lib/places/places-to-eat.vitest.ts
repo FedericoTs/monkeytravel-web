@@ -199,17 +199,30 @@ describe("placesToEatCheck", () => {
     expect(searchedFor()).toEqual(["Ao 26 - Vegan Food Project, Lisbon, Portugal", "Arkhe, Lisbon, Portugal", "Plant Base, Lisbon, Portugal"]);
   });
 
-  it("asks for options twice, then leaves the place out", async () => {
+  it("asks for options twice, then keeps a place Maps doesn't have, marked unverified", async () => {
     answers({ "Vegana Burgers": [place("Plant Base")], "Las Vegan": [place("Las Vegan", "CLOSED_TEMPORARILY")], "Princesa do Castelo": [place("Princesa do Castelo", "CLOSED_PERMANENTLY")] });
     options.mockResolvedValueOnce([activity("Las Vegan (Chiado)")]).mockResolvedValueOnce([activity("Princesa do Castelo")]);
     const plan = [day(activity("Lunch at Vegana Burgers"), activity("Castelo de São Jorge", { type: "landmark" }))];
 
     const result = await check().finish(plan);
 
-    expect(plan[0].activities.map((a) => a.name)).toEqual(["Castelo de São Jorge"]);
-    expect(result).toMatchObject({ checked: 1, missing: 1, replaced: 0, dropped: 1 });
+    expect(plan[0].activities.map((a) => a.name)).toEqual(["Lunch at Vegana Burgers", "Castelo de São Jorge"]);
+    expect(plan[0].activities[0].unverified).toBe(true);
+    expect(plan[0].activities[1].unverified).toBeUndefined();
+    expect(result).toMatchObject({ checked: 1, missing: 1, replaced: 0, dropped: 0, kept: 1 });
     expect(options).toHaveBeenCalledTimes(2);
     expect(options.mock.calls[1][0].existingActivityNames).toEqual(expect.arrayContaining(["Lunch at Vegana Burgers", "Las Vegan (Chiado)"]));
+  });
+
+  it("leaves out a place Maps has closed when no open one is found", async () => {
+    answers({ Arkhe: [place("arkhe", "CLOSED_PERMANENTLY")], "Las Vegan": [place("Las Vegan", "CLOSED_TEMPORARILY")], "Princesa do Castelo": [place("Princesa do Castelo", "CLOSED_PERMANENTLY")] });
+    options.mockResolvedValueOnce([activity("Las Vegan (Chiado)")]).mockResolvedValueOnce([activity("Princesa do Castelo")]);
+    const plan = [day(activity("Dinner at Arkhe"), activity("Castelo de São Jorge", { type: "landmark" }))];
+
+    const result = await check().finish(plan);
+
+    expect(plan[0].activities.map((a) => a.name)).toEqual(["Castelo de São Jorge"]);
+    expect(result).toMatchObject({ checked: 1, closed: 1, replaced: 0, dropped: 1, kept: 0 });
   });
 
   it("keeps a place Google didn't answer for", async () => {

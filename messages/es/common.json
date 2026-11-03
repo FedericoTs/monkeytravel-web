@@ -221,7 +221,8 @@
     "loadingPhotos": "Cargando fotos...",
     "noPhotos": "No hay fotos disponibles",
     "regeneratingActivity": "Regenerando actividad con AI...",
-    "savedInTrips": "{count, plural, one {En # viaje guardado} other {En # viajes guardados}}"
+    "savedInTrips": "{count, plural, one {En # viaje guardado} other {En # viajes guardados}}",
+    "unverified": "Sin verificar en Google Maps: comprueba que esté abierto antes de ir."
   },
   "trip": {
     "cards": "Tarjetas",

@@ -3,7 +3,9 @@
  * shown. The model names them from memory, and the small places a diet sends
  * it to close and move more often than the sights it knows. In place of one
  * Maps has as closed, or doesn't have, the model offers a few others, and the
- * first Maps has open takes its place; when none is, it leaves the plan.
+ * first Maps has open takes its place. When none is, a closed place leaves the
+ * plan, and one Maps doesn't have stays, marked unverified: not finding a small
+ * place is no proof it's gone.
  *
  * Nothing Google answers is kept or shown: the lookup only decides which of
  * the model's places stay.
@@ -223,8 +225,10 @@ export interface PlacesToEatResult {
   missing: number;
   /** Written again as an open place. */
   replaced: number;
-  /** Left out: no try found an open place. */
+  /** Closed on Maps, and no try found an open place: left out. */
   dropped: number;
+  /** Not on Maps, and no try found an open place: kept, marked unverified. */
+  kept: number;
   /** Searches Google didn't answer, or past the plan's share: those places stay as written. */
   unanswered: number;
   /** What the model's tries cost. */
@@ -238,8 +242,9 @@ export interface PlacesToEatCheck {
   look(day: DayInPlan): void;
   /**
    * Every place to eat in `days` looked up, and those closed or missing replaced
-   * by open ones or left out, in place. A new place repeats none in `others`, the rest
-   * of the trip.
+   * by open ones, in place. With none found, a closed one is left out and a missing
+   * one kept, marked unverified. A new place repeats none in `others`, the rest of
+   * the trip.
    */
   finish(days: ItineraryDay[], others?: ItineraryDay[]): Promise<PlacesToEatResult>;
 }
@@ -328,11 +333,11 @@ export function placesToEatCheck(opts: PlacesToEatOptions): PlacesToEatCheck | n
     },
 
     async finish(days, others = []) {
-      const result: PlacesToEatResult = { checked: 0, closed: 0, missing: 0, replaced: 0, dropped: 0, unanswered: 0, costUsd: 0 };
+      const result: PlacesToEatResult = { checked: 0, closed: 0, missing: 0, replaced: 0, dropped: 0, kept: 0, unanswered: 0, costUsd: 0 };
       // The trip as written in full, in place of the days as they came.
       names.splice(0, names.length, ...[...days, ...others].flatMap((d) => (d.activities ?? []).map((a) => a.name)));
 
-      const bad: { day: ItineraryDay; activity: Activity; area: string }[] = [];
+      const bad: { day: ItineraryDay; activity: Activity; area: string; status: "closed" | "missing" }[] = [];
       await Promise.all(
         days.flatMap((day) =>
           day.activities.filter(isPlaceToEat).map(async (activity) => {
@@ -346,7 +351,7 @@ export function placesToEatCheck(opts: PlacesToEatOptions): PlacesToEatCheck | n
             const status = placeStatus(activity, places);
             if (status === "open") return;
             result[status]++;
-            bad.push({ day, activity, area });
+            bad.push({ day, activity, area, status });
           }),
         ),
       );
@@ -367,12 +372,15 @@ export function placesToEatCheck(opts: PlacesToEatOptions): PlacesToEatCheck | n
           .map(async ({ day, activity, area }) => instead.set(activity, await openInstead(activity, day, area))),
       );
 
-      for (const { day, activity } of bad) {
+      for (const { day, activity, status } of bad) {
         const fresh = instead.get(activity);
         const at = day.activities.indexOf(activity);
         if (fresh) {
           day.activities[at] = fresh;
           result.replaced++;
+        } else if (status === "missing") {
+          day.activities[at] = { ...activity, unverified: true };
+          result.kept++;
         } else {
           day.activities.splice(at, 1);
           result.dropped++;

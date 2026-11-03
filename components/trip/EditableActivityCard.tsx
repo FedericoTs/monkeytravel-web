@@ -12,6 +12,7 @@ import { PhotoCredit } from "../ui/PhotoCredit";
 import { CalendarDays, Pencil, Sparkles, Trash2 } from "lucide-react";
 import TripActionsMenu, { TripActionsMenuItem } from "./TripActionsMenu";
 import MoveToDaySheet, { type MoveToDayOption } from "./MoveToDaySheet";
+import UnverifiedNote from "./UnverifiedNote";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { ActivityCardDetails, ActivityKindIcon } from "./ActivityCardParts";
 import { Spinner } from "@/components/ui/Spinner";
@@ -402,6 +403,7 @@ function EditableActivityCard({
                     {activity.description}
                   </p>
                 )}
+                <UnverifiedNote activity={activity} />
 
                 {/* Location */}
                 <div className="flex items-start gap-2 mt-2 text-sm text-slate-500">
