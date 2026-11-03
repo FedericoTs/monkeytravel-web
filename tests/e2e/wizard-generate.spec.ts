@@ -83,6 +83,12 @@ test.describe("wizard: planning a trip", () => {
     await isolate(page);
     // After the catch-all: the last route registered is asked first.
     const generation = await stubGeneration(page);
+    // The funnel rows the wizard sends (wizard_step_events), in order.
+    const funnel: { step: string; [field: string]: unknown }[] = [];
+    await page.route("**/api/wizard-event", (route) => {
+      funnel.push(route.request().postDataJSON());
+      return route.fulfill({ status: 204, body: "" });
+    });
 
     await page.goto("/trips/new");
     const essentialOnly = page.getByRole("button", { name: /essential only/i });
@@ -129,6 +135,31 @@ test.describe("wizard: planning a trip", () => {
     await expect(accountWall).toHaveCount(0);
     await page.getByRole("button", { name: /Save Trip/ }).first().click();
     await expect(accountWall.first()).toBeVisible({ timeout: 5_000 });
+
+    // One row per stage, each with the trip's shape; the dwell heartbeat on
+    // step 1 depends on time and is left out. No `abandoned`: the planner
+    // generated.
+    await expect
+      .poll(() => funnel.map((e) => e.step).filter((step) => step !== "step1_heartbeat"))
+      .toEqual([
+        "step_1_destination_dates",
+        "step_2_vibes",
+        "generating",
+        "result",
+        "first_value",
+        "save_clicked",
+        "save_blocked_anon",
+        "auth_modal_shown",
+      ]);
+    const row = (step: string) => funnel.find((e) => e.step === step);
+    const shape = { destination: place, group_size: "unspecified", backpacker_mode: false, locale: "en", front_door: "wizard" };
+    expect(row("step_1_destination_dates")).toMatchObject({ locale: "en", front_door: "wizard" });
+    for (const step of ["step_2_vibes", "generating", "result", "save_clicked"]) {
+      expect(row(step), step).toMatchObject({ ...shape, duration_days: 5 });
+    }
+    expect(row("first_value")).toMatchObject({ destination: place, duration_days: 5, locale: "en" });
+    expect(row("save_blocked_anon")).toMatchObject(shape);
+    expect(row("auth_modal_shown")).toMatchObject({ destination: place, front_door: "wizard" });
   });
 
   test("switching back to an earlier plan in the session tray brings back its own answers", async ({ page }) => {
