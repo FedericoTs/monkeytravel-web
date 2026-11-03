@@ -20,7 +20,8 @@ import TodayView from "@/components/trip/TodayView";
 import { useLiveTripState } from "@/lib/trip/useLiveTripState";
 import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
 import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
-import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
+import DayHeader from "@/components/trip/DayHeader";
+import DayActions from "@/components/trip/DayActions";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 // TravelAdvisoryBanner / ExpenseLedger / TripConciergeChat are loaded with
@@ -1487,46 +1488,17 @@ export default function TripDetailClient({
                     theme={day.theme}
                     editing={isEditMode}
                   >
-                    <div className="ml-auto flex items-center gap-3">
-                      {/* Regenerate Day Button - icon-only; owner only; subtle */}
-                      {userRole === "owner" && (
-                        <button
-                          type="button"
-                          onClick={() => setDayRegenPrompt({ dayNumber: day.day_number, text: "" })}
-                          disabled={regeneratingDayNumber !== null}
-                          className="flex items-center justify-center w-8 h-8 rounded-lg
-                                     text-slate-500 hover:text-[var(--primary-ink)] hover:bg-slate-100
-                                     disabled:opacity-50 disabled:cursor-not-allowed
-                                     transition-colors"
-                          title={t('detail.regenerateDay.button', { number: day.day_number })}
-                          aria-label={t('detail.regenerateDay.button', { number: day.day_number })}
-                        >
-                          <RefreshCw
-                            className={`w-4 h-4 ${regeneratingDayNumber === day.day_number ? "animate-spin" : ""}`}
-                          />
-                        </button>
-                      )}
-                      {/* Optimize Route Button - only show while editing with 3+ activities */}
-                      {editingActive && day.activities.length >= 3 && (
-                        <button
-                          onClick={() => openRouteOptimization(day.day_number, day.activities)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium
-                                     text-emerald-700 bg-emerald-50 hover:bg-emerald-100
-                                     rounded-lg transition-colors border border-emerald-200"
-                          title={t('detail.optimizeRoute')}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                              d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                          </svg>
-                          <span className="hidden sm:inline">{t('detail.optimizeRoute')}</span>
-                          <span className="sm:hidden">{t('detail.optimize')}</span>
-                        </button>
-                      )}
-                      {showsDayBudget(day) && (
-                        <DayBudget label={t('detail.estBudget')} value={formatDayBudget(day)} className="text-right" />
-                      )}
-                    </div>
+                    <DayActions
+                      dayNumber={day.day_number}
+                      regeneratingDayNumber={regeneratingDayNumber}
+                      onRegenerate={userRole === "owner" ? () => setDayRegenPrompt({ dayNumber: day.day_number, text: "" }) : null}
+                      onOptimizeRoute={
+                        editingActive && day.activities.length >= 3
+                          ? () => openRouteOptimization(day.day_number, day.activities)
+                          : null
+                      }
+                      budget={showsDayBudget(day) ? formatDayBudget(day) : null}
+                    />
                   </DayHeader>
                   </DayDropHeader>
 
