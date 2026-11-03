@@ -233,6 +233,7 @@ import { reportTripSaved } from "@/lib/wizard/trip-saved";
 import { usePostHog } from "@/lib/posthog";
 import { landingAttribution, trackWizardEvent, type WizardEventStep } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip, type AutoSaveSkipReason } from "@/hooks/useAutoSaveTrip";
+import { useDwellHeartbeat } from "@/hooks/useDwellHeartbeat";
 import { useHasExistingTrips } from "@/hooks/useHasExistingTrips";
 import { isSameDestination } from "@/lib/trips/sameDestination";
 import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate";
@@ -801,32 +802,10 @@ export default function NewTripPage({
 
   // ── Step-1 dwell heartbeat ───────────────────────────────────────────────
   // Many step-1 abandoners log a single event, so their dwell (bounce in <2s
-  // vs deliberate struggle) is unmeasurable. A 10s heartbeat while the session
-  // sits on step 1 turns them into a time series. Fire-and-forget via the
-  // wizard-event sink; the 10s spacing never collides with the 1s dedupe
-  // bucket (distinct rows = the dwell signal we want).
-  //
-  // Capped, because a backgrounded tab would otherwise beat every 10s for
-  // hours and swamp wizard-event traffic: (1) skip the beat while the tab is
-  // hidden — a backgrounded wizard is not "dwelling" — and (2) stop after 18
-  // *visible* beats (~3 min). Past that it's a parked tab, not a struggling
-  // user, so ">3 min" collapses into one bucket with no loss of signal.
-  useEffect(() => {
-    if (step !== 1) return;
-    const MAX_BEATS = 18; // ~3 min of visible dwell, then the signal is saturated
-    let beats = 0;
-    const id = setInterval(() => {
-      // A hidden/backgrounded tab is not deliberating — don't beacon, don't
-      // count it. A user who tabs away and back still gets a truthful count.
-      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
-        return;
-      }
-      void trackWizardEvent("step1_heartbeat", { locale });
-      if (++beats >= MAX_BEATS) clearInterval(id);
-    }, 10000);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  // vs deliberate struggle) is unmeasurable. A heartbeat while the session
+  // sits on step 1 turns them into a time series; the 10s spacing never
+  // collides with the wizard-event sink's 1s dedupe bucket.
+  useDwellHeartbeat(step === 1, () => void trackWizardEvent("step1_heartbeat", { locale }));
 
   // ── Wizard funnel diagnostics ────────────────────────────────────────────
   // These refs + the abandonment listener record how far an abandoning
