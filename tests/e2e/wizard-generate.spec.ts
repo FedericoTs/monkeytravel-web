@@ -229,3 +229,28 @@ test.describe("wizard: planning a trip", () => {
     await expect.poll(() => groupSizes).toEqual(["group", "unspecified"]);
   });
 });
+
+test.describe("wizard: planning a trip on a phone", () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test("the bottom bar's Start Over is named, and starts over", async ({ page }) => {
+    await isolate(page);
+    await page.route("**/api/trips/*/deletion-feedback", (route) => route.fulfill({ status: 204, body: "" }));
+    await stubGeneration(page);
+
+    await page.goto("/trips/new");
+    const essentialOnly = page.getByRole("button", { name: /essential only/i });
+    await essentialOnly
+      .waitFor({ state: "visible", timeout: 4_000 })
+      .then(() => essentialOnly.click())
+      .catch(() => {});
+
+    const picks = page.getByRole("group", { name: "Popular right now" }).getByRole("button");
+    await planPick(page, picks.nth(0), "Lunch at the market");
+    // The header's Start Over is hidden at this width: this is the bar's icon.
+    await page.getByRole("button", { name: "Start Over" }).click();
+    await page.getByLabel("What didn't work?").selectOption("wrong_destination");
+    await page.getByRole("button", { name: "Start Fresh" }).click();
+    await expect(page.getByRole("group", { name: "Popular right now" })).toBeVisible();
+  });
+});
