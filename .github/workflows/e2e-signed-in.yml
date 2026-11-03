@@ -88,6 +88,7 @@ jobs:
             tests/e2e/crew-consensus-writes.spec.ts \
             tests/e2e/expense-ledger.spec.ts \
             tests/e2e/itinerary-conflict.spec.ts \
+            tests/e2e/regenerate-activity.spec.ts \
             tests/e2e/silent-write-failures.spec.ts \
             tests/e2e/trip-status.spec.ts \
             tests/e2e/wizard-signed-in-save.spec.ts
