@@ -64,16 +64,14 @@ const REQUIREMENTS_MAX = 500;
 //   1. preloadResultViewChunks() fetches them during generation so they are
 //      already warm when the result renders (the real fix);
 //   2. the two that dominate the shift carry a correctly sized `loading` box,
-//      so a slow network degrades to a skeleton instead of a jump.
+//      so a slow network degrades to a skeleton instead of a jump: the hero's
+//      below, and the activity card's (components/wizard/ResultItinerary.tsx).
 // Heights are measured off the live components, not guessed:
 //   hero  — the image box (h-64 md:h-80 lg:h-96 in DestinationHero), the tag
 //           chips hanging off its bottom edge, and from sm the gallery row the
 //           hero reserves while it fetches (thumbnail minus its -mt-6)
-//   card  — 363px at 375w, 324px at 1280w
-// The card is SHORTER on desktop despite its taller image (h-40 vs h-32)
-// because the description wraps to fewer lines. Re-measure before touching
-// either number: a placeholder of the WRONG height creates a shift instead of
-// preventing one.
+// Re-measure before touching it: a placeholder of the WRONG height creates a
+// shift instead of preventing one.
 const HeroSkeleton = () => (
   <div aria-hidden="true">
     <div className="h-64 md:h-80 lg:h-96 w-full bg-slate-100 animate-pulse" />
@@ -81,19 +79,9 @@ const HeroSkeleton = () => (
     <div className="hidden sm:block sm:h-10 md:h-14" />
   </div>
 );
-const ActivityCardSkeleton = () => (
-  <div
-    className="h-[363px] sm:h-[324px] w-full rounded-xl bg-slate-100 animate-pulse"
-    aria-hidden="true"
-  />
-);
 const DestinationHero = dynamic(() => import("@/components/DestinationHero"), {
   ssr: false,
   loading: () => <HeroSkeleton />,
-});
-const ActivityCard = dynamic(() => import("@/components/ActivityCard"), {
-  ssr: false,
-  loading: () => <ActivityCardSkeleton />,
 });
 const GenerationProgress = dynamic(() => import("@/components/trip/GenerationProgress"), { ssr: false });
 const StartOverModal = dynamic(() => import("@/components/trip/StartOverModal"), { ssr: false });
@@ -105,7 +93,6 @@ const AnonAssistantPanel = dynamic(() => import("@/components/trip/AnonAssistant
 // Session trips tray: result-view only, so it is code-split like the rest of
 // the post-generation UI.
 const SessionTripsTray = dynamic(() => import("@/components/trip/SessionTripsTray"), { ssr: false });
-const ValuePropositionBanner = dynamic(() => import("@/components/trip/ValuePropositionBanner"), { ssr: false });
 const AuthPromptModal = dynamic(() => import("@/components/ui/AuthPromptModal"), { ssr: false });
 const PendingClaimBanner = dynamic(() => import("@/components/wizard/PendingClaimBanner"), { ssr: false });
 // Share button for signed-out planners only, so it stays out of the bundle for
@@ -221,6 +208,7 @@ import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate
 import { useSameTripCheck } from "@/hooks/useSameTripCheck";
 import SameTripPrompt from "@/components/wizard/SameTripPrompt";
 import ResultActionBars from "@/components/wizard/ResultActionBars";
+import ResultItinerary from "@/components/wizard/ResultItinerary";
 import { safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
@@ -234,37 +222,12 @@ import { newTripTitle } from "@/lib/trips/title";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { applyAssistantEdits, type AssistantDayEdit } from "@/lib/trips/day-edit-merge";
 import { createUndoLedger } from "@/lib/trip/assistant-undo";
-import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
-import { activityDomId } from "@/lib/trip/activity-dom-id";
-import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
-import { ResultBookingLinks, ResultPacking, ResultStats } from "@/components/wizard/ResultSections";
-import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
-import { DayTimeline } from "@/components/trip/DayTimeline";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { planDateChange, moveItineraryDates } from "@/lib/trips/change-dates";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
 const MAX_TRIP_START_DATE = maxTripStartDate();
-
-// Localized loading fallback for the lazy map. It renders inside the
-// NextIntlClientProvider tree (it replaces TripMap in place while the chunk
-// loads), so useTranslations resolves; an inline literal at module scope
-// can't reach the translation context and would render raw English.
-function MapLoadingFallback() {
-  const t = useTranslations("trips");
-  return (
-    <div className="h-[350px] bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
-      <span className="text-slate-500">{t("detail.loadingMap")}</span>
-    </div>
-  );
-}
-
-// Dynamic import for TripMap to avoid SSR issues
-const TripMap = dynamic(() => import("@/components/TripMap"), {
-  ssr: false,
-  loading: () => <MapLoadingFallback />,
-});
 
 // Localized, human date range for the result hero. Parses the ISO strings as
 // LOCAL midnight (no trailing Z) to avoid an off-by-one, and joins with an
@@ -662,7 +625,7 @@ export default function NewTripPage({
   } = useSessionTripStack();
 
   // Currency conversion hook - converts prices to user's preferred currency
-  const { convert: convertCurrency, format: formatCurrency } = useCurrency();
+  const { convert: convertCurrency } = useCurrency();
 
   // 2-step wizard: Destination+Dates -> Vibes+Preferences.
   const TOTAL_STEPS = 2;
@@ -2283,125 +2246,19 @@ export default function NewTripPage({
             />
           </div>
 
-          {/* Interactive Map + View Controls */}
-          <div className="mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-              <div className="flex-1 min-w-0">
-                <h2 className="text-lg font-semibold text-slate-900">{t("wizard.result.tripOverview")}</h2>
-                {/*
-                  No subtitle: destination.weather_note is unsourced model prose
-                  that contradicts itself across trips, and this slot reads as a
-                  fact about the trip. There is no real forecast to show either —
-                  the trip is not saved yet and is usually months out, beyond any
-                  forecast horizon — so it states nothing rather than stating
-                  something invented.
-                */}
-              </div>
-
-              {/* View-mode + map toggles, for parity with
-                  /trips/template/[id]. Cards is the dense rich view; Timeline
-                  is a vertical-rail compact view for skim-reading. */}
-              <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-                <ViewModeToggle
-                  value={resultViewMode}
-                  onChange={setResultViewMode}
-                  labels={{ cards: t("wizard.result.viewCards"), timeline: t("wizard.result.viewTimeline") }}
-                />
-
-                <MapToggle
-                  shown={showMap}
-                  onToggle={() => setShowMap((v) => !v)}
-                  labels={{ show: t("wizard.result.showMap"), hide: t("wizard.result.hideMap") }}
-                />
-              </div>
-            </div>
-
-            {showMap && (
-              <TripMap
-                days={generatedItinerary.days}
-                destination={fullDestination}
-                className="h-[350px]"
-                onActivityClick={(activity) => {
-                  // Map pin click → scroll to the matching activity. The
-                  // InfoWindow "View Details" button calls this; the card and
-                  // the timeline row both carry activityDomId() as their id.
-                  const el = document.getElementById(activityDomId(activity));
-                  if (el) {
-                    el.scrollIntoView({ behavior: "smooth", block: "start" });
-                    el.classList.add("ring-2", "ring-[var(--primary)]");
-                    setTimeout(() => {
-                      el.classList.remove("ring-2", "ring-[var(--primary)]");
-                    }, 2000);
-                  }
-                }}
-              />
-            )}
-          </div>
-
-          <ResultStats itinerary={generatedItinerary} pace={pace} />
-
-          {generatedItinerary.booking_links && <ResultBookingLinks links={generatedItinerary.booking_links} />}
-
-          {/* Value Proposition Banner - Positioned before schedule to encourage save */}
-          <div className="mb-8 hidden sm:block">
-            <ValuePropositionBanner
-              onSave={handleSaveTrip}
-              isSaving={loading}
-              variant="inline"
-            />
-          </div>
-
-          {/* Day by Day with ActivityCards */}
-          <div className="space-y-8">
-            {generatedItinerary.days.map((day) => (
-              <div key={day.day_number} id={`day-${day.day_number}`} className="scroll-mt-24">
-                <DayHeader dayNumber={day.day_number} title={t("wizard.result.dayLabel", { n: day.day_number })} theme={day.theme}>
-                  {showsDayBudget(day) && (
-                    <DayBudget
-                      label={t("wizard.result.dailyBudget")}
-                      value={dayBudgetLabel(
-                        day,
-                        { convert: convertCurrency, format: formatCurrency },
-                        t("activity.free"),
-                        generatedItinerary.trip_summary.currency
-                      )}
-                    />
-                  )}
-                </DayHeader>
-
-                {/* Activities — Cards or Timeline view */}
-                {resultViewMode === "cards" ? (
-                  <div className="grid gap-4">
-                    {day.activities.map((activity, idx) => (
-                      // disableAutoFetch: auto-fetch pays a Text Search Pro call per
-                      // expanded card. Photos load on tap here, as on the detail and
-                      // shared views.
-                      <ActivityCard
-                        key={idx}
-                        activity={activity}
-                        index={idx}
-                        currency={generatedItinerary.trip_summary.currency}
-                        showGallery={true}
-                        disableAutoFetch={true}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <DayTimeline
-                    day={day}
-                    travel={travelData.get(day.day_number)}
-                    travelLoading={travelLoading}
-                    pace={pace}
-                    currency={generatedItinerary.trip_summary.currency}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-
-          {generatedItinerary.trip_summary.packing_suggestions.length > 0 && (
-            <ResultPacking items={generatedItinerary.trip_summary.packing_suggestions} />
-          )}
+          <ResultItinerary
+            generatedItinerary={generatedItinerary}
+            fullDestination={fullDestination}
+            pace={pace}
+            resultViewMode={resultViewMode}
+            setResultViewMode={setResultViewMode}
+            showMap={showMap}
+            setShowMap={setShowMap}
+            travelData={travelData}
+            travelLoading={travelLoading}
+            handleSaveTrip={handleSaveTrip}
+            loading={loading}
+          />
 
           <AiDisclaimer title={t("wizard.result.aiVerifiedTitle")} className="mt-10">
             {t("wizard.result.aiVerifiedBody")}
