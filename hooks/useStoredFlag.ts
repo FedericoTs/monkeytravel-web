@@ -15,20 +15,20 @@ function subscribe(onChange: () => void): () => void {
 /**
  * A yes/no this browser keeps under `key`, such as a dismissed banner: null
  * on the server and while hydrating, then whether it was set. `set` stores it
- * and updates every component reading it.
+ * and updates every component reading it. `value` is what a set flag holds.
  */
-export function useStoredFlag(key: string): [boolean | null, () => void] {
+export function useStoredFlag(key: string, value = "true"): [boolean | null, () => void] {
   const stored = useSyncExternalStore(
     subscribe,
-    () => safeGet(key) === "true",
+    () => safeGet(key) === value,
     () => null
   );
   // Where storage is blocked, a flag set here still holds while this component is mounted.
   const [keySetHere, setKeySetHere] = useState<string | null>(null);
   const set = useCallback(() => {
     setKeySetHere(key);
-    safeSet(key, "true");
+    safeSet(key, value);
     readers.forEach((read) => read());
-  }, [key]);
+  }, [key, value]);
   return [keySetHere === key || stored, set];
 }
