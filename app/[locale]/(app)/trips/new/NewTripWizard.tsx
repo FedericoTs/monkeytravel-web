@@ -194,6 +194,7 @@ import { clearClaimedTrip, onClaimedTrip, readClaimedTrip } from "@/lib/trips/cl
 import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim-client";
 import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
 import { decideDraftRestore } from "@/lib/wizard/draft-restore";
+import { saveErrorClass } from "@/lib/wizard/save-failure";
 import { applyDraft, applyKeptPlan, type DraftTargets } from "@/lib/wizard/apply-draft";
 import { keptPlanOf, sessionTripOf, tripFormState, type WizardAnswers } from "@/lib/wizard/answers";
 import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
@@ -1393,40 +1394,35 @@ export default function NewTripPage({
     [destination, budgetTier, clearDraft],
   );
 
-  // Auto-save observability: every failure and every skip leaves an event, so
-  // a lost generation is never silent. Sentry is unconditional (no consent
-  // gate), the server row is consent-free, PostHog is the sliceable mirror.
-  // Same error bucketing as the manual Save path so dashboards chart both
-  // arms together.
-  const reportAutoSaveFailure = (err: Error, info: { attempts: number }) => {
-    const errMsg = err.message ?? "";
-    const errorClass: "network" | "rls" | "validation" | "rate_limit" | "unknown" =
-      /network|fetch|ECONN|timeout|no client session/i.test(errMsg)
-        ? "network"
-        : /rls|row-level|policy|permission|authenticated caller/i.test(errMsg)
-          ? "rls"
-          : /rate.?limit|429/i.test(errMsg)
-            ? "rate_limit"
-            : /invalid|required|missing|validation/i.test(errMsg)
-              ? "validation"
-              : "unknown";
+  // A failed save, from either arm, leaves an event everywhere, so a lost trip
+  // is never silent: Sentry is unconditional (no consent gate), the server row
+  // is consent-free, PostHog is the sliceable mirror. Both arms bucket their
+  // errors alike (lib/wizard/save-failure.ts), so dashboards chart them
+  // together.
+  const reportSaveFailure = (err: unknown, arm: "auto" | "manual", attempts?: number) => {
+    const errMsg = err instanceof Error ? err.message : "";
+    const errorClass = saveErrorClass(errMsg);
     sentryException(err, {
-      tags: { feature: "auto_save", arm: "auto", error_class: errorClass },
-      extra: { attempts: info.attempts, destination },
+      tags: { feature: arm === "auto" ? "auto_save" : "manual_save", arm, error_class: errorClass },
+      extra: { ...(attempts !== undefined ? { attempts } : {}), destination },
     });
     void trackWizardEvent(
       "save_failed",
       { destination, group_size: tripIntent, backpacker_mode: travelStyle === "backpacker", locale }
     );
-    void captureSaveFailed({
+    captureSaveFailed({
       destination,
       group_size: tripIntent,
       backpacker_mode: travelStyle === "backpacker",
       error_class: errorClass,
       error_message: errMsg.slice(0, 80) || undefined,
-      arm: "auto",
-      attempts: info.attempts,
+      arm,
+      ...(attempts !== undefined ? { attempts } : {}),
     });
+  };
+  // Auto-save also reports every skip, so a lost generation is never silent.
+  const reportAutoSaveFailure = (err: Error, info: { attempts: number }) => {
+    reportSaveFailure(err, "auto", info.attempts);
     console.error(`[auto-save] failed after ${info.attempts} attempt(s):`, err);
   };
   const reportAutoSaveSkipped = (reason: AutoSaveSkipReason) => {
@@ -2527,40 +2523,11 @@ export default function NewTripPage({
       router.push(`/trips/${trip.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save trip");
-      // Funnel marker: this is the AUTHED-save genuine-failure path
-      // (INSERT errored, RLS rejected, network died, etc). Distinct from
-      // save_blocked_anon (anon user hit the auth wall). If this fires
-      // even once in a 2h watcher window we want to wake up — it means
+      // The AUTHED save genuinely failed (INSERT errored, RLS rejected,
+      // network died, etc), as distinct from save_blocked_anon above. If this
+      // fires even once in a 2h watcher window we want to wake up — it means
       // a real user lost a real trip after a real save click.
-      void trackWizardEvent("save_failed", {
-        destination,
-        group_size: tripIntent,
-        backpacker_mode: travelStyle === "backpacker",
-        locale,
-      });
-      // PostHog mirror — bucketed error_class so dashboards can chart
-      // network vs RLS vs validation drops separately. Raw message is
-      // truncated; PostHog gets a short string only.
-      const errMsg = err instanceof Error ? err.message : "";
-      const errorClass: "network" | "rls" | "validation" | "rate_limit" | "unknown" =
-        /network|fetch|ECONN|timeout/i.test(errMsg)
-          ? "network"
-          : /rls|row-level|policy|permission/i.test(errMsg)
-          ? "rls"
-          : /rate.?limit|429/i.test(errMsg)
-          ? "rate_limit"
-          : /invalid|required|missing|validation/i.test(errMsg)
-          ? "validation"
-          : "unknown";
-      // Sync (nav-safe) — save error can be followed by an immediate
-      // page transition if the user retries elsewhere.
-      captureSaveFailed({
-        destination,
-        group_size: tripIntent,
-        backpacker_mode: travelStyle === "backpacker",
-        error_class: errorClass,
-        error_message: errMsg.slice(0, 80) || undefined,
-      });
+      reportSaveFailure(err, "manual");
     } finally {
       setLoading(false);
       // Always clear the re-entry guard so a legitimate retry (e.g. after
