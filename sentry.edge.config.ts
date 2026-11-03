@@ -5,6 +5,7 @@
  */
 
 import * as Sentry from "@sentry/nextjs";
+import { SENTRY_DATA_COLLECTION } from "@/lib/observability/sentry-data-collection";
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -36,6 +37,9 @@ Sentry.init({
 
   // Enable debug mode in development
   debug: false,
+
+  // Nothing about the person (lib/observability/sentry-data-collection.ts).
+  dataCollection: SENTRY_DATA_COLLECTION,
 
   // Attach release version
   release: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA,

@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig, type SentryBuildOptions } from "@sentry/nextjs/config";
 import createNextIntlPlugin from "next-intl/plugin";
 
 // Security headers for production (CSP is set per-request in middleware.ts
@@ -398,7 +398,7 @@ const nextConfig: NextConfig = {
 };
 
 // Sentry configuration options
-const sentryConfig = {
+const sentryConfig: SentryBuildOptions = {
   // Organization and project for source maps
   org: "monkeytravelapp-u6",
   project: "javascript-nextjs",
@@ -425,12 +425,6 @@ const sentryConfig = {
 
   // Disable Sentry telemetry
   telemetry: false,
-
-  // Automatically tree-shake Sentry logger statements
-  disableLogger: true,
-
-  // Hide source maps from clients (security)
-  hideSourceMaps: true,
 
   // Tunneling (disabled - use default Sentry endpoints)
   tunnelRoute: undefined,
