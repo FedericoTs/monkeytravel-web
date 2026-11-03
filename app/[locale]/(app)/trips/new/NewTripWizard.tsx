@@ -30,7 +30,6 @@ export interface PrefilledTripShape {
 }
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { prefs } from "@/lib/platform/storage";
 import type { GeneratedItinerary, ItineraryDay, TripAnchor, TripVibe, SeasonalContext } from "@/types";
 import { DIETS, dietsFrom, type Diet } from "@/lib/trips/diet";
 // Step-1 components (above-the-fold) stay eager.
@@ -155,7 +154,8 @@ function preloadResultViewChunks(): void {
   warm(import("@/components/trip/AnonymousShareButton").then((m) => { warmedShareButton = m.default; }));
 }
 import { sentryException } from "@/lib/observability/sentry";
-import { useItineraryDraft, DraftRecoveryBanner, type ItineraryDraft } from "@/hooks/useItineraryDraft";
+import { useItineraryDraft, DraftRecoveryBanner } from "@/hooks/useItineraryDraft";
+import { useDraftRestore } from "@/hooks/useDraftRestore";
 import { useKeptPlan } from "@/hooks/useKeptPlan";
 import { usePlanPhotos } from "@/hooks/usePlanPhotos";
 import type { KeptPlan } from "@/lib/plans/kept-plan";
@@ -192,9 +192,8 @@ import {
 import { clearClaimedTrip, onClaimedTrip, readClaimedTrip } from "@/lib/trips/claimed-trip-signal";
 import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim-client";
 import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
-import { decideDraftRestore } from "@/lib/wizard/draft-restore";
 import { saveErrorClass } from "@/lib/wizard/save-failure";
-import { applyAnswers, applyDraft, applyKeptPlan, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
+import { applyAnswers, applyKeptPlan, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
 import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, tripFormState, type WizardAnswers } from "@/lib/wizard/answers";
 import { generationRequest, routeLegs } from "@/lib/wizard/generation-request";
 import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
@@ -709,8 +708,6 @@ export default function NewTripPage({
   // UX enhancement state
   const [showStartOverModal, setShowStartOverModal] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
-  const [showDraftRecovery, setShowDraftRecovery] = useState(false);
-  const [draftAutoRestored, setDraftAutoRestored] = useState(false);
 
   // Id of the trip once either save arm has stored it (or a claimed trip is
   // adopted); null while the result is unsaved.
@@ -881,37 +878,6 @@ export default function NewTripPage({
     [trackFieldInteraction]
   );
 
-  // Handle pending generation after signup (when draft is restored).
-  // The `pendingTripGeneration` flag lives in `prefs` because plain
-  // localStorage gets evicted on iOS WebView under ITP / storage pressure.
-  // The read is async, so we wrap it in an inner fn and gate the side
-  // effect on the still-current cleanup state.
-  useEffect(() => {
-    // Only run if authenticated AND draft has been auto-restored
-    if (!isAuthenticated || !draftAutoRestored) return;
-    if (!destination || !startDate || !endDate || selectedVibes.length === 0) return;
-    if (generating || generatedItinerary) return;
-
-    let cancelled = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-
-    (async () => {
-      const pending = await prefs.get("pendingTripGeneration");
-      if (cancelled || pending !== "true") return;
-      await prefs.remove("pendingTripGeneration");
-      // Small delay to ensure UI is ready and React state has propagated
-      timer = setTimeout(() => {
-        if (!cancelled) handleGenerate();
-      }, 500);
-    })();
-
-    return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, draftAutoRestored, destination, startDate, endDate, selectedVibes, generating, generatedItinerary]);
-
   // Scroll to top when step changes to prevent "already scrolled" issue
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -952,28 +918,6 @@ export default function NewTripPage({
     };
   }, [destination, startDate, endDate, destinationCoords]);
 
-  // Is the draft's itinerary already one of this user's trips? Asked once per
-  // draft, only while it could still be restored (signed in, nothing on
-  // screen yet). decideDraftRestore waits for the answer and discards a draft
-  // that is already saved instead of restoring it into a second insert.
-  const draftCheckKey =
-    isAuthenticated === true && authUser && draft?.generatedItinerary && !generatedItinerary && !draftAutoRestored
-      ? `${authUser.id}:${draft.savedAt}`
-      : null;
-  const [draftSavedCheck, setDraftSavedCheck] = useState<{ key: string; saved: boolean } | null>(null);
-  useEffect(() => {
-    if (!draftCheckKey || !authUser || !draft?.generatedItinerary) return;
-    let alive = true;
-    void isItinerarySaved(createClient(), authUser.id, draft.generatedItinerary).then((saved) => {
-      if (alive) setDraftSavedCheck({ key: draftCheckKey, saved });
-    });
-    return () => {
-      alive = false;
-    };
-  }, [draftCheckKey, authUser, draft]);
-  const draftIsSavedTrip =
-    draftSavedCheck && draftSavedCheck.key === draftCheckKey ? draftSavedCheck.saved : null;
-
   // What a restored draft or an opened kept plan fills in.
   const draftTargets: DraftTargets = useMemo(
     () => ({
@@ -995,83 +939,27 @@ export default function NewTripPage({
     [setGeneratedItinerary, registerSessionRestore]
   );
 
-  // Put a stored draft back into the wizard: the silent restore below and the
-  // banner's Restore both come through here.
-  const applyStoredDraft = useCallback(
-    (stored: ItineraryDraft) => {
-      applyDraft(stored, draftTargets);
-      void trackWizardEvent("draft_restored", {
-        destination: stored.destination,
-        duration_days: stored.generatedItinerary?.days.length,
-        locale,
-      });
-    },
-    [draftTargets, locale]
-  );
-
-  // Check for unsaved draft on mount - AUTO-RESTORE it for a signed-in user.
-  // The `pendingTripGeneration` flag lives in `prefs` (async on native
-  // Capacitor) — wrap the read in an inner async fn and use `cancelled`
-  // so we don't set state after unmount / dep change.
-  useEffect(() => {
-    if (!hasDraft || !draft || generatedItinerary || draftAutoRestored) return;
-    // Auth is tri-state and is null on every first render. Returning here
-    // rather than falling through is what makes the rest of this effect work:
-    // isAuthenticated is in the dep array, so this re-runs the moment auth
-    // resolves. Without the early return the first pass would latch
-    // showDraftRecovery for a user who IS signed in, and the auto-restore
-    // below would never get a turn.
-    if (isAuthenticated === null) return;
-
-    let cancelled = false;
-
-    (async () => {
-      // Check if we're coming back from auth with pending generation
-      const hasPendingGeneration = (await prefs.get("pendingTripGeneration")) === "true";
-      if (cancelled) return;
-
-      // Decision in lib/wizard/draft-restore.ts, with the tri-state auth trap
-      // pinned by unit tests. Restores for ANYONE signed in holding an unsaved
-      // itinerary, not only the Save-modal path: `pendingTripGeneration` is
-      // only written inside AuthPromptModal, so a planner who signed in through
-      // the header, the login page or a magic link would otherwise come back
-      // to a blank wizard with their itinerary unread in localStorage.
-      const decision = decideDraftRestore({
-        hasDraft,
-        hasItineraryInDraft: !!draft.generatedItinerary,
-        alreadyRestored: draftAutoRestored,
-        itineraryOnScreen: !!generatedItinerary,
-        isAuthenticated,
-        savedTripId,
-        pendingTripGeneration: hasPendingGeneration,
-        draftIsSavedTrip,
-      });
-
-      if (decision === "discard") {
-        // Already one of their trips: restoring it would insert it again.
-        clearDraft();
-        return;
-      }
-      if (decision === "auto-restore") {
-        // Auto-restore the draft silently (no banner) for seamless post-auth experience.
-        // Restore the itinerary too, not just the form: with no itinerary on
-        // screen the pending-generation effect above re-runs handleGenerate()
-        // and silently replaces the itinerary the user clicked Save on.
-        applyStoredDraft(draft);
-        setDraftAutoRestored(true);
-        // Don't show the banner since we're auto-restoring — and close it if a
-        // pass before auth resolved had already opened it.
-        setShowDraftRecovery(false);
-      } else if (decision === "offer-banner") {
-        // Signed out: let them choose rather than restoring under them.
-        setShowDraftRecovery(true);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [hasDraft, draft, generatedItinerary, draftAutoRestored, applyStoredDraft, isAuthenticated, savedTripId, draftIsSavedTrip, clearDraft]);
+  // A stored draft brought back: put back, offered or discarded, and a
+  // generation resumed after signing up (hooks/useDraftRestore.ts).
+  const { showDraftRecovery, setShowDraftRecovery, draftAutoRestored, handleRestoreDraft, handleDiscardDraft } = useDraftRestore({
+    draft,
+    hasDraft,
+    isExpired,
+    clearDraft,
+    draftTargets,
+    isAuthenticated,
+    authUser,
+    generatedItinerary,
+    generating,
+    savedTripId,
+    destination,
+    startDate,
+    endDate,
+    selectedVibes,
+    locale,
+    // Read when the resumed generation starts, after this render.
+    handleGenerate: () => handleGenerate(),
+  });
 
   // Every answer on the form, which a draft keeps beside the itinerary so a
   // restore (after sign-in, a reload, a failed generation) puts them all back.
@@ -1546,30 +1434,6 @@ export default function NewTripPage({
   // A plan on screen and not saved: the save nudges, the leave guard and the
   // exit event (hooks/useUnsavedPlan.ts).
   const { noteEditApplied } = useUnsavedPlan({ hasResult, isUnsaved, sessionTrayVisible, showAuthModal, getGenCount });
-
-  // Handle draft restoration
-  const handleRestoreDraft = () => {
-    if (draft) {
-      applyStoredDraft(draft);
-      setShowDraftRecovery(false);
-    }
-  };
-
-  // An expired draft is reported once per mount. useItineraryDraft has already
-  // deleted it by the time this flag is readable, so this row is the only
-  // record that a plan was lost to the TTL rather than abandoned.
-  const draftExpiredReportedRef = useRef(false);
-  useEffect(() => {
-    if (!isExpired || draftExpiredReportedRef.current) return;
-    draftExpiredReportedRef.current = true;
-    void trackWizardEvent("draft_expired", { locale });
-  }, [isExpired, locale]);
-
-  // Handle draft discard
-  const handleDiscardDraft = () => {
-    clearDraft();
-    setShowDraftRecovery(false);
-  };
 
   // Regenerate, asking first when the assistant has changed this itinerary.
   const requestRegenerate = () => {
