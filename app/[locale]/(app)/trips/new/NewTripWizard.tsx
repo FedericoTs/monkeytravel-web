@@ -231,7 +231,7 @@ import { applyAssistantEdits, type AssistantDayEdit } from "@/lib/trips/day-edit
 import { createUndoLedger } from "@/lib/trip/assistant-undo";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
-import { planDateChange, moveItineraryDates } from "@/lib/trips/change-dates";
+import { planDateChange, moveItineraryDates, extraDaysAsk, extraDaysFrom } from "@/lib/trips/change-dates";
 import { withDays } from "@/lib/trips/plan-days";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
@@ -1868,32 +1868,24 @@ export default function NewTripPage({
     posthog?.capture("wizard_dates_changed", { from_days: current, to_days: change.length, kind: change.kind });
     if (change.kind !== "longer") return;
 
-    const extra = change.length - current;
     setPlanningExtraDays(true);
     try {
       const res = await fetch("/api/ai/assistant-anon", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `Add ${extra} more ${extra === 1 ? "day" : "days"} at the end of the trip (${
-            extra === 1 ? `Day ${current + 1}` : `Days ${current + 1} to ${change.length}`
-          }), planned like the other days, and set trip_length to ${change.length}. Leave the existing days as they are.`,
-          destination: `${itinerary.destination.name}, ${itinerary.destination.country}`,
-          tripTitle: newTripTitle(itinerary.destination.name, locale),
-          days: moved,
-          startDate: start,
-          endDate: addIsoDaysOrThrow(start, current - 1),
-          locale: itinerary.language ?? locale,
-          history: [],
-        }),
+        body: JSON.stringify(
+          extraDaysAsk({
+            itinerary,
+            moved,
+            start,
+            current,
+            length: change.length,
+            tripTitle: newTripTitle(itinerary.destination.name, locale),
+            locale,
+          })
+        ),
       });
-      const data = await res.json().catch(() => ({}));
-      const payload = data?.data ?? data ?? {};
-      const planned = Math.min(typeof payload.tripLength === "number" ? payload.tripLength : 0, change.length);
-      // Only the new days: the plan the traveller already has is not the ask.
-      const newDays: AssistantDayEdit[] = (Array.isArray(payload.edits) ? payload.edits : []).filter(
-        (e: AssistantDayEdit) => e && e.day_number > current && e.day_number <= planned
-      );
+      const { planned, newDays } = extraDaysFrom(await res.json().catch(() => ({})), current, change.length);
       if (res.ok && planned > current && newDays.length > 0) {
         handleApplyAssistantEdits(newDays, planned);
         if (planned < change.length) setDatesNotice(t("wizard.changeDates.partlyPlanned", { count: planned }));

@@ -1,7 +1,7 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { inclusiveDays, planDateChange, moveItineraryDates } from "./change-dates";
-import type { ItineraryDay } from "@/types";
+import { inclusiveDays, planDateChange, moveItineraryDates, extraDaysAsk, extraDaysFrom } from "./change-dates";
+import type { GeneratedItinerary, ItineraryDay } from "@/types";
 
 const day = (n: number, name: string): ItineraryDay =>
   ({
@@ -67,5 +67,61 @@ describe("moveItineraryDates", () => {
     moveItineraryDates(trip, "2026-12-01", 2);
     expect(trip[0].date).toBe("2026-10-17");
     expect(trip).toHaveLength(5);
+  });
+});
+
+describe("extraDaysAsk", () => {
+  const itinerary = {
+    destination: { name: "Lisbon", country: "Portugal" },
+    days: [day(1, "Belém"), day(2, "Alfama")],
+    language: "pt",
+  } as unknown as GeneratedItinerary;
+  const moved = moveItineraryDates(itinerary.days, "2027-05-10", 2);
+  const ask = (length: number, over: Partial<Parameters<typeof extraDaysAsk>[0]> = {}) =>
+    extraDaysAsk({ itinerary, moved, start: "2027-05-10", current: 2, length, tripTitle: "Lisbon", locale: "en", ...over });
+
+  it("asks for the new days only, with the plan as it stands on the new dates", () => {
+    expect(ask(4)).toEqual({
+      message:
+        "Add 2 more days at the end of the trip (Days 3 to 4), planned like the other days, and set trip_length to 4. Leave the existing days as they are.",
+      destination: "Lisbon, Portugal",
+      tripTitle: "Lisbon",
+      days: moved,
+      startDate: "2027-05-10",
+      endDate: "2027-05-11",
+      locale: "pt",
+      history: [],
+    });
+  });
+
+  it("names a single new day as one", () => {
+    expect(ask(3).message).toBe(
+      "Add 1 more day at the end of the trip (Day 3), planned like the other days, and set trip_length to 3. Leave the existing days as they are."
+    );
+  });
+
+  it("speaks the page's language for a plan without its own", () => {
+    expect(ask(3, { itinerary: { ...itinerary, language: undefined } as GeneratedItinerary }).locale).toBe("en");
+  });
+});
+
+describe("extraDaysFrom", () => {
+  const edit = (n: number) => ({ day_number: n, activities: [] });
+
+  it("keeps only the days after the plan's, up to the length the reply reached", () => {
+    expect(extraDaysFrom({ data: { edits: [edit(2), edit(3), edit(4), edit(5)], tripLength: 4 } }, 2, 5)).toEqual({
+      planned: 4,
+      newDays: [edit(3), edit(4)],
+    });
+  });
+
+  it("reads a reply with or without its data wrapper, never past the trip's length", () => {
+    expect(extraDaysFrom({ edits: [edit(3)], tripLength: 9 }, 2, 3)).toEqual({ planned: 3, newDays: [edit(3)] });
+  });
+
+  it("finds nothing in a reply without days or a length", () => {
+    expect(extraDaysFrom({ data: { edits: "none", tripLength: "4" } }, 2, 4)).toEqual({ planned: 0, newDays: [] });
+    expect(extraDaysFrom({ data: { edits: [null, edit(3)] } }, 2, 4)).toEqual({ planned: 0, newDays: [] });
+    expect(extraDaysFrom(null, 2, 4)).toEqual({ planned: 0, newDays: [] });
   });
 });
