@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { GeneratedItinerary } from "@/types";
-import { keptPlanOf, sessionTripOf, tripFormState, type WizardAnswers } from "./answers";
+import { keptPlanOf, REQUIREMENTS_MAX, sessionTripOf, tripFormState, withUndatedItems, type WizardAnswers } from "./answers";
 
 const itinerary = { days: [{ day_number: 1 }, { day_number: 2 }, { day_number: 3 }] } as unknown as GeneratedItinerary;
 
@@ -57,5 +57,23 @@ describe("keptPlanOf", () => {
 describe("sessionTripOf", () => {
   it("holds every answer, the plan and its length", () => {
     expect(sessionTripOf(answers, itinerary)).toEqual({ ...answers, dayCount: 3, itinerary });
+  });
+});
+
+describe("withUndatedItems", () => {
+  it("adds the items as sentences after what is there", () => {
+    expect(withUndatedItems("  Vegan food please ", ["Dinner at Belcanto", "Fado night"])).toBe(
+      "Vegan food please. Dinner at Belcanto. Fado night"
+    );
+  });
+
+  it("starts the requirements when there are none", () => {
+    expect(withUndatedItems(" ", ["Fado night"])).toBe("Fado night");
+  });
+
+  it("stops at the requirements limit", () => {
+    const merged = withUndatedItems("a".repeat(490), ["b".repeat(40)]);
+    expect(merged).toHaveLength(REQUIREMENTS_MAX);
+    expect(merged).toBe(`${"a".repeat(490)}. ${"b".repeat(8)}`);
   });
 });
