@@ -7,7 +7,6 @@ import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
 import dynamic from "next/dynamic";
-import { Spinner } from "@/components/ui/Spinner";
 
 // ./page.tsx resolves the optional `?destination=<slug>` deeplink server-side
 // and passes only this payload in as `prefilledDestination`. Keep this file
@@ -194,6 +193,7 @@ import { clearClaimedTrip, onClaimedTrip, readClaimedTrip } from "@/lib/trips/cl
 import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim-client";
 import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
 import { decideDraftRestore } from "@/lib/wizard/draft-restore";
+import { saveErrorClass } from "@/lib/wizard/save-failure";
 import { applyDraft, applyKeptPlan, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
 import { keptPlanOf, sessionTripOf, tripFormState, type WizardAnswers } from "@/lib/wizard/answers";
 import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
@@ -240,6 +240,7 @@ import { isSameDestination } from "@/lib/trips/sameDestination";
 import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate";
 import { useSameTripCheck } from "@/hooks/useSameTripCheck";
 import SameTripPrompt from "@/components/wizard/SameTripPrompt";
+import WizardSaveButton from "@/components/wizard/WizardSaveButton";
 import { safeGet, safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
@@ -1393,40 +1394,35 @@ export default function NewTripPage({
     [destination, budgetTier, clearDraft],
   );
 
-  // Auto-save observability: every failure and every skip leaves an event, so
-  // a lost generation is never silent. Sentry is unconditional (no consent
-  // gate), the server row is consent-free, PostHog is the sliceable mirror.
-  // Same error bucketing as the manual Save path so dashboards chart both
-  // arms together.
-  const reportAutoSaveFailure = (err: Error, info: { attempts: number }) => {
-    const errMsg = err.message ?? "";
-    const errorClass: "network" | "rls" | "validation" | "rate_limit" | "unknown" =
-      /network|fetch|ECONN|timeout|no client session/i.test(errMsg)
-        ? "network"
-        : /rls|row-level|policy|permission|authenticated caller/i.test(errMsg)
-          ? "rls"
-          : /rate.?limit|429/i.test(errMsg)
-            ? "rate_limit"
-            : /invalid|required|missing|validation/i.test(errMsg)
-              ? "validation"
-              : "unknown";
+  // A failed save, from either arm, leaves an event everywhere, so a lost trip
+  // is never silent: Sentry is unconditional (no consent gate), the server row
+  // is consent-free, PostHog is the sliceable mirror. Both arms bucket their
+  // errors alike (lib/wizard/save-failure.ts), so dashboards chart them
+  // together.
+  const reportSaveFailure = (err: unknown, arm: "auto" | "manual", attempts?: number) => {
+    const errMsg = err instanceof Error ? err.message : "";
+    const errorClass = saveErrorClass(errMsg);
     sentryException(err, {
-      tags: { feature: "auto_save", arm: "auto", error_class: errorClass },
-      extra: { attempts: info.attempts, destination },
+      tags: { feature: arm === "auto" ? "auto_save" : "manual_save", arm, error_class: errorClass },
+      extra: { ...(attempts !== undefined ? { attempts } : {}), destination },
     });
     void trackWizardEvent(
       "save_failed",
       { destination, group_size: tripIntent, backpacker_mode: travelStyle === "backpacker", locale }
     );
-    void captureSaveFailed({
+    captureSaveFailed({
       destination,
       group_size: tripIntent,
       backpacker_mode: travelStyle === "backpacker",
       error_class: errorClass,
       error_message: errMsg.slice(0, 80) || undefined,
-      arm: "auto",
-      attempts: info.attempts,
+      arm,
+      ...(attempts !== undefined ? { attempts } : {}),
     });
+  };
+  // Auto-save also reports every skip, so a lost generation is never silent.
+  const reportAutoSaveFailure = (err: Error, info: { attempts: number }) => {
+    reportSaveFailure(err, "auto", info.attempts);
     console.error(`[auto-save] failed after ${info.attempts} attempt(s):`, err);
   };
   const reportAutoSaveSkipped = (reason: AutoSaveSkipReason) => {
@@ -2527,40 +2523,11 @@ export default function NewTripPage({
       router.push(`/trips/${trip.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save trip");
-      // Funnel marker: this is the AUTHED-save genuine-failure path
-      // (INSERT errored, RLS rejected, network died, etc). Distinct from
-      // save_blocked_anon (anon user hit the auth wall). If this fires
-      // even once in a 2h watcher window we want to wake up — it means
+      // The AUTHED save genuinely failed (INSERT errored, RLS rejected,
+      // network died, etc), as distinct from save_blocked_anon above. If this
+      // fires even once in a 2h watcher window we want to wake up — it means
       // a real user lost a real trip after a real save click.
-      void trackWizardEvent("save_failed", {
-        destination,
-        group_size: tripIntent,
-        backpacker_mode: travelStyle === "backpacker",
-        locale,
-      });
-      // PostHog mirror — bucketed error_class so dashboards can chart
-      // network vs RLS vs validation drops separately. Raw message is
-      // truncated; PostHog gets a short string only.
-      const errMsg = err instanceof Error ? err.message : "";
-      const errorClass: "network" | "rls" | "validation" | "rate_limit" | "unknown" =
-        /network|fetch|ECONN|timeout/i.test(errMsg)
-          ? "network"
-          : /rls|row-level|policy|permission/i.test(errMsg)
-          ? "rls"
-          : /rate.?limit|429/i.test(errMsg)
-          ? "rate_limit"
-          : /invalid|required|missing|validation/i.test(errMsg)
-          ? "validation"
-          : "unknown";
-      // Sync (nav-safe) — save error can be followed by an immediate
-      // page transition if the user retries elsewhere.
-      captureSaveFailed({
-        destination,
-        group_size: tripIntent,
-        backpacker_mode: travelStyle === "backpacker",
-        error_class: errorClass,
-        error_message: errMsg.slice(0, 80) || undefined,
-      });
+      reportSaveFailure(err, "manual");
     } finally {
       setLoading(false);
       // Always clear the re-entry guard so a legitimate retry (e.g. after
@@ -3032,57 +2999,12 @@ export default function NewTripPage({
               )}
               {/* Unsaved-state pill (both save arms); a kept plan's link instead. */}
               {isUnsaved && !autoSaving && (keptPlan ? <KeptLinkPill token={keptPlan.token} /> : <NotSavedPill />)}
-              {autoSaveEnabled && autoSave.savedTripId && autoSave.status !== "saving" ? (
-                // Auto-save flow: trip already persisted. Repurpose the
-                // primary action as a navigation to the saved detail view.
-                <Link
-                  href={`/trips/${autoSave.savedTripId}`}
-                  className="bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/25 flex items-center gap-2"
-                >
-                  {t("result.savedViewTrip")}
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
-              ) : autoSaveEnabled && autoSave.status === "saving" ? (
-                <button
-                  type="button"
-                  disabled
-                  className="bg-[var(--secondary-ink)] text-white px-6 py-2.5 rounded-xl font-medium opacity-60 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
-                >
-                  <Spinner className="w-4 h-4" />
-                  {t("result.saving")}
-                </button>
-              ) : autoSaveEnabled && autoSave.status === "error" ? (
-                <button
-                  onClick={() => autoSave.retry()}
-                  className="bg-rose-500 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-rose-600 transition-colors flex items-center gap-2"
-                >
-                  {t("result.retrySave")}
-                </button>
-              ) : (
-                // Manual Save Trip button: auto-save is off, or has nothing
-                // persisted yet (e.g. a signed-out planner).
-                <button
-                  onClick={handleSaveTrip}
-                  disabled={loading}
-                  className="bg-[var(--secondary-ink)] text-white px-6 py-2.5 rounded-xl font-medium hover:bg-[var(--secondary-ink)]/90 transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Spinner className="w-4 h-4" />
-                      {t("wizard.result.saving")}
-                    </>
-                  ) : (
-                    <>
-                      {t("wizard.result.saveTrip")}
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </>
-                  )}
-                </button>
-              )}
+              <WizardSaveButton
+                placement="header"
+                autoSave={autoSaveEnabled ? autoSave : null}
+                onSave={handleSaveTrip}
+                saving={loading}
+              />
 
               {/* Anonymous share: lets a signed-out planner send the trip
                   without an account. It mints an ownerless, read-only link and
@@ -3192,53 +3114,12 @@ export default function NewTripPage({
             {isUnsaved && !autoSaving && (keptPlan ? <KeptLinkPill token={keptPlan.token} /> : <NotSavedPill />)}
 
             {/* Save - Mobile (Full Width) */}
-            {autoSaveEnabled && autoSave.savedTripId && autoSave.status !== "saving" ? (
-              <Link
-                href={`/trips/${autoSave.savedTripId}`}
-                className="flex-1 bg-emerald-500 text-white py-3 rounded-xl font-semibold transition-colors shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
-              >
-                {t("result.savedViewTrip")}
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
-            ) : autoSaveEnabled && autoSave.status === "saving" ? (
-              <button
-                type="button"
-                disabled
-                className="flex-1 bg-[var(--secondary-ink)] text-white py-3 rounded-xl font-semibold opacity-60 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
-              >
-                <Spinner className="w-5 h-5" />
-                {t("result.saving")}
-              </button>
-            ) : autoSaveEnabled && autoSave.status === "error" ? (
-              <button
-                onClick={() => autoSave.retry()}
-                className="flex-1 bg-rose-500 text-white py-3 rounded-xl font-semibold hover:bg-rose-600 transition-colors flex items-center justify-center gap-2"
-              >
-                {t("result.retrySave")}
-              </button>
-            ) : (
-              <button
-                onClick={handleSaveTrip}
-                disabled={loading}
-                className="flex-1 bg-[var(--secondary-ink)] text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <Spinner className="w-5 h-5" />
-                    {t("wizard.result.saving")}
-                  </>
-                ) : (
-                  <>
-                    {t("wizard.result.saveTrip")}
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </>
-                )}
-              </button>
-            )}
+            <WizardSaveButton
+              placement="bar"
+              autoSave={autoSaveEnabled ? autoSave : null}
+              onSave={handleSaveTrip}
+              saving={loading}
+            />
           </div>
         </div>
 
