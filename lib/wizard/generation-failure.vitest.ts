@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { classifyGenerationFailure, failureDetail, validationFix, validationFixStep } from "./generation-failure";
+import { classifyGenerationFailure, failureDetail, failureWording, validationFix, validationFixStep } from "./generation-failure";
 
 describe("validation — the bucket that means WE sent something the server refuses", () => {
   it("recognises the exact server strings from lib/gemini.ts", () => {
@@ -145,5 +145,35 @@ describe("failureDetail: the server's words, without what the traveller typed", 
     expect(failureDetail(new Error("line one\n  line two"), "unknown")).toBe("line one line two");
     expect(failureDetail(new Error(""), "unknown")).toBeUndefined();
     expect(failureDetail({ weird: true }, "unknown")).toBeUndefined();
+  });
+});
+
+describe("failureWording: friendlier words for what the traveller can't act on", () => {
+  it("names a timeout, the connection, or a busy server", () => {
+    expect(failureWording("Request timed out")).toBe("errorTimeout");
+    expect(failureWording("Failed to fetch")).toBe("errorNetwork");
+    expect(failureWording("NetworkError when attempting to fetch resource.")).toBe("errorNetwork");
+    expect(failureWording("network connection lost")).toBe("errorNetwork");
+    // One per phrase, so each phrase is needed.
+    for (const busy of [
+      "AI service unavailable",
+      "Gave up after retries",
+      "Internal server error",
+      "Failed to generate itinerary",
+      "HTTP 503",
+      "HTTP 500",
+    ]) {
+      expect(failureWording(busy)).toBe("errorServerBusy");
+    }
+  });
+
+  it("checks the timeout first, then the connection", () => {
+    expect(failureWording("The fetch timed out after retries")).toBe("errorTimeout");
+    expect(failureWording("Failed to fetch after retries")).toBe("errorNetwork");
+  });
+
+  it("leaves any other message as it is", () => {
+    expect(failureWording("Something odd happened")).toBeNull();
+    expect(failureWording("")).toBeNull();
   });
 });
