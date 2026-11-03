@@ -96,6 +96,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useItineraryMoves } from "@/hooks/useItineraryMoves";
+import { useItineraryHistory } from "@/hooks/useItineraryHistory";
 import {
   ActivityDragGhost,
   DayDropHeader,
@@ -602,20 +603,21 @@ export default function TripDetailClient({
     [sync, sendPendingInline, t]
   );
 
-  // Undo/Redo history for edit mode
-  interface HistoryEntry {
-    itinerary: ItineraryDay[];
-    action: string;
-    timestamp: number;
-  }
-  const MAX_HISTORY = 20;
-  const [undoStack, setUndoStack] = useState<HistoryEntry[]>([]);
-  const [redoStack, setRedoStack] = useState<HistoryEntry[]>([]);
-  // Clear the undo/redo stacks
-  const clearHistory = useCallback(() => {
-    setUndoStack([]);
-    setRedoStack([]);
+  // Undo/redo for the itinerary being edited. History navigation always
+  // re-attempts an auto-save, even back to a payload that previously failed —
+  // otherwise the failed-payload guard could strand the trip in an un-saved
+  // state after an undo/redo round-trip.
+  const forgetFailedSave = useCallback(() => {
+    lastFailedSaveRef.current = null;
   }, []);
+  const {
+    push: pushUndo,
+    undo,
+    redo,
+    clear: clearHistory,
+    canUndo,
+    canRedo,
+  } = useItineraryHistory(editedItinerary, setEditedItinerary, forgetFailedSave);
 
   // Viewing a trip never pays for an external API to backfill coordinates:
   // only activities that already have coordinates get a map marker.
@@ -935,45 +937,6 @@ export default function TripDetailClient({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  // Undo/Redo callbacks
-  const pushUndo = useCallback((action: string) => {
-    setUndoStack(prev => [...prev.slice(-MAX_HISTORY + 1), {
-      itinerary: JSON.parse(JSON.stringify(editedItinerary)),
-      action,
-      timestamp: Date.now()
-    }]);
-    setRedoStack([]); // Clear redo stack on new action
-  }, [editedItinerary]);
-
-  const undo = useCallback(() => {
-    if (undoStack.length === 0) return;
-    const last = undoStack[undoStack.length - 1];
-    setRedoStack(prev => [...prev, {
-      itinerary: JSON.parse(JSON.stringify(editedItinerary)),
-      action: `Redo: ${last.action}`,
-      timestamp: Date.now()
-    }]);
-    setEditedItinerary(last.itinerary);
-    setUndoStack(prev => prev.slice(0, -1));
-    // History navigation should always re-attempt an auto-save, even back to a
-    // payload that previously failed — otherwise the failed-payload guard could
-    // strand the trip in an un-saved state after an undo/redo round-trip.
-    lastFailedSaveRef.current = null;
-  }, [undoStack, editedItinerary]);
-
-  const redo = useCallback(() => {
-    if (redoStack.length === 0) return;
-    const last = redoStack[redoStack.length - 1];
-    setUndoStack(prev => [...prev, {
-      itinerary: JSON.parse(JSON.stringify(editedItinerary)),
-      action: `Undo: ${last.action}`,
-      timestamp: Date.now()
-    }]);
-    setEditedItinerary(last.itinerary);
-    setRedoStack(prev => prev.slice(0, -1));
-    lastFailedSaveRef.current = null;
-  }, [redoStack, editedItinerary]);
 
   // Apply optimized route to a day (with undo support)
   const applyOptimizedRoute = useCallback((dayNumber: number, optimizedActivities: Activity[]) => {
@@ -2210,7 +2173,7 @@ export default function TripDetailClient({
                 <button
                   type="button"
                   onClick={undo}
-                  disabled={undoStack.length === 0}
+                  disabled={!canUndo}
                   aria-label={t('detail.undo')}
                   title={t('detail.undo')}
                   className="p-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
@@ -2220,7 +2183,7 @@ export default function TripDetailClient({
                 <button
                   type="button"
                   onClick={redo}
-                  disabled={redoStack.length === 0}
+                  disabled={!canRedo}
                   aria-label={t('detail.redo')}
                   title={t('detail.redo')}
                   className="p-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
@@ -2846,7 +2809,7 @@ export default function TripDetailClient({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={undo}
-                    disabled={undoStack.length === 0}
+                    disabled={!canUndo}
                     className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     title={`${t("detail.undo")} (Cmd+Z)`}
                   >
@@ -2854,7 +2817,7 @@ export default function TripDetailClient({
                   </button>
                   <button
                     onClick={redo}
-                    disabled={redoStack.length === 0}
+                    disabled={!canRedo}
                     className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     title={`${t("detail.redo")} (Cmd+Shift+Z)`}
                   >
