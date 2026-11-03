@@ -227,13 +227,13 @@ import type { TripWizardFieldInteractedEvent, TripIntent } from "@/lib/posthog/e
 import {
   captureSaveBlockedAnon,
   captureSaveFailed,
-  captureResultExitUnsaved,
   capture,
 } from "@/lib/posthog/events";
 import { reportTripSaved } from "@/lib/wizard/trip-saved";
 import { usePostHog } from "@/lib/posthog";
 import { landingAttribution, trackWizardEvent, type WizardEventStep } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip, type AutoSaveSkipReason } from "@/hooks/useAutoSaveTrip";
+import { useUnsavedPlan } from "@/hooks/useUnsavedPlan";
 import { useDwellHeartbeat } from "@/hooks/useDwellHeartbeat";
 import { useHasExistingTrips } from "@/hooks/useHasExistingTrips";
 import { isSameDestination } from "@/lib/trips/sameDestination";
@@ -241,7 +241,7 @@ import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate
 import { useSameTripCheck } from "@/hooks/useSameTripCheck";
 import SameTripPrompt from "@/components/wizard/SameTripPrompt";
 import WizardSaveButton from "@/components/wizard/WizardSaveButton";
-import { safeGet, safeSet } from "@/lib/safe-storage";
+import { safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
   updateTrip as persistUpdateTrip,
@@ -262,7 +262,6 @@ import { ResultBookingLinks, ResultPacking, ResultStats } from "@/components/wiz
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
 import { DayTimeline } from "@/components/trip/DayTimeline";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
-import { isNativePlatform } from "@/lib/native/platform";
 import { planDateChange, moveItineraryDates } from "@/lib/trips/change-dates";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
@@ -832,10 +831,6 @@ export default function NewTripPage({
   // complete the Save the user already clicked before signing up. At most once.
   const saveIntentRedeemedRef = useRef<boolean>(false);
 
-  // Has the user applied ≥1 anon-assistant edit? Mirrored to
-  // sessionStorage ("mt_edits_applied") so the flag survives the post-auth
-  // full-page round trip; the ref is the fast path + private-mode fallback.
-  const editsAppliedRef = useRef<boolean>(false);
   // Assistant edits applied to the itinerary on screen (reset by every
   // generation). A full regenerate replaces them, so it asks first instead of
   // silently discarding them.
@@ -847,9 +842,6 @@ export default function NewTripPage({
   const [showChangeDates, setShowChangeDates] = useState(false);
   const [planningExtraDays, setPlanningExtraDays] = useState(false);
   const [datesNotice, setDatesNotice] = useState<string | null>(null);
-  // Once-per-pagehide-sequence guard for result_exit_unsaved (reset on
-  // pageshow when the page comes back out of the bfcache).
-  const resultExitFiredRef = useRef<boolean>(false);
 
   // Mirror state into refs so the unload handlers can read current values
   // without having to re-bind the listeners on every state change.
@@ -1718,82 +1710,9 @@ export default function NewTripPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, linkedPlanCount]);
 
-  // save_nudge_shown for the "Not saved" pill — once per session
-  // (sessionStorage once-flag; desktop + mobile pills share this one effect).
-  useEffect(() => {
-    if (!hasResult || !isUnsaved) return;
-    if (safeGet("mt_save_nudge_pill_captured", "session") === "1") return;
-    // A blocked store cannot dedupe, and safeSet reports that instead of
-    // throwing. Skip rather than spam this once-per-session event on every
-    // remount.
-    if (!safeSet("mt_save_nudge_pill_captured", "1", "session")) return;
-    void capture("save_nudge_shown", {
-      source: "unsaved_pill",
-      gen_count: getGenCount(),
-    });
-  }, [hasResult, isUnsaved, getGenCount]);
-
-  // save_nudge_shown for the session tray — once per session.
-  useEffect(() => {
-    if (!sessionTrayVisible) return;
-    if (safeGet("mt_save_nudge_tray_captured", "session") === "1") return;
-    // Same as the pill above: no store means no dedupe, so stay quiet.
-    if (!safeSet("mt_save_nudge_tray_captured", "1", "session")) return;
-    void capture("save_nudge_shown", {
-      source: "session_tray",
-      gen_count: getGenCount(),
-    });
-  }, [sessionTrayVisible, getGenCount]);
-
-  // Native leave-guard, SEPARATE from the fireAbandoned analytics listener
-  // above. While an UNSAVED result is on screen, tab-close/back/external nav
-  // triggers the browser's native "leave site?" dialog. Disarmed when saved
-  // (either arm), while the auth modal is open (the Google OAuth full-page
-  // redirect starts from inside it and must not be interrupted), and inside
-  // the Capacitor shell (beforeunload dialogs are broken in WebViews). SPA
-  // navigations never fire beforeunload, so in-app moves are unaffected.
-  useEffect(() => {
-    if (!hasResult || !isUnsaved || showAuthModal) return;
-    if (isNativePlatform()) return;
-    const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [hasResult, isUnsaved, showAuthModal]);
-
-  // Exit telemetry. pagehide with an unsaved result → nav-safe
-  // result_exit_unsaved (sync SDK queue + sendBeacon flush — the same
-  // mechanism as captureSaveBlockedAnon). At most once per pagehide sequence
-  // (ref guard, reset when the page returns from the bfcache) and never
-  // after save: the effect tears down as soon as isUnsaved flips false.
-  useEffect(() => {
-    if (!hasResult || !isUnsaved) return;
-    const onPageHide = () => {
-      if (resultExitFiredRef.current) return;
-      resultExitFiredRef.current = true;
-      let editsApplied = editsAppliedRef.current;
-      if (!editsApplied) {
-        // safeGet reports a blocked store as null rather than throwing, and
-        // null is the same answer the ref already gave us.
-        editsApplied = safeGet("mt_edits_applied", "session") === "1";
-      }
-      captureResultExitUnsaved({
-        gen_count: getGenCount(),
-        edits_applied: editsApplied,
-      });
-    };
-    const onPageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) resultExitFiredRef.current = false;
-    };
-    window.addEventListener("pagehide", onPageHide);
-    window.addEventListener("pageshow", onPageShow);
-    return () => {
-      window.removeEventListener("pagehide", onPageHide);
-      window.removeEventListener("pageshow", onPageShow);
-    };
-  }, [hasResult, isUnsaved, getGenCount]);
+  // A plan on screen and not saved: the save nudges, the leave guard and the
+  // exit event (hooks/useUnsavedPlan.ts).
+  const { noteEditApplied } = useUnsavedPlan({ hasResult, isUnsaved, sessionTrayVisible, showAuthModal, getGenCount });
 
   // Handle draft restoration
   const handleRestoreDraft = () => {
@@ -2591,13 +2510,10 @@ export default function NewTripPage({
     (edits: AssistantDayEdit[], tripLength?: number): string | undefined => {
       const prev = generatedItineraryRef.current;
       if (!prev) return undefined;
-      // Remember that this session applied an assistant edit
-      // (forwarded on result_exit_unsaved as edits_applied).
-      editsAppliedRef.current = true;
+      // Remember that this session applied an assistant edit (forwarded on
+      // result_exit_unsaved as edits_applied).
+      noteEditApplied();
       editsSinceGenerationRef.current = true;
-      // Best-effort mirror for the post-auth round trip. When storage is
-      // blocked safeSet just returns false; the ref covers this page's life.
-      safeSet("mt_edits_applied", "1", "session");
       const start = startDateRef.current;
       // Ids are given here, so the state keeps this exact object and Undo can
       // tell it is still the plan on screen.
@@ -2627,7 +2543,7 @@ export default function NewTripPage({
       }, 100);
       return undoId;
     },
-    [setGeneratedItinerary]
+    [setGeneratedItinerary, noteEditApplied]
   );
 
   // Put the plan (and end date) back as it was before an assistant edit, only
