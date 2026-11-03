@@ -69,7 +69,7 @@ jobs:
       - name: Test the signed-in flows
         run: |
           export KEY_FLOWS_TRIP_ID=$(node -p 'require("./.auth/e2e-fixtures.json").tripId')
-          npx playwright test --project=chromium --workers=1 \
+          npx playwright test --project=chromium --workers=1 --reporter=list,html,json \
             tests/e2e/key-flows.spec.ts \
             tests/e2e/move-between-days.spec.ts \
             tests/e2e/participants.spec.ts \
@@ -84,6 +84,24 @@ jobs:
           # not to production's email quota.
           KEY_FLOWS_ALLOW_SIGNUP: "1"
           KEY_FLOWS_ALLOW_EMAIL: "1"
+          PLAYWRIGHT_JSON_OUTPUT_NAME: results.json
+      # Every test here has its setup, so a skip means it went missing.
+      - name: No test skipped
+        run: |
+          node -e '
+            const skipped = [];
+            const walk = (suite) => {
+              for (const spec of suite.specs ?? []) {
+                if (spec.tests.some((t) => t.status === "skipped")) skipped.push(`${spec.file}: ${spec.title}`);
+              }
+              (suite.suites ?? []).forEach(walk);
+            };
+            require("./results.json").suites.forEach(walk);
+            if (skipped.length) {
+              console.error(`Skipped:\n${skipped.join("\n")}`);
+              process.exit(1);
+            }
+          '
       - uses: actions/upload-artifact@v7
         if: failure()
         with:

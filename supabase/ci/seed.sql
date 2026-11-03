@@ -5,9 +5,10 @@ insert into public.site_config default values on conflict (id) do nothing;
 
 do $$
 begin
-  insert into public.trips (user_id, title, description, start_date, end_date, status, visibility, shared_at, submitted_to_trending_at)
+  -- Published as the app publishes: public, with a share link, on /explore.
+  insert into public.trips (user_id, title, description, start_date, end_date, status, visibility, share_token, shared_at, submitted_to_trending_at)
   select id, 'Lisbon long weekend', 'Three days of tiles, trams and custard tarts.',
-    current_date + 30, current_date + 32, 'planning', 'public', now(), now()
+    current_date + 30, current_date + 32, 'planning', 'public', gen_random_uuid(), now(), now()
   from public.users
   where email = 'mt-e2e+test-mate@test.local';
   if not found then
