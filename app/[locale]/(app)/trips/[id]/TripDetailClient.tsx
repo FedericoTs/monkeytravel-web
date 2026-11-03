@@ -109,6 +109,7 @@ import {
 } from "@/components/trip/ItineraryDnd";
 
 import { useAssistantFirstVisit } from "@/hooks/useAssistantFirstVisit";
+import { useTripCover } from "@/hooks/useTripCover";
 import { readItineraryVersion } from "@/lib/trips/itinerary-sync";
 import { useItinerarySync } from "@/hooks/useItinerarySync";
 import ItineraryConflictBanner from "@/components/trip/ItineraryConflictBanner";
@@ -281,45 +282,19 @@ export default function TripDetailClient({
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
-  // Cache the resolved cover URL across re-renders so the hero
-  // doesn't re-fetch after the first PATCH lands. We seed from props
-  // (DB value) and overwrite on the persist callback fire-and-forget.
-  const [coverImageUrl, setCoverImageUrl] = useState<string | null | undefined>(
-    trip.coverImageUrl
-  );
-  // Re-seed whenever the inbound trip changes (route param flip etc.).
-  useEffect(() => {
-    setCoverImageUrl(trip.coverImageUrl);
-  }, [trip.coverImageUrl, trip.id]);
-  // Persist a freshly-resolved cover image back to the trip row so later
-  // visits skip the Google Places fetch (cost and reliability). Only the
-  // owner persists it. Fire-and-forget — if the PATCH fails the in-memory
-  // state still keeps the hero visible for this session.
   const isOwner = userRole === "owner";
   // The trip assistant changes the trip, so it is for the people who can:
   // the owner and editors (the API answers 403 to anyone else).
   const canUseAssistant = ROLE_PERMISSIONS[userRole]?.canEdit ?? false;
   // The owner sees who said they're going.
   const participantsEnabled = isLiveTripParticipantsEnabled();
-  const handleCoverImageFetched = useCallback(
-    (fetchedUrl: string) => {
-      if (!isOwner) return;
-      if (!fetchedUrl) return;
-      // Optimistically update local state so the hero stops flickering
-      // through future re-renders.
-      setCoverImageUrl(fetchedUrl);
-      // Fire-and-forget PATCH — failure here is a non-event (next visit
-      // will just re-fetch). Don't await; don't toast on error.
-      fetch(`/api/trips/${trip.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cover_image_url: fetchedUrl }),
-      }).catch((err) => {
-        console.warn("[trip-cover] persist failed", err);
-      });
-    },
-    [isOwner, trip.id]
-  );
+  // The hero's cover: the stored one, else one the hero looks up, which the
+  // owner's visit stores on the trip.
+  const { coverImageUrl, handleCoverImageFetched } = useTripCover({
+    tripId: trip.id,
+    storedUrl: trip.coverImageUrl,
+    isOwner,
+  });
 
   // Crew Loop: for the owner, whether the trip is shared and the votes
   // friends cast through the link with no account.
