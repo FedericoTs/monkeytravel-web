@@ -41,7 +41,7 @@ import DateRangePicker from "@/components/ui/DateRangePicker";
 import AnchorEditor from "@/components/trip/AnchorEditor";
 import { buildSeasonalContext, getSeasonalVibeSuggestions } from "@/lib/seasonal";
 import type { SseDayData, SseOutlineData } from "@/lib/streaming/sse";
-import { generateWithRecovery, type LostGenerationError } from "@/lib/wizard/generation-recovery";
+import { generateWithRecovery } from "@/lib/wizard/generation-recovery";
 import { attemptGeneration } from "@/lib/wizard/generation-attempt";
 import { MultiCityRouteBuilder, type RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
@@ -180,12 +180,17 @@ import {
 } from "@/lib/posthog/events";
 import { saveErrorClass } from "@/lib/wizard/save-failure";
 import { funnelDays, funnelTraits } from "@/lib/wizard/plan-funnel";
+import {
+  reportGenerated,
+  reportGenerationFailed,
+  reportGenerationStarted,
+  type GenerationReport,
+} from "@/lib/wizard/generation-reports";
 import { applyAnswers, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
 import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, tripFormState, type WizardAnswers } from "@/lib/wizard/answers";
 import { generationRequest, routeLegs } from "@/lib/wizard/generation-request";
 import {
   classifyGenerationFailure,
-  failureDetail,
   validationFix,
   validationFixStep,
 } from "@/lib/wizard/generation-failure";
@@ -193,16 +198,10 @@ import {
 import { useSessionTripStack } from "@/hooks/useSessionTripStack";
 import { useCurrency } from "@/lib/locale";
 import WizardReplay from "@/components/trip/WizardReplay";
-import {
-  trackItineraryGenerated,
-  trackDestinationSelected,
-} from "@/lib/analytics";
+import { trackDestinationSelected } from "@/lib/analytics";
 import {
   captureTripUpdated,
-  captureItineraryGenerated,
   captureTripWizardStepCompleted,
-  captureTripGenerationStarted,
-  captureTripGenerationCompleted,
   captureTripIntentSelected,
   captureAnchorsGenerated,
 } from "@/lib/posthog/events";
@@ -1626,7 +1625,17 @@ export default function NewTripPage({
     // and post-auth resume alike. See preloadResultViewChunks for why.
     preloadResultViewChunks();
 
-    const generationStartTime = Date.now();
+    // What this generation reports, wherever it is counted (lib/wizard/generation-reports.ts).
+    const report: GenerationReport = {
+      destination,
+      startDate,
+      endDate,
+      budgetTier,
+      tripIntent,
+      travelStyle,
+      locale,
+      startedAt: Date.now(),
+    };
     captureTripWizardStepCompleted({
       step_number: 2,
       step_name: "vibes_preferences",
@@ -1634,18 +1643,7 @@ export default function NewTripPage({
     // Mark the wizard as completed so the abandonment listener doesn't
     // fire on the inevitable post-generation page transition.
     markWizardCompleted();
-    captureTripGenerationStarted({
-      destination,
-      duration_days: tripSpanDays(startDate, endDate),
-      budget_tier: budgetTier,
-      // Forward the intent signal so PostHog funnels can filter
-      // "started generation" by intent (solo vs group) and downstream
-      // share/save rates.
-      trip_intent: tripIntent,
-    });
-    // Supabase mirror — fired alongside the PostHog event so the funnel
-    // is queryable in SQL.
-    void trackWizardEvent("generating", { ...planFunnel, duration_days: planDays() });
+    reportGenerationStarted(report);
 
     try {
       // Multi-city sends the route legs so /api/ai/generate fans out per city;
@@ -1724,77 +1722,10 @@ export default function NewTripPage({
         recordSessionGeneration(sessionTripOf(answers, data.itinerary));
       }
 
-      // Supabase funnel mirror — fired only when we actually have an
-      // itinerary to render.
-      if (data.itinerary) {
-        const durationDaysResult = planDays();
-        void trackWizardEvent("result", { ...planFunnel, duration_days: durationDaysResult });
-        // Itinerary-level first value — the "first magical output" row the
-        // funnel SQL reads alongside `result`.
-        void trackWizardEvent("first_value", {
-          destination,
-          duration_days: durationDaysResult,
-          locale,
-        });
-      }
-
-      // Track successful itinerary generation, timed from the start of THIS
-      // request (`Date.now() - performance.now()` would be Unix-epoch minus
-      // page-life-ms, a meaningless number).
-      const generationTime = Date.now() - generationStartTime;
-      const durationDaysGenerated = tripSpanDays(startDate, endDate);
-
-      // GA4 tracking
-      trackItineraryGenerated({
-        destination,
-        duration: durationDaysGenerated,
-        budgetTier,
-        generationTimeMs: Math.round(generationTime),
-      });
-
-      // PostHog tracking
-      captureItineraryGenerated({
-        destination,
-        duration_days: durationDaysGenerated,
-        budget_tier: budgetTier,
-        generation_time_ms: Math.round(generationTime),
-      });
-
-      // Activation funnel tracking
-      captureTripGenerationCompleted({
-        destination,
-        duration_days: durationDaysGenerated,
-        budget_tier: budgetTier,
-        generation_time_seconds: Math.round((Date.now() - generationStartTime) / 1000),
-        success: true,
-        trip_intent: tripIntent,
-      });
+      reportGenerated(report, Boolean(data.itinerary));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
-      // `abandoned` cannot follow `generating` (wizardCompletedRef is set
-      // before the request fires), so without this row a failed generation
-      // is indistinguishable from someone closing the tab. The failure_code
-      // separates the buckets without anyone reading a stack trace.
-      const failureCode = classifyGenerationFailure(err);
-      const generationId = (err as LostGenerationError | null)?.generationId;
-      void trackWizardEvent("generation_failed", {
-        destination,
-        locale,
-        failure_code: failureCode,
-        failure_detail: failureDetail(err, failureCode),
-        // Joins to the server's row (api_request_logs.request_params.generation_id).
-        ...(generationId ? { request_id: generationId } : {}),
-        elapsed_ms: Math.min(Date.now() - generationStartTime, 86_400_000),
-      });
-      captureTripGenerationCompleted({
-        destination,
-        duration_days: tripSpanDays(startDate, endDate),
-        budget_tier: budgetTier,
-        generation_time_seconds: Math.round((Date.now() - generationStartTime) / 1000),
-        success: false,
-        error_type: err instanceof Error ? err.message : "unknown",
-        trip_intent: tripIntent,
-      });
+      reportGenerationFailed(report, err);
     } finally {
       setGenerating(false);
     }
