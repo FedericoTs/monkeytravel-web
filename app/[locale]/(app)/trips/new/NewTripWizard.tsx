@@ -78,7 +78,6 @@ const DestinationHero = dynamic(() => import("@/components/DestinationHero"), {
 });
 const GenerationProgress = dynamic(() => import("@/components/trip/GenerationProgress"), { ssr: false });
 const StartOverModal = dynamic(() => import("@/components/trip/StartOverModal"), { ssr: false });
-const BaseModal = dynamic(() => import("@/components/ui/BaseModal"), { ssr: false });
 const ChangeDatesModal = dynamic(() => import("@/components/trip/ChangeDatesModal"), { ssr: false });
 const RegenerateButton = dynamic(() => import("@/components/trip/RegenerateButton"), { ssr: false });
 // AI Q&A and day-scoped edits on the wizard's result view.
@@ -213,6 +212,8 @@ import { MultiCityRoute, MultiCityToggle } from "@/components/wizard/MultiCityCo
 import WizardHeader from "@/components/wizard/WizardHeader";
 import ReturningUserBanner from "@/components/wizard/ReturningUserBanner";
 import GenerationErrorNotice from "@/components/wizard/GenerationErrorNotice";
+import RegenerateConfirmModal from "@/components/wizard/RegenerateConfirmModal";
+import ResultDatesNotice from "@/components/wizard/ResultDatesNotice";
 import { safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
@@ -1968,36 +1969,14 @@ export default function NewTripPage({
         />
 
         {/* A full regenerate replaces the assistant's edits: ask first. */}
-        <BaseModal
+        <RegenerateConfirmModal
           isOpen={confirmRegenerate}
           onClose={() => setConfirmRegenerate(false)}
-          // Above the sticky result bar (also z-50, later in the page), which
-          // would otherwise cover the dialog and swallow clicks on its buttons.
-          usePortal
-          zIndex={100}
-          title={t("wizard.regenerateConfirm.title")}
-        >
-          <p className="text-sm text-slate-600">{t("wizard.regenerateConfirm.body")}</p>
-          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={() => setConfirmRegenerate(false)}
-              className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-            >
-              {t("wizard.regenerateConfirm.keep")}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setConfirmRegenerate(false);
-                void handleRegenerate();
-              }}
-              className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--primary-light)]"
-            >
-              {t("wizard.regenerateConfirm.regenerate")}
-            </button>
-          </div>
-        </BaseModal>
+          onRegenerate={() => {
+            setConfirmRegenerate(false);
+            void handleRegenerate();
+          }}
+        />
 
         {/* Start Over Modal */}
         <StartOverModal
@@ -2064,26 +2043,12 @@ export default function NewTripPage({
             trip whose extra days could not be planned. Multi-city dates come
             from per-city nights, so the change control stays out of it. */}
         {mcStops.length <= 1 && (flexibleDates || planningExtraDays || datesNotice) && (
-          <div className="max-w-6xl mx-auto px-4 pt-4">
-            <div aria-live="polite" className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
-              {planningExtraDays ? (
-                <span>{t("wizard.changeDates.planning")}</span>
-              ) : datesNotice ? (
-                <span>{datesNotice}</span>
-              ) : (
-                <>
-                  <span>{t("wizard.changeDates.pencilled", { range: formatDateRangeLocalized(startDate, endDate, locale) })}</span>
-                  <button
-                    type="button"
-                    onClick={() => setShowChangeDates(true)}
-                    className="font-semibold text-slate-900 underline underline-offset-2 hover:text-slate-700"
-                  >
-                    {t("wizard.changeDates.setYourDates")}
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
+          <ResultDatesNotice
+            planningExtraDays={planningExtraDays}
+            datesNotice={datesNotice}
+            dateRange={formatDateRangeLocalized(startDate, endDate, locale)}
+            onSetDates={() => setShowChangeDates(true)}
+          />
         )}
 
         {/* Multi-city: the Journey ribbon hero (only when the trip spans >1 city) */}
