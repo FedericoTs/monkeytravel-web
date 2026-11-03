@@ -923,10 +923,10 @@ export default function TripDetailClient({
   // Per-day regeneration: replaces all activities of a single day with a
   // fresh generation that takes the surrounding days as context, steered by
   // what the traveller wrote in the dialog (sent as `instructions`). Confirmed
-  // in the dialog, pushed to the undo stack, then swapped in.
+  // in the dialog; once the new day arrives, pushed to the undo stack and
+  // swapped in.
   const handleDayRegenerate = useCallback(
     async (dayNumber: number, instructions?: string) => {
-      pushUndo(`Regenerate Day ${dayNumber}`);
       setRegeneratingDayNumber(dayNumber);
       try {
         // In the queue: pending edits are saved first, and the version the
@@ -965,6 +965,10 @@ export default function TripDetailClient({
           const splice = (it: ItineraryDay[]) => it.map((d) => (d.day_number === dayNumber ? day : d));
           const from = readItineraryVersion(payload.fromVersion);
           const to = readItineraryVersion(payload.itineraryVersion);
+          // Undo is offered once there is a new day: a refused or failed
+          // attempt leaves nothing to undo, and the redo stack as it was.
+          // The step holds the plan as it was when the day was asked for.
+          pushUndo(`Regenerate Day ${dayNumber}`);
           await adoptDayWrite(splice, from, to);
         }, { keepsLocalEdits: true });
         // Bump the version counter so the day's children re-mount cleanly.
