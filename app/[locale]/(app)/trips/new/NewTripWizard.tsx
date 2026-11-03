@@ -1068,6 +1068,13 @@ export default function NewTripPage({
     [destination, budgetTier, clearDraft],
   );
 
+  // Where and who, on every funnel row about this plan (wizard_step_events);
+  // its PostHog mirrors take the traits without the locale. The length is
+  // read when the row is sent, once both dates are set.
+  const planTraits = { destination, group_size: tripIntent, backpacker_mode: travelStyle === "backpacker" };
+  const planFunnel = { ...planTraits, locale };
+  const planDays = () => (startDate && endDate ? Math.max(1, tripSpanDays(startDate, endDate)) : undefined);
+
   // A failed save, from either arm, leaves an event everywhere, so a lost trip
   // is never silent: Sentry is unconditional (no consent gate), the server row
   // is consent-free, PostHog is the sliceable mirror. Both arms bucket their
@@ -1080,14 +1087,9 @@ export default function NewTripPage({
       tags: { feature: arm === "auto" ? "auto_save" : "manual_save", arm, error_class: errorClass },
       extra: { ...(attempts !== undefined ? { attempts } : {}), destination },
     });
-    void trackWizardEvent(
-      "save_failed",
-      { destination, group_size: tripIntent, backpacker_mode: travelStyle === "backpacker", locale }
-    );
+    void trackWizardEvent("save_failed", planFunnel);
     captureSaveFailed({
-      destination,
-      group_size: tripIntent,
-      backpacker_mode: travelStyle === "backpacker",
+      ...planTraits,
       error_class: errorClass,
       error_message: errMsg.slice(0, 80) || undefined,
       arm,
@@ -1125,32 +1127,17 @@ export default function NewTripPage({
     setShowAuthModal(true);
   };
   const handleKeepSharedTrip = () => {
-    void trackWizardEvent("save_clicked", {
-      destination,
-      group_size: tripIntent,
-      backpacker_mode: travelStyle === "backpacker",
-      locale,
-    });
+    void trackWizardEvent("save_clicked", planFunnel);
     // Every call site of this handler is gated on isAuthenticated === false,
     // so a Keep tap here is the auth wall by definition — the same terminal
     // event handleSaveTrip fires when it bounces an anon saver. Without it
     // this path would emit save_clicked with no outcome, and the funnel
     // accounting (save_clicked minus saved/blocked/failed) reads that silence
     // as a React crash mid-save.
-    void trackWizardEvent("save_blocked_anon", {
-      destination,
-      group_size: tripIntent,
-      backpacker_mode: travelStyle === "backpacker",
-      locale,
-    });
+    void trackWizardEvent("save_blocked_anon", planFunnel);
     // PostHog mirror, sync/nav-safe, for the same reason as the main path:
     // the auth modal opens immediately after and an async capture loses the race.
-    captureSaveBlockedAnon({
-      destination,
-      group_size: tripIntent,
-      backpacker_mode: travelStyle === "backpacker",
-      modal_shown: true,
-    });
+    captureSaveBlockedAnon({ ...planTraits, modal_shown: true });
     openKeepAuth("anon_share_keep");
   };
   // -- Pending anonymous share ----------------------------------------------
@@ -1708,14 +1695,7 @@ export default function NewTripPage({
     });
     // Supabase mirror — fired alongside the PostHog event so the funnel
     // is queryable in SQL.
-    void trackWizardEvent("generating", {
-      destination,
-      duration_days:
-        startDate && endDate ? Math.max(1, tripSpanDays(startDate, endDate)) : undefined,
-      group_size: tripIntent,
-      backpacker_mode: travelStyle === "backpacker",
-      locale,
-    });
+    void trackWizardEvent("generating", { ...planFunnel, duration_days: planDays() });
 
     try {
       // Multi-city sends the route legs so /api/ai/generate fans out per city;
@@ -1797,15 +1777,8 @@ export default function NewTripPage({
       // Supabase funnel mirror — fired only when we actually have an
       // itinerary to render.
       if (data.itinerary) {
-        const durationDaysResult =
-          startDate && endDate ? Math.max(1, tripSpanDays(startDate, endDate)) : undefined;
-        void trackWizardEvent("result", {
-          destination,
-          duration_days: durationDaysResult,
-          group_size: tripIntent,
-          backpacker_mode: travelStyle === "backpacker",
-          locale,
-        });
+        const durationDaysResult = planDays();
+        void trackWizardEvent("result", { ...planFunnel, duration_days: durationDaysResult });
         // Itinerary-level first value — the "first magical output" row the
         // funnel SQL reads alongside `result`.
         void trackWizardEvent("first_value", {
@@ -1901,14 +1874,7 @@ export default function NewTripPage({
     // Supabase funnel mirror — fired on the user's Save tap regardless
     // of auth state. This captures the "peak intent" event before the
     // auth modal potentially intercepts.
-    void trackWizardEvent("save_clicked", {
-      destination,
-      duration_days:
-        startDate && endDate ? Math.max(1, tripSpanDays(startDate, endDate)) : undefined,
-      group_size: tripIntent,
-      backpacker_mode: travelStyle === "backpacker",
-      locale,
-    });
+    void trackWizardEvent("save_clicked", { ...planFunnel, duration_days: planDays() });
 
     setLoading(true);
     try {
@@ -1931,23 +1897,13 @@ export default function NewTripPage({
         // Funnel disambiguation: without this event we can't tell "user
         // bounced at auth wall" from "save genuinely errored" in the
         // save_clicked → saved gap.
-        void trackWizardEvent("save_blocked_anon", {
-          destination,
-          group_size: tripIntent,
-          backpacker_mode: travelStyle === "backpacker",
-          locale,
-        });
+        void trackWizardEvent("save_blocked_anon", planFunnel);
         // PostHog mirror so the same funnel renders in the product
         // analytics dashboard alongside save_clicked → saved. Without
         // this, the gap shows in Supabase queries but is invisible in
         // PostHog funnel charts the team actually watches.
         // Sync (nav-safe) since the auth modal opens right after.
-        captureSaveBlockedAnon({
-          destination,
-          group_size: tripIntent,
-          backpacker_mode: travelStyle === "backpacker",
-          modal_shown: true,
-        });
+        captureSaveBlockedAnon({ ...planTraits, modal_shown: true });
         setLoading(false);
         savingTripRef.current = false;
         setAuthPromptReason("save");
@@ -2035,12 +1991,7 @@ export default function NewTripPage({
     // Observability: quantify how many activations this recovers. PostHog
     // (unlike trackWizardEvent) has no event-name enum, so this needs no
     // migration.
-    posthog?.capture("save_intent_redeemed", {
-      destination,
-      group_size: tripIntent,
-      backpacker_mode: travelStyle === "backpacker",
-      locale,
-    });
+    posthog?.capture("save_intent_redeemed", planFunnel);
     void handleSaveTrip();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
