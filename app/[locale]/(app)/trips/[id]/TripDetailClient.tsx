@@ -4,8 +4,8 @@ import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { RefreshCw } from "lucide-react";
-import { CrewShareNudge, CrewVotePill, CrewVotesSummary, useCrewVotes } from "@/components/trip/CrewVotes";
-import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, ActivityProposal } from "@/types";
+import { CrewShareNudge, CrewVotesSummary, useCrewVotes } from "@/components/trip/CrewVotes";
+import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, ActivityProposal, VoteType } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import { hasCoordinates } from "@/lib/trips/has-coordinates";
@@ -46,7 +46,7 @@ import {
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DaySlider from "@/components/ui/DaySlider";
-import TravelConnector from "@/components/trip/TravelConnector";
+import ActivityRow from "@/components/trip/ActivityRow";
 import DaySummary from "@/components/trip/DaySummary";
 import { DayTimeline } from "@/components/trip/DayTimeline";
 import { tripNights } from "@/lib/dates/iso-date";
@@ -610,6 +610,21 @@ export default function TripDetailClient({
 
   // Permission checks for current user
   const canVote = ROLE_PERMISSIONS[userRole]?.canVote ?? false;
+  // The voting props every activity card takes, editing or viewing.
+  const activityVotingProps = (activityId: string | undefined) => {
+    const id = activityId || "";
+    return {
+      votingEnabled,
+      votes: getActivityVotes(id),
+      consensus: getActivityConsensus(id),
+      activityStatus: getActivityStatus(id),
+      currentUserVote: getCurrentUserVote(id),
+      canVote,
+      totalVoters: voterCount,
+      onVote: (voteType: VoteType, comment?: string) => castVote(id, voteType, comment),
+      onRemoveVote: () => removeVote(id),
+    };
+  };
   const canEdit = ROLE_PERMISSIONS[userRole]?.canEdit ?? false;
   const canPropose = ROLE_PERMISSIONS[userRole]?.canSuggest ?? false; // canSuggest = canPropose
 
@@ -1702,48 +1717,36 @@ export default function TripDetailClient({
                                 const segment = segmentBetween(dayTravelData, activity, nextActivity);
 
                                 return (
-                                  <div key={`${activity.id || idx}-v${renderEpoch}`}>
-                                    {/* Crew Loop: anon share-link tally */}
-                                    <CrewVotePill votes={crewVotes} activityId={activity.id} />
-                                    <div
-                                      className={isAIUpdated ? "animate-pulse-once ring-2 ring-[var(--primary)] ring-offset-2 rounded-xl transition-all duration-500" : ""}
-                                    >
-                                      <SortableActivityCard
-                                        activity={activity}
-                                        index={idx}
-                                        currency={trip.budget?.currency}
-                                        showGallery={true}
-                                        isEditMode={true}
-                                        onDelete={() => handleActivityDelete(activity.id!)}
-                                        onUpdate={(updates) => handleActivityUpdate(activity.id!, updates)}
-                                        onMoveToDay={(targetDayIdx) => moves.moveToDay(activity.id!, targetDayIdx)}
-                                        onRegenerate={() => handleActivityRegenerate(activity.id!, dayIndex)}
-                                        availableDays={availableDays}
-                                        dayOptions={dayOptions}
-                                        currentDayIndex={dayIndex}
-                                        isRegenerating={regeneratingActivityId === activity.id}
-                                        disableAutoFetch={true}
-                                        onPhotoCapture={handlePhotoCapture}
-                                        // Voting props
-                                        votingEnabled={votingEnabled}
-                                        votes={getActivityVotes(activity.id || "")}
-                                        consensus={getActivityConsensus(activity.id || "")}
-                                        activityStatus={getActivityStatus(activity.id || "")}
-                                        currentUserVote={getCurrentUserVote(activity.id || "")}
-                                        canVote={canVote}
-                                        totalVoters={voterCount}
-                                        onVote={(voteType, comment) => castVote(activity.id || "", voteType, comment)}
-                                        onRemoveVote={() => removeVote(activity.id || "")}
-                                      />
-                                    </div>
-                                    {/* Travel connector to next activity */}
-                                    {idx < day.activities.length - 1 && (
-                                      <TravelConnector
-                                        segment={segment}
-                                        isLoading={travelLoading || dayTravelData?.isLoading}
-                                      />
-                                    )}
-                                  </div>
+                                  <ActivityRow
+                                    key={`${activity.id || idx}-v${renderEpoch}`}
+                                    crewVotes={crewVotes}
+                                    activityId={activity.id}
+                                    aiUpdated={isAIUpdated}
+                                    travelTo={
+                                      idx < day.activities.length - 1
+                                        ? { segment, isLoading: travelLoading || dayTravelData?.isLoading }
+                                        : null
+                                    }
+                                  >
+                                    <SortableActivityCard
+                                      activity={activity}
+                                      index={idx}
+                                      currency={trip.budget?.currency}
+                                      showGallery={true}
+                                      isEditMode={true}
+                                      onDelete={() => handleActivityDelete(activity.id!)}
+                                      onUpdate={(updates) => handleActivityUpdate(activity.id!, updates)}
+                                      onMoveToDay={(targetDayIdx) => moves.moveToDay(activity.id!, targetDayIdx)}
+                                      onRegenerate={() => handleActivityRegenerate(activity.id!, dayIndex)}
+                                      availableDays={availableDays}
+                                      dayOptions={dayOptions}
+                                      currentDayIndex={dayIndex}
+                                      isRegenerating={regeneratingActivityId === activity.id}
+                                      disableAutoFetch={true}
+                                      onPhotoCapture={handlePhotoCapture}
+                                      {...activityVotingProps(activity.id)}
+                                    />
+                                  </ActivityRow>
                                 );
                               })}
                             </div>
@@ -1763,46 +1766,34 @@ export default function TripDetailClient({
                               const segment = segmentBetween(dayTravelData, activity, nextActivity);
 
                               return (
-                                <div key={`activity-${activity.id || idx}-v${renderEpoch}`}>
-                                  {/* Crew Loop: anon share-link tally */}
-                                  <CrewVotePill votes={crewVotes} activityId={activity.id} />
-                                  <div
-                                    className={isAIUpdated ? "animate-pulse-once ring-2 ring-[var(--primary)] ring-offset-2 rounded-xl transition-all duration-500" : ""}
-                                  >
-                                    <EditableActivityCard
-                                      activity={activity}
-                                      index={idx}
-                                      currency={trip.budget?.currency}
-                                      showGallery={true}
-                                      isEditMode={false}
-                                      onDelete={() => {}}
-                                      onUpdate={() => {}}
-                                      onMoveToDay={() => {}}
-                                      onRegenerate={() => {}}
-                                      availableDays={[]}
-                                      currentDayIndex={dayIndex}
-                                      disableAutoFetch={true}
-                                      onPhotoCapture={handlePhotoCapture}
-                                      // Voting props - enabled in view mode
-                                      votingEnabled={votingEnabled}
-                                      votes={getActivityVotes(activity.id || "")}
-                                      consensus={getActivityConsensus(activity.id || "")}
-                                      activityStatus={getActivityStatus(activity.id || "")}
-                                      currentUserVote={getCurrentUserVote(activity.id || "")}
-                                      canVote={canVote}
-                                      totalVoters={voterCount}
-                                      onVote={(voteType, comment) => castVote(activity.id || "", voteType, comment)}
-                                      onRemoveVote={() => removeVote(activity.id || "")}
-                                    />
-                                  </div>
-                                  {/* Travel connector to next activity */}
-                                  {idx < day.activities.length - 1 && (
-                                    <TravelConnector
-                                      segment={segment}
-                                      isLoading={travelLoading || dayTravelData?.isLoading}
-                                    />
-                                  )}
-                                </div>
+                                <ActivityRow
+                                  key={`activity-${activity.id || idx}-v${renderEpoch}`}
+                                  crewVotes={crewVotes}
+                                  activityId={activity.id}
+                                  aiUpdated={isAIUpdated}
+                                  travelTo={
+                                    idx < day.activities.length - 1
+                                      ? { segment, isLoading: travelLoading || dayTravelData?.isLoading }
+                                      : null
+                                  }
+                                >
+                                  <EditableActivityCard
+                                    activity={activity}
+                                    index={idx}
+                                    currency={trip.budget?.currency}
+                                    showGallery={true}
+                                    isEditMode={false}
+                                    onDelete={() => {}}
+                                    onUpdate={() => {}}
+                                    onMoveToDay={() => {}}
+                                    onRegenerate={() => {}}
+                                    availableDays={[]}
+                                    currentDayIndex={dayIndex}
+                                    disableAutoFetch={true}
+                                    onPhotoCapture={handlePhotoCapture}
+                                    {...activityVotingProps(activity.id)}
+                                  />
+                                </ActivityRow>
                               );
                             } else {
                               // Inline Proposal Card
