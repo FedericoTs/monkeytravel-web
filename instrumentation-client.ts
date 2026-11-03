@@ -27,6 +27,7 @@
 import { posthogActionFor, POSTHOG_COOKIELESS_MODE } from "@/lib/analytics/posthog-consent";
 import { CONSENT_CHANGE_EVENT } from "@/lib/consent/types";
 import { configureSentry, sentry } from "@/lib/observability/sentry";
+import { SENTRY_DATA_COLLECTION } from "@/lib/observability/sentry-data-collection";
 import { POSTHOG_READY_EVENT } from "@/lib/posthog/client";
 
 // Helper to check consent from localStorage (runs before React)
@@ -183,8 +184,8 @@ function initSentry(Sentry: typeof import("@sentry/nextjs"), hasSessionRecording
       /\/_\/translate_http\//,
     ],
 
-    // Don't send PII by default
-    sendDefaultPii: false,
+    // Nothing about the person (lib/observability/sentry-data-collection.ts).
+    dataCollection: SENTRY_DATA_COLLECTION,
 
     // Attach release version
     release: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA,
@@ -196,6 +197,9 @@ function initSentry(Sentry: typeof import("@sentry/nextjs"), hasSessionRecording
         console.log("[Sentry] Event captured (dev mode - not sent):", event);
         return null;
       }
+      // The page's route ("/:locale/trip/:slug"), which groups an error by
+      // page. Only tracing names routes, and tracing is not in the bundle.
+      if (!event.transaction) event.transaction = Sentry.resolveCurrentRoute();
       return event;
     },
 

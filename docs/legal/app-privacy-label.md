@@ -176,9 +176,10 @@ grep -rn "posthog.init" --include="*.ts" --include="*.tsx" .
 # Verify the config object does NOT contain `disable_session_recording: false`
 # (default is true, which means recording is DISABLED — that's what we want)
 
-# 3. Confirm Sentry beforeSend strips PII
-grep -rn "beforeSend" --include="*.ts" instrumentation*.ts
-# Should see the email scrubber from task #219
+# 3. Confirm Sentry collects nothing about the person
+grep -rn "dataCollection" --include="*.ts" instrumentation-client.ts sentry.*.config.ts
+# All three runtimes should use SENTRY_DATA_COLLECTION
+# (lib/observability/sentry-data-collection.ts: no user fields, cookies or bodies)
 
 # 4. Confirm no analytics events capture sensitive fields
 # Grep for events that include trip data with PII
