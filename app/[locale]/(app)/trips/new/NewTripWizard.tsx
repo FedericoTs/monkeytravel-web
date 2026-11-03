@@ -31,7 +31,7 @@ export interface PrefilledTripShape {
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { prefs } from "@/lib/platform/storage";
-import type { GeneratedItinerary, ItineraryDay, TripAnchor, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
+import type { GeneratedItinerary, ItineraryDay, TripAnchor, TripVibe, SeasonalContext } from "@/types";
 import { DIETS, dietsFrom, type Diet } from "@/lib/trips/diet";
 // Step-1 components (above-the-fold) stay eager.
 import VibeSelector from "@/components/trip/VibeSelector";
@@ -196,6 +196,7 @@ import { decideDraftRestore } from "@/lib/wizard/draft-restore";
 import { saveErrorClass } from "@/lib/wizard/save-failure";
 import { applyDraft, applyKeptPlan, type DraftTargets } from "@/lib/wizard/apply-draft";
 import { keptPlanOf, sessionTripOf, tripFormState, type WizardAnswers } from "@/lib/wizard/answers";
+import { generationRequest, routeLegs } from "@/lib/wizard/generation-request";
 import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
 import {
   classifyGenerationFailure,
@@ -893,9 +894,9 @@ export default function NewTripPage({
 
   useEffect(() => {
     if (!MULTI_CITY_ENABLED || !multiCityMode) return;
-    const valid = cityRows.filter((r) => r.city.trim() && r.nights > 0);
-    setDestination(joinCities(valid.map((r) => r.city.trim())));
-    const total = valid.reduce((s, r) => s + r.nights, 0);
+    const legs = routeLegs(cityRows);
+    setDestination(joinCities(legs.map((r) => r.city)));
+    const total = legs.reduce((s, r) => s + r.nights, 0);
     if (startDate && total > 0) setEndDate(addIsoDaysOrThrow(startDate, total - 1));
   }, [multiCityMode, cityRows, startDate]);
   useEffect(() => { startDateRef.current = startDate; }, [startDate]);
@@ -1948,7 +1949,7 @@ export default function NewTripPage({
   // predicate in lockstep with app/api/ai/generate/route.ts.
   const multiCityLegCount =
     MULTI_CITY_ENABLED && multiCityMode
-      ? cityRows.filter((r) => r.city.trim() && r.nights > 0).length
+      ? routeLegs(cityRows).length
       : 0;
   const effectiveMaxTripDays =
     multiCityLegCount > 1 ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS;
@@ -2217,48 +2218,18 @@ export default function NewTripPage({
     });
 
     try {
-      // Derive interests from vibes for API compatibility
-      const derivedInterests = deriveInterestsFromVibes();
-
-      // Multi-city: send the route legs so /api/ai/generate fans out per city.
+      // Multi-city sends the route legs so /api/ai/generate fans out per city;
       // `destination` already carries the combined label (synced effect above).
-      const mcLegs =
-        MULTI_CITY_ENABLED && multiCityMode
-          ? cityRows
-              .filter((r) => r.city.trim() && r.nights > 0)
-              .map((r) => ({ city: r.city.trim(), nights: r.nights }))
-          : null;
-      const isMultiCity = !!(mcLegs && mcLegs.length > 1);
-
-      const params: TripCreationParams = {
-        destination,
-        startDate,
-        endDate,
-        budgetTier,
-        pace,
-        vibes: selectedVibes,
-        seasonalContext: seasonalContext || undefined,
-        interests: derivedInterests, // Auto-derived from vibes
-        requirements: requirements || undefined,
-        // Must-do wishlist — undated wishes the plan must schedule.
-        // Presence bypasses the cross-user cache server-side.
-        ...(mustDos.length > 0 ? { mustDos } : {}),
-        travelStyle,
-        ...(isMultiCity ? { destinations: mcLegs! } : {}),
-        // Anchored trips: fixed commitments the plan must build around.
-        // Mutually exclusive with multi-city — the panel is hidden in
-        // multi-city mode, and this guard keeps stale state out of the call.
-        ...(!isMultiCity && anchors.length > 0 ? { anchors } : {}),
-      };
-      // Regenerate asks for a different plan: the server then skips its cache.
-      // The page locale picks the itinerary's language. A diet also skips the
-      // shared cache, server-side.
-      const requestBody = { ...params, locale, ...(dietary.length > 0 ? { dietary } : {}), ...(opts.fresh ? { fresh: true } : {}) };
-
-      // Multi-city and anchored trips return one merged JSON body, not an SSE
-      // stream — skip the streaming endpoint and let the JSON fallback below
-      // carry `destinations`/`anchors`.
-      const isAnchored = !isMultiCity && anchors.length > 0;
+      // Interests are derived from the vibes (lib/wizard/generation-request.ts).
+      const request = generationRequest(answers, {
+        legs: MULTI_CITY_ENABLED && multiCityMode ? routeLegs(cityRows) : [],
+        interests: deriveInterestsFromVibes(),
+        seasonalContext,
+        requirements,
+        locale,
+        fresh: opts.fresh,
+      });
+      const { isAnchored } = request;
 
       // Anchor telemetry: how constrained is this trip? Fired at Generate (not at
       // panel-add) so it counts intent that actually reached generation.
@@ -2284,7 +2255,7 @@ export default function NewTripPage({
       const { result: data } = await generateWithRecovery((generationId) =>
         attemptGeneration(
           generationId,
-          { body: requestBody, stream: !isMultiCity && !isAnchored, signedIn: Boolean(authUser) },
+          { body: request.body, stream: request.stream, signedIn: Boolean(authUser) },
           {
             reset: () => {
               setStreamedDays([]);
