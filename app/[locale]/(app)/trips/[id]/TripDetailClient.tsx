@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { RefreshCw } from "lucide-react";
 import { CrewShareNudge, CrewVotesSummary, useCrewVotes } from "@/components/trip/CrewVotes";
-import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, ActivityProposal, VoteType } from "@/types";
+import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import { hasCoordinates } from "@/lib/trips/has-coordinates";
@@ -26,6 +26,7 @@ import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 // next/dynamic further down, which keeps the initial trip-page chunk lean.
 import { useActivityVotes } from "@/hooks/useActivityVotes";
 import { useProposals } from "@/hooks/useProposals";
+import { useProposalApprovals } from "@/hooks/useProposalApprovals";
 import { dayTimeline } from "@/lib/proposals/timeline";
 import { InlineProposalCard } from "@/components/collaboration/proposals";
 import DestinationHero from "@/components/DestinationHero";
@@ -387,7 +388,6 @@ export default function TripDetailClient({
   const [confirmCancelTrip, setConfirmCancelTrip] = useState(false);
 
   // Status management
-  const router = useRouter();
   const { status: currentStatus, updating: isUpdatingStatus, update: handleStatusUpdate } = useTripStatus(trip.id, trip.status);
 
   // Booking drawer state (for collecting flight origin)
@@ -562,40 +562,9 @@ export default function TripDetailClient({
     enabled: votingEnabled,
   });
 
-  // Activity proposals for collaborative trips
-  // Track recently approved proposals to show transition animation
-  const [recentlyApproved, setRecentlyApproved] = useState<Set<string>>(new Set());
-
-  // Handle proposal status changes (especially approvals). The server has
-  // already added an approved proposal's activity to the trip: the page takes
-  // the stored copy, once per proposal, in the save queue and never over
-  // unsaved edits (their save gets the conflict choice instead).
-  const approvalsSeenRef = useRef<Set<string>>(new Set());
-  const handleProposalChange = useCallback((proposal: ActivityProposal) => {
-    if (proposal.status === 'approved' && !approvalsSeenRef.current.has(proposal.id)) {
-      approvalsSeenRef.current.add(proposal.id);
-      // Mark as recently approved for animation
-      setRecentlyApproved(prev => new Set([...prev, proposal.id]));
-
-      const name = (proposal.activity_data as Activity | undefined)?.name;
-      if (name) addToast(t('detail.proposalApproved', { name, day: proposal.target_day }), "success");
-
-      void refetchQueued()
-        .catch((err) => {
-          console.warn("[proposals] approved, but the page could not re-read the trip", err);
-          router.refresh();
-        });
-
-      // Remove from recently approved after animation completes
-      setTimeout(() => {
-        setRecentlyApproved(prev => {
-          const next = new Set(prev);
-          next.delete(proposal.id);
-          return next;
-        });
-      }, 3000);
-    }
-  }, [addToast, refetchQueued, router, t]);
+  // Activity proposals for collaborative trips. An approval brings in the
+  // stored trip and animates for a moment (useProposalApprovals).
+  const { recentlyApproved, handleProposalChange } = useProposalApprovals(refetchQueued);
 
   const {
     proposals,
