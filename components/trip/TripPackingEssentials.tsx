@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useChanged } from "@/hooks/useChanged";
 import { createClient } from "@/lib/supabase/client";
 import { useTranslations } from "next-intl";
 import { Spinner } from "@/components/ui/Spinner";
@@ -175,12 +176,12 @@ export default function TripPackingEssentials({
     }
   }, [tripId, t]);
 
-  // Sync initial checked items when they change (e.g., page reload)
-  useEffect(() => {
-    if (initialChecked.length > 0) {
-      setCheckedItems(new Set(initialChecked));
-    }
-  }, [initialChecked]);
+  // Sync initial checked items when they change (e.g., page reload). Compared
+  // by content: the default list is a new array every render.
+  const initialCheckedChanged = useChanged(JSON.stringify(initialChecked));
+  if (initialCheckedChanged && initialChecked.length > 0) {
+    setCheckedItems(new Set(initialChecked));
+  }
 
   // Group items by category
   const categorizedItems = useMemo(() => {

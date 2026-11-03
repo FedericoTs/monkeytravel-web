@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useChanged } from "@/hooks/useChanged";
 import { useImageLoaded } from "@/hooks/useImageLoaded";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
@@ -55,11 +56,12 @@ export default function ImageCarousel({
   const { panelRef: containerRef } = useModalBehavior({ isOpen: true, onClose });
 
   // Reset zoom when the image changes
-  useEffect(() => {
+  const imageChanged = useChanged(currentIndex);
+  if (imageChanged) {
     setIsZoomed(false);
     setZoomScale(1);
     setPanOffset({ x: 0, y: 0 });
-  }, [currentIndex]);
+  }
 
   // Auto-scroll thumbnail into view when index changes
   useEffect(() => {

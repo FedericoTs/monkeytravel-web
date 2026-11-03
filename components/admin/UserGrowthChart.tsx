@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useChanged } from "@/hooks/useChanged";
 
 interface DailyData {
   date: string;
@@ -110,8 +111,10 @@ export default function UserGrowthChart({ data }: UserGrowthChartProps) {
   }, [chartConfig]);
 
   // Animation trigger
+  const timeRangeChanged = useChanged(timeRange);
+  const viewModeChanged = useChanged(viewMode);
+  if (timeRangeChanged || viewModeChanged) setIsAnimated(false);
   useEffect(() => {
-    setIsAnimated(false);
     const timer = setTimeout(() => setIsAnimated(true), 100);
     return () => clearTimeout(timer);
   }, [timeRange, viewMode]);

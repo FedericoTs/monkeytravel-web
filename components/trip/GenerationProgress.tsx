@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useChanged } from "@/hooks/useChanged";
 import { useTranslations } from "next-intl";
 import type { SseDayData, SseOutlineData } from "@/lib/streaming/sse";
 import { LivePlanPreview } from "./LivePlanPreview";
@@ -68,6 +69,16 @@ const PHASES = [
     duration: 1000,
   },
 ];
+
+/** The phase a progress percentage falls in; the last one from its threshold on. */
+function phaseIndexAt(progress: number): number {
+  let cumulative = 0;
+  for (let i = 0; i < PHASES.length; i++) {
+    cumulative += PHASES[i].weight;
+    if (progress < cumulative) return i;
+  }
+  return PHASES.length - 1;
+}
 
 // Fun fact keys for translation
 const FUN_FACT_KEYS = [
@@ -246,7 +257,6 @@ export default function GenerationProgress({
   const t = useTranslations("common.generation");
   const streamedDayCount = streamedDays.length;
   const [progress, setProgress] = useState(0);
-  const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
   const [factIndex, setFactIndex] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
 
@@ -261,32 +271,16 @@ export default function GenerationProgress({
     streamedTotalDaysRef.current = streamedTotalDays;
   }, [streamedDayCount, streamedTotalDays]);
 
-  // Get current phase based on progress
-  const currentPhase = useMemo(() => {
-    let cumulative = 0;
-    for (let i = 0; i < PHASES.length; i++) {
-      cumulative += PHASES[i].weight;
-      if (progress < cumulative) {
-        return { phase: PHASES[i], index: i };
-      }
-    }
-    return { phase: PHASES[PHASES.length - 1], index: PHASES.length - 1 };
-  }, [progress]);
-
-  // Update phase index for animation triggers
-  useEffect(() => {
-    if (currentPhase.index !== currentPhaseIndex) {
-      setCurrentPhaseIndex(currentPhase.index);
-    }
-  }, [currentPhase.index, currentPhaseIndex]);
+  const currentPhaseIndex = phaseIndexAt(progress);
 
   // Smart progress animation - exponential slowdown approaching each threshold
+  const generatingChanged = useChanged(isGenerating);
+  if (generatingChanged && !isGenerating) {
+    setProgress(0);
+    setElapsedTime(0);
+  }
   useEffect(() => {
-    if (!isGenerating) {
-      setProgress(0);
-      setElapsedTime(0);
-      return;
-    }
+    if (!isGenerating) return;
 
     const startTime = Date.now();
     let animationFrame: number;
@@ -453,8 +447,8 @@ export default function GenerationProgress({
             {PHASES.map((phase, idx) => (
               <div
                 key={phase.id}
-                className={`col-start-1 row-start-1 ${idx === currentPhase.index ? "" : "invisible"}`}
-                aria-hidden={idx !== currentPhase.index || undefined}
+                className={`col-start-1 row-start-1 ${idx === currentPhaseIndex ? "" : "invisible"}`}
+                aria-hidden={idx !== currentPhaseIndex || undefined}
               >
                 <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
                   {t(`phases.${phase.labelKey}`)}...
