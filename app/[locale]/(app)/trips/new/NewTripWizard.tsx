@@ -781,7 +781,8 @@ export default function NewTripPage({
     };
   }, [destination, startDate, endDate, destinationCoords]);
 
-  // What a restored draft or an opened kept plan fills in.
+  // What a restored draft, an opened kept plan or a tray swap fills in. The
+  // plan it brings drops the dates note, which was about the one it replaces.
   const draftTargets: DraftTargets = useMemo(
     () => ({
       setDestination,
@@ -796,7 +797,10 @@ export default function NewTripPage({
       setAnchors,
       setTripIntent,
       setFlexibleDates,
-      setGeneratedItinerary,
+      setGeneratedItinerary: (plan: GeneratedItinerary) => {
+        setDatesNotice(null);
+        setGeneratedItinerary(plan);
+      },
       registerRestore: registerSessionRestore,
     }),
     [setGeneratedItinerary, registerSessionRestore]
@@ -1442,8 +1446,9 @@ export default function NewTripPage({
   };
 
   const handleGenerate = async (opts: { fresh?: boolean } = {}) => {
-    // A new itinerary replaces the one the edits were applied to.
+    // A new itinerary replaces the one the edits and the dates note were about.
     editsSinceGenerationRef.current = false;
+    setDatesNotice(null);
     // Date guard. canProceed() only validates the span on step 1, but the span
     // can outlive the mode that allowed it: handleSessionTrayRestore forces
     // multiCityMode off (see its comment) and a route can drop to one filled
