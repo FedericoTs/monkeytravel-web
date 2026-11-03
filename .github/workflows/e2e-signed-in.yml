@@ -24,6 +24,17 @@ jobs:
     env:
       NEXT_TELEMETRY_DISABLED: 1
       SUPABASE_CLI_VERSION: 2.122.0
+      # The feature switches production turns on, so the tests check the app
+      # it serves. Keep in step with the project's Vercel settings.
+      EXPLORE_UGC_ENABLED: "true"
+      NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED: "true"
+      NEXT_PUBLIC_CONCIERGE_ENABLED: "true"
+      NEXT_PUBLIC_EMAIL_PARSE_ENABLED: "true"
+      NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED: "true"
+      NEXT_PUBLIC_HERO_DOODLE_ENABLED: "true"
+      NEXT_PUBLIC_MAP_ROUTES_ENABLED: "true"
+      NEXT_PUBLIC_MULTI_CITY_ENABLED: "true"
+      NEXT_PUBLIC_TRIP_NOTIFICATIONS_ENABLED: "true"
     steps:
       - uses: actions/checkout@v7
       - name: Supabase CLI
