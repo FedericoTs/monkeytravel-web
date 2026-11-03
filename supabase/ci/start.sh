@@ -12,8 +12,9 @@ cd "$(dirname "$0")/../.."
 : "${CI_SCHEMA_KEY:?CI_SCHEMA_KEY is not set}"
 
 # The stack runs from a copy of the config: without the migrations, which the
-# snapshot stands in for, on production's Postgres version, and with the auth
-# hook that sends mail through production turned off.
+# snapshot stands in for, on production's Postgres version, with the auth hook
+# that sends mail through production turned off (mail goes to the stack's
+# Mailpit instead), and with room for the few emails the tests send.
 stack=$(mktemp -d)
 mkdir "$stack/supabase"
 config="$stack/supabase/config.toml"
@@ -22,9 +23,10 @@ if sed -n '/^\[auth\.hook\.send_email\]/,/^\[/p' "$config" | grep -q '^enabled =
   echo "could not turn off the send_email auth hook" >&2
   exit 1
 fi
-printf '\n[db]\nmajor_version = 17\n' >> "$config"
+grep -q '^\[db\]' "$config" || printf '\n[db]\nmajor_version = 17\n' >> "$config"
+grep -q '^\[auth\.rate_limit\]' "$config" || printf '\n[auth.rate_limit]\nemail_sent = 100\n' >> "$config"
 
-supabase start --workdir "$stack" -x imgproxy,mailpit,studio,edge-runtime,logflare,vector,supavisor
+supabase start --workdir "$stack" -x imgproxy,studio,edge-runtime,logflare,vector,supavisor
 eval "$(supabase status --workdir "$stack" -o env | grep -E '^[A-Z0-9_]+=')"
 : "${API_URL:?}" "${DB_URL:?}" "${ANON_KEY:?}" "${SERVICE_ROLE_KEY:?}"
 
@@ -68,4 +70,8 @@ NEXT_PUBLIC_SUPABASE_URL=$API_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY
 EOF
+# Later workflow steps seed rows with psql.
+if [[ -n "${GITHUB_ENV:-}" ]]; then
+  echo "SUPABASE_DB_URL=$DB_URL" >> "$GITHUB_ENV"
+fi
 echo "Local Supabase is up at $API_URL with production's schema."

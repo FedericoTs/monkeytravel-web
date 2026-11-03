@@ -4,12 +4,16 @@ The signed-in browser tests (`.github/workflows/e2e-signed-in.yml`) run against
 a local Supabase stack, never production. `start.sh` builds it:
 
 1. starts the stack from a copy of `supabase/config.toml`, with no migrations,
-   Postgres 17 and the `send_email` auth hook off;
+   Postgres 17 and the `send_email` auth hook off, so mail goes to the stack's
+   Mailpit;
 2. loads `schema.sql.enc`, a snapshot of production's schema decrypted with the
    `CI_SCHEMA_KEY` secret;
 3. applies the files in `supabase/migrations` newer than `schema.last-migration`,
    the newest one the snapshot already holds, so a PR's own migration runs too;
 4. writes `.env.local` with the stack's URL and keys.
+
+The workflow then creates the test accounts and trip (`scripts/e2e-fixtures.mts`)
+and adds the rows `seed.sql` holds: data production has that the tests read.
 
 The snapshot is there because no migration creates the base tables (`trips`,
 `users`, ...): replaying `supabase/migrations` on an empty database fails. It is

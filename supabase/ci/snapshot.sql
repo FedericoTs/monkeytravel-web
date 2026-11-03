@@ -168,6 +168,6 @@ sections as (
 )
 select regexp_replace(
   string_agg(ddl, E'\n\n' order by ord),
-  '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', 'ci-admin@example.invalid', 'g'
+  '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', 'ci-admin@example.com', 'g'
 ) || E'\n' as ddl
 from sections where ddl is not null
