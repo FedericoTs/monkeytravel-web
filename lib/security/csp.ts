@@ -96,6 +96,21 @@ export type ScriptPolicy =
   | { nonce?: undefined; hashes: readonly string[] }
   | { nonce?: undefined; hashes?: undefined; unsafeInline: true };
 
+/**
+ * The Supabase project the app is built against, when *.supabase.co doesn't
+ * cover it: a local stack, as the signed-in browser tests in CI use.
+ */
+function configuredSupabase(): string[] {
+  let url: URL;
+  try {
+    url = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "");
+  } catch {
+    return [];
+  }
+  if (url.hostname.endsWith(".supabase.co")) return [];
+  return [url.origin, `${url.protocol === "https:" ? "wss:" : "ws:"}//${url.host}`];
+}
+
 function scriptSrc(scripts: ScriptPolicy): string[] {
   if ("unsafeInline" in scripts) return ["'self'", "'unsafe-inline'", ...SCRIPT_HOSTS];
   const hashes = (scripts.hashes ?? []).map((h) => `'${h}'`);
@@ -126,6 +141,7 @@ export function buildCspHeader(pathname: string, scripts: ScriptPolicy): string 
       // Supabase REST + Realtime (auth, db, storage)
       "https://*.supabase.co",
       "wss://*.supabase.co",
+      ...configuredSupabase(),
       // Analytics + monitoring
       "https://*.posthog.com",
       "https://*.sentry.io",

@@ -1,0 +1,123 @@
+# Browser tests of the signed-in flows (trip page, crew, Today) against a
+# production build of the PR and a local Supabase stack with production's
+# schema (supabase/ci). Test accounts and trips live only in that stack, and
+# no paid API is called.
+name: E2E signed in
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: e2e-signed-in-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+      SUPABASE_CLI_VERSION: 2.122.0
+      # The feature switches production turns on, so the tests check the app
+      # it serves. Keep in step with the project's Vercel settings.
+      EXPLORE_UGC_ENABLED: "true"
+      NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED: "true"
+      NEXT_PUBLIC_CONCIERGE_ENABLED: "true"
+      NEXT_PUBLIC_EMAIL_PARSE_ENABLED: "true"
+      NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED: "true"
+      NEXT_PUBLIC_HERO_DOODLE_ENABLED: "true"
+      NEXT_PUBLIC_MAP_ROUTES_ENABLED: "true"
+      NEXT_PUBLIC_MULTI_CITY_ENABLED: "true"
+      NEXT_PUBLIC_TRIP_NOTIFICATIONS_ENABLED: "true"
+    steps:
+      - uses: actions/checkout@v7
+      - name: Supabase CLI
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL "https://github.com/supabase/cli/releases/download/v$SUPABASE_CLI_VERSION/supabase_linux_amd64.tar.gz" \
+            | tar -xz -C "$HOME/.local/bin" supabase
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Local Supabase with production's schema
+        env:
+          CI_SCHEMA_KEY: ${{ secrets.CI_SCHEMA_KEY }}
+        run: bash supabase/ci/start.sh
+      - name: App secrets
+        run: |
+          echo "EMAIL_UNSUBSCRIBE_SECRET=$(openssl rand -hex 32)" >> .env.local
+          echo "FEEDBACK_LINK_SECRET=$(openssl rand -hex 32)" >> .env.local
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      # next/font/google downloads the fonts during the build, and a dropped
+      # download fails it. Same retries as e2e-public.yml.
+      - name: Build
+        run: npm run build || (rm -rf .next && sleep 30 && npm run build) || (rm -rf .next && sleep 90 && npm run build)
+      - name: Test accounts and trips
+        run: |
+          npx tsx scripts/e2e-fixtures.mts --seed
+          psql "$SUPABASE_DB_URL" -X -q -v ON_ERROR_STOP=1 -f supabase/ci/seed.sql
+      # Playwright starts its own server for the tests, so this one stops once
+      # the accounts are signed in.
+      - name: Sign the accounts in
+        run: |
+          node_modules/.bin/next start > "$RUNNER_TEMP/next-login.log" 2>&1 &
+          server=$!
+          for _ in $(seq 1 60); do curl -fsS -o /dev/null http://localhost:3000/ && break; sleep 1; done
+          BASE_URL=http://localhost:3000 npx tsx scripts/e2e-login.mts
+          kill "$server"
+          for _ in $(seq 1 20); do curl -fsS -o /dev/null http://localhost:3000/ 2>/dev/null || break; sleep 1; done
+      # One worker: the specs share the fixture trip.
+      - name: Test the signed-in flows
+        run: |
+          export KEY_FLOWS_TRIP_ID=$(node -p 'require("./.auth/e2e-fixtures.json").tripId')
+          npx playwright test --project=chromium --workers=1 --reporter=list,html,json \
+            tests/e2e/key-flows.spec.ts \
+            tests/e2e/move-between-days.spec.ts \
+            tests/e2e/participants.spec.ts \
+            tests/e2e/today.spec.ts \
+            tests/e2e/crew-consensus-writes.spec.ts \
+            tests/e2e/silent-write-failures.spec.ts
+        env:
+          BASE_URL: http://localhost:3000
+          KEY_FLOWS_AUTH_STATE: .auth/owner.json
+          KEY_FLOWS_MATE_STATE: .auth/mate.json
+          # Signup and password reset mail goes to the local stack's Mailpit,
+          # not to production's email quota.
+          KEY_FLOWS_ALLOW_SIGNUP: "1"
+          KEY_FLOWS_ALLOW_EMAIL: "1"
+          PLAYWRIGHT_JSON_OUTPUT_NAME: results.json
+      # Every test here has its setup, so a skip means it went missing.
+      - name: No test skipped
+        run: |
+          node -e '
+            const skipped = [];
+            const walk = (suite) => {
+              for (const spec of suite.specs ?? []) {
+                if (spec.tests.some((t) => t.status === "skipped")) skipped.push(`${spec.file}: ${spec.title}`);
+              }
+              (suite.suites ?? []).forEach(walk);
+            };
+            require("./results.json").suites.forEach(walk);
+            if (skipped.length) {
+              console.error(`Skipped:\n${skipped.join("\n")}`);
+              process.exit(1);
+            }
+          '
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report-signed-in
+          path: |
+            playwright-report
+            .auth/login-fail-*.png
+          retention-days: 7
