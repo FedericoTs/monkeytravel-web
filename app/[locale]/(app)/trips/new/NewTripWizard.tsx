@@ -195,6 +195,7 @@ import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim
 import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
 import { decideDraftRestore } from "@/lib/wizard/draft-restore";
 import { applyDraft, applyKeptPlan, type DraftTargets } from "@/lib/wizard/apply-draft";
+import { keptPlanOf, sessionTripOf, tripFormState, type WizardAnswers } from "@/lib/wizard/answers";
 import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
 import {
   classifyGenerationFailure,
@@ -1248,8 +1249,10 @@ export default function NewTripPage({
 
   // Every answer on the form, which a draft keeps beside the itinerary so a
   // restore (after sign-in, a reload, a failed generation) puts them all back.
-  // A field left out here is silently lost on that round trip.
-  const draftFields = useMemo(
+  // A field left out here is silently lost on that round trip. The saved
+  // trip, the kept plan and the session tray are built from it too
+  // (lib/wizard/answers.ts).
+  const answers: WizardAnswers = useMemo(
     () => ({
       destination,
       startDate,
@@ -1275,7 +1278,7 @@ export default function NewTripPage({
   // auto-save arm would insert it as a second trip. So a saved trip clears the
   // draft instead.
   //
-  // draftFields changes with any answer, so a "Who's coming?" changed after
+  // `answers` changes with any of them, so a "Who's coming?" changed after
   // generating reaches the draft too; a stale one would corrupt the very
   // measurement that field exists for.
   useEffect(() => {
@@ -1284,8 +1287,8 @@ export default function NewTripPage({
       clearDraft();
       return;
     }
-    saveDraft({ generatedItinerary, ...draftFields });
-  }, [generatedItinerary, draftFields, saveDraft, savedTripId, clearDraft]);
+    saveDraft({ generatedItinerary, ...answers });
+  }, [generatedItinerary, answers, saveDraft, savedTripId, clearDraft]);
 
   // ── Auto-save trip orchestration ────
   // The hook owns the save state machine: INSERT-or-UPDATE, the in-flight save
@@ -1294,26 +1297,15 @@ export default function NewTripPage({
   // then the redemption effect below owns the post-auth save instead.
   const autoSaveEnabled = shouldAutoSave(process.env.NEXT_PUBLIC_AUTO_SAVE_FORCE);
 
-  const autoSaveFormState: PersistTripFormState = {
-    destination,
-    startDate,
-    endDate,
-    budgetTier,
-    pace,
-    vibes: selectedVibes,
+  // Every answer is written to the trip. "Who's coming?" is among them so the
+  // answer is queryable from the database (reading it from PostHog needs a
+  // personal API key), which makes the toggle evidence for the group-vs-solo
+  // decision. `locale` is the fallback for trip_meta.locale; the itinerary's
+  // own language wins.
+  const autoSaveFormState: PersistTripFormState = tripFormState(answers, {
     derivedInterests: deriveInterestsFromVibes(),
-    travelStyle,
-    // Fallback for trip_meta.locale; the itinerary's own language wins.
     locale,
-    anchors,
-    mustDos,
-    dietary,
-    // "Who's coming?" is written to the trip so the answer is queryable from
-    // the database (reading it from PostHog needs a personal API key). That
-    // is what makes the toggle evidence for the group-vs-solo decision.
-    tripIntent,
-    flexibleDates,
-  };
+  });
 
   // One id per wizard MOUNT, written into every trip this mount inserts, so a
   // duplicate insert can be diagnosed: different mount ids mean a remount
@@ -1537,7 +1529,7 @@ export default function NewTripPage({
   // round-trip.
   const openKeepAuth = (location: AuthPromptLocation) => {
     if (generatedItinerary) {
-      saveDraft({ generatedItinerary, ...draftFields });
+      saveDraft({ generatedItinerary, ...answers });
     }
     setAuthPromptLocation(location);
     setAuthPromptReason("save");
@@ -1657,23 +1649,10 @@ export default function NewTripPage({
   // nothing, and the plan comes back from its link or from step 1's list.
   const keptPlanInput = useMemo<KeptPlan | null>(
     () =>
-      generatedItinerary && destination && startDate && endDate
-        ? {
-            destination,
-            startDate,
-            endDate,
-            itinerary: generatedItinerary,
-            pace,
-            vibes: selectedVibes,
-            budgetTier,
-            travelStyle,
-            ...(tripIntent === "solo" || tripIntent === "group" ? { tripIntent } : {}),
-            ...(flexibleDates ? { flexibleDates: true } : {}),
-            ...(mustDos.length > 0 ? { mustDos } : {}),
-            ...(dietary.length > 0 ? { dietary } : {}),
-          }
+      generatedItinerary && answers.destination && answers.startDate && answers.endDate
+        ? keptPlanOf(answers, generatedItinerary)
         : null,
-    [generatedItinerary, destination, startDate, endDate, pace, selectedVibes, budgetTier, travelStyle, tripIntent, flexibleDates, mustDos, dietary]
+    [generatedItinerary, answers]
   );
   const { kept: keptPlan, adoptOpened: adoptOpenedPlan } = useKeptPlan({
     enabled: isAuthenticated === false && hasResult && isUnsaved && !generating,
@@ -2200,7 +2179,7 @@ export default function NewTripPage({
         generatedItinerary: (isSameDestination(draft?.destination, destination)
           ? draft?.generatedItinerary ?? null
           : null) as unknown as GeneratedItinerary,
-        ...draftFields,
+        ...answers,
       });
     }
 
@@ -2345,17 +2324,7 @@ export default function NewTripPage({
       // here; they go through registerRestore/swapTo, so recordGeneration's
       // restored-entry dedupe keeps the stack duplicate-free.
       if (data.itinerary) {
-        recordSessionGeneration({
-          destination,
-          startDate,
-          endDate,
-          dayCount: data.itinerary.days.length,
-          itinerary: data.itinerary,
-          pace,
-          vibes: selectedVibes,
-          budgetTier,
-          travelStyle,
-        });
+        recordSessionGeneration(sessionTripOf(answers, data.itinerary));
       }
 
       // Supabase funnel mirror — fired only when we actually have an
@@ -2490,7 +2459,7 @@ export default function NewTripPage({
         // account. The draft logic (saveDraft + pendingTripGeneration flag)
         // persists the trip so it'll be restored after signup.
         if (generatedItinerary) {
-          saveDraft({ generatedItinerary, ...draftFields });
+          saveDraft({ generatedItinerary, ...answers });
         }
         // Funnel disambiguation: without this event we can't tell "user
         // bounced at auth wall" from "save genuinely errored" in the
@@ -2802,17 +2771,7 @@ export default function NewTripPage({
   // active), so a swap can never UPDATE/INSERT a persisted trip row.
   const handleSessionTrayRestore = (id: string) => {
     if (!generatedItinerary || id === sessionTripCurrentId) return;
-    const snap = swapSessionTrip(id, {
-      destination,
-      startDate,
-      endDate,
-      dayCount: generatedItinerary.days.length,
-      itinerary: generatedItinerary,
-      pace,
-      vibes: selectedVibes,
-      budgetTier,
-      travelStyle,
-    });
+    const snap = swapSessionTrip(id, sessionTripOf(answers, generatedItinerary));
     if (!snap) return;
     void capture("save_nudge_action", {
       source: "session_tray",
