@@ -13,6 +13,7 @@ import { isRealPoint } from "@/lib/trip/placeholder-point";
 import { withFoundPhotos } from "@/lib/trips/keep-place-photos";
 import { useKeptTripPhotos } from "@/hooks/useKeptTripPhotos";
 import { useEditShortcuts } from "@/hooks/useEditShortcuts";
+import { useDayFocus } from "@/hooks/useDayFocus";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
 import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
 import TodayView from "@/components/trip/TodayView";
@@ -1010,30 +1011,10 @@ export default function TripDetailClient({
   // user taps the action badge in the chat — scroll the affected day card into
   // view and flash-highlight it for ~2s so the change has a visible anchor in
   // the plan.
-  const [aiFocusDay, setAiFocusDay] = useState<{ day: number; pulse: boolean } | null>(null);
-  const aiFocusTimerRef = useRef<number | null>(null);
-  const handleFocusDayCard = useCallback((dayNumber: number) => {
-    if (typeof window === "undefined") return;
-    // A day filter would hide the target card entirely — clear it first.
-    setSelectedDay((prev) => (prev !== null && prev !== dayNumber ? null : prev));
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    // Below lg the assistant is an 85vh bottom sheet that fully covers the
-    // plan — close it, otherwise "scroll into view" is invisible. On lg+ it's
-    // a 420px side panel, so the plan stays visible and the chat stays open.
-    if (window.innerWidth < 1024) {
-      setIsAIAssistantOpen(false);
-    }
-    setAiFocusDay({ day: dayNumber, pulse: !reduceMotion });
-    window.setTimeout(() => {
-      document.getElementById(`trip-day-${dayNumber}`)?.scrollIntoView({
-        // prefers-reduced-motion: jump without animation, keep the highlight.
-        behavior: reduceMotion ? "auto" : "smooth",
-        block: "start",
-      });
-    }, 100); // let a just-refetched itinerary (version-keyed remount) commit first
-    if (aiFocusTimerRef.current !== null) window.clearTimeout(aiFocusTimerRef.current);
-    aiFocusTimerRef.current = window.setTimeout(() => setAiFocusDay(null), 2200);
-  }, []);
+  const { focusedDay: aiFocusDay, focusDay: handleFocusDayCard } = useDayFocus({
+    setSelectedDay,
+    setIsAIAssistantOpen,
+  });
 
   // Moving activities between days, by drag or by the card's sheet.
   const moves = useItineraryMoves({
