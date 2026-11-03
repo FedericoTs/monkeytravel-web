@@ -165,7 +165,7 @@ import {
   type GenerationReport,
 } from "@/lib/wizard/generation-reports";
 import { applyAnswers, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
-import { FRESH_ANSWERS, keptPlanOf, REQUIREMENTS_MAX, sessionTripOf, tripFormState, type WizardAnswers } from "@/lib/wizard/answers";
+import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, tripFormState, withUndatedItems, type WizardAnswers } from "@/lib/wizard/answers";
 import { generationRequest, routeLegs } from "@/lib/wizard/generation-request";
 import {
   classifyGenerationFailure,
@@ -2554,20 +2554,7 @@ export default function NewTripPage({
                 startDate={startDate}
                 endDate={endDate}
                 destination={destination}
-                // Pasted items with no day can't be anchors, but they're still
-                // the user's plan — fold them into the free-text requirements
-                // so generation still honours them.
-                onImportUndated={(items) =>
-                  setRequirements((prev) => {
-                    const addition = items.join(". ");
-                    const merged = prev.trim() ? `${prev.trim()}. ${addition}` : addition;
-                    // validateTripParams rejects >500 chars with a bare 400,
-                    // and the textarea lives in a collapsed section, so an
-                    // unclamped big paste would make generate fail on repeat
-                    // with the overflow out of sight.
-                    return merged.slice(0, REQUIREMENTS_MAX);
-                  })
-                }
+                onImportUndated={(items) => setRequirements((prev) => withUndatedItems(prev, items))}
               />
             )}
 

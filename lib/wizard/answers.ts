@@ -12,6 +12,19 @@ import type { GeneratedItinerary, TripAnchor, TripVibe } from "@/types";
 export const REQUIREMENTS_MAX = 500;
 
 /**
+ * The requirements with the pasted plan items that have no day added as
+ * sentences: they can't be fixed plans, but they are still the traveller's
+ * plan, so generation should honour them. Clamped to REQUIREMENTS_MAX, since
+ * the requirements field sits in a folded section and an unclamped paste would
+ * fail every generate with the overflow out of sight.
+ */
+export function withUndatedItems(requirements: string, items: string[]): string {
+  const addition = items.join(". ");
+  const merged = requirements.trim() ? `${requirements.trim()}. ${addition}` : addition;
+  return merged.slice(0, REQUIREMENTS_MAX);
+}
+
+/**
  * The wizard's answers that travel with a plan. A draft, the saved trip and
  * the session tray keep them all, and a kept plan all but the anchors, each
  * built here from the same answers.
