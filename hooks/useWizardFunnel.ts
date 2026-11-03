@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { landingAttribution, trackWizardEvent, type WizardEventStep } from "@/components/wizard/wizardEvents";
 import { useDwellHeartbeat } from "@/hooks/useDwellHeartbeat";
-import { tripSpanDays } from "@/lib/dates/iso-date";
+import { funnelDays, funnelTraits } from "@/lib/wizard/plan-funnel";
 import {
   captureTripWizardAbandoned,
   captureTripWizardFieldInteracted,
@@ -104,13 +104,8 @@ export function useWizardFunnel({
       void trackWizardEvent("step_1_destination_dates", { locale, ...landingAttribution() });
     } else if (step === 2) {
       void trackWizardEvent("step_2_vibes", {
-        destination: destinationFieldRef.current || undefined,
-        duration_days:
-          startDateRef.current && endDateRef.current
-            ? Math.max(1, tripSpanDays(startDateRef.current, endDateRef.current))
-            : undefined,
-        group_size: tripIntent,
-        backpacker_mode: travelStyle === "backpacker",
+        ...funnelTraits({ destination: destinationFieldRef.current || undefined, tripIntent, travelStyle }),
+        duration_days: funnelDays(startDateRef.current, endDateRef.current),
         locale,
       });
     }
@@ -195,10 +190,7 @@ export function useWizardFunnel({
           : "step_2_vibes";
       void trackWizardEvent("abandoned", {
         destination: destinationFieldRef.current || undefined,
-        duration_days:
-          startDateRef.current && endDateRef.current
-            ? Math.max(1, tripSpanDays(startDateRef.current, endDateRef.current))
-            : undefined,
+        duration_days: funnelDays(startDateRef.current, endDateRef.current),
         locale,
         // Surface the last in-wizard step the user reached, plus the
         // last field they touched, so we can answer "which field did

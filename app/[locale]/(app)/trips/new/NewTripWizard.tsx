@@ -188,6 +188,7 @@ import {
   captureAutoSaveSkipped,
 } from "@/lib/posthog/events";
 import { saveErrorClass } from "@/lib/wizard/save-failure";
+import { funnelDays, funnelTraits } from "@/lib/wizard/plan-funnel";
 import { applyAnswers, applyKeptPlan, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
 import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, tripFormState, type WizardAnswers } from "@/lib/wizard/answers";
 import { generationRequest, routeLegs } from "@/lib/wizard/generation-request";
@@ -1068,12 +1069,12 @@ export default function NewTripPage({
     [destination, budgetTier, clearDraft],
   );
 
-  // Where and who, on every funnel row about this plan (wizard_step_events);
+  // Where and who, on every funnel row about this plan (lib/wizard/plan-funnel.ts);
   // its PostHog mirrors take the traits without the locale. The length is
-  // read when the row is sent, once both dates are set.
-  const planTraits = { destination, group_size: tripIntent, backpacker_mode: travelStyle === "backpacker" };
+  // read when the row is sent.
+  const planTraits = funnelTraits({ destination, tripIntent, travelStyle });
   const planFunnel = { ...planTraits, locale };
-  const planDays = () => (startDate && endDate ? Math.max(1, tripSpanDays(startDate, endDate)) : undefined);
+  const planDays = () => funnelDays(startDate, endDate);
 
   // A failed save, from either arm, leaves an event everywhere, so a lost trip
   // is never silent: Sentry is unconditional (no consent gate), the server row

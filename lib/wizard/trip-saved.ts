@@ -3,6 +3,7 @@ import { claimTripCreatedEmit } from "@/lib/analytics/tripCreatedDedup";
 import { captureFirstTripSaved, type TripIntent } from "@/lib/posthog/events";
 import { handleTripCreatedWithReferral } from "@/lib/referral/client";
 import { trackWizardEvent } from "@/components/wizard/wizardEvents";
+import { funnelTraits } from "@/lib/wizard/plan-funnel";
 
 /** A trip the wizard just inserted, and the answers its reports carry. */
 export interface SavedTripReport {
@@ -34,13 +35,7 @@ export function reportTripSaved(trip: SavedTripReport, logLabel: string): void {
     budgetTier: trip.budgetTier,
     isFromTemplate: false,
   });
-  void trackWizardEvent("saved", {
-    destination: trip.destination,
-    duration_days: trip.durationDays,
-    group_size: trip.tripIntent,
-    backpacker_mode: trip.travelStyle === "backpacker",
-    locale: trip.locale,
-  });
+  void trackWizardEvent("saved", { ...funnelTraits(trip), duration_days: trip.durationDays, locale: trip.locale });
   try {
     captureFirstTripSaved({
       trip_id: trip.tripId,
