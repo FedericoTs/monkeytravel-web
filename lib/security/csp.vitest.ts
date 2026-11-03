@@ -1,5 +1,5 @@
 /** @vitest-environment node */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { buildCspHeader, allowsThirdPartyFraming, layoutInlineScriptHashes, sha256Source } from "./csp";
 import { ASSISTANT_SEEN_SCRIPT } from "@/lib/trip/assistant-seen";
 
@@ -282,5 +282,33 @@ describe("CSP lets session replay start its worker", () => {
 
   it("keeps blob: out of script-src", () => {
     expect(directive("script-src")).not.toContain("blob:");
+  });
+});
+
+describe("CSP connect-src allows the Supabase project the app is built against", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("adds nothing for a *.supabase.co project, which the wildcard covers", () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://abcdefghijklmnop.supabase.co");
+    expect(directive("connect-src").filter((src) => src.includes("supabase"))).toEqual([
+      "https://*.supabase.co",
+      "wss://*.supabase.co",
+    ]);
+  });
+
+  it("allows a local stack's REST and realtime origins", () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "http://127.0.0.1:54321");
+    const src = directive("connect-src");
+    expect(src).toContain("http://127.0.0.1:54321");
+    expect(src).toContain("ws://127.0.0.1:54321");
+  });
+
+  it("adds nothing when the URL is missing or malformed", () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://abcdefghijklmnop.supabase.co");
+    const covered = directive("connect-src");
+    for (const value of [undefined, "", "not a url"]) {
+      vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", value);
+      expect(directive("connect-src")).toEqual(covered);
+    }
   });
 });
