@@ -11,9 +11,10 @@ import { stubGeneration, stubPlan } from "./generation-stub";
  * already saved a trip to the same place on the same dates, the wizard asks
  * first: update that trip, or save this one as a separate trip. A trip they
  * generate is saved the same way, and a plan they shared while signed out
- * becomes their trip when they sign in, without a second save. A planner
- * who reaches the free-generation cap signed out gets the trip generated
- * and saved once they sign in.
+ * becomes their trip when they sign in, without a second save. A kept plan's
+ * link is saved the same way, once: opened again, it leads to their trips. A
+ * planner who reaches the free-generation cap signed out gets the trip
+ * generated and saved once they sign in.
  *
  * The plans are the restored-draft fixture, and a generation is answered by
  * the test (generation-stub.ts), so no model is called. Analytics, photos and
@@ -229,6 +230,40 @@ test.describe("wizard: a signed-in planner's unsaved plan", () => {
     await expect
       .poll(async () => (await savedCopies()).map((t) => [t.id, activityNames(t.itinerary)[0][0]]), { timeout: 30_000 })
       .toEqual([[earlierId, "Breakfast at Du Pain et des Idées"]]);
+  });
+
+  test("a kept plan's link is saved once, and opened again leads to their trips", async ({ page }) => {
+    const token = "S".repeat(22);
+    const kept = {
+      destination: draft.destination,
+      startDate: draft.startDate,
+      endDate: draft.endDate,
+      itinerary: draft.generatedItinerary,
+    };
+    await page.route(`**/api/plans/${token}`, (route) =>
+      route.request().method() === "GET"
+        ? route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify({ plan: kept, expiresAt: "2099-01-01T00:00:00.000Z" }),
+          })
+        : route.fulfill({ status: 503, body: "" })
+    );
+
+    await page.goto(`/trips/new#plan=${token}`);
+    await expect(page.getByRole("heading", { level: 1, name: "Paris, France" })).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("link", { name: /View trip/ }).first(), "auto-save did not finish").toBeVisible({
+      timeout: 30_000,
+    });
+    const saved = await savedCopies();
+    expect(saved, "the plan should be saved exactly once").toHaveLength(1);
+    expect(activityNames(saved[0].itinerary)).toEqual(activityNames(draft.generatedItinerary.days));
+
+    // A new load, not a same-page jump to the link.
+    await page.goto("about:blank");
+    await page.goto(`/trips/new#plan=${token}`);
+    await page.waitForURL(/\/trips$/, { timeout: 60_000 });
+    expect(await savedCopies(), "a plan already among their trips is not saved again").toHaveLength(1);
   });
 });
 
