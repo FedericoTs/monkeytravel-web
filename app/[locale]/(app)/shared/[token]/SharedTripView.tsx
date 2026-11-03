@@ -20,20 +20,15 @@ import TodayView from "@/components/trip/TodayView";
 import TodayPacking from "@/components/trip/TodayPacking";
 import { useLiveTripState } from "@/lib/trip/useLiveTripState";
 import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
-import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
-import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
+import { dayBudgetLabel } from "@/lib/trip/day-budget";
+import ReadOnlyItinerary from "@/components/trip/ReadOnlyItinerary";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { GUEST_LINK_KEY } from "@/lib/participants/link-trigger";
 import { prefs } from "@/lib/platform/storage";
 import DestinationHero from "@/components/DestinationHero";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import ActivityCard from "@/components/ActivityCard";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
-import DaySlider from "@/components/ui/DaySlider";
-import TravelConnector from "@/components/trip/TravelConnector";
-import DaySummary from "@/components/trip/DaySummary";
-import { DayTimeline } from "@/components/trip/DayTimeline";
 import { tripNights } from "@/lib/dates/iso-date";
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
 import SaveTripModal, { usePendingSaveTripAction } from "@/components/ui/SaveTripModal";
@@ -45,7 +40,7 @@ import {
   type MyVote,
   type VoteTally,
 } from "@/components/trip/AnonymousActivityVoteBar";
-import { segmentBetween, useTravelDistances } from "@/hooks/useTravelDistances";
+import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
 import { Sparkles } from "lucide-react";
@@ -763,114 +758,40 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
           </div>
         )}
 
-        {/* Day Filter Slider - Mobile optimized */}
-        <DaySlider
+        <ReadOnlyItinerary
           days={displayItinerary}
           selectedDay={selectedDay}
           onSelectDay={setSelectedDay}
-          className="mb-6"
-        />
-
-        {/* Itinerary */}
-        {displayItinerary.length > 0 ? (
-          <div className="space-y-8">
-            {displayItinerary
-              .filter((day) => selectedDay === null || day.day_number === selectedDay)
-              .map((day) => (
-                <div key={day.day_number}>
-                  <DayHeader dayNumber={day.day_number} title={t("trip.dayLabel", { number: day.day_number })} theme={day.theme}>
-                    {showsDayBudget(day) && <DayBudget label={t('shared.estBudget')} value={formatDayBudget(day)} />}
-                  </DayHeader>
-
-                  {/* Activities */}
-                  {viewMode === "cards" ? (
+          viewMode={viewMode}
+          travelData={travelData}
+          travelLoading={travelLoading}
+          currency={trip.budget?.currency}
+          fallbackCurrency="USD"
+          pace={trip.meta?.pace}
+          dayTitle={(day) => t("trip.dayLabel", { number: day.day_number })}
+          budgetLabel={t("shared.estBudget")}
+          formatDayBudget={formatDayBudget}
+          emptyTitle={t("shared.noItinerary")}
+          emptyMessage={t("shared.noItineraryDesc")}
+          activityExtra={
+            canVote
+              ? (activity) =>
+                  activity.id && (
                     <>
-                      <div className="grid gap-0">
-                        {day.activities.map((activity, idx) => {
-                          const nextActivity = day.activities[idx + 1];
-                          const dayTravelData = travelData.get(day.day_number);
-                          const segment = segmentBetween(dayTravelData, activity, nextActivity);
-
-                          const voteActivityId = activity.id;
-                          return (
-                            <div key={activity.id || idx}>
-                              <ActivityCard
-                                activity={activity}
-                                index={idx}
-                                currency={trip.budget?.currency}
-                                showGallery={true}
-                                disableAutoFetch={true}
-                              />
-                              {canVote && voteActivityId && (
-                                <div className="px-3 sm:px-4 pb-3">
-                                  <AnonymousActivityVoteBar
-                                    activityId={voteActivityId}
-                                    tally={voteTallies[voteActivityId] ?? { up: 0, down: 0 }}
-                                    myVote={myVotes[voteActivityId] ?? null}
-                                    hasDisplayName={hasDisplayName}
-                                    pending={pendingVoteId === voteActivityId}
-                                    onVote={handleVote}
-                                  />
-                                  {afterVoteId === voteActivityId && afterVoteNudge}
-                                </div>
-                              )}
-                              {/* Travel connector to next activity */}
-                              {idx < day.activities.length - 1 && (
-                                <TravelConnector
-                                  segment={segment}
-                                  isLoading={travelLoading || dayTravelData?.isLoading}
-                                />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {/* Day travel + feasibility summary */}
-                      <DaySummary
-                        dayNumber={day.day_number}
-                        segments={travelData.get(day.day_number)?.segments ?? []}
-                        activities={day.activities}
-                        pace={trip.meta?.pace}
-                        className="mt-4"
+                      <AnonymousActivityVoteBar
+                        activityId={activity.id}
+                        tally={voteTallies[activity.id] ?? { up: 0, down: 0 }}
+                        myVote={myVotes[activity.id] ?? null}
+                        hasDisplayName={hasDisplayName}
+                        pending={pendingVoteId === activity.id}
+                        onVote={handleVote}
                       />
+                      {afterVoteId === activity.id && afterVoteNudge}
                     </>
-                  ) : (
-                    /* Timeline View */
-                    <DayTimeline
-                      day={day}
-                      travel={travelData.get(day.day_number)}
-                      travelLoading={travelLoading}
-                      pace={trip.meta?.pace}
-                      currency={trip.budget?.currency || "USD"}
-                      extra={(activity) =>
-                        canVote && activity.id && (
-                          <div className="mt-3">
-                            <AnonymousActivityVoteBar
-                              activityId={activity.id}
-                              tally={voteTallies[activity.id] ?? { up: 0, down: 0 }}
-                              myVote={myVotes[activity.id] ?? null}
-                              hasDisplayName={hasDisplayName}
-                              pending={pendingVoteId === activity.id}
-                              onVote={handleVote}
-                            />
-                            {afterVoteId === activity.id && afterVoteNudge}
-                          </div>
-                        )
-                      }
-                    />
-                  )}
-                </div>
-              ))}
-          </div>
-        ) : (
-          <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
-            <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <h3 className="text-lg font-medium text-slate-900 mb-2">{t('shared.noItinerary')}</h3>
-            <p className="text-slate-600">{t('shared.noItineraryDesc')}</p>
-          </div>
-        )}
+                  )
+              : undefined
+          }
+        />
 
         </>
         )}

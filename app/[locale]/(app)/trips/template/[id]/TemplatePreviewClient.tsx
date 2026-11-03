@@ -8,20 +8,15 @@ import { useTranslations } from "next-intl";
 import type { ItineraryDay, TripMeta } from "@/types";
 import { trackTemplateBrowsed } from "@/lib/analytics";
 import DestinationHero from "@/components/DestinationHero";
-import ActivityCard from "@/components/ActivityCard";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
-import DaySlider from "@/components/ui/DaySlider";
-import TravelConnector from "@/components/trip/TravelConnector";
-import DaySummary from "@/components/trip/DaySummary";
-import { DayTimeline } from "@/components/trip/DayTimeline";
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
 import SaveTripModal from "@/components/ui/SaveTripModal";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
-import { segmentBetween, useTravelDistances } from "@/hooks/useTravelDistances";
+import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
-import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
-import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
+import { dayBudgetLabel } from "@/lib/trip/day-budget";
+import ReadOnlyItinerary from "@/components/trip/ReadOnlyItinerary";
 import {
   Sparkles,
   Copy,
@@ -242,89 +237,22 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
           </div>
         )}
 
-        {/* Day Filter Slider */}
-        <DaySlider
+        <ReadOnlyItinerary
           days={displayItinerary}
           selectedDay={selectedDay}
           onSelectDay={setSelectedDay}
-          className="mb-6"
+          viewMode={viewMode}
+          travelData={travelData}
+          travelLoading={travelLoading}
+          currency={template.budget?.currency}
+          fallbackCurrency="EUR"
+          pace={template.meta?.pace}
+          dayTitle={(day) => day.title || t("dayFallback", { number: day.day_number })}
+          budgetLabel={t("estBudget")}
+          formatDayBudget={formatDayBudget}
+          emptyTitle={t("noItineraryTitle")}
+          emptyMessage={t("noItineraryMessage")}
         />
-
-        {/* Itinerary */}
-        {displayItinerary.length > 0 ? (
-          <div className="space-y-8">
-            {displayItinerary
-              .filter((day) => selectedDay === null || day.day_number === selectedDay)
-              .map((day) => (
-                <div key={day.day_number}>
-                  <DayHeader
-                    dayNumber={day.day_number}
-                    title={day.title || t('dayFallback', { number: day.day_number })}
-                    theme={day.theme}
-                  >
-                    {showsDayBudget(day) && <DayBudget label={t('estBudget')} value={formatDayBudget(day)} />}
-                  </DayHeader>
-
-                  {/* Activities */}
-                  {viewMode === "cards" ? (
-                    <>
-                      <div className="grid gap-0">
-                        {day.activities.map((activity, idx) => {
-                          const nextActivity = day.activities[idx + 1];
-                          const dayTravelData = travelData.get(day.day_number);
-                          const segment = segmentBetween(dayTravelData, activity, nextActivity);
-
-                          return (
-                            <div key={activity.id || idx}>
-                              <ActivityCard
-                                activity={activity}
-                                index={idx}
-                                currency={template.budget?.currency}
-                                showGallery={true}
-                                disableAutoFetch={true}
-                              />
-                              {/* Travel connector */}
-                              {idx < day.activities.length - 1 && (
-                                <TravelConnector
-                                  segment={segment}
-                                  isLoading={travelLoading || dayTravelData?.isLoading}
-                                />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {/* Day travel + feasibility summary */}
-                      <DaySummary
-                        dayNumber={day.day_number}
-                        segments={travelData.get(day.day_number)?.segments ?? []}
-                        activities={day.activities}
-                        pace={template.meta?.pace}
-                        className="mt-4"
-                      />
-                    </>
-                  ) : (
-                    /* Timeline View */
-                    <DayTimeline
-                      day={day}
-                      travel={travelData.get(day.day_number)}
-                      travelLoading={travelLoading}
-                      pace={template.meta?.pace}
-                      currency={template.budget?.currency || "EUR"}
-                    />
-                  )}
-                </div>
-              ))}
-          </div>
-        ) : (
-          <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
-            <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <h3 className="text-lg font-medium text-slate-900 mb-2">{t('noItineraryTitle')}</h3>
-            <p className="text-slate-600">{t('noItineraryMessage')}</p>
-          </div>
-        )}
 
         {/* Packing List */}
         {template.packingList && template.packingList.length > 0 && (
