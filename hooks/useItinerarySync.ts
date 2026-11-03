@@ -39,6 +39,12 @@ interface ItinerarySyncOptions {
 }
 
 /**
+ * Where the latest edit stands: nothing to save, saving, saved, failed, or
+ * refused because the trip changed elsewhere (a conflict to settle).
+ */
+export type ItinerarySaveStatus = "idle" | "saving" | "saved" | "error" | "conflict";
+
+/**
  * The trip page's saves. It keeps the saved copy of the itinerary and the
  * version it was saved at, and sends edits through one queue
  * (lib/trips/itinerary-sync.ts): a solo owner's auto-save, the explicit Save of
@@ -70,7 +76,7 @@ export function useItinerarySync({
   // Ambient-edit auto-save status ('idle' | 'saving' | 'saved' | 'error' |
   // 'conflict'). Drives the small status pill that replaces the
   // Modifica/Save/Discard cluster for solo owners (see ambientEdit below).
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error" | "conflict">("idle");
+  const [saveStatus, setSaveStatus] = useState<ItinerarySaveStatus>("idle");
 
   // Itinerary save queue + base version (lib/trips/itinerary-sync.ts). Every
   // itinerary PATCH, and every server write this tab starts, goes through it
