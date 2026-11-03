@@ -162,7 +162,6 @@ import {
   DESTINATION_MAX_LENGTH,
   destinationProblem,
   step1Blocker,
-  type Step1Blocker,
 } from "@/lib/wizard/step1-gate";
 import {
   reportGenerated,
@@ -211,6 +210,7 @@ import SameTripPrompt from "@/components/wizard/SameTripPrompt";
 import ResultActionBars from "@/components/wizard/ResultActionBars";
 import ResultItinerary from "@/components/wizard/ResultItinerary";
 import PreferencesStep from "@/components/wizard/PreferencesStep";
+import WizardFooter from "@/components/wizard/WizardFooter";
 import { safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
@@ -311,15 +311,6 @@ function capitalizeFreeText(param: string | null | undefined): string {
   const trimmed = (param ?? "").trim().slice(0, 120);
   return trimmed ? trimmed.charAt(0).toUpperCase() + trimmed.slice(1) : "";
 }
-
-// The footer's hint for what still keeps step 1 from going on.
-const STEP1_HINT = {
-  short: "wizard.step1.hintNeedDestination",
-  long: "wizard.step1.destinationTooLong",
-  chars: "wizard.step1.destinationInvalidChars",
-  too_many_days: "wizard.datePicker.maxDaysLimit",
-  dates: "wizard.step1.hintNeedDates",
-} as const satisfies Record<Step1Blocker, string>;
 
 // Vibes for a one-sentence plan that names none: generation needs at least one.
 const EXPRESS_VIBES: TripVibe[] = ["cultural", "foodie"];
@@ -2261,6 +2252,63 @@ export default function NewTripPage({
     );
   }
 
+  // Continue: the step's completion event, then step 2 seeded with the
+  // season's vibes when the planner has picked none.
+  const handleContinue = () => {
+    captureTripWizardStepCompleted({
+      step_number: step,
+      step_name: WIZARD_STEP_NAMES[step - 1],
+      ...(step === 1
+        ? { dates_mode: flexibleDates ? "flexible" : "exact", one_tap: datesPencilled }
+        : {}),
+    });
+    // Pre-apply seasonal vibe suggestions when advancing into
+    // step 2, so the user doesn't have to re-pick by hand what
+    // step 1 suggested. Only seeds if the user hasn't already
+    // picked vibes (don't clobber their choices).
+    if (
+      step === 1 &&
+      seasonalContext &&
+      selectedVibes.length === 0 &&
+      startDate
+    ) {
+      try {
+        const month = (parseLocalDate(startDate) ?? new Date()).getMonth() + 1; // 1-12
+        const suggestions = getSeasonalVibeSuggestions(
+          seasonalContext.season,
+          seasonalContext.holidays || [],
+          month
+        );
+        // Take the top 2 suggestions so the user lands in
+        // the "good defaults" state but still has room to
+        // add a 3rd of their own. Filter to the 6 canonical
+        // TripVibe values — the helper sometimes returns
+        // niche vibes like "fairytale" that the wizard's
+        // VibeSelector doesn't show.
+        const CANONICAL: TripVibe[] = [
+          "adventure",
+          "cultural",
+          "foodie",
+          "romantic",
+          "nature",
+          "urban",
+        ];
+        const validVibes = suggestions
+          .map((s) => s.vibeId as TripVibe)
+          .filter((v): v is TripVibe => CANONICAL.includes(v))
+          .slice(0, 2);
+        if (validVibes.length > 0) {
+          setSelectedVibes(validVibes);
+        }
+      } catch (err) {
+        // Non-fatal: if the helper throws, step 2 just
+        // starts empty.
+        console.warn("[wizard] seasonal vibe seed failed:", err);
+      }
+    }
+    setStep(step + 1);
+  };
+
   // Wizard form
   return (
     <div className="min-h-screen bg-[var(--background)]">
@@ -2881,155 +2929,24 @@ export default function NewTripPage({
           />
         )}
 
-        {/* Navigation — sticky on mobile so users always see the CTA */}
-        <div
-          ref={footerRef}
-          className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-4 py-3 sm:relative sm:bg-transparent sm:border-t-slate-200 sm:px-0 sm:py-0 sm:mt-8 sm:pt-6 sm:z-auto"
-        >
-          {/* Missing-field hint — directly attacks the step-1 cliff: the
-              Continue button is disabled with no visible reason, so users
-              who don't realize what unlocks it just leave. Name the first
-              blocker so the path forward is always obvious. */}
-          {step === 1 && !expressTrip && !canProceed() && (
-            <p aria-live="polite" className="mb-2 text-center text-xs font-medium text-slate-500 sm:text-left">
-              {footerStateB
-                ? t("wizard.step1.hintFlexibleDefault", { days: 5 })
-                : t(STEP1_HINT[step1Block ?? "dates"], { days: effectiveMaxTripDays })}
-            </p>
-          )}
-          {/* Once step 1 is complete, the hint slot frees up — reinforce the
-              free/no-signup value right at the Continue commitment point. The
-              auth wall sits at Save (not Generate), so many users don't realize
-              they'll see the whole trip for free first; saying so here lowers
-              the "is this going to make me sign up?" hesitation. */}
-          {step === 1 && (expressTrip || canProceed()) && (
-            <p className="mb-2 flex items-center justify-center gap-1.5 text-center text-xs font-medium text-emerald-600 sm:justify-start sm:text-left">
-              <svg className="h-3.5 w-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              {isAuthenticated
-                ? t("wizard.step1.freeReassuranceSignedIn")
-                : t("wizard.step1.freeReassurance")}
-            </p>
-          )}
-          <div className="flex items-center justify-between">
-          {step > 1 ? (
-            <button
-              onClick={() => setStep(step - 1)}
-              className="flex items-center gap-2 px-4 py-3 sm:py-2.5 text-slate-600 hover:text-slate-900 font-medium rounded-lg hover:bg-slate-100 active:bg-slate-200 transition-colors min-h-[44px]"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              <span className="hidden sm:inline">{t("wizard.back")}</span>
-            </button>
-          ) : (
-            <div />
-          )}
-
-          {step < TOTAL_STEPS ? (
-            expressTrip ? (
-              // A one-sentence trip: plan it as read, skipping the vibes step.
-              <button
-                type="button"
-                onClick={() => void handleExpressPlan()}
-                disabled={expressBusy}
-                aria-busy={expressBusy}
-                className="bg-[var(--primary)] text-white px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 active:bg-[var(--primary)]/80 disabled:opacity-70 transition-colors min-h-[48px] sm:min-h-0"
-              >
-                {t("wizard.express.cta")} →
-              </button>
-            ) : footerStateB ? (
-              // State B: a valid destination, no dates. The same slot, the
-              // same coral, an ENABLED button — one tap pencils in the
-              // flexible default and the slot re-renders as Continue.
-              <button
-                type="button"
-                onClick={() => {
-                  handleFlexibleDates();
-                  setDatesPencilled(true);
-                }}
-                className="bg-[var(--primary)] text-white px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 active:bg-[var(--primary)]/80 transition-colors min-h-[48px] sm:min-h-0"
-              >
-                {t("wizard.step1.useFlexibleDates")}
-              </button>
-            ) : (
-            <button
-              data-testid="wizard-continue"
-              onClick={() => {
-                captureTripWizardStepCompleted({
-                  step_number: step,
-                  step_name: WIZARD_STEP_NAMES[step - 1],
-                  ...(step === 1
-                    ? { dates_mode: flexibleDates ? "flexible" : "exact", one_tap: datesPencilled }
-                    : {}),
-                });
-                // Pre-apply seasonal vibe suggestions when advancing into
-                // step 2, so the user doesn't have to re-pick by hand what
-                // step 1 suggested. Only seeds if the user hasn't already
-                // picked vibes (don't clobber their choices).
-                if (
-                  step === 1 &&
-                  seasonalContext &&
-                  selectedVibes.length === 0 &&
-                  startDate
-                ) {
-                  try {
-                    const month = (parseLocalDate(startDate) ?? new Date()).getMonth() + 1; // 1-12
-                    const suggestions = getSeasonalVibeSuggestions(
-                      seasonalContext.season,
-                      seasonalContext.holidays || [],
-                      month
-                    );
-                    // Take the top 2 suggestions so the user lands in
-                    // the "good defaults" state but still has room to
-                    // add a 3rd of their own. Filter to the 6 canonical
-                    // TripVibe values — the helper sometimes returns
-                    // niche vibes like "fairytale" that the wizard's
-                    // VibeSelector doesn't show.
-                    const CANONICAL: TripVibe[] = [
-                      "adventure",
-                      "cultural",
-                      "foodie",
-                      "romantic",
-                      "nature",
-                      "urban",
-                    ];
-                    const validVibes = suggestions
-                      .map((s) => s.vibeId as TripVibe)
-                      .filter((v): v is TripVibe => CANONICAL.includes(v))
-                      .slice(0, 2);
-                    if (validVibes.length > 0) {
-                      setSelectedVibes(validVibes);
-                    }
-                  } catch (err) {
-                    // Non-fatal: if the helper throws, step 2 just
-                    // starts empty.
-                    console.warn("[wizard] seasonal vibe seed failed:", err);
-                  }
-                }
-                setStep(step + 1);
-              }}
-              disabled={!canProceed()}
-              className="bg-[var(--primary)] text-white px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--primary)]/90 active:bg-[var(--primary)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] sm:min-h-0"
-            >
-              {t("wizard.step1.continue")} →
-            </button>
-            )
-          ) : (
-            <button
-              onClick={() => void handleGenerate()}
-              disabled={!canProceed()}
-              className="bg-[var(--accent)] text-slate-900 px-8 py-3.5 sm:py-3 rounded-xl font-medium hover:bg-[var(--accent)]/90 active:bg-[var(--accent)]/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-h-[48px] sm:min-h-0"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              {t("wizard.step2.generate")}
-            </button>
-          )}
-          </div>
-        </div>
+        <WizardFooter
+          footerRef={footerRef}
+          step={step}
+          setStep={setStep}
+          totalSteps={TOTAL_STEPS}
+          expressTrip={Boolean(expressTrip)}
+          canProceed={canProceed}
+          footerStateB={footerStateB}
+          step1Block={step1Block}
+          effectiveMaxTripDays={effectiveMaxTripDays}
+          isAuthenticated={isAuthenticated}
+          handleExpressPlan={handleExpressPlan}
+          expressBusy={expressBusy}
+          handleFlexibleDates={handleFlexibleDates}
+          setDatesPencilled={setDatesPencilled}
+          handleContinue={handleContinue}
+          handleGenerate={handleGenerate}
+        />
       </main>
 
       {/*
