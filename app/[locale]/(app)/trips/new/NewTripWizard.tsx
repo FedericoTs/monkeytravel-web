@@ -158,6 +158,13 @@ import {
 import { saveErrorClass } from "@/lib/wizard/save-failure";
 import { funnelDays, funnelTraits } from "@/lib/wizard/plan-funnel";
 import {
+  DESTINATION_ALLOWLIST,
+  DESTINATION_MAX_LENGTH,
+  destinationProblem,
+  step1Blocker,
+  type Step1Blocker,
+} from "@/lib/wizard/step1-gate";
+import {
   reportGenerated,
   reportGenerationFailed,
   reportGenerationStarted,
@@ -305,15 +312,14 @@ function capitalizeFreeText(param: string | null | undefined): string {
   return trimmed ? trimmed.charAt(0).toUpperCase() + trimmed.slice(1) : "";
 }
 
-// Exact copy of DESTINATION_ALLOWLIST in lib/gemini.ts — letters, spaces,
-// hyphens, commas, dots, parentheses, apostrophes, &, /, digits.
-const DESTINATION_ALLOWLIST = /^[\p{L}\p{M}\s\-,.'()&/0-9]+$/u;
-// The server's destination length rule (lib/gemini.ts validateTripParams).
-// Unmirrored, a pasted prompt passes the gate, starts generating, and bounces
-// off the server with an untranslated "Destination name too long" behind a
-// Retry button that resends the same text. Keep it at 100, exactly where the
-// server puts it: a lower bound would block names that generate fine.
-const DESTINATION_MAX_LENGTH = 100;
+// The footer's hint for what still keeps step 1 from going on.
+const STEP1_HINT = {
+  short: "wizard.step1.hintNeedDestination",
+  long: "wizard.step1.destinationTooLong",
+  chars: "wizard.step1.destinationInvalidChars",
+  too_many_days: "wizard.datePicker.maxDaysLimit",
+  dates: "wizard.step1.hintNeedDates",
+} as const satisfies Record<Step1Blocker, string>;
 
 // Vibes for a one-sentence plan that names none: generation needs at least one.
 const EXPRESS_VIBES: TripVibe[] = ["cultural", "foodie"];
@@ -1306,6 +1312,8 @@ export default function NewTripPage({
       : 0;
   const effectiveMaxTripDays =
     multiCityLegCount > 1 ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS;
+  // What still keeps step 1 from going on (lib/wizard/step1-gate.ts).
+  const step1Block = step1Blocker(destination, startDate, endDate, effectiveMaxTripDays);
   // A request the server refused as invalid fails the same way on every retry:
   // the error box says what to change and takes the traveller back to it.
   const errorFix = error && classifyGenerationFailure(error) === "validation" ? validationFix(error) : null;
@@ -1313,23 +1321,10 @@ export default function NewTripPage({
   const canProceed = () => {
     switch (step) {
       case 1: {
-        // Step 1: Destination + Dates combined.
-        // Mirrors lib/gemini.ts validateTripParams so nothing that passes
-        // this gate can bounce off the server's destination/date checks at
-        // generate time. Rules:
-        //   - destination 2..DESTINATION_MAX_LENGTH chars, allowlisted only
-        //   - both dates parseable ("Invalid date format" guard)
-        //   - end strictly after start (server rejects end <= start)
-        //   - span within effectiveMaxTripDays (day-inclusive, same math as server)
-        if (
-          destination.length < 2 ||
-          destination.length > DESTINATION_MAX_LENGTH ||
-          !DESTINATION_ALLOWLIST.test(destination)
-        ) {
-          return false;
-        }
-        const span = tripSpanDays(startDate, endDate);
-        return span >= 2 && span <= effectiveMaxTripDays;
+        // Step 1: Destination + Dates combined. Mirrors lib/gemini.ts
+        // validateTripParams so nothing that passes this gate can bounce off
+        // the server's destination/date checks at generate time.
+        return step1Block === null;
       }
       case 2:
         // Step 2: At least one vibe required, preferences have sensible defaults
@@ -1440,9 +1435,7 @@ export default function NewTripPage({
   // match /continue|next/i so the e2e specs keep selecting the real one.
   const footerStateB =
     step === 1 &&
-    destination.length >= 2 &&
-    destination.length <= DESTINATION_MAX_LENGTH &&
-    DESTINATION_ALLOWLIST.test(destination) &&
+    destinationProblem(destination) === null &&
     !(startDate && endDate) &&
     !(MULTI_CITY_ENABLED && multiCityMode);
 
@@ -2901,15 +2894,7 @@ export default function NewTripPage({
             <p aria-live="polite" className="mb-2 text-center text-xs font-medium text-slate-500 sm:text-left">
               {footerStateB
                 ? t("wizard.step1.hintFlexibleDefault", { days: 5 })
-                : destination.length < 2
-                ? t("wizard.step1.hintNeedDestination")
-                : destination.length > DESTINATION_MAX_LENGTH
-                ? t("wizard.step1.destinationTooLong")
-                : !DESTINATION_ALLOWLIST.test(destination)
-                ? t("wizard.step1.destinationInvalidChars")
-                : tripSpanDays(startDate, endDate) > effectiveMaxTripDays
-                ? t("wizard.datePicker.maxDaysLimit", { days: effectiveMaxTripDays })
-                : t("wizard.step1.hintNeedDates")}
+                : t(STEP1_HINT[step1Block ?? "dates"], { days: effectiveMaxTripDays })}
             </p>
           )}
           {/* Once step 1 is complete, the hint slot frees up — reinforce the
