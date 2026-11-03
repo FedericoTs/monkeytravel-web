@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import { NextIntlClientProvider } from "next-intl";
 import common from "@/messages/en/common.json";
@@ -65,5 +65,17 @@ describe("ImageCarousel", () => {
     press("ArrowLeft");
     press("ArrowLeft");
     expect(screen.getByAltText("First")).toBeTruthy();
+  });
+
+  it("lets go of the zoom when another photo is shown", () => {
+    render(carousel());
+    const zoomed = () =>
+      [...document.querySelectorAll<HTMLElement>("[style]")].some((el) => el.style.transform.startsWith("scale("));
+    fireEvent.click(screen.getByAltText("First"));
+    fireEvent.click(screen.getByAltText("First"));
+    expect(zoomed()).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "View photo 2" }));
+    expect(screen.getByAltText("Second")).toBeTruthy();
+    expect(zoomed()).toBe(false);
   });
 });

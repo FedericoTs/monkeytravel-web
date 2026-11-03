@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useChanged } from "@/hooks/useChanged";
 
 interface TrafficData {
   daily: {
@@ -175,8 +176,9 @@ export default function TrafficOverview({ data }: TrafficOverviewProps) {
   }, [filteredDaily]);
 
   // Animation trigger
+  const timeRangeChanged = useChanged(timeRange);
+  if (timeRangeChanged) setIsAnimated(false);
   useEffect(() => {
-    setIsAnimated(false);
     const timer = setTimeout(() => setIsAnimated(true), 100);
     return () => clearTimeout(timer);
   }, [timeRange]);

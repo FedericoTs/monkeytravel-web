@@ -1,6 +1,7 @@
 "use client";
 
 import { DAY_COLORS } from "@/lib/map/day-colors";
+import { useChanged } from "@/hooks/useChanged";
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import {
@@ -125,11 +126,10 @@ export default function TripMap({
   const [showRoutes, setShowRoutes] = useState<boolean>(
     showRoutesProp ?? ROUTES_DEFAULT_ENABLED
   );
-  useEffect(() => {
-    if (showRoutesProp !== undefined) {
-      setShowRoutes(showRoutesProp);
-    }
-  }, [showRoutesProp]);
+  const showRoutesPropChanged = useChanged(showRoutesProp);
+  if (showRoutesPropChanged && showRoutesProp !== undefined) {
+    setShowRoutes(showRoutesProp);
+  }
   // Internal day-filter state — initialized from the prop but driven by
   // the in-map Day chip clicks below. Clicking a day toggles the filter
   // (click the same day again to clear) that `filteredActivities` depends
@@ -138,12 +138,10 @@ export default function TripMap({
     selectedDayProp ?? null
   );
   // Keep external prop in sync if the parent ever changes it.
-  useEffect(() => {
-    if (selectedDayProp !== undefined && selectedDayProp !== selectedDayInternal) {
-      setSelectedDayInternal(selectedDayProp);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDayProp]);
+  const selectedDayPropChanged = useChanged(selectedDayProp);
+  if (selectedDayPropChanged && selectedDayProp !== undefined && selectedDayProp !== selectedDayInternal) {
+    setSelectedDayInternal(selectedDayProp);
+  }
   const selectedDay = selectedDayInternal;
   const t = useTranslations("common.map");
   const [map, setMap] = useState<google.maps.Map | null>(null);

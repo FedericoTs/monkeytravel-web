@@ -15,6 +15,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useChanged } from "@/hooks/useChanged";
 import { useLocale, useTranslations } from "next-intl";
 import { daysBetweenLocal, toLocalISODate } from "@/lib/utils/date-local";
 
@@ -176,12 +177,13 @@ export default function DateRangePicker({
   }, []);
 
   // Update view when start date changes externally
-  useEffect(() => {
+  const startDateChanged = useChanged(startDate);
+  if (startDateChanged) {
     const start = parseDate(startDate);
     if (start) {
       setViewDate(start);
     }
-  }, [startDate]);
+  }
 
   const minDateObj = minDate ? parseDate(minDate) : new Date();
   const today = new Date();

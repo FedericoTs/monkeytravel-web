@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useChanged } from "@/hooks/useChanged";
 import { useImageLoaded } from "@/hooks/useImageLoaded";
 import { placesPhotoSrcSet, proxyImageUrl } from "@/lib/img/proxyUrl";
 import { commonsPage, readCredit, wikimediaSrcSet } from "@/lib/images/wikimedia-credit";
@@ -163,10 +164,12 @@ export default function DestinationHero({
   // Reset image-level error/retry state whenever the underlying destination
   // or pre-fetched URL changes — otherwise a previous trip's failure could
   // bleed into the next render and skip straight to the gradient.
-  useEffect(() => {
+  const destinationChanged = useChanged(destination);
+  const coverChanged = useChanged(coverImageUrl);
+  if (destinationChanged || coverChanged) {
     setImageError(false);
     setImageRetry(0);
-  }, [destination, coverImageUrl]);
+  }
 
   useEffect(() => {
     // If we already have a saved cover image, use it directly - NO API call
