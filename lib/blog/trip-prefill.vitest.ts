@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { STEP2_VIBES } from "@/lib/wizard/seasonal-vibes";
 import { POSTS } from "./tag-taxonomy";
 import {
   daysFromSlug,
@@ -125,7 +126,7 @@ describe("tripPrefillForPost", () => {
   });
 
   it("only ever emits vibes the step-2 UI renders", () => {
-    const RENDERED = new Set(["adventure", "cultural", "foodie", "romantic", "nature", "urban"]);
+    const RENDERED = new Set<string>(STEP2_VIBES);
     for (const slug of Object.keys(POSTS)) {
       for (const v of tripPrefillForPost(slug).vibes ?? []) {
         expect(RENDERED.has(v)).toBe(true);
