@@ -41,10 +41,8 @@ import { buildSeasonalContext } from "@/lib/seasonal";
 import type { SseDayData, SseOutlineData } from "@/lib/streaming/sse";
 import { generateWithRecovery } from "@/lib/wizard/generation-recovery";
 import { attemptGeneration } from "@/lib/wizard/generation-attempt";
-import type { RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
-import { joinCities } from "@/lib/ai/multi-city-core";
 
 // Multi-city planning (docs/MULTI_CITY_PLAN.md §2.5/§3.2). Env-gated so the
 // single-city funnel is unchanged while the flag is off.
@@ -231,6 +229,7 @@ import { applyAssistantEdits, type AssistantDayEdit } from "@/lib/trips/day-edit
 import { createUndoLedger } from "@/lib/trip/assistant-undo";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
+import { useMultiCityRoute } from "@/hooks/useMultiCityRoute";
 import { planDateChange, moveItineraryDates, extraDaysAsk, extraDaysFrom } from "@/lib/trips/change-dates";
 import { withDays } from "@/lib/trips/plan-days";
 
@@ -509,14 +508,6 @@ export default function NewTripPage({
   const [destinationCoords, setDestinationCoords] = useState<{ latitude: number; longitude: number } | null>(
     () => (prefilledDestination ? { latitude: prefilledDestination.latitude, longitude: prefilledDestination.longitude } : null),
   );
-  // Multi-city: a route of city+nights rows. Only surfaced in step 1 when
-  // MULTI_CITY_ENABLED; a sync effect below keeps `destination`/`endDate`
-  // consistent so the rest of the wizard flow is untouched.
-  const [multiCityMode, setMultiCityMode] = useState(false);
-  const [cityRows, setCityRows] = useState<RouteStop[]>([
-    { city: "", nights: 3 },
-    { city: "", nights: 2 },
-  ]);
   // Anchored trips: fixed commitments (flights, weddings, booked nights) the
   // generated plan must build around. Collapsed AnchorEditor on step 1; sent
   // to /api/ai/generate, and carried into trip_meta.anchors at save via
@@ -530,6 +521,17 @@ export default function NewTripPage({
   const [flexibleDates, setFlexibleDates] = useState(false);
   // Dates a one-tap pick pencilled in (see the one-tap starts below).
   const [datesPencilled, setDatesPencilled] = useState(false);
+  // Multi-city: a route of city+nights rows, only surfaced in step 1 when
+  // MULTI_CITY_ENABLED and mirrored into `destination`/`endDate` so the rest
+  // of the wizard flow is untouched (hooks/useMultiCityRoute.ts).
+  const { multiCityMode, setMultiCityMode, cityRows, setCityRows, resetRoute } = useMultiCityRoute({
+    enabled: MULTI_CITY_ENABLED,
+    deepLinked: searchParams?.get("multi") === "1",
+    linkedCity: prefilledDestination?.name ?? null,
+    startDate,
+    setDestination,
+    setEndDate,
+  });
   // Popular-destination pills: real demand-ranked, reordered by season with the
   // month the server rendered with, so both sides of hydration agree and the
   // chips never move after mount. `plannedStat` is an honest, aggregate
@@ -648,38 +650,6 @@ export default function NewTripPage({
   const assistantUndo = useRef(createUndoLedger<GeneratedItinerary, string>());
   useEffect(() => { generatedItineraryRef.current = generatedItinerary; }, [generatedItinerary]);
 
-  // Multi-city: mirror the route rows into `destination` (combined label) and
-  // `endDate` (start + total nights) so step-1 validation, draft autosave, and
-  // the result hero keep working through the existing single-city code paths.
-  // Deep link: /trips/new?multi=1 (route-card CTAs on /multi-city-trip-planner
-  // and the route blog posts) lands with multi-city mode pre-enabled.
-  useEffect(() => {
-    if (MULTI_CITY_ENABLED && searchParams?.get("multi") === "1") {
-      setMultiCityMode(true);
-      // Seed the first leg with the deeplinked city. Without this, a link like
-      // ?destination=rome&multi=1 (the "5-day Italy itinerary" CTA) LOSES the
-      // city: the mirror effect below rewrites `destination` from the route
-      // rows, which are empty on arrival, so Rome is blanked a tick after it
-      // was filled in. The article's city is leg one of the route, so putting
-      // it there keeps it and is what the post actually describes.
-      if (prefilledDestination) {
-        setCityRows((rows) =>
-          rows[0]?.city
-            ? rows
-            : [{ ...rows[0], city: prefilledDestination.name }, ...rows.slice(1)],
-        );
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!MULTI_CITY_ENABLED || !multiCityMode) return;
-    const legs = routeLegs(cityRows);
-    setDestination(joinCities(legs.map((r) => r.city)));
-    const total = legs.reduce((s, r) => s + r.nights, 0);
-    if (startDate && total > 0) setEndDate(addIsoDaysOrThrow(startDate, total - 1));
-  }, [multiCityMode, cityRows, startDate]);
   useEffect(() => { startDateRef.current = startDate; }, [startDate]);
   useEffect(() => { endDateRef.current = endDate; }, [endDate]);
 
@@ -1272,14 +1242,9 @@ export default function NewTripPage({
     setRequirements("");
     setMustDoInput("");
     setSeasonalContext(null);
-    // Reset the multi-city rows too, or the sync effect rebuilds
+    // Reset the multi-city route too, or the sync effect rebuilds
     // destination/endDate from the stale route on its next run.
-    // Restore the exact initial state from the useState declarations.
-    setMultiCityMode(false);
-    setCityRows([
-      { city: "", nights: 3 },
-      { city: "", nights: 2 },
-    ]);
+    resetRoute();
   };
 
   // Derive interests from selected vibes for AI prompt compatibility.
