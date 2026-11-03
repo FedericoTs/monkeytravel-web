@@ -29,6 +29,7 @@ import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { useActivityVotes } from "@/hooks/useActivityVotes";
 import { useProposals } from "@/hooks/useProposals";
 import { useProposalApprovals } from "@/hooks/useProposalApprovals";
+import { useVotingSheetActions } from "@/hooks/useVotingSheetActions";
 import { dayTimeline } from "@/lib/proposals/timeline";
 import { InlineProposalCard } from "@/components/collaboration/proposals";
 import DestinationHero from "@/components/DestinationHero";
@@ -621,6 +622,13 @@ export default function TripDetailClient({
   const closeVotingSheet = useCallback(() => {
     setVotingSheetState({ isOpen: false, proposal: null });
   }, []);
+  // The sheet's vote, taking it back, and the owner's approve or reject.
+  const votingSheetActions = useVotingSheetActions({
+    proposal: votingSheetState.proposal,
+    voteOnProposal,
+    removeVote: removeProposalVote,
+    forceResolve,
+  });
 
   // Open route optimization modal for a day
   const openRouteOptimization = useCallback((dayNumber: number, activities: Activity[]) => {
@@ -1764,32 +1772,9 @@ export default function TripDetailClient({
         onClose={closeVotingSheet}
         proposal={votingSheetState.proposal}
         currentUserId={undefined}
-        onVote={async (voteType, comment) => {
-          if (votingSheetState.proposal) {
-            await voteOnProposal(votingSheetState.proposal.id, voteType, comment);
-            addToast(tCommon("proposals.toasts.voteRecorded"), "success");
-          }
-        }}
-        onRemoveVote={async () => {
-          if (votingSheetState.proposal) {
-            await removeProposalVote(votingSheetState.proposal.id);
-            addToast(tCommon("proposals.toasts.voteRemoved"), "success");
-          }
-        }}
+        {...votingSheetActions}
         totalVoters={voterCount}
         isOwner={userRole === 'owner'}
-        onForceResolve={async (action) => {
-          if (votingSheetState.proposal) {
-            try {
-              await forceResolve(votingSheetState.proposal.id, action);
-            } catch (err) {
-              addToast(t('detail.proposalActionFailed'), "error");
-              throw err;
-            }
-            // An approval is confirmed by handleProposalChange, with the day.
-            if (action === 'reject') addToast(tCommon("proposals.toasts.rejected"), "success");
-          }
-        }}
       />
 
       {/* Route Optimization Modal */}
