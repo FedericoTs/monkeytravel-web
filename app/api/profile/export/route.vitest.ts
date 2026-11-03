@@ -12,6 +12,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const USER = "user-1";
 const selects: Record<string, string[]> = {};
 const filters: Record<string, string[]> = {};
+/** Which client read each table: the person's session or the service role. */
+const readBy: Record<string, string[]> = {};
+const orders: Record<string, string[]> = {};
+const limits: Record<string, number[]> = {};
 let failing: string | null;
 let preferencesReadFails: boolean;
 let stamped: boolean;
@@ -29,9 +33,10 @@ const ROWS: Record<string, unknown> = {
   trip_expenses: [{ id: "e1", trip_id: "t2", amount: 42, currency: "EUR" }],
 };
 
-function fakeSupabase() {
+function fakeSupabase(kind = "session") {
   return {
     from(table: string) {
+      (readBy[table] ??= []).push(kind);
       let columns = "";
       const result = () =>
         columns === "preferences"
@@ -55,8 +60,14 @@ function fakeSupabase() {
           (filters[table] ??= []).push(`or(${condition})`);
           return q;
         },
-        order: () => q,
-        limit: () => q,
+        order: (column: string, options?: { ascending?: boolean }) => {
+          (orders[table] ??= []).push(`${column} ${options?.ascending === false ? "desc" : "asc"}`);
+          return q;
+        },
+        limit: (n: number) => {
+          (limits[table] ??= []).push(n);
+          return q;
+        },
         single: async () => result(),
         update: (payload: Record<string, unknown>) => {
           stamped = true;
@@ -74,12 +85,13 @@ vi.mock("@/lib/api/auth", () => ({
   getAuthenticatedUser: async () => ({ user: { id: USER }, supabase: fakeSupabase(), errorResponse: null }),
 }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => fakeSupabase() }));
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => fakeSupabase("admin") }));
 
 const { GET } = await import("./route");
 
 beforeEach(() => {
   for (const k of Object.keys(selects)) delete selects[k];
-  for (const k of Object.keys(filters)) delete filters[k];
+  for (const record of [filters, readBy, orders, limits]) for (const k of Object.keys(record)) delete record[k];
   failing = null;
   preferencesReadFails = false;
   stamped = false;
@@ -182,10 +194,11 @@ describe("GET /api/profile/export", () => {
   it("says what it leaves out, and where to ask for it", async () => {
     const body = await (await GET()).json();
     expect(body.exportInfo.dataRetentionNote).toContain("privacy@monkeytravel.app");
+    expect(body.exportInfo.dataRetentionNote).toContain("1,000");
     expect(body.exportInfo.dataRetentionNote).not.toMatch(/anonymi[sz]ed/);
   });
 
-  it.each(["trips", "trip_checklists", "user_usage", "ai_usage", "activity_votes", "trip_expenses", "user_calendar_connections"])(
+  it.each(["trips", "trip_checklists", "user_usage", "ai_usage", "activity_votes", "trip_expenses", "user_calendar_connections", "page_views", "trip_itinerary_snapshots"])(
     "fails instead of shipping an empty %s section, and stamps nothing",
     async (table) => {
       vi.spyOn(console, "error").mockImplementation(() => {});
@@ -195,4 +208,54 @@ describe("GET /api/profile/export", () => {
       expect(stamped).toBe(false);
     },
   );
+
+  it("holds the activity records", async () => {
+    const body = await (await GET()).json();
+    for (const section of [
+      "pageViews",
+      "plannerSteps",
+      "funnelEvents",
+      "apiRequests",
+      "partnerLinksOpened",
+      "votesBeforeSignIn",
+      "tripsJoinedAsGuest",
+      "itineraryVersions",
+      "feedback",
+      "tripDeletionFeedback",
+    ]) {
+      expect(body[section], section).toEqual([]);
+    }
+  });
+
+  it("reads the activity records with the service role: only the person's, newest 1,000", async () => {
+    await GET();
+    const owners: Record<string, string> = {
+      page_views: "user_id",
+      wizard_step_events: "user_id",
+      funnel_events: "user_id",
+      api_request_logs: "user_id",
+      hostelworld_clicks: "user_id",
+      anonymous_activity_votes: "user_id",
+      trip_participants: "user_id",
+      trip_itinerary_snapshots: "created_by",
+      user_feedback: "user_id",
+      trip_deletion_feedback: "user_id",
+    };
+    for (const [table, owner] of Object.entries(owners)) {
+      expect(readBy[table], table).toEqual(["admin"]);
+      expect(filters[table], table).toEqual([`${owner}=${USER}`]);
+      expect(limits[table], table).toEqual([1000]);
+      expect(orders[table], table).toHaveLength(1);
+      expect(orders[table][0], table).toMatch(/ desc$/);
+    }
+  });
+
+  it("reads everything else with the person's own session", async () => {
+    await GET();
+    const serviceTables = new Set(Object.entries(readBy).filter(([, by]) => by.includes("admin")).map(([table]) => table));
+    expect(serviceTables.size).toBe(10);
+    for (const [table, by] of Object.entries(readBy)) {
+      if (!serviceTables.has(table)) expect(new Set(by), table).toEqual(new Set(["session"]));
+    }
+  });
 });
