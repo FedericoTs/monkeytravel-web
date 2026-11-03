@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import {
   Plus,
@@ -106,6 +106,7 @@ function ExpenseLedgerInner({
   className,
 }: Required<Omit<ExpenseLedgerProps, "className">> & { className: string }) {
   const t = useTranslations("common.expenses");
+  const titleId = useId();
   const locale = useLocale();
   const { addToast } = useToast();
 
@@ -336,7 +337,8 @@ function ExpenseLedgerInner({
   }
 
   return (
-    <div
+    <section
+      aria-labelledby={titleId}
       className={`bg-white border border-slate-200 rounded-xl overflow-hidden ${className}`}
     >
       {/* Header */}
@@ -344,7 +346,7 @@ function ExpenseLedgerInner({
         <div className="flex items-start gap-3 min-w-0">
           <Wallet className="w-5 h-5 text-slate-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
           <div className="min-w-0">
-            <h3 className="font-semibold text-slate-900">{t("title")}</h3>
+            <h3 id={titleId} className="font-semibold text-slate-900">{t("title")}</h3>
             {totals.byCurrency.size === 0 ? (
               <p className="text-sm text-slate-500">{t("emptyHint")}</p>
             ) : (
@@ -572,7 +574,7 @@ function ExpenseLedgerInner({
           })}
         </ul>
       )}
-    </div>
+    </section>
   );
 }
 
