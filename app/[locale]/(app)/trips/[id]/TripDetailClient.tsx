@@ -25,6 +25,7 @@ import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 // next/dynamic further down, which keeps the initial trip-page chunk lean.
 import { useActivityVotes } from "@/hooks/useActivityVotes";
 import { useProposals } from "@/hooks/useProposals";
+import { dayTimeline } from "@/lib/proposals/timeline";
 import { InlineProposalCard } from "@/components/collaboration/proposals";
 import DestinationHero from "@/components/DestinationHero";
 import EditableActivityCard from "@/components/trip/EditableActivityCard";
@@ -1009,63 +1010,12 @@ export default function TripDetailClient({
     setProposeModalState(prev => ({ ...prev, isOpen: false }));
   }, []);
 
-  // Get proposals for a specific day (target_day is the day's day_number)
-  const getProposalsForDay = useCallback((dayNumber: number) => {
-    return proposals.filter(p => p.target_day === dayNumber);
-  }, [proposals]);
-
-  // Get merged timeline of activities and proposals for a day
-  // Returns items sorted chronologically, with proposals inserted at their target time slots
-  type TimelineItem =
-    | { type: 'activity'; data: Activity; index: number }
-    | { type: 'proposal'; data: typeof proposals[number] };
-
-  const getMergedTimeline = useCallback((dayNumber: number): TimelineItem[] => {
-    const dayIndex = dayNumber - 1;
-    const dayActivities = editedItinerary[dayIndex]?.activities || [];
-    // Show pending, voting, AND recently approved proposals (for animation)
-    const dayProposals = getProposalsForDay(dayNumber)
-      .filter(p =>
-        p.status === 'pending' ||
-        p.status === 'voting' ||
-        (p.status === 'approved' && recentlyApproved.has(p.id))
-      );
-
-    const timeline: TimelineItem[] = [];
-
-    // Add all activities first
-    dayActivities.forEach((activity, index) => {
-      timeline.push({ type: 'activity', data: activity, index });
-    });
-
-    // Insert proposals at their target positions based on time slot
-    dayProposals.forEach(proposal => {
-      const proposedActivity = proposal.activity_data as Activity;
-      const proposedTime = proposedActivity.start_time;
-
-      // Find insert position based on time
-      let insertIndex = timeline.length;
-      for (let i = 0; i < timeline.length; i++) {
-        const item = timeline[i];
-        if (item.type === 'activity') {
-          if (item.data.start_time > proposedTime) {
-            insertIndex = i;
-            break;
-          }
-        } else if (item.type === 'proposal') {
-          const propActivity = item.data.activity_data as Activity;
-          if (propActivity.start_time > proposedTime) {
-            insertIndex = i;
-            break;
-          }
-        }
-      }
-
-      timeline.splice(insertIndex, 0, { type: 'proposal', data: proposal });
-    });
-
-    return timeline;
-  }, [editedItinerary, getProposalsForDay, recentlyApproved]);
+  // A day's activities with the crew's open proposals among them, outside edit mode.
+  const getMergedTimeline = useCallback(
+    (dayNumber: number) =>
+      dayTimeline(editedItinerary[dayNumber - 1]?.activities || [], proposals, dayNumber, recentlyApproved),
+    [editedItinerary, proposals, recentlyApproved]
+  );
 
   // Keyboard shortcuts for edit mode (Cmd+Z, Cmd+Shift+Z, Cmd+S, Escape)
   useEffect(() => {
