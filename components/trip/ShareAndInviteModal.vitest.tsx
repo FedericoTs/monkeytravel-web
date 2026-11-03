@@ -288,3 +288,29 @@ describe("the Explore switch", () => {
     await waitFor(() => expect(screen.getByRole("switch").getAttribute("aria-checked")).toBe("false"));
   });
 });
+
+describe("ShareAndInviteModal on another trip", () => {
+  it("starts from that trip's own framing", () => {
+    const modal = (tripId: string, tripIntent: "solo" | "group") => (
+      <ShareAndInviteModal
+        isOpen
+        onClose={vi.fn()}
+        tripId={tripId}
+        tripTitle="Lisbon Trip"
+        shareUrl={SHARE_URL}
+        tripIntent={tripIntent}
+        isShared
+        onStopSharing={vi.fn()}
+        onEnableSharing={vi.fn(async () => undefined)}
+        isLoading={false}
+      />
+    );
+    const { rerender } = render(modal("trip-1", "group"));
+    fireEvent.click(screen.getByTestId("share-framing-plain"));
+    expect(offeredLink()).toBe(SHARE_URL);
+    rerender(modal("trip-2", "group"));
+    expect(offeredLink()).toBe(CREW_URL);
+    rerender(modal("trip-2", "solo"));
+    expect(offeredLink()).toBe(SHARE_URL);
+  });
+});

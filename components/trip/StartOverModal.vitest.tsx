@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import enCommon from "@/messages/en/common.json";
 import StartOverModal from "./StartOverModal";
@@ -46,5 +46,27 @@ describe("Start Over modal", () => {
     expect(screen.getByText(/Your plan for Lisbon, Portugal stays under Your plans for 30 days/)).toBeTruthy();
     expect(screen.queryByText("You'll lose:")).toBeNull();
     expect(screen.queryByText(/archived for 7 days/)).toBeNull();
+  });
+});
+
+describe("Start Over modal, opened again", () => {
+  it("has no reason picked and no note", () => {
+    const modal = (isOpen: boolean) => (
+      <NextIntlClientProvider locale="en" messages={{ common: enCommon }}>
+        <StartOverModal isOpen={isOpen} onClose={vi.fn()} onConfirm={vi.fn()} destination="Lisbon, Portugal" tripDays={3} activitiesCount={11} />
+      </NextIntlClientProvider>
+    );
+    const { rerender } = render(modal(true));
+    const reason = () => document.getElementById("start-over-reason") as HTMLSelectElement;
+    const note = () => document.getElementById("start-over-custom-reason") as HTMLTextAreaElement;
+    fireEvent.change(reason(), { target: { value: reason().options[1].value } });
+    fireEvent.change(note(), { target: { value: "Wrong city" } });
+    expect(reason().value).not.toBe("");
+
+    rerender(modal(false));
+    rerender(modal(true));
+    expect(reason().value).toBe("");
+    expect(note().value).toBe("");
+    expect(screen.getByRole("dialog")).toBeTruthy();
   });
 });

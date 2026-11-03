@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useRef } from "react";
+import { useChanged } from "@/hooks/useChanged";
 import { motion, AnimatePresence } from "framer-motion";
 import { Users, Vote, MessageSquare, Sparkles, X, ArrowRight, Globe, Check, Copy, Share2 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -89,7 +90,6 @@ export default function ShareAfterSaveModal({
   // Helper to access share translations with proper prefix
   const ts = (key: string, params?: Record<string, string | number>) => t(`share.${key}`, params);
   const [isExiting, setIsExiting] = useState(false);
-  const [showDelayed, setShowDelayed] = useState(false);
   const hasTrackedView = useRef(false);
   // Opt-out for ordinary trips, opt-in for anchored ones.
   const [publishChecked, setPublishChecked] = useState(!isAnchored);
@@ -121,33 +121,26 @@ export default function ShareAfterSaveModal({
   // wrong default. An effect would paint the box ticked first and correct it
   // after — a visible flash on exactly the control where a wrong default
   // matters most.
-  const [lastOpen, setLastOpen] = useState(isOpen);
-  if (isOpen !== lastOpen) {
-    setLastOpen(isOpen);
-    if (isOpen) setPublishChecked(!isAnchored);
+  const openChanged = useChanged(isOpen);
+  if (openChanged && isOpen) setPublishChecked(!isAnchored);
+  // Clear the minted link too, so a reopen starts from the CTA rather than a
+  // stale URL from a previous trip.
+  if (openChanged && !isOpen) {
+    setShareUrl(null);
+    setMintFailed(false);
+    setCopied(false);
   }
 
   useEffect(() => {
-    if (!isOpen) {
-      setShowDelayed(false);
-      // Companion to the render-phase checkbox re-arm above. Ref writes belong
-      // in an effect, not in render.
-      hasPublished.current = false;
-      // Clear the minted link too, so a reopen starts from the CTA rather than
-      // a stale URL from a previous trip.
-      setShareUrl(null);
-      setMintFailed(false);
-      setCopied(false);
-      coPlannerTracked.current = false;
-      if (copyResetRef.current) {
-        clearTimeout(copyResetRef.current);
-        copyResetRef.current = null;
-      }
-      return;
+    if (isOpen) return;
+    // Companion to the render-phase resets above. Ref writes belong in an
+    // effect, not in render.
+    hasPublished.current = false;
+    coPlannerTracked.current = false;
+    if (copyResetRef.current) {
+      clearTimeout(copyResetRef.current);
+      copyResetRef.current = null;
     }
-
-    // Shipped variant is `control`: show immediately, no PostHog round-trip.
-    setShowDelayed(true);
   }, [isOpen]);
 
   // Copy branch. "unspecified" gets a neutral middle rather than the group
@@ -157,7 +150,7 @@ export default function ShareAfterSaveModal({
 
   // Track prompt shown (only once)
   useEffect(() => {
-    if (isOpen && showDelayed && !hasTrackedView.current) {
+    if (isOpen && !hasTrackedView.current) {
       // Track in GA4 (existing)
       trackSharePromptShown({
         tripId,
@@ -176,7 +169,7 @@ export default function ShareAfterSaveModal({
       });
       hasTrackedView.current = true;
     }
-  }, [isOpen, showDelayed, tripId, destination, tripDays]);
+  }, [isOpen, tripId, destination, tripDays]);
 
   // Focus trap: cycle Tab/Shift+Tab inside the panel and capture initial focus
   // so screen-reader users land inside the dialog. Framer-motion controls the
@@ -187,7 +180,7 @@ export default function ShareAfterSaveModal({
   const triggerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (!isOpen || !showDelayed) return;
+    if (!isOpen) return;
 
     triggerRef.current = (document.activeElement as HTMLElement) ?? null;
 
@@ -206,7 +199,7 @@ export default function ShareAfterSaveModal({
       // Restore focus to the trigger on unmount
       triggerRef.current?.focus?.();
     };
-  }, [isOpen, showDelayed]);
+  }, [isOpen]);
 
   // Handle escape key + Tab focus trap
   useEffect(() => {
@@ -380,7 +373,7 @@ export default function ShareAfterSaveModal({
   };
 
   // Don't render until delay has passed (for experiment variants)
-  if (!isOpen || !showDelayed) return null;
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
