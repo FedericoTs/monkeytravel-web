@@ -41,7 +41,7 @@ import { buildSeasonalContext, getSeasonalVibeSuggestions } from "@/lib/seasonal
 import type { SseDayData, SseOutlineData } from "@/lib/streaming/sse";
 import { generateWithRecovery } from "@/lib/wizard/generation-recovery";
 import { attemptGeneration } from "@/lib/wizard/generation-attempt";
-import { MultiCityRouteBuilder, type RouteStop } from "@/components/trips/MultiCityRouteBuilder";
+import type { RouteStop } from "@/components/trips/MultiCityRouteBuilder";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
 import { joinCities } from "@/lib/ai/multi-city-core";
@@ -209,6 +209,7 @@ import DestinationField from "@/components/wizard/DestinationField";
 import TripDatesField from "@/components/wizard/TripDatesField";
 import TripOptions from "@/components/wizard/TripOptions";
 import Step1Notices from "@/components/wizard/Step1Notices";
+import { MultiCityRoute, MultiCityToggle } from "@/components/wizard/MultiCityControls";
 import { safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
@@ -2488,32 +2489,15 @@ export default function NewTripPage({
               setTripIntent={setTripIntent}
             />
 
-            {/* 12+-day single-city sessions are usually multi-city trips the
-                input didn't invite. One tap converts them. */}
-            {MULTI_CITY_ENABLED &&
-              !multiCityMode &&
-              startDate &&
-              endDate &&
-              tripSpanDays(startDate, endDate) >= 12 && (
-                <button
-                  type="button"
-                  onClick={() => setMultiCityMode(true)}
-                  className="w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs font-medium text-amber-800 transition-colors hover:bg-amber-100"
-                >
-                  {t("wizard.multiCity.longTripNudge", {
-                    days: tripSpanDays(startDate, endDate),
-                  })}
-                </button>
-              )}
-
-            {/* Multi-city route builder — replaces the single destination field */}
-            {MULTI_CITY_ENABLED && multiCityMode && (
-              <div>
-                <div className="text-sm font-medium text-slate-700 mb-2">
-                  {t("wizard.multiCity.routeLabel")}
-                </div>
-                <MultiCityRouteBuilder rows={cityRows} onChange={setCityRows} />
-              </div>
+            {MULTI_CITY_ENABLED && (
+              <MultiCityRoute
+                multiCityMode={multiCityMode}
+                setMultiCityMode={setMultiCityMode}
+                startDate={startDate}
+                endDate={endDate}
+                cityRows={cityRows}
+                setCityRows={setCityRows}
+              />
             )}
 
             {/* Destination (single-city; hidden in multi-city mode) */}
@@ -2537,34 +2521,7 @@ export default function NewTripPage({
                 stays adjacent to what it controls. The ?multi=1 deep link and
                 the sync effect key off state, not DOM position. */}
             {MULTI_CITY_ENABLED && (
-              <div
-                className="flex items-center justify-between rounded-[var(--radius-md)] border border-[var(--primary)]/15 bg-[var(--background-warm)] px-4 py-3"
-              >
-                <div>
-                  <div className="text-sm font-medium text-slate-800">
-                    {t("wizard.multiCity.toggleTitle")}
-                  </div>
-                  <div className="text-xs text-slate-500">
-                    {t("wizard.multiCity.toggleDescription")}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={multiCityMode}
-                  aria-label={t("wizard.multiCity.toggleAria")}
-                  onClick={() => setMultiCityMode((m) => !m)}
-                  className={`relative inline-flex h-6 w-11 flex-none items-center rounded-full transition-colors ${
-                    multiCityMode ? "bg-[var(--primary)]" : "bg-slate-300"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                      multiCityMode ? "translate-x-5" : "translate-x-0.5"
-                    }`}
-                  />
-                </button>
-              </div>
+              <MultiCityToggle multiCityMode={multiCityMode} setMultiCityMode={setMultiCityMode} />
             )}
 
             {/* Dates — shown immediately below destination */}
