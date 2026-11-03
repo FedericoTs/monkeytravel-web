@@ -10,7 +10,8 @@ import { stubGeneration, stubPlan } from "./generation-stub";
  * row holds every day and activity, and the trip page shows them. When they
  * already saved a trip to the same place on the same dates, the wizard asks
  * first: update that trip, or save this one as a separate trip. A trip they
- * generate is saved the same way.
+ * generate is saved the same way, and a plan they shared while signed out
+ * becomes their trip when they sign in, without a second save.
  *
  * The plans are the restored-draft fixture, and a generation is answered by
  * the test (generation-stub.ts), so no model is called. Analytics, photos and
@@ -79,6 +80,22 @@ async function isolate(page: Page) {
     }
     return route.continue();
   });
+}
+
+/** From step 1, plans the first popular pick with one vibe, and asks for it. */
+async function planFirstPick(page: Page) {
+  const pick = page.getByRole("group", { name: "Popular right now" }).getByRole("button").first();
+  await pick.click({ timeout: 60_000 });
+  await page.getByRole("button", { name: /^Continue/ }).click();
+  await page.getByRole("heading", { name: "Set your travel style" }).waitFor();
+  // The cards animate in, and a click landing mid-entrance is lost.
+  const foodie = page.getByText("Foodie Journey", { exact: true }).filter({ visible: true }).first();
+  const generate = page.getByRole("button", { name: "Generate Itinerary" });
+  await expect(async () => {
+    if (await generate.isDisabled()) await foodie.click();
+    await expect(generate).toBeEnabled({ timeout: 1_500 });
+  }).toPass({ timeout: 15_000 });
+  await generate.click();
 }
 
 /** Opens the wizard with `plan` waiting as the unsaved draft. */
@@ -246,19 +263,7 @@ test.describe("wizard: a trip a signed-in planner generates", () => {
     // After the catch-all: the last route registered is asked first.
     const generation = await stubGeneration(page);
     await page.goto("/trips/new");
-
-    const pick = page.getByRole("group", { name: "Popular right now" }).getByRole("button").first();
-    await pick.click({ timeout: 60_000 });
-    await page.getByRole("button", { name: /^Continue/ }).click();
-    await page.getByRole("heading", { name: "Set your travel style" }).waitFor();
-    // The cards animate in, and a click landing mid-entrance is lost.
-    const foodie = page.getByText("Foodie Journey", { exact: true }).filter({ visible: true }).first();
-    const generate = page.getByRole("button", { name: "Generate Itinerary" });
-    await expect(async () => {
-      if (await generate.isDisabled()) await foodie.click();
-      await expect(generate).toBeEnabled({ timeout: 1_500 });
-    }).toPass({ timeout: 15_000 });
-    await generate.click();
+    await planFirstPick(page);
 
     const viewTrip = page.getByRole("link", { name: /View trip/ }).first();
     await expect(viewTrip, "auto-save did not finish").toBeVisible({ timeout: 60_000 });
@@ -277,5 +282,68 @@ test.describe("wizard: a trip a signed-in planner generates", () => {
     expect(data, "the plan should be saved exactly once").toHaveLength(1);
     expect(activityNames(data![0].itinerary as Day[])).toEqual(activityNames(plan.days));
     await expect(viewTrip).toHaveAttribute("href", new RegExp(`/trips/${data![0].id}$`));
+  });
+});
+
+test.describe("wizard: a plan shared before signing in", () => {
+  const { url, key } = creds();
+  const owner = ownerId();
+  test.skip(!AUTH_STATE || !owner || !url || !key, "run e2e-fixtures --seed and e2e-login, and set KEY_FLOWS_AUTH_STATE");
+  // No storageState: the planner starts signed out and signs in halfway.
+
+  let db: SupabaseClient;
+  let sharedTripId: string | null = null;
+  let dates: { start: string; end: string } | null = null;
+
+  test.beforeEach(async ({ page }) => {
+    db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+    await isolate(page);
+  });
+
+  test.afterEach(async () => {
+    if (sharedTripId) await db.from("trips").delete().eq("id", sharedTripId);
+    if (dates) await db.from("trips").delete().eq("user_id", owner!).eq("start_date", dates.start).eq("end_date", dates.end);
+  });
+
+  test("becomes the planner's trip when they sign in, and is not saved twice", async ({ page, context }) => {
+    const generation = await stubGeneration(page);
+    await page.goto("/trips/new");
+    const essentialOnly = page.getByRole("button", { name: /essential only/i });
+    await essentialOnly
+      .waitFor({ state: "visible", timeout: 4_000 })
+      .then(() => essentialOnly.click())
+      .catch(() => {});
+    await planFirstPick(page);
+    await expect(page.getByRole("button", { name: /Save Trip/ }).first()).toBeVisible({ timeout: 60_000 });
+    const request = generation.streamed[0];
+    dates = { start: request.startDate, end: request.endDate };
+
+    // Shared while signed out: the server keeps an ownerless trip, and this
+    // browser keeps the token that claims it.
+    const shared = page.waitForResponse((r) => r.url().endsWith("/api/trips/anonymous") && r.request().method() === "POST");
+    await page.getByRole("button", { name: "Share this trip" }).first().click();
+    const response = await shared;
+    expect(response.ok(), "the share link was not created").toBe(true);
+    sharedTripId = ((await response.json()) as { tripId: string }).tripId;
+
+    // Signing in leaves the session in cookies; the wizard opens again with
+    // the plan restored, claims the shared trip, and keeps it as the save.
+    const signedIn = JSON.parse(readFileSync(AUTH_STATE!, "utf8")) as { cookies: Parameters<typeof context.addCookies>[0] };
+    await context.addCookies(signedIn.cookies);
+    await page.goto("/trips/new");
+    await expect(page.getByRole("link", { name: /View trip/ }).first()).toHaveAttribute(
+      "href",
+      new RegExp(`/trips/${sharedTripId}$`),
+      { timeout: 60_000 }
+    );
+
+    const { data, error } = await db
+      .from("trips")
+      .select("id, user_id")
+      .eq("start_date", dates.start)
+      .eq("end_date", dates.end)
+      .or(`user_id.eq.${owner},id.eq.${sharedTripId}`);
+    expect(error).toBeNull();
+    expect(data, "one trip: the shared one, now the planner's").toEqual([{ id: sharedTripId, user_id: owner }]);
   });
 });
