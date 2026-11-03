@@ -7,7 +7,6 @@ import { useSearchParams } from "next/navigation";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
 import dynamic from "next/dynamic";
-import { Spinner } from "@/components/ui/Spinner";
 
 // ./page.tsx resolves the optional `?destination=<slug>` deeplink server-side
 // and passes only this payload in as `prefilledDestination`. Keep this file
@@ -240,6 +239,7 @@ import { isSameDestination } from "@/lib/trips/sameDestination";
 import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate";
 import { useSameTripCheck } from "@/hooks/useSameTripCheck";
 import SameTripPrompt from "@/components/wizard/SameTripPrompt";
+import WizardSaveButton from "@/components/wizard/WizardSaveButton";
 import { safeGet, safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
@@ -3050,57 +3050,12 @@ export default function NewTripPage({
               )}
               {/* Unsaved-state pill (both save arms); a kept plan's link instead. */}
               {isUnsaved && !autoSaving && (keptPlan ? <KeptLinkPill token={keptPlan.token} /> : <NotSavedPill />)}
-              {autoSaveEnabled && autoSave.savedTripId && autoSave.status !== "saving" ? (
-                // Auto-save flow: trip already persisted. Repurpose the
-                // primary action as a navigation to the saved detail view.
-                <Link
-                  href={`/trips/${autoSave.savedTripId}`}
-                  className="bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/25 flex items-center gap-2"
-                >
-                  {t("result.savedViewTrip")}
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
-              ) : autoSaveEnabled && autoSave.status === "saving" ? (
-                <button
-                  type="button"
-                  disabled
-                  className="bg-[var(--secondary-ink)] text-white px-6 py-2.5 rounded-xl font-medium opacity-60 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
-                >
-                  <Spinner className="w-4 h-4" />
-                  {t("result.saving")}
-                </button>
-              ) : autoSaveEnabled && autoSave.status === "error" ? (
-                <button
-                  onClick={() => autoSave.retry()}
-                  className="bg-rose-500 text-white px-6 py-2.5 rounded-xl font-medium hover:bg-rose-600 transition-colors flex items-center gap-2"
-                >
-                  {t("result.retrySave")}
-                </button>
-              ) : (
-                // Manual Save Trip button: auto-save is off, or has nothing
-                // persisted yet (e.g. a signed-out planner).
-                <button
-                  onClick={handleSaveTrip}
-                  disabled={loading}
-                  className="bg-[var(--secondary-ink)] text-white px-6 py-2.5 rounded-xl font-medium hover:bg-[var(--secondary-ink)]/90 transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Spinner className="w-4 h-4" />
-                      {t("wizard.result.saving")}
-                    </>
-                  ) : (
-                    <>
-                      {t("wizard.result.saveTrip")}
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </>
-                  )}
-                </button>
-              )}
+              <WizardSaveButton
+                placement="header"
+                autoSave={autoSaveEnabled ? autoSave : null}
+                onSave={handleSaveTrip}
+                saving={loading}
+              />
 
               {/* Anonymous share: lets a signed-out planner send the trip
                   without an account. It mints an ownerless, read-only link and
@@ -3210,53 +3165,12 @@ export default function NewTripPage({
             {isUnsaved && !autoSaving && (keptPlan ? <KeptLinkPill token={keptPlan.token} /> : <NotSavedPill />)}
 
             {/* Save - Mobile (Full Width) */}
-            {autoSaveEnabled && autoSave.savedTripId && autoSave.status !== "saving" ? (
-              <Link
-                href={`/trips/${autoSave.savedTripId}`}
-                className="flex-1 bg-emerald-500 text-white py-3 rounded-xl font-semibold transition-colors shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
-              >
-                {t("result.savedViewTrip")}
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
-            ) : autoSaveEnabled && autoSave.status === "saving" ? (
-              <button
-                type="button"
-                disabled
-                className="flex-1 bg-[var(--secondary-ink)] text-white py-3 rounded-xl font-semibold opacity-60 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
-              >
-                <Spinner className="w-5 h-5" />
-                {t("result.saving")}
-              </button>
-            ) : autoSaveEnabled && autoSave.status === "error" ? (
-              <button
-                onClick={() => autoSave.retry()}
-                className="flex-1 bg-rose-500 text-white py-3 rounded-xl font-semibold hover:bg-rose-600 transition-colors flex items-center justify-center gap-2"
-              >
-                {t("result.retrySave")}
-              </button>
-            ) : (
-              <button
-                onClick={handleSaveTrip}
-                disabled={loading}
-                className="flex-1 bg-[var(--secondary-ink)] text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 shadow-lg shadow-[var(--secondary)]/25 flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <Spinner className="w-5 h-5" />
-                    {t("wizard.result.saving")}
-                  </>
-                ) : (
-                  <>
-                    {t("wizard.result.saveTrip")}
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </>
-                )}
-              </button>
-            )}
+            <WizardSaveButton
+              placement="bar"
+              autoSave={autoSaveEnabled ? autoSave : null}
+              onSave={handleSaveTrip}
+              saving={loading}
+            />
           </div>
         </div>
 
