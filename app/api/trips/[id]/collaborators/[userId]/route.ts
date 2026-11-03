@@ -1,9 +1,8 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser, verifyTripAccess } from "@/lib/api/auth";
-import { COLLABORATOR_ROLES } from "@/lib/api/constants";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import type { TripCollaboratorRouteContext } from "@/lib/api/route-context";
-import type { CollaboratorRole } from "@/types";
+import { COLLABORATOR_ROLES, type CollaboratorRole } from "@/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isDemotion, resetInviteLinks } from "@/lib/invites/links";
 import { readJsonBody } from "@/lib/api/json-body";
