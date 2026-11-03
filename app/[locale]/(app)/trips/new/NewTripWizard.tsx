@@ -1210,6 +1210,10 @@ export default function NewTripPage({
   // flashing the unsaved one and collapsing a second later.
   const autoSaving =
     autoSaveEnabled && !deferAutoSave && !awaitingTwinChoice && isAuthenticated === true && autoSave.status !== "error";
+  // Signed in, a shared plan's claim is its save while the request runs
+  // (hooks/usePendingClaim.ts): Save shows it under way, and does not insert
+  // a copy beside the trip the claim hands over.
+  const claimingSharedPlan = isAuthenticated === true && deferAutoSave;
   const hasResult = Boolean(generatedItinerary);
   // The tray's restore-swap must never run while the auto-save arm is live:
   // useAutoSaveTrip's effect would UPDATE the persisted row with a DIFFERENT
@@ -1810,6 +1814,8 @@ export default function NewTripPage({
       prompt?.querySelector("button")?.focus({ preventScroll: true });
       return;
     }
+    // The shared plan's claim is saving it (claimingSharedPlan above).
+    if (claimingSharedPlan) return;
     // Synchronous re-entry guard: setLoading(true) below is async, and a
     // user can click a second time in the gap before React re-renders the
     // disabled button. The ref check fires before any state update lands.
@@ -2367,7 +2373,7 @@ export default function NewTripPage({
                 placement="header"
                 autoSave={autoSaveEnabled ? autoSave : null}
                 onSave={handleSaveTrip}
-                saving={loading}
+                saving={loading || claimingSharedPlan}
               />
 
               {/* Anonymous share: lets a signed-out planner send the trip
@@ -2484,7 +2490,7 @@ export default function NewTripPage({
               placement="bar"
               autoSave={autoSaveEnabled ? autoSave : null}
               onSave={handleSaveTrip}
-              saving={loading}
+              saving={loading || claimingSharedPlan}
             />
           </div>
         </div>

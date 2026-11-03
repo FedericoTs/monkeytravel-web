@@ -11,10 +11,11 @@ import { stubGeneration, stubPlan } from "./generation-stub";
  * already saved a trip to the same place on the same dates, the wizard asks
  * first: update that trip, or save this one as a separate trip. A trip they
  * generate is saved the same way, and a plan they shared while signed out
- * becomes their trip when they sign in, without a second save. A kept plan's
- * link is saved the same way, once: opened again, it leads to their trips. A
- * planner who reaches the free-generation cap signed out gets the trip
- * generated and saved once they sign in.
+ * becomes their trip when they sign in, without a second save: Save waits
+ * while the claim runs. A kept plan's link is saved the same way, once:
+ * opened again, it leads to their trips. A planner who reaches the
+ * free-generation cap signed out gets the trip generated and saved once they
+ * sign in.
  *
  * The plans are the restored-draft fixture, and a generation is answered by
  * the test (generation-stub.ts), so no model is called. Analytics, photos and
@@ -404,9 +405,9 @@ test.describe("wizard: a plan shared before signing in", () => {
     ]);
   });
 
-  test("a Save pressed while the claim runs adds no second copy", async ({ page, context }) => {
+  test("Save waits while the claim runs, so it adds no second copy", async ({ page, context }) => {
     await shareSignedOut(page);
-    // The claim is held until Save has been pressed (the last route registered is asked first).
+    // The claim is held until Save has been seen waiting (the last route registered is asked first).
     let release!: () => void;
     const held = new Promise<void>((resolve) => (release = resolve));
     await page.route("**/api/trips/claim", async (route) => {
@@ -416,15 +417,20 @@ test.describe("wizard: a plan shared before signing in", () => {
 
     await signIn(context);
     await page.goto("/trips/new");
-    await page.getByRole("button", { name: /Save Trip/ }).first().click({ timeout: 60_000 });
-    await page.waitForURL(/\/trips\/[0-9a-f-]{36}$/, { timeout: 60_000 });
-    const claimed = page.waitForResponse((r) => r.url().endsWith("/api/trips/claim"));
-    release();
-    await claimed;
+    const saving = page.getByRole("button", { name: "Saving..." }).first();
+    await expect(saving).toBeVisible({ timeout: 60_000 });
+    await expect(saving).toBeDisabled();
+    await expect(page.getByRole("button", { name: /Save Trip/ })).toHaveCount(0);
 
-    await expect
-      .poll(tripsOnTheseDates, { timeout: 10_000, message: "one trip: the shared one, now the planner's" })
-      .toEqual([{ id: sharedTripId, user_id: owner }]);
+    release();
+    await expect(page.getByRole("link", { name: /View trip/ }).first()).toHaveAttribute(
+      "href",
+      new RegExp(`/trips/${sharedTripId}$`),
+      { timeout: 60_000 }
+    );
+    expect(await tripsOnTheseDates(), "one trip: the shared one, now the planner's").toEqual([
+      { id: sharedTripId, user_id: owner },
+    ]);
   });
 });
 
