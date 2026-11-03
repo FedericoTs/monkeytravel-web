@@ -172,7 +172,8 @@ describe("requestLocale", () => {
     // The NEXT_LOCALE cookie is usually absent, so the page locale must win.
     const read = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
     const wizard = read("app", "[locale]", "(app)", "trips", "new", "NewTripWizard.tsx");
-    expect(wizard).toMatch(/requestBody = \{ \.\.\.params, locale/);
+    expect(wizard).toMatch(/generationRequest\(answers, \{[^}]*\blocale,/);
+    expect(read("lib", "wizard", "generation-request.ts")).toMatch(/body: \{ \.\.\.params, locale: extra\.locale/);
     for (const route of [["app", "api", "ai", "generate", "route.ts"], ["app", "api", "ai", "generate", "stream", "route.ts"]]) {
       expect(read(...route)).toContain("requestLocale(body.locale) ?? userContext.userLanguage");
     }

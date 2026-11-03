@@ -31,7 +31,7 @@ export interface PrefilledTripShape {
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { prefs } from "@/lib/platform/storage";
-import type { GeneratedItinerary, ItineraryDay, TripAnchor, TripCreationParams, TripVibe, SeasonalContext } from "@/types";
+import type { GeneratedItinerary, ItineraryDay, TripAnchor, TripVibe, SeasonalContext } from "@/types";
 import { DIETS, dietsFrom, type Diet } from "@/lib/trips/diet";
 // Step-1 components (above-the-fold) stay eager.
 import VibeSelector from "@/components/trip/VibeSelector";
@@ -194,8 +194,9 @@ import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim
 import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
 import { decideDraftRestore } from "@/lib/wizard/draft-restore";
 import { saveErrorClass } from "@/lib/wizard/save-failure";
-import { applyDraft, applyKeptPlan, type DraftTargets } from "@/lib/wizard/apply-draft";
+import { applyDraft, applyKeptPlan, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
 import { keptPlanOf, sessionTripOf, tripFormState, type WizardAnswers } from "@/lib/wizard/answers";
+import { generationRequest, routeLegs } from "@/lib/wizard/generation-request";
 import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
 import {
   classifyGenerationFailure,
@@ -214,16 +215,13 @@ import {
 import {
   captureTripUpdated,
   captureItineraryGenerated,
-  captureTripWizardStepViewed,
   captureTripWizardStepCompleted,
-  captureTripWizardAbandoned,
-  captureTripWizardFieldInteracted,
   captureTripGenerationStarted,
   captureTripGenerationCompleted,
   captureTripIntentSelected,
   captureAnchorsGenerated,
 } from "@/lib/posthog/events";
-import type { TripWizardFieldInteractedEvent, TripIntent } from "@/lib/posthog/events";
+import type { TripIntent } from "@/lib/posthog/events";
 import {
   captureSaveBlockedAnon,
   captureSaveFailed,
@@ -231,10 +229,10 @@ import {
 } from "@/lib/posthog/events";
 import { reportTripSaved } from "@/lib/wizard/trip-saved";
 import { usePostHog } from "@/lib/posthog";
-import { landingAttribution, trackWizardEvent, type WizardEventStep } from "@/components/wizard/wizardEvents";
+import { trackWizardEvent } from "@/components/wizard/wizardEvents";
 import { useAutoSaveTrip, type AutoSaveSkipReason } from "@/hooks/useAutoSaveTrip";
 import { useUnsavedPlan } from "@/hooks/useUnsavedPlan";
-import { useDwellHeartbeat } from "@/hooks/useDwellHeartbeat";
+import { useWizardFunnel, WIZARD_STEP_NAMES } from "@/hooks/useWizardFunnel";
 import { useHasExistingTrips } from "@/hooks/useHasExistingTrips";
 import { isSameDestination } from "@/lib/trips/sameDestination";
 import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate";
@@ -443,13 +441,6 @@ async function findExpressPlace(name: string, locale: string): Promise<PlacePred
     return null;
   }
 }
-
-// LOAD-BEARING: declared OUTSIDE the component so the array identity is stable
-// across renders. A new reference per render would recreate
-// trackFieldInteraction and handleVibesChange (breaking VibeSelector's
-// React.memo, which stalls step-2 vibe clicks) and re-fire the abandonment
-// effect, tearing down and re-attaching its window listeners every render.
-const STEP_NAMES_CONST = ["destination_dates", "vibes_preferences"] as const;
 
 // Server-side funnel mirror (trackWizardEvent + WizardEventStep) lives in
 // @/components/wizard/wizardEvents. Every row is stamped front_door = "wizard"
@@ -745,81 +736,22 @@ export default function NewTripPage({
   // 2-step wizard: Destination+Dates -> Vibes+Preferences.
   const TOTAL_STEPS = 2;
 
-  // STEP_NAMES_CONST is hoisted to module scope above the component
-  // — see the load-bearing comment there. Don't redeclare it here.
-
   // Collapsible preferences state (budget/pace/requirements shown on demand in step 2)
   const [showAdvancedPrefs, setShowAdvancedPrefs] = useState(false);
-  // The step-view effect re-runs on React 19 dev StrictMode double-mount and
-  // on back nav, Start Over and draft-recovery setState. PostHog dedupes
-  // server-side but wizard_step_events does not, so without this guard one
-  // step view writes several rows and understates funnel conversion. Same
-  // ref-guard pattern as abandonedFiredRef and wizardCompletedRef below.
-  const trackedStepsRef = useRef<Set<number>>(new Set());
-  useEffect(() => {
-    // Wait for the auth state before EITHER sink fires. Placed above the
-    // PostHog capture too, not just the Supabase mirror: an early pass would
-    // otherwise emit a step-view before posthog.register() has attached the
-    // wizard_entry super-property, and would emit it twice.
-    if (!entryResolved) {
-      return;
-    }
-    captureTripWizardStepViewed({
-      step_number: step,
-      step_name: STEP_NAMES_CONST[step - 1],
-    });
-    // Mirror the step view into Supabase. Step 1 fires
-    // `step_1_destination_dates`, step 2 fires `step_2_vibes`. This is the
-    // entry-point event for each step — downstream events (generating/result/
-    // save_clicked/saved/abandoned) are fired from their own handlers. Step 1
-    // sends only `locale`, the one field guaranteed to be meaningful then.
-    //
-    // Gate on trackedStepsRef so we fire exactly once per step per wizard
-    // mount lifetime: going back to a step (1→2→1) does not re-fire. A full
-    // remount (route nav) resets the ref, which is correct — that's a new
-    // session view.
-    if (trackedStepsRef.current.has(step)) {
-      return;
-    }
-    trackedStepsRef.current.add(step);
-    if (step === 1) {
-      void trackWizardEvent("step_1_destination_dates", { locale, ...landingAttribution() });
-    } else if (step === 2) {
-      void trackWizardEvent("step_2_vibes", {
-        destination: destinationFieldRef.current || undefined,
-        duration_days:
-          startDateRef.current && endDateRef.current
-            ? Math.max(1, tripSpanDays(startDateRef.current, endDateRef.current))
-            : undefined,
-        group_size: tripIntent,
-        backpacker_mode: travelStyle === "backpacker",
-        locale,
-      });
-    }
-    // entryResolved is a REQUIRED dep: it flips false->true once the auth state
-    // resolves and that flip is what actually fires the step view.
-    // exhaustive-deps is disabled here, so the linter won't catch its removal.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, entryResolved]);
+  // The funnel: step views, first touches, the step-1 heartbeat and the
+  // abandonment row (hooks/useWizardFunnel.ts).
+  const { trackFieldInteraction, markCompleted: markWizardCompleted } = useWizardFunnel({
+    step,
+    entryResolved,
+    locale,
+    tripIntent,
+    travelStyle,
+    destination,
+    startDate,
+    endDate,
+    vibes: selectedVibes,
+  });
 
-  // ── Step-1 dwell heartbeat ───────────────────────────────────────────────
-  // Many step-1 abandoners log a single event, so their dwell (bounce in <2s
-  // vs deliberate struggle) is unmeasurable. A heartbeat while the session
-  // sits on step 1 turns them into a time series; the 10s spacing never
-  // collides with the wizard-event sink's 1s dedupe bucket.
-  useDwellHeartbeat(step === 1, () => void trackWizardEvent("step1_heartbeat", { locale }));
-
-  // ── Wizard funnel diagnostics ────────────────────────────────────────────
-  // These refs + the abandonment listener record how far an abandoning
-  // session got (no engagement at all, a destination typed but no dates,
-  // etc.) to pinpoint which field on /trips/new loses the funnel.
-
-  const wizardMountedAtRef = useRef<number>(Date.now());
-  const stepStartedAtRef = useRef<number>(Date.now());
-  const lastTouchedFieldRef = useRef<TripWizardFieldInteractedEvent["field"] | null>(null);
-  const touchedFieldsThisStepRef = useRef<Set<string>>(new Set());
-  const wizardCompletedRef = useRef<boolean>(false);
-  const abandonedFiredRef = useRef<boolean>(false);
   // Synchronous re-entry guard for handleSaveTrip. setLoading(true) is async
   // — between click and re-render, a second click can fire before the button
   // is visibly disabled, producing duplicate trip rows. A ref check is
@@ -843,20 +775,15 @@ export default function NewTripPage({
   const [planningExtraDays, setPlanningExtraDays] = useState(false);
   const [datesNotice, setDatesNotice] = useState<string | null>(null);
 
-  // Mirror state into refs so the unload handlers can read current values
-  // without having to re-bind the listeners on every state change.
-  const stepRef = useRef(step);
-  const destinationFieldRef = useRef(destination);
+  // Mirror state into refs so the assistant's edit handlers read current values
+  // without being recreated on every change.
   const startDateRef = useRef(startDate);
   const endDateRef = useRef(endDate);
-  const vibesRef = useRef(selectedVibes);
   const generatedItineraryRef = useRef(generatedItinerary);
   // Assistant edits apply as they arrive; this undoes one while the plan is
   // still that edit's result (lib/trip/assistant-undo.ts).
   const assistantUndo = useRef(createUndoLedger<GeneratedItinerary, string>());
   useEffect(() => { generatedItineraryRef.current = generatedItinerary; }, [generatedItinerary]);
-  useEffect(() => { stepRef.current = step; }, [step]);
-  useEffect(() => { destinationFieldRef.current = destination; }, [destination]);
 
   // Multi-city: mirror the route rows into `destination` (combined label) and
   // `endDate` (start + total nights) so step-1 validation, draft autosave, and
@@ -885,21 +812,13 @@ export default function NewTripPage({
 
   useEffect(() => {
     if (!MULTI_CITY_ENABLED || !multiCityMode) return;
-    const valid = cityRows.filter((r) => r.city.trim() && r.nights > 0);
-    setDestination(joinCities(valid.map((r) => r.city.trim())));
-    const total = valid.reduce((s, r) => s + r.nights, 0);
+    const legs = routeLegs(cityRows);
+    setDestination(joinCities(legs.map((r) => r.city)));
+    const total = legs.reduce((s, r) => s + r.nights, 0);
     if (startDate && total > 0) setEndDate(addIsoDaysOrThrow(startDate, total - 1));
   }, [multiCityMode, cityRows, startDate]);
   useEffect(() => { startDateRef.current = startDate; }, [startDate]);
   useEffect(() => { endDateRef.current = endDate; }, [endDate]);
-  useEffect(() => { vibesRef.current = selectedVibes; }, [selectedVibes]);
-
-  // Reset per-step tracking when the user advances/retreats
-  useEffect(() => {
-    stepStartedAtRef.current = Date.now();
-    lastTouchedFieldRef.current = null;
-    touchedFieldsThisStepRef.current = new Set();
-  }, [step]);
 
   // Pre-fill the SHAPE of the trip (length, budget, vibes) from a blog CTA, so
   // a reader arriving from "3-day Paris itinerary" doesn't have to retype the
@@ -949,28 +868,6 @@ export default function NewTripPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /**
-   * Record a field interaction. Emits trip_wizard_field_interacted on first
-   * touch only (don't flood PostHog) and updates the last-touched ref so
-   * the abandonment event can name the field they bailed on.
-   */
-  const trackFieldInteraction = useCallback(
-    (field: TripWizardFieldInteractedEvent["field"]) => {
-      lastTouchedFieldRef.current = field;
-      const firstTouch = !touchedFieldsThisStepRef.current.has(field);
-      if (firstTouch) {
-        touchedFieldsThisStepRef.current.add(field);
-        captureTripWizardFieldInteracted({
-          step_number: stepRef.current,
-          step_name: STEP_NAMES_CONST[stepRef.current - 1],
-          field,
-          first_touch: true,
-        });
-      }
-    },
-    []
-  );
-
   // Memoized VibeSelector handler so the child's React.memo can short-circuit;
   // a new function identity on every parent render would bust memoization and
   // make step 2 expensive to re-render.
@@ -981,72 +878,6 @@ export default function NewTripPage({
     },
     [trackFieldInteraction]
   );
-
-  // Abandonment listener: fire trip_wizard_abandoned exactly once when the
-  // user closes the tab, navigates away, or the wizard component unmounts —
-  // unless they completed the flow (wizardCompletedRef set in handleGenerate).
-  useEffect(() => {
-    function fireAbandoned() {
-      if (abandonedFiredRef.current || wizardCompletedRef.current) return;
-      // Only fire if they actually engaged (touched ≥ 1 field). Otherwise
-      // we'd flood PostHog with bot/preview pageviews.
-      if (touchedFieldsThisStepRef.current.size === 0 && stepRef.current === 1) {
-        return;
-      }
-      abandonedFiredRef.current = true;
-      const totalSeconds = Math.round((Date.now() - wizardMountedAtRef.current) / 1000);
-      captureTripWizardAbandoned({
-        last_step_completed: Math.max(0, stepRef.current - 1),
-        last_step_name: STEP_NAMES_CONST[stepRef.current - 1],
-        total_time_seconds: totalSeconds,
-        last_touched_field: lastTouchedFieldRef.current,
-        had_destination: Boolean(destinationFieldRef.current),
-        had_dates: Boolean(startDateRef.current && endDateRef.current),
-        had_vibes: vibesRef.current.length > 0,
-      });
-      // Supabase funnel mirror — terminal `abandoned` state. We use
-      // the same step-name vocabulary as the other wizard events so
-      // SQL funnel queries can self-join the table on
-      // (session_id, step) without name translation.
-      // keepalive=true on the fetch is what makes this survive the
-      // beforeunload / pagehide path on most browsers.
-      const lastStepName: WizardEventStep =
-        stepRef.current === 1
-          ? "step_1_destination_dates"
-          : "step_2_vibes";
-      void trackWizardEvent("abandoned", {
-        destination: destinationFieldRef.current || undefined,
-        duration_days:
-          startDateRef.current && endDateRef.current
-            ? Math.max(1, tripSpanDays(startDateRef.current, endDateRef.current))
-            : undefined,
-        locale,
-        // Surface the last in-wizard step the user reached, plus the
-        // last field they touched, so we can answer "which field did
-        // people quit on?" in SQL the same way we already can in
-        // PostHog.
-        last_step: lastStepName,
-        last_touched_field: lastTouchedFieldRef.current ?? undefined,
-        total_time_seconds: totalSeconds,
-      });
-    }
-
-    function handleVisibility() {
-      if (document.visibilityState === "hidden") fireAbandoned();
-    }
-
-    window.addEventListener("beforeunload", fireAbandoned);
-    window.addEventListener("pagehide", fireAbandoned);
-    document.addEventListener("visibilitychange", handleVisibility);
-
-    return () => {
-      // Fire on SPA unmount too (router.push elsewhere mid-wizard)
-      fireAbandoned();
-      window.removeEventListener("beforeunload", fireAbandoned);
-      window.removeEventListener("pagehide", fireAbandoned);
-      document.removeEventListener("visibilitychange", handleVisibility);
-    };
-  }, [locale]);
 
   // Handle pending generation after signup (when draft is restored).
   // The `pendingTripGeneration` flag lives in `prefs` because plain
@@ -1677,7 +1508,7 @@ export default function NewTripPage({
     applyKeptPlan(
       plan,
       { ...draftTargets, setDestinationCoords, setMultiCityMode },
-      { pace, vibes: selectedVibes, budgetTier }
+      { pace, vibes: selectedVibes, budgetTier, tripIntent }
     );
     void capture("kept_plan_opened", { source });
   };
@@ -1867,7 +1698,7 @@ export default function NewTripPage({
   // predicate in lockstep with app/api/ai/generate/route.ts.
   const multiCityLegCount =
     MULTI_CITY_ENABLED && multiCityMode
-      ? cityRows.filter((r) => r.city.trim() && r.nights > 0).length
+      ? routeLegs(cityRows).length
       : 0;
   const effectiveMaxTripDays =
     multiCityLegCount > 1 ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS;
@@ -2114,7 +1945,7 @@ export default function NewTripPage({
     });
     // Mark the wizard as completed so the abandonment listener doesn't
     // fire on the inevitable post-generation page transition.
-    wizardCompletedRef.current = true;
+    markWizardCompleted();
     captureTripGenerationStarted({
       destination,
       duration_days: tripSpanDays(startDate, endDate),
@@ -2136,48 +1967,18 @@ export default function NewTripPage({
     });
 
     try {
-      // Derive interests from vibes for API compatibility
-      const derivedInterests = deriveInterestsFromVibes();
-
-      // Multi-city: send the route legs so /api/ai/generate fans out per city.
+      // Multi-city sends the route legs so /api/ai/generate fans out per city;
       // `destination` already carries the combined label (synced effect above).
-      const mcLegs =
-        MULTI_CITY_ENABLED && multiCityMode
-          ? cityRows
-              .filter((r) => r.city.trim() && r.nights > 0)
-              .map((r) => ({ city: r.city.trim(), nights: r.nights }))
-          : null;
-      const isMultiCity = !!(mcLegs && mcLegs.length > 1);
-
-      const params: TripCreationParams = {
-        destination,
-        startDate,
-        endDate,
-        budgetTier,
-        pace,
-        vibes: selectedVibes,
-        seasonalContext: seasonalContext || undefined,
-        interests: derivedInterests, // Auto-derived from vibes
-        requirements: requirements || undefined,
-        // Must-do wishlist — undated wishes the plan must schedule.
-        // Presence bypasses the cross-user cache server-side.
-        ...(mustDos.length > 0 ? { mustDos } : {}),
-        travelStyle,
-        ...(isMultiCity ? { destinations: mcLegs! } : {}),
-        // Anchored trips: fixed commitments the plan must build around.
-        // Mutually exclusive with multi-city — the panel is hidden in
-        // multi-city mode, and this guard keeps stale state out of the call.
-        ...(!isMultiCity && anchors.length > 0 ? { anchors } : {}),
-      };
-      // Regenerate asks for a different plan: the server then skips its cache.
-      // The page locale picks the itinerary's language. A diet also skips the
-      // shared cache, server-side.
-      const requestBody = { ...params, locale, ...(dietary.length > 0 ? { dietary } : {}), ...(opts.fresh ? { fresh: true } : {}) };
-
-      // Multi-city and anchored trips return one merged JSON body, not an SSE
-      // stream — skip the streaming endpoint and let the JSON fallback below
-      // carry `destinations`/`anchors`.
-      const isAnchored = !isMultiCity && anchors.length > 0;
+      // Interests are derived from the vibes (lib/wizard/generation-request.ts).
+      const request = generationRequest(answers, {
+        legs: MULTI_CITY_ENABLED && multiCityMode ? routeLegs(cityRows) : [],
+        interests: deriveInterestsFromVibes(),
+        seasonalContext,
+        requirements,
+        locale,
+        fresh: opts.fresh,
+      });
+      const { isAnchored } = request;
 
       // Anchor telemetry: how constrained is this trip? Fired at Generate (not at
       // panel-add) so it counts intent that actually reached generation.
@@ -2203,7 +2004,7 @@ export default function NewTripPage({
       const { result: data } = await generateWithRecovery((generationId) =>
         attemptGeneration(
           generationId,
-          { body: requestBody, stream: !isMultiCity && !isAnchored, signedIn: Boolean(authUser) },
+          { body: request.body, stream: request.stream, signedIn: Boolean(authUser) },
           {
             reset: () => {
               setStreamedDays([]);
@@ -2640,16 +2441,10 @@ export default function NewTripPage({
 
   // Flip the result view to an earlier generation from the session tray.
   // Refreshes the currently displayed trip into the stack first (so applied
-  // assistant edits survive the swap), then restores the clicked snapshot via
-  // the SAME state operations as the post-auth draft-restore effect above:
-  // destination/dates/pace/vibes/budgetTier/travelStyle +
-  // setGeneratedItinerary. Two deliberate differences:
-  //   - travelStyle is set BOTH ways (the draft path only upgrades a fresh
-  //     form to backpacker; a swap can also go backpacker → classic).
-  //   - coords cleared (the draft path never restores them either) and
-  //     multiCityMode forced off, otherwise the multi-city sync effect
-  //     rebuilds destination/endDate from stale cityRows and clobbers the
-  //     restored values on its next run.
+  // assistant edits survive the swap), then puts the clicked plan back with
+  // its own answers (lib/wizard/apply-draft.ts applySessionTrip). Coordinates
+  // are cleared and multi-city mode is turned off, otherwise the multi-city
+  // sync effect rebuilds destination/endDate from stale rows on its next run.
   // Only reachable while sessionTrayVisible (unsaved + auto-save arm not
   // active), so a swap can never UPDATE/INSERT a persisted trip row.
   const handleSessionTrayRestore = (id: string) => {
@@ -2661,19 +2456,7 @@ export default function NewTripPage({
       action: "restore",
       gen_count: getGenCount(),
     });
-    setDestination(snap.destination);
-    setStartDate(snap.startDate);
-    setEndDate(snap.endDate);
-    setPace(snap.pace as "relaxed" | "moderate" | "active");
-    setSelectedVibes(snap.vibes as TripVibe[]);
-    setBudgetTier(snap.budgetTier as "budget" | "balanced" | "premium");
-    setTravelStyle(snap.travelStyle === "backpacker" ? "backpacker" : "classic");
-    setGeneratedItinerary(snap.itinerary);
-    setDestinationCoords(null);
-    setMultiCityMode(false);
-    // Session-tray snapshots don't carry anchors — clear so a swapped trip
-    // never inherits another trip's fixed commitments.
-    setAnchors([]);
+    applySessionTrip(snap, { ...draftTargets, setDestinationCoords, setMultiCityMode });
     setError(null);
   };
 
@@ -4180,7 +3963,7 @@ export default function NewTripPage({
               onClick={() => {
                 captureTripWizardStepCompleted({
                   step_number: step,
-                  step_name: STEP_NAMES_CONST[step - 1],
+                  step_name: WIZARD_STEP_NAMES[step - 1],
                   ...(step === 1
                     ? { dates_mode: flexibleDates ? "flexible" : "exact", one_tap: datesPencilled }
                     : {}),

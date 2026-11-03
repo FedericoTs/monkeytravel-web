@@ -6,9 +6,9 @@ import type { TripFormState } from "@/lib/trips/persistTrip";
 import type { GeneratedItinerary, TripAnchor, TripVibe } from "@/types";
 
 /**
- * The wizard's answers that travel with a plan. A draft keeps them all, the
- * saved trip stores them all, and a kept plan and the session tray take what
- * they hold, each built here from the same answers.
+ * The wizard's answers that travel with a plan. A draft, the saved trip and
+ * the session tray keep them all, and a kept plan all but the anchors, each
+ * built here from the same answers.
  */
 export interface WizardAnswers {
   destination: string;
@@ -53,18 +53,7 @@ export function keptPlanOf(answers: WizardAnswers, itinerary: GeneratedItinerary
   };
 }
 
-/** The session tray's entry for a plan. */
+/** The session tray's entry for a plan: every answer, so switching back to it brings them all back. */
 export function sessionTripOf(answers: WizardAnswers, itinerary: GeneratedItinerary): SessionTripData {
-  const { destination, startDate, endDate, pace, vibes, budgetTier, travelStyle } = answers;
-  return {
-    destination,
-    startDate,
-    endDate,
-    dayCount: itinerary.days.length,
-    itinerary,
-    pace,
-    vibes,
-    budgetTier,
-    travelStyle,
-  };
+  return { ...answers, dayCount: itinerary.days.length, itinerary };
 }

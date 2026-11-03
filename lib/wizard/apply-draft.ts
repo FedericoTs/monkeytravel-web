@@ -1,6 +1,7 @@
 import type { ItineraryDraft } from "@/hooks/useItineraryDraft";
-import type { SessionTripData } from "@/hooks/useSessionTripStack";
+import type { SessionTripData, SessionTripSnapshot } from "@/hooks/useSessionTripStack";
 import type { KeptPlan } from "@/lib/plans/kept-plan";
+import type { TripIntent } from "@/lib/posthog/events";
 import { dietsFrom, type Diet } from "@/lib/trips/diet";
 import type { GeneratedItinerary, TripAnchor, TripVibe } from "@/types";
 
@@ -16,7 +17,7 @@ export interface DraftTargets {
   setDietary: (value: Diet[]) => void;
   setTravelStyle: (value: "classic" | "backpacker") => void;
   setAnchors: (value: TripAnchor[]) => void;
-  setTripIntent: (value: "solo" | "group") => void;
+  setTripIntent: (value: TripIntent) => void;
   setFlexibleDates: (value: boolean) => void;
   setGeneratedItinerary: (value: GeneratedItinerary) => void;
   /** Makes the restored trip the tray's current one, adopting a matching entry. */
@@ -54,6 +55,11 @@ export function applyDraft(draft: ItineraryDraft, to: DraftTargets): void {
       vibes: draft.vibes,
       budgetTier: draft.budgetTier,
       travelStyle: draft.travelStyle === "backpacker" ? "backpacker" : "classic",
+      ...(draft.anchors && draft.anchors.length > 0 ? { anchors: draft.anchors } : {}),
+      ...(Array.isArray(draft.mustDos) ? { mustDos: draft.mustDos } : {}),
+      dietary: dietsFrom(draft.dietary),
+      ...(draft.tripIntent === "solo" || draft.tripIntent === "group" ? { tripIntent: draft.tripIntent } : {}),
+      ...(draft.flexibleDates ? { flexibleDates: true } : {}),
     });
   }
 }
@@ -69,13 +75,14 @@ export interface KeptPlanTargets extends DraftTargets {
  * place of what is there. Unlike a draft, which fills a fresh wizard, a kept
  * plan replaces the trip on screen: a field it does not carry is reset (no
  * anchors, no coordinates, one city, classic style, fixed dates, no wishes or
- * diets) instead of kept. Pace, vibes and budget keep the wizard's values when
- * the plan has none; `current` holds them for the tray entry.
+ * diets) instead of kept. Pace, vibes, budget and who's coming keep the
+ * wizard's values when the plan has none; `current` holds them for the tray
+ * entry.
  */
 export function applyKeptPlan(
   plan: KeptPlan,
   to: KeptPlanTargets,
-  current: { pace: string; vibes: string[]; budgetTier: string }
+  current: { pace: string; vibes: string[]; budgetTier: string; tripIntent: TripIntent }
 ): void {
   to.setDestination(plan.destination);
   to.setStartDate(plan.startDate);
@@ -102,5 +109,33 @@ export function applyKeptPlan(
     vibes: plan.vibes ?? current.vibes,
     budgetTier: plan.budgetTier ?? current.budgetTier,
     travelStyle: plan.travelStyle === "backpacker" ? "backpacker" : "classic",
+    anchors: [],
+    mustDos: plan.mustDos ?? [],
+    dietary: plan.dietary ?? [],
+    tripIntent: plan.tripIntent ?? current.tripIntent,
+    flexibleDates: plan.flexibleDates === true,
   });
+}
+
+/**
+ * Put a plan from the session tray back on screen, in place of the one there:
+ * every answer the entry holds, a fresh wizard's value for those an older entry
+ * lacks, no coordinates and one city. The tray has already made it current.
+ */
+export function applySessionTrip(trip: SessionTripSnapshot, to: KeptPlanTargets): void {
+  to.setDestination(trip.destination);
+  to.setStartDate(trip.startDate);
+  to.setEndDate(trip.endDate);
+  to.setPace(trip.pace as "relaxed" | "moderate" | "active");
+  to.setSelectedVibes(trip.vibes as TripVibe[]);
+  to.setBudgetTier(trip.budgetTier as "budget" | "balanced" | "premium");
+  to.setTravelStyle(trip.travelStyle === "backpacker" ? "backpacker" : "classic");
+  to.setAnchors(trip.anchors ?? []);
+  to.setMustDos(trip.mustDos ?? []);
+  to.setDietary(dietsFrom(trip.dietary));
+  to.setTripIntent(trip.tripIntent ?? "unspecified");
+  to.setFlexibleDates(trip.flexibleDates === true);
+  to.setDestinationCoords(null);
+  to.setMultiCityMode(false);
+  to.setGeneratedItinerary(trip.itinerary);
 }

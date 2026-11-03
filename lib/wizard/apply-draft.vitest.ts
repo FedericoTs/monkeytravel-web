@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import type { ItineraryDraft } from "@/hooks/useItineraryDraft";
+import type { SessionTripSnapshot } from "@/hooks/useSessionTripStack";
 import type { GeneratedItinerary, TripAnchor } from "@/types";
-import { applyDraft, applyKeptPlan, type DraftTargets } from "./apply-draft";
+import { applyDraft, applyKeptPlan, applySessionTrip, type DraftTargets } from "./apply-draft";
 import type { KeptPlan } from "@/lib/plans/kept-plan";
 
 /**
@@ -66,9 +67,22 @@ describe("applyDraft", () => {
     expect(to.setTripIntent).toHaveBeenCalledWith("group");
     expect(to.setFlexibleDates).toHaveBeenCalledWith(true);
     expect(to.setGeneratedItinerary).toHaveBeenCalledWith(itinerary);
-    expect(to.registerRestore).toHaveBeenCalledWith(
-      expect.objectContaining({ destination: "Lisbon, Portugal", dayCount: 2, itinerary, travelStyle: "backpacker" }),
-    );
+    expect(to.registerRestore).toHaveBeenCalledWith({
+      destination: "Lisbon, Portugal",
+      startDate: "2027-05-01",
+      endDate: "2027-05-02",
+      dayCount: 2,
+      itinerary,
+      pace: "relaxed",
+      vibes: ["foodie"],
+      budgetTier: "premium",
+      travelStyle: "backpacker",
+      anchors,
+      mustDos: ["Tram 28"],
+      dietary: ["vegan"],
+      tripIntent: "group",
+      flexibleDates: true,
+    });
   });
 
   it("every target is used by a full draft, so a new field can't be left out", () => {
@@ -97,13 +111,15 @@ describe("applyDraft", () => {
     expect(to.setTripIntent).not.toHaveBeenCalled();
     expect(to.setFlexibleDates).not.toHaveBeenCalled();
     expect(to.setDietary).toHaveBeenCalledWith([]);
-    expect(to.registerRestore).toHaveBeenCalledWith(expect.objectContaining({ travelStyle: "classic" }));
+    const entry = to.registerRestore.mock.calls[0][0];
+    expect(entry).toMatchObject({ travelStyle: "classic", dietary: [] });
+    for (const lacking of ["anchors", "mustDos", "tripIntent", "flexibleDates"]) expect(entry).not.toHaveProperty(lacking);
   });
 });
 
 describe("applyKeptPlan", () => {
   const keptTargets = () => ({ ...targets(), setDestinationCoords: vi.fn(), setMultiCityMode: vi.fn() });
-  const current = { pace: "moderate", vibes: ["cultural"], budgetTier: "balanced" };
+  const current = { pace: "moderate", vibes: ["cultural"], budgetTier: "balanced", tripIntent: "solo" as const };
   const plan: KeptPlan = {
     destination: "Lisbon, Portugal",
     startDate: "2027-05-01",
@@ -144,6 +160,11 @@ describe("applyKeptPlan", () => {
       vibes: ["foodie"],
       budgetTier: "premium",
       travelStyle: "backpacker",
+      anchors: [],
+      mustDos: ["Tram 28"],
+      dietary: ["vegan"],
+      tripIntent: "group",
+      flexibleDates: true,
     });
   });
 
@@ -169,7 +190,68 @@ describe("applyKeptPlan", () => {
     expect(to.setBudgetTier).not.toHaveBeenCalled();
     expect(to.setTripIntent).not.toHaveBeenCalled();
     expect(to.registerRestore).toHaveBeenCalledWith(
-      expect.objectContaining({ pace: "moderate", vibes: [], budgetTier: "balanced", travelStyle: "classic" })
+      expect.objectContaining({ pace: "moderate", vibes: [], budgetTier: "balanced", travelStyle: "classic", tripIntent: "solo" })
     );
+  });
+});
+
+describe("applySessionTrip", () => {
+  const trayTargets = () => ({ ...targets(), setDestinationCoords: vi.fn(), setMultiCityMode: vi.fn() });
+  const entry: SessionTripSnapshot = {
+    id: "s1",
+    createdAt: 1,
+    destination: "Lisbon, Portugal",
+    startDate: "2027-05-01",
+    endDate: "2027-05-02",
+    dayCount: 2,
+    itinerary,
+    pace: "relaxed",
+    vibes: ["foodie"],
+    budgetTier: "premium",
+    travelStyle: "backpacker",
+    anchors,
+    mustDos: ["Tram 28"],
+    dietary: ["vegan"],
+    tripIntent: "group",
+    flexibleDates: true,
+  };
+
+  it("puts the plan back with its own answers, in one city with no coordinates", () => {
+    const to = trayTargets();
+    applySessionTrip(entry, to);
+    expect(to.setDestination).toHaveBeenCalledWith("Lisbon, Portugal");
+    expect(to.setStartDate).toHaveBeenCalledWith("2027-05-01");
+    expect(to.setEndDate).toHaveBeenCalledWith("2027-05-02");
+    expect(to.setPace).toHaveBeenCalledWith("relaxed");
+    expect(to.setSelectedVibes).toHaveBeenCalledWith(["foodie"]);
+    expect(to.setBudgetTier).toHaveBeenCalledWith("premium");
+    expect(to.setTravelStyle).toHaveBeenCalledWith("backpacker");
+    expect(to.setAnchors).toHaveBeenCalledWith(anchors);
+    expect(to.setMustDos).toHaveBeenCalledWith(["Tram 28"]);
+    expect(to.setDietary).toHaveBeenCalledWith(["vegan"]);
+    expect(to.setTripIntent).toHaveBeenCalledWith("group");
+    expect(to.setFlexibleDates).toHaveBeenCalledWith(true);
+    expect(to.setGeneratedItinerary).toHaveBeenCalledWith(itinerary);
+    expect(to.setDestinationCoords).toHaveBeenCalledWith(null);
+    expect(to.setMultiCityMode).toHaveBeenCalledWith(false);
+  });
+
+  it("sets every answer, so nothing of the plan it replaces stays", () => {
+    const to = trayTargets();
+    applySessionTrip(entry, to);
+    const unused = Object.entries(to).filter(([, fn]) => fn.mock.calls.length === 0).map(([name]) => name);
+    expect(unused).toEqual(["registerRestore"]);
+  });
+
+  it("gives an older entry's missing answers a fresh wizard's values", () => {
+    const to = trayTargets();
+    const { anchors: _a, mustDos: _m, dietary: _d, tripIntent: _t, flexibleDates: _f, travelStyle: _s, ...older } = entry;
+    applySessionTrip(older, to);
+    expect(to.setTravelStyle).toHaveBeenCalledWith("classic");
+    expect(to.setAnchors).toHaveBeenCalledWith([]);
+    expect(to.setMustDos).toHaveBeenCalledWith([]);
+    expect(to.setDietary).toHaveBeenCalledWith([]);
+    expect(to.setTripIntent).toHaveBeenCalledWith("unspecified");
+    expect(to.setFlexibleDates).toHaveBeenCalledWith(false);
   });
 });
