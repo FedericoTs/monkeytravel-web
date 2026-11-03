@@ -194,7 +194,7 @@ import { clearClaimedTrip, onClaimedTrip, readClaimedTrip } from "@/lib/trips/cl
 import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim-client";
 import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
 import { decideDraftRestore } from "@/lib/wizard/draft-restore";
-import { applyDraft, applyKeptPlan, type DraftTargets } from "@/lib/wizard/apply-draft";
+import { applyDraft, applyKeptPlan, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
 import { keptPlanOf, sessionTripOf, tripFormState, type WizardAnswers } from "@/lib/wizard/answers";
 import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
 import {
@@ -1689,7 +1689,7 @@ export default function NewTripPage({
     applyKeptPlan(
       plan,
       { ...draftTargets, setDestinationCoords, setMultiCityMode },
-      { pace, vibes: selectedVibes, budgetTier }
+      { pace, vibes: selectedVibes, budgetTier, tripIntent }
     );
     void capture("kept_plan_opened", { source });
   };
@@ -2757,16 +2757,10 @@ export default function NewTripPage({
 
   // Flip the result view to an earlier generation from the session tray.
   // Refreshes the currently displayed trip into the stack first (so applied
-  // assistant edits survive the swap), then restores the clicked snapshot via
-  // the SAME state operations as the post-auth draft-restore effect above:
-  // destination/dates/pace/vibes/budgetTier/travelStyle +
-  // setGeneratedItinerary. Two deliberate differences:
-  //   - travelStyle is set BOTH ways (the draft path only upgrades a fresh
-  //     form to backpacker; a swap can also go backpacker → classic).
-  //   - coords cleared (the draft path never restores them either) and
-  //     multiCityMode forced off, otherwise the multi-city sync effect
-  //     rebuilds destination/endDate from stale cityRows and clobbers the
-  //     restored values on its next run.
+  // assistant edits survive the swap), then puts the clicked plan back with
+  // its own answers (lib/wizard/apply-draft.ts applySessionTrip). Coordinates
+  // are cleared and multi-city mode is turned off, otherwise the multi-city
+  // sync effect rebuilds destination/endDate from stale rows on its next run.
   // Only reachable while sessionTrayVisible (unsaved + auto-save arm not
   // active), so a swap can never UPDATE/INSERT a persisted trip row.
   const handleSessionTrayRestore = (id: string) => {
@@ -2778,19 +2772,7 @@ export default function NewTripPage({
       action: "restore",
       gen_count: getGenCount(),
     });
-    setDestination(snap.destination);
-    setStartDate(snap.startDate);
-    setEndDate(snap.endDate);
-    setPace(snap.pace as "relaxed" | "moderate" | "active");
-    setSelectedVibes(snap.vibes as TripVibe[]);
-    setBudgetTier(snap.budgetTier as "budget" | "balanced" | "premium");
-    setTravelStyle(snap.travelStyle === "backpacker" ? "backpacker" : "classic");
-    setGeneratedItinerary(snap.itinerary);
-    setDestinationCoords(null);
-    setMultiCityMode(false);
-    // Session-tray snapshots don't carry anchors — clear so a swapped trip
-    // never inherits another trip's fixed commitments.
-    setAnchors([]);
+    applySessionTrip(snap, { ...draftTargets, setDestinationCoords, setMultiCityMode });
     setError(null);
   };
 

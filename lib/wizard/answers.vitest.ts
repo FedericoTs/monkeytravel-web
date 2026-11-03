@@ -55,17 +55,7 @@ describe("keptPlanOf", () => {
 });
 
 describe("sessionTripOf", () => {
-  it("holds the trip's place, dates, style and plan", () => {
-    expect(sessionTripOf(answers, itinerary)).toEqual({
-      destination: "Lisbon, Portugal",
-      startDate: "2027-05-10",
-      endDate: "2027-05-12",
-      dayCount: 3,
-      itinerary,
-      pace: "relaxed",
-      vibes: ["foodie", "cultural"],
-      budgetTier: "premium",
-      travelStyle: "backpacker",
-    });
+  it("holds every answer, the plan and its length", () => {
+    expect(sessionTripOf(answers, itinerary)).toEqual({ ...answers, dayCount: 3, itinerary });
   });
 });
