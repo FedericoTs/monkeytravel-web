@@ -405,6 +405,33 @@ test.describe("wizard: a plan shared before signing in", () => {
     ]);
   });
 
+  test("comes back as the saved trip when the claim lands before the draft check", async ({ page, context }) => {
+    await shareSignedOut(page);
+    // The draft check asks whether the restored plan is already one of the
+    // planner's trips. Answer it only once the claim has made the shared trip
+    // theirs: the order in which the plan was dropped as "already saved".
+    let claimLanded!: () => void;
+    const landed = new Promise<void>((resolve) => (claimLanded = resolve));
+    page.on("response", (response) => {
+      if (response.url().endsWith("/api/trips/claim")) claimLanded();
+    });
+    await page.route(/\/rest\/v1\/trips\?.*itinerary=cs\./, async (route) => {
+      await landed;
+      await route.fallback();
+    });
+
+    await signIn(context);
+    await page.goto("/trips/new");
+    await expect(page.getByRole("link", { name: /View trip/ }).first()).toHaveAttribute(
+      "href",
+      new RegExp(`/trips/${sharedTripId}$`),
+      { timeout: 60_000 }
+    );
+    expect(await tripsOnTheseDates(), "one trip: the shared one, now the planner's").toEqual([
+      { id: sharedTripId, user_id: owner },
+    ]);
+  });
+
   test("Save waits while the claim runs, so it adds no second copy", async ({ page, context }) => {
     await shareSignedOut(page);
     // The claim is held until Save has been seen waiting (the last route registered is asked first).
