@@ -236,7 +236,8 @@ import { useAutoSaveTrip, type AutoSaveSkipReason } from "@/hooks/useAutoSaveTri
 import { useHasExistingTrips } from "@/hooks/useHasExistingTrips";
 import { isSameDestination } from "@/lib/trips/sameDestination";
 import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate";
-import { findRecentTwin, type RecentTwin } from "@/lib/trips/recent-twin";
+import { useSameTripCheck } from "@/hooks/useSameTripCheck";
+import SameTripPrompt from "@/components/wizard/SameTripPrompt";
 import { safeGet, safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
@@ -1606,46 +1607,19 @@ export default function NewTripPage({
     if (action === "dismissed") setPendingClaimDismissed(true);
   };
   // -- The same trip, already saved ------------------------------------------
-  // Planning a trip again in a fresh wizard auto-saved a second copy under the
-  // same name, and edits then landed on whichever copy was open. The check
-  // starts with the generation, so it is answered before the result; when this
-  // account already saved the same place and dates, auto-save waits for the
-  // planner to update that trip with this plan or save a separate one.
-  const twinKey =
+  // Asked before auto-save when this account already saved the place and
+  // dates (hooks/useSameTripCheck.ts).
+  const sameTrip = useSameTripCheck(
     autoSaveEnabled && isAuthenticated === true && !savedTripId && !adoptedTripId && !deferAutoSave &&
-    (generating || generatedItinerary) && destination && startDate && endDate
-      ? JSON.stringify([destination, startDate, endDate])
-      : null;
-  const [twinResult, setTwinResult] = useState<{ key: string; twin: RecentTwin | null } | null>(null);
-  const [twinChoice, setTwinChoice] = useState<{ key: string; replaceTripId: string | null } | null>(null);
-  useEffect(() => {
-    if (!twinKey) return;
-    let current = true;
-    const [dest, start, end] = JSON.parse(twinKey) as [string, string, string];
-    void (async () => {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      const twin = session?.user
-        ? await findRecentTwin(supabase, session.user.id, { destination: dest, startDate: start, endDate: end })
-        : null;
-      if (current) setTwinResult({ key: twinKey, twin });
-    })().catch(() => {
-      if (current) setTwinResult({ key: twinKey, twin: null });
-    });
-    return () => {
-      current = false;
-    };
-  }, [twinKey]);
-  const twinTrip = twinKey !== null && twinResult?.key === twinKey ? twinResult.twin : null;
-  const awaitingTwinChoice =
-    twinKey !== null &&
-    Boolean(generatedItinerary) &&
-    (twinResult?.key !== twinKey || (twinTrip !== null && twinChoice?.key !== twinKey));
-  const replaceTripId = twinKey !== null && twinChoice?.key === twinKey ? twinChoice.replaceTripId : null;
+      (generating || generatedItinerary)
+      ? { destination, startDate, endDate }
+      : null,
+    Boolean(generatedItinerary)
+  );
+  const awaitingTwinChoice = sameTrip.awaiting;
   const chooseTwin = (replaceId: string | null) => {
-    if (!twinKey) return;
     void capture("wizard_twin_choice", { choice: replaceId ? "replace" : "keep_both", destination });
-    setTwinChoice({ key: twinKey, replaceTripId: replaceId });
+    sameTrip.choose(replaceId);
   };
 
   const autoSave = useAutoSaveTrip({
@@ -1655,7 +1629,7 @@ export default function NewTripPage({
     deferred: deferAutoSave || awaitingTwinChoice,
     deferredReason: deferAutoSave ? "pending_claim" : "pending_choice",
     adoptedTripId,
-    replaceTripId,
+    replaceTripId: sameTrip.replaceTripId,
     formState: autoSaveFormState,
     saveTrip: autoSaveTrip,
     updateTrip: autoUpdateTrip,
@@ -2999,30 +2973,7 @@ export default function NewTripPage({
         />
 
         {/* This place and these dates are already saved: replace or keep both. */}
-        {awaitingTwinChoice && twinTrip && (
-          <div className="max-w-6xl mx-auto px-4 pt-4">
-            <div role="status" className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700" data-twin-trip-prompt>
-              <p className="font-semibold text-slate-900">{t("wizard.result.twinTitle", { title: twinTrip.title })}</p>
-              <p className="mt-1">{t("wizard.result.twinBody")}</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => chooseTwin(twinTrip.id)}
-                  className="min-h-[44px] rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800"
-                >
-                  {t("wizard.result.twinReplace")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => chooseTwin(null)}
-                  className="min-h-[44px] rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-800 hover:bg-slate-50"
-                >
-                  {t("wizard.result.twinKeepBoth")}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {awaitingTwinChoice && sameTrip.twin && <SameTripPrompt twin={sameTrip.twin} onChoose={chooseTwin} />}
 
         {/* Dates: pencilled in for the traveller, being extended, or a longer
             trip whose extra days could not be planned. Multi-city dates come
