@@ -10,7 +10,7 @@ import { useVotingSheetActions } from "./useVotingSheetActions";
 /**
  * The voting sheet's actions on the proposal it shows: vote, take the vote
  * back, and the owner's approve or reject, each confirmed in a toast; a
- * failure throws, so the sheet stays open.
+ * failure is said in a toast and throws, so the sheet stays open.
  */
 
 function setup(proposal: { id: string } | null = { id: "p1" }, fail = false) {
@@ -57,11 +57,13 @@ describe("useVotingSheetActions", () => {
     expect(addToast.mock.calls).toEqual([["trips:detail.proposalActionFailed", "error"]]);
   });
 
-  it("does not confirm a vote or its removal that failed, and throws", async () => {
+  it("says when a vote or its removal fails, and throws so the sheet stays open", async () => {
     const { actions } = setup({ id: "p1" }, true);
     await expect(actions.onVote("love")).rejects.toThrow("offline");
+    expect(addToast.mock.calls).toEqual([["trips:detail.proposalActionFailed", "error"]]);
+    addToast.mockClear();
     await expect(actions.onRemoveVote()).rejects.toThrow("offline");
-    expect(addToast.mock.calls.filter(([, type]) => type === "success")).toEqual([]);
+    expect(addToast.mock.calls).toEqual([["trips:detail.proposalActionFailed", "error"]]);
   });
 
   it("does nothing without a proposal", async () => {
