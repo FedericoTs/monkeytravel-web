@@ -2,6 +2,7 @@
 
 import { useState, memo } from "react";
 import { useTranslations } from "next-intl";
+import UnverifiedNote from "@/components/trip/UnverifiedNote";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import type { Activity } from "@/types";
 import ActivityDetailSheet from "./ui/ActivityDetailSheet";
@@ -183,6 +184,7 @@ function ActivityCard({
                 <p className="text-slate-600 mt-1 text-sm line-clamp-2">
                   {activity.description}
                 </p>
+                <UnverifiedNote activity={activity} />
 
                 {/* Location */}
                 <div className="flex items-start gap-2 mt-2 text-sm text-slate-500">

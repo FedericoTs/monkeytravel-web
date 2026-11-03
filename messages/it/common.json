@@ -221,7 +221,8 @@
     "loadingPhotos": "Caricamento foto...",
     "noPhotos": "Nessuna foto disponibile",
     "regeneratingActivity": "Rigenerazione attività con AI...",
-    "savedInTrips": "{count, plural, one {In # viaggio salvato} other {In # viaggi salvati}}"
+    "savedInTrips": "{count, plural, one {In # viaggio salvato} other {In # viaggi salvati}}",
+    "unverified": "Non verificato su Google Maps: controlla che sia aperto prima di andare."
   },
   "trip": {
     "cards": "Schede",

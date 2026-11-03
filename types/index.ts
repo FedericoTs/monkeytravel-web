@@ -156,6 +156,11 @@ export interface Activity {
   locked?: boolean;
   /** Id of the TripAnchor this locked activity was materialized from. */
   anchor_id?: string;
+  /**
+   * A place to eat a diet plan's check couldn't find on Google Maps, with no
+   * open place to put instead: kept, and shown as not verified.
+   */
+  unverified?: boolean;
 }
 
 export interface DailyBudget {
