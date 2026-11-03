@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo, type SetStateAction } from "react";
 import { maxTripStartDate, addIsoDaysOrThrow, tripSpanDays } from "@/lib/dates/iso-date";
-import { localTodayISO, parseLocalDate } from "@/lib/utils/date-local";
+import { localTodayISO } from "@/lib/utils/date-local";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/lib/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
@@ -37,7 +37,7 @@ import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
 import type { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import { isTripSentence, matchesPlace, pencilledDates, readTripSentence } from "@/lib/wizard/trip-sentence";
 import AnchorEditor from "@/components/trip/AnchorEditor";
-import { buildSeasonalContext, getSeasonalVibeSuggestions } from "@/lib/seasonal";
+import { buildSeasonalContext } from "@/lib/seasonal";
 import type { SseDayData, SseOutlineData } from "@/lib/streaming/sse";
 import { generateWithRecovery } from "@/lib/wizard/generation-recovery";
 import { attemptGeneration } from "@/lib/wizard/generation-attempt";
@@ -215,6 +215,7 @@ import GenerationErrorNotice from "@/components/wizard/GenerationErrorNotice";
 import RegenerateConfirmModal from "@/components/wizard/RegenerateConfirmModal";
 import ResultDatesNotice from "@/components/wizard/ResultDatesNotice";
 import { anonymousShare } from "@/lib/wizard/anonymous-share";
+import { seasonalVibeSeed } from "@/lib/wizard/seasonal-vibes";
 import { safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
@@ -2225,40 +2226,10 @@ export default function NewTripPage({
     // step 2, so the user doesn't have to re-pick by hand what
     // step 1 suggested. Only seeds if the user hasn't already
     // picked vibes (don't clobber their choices).
-    if (
-      step === 1 &&
-      seasonalContext &&
-      selectedVibes.length === 0 &&
-      startDate
-    ) {
+    if (step === 1 && seasonalContext && selectedVibes.length === 0 && startDate) {
       try {
-        const month = (parseLocalDate(startDate) ?? new Date()).getMonth() + 1; // 1-12
-        const suggestions = getSeasonalVibeSuggestions(
-          seasonalContext.season,
-          seasonalContext.holidays || [],
-          month
-        );
-        // Take the top 2 suggestions so the user lands in
-        // the "good defaults" state but still has room to
-        // add a 3rd of their own. Filter to the 6 canonical
-        // TripVibe values — the helper sometimes returns
-        // niche vibes like "fairytale" that the wizard's
-        // VibeSelector doesn't show.
-        const CANONICAL: TripVibe[] = [
-          "adventure",
-          "cultural",
-          "foodie",
-          "romantic",
-          "nature",
-          "urban",
-        ];
-        const validVibes = suggestions
-          .map((s) => s.vibeId as TripVibe)
-          .filter((v): v is TripVibe => CANONICAL.includes(v))
-          .slice(0, 2);
-        if (validVibes.length > 0) {
-          setSelectedVibes(validVibes);
-        }
+        const seed = seasonalVibeSeed(seasonalContext, startDate);
+        if (seed.length > 0) setSelectedVibes(seed);
       } catch (err) {
         // Non-fatal: if the helper throws, step 2 just
         // starts empty.
