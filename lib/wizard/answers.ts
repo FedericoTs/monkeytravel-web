@@ -25,6 +25,22 @@ export interface WizardAnswers {
   flexibleDates: boolean;
 }
 
+/** A fresh wizard's answers, which Start Over puts back. */
+export const FRESH_ANSWERS: WizardAnswers = {
+  destination: "",
+  startDate: "",
+  endDate: "",
+  pace: "moderate",
+  vibes: [],
+  budgetTier: "balanced",
+  travelStyle: "classic",
+  anchors: [],
+  mustDos: [],
+  dietary: [],
+  tripIntent: "unspecified",
+  flexibleDates: false,
+};
+
 /** The form fields a saved trip is written from (lib/trips/persistTrip.ts). */
 export function tripFormState(
   answers: WizardAnswers,

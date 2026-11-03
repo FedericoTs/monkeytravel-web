@@ -5,9 +5,10 @@ import { stubGeneration, stubPlan } from "./generation-stub";
  * A signed-out planner goes from a one-tap destination to a generated trip:
  * the pick fills the place and pencils in five days, step 2 takes a vibe,
  * Generate streams the plan into the result view, and Save asks for an
- * account. After Start Over and a second plan, switching back to the first in
- * the session tray brings back that plan's own answers. The generation is
- * answered by the test (generation-stub.ts), so no model is called.
+ * account. Start Over clears every answer, so the next plan starts fresh, and
+ * after a second plan, switching back to the first in the session tray brings
+ * back that plan's own answers. The generation is answered by the test
+ * (generation-stub.ts), so no model is called.
  *
  * Nothing leaves the page that could write or bill: keeping the plan, Start
  * Over's feedback, analytics beacons, photos and maps are stubbed or blocked.
@@ -193,5 +194,63 @@ test.describe("wizard: planning a trip", () => {
         return draft && { destination: draft.destination, mustDos: draft.mustDos };
       })
       .toEqual({ destination: first, mustDos: ["Lunch at the market"] });
+  });
+
+  test("Start Over begins the next plan from a fresh form", async ({ page }) => {
+    await isolate(page);
+    await page.route("**/api/trips/*/deletion-feedback", (route) => route.fulfill({ status: 204, body: "" }));
+    await stubGeneration(page);
+    // Who was coming, as each generation reported it to the funnel.
+    const groupSizes: unknown[] = [];
+    await page.route("**/api/wizard-event", (route) => {
+      const row = route.request().postDataJSON();
+      if (row.step === "generating") groupSizes.push(row.group_size);
+      return route.fulfill({ status: 204, body: "" });
+    });
+
+    await page.goto("/trips/new");
+    const essentialOnly = page.getByRole("button", { name: /essential only/i });
+    await essentialOnly
+      .waitFor({ state: "visible", timeout: 4_000 })
+      .then(() => essentialOnly.click())
+      .catch(() => {});
+
+    const withFriends = page.getByRole("button", { name: "With friends" });
+    await withFriends.click();
+    await expect(withFriends).toHaveAttribute("aria-pressed", "true");
+    const picks = page.getByRole("group", { name: "Popular right now" }).getByRole("button");
+    await planPick(page, picks.nth(0), "Lunch at the market");
+    await page.getByRole("button", { name: "Start Over" }).first().click();
+    await page.getByLabel("What didn't work?").selectOption("wrong_destination");
+    await page.getByRole("button", { name: "Start Fresh" }).click();
+
+    await expect(withFriends).toHaveAttribute("aria-pressed", "false");
+    await planPick(page, picks.nth(1), "Sunset at the viewpoint");
+    await expect.poll(() => groupSizes).toEqual(["group", "unspecified"]);
+  });
+});
+
+test.describe("wizard: planning a trip on a phone", () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test("the bottom bar's Start Over is named, and starts over", async ({ page }) => {
+    await isolate(page);
+    await page.route("**/api/trips/*/deletion-feedback", (route) => route.fulfill({ status: 204, body: "" }));
+    await stubGeneration(page);
+
+    await page.goto("/trips/new");
+    const essentialOnly = page.getByRole("button", { name: /essential only/i });
+    await essentialOnly
+      .waitFor({ state: "visible", timeout: 4_000 })
+      .then(() => essentialOnly.click())
+      .catch(() => {});
+
+    const picks = page.getByRole("group", { name: "Popular right now" }).getByRole("button");
+    await planPick(page, picks.nth(0), "Lunch at the market");
+    // The header's Start Over is hidden at this width: this is the bar's icon.
+    await page.getByRole("button", { name: "Start Over" }).click();
+    await page.getByLabel("What didn't work?").selectOption("wrong_destination");
+    await page.getByRole("button", { name: "Start Fresh" }).click();
+    await expect(page.getByRole("group", { name: "Popular right now" })).toBeVisible();
   });
 });

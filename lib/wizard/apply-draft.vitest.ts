@@ -2,7 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import type { ItineraryDraft } from "@/hooks/useItineraryDraft";
 import type { SessionTripSnapshot } from "@/hooks/useSessionTripStack";
 import type { GeneratedItinerary, TripAnchor } from "@/types";
-import { applyDraft, applyKeptPlan, applySessionTrip, type DraftTargets } from "./apply-draft";
+import { applyAnswers, applyDraft, applyKeptPlan, applySessionTrip, type DraftTargets } from "./apply-draft";
+import { FRESH_ANSWERS } from "./answers";
 import type { KeptPlan } from "@/lib/plans/kept-plan";
 
 /**
@@ -192,6 +193,20 @@ describe("applyKeptPlan", () => {
     expect(to.registerRestore).toHaveBeenCalledWith(
       expect.objectContaining({ pace: "moderate", vibes: [], budgetTier: "balanced", travelStyle: "classic", tripIntent: "solo" })
     );
+  });
+});
+
+describe("applyAnswers", () => {
+  it("sets every answer, as Start Over does with a fresh wizard's", () => {
+    const { setGeneratedItinerary: _itinerary, registerRestore: _tray, ...to } = targets();
+    applyAnswers(FRESH_ANSWERS, to);
+    for (const [name, fn] of Object.entries(to)) expect(fn, name).toHaveBeenCalledTimes(1);
+    expect(to.setDestination).toHaveBeenCalledWith("");
+    expect(to.setPace).toHaveBeenCalledWith("moderate");
+    expect(to.setBudgetTier).toHaveBeenCalledWith("balanced");
+    expect(to.setTravelStyle).toHaveBeenCalledWith("classic");
+    expect(to.setTripIntent).toHaveBeenCalledWith("unspecified");
+    expect(to.setFlexibleDates).toHaveBeenCalledWith(false);
   });
 });
 

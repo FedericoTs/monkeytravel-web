@@ -194,8 +194,8 @@ import { readPendingClaim, type PendingClaim } from "@/lib/trips/anonymous-claim
 import { pendingClaimMatchesDraft, shouldDeferAutoSave, type ClaimResolution } from "@/lib/trips/pending-claim";
 import { decideDraftRestore } from "@/lib/wizard/draft-restore";
 import { saveErrorClass } from "@/lib/wizard/save-failure";
-import { applyDraft, applyKeptPlan, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
-import { keptPlanOf, sessionTripOf, tripFormState, type WizardAnswers } from "@/lib/wizard/answers";
+import { applyAnswers, applyDraft, applyKeptPlan, applySessionTrip, type DraftTargets } from "@/lib/wizard/apply-draft";
+import { FRESH_ANSWERS, keptPlanOf, sessionTripOf, tripFormState, type WizardAnswers } from "@/lib/wizard/answers";
 import { generationRequest, routeLegs } from "@/lib/wizard/generation-request";
 import { isItinerarySaved } from "@/lib/wizard/draft-saved-check";
 import {
@@ -664,6 +664,8 @@ export default function NewTripPage({
   // whether the current dates were auto-filled as a flexible default so we can
   // surface an editable "flexible dates" note.
   const [flexibleDates, setFlexibleDates] = useState(false);
+  // Dates a one-tap pick pencilled in (see the one-tap starts below).
+  const [datesPencilled, setDatesPencilled] = useState(false);
   // Popular-destination pills: real demand-ranked, reordered by season with the
   // month the server rendered with, so both sides of hydration agree and the
   // chips never move after mount. `plannedStat` is an honest, aggregate
@@ -1653,17 +1655,13 @@ export default function NewTripPage({
     setGeneratedItinerary(null);
     setShowStartOverModal(false);
     setStep(1);
-    // Reset form
-    setDestination("");
+    // Reset the form: every answer back to a fresh wizard's (who's coming,
+    // the travel style and the flexible-dates flag included, so the next trip
+    // doesn't inherit them), and the rest of steps 1 and 2.
+    applyAnswers(FRESH_ANSWERS, draftTargets);
+    setDatesPencilled(false);
     setDestinationCoords(null);
-    setStartDate("");
-    setEndDate("");
-    setBudgetTier("balanced");
-    setPace("moderate");
-    setSelectedVibes([]);
     setRequirements("");
-    setMustDos([]);
-    setDietary([]);
     setMustDoInput("");
     setSeasonalContext(null);
     // Reset the multi-city rows too, or the sync effect rebuilds
@@ -1674,7 +1672,6 @@ export default function NewTripPage({
       { city: "", nights: 3 },
       { city: "", nights: 2 },
     ]);
-    setAnchors([]);
   };
 
   // Derive interests from selected vibes for AI prompt compatibility.
@@ -1758,7 +1755,6 @@ export default function NewTripPage({
   // are never overwritten. Focus moves to the date trigger because the chip
   // that had focus unmounts (the `!destination` guard) — a keyboard or
   // screen-reader user must land on the field the tap just filled.
-  const [datesPencilled, setDatesPencilled] = useState(false);
   const dateTriggerRef = useRef<HTMLButtonElement | null>(null);
   const handleOneTapStart = (place: OneTapPlace, index: number) => {
     trackFieldInteraction("destination_pill");
@@ -2809,12 +2805,14 @@ export default function NewTripPage({
             </button>
           ))}
           <div className="flex items-center gap-2">
-            {/* Start Over - Mobile */}
+            {/* Start Over - Mobile: an icon, so it carries its name */}
             <button
+              type="button"
               onClick={() => setShowStartOverModal(true)}
+              aria-label={t("wizard.result.startOver")}
               className="flex items-center justify-center w-12 h-12 rounded-xl bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-600 transition-colors flex-shrink-0"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
