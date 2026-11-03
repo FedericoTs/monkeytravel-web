@@ -101,6 +101,25 @@ export function validationFixStep(fix: ValidationFix): 1 | 2 {
   return fix === "notes" ? 2 : 1;
 }
 
+/** Friendlier words, in the wizard's generation messages, for a failure shown to the traveller. */
+export type FailureWording = "errorTimeout" | "errorNetwork" | "errorServerBusy";
+
+/**
+ * The friendlier words for a failure the traveller can't act on as worded:
+ * a timeout, the connection, or a busy server. Raw strings like "Failed to
+ * generate valid itinerary after retries" or "AI service unavailable" leak
+ * when the model is rate-limited, its key is revoked or any 5xx fires after
+ * the retries run out; a friendly line and a retry give a next step. Null
+ * shows the message as it is.
+ */
+export function failureWording(message: string): FailureWording | null {
+  if (message.includes("timed out")) return "errorTimeout";
+  if (message.includes("fetch") || message.includes("network")) return "errorNetwork";
+  if (["AI service", "after retries", "Internal server error", "Failed to generate", "503", "500"].some((s) => message.includes(s)))
+    return "errorServerBusy";
+  return null;
+}
+
 /**
  * The server's own words for a failure the buckets cannot explain (unknown) or
  * that blames the request (validation), so the next one can be read from the
