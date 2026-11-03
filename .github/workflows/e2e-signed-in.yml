@@ -1,7 +1,7 @@
-# Browser tests of the signed-in flows (wizard save, trip page, crew, Today)
-# against a production build of the PR and a local Supabase stack with
-# production's schema (supabase/ci). Test accounts and trips live only in that
-# stack, and no paid API is called.
+# Browser tests of the signed-in flows (wizard save, trip page, trip status,
+# expenses, crew, Today) against a production build of the PR and a local
+# Supabase stack with production's schema (supabase/ci). Test accounts and
+# trips live only in that stack, and no paid API is called.
 name: E2E signed in
 
 on:
@@ -86,7 +86,9 @@ jobs:
             tests/e2e/participants.spec.ts \
             tests/e2e/today.spec.ts \
             tests/e2e/crew-consensus-writes.spec.ts \
+            tests/e2e/expense-ledger.spec.ts \
             tests/e2e/silent-write-failures.spec.ts \
+            tests/e2e/trip-status.spec.ts \
             tests/e2e/wizard-signed-in-save.spec.ts
         env:
           BASE_URL: http://localhost:3000
