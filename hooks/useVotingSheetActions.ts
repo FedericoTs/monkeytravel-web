@@ -7,8 +7,8 @@ import type { ProposalVoteType } from "@/types";
 /**
  * The voting sheet's actions on the proposal it shows, for VotingBottomSheet:
  * vote, take the vote back, and the owner's approve or reject of a
- * deadlocked proposal, each confirmed in a toast. The sheet stays open when
- * one throws.
+ * deadlocked proposal, each confirmed in a toast. A failure is said in a
+ * toast and thrown, so the sheet stays open.
  */
 export function useVotingSheetActions({
   proposal,
@@ -25,27 +25,30 @@ export function useVotingSheetActions({
   const t = useTranslations("trips");
   const tCommon = useTranslations("common");
   const { addToast } = useToast();
+  const saysFailure = async (action: Promise<void>) => {
+    try {
+      await action;
+    } catch (err) {
+      addToast(t("detail.proposalActionFailed"), "error");
+      throw err;
+    }
+  };
   return {
     onVote: async (voteType: ProposalVoteType, comment?: string) => {
       if (proposal) {
-        await voteOnProposal(proposal.id, voteType, comment);
+        await saysFailure(voteOnProposal(proposal.id, voteType, comment));
         addToast(tCommon("proposals.toasts.voteRecorded"), "success");
       }
     },
     onRemoveVote: async () => {
       if (proposal) {
-        await removeVote(proposal.id);
+        await saysFailure(removeVote(proposal.id));
         addToast(tCommon("proposals.toasts.voteRemoved"), "success");
       }
     },
     onForceResolve: async (action: "approve" | "reject") => {
       if (proposal) {
-        try {
-          await forceResolve(proposal.id, action);
-        } catch (err) {
-          addToast(t("detail.proposalActionFailed"), "error");
-          throw err;
-        }
+        await saysFailure(forceResolve(proposal.id, action));
         // An approval is confirmed by useProposalApprovals, with the day.
         if (action === "reject") addToast(tCommon("proposals.toasts.rejected"), "success");
       }
