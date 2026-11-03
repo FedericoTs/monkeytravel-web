@@ -11,7 +11,9 @@ import { stubGeneration, stubPlan } from "./generation-stub";
  * already saved a trip to the same place on the same dates, the wizard asks
  * first: update that trip, or save this one as a separate trip. A trip they
  * generate is saved the same way, and a plan they shared while signed out
- * becomes their trip when they sign in, without a second save.
+ * becomes their trip when they sign in, without a second save. A planner
+ * who reaches the free-generation cap signed out gets the trip generated
+ * and saved once they sign in.
  *
  * The plans are the restored-draft fixture, and a generation is answered by
  * the test (generation-stub.ts), so no model is called. Analytics, photos and
@@ -345,5 +347,67 @@ test.describe("wizard: a plan shared before signing in", () => {
       .or(`user_id.eq.${owner},id.eq.${sharedTripId}`);
     expect(error).toBeNull();
     expect(data, "one trip: the shared one, now the planner's").toEqual([{ id: sharedTripId, user_id: owner }]);
+  });
+});
+
+test.describe("wizard: the free-generation cap", () => {
+  const { url, key } = creds();
+  const owner = ownerId();
+  test.skip(!AUTH_STATE || !owner || !url || !key, "run e2e-fixtures --seed and e2e-login, and set KEY_FLOWS_AUTH_STATE");
+  // No storageState: the planner reaches the cap signed out.
+
+  let db: SupabaseClient;
+  let dates: { start: string; end: string } | null = null;
+
+  test.beforeEach(async ({ page }) => {
+    db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+    await isolate(page);
+  });
+
+  test.afterEach(async () => {
+    if (dates) await db.from("trips").delete().eq("user_id", owner!).eq("start_date", dates.start).eq("end_date", dates.end);
+  });
+
+  test("asks for an account, and generates the trip once the planner signs in", async ({ page, context }) => {
+    const generation = await stubGeneration(page);
+    // Both generation endpoints refuse a signed-out planner at the cap, as the
+    // server does; the stub answers again once they have signed in.
+    let capped = true;
+    const cap = { status: 429, contentType: "application/json", body: JSON.stringify({ error: "Free plans used", code: "RATE_LIMIT" }) };
+    for (const endpoint of ["**/api/ai/generate/stream", "**/api/ai/generate"]) {
+      await page.route(endpoint, (route) => (capped ? route.fulfill(cap) : route.fallback()));
+    }
+
+    await page.goto("/trips/new");
+    const essentialOnly = page.getByRole("button", { name: /essential only/i });
+    await essentialOnly
+      .waitFor({ state: "visible", timeout: 4_000 })
+      .then(() => essentialOnly.click())
+      .catch(() => {});
+    await planFirstPick(page);
+    const signIn = page.getByRole("button", { name: "Already have an account? Sign in" });
+    await expect(signIn, "the cap asks for an account").toBeVisible({ timeout: 30_000 });
+    expect(generation.streamed, "a capped generation is not answered").toHaveLength(0);
+
+    // Choosing to sign in keeps the intent; signing in leaves the session in
+    // cookies and brings the planner back to the wizard for that place.
+    await signIn.click();
+    await page.waitForURL(/\/auth\/login\?/);
+    const back = new URL(page.url()).searchParams.get("redirect");
+    expect(back, "the sign-in page knows the way back").toMatch(/^\/trips\/new\?destination=/);
+    capped = false;
+    const signedIn = JSON.parse(readFileSync(AUTH_STATE!, "utf8")) as { cookies: Parameters<typeof context.addCookies>[0] };
+    await context.addCookies(signedIn.cookies);
+    await page.goto(back!);
+
+    const viewTrip = page.getByRole("link", { name: /View trip/ }).first();
+    await expect(viewTrip, "the resumed generation was not saved").toBeVisible({ timeout: 60_000 });
+    expect(generation.streamed).toHaveLength(1);
+    const request = generation.streamed[0];
+    dates = { start: request.startDate, end: request.endDate };
+    const { data, error } = await db.from("trips").select("id").eq("user_id", owner!).eq("start_date", dates.start).eq("end_date", dates.end);
+    expect(error).toBeNull();
+    expect(data, "the resumed trip should be saved exactly once").toHaveLength(1);
+    await expect(viewTrip).toHaveAttribute("href", new RegExp(`/trips/${data![0].id}$`));
   });
 });
