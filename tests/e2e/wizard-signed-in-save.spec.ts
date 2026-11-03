@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type BrowserContext, type Page } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { existsSync, readFileSync } from "node:fs";
 import draft from "./fixtures/wizard-draft-paris.json";
@@ -334,6 +334,8 @@ test.describe("wizard: a plan shared before signing in", () => {
 
   test.beforeEach(async ({ page }) => {
     db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+    sharedTripId = null;
+    dates = null;
     await isolate(page);
   });
 
@@ -342,7 +344,11 @@ test.describe("wizard: a plan shared before signing in", () => {
     if (dates) await db.from("trips").delete().eq("user_id", owner!).eq("start_date", dates.start).eq("end_date", dates.end);
   });
 
-  test("becomes the planner's trip when they sign in, and is not saved twice", async ({ page, context }) => {
+  /**
+   * Plans the first pick signed out and shares it: the server keeps an
+   * ownerless trip, and this browser keeps the token that claims it.
+   */
+  async function shareSignedOut(page: Page) {
     const generation = await stubGeneration(page);
     await page.goto("/trips/new");
     const essentialOnly = page.getByRole("button", { name: /essential only/i });
@@ -355,18 +361,37 @@ test.describe("wizard: a plan shared before signing in", () => {
     const request = generation.streamed[0];
     dates = { start: request.startDate, end: request.endDate };
 
-    // Shared while signed out: the server keeps an ownerless trip, and this
-    // browser keeps the token that claims it.
     const shared = page.waitForResponse((r) => r.url().endsWith("/api/trips/anonymous") && r.request().method() === "POST");
     await page.getByRole("button", { name: "Share this trip" }).first().click();
     const response = await shared;
     expect(response.ok(), "the share link was not created").toBe(true);
     sharedTripId = ((await response.json()) as { tripId: string }).tripId;
+  }
 
-    // Signing in leaves the session in cookies; the wizard opens again with
-    // the plan restored, claims the shared trip, and keeps it as the save.
+  /** Signs in: the session is left in cookies, as the sign-in page leaves it. */
+  async function signIn(context: BrowserContext) {
     const signedIn = JSON.parse(readFileSync(AUTH_STATE!, "utf8")) as { cookies: Parameters<typeof context.addCookies>[0] };
     await context.addCookies(signedIn.cookies);
+  }
+
+  /** The planner's trips on the shared plan's dates, and the shared trip itself. */
+  async function tripsOnTheseDates() {
+    const { data, error } = await db
+      .from("trips")
+      .select("id, user_id")
+      .eq("start_date", dates!.start)
+      .eq("end_date", dates!.end)
+      .or(`user_id.eq.${owner},id.eq.${sharedTripId}`);
+    expect(error).toBeNull();
+    return data;
+  }
+
+  test("becomes the planner's trip when they sign in, and is not saved twice", async ({ page, context }) => {
+    await shareSignedOut(page);
+
+    // The wizard opens again with the plan restored, claims the shared trip,
+    // and keeps it as the save.
+    await signIn(context);
     await page.goto("/trips/new");
     await expect(page.getByRole("link", { name: /View trip/ }).first()).toHaveAttribute(
       "href",
@@ -374,14 +399,32 @@ test.describe("wizard: a plan shared before signing in", () => {
       { timeout: 60_000 }
     );
 
-    const { data, error } = await db
-      .from("trips")
-      .select("id, user_id")
-      .eq("start_date", dates.start)
-      .eq("end_date", dates.end)
-      .or(`user_id.eq.${owner},id.eq.${sharedTripId}`);
-    expect(error).toBeNull();
-    expect(data, "one trip: the shared one, now the planner's").toEqual([{ id: sharedTripId, user_id: owner }]);
+    expect(await tripsOnTheseDates(), "one trip: the shared one, now the planner's").toEqual([
+      { id: sharedTripId, user_id: owner },
+    ]);
+  });
+
+  test("a Save pressed while the claim runs adds no second copy", async ({ page, context }) => {
+    await shareSignedOut(page);
+    // The claim is held until Save has been pressed (the last route registered is asked first).
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => (release = resolve));
+    await page.route("**/api/trips/claim", async (route) => {
+      await held;
+      await route.fallback();
+    });
+
+    await signIn(context);
+    await page.goto("/trips/new");
+    await page.getByRole("button", { name: /Save Trip/ }).first().click({ timeout: 60_000 });
+    await page.waitForURL(/\/trips\/[0-9a-f-]{36}$/, { timeout: 60_000 });
+    const claimed = page.waitForResponse((r) => r.url().endsWith("/api/trips/claim"));
+    release();
+    await claimed;
+
+    await expect
+      .poll(tripsOnTheseDates, { timeout: 10_000, message: "one trip: the shared one, now the planner's" })
+      .toEqual([{ id: sharedTripId, user_id: owner }]);
   });
 });
 
