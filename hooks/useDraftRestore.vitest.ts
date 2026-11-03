@@ -5,7 +5,7 @@ import type { ItineraryDraft } from "@/hooks/useItineraryDraft";
 import type { GeneratedItinerary } from "@/types";
 
 const stored = new Map<string, string>();
-const isItinerarySaved = vi.fn();
+const savedTripOf = vi.fn();
 const trackWizardEvent = vi.fn();
 vi.mock("@/lib/platform/storage", () => ({
   prefs: {
@@ -13,7 +13,7 @@ vi.mock("@/lib/platform/storage", () => ({
     remove: async (k: string) => void stored.delete(k),
   },
 }));
-vi.mock("@/lib/wizard/draft-saved-check", () => ({ isItinerarySaved: (...a: unknown[]) => isItinerarySaved(...a) }));
+vi.mock("@/lib/wizard/draft-saved-check", () => ({ savedTripOf: (...a: unknown[]) => savedTripOf(...a) }));
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({}) }));
 vi.mock("@/components/wizard/wizardEvents", () => ({ trackWizardEvent: (...a: unknown[]) => trackWizardEvent(...a) }));
 
@@ -75,8 +75,9 @@ const user = { id: "u1" } as User;
 beforeEach(() => {
   stored.clear();
   draftTargets = targets();
-  [isItinerarySaved, trackWizardEvent, clearDraft, handleGenerate].forEach((fn) => fn.mockReset());
-  isItinerarySaved.mockResolvedValue(false);
+  sessionStorage.clear();
+  [savedTripOf, trackWizardEvent, clearDraft, handleGenerate].forEach((fn) => fn.mockReset());
+  savedTripOf.mockResolvedValue(null);
 });
 afterEach(() => vi.useRealTimers());
 
@@ -109,11 +110,31 @@ describe("useDraftRestore", () => {
   });
 
   it("discards a draft that is already one of the planner's trips", async () => {
-    isItinerarySaved.mockResolvedValue(true);
+    savedTripOf.mockResolvedValue("trip-saved-before");
+    stored.set("mt_pending_claim_token", "token");
+    stored.set("mt_pending_claim_meta", JSON.stringify({ tripId: "trip-shared", shareToken: "s", shareUrl: "https://x/s" }));
     const { result } = renderHook((p: Props) => useDraftRestore(p), { initialProps: props({ isAuthenticated: true, authUser: user }) });
     await waitFor(() => expect(clearDraft).toHaveBeenCalledTimes(1));
     expect(result.current.draftAutoRestored).toBe(false);
     expect(draftTargets.setGeneratedItinerary).not.toHaveBeenCalled();
+  });
+
+  it("puts back the plan this browser shared, though signing in already made it their trip", async () => {
+    savedTripOf.mockResolvedValue("trip-shared");
+    stored.set("mt_pending_claim_token", "token");
+    stored.set("mt_pending_claim_meta", JSON.stringify({ tripId: "trip-shared", shareToken: "s", shareUrl: "https://x/s" }));
+    const { result } = renderHook((p: Props) => useDraftRestore(p), { initialProps: props({ isAuthenticated: true, authUser: user }) });
+    await waitFor(() => expect(result.current.draftAutoRestored).toBe(true));
+    expect(draftTargets.setGeneratedItinerary).toHaveBeenCalledWith(itinerary);
+    expect(clearDraft).not.toHaveBeenCalled();
+  });
+
+  it("puts back the plan just claimed in this tab", async () => {
+    savedTripOf.mockResolvedValue("trip-shared");
+    sessionStorage.setItem("mt_claimed_trip_id", "trip-shared");
+    const { result } = renderHook((p: Props) => useDraftRestore(p), { initialProps: props({ isAuthenticated: true, authUser: user }) });
+    await waitFor(() => expect(result.current.draftAutoRestored).toBe(true));
+    expect(clearDraft).not.toHaveBeenCalled();
   });
 
   it("resumes the generation a planner signed up to finish, once", async () => {

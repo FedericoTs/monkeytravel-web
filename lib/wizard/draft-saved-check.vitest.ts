@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { GeneratedItinerary } from "@/types";
-import { firstActivityId, isItinerarySaved } from "./draft-saved-check";
+import { firstActivityId, isItinerarySaved, savedTripOf } from "./draft-saved-check";
 
 /**
  * Has the draft's itinerary already been saved as one of the user's trips?
@@ -38,6 +38,14 @@ describe("firstActivityId", () => {
   it("is null when nothing has an id", () => {
     expect(firstActivityId(itinerary([[undefined]]))).toBeNull();
     expect(firstActivityId(null)).toBeNull();
+  });
+});
+
+describe("savedTripOf", () => {
+  it("names the trip that holds the draft, or none", async () => {
+    expect(await savedTripOf(fakeSupabase({ data: [{ id: "trip-1" }] }).supabase, "user-1", itinerary([["act_1"]]))).toBe("trip-1");
+    expect(await savedTripOf(fakeSupabase({ data: [] }).supabase, "user-1", itinerary([["act_1"]]))).toBeNull();
+    expect(await savedTripOf(fakeSupabase({ data: null, error: { message: "boom" } }).supabase, "u", itinerary([["a"]]))).toBeNull();
   });
 });
 

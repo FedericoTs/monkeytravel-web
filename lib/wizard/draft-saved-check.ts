@@ -5,7 +5,7 @@ import type { GeneratedItinerary } from "@/types";
 export const DRAFT_SAVED_CHECK_TIMEOUT_MS = 3000;
 
 /**
- * Is the itinerary in a wizard draft already one of the user's trips?
+ * Which of the user's trips, if any, is the itinerary in a wizard draft?
  *
  * Activity ids are minted when the itinerary is generated and kept by the
  * saved row (#181), and the draft and the trip were written in step, so a trip
@@ -18,17 +18,17 @@ export const DRAFT_SAVED_CHECK_TIMEOUT_MS = 3000;
  * only), so a draft of a trip the user has since deleted still restores, as
  * it did before.
  *
- * Fails open: an error, a timeout or an itinerary without ids answers false,
+ * Fails open: an error, a timeout or an itinerary without ids answers null,
  * which restores the draft exactly as before this check existed.
  */
-export async function isItinerarySaved(
+export async function savedTripOf(
   supabase: SupabaseClient,
   userId: string,
   itinerary: GeneratedItinerary,
   timeoutMs: number = DRAFT_SAVED_CHECK_TIMEOUT_MS
-): Promise<boolean> {
+): Promise<string | null> {
   const id = firstActivityId(itinerary);
-  if (!id) return false;
+  if (!id) return null;
   const lookup = (async () => {
     try {
       const { data, error } = await supabase
@@ -39,14 +39,24 @@ export async function isItinerarySaved(
         // Postgres array literal ({...}), which never matches a jsonb column.
         .contains("itinerary", JSON.stringify([{ activities: [{ id }] }]))
         .limit(1);
-      if (error) return false;
-      return (data?.length ?? 0) > 0;
+      if (error || !data?.length) return null;
+      return String((data[0] as { id?: unknown }).id ?? "");
     } catch {
-      return false;
+      return null;
     }
   })();
-  const timeout = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), timeoutMs));
+  const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs));
   return Promise.race([lookup, timeout]);
+}
+
+/** Is the itinerary in a wizard draft already one of the user's trips? (savedTripOf) */
+export async function isItinerarySaved(
+  supabase: SupabaseClient,
+  userId: string,
+  itinerary: GeneratedItinerary,
+  timeoutMs: number = DRAFT_SAVED_CHECK_TIMEOUT_MS
+): Promise<boolean> {
+  return (await savedTripOf(supabase, userId, itinerary, timeoutMs)) !== null;
 }
 
 /** The id of the first activity in the itinerary, or null when there is none. */
