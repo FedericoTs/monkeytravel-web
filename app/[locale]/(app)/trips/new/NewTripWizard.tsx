@@ -34,7 +34,7 @@ import type { GeneratedItinerary, ItineraryDay, TripAnchor, TripVibe, SeasonalCo
 import type { Diet } from "@/lib/trips/diet";
 // Step-1 components (above-the-fold) stay eager.
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
-import DestinationAutocomplete, { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
+import type { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import { isTripSentence, matchesPlace, pencilledDates, readTripSentence } from "@/lib/wizard/trip-sentence";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import AnchorEditor from "@/components/trip/AnchorEditor";
@@ -141,7 +141,7 @@ import type { KeptPlan } from "@/lib/plans/kept-plan";
 import { KeptPlansList } from "@/components/wizard/KeptPlansList";
 // Step-1 editorial entry; see lib/wizard/entry-state.ts for the arrival model.
 import WizardMasthead from "@/components/wizard/WizardMasthead";
-import OneTapStarts, { type OneTapPlace } from "@/components/wizard/OneTapStarts";
+import type { OneTapPlace } from "@/components/wizard/OneTapStarts";
 import ClaimedTripBanner from "@/components/wizard/ClaimedTripBanner";
 import { useCssVarHeight } from "@/hooks/useCssVarHeight";
 import {
@@ -158,7 +158,6 @@ import {
 import { saveErrorClass } from "@/lib/wizard/save-failure";
 import { funnelDays, funnelTraits } from "@/lib/wizard/plan-funnel";
 import {
-  DESTINATION_ALLOWLIST,
   DESTINATION_MAX_LENGTH,
   destinationProblem,
   step1Blocker,
@@ -211,6 +210,7 @@ import ResultActionBars from "@/components/wizard/ResultActionBars";
 import ResultItinerary from "@/components/wizard/ResultItinerary";
 import PreferencesStep from "@/components/wizard/PreferencesStep";
 import WizardFooter from "@/components/wizard/WizardFooter";
+import DestinationField from "@/components/wizard/DestinationField";
 import { safeSet } from "@/lib/safe-storage";
 import {
   insertTrip as persistInsertTrip,
@@ -314,12 +314,6 @@ function capitalizeFreeText(param: string | null | undefined): string {
 
 // Vibes for a one-sentence plan that names none: generation needs at least one.
 const EXPRESS_VIBES: TripVibe[] = ["cultural", "foodie"];
-
-/** A month's name in the page's language, capitalised for a chip ("Marzo"). */
-function monthName(month: number, locale: string): string {
-  const name = new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2000, month - 1, 15)));
-  return name.charAt(0).toUpperCase() + name.slice(1);
-}
 
 /**
  * The place a one-sentence plan names, as the destination search knows it
@@ -2646,91 +2640,18 @@ export default function NewTripPage({
             )}
 
             {/* Destination (single-city; hidden in multi-city mode) */}
-            <div className={multiCityMode ? "hidden" : undefined}>
-              <div
-                id="wizard-destination-label"
-                className="text-sm font-medium text-slate-700 mb-2"
-              >
-                {t("wizard.step1.destinationLabel")}
-              </div>
-              <DestinationAutocomplete
-                value={destination}
-                onChange={(v) => {
-                  trackFieldInteraction("destination_autocomplete");
-                  setDestination(v);
-                }}
-                onSelect={(p) => {
-                  trackFieldInteraction("destination_autocomplete");
-                  handleDestinationSelect(p);
-                }}
-                placeholder={t("wizard.step1.placeholder")}
-                // A11y: wire visible "Destination" header to the
-                // <input> so screen readers announce "Destination, edit" with
-                // context instead of bare "edit". aria-required reflects that
-                // this is a required wizard field.
-                ariaLabelledBy="wizard-destination-label"
-                ariaRequired
-                // No autoFocus: on mobile it auto-opens the suggestions
-                // dropdown over the popular-destination pills below, so a tap
-                // meant for a pill lands on a suggestion. Users can still tap
-                // the input to reveal the autocomplete dropdown.
-              />
-
-              {/* Inline allowlist warning — same character set the server
-                  enforces (lib/gemini.ts DESTINATION_ALLOWLIST). Shown the
-                  moment the input goes invalid instead of letting the user
-                  fill the whole form and fail at generate. */}
-              {!expressTrip && destination.length >= 2 && !DESTINATION_ALLOWLIST.test(destination) && (
-                <p role="alert" className="mt-2 text-xs font-medium text-red-600">
-                  {t("wizard.step1.destinationInvalidChars")}
-                </p>
-              )}
-
-              {/* Too long is the other half of the same server rule.
-                  Deliberately NOT a maxLength on the input: silent truncation
-                  would pass both the allowlist and the bound, and generate a
-                  confident itinerary for whatever the first 100 characters
-                  happened to spell. */}
-              {!expressTrip && destination.length > DESTINATION_MAX_LENGTH && (
-                <p role="alert" className="mt-2 text-xs font-medium text-red-600">
-                  {t("wizard.step1.destinationTooLong")}
-                </p>
-              )}
-
-              {/* What a one-sentence trip was read as, before it is planned
-                  (the footer button plans it). */}
-              {expressTrip && (
-                <div className="mt-3 rounded-2xl border border-[var(--primary)]/25 bg-[var(--background-warm)] p-4" aria-live="polite">
-                  <p className="text-sm font-semibold text-[var(--foreground)]">{t("wizard.express.title")}</p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {[
-                      expressTrip.destination,
-                      t("wizard.express.days", { count: expressTrip.days ?? 5 }),
-                      ...(expressTrip.month ? [monthName(expressTrip.month, locale)] : []),
-                      ...expressTrip.vibes.map((v) => t(`vibes.${v}.label`)),
-                    ].map((label) => (
-                      <span
-                        key={label}
-                        className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-[var(--foreground)] ring-1 ring-[var(--foreground)]/10"
-                      >
-                        {label}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="mt-2 text-xs text-[var(--foreground-muted)]">{t("wizard.express.hint")}</p>
-                </div>
-              )}
-
-              {/* Popular destinations — real demand-ranked (distinct planning
-                  sessions), season-reordered. */}
-              {!destination && (
-                <OneTapStarts
-                  picks={popularPicks}
-                  inSeasonMonth={inSeasonMonth}
-                  onPick={handleOneTapStart}
-                />
-              )}
-            </div>
+            <DestinationField
+              multiCityMode={multiCityMode}
+              destination={destination}
+              setDestination={setDestination}
+              trackFieldInteraction={trackFieldInteraction}
+              handleDestinationSelect={handleDestinationSelect}
+              expressTrip={expressTrip}
+              locale={locale}
+              popularPicks={popularPicks}
+              inSeasonMonth={inSeasonMonth}
+              handleOneTapStart={handleOneTapStart}
+            />
 
             {/* Multi-city toggle — gated by NEXT_PUBLIC_MULTI_CITY_ENABLED.
                 Sits directly after the destination block in both states, so
