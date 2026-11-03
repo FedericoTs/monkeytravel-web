@@ -30,7 +30,7 @@ export interface PrefilledTripShape {
 }
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
-import type { GeneratedItinerary, ItineraryDay, TripAnchor, TripVibe, SeasonalContext } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripVibe, SeasonalContext } from "@/types";
 import type { Diet } from "@/lib/trips/diet";
 // Step-1 components (above-the-fold) stay eager.
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
@@ -232,6 +232,7 @@ import { createUndoLedger } from "@/lib/trip/assistant-undo";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { planDateChange, moveItineraryDates } from "@/lib/trips/change-dates";
+import { withDays } from "@/lib/trips/plan-days";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
 const MAX_TRIP_START_DATE = maxTripStartDate();
@@ -1808,16 +1809,7 @@ export default function NewTripPage({
       // Ids are given here, so the state keeps this exact object and Undo can
       // tell it is still the plan on screen.
       const days = ensureActivityIds(applyAssistantEdits(prev.days, edits, { tripLength, startDate: start || undefined }));
-      const sum = (ds: ItineraryDay[]) =>
-        ds.reduce((t, d) => t + (d.activities ?? []).reduce((s, a) => s + (a.estimated_cost?.amount || 0), 0), 0);
-      const prevTotal = prev.trip_summary?.total_estimated_cost || 0;
-      // Delta on the activities, so any non-activity share of the total stays.
-      const newTotal = Math.max(0, Math.round(prevTotal - sum(prev.days) + sum(days)));
-      const next: GeneratedItinerary = {
-        ...prev,
-        days,
-        trip_summary: { ...prev.trip_summary, total_estimated_cost: newTotal },
-      };
+      const next = withDays(prev, days);
       const undoId = assistantUndo.current.record(prev, next, endDateRef.current);
       generatedItineraryRef.current = next;
       setGeneratedItinerary(next);
@@ -1867,20 +1859,7 @@ export default function NewTripPage({
     setDatesNotice(null);
     const keep = Math.min(current, change.length);
     const moved = moveItineraryDates(itinerary.days, start, keep);
-    setGeneratedItinerary((prev) => {
-      if (!prev) return prev;
-      const sum = (ds: ItineraryDay[]) =>
-        ds.reduce((t, d) => t + (d.activities ?? []).reduce((s, a) => s + (a.estimated_cost?.amount || 0), 0), 0);
-      const prevTotal = prev.trip_summary?.total_estimated_cost || 0;
-      return {
-        ...prev,
-        days: moveItineraryDates(prev.days, start, keep),
-        trip_summary: {
-          ...prev.trip_summary,
-          total_estimated_cost: Math.max(0, Math.round(prevTotal - sum(prev.days) + sum(moved))),
-        },
-      };
-    });
+    setGeneratedItinerary((prev) => (prev ? withDays(prev, moveItineraryDates(prev.days, start, keep)) : prev));
     setStartDate(start);
     setEndDate(addIsoDaysOrThrow(start, keep - 1));
     // The traveller chose these dates, so they are not pencilled in.

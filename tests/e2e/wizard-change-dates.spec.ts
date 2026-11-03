@@ -64,7 +64,9 @@ async function changeDates(page: Page, start: string, end: string) {
 }
 
 /** The draft the wizard keeps, as it stands now. */
-async function storedDraft(page: Page): Promise<{ startDate: string; endDate: string; generatedItinerary: { days: { date: string }[] } }> {
+async function storedDraft(
+  page: Page
+): Promise<{ startDate: string; endDate: string; generatedItinerary: { days: { date: string }[]; trip_summary: { total_estimated_cost: number } } }> {
   return page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "null"), DRAFT_KEY);
 }
 
@@ -87,9 +89,11 @@ test.describe("wizard: changing a plan's dates", () => {
     await expect
       .poll(async () => {
         const kept = await storedDraft(page);
-        return [kept.startDate, kept.endDate, kept.generatedItinerary.days.map((d) => d.date)];
+        const plan = kept.generatedItinerary;
+        return [kept.startDate, kept.endDate, plan.days.map((d) => d.date), plan.trip_summary.total_estimated_cost];
       })
-      .toEqual(["2027-06-01", "2027-06-03", ["2027-06-01", "2027-06-02", "2027-06-03"]]);
+      // The same days on new dates: the total stays.
+      .toEqual(["2027-06-01", "2027-06-03", ["2027-06-01", "2027-06-02", "2027-06-03"], 900]);
     expect(asked).toHaveLength(0);
     await expect(page.getByText(unplanned)).toHaveCount(0);
   });
@@ -114,6 +118,13 @@ test.describe("wizard: changing a plan's dates", () => {
     expect(asked[0].message).toContain("Days 4 to 5");
     expect(asked[0].days).toHaveLength(3);
     await expect(page.getByText(unplanned)).toHaveCount(0);
+    // Two more days of Day 1's activities (140 each): the total grows by 280.
+    await expect
+      .poll(async () => {
+        const plan = (await storedDraft(page)).generatedItinerary;
+        return [plan.days.length, plan.trip_summary.total_estimated_cost];
+      })
+      .toEqual([5, 1180]);
   });
 
   test("extra days that can't be planned are noted, and a new plan starts without the note", async ({ page }) => {
