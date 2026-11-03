@@ -24,6 +24,18 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       NEXT_TELEMETRY_DISABLED: 1
+      # The feature switches production turns on, so the tests check the app
+      # it serves. Keep in step with the project's Vercel settings and
+      # e2e-signed-in.yml.
+      EXPLORE_UGC_ENABLED: "true"
+      NEXT_PUBLIC_CALENDAR_EXPORT_ENABLED: "true"
+      NEXT_PUBLIC_CONCIERGE_ENABLED: "true"
+      NEXT_PUBLIC_EMAIL_PARSE_ENABLED: "true"
+      NEXT_PUBLIC_EXPENSE_LEDGER_ENABLED: "true"
+      NEXT_PUBLIC_HERO_DOODLE_ENABLED: "true"
+      NEXT_PUBLIC_MAP_ROUTES_ENABLED: "true"
+      NEXT_PUBLIC_MULTI_CITY_ENABLED: "true"
+      NEXT_PUBLIC_TRIP_NOTIFICATIONS_ENABLED: "true"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
