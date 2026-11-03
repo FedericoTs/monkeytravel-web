@@ -3,11 +3,11 @@
  * expenses logged so far, Settle up's transfers between the crew, and an
  * expense added through the form, then removed with Undo in between.
  *
- * Runs on the fixture trip, whose owner, editor and voter share the costs.
- * Each test starts from one expense of its own, paid by the owner and split
- * three ways, and leaves none behind.
- *   KEY_FLOWS_AUTH_STATE=.auth/owner.json KEY_FLOWS_TRIP_ID=<manifest tripId> \
- *     npx playwright test tests/e2e/expense-ledger.spec.ts --project=chromium
+ * The ledger shows before and after a trip (a live trip opens on Today), so
+ * every test gets a trip of its own a few weeks out, with the fixture owner,
+ * editor and voter on it and one expense paid by the owner and split three
+ * ways. The trip is removed afterwards.
+ *   KEY_FLOWS_AUTH_STATE=.auth/owner.json npx playwright test tests/e2e/expense-ledger.spec.ts --project=chromium
  */
 import { test, expect, type Page } from "@playwright/test";
 import { existsSync, readFileSync } from "node:fs";
@@ -24,12 +24,18 @@ if (existsSync(".env.local")) {
 const need = (k: string) => process.env[k] ?? env[k] ?? "";
 const SUPA_URL = need("NEXT_PUBLIC_SUPABASE_URL");
 const SERVICE_KEY = need("SUPABASE_SERVICE_ROLE_KEY");
-const TRIP_ID = process.env.KEY_FLOWS_TRIP_ID;
 const AUTH_STATE = process.env.KEY_FLOWS_AUTH_STATE;
 const MANIFEST = ".auth/e2e-fixtures.json";
 
 type Users = Record<"owner" | "mate" | "voter", { id: string; name: string }>;
 const users: Users | null = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, "utf8")).users : null;
+const ROLES = { owner: "owner", mate: "editor", voter: "voter" } as const;
+
+function iso(offsetDays: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + offsetDays);
+  return d.toISOString().slice(0, 10);
+}
 
 async function declineConsent(page: Page) {
   const btn = page.getByRole("button", { name: /essential only|solo essenziali|solo esenciales|apenas essenciais/i });
@@ -41,12 +47,12 @@ async function declineConsent(page: Page) {
   }
 }
 
-async function openTrip(page: Page) {
+async function openTrip(page: Page, tripId: string) {
   await page.addInitScript((id) => {
     localStorage.setItem(`share_prompt_dismissed:${id}`, "1");
     localStorage.setItem("mt_ai_assistant_seen", String(Date.now()));
-  }, TRIP_ID!);
-  await page.goto(`/en/trips/${TRIP_ID}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
+  }, tripId);
+  await page.goto(`/en/trips/${tripId}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
   await declineConsent(page);
   const ledger = page.getByRole("region", { name: "Trip expenses" });
   await expect(ledger).toBeVisible({ timeout: 60_000 });
@@ -54,43 +60,67 @@ async function openTrip(page: Page) {
 }
 
 test.describe("expense ledger", () => {
-  test.skip(!SUPA_URL || !SERVICE_KEY || !TRIP_ID || !AUTH_STATE || !users, "run e2e-fixtures --seed and e2e-login, and set KEY_FLOWS_*");
+  test.skip(!SUPA_URL || !SERVICE_KEY || !AUTH_STATE || !users, "run e2e-fixtures --seed and e2e-login, and set KEY_FLOWS_AUTH_STATE");
   test.use({ storageState: AUTH_STATE });
   test.describe.configure({ timeout: 150_000 });
 
   let admin: SupabaseClient;
-  const clear = async () => {
-    const { error } = await admin.from("trip_expenses").delete().eq("trip_id", TRIP_ID!);
-    if (error) throw error;
-  };
+  let tripId: string;
 
   test.beforeEach(async () => {
     admin = createClient(SUPA_URL, SERVICE_KEY, { auth: { persistSession: false } });
-    await clear();
-    const id = randomUUID();
-    const { error } = await admin.from("trip_expenses").insert({
-      id,
-      trip_id: TRIP_ID,
+    tripId = randomUUID();
+    const { error } = await admin.from("trips").insert({
+      id: tripId,
+      user_id: users!.owner.id,
+      title: "E2E expense ledger (safe to delete)",
+      description: "Automated E2E fixture. Safe to delete.",
+      start_date: iso(40),
+      end_date: iso(41),
+      status: "planning",
+      visibility: "private",
+      itinerary: [
+        {
+          day_number: 1,
+          date: iso(40),
+          title: "Riverside",
+          activities: [
+            { id: "x-d1a1", name: "Bridge walk", start_time: "10:00", duration_minutes: 60, type: "landmark", location: "Riverside" },
+          ],
+        },
+      ],
+      trip_meta: { destination: "Porto", e2e_fixture: true },
+    });
+    if (error) throw error;
+    const { error: crewError } = await admin
+      .from("trip_collaborators")
+      .insert((Object.keys(ROLES) as (keyof typeof ROLES)[]).map((key) => ({ trip_id: tripId, user_id: users![key].id, role: ROLES[key] })));
+    if (crewError) throw crewError;
+
+    const expenseId = randomUUID();
+    const { error: expenseError } = await admin.from("trip_expenses").insert({
+      id: expenseId,
+      trip_id: tripId,
       amount: 90,
       currency: "EUR",
       category: "food",
-      spent_on: new Date().toISOString().slice(0, 10),
+      spent_on: iso(40),
       paid_by_user_id: users!.owner.id,
       description: "Ledger dinner",
     });
-    if (error) throw error;
+    if (expenseError) throw expenseError;
     const { error: splitError } = await admin
       .from("trip_expense_splits")
-      .insert((["owner", "mate", "voter"] as const).map((role) => ({ expense_id: id, user_id: users![role].id, share_amount: 30 })));
+      .insert((Object.keys(ROLES) as (keyof typeof ROLES)[]).map((key) => ({ expense_id: expenseId, user_id: users![key].id, share_amount: 30 })));
     if (splitError) throw splitError;
   });
 
   test.afterEach(async () => {
-    await clear();
+    if (tripId) await admin.from("trips").delete().eq("id", tripId);
   });
 
   test("lists the trip's expenses, and Settle up shows who pays whom", async ({ page }) => {
-    const ledger = await openTrip(page);
+    const ledger = await openTrip(page, tripId);
     await expect(ledger.getByText("Ledger dinner")).toBeVisible({ timeout: 30_000 });
 
     await ledger.getByRole("button", { name: "Settle up" }).click();
@@ -103,7 +133,7 @@ test.describe("expense ledger", () => {
   });
 
   test("an expense added through the form is saved, and removing it can be undone", async ({ page }) => {
-    const ledger = await openTrip(page);
+    const ledger = await openTrip(page, tripId);
     await ledger.getByRole("button", { name: "Add expense" }).click();
     await ledger.getByLabel("Amount").fill("42");
     await ledger.getByLabel("Description").fill("Ledger taxi");
@@ -112,7 +142,7 @@ test.describe("expense ledger", () => {
     await expect(ledger.getByText("Ledger taxi")).toBeVisible();
 
     const taxiRows = async () => {
-      const { data, error } = await admin.from("trip_expenses").select("amount").eq("trip_id", TRIP_ID!).eq("description", "Ledger taxi");
+      const { data, error } = await admin.from("trip_expenses").select("amount").eq("trip_id", tripId).eq("description", "Ledger taxi");
       if (error) throw error;
       return (data ?? []).map((r) => Number(r.amount));
     };
