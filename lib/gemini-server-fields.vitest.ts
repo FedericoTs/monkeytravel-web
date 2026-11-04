@@ -31,7 +31,7 @@ vi.mock("@/lib/posthog/llm-analytics", () => ({ captureLLMGeneration: async () =
 
 const { generateItineraryStream } = await import("./gemini");
 const { parseStreamedItinerary } = await import("./ai/itinerary-text");
-const { bookingLinksFor, withServerFields } = await import("./ai/server-fields");
+const { bookingLinksFor, placeDays, withServerFields } = await import("./ai/server-fields");
 
 const params = {
   destination: "Paris, France",
@@ -87,6 +87,54 @@ describe("withServerFields", () => {
     expect(activities.map((a) => a.time_slot)).toEqual(["morning", "afternoon", "evening", "evening"]);
     expect(activities.map((a) => a.booking_required)).toEqual([true, false, false, false]);
     expect(out.booking_links).toEqual(bookingLinksFor(params));
+  });
+
+  describe("the days' numbers and dates", () => {
+    const acrossMonths = { ...params, startDate: "2026-11-29", endDate: "2026-12-02" };
+    const day = (day_number: number, date: string, theme = "t") => ({ day_number, date, theme, activities: [] });
+    const written = (days: ReturnType<typeof day>[], dates = acrossMonths) =>
+      withServerFields({ ...plan(), days } as never, dates).days.map((d) => [d.day_number, d.date, d.theme]);
+
+    it("are the trip's, whatever the model wrote: a month it counted wrong, a day it repeated", () => {
+      expect(written([day(1, "2026-11-29"), day(2, "2026-11-30"), day(3, "2026-11-31"), day(3, "2026-12-01")])).toEqual([
+        [1, "2026-11-29", "t"],
+        [2, "2026-11-30", "t"],
+        [3, "2026-12-01", "t"],
+        [4, "2026-12-02", "t"],
+      ]);
+    });
+
+    it("stop at the trip's last day, as the user chose its dates", () => {
+      const five = [1, 2, 3, 4, 5].map((n) => day(n, "x", `day ${n}`));
+      expect(written(five).map(([, date, theme]) => [date, theme])).toEqual([
+        ["2026-11-29", "day 1"],
+        ["2026-11-30", "day 2"],
+        ["2026-12-01", "day 3"],
+        ["2026-12-02", "day 4"],
+      ]);
+    });
+
+    it("keep a shorter plan as it is, numbered from the first day", () => {
+      expect(written([day(7, "x")])).toEqual([[1, "2026-11-29", "t"]]);
+    });
+
+    it("are left to the model when the trip's dates cannot be read", () => {
+      const unreadable = { ...params, startDate: "soon", endDate: "later" };
+      expect(written([day(1, "2026-11-29"), day(2, "2026-11-30")], unreadable)).toEqual([
+        [1, "2026-11-29", "t"],
+        [2, "2026-11-30", "t"],
+      ]);
+    });
+
+    it("keep the model's date when a day cannot be worked out from the start", () => {
+      expect(placeDays([day(9, "2026-11-30")], { from: 1, to: 1 }, "soon")).toEqual([day(1, "2026-11-30")]);
+    });
+
+    it("hold for a streamed plan too", () => {
+      const text = JSON.stringify({ ...plan(), days: [day(1, "2026-11-30"), day(1, "2026-11-31")], trip_summary: { highlights: [] } });
+      const out = parseStreamedItinerary(text, { ...acrossMonths, startDate: "2026-11-30", endDate: "2026-12-01" });
+      expect(out.days.map((d) => [d.day_number, d.date])).toEqual([[1, "2026-11-30"], [2, "2026-12-01"]]);
+    });
   });
 
   it("keeps booking links a plan already has", () => {
