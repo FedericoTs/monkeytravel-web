@@ -10,7 +10,7 @@
 
 import { TRIP_VIBES, type GeneratedItinerary, type TripVibe } from "@/types";
 import { isIsoDate } from "@/lib/trips/anonymous-share";
-import { MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
+import { MAX_TRIP_DAYS_MULTI, MUST_DOS_MAX, MUST_DO_MAX_LENGTH, VIBES_MAX } from "@/lib/trips/request-limits";
 import { dietsFrom, type Diet } from "@/lib/trips/diet";
 
 const PACES = ["relaxed", "moderate", "active"] as const;
@@ -118,9 +118,9 @@ export function parseKeptPlan(input: unknown): KeptPlan | null {
   const pace = oneOf(PACES, input.pace);
   const budgetTier = oneOf(BUDGET_TIERS, input.budgetTier);
   const vibes = Array.isArray(input.vibes)
-    ? input.vibes.map((v) => oneOf(TRIP_VIBES, v)).filter((v): v is TripVibe => !!v).slice(0, 6)
+    ? input.vibes.map((v) => oneOf(TRIP_VIBES, v)).filter((v): v is TripVibe => !!v).slice(0, VIBES_MAX)
     : undefined;
-  const mustDos = strings(input.mustDos, 10, 120);
+  const mustDos = strings(input.mustDos, MUST_DOS_MAX, MUST_DO_MAX_LENGTH);
   const dietary = dietsFrom(input.dietary);
   return {
     destination,

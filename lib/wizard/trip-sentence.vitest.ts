@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
+import { VIBES_MAX } from "@/lib/trips/request-limits";
 import { isTripSentence, matchesPlace, pencilledDates, readTripSentence } from "./trip-sentence";
 
 const read = (s: string) => readTripSentence(s);
 
 describe("readTripSentence", () => {
+  it("keeps no more vibes than a trip can have, in the order they are named", () => {
+    expect(read("5 days in Lisbon for food, history, hiking, nightlife and romance")?.vibes).toEqual(
+      ["foodie", "cultural", "nature", "urban", "romantic"].slice(0, VIBES_MAX)
+    );
+  });
+
   it("reads place, length, month and vibes from one English sentence", () => {
     expect(read("5 days in Lisbon in March, food and history")).toEqual({
       destination: "Lisbon",
