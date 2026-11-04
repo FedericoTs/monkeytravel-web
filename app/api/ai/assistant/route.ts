@@ -1,8 +1,6 @@
 import { NextRequest } from "next/server";
-import { LANGUAGE_NAMES, resolveAiLanguage, tripLocale, type SupportedLanguage } from "@/lib/ai/language";
+import { LANGUAGE_NAMES, type SupportedLanguage } from "@/lib/ai/language";
 import { getAuthenticatedUser } from "@/lib/api/auth";
-import { TRIP_COLUMNS } from "@/lib/trips/columns";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import { regenerateSingleDay } from "@/lib/gemini";
 import { validateAndFixCoordinates } from "@/lib/trip/coordinate-fallback";
@@ -14,7 +12,6 @@ import {
   computeExtendedEndDate,
   MAX_TRIP_DAYS,
 } from "@/lib/ai/assistant/structural";
-import { readLocaleCookie } from "@/lib/ai/user-context";
 import {
   classifyTask,
   selectModel,
@@ -23,8 +20,7 @@ import {
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import { recordUsage } from "@/lib/ai/usage";
-import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
-import { blockedCall, checkApiAccess } from "@/lib/api-gateway";
+import { incrementUsage } from "@/lib/usage-limits";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { getTripDestination } from "@/lib/trips/destination";
 import {
@@ -38,8 +34,6 @@ import {
   type Coordinates,
 } from "@/lib/utils/geo";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
-import { resolveAssistantRole, ASSISTANT_FORBIDDEN_MESSAGE } from "@/lib/ai/assistant-access";
-import { ASSISTANT_ERROR_CODES } from "@/lib/ai/assistant/error-message";
 import { destinationCityTerm } from "@/lib/api/postgrest-filter";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { dietsFrom } from "@/lib/trips/diet";
@@ -63,40 +57,9 @@ import {
 } from "@/lib/ai/assistant/trip-edits";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { isNoRow } from "@/lib/supabase/no-row";
-import { logReadError } from "@/lib/supabase/log-read-error";
-import { readJsonBody } from "@/lib/api/json-body";
-import { requireRow } from "@/lib/api/require-row";
+import { readAssistantTurn } from "@/lib/ai/assistant/turn";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
-
-
-
-/**
- * Get the user's preferred language from cookies or profile
- */
-async function getUserLanguage(
-  supabase: SupabaseClient,
-  userId: string
-): Promise<SupportedLanguage> {
-  const fromCookie = await readLocaleCookie();
-  if (fromCookie) return fromCookie;
-
-  try {
-    const { data: profile } = logReadError("assistant: preferred language", await supabase
-      .from("users")
-      .select("preferred_language")
-      .eq("id", userId)
-      .single());
-
-    if (profile?.preferred_language) {
-      return resolveAiLanguage(profile.preferred_language);
-    }
-  } catch {
-    // Ignore errors
-  }
-
-  return "en";
-}
 
 /**
  * The assistant's language line: shorter than the trip prompt's
@@ -157,14 +120,6 @@ interface AssistantMessage {
     dayCount?: number;
   };
   timestamp: string;
-}
-
-interface AssistantRequest {
-  tripId: string;
-  message: string;
-  conversationId?: string;
-  itinerary?: ItineraryDay[]; // Current itinerary for modifications
-  display?: unknown; // The currency the page shows prices in (readDisplayCurrency)
 }
 
 interface TripContext {
@@ -287,71 +242,11 @@ export async function POST(request: NextRequest) {
   console.log("[AI Assistant] POST request received");
 
   try {
-    const { user, supabase, errorResponse } = await getAuthenticatedUser();
-    if (errorResponse) return errorResponse;
-
-    // Get user's preferred language for AI content localization
-    // Where the visitor is browsing from; replaced by the trip's own language
-    // once the trip is loaded (Phase 1.3).
-    let userLanguage = await getUserLanguage(supabase, user.id);
-    console.log(`[AI Assistant] User language: ${userLanguage}`);
-
-    const { body, invalidBody } = await readJsonBody<AssistantRequest>(request);
-    if (invalidBody) return invalidBody;
+    // Who asks about which trip, and in which language; or the refusal.
+    const turn = await readAssistantTurn(request, requestStartTime);
+    if (turn.refused) return turn.refused;
+    const { user, supabase, body, usageCheck, trip, assistantRole, userLanguage } = turn;
     const { tripId, message, conversationId, itinerary: clientItinerary } = body;
-
-    console.log(`[AI Assistant] Message: "${message}"`);
-    console.log(`[AI Assistant] Trip ID: ${tripId}`);
-    console.log(`[AI Assistant] Client itinerary provided: ${!!clientItinerary}`);
-
-    if (!tripId || !message) {
-      return errors.badRequest("Missing tripId or message");
-    }
-
-    // Check API access control
-    const access = await checkApiAccess("gemini");
-    if (!access.allowed) {
-      return blockedCall(access, {
-        apiName: "gemini",
-        endpoint: "/api/ai/assistant",
-        startTime: requestStartTime,
-        metadata: { user_id: user.id, trip_id: tripId },
-        disabled: "AI assistant is currently disabled",
-      });
-    }
-
-    // Check usage limits (daily limit for assistant messages)
-    const usageCheck = await checkUsageLimit(user.id, "aiAssistantMessages", user.email);
-    if (!usageCheck.allowed) {
-      return errors.rateLimit(
-        usageCheck.message || "Daily AI assistant message limit reached.",
-        { usage: usageCheck, upgradeUrl: "/pricing" }
-      );
-    }
-
-    // Fetch trip data. RLS decides whether the caller can see it; the owner
-    // and invited editors may use the assistant (lib/ai/assistant-access.ts).
-    // This used to filter on user_id = caller, so every collaborator's first
-    // message answered "Trip not found".
-    const { row: trip, errorResponse: tripError } = await requireRow("trip", supabase
-      .from("trips")
-      .select(TRIP_COLUMNS)
-      .eq("id", tripId)
-      .single(), "Trip not found");
-    if (tripError) return tripError;
-
-    const assistantRole = await resolveAssistantRole(supabase, trip, user.id);
-    if (!assistantRole) {
-      return errors.forbidden(ASSISTANT_FORBIDDEN_MESSAGE, ASSISTANT_ERROR_CODES.notAllowed);
-    }
-    // This route never writes the trip: it prepares a change and returns it as
-    // a pendingChange. The change lands only through /apply, which checks the
-    // role, the fixed plans and the itinerary version again.
-
-    // Phase 1.3: an existing trip is edited in ITS language, not the
-    // language of the tab the owner opened it from. Older trips without
-    // the stamp keep the cookie/profile resolution above.
-    userLanguage = tripLocale(trip.trip_meta) ?? userLanguage;
 
     // Use client itinerary if provided (for real-time edits), otherwise use DB
     const itinerary = (clientItinerary || trip.itinerary || []) as ItineraryDay[];

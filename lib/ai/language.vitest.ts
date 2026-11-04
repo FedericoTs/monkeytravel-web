@@ -69,14 +69,19 @@ describe("the AI language list", () => {
 
 describe("the entry points actually use it", () => {
   /** Every place that turns a cookie or profile column into a language. */
-  const PARSERS = ["lib/ai/user-context.ts", "app/api/ai/assistant/route.ts"];
-  /** Routes that fall back to the visitor's locale cookie. */
+  const PARSERS = ["lib/ai/user-context.ts", "lib/ai/assistant/turn.ts"];
+  /** Routes that fall back to the visitor's locale cookie (the trip assistant's, through its turn). */
   const COOKIE_READERS = [
-    "app/api/ai/assistant/route.ts",
+    "lib/ai/assistant/turn.ts",
     "app/api/ai/regenerate-activity/route.ts",
     "app/api/ai/regenerate-day/route.ts",
   ];
-  const ENTRY_POINTS = [...new Set([...PARSERS, ...COOKIE_READERS])];
+  const ENTRY_POINTS = [...new Set([...PARSERS, ...COOKIE_READERS, "app/api/ai/assistant/route.ts"])];
+
+  it("the trip assistant's route reads its turn, and so its language, through readAssistantTurn", () => {
+    const src = readFileSync(join(process.cwd(), "app/api/ai/assistant/route.ts"), "utf8");
+    expect(src).toContain("readAssistantTurn(request");
+  });
 
   it.each(COOKIE_READERS)("%s reads the locale cookie through readLocaleCookie", (file) => {
     const src = readFileSync(join(process.cwd(), file), "utf8");
