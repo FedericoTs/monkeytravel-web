@@ -17,6 +17,16 @@ export function destinationProblem(destination: string): DestinationProblem | nu
 
 export type Step1Blocker = DestinationProblem | "too_many_days" | "dates" | "past";
 
+/** What each blocker says, as a key of the wizard's `trips` messages (`days`: the most days). */
+export const STEP1_HINT = {
+  short: "wizard.step1.hintNeedDestination",
+  long: "wizard.step1.destinationTooLong",
+  chars: "wizard.step1.destinationInvalidChars",
+  too_many_days: "wizard.datePicker.maxDaysLimit",
+  dates: "wizard.step1.hintNeedDates",
+  past: "wizard.step1.hintPastDates",
+} as const satisfies Record<Step1Blocker, string>;
+
 /**
  * What still keeps step 1 from going on: the destination first, then the
  * dates, each as lib/trips/request-validation.ts validateTripParams would

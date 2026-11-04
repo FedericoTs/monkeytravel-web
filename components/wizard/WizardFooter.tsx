@@ -2,17 +2,7 @@
 
 import type { RefObject } from "react";
 import { useTranslations } from "next-intl";
-import type { Step1Blocker } from "@/lib/wizard/step1-gate";
-
-// The footer's hint for what still keeps step 1 from going on.
-const STEP1_HINT = {
-  short: "wizard.step1.hintNeedDestination",
-  long: "wizard.step1.destinationTooLong",
-  chars: "wizard.step1.destinationInvalidChars",
-  too_many_days: "wizard.datePicker.maxDaysLimit",
-  dates: "wizard.step1.hintNeedDates",
-  past: "wizard.step1.hintPastDates",
-} as const satisfies Record<Step1Blocker, string>;
+import { STEP1_HINT, type Step1Blocker } from "@/lib/wizard/step1-gate";
 
 /**
  * The wizard form's navigation bar: sticky at the foot of the screen on
