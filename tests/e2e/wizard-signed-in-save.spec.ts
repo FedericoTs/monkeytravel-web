@@ -1,9 +1,9 @@
 import { test, expect, type BrowserContext, type Page } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import draft from "./fixtures/wizard-draft-paris.json";
 import { stubGeneration, stubPlan } from "./generation-stub";
-import { serviceCreds } from "./env";
+import { serviceCreds, readManifest } from "./env";
 
 /**
  * A signed-in planner who comes back to the wizard with an unsaved plan gets it
@@ -31,13 +31,10 @@ type Draft = typeof draft;
 type Day = { activities: { id?: string; name: string }[] };
 
 const AUTH_STATE = process.env.KEY_FLOWS_AUTH_STATE;
-const MANIFEST = ".auth/e2e-fixtures.json";
 const DRAFT_KEY = "monkeytravel-itinerary-draft";
 
 function ownerId(): string | null {
-  if (!existsSync(MANIFEST)) return null;
-  const manifest = JSON.parse(readFileSync(MANIFEST, "utf8")) as { users?: { owner?: { id?: string } } };
-  return manifest.users?.owner?.id ?? null;
+  return readManifest()?.users.owner.id ?? null;
 }
 
 /**
