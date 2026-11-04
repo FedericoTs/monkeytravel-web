@@ -876,42 +876,43 @@ export default function NewTripPage({
     return persistAttachCoverImage(supabase, tripId, dest);
   }, []);
 
-  const handlePersisted = useCallback(
-    (tripId: string, durationDays: number, mode: "insert" | "update") => {
-      if (mode === "insert") {
-        // Only on insert, so a regenerate is not another completion. The
-        // report runs once per trip; clearDraft / setSavedTripId below run
-        // every time.
-        reportTripSaved(
-          { tripId, durationDays, destination, budgetTier, tripIntent, travelStyle, anchorCount: anchors.length, locale },
-          "Auto-save"
-        );
-        clearDraft();
-        if (typeof window !== "undefined") {
-          safeSet("profile_modal_shown", "true", "session");
-        }
-        // Set savedTripId directly so the sticky bar and the post-save
-        // redirects have it immediately (the mirror effect below also sets it).
-        setSavedTripId(tripId);
-        // No share ask here: at insert time the user hasn't read the
-        // itinerary they'd be asked to send. It lives on /trips/[id] behind an
-        // engagement gate; see components/trip/SharePromptOnTrip.tsx.
-      } else {
-        // Don't re-fire referral/bananas on regen — only count the
-        // first save. Just emit the distinct trip_updated event for
-        // funnel analysis.
-        captureTripUpdated({
-          trip_id: tripId,
-          destination,
-          duration_days: durationDays,
-          budget_tier: budgetTier,
-          is_from_template: false,
-        });
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [destination, budgetTier, clearDraft],
-  );
+  // A trip just inserted, by either save. The report runs once per trip (a
+  // login-return remount can insert the same row again); the rest every time.
+  // savedTripId is set directly so the sticky bar and the post-save redirects
+  // have it at once (the mirror effect below sets it too).
+  const tripInserted = (tripId: string, durationDays: number, logLabel: string) => {
+    reportTripSaved(
+      { tripId, durationDays, destination, budgetTier, tripIntent, travelStyle, anchorCount: anchors.length, locale },
+      logLabel
+    );
+    clearDraft();
+    // A planner who just finished the wizard is not asked to complete a profile.
+    safeSet("profile_modal_shown", "true", "session");
+    setSavedTripId(tripId);
+  };
+
+  // A plain function, like the hook's other callbacks: the hook calls the one
+  // from the latest render, so the save is reported with the answers as they
+  // are when it lands ("Who's coming?" is often answered after the place).
+  const handlePersisted = (tripId: string, durationDays: number, mode: "insert" | "update") => {
+    if (mode === "insert") {
+      // Only on insert, so a regenerate is not another completion. No share
+      // ask here: at insert time the user hasn't read the itinerary they'd be
+      // asked to send. It lives on /trips/[id] behind an engagement gate; see
+      // components/trip/SharePromptOnTrip.tsx.
+      tripInserted(tripId, durationDays, "Auto-save");
+      return;
+    }
+    // Don't re-fire referral/bananas on regen — only count the first save.
+    // Just emit the distinct trip_updated event for funnel analysis.
+    captureTripUpdated({
+      trip_id: tripId,
+      destination,
+      duration_days: durationDays,
+      budget_tier: budgetTier,
+      is_from_template: false,
+    });
+  };
 
   // Where and who, on every funnel row about this plan (lib/wizard/plan-funnel.ts);
   // its PostHog mirrors take the traits without the locale. The length is
@@ -1619,32 +1620,12 @@ export default function NewTripPage({
         { arm: "manual", mountId: wizardMountIdRef.current },
       );
       void autoAttachCoverImage(savedId, autoSaveFormState.destination);
-      const trip: { id: string } = { id: savedId };
-
-      // Calculate trip duration
-      const durationDays = tripSpanDays(startDate, endDate);
-
-      // Once per trip, though a login-return remount can run this save again
-      // for the same row.
-      reportTripSaved(
-        { tripId: trip.id, durationDays, destination, budgetTier, tripIntent, travelStyle, anchorCount: anchors.length, locale },
-        "Trip Save"
-      );
-
-      // Clear draft on successful save
-      clearDraft();
-
-      // Prevent ProfileCompletionModal from showing after trip creation
-      // Users just completed a complex flow, don't interrupt with another modal
-      if (typeof window !== "undefined") {
-        safeSet("profile_modal_shown", "true", "session");
-      }
+      tripInserted(savedId, tripSpanDays(startDate, endDate), "Trip Save");
 
       // Go straight to the trip. The share ask waits until the user has
       // actually looked at the itinerary, on the trip page itself
       // (components/trip/SharePromptOnTrip.tsx).
-      setSavedTripId(trip.id);
-      router.push(`/trips/${trip.id}`);
+      router.push(`/trips/${savedId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save trip");
       // The AUTHED save genuinely failed (INSERT errored, RLS rejected,
