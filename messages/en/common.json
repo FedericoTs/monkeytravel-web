@@ -691,6 +691,7 @@
     "viewDetails": "View Details",
     "showRoute": "Show route",
     "hideRoute": "Hide route",
+    "segmentDuration": "{duration} walk",
     "disclaimerStraightLine": "Straight-line estimate — actual walking time may be longer."
   },
   "maintenance": {
