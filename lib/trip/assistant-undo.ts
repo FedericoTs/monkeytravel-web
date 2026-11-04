@@ -1,8 +1,9 @@
 /**
  * Undo for the wizard assistant's edits, which apply as soon as they arrive.
  * Each edit keeps the plan just before and just after it, and Undo hands the
- * "before" back only while the plan is still exactly the "after", so it can
- * never wipe a change made since (a later edit, new dates, a regeneration).
+ * "before" back only while the plan is still the "after", so it can never wipe
+ * a change made since (a later edit, new dates, a regeneration). `isSame` says
+ * what counts as still being it.
  */
 
 export interface UndoEntry<P, E> {
@@ -12,7 +13,7 @@ export interface UndoEntry<P, E> {
   extra: E;
 }
 
-export function createUndoLedger<P, E>() {
+export function createUndoLedger<P, E>(isSame: (a: P, b: P) => boolean = Object.is) {
   const entries = new Map<string, UndoEntry<P, E>>();
   let count = 0;
   return {
@@ -24,7 +25,7 @@ export function createUndoLedger<P, E>() {
     /** The entry to restore, or null when the plan has moved on since that edit. */
     take(id: string, current: P): UndoEntry<P, E> | null {
       const entry = entries.get(id);
-      if (!entry || entry.after !== current) return null;
+      if (!entry || !isSame(entry.after, current)) return null;
       entries.delete(id);
       return entry;
     },

@@ -48,4 +48,34 @@ test.describe("wizard: the assistant's edits", () => {
     await expect.poll(() => firstDayKept(page)).toEqual(originalDayOne);
     await expect(page.getByText(/Can't undo/)).toHaveCount(0);
   });
+
+  test("a photo found after the edit leaves Undo working, and stays", async ({ page }) => {
+    await stubAssistant(page);
+    // After the catch-all: the last route registered is asked first.
+    await page.route("**/api/images/landmarks", async (route) => {
+      const { names } = route.request().postDataJSON() as { names: string[] };
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ photos: names.map((_, i) => `/api/images/wikimedia/found-${i}-500.jpg?a=X&l=CC0&f=Y.jpg`) }),
+      });
+    });
+    await restoreDraft(page);
+
+    await ask(page);
+    await expect.poll(() => firstDayKept(page)).toEqual(["Canal cruise"]);
+    // The planner asks for the photos found 5 seconds after a plan's activities change.
+    const photoOf = async (name: string) =>
+      (await storedDraft(page)).generatedItinerary.days.flatMap((d) => d.activities).find((a) => a.name === name)?.image_url;
+    await expect.poll(() => photoOf("Canal cruise"), { timeout: 15_000 }).toContain("/api/images/wikimedia/found-");
+    // Day 2 has no photo of this place in the draft.
+    const lunch = "Lunch at Le Comptoir du Panthéon";
+    const lunchPhoto = await photoOf(lunch);
+    expect(lunchPhoto).toContain("/api/images/wikimedia/found-");
+
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
+    await expect.poll(() => firstDayKept(page)).toEqual(originalDayOne);
+    await expect(page.getByText(/Can't undo/)).toHaveCount(0);
+    expect(await photoOf(lunch)).toBe(lunchPhoto);
+  });
 });

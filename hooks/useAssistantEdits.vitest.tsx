@@ -4,12 +4,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import type { Activity, GeneratedItinerary } from "@/types";
 import type { AssistantDayEdit } from "@/lib/trips/day-edit-merge";
+import { withFoundPhotos } from "@/lib/trips/keep-place-photos";
 import { useAssistantEdits } from "./useAssistantEdits";
 
 /**
  * The assistant's edits apply to the plan on screen as they arrive, and one can
- * be undone while the plan is still that edit's result, so Undo never wipes a
- * change made since.
+ * be undone while the plan is still that edit's result, apart from photos found
+ * since, so Undo never wipes a change made since.
  */
 
 const activity = (name: string): Activity =>
@@ -195,7 +196,7 @@ describe("undoing a reply", () => {
     const { now, original, undoId } = applied([edit(3, "Lake")], 3);
     expect(now().end).toBe("2026-12-03");
     expect(undo(now, undoId)).toBe(true);
-    expect(now().plan).toBe(original);
+    expect(now().plan).toEqual(original);
     expect(now().end).toBe("2026-12-02");
     expect(undo(now, undoId)).toBe(false);
   });
@@ -223,7 +224,7 @@ describe("undoing a reply", () => {
     expect(undo(now, later)).toBe(true);
     expect(names(now().plan)).toEqual(["Market", "Bridge"]);
     expect(undo(now, undoId)).toBe(true);
-    expect(now().plan).toBe(original);
+    expect(now().plan).toEqual(original);
   });
 
   it("two undos before a render take back both replies", () => {
@@ -237,7 +238,52 @@ describe("undoing a reply", () => {
       undone.push(now().undoEdits(later), now().undoEdits(undoId));
     });
     expect(undone).toEqual([true, true]);
-    expect(now().plan).toBe(original);
+    expect(now().plan).toEqual(original);
+  });
+
+  describe("after photos found since", () => {
+    const WIKI = "/api/images/wikimedia/abc-500.jpg?a=X&l=CC0&f=Y.jpg";
+    const found = (now: ReturnType<typeof show>["now"], photos: Record<string, string>) =>
+      act(() => {
+        const current = now().plan!;
+        now().setPlan({ ...current, days: withFoundPhotos(current.days, photos) });
+      });
+    const photoOf = (p: GeneratedItinerary | null, name: string) =>
+      p?.days.flatMap((d) => d.activities).find((a) => a.name === name)?.image_url;
+
+    it("still works, and they stay on the activities still there", () => {
+      const { now, undoId } = applied([edit(1, "Market")]);
+      found(now, { "id-Bridge": WIKI });
+      expect(photoOf(now().plan, "Bridge")).toBe(WIKI);
+      expect(undo(now, undoId)).toBe(true);
+      expect(names(now().plan)).toEqual(["Castle", "Bridge"]);
+      expect(photoOf(now().plan, "Bridge")).toBe(WIKI);
+    });
+
+    it("works for each reply in turn", () => {
+      const { now, original, undoId } = applied([edit(1, "Market")]);
+      let later = "";
+      act(() => {
+        later = now().applyEdits([edit(1, "Museum")])!;
+      });
+      found(now, { "id-Bridge": WIKI });
+      expect(undo(now, later)).toBe(true);
+      expect(names(now().plan)).toEqual(["Market", "Bridge"]);
+      expect(undo(now, undoId)).toBe(true);
+      expect(names(now().plan)).toEqual(names(original));
+      expect(photoOf(now().plan, "Bridge")).toBe(WIKI);
+    });
+
+    it("is still refused when something besides photos has changed too", () => {
+      const { now, undoId } = applied([edit(1, "Market")]);
+      found(now, { "id-Bridge": WIKI });
+      act(() => {
+        const current = now().plan!;
+        now().setPlan({ ...current, days: current.days.slice(0, 1) });
+      });
+      expect(undo(now, undoId)).toBe(false);
+      expect(names(now().plan)).toEqual(["Market"]);
+    });
   });
 
   it("is refused once anything else has replaced the plan", () => {

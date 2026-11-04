@@ -31,6 +31,15 @@ describe("createUndoLedger", () => {
     expect(ledger.take(first, p1)?.before).toBe(p0);
   });
 
+  it("takes what counts as the same plan", () => {
+    const sameName = (a: { name: string }, b: { name: string }) => a.name === b.name;
+    const ledger = createUndoLedger<{ name: string }, string>(sameName);
+    const before = plan("original");
+    const id = ledger.record(before, plan("edited"), "");
+    expect(ledger.take(id, plan("new dates since"))).toBeNull();
+    expect(ledger.take(id, plan("edited"))?.before).toBe(before);
+  });
+
   it("undoes an edit once", () => {
     const ledger = createUndoLedger<{ name: string }, string>();
     const after = plan("edited");
