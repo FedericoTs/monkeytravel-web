@@ -79,6 +79,9 @@ export type PendingChange =
       reason?: string;
     };
 
+/** The changes a trip-assistant turn prepares. The others are the concierge's. */
+export type TripAssistantChange = Extract<PendingChange, { type: "add_day" | "apply_draft" }>;
+
 /** The body `POST /api/ai/assistant/apply` takes for one change. */
 export type ApplyBody = {
   tripId: string;
@@ -156,13 +159,13 @@ export function pendingChangeFor(
     unmappedDayNumbers: number[];
     engineSummary: string | null;
   }
-) {
+): TripAssistantChange | null {
   if (!action || context.failed) return null;
   if (action.type === "add_day" && action.newDay) {
     return {
       type: "add_day" as const,
       day: action.newDay,
-      dayNumber: action.dayNumber,
+      dayNumber: action.dayNumber ?? action.newDay.day_number,
       newEndDate: action.newEndDate,
       previousEndDate: context.previousEndDate,
       reason: "New day appended from your request",

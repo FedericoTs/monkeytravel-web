@@ -1772,13 +1772,8 @@
         "undoOutdated": "Tu viaje ha cambiado desde entonces, así que no se puede deshacer aquí."
       },
       "undoActions": {
-        "replaced": "Sustituida por {name}",
-        "added": "Añadida: {name}",
-        "removed": "Quitada: {name}",
-        "adjusted": "Ajustada: {name}",
         "addedDay": "Día {number} añadido",
-        "updatedDays": "{count, plural, one {# día actualizado} other {# días actualizados}}",
-        "shifted": "Del día {number} en adelante, {count, plural, one {# día} other {# días}} más tarde"
+        "updatedDays": "{count, plural, one {# día actualizado} other {# días actualizados}}"
       }
     },
     "cards": {

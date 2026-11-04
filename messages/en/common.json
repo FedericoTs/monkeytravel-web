@@ -1772,13 +1772,8 @@
         "undoOutdated": "Your trip has changed since then, so this can't be undone here."
       },
       "undoActions": {
-        "replaced": "Replaced with {name}",
-        "added": "Added {name}",
-        "removed": "Removed {name}",
-        "adjusted": "Adjusted {name}",
         "addedDay": "Added Day {number}",
-        "updatedDays": "Updated {count, plural, one {# day} other {# days}}",
-        "shifted": "Moved Day {number} on {count, plural, one {# day} other {# days}} later"
+        "updatedDays": "Updated {count, plural, one {# day} other {# days}}"
       }
     },
     "cards": {
