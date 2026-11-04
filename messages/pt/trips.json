@@ -457,6 +457,7 @@
       "destination": "Não conseguimos usar esse destino. Digite só o nome do lugar: uma cidade, região ou país.",
       "fixed_plans": "Um dos seus planos fixos não cabe na viagem. Confira o dia e o horário, ou remova-o.",
       "notes": "Algo no que você quer ver, fazer ou comer, ou nos requisitos especiais, não pode ser usado. Encurte ou reescreva e tente novamente.",
+      "style": "Confira seu estilo de viagem: escolha de um a três climas e um orçamento e tente novamente.",
       "other": "Alguns detalhes da viagem precisam mudar antes de criarmos este roteiro."
     }
   },

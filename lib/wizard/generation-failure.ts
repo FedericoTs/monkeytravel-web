@@ -32,9 +32,24 @@ export type GenerationFailureCode =
   | "upstream"
   | "unknown";
 
-/** Server validation copy from lib/trips/request-validation.ts validateTripParams and lib/ai/anchors-core.ts validateAnchors, plus the client's own. */
+/**
+ * Server validation copy from lib/trips/request-validation.ts validateTripParams,
+ * lib/ai/anchors-core.ts validateAnchors and lib/ai/multi-city-core.ts
+ * validateLegs, plus the client's own.
+ */
 const VALIDATION = [
   "anchor",
+  "overnight stays",
+  "budget tier",
+  "interests allowed",
+  "vibe is required",
+  "vibes allowed",
+  "invalid vibe",
+  "multi-city trip needs",
+  "can have at most",
+  "city must have a name",
+  "at least 1 night",
+  "must sum to the trip length",
   "destination name too long",
   "destination is required",
   "destination contains invalid characters",
@@ -83,22 +98,23 @@ export function classifyGenerationFailure(err: unknown): GenerationFailureCode {
 }
 
 /** What a validation failure asks the traveller to change. */
-export type ValidationFix = "dates" | "duration" | "destination" | "fixed_plans" | "notes" | "other";
+export type ValidationFix = "dates" | "duration" | "destination" | "fixed_plans" | "notes" | "style" | "other";
 
 export function validationFix(message: string): ValidationFix {
   const text = message.toLowerCase();
   if (has(text, ["support at most", "maximum trip duration", "maximum trip length", "trip is too long"])) return "duration";
-  if (text.includes("anchor")) return "fixed_plans";
+  if (has(text, ["anchor", "overnight stays"])) return "fixed_plans";
   if (has(text, ["cannot be in the past", "end date must be after", "invalid date", "is before trip start",
                  "date must be yyyy-mm-dd", "not a valid calendar date"])) return "dates";
   if (text.includes("destination")) return "destination";
   if (has(text, ["requirements", "must-do", "invalid input detected"])) return "notes";
+  if (has(text, ["vibe", "budget tier", "interests allowed"])) return "style";
   return "other";
 }
 
-/** The wizard step that holds the field to change: notes and must-dos are on step 2. */
+/** The wizard step that holds the field to change: notes, must-dos and the travel style are on step 2. */
 export function validationFixStep(fix: ValidationFix): 1 | 2 {
-  return fix === "notes" ? 2 : 1;
+  return fix === "notes" || fix === "style" ? 2 : 1;
 }
 
 /** Friendlier words, in the wizard's generation messages, for a failure shown to the traveller. */

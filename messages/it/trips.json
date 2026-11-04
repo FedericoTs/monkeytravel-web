@@ -457,6 +457,7 @@
       "destination": "Non riusciamo a usare questa destinazione. Scrivi solo il nome del luogo: una città, una regione o un paese.",
       "fixed_plans": "Uno dei tuoi impegni fissi non rientra nel viaggio. Controlla giorno e orario, oppure rimuovilo.",
       "notes": "Qualcosa tra le cose da vedere, fare o mangiare, o nei requisiti speciali, non si può usare. Accorcialo o riformulalo e riprova.",
+      "style": "Controlla il tuo stile di viaggio: scegli da uno a tre stili e un budget, poi riprova.",
       "other": "Alcuni dettagli del viaggio vanno modificati prima di creare questo itinerario."
     }
   },
