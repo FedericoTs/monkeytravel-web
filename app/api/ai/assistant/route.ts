@@ -2,13 +2,8 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import { detectStructuralIntent } from "@/lib/ai/assistant/structural";
-import {
-  classifyTask,
-  selectModel,
-  estimateCost,
-} from "@/lib/ai/config";
-import { recordUsage } from "@/lib/ai/usage";
-import { incrementUsage } from "@/lib/usage-limits";
+import { classifyTask, selectModel } from "@/lib/ai/config";
+import { recordTurnUsage } from "@/lib/ai/assistant/turn-usage";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { getTripDestination } from "@/lib/trips/destination";
 import {
@@ -202,37 +197,17 @@ export async function POST(request: NextRequest) {
       language: userLanguage,
     });
 
-    // Estimate tokens and cost. The engine reports its own cost; the chat
-    // call is estimated, and only counted when it ran.
-    const inputTokens = engineReply !== null ? 0 : Math.ceil(fullPrompt.length / 4);
-    const outputTokens = engineReply !== null ? 0 : Math.ceil(responseText.length / 4);
-    const costCents =
-      (engineReply !== null ? 0 : estimateCost(modelConfig, inputTokens, outputTokens)) +
-      (tripEdits ? tripEdits.meta.costUsd * 100 : 0);
-
-    // Record usage in existing system
-    await recordUsage({
+    const spent = await recordTurnUsage({
       userId: user.id,
       tripId,
-      modelId: engineReply !== null && tripEdits ? tripEdits.meta.model : modelConfig.id,
-      action: actionTaken?.type || "answer_question",
-      inputTokens,
-      outputTokens,
-      costCents,
+      action: actionTaken?.type,
+      engine: tripEdits?.meta ?? null,
+      chatModel: modelConfig,
+      chat: engineReply === null ? { prompt: fullPrompt, text: responseText } : null,
     });
-
-    // Increment usage counter in new tier-based system
-    await incrementUsage(user.id, "aiAssistantMessages", 1);
 
     const reply = assistantMessage(parsedResponse, honesty);
     await appendTurn(supabase, conversation, [userMessage(message), reply]);
-
-    // Update usage info for response
-    const updatedUsage = {
-      ...usageCheck,
-      used: usageCheck.used + 1,
-      remaining: Math.max(0, usageCheck.remaining - 1),
-    };
 
     // The change waiting for the user's confirm.
     const pendingChange = pendingChangeFor(actionTaken, {
@@ -249,13 +224,11 @@ export async function POST(request: NextRequest) {
       complexity: classification.complexity,
       pendingChange,
       usage: {
-        inputTokens,
-        outputTokens,
-        costCents,
-        tier: updatedUsage.tier,
-        remaining: updatedUsage.remaining,
-        limit: updatedUsage.limit,
-        resetAt: updatedUsage.resetAt,
+        ...spent,
+        tier: usageCheck.tier,
+        remaining: Math.max(0, usageCheck.remaining - 1),
+        limit: usageCheck.limit,
+        resetAt: usageCheck.resetAt,
       },
     };
 
