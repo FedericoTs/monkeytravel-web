@@ -150,7 +150,7 @@ import {
 } from "@/lib/posthog/events";
 import { saveErrorClass } from "@/lib/wizard/save-failure";
 import { funnelDays, funnelTraits } from "@/lib/wizard/plan-funnel";
-import { destinationProblem, step1Blocker } from "@/lib/wizard/step1-gate";
+import { destinationProblem, STEP1_HINT, step1Blocker } from "@/lib/wizard/step1-gate";
 import { DESTINATION_MAX_LENGTH, MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
 import {
   reportGenerated,
@@ -1401,24 +1401,16 @@ export default function NewTripPage({
     // A new itinerary replaces the one the edits and the dates note were about.
     editsSinceGenerationRef.current = false;
     setDatesNotice(null);
-    // Date guard. canProceed() only validates the span on step 1, but the span
-    // can outlive the mode that allowed it: handleSessionTrayRestore forces
-    // multiCityMode off (see its comment) and a route can drop to one filled
-    // row after step 1. Both leave a 21-day span heading for a single-city
-    // request the server rejects. Block it here - before the telemetry - so a
-    // doomed attempt costs no round-trip and records no phantom "generating".
-    const plannedSpan = tripSpanDays(startDate, endDate);
-    if (plannedSpan > effectiveMaxTripDays) {
-      setError(t("wizard.datePicker.maxDaysLimit", { days: effectiveMaxTripDays }));
-      setStep(1);
-      return;
-    }
-    // Same reasoning as the date guard above, for the destination length
-    // rule. Returning HERE — before bumpGenCount and before the `generating`
-    // row — is the point: a doomed attempt should cost no round-trip and leave
-    // no phantom "generating" that reads as a dead end in the funnel.
-    if (destination.length > DESTINATION_MAX_LENGTH) {
-      setError(t("wizard.step1.destinationTooLong"));
+    // Step 1's rules, checked again: what passed step 1 may no longer hold.
+    // handleSessionTrayRestore forces multiCityMode off (see its comment) and
+    // a route can drop to one filled row, leaving a 21-day span for a
+    // single-city request; the start date can pass while the page is open.
+    // Returning HERE, before bumpGenCount and the `generating` row, means a
+    // doomed attempt costs no round-trip and leaves no phantom "generating"
+    // that reads as a dead end in the funnel.
+    const block = step1Blocker(destination, startDate, endDate, effectiveMaxTripDays, localTodayISO());
+    if (block) {
+      setError(t(STEP1_HINT[block], { days: effectiveMaxTripDays }));
       setStep(1);
       return;
     }
