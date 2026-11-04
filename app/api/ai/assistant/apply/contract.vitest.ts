@@ -129,4 +129,21 @@ describe("every proposed change type, built by buildApplyBody, is applied", () =
     expect(res.status).toBe(400);
     expect(updates).toEqual([]);
   });
+
+  // Same thing: the type is known, but there is nothing for it to act on.
+  it.each([
+    ["replace", { newActivity: act("n1", "Charlie") }],
+    ["remove", {}],
+  ])("refuses a %s that does not say what it changes, writing nothing", async (changeType, fields) => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { POST } = await import("./route");
+    const res = await POST(
+      new NextRequest("http://localhost/api/ai/assistant/apply", {
+        method: "POST",
+        body: JSON.stringify({ tripId: TRIP, changeType, dayNumber: 1, ...fields }),
+      }),
+    );
+    expect(res.status).toBe(400);
+    expect(updates).toEqual([]);
+  });
 });
