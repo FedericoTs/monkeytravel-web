@@ -1,3 +1,4 @@
+import { cronSource } from "@/tests/cron-source";
 import { describe, it, expect } from "vitest";
 import { createTranslator } from "next-intl";
 import { readFileSync } from "fs";
@@ -224,7 +225,7 @@ describe("consent: these are marketing, not transactional", () => {
 });
 
 describe("the cron wires the followup family correctly", () => {
-  const source = readFileSync(join(__dirname, "route.ts"), "utf8");
+  const source = cronSource();
 
   it("uses the prefixed common.tripFollowupEmail namespace", () => {
     expect(source).toContain('"common.tripFollowupEmail"');

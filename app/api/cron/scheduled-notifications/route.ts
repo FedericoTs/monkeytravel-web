@@ -1,47 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getTranslations } from "next-intl/server";
-import { dispatchEmail, type EmailTemplate } from "@/lib/email/send";
-import { buildParticipantUnsubscribeUrl } from "@/lib/email/unsubscribe";
-import type { TripReminderSlot } from "@/lib/email/templates/TripReminder";
-import {
-  TERMINAL_FOLLOWUP_SLOTS,
-  type TripFollowupSlot,
-} from "@/lib/email/templates/TripFollowup";
-import {
-  buildContextBlocks,
-  FORECAST_SLOTS,
-  type ContextBlock,
-} from "@/lib/email/trip-context";
-import {
-  getTripForecast,
-  forecastMessage,
-  forecastLabel,
-  tripLengthDays,
-} from "@/lib/email/trip-forecast";
-import { tripStartCoordinate } from "@/lib/email/trip-coordinates";
-import {
-  verifyRenderedEmail,
-  blockingDefects,
-  summarizeDefects,
-} from "@/lib/email/verify-render";
 import { isTripNotificationsEnabled } from "@/lib/notifications/scheduling";
-import { parseDigestDay, digestStaleReason, digestParticipantRecipients } from "@/lib/notifications/digest";
+import { parseDigestDay, digestStaleReason } from "@/lib/notifications/digest";
 import { prioritizeDueRows, rateLimitWindowStart, staleReason } from "@/lib/notifications/queue";
-import { postTripCtaUrl } from "@/lib/email/followup-cta";
-import { reminderCtaUrl } from "@/lib/email/reminder-cta";
-import { daySendUrl, digestDayUrl, tripDayDate } from "@/lib/trips/day-link";
 import { stillPencilled } from "@/lib/trips/pencilled-dates";
-import { resolveLocale, formatDateRange, formatDayMonth } from "@/lib/email/reminder-locale";
+import { resolveLocale } from "@/lib/email/reminder-locale";
 import { retryTransient } from "@/lib/notifications/retry";
 import { domesticTripVerdict } from "@/lib/notifications/domestic-trip";
-import { normalizeTripTitle, twinDecision, type TwinCandidate } from "@/lib/notifications/twin-trips";
-import { FINISH_TRIP_NS, FINISH_TRIP_SLOT, sendFinishTripEmail } from "@/lib/notifications/finish-trip";
+import {
+  normalizeTripTitle,
+  twinDecision,
+  type TwinCandidate,
+} from "@/lib/notifications/twin-trips";
+import {
+  FINISH_TRIP_NS,
+  FINISH_TRIP_SLOT,
+  sendFinishTripEmail,
+} from "@/lib/notifications/finish-trip";
 import { cameBack, cameBackFrom, loadEngagement } from "@/lib/notifications/followup-engagement";
-import { isParticipantDigestEnabled } from "@/lib/participants/flag";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { refuseUnlessCron } from "@/lib/api/cron-auth";
+import {
+  type SlotRow,
+  persistOutcome,
+  type TripEmailRow,
+  isFollowupSlot,
+} from "@/lib/notifications/slot-row";
+import { sendSlotEmail } from "@/lib/notifications/slot-email";
+import { dispatchDayDigest } from "@/lib/notifications/day-digest-email";
 
 /**
  * Trip email cron: sweeps `scheduled_notifications` and dispatches the
@@ -73,7 +61,9 @@ import { refuseUnlessCron } from "@/lib/api/cron-auth";
  * - Enqueue: the trips_enqueue_notifications AFTER INSERT trigger for every
  *   new trip with a user_id, plus lib/notifications/scheduling.ts from PATCH
  *   /api/trips/[id] (date or mute change), fork and duplicate.
- * - Email: lib/email/send.ts (dispatchEmail).
+ * - Email: lib/notifications/slot-email.ts (reminders and follow-ups) and
+ *   day-digest-email.ts (digests) write it; lib/email/send.ts (dispatchEmail)
+ *   sends it.
  * - The one account-level slot (finish_trip_1d, no trip) is queued by a
  *   trigger on public.users and decided in lib/notifications/finish-trip.ts.
  * - Settings: users.notification_settings gates each send inside
@@ -90,78 +80,12 @@ import { refuseUnlessCron } from "@/lib/api/cron-auth";
 const MAX_ROWS_PER_RUN = 200;
 
 /**
- * Where the reminder copy lives in the assembled message tree.
- *
- * i18n.ts mounts each messages file under its own namespace, so common.json
- * becomes `common` and these strings sit at common.tripReminderEmail.*. One
- * constant because two lookups need it and a wrong path fails silently (see
- * assertTranslated).
- */
-const REMINDER_NS = "common.tripReminderEmail";
-
-/**
- * Post-trip copy lives in a sibling namespace, same file, same mounting
- * rule — so the `common.` prefix is just as load-bearing here.
- */
-const FOLLOWUP_NS = "common.tripFollowupEmail";
-
-/**
- * In-trip evening-before digest copy. One namespace, not per-slot: the digest
- * is one template parameterised by day number. Same `common.` mounting rule.
- */
-const DIGEST_NS = "common.tripDayDigestEmail";
-
-/**
- * Headings for the per-trip enrichment blocks. Shared by both families —
- * "Day one" means the same thing whichever email it appears in.
- */
-const CONTEXT_NS = "common.emailContext";
-
-/**
  * Slots whose copy depends on whether the trip leaves the traveller's
  * country (lib/notifications/domestic-trip.ts). visa_check_7d is skipped
  * outright on a domestic trip; the other two swap to a body that does not
  * mention the passport.
  */
 const DOMESTIC_AWARE_SLOTS = new Set<string>(["visa_check_7d", "pack_early_14d", "confirm_1d"]);
-
-/**
- * The early reminders that also ask a group trip's organiser to add the
- * people coming, while nobody else has the plan: most organisers never open
- * the trip again after the day they make it, so the email is the second ask.
- */
-const GROUP_ASK_SLOTS = new Set<string>(["pack_early_14d", "visa_check_7d"]);
-
-/** A queue row belongs to the post-trip family iff its slot says so. */
-function isFollowupSlot(slot: QueueSlot): slot is TripFollowupSlot {
-  return slot.startsWith("followup_");
-}
-
-/**
- * Every enrichment string that legitimately belongs to this trip.
- *
- * The containment check compares each rendered line against these, so a line
- * from any other trip is caught before the email goes out. Built from the
- * VALUES rather than a JSON dump of the row — JSON.stringify escapes embedded
- * quotes, so a weather note containing one would never contain itself.
- */
-function ownEnrichmentStrings(trip: TripEmailRow): string[] {
-  const day1 = trip.day1 as { activities?: unknown } | null | undefined;
-  const activities = Array.isArray(day1?.activities) ? day1.activities : [];
-  return [
-    typeof trip.weather_note === "string" ? trip.weather_note : "",
-    ...(Array.isArray(trip.highlights) ? trip.highlights : []),
-    ...(Array.isArray(trip.packing_suggestions) ? trip.packing_suggestions : []),
-    ...activities.flatMap((a: unknown) => {
-      if (!a || typeof a !== "object") return [];
-      const act = a as Record<string, unknown>;
-      return [act.name, act.start_time, act.time_slot];
-    }),
-  ]
-    .filter((s): s is string => typeof s === "string")
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
 
 /**
  * Optional cap on how many emails ONE cron run may actually send.
@@ -183,85 +107,6 @@ function sendCap(): number | null {
   // nothing, and say so loudly in the response.
   return Number.isFinite(n) && n >= 0 ? n : 0;
 }
-
-/**
- * Reject a string that is really an unresolved message key.
- *
- * next-intl does NOT throw on a missing message. Its default onError logs and
- * getMessageFallback substitutes the full key path, so the mail would still
- * send with "tripReminderEmail.morning_of.heading" where the sentence should
- * be, and the try/catch around getTranslations would never fire.
- *
- * So the send path cannot trust the translator. A value still carrying
- * "tripReminderEmail." is a fallback, never copy — no real sentence contains
- * it — and it must fail loudly instead of being delivered.
- */
-function assertTranslated(values: Record<string, string>): string | null {
-  for (const [key, value] of Object.entries(values)) {
-    // All three families are checked: each is loaded through the same
-    // fallback-instead-of-throw translator.
-    if (
-      value.includes("tripReminderEmail.") ||
-      value.includes("tripFollowupEmail.") ||
-      value.includes("tripDayDigestEmail.")
-    ) {
-      return `${key} did not resolve (got "${value.slice(0, 80)}")`;
-    }
-  }
-  return null;
-}
-
-/** Every slot the queue can hold — the pre-trip cascade, the post-trip
- * followups, the in-trip per-day digests (in_trip_day_<K>) and the
- * account-level finish-trip email. */
-type QueueSlot =
-  | TripReminderSlot
-  | TripFollowupSlot
-  | `in_trip_day_${number}`
-  | typeof FINISH_TRIP_SLOT;
-
-/**
- * Shape of the trip row this route selects.
- *
- * Declared by hand because the select string in processRow is built by
- * concatenation, so supabase-js sees a plain `string`, cannot parse it, and
- * types the whole row as GenericStringError. The JSON-valued fields are
- * `unknown` on purpose — they are model-generated and
- * lib/email/trip-context.ts validates them rather than trusting a declaration.
- */
-type TripEmailRow = {
-  id: string;
-  // title / start_date / end_date are NOT NULL in the trips schema.
-  title: string;
-  start_date: string;
-  end_date: string;
-  created_at: string;
-  reminders_muted: boolean | null;
-  status: string | null;
-  deleted_at: string | null;
-  itinerary: unknown;
-  weather_note: string | null;
-  highlights: unknown;
-  packing_suggestions: unknown;
-  day1: unknown;
-  // For the participant digest fan-out: participants open the trip at
-  // /shared/<token>, and their language is best-guessed from the trip.
-  share_token: string | null;
-  trip_locale: string | null;
-  // The group ask: who the trip is for, and whether a share link exists.
-  trip_intent: string | null;
-  shared_at: string | null;
-  // The dates the planner pencilled in, if it did (lib/trips/pencilled-dates.ts).
-  dates_pencilled: unknown;
-};
-
-type SlotRow = {
-  id: string;
-  user_id: string;
-  trip_id: string;
-  slot: QueueSlot;
-  scheduled_for: string;
-};
 
 /** A due row as read. A DB CHECK keeps trip_id null for FINISH_TRIP_SLOT only. */
 type DueRow = Omit<SlotRow, "trip_id"> & { trip_id: string | null };
@@ -713,321 +558,17 @@ async function processRow(
     }
   }
 
-  // 2d. Resolve locale → load the slot-specific strings.
-  //
-  // The namespace MUST carry the `common.` prefix. i18n.ts assembles messages
-  // keyed by FILE — `messages/<locale>/common.json` is mounted as the `common`
-  // namespace — so the real path is common.tripReminderEmail.<slot>. Asking
-  // for `tripReminderEmail.<slot>` resolves to nothing.
+  // 2d. The traveller's language, whichever email this row is.
   const locale = resolveLocale(user.preferred_language);
 
   // In-trip day digest: its content is tomorrow's plan pulled straight from
   // this trip's itinerary, its copy is one namespace (not per-slot), and its
-  // template is trip_day_digest. Self-contained — returns before the
-  // reminder/followup rendering below.
+  // template is trip_day_digest.
   if (digestDay !== null) {
     return await dispatchDayDigest(svc, row, trip, user.email, locale, digestDay);
   }
 
-  const followup = isFollowupSlot(row.slot);
-  const rootNs = followup ? FOLLOWUP_NS : REMINDER_NS;
-
-  let t: Awaited<ReturnType<typeof getTranslations>>;
-  let ctaT: Awaited<ReturnType<typeof getTranslations>>;
-  try {
-    t = await getTranslations({ locale, namespace: `${rootNs}.${row.slot}` });
-    ctaT = await getTranslations({ locale, namespace: rootNs });
-  } catch (err) {
-    await persistOutcome(
-      svc,
-      row.id,
-      "failed",
-      "i18n_load_error",
-      err instanceof Error ? err.message : String(err)
-    );
-    return "failed";
-  }
-
-  // Strip trailing " Trip" suffix if present, so emails read
-  // "Lisbon" not "Lisbon Trip — Lisbon Trip".
-  const destination = (trip.title || "")
-    .replace(/\s+Trip\s*$/i, "")
-    .trim() || "your trip";
-
-  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
-  const tripUrl = `${APP_URL}/trips/${trip.id}?slot=${row.slot}`;
-
-  // Where the CTA points: reminderCtaUrl (the trip, or day 1 without sign-in
-  // the day before and the morning of departure) and postTripCtaUrl (return →
-  // feedback survey, later slots → wizard), shared with the audit script so it
-  // vets what ships. `slot`, not `utm_source`: a utm_* param on an internal
-  // link overwrites the stored acquisition source.
-  const ctaUrl = followup
-    ? postTripCtaUrl(row.slot as TripFollowupSlot, { tripUrl, appUrl: APP_URL, userId: row.user_id, locale })
-    : reminderCtaUrl(row.slot as TripReminderSlot, { appUrl: APP_URL, locale, tripId: trip.id, startDate: trip.start_date });
-
-  // Resolve the copy BEFORE handing it to the mailer, so an unresolved key
-  // can be caught while it is still just a string in memory.
-  //
-  // `destination` goes to BOTH, even though most slots only reference it in
-  // the body: weather_3d's heading is "Three days to {destination}", and
-  // next-intl falls back to the key path when a referenced placeholder is not
-  // supplied. Passing it unconditionally also means a translator moving
-  // {destination} into another heading cannot break the mail; unused values
-  // are ignored.
-  const heading = t("heading", { destination });
-  // The post-trip body states when the trip ended; other bodies ignore it.
-  const endDate = formatDayMonth(trip.end_date, locale);
-  // A domestic trip reads the slot's bodyDomestic when the copy has one
-  // (pack_early_14d and confirm_1d do); every other case reads body.
-  const body =
-    domestic && t.has("bodyDomestic")
-      ? t("bodyDomestic", { destination })
-      : t("body", { destination, endDate });
-  // The reminder family shares ONE cta across all five slots, so it sits
-  // at the namespace root. The followup family needs a different verb per
-  // slot ("Open your trip" vs "Plan your next trip"), so its cta lives
-  // inside the slot. Hence two different lookups, not an inconsistency.
-  const ctaLabel = followup ? t("cta") : ctaT("cta");
-  // Only terminal slots promise "this is the last one", and only they
-  // render it. Resolved here so assertTranslated can vet it too.
-  const finalNote =
-    isFollowupSlot(row.slot) && TERMINAL_FOLLOWUP_SLOTS.has(row.slot)
-      ? ctaT("finalNote")
-      : undefined;
-
-  // The group ask (GROUP_ASK_SLOTS): a group trip with no share link and no
-  // invite yet. Optional, so a failed read just leaves it out.
-  let groupAsk: { text: string; label: string; url: string } | undefined;
-  if (!followup && GROUP_ASK_SLOTS.has(row.slot) && trip.trip_intent === "group" && !trip.shared_at) {
-    const { count, error } = await svc
-      .from("trip_invites")
-      .select("id", { count: "exact", head: true })
-      .eq("trip_id", trip.id);
-    if (!error && (count ?? 0) === 0) {
-      groupAsk = {
-        text: ctaT("groupAsk.text"),
-        label: ctaT("groupAsk.cta"),
-        url: `${APP_URL}/trips/${trip.id}?slot=${row.slot}&share=invite`,
-      };
-    }
-  }
-
-  // Per-trip enrichment. Built from data the generator already wrote, so
-  // this adds no Gemini or Places call. Best-effort by design: a slot with
-  // nothing to show renders no block, and a whole family of trips missing
-  // trip_meta must not stop their reminders going out.
-  // Real forecast, from Open-Meteo via the trip's own coordinates. Never
-  // trip_meta.weather_note, which is invented — see lib/email/trip-context.ts.
-  // Every failure path returns null and the block is simply omitted.
-  let forecastLine: string | undefined;
-  let weatherLabel: string | undefined;
-
-  let contextBlocks: ContextBlock[] = [];
-  try {
-    const ctxT = await getTranslations({ locale, namespace: CONTEXT_NS });
-
-    // Only two slots render a weather block, so only those two pay for the
-    // lookup. Gated on the exported set rather than a local list, so it cannot
-    // fall out of step with the switch that consumes it.
-    const coord = FORECAST_SLOTS.has(row.slot)
-      ? tripStartCoordinate(trip.itinerary)
-      : null;
-    if (coord) {
-      const fc = await getTripForecast({
-        latitude: coord.latitude,
-        longitude: coord.longitude,
-        startDate: trip.start_date,
-        endDate: trip.end_date,
-      });
-      if (fc) {
-        const msg = forecastMessage(fc);
-        forecastLine = ctxT(msg.key, msg.values);
-        // The heading has to state the scope: at 14 days out the horizon
-        // reaches only the first day or two of the trip, and the default
-        // heading would present that as the whole thing.
-        const lbl = forecastLabel(
-          fc,
-          tripLengthDays(trip.start_date, trip.end_date)
-        );
-        weatherLabel = lbl.values ? ctxT(lbl.key, lbl.values) : ctxT(lbl.key);
-      }
-    }
-    contextBlocks = buildContextBlocks(
-      row.slot,
-      {
-        forecastLine,
-        highlights: trip.highlights,
-        packingSuggestions: trip.packing_suggestions,
-        day1: trip.day1,
-        itinerary: trip.itinerary,
-      },
-      {
-        weather: weatherLabel ?? ctxT("weather"),
-        packing: ctxT("packing"),
-        goingFor: ctxT("goingFor"),
-        dayOne: ctxT("dayOne"),
-        today: ctxT("today"),
-        yourHighlights: ctxT("yourHighlights"),
-      }
-    );
-    // A label that fell back to its key path would render as
-    // "emailContext.dayOne" above a list. Drop the enrichment rather than
-    // ship that — the email is complete without it.
-    if (
-      contextBlocks.some(
-        (b) =>
-          b.label.includes("emailContext.") ||
-          (b.note ?? "").includes("emailContext.")
-      )
-    ) {
-      console.warn("[cron/scheduled-notifs] context labels unresolved", { locale });
-      contextBlocks = [];
-    }
-  } catch (err) {
-    console.warn("[cron/scheduled-notifs] context build failed; sending without", {
-      id: row.id,
-      error: err instanceof Error ? err.message : String(err),
-    });
-    contextBlocks = [];
-  }
-
-  const unresolved = assertTranslated({
-    heading,
-    body,
-    ctaLabel,
-    ...(finalNote ? { finalNote } : {}),
-    ...(groupAsk ? { groupAskText: groupAsk.text, groupAskLabel: groupAsk.label } : {}),
-  });
-  if (unresolved) {
-    // Deliberately a failure, not a degraded send. The row stays visible as
-    // `failed` with the reason, and once the copy is fixed it can be retried
-    // — which is strictly better than a delivered email full of key paths.
-    await persistOutcome(svc, row.id, "failed", "i18n_load_error", unresolved);
-    return "failed";
-  }
-
-  // Bound to a local so the type guard narrows it — narrowing a property
-  // access across the object literal below is fragile, and getting it
-  // wrong here means the wrong consent key gates the send.
-  //
-  // Digest slots (`in_trip_day_<K>`) are handled and returned above, so by
-  // here the slot is only ever pre-trip or followup. TS can't infer that from
-  // the separate `digestDay` early-return, so restate the invariant in the type.
-  const slot = row.slot as TripReminderSlot | TripFollowupSlot;
-  const template: EmailTemplate = isFollowupSlot(slot)
-    ? {
-        id: "trip_followup",
-        props: {
-          slot,
-          destination,
-          heading,
-          body,
-          ctaLabel,
-          ctaUrl,
-          finalNote,
-          contextBlocks,
-        },
-      }
-    : {
-        id: "trip_reminder",
-        props: {
-          slot,
-          destination,
-          tripDates: formatDateRange(trip.start_date, trip.end_date, locale),
-          heading,
-          body,
-          ctaLabel,
-          tripUrl: ctaUrl,
-          contextBlocks,
-          ...(groupAsk ? { groupAsk } : {}),
-        },
-      };
-
-  const result = await dispatchEmail({
-    recipientEmail: user.email,
-    recipientUserId: row.user_id,
-    // Per-(trip, slot) idempotency — covers the (rare) case of two
-    // overlapping cron runs grabbing the same row before status flips.
-    // Prefixed by family so a reminder and a followup on the same trip
-    // can never collide on the same key.
-    idempotencyKey: `${template.id}:${row.trip_id}:${slot}`,
-    // Already resolved above for the translated body — pass it so the shared
-    // shell (header/footer) renders in the same language.
-    locale,
-    template,
-    metadata: {
-      scheduled_notification_id: row.id,
-      slot,
-      trip_id: row.trip_id,
-    },
-    // Last-line gate, run on the rendered output before anything leaves.
-    // Shared with scripts/audit-queued-emails.mts so the pre-deploy audit and
-    // the live send path can never disagree about what "correct" means.
-    verify: ({ html, subject }) => {
-      const defects = blockingDefects(
-        verifyRenderedEmail({
-          subject,
-          html,
-          destination,
-          // The real CTA target: the trip or its day 1 for reminders, the
-          // feedback survey for followup_return_3d, the wizard after it.
-          ctaUrl,
-          contextBlocks,
-          // This trip's own enrichment values — the corpus containment is
-          // checked against. Anything rendered that is not in here came from
-          // somewhere it should not have.
-          // The forecast line must be included or containment blocks it: it
-          // is derived from this trip's coordinates and dates, but it does
-          // not appear anywhere in the trip row. Omitting it here would make
-          // the gate reject every weather-bearing email.
-          ownStrings: [
-            ...ownEnrichmentStrings(trip),
-            ...(forecastLine ? [forecastLine] : []),
-          ],
-        })
-      );
-      return defects.length
-        ? { ok: false, reason: summarizeDefects(defects) }
-        : { ok: true };
-    },
-  });
-
-  // 2e. Persist outcome. Any 'sent' / 'skipped_*' outcome from
-  //     dispatchEmail means we did the right thing — flip status
-  //     accordingly. 'failed' bubbles up as a failed row + last_error.
-  if (result.ok) {
-    if (result.status === "sent") {
-      // The email HAS gone out by this point. If this flip does not land the
-      // row stays `pending` and the next run retries it; only dispatchEmail's
-      // idempotency key (email_log) then stands between the recipient and a
-      // second copy. So the result is checked and logged loudly.
-      const { data: marked, error: markError } = await svc
-        .from("scheduled_notifications")
-        .update({
-          status: "sent",
-          sent_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", row.id)
-        .select("id");
-
-      if (markError || !marked?.length) {
-        console.error(
-          "[cron/scheduled-notifs] SENT BUT NOT MARKED — this row will resend",
-          { id: row.id, slot: row.slot, error: markError?.message ?? "matched no rows" }
-        );
-      }
-      return "sent";
-    }
-    // skipped_disabled / skipped_suppressed / skipped_duplicate /
-    // skipped_no_key — all map to 'suppressed' with reason = status.
-    await persistOutcome(svc, row.id, "suppressed", result.status);
-    return "skipped";
-  }
-
-  await persistOutcome(svc, row.id, "failed", "dispatch_error", result.error);
-  return "failed";
+  return sendSlotEmail(svc, row, trip, user.email, locale, domestic);
 }
 
 /**
@@ -1044,217 +585,6 @@ async function processFinishTripRow(
   await persistOutcome(svc, row.id, outcome.status, outcome.reason, outcome.error);
   if (outcome.status === "sent") return "sent";
   return outcome.status === "failed" ? "failed" : "skipped";
-}
-
-/**
- * Render + dispatch one in-trip day digest.
- *
- * Content is tomorrow's plan read straight from THIS trip's itinerary day K,
- * so cross-trip contamination is structurally impossible — but it still runs
- * the same verify gate (with the day's own strings as the corpus) so a future
- * refactor can't quietly introduce it. The "+N more" line is UI copy, not
- * trip data, so it is passed OUTSIDE the context block the gate inspects.
- */
-async function dispatchDayDigest(
-  svc: ReturnType<typeof createAdminClient>,
-  row: SlotRow,
-  trip: TripEmailRow,
-  recipientEmail: string,
-  locale: Awaited<ReturnType<typeof resolveLocale>>,
-  day: number
-): Promise<"sent" | "skipped" | "failed"> {
-  const destination = (trip.title || "").replace(/\s+Trip\s*$/i, "").trim() || "your trip";
-
-  // Pull day K out of the itinerary.
-  const days = Array.isArray(trip.itinerary) ? (trip.itinerary as unknown[]) : [];
-  const dayObj = days.find(
-    (d): d is Record<string, unknown> =>
-      !!d && typeof d === "object" && Number((d as Record<string, unknown>).day_number) === day
-  );
-  const dayTitle =
-    dayObj && typeof dayObj.title === "string" && dayObj.title.trim() ? dayObj.title.trim() : "";
-  const rawActs = dayObj && Array.isArray(dayObj.activities) ? (dayObj.activities as unknown[]) : [];
-  const acts = rawActs
-    .filter((a): a is Record<string, unknown> => !!a && typeof a === "object")
-    .map((a) => ({
-      name: typeof a.name === "string" ? a.name.trim() : "",
-      time:
-        typeof a.start_time === "string"
-          ? a.start_time.trim()
-          : typeof a.time_slot === "string"
-            ? a.time_slot.trim()
-            : "",
-    }))
-    .filter((a) => a.name);
-
-  const MAX_ACTIVITIES = 5;
-  const shown = acts.slice(0, MAX_ACTIVITIES);
-  const moreCount = acts.length - shown.length;
-
-  const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
-  // The day plan is trip data — locale-independent — so it and the containment
-  // corpus are built once; only the copy, CTA target and recipient vary below.
-  const ownStrings = [dayTitle, ...acts.flatMap((a) => [a.name, a.time])].filter(Boolean);
-
-  // Render + dispatch one digest for a recipient/locale/CTA. Reused for the
-  // owner and each emailed participant. Returns the dispatch outcome, or a
-  // synthetic failure when a string won't resolve (assertTranslated).
-  const sendDigest = async (
-    email: string,
-    userId: string | null,
-    loc: Awaited<ReturnType<typeof resolveLocale>>,
-    tr: Awaited<ReturnType<typeof getTranslations>>,
-    ctaUrl: string,
-    idemSuffix: string,
-    guestUnsubscribeUrl?: string,
-    groupSendUrl?: string,
-  ): Promise<Awaited<ReturnType<typeof dispatchEmail>> | { ok: false; status: "failed"; error: string; i18n: true }> => {
-    const heading = tr("heading", { day });
-    const intro = tr("intro");
-    const ctaLabel = tr("cta");
-    const emptyLine = acts.length === 0 ? tr("empty", { day }) : undefined;
-    const andMore = moreCount > 0 ? tr("andMore", { count: moreCount }) : undefined;
-    const groupSend = groupSendUrl
-      ? { text: tr("groupSend.text"), label: tr("groupSend.cta"), url: groupSendUrl }
-      : undefined;
-    const unresolved = assertTranslated({
-      heading,
-      intro,
-      ctaLabel,
-      ...(emptyLine ? { emptyLine } : {}),
-      ...(andMore ? { andMore } : {}),
-      ...(groupSend ? { groupSendText: groupSend.text, groupSendLabel: groupSend.label } : {}),
-    });
-    if (unresolved) return { ok: false, status: "failed", error: unresolved, i18n: true };
-    // Tomorrow's plan as ONE context block: label = the day's title (not
-    // containment-checked), items = activities (name + time, which ARE — and
-    // come from this trip, so they pass).
-    const blocks: ContextBlock[] =
-      shown.length > 0
-        ? [{ label: dayTitle || heading, items: shown.map((a) => ({ text: a.name, meta: a.time || undefined })) }]
-        : [];
-    const template: EmailTemplate = {
-      id: "trip_day_digest",
-      props: { day, destination, heading, intro, blocks, emptyLine, andMore, ctaLabel, tripUrl: ctaUrl, locale: loc, groupSend },
-    };
-    return dispatchEmail({
-      recipientEmail: email,
-      recipientUserId: userId,
-      guestUnsubscribeUrl,
-      idempotencyKey: `${template.id}:${row.trip_id}:${row.slot}${idemSuffix}`,
-      locale: loc,
-      template,
-      metadata: { scheduled_notification_id: row.id, slot: row.slot, trip_id: row.trip_id, ...(idemSuffix ? { participant_key: idemSuffix.slice(1) } : {}) },
-      verify: ({ html, subject }) => {
-        const defects = blockingDefects(
-          verifyRenderedEmail({ subject, html, destination, ctaUrl, contextBlocks: blocks, ownStrings })
-        );
-        return defects.length ? { ok: false, reason: summarizeDefects(defects) } : { ok: true };
-      },
-    });
-  };
-
-  // Owner send — drives the queue row's status.
-  let ownerT: Awaited<ReturnType<typeof getTranslations>>;
-  try {
-    ownerT = await getTranslations({ locale, namespace: DIGEST_NS });
-  } catch (err) {
-    await persistOutcome(svc, row.id, "failed", "i18n_load_error", err instanceof Error ? err.message : String(err));
-    return "failed";
-  }
-  // The owner's button opens that day's plan without sign-in (lib/trips/day-link.ts).
-  const ownerUrl = digestDayUrl({ appUrl: APP_URL, locale, tripId: trip.id, startDate: trip.start_date, day, slot: row.slot });
-  // "Send tomorrow's plan to the group": for the owner, on trips not marked
-  // solo, when there is a plan to send. Left out if the link can't be signed.
-  let groupSendUrl: string | undefined;
-  const sendDate = tripDayDate(trip.start_date, day);
-  if (trip.trip_intent !== "solo" && shown.length > 0 && sendDate) {
-    try {
-      groupSendUrl = daySendUrl({ appUrl: APP_URL, locale, tripId: trip.id, date: sendDate, slot: row.slot });
-    } catch (err) {
-      console.warn("[cron/scheduled-notifs] group send link not signed", {
-        id: row.id, error: err instanceof Error ? err.message : String(err),
-      });
-    }
-  }
-  const result = await sendDigest(recipientEmail, row.user_id, locale, ownerT, ownerUrl, "", undefined, groupSendUrl);
-
-  // Participant fan-out (off by default): also email the trip's
-  // emailed participants. Best-effort and INDEPENDENT of the owner outcome
-  // (owner may be suppressed while participants aren't). Resolved fresh from
-  // trip_participants so a mid-trip joiner is covered; one trip-locale
-  // translator for all of them; deep-linked to /shared/<token>. Suppression +
-  // any signed-in participant's opt-out are enforced per send by dispatchEmail.
-  if (isParticipantDigestEnabled() && trip.share_token) {
-    try {
-      const { data: parts } = logReadError("reminders: participants", await svc
-        .from("trip_participants")
-        .select("id, email, user_id, participant_cookie_id")
-        .eq("trip_id", row.trip_id)
-        // Not someone who said they're going on the public page: the email
-        // carries the share link, and joining through it would confirm them.
-        .neq("source", "public")
-        .is("left_at", null)
-        .not("email", "is", null));
-      const recipients = digestParticipantRecipients(parts ?? [], recipientEmail);
-      if (recipients.length > 0) {
-        const partLocale = resolveLocale(trip.trip_locale);
-        const partT = await getTranslations({ locale: partLocale, namespace: DIGEST_NS });
-        const shareUrl = `${APP_URL}/shared/${trip.share_token}?slot=${row.slot}`;
-        let sent = 0, skipped = 0, failed = 0;
-        for (const r of recipients) {
-          // A guest has no account to opt out from: their email carries a link
-          // that stops this trip's digest, and is not sent without one.
-          let guestUnsub: string | undefined;
-          if (!r.userId) {
-            try {
-              guestUnsub = buildParticipantUnsubscribeUrl(r.participantId, APP_URL);
-            } catch (err) {
-              failed++;
-              console.warn("[cron/scheduled-notifs] guest digest not sent: no unsubscribe link", {
-                trip: row.trip_id, error: err instanceof Error ? err.message : String(err),
-              });
-              continue;
-            }
-          }
-          const pr = await sendDigest(r.email, r.userId, partLocale, partT, shareUrl, `:${r.key}`, guestUnsub);
-          if (pr.ok && pr.status === "sent") sent++;
-          else if (pr.ok) skipped++;
-          else failed++;
-        }
-        console.log("[cron/scheduled-notifs] digest fan-out to participants", {
-          trip: row.trip_id, slot: row.slot, recipients: recipients.length, sent, skipped, failed,
-        });
-      }
-    } catch (err) {
-      console.warn("[cron/scheduled-notifs] digest participant fan-out failed", {
-        id: row.id, error: err instanceof Error ? err.message : String(err),
-      });
-    }
-  }
-
-  if (result.ok) {
-    if (result.status === "sent") {
-      const { data: marked, error: markError } = await svc
-        .from("scheduled_notifications")
-        .update({ status: "sent", sent_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-        .eq("id", row.id)
-        .select("id");
-      if (markError || !marked?.length) {
-        console.error("[cron/scheduled-notifs] DIGEST SENT BUT NOT MARKED — this row will resend", {
-          id: row.id,
-          slot: row.slot,
-          error: markError?.message ?? "matched no rows",
-        });
-      }
-      return "sent";
-    }
-    await persistOutcome(svc, row.id, "suppressed", result.status);
-    return "skipped";
-  }
-
-  await persistOutcome(svc, row.id, "failed", "i18n" in result ? "i18n_load_error" : "dispatch_error", result.error);
-  return "failed";
 }
 
 /**
@@ -1304,40 +634,4 @@ async function loadTwins(
     slotStatus: rowByTrip.get(t.id)?.status ?? null,
     slotSentAt: rowByTrip.get(t.id)?.sent_at ?? null,
   }));
-}
-
-async function persistOutcome(
-  svc: ReturnType<typeof createAdminClient>,
-  id: string,
-  status: "sent" | "suppressed" | "failed",
-  reason: string,
-  error?: string
-): Promise<void> {
-  const patch: Record<string, unknown> = {
-    status,
-    updated_at: new Date().toISOString(),
-  };
-  if (status === "sent") patch.sent_at = new Date().toISOString();
-  if (status === "suppressed") patch.skipped_reason = reason.slice(0, 200);
-  if (status === "failed") {
-    patch.skipped_reason = reason.slice(0, 200);
-    if (error) patch.last_error = error.slice(0, 500);
-  }
-  // A sent row is final. Without this guard, a second overlapping cron run
-  // that reaches the same row gets "skipped_duplicate" back from the email
-  // idempotency check and rewrites the row from 'sent' to 'suppressed' — and
-  // a twin copy waiting on that row then sees no sent copy and sends the
-  // email again under its own idempotency key.
-  const { error: updErr } = await svc
-    .from("scheduled_notifications")
-    .update(patch)
-    .eq("id", id)
-    .neq("status", "sent");
-  if (updErr) {
-    console.error(
-      "[cron/scheduled-notifs] outcome-update failed",
-      { id, status, reason },
-      updErr
-    );
-  }
 }
