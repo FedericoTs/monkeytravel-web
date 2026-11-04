@@ -1,4 +1,4 @@
-import type { TripCreationParams } from "@/types";
+import { isTripVibe, type TripCreationParams } from "@/types";
 import { tripSpanDays } from "@/lib/dates/iso-date";
 import {
   DESTINATION_ALLOWLIST,
@@ -175,11 +175,6 @@ export function validateTripParams(
   }
 
   // Vibes validation
-  const validVibes = [
-    "adventure", "cultural", "foodie", "wellness",
-    "romantic", "urban", "nature", "offbeat",
-    "wonderland", "movie-magic", "fairytale", "retro"
-  ];
   if (params.vibes) {
     if (params.vibes.length === 0) {
       return { valid: false, error: "At least one vibe is required" };
@@ -188,7 +183,7 @@ export function validateTripParams(
       return { valid: false, error: `Maximum ${VIBES_MAX} vibes allowed` };
     }
     for (const vibe of params.vibes) {
-      if (!validVibes.includes(vibe)) {
+      if (!isTripVibe(vibe)) {
         return { valid: false, error: `Invalid vibe: ${vibe}` };
       }
     }

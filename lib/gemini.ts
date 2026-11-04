@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
-import type { GeneratedItinerary, TripCreationParams, Activity, ItineraryDay, UserProfilePreferences } from "@/types";
+import type { GeneratedItinerary, TripCreationParams, TripVibe, Activity, ItineraryDay, UserProfilePreferences } from "@/types";
 import { generateActivityId } from "./utils/activity-id";
 import { getPrompt } from "./prompts";
 import { captureLLMGeneration, type GeminiUsageMetadata } from "./posthog/llm-analytics";
@@ -420,7 +420,7 @@ function buildUserPrompt(params: TripCreationParams, options?: BuildPromptOption
   const duration = totalDuration;
 
   // Build vibe section with weighted influence
-  const vibeLabels: Record<string, string> = {
+  const vibeLabels: Record<TripVibe, string> = {
     adventure: "Adventure Seeker - outdoor activities, hiking, adrenaline",
     cultural: "Cultural Explorer - museums, heritage, local traditions",
     foodie: "Foodie Journey - food markets, local cuisine, restaurants",
