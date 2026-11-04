@@ -4,7 +4,7 @@ import { waitUntil } from "@vercel/functions";
 import { fetchWithOneRetry } from "@/lib/api/fetch-with-one-retry";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { isAnalyticsBot } from "@/lib/analytics/bot-detection";
-import { fetchPlacePhotos, pickPlacePhoto, type PlacePhoto } from "@/lib/images/activity";
+import { fetchPlacePhotos, pickPlacePhoto, type PlacePhoto } from "@/lib/places/google-places";
 import { curatedFor, readActivityTypeHint } from "@/lib/images/curated";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logApiCall } from "@/lib/api-gateway";
