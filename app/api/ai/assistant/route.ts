@@ -320,15 +320,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[AI Assistant] POST error:", error);
 
-    // Capture to Sentry — Assistant failures previously only hit console
-    // + the centralized response wrapper without an exception event.
-    // Task #223. Duration is not tracked at this scope because the POST
-    // handler doesn't capture startTime; we pass 0 so the field is
-    // still set and dashboards don't break on missing data.
+    // Capture to Sentry, as an exception event, with how long the turn ran.
     void recordAiOutcome({
       endpoint: "assistant",
       outcome: "failure",
-      durationMs: 0,
+      durationMs: Date.now() - requestStartTime,
       error,
     });
 
