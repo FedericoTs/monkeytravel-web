@@ -8,7 +8,6 @@ import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, Collaborato
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
 import { hasCoordinates } from "@/lib/trips/has-coordinates";
-import { isRealPoint } from "@/lib/trip/placeholder-point";
 import { withFoundPhotos } from "@/lib/trips/keep-place-photos";
 import { useKeptTripPhotos } from "@/hooks/useKeptTripPhotos";
 import { useEditShortcuts } from "@/hooks/useEditShortcuts";
@@ -67,17 +66,14 @@ import { useToast } from "@/components/ui/Toast";
 import { useCurrency } from "@/lib/locale";
 import { trackTripViewed } from "@/lib/analytics";
 import { segmentBetween, useTravelDistances } from "@/hooks/useTravelDistances";
-import { getCoordinatesForNewActivity, type Coordinates } from "@/lib/utils/geo";
 import {
   ensureActivityIdsStable,
   deleteActivity,
   updateActivity,
-  generateActivityId,
   addActivity,
-  calculateNextTimeSlot,
-  determineTimeSlot,
 } from "@/lib/utils/activity-id";
 import AddActivityButton from "@/components/trip/AddActivityButton";
+import { firstRealPoint, newActivity } from "@/lib/trips/new-activity";
 import SortableActivityCard from "@/components/trip/SortableActivityCard";
 import { useTranslations, useLocale } from "next-intl";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
@@ -711,18 +707,9 @@ export default function TripDetailClient({
     [pushUndo]
   );
 
-  // Get destination coordinates from existing trip activities (memoized)
-  const destinationCoords = useMemo((): Coordinates | undefined => {
-    // Try to find coordinates from any existing activity in the itinerary
-    for (const day of editedItinerary) {
-      for (const activity of day.activities) {
-        if (isRealPoint(activity.coordinates)) {
-          return activity.coordinates;
-        }
-      }
-    }
-    return undefined;
-  }, [editedItinerary]);
+  // The plan's first real map point, near which an added activity without
+  // coordinates is placed when its day has none either.
+  const destinationCoords = useMemo(() => firstRealPoint(editedItinerary), [editedItinerary]);
 
   // Handle adding a new activity to a day
   const handleAddActivity = useCallback(
@@ -730,42 +717,13 @@ export default function TripDetailClient({
       const day = editedItinerary[dayIndex];
       if (!day) return;
 
-      const nextTime = calculateNextTimeSlot(day);
       pushUndo("Add activity");
-
-      // Generate coordinates if not provided
-      // Priority: 1) Use provided coordinates, 2) Generate from existing activities
-      let activityCoords = partialActivity.coordinates;
-      if (!activityCoords?.lat || !activityCoords?.lng) {
-        // Generate coordinates based on existing activities on this day or destination
-        activityCoords = getCoordinatesForNewActivity(day.activities, destinationCoords);
-        if (activityCoords) {
-          console.log(`[TripDetail] Generated coordinates for new activity: ${activityCoords.lat.toFixed(5)}, ${activityCoords.lng.toFixed(5)}`);
-        }
-      }
-
-      const newActivity: Activity = {
-        id: generateActivityId(),
-        name: partialActivity.name || "New Activity",
-        type: partialActivity.type || "activity",
-        description: partialActivity.description || "",
-        location: destination,
-        address: partialActivity.address || "",
-        coordinates: activityCoords,
-        start_time: nextTime,
-        duration_minutes: partialActivity.duration_minutes || 90,
-        time_slot: determineTimeSlot(nextTime),
-        estimated_cost: partialActivity.estimated_cost || {
-          amount: 0,
-          currency: trip.budget?.currency || "USD",
-          tier: "moderate",
-        },
-        tips: [],
-        booking_required: false,
-        image_url: partialActivity.image_url,
-      };
-
-      setEditedItinerary((prev) => addActivity(prev, dayIndex, newActivity));
+      const added = newActivity(day, partialActivity, {
+        destination,
+        nearPoint: destinationCoords,
+        currency: trip.budget?.currency || "USD",
+      });
+      setEditedItinerary((prev) => addActivity(prev, dayIndex, added));
     },
     [editedItinerary, destination, trip.budget?.currency, pushUndo, destinationCoords]
   );
