@@ -67,8 +67,8 @@ vi.mock("@/lib/gemini", () => ({
     modelDone = db.log.length;
     yield { text: "", done: true, fullText: itineraryText, latencyMs: 1 };
   },
-  parseStreamedItinerary: (text: string) => JSON.parse(text),
 }));
+vi.mock("@/lib/ai/itinerary-text", () => ({ parseStreamedItinerary: (text: string) => JSON.parse(text) }));
 
 import { POST } from "./route";
 

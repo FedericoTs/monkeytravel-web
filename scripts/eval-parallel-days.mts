@@ -6,7 +6,8 @@
  *
  * npx tsx --env-file=.env.local scripts/eval-parallel-days.mts "Rome, Italy:10" "Tokyo, Japan:14"
  */
-import { generateItineraryStream, parseStreamedItinerary } from "../lib/gemini";
+import { generateItineraryStream } from "../lib/gemini";
+import { parseStreamedItinerary } from "../lib/ai/itinerary-text";
 import { generateTripOutline, splitIntoParts } from "../lib/ai/trip-outline";
 import { createDayParser, feedChunk } from "../lib/streaming/day-parser";
 import { geminiCostUsd } from "../lib/ai/gemini-cost";

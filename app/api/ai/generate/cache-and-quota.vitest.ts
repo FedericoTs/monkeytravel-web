@@ -47,8 +47,8 @@ vi.mock("@/lib/gemini", () => ({
     modelCalls();
     throw new Error("the stream is never read in these tests");
   },
-  parseStreamedItinerary: () => null,
 }));
+vi.mock("@/lib/ai/itinerary-text", () => ({ parseStreamedItinerary: () => null }));
 vi.mock("@/lib/images/activity", () => ({ fetchActivityImages: async () => [] }));
 vi.mock("@/lib/activity-bank", () => ({ isActivityBankPopulated: async () => true, populateActivityBank: async () => ({}) }));
 vi.mock("@/lib/ai/observability", () => ({ recordAiOutcome: async () => {} }));

@@ -7,7 +7,8 @@
  * before it are done. Total time is the outline plus the slowest part.
  */
 
-import { generateItineraryStream, parseStreamedItinerary } from "@/lib/gemini";
+import { generateItineraryStream } from "@/lib/gemini";
+import { parseStreamedItinerary } from "@/lib/ai/itinerary-text";
 import { createDayParser, feedChunk } from "@/lib/streaming/day-parser";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { getModelForPurpose } from "@/lib/ai/model-router";

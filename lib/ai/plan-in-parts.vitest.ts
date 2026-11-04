@@ -44,8 +44,8 @@ vi.mock("@/lib/gemini", () => ({
     for (let i = 0; i < text.length; i += 50) yield { text: text.slice(i, i + 50), done: false };
     yield { text: "", done: true, fullText: text, latencyMs: 1 };
   },
-  parseStreamedItinerary: (text: string) => JSON.parse(text),
 }));
+vi.mock("@/lib/ai/itinerary-text", () => ({ parseStreamedItinerary: (text: string) => JSON.parse(text) }));
 
 const { writeInParts, PartsError } = await import("./plan-in-parts");
 
