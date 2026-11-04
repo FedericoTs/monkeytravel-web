@@ -604,6 +604,15 @@ export default function NewTripPage({
   const [showChangeDates, setShowChangeDates] = useState(false);
   const [planningExtraDays, setPlanningExtraDays] = useState(false);
   const [datesNotice, setDatesNotice] = useState<string | null>(null);
+  const extraDaysRequest = useRef<AbortController | null>(null);
+  // A plan that replaces this one takes the dates note with it, and the extra
+  // days still being planned, which were this plan's.
+  const forgetDatesChange = useCallback(() => {
+    extraDaysRequest.current?.abort();
+    extraDaysRequest.current = null;
+    setPlanningExtraDays(false);
+    setDatesNotice(null);
+  }, []);
 
   // Pre-fill the SHAPE of the trip (length, budget, vibes) from a blog CTA, so
   // a reader arriving from "3-day Paris itinerary" doesn't have to retype the
@@ -704,8 +713,7 @@ export default function NewTripPage({
     };
   }, [destination, startDate, endDate, destinationCoords]);
 
-  // What a restored draft, an opened kept plan or a tray swap fills in. The
-  // plan it brings drops the dates note, which was about the one it replaces.
+  // What a restored draft, an opened kept plan or a tray swap fills in.
   const draftTargets: DraftTargets = useMemo(
     () => ({
       setDestination,
@@ -721,12 +729,12 @@ export default function NewTripPage({
       setTripIntent,
       setFlexibleDates,
       setGeneratedItinerary: (plan: GeneratedItinerary) => {
-        setDatesNotice(null);
+        forgetDatesChange();
         setGeneratedItinerary(plan);
       },
       registerRestore: registerSessionRestore,
     }),
-    [setGeneratedItinerary, registerSessionRestore]
+    [setGeneratedItinerary, registerSessionRestore, forgetDatesChange]
   );
 
   // A stored draft brought back: put back, offered or discarded, and a
@@ -1386,9 +1394,9 @@ export default function NewTripPage({
   };
 
   const handleGenerate = async (opts: { fresh?: boolean } = {}) => {
-    // A new itinerary replaces the one the edits and the dates note were about.
+    // A new itinerary replaces the one the edits and the new dates were about.
     forgetEdits();
-    setDatesNotice(null);
+    forgetDatesChange();
     // Step 1's rules, checked again: what passed step 1 may no longer hold.
     // handleSessionTrayRestore forces multiCityMode off (see its comment) and
     // a route can drop to one filled row, leaving a 21-day span for a
@@ -1698,11 +1706,14 @@ export default function NewTripPage({
     posthog?.capture("wizard_dates_changed", { from_days: current, to_days: change.length, kind: change.kind });
     if (change.kind !== "longer") return;
 
+    const request = new AbortController();
+    extraDaysRequest.current = request;
     setPlanningExtraDays(true);
     try {
       const res = await fetch("/api/ai/assistant-anon", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: request.signal,
         body: JSON.stringify(
           extraDaysAsk({
             itinerary,
@@ -1715,7 +1726,9 @@ export default function NewTripPage({
           })
         ),
       });
-      const { planned, newDays } = extraDaysFrom(await res.json().catch(() => ({})), current, change.length);
+      const reply = await res.json().catch(() => ({}));
+      if (request.signal.aborted) return;
+      const { planned, newDays } = extraDaysFrom(reply, current, change.length);
       if (res.ok && planned > current && newDays.length > 0) {
         applyEdits(newDays, planned);
         if (planned < change.length) setDatesNotice(t("wizard.changeDates.partlyPlanned", { count: planned }));
@@ -1723,9 +1736,9 @@ export default function NewTripPage({
         setDatesNotice(t("wizard.changeDates.extraFailed", { count: current }));
       }
     } catch {
-      setDatesNotice(t("wizard.changeDates.extraFailed", { count: current }));
+      if (!request.signal.aborted) setDatesNotice(t("wizard.changeDates.extraFailed", { count: current }));
     } finally {
-      setPlanningExtraDays(false);
+      if (!request.signal.aborted) setPlanningExtraDays(false);
     }
   };
 
