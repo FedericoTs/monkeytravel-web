@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isBudgetTier, type ItineraryDay } from "@/types";
 import { tripLocale } from "@/lib/ai/language";
+import { dietsFrom } from "@/lib/trips/diet";
 import { getTripDestination } from "@/lib/trips/destination";
 import { casUpdateItinerary } from "@/lib/trips/itinerary-cas";
 import { applyPlaceChanges, PLACES_TO_EAT_CHECKED_AT, type PlaceChange } from "./kept-trip";
@@ -30,10 +31,23 @@ export type KeptTripCheck =
   | { status: "none"; result?: PlacesToEatResult };
 
 /**
+ * The row's trip_meta with the check's stamp. A trip whose plan took the
+ * owner's profile diet (the planner was asked for none) keeps the diets it was
+ * checked for: its later AI edits (a day or an activity made again, the
+ * assistant's new day) read the trip's own diet, and a trip mate who asks for
+ * one cannot read the owner's profile.
+ */
+function checkedMeta(meta: unknown, stamp: string, diets: string[]): Record<string, unknown> {
+  const m = (meta ?? {}) as Record<string, unknown>;
+  return { ...m, [PLACES_TO_EAT_CHECKED_AT]: stamp, ...(dietsFrom(m.dietary).length === 0 ? { dietary: diets } : {}) };
+}
+
+/**
  * Looks up a kept trip's places to eat for its diets (keptTripDiets) and
- * stores what changed. The write is a compare-and-set on the itinerary's
- * version, and each change lands only where its place still is as it was, so
- * an edit made meanwhile stays.
+ * stores what changed, with those diets on a trip that had none of its own.
+ * The write is a compare-and-set on the itinerary's version, and each change
+ * lands only where its place still is as it was, so an edit made meanwhile
+ * stays.
  */
 export async function checkKeptTripPlacesToEat(
   db: SupabaseClient,
@@ -65,7 +79,7 @@ export async function checkKeptTripPlacesToEat(
       Array.isArray(row.itinerary)
         ? {
             itinerary: applyPlaceChanges(row.itinerary as ItineraryDay[], result.changes),
-            extra: { trip_meta: { ...((row.trip_meta ?? {}) as Record<string, unknown>), [PLACES_TO_EAT_CHECKED_AT]: stamp } },
+            extra: { trip_meta: checkedMeta(row.trip_meta, stamp, diets) },
           }
         : null,
   });
