@@ -18,6 +18,7 @@ vi.mock("@/lib/posthog/events", () => ({
 import {
   reportGenerated,
   reportGenerationFailed,
+  reportGenerationLeft,
   reportGenerationStarted,
   type GenerationReport,
 } from "./generation-reports";
@@ -141,5 +142,19 @@ describe("reportGenerationFailed", () => {
       },
     ]);
     expect(sent.completed).toHaveBeenCalledWith(expect.objectContaining({ error_type: "unknown", success: false }));
+  });
+});
+
+describe("reportGenerationLeft", () => {
+  it("sends the funnel's abandoned row with how long the visitor waited, and nothing else", () => {
+    reportGenerationLeft(report, 1_012_300);
+    expect(rows()).toEqual([{ step: "abandoned", destination: "Lisbon, Portugal", locale: "it", elapsed_ms: 12_300 }]);
+    expect(sent.completed).not.toHaveBeenCalled();
+    expect(sent.generated).not.toHaveBeenCalled();
+  });
+
+  it("caps the wait at a day", () => {
+    reportGenerationLeft(report, report.startedAt + 3 * 86_400_000);
+    expect(rows()[0]).toMatchObject({ elapsed_ms: 86_400_000 });
   });
 });
