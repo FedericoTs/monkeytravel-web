@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
-import { appendTurn, openThread, readThread, type AssistantMessage } from "./thread";
+import { CONCIERGE_SURFACE } from "@/lib/ai/conversations";
+import { appendTurn, assistantMessage, listThreads, openThread, readThread, userMessage, type AssistantMessage } from "./thread";
 
 /**
  * The trip assistant and the concierge keep their threads in one table and
@@ -31,6 +32,65 @@ function fakeSupabase(read: { data: Row; error: { code: string; message: string 
 const thread = { id: "conv-1", messages: [{ role: "user", content: "Add nightclubs" }], context: { surface: "trip_assistant" } };
 const concierge = { ...thread, context: { surface: "concierge_f4" } };
 const noRow = { code: "PGRST116", message: "no rows" };
+
+describe("the messages of a turn", () => {
+  it("keeps the user's words", () => {
+    expect(userMessage("Add a day")).toEqual({ role: "user", content: "Add a day", timestamp: expect.any(String) });
+  });
+
+  it("keeps the reply, and of its action what the history needs, not the days it carries", () => {
+    const message = assistantMessage(
+      {
+        summary: "Ready.",
+        cards: [],
+        action: { type: "apply_draft", applied: false, pending: true, dayNumber: 2, dayCount: 3, revisedDays: [{ day_number: 2 }] as never },
+      },
+      { guarded: false }
+    );
+    expect(message).toEqual({
+      role: "assistant",
+      content: "Ready.",
+      cards: [],
+      action: { type: "apply_draft", applied: false, pending: true, activityId: undefined, dayNumber: 2, dayCount: 3 },
+      timestamp: expect.any(String),
+    });
+  });
+
+  it("says when the words were replaced and what waits for the button, and only then", () => {
+    const reply = { summary: "Ready.", cards: [] };
+    expect(assistantMessage(reply, { guarded: true, pendingNote: "Not saved yet." })).toMatchObject({ guarded: true, pendingNote: "Not saved yet.", action: undefined });
+    const plain = assistantMessage(reply, { guarded: false });
+    expect(plain).not.toHaveProperty("guarded");
+    expect(plain).not.toHaveProperty("pendingNote");
+  });
+});
+
+describe("a trip's threads", () => {
+  const rows = (result: { data: unknown[] | null; error: unknown }) => {
+    const filters: unknown[][] = [];
+    const chain: Record<string, unknown> = {};
+    chain.select = () => chain;
+    chain.eq = (...args: unknown[]) => (filters.push(args), chain);
+    chain.order = () => Promise.resolve(result);
+    return { client: { from: () => chain } as never, filters };
+  };
+  const row = (id: string, context: unknown) => ({ id, created_at: "c", updated_at: "u", messages: [], context });
+
+  it("are the caller's on this trip, without the concierge's, and without their context", async () => {
+    const { client, filters } = rows({ data: [row("a", {}), row("b", { surface: CONCIERGE_SURFACE }), row("c", null)], error: null });
+    expect(await listThreads(client, "trip-1", "user-1")).toEqual([
+      { id: "a", created_at: "c", updated_at: "u", messages: [] },
+      { id: "c", created_at: "c", updated_at: "u", messages: [] },
+    ]);
+    expect(filters).toEqual([["trip_id", "trip-1"], ["user_id", "user-1"]]);
+  });
+
+  it("are none when there are none, and not guessed when the read is refused", async () => {
+    expect(await listThreads(rows({ data: null, error: null }).client, "trip-1", "user-1")).toEqual([]);
+    const refused = { code: "57014", message: "timeout" };
+    await expect(listThreads(rows({ data: null, error: refused }).client, "trip-1", "user-1")).rejects.toBe(refused);
+  });
+});
 
 describe("the assistant's thread, by id", () => {
   it("is the caller's thread, and nothing for a concierge thread or a missing one", async () => {

@@ -16,7 +16,6 @@ import {
   type StructuredAssistantResponse,
 } from "@/types";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
-import { isConciergeRow } from "@/lib/ai/conversations";
 import { applyButtonLabel } from "@/lib/ai/assistant/apply-button";
 import { honestReply } from "@/lib/ai/assistant/honesty";
 import {
@@ -32,7 +31,7 @@ import { prepareAddDay } from "@/lib/ai/assistant/add-day";
 import { prepareDraftChange } from "@/lib/ai/assistant/draft-change";
 import { chatPrompt, turnContext, type TripContext } from "@/lib/ai/assistant/chat-prompt";
 import { askChatModel } from "@/lib/ai/assistant/chat-model";
-import { appendTurn, openThread, readThread, type AssistantMessage } from "@/lib/ai/assistant/thread";
+import { appendTurn, assistantMessage, listThreads, openThread, readThread, userMessage } from "@/lib/ai/assistant/thread";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -197,7 +196,7 @@ export async function POST(request: NextRequest) {
 
     // Nothing was saved on this turn, and the reply may not say otherwise:
     // lib/ai/assistant/honesty.ts honestReply.
-    const { guarded: honestyGuarded, pendingNote } = await honestReply(parsedResponse, {
+    const honesty = await honestReply(parsedResponse, {
       action: actionTaken,
       engineReply,
       language: userLanguage,
@@ -225,35 +224,8 @@ export async function POST(request: NextRequest) {
     // Increment usage counter in new tier-based system
     await incrementUsage(user.id, "aiAssistantMessages", 1);
 
-    // Save messages
-    const userMessage: AssistantMessage = {
-      role: "user",
-      content: message,
-      timestamp: new Date().toISOString(),
-    };
-
-    const assistantMessage: AssistantMessage = {
-      role: "assistant",
-      content: parsedResponse.summary,
-      cards: parsedResponse.cards,
-      action: parsedResponse.action ? {
-        type: parsedResponse.action.type,
-        applied: parsedResponse.action.applied,
-        // Persisted so the history can be read back as evidence. Without it,
-        // a prepared-but-never-confirmed change is indistinguishable from a
-        // saved one — which is precisely why the old records could not be
-        // trusted when diagnosing this.
-        pending: parsedResponse.action.pending,
-        activityId: parsedResponse.action.activityId,
-        dayNumber: parsedResponse.action.dayNumber,
-        dayCount: parsedResponse.action.dayCount,
-      } : undefined,
-      ...(honestyGuarded ? { guarded: true } : {}),
-      ...(pendingNote ? { pendingNote } : {}),
-      timestamp: new Date().toISOString(),
-    };
-
-    await appendTurn(supabase, conversation, [userMessage, assistantMessage]);
+    const reply = assistantMessage(parsedResponse, honesty);
+    await appendTurn(supabase, conversation, [userMessage(message), reply]);
 
     // Update usage info for response
     const updatedUsage = {
@@ -271,7 +243,7 @@ export async function POST(request: NextRequest) {
     });
 
     const responsePayload = {
-      message: assistantMessage,
+      message: reply,
       conversationId: conversation.id,
       model: modelConfig.name,
       complexity: classification.complexity,
@@ -315,24 +287,12 @@ export async function GET(request: NextRequest) {
     const tripId = searchParams.get("tripId");
     const conversationId = searchParams.get("conversationId");
 
-    // The concierge's rows share the table; this chat never shows them.
     if (conversationId) {
       return apiSuccess({ conversation: await readThread(supabase, conversationId, user.id) });
     }
 
     if (tripId) {
-      const { data: rows, error } = await supabase
-        .from("ai_conversations")
-        .select("id, created_at, updated_at, messages, context")
-        .eq("trip_id", tripId)
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false });
-      if (error) throw error;
-
-      const conversations = (rows ?? [])
-        .filter((row) => !isConciergeRow(row.context))
-        .map(({ id, created_at, updated_at, messages }) => ({ id, created_at, updated_at, messages }));
-      return apiSuccess({ conversations });
+      return apiSuccess({ conversations: await listThreads(supabase, tripId, user.id) });
     }
 
     return errors.badRequest("Missing tripId or conversationId");

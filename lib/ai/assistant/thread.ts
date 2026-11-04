@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { ASSISTANT_SURFACE, isConciergeRow } from "@/lib/ai/conversations";
 import { isNoRow } from "@/lib/supabase/no-row";
 import { logWriteError } from "@/lib/supabase/log-write-error";
-import type { AssistantCard } from "@/types";
+import type { AssistantCard, StructuredAssistantResponse } from "@/types";
 
 /** One message of a trip-assistant thread, as ai_conversations keeps it. */
 export interface AssistantMessage {
@@ -42,6 +42,59 @@ export interface AssistantMessage {
     dayCount?: number;
   };
   timestamp: string;
+}
+
+/** The user's side of a turn, as the thread keeps it. */
+export function userMessage(content: string): AssistantMessage {
+  return { role: "user", content, timestamp: new Date().toISOString() };
+}
+
+/**
+ * The assistant's side of a turn, as the thread keeps it and the chat shows it:
+ * the reply made honest, and what that changed (lib/ai/assistant/honesty.ts).
+ */
+export function assistantMessage(
+  reply: StructuredAssistantResponse,
+  { guarded, pendingNote }: { guarded: boolean; pendingNote?: string }
+): AssistantMessage {
+  return {
+    role: "assistant",
+    content: reply.summary,
+    cards: reply.cards,
+    action: reply.action
+      ? {
+          type: reply.action.type,
+          applied: reply.action.applied,
+          // Kept so the history can be read back as evidence: without it, a
+          // change prepared and never confirmed reads like a saved one.
+          pending: reply.action.pending,
+          activityId: reply.action.activityId,
+          dayNumber: reply.action.dayNumber,
+          dayCount: reply.action.dayCount,
+        }
+      : undefined,
+    ...(guarded ? { guarded: true } : {}),
+    ...(pendingNote ? { pendingNote } : {}),
+    timestamp: new Date().toISOString(),
+  };
+}
+
+/**
+ * The caller's trip-assistant threads on this trip, latest first. The
+ * concierge's rows share the table, and this chat never shows them. A refused
+ * read throws: an empty history would read as "you have no threads".
+ */
+export async function listThreads(supabase: SupabaseClient, tripId: string, userId: string) {
+  const { data: rows, error } = await supabase
+    .from("ai_conversations")
+    .select("id, created_at, updated_at, messages, context")
+    .eq("trip_id", tripId)
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false });
+  if (error) throw error;
+  return (rows ?? [])
+    .filter((row) => !isConciergeRow(row.context))
+    .map(({ id, created_at, updated_at, messages }) => ({ id, created_at, updated_at, messages }));
 }
 
 /**
