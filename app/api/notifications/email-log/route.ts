@@ -39,9 +39,7 @@ export async function GET(request: NextRequest) {
     }
     return apiSuccess({ entries: data ?? [] });
   } catch (err) {
-    return errors.internal(
-      err instanceof Error ? err.message : "Failed",
-      "EmailLog"
-    );
+    console.error("[email-log] failed:", err);
+    return errors.internal("Failed to load email history", "EmailLog");
   }
 }

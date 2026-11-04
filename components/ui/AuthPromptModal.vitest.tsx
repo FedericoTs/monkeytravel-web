@@ -96,6 +96,45 @@ describe("a failed request", () => {
     expect(event.reason).toBe("email_address_invalid");
     expect(JSON.stringify(event)).not.toContain("planner@example.com");
   });
+
+  // supabase-js answers with Error instances, and they carry its English words.
+  const authError = (message: string, fields: { status?: number; code?: string; name?: string } = {}) =>
+    Object.assign(new Error(message), fields);
+
+  // The translator is mocked to echo keys, so each key stands for the visitor's language.
+  it.each([
+    ["a wait", authError("For security purposes, you can only request this after 52 seconds", { status: 429 }), "magicLink.codeRateLimited"],
+    ["the project's email cap", authError("email rate limit exceeded", { code: "over_email_send_rate_limit", status: 429 }), "magicLink.codeRateLimited"],
+    ["a gateway failure", authError("An error occurred", { status: 504 }), "magicLink.codeNetwork"],
+    ["no connection", authError("Failed to fetch", { name: "AuthRetryableFetchError", status: 0 }), "magicLink.codeNetwork"],
+    ["an address that is refused", authError('Email address "planner@example.com" is invalid', { code: "email_address_invalid", status: 400 }), "magicLink.emailInvalid"],
+    ["anything else", authError("Signups not allowed for otp", { status: 422 }), "magicLink.failed"],
+  ])("says so in the visitor's language, not Supabase's words: %s", async (_name, error, key) => {
+    signInWithOtp.mockResolvedValueOnce({ error });
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="" redirectPath="/trips/new" />);
+    fireEvent.change(screen.getByPlaceholderText("magicLink.emailPlaceholder"), { target: { value: "planner@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "magicLink.send" }));
+    expect(await screen.findByText(key)).toBeTruthy();
+    expect(screen.queryByText(error.message)).toBeNull();
+  });
+
+  it("names a send that failed as a send when a new code cannot go out", async () => {
+    await reachCodeEntry();
+    signInWithOtp.mockResolvedValueOnce({ error: authError("Signups not allowed for otp", { status: 422 }) });
+    fireEvent.click(screen.getByRole("button", { name: "magicLink.codeResend" }));
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("magicLink.failed"));
+  });
+
+  it("names Google when Google fails, not its words", async () => {
+    signInWithOAuth.mockResolvedValueOnce({ error: authError("Unsupported provider: provider is not enabled") });
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    render(<AuthPromptModal isOpen onClose={() => {}} destination="" redirectPath="/trips/new" />);
+    fireEvent.click(screen.getByRole("button", { name: "googleButton" }));
+    expect(await screen.findByText("googleFailed")).toBeTruthy();
+    expect(screen.queryByText(/Unsupported provider/)).toBeNull();
+    expect(logged).toHaveBeenCalled();
+    logged.mockRestore();
+  });
 });
 
 describe("what the field accepts", () => {

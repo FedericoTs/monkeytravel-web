@@ -33,7 +33,7 @@ interface ApplyChangeRequest {
    * send it still applies the change, it just leaves history unannotated.
    */
   conversationId?: string;
-  changeType: "replace" | "add" | "remove" | "adjust_duration" | "reorder" | "add_day" | "apply_draft" | "shift_days";
+  changeType: "replace" | "add" | "remove" | "adjust_duration" | "add_day" | "apply_draft" | "shift_days";
   oldActivity?: Activity;
   newActivity?: Activity;
   dayNumber: number;
@@ -41,8 +41,6 @@ interface ApplyChangeRequest {
   activity?: { id: string; name: string; type: string };
   oldDuration?: number;
   newDuration?: number;
-  // For reorder
-  activities?: { id: string; name: string; time: string; timeSlot: string }[];
   // For add_day (structural — transcript: "can you add a day to travel to
   // Voss"): the fully generated day proposed in preview.
   day?: ItineraryDay;
@@ -57,7 +55,18 @@ interface ApplyChangeRequest {
   shiftByDays?: number;
 }
 
+const CHANGE_TYPES: ReadonlySet<string> = new Set<ApplyChangeRequest["changeType"]>([
+  "replace",
+  "add",
+  "remove",
+  "adjust_duration",
+  "add_day",
+  "apply_draft",
+  "shift_days",
+]);
+
 export async function POST(request: NextRequest) {
+  const requestStartTime = Date.now();
   console.log("[AI Assistant Apply] POST request received");
 
   try {
@@ -66,13 +75,19 @@ export async function POST(request: NextRequest) {
 
     const { body, invalidBody } = await readJsonBody<ApplyChangeRequest>(request);
     if (invalidBody) return invalidBody;
-    const { tripId, changeType, oldActivity, newActivity, dayNumber, activity, oldDuration, newDuration, activities, day, days, shiftByDays, conversationId } = body;
+    const { tripId, changeType, oldActivity, newActivity, dayNumber, activity, oldDuration, newDuration, day, days, shiftByDays, conversationId } = body;
 
     // Validate based on change type.
     // A type check, not `!dayNumber`: 0 is a valid first day in trips that
     // use 0-indexed day numbering.
     if (!tripId || !changeType || typeof dayNumber !== "number") {
       return errors.badRequest("Missing required fields: tripId, changeType, dayNumber");
+    }
+
+    // No branch below would match another type, and the unchanged trip would
+    // be saved and reported as a success.
+    if (!CHANGE_TYPES.has(changeType)) {
+      return errors.badRequest("Unknown changeType");
     }
 
     // Specific validation per change type
@@ -82,10 +97,6 @@ export async function POST(request: NextRequest) {
 
     if (changeType === "adjust_duration" && (!activity || newDuration === undefined)) {
       return errors.badRequest("Missing activity or newDuration for adjust_duration operation");
-    }
-
-    if (changeType === "reorder" && !activities) {
-      return errors.badRequest("Missing activities for reorder operation");
     }
 
     if (changeType === "add_day" && (!day || !Array.isArray(day.activities) || day.activities.length === 0)) {
@@ -162,14 +173,6 @@ export async function POST(request: NextRequest) {
           { code: CODES.locked, names: [target?.name].filter(Boolean) }
         );
       }
-    } else if (changeType === "reorder") {
-      const locked = lockedActivityNames(modifiedItinerary[dayIndex]);
-      if (locked.length > 0) {
-        return errors.badRequest(
-          `Day ${dayNumber} is built around a fixed plan (${locked.join(", ")}) and can't be reshuffled.`,
-          { code: CODES.locked, names: locked }
-        );
-      }
     } else if (changeType === "apply_draft") {
       // Only the days being replaced: the assistant's multi-day edits leave
       // a day with a fixed plan alone, and so may this write.
@@ -186,7 +189,7 @@ export async function POST(request: NextRequest) {
     } else if (changeType === "shift_days") {
       // Shifting dates would silently move date-pinned commitments (a booked
       // flight, a wedding) to days they don't belong to — refuse when any
-      // affected day carries a locked activity, same rule as reorder.
+      // affected day carries a locked activity.
       const locked = modifiedItinerary
         .slice(dayIndex)
         .flatMap((d) => lockedActivityNames(d));
@@ -258,38 +261,6 @@ export async function POST(request: NextRequest) {
       }
 
       console.log(`[AI Assistant Apply] Adjusted "${activity.name}" duration from ${oldDuration || "unknown"}min to ${newDuration}min`);
-    } else if (changeType === "reorder" && activities) {
-      // Reorder activities based on the provided order
-      const currentActivities = modifiedItinerary[dayIndex].activities;
-      const reorderedActivities: Activity[] = [];
-
-      // Map activities by ID/name for lookup
-      const activityMap = new Map<string, Activity>();
-      for (const act of currentActivities) {
-        if (act.id) activityMap.set(act.id, act);
-        activityMap.set(act.name, act);
-      }
-
-      // Build reordered list
-      for (const orderedAct of activities) {
-        const found = activityMap.get(orderedAct.id) || activityMap.get(orderedAct.name);
-        if (found) {
-          // Update time and time slot from the reorder data
-          found.start_time = orderedAct.time;
-          found.time_slot = orderedAct.timeSlot as "morning" | "afternoon" | "evening";
-          reorderedActivities.push(found);
-        }
-      }
-
-      // Add any activities that weren't in the reorder list (shouldn't happen, but safety)
-      for (const act of currentActivities) {
-        if (!reorderedActivities.find(r => r.id === act.id || r.name === act.name)) {
-          reorderedActivities.push(act);
-        }
-      }
-
-      modifiedItinerary[dayIndex].activities = reorderedActivities;
-      console.log(`[AI Assistant Apply] Reordered Day ${dayNumber} with ${reorderedActivities.length} activities`);
     }
 
     // Structural results threaded into the update + response below.
@@ -539,7 +510,7 @@ export async function POST(request: NextRequest) {
     void recordAiOutcome({
       endpoint: "assistant",
       outcome: "failure",
-      durationMs: 0,
+      durationMs: Date.now() - requestStartTime,
       error,
       metadata: { subroute: "apply" },
     });

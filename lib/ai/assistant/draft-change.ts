@@ -162,7 +162,8 @@ Return ONLY valid JSON:
       }
     } catch (err) {
       console.error("[AI Assistant] Failed to map draft:", err);
-      return { error: `Failed to map your draft onto the trip: ${err instanceof Error ? err.message : "Unknown error"}`, unmapped: [] };
+      // The reply tells the user this reason, so the error's own text stays in the log.
+      return { error: "The pasted draft could not be matched to the trip's days just now", unmapped: [] };
     }
   }
 }

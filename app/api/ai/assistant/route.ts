@@ -1,8 +1,7 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
-import { validateAndFixCoordinates } from "@/lib/trip/coordinate-fallback";
-import { detectStructuralIntent, computeExtendedEndDate } from "@/lib/ai/assistant/structural";
+import { detectStructuralIntent } from "@/lib/ai/assistant/structural";
 import {
   classifyTask,
   selectModel,
@@ -22,6 +21,7 @@ import { applyButtonLabel } from "@/lib/ai/assistant/apply-button";
 import { honestReply } from "@/lib/ai/assistant/honesty";
 import {
   conversationTurns,
+  proposedChange,
   proposeTripEdits,
   readDisplayCurrency,
   type TripEditProposal,
@@ -106,35 +106,12 @@ export async function POST(request: NextRequest) {
       `[AI Assistant] Structural intent: ${structuralIntent.type}; engine: ${tripEdits ? `${tripEdits.revisedDays.length} day(s)` : "not used"}`
     );
 
-    // Deep clone the itinerary to avoid reference issues
-    const modifiedItinerary: ItineraryDay[] = JSON.parse(JSON.stringify(itinerary));
-    let actionTaken: StructuredAssistantResponse["action"] | undefined;
+    // The engine's revised days, as one change for the user's confirm
+    // (lib/ai/assistant/trip-edits.ts proposedChange).
+    let actionTaken: StructuredAssistantResponse["action"] | undefined = tripEdits
+      ? proposedChange(tripEdits, { days: itinerary, destination: tripContext.destination, endDate: trip.end_date })
+      : undefined;
     let replacementError: string | undefined;
-
-    // The engine's revised days: one multi-day change, confirmed and saved
-    // like a pasted draft (apply_draft), in one write. New days go after the
-    // last one, and the trip's end date moves with them.
-    let engineEndDate: string | undefined;
-    if (engineEdited && tripEdits) {
-      const fixedDays = validateAndFixCoordinates(tripEdits.revisedDays, tripContext.destination);
-      for (const day of fixedDays) {
-        const idx = modifiedItinerary.findIndex((d) => d.day_number === day.day_number);
-        if (idx !== -1) modifiedItinerary[idx] = day;
-        else modifiedItinerary.push(day);
-      }
-      const lastDate = modifiedItinerary[modifiedItinerary.length - 1]?.date;
-      if (modifiedItinerary.length > itinerary.length && lastDate) {
-        engineEndDate = computeExtendedEndDate(trip.end_date, lastDate) ?? undefined;
-      }
-      actionTaken = {
-        type: "apply_draft",
-        applied: false,
-        dayNumber: fixedDays[0].day_number,
-        dayCount: fixedDays.length,
-        revisedDays: fixedDays,
-        ...(engineEndDate ? { newEndDate: engineEndDate } : {}),
-      };
-    }
 
     // Structural no-op note (cap reached, nothing mappable, …) — injected
     // into the model prompt so the reply explains kindly instead of the
@@ -150,7 +127,7 @@ export async function POST(request: NextRequest) {
     // together with the itinerary on apply. The edit engine handles it first.
     if (structuralIntent.type === "add_day" && !tripEdits) {
       const added = await prepareAddDay({
-        days: modifiedItinerary,
+        days: itinerary,
         requestedTotal: structuralIntent.requestedTotalDays,
         role: assistantRole,
         trip,
@@ -308,10 +285,6 @@ export async function POST(request: NextRequest) {
         limit: updatedUsage.limit,
         resetAt: updatedUsage.resetAt,
       },
-      // Debug info
-      debug: {
-        replacementError,
-      },
     };
 
     console.log(`[AI Assistant] Response: pendingChange=${pendingChange?.type ?? "none"}`);
@@ -320,15 +293,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[AI Assistant] POST error:", error);
 
-    // Capture to Sentry — Assistant failures previously only hit console
-    // + the centralized response wrapper without an exception event.
-    // Task #223. Duration is not tracked at this scope because the POST
-    // handler doesn't capture startTime; we pass 0 so the field is
-    // still set and dashboards don't break on missing data.
+    // Capture to Sentry, as an exception event, with how long the turn ran.
     void recordAiOutcome({
       endpoint: "assistant",
       outcome: "failure",
-      durationMs: 0,
+      durationMs: Date.now() - requestStartTime,
       error,
     });
 

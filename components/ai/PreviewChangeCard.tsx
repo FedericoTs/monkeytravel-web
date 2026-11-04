@@ -143,26 +143,6 @@ export default function PreviewChangeCard({
           </div>
         )}
 
-        {/* REORDER: the new ordered list of activities for the day */}
-        {change.type === "reorder" && (
-          <ol className="space-y-1.5">
-            {change.activities.map((a, i) => (
-              <li
-                key={a.id || `${a.name}-${i}`}
-                className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2"
-              >
-                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-semibold flex items-center justify-center flex-shrink-0">
-                  {i + 1}
-                </span>
-                {a.time && (
-                  <span className="text-xs font-mono text-slate-500 flex-shrink-0">{a.time}</span>
-                )}
-                <span className="text-sm text-slate-700 truncate">{a.name}</span>
-              </li>
-            ))}
-          </ol>
-        )}
-
         {/* ADD_DAY: the proposed new day — theme, its activities, and the
             new trip end date (the append moves trips.end_date on apply) */}
         {change.type === "add_day" && (

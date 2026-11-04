@@ -154,3 +154,19 @@ export function otpErrorMessageKey(kind: OtpErrorKind): string {
       return "magicLink.codeFailed";
   }
 }
+
+/**
+ * The i18n key for an email that could not be sent. A wait or a connection
+ * problem is named, and an address that is refused needs fixing rather than
+ * another try. Supabase's own words stay off the page: they are in English,
+ * and they can quote the address back.
+ */
+export function otpSendFailureKey(err: unknown): string {
+  const { code, message, status } = (err ?? {}) as { code?: unknown; message?: string; status?: number };
+  const text = (message ?? "").toLowerCase();
+  if (code === "email_address_invalid" || (text.includes("email") && text.includes("invalid"))) {
+    return "magicLink.emailInvalid";
+  }
+  const kind = classifyOtpError(message, status);
+  return kind === "rate_limit" || kind === "network" ? otpErrorMessageKey(kind) : "magicLink.failed";
+}

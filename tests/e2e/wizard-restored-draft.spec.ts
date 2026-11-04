@@ -1,5 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import draft from "./fixtures/wizard-draft-paris.json";
+import itCommon from "../../messages/it/common.json";
+import itTrips from "../../messages/it/trips.json";
 
 /**
  * A signed-out planner who generated a trip and comes back finds it in the
@@ -52,6 +54,30 @@ test.describe("wizard: a restored draft", () => {
       },
       { key: DRAFT_KEY, value: draft }
     );
+  });
+
+  test("the save wall says why no email went out, in the visitor's language", async ({ page }) => {
+    // Supabase's answer once the project's auth-email cap is reached.
+    await page.route("**/auth/v1/otp**", (route) =>
+      route.fulfill({
+        status: 429,
+        contentType: "application/json",
+        headers: { "access-control-allow-origin": "*" },
+        body: JSON.stringify({ code: 429, error_code: "over_email_send_rate_limit", msg: "email rate limit exceeded" }),
+      })
+    );
+    const { magicLink } = itCommon.authPrompt;
+
+    await page.goto("/it/trips/new");
+    await page.getByRole("button", { name: itTrips.wizard.draftRecovery.restore }).click({ timeout: 30_000 });
+    await page.getByRole("button", { name: new RegExp(itTrips.wizard.result.saveTrip) }).first().click({ timeout: 30_000 });
+
+    const wall = page.getByRole("dialog");
+    await wall.getByPlaceholder(magicLink.emailPlaceholder).fill("planner@example.com");
+    await wall.getByRole("button", { name: magicLink.send }).click();
+
+    await expect(wall.getByText(magicLink.codeRateLimited)).toBeVisible();
+    await expect(wall.getByText(/rate limit/i)).toHaveCount(0);
   });
 
   test("Restore Trip brings back the itinerary and its actions", async ({ page }) => {

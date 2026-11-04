@@ -12,10 +12,11 @@
 import { assistTrip, type AssistTurn, type DayEdit } from "./engine";
 import { lengthUnchangedNote, ownerAddsDaysReply } from "@/lib/ai/assistant/honesty";
 import type { DisplayCurrency } from "@/lib/ai/assistant/plan-costs";
-import { addDaysISO } from "@/lib/ai/assistant/structural";
+import { addDaysISO, computeExtendedEndDate } from "@/lib/ai/assistant/structural";
+import { validateAndFixCoordinates } from "@/lib/trip/coordinate-fallback";
 import { applyAssistantEdits } from "@/lib/trips/day-edit-merge";
 import { generateActivityId } from "@/lib/utils/activity-id";
-import type { Activity, ItineraryDay } from "@/types";
+import type { Activity, ItineraryDay, StructuredAssistantResponse } from "@/types";
 
 /** The currency the page shows prices in, when the request names a sane one. */
 export function readDisplayCurrency(raw: unknown): DisplayCurrency | undefined {
@@ -189,5 +190,36 @@ export async function proposeTripEdits(input: {
       ? `${summary} ${LEAVES_OUT[input.locale] ?? LEAVES_OUT.en}: ${removed.join(", ")}.`.trim()
       : summary,
     meta: result.meta,
+  };
+}
+
+/**
+ * The proposal as the change waiting for the user's confirm: one multi-day
+ * change (apply_draft), saved in one write like a pasted draft. Days past the
+ * last one go after it, and the trip's end date moves with them. Undefined
+ * when the proposal changes no day.
+ */
+export function proposedChange(
+  proposal: TripEditProposal,
+  trip: { days: ItineraryDay[]; destination: string; endDate: string | null | undefined }
+): NonNullable<StructuredAssistantResponse["action"]> | undefined {
+  if (proposal.revisedDays.length === 0) return undefined;
+  const revisedDays = validateAndFixCoordinates(proposal.revisedDays, trip.destination);
+  const days = [...trip.days];
+  for (const day of revisedDays) {
+    const idx = days.findIndex((d) => d.day_number === day.day_number);
+    if (idx !== -1) days[idx] = day;
+    else days.push(day);
+  }
+  const lastDate = days[days.length - 1]?.date;
+  const newEndDate =
+    days.length > trip.days.length && lastDate ? (computeExtendedEndDate(trip.endDate, lastDate) ?? undefined) : undefined;
+  return {
+    type: "apply_draft",
+    applied: false,
+    dayNumber: revisedDays[0].day_number,
+    dayCount: revisedDays.length,
+    revisedDays,
+    ...(newEndDate ? { newEndDate } : {}),
   };
 }
