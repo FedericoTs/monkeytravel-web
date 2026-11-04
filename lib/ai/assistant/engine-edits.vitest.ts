@@ -249,6 +249,14 @@ describe("buildPrompt", () => {
     expect(prompt).toContain("Don't ask which day");
   });
 
+  it("asks for the plan's words in the trip's language, English when it isn't one of the four", () => {
+    const ask = (locale?: string) =>
+      buildPrompt({ message: "swap days 1 and 2", destination: "Lisbon", tripTitle: "Lisbon", days: trip(), locale });
+    for (const [locale, name] of [["it", "Italian"], ["es", "Spanish"], ["pt", "Portuguese"], ["en", "English"], [undefined, "English"], ["fr", "English"], ["toString", "English"]] as const) {
+      expect(ask(locale), String(locale)).toContain(`One concise sentence, in ${name}, describing the change`);
+    }
+  });
+
   // A change the page makes at once is told as done, not as "Ready to…".
   it("words a change as done when the page makes it at once, and as ready when it waits for a button", () => {
     const ask = (autoApply?: boolean) =>
