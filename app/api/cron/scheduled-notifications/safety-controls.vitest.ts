@@ -1,7 +1,6 @@
 /** @vitest-environment node */
+import { cronSource } from "@/tests/cron-source";
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "fs";
-import { join } from "path";
 
 /**
  * The two controls that stand between this cron and a bad mass send.
@@ -14,7 +13,7 @@ import { join } from "path";
  * bug in four lines of counter.
  */
 
-const SRC = readFileSync(join(__dirname, "route.ts"), "utf8");
+const SRC = cronSource();
 
 describe("inline verification gate", () => {
   it("passes a verify callback to dispatchEmail", () => {

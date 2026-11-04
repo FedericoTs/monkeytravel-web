@@ -1,3 +1,4 @@
+import { cronSource } from "@/tests/cron-source";
 import { describe, it, expect } from "vitest";
 import { createTranslator } from "next-intl";
 import { readFileSync } from "fs";
@@ -95,7 +96,7 @@ describe("trip day digest copy resolves for every locale the cron can reach", ()
 });
 
 describe("the cron wires the digest namespace + guard", () => {
-  const source = readFileSync(join(__dirname, "route.ts"), "utf8");
+  const source = cronSource();
 
   it("asks for common.tripDayDigestEmail", () => {
     expect(source).toContain('"common.tripDayDigestEmail"');

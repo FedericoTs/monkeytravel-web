@@ -1,3 +1,4 @@
+import { cronSource } from "@/tests/cron-source";
 import { describe, it, expect } from "vitest";
 import { createTranslator } from "next-intl";
 import { readFileSync } from "fs";
@@ -230,7 +231,7 @@ describe("next-intl itself resolves the reminder copy", () => {
 });
 
 describe("the cron asks for the prefixed namespace", () => {
-  const source = readFileSync(join(__dirname, "route.ts"), "utf8");
+  const source = cronSource();
 
   it("uses common.tripReminderEmail", () => {
     expect(source).toContain('"common.tripReminderEmail"');
