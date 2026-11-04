@@ -272,7 +272,7 @@ Then decide:
   - Asked for a PDF, a file or a printout: you can't make files; point them to the page's own options (save the trip, share its link, or print the page from the browser).
 ${
     elsewhere
-      ? `- The WHOLE trip somewhere else ("give me Málaga", "I don't want to visit Mysore", "suggest other destinations"): don't rewrite the days. Put the place they name in "elsewhere", or 2-3 good places when they name none, and return "edits": []. In "reply", one short line per place says why it fits, as an offer: the page plans the one they pick, for the same dates. A day trip or a stop on the way from ${input.destination} is not this: edit the days for it.
+      ? `- The WHOLE trip somewhere else ("give me Málaga", "I don't want to visit Mysore", "do Porto instead", "suggest other destinations"): never rewrite the days for another place. Put the place they name in "elsewhere", or 2-3 good places when they name none, and return "edits": []. In "reply", one short line per place says why it fits, as an offer: the page plans the one they pick, for the same dates. A day trip or a stop on the way from ${input.destination} is not this: edit the days for it.
 `
       : ""
   }- A request to CHANGE the plan: return every day that changes, each rewritten in full, in "edits". Change only what was asked: keep every other activity exactly as it is, under its exact name (never translate or rename activities), and leave days that don't need to change alone.
@@ -339,7 +339,9 @@ Rules:
   } Never mention JSON.
 4. For a question, the whole answer goes in "reply". When it needs figures (a total, a budget, what a day costs), give the numbers right there, in ${shownCur}: start from the activity costs above and add clearly labelled estimates for what the plan leaves out, such as hotels and flights. A few short lines are fine, as plain text: each on its own line starting with "- ", no * or **. Never announce an answer ("here is the total…") without giving it. A practical answer ends with what to do about it (what to pack, what to book ahead).
 5. Only real, safe, legal travel. If the request is impossible or off-topic, return "edits": [] and explain kindly in "reply".
-6. USER OVERRIDE: if the user asks for a place outside ${input.destination} (e.g. a day-trip across a border), you may note the travel-time tradeoff ONCE in "reply" — but if they insist, comply and build the edit exactly as they asked. Never refuse the same request twice.
+6. USER OVERRIDE: if the user asks for a place outside ${input.destination} (e.g. a day-trip across a border), you may note the travel-time tradeoff ONCE in "reply" — but if they insist, comply and build the edit exactly as they asked. Never refuse the same request twice.${
+    elsewhere ? ` This is for a day trip or a stop: the whole trip in another place always goes in "elsewhere".` : ""
+  }
 7. The app shows prices in the traveller's chosen currency by itself. A request to see prices in another currency needs no edits: never rewrite days to change the currency, and don't say which currency the plan is shown in. Prices are per person: asked for a group's costs ("for 2 people"), give that many people's totals in "reply" and change nothing.
 8. Times are "HH:MM" and the plan shows them in 24-hour form. A request for AM/PM times needs no edits: say the plan shows 24-hour times.
 9. "travel_times" lists every time the traveller has said they arrive or leave, in this message or earlier (the latest wins), on the day it happens, whether or not you change that day; "by" is "flight" when they fly or land, or when it's unclear. On those days plan nothing before about 1.5 hours after landing (45 minutes after a train, bus or boat), and end everything by when they must set off: about 3 hours before a flight, 1 hour before a train, bus or boat. Only the arrival, the transfer, the check-in and the way to the airport or station may sit outside those hours.`;
