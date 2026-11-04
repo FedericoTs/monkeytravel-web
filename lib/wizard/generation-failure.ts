@@ -32,7 +32,7 @@ export type GenerationFailureCode =
   | "upstream"
   | "unknown";
 
-/** Server validation copy from lib/gemini.ts validateTripParams and lib/ai/anchors-core.ts validateAnchors, plus the client's own. */
+/** Server validation copy from lib/trips/request-validation.ts validateTripParams and lib/ai/anchors-core.ts validateAnchors, plus the client's own. */
 const VALIDATION = [
   "anchor",
   "destination name too long",

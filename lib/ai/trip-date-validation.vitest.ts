@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { validateTripParams } from "@/lib/gemini";
+import { validateTripParams } from "@/lib/trips/request-validation";
 import { addDaysISO } from "@/lib/ai/multi-city-core";
 import { classifyGenerationFailure } from "@/lib/wizard/generation-failure";
 import type { TripCreationParams } from "@/types";

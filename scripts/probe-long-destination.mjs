@@ -1,11 +1,12 @@
 /**
  * A pasted prompt must be refused by the CLIENT, before it costs a round-trip.
  *
- * lib/gemini.ts validateTripParams rejects a destination over 100 characters,
- * and the wizard's own gate mirrored every other rule in that function except
- * this one. So a prompt pasted into the destination box passed step 1, fired a
- * `generating` row, and bounced back with an untranslated "Destination name
- * too long" behind a Retry button that resent the identical text.
+ * validateTripParams (lib/trips/request-validation.ts) rejects a destination
+ * over 100 characters, and the wizard's own gate mirrored every other rule in
+ * that function except this one. So a prompt pasted into the destination box
+ * passed step 1, fired a `generating` row, and bounced back with an
+ * untranslated "Destination name too long" behind a Retry button that resent
+ * the identical text.
  *
  * Measured over the 30 days to 2026-09-02:
  *
