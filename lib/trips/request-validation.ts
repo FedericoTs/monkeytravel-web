@@ -11,28 +11,30 @@ import {
   VIBES_MAX,
 } from "./request-limits";
 
-// Input validation — defense-in-depth against prompt injection
+// Input validation — defense-in-depth against prompt injection.
+// Not global: .test() on a /g pattern starts where its last match ended, so
+// text refused once would pass the next time.
 const DANGEROUS_PATTERNS = [
-  /ignore\s+(all\s+)?previous\s+instructions/gi,
-  /disregard\s+(all\s+)?prior/gi,
-  /you\s+are\s+now/gi,
-  /pretend\s+to\s+be/gi,
-  /system\s+prompt/gi,
-  /\[INST\]/gi,
-  /<<SYS>>/gi,
-  /new\s+persona/gi,
-  /override\s+(your|the|all)/gi,
-  /forget\s+everything/gi,
-  /do\s+not\s+follow/gi,
-  /bypass\s+(the\s+)?filter/gi,
-  /act\s+as\s+(a|an|if)/gi,
-  /roleplay\s+as/gi,
-  /jailbreak/gi,
-  /DAN\s+mode/gi,
-  /developer\s+mode/gi,
-  /respond\s+as\s+if/gi,
-  /reveal\s+(your|the)\s+(system|instructions|prompt)/gi,
-  /what\s+are\s+your\s+instructions/gi,
+  /ignore\s+(all\s+)?previous\s+instructions/i,
+  /disregard\s+(all\s+)?prior/i,
+  /you\s+are\s+now/i,
+  /pretend\s+to\s+be/i,
+  /system\s+prompt/i,
+  /\[INST\]/i,
+  /<<SYS>>/i,
+  /new\s+persona/i,
+  /override\s+(your|the|all)/i,
+  /forget\s+everything/i,
+  /do\s+not\s+follow/i,
+  /bypass\s+(the\s+)?filter/i,
+  /act\s+as\s+(a|an|if)/i,
+  /roleplay\s+as/i,
+  /jailbreak/i,
+  /DAN\s+mode/i,
+  /developer\s+mode/i,
+  /respond\s+as\s+if/i,
+  /reveal\s+(your|the)\s+(system|instructions|prompt)/i,
+  /what\s+are\s+your\s+instructions/i,
 ];
 
 const BLACKLIST = [
