@@ -1,17 +1,13 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
 import type { ItineraryDay } from "@/types";
-import {
-  asksForMoreDays,
-  buildPrompt,
-  composeReply,
-  correctionFor,
-  keepSavedActivities,
-  outsideTravelTimes,
-  readTravelTimes,
-  takenOut,
-  type DayEdit,
-} from "./engine";
+import { buildPrompt } from "./edit-prompt";
+import { composeReply } from "./edit-reply";
+import type { DayEdit } from "./edit-validation";
+import { correctionFor } from "./engine";
+import { asksForMoreDays } from "./message-asks";
+import { keepSavedActivities, takenOut } from "./saved-activities";
+import { outsideTravelTimes, readTravelTimes } from "./travel-times";
 import { asksToRemove, replyLanguage } from "./honesty";
 
 /**

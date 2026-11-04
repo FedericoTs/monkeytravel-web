@@ -23,7 +23,8 @@ vi.mock("@/lib/ai/genai-compat", async (importOriginal) => {
 });
 vi.mock("@/lib/ai/cache-metrics", () => ({ logCacheMetrics: vi.fn() }));
 
-import { assistTrip, buildPrompt, type AssistInput } from "./engine";
+import { buildPrompt, type AssistInput } from "./edit-prompt";
+import { assistTrip } from "./engine";
 
 const sight = (name: string, start_time: string, extra: Record<string, unknown> = {}) => ({
   name,
