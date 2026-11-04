@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import type { ItineraryDay, AssistantCard } from "@/types";
 import AssistantCards from "./AssistantCards";
 import StagedLoadingIndicator, { type LoadingStage } from "./StagedLoadingIndicator";
-import PreviewChangeCard, { type PendingChange } from "./PreviewChangeCard";
-import { buildApplyBody } from "@/lib/ai/assistant/pending-change";
+import PreviewChangeCard from "./PreviewChangeCard";
+import { buildApplyBody, type TripAssistantChange } from "@/lib/ai/assistant/pending-change";
 import UndoToast, { useUndoState } from "./UndoToast";
 import { trackAIAssistantMessage } from "@/lib/analytics";
 import { captureAIAssistantUsed } from "@/lib/posthog/events";
@@ -39,10 +39,6 @@ interface Message {
   // "Not saved yet: tap …", from the server beside the reply (showsPendingNote).
   pendingNote?: string;
 }
-
-// PendingChange (the confirm-first proposed-change union) is defined in and
-// imported from ./PreviewChangeCard — it mirrors the server's `pendingChange`
-// discriminated union.
 
 interface AIAssistantEnhancedProps {
   tripId: string;
@@ -236,7 +232,7 @@ export default function AIAssistantEnhanced({
 
   // Enhanced state for new features
   const [loadingStage, setLoadingStage] = useState<LoadingStage>("parsing");
-  const [pendingChange, setPendingChange] = useState<PendingChange | null>(null);
+  const [pendingChange, setPendingChange] = useState<TripAssistantChange | null>(null);
   const [isApplyingChange, setIsApplyingChange] = useState(false);
 
   // Undo state management
@@ -506,39 +502,12 @@ export default function AIAssistantEnhanced({
         )
       );
 
-      // Human label for the undo toast. newActivity is undefined for
-      // adjust_duration, so derive the name/description per type
-      // instead of reading pendingChange.newActivity.name blindly (crash).
-      const changedName =
-        pendingChange.type === "replace" || pendingChange.type === "add"
-          ? pendingChange.newActivity.name
-          : pendingChange.type === "remove"
-            ? pendingChange.oldActivity.name
-            : pendingChange.type === "adjust_duration"
-              ? pendingChange.activity.name
-              : pendingChange.type === "add_day"
-                ? pendingChange.day.theme
-                : undefined;
       // What the change did, in the traveller's language: the undo toast and
       // the "reverted" note show it.
-      const undoDescription = (() => {
-        switch (pendingChange.type) {
-          case "replace":
-            return t("undoActions.replaced", { name: pendingChange.newActivity.name });
-          case "add":
-            return t("undoActions.added", { name: pendingChange.newActivity.name });
-          case "remove":
-            return t("undoActions.removed", { name: pendingChange.oldActivity.name });
-          case "adjust_duration":
-            return t("undoActions.adjusted", { name: pendingChange.activity.name });
-          case "add_day":
-            return t("undoActions.addedDay", { number: confirmedDayNumber });
-          case "apply_draft":
-            return t("undoActions.updatedDays", { count: pendingChange.days.length });
-          case "shift_days":
-            return t("undoActions.shifted", { number: pendingChange.dayNumber, count: pendingChange.shiftByDays });
-        }
-      })();
+      const undoDescription =
+        pendingChange.type === "add_day"
+          ? t("undoActions.addedDay", { number: confirmedDayNumber })
+          : t("undoActions.updatedDays", { count: pendingChange.days.length });
 
       // Set up undo
       pushUndo({
@@ -546,15 +515,12 @@ export default function AIAssistantEnhanced({
         // add_day, and apply_draft adding days, also extended trips.end_date —
         // the undo must restore it together with the itinerary (see
         // /api/ai/assistant/undo).
-        previousEndDate:
-          pendingChange.type === "add_day" || pendingChange.type === "apply_draft"
-            ? pendingChange.previousEndDate
-            : undefined,
+        previousEndDate: pendingChange.previousEndDate,
         appliedVersion: typeof data.itineraryVersion === "number" ? data.itineraryVersion : undefined,
         action: {
           type: pendingChange.type,
           description: undoDescription,
-          activityName: changedName,
+          activityName: pendingChange.type === "add_day" ? pendingChange.day.theme : undefined,
           dayNumber: confirmedDayNumber,
         },
       });

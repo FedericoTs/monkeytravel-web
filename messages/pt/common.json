@@ -1772,13 +1772,8 @@
         "undoOutdated": "Sua viagem mudou desde então, então não dá para desfazer aqui."
       },
       "undoActions": {
-        "replaced": "Substituída por {name}",
-        "added": "Adicionada: {name}",
-        "removed": "Removida: {name}",
-        "adjusted": "Ajustada: {name}",
         "addedDay": "Dia {number} adicionado",
-        "updatedDays": "{count, plural, one {# dia atualizado} other {# dias atualizados}}",
-        "shifted": "Do dia {number} em diante, {count, plural, one {# dia} other {# dias}} mais tarde"
+        "updatedDays": "{count, plural, one {# dia atualizado} other {# dias atualizados}}"
       }
     },
     "cards": {
