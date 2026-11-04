@@ -77,14 +77,12 @@ export {
 
 // API Control (admin toggles)
 export {
+  blockedCall,
   checkApiAccess,
   logApiCall,
   logApiCalls,
-  logBlockedCall,
   getAllApiConfigs,
   invalidateConfigCache,
-  withApiControl,
-  ApiBlockedError,
   getApiCostFromConfig,
 } from "./api-control";
 

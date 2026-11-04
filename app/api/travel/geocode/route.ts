@@ -26,7 +26,7 @@ import { NextRequest } from "next/server";
 import { cacheAdminDb } from "@/lib/supabase/cache-admin";
 import crypto from "crypto";
 import { deduplicatedFetch, generateKey } from "@/lib/api/request-dedup";
-import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { blockedCall, checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { readJsonBody } from "@/lib/api/json-body";
@@ -81,16 +81,12 @@ export async function POST(request: NextRequest) {
 
     const access = await checkApiAccess("google_geocoding");
     if (!access.allowed) {
-      await logApiCall({
+      return blockedCall(access, {
         apiName: "google_geocoding",
         endpoint: "/geocode/json",
-        status: 503,
-        responseTimeMs: Date.now() - startTime,
-        cacheHit: false,
-        costUsd: 0,
-        error: `BLOCKED: ${access.message}`,
+        startTime,
+        disabled: "Geocoding API is currently disabled",
       });
-      return errors.serviceUnavailable(access.message || "Geocoding API is currently disabled");
     }
 
     const { body, invalidBody } = await readJsonBody<GeocodeRequest>(request);

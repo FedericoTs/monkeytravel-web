@@ -16,7 +16,7 @@ import {
   getMapsGroundingCost,
 } from "@/lib/maps-grounding";
 import { isAdmin } from "@/lib/admin";
-import { logApiCall } from "@/lib/api-gateway";
+import { blockedCall, logApiCall } from "@/lib/api-gateway";
 import { incrementUsage } from "@/lib/usage-limits";
 import { isActivityBankPopulated, populateActivityBank } from "@/lib/activity-bank";
 import { fetchActivityImages } from "@/lib/images/activity";
@@ -124,17 +124,13 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     }
 
     if (!access.allowed) {
-      await logApiCall({
+      return blockedCall(access, {
         apiName: "gemini",
         endpoint: "/api/ai/generate",
-        status: 503,
-        responseTimeMs: Date.now() - startTime,
-        cacheHit: false,
-        costUsd: 0,
-        error: `BLOCKED: ${access.message}`,
+        startTime,
         metadata: { user_id: user?.id ?? "anonymous" },
+        disabled: "AI generation is currently disabled",
       });
-      return errors.serviceUnavailable(access.message || "AI generation is currently disabled");
     }
 
     // Calculate total trip duration (multi-city: the sum of per-city nights,
