@@ -32,10 +32,8 @@ vi.mock("@/lib/ai/genai-compat", () => ({
   },
 }));
 vi.mock("@/lib/ai/cache-metrics", () => ({ logCacheMetrics: vi.fn() }));
-vi.mock("@/lib/gemini", () => ({
-  regenerateSingleDay: vi.fn(),
-  validateAndFixCoordinates: (days: unknown) => days,
-}));
+vi.mock("@/lib/gemini", () => ({ regenerateSingleDay: vi.fn() }));
+vi.mock("@/lib/trip/coordinate-fallback", () => ({ validateAndFixCoordinates: (days: unknown) => days }));
 vi.mock("@/lib/activity-bank", () => ({
   populateActivityBank: vi.fn(async () => {}),
   isActivityBankPopulated: vi.fn(async () => true),

@@ -17,8 +17,8 @@
  *   ends up with an orphaned booking.
  * - We do NOT block on missing coordinates. The map view falls back to
  *   destination-centroid coords elsewhere (see
- *   lib/gemini.ts:validateAndFixCoordinates) — booking activities can
- *   sit address-only until the user opens the map.
+ *   lib/trip/coordinate-fallback.ts:validateAndFixCoordinates) — booking
+ *   activities can sit address-only until the user opens the map.
  * - Authorize: trip owner only. Mirrors parse-confirmation.
  *
  * Returns the inserted Activity plus the dayNumber it landed on, so the
