@@ -301,7 +301,8 @@ function normalizeActivity(
  *   generateActivityId());
  * - activity count per day is bounded.
  * Coordinates are NOT resolved here — the route runs the returned days
- * through lib/gemini's validateAndFixCoordinates (needs the destination).
+ * through validateAndFixCoordinates (lib/trip/coordinate-fallback.ts; it
+ * needs the destination).
  */
 export function normalizeDraftDays(
   rawDays: unknown,
