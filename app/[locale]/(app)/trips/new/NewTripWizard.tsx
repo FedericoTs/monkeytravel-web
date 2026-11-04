@@ -190,6 +190,7 @@ import { useClaimedTrip } from "@/hooks/useClaimedTrip";
 import { usePendingClaim } from "@/hooks/usePendingClaim";
 import { useUnsavedPlan } from "@/hooks/useUnsavedPlan";
 import { useWizardFunnel, WIZARD_STEP_NAMES } from "@/hooks/useWizardFunnel";
+import { useGenerationLeft } from "@/hooks/useGenerationLeft";
 import { useHasExistingTrips } from "@/hooks/useHasExistingTrips";
 import { isSameDestination } from "@/lib/trips/sameDestination";
 import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate";
@@ -602,6 +603,9 @@ export default function NewTripPage({
     endDate,
     vibes: selectedVibes,
   });
+  // The generation under way, for its row when the page is left mid-wait.
+  const generationInFlightRef = useRef<GenerationReport | null>(null);
+  useGenerationLeft(generationInFlightRef);
 
   // Synchronous re-entry guard for handleSaveTrip. setLoading(true) is async
   // — between click and re-render, a second click can fire before the button
@@ -1492,6 +1496,7 @@ export default function NewTripPage({
     // fire on the inevitable post-generation page transition.
     markWizardCompleted();
     reportGenerationStarted(report);
+    generationInFlightRef.current = report;
 
     try {
       // Multi-city sends the route legs so /api/ai/generate fans out per city;
@@ -1575,6 +1580,7 @@ export default function NewTripPage({
       setError(err instanceof Error ? err.message : "Something went wrong");
       reportGenerationFailed(report, err);
     } finally {
+      generationInFlightRef.current = null;
       setGenerating(false);
     }
   };

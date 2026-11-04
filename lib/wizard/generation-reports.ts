@@ -84,13 +84,11 @@ export function reportGenerated(g: GenerationReport, hasItinerary: boolean, now 
 }
 
 /**
- * A generation that failed. `abandoned` cannot follow `generating` (the
- * wizard counts as completed before the request goes out), so without the
- * `generation_failed` row a failed generation reads as someone closing the
- * tab; its failure_code separates the buckets without anyone reading a stack
- * trace, and request_id joins it to the server's row
- * (api_request_logs.request_params.generation_id). The activation funnel's
- * completion records it too.
+ * A generation that failed. Without the `generation_failed` row it reads as
+ * one that never answered (`generating`, then nothing); its failure_code
+ * separates the buckets without anyone reading a stack trace, and request_id
+ * joins it to the server's row (api_request_logs.request_params.generation_id).
+ * The activation funnel's completion records it too.
  */
 export function reportGenerationFailed(g: GenerationReport, err: unknown, now = Date.now()): void {
   const elapsed = now - g.startedAt;
@@ -112,5 +110,20 @@ export function reportGenerationFailed(g: GenerationReport, err: unknown, now = 
     success: false,
     error_type: err instanceof Error ? err.message : "unknown",
     trip_intent: g.tripIntent,
+  });
+}
+
+/**
+ * A generation left while it ran: its page hidden or closed before the plan
+ * came back (hooks/useGenerationLeft.ts). The funnel's `abandoned` row after
+ * `generating`, with how long the visitor waited, tells someone who walked
+ * away from a generation that failed; a `result` row after it is someone who
+ * came back to the plan.
+ */
+export function reportGenerationLeft(g: GenerationReport, now = Date.now()): void {
+  void trackWizardEvent("abandoned", {
+    destination: g.destination,
+    locale: g.locale,
+    elapsed_ms: Math.min(now - g.startedAt, MAX_ELAPSED_MS),
   });
 }

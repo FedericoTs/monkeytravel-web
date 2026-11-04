@@ -41,14 +41,15 @@ export const WIZARD_EVENT_STEPS = [
   "save_blocked_anon",
   "save_failed",
   "saved",
+  // Left the wizard. After `generating`: left while the plan was being made,
+  // with elapsed_ms the wait (reportGenerationLeft).
   "abandoned",
   // Draft recovery. The generated itinerary lives in a localStorage draft;
   // these record a draft restored into the wizard, or one that had expired.
   "draft_restored",
   "draft_expired",
-  // A generation that reached the server and came back an error.
-  // `abandoned` cannot follow `generating`, so without this a failure and a
-  // closed tab would look the same: no row.
+  // A generation that reached the server and came back an error. Without
+  // it a failure would read as a generation that never answered.
   "generation_failed",
   // The anonymous free-generation cap. Without its own row, the refusal
   // would read as `generating` then `auth_modal_shown`: a generation that
