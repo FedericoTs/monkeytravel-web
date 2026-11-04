@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import VibeSelector from "@/components/trip/VibeSelector";
 import { DIETS, dietsFrom, type Diet } from "@/lib/trips/diet";
 import { MUST_DOS_MAX, MUST_DO_MAX_LENGTH, REQUIREMENTS_MAX } from "@/lib/trips/request-limits";
+import { mustDoItem, withMustDo } from "@/lib/wizard/must-dos";
 import type { TripVibe } from "@/types";
 
 // Budget tier styling - labels/descriptions come from translations
@@ -75,6 +76,13 @@ export default function PreferencesStep({
 }) {
   const t = useTranslations("trips");
   const tDiet = useTranslations("common.onboarding.dietary");
+  // Enter, a comma, or tapping away (so a phone doesn't lose it) adds the typed wish.
+  const addTypedMustDo = () => {
+    const item = mustDoItem(mustDoInput);
+    if (!item) return;
+    setMustDos((prev) => withMustDo(prev, item));
+    setMustDoInput("");
+  };
   return (
     <div className="space-y-6">
       <div>
@@ -135,27 +143,10 @@ export default function PreferencesStep({
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === ",") {
                 e.preventDefault();
-                const item = mustDoInput.trim().replace(/,+$/, "");
-                if (!item) return;
-                setMustDos((prev) =>
-                  prev.some((m) => m.toLowerCase() === item.toLowerCase()) || prev.length >= MUST_DOS_MAX
-                    ? prev
-                    : [...prev, item]
-                );
-                setMustDoInput("");
+                addTypedMustDo();
               }
             }}
-            onBlur={() => {
-              // Don't lose a typed-but-unconfirmed wish on tap-away (mobile).
-              const item = mustDoInput.trim().replace(/,+$/, "");
-              if (!item) return;
-              setMustDos((prev) =>
-                prev.some((m) => m.toLowerCase() === item.toLowerCase()) || prev.length >= MUST_DOS_MAX
-                  ? prev
-                  : [...prev, item]
-              );
-              setMustDoInput("");
-            }}
+            onBlur={addTypedMustDo}
             placeholder={t("wizard.step2.mustDos.placeholder")}
             className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-colors text-sm"
           />

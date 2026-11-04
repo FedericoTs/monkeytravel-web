@@ -12,7 +12,7 @@
  *     need the smarter model
  */
 
-import { logCacheMetrics } from "@/lib/gemini";
+import { logCacheMetrics } from "@/lib/ai/cache-metrics";
 import { generateContentResilient } from "@/lib/ai/resilient";
 import { tripSpanDays } from "@/lib/dates/iso-date";
 

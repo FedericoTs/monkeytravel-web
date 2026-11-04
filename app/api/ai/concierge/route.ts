@@ -25,7 +25,7 @@
 
 import { NextRequest } from "next/server";
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
-import { logCacheMetrics } from "@/lib/gemini";
+import { logCacheMetrics } from "@/lib/ai/cache-metrics";
 import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { getAuthenticatedUser } from "@/lib/api/auth";

@@ -1,6 +1,6 @@
 // What a trip request may hold. The server refuses more (validateTripParams
-// in lib/gemini.ts), and the wizard stops the planner before it, so both read
-// these. No imports: the wizard's bundle takes this file as it is.
+// in ./request-validation.ts), and the wizard stops the planner before it, so
+// both read these. No imports: the wizard's bundle takes this file as it is.
 
 /** The longest trip planned for one destination, in days. */
 export const MAX_TRIP_DAYS = 14;

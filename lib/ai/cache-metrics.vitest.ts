@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll, beforeEach, afterEach, type MockInstance } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, type MockInstance } from "vitest";
 
 /**
  * The Gemini cache alert used to fire on a $1.55/year problem while asserting
@@ -15,15 +15,9 @@ const REAL_NOW = Date.now();
 
 async function freshLogger() {
   vi.resetModules();
-  const mod = await import("./gemini");
+  const mod = await import("./cache-metrics");
   return mod.logCacheMetrics;
 }
-
-// The first import transforms gemini.ts's whole module graph, which can take
-// longer than a test's 5 s on a busy machine. Pay for it here, once.
-beforeAll(async () => {
-  await import("./gemini");
-}, 60_000);
 
 let warnSpy: MockInstance<typeof console.warn>;
 
