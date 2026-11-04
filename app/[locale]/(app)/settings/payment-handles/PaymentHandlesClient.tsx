@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { shownErrorText } from "@/lib/utils/shown-error";
 import { Link } from "@/lib/i18n/routing";
 import { useToast } from "@/components/ui/Toast";
 import {
@@ -112,7 +113,7 @@ export default function PaymentHandlesClient() {
       addToast(t("toastSaved"), "success");
     } catch (err) {
       addToast(
-        err instanceof Error ? err.message : t("errorSaveFailed"),
+        shownErrorText(err, t("errorSaveFailed")),
         "error",
       );
     } finally {

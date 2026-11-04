@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Spinner } from "@/components/ui/Spinner";
+import { shownErrorText } from "@/lib/utils/shown-error";
 
 interface EmailSubscribeProps {
   variant?: 'hero' | 'inline' | 'footer' | 'dark';
@@ -50,7 +51,7 @@ export default function EmailSubscribe({ variant = 'hero', source, className = '
       setEmail('');
     } catch (error) {
       setStatus('error');
-      setMessage(error instanceof Error ? error.message : t('errorMessage'));
+      setMessage(shownErrorText(error, t('errorMessage')));
     }
   };
 

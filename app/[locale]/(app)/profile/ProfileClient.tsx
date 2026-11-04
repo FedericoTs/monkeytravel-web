@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect, useId } from "react";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
+import { shownErrorText } from "@/lib/utils/shown-error";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { useToast } from "@/components/ui/Toast";
 import DeleteAccountModal from "@/components/profile/DeleteAccountModal";
@@ -403,7 +404,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
       setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (error) {
       console.error("Data export error:", error);
-      addToast(error instanceof Error ? error.message : t("dataExport.error"), "error");
+      addToast(shownErrorText(error, t("dataExport.error")), "error");
     } finally {
       setIsExporting(false);
     }

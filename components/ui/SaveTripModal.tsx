@@ -4,6 +4,7 @@ import { useState, useCallback, useId } from "react";
 import { useChanged } from "@/hooks/useChanged";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
+import { shownErrorText } from "@/lib/utils/shown-error";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Calendar, Copy, Check, Loader2, X, Sparkles } from "lucide-react";
 import { trackTemplateCopied, trackTripCreated } from "@/lib/analytics";
@@ -234,7 +235,7 @@ export default function SaveTripModal({
         }, 1500);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("saveFailed"));
+      setError(shownErrorText(err, t("saveFailed")));
       setIsSaving(false);
       hapticError();
     }

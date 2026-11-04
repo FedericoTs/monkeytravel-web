@@ -51,6 +51,21 @@ afterEach(() => {
 });
 
 describe("ParticipantsBar", () => {
+  it("says it in the page's language when the connection drops, not the browser's words", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init?: RequestInit) => {
+        if (init?.method === "POST") throw new TypeError("Load failed");
+        return new Response(JSON.stringify(group(1, false)));
+      }),
+    );
+    render(<ParticipantsBar shareToken="token-1" source="shared" crewAsk={false} tripTitle="Lisbon" onSaveForYourself={() => {}} />);
+    await waitFor(() => expect(countShown()).toBe("1"));
+    fireEvent.click(screen.getByTestId("participants-join"));
+    expect(await screen.findByText("share.participants.error")).toBeTruthy();
+    expect(screen.queryByText("Load failed")).toBeNull();
+  });
+
   it("doesn't count someone twice who joins after saying they're going on the public page", async () => {
     const server = await tapImGoing(group(2, false), group(2, true));
     expect(countShown()).toBe("2");

@@ -59,6 +59,17 @@ afterEach(() => {
 });
 
 describe("saving from the public trip page", () => {
+  it("says it in the page's language when the connection drops, not the browser's words", async () => {
+    state.user = { id: "viewer-1" };
+    vi.stubGlobal("fetch", vi.fn(async () => {
+      throw new TypeError("Load failed");
+    }));
+    open({ publicSlug: SLUG });
+    fireEvent.click(screen.getByText("saveToTrips"));
+    expect(await screen.findByText("saveFailed")).toBeTruthy();
+    expect(screen.queryByText("Load failed")).toBeNull();
+  });
+
   it("copies the trip by its slug", async () => {
     state.user = { id: "viewer-1" };
     open({ publicSlug: SLUG });
