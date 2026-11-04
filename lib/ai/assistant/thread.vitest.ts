@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
 import { CONCIERGE_SURFACE } from "@/lib/ai/conversations";
-import { appendTurn, assistantMessage, listThreads, openThread, readThread, userMessage, type AssistantMessage } from "./thread";
+import { appendTurn, assistantMessage, listThreads, markProposalApplied, openThread, readThread, userMessage, type AssistantMessage } from "./thread";
 
 /**
  * The trip assistant and the concierge keep their threads in one table and
@@ -160,5 +160,70 @@ describe("keeping a turn", () => {
     await expect(appendTurn(updates({ message: "denied" }).client, kept, turn)).resolves.toBeUndefined();
     expect(error).toHaveBeenCalled();
     error.mockRestore();
+  });
+});
+
+describe("noting that a proposal was saved", () => {
+  const proposal = (extra: Record<string, unknown> = {}) => ({ role: "assistant", content: "Ready.", action: { type: "apply_draft", applied: false, pending: true, ...extra } });
+  const user = { role: "user", content: "Add Howth" };
+
+  function thread(messages: unknown, opts: { readThrows?: boolean; writeError?: { message: string } } = {}) {
+    const writes: Array<{ value: { messages: Array<Record<string, unknown>> }; id: unknown }> = [];
+    const client = {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            maybeSingle: async () => {
+              if (opts.readThrows) throw new Error("connection reset");
+              return { data: messages === null ? null : { messages }, error: null };
+            },
+          }),
+        }),
+        update: (value: { messages: Array<Record<string, unknown>> }) => ({
+          eq: async (_column: string, id: unknown) => {
+            writes.push({ value, id });
+            return { error: opts.writeError ?? null };
+          },
+        }),
+      }),
+    } as never;
+    return { client, writes };
+  }
+
+  it("marks the latest proposal applied and no longer pending, keeping everything else", async () => {
+    const db = thread([user, proposal({ dayNumber: 2 }), { ...user, content: "Thanks" }]);
+    await markProposalApplied(db.client, "conv-1");
+    expect(db.writes).toHaveLength(1);
+    expect(db.writes[0].id).toBe("conv-1");
+    expect(db.writes[0].value.messages).toEqual([
+      user,
+      { role: "assistant", content: "Ready.", action: { type: "apply_draft", applied: true, pending: false, dayNumber: 2 } },
+      { ...user, content: "Thanks" },
+    ]);
+  });
+
+  it("marks only the latest of several proposals", async () => {
+    const db = thread([proposal({ dayNumber: 1 }), user, proposal({ dayNumber: 2 })]);
+    await markProposalApplied(db.client, "conv-1");
+    const [first, , last] = db.writes[0].value.messages;
+    expect(first.action).toMatchObject({ dayNumber: 1, applied: false, pending: true });
+    expect(last.action).toMatchObject({ dayNumber: 2, applied: true, pending: false });
+  });
+
+  it("writes nothing when the latest proposal is applied already, or there is none", async () => {
+    const fromUser = { ...user, action: { type: "apply_draft", applied: false } };
+    for (const messages of [[proposal({ dayNumber: 1 }), proposal({ applied: true })], [user], [fromUser], [], "not a list", null]) {
+      const db = thread(messages);
+      await markProposalApplied(db.client, "conv-1");
+      expect(db.writes).toEqual([]);
+    }
+  });
+
+  it("never fails the change that was saved: a failed read or write is only logged", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(markProposalApplied(thread([], { readThrows: true }).client, "conv-1")).resolves.toBeUndefined();
+    await expect(markProposalApplied(thread([proposal()], { writeError: { message: "refused" } }).client, "conv-1")).resolves.toBeUndefined();
+    expect(logged).toHaveBeenCalledTimes(2);
+    logged.mockRestore();
   });
 });

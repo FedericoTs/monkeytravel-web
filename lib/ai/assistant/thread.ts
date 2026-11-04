@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ASSISTANT_SURFACE, isConciergeRow } from "@/lib/ai/conversations";
 import { isNoRow } from "@/lib/supabase/no-row";
+import { logReadError } from "@/lib/supabase/log-read-error";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import type { AssistantCard, StructuredAssistantResponse } from "@/types";
 
@@ -151,4 +152,37 @@ export async function appendTurn(
       updated_at: new Date().toISOString(),
     })
     .eq("id", thread.id));
+}
+
+/**
+ * Notes in the thread that the change it proposed was saved: the most recent
+ * assistant message with an action, unless that one is applied already. The
+ * thread is the only lasting record of what happened: without this, a confirmed
+ * change and an abandoned one read the same after a reload, as "no changes made",
+ * and people ask for the same edit again.
+ *
+ * Best effort: failing to note it must not fail a write that succeeded.
+ */
+export async function markProposalApplied(supabase: SupabaseClient, conversationId: string): Promise<void> {
+  try {
+    const { data: conv } = logReadError("assistant apply: conversation", await supabase
+      .from("ai_conversations")
+      .select("messages")
+      .eq("id", conversationId)
+      .maybeSingle());
+    const msgs = Array.isArray(conv?.messages) ? [...(conv!.messages as unknown[])] : [];
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      const m = msgs[i] as { role?: string; action?: Record<string, unknown> } | null;
+      if (!m || m.role !== "assistant" || !m.action) continue;
+      if (m.action.applied === true) break;
+      msgs[i] = { ...m, action: { ...m.action, applied: true, pending: false } };
+      logWriteError("assistant apply: conversation note", await supabase
+        .from("ai_conversations")
+        .update({ messages: msgs, updated_at: new Date().toISOString() })
+        .eq("id", conversationId));
+      break;
+    }
+  } catch (err) {
+    console.error("[AI Assistant Apply] Could not annotate conversation", err);
+  }
 }

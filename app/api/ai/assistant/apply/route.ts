@@ -20,7 +20,7 @@ import {
   computeExtendedEndDate,
   addDaysISO,
 } from "@/lib/ai/assistant/structural";
-import { logWriteError } from "@/lib/supabase/log-write-error";
+import { markProposalApplied } from "@/lib/ai/assistant/thread";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { requireRow } from "@/lib/api/require-row";
 import { readJsonBody } from "@/lib/api/json-body";
@@ -451,39 +451,8 @@ export async function POST(request: NextRequest) {
       return errors.internal("Failed to save changes", "AI Assistant Apply");
     }
 
-    // The transcript is the only durable record of what happened here, and it
-    // was previously written once — when the change was PROPOSED — and never
-    // touched again. So a confirmed change and an abandoned one persisted
-    // identically, and after a reload both rendered as "no changes made".
-    // People then asked for the same edit again; this codebase has a
-    // documented history of duplicate rows from exactly that loop.
-    //
-    // Best-effort: a failure to annotate history must never fail a write that
-    // already succeeded.
     if (typeof conversationId === "string" && conversationId) {
-      try {
-        const { data: conv } = logReadError("assistant apply: conversation", await supabase
-          .from("ai_conversations")
-          .select("messages")
-          .eq("id", conversationId)
-          .maybeSingle());
-        const msgs = Array.isArray(conv?.messages) ? [...(conv!.messages as unknown[])] : [];
-        // The proposal is the most recent assistant message still marked
-        // pending — walk backwards so an older one is never overwritten.
-        for (let i = msgs.length - 1; i >= 0; i--) {
-          const m = msgs[i] as { role?: string; action?: Record<string, unknown> } | null;
-          if (!m || m.role !== "assistant" || !m.action) continue;
-          if (m.action.applied === true) break;
-          msgs[i] = { ...m, action: { ...m.action, applied: true, pending: false } };
-          logWriteError("assistant apply: conversation note", await supabase
-            .from("ai_conversations")
-            .update({ messages: msgs, updated_at: new Date().toISOString() })
-            .eq("id", conversationId));
-          break;
-        }
-      } catch (err) {
-        console.error("[AI Assistant Apply] Could not annotate conversation", err);
-      }
+      await markProposalApplied(supabase, conversationId);
     }
 
     return apiSuccess({
