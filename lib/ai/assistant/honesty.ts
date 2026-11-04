@@ -203,9 +203,13 @@ export function noProposalNote(language: string | undefined): string {
   return note(language, "noProposal");
 }
 
-/** The reply when a change is prepared but waits for the Apply button. */
-export function pendingChangeReply(language: string | undefined, buttonLabel: string): string {
-  return note(language, "pendingChangeReply", { button: buttonLabel });
+/**
+ * The reply when a change is prepared but the model's words claimed it done.
+ * It stays true once the change is applied; pendingChangeNote, beside it while
+ * the change waits, names the button.
+ */
+export function preparedChangeReply(language: string | undefined): string {
+  return note(language, "preparedChange");
 }
 
 /**
@@ -386,7 +390,9 @@ export function ownerAddsDaysReply(language: string | undefined, days: number, i
 
 /**
  * Follows a trip-page reply that talks as if a change waiting for the button
- * were already saved. The reply comes first: it is the answer.
+ * were already saved. The reply comes first: it is the answer. It travels
+ * beside the reply (pendingNote), and the chat shows it only while that change
+ * waits: once applied, cancelled or followed by another reply it would be wrong.
  */
 export function pendingChangeNote(language: string | undefined, buttonLabel: string): string {
   return note(language, "pendingChangeNote", { button: buttonLabel });

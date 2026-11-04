@@ -19,8 +19,8 @@ import {
   offersChange,
   ownerAddsDaysReply,
   pendingChangeNote,
-  pendingChangeReply,
   planCostsReply,
+  preparedChangeReply,
   withoutDanglingLead,
 } from "./honesty";
 
@@ -215,7 +215,7 @@ describe("the replies the server puts in their place", () => {
 
   it.each(languages)("never claim a change themselves (%s)", (lng) => {
     expect(claimsItineraryChange(nothingChangedReply(lng))).toBe(false);
-    expect(claimsItineraryChange(pendingChangeReply(lng, "Save to my trip"))).toBe(false);
+    expect(claimsItineraryChange(preparedChangeReply(lng))).toBe(false);
   });
 
   it.each(languages)("name the trip page's own Edit button, as the page labels it (%s)", (lng) => {
@@ -225,8 +225,9 @@ describe("the replies the server puts in their place", () => {
     expect(nothingChangedReply(lng)).toContain(`"${trips.detail.editTrip}"`);
   });
 
-  it("names the Apply button it was given", () => {
-    expect(pendingChangeReply("it", "Salva nel mio viaggio")).toContain('"Salva nel mio viaggio"');
+  it("says a change is prepared, which stays true once it is applied", () => {
+    expect(preparedChangeReply("it")).toBe("Ho preparato questa modifica.");
+    expect(preparedChangeReply("en")).not.toMatch(/saved|tap/i);
   });
 
   it("falls back to English for other languages", () => {

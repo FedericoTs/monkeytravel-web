@@ -1,7 +1,7 @@
 {
   "nothingChanged": "Não alterei o seu itinerário: não consegui fazer essa alteração daqui. Você pode fazê-la com \"Editar Viagem\".",
   "noProposal": "(Esta alteração não está pronta: não há nada para confirmar. Peça de novo com o dia e a atividade.)",
-  "pendingChangeReply": "Preparei esta alteração. Nada é salvo até você tocar em \"{button}\" abaixo.",
+  "preparedChange": "Preparei esta alteração.",
   "wizardNothingChanged": "Não alterei o seu plano: não consegui fazer essa alteração. Tente pedir dia a dia, por exemplo \"faça do dia 3 um dia de observação de baleias\".",
   "uncoveredDays": "(Esta alteração inclui só o dia {covered}. Peça-me o dia {uncovered} se também o quiser alterar.)",
   "notAppliedLead": "Ainda não aplicado: toque em \"Aplicar alteração\" abaixo para atualizar o seu plano.",
