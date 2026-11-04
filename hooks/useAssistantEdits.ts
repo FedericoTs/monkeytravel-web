@@ -41,7 +41,8 @@ export function useAssistantEdits({
   /** Called for each reply applied. */
   noteEditApplied: () => void;
 }) {
-  const edited = useRef(false);
+  // Replies applied and not undone since the last generation.
+  const applied = useRef(0);
   const undo = useRef(createUndoLedger<GeneratedItinerary, string>(sameApartFromPhotos));
 
   // Mirrored so the handlers read current values without being recreated on
@@ -59,7 +60,7 @@ export function useAssistantEdits({
       const prev = planRef.current;
       if (!prev) return undefined;
       noteEditApplied();
-      edited.current = true;
+      applied.current += 1;
       const start = startDateRef.current;
       // Ids are given here, so the state keeps this exact object and Undo can
       // tell it is still the plan on screen.
@@ -92,14 +93,15 @@ export function useAssistantEdits({
       planRef.current = restored;
       onPlan(restored);
       onEndDate(entry.extra);
+      applied.current = Math.max(0, applied.current - 1);
       return true;
     },
     [onPlan, onEndDate]
   );
 
-  const hasEdits = useCallback(() => edited.current, []);
+  const hasEdits = useCallback(() => applied.current > 0, []);
   const forgetEdits = useCallback(() => {
-    edited.current = false;
+    applied.current = 0;
   }, []);
 
   return { applyEdits, undoEdits, hasEdits, forgetEdits };
