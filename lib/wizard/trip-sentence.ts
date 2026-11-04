@@ -1,4 +1,5 @@
 import type { TripVibe } from "@/types";
+import { VIBES_MAX } from "@/lib/trips/request-limits";
 
 /**
  * A trip described in one sentence ("5 days in Lisbon in March, food and
@@ -258,7 +259,7 @@ export function readTripSentence(text: string): TripSentence {
     destination: places.join(" & "),
     days,
     month,
-    vibes: [...vibes].slice(0, 3),
+    vibes: [...vibes].slice(0, VIBES_MAX),
     intent,
     budget,
   };

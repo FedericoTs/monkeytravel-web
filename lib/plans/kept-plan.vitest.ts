@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { MUST_DOS_MAX, MUST_DO_MAX_LENGTH, VIBES_MAX } from "@/lib/trips/request-limits";
+import { validateTripParams } from "@/lib/trips/request-validation";
 import { isKeptToken, parseKeptPlan } from "./kept-plan";
 
 const plan = () => ({
@@ -71,6 +73,26 @@ describe("parseKeptPlan", () => {
     expect(kept).not.toHaveProperty("travelStyle");
     expect(kept).not.toHaveProperty("tripIntent");
     expect(kept).not.toHaveProperty("flexibleDates");
+  });
+
+  it("holds no more than the server takes when the plan is made again", () => {
+    const vibes = ["foodie", "cultural", "nature", "urban", "retro", "wellness"];
+    const wishes = Array.from({ length: MUST_DOS_MAX + 2 }, (_, i) => `Wish ${i}`);
+    const kept = parseKeptPlan({ ...plan(), vibes, mustDos: ["x".repeat(MUST_DO_MAX_LENGTH + 40), ...wishes] })!;
+    expect(kept.vibes).toEqual(vibes.slice(0, VIBES_MAX));
+    expect(kept.mustDos).toHaveLength(MUST_DOS_MAX);
+    expect(kept.mustDos![0]).toHaveLength(MUST_DO_MAX_LENGTH);
+    const again = validateTripParams({
+      destination: kept.destination,
+      startDate: "2099-08-11",
+      endDate: "2099-08-15",
+      budgetTier: "balanced",
+      pace: "moderate",
+      interests: [],
+      vibes: kept.vibes!,
+      mustDos: kept.mustDos,
+    });
+    expect(again).toEqual({ valid: true });
   });
 
   it("is not a plan without a place, valid dates and days with activities", () => {
