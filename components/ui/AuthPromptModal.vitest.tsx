@@ -362,3 +362,76 @@ describe("Google comes first, the email button is the main one", () => {
     expect(messages.authPrompt.magicLink.noEmailHint).toContain("Google");
   });
 });
+
+/**
+ * A code that expired, or one from an older email, is a dead end unless a
+ * new one can be had from where the code is typed: the message says to send
+ * one, and the address should not have to be typed again.
+ */
+describe("a new code", () => {
+  const typeCode = (value: string) => fireEvent.change(screen.getByLabelText("magicLink.codePrompt"), { target: { value } });
+
+  it("goes to the same address with the same request, clears the typed code and says where it went", async () => {
+    await reachCodeEntry();
+    typeCode("111111");
+    fireEvent.click(screen.getByRole("button", { name: "magicLink.codeResend" }));
+    await waitFor(() => expect(screen.getByRole("status").textContent).toBe("magicLink.codeResent"));
+    expect(signInWithOtp).toHaveBeenCalledTimes(2);
+    expect(signInWithOtp.mock.calls[1][0]).toEqual(signInWithOtp.mock.calls[0][0]);
+    expect((screen.getByLabelText("magicLink.codePrompt") as HTMLInputElement).value).toBe("");
+  });
+
+  it("follows an expired code, and the new one signs in", async () => {
+    verifyOtp.mockResolvedValueOnce({ error: { message: "Token has expired or is invalid" }, data: null });
+    await reachCodeEntry();
+    typeCode("111111");
+    fireEvent.click(screen.getByRole("button", { name: "magicLink.codeSubmit" }));
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("magicLink.codeExpired"));
+
+    fireEvent.click(screen.getByRole("button", { name: "magicLink.codeResend" }));
+    await waitFor(() => expect(screen.getByRole("status")).toBeTruthy());
+    expect(screen.queryByRole("alert")).toBeNull();
+
+    typeCode("222222");
+    fireEvent.click(screen.getByRole("button", { name: "magicLink.codeSubmit" }));
+    expect(screen.queryByRole("status")).toBeNull();
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/trips/new"));
+    expect(verifyOtp.mock.calls.at(-1)?.[0]).toMatchObject({ token: "222222", email: "planner@example.com" });
+  });
+
+  it("says so when the server asks to wait, and stays on the code step", async () => {
+    await reachCodeEntry();
+    signInWithOtp.mockResolvedValueOnce({
+      error: { message: "For security purposes, you can only request this after 52 seconds", status: 429 },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "magicLink.codeResend" }));
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("magicLink.codeRateLimited"));
+    expect(screen.queryByRole("status")).toBeNull();
+    expect(screen.getByLabelText("magicLink.codePrompt")).toBeTruthy();
+    expect(captureMagicLinkRequestFailed).toHaveBeenCalledTimes(1);
+  });
+
+  it("is not announced for another address", async () => {
+    await reachCodeEntry();
+    fireEvent.click(screen.getByRole("button", { name: "magicLink.codeResend" }));
+    await waitFor(() => expect(screen.getByRole("status")).toBeTruthy());
+    fireEvent.click(screen.getByRole("button", { name: "magicLink.useDifferent" }));
+    fireEvent.change(screen.getByPlaceholderText("magicLink.emailPlaceholder"), { target: { value: "other@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "magicLink.send" }));
+    await waitFor(() => expect(screen.getByLabelText("magicLink.codePrompt")).toBeTruthy());
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  it("is asked for once at a time", async () => {
+    await reachCodeEntry();
+    let answer!: (v: unknown) => void;
+    signInWithOtp.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)));
+    fireEvent.click(screen.getByRole("button", { name: "magicLink.codeResend" }));
+    const busy = await screen.findByRole("button", { name: "magicLink.codeResending" });
+    expect((busy as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(busy);
+    expect(signInWithOtp).toHaveBeenCalledTimes(2);
+    answer({ error: null });
+    await waitFor(() => expect(screen.getByRole("status")).toBeTruthy());
+  });
+});
