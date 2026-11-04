@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { describe, expect, it } from "vitest";
-import { openThread, readThread } from "./thread";
+import { describe, expect, it, vi } from "vitest";
+import { appendTurn, openThread, readThread, type AssistantMessage } from "./thread";
 
 /**
  * The trip assistant and the concierge keep their threads in one table and
@@ -62,5 +62,43 @@ describe("the thread a turn continues", () => {
   it("stops the turn when the new thread cannot be made", async () => {
     const db = fakeSupabase({ data: null, error: noRow }, { message: "denied" });
     await expect(openThread(db.client, { conversationId: "conv-1", userId: "u1", tripId: "t1" })).rejects.toMatchObject({ message: "denied" });
+  });
+});
+
+describe("keeping a turn", () => {
+  const turn: AssistantMessage[] = [
+    { role: "user", content: "Make day 2 cheaper", timestamp: "2026-11-04T12:00:00Z" },
+    { role: "assistant", content: "Ready: two free museums on Day 2.", timestamp: "2026-11-04T12:00:01Z" },
+  ];
+  const kept = { id: "conv-1", messages: [{ role: "user", content: "Add nightclubs", timestamp: "2026-11-04T11:00:00Z" }] as AssistantMessage[] };
+  function updates(error: { message: string } | null = null) {
+    const rows: Array<{ value: Record<string, unknown>; id: unknown }> = [];
+    const client = {
+      from: () => ({
+        update: (value: Record<string, unknown>) => ({
+          eq: async (_column: string, id: unknown) => {
+            rows.push({ value, id });
+            return { error };
+          },
+        }),
+      }),
+    } as never;
+    return { client, rows };
+  }
+
+  it("adds its messages after the thread's", async () => {
+    const db = updates();
+    await appendTurn(db.client, kept, turn);
+    expect(db.rows).toHaveLength(1);
+    expect(db.rows[0].id).toBe("conv-1");
+    expect(db.rows[0].value.messages).toEqual([...kept.messages, ...turn]);
+    expect(typeof db.rows[0].value.updated_at).toBe("string");
+  });
+
+  it("is logged, not thrown, when the write is refused: the reply is still answered", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(appendTurn(updates({ message: "denied" }).client, kept, turn)).resolves.toBeUndefined();
+    expect(error).toHaveBeenCalled();
+    error.mockRestore();
   });
 });
