@@ -4,12 +4,7 @@ import type { TripIntent } from "@/lib/posthog/events";
 import type { Diet } from "@/lib/trips/diet";
 import type { TripFormState } from "@/lib/trips/persistTrip";
 import type { GeneratedItinerary, TripAnchor, TripVibe } from "@/types";
-
-// The longest requirements text. Keep in sync with the server-side cap in
-// validateTripParams (lib/gemini.ts): over the limit the API 400s with
-// "Requirements text too long" and the wizard can only show a generic error,
-// so the field enforces the cap client-side.
-export const REQUIREMENTS_MAX = 500;
+import { REQUIREMENTS_MAX } from "@/lib/trips/request-limits";
 
 /**
  * The requirements with the pasted plan items that have no day added as

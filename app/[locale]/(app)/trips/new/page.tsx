@@ -2,6 +2,7 @@ import { getDestinationBySlug } from "@/lib/destinations/data";
 import { createClientWithViewer } from "@/lib/supabase/server";
 import type { Locale } from "@/lib/destinations/types";
 import NewTripWizard, { type PrefilledDestination } from "./NewTripWizard";
+import { MAX_TRIP_DAYS } from "@/lib/trips/request-limits";
 
 /**
  * Server-component shell for the /trips/new wizard.
@@ -56,9 +57,6 @@ export interface PrefilledTripShape {
   vibes: string[];
 }
 
-/** Mirrors MAX_TRIP_DAYS in NewTripWizard.tsx — the single-city generate cap. */
-const MAX_PREFILL_DAYS = 14;
-
 /** The 6 vibes step 2 actually renders. Legacy vibe values are not accepted. */
 const PREFILLABLE_VIBES = new Set([
   "adventure",
@@ -73,7 +71,7 @@ function parseTripShape(sp: SearchParams): PrefilledTripShape {
   const rawDays = one(sp.days);
   const parsedDays = rawDays ? Number.parseInt(rawDays, 10) : Number.NaN;
   const days =
-    Number.isInteger(parsedDays) && parsedDays >= 1 && parsedDays <= MAX_PREFILL_DAYS
+    Number.isInteger(parsedDays) && parsedDays >= 1 && parsedDays <= MAX_TRIP_DAYS
       ? parsedDays
       : null;
 

@@ -12,9 +12,7 @@
 
 import { generateActivityId } from "@/lib/utils/activity-id";
 import { isSupportedLanguage, type SupportedLanguage } from "@/lib/ai/language";
-
-/** Mirrors the multi-city trip-length cap enforced elsewhere in the wizard. */
-export const MAX_TRIP_DAYS = 21;
+import { MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
 
 /** How long an unclaimed anonymous trip survives before the sweeper may remove it. */
 export const CLAIM_WINDOW_DAYS = 30;
@@ -98,8 +96,8 @@ export function validateAnonymousTripPayload(body: unknown): ValidationResult {
   if (!Array.isArray(b.itinerary) || b.itinerary.length === 0) {
     return { ok: false, error: "Trip has no itinerary." };
   }
-  if (b.itinerary.length > MAX_TRIP_DAYS) {
-    return { ok: false, error: `Trips are limited to ${MAX_TRIP_DAYS} days.` };
+  if (b.itinerary.length > MAX_TRIP_DAYS_MULTI) {
+    return { ok: false, error: `Trips are limited to ${MAX_TRIP_DAYS_MULTI} days.` };
   }
 
   return {

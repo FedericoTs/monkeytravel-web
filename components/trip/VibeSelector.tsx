@@ -3,6 +3,7 @@
 import { memo, useCallback, useMemo } from "react";
 import { TripVibe, VibeOption } from "@/types";
 import { useTranslations } from "next-intl";
+import { VIBES_MAX } from "@/lib/trips/request-limits";
 
 // Vibe configuration (labels/descriptions come from translations)
 interface VibeConfig {
@@ -33,7 +34,7 @@ interface VibeSelectorProps {
 function VibeSelectorInner({
   selectedVibes,
   onVibesChange,
-  maxVibes = 3,
+  maxVibes = VIBES_MAX,
 }: VibeSelectorProps) {
   const t = useTranslations("common.vibes");
 

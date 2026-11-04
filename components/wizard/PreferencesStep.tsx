@@ -4,7 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useTranslations } from "next-intl";
 import VibeSelector from "@/components/trip/VibeSelector";
 import { DIETS, dietsFrom, type Diet } from "@/lib/trips/diet";
-import { REQUIREMENTS_MAX } from "@/lib/wizard/answers";
+import { MUST_DOS_MAX, MUST_DO_MAX_LENGTH, REQUIREMENTS_MAX } from "@/lib/trips/request-limits";
 import type { TripVibe } from "@/types";
 
 // Budget tier styling - labels/descriptions come from translations
@@ -125,12 +125,12 @@ export default function PreferencesStep({
             ))}
           </div>
         )}
-        {mustDos.length < 10 && (
+        {mustDos.length < MUST_DOS_MAX && (
           <input
             id="must-do-input"
             type="text"
             value={mustDoInput}
-            maxLength={80}
+            maxLength={MUST_DO_MAX_LENGTH}
             onChange={(e) => setMustDoInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === ",") {
@@ -138,7 +138,7 @@ export default function PreferencesStep({
                 const item = mustDoInput.trim().replace(/,+$/, "");
                 if (!item) return;
                 setMustDos((prev) =>
-                  prev.some((m) => m.toLowerCase() === item.toLowerCase()) || prev.length >= 10
+                  prev.some((m) => m.toLowerCase() === item.toLowerCase()) || prev.length >= MUST_DOS_MAX
                     ? prev
                     : [...prev, item]
                 );
@@ -150,7 +150,7 @@ export default function PreferencesStep({
               const item = mustDoInput.trim().replace(/,+$/, "");
               if (!item) return;
               setMustDos((prev) =>
-                prev.some((m) => m.toLowerCase() === item.toLowerCase()) || prev.length >= 10
+                prev.some((m) => m.toLowerCase() === item.toLowerCase()) || prev.length >= MUST_DOS_MAX
                   ? prev
                   : [...prev, item]
               );

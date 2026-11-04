@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { checkAnonymousRateLimit, recordAnonymousGeneration } from "@/lib/anonymous/rate-limit";
 import type { User } from "@supabase/supabase-js";
 import { generateItinerary, validateTripParams } from "@/lib/gemini";
+import { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
 import { bookingLinksFor } from "@/lib/ai/server-fields";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
@@ -202,7 +203,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // Validate input — the whole-trip date ceiling depends on the trip shape:
     // single-city stays at 14 days, multi-city may span up to 21 (per-city
     // parallel generation keeps each leg small).
-    const validation = validateTripParams(params, { maxDays: isMultiCity ? 21 : 14 });
+    const validation = validateTripParams(params, { maxDays: isMultiCity ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS });
     if (!validation.valid) {
       return errors.badRequest(validation.error);
     }

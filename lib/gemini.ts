@@ -21,6 +21,16 @@ import type { OutlineDay } from "./ai/trip-outline";
 import type { KnownPlace } from "./ai/known-places";
 import { withServerFields } from "./ai/server-fields";
 import { inPlanCurrency } from "./ai/plan-currency";
+import {
+  DESTINATION_ALLOWLIST,
+  DESTINATION_MAX_LENGTH,
+  DESTINATION_MIN_LENGTH,
+  MAX_TRIP_DAYS,
+  MUST_DOS_MAX,
+  MUST_DO_MAX_LENGTH,
+  REQUIREMENTS_MAX,
+  VIBES_MAX,
+} from "./trips/request-limits";
 import { planCurrency } from "./ai/assistant/plan-costs";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
@@ -1756,23 +1766,21 @@ const BLACKLIST = [
   "onload=",
 ];
 
-// Destination must look like a geographic name — letters, spaces, hyphens, commas, dots, parentheses, apostrophes
-const DESTINATION_ALLOWLIST = /^[\p{L}\p{M}\s\-,.'()&/0-9]+$/u;
-
 export function validateTripParams(
   params: TripCreationParams,
   // maxDays: multi-city trips generate per-city in parallel, so the whole-trip
-  // ceiling can safely exceed the single-city generation limit (14). The
-  // /api/ai/generate route passes 21 when destinations[] has more than one leg.
+  // ceiling can safely exceed the single-city generation limit. The
+  // /api/ai/generate route passes MAX_TRIP_DAYS_MULTI when destinations[] has
+  // more than one leg.
   opts?: { maxDays?: number }
 ): { valid: boolean; error?: string } {
-  const maxDays = opts?.maxDays ?? 14;
+  const maxDays = opts?.maxDays ?? MAX_TRIP_DAYS;
   // Destination validation
-  if (!params.destination || params.destination.length < 2) {
+  if (!params.destination || params.destination.length < DESTINATION_MIN_LENGTH) {
     return { valid: false, error: "Destination is required" };
   }
 
-  if (params.destination.length > 100) {
+  if (params.destination.length > DESTINATION_MAX_LENGTH) {
     return { valid: false, error: "Destination name too long" };
   }
 
@@ -1798,8 +1806,8 @@ export function validateTripParams(
 
   // Validate requirements field if present
   if (params.requirements) {
-    if (params.requirements.length > 500) {
-      return { valid: false, error: "Requirements text too long (max 500 characters)" };
+    if (params.requirements.length > REQUIREMENTS_MAX) {
+      return { valid: false, error: `Requirements text too long (max ${REQUIREMENTS_MAX} characters)` };
     }
     for (const blocked of BLACKLIST) {
       if (params.requirements.toLowerCase().includes(blocked.toLowerCase())) {
@@ -1817,12 +1825,12 @@ export function validateTripParams(
   // plus shape limits (the wizard enforces these too; this is the server
   // boundary for direct API callers).
   if (params.mustDos !== undefined) {
-    if (!Array.isArray(params.mustDos) || params.mustDos.length > 10) {
-      return { valid: false, error: "Must-dos must be a list of at most 10 items" };
+    if (!Array.isArray(params.mustDos) || params.mustDos.length > MUST_DOS_MAX) {
+      return { valid: false, error: `Must-dos must be a list of at most ${MUST_DOS_MAX} items` };
     }
     for (const item of params.mustDos) {
-      if (typeof item !== "string" || item.trim().length === 0 || item.length > 80) {
-        return { valid: false, error: "Each must-do must be 1-80 characters" };
+      if (typeof item !== "string" || item.trim().length === 0 || item.length > MUST_DO_MAX_LENGTH) {
+        return { valid: false, error: `Each must-do must be 1-${MUST_DO_MAX_LENGTH} characters` };
       }
       for (const blocked of BLACKLIST) {
         if (item.toLowerCase().includes(blocked.toLowerCase())) {
@@ -1896,8 +1904,8 @@ export function validateTripParams(
     if (params.vibes.length === 0) {
       return { valid: false, error: "At least one vibe is required" };
     }
-    if (params.vibes.length > 3) {
-      return { valid: false, error: "Maximum 3 vibes allowed" };
+    if (params.vibes.length > VIBES_MAX) {
+      return { valid: false, error: `Maximum ${VIBES_MAX} vibes allowed` };
     }
     for (const vibe of params.vibes) {
       if (!validVibes.includes(vibe)) {

@@ -16,15 +16,11 @@ import type { ItineraryDay, Activity } from "@/types";
 import { generateActivityId } from "@/lib/utils/activity-id";
 import { addIsoDays } from "@/lib/dates/iso-date";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
+import { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
 
-/**
- * Platform-wide trip length ceiling. Matches the generation-side limit
- * (lib/gemini.ts validateTripDuration: "Maximum trip duration is 14 days")
- * — the assistant must not be a side door past it.
- */
-export const MAX_TRIP_DAYS = 14;
-/** The wizard's cap for a trip across several cities. */
-export const MAX_TRIP_DAYS_MULTI = 21;
+// The platform-wide trip length ceilings, the ones generation applies too:
+// the assistant must not be a side door past them.
+export { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI };
 
 /**
  * The longest this trip may be: its own cap, or its current length when it is

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { GeneratedItinerary } from "@/types";
-import { keptPlanOf, REQUIREMENTS_MAX, sessionTripOf, tripFormState, withUndatedItems, type WizardAnswers } from "./answers";
+import { keptPlanOf, sessionTripOf, tripFormState, withUndatedItems, type WizardAnswers } from "./answers";
+import { REQUIREMENTS_MAX } from "@/lib/trips/request-limits";
 
 const itinerary = { days: [{ day_number: 1 }, { day_number: 2 }, { day_number: 3 }] } as unknown as GeneratedItinerary;
 

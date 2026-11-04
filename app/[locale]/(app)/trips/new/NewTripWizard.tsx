@@ -150,11 +150,8 @@ import {
 } from "@/lib/posthog/events";
 import { saveErrorClass } from "@/lib/wizard/save-failure";
 import { funnelDays, funnelTraits } from "@/lib/wizard/plan-funnel";
-import {
-  DESTINATION_MAX_LENGTH,
-  destinationProblem,
-  step1Blocker,
-} from "@/lib/wizard/step1-gate";
+import { destinationProblem, step1Blocker } from "@/lib/wizard/step1-gate";
+import { DESTINATION_MAX_LENGTH, MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
 import {
   reportGenerated,
   reportGenerationFailed,
@@ -265,17 +262,6 @@ const VIBE_TO_INTERESTS: Record<string, string[]> = {
   nature: ["nature", "photography", "adventure"],
   urban: ["nightlife", "shopping", "art"],
 };
-
-// ── Inline mirrors of lib/gemini.ts validateTripParams ──────────────────────
-// The wizard enforces the server's rules inline so a bad duration or
-// destination is flagged while the form is being filled, not at generate time;
-// the lib checks stay as the server backstop. Keep BOTH in lockstep with
-// lib/gemini.ts.
-const MAX_TRIP_DAYS = 14;
-// Multi-city ceiling: per-city parallel generation keeps each leg small, so
-// the WHOLE-TRIP span may exceed the single-city limit. Server mirror:
-// /api/ai/generate passes maxDays 21 to validateTripParams for multi-city.
-const MAX_TRIP_DAYS_MULTI = 21;
 
 // Popular-destination pills for step 1: the most-planned destinations on the
 // platform plus two seasonal favourites (Santorini, Lisbon). Keep the list
@@ -564,7 +550,7 @@ export default function NewTripPage({
   const [requirements, setRequirements] = useState("");
   // Must-do wishlist: undated wishes ("Great Wall", "eat Peking duck")
   // entered as chips on step 2. Distinct from anchors (date-pinned) and from
-  // the requirements prose. Caps mirror validateTripParams (10 × 80 chars).
+  // the requirements prose. Capped as the server caps them (lib/trips/request-limits).
   const [mustDos, setMustDos] = useState<string[]>([]);
   const [mustDoInput, setMustDoInput] = useState("");
   // Diets the plan's places to eat must suit (step 2 chips).
