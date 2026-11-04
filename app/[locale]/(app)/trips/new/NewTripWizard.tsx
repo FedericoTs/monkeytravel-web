@@ -189,6 +189,7 @@ import { useAutoSaveTrip, type AutoSaveSkipReason } from "@/hooks/useAutoSaveTri
 import { useClaimedTrip } from "@/hooks/useClaimedTrip";
 import { usePendingClaim } from "@/hooks/usePendingClaim";
 import { useUnsavedPlan } from "@/hooks/useUnsavedPlan";
+import { useAssistantEdits } from "@/hooks/useAssistantEdits";
 import { useWizardFunnel, WIZARD_STEP_NAMES } from "@/hooks/useWizardFunnel";
 import { useGenerationLeft } from "@/hooks/useGenerationLeft";
 import { useGenerationProgress } from "@/hooks/useGenerationProgress";
@@ -224,8 +225,6 @@ import {
 } from "@/lib/trips/persistTrip";
 import { newTripTitle } from "@/lib/trips/title";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
-import { applyAssistantEdits, type AssistantDayEdit } from "@/lib/trips/day-edit-merge";
-import { createUndoLedger } from "@/lib/trip/assistant-undo";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { useMultiCityRoute } from "@/hooks/useMultiCityRoute";
@@ -596,10 +595,8 @@ export default function NewTripPage({
   // complete the Save the user already clicked before signing up. At most once.
   const saveIntentRedeemedRef = useRef<boolean>(false);
 
-  // Assistant edits applied to the itinerary on screen (reset by every
-  // generation). A full regenerate replaces them, so it asks first instead of
-  // silently discarding them.
-  const editsSinceGenerationRef = useRef<boolean>(false);
+  // A full regenerate replaces the assistant's edits, so it asks first instead
+  // of silently discarding them.
   const [confirmRegenerate, setConfirmRegenerate] = useState(false);
   // Changing the dates on the result, instead of starting over
   // (lib/trips/change-dates.ts). `datesNotice` reports a longer trip whose
@@ -607,19 +604,6 @@ export default function NewTripPage({
   const [showChangeDates, setShowChangeDates] = useState(false);
   const [planningExtraDays, setPlanningExtraDays] = useState(false);
   const [datesNotice, setDatesNotice] = useState<string | null>(null);
-
-  // Mirror state into refs so the assistant's edit handlers read current values
-  // without being recreated on every change.
-  const startDateRef = useRef(startDate);
-  const endDateRef = useRef(endDate);
-  const generatedItineraryRef = useRef(generatedItinerary);
-  // Assistant edits apply as they arrive; this undoes one while the plan is
-  // still that edit's result (lib/trip/assistant-undo.ts).
-  const assistantUndo = useRef(createUndoLedger<GeneratedItinerary, string>());
-  useEffect(() => { generatedItineraryRef.current = generatedItinerary; }, [generatedItinerary]);
-
-  useEffect(() => { startDateRef.current = startDate; }, [startDate]);
-  useEffect(() => { endDateRef.current = endDate; }, [endDate]);
 
   // Pre-fill the SHAPE of the trip (length, budget, vibes) from a blog CTA, so
   // a reader arriving from "3-day Paris itinerary" doesn't have to retype the
@@ -1117,10 +1101,19 @@ export default function NewTripPage({
   // A plan on screen and not saved: the save nudges, the leave guard and the
   // exit event (hooks/useUnsavedPlan.ts).
   const { noteEditApplied } = useUnsavedPlan({ hasResult, isUnsaved, sessionTrayVisible, showAuthModal, getGenCount });
+  // The assistant's edits to the plan on screen, and their undo (hooks/useAssistantEdits.ts).
+  const { applyEdits, undoEdits, hasEdits, forgetEdits } = useAssistantEdits({
+    plan: generatedItinerary,
+    onPlan: setGeneratedItinerary,
+    startDate,
+    endDate,
+    onEndDate: setEndDate,
+    noteEditApplied,
+  });
 
   // Regenerate, asking first when the assistant has changed this itinerary.
   const requestRegenerate = () => {
-    if (editsSinceGenerationRef.current) {
+    if (hasEdits()) {
       setConfirmRegenerate(true);
       return;
     }
@@ -1394,7 +1387,7 @@ export default function NewTripPage({
 
   const handleGenerate = async (opts: { fresh?: boolean } = {}) => {
     // A new itinerary replaces the one the edits and the dates note were about.
-    editsSinceGenerationRef.current = false;
+    forgetEdits();
     setDatesNotice(null);
     // Step 1's rules, checked again: what passed step 1 may no longer hold.
     // handleSessionTrayRestore forces multiCityMode off (see its comment) and
@@ -1680,59 +1673,6 @@ export default function NewTripPage({
     autoSave.savedTripId,
   ]);
 
-  // Apply one assistant reply to the in-memory itinerary: every day it changes
-  // and, when it adds or removes days, the trip's new length (the end date
-  // follows, so a saved trip's auto-save writes it too). Recomputes the trip
-  // total so hero/sticky/overview/export/saved-budget stay in sync, carries
-  // ids, map data and photos over by name across all the edited days (so a
-  // moved activity keeps its photo; lib/trips/day-edit-merge.ts), and scrolls
-  // the first changed day into view.
-  const handleApplyAssistantEdits = useCallback(
-    (edits: AssistantDayEdit[], tripLength?: number): string | undefined => {
-      const prev = generatedItineraryRef.current;
-      if (!prev) return undefined;
-      // Remember that this session applied an assistant edit (forwarded on
-      // result_exit_unsaved as edits_applied).
-      noteEditApplied();
-      editsSinceGenerationRef.current = true;
-      const start = startDateRef.current;
-      // Ids are given here, so the state keeps this exact object and Undo can
-      // tell it is still the plan on screen.
-      const days = ensureActivityIds(applyAssistantEdits(prev.days, edits, { tripLength, startDate: start || undefined }));
-      const next = withDays(prev, days);
-      const undoId = assistantUndo.current.record(prev, next, endDateRef.current);
-      generatedItineraryRef.current = next;
-      setGeneratedItinerary(next);
-      if (tripLength !== undefined && start) setEndDate(addIsoDaysOrThrow(start, tripLength - 1));
-      const dayNumber = edits[0]?.day_number ?? tripLength ?? 1;
-      setTimeout(() => {
-        const el = document.getElementById(`day-${dayNumber}`);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "start" });
-          el.classList.add("ring-2", "ring-[var(--primary)]");
-          setTimeout(() => el.classList.remove("ring-2", "ring-[var(--primary)]"), 2000);
-        }
-      }, 100);
-      return undoId;
-    },
-    [setGeneratedItinerary, noteEditApplied]
-  );
-
-  // Put the plan (and end date) back as it was before an assistant edit, only
-  // while nothing else has changed it since. False when it can't.
-  const handleUndoAssistantEdits = useCallback(
-    (undoId: string): boolean => {
-      const current = generatedItineraryRef.current;
-      const entry = current ? assistantUndo.current.take(undoId, current) : null;
-      if (!entry) return false;
-      generatedItineraryRef.current = entry.before;
-      setGeneratedItinerary(entry.before);
-      setEndDate(entry.extra);
-      return true;
-    },
-    [setGeneratedItinerary]
-  );
-
   // New dates for the generated trip, from the hero's date chip or from Start
   // Over's "wrong dates" (often dates "I'm flexible" pencilled in), so wrong
   // dates don't cost the whole plan. The plan moves with the dates; a shorter
@@ -1777,7 +1717,7 @@ export default function NewTripPage({
       });
       const { planned, newDays } = extraDaysFrom(await res.json().catch(() => ({})), current, change.length);
       if (res.ok && planned > current && newDays.length > 0) {
-        handleApplyAssistantEdits(newDays, planned);
+        applyEdits(newDays, planned);
         if (planned < change.length) setDatesNotice(t("wizard.changeDates.partlyPlanned", { count: planned }));
       } else {
         setDatesNotice(t("wizard.changeDates.extraFailed", { count: current }));
@@ -2002,8 +1942,8 @@ export default function NewTripPage({
               language={generatedItinerary.language}
               startDate={startDate}
               endDate={endDate}
-              onApplyEdits={handleApplyAssistantEdits}
-              onUndoEdits={handleUndoAssistantEdits}
+              onApplyEdits={applyEdits}
+              onUndoEdits={undoEdits}
               onPlanElsewhere={handlePlanElsewhere}
               // Post-edit save bridge. Only offered while the
               // trip is unsaved AND the manual save arm owns persistence —
