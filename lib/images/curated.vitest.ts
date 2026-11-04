@@ -4,7 +4,7 @@ import {
   curatedFor,
   readActivityTypeHint,
   withActivityTypeHint,
-} from "@/lib/images/activity";
+} from "@/lib/images/curated";
 
 /**
  * The `t=` type hint exists so that when a Google place photo dies permanently,
