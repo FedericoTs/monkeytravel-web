@@ -9,7 +9,9 @@
  * questions too, with the plan's own figures.
  */
 
-import { assistTrip, type AssistTurn, type DayEdit } from "./engine";
+import type { AssistTurn } from "./edit-prompt";
+import type { DayEdit } from "./edit-validation";
+import { assistTrip } from "./engine";
 import { lengthUnchangedNote, ownerAddsDaysReply } from "@/lib/ai/assistant/honesty";
 import type { DisplayCurrency } from "@/lib/ai/assistant/plan-costs";
 import { addDaysISO, computeExtendedEndDate } from "@/lib/ai/assistant/structural";
