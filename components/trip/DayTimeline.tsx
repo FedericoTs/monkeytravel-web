@@ -2,9 +2,8 @@
 
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import type { Activity, ItineraryDay } from "@/types";
+import type { Activity, ItineraryDay, TripPace } from "@/types";
 import { segmentBetween, type DayTravelData } from "@/hooks/useTravelDistances";
-import type { TripPace } from "@/lib/trip/pace";
 import { useActivityPrice } from "@/lib/i18n/activity-price";
 import { useActivityTypeLabel } from "@/lib/i18n/activity-type";
 import { activityDomId } from "@/lib/trip/activity-dom-id";

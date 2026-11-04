@@ -16,6 +16,7 @@
  * @see https://developers.google.com/analytics/devguides/collection/ga4/events
  */
 
+import type { BudgetTier } from "@/types";
 import { track } from "@vercel/analytics";
 import { sentry, sentryBreadcrumb, sentryUser } from "@/lib/observability/sentry";
 
@@ -149,7 +150,7 @@ export function trackTripCreated(params: {
   tripId: string;
   destination: string;
   duration: number;
-  budgetTier: "budget" | "balanced" | "premium";
+  budgetTier: BudgetTier;
   isFromTemplate?: boolean;
   isFromChatgpt?: boolean;
 }): void {

@@ -1,9 +1,9 @@
 "use client";
 
+import type { BudgetTier } from "@/types";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import type { BudgetTier } from "@/lib/explore/types";
 
 /**
  * URL-synced filter chips for /explore. Pure client component — the

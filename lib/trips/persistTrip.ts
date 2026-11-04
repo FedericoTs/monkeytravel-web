@@ -13,7 +13,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { GeneratedItinerary, TripAnchor, TripVibe } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripVibe, BudgetTier, TripPace } from "@/types";
 import { splitCities } from "@/lib/ai/multi-city-core";
 import { isSupportedLanguage, resolveAiLanguage } from "@/lib/ai/language";
 import { isValidTimeZone } from "@/lib/trip/live";
@@ -28,8 +28,8 @@ export interface TripFormState {
   destination: string;
   startDate: string;
   endDate: string;
-  budgetTier: "budget" | "balanced" | "premium";
-  pace: "relaxed" | "moderate" | "active";
+  budgetTier: BudgetTier;
+  pace: TripPace;
   vibes: TripVibe[];
   /** Auto-derived from vibes — kept on input so the hook stays pure. */
   derivedInterests: string[];

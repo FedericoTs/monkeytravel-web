@@ -1,3 +1,4 @@
+import type { BudgetTier } from "@/types";
 import { getDestinationBySlug } from "@/lib/destinations/data";
 import { createClientWithViewer } from "@/lib/supabase/server";
 import type { Locale } from "@/lib/destinations/types";
@@ -53,7 +54,7 @@ function one(v: string | string[] | undefined): string | undefined {
  */
 export interface PrefilledTripShape {
   days: number | null;
-  budget: "budget" | "balanced" | "premium" | null;
+  budget: BudgetTier | null;
   vibes: string[];
 }
 

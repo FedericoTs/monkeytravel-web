@@ -3,7 +3,7 @@ import type { SessionTripData, SessionTripSnapshot } from "@/hooks/useSessionTri
 import type { KeptPlan } from "@/lib/plans/kept-plan";
 import type { TripIntent } from "@/lib/posthog/events";
 import { dietsFrom, type Diet } from "@/lib/trips/diet";
-import type { GeneratedItinerary, TripAnchor, TripVibe } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripVibe, BudgetTier, TripPace } from "@/types";
 import { FRESH_ANSWERS, type WizardAnswers } from "./answers";
 
 /** Where a restored draft goes: the wizard's fields, and the session tray. */
@@ -11,9 +11,9 @@ export interface DraftTargets {
   setDestination: (value: string) => void;
   setStartDate: (value: string) => void;
   setEndDate: (value: string) => void;
-  setPace: (value: "relaxed" | "moderate" | "active") => void;
+  setPace: (value: TripPace) => void;
   setSelectedVibes: (value: TripVibe[]) => void;
-  setBudgetTier: (value: "budget" | "balanced" | "premium") => void;
+  setBudgetTier: (value: BudgetTier) => void;
   setMustDos: (value: string[]) => void;
   setDietary: (value: Diet[]) => void;
   setTravelStyle: (value: "classic" | "backpacker") => void;
@@ -54,9 +54,9 @@ export function applyDraft(draft: ItineraryDraft, to: DraftTargets): void {
   to.setDestination(draft.destination);
   to.setStartDate(draft.startDate);
   to.setEndDate(draft.endDate);
-  to.setPace(draft.pace as "relaxed" | "moderate" | "active");
+  to.setPace(draft.pace as TripPace);
   to.setSelectedVibes(draft.vibes as TripVibe[]);
-  to.setBudgetTier(draft.budgetTier as "budget" | "balanced" | "premium");
+  to.setBudgetTier(draft.budgetTier as BudgetTier);
   if (Array.isArray(draft.mustDos)) to.setMustDos(draft.mustDos);
   to.setDietary(dietsFrom(draft.dietary));
   if (draft.travelStyle === "backpacker") to.setTravelStyle("backpacker");

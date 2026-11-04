@@ -9,8 +9,8 @@ import {
   isOverpacked,
   normalizePace,
   sumPlannedMinutes,
-  type TripPace,
 } from "@/lib/trip/pace";
+import type { TripPace } from "@/types";
 import { useDistance } from "@/lib/locale";
 import { formatDuration } from "@/lib/datetime/duration";
 

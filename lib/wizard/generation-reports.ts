@@ -1,3 +1,4 @@
+import type { BudgetTier } from "@/types";
 import { trackItineraryGenerated } from "@/lib/analytics";
 import { tripSpanDays } from "@/lib/dates/iso-date";
 import {
@@ -16,7 +17,7 @@ export interface GenerationReport {
   destination: string;
   startDate: string;
   endDate: string;
-  budgetTier: "budget" | "balanced" | "premium";
+  budgetTier: BudgetTier;
   tripIntent: TripIntent;
   travelStyle: "classic" | "backpacker";
   locale: string;

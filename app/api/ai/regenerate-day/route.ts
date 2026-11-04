@@ -34,7 +34,7 @@ import { getTripDestination } from "@/lib/trips/destination";
 import { dietsFrom } from "@/lib/trips/diet";
 import { placesToEatCheck } from "@/lib/places/places-to-eat";
 import { casUpdateItinerary, type CasOutcome } from "@/lib/trips/itinerary-cas";
-import { isTripVibe, type ItineraryDay, type TripVibe } from "@/types";
+import { isTripVibe, type ItineraryDay, type TripVibe, type BudgetTier } from "@/types";
 
 const MAX_INSTRUCTIONS_LEN = 500;
 
@@ -151,11 +151,7 @@ async function regenerateDay(request: NextRequest, geminiCost: GeminiCostMeter) 
     // Derive trip context. Vibes/pace aren't persisted on the row today
     // (see lib/trips/persistTrip.ts) so fall back to reasonable defaults
     // based on the tags column (which mirrors derivedInterests).
-    const budgetTier = (trip!.budget as { tier?: string } | null)?.tier as
-      | "budget"
-      | "balanced"
-      | "premium"
-      | undefined;
+    const budgetTier = (trip!.budget as { tier?: string } | null)?.tier as BudgetTier | undefined;
     const tags = (trip!.tags as string[] | null) ?? [];
     const inferredVibes: TripVibe[] = tags.filter(isTripVibe);
 
