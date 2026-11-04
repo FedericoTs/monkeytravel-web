@@ -27,7 +27,7 @@ vi.mock("@/lib/ai/genai-compat", async (importOriginal) => {
   };
 });
 
-vi.mock("@/lib/gemini", () => ({ logCacheMetrics: vi.fn() }));
+vi.mock("@/lib/ai/cache-metrics", () => ({ logCacheMetrics: vi.fn() }));
 
 const overloaded = () => Object.assign(new Error("This model is currently experiencing high demand."), { status: 503 });
 const answer = () => ({ response: { text: () => JSON.stringify({ reply: "Done.", edits: [] }) } });

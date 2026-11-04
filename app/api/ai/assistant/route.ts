@@ -4,11 +4,8 @@ import { getAuthenticatedUser } from "@/lib/api/auth";
 import { TRIP_COLUMNS } from "@/lib/trips/columns";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
-import {
-  logCacheMetrics,
-  regenerateSingleDay,
-  validateAndFixCoordinates,
-} from "@/lib/gemini";
+import { regenerateSingleDay, validateAndFixCoordinates } from "@/lib/gemini";
+import { logCacheMetrics } from "@/lib/ai/cache-metrics";
 import {
   detectStructuralIntent,
   normalizeDraftDays,
