@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
+import { formatDateRange } from "@/lib/datetime";
 import { Plane, Hotel, Ticket, Train, ChevronDown, ChevronUp } from "lucide-react";
 import {
   generateAllHotelLinks,
@@ -302,21 +303,4 @@ export default function EnhancedBookingPanel({
       </div>
     </div>
   );
-}
-
-// Helper function.
-//
-// Accepts the active locale so the month abbreviation matches the user's
-// language ("mag" on /it, "may" on /es, "May" on /en).
-function formatDateRange(start: string, end: string, locale: string): string {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-
-  const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
-
-  if (startDate.getMonth() === endDate.getMonth()) {
-    return `${startDate.toLocaleDateString(locale, options)} - ${endDate.getDate()}`;
-  }
-
-  return `${startDate.toLocaleDateString(locale, options)} - ${endDate.toLocaleDateString(locale, options)}`;
 }

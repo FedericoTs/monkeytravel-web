@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo, type SetStateAction } from "react";
 import { maxTripStartDate, addIsoDaysOrThrow, tripSpanDays } from "@/lib/dates/iso-date";
+import { formatDateRange } from "@/lib/datetime";
 import { localTodayISO } from "@/lib/utils/date-local";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/lib/i18n/routing";
@@ -233,24 +234,6 @@ import { withDays } from "@/lib/trips/plan-days";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
 const MAX_TRIP_START_DATE = maxTripStartDate();
-
-// Localized, human date range for the result hero. Parses the ISO strings as
-// LOCAL midnight (no trailing Z) to avoid an off-by-one, and joins with an
-// en-dash so no English "to" (and no raw ISO date) leaks on /it /es /pt.
-// Falls back to the raw range if either date is unparseable.
-function formatDateRangeLocalized(startISO: string, endISO: string, locale: string): string {
-  try {
-    const start = new Date(`${startISO}T00:00:00`);
-    const end = new Date(`${endISO}T00:00:00`);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-      return `${startISO} – ${endISO}`;
-    }
-    const fmt = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" });
-    return `${fmt.format(start)} – ${fmt.format(end)}`;
-  } catch {
-    return `${startISO} – ${endISO}`;
-  }
-}
 
 // Vibe to interests mapping - automatically derives interests from selected vibes
 // This ensures the AI receives relevant interest signals based on vibe selection
@@ -1943,7 +1926,7 @@ export default function NewTripPage({
           destination={fullDestination}
           title={fullDestination}
           subtitle={generatedItinerary.destination.description}
-          dateRange={formatDateRangeLocalized(startDate, endDate, locale)}
+          dateRange={formatDateRange(startDate, endDate, locale)}
           onEditDates={planningExtraDays || mcStops.length > 1 ? undefined : () => setShowChangeDates(true)}
           editDatesLabel={t("wizard.changeDates.button")}
           budget={{
@@ -1966,7 +1949,7 @@ export default function NewTripPage({
           <ResultDatesNotice
             planningExtraDays={planningExtraDays}
             datesNotice={datesNotice}
-            dateRange={formatDateRangeLocalized(startDate, endDate, locale)}
+            dateRange={formatDateRange(startDate, endDate, locale)}
             onSetDates={() => setShowChangeDates(true)}
           />
         )}
