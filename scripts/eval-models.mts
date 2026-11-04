@@ -18,7 +18,8 @@
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { generateItineraryStream, parseStreamedItinerary } from "../lib/gemini";
+import { generateItineraryStream } from "../lib/gemini";
+import { parseStreamedItinerary } from "../lib/ai/itinerary-text";
 import { generateTripOutline } from "../lib/ai/trip-outline";
 import { writeInParts, writesInParts } from "../lib/ai/plan-in-parts";
 import { generateMultiCityItinerary, type CityLeg } from "../lib/ai/multi-city";

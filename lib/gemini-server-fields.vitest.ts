@@ -29,7 +29,8 @@ vi.mock("@/lib/ai/genai-compat", async (importOriginal) => {
 vi.mock("@/lib/prompts", () => ({ getPrompt: async () => "system", DEFAULT_PROMPTS: {} }));
 vi.mock("@/lib/posthog/llm-analytics", () => ({ captureLLMGeneration: async () => {}, estimateCost: () => 0 }));
 
-const { generateItineraryStream, parseStreamedItinerary } = await import("./gemini");
+const { generateItineraryStream } = await import("./gemini");
+const { parseStreamedItinerary } = await import("./ai/itinerary-text");
 const { bookingLinksFor, withServerFields } = await import("./ai/server-fields");
 
 const params = {

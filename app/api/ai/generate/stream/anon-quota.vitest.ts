@@ -51,8 +51,8 @@ vi.mock("@/lib/gemini", () => ({
   generateItineraryStream: () => {
     throw new Error("the stream is never read in these tests");
   },
-  parseStreamedItinerary: () => null,
 }));
+vi.mock("@/lib/ai/itinerary-text", () => ({ parseStreamedItinerary: () => null }));
 vi.mock("@/lib/images/activity", () => ({ fetchActivityImages: async () => [] }));
 
 import { POST } from "./route";

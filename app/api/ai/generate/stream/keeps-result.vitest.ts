@@ -55,8 +55,8 @@ vi.mock("@/lib/gemini", () => ({
     yield { text, done: false };
     yield { text: "", done: true, fullText: text, latencyMs: 1 };
   },
-  parseStreamedItinerary: (text: string) => JSON.parse(text),
 }));
+vi.mock("@/lib/ai/itinerary-text", () => ({ parseStreamedItinerary: (text: string) => JSON.parse(text) }));
 
 const { POST } = await import("./route");
 const { findGeneration } = await import("@/lib/ai/generation-result");
