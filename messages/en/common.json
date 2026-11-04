@@ -2194,6 +2194,7 @@
       "realTime": "Share and vote with friends"
     },
     "redirecting": "Redirecting...",
+    "googleFailed": "Couldn't continue with Google. Try again, or use your email.",
     "createAccount": "Create Free Account",
     "hasAccount": "Already have an account? Sign in",
     "preferPassword": "Prefer a password? Sign up instead",
@@ -2203,6 +2204,7 @@
       "send": "Email me the link",
       "sending": "Sending...",
       "failed": "Couldn't send the link — please try again",
+      "emailInvalid": "That email address doesn't look right. Check it and try again.",
       "sentTitle": "Check your inbox",
       "sentSubtitle": "We sent a one-tap link to {email}",
       "checkInbox": "Click the link in the email to save your trip. No password needed.",

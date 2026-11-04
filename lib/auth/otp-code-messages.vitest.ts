@@ -3,7 +3,7 @@ import enMessages from "@/messages/en/common.json";
 import esMessages from "@/messages/es/common.json";
 import itMessages from "@/messages/it/common.json";
 import ptMessages from "@/messages/pt/common.json";
-import { otpErrorMessageKey, type OtpErrorKind } from "./otp-code";
+import { otpErrorMessageKey, otpSendFailureKey, type OtpErrorKind } from "./otp-code";
 
 /**
  * Every string the code path asks for must exist in every shipped locale.
@@ -59,6 +59,16 @@ describe("the code path's strings exist everywhere", () => {
         const key = otpErrorMessageKey(kind);
         const value = lookup(bundle, key);
         expect(value, `${locale} → authPrompt.${key} (${kind})`).toBeTypeOf("string");
+        expect((value as string).length).toBeGreaterThan(0);
+      }
+    });
+
+    it(`${locale}: has a message for every way a send fails, and for Google failing`, () => {
+      const sends = [{ message: "rate limit" }, { status: 503 }, { code: "email_address_invalid" }, undefined].map(otpSendFailureKey);
+      expect(new Set(sends).size).toBe(4);
+      for (const key of [...sends, "googleFailed"]) {
+        const value = lookup(bundle, key);
+        expect(value, `${locale} → authPrompt.${key}`).toBeTypeOf("string");
         expect((value as string).length).toBeGreaterThan(0);
       }
     });
