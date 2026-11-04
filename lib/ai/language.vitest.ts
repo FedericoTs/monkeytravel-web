@@ -174,8 +174,9 @@ describe("requestLocale", () => {
     const wizard = read("app", "[locale]", "(app)", "trips", "new", "NewTripWizard.tsx");
     expect(wizard).toMatch(/generationRequest\(answers, \{[^}]*\blocale,/);
     expect(read("lib", "wizard", "generation-request.ts")).toMatch(/body: \{ \.\.\.params, locale: extra\.locale/);
+    expect(read("lib", "ai", "generation-caller.ts")).toContain("requestLocale(body.locale) ?? userContext.userLanguage");
     for (const route of [["app", "api", "ai", "generate", "route.ts"], ["app", "api", "ai", "generate", "stream", "route.ts"]]) {
-      expect(read(...route)).toContain("requestLocale(body.locale) ?? userContext.userLanguage");
+      expect(read(...route)).toContain("readGenerationCaller(request)");
     }
   });
 });

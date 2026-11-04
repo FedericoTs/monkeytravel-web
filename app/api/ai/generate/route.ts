@@ -2,9 +2,7 @@ import { deriveTimezoneFromItinerary } from "@/lib/trip/timezone";
 import { NextRequest } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
-import { createClient } from "@/lib/supabase/server";
-import { checkAnonymousRateLimit, recordAnonymousGeneration } from "@/lib/anonymous/rate-limit";
-import type { User } from "@supabase/supabase-js";
+import { recordAnonymousGeneration } from "@/lib/anonymous/rate-limit";
 import { generateItinerary } from "@/lib/gemini";
 import { validateTripParams } from "@/lib/trips/request-validation";
 import { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
@@ -18,7 +16,7 @@ import {
   getMapsGroundingCost,
 } from "@/lib/maps-grounding";
 import { isAdmin } from "@/lib/admin";
-import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { logApiCall } from "@/lib/api-gateway";
 import { incrementUsage } from "@/lib/usage-limits";
 import { isActivityBankPopulated, populateActivityBank } from "@/lib/activity-bank";
 import { fetchActivityImages } from "@/lib/images/activity";
@@ -28,9 +26,7 @@ import type { Coordinates } from "@/lib/utils/geo";
 import { cacheItinerary, adjustItineraryDates } from "@/lib/ai/cache";
 import { cachePolicy, mayCachePlan, servableCachedPlan } from "@/lib/ai/cache-policy";
 import { generationQuotaReached, readGenerationPreflight } from "@/lib/ai/generation-preflight";
-import { loadUserContext } from "@/lib/ai/user-context";
-import { withTripDiet } from "@/lib/trips/diet";
-import { requestLocale } from "@/lib/ai/language";
+import { readGenerationCaller, tripParamsFromBody } from "@/lib/ai/generation-caller";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import {
   generateMultiCityItinerary,
@@ -42,21 +38,12 @@ import { knownPlacesFor } from "@/lib/ai/known-places";
 import { inPlanCurrency } from "@/lib/ai/plan-currency";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
 import type { TripAnchor } from "@/types";
-import { createRateLimiter } from "@/lib/api/rate-limit";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 import { tripSpanDays } from "@/lib/dates/iso-date";
 
 // Feature flag: Enable Maps Grounding for cost-effective generation
 // Set USE_MAPS_GROUNDING=true in .env to enable (59% cost savings)
 const USE_MAPS_GROUNDING = process.env.USE_MAPS_GROUNDING === "true";
-
-// Anti-abuse: cap ANONYMOUS generations per IP/day (defense-in-depth on top of
-// the per-cookie limit, which a bot can reset by clearing cookies). Authenticated
-// users are never limited. Deliberately HIGH (40/IP/day) so it can't touch real
-// users or shared/carrier NAT at current scale — only a scripted attacker doing
-// hundreds/day. Shared "anon-generate" namespace so the stream + non-stream
-// routes count against one bucket.
-const anonGenIpLimiter = createRateLimiter("anon-generate", 40, 24 * 60 * 60 * 1000);
 
 // Cache helpers live in lib/ai/cache.ts, shared with the streaming route. See
 // that file for the unique-key shape + idempotency guarantees.
@@ -75,86 +62,14 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
   const generationId = generationIdOf(request);
 
   try {
-    // Anonymous generation is allowed: visitors generate without signing up and
-    // the auth wall fires at Save, because a signup wall before the result
-    // loses most generators. No user means anonymous mode, capped per cookie
-    // (lib/anonymous/rate-limit) and per IP below.
-    const supabase = await createClient();
-    const { data: { user: maybeUser } } = await supabase.auth.getUser();
-    const user: User | null = maybeUser ?? null;
-    const isAnonymous = user === null;
-
-    // The pre-Gemini reads are independent, so they run in parallel; their
-    // results are checked below in priority order: anon cookie limit → per-IP
-    // limit → body validity → (param validation) → access kill-switch.
-    // A rejection from request.json resolves to null and becomes a 400.
-    const [anonLimit, body, userContext, access, anonIpLimit] = await Promise.all([
-      isAnonymous ? checkAnonymousRateLimit() : Promise.resolve(null),
-      request.json().catch(() => null as Record<string, unknown> | null),
-      loadUserContext(supabase, user?.id ?? null),
-      checkApiAccess("gemini"),
-      // Per-IP anon backstop. Fail-OPEN: a limiter/KV error must NEVER block a
-      // real generation, so swallow errors into an allow.
-      isAnonymous
-        ? anonGenIpLimiter.check(request).catch(() => ({ allowed: true, remaining: 0 }))
-        : Promise.resolve(null),
-    ]);
-
-    if (isAnonymous && anonLimit && !anonLimit.allowed) {
-      return errors.rateLimit(
-        anonLimit.message || "Free trip limit reached. Sign up to keep generating.",
-        { usage: anonLimit, signupUrl: "/auth/signup" }
-      );
-    }
-
-    // Per-IP backstop for cookie-resetting bots (the cookie cap above is
-    // trivially reset). Only trips under real abuse at 40/IP/day.
-    if (isAnonymous && anonIpLimit && !anonIpLimit.allowed) {
-      return errors.rateLimit(
-        "You've reached today's free-trip limit for your network. Sign up to keep generating — it's free.",
-        { signupUrl: "/auth/signup" }
-      );
-    }
-
-    if (!body || typeof body !== "object") {
-      return errors.badRequest("Body must be valid JSON");
-    }
-
-    const profilePreferences = withTripDiet(userContext.profilePreferences, body.dietary);
-    // The page's own locale wins: next-intl writes NEXT_LOCALE only when it
-    // differs from the browser language, so the cookie is usually absent.
-    const userLanguage = requestLocale(body.locale) ?? userContext.userLanguage;
+    // Who is asking and with what body: an anonymous visitor over a cap, or a
+    // body that is not JSON, is refused (lib/ai/generation-caller.ts).
+    const caller = await readGenerationCaller(request);
+    if ("refused" in caller) return caller.refused;
+    const { supabase, user, isAnonymous, body, access, profilePreferences, userLanguage } = caller;
     console.log(`[AI Generate] User language: ${userLanguage} (anonymous=${isAnonymous})`);
 
-    // Whitelist travelStyle so untrusted strings can't flow into the AI
-    // system prompt. Anything other than "backpacker" → default "classic".
-    const travelStyle: "classic" | "backpacker" =
-      body.travelStyle === "backpacker" ? "backpacker" : "classic";
-
-    const params: TripCreationParams = {
-      destination: body.destination as string,
-      startDate: body.startDate as string,
-      endDate: body.endDate as string,
-      budgetTier: (body.budgetTier as TripCreationParams["budgetTier"]) || "balanced",
-      pace: (body.pace as TripCreationParams["pace"]) || "moderate",
-      vibes: (body.vibes as TripCreationParams["vibes"]) || [],
-      seasonalContext: body.seasonalContext as TripCreationParams["seasonalContext"],
-      interests: (body.interests as string[]) || [],
-      requirements: body.requirements as TripCreationParams["requirements"],
-      // Must-do wishlist. Trim + drop empties client-shape-agnostically;
-      // validateTripParams enforces count/length/injection limits below.
-      ...(Array.isArray(body.mustDos) && body.mustDos.length > 0
-        ? {
-            mustDos: (body.mustDos as unknown[])
-              .map((m) => String(m ?? "").trim())
-              .filter(Boolean)
-              .slice(0, 10),
-          }
-        : {}),
-      travelStyle,
-      // Include profile preferences (automatically fetched from user profile)
-      profilePreferences,
-    };
+    const params = tripParamsFromBody(body, profilePreferences);
 
     // "Try Different Version": the traveller gets a new plan, not the one on
     // screen (lib/ai/cache-policy).

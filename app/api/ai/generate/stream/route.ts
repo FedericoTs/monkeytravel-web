@@ -2,12 +2,7 @@ import { deriveTimezoneFromItinerary } from "@/lib/trip/timezone";
 import { NextRequest } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import { errors } from "@/lib/api/response-wrapper";
-import { createClient } from "@/lib/supabase/server";
-import {
-  checkAnonymousRateLimit,
-  recordAnonymousGeneration,
-} from "@/lib/anonymous/rate-limit";
-import type { User } from "@supabase/supabase-js";
+import { recordAnonymousGeneration } from "@/lib/anonymous/rate-limit";
 import { generateItineraryStream } from "@/lib/gemini";
 import { parseStreamedItinerary } from "@/lib/ai/itinerary-text";
 import { validateTripParams } from "@/lib/trips/request-validation";
@@ -16,20 +11,15 @@ import { inPlanCurrency } from "@/lib/ai/plan-currency";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { isAdmin } from "@/lib/admin";
-import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { logApiCall } from "@/lib/api-gateway";
 import { incrementUsage } from "@/lib/usage-limits";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
 import { cacheItinerary, adjustItineraryDates } from "@/lib/ai/cache";
 import { cachePolicy, mayCachePlan, servableCachedPlan } from "@/lib/ai/cache-policy";
 import { generationQuotaReached, readGenerationPreflight } from "@/lib/ai/generation-preflight";
-import { loadUserContext } from "@/lib/ai/user-context";
-import { withTripDiet } from "@/lib/trips/diet";
-import { requestLocale } from "@/lib/ai/language";
-import type {
-  TripCreationParams,
-  GeneratedItinerary,
-} from "@/types";
+import { readGenerationCaller, tripParamsFromBody } from "@/lib/ai/generation-caller";
+import type { GeneratedItinerary } from "@/types";
 import {
   eventStreamFromGenerator,
   sseHeaders,
@@ -40,7 +30,6 @@ import {
   feedChunk,
   finalize,
 } from "@/lib/streaming/day-parser";
-import { createRateLimiter } from "@/lib/api/rate-limit";
 import { generateTripOutline } from "@/lib/ai/trip-outline";
 import { PartsError, writeInParts, writesInParts } from "@/lib/ai/plan-in-parts";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
@@ -52,13 +41,6 @@ import { tripSpanDays } from "@/lib/dates/iso-date";
 // is a no-op there — the stream just terminates at 60s and the user
 // sees a partial result.
 export const maxDuration = 120;
-
-// Anti-abuse: cap ANONYMOUS generations per IP/day. Shared "anon-generate"
-// namespace with the non-stream route so both count against one bucket. HIGH
-// limit (40/IP/day) + fail-open so it can never throttle a real user or shared
-// NAT at current scale — only a cookie-resetting scripted attacker doing
-// hundreds/day. Authenticated users are never limited.
-const anonGenIpLimiter = createRateLimiter("anon-generate", 40, 24 * 60 * 60 * 1000);
 
 /**
  * POST /api/ai/generate/stream
@@ -99,99 +81,12 @@ export async function POST(request: NextRequest) {
 
   // 1. Pre-flight: parse body and run all checks BEFORE opening the SSE
   //    stream. Failures here can return JSON 4xx/5xx normally (better
-  //    DX for the client than an SSE error event).
-  const supabase = await createClient();
-  const {
-    data: { user: maybeUser },
-  } = await supabase.auth.getUser();
-  const user: User | null = maybeUser ?? null;
-  const isAnonymous = user === null;
-
-  // PERF (#190): Fan out the independent pre-flight reads. None of these
-  // depend on each other:
-  //   - anon rate-limit reads a cookie
-  //   - request.json is pure I/O
-  //   - loadUserContext does ONE consolidated SELECT (preferences +
-  //     notification_settings + preferred_language) + cookie read in
-  //     parallel — replaces TWO duplicate user-table SELECTs in the
-  //     previous serial path
-  //   - checkApiAccess('gemini') is a kill-switch table read
-  //
-  // Each member resolves to a value we inspect in the original priority
-  // order so error semantics are preserved (anon limit → bad body →
-  // access denied → quota).
-  const [anonLimit, parsedBody, userContext, access, anonIpLimit] = await Promise.all([
-    isAnonymous ? checkAnonymousRateLimit() : Promise.resolve(null),
-    request
-      .json()
-      .then((b) => b as Record<string, unknown>)
-      .catch(() => null as Record<string, unknown> | null),
-    loadUserContext(supabase, user?.id ?? null),
-    checkApiAccess("gemini"),
-    // Per-IP anon backstop. Fail-OPEN: a limiter/KV error must NEVER block a
-    // real generation, so swallow errors into an allow.
-    isAnonymous
-      ? anonGenIpLimiter.check(request).catch(() => ({ allowed: true, remaining: 0 }))
-      : Promise.resolve(null),
-  ]);
-
-  if (isAnonymous && anonLimit && !anonLimit.allowed) {
-    return errors.rateLimit(
-      anonLimit.message ||
-        "Free trip limit reached. Sign up to keep generating.",
-      { usage: anonLimit, signupUrl: "/auth/signup" }
-    );
-  }
-
-  // Per-IP backstop for cookie-resetting bots (the cookie cap above is
-  // trivially reset). Only trips under real abuse at 40/IP/day.
-  if (isAnonymous && anonIpLimit && !anonIpLimit.allowed) {
-    return errors.rateLimit(
-      "You've reached today's free-trip limit for your network. Sign up to keep generating — it's free.",
-      { signupUrl: "/auth/signup" }
-    );
-  }
-
-  if (!parsedBody) {
-    return errors.badRequest("Body must be valid JSON");
-  }
-  const body = parsedBody;
-
-  const profilePreferences = withTripDiet(userContext.profilePreferences, body.dietary);
-  // The page's own locale wins: next-intl writes NEXT_LOCALE only when it
-  // differs from the browser language, so the cookie is usually absent.
-  const userLanguage = requestLocale(body.locale) ?? userContext.userLanguage;
-
-  const params: TripCreationParams = {
-    destination: body.destination as string,
-    startDate: body.startDate as string,
-    endDate: body.endDate as string,
-    // Casts here mirror the non-streaming route's loose body-parsing —
-    // validateTripParams below rejects unknown enum values, so trusting
-    // the cast is safe; the validator is the actual security boundary.
-    budgetTier: ((body.budgetTier as TripCreationParams["budgetTier"]) ||
-      "balanced") as TripCreationParams["budgetTier"],
-    pace: ((body.pace as TripCreationParams["pace"]) ||
-      "moderate") as TripCreationParams["pace"],
-    vibes: (body.vibes as TripCreationParams["vibes"]) || [],
-    seasonalContext: body.seasonalContext as TripCreationParams["seasonalContext"],
-    interests: (body.interests as string[]) || [],
-    requirements: body.requirements as TripCreationParams["requirements"],
-    // Must-do wishlist (P3a) — mirrors the non-streaming route; the
-    // validator below enforces count/length/injection limits.
-    ...(Array.isArray(body.mustDos) && body.mustDos.length > 0
-      ? {
-          mustDos: (body.mustDos as unknown[])
-            .map((m) => String(m ?? "").trim())
-            .filter(Boolean)
-            .slice(0, 10),
-        }
-      : {}),
-    // Whitelist travelStyle (same pattern as the non-streaming route).
-    // Untrusted input can't flow into the AI system prompt.
-    travelStyle: body.travelStyle === "backpacker" ? "backpacker" : "classic",
-    profilePreferences,
-  };
+  //    DX for the client than an SSE error event). Who is asking and with
+  //    what body: lib/ai/generation-caller.ts.
+  const caller = await readGenerationCaller(request);
+  if ("refused" in caller) return caller.refused;
+  const { supabase, user, isAnonymous, body, access, profilePreferences, userLanguage } = caller;
+  const params = tripParamsFromBody(body, profilePreferences);
 
   // "Try Different Version" (the wizard's Regenerate) asks for a NEW plan, not
   // the one on screen (lib/ai/cache-policy).
