@@ -105,15 +105,14 @@ const { POST } = await import("./route");
 
 // Each ask uses a new itineraryVersion so the route's trip cache is never stale.
 let version = 0;
-async function ask(question: string, stream = true) {
+async function ask(question: string) {
   const res = await POST(
     new NextRequest("http://localhost/api/ai/concierge", {
       method: "POST",
-      headers: stream ? { Accept: "text/event-stream" } : {},
+      headers: { Accept: "text/event-stream" },
       body: JSON.stringify({ tripId: "trip-1", question, itineraryVersion: ++version }),
     })
   );
-  if (!stream) return { json: await res.json() };
   let answer = "";
   let proposal: Record<string, unknown> | null = null;
   for (const frame of (await res.text()).split("\n\n")) {
@@ -228,13 +227,5 @@ describe("concierge proposals", () => {
     expect(await asked("ok")).toMatch(/Answer in Italian\.$/);
     // Nothing shows it: the model reads the question.
     expect(await asked("how do I put my hotel in?")).not.toContain("Answer in");
-  });
-
-  it("does the same without streaming", async () => {
-    streamReply = "Ecco la proposta per rimuovere Restaurace Mlejnice dal Giorno 2.";
-    followUps = [removal({ dayNumber: 2, targetActivityId: "act_m" })];
-    const { json } = await ask("ok", false);
-    expect(json.proposal).toMatchObject({ type: "remove", dayNumber: 2 });
-    expect(json.answer).toBe("Ecco la proposta per rimuovere Restaurace Mlejnice dal Giorno 2.");
   });
 });

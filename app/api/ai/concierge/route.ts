@@ -1,26 +1,23 @@
 /**
  * POST /api/ai/concierge
  *
- * F4 In-trip AI Concierge MVP (task #242). A context-aware single-turn
- * Q&A endpoint scoped to ONE trip. Differs from /api/ai/assistant in
- * three deliberate ways:
- *   1. Read-only: never mutates the trip. The system prompt enforces this.
- *      Means we don't need the heavy schema-modification machinery the
- *      planning assistant has.
+ * The in-trip concierge: answers a question about ONE trip, streamed as
+ * server-sent events. Differs from /api/ai/assistant in three deliberate ways:
+ *   1. It writes nothing. An answer may carry one proposal
+ *      (lib/ai/concierge-proposal.ts), which the traveller confirms through
+ *      /api/ai/assistant/apply.
  *   2. Today-aware: when the current date falls inside the trip window,
- *      we pre-inject today's activities + day number so the user can ask
- *      "what's nearby for lunch?" without restating context.
- *   3. Single-turn, no persistence (v1): the UI is a question→answer
- *      flow, not a conversation. Lower cost, lower complexity, lower
- *      latency. Adds conversation history in v2 if usage justifies.
+ *      today's activities and day number are in the prompt, so the traveller
+ *      can ask "what's nearby for lunch?" without restating context.
+ *   3. One row per turn instead of a thread (persistConciergeTurn); the last
+ *      few are replayed as its memory.
  *
  * Quota: shares aiAssistantMessages with the planning assistant. One
- * concierge ask = one assistant message. Free tier = 20/day total
- * (already-existing bucket).
+ * concierge ask = one assistant message.
  *
  * Failure modes route through lib/ai/observability.recordAiOutcome so
  * concierge failures show up in the same Sentry dashboard as the rest
- * of the AI surface (task #223 wiring).
+ * of the AI surface.
  */
 
 import { NextRequest } from "next/server";
@@ -29,7 +26,7 @@ import { logCacheMetrics } from "@/lib/ai/cache-metrics";
 import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { getAuthenticatedUser } from "@/lib/api/auth";
-import { errors, apiSuccess } from "@/lib/api/response-wrapper";
+import { errors } from "@/lib/api/response-wrapper";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { recordAiOutcome } from "@/lib/ai/observability";
@@ -78,7 +75,6 @@ async function persistConciergeTurn(input: {
   model: string;
   isLiveTrip: boolean;
   dayNumber: number | null;
-  streamed: boolean;
   proposalType?: string | null;
 }): Promise<void> {
   try {
@@ -104,7 +100,6 @@ async function persistConciergeTurn(input: {
         surface: CONCIERGE_SURFACE,
         is_live_trip: input.isLiveTrip,
         day_number: input.dayNumber,
-        streamed: input.streamed,
         // P2 Stage B: which edit type (if any) this turn proposed — feeds
         // the "% of concierge proposals applied" success metric.
         ...(input.proposalType ? { proposal_type: input.proposalType } : {}),
@@ -469,321 +464,189 @@ export async function POST(request: NextRequest) {
       return { proposal, note, costUsd };
     };
 
-    // STREAMING PATH (perf task #245).
-    // When the client sends `Accept: text/event-stream` we pipe Gemini's
-    // chunked output as SSE events. Perceived latency drops from ~3s to
-    // ~200ms for the first token. The non-streaming branch below stays
-    // as a backwards-compatible fallback for HTTP clients that can't
-    // read streams (Capacitor older-WebView, server-side callers, etc).
-    const wantsStream =
-      request.headers.get("accept")?.includes("text/event-stream") ?? false;
-
-    if (wantsStream) {
-      // Side-effect work that must happen regardless of stream outcome.
-      // We fire the usage bump + observability BEFORE streaming starts
-      // so client disconnects mid-stream don't leak the cost-cap accounting.
-      void incrementUsage(user.id, "aiAssistantMessages").catch((err) => {
-        console.error("[concierge] usage increment failed", err);
-      });
-
-      const stream = new ReadableStream<Uint8Array>({
-        async start(controller) {
-          const encoder = new TextEncoder();
-          const emit = (payload: Record<string, unknown>) => {
-            controller.enqueue(
-              encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)
-            );
-          };
-
-          // Server-side accumulation so we can persist the full answer
-          // alongside the question after the stream completes. The client
-          // also accumulates for display — this is the audit copy.
-          //
-          // P2 Stage B holdback: everything after the proposal marker is
-          // machine-readable JSON that must NOT reach the client as answer
-          // text. `emittableLength` tells us how much of the accumulated
-          // buffer is safe to flush (it also withholds a trailing partial
-          // marker split across chunk boundaries).
-          let accumulated = "";
-          let emitted = 0;
-          // What the answer cost, from its tokens (lib/ai/gemini-cost.ts).
-          let costUsd = 0;
-          try {
-            const result = await model.generateContentStream({
-              contents: promptContents,
-            });
-            for await (const chunk of result.stream) {
-              const text = chunk.text();
-              if (text) {
-                accumulated += text;
-                const safe = emittableLength(accumulated);
-                if (safe > emitted) {
-                  emit({ type: "chunk", text: accumulated.slice(emitted, safe) });
-                  emitted = safe;
-                }
-              }
-            }
-
-            // Stream complete — split answer from proposal, resolve the
-            // proposal against the STORED itinerary (ids only — the model
-            // can never smuggle a fabricated oldActivity to /apply), and
-            // flush any answer text the holdback was still sitting on.
-            const { answer: finalAnswer, proposalJson } =
-              splitAnswerAndProposal(accumulated);
-            if (finalAnswer.length > emitted) {
-              emit({ type: "chunk", text: finalAnswer.slice(emitted) });
-            }
-            let proposal: ConciergeProposal | null = null;
-            if (proposalJson) {
-              proposal = resolveConciergeProposal(
-                proposalJson,
-                itinerary,
-                tripCurrency
-              );
-              if (proposal) {
-                emit({ type: "proposal", proposal });
-              }
-            }
-
-            // Wire prompt-cache hit-rate monitoring. The SDK exposes the
-            // aggregated final response (with usageMetadata) on
-            // `result.response` once the stream is fully consumed —
-            // best-effort, never block the user's "done" event on it.
-            try {
-              const finalResponse = await result.response;
-              logCacheMetrics("ai.concierge.stream", finalResponse.usageMetadata, conciergeModel);
-              costUsd = geminiCostUsd(conciergeModel, finalResponse.usageMetadata);
-            } catch {
-              /* usageMetadata is best-effort — don't fail the request */
-            }
-
-            let answerText = finalAnswer;
-            if (!proposal) {
-              const settled = await settleProposal(finalAnswer);
-              costUsd += settled.costUsd;
-              proposal = settled.proposal;
-              if (proposal) {
-                emit({ type: "proposal", proposal });
-              } else if (settled.note) {
-                emit({ type: "chunk", text: `\n\n${settled.note}` });
-                answerText = `${finalAnswer}\n\n${settled.note}`;
-              }
-            }
-
-            emit({
-              type: "done",
-              isLiveTrip: todaySlice !== null,
-              dayNumber: todaySlice?.dayNumber ?? null,
-            });
-
-            // Success path observability — DB log + Sentry breadcrumb.
-            // Done in start() so it sees the final duration.
-            void logApiCall({
-              apiName: "gemini",
-              endpoint: "/api/ai/concierge",
-              status: 200,
-              responseTimeMs: Date.now() - startTime,
-              cacheHit: false,
-              costUsd,
-              exactCost: true,
-              metadata: {
-                user_id: user.id,
-                trip_id: tripId,
-                is_live_trip: todaySlice !== null,
-                streamed: true,
-              },
-            }).catch(() => {});
-
-            void recordAiOutcome({
-              endpoint: "assistant",
-              outcome: "success",
-              model: conciergeModel,
-              durationMs: Date.now() - startTime,
-              userId: user.id,
-              metadata: {
-                subroute: "concierge",
-                streamed: true,
-                is_live_trip: todaySlice !== null,
-              },
-            });
-
-            // Persist the Q&A pair. Fire-and-forget. Trim before writing
-            // so we don't store the streaming-artifact trailing whitespace
-            // that the client also strips.
-            void persistConciergeTurn({
-              userId: user.id,
-              tripId,
-              question,
-              // Persist only the conversational answer — the proposal JSON
-              // is machine-payload, not something history replay should
-              // feed back into the prompt as prose.
-              answer: answerText,
-              model: conciergeModel,
-              isLiveTrip: todaySlice !== null,
-              dayNumber: todaySlice?.dayNumber ?? null,
-              streamed: true,
-              proposalType: proposal?.type ?? null,
-            });
-          } catch (err) {
-            console.error("[concierge] streaming Gemini call failed", err);
-            emit({
-              type: "error",
-              message: "Couldn't answer right now. Try again in a moment.",
-            });
-
-            void recordAiOutcome({
-              endpoint: "assistant",
-              outcome: "failure",
-              model: conciergeModel,
-              durationMs: Date.now() - startTime,
-              error: err,
-              userId: user.id,
-              metadata: { subroute: "concierge", streamed: true },
-            });
-
-            void logApiCall({
-              apiName: "gemini",
-              endpoint: "/api/ai/concierge",
-              status: 500,
-              responseTimeMs: Date.now() - startTime,
-              cacheHit: false,
-              costUsd: 0,
-              error: err instanceof Error ? err.message : "unknown",
-            }).catch(() => {});
-          } finally {
-            controller.close();
-          }
-        },
-      });
-
-      return new Response(stream, {
-        headers: {
-          "Content-Type": "text/event-stream; charset=utf-8",
-          "Cache-Control": "no-cache, no-transform",
-          // Disable Vercel's edge buffering for SSE so chunks reach the
-          // client as Gemini emits them (otherwise we get the full
-          // response in one shot at the end — defeating the point).
-          "X-Accel-Buffering": "no",
-        },
-      });
-    }
-
-    // NON-STREAMING fallback path (callers without Accept: text/event-stream).
-    let responseText: string;
-    let costUsd = 0;
-    try {
-      const result = await model.generateContent({
-        contents: promptContents,
-      });
-      responseText = result.response.text().trim();
-
-      // Wire prompt-cache hit-rate monitoring (see lib/ai/cache-metrics.ts).
-      // The concierge SYSTEM_PROMPT is a stable prefix — should see a
-      // high implicit-cache-hit rate. If this drops, we've added a
-      // non-cacheable prefix and are silently leaking money.
-      logCacheMetrics("ai.concierge", result.response.usageMetadata, conciergeModel);
-      costUsd = geminiCostUsd(conciergeModel, result.response.usageMetadata);
-    } catch (err) {
-      console.error("[concierge] Gemini call failed", err);
-
-      void recordAiOutcome({
-        endpoint: "assistant", // bucket under the same tag — concierge is
-        // the same conceptual surface as the planning assistant
-        outcome: "failure",
-        model: conciergeModel,
-        durationMs: Date.now() - startTime,
-        error: err,
-        userId: user.id,
-        metadata: { subroute: "concierge" },
-      });
-
-      await logApiCall({
-        apiName: "gemini",
-        endpoint: "/api/ai/concierge",
-        status: 500,
-        responseTimeMs: Date.now() - startTime,
-        cacheHit: false,
-        costUsd: 0,
-        error: err instanceof Error ? err.message : "unknown",
-      });
-
-      return errors.internal(
-        "Couldn't answer right now. Try again in a moment.",
-        "concierge"
-      );
-    }
-
-    if (!responseText) {
-      return errors.internal("Empty response from AI", "concierge");
-    }
-
-    // P2 Stage B: split the conversational answer from the (optional) edit
-    // proposal and resolve it against the STORED itinerary. Same code path
-    // as the streaming branch — see lib/ai/concierge-proposal.ts.
-    const { answer: nsAnswer, proposalJson: nsProposalJson } =
-      splitAnswerAndProposal(responseText);
-    let nsProposal = nsProposalJson
-      ? resolveConciergeProposal(nsProposalJson, itinerary, tripCurrency)
-      : null;
-    let nsAnswerText = nsAnswer;
-    if (!nsProposal) {
-      const settled = await settleProposal(nsAnswer);
-      costUsd += settled.costUsd;
-      nsProposal = settled.proposal;
-      if (settled.note) nsAnswerText = `${nsAnswer}\n\n${settled.note}`;
-    }
-
-    // Bump the per-user quota. Fire-and-forget — never block the answer
-    // on the counter update.
+    // Gemini's chunked output, piped as SSE events. Perceived latency drops from
+    // ~3s to ~200ms for the first token.
+    //
+    // Side-effect work that must happen regardless of stream outcome.
+    // We fire the usage bump + observability BEFORE streaming starts
+    // so client disconnects mid-stream don't leak the cost-cap accounting.
     void incrementUsage(user.id, "aiAssistantMessages").catch((err) => {
       console.error("[concierge] usage increment failed", err);
     });
 
-    await logApiCall({
-      apiName: "gemini",
-      endpoint: "/api/ai/concierge",
-      status: 200,
-      responseTimeMs: Date.now() - startTime,
-      cacheHit: false,
-      costUsd,
-      exactCost: true,
-      metadata: {
-        user_id: user.id,
-        trip_id: tripId,
-        is_live_trip: todaySlice !== null,
+    const stream = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        const emit = (payload: Record<string, unknown>) => {
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)
+          );
+        };
+
+        // Server-side accumulation so we can persist the full answer
+        // alongside the question after the stream completes. The client
+        // also accumulates for display — this is the audit copy.
+        //
+        // P2 Stage B holdback: everything after the proposal marker is
+        // machine-readable JSON that must NOT reach the client as answer
+        // text. `emittableLength` tells us how much of the accumulated
+        // buffer is safe to flush (it also withholds a trailing partial
+        // marker split across chunk boundaries).
+        let accumulated = "";
+        let emitted = 0;
+        // What the answer cost, from its tokens (lib/ai/gemini-cost.ts).
+        let costUsd = 0;
+        try {
+          const result = await model.generateContentStream({
+            contents: promptContents,
+          });
+          for await (const chunk of result.stream) {
+            const text = chunk.text();
+            if (text) {
+              accumulated += text;
+              const safe = emittableLength(accumulated);
+              if (safe > emitted) {
+                emit({ type: "chunk", text: accumulated.slice(emitted, safe) });
+                emitted = safe;
+              }
+            }
+          }
+
+          // Stream complete — split answer from proposal, resolve the
+          // proposal against the STORED itinerary (ids only — the model
+          // can never smuggle a fabricated oldActivity to /apply), and
+          // flush any answer text the holdback was still sitting on.
+          const { answer: finalAnswer, proposalJson } =
+            splitAnswerAndProposal(accumulated);
+          if (finalAnswer.length > emitted) {
+            emit({ type: "chunk", text: finalAnswer.slice(emitted) });
+          }
+          let proposal: ConciergeProposal | null = null;
+          if (proposalJson) {
+            proposal = resolveConciergeProposal(
+              proposalJson,
+              itinerary,
+              tripCurrency
+            );
+            if (proposal) {
+              emit({ type: "proposal", proposal });
+            }
+          }
+
+          // Wire prompt-cache hit-rate monitoring. The SDK exposes the
+          // aggregated final response (with usageMetadata) on
+          // `result.response` once the stream is fully consumed —
+          // best-effort, never block the user's "done" event on it.
+          try {
+            const finalResponse = await result.response;
+            logCacheMetrics("ai.concierge.stream", finalResponse.usageMetadata, conciergeModel);
+            costUsd = geminiCostUsd(conciergeModel, finalResponse.usageMetadata);
+          } catch {
+            /* usageMetadata is best-effort — don't fail the request */
+          }
+
+          let answerText = finalAnswer;
+          if (!proposal) {
+            const settled = await settleProposal(finalAnswer);
+            costUsd += settled.costUsd;
+            proposal = settled.proposal;
+            if (proposal) {
+              emit({ type: "proposal", proposal });
+            } else if (settled.note) {
+              emit({ type: "chunk", text: `\n\n${settled.note}` });
+              answerText = `${finalAnswer}\n\n${settled.note}`;
+            }
+          }
+
+          emit({
+            type: "done",
+            isLiveTrip: todaySlice !== null,
+            dayNumber: todaySlice?.dayNumber ?? null,
+          });
+
+          // Success path observability — DB log + Sentry breadcrumb.
+          // Done in start() so it sees the final duration.
+          void logApiCall({
+            apiName: "gemini",
+            endpoint: "/api/ai/concierge",
+            status: 200,
+            responseTimeMs: Date.now() - startTime,
+            cacheHit: false,
+            costUsd,
+            exactCost: true,
+            metadata: {
+              user_id: user.id,
+              trip_id: tripId,
+              is_live_trip: todaySlice !== null,
+            },
+          }).catch(() => {});
+
+          void recordAiOutcome({
+            endpoint: "assistant",
+            outcome: "success",
+            model: conciergeModel,
+            durationMs: Date.now() - startTime,
+            userId: user.id,
+            metadata: {
+              subroute: "concierge",
+              is_live_trip: todaySlice !== null,
+            },
+          });
+
+          // Persist the Q&A pair. Fire-and-forget. Trim before writing
+          // so we don't store the streaming-artifact trailing whitespace
+          // that the client also strips.
+          void persistConciergeTurn({
+            userId: user.id,
+            tripId,
+            question,
+            // Persist only the conversational answer — the proposal JSON
+            // is machine-payload, not something history replay should
+            // feed back into the prompt as prose.
+            answer: answerText,
+            model: conciergeModel,
+            isLiveTrip: todaySlice !== null,
+            dayNumber: todaySlice?.dayNumber ?? null,
+            proposalType: proposal?.type ?? null,
+          });
+        } catch (err) {
+          console.error("[concierge] streaming Gemini call failed", err);
+          emit({ type: "error" });
+
+          void recordAiOutcome({
+            endpoint: "assistant",
+            outcome: "failure",
+            model: conciergeModel,
+            durationMs: Date.now() - startTime,
+            error: err,
+            userId: user.id,
+            metadata: { subroute: "concierge" },
+          });
+
+          void logApiCall({
+            apiName: "gemini",
+            endpoint: "/api/ai/concierge",
+            status: 500,
+            responseTimeMs: Date.now() - startTime,
+            cacheHit: false,
+            costUsd: 0,
+            error: err instanceof Error ? err.message : "unknown",
+          }).catch(() => {});
+        } finally {
+          controller.close();
+        }
       },
     });
 
-    void recordAiOutcome({
-      endpoint: "assistant",
-      outcome: "success",
-      model: conciergeModel,
-      durationMs: Date.now() - startTime,
-      userId: user.id,
-      metadata: {
-        subroute: "concierge",
-        is_live_trip: todaySlice !== null,
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream; charset=utf-8",
+        "Cache-Control": "no-cache, no-transform",
+        // Disable Vercel's edge buffering for SSE so chunks reach the
+        // client as Gemini emits them (otherwise we get the full
+        // response in one shot at the end — defeating the point).
+        "X-Accel-Buffering": "no",
       },
-    });
-
-    // Persist the Q&A pair (non-streaming path).
-    void persistConciergeTurn({
-      userId: user.id,
-      tripId,
-      question,
-      answer: nsAnswerText,
-      model: conciergeModel,
-      isLiveTrip: todaySlice !== null,
-      dayNumber: todaySlice?.dayNumber ?? null,
-      streamed: false,
-      proposalType: nsProposal?.type ?? null,
-    });
-
-    return apiSuccess({
-      answer: nsAnswerText,
-      isLiveTrip: todaySlice !== null,
-      dayNumber: todaySlice?.dayNumber ?? null,
-      ...(nsProposal ? { proposal: nsProposal } : {}),
     });
   } catch (err) {
     console.error("[concierge] unexpected error", err);
