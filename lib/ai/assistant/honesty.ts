@@ -217,6 +217,11 @@ export function wizardNothingChangedReply(language: string | undefined): string 
   return note(language, "wizardNothingChanged");
 }
 
+/** Places offered for the whole trip, under a reply that claimed the trip already moved. */
+export function elsewhereNote(language: string | undefined): string {
+  return note(language, "elsewhereNote");
+}
+
 /**
  * Appended when the reply talks about days its edit does not include, e.g. a
  * "swap" that only prepared one side of it.

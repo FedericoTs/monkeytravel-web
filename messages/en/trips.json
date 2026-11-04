@@ -17,6 +17,7 @@
     "suggest3": "Add more local food",
     "apply": "Apply change",
     "discard": "Keep original",
+    "planElsewhere": "Plan {place} for these dates",
     "applied": "Applied",
     "updatedDay": "Day {number} updated",
     "updatedDays": "Days {days} updated",

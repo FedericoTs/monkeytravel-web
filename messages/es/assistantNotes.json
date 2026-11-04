@@ -21,5 +21,6 @@
   "planCosts": "Las actividades de tu plan suman unos {amount}. Los hoteles y los vuelos no están en el plan, así que súmalos aparte.",
   "takesOut": "(Este cambio quita: {list}.)",
   "missingAnswer": "No he podido preparar esa respuesta. Pregúntame una cosa a la vez, por ejemplo qué hacer el día 2.",
-  "currencySwitched": "Hecho: ahora los precios se muestran en {code}."
+  "currencySwitched": "Hecho: ahora los precios se muestran en {code}.",
+  "elsewhereNote": "Elige un lugar abajo y lo planifico para las mismas fechas."
 }
