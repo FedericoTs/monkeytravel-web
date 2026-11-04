@@ -789,5 +789,11 @@
       "autumn": "Temperature fresche, aria frizzante, foliage colorato",
       "winter": "Temperature rigide, possibili nevicate, giornate corte"
     }
+  },
+  "unavailable": {
+    "title": "Questo viaggio non è aperto per te",
+    "body": "Potrebbe essere stato eliminato, oppure non è ancora stato condiviso con questo account. Se qualcuno ti ha mandato il link, chiedigli di invitarti con il pulsante Condividi del viaggio.",
+    "myTrips": "I Miei Viaggi",
+    "planTrip": "Pianifica il tuo viaggio"
   }
 }
