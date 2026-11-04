@@ -204,8 +204,18 @@ export default function AnchorEditor({
 
       if (!res.ok) {
         // Keep the pasted text on screen — retyping a plan is exactly the
-        // work this feature exists to save.
-        setImportError(data?.error || t("wizard.anchors.import.error"));
+        // work this feature exists to save. The server's own text is English.
+        setImportError(
+          t(
+            res.status === 429
+              ? "wizard.anchors.import.limit"
+              : data?.reason === "too_short"
+                ? "wizard.anchors.import.tooShort"
+                : data?.reason === "nothing_found"
+                  ? "wizard.anchors.import.nothingFound"
+                  : "wizard.anchors.import.error"
+          )
+        );
         return;
       }
 
