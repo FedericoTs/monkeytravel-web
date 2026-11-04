@@ -153,7 +153,7 @@ describe("otpSendFailureKey", () => {
     [{ message: "email rate limit exceeded", status: 429 }, "magicLink.codeRateLimited"],
     [{ message: "An error occurred", status: 504 }, "magicLink.codeNetwork"],
     [{ message: "Failed to fetch", status: 0 }, "magicLink.codeNetwork"],
-    [{ code: "email_address_invalid", message: 'Email address "a@b.co" is invalid' }, "magicLink.emailInvalid"],
+    [{ code: "email_address_invalid", message: 'Email address "a@example.com" is invalid' }, "magicLink.emailInvalid"],
     [{ code: "validation_failed", message: "Unable to validate email address: invalid format" }, "magicLink.emailInvalid"],
     [{ message: "Signups not allowed for otp", status: 422 }, "magicLink.failed"],
     // "Invalid" about something else is no reason to doubt the visitor's address.
