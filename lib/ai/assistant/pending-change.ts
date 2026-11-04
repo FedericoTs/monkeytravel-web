@@ -43,12 +43,6 @@ export type PendingChange =
       reason?: string;
     }
   | {
-      type: "reorder";
-      dayNumber: number;
-      activities: { id: string; name: string; time: string; timeSlot: string }[];
-      reason?: string;
-    }
-  | {
       type: "add_day";
       /** The fully generated new day (IDs + coordinates already stamped). */
       day: ItineraryDay;
@@ -97,7 +91,6 @@ export type ApplyBody = {
   | { changeType: "add"; newActivity: Activity }
   | { changeType: "remove"; oldActivity: Activity }
   | { changeType: "adjust_duration"; activity: { id: string; name: string; type: string }; oldDuration: number; newDuration: number }
-  | { changeType: "reorder"; activities: Extract<PendingChange, { type: "reorder" }>["activities"] }
   | { changeType: "add_day"; day: ItineraryDay }
   | { changeType: "apply_draft"; days: ItineraryDay[] }
   | { changeType: "shift_days"; shiftByDays: number }
@@ -131,8 +124,6 @@ export function buildApplyBody(
         oldDuration: change.oldDuration,
         newDuration: change.newDuration,
       };
-    case "reorder":
-      return { ...base, changeType: "reorder", dayNumber: change.dayNumber, activities: change.activities };
     case "add_day":
       return { ...base, changeType: "add_day", dayNumber: change.dayNumber, day: change.day };
     case "apply_draft":

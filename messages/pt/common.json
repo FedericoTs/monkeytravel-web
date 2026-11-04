@@ -1778,7 +1778,6 @@
         "adjusted": "Ajustada: {name}",
         "addedDay": "Dia {number} adicionado",
         "updatedDays": "{count, plural, one {# dia atualizado} other {# dias atualizados}}",
-        "reordered": "Dia {number} reordenado",
         "shifted": "Do dia {number} em diante, {count, plural, one {# dia} other {# dias}} mais tarde"
       }
     },

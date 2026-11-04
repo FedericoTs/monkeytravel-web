@@ -84,17 +84,6 @@ const changes: Array<[string, PendingChange]> = [
   ["add", { type: "add", dayNumber: 2, newActivity: act("n2", "Delta", "15:00") }],
   ["remove", { type: "remove", dayNumber: 1, oldActivity: act("a1", "Alpha") }],
   ["adjust_duration", { type: "adjust_duration", dayNumber: 2, activity: { id: "b1", name: "Echo", type: "culture" }, oldDuration: 60, newDuration: 90 }],
-  [
-    "reorder",
-    {
-      type: "reorder",
-      dayNumber: 1,
-      activities: [
-        { id: "a2", name: "Bravo", time: "09:00", timeSlot: "morning" },
-        { id: "a1", name: "Alpha", time: "11:00", timeSlot: "morning" },
-      ],
-    },
-  ],
   ["add_day", { type: "add_day", dayNumber: 3, day: day3 as never }],
   [
     "apply_draft",
@@ -124,5 +113,20 @@ describe("every proposed change type, built by buildApplyBody, is applied", () =
       { tripId: TRIP, conversationId: "c-1" },
     );
     expect(body).toMatchObject({ changeType: "apply_draft", dayNumber: 4, conversationId: "c-1" });
+  });
+
+  // Nothing would match it below, and the unchanged trip would be saved and
+  // reported as a success.
+  it.each(["reorder", "swap", "__proto__"])("refuses a change it does not know, writing nothing: %s", async (changeType) => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { POST } = await import("./route");
+    const res = await POST(
+      new NextRequest("http://localhost/api/ai/assistant/apply", {
+        method: "POST",
+        body: JSON.stringify({ tripId: TRIP, changeType, dayNumber: 1 }),
+      }),
+    );
+    expect(res.status).toBe(400);
+    expect(updates).toEqual([]);
   });
 });
