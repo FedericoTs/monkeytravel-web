@@ -11,13 +11,12 @@
  * Nothing Google answers is kept or shown: the lookup only decides which of
  * the model's places stay.
  */
-import { logApiCall } from "@/lib/api-gateway";
-import { placesCostForCall } from "@/lib/api-gateway/places-sku";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import type { SupportedLanguage } from "@/lib/ai/language";
 import { withActivityDefaults } from "@/lib/ai/server-fields";
 import { replacementOptions } from "@/lib/gemini";
 import { bareName, distanceM, isKind, nameTokens, nameVariants } from "@/lib/images/wikimedia-landmark";
+import { textSearch } from "@/lib/places/google-places";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { isPlaceholderPoint } from "@/lib/trip/placeholder-point";
 import type { Activity, ItineraryDay, BudgetTier } from "@/types";
@@ -171,39 +170,20 @@ export function placeStatus(activity: Named, places: FoundPlace[]): "open" | "cl
 }
 
 /** Google's places for a query, near the point when there is one; null when the search failed. */
-async function searchPlaces(key: string, textQuery: string, near: Point | null): Promise<FoundPlace[] | null> {
+async function searchPlaces(textQuery: string, near: Point | null): Promise<FoundPlace[] | null> {
   for (let attempt = 0; ; attempt++) {
-    const startedAt = Date.now();
-    let httpStatus = 0;
-    try {
-      const response = await fetch("https://places.googleapis.com/v1/places:searchText", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key, "X-Goog-FieldMask": FIELD_MASK },
-        body: JSON.stringify({
-          textQuery,
-          maxResultCount: RESULTS,
-          ...(near ? { locationBias: { circle: { center: { latitude: near.lat, longitude: near.lng }, radius: BIAS_M } } } : {}),
-        }),
-        signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS),
-      });
-      httpStatus = response.status;
-      if (!response.ok) return null;
-      const places = ((await response.json()) as { places?: FoundPlace[] }).places ?? [];
-      // Google now and then answers a place it knows with nothing: asked again, it finds it.
-      if (places.length > 0 || attempt > 0) return places;
-    } catch {
-      return null;
-    } finally {
-      void logApiCall({
-        apiName: "google_places_search",
-        endpoint: "places:searchText (place to eat)",
-        status: httpStatus || 500,
-        responseTimeMs: Date.now() - startedAt,
-        cacheHit: false,
-        costUsd: placesCostForCall({ kind: "textSearch", fieldMask: FIELD_MASK }).usd,
-        exactCost: true,
-      });
-    }
+    const places = await textSearch<FoundPlace>(
+      {
+        textQuery,
+        maxResultCount: RESULTS,
+        ...(near ? { locationBias: { circle: { center: { latitude: near.lat, longitude: near.lng }, radius: BIAS_M } } } : {}),
+      },
+      FIELD_MASK,
+      "places:searchText (place to eat)",
+      AbortSignal.timeout(SEARCH_TIMEOUT_MS)
+    );
+    // Google now and then answers a place it knows with nothing: asked again, it finds it.
+    if (!places || places.length > 0 || attempt > 0) return places;
   }
 }
 
@@ -273,7 +253,7 @@ export function placesToEatCheck(opts: PlacesToEatOptions): PlacesToEatCheck | n
     let search = searches.get(query);
     if (!search) {
       if (searches.size >= MAX_SEARCHES) return Promise.resolve(null);
-      search = searchPlaces(key, query, pointOf(activity));
+      search = searchPlaces(query, pointOf(activity));
       searches.set(query, search);
     }
     return search;
