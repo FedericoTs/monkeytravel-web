@@ -38,7 +38,7 @@ import { destinationCityTerm } from "@/lib/api/postgrest-filter";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import { dietsFrom } from "@/lib/trips/diet";
 import { placesToEatCheck } from "@/lib/places/places-to-eat";
-import { ASSISTANT_SURFACE, isConciergeRow } from "@/lib/ai/conversations";
+import { isConciergeRow } from "@/lib/ai/conversations";
 import { applyButtonLabel } from "@/lib/ai/assistant/apply-button";
 import {
   announcesProposal,
@@ -56,9 +56,9 @@ import {
   type TripEditProposal,
 } from "@/lib/ai/assistant/trip-edits";
 import { logWriteError } from "@/lib/supabase/log-write-error";
-import { isNoRow } from "@/lib/supabase/no-row";
 import { readAssistantTurn } from "@/lib/ai/assistant/turn";
 import { pendingChangeFor } from "@/lib/ai/assistant/pending-change";
+import { openThread, readThread } from "@/lib/ai/assistant/thread";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -300,33 +300,7 @@ export async function POST(request: NextRequest) {
 
     // Load conversation. Before the intents: the edit engine below reads it.
     // A concierge row, or one that's gone, starts a new thread.
-    let conversation: { id: string; messages: AssistantMessage[] } | null = null;
-
-    if (conversationId) {
-      const { data: existingConvo, error: convoError } = await supabase
-        .from("ai_conversations")
-        .select("*")
-        .eq("id", conversationId)
-        .eq("user_id", user.id)
-        .single();
-
-      // A refused read is not a missing thread: answering anyway would fork it.
-      if (convoError && !isNoRow(convoError)) throw convoError;
-      if (existingConvo && !isConciergeRow(existingConvo.context)) {
-        conversation = { id: existingConvo.id, messages: existingConvo.messages as AssistantMessage[] };
-      }
-    }
-    if (!conversation) {
-      const { data: newConvo, error: newConvoError } = await supabase
-        .from("ai_conversations")
-        .insert({ user_id: user.id, trip_id: tripId, messages: [], context: { surface: ASSISTANT_SURFACE } })
-        .select()
-        .single();
-      // Without a thread the reply could not be kept.
-      if (newConvoError) throw newConvoError;
-
-      conversation = { id: newConvo?.id || "", messages: [] };
-    }
+    const conversation = await openThread<AssistantMessage>(supabase, { conversationId, userId: user.id, tripId });
 
     // STRUCTURAL intents first (add_day / apply_draft). See
     // lib/ai/assistant/structural.ts.
@@ -917,15 +891,7 @@ export async function GET(request: NextRequest) {
 
     // The concierge's rows share the table; this chat never shows them.
     if (conversationId) {
-      const { data: conversation, error } = await supabase
-        .from("ai_conversations")
-        .select("*")
-        .eq("id", conversationId)
-        .eq("user_id", user.id)
-        .single();
-      if (error && !isNoRow(error)) throw error;
-
-      return apiSuccess({ conversation: conversation && !isConciergeRow(conversation.context) ? conversation : null });
+      return apiSuccess({ conversation: await readThread(supabase, conversationId, user.id) });
     }
 
     if (tripId) {
