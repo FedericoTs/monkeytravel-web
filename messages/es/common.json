@@ -2211,8 +2211,11 @@
       "codePrompt": "O introduce el código de 6 dígitos del email",
       "codeSubmit": "Verificar",
       "codeVerifying": "Comprobando…",
-      "codeInvalid": "Ese código no coincide. Revisa los dígitos e inténtalo de nuevo.",
-      "codeExpired": "Ese código ha caducado. Envía otro email para obtener uno nuevo.",
+      "codeResend": "Enviar un código nuevo",
+      "codeResending": "Enviando…",
+      "codeResent": "Te enviamos un código nuevo a {email}. Usa el del email más reciente.",
+      "codeInvalid": "Ese código no coincide. Revisa los dígitos o envía un código nuevo.",
+      "codeExpired": "Ese código ha caducado. Envía un código nuevo para obtener otro.",
       "codeRateLimited": "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
       "codeNetwork": "Problema de conexión. Revisa tu red e inténtalo de nuevo.",
       "codeFailed": "No hemos podido verificar el código. Usa el enlace del email."

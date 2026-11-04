@@ -118,6 +118,9 @@ export default function AuthPromptModal({
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);
+  // A new code asked for from the code step, and whether it went out.
+  const [resending, setResending] = useState(false);
+  const [codeResent, setCodeResent] = useState(false);
 
   // Funnel tracking.
   // Refs make the captures fire-and-forget without re-rendering on every
@@ -168,6 +171,50 @@ export default function AuthPromptModal({
   // Then the wizard's existing draft-restore effect at NewTripWizard.tsx
   // sees pendingTripGeneration=true and resumes the save into the now-
   // authenticated session.
+  const emailLinkAndCode = async (address: string) => {
+    // Persist the intent BEFORE we redirect through email — once the
+    // user clicks the link, the wizard remounts and reads this flag to
+    // know it should auto-resume the save.
+    await prefs.set("pendingTripGeneration", "true");
+
+    const supabase = createClient();
+    // emailRedirectTo must be an absolute URL — Supabase rejects paths.
+    // The callback route is unprefixed; the language rides in ?locale= and
+    // the callback puts it back on the landing page. This used to build
+    // /pt/auth/callback, which does not exist (lib/auth/callback-url.ts).
+    const callbackUrl = buildAuthCallbackUrl(window.location.origin, {
+      next: redirectPath,
+      locale,
+    });
+
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: address,
+      options: {
+        // The friend whose link brought them gets the credit for a new
+        // account (the callback checks it is one).
+        emailRedirectTo: withStoredReferral(callbackUrl),
+        shouldCreateUser: true,
+        // Only read when this creates the account. The send-email hook
+        // picks the email's language from user_metadata.locale, so without
+        // it a brand-new es/it/pt user got the link in English.
+        data: { locale },
+      },
+    });
+
+    if (otpError) throw otpError;
+    // They typed an address and asked for a link. Everything after this is
+    // deliverability or the redemption path, not copy.
+    void trackWizardEvent("otp_requested", { destination: destination || undefined });
+    // Hash the domain only — never the address. PostHog dashboards
+    // segment magic-link conversion by gmail/icloud/work-domains
+    // without exposing user identities in the event stream.
+    const domain = address.split("@")[1]?.toLowerCase() || undefined;
+    captureMagicLinkRequested({
+      location,
+      email_domain: domain,
+    });
+  };
+
   const handleSendMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = email.trim();
@@ -177,54 +224,34 @@ export default function AuthPromptModal({
     setError(null);
 
     try {
-      // Persist the intent BEFORE we redirect through email — once the
-      // user clicks the link, the wizard remounts and reads this flag to
-      // know it should auto-resume the save.
-      await prefs.set("pendingTripGeneration", "true");
-
-      const supabase = createClient();
-      // emailRedirectTo must be an absolute URL — Supabase rejects paths.
-      // The callback route is unprefixed; the language rides in ?locale= and
-      // the callback puts it back on the landing page. This used to build
-      // /pt/auth/callback, which does not exist (lib/auth/callback-url.ts).
-      const callbackUrl = buildAuthCallbackUrl(window.location.origin, {
-        next: redirectPath,
-        locale,
-      });
-
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email: trimmed,
-        options: {
-          // The friend whose link brought them gets the credit for a new
-          // account (the callback checks it is one).
-          emailRedirectTo: withStoredReferral(callbackUrl),
-          shouldCreateUser: true,
-          // Only read when this creates the account. The send-email hook
-          // picks the email's language from user_metadata.locale, so without
-          // it a brand-new es/it/pt user got the link in English.
-          data: { locale },
-        },
-      });
-
-      if (otpError) throw otpError;
+      await emailLinkAndCode(trimmed);
       setLinkSent(true);
-      // They typed an address and asked for a link. Everything after this is
-      // deliverability or the redemption path, not copy.
-      void trackWizardEvent("otp_requested", { destination: destination || undefined });
-      // Hash the domain only — never the address. PostHog dashboards
-      // segment magic-link conversion by gmail/icloud/work-domains
-      // without exposing user identities in the event stream.
-      const domain = trimmed.split("@")[1]?.toLowerCase() || undefined;
-      captureMagicLinkRequested({
-        location,
-        email_domain: domain,
-      });
     } catch (err) {
       const message = err instanceof Error ? err.message : t("magicLink.failed");
       setError(message);
       captureMagicLinkRequestFailed({ location, reason: magicLinkFailureReason(err) });
     } finally {
       setIsSending(false);
+    }
+  };
+
+  // A code that expired, or one from an older email: the same address gets a
+  // new email, without being typed again. Only the newest code works.
+  const handleResendCode = async () => {
+    if (resending || verifying) return;
+    setResending(true);
+    setCodeError(null);
+    setCodeResent(false);
+    try {
+      await emailLinkAndCode(emailRef.current.trim());
+      setCode("");
+      setCodeResent(true);
+    } catch (err) {
+      const failure = err as { message?: string; status?: number } | null;
+      setCodeError(t(otpErrorMessageKey(classifyOtpError(failure?.message, failure?.status))));
+      captureMagicLinkRequestFailed({ location, reason: magicLinkFailureReason(err) });
+    } finally {
+      setResending(false);
     }
   };
 
@@ -244,6 +271,7 @@ export default function AuthPromptModal({
 
     setVerifying(true);
     setCodeError(null);
+    setCodeResent(false);
     void trackWizardEvent("otp_code_submitted", { destination: destination || undefined });
 
     try {
@@ -440,6 +468,19 @@ export default function AuthPromptModal({
                   {codeError}
                 </p>
               )}
+              {codeResent && (
+                <p role="status" className="text-xs text-slate-600">
+                  {t("magicLink.codeResent", { email: email.trim() })}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={() => void handleResendCode()}
+                disabled={resending || verifying}
+                className="min-h-[44px] text-sm font-medium text-slate-700 underline hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {resending ? t("magicLink.codeResending") : t("magicLink.codeResend")}
+              </button>
             </div>
 
             {/* The email that never gets opened (spam, promotions) is where
@@ -471,6 +512,7 @@ export default function AuthPromptModal({
                   setError(null);
                   setCode("");
                   setCodeError(null);
+                  setCodeResent(false);
                 }}
                 className="text-sm text-slate-600 underline hover:text-slate-900"
               >
