@@ -99,9 +99,10 @@ async function getUserLanguage(
 }
 
 /**
- * Get language instruction for AI prompts
+ * The assistant's language line: shorter than the trip prompt's
+ * getLanguageInstruction (lib/ai/trip-prompt.ts), which also sets formats.
  */
-function getLanguageInstruction(language: SupportedLanguage): string {
+function chatLanguageInstruction(language: SupportedLanguage): string {
   if (language === "en") return "";
 
   const instructions: Record<Exclude<SupportedLanguage, "en">, string> = {
@@ -645,7 +646,7 @@ export async function POST(request: NextRequest) {
             })),
           }));
 
-          const draftPrompt = `You are revising a ${modifiedItinerary.length}-day trip itinerary for ${tripContext.destination} according to a draft plan the user pasted.${getLanguageInstruction(userLanguage)}
+          const draftPrompt = `You are revising a ${modifiedItinerary.length}-day trip itinerary for ${tripContext.destination} according to a draft plan the user pasted.${chatLanguageInstruction(userLanguage)}
 
 CURRENT ITINERARY (day_number and date are FIXED):
 ${JSON.stringify(currentDaysCompact, null, 1)}
@@ -785,7 +786,7 @@ NOTE: ${structuralNote}`;
 
 
     const systemPrompt = buildSystemPrompt(tripContext);
-    const languageInstruction = getLanguageInstruction(userLanguage) + replyLanguageRule(userLanguage);
+    const languageInstruction = chatLanguageInstruction(userLanguage) + replyLanguageRule(userLanguage);
     const fullPrompt = `${systemPrompt}${languageInstruction}
 ${actionContext}
 ${conversationHistory ? `\nRecent conversation:\n${conversationHistory}\n` : ""}
