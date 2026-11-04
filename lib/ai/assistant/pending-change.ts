@@ -1,4 +1,4 @@
-import type { Activity, ItineraryDay } from "@/types";
+import type { Activity, ItineraryDay, StructuredAssistantResponse } from "@/types";
 
 /**
  * A change the trip assistant or the concierge proposes, waiting for the
@@ -144,4 +144,49 @@ export function buildApplyBody(
       throw new Error(`No /apply body for change ${JSON.stringify(unknown)}`);
     }
   }
+}
+
+/**
+ * The change a trip-assistant turn prepared, in the shape the chat confirms it
+ * with (the Apply button, then /apply): a day added at the end, or days
+ * replaced (a pasted draft, or the edit engine's days, new days after the
+ * last). Null when the turn prepared nothing or preparing it failed.
+ *
+ * `previousEndDate` is the trip's end date now: threaded through the client's
+ * undo state so undoing a change that moves the end date restores it with the
+ * itinerary (see /undo). `engineSummary` is set when the edit engine made the
+ * days; its summary says what changes on each.
+ */
+export function pendingChangeFor(
+  action: StructuredAssistantResponse["action"] | undefined,
+  context: {
+    failed: boolean;
+    previousEndDate: string | undefined;
+    unmappedDayNumbers: number[];
+    engineSummary: string | null;
+  }
+) {
+  if (!action || context.failed) return null;
+  if (action.type === "add_day" && action.newDay) {
+    return {
+      type: "add_day" as const,
+      day: action.newDay,
+      dayNumber: action.dayNumber,
+      newEndDate: action.newEndDate,
+      previousEndDate: context.previousEndDate,
+      reason: "New day appended from your request",
+    };
+  }
+  if (action.type === "apply_draft" && action.revisedDays) {
+    return {
+      type: "apply_draft" as const,
+      days: action.revisedDays,
+      changedDayNumbers: action.revisedDays.map((d) => d.day_number),
+      unmappedDayNumbers: context.unmappedDayNumbers,
+      reason: context.engineSummary !== null ? context.engineSummary || undefined : "Mapped from your pasted draft",
+      // New days move the end date on apply; the undo puts it back.
+      ...(action.newEndDate ? { newEndDate: action.newEndDate, previousEndDate: context.previousEndDate } : {}),
+    };
+  }
+  return null;
 }

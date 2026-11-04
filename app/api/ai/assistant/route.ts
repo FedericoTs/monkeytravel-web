@@ -58,6 +58,7 @@ import {
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { isNoRow } from "@/lib/supabase/no-row";
 import { readAssistantTurn } from "@/lib/ai/assistant/turn";
+import { pendingChangeFor } from "@/lib/ai/assistant/pending-change";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -854,34 +855,12 @@ Respond with valid JSON only.`;
     };
 
     // The change waiting for the user's confirm.
-    let pendingChange = null;
-    if (actionTaken && !replacementError) {
-      if (actionTaken.type === "add_day" && actionTaken.newDay) {
-        pendingChange = {
-          type: "add_day" as const,
-          day: actionTaken.newDay,
-          dayNumber: actionTaken.dayNumber,
-          newEndDate: actionTaken.newEndDate,
-          // Threaded through the client's undo state so undoing the append
-          // restores end_date together with the itinerary (see /undo).
-          previousEndDate: trip.end_date as string | undefined,
-          reason: "New day appended from your request",
-        };
-      } else if (actionTaken.type === "apply_draft" && actionTaken.revisedDays) {
-        pendingChange = {
-          type: "apply_draft" as const,
-          days: actionTaken.revisedDays,
-          changedDayNumbers: actionTaken.revisedDays.map((d) => d.day_number),
-          unmappedDayNumbers: draftUnmappedDayNumbers,
-          // The engine's edits say what changes on each day.
-          reason: engineEdited ? tripEdits?.summary || undefined : "Mapped from your pasted draft",
-          // New days move the end date on apply; the undo puts it back.
-          ...(actionTaken.newEndDate
-            ? { newEndDate: actionTaken.newEndDate, previousEndDate: trip.end_date as string | undefined }
-            : {}),
-        };
-      }
-    }
+    const pendingChange = pendingChangeFor(actionTaken, {
+      failed: Boolean(replacementError),
+      previousEndDate: trip.end_date as string | undefined,
+      unmappedDayNumbers: draftUnmappedDayNumbers,
+      engineSummary: engineEdited ? (tripEdits?.summary ?? "") : null,
+    });
 
     const responsePayload = {
       message: assistantMessage,
