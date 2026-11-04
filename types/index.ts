@@ -337,34 +337,6 @@ export interface TripForExport {
   budget?: { total: number; currency: string } | null;
 }
 
-/**
- * Extended trip data for premium PDF export
- * Includes all base fields plus cover images, gallery, and meta
- */
-export interface PremiumTripForExport extends TripForExport {
-  // Required for premium
-  destination: string;
-  // Optional premium features
-  meta?: TripMeta;
-  coverImageUrl?: string;
-  galleryPhotos?: { url: string; thumbnailUrl: string }[];
-}
-
-/**
- * RGB color tuple for PDF styling
- */
-export type RGB = [number, number, number];
-
-/**
- * Activity type display configuration for PDF exports
- */
-export interface ActivityTypeConfig {
-  label: string;
-  color: RGB;
-  icon: string;
-  bgLight: RGB;
-}
-
 // ============================================================================
 
 // Trip vibe types
