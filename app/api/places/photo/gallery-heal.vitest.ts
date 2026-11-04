@@ -8,7 +8,7 @@ import { NextRequest } from "next/server";
  * are mocked through fetch.
  */
 
-// The route and lib/images/activity read the key at import time.
+// The route and lib/places/google-places read the key at import time.
 vi.hoisted(() => {
   process.env.GOOGLE_PLACES_API_KEY = "test-key";
 });
