@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import draft from "./fixtures/wizard-draft-paris.json";
 import { stubGeneration } from "./generation-stub";
-import { isolate, restoreDraft as restore, storedDraft } from "./wizard-draft";
+import { changeDates, isolate, restoreDraft as restore, storedDraft } from "./wizard-draft";
 
 /**
  * Changing a generated plan's dates, signed out. The plan moves with the
@@ -12,15 +12,6 @@ import { isolate, restoreDraft as restore, storedDraft } from "./wizard-draft";
  * May 2027. The assistant and generation are stubbed: nothing that writes or
  * bills leaves the page.
  */
-
-async function changeDates(page: Page, start: string, end: string) {
-  await page.getByRole("button", { name: "Change dates" }).first().click();
-  const dialog = page.getByRole("dialog");
-  await dialog.getByLabel("Start").fill(start);
-  await dialog.getByLabel("End").fill(end);
-  await dialog.getByRole("button", { name: "Change dates" }).click();
-  await expect(dialog).toHaveCount(0);
-}
 
 const unplanned = /extra days couldn't be planned/;
 const planning = "Planning your extra days";

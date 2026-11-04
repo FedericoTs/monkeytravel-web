@@ -605,13 +605,16 @@ export default function NewTripPage({
   const [planningExtraDays, setPlanningExtraDays] = useState(false);
   const [datesNotice, setDatesNotice] = useState<string | null>(null);
   const extraDaysRequest = useRef<AbortController | null>(null);
-  // A plan that replaces this one takes the dates note with it, and the extra
-  // days still being planned, which were this plan's.
-  const forgetDatesChange = useCallback(() => {
+  // A plan that replaces this one (every generation, restore and tray swap)
+  // takes with it what was about this one: the dates note, the extra days still
+  // being planned, and the assistant's chat, which starts again (planNumber).
+  const [planNumber, setPlanNumber] = useState(0);
+  const forgetPlan = useCallback(() => {
     extraDaysRequest.current?.abort();
     extraDaysRequest.current = null;
     setPlanningExtraDays(false);
     setDatesNotice(null);
+    setPlanNumber((n) => n + 1);
   }, []);
 
   // Pre-fill the SHAPE of the trip (length, budget, vibes) from a blog CTA, so
@@ -729,12 +732,12 @@ export default function NewTripPage({
       setTripIntent,
       setFlexibleDates,
       setGeneratedItinerary: (plan: GeneratedItinerary) => {
-        forgetDatesChange();
+        forgetPlan();
         setGeneratedItinerary(plan);
       },
       registerRestore: registerSessionRestore,
     }),
-    [setGeneratedItinerary, registerSessionRestore, forgetDatesChange]
+    [setGeneratedItinerary, registerSessionRestore, forgetPlan]
   );
 
   // A stored draft brought back: put back, offered or discarded, and a
@@ -1394,9 +1397,9 @@ export default function NewTripPage({
   };
 
   const handleGenerate = async (opts: { fresh?: boolean } = {}) => {
-    // A new itinerary replaces the one the edits and the new dates were about.
+    // A new itinerary replaces the one the edits and the rest were about.
     forgetEdits();
-    forgetDatesChange();
+    forgetPlan();
     // Step 1's rules, checked again: what passed step 1 may no longer hold.
     // handleSessionTrayRestore forces multiCityMode off (see its comment) and
     // a route can drop to one filled row, leaving a 21-day span for a
@@ -1949,6 +1952,7 @@ export default function NewTripPage({
           {/* AI assistant — Q&A + day-scoped edits at peak intent. */}
           <div className="mb-8">
             <AssistantPanelView
+              key={planNumber}
               destination={fullDestination}
               tripTitle={tripTitle}
               days={generatedItinerary.days}
