@@ -9,7 +9,8 @@
  */
 
 import type { GeneratedItinerary, TripVibe } from "@/types";
-import { isIsoDate, MAX_TRIP_DAYS } from "@/lib/trips/anonymous-share";
+import { isIsoDate } from "@/lib/trips/anonymous-share";
+import { MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
 import { dietsFrom, type Diet } from "@/lib/trips/diet";
 
 const PACES = ["relaxed", "moderate", "active"] as const;
@@ -115,7 +116,7 @@ export function parseKeptPlan(input: unknown): KeptPlan | null {
   if (!isRecord(itinerary) || !isRecord(itinerary.destination) || typeof itinerary.destination.name !== "string") return null;
   if (!isRecord(itinerary.trip_summary)) return null;
   const days = itinerary.days;
-  if (!Array.isArray(days) || days.length === 0 || days.length > MAX_TRIP_DAYS) return null;
+  if (!Array.isArray(days) || days.length === 0 || days.length > MAX_TRIP_DAYS_MULTI) return null;
   if (!days.every((day) => isRecord(day) && Array.isArray(day.activities))) return null;
 
   const pace = oneOf(PACES, input.pace);

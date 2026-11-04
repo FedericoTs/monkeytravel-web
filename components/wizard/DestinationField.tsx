@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import DestinationAutocomplete, { type PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import OneTapStarts, { type OneTapPlace } from "@/components/wizard/OneTapStarts";
 import type { TripWizardFieldInteractedEvent } from "@/lib/posthog/events";
-import { DESTINATION_ALLOWLIST, DESTINATION_MAX_LENGTH } from "@/lib/wizard/step1-gate";
+import { DESTINATION_ALLOWLIST, DESTINATION_MAX_LENGTH } from "@/lib/trips/request-limits";
 import type { TripSentence } from "@/lib/wizard/trip-sentence";
 
 /** A month's name in the page's language, capitalised for a chip ("Marzo"). */

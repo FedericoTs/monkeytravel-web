@@ -4,9 +4,9 @@ import {
   sanitizeCoverImageUrl,
   isIsoDate,
   claimExpiryFrom,
-  MAX_TRIP_DAYS,
   CLAIM_WINDOW_DAYS,
 } from "./anonymous-share";
+import { MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
 
 const valid = {
   title: "Tokyo Trip",
@@ -72,18 +72,18 @@ describe("validateAnonymousTripPayload", () => {
     expect(r).toEqual({ ok: false, error: "Trip has no itinerary." });
   });
 
-  it(`rejects more than ${MAX_TRIP_DAYS} days`, () => {
+  it(`rejects more than ${MAX_TRIP_DAYS_MULTI} days`, () => {
     const r = validateAnonymousTripPayload({
       ...valid,
-      itinerary: Array.from({ length: MAX_TRIP_DAYS + 1 }, (_, i) => ({ day: i })),
+      itinerary: Array.from({ length: MAX_TRIP_DAYS_MULTI + 1 }, (_, i) => ({ day: i })),
     });
     expect(r.ok).toBe(false);
   });
 
-  it(`accepts exactly ${MAX_TRIP_DAYS} days (boundary)`, () => {
+  it(`accepts exactly ${MAX_TRIP_DAYS_MULTI} days (boundary)`, () => {
     const r = validateAnonymousTripPayload({
       ...valid,
-      itinerary: Array.from({ length: MAX_TRIP_DAYS }, (_, i) => ({ day: i })),
+      itinerary: Array.from({ length: MAX_TRIP_DAYS_MULTI }, (_, i) => ({ day: i })),
     });
     expect(r.ok).toBe(true);
   });

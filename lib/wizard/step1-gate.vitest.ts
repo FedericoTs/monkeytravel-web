@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { DESTINATION_MAX_LENGTH, destinationProblem, step1Blocker } from "./step1-gate";
+import { destinationProblem, step1Blocker } from "./step1-gate";
+import { DESTINATION_MAX_LENGTH } from "@/lib/trips/request-limits";
 
 describe("destinationProblem", () => {
   it.each([

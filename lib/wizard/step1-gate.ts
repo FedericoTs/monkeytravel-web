@@ -1,20 +1,15 @@
 import { tripSpanDays } from "@/lib/dates/iso-date";
+import { DESTINATION_ALLOWLIST, DESTINATION_MAX_LENGTH, DESTINATION_MIN_LENGTH } from "@/lib/trips/request-limits";
 
-// Exact copy of DESTINATION_ALLOWLIST in lib/gemini.ts — letters, spaces,
-// hyphens, commas, dots, parentheses, apostrophes, &, /, digits.
-export const DESTINATION_ALLOWLIST = /^[\p{L}\p{M}\s\-,.'()&/0-9]+$/u;
-// The server's destination length rule (lib/gemini.ts validateTripParams).
-// Unmirrored, a pasted prompt passes the gate, starts generating, and bounces
-// off the server with an untranslated "Destination name too long" behind a
-// Retry button that resends the same text. Keep it at 100, exactly where the
-// server puts it: a lower bound would block names that generate fine.
-export const DESTINATION_MAX_LENGTH = 100;
+// The gate applies the server's destination rules. Left to the server alone,
+// a pasted prompt starts generating and bounces off with an untranslated
+// "Destination name too long" behind a Retry button that resends the same text.
 
 export type DestinationProblem = "short" | "long" | "chars";
 
 /** The first of the server's destination rules the text breaks, or null. */
 export function destinationProblem(destination: string): DestinationProblem | null {
-  if (destination.length < 2) return "short";
+  if (destination.length < DESTINATION_MIN_LENGTH) return "short";
   if (destination.length > DESTINATION_MAX_LENGTH) return "long";
   if (!DESTINATION_ALLOWLIST.test(destination)) return "chars";
   return null;
