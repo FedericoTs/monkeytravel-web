@@ -1,7 +1,7 @@
 {
   "nothingChanged": "Non ho modificato il tuo itinerario: da qui non sono riuscito a fare questa modifica. Puoi farla tu con \"Modifica Viaggio\".",
   "noProposal": "(Questa modifica non è pronta: non c'è niente da confermare. Chiedimela di nuovo indicando giorno e attività.)",
-  "pendingChangeReply": "Ho preparato questa modifica. Non viene salvato nulla finché non tocchi \"{button}\" qui sotto.",
+  "preparedChange": "Ho preparato questa modifica.",
   "wizardNothingChanged": "Non ho modificato il tuo piano: non sono riuscito a fare questa modifica. Prova a chiedermela giorno per giorno, per esempio \"fai del giorno 3 una giornata di whale watching\".",
   "uncoveredDays": "(Questa modifica riguarda solo il giorno {covered}. Chiedimi il giorno {uncovered} se vuoi cambiare anche quello.)",
   "notAppliedLead": "Non ancora applicato: tocca \"Applica modifica\" qui sotto per aggiornare il tuo piano.",

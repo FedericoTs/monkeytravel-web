@@ -193,9 +193,10 @@ describe("trip-page assistant: free-form edits", () => {
   it("keeps the honesty rule: a reply claiming the change is done keeps its answer, then says it isn't saved", async () => {
     proposeTripEdits.mockResolvedValue({ reply: "I've added Wigwam to Day 3. It's a 10-minute walk from Grafton Street.", revisedDays: [wigwamDay3], summary: "", meta });
     const { json } = await send("adding Wigwam to Day 3");
-    expect(json.message.content).toBe(
-      `I've added Wigwam to Day 3. It's a 10-minute walk from Grafton Street.\n\nNot saved yet: tap "Save to my trip" below to update your trip.`
-    );
+    expect(json.message.content).toBe("I've added Wigwam to Day 3. It's a 10-minute walk from Grafton Street.");
+    // Beside the reply, so the chat can drop it once the change is applied.
+    expect(json.message.pendingNote).toBe(`Not saved yet: tap "Save to my trip" below to update your trip.`);
+    expect(savedAssistantMessage().pendingNote).toBe(json.message.pendingNote);
     expect(json.pendingChange?.type).toBe("apply_draft");
     expect(json.pendingChange?.reason).toBeUndefined();
   });

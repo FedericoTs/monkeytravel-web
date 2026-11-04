@@ -36,6 +36,8 @@ interface Message {
   // assistant API — they carry no action metadata, so the deterministic
   // action badge must not render a "no changes" line under them.
   local?: boolean;
+  // "Not saved yet: tap …", from the server beside the reply (showsPendingNote).
+  pendingNote?: string;
 }
 
 // PendingChange (the confirm-first proposed-change union) is defined in and
@@ -143,6 +145,21 @@ function actionActivityName(message: Message): string | undefined {
  * treated as a normal message — the cost of a miss is one extra tap, the cost
  * of a false match is an unwanted edit.
  */
+/**
+ * Whether a reply's "Not saved yet" note still holds: it is the latest reply
+ * and its change still waits for the button. Applied, cancelled, or followed
+ * by another reply, the note would be wrong.
+ */
+export function showsPendingNote(
+  messages: Pick<Message, "role" | "pendingNote" | "action">[],
+  index: number,
+  changeWaiting: boolean
+): boolean {
+  const message = messages[index];
+  if (!message?.pendingNote || message.action?.applied || !changeWaiting) return false;
+  return messages.map((m) => m.role).lastIndexOf("assistant") === index;
+}
+
 export function isAffirmative(text: string): boolean {
   const t = text
     .trim()
@@ -784,8 +801,8 @@ export default function AIAssistantEnhanced({
                         : "space-y-3"
                     }`}
                   >
-                    {/* Text content */}
-                    {message.content && (
+                    {/* Text content, and while its change waits, what the button does */}
+                    {(message.content || showsPendingNote(messages, index, pendingChange !== null)) && (
                       <div
                         className={
                           message.role === "assistant"
@@ -793,9 +810,16 @@ export default function AIAssistantEnhanced({
                             : ""
                         }
                       >
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                          {message.content}
-                        </p>
+                        {message.content && (
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                            {message.content}
+                          </p>
+                        )}
+                        {showsPendingNote(messages, index, pendingChange !== null) && (
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap mt-2">
+                            {message.pendingNote}
+                          </p>
+                        )}
                       </div>
                     )}
 

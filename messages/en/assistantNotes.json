@@ -1,7 +1,7 @@
 {
   "nothingChanged": "I haven't changed your itinerary: I couldn't make that change from here. You can make it with \"Edit Trip\", or ask me for one activity at a time, like \"add a boat tour to day 5\".",
   "noProposal": "(That change isn't ready: there's nothing to confirm. Ask me again with the day and the activity.)",
-  "pendingChangeReply": "I've prepared this change. Nothing is saved until you tap \"{button}\" below.",
+  "preparedChange": "I've prepared this change.",
   "wizardNothingChanged": "I haven't changed your plan: I couldn't make that change. Try asking for it day by day, like \"make day 3 about whale watching\".",
   "uncoveredDays": "(This change covers Day {covered} only. Ask me for Day {uncovered} if you want that changed too.)",
   "notAppliedLead": "Not applied yet: tap \"Apply change\" below to update your plan.",

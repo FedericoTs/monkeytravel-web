@@ -53,7 +53,7 @@ import {
   nothingChangedReply,
   nothingKeptReply,
   pendingChangeNote,
-  pendingChangeReply,
+  preparedChangeReply,
 } from "@/lib/ai/assistant/honesty";
 import {
   conversationTurns,
@@ -129,6 +129,11 @@ interface AssistantMessage {
    * read back from ai_conversations.
    */
   guarded?: boolean;
+  /**
+   * That the change waits for the Apply button. Beside the reply, not in it:
+   * the chat shows it only while the change waits (AIAssistantEnhanced).
+   */
+  pendingNote?: string;
   cards?: AssistantCard[];
   action?: {
     type: string;
@@ -848,6 +853,7 @@ Respond with valid JSON only.`;
     // "Noted" and "recorded" claim a memory this assistant does not have:
     // only the last few messages come back with the next prompt.
     let honestyGuarded = false;
+    let pendingNote: string | undefined;
     // "Here's the proposal" is true of a prepared change, so it counts only
     // when there is none.
     const claimedChange =
@@ -860,13 +866,14 @@ Respond with valid JSON only.`;
       // The engine's words are the answer and say what each day gets: they
       // stay, and the truth about the button follows them, just above it.
       // Put first, it read "Not saved yet: … Absolutely! I've extended…".
-      parsedResponse.summary = actionTaken
-        ? engineReply !== null && claimedChange
-          ? `${engineReply}\n\n${pendingChangeNote(userLanguage, await applyButtonLabel(userLanguage))}`
-          : pendingChangeReply(userLanguage, await applyButtonLabel(userLanguage))
-        : claimedChange
-          ? nothingChangedReply(userLanguage)
-          : nothingKeptReply(userLanguage);
+      // Other words become "I've prepared this change", true before and after
+      // the button.
+      if (actionTaken) {
+        parsedResponse.summary = engineReply !== null && claimedChange ? engineReply : preparedChangeReply(userLanguage);
+        pendingNote = pendingChangeNote(userLanguage, await applyButtonLabel(userLanguage));
+      } else {
+        parsedResponse.summary = claimedChange ? nothingChangedReply(userLanguage) : nothingKeptReply(userLanguage);
+      }
       honestyGuarded = true;
     }
 
@@ -932,6 +939,7 @@ Respond with valid JSON only.`;
         dayCount: parsedResponse.action.dayCount,
       } : undefined,
       ...(honestyGuarded ? { guarded: true } : {}),
+      ...(pendingNote ? { pendingNote } : {}),
       timestamp: new Date().toISOString(),
     };
 
