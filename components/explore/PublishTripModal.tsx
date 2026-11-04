@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { useChanged } from "@/hooks/useChanged";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { shownErrorText } from "@/lib/utils/shown-error";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
 import {
   captureExploreTripPublished,
@@ -109,7 +110,7 @@ export default function PublishTripModal({
       router.refresh();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("errorFallback"));
+      setError(shownErrorText(err, t("errorFallback")));
       void captureExploreTripPublishFailed({
         trip_id: tripId,
         reason:

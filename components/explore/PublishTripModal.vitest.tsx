@@ -22,6 +22,16 @@ afterEach(() => {
 });
 
 describe("PublishTripModal", () => {
+  it("says it in the page's language when the connection drops, not the browser's words", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => {
+      throw new TypeError("Failed to fetch");
+    }));
+    render(modal(true));
+    fireEvent.click(screen.getByRole("button", { name: "publishAction" }));
+    expect(await screen.findByText("errorFallback")).toBeTruthy();
+    expect(screen.queryByText("Failed to fetch")).toBeNull();
+  });
+
   it("opens again without the last attempt's error, keeping what was typed", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ error: REFUSAL }), { status: 400 })));
     const { rerender } = render(modal(true));

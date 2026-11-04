@@ -16,6 +16,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { shownErrorText } from "@/lib/utils/shown-error";
 import {
   initialsOf,
   type JoinResponse,
@@ -143,7 +144,7 @@ export default function ParticipantsBar({
     } catch (e) {
       setData(before);
       setStep("idle");
-      setError(e instanceof Error ? e.message : t("share.participants.error"));
+      setError(shownErrorText(e, t("share.participants.error")));
     } finally {
       setBusy(false);
     }
@@ -161,7 +162,7 @@ export default function ParticipantsBar({
       if (next) setData(next);
     } catch (e) {
       setData(before);
-      setError(e instanceof Error ? e.message : t("share.participants.error"));
+      setError(shownErrorText(e, t("share.participants.error")));
     } finally {
       setBusy(false);
     }
@@ -183,7 +184,7 @@ export default function ParticipantsBar({
       if (next) setData(next);
       setStep(data.me.has_email ? "done" : "email");
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("share.participants.error"));
+      setError(shownErrorText(e, t("share.participants.error")));
     } finally {
       setBusy(false);
     }
@@ -203,7 +204,7 @@ export default function ParticipantsBar({
       if (next?.plan_email) setPlanEmail({ outcome: next.plan_email, to: value });
       setStep("done");
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("share.participants.error"));
+      setError(shownErrorText(e, t("share.participants.error")));
     } finally {
       setBusy(false);
     }
