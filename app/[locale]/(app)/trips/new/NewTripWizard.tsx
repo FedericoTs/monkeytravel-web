@@ -38,7 +38,6 @@ import type { PlacePrediction } from "@/components/ui/DestinationAutocomplete";
 import { isTripSentence, matchesPlace, pencilledDates, readTripSentence } from "@/lib/wizard/trip-sentence";
 import AnchorEditor from "@/components/trip/AnchorEditor";
 import { buildSeasonalContext } from "@/lib/seasonal";
-import type { SseDayData, SseOutlineData } from "@/lib/streaming/sse";
 import { generateWithRecovery } from "@/lib/wizard/generation-recovery";
 import { attemptGeneration } from "@/lib/wizard/generation-attempt";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
@@ -191,6 +190,7 @@ import { usePendingClaim } from "@/hooks/usePendingClaim";
 import { useUnsavedPlan } from "@/hooks/useUnsavedPlan";
 import { useWizardFunnel, WIZARD_STEP_NAMES } from "@/hooks/useWizardFunnel";
 import { useGenerationLeft } from "@/hooks/useGenerationLeft";
+import { useGenerationProgress } from "@/hooks/useGenerationProgress";
 import { useHasExistingTrips } from "@/hooks/useHasExistingTrips";
 import { isSameDestination } from "@/lib/trips/sameDestination";
 import { shouldAutoSave, shouldRedeemSaveIntent } from "@/lib/trips/autoSaveGate";
@@ -419,13 +419,8 @@ export default function NewTripPage({
   const [resultViewMode, setResultViewMode] = useState<"cards" | "timeline">("cards");
   // The timeline's travel legs: estimated from coordinates, no API call.
   const { travelData, isLoading: travelLoading } = useTravelDistances(generatedItinerary?.days);
-  // Streaming progress — set by the SSE consumer in handleGenerate. The
-  // GenerationProgress component shows the days as they arrive ("Day 3 of 7"
-  // and the plan itself) instead of fake-percentage phases.
-  const [streamedDays, setStreamedDays] = useState<SseDayData[]>([]);
-  // A long trip's outline, on screen while its days are written.
-  const [streamedOutline, setStreamedOutline] = useState<SseOutlineData["days"]>([]);
-  const [streamedTotalDays, setStreamedTotalDays] = useState(0);
+  // The plan as it streams in, for GenerationProgress (hooks/useGenerationProgress.ts).
+  const streamed = useGenerationProgress();
 
   // Solo vs group intent. Captured as PostHog `trip_intent_selected`,
   // forwarded as group_size / trip_intent on later events and saved with the
@@ -1528,16 +1523,7 @@ export default function NewTripPage({
         attemptGeneration(
           generationId,
           { body: request.body, stream: request.stream, signedIn: Boolean(authUser) },
-          {
-            reset: () => {
-              setStreamedDays([]);
-              setStreamedOutline([]);
-              setStreamedTotalDays(0);
-            },
-            total: setStreamedTotalDays,
-            outline: setStreamedOutline,
-            day: (day) => setStreamedDays((days) => [...days, day]),
-          }
+          streamed.progress
         )
       );
       if (data.capped) {
@@ -2122,9 +2108,9 @@ export default function NewTripPage({
       <GenerationProgress
         destination={destination}
         isGenerating={generating}
-        streamedDays={streamedDays}
-        streamedOutline={streamedOutline}
-        streamedTotalDays={streamedTotalDays}
+        streamedDays={streamed.days}
+        streamedOutline={streamed.outline}
+        streamedTotalDays={streamed.totalDays}
       />
     );
   }
