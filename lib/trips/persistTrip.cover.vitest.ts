@@ -18,6 +18,7 @@ function fakeSupabase(reused = false) {
       return { single: async () => ({ data: { trip_id: "trip-1", reused }, error: null }) };
     },
     from: () => ({
+      select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
       update: (fields: Record<string, unknown>) => {
         updates.push(fields);
         return { eq: async () => ({ error: null }) };

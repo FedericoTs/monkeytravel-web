@@ -21,6 +21,7 @@ import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { newTripTitle } from "@/lib/trips/title";
 import { pickCoverFromItinerary } from "@/lib/trips/cover";
 import type { PencilledDates } from "@/lib/trips/pencilled-dates";
+import { logReadError } from "@/lib/supabase/log-read-error";
 import { logWriteError } from "@/lib/supabase/log-write-error";
 import { tripSpanDays } from "@/lib/dates/iso-date";
 
@@ -103,6 +104,13 @@ export interface SaveOrigin {
   arm: "auto" | "manual";
   /** Stable for the life of one wizard mount. */
   mountId?: string | null;
+}
+
+/** The SaveOrigin a stored trip_meta records, if any. */
+function savedFrom(meta: unknown): SaveOrigin | undefined {
+  const m = (meta ?? {}) as { save_arm?: unknown; wizard_mount_id?: unknown };
+  if (m.save_arm !== "auto" && m.save_arm !== "manual") return undefined;
+  return { arm: m.save_arm, mountId: typeof m.wizard_mount_id === "string" ? m.wizard_mount_id : null };
 }
 
 export interface PersistInput {
@@ -302,7 +310,15 @@ export async function updateTrip(
   // The stored cover stays: an update is the same destination (a different
   // city starts a new trip), and writing the fallback here erased the cover
   // whenever the itinerary had no place photo yet.
-  const row = buildTripRow(input, userId, undefined);
+  // trip_meta is rebuilt from the new plan, but where the trip was first saved
+  // from (save_arm, wizard_mount_id) belongs to the insert, so it is read back
+  // and kept. A failed read is logged and only loses it, as before; the save
+  // goes on.
+  const { data: current } = logReadError(
+    "persistTrip: save origin",
+    await supabase.from("trips").select("trip_meta").eq("id", tripId).maybeSingle()
+  );
+  const row = buildTripRow(input, userId, undefined, savedFrom(current?.trip_meta));
 
   const { error } = await supabase
     .from("trips")
