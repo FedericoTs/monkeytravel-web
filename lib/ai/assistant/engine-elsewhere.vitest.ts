@@ -60,6 +60,8 @@ describe("the prompt", () => {
     const p = buildPrompt(input());
     expect(p).toContain("The WHOLE trip somewhere else");
     expect(p).toContain('"elsewhere": [] OR');
+    // "Comply and build the edit" for a place outside the destination is a day trip's rule.
+    expect(p).toContain('This is for a day trip or a stop: the whole trip in another place always goes in "elsewhere".');
   });
 
   it("does not where the page can't plan it, on a multi-city trip, or with a fixed plan", () => {
