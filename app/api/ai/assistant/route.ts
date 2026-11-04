@@ -689,7 +689,7 @@ Return ONLY valid JSON:
           const draftResult = await draftModel.generateContent(draftPrompt);
           const draftText = draftResult.response.text();
 
-          // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts). The
+          // Wire prompt-cache hit-rate monitoring (see lib/ai/cache-metrics.ts). The
           // draft prompt is per-user content-heavy, so expect ~0% hits —
           // logged anyway so the call site shows up in cost dashboards.
           logCacheMetrics("ai.assistant.apply_draft", draftResult.response.usageMetadata);
@@ -808,7 +808,7 @@ Respond with valid JSON only.`;
       const result = await model.generateContent(fullPrompt);
       responseText = result.response.text();
 
-      // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts). This is
+      // Wire prompt-cache hit-rate monitoring (see lib/ai/cache-metrics.ts). This is
       // the main chat-message call — buildSystemPrompt produces a long
       // stable preamble so this site should dominate the rolling window
       // with healthy cache hits.

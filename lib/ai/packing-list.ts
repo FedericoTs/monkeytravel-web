@@ -200,7 +200,7 @@ export async function generatePackingList(
     label: "tools.packing-list",
   });
 
-  // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts).
+  // Wire prompt-cache hit-rate monitoring (see lib/ai/cache-metrics.ts).
   // Without this, silent regressions on the packing-list prompt prefix
   // (e.g. a future timestamp injection) would burn input-token cost
   // invisibly. Cheap call — just emits to console + rolling Sentry alert.

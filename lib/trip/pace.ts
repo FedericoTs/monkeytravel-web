@@ -12,7 +12,7 @@
  * a different one, so the overpacked flag stays a signal, not wallpaper.
  *
  * Pure and dependency-free — imported by client components (DaySummary),
- * server prompts (lib/gemini.ts) and unit tests alike.
+ * server prompts (lib/ai/trip-prompt.ts, lib/gemini.ts) and unit tests alike.
  */
 
 import type { TripPace } from "@/types";
