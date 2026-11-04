@@ -30,3 +30,29 @@ export function envVar(name: string, file = ".env.local"): string {
 export function serviceCreds(): { url: string; key: string } {
   return { url: envVar("NEXT_PUBLIC_SUPABASE_URL"), key: envVar("SUPABASE_SERVICE_ROLE_KEY") };
 }
+
+/** A Supabase client with the service key, for seeding and checking. */
+export async function serviceDb() {
+  const { createClient } = await import("@supabase/supabase-js");
+  const { url, key } = serviceCreds();
+  return createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+/** Where `scripts/e2e-fixtures.mts --seed` writes what it seeded. */
+export const MANIFEST = ".auth/e2e-fixtures.json";
+
+type SeededUser = { id: string; email: string; name: string };
+/** What the seed wrote: the shared trip, its proposal and first activity, and the three users. */
+export interface Manifest {
+  tripId: string;
+  proposalId: string;
+  activityId: string;
+  users: Record<"owner" | "mate" | "voter", SeededUser>;
+}
+
+/** The seeded fixtures, or null before the seed has run. */
+export function readManifest(): Manifest | null {
+  return existsSync(MANIFEST) ? (JSON.parse(readFileSync(MANIFEST, "utf8")) as Manifest) : null;
+}

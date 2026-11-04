@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
-import { serviceCreds } from "./env";
+import { serviceCreds, readManifest, MANIFEST } from "./env";
 
 /**
  * A signed-in user whose PostHog never loads must still keep their trip.
@@ -27,13 +27,10 @@ import { serviceCreds } from "./env";
  *   BASE_URL=http://localhost:3001 npx playwright test autosave-unresolved-flag
  */
 
-const MANIFEST = ".auth/e2e-fixtures.json";
-
 function ownerId(): string {
-  const raw = JSON.parse(readFileSync(MANIFEST, "utf8"));
-  const id = raw.owner?.id ?? raw.users?.owner?.id ?? raw.owner?.userId;
+  const id = readManifest()?.users.owner.id;
   if (!id) throw new Error("owner id missing from " + MANIFEST);
-  return id as string;
+  return id;
 }
 
 test.describe("auto-save survives an unresolved PostHog flag", () => {

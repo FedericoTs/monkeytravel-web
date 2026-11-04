@@ -1,7 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { readFileSync, existsSync } from "node:fs";
 import { visibleWithin } from "./helpers";
-import { serviceCreds } from "./env";
+import { serviceCreds, serviceDb, readManifest } from "./env";
 
 /**
  * Writes that reported success without verifying it, and model output shown as
@@ -18,17 +17,7 @@ import { serviceCreds } from "./env";
  *   BASE_URL=http://localhost:3001 npx playwright test silent-write
  */
 
-const MANIFEST = ".auth/e2e-fixtures.json";
-
-async function db() {
-  const { createClient } = await import("@supabase/supabase-js");
-  const { url, key } = serviceCreds();
-  return createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
-const manifest = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, "utf8")) : null;
+const manifest = readManifest();
 const tripId: string | undefined = manifest?.tripId;
 
 /**
@@ -106,7 +95,7 @@ test.describe("a packing tick that cannot save must say so", () => {
 
   test.beforeAll(async () => {
     if (!manifest || !serviceCreds().url || !serviceCreds().key) return;
-    const sb = await db();
+    const sb = await serviceDb();
     const start = new Date(Date.now() + 20 * 86_400_000).toISOString().slice(0, 10);
     const end = new Date(Date.now() + 22 * 86_400_000).toISOString().slice(0, 10);
     const { data, error } = await sb
@@ -160,7 +149,7 @@ test.describe("a packing tick that cannot save must say so", () => {
 
   test.afterAll(async () => {
     if (!ownTripId) return;
-    const sb = await db();
+    const sb = await serviceDb();
     await sb.from("trip_collaborators").delete().eq("trip_id", ownTripId);
     await sb.from("trips").delete().eq("id", ownTripId);
   });
@@ -179,7 +168,7 @@ test.describe("a packing tick that cannot save must say so", () => {
   test.use({ storageState: ".auth/voter.json" });
 
   test("a voter sees the failure instead of losing the tick silently", async ({ page }) => {
-    const sb = await db();
+    const sb = await serviceDb();
     const { data: before } = await sb
       .from("trips").select("trip_meta").eq("id", ownTripId).maybeSingle();
     const checkedBefore = JSON.stringify(
@@ -240,7 +229,7 @@ test.describe("the destination hero states no temperature it invented", () => {
    * not a reading off an instrument.
    */
   test("renders a condition word, never a fabricated figure", async ({ page }) => {
-    const sb = await db();
+    const sb = await serviceDb();
     const { data: t } = await sb.from("trips").select("trip_meta").eq("id", tripId!).maybeSingle();
     const meta = ((t as { trip_meta?: Record<string, unknown> } | null)?.trip_meta ?? {}) as Record<string, unknown>;
     // Give the hero prose that CONTAINS a temperature, so a regression that
@@ -281,7 +270,7 @@ test.describe("the referral sync reaches the referrer's row", () => {
    * another user's row returns that row, and an RLS-scoped one would not.
    */
   test("a cross-user write returns the row it claims to have written", async () => {
-    const sb = await db();
+    const sb = await serviceDb();
     const { data: someone } = await sb
       .from("users")
       .select("id, lifetime_referral_conversions")
