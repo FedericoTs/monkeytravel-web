@@ -15,6 +15,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { assistTrip, MAX_TRIP_DAYS_MULTI } from "@/lib/ai/assistant/engine";
+import { placeLabel } from "@/lib/ai/assistant/elsewhere";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { signedInUserId } from "@/lib/supabase/server";
@@ -188,6 +189,8 @@ export async function POST(request: NextRequest) {
         autoApply: body.autoApply,
         display: body.display,
         explainRemovals: true,
+        // The wizard plans another place anew when the traveller picks one.
+        canPlanElsewhere: true,
       })
     );
     waitUntil(logApiCall({
@@ -208,17 +211,24 @@ export async function POST(request: NextRequest) {
       reply: result.reply,
       // day_number stays the first edited day, so existing queries still read it.
       edit:
-        result.edits.length > 0 || result.tripLength !== undefined || result.currency
+        result.edits.length > 0 || result.tripLength !== undefined || result.currency || result.elsewhere
           ? {
               day_number: result.edits[0]?.day_number ?? null,
               days: result.edits.map((e) => e.day_number),
               trip_length: result.tripLength ?? null,
               ...(result.currency ? { currency: result.currency } : {}),
+              ...(result.elsewhere ? { elsewhere: result.elsewhere.map(placeLabel) } : {}),
               ...(body.autoApply && (result.edits.length > 0 || result.tripLength !== undefined) ? { auto_applied: true } : {}),
             }
           : undefined,
     });
-    return apiSuccess({ reply: result.reply, edits: result.edits, tripLength: result.tripLength, currency: result.currency });
+    return apiSuccess({
+      reply: result.reply,
+      edits: result.edits,
+      tripLength: result.tripLength,
+      currency: result.currency,
+      elsewhere: result.elsewhere,
+    });
   } catch (err) {
     console.error("[assistant-anon] error:", err);
     logAnonExchange({

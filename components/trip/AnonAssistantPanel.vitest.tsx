@@ -36,7 +36,11 @@ beforeEach(() => {
   vi.stubGlobal("fetch", fetchMock);
 });
 
-function renderPanel(props: { onApplyEdits?: () => string | void; onUndoEdits?: (id: string) => boolean }) {
+function renderPanel(props: {
+  onApplyEdits?: () => string | void;
+  onUndoEdits?: (id: string) => boolean;
+  onPlanElsewhere?: (place: string) => void;
+}) {
   const onApplyEdits = vi.fn(props.onApplyEdits ?? (() => "edit-1"));
   render(
     <AnonAssistantPanel
@@ -45,6 +49,7 @@ function renderPanel(props: { onApplyEdits?: () => string | void; onUndoEdits?: 
       days={days}
       onApplyEdits={onApplyEdits}
       onUndoEdits={props.onUndoEdits}
+      onPlanElsewhere={props.onPlanElsewhere}
     />
   );
   return { onApplyEdits };
@@ -110,16 +115,56 @@ describe("without Undo", () => {
   });
 });
 
+/**
+ * Asked for another place for the whole trip, the assistant offers places; the
+ * page plans the one picked anew, for the same dates.
+ */
+describe("another place for the whole trip", () => {
+  const offer = {
+    data: {
+      reply: "Madeira suits a road trip; Porto, a city break.",
+      edits: [],
+      elsewhere: [
+        { name: "Madeira", country: "Portugal" },
+        { name: "Porto", country: "Portugal" },
+      ],
+    },
+  };
+
+  it("offers each place as a button that plans it, changing nothing yet", async () => {
+    fetchMock.mockImplementation(async () => new Response(JSON.stringify(offer), { status: 200 }));
+    const onPlanElsewhere = vi.fn();
+    const { onApplyEdits } = renderPanel({ onUndoEdits: () => true, onPlanElsewhere });
+    await ask("we'd rather do Madeira by car");
+    const buttons = await screen.findAllByRole("button", { name: "assistant.planElsewhere" });
+    expect(buttons).toHaveLength(2);
+    expect(screen.getByText("Madeira suits a road trip; Porto, a city break.")).toBeTruthy();
+    fireEvent.click(buttons[1]);
+    expect(onPlanElsewhere).toHaveBeenCalledWith("Porto, Portugal");
+    expect(onApplyEdits).not.toHaveBeenCalled();
+    expect(capture).toHaveBeenCalledWith("anon_assistant_plan_elsewhere", { destination: "Lisbon, Portugal", place: "Porto, Portugal" });
+  });
+
+  it("shows the answer without buttons on a page that can't plan another place", async () => {
+    fetchMock.mockImplementation(async () => new Response(JSON.stringify(offer), { status: 200 }));
+    renderPanel({ onUndoEdits: () => true });
+    await ask("we'd rather do Madeira by car");
+    await screen.findByText("Madeira suits a road trip; Porto, a city break.");
+    expect(screen.queryByRole("button", { name: "assistant.planElsewhere" })).toBeNull();
+  });
+});
+
 describe("the copy exists in every language", () => {
   it.each(["en", "es", "it", "pt"])("%s", async (locale) => {
     const messages = (await import(`../../messages/${locale}/trips.json`)).default as {
       assistant: Record<string, string>;
     };
-    for (const key of ["updatedDay", "updatedDays", "undo", "undoGone", "note"]) {
+    for (const key of ["updatedDay", "updatedDays", "undo", "undoGone", "note", "planElsewhere"]) {
       expect(messages.assistant[key]?.trim(), `${locale} ${key}`).toBeTruthy();
     }
     expect(messages.assistant.updatedDay).toContain("{number}");
     expect(messages.assistant.updatedDays).toContain("{days}");
+    expect(messages.assistant.planElsewhere).toContain("{place}");
   });
 });
 

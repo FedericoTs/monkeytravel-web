@@ -1342,7 +1342,9 @@ export default function NewTripPage({
     const read = readTripSentence(destination);
     return isTripSentence(read) ? read : null;
   }, [step, multiCityMode, destination]);
-  const expressRequestedRef = useRef(false);
+  // A plan asked for by setting the fields first (the express plan, a place
+  // the assistant offered): generated once they have landed in state.
+  const generateWhenSetRef = useRef(false);
   const [expressBusy, setExpressBusy] = useState(false);
 
   const handleExpressPlan = async () => {
@@ -1365,16 +1367,26 @@ export default function NewTripPage({
     if (trip.intent) setTripIntent(trip.intent);
     if (trip.budget) setBudgetTier(trip.budget === "luxury" ? "premium" : "budget");
     trackFieldInteraction("express_plan");
-    expressRequestedRef.current = true;
+    generateWhenSetRef.current = true;
     setExpressBusy(false);
   };
 
+  // The assistant offered another place for the whole trip and the traveller
+  // picked it: planned anew for the same dates and style. Must-dos belong to
+  // the old place. The plan on screen stays in the session tray.
+  const handlePlanElsewhere = (place: string) => {
+    setDestination(place);
+    setDestinationCoords(null);
+    setMustDos([]);
+    generateWhenSetRef.current = true;
+  };
+
   // Generates once the fields set above have landed in state (the place name
-  // always replaces the sentence, so this runs after every express request).
+  // always replaces what was there, so this runs after every such request).
   useEffect(() => {
-    if (!expressRequestedRef.current || generating) return;
+    if (!generateWhenSetRef.current || generating) return;
     if (!destination || !startDate || !endDate || selectedVibes.length === 0) return;
-    expressRequestedRef.current = false;
+    generateWhenSetRef.current = false;
     void handleGenerate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [destination, startDate, endDate, selectedVibes, generating]);
@@ -2063,6 +2075,7 @@ export default function NewTripPage({
               endDate={endDate}
               onApplyEdits={handleApplyAssistantEdits}
               onUndoEdits={handleUndoAssistantEdits}
+              onPlanElsewhere={handlePlanElsewhere}
               // Post-edit save bridge. Only offered while the
               // trip is unsaved AND the manual save arm owns persistence —
               // when the auto-save arm is active the edit is already being

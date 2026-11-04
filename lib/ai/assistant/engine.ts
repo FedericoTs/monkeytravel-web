@@ -39,11 +39,13 @@ import {
   wizardFallbackReply,
   wizardNothingChangedReply,
   withoutDanglingLead,
+  elsewhereNote,
 } from "@/lib/ai/assistant/honesty";
 import { planCosts, planCurrency, type DisplayCurrency, type PlanCosts } from "@/lib/ai/assistant/plan-costs";
 import { dayMentioned, daysMentioned } from "@/lib/ai/assistant/day-target";
 import { currencyRequested, currencySwitchedNote, withoutCurrencyTalk } from "@/lib/ai/assistant/currency-request";
 import { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI, maxTripDays } from "@/lib/ai/assistant/structural";
+import { readElsewhere, type TripPlace } from "@/lib/ai/assistant/elsewhere";
 import type { Activity, ItineraryDay } from "@/types";
 import { ACTIVITY_TYPES, normalizeActivityType } from "@/lib/trip/activity-type";
 import { formatMinutesToTime } from "@/lib/datetime/format";
@@ -125,6 +127,12 @@ export interface AssistInput {
   explainRemovals?: boolean;
   /** The currency the page shows prices in, when it isn't the plan's own. */
   display?: DisplayCurrency;
+  /**
+   * The page can plan the whole trip somewhere else (the wizard): asked for
+   * another place, the reply offers places instead of rewriting the days, and
+   * the page plans the one picked anew, for the same dates.
+   */
+  canPlanElsewhere?: boolean;
 }
 
 export interface DayEdit {
@@ -148,7 +156,22 @@ export interface AssistResult {
   tripLength?: number;
   /** The currency the planner asked prices in; the page switches its preference to it. */
   currency?: string;
+  /** Places offered for the whole trip, when the traveller asked to go somewhere else. */
+  elsewhere?: TripPlace[];
   meta: { model: string; costUsd: number; generationTimeMs: number };
+}
+
+/**
+ * Whether a reply may offer another place for the whole trip: on a page that
+ * can plan it (canPlanElsewhere), for a trip in one place with no fixed plans,
+ * which a plan for another place could not keep.
+ */
+function canOfferElsewhere(input: AssistInput): boolean {
+  return (
+    input.canPlanElsewhere === true &&
+    !input.days.some((d) => d.city) &&
+    input.days.every((d) => lockedActivityNames(d).length === 0)
+  );
 }
 
 /**
@@ -222,6 +245,7 @@ export function buildPrompt(input: AssistInput): string {
   const dateLine =
     input.startDate && input.endDate ? `Dates: ${input.startDate} to ${input.endDate} (${dayCount} days)\n` : "";
   const multiCity = input.days.some((d) => d.city);
+  const elsewhere = canOfferElsewhere(input);
   return `You are MonkeyTravel's sharp, friendly travel assistant, helping a traveller with the trip they just generated. You can answer questions AND revise the plan.
 
 Trip: ${input.tripTitle}
@@ -246,7 +270,12 @@ Then decide:
   - Asked for a summary or overview: give one short line per day.
   - Asked where to stay or for hotels: suggest 2-3 concrete areas or well-known hotels near where this plan spends its days, each with a short reason, as ideas to check.
   - Asked for a PDF, a file or a printout: you can't make files; point them to the page's own options (save the trip, share its link, or print the page from the browser).
-- A request to CHANGE the plan: return every day that changes, each rewritten in full, in "edits". Change only what was asked: keep every other activity exactly as it is, under its exact name (never translate or rename activities), and leave days that don't need to change alone.
+${
+    elsewhere
+      ? `- The WHOLE trip somewhere else ("give me Málaga", "I don't want to visit Mysore", "suggest other destinations"): don't rewrite the days. Put the place they name in "elsewhere", or 2-3 good places when they name none, and return "edits": []. In "reply", one short line per place says why it fits, as an offer: the page plans the one they pick, for the same dates. A day trip or a stop on the way from ${input.destination} is not this: edit the days for it.
+`
+      : ""
+  }- A request to CHANGE the plan: return every day that changes, each rewritten in full, in "edits". Change only what was asked: keep every other activity exactly as it is, under its exact name (never translate or rename activities), and leave days that don't need to change alone.
   - A change about the whole trip ("every day", "all the dinners", "cheaper", "less packed", a car, a diet) applies to every day it concerns, not just one.
   - A day the traveller names is the day to change. If that clashes with the day's plan, still make the change there and note the trade-off in "reply".
   - Something already in the plan: say on which day. If they want it on another day or at another time, move it there instead of adding it twice.
@@ -269,7 +298,12 @@ Then decide:
 Return STRICT JSON (no markdown) in this EXACT shape:
 {
   "reply": "Short chat reply in the language of the traveller's new message (${language} if unclear).",
-  "trip_length": null OR <new total number of days, only when adding or removing days>,
+  "trip_length": null OR <new total number of days, only when adding or removing days>,${
+    elsewhere
+      ? `
+  "elsewhere": [] OR [{ "name": "city or area", "country": "its country" }] (only for the whole trip somewhere else),`
+      : ""
+  }
   "more_days": [] OR [the other day numbers this change concerns, past the ${MAX_DAYS_PER_REPLY} in "edits"],
   "travel_times": [] OR [{ "day": <day number>, "arrives": "HH:MM" or null, "leaves": "HH:MM" or null, "by": "flight" | "train" | "bus" | "boat" | "car" }],
   "edits": [
@@ -679,7 +713,13 @@ export function outsideTravelTimes(
   });
 }
 
-type Outcome = ReturnType<typeof validateEdits> & { reply: string; moreDays: number[]; travelTimes: TravelTime[] };
+type Outcome = ReturnType<typeof validateEdits> & {
+  reply: string;
+  moreDays: number[];
+  travelTimes: TravelTime[];
+  /** Places offered for the whole trip; only with no change prepared. */
+  elsewhere: TripPlace[];
+};
 
 /** The model's JSON, as the reply and checked edits this engine works with. */
 function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: string): Outcome {
@@ -701,7 +741,11 @@ function readOutcome(input: AssistInput, obj: Record<string, unknown>, cur: stri
     .filter((n) => n >= 1 && n <= length && !done.has(n))
     .filter((n) => lockedActivityNames(input.days.find((d) => d.day_number === n)).length === 0)
     .sort((a, b) => a - b);
-  return { ...checked, edits, reply, moreDays, travelTimes: readTravelTimes(obj.travel_times, length) };
+  const elsewhere =
+    canOfferElsewhere(input) && edits.length === 0 && checked.tripLength === undefined
+      ? readElsewhere(obj.elsewhere, input.destination)
+      : [];
+  return { ...checked, edits, reply, moreDays, travelTimes: readTravelTimes(obj.travel_times, length), elsewhere };
 }
 
 /**
@@ -750,8 +794,10 @@ function within<T>(promise: Promise<T>, ms: number): Promise<T> {
 /** What a reply got wrong that one more try may fix, or null. Pure; unit-tested. */
 export function correctionFor(
   input: Pick<AssistInput, "message" | "history" | "days">,
-  o: Pick<Outcome, "reply" | "edits" | "tripLength"> & Partial<Pick<Outcome, "travelTimes">>,
+  o: Pick<Outcome, "reply" | "edits" | "tripLength"> & Partial<Pick<Outcome, "travelTimes" | "elsewhere">>,
 ): string | null {
+  // Other places offered for the whole trip: there are no days to correct.
+  if ((o.elsewhere?.length ?? 0) > 0) return null;
   const current = input.days.length;
   const prepared = o.edits.length > 0 || o.tripLength !== undefined;
   if (!prepared && announcesProposal(o.reply)) {
@@ -1002,6 +1048,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     outsideTimes,
     askedForMoreDays: asksForMoreDays(input.message),
     takenOut: input.explainRemovals && !asksToRemove(input.message) ? takenOut(input.days, edits) : [],
+    offersElsewhere: outcome.elsewhere.length > 0,
   });
 
   return {
@@ -1009,6 +1056,7 @@ export async function assistTrip(input: AssistInput): Promise<AssistResult> {
     edits,
     tripLength,
     currency,
+    ...(outcome.elsewhere.length > 0 ? { elsewhere: outcome.elsewhere } : {}),
     meta: { model: modelId, costUsd, generationTimeMs: Date.now() - startedAt },
   };
 }
@@ -1077,6 +1125,8 @@ export function composeReply(p: {
   askedForMoreDays?: boolean;
   /** Activities the change takes out that the traveller didn't ask to remove. */
   takenOut?: string[];
+  /** Places are offered for the whole trip; the page plans the one picked. */
+  offersElsewhere?: boolean;
 }): string {
   const prepared = p.edits.length > 0 || p.tripLength !== undefined;
   // Notes join the reply, in its language: a Spanish message about a plan
@@ -1089,6 +1139,12 @@ export function composeReply(p: {
     const kept = withoutCurrencyTalk(p.reply);
     const rest = kept && !claimsItineraryChange(kept) ? `${kept} ` : "";
     return `${rest}${currencySwitchedNote(locale, p.currency)}`;
+  }
+
+  // Other places for the whole trip are offered, not planned: a reply that
+  // says the trip already moved gives way to what the buttons do.
+  if (p.offersElsewhere && !prepared) {
+    return p.reply && !claimsItineraryChange(p.reply) ? p.reply : elsewhereNote(locale);
   }
 
   // A day withheld for a fixed plan: the model's "I've updated Day 5" would be
