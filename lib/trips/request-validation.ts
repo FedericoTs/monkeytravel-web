@@ -80,7 +80,7 @@ export function validateTripParams(
   // Check for prompt injection in destination
   for (const pattern of DANGEROUS_PATTERNS) {
     if (pattern.test(params.destination)) {
-      return { valid: false, error: "Invalid input detected" };
+      return { valid: false, error: "Invalid input detected in destination" };
     }
   }
 
@@ -96,7 +96,7 @@ export function validateTripParams(
     }
     for (const pattern of DANGEROUS_PATTERNS) {
       if (pattern.test(params.requirements)) {
-        return { valid: false, error: "Invalid input detected" };
+        return { valid: false, error: "Invalid input detected in requirements" };
       }
     }
   }
@@ -119,7 +119,7 @@ export function validateTripParams(
       }
       for (const pattern of DANGEROUS_PATTERNS) {
         if (pattern.test(item)) {
-          return { valid: false, error: "Invalid input detected" };
+          return { valid: false, error: "Invalid input detected in must-dos" };
         }
       }
     }

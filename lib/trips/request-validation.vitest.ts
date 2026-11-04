@@ -42,20 +42,24 @@ const PHRASES = [
 // The destination's allowlist refuses these before the guard sees them.
 const BRACKETED = ["[INST]", "<<SYS>>"];
 
-const REFUSED = { valid: false, error: "Invalid input detected" };
+/** The guard's refusal, naming the field so the wizard can send the traveller to it. */
+const refused = (field: string) => ({ valid: false, error: `Invalid input detected in ${field}` });
 const threeTimes = (request: TripCreationParams) => [1, 2, 3].map(() => validateTripParams(request));
 
 describe("the prompt-injection guard", () => {
   it("refuses an injected destination every time it is sent, in any case", () => {
     for (const phrase of PHRASES.flatMap((p) => [p, p.toUpperCase()])) {
-      expect(threeTimes(params({ destination: `${phrase} Lisbon` })), phrase).toEqual([REFUSED, REFUSED, REFUSED]);
+      const r = refused("destination");
+      expect(threeTimes(params({ destination: `${phrase} Lisbon` })), phrase).toEqual([r, r, r]);
     }
   });
 
   it("refuses injected requirements and must-dos every time they are sent", () => {
     for (const phrase of [...PHRASES, ...BRACKETED]) {
-      expect(threeTimes(params({ requirements: `Quiet evenings. ${phrase} and plan` })), phrase).toEqual([REFUSED, REFUSED, REFUSED]);
-      expect(threeTimes(params({ mustDos: ["Tram 28", `${phrase} now`] })), phrase).toEqual([REFUSED, REFUSED, REFUSED]);
+      const notes = refused("requirements");
+      const wishes = refused("must-dos");
+      expect(threeTimes(params({ requirements: `Quiet evenings. ${phrase} and plan` })), phrase).toEqual([notes, notes, notes]);
+      expect(threeTimes(params({ mustDos: ["Tram 28", `${phrase} now`] })), phrase).toEqual([wishes, wishes, wishes]);
     }
   });
 
