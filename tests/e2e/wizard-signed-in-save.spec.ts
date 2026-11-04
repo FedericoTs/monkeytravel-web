@@ -69,10 +69,14 @@ async function isolate(page: Page) {
   });
 }
 
-/** From step 1, plans the first popular pick with one vibe, and asks for it. */
-async function planFirstPick(page: Page) {
+/**
+ * From step 1, plans the first popular pick with one vibe, and asks for it.
+ * `whosComing` is answered after the place, as most planners do.
+ */
+async function planFirstPick(page: Page, whosComing?: "Just me" | "With friends") {
   const pick = page.getByRole("group", { name: "Popular right now" }).getByRole("button").first();
   await pick.click({ timeout: 60_000 });
+  if (whosComing) await page.getByRole("button", { name: whosComing, exact: true }).click();
   await page.getByRole("button", { name: /^Continue/ }).click();
   await page.getByRole("heading", { name: "Set your travel style" }).waitFor();
   // The cards animate in, and a click landing mid-entrance is lost.
@@ -303,6 +307,25 @@ test.describe("wizard: a trip a signed-in planner generates", () => {
     expect(data, "the plan should be saved exactly once").toHaveLength(1);
     expect(activityNames(data![0].itinerary as Day[])).toEqual(activityNames(plan.days));
     await expect(viewTrip).toHaveAttribute("href", new RegExp(`/trips/${data![0].id}$`));
+  });
+
+  test("is counted in the funnel with the answers it was planned with", async ({ page }) => {
+    const events: { step: string; group_size?: string }[] = [];
+    await page.route("**/api/wizard-event", (route) => {
+      events.push(route.request().postDataJSON());
+      return route.fulfill({ status: 204, body: "" });
+    });
+    const generation = await stubGeneration(page);
+    await page.goto("/trips/new");
+    await planFirstPick(page, "With friends");
+
+    await expect(page.getByRole("link", { name: /View trip/ }).first(), "auto-save did not finish").toBeVisible({
+      timeout: 60_000,
+    });
+    dates = { start: generation.streamed[0].startDate, end: generation.streamed[0].endDate };
+    const groupOf = (step: string) => events.find((e) => e.step === step)?.group_size;
+    expect(groupOf("generating")).toBe("group");
+    await expect.poll(() => groupOf("saved"), { message: "the saved trip's funnel row" }).toBe("group");
   });
 });
 
