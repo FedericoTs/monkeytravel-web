@@ -15,7 +15,6 @@ import { recordAiOutcome } from "@/lib/ai/observability";
 import { getTripDestination } from "@/lib/trips/destination";
 import {
   type ItineraryDay,
-  type AssistantCard,
   type StructuredAssistantResponse,
 } from "@/types";
 import {
@@ -40,56 +39,15 @@ import {
   readDisplayCurrency,
   type TripEditProposal,
 } from "@/lib/ai/assistant/trip-edits";
-import { logWriteError } from "@/lib/supabase/log-write-error";
 import { readAssistantTurn } from "@/lib/ai/assistant/turn";
 import { pendingChangeFor } from "@/lib/ai/assistant/pending-change";
 import { prepareAddDay } from "@/lib/ai/assistant/add-day";
 import { prepareDraftChange } from "@/lib/ai/assistant/draft-change";
 import { buildSystemPrompt, describeChange, pendingActionContext, type TripContext } from "@/lib/ai/assistant/chat-prompt";
 import { chatLanguageInstruction, replyLanguageRule } from "@/lib/ai/assistant/chat-language";
-import { openThread, readThread } from "@/lib/ai/assistant/thread";
+import { appendTurn, openThread, readThread, type AssistantMessage } from "@/lib/ai/assistant/thread";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
-
-// Types for the assistant
-interface AssistantMessage {
-  role: "user" | "assistant";
-  content: string;
-  /**
-   * The model's reply claimed a change that was not saved, and the honesty
-   * guard replaced it (lib/ai/assistant/honesty.ts). Kept so the rate can be
-   * read back from ai_conversations.
-   */
-  guarded?: boolean;
-  /**
-   * That the change waits for the Apply button. Beside the reply, not in it:
-   * the chat shows it only while the change waits (AIAssistantEnhanced).
-   */
-  pendingNote?: string;
-  cards?: AssistantCard[];
-  action?: {
-    type: string;
-    /**
-     * TRUE only when a database write for this change SUCCEEDED on this
-     * request. It was previously a literal `true` written at construction
-     * time, before any write was attempted, so it was a constant rather than
-     * a fact — 158 of 161 recorded actions said `applied: true` while users
-     * were telling us in the same thread that nothing had changed.
-     */
-    applied: boolean;
-    /**
-     * The change is prepared and waiting for the user to tap Apply. Nothing
-     * is saved. `applied` and `pending` are never both true.
-     */
-    pending?: boolean;
-    activityId?: string;
-    dayNumber?: number;
-    // apply_draft: number of days revised — the client badge renders
-    // "{count} days updated" from this (metadata, never model prose).
-    dayCount?: number;
-  };
-  timestamp: string;
-}
 
 export async function POST(request: NextRequest) {
   const requestStartTime = Date.now();
@@ -153,7 +111,7 @@ export async function POST(request: NextRequest) {
 
     // Load conversation. Before the intents: the edit engine below reads it.
     // A concierge row, or one that's gone, starts a new thread.
-    const conversation = await openThread<AssistantMessage>(supabase, { conversationId, userId: user.id, tripId });
+    const conversation = await openThread(supabase, { conversationId, userId: user.id, tripId });
 
     // STRUCTURAL intents first (add_day / apply_draft). See
     // lib/ai/assistant/structural.ts.
@@ -460,13 +418,7 @@ Respond with valid JSON only.`;
       timestamp: new Date().toISOString(),
     };
 
-    logWriteError("assistant: conversation", await supabase
-      .from("ai_conversations")
-      .update({
-        messages: [...conversation.messages, userMessage, assistantMessage],
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", conversation.id));
+    await appendTurn(supabase, conversation, [userMessage, assistantMessage]);
 
     // Update usage info for response
     const updatedUsage = {
