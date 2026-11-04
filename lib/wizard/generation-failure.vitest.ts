@@ -1,14 +1,34 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { classifyGenerationFailure, failureDetail, failureWording, validationFix, validationFixStep } from "./generation-failure";
 
+const ROOT = path.resolve(__dirname, "../..");
+
+/**
+ * Every refusal a validator can send, read from its source so that a rule
+ * added later is checked too. Each `${…}` is filled with "3".
+ */
+function refusals(file: string, fn: string, thrown: RegExp): string[] {
+  const src = readFileSync(path.join(ROOT, file), "utf8").replace(/\r/g, "");
+  const start = src.indexOf(`export function ${fn}(`);
+  const body = src.slice(start, src.indexOf("\n}\n", start));
+  const found = [...body.matchAll(thrown)].map((m) => m[2].replace(/\$\{[^}]*\}/g, "3"));
+  if (start < 0 || found.length === 0) throw new Error(`no refusals found in ${fn}`);
+  return found;
+}
+// The validators /api/ai/generate runs; each refusal is a 400 the wizard shows.
+const TRIP = refusals("lib/trips/request-validation.ts", "validateTripParams", /error: ([`"])((?:(?!\1)[\s\S])+)\1/g);
+const ANCHORS = refusals("lib/ai/anchors-core.ts", "validateAnchors", /new AnchorError\(\s*([`"])((?:(?!\1)[\s\S])+)\1/g);
+const LEGS = refusals("lib/ai/multi-city-core.ts", "validateLegs", /new MultiCityError\(\s*([`"])((?:(?!\1)[\s\S])+)\1/g);
+
 describe("validation — the bucket that means WE sent something the server refuses", () => {
-  it("recognises the exact server strings from lib/gemini.ts", () => {
-    // These are copied from validateTripParams; if that copy changes, this
-    // fails and the label stops silently drifting to "unknown".
-    expect(classifyGenerationFailure(new Error("Destination name too long"))).toBe("validation");
-    expect(classifyGenerationFailure(new Error("Destination is required"))).toBe("validation");
-    expect(classifyGenerationFailure(new Error("Destination contains invalid characters"))).toBe("validation");
+  it("recognises every refusal the generate route's validators can send", () => {
+    expect(TRIP.length + ANCHORS.length + LEGS.length).toBeGreaterThan(40);
+    for (const message of [...TRIP, ...ANCHORS, ...LEGS]) {
+      expect(classifyGenerationFailure(new Error(message)), message).toBe("validation");
+    }
   });
 
   it("is case-insensitive and tolerates wrapping", () => {
@@ -75,20 +95,13 @@ describe("it would rather say nothing than say the wrong thing", () => {
   });
 });
 
-describe("server messages that used to fall through to unknown", () => {
-  it("labels the rest of validateTripParams and validateAnchors as validation", () => {
+describe("client and route messages", () => {
+  it("labels the client's own date checks and the route's fallbacks as validation", () => {
     for (const message of [
-      "Invalid characters in destination",
-      "Invalid characters in requirements",
-      "Invalid characters in must-dos",
-      "Invalid input detected",
-      "Requirements text too long (max 500 characters)",
-      "Must-dos must be a list of at most 10 items",
-      "Each must-do must be 1-80 characters",
       "Invalid destinations",
-      "trip end (2026-10-01) is before trip start (2026-10-03)",
       'trip start: date must be YYYY-MM-DD (got "tomorrow")',
       'trip end: "2026-02-30" is not a valid calendar date',
+      "anchors cannot be combined with multi-city trips yet",
     ]) {
       expect(classifyGenerationFailure(new Error(message))).toBe("validation");
     }
@@ -117,8 +130,29 @@ describe("validationFix: what to change, and on which step", () => {
     expect(validationFixStep("notes")).toBe(2);
   });
 
+  it("names what to change for every refusal of the trip or its fixed plans", () => {
+    for (const message of [...TRIP, ...ANCHORS]) {
+      expect(validationFix(message), message).not.toBe("other");
+    }
+  });
+
+  it("sends the travel style's problems to step 2, where the vibes and budget are", () => {
+    const style = TRIP.filter((m) => /vibe|budget|interests/i.test(m));
+    expect(style.length).toBe(5);
+    for (const message of style) {
+      expect(validationFix(message), message).toBe("style");
+    }
+    expect(validationFixStep("style")).toBe(2);
+  });
+
+  it("sends a multi-city problem back to step 1, where the cities are", () => {
+    for (const message of LEGS) {
+      expect(validationFixStep(validationFix(message)), message).toBe(1);
+    }
+  });
+
   it("falls back to other for a rule it does not know", () => {
-    expect(validationFix("Budget tier must be one of budget, balanced, premium")).toBe("other");
+    expect(validationFix("Something else about the trip is not allowed")).toBe("other");
   });
 });
 

@@ -157,6 +157,7 @@
       "continue": "Continuar",
       "hintNeedDestination": "Adicione um destino para continuar",
       "hintNeedDates": "Escolha as datas da viagem para continuar",
+      "hintPastDates": "A viagem precisa começar hoje ou depois",
       "destinationInvalidChars": "O destino contém caracteres não permitidos: use letras, números, espaços e pontuação básica",
       "freeReassurance": "Grátis: veja sua viagem dia a dia completa antes de se cadastrar",
       "flexibleDatesCta": "Ainda não sabe as datas? Use datas flexíveis",
@@ -456,6 +457,7 @@
       "destination": "Não conseguimos usar esse destino. Digite só o nome do lugar: uma cidade, região ou país.",
       "fixed_plans": "Um dos seus planos fixos não cabe na viagem. Confira o dia e o horário, ou remova-o.",
       "notes": "Algo no que você quer ver, fazer ou comer, ou nos requisitos especiais, não pode ser usado. Encurte ou reescreva e tente novamente.",
+      "style": "Confira seu estilo de viagem: escolha de um a três climas e um orçamento e tente novamente.",
       "other": "Alguns detalhes da viagem precisam mudar antes de criarmos este roteiro."
     }
   },

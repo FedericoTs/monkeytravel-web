@@ -15,23 +15,26 @@ export function destinationProblem(destination: string): DestinationProblem | nu
   return null;
 }
 
-export type Step1Blocker = DestinationProblem | "too_many_days" | "dates";
+export type Step1Blocker = DestinationProblem | "too_many_days" | "dates" | "past";
 
 /**
  * What still keeps step 1 from going on: the destination first, then the
  * dates, each as lib/trips/request-validation.ts validateTripParams would
  * refuse it at generate time. The span is day-inclusive (the server's math):
- * at least two days and at most `maxDays`. Null when nothing does.
+ * at least two days and at most `maxDays`, starting no earlier than `today`,
+ * the traveller's own date. Null when nothing does.
  */
 export function step1Blocker(
   destination: string,
   startDate: string,
   endDate: string,
-  maxDays: number
+  maxDays: number,
+  today: string
 ): Step1Blocker | null {
   const problem = destinationProblem(destination);
   if (problem) return problem;
   const span = tripSpanDays(startDate, endDate);
   if (span > maxDays) return "too_many_days";
-  return span < 2 ? "dates" : null;
+  if (span < 2) return "dates";
+  return startDate < today ? "past" : null;
 }
