@@ -26,11 +26,11 @@ import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { getTripDestination } from "@/lib/trips/destination";
-import type {
-  ItineraryDay,
-  AssistantCard,
-  StructuredAssistantResponse,
-  TripVibe,
+import {
+  isTripVibe,
+  type ItineraryDay,
+  type AssistantCard,
+  type StructuredAssistantResponse,
 } from "@/types";
 import {
   type Coordinates,
@@ -547,9 +547,7 @@ export async function POST(request: NextRequest) {
           const budgetTier = (((trip.budget as { tier?: string } | null)?.tier ??
             "balanced") as "budget" | "balanced" | "premium");
           const tags = (trip.tags as string[] | null) ?? [];
-          const vibes = tags.filter((t): t is TripVibe =>
-            ["adventure", "cultural", "foodie", "wellness", "romantic", "urban", "nature", "offbeat", "wonderland", "movie-magic", "fairytale", "retro"].includes(t)
-          );
+          const vibes = tags.filter(isTripVibe);
           const tripMeta = (trip.trip_meta ?? {}) as { travel_style?: "classic" | "backpacker"; dietary?: unknown };
 
           // Reuses the single-day generation contract — day shape, activity

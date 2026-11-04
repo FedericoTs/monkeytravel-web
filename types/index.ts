@@ -370,19 +370,26 @@ export interface ActivityTypeConfig {
 // Trip vibe types
 // UI shows 6 core vibes: adventure, cultural, foodie, romantic, nature, urban
 // Legacy vibes kept for backwards compatibility with existing trips
-export type TripVibe =
-  | "adventure"    // Outdoor activities, hiking, water sports, adrenaline
-  | "cultural"     // Museums, heritage sites, local traditions, history
-  | "foodie"       // Food markets, cooking classes, local cuisine, fine dining
-  | "wellness"     // Spa, yoga, meditation, peaceful retreats
-  | "romantic"     // Intimate experiences, sunset views, couple activities
-  | "urban"        // City life, nightlife, architecture, trendy spots
-  | "nature"       // Wildlife, national parks, wilderness, eco-tourism
-  | "offbeat"      // Hidden gems, local secrets, non-touristy experiences
-  | "wonderland"   // Alice in Wonderland vibes - quirky, whimsical, surreal spots
-  | "movie-magic"  // Film locations, cinematic experiences, famous backdrops
-  | "fairytale"    // Castles, enchanted forests, storybook villages
-  | "retro";       // Vintage cafes, historic districts, nostalgic experiences
+export const TRIP_VIBES = [
+  "adventure",    // Outdoor activities, hiking, water sports, adrenaline
+  "cultural",     // Museums, heritage sites, local traditions, history
+  "foodie",       // Food markets, cooking classes, local cuisine, fine dining
+  "wellness",     // Spa, yoga, meditation, peaceful retreats
+  "romantic",     // Intimate experiences, sunset views, couple activities
+  "urban",        // City life, nightlife, architecture, trendy spots
+  "nature",       // Wildlife, national parks, wilderness, eco-tourism
+  "offbeat",      // Hidden gems, local secrets, non-touristy experiences
+  "wonderland",   // Alice in Wonderland vibes - quirky, whimsical, surreal spots
+  "movie-magic",  // Film locations, cinematic experiences, famous backdrops
+  "fairytale",    // Castles, enchanted forests, storybook villages
+  "retro",        // Vintage cafes, historic districts, nostalgic experiences
+] as const;
+export type TripVibe = (typeof TRIP_VIBES)[number];
+
+/** Whether a value, such as a stored tag or a request's field, is one of the vibes. */
+export function isTripVibe(value: unknown): value is TripVibe {
+  return (TRIP_VIBES as readonly unknown[]).includes(value);
+}
 
 // Seasonal context for trip planning
 export interface SeasonalContext {

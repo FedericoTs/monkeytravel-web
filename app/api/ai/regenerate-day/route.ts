@@ -34,7 +34,7 @@ import { getTripDestination } from "@/lib/trips/destination";
 import { dietsFrom } from "@/lib/trips/diet";
 import { placesToEatCheck } from "@/lib/places/places-to-eat";
 import { casUpdateItinerary, type CasOutcome } from "@/lib/trips/itinerary-cas";
-import type { ItineraryDay, TripVibe } from "@/types";
+import { isTripVibe, type ItineraryDay, type TripVibe } from "@/types";
 
 const MAX_INSTRUCTIONS_LEN = 500;
 
@@ -157,10 +157,7 @@ async function regenerateDay(request: NextRequest, geminiCost: GeminiCostMeter) 
       | "premium"
       | undefined;
     const tags = (trip!.tags as string[] | null) ?? [];
-    const inferredVibes: TripVibe[] = tags
-      .filter((t): t is TripVibe =>
-        ["adventure", "cultural", "foodie", "wellness", "romantic", "urban", "nature", "offbeat", "wonderland", "movie-magic", "fairytale", "retro"].includes(t)
-      );
+    const inferredVibes: TripVibe[] = tags.filter(isTripVibe);
 
     // Destination — prefer trip_meta.destination (canonical), fall back
     // to title-strip. The wrong value here directly degrades AI output
