@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import { validateAndFixCoordinates } from "@/lib/trip/coordinate-fallback";
-import { logCacheMetrics } from "@/lib/ai/cache-metrics";
 import { detectStructuralIntent, computeExtendedEndDate } from "@/lib/ai/assistant/structural";
 import {
   classifyTask,
@@ -39,8 +38,8 @@ import { readAssistantTurn } from "@/lib/ai/assistant/turn";
 import { pendingChangeFor } from "@/lib/ai/assistant/pending-change";
 import { prepareAddDay } from "@/lib/ai/assistant/add-day";
 import { prepareDraftChange } from "@/lib/ai/assistant/draft-change";
-import { buildSystemPrompt, describeChange, pendingActionContext, type TripContext } from "@/lib/ai/assistant/chat-prompt";
-import { chatLanguageInstruction, replyLanguageRule } from "@/lib/ai/assistant/chat-language";
+import { chatPrompt, turnContext, type TripContext } from "@/lib/ai/assistant/chat-prompt";
+import { askChatModel } from "@/lib/ai/assistant/chat-model";
 import { appendTurn, openThread, readThread, type AssistantMessage } from "@/lib/ai/assistant/thread";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
@@ -191,12 +190,6 @@ export async function POST(request: NextRequest) {
     const classification = classifyTask(message, contextLength);
     const modelConfig = selectModel(classification);
 
-    // Build conversation context
-    const recentMessages = conversation.messages.slice(-4);
-    const conversationHistory = recentMessages
-      .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
-      .join("\n");
-
     // Build prompt with action context. What the user is told comes from what
     // the server prepared, never from the model's own claim.
     if (replacementError) {
@@ -206,37 +199,19 @@ export async function POST(request: NextRequest) {
     // A prepared change waits for the user's confirm: nothing is saved here.
     if (actionTaken) actionTaken = { ...actionTaken, pending: true };
 
-    let actionContext = "";
-    if (replacementError) {
-      // Checked FIRST. It used to be the last branch of an else-if chain whose
-      // earlier arms still matched on a failure, so it never ran.
-      actionContext = `
-IMPORTANT - THE CHANGE DID NOT HAPPEN. The itinerary is unchanged.
-Reason: ${replacementError}
-Tell the user plainly that it did not work and why, in one or two short
-sentences, then offer what they can try instead. Never suggest that any part
-of it succeeded.`;
-    } else if (actionTaken) {
-      const change = describeChange(actionTaken);
-      const extra =
-        actionTaken.type === "apply_draft" && draftUnmappedDayNumbers.length > 0
-          ? ` Days ${draftUnmappedDayNumbers.join(", ")} could not be read from the draft and are unchanged - say so explicitly.`
-          : "";
-      actionContext = pendingActionContext(change, await applyButtonLabel(userLanguage)) + extra;
-    } else if (structuralNote) {
-      actionContext = `
-NOTE: ${structuralNote}`;
-    }
-
-
-    const systemPrompt = buildSystemPrompt(tripContext);
-    const languageInstruction = chatLanguageInstruction(userLanguage) + replyLanguageRule(userLanguage);
-    const fullPrompt = `${systemPrompt}${languageInstruction}
-${actionContext}
-${conversationHistory ? `\nRecent conversation:\n${conversationHistory}\n` : ""}
-User: ${message}
-
-Respond with valid JSON only.`;
+    const fullPrompt = chatPrompt({
+      tripContext,
+      language: userLanguage,
+      turn: turnContext({
+        failure: replacementError,
+        action: actionTaken,
+        buttonLabel: actionTaken ? await applyButtonLabel(userLanguage) : "",
+        unmappedDayNumbers: draftUnmappedDayNumbers,
+        note: structuralNote,
+      }),
+      thread: conversation.messages,
+      message,
+    });
 
     // The engine's own reply, when it prepared the change, or answered and
     // nothing else was prepared. It already read the plan and the
@@ -248,35 +223,7 @@ Respond with valid JSON only.`;
     if (engineReply !== null) {
       parsedResponse = { summary: engineReply, cards: [] };
     } else {
-      // Call AI
-      const model = genAI.getGenerativeModel({ model: modelConfig.id });
-      const result = await model.generateContent(fullPrompt);
-      responseText = result.response.text();
-
-      // Wire prompt-cache hit-rate monitoring (see lib/ai/cache-metrics.ts). This is
-      // the main chat-message call — buildSystemPrompt produces a long
-      // stable preamble so this site should dominate the rolling window
-      // with healthy cache hits.
-      logCacheMetrics("ai.assistant.chat", result.response.usageMetadata);
-
-      // Parse JSON response
-      try {
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          parsedResponse = JSON.parse(jsonMatch[0]);
-        } else {
-          // Fallback to plain text response
-          parsedResponse = {
-            summary: responseText.slice(0, 200),
-            cards: [],
-          };
-        }
-      } catch {
-        parsedResponse = {
-          summary: responseText.slice(0, 200),
-          cards: [],
-        };
-      }
+      ({ reply: parsedResponse, text: responseText } = await askChatModel(genAI, modelConfig.id, fullPrompt));
     }
 
     // Cards that show a change as done ("Activity Replaced", "Added") never
