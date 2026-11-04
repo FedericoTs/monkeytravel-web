@@ -3,42 +3,22 @@
  * redirect hop, not just the initial URL.
  *
  * THE GAP THIS CLOSES
- * All three generic image proxies validated the URL the caller handed them and
- * then fetched with redirect:"follow" (app/api/images/proxy relied on fetch's
- * default, which is also "follow"). An allowlisted host that answers 302 could
- * therefore send us anywhere — off-allowlist, or at an internal address — and
- * we would stream the bytes back to the client. The allowlist only ever
- * guarded hop zero.
- *
- * Two of the three proxies (app/api/img/proxy and app/api/img/proxy/[token])
- * additionally had no internal-address check at all; routing them through this
- * helper gives them one.
+ * A proxy that validates the URL it is handed and then fetches with
+ * redirect:"follow" guards hop zero only: an allowlisted host that answers 302
+ * could send us anywhere — off-allowlist, or at an internal address — and we
+ * would stream the bytes back to the client.
  *
  * WHY IT DOES NOT BREAK LEGITIMATE IMAGES
  * Redirects to hosts that ARE allowlisted still follow normally — only
  * off-allowlist and internal targets are refused. Measured against the real
  * traffic before writing this: images.pexels.com (4,274 of the stored image
  * URLs) and images.unsplash.com both answer 200 with no redirect at all, and
- * lib/img/proxyUrl.ts only ever routes those two hosts through the proxy. The
- * PDF-export proxy matches hosts by suffix, so the Google CDN chain
- * (…googleapis.com -> lh3/lh4/lh5.googleusercontent.com) stays inside its
- * allowlist too.
- *
- * DELIBERATE DEVIATION FROM A PLAIN `allowedHosts: Set<string>`
- * The callers do not agree on what "allowed" means: img/proxy matches hostnames
- * exactly against a Set, while images/proxy matches by suffix
- * (`host === d || host.endsWith("." + d)`). Collapsing those into one rule would
- * silently widen one proxy or narrow the other, so this accepts either a Set or
- * a predicate and each route keeps its own semantics unchanged.
+ * lib/img/proxyUrl.ts only ever routes those two hosts through the proxy.
  */
 
-/** Exact-hostname Set, or a predicate for callers that match by suffix. */
-export type HostAllowlist =
-  | ReadonlySet<string>
-  | ((hostname: string) => boolean);
-
 export interface SafeImageFetchInit extends Omit<RequestInit, "redirect"> {
-  allowedHosts: HostAllowlist;
+  /** The hostnames a hop may reach, matched exactly. */
+  allowedHosts: ReadonlySet<string>;
   /** Hops to follow before giving up. 3 is well clear of real CDN chains. */
   maxHops?: number;
   /**
@@ -56,13 +36,9 @@ export type SafeImageFetchResult =
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
 
 /**
- * Addresses that must never be fetched on a user's behalf.
- *
- * Extracted verbatim from the check that already existed in
- * app/api/images/proxy/route.ts, plus `.localhost`, bare `::1` and the
- * unspecified IPv6 address. Those additions cannot affect a real CDN — no
- * public image host resolves to any of them — and they close the obvious
- * spellings the original list missed.
+ * Addresses that must never be fetched on a user's behalf: `localhost` names,
+ * the loopback, private and link-local IPv4 ranges, and the IPv6 loopback and
+ * unspecified addresses. No public image host resolves to any of them.
  *
  * This is a hostname check, not a resolved-IP check: a DNS name pointing at a
  * private address still passes. That is a known limit, accepted here because
@@ -88,14 +64,10 @@ export function isInternalHostname(hostname: string): boolean {
 }
 
 /** Returns a human-readable reason the hop is refused, or null if it is fine. */
-function rejectionReason(u: URL, allowedHosts: HostAllowlist): string | null {
+function rejectionReason(u: URL, allowedHosts: ReadonlySet<string>): string | null {
   if (u.protocol !== "https:") return `non-https (${u.protocol.replace(":", "")})`;
   if (isInternalHostname(u.hostname)) return `internal address (${u.hostname})`;
-  const allowed =
-    typeof allowedHosts === "function"
-      ? allowedHosts(u.hostname)
-      : allowedHosts.has(u.hostname);
-  if (!allowed) return `host not allowed (${u.hostname})`;
+  if (!allowedHosts.has(u.hostname)) return `host not allowed (${u.hostname})`;
   return null;
 }
 
@@ -112,12 +84,11 @@ async function discardBody(res: Response): Promise<void> {
  * Fetch `initialUrl`, re-validating the allowlist and internal-address rules
  * against every redirect target before following it.
  *
- * Returns a discriminated result rather than throwing, so each route can map a
- * refusal onto its own error shape (raw Response vs. the errors.* helpers)
- * without a try/catch.
+ * Returns a discriminated result rather than throwing, so the caller can map a
+ * refusal onto its own error shape without a try/catch.
  *
- * Note it does NOT enforce size or content-type — those checks already live in
- * the callers with per-route error codes, and are left there untouched.
+ * Note it does NOT enforce size or content-type: the caller does, with its own
+ * error codes.
  */
 export async function safeImageFetch(
   initialUrl: string,
@@ -177,56 +148,16 @@ export async function safeImageFetch(
   return { ok: false, status: 502, reason: `more than ${maxHops} redirects` };
 }
 
-/**
- * Upper bound on a proxied image, shared with lib/api/img-proxy.ts.
- *
- * This route had NO size limit at all, which mattered more here than in the
- * sibling proxies: they stream the upstream body straight through, whereas
- * this one buffers the whole thing and base64-encodes it into Postgres. An
- * unbounded response therefore cost memory AND a giant cache row — base64 is
- * ~1.37x the binary size, so 10 MB in becomes a ~13.7 MB text column.
- * Real covers are well under 1 MB, so this is generous.
- */
+/** Upper bound on a proxied image. Real covers are well under 1 MB, so this is generous. */
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
-
-/**
- * Read a response body, aborting as soon as it exceeds `max`.
- *
- * A Content-Length check alone is not enough: the header is absent on chunked
- * responses and an upstream is free to lie about it. Reading with a running
- * total means we never hold more than one chunk beyond the cap, and we cancel
- * the stream rather than draining a hostile body to completion.
- *
- * Returns null when the cap is exceeded, so callers reject rather than cache.
- */
-export async function readCapped(response: Response, max: number): Promise<Buffer | null> {
-  const reader = response.body?.getReader();
-  if (!reader) return null;
-
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    if (!value) continue;
-    total += value.length;
-    if (total > max) {
-      await reader.cancel().catch(() => {});
-      return null;
-    }
-    chunks.push(value);
-  }
-  return Buffer.concat(chunks);
-}
 
 /**
  * Reject a body the upstream did not label as an image.
  *
- * Mirrors the sibling proxies exactly, including the `|| "image/jpeg"`
- * fallback: some CDNs omit the header on perfectly valid images, and hard
- * requiring it would break them. What this does stop is a response that
- * positively declares itself something else — an HTML error page or a JSON
- * blob — being base64-encoded and cached as though it were a photo.
+ * The `|| "image/jpeg"` fallback is deliberate: some CDNs omit the header on
+ * perfectly valid images, and hard requiring it would break them. What this
+ * does stop is a response that positively declares itself something else — an
+ * HTML error page or a JSON blob — being served as though it were a photo.
  */
 export function imageContentType(response: Response): string | null {
   const ct = response.headers.get("content-type") || "image/jpeg";

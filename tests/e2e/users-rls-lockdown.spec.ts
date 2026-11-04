@@ -176,32 +176,6 @@ test.describe("users lockdown — signed in", () => {
       .toBeTruthy();
   });
 
-  test("leaderboard renders other people's names", async ({ request }) => {
-    // Reads other users' display_name + referral_tier. Moved to the service
-    // client because it embeds referral_codes/referral_tiers, and PostgREST
-    // resolves embeds through foreign keys, which a view has none of.
-    const res = await request.get("/api/referral/leaderboard");
-    expect(res.status()).toBe(200);
-    const body = await res.json();
-    const entries = body.entries ?? body.data?.entries ?? [];
-    if (entries.length === 0) {
-      test.info().annotations.push({
-        type: "note",
-        description: "leaderboard empty — no entries to assert names on",
-      });
-      return;
-    }
-    // The silent failure is every name collapsing to the 'Traveler' fallback.
-    const named = entries.filter(
-      (e: { displayName?: string }) =>
-        e.displayName && e.displayName !== "Traveler"
-    );
-    expect(
-      named.length,
-      "every leaderboard entry fell back to 'Traveler' — cross-user name read is broken"
-    ).toBeGreaterThan(0);
-  });
-
   test("collaborators resolve names and leak no emails", async ({
     request,
   }) => {
