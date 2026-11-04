@@ -28,7 +28,7 @@ import { recordAiOutcome } from "@/lib/ai/observability";
 import { fetchActivityImages } from "@/lib/images/activity";
 import { sanitizeItinerary } from "@/lib/utils/sanitize";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
-import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { blockedCall, checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { errors, apiSuccess, apiError } from "@/lib/api/response-wrapper";
 import { getTripDestination } from "@/lib/trips/destination";
 import { dietsFrom } from "@/lib/trips/diet";
@@ -124,19 +124,13 @@ async function regenerateDay(request: NextRequest, geminiCost: GeminiCostMeter) 
     // API gateway access check
     const access = await checkApiAccess("gemini");
     if (!access.allowed) {
-      await logApiCall({
+      return blockedCall(access, {
         apiName: "gemini",
         endpoint: "/api/ai/regenerate-day",
-        status: 503,
-        responseTimeMs: Date.now() - startTime,
-        cacheHit: false,
-        costUsd: 0,
-        error: `BLOCKED: ${access.message}`,
+        startTime,
         metadata: { user_id: user.id, trip_id: tripId, day_number: dayNumber },
+        disabled: "AI regeneration is currently disabled",
       });
-      return errors.serviceUnavailable(
-        access.message || "AI regeneration is currently disabled"
-      );
     }
 
     // Usage limits (reuse the same bucket as activity regen — it's still a Gemini call)

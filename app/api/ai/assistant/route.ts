@@ -24,7 +24,7 @@ import { getModelForPurpose } from "@/lib/ai/model-router";
 import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import { recordUsage } from "@/lib/ai/usage";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
-import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { blockedCall, checkApiAccess } from "@/lib/api-gateway";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { getTripDestination } from "@/lib/trips/destination";
 import {
@@ -306,17 +306,13 @@ export async function POST(request: NextRequest) {
     // Check API access control
     const access = await checkApiAccess("gemini");
     if (!access.allowed) {
-      await logApiCall({
+      return blockedCall(access, {
         apiName: "gemini",
         endpoint: "/api/ai/assistant",
-        status: 503,
-        responseTimeMs: Date.now() - requestStartTime,
-        cacheHit: false,
-        costUsd: 0,
-        error: `BLOCKED: ${access.message}`,
+        startTime: requestStartTime,
         metadata: { user_id: user.id, trip_id: tripId },
+        disabled: "AI assistant is currently disabled",
       });
-      return errors.serviceUnavailable(access.message || "AI assistant is currently disabled");
     }
 
     // Check usage limits (daily limit for assistant messages)

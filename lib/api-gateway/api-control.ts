@@ -6,12 +6,12 @@
  *
  * Usage:
  * ```typescript
- * import { checkApiAccess, logApiCall, ApiBlockedError } from '@/lib/api-gateway/api-control';
+ * import { blockedCall, checkApiAccess, logApiCall } from '@/lib/api-gateway/api-control';
  *
  * // Before making API call
  * const access = await checkApiAccess('google_places_search');
  * if (!access.allowed) {
- *   throw new ApiBlockedError(access.apiName, access.message);
+ *   return blockedCall(access, { apiName: 'google_places_search', endpoint: '/places:searchText', startTime, disabled: 'Places search is currently disabled' });
  * }
  *
  * // After API call (success or failure)
@@ -27,9 +27,9 @@
  * ```
  */
 
+import { errors } from "@/lib/api/response-wrapper";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { logWriteError } from "@/lib/supabase/log-write-error";
 
 /**
  * Service-role client for api_request_logs.
@@ -98,21 +98,6 @@ export interface LogApiCallParams {
   error?: string | null;
   userId?: string;
   metadata?: Record<string, unknown>;
-}
-
-/**
- * Error thrown when an API is blocked
- */
-export class ApiBlockedError extends Error {
-  public readonly apiName: string;
-  public readonly blockMode: string;
-
-  constructor(apiName: string, message: string, blockMode: string = "block_calls") {
-    super(message);
-    this.name = "ApiBlockedError";
-    this.apiName = apiName;
-    this.blockMode = blockMode;
-  }
 }
 
 /**
@@ -337,30 +322,26 @@ export async function logApiCalls(calls: LogApiCallParams[]): Promise<void> {
 }
 
 /**
- * Log a blocked API call attempt
+ * The answer to a call its API's kill-switch has turned off: logged as a
+ * blocked call (a 503 at no cost, since nothing ran) and a 503 carrying the
+ * switch's message, or `disabled` when it has none.
  */
-export async function logBlockedCall(
-  apiName: string,
-  endpoint: string,
-  reason: string
-): Promise<void> {
-  try {
-    const supabase = apiLogDb();
-    if (!supabase) return;
-
-    logWriteError("api-gateway: request log", await supabase.from("api_request_logs").insert({
-      api_name: apiName,
-      endpoint: endpoint,
-      response_status: 503, // Service Unavailable
-      response_time_ms: 0,
-      cache_hit: false,
-      cost_usd: 0,
-      error_message: `BLOCKED: ${reason}`,
-      timestamp: new Date().toISOString(),
-    }));
-  } catch (err) {
-    console.error("[ApiControl] Error logging blocked call:", err);
-  }
+export async function blockedCall(
+  access: ApiAccessResult,
+  call: { apiName: string; endpoint: string; startTime: number; disabled: string; metadata?: Record<string, unknown> }
+): Promise<Response> {
+  await logApiCall({
+    apiName: call.apiName,
+    endpoint: call.endpoint,
+    status: 503,
+    responseTimeMs: Date.now() - call.startTime,
+    cacheHit: false,
+    costUsd: 0,
+    exactCost: true,
+    error: `BLOCKED: ${access.message}`,
+    metadata: call.metadata,
+  });
+  return errors.serviceUnavailable(access.message || call.disabled);
 }
 
 /**
@@ -379,58 +360,4 @@ export function invalidateConfigCache(): void {
   // No-op: cache has been removed for reliability
   // This function is kept for backwards compatibility
   console.log("[ApiControl] invalidateConfigCache called (no-op - caching removed)");
-}
-
-/**
- * Helper to wrap an API call with access check and logging
- */
-export async function withApiControl<T>(
-  apiName: string,
-  endpoint: string,
-  fn: (shouldPassKey: boolean) => Promise<T>,
-  options?: { userId?: string; metadata?: Record<string, unknown> }
-): Promise<T> {
-  const startTime = Date.now();
-
-  // Check access
-  const access = await checkApiAccess(apiName);
-
-  if (!access.allowed) {
-    await logBlockedCall(apiName, endpoint, access.message || "API disabled");
-    throw new ApiBlockedError(apiName, access.message || "API disabled", access.blockMode);
-  }
-
-  try {
-    // Execute the API call
-    const result = await fn(access.shouldPassKey);
-
-    // Log success
-    await logApiCall({
-      apiName,
-      endpoint,
-      status: 200,
-      responseTimeMs: Date.now() - startTime,
-      cacheHit: false,
-      costUsd: 0, // Will be fetched from config
-      userId: options?.userId,
-      metadata: options?.metadata,
-    });
-
-    return result;
-  } catch (error) {
-    // Log failure
-    await logApiCall({
-      apiName,
-      endpoint,
-      status: 500,
-      responseTimeMs: Date.now() - startTime,
-      cacheHit: false,
-      costUsd: 0,
-      error: error instanceof Error ? error.message : String(error),
-      userId: options?.userId,
-      metadata: options?.metadata,
-    });
-
-    throw error;
-  }
 }

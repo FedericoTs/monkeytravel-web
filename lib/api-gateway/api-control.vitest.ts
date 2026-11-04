@@ -51,7 +51,7 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-import { logApiCall, logApiCalls } from "./api-control";
+import { blockedCall, logApiCall, logApiCalls } from "./api-control";
 
 const base = { apiName: "gemini", endpoint: "/api/ai/generate", status: 500, responseTimeMs: 10, cacheHit: false };
 
@@ -187,5 +187,42 @@ describe("logApiCall on a dropped connection", () => {
     await logApiCall(measured);
     expect(insertCalls).toBe(1);
     expect(consoleError).toHaveBeenCalledOnce();
+  });
+});
+
+describe("blockedCall", () => {
+  const off = (message: string | null) => ({ allowed: false, apiName: "gemini", blockMode: "block_calls", message, shouldPassKey: false });
+
+  it("logs the blocked call as a 503 at no cost, with its endpoint, time and details, and answers with the switch's message", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const response = await blockedCall(off("Gemini paused"), {
+      apiName: "gemini",
+      endpoint: "/api/ai/regenerate-day",
+      startTime: Date.now() - 25,
+      metadata: { user_id: "u-1", day_number: 2 },
+      disabled: "AI regeneration is currently disabled",
+    });
+    expect(inserts).toHaveLength(1);
+    expect(inserts[0]).toMatchObject({
+      api_name: "gemini",
+      endpoint: "/api/ai/regenerate-day",
+      response_status: 503,
+      cache_hit: false,
+      cost_usd: 0,
+      error_message: "BLOCKED: Gemini paused",
+      request_params: { user_id: "u-1", day_number: 2 },
+    });
+    expect(inserts[0].response_time_ms).toBeGreaterThanOrEqual(25);
+    // Nothing ran, so nothing is priced from api_config.
+    expect(configReads).toEqual([]);
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ error: "Gemini paused" });
+  });
+
+  it("answers with the route's own words when the switch gives none", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const response = await blockedCall(off(null), { apiName: "google_geocoding", endpoint: "/geocode/json", startTime: Date.now(), disabled: "Geocoding API is currently disabled" });
+    expect(inserts[0]).toMatchObject({ api_name: "google_geocoding", request_params: null });
+    expect(await response.json()).toMatchObject({ error: "Geocoding API is currently disabled" });
   });
 });

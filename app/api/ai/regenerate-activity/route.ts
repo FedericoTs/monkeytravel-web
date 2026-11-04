@@ -7,7 +7,7 @@ import { getModelForPurpose } from "@/lib/ai/model-router";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { findActivityById, getAllActivityNames } from "@/lib/utils/activity-id";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
-import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { blockedCall, checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import type { ItineraryDay, BudgetTier } from "@/types";
 import { dietsFrom } from "@/lib/trips/diet";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
@@ -88,17 +88,13 @@ export async function POST(request: NextRequest) {
     // Check API access control
     const access = await checkApiAccess("gemini");
     if (!access.allowed) {
-      await logApiCall({
+      return blockedCall(access, {
         apiName: "gemini",
         endpoint: "/api/ai/regenerate-activity",
-        status: 503,
-        responseTimeMs: Date.now() - startTime,
-        cacheHit: false,
-        costUsd: 0,
-        error: `BLOCKED: ${access.message}`,
+        startTime,
         metadata: { user_id: user.id, trip_id: tripId },
+        disabled: "AI regeneration is currently disabled",
       });
-      return errors.serviceUnavailable(access.message || "AI regeneration is currently disabled");
     }
 
     // Check usage limits (tier-based monthly limits)

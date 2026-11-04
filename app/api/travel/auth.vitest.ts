@@ -11,6 +11,9 @@ import { NextRequest } from "next/server";
 let signedIn = false;
 const checkApiAccess = vi.fn(async () => ({ allowed: false, message: "disabled" }));
 const logApiCall = vi.fn(async () => {});
+const blockedCall = vi.fn(async (_access: unknown, call: { disabled: string }) =>
+  new Response(JSON.stringify({ error: call.disabled }), { status: 503 })
+);
 
 vi.mock("@/lib/api/auth", async () => {
   const { errors } = await import("@/lib/api/response-wrapper");
@@ -24,6 +27,7 @@ vi.mock("@/lib/api/auth", async () => {
 vi.mock("@/lib/api-gateway", () => ({
   checkApiAccess: (...args: unknown[]) => checkApiAccess(...(args as [])),
   logApiCall: (...args: unknown[]) => logApiCall(...(args as [])),
+  blockedCall: (...args: unknown[]) => blockedCall(...(args as [unknown, { disabled: string }])),
 }));
 vi.mock("@/lib/supabase/cache-admin", () => ({ cacheAdminDb: () => null }));
 
@@ -39,6 +43,7 @@ beforeEach(() => {
   signedIn = false;
   checkApiAccess.mockClear();
   logApiCall.mockClear();
+  blockedCall.mockClear();
 });
 
 describe("POST /api/travel/geocode", () => {
@@ -47,6 +52,7 @@ describe("POST /api/travel/geocode", () => {
     expect(res.status).toBe(401);
     expect(checkApiAccess).not.toHaveBeenCalled();
     expect(logApiCall).not.toHaveBeenCalled();
+    expect(blockedCall).not.toHaveBeenCalled();
   });
 
   it("answers 503 to a signed-in user while the API is off", async () => {
@@ -54,6 +60,10 @@ describe("POST /api/travel/geocode", () => {
     const res = await geocode.POST(post("geocode", { addresses: ["Sagrada Familia"] }));
     expect(res.status).toBe(503);
     expect(checkApiAccess).toHaveBeenCalledWith("google_geocoding");
+    expect(blockedCall).toHaveBeenCalledWith(
+      expect.objectContaining({ allowed: false }),
+      expect.objectContaining({ apiName: "google_geocoding", endpoint: "/geocode/json" })
+    );
   });
 });
 
