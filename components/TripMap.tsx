@@ -20,6 +20,7 @@ import {
 } from "@/lib/map/geo";
 import { isRealPoint } from "@/lib/trip/placeholder-point";
 import { formatDuration } from "@/lib/datetime/duration";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Env flag: gate the per-day polyline + walking-time labels.
 // Default OFF until we flip NEXT_PUBLIC_MAP_ROUTES_ENABLED=true on Vercel.
@@ -112,7 +113,33 @@ function getDaysHash(days: ItineraryDay[]): string {
     .join("||");
 }
 
-export default function TripMap({
+/** The box the map stands in for while it loads, or once it failed. */
+function MapPlaceholder({ className, text, loading = false }: { className: string; text: string; loading?: boolean }) {
+  return (
+    <div className={`relative rounded-xl overflow-hidden shadow-lg ${className}`}>
+      <div className={`h-full bg-slate-100 flex items-center justify-center ${loading ? "animate-pulse" : ""}`}>
+        <p className="text-slate-500">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The trip map, contained: a throw from inside @react-google-maps/api (a map
+ * built against a dead ref on iOS Safari, see components/ErrorBoundary.tsx)
+ * leaves the "failed to load" box in its place instead of taking the page
+ * around it, the itinerary included, down to the route's error page.
+ */
+export default function TripMap(props: TripMapProps) {
+  const t = useTranslations("common.map");
+  return (
+    <ErrorBoundary errorType="trip-map" fallback={<MapPlaceholder className={props.className ?? ""} text={t("failedToLoad")} />}>
+      <TripMapInner {...props} />
+    </ErrorBoundary>
+  );
+}
+
+function TripMapInner({
   days,
   destination,
   className = "",
@@ -395,13 +422,7 @@ export default function TripMap({
   // node the map lands in is never re-created: a display change on the same
   // node made Chrome report the loaded map as a layout shift from (0,0).
   if (loadError || !isLoaded) {
-    return (
-      <div className={`relative rounded-xl overflow-hidden shadow-lg ${className}`}>
-        <div className={`h-full bg-slate-100 flex items-center justify-center ${loadError ? "" : "animate-pulse"}`}>
-          <p className="text-slate-500">{loadError ? t("failedToLoad") : t("loading")}</p>
-        </div>
-      </div>
-    );
+    return <MapPlaceholder className={className} text={loadError ? t("failedToLoad") : t("loading")} loading={!loadError} />;
   }
 
   return (

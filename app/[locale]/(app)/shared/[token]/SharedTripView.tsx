@@ -27,7 +27,6 @@ import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { GUEST_LINK_KEY } from "@/lib/participants/link-trigger";
 import { prefs } from "@/lib/platform/storage";
 import DestinationHero from "@/components/DestinationHero";
-import ErrorBoundary from "@/components/ErrorBoundary";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import { tripNights } from "@/lib/dates/iso-date";
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
@@ -735,26 +734,15 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
         {/* Interactive Map */}
         {showMap && hasCoordinates(displayItinerary) && (
           <div className="mb-8">
-            {/* The map is decorative here — a shared trip must still render
-                its itinerary if Google Maps throws (e.g. a null map ref on iOS
-                Safari) instead of falling to the route-level error boundary.
-                See components/ErrorBoundary.tsx. */}
-            <ErrorBoundary
-              errorType="shared-trip-map"
-              fallback={
-                <div className="h-[400px] bg-slate-100 rounded-xl flex items-center justify-center">
-                  <p className="text-slate-500">{t("map.failedToLoad")}</p>
-                </div>
-              }
-            >
-              <TripMap
-                days={displayItinerary}
-                destination={destination}
-                selectedDay={selectedDay}
-                className="h-[400px]"
-                disableApiCalls={true}
-              />
-            </ErrorBoundary>
+            {/* TripMap contains its own throw (a null map ref on iOS Safari):
+                the itinerary still renders. */}
+            <TripMap
+              days={displayItinerary}
+              destination={destination}
+              selectedDay={selectedDay}
+              className="h-[400px]"
+              disableApiCalls={true}
+            />
           </div>
         )}
 
