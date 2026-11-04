@@ -10,7 +10,7 @@ import {
   requestLocale,
   type SupportedLanguage,
 } from "./language";
-import { getLanguageInstruction } from "@/lib/gemini";
+import { getLanguageInstruction } from "@/lib/ai/trip-prompt";
 
 /**
  * Portuguese users were getting their itineraries generated in ENGLISH.

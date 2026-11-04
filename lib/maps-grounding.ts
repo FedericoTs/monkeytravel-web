@@ -200,9 +200,9 @@ function buildGroundingPrompt(params: TripCreationParams): string {
   };
   const paceDescription = paceOptions[params.pace] || "3-4 activities per day";
 
-  // Backpacker Mode mirror of buildUserPrompt() in lib/gemini.ts:
+  // Backpacker Mode mirror of buildUserPrompt() in lib/ai/trip-prompt.ts:
   // maps-grounding has its own prompt builder, so the backpacker directive
-  // in lib/gemini.ts doesn't reach this path. When USE_MAPS_GROUNDING=true,
+  // in lib/ai/trip-prompt.ts doesn't reach this path. When USE_MAPS_GROUNDING=true,
   // omitting this would silently turn Backpacker Mode into a no-op for the
   // entire itinerary.
   const backpackerDirective = params.travelStyle === "backpacker"

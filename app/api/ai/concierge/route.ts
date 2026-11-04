@@ -677,7 +677,7 @@ export async function POST(request: NextRequest) {
       });
       responseText = result.response.text().trim();
 
-      // Wire prompt-cache hit-rate monitoring (see lib/gemini.ts).
+      // Wire prompt-cache hit-rate monitoring (see lib/ai/cache-metrics.ts).
       // The concierge SYSTEM_PROMPT is a stable prefix — should see a
       // high implicit-cache-hit rate. If this drops, we've added a
       // non-cacheable prefix and are silently leaking money.
