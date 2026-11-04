@@ -144,7 +144,7 @@ export function buildApplyBody(
  * The change a trip-assistant turn prepared, in the shape the chat confirms it
  * with (the Apply button, then /apply): a day added at the end, or days
  * replaced (a pasted draft, or the edit engine's days, new days after the
- * last). Null when the turn prepared nothing or preparing it failed.
+ * last). Null when the turn prepared nothing.
  *
  * `previousEndDate` is the trip's end date now: threaded through the client's
  * undo state so undoing a change that moves the end date restores it with the
@@ -154,13 +154,12 @@ export function buildApplyBody(
 export function pendingChangeFor(
   action: StructuredAssistantResponse["action"] | undefined,
   context: {
-    failed: boolean;
     previousEndDate: string | undefined;
     unmappedDayNumbers: number[];
     engineSummary: string | null;
   }
 ): TripAssistantChange | null {
-  if (!action || context.failed) return null;
+  if (!action) return null;
   if (action.type === "add_day" && action.newDay) {
     return {
       type: "add_day" as const,
