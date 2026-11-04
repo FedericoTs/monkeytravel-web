@@ -116,10 +116,8 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess({ ok: true, applied, ...target.info });
   } catch (err) {
-    return errors.internal(
-      err instanceof Error ? err.message : "Unsubscribe failed",
-      "Unsubscribe"
-    );
+    console.error("[unsubscribe] failed:", err);
+    return errors.internal("Unsubscribe failed", "Unsubscribe");
   }
 }
 
@@ -162,10 +160,8 @@ export async function GET(request: NextRequest) {
         { headers: { ...NO_STORE_HEADERS } }
       );
     } catch (err) {
-      const res = errors.internal(
-        err instanceof Error ? err.message : "Unsubscribe failed",
-        "Unsubscribe"
-      );
+      console.error("[unsubscribe] failed:", err);
+      const res = errors.internal("Unsubscribe failed", "Unsubscribe");
       res.headers.set("Cache-Control", NO_STORE_HEADERS["Cache-Control"]);
       return res;
     }

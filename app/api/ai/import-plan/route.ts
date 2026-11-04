@@ -180,8 +180,7 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess({ anchors, dropped, undated: extracted.undated });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Internal error";
-    console.error("[import-plan] Unexpected error:", message);
+    console.error("[import-plan] Unexpected error:", err);
 
     void recordAiOutcome({
       endpoint: "import-plan",
@@ -190,6 +189,6 @@ export async function POST(request: NextRequest) {
       error: err,
     });
 
-    return errors.internal(message, "ImportPlan");
+    return errors.internal("Couldn't read that plan right now. Try again in a moment.", "ImportPlan");
   }
 }
