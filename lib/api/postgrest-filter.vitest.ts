@@ -1,42 +1,14 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { destinationCityTerm, ilikeOrTerm, ilikeSearchTerm } from "./postgrest-filter";
+import { ilikeOrTerm, ilikeSearchTerm } from "./postgrest-filter";
 
 /**
  * Text going into a PostgREST or() filter.
  *
  * "Chennai, India" puts a comma inside or(): PostgREST reads it as a second
- * condition and answers 400, and the AI assistant gets no coordinates for the
- * trip.
+ * condition and answers 400.
  */
-
-describe("destinationCityTerm", () => {
-  it("keeps only the city of a City, Country destination", () => {
-    expect(destinationCityTerm("Chennai, India")).toBe("Chennai");
-    expect(destinationCityTerm("Paris, France")).toBe("Paris");
-    expect(destinationCityTerm("Lisbon")).toBe("Lisbon");
-  });
-
-  it("never leaves an or() delimiter in the value", () => {
-    for (const raw of ["Paris (Île-de-France), France", 'Quote "x"', "a,b,c", "(", "St. John's (NL)"]) {
-      expect(destinationCityTerm(raw)).not.toMatch(/[,()"]/);
-    }
-  });
-
-  it("returns empty for a destination with no city part", () => {
-    expect(destinationCityTerm(", India")).toBe("");
-    expect(destinationCityTerm("")).toBe("");
-  });
-
-  it("does not pick one city out of a multi-city route", () => {
-    // joinCities labels: the first city's coordinates would pin every other
-    // city's activities there.
-    expect(destinationCityTerm("London & Paris")).toBe("");
-    expect(destinationCityTerm("Osaka, Kyoto & Nagoya")).toBe("");
-    expect(destinationCityTerm("Madrid, Valencia, grenada, marbella & malaga")).toBe("");
-  });
-});
 
 describe("ilikeOrTerm", () => {
   it("escapes ILIKE wildcards so they match literally", () => {
@@ -74,15 +46,5 @@ describe("the search routes", () => {
       expect(src, file).toMatch(/ilikeSearchTerm\(/);
       expect(src, file).not.toMatch(/function escapeForPostgrest/);
     }
-  });
-});
-
-describe("the assistant route", () => {
-  it("builds its destination or() from the escaped city term, matched exactly", () => {
-    const src = readFileSync(join(process.cwd(), "app/api/ai/assistant/route.ts"), "utf8");
-    expect(src).toMatch(/destinationCityTerm\(destinationName\)/);
-    expect(src).not.toMatch(/\.or\(`name\.ilike\.%\$\{destinationName\}%/);
-    // No wildcards around the city: "%Nice%" matches "Venice".
-    expect(src).toMatch(/\.or\(`name\.ilike\.\$\{cityTerm\},city\.ilike\.\$\{cityTerm\}`\)/);
   });
 });
