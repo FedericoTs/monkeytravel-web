@@ -48,7 +48,9 @@ describe("whether a change is complete", () => {
     ["no type", { changeType: undefined }],
     ["a day number that is not a number", { dayNumber: "1" as never }],
     ["a type nothing makes", { changeType: "swap" as never }],
-    ["a replacement with nothing to put in", { changeType: "replace" }],
+    ["a replacement with nothing to put in", { changeType: "replace", oldActivity: act("a1", "Alpha", "09:00") }],
+    ["a replacement with nothing to replace", { changeType: "replace", newActivity: act("n", "N", "09:00") }],
+    ["a removal with nothing to remove", { changeType: "remove" }],
     ["an addition with nothing to add", { changeType: "add" }],
     ["a duration with no activity", { changeType: "adjust_duration", newDuration: 30 }],
     ["a duration with no minutes", { changeType: "adjust_duration", activity: { id: "a", name: "A", type: "x" } }],
@@ -68,6 +70,12 @@ describe("whether a change is complete", () => {
     ["a change on day 0", { changeType: "add", dayNumber: 0, newActivity: act("n", "N", "09:00") }],
   ])("lets through %s", (_name, fields) => {
     expect(invalidChange(change(fields))).toBeNull();
+  });
+});
+
+describe("a change that names nothing to act on", () => {
+  it("is never reported as made, even if it gets past the check", () => {
+    expect(() => applyChange(change({ changeType: "remove" }), trip(), "owner")).toThrow(/remove/);
   });
 });
 

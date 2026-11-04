@@ -55,17 +55,18 @@ const CHANGE_TYPES: ReadonlySet<string> = new Set<ApplyChangeRequest["changeType
 
 /** What is wrong with a change's fields, seen before the trip is read; null when nothing is. */
 export function invalidChange(change: ApplyChangeRequest): string | null {
-  const { tripId, changeType, dayNumber, newActivity, activity, newDuration, day, days, shiftByDays } = change;
-  // A type check, not `!dayNumber`: 0 is a valid first day in trips that
-  // use 0-indexed day numbering.
+  const { tripId, changeType, dayNumber, oldActivity, newActivity, activity, newDuration, day, days, shiftByDays } = change;
+  // A type check, not `!dayNumber`: 0 is not missing, it is a day the trip does
+  // not have, and applyChange says so.
   if (!tripId || !changeType || typeof dayNumber !== "number") {
     return "Missing required fields: tripId, changeType, dayNumber";
   }
-  // No change below would match another type, and the unchanged trip would be
-  // saved and reported as a success.
   if (!CHANGE_TYPES.has(changeType)) return "Unknown changeType";
   if ((changeType === "replace" || changeType === "add") && !newActivity) {
     return "Missing newActivity for replace/add operation";
+  }
+  if ((changeType === "replace" || changeType === "remove") && !oldActivity) {
+    return "Missing oldActivity for replace/remove operation";
   }
   if (changeType === "adjust_duration" && (!activity || newDuration === undefined)) {
     return "Missing activity or newDuration for adjust_duration operation";
@@ -344,7 +345,9 @@ function make(change: ApplyChangeRequest, days: ItineraryDay[], trip: TripDates,
   if (changeType === "shift_days" && typeof shiftByDays === "number") return shiftDays(days, dayNumber, shiftByDays, trip);
   if (changeType === "add_day" && day) return addDay(days, day, trip);
   if (changeType === "apply_draft" && change.days) return applyDraft(days, change.days, trip, role);
-  return {};
+  // invalidChange lets through only what is made above. Going on would save the
+  // unchanged trip and report a success.
+  throw new Error(`No way to make this ${changeType} change`);
 }
 
 /**
