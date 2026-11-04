@@ -1,21 +1,14 @@
 import { NextRequest } from "next/server";
-import { LANGUAGE_NAMES, type SupportedLanguage } from "@/lib/ai/language";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import { validateAndFixCoordinates } from "@/lib/trip/coordinate-fallback";
 import { logCacheMetrics } from "@/lib/ai/cache-metrics";
-import {
-  detectStructuralIntent,
-  normalizeDraftDays,
-  computeExtendedEndDate,
-} from "@/lib/ai/assistant/structural";
+import { detectStructuralIntent, computeExtendedEndDate } from "@/lib/ai/assistant/structural";
 import {
   classifyTask,
   selectModel,
   estimateCost,
 } from "@/lib/ai/config";
-import { getModelForPurpose } from "@/lib/ai/model-router";
-import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import { recordUsage } from "@/lib/ai/usage";
 import { incrementUsage } from "@/lib/usage-limits";
 import { recordAiOutcome } from "@/lib/ai/observability";
@@ -52,30 +45,11 @@ import { logWriteError } from "@/lib/supabase/log-write-error";
 import { readAssistantTurn } from "@/lib/ai/assistant/turn";
 import { pendingChangeFor } from "@/lib/ai/assistant/pending-change";
 import { prepareAddDay } from "@/lib/ai/assistant/add-day";
+import { prepareDraftChange } from "@/lib/ai/assistant/draft-change";
+import { chatLanguageInstruction, replyLanguageRule } from "@/lib/ai/assistant/chat-language";
 import { openThread, readThread } from "@/lib/ai/assistant/thread";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
-
-/**
- * The assistant's language line: shorter than the trip prompt's
- * getLanguageInstruction (lib/ai/trip-prompt.ts), which also sets formats.
- */
-function chatLanguageInstruction(language: SupportedLanguage): string {
-  if (language === "en") return "";
-
-  const instructions: Record<Exclude<SupportedLanguage, "en">, string> = {
-    es: `\n\nIMPORTANTE: Responde COMPLETAMENTE en espanol. Los nombres de actividades, descripciones, consejos y el resumen deben estar en espanol.`,
-    it: `\n\nIMPORTANTE: Rispondi COMPLETAMENTE in italiano. I nomi delle attivita, le descrizioni, i consigli e il riepilogo devono essere in italiano.`,
-    pt: `\n\nIMPORTANTE: Responda COMPLETAMENTE em português. Os nomes das atividades, descrições, dicas e o resumo devem estar em português.`,
-  };
-
-  return instructions[language];
-}
-
-/** The chat reply follows the traveller; itinerary text keeps the trip's language. */
-function replyLanguageRule(tripLanguage: SupportedLanguage): string {
-  return `\n\nREPLY LANGUAGE: write your chat reply in the same language as the user's latest message. Itinerary text you write (activity names, descriptions, tips) stays in ${LANGUAGE_NAMES[tripLanguage]}.`;
-}
 
 // Types for the assistant
 interface AssistantMessage {
@@ -394,141 +368,11 @@ export async function POST(request: NextRequest) {
     // Maps the draft onto the CURRENT trip length and proposes ONE bulk
     // multi-day edit. Never changes trip length (that's add_day's job).
     if (structuralIntent.type === "apply_draft") {
-      const lockedAcrossTrip = modifiedItinerary.flatMap((d) => lockedActivityNames(d));
-
-      if (modifiedItinerary.length === 0) {
-        replacementError = "This trip has no itinerary days yet, so there is nothing to revise";
-      } else if (lockedAcrossTrip.length > 0) {
-        // apply_draft rewrites whole days in bulk, which would erase anchors.
-        // Deliberately does NOT point at the wizard's "Paste a plan" import:
-        // that panel only exists on step 1, before the trip is saved, so on a
-        // saved trip it would be a door that isn't there. Offer what actually
-        // works today — per-day edits on the unpinned days.
-        replacementError = `This trip is built around fixed plans (${lockedAcrossTrip.slice(0, 3).join(", ")}), so I won't rewrite it wholesale from a pasted draft. Tell me what to change on a specific day and I'll do that instead.`;
-        console.log(`[AI Assistant] Refused apply_draft on anchored trip (${lockedAcrossTrip.length} locked)`);
-      } else {
-        console.log(`[AI Assistant] Attempting to map pasted draft onto ${modifiedItinerary.length} days`);
-        try {
-          // assistant-optimize → gemini-2.5-flash: reasoning over the whole
-          // trip structure.
-          const draftModel = genAI.getGenerativeModel({
-            model: getModelForPurpose("assistant-optimize"),
-            generationConfig: {
-              temperature: 0.4,
-              // Up to 14 revised days.
-              maxOutputTokens: 16384,
-              responseMimeType: "application/json",
-            },
-          });
-
-          const currentDaysCompact = modifiedItinerary.map((d) => ({
-            day_number: d.day_number,
-            date: d.date,
-            ...(d.city ? { city: d.city } : {}),
-            theme: d.theme || "",
-            activities: d.activities.map((a) => ({
-              name: a.name,
-              start_time: a.start_time,
-              duration_minutes: a.duration_minutes,
-              type: a.type,
-              location: a.location,
-            })),
-          }));
-
-          const draftPrompt = `You are revising a ${modifiedItinerary.length}-day trip itinerary for ${tripContext.destination} according to a draft plan the user pasted.${chatLanguageInstruction(userLanguage)}
-
-CURRENT ITINERARY (day_number and date are FIXED):
-${JSON.stringify(currentDaysCompact, null, 1)}
-
-USER'S MESSAGE (their draft/instructions):
-${message}
-
-Map the user's draft onto the CURRENT days. Rules:
-1. Only use existing day_numbers (1-${modifiedItinerary.length}). NEVER invent new days or change dates.
-2. Return ONLY the days the draft actually covers — days you cannot confidently map stay untouched (list them in unmappedDayNumbers).
-3. When the draft references an activity that already exists in the itinerary, reuse its EXACT current name so it can be re-linked.
-4. Each revised day needs 2-6 activities with realistic times, in the user's requested order.
-5. If the message is NOT actually a revised plan (e.g. just a question that mentions several days), return {"revisedDays": [], "unmappedDayNumbers": [], "note": "not a draft"}.
-
-Return ONLY valid JSON:
-{
-  "revisedDays": [
-    {
-      "day_number": 1,
-      "theme": "Short theme for the day",
-      "activities": [
-        {
-          "name": "Real Place Name",
-          "type": "attraction",
-          "description": "2-3 sentence description",
-          "location": "Neighborhood",
-          "address": "Street address if known",
-          "start_time": "09:00",
-          "duration_minutes": 120,
-          "estimated_cost": { "amount": 20, "currency": "EUR", "tier": "moderate" },
-          "tips": ["One tip"],
-          "booking_required": false
-        }
-      ]
-    }
-  ],
-  "unmappedDayNumbers": [4, 5],
-  "note": "One short sentence on anything you could not map"
-}`;
-
-          const draftResult = await draftModel.generateContent(draftPrompt);
-          const draftText = draftResult.response.text();
-
-          // Wire prompt-cache hit-rate monitoring (see lib/ai/cache-metrics.ts). The
-          // draft prompt is per-user content-heavy, so expect ~0% hits —
-          // logged anyway so the call site shows up in cost dashboards.
-          logCacheMetrics("ai.assistant.apply_draft", draftResult.response.usageMetadata);
-
-          const draftJson = draftText.match(/\{[\s\S]*\}/);
-          if (!draftJson) {
-            throw new Error("Draft mapping returned no JSON");
-          }
-          const parsedDraft = JSON.parse(draftJson[0]) as {
-            revisedDays?: unknown;
-            note?: string;
-          };
-
-          // Pure validation/normalization (day_number whitelist, pinned
-          // date/city, id carryover by name, generateActivityId for new
-          // ones) — see lib/ai/assistant/structural.ts.
-          const normalized = normalizeDraftDays(parsedDraft.revisedDays, itinerary);
-
-          if (normalized.days.length === 0) {
-            structuralNote = "The user's message looked like a pasted multi-day draft, but none of its days could be mapped onto the current trip. NO change was made. Ask them to label days as 'Day 1', 'Day 2', … matching the trip's current days.";
-          } else {
-            // Same coordinate backfill the generators use (lib/gemini.ts).
-            const fixedDays = validateAndFixCoordinates(
-              normalized.days,
-              tripContext.destination
-            );
-            for (const day of fixedDays) {
-              const idx = modifiedItinerary.findIndex(
-                (d) => d.day_number === day.day_number
-              );
-              if (idx !== -1) modifiedItinerary[idx] = day;
-            }
-            draftUnmappedDayNumbers = normalized.unmappedDayNumbers;
-
-            actionTaken = {
-              type: "apply_draft",
-              applied: false,
-              dayNumber: normalized.changedDayNumbers[0],
-              dayCount: normalized.changedDayNumbers.length,
-              revisedDays: fixedDays,
-            };
-            console.log(`[AI Assistant] Prepared draft revision of days ${normalized.changedDayNumbers.join(", ")}`);
-          }
-        } catch (err) {
-          console.error("[AI Assistant] Failed to map draft:", err);
-          replacementError = `Failed to map your draft onto the trip: ${err instanceof Error ? err.message : "Unknown error"}`;
-          actionTaken = undefined;
-        }
-      }
+      const draft = await prepareDraftChange({ days: itinerary, destination: tripContext.destination, message, language: userLanguage, genAI });
+      actionTaken = draft.action;
+      replacementError = draft.error;
+      structuralNote = draft.note;
+      draftUnmappedDayNumbers = draft.unmapped;
     }
 
     // Classify and select model
