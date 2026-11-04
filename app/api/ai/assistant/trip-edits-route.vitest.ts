@@ -300,6 +300,25 @@ describe("trip-page assistant: free-form edits", () => {
     expect(json.pendingChange).toMatchObject({ type: "add_day", dayNumber: 4, newEndDate: "2027-03-14" });
   });
 
+  it("keeps a failure's own text on the server: the log has it, the response and the model do not", async () => {
+    const gemini = await import("@/lib/gemini");
+    const regenerateSingleDay = vi.mocked(gemini.regenerateSingleDay);
+    regenerateSingleDay.mockReset();
+    regenerateSingleDay.mockRejectedValue(new Error("upstream 503 from models/internal-name"));
+    proposeTripEdits.mockRejectedValue(new Error("model overloaded"));
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    chatReply = '{"summary": "I could not add that day. Want to try again?", "cards": []}';
+
+    const { json } = await send("add a day to go to Howth");
+
+    expect(json.pendingChange).toBeNull();
+    expect(JSON.stringify(json)).not.toContain("internal-name");
+    const prompt = String(chatCalls.mock.calls[0][0]);
+    expect(prompt).toContain("THE CHANGE DID NOT HAPPEN");
+    expect(prompt).not.toContain("internal-name");
+    expect(logged.mock.calls.flat().map(String).join(" ")).toContain("internal-name");
+  });
+
   it("never writes the trip, even when the caller asks for no preview", async () => {
     proposeTripEdits.mockResolvedValue({ reply: "Done: Day 4 in Howth.", revisedDays: [howthDay4], tripLength: 4, summary: "", meta });
     const { json } = await send("add a day in Howth", { previewMode: false });

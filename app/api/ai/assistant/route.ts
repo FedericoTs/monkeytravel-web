@@ -308,10 +308,6 @@ export async function POST(request: NextRequest) {
         limit: updatedUsage.limit,
         resetAt: updatedUsage.resetAt,
       },
-      // Debug info
-      debug: {
-        replacementError,
-      },
     };
 
     console.log(`[AI Assistant] Response: pendingChange=${pendingChange?.type ?? "none"}`);
