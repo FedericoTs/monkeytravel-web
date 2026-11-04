@@ -1,3 +1,6 @@
+import type { SupportedLanguage } from "@/lib/ai/language";
+import { chatLanguageInstruction, replyLanguageRule } from "@/lib/ai/assistant/chat-language";
+import type { AssistantMessage } from "@/lib/ai/assistant/thread";
 import { ACTIVITY_TYPES } from "@/lib/trip/activity-type";
 import type { ItineraryDay, StructuredAssistantResponse } from "@/types";
 
@@ -115,4 +118,66 @@ GUIDELINES:
 - For tips/advice, use tip cards with appropriate icons
 - For comparisons, use comparison cards with pros/cons
 - Keep the trip's existing style and budget level in mind`;
+}
+
+/**
+ * What the model is told about this turn's change: that it did not happen and
+ * why (checked first), that it waits for the user's confirm on the button
+ * labelled `buttonLabel` (with the days a pasted draft did not cover), or a
+ * note when nothing was changed. Empty when there is nothing to tell.
+ */
+export function turnContext(input: {
+  failure: string | undefined;
+  action: NonNullable<StructuredAssistantResponse["action"]> | undefined;
+  buttonLabel: string;
+  unmappedDayNumbers: number[];
+  note: string | undefined;
+}): string {
+  const { failure, action, buttonLabel, unmappedDayNumbers, note } = input;
+  if (failure) {
+    return `
+IMPORTANT - THE CHANGE DID NOT HAPPEN. The itinerary is unchanged.
+Reason: ${failure}
+Tell the user plainly that it did not work and why, in one or two short
+sentences, then offer what they can try instead. Never suggest that any part
+of it succeeded.`;
+  }
+  if (action) {
+    const change = describeChange(action);
+    const extra =
+      action.type === "apply_draft" && unmappedDayNumbers.length > 0
+        ? ` Days ${unmappedDayNumbers.join(", ")} could not be read from the draft and are unchanged - say so explicitly.`
+        : "";
+    return pendingActionContext(change, buttonLabel) + extra;
+  }
+  if (note) {
+    return `
+NOTE: ${note}`;
+  }
+  return "";
+}
+
+/**
+ * The whole prompt of a chat turn: the assistant's instructions and the trip,
+ * the reply's language, this turn's context, the thread's last four messages
+ * and the user's message.
+ */
+export function chatPrompt(input: {
+  tripContext: TripContext;
+  language: SupportedLanguage;
+  turn: string;
+  thread: AssistantMessage[];
+  message: string;
+}): string {
+  const { tripContext, language, turn, thread, message } = input;
+  const history = thread
+    .slice(-4)
+    .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
+    .join("\n");
+  return `${buildSystemPrompt(tripContext)}${chatLanguageInstruction(language) + replyLanguageRule(language)}
+${turn}
+${history ? `\nRecent conversation:\n${history}\n` : ""}
+User: ${message}
+
+Respond with valid JSON only.`;
 }
