@@ -1,3 +1,4 @@
+import type { BudgetTier } from "@/types";
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/lib/i18n/routing";
@@ -19,7 +20,6 @@ import { PullToRefreshWrapper } from "@/components/ui/PullToRefreshWrapper";
 import TripCard from "@/components/explore/TripCard";
 import ExploreFilters from "@/components/explore/ExploreFilters";
 import { fetchExploreFeed } from "@/lib/explore/fetcher";
-import type { BudgetTier } from "@/lib/explore/types";
 import { ogImages } from "@/lib/seo/og-image";
 import { buildAlternates } from "@/lib/seo/canonical";
 

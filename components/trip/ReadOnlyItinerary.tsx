@@ -1,9 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { Activity, ItineraryDay } from "@/types";
+import type { Activity, ItineraryDay, TripPace } from "@/types";
 import { segmentBetween, type DayTravelData } from "@/hooks/useTravelDistances";
-import type { TripPace } from "@/lib/trip/pace";
 import { showsDayBudget } from "@/lib/trip/day-budget";
 import ActivityCard from "@/components/ActivityCard";
 import DaySlider from "@/components/ui/DaySlider";

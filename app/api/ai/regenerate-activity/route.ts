@@ -8,7 +8,7 @@ import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { findActivityById, getAllActivityNames } from "@/lib/utils/activity-id";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
-import type { ItineraryDay } from "@/types";
+import type { ItineraryDay, BudgetTier } from "@/types";
 import { dietsFrom } from "@/lib/trips/diet";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { recordAiOutcome } from "@/lib/ai/observability";
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
       destination,
       activityToReplace,
       dayContext,
-      budgetTier: budgetTier as "budget" | "balanced" | "premium",
+      budgetTier: budgetTier as BudgetTier,
       existingActivityNames,
       preferences,
       travelStyle,

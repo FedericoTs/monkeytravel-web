@@ -1,6 +1,4 @@
-import type { BudgetTier } from "./types";
-
-export const BUDGET_TIERS: readonly BudgetTier[] = ["budget", "balanced", "premium"];
+import { isBudgetTier, type BudgetTier } from "@/types";
 
 /**
  * The tier a card may show, or null when it is simply not known.
@@ -10,9 +8,7 @@ export const BUDGET_TIERS: readonly BudgetTier[] = ["budget", "balanced", "premi
  * hides the pill for null.
  */
 export function asBudgetTier(value: unknown): BudgetTier | null {
-  return typeof value === "string" && (BUDGET_TIERS as readonly string[]).includes(value)
-    ? (value as BudgetTier)
-    : null;
+  return isBudgetTier(value) ? value : null;
 }
 
 export const BUDGET_TIER_LABEL: Record<BudgetTier, string> = {

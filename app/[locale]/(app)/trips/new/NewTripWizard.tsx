@@ -25,12 +25,12 @@ export interface PrefilledDestination {
  */
 export interface PrefilledTripShape {
   days: number | null;
-  budget: "budget" | "balanced" | "premium" | null;
+  budget: BudgetTier | null;
   vibes: string[];
 }
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
-import type { GeneratedItinerary, TripAnchor, TripVibe, SeasonalContext } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripVibe, SeasonalContext, BudgetTier, TripPace } from "@/types";
 import type { Diet } from "@/lib/trips/diet";
 // Step-1 components (above-the-fold) stay eager.
 import SeasonalContextCard from "@/components/trip/SeasonalContextCard";
@@ -539,13 +539,13 @@ export default function NewTripPage({
       alive = false;
     };
   }, []);
-  const [budgetTier, setBudgetTier] = useState<"budget" | "balanced" | "premium">("balanced");
+  const [budgetTier, setBudgetTier] = useState<BudgetTier>("balanced");
   // Backpacker Mode. Default "classic"; "backpacker" (a) passes travelStyle to
   // the generate API so Gemini gets the backpacker directive, (b) persists
   // travel_style into trip_meta. It arrives with a restored draft or
   // session-tray snapshot; the step-1 toggle only shows while it is active.
   const [travelStyle, setTravelStyle] = useState<"classic" | "backpacker">("classic");
-  const [pace, setPace] = useState<"relaxed" | "moderate" | "active">("moderate");
+  const [pace, setPace] = useState<TripPace>("moderate");
   const [selectedVibes, setSelectedVibes] = useState<TripVibe[]>([]);
   const [requirements, setRequirements] = useState("");
   // Must-do wishlist: undated wishes ("Great Wall", "eat Peking duck")

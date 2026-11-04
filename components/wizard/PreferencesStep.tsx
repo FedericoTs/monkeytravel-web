@@ -6,7 +6,7 @@ import VibeSelector from "@/components/trip/VibeSelector";
 import { DIETS, dietsFrom, type Diet } from "@/lib/trips/diet";
 import { MUST_DOS_MAX, MUST_DO_MAX_LENGTH, REQUIREMENTS_MAX } from "@/lib/trips/request-limits";
 import { mustDoItem, withMustDo } from "@/lib/wizard/must-dos";
-import type { TripVibe } from "@/types";
+import { BUDGET_TIERS, TRIP_PACES, type TripVibe, type BudgetTier, type TripPace } from "@/types";
 
 // Budget tier styling - labels/descriptions come from translations
 const BUDGET_TIER_STYLES = {
@@ -27,8 +27,6 @@ const BUDGET_TIER_STYLES = {
   },
 } as const;
 
-const BUDGET_TIER_IDS = ["budget", "balanced", "premium"] as const;
-const PACE_OPTION_IDS = ["relaxed", "moderate", "active"] as const;
 
 /**
  * Step 2 of the wizard: the vibes (required), the wishes, the diets, and the
@@ -67,10 +65,10 @@ export default function PreferencesStep({
   setDietary: Dispatch<SetStateAction<Diet[]>>;
   showAdvancedPrefs: boolean;
   setShowAdvancedPrefs: (open: boolean) => void;
-  budgetTier: (typeof BUDGET_TIER_IDS)[number];
-  setBudgetTier: (tier: (typeof BUDGET_TIER_IDS)[number]) => void;
-  pace: (typeof PACE_OPTION_IDS)[number];
-  setPace: (pace: (typeof PACE_OPTION_IDS)[number]) => void;
+  budgetTier: BudgetTier;
+  setBudgetTier: (tier: BudgetTier) => void;
+  pace: TripPace;
+  setPace: (pace: TripPace) => void;
   requirements: string;
   setRequirements: (value: string) => void;
 }) {
@@ -210,7 +208,7 @@ export default function PreferencesStep({
             <div>
               <div className="text-sm font-medium text-slate-700 mb-3">{t("budget.title")}</div>
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                {BUDGET_TIER_IDS.map((tierId) => {
+                {BUDGET_TIERS.map((tierId) => {
                   const styles = BUDGET_TIER_STYLES[tierId];
                   return (
                     <button
@@ -234,7 +232,7 @@ export default function PreferencesStep({
             <div>
               <div className="text-sm font-medium text-slate-700 mb-3">{t("pace.title")}</div>
               <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                {PACE_OPTION_IDS.map((paceId) => (
+                {TRIP_PACES.map((paceId) => (
                   <button
                     key={paceId}
                     onClick={() => setPace(paceId)}

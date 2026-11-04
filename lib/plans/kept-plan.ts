@@ -8,22 +8,20 @@
  * sizes the wizard allows, and only https links.
  */
 
-import { TRIP_VIBES, type GeneratedItinerary, type TripVibe } from "@/types";
+import { BUDGET_TIERS, TRIP_PACES, TRIP_VIBES, type BudgetTier, type GeneratedItinerary, type TripPace, type TripVibe } from "@/types";
 import { isIsoDate } from "@/lib/trips/anonymous-share";
 import { MAX_TRIP_DAYS_MULTI, MUST_DOS_MAX, MUST_DO_MAX_LENGTH, VIBES_MAX } from "@/lib/trips/request-limits";
 import { dietsFrom, type Diet } from "@/lib/trips/diet";
 
-const PACES = ["relaxed", "moderate", "active"] as const;
-const BUDGET_TIERS = ["budget", "balanced", "premium"] as const;
 
 export interface KeptPlan {
   destination: string;
   startDate: string;
   endDate: string;
   itinerary: GeneratedItinerary;
-  pace?: (typeof PACES)[number];
+  pace?: TripPace;
   vibes?: TripVibe[];
-  budgetTier?: (typeof BUDGET_TIERS)[number];
+  budgetTier?: BudgetTier;
   travelStyle?: "classic" | "backpacker";
   tripIntent?: "solo" | "group";
   flexibleDates?: boolean;
@@ -115,7 +113,7 @@ export function parseKeptPlan(input: unknown): KeptPlan | null {
   if (!Array.isArray(days) || days.length === 0 || days.length > MAX_TRIP_DAYS_MULTI) return null;
   if (!days.every((day) => isRecord(day) && Array.isArray(day.activities))) return null;
 
-  const pace = oneOf(PACES, input.pace);
+  const pace = oneOf(TRIP_PACES, input.pace);
   const budgetTier = oneOf(BUDGET_TIERS, input.budgetTier);
   const vibes = Array.isArray(input.vibes)
     ? input.vibes.map((v) => oneOf(TRIP_VIBES, v)).filter((v): v is TripVibe => !!v).slice(0, VIBES_MAX)

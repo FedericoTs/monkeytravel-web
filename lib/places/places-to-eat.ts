@@ -19,7 +19,7 @@ import { replacementOptions } from "@/lib/gemini";
 import { bareName, distanceM, isKind, nameTokens, nameVariants } from "@/lib/images/wikimedia-landmark";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { isPlaceholderPoint } from "@/lib/trip/placeholder-point";
-import type { Activity, ItineraryDay } from "@/types";
+import type { Activity, ItineraryDay, BudgetTier } from "@/types";
 
 // Pro fields (lib/api-gateway/places-sku.ts): the name and types tell the
 // plan's place from another, the status says whether it is open.
@@ -209,7 +209,7 @@ export interface PlacesToEatOptions {
   destination: string;
   /** The trip's diets; no check without one. */
   dietary: string[];
-  budgetTier: "budget" | "balanced" | "premium";
+  budgetTier: BudgetTier;
   travelStyle?: "classic" | "backpacker";
   language?: SupportedLanguage;
   userId?: string;

@@ -3,7 +3,7 @@ import type { KeptPlan } from "@/lib/plans/kept-plan";
 import type { TripIntent } from "@/lib/posthog/events";
 import type { Diet } from "@/lib/trips/diet";
 import type { TripFormState } from "@/lib/trips/persistTrip";
-import type { GeneratedItinerary, TripAnchor, TripVibe } from "@/types";
+import type { GeneratedItinerary, TripAnchor, TripVibe, BudgetTier, TripPace } from "@/types";
 import { REQUIREMENTS_MAX } from "@/lib/trips/request-limits";
 
 /**
@@ -28,9 +28,9 @@ export interface WizardAnswers {
   destination: string;
   startDate: string;
   endDate: string;
-  pace: "relaxed" | "moderate" | "active";
+  pace: TripPace;
   vibes: TripVibe[];
-  budgetTier: "budget" | "balanced" | "premium";
+  budgetTier: BudgetTier;
   travelStyle: "classic" | "backpacker";
   anchors: TripAnchor[];
   mustDos: string[];
