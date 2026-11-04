@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { resolveAiLanguage, tripLocale, type SupportedLanguage } from "@/lib/ai/language";
+import { LANGUAGE_NAMES, resolveAiLanguage, tripLocale, type SupportedLanguage } from "@/lib/ai/language";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { TRIP_COLUMNS } from "@/lib/trips/columns";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -111,13 +111,6 @@ function getLanguageInstruction(language: SupportedLanguage): string {
 
   return instructions[language];
 }
-
-const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
-  en: "English",
-  es: "Spanish",
-  it: "Italian",
-  pt: "Portuguese",
-};
 
 /** The chat reply follows the traveller; itinerary text keeps the trip's language. */
 function replyLanguageRule(tripLanguage: SupportedLanguage): string {

@@ -14,6 +14,7 @@ import { GoogleGenerativeAI, type GenerateContentResult, type GenerationConfig }
 import { logCacheMetrics } from "@/lib/ai/cache-metrics";
 import { getModelForPurpose, getSiblingModel, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
+import { DEFAULT_LANGUAGE, isSupportedLanguage, LANGUAGE_NAMES } from "@/lib/ai/language";
 import { lockedActivityNames } from "@/lib/ai/anchors-core";
 import {
   announcedButMissing,
@@ -51,13 +52,6 @@ import { formatMinutesToTime } from "@/lib/datetime/format";
 export { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI, maxTripDays };
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
-
-const LOCALE_LANGUAGE: Record<string, string> = {
-  en: "English",
-  it: "Italian",
-  es: "Spanish",
-  pt: "Portuguese",
-};
 
 // How a reply presents an edit that is still waiting to be saved, per language:
 // the model kept writing "I've added" / "Ho aggiunto" for an unsaved edit, and
@@ -219,7 +213,7 @@ function buildHistory(history: AssistTurn[] | undefined): string {
 }
 
 export function buildPrompt(input: AssistInput): string {
-  const language = LOCALE_LANGUAGE[input.locale ?? "en"] ?? "English";
+  const language = LANGUAGE_NAMES[isSupportedLanguage(input.locale) ? input.locale : DEFAULT_LANGUAGE];
   const cur = planCurrency(input.days);
   const costs = planCosts(input.days, input.display);
   const shownCur = costs?.shown?.currency ?? input.display?.currency ?? cur;
