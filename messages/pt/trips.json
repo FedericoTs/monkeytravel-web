@@ -789,5 +789,11 @@
       "autumn": "Temperaturas frescas, ar fresco, folhagem colorida",
       "winter": "Temperaturas frias, possível neve, dias mais curtos"
     }
+  },
+  "unavailable": {
+    "title": "Esta viagem não está aberta para você",
+    "body": "Ela pode ter sido excluída ou ainda não foi compartilhada com esta conta. Se alguém te enviou o link, peça para te convidar pelo botão Compartilhar da viagem.",
+    "myTrips": "Minhas Viagens",
+    "planTrip": "Planeje sua própria viagem"
   }
 }
