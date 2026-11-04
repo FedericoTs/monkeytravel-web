@@ -9,7 +9,7 @@ import { pendingChangeFor } from "./pending-change";
  */
 
 const day = (n: number) => ({ day_number: n, date: `2027-03-1${n}`, activities: [] }) as unknown as ItineraryDay;
-const context = { failed: false, previousEndDate: "2027-03-13", unmappedDayNumbers: [] as number[], engineSummary: null };
+const context = { previousEndDate: "2027-03-13", unmappedDayNumbers: [] as number[], engineSummary: null };
 
 describe("the change a turn prepared", () => {
   it("is a day added at the end, with the end date it moves and the one an undo restores", () => {
@@ -47,9 +47,8 @@ describe("the change a turn prepared", () => {
     expect(pendingChangeFor(action, { ...context, engineSummary: "" })?.reason).toBeUndefined();
   });
 
-  it("is nothing when nothing was prepared, or preparing it failed", () => {
+  it("is nothing when nothing was prepared", () => {
     expect(pendingChangeFor(undefined, context)).toBeNull();
-    expect(pendingChangeFor({ type: "add_day", applied: false, newDay: day(4) }, { ...context, failed: true })).toBeNull();
     expect(pendingChangeFor({ type: "add_day", applied: false }, context)).toBeNull();
     expect(pendingChangeFor({ type: "replace_activity", applied: false }, context)).toBeNull();
   });

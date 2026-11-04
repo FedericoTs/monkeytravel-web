@@ -100,77 +100,56 @@ export async function POST(request: NextRequest) {
       `[AI Assistant] Structural intent: ${structuralIntent.type}; engine: ${tripEdits ? `${tripEdits.revisedDays.length} day(s)` : "not used"}`
     );
 
-    // The engine's revised days, as one change for the user's confirm
-    // (lib/ai/assistant/trip-edits.ts proposedChange).
-    let actionTaken: StructuredAssistantResponse["action"] | undefined = tripEdits
-      ? proposedChange(tripEdits, { days: itinerary, destination: tripContext.destination, endDate: trip.end_date })
-      : undefined;
-    let replacementError: string | undefined;
-
-    // Structural no-op note (cap reached, nothing mappable, …) — injected
-    // into the model prompt so the reply explains kindly instead of the
-    // generic "it failed" framing replacementError produces.
-    let structuralNote: string | undefined;
-    // apply_draft: current day numbers the draft did not cover (they stay
-    // untouched and the reply must say so).
-    let draftUnmappedDayNumbers: number[] = [];
-
-    // Handle ADD_DAY (structural): append ONE new day after the last one
-    // ("can you add a day to travel to Voss"). This path
-    // proposes a real Day N+1 (confirm-first) and moves the trip's end date
-    // together with the itinerary on apply. The edit engine handles it first.
-    if (structuralIntent.type === "add_day" && !tripEdits) {
-      const added = await prepareAddDay({
-        days: itinerary,
-        requestedTotal: structuralIntent.requestedTotalDays,
-        role: assistantRole,
-        trip,
-        destination: tripContext.destination,
-        message,
-        language: userLanguage,
-        userId: user.id,
-      });
-      actionTaken = added.action;
-      replacementError = added.error;
-      structuralNote = added.note;
-    }
-
-    // Handle APPLY_DRAFT (structural): the user pasted a multi-day plan
-    // ("rearrange as per my own draft", "update all days according to my
-    // input"), which the single-activity tools could only mangle.
-    // Maps the draft onto the CURRENT trip length and proposes ONE bulk
-    // multi-day edit. Never changes trip length (that's add_day's job).
-    if (structuralIntent.type === "apply_draft") {
-      const draft = await prepareDraftChange({ days: itinerary, destination: tripContext.destination, message, language: userLanguage, genAI });
-      actionTaken = draft.action;
-      replacementError = draft.error;
-      structuralNote = draft.note;
-      draftUnmappedDayNumbers = draft.unmapped;
-    }
+    // What this turn prepares for the user's confirm: a pasted draft's days
+    // (draft-change.ts), one new day when the engine could not add it
+    // (add-day.ts), else the engine's revised days (trip-edits.ts). The outcome
+    // is the change, why it failed, or a note for the reply when nothing changes.
+    const prepared: {
+      action?: StructuredAssistantResponse["action"];
+      error?: string;
+      note?: string;
+      unmapped?: number[];
+    } =
+      structuralIntent.type === "apply_draft"
+        ? await prepareDraftChange({ days: itinerary, destination: tripContext.destination, message, language: userLanguage, genAI })
+        : structuralIntent.type === "add_day" && !tripEdits
+          ? await prepareAddDay({
+              days: itinerary,
+              requestedTotal: structuralIntent.requestedTotalDays,
+              role: assistantRole,
+              trip,
+              destination: tripContext.destination,
+              message,
+              language: userLanguage,
+              userId: user.id,
+            })
+          : {
+              action: tripEdits
+                ? proposedChange(tripEdits, { days: itinerary, destination: tripContext.destination, endDate: trip.end_date })
+                : undefined,
+            };
+    // The days a draft did not cover stay as they are, and the reply must say so.
+    const unmappedDayNumbers = prepared.unmapped ?? [];
 
     // Classify and select model
     const contextLength = JSON.stringify(tripContext).length;
     const classification = classifyTask(message, contextLength);
     const modelConfig = selectModel(classification);
 
-    // Build prompt with action context. What the user is told comes from what
-    // the server prepared, never from the model's own claim.
-    if (replacementError) {
-      // A change that failed leaves no action behind.
-      actionTaken = undefined;
-    }
-    // A prepared change waits for the user's confirm: nothing is saved here.
-    if (actionTaken) actionTaken = { ...actionTaken, pending: true };
+    // What the user is told comes from what the server prepared, never from the
+    // model's own claim. A prepared change waits for the user's confirm: nothing
+    // is saved here.
+    const actionTaken = prepared.action && { ...prepared.action, pending: true };
 
     const fullPrompt = chatPrompt({
       tripContext,
       language: userLanguage,
       turn: turnContext({
-        failure: replacementError,
+        failure: prepared.error,
         action: actionTaken,
         buttonLabel: actionTaken ? await applyButtonLabel(userLanguage) : "",
-        unmappedDayNumbers: draftUnmappedDayNumbers,
-        note: structuralNote,
+        unmappedDayNumbers,
+        note: prepared.note,
       }),
       thread: conversation.messages,
       message,
@@ -211,9 +190,8 @@ export async function POST(request: NextRequest) {
 
     // The change waiting for the user's confirm.
     const pendingChange = pendingChangeFor(actionTaken, {
-      failed: Boolean(replacementError),
       previousEndDate: trip.end_date as string | undefined,
-      unmappedDayNumbers: draftUnmappedDayNumbers,
+      unmappedDayNumbers,
       engineSummary: engineEdited ? (tripEdits?.summary ?? "") : null,
     });
 
