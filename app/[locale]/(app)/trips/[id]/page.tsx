@@ -14,6 +14,8 @@ import TripEngagementSection from "@/components/explore/TripEngagementSection";
 import { refreshTripItinerary } from "@/lib/places/refreshItineraryPhotos";
 import { publicNameOrNull } from "@/lib/profile/public-name";
 import { TRIP_COLUMNS } from "@/lib/trips/columns";
+import { keptTripDiets } from "@/lib/trips/diet";
+import { placesToEatCheckDue } from "@/lib/places/kept-trip";
 import { logReadError } from "@/lib/supabase/log-read-error";
 
 export async function generateMetadata({
@@ -111,7 +113,7 @@ export default async function TripDetailPage({
   const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
   const [{ count: collaboratorCount, error: countError }, viewerRead, itinerary] = await Promise.all([
     supabase.from("trip_collaborators").select("*", { count: "exact", head: true }).eq("trip_id", id),
-    supabase.from("users").select("display_name").eq("id", user.id).maybeSingle(),
+    supabase.from("users").select("display_name, preferences").eq("id", user.id).maybeSingle(),
     refreshTripItinerary(rawItinerary),
   ]);
   // Without the count a group trip would show as a solo one, with no voting.
@@ -144,6 +146,16 @@ export default async function TripDetailPage({
 
   const assistantSeen = (await cookies()).has(ASSISTANT_SEEN_COOKIE);
 
+  // The owner's first open of a kept diet trip looks up its places to eat. On
+  // the owner's view the viewer's profile is the owner's.
+  const placesToEatDue =
+    isOwnerView &&
+    placesToEatCheckDue(
+      { endDate: trip.end_date, meta: tripMeta },
+      keptTripDiets(tripMeta, (viewerProfile as { preferences?: unknown } | null)?.preferences),
+      new Date().toISOString().slice(0, 10)
+    );
+
   return (
     <TripDetailClient
       trip={{
@@ -165,6 +177,7 @@ export default async function TripDetailPage({
         // Read in the same SELECT as the itinerary above, so the two agree.
         // The page seeds its save queue with it once (20260924125000).
         itineraryVersion: typeof trip.itinerary_version === "number" ? trip.itinerary_version : null,
+        placesToEatDue,
       }}
       dateRange={formatDateRange(trip.start_date, trip.end_date, locale)}
       liveState={computeTripDayState({

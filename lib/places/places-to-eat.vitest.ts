@@ -181,13 +181,14 @@ describe("placesToEatCheck", () => {
   it("puts an open place in place of a closed one, and leaves the rest", async () => {
     answers({ "Ao 26 - Vegan Food Project": [place("26 Vegan Food Project")], Arkhe: [place("arkhe", "CLOSED_PERMANENTLY")], "Plant Base": [place("Plant Base")] });
     options.mockResolvedValueOnce([activity("Plant Base", { start_time: "19:30" }), activity("Vegan Junkies")]);
-    const plan = [day(activity("Lunch at Ao 26 - Vegan Food Project"), activity("Dinner at Arkhe"), activity("Torre de Belém", { type: "landmark" }))];
+    const plan = [day(activity("Lunch at Ao 26 - Vegan Food Project"), activity("Dinner at Arkhe", { id: "act_arkhe" }), activity("Torre de Belém", { type: "landmark" }))];
 
     const result = await check().finish(plan);
 
     expect(plan[0].activities.map((a) => a.name)).toEqual(["Lunch at Ao 26 - Vegan Food Project", "Plant Base", "Torre de Belém"]);
     expect(plan[0].activities[1].time_slot).toBe("evening");
     expect(result).toMatchObject({ checked: 2, closed: 1, missing: 0, replaced: 1, dropped: 0, unanswered: 0 });
+    expect(result.changes).toEqual([{ day: 1, id: "act_arkhe", name: "Dinner at Arkhe", to: plan[0].activities[1] }]);
     expect(options).toHaveBeenCalledTimes(1);
     expect(options.mock.calls[0][1]).toBe(4);
     expect(options.mock.calls[0][0]).toMatchObject({
@@ -210,6 +211,7 @@ describe("placesToEatCheck", () => {
     expect(plan[0].activities[0].unverified).toBe(true);
     expect(plan[0].activities[1].unverified).toBeUndefined();
     expect(result).toMatchObject({ checked: 1, missing: 1, replaced: 0, dropped: 0, kept: 1 });
+    expect(result.changes).toEqual([{ day: 1, name: "Lunch at Vegana Burgers", to: null, unverified: true }]);
     expect(options).toHaveBeenCalledTimes(2);
     expect(options.mock.calls[1][0].existingActivityNames).toEqual(expect.arrayContaining(["Lunch at Vegana Burgers", "Las Vegan (Chiado)"]));
   });
@@ -223,6 +225,7 @@ describe("placesToEatCheck", () => {
 
     expect(plan[0].activities.map((a) => a.name)).toEqual(["Castelo de São Jorge"]);
     expect(result).toMatchObject({ checked: 1, closed: 1, replaced: 0, dropped: 1, kept: 0 });
+    expect(result.changes).toEqual([{ day: 1, name: "Dinner at Arkhe", to: null }]);
   });
 
   it("keeps a place Google didn't answer for", async () => {
@@ -232,7 +235,7 @@ describe("placesToEatCheck", () => {
     const result = await check().finish(plan);
 
     expect(plan[0].activities.map((a) => a.name)).toEqual(["Dinner at Arkhe"]);
-    expect(result).toMatchObject({ checked: 1, unanswered: 1, replaced: 0, dropped: 0 });
+    expect(result).toMatchObject({ checked: 1, unanswered: 1, replaced: 0, dropped: 0, changes: [] });
     expect(options).not.toHaveBeenCalled();
   });
 
@@ -282,43 +285,14 @@ describe("placesToEatCheck", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  it("looks the days up as they come, and searches each place once", async () => {
+  it("searches a place the trip has twice once", async () => {
     answers({ "Ao 26 - Vegan Food Project": [place("26 Vegan Food Project")] });
-    const c = check();
-    c.look({ activities: [activity("Lunch at Ao 26 - Vegan Food Project"), activity("Torre de Belém", { type: "landmark" })] });
+    const plan = [day(activity("Lunch at Ao 26 - Vegan Food Project")), { ...day(activity("Dinner at Ao 26 - Vegan Food Project")), day_number: 2 }];
+
+    const result = await check().finish(plan);
+
+    expect(result).toMatchObject({ checked: 2, closed: 0, missing: 0, changes: [] });
     expect(fetchMock).toHaveBeenCalledTimes(1);
-
-    await c.finish([day(activity("Lunch at Ao 26 - Vegan Food Project"))]);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("seeks an open place for a closed one while the rest of the plan is written", async () => {
-    answers({ Arkhe: [place("arkhe", "CLOSED_PERMANENTLY")], "Plant Base": [place("Plant Base")] });
-    options.mockResolvedValueOnce([activity("Plant Base")]);
-    const c = check();
-    c.look(day(activity("Dinner at Arkhe")));
-    await vi.waitFor(() => expect(options).toHaveBeenCalledTimes(1));
-
-    const plan = [day(activity("Dinner at Arkhe"))];
-    const result = await c.finish(plan);
-
-    expect(plan[0].activities.map((a) => a.name)).toEqual(["Plant Base"]);
-    expect(result).toMatchObject({ closed: 1, replaced: 1 });
-    expect(options).toHaveBeenCalledTimes(1);
-  });
-
-  it("seeks again at the end when a later day has the place sought early", async () => {
-    answers({ Arkhe: [place("arkhe", "CLOSED_PERMANENTLY")], "Plant Base": [place("Plant Base")], "Vegan Junkies": [place("Vegan Junkies")] });
-    options.mockResolvedValueOnce([activity("Plant Base")]).mockResolvedValueOnce([activity("Vegan Junkies")]);
-    const c = check();
-    c.look(day(activity("Dinner at Arkhe")));
-    await vi.waitFor(() => expect(options).toHaveBeenCalledTimes(1));
-
-    const plan = [day(activity("Dinner at Arkhe")), { ...day(activity("Lunch at Plant Base")), day_number: 2 }];
-    await c.finish(plan);
-
-    expect(plan.flatMap((d) => d.activities.map((a) => a.name))).toEqual(["Vegan Junkies", "Lunch at Plant Base"]);
-    expect(options).toHaveBeenCalledTimes(2);
   });
 
   it("searches a multi-city day in its own city", async () => {

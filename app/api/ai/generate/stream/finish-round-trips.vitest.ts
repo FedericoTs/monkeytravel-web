@@ -76,7 +76,7 @@ const photoUrl = (placeId: string) =>
   `/api/places/photo?name=${encodeURIComponent(`places/${placeId}/photos/a${"x".repeat(250)}`)}&w=600&h=400`;
 
 /** Generate a trip of `days` days, five sights a day, every other one cached. */
-async function generate(days: number) {
+async function generate(days: number, extra: { dietary?: string[]; type?: string } = {}) {
   const places = new Map<string, Record<string, unknown>>();
   const lookups = new Map<string, string>();
   const itinerary = {
@@ -92,7 +92,7 @@ async function generate(days: number) {
           places.set(placeId, { place_id: placeId, display_name: name, photo_url: photoUrl(placeId), updated_at: new Date().toISOString() });
           lookups.set(`sight ${d} ${a}|rome italy`, placeId);
         }
-        return { name, type: "attraction", description: "", location: "Rome" };
+        return { name, type: extra.type ?? "attraction", description: "", location: "Rome" };
       }),
     })),
   };
@@ -125,6 +125,7 @@ async function generate(days: number) {
         startDate: "2026-11-01",
         endDate: `2026-11-${String(days).padStart(2, "0")}`,
         vibes: ["cultural"],
+        ...(extra.dietary ? { dietary: extra.dietary } : {}),
       }),
     })
   );
@@ -162,5 +163,24 @@ describe("the end of a streamed generation", () => {
     ];
     expect(short.afterModel.sort()).toEqual([...expected].sort());
     expect(long.afterModel.sort()).toEqual([...expected].sort());
+  });
+
+  it("makes no Places search for a diet plan: its places to eat are looked up once the trip is kept", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const requested: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string | URL | Request) => {
+        requested.push(url instanceof Request ? url.url : String(url));
+        return new Response("{}", { status: 500 });
+      })
+    );
+    try {
+      const plan = await generate(2, { dietary: ["vegan"], type: "restaurant" });
+      expect(plan.eventTypes).toEqual(["metadata", "day", "day", "complete"]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    expect(requested.filter((url) => url.includes("places.googleapis.com"))).toEqual([]);
   });
 });

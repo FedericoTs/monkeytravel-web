@@ -10,6 +10,7 @@ import { getTripDestination } from "@/lib/trips/destination";
 import { hasCoordinates } from "@/lib/trips/has-coordinates";
 import { withFoundPhotos } from "@/lib/trips/keep-place-photos";
 import { useKeptTripPhotos } from "@/hooks/useKeptTripPhotos";
+import { useKeptTripPlacesToEat } from "@/hooks/useKeptTripPlacesToEat";
 import { useEditShortcuts } from "@/hooks/useEditShortcuts";
 import { useDayFocus } from "@/hooks/useDayFocus";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
@@ -212,6 +213,8 @@ interface TripDetailClientProps {
      * sync below).
      */
     itineraryVersion?: number | null;
+    /** The owner's first open of a kept diet trip: its places to eat are due a check (lib/places/kept-trip.ts). */
+    placesToEatDue?: boolean;
   };
   dateRange: string;
   // Collaboration props (optional - only passed for collaborative trips)
@@ -466,6 +469,15 @@ export default function TripDetailClient({
       setEditedItinerary((prev) => withFoundPhotos(prev, photos));
       setSavedItinerary((prev) => withFoundPhotos(prev, photos));
     },
+  });
+
+  // A kept diet trip's places to eat, looked up on its owner's first open:
+  // the server stores what changed and this copy takes the same changes.
+  useKeptTripPlacesToEat({
+    due: !!trip.placesToEatDue,
+    tripId: trip.id,
+    runItineraryWrite,
+    adoptDayWrite,
   });
 
   // Viewing a trip never pays for an external API to backfill coordinates:

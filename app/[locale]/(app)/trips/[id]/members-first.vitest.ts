@@ -46,10 +46,14 @@ type World = {
   visibility: "private" | "public";
   isHidden?: boolean;
   displayName?: string | null; // the viewer's public.users.display_name
+  preferences?: unknown; // the viewer's public.users.preferences
+  tripMeta?: Record<string, unknown>;
+  endDate?: string;
   refusing?: "trips" | "trip_collaborators" | "users"; // a table whose reads the database refuses
 };
 let world: World;
 let lastByline: string | undefined;
+let lastPlacesToEatDue: boolean | undefined;
 // Held open to see what the page sends while the auth server is still answering.
 let authAnswered: Promise<void>;
 const sent: string[] = [];
@@ -60,9 +64,9 @@ const trip = () => ({
   user_id: OWNER,
   title: "Lisbon Trip",
   start_date: "2026-10-01",
-  end_date: "2026-10-03",
+  end_date: world.endDate ?? "2026-10-03",
   itinerary: [],
-  trip_meta: {},
+  trip_meta: world.tripMeta ?? {},
   share_token: world.shareToken,
   public_slug: world.publicSlug === undefined ? SLUG : world.publicSlug,
   visibility: world.visibility,
@@ -96,7 +100,7 @@ function fakeSupabase() {
       let cols = "";
       const lookup = async () => {
         if (world.refusing === table) return { data: null, error: { code: "57014", message: "canceling statement due to statement timeout" } };
-        if (table === "users") return { data: { display_name: world.displayName ?? null }, error: null };
+        if (table === "users") return { data: { display_name: world.displayName ?? null, preferences: world.preferences ?? null }, error: null };
         if (table === "trips") {
           if (refusedColumns(cols)) return PERMISSION_DENIED;
           if (!canSee()) return { data: null, error: null };
@@ -152,9 +156,10 @@ async function visit(locale = "en") {
   const { default: TripDetailPage } = await import("./page");
   try {
     const el = (await TripDetailPage({ params: Promise.resolve({ id: TRIP, locale }) })) as {
-      props: { userRole: string; ownerDisplayName?: string };
+      props: { userRole: string; ownerDisplayName?: string; trip: { placesToEatDue?: boolean } };
     };
     lastByline = el.props.ownerDisplayName;
+    lastPlacesToEatDue = el.props.trip.placesToEatDue;
     return { editor: el.props.userRole };
   } catch (e) {
     if (e instanceof Redirect) return { redirect: e.url };
@@ -266,6 +271,50 @@ describe("the byline the owner would publish with", () => {
     world.displayName = null;
     await visit();
     expect(lastByline).toBeUndefined();
+  });
+});
+
+describe("the owner's first open of a kept diet trip", () => {
+  // The page says when the trip's places to eat are due a check (lib/places/kept-trip.ts).
+  beforeEach(() => {
+    world.endDate = "2099-01-10";
+  });
+
+  it("is due for the owner of a trip planned for a diet, or whose profile has one", async () => {
+    world.user = OWNER;
+    world.tripMeta = { dietary: ["vegan"] };
+    await visit();
+    expect(lastPlacesToEatDue).toBe(true);
+
+    world.tripMeta = {};
+    world.preferences = { dietaryPreferences: ["halal"] };
+    await visit();
+    expect(lastPlacesToEatDue).toBe(true);
+  });
+
+  it("is not due for a member who is not the owner, once checked, or after the trip", async () => {
+    world.tripMeta = { dietary: ["vegan"] };
+    world.user = "mate-1";
+    world.collaborators = { "mate-1": "editor" };
+    world.preferences = { dietaryPreferences: ["vegan"] };
+    await visit();
+    expect(lastPlacesToEatDue).toBe(false);
+
+    world.user = OWNER;
+    world.tripMeta = { dietary: ["vegan"], places_to_eat_checked_at: "2026-11-04T10:00:00.000Z" };
+    await visit();
+    expect(lastPlacesToEatDue).toBe(false);
+
+    world.tripMeta = { dietary: ["vegan"] };
+    world.endDate = "2020-01-10";
+    await visit();
+    expect(lastPlacesToEatDue).toBe(false);
+  });
+
+  it("is not due for a trip with no diet", async () => {
+    world.user = OWNER;
+    await visit();
+    expect(lastPlacesToEatDue).toBe(false);
   });
 });
 

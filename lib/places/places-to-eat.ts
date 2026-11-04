@@ -1,11 +1,12 @@
 /**
- * A diet plan's places to eat, looked up on Google Maps before the plan is
- * shown. The model names them from memory, and the small places a diet sends
- * it to close and move more often than the sights it knows. In place of one
- * Maps has as closed, or doesn't have, the model offers a few others, and the
- * first Maps has open takes its place. When none is, a closed place leaves the
- * plan, and one Maps doesn't have stays, marked unverified: not finding a small
- * place is no proof it's gone.
+ * A diet trip's places to eat, looked up on Google Maps once the trip is kept:
+ * on its owner's first open (app/api/trips/[id]/places-to-eat), and in a day
+ * regenerated or added by the assistant. The model names them from memory, and
+ * the small places a diet sends it to close and move more often than the sights
+ * it knows. In place of one Maps has as closed, or doesn't have, the model
+ * offers a few others, and the first Maps has open takes its place. When none
+ * is, a closed place leaves the plan, and one Maps doesn't have stays, marked
+ * unverified: not finding a small place is no proof it's gone.
  *
  * Nothing Google answers is kept or shown: the lookup only decides which of
  * the model's places stay.
@@ -20,6 +21,7 @@ import { bareName, distanceM, isKind, nameTokens, nameVariants } from "@/lib/ima
 import { normalizeActivityType } from "@/lib/trip/activity-type";
 import { isPlaceholderPoint } from "@/lib/trip/placeholder-point";
 import type { Activity, ItineraryDay, BudgetTier } from "@/types";
+import type { PlaceChange } from "./kept-trip";
 
 // Pro fields (lib/api-gateway/places-sku.ts): the name and types tell the
 // plan's place from another, the status says whether it is open.
@@ -215,7 +217,7 @@ export interface PlacesToEatOptions {
   userId?: string;
 }
 
-/** What the check found and did, for the generation's log. */
+/** What the check found and did. */
 export interface PlacesToEatResult {
   /** Places to eat looked up. */
   checked: number;
@@ -233,13 +235,13 @@ export interface PlacesToEatResult {
   unanswered: number;
   /** What the model's tries cost. */
   costUsd: number;
+  /** What was done to each place replaced, left out or kept unverified. */
+  changes: PlaceChange[];
 }
 
 type DayInPlan = { city?: unknown; activities?: unknown };
 
 export interface PlacesToEatCheck {
-  /** Starts looking up a day's places to eat while the rest of the plan is written. */
-  look(day: DayInPlan): void;
   /**
    * Every place to eat in `days` looked up, and those closed or missing replaced
    * by open ones, in place. With none found, a closed one is left out and a missing
@@ -262,10 +264,8 @@ export function placesToEatCheck(opts: PlacesToEatOptions): PlacesToEatCheck | n
   // Every place in the trip so far, so a new one repeats none, and two get different ones.
   const names: string[] = [];
   const inTrip = (name: string) => names.some((n) => samePlace(n, name));
-  // The model's calls, those made while the plan is written included.
+  // The model's calls.
   const meter = new GeminiCostMeter();
-  // Open places sought while the rest of the plan is written, by the name of the one they replace.
-  const early = new Map<string, Promise<Activity | null>>();
 
   /** What a search for the activity found, once per name and area; null when there is no answer. */
   const found = (activity: Named, area: string): Promise<FoundPlace[] | null> => {
@@ -317,24 +317,9 @@ export function placesToEatCheck(opts: PlacesToEatOptions): PlacesToEatCheck | n
     });
 
   return {
-    look(day) {
-      if (!Array.isArray(day.activities)) return;
-      const activities = (day.activities as Activity[]).filter((a) => typeof a?.name === "string");
-      names.push(...activities.map((a) => a.name));
-      for (const activity of activities) {
-        if (!isPlaceToEat(activity)) continue;
-        const area = areaOf(day);
-        void found(activity, area).then((places) => {
-          if (places && placeStatus(activity, places) !== "open" && !early.has(activity.name)) {
-            early.set(activity.name, openInstead(activity, day as unknown as ItineraryDay, area));
-          }
-        });
-      }
-    },
-
     async finish(days, others = []) {
-      const result: PlacesToEatResult = { checked: 0, closed: 0, missing: 0, replaced: 0, dropped: 0, kept: 0, unanswered: 0, costUsd: 0 };
-      // The trip as written in full, in place of the days as they came.
+      const result: PlacesToEatResult = { checked: 0, closed: 0, missing: 0, replaced: 0, dropped: 0, kept: 0, unanswered: 0, costUsd: 0, changes: [] };
+      // The whole trip, so a new place repeats none of it.
       names.splice(0, names.length, ...[...days, ...others].flatMap((d) => (d.activities ?? []).map((a) => a.name)));
 
       const bad: { day: ItineraryDay; activity: Activity; area: string; status: "closed" | "missing" }[] = [];
@@ -356,34 +341,25 @@ export function placesToEatCheck(opts: PlacesToEatOptions): PlacesToEatCheck | n
         ),
       );
 
-      // What was sought early stands, unless a later day has that place; the rest is sought now.
       const instead = new Map<Activity, Activity | null>();
-      for (const { activity } of bad) {
-        const sought = early.get(activity.name);
-        if (!sought) continue;
-        const fresh = await sought;
-        if (fresh && inTrip(fresh.name)) continue;
-        if (fresh) names.push(fresh.name);
-        instead.set(activity, fresh);
-      }
-      await Promise.all(
-        bad
-          .filter(({ activity }) => !instead.has(activity))
-          .map(async ({ day, activity, area }) => instead.set(activity, await openInstead(activity, day, area))),
-      );
+      await Promise.all(bad.map(async ({ day, activity, area }) => instead.set(activity, await openInstead(activity, day, area))));
 
       for (const { day, activity, status } of bad) {
         const fresh = instead.get(activity);
         const at = day.activities.indexOf(activity);
+        const change = { day: day.day_number, ...(activity.id ? { id: activity.id } : {}), name: activity.name };
         if (fresh) {
           day.activities[at] = fresh;
           result.replaced++;
+          result.changes.push({ ...change, to: fresh });
         } else if (status === "missing") {
           day.activities[at] = { ...activity, unverified: true };
           result.kept++;
+          result.changes.push({ ...change, to: null, unverified: true });
         } else {
           day.activities.splice(at, 1);
           result.dropped++;
+          result.changes.push({ ...change, to: null });
         }
       }
       result.costUsd = meter.usd;

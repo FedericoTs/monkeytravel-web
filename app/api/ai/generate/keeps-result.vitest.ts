@@ -11,6 +11,7 @@ import { NextRequest } from "next/server";
 
 vi.stubEnv("UPSTASH_REDIS_REST_URL", "");
 vi.stubEnv("KV_REST_API_URL", "");
+vi.stubEnv("GOOGLE_PLACES_API_KEY", "test-key");
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({ auth: { getUser: async () => ({ data: { user: null } }) } }),
 }));
@@ -72,7 +73,7 @@ const itinerary = {
   })),
 };
 
-const post = (headers: Record<string, string>) =>
+const post = (headers: Record<string, string>, extra: Record<string, unknown> = {}) =>
   POST(
     new NextRequest("https://monkeytravel.app/api/ai/generate", {
       method: "POST",
@@ -86,6 +87,7 @@ const post = (headers: Record<string, string>) =>
           { city: "Bangkok", nights: 1 },
         ],
         vibes: ["foodie"],
+        ...extra,
       }),
     })
   );
@@ -109,6 +111,27 @@ describe("a finished generation", () => {
   it("is not kept for a request without an id", async () => {
     expect((await post({})).status).toBe(200);
     expect(logged.find((row) => row.status === 200)?.metadata).not.toHaveProperty("generation_id");
+  });
+
+  it("of a diet plan made no Places search: its places to eat are looked up once the trip is kept", async () => {
+    const requested: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string | URL | Request) => {
+        requested.push(url instanceof Request ? url.url : String(url));
+        return new Response("{}", { status: 500 });
+      })
+    );
+    multiCity = async () => ({
+      ...structuredClone(itinerary),
+      days: itinerary.days.map((day) => ({ ...day, activities: [{ name: "Dinner at Krua Apsorn", type: "restaurant", description: "", location: "Bangkok" }] })),
+    });
+    try {
+      expect((await post({}, { dietary: ["vegan"] })).status).toBe(200);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    expect(requested.filter((url) => url.includes("places.googleapis.com"))).toEqual([]);
   });
 
   it("that failed is logged with its generation id, and nothing is kept", async () => {
