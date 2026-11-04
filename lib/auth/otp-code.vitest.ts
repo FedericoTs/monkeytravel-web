@@ -8,6 +8,7 @@ import {
   shouldTryNextType,
   shouldRetrySameType,
   otpErrorMessageKey,
+  otpSendFailureKey,
 } from "./otp-code";
 
 describe("normalizeOtpCode", () => {
@@ -143,5 +144,29 @@ describe("otpErrorMessageKey", () => {
     const keys = kinds.map(otpErrorMessageKey);
     expect(new Set(keys).size).toBe(kinds.length);
     for (const k of keys) expect(k.startsWith("magicLink.")).toBe(true);
+  });
+});
+
+describe("otpSendFailureKey", () => {
+  it.each([
+    [{ message: "For security purposes, you can only request this after 60 seconds" }, "magicLink.codeRateLimited"],
+    [{ message: "email rate limit exceeded", status: 429 }, "magicLink.codeRateLimited"],
+    [{ message: "An error occurred", status: 504 }, "magicLink.codeNetwork"],
+    [{ message: "Failed to fetch", status: 0 }, "magicLink.codeNetwork"],
+    [{ code: "email_address_invalid", message: 'Email address "a@b.co" is invalid' }, "magicLink.emailInvalid"],
+    [{ code: "validation_failed", message: "Unable to validate email address: invalid format" }, "magicLink.emailInvalid"],
+    [{ message: "Signups not allowed for otp", status: 422 }, "magicLink.failed"],
+    // "Invalid" about something else is no reason to doubt the visitor's address.
+    [{ message: "Invalid API key", status: 401 }, "magicLink.failed"],
+    [new TypeError("Load failed"), "magicLink.failed"],
+    [undefined, "magicLink.failed"],
+  ])("%j -> %s", (err, key) => {
+    expect(otpSendFailureKey(err)).toBe(key);
+  });
+
+  it("never answers a send with a word about a code the visitor typed", () => {
+    for (const err of [{ message: "Token has expired" }, { message: "invalid otp" }, { message: "whatever" }]) {
+      expect(["magicLink.codeExpired", "magicLink.codeInvalid", "magicLink.codeFailed"]).not.toContain(otpSendFailureKey(err));
+    }
   });
 });

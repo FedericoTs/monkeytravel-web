@@ -2195,6 +2195,7 @@
       "realTime": "Compartilhe e vote com amigos"
     },
     "redirecting": "Redirecionando...",
+    "googleFailed": "Não conseguimos continuar com o Google. Tente novamente ou use seu e-mail.",
     "createAccount": "Criar Conta Grátis",
     "hasAccount": "Já tem uma conta? Entre",
     "preferPassword": "Prefere uma senha? Cadastre-se assim",
@@ -2204,6 +2205,7 @@
       "send": "Envie-me o link",
       "sending": "Enviando...",
       "failed": "Não foi possível enviar o link — tente novamente",
+      "emailInvalid": "Esse endereço de e-mail não parece correto. Verifique-o e tente novamente.",
       "sentTitle": "Verifique sua caixa de entrada",
       "sentSubtitle": "Enviamos um link de um toque para {email}",
       "checkInbox": "Clique no link do e-mail para salvar sua viagem. Sem senha.",

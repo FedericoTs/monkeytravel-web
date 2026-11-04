@@ -35,6 +35,7 @@ import {
   shouldRetrySameType,
   OTP_TRANSIENT_RETRY_DELAY_MS,
   otpErrorMessageKey,
+  otpSendFailureKey,
 } from "@/lib/auth/otp-code";
 import BaseModal from "@/components/ui/BaseModal";
 import { GoogleLogo } from "@/components/auth/ProviderLogos";
@@ -227,8 +228,7 @@ export default function AuthPromptModal({
       await emailLinkAndCode(trimmed);
       setLinkSent(true);
     } catch (err) {
-      const message = err instanceof Error ? err.message : t("magicLink.failed");
-      setError(message);
+      setError(t(otpSendFailureKey(err)));
       captureMagicLinkRequestFailed({ location, reason: magicLinkFailureReason(err) });
     } finally {
       setIsSending(false);
@@ -247,8 +247,7 @@ export default function AuthPromptModal({
       setCode("");
       setCodeResent(true);
     } catch (err) {
-      const failure = err as { message?: string; status?: number } | null;
-      setCodeError(t(otpErrorMessageKey(classifyOtpError(failure?.message, failure?.status))));
+      setCodeError(t(otpSendFailureKey(err)));
       captureMagicLinkRequestFailed({ location, reason: magicLinkFailureReason(err) });
     } finally {
       setResending(false);
@@ -373,7 +372,8 @@ export default function AuthPromptModal({
       // loading state up. Only reset it if Supabase returned an error inline.
       if (oauthError) throw oauthError;
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("magicLink.failed"));
+      console.error("[AuthPromptModal] Google sign-in failed:", err);
+      setError(t("googleFailed"));
       setGoogleLoading(false);
       setIsNavigating(false);
     }
