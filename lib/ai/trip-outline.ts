@@ -9,7 +9,7 @@ import { GoogleGenerativeAI, SchemaType, type ResponseSchema } from "@/lib/ai/ge
 import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import type { TripCreationParams } from "@/types";
-import type { SupportedLanguage } from "@/lib/ai/language";
+import { LANGUAGE_NAMES, type SupportedLanguage } from "@/lib/ai/language";
 import type { KnownPlace } from "@/lib/ai/known-places";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
@@ -48,13 +48,6 @@ const SCHEMA: ResponseSchema = {
     },
   },
   required: ["days"],
-};
-
-/** The outline is shown while the plan is written, so it speaks the page's language. */
-const LANGUAGE_NAMES: Record<Exclude<SupportedLanguage, "en">, string> = {
-  es: "Spanish",
-  it: "Italian",
-  pt: "Portuguese",
 };
 
 const normalize = (place: string) =>
@@ -102,6 +95,7 @@ export async function generateTripOutline(
       : "",
     "",
     `Return exactly ${totalDays} days, numbered 1 to ${totalDays}. Give each day its own area, keep each day's places close together, and never use a place on two days. The best-known sights come early; later days can go further out or off the beaten path. Use real place names as Google Maps shows them.`,
+    // The outline is shown while the plan is written, so it speaks the page's language.
     language && language !== "en" ? `Write each theme and area in ${LANGUAGE_NAMES[language]}.` : "",
   ];
 
