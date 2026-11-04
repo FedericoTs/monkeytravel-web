@@ -29,6 +29,7 @@ import { recordAiOutcome } from "@/lib/ai/observability";
 import { getTripDestination } from "@/lib/trips/destination";
 import {
   isTripVibe,
+  type BudgetTier,
   type ItineraryDay,
   type AssistantCard,
   type StructuredAssistantResponse,
@@ -539,7 +540,7 @@ export async function POST(request: NextRequest) {
           // the budget column, vibes inferred from tags, travel style from
           // trip_meta (a backpacker trip must not grow a classic day).
           const budgetTier = (((trip.budget as { tier?: string } | null)?.tier ??
-            "balanced") as "budget" | "balanced" | "premium");
+            "balanced") as BudgetTier);
           const tags = (trip.tags as string[] | null) ?? [];
           const vibes = tags.filter(isTripVibe);
           const tripMeta = (trip.trip_meta ?? {}) as { travel_style?: "classic" | "backpacker"; dietary?: unknown };

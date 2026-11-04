@@ -1,5 +1,7 @@
 "use client";
 
+import type { BudgetTier } from "@/types";
+
 /**
  * Type-safe PostHog event definitions
  *
@@ -86,7 +88,7 @@ export interface TripCreatedEvent {
   trip_id: string;
   destination: string;
   duration_days: number;
-  budget_tier: "budget" | "balanced" | "premium";
+  budget_tier: BudgetTier;
   is_from_template?: boolean;
   /** Monetary value for revenue tracking */
   value?: number;

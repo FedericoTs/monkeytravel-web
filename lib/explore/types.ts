@@ -1,3 +1,5 @@
+import type { BudgetTier } from "@/types";
+
 /**
  * Shared types for the /explore UGC feature surface. Mirrors the API
  * contract in app/api/explore/trips/route.ts (extended response shape
@@ -7,7 +9,6 @@
  * surface can evolve without forcing schema-wide refactors.
  */
 
-export type BudgetTier = "budget" | "balanced" | "premium";
 export type SortKey = "trending" | "recent" | "most-liked" | "most-forked";
 export type TravelStyle = "classic" | "backpacker";
 

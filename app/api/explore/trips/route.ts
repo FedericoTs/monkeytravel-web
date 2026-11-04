@@ -1,3 +1,4 @@
+import { isBudgetTier } from "@/types";
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
@@ -144,8 +145,7 @@ export async function GET(request: NextRequest) {
     // any non-JSON token (e.g. ?budget=budget → "Token budget is invalid"),
     // 500ing the whole feed. Whitelist the tier so junk params are ignored
     // rather than queried.
-    const VALID_BUDGET_TIERS = ["budget", "balanced", "premium"];
-    if (budgetTier && VALID_BUDGET_TIERS.includes(budgetTier)) {
+    if (isBudgetTier(budgetTier)) {
       query = query.eq("trip_meta->>budget_tier", budgetTier);
     }
 

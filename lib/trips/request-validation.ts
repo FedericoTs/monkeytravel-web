@@ -1,4 +1,4 @@
-import { isTripVibe, type TripCreationParams } from "@/types";
+import { isBudgetTier, isTripVibe, type TripCreationParams } from "@/types";
 import { tripSpanDays } from "@/lib/dates/iso-date";
 import {
   DESTINATION_ALLOWLIST,
@@ -164,8 +164,7 @@ export function validateTripParams(
   }
 
   // Budget tier validation
-  const validTiers = ["budget", "balanced", "premium"];
-  if (!validTiers.includes(params.budgetTier)) {
+  if (!isBudgetTier(params.budgetTier)) {
     return { valid: false, error: "Invalid budget tier" };
   }
 

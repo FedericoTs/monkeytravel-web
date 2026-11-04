@@ -7,6 +7,7 @@
  * from client-side trip creation flows.
  */
 
+import type { BudgetTier } from "@/types";
 import {
   captureTripCreated,
 } from "@/lib/posthog/events";
@@ -77,7 +78,7 @@ export async function handleTripCreatedWithReferral(
   tripId: string,
   destination: string,
   durationDays: number,
-  budgetTier: "budget" | "balanced" | "premium",
+  budgetTier: BudgetTier,
   isFromTemplate: boolean = false
 ): Promise<{
   tripTracked: boolean;

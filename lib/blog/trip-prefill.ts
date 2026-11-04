@@ -1,3 +1,4 @@
+import type { BudgetTier } from "@/types";
 import { POSTS } from "./tag-taxonomy";
 
 /**
@@ -52,7 +53,7 @@ export interface TripPrefill {
   /** Trip length in days, 1-14. Absent for multi-city (per-city nights owns it). */
   days?: number;
   /** Maps to the wizard's budgetTier. Only ever "budget" — see BUDGET_CONCEPT. */
-  budget?: "budget" | "balanced" | "premium";
+  budget?: BudgetTier;
   /** At most 2. Step 2 requires >=1 vibe, so a correct one is a real unblock. */
   vibes?: PrefillVibe[];
   /** Open the wizard in multi-city route mode. */

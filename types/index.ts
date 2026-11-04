@@ -17,8 +17,8 @@ export interface User {
 }
 
 export interface UserPreferences {
-  default_budget_tier?: "budget" | "balanced" | "premium";
-  default_pace?: "relaxed" | "moderate" | "active";
+  default_budget_tier?: BudgetTier;
+  default_pace?: TripPace;
   interests?: string[];
 }
 
@@ -257,7 +257,7 @@ export interface TripMeta {
   // this matters (title-strip fallback breaks for non-English/renamed trips).
   destination?: string;
   country_code?: string;           // ISO 3166-1 alpha-2 (e.g. "IT", "JP")
-  budget_tier?: "budget" | "balanced" | "premium";
+  budget_tier?: BudgetTier;
   /**
    * Travel style preset, copied from the wizard's TripCreationParams.
    * "backpacker" trips light up hostel CTAs + multi-city affordances on
@@ -315,7 +315,7 @@ export interface TripMeta {
    * on save; older rows lack it and read as "moderate" via normalizePace()
    * in lib/trip/pace.ts.
    */
-  pace?: "relaxed" | "moderate" | "active";
+  pace?: TripPace;
 }
 
 // ============================================================================
@@ -390,6 +390,19 @@ export type TripVibe = (typeof TRIP_VIBES)[number];
 export function isTripVibe(value: unknown): value is TripVibe {
   return (TRIP_VIBES as readonly unknown[]).includes(value);
 }
+
+/** A trip's budget tiers, in the order the wizard offers them. */
+export const BUDGET_TIERS = ["budget", "balanced", "premium"] as const;
+export type BudgetTier = (typeof BUDGET_TIERS)[number];
+
+/** Whether a value, such as a stored tier or a request's field, is one of the tiers. */
+export function isBudgetTier(value: unknown): value is BudgetTier {
+  return (BUDGET_TIERS as readonly unknown[]).includes(value);
+}
+
+/** How full a trip's days are (lib/trip/pace.ts says what each means), in the wizard's order. */
+export const TRIP_PACES = ["relaxed", "moderate", "active"] as const;
+export type TripPace = (typeof TRIP_PACES)[number];
 
 // Seasonal context for trip planning
 export interface SeasonalContext {
@@ -474,8 +487,8 @@ export interface TripCreationParams {
   destination: string;
   startDate: string;
   endDate: string;
-  budgetTier: "budget" | "balanced" | "premium";
-  pace: "relaxed" | "moderate" | "active";
+  budgetTier: BudgetTier;
+  pace: TripPace;
   vibes: TripVibe[];  // Array of 1-3 vibes (ordered by priority)
   seasonalContext?: SeasonalContext;
   interests: string[];

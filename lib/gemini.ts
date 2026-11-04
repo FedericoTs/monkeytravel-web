@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
-import type { GeneratedItinerary, TripCreationParams, Activity, ItineraryDay, UserProfilePreferences } from "@/types";
+import type { GeneratedItinerary, TripCreationParams, Activity, ItineraryDay, UserProfilePreferences, BudgetTier, TripPace } from "@/types";
 import { generateActivityId } from "./utils/activity-id";
 import { getPrompt } from "./prompts";
 import { captureLLMGeneration, type GeminiUsageMetadata } from "./posthog/llm-analytics";
@@ -409,7 +409,7 @@ export interface RegenerateActivityParams {
   destination: string;
   activityToReplace: Activity;
   dayContext: ItineraryDay;
-  budgetTier: "budget" | "balanced" | "premium";
+  budgetTier: BudgetTier;
   existingActivityNames: string[];
   preferences?: {
     category?: "attraction" | "restaurant" | "activity" | "transport";
@@ -757,8 +757,8 @@ export interface RegenerateDayParams {
   destination: string;
   dayNumber: number; // 1-indexed
   date: string; // YYYY-MM-DD — preserved on the output
-  budgetTier: "budget" | "balanced" | "premium";
-  pace: "relaxed" | "moderate" | "active";
+  budgetTier: BudgetTier;
+  pace: TripPace;
   vibes: string[];
   /** All other days in the trip (for context + dedup). Excludes the day being replaced. */
   surroundingDays: ItineraryDay[];

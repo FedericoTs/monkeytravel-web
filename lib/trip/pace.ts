@@ -15,7 +15,7 @@
  * server prompts (lib/ai/trip-prompt.ts, lib/gemini.ts) and unit tests alike.
  */
 
-export type TripPace = "relaxed" | "moderate" | "active";
+import type { TripPace } from "@/types";
 
 export interface PaceBudget {
   /** Target number of scheduled activities per day. */

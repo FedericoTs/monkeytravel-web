@@ -1,3 +1,4 @@
+import type { BudgetTier } from "@/types";
 import { trackTripCreated } from "@/lib/analytics";
 import { claimTripCreatedEmit } from "@/lib/analytics/tripCreatedDedup";
 import { captureFirstTripSaved, type TripIntent } from "@/lib/posthog/events";
@@ -10,7 +11,7 @@ export interface SavedTripReport {
   tripId: string;
   durationDays: number;
   destination: string;
-  budgetTier: "budget" | "balanced" | "premium";
+  budgetTier: BudgetTier;
   tripIntent: TripIntent;
   travelStyle: "classic" | "backpacker";
   anchorCount: number;
