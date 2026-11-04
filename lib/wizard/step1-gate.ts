@@ -19,9 +19,9 @@ export type Step1Blocker = DestinationProblem | "too_many_days" | "dates";
 
 /**
  * What still keeps step 1 from going on: the destination first, then the
- * dates, each as lib/gemini.ts validateTripParams would refuse it at generate
- * time. The span is day-inclusive (the server's math): at least two days and
- * at most `maxDays`. Null when nothing does.
+ * dates, each as lib/trips/request-validation.ts validateTripParams would
+ * refuse it at generate time. The span is day-inclusive (the server's math):
+ * at least two days and at most `maxDays`. Null when nothing does.
  */
 export function step1Blocker(
   destination: string,

@@ -76,7 +76,7 @@ export default function DestinationField({
       />
 
       {/* Inline allowlist warning — same character set the server
-          enforces (lib/gemini.ts DESTINATION_ALLOWLIST). Shown the
+          enforces (DESTINATION_ALLOWLIST). Shown the
           moment the input goes invalid instead of letting the user
           fill the whole form and fail at generate. */}
       {!expressTrip && destination.length >= 2 && !DESTINATION_ALLOWLIST.test(destination) && (
