@@ -59,12 +59,6 @@
     "cooldown": "Disponible de nuevo {date}",
     "redeem": "Canjear"
   },
-  "leaderboard": {
-    "title": "Tabla de Líderes",
-    "rank": "Posición",
-    "you": "Tú",
-    "participants": "{count} participantes"
-  },
   "benefits": {
     "title": "Tus Límites de Generación AI",
     "currentLimit": "{count} generaciones de viajes AI por mes",

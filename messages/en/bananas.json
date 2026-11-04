@@ -59,12 +59,6 @@
     "cooldown": "Available again {date}",
     "redeem": "Redeem"
   },
-  "leaderboard": {
-    "title": "Referral Leaderboard",
-    "rank": "Rank",
-    "you": "You",
-    "participants": "{count} participants"
-  },
   "benefits": {
     "title": "Your AI Generation Limits",
     "currentLimit": "{count} AI trip generations per month",

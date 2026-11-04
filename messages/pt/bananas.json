@@ -59,12 +59,6 @@
     "cooldown": "Disponível novamente em {date}",
     "redeem": "Resgatar"
   },
-  "leaderboard": {
-    "title": "Ranking de Indicações",
-    "rank": "Posição",
-    "you": "Você",
-    "participants": "{count} participantes"
-  },
   "benefits": {
     "title": "Seus Limites de Geração com AI",
     "currentLimit": "{count} gerações de viagens com AI por mês",

@@ -59,12 +59,6 @@
     "cooldown": "Disponibile di nuovo {date}",
     "redeem": "Riscatta"
   },
-  "leaderboard": {
-    "title": "Classifica Referral",
-    "rank": "Posizione",
-    "you": "Tu",
-    "participants": "{count} partecipanti"
-  },
   "benefits": {
     "title": "I Tuoi Limiti di Generazione AI",
     "currentLimit": "{count} generazioni di viaggi AI al mese",
