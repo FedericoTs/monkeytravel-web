@@ -9,6 +9,7 @@ import {
   claimsLongerTrip,
   claimsToRemember,
   daysLeftNote,
+  honestReply,
   isConfirmation,
   lengthUnchangedNote,
   missingAnswerReply,
@@ -366,11 +367,50 @@ describe("notAppliedLead", () => {
   });
 });
 
-describe("the trip assistant's card filter", () => {
-  it("drops model-written confirmation cards when nothing was saved", () => {
-    const src = readFileSync(join(process.cwd(), "app", "api", "ai", "assistant", "route.ts"), "utf8");
-    const set = src.match(/const CHANGE_CARDS = new Set\(\[([^\]]+)\]\)/)?.[1] ?? "";
-    expect(set).toContain('"confirmation"');
+describe("the trip assistant's reply, made honest", () => {
+  const draft = { type: "apply_draft" as const, applied: false, pending: true, dayNumber: 3, dayCount: 1 };
+  const turn = (action: typeof draft | undefined, engineReply: string | null = null) => ({ action, engineReply, language: "en" as const });
+
+  it("drops the model's cards that show a change as done, and keeps the rest", async () => {
+    const reply = {
+      summary: "Day 3 has room for a pub.",
+      cards: ["confirmation", "activity_added", "activity_replacement", "activity_suggestion", "tip"].map((type) => ({ type })),
+    };
+    await honestReply(reply as never, turn(undefined));
+    expect(reply.cards).toEqual([{ type: "tip" }]);
+  });
+
+  it("replaces a claimed change when nothing was prepared, and drops the model's own action", async () => {
+    const reply = { summary: "Done! I have added Howth to your Day 4.", cards: [], action: { type: "remove_activity", applied: true } };
+    const result = await honestReply(reply as never, turn(undefined));
+    expect(result).toEqual({ guarded: true, pendingNote: undefined });
+    expect(reply.summary).toBe(nothingChangedReply("en"));
+    expect(reply.action).toBeUndefined();
+  });
+
+  it("replaces a claimed memory", async () => {
+    const reply = { summary: "Noted! I will remember that you love jazz.", cards: [] };
+    expect((await honestReply(reply as never, turn(undefined))).guarded).toBe(true);
+    expect(reply.summary).toBe(nothingKeptReply("en"));
+  });
+
+  it("with a change prepared, says so and adds the note about its button; the engine's own words stay", async () => {
+    const chat = { summary: "Done! I have added Wigwam to Day 3.", cards: [] };
+    const fromChat = await honestReply(chat as never, turn(draft));
+    expect(chat.summary).toBe(preparedChangeReply("en"));
+    expect(fromChat.pendingNote).toBe(pendingChangeNote("en", "Save to my trip"));
+    const engine = { summary: "Done! I have added Wigwam to Day 3 and saved it.", cards: [] };
+    await honestReply(engine as never, turn(draft, "Done! I have added Wigwam to Day 3 and saved it."));
+    expect(engine.summary).toBe("Done! I have added Wigwam to Day 3 and saved it.");
+    expect((engine as { action?: unknown }).action).toEqual(draft);
+  });
+
+  it("lets a prepared change be announced as a proposal, and leaves an honest reply alone", async () => {
+    const proposal = { summary: "Here is the proposal: Wigwam on Day 3.", cards: [] };
+    expect((await honestReply(proposal as never, turn(draft))).guarded).toBe(false);
+    const honest = { summary: "Day 2 is quieter: two museums and a long lunch.", cards: [] };
+    expect(await honestReply(honest as never, turn(undefined))).toEqual({ guarded: false, pendingNote: undefined });
+    expect(honest.summary).toBe("Day 2 is quieter: two museums and a long lunch.");
   });
 });
 

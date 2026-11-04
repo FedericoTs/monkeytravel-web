@@ -19,15 +19,7 @@ import {
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { isConciergeRow } from "@/lib/ai/conversations";
 import { applyButtonLabel } from "@/lib/ai/assistant/apply-button";
-import {
-  announcesProposal,
-  claimsItineraryChange,
-  claimsToRemember,
-  nothingChangedReply,
-  nothingKeptReply,
-  pendingChangeNote,
-  preparedChangeReply,
-} from "@/lib/ai/assistant/honesty";
+import { honestReply } from "@/lib/ai/assistant/honesty";
 import {
   conversationTurns,
   proposeTripEdits,
@@ -226,62 +218,13 @@ export async function POST(request: NextRequest) {
       ({ reply: parsedResponse, text: responseText } = await askChatModel(genAI, modelConfig.id, fullPrompt));
     }
 
-    // Cards that show a change as done ("Activity Replaced", "Added") never
-    // reach the reply: nothing is saved on this turn, and the confirm card
-    // already shows the before and after. The model writes such cards too, so
-    // whatever it produces is filtered.
-    const CHANGE_CARDS = new Set(["activity_replacement", "activity_added", "activity_suggestion", "confirmation"]);
-    if (Array.isArray(parsedResponse.cards)) {
-      parsedResponse.cards = parsedResponse.cards.filter(
-        (c) => !CHANGE_CARDS.has((c as { type?: string })?.type ?? "")
-      );
-    }
-
-    // The words as well as the cards. Nothing was saved on this turn, so the
-    // reply may not say otherwise, whatever the prompt got out of the model
-    // (the prompt rule alone doesn't hold). lib/ai/assistant/honesty.ts.
-    // "Noted" and "recorded" claim a memory this assistant does not have:
-    // only the last few messages come back with the next prompt.
-    let honestyGuarded = false;
-    let pendingNote: string | undefined;
-    // "Here's the proposal" is true of a prepared change, so it counts only
-    // when there is none.
-    const claimedChange =
-      claimsItineraryChange(parsedResponse.summary) ||
-      (!actionTaken && announcesProposal(parsedResponse.summary));
-    if (claimedChange || claimsToRemember(parsedResponse.summary)) {
-      console.warn(
-        `[AI Assistant] honesty guard replaced a ${claimedChange ? "change" : "memory"} claim (${actionTaken ? "change pending" : "nothing prepared"}): "${String(parsedResponse.summary).slice(0, 120)}"`
-      );
-      // The engine's words are the answer and say what each day gets: they
-      // stay, and the truth about the button follows them, just above it.
-      // Put first, it read "Not saved yet: … Absolutely! I've extended…".
-      // Other words become "I've prepared this change", true before and after
-      // the button.
-      if (actionTaken) {
-        parsedResponse.summary = engineReply !== null && claimedChange ? engineReply : preparedChangeReply(userLanguage);
-        pendingNote = pendingChangeNote(userLanguage, await applyButtonLabel(userLanguage));
-      } else {
-        parsedResponse.summary = claimedChange ? nothingChangedReply(userLanguage) : nothingKeptReply(userLanguage);
-      }
-      honestyGuarded = true;
-    }
-
-    // The action metadata is the SERVER's, unconditionally — including when
-    // the server did nothing, in which case it is `undefined` and the model's
-    // own claim is discarded.
-    //
-    // This assignment used to sit behind `if (<the change's card>) ... else if
-    // (actionTaken)`, so whenever neither existed the model's invented action
-    // survived into the response and the saved history. That is how 12
-    // "remove_activity ... applied: true" records exist for an intent that has
-    // no handler in this file at all: the user asked, nothing ran, and the
-    // model filled in the blank from the prompt's own example.
-    //
-    // Structural actions (add_day / apply_draft) carry no chat card — their
-    // confirm-first UI is the client's PendingChange card — but their metadata
-    // must still ride the message: it drives the badge and the history.
-    parsedResponse.action = actionTaken;
+    // Nothing was saved on this turn, and the reply may not say otherwise:
+    // lib/ai/assistant/honesty.ts honestReply.
+    const { guarded: honestyGuarded, pendingNote } = await honestReply(parsedResponse, {
+      action: actionTaken,
+      engineReply,
+      language: userLanguage,
+    });
 
     // Estimate tokens and cost. The engine reports its own cost; the chat
     // call is estimated, and only counted when it ran.

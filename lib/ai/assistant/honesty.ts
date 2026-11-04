@@ -21,6 +21,8 @@
 
 import { resolveAiLanguage, type SupportedLanguage } from "@/lib/ai/language";
 import { note } from "./notes";
+import { applyButtonLabel } from "./apply-button";
+import type { StructuredAssistantResponse } from "@/types";
 
 const L = "\\p{L}";
 /** Word boundaries that also hold around accented letters (JS \b is ASCII-only). */
@@ -436,4 +438,80 @@ export function takesOutNote(language: string | undefined, names: string[]): str
 /** Stands in for an announced list or summary that never came. */
 export function missingAnswerReply(language: string | undefined): string {
   return note(language, "missingAnswer");
+}
+
+/**
+ * The trip assistant's reply as the user may read it: no card or words that
+ * show a change as done, no claim of a memory, and the server's action, not the
+ * model's. Changes `reply` in place; says whether its words were replaced, and
+ * the note about a change waiting for its button.
+ */
+export async function honestReply(
+  reply: StructuredAssistantResponse,
+  turn: {
+    action: StructuredAssistantResponse["action"];
+    /** The edit engine's own words, when they are the reply. */
+    engineReply: string | null;
+    language: SupportedLanguage;
+  }
+): Promise<{ guarded: boolean; pendingNote?: string }> {
+  const { action, engineReply, language } = turn;
+  // Cards that show a change as done ("Activity Replaced", "Added") never
+  // reach the reply: nothing is saved on this turn, and the confirm card
+  // already shows the before and after. The model writes such cards too, so
+  // whatever it produces is filtered.
+  const CHANGE_CARDS = new Set(["activity_replacement", "activity_added", "activity_suggestion", "confirmation"]);
+  if (Array.isArray(reply.cards)) {
+    reply.cards = reply.cards.filter(
+      (c) => !CHANGE_CARDS.has((c as { type?: string })?.type ?? "")
+    );
+  }
+
+  // The words as well as the cards. Nothing was saved on this turn, so the
+  // reply may not say otherwise, whatever the prompt got out of the model
+  // (the prompt rule alone doesn't hold). lib/ai/assistant/honesty.ts.
+  // "Noted" and "recorded" claim a memory this assistant does not have:
+  // only the last few messages come back with the next prompt.
+  let guarded = false;
+  let pendingNote: string | undefined;
+  // "Here's the proposal" is true of a prepared change, so it counts only
+  // when there is none.
+  const claimedChange =
+    claimsItineraryChange(reply.summary) ||
+    (!action && announcesProposal(reply.summary));
+  if (claimedChange || claimsToRemember(reply.summary)) {
+    console.warn(
+      `[AI Assistant] honesty guard replaced a ${claimedChange ? "change" : "memory"} claim (${action ? "change pending" : "nothing prepared"}): "${String(reply.summary).slice(0, 120)}"`
+    );
+    // The engine's words are the answer and say what each day gets: they
+    // stay, and the truth about the button follows them, just above it.
+    // Put first, it read "Not saved yet: … Absolutely! I've extended…".
+    // Other words become "I've prepared this change", true before and after
+    // the button.
+    if (action) {
+      reply.summary = engineReply !== null && claimedChange ? engineReply : preparedChangeReply(language);
+      pendingNote = pendingChangeNote(language, await applyButtonLabel(language));
+    } else {
+      reply.summary = claimedChange ? nothingChangedReply(language) : nothingKeptReply(language);
+    }
+    guarded = true;
+  }
+
+  // The action metadata is the SERVER's, unconditionally — including when
+  // the server did nothing, in which case it is `undefined` and the model's
+  // own claim is discarded.
+  //
+  // This assignment used to sit behind `if (<the change's card>) ... else if
+  // (action)`, so whenever neither existed the model's invented action
+  // survived into the response and the saved history. That is how 12
+  // "remove_activity ... applied: true" records exist for an intent that has
+  // no handler in this file at all: the user asked, nothing ran, and the
+  // model filled in the blank from the prompt's own example.
+  //
+  // Structural actions (add_day / apply_draft) carry no chat card — their
+  // confirm-first UI is the client's PendingChange card — but their metadata
+  // must still ride the message: it drives the badge and the history.
+  reply.action = action;
+
+  return { guarded, pendingNote };
 }
