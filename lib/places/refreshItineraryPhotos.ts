@@ -1,6 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { carryTypeHint, normalizeActivityKey } from "@/lib/images/activity";
+import { normalizeActivityKey } from "@/lib/images/activity";
+import { carryTypeHint } from "@/lib/images/curated";
 import { cachedLandmarkPhotos } from "@/lib/images/landmark-photos";
 import { isPlacePhoto } from "@/lib/trips/keep-place-photos";
 import type { ItineraryDay } from "@/types";
