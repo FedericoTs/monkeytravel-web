@@ -1259,7 +1259,7 @@ export default function NewTripPage({
   const effectiveMaxTripDays =
     multiCityLegCount > 1 ? MAX_TRIP_DAYS_MULTI : MAX_TRIP_DAYS;
   // What still keeps step 1 from going on (lib/wizard/step1-gate.ts).
-  const step1Block = step1Blocker(destination, startDate, endDate, effectiveMaxTripDays);
+  const step1Block = step1Blocker(destination, startDate, endDate, effectiveMaxTripDays, localTodayISO());
   // A request the server refused as invalid fails the same way on every retry:
   // the error box says what to change and takes the traveller back to it.
   const errorFix = error && classifyGenerationFailure(error) === "validation" ? validationFix(error) : null;

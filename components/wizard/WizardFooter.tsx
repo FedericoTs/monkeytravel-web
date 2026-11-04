@@ -11,6 +11,7 @@ const STEP1_HINT = {
   chars: "wizard.step1.destinationInvalidChars",
   too_many_days: "wizard.datePicker.maxDaysLimit",
   dates: "wizard.step1.hintNeedDates",
+  past: "wizard.step1.hintPastDates",
 } as const satisfies Record<Step1Blocker, string>;
 
 /**
