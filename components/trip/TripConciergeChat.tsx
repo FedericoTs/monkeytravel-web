@@ -144,11 +144,11 @@ function TripConciergeChatInner({
       question_length: q.length,
     }).catch(() => {});
     try {
-      // Streaming path (perf task #245). The server emits SSE events:
+      // The server emits SSE events:
       //   data: {"type":"chunk","text":"…"}
       //   data: {"type":"proposal","proposal":{…}}   (P2 — at most one)
       //   data: {"type":"done","isLiveTrip":bool,"dayNumber":n}
-      //   data: {"type":"error","message":"…"}
+      //   data: {"type":"error"}
       // We accumulate `chunk.text` into the answer state on each event so
       // text appears as it's generated — perceived latency drops from
       // ~3s to ~200ms for the first token.
@@ -156,9 +156,6 @@ function TripConciergeChatInner({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Asking for the streaming variant. The route falls back to
-          // non-streaming JSON when this header is absent — keeps the
-          // contract dual-mode for callers that can't read streams.
           Accept: "text/event-stream",
         },
         body: JSON.stringify({
@@ -184,28 +181,7 @@ function TripConciergeChatInner({
         return;
       }
 
-      // If the server gave us plain JSON anyway (older deploy, no
-      // streaming support), fall back to the original blocking path.
-      const contentType = res.headers.get("content-type") || "";
-      if (!contentType.includes("text/event-stream") || !res.body) {
-        const data = (await res.json()) as {
-          answer: string;
-          isLiveTrip: boolean;
-          dayNumber: number | null;
-          proposal?: PendingChange;
-        };
-        setAnswer(data.answer || "");
-        setIsLiveTrip(Boolean(data.isLiveTrip));
-        setQuestion("");
-        if (data.proposal) handleProposalShown(data.proposal);
-        void captureConciergeResponseReceived({
-          trip_id: tripId,
-          response_time_ms: Math.round(performance.now() - startedAt),
-          is_live_trip: Boolean(data.isLiveTrip),
-          answer_length: (data.answer || "").length,
-        }).catch(() => {});
-        return;
-      }
+      if (!res.body) throw new Error("No stream to read");
 
       // Read the stream incrementally. The SSE wire format is "data: <json>\n\n"
       // — we buffer partial frames across read boundaries since one read
@@ -214,7 +190,7 @@ function TripConciergeChatInner({
       const decoder = new TextDecoder();
       let buffer = "";
       let accumulated = "";
-      let streamError: string | null = null;
+      let streamFailed = false;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -235,7 +211,7 @@ function TripConciergeChatInner({
               | { type: "chunk"; text: string }
               | { type: "proposal"; proposal: PendingChange }
               | { type: "done"; isLiveTrip: boolean; dayNumber: number | null }
-              | { type: "error"; message: string };
+              | { type: "error" };
             if (event.type === "chunk") {
               accumulated += event.text;
               setAnswer(accumulated);
@@ -244,7 +220,7 @@ function TripConciergeChatInner({
             } else if (event.type === "done") {
               setIsLiveTrip(Boolean(event.isLiveTrip));
             } else if (event.type === "error") {
-              streamError = event.message || t("errorGeneric");
+              streamFailed = true;
             }
           } catch (parseErr) {
             console.warn("[concierge] SSE parse failed", parseErr, payloadStr);
@@ -252,8 +228,8 @@ function TripConciergeChatInner({
         }
       }
 
-      if (streamError) {
-        setAnswer(streamError);
+      if (streamFailed) {
+        setAnswer(t("errorGeneric"));
         void captureConciergeError({
           trip_id: tripId,
           error_type: "stream_parse",
