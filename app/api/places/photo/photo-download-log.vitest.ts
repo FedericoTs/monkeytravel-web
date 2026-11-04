@@ -36,7 +36,7 @@ vi.mock("@/lib/images/curated", () => ({
   curatedFor: () => "https://images.pexels.com/fallback.jpg",
   readActivityTypeHint: () => "",
 }));
-vi.mock("@/lib/images/activity", () => ({
+vi.mock("@/lib/places/google-places", () => ({
   fetchPlacePhotos: (...args: unknown[]) => fetchPlacePhotos(...args),
   pickPlacePhoto: ([first]: Array<{ name: string }>) =>
     first && { photo_resource_name: first.name, photo_url: `/api/places/photo?name=${encodeURIComponent(first.name)}&w=600&h=400` },
