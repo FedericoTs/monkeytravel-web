@@ -43,7 +43,7 @@ vi.mock("@/lib/ai/genai-compat", () => ({
     }
   },
 }));
-vi.mock("@/lib/gemini", () => ({ logCacheMetrics: vi.fn() }));
+vi.mock("@/lib/ai/cache-metrics", () => ({ logCacheMetrics: vi.fn() }));
 vi.mock("@/lib/api-gateway", () => ({ checkApiAccess: async () => ({ allowed: true }), logApiCall: vi.fn(async () => {}) }));
 vi.mock("@/lib/usage-limits", () => ({ checkUsageLimit: async () => ({ allowed: true }), incrementUsage: vi.fn(async () => {}) }));
 vi.mock("@/lib/ai/observability", () => ({ recordAiOutcome: vi.fn(async () => {}) }));
