@@ -81,13 +81,18 @@ describe("a pasted draft", () => {
     expect(note).toMatch(/none of its days could be mapped/);
   });
 
-  it("says what failed when the model answers without JSON, or not at all", async () => {
+  it("gives a plain reason when the model answers without JSON, or not at all, and logs the error's own text", async () => {
+    const reason = "The pasted draft could not be matched to the trip's days just now";
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
     reply = () => "I cannot help with that";
-    expect((await map()).error).toBe("Failed to map your draft onto the trip: Draft mapping returned no JSON");
+    expect((await map()).error).toBe(reason);
     reply = () => {
       throw new Error("model down");
     };
-    expect((await map()).error).toBe("Failed to map your draft onto the trip: model down");
+    expect((await map()).error).toBe(reason);
+    const log = logged.mock.calls.flat().map(String).join(" ");
+    expect(log).toContain("Draft mapping returned no JSON");
+    expect(log).toContain("model down");
   });
 });
 

@@ -113,7 +113,8 @@ export async function prepareAddDay(input: {
       return { action };
     } catch (err) {
       console.error("[AI Assistant] Failed to generate new day:", err);
-      return { error: `Failed to generate the new day: ${err instanceof Error ? err.message : "Unknown error"}` };
+      // The reply tells the user this reason, so the error's own text stays in the log.
+      return { error: "The new day could not be generated just now" };
     }
   }
 }
