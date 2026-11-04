@@ -331,6 +331,9 @@
         "working": "Lendo…",
         "cancel": "Cancelar",
         "error": "Não conseguimos ler esse plano. Tente novamente.",
+        "tooShort": "Cole um pouco mais: não encontramos um plano nesse texto.",
+        "nothingFound": "Não encontramos planos com data nesse texto. Tente incluir dias ou datas.",
+        "limit": "Você já usou suas importações gratuitas de hoje. Cadastre-se para continuar importando planos.",
         "added": "{count, plural, =0 {Nada a adicionar: já estava tudo lá} =1 {1 compromisso fixo adicionado} other {# compromissos fixos adicionados}}",
         "skipped": "{count, plural, =1 {1 ignorado:} other {# ignorados:}}",
         "undated": "{count, plural, =1 {1 ideia sem data foi para seus pedidos especiais} other {# ideias sem data foram para seus pedidos especiais}}"

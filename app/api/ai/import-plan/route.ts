@@ -44,8 +44,8 @@ import { readJsonBody } from "@/lib/api/json-body";
  *     "undated":  ["Uffizi at some point"]                  // → requirements box
  *   }
  *
- * Response 400: bad body / bad dates / range too long, or nothing plan-like
- *               found in the text (carries `reason: "nothing_found"`)
+ * Response 400: bad body / bad dates / range too long, or too little or nothing
+ *               plan-like in the text (carries `reason`: "too_short", "nothing_found")
  * Response 429: anonymous extraction budget exhausted
  * Response 503: Gemini failed
  */
@@ -129,12 +129,11 @@ export async function POST(request: NextRequest) {
       });
 
       if (extracted.error === "too_short") {
-        return errors.badRequest("Paste a bit more — we couldn't find a plan in that.");
+        return errors.badRequest("Paste a bit more — we couldn't find a plan in that.", { reason: "too_short" });
       }
       if (extracted.error === "nothing_found") {
         // Not a server error: the request was well-formed, the content just
-        // had no plan in it. `reason` lets the UI keep the user's text and
-        // show a hint instead of treating this as a failure.
+        // had no plan in it.
         return errors.badRequest(
           "We couldn't find any dated plans in that text. Try including days or dates.",
           { reason: "nothing_found" }
