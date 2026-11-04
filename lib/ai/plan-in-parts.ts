@@ -12,7 +12,7 @@ import { parseStreamedItinerary } from "@/lib/ai/itinerary-text";
 import { createDayParser, feedChunk } from "@/lib/streaming/day-parser";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { getModelForPurpose } from "@/lib/ai/model-router";
-import { addIsoDays } from "@/lib/dates/iso-date";
+import { placeDays } from "@/lib/ai/server-fields";
 import { splitIntoParts, type OutlineDay } from "@/lib/ai/trip-outline";
 import type { SupportedLanguage } from "@/lib/ai/language";
 import type { GeneratedItinerary, ItineraryDay, TripCreationParams } from "@/types";
@@ -52,18 +52,6 @@ export class PartsError extends Error {
   ) {
     super(message);
   }
-}
-
-/** A part's days, numbered and dated by their place in the trip, whatever the model wrote. */
-function placeDays<T extends object>(days: T[], range: Range, startDate: string): T[] {
-  return days.slice(0, range.to - range.from + 1).map(
-    (day, i) =>
-      ({
-        ...day,
-        day_number: range.from + i,
-        date: addIsoDays(startDate, range.from - 1 + i) ?? (day as { date?: string }).date,
-      }) as T
-  );
 }
 
 function startPart(
