@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { ItineraryDay } from "@/types";
-import { foundPhotos, hasStandInPhotos, keepStoredPlacePhotos, withFoundPhotos } from "./keep-place-photos";
+import { foundPhotos, hasStandInPhotos, keepStoredPlacePhotos, sameApartFromPhotos, withFoundPhotos } from "./keep-place-photos";
 
 /**
  * A page that loaded before the save-time photo enrichment landed must not put
@@ -10,6 +10,25 @@ import { foundPhotos, hasStandInPhotos, keepStoredPlacePhotos, withFoundPhotos }
 const photo = (name: string) => `/api/places/photo?ref=${name}`;
 const curated = "https://images.example/curated.jpg";
 const trip = (acts: Array<Record<string, unknown>>) => [{ day_number: 1, date: "2027-01-01", activities: acts }] as unknown as ItineraryDay[];
+
+describe("whether two plans differ in nothing but photos", () => {
+  const plan = (acts: Array<Record<string, unknown>>) => ({ title: "Prague", days: trip(acts) });
+
+  it("holds for the same plan, and across a photo found or changed", () => {
+    const stand = plan([{ id: "a1", name: "Alpha", image_url: curated }]);
+    expect(sameApartFromPhotos(stand, stand)).toBe(true);
+    expect(sameApartFromPhotos(stand, plan([{ id: "a1", name: "Alpha", image_url: photo("Alpha") }]))).toBe(true);
+    expect(sameApartFromPhotos(plan([{ id: "a1", name: "Alpha" }]), stand)).toBe(true);
+  });
+
+  it("fails for any other change", () => {
+    const base = plan([{ id: "a1", name: "Alpha" }]);
+    expect(sameApartFromPhotos(base, plan([{ id: "a1", name: "Beta" }]))).toBe(false);
+    expect(sameApartFromPhotos(base, plan([{ id: "a2", name: "Alpha" }]))).toBe(false);
+    expect(sameApartFromPhotos(base, plan([]))).toBe(false);
+    expect(sameApartFromPhotos(base, { ...base, title: "Brno" })).toBe(false);
+  });
+});
 
 describe("photos found when the trip is opened", () => {
   it("are looked for only while an activity shows a stand-in or nothing", () => {

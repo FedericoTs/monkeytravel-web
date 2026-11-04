@@ -37,6 +37,12 @@ export function foundPhotos(itinerary: ItineraryDay[] | undefined): Record<strin
   return photos;
 }
 
+/** Whether two plans differ in nothing but their activities' photos. */
+export function sameApartFromPhotos<P>(a: P, b: P): boolean {
+  const withoutPhotos = (plan: P) => JSON.stringify(plan, (key, value) => (key === "image_url" ? undefined : value));
+  return a === b || withoutPhotos(a) === withoutPhotos(b);
+}
+
 /** Those photos on the same activities, where they still show a stand-in; anything else unchanged. */
 export function withFoundPhotos(itinerary: ItineraryDay[], photos: Record<string, string>): ItineraryDay[] {
   return itinerary.map((day) => ({

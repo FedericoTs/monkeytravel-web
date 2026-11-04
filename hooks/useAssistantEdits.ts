@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { addIsoDaysOrThrow } from "@/lib/dates/iso-date";
 import { createUndoLedger } from "@/lib/trip/assistant-undo";
 import { applyAssistantEdits, type AssistantDayEdit } from "@/lib/trips/day-edit-merge";
+import { foundPhotos, sameApartFromPhotos, withFoundPhotos } from "@/lib/trips/keep-place-photos";
 import { withDays } from "@/lib/trips/plan-days";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import type { GeneratedItinerary } from "@/types";
@@ -18,7 +19,9 @@ import type { GeneratedItinerary } from "@/types";
  * lib/trips/day-edit-merge.ts), and the first changed day scrolls into view.
  *
  * `applyEdits` returns what `undoEdits` takes to put the plan and end date back,
- * only while nothing else has changed the plan since (lib/trip/assistant-undo.ts).
+ * only while nothing but photos has changed the plan since
+ * (lib/trip/assistant-undo.ts). Photos arrive by themselves seconds after a plan
+ * changes (hooks/usePlanPhotos.ts), and the ones found since stay.
  * `hasEdits` says whether the plan on screen has edits a full regenerate would
  * discard; every generation calls `forgetEdits`.
  */
@@ -39,7 +42,7 @@ export function useAssistantEdits({
   noteEditApplied: () => void;
 }) {
   const edited = useRef(false);
-  const undo = useRef(createUndoLedger<GeneratedItinerary, string>());
+  const undo = useRef(createUndoLedger<GeneratedItinerary, string>(sameApartFromPhotos));
 
   // Mirrored so the handlers read current values without being recreated on
   // every change. The plan is also written as an edit applies: a second reply
@@ -83,10 +86,11 @@ export function useAssistantEdits({
   const undoEdits = useCallback(
     (undoId: string): boolean => {
       const current = planRef.current;
-      const entry = current ? undo.current.take(undoId, current) : null;
-      if (!entry) return false;
-      planRef.current = entry.before;
-      onPlan(entry.before);
+      const entry = current && undo.current.take(undoId, current);
+      if (!current || !entry) return false;
+      const restored = { ...entry.before, days: withFoundPhotos(entry.before.days, foundPhotos(current.days)) };
+      planRef.current = restored;
+      onPlan(restored);
       onEndDate(entry.extra);
       return true;
     },
