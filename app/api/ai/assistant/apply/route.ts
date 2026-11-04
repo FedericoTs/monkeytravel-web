@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { TRIP_COLUMNS } from "@/lib/trips/columns";
-import type { ItineraryDay, Activity } from "@/types";
+import type { ItineraryDay } from "@/types";
 import { errors, apiError, apiSuccess } from "@/lib/api/response-wrapper";
 import { ASSISTANT_ERROR_CODES as CODES } from "@/lib/ai/assistant/error-message";
 import {
@@ -11,59 +11,11 @@ import {
   ASSISTANT_DATES_OWNER_ONLY_MESSAGE,
 } from "@/lib/ai/assistant-access";
 import { recordAiOutcome } from "@/lib/ai/observability";
-import { ensureActivityIds } from "@/lib/utils/activity-id";
-import { isLockedActivity, lockedActivityNames } from "@/lib/ai/anchors-core";
-import {
-  MAX_TRIP_DAYS,
-  maxTripDays,
-  nextDateISO,
-  computeExtendedEndDate,
-  addDaysISO,
-} from "@/lib/ai/assistant/structural";
+import { applyChange, invalidChange, type ApplyChangeRequest } from "@/lib/ai/assistant/apply-change";
 import { markProposalApplied } from "@/lib/ai/assistant/thread";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { requireRow } from "@/lib/api/require-row";
 import { readJsonBody } from "@/lib/api/json-body";
-
-interface ApplyChangeRequest {
-  tripId: string;
-  /**
-   * The conversation this confirmation belongs to, so the transcript can be
-   * annotated once the write succeeds. Optional: an older client that does not
-   * send it still applies the change, it just leaves history unannotated.
-   */
-  conversationId?: string;
-  changeType: "replace" | "add" | "remove" | "adjust_duration" | "add_day" | "apply_draft" | "shift_days";
-  oldActivity?: Activity;
-  newActivity?: Activity;
-  dayNumber: number;
-  // For adjust_duration
-  activity?: { id: string; name: string; type: string };
-  oldDuration?: number;
-  newDuration?: number;
-  // For add_day (structural — transcript: "can you add a day to travel to
-  // Voss"): the fully generated day proposed in preview.
-  day?: ItineraryDay;
-  // For apply_draft (structural — users pasting whole multi-day drafts):
-  // the revised replacement days, persisted in ONE write. Days past the
-  // trip's end are the assistant adding days (owner only).
-  days?: ItineraryDay[];
-  // For shift_days (P2 Stage C — the cancelled-flight primitive): every day
-  // from `dayNumber` onward moves this many days LATER (1-7). The resulting
-  // calendar hole before `dayNumber` is the point — extra free days where
-  // the traveller currently is. start_date moves too when dayNumber === 1.
-  shiftByDays?: number;
-}
-
-const CHANGE_TYPES: ReadonlySet<string> = new Set<ApplyChangeRequest["changeType"]>([
-  "replace",
-  "add",
-  "remove",
-  "adjust_duration",
-  "add_day",
-  "apply_draft",
-  "shift_days",
-]);
 
 export async function POST(request: NextRequest) {
   const requestStartTime = Date.now();
@@ -75,47 +27,10 @@ export async function POST(request: NextRequest) {
 
     const { body, invalidBody } = await readJsonBody<ApplyChangeRequest>(request);
     if (invalidBody) return invalidBody;
-    const { tripId, changeType, oldActivity, newActivity, dayNumber, activity, oldDuration, newDuration, day, days, shiftByDays, conversationId } = body;
+    const { tripId, changeType, conversationId } = body;
 
-    // Validate based on change type.
-    // A type check, not `!dayNumber`: 0 is a valid first day in trips that
-    // use 0-indexed day numbering.
-    if (!tripId || !changeType || typeof dayNumber !== "number") {
-      return errors.badRequest("Missing required fields: tripId, changeType, dayNumber");
-    }
-
-    // No branch below would match another type, and the unchanged trip would
-    // be saved and reported as a success.
-    if (!CHANGE_TYPES.has(changeType)) {
-      return errors.badRequest("Unknown changeType");
-    }
-
-    // Specific validation per change type
-    if ((changeType === "replace" || changeType === "add") && !newActivity) {
-      return errors.badRequest("Missing newActivity for replace/add operation");
-    }
-
-    if (changeType === "adjust_duration" && (!activity || newDuration === undefined)) {
-      return errors.badRequest("Missing activity or newDuration for adjust_duration operation");
-    }
-
-    if (changeType === "add_day" && (!day || !Array.isArray(day.activities) || day.activities.length === 0)) {
-      return errors.badRequest("Missing day (with activities) for add_day operation");
-    }
-
-    if (changeType === "apply_draft" && (!Array.isArray(days) || days.length === 0)) {
-      return errors.badRequest("Missing days for apply_draft operation");
-    }
-
-    if (
-      changeType === "shift_days" &&
-      (typeof shiftByDays !== "number" ||
-        !Number.isInteger(shiftByDays) ||
-        shiftByDays < 1 ||
-        shiftByDays > 7)
-    ) {
-      return errors.badRequest("shiftByDays must be an integer between 1 and 7");
-    }
+    const invalid = invalidChange(body);
+    if (invalid) return errors.badRequest(invalid);
 
     // Fetch current trip. The owner and invited editors may apply
     // (lib/ai/assistant-access.ts).
@@ -137,270 +52,17 @@ export async function POST(request: NextRequest) {
       return errors.forbidden(ASSISTANT_DATES_OWNER_ONLY_MESSAGE, CODES.datesOwnerOnly);
     }
 
-    const itinerary = (trip.itinerary || []) as ItineraryDay[];
-    const dayIndex = dayNumber - 1;
-
-    // add_day APPENDS: its dayNumber sits one past the current end by
-    // design, so the in-range check below would always reject it. Nor does it
-    // apply to apply_draft: its days are matched one by one below, and the
-    // page sends the first changed day, which is a new day when days are added.
-    if (changeType !== "add_day" && changeType !== "apply_draft" && (dayIndex < 0 || dayIndex >= itinerary.length)) {
-      return errors.badRequest("Invalid day number", { code: CODES.outdated });
-    }
-
-    // Deep clone for modification
-    const modifiedItinerary: ItineraryDay[] = JSON.parse(JSON.stringify(itinerary));
-
-    // ── F1 anchor guard ────────────────────────────────────────────────
-    // This is the endpoint that PERSISTS, and it's "also callable directly"
-    // (see the ensureActivityIds note below), so it enforces the rule itself
-    // rather than trusting the proposal step to have done it. Anchors stay
-    // user-owned: removable by hand in the fixed-plans panel, never by the AI.
-    const anchorTarget =
-      changeType === "replace" || changeType === "remove"
-        ? oldActivity
-        : changeType === "adjust_duration"
-          ? activity
-          : undefined;
-
-    if (anchorTarget) {
-      const target = modifiedItinerary[dayIndex]?.activities.find(
-        (a) => a.id === anchorTarget.id || a.name === anchorTarget.name
-      );
-      if (isLockedActivity(target)) {
-        return errors.badRequest(
-          `"${target?.name}" is a fixed plan and can't be changed here. Edit it in the trip's fixed plans instead.`,
-          { code: CODES.locked, names: [target?.name].filter(Boolean) }
-        );
-      }
-    } else if (changeType === "apply_draft") {
-      // Only the days being replaced: the assistant's multi-day edits leave
-      // a day with a fixed plan alone, and so may this write.
-      const replacing = new Set((days ?? []).map((d) => d?.day_number));
-      const locked = modifiedItinerary
-        .filter((d) => replacing.has(d.day_number))
-        .flatMap((d) => lockedActivityNames(d));
-      if (locked.length > 0) {
-        return errors.badRequest(
-          `Days built around fixed plans (${locked.slice(0, 3).join(", ")}) can't be rewritten.`,
-          { code: CODES.locked, names: locked }
-        );
-      }
-    } else if (changeType === "shift_days") {
-      // Shifting dates would silently move date-pinned commitments (a booked
-      // flight, a wedding) to days they don't belong to — refuse when any
-      // affected day carries a locked activity.
-      const locked = modifiedItinerary
-        .slice(dayIndex)
-        .flatMap((d) => lockedActivityNames(d));
-      if (locked.length > 0) {
-        return errors.badRequest(
-          `Days ${dayNumber} onward include fixed plans (${locked.slice(0, 3).join(", ")}) whose dates can't be moved.`,
-          { code: CODES.locked, names: locked }
-        );
-      }
-    }
-
-    if (changeType === "replace" && oldActivity && newActivity) {
-      // Find and replace the activity
-      const activityIndex = modifiedItinerary[dayIndex].activities.findIndex(
-        (a) => a.id === oldActivity.id || a.name === oldActivity.name
-      );
-
-      if (activityIndex === -1) {
-        return apiError("Activity not found in itinerary", { status: 404, code: CODES.outdated });
-      }
-
-      // Preserve original time slot and start time
-      newActivity.start_time = modifiedItinerary[dayIndex].activities[activityIndex].start_time;
-      newActivity.time_slot = modifiedItinerary[dayIndex].activities[activityIndex].time_slot;
-
-      modifiedItinerary[dayIndex].activities[activityIndex] = newActivity;
-      console.log(`[AI Assistant Apply] Replaced "${oldActivity.name}" with "${newActivity.name}"`);
-    } else if (changeType === "add" && newActivity) {
-      // Add the new activity and sort by time
-      modifiedItinerary[dayIndex].activities.push(newActivity);
-      modifiedItinerary[dayIndex].activities.sort((a, b) =>
-        (a.start_time || "").localeCompare(b.start_time || "")
-      );
-      console.log(`[AI Assistant Apply] Added "${newActivity.name}" to Day ${dayNumber}`);
-    } else if (changeType === "remove" && oldActivity) {
-      // Find and remove the activity
-      const activityIndex = modifiedItinerary[dayIndex].activities.findIndex(
-        (a) => a.id === oldActivity.id || a.name === oldActivity.name
-      );
-
-      if (activityIndex === -1) {
-        return apiError("Activity not found in itinerary", { status: 404, code: CODES.outdated });
-      }
-
-      modifiedItinerary[dayIndex].activities.splice(activityIndex, 1);
-      console.log(`[AI Assistant Apply] Removed "${oldActivity.name}" from Day ${dayNumber}`);
-    } else if (changeType === "adjust_duration" && activity && newDuration !== undefined) {
-      // Find the activity and adjust its duration
-      const activityIndex = modifiedItinerary[dayIndex].activities.findIndex(
-        (a) => a.id === activity.id || a.name === activity.name
-      );
-
-      if (activityIndex === -1) {
-        return apiError("Activity not found in itinerary", { status: 404, code: CODES.outdated });
-      }
-
-      // Update the duration
-      modifiedItinerary[dayIndex].activities[activityIndex].duration_minutes = newDuration;
-
-      // Adjust subsequent activities' start times
-      const dayActivities = modifiedItinerary[dayIndex].activities;
-      for (let i = activityIndex + 1; i < dayActivities.length; i++) {
-        const prevActivity = dayActivities[i - 1];
-        const [prevHours, prevMins] = (prevActivity.start_time || "09:00").split(":").map(Number);
-        const prevEnd = prevHours * 60 + prevMins + (prevActivity.duration_minutes || 60);
-        const newHours = Math.floor(prevEnd / 60);
-        const newMins = prevEnd % 60;
-        dayActivities[i].start_time = `${String(newHours).padStart(2, "0")}:${String(newMins).padStart(2, "0")}`;
-      }
-
-      console.log(`[AI Assistant Apply] Adjusted "${activity.name}" duration from ${oldDuration || "unknown"}min to ${newDuration}min`);
-    }
-
-    // Structural results threaded into the update + response below.
-    let newEndDate: string | null = null;
-    let newStartDate: string | null = null;
-    let appliedDayNumber = dayNumber;
-    let daysUpdatedCount: number | undefined;
-    let structuralName: string | undefined;
-
-    if (changeType === "shift_days" && typeof shiftByDays === "number") {
-      // Push every day from dayNumber to the end `shiftByDays` days later.
-      // day_numbers stay 1..N ordinals; only dates (and the trip window)
-      // move. The calendar gap this opens before dayNumber is deliberate.
-      let shifted = 0;
-      for (let i = dayIndex; i < modifiedItinerary.length; i++) {
-        const newDate = addDaysISO(modifiedItinerary[i].date, shiftByDays);
-        if (newDate) {
-          modifiedItinerary[i].date = newDate;
-          shifted++;
-        }
-      }
-      if (shifted === 0) {
-        return errors.badRequest("None of the affected days have a parseable date to shift");
-      }
-      const lastDay = modifiedItinerary[modifiedItinerary.length - 1];
-      // end_date moves in the SAME write as the itinerary (add_day precedent).
-      // Fallback via the shifted last day covers rows with a mangled end_date.
-      newEndDate =
-        addDaysISO(trip.end_date as string | undefined, shiftByDays) ??
-        computeExtendedEndDate(trip.end_date as string | undefined, lastDay.date);
-      if (dayNumber === 1) {
-        // Whole-trip shift ("our outbound flight moved") — the start moves too.
-        newStartDate = addDaysISO(trip.start_date as string | undefined, shiftByDays);
-      }
-      daysUpdatedCount = shifted;
-      structuralName = `Day ${dayNumber}–${lastDay.day_number} +${shiftByDays}d`;
-      console.log(`[AI Assistant Apply] Shifted days ${dayNumber}-${lastDay.day_number} by +${shiftByDays}d, end_date → ${newEndDate ?? "unchanged"}`);
-    }
-
-    if (changeType === "add_day" && day) {
-      // Re-validate against the STORED trip (not the preview snapshot):
-      // cap first — the 14-day platform maximum must hold even if the
-      // itinerary grew between preview and confirm.
-      if (modifiedItinerary.length >= MAX_TRIP_DAYS) {
-        return errors.badRequest(`Trip is already at the ${MAX_TRIP_DAYS}-day maximum`, { code: CODES.tooManyDays, max: MAX_TRIP_DAYS });
-      }
-
-      const lastDay = modifiedItinerary[modifiedItinerary.length - 1];
-      const lastNumber = lastDay?.day_number ?? modifiedItinerary.length;
-      // Recompute number/date server-side so a stale preview can't append
-      // a duplicate day_number or a gap in the date sequence.
-      const appended: ItineraryDay = {
-        ...day,
-        day_number: lastNumber + 1,
-      };
-      const recomputedDate = nextDateISO([lastDay?.date, trip.end_date as string | undefined]);
-      if (recomputedDate) appended.date = recomputedDate;
-      if (lastDay?.city && !appended.city) appended.city = lastDay.city;
-
-      modifiedItinerary.push(appended);
-      appliedDayNumber = appended.day_number;
-      // Badge name: the day's theme reads best ("Day 12 added · Fjord day");
-      // fall back to the first activity so it never says "Schedule".
-      structuralName = appended.theme || appended.activities[0]?.name;
-      // The trips row's end date extends together with the itinerary — in
-      // the SAME write (below), never as a second call that can half-fail.
-      newEndDate = computeExtendedEndDate(trip.end_date as string | undefined, appended.date);
-      console.log(`[AI Assistant Apply] Appending Day ${appended.day_number} (${appended.date}), end_date → ${newEndDate ?? "unchanged"}`);
-    } else if (changeType === "apply_draft" && days) {
-      // Replace matching days in place; days the draft didn't cover stay
-      // untouched. Days past the end are new days the assistant added
-      // ("aggiungi altri 7 giorni"): appended below.
-      const indexByNumber = new Map(modifiedItinerary.map((d, i) => [d.day_number, i] as const));
-      const lastNumber = modifiedItinerary[modifiedItinerary.length - 1]?.day_number ?? modifiedItinerary.length;
-      const appended: ItineraryDay[] = [];
-      let updated = 0;
-      for (const revised of days) {
-        const idx = indexByNumber.get(revised?.day_number);
-        if (idx === undefined) {
-          if (revised?.day_number > lastNumber && Array.isArray(revised.activities) && revised.activities.length > 0) {
-            appended.push(revised);
-          }
-          continue; // unknown day: skip
-        }
-        // Identity fields stay pinned to the stored day (defense in depth —
-        // the assistant route already pins them, see structural.ts).
-        modifiedItinerary[idx] = {
-          ...revised,
-          day_number: modifiedItinerary[idx].day_number,
-          date: modifiedItinerary[idx].date,
-          city: modifiedItinerary[idx].city,
-        };
-        if (updated === 0) appliedDayNumber = modifiedItinerary[idx].day_number;
-        updated++;
-      }
-      if (appended.length > 0) {
-        // New days move the trip's end date, which stays with the owner.
-        if (assistantRole !== "owner") {
-          return errors.forbidden(ASSISTANT_DATES_OWNER_ONLY_MESSAGE, CODES.datesOwnerOnly);
-        }
-        const cap = maxTripDays(modifiedItinerary);
-        if (modifiedItinerary.length + appended.length > cap) {
-          return errors.badRequest(`Trips can have at most ${cap} days`, { code: CODES.tooManyDays, max: cap });
-        }
-        // Numbered and dated from the STORED last day, as add_day does, so a
-        // stale preview can't leave a gap or a duplicate day.
-        for (const day of appended.sort((a, b) => a.day_number - b.day_number)) {
-          const last = modifiedItinerary[modifiedItinerary.length - 1];
-          const date = nextDateISO([last?.date, trip.end_date as string | undefined]);
-          const city = day.city || last?.city;
-          modifiedItinerary.push({
-            ...day,
-            day_number: (last?.day_number ?? modifiedItinerary.length) + 1,
-            ...(date ? { date } : {}),
-            ...(city ? { city } : {}),
-          });
-        }
-        if (updated === 0) appliedDayNumber = lastNumber + 1;
-        newEndDate = computeExtendedEndDate(
-          trip.end_date as string | undefined,
-          modifiedItinerary[modifiedItinerary.length - 1].date,
-        );
-        updated += appended.length;
-      }
-      if (updated === 0) {
-        return errors.badRequest("None of the revised days matched the trip", { code: CODES.outdated });
-      }
-      daysUpdatedCount = updated;
-      console.log(
-        `[AI Assistant Apply] Applied draft revision to ${updated} day(s)${appended.length ? `, ${appended.length} added, end_date → ${newEndDate ?? "unchanged"}` : ""}`,
-      );
-    }
-
-    if (changeType === "add_day" || changeType === "apply_draft") {
-      // Belt-and-braces: every activity needs an id for drag/edit paths.
-      // (The assistant route stamps them, but /apply is also callable
-      // directly.)
-      const withIds = ensureActivityIds(modifiedItinerary);
-      modifiedItinerary.splice(0, modifiedItinerary.length, ...withIds);
-    }
+    const outcome = applyChange(
+      body,
+      {
+        itinerary: (trip.itinerary || []) as ItineraryDay[],
+        startDate: trip.start_date as string | undefined,
+        endDate: trip.end_date as string | undefined,
+      },
+      assistantRole
+    );
+    if (outcome.refused) return outcome.refused;
+    const { days: modifiedItinerary, newEndDate, newStartDate, dayNumber: appliedDayNumber, dayCount, name } = outcome.applied;
 
     // Save to database.
     //
@@ -467,8 +129,8 @@ export async function POST(request: NextRequest) {
         applied: true,
         dayNumber: appliedDayNumber,
         // apply_draft: drives the "{count} days updated" badge.
-        ...(daysUpdatedCount !== undefined ? { dayCount: daysUpdatedCount } : {}),
-        activityName: structuralName || newActivity?.name || activity?.name || "Schedule",
+        ...(dayCount !== undefined ? { dayCount } : {}),
+        activityName: name,
       },
     });
   } catch (error) {
