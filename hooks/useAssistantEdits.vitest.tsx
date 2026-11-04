@@ -227,6 +227,35 @@ describe("undoing a reply", () => {
     expect(now().plan).toEqual(original);
   });
 
+  it("once every reply is undone, the plan has no edits to lose", () => {
+    const { now, undoId } = applied([edit(1, "Market")]);
+    let later = "";
+    act(() => {
+      later = now().applyEdits([edit(2, "Museum")])!;
+    });
+    undo(now, later);
+    expect(now().hasEdits()).toBe(true);
+    undo(now, undoId);
+    expect(now().hasEdits()).toBe(false);
+  });
+
+  it("an undo after a generation that kept the plan doesn't hide the next edit", () => {
+    const { now, undoId } = applied([edit(1, "Market")]);
+    act(() => now().forgetEdits());
+    expect(undo(now, undoId)).toBe(true);
+    act(() => {
+      now().applyEdits([edit(2, "Museum")]);
+    });
+    expect(now().hasEdits()).toBe(true);
+  });
+
+  it("a refused undo leaves the edits counted", () => {
+    const { now, undoId } = applied([edit(1, "Market")]);
+    act(() => now().setPlan(plan()));
+    expect(undo(now, undoId)).toBe(false);
+    expect(now().hasEdits()).toBe(true);
+  });
+
   it("two undos before a render take back both replies", () => {
     const { now, original, undoId } = applied([edit(1, "Market")]);
     let later = "";
