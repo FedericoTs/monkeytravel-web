@@ -456,6 +456,7 @@
       "destination": "We couldn't use that destination. Enter just the place name: a city, region or country.",
       "fixed_plans": "One of your fixed plans doesn't fit the trip. Check its day and time, or remove it.",
       "notes": "Something in your must-see list or special requirements can't be used. Shorten or reword it, then try again.",
+      "style": "Check your travel style: choose one to three vibes and a budget, then try again.",
       "other": "Some trip details need changing before we can build this itinerary."
     }
   },

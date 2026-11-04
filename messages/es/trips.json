@@ -456,6 +456,7 @@
       "destination": "No pudimos usar ese destino. Escribe solo el nombre del lugar: una ciudad, región o país.",
       "fixed_plans": "Uno de tus planes fijos no encaja en el viaje. Revisa su día y hora, o elimínalo.",
       "notes": "Algo de lo que quieres ver, hacer o probar, o de tus requisitos especiales, no se puede usar. Acórtalo o escríbelo de otra forma e inténtalo de nuevo.",
+      "style": "Revisa tu estilo de viaje: elige entre uno y tres estilos y un presupuesto, e inténtalo de nuevo.",
       "other": "Hay que cambiar algunos datos del viaje antes de crear este itinerario."
     }
   },
