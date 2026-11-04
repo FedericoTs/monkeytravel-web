@@ -10,18 +10,16 @@
  *   KEY_FLOWS_AUTH_STATE=.auth/owner.json npx playwright test tests/e2e/expense-ledger.spec.ts --project=chromium
  */
 import { test, expect, type Page } from "@playwright/test";
-import { existsSync, readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { envVar } from "./env";
+import { envVar, readManifest } from "./env";
 
 const SUPA_URL = envVar("NEXT_PUBLIC_SUPABASE_URL");
 const SERVICE_KEY = envVar("SUPABASE_SERVICE_ROLE_KEY");
 const AUTH_STATE = process.env.KEY_FLOWS_AUTH_STATE;
-const MANIFEST = ".auth/e2e-fixtures.json";
 
 type Users = Record<"owner" | "mate" | "voter", { id: string; name: string }>;
-const users: Users | null = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, "utf8")).users : null;
+const users: Users | null = readManifest()?.users ?? null;
 const ROLES = { owner: "owner", mate: "editor", voter: "voter" } as const;
 
 function iso(offsetDays: number): string {

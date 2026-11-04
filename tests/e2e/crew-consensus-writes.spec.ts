@@ -1,6 +1,5 @@
 import { test, expect, request as pwRequest } from "@playwright/test";
-import { readFileSync, existsSync } from "node:fs";
-import { serviceCreds } from "./env";
+import { serviceCreds, serviceDb, readManifest } from "./env";
 
 /**
  * When a crew approves a proposal, the activity must actually reach the trip.
@@ -41,24 +40,12 @@ import { serviceCreds } from "./env";
  *   BASE_URL=http://localhost:3001 npx playwright test crew-consensus
  */
 
-const MANIFEST = ".auth/e2e-fixtures.json";
-
-async function db() {
-  const { createClient } = await import("@supabase/supabase-js");
-  const { url, key } = serviceCreds();
-  return createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
-const manifest = existsSync(MANIFEST)
-  ? JSON.parse(readFileSync(MANIFEST, "utf8"))
-  : null;
+const manifest = readManifest();
 const tripId: string | undefined = manifest?.tripId;
 
 /** Activity names on day 1, straight from the row. */
 async function dayOneNames(): Promise<string[]> {
-  const sb = await db();
+  const sb = await serviceDb();
   const { data } = await sb.from("trips").select("itinerary").eq("id", tripId!).maybeSingle();
   const days = Array.isArray((data as { itinerary?: unknown })?.itinerary)
     ? ((data as { itinerary: unknown[] }).itinerary as Array<{ activities?: Array<{ name?: string }> }>)
@@ -78,7 +65,7 @@ test.describe("crew consensus actually writes", () => {
   const ACTIVITY_NAME = "Consensus Test Rooftop Bar";
 
   test.beforeEach(async () => {
-    const sb = await db();
+    const sb = await serviceDb();
     const { data } = await sb.from("trips").select("itinerary").eq("id", tripId!).maybeSingle();
     snapshot = (data as { itinerary?: unknown } | null)?.itinerary ?? null;
 
@@ -89,7 +76,7 @@ test.describe("crew consensus actually writes", () => {
       .from("activity_proposals")
       .insert({
         trip_id: tripId,
-        proposed_by: manifest.users.owner.id,
+        proposed_by: manifest!.users.owner.id,
         // activity_proposals_type_check allows only 'new' | 'replacement'.
         type: "new",
         status: "voting",
@@ -116,7 +103,7 @@ test.describe("crew consensus actually writes", () => {
   });
 
   test.afterEach(async () => {
-    const sb = await db();
+    const sb = await serviceDb();
     if (proposalId) {
       await sb.from("proposal_votes").delete().eq("proposal_id", proposalId);
       await sb.from("activity_proposals").delete().eq("id", proposalId);
@@ -167,7 +154,7 @@ test.describe("crew consensus actually writes", () => {
     await vote("owner", "love");
     await vote("voter", "love");
 
-    const sb = await db();
+    const sb = await serviceDb();
     const { data } = await sb
       .from("activity_proposals")
       .select("status, resolved_at")

@@ -1,7 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
-import { readFileSync, existsSync } from "node:fs";
 import { visibleWithin } from "./helpers";
-import { serviceCreds } from "./env";
+import { serviceCreds, serviceDb, readManifest } from "./env";
 
 /**
  * The AI assistant must never say it changed the trip unless it did.
@@ -53,19 +52,7 @@ import { serviceCreds } from "./env";
  */
 
 const AUTH_STATE = process.env.ASSISTANT_AUTH_STATE ?? ".auth/owner.json";
-const MANIFEST = ".auth/e2e-fixtures.json";
-
-async function db() {
-  const { createClient } = await import("@supabase/supabase-js");
-  const { url, key } = serviceCreds();
-  return createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
-const ownerId: string | undefined = existsSync(MANIFEST)
-  ? JSON.parse(readFileSync(MANIFEST, "utf8")).users?.owner?.id
-  : undefined;
+const ownerId: string | undefined = readManifest()?.users.owner.id;
 
 /**
  * This spec's own trip, created in beforeAll and destroyed in afterAll.
@@ -89,7 +76,7 @@ const DAY_ONE = [
 
 /** Every activity name in the trip, straight from the row. */
 async function activityNames(id: string): Promise<string[]> {
-  const sb = await db();
+  const sb = await serviceDb();
   const { data } = await sb.from("trips").select("itinerary").eq("id", id).maybeSingle();
   const days = Array.isArray((data as { itinerary?: unknown })?.itinerary)
     ? ((data as { itinerary: unknown[] }).itinerary as Array<{ activities?: Array<{ name?: string }> }>)
@@ -99,7 +86,7 @@ async function activityNames(id: string): Promise<string[]> {
 
 /** The persisted transcript for this trip, newest conversation first. */
 async function lastActions(id: string) {
-  const sb = await db();
+  const sb = await serviceDb();
   const { data } = await sb
     .from("ai_conversations")
     .select("messages, updated_at")
@@ -188,7 +175,7 @@ test.describe("assistant honesty", () => {
 
   test.beforeAll(async () => {
     if (!ownerId || !serviceCreds().url || !serviceCreds().key) return;
-    const sb = await db();
+    const sb = await serviceDb();
     const start = new Date(Date.now() + 21 * 86_400_000).toISOString().slice(0, 10);
     const end = new Date(Date.now() + 23 * 86_400_000).toISOString().slice(0, 10);
     const { data, error } = await sb
@@ -212,13 +199,13 @@ test.describe("assistant honesty", () => {
 
   test.afterAll(async () => {
     if (!tripId) return;
-    const sb = await db();
+    const sb = await serviceDb();
     await sb.from("ai_conversations").delete().eq("trip_id", tripId);
     await sb.from("trips").delete().eq("id", tripId);
   });
 
   test.beforeEach(async () => {
-    const sb = await db();
+    const sb = await serviceDb();
     const { data } = await sb.from("trips").select("itinerary").eq("id", tripId).maybeSingle();
     snapshot = (data as { itinerary?: unknown } | null)?.itinerary ?? null;
     // Start every test from an empty transcript. Otherwise assertions about
@@ -235,7 +222,7 @@ test.describe("assistant honesty", () => {
     // to a real row — the fixture trip — by design; there is no second
     // database, which is why the restore is not optional.
     if (snapshot === null) return;
-    const sb = await db();
+    const sb = await serviceDb();
     await sb.from("trips").update({ itinerary: snapshot }).eq("id", tripId);
   });
 
