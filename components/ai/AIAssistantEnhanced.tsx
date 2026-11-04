@@ -42,7 +42,7 @@ interface Message {
 
 // PendingChange (the confirm-first proposed-change union) is defined in and
 // imported from ./PreviewChangeCard — it mirrors the server's `pendingChange`
-// discriminated union (replace | add | adjust_duration | reorder).
+// discriminated union.
 
 interface AIAssistantEnhancedProps {
   tripId: string;
@@ -507,7 +507,7 @@ export default function AIAssistantEnhanced({
       );
 
       // Human label for the undo toast. newActivity is undefined for
-      // adjust_duration/reorder, so derive the name/description per type
+      // adjust_duration, so derive the name/description per type
       // instead of reading pendingChange.newActivity.name blindly (crash).
       const changedName =
         pendingChange.type === "replace" || pendingChange.type === "add"
@@ -535,8 +535,6 @@ export default function AIAssistantEnhanced({
             return t("undoActions.addedDay", { number: confirmedDayNumber });
           case "apply_draft":
             return t("undoActions.updatedDays", { count: pendingChange.days.length });
-          case "reorder":
-            return t("undoActions.reordered", { number: pendingChange.dayNumber });
           case "shift_days":
             return t("undoActions.shifted", { number: pendingChange.dayNumber, count: pendingChange.shiftByDays });
         }
