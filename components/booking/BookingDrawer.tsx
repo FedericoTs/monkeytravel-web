@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useId } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { formatDateRange } from "@/lib/datetime";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
 import { X, Plane, MapPin, Clock } from "lucide-react";
 import { getCityIATA, CITY_IATA_CODES } from "@/lib/affiliates";
@@ -37,6 +38,7 @@ export default function BookingDrawer({
   tripId,
 }: BookingDrawerProps) {
   const t = useTranslations("common.booking");
+  const locale = useLocale();
   const [originCity, setOriginCity] = useState("");
   const [recentOrigins, setRecentOrigins] = useState<string[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -194,7 +196,7 @@ export default function BookingDrawer({
                   {t("whereFlying")}
                 </h3>
                 <p className="text-sm text-slate-500">
-                  {destination} · {formatDateRange(startDate, endDate)}
+                  {destination} · {formatDateRange(startDate, endDate, locale)}
                 </p>
               </div>
             </div>
@@ -283,14 +285,4 @@ export default function BookingDrawer({
       </div>
     </>
   );
-}
-
-// Helper function
-function formatDateRange(start: string, end: string): string {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-
-  const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
-
-  return `${startDate.toLocaleDateString("en-US", options)} - ${endDate.toLocaleDateString("en-US", options)}`;
 }

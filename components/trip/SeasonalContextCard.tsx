@@ -12,6 +12,7 @@ import {
 } from "@/lib/seasonal";
 import { useLocale, formatTemperatureRange } from "@/lib/locale";
 import { isPlausibleTripRange } from "@/lib/dates/iso-date";
+import { formatDateRange } from "@/lib/datetime";
 
 // The seasonal lib emits English `reason` strings (it's a pure-data lib with
 // no i18n coupling). We map those well-known strings back to translation keys
@@ -27,15 +28,6 @@ const VIBE_REASON_KEY_BY_ENGLISH: Record<string, string> = {
   "Cozy vintage cafes and autumn colors": "autumnRetro",
   "Perfect for spa retreats and cozy escapes": "winter",
 };
-
-// next-intl BCP-47 locale → toLocaleDateString tag. Matches the convention
-// used in app/[locale]/backpacker/page.tsx for date display.
-function intlLocaleTag(locale: string): string {
-  if (locale === "es") return "es-ES";
-  if (locale === "it") return "it-IT";
-  if (locale === "pt") return "pt-BR";
-  return "en-US";
-}
 
 // One weather request per settled edit, not one per keystroke. The day digits
 // of a valid date are valid dates too (2026-10-03 on the way to 2026-10-30);
@@ -202,28 +194,6 @@ export default function SeasonalContextCard({
     return null;
   }
 
-  const formatDateRange = () => {
-    // Parse YYYY-MM-DD as a LOCAL date (not UTC). `new Date(iso)` is UTC
-    // midnight, which toLocaleDateString shows as the previous day west of
-    // UTC (Jun 15-20 would read Jun 14-19). The multi-arg Date constructor
-    // avoids the UTC interpretation.
-    const parseLocal = (iso: string): Date => {
-      const [y, m, d] = iso.split("-").map((n) => parseInt(n, 10));
-      return new Date(y, m - 1, d);
-    };
-    const start = parseLocal(startDate);
-    const end = endDate ? parseLocal(endDate) : null;
-    const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" };
-    // Locale-aware date formatting — previously hardcoded "en-US" which
-    // shipped English month names ("Jun 15, 2026") even on /it /es pages.
-    const tag = intlLocaleTag(locale);
-
-    if (end) {
-      return `${start.toLocaleDateString(tag, options)} - ${end.toLocaleDateString(tag, options)}`;
-    }
-    return start.toLocaleDateString(tag, options);
-  };
-
   const getSeasonLabel = () => {
     // "Spring Season" / "Stagione Primavera" / "Temporada de Primavera"
     return t("seasonLabel", { season: t(`seasons.${seasonalContext.season}`) });
@@ -255,7 +225,7 @@ export default function SeasonalContextCard({
               <div className="text-sm font-semibold text-slate-900">
                 {getSeasonLabel()}
               </div>
-              <div className="text-xs text-slate-500">{formatDateRange()}</div>
+              <div className="text-xs text-slate-500">{formatDateRange(startDate, endDate || startDate, locale)}</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
