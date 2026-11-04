@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { createElement } from "react";
+import { renderToString } from "react-dom/server";
 import { act, renderHook } from "@testing-library/react";
 import { useMultiCityRoute } from "./useMultiCityRoute";
 
@@ -31,6 +33,18 @@ describe("useMultiCityRoute", () => {
     const { hook } = route({ deepLinked: true, linkedCity: "Rome" });
     expect(hook.result.current.multiCityMode).toBe(true);
     expect(hook.result.current.cityRows[0]).toEqual({ city: "Rome", nights: 3 });
+  });
+
+  // The server renders without running effects: what it shows is the first state.
+  it("renders a ?multi=1 arrival as the route, before any effect runs", () => {
+    function Probe(p: Props) {
+      const r = useMultiCityRoute(p);
+      return createElement("span", null, `${r.multiCityMode}|${r.cityRows[0].city}`);
+    }
+    const props = { enabled: true, linkedCity: "Rome", startDate: "", setDestination: vi.fn(), setEndDate: vi.fn() };
+    expect(renderToString(createElement(Probe, { ...props, deepLinked: true }))).toContain("true|Rome");
+    expect(renderToString(createElement(Probe, { ...props, deepLinked: false }))).toContain("false|");
+    expect(renderToString(createElement(Probe, { ...props, deepLinked: true, enabled: false }))).toContain("false|");
   });
 
   it("ignores the link while multi-city is switched off", () => {

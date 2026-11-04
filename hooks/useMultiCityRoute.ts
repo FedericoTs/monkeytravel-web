@@ -21,10 +21,10 @@ function freshCityRows(): RouteStop[] {
  * result keep working through the single-city paths.
  *
  * Arriving with ?multi=1 (the route cards on /multi-city-trip-planner and the
- * route blog posts) turns the mode on, with the linked city as the first leg.
- * Without that, a link like ?destination=rome&multi=1 would lose the city: the
- * mirror rewrites the destination from the rows, empty on arrival, so Rome
- * would be blanked a tick after it was filled in.
+ * route blog posts) starts with the mode on, from the first render (the
+ * server's too), with the linked city as the first leg. Without that, a link
+ * like ?destination=rome&multi=1 would lose the city: the mirror rewrites the
+ * destination from the rows, so Rome would be blanked as it was filled in.
  */
 export function useMultiCityRoute({
   enabled,
@@ -44,18 +44,12 @@ export function useMultiCityRoute({
   setDestination: (destination: string) => void;
   setEndDate: (endDate: string) => void;
 }) {
-  const [multiCityMode, setMultiCityMode] = useState(false);
-  const [cityRows, setCityRows] = useState<RouteStop[]>(freshCityRows);
-
-  useEffect(() => {
-    if (enabled && deepLinked) {
-      setMultiCityMode(true);
-      if (linkedCity) {
-        setCityRows((rows) => (rows[0]?.city ? rows : [{ ...rows[0], city: linkedCity }, ...rows.slice(1)]));
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const arrivesAsRoute = enabled && deepLinked;
+  const [multiCityMode, setMultiCityMode] = useState(arrivesAsRoute);
+  const [cityRows, setCityRows] = useState<RouteStop[]>(() => {
+    const rows = freshCityRows();
+    return arrivesAsRoute && linkedCity ? [{ ...rows[0], city: linkedCity }, ...rows.slice(1)] : rows;
+  });
 
   useEffect(() => {
     if (!enabled || !multiCityMode) return;
