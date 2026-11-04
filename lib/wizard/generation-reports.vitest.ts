@@ -6,6 +6,8 @@ const sent = vi.hoisted(() => ({
   started: vi.fn(),
   generated: vi.fn(),
   completed: vi.fn(),
+  anchors: vi.fn(),
+  capture: vi.fn(),
 }));
 vi.mock("@/components/wizard/wizardEvents", () => ({ trackWizardEvent: sent.wizardEvent }));
 vi.mock("@/lib/analytics", () => ({ trackItineraryGenerated: sent.ga4Generated }));
@@ -13,10 +15,14 @@ vi.mock("@/lib/posthog/events", () => ({
   captureTripGenerationStarted: sent.started,
   captureItineraryGenerated: sent.generated,
   captureTripGenerationCompleted: sent.completed,
+  captureAnchorsGenerated: sent.anchors,
+  capture: sent.capture,
 }));
 
+import type { TripAnchor } from "@/types";
 import {
   reportGenerated,
+  reportGenerationAsks,
   reportGenerationFailed,
   reportGenerationLeft,
   reportGenerationStarted,
@@ -156,5 +162,36 @@ describe("reportGenerationLeft", () => {
   it("caps the wait at a day", () => {
     reportGenerationLeft(report, report.startedAt + 3 * 86_400_000);
     expect(rows()[0]).toMatchObject({ elapsed_ms: 86_400_000 });
+  });
+});
+
+describe("reportGenerationAsks", () => {
+  const anchor = (type: TripAnchor["type"], time_slot?: TripAnchor["time_slot"]) =>
+    ({ id: type + (time_slot ?? ""), date: "2027-05-11", type, title: type, ...(time_slot ? { time_slot } : {}) }) as TripAnchor;
+  const dates = { startDate: "2027-05-10", endDate: "2027-05-14" };
+
+  it("counts an anchored request's fixed plans: how many, which kinds, how many all day, how many stays", () => {
+    const anchors = [anchor("lodging"), anchor("event", "all_day"), anchor("event", "morning"), anchor("transport")];
+    reportGenerationAsks({ anchored: true, anchors, mustDos: [], ...dates });
+    expect(sent.anchors).toHaveBeenCalledWith({
+      anchor_count: 4,
+      anchor_types: ["lodging", "event", "transport"],
+      all_day_count: 2,
+      lodging_count: 1,
+      trip_days: 5,
+    });
+    expect(sent.capture).not.toHaveBeenCalled();
+  });
+
+  it("counts the must-dos, and no fixed plans for a request that is not anchored", () => {
+    reportGenerationAsks({ anchored: false, anchors: [anchor("lodging")], mustDos: ["Belém Tower", "Fado night"], ...dates });
+    expect(sent.anchors).not.toHaveBeenCalled();
+    expect(sent.capture).toHaveBeenCalledWith("must_dos_generated", { must_do_count: 2 });
+  });
+
+  it("sends nothing for a request with neither", () => {
+    reportGenerationAsks({ anchored: false, anchors: [], mustDos: [], ...dates });
+    expect(sent.anchors).not.toHaveBeenCalled();
+    expect(sent.capture).not.toHaveBeenCalled();
   });
 });
