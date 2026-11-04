@@ -1,12 +1,12 @@
 /**
  * A diet trip's places to eat, looked up on Google Maps once the trip is kept:
- * when its owner opens it (app/api/trips/[id]/places-to-eat), and for a day the
- * assistant adds. The model names them from memory, and the small places a diet
- * sends it to close and move more often than the sights it knows. In place of one
- * Maps has as closed, or doesn't have, the model offers a few others, and the
- * first Maps has open takes its place. When none is, a closed place leaves the
- * plan, and one Maps doesn't have stays, marked unverified: not finding a small
- * place is no proof it's gone.
+ * on its owner's first open (app/api/trips/[id]/places-to-eat), and in a day
+ * regenerated or added by the assistant. The model names them from memory, and
+ * the small places a diet sends it to close and move more often than the sights
+ * it knows. In place of one Maps has as closed, or doesn't have, the model
+ * offers a few others, and the first Maps has open takes its place. When none
+ * is, a closed place leaves the plan, and one Maps doesn't have stays, marked
+ * unverified: not finding a small place is no proof it's gone.
  *
  * Nothing Google answers is kept or shown: the lookup only decides which of
  * the model's places stay.
