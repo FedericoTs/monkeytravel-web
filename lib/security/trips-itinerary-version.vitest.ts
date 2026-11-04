@@ -10,8 +10,17 @@ import path from "node:path";
 const ROOT = path.resolve(__dirname, "../..");
 const read = (p: string) => readFileSync(path.join(ROOT, p), "utf8").replace(/\r/g, "");
 const sql = read("supabase/migrations/20260924125000_trips_itinerary_version.sql");
-// The trip page's code: the page, and the hook that holds its saves.
-const tripPage = () => read("app/[locale]/(app)/trips/[id]/TripDetailClient.tsx") + "\n" + read("hooks/useItinerarySync.ts");
+// The trip page's code: the page, the hook that holds its saves, and the
+// hooks that regenerate an activity or a day.
+const tripPage = () =>
+  [
+    "app/[locale]/(app)/trips/[id]/TripDetailClient.tsx",
+    "hooks/useItinerarySync.ts",
+    "hooks/useActivityRegeneration.ts",
+    "hooks/useDayRegeneration.ts",
+  ]
+    .map(read)
+    .join("\n");
 
 describe("trips_itinerary_version", () => {
   it("fires after the editor guard and before updated_at (name order)", () => {
