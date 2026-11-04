@@ -66,15 +66,48 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   ]);
 }
 
+const MAX_RETRIES = 1;
+
+/**
+ * How one attempt at a model call ended: with its answer, with an answer it
+ * could not use (it did not parse, or lacked what was asked for), or with the
+ * call failing (a timeout, quota, an outage).
+ */
+type Attempt<T> = { value: T } | { unusable: true } | { failed: unknown };
+
+/**
+ * Runs a model call's attempts. An unusable answer is asked for again at once,
+ * a failed call after a pause (a second longer for each retry); at most
+ * MAX_RETRIES retries. Each attempt logs and reports itself; this logs the
+ * retries and, when none is left, throws `gaveUp` (an unusable answer) or
+ * `unavailable(error)` (a failed call).
+ */
+async function withRetries<T>(
+  attempt: (retryCount: number) => Promise<Attempt<T>>,
+  call: { retrying: string; gaveUp: string; unavailable: (error: unknown) => Error }
+): Promise<T> {
+  for (let retryCount = 0; ; retryCount++) {
+    const outcome = await attempt(retryCount);
+    if ("value" in outcome) return outcome.value;
+    const last = retryCount >= MAX_RETRIES;
+    if ("failed" in outcome) {
+      if (last) throw call.unavailable(outcome.failed);
+      console.log(`Retrying after API error (attempt ${retryCount + 2})...`);
+      await new Promise((resolve) => setTimeout(resolve, 1000 * (retryCount + 1)));
+    } else {
+      if (last) throw new Error(call.gaveUp);
+      console.log(`Retrying ${call.retrying} (attempt ${retryCount + 2})...`);
+    }
+  }
+}
+
 // The trip-generation system prompt loads from the database via getPrompt();
 // lib/prompts.ts holds the defaults and the database integration.
 
 /**
  * Generation options for controlling output
  */
-export interface GenerationOptions extends BuildPromptOptions {
-  retryCount?: number;
-}
+export type GenerationOptions = BuildPromptOptions;
 
 export async function generateItinerary(
   params: TripCreationParams,
@@ -101,12 +134,36 @@ export async function generateItinerary(
 /**
  * Internal itinerary generation function (without deduplication wrapper)
  */
-async function generateItineraryInternal(
+function generateItineraryInternal(
   params: TripCreationParams,
   options?: GenerationOptions & { userId?: string }
 ): Promise<GeneratedItinerary> {
-  const retryCount = options?.retryCount ?? 0;
-  const MAX_RETRIES = 1;
+  return withRetries((retryCount) => itineraryAttempt(params, options, retryCount), {
+    retrying: "generation",
+    gaveUp: "Failed to generate valid itinerary after retries",
+    // Surface the underlying error so Sentry sees WHY we failed (403
+    // key-banned, 429 quota, 503 outage, etc.). Preserve `cause` so the
+    // original stack survives.
+    unavailable: (error) => {
+      const rootMsg =
+        error instanceof Error ? error.message : String(error ?? "unknown");
+      const wrapped = new Error(
+        `Failed to generate itinerary: AI service unavailable (root: ${rootMsg.slice(0, 200)})`
+      );
+      if (error instanceof Error) {
+        (wrapped as Error & { cause?: unknown }).cause = error;
+      }
+      return wrapped;
+    },
+  });
+}
+
+/** One attempt at the whole itinerary; a retry runs at a lower temperature. */
+async function itineraryAttempt(
+  params: TripCreationParams,
+  options: (GenerationOptions & { userId?: string }) | undefined,
+  retryCount: number
+): Promise<Attempt<GeneratedItinerary>> {
   const startTime = performance.now();
 
   // Route through model-router so the routing matrix lives in one place.
@@ -208,13 +265,7 @@ async function generateItineraryInternal(
           },
         }).catch(() => {});
 
-        // Retry with lower temperature (bypass deduplication for retries)
-        if (retryCount < MAX_RETRIES) {
-          console.log(`Retrying generation (attempt ${retryCount + 2})...`);
-          return generateItineraryInternal(params, { ...options, retryCount: retryCount + 1 });
-        }
-
-        throw new Error("Failed to generate valid itinerary after retries");
+        return { unusable: true };
       }
     }
 
@@ -267,15 +318,11 @@ async function generateItineraryInternal(
         .catch(() => {});
     }
 
-    return itinerary;
+    return { value: itinerary };
   } catch (error) {
     const latencyMs = performance.now() - startTime;
 
     // Handle API errors (rate limits, network issues, etc.)
-    if (error instanceof Error && error.message.includes("after retries")) {
-      throw error;
-    }
-
     console.error("Gemini API error:", error);
 
     // Capture API error analytics
@@ -292,24 +339,7 @@ async function generateItineraryInternal(
       },
     }).catch(() => {});
 
-    if (retryCount < MAX_RETRIES) {
-      console.log(`Retrying after API error (attempt ${retryCount + 2})...`);
-      await new Promise((resolve) => setTimeout(resolve, 1000 * (retryCount + 1)));
-      return generateItineraryInternal(params, { ...options, retryCount: retryCount + 1 });
-    }
-
-    // Surface the underlying error so Sentry sees WHY we failed (403
-    // key-banned, 429 quota, 503 outage, etc.). Preserve `cause` so the
-    // original stack survives.
-    const rootMsg =
-      error instanceof Error ? error.message : String(error ?? "unknown");
-    const wrapped = new Error(
-      `Failed to generate itinerary: AI service unavailable (root: ${rootMsg.slice(0, 200)})`
-    );
-    if (error instanceof Error) {
-      (wrapped as Error & { cause?: unknown }).cause = error;
-    }
-    throw wrapped;
+    return { failed: error };
   }
 }
 
@@ -343,36 +373,39 @@ export interface RegenerateActivityParams {
 // lib/prompts.ts holds the defaults.
 
 export async function regenerateSingleActivity(
-  params: RegenerateActivityParams & { userId?: string },
-  retryCount = 0
+  params: RegenerateActivityParams & { userId?: string }
 ): Promise<Activity> {
-  // Generate deduplication key - note: only first call gets deduplicated, retries bypass
-  if (retryCount === 0) {
-    const dedupKey = getActivityDedupKey({
-      destination: params.destination,
-      activityName: params.activityToReplace.name,
-      timeSlot: params.activityToReplace.time_slot,
-      dayNumber: params.dayContext.day_number,
-      budgetTier: params.budgetTier,
-    });
+  const dedupKey = getActivityDedupKey({
+    destination: params.destination,
+    activityName: params.activityToReplace.name,
+    timeSlot: params.activityToReplace.time_slot,
+    dayNumber: params.dayContext.day_number,
+    budgetTier: params.budgetTier,
+  });
 
-    return withDeduplication(dedupKey, () =>
-      regenerateSingleActivityInternal(params, retryCount)
-    );
-  }
-
-  // Retries bypass deduplication
-  return regenerateSingleActivityInternal(params, retryCount);
+  return withDeduplication(dedupKey, () =>
+    regenerateSingleActivityInternal(params)
+  );
 }
 
 /**
  * Internal activity regeneration function (without deduplication wrapper)
  */
-async function regenerateSingleActivityInternal(
-  params: RegenerateActivityParams & { userId?: string },
-  retryCount = 0
+function regenerateSingleActivityInternal(
+  params: RegenerateActivityParams & { userId?: string }
 ): Promise<Activity> {
-  const MAX_RETRIES = 1;
+  return withRetries((retryCount) => activityAttempt(params, retryCount), {
+    retrying: "activity regeneration",
+    gaveUp: "Failed to regenerate activity after retries",
+    unavailable: () => new Error("Failed to regenerate activity: AI service unavailable"),
+  });
+}
+
+/** One attempt at a replacement activity; a retry runs at a lower temperature. */
+async function activityAttempt(
+  params: RegenerateActivityParams & { userId?: string },
+  retryCount: number
+): Promise<Attempt<Activity>> {
   const startTime = performance.now();
   // activity-regenerate → gemini-2.5-flash-lite (cheapest, single activity).
   const modelName = getModelForPurpose("activity-regenerate");
@@ -441,7 +474,7 @@ async function regenerateSingleActivityInternal(
         },
       }).catch(() => {});
 
-      return activity;
+      return { value: activity };
     } catch (parseError) {
       (retryCount < MAX_RETRIES ? console.warn : console.error)(
         `Activity regeneration JSON parse error (attempt ${retryCount + 1}):`,
@@ -465,19 +498,10 @@ async function regenerateSingleActivityInternal(
         },
       }).catch(() => {});
 
-      if (retryCount < MAX_RETRIES) {
-        console.log(`Retrying activity regeneration (attempt ${retryCount + 2})...`);
-        return regenerateSingleActivityInternal(params, retryCount + 1);
-      }
-
-      throw new Error("Failed to regenerate activity after retries");
+      return { unusable: true };
     }
   } catch (error) {
     const latencyMs = performance.now() - startTime;
-
-    if (error instanceof Error && error.message.includes("after retries")) {
-      throw error;
-    }
 
     console.error("Gemini API error during activity regeneration:", error);
 
@@ -495,13 +519,7 @@ async function regenerateSingleActivityInternal(
       },
     }).catch(() => {});
 
-    if (retryCount < MAX_RETRIES) {
-      console.log(`Retrying after API error (attempt ${retryCount + 2})...`);
-      await new Promise((resolve) => setTimeout(resolve, 1000 * (retryCount + 1)));
-      return regenerateSingleActivityInternal(params, retryCount + 1);
-    }
-
-    throw new Error("Failed to regenerate activity: AI service unavailable");
+    return { failed: error };
   }
 }
 
@@ -688,29 +706,32 @@ export interface RegenerateDayParams {
 }
 
 export async function regenerateSingleDay(
-  params: RegenerateDayParams & { userId?: string },
-  retryCount = 0
+  params: RegenerateDayParams & { userId?: string }
 ): Promise<ItineraryDay> {
-  // Dedup only the first call; retries bypass.
-  if (retryCount === 0) {
-    const dedupKey = getDayDedupKey({
-      destination: params.destination,
-      dayNumber: params.dayNumber,
-      budgetTier: params.budgetTier,
-      instructions: params.instructions,
-    });
-    return withDeduplication(dedupKey, () =>
-      regenerateSingleDayInternal(params, retryCount)
-    );
-  }
-  return regenerateSingleDayInternal(params, retryCount);
+  const dedupKey = getDayDedupKey({
+    destination: params.destination,
+    dayNumber: params.dayNumber,
+    budgetTier: params.budgetTier,
+    instructions: params.instructions,
+  });
+  return withDeduplication(dedupKey, () => regenerateSingleDayInternal(params));
 }
 
-async function regenerateSingleDayInternal(
-  params: RegenerateDayParams & { userId?: string },
-  retryCount = 0
+function regenerateSingleDayInternal(
+  params: RegenerateDayParams & { userId?: string }
 ): Promise<ItineraryDay> {
-  const MAX_RETRIES = 1;
+  return withRetries((retryCount) => dayAttempt(params, retryCount), {
+    retrying: "day regeneration",
+    gaveUp: "Failed to regenerate day after retries",
+    unavailable: () => new Error("Failed to regenerate day: AI service unavailable"),
+  });
+}
+
+/** One attempt at a single day; the final retry asks the sibling model. */
+async function dayAttempt(
+  params: RegenerateDayParams & { userId?: string },
+  retryCount: number
+): Promise<Attempt<ItineraryDay>> {
   const startTime = performance.now();
   // day-regenerate → gemini-2.5-flash (balanced quality/cost for a single day).
   // The FINAL retry switches to the sibling model: the SAME model at a LOWER
@@ -890,7 +911,7 @@ Rules:
         },
       }).catch(() => {});
 
-      return fixed;
+      return { value: fixed };
     } catch (parseError) {
       (retryCount < MAX_RETRIES ? console.warn : console.error)(
         `Day regeneration JSON parse error (attempt ${retryCount + 1}):`,
@@ -919,18 +940,10 @@ Rules:
         },
       }).catch(() => {});
 
-      if (retryCount < MAX_RETRIES) {
-        console.log(`Retrying day regeneration (attempt ${retryCount + 2})...`);
-        return regenerateSingleDayInternal(params, retryCount + 1);
-      }
-      throw new Error("Failed to regenerate day after retries");
+      return { unusable: true };
     }
   } catch (error) {
     const latencyMs = performance.now() - startTime;
-
-    if (error instanceof Error && error.message.includes("after retries")) {
-      throw error;
-    }
 
     console.error("Gemini API error during day regeneration:", error);
 
@@ -948,12 +961,7 @@ Rules:
       },
     }).catch(() => {});
 
-    if (retryCount < MAX_RETRIES) {
-      console.log(`Retrying after API error (attempt ${retryCount + 2})...`);
-      await new Promise((resolve) => setTimeout(resolve, 1000 * (retryCount + 1)));
-      return regenerateSingleDayInternal(params, retryCount + 1);
-    }
-    throw new Error("Failed to regenerate day: AI service unavailable");
+    return { failed: error };
   }
 }
 
