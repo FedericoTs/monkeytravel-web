@@ -157,6 +157,7 @@
       "continue": "Continuar",
       "hintNeedDestination": "Añade un destino para continuar",
       "hintNeedDates": "Elige tus fechas de viaje para continuar",
+      "hintPastDates": "El viaje tiene que empezar hoy o más adelante",
       "destinationInvalidChars": "El destino contiene caracteres no permitidos: usa letras, números, espacios y puntuación básica",
       "freeReassurance": "Gratis: mira tu viaje día a día completo antes de registrarte",
       "flexibleDatesCta": "¿Aún no sabes las fechas? Usa fechas flexibles",
