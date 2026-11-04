@@ -10,7 +10,7 @@ import type { Activity, ItineraryDay } from "@/types";
 const assistTrip = vi.fn();
 vi.mock("./engine", () => ({ assistTrip: (input: unknown) => assistTrip(input) }));
 
-const { conversationTurns, mergeTripEdits, proposeTripEdits, readDisplayCurrency } = await import("./trip-edits");
+const { conversationTurns, mergeTripEdits, proposedChange, proposeTripEdits, readDisplayCurrency } = await import("./trip-edits");
 
 const act = (id: string, name: string, extra: Partial<Activity> = {}): Activity =>
   ({
@@ -295,5 +295,57 @@ describe("proposeTripEdits", () => {
     assistTrip.mockResolvedValue({ reply: "Which nights would you like?", edits: [], meta });
     const out = await proposeTripEdits(input);
     expect(out).toEqual({ reply: "Which nights would you like?", revisedDays: [], summary: "", meta });
+  });
+});
+
+describe("proposedChange: the proposal as the change waiting for the user's confirm", () => {
+  const meta = { model: "m", costUsd: 0.001, generationTimeMs: 5 };
+  const proposal = (revisedDays: ItineraryDay[]) => ({ reply: "Ready.", revisedDays, summary: "", meta });
+  const where = { destination: "Paris, France", endDate: "2027-03-13" };
+
+  it("is one multi-day change from the first revised day, with no new end date when the trip keeps its days", () => {
+    const day2 = { ...trip()[1], activities: [act("b1", "National Gallery"), engineActivity("Wigwam", "22:00", "evening")] };
+    const day3 = { ...trip()[2], theme: "Coast walk" };
+    expect(proposedChange(proposal([day2, day3]), { days: trip(), ...where })).toEqual({
+      type: "apply_draft",
+      applied: false,
+      dayNumber: 2,
+      dayCount: 2,
+      revisedDays: [{ ...day2, activities: [day2.activities[0], { ...day2.activities[1], coordinates: expect.any(Object) }] }, day3],
+    });
+  });
+
+  it("places an activity with no coordinates near the destination", () => {
+    const day2 = { ...trip()[1], activities: [engineActivity("Wigwam", "22:00", "evening")] };
+    const point = proposedChange(proposal([day2]), { days: trip(), ...where })!.revisedDays![0].activities[0].coordinates!;
+    expect(point.lat).toBeCloseTo(48.8566, 1);
+    expect(point.lng).toBeCloseTo(2.3522, 1);
+  });
+
+  it("moves the trip's end date to the last new day", () => {
+    const day4 = { day_number: 4, date: "2027-03-14", activities: [act("d1", "Malahide Castle")] };
+    const day5 = { day_number: 5, date: "2027-03-15", activities: [act("e1", "Dalkey")] };
+    const change = proposedChange(proposal([trip()[2], day4, day5]), { days: trip(), ...where });
+    expect(change).toMatchObject({ dayNumber: 3, dayCount: 3, newEndDate: "2027-03-15" });
+  });
+
+  it("moves the end date only for new days, not for a changed day dated after it", () => {
+    const day3 = { ...trip()[2], theme: "Coast walk" };
+    expect(proposedChange(proposal([day3]), { days: trip(), destination: where.destination, endDate: "2027-03-12" })).not.toHaveProperty("newEndDate");
+  });
+
+  it("keeps the end date when the new day falls within it, or has no date", () => {
+    const within = { day_number: 4, date: "2027-03-12", activities: [act("d1", "Malahide Castle")] };
+    const undated = { day_number: 4, date: "", activities: [act("d1", "Malahide Castle")] };
+    expect(proposedChange(proposal([within]), { days: trip(), ...where })).not.toHaveProperty("newEndDate");
+    expect(proposedChange(proposal([undated]), { days: trip(), ...where })).not.toHaveProperty("newEndDate");
+  });
+
+  it("is nothing when no day changes, and leaves the trip's days as they were", () => {
+    const days = trip();
+    const before = JSON.stringify(days);
+    expect(proposedChange(proposal([]), { days, ...where })).toBeUndefined();
+    proposedChange(proposal([{ day_number: 4, date: "2027-03-14", activities: [engineActivity("Wigwam", "22:00", "evening")] }]), { days, ...where });
+    expect(JSON.stringify(days)).toBe(before);
   });
 });

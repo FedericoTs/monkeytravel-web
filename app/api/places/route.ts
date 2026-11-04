@@ -286,10 +286,6 @@ export async function POST(request: NextRequest) {
       return searchResponse.json();
     });
 
-    // Handle dedup errors
-    if (searchData instanceof Error) {
-      return errors.internal(searchData.message, "Places Search");
-    }
     const place: PlaceResult | undefined = searchData.places?.[0];
 
     if (!place) {
@@ -510,10 +506,6 @@ export async function GET(request: NextRequest) {
       return searchResponse.json();
     });
 
-    // Handle dedup errors
-    if (searchData instanceof Error) {
-      return errors.internal(searchData.message, "Places Destination");
-    }
     const place = searchData.places?.[0];
 
     if (!place) {

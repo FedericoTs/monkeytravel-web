@@ -82,30 +82,6 @@ export interface TierBenefits {
 }
 
 // =============================================================================
-// LEADERBOARD
-// =============================================================================
-
-export type LeaderboardVisibility = 'full' | 'initials' | 'anonymous';
-export type LeaderboardPeriod = 'monthly' | 'alltime';
-
-export interface LeaderboardEntry {
-  rank: number;
-  displayName: string;     // Anonymized based on visibility preference
-  avatarUrl?: string;      // Hidden if anonymous
-  badge: TierBadgeInfo | null;
-  referralCount: number;
-  isCurrentUser: boolean;
-}
-
-export interface LeaderboardResponse {
-  period: LeaderboardPeriod;
-  entries: LeaderboardEntry[];
-  userRank: number | null;        // Current user's rank (even if not in top N)
-  totalParticipants: number;
-  updatedAt: string;
-}
-
-// =============================================================================
 // API RESPONSES
 // =============================================================================
 

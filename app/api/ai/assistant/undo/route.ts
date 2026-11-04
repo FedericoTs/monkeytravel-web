@@ -21,6 +21,7 @@ interface UndoRequest {
 }
 
 export async function POST(request: NextRequest) {
+  const requestStartTime = Date.now();
   console.log("[AI Assistant Undo] POST request received");
 
   try {
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
     void recordAiOutcome({
       endpoint: "assistant",
       outcome: "failure",
-      durationMs: 0,
+      durationMs: Date.now() - requestStartTime,
       error,
       metadata: { subroute: "undo" },
     });

@@ -62,9 +62,11 @@ describe("adding a day", () => {
     });
   });
 
-  it("says why when the generation fails", async () => {
+  it("gives a plain reason when the generation fails, and logs the error's own text", async () => {
     regenerateSingleDay.mockRejectedValue(new Error("model down"));
-    expect(await ask()).toEqual({ error: "Failed to generate the new day: model down" });
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await ask()).toEqual({ error: "The new day could not be generated just now" });
+    expect(logged.mock.calls.flat().map(String).join(" ")).toContain("model down");
   });
 
   it("has nothing to extend on a trip without days", async () => {
