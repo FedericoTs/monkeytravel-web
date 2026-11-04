@@ -140,6 +140,23 @@ describe("checkKeptTripPlacesToEat", () => {
     expect(current().trip_meta).toMatchObject({ packing_checked: ["passport", "charger"] });
   });
 
+  it("records the owner's profile diet on a trip that had none, so its later AI edits keep to it", async () => {
+    const { db, current } = fakeDb(rowOf(trip));
+
+    await checkKeptTripPlacesToEat(db, trip, ["halal"]);
+
+    expect(current().trip_meta).toMatchObject({ dietary: ["halal"], places_to_eat_checked_at: expect.any(String) });
+  });
+
+  it("leaves a trip's own diet as the planner had it", async () => {
+    trip = { ...trip, trip_meta: { ...(trip.trip_meta as object), dietary: ["vegan", "gluten-free"] } };
+    const { db, current } = fakeDb(rowOf(trip));
+
+    await checkKeptTripPlacesToEat(db, trip, ["halal"]);
+
+    expect((current().trip_meta as { dietary: unknown }).dietary).toEqual(["vegan", "gluten-free"]);
+  });
+
   it("stores nothing when Google answered none of its searches, so the next open looks again", async () => {
     finish.mockResolvedValueOnce(result({ checked: 2, unanswered: 2, closed: 0, replaced: 0, changes: [] }));
     const { db, writes } = fakeDb(rowOf(trip));
