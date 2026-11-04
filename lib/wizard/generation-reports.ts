@@ -1,7 +1,9 @@
-import type { BudgetTier } from "@/types";
+import type { BudgetTier, TripAnchor } from "@/types";
 import { trackItineraryGenerated } from "@/lib/analytics";
 import { tripSpanDays } from "@/lib/dates/iso-date";
 import {
+  capture,
+  captureAnchorsGenerated,
   captureItineraryGenerated,
   captureTripGenerationCompleted,
   captureTripGenerationStarted,
@@ -45,6 +47,33 @@ export function reportGenerationStarted(g: GenerationReport): void {
     locale: g.locale,
     duration_days: funnelDays(g.startDate, g.endDate),
   });
+}
+
+/**
+ * What a generation was asked to keep, counted when it is asked for rather
+ * than as chips are added: PostHog's anchors_generated (how constrained the
+ * trip is: how many fixed plans, of which kinds, how many all day or a stay)
+ * for an anchored request, and must_dos_generated for its must-dos.
+ */
+export function reportGenerationAsks(g: {
+  anchored: boolean;
+  anchors: TripAnchor[];
+  mustDos: string[];
+  startDate: string;
+  endDate: string;
+}): void {
+  if (g.anchored) {
+    captureAnchorsGenerated({
+      anchor_count: g.anchors.length,
+      anchor_types: Array.from(new Set(g.anchors.map((a) => a.type))),
+      all_day_count: g.anchors.filter((a) => a.type !== "lodging" && (a.time_slot ?? "all_day") === "all_day").length,
+      lodging_count: g.anchors.filter((a) => a.type === "lodging").length,
+      trip_days: tripSpanDays(g.startDate, g.endDate),
+    });
+  }
+  if (g.mustDos.length > 0) {
+    void capture("must_dos_generated", { must_do_count: g.mustDos.length });
+  }
 }
 
 /**

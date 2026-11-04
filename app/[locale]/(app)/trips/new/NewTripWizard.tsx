@@ -154,6 +154,7 @@ import { destinationProblem, STEP1_HINT, step1Blocker } from "@/lib/wizard/step1
 import { DESTINATION_MAX_LENGTH, MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
 import {
   reportGenerated,
+  reportGenerationAsks,
   reportGenerationFailed,
   reportGenerationStarted,
   type GenerationReport,
@@ -174,7 +175,6 @@ import { trackDestinationSelected } from "@/lib/analytics";
 import {
   captureTripUpdated,
   captureTripWizardStepCompleted,
-  captureAnchorsGenerated,
 } from "@/lib/posthog/events";
 import type { TripIntent } from "@/lib/posthog/events";
 import {
@@ -1522,28 +1522,7 @@ export default function NewTripPage({
         locale,
         fresh: opts.fresh,
       });
-      const { isAnchored } = request;
-
-      // Anchor telemetry: how constrained is this trip? Fired at Generate (not at
-      // panel-add) so it counts intent that actually reached generation.
-      if (isAnchored) {
-        const tripDays = tripSpanDays(startDate, endDate);
-        captureAnchorsGenerated({
-          anchor_count: anchors.length,
-          anchor_types: Array.from(new Set(anchors.map((a) => a.type))),
-          all_day_count: anchors.filter(
-            (a) => a.type !== "lodging" && (a.time_slot ?? "all_day") === "all_day"
-          ).length,
-          lodging_count: anchors.filter((a) => a.type === "lodging").length,
-          trip_days: tripDays,
-        });
-      }
-
-      // Must-do telemetry: fired at Generate (like anchors above) so it counts
-      // wishes that actually reached generation, not abandoned chips.
-      if (mustDos.length > 0) {
-        void capture("must_dos_generated", { must_do_count: mustDos.length });
-      }
+      reportGenerationAsks({ anchored: request.isAnchored, anchors, mustDos, startDate, endDate });
       // Each try streams its days into GenerationProgress as they arrive.
       const { result: data } = await generateWithRecovery((generationId) =>
         attemptGeneration(
