@@ -41,7 +41,9 @@ describe("a translated fallback", () => {
       .flatMap((file) =>
         readFileSync(file, "utf8")
           .split("\n")
-          .flatMap((line, i) => (/instanceof Error \? \w+\.message : t\w*\(/.test(line) ? [`${file}:${i + 1}`] : []))
+          .flatMap((line, i) =>
+            !/^\s*(\*|\/\/)/.test(line) && /instanceof Error \? \w+\.message : t\w*\(/.test(line) ? [`${file}:${i + 1}`] : []
+          )
       );
     expect(found, `use shownErrorText (lib/utils/shown-error.ts):\n${found.join("\n")}`).toEqual([]);
   }, 60_000);

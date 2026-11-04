@@ -59,7 +59,7 @@ describe("ParticipantsBar", () => {
         return new Response(JSON.stringify(group(1, false)));
       }),
     );
-    render(<ParticipantsBar shareToken="token-1" source="shared" crewAsk={false} tripTitle="Lisbon" onSaveForYourself={() => {}} />);
+    render(<ParticipantsBar shareToken="token-1" source="shared" crewAsk={false} tripTitle="Lisbon" onSaveForLater={() => {}} />);
     await waitFor(() => expect(countShown()).toBe("1"));
     fireEvent.click(screen.getByTestId("participants-join"));
     expect(await screen.findByText("share.participants.error")).toBeTruthy();
