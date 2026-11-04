@@ -37,6 +37,48 @@ export interface PlaceRecord {
 }
 
 /**
+ * One Text Search: the places Google found for `body`, or null when there is
+ * no key or the call failed. Every call is logged under `endpoint` (callers
+ * reach this only on a cache miss), priced by the SKU its field mask selects;
+ * a call Google refused or never answered is not billed, so it logs at $0.
+ * Fire-and-forget logging, so it never adds latency. The key is read per call.
+ */
+export async function textSearch<Place>(
+  body: Record<string, unknown>,
+  fieldMask: string,
+  endpoint: string,
+  signal?: AbortSignal
+): Promise<Place[] | null> {
+  const key = process.env.GOOGLE_PLACES_API_KEY || "";
+  if (!key) return null;
+  const startedAt = Date.now();
+  let httpStatus = 0;
+  try {
+    const response = await fetch("https://places.googleapis.com/v1/places:searchText", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key, "X-Goog-FieldMask": fieldMask },
+      body: JSON.stringify(body),
+      signal,
+    });
+    httpStatus = response.status;
+    if (!response.ok) return null;
+    return ((await response.json()) as { places?: Place[] }).places ?? [];
+  } catch {
+    return null;
+  } finally {
+    void logApiCall({
+      apiName: "google_places_search",
+      endpoint,
+      status: httpStatus || 500,
+      responseTimeMs: Date.now() - startedAt,
+      cacheHit: false,
+      costUsd: httpStatus >= 200 && httpStatus < 300 ? placesCostForCall({ kind: "textSearch", fieldMask }).usd : 0,
+      exactCost: true,
+    });
+  }
+}
+
+/**
  * Text Search for one activity's place_id, and nothing else: the place_id is
  * all the lookup uses, and asking for it alone is free. The photo is a
  * separate Place Details call by place_id (fetchPlacePhoto), so a place already
@@ -54,53 +96,18 @@ export async function searchPlaceId(query: string, name: string = query): Promis
     return undefined;
   }
 
-  let place: { id: string } | null = null;
-  const startedAt = Date.now();
-  let httpStatus = 0;
-
-  // ---------- Text Search ----------
   // Any field beyond the place_id would move the whole call to a paid SKU
   // (see places-sku.ts); fetchPlacePhoto gets the photo, only when needed.
-  try {
-    const searchResponse = await fetch(
-      "https://places.googleapis.com/v1/places:searchText",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
-          "X-Goog-FieldMask": ACTIVITY_SEARCH_FIELD_MASK,
-        },
-        body: JSON.stringify({
-          textQuery: query,
-          maxResultCount: 1,
-        }),
-      }
-    );
-    httpStatus = searchResponse.status;
-
-    if (!searchResponse.ok) {
-      return undefined;
-    }
-
-    const data = await searchResponse.json();
-    place = data.places?.[0] ?? null;
-  } catch {
+  const places = await textSearch<{ id?: string }>(
+    { textQuery: query, maxResultCount: 1 },
+    ACTIVITY_SEARCH_FIELD_MASK,
+    "places:searchText (activity)"
+  );
+  if (!places) {
     return undefined;
-  } finally {
-    // Every call here is paid: cache hits return before this function is
-    // reached. Fire-and-forget so logging never adds latency to the lookup.
-    void logApiCall({
-      apiName: "google_places_search",
-      endpoint: "places:searchText (activity)",
-      status: httpStatus || 500,
-      responseTimeMs: Date.now() - startedAt,
-      cacheHit: false,
-      costUsd: placesCostForCall({ kind: "textSearch", fieldMask: ACTIVITY_SEARCH_FIELD_MASK }).usd,
-      exactCost: true,
-    });
   }
 
+  const place = places[0];
   if (!place?.id) {
     return null;
   }
