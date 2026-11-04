@@ -14,3 +14,9 @@ export function withTripDiet(prefs: UserProfilePreferences, requested: unknown):
   const diets = dietsFrom(requested);
   return diets.length > 0 ? { ...prefs, dietaryPreferences: diets } : prefs;
 }
+
+/** A kept trip's diets, by the same rule as its plan: those the planner asked for, else its owner's profile's. */
+export function keptTripDiets(tripMeta: unknown, ownerPreferences: unknown): Diet[] {
+  const asked = dietsFrom((tripMeta as { dietary?: unknown } | null)?.dietary);
+  return asked.length > 0 ? asked : dietsFrom((ownerPreferences as { dietaryPreferences?: unknown } | null)?.dietaryPreferences);
+}

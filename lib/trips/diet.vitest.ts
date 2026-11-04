@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dietsFrom, withTripDiet } from "./diet";
+import { dietsFrom, keptTripDiets, withTripDiet } from "./diet";
 
 describe("dietsFrom", () => {
   it("keeps the known diets, in the planner's order", () => {
@@ -24,5 +24,22 @@ describe("withTripDiet", () => {
   it("keeps the profile's diet when the planner sent none", () => {
     expect(withTripDiet(profile, undefined)).toBe(profile);
     expect(withTripDiet(profile, ["not-a-diet"])).toBe(profile);
+  });
+});
+
+describe("keptTripDiets", () => {
+  it("is the diet the planner asked for, before the owner's profile's", () => {
+    expect(keptTripDiets({ dietary: ["vegan"] }, { dietaryPreferences: ["halal"] })).toEqual(["vegan"]);
+  });
+
+  it("is the owner's profile's when the planner asked for none", () => {
+    expect(keptTripDiets({}, { dietaryPreferences: ["halal", "none"] })).toEqual(["halal"]);
+    expect(keptTripDiets({ dietary: ["none"] }, { dietaryPreferences: ["kosher"] })).toEqual(["kosher"]);
+    expect(keptTripDiets(null, { dietaryPreferences: ["vegetarian"] })).toEqual(["vegetarian"]);
+  });
+
+  it("is none without either", () => {
+    expect(keptTripDiets({}, {})).toEqual([]);
+    expect(keptTripDiets(undefined, null)).toEqual([]);
   });
 });
