@@ -242,7 +242,11 @@ test.describe("the destination hero states no temperature it invented", () => {
       await preConsent(page);
       await page.goto(`/en/trips/${tripId}`, { waitUntil: "domcontentloaded" });
       await clearOverlays(page);
-      await page.waitForLoadState("networkidle").catch(() => {});
+      // The hero's weather is on screen: its condition word. Waiting for the
+      // network to go quiet instead let any slow background request run out
+      // the test's time, and reading the page before the hero rendered would
+      // pass without checking anything.
+      await expect(page.getByText("Sunny", { exact: true }).first()).toBeVisible({ timeout: 30_000 });
 
       const body = await page.locator("body").innerText();
       expect(
