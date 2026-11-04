@@ -541,7 +541,7 @@ export default function TripMap({
                   // `leading-none` keeps the single-line pill compact.
                   className="pointer-events-none select-none whitespace-nowrap leading-none rounded-full bg-white/95 backdrop-blur-sm px-2 py-1 text-[10px] font-semibold text-slate-700 shadow-sm border"
                   style={{ borderColor: seg.color }}
-                  title={t("segmentDuration", { minutes: seg.minutes })}
+                  title={t("segmentDuration", { duration: formatDuration(seg.minutes) })}
                 >
                   {formatDuration(seg.minutes)}
                 </div>

@@ -691,6 +691,7 @@
     "viewDetails": "Ver detalles",
     "showRoute": "Mostrar ruta",
     "hideRoute": "Ocultar ruta",
+    "segmentDuration": "{duration} a pie",
     "disclaimerStraightLine": "Estimación en línea recta — el tiempo real a pie puede ser mayor."
   },
   "maintenance": {
