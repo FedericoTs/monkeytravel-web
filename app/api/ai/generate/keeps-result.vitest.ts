@@ -50,7 +50,8 @@ vi.mock("@/lib/maps-grounding", () => ({
   isMapsGroundingAvailable: () => false,
   getMapsGroundingCost: () => 0,
 }));
-vi.mock("@/lib/gemini", () => ({ validateTripParams: () => ({ valid: true }), generateItinerary: async () => null }));
+vi.mock("@/lib/trips/request-validation", () => ({ validateTripParams: () => ({ valid: true }) }));
+vi.mock("@/lib/gemini", () => ({ generateItinerary: async () => null }));
 let multiCity: () => Promise<unknown>;
 vi.mock("@/lib/ai/multi-city", () => ({
   validateLegs: () => {},

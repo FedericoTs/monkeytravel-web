@@ -46,8 +46,8 @@ vi.mock("@/lib/ai/cache", () => ({
 vi.mock("@/lib/api/rate-limit", () => ({
   createRateLimiter: () => ({ check: async () => ({ allowed: true, remaining: 1 }) }),
 }));
+vi.mock("@/lib/trips/request-validation", () => ({ validateTripParams: () => ({ valid: true }) }));
 vi.mock("@/lib/gemini", () => ({
-  validateTripParams: () => ({ valid: true }),
   generateItineraryStream: () => {
     throw new Error("the stream is never read in these tests");
   },

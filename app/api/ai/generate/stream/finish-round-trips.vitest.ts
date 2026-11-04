@@ -58,8 +58,8 @@ vi.mock("@/lib/ai/trip-outline", () => ({ generateTripOutline: async () => null,
 // had run when it finished.
 let itineraryText = "";
 let modelDone = -1;
+vi.mock("@/lib/trips/request-validation", () => ({ validateTripParams: () => ({ valid: true }) }));
 vi.mock("@/lib/gemini", () => ({
-  validateTripParams: () => ({ valid: true }),
   generateItineraryStream: async function* () {
     for (let i = 0; i < itineraryText.length; i += 400) {
       yield { text: itineraryText.slice(i, i + 400), done: false };

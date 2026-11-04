@@ -37,8 +37,8 @@ vi.mock("@/lib/api/rate-limit", () => ({
   createRateLimiter: () => ({ check: async () => ({ allowed: true, remaining: 1 }) }),
 }));
 const modelCalls = vi.fn();
+vi.mock("@/lib/trips/request-validation", () => ({ validateTripParams: () => ({ valid: true }) }));
 vi.mock("@/lib/gemini", () => ({
-  validateTripParams: () => ({ valid: true }),
   generateItinerary: async () => {
     modelCalls();
     return structuredClone(plan("Written"));

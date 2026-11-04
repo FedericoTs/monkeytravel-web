@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateTripParams } from "@/lib/gemini";
+import { validateTripParams } from "./request-validation";
 import { addDaysISO } from "@/lib/ai/multi-city-core";
 import { destinationProblem } from "@/lib/wizard/step1-gate";
 import type { TripCreationParams, TripVibe } from "@/types";

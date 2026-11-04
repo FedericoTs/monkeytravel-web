@@ -8,11 +8,8 @@ import {
   recordAnonymousGeneration,
 } from "@/lib/anonymous/rate-limit";
 import type { User } from "@supabase/supabase-js";
-import {
-  generateItineraryStream,
-  parseStreamedItinerary,
-  validateTripParams,
-} from "@/lib/gemini";
+import { generateItineraryStream, parseStreamedItinerary } from "@/lib/gemini";
+import { validateTripParams } from "@/lib/trips/request-validation";
 import { bookingLinksFor, withActivityDefaults, withServerFields } from "@/lib/ai/server-fields";
 import { inPlanCurrency } from "@/lib/ai/plan-currency";
 import { getModelForPurpose } from "@/lib/ai/model-router";

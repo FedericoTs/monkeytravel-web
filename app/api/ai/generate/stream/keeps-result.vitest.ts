@@ -48,8 +48,8 @@ const itinerary = {
     activities: [{ name: `Sight ${n}`, type: "attraction", description: "", location: "Rome" }],
   })),
 };
+vi.mock("@/lib/trips/request-validation", () => ({ validateTripParams: () => ({ valid: true }) }));
 vi.mock("@/lib/gemini", () => ({
-  validateTripParams: () => ({ valid: true }),
   generateItineraryStream: async function* () {
     const text = JSON.stringify(itinerary);
     yield { text, done: false };
