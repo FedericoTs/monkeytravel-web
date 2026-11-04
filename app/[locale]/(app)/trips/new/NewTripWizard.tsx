@@ -1267,9 +1267,9 @@ export default function NewTripPage({
   const canProceed = () => {
     switch (step) {
       case 1: {
-        // Step 1: Destination + Dates combined. Mirrors lib/gemini.ts
-        // validateTripParams so nothing that passes this gate can bounce off
-        // the server's destination/date checks at generate time.
+        // Step 1: Destination + Dates combined. Mirrors validateTripParams
+        // (lib/trips/request-validation.ts) so nothing that passes this gate
+        // can bounce off the server's destination/date checks at generate time.
         return step1Block === null;
       }
       case 2:
