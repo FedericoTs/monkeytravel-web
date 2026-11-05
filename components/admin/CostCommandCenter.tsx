@@ -34,7 +34,7 @@ export default function CostCommandCenter() {
   // No auto-fetch on mount - only manual refresh to save costs
   useEffect(() => {
     if (!autoRefresh) return;
-    const interval = setInterval(fetchData, 30000);
+    const interval = setInterval(fetchData, 5 * 60_000);
     return () => clearInterval(interval);
   }, [fetchData, autoRefresh]);
 
@@ -167,10 +167,15 @@ export default function CostCommandCenter() {
         </div>
       </div>
 
+      <p data-testid="costs-list-price-note" className="text-sm text-[var(--foreground-muted)]">
+        What our logs add up to at list price, before Google&apos;s free allowances. What you actually pay is in Google
+        Cloud, under Billing → Reports.
+      </p>
+
       {/* Primary Metrics Row */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricCard
-          label="Total Spent"
+          label="Total logged"
           value={`$${data.summary.totalCostUsd.toFixed(2)}`}
           subtitle={`${data.summary.totalRequests.toLocaleString()} requests`}
           color="primary"
@@ -184,13 +189,13 @@ export default function CostCommandCenter() {
         <MetricCard
           label="Last 7 Days"
           value={`$${data.summary.last7DaysCostUsd.toFixed(2)}`}
-          subtitle="weekly spend"
+          subtitle="logged, at list price"
           color="accent"
         />
         <MetricCard
           label="Projected /mo"
           value={`$${data.summary.projectedMonthlyCost.toFixed(2)}`}
-          subtitle="based on 7d avg"
+          subtitle="list price, on the 7d avg"
           color="warning"
         />
         <MetricCard

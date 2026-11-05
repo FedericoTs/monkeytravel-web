@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeSupabase, type FakeQuery } from "@/tests/fake-supabase";
+import type { EnhancedCostAnalytics } from "./route";
 
 /**
  * The Costs tab's numbers cover what it says they cover. The real route runs over
@@ -88,7 +89,7 @@ const call = (hours: number, extra: Record<string, unknown> = {}) => ({
 
 async function costs() {
   const res = await GET();
-  return { status: res.status, body: (await res.json()) as Record<string, any> };
+  return { status: res.status, body: (await res.json()) as EnhancedCostAnalytics };
 }
 
 beforeEach(() => {

@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeSupabase, type FakeQuery } from "@/tests/fake-supabase";
+import type { AdminStats } from "./route";
 
 /**
  * The Analytics tab counts whole tables. The real route runs over rows answered as
@@ -59,7 +60,7 @@ const id = (prefix: string, i: number) => `${prefix}-${String(i).padStart(6, "0"
 
 async function stats() {
   const res = await GET();
-  return { status: res.status, body: (await res.json()) as Record<string, any> };
+  return { status: res.status, body: (await res.json()) as AdminStats };
 }
 
 beforeEach(() => {
@@ -167,8 +168,8 @@ describe("whole tables, past what one request answers", () => {
     s.tables.users = users(1200, (i) => (i >= 1190 ? { created_at: daysAgo(0.01) } : {}));
     const { body } = await stats();
     const latest = body.userTrend.daily.at(-1);
-    expect(latest.cumulative).toBe(1200);
-    expect(body.churn.cohortRetention.reduce((sum: number, cohort: { cohortSize: number }) => sum + cohort.cohortSize, 0)).toBe(1200);
+    expect(latest?.cumulative).toBe(1200);
+    expect(body.churn.cohortRetention.reduce((sum, cohort) => sum + cohort.cohortSize, 0)).toBe(1200);
   });
 
   it("sees activity past the first page, for who was active", async () => {
