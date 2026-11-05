@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useId } from "react";
+import { useState, useEffect, useCallback, useId, useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { formatDateRange } from "@/lib/datetime";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
@@ -41,7 +41,15 @@ export default function BookingDrawer({
   const locale = useLocale();
   const [originCity, setOriginCity] = useState("");
   const [recentOrigins, setRecentOrigins] = useState<string[]>([]);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  // The city picked from the list, which closes it until the field changes.
+  const [pickedCity, setPickedCity] = useState<string | null>(null);
+  const suggestions = useMemo(() => {
+    if (originCity.length < 2 || originCity === pickedCity) return [];
+    const query = originCity.toLowerCase();
+    return Object.keys(CITY_IATA_CODES)
+      .filter((city) => city.toLowerCase().includes(query))
+      .slice(0, 5);
+  }, [originCity, pickedCity]);
 
   // Load recent origins from localStorage.
   // Validate the shape (an array of strings) before storing: a corrupted or
@@ -80,21 +88,6 @@ export default function BookingDrawer({
       });
     }
   }, [isOpen, destination, tripId]);
-
-  // Filter city suggestions
-  useEffect(() => {
-    if (originCity.length < 2) {
-      setSuggestions([]);
-      return;
-    }
-
-    const query = originCity.toLowerCase();
-    const matches = Object.keys(CITY_IATA_CODES).filter((city) =>
-      city.toLowerCase().includes(query)
-    ).slice(0, 5);
-
-    setSuggestions(matches);
-  }, [originCity]);
 
   const handleSearch = useCallback(() => {
     if (!originCity) return;
@@ -152,7 +145,7 @@ export default function BookingDrawer({
 
   const handleSelectCity = (city: string) => {
     setOriginCity(city);
-    setSuggestions([]);
+    setPickedCity(city);
   };
 
   const tButtons = useTranslations("common.buttons");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ItineraryDay } from "@/types";
@@ -43,14 +43,9 @@ export default function UndoToast({
   const t = useTranslations("common.ai.undo");
   const tA11y = useTranslations("common.a11y");
   const [isUndoing, setIsUndoing] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-
-  // Show/hide toast based on undoState
-  useEffect(() => {
-    if (undoState) {
-      setShowToast(true);
-    }
-  }, [undoState]);
+  // Each change gets the toast until it is undone or dismissed.
+  const [hiddenId, setHiddenId] = useState<string | null>(null);
+  const showToast = undoState !== null && undoState.id !== hiddenId;
 
   const handleUndo = useCallback(async () => {
     if (isUndoing || !undoState) return;
@@ -58,16 +53,16 @@ export default function UndoToast({
     setIsUndoing(true);
     try {
       await onUndo();
-      setShowToast(false);
+      setHiddenId(undoState.id);
     } finally {
       setIsUndoing(false);
     }
   }, [isUndoing, undoState, onUndo]);
 
   const handleDismiss = useCallback(() => {
-    setShowToast(false);
+    if (undoState) setHiddenId(undoState.id);
     onDismiss();
-  }, [onDismiss]);
+  }, [undoState, onDismiss]);
 
   // Get action-specific icon and text
   const getActionConfig = (type: string) => {

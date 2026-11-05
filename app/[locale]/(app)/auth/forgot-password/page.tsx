@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/lib/i18n/routing";
@@ -9,10 +9,14 @@ import { AuthField, AuthPage, AuthPageLoading, AuthStatusIcon, AuthSubmitButton 
 
 function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  // The auth callback sends a failure back here as ?error=.
+  const [error, setError] = useState<string | null>(() => {
+    const errorParam = searchParams.get("error");
+    return errorParam ? decodeURIComponent(errorParam) : null;
+  });
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const searchParams = useSearchParams();
   const locale = useLocale();
   const t = useTranslations("auth.resetPassword");
 
@@ -24,14 +28,6 @@ function ForgotPasswordForm() {
     }
     return `${baseUrl}/${locale}${path}`;
   };
-
-  // Check for error params from auth callback
-  useEffect(() => {
-    const errorParam = searchParams.get("error");
-    if (errorParam) {
-      setError(decodeURIComponent(errorParam));
-    }
-  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

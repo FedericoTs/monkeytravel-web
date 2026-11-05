@@ -29,7 +29,9 @@ export default function PlanByEmail({ shareToken, source, defaultEmail }: PlanBy
   const t = useTranslations("common.share");
   const locale = useLocale();
   const [me, setMe] = useState<ParticipantsResponse["me"] | null>(null);
-  const [email, setEmail] = useState(defaultEmail ?? "");
+  // What they typed, else the account's, which resolves after the first render.
+  const [typedEmail, setTypedEmail] = useState<string | null>(null);
+  const email = typedEmail ?? defaultEmail ?? "";
   // Someone already getting this trip's emails sees the form only on request.
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -44,11 +46,6 @@ export default function PlanByEmail({ shareToken, source, defaultEmail }: PlanBy
       }),
     [shareToken],
   );
-
-  // The account resolves after the first render.
-  useEffect(() => {
-    if (defaultEmail) setEmail((current) => current || defaultEmail);
-  }, [defaultEmail]);
 
   const joined = me?.joined ?? false;
   const showForm = !joined || (!result && (!me?.has_email || open));
@@ -134,7 +131,7 @@ export default function PlanByEmail({ shareToken, source, defaultEmail }: PlanBy
           type="email"
           value={email}
           onChange={(e) => {
-            setEmail(e.target.value);
+            setTypedEmail(e.target.value);
             setError(null);
           }}
           maxLength={254}
