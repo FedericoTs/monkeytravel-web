@@ -1,4 +1,4 @@
-import type { AdminStats } from "@/app/api/admin/stats/route";
+import type { AdminStats } from "@/lib/admin/stats/types";
 
 /** A full answer from /api/admin/stats, for rendering the Analytics tab. */
 export const adminStatsFixture: AdminStats = {

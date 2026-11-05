@@ -1,4 +1,4 @@
-import type { AdminStats } from "@/app/api/admin/stats/route";
+import type { AdminStats } from "@/lib/admin/stats/types";
 
 // ===========================================================================
 // Cohort retention — kept (now at the bottom), with empty-state polish

@@ -23,7 +23,7 @@ function sources(dir: string): string[] {
 describe("API request logs are server-only", () => {
   const users = ["app", "lib", "components", "hooks"]
     .flatMap(sources)
-    .filter((f) => read(f).includes('from("api_request_logs")'));
+    .filter((f) => read(f).includes('"api_request_logs"'));
 
   it("every file that touches the table uses the service role", () => {
     expect(users.length).toBeGreaterThan(0);

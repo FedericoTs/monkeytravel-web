@@ -1,4 +1,4 @@
-import type { AdminStats } from "@/app/api/admin/stats/route";
+import type { AdminStats } from "@/lib/admin/stats/types";
 
 // ===========================================================================
 // Subscribers — single horizontal strip (was: 4-card grid)

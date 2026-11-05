@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeSupabase, type FakeQuery } from "@/tests/fake-supabase";
-import type { AdminStats } from "./route";
+import type { AdminStats } from "@/lib/admin/stats/types";
 
 /**
  * The Analytics tab counts whole tables. The real route runs over rows answered as
