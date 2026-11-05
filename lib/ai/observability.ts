@@ -24,7 +24,7 @@
  *   without per-endpoint string munging:
  *     ai.endpoint:    short string like "generate", "regenerate-activity"
  *     ai.outcome:     "success" | "failure"
- *     ai.model:       "gemini-2.5-flash-lite" | "maps-grounding" | "cache"
+ *     ai.model:       "gemini-2.5-flash-lite" | "cache"
  *     ai.cache_hit:   "true" | "false"
  *     ai.duration_ms: numeric
  *   Errors get the actual exception so source-map symbolication works.
@@ -48,11 +48,10 @@ export type AiEndpoint =
 
 /**
  * Model identifier — what produced the result. "cache" when we served
- * from cross-user cache without calling any model. "maps-grounding" for
- * the Gemini-with-Maps variant. "n/a" when the failure happened before
+ * from cross-user cache without calling any model. "n/a" when the failure happened before
  * we even chose a model (e.g. validation 400, auth 401).
  */
-export type AiModel = "cache" | "maps-grounding" | GeminiModelId | "n/a";
+export type AiModel = "cache" | GeminiModelId | "n/a";
 
 export interface AiOutcomeInput {
   endpoint: AiEndpoint;

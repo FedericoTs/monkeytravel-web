@@ -1,7 +1,6 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
 import { adjustItineraryDates } from "./cache";
-import { canGroundDestination } from "../maps-grounding";
 import { itineraryTimeoutMs } from "../gemini";
 import type { GeneratedItinerary } from "@/types";
 
@@ -83,20 +82,5 @@ describe("the generation timeout scales with trip length", () => {
 
   it("falls back to the base guard when length is unknown", () => {
     expect(itineraryTimeoutMs(undefined)).toBe(50_000);
-  });
-});
-
-describe("Maps Grounding is skipped for places it cannot locate", () => {
-  it("recognises a destination in its table", () => {
-    expect(canGroundDestination("Paris, France")).toBe(true);
-  });
-
-  it("rejects one it does not know, instead of silently using Paris", () => {
-    // The old resolver returned PARIS coordinates for anything unknown, then
-    // spent 40s+ grounding zero places and produced an itinerary anchored to
-    // the wrong city. Measured on a Valencia request:
-    // "[MapsGrounding] Unknown destination: Valencia, Spain, using Paris
-    // coordinates" followed by "0 places grounded in 43963ms".
-    expect(canGroundDestination("Nowherecity, Atlantis")).toBe(false);
   });
 });
