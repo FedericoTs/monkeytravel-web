@@ -177,6 +177,7 @@ export function useDraftRestore({
       if (decision === "discard") {
         // Already one of their trips: restoring it would insert it again.
         clearDraft();
+        void prefs.remove("pendingTripGeneration");
         return;
       }
       if (decision === "auto-restore") {
@@ -186,6 +187,9 @@ export function useDraftRestore({
         // and silently replaces the itinerary the user clicked Save on.
         applyStoredDraft(draft);
         setDraftAutoRestored(true);
+        // A plan brought back needs nothing generated. Left set, the flag would
+        // start the next plan by itself as soon as its form was filled in.
+        if (draft.generatedItinerary) void prefs.remove("pendingTripGeneration");
         // Don't show the banner since we're auto-restoring — and close it if a
         // pass before auth resolved had already opened it.
         setShowDraftRecovery(false);

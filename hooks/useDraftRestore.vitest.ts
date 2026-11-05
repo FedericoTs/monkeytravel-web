@@ -5,11 +5,16 @@ import type { ItineraryDraft } from "@/hooks/useItineraryDraft";
 import type { GeneratedItinerary } from "@/types";
 
 const stored = new Map<string, string>();
+// Held open so the saved-trip check answers before the stored flag is read.
+let prefsAnswer: Promise<void> = Promise.resolve();
 const savedTripOf = vi.fn();
 const trackWizardEvent = vi.fn();
 vi.mock("@/lib/platform/storage", () => ({
   prefs: {
-    get: async (k: string) => stored.get(k) ?? null,
+    get: async (k: string) => {
+      if (k === "pendingTripGeneration") await prefsAnswer;
+      return stored.get(k) ?? null;
+    },
     remove: async (k: string) => void stored.delete(k),
   },
 }));
@@ -74,6 +79,7 @@ const user = { id: "u1" } as User;
 
 beforeEach(() => {
   stored.clear();
+  prefsAnswer = Promise.resolve();
   draftTargets = targets();
   sessionStorage.clear();
   [savedTripOf, trackWizardEvent, clearDraft, handleGenerate].forEach((fn) => fn.mockReset());
@@ -152,6 +158,35 @@ describe("useDraftRestore", () => {
     });
     expect(handleGenerate).toHaveBeenCalledTimes(1);
     expect(stored.has("pendingTripGeneration")).toBe(false);
+  });
+
+  it("doesn't start the next plan by itself after bringing back the one signed up for", async () => {
+    stored.set("pendingTripGeneration", "true");
+    const signedIn = { isAuthenticated: true, authUser: user };
+    const { result, rerender } = renderHook((p: Props) => useDraftRestore(p), { initialProps: props(signedIn) });
+    await waitFor(() => expect(result.current.draftAutoRestored).toBe(true));
+    await waitFor(() => expect(stored.has("pendingTripGeneration")).toBe(false));
+
+    // Start Over clears the plan and the draft; then a new form, filled in.
+    vi.useFakeTimers();
+    rerender(props({ ...signedIn, hasDraft: false, draft: null, ...{ destination: "Rome, Italy", startDate: "2027-06-01", endDate: "2027-06-03", selectedVibes: ["cultural" as const] } }));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+    expect(handleGenerate).not.toHaveBeenCalled();
+  });
+
+  it("forgets the wish when the plan signed up for turns out to be saved already", async () => {
+    stored.set("pendingTripGeneration", "true");
+    savedTripOf.mockResolvedValue("trip-1");
+    let answer!: () => void;
+    prefsAnswer = new Promise((resolve) => (answer = resolve));
+    renderHook((p: Props) => useDraftRestore(p), { initialProps: props({ isAuthenticated: true, authUser: user }) });
+    await waitFor(() => expect(savedTripOf).toHaveBeenCalled());
+    await act(() => vi.waitFor(() => Promise.resolve()));
+    answer();
+    await waitFor(() => expect(clearDraft).toHaveBeenCalled());
+    await waitFor(() => expect(stored.has("pendingTripGeneration")).toBe(false));
   });
 
   it("reports an expired draft once", () => {
