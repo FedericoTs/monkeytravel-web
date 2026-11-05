@@ -112,6 +112,7 @@ vi.mock("@/lib/api/auth", () => ({
 }));
 
 const { POST, GET } = await import("./route");
+const { chatLanguageInstruction } = await import("@/lib/ai/assistant/chat-language");
 
 async function send(message: string, extra: Record<string, unknown> = {}) {
   const res = await POST(
@@ -139,6 +140,7 @@ const savedAssistantMessage = () => {
 };
 
 beforeEach(() => {
+  storedTrip.trip_meta.locale = "en";
   calls = [];
   storedConversation = { id: "conv-1", messages: savedMessages, context: {} };
   conversationRows = [];
@@ -257,6 +259,15 @@ describe("trip-page assistant: free-form edits", () => {
     expect(chatCalls).toHaveBeenCalledTimes(1);
     expect(json.message.content).toBe("Which day should it go on?");
     expect(json.pendingChange).toBeNull();
+  });
+
+  it("works in the trip's own language: the engine, and the chat when it takes over", async () => {
+    storedTrip.trip_meta.locale = "it";
+    proposeTripEdits.mockRejectedValue(new Error("model overloaded"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    await send("add a museum");
+    expect(proposeTripEdits).toHaveBeenCalledWith(expect.objectContaining({ locale: "it" }));
+    expect(String(chatCalls.mock.calls[0][0])).toContain(chatLanguageInstruction("it"));
   });
 
   it("says the model is out of service when the engine is refused, without asking the chat too", async () => {
