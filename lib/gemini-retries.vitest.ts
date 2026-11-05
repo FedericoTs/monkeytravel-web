@@ -11,7 +11,8 @@ import { isModelOutOfCredit } from "./ai/model-outage";
 
 const model = vi.hoisted(() => ({ answers: [] as Array<() => Promise<unknown>>, names: [] as string[] }));
 
-vi.mock("@/lib/ai/genai-compat", () => ({
+vi.mock("@/lib/ai/genai-compat", async (original) => ({
+  ...(await original<typeof import("@/lib/ai/genai-compat")>()),
   GoogleGenerativeAI: class {
     getGenerativeModel({ model: name }: { model: string }) {
       model.names.push(name);

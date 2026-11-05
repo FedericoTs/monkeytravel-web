@@ -87,14 +87,12 @@ async function itineraryAttempt(
   const startTime = performance.now();
 
   // Route through model-router so the routing matrix lives in one place.
-  // trip-generation → gemini-2.5-flash.
   const modelName = getModelForPurpose("trip-generation");
 
-  // Thinking is off (thinkingConfig below). gemini-2.5-flash thinks by
-  // default: thinking tokens count against maxOutputTokens and, on a full
-  // itinerary prompt, can push every attempt past its timeout. Structured JSON
-  // output does not need deep reasoning. 2.5-pro rejects thinkingBudget 0
-  // ("only works in thinking mode"), so this purpose must stay on a flash model.
+  // Thinking stays at its lowest (thinkingConfig below): thinking tokens count
+  // against maxOutputTokens and, on a full itinerary prompt, can push every
+  // attempt past its timeout. Structured JSON output does not need deep
+  // reasoning.
   const model = genAI.getGenerativeModel({
     model: modelName,
     generationConfig: {
@@ -333,9 +331,8 @@ export async function* generateItineraryStream(
       // Keep in sync with generateItineraryInternal (same model, same prompt).
       maxOutputTokens: 16000,
       responseMimeType: "application/json",
-      // Thinking OFF, as in generateItineraryInternal. gemini-2.5-flash thinks
-      // by default and thinking tokens count against `maxOutputTokens`, so any
-      // thinking budget can push the answer past the cap: the SSE stream then
+      // Thinking at its lowest, as in generateItineraryInternal. Thinking tokens
+      // count against `maxOutputTokens`, so more of it can push the answer past the cap: the SSE stream then
       // emits a valid prefix of an invalid JSON ("Unterminated string" in
       // parseStreamedItinerary).
       thinkingConfig: thinkingConfigFor(modelName),

@@ -49,8 +49,6 @@ export async function prepareDraftChange(input: {
   } else {
     console.log(`[AI Assistant] Attempting to map pasted draft onto ${days.length} days`);
     try {
-      // assistant-optimize → gemini-2.5-flash: reasoning over the whole
-      // trip structure.
       const draftModel = genAI.getGenerativeModel({
         model: getModelForPurpose("assistant-optimize"),
         generationConfig: {

@@ -215,7 +215,7 @@ Generate a complete day-by-day itinerary in JSON format with this exact structur
           "duration_minutes": 120,
           "name": "Real Place Name",
           "type": "attraction",
-          "description": "What to do here",
+          "description": "What to do here and why it is worth it, in about 25 words",
           "location": "Neighborhood name",
           "address": "Full street address",
           "coordinates": {
@@ -252,7 +252,8 @@ Rules:
 7. EVERY activity MUST have PRECISE coordinates (lat/lng with 6 decimal places, e.g., 48.858370, 2.294481) - use the EXACT location of each place, not approximate city center. This is critical for accurate map display
 8. Write "booking_required": true only on an activity that must be booked ahead; leave the field out on every other activity
 9. An activity's "type" says what the place is, and is one of: ${ACTIVITY_TYPES.join(", ")}. Never a travel vibe such as foodie, cultural, urban or romantic
-10. Every price, and the trip total, is in US dollars ("currency": "USD") whatever the destination: the app shows prices in the traveller's own currency`;
+10. Every price, and the trip total, is in US dollars ("currency": "USD") whatever the destination: the app shows prices in the traveller's own currency
+11. Every full day has lunch, and dinner in the evening, at real named places. They count among the day's activities`;
 
 // Shared chat prefix for BOTH trip-generation call sites (blocking +
 // streaming). Byte-identical history across requests is what makes Gemini's

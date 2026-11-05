@@ -42,7 +42,7 @@ type Case = Pick<TripCreationParams, "destination"> &
 // a second copy of gemini-cost that lib/gemini's calls never reach.
 const { GeminiCostMeter } = createRequire(import.meta.url)("../lib/ai/gemini-cost.ts") as typeof import("../lib/ai/gemini-cost");
 
-const models = (process.env.MODELS ?? "gemini-2.5-flash").split(",").map((m) => m.trim());
+const models = (process.env.MODELS ?? "gemini-3.5-flash-lite").split(",").map((m) => m.trim());
 const budget = Number(process.env.BUDGET_USD ?? 1);
 // The most one run can cost: a long multi-city trip with every city written twice.
 const MAX_RUN_USD = 0.25;

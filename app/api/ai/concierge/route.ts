@@ -104,9 +104,7 @@ export async function POST(request: NextRequest) {
     const progress = todaySlice ? await loadDayProgress(supabase, tripId, todaySlice.dayNumber) : new Map<string, string>();
     const memory = await loadConciergeMemory(user.id, tripId);
 
-    // Call Gemini. Routed via model-router → concierge maps to
-    // gemini-2.5-flash, not flash-lite, which struggles with multi-day
-    // context.
+    // Call Gemini, routed via model-router.
     const apiKey = process.env.GOOGLE_AI_API_KEY;
     if (!apiKey) {
       return errors.serviceUnavailable("AI not configured");
@@ -117,8 +115,8 @@ export async function POST(request: NextRequest) {
       generationConfig: {
         temperature: 0.6, // some warmth but mostly factual
         maxOutputTokens: MAX_RESPONSE_TOKENS,
-        // Thinking off: flash thinks by default and its thinking tokens count
-        // against the cap, which spent it before the answer was written.
+        // Thinking at its lowest: thinking tokens count against the cap, which
+        // can spend it before the answer is written.
         thinkingConfig: thinkingConfigFor(conciergeModel),
       },
     });

@@ -90,10 +90,9 @@ async function dayAttempt(
   retryCount: number
 ): Promise<Attempt<ItineraryDay>> {
   const startTime = performance.now();
-  // day-regenerate → gemini-2.5-flash (balanced quality/cost for a single day).
-  // The FINAL retry switches to the sibling model: the SAME model at a LOWER
-  // temperature tends to reproduce the same malformed JSON, and a different
-  // model also dodges model-specific 5xx outages.
+  // The FINAL retry switches to the sibling model: the SAME model tends to
+  // reproduce the same malformed JSON, and a different model also dodges
+  // model-specific 5xx outages.
   const modelName =
     retryCount >= MAX_RETRIES
       ? getSiblingModel(getModelForPurpose("day-regenerate"))
@@ -111,9 +110,8 @@ async function dayAttempt(
       topK: 40,
       maxOutputTokens: 2048, // One day is ~500-800 tokens; this leaves headroom.
       responseMimeType: "application/json",
-      // Thinking OFF, as in generateItineraryInternal and generateItineraryStream.
-      // 2.5-flash thinks by default and thinking tokens count against
-      // maxOutputTokens, so with thinking on the 2048 cap is spent thinking and
+      // Thinking at its lowest, as in generateItineraryInternal and generateItineraryStream.
+      // Thinking tokens count against maxOutputTokens, so with more of it the 2048 cap is spent thinking and
       // the visible JSON comes out cut mid-object. The sibling-model retry
       // handles genuinely bad output.
       thinkingConfig: thinkingConfigFor(modelName),

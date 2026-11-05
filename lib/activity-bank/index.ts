@@ -158,8 +158,6 @@ export async function populateActivityBank(
   }
 
   // Generate activities using AI - ONE call for all types.
-  // activity-bank → gemini-2.5-flash (batch list generation, benefits
-  // from implicit caching across destinations).
   const model = genAI.getGenerativeModel({
     model: getModelForPurpose("activity-bank"),
   });

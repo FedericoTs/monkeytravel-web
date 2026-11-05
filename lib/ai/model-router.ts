@@ -10,17 +10,17 @@
  *
  *   Purpose                     | Model                  | Why
  *   ----------------------------|------------------------|----------------------------
- *   trip-generation             | gemini-2.5-flash       | 2.5-pro thinking blew 30s timeout; flash supports thinkingBudget=0
- *   day-regenerate              | gemini-2.5-flash       | Single-day, balanced quality/cost
+ *   trip-generation             | gemini-3.5-flash-lite  | Full plans: fast, good pins, no deep reasoning needed
+ *   day-regenerate              | gemini-3.5-flash-lite  | Single-day, same writing as a full plan
  *   activity-regenerate         | gemini-2.5-flash-lite  | Single activity, cheapest works
- *   concierge                   | gemini-2.5-flash       | Conversational, needs context
+ *   concierge                   | gemini-3.5-flash-lite  | Conversational, needs context
  *   packing-list                | gemini-2.5-flash-lite  | Deterministic list, cheap
  *   email-parser                | gemini-2.5-flash-lite  | Structured extraction, low temp
  *   trip-title                  | gemini-2.5-flash-lite  | One-shot string, cheapest
- *   activity-bank               | gemini-2.5-flash       | Batch list generation
- *   assistant-optimize          | gemini-2.5-flash       | A pasted multi-day draft mapped onto the trip
- *   assistant-edits             | gemini-2.5-flash       | The assistant's edit engine (wizard + trip page)
- *   assistant-chat              | gemini-2.5-flash       | The trip assistant's reply when the engine gave none
+ *   activity-bank               | gemini-3.5-flash-lite  | Batch list generation
+ *   assistant-optimize          | gemini-3.5-flash-lite  | A pasted multi-day draft mapped onto the trip
+ *   assistant-edits             | gemini-3.5-flash-lite  | The assistant's edit engine (wizard + trip page)
+ *   assistant-chat              | gemini-3.5-flash-lite  | The trip assistant's reply when the engine gave none
  *
  * Env override:
  *   GEMINI_MODEL_OVERRIDE — when set, ALL purposes resolve to that model.
@@ -45,7 +45,6 @@ export type GeminiPurpose =
   | "anchor-import";
 
 export type GeminiModelId =
-  | "gemini-2.5-pro"
   | "gemini-2.5-flash"
   | "gemini-2.5-flash-lite"
   | "gemini-3.8-flash"
@@ -54,29 +53,19 @@ export type GeminiModelId =
   | "gemini-3.1-flash-lite";
 
 const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
-  // gemini-2.5-flash, not 2.5-pro: for a real itinerary prompt, pro's
-  // default thinking runs past AI_REQUEST_TIMEOUT_MS (30s), so every attempt
-  // would time out.
-  //
-  // We CAN'T disable thinking on pro — direct REST test with
-  // `thinkingConfig: { thinkingBudget: 0 }` returned 400
-  // "Budget 0 is invalid. This model only works in thinking mode."
-  //
-  // Flash DOES support thinkingBudget=0 (REST test returned in
-  // 0.88s flat). Same family, comparable JSON output quality for
-  // structured itineraries, 5-10× cheaper. The `thinkingConfig`
-  // line in lib/gemini.ts now safely takes effect.
-  "trip-generation": "gemini-2.5-flash",
-  "day-regenerate": "gemini-2.5-flash",
+  // 2.5 Flash-Lite is cheaper, but it places pins worse and writes thinner
+  // days, so it keeps only the small utility calls below.
+  "trip-generation": "gemini-3.5-flash-lite",
+  "day-regenerate": "gemini-3.5-flash-lite",
   "activity-regenerate": "gemini-2.5-flash-lite",
-  concierge: "gemini-2.5-flash",
+  concierge: "gemini-3.5-flash-lite",
   "packing-list": "gemini-2.5-flash-lite",
   "email-parser": "gemini-2.5-flash-lite",
   "trip-title": "gemini-2.5-flash-lite",
-  "activity-bank": "gemini-2.5-flash",
-  "assistant-optimize": "gemini-2.5-flash",
-  "assistant-edits": "gemini-2.5-flash",
-  "assistant-chat": "gemini-2.5-flash",
+  "activity-bank": "gemini-3.5-flash-lite",
+  "assistant-optimize": "gemini-3.5-flash-lite",
+  "assistant-edits": "gemini-3.5-flash-lite",
+  "assistant-chat": "gemini-3.5-flash-lite",
   // Paste-a-plan import (docs/CONSTRAINT_PLANNER_PLAN.md F2): pasted text →
   // a small array of dated commitments. Same shape of work as email-parser,
   // and responseSchema carries the contract, so the cheapest tier is enough.
@@ -84,7 +73,6 @@ const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
 };
 
 const ALLOWED_OVERRIDES = new Set<string>([
-  "gemini-2.5-pro",
   "gemini-2.5-flash",
   "gemini-2.5-flash-lite",
   "gemini-3.8-flash",
@@ -111,22 +99,19 @@ export function getModelForPurpose(purpose: GeminiPurpose): GeminiModelId {
 /**
  * Sibling model for last-resort fallback (UX10X Phase 0.1).
  *
- * Flash-lite can fail hard (GoogleGenerativeAI 500/503) while flash holds.
+ * A model can fail hard (GoogleGenerativeAI 500/503) while another holds.
  * Retrying the SAME model rides out blips but not model-specific serving
- * outages; the sibling runs on a different pool.
- * Also used by regenerateSingleDay's final attempt: its parse-failure
- * retry lowers temperature, which deterministically reproduces the same
- * malformed output on the same model — a different model breaks the loop.
+ * outages; the sibling runs on a different pool. A sibling is never a model
+ * with a shutdown date. Also used by regenerateSingleDay's final attempt: a
+ * parse-failure retry on the same model tends to reproduce the same malformed
+ * output, and a different model breaks the loop.
  */
 const SIBLING_MODEL: Record<GeminiModelId, GeminiModelId> = {
-  "gemini-2.5-flash-lite": "gemini-2.5-flash",
+  "gemini-3.5-flash-lite": "gemini-2.5-flash-lite",
+  "gemini-2.5-flash-lite": "gemini-3.5-flash-lite",
   "gemini-2.5-flash": "gemini-2.5-flash-lite",
-  // pro's sibling is flash (never flash-lite): pro callers chose it for
-  // quality, so degrade one step, not two.
-  "gemini-2.5-pro": "gemini-2.5-flash",
   "gemini-3.8-flash": "gemini-3.6-flash",
   "gemini-3.6-flash": "gemini-3.8-flash",
-  "gemini-3.5-flash-lite": "gemini-3.1-flash-lite",
   "gemini-3.1-flash-lite": "gemini-3.5-flash-lite",
 };
 
@@ -138,12 +123,10 @@ export function getSiblingModel(model: GeminiModelId): GeminiModelId {
  * The thinking a model may do: `budget` tokens on 2.5 models, a level on later
  * ones. They can't turn thinking off, and each refuses a level it doesn't
  * have (3.8 Flash has no minimal, 3.5 Flash-Lite takes no budget at all), so
- * "none" is their lowest level. 2.5 Pro can't go below 128.
+ * "none" is their lowest level.
  */
 export function thinkingConfigFor(model: GeminiModelId, budget = 0): ThinkingConfig {
-  if (model.startsWith("gemini-2.5-")) {
-    return { thinkingBudget: model === "gemini-2.5-pro" ? Math.max(budget, 128) : budget };
-  }
+  if (model.startsWith("gemini-2.5-")) return { thinkingBudget: budget };
   if (budget > 0) return { thinkingLevel: ThinkingLevel.LOW };
   return { thinkingLevel: model === "gemini-3.8-flash" ? ThinkingLevel.LOW : ThinkingLevel.MINIMAL };
 }
