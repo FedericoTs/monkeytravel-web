@@ -18,10 +18,7 @@ import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
 import TodayView from "@/components/trip/TodayView";
 import { useLiveTripState } from "@/lib/trip/useLiveTripState";
 import { computeTripDayState, type TripDayState } from "@/lib/trip/live";
-import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
-import DayHeader from "@/components/trip/DayHeader";
-import DayActions from "@/components/trip/DayActions";
-import { EditModeNotice, NoItinerary, RegeneratingDayOverlay, ReorderHint, SaveSuccessToast } from "@/components/trip/TripNotices";
+import { EditModeNotice, SaveSuccessToast } from "@/components/trip/TripNotices";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 // TravelAdvisoryBanner / ExpenseLedger / TripConciergeChat are loaded with
@@ -33,9 +30,7 @@ import { useVotingSheetActions } from "@/hooks/useVotingSheetActions";
 import { useActivityRegeneration } from "@/hooks/useActivityRegeneration";
 import { useDayRegeneration } from "@/hooks/useDayRegeneration";
 import { dayTimeline } from "@/lib/proposals/timeline";
-import { InlineProposalCard } from "@/components/collaboration/proposals";
 import DestinationHero from "@/components/DestinationHero";
-import EditableActivityCard from "@/components/trip/EditableActivityCard";
 import ShareButton from "@/components/trip/ShareButton";
 import { BookingPanel, EnhancedBookingPanel, PostConfirmationBanner } from "@/components/booking";
 import { useFlag } from "@/lib/posthog/hooks";
@@ -54,9 +49,6 @@ import {
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import DaySlider from "@/components/ui/DaySlider";
-import ActivityRow from "@/components/trip/ActivityRow";
-import DaySummary from "@/components/trip/DaySummary";
-import { DayTimeline } from "@/components/trip/DayTimeline";
 import { tripNights } from "@/lib/dates/iso-date";
 import {
   CountdownHero,
@@ -64,46 +56,23 @@ import {
 } from "@/components/timeline";
 import { useChecklist } from "@/hooks/useChecklist";
 import { useToast } from "@/components/ui/Toast";
-import { useCurrency } from "@/lib/locale";
 import { trackTripViewed } from "@/lib/analytics";
-import { segmentBetween, useTravelDistances } from "@/hooks/useTravelDistances";
+import { useTravelDistances } from "@/hooks/useTravelDistances";
 import {
   ensureActivityIdsStable,
   deleteActivity,
   updateActivity,
   addActivity,
 } from "@/lib/utils/activity-id";
-import AddActivityButton from "@/components/trip/AddActivityButton";
 import { firstRealPoint, newActivity } from "@/lib/trips/new-activity";
-import SortableActivityCard from "@/components/trip/SortableActivityCard";
+import TripDayList from "@/components/trip/TripDayList";
 import { useTranslations, useLocale } from "next-intl";
 import { JourneyRibbon } from "@/components/trips/JourneyRibbon";
 import { buildJourneyStops } from "@/lib/ai/transfer-legs";
-import {
-  DndContext,
-  DragOverlay,
-  KeyboardSensor,
-  MeasuringStrategy,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
 import { useItineraryMoves } from "@/hooks/useItineraryMoves";
 import { useItineraryHistory } from "@/hooks/useItineraryHistory";
 import { CancelTripDialog, CancelledTripNote, ConfirmTripCard, TripStatusBadge, useTripStatus } from "@/components/trip/TripStatus";
-import {
-  ActivityDragGhost,
-  DayDropHeader,
-  DayDropList,
-  dayOptionsOf,
-  makeItineraryCollisionDetection,
-} from "@/components/trip/ItineraryDnd";
+import { dayOptionsOf } from "@/components/trip/ItineraryDnd";
 
 import { useAssistantFirstVisit } from "@/hooks/useAssistantFirstVisit";
 import { useTripCover } from "@/hooks/useTripCover";
@@ -263,13 +232,6 @@ export default function TripDetailClient({
   // A separate translator for the 'common' namespace (activity.*,
   // addFromEmail.*, today.*).
   const tCommon = useTranslations('common');
-
-  // Currency conversion hook — converts source-currency activity costs into
-  // the user's preferred currency. Backs formatDayBudget below.
-  const { convert: convertCurrency, format: formatCurrency } = useCurrency();
-
-  const formatDayBudget = (day: ItineraryDay): string =>
-    dayBudgetLabel(day, { convert: convertCurrency, format: formatCurrency }, tCommon('activity.free'), trip.budget?.currency || "USD");
 
   // Check for share query param (used to auto-open share modal after trip save)
   const searchParams = useSearchParams();
@@ -655,34 +617,6 @@ export default function TripDetailClient({
   // Memoized on the itinerary so the memoized cards re-render only when a
   // day's contents actually change.
   const dayOptions = useMemo(() => dayOptionsOf(editedItinerary), [editedItinerary]);
-
-  const collisionDetection = useMemo(() => makeItineraryCollisionDetection(), []);
-  // Re-measure every droppable on each move. dnd-kit measures droppables once
-  // when a drag starts and only re-measures sortable ITEMS when a list
-  // changes — the day headers and lists are not sortable items, so anything
-  // that shifts the page mid-drag (the preview moving a card between days,
-  // the map or an image loading) would leave their rects stale and a drop over
-  // a header would land somewhere else. ~15 rects per move is negligible.
-  const dndMeasuring = useMemo(() => ({ droppable: { strategy: MeasuringStrategy.Always } }), []);
-
-  // Drag-and-drop sensors for reordering activities
-  // Optimized for premium iOS-like touch experience
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5, // Reduced for more responsive feel
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 150, // Quick but intentional press (iOS-like)
-        tolerance: 8, // Allow slight movement during press
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   // Apply optimized route to a day (with undo support)
   const applyOptimizedRoute = useCallback((dayNumber: number, optimizedActivities: Activity[]) => {
@@ -1281,241 +1215,40 @@ export default function TripDetailClient({
           className="mb-6"
         />
 
-        {/* Itinerary */}
-        {displayItinerary.length > 0 ? (
-          // One drag context for the whole plan, so a card can be dragged from
-          // any day to any other (with one context per day, a drag past the
-          // day boundary snaps back). Inert when nothing is sortable (view
-          // mode / read-only), so it wraps unconditionally.
-          <DndContext
-            sensors={sensors}
-            collisionDetection={collisionDetection}
-            measuring={dndMeasuring}
-            onDragStart={moves.onDragStart}
-            onDragOver={moves.onDragOver}
-            onDragEnd={moves.onDragEnd}
-            onDragCancel={moves.onDragCancel}
-          >
-          <div className="space-y-8" key={`itinerary-v${renderEpoch}`}>
-            {(moves.preview ?? displayItinerary)
-              // dayIndex is the day's place in the whole trip, which the edit
-              // handlers index by; with a day selected it's the only one shown.
-              .map((day, dayIndex) => ({ day, dayIndex }))
-              .filter(({ day }) => selectedDay === null || day.day_number === selectedDay)
-              .map(({ day, dayIndex }, shownIndex) => (
-                <div
-                  key={`day-${day.day_number}-v${renderEpoch}`}
-                  // Stable per-day anchor for the assistant's APPLY → SEE loop
-                  // (scroll target + flash highlight, see handleFocusDayCard).
-                  id={`trip-day-${day.day_number}`}
-                  className={`relative scroll-mt-6 ${
-                    aiFocusDay?.day === day.day_number
-                      ? `rounded-2xl ring-2 ring-[var(--primary)] ring-offset-4 transition-all duration-500 ${
-                          aiFocusDay.pulse ? "animate-pulse-once" : ""
-                        }`
-                      : ""
-                  }`}
-                >
-                  {/* Loading overlay during per-day regeneration */}
-                  {regeneratingDayNumber === day.day_number && <RegeneratingDayOverlay dayNumber={day.day_number} />}
-                  {/* Day Header — a drop target while a card is being dragged (lands at the start of this day) */}
-                  <DayDropHeader dayNumber={day.day_number} dragging={moves.dragging}>
-                  <DayHeader
-                    dayNumber={day.day_number}
-                    title={t('day.label', { number: day.day_number })}
-                    theme={day.theme}
-                    editing={isEditMode}
-                  >
-                    <DayActions
-                      dayNumber={day.day_number}
-                      regeneratingDayNumber={regeneratingDayNumber}
-                      onRegenerate={userRole === "owner" ? () => setDayRegenPrompt({ dayNumber: day.day_number, text: "" }) : null}
-                      onOptimizeRoute={
-                        editingActive && day.activities.length >= 3
-                          ? () => openRouteOptimization(day.day_number, day.activities)
-                          : null
-                      }
-                      budget={showsDayBudget(day) ? formatDayBudget(day) : null}
-                    />
-                  </DayHeader>
-                  </DayDropHeader>
-
-                  {/* Activities */}
-                  {viewMode === "cards" ? (
-                    <>
-                      {editingActive ? (
-                        /* Edit Mode with Drag-and-Drop */
-                        <>
-                          {/* Edit mode reorder hint - only on the first day shown */}
-                          {shownIndex === 0 && <ReorderHint />}
-                          <DayDropList
-                            dayNumber={day.day_number}
-                            dragging={moves.dragging}
-                            isEmpty={day.activities.length === 0}
-                          >
-                            <SortableContext
-                              items={day.activities.map((a) => a.id || `activity-${day.activities.indexOf(a)}`)}
-                              strategy={verticalListSortingStrategy}
-                            >
-                              <div className="grid gap-0">
-                              {day.activities.map((activity, idx) => {
-                                const isAIUpdated = aiUpdatedActivityId === activity.id;
-                                const nextActivity = day.activities[idx + 1];
-                                const dayTravelData = travelData.get(day.day_number);
-                                const segment = segmentBetween(dayTravelData, activity, nextActivity);
-
-                                return (
-                                  <ActivityRow
-                                    key={`${activity.id || idx}-v${renderEpoch}`}
-                                    crewVotes={crewVotes}
-                                    activityId={activity.id}
-                                    aiUpdated={isAIUpdated}
-                                    travelTo={
-                                      idx < day.activities.length - 1
-                                        ? { segment, isLoading: travelLoading || dayTravelData?.isLoading }
-                                        : null
-                                    }
-                                  >
-                                    <SortableActivityCard
-                                      activity={activity}
-                                      index={idx}
-                                      currency={trip.budget?.currency}
-                                      showGallery={true}
-                                      isEditMode={true}
-                                      onDelete={() => handleActivityDelete(activity.id!)}
-                                      onUpdate={(updates) => handleActivityUpdate(activity.id!, updates)}
-                                      onMoveToDay={(targetDayIdx) => moves.moveToDay(activity.id!, targetDayIdx)}
-                                      onRegenerate={() => handleActivityRegenerate(activity.id!, dayIndex)}
-                                      availableDays={availableDays}
-                                      dayOptions={dayOptions}
-                                      currentDayIndex={dayIndex}
-                                      isRegenerating={regeneratingActivityId === activity.id}
-                                      disableAutoFetch={true}
-                                      onPhotoCapture={handlePhotoCapture}
-                                      {...activityVotingProps(activity.id)}
-                                    />
-                                  </ActivityRow>
-                                );
-                              })}
-                            </div>
-                          </SortableContext>
-                          </DayDropList>
-                        </>
-                      ) : (
-                        /* View Mode - Merged Timeline with Activities and Inline Proposals */
-                        <div className="grid gap-0">
-                          {getMergedTimeline(day.day_number).map((item) => {
-                            if (item.type === 'activity') {
-                              const activity = item.data;
-                              const idx = item.index;
-                              const isAIUpdated = aiUpdatedActivityId === activity.id;
-                              const nextActivity = day.activities[idx + 1];
-                              const dayTravelData = travelData.get(day.day_number);
-                              const segment = segmentBetween(dayTravelData, activity, nextActivity);
-
-                              return (
-                                <ActivityRow
-                                  key={`activity-${activity.id || idx}-v${renderEpoch}`}
-                                  crewVotes={crewVotes}
-                                  activityId={activity.id}
-                                  aiUpdated={isAIUpdated}
-                                  travelTo={
-                                    idx < day.activities.length - 1
-                                      ? { segment, isLoading: travelLoading || dayTravelData?.isLoading }
-                                      : null
-                                  }
-                                >
-                                  <EditableActivityCard
-                                    activity={activity}
-                                    index={idx}
-                                    currency={trip.budget?.currency}
-                                    showGallery={true}
-                                    isEditMode={false}
-                                    onDelete={() => {}}
-                                    onUpdate={() => {}}
-                                    onMoveToDay={() => {}}
-                                    onRegenerate={() => {}}
-                                    availableDays={[]}
-                                    currentDayIndex={dayIndex}
-                                    disableAutoFetch={true}
-                                    onPhotoCapture={handlePhotoCapture}
-                                    {...activityVotingProps(activity.id)}
-                                  />
-                                </ActivityRow>
-                              );
-                            } else {
-                              // Inline Proposal Card
-                              const proposal = item.data;
-                              return (
-                                <div key={`proposal-${proposal.id}`} className="my-2">
-                                  <InlineProposalCard
-                                    proposal={proposal}
-                                    currentUserId={undefined}
-                                    canVote={canVote}
-                                    onTapToVote={() => openVotingSheet(proposal)}
-                                    totalVoters={voterCount}
-                                  />
-                                </div>
-                              );
-                            }
-                          })}
-                        </div>
-                      )}
-                      {/* Add Activity Button - shown whenever editing is active */}
-                      {editingActive && (
-                        // The indent lives on a wrapper: on the button itself,
-                        // ml-6 plus its w-full makes the page wider than a
-                        // phone screen (it scrolls sideways).
-                        <div className="mt-4 ml-6">
-                          <AddActivityButton
-                            dayIndex={dayIndex}
-                            destination={destination}
-                            onAdd={(partialActivity) => handleAddActivity(dayIndex, partialActivity)}
-                          />
-                        </div>
-                      )}
-                      {/* Suggest Activity Button - View Mode Only, Collaborative Trips */}
-                      {!isEditMode && votingEnabled && canPropose && (
-                        <button
-                          onClick={() => handleOpenProposeModal(day.day_number)}
-                          className="w-full mt-4 py-3 border-2 border-dashed border-gray-200
-                                     rounded-xl text-gray-400 hover:border-blue-300
-                                     hover:text-blue-500 transition-colors text-sm font-medium"
-                        >
-                          {t('detail.suggestActivity')}
-                        </button>
-                      )}
-                      {/* Day travel + feasibility summary */}
-                      <DaySummary
-                        dayNumber={day.day_number}
-                        segments={travelData.get(day.day_number)?.segments ?? []}
-                        activities={day.activities}
-                        pace={trip.meta?.pace}
-                        className="mt-4"
-                      />
-                    </>
-                  ) : (
-                    /* Timeline View */
-                    <DayTimeline
-                      day={day}
-                      travel={travelData.get(day.day_number)}
-                      travelLoading={travelLoading}
-                      pace={trip.meta?.pace}
-                      currency={trip.budget?.currency || "USD"}
-                    />
-                  )}
-                </div>
-              ))}
-          </div>
-          {/* The card that follows the pointer; the source card stays as a faded placeholder. */}
-          <DragOverlay dropAnimation={{ duration: 200, easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)" }}>
-            <ActivityDragGhost activity={moves.draggedActivity} />
-          </DragOverlay>
-          </DndContext>
-        ) : (
-          <NoItinerary />
-        )}
-
+        <TripDayList
+          days={displayItinerary}
+          selectedDay={selectedDay}
+          renderEpoch={renderEpoch}
+          viewMode={viewMode}
+          isEditMode={isEditMode}
+          editingActive={editingActive}
+          destination={destination}
+          currency={trip.budget?.currency}
+          pace={trip.meta?.pace}
+          moves={moves}
+          focusedDay={aiFocusDay}
+          aiUpdatedActivityId={aiUpdatedActivityId}
+          regeneratingDayNumber={regeneratingDayNumber}
+          regeneratingActivityId={regeneratingActivityId}
+          travelData={travelData}
+          travelLoading={travelLoading}
+          crewVotes={crewVotes}
+          availableDays={availableDays}
+          dayOptions={dayOptions}
+          votingProps={activityVotingProps}
+          timelineOf={getMergedTimeline}
+          canVote={canVote}
+          voterCount={voterCount}
+          onOpenProposal={openVotingSheet}
+          onRegenerateDay={userRole === "owner" ? (dayNumber) => setDayRegenPrompt({ dayNumber, text: "" }) : null}
+          onOptimizeRoute={openRouteOptimization}
+          onSuggestActivity={votingEnabled && canPropose ? handleOpenProposeModal : null}
+          onActivityDelete={handleActivityDelete}
+          onActivityUpdate={handleActivityUpdate}
+          onActivityRegenerate={handleActivityRegenerate}
+          onAddActivity={handleAddActivity}
+          onPhotoCapture={handlePhotoCapture}
+        />
         </>
         )}
 
