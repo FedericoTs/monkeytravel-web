@@ -14,6 +14,7 @@ import TripEngagementSection from "@/components/explore/TripEngagementSection";
 import { refreshTripItinerary } from "@/lib/places/refreshItineraryPhotos";
 import { publicNameOrNull } from "@/lib/profile/public-name";
 import { TRIP_COLUMNS } from "@/lib/trips/columns";
+import { emailedInviteToken } from "@/lib/invites/emailed-invite";
 import { keptTripDiets } from "@/lib/trips/diet";
 import { placesToEatCheckDue } from "@/lib/places/kept-trip";
 import { logReadError } from "@/lib/supabase/log-read-error";
@@ -103,6 +104,9 @@ export default async function TripDetailPage({
       // prefixed redirect became /it/it/trips/<id>, a 404.
       redirect(`${localePrefix}/auth/login?redirect=${encodeURIComponent(`/trips/${id}`)}`);
     }
+    // Invited by email and not in yet: the invite is the way in, and it's theirs.
+    const inviteToken = await emailedInviteToken(id, user.email);
+    if (inviteToken) redirect(`${localePrefix}/invite/${inviteToken}`);
     notFound();
   }
 
