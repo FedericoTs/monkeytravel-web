@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Compass, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 
@@ -41,6 +41,17 @@ interface ConciergeTurn {
   created_at: string;
 }
 
+async function readHistory(tripId: string): Promise<ConciergeTurn[]> {
+  const res = await fetch(`/api/trips/${tripId}/concierge-history`, {
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`history ${res.status}`);
+  }
+  const data = (await res.json()) as { turns?: ConciergeTurn[] };
+  return data.turns ?? [];
+}
+
 export default function ConciergeHistory({
   tripId,
   className = "",
@@ -67,36 +78,19 @@ function ConciergeHistoryInner({ tripId, className }: ConciergeHistoryProps) {
   // closing+reopening shouldn't re-hit the API. New questions will
   // require a page refresh to surface; that's an acceptable v1 limit
   // and lines up with the Concierge being single-turn anyway.
-  useEffect(() => {
-    if (!isOpen || turns !== null || loading) return;
-    let cancelled = false;
+  const toggle = () => {
+    setIsOpen(!isOpen);
+    if (isOpen || turns !== null || loading) return;
     setLoading(true);
     setError(null);
-    (async () => {
-      try {
-        const res = await fetch(`/api/trips/${tripId}/concierge-history`, {
-          cache: "no-store",
-        });
-        if (!res.ok) {
-          throw new Error(`history ${res.status}`);
-        }
-        const data = (await res.json()) as { turns: ConciergeTurn[] };
-        if (!cancelled) {
-          setTurns(data.turns ?? []);
-        }
-      } catch (err) {
+    readHistory(tripId)
+      .then(setTurns)
+      .catch((err) => {
         console.error("[concierge-history] fetch failed", err);
-        if (!cancelled) {
-          setError(t("historyError"));
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen, tripId, turns, loading, t]);
+        setError(t("historyError"));
+      })
+      .finally(() => setLoading(false));
+  };
 
   // While we don't know yet whether there's any history, render
   // nothing — so the panel doesn't flash in for users who never used
@@ -113,7 +107,7 @@ function ConciergeHistoryInner({ tripId, className }: ConciergeHistoryProps) {
       <div className={className}>
         <button
           type="button"
-          onClick={() => setIsOpen(true)}
+          onClick={toggle}
           className="w-full text-left text-sm text-slate-500 hover:text-slate-700 flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
           aria-expanded="false"
         >
@@ -131,7 +125,7 @@ function ConciergeHistoryInner({ tripId, className }: ConciergeHistoryProps) {
     >
       <button
         type="button"
-        onClick={() => setIsOpen((v) => !v)}
+        onClick={toggle}
         className="w-full flex items-center gap-2 px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors"
         aria-expanded={isOpen}
       >
