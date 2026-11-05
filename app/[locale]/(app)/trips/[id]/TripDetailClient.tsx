@@ -629,7 +629,7 @@ export default function TripDetailClient({
     });
     // A solo owner's edits save themselves; edit mode has a Save button.
     addToast(t(ambientEdit ? "detail.routeOptimized" : "detail.routeOptimizedSave"), "success");
-  }, [pushUndo, addToast, ambientEdit, t]);
+  }, [pushUndo, addToast, ambientEdit, t, setEditedItinerary]);
 
   // Edit handlers (with undo support). Moves between days come from
   // useItineraryMoves further down, after handleFocusDayCard, which it uses to
@@ -638,14 +638,14 @@ export default function TripDetailClient({
   const handleActivityDelete = useCallback((activityId: string) => {
     pushUndo("Delete activity");
     setEditedItinerary((prev) => deleteActivity(prev, activityId));
-  }, [pushUndo]);
+  }, [pushUndo, setEditedItinerary]);
 
   const handleActivityUpdate = useCallback(
     (activityId: string, updates: Partial<Activity>) => {
       pushUndo("Update activity");
       setEditedItinerary((prev) => updateActivity(prev, activityId, updates));
     },
-    [pushUndo]
+    [pushUndo, setEditedItinerary]
   );
 
   // The plan's first real map point, near which an added activity without
@@ -666,7 +666,7 @@ export default function TripDetailClient({
       });
       setEditedItinerary((prev) => addActivity(prev, dayIndex, added));
     },
-    [editedItinerary, destination, trip.budget?.currency, pushUndo, destinationCoords]
+    [editedItinerary, destination, trip.budget?.currency, pushUndo, destinationCoords, setEditedItinerary]
   );
 
   // Drag-and-drop (within a day and across days) is useItineraryMoves, below
@@ -695,7 +695,7 @@ export default function TripDetailClient({
 
       console.log(`[Photo Capture] Captured Places photo for activity ${activityId}`);
     },
-    [setSavedItinerary, canEdit, trip.id]
+    [setSavedItinerary, canEdit, trip.id, setEditedItinerary]
   );
 
   const { regeneratingActivityId, handleActivityRegenerate } = useActivityRegeneration({
