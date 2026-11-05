@@ -19,19 +19,15 @@
  * replace its state in one go.
  */
 import { NextRequest } from "next/server";
-import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
-import { PARTICIPANT_COOKIE } from "@/lib/participants/shared";
-import { isCookielessScript, participantCookieId, setParticipantCookie } from "@/lib/participants/request";
+import { participantCookieId, readParticipantWrite, setParticipantCookie, signedInUser } from "@/lib/participants/request";
 import { todayActionsSnapshot } from "@/lib/today/snapshot";
 import { announceTodayChange, writeTodayAction, type TodayActionBody } from "@/lib/today/write";
 import { readSharedTrip } from "@/lib/trips/shared-trip";
-import { isUuid } from "@/lib/utils/uuid";
 
 const ipLimiter = createRateLimiter("today-action-ip", 40, 60_000);
 const cookieTripLimiter = createRateLimiter("today-action-cookie-trip", 20, 60_000);
@@ -39,18 +35,9 @@ const cookieTripLimiter = createRateLimiter("today-action-cookie-trip", 20, 60_0
 export async function POST(request: NextRequest, context: InviteTokenRouteContext) {
   try {
     if (!isLiveTripParticipantsEnabled()) return errors.notFound("Not available");
-    const { token } = await context.params;
-    if (!token || !isUuid(token)) return errors.badRequest("Invalid share token");
-
-    const { allowed: ipAllowed } = await ipLimiter.check(request);
-    if (!ipAllowed) return errors.rateLimit("Too many requests. Please slow down.");
-
-    const cookieStore = await cookies();
-    const existingCookie = cookieStore.get(PARTICIPANT_COOKIE)?.value;
-    if (isCookielessScript(request, existingCookie)) return errors.badRequest("Invalid request");
-
-    const body = (await request.json().catch(() => null)) as TodayActionBody | null;
-    if (!body || typeof body !== "object") return errors.badRequest("Invalid request body");
+    const write = await readParticipantWrite<TodayActionBody>(request, context, ipLimiter);
+    if (write.errorResponse) return write.errorResponse;
+    const { token, body, cookieStore, existingCookie } = write;
 
     const admin = createAdminClient();
     const { trip, errorResponse } = await readSharedTrip<{ id: string; user_id: string | null; trip_meta: unknown }>(
@@ -65,14 +52,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     const { allowed: cookieAllowed } = await cookieTripLimiter.check(request, `${cookieId}:${trip.id}`);
     if (!cookieAllowed) return errors.rateLimit("Too many changes. Please slow down.");
 
-    let user: { id: string; email?: string | null } | null = null;
-    try {
-      const supabase = await createClient();
-      const { data } = await supabase.auth.getUser();
-      user = data.user ?? null;
-    } catch {
-      user = null;
-    }
+    const user = await signedInUser();
 
     const failed = await writeTodayAction(admin, trip, { user, cookieId }, body);
     if (failed) return failed;

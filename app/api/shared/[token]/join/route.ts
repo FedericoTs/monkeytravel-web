@@ -24,20 +24,17 @@
  * scripting user-agents are refused, as in /vote.
  */
 import { NextRequest } from "next/server";
-import { cookies } from "next/headers";
 import { waitUntil } from "@vercel/functions";
 import { nanoid } from "nanoid";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { linkGuestToAccount } from "@/lib/participants/link";
-import { isCookielessScript, participantCookieId, setParticipantCookie } from "@/lib/participants/request";
+import { participantCookieId, readParticipantWrite, setParticipantCookie, signedInUser } from "@/lib/participants/request";
 import {
-  PARTICIPANT_COOKIE,
   normalizeDisplayName,
   normalizeEmail,
   parseJoinAction,
@@ -47,7 +44,6 @@ import {
 import { participantsSnapshot } from "@/lib/participants/snapshot";
 import { mayEmailPlan, sendParticipantPlanEmail } from "@/lib/participants/plan-email";
 import { readSharedTrip } from "@/lib/trips/shared-trip";
-import { isUuid } from "@/lib/utils/uuid";
 
 const ipLimiter = createRateLimiter("shared-join-ip", 30, 60_000);
 const cookieTripLimiter = createRateLimiter("shared-join-cookie-trip", 6, 60_000);
@@ -67,26 +63,9 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     if (!isLiveTripParticipantsEnabled()) {
       return errors.notFound("Not available");
     }
-    const { token } = await context.params;
-    if (!token || !isUuid(token)) {
-      return errors.badRequest("Invalid share token");
-    }
-
-    const { allowed: ipAllowed } = await ipLimiter.check(request);
-    if (!ipAllowed) {
-      return errors.rateLimit("Too many requests. Please slow down.");
-    }
-
-    const cookieStore = await cookies();
-    const existingCookie = cookieStore.get(PARTICIPANT_COOKIE)?.value;
-    if (isCookielessScript(request, existingCookie)) {
-      return errors.badRequest("Invalid request");
-    }
-
-    const body = (await request.json().catch(() => null)) as JoinBody | null;
-    if (!body || typeof body !== "object") {
-      return errors.badRequest("Invalid request body");
-    }
+    const write = await readParticipantWrite<JoinBody>(request, context, ipLimiter);
+    if (write.errorResponse) return write.errorResponse;
+    const { token, body, cookieStore, existingCookie } = write;
     const action = parseJoinAction(body.action);
     if (!action) {
       return errors.badRequest("Invalid action — must be 'join', 'update' or 'leave'");
@@ -114,18 +93,10 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     // Their account email doubles as the notification email unless they type
     // another one: the digest fan-out only mails rows with an email, and a
     // signed-in joiner who skips the optional email step would never be mailed.
-    let userId: string | null = null;
-    let accountEmail: string | null = null;
-    try {
-      const supabase = await createClient();
-      const { data } = await supabase.auth.getUser();
-      userId = data.user?.id ?? null;
-      const candidate = normalizeEmail(data.user?.email);
-      accountEmail = typeof candidate === "string" ? candidate : null;
-    } catch {
-      userId = null;
-      accountEmail = null;
-    }
+    const user = await signedInUser();
+    const userId = user?.id ?? null;
+    const candidate = normalizeEmail(user?.email);
+    const accountEmail = typeof candidate === "string" ? candidate : null;
 
     // What this browser did here as a guest becomes the account's first.
     if (userId && !issuedCookie) await linkGuestToAccount(admin, userId, cookieId, trip.id);
