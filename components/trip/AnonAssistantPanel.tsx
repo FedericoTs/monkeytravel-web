@@ -116,6 +116,10 @@ export default function AnonAssistantPanel({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // An answer is about the plan it was asked about, and this panel is that
+  // plan's: the request ends with it, so a late answer can't change another plan.
+  const request = useRef<AbortController | null>(null);
+  useEffect(() => () => request.current?.abort(), []);
 
   // The panel is conditionally rendered only on the post-generation result
   // view, so mount === the traveller seeing the assistant.
@@ -154,10 +158,13 @@ export default function AnonAssistantPanel({
     setMessages((m) => [...m, { role: "user", text: q }]);
     capture("anon_assistant_question_asked", { destination, message_length: q.length });
     setLoading(true);
+    const asking = new AbortController();
+    request.current = asking;
     try {
       const res = await fetch("/api/ai/assistant-anon", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: asking.signal,
         body: JSON.stringify({
           message: q,
           destination,
@@ -174,6 +181,7 @@ export default function AnonAssistantPanel({
         }),
       });
       const data = await res.json().catch(() => ({}));
+      if (asking.signal.aborted) return;
       if (!res.ok) {
         // The server's text is English and never reached the reader (its
         // `error` is a string); a daily cap read "try again in a moment".
@@ -243,7 +251,7 @@ export default function AnonAssistantPanel({
         setError(t("assistant.errorMsg"));
       }
     } catch {
-      setError(t("assistant.errorMsg"));
+      if (!asking.signal.aborted) setError(t("assistant.errorMsg"));
     } finally {
       setLoading(false);
     }

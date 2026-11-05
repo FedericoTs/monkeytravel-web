@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import draft from "./fixtures/wizard-draft-paris.json";
 import { stubGeneration } from "./generation-stub";
-import { isolate, restoreDraft as restore, storedDraft } from "./wizard-draft";
+import { changeDates, isolate, restoreDraft as restore, storedDraft } from "./wizard-draft";
 
 /**
  * Changing a generated plan's dates, signed out. The plan moves with the
@@ -13,16 +13,38 @@ import { isolate, restoreDraft as restore, storedDraft } from "./wizard-draft";
  * bills leaves the page.
  */
 
-async function changeDates(page: Page, start: string, end: string) {
-  await page.getByRole("button", { name: "Change dates" }).first().click();
-  const dialog = page.getByRole("dialog");
-  await dialog.getByLabel("Start").fill(start);
-  await dialog.getByLabel("End").fill(end);
-  await dialog.getByRole("button", { name: "Change dates" }).click();
-  await expect(dialog).toHaveCount(0);
+const unplanned = /extra days couldn't be planned/;
+const planning = "Planning your extra days";
+
+/** The assistant holds its answer, Days 4 and 5 of a longer trip, until released. */
+async function holdExtraDays(page: Page): Promise<() => void> {
+  let release = () => {};
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const day = draft.generatedItinerary.days[0];
+  const edits = [4, 5].map((n) => ({
+    day_number: n,
+    theme: day.theme,
+    activities: day.activities.map((a, i) => ({ ...a, id: `added-${n}-${i}` })),
+  }));
+  await page.route("**/api/ai/assistant-anon", async (route) => {
+    await held;
+    // The page may have cancelled the request by now.
+    await route
+      .fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { edits, tripLength: 5 } }) })
+      .catch(() => {});
+  });
+  return release;
 }
 
-const unplanned = /extra days couldn't be planned/;
+/** Time for a late answer to land, then nothing of it on the plan now on screen. */
+async function expectNothingLanded(page: Page) {
+  await page.waitForTimeout(1_000);
+  await expect(page.getByRole("heading", { name: "Day 4", exact: true })).toHaveCount(0);
+  await expect(page.getByText(unplanned)).toHaveCount(0);
+  await expect(page.getByText(planning)).toHaveCount(0);
+}
 
 test.describe("wizard: changing a plan's dates", () => {
   test.beforeEach(async ({ page }) => {
@@ -94,6 +116,44 @@ test.describe("wizard: changing a plan's dates", () => {
     await expect.poll(() => generation.streamed.length + generation.json.length, { timeout: 30_000 }).toBe(1);
     await expect(page.getByRole("heading", { level: 1, name: "Paris, France" })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(unplanned)).toHaveCount(0);
+  });
+
+  test("extra days still being planned don't land on the plan that replaced this one", async ({ page }) => {
+    const release = await holdExtraDays(page);
+    const generation = await stubGeneration(page);
+    await restore(page);
+
+    await changeDates(page, "2027-05-10", "2027-05-14");
+    await expect(page.getByText(planning)).toBeVisible();
+    await page.getByRole("button", { name: "Regenerate", exact: true }).first().click();
+    await expect.poll(() => generation.streamed.length + generation.json.length, { timeout: 30_000 }).toBe(1);
+    await expect(page.getByRole("heading", { level: 1, name: "Paris, France" })).toBeVisible({ timeout: 30_000 });
+
+    release();
+    await expectNothingLanded(page);
+  });
+
+  test("extra days still being planned don't land on a plan brought back from the session tray", async ({ page }) => {
+    const release = await holdExtraDays(page);
+    const generation = await stubGeneration(page);
+    await restore(page);
+    // A second plan for other dates, so the tray offers the first one back.
+    await changeDates(page, "2027-06-01", "2027-06-03");
+    await page.getByRole("button", { name: "Regenerate", exact: true }).first().click();
+    await expect.poll(() => generation.streamed.length + generation.json.length, { timeout: 30_000 }).toBe(1);
+    await expect(page.getByRole("heading", { level: 1, name: "Paris, France" })).toBeVisible({ timeout: 30_000 });
+
+    await changeDates(page, "2027-06-01", "2027-06-05");
+    await expect(page.getByText(planning)).toBeVisible();
+    const chips = page.getByRole("button", { name: /^Paris · 3 days$/ });
+    await expect(chips).toHaveCount(2);
+    const current = () => chips.evaluateAll((els) => els.findIndex((el) => el.getAttribute("aria-current") === "true"));
+    const shown = await current();
+    await chips.nth(1 - shown).click();
+    await expect.poll(current).toBe(1 - shown);
+
+    release();
+    await expectNothingLanded(page);
   });
 
   test("a plan brought back from the session tray starts without the note", async ({ page }) => {
