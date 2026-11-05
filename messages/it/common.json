@@ -1746,7 +1746,7 @@
         "rescheduled": "Giorno {day} aggiornato: programma riorganizzato",
         "durationAdjusted": "Giorno {day} aggiornato: durata modificata",
         "dayAdded": "Giorno {day} aggiunto: viaggio esteso",
-        "daysUpdated": "{count} giorni aggiornati",
+        "daysUpdated": "{count, plural, one {# giorno aggiornato} other {# giorni aggiornati}}",
         "updatedGeneric": "Itinerario aggiornato",
         "viewDay": "Vai al giorno {day}",
         "noChanges": "Nessuna modifica apportata al tuo itinerario"
@@ -1820,7 +1820,7 @@
       "modifying": "Modifica",
       "suggestedChange": "Non è ancora nel tuo viaggio",
       "day": "Giorno {number}",
-      "daysCount": "{count} giorni",
+      "daysCount": "{count, plural, one {# giorno} other {# giorni}}",
       "activitiesCount": "{count} attività",
       "tripExtendedTo": "Viaggio esteso: nuova data di fine {date}",
       "shiftDaysSummary": "I giorni {from}–{to} si spostano di {count, plural, one {# giorno} other {# giorni}}",
