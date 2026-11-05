@@ -36,9 +36,13 @@ export interface GenerationCaller {
  * Save, because a signup wall before the result loses most generators. An
  * anonymous visitor is capped per cookie (lib/anonymous/rate-limit) and per
  * IP. A visitor over either cap, or a body that is not a JSON object, gets
- * `refused`: the response to send.
+ * `refused`: the response to send. `generationId` is the wizard's id for this
+ * try: a try already counted under it is not refused by the cookie cap.
  */
-export async function readGenerationCaller(request: NextRequest): Promise<{ refused: Response } | GenerationCaller> {
+export async function readGenerationCaller(
+  request: NextRequest,
+  generationId?: string | null
+): Promise<{ refused: Response } | GenerationCaller> {
   const supabase = await createClient();
   const {
     data: { user: maybeUser },
@@ -50,7 +54,7 @@ export async function readGenerationCaller(request: NextRequest): Promise<{ refu
   // checked below in priority order: anon cookie limit → per-IP limit → body.
   // A rejection from request.json resolves to null and becomes a 400.
   const [anonLimit, body, userContext, access, anonIpLimit] = await Promise.all([
-    isAnonymous ? checkAnonymousRateLimit() : Promise.resolve(null),
+    isAnonymous ? checkAnonymousRateLimit(generationId ?? undefined) : Promise.resolve(null),
     request.json().catch(() => null as Record<string, unknown> | null),
     loadUserContext(supabase, user?.id ?? null),
     checkApiAccess("gemini"),

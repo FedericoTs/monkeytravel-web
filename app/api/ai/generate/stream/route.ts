@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
   //    stream. Failures here can return JSON 4xx/5xx normally (better
   //    DX for the client than an SSE error event). Who is asking and with
   //    what body: lib/ai/generation-caller.ts.
-  const caller = await readGenerationCaller(request);
+  const caller = await readGenerationCaller(request, generationId);
   if ("refused" in caller) return caller.refused;
   const { supabase, user, isAnonymous, body, access, profilePreferences, userLanguage } = caller;
   const params = tripParamsFromBody(body, profilePreferences);
@@ -490,11 +490,11 @@ export async function POST(request: NextRequest) {
   //     still carry the cookie. recordAnonymousGeneration() sets mt_anon
   //     through cookies(), which only works before the headers are sent:
   //     after the stream the cookie would never reach the browser and the
-  //     5-a-day anonymous cap would never apply. Cache hits stay free. A
-  //     generation that then fails still counts: one of five, against no cap
-  //     at all.
+  //     5-a-day anonymous cap would never apply. Cache hits stay free. When
+  //     the stream fails, the JSON endpoint the wizard falls back to, whose
+  //     response can still set the cookie, settles the count under this id.
   if (isAnonymous && !cacheHitPlan) {
-    await recordAnonymousGeneration();
+    await recordAnonymousGeneration(generationId ?? undefined);
   }
 
   // 10. Build the SSE response.
