@@ -11,8 +11,8 @@
  * - Per-IP rate limit (20/min) — Gemini is the bottleneck and we want
  *   the credit-card-DoS floor before any quota check, since the limiter
  *   short-circuits before we even resolve `auth.getUser()`.
- * - User-level quota: reuse `aiAssistantMessages` (daily bucket, 20/day
- *   on free tier). This is the cheapest existing bucket — adding a new
+ * - User-level quota: reuse `aiAssistantMessages` (a daily bucket).
+ *   This is the cheapest existing bucket — adding a new
  *   one would mean a migration + dashboard update for a feature that's
  *   off by default. Per-message cost is comparable to the AI assistant.
  *

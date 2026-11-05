@@ -11,6 +11,7 @@ import { NextRequest } from "next/server";
 
 let streamReply = "";
 let streamRefusal: string | null = null;
+let streamBreaks = false;
 let followUps: (string | Error)[] = [];
 const followUpRequests: { contents: { role: string; parts: { text: string }[] }[] }[] = [];
 const streamRequests: { contents: { role: string; parts: { text: string }[] }[] }[] = [];
@@ -28,6 +29,7 @@ vi.mock("@/lib/ai/genai-compat", () => ({
               for (let i = 0; i < text.length; i += 7) {
                 const piece = text.slice(i, i + 7);
                 yield { text: () => piece };
+                if (streamBreaks) throw new Error("connection lost");
               }
             })(),
             response: Promise.resolve({ usageMetadata: {} }),
@@ -51,7 +53,11 @@ vi.mock("@/lib/api-gateway", () => ({
   checkApiAccess: async () => ({ allowed: true }),
   logApiCall: (row: unknown) => logApiCall(row),
 }));
-vi.mock("@/lib/usage-limits", () => ({ checkUsageLimit: async () => ({ allowed: true }), incrementUsage: vi.fn(async () => {}) }));
+const incrementUsage = vi.fn(async (_userId: string, _limit: string) => 1);
+vi.mock("@/lib/usage-limits", () => ({
+  checkUsageLimit: async () => ({ allowed: true }),
+  incrementUsage: (userId: string, limit: string) => incrementUsage(userId, limit),
+}));
 vi.mock("@/lib/ai/observability", () => ({ recordAiOutcome: vi.fn(async () => {}) }));
 
 const act = (id: string, name: string, start_time: string) => ({
@@ -141,6 +147,8 @@ beforeEach(() => {
   logApiCall.mockClear();
   streamReply = "";
   streamRefusal = null;
+  streamBreaks = false;
+  incrementUsage.mockClear();
   followUps = [];
   followUpRequests.length = 0;
   streamRequests.length = 0;
@@ -170,6 +178,36 @@ describe("the log of a concierge call", () => {
       costUsd: 0,
       exactCost: true,
     });
+  });
+});
+
+describe("the daily allowance", () => {
+  it("counts an answered ask once, however many pieces it came in", async () => {
+    streamReply = "Early morning, before the tour groups arrive at the gate.";
+    await ask("what's the best time to visit the castle?");
+    expect(incrementUsage.mock.calls).toEqual([["user-1", "aiAssistantMessages"]]);
+  });
+
+  it("isn't spent by an ask the model refused", async () => {
+    streamRefusal = "[402] prepayment credits are depleted";
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { events } = await ask("what's the best time to visit the castle?");
+    expect(events).toHaveLength(1);
+    expect(incrementUsage).not.toHaveBeenCalled();
+  });
+
+  it("is spent once the model has begun answering, even if the answer breaks off", async () => {
+    streamReply = "Early morning, before the tour groups arrive at the gate.";
+    streamBreaks = true;
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    await ask("what's the best time to visit the castle?");
+    expect(incrementUsage).toHaveBeenCalledTimes(1);
+  });
+
+  it("isn't spent by an answer with no words in it", async () => {
+    streamReply = "";
+    await ask("what's the best time to visit the castle?");
+    expect(incrementUsage).not.toHaveBeenCalled();
   });
 });
 
