@@ -453,6 +453,8 @@
     "errorTimeout": "The request took too long. This can happen with complex trips — please try again.",
     "errorNetwork": "Connection issue. Please check your internet and try again.",
     "errorServerBusy": "Our AI is taking longer than usual right now. Please try again in a moment — or try a shorter trip.",
+    "errorUnavailable": "Our trip planner is down right now. That's on our side, not yours, and your answers are still here. Please try again a little later.",
+    "browseTemplates": "Or browse ready-made trips",
     "retry": "Try Again",
     "editDetails": "Edit trip details",
     "fix": {

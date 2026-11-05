@@ -2,6 +2,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { MODEL_OUTAGE_MESSAGE } from "@/lib/ai/model-outage";
 import { classifyGenerationFailure, failureDetail, failureWording, validationFix, validationFixStep } from "./generation-failure";
 import { validateTripParams } from "@/lib/trips/request-validation";
 import type { TripCreationParams } from "@/types";
@@ -221,11 +222,21 @@ describe("failureWording: friendlier words for what the traveller can't act on",
       "Gave up after retries",
       "Internal server error",
       "Failed to generate itinerary",
+      "Generation failed. Please try again.",
       "HTTP 503",
       "HTTP 500",
     ]) {
       expect(failureWording(busy)).toBe("errorServerBusy");
     }
+  });
+
+  it("says the planner is out of service in its own words, before the words it shares with a busy server", () => {
+    expect(failureWording(MODEL_OUTAGE_MESSAGE)).toBe("errorUnavailable");
+    expect(failureWording(`HTTP 503: ${MODEL_OUTAGE_MESSAGE}`)).toBe("errorUnavailable");
+  });
+
+  it("charts the planner out of service as upstream, and doesn't ask a traveller to change anything", () => {
+    expect(classifyGenerationFailure(new Error(MODEL_OUTAGE_MESSAGE))).toBe("upstream");
   });
 
   it("checks the timeout first, then the connection", () => {

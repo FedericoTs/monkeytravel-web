@@ -453,6 +453,8 @@
     "errorTimeout": "A solicitação demorou demais. Isso pode acontecer com viagens complexas — tente novamente.",
     "errorNetwork": "Problema de conexão. Verifique sua internet e tente novamente.",
     "errorServerBusy": "Nossa AI está demorando mais que o normal agora. Tente novamente em instantes — ou experimente uma viagem mais curta.",
+    "errorUnavailable": "Nosso planejador de viagens está fora do ar agora. O problema é nosso, não seu, e suas respostas continuam aqui. Tente novamente um pouco mais tarde.",
+    "browseTemplates": "Ou veja viagens prontas",
     "retry": "Tentar Novamente",
     "editDetails": "Editar detalhes da viagem",
     "fix": {

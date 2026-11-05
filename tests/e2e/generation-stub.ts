@@ -46,6 +46,17 @@ export function stubPlan(request: GenerationRequest): Itinerary {
 
 const sse = (type: string, data: unknown) => `event: ${type}\ndata: ${JSON.stringify(data)}\n\n`;
 
+/** Both generation endpoints answer as they do with the planner out of service. */
+export async function stubPlannerOutage(page: Page) {
+  const error = "The trip planner is temporarily unavailable";
+  await page.route("**/api/ai/generate/stream", (route) =>
+    route.fulfill({ status: 200, headers: { "content-type": "text/event-stream" }, body: sse("error", { error, code: "upstream" }) })
+  );
+  await page.route("**/api/ai/generate", (route) =>
+    route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error }) })
+  );
+}
+
 /**
  * Routes both generation endpoints on `page`. The returned lists fill with the
  * request bodies each endpoint received.
