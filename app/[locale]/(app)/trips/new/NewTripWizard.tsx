@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo, type SetStateAction } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { maxTripStartDate, addIsoDaysOrThrow } from "@/lib/dates/iso-date";
 import { formatDateRange } from "@/lib/datetime";
 import { localTodayISO } from "@/lib/utils/date-local";
@@ -127,6 +127,7 @@ function preloadResultViewChunks(): void {
 }
 import { useItineraryDraft } from "@/hooks/useItineraryDraft";
 import { useDraftRestore } from "@/hooks/useDraftRestore";
+import { useGeneratedPlan } from "@/hooks/useGeneratedPlan";
 import { useKeptPlan } from "@/hooks/useKeptPlan";
 import { useKeptPlanOpening } from "@/hooks/useKeptPlanOpening";
 import { usePlanPhotos } from "@/hooks/usePlanPhotos";
@@ -203,7 +204,6 @@ import ResultDatesNotice from "@/components/wizard/ResultDatesNotice";
 import { anonymousShare } from "@/lib/wizard/anonymous-share";
 import { seasonalVibeSeed } from "@/lib/wizard/seasonal-vibes";
 import { newTripTitle } from "@/lib/trips/title";
-import { ensureActivityIds } from "@/lib/utils/activity-id";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { useMultiCityRoute } from "@/hooks/useMultiCityRoute";
@@ -356,22 +356,7 @@ export default function NewTripPage({
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [generatedItinerary, setGeneratedItineraryRaw] = useState<GeneratedItinerary | null>(null);
-  // Activity ids are given here, once, so the auto-save insert, every later
-  // update and the share link carry the SAME ids; fresh random ids on each
-  // update would move itinerary_version and cut off anything keyed by id. The
-  // object is only rebuilt when an id is actually missing, so a no-op set
-  // does not look like a new itinerary to the auto-save.
-  const setGeneratedItinerary = useCallback((next: SetStateAction<GeneratedItinerary | null>) => {
-    setGeneratedItineraryRaw((prev) => {
-      const value = typeof next === "function" ? next(prev) : next;
-      if (!value || !Array.isArray(value.days)) return value;
-      const missing = value.days.some(
-        (d) => Array.isArray(d?.activities) && d.activities.some((a) => a && typeof a === "object" && !a.id)
-      );
-      return missing ? { ...value, days: ensureActivityIds(value.days) } : value;
-    });
-  }, []);
+  const [generatedItinerary, setGeneratedItinerary] = useGeneratedPlan();
   // Result-view UX state (parity with /trips/template/[id]): users can hide
   // the map (mobile screen real estate) and pick Cards or Timeline.
   const [showMap, setShowMap] = useState(true);
