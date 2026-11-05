@@ -23,6 +23,7 @@ import {
   announcedButMissing,
   announcesProposal,
   asksToRemove,
+  claimsLongerTrip,
   isConfirmation,
   offersChange,
 } from "@/lib/ai/assistant/honesty";
@@ -153,8 +154,8 @@ function within<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 /** What a reply got wrong that one more try may fix, or null. Pure; unit-tested. */
 export function correctionFor(
-  input: Pick<AssistInput, "message" | "history" | "days">,
-  o: Pick<Outcome, "reply" | "edits" | "tripLength"> & Partial<Pick<Outcome, "travelTimes" | "elsewhere">>,
+  input: Pick<AssistInput, "message" | "history" | "days" | "canAddDays">,
+  o: Pick<Outcome, "reply" | "edits" | "tripLength"> & Partial<Pick<Outcome, "travelTimes" | "elsewhere" | "lengthRefused">>,
 ): string | null {
   // Other places offered for the whole trip: there are no days to correct.
   if ((o.elsewhere?.length ?? 0) > 0) return null;
@@ -197,6 +198,9 @@ export function correctionFor(
   const recent = [input.message, ...(input.history ?? []).slice(-2).map((t) => t.text)].join("\n");
   if (o.tripLength !== undefined && o.tripLength > current && !asksForMoreDays(recent)) {
     return `Keep the trip at ${current} days: fit the change into the existing days and say in "reply" what it replaces. Add days only when the traveller asks.`;
+  }
+  if (o.tripLength === undefined && input.canAddDays !== false && asksForMoreDays(recent) && (o.lengthRefused || claimsLongerTrip(o.reply))) {
+    return `The longer trip didn't come back whole. The trip has ${current} days. Set "trip_length" to the new total, and return every day from the first new one to the new last day, in "edits" or listed in "more_days": new days in the middle of the trip move the later days along. If you can't, change nothing and say why in "reply".`;
   }
   if (o.edits.length > 0 && o.tripLength === undefined && o.edits.every((e) => leavesDayAsItWas(input.days, e))) {
     return `Your edits left every day as it was. Make the change the traveller asked for, or say plainly in "reply" that you didn't.`;

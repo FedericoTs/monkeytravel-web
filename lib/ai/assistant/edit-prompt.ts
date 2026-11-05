@@ -210,7 +210,7 @@ ${
   - ${
     input.canAddDays === false
       ? `Only the trip's owner can change how many days it has, and this traveller isn't the owner: keep "trip_length" null and add no days. Asked for more days, say that only the owner can add them, and give your ideas for those days in "reply" instead, one short line each.`
-      : `Adding or removing days when asked, or changing how many nights a city gets: set "trip_length" to the new total number of days (1-${maxDays}) and return every day whose content changes, including each NEW day in full. New days come first, before any existing day you also change. Days beyond "trip_length" are removed.`
+      : `Adding or removing days when asked, or changing how many nights a city gets: set "trip_length" to the new total number of days (1-${maxDays}) and return every day whose content changes, including each NEW day in full. New days come first, before any existing day you also change. New days in the middle of the trip move the later days along, so those days change too, up to the new last day. Days beyond "trip_length" are removed.`
   }${multiCity ? `
   - This is a multi-city trip: give each edited day its "city".` : ""}
   - Hotels in the plan: use only hotel names the traveller gives you or that already appear in the itinerary. If they mention hotels you can't see ("the hotels I added"), ask for the names and return "edits": []. When they name where they're staying for certain nights, add a short "Check in at <place>" activity in the evening of the first of those days. The plan doesn't track hotel prices; give a typical range if they ask.

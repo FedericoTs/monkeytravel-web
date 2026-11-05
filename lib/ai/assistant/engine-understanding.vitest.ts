@@ -204,6 +204,27 @@ describe("asksForMoreDays", () => {
 describe("correctionFor", () => {
   const days = [day(1, ["A"]), day(2, ["B"]), day(3, ["C"]), day(4, ["D"]), day(5, ["E"])];
 
+  it("sends a longer trip whose days didn't come back for them", () => {
+    const message = "add 2 more days in Hoi An";
+    const claimed = { reply: "I've added two extra days in Hoi An.", edits: [edit(3, ["C", "New"])] };
+    expect(correctionFor({ message, days }, claimed)).toContain('"trip_length"');
+    // Nothing prepared at all, same claim.
+    expect(correctionFor({ message, days }, { ...claimed, edits: [] })).toContain('"trip_length"');
+    // It asked for a longer trip without the new last days: the reply needn't say so.
+    const refused = { reply: "Here are days in Hoi An.", edits: [edit(3, ["C", "New"])], lengthRefused: true };
+    expect(correctionFor({ message, days }, refused)).toContain('"trip_length"');
+    // The trip did get longer.
+    expect(correctionFor({ message, days }, { ...claimed, tripLength: 7, edits: [edit(6, ["New"]), edit(7, ["New"])] })).toBeNull();
+    // The reply doesn't claim one: it fits the days in, or says it can't.
+    expect(correctionFor({ message, days }, { ...claimed, reply: "Day 3 now has more of Hoi An instead." })).toBeNull();
+    // Nobody asked for more days. A shorter trip that would lose a fixed plan is refused the same way.
+    expect(correctionFor({ message: "make day 3 about Hoi An", days }, claimed)).toBeNull();
+    expect(correctionFor({ message: "make the trip shorter", days }, refused)).toBeNull();
+    // Only the owner may add days.
+    expect(correctionFor({ message, days, canAddDays: false }, claimed)).toBeNull();
+    expect(correctionFor({ message, days, canAddDays: false }, refused)).toBeNull();
+  });
+
   it("sends a change made on another day than the one named back to that day", () => {
     const c = correctionFor({ message: "can we add the Oceanário on day 4", days }, { reply: "Added to day 5.", edits: [edit(5, ["Oceanário"])] });
     expect(c).toContain("Make the change on Day 4");
