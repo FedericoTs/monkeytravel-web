@@ -46,7 +46,11 @@ vi.mock("@/lib/ai/genai-compat", () => ({
   },
 }));
 vi.mock("@/lib/ai/cache-metrics", () => ({ logCacheMetrics: vi.fn() }));
-vi.mock("@/lib/api-gateway", () => ({ checkApiAccess: async () => ({ allowed: true }), logApiCall: vi.fn(async () => {}) }));
+const logApiCall = vi.fn(async (_row: unknown) => {});
+vi.mock("@/lib/api-gateway", () => ({
+  checkApiAccess: async () => ({ allowed: true }),
+  logApiCall: (row: unknown) => logApiCall(row),
+}));
 vi.mock("@/lib/usage-limits", () => ({ checkUsageLimit: async () => ({ allowed: true }), incrementUsage: vi.fn(async () => {}) }));
 vi.mock("@/lib/ai/observability", () => ({ recordAiOutcome: vi.fn(async () => {}) }));
 
@@ -134,6 +138,7 @@ const removal = (fields: Record<string, unknown>) => `<<<PROPOSAL>>>${JSON.strin
 
 beforeEach(() => {
   vi.stubEnv("GOOGLE_AI_API_KEY", "test-key");
+  logApiCall.mockClear();
   streamReply = "";
   streamRefusal = null;
   followUps = [];
@@ -142,6 +147,30 @@ beforeEach(() => {
   history = [];
   persisted.length = 0;
   memoryFilters.length = 0;
+});
+
+describe("the log of a concierge call", () => {
+  const row = () => logApiCall.mock.calls.at(-1)?.[0] as Record<string, unknown>;
+
+  it("says who asked when it worked", async () => {
+    streamReply = "Early morning.";
+    await ask("what's the best time to visit the castle?");
+    expect(row()).toMatchObject({ endpoint: "/api/ai/concierge", status: 200, userId: expect.any(String), exactCost: true });
+  });
+
+  it("says who asked when it failed, and books no cost for a call that never ran", async () => {
+    streamRefusal = "503 model overloaded";
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    await ask("what's the best time to visit the castle?");
+    expect(row()).toMatchObject({
+      endpoint: "/api/ai/concierge",
+      status: 500,
+      error: "503 model overloaded",
+      userId: expect.any(String),
+      costUsd: 0,
+      exactCost: true,
+    });
+  });
 });
 
 describe("concierge proposals", () => {

@@ -38,7 +38,11 @@ vi.mock("@/lib/activity-bank", () => ({
   populateActivityBank: vi.fn(async () => {}),
   isActivityBankPopulated: vi.fn(async () => true),
 }));
-vi.mock("@/lib/api-gateway", () => ({ checkApiAccess: async () => ({ allowed: true }), logApiCall: vi.fn() }));
+const logApiCall = vi.fn(async (_row: unknown) => {});
+vi.mock("@/lib/api-gateway", () => ({
+  checkApiAccess: async () => ({ allowed: true }),
+  logApiCall: (row: unknown) => logApiCall(row),
+}));
 vi.mock("@/lib/usage-limits", () => ({
   checkUsageLimit: async () => ({ allowed: true, used: 1, remaining: 9, limit: 10, tier: "free", resetAt: "2026-10-17T00:00:00Z" }),
   incrementUsage: vi.fn(),
@@ -146,6 +150,7 @@ beforeEach(() => {
   conversationRows = [];
   conversationReadError = null;
   proposeTripEdits.mockReset();
+  logApiCall.mockClear();
   chatCalls.mockReset();
   recordUsage.mockReset();
   chatReply = '{"summary": "Which day should it go on?", "cards": []}';
@@ -288,6 +293,40 @@ describe("trip-page assistant: free-form edits", () => {
     const { status, json } = await send("add a museum");
     expect(status).toBe(503);
     expect(json.code).toBe("MODEL_OUTAGE");
+  });
+
+  it("logs a failed turn with who asked, for the reports and the credit check", async () => {
+    proposeTripEdits.mockRejectedValue(new Error("Your prepayment credits are depleted."));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    await send("add a museum");
+    expect(logApiCall).toHaveBeenCalledWith(
+      expect.objectContaining({
+        apiName: "gemini",
+        endpoint: "/api/ai/assistant",
+        status: 503,
+        error: "Your prepayment credits are depleted.",
+        userId: "user-1",
+        costUsd: 0,
+        exactCost: true,
+      })
+    );
+  });
+
+  it("logs a failure for another reason as what it is", async () => {
+    proposeTripEdits.mockRejectedValue(new Error("model overloaded"));
+    chatCalls.mockImplementation(() => {
+      throw new Error("the chat broke");
+    });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    await send("add a museum");
+    expect(logApiCall).toHaveBeenCalledWith(
+      expect.objectContaining({ endpoint: "/api/ai/assistant", status: 500, error: "the chat broke", userId: "user-1" })
+    );
+  });
+
+  it("logs nothing for a turn that went through", async () => {
+    await send("which day is the museum?");
+    expect(logApiCall).not.toHaveBeenCalled();
   });
 
   it("keeps its own failure when the chat fails for another reason", async () => {

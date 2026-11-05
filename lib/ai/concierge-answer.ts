@@ -287,6 +287,7 @@ export function conciergeAnswerStream({
           cacheHit: false,
           costUsd,
           exactCost: true,
+          userId,
           metadata: {
             user_id: userId,
             trip_id: tripId,
@@ -339,7 +340,9 @@ export function conciergeAnswerStream({
           responseTimeMs: Date.now() - startTime,
           cacheHit: false,
           costUsd: 0,
+          exactCost: true,
           error: err instanceof Error ? err.message : "unknown",
+          userId,
         }).catch(() => {});
       } finally {
         controller.close();
