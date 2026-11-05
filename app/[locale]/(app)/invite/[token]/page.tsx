@@ -1,4 +1,5 @@
 import { tripCardUrl } from "@/lib/seo/og-image";
+import { getTripDestination } from "@/lib/trips/destination";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
@@ -87,7 +88,7 @@ async function getInviteData(token: string, unnamed: UnnamedLabels) {
   // Fetch trip
   const { data: trip, error: tripError } = await supabase
     .from("trips")
-    .select("id, title, description, start_date, end_date, cover_image_url, share_token, user_id, itinerary")
+    .select("id, title, description, start_date, end_date, cover_image_url, share_token, user_id, trip_meta")
     .eq("id", invite.trip_id)
     .is("deleted_at", null)
     .single();
@@ -151,14 +152,7 @@ async function getInviteData(token: string, unnamed: UnnamedLabels) {
     .select("id", { count: "exact", head: true })
     .eq("trip_id", invite.trip_id));
 
-  // Extract destination from itinerary
-  let destination = null;
-  if (trip.itinerary && Array.isArray(trip.itinerary) && trip.itinerary.length > 0) {
-    const firstDay = trip.itinerary[0] as { activities?: { location?: string }[] };
-    if (firstDay?.activities?.[0]?.location) {
-      destination = firstDay.activities[0].location;
-    }
-  }
+  const destination = getTripDestination(trip);
 
   // Calculate duration
   const durationDays = tripSpanDays(trip.start_date, trip.end_date);
