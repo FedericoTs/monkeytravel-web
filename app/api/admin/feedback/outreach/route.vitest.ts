@@ -50,7 +50,7 @@ const { POST } = await import("./route");
 const id = (prefix: string, i: number) => `${prefix}-${String(i).padStart(6, "0")}`;
 const owner = (i: number, extra: Record<string, unknown> = {}) => ({
   id: id("user", i),
-  email: `person${i}@mail.test`,
+  email: `person${i}@mail.example.com`,
   display_name: `Name ${i}`,
   preferred_language: "en",
   notification_settings: {},
@@ -85,13 +85,13 @@ describe("the feedback outreach's cohort", () => {
     s.users = Array.from({ length: 1300 }, (_, i) => owner(i));
     s.trips = [tripOf(1, id("user", 1250))];
     const { body } = await outreach();
-    expect(body).toMatchObject({ cohortSize: 1, sample: ["person1250@mail.test"] });
+    expect(body).toMatchObject({ cohortSize: 1, sample: ["person1250@mail.example.com"] });
   });
 
   it("finds an owner whose trip is far down the table", async () => {
     s.users = [owner(5)];
     s.trips = Array.from({ length: 1200 }, (_, i) => tripOf(i, i === 1150 ? id("user", 5) : null));
-    expect((await outreach()).body).toMatchObject({ cohortSize: 1, sample: ["person5@mail.test"] });
+    expect((await outreach()).body).toMatchObject({ cohortSize: 1, sample: ["person5@mail.example.com"] });
   });
 
   it("leaves out people with no trip, trips with no owner, and those who opted out", async () => {
@@ -103,7 +103,7 @@ describe("the feedback outreach's cohort", () => {
       owner(5, { email: null }),
     ];
     s.trips = [tripOf(1, id("user", 1)), tripOf(3, id("user", 3)), tripOf(4, id("user", 4)), tripOf(5, id("user", 5)), tripOf(6, null)];
-    expect((await outreach()).body).toMatchObject({ cohortSize: 1, sample: ["person1@mail.test"] });
+    expect((await outreach()).body).toMatchObject({ cohortSize: 1, sample: ["person1@mail.example.com"] });
   });
 });
 

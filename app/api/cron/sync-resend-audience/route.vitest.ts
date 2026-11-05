@@ -57,7 +57,7 @@ const { GET } = await import("./route");
 
 const person = (i: number, extra: Record<string, unknown> = {}) => ({
   id: `user-${String(i).padStart(6, "0")}`,
-  email: `person${i}@mail.test`,
+  email: `person${i}@mail.example.com`,
   display_name: null,
   preferred_language: "en",
   notification_settings: {},
@@ -101,7 +101,7 @@ describe("past what one request answers", () => {
     s.users = Array.from({ length: 1200 }, (_, i) => person(i, i === 1150 ? { notification_settings: { marketingNotifications: false } } : {}));
     s.contacts = s.users.map((u) => ({ email: String(u.email), unsubscribed: false }));
     await sync();
-    expect(s.updated).toEqual([{ audienceId: "audience", email: "person1150@mail.test", unsubscribed: true }]);
+    expect(s.updated).toEqual([{ audienceId: "audience", email: "person1150@mail.example.com", unsubscribed: true }]);
     expect(s.created).toEqual([]);
   });
 
@@ -116,29 +116,29 @@ describe("past what one request answers", () => {
   });
 
   it("reads the waitlist through to its end too", async () => {
-    s.subscribers = Array.from({ length: 1100 }, (_, i) => ({ id: `sub-${String(i).padStart(6, "0")}`, email: `waitlist${i}@mail.test`, unsubscribed_at: i === 1050 ? "2026-01-01" : null }));
+    s.subscribers = Array.from({ length: 1100 }, (_, i) => ({ id: `sub-${String(i).padStart(6, "0")}`, email: `waitlist${i}@mail.example.com`, unsubscribed_at: i === 1050 ? "2026-01-01" : null }));
     await sync();
     expect(s.created).toHaveLength(1100);
-    expect(s.created.find((c) => c.email === "waitlist1050@mail.test")).toMatchObject({ unsubscribed: true });
+    expect(s.created.find((c) => c.email === "waitlist1050@mail.example.com")).toMatchObject({ unsubscribed: true });
   });
 });
 
 describe("who is in the audience", () => {
   it("skips people with no address, and test addresses", async () => {
-    s.users = [person(1, { email: null }), person(2, { email: "loadtest+1@mail.test" }), person(3, { email: "a@example.com" }), person(4)];
+    s.users = [person(1, { email: null }), person(2, { email: "loadtest+1@mail.example.com" }), person(3, { email: "a@example.com" }), person(4)];
     await sync();
-    expect(s.created.map((c) => c.email)).toEqual(["person4@mail.test"]);
+    expect(s.created.map((c) => c.email)).toEqual(["person4@mail.example.com"]);
   });
 
   it("adds someone already opted out as unsubscribed", async () => {
     s.users = [person(1, { notification_settings: { emailNotifications: false } })];
     await sync();
-    expect(s.created[0]).toMatchObject({ email: "person1@mail.test", unsubscribed: true });
+    expect(s.created[0]).toMatchObject({ email: "person1@mail.example.com", unsubscribed: true });
   });
 
   it("never re-subscribes someone Resend has unsubscribed", async () => {
     s.users = [person(1)];
-    s.contacts = [{ email: "person1@mail.test", unsubscribed: true }];
+    s.contacts = [{ email: "person1@mail.example.com", unsubscribed: true }];
     await sync();
     expect(s.created).toEqual([]);
     expect(s.updated).toEqual([]);
