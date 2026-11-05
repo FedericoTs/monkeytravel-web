@@ -44,14 +44,6 @@ vi.mock("@/lib/api/rate-limit", () => ({
 vi.mock("@/lib/images/activity", () => ({ fetchActivityImages: async () => {} }));
 vi.mock("@/lib/activity-bank", () => ({ isActivityBankPopulated: async () => true, populateActivityBank: async () => ({}) }));
 vi.mock("@/lib/ai/observability", () => ({ recordAiOutcome: async () => {} }));
-vi.mock("@/lib/maps-grounding", () => ({
-  canGroundDestination: () => false,
-  generateItineraryWithMapsGrounding: async () => {
-    throw new Error("not used");
-  },
-  isMapsGroundingAvailable: () => false,
-  getMapsGroundingCost: () => 0,
-}));
 vi.mock("@/lib/trips/request-validation", () => ({ validateTripParams: () => ({ valid: true }) }));
 vi.mock("@/lib/gemini", () => ({ generateItinerary: async () => null }));
 let multiCity: () => Promise<unknown>;

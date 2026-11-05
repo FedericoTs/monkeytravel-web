@@ -9,12 +9,6 @@ import { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
 import { bookingLinksFor } from "@/lib/ai/server-fields";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
-import {
-  canGroundDestination,
-  generateItineraryWithMapsGrounding,
-  isMapsGroundingAvailable,
-  getMapsGroundingCost,
-} from "@/lib/maps-grounding";
 import { isAdmin } from "@/lib/admin";
 import { blockedCall, logApiCall } from "@/lib/api-gateway";
 import { incrementUsage } from "@/lib/usage-limits";
@@ -41,10 +35,6 @@ import type { TripAnchor } from "@/types";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 import { tripSpanDays } from "@/lib/dates/iso-date";
 import { isModelOutOfCredit } from "@/lib/ai/model-outage";
-
-// Feature flag: Enable Maps Grounding for cost-effective generation
-// Set USE_MAPS_GROUNDING=true in .env to enable
-const USE_MAPS_GROUNDING = process.env.USE_MAPS_GROUNDING === "true";
 
 // Cache helpers live in lib/ai/cache.ts, shared with the streaming route. See
 // that file for the unique-key shape + idempotency guarantees.
@@ -156,11 +146,10 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     // Check cross-user cache first for same destination + vibes + budget
     let itinerary: GeneratedItinerary;
     let cacheHit = false;
-    let usedMapsGrounding = false;
 
     if (isMultiCity) {
       // Multi-city: generate each city independently and in parallel, then
-      // merge. Deliberately skips the cross-user cache, Maps Grounding, and
+      // merge. Deliberately skips the cross-user cache and
       // incremental generation — those are single-destination optimizations.
       // (Each per-city generation still hits generateItinerary's own dedup.)
       console.log(`[AI Generate] Multi-city generation: ${legs!.length} cities, ${totalDays} days`);
@@ -172,7 +161,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       // one small parallel generation per free gap, deterministic merge
       // (lib/ai/anchored). MUST come before the cross-user cache branch — a
       // cached generic itinerary would silently ignore the constraints.
-      // Also skips Maps Grounding + incremental generation (segments are
+      // Also skips incremental generation (segments are
       // small by construction). A fully locked trip makes ZERO model calls.
       console.log(
         `[AI Generate] Anchored generation: ${params.anchors!.length} anchors, ${totalDays} days`
@@ -201,40 +190,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       // asked for a plan unlike the last.
       const knownPlaces = wantsFresh ? [] : await knownPlacesFor(params, totalDays, userLanguage);
 
-      // Try Maps Grounding first
-      // Falls back to traditional Gemini if Maps Grounding fails or is disabled
-      // canGroundDestination: skip the whole call when the coordinate table does
-      // not know this place. Otherwise grounding falls back to PARIS
-      // coordinates, spends 40s+ grounding nothing, and falls through to the
-      // normal generator anyway -- turning a working request into a timeout.
-      if (
-        USE_MAPS_GROUNDING &&
-        isMapsGroundingAvailable() &&
-        canGroundDestination(params.destination)
-      ) {
-        try {
-          console.log(`[AI Generate] Using Maps Grounding for ${params.destination}...`);
-          itinerary = await generateItineraryWithMapsGrounding(params);
-          // A short result is a FAILURE, not a success: parseGroundedItinerary
-          // builds days by regex-matching "Day N" headers in the model's prose
-          // and `continue`s past any it cannot find, so a truncated response
-          // yields fewer days with no error. Throwing routes it into the catch
-          // below, which falls back to generateItinerary.
-          if (itinerary.days.length < totalDays) {
-            throw new Error(
-              `Maps Grounding returned ${itinerary.days.length}/${totalDays} days`
-            );
-          }
-          usedMapsGrounding = true;
-          console.log(`[AI Generate] Maps Grounding SUCCESS: ${itinerary.days.length} days, ${itinerary.days.reduce((sum, d) => sum + d.activities.length, 0)} activities`);
-        } catch (mapsError) {
-          console.error(`[AI Generate] Maps Grounding failed, falling back to Gemini:`, mapsError);
-          // Fall through to traditional generation
-          itinerary = await generateItinerary(params, { language: userLanguage, knownPlaces });
-        }
-      } else {
-        itinerary = await generateItinerary(params, { language: userLanguage, knownPlaces });
-      }
+      itinerary = await generateItinerary(params, { language: userLanguage, knownPlaces });
 
       // Backpacker results have their own cache pool.
       if (mayCachePlan(itinerary, cachedItinerary, cacheRules)) {
@@ -297,16 +253,13 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     const generationTime = Date.now() - startTime;
     const generatedDays = sanitizedItinerary.days.length;
 
-    // Cost: the Gemini tokens this request paid for (lib/ai/gemini-cost.ts),
-    // plus the per-request Maps Grounding price when grounding answered. A
+    // Cost: the Gemini tokens this request paid for (lib/ai/gemini-cost.ts). A
     // cache hit made no model call.
-    const generationCost = cacheHit
-      ? 0
-      : geminiCost.usd + (usedMapsGrounding ? getMapsGroundingCost() : 0);
+    const generationCost = cacheHit ? 0 : geminiCost.usd;
 
     // Log the request using centralized gateway
     await logApiCall({
-      apiName: usedMapsGrounding ? "maps_grounding" : "gemini",
+      apiName: "gemini",
       endpoint: "/api/ai/generate",
       status: 200,
       responseTimeMs: generationTime,
@@ -321,7 +274,6 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         duration: totalDays,
         generated_days: generatedDays,
         is_admin: userIsAdmin,
-        used_maps_grounding: usedMapsGrounding,
         // "Try Different Version": a regenerate that skipped the cache.
         fresh: wantsFresh,
         ...(profilePreferences.dietaryPreferences?.length ? { dietary: profilePreferences.dietaryPreferences } : {}),
@@ -336,11 +288,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     void recordAiOutcome({
       endpoint: "generate",
       outcome: "success",
-      model: cacheHit
-        ? "cache"
-        : usedMapsGrounding
-          ? "maps-grounding"
-          : getModelForPurpose("trip-generation"),
+      model: cacheHit ? "cache" : getModelForPurpose("trip-generation"),
       cacheHit,
       durationMs: generationTime,
       userId: user?.id ?? null,
@@ -376,13 +324,12 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     const finishedItinerary = { ...sanitizedItinerary, language: userLanguage, timezone: deriveTimezoneFromItinerary(sanitizedItinerary.days) ?? undefined };
     const meta = {
       generationTimeMs: generationTime,
-      model: cacheHit ? "cache" : usedMapsGrounding ? "maps-grounding" : getModelForPurpose("trip-generation"),
+      model: cacheHit ? "cache" : getModelForPurpose("trip-generation"),
       cached: cacheHit,
       generatedDays,
       totalDays,
       // Cost tracking
       costUsd: generationCost,
-      usedMapsGrounding,
     };
     // Kept before answering, so a browser that misses the answer finds it.
     if (generationId) {
