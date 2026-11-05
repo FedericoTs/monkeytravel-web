@@ -162,7 +162,20 @@ describe("asking", () => {
     open();
     send("Change it");
     expect(await screen.findByText("errors.outdated")).toBeTruthy();
-    expect(screen.queryByText("Change it")).toBeNull();
+    expect(screen.queryByText("Change it", { selector: "p" })).toBeNull();
+  });
+
+  it("failing puts the question back in the box, to send again", async () => {
+    const { posted } = serve({ chat: () => json({ error: "Internal server error" }, 500) });
+    open();
+    send("  Change it  ");
+    expect(await screen.findByText("error")).toBeTruthy();
+    await waitFor(() => expect(box().disabled).toBe(false));
+    expect(box().value).toBe("Change it");
+
+    fireEvent.submit(box().closest("form") as HTMLFormElement);
+    await waitFor(() => expect(posted.chat).toHaveLength(2));
+    expect(posted.chat[1]).toMatchObject({ message: "Change it" });
   });
 
   it("failing for any other reason says the general thing", async () => {

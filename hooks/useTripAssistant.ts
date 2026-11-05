@@ -308,6 +308,8 @@ export function useTripAssistant({
       } catch (err) {
         setError(err instanceof ShownError ? err.message : t("error"));
         setMessages((prev) => prev.slice(0, -1));
+        // Back in the box, so nothing has to be typed again.
+        setInput(content.trim());
       } finally {
         setIsLoading(false);
       }
