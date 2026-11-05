@@ -155,6 +155,18 @@ describe("saving a trip someone shared by link", () => {
     expect(inserted).toHaveLength(0);
   });
 
+  it("the copy's activities all have ids: the ones they had, and new ones where they had none", async () => {
+    stored = [
+      source({
+        itinerary: [{ day_number: 1, date: "2026-10-01", activities: [{ id: "a1", name: "Tram 28" }, { name: "Castle" }] }],
+      } as Partial<SourceTrip>),
+    ];
+    await save({ shareToken: TOKEN });
+    const [kept, given] = (inserted[0].itinerary as Array<{ activities: Array<{ id: string }> }>)[0].activities;
+    expect(kept.id).toBe("a1");
+    expect(given.id).toMatch(/^act_/);
+  });
+
   it("the copy leaves behind the source owner's claim stamp and packed items", async () => {
     await save({ shareToken: TOKEN });
     expect(inserted[0].trip_meta).toEqual({ locale: "en" });

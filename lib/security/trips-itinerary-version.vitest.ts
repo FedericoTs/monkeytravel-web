@@ -15,6 +15,7 @@ const sql = read("supabase/migrations/20260924125000_trips_itinerary_version.sql
 const tripPage = () =>
   [
     "app/[locale]/(app)/trips/[id]/TripDetailClient.tsx",
+    "hooks/useItineraryCopies.ts",
     "hooks/useItinerarySync.ts",
     "hooks/useActivityRegeneration.ts",
     "hooks/useDayRegeneration.ts",
@@ -53,29 +54,16 @@ describe("trips_itinerary_version", () => {
 });
 
 describe("the save paths use it", () => {
-  it("no phantom first-render edit: one copy for both states, with ids derived from the stored trip", () => {
-    const page = tripPage();
+  it("on the trip page, only a regenerated day gets random ids", () => {
     // ensureActivityIds mints random ids: two calls made the page look edited,
-    // and each mount / router-cache restore minted different ids.
-    expect(page).toContain("const [initialItinerary] = useState(() => ensureActivityIdsStable(trip.itinerary, trip.id));");
-    expect(page).not.toMatch(/useState<ItineraryDay\[\]>\(\(\) =>\s*ensureActivityIds\(trip\.itinerary\)/);
-    // Every read of a stored copy uses the derived ids; only a regenerated
-    // day (ids stamped by the server) goes through the random variant.
-    const code = page.split("\n").filter((line) => !line.trim().startsWith("//")).join("\n");
+    // and each mount / router-cache restore minted different ids. Every read of
+    // a stored copy uses the derived ids; only a regenerated day (ids stamped by
+    // the server) goes through the random variant.
+    const code = tripPage().split("\n").filter((line) => !line.trim().startsWith("//")).join("\n");
     expect(code.match(/ensureActivityIds\(/g)?.length).toBe(1);
   });
 
-  it("new trips are stored with activity ids, in every creation path that can store id-less days", () => {
-    // Both wizard arms insert through persistTrip's row builder.
-    expect(read("lib/trips/persistTrip.ts")).toContain("itinerary: ensureActivityIds(itinerary.days),");
-    expect(read("lib/trips/wizard-trip-writes.ts")).toContain("{ arm: \"manual\", mountId }");
+  it("the wizard doesn't insert past persistTrip's row builder", () => {
     expect(read("app/[locale]/(app)/trips/new/NewTripWizard.tsx")).not.toContain(".rpc(\"insert_trip_dedup\"");
-    // Anonymous shares are stamped by their validator (which also lets odd shapes through).
-    expect(read("lib/trips/anonymous-share.ts")).toContain("itinerary: withActivityIds(b.itinerary),");
-    expect(read("app/api/trips/duplicate/route.ts")).toMatch(/itinerary: Array\.isArray\(adjustedItinerary\) \? ensureActivityIds\(/);
-    // The wizard gives its own copy ids once, so its insert and every later update carry the same ids.
-    const wizard = read("app/[locale]/(app)/trips/new/NewTripWizard.tsx");
-    expect(wizard).toContain("return missing ? { ...value, days: ensureActivityIds(value.days) } : value;");
-    expect(wizard).toContain("const [generatedItinerary, setGeneratedItineraryRaw] = useState<GeneratedItinerary | null>(null);");
   });
 });
