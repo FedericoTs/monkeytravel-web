@@ -1,57 +1,39 @@
-/**
- * Trip Status Management
- *
- * Handles automatic status transitions based on dates and manual status changes.
- *
- * Status lifecycle:
- * - planning: Initial state when trip is created
- * - confirmed: User has confirmed the trip details (manual action)
- * - active: Trip is currently happening (automatic based on dates)
- * - completed: Trip has ended (automatic based on dates) - displayed as "Memories"
- * - cancelled: Trip was cancelled (manual action)
- */
-
+import { tripDateOnly } from '@/lib/trip/live';
 import type { TripStatus } from '@/types';
 
 /**
- * Calculate what the trip status should be based on dates
- * This is used for automatic status transitions
+ * Trip status.
+ *
+ * The row stores what the owner chose:
+ * - planning: Initial state when trip is created
+ * - confirmed: The owner confirmed the trip
+ * - cancelled: The owner cancelled the trip
+ *
+ * Whether a trip is under way or over comes from its dates, when it's shown:
+ * - active: Trip is happening, displayed as "Ongoing"
+ * - completed: Trip has ended, displayed as "Memories"
  */
-export function calculateTripStatus(
-  currentStatus: TripStatus,
-  startDate: string,
-  endDate: string
-): TripStatus {
-  const now = new Date();
-  const start = new Date(startDate);
-  const end = new Date(endDate);
 
-  // Set times to start/end of day for accurate comparison
-  start.setHours(0, 0, 0, 0);
-  end.setHours(23, 59, 59, 999);
-  now.setHours(12, 0, 0, 0); // Noon for comparison
+export type TripTimeline = 'upcoming' | 'current' | 'past';
 
-  // Cancelled trips stay cancelled
-  if (currentStatus === 'cancelled') {
-    return 'cancelled';
-  }
+/**
+ * Where a trip stands on `today` (YYYY-MM-DD). Counted in calendar days:
+ * `new Date("YYYY-MM-DD")` is midnight UTC, which would end a trip before its
+ * last day begins.
+ */
+export function tripTimeline(startDate: string, endDate: string, today: string): TripTimeline {
+  if (tripDateOnly(startDate) > today) return 'upcoming';
+  if (tripDateOnly(endDate) < today) return 'past';
+  return 'current';
+}
 
-  // Trip has ended - mark as completed
-  if (now > end) {
-    return 'completed';
-  }
-
-  // Trip is currently happening - mark as active
-  if (now >= start && now <= end) {
-    // Only auto-transition from planning/confirmed to active
-    if (currentStatus === 'planning' || currentStatus === 'confirmed') {
-      return 'active';
-    }
-    return currentStatus;
-  }
-
-  // Trip is in the future - keep current status (planning or confirmed)
-  return currentStatus;
+/** The status a trip is shown with on `today` (YYYY-MM-DD). */
+export function shownTripStatus(status: string, startDate: string, endDate: string, today: string): string {
+  if (status === 'cancelled') return status;
+  const timeline = tripTimeline(startDate, endDate, today);
+  if (timeline === 'past') return 'completed';
+  if (timeline === 'current') return 'active';
+  return status;
 }
 
 /**

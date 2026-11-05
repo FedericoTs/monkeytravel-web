@@ -36,7 +36,7 @@ import TripsPageClient from "./TripsPageClient";
  * (a replaced one is painted again, after the JavaScript has loaded).
  */
 
-const SERVER_NOW = "2026-10-12T12:00:00.000Z";
+const SERVER_TODAY = "2026-10-12";
 
 const trip = (id: string, title: string, start: string, end: string, created: string, cover: string) => ({
   id, title, start_date: start, end_date: end, status: "planning",
@@ -56,7 +56,7 @@ const TRIPS = [
 
 const page = () => (
   <NextIntlClientProvider locale="en" messages={{ common }} onError={() => {}}>
-    <TripsPageClient trips={TRIPS} displayName="Ana" lifetimeConversions={0} serverNow={SERVER_NOW} />
+    <TripsPageClient trips={TRIPS} displayName="Ana" lifetimeConversions={0} serverToday={SERVER_TODAY} />
   </NextIntlClientProvider>
 );
 

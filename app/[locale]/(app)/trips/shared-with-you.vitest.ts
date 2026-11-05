@@ -66,7 +66,10 @@ function fakeSupabase() {
 }
 
 vi.mock("@supabase/ssr", () => ({ createServerClient: vi.fn(() => fakeSupabase()) }));
-vi.mock("next/headers", () => ({ cookies: async () => ({ getAll: () => [], set: () => {} }) }));
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ getAll: () => [], set: () => {} }),
+  headers: async () => new Headers(),
+}));
 vi.mock("next/navigation", () => ({
   redirect: (url: string) => {
     throw new Error(`redirect ${url}`);

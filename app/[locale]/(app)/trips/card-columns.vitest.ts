@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { TRIP_CARD_COLUMNS, TRIP_COLUMNS } from "@/lib/trips/columns";
 
 /**
@@ -35,7 +35,11 @@ vi.mock("@supabase/ssr", () => ({
     },
   })),
 }));
-vi.mock("next/headers", () => ({ cookies: async () => ({ getAll: () => [], set: () => {} }) }));
+let visitorZone: string | null = null;
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ getAll: () => [], set: () => {} }),
+  headers: async () => new Headers(visitorZone ? { "x-vercel-ip-timezone": visitorZone } : {}),
+}));
 vi.mock("next/navigation", () => ({
   redirect: (url: string) => {
     throw new Error(`redirect ${url}`);
@@ -64,5 +68,34 @@ describe("My Trips selects only what the cards read", () => {
   it("selects only columns the signed-in role is granted", () => {
     const granted = new Set(columns(TRIP_COLUMNS));
     for (const c of columns(TRIP_CARD_COLUMNS)) expect(granted).toContain(c);
+  });
+});
+
+describe("My Trips tells the cards the visitor's day", () => {
+  afterEach(() => {
+    visitorZone = null;
+    vi.useRealTimers();
+  });
+
+  const serverToday = async () => {
+    const { default: TripsPage } = await import("./page");
+    return (await TripsPage({ params: Promise.resolve({ locale: "en" }) })).props.serverToday;
+  };
+
+  it("from where the request came from", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-06T03:00:00Z"));
+    visitorZone = "America/Chicago";
+    expect(await serverToday()).toBe("2026-11-05");
+    visitorZone = "Asia/Tokyo";
+    expect(await serverToday()).toBe("2026-11-06");
+  });
+
+  it("in UTC when that's missing or isn't a time zone", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-06T03:00:00Z"));
+    expect(await serverToday()).toBe("2026-11-06");
+    visitorZone = "Not/AZone";
+    expect(await serverToday()).toBe("2026-11-06");
   });
 });

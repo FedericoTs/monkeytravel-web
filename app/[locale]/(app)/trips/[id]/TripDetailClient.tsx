@@ -7,6 +7,8 @@ import { CrewShareNudge, CrewVotesSummary, useCrewVotes } from "@/components/tri
 import type { ItineraryDay, Activity, TripMeta, CachedDayTravelData, CollaboratorRole, VoteType } from "@/types";
 import { ROLE_PERMISSIONS } from "@/types";
 import { getTripDestination } from "@/lib/trips/destination";
+import { shownTripStatus } from "@/lib/trips/status";
+import { toLocalISODate } from "@/lib/utils/date-local";
 import { hasCoordinates } from "@/lib/trips/has-coordinates";
 import { withFoundPhotos } from "@/lib/trips/keep-place-photos";
 import { useKeptTripPhotos } from "@/hooks/useKeptTripPhotos";
@@ -360,6 +362,7 @@ export default function TripDetailClient({
       : new Date(trip.endDate);
   }, [trip.endDate]);
   const now = new Date();
+  const shownStatus = shownTripStatus(currentStatus, trip.startDate, trip.endDate, toLocalISODate(now));
 
   // Pre-trip: the trip simply has not started yet. Confirmed status is not
   // required: most people with an upcoming trip never press Confirm, and the
@@ -862,7 +865,7 @@ export default function TripDetailClient({
             The Backpacker badge renders for trips generated in Backpacker
             Mode: a visible cue of what backpacker mode looks like. */}
         <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
-          <TripStatusBadge status={currentStatus} />
+          <TripStatusBadge status={shownStatus} />
           {trip.meta?.travel_style === "backpacker" && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium shadow-lg bg-emerald-500 text-white">
               <span aria-hidden>🎒</span>
@@ -921,7 +924,7 @@ export default function TripDetailClient({
         {/* Planning Phase - Confirm Trip Action. Owner only: confirming or
             cancelling is the trip's lifecycle, and PATCH /status admits only
             the owner, so a collaborator's click would be a silent 404. */}
-        {currentStatus === "planning" && isOwner && (
+        {shownStatus === "planning" && isOwner && (
           <ConfirmTripCard
             updating={isUpdatingStatus}
             onConfirm={() => handleStatusUpdate("confirmed")}

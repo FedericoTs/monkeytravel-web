@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { createClientWithViewer } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import TripsPageClient from "@/components/trips/TripsPageClient";
@@ -5,6 +6,7 @@ import { getAllFrontmatter, tOr } from "@/lib/blog/api";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { TRIP_CARD_COLUMNS } from "@/lib/trips/columns";
+import { isValidTimeZone, todayInTimeZone } from "@/lib/trip/live";
 
 // Locale-aware <title>.
 export async function generateMetadata({
@@ -122,6 +124,11 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
     category: tOr(tb, `categories.${post.category}`, post.category),
   }));
 
+  // The visitor's day, from where the request came from, so the first paint
+  // sorts trips as the browser will.
+  const visitorZone = (await headers()).get("x-vercel-ip-timezone");
+  const serverToday = todayInTimeZone(isValidTimeZone(visitorZone) ? visitorZone : "UTC");
+
   return (
     <TripsPageClient
       trips={trips || []}
@@ -129,7 +136,7 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
       displayName={displayName}
       lifetimeConversions={lifetimeConversions}
       blogTips={blogTips}
-      serverNow={new Date().toISOString()}
+      serverToday={serverToday}
     />
   );
 }
