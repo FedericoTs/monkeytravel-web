@@ -25,10 +25,14 @@ const generations = cookieQuota({
 
 /**
  * Check whether an anonymous request should be allowed. Does NOT mutate the
- * counter — call `recordAnonymousGeneration()` after a successful generation,
- * so a request that fails validation doesn't spend the visitor's quota.
+ * counter, so a request that fails validation doesn't spend the visitor's
+ * quota. Given the request's generation id, a try the stream already counted
+ * still reaches the JSON endpoint it falls back to.
  */
 export const checkAnonymousRateLimit = generations.check;
 
-/** Increment the anonymous counter after a successful generation. */
+/** Count an anonymous generation, once per generation id. */
 export const recordAnonymousGeneration = generations.record;
+
+/** Give back the generation counted under this id: it brought no plan. */
+export const refundAnonymousGeneration = generations.refund;
