@@ -11,18 +11,18 @@
  *
  * WHY SHARED AND NOT DUPLICATED
  * -----------------------------
- * The subject rule lived in three copies and drifted within an hour: the
- * fix landed in send.ts while the review script kept mailing a subject the
- * product could no longer produce. A checker that reimplements what it
- * checks proves only that two copies of a mistake agree. So the audit and
- * the send path share this module, and neither owns a private copy.
+ * Copies of the subject rule drift: a fix to the send path would leave the
+ * review script mailing a subject the product could no longer produce. A
+ * checker that reimplements what it checks proves only that two copies of a
+ * mistake agree. So the audit and the send path share this module, and
+ * neither owns a private copy.
  *
  * WHY BLOCKING RATHER THAN LOGGING
  * --------------------------------
  * The precedent is already in this codebase: assertTranslated refuses to
- * send an email carrying an unresolved i18n key, because for two months
- * those went out looking like "tripReminderEmail.morning_of.heading" and
- * every layer reported success. A row held back as `failed` stays visible
+ * send an email carrying an unresolved i18n key, because those go out
+ * looking like "tripReminderEmail.morning_of.heading" while every layer
+ * reports success. A row held back as `failed` stays visible
  * and can be retried once the cause is fixed. A bad email cannot be recalled.
  */
 
@@ -70,8 +70,8 @@ export interface VerifyRenderInput {
 /**
  * Substrings that must never survive into a delivered email.
  *
- * The i18n key prefixes are the ones that actually shipped to real inboxes
- * for two months. `undefined` / `[object Object]` / `NaN` catch a prop that
+ * The i18n key prefixes are the ones that have actually shipped to real
+ * inboxes. `undefined` / `[object Object]` / `NaN` catch a prop that
  * silently went missing — the itinerary is model-generated, so that is a
  * live risk rather than a theoretical one.
  */

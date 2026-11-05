@@ -103,8 +103,7 @@ const ALREADY_PREFIXED = new RegExp(`^/(${LOCALES.join("|")})(/|$)`);
  * remark-html emits hrefs exactly as written in the markdown, and nothing
  * downstream localizes them. Component-rendered links go through next-intl's
  * Link and come out as /es/blog/x; in-body markdown links came out as /blog/x
- * on the Spanish page. Measured on one /es article: 11 correct component links
- * against 10 unprefixed markdown ones.
+ * on the Spanish page.
  *
  * WHY IT MATTERS MORE THAN A REDIRECT HOP
  * A reader might get bounced to the right locale by middleware and the cookie.
@@ -113,10 +112,9 @@ const ALREADY_PREFIXED = new RegExp(`^/(${LOCALES.join("|")})(/|$)`);
  * exist and every in-body link hands authority back to English. Those same
  * locale pages are the ones sitting "crawled, not indexed" for lack of it.
  *
- * Affected before this change: 310 links in es, 310 in it, 447 in pt.
- * (pt more, because es and it had some links hand-prefixed already — which is
- * why this skips anything that already starts with a locale segment rather
- * than prefixing blindly.)
+ * Some links are already hand-prefixed in the markdown, which is why this
+ * skips anything that already starts with a locale segment rather than
+ * prefixing blindly.
  *
  * Only root-relative hrefs are touched. Every root-relative target in the blog
  * is an app route (/blog, /trips, /destinations, /tools, the planner pages, and
@@ -435,13 +433,11 @@ export function getRelatedPosts(
 ): BlogFrontmatter[] {
   // The locale MUST be passed through here. Without it this parsed the ENGLISH
   // file while `all` below holds LOCALIZED frontmatter, so the two tag sets were
-  // drawn from different languages and overlapped almost never: pt matched a tag
-  // on 2 of 252 related links (82 of 84 posts had zero overlap), leaving every
+  // drawn from different languages and overlapped almost never, leaving every
   // score to collapse onto the +2 category bonus. Ties then resolve by
   // publishedAt DESC, so nearly every post in a category showed the SAME three
-  // most-recent posts — one identical set of related links appeared on 20 of the
-  // 84 pt posts. it/es were less severe only because some of their tags happen to
-  // be untranslated proper nouns.
+  // most-recent posts. it/es were less severe only because some of their tags
+  // happen to be untranslated proper nouns.
   //
   // parseFrontmatter falls back to the English file when a locale file is
   // missing, and getAllFrontmatter falls back the same way per post, so both

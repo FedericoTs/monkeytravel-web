@@ -24,8 +24,7 @@ import { logReadError } from "@/lib/supabase/log-read-error";
  * - SHARE_TIME_PAID_LOOKUPS (25): share/publish. A voter-facing trip should
  *   convert FULLY — a typical trip has 15-25 unique activities, and the 8-cap
  *   left the tail curated forever. Worst case ≈ 25 × $0.022 ≈ $0.55, paid only
- *   when a trip is first shared (~17% of trips), amortized by the permanent
- *   places_v2 cache.
+ *   when a trip is first shared, amortized by the permanent places_v2 cache.
  * - BACKFILL_PAID_LOOKUPS (15): cron sweep over historical shared/published
  *   trips. Slightly tighter because it runs over many trips at once.
  */

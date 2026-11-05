@@ -226,11 +226,8 @@ function LoginForm() {
               which Supabase returns after a password attempt with the
               CORRECT password — so it never rendered for the people who
               arrive here from a broken confirmation link, who are the
-              larger group. Measured 2026-09-02: of the users who
-              confirmed and still could not get a session, 18 of 18 had
-              requested another confirmation link, 5 tried signing up
-              again and 3 tried a password reset. Every one of them was
-              looking for this button and could not see it.
+              larger group. They are looking for this button and could
+              not see it.
 
               Gated on stable codes, never on message text, so a
               translation cannot silently switch it off. */}

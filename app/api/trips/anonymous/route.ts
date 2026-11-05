@@ -21,8 +21,8 @@ import { logReadError } from "@/lib/supabase/log-read-error";
  * WHY THIS EXISTS
  * The crew loop dies at hop one. An anonymous planner could generate an
  * itinerary but had no way to send it to anyone: persistTrip hard-writes
- * user_id, and /api/trips/[id]/share requires an authenticated owner. Only
- * 55 of 323 trips (17%) had ever been shared. This route is the missing hop.
+ * user_id, and /api/trips/[id]/share requires an authenticated owner. This
+ * route is the missing hop.
  *
  * WHAT AN ANONYMOUS CALLER GETS — and deliberately does not
  *   gets:  one ownerless trip row, a public read-only share_token, and a
@@ -120,8 +120,7 @@ export async function POST(request: NextRequest) {
         // (app/[locale]/(app)/shared/[token]/page.tsx). It used to come from a bare
         // `OR (share_token IS NOT NULL)` in trips_select_consolidated, which
         // meant every row with a token was world-readable through the public
-        // anon key: 118 trips, 42 of them private, 39 live claim_tokens.
-        // Removed in 20260901090000_close_share_token_read_hole.sql.
+        // anon key. Removed in 20260901090000_close_share_token_read_hole.sql.
         visibility: "private",
         // Already stamped with activity ids by validateAnonymousTripPayload
         // (withActivityIds), which also passes malformed days through as is.

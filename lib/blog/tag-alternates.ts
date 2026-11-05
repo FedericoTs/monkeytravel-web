@@ -9,8 +9,8 @@ import { CONCEPTS, DESTINATION_NAMES, LOCALES, type Locale } from "./tag-taxonom
  * resolved in each locale. Tags are localized, so that only ever linked archives
  * whose slug happens to be spelled identically in two languages — `asia`, and
  * little else. `europe` never saw `europa`; `itinerary` never saw `itinerario`
- * or `roteiro`. Measured on production: of 80 tag URLs in the sitemap, 71 were
- * hreflang-isolated and only 4 had a complete four-locale cluster.
+ * or `roteiro`. Most tag URLs in the sitemap were hreflang-isolated, and very
+ * few had a complete four-locale cluster.
  *
  * It also produced ASYMMETRIC clusters, which is worse than none: on
  * /it/blog/tag/europa the slug `europa` resolves in it, es and pt but not en, so

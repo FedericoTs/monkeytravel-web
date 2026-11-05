@@ -18,8 +18,8 @@ const ShareAfterSaveModal = dynamic(
  * The share ask, moved off the save moment (spec C1).
  *
  * It used to fire in the wizard the instant the row was inserted — asking the
- * user to send friends an itinerary they had not read yet. Measured: 82 of 100
- * savers saw it and 85% skipped. Nothing had earned the ask.
+ * user to send friends an itinerary they had not read yet. Nothing had earned
+ * the ask.
  *
  * Now it waits until the user has demonstrably looked at the trip, on the trip
  * page itself, and only for the owner of a trip that has no link yet.

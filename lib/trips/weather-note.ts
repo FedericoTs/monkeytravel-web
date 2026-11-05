@@ -4,10 +4,8 @@
  * IT USED TO PULL OUT THE TEMPERATURE. IT MUST NOT.
  * -------------------------------------------------
  * The source is `trip_meta.weather_note`, which is model-generated prose that
- * reads like data and is not. Measured across 279 trips it contradicts itself:
- * Kyoto in September appears as both "10-18°C" and "27-32°C" on two different
- * trips, and six round-number buckets cover 229 of them. A user was emailed
- * "10-18°C" for Los Angeles when the real forecast was 22-32°C.
+ * reads like data and is not. Across trips it contradicts itself: Kyoto in
+ * September appears as both "10-18°C" and "27-32°C" on two different trips.
  *
  * The hero chip once regex-extracted that figure and rendered it bare — no
  * label, no "~", no source — which is the most confident possible

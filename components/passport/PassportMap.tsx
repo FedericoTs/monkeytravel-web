@@ -18,7 +18,7 @@ import type { VisaStatus } from "@/lib/visa/types";
  * none of it. next.config.ts caches it for a day with a week of
  * stale-while-revalidate, and middleware.ts excludes /geo from its matcher so
  * the fetch does not trigger a Supabase session round-trip — the same mistake
- * manifest.json cost 344 middleware invocations a day for.
+ * manifest.json used to make.
  *
  * NO LAYOUT SHIFT DESPITE ARRIVING LATE
  * The container is a fixed aspect-ratio box, so its height is known before the

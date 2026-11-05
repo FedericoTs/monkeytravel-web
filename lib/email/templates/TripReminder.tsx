@@ -141,14 +141,13 @@ export default function TripReminderEmail({
  *   "Three days to Palermo, Agrigento, Syracuse & Taormina
  *    — Palermo, Agrigento, Syracuse & Taormina"          (95 chars)
  *
- * On the live queue that put 27 of 699 subjects past the ~78 characters a
- * mail client will show, and the worst were all multi-city trips.
+ * That put multi-city subjects past the ~78 characters a mail client will
+ * show.
  *
  * EXPORTED because three call sites need this identical rule: the send path,
- * scripts/audit-queued-emails.mts, and scripts/send-test-emails.mts. It was
- * duplicated once and drifted within the hour — the fix shipped in send.ts
- * while the review script kept mailing "Three days to Paris — Paris". One
- * definition is the only version of this that stays true.
+ * scripts/audit-queued-emails.mts, and scripts/send-test-emails.mts. A
+ * duplicated copy drifts, so one definition is the only version of this that
+ * stays true.
  */
 export function tripReminderSubject(props: {
   heading: string;

@@ -17,13 +17,12 @@ const SAVER_COOKIE_NAME = "mt_saver_cookie";
  * Build a redirect response that explicitly tells crawlers not to index
  * the callback URL.
  *
- * Why: GSC showed 45 organic landings on /auth/callback over 30 days,
- * meaning Google had indexed magic-link URLs leaked via email or social
- * shares. This is a privacy/UX problem (the page is a one-shot OAuth/PKCE
- * exchanger; landing there cold gets you "Could not authenticate") AND a
- * crawl-budget waste. /auth/callback is at app/auth/callback/route.ts,
- * outside the [locale]/auth layout that already carries
- * `robots: { index: false, follow: false }` — route handlers don't use
+ * Why: Google can index magic-link URLs leaked via email or social shares
+ * and send organic landings to /auth/callback. This is a privacy/UX problem
+ * (the page is a one-shot OAuth/PKCE exchanger; landing there cold gets you
+ * "Could not authenticate") AND a crawl-budget waste. /auth/callback is at
+ * app/auth/callback/route.ts, outside the [locale]/auth layout that already
+ * carries `robots: { index: false, follow: false }` — route handlers don't use
  * Metadata, so we set the header on the response instead.
  */
 function noIndexRedirect(url: string): NextResponse {
@@ -46,9 +45,9 @@ function noIndexRedirect(url: string): NextResponse {
  * Record that an emailed auth link was actually redeemed.
  *
  * The consent-free funnel could see the Save click and the eventual sign-in
- * and nothing in between, so 99 sessions a month that clicked Save and never
- * signed in were one undifferentiated number. This is the last of the three
- * steps that split it (auth_modal_shown, otp_requested, otp_link_opened).
+ * and nothing in between, so every session that clicked Save and never signed
+ * in was one undifferentiated number. This is the last of the three steps
+ * that split it (auth_modal_shown, otp_requested, otp_link_opened).
  *
  * It reads the cookie of the browser that opened the LINK. Request the link on
  * a laptop and open it on a phone and this row lands under a different session
@@ -346,8 +345,8 @@ export async function GET(request: Request) {
       // public.users.created_at is 0.000000s. The block below has therefore
       // never executed for a real signup.
       //
-      // That is why 317 Google users were stored with their email local-part
-      // as display_name while a perfectly good full_name sat in their OAuth
+      // That is why Google users were stored with their email local-part as
+      // display_name while a perfectly good full_name sat in their OAuth
       // claims: the derivation ten lines down is correct and simply never ran.
       // Fixed at the source instead, in
       // 20260901160000_display_name_from_oauth_name.sql — the trigger now
@@ -360,7 +359,7 @@ export async function GET(request: Request) {
       // leave an authenticated user with no profile row at all.
       //
       // AND DELIBERATELY NOT MADE REACHABLE: the obvious "fix" is to key on
-      // `login_count === 0` instead. Do not. 126 existing users have
+      // `login_count === 0` instead. Do not. Existing users have
       // login_count 0, and this upsert writes `preferences: {}` and a fresh
       // trial_ends_at — so flipping the test would wipe real preferences for
       // all of them. The comment above about a transient failure "silently

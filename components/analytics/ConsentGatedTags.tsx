@@ -153,10 +153,7 @@ export function ConsentGatedTags() {
   return (
     <>
       {mountGa && gaId ? <GaTag gaId={gaId} /> : null}
-      {/* Affiliate beacons are marketing, not analytics. Note the measured
-          context: all four Travelpayouts services are disabled at account
-          level, so these requests currently carry privacy exposure and page
-          weight for zero revenue. */}
+      {/* Affiliate beacons are marketing, not analytics. */}
       {consent?.marketing ? <AffiliateScript /> : null}
     </>
   );

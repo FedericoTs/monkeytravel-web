@@ -20,8 +20,7 @@ import { Spinner } from "@/components/ui/Spinner";
  *
  * This is hop one of the crew loop, which previously did not exist: an
  * anonymous planner could generate an itinerary but had no way to send it to
- * anybody, because minting a share link required an authenticated owner. Only
- * 17% of all trips ever created had been shared.
+ * anybody, because minting a share link required an authenticated owner.
  *
  * Self-contained on purpose. The wizard's result view carries the auto-save
  * state machine, the mobile sticky bar and several conversion experiments;
@@ -53,12 +52,9 @@ interface Props {
   /**
    * "crew" reframes the same account-free link as a request for votes.
    *
-   * 531 wizard sessions a month answer "with friends" at step 1 and 477 of
-   * them generate a trip — yet across 449 live trips there are 3 collaborator
-   * rows, 6 invites ever, and zero authenticated votes. The only multiplayer
-   * thing anyone uses is the one needing no account: 51 anonymous votes. So
-   * the crew ask rides the anonymous share rather than the invite system, and
-   * the link carries ?vote=1 so the landing page leads with voting.
+   * Voting on the anonymous share needs no account, unlike the invite system.
+   * So the crew ask rides the anonymous share rather than the invite system,
+   * and the link carries ?vote=1 so the landing page leads with voting.
    */
   mode?: "share" | "crew";
   /**
@@ -274,9 +270,9 @@ export default function AnonymousShareButton({
             {t("wizard.result.shareCrewVotes", { count: voteCount })}
           </a>
         )}
-        {/* The ask that was missing: 56 signed-out shares in 30 days, 0 ever
-            kept (2026-09-02). Same sign-up path as the Save button, which
-            converts 46% of the signed-out planners who reach it. */}
+        {/* The ask that was missing: a signed-out share used to end with
+            nothing offering to keep the trip. Same sign-up path as the Save
+            button. */}
         {onKeep && (
           <div
             className="mt-1 flex flex-col gap-2 rounded-xl border border-[var(--primary)]/20 bg-[var(--background-warm)] px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"

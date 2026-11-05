@@ -10,23 +10,22 @@
  * ----------------------
  * Every field here is read from `trips.trip_meta` and `trips.itinerary`,
  * both populated at generation time. No Gemini call, no Places call, no
- * new storage. Google Places is this product's single largest bill
- * (~$0.10/trip) and the standing decision is fewer calls per trip, not
- * more — so an enrichment that re-reads existing rows is the only version
- * of this feature worth shipping.
+ * new storage. Google Places is billed per call and the standing decision is
+ * fewer calls per trip, not more — so an enrichment that re-reads existing
+ * rows is the only version of this feature worth shipping.
  *
  * EVERYTHING IS OPTIONAL, ON PURPOSE
  * ----------------------------------
- * Measured coverage across 385 live trips:
+ * Coverage across stored trips, from most to least present:
  *
- *   day-1 activities      385  (100%)
- *   weather_note          344  ( 89%)
- *   destination_best_for  344  ( 89%)
- *   highlights            271  ( 70%)
- *   packing_suggestions   268  ( 70%)
- *   must_dos               15  (  4%)  <- not used; too sparse to design around
+ *   day-1 activities      essentially every trip
+ *   weather_note          most trips
+ *   destination_best_for  most trips
+ *   highlights            fewer
+ *   packing_suggestions   fewer
+ *   must_dos              very few  <- not used; too sparse to design around
  *
- * So a third of trips have no highlights and a tenth have no weather note.
+ * So some trips have no highlights and some have no weather note.
  * A block with nothing in it is dropped rather than rendered empty, and an
  * email with zero blocks must still read as a finished email — which is why
  * this returns a list to append, never a required section.
@@ -35,14 +34,14 @@
  * --------------------------------------
  * itinerary is model-generated JSON. The codebase already carries a scar
  * from trusting its shape: `estimated_cost` was declared required, Gemini
- * omitted it, and `activity.estimated_cost.amount` threw on /trips/:id 17
- * times (Sentry JAVASCRIPT-NEXTJS-12). Everything below treats the input as
+ * omitted it, and `activity.estimated_cost.amount` threw on /trips/:id
+ * (Sentry JAVASCRIPT-NEXTJS-12). Everything below treats the input as
  * unknown and drops anything that is not a usable string.
  *
  * WEATHER COMES FROM AN API, NEVER FROM trip_meta
  * -----------------------------------------------
  * trip_meta.weather_note is model-generated prose that reads like data and is
- * not. Measured across 279 trips it is internally contradictory, which rules
+ * not. Across stored trips it is internally contradictory, which rules
  * out imprecision and leaves invention:
  *
  *   Kyoto in September appears as BOTH "10-18°C" and "27-32°C" on two
@@ -51,21 +50,17 @@
  *   that sits at 22-28°C year round. Rome in October reads "20-35°C".
  *
  * Six round-number buckets — 20-35, 18-30, 10-18, 8-18, 10-20, 0-10 — cover
- * 229 of the 279 trips that state a range. Tropical destinations look correct
- * only because "hot" is an easy guess. We emailed a Spanish-speaking user
- * "10-18°C" for Los Angeles on 1 September; the forecast was 22-31°C.
+ * most of the trips that state a range. Tropical destinations look correct
+ * only because "hot" is an easy guess.
  *
  * So the note is never rendered. `forecastLine` carries a REAL forecast
  * instead, from lib/email/trip-forecast.ts (Open-Meteo — free, no API key, so
  * this does not touch the standing constraint on paid per-trip calls).
  *
- * An earlier version of this comment argued a per-email forecast call was the
- * wrong shape and proposed a static climate table. That was written before
- * checking the repository: app/api/weather/route.ts and
- * lib/api-gateway/clients/weather.ts already wrap Open-Meteo. Forecast also
- * beats a climate table here, because every slot fires within 14 days of the
- * trip and can therefore state what the weather WILL be rather than what it
- * usually is.
+ * A per-email forecast call is the right shape here, not a static climate
+ * table: app/api/weather/route.ts and lib/api-gateway/clients/weather.ts
+ * already wrap Open-Meteo, and because every slot fires within 14 days of the
+ * trip it can state what the weather WILL be rather than what it usually is.
  *
  * This does NOT clean the underlying field. trip_meta.weather_note is still
  * wrong wherever else it is displayed; this only keeps it out of the emails.
@@ -245,8 +240,8 @@ function isWeatherJustification(inner: string): boolean {
   if (!WEATHER_WORD.test(text)) return false;
   return (
     // "for cooler evenings", "especially in cold weather". `per`/`para`/`pour`
-    // because the generator writes in the reader's language and 16 of the
-    // queued packing emails are es/it/pt.
+    // because the generator writes in the reader's language, and packing
+    // emails go out in es/it/pt as well as en.
     /^(for|especially|even|in case|to|if|as|due|because|per|para|pour)\b/i.test(text) ||
     // "temperatures can vary", "the sun can be strong"
     /\b(can|could|may|might|vary|varies|will|are|is|be|gets?)\b/i.test(text) ||

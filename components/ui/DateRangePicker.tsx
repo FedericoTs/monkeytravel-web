@@ -282,7 +282,7 @@ export default function DateRangePicker({
     });
   };
 
-  // Year jump — 7/7 Wave-1 session replays showed users click-click-clicking
+  // Year jump — session replays showed users click-click-clicking
   // month-by-month to reach far-future dates (e.g. March 2027). One tap per
   // year instead of twelve.
   const navigateYear = (direction: -1 | 1) => {

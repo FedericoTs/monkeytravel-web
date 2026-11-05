@@ -20,7 +20,7 @@ import { refuseUnlessCron } from "@/lib/api/cron-auth";
  * Risk note: at ~100k+ activities the refresh may approach the 60s function
  * cap (vercel.json sets maxDuration: 60 on app/api/cron/*). When that
  * becomes a problem, swap the MV for a flat table + trigger-based incremental
- * updates on trips.itinerary. For 444 current rows we're nowhere near it.
+ * updates on trips.itinerary. At the current row count we're nowhere near it.
  *
  * Auth: CRON_SECRET. Without it, 401. Vercel sends the secret automatically.
  */

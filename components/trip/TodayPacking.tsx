@@ -3,7 +3,7 @@
 /**
  * "Packed?" — the packing checklist surfaced in Today. Live Trip Phase 3.4.
  *
- * The packing list has been used by ~0 trips because it lived in a pre-trip
+ * The packing list went unused because it lived in a pre-trip
  * screen no one reopened. This puts it where it matters: the day before the
  * trip and on day 1, then it collapses.
  *

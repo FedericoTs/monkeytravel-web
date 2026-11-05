@@ -12,11 +12,10 @@ import type { Destination, Locale, SampleActivity } from "@/lib/destinations/typ
  * WHAT PROBLEM THIS SOLVES
  * lib/destinations/data.ts holds hand-written, four-language day plans for 35
  * cities — real named places, not generated filler. Those plans live on
- * /destinations/[slug], which earns 66 organic clicks per QUARTER across 75
- * URLs. The seasonal blog posts earn roughly 975 sessions a MONTH. This block
- * puts the content in front of the traffic, and gives those orphaned
- * destination pages an internal link from the part of the site that has
- * authority.
+ * /destinations/[slug], which has weak organic reach, while the seasonal blog
+ * posts reach far more readers. This block puts the content in front of the
+ * traffic, and gives those orphaned destination pages an internal link from
+ * the part of the site that has authority.
  *
  * WHY THE ACTIVITY LINES ARE SAFE TO PRINT
  * Every line comes from `destination.content.sampleDay.activities` — the same

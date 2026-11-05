@@ -3,7 +3,7 @@
 /**
  * Session trips tray.
  *
- * Users often generate 2-5 trips in one sitting; each new generation used to
+ * Users often generate several trips in one sitting; each new generation used to
  * silently replace the previous one, so comparing options meant losing them.
  * When the session stack (hooks/useSessionTripStack.ts) holds ≥2 snapshots,
  * this renders a compact horizontal chip row at the top of the result view:

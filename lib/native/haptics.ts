@@ -14,7 +14,7 @@
  *   Matches the share.ts / back-button.ts pattern — dynamic-import
  *   gated by isNativePlatform() so the @capacitor/haptics plugin
  *   code never lands in the web bundle. Saves ~3 KB gzip + avoids
- *   the platform-detection branch evaluating to false 99% of the
+ *   the platform-detection branch evaluating to false almost every
  *   time on web traffic.
  *
  * Pattern from Booking + Airbnb iOS apps: haptics on load-bearing

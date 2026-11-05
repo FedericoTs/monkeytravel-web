@@ -148,11 +148,10 @@ export default function TripCard({ trip, variant = "grid" }: TripCardProps) {
         </div>
 
         {/* Engagement counts.
-            Each counter renders ONLY when it is non-zero. Across all 443
-            trips the product totals are: 1 like, 0 saves, 2 forks - so this
-            row was rendering "0  0  0" on essentially every card. A zero is
-            not neutral social proof, it is negative: it tells the viewer
-            nobody cared, on the very surface meant to make a trip look worth
+            Each counter renders ONLY when it is non-zero, so the row does not
+            read "0  0  0" on cards nobody has engaged with. A zero is not
+            neutral social proof, it is negative: it tells the viewer nobody
+            cared, on the very surface meant to make a trip look worth
             opening. Absent is better than zero until these numbers are real. */}
         <div className="flex items-center gap-3 text-xs text-slate-500">
           {trip.likeCount > 0 && (

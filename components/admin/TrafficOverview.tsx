@@ -353,9 +353,8 @@ export default function TrafficOverview({ data }: TrafficOverviewProps) {
               className={`transition-opacity duration-1000 ${isAnimated ? "opacity-100" : "opacity-0"}`}
             />
 
-            {/* Engaged sessions line. Rendered only where the signal exists —
-                18.9% of non-bot sessions, and the ones that reach the wizard
-                at 14.7% against 1.3% for the rest. */}
+            {/* Engaged sessions line. Rendered only where the signal exists;
+                it is a better read of real prospects than raw sessions. */}
             {chartConfig.engagedPoints.length > 1 && (
               <path
                 d={engagedPath}

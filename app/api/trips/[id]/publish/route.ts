@@ -137,11 +137,11 @@ export async function POST(request: NextRequest, { params }: RouteCtx) {
   // itinerary it is not something the user wrote expecting an audience.
   //
   // The client pre-ticks "publish" for UNANCHORED trips — an opt-out default is
-  // what actually moves publish volume (261 trips → 14 public, 5 publishers) —
-  // and leaves it untouched when anchors exist. This is the server half of that
-  // rule, and it is the half that matters: a client default can be wrong, stale
-  // or hand-rolled, so authority to publish an anchored trip has to be an
-  // explicit per-request acknowledgement rather than an absent checkbox.
+  // what actually moves publish volume — and leaves it untouched when anchors
+  // exist. This is the server half of that rule, and it is the half that
+  // matters: a client default can be wrong, stale or hand-rolled, so authority
+  // to publish an anchored trip has to be an explicit per-request
+  // acknowledgement rather than an absent checkbox.
   const anchorLabels = collectAnchorLabels(trip);
   if (anchorLabels.length > 0 && body?.confirmAnchored !== true) {
     return errors.badRequest(

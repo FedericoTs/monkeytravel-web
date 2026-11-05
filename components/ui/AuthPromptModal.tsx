@@ -113,9 +113,8 @@ export default function AuthPromptModal({
   const [isNavigating, setIsNavigating] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   // The in-tab alternative to following the link. The same email carries a
-  // six-digit code; typing it here avoids the app switch that loses 37% of
-  // magic-link sign-ups (63.0% reach a session against Google's 99.0%,
-  // n=142, p=1.8e-9).
+  // six-digit code; typing it here avoids the app switch that loses
+  // magic-link sign-ups.
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);

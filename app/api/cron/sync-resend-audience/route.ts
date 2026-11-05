@@ -8,7 +8,7 @@ import { refuseUnlessCron } from "@/lib/api/cron-auth";
  * Weekly cron — incremental sync of new Supabase users into the Resend
  * audience so future broadcast campaigns reach the full user base.
  *
- * Follow-up to task #323: a one-off bootstrap imported 118 contacts via
+ * Follow-up to task #323: a one-off bootstrap imported the existing contacts via
  * scripts/export-all-users-to-resend.mts. This cron keeps it in sync as
  * new users sign up — without it the audience drifts behind and
  * marketing sends miss anyone who joined since the bootstrap.
@@ -33,9 +33,8 @@ import { refuseUnlessCron } from "@/lib/api/cron-auth";
  * skipped=true so Vercel doesn't alarm on every run pre-launch.
  *
  * Schedule: weekly Monday 06:00 UTC (vercel.json). Cadence is slow
- * because user growth is also slow (~10-20 signups/week); we don't
- * need to be incremental-down-to-the-minute, and weekly keeps the
- * Resend API call volume tiny (one list + N inserts).
+ * because we don't need to be incremental-down-to-the-minute, and
+ * weekly keeps the Resend API call volume tiny (one list + N inserts).
  *
  * Auth: CRON_SECRET via Bearer header — same pattern as the other
  * cron routes (refresh-activity-index, scheduled-notifications,

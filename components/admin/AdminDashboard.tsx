@@ -279,8 +279,8 @@ function AnalyticsBody({ stats }: { stats: AdminStats }) {
 //
 // Self-contained: its own fetch to /api/admin/ux10x-baseline, triggered by a
 // button so it doesn't add load to the main stats call. Headlines Weekly
-// Active Crews (the North Star, target >10/wk, today ~0), the pure-wizard
-// step1->2 conversion, and a compact trailing-7d strip + 21-day sparkline,
+// Active Crews (the North Star), the pure-wizard step1->2 conversion, and a
+// compact trailing-7d strip + 21-day sparkline,
 // each shown against the frozen baseline the initiative is measured against.
 // ===========================================================================
 

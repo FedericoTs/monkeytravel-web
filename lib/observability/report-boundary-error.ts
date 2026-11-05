@@ -11,9 +11,8 @@ import { sentry } from "@/lib/observability/sentry";
  *
  *     Stacktrace: No stacktrace available
  *
- * Its siblings (-1W, 6 users; -20) had a stack, but a minified one. So the
- * whole TDZ family — the largest user-facing error group in the project — has
- * been undebuggable: sometimes minified, sometimes nothing at all.
+ * Its siblings (-1W; -20) had a stack, but a minified one. So the whole TDZ
+ * family has been undebuggable: sometimes minified, sometimes nothing at all.
  *
  * The boundaries were calling captureException(error) with only a tag. That is
  * correct as far as it goes, but it throws away three things that survive even

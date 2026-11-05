@@ -27,8 +27,7 @@ export interface AssistantMessage {
      * TRUE only when a database write for this change SUCCEEDED on this
      * request. It was previously a literal `true` written at construction
      * time, before any write was attempted, so it was a constant rather than
-     * a fact — 158 of 161 recorded actions said `applied: true` while users
-     * were telling us in the same thread that nothing had changed.
+     * a fact.
      */
     applied: boolean;
     /**

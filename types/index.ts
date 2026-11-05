@@ -617,9 +617,7 @@ export interface StructuredAssistantResponse {
     /**
      * TRUE only when a database write for this change SUCCEEDED. Never set
      * from the model's own output, and never set before the write is
-     * attempted — both of which used to happen, so this field read `true` on
-     * 158 of 161 recorded actions while users were replying "I can't see the
-     * changes" in the same thread.
+     * attempted.
      */
     applied: boolean;
     /** Prepared, nothing saved, waiting on the user's Apply. Never true alongside `applied`. */
