@@ -140,4 +140,11 @@ describe("an assistant turn's language", () => {
     state.profile = null;
     expect(await language()).toBe("en");
   });
+
+  it("takes a regional tag by its base language, from the cookie or the profile", async () => {
+    Object.assign(state, { cookie: "pt-BR", profile: "es" });
+    expect(await language()).toBe("pt");
+    Object.assign(state, { cookie: undefined, profile: "es-419" });
+    expect(await language()).toBe("es");
+  });
 });
