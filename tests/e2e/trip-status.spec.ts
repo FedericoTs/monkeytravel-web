@@ -1,7 +1,8 @@
 /**
  * The owner moves a trip through its status on the trip page: confirms a
  * planning trip, cancels one (asked first, with a way back out) and restores a
- * cancelled one. Each step shows on the page and lands in the database.
+ * cancelled one. Each step shows on the page and lands in the database. A trip
+ * that is over says so by its dates.
  *
  * Every test gets a trip of its own, removed afterwards. Needs the fixture
  * owner's session and service credentials:
@@ -107,6 +108,16 @@ test.describe("trip status", () => {
     await expect(page.getByText("Trip confirmed")).toBeVisible({ timeout: 20_000 });
     await expect.poll(statusInDb, { timeout: 20_000 }).toBe("confirmed");
     await expect(page.getByText("Ready to confirm your trip?")).toHaveCount(0);
+  });
+
+  test("a trip that is over says so, and is not offered for confirming", async ({ page }) => {
+    const { error } = await admin.from("trips").update({ start_date: iso(-5), end_date: iso(-3) }).eq("id", tripId);
+    if (error) throw error;
+
+    await openTrip(page, tripId);
+    await expect(page.getByText("Memories", { exact: true })).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByText("Ready to confirm your trip?")).toHaveCount(0);
+    expect(await statusInDb()).toBe("planning");
   });
 
   test("cancelling asks first, and a cancelled trip can be restored", async ({ page }) => {
