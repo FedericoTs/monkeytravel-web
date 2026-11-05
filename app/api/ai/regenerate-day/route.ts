@@ -21,7 +21,7 @@ import { NextRequest } from "next/server";
 import { DEFAULT_LANGUAGE, tripLocale } from "@/lib/ai/language";
 import { readLocaleCookie } from "@/lib/ai/user-context";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
-import { regenerateSingleDay } from "@/lib/gemini";
+import { regenerateSingleDay } from "@/lib/ai/regenerate-day";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { recordAiOutcome } from "@/lib/ai/observability";

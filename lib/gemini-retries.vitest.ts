@@ -30,9 +30,9 @@ vi.mock("./ai/gemini-cost", async (original) => ({
 }));
 vi.mock("./ai/plan-currency", () => ({ inPlanCurrency: async () => {} }));
 
-let gemini: typeof import("./gemini");
+let gemini: typeof import("./ai/regenerate-day") & typeof import("./gemini");
 beforeAll(async () => {
-  gemini = await import("./gemini");
+  gemini = { ...(await import("./ai/regenerate-day")), ...(await import("./gemini")) };
 }, 60_000);
 
 afterEach(() => {

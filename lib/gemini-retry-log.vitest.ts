@@ -29,9 +29,9 @@ vi.mock("./ai/gemini-cost", async (original) => ({
   recordGeminiUsage: () => {},
 }));
 
-let regenerateSingleDay: typeof import("./gemini").regenerateSingleDay;
+let regenerateSingleDay: typeof import("./ai/regenerate-day").regenerateSingleDay;
 beforeAll(async () => {
-  ({ regenerateSingleDay } = await import("./gemini"));
+  ({ regenerateSingleDay } = await import("./ai/regenerate-day"));
 }, 60_000);
 
 afterEach(() => {
