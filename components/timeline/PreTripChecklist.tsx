@@ -223,7 +223,6 @@ function ChecklistRow({
   t: (key: string) => string;
 }) {
   const tA11y = useTranslations("common.a11y");
-  const [showDelete, setShowDelete] = useState(false);
 
   const isDueSoon = item.due_date && !item.is_checked && (() => {
     const due = new Date(item.due_date);
@@ -239,8 +238,6 @@ function ChecklistRow({
         hover:bg-slate-50 group
         transition-colors
       "
-      onMouseEnter={() => setShowDelete(true)}
-      onMouseLeave={() => setShowDelete(false)}
     >
       <button
         aria-label={item.text}
@@ -287,20 +284,19 @@ function ChecklistRow({
         <span className="text-xs text-green-600 font-medium">{t("done")}</span>
       )}
 
-      {showDelete && (
-        <button
-          aria-label={tA11y("removeItem", { item: item.text })}
-          onClick={onDelete}
-          className="
-            p-1 rounded text-slate-500 hover:text-red-500
-            opacity-0 group-hover:opacity-100 transition-opacity
-          "
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      )}
+      {/* Waits for a hover only where a pointer can hover; a touch screen has none. */}
+      <button
+        aria-label={tA11y("removeItem", { item: item.text })}
+        onClick={onDelete}
+        className="
+          p-1 rounded text-slate-500 hover:text-red-500
+          [@media(hover:hover)]:opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity
+        "
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
     </div>
   );
 }

@@ -6,7 +6,8 @@
  * height animation from zero.
  */
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import type { ChecklistItem } from "@/types/timeline";
 import PreTripChecklist from "./PreTripChecklist";
 
 vi.mock("next-intl", () => ({ useTranslations: () => (key: string) => key }));
@@ -29,6 +30,19 @@ describe("PreTripChecklist", () => {
     rerender(checklist(false));
     expect(shape(card)).toBe(loading);
     expect(screen.getByText("emptyState").closest("[aria-hidden]")).toBeNull();
+  });
+
+  it("offers removing an item with no hover: a touch screen or the keyboard has none", () => {
+    const onDelete = vi.fn();
+    const item = { id: "i1", text: "Book the ferry", category: "booking", is_checked: false } as ChecklistItem;
+    render(<PreTripChecklist items={[item]} onToggle={noop} onAdd={noop} onDelete={onDelete} />);
+    const remove = screen.getByRole("button", { name: "removeItem" });
+    // Hidden only where a pointer can hover, never for everyone else.
+    expect(remove.className.split(/\s+/)).not.toContain("opacity-0");
+    expect(remove.className).toContain("[@media(hover:hover)]:opacity-0");
+    expect(remove.className).toContain("focus-visible:opacity-100");
+    fireEvent.click(remove);
+    expect(onDelete).toHaveBeenCalledWith("i1");
   });
 
   it("opens at its full height on the first render", () => {
