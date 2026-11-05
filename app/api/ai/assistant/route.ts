@@ -92,6 +92,8 @@ export async function POST(request: NextRequest) {
           canAddDays: assistantRole === "owner",
         });
       } catch (err) {
+        // Out of credit, the chat is refused too.
+        if (isModelOutOfCredit(err)) throw err;
         console.error("[AI Assistant] Edit engine failed, using the chat:", err);
       }
     }

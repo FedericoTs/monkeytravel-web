@@ -12,6 +12,7 @@ import { parseStreamedItinerary } from "@/lib/ai/itinerary-text";
 import { createDayParser, feedChunk } from "@/lib/streaming/day-parser";
 import { geminiCostUsd } from "@/lib/ai/gemini-cost";
 import { getModelForPurpose } from "@/lib/ai/model-router";
+import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 import { placeDays } from "@/lib/ai/server-fields";
 import { splitIntoParts, type OutlineDay } from "@/lib/ai/trip-outline";
 import type { SupportedLanguage } from "@/lib/ai/language";
@@ -89,6 +90,8 @@ function startPart(
         break;
       } catch (err) {
         run.error = err instanceof Error ? err : new Error(String(err));
+        // Out of credit, no other try can work (lib/ai/model-outage.ts).
+        if (isModelOutOfCredit(run.error)) break;
         if (attempt < PART_ATTEMPTS) {
           console.warn(`[plan-in-parts] days ${range.from}-${range.to} written again: ${run.error.message}`);
           run.retried = true;

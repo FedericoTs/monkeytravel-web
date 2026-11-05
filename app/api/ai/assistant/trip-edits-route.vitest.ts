@@ -259,11 +259,19 @@ describe("trip-page assistant: free-form edits", () => {
     expect(json.pendingChange).toBeNull();
   });
 
-  it("says the model is out of service when both the engine and the chat are refused", async () => {
-    const refusal = new Error(`{"error":{"code":402,"message":"Your prepayment credits are depleted."}}`);
-    proposeTripEdits.mockRejectedValue(refusal);
+  it("says the model is out of service when the engine is refused, without asking the chat too", async () => {
+    proposeTripEdits.mockRejectedValue(new Error(`{"error":{"code":402,"message":"Your prepayment credits are depleted."}}`));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { status, json } = await send("add a museum");
+    expect(status).toBe(503);
+    expect(json.code).toBe("MODEL_OUTAGE");
+    expect(chatCalls).not.toHaveBeenCalled();
+  });
+
+  it("says the model is out of service when the chat is refused", async () => {
+    proposeTripEdits.mockResolvedValue(null);
     chatCalls.mockImplementation(() => {
-      throw refusal;
+      throw new Error(`{"error":{"code":402,"message":"Your prepayment credits are depleted."}}`);
     });
     vi.spyOn(console, "error").mockImplementation(() => {});
     const { status, json } = await send("add a museum");

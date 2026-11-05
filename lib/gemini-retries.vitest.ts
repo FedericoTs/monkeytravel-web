@@ -120,6 +120,14 @@ describe("a model call's retries", () => {
     expect(isModelOutOfCredit(await day)).toBe(true);
   });
 
+  it("doesn't ask again when the model is out of credit", async () => {
+    quiet();
+    const refusal = `{"error":{"code":402,"message":"Your prepayment credits are depleted."}}`;
+    model.answers.push(fails(refusal), says(DAY));
+    await expect(regenerateDay()).rejects.toThrow("prepayment credits");
+    expect(model.answers).toHaveLength(1);
+  });
+
   it("says the service is unavailable after a second failed call", async () => {
     quiet();
     vi.useFakeTimers();

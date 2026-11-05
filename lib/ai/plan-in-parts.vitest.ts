@@ -16,6 +16,7 @@ type Behaviour = {
   days?: number;
   fail?: boolean;
   firstAttempt?: "throws" | "breaks" | "short";
+  refusal?: string;
 };
 let behaviour: Record<number, Behaviour> = {};
 let attempts: Record<number, number> = {};
@@ -40,6 +41,7 @@ vi.mock("@/lib/gemini", () => ({
     // Broken JSON inside the part's second day, as the model sometimes writes.
     if (first === "breaks") text = text.replace(`"Theme ${opts.part.from + 1}, attempt 1"`, `Theme ${opts.part.from + 1}`);
     await new Promise((resolve) => setTimeout(resolve, b.delayMs));
+    if (b.refusal) throw new Error(b.refusal);
     if (b.fail || first === "throws") throw new Error("model said no");
     for (let i = 0; i < text.length; i += 50) yield { text: text.slice(i, i + 50), done: false };
     yield { text: "", done: true, fullText: text, latencyMs: 1 };
@@ -131,6 +133,12 @@ describe("writeInParts", () => {
     }).rejects.toBeInstanceOf(PartsError);
     expect(days).toEqual([1, 2, 3, 4]);
     expect(attempts[5]).toBe(2);
+  });
+
+  it("doesn't write a part again when the model is out of credit", async () => {
+    behaviour = { 5: { delayMs: 0, refusal: `{"error":{"code":402,"message":"Your prepayment credits are depleted."}}` } };
+    await expect(collect()).rejects.toBeInstanceOf(PartsError);
+    expect(attempts[5]).toBe(1);
   });
 
   it("stops when a part comes back short twice", async () => {
