@@ -145,7 +145,8 @@ async function persistConciergeTurn(input: {
 /**
  * Gemini's answer as server-sent events, which drop the first token from ~3s to
  * ~200ms: `chunk`s of the answer, at most one `proposal`, then `done` or `error`.
- * Stored and reported whichever way it ends.
+ * Stored and reported whichever way it ends. `onFirstText` runs once, when the
+ * model starts answering.
  */
 export function conciergeAnswerStream({
   model,
@@ -159,6 +160,7 @@ export function conciergeAnswerStream({
   userId,
   tripId,
   startTime,
+  onFirstText,
 }: {
   model: ConciergeModel;
   modelName: AiModel;
@@ -171,6 +173,7 @@ export function conciergeAnswerStream({
   userId: string;
   tripId: string;
   startTime: number;
+  onFirstText: () => void;
 }): ReadableStream<Uint8Array> {
   // An answer owed a proposal it came without (proposalOwed) gets one more
   // call for the proposal line alone. When a change it handed over still
@@ -224,6 +227,7 @@ export function conciergeAnswerStream({
         for await (const chunk of result.stream) {
           const text = chunk.text();
           if (text) {
+            if (!accumulated) onFirstText();
             accumulated += text;
             const safe = emittableLength(accumulated);
             if (safe > emitted) {

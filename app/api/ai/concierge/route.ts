@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Quota check — share the assistant bucket so we don't introduce a
-    // separate counter the user has to track. 20/day on free tier.
+    // separate counter the user has to track.
     const usage = await checkUsageLimit(user.id, "aiAssistantMessages", user.email);
     if (!usage.allowed) {
       return errors.forbidden(usage.message || "Daily AI limit reached. Try again tomorrow or upgrade.", "USAGE_LIMIT_REACHED");
@@ -124,12 +124,6 @@ export async function POST(request: NextRequest) {
     });
     const tripLanguage = tripLocale(trip.trip_meta);
 
-    // Before streaming starts, so a client disconnecting mid-stream doesn't leak
-    // the cost-cap accounting.
-    void incrementUsage(user.id, "aiAssistantMessages").catch((err) => {
-      console.error("[concierge] usage increment failed", err);
-    });
-
     const stream = conciergeAnswerStream({
       model,
       modelName: conciergeModel,
@@ -147,6 +141,13 @@ export async function POST(request: NextRequest) {
       userId: user.id,
       tripId,
       startTime,
+      // An ask counts once the model is answering: one it refused costs the
+      // traveller nothing, and one they walk away from mid-answer still counts.
+      onFirstText: () => {
+        void incrementUsage(user.id, "aiAssistantMessages").catch((err) => {
+          console.error("[concierge] usage increment failed", err);
+        });
+      },
     });
 
     return new Response(stream, {
