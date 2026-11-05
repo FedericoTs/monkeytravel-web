@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { EDITOR_FIELDS, OWNER_ONLY_FIELDS } from "@/lib/trips/editor-fields";
 
 /**
  * The database's editor allowlist for trips (20260924124000).
@@ -17,7 +18,6 @@ import path from "node:path";
 const ROOT = path.resolve(__dirname, "../..");
 const read = (p: string) => readFileSync(path.join(ROOT, p), "utf8").replace(/\r/g, "");
 const sql = read("supabase/migrations/20260924124000_trips_editor_columns.sql");
-const route = read("app/api/trips/[id]/route.ts");
 
 function listed(src: string, pattern: RegExp): string[] {
   const body = src.match(pattern)?.[1] ?? "";
@@ -26,7 +26,7 @@ function listed(src: string, pattern: RegExp): string[] {
 
 describe("trips editor allowlist", () => {
   const dbColumns = listed(sql, /c_editor_columns constant text\[\] := array\[([^\]]*)\]/);
-  const routeFields = listed(route, /const EDITOR_FIELDS = new Set\(\[([^\]]*)\]\)/);
+  const routeFields = [...EDITOR_FIELDS].sort();
 
   it("the database allows exactly the route's editor fields (plus its three special cases)", () => {
     expect(routeFields.length).toBeGreaterThan(0);
@@ -36,9 +36,7 @@ describe("trips editor allowlist", () => {
   });
 
   it("none of the route's owner-only fields is in the database allowlist", () => {
-    const ownerOnly = listed(route, /const OWNER_ONLY_FIELDS = \[([^\]]*)\]/);
-    expect(ownerOnly.length).toBeGreaterThan(0);
-    for (const f of ownerOnly) expect(dbColumns).not.toContain(f);
+    for (const f of OWNER_ONLY_FIELDS) expect(dbColumns).not.toContain(f);
   });
 
   it("the owner test does not treat null = null as ownership", () => {
@@ -73,9 +71,5 @@ describe("trips editor allowlist", () => {
     }
     // The pins run before the owner early-return and the column check.
     expect(sql.indexOf("new.created_at := old.created_at;")).toBeLessThan(sql.indexOf("v_uid := auth.uid();"));
-  });
-
-  it("the route turns a guard refusal into 403, not 500", () => {
-    expect(route).toMatch(/updateError\.code === "42501"\) \{\s*return errors\.forbidden\(/);
   });
 });

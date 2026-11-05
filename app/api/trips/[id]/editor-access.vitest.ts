@@ -162,6 +162,17 @@ describe("an invited editor", () => {
     const res = await patch({ itinerary });
     expect(res.status).toBe(403);
   });
+
+  it("gets a 403, not a 500, when the database's guard refuses a column", async () => {
+    world.updateError = { code: "42501", message: "only the trip owner can change: visibility" };
+    expect((await patch({ itinerary })).status).toBe(403);
+  });
+
+  it("gets a 500 when the write fails for any other reason", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    world.updateError = { code: "57014", message: "statement timeout" };
+    expect((await patch({ itinerary })).status).toBe(500);
+  });
 });
 
 describe("everyone else who is not the owner", () => {
