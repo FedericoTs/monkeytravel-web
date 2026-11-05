@@ -1,21 +1,16 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
-import { useCssVarHeight } from "@/hooks/useCssVarHeight";
+import { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@/lib/i18n/routing";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import type { ItineraryDay, TripMeta, CachedDayTravelData } from "@/types";
-import { trackShareLinkClicked } from "@/lib/analytics";
 import { getTripDestination } from "@/lib/trips/destination";
 import { hasCoordinates } from "@/lib/trips/has-coordinates";
-import { readPendingClaim, claimPendingTrip } from "@/lib/trips/anonymous-claim-client";
-import { onClaimedTrip, readClaimedTrip } from "@/lib/trips/claimed-trip-signal";
+import { likeThisDays, planOwnHref, reportPlanOwnClicked, type PlanOwnSurface } from "@/lib/trips/plan-own";
 import BackpackerHostelCta from "@/components/trip/BackpackerHostelCta";
-import ParticipantsBar from "@/components/trip/ParticipantsBar";
-import PlanByEmail from "@/components/trip/PlanByEmail";
-import WhoIsGoingCard from "@/components/trip/WhoIsGoingCard";
+import { SharedTripEndAsk, SharedTripTopAsk } from "@/components/trip/SharedTripAsks";
 import TodayView from "@/components/trip/TodayView";
 import TodayPacking from "@/components/trip/TodayPacking";
 import { useLiveTripState } from "@/lib/trip/useLiveTripState";
@@ -24,25 +19,20 @@ import { dayBudgetLabel } from "@/lib/trip/day-budget";
 import ReadOnlyItinerary from "@/components/trip/ReadOnlyItinerary";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
-import { GUEST_LINK_KEY } from "@/lib/participants/link-trigger";
-import { prefs } from "@/lib/platform/storage";
 import DestinationHero from "@/components/DestinationHero";
 import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import { tripNights } from "@/lib/dates/iso-date";
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
-import SaveTripModal, { usePendingSaveTripAction } from "@/components/ui/SaveTripModal";
+import SaveTripModal from "@/components/ui/SaveTripModal";
 import { useAuth } from "@/components/auth/AuthProvider";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
-import ShareRow from "@/components/ShareRow";
 import { AnonymousActivityVoteBar } from "@/components/trip/AnonymousActivityVoteBar";
 import { useSharedVotes } from "@/hooks/useSharedVotes";
+import { useOwnerClaim, useSharedTripSave, useSharedTripVisit } from "@/hooks/useSharedTripVisit";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
-import { Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
-
-type PlanOwnSurface = "shared_footer" | "public_footer" | "public_top" | "after_vote" | "page_footer" | "bottom_bar";
 
 function MapLoading() {
   const t = useTranslations("common");
@@ -162,116 +152,17 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
   const participantsEnabled = isLiveTripParticipantsEnabled();
   const publicSlug = publicPage?.slug;
 
-  // Record the open. One row per session per trip per UTC day is the
-  // database's rule (UNIQUE trip_id, session_id, viewed_on); this only has to
-  // fire once per mount. Fire-and-forget with keepalive, like the
-  // funnel-event beacon below. Never blocks render, never throws.
-  const viewRecordedFor = useRef<string | null>(null);
-  // The fixed bar at the bottom publishes its height as --mt-bottom-bar-h, so
-  // the global cookie banner can sit ABOVE it instead of on it
-  // (hooks/useCssVarHeight — same mechanism as the wizard footer).
-  const bottomBarRef = useRef<HTMLDivElement | null>(null);
-  useCssVarHeight(bottomBarRef, "--mt-bottom-bar-h");
-  useEffect(() => {
-    if (!viewSource) return;
-    const key = `${trip.id}:${viewSource}`;
-    if (viewRecordedFor.current === key) return;
-    viewRecordedFor.current = key;
-    try {
-      void fetch(`/api/trips/${trip.id}/view`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ source: viewSource }),
-        keepalive: true,
-      });
-    } catch {
-      // analytics must never affect the visitor
-    }
-  }, [trip.id, viewSource]);
-
-  // Persist ?ref the same way /join/[code] does (localStorage key
-  // "referral_code") so a visitor who signs up via the normal nav — not
-  // the CTA — is still attributed to the owner. The signup page reads this
-  // exact key. Guard: never overwrite an existing stored code with empty.
-  useEffect(() => {
-    if (referralCode) {
-      try {
-        localStorage.setItem("referral_code", referralCode);
-      } catch {
-        // localStorage unavailable (private mode / SSR edge) — the CTA's
-        // ?ref query param still carries attribution, so non-fatal.
-      }
-    }
-  }, [referralCode]);
-
-  const [selectedDay, setSelectedDay] = useState<number | null>(opensOnLinkedDay ? linkedDay : null);
   // With participants on, a recipient lands on title · dates · going → Day 1:
   // the map is one tap away ("Show map") rather than 400px above the first
   // activity.
   const [showMap, setShowMap] = useState(!participantsEnabled);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  // Back from signing in to save this trip: the save dialog stored what it was
-  // doing before sending the visitor to sign in. Reopen it, date and all.
+  const [selectedDay, setSelectedDay] = useState<number | null>(opensOnLinkedDay ? linkedDay : null);
+  // Who is reading decides what the page asks of them.
   const { user: viewer, loading: viewerLoading } = useAuth();
-  const { getPending, clearPending } = usePendingSaveTripAction();
-  const [resumedStartDate, setResumedStartDate] = useState<string | undefined>(undefined);
-  useEffect(() => {
-    if (viewerLoading || !viewer) return;
-    let cancelled = false;
-    void getPending().then(async (pending) => {
-      if (cancelled || !pending) return;
-      const ours = shareToken ? pending.shareToken === shareToken : !!publicSlug && pending.publicSlug === publicSlug;
-      if (!ours) return;
-      await clearPending();
-      setResumedStartDate(pending.startDate);
-      setShowSaveModal(true);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [viewerLoading, viewer, shareToken, publicSlug, getPending, clearPending]);
-  // Signed out, this browser may join or pay here as a guest: note it, so the
-  // next sign-in hands that to the account (lib/participants/link-trigger).
-  useEffect(() => {
-    if (shareToken && !viewerLoading && !viewer) void prefs.set(GUEST_LINK_KEY, "1");
-  }, [shareToken, viewerLoading, viewer]);
-  // The sharer opening their own link: this browser still holds the claim
-  // token for THIS trip. "Save to My Trips" would duplicate their own
-  // itinerary, so the strip offers the claim instead, and once the claim lands
-  // (announced by claimPendingTrip, whoever called it) the page moves them onto
-  // the claimed trip in their account.
-  const [ownerPending, setOwnerPending] = useState(false);
-  useEffect(() => {
-    let alive = true;
-    void readPendingClaim().then((p) => {
-      if (alive) setOwnerPending(!!shareToken && !!p && p.shareToken === shareToken);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [shareToken]);
-  useEffect(() => {
-    if (!ownerPending) return;
-    const go = (id: string) => {
-      // A full load: the claim lands on sign-in, and this page was rendered
-      // for the signed-out sharer.
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      if (id === trip.id) window.location.assign(`/trips/${id}`);
-    };
-    const already = readClaimedTrip();
-    if (already) go(already);
-    return onClaimedTrip(go);
-  }, [ownerPending, trip.id]);
-  // Signed in with this trip's claim still waiting: claim it from here too.
-  // Signing up by email from the strip below comes back to this page, and
-  // AuthProvider also claims on sign-in; claimPendingTrip shares one request
-  // with any other caller and announces the result, which moves the page onto
-  // the trip (above).
-  useEffect(() => {
-    if (!ownerPending || viewerLoading || !viewer) return;
-    void claimPendingTrip();
-  }, [ownerPending, viewerLoading, viewer]);
+  useSharedTripVisit({ tripId: trip.id, viewSource, referralCode, shareToken, viewer, viewerLoading });
+  const { showSaveModal, setShowSaveModal, resumedStartDate } = useSharedTripSave({ shareToken, publicSlug, viewer, viewerLoading });
+  const ownerPending = useOwnerClaim({ shareToken, tripId: trip.id, signedIn: !viewerLoading && !!viewer });
 
   // Votes go through the share link, so the public page shows none.
   const canVote = !!shareToken;
@@ -279,14 +170,6 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
     shareToken,
     isOwner,
   });
-
-  // Track share link view for viral loop analytics
-  useEffect(() => {
-    trackShareLinkClicked({
-      tripId: trip.id,
-      referrer: typeof document !== "undefined" ? document.referrer : undefined,
-    });
-  }, [trip.id]);
 
   // Currency conversion hook - converts to user's preferred currency
   const { convert: convertCurrency, format: formatCurrency } = useCurrency();
@@ -298,55 +181,10 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
   // lib/trips/destination.ts. Matters for non-English / renamed trips.
   const destination = getTripDestination(trip);
 
-  // The public page asks for "a trip like this one", so its links also carry
-  // the trip's length (?days=, which the wizard takes for a single city, up
-  // to 14 days) and say where they came from (?from=trip).
-  const likeThisDays =
-    !shareToken && !destination.includes(" & ") && trip.itinerary.length >= 1 && trip.itinerary.length <= 14
-      ? trip.itinerary.length
-      : null;
-
-  // "Plan your own trip" CTA target. Routes to the creation wizard
-  // carrying the owner's referral code (?ref) so the new user is
-  // attributed to them at signup, and seeds the destination (?destination=)
-  // which the wizard pre-fills (NewTripWizard reads searchParams.get
-  // ("destination")). Both params are optional — when ref is absent the
-  // link still works, it just won't attribute.
-  const planOwnHref = useMemo(() => {
-    const params = new URLSearchParams();
-    if (destination) params.set("destination", destination);
-    if (likeThisDays) {
-      params.set("days", String(likeThisDays));
-      params.set("from", "trip");
-    }
-    if (referralCode) params.set("ref", referralCode);
-    const qs = params.toString();
-    return qs ? `/trips/new?${qs}` : "/trips/new";
-  }, [destination, likeThisDays, referralCode]);
-
-  // The crew loop's last measured hop — a /shared visitor converting to plan
-  // their OWN trip. Fire-and-forget with keepalive so the event survives the
-  // same-origin navigation the <Link> triggers (same pattern as
-  // trackWizardEvent). Wired to every plan-own link, and `surface` says which
-  // one was pressed. Never blocks navigation.
-  const firePlanOwnClicked = (surface: PlanOwnSurface) => {
-    try {
-      void fetch("/api/funnel-event", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event_type: "plan_own_clicked",
-          trip_id: trip.id,
-          destination: destination || undefined,
-          referral_code: referralCode || undefined,
-          surface,
-        }),
-        keepalive: true,
-      });
-    } catch {
-      // telemetry must never block the visitor's navigation
-    }
-  };
+  const likeThis = likeThisDays(shareToken, destination, trip.itinerary.length);
+  const planOwn = planOwnHref({ destination, days: likeThis, referralCode });
+  const firePlanOwnClicked = (surface: PlanOwnSurface) =>
+    reportPlanOwnClicked({ tripId: trip.id, destination, referralCode, surface });
 
   const afterVoteNudge = (
     <div
@@ -356,7 +194,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
       <p className="text-xs text-slate-700">{t("shared.vote.afterVote.text")}</p>
       <div className="flex shrink-0 items-center gap-1">
         <Link
-          href={planOwnHref}
+          href={planOwn}
           onClick={() => firePlanOwnClicked("after_vote")}
           className="text-xs font-semibold text-slate-900 underline underline-offset-2"
         >
@@ -447,63 +285,18 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
             </Link>
           </div>
         )}
-        {/* Participants layout: title · dates · N going · [I'm going] · [Share] ·
-            [More]. The vote invitation is the secondary line under the button.
-            The vote banner is the flag-off layout. */}
-        {participantsEnabled && isOwner ? (
-          // The owner (e.g. opening their own share link): show them who's
-          // going, not an "I'm going" button.
-          <WhoIsGoingCard tripId={trip.id} className="mb-6" />
-        ) : !shareToken ? (
-          // The public page: share its own URL or save a copy, nothing more.
-          participantsEnabled &&
-          publicPage && (
-            <div
-              data-testid="public-trip-actions"
-              className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
-            >
-              <ShareRow url={publicPage.url} title={trip.title} />
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowSaveModal(true)}
-                  className="inline-flex min-h-[40px] items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                >
-                  {t("share.participants.saveForLater")}
-                </button>
-                <Link
-                  href={planOwnHref}
-                  onClick={() => firePlanOwnClicked("public_top")}
-                  data-testid="public-plan-like-this"
-                  className="inline-flex min-h-[40px] items-center rounded-xl bg-[var(--primary)] px-4 text-sm font-semibold text-white hover:bg-[var(--primary-dark)]"
-                >
-                  {t("share.planLikeThis.short")}
-                </Link>
-              </div>
-            </div>
-          )
-        ) : participantsEnabled ? (
-          <ParticipantsBar
-            shareToken={shareToken}
-            source={crewAsk ? "crew_ask" : "shared"}
-            crewAsk={crewAsk}
-            tripTitle={trip.title}
-            onSaveForLater={() => setShowSaveModal(true)}
-            className="mb-6"
-          />
-        ) : (
-          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-[var(--secondary)]/30 bg-[var(--secondary)]/5 px-4 py-3">
-            <span className="text-2xl leading-none" aria-hidden>🗳️</span>
-            <div>
-              <p className="font-semibold text-slate-800">
-                {crewAsk ? t('share.crewPrompt.title') : t('shared.voteInviteTitle')}
-              </p>
-              <p className="text-sm text-slate-600">
-                {crewAsk ? t('share.crewPrompt.body') : t('shared.voteInviteBody')}
-              </p>
-            </div>
-          </div>
-        )}
+        <SharedTripTopAsk
+          participantsEnabled={participantsEnabled}
+          isOwner={isOwner}
+          shareToken={shareToken}
+          crewAsk={crewAsk}
+          planOwnHref={planOwn}
+          onPlanOwn={firePlanOwnClicked}
+          onSave={() => setShowSaveModal(true)}
+          tripId={trip.id}
+          tripTitle={trip.title}
+          publicUrl={publicPage?.url}
+        />
 
         {/* Backpacker Mode — Hostelworld CTA. Only renders when the
             trip was generated in Backpacker Mode (trip_meta.travel_style).
@@ -686,112 +479,20 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
           </div>
         )}
 
-        {/* Both fixed bars sit on top of the mobile nav (--mt-nav-h, 0px at
-            desktop): at bottom-0 the nav covered the owner's sign-up link. */}
-        {/* With participants on, "Plan your own trip" sits in flow at the very
-            bottom only. The owner-claim strip and the flag-off two-button bar
-            are fixed bars. */}
-        {ownerPending ? (
-          <div
-            ref={bottomBarRef}
-            data-testid="trip-bottom-bar"
-            className="fixed bottom-[var(--mt-nav-h,0px)] left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100"
-          >
-            <div className="max-w-2xl mx-auto">
-              <div
-                className="flex flex-col gap-3 rounded-xl border border-[var(--primary)]/20 bg-[var(--background-warm)] px-4 py-3 sm:flex-row sm:items-center"
-                data-owner-claim-strip
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-[var(--foreground)]">{t("share.ownerClaim.title")}</p>
-                  <p className="text-xs text-slate-600">{t("share.ownerClaim.body")}</p>
-                </div>
-                <Link
-                  href={`/auth/signup?redirect=${encodeURIComponent(`/shared/${shareToken}`)}`}
-                  className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-[var(--primary)] px-5 text-sm font-semibold text-white transition-colors hover:bg-[var(--primary)]/90"
-                >
-                  {t("share.ownerClaim.cta")}
-                </Link>
-              </div>
-            </div>
-          </div>
-        ) : participantsEnabled && isOwner ? (
-          // The owner sees "Who's going" at the top; no recipient CTA here.
-          null
-        ) : participantsEnabled ? (
-          <section
-            data-testid="recipient-footer-cta"
-            className="mt-10 rounded-2xl border border-slate-200 bg-[var(--background-warm)] p-5 text-center"
-          >
-            {/* A share link's last ask is the group's: going, with the plan by email. */}
-            {shareToken && dayState.phase !== "past" && (
-              <div className="mb-5 border-b border-slate-200 pb-5">
-                <PlanByEmail
-                  shareToken={shareToken}
-                  source={crewAsk ? "crew_ask" : "shared"}
-                  defaultEmail={viewer?.email}
-                />
-              </div>
-            )}
-            <p className="mb-3 text-sm text-slate-600">
-              {shareToken ? t("share.participants.planOwnLead") : t("share.planLikeThis.lead")}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link
-                href={planOwnHref}
-                onClick={() => firePlanOwnClicked(shareToken ? "shared_footer" : "public_footer")}
-                className={
-                  shareToken
-                    ? "inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-                    : "inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 text-sm font-semibold text-white shadow-lg hover:from-amber-600 hover:to-orange-600 transition-all"
-                }
-              >
-                {likeThisDays
-                  ? t("share.planLikeThis.button", { days: likeThisDays, destination })
-                  : destination
-                    ? t("share.savedHero.planOwnButton", { destination })
-                    : t("share.savedHero.planOwnButtonGeneric")}
-              </Link>
-              <button
-                type="button"
-                onClick={() => setShowSaveModal(true)}
-                className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                {t("share.participants.saveForLater")}
-              </button>
-            </div>
-          </section>
-        ) : (
-          <div
-            ref={bottomBarRef}
-            data-testid="trip-bottom-bar"
-            className="fixed bottom-[var(--mt-nav-h,0px)] left-0 right-0 z-40 p-4 bg-gradient-to-t from-white via-white to-white/80 border-t border-slate-100"
-          >
-            <div className="max-w-2xl mx-auto">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button
-                  onClick={() => setShowSaveModal(true)}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--primary)] to-[var(--primary)]/90 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
-                >
-                  <Sparkles className="w-5 h-5" />
-                  {t("share.savedHero.saveButton")}
-                </button>
-                <Link
-                  href={planOwnHref}
-                  onClick={() => firePlanOwnClicked("bottom_bar")}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 text-center"
-                >
-                  {destination
-                    ? t("share.savedHero.planOwnButton", { destination })
-                    : t("share.savedHero.planOwnButtonGeneric")}
-                </Link>
-              </div>
-              <p className="text-center text-xs text-slate-500 mt-2">
-                {t("share.savedHero.saveSubtitle")}
-              </p>
-            </div>
-          </div>
-        )}
+        <SharedTripEndAsk
+          participantsEnabled={participantsEnabled}
+          isOwner={isOwner}
+          shareToken={shareToken}
+          crewAsk={crewAsk}
+          planOwnHref={planOwn}
+          onPlanOwn={firePlanOwnClicked}
+          onSave={() => setShowSaveModal(true)}
+          ownerPending={ownerPending}
+          tripOver={dayState.phase === "past"}
+          viewerEmail={viewer?.email}
+          destination={destination}
+          likeThisDays={likeThis}
+        />
 
         {/* Save Trip Modal */}
         <SaveTripModal
@@ -824,7 +525,7 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
               {t('shared.footerTagline')}
             </p>
             <Link
-              href={planOwnHref}
+              href={planOwn}
               onClick={() => firePlanOwnClicked("page_footer")}
               className="text-sm text-[var(--primary-ink)] hover:underline font-medium"
             >

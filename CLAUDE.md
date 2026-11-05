@@ -81,6 +81,7 @@ Add to these; do not start a parallel version.
 | Email | `lib/email/`; scheduled ones `app/api/cron/scheduled-notifications/route.ts`, `lib/notifications/` |
 | Anonymous writes on a shared trip | `lib/participants/request.ts` (`readParticipantWrite`) |
 | The share window | `components/trip/ShareAndInviteModal.tsx`; its tabs `ShareLinkTab.tsx`, `InviteTab.tsx`; their state `hooks/useShareLink.ts`, `hooks/useTripInvites.ts` |
+| A shared or public trip page | `app/[locale]/(app)/shared/[token]/SharedTripView.tsx`; what it asks of its reader `components/trip/SharedTripAsks.tsx`; the visit, the resumed save and the sharer's claim `hooks/useSharedTripVisit.ts`; its plan-your-own links `lib/trips/plan-own.ts` |
 | A trip's days on its page | `components/trip/TripDayList.tsx` |
 | Translations | `messages/{en,es,it,pt}/*.json`, locales in `lib/i18n/routing-config.ts` |
 

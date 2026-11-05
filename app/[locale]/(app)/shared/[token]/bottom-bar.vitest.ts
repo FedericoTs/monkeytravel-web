@@ -9,7 +9,7 @@ import { join } from "path";
  */
 describe("shared page fixed bars", () => {
   const source = readFileSync(
-    join(process.cwd(), "app", "[locale]", "(app)", "shared", "[token]", "SharedTripView.tsx"),
+    join(process.cwd(), "components", "trip", "SharedTripAsks.tsx"),
     "utf8",
   );
 
