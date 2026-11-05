@@ -838,10 +838,9 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
               </svg>
               {t('planFirstTrip')}
             </Link>
-            {/* **2026-05-29 (/explore Week 3)**: secondary CTA so first-time
-                visitors with zero trips have a low-friction discovery path
-                (browse community trips → fork) in parallel to the high-friction
-                "Plan a trip from scratch" path. Mirrors Layla/Wonderplan. */}
+            {/* Secondary CTA so first-time visitors with zero trips have a
+                low-friction discovery path (browse community trips → fork) in
+                parallel to the high-friction "Plan a trip from scratch" path. */}
             <div className="mt-3">
               <Link
                 href="/explore"

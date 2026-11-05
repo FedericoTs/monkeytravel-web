@@ -14,10 +14,8 @@ import { tripReminderSubject } from "./templates/TripReminder";
  *   "Three days to Palermo, Agrigento, Syracuse & Taormina
  *    — Palermo, Agrigento, Syracuse & Taormina"        (95 chars)
  *
- * Measured on the live queue before the fix: 27 of 699 subjects overran the
- * ~78 characters a mail client will actually show, and every one of the worst
- * was this duplication on a multi-city trip. After: 3, all of them one user's
- * genuinely long five-city title.
+ * A mail client shows about 78 characters, and this duplication on a multi-city
+ * trip is what overruns them worst.
  *
  * The guard is `heading.includes(destination)`. These tests pin the property
  * it protects rather than the implementation, so a future copy change that

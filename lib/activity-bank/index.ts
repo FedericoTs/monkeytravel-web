@@ -1,7 +1,7 @@
 /**
  * Destination Activity Bank
  *
- * Pre-caches activities per destination to reduce AI API calls by ~90%.
+ * Pre-caches activities per destination to reduce AI API calls.
  *
  * Flow:
  * 1. On first trip generation for a destination, generate 50+ activities in ONE AI call
@@ -12,7 +12,6 @@
  * Cost savings:
  * - Without bank: $0.003 per activity added (Gemini call)
  * - With bank: $0.003 for initial bank + $0 for subsequent additions
- * - If user adds 10 activities: 90% cost reduction
  */
 
 import { createAdminClient } from "@/lib/supabase/admin";

@@ -4,8 +4,6 @@
  * Prevents duplicate concurrent requests to the Gemini API by coalescing
  * identical in-flight requests. When multiple users request the same
  * itinerary simultaneously, only one API call is made.
- *
- * Impact: 30-70% reduction in duplicate API calls during high traffic
  */
 
 // In-flight request cache: Maps request hash to promise

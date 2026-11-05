@@ -1,7 +1,7 @@
 /**
  * Batch Logging Interceptor
  *
- * Batches API request logs to reduce database writes by ~90%.
+ * Batches API request logs to reduce database writes.
  * Logs are flushed every 5 seconds or when batch reaches 50 entries.
  */
 

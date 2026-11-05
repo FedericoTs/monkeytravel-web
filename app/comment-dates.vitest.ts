@@ -10,8 +10,8 @@ import { readFileSync } from "node:fs";
  */
 const CEILING = 41;
 
-const DATED = /^\s*(\/\/|\*|\/\*).*\b20\d{2}-\d{2}(-\d{2})?\b/;
-const SOURCE = /^(app|lib|components|hooks|scripts|tests|types)\/.*\.(ts|tsx|mts|cts|js|mjs)$/;
+const DATED = /^\s*(\/\/|\*|\/\*|\{\/\*).*\b20\d{2}-\d{2}(-\d{2})?\b/;
+const SOURCE = /^((app|lib|components|hooks|scripts|tests|types)\/.*|[^/]+)\.(ts|tsx|mts|cts|js|mjs)$/;
 
 function datedCommentLines(): Array<{ file: string; line: string }> {
   const files = execSync("git ls-files", { encoding: "utf8" })
@@ -31,9 +31,16 @@ describe("dated comments", () => {
     expect(found.length, `${found.length} comment lines carry a date (ceiling ${CEILING}): say what the code does now instead`).toBeLessThanOrEqual(CEILING);
   });
 
-  it("spots a date in a line or block comment, not in code", () => {
+  it("spots a date in a line, block or JSX comment, not in code", () => {
     expect(DATED.test("  // Live, 2026-11-01: a reply said it was done")).toBe(true);
     expect(DATED.test("   * added on 2026-09 for the cruise trip")).toBe(true);
+    expect(DATED.test("      {/* **2026-05-25 fix**: page rendered just the form")).toBe(true);
     expect(DATED.test('  const start = "2026-11-24";')).toBe(false);
+  });
+
+  it("reads the config files at the root, and leaves other folders out", () => {
+    expect(SOURCE.test("next.config.ts")).toBe(true);
+    expect(SOURCE.test("components/Footer.tsx")).toBe(true);
+    expect(SOURCE.test("supabase/functions/x/index.ts")).toBe(false);
   });
 });

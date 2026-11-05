@@ -9,7 +9,7 @@
  *
  * Isolation: every test creates its OWN throwaway trip for the e2e owner
  * (same shape as scripts/e2e-fixtures.mts, no collaborators — so it gets the
- * ambient editor that solo owners have, which is ~99% of trips) and deletes
+ * ambient editor that solo owners have) and deletes
  * it afterwards. Nothing on the shared fixture trip is touched, and the two
  * projects can run in parallel. Needs the owner's storage state
  * (npx tsx scripts/e2e-login.mts) and the fixture trip id (only to find the

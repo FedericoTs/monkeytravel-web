@@ -5,7 +5,6 @@
  * with verified Google Places data and Place IDs.
  *
  * Cost: $0.025 per request (vs $0.78-1.70 for Gemini + Places API calls)
- * Savings: ~60% reduction in API costs per trip generation
  */
 
 import type { TripCreationParams, Activity, ItineraryDay, GeneratedItinerary } from "@/types";

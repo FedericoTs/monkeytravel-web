@@ -169,8 +169,7 @@ describe("activity ids are stamped before storage", () => {
 
   it("gives every activity an id so votes survive a reload", () => {
     // Stored without ids, /shared mints a fresh random one on EVERY render —
-    // so a vote is keyed to something that never appears again. 13 of the 51
-    // votes ever cast were already orphaned this way.
+    // so a vote is keyed to something that never appears again.
     const value = ok({
       ...base,
       itinerary: [{ day: 1, activities: [{ name: "Castle" }, { name: "Market" }] }],

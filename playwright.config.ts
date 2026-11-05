@@ -44,7 +44,7 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
-    // Mobile viewport — important since 50%+ of traffic is mobile.
+    // Mobile viewport: much of the traffic is mobile.
     {
       name: "mobile-chrome",
       use: { ...devices["Pixel 7"] },

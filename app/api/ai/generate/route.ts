@@ -43,7 +43,7 @@ import { tripSpanDays } from "@/lib/dates/iso-date";
 import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 
 // Feature flag: Enable Maps Grounding for cost-effective generation
-// Set USE_MAPS_GROUNDING=true in .env to enable (59% cost savings)
+// Set USE_MAPS_GROUNDING=true in .env to enable
 const USE_MAPS_GROUNDING = process.env.USE_MAPS_GROUNDING === "true";
 
 // Cache helpers live in lib/ai/cache.ts, shared with the streaming route. See
@@ -154,7 +154,6 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     const cacheHitPlan = servableCachedPlan(cachedItinerary, cacheRules);
 
     // Check cross-user cache first for same destination + vibes + budget
-    // This can reduce AI costs by 40-60% for popular destinations
     let itinerary: GeneratedItinerary;
     let cacheHit = false;
     let usedMapsGrounding = false;
@@ -202,7 +201,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       // asked for a plan unlike the last.
       const knownPlaces = wantsFresh ? [] : await knownPlacesFor(params, totalDays, userLanguage);
 
-      // Try Maps Grounding first (59% cost savings)
+      // Try Maps Grounding first
       // Falls back to traditional Gemini if Maps Grounding fails or is disabled
       // canGroundDestination: skip the whole call when the coordinate table does
       // not know this place. Otherwise grounding falls back to PARIS

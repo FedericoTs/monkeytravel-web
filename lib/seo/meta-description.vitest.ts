@@ -2,7 +2,7 @@
 import { describe, it, expect } from "vitest";
 import { META_DESCRIPTION_MAX, clipMetaDescription } from "./meta-description";
 
-/** 55 of 82 public trips had a description over 160 characters. */
+/** A public trip's description can run well over 160 characters. */
 describe("clipMetaDescription", () => {
   it("leaves a short description alone, whitespace aside", () => {
     expect(clipMetaDescription("  Five days in   Rome,\nslowly. ")).toBe("Five days in Rome, slowly.");

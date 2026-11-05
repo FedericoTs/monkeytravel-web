@@ -14,17 +14,9 @@ import { serviceCreds, serviceDb, readManifest } from "./env";
  *   "I have already replaced X with Y ... The change has been saved to the
  *    database and will appear in the itinerary."
  *
- * So it told people the work was done. Real transcripts, from the production
- * ai_conversations table:
- *
- *   "Why do I not see the requested change reflected in my trip planning"
- *   "It is still showing as southern steak and oyster"
- *   "i really can't see any changes"          <- 14 turns
- *   "I cant see them"                         <- 21 turns
- *
- * 158 of 161 recorded actions claimed `applied: true`. The flag was a literal
- * written at construction time, before any write was attempted, so it was a
- * constant rather than a fact.
+ * So it told people the work was done, and they asked why they couldn't see it.
+ * `applied` was a literal written at construction time, before any write was
+ * attempted, so it was a constant rather than a fact.
  *
  * Four independent causes, all covered below:
  *   1. the model was told the change was saved even in preview mode

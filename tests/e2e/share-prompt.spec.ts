@@ -95,7 +95,7 @@ test.describe("share prompt on trip detail", () => {
 
     // C1's entire point: the ask must not land before the user has read
     // anything. If this assertion ever fails, the prompt has regressed back
-    // to the save-moment behaviour that produced an 85% skip rate.
+    // to asking at the moment of saving, which most people skip.
     await expect(page.getByRole("dialog")).toHaveCount(0);
 
     // Clear any prior dismissal for THIS trip so the run is repeatable —
