@@ -120,6 +120,33 @@ test.describe("trip status", () => {
     expect(await statusInDb()).toBe("planning");
   });
 
+  test("an archived trip leaves My Trips, waits under Show archived and can be restored", async ({ page }) => {
+    const archivedInDb = async () => {
+      const { data, error } = await admin.from("trips").select("is_archived").eq("id", tripId).single();
+      if (error) throw error;
+      return data.is_archived as boolean;
+    };
+    await page.goto("/en/trips", { waitUntil: "domcontentloaded", timeout: 120_000 });
+    await declineConsent(page);
+    const card = page.locator(`a[href$="/trips/${tripId}"]`);
+    await expect(card).toBeVisible({ timeout: 60_000 });
+
+    await card.getByRole("button", { name: "Trip actions" }).click();
+    await page.getByRole("menuitem", { name: "Archive Trip" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Archive Trip" }).click();
+    await expect.poll(archivedInDb, { timeout: 20_000 }).toBe(true);
+    await expect(card).toHaveCount(0, { timeout: 20_000 });
+
+    await page.getByRole("button", { name: /Show archived/ }).click();
+    await expect(card).toBeVisible();
+
+    await card.getByRole("button", { name: "Trip actions" }).click();
+    await page.getByRole("menuitem", { name: "Restore from Archive" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Restore from Archive" }).click();
+    await expect.poll(archivedInDb, { timeout: 20_000 }).toBe(false);
+    await expect(card).toBeVisible({ timeout: 20_000 });
+  });
+
   test("cancelling asks first, and a cancelled trip can be restored", async ({ page }) => {
     await openTrip(page, tripId);
     const cancelTrip = page.getByRole("button", { name: "Cancel Trip", exact: true });

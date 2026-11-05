@@ -11,6 +11,7 @@ import { TRIP_CARD_COLUMNS, TRIP_COLUMNS } from "@/lib/trips/columns";
 const ME = "me-1";
 const token = `h.${Buffer.from(JSON.stringify({ sub: ME })).toString("base64url")}.sig`;
 const selected: Record<string, string> = {};
+const tripFilters: string[] = [];
 
 vi.mock("@supabase/ssr", () => ({
   createServerClient: vi.fn(() => ({
@@ -26,7 +27,10 @@ vi.mock("@supabase/ssr", () => ({
         },
         eq: () => q,
         neq: () => q,
-        or: () => q,
+        or: (filter: string) => {
+          if (table === "trips") tripFilters.push(filter);
+          return q;
+        },
         order: () => q,
         single: async () => ({ data: { display_name: "Me", lifetime_referral_conversions: 0 }, error: null }),
         then: (resolve: (v: unknown) => void) => resolve({ data: [], error: null }),
@@ -60,6 +64,8 @@ describe("My Trips selects only what the cards read", () => {
     await TripsPage({ params: Promise.resolve({ locale: "en" }) });
 
     expect(selected.trips).toBe(TRIP_CARD_COLUMNS);
+    // Archived trips too: the page lists them under their own heading.
+    expect(tripFilters).toEqual([]);
     expect(columns(selected.trips).sort()).toEqual([...CARD_FIELDS].sort());
     expect(columns(selected.trips)).not.toContain("itinerary");
     expect(columns(selected.trips)).not.toContain("trip_meta");

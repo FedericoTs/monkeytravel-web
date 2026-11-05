@@ -37,7 +37,6 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
       .from("trips")
       .select(TRIP_CARD_COLUMNS)
       .eq("user_id", userId)
-      .or("is_archived.is.null,is_archived.eq.false")
       .order("created_at", { ascending: false }),
     supabase
       .from("users")

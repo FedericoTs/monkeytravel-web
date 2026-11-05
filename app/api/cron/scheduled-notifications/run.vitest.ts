@@ -78,6 +78,7 @@ const trip = (id: string, extra: Record<string, unknown> = {}): Trip => ({
   updated_at: hoursAgo(24),
   reminders_muted: false,
   status: "planning",
+  is_archived: false,
   deleted_at: null,
   itinerary: [],
   share_token: null,
@@ -323,6 +324,7 @@ describe("rows that must not send", () => {
   it.each([
     ["a muted trip", { reminders_muted: true }, "trip_muted"],
     ["a cancelled trip", { status: "cancelled" }, "trip_cancelled"],
+    ["an archived trip", { is_archived: true }, "trip_archived"],
     ["a deleted trip", { deleted_at: hoursAgo(1) }, "trip_deleted"],
     ["dates only pencilled in", { dates_pencilled: { start: daysFromNow(7), end: daysFromNow(10) } }, "dates_pencilled"],
   ])("%s is suppressed at dispatch", async (_name, extra, reason) => {
