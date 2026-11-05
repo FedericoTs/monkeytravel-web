@@ -203,7 +203,6 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
   const locale = useLocale();
   const { addToast } = useToast();
   const [profile, setProfile] = useState(initialProfile);
-  const [savedProfile, setSavedProfile] = useState(initialProfile); // For rollback on error
   const [betaAccess, setBetaAccess] = useState(initialBetaAccess);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -221,6 +220,11 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
   // Refs for debouncing and tracking latest state
   const profileRef = useRef(profile);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // What's stored, to go back to when a save fails.
+  const savedProfileRef = useRef(initialProfile);
+  // Everything edited and not sent yet. One save takes it all, so editing a
+  // second field while the first waits doesn't drop the first.
+  const unsavedRef = useRef<Partial<UserProfile>>({});
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -280,83 +284,71 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
     e.target.value = "";
   }, [handleAvatarUpload]);
 
-  // Update profile field with debouncing and error rollback
-  const updateField = useCallback(
-    async (field: string, value: unknown) => {
-      // Clear any pending save for this field
+  const saveUnsaved = useCallback(async () => {
+    saveTimeoutRef.current = null;
+    const changes = unsavedRef.current;
+    unsavedRef.current = {};
+    if (Object.keys(changes).length === 0) return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("users")
+        .update({ ...changes, updated_at: new Date().toISOString() })
+        .eq("id", profileRef.current.id);
+
+      if (error) throw error;
+
+      savedProfileRef.current = { ...savedProfileRef.current, ...changes };
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    } catch {
+      // Back to what's stored, except what's been edited again since: its save
+      // is on the way.
+      const restored = Object.fromEntries(
+        Object.keys(changes)
+          .filter((field) => !(field in unsavedRef.current))
+          .map((field) => [field, savedProfileRef.current[field as keyof UserProfile]])
+      );
+      setProfile((prev) => ({ ...prev, ...restored }));
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    }
+  }, []);
+
+  // Shows a change at once and saves it shortly after, with any others made meanwhile.
+  const saveSoon = useCallback(
+    (changes: Partial<UserProfile>) => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
-
-      // Optimistic UI update immediately
-      setProfile((prev) => ({ ...prev, [field]: value }));
+      unsavedRef.current = { ...unsavedRef.current, ...changes };
+      setProfile((prev) => ({ ...prev, ...changes }));
       setSaveStatus("saving");
-
-      // Debounce the actual API call (300ms) to prevent race conditions
-      saveTimeoutRef.current = setTimeout(async () => {
-        try {
-          const supabase = createClient();
-          const { error } = await supabase
-            .from("users")
-            .update({ [field]: value, updated_at: new Date().toISOString() })
-            .eq("id", profileRef.current.id);
-
-          if (error) throw error;
-
-          // Update saved state on success
-          setSavedProfile((prev) => ({ ...prev, [field]: value }));
-          setSaveStatus("saved");
-          setTimeout(() => setSaveStatus("idle"), 2000);
-        } catch {
-          // Rollback to last saved state on error
-          setProfile(savedProfile);
-          setSaveStatus("error");
-          setTimeout(() => setSaveStatus("idle"), 3000);
-        }
-      }, 300);
+      saveTimeoutRef.current = setTimeout(saveUnsaved, 300);
     },
-    [savedProfile]
+    [saveUnsaved]
   );
 
-  // Update nested settings with debouncing and error rollback
-  const updateSettings = useCallback(
-    async (settingsKey: "notification_settings" | "privacy_settings", updates: Record<string, unknown>) => {
-      // Clear any pending save
+  // Leaving the page doesn't lose what's waiting.
+  useEffect(
+    () => () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
-
-      const currentSettings = profileRef.current[settingsKey];
-      const newSettings = { ...currentSettings, ...updates };
-
-      // Optimistic UI update
-      setProfile((prev) => ({ ...prev, [settingsKey]: newSettings as typeof currentSettings }));
-      setSaveStatus("saving");
-
-      // Debounce the actual API call
-      saveTimeoutRef.current = setTimeout(async () => {
-        try {
-          const supabase = createClient();
-          const { error } = await supabase
-            .from("users")
-            .update({ [settingsKey]: newSettings, updated_at: new Date().toISOString() })
-            .eq("id", profileRef.current.id);
-
-          if (error) throw error;
-
-          // Update saved state on success
-          setSavedProfile((prev) => ({ ...prev, [settingsKey]: newSettings as typeof currentSettings }));
-          setSaveStatus("saved");
-          setTimeout(() => setSaveStatus("idle"), 2000);
-        } catch {
-          // Rollback to last saved state on error
-          setProfile(savedProfile);
-          setSaveStatus("error");
-          setTimeout(() => setSaveStatus("idle"), 3000);
-        }
-      }, 300);
+      void saveUnsaved();
     },
-    [savedProfile]
+    [saveUnsaved]
+  );
+
+  const updateField = useCallback(
+    (field: string, value: unknown) => saveSoon({ [field]: value } as Partial<UserProfile>),
+    [saveSoon]
+  );
+
+  const updateSettings = useCallback(
+    (settingsKey: "notification_settings" | "privacy_settings", updates: Record<string, unknown>) =>
+      saveSoon({ [settingsKey]: { ...profileRef.current[settingsKey], ...updates } } as Partial<UserProfile>),
+    [saveSoon]
   );
 
   // Sign out
