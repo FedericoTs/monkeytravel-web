@@ -150,7 +150,8 @@ describe("the invite page's title and link preview", () => {
           cover_image_url: null,
           share_token: null,
           user_id: "owner-1",
-          itinerary: [{ activities: [{ location: "Lisbon" }] }],
+          trip_meta: { destination: "Lisbon, Portugal" },
+          itinerary: [{ activities: [{ location: "Alfama, Rua dos Remédios 12" }] }],
         },
         error: null,
       },
@@ -165,8 +166,23 @@ describe("the invite page's title and link preview", () => {
     db.rpc.get_invite_by_token = [usable];
     const metadata = await metadataFor("it");
     expect(metadata.title).toBe("Unisciti a Lisbon Trip");
-    expect(metadata.description).toBe("Ti hanno invitato a organizzare Lisbon. Accetta l’invito e pianificate il viaggio insieme!");
+    expect(metadata.description).toBe("Ti hanno invitato a organizzare Lisbon, Portugal. Accetta l’invito e pianificate il viaggio insieme!");
     expect(metadata.openGraph?.description).toBe("Ana ti ha invitato a un viaggio.");
+  });
+
+  it("names the trip's destination, not where its first activity happens to be", async () => {
+    db.rpc.get_invite_by_token = [usable];
+    expect((await metadataFor("en")).description).toContain("Lisbon, Portugal");
+    expect((await metadataFor("en")).description).not.toContain("Alfama");
+  });
+
+  it("names an older trip with no destination stored by its title", async () => {
+    db.rpc.get_invite_by_token = [usable];
+    (db.tables.trips as { data: { trip_meta: unknown } }).data.trip_meta = null;
+    const { description } = await metadataFor("en");
+    expect(description).toContain("Lisbon");
+    expect(description).not.toContain("Lisbon Trip");
+    expect(description).not.toContain("Alfama");
   });
 
   it("keeps the English for English visitors", async () => {
