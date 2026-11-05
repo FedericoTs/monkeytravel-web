@@ -161,6 +161,7 @@ export default function AddActivityButton({
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">{t("type")}</label>
               <select
+                aria-label={t("type")}
                 value={customActivity.type}
                 onChange={(e) => setCustomActivity({ ...customActivity, type: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
@@ -177,6 +178,7 @@ export default function AddActivityButton({
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">{t("duration")}</label>
               <select
+                aria-label={t("duration")}
                 value={customActivity.duration}
                 onChange={(e) => setCustomActivity({ ...customActivity, duration: Number(e.target.value) })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"

@@ -80,6 +80,7 @@ export default function ActiveHoursStep({
           </label>
           <div className="flex items-center gap-3">
             <input
+              aria-label={t("startFrom")}
               type="range"
               min={5}
               max={12}
@@ -100,6 +101,7 @@ export default function ActiveHoursStep({
           </label>
           <div className="flex items-center gap-3">
             <input
+              aria-label={t("windDownBy")}
               type="range"
               min={18}
               max={24}

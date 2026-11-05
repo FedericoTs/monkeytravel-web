@@ -472,6 +472,7 @@ export default function AccessCodesManager() {
                     Expires
                   </label>
                   <input
+                    aria-label="Expires"
                     type="date"
                     value={formData.expires_at}
                     onChange={(e) => setFormData({ ...formData, expires_at: e.target.value })}

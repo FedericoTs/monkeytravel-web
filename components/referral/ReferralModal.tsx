@@ -203,6 +203,7 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
                   </label>
                   <div className="flex items-center gap-2">
                     <input
+                      aria-label={t("yourReferralLink")}
                       type="text"
                       value={referralUrl}
                       readOnly

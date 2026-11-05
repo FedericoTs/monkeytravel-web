@@ -455,6 +455,7 @@ export default function PackingListClient({ locale }: Props) {
                         }`}
                       >
                         <input
+                          aria-label={item.name}
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => {

@@ -7,9 +7,11 @@ import ts from "typescript";
 /**
  * Every button and link can be named by a screen reader: one holding only an icon
  * is announced as "button" with nothing to say what it does. It takes an aria-label
- * (or title), or text a reader can see. Read from the source, so a new one is caught
- * here whichever page it is on. A spread of props, or a child this can't read, gets
- * the benefit of the doubt.
+ * (or title), or text a reader can see. So does every form field: an aria-label, a
+ * <label> around it or pointing at it, or at least a placeholder. A label beside a
+ * field that doesn't point at it names nothing. Read from the source, so a new one is
+ * caught here whichever page it is on. A spread of props, or a child this can't read,
+ * gets the benefit of the doubt.
  */
 
 const ICON = /Icon$|^(Check|X|Plus|Minus|Trash\d?|Pencil|Edit\d?|Share\d?|Copy|Menu|Search|Chevron\w*|Arrow\w*|Loader\d?|Spinner|More\w*|Heart|Star|Bell|Calendar|Map\w*|Clock|Sparkles|Send|Compass|Camera|Image|Settings|User\w*|RefreshCw|RotateCcw|Undo\d?|Redo\d?)$/;
@@ -48,25 +50,55 @@ function mayHoldText(node: ts.Node): boolean {
   return false;
 }
 
+const attributeText = (el: ts.JsxOpeningLikeElement, name: string) => {
+  const found = attribute(el, name);
+  return found && ts.isJsxAttribute(found) ? found.initializer?.getText().replace(/^\{|\}$|["'`]/g, "") : undefined;
+};
+
 function unnamedControls(file: string, text: string): string[] {
   const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   const found: string[] = [];
-  const visit = (node: ts.Node) => {
+  const labelled = new Set<string>();
+  const collectLabels = (node: ts.Node) => {
+    if ((ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) && node.tagName.getText() === "label") {
+      const target = attributeText(node, "htmlFor");
+      if (target) labelled.add(target);
+    }
+    ts.forEachChild(node, collectLabels);
+  };
+  collectLabels(source);
+  const lineOf = (node: ts.Node) => source.getLineAndCharacterOfPosition(node.getStart()).line + 1;
+  const visitField = (el: ts.JsxOpeningLikeElement, insideLabel: boolean) => {
+    if (!["input", "textarea", "select"].includes(el.tagName.getText()) || insideLabel) return;
+    const type = attributeText(el, "type");
+    const id = attributeText(el, "id");
+    const named =
+      el.attributes.properties.some((p) => ts.isJsxSpreadAttribute(p)) ||
+      type === "hidden" ||
+      type === "file" ||
+      ["aria-label", "aria-labelledby", "title", "placeholder"].some((a) => attribute(el, a)) ||
+      (id !== undefined && labelled.has(id));
+    if (!named) found.push(`${file}:${lineOf(el)}`);
+  };
+  const visit = (node: ts.Node, insideLabel: boolean) => {
+    const inLabel = insideLabel || (ts.isJsxElement(node) && node.openingElement.tagName.getText() === "label");
+    if (ts.isJsxElement(node)) visitField(node.openingElement, inLabel);
+    if (ts.isJsxSelfClosingElement(node)) visitField(node, inLabel);
     if (ts.isJsxElement(node) && ["button", "a", "Link"].includes(node.openingElement.tagName.getText())) {
       const open = node.openingElement;
       const named =
         open.attributes.properties.some((p) => ts.isJsxSpreadAttribute(p)) ||
         ["aria-label", "aria-labelledby", "title"].some((a) => attribute(open, a)) ||
         node.children.some(mayHoldText);
-      if (!named) found.push(`${file}:${source.getLineAndCharacterOfPosition(node.getStart()).line + 1}`);
+      if (!named) found.push(`${file}:${lineOf(node)}`);
     }
-    ts.forEachChild(node, visit);
+    ts.forEachChild(node, (child) => visit(child, inLabel));
   };
-  visit(source);
+  visit(source, false);
   return found;
 }
 
-describe("every button and link has a name", () => {
+describe("every button, link and form field has a name", () => {
   it("across the app", () => {
     const files = execFileSync("git", ["ls-files", "*.tsx"], { encoding: "utf8" })
       .split("\n")
@@ -81,6 +113,10 @@ describe("every button and link has a name", () => {
     ["an icon alone", `<button onClick={f}><X className="w-4" /></button>`],
     ["an svg alone", `<button><svg><path /></svg></button>`],
     ["a link holding only an icon", `<a href="/x"><svg /></a>`],
+    ["a field with nothing", `<input value={v} />`],
+    ["a select with nothing", `<select value={v}><option>A</option></select>`],
+    ["a label beside a field, pointing at nothing", `<div><label>Name</label><input value={v} /></div>`],
+    ["a label pointing at another field", `<div><label htmlFor="a">Name</label><input id="b" /></div>`],
     ["an icon either way", `<button>{open ? <ChevronUp /> : <ChevronDown />}</button>`],
     ["an icon sometimes", `<button>{done && <svg />}</button>`],
   ])("catches %s", (_name, jsx) => {
@@ -89,6 +125,13 @@ describe("every button and link has a name", () => {
 
   it.each([
     ["an aria-label", `<button aria-label="Close"><X /></button>`],
+    ["a field's aria-label", `<input aria-label="Name" />`],
+    ["a field's placeholder", `<input placeholder="Name" />`],
+    ["a field inside its label", `<label>Name <input value={v} /></label>`],
+    ["a label pointing at its field", `<div><label htmlFor="a">Name</label><input id="a" /></div>`],
+    ["a hidden field", `<input type="hidden" value={v} />`],
+    ["a file field", `<input type="file" className="hidden" />`],
+    ["a field's spread props", `<input {...field} />`],
     ["a title", `<button title="Close"><X /></button>`],
     ["text", `<button><X /> Close</button>`],
     ["a translated child", `<button>{t("close")}</button>`],

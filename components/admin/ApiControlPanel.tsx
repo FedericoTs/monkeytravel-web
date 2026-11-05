@@ -280,6 +280,7 @@ export default function ApiControlPanel() {
                 <div className="flex items-center gap-3 ml-4">
                   {/* Block Mode Selector */}
                   <select
+                    aria-label="Block mode"
                     value={config.enabled ? config.block_mode : "block_calls"}
                     onChange={(e) =>
                       changeBlockMode(

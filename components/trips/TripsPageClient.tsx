@@ -618,6 +618,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
               {/* Sort & Filter (Desktop) */}
               <div className="hidden sm:flex items-center gap-3">
                 <select
+                  aria-label={t('sortBy')}
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
                   className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none"
@@ -629,6 +630,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
                 </select>
 
                 <select
+                  aria-label={t('filterByStatus')}
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
                   className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none"
@@ -650,6 +652,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">{t('sortBy')}</label>
                 <select
+                  aria-label={t('sortBy')}
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium"
@@ -663,6 +666,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">{t('filterByStatus')}</label>
                 <select
+                  aria-label={t('filterByStatus')}
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 font-medium"
