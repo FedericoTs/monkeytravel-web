@@ -54,7 +54,7 @@ export default function ConfirmSignupEmail({
   const preview = t.lead;
 
   return (
-    <EmailLayout preview={preview} locale={locale}>
+    <EmailLayout preview={preview} locale={locale} footerCopy={{ reason: layoutCopy[locale].footerReasonAddress, link: layoutCopy[locale].manage }}>
       <Heading as="h1" style={h1}>
         {name ? t.welcomeNamed(name) : t.welcome}
       </Heading>

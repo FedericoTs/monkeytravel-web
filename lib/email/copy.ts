@@ -26,7 +26,12 @@ export function normalizeEmailLocale(input: unknown): EmailLocale {
 
 interface LayoutCopy {
   tagline: string;
+  /** Someone with an account. */
   footerReason: string;
+  /** Someone confirming a signup or signing in, who may not have one yet. */
+  footerReasonAddress: string;
+  /** Someone invited to a trip, who may not have one. */
+  footerReasonInvited: string;
   manage: string;
 }
 
@@ -35,24 +40,32 @@ export const layoutCopy: Record<EmailLocale, LayoutCopy> = {
     tagline: "AI-powered trip planning",
     footerReason:
       "You're receiving this because you have an active MonkeyTravel account.",
+    footerReasonAddress: "You're receiving this because this address was entered on MonkeyTravel.",
+    footerReasonInvited: "You're receiving this because you got an invitation to a trip on MonkeyTravel.",
     manage: "Manage preferences",
   },
   es: {
     tagline: "Planificación de viajes con AI",
     footerReason:
       "Recibes este correo porque tienes una cuenta activa en MonkeyTravel.",
+    footerReasonAddress: "Recibes este correo porque se introdujo esta dirección en MonkeyTravel.",
+    footerReasonInvited: "Recibes este correo porque recibiste una invitación a un viaje en MonkeyTravel.",
     manage: "Gestionar preferencias",
   },
   it: {
     tagline: "Pianificazione viaggi con AI",
     footerReason:
       "Ricevi questa email perché hai un account MonkeyTravel attivo.",
+    footerReasonAddress: "Ricevi questa email perché questo indirizzo è stato inserito su MonkeyTravel.",
+    footerReasonInvited: "Ricevi questa email perché hai ricevuto un invito a un viaggio su MonkeyTravel.",
     manage: "Gestisci le preferenze",
   },
   pt: {
     tagline: "Planejamento de viagens com AI",
     footerReason:
       "Você está recebendo este e-mail porque tem uma conta ativa no MonkeyTravel.",
+    footerReasonAddress: "Você está recebendo este e-mail porque este endereço foi informado no MonkeyTravel.",
+    footerReasonInvited: "Você está recebendo este e-mail porque recebeu um convite para uma viagem no MonkeyTravel.",
     manage: "Gerenciar preferências",
   },
 };

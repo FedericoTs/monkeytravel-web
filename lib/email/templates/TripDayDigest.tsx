@@ -54,6 +54,8 @@ export interface TripDayDigestEmailProps {
   unsubscribeUrl?: string;
   /** Recipient UI language — localizes the shared shell. */
   locale?: EmailLocale;
+  /** The footer's words for a guest, who has no account. */
+  footerCopy?: { reason: string; link: string };
   /**
    * The owner's "send tomorrow's plan to the group" box, below the main
    * button. Pre-translated; the cron decides when it applies.
@@ -75,6 +77,7 @@ export default function TripDayDigestEmail({
   unsubscribeUrl,
   locale = "en",
   groupSend,
+  footerCopy,
 }: TripDayDigestEmailProps) {
   const preview = `📅 ${tripReminderSubject({ heading, destination })}`;
   const hasPlan = (blocks?.length ?? 0) > 0;
@@ -84,6 +87,7 @@ export default function TripDayDigestEmail({
       preview={preview}
       unsubscribeUrl={unsubscribeUrl ?? `${APP_URL}/profile/notifications`}
       locale={locale}
+      footerCopy={footerCopy}
     >
       <Heading as="h1" style={h1}>
         📅 {heading}
@@ -142,7 +146,8 @@ export function tripDayDigestEmailText(props: TripDayDigestEmailProps): string {
     "",
     "—",
     "MonkeyTravel · AI-powered trip planning",
-    `Manage preferences: ${props.unsubscribeUrl ?? `${APP_URL}/profile/notifications`}`,
+    ...(props.footerCopy ? [props.footerCopy.reason] : []),
+    `${props.footerCopy?.link ?? "Manage preferences"}: ${props.unsubscribeUrl ?? `${APP_URL}/profile/notifications`}`,
   ];
   return lines.filter((l) => l !== undefined).join("\n");
 }

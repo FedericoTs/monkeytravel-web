@@ -58,6 +58,7 @@ export default function InviteEmail({
       preview={preview}
       unsubscribeUrl={unsubscribeUrl ?? `${APP_URL}/profile/notifications`}
       locale={locale}
+      footerCopy={{ reason: layoutCopy[locale].footerReasonInvited, link: layoutCopy[locale].manage }}
     >
       <Heading as="h1" style={h1}>
         {t.heading(inviterName)}
