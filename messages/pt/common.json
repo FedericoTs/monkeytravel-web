@@ -1074,6 +1074,8 @@
     }
   },
   "shareButton": {
+    "enableFailed": "Não foi possível criar o link de compartilhamento. Tente novamente.",
+    "stopFailed": "Não foi possível parar de compartilhar, então seu link continua ativo. Tente novamente.",
     "share": "Compartilhar",
     "shared": "Compartilhado"
   },
@@ -2293,6 +2295,11 @@
       "five": "5 dias",
       "week": "1 semana",
       "tenPlus": "10+ dias"
+    },
+    "loadFailed": {
+      "title": "Não conseguimos carregar os roteiros",
+      "body": "Verifique sua conexão e tente novamente.",
+      "retry": "Tentar novamente"
     },
     "empty": {
       "title": "Nenhum roteiro encontrado",

@@ -1074,6 +1074,8 @@
     }
   },
   "shareButton": {
+    "enableFailed": "Couldn't create the share link. Please try again.",
+    "stopFailed": "Couldn't stop sharing, so your link still works. Please try again.",
     "share": "Share",
     "shared": "Shared"
   },
@@ -2293,6 +2295,11 @@
       "five": "5 days",
       "week": "1 week",
       "tenPlus": "10+ days"
+    },
+    "loadFailed": {
+      "title": "We couldn't load the itineraries",
+      "body": "Check your connection and try again.",
+      "retry": "Try again"
     },
     "empty": {
       "title": "No itineraries found",

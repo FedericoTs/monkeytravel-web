@@ -329,6 +329,23 @@ function EmptyState({ onClear }: { onClear: () => void }) {
   );
 }
 
+// The list couldn't be read: not the same as nothing matching the filters.
+function LoadFailed({ onRetry }: { onRetry: () => void }) {
+  const t = useTranslations("common.curatedEscapes");
+  return (
+    <div role="alert" className="text-center py-16 px-4">
+      <h3 className="text-lg font-bold text-slate-900 mb-2">{t("loadFailed.title")}</h3>
+      <p className="text-slate-500 mb-6 text-sm max-w-sm mx-auto">{t("loadFailed.body")}</p>
+      <button
+        onClick={onRetry}
+        className="px-5 py-2.5 bg-[var(--primary-ink)] text-white font-medium rounded-lg hover:opacity-90 transition-opacity"
+      >
+        {t("loadFailed.retry")}
+      </button>
+    </div>
+  );
+}
+
 // Loading Skeleton - matches new card design
 function SkeletonCard() {
   return (
@@ -355,6 +372,8 @@ export default function TemplatesPageClient() {
   const moodLabel = useMoodLabel();
   const [templates, setTemplates] = useState<TemplateTrip[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadTry, setLoadTry] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMood, setSelectedMood] = useState("all");
   const [selectedDuration, setSelectedDuration] = useState(0);
@@ -371,6 +390,7 @@ export default function TemplatesPageClient() {
   useEffect(() => {
     const fetchTemplates = async () => {
       setLoading(true);
+      setLoadFailed(false);
       try {
         const response = await fetch(`/api/templates?limit=50&locale=${locale}`);
         if (!response.ok) throw new Error("Failed to fetch");
@@ -378,12 +398,13 @@ export default function TemplatesPageClient() {
         setTemplates(data.templates || []);
       } catch (error) {
         console.error("Error fetching templates:", error);
+        setLoadFailed(true);
       } finally {
         setLoading(false);
       }
     };
     fetchTemplates();
-  }, [locale]);
+  }, [locale, loadTry]);
 
   // Filter templates
   const filteredTemplates = useMemo(() => {
@@ -638,8 +659,10 @@ export default function TemplatesPageClient() {
           </>
         )}
 
+        {!loading && loadFailed && <LoadFailed onRetry={() => setLoadTry((n) => n + 1)} />}
+
         {/* Empty state */}
-        {!loading && filteredTemplates.length === 0 && (
+        {!loading && !loadFailed && filteredTemplates.length === 0 && (
           <EmptyState onClear={clearFilters} />
         )}
 
