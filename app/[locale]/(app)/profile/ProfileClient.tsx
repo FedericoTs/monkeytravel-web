@@ -496,6 +496,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
               </div>
               {/* Edit overlay */}
               <button
+                aria-label={t("a11y.changePhoto")}
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingAvatar}
                 className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center disabled:cursor-not-allowed"

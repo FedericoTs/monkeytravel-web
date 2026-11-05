@@ -41,6 +41,7 @@ export default function UndoToast({
   persistUntilNextAction = true,
 }: UndoToastProps) {
   const t = useTranslations("common.ai.undo");
+  const tA11y = useTranslations("common.a11y");
   const [isUndoing, setIsUndoing] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
@@ -172,6 +173,7 @@ export default function UndoToast({
 
               {/* Dismiss button */}
               <button
+                aria-label={tA11y("dismiss")}
                 onClick={handleDismiss}
                 className="p-1.5 text-slate-500 hover:text-white transition-colors rounded-lg hover:bg-white/10"
               >

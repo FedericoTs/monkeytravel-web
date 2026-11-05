@@ -45,6 +45,7 @@ export default function EnhancedBookingPanel({
   onSetOrigin,
 }: EnhancedBookingPanelProps) {
   const t = useTranslations("common.booking");
+  const tCommon = useTranslations("common");
   const locale = useLocale();
   const [isExpanded, setIsExpanded] = useState(variant === "expanded");
 
@@ -115,6 +116,8 @@ export default function EnhancedBookingPanel({
             </p>
           </div>
           <button
+            aria-expanded={isExpanded}
+            aria-label={tCommon(isExpanded ? "buttons.showLess" : "buttons.showMore")}
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg"
           >

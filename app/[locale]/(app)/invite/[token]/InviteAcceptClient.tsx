@@ -63,6 +63,7 @@ export default function InviteAcceptClient({
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("common.invitePage");
+  const tA11y = useTranslations("common.a11y");
   const tRoles = useTranslations("common.roles");
   const tErrors = useTranslations("common.errors");
   const [isLoading, setIsLoading] = useState(false);
@@ -461,6 +462,7 @@ export default function InviteAcceptClient({
                   className="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
                 />
                 <button
+                  aria-label={tA11y("sendSignInLink")}
                   onClick={handleMagicLink}
                   disabled={isLoading || !email}
                   className="px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors disabled:opacity-50"

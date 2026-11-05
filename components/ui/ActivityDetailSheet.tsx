@@ -309,6 +309,7 @@ export default function ActivityDetailSheet({
             </a>
             {activity.official_website && (
               <a
+                aria-label={t("buttons.website")}
                 href={activity.official_website}
                 target="_blank"
                 rel="noopener noreferrer"

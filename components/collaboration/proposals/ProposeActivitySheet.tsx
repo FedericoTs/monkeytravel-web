@@ -69,6 +69,7 @@ export function ProposeActivitySheet({
   onPropose,
 }: ProposeActivitySheetProps) {
   const t = useTranslations("common.proposeActivity");
+  const tCommon = useTranslations("common");
   const typeLabel = useActivityTypeLabel();
 
   // Step navigation
@@ -212,6 +213,7 @@ export function ProposeActivitySheet({
       <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 bg-slate-50">
         {step !== 'search' && (
           <button
+            aria-label={tCommon("buttons.back")}
             onClick={handleBack}
             className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors -ml-1"
           >
@@ -230,6 +232,7 @@ export function ProposeActivitySheet({
           </p>
         </div>
         <button
+          aria-label={tCommon("buttons.close")}
           onClick={onClose}
           className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
         >

@@ -30,6 +30,7 @@ export default function PreviewChangeCard({
   isApplying = false,
 }: PreviewChangeCardProps) {
   const t = useTranslations("common.ai.preview");
+  const tA11y = useTranslations("common.a11y");
 
   return (
     <motion.div
@@ -272,6 +273,7 @@ export default function PreviewChangeCard({
 
           {/* Try different */}
           <button
+            aria-label={tA11y("tryDifferent")}
             onClick={onTryDifferent}
             disabled={isApplying}
             className="px-4 py-2.5 bg-slate-100 text-slate-700 text-sm font-medium rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50"
@@ -283,6 +285,7 @@ export default function PreviewChangeCard({
 
           {/* Cancel */}
           <button
+            aria-label={tA11y("dismissChange")}
             onClick={onCancel}
             disabled={isApplying}
             className="px-4 py-2.5 text-slate-500 text-sm font-medium rounded-xl hover:bg-slate-100 transition-colors disabled:opacity-50"
