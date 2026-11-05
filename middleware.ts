@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { updateSession, trackPageView } from "@/lib/supabase/middleware";
+import { isSessionCookieName } from "@/lib/supabase/session-cookie";
 import { routing } from "@/lib/i18n/routing-config";
 import {
   buildCspHeader,
@@ -276,9 +277,7 @@ export async function middleware(request: NextRequest) {
   // Doing it here keeps auth-cookie reads out of the homepage render.
   const strippedForHome = pathname.replace(/^\/(en|es|it|pt)/, '') || '/';
   if (strippedForHome === '/') {
-    const hasSession = request.cookies
-      .getAll()
-      .some((c) => c.name.startsWith('sb-') && c.name.includes('-auth-token'));
+    const hasSession = request.cookies.getAll().some((c) => isSessionCookieName(c.name));
     if (hasSession) {
       const tripsUrl = request.nextUrl.clone();
       tripsUrl.pathname = '/trips';

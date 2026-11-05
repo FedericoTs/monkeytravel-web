@@ -76,6 +76,36 @@ describe("everything else on the page", () => {
   });
 });
 
+describe("the home page", () => {
+  const home = (cookie?: string, path = "/") =>
+    middleware(new NextRequest(`https://monkeytravel.app${path}`, { headers: cookie ? { cookie } : {} }));
+  const redirectedTo = (res: Response) => res.headers.get("location");
+
+  it.each(["sb-ref-auth-token=x", "sb-ref-auth-token.0=x; sb-ref-auth-token.1=y"])(
+    "sends someone holding a session to their trips (%s)",
+    async (cookie) => {
+      expect(redirectedTo(await home(cookie))).toBe("https://monkeytravel.app/trips");
+    }
+  );
+
+  it("does so in any language", async () => {
+    expect(redirectedTo(await home("sb-ref-auth-token=x", "/it"))).toBe("https://monkeytravel.app/trips");
+  });
+
+  it.each([
+    "sb-ref-auth-token-code-verifier=x",
+    "sb-ref-auth-token-flows-code-verifier=x",
+    "sb-ref-auth-token-flow-abc-code-verifier=x",
+  ])("stays for someone who only started signing in (%s)", async (cookie) => {
+    expect(redirectedTo(await home(cookie))).toBeNull();
+  });
+
+  it("stays for anyone else", async () => {
+    expect(redirectedTo(await home())).toBeNull();
+    expect(redirectedTo(await home("mt_session_id=s1"))).toBeNull();
+  });
+});
+
 describe("Server-Timing for the session step", () => {
   const get = (path: string) => middleware(new NextRequest(`https://monkeytravel.app${path}`));
 
