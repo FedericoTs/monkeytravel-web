@@ -161,6 +161,7 @@ export function DraftRecoveryBanner({
 }) {
   const t = useTranslations("trips");
   const locale = useLocale();
+  const [openedAt] = useState(() => Date.now());
 
   const formatDate = (dateString: string) => {
     // Parse as LOCAL midnight (no trailing Z) to avoid an off-by-one, and
@@ -172,8 +173,7 @@ export function DraftRecoveryBanner({
   };
 
   const formatSavedTime = (timestamp: number) => {
-    const now = Date.now();
-    const diff = now - timestamp;
+    const diff = openedAt - timestamp;
     const minutes = Math.floor(diff / (1000 * 60));
     const hours = Math.floor(diff / (1000 * 60 * 60));
 

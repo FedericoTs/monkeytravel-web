@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { landingAttribution, trackWizardEvent, type WizardEventStep } from "@/components/wizard/wizardEvents";
 import { useDwellHeartbeat } from "@/hooks/useDwellHeartbeat";
 import { funnelDays, funnelTraits } from "@/lib/wizard/plan-funnel";
@@ -54,7 +54,7 @@ export function useWizardFunnel({
   // session got (no engagement at all, a destination typed but no dates,
   // etc.) to pinpoint which field on /trips/new loses the funnel.
 
-  const wizardMountedAtRef = useRef<number>(Date.now());
+  const [wizardMountedAt] = useState(() => Date.now());
   const lastTouchedFieldRef = useRef<TripWizardFieldInteractedEvent["field"] | null>(null);
   const touchedFieldsThisStepRef = useRef<Set<string>>(new Set());
   const wizardCompletedRef = useRef<boolean>(false);
@@ -168,7 +168,7 @@ export function useWizardFunnel({
         return;
       }
       abandonedFiredRef.current = true;
-      const totalSeconds = Math.round((Date.now() - wizardMountedAtRef.current) / 1000);
+      const totalSeconds = Math.round((Date.now() - wizardMountedAt) / 1000);
       captureTripWizardAbandoned({
         last_step_completed: Math.max(0, stepRef.current - 1),
         last_step_name: WIZARD_STEP_NAMES[stepRef.current - 1],
@@ -217,7 +217,7 @@ export function useWizardFunnel({
       window.removeEventListener("pagehide", fireAbandoned);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [locale]);
+  }, [locale, wizardMountedAt]);
 
   const markCompleted = useCallback(() => {
     wizardCompletedRef.current = true;

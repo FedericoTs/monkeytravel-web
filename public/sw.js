@@ -50,7 +50,7 @@ const CACHE_STATIC = `${CACHE_VERSION}-static`;
 // 30 days for images. Activity photos rarely change once attached.
 const IMAGE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
-self.addEventListener("install", (event) => {
+self.addEventListener("install", () => {
   // Take over immediately on the next reload — no SW limbo.
   self.skipWaiting();
 });

@@ -265,6 +265,8 @@ export default function TripCard({ trip, t, locale, getStatusLabel, onAction, pr
             direct browser loads behind Cloudflare. Live-confirmed
             2026-05-31. See lib/img/proxyUrl.ts. */}
         {imageUrl && !imageError && (
+          // Already sized and proxied here: next/image would optimise it again.
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             ref={imgRef}
             src={cardSizedSrc(proxyImageUrl(imageUrl) || imageUrl)}
