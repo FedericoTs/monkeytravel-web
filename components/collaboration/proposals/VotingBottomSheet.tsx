@@ -344,7 +344,7 @@ export function VotingBottomSheet({
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200/50">
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 {proposal.proposer?.avatar_url ? (
-                  <Image
+                  <img
                     src={proposal.proposer.avatar_url}
                     alt={proposal.proposer.display_name}
                     width={24}
@@ -576,7 +576,7 @@ export function VotingBottomSheet({
                     >
                       <div className="flex items-center gap-3 text-sm">
                         {vote.user?.avatar_url ? (
-                          <Image
+                          <img
                             src={vote.user.avatar_url}
                             alt={vote.user.display_name}
                             width={24}

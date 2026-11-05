@@ -2065,6 +2065,9 @@
     "includes": "Includes: Profile, trips, conversations, preferences"
   },
   "profile": {
+    "avatarTooLarge": "That photo is over 5 MB. Please choose a smaller one.",
+    "avatarWrongType": "Please choose a JPEG, PNG, WebP or GIF photo.",
+    "avatarFailed": "Your photo couldn't be uploaded. Please try again.",
     "title": "Profile",
     "back": "Back",
     "memberSince": "Member since {date}",
