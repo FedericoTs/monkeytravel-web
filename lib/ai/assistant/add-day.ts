@@ -1,7 +1,7 @@
 import type { SupportedLanguage } from "@/lib/ai/language";
 import type { AssistantRole } from "@/lib/ai/assistant-access";
 import { computeExtendedEndDate, MAX_TRIP_DAYS, nextDateISO } from "@/lib/ai/assistant/structural";
-import { regenerateSingleDay } from "@/lib/gemini";
+import { regenerateSingleDay } from "@/lib/ai/regenerate-day";
 import { placesToEatCheck } from "@/lib/places/places-to-eat";
 import { dietsFrom } from "@/lib/trips/diet";
 import { isTripVibe, type BudgetTier, type ItineraryDay, type StructuredAssistantResponse } from "@/types";

@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Activity, ItineraryDay } from "@/types";
 
-vi.mock("@/lib/gemini", () => ({ replacementOptions: vi.fn() }));
+vi.mock("@/lib/ai/regenerate-activity", () => ({ replacementOptions: vi.fn() }));
 vi.mock("@/lib/api-gateway", () => ({ logApiCall: vi.fn(async () => undefined) }));
 
-import { replacementOptions } from "@/lib/gemini";
+import { replacementOptions } from "@/lib/ai/regenerate-activity";
 import { isPlaceToEat, nameAgreement, placeStatus, placesToEatCheck, type FoundPlace } from "./places-to-eat";
 
 /** A diet plan's places to eat, against what Google's Text Search answered for them (Lisbon and Rome, real answers). */

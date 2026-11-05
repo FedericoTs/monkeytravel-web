@@ -14,7 +14,7 @@
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import type { SupportedLanguage } from "@/lib/ai/language";
 import { withActivityDefaults } from "@/lib/ai/server-fields";
-import { replacementOptions } from "@/lib/gemini";
+import { replacementOptions } from "@/lib/ai/regenerate-activity";
 import { bareName, distanceM, isKind, nameTokens, nameVariants } from "@/lib/images/wikimedia-landmark";
 import { textSearch } from "@/lib/places/google-places";
 import { normalizeActivityType } from "@/lib/trip/activity-type";
