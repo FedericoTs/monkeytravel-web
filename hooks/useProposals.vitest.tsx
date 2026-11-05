@@ -103,13 +103,15 @@ describe("the day a proposal shows under", () => {
 
   it("is its target_day, read as the day's number everywhere", () => {
     const page = read("app/[locale]/(app)/trips/[id]/TripDetailClient.tsx");
+    const dayList = read("components/trip/TripDayList.tsx");
     const timeline = read("lib/proposals/timeline.ts");
     const sheet = read("components/collaboration/proposals/VotingBottomSheet.tsx");
     expect(timeline).toContain("p.target_day === dayNumber");
-    expect(page).toContain("getMergedTimeline(day.day_number)");
+    expect(page).toContain("timelineOf={getMergedTimeline}");
+    expect(dayList).toContain("timelineOf(day.day_number)");
     expect(page).toContain("proposals, dayNumber, recentlyApproved)");
     expect(sheet).toContain("t('day', { day: proposal.target_day })");
-    for (const source of [page, timeline, sheet, read("app/api/trips/[id]/proposals/route.ts")]) {
+    for (const source of [page, dayList, timeline, sheet, read("app/api/trips/[id]/proposals/route.ts")]) {
       expect(source).not.toMatch(/target_?[dD]ay\s*[+-]\s*1/);
     }
   });
