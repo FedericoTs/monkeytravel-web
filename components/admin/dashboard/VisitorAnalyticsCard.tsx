@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { AdminStats } from "@/app/api/admin/stats/route";
+import type { AdminStats } from "@/lib/admin/stats/types";
 import { flagEmoji } from "@/lib/utils/flag-emoji";
 
 // ===========================================================================

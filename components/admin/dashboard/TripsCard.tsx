@@ -1,4 +1,4 @@
-import type { AdminStats } from "@/app/api/admin/stats/route";
+import type { AdminStats } from "@/lib/admin/stats/types";
 
 // ===========================================================================
 // Trips card — status + top destinations side-by-side, stacks on mobile

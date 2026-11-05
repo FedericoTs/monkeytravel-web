@@ -1,177 +1,44 @@
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { fetchActivationFunnel, type ActivationFunnelStats } from "@/lib/admin/activation-funnel";
+import { fetchActivationFunnel } from "@/lib/admin/activation-funnel";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logReadError } from "@/lib/supabase/log-read-error";
 import { readWholeTable } from "@/lib/supabase/read-all-rows";
-
-// Cohort retention data for matrix visualization
-export interface CohortData {
-  cohort: string; // Week label (e.g., "Nov 25" or "Week 48")
-  cohortSize: number; // Users who signed up in this cohort
-  retention: number[]; // Retention % for Week 0, Week 1, etc.
-}
-
-export interface AdminStats {
-  // User Metrics
-  users: {
-    total: number;
-    newLast7Days: number;
-    newLast30Days: number;
-    activeLast30Days: number;
-    withTrips: number;
-    withoutTrips: number;
-    // Week-over-week delta: signups in the most-recent 7 days vs the 7
-    // days before that. Used by the headline KPI card to show direction.
-    deltaPctWoW: number;
-  };
-  // Activation funnel — replaces the old "Churn Analysis" card.
-  // Computes the real story: who actually got value from the product?
-  activation: {
-    signupToFirstTripPct: number;   // % of signups who created any trip
-    multiTripUsers: number;          // users with 2+ trips
-    multiTripPct: number;            // % of trip-creators with 2+ trips
-    sharedTripPct: number;           // % of trips that have a share_token
-    atRiskUsers: number;             // signed up but no trip + signed in >7d ago
-  };
-  // Consent-free cohort funnel by signup provider, plus the
-  // signed-out share loop. Definitions in lib/admin/activation-funnel.ts.
-  activationFunnel: ActivationFunnelStats;
-  // Churn Metrics
-  churn: {
-    neverCreatedTrip: number;
-    inactiveLast30Days: number;
-    retentionRate: number;
-    cohortRetention: CohortData[]; // Weekly cohort retention matrix
-  };
-  // Trip Metrics
-  trips: {
-    total: number;
-    byStatus: Record<string, number>;
-    last7Days: number;
-    last30Days: number;
-    averagePerUser: number;
-    sharedTrips: number;
-    deltaPctWoW: number;  // last 7 days vs the 7 before
-  };
-  // AI Usage Metrics
-  ai: {
-    totalRequests: number;
-    last7Days: number;
-    last30Days: number;
-    byAction: Record<string, number>;
-    byModel: Record<string, number>;
-    totalTokens: { input: number; output: number };
-    totalCostCents: number;
-    conversationCount: number;
-    // Generation costs (from api_request_logs)
-    generationCosts: {
-      totalUsd: number;
-      tripGenerations: number;
-      activityRegenerations: number;
-    };
-    // Combined total cost in USD (assistant + generation)
-    totalCostUsd: number;
-    deltaPctWoW: number;       // request count delta, last 7d vs prior 7d
-    costPerTripUsd: number;    // total AI cost ÷ total trips
-  };
-  // Email Subscribers
-  subscribers: {
-    total: number;
-    last7Days: number;
-    last30Days: number;
-    verified: number;
-    unsubscribed: number;
-  };
-  // Geo/Analytics - Page Views by Country
-  geo: {
-    totalPageViews: number;
-    last7Days: number;
-    last30Days: number;
-    byCountry: { country: string; countryCode: string; count: number; percentage: number }[];
-    byCity: { city: string; country: string; count: number }[];
-    topPages: { path: string; count: number }[];
-    uniqueVisitors: number;
-    deltaPctWoW: number;       // page-view delta, last 7d vs prior 7d
-    /**
-     * Metrics whose query FAILED for this response. Non-empty means the zeros
-     * on screen are missing data, not an absence of traffic — the distinction
-     * that was impossible to make while every result was read as
-     * `(x.data || [])`.
-     */
-    degraded: string[];
-    traffic: {
-      daily: {
-        date: string;
-        views: number;
-        uniqueVisitors: number;
-        /**
-         * Sessions that kept a page visible past the engagement threshold.
-         * OPTIONAL on purpose: session_engagement is forward-only (no rows for
-         * days before the beacon existed), so those days have no value and MUST
-         * render as absent. A 0 here would draw a collapse that never happened.
-         */
-        engagedSessions?: number;
-      }[];
-      bySection: { section: string; count: number }[];
-      conversionFunnel: { step: string; count: number }[];
-    };
-  };
-  // Acquisition - entry channel per SESSION, from our own page views: first-party,
-  // cookieless and aggregate, so it does not depend on consent as GA4 does.
-  acquisition: {
-    channels: {
-      channel: string;
-      entrySessions: number;
-      reachedWizard: number;
-      wizardPct: number;
-      sharePct: number;
-    }[];
-    windowDays: number;
-  };
-  // Engagement Metrics
-  engagement: {
-    dau: number;
-    wau: number;
-    mau: number;
-    stickinessPct: number;
-    timeToFirstTrip: {
-      avgHours: number;
-      medianHours: number;
-      usersCount: number;
-      within1h: number;
-      within24h: number;
-      within7d: number;
-    };
-  };
-  // Top Destinations
-  topDestinations: { destination: string; count: number }[];
-  // Recent Activity Timeline
-  recentActivity: {
-    type: "user" | "trip" | "ai" | "subscriber";
-    description: string;
-    timestamp: string;
-  }[];
-  // User Growth Trend (daily registrations)
-  userTrend: {
-    daily: { date: string; count: number; cumulative: number }[];
-    summary: {
-      totalGrowth: number; // % growth over selected period
-      avgDaily: number;
-      bestDay: { date: string; count: number } | null;
-      currentStreak: number; // consecutive days with signups
-    };
-  };
-}
+import { activationStats } from "@/lib/admin/stats/activation";
+import {
+  generationCosts,
+  topDestinations,
+  tripsByStatus,
+  usageByAction,
+  usageByModel,
+  usageTotals,
+  type AiUsageRow,
+  type GeminiLog,
+  type TripRow,
+} from "@/lib/admin/stats/breakdowns";
+import { fetchWoWDeltas } from "@/lib/admin/stats/deltas";
+import { fetchAiMetricsDirect, fetchSubscriberMetricsDirect, fetchTripMetricsDirect, fetchUserMetricsDirect } from "@/lib/admin/stats/direct";
+import { fetchGeoMetrics } from "@/lib/admin/stats/geo";
+import { fetchRecentActivity } from "@/lib/admin/stats/recent-activity";
+import { activityByUser, cohortRetention, type ActivityRow } from "@/lib/admin/stats/retention";
+import type { AdminStats } from "@/lib/admin/stats/types";
+import { userTrend } from "@/lib/admin/stats/user-trend";
 
 // 28 days matches the window GA4 defaults to, so the two can be read
 // side by side while GA4 still exists. Kept in one place because the API and
 // the panel label must never disagree about what the number covers.
 const ACQUISITION_WINDOW_DAYS = 28;
-// A plan comes from the streaming route, or from the JSON one as its fallback.
-const PLAN_ENDPOINTS = new Set(["/api/ai/generate", "/api/ai/generate/stream"]);
-type GeminiLog = { id: string; cost_usd: number | null; endpoint: string | null; response_status: number | null; cache_hit: boolean | null };
+
+const NO_ROWS = { data: null, error: null };
+
+/** A read the tab can go on without: if it throws, that's logged and the fallback stands in. */
+function orElse<T, F>(label: string, read: PromiseLike<T>, fallback: F): Promise<T | F> {
+  return Promise.resolve(read).catch((reason) => {
+    console.error(`[Admin Stats] ${label} failed:`, reason);
+    return fallback;
+  });
+}
 
 export async function GET() {
   try {
@@ -189,158 +56,54 @@ export async function GET() {
     //    the whole dataset.
     const supabase: SupabaseClient = createAdminClient();
 
-    // Fetch all metrics in parallel — use allSettled so one failure doesn't crash the dashboard
-    const settled = await Promise.allSettled([
-      // User counts
-      supabase.rpc("get_user_metrics"),
-      // Trip counts
-      supabase.rpc("get_trip_metrics"),
-      // AI usage counts
-      supabase.rpc("get_ai_usage_metrics"),
-      // AI conversations count
-      supabase.from("ai_conversations").select("id", { count: "exact", head: true }),
-      // Subscriber counts
-      supabase.rpc("get_subscriber_metrics"),
-      // Users with trips
-      readWholeTable<{ id: string; user_id: string | null }>(supabase, "trips", "id, user_id").then((res) => {
-        const uniqueUsers = new Set(res.data?.map((t) => t.user_id) || []);
-        return { count: uniqueUsers.size };
-      }),
-      // Trip by status
-      readWholeTable<{ id: string; status: string }>(supabase, "trips", "id, status")
-        .then((res) => {
-          const counts: Record<string, number> = {};
-          res.data?.forEach((t) => {
-            counts[t.status] = (counts[t.status] || 0) + 1;
-          });
-          return { data: counts };
-        }),
-      // AI by action
-      readWholeTable<{ id: string; action: string }>(supabase, "ai_usage", "id, action")
-        .then((res) => {
-          const counts: Record<string, number> = {};
-          res.data?.forEach((a) => {
-            counts[a.action] = (counts[a.action] || 0) + 1;
-          });
-          return { data: counts };
-        }),
-      // AI by model
-      readWholeTable<{ id: string; model_id: string }>(supabase, "ai_usage", "id, model_id")
-        .then((res) => {
-          const counts: Record<string, number> = {};
-          res.data?.forEach((a) => {
-            counts[a.model_id] = (counts[a.model_id] || 0) + 1;
-          });
-          return { data: counts };
-        }),
-      // AI tokens total (from ai_usage table)
-      readWholeTable<{ id: string; input_tokens: number | null; output_tokens: number | null; cost_cents: number | string | null }>(
-        supabase,
-        "ai_usage",
-        "id, input_tokens, output_tokens, cost_cents"
-      )
-        .then((res) => {
-          let inputTokens = 0;
-          let outputTokens = 0;
-          let costCents = 0;
-          res.data?.forEach((a) => {
-            inputTokens += a.input_tokens || 0;
-            outputTokens += a.output_tokens || 0;
-            costCents += Number(a.cost_cents) || 0;
-          });
-          return { data: { inputTokens, outputTokens, costCents } };
-        }),
-      // Generation costs from api_request_logs (trip generation + regeneration)
-      readWholeTable<GeminiLog>(supabase, "api_request_logs", "id, cost_usd, endpoint, response_status, cache_hit", (logs) =>
-        logs.eq("api_name", "gemini")
-      )
-        .then((res) => {
-          let totalCostUsd = 0;
-          let generateCount = 0;
-          let regenerateCount = 0;
-          res.data?.forEach((r) => {
-            totalCostUsd += Number(r.cost_usd) || 0;
-            // What the model made: not a refused call, and not one the cache answered.
-            const made = (r.response_status ?? 0) < 400 && !r.cache_hit;
-            if (made && PLAN_ENDPOINTS.has(r.endpoint ?? "")) generateCount++;
-            if (made && r.endpoint === "/api/ai/regenerate-activity") regenerateCount++;
-          });
-          return { data: { totalCostUsd, generateCount, regenerateCount } };
-        }),
-      // Top destinations — prefer trip_meta.destination (set by the wizard)
-      // and only fall back to the title-strip when meta is absent. Old
-      // code derived destinations from `title.replace(/ Trip$/, "")` which
-      // missed every renamed trip and broke for non-English titles.
-      readWholeTable<{ id: string; title: string; trip_meta: unknown }>(supabase, "trips", "id, title, trip_meta")
-        .then((res) => {
-          const counts: Record<string, number> = {};
-          res.data?.forEach((t) => {
-            const meta = (t.trip_meta ?? {}) as Record<string, unknown>;
-            const fromMeta =
-              typeof meta.destination === "string" ? meta.destination.trim() : "";
-            const dest = fromMeta || t.title.replace(/ Trip$/i, "").trim();
-            if (!dest) return;
-            counts[dest] = (counts[dest] || 0) + 1;
-          });
-          return Object.entries(counts)
-            .map(([destination, count]) => ({ destination, count }))
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 10);
-        }),
-      // Geo metrics from page_views
-      fetchGeoMetrics(supabase),
-      // Acquisition: entry channel per session, windowed. Replaces
-      // get_referrer_breakdown, which had no date window (it summed the
-      // rollup from the beginning of time) and counted views, so a reader
-      // working through twelve blog pages outweighed twelve arrivals.
-      supabase.rpc("get_acquisition_breakdown", { p_days: ACQUISITION_WINDOW_DAYS }),
-      // Engagement metrics (DAU/WAU/MAU)
-      supabase.rpc("get_engagement_metrics"),
-      // Time to first trip
-      supabase.rpc("get_time_to_first_trip"),
-      // Recent activity feed
-      fetchRecentActivity(supabase),
-      // User growth trend
-      fetchUserTrend(supabase),
+    const [
+      usersResult,
+      tripsResult,
+      aiUsageResult,
+      aiConversationsResult,
+      subscribersResult,
+      tripRows,
+      usageRows,
+      geminiLogs,
+      userRows,
+      conversationRows,
+      bananaRows,
+      geoMetricsResult,
+      acquisitionResult,
+      engagementResult,
+      timeToTripResult,
+      recentActivityResult,
+    ] = await Promise.all([
+      orElse("user metrics", supabase.rpc("get_user_metrics"), { data: null }),
+      orElse("trip metrics", supabase.rpc("get_trip_metrics"), { data: null }),
+      orElse("AI usage metrics", supabase.rpc("get_ai_usage_metrics"), { data: null }),
+      orElse("AI conversations", supabase.from("ai_conversations").select("id", { count: "exact", head: true }), { data: null, count: 0 }),
+      orElse("subscriber metrics", supabase.rpc("get_subscriber_metrics"), { data: null }),
+      orElse("trips", readWholeTable<TripRow>(supabase, "trips", "id, user_id, status, title, trip_meta, created_at"), NO_ROWS),
+      orElse("AI usage", readWholeTable<AiUsageRow>(supabase, "ai_usage", "id, action, model_id, input_tokens, output_tokens, cost_cents"), NO_ROWS),
+      // Generation costs: trip generation + regeneration.
+      orElse(
+        "Gemini calls",
+        readWholeTable<GeminiLog>(supabase, "api_request_logs", "id, cost_usd, endpoint, response_status, cache_hit", (logs) => logs.eq("api_name", "gemini")),
+        NO_ROWS
+      ),
+      orElse("users", readWholeTable<{ id: string; created_at: string }>(supabase, "users", "id, created_at"), NO_ROWS),
+      orElse("conversation activity", readWholeTable<ActivityRow>(supabase, "ai_conversations", "id, user_id, created_at"), NO_ROWS),
+      orElse("banana activity", readWholeTable<ActivityRow>(supabase, "banana_transactions", "id, user_id, created_at"), NO_ROWS),
+      orElse("geo metrics", fetchGeoMetrics(supabase), null),
+      // Entry channel per session, windowed. Counting sessions, not views, a reader
+      // working through twelve blog pages doesn't outweigh twelve arrivals.
+      orElse("acquisition", supabase.rpc("get_acquisition_breakdown", { p_days: ACQUISITION_WINDOW_DAYS }), { data: [] }),
+      orElse("engagement", supabase.rpc("get_engagement_metrics"), { data: [] }),
+      orElse("time to first trip", supabase.rpc("get_time_to_first_trip"), { data: [] }),
+      orElse("recent activity", fetchRecentActivity(supabase), [] as AdminStats["recentActivity"]),
     ]);
 
-    // Safely extract results — failed queries return null instead of crashing
-    const safe = <T>(index: number, fallback: T): T => {
-      const result = settled[index];
-      if (result.status === "fulfilled") return result.value as T;
-      console.error(`[Admin Stats] Query ${index} failed:`, result.reason);
-      return fallback;
-    };
-
-    const usersResult = safe(0, { data: null });
-    const tripsResult = safe(1, { data: null });
-    const aiUsageResult = safe(2, { data: null });
-    const aiConversationsResult = safe(3, { data: null, count: 0 });
-    const subscribersResult = safe(4, { data: null });
-    const usersWithTripsResult = safe(5, { count: 0 });
-    const tripStatusResult = safe(6, { data: {} });
-    const aiActionResult = safe(7, { data: {} });
-    const aiModelResult = safe(8, { data: {} });
-    const aiTokensResult = safe(9, { data: { inputTokens: 0, outputTokens: 0, costCents: 0 } });
-    const generationCostsResult = safe(10, { data: { totalCostUsd: 0, generateCount: 0, regenerateCount: 0 } });
-    const topDestinationsResult = safe(11, [] as { destination: string; count: number }[]);
-    const geoMetricsResult = safe(12, null);
-    const acquisitionResult = safe(13, {
-      data: [] as {
-        channel: string;
-        entry_sessions: number;
-        reached_wizard: number;
-        wizard_pct: number;
-        share_pct: number;
-      }[],
-    });
-    const engagementResult = safe(14, { data: [{ dau: 0, wau: 0, mau: 0, stickiness_pct: 0, users_with_trips: 0, total_users: 0 }] });
-    const timeToTripResult = safe(15, { data: [{ avg_hours: 0, median_hours: 0, users_count: 0, within_1h: 0, within_24h: 0, within_7d: 0 }] });
-    const recentActivityResult = safe(16, [] as AdminStats["recentActivity"]);
-    const userTrendResult = safe(17, {
-      daily: [],
-      summary: { totalGrowth: 0, avgDaily: 0, bestDay: null, currentStreak: 0 },
-    } as AdminStats["userTrend"]);
+    const trips = logReadError("admin stats: trips", tripRows).data ?? [];
+    const usage = logReadError("admin stats: AI usage", usageRows).data ?? [];
+    const users = logReadError("admin stats: users", userRows).data ?? [];
+    const tokens = usageTotals(usage);
+    const costs = generationCosts(logReadError("admin stats: Gemini calls", geminiLogs).data ?? []);
 
     // Fallback to direct queries if RPC doesn't exist
     const userMetrics = usersResult.data || (await fetchUserMetricsDirect(supabase));
@@ -349,7 +112,7 @@ export async function GET() {
     const subscriberMetrics = subscribersResult.data || (await fetchSubscriberMetricsDirect(supabase));
 
     // Calculate churn metrics
-    const usersWithTripsCount = usersWithTripsResult.count || 0;
+    const usersWithTripsCount = new Set(trips.map((t) => t.user_id)).size;
     const totalUsers = userMetrics.total || 0;
     const neverCreatedTrip = totalUsers - usersWithTripsCount;
 
@@ -359,26 +122,32 @@ export async function GET() {
     // "active" from signals we DO record: trips, AI conversations, bananas.
     // (DAU/WAU/MAU still come from the get_engagement_metrics RPC and need a
     // migration to re-base — tracked separately.)
-    const activityByUser = await fetchActivityByUser(supabase);
+    const activity = activityByUser(
+      trips,
+      logReadError("admin stats: AI activity", conversationRows).data ?? [],
+      logReadError("admin stats: banana activity", bananaRows).data ?? []
+    );
     const t30 = Date.now() - 30 * 86_400_000;
     const t7 = Date.now() - 7 * 86_400_000;
     const activeUserIds7d = new Set<string>();
     let activeLast30Days = 0;
-    for (const [uid, times] of activityByUser) {
+    for (const [uid, times] of activity) {
       if (times.some((t) => t >= t30)) activeLast30Days++;
       if (times.some((t) => t >= t7)) activeUserIds7d.add(uid);
     }
     const inactiveLast30Days = Math.max(totalUsers - activeLast30Days, 0);
     const retentionRate = totalUsers > 0 ? ((totalUsers - inactiveLast30Days) / totalUsers) * 100 : 0;
 
-    // Compute week-over-week deltas + activation block in parallel.
-    // Both are read-only count queries off the same tables we already
-    // hit above, so no schema change required.
-    const [deltas, activation, activationFunnel] = await Promise.all([
-      fetchWoWDeltas(supabase),
-      fetchActivation(supabase, totalUsers, usersWithTripsCount, tripMetrics.total || 0, tripMetrics.sharedTrips || 0, activeUserIds7d),
-      fetchActivationFunnel(supabase),
-    ]);
+    const [deltas, activationFunnel] = await Promise.all([fetchWoWDeltas(supabase), fetchActivationFunnel(supabase)]);
+    const activation = activationStats(
+      tripRows,
+      userRows,
+      totalUsers,
+      usersWithTripsCount,
+      tripMetrics.total || 0,
+      tripMetrics.sharedTrips || 0,
+      activeUserIds7d
+    );
 
     // Build response
     const stats: AdminStats = {
@@ -397,11 +166,11 @@ export async function GET() {
         neverCreatedTrip,
         inactiveLast30Days,
         retentionRate: Math.round(retentionRate * 10) / 10,
-        cohortRetention: await fetchCohortRetention(supabase, activityByUser),
+        cohortRetention: cohortRetention(users, activity),
       },
       trips: {
         total: tripMetrics.total || 0,
-        byStatus: tripStatusResult.data || {},
+        byStatus: tripsByStatus(trips),
         last7Days: tripMetrics.last7Days || 0,
         last30Days: tripMetrics.last30Days || 0,
         averagePerUser: totalUsers > 0 ? Math.round((tripMetrics.total / totalUsers) * 10) / 10 : 0,
@@ -412,28 +181,26 @@ export async function GET() {
         totalRequests: aiMetrics.total || 0,
         last7Days: aiMetrics.last7Days || 0,
         last30Days: aiMetrics.last30Days || 0,
-        byAction: aiActionResult.data || {},
-        byModel: aiModelResult.data || {},
+        byAction: usageByAction(usage),
+        byModel: usageByModel(usage),
         totalTokens: {
-          input: aiTokensResult.data?.inputTokens || 0,
-          output: aiTokensResult.data?.outputTokens || 0,
+          input: tokens.inputTokens,
+          output: tokens.outputTokens,
         },
-        totalCostCents: aiTokensResult.data?.costCents || 0,
+        totalCostCents: tokens.costCents,
         conversationCount: aiConversationsResult.count || 0,
         generationCosts: {
-          totalUsd: generationCostsResult.data?.totalCostUsd || 0,
-          tripGenerations: generationCostsResult.data?.generateCount || 0,
-          activityRegenerations: generationCostsResult.data?.regenerateCount || 0,
+          totalUsd: costs.totalCostUsd,
+          tripGenerations: costs.generateCount,
+          activityRegenerations: costs.regenerateCount,
         },
         // Combined: assistant costs (cents→USD) + generation costs (already USD)
         totalCostUsd:
-          ((aiTokensResult.data?.costCents || 0) / 100) +
-          (generationCostsResult.data?.totalCostUsd || 0),
+          tokens.costCents / 100 + costs.totalCostUsd,
         deltaPctWoW: deltas.ai,
         costPerTripUsd: (tripMetrics.total || 0) > 0
           ? Math.round(
-              ((((aiTokensResult.data?.costCents || 0) / 100) +
-                (generationCostsResult.data?.totalCostUsd || 0)) /
+              ((tokens.costCents / 100 + costs.totalCostUsd) /
                 (tripMetrics.total || 1)) * 10000
             ) / 10000
           : 0,
@@ -501,9 +268,9 @@ export async function GET() {
           },
         };
       })(),
-      topDestinations: topDestinationsResult || [],
+      topDestinations: topDestinations(trips),
       recentActivity: recentActivityResult,
-      userTrend: userTrendResult,
+      userTrend: userTrend(users),
     };
 
     return apiSuccess(stats);
@@ -511,743 +278,4 @@ export async function GET() {
     console.error("[Admin Stats] Error:", error);
     return errors.internal("Failed to fetch admin stats", "Admin Stats");
   }
-}
-
-// ---- Week-over-week deltas ---------------------------------------------
-//
-// For the four headline KPI cards we want a "+12%" / "-4%" chip showing
-// momentum. We compute it by counting rows in the last 7 days vs the 7
-// days before that. All four are tiny count(*) queries with head:true
-// so they don't pull rows.
-//
-// Returns percentage change as a number rounded to integer (no '%').
-// Special cases:
-//   - prev=0, current>0  → return 100 (clean "+100%" instead of Infinity)
-//   - prev=0, current=0  → return 0
-type WoWDeltas = { users: number; trips: number; ai: number; pageViews: number };
-
-async function fetchWoWDeltas(supabase: SupabaseClient): Promise<WoWDeltas> {
-  const now = Date.now();
-  const d7 = new Date(now - 7 * 86_400_000).toISOString();
-  const d14 = new Date(now - 14 * 86_400_000).toISOString();
-
-  const countBetween = async (table: string, dateCol: string, gte: string, lt: string) => {
-    const r = logReadError(`admin stats: ${table} count`, await supabase
-      .from(table)
-      .select("id", { count: "exact", head: true })
-      .gte(dateCol, gte)
-      .lt(dateCol, lt));
-    return r.count ?? 0;
-  };
-
-  const pct = (curr: number, prev: number): number => {
-    if (prev === 0) return curr > 0 ? 100 : 0;
-    return Math.round(((curr - prev) / prev) * 100);
-  };
-
-  // 8 count queries in parallel — they're index-fast on created_at.
-  const [
-    uC, uP,
-    tC, tP,
-    aC, aP,
-    pC, pP,
-  ] = await Promise.all([
-    countBetween("users", "created_at", d7, new Date(now).toISOString()),
-    countBetween("users", "created_at", d14, d7),
-    countBetween("trips", "created_at", d7, new Date(now).toISOString()),
-    countBetween("trips", "created_at", d14, d7),
-    countBetween("ai_usage", "created_at", d7, new Date(now).toISOString()),
-    countBetween("ai_usage", "created_at", d14, d7),
-    countBetween("page_views", "created_at", d7, new Date(now).toISOString()),
-    countBetween("page_views", "created_at", d14, d7),
-  ]).catch((err) => {
-    // page_views might not exist in some envs; fail closed to zeros.
-    console.warn("[Admin Stats] WoW deltas partial fail:", err);
-    return [0, 0, 0, 0, 0, 0, 0, 0];
-  });
-
-  return {
-    users: pct(uC, uP),
-    trips: pct(tC, tP),
-    ai: pct(aC, aP),
-    pageViews: pct(pC, pP),
-  };
-}
-
-// ---- Activation block --------------------------------------------------
-//
-// Replaces the old "churn" card. Tells the real activation story:
-//   1. How many signups created their first trip?  (signupToFirstTripPct)
-//   2. Of trip-creators, how many came back for a 2nd?  (multiTripPct)
-//   3. Of all trips, how many were shared?  (sharedTripPct)
-//   4. Who's at risk?  (signed up, never created a trip, dormant > 7d)
-//
-// All derived from existing columns. No schema change.
-async function fetchActivation(
-  supabase: SupabaseClient,
-  totalUsers: number,
-  usersWithTrips: number,
-  totalTrips: number,
-  sharedTrips: number,
-  activeUserIds7d: Set<string>,
-): Promise<AdminStats["activation"]> {
-  // Defensive: every read here is wrapped — if either query fails we
-  // return a zero-filled block instead of 500'ing the whole /admin
-  // page. (This matches the Promise.allSettled discipline used by the
-  // rest of this route.)
-  const empty: AdminStats["activation"] = {
-    signupToFirstTripPct:
-      totalUsers > 0 ? Math.round((usersWithTrips / totalUsers) * 1000) / 10 : 0,
-    multiTripUsers: 0,
-    multiTripPct: 0,
-    sharedTripPct:
-      totalTrips > 0 ? Math.round((sharedTrips / totalTrips) * 1000) / 10 : 0,
-    atRiskUsers: 0,
-  };
-
-  try {
-    const d7AgoIso = new Date(Date.now() - 7 * 86_400_000).toISOString();
-
-    // multiTripUsers + the trip-owner set (reused for at-risk exclusion).
-    const tripOwnersRes = await readWholeTable<{ id: string; user_id: string | null }>(supabase, "trips", "id, user_id");
-    if (tripOwnersRes.error) throw tripOwnersRes.error;
-    const tripOwners = tripOwnersRes.data ?? [];
-    const counts = new Map<string, number>();
-    tripOwners.forEach((t) => {
-      if (!t.user_id) return;
-      counts.set(t.user_id, (counts.get(t.user_id) ?? 0) + 1);
-    });
-    let multiTripUsers = 0;
-    for (const c of counts.values()) {
-      if (c >= 2) multiTripUsers++;
-    }
-
-    // atRiskUsers: signed up >7d ago, never created a trip, and no tracked
-    // activity in the last 7 days. Uses the activity proxy (last_sign_in_at is
-    // never synced, so the old NULL-aware sign-in filter flagged everyone).
-    const usersRes = await readWholeTable<{ id: string; created_at: string }>(supabase, "users", "id, created_at");
-    if (usersRes.error) throw usersRes.error;
-    const dormant = (usersRes.data ?? []).filter((u) => u.created_at < d7AgoIso);
-
-    const tripOwnerSet = new Set(
-      tripOwners.map((t) => t.user_id).filter((id): id is string => !!id),
-    );
-    let atRiskUsers = 0;
-    dormant.forEach((u) => {
-      if (!tripOwnerSet.has(u.id) && !activeUserIds7d.has(u.id)) atRiskUsers++;
-    });
-
-    const signupToFirstTripPct =
-      totalUsers > 0 ? Math.round((usersWithTrips / totalUsers) * 1000) / 10 : 0;
-    const multiTripPct =
-      usersWithTrips > 0 ? Math.round((multiTripUsers / usersWithTrips) * 1000) / 10 : 0;
-    const sharedTripPct =
-      totalTrips > 0 ? Math.round((sharedTrips / totalTrips) * 1000) / 10 : 0;
-
-    return {
-      signupToFirstTripPct,
-      multiTripUsers,
-      multiTripPct,
-      sharedTripPct,
-      atRiskUsers,
-    };
-  } catch (err) {
-    console.error("[Admin Stats] fetchActivation failed:", err);
-    return empty;
-  }
-}
-
-// Direct query fallbacks if RPC functions don't exist
-async function fetchUserMetricsDirect(supabase: SupabaseClient) {
-  // NOTE: activeLast30Days is ALWAYS 0 on this path, and that is not fixable
-  // here. public.users.last_sign_in_at is NULL for every row — the column
-  // exists and nothing writes it. The real value lives in auth.users, which
-  // PostgREST does not expose, so only get_user_metrics() (SECURITY DEFINER)
-  // can read it.
-  //
-  // This runs only if that RPC errors, so treat a 0 in this field as "the RPC
-  // failed", not as a real number.
-  const { data: users } = logReadError("admin stats: users", await supabase.from("users").select("id, created_at, last_sign_in_at"));
-  const now = new Date();
-  const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-  return {
-    total: users?.length || 0,
-    newLast7Days: users?.filter((u) => new Date(u.created_at) > day7Ago).length || 0,
-    newLast30Days: users?.filter((u) => new Date(u.created_at) > day30Ago).length || 0,
-    activeLast30Days: users?.filter((u) => u.last_sign_in_at && new Date(u.last_sign_in_at) > day30Ago).length || 0,
-  };
-}
-
-async function fetchTripMetricsDirect(supabase: SupabaseClient) {
-  // `.is("deleted_at", null)` is not decoration. Without it this counted
-  // tombstones as trips and overstated the dashboard total. get_trip_metrics()
-  // filters the same way, so the RPC path and this fallback cannot disagree.
-  const { data: trips } = logReadError("admin stats: trips", await supabase
-    .from("trips")
-    .select("id, created_at, share_token")
-    .is("deleted_at", null));
-  const now = new Date();
-  const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-  return {
-    total: trips?.length || 0,
-    last7Days: trips?.filter((t) => new Date(t.created_at) > day7Ago).length || 0,
-    last30Days: trips?.filter((t) => new Date(t.created_at) > day30Ago).length || 0,
-    sharedTrips: trips?.filter((t) => t.share_token).length || 0,
-  };
-}
-
-async function fetchAiMetricsDirect(supabase: SupabaseClient) {
-  const { data: usage } = logReadError("admin stats: AI usage", await supabase.from("ai_usage").select("id, created_at"));
-  const now = new Date();
-  const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-  return {
-    total: usage?.length || 0,
-    last7Days: usage?.filter((u) => new Date(u.created_at) > day7Ago).length || 0,
-    last30Days: usage?.filter((u) => new Date(u.created_at) > day30Ago).length || 0,
-  };
-}
-
-async function fetchSubscriberMetricsDirect(supabase: SupabaseClient) {
-  const { data: subs } = logReadError("admin stats: subscribers", await supabase.from("email_subscribers").select("id, subscribed_at, verified, unsubscribed_at"));
-  const now = new Date();
-  const day7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const day30Ago = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-  return {
-    total: subs?.length || 0,
-    last7Days: subs?.filter((s) => new Date(s.subscribed_at) > day7Ago).length || 0,
-    last30Days: subs?.filter((s) => new Date(s.subscribed_at) > day30Ago).length || 0,
-    verified: subs?.filter((s) => s.verified).length || 0,
-    unsubscribed: subs?.filter((s) => s.unsubscribed_at).length || 0,
-  };
-}
-
-async function fetchRecentActivity(supabase: SupabaseClient) {
-  const activities: AdminStats["recentActivity"] = [];
-
-  // Recent users
-  const { data: recentUsers } = logReadError("admin stats: recent users", await supabase
-    .from("users")
-    .select("email, created_at")
-    .order("created_at", { ascending: false })
-    .limit(5));
-
-  recentUsers?.forEach((u) => {
-    activities.push({
-      type: "user",
-      description: `New user: ${u.email}`,
-      timestamp: u.created_at,
-    });
-  });
-
-  // Recent trips
-  const { data: recentTrips } = logReadError("admin stats: recent trips", await supabase
-    .from("trips")
-    .select("title, created_at")
-    .order("created_at", { ascending: false })
-    .limit(5));
-
-  recentTrips?.forEach((t) => {
-    activities.push({
-      type: "trip",
-      description: `New trip: ${t.title}`,
-      timestamp: t.created_at,
-    });
-  });
-
-  // Recent AI usage
-  const { data: recentAi } = logReadError("admin stats: recent AI", await supabase
-    .from("ai_usage")
-    .select("action, created_at")
-    .order("created_at", { ascending: false })
-    .limit(5));
-
-  recentAi?.forEach((a) => {
-    activities.push({
-      type: "ai",
-      description: `AI action: ${a.action}`,
-      timestamp: a.created_at,
-    });
-  });
-
-  // Sort by timestamp and return top 15
-  return activities
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 15);
-}
-
-// Activity-proxy: per-user activity timestamps from signals we actually record
-// (trips, AI conversations, banana transactions). Replaces the never-synced
-// users.last_sign_in_at for every "active" computation in this route.
-type ActivityRow = { id: string; user_id: string | null; created_at: string };
-
-async function fetchActivityByUser(supabase: SupabaseClient): Promise<Map<string, number[]>> {
-  const m = new Map<string, number[]>();
-  const add = (uid?: string | null, iso?: string | null) => {
-    if (!uid || !iso) return;
-    const t = new Date(iso).getTime();
-    if (Number.isNaN(t)) return;
-    const arr = m.get(uid);
-    if (arr) arr.push(t);
-    else m.set(uid, [t]);
-  };
-  const [tripsRes, aiRes, bananaRes] = await Promise.all([
-    readWholeTable<ActivityRow>(supabase, "trips", "id, user_id, created_at"),
-    readWholeTable<ActivityRow>(supabase, "ai_conversations", "id, user_id, created_at"),
-    readWholeTable<ActivityRow>(supabase, "banana_transactions", "id, user_id, created_at"),
-  ]);
-  (logReadError("admin stats: trip activity", tripsRes).data ?? []).forEach((r) => add(r.user_id, r.created_at));
-  (logReadError("admin stats: AI activity", aiRes).data ?? []).forEach((r) => add(r.user_id, r.created_at));
-  (logReadError("admin stats: banana activity", bananaRes).data ?? []).forEach((r) => add(r.user_id, r.created_at));
-  return m;
-}
-
-// Cohort retention matrix - tracks weekly user retention (activity-based)
-async function fetchCohortRetention(
-  supabase: SupabaseClient,
-  activityByUser: Map<string, number[]>,
-): Promise<CohortData[]> {
-  // Get all users with their signup dates (activity comes from activityByUser)
-  const { data: users } = logReadError(
-    "admin stats: cohort users",
-    await readWholeTable<{ id: string; created_at: string }>(supabase, "users", "id, created_at")
-  );
-
-  if (!users || users.length === 0) return [];
-
-  // Group users by signup week
-  const cohorts = new Map<string, { users: typeof users; weekStart: Date }>();
-  const now = new Date();
-
-  users.forEach((user) => {
-    const signupDate = new Date(user.created_at);
-    // Get the Monday of the signup week
-    const weekStart = getWeekStart(signupDate);
-    const weekKey = weekStart.toISOString().split("T")[0];
-
-    if (!cohorts.has(weekKey)) {
-      cohorts.set(weekKey, { users: [], weekStart });
-    }
-    cohorts.get(weekKey)!.users.push(user);
-  });
-
-  // Calculate retention for each cohort
-  const cohortData: CohortData[] = [];
-  const sortedCohorts = Array.from(cohorts.entries()).sort(
-    ([a], [b]) => new Date(a).getTime() - new Date(b).getTime()
-  );
-
-  // Only show last 8 cohorts for readability
-  const recentCohorts = sortedCohorts.slice(-8);
-
-  recentCohorts.forEach(([_weekKey, { users: cohortUsers, weekStart }]) => {
-    const cohortSize = cohortUsers.length;
-    const retention: number[] = [];
-
-    // Calculate weeks since cohort started
-    const weeksSinceCohort = Math.floor(
-      (now.getTime() - weekStart.getTime()) / (7 * 24 * 60 * 60 * 1000)
-    );
-
-    // Calculate retention for each week (Week 0 to current week)
-    for (let week = 0; week <= Math.min(weeksSinceCohort, 7); week++) {
-      // FIX: Count users who were active DURING this specific week (non-cumulative)
-      // Previously this was cumulative (>= week start), now checks if active within week boundaries
-      const weekNStart = new Date(weekStart.getTime() + week * 7 * 24 * 60 * 60 * 1000);
-      const weekNEnd = new Date(weekNStart.getTime() + 7 * 24 * 60 * 60 * 1000);
-      const activeUsers = cohortUsers.filter((user) => {
-        // Activity-proxy: active in week N = any tracked activity in the window.
-        // Week 0 is 100% by definition (the cohort signed up that week).
-        if (week === 0) return true;
-        const times = activityByUser.get(user.id) || [];
-        return times.some((t) => t >= weekNStart.getTime() && t < weekNEnd.getTime());
-      }).length;
-
-      const retentionPct = cohortSize > 0 ? Math.round((activeUsers / cohortSize) * 100) : 0;
-      retention.push(retentionPct);
-    }
-
-    // Format cohort label (e.g., "Nov 25")
-    const cohortLabel = weekStart.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-
-    cohortData.push({
-      cohort: cohortLabel,
-      cohortSize,
-      retention,
-    });
-  });
-
-  return cohortData;
-}
-
-// Helper: Get Monday of the week for a given date
-function getWeekStart(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-  d.setDate(diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-// ISO country code to full name mapping
-const COUNTRY_NAMES: Record<string, string> = {
-  US: "United States",
-  IT: "Italy",
-  GB: "United Kingdom",
-  DE: "Germany",
-  FR: "France",
-  ES: "Spain",
-  NL: "Netherlands",
-  BE: "Belgium",
-  CH: "Switzerland",
-  AT: "Austria",
-  PT: "Portugal",
-  GR: "Greece",
-  SE: "Sweden",
-  NO: "Norway",
-  DK: "Denmark",
-  FI: "Finland",
-  PL: "Poland",
-  CZ: "Czech Republic",
-  IE: "Ireland",
-  CA: "Canada",
-  AU: "Australia",
-  NZ: "New Zealand",
-  JP: "Japan",
-  CN: "China",
-  KR: "South Korea",
-  IN: "India",
-  BR: "Brazil",
-  MX: "Mexico",
-  AR: "Argentina",
-  CO: "Colombia",
-  CL: "Chile",
-  ZA: "South Africa",
-  EG: "Egypt",
-  AE: "United Arab Emirates",
-  SA: "Saudi Arabia",
-  IL: "Israel",
-  TR: "Turkey",
-  RU: "Russia",
-  UA: "Ukraine",
-  SG: "Singapore",
-  MY: "Malaysia",
-  TH: "Thailand",
-  VN: "Vietnam",
-  ID: "Indonesia",
-  PH: "Philippines",
-};
-
-function getCountryName(code: string): string {
-  return COUNTRY_NAMES[code] || code;
-}
-
-// Fetch geo metrics from page_views table using proper SQL COUNT queries
-// This avoids the Supabase 1000 row default limit.
-// deltaPctWoW is injected by the caller (computed in fetchWoWDeltas).
-async function fetchGeoMetrics(
-  supabase: SupabaseClient,
-): Promise<Omit<AdminStats["geo"], "deltaPctWoW">> {
-  // Use parallel queries with proper COUNT to avoid 1000 row limit
-  const [
-    totalsResult,
-    uniqueVisitorsResult,
-    byCountryResult,
-    byCityResult,
-    topPagesResult,
-    dailyTrendResult,
-    bySectionResult,
-    conversionFunnelResult,
-    engagedDailyResult,
-  ] = await Promise.all([
-    // Total / 7d / 30d page views.
-    //
-    // These were three count(*) scans over page_views, each taking seconds
-    // uncontended: the all-time count alone came close to the 8s
-    // statement_timeout, and all of them ran inside this same Promise.all.
-    // They now read the daily rollup.
-    //
-    // The 7d/30d windows are CALENDAR days now, not rolling 168/720-hour
-    // windows; a daily rollup has no sub-day resolution. The all-time total is
-    // unchanged and exact.
-    supabase.rpc("get_page_view_totals"),
-
-    // Unique visitors (fingerprint-based approximation)
-    supabase.rpc("count_unique_visitors"),
-
-    // By country - use RPC function for aggregation
-    supabase.rpc("get_page_views_by_country"),
-
-    // By city - use RPC function for aggregation
-    supabase.rpc("get_page_views_by_city"),
-
-    // Top pages - use RPC function (normalized paths)
-    supabase.rpc("get_top_pages"),
-
-    // Daily traffic trend (last 90 days)
-    supabase.rpc("get_page_views_daily_trend"),
-
-    // Traffic by app section
-    supabase.rpc("get_page_views_by_section"),
-
-    // Conversion funnel
-    supabase.rpc("get_conversion_funnel"),
-
-    // Engaged sessions per day. Sits beside uniqueVisitors because most of the
-    // sessions counted there never keep a page visible for four seconds and
-    // rarely reach the wizard, so the raw line overstates plausible prospects.
-    supabase.rpc("get_engaged_sessions_daily"),
-  ]);
-
-  // A metric reading zero must never be indistinguishable from a failed query.
-  //
-  // Every consumer below reads `(x.data || [])`, so a timed-out RPC silently
-  // became an empty array and the dashboard rendered "no traffic".
-  // PostgREST connects as `authenticator`, which carries statement_timeout=8s,
-  // so no amount of global timeout helps.
-  //
-  // Name every failure loudly, and hand the caller a `degraded` list so the UI
-  // can say "unavailable" instead of drawing a confident zero.
-  const degraded: string[] = [];
-  for (const [name, result] of [
-    ["page_view_totals", totalsResult],
-    ["unique_visitors", uniqueVisitorsResult],
-    ["by_country", byCountryResult],
-    ["by_city", byCityResult],
-    ["top_pages", topPagesResult],
-    ["daily_trend", dailyTrendResult],
-    ["by_section", bySectionResult],
-    ["conversion_funnel", conversionFunnelResult],
-    ["engaged_sessions_daily", engagedDailyResult],
-  ] as const) {
-    const err = (result as { error?: { message?: string; code?: string } }).error;
-    if (!err) continue;
-    degraded.push(name);
-    // 57014 is the statement timeout. Call it out by name: it means the query
-    // needs bounding, not retrying.
-    console.error(
-      `[admin/stats] GEO METRIC FAILED - ${name}: ${err.code ?? "?"} ${err.message ?? "unknown"}` +
-        (err.code === "57014" ? " (statement timeout - the query exceeded 8s)" : "")
-    );
-    import("@sentry/nextjs")
-      .then((Sentry) =>
-        Sentry.captureMessage?.(`admin stats geo metric failed: ${name}`, {
-          level: "error",
-          tags: { source: "admin-stats", metric: name, pg_code: err.code },
-        })
-      )
-      .catch(() => {});
-  }
-
-  const totalsRow = Array.isArray(totalsResult.data) ? totalsResult.data[0] : undefined;
-  const totalPageViews = Number(totalsRow?.total_views) || 0;
-  const last7Days = Number(totalsRow?.last_7_days) || 0;
-  const last30Days = Number(totalsRow?.last_30_days) || 0;
-
-  // Pre-aggregation adds a failure mode the live queries never had: if the
-  // nightly pg_cron job stops, every geo number keeps rendering at full
-  // confidence while quietly ageing. Same class of bug as a timed-out query
-  // returning [].
-  //
-  // The job runs daily at 02:40 UTC and rebuilds 3 days each time, so one
-  // missed night self-heals and is not worth alarming about. Two consecutive
-  // misses is a real outage.
-  const refreshedAt = totalsRow?.refreshed_at ? new Date(totalsRow.refreshed_at) : null;
-  const rollupAgeHours = refreshedAt
-    ? (Date.now() - refreshedAt.getTime()) / 36e5
-    : Number.POSITIVE_INFINITY;
-  if (rollupAgeHours > 36) {
-    degraded.push("page_view_rollup_stale");
-    console.error(
-      `[admin/stats] PAGE VIEW ROLLUP STALE - last refreshed ${
-        refreshedAt ? refreshedAt.toISOString() : "never"
-      } (${Math.round(rollupAgeHours)}h ago); check: SELECT * FROM cron.job_run_details ORDER BY start_time DESC`
-    );
-  }
-
-  // Extract unique visitors from RPC result (returns array with {count: number})
-  let uniqueVisitors = 0;
-  if (uniqueVisitorsResult.data && Array.isArray(uniqueVisitorsResult.data) && uniqueVisitorsResult.data.length > 0) {
-    uniqueVisitors = Number(uniqueVisitorsResult.data[0].count) || 0;
-  }
-
-  // Process country data from RPC (no fallback - real data only)
-  const byCountry: AdminStats["geo"]["byCountry"] = (byCountryResult.data || [])
-    .slice(0, 10)
-    .map((c: { country_code: string; count: number }) => ({
-      country: getCountryName(c.country_code),
-      countryCode: c.country_code,
-      count: Number(c.count),
-      percentage: totalPageViews > 0 ? Math.round((Number(c.count) / totalPageViews) * 1000) / 10 : 0,
-    }));
-
-  // Process city data from RPC (no fallback - real data only)
-  const byCity: AdminStats["geo"]["byCity"] = (byCityResult.data || [])
-    .slice(0, 10)
-    .map((c: { city: string; country_code: string; count: number }) => ({
-      city: c.city,
-      country: getCountryName(c.country_code),
-      count: Number(c.count),
-    }));
-
-  // Process top pages data from RPC (no fallback - real data only)
-  const topPages: AdminStats["geo"]["topPages"] = (topPagesResult.data || [])
-    .slice(0, 10)
-    .map((p: { path: string; count: number }) => ({
-      path: p.path,
-      count: Number(p.count),
-    }));
-
-  // Process daily traffic trend.
-  //
-  // The engaged series is merged by date and deliberately left UNDEFINED for
-  // days the beacon did not cover. Defaulting it to 0 would draw a cliff at the
-  // first covered day, an artefact of when measurement started, not of
-  // anything that happened to the traffic.
-  const engagedByDate = new Map<string, number>(
-    (engagedDailyResult.data || []).map((e: { date: string; engaged_sessions: number }) => [
-      e.date,
-      Number(e.engaged_sessions),
-    ])
-  );
-  const daily: AdminStats["geo"]["traffic"]["daily"] = (dailyTrendResult.data || [])
-    .map((d: { date: string; views: number; unique_visitors: number }) => ({
-      date: d.date,
-      views: Number(d.views),
-      uniqueVisitors: Number(d.unique_visitors),
-      ...(engagedByDate.has(d.date) ? { engagedSessions: engagedByDate.get(d.date) } : {}),
-    }));
-
-  // Process section breakdown.
-  //
-  // `unique_visitors` was dropped from get_page_views_by_section: nothing ever
-  // rendered it (TrafficOverview reads only `count`), and computing it forced
-  // a COUNT(DISTINCT) whose sort spilled 23MB to disk and took the RPC to
-  // 25.5s -- past the 8s statement_timeout, so the panel showed nothing at all.
-  const bySection: AdminStats["geo"]["traffic"]["bySection"] = (bySectionResult.data || [])
-    .map((s: { section: string; count: number }) => ({
-      section: s.section,
-      count: Number(s.count),
-    }));
-
-  // Process conversion funnel
-  const conversionFunnel: AdminStats["geo"]["traffic"]["conversionFunnel"] = (conversionFunnelResult.data || [])
-    .map((f: { step: string; count: number }) => ({
-      step: f.step,
-      count: Number(f.count),
-    }));
-
-  return {
-    totalPageViews,
-    last7Days,
-    last30Days,
-    byCountry,
-    byCity,
-    topPages,
-    uniqueVisitors,
-    degraded,
-    traffic: {
-      daily,
-      bySection,
-      conversionFunnel,
-    },
-  };
-}
-
-// Fetch daily user registration trend for the last 90 days
-async function fetchUserTrend(supabase: SupabaseClient): Promise<AdminStats["userTrend"]> {
-  const { data: users } = logReadError(
-    "admin stats: user trend",
-    await readWholeTable<{ id: string; created_at: string }>(supabase, "users", "id, created_at")
-  );
-
-  if (!users || users.length === 0) {
-    return {
-      daily: [],
-      summary: {
-        totalGrowth: 0,
-        avgDaily: 0,
-        bestDay: null,
-        currentStreak: 0,
-      },
-    };
-  }
-
-  // Generate date range for the last 90 days
-  const now = new Date();
-  const day90Ago = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-
-  // Group users by date
-  const countsByDate = new Map<string, number>();
-  users.forEach((user) => {
-    const date = new Date(user.created_at).toISOString().split("T")[0];
-    countsByDate.set(date, (countsByDate.get(date) || 0) + 1);
-  });
-
-  // Build daily array with cumulative counts
-  const daily: { date: string; count: number; cumulative: number }[] = [];
-  let cumulative = 0;
-
-  // Get all users before our 90-day window for cumulative base
-  const usersBeforeWindow = users.filter(
-    (u) => new Date(u.created_at) < day90Ago
-  ).length;
-  cumulative = usersBeforeWindow;
-
-  // Iterate through each day in the 90-day window
-  for (let d = day90Ago.getTime(); d <= now.getTime(); d += 86_400_000) {
-    const dateStr = new Date(d).toISOString().split("T")[0];
-    const count = countsByDate.get(dateStr) || 0;
-    cumulative += count;
-    daily.push({ date: dateStr, count, cumulative });
-  }
-
-  // Calculate summary stats
-  const daysWithData = daily.filter((d) => d.count > 0);
-  const totalRegistrations = daily.reduce((sum, d) => sum + d.count, 0);
-  const avgDaily = daily.length > 0 ? Math.round((totalRegistrations / daily.length) * 10) / 10 : 0;
-
-  // Find best day
-  let bestDay: { date: string; count: number } | null = null;
-  if (daysWithData.length > 0) {
-    const best = daysWithData.reduce((max, d) => (d.count > max.count ? d : max), daysWithData[0]);
-    bestDay = { date: best.date, count: best.count };
-  }
-
-  // Calculate growth percentage (compare first week to last week)
-  const firstWeekTotal = daily.slice(0, 7).reduce((sum, d) => sum + d.count, 0);
-  const lastWeekTotal = daily.slice(-7).reduce((sum, d) => sum + d.count, 0);
-  const totalGrowth = firstWeekTotal > 0
-    ? Math.round(((lastWeekTotal - firstWeekTotal) / firstWeekTotal) * 100)
-    : lastWeekTotal > 0 ? 100 : 0;
-
-  // Calculate current streak (consecutive days with signups ending today)
-  let currentStreak = 0;
-  for (let i = daily.length - 1; i >= 0; i--) {
-    if (daily[i].count > 0) {
-      currentStreak++;
-    } else {
-      break;
-    }
-  }
-
-  return {
-    daily,
-    summary: {
-      totalGrowth,
-      avgDaily,
-      bestDay,
-      currentStreak,
-    },
-  };
 }

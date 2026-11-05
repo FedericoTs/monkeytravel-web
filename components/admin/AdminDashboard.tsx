@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, type ReactNode } from "react";
-import type { AdminStats } from "@/app/api/admin/stats/route";
+import type { AdminStats } from "@/lib/admin/stats/types";
 import {
   LazyUserGrowthChart,
   LazyTrafficOverview,
