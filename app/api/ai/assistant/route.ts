@@ -6,6 +6,8 @@ import { classifyTask, selectModel } from "@/lib/ai/config";
 import { recordTurnUsage } from "@/lib/ai/assistant/turn-usage";
 import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 import { recordAiOutcome } from "@/lib/ai/observability";
+import { logApiCall } from "@/lib/api-gateway";
+import { waitUntil } from "@vercel/functions";
 import { getTripDestination } from "@/lib/trips/destination";
 import {
   type ItineraryDay,
@@ -34,12 +36,14 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 export async function POST(request: NextRequest) {
   const requestStartTime = Date.now();
   console.log("[AI Assistant] POST request received");
+  let userId: string | undefined;
 
   try {
     // Who asks about which trip, and in which language; or the refusal.
     const turn = await readAssistantTurn(request, requestStartTime);
     if (turn.refused) return turn.refused;
     const { user, supabase, body, usageCheck, trip, assistantRole, userLanguage } = turn;
+    userId = user.id;
     const { tripId, message, conversationId, itinerary: clientItinerary } = body;
 
     // Use client itinerary if provided (for real-time edits), otherwise use DB
@@ -227,7 +231,23 @@ export async function POST(request: NextRequest) {
       error,
     });
 
-    if (isModelOutOfCredit(error)) return errors.modelOutage();
+    // With every other AI failure, for the reports and the hourly credit check.
+    const outOfCredit = isModelOutOfCredit(error);
+    waitUntil(
+      logApiCall({
+        apiName: "gemini",
+        endpoint: "/api/ai/assistant",
+        status: outOfCredit ? 503 : 500,
+        responseTimeMs: Date.now() - requestStartTime,
+        cacheHit: false,
+        costUsd: 0,
+        exactCost: true,
+        error: error instanceof Error ? error.message : "unknown",
+        userId,
+      }).catch(() => undefined)
+    );
+
+    if (outOfCredit) return errors.modelOutage();
     return errors.internal("Failed to process request", "AI Assistant");
   }
 }
