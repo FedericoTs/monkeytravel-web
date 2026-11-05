@@ -6,7 +6,7 @@ import { test, expect } from "@playwright/test";
  * WHAT CHANGED
  * ------------
  * `users_select_public` was `USING (true)`: any signed-in account could read
- * all 447 rows including every email. It is now `id = auth.uid()`, and every
+ * every row including every email. It is now `id = auth.uid()`, and every
  * legitimate cross-user read of a name/avatar goes through the
  * `public_profiles` view (or the service client, for admin surfaces).
  *
@@ -291,7 +291,7 @@ test.describe("users lockdown — admin gate holds for a NON-admin", () => {
   // when these routes moved to the service client (which bypasses RLS), the
   // ONLY thing still separating an ordinary user from every user's email is
   // getAuthenticatedAdmin(). If that gate ever fell open, the service client
-  // behind it would hand out all 450 rows.
+  // behind it would hand out every row.
   //
   // 403 (not 401) is the assertion that matters: 401 would mean the session
   // was not sent and the test proved nothing.

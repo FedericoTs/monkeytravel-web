@@ -6,9 +6,8 @@ import { render, cleanup, act } from "@testing-library/react";
  *
  * Google/Apple sign-ins and emailed links finish on the server
  * (/auth/callback), so the page they land on hears INITIAL_SESSION, never
- * SIGNED_IN. The claim listened for SIGNED_IN only, so those sign-ins left the
- * trip unclaimed (6 of 69 anonymous shared trips were ever claimed). It now
- * runs on both, and only fetches the claim module when a token is waiting.
+ * SIGNED_IN. The claim runs on both, and only fetches the claim module when a
+ * token is waiting.
  */
 
 type AuthCallback = (event: string, session: { user: { id: string } } | null) => void;

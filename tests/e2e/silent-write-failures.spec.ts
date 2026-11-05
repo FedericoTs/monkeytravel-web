@@ -218,15 +218,10 @@ test.describe("the destination hero states no temperature it invented", () => {
   test.use({ storageState: ".auth/owner.json" });
 
   /**
-   * The hero chip regex-extracted a figure like "20-25°C" out of
-   * trip_meta.weather_note — model prose measured contradicting itself across
-   * 279 trips — and rendered it bare: no label, no "~", no source. A user was
-   * emailed "10-18°C" for Los Angeles when the real forecast was 22-32°C, and
-   * this surface showed the same class of number.
-   *
-   * The emails were fixed by wiring a real forecast. This surface has none, so
-   * it must stop asserting one. The qualitative word stays: "sunny" is a vibe,
-   * not a reading off an instrument.
+   * trip_meta.weather_note is model prose that can contradict itself, so a figure
+   * like "20-25°C" taken from it is no forecast. The emails use a real forecast.
+   * This surface has none, so it must not assert one. The qualitative word stays:
+   * "sunny" is a vibe, not a reading off an instrument.
    */
   test("renders a condition word, never a fabricated figure", async ({ page }) => {
     const sb = await serviceDb();

@@ -144,13 +144,12 @@ function initSentry(Sentry: typeof import("@sentry/nextjs"), hasSessionRecording
       // ResizeObserver loop warnings — benign browser quirk, not a real bug
       "ResizeObserver loop limit exceeded",
       "ResizeObserver loop completed with undelivered notifications",
-      // Third-party browser-extension WebSocket noise (2026-06-09). A
+      // Third-party browser-extension WebSocket noise. A
       // device-fingerprinting extension injects an `imtgo_device_info_WS`
       // function that opens an insecure ws:// socket from our https://
       // page; Safari rejects it with "SecurityError: The operation is
-      // insecure" and the extension retries on a setInterval, spamming
-      // ~85 events/user/session. It was our single highest-volume Sentry
-      // issue (JS-NEXTJS-14/15) and is NOT our code — the frame is
+      // insecure" and the extension retries on a setInterval, flooding
+      // Sentry. It is NOT our code — the frame is
       // `imtgo_device_info_WS` in an `app:///es`-attributed inline script,
       // not any of our hashed chunks. Match by message + the injected
       // function name so we drop it without suppressing real
@@ -241,7 +240,7 @@ function initMonitoring() {
   }
 
   /**
-   * PostHog Initialization (2026-09-16: cookieless_mode 'on_reject')
+   * PostHog Initialization (cookieless_mode 'on_reject')
    *
    * The SDK loads for everyone but captures NOTHING until the banner is
    * answered (consent pending). "Accept" → opt_in_capturing: cookies as
@@ -316,8 +315,7 @@ function initMonitoring() {
 // Only report from real deployments -- same reasoning as
 // sentry.server.config.ts. A developer running `next dev` otherwise
 // files errors into the production project, where they read as live
-// incidents; that is what happened with JAVASCRIPT-NEXTJS-2B on
-// 2026-09-01. Set NEXT_PUBLIC_SENTRY_ENABLE_DEV=1 to opt back in.
+// incidents. Set NEXT_PUBLIC_SENTRY_ENABLE_DEV=1 to opt back in.
 const sentryEnabled =
   process.env.NODE_ENV === "production" || process.env.NEXT_PUBLIC_SENTRY_ENABLE_DEV === "1";
 if (typeof window !== "undefined" && sentryEnabled && process.env.NEXT_PUBLIC_SENTRY_DSN) {

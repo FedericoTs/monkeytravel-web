@@ -155,10 +155,9 @@ export default async function Footer() {
                   'text-white/70 underline decoration-white/30 underline-offset-2 hover:decoration-[var(--accent)] hover:text-[var(--accent)] transition-colors text-sm';
                 return (
                   <li key={link.label}>
-                    {/* **2026-05-25 fix**: in-app routes (/contact, /faq)
-                        need next-intl's <Link> so the active locale is
-                        prefixed (was rendering /contact instead of /es/contact
-                        on the ES site). External/mailto stay as raw <a>. */}
+                    {/* In-app routes (/contact, /faq) need next-intl's <Link>
+                        so the active locale is prefixed. External/mailto stay
+                        as raw <a>. */}
                     {isExternal ? (
                       <a href={link.href} className={className}>
                         {link.label}

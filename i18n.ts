@@ -16,9 +16,8 @@ export const localeNames: Record<Locale, string> = {
   pt: "Português",
 };
 
-// Locale flags for UI. `pt` targets Brazil (pt-BR) — Brazil is the demand
-// driver (15k organic GSC impressions at ~0% CTR before localization), so we
-// use the Brazilian flag rather than Portugal's.
+// Locale flags for UI. `pt` targets Brazil (pt-BR), so we use the Brazilian
+// flag rather than Portugal's.
 export const localeFlags: Record<Locale, string> = {
   en: "🇺🇸",
   es: "🇪🇸",

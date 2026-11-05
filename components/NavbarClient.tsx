@@ -135,10 +135,9 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
             >
               {t('navigation.myTrips')}
             </Link>
-            {/* **2026-05-29 (/explore Week 3)**: Saved link for authed users.
-                /saved had ZERO entry points anywhere in the app pre-Week 3 —
-                users who tap Save on an explore card had no way to find their
-                saves. Sits next to My Trips as the natural sibling. */}
+            {/* Saved link for authed users: how someone who taps Save on an
+                explore card finds their saves. Sits next to My Trips as the
+                natural sibling. */}
             <Link
               href="/saved"
               className="px-3 py-2 rounded-full text-sm font-medium text-[var(--foreground-muted)] hover:text-[var(--primary-ink)] hover:bg-[var(--primary)]/5 transition-colors"

@@ -36,10 +36,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  // Drop `X-Powered-By: Next.js`. Next sets it by default on page responses
-  // (verified present on the apex in production 2026-08-20; route handlers and
-  // the 308 apex->www redirect never carried it). It leaks the framework, which
-  // narrows an attacker's search for version-specific exploits and buys nothing.
+  // Drop `X-Powered-By: Next.js`. Next sets it by default on page responses. It
+  // leaks the framework, which narrows an attacker's search for version-specific
+  // exploits and buys nothing.
   //
   // Server-side by construction — Next omits the header at the origin, so there
   // is no client-side check to bypass.
@@ -54,63 +53,24 @@ const nextConfig: NextConfig = {
   // "Duplicate without user-selected canonical" in Search Console.
   htmlLimitedBots: /Googlebot|Google-InspectionTool|Bingbot|Yandex|Baiduspider|DuckDuckBot|Slurp|Twitterbot|facebookexternalhit|LinkedInBot|WhatsApp|Applebot/i,
 
-  // 301 redirects for the blog consolidation done 2026-05-06.
-  // 17 thin/duplicate posts collapsed into 3 pillars to fix the
-  // "Discovered – currently not indexed" pile-up in Search Console.
+  // 301 redirects for the blog consolidation: thin and duplicate posts collapsed
+  // into pillars, against the "Discovered – currently not indexed" pile-up in
+  // Search Console.
   // Each rule covers all 3 locales (en is the default, no prefix).
   async redirects() {
     const redirectMap: Array<[string, string]> = [
-      // 12 monthly listicles → 2026 travel calendar pillar (anchored per month)
-      // 2026-09-03: january, february and march redirects REMOVED (April
-      // playbook, third application). Standalone posts now live at
-      // content/blog/{,es/,it/,pt/}where-to-go-in-{january,february,march}.md.
-      //
-      // The pillar is not earning these queries and is barely earning any:
-      // over the last 90 days 2026-travel-calendar took 6,234 impressions for
-      // 27 clicks — a 0.43% CTR — and month-named queries reaching it totalled
-      // FIFTEEN impressions (january 4, february 4, march 7). Standalone month
-      // posts are the opposite: where-to-go-in-november alone took 11,602
-      // impressions and 311 clicks at 2.68% CTR in FOURTEEN days, and
-      // where-to-go-in-december 2.70%, against a 1.11% site average.
-      //
-      // Unlike April and August, these three were not removed on demonstrated
-      // leakage — measured in September, january demand has not started. They
-      // are removed on LEAD TIME: GSC shows demand running one to three months
-      // ahead and peaking at +2 (measured 2026-08-19..09-01: november 3,244
-      // impressions +76%, october 2,090 +149%, january 31), so a page has to
-      // exist through October-December to be ranking when the queries fire.
-      // 2026-05-30: where-to-go-in-april redirect REMOVED.
-      // GSC showed 50k impressions/qtr leaking through the 308 chain to
-      // /blog/2026-travel-calendar#april. The standalone post at
-      // content/blog/where-to-go-in-april.md now serves the queries
-      // ("places to visit in april 2026", "where to travel april 2026",
-      // ~50 long-tail variants ranking pos 6.36) with a real 200 response
-      // and a CTR-friendly hero, table, and 12 destination sections.
-      // May, June and July redirects removed: standalone posts serve these
-      // months, published ahead of the queries as for January to March.
-      // 2026-07-12: where-to-go-in-august redirect REMOVED (April playbook).
-      // Peak search season for "where to go in august" is June–August — the
-      // anchor-redirect can't rank for the ~50 long-tail variants the April
-      // standalone captured (18.8k imp/qtr). The standalone post at
-      // content/blog/where-to-go-in-august.md (×4 locales) now serves these
-      // queries with a real 200, hero, comparison table, and 12 sections.
-      // 2026-07-27: where-to-go-in-{september,october,november,december}
-      // redirects REMOVED (April/August playbook). Standalone posts at
-      // content/blog/where-to-go-in-<month>.md now serve these queries with a
-      // real 200 — "where to go in november 2026" (pos 3.6), "where to travel
-      // in december 2026" (pos 2.2), plus Sep/Oct demand — instead of a 308 to
-      // the calendar anchor that can't rank for the ~50 long-tail variants.
+      // No month redirects to the travel calendar pillar: a standalone post for
+      // each one (content/blog/where-to-go-in-<month>.md) serves those queries with
+      // a real 200, which an anchor on the calendar can't rank for. A month's post
+      // has to exist well ahead of its season to be ranking when the queries come.
       // 3 summer-season dupes → spring/summer pillar
       ["best-summer-destinations-2026",  "spring-summer-travel-guide"],
       ["spring-break-destinations-2026", "spring-summer-travel-guide"],
       ["coolcation-destinations-2026",   "spring-summer-travel-guide"],
       // 1 honeymoon dupe → honeymoon pillar
-      // 2026-05-30: best-honeymoon-destinations-2026 redirect REMOVED.
-      // GSC showed 27k impressions/qtr leaking through the 308 chain to
-      // /blog/honeymoon-planning-guide. The standalone post at
-      // content/blog/best-honeymoon-destinations-2026.md now serves the
-      // destination-intent queries (planning guide kept as the process
-      // pillar; destination listicle is its companion piece).
+      // best-honeymoon-destinations-2026 is not redirected: its own post serves
+      // the destination-intent queries, and the planning guide stays the process
+      // pillar.
       ["honeymoon-on-a-budget-2026",       "honeymoon-planning-guide"],
     ];
 
@@ -129,10 +89,9 @@ const nextConfig: NextConfig = {
     rules.push({ source: "/en", destination: "/", permanent: true });
     rules.push({ source: "/en/:path*", destination: "/:path*", permanent: true });
 
-    // 2026-05-31: Natural-language destination slug aliases. Italian/Spanish
-    // users typing the local-language name (e.g. /it/destinations/roma)
-    // were hitting 404 because lib/destinations/data.ts keys every
-    // destination by its English slug ("rome"). Rather than thread an
+    // Natural-language destination slug aliases. lib/destinations/data.ts keys
+    // every destination by its English slug ("rome"), so the local-language name
+    // (e.g. /it/destinations/roma) would be a 404. Rather than thread an
     // alias map through generateStaticParams + getDestinationBySlug
     // (which would cascade into hreflang, sitemap, canonical URL logic),
     // 301 the locale-native alias to the canonical English slug.
@@ -165,9 +124,7 @@ const nextConfig: NextConfig = {
       });
     }
 
-    // 2026-07-06: /multi-city vanity path → multi-city landing page. The old
-    // /multi-city preview harness was removed when the SEO landing page at
-    // /multi-city-trip-planner shipped; 301 the short path for every locale
+    // /multi-city vanity path → multi-city landing page, for every locale
     // (en is the default, no prefix).
     rules.push({
       source: `/multi-city`,
@@ -182,11 +139,9 @@ const nextConfig: NextConfig = {
       });
     }
 
-    // 2026-07-12: blog consolidation from the GSC 3-month audit. The
-    // visa-requirements-2026 post duplicated visa-requirements-us-citizens'
-    // intent and split its rankings (3 clicks/10.1k impressions vs 68/64.7k
-    // on the survivor) while carrying broken locale metadata. Content files
-    // removed; 301 preserves the equity into the stronger page.
+    // The visa-requirements-2026 post duplicated visa-requirements-us-citizens'
+    // intent and split its rankings. Its content is gone; the 301 keeps what it
+    // earned on the stronger page.
     rules.push({
       source: `/blog/visa-requirements-2026`,
       destination: `/blog/visa-requirements-us-citizens`,
@@ -200,18 +155,14 @@ const nextConfig: NextConfig = {
       });
     }
 
-    // 2026-08-26: contact-intent aliases were 404ing. The daily crawl found
-    // Google sending real (if small) traffic to /contact-us and /get-in-touch
-    // while only /contact serves a 200. Normally 1-2 landings/week would not
-    // be worth a rule, but monkeytravel.app has no MX record — support@,
-    // privacy@ and legal@ all bounce — so the on-site form at /contact is the
-    // ONLY working way to reach us. A 404 on a contact-intent query is a lost
-    // business or support conversation, not a lost pageview.
+    // Contact-intent aliases: Google sends people to /contact-us and
+    // /get-in-touch, and only /contact serves a 200. A 404 on a contact-intent
+    // query is a lost business or support conversation, not a lost pageview.
     //
     // NOT redirected here: /about and /about-us, which also 404. There is no
     // about page to point them at — app/[locale]/about/ contains only
     // authors/[slug]/. Pointing them at /contact would be a wrong answer to
-    // an informational query. See the daily report for the hub-page proposal.
+    // an informational query.
     for (const alias of ["contact-us", "get-in-touch"]) {
       rules.push({
         source: `/${alias}`,
@@ -429,24 +380,14 @@ const sentryConfig: SentryBuildOptions = {
   // Tunneling (disabled - use default Sentry endpoints)
   tunnelRoute: undefined,
 
-  // Source map upload.
-  //
-  // This was `disable: !!process.env.VERCEL` — i.e. disabled on EVERY production
-  // build, since VERCEL is always set there. The effect was that Sentry could
-  // not symbolicate anything: every frame in every issue read like
+  // Source map upload. On, including on Vercel: without the maps Sentry can't
+  // symbolicate anything, and every frame reads like
   //
   //   app:///_next/static/chunks/05nok7-~2rps7.js:1:133736 (ud)
   //
-  // so the 8 open issues (including a ReferenceError hitting 6 users on the trip
-  // page) were effectively undebuggable. The plugin was still injecting
-  // _sentryDebugIds into the bundles — confirmed in the live chunks — it just
-  // never uploaded the maps those IDs point at, which is the half that matters.
-  //
-  // Re-enabled. The original comment cites build timeouts, which is a real
-  // concern, so the errorHandler below makes that failure mode non-fatal: if the
-  // upload times out, errors, or SENTRY_AUTH_TOKEN is absent, the build logs a
-  // warning and continues. Worst case is the status quo (minified stacks), never
-  // a broken deploy.
+  // An upload can time out, so the errorHandler below makes that non-fatal: if it
+  // times out, errors, or SENTRY_AUTH_TOKEN is absent, the build logs a warning and
+  // continues. Worst case is minified stacks, never a broken deploy.
   sourcemaps: {
     disable: false,
   },

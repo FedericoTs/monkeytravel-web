@@ -20,7 +20,6 @@ describe("the half that used to be offered nothing", () => {
   });
 
   it("still shows it when an edit was proposed but never applied", () => {
-    // 50 sessions/30d looked like this and saw nothing under the old gate.
     expect(decide([q, pending]).show).toBe(true);
     expect(decide([q, pending]).mode).toBe("qa_only");
     expect(decide([q, discarded]).mode).toBe("qa_only");

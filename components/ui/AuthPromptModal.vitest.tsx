@@ -4,8 +4,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 /**
  * The in-tab code path on the save wall.
  *
- * Magic-link sign-ups reach a session 63.0% of the time against Google's
- * 99.0% (n=142, p=1.8e-9) because the link means leaving the browser. The
+ * A magic link means leaving the browser, which loses people. The
  * code exists so someone can finish without going anywhere, so the branch
  * that accepts it is worth covering directly.
  *

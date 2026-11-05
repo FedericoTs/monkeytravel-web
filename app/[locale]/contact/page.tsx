@@ -27,8 +27,7 @@ export default async function ContactPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--background)]">
-      {/* **2026-05-25 fix**: page previously rendered just the form, no
-          Navbar or Footer — users landed orphaned with only the browser
+      {/* Navbar and Footer, so the form isn't a dead end with only the browser's
           back button as a way out. */}
       <Navbar />
       <main className="flex-1">

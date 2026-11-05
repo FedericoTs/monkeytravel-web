@@ -109,7 +109,7 @@ describe("isAnalyticsBot — edge cases", () => {
     expect(isAnalyticsBot("Mozilla/5.0 (Linux; U; Android 4.0)")).toBe(false);
     expect(isAnalyticsBot("Mozilla/5.0 (Linux; Android 14; Robot Phone) Chrome/128.0")).toBe(true);
     // ^ documents a KNOWN false positive: a device literally named "Robot"
-    // matches "bot". Accepted — it is vanishingly rare next to the 23% of
+    // matches "bot". Accepted — it is vanishingly rare next to the
     // traffic this filters, and the alternative (word-boundary matching)
     // misses "Bytespider", "Slurp" and most SEO crawlers.
   });
@@ -119,9 +119,8 @@ describe("exact-match automation fleet", () => {
   const FLEET =
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
 
-  it("flags the fleet UA that produced 37% of all recorded human traffic", () => {
-    // 203,038 rows / 68,432 sessions / 43 countries and ZERO of those sessions
-    // ever carried a user_id, against 438 distinct users everywhere else.
+  it("flags the fleet UA that read as human traffic", () => {
+    // Sessions from many countries, and none of them ever carried a user_id.
     expect(isAnalyticsBot(FLEET)).toBe(true);
   });
 

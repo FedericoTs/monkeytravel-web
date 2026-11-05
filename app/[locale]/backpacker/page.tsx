@@ -450,7 +450,7 @@ export default async function BackpackerLandingPage({
         </section>
 
         {/* ============== TRENDING BACKPACKER TRIPS ============== */}
-        {/* /explore Week 3 (2026-05-29): live community trips filtered to
+        {/* Live community trips filtered to
             Backpacker mode. Sits between sample routes and FAQ so visitors
             who liked the curated routes see proof other travelers actually
             use the product. Renders nothing on empty feed — see

@@ -5,10 +5,9 @@ import { NextRequest } from "next/server";
 /**
  * The Explore byline a publish stores.
  *
- * The share prompt publishes with whatever name the trip page hands it, and
- * the page used to fall back to the email's local part: 62 of the 70 public
- * trips of real users showed it (for gmail, + "@gmail.com" is the address).
- * The route now refuses it whatever the client sends.
+ * The share prompt publishes with whatever name the trip page hands it. That
+ * must not be the email's local part (for gmail, + "@gmail.com" is the
+ * address), so the route refuses it whatever the client sends.
  */
 
 const OWNER = "owner-1";

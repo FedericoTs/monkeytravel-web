@@ -297,7 +297,7 @@ export default async function DestinationDetailPage({ params }: PageProps) {
           />
         </section>
 
-        {/* /explore Week 3 (2026-05-29): real community trips for this
+        {/* Real community trips for this
             destination. Highest-intent integration point — visitor is
             already looking for {city} content; show them actual planned
             itineraries. Renders nothing when there are no matches so

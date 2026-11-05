@@ -11,9 +11,9 @@
  * - No Gmail/Outlook OAuth — pure paste flow, zero OAuth verification.
  * - No vendor parsing service ($0 ongoing cost). Gemini 2.5 Flash with
  *   responseSchema is cheap, structured, and already configured.
- * - HTML strip + whitespace collapse client of Gemini — cuts ~30-40%
- *   of tokens off the typical email body (Booking.com / Airbnb
- *   confirmations are ~80% boilerplate HTML).
+ * - HTML strip + whitespace collapse client of Gemini — cuts many of
+ *   the tokens off the typical email body (Booking.com / Airbnb
+ *   confirmations are mostly boilerplate HTML).
  *
  * The output mirrors the fields an Activity needs when an email-derived
  * booking gets turned into a trip activity by
@@ -80,7 +80,7 @@ const MAX_BODY_CHARS = 10_000;
 
 /**
  * Strip HTML tags + style/script blocks + collapse whitespace.
- * Saves ~30-40% tokens on real-world confirmation emails (which are
+ * Saves tokens on real-world confirmation emails (which are
  * usually HTML soup wrapped around a few useful fields).
  *
  * Intentionally simple — we're feeding a textarea paste to an LLM, not

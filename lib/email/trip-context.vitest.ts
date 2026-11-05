@@ -196,7 +196,7 @@ describe("caps", () => {
 
 describe("graceful degradation — the common case, not an edge case", () => {
   it("returns nothing at all when the trip has no enrichment", () => {
-    // 11% of trips have no weather_note, 30% no highlights.
+    // Plenty of trips have no weather_note or highlights.
     expect(buildContextBlocks("weather_3d", {}, L)).toEqual([]);
     expect(buildContextBlocks("visa_check_7d", {}, L)).toEqual([]);
     expect(buildContextBlocks("morning_of", {}, L)).toEqual([]);

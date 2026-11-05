@@ -58,8 +58,8 @@ describe("deriveRefineSuggestions", () => {
     expect(byName.some((x) => x.key === "noFood")).toBe(false);
   });
 
-  // 250 stops in 51 trips of two weeks were typed "foodie", and each such day
-  // was told it had nowhere to eat.
+  // The model types its food stops many ways, and a day whose stop isn't counted
+  // is told it has nowhere to eat.
   it.each(["foodie", "food_market", "restaurante", "meal", "wine bar"])("counts a stop typed %s as food", (type) => {
     const s = deriveRefineSuggestions([day(1, [act("Museum"), act("Ba'Ghetto", type)])]);
     expect(s.some((x) => x.key === "noFood")).toBe(false);
