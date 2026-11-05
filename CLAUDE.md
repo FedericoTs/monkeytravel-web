@@ -63,8 +63,9 @@ Add to these; do not start a parallel version.
 | Area | Owner |
 |---|---|
 | Itinerary generation (prompt, parsing) | `lib/gemini.ts`, `app/api/ai/generate/` (incl. `stream/`) |
-| Wizard assistant (before the trip is saved) | `lib/ai/assistant/engine.ts`, `app/api/ai/assistant-anon/` |
-| Trip-page assistant | `app/api/ai/assistant/route.ts` |
+| Regenerating an activity or a day | `lib/ai/regenerate-activity.ts`, `lib/ai/regenerate-day.ts`; calls, time limit and retries in `lib/ai/gemini-call.ts` |
+| Wizard assistant (before the trip is saved) | `lib/ai/assistant/engine.ts` (`edit-prompt.ts`, `edit-validation.ts`, `edit-reply.ts` beside it), `app/api/ai/assistant-anon/`, `hooks/useAssistantEdits.ts` |
+| Trip-page assistant | `app/api/ai/assistant/route.ts`, `hooks/useTripAssistant.ts` |
 | Shared assistant rules (honest replies, day targeting) | `lib/ai/assistant/` |
 | Saving a trip | `lib/trips/persistTrip.ts`; wizard auto-save `hooks/useAutoSaveTrip.ts`, gated by `lib/trips/autoSaveGate.ts` |
 | Concurrent itinerary writes | client queue `lib/trips/itinerary-sync.ts`, server compare-and-set `lib/trips/itinerary-cas.ts` |
@@ -76,7 +77,8 @@ Add to these; do not start a parallel version.
 | Supabase clients | `lib/supabase/server.ts`, `client.ts`; `admin.ts` is service-role and server-only |
 | Modals | `components/ui/BaseModal.tsx`; over a sticky bar pass `usePortal zIndex={100}` |
 | Product analytics | `lib/posthog/` (events, `useFlag`), `lib/analytics.ts` |
-| Email | `lib/email/` |
+| Email | `lib/email/`; scheduled ones `app/api/cron/scheduled-notifications/route.ts`, `lib/notifications/` |
+| Anonymous writes on a shared trip | `lib/participants/request.ts` (`readParticipantWrite`) |
 | Translations | `messages/{en,es,it,pt}/*.json`, locales in `lib/i18n/routing-config.ts` |
 
 ## Tests
@@ -85,6 +87,8 @@ Add to these; do not start a parallel version.
   `tsconfig.json` excludes them; `tsconfig.test.json` type-checks them.
 - Playwright specs live in `tests/e2e/`. `npm run e2e:fixtures` and `npm run e2e:login`
   work against the **production** database: remove whatever you create.
+- Every button, link and form field needs a name a screen reader can say;
+  `app/control-names.vitest.ts` fails the build otherwise.
 - CI fails on ESLint **errors**. Style rules and React Compiler advice are warnings
   (`eslint.config.mjs`); fix those in code you are already changing, not in bulk.
 
