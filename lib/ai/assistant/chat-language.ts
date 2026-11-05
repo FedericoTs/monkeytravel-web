@@ -8,9 +8,9 @@ export function chatLanguageInstruction(language: SupportedLanguage): string {
   if (language === "en") return "";
 
   const instructions: Record<Exclude<SupportedLanguage, "en">, string> = {
-    es: `\n\nIMPORTANTE: Responde COMPLETAMENTE en espanol. Los nombres de actividades, descripciones, consejos y el resumen deben estar en espanol.`,
-    it: `\n\nIMPORTANTE: Rispondi COMPLETAMENTE in italiano. I nomi delle attivita, le descrizioni, i consigli e il riepilogo devono essere in italiano.`,
-    pt: `\n\nIMPORTANTE: Responda COMPLETAMENTE em português. Os nomes das atividades, descrições, dicas e o resumo devem estar em português.`,
+    es: `\n\nIMPORTANTE: Responde COMPLETAMENTE en español, con tildes y ñ. Los nombres de actividades, descripciones, consejos y el resumen deben estar en español.`,
+    it: `\n\nIMPORTANTE: Rispondi COMPLETAMENTE in italiano, con gli accenti. I nomi delle attività, le descrizioni, i consigli e il riepilogo devono essere in italiano.`,
+    pt: `\n\nIMPORTANTE: Responda COMPLETAMENTE em português, com os acentos. Os nomes das atividades, descrições, dicas e o resumo devem estar em português.`,
   };
 
   return instructions[language];

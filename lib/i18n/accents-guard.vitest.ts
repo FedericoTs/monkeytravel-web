@@ -1,13 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { chatLanguageInstruction } from "@/lib/ai/assistant/chat-language";
+import type { SupportedLanguage } from "@/lib/ai/language";
+import { getLanguageInstruction } from "@/lib/ai/trip-prompt";
 
 /**
  * Spanish, Italian and Portuguese copy is spelled with its accents. Whole files
  * were written without them ("Contrasena", "Nao tem uma conta?", "Hai gia un
  * account?"). Each list holds spellings that are wrong in every context, so a
  * hit is always a missing accent: words that are also correct unaccented
- * ("esta", "mas", "e") are left out.
+ * ("esta", "mas", "e") are left out. The instructions the model is given count
+ * too: it writes the way it is asked.
  */
 const words = (alternatives: string[]) =>
   // Not inside a longer word, and not the local part of an address (voce@exemplo.com).
@@ -15,6 +19,7 @@ const words = (alternatives: string[]) =>
 
 const UNACCENTED: Record<string, RegExp> = {
   es: words([
+    "espanol",
     "\\p{L}+cion", // -ción
     "\\p{L}+sion", // -sión
     "contrasenas?",
@@ -59,5 +64,14 @@ describe.each(Object.entries(UNACCENTED))("messages/%s", (locale, pattern) => {
         )
       );
     expect(hits).toEqual([]);
+  });
+});
+
+describe.each(Object.entries(UNACCENTED))("the instructions in %s", (locale, pattern) => {
+  it("have no word spelled without its accent", () => {
+    const language = locale as SupportedLanguage;
+    const text = getLanguageInstruction(language) + chatLanguageInstruction(language);
+    expect(text.length).toBeGreaterThan(40);
+    expect([...text.matchAll(pattern)].map((match) => match[0])).toEqual([]);
   });
 });
