@@ -151,17 +151,17 @@ export function getLanguageInstruction(language?: SupportedLanguage): string {
   const instructions: Record<Exclude<SupportedLanguage, "en">, string> = {
     es: `
 ## IDIOMA OBLIGATORIO
-DEBES responder COMPLETAMENTE en espanol.
-- Nombres de actividades: usa el nombre local con traduccion si es util
-- Descripciones: escritas naturalmente en espanol
-- Consejos (tips): en espanol
-- Resumen del viaje: en espanol
+DEBES responder COMPLETAMENTE en español, con la ortografía correcta: tildes y ñ incluidas.
+- Nombres de actividades: usa el nombre local con traducción si es útil
+- Descripciones: escritas naturalmente en español
+- Consejos (tips): en español
+- Resumen del viaje: en español
 - Formato de hora: 24h (ej: 14:00 en lugar de 2:00 PM)
-- IMPORTANTE: Mantén la estructura JSON exacta, solo cambia el contenido de texto a espanol`,
+- IMPORTANTE: Mantén la estructura JSON exacta, solo cambia el contenido de texto a español`,
     it: `
 ## LINGUA OBBLIGATORIA
-DEVI rispondere COMPLETAMENTE in italiano.
-- Nomi delle attivita: usa il nome locale con traduzione se utile
+DEVI rispondere COMPLETAMENTE in italiano, con l'ortografia corretta, accenti inclusi.
+- Nomi delle attività: usa il nome locale con traduzione se utile
 - Descrizioni: scritte naturalmente in italiano
 - Consigli (tips): in italiano
 - Riepilogo del viaggio: in italiano
@@ -169,7 +169,7 @@ DEVI rispondere COMPLETAMENTE in italiano.
 - IMPORTANTE: Mantieni la struttura JSON esatta, cambia solo il contenuto testuale in italiano`,
     pt: `
 ## IDIOMA OBRIGATÓRIO
-VOCÊ DEVE responder COMPLETAMENTE em português.
+VOCÊ DEVE responder COMPLETAMENTE em português, com a ortografia correta, acentos incluídos.
 - Nomes das atividades: use o nome local, com tradução quando for útil
 - Descrições: escritas naturalmente em português
 - Dicas (tips): em português
