@@ -169,6 +169,20 @@ describe("a signed-out visitor's free plans", () => {
     expect(used()).toBe(5);
   });
 
+  it("the same try sent to the stream again isn't stopped by the cap it reached, and counts once", async () => {
+    haveUsed(4);
+    const id = crypto.randomUUID();
+    s.streamRefusal = "a dropped stream";
+    await (await postStream(request("/api/ai/generate/stream", id))).text();
+    expect(used()).toBe(5);
+
+    s.streamRefusal = null;
+    const again = await postStream(request("/api/ai/generate/stream", id));
+    expect(again.status).toBe(200);
+    expect(await again.text()).toContain("event: complete");
+    expect(used()).toBe(5);
+  });
+
   it("five plans are still the cap, on both endpoints, before any model call", async () => {
     haveUsed(5);
     expect(await tryForAPlan()).toMatchObject({ via: "json", status: 429, body: { code: "RATE_LIMIT" } });

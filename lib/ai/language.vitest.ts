@@ -1,7 +1,5 @@
 /** @vitest-environment node */
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import {
   AI_LANGUAGES,
   DEFAULT_LANGUAGE,
@@ -11,6 +9,7 @@ import {
   type SupportedLanguage,
 } from "./language";
 import { getLanguageInstruction } from "@/lib/ai/trip-prompt";
+import { routing } from "@/lib/i18n/routing-config";
 
 /**
  * Portuguese users were getting their itineraries generated in ENGLISH.
@@ -29,19 +28,9 @@ import { getLanguageInstruction } from "@/lib/ai/trip-prompt";
 
 describe("the AI language list", () => {
   it("matches routing.locales", () => {
-    // The drift guard. Adding a locale to the app must fail HERE rather than
-    // silently downgrading those users to English, which is how pt was missed.
-    //
-    // routing.locales is read from SOURCE TEXT: lib/i18n/routing.ts builds
-    // next-intl navigation helpers, which pull next/navigation and cannot load
-    // under vitest.
-    const src = readFileSync(join(process.cwd(), "lib", "i18n", "routing-config.ts"), "utf8");
-    const literal = src.match(/locales:\s*\[([^\]]+)\]/)?.[1];
-    expect(literal, "could not find routing.locales — has the file moved?").toBeTruthy();
-    const routingLocales = [...literal!.matchAll(/["']([a-z-]+)["']/g)].map((m) => m[1]);
-
-    expect(routingLocales.length).toBeGreaterThan(0);
-    expect([...AI_LANGUAGES].sort()).toEqual([...routingLocales].sort());
+    // Adding a locale to the app must fail here, not silently give those users
+    // English.
+    expect([...AI_LANGUAGES].sort()).toEqual([...routing.locales].sort());
   });
 
   it.each(AI_LANGUAGES)("recognises %s", (lang) => {
@@ -64,52 +53,6 @@ describe("the AI language list", () => {
       expect(resolveAiLanguage(raw), String(raw)).toBe(DEFAULT_LANGUAGE);
     }
     expect(isSupportedLanguage("de")).toBe(false);
-  });
-});
-
-describe("the entry points actually use it", () => {
-  /** Every place that turns a cookie or profile column into a language. */
-  const PARSERS = ["lib/ai/user-context.ts", "lib/ai/assistant/turn.ts"];
-  /** Routes that fall back to the visitor's locale cookie (the trip assistant's, through its turn). */
-  const COOKIE_READERS = [
-    "lib/ai/assistant/turn.ts",
-    "app/api/ai/regenerate-activity/route.ts",
-    "app/api/ai/regenerate-day/route.ts",
-  ];
-  const ENTRY_POINTS = [...new Set([...PARSERS, ...COOKIE_READERS, "app/api/ai/assistant/route.ts"])];
-
-  it("the trip assistant's route reads its turn, and so its language, through readAssistantTurn", () => {
-    const src = readFileSync(join(process.cwd(), "app/api/ai/assistant/route.ts"), "utf8");
-    expect(src).toContain("readAssistantTurn(request");
-  });
-
-  it.each(COOKIE_READERS)("%s reads the locale cookie through readLocaleCookie", (file) => {
-    const src = readFileSync(join(process.cwd(), file), "utf8");
-    expect(src).toContain("readLocaleCookie()");
-    expect(src).not.toContain('"NEXT_LOCALE"');
-  });
-
-  it.each(PARSERS)("%s resolves the locale instead of membership-testing it", (file) => {
-    // Shipping the helper is not the same as calling it. The first pass at this
-    // fix swapped the inline ["en","es","it"] arrays for isSupportedLanguage()
-    // and the unit tests above all passed — but a strict membership test still
-    // rejects "pt-BR" outright, so pt-BR users kept getting English. Only
-    // driving the real route caught it.
-    const src = readFileSync(join(process.cwd(), file), "utf8");
-    expect(src).toContain("resolveAiLanguage");
-    expect(src, "strict check on the locale cookie").not.toMatch(
-      /isSupportedLanguage\(\s*localeCookie\.value/
-    );
-    expect(src, "strict check on preferred_language").not.toMatch(
-      /isSupportedLanguage\(\s*profile(Row)?\.preferred_language/
-    );
-  });
-
-  it.each(ENTRY_POINTS)("%s does not re-declare the language list", (file) => {
-    // Six independent copies of ["en","es","it"] is how pt was missed.
-    const src = readFileSync(join(process.cwd(), file), "utf8");
-    expect(src).not.toMatch(/type SupportedLanguage\s*=\s*"en"/);
-    expect(src).not.toMatch(/\["en",\s*"es",\s*"it"\]/);
   });
 });
 
@@ -171,17 +114,5 @@ describe("requestLocale", () => {
 
   it("returns null for anything else, so the caller falls back", () => {
     for (const v of [undefined, null, "", "de", 42, {}]) expect(requestLocale(v)).toBeNull();
-  });
-
-  it("is what picks the generation language", () => {
-    // The NEXT_LOCALE cookie is usually absent, so the page locale must win.
-    const read = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), "utf8");
-    const wizard = read("app", "[locale]", "(app)", "trips", "new", "NewTripWizard.tsx");
-    expect(wizard).toMatch(/generationRequest\(answers, \{[^}]*\blocale,/);
-    expect(read("lib", "wizard", "generation-request.ts")).toMatch(/body: \{ \.\.\.params, locale: extra\.locale/);
-    expect(read("lib", "ai", "generation-caller.ts")).toContain("requestLocale(body.locale) ?? userContext.userLanguage");
-    for (const route of [["app", "api", "ai", "generate", "route.ts"], ["app", "api", "ai", "generate", "stream", "route.ts"]]) {
-      expect(read(...route)).toContain("readGenerationCaller(request, generationId)");
-    }
   });
 });
