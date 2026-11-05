@@ -31,6 +31,7 @@ export default function AddActivityButton({
 }: AddActivityButtonProps) {
   const t = useTranslations("common.addActivity");
   const tTrip = useTranslations("common.trip");
+  const tCommon = useTranslations("common");
   const [isExpanded, setIsExpanded] = useState(false);
   const {
     query: searchQuery,
@@ -128,6 +129,7 @@ export default function AddActivityButton({
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50">
         <span className="font-medium text-slate-700">{t("title")} - {tTrip("dayLabel", { number: dayIndex + 1 })}</span>
         <button
+          aria-label={tCommon("buttons.close")}
           onClick={() => {
             setIsExpanded(false);
             setShowCustomForm(false);

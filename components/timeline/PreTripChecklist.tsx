@@ -222,6 +222,7 @@ function ChecklistRow({
   onDelete: () => void;
   t: (key: string) => string;
 }) {
+  const tA11y = useTranslations("common.a11y");
   const [showDelete, setShowDelete] = useState(false);
 
   const isDueSoon = item.due_date && !item.is_checked && (() => {
@@ -242,6 +243,8 @@ function ChecklistRow({
       onMouseLeave={() => setShowDelete(false)}
     >
       <button
+        aria-label={item.text}
+        aria-pressed={item.is_checked}
         onClick={onToggle}
         className={`
           flex-shrink-0 w-5 h-5 rounded-md border-2
@@ -286,6 +289,7 @@ function ChecklistRow({
 
       {showDelete && (
         <button
+          aria-label={tA11y("removeItem", { item: item.text })}
           onClick={onDelete}
           className="
             p-1 rounded text-slate-500 hover:text-red-500

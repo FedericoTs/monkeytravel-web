@@ -350,6 +350,7 @@ export default function TemplatesPageClient() {
   // Header H1 and chrome come from the catalog, in the page's language.
   const t = useTranslations("common.curatedEscapes");
   const tNav = useTranslations("common.navigation");
+  const tA11y = useTranslations("common.a11y");
   const locale = useLocale();
   const moodLabel = useMoodLabel();
   const [templates, setTemplates] = useState<TemplateTrip[]>([]);
@@ -528,6 +529,7 @@ export default function TemplatesPageClient() {
               />
               {searchQuery && (
                 <button
+                  aria-label={tA11y("clearSearch")}
                   onClick={() => setSearchQuery("")}
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center hover:bg-slate-300 transition-colors"
                 >

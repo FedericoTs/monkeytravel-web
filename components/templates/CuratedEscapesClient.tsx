@@ -90,6 +90,7 @@ function SkeletonCard() {
  */
 export default function CuratedEscapesClient() {
   const t = useTranslations("common.curatedEscapes");
+  const tA11y = useTranslations("common.a11y");
   const [templates, setTemplates] = useState<TemplateTrip[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -266,6 +267,7 @@ export default function CuratedEscapesClient() {
 
         <div className="hidden md:flex items-center gap-2">
           <button
+            aria-label={tA11y("scrollPrevious")}
             onClick={() => scrollByCards("left")}
             disabled={!canScrollLeft}
             className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${
@@ -277,6 +279,7 @@ export default function CuratedEscapesClient() {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
+            aria-label={tA11y("scrollNext")}
             onClick={() => scrollByCards("right")}
             disabled={!canScrollRight}
             className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${

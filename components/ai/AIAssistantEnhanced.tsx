@@ -434,6 +434,7 @@ export default function AIAssistantEnhanced({
               </svg>
               {error}
               <button
+                aria-label={tCommon("a11y.dismiss")}
                 onClick={() => setError(null)}
                 className="ml-auto text-red-400 hover:text-red-600"
               >
@@ -480,6 +481,7 @@ export default function AIAssistantEnhanced({
               />
             </div>
             <button
+              aria-label={tCommon("a11y.sendMessage")}
               type="submit"
               disabled={!input.trim() || isLoading || isApplyingChange}
               className="p-3 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-deeper)] text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 shadow-md"
