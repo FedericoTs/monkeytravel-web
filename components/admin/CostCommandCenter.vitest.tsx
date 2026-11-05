@@ -47,7 +47,7 @@ describe("the Costs tab", () => {
     render(<CostCommandCenter />);
     fireEvent.click(screen.getByRole("button", { name: /load/i }));
 
-    expect((await screen.findByTestId("costs-list-price-note")).textContent).toMatch(/list price.*free allowances.*Billing/s);
+    expect((await screen.findByTestId("costs-list-price-note")).textContent).toMatch(/list price[sS]*free allowances[sS]*Billing/);
     expect(screen.getByText("Total logged")).toBeTruthy();
     expect(screen.queryByText("Total Spent")).toBeNull();
     expect(screen.getByText("$580.75")).toBeTruthy();
