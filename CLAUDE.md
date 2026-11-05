@@ -67,7 +67,7 @@ Add to these; do not start a parallel version.
 | Wizard assistant (before the trip is saved) | `lib/ai/assistant/engine.ts` (`edit-prompt.ts`, `edit-validation.ts`, `edit-reply.ts` beside it), `app/api/ai/assistant-anon/`, `hooks/useAssistantEdits.ts` |
 | Trip-page assistant | `app/api/ai/assistant/route.ts`, `hooks/useTripAssistant.ts` |
 | Shared assistant rules (honest replies, day targeting) | `lib/ai/assistant/` |
-| Saving a trip | `lib/trips/persistTrip.ts`; wizard auto-save `hooks/useAutoSaveTrip.ts`, gated by `lib/trips/autoSaveGate.ts` |
+| Saving a trip | `lib/trips/persistTrip.ts`; the wizard's Save button and reports `hooks/useWizardSave.ts`, auto-save `hooks/useAutoSaveTrip.ts`, gated by `lib/trips/autoSaveGate.ts` |
 | Concurrent itinerary writes | client queue `lib/trips/itinerary-sync.ts`, server compare-and-set `lib/trips/itinerary-cas.ts` |
 | Changing trip dates | `lib/trips/change-dates.ts` |
 | Dates | `lib/datetime/` for display formatting, `lib/dates/iso-date.ts` for `YYYY-MM-DD` input |
