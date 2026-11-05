@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, type ReactNode } from "react";
-import type { GrowthStats } from "@/app/api/admin/growth/route";
+import type { GrowthStats } from "@/lib/admin/growth/types";
 
 // ============================================
 // RETENTION METRICS COMPONENT
