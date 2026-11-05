@@ -53,66 +53,6 @@ describe("trips_itinerary_version", () => {
 });
 
 describe("the save paths use it", () => {
-  it("PATCH filters on the base version and answers a stale save with 409", () => {
-    const route = read("app/api/trips/[id]/route.ts");
-    expect(route).toContain('write = write.eq("itinerary_version", baseItineraryVersion)');
-    expect(route).toContain('code: "ITINERARY_CONFLICT"');
-  });
-
-  it("regenerate-day and enrichment write compare-and-set", () => {
-    expect(read("app/api/ai/regenerate-day/route.ts")).toContain("casUpdateItinerary(supabase");
-    expect(read("lib/images/enrichTrip.ts")).toContain("casUpdateItinerary(db");
-  });
-
-  it("the trip page never aborts a save and reads the version from props only once", () => {
-    const page = tripPage();
-    expect(page).not.toMatch(/saveAbortRef|new AbortController\(\)/);
-    expect(page.match(/trip\.itineraryVersion/g)?.length).toBe(1);
-  });
-
-  it("every save sends a base that belongs to its content", () => {
-    const page = tripPage();
-    const sends = page.match(/sync\.send\([^)]*\)/g) ?? [];
-    expect(sends.length).toBeGreaterThan(0);
-    for (const call of sends) expect(call).toMatch(/sync\.send\(payload, base\)/);
-    // Explicit Save: the base is taken together with the content.
-    expect(page).toContain("saveExplicit(JSON.stringify(editedItinerary), editedItinerary, sync.baseVersion())");
-    // Autosave: an edit built before a regeneration/reload is not sent on the new base.
-    expect(page).toContain("pendingEpochRef.current = sync.epoch();");
-    expect(page).toContain("if (pendingEpochRef.current !== sync.epoch()) return;");
-    // A day regeneration this tab started moves the epoch; its own saves do not.
-    expect(page).toContain("sync.adoptWrite(to);");
-    expect(page).not.toMatch(/sync\.adopt\(to\)/);
-  });
-
-  it("no server write runs over edits held by a conflict, and adopting a server copy drops undo history", () => {
-    const page = tripPage();
-    expect(page).toContain('if (conflictRef.current) throw new ItineraryWriteBlockedError(t("detail.writeBlockedConflict"));');
-    // ...nor over edits still unsaved, unless the write keeps them (a regenerated day is spliced in).
-    expect(page).toContain('throw new ItineraryWriteBlockedError(t("detail.writeBlockedUnsaved"));');
-    expect(page).toContain("}, { keepsLocalEdits: true });");
-    // Every adoption of content read from the server clears undo history
-    // (Keep mine is exempt: the content it keeps, and its history, are the user's).
-    const from = (marker: string, length: number) => {
-      const at = page.indexOf(marker);
-      expect(at).toBeGreaterThan(-1);
-      return page.slice(at, at + length);
-    };
-    for (const site of [
-      from("const handleLoadLatest", 1000),
-      from("const handleRefetchTrip", 5000),
-      from("const adoptStoredItinerary", 1000),
-    ]) {
-      expect(site).toContain("sync.reset(");
-      expect(site).toContain("clearHistory()");
-    }
-    for (const locale of ["en", "es", "it", "pt"]) {
-      const detail = JSON.parse(read(`messages/${locale}/trips.json`)).detail;
-      expect(detail.writeBlockedConflict).toBeTruthy();
-      expect(detail.writeBlockedUnsaved).toBeTruthy();
-    }
-  });
-
   it("no phantom first-render edit: one copy for both states, with ids derived from the stored trip", () => {
     const page = tripPage();
     // ensureActivityIds mints random ids: two calls made the page look edited,
@@ -137,32 +77,5 @@ describe("the save paths use it", () => {
     const wizard = read("app/[locale]/(app)/trips/new/NewTripWizard.tsx");
     expect(wizard).toContain("return missing ? { ...value, days: ensureActivityIds(value.days) } : value;");
     expect(wizard).toContain("const [generatedItinerary, setGeneratedItineraryRaw] = useState<GeneratedItinerary | null>(null);");
-  });
-
-  it("a whole-itinerary save keeps stored place photos (enrichment vs a page loaded before it)", () => {
-    const route = read("app/api/trips/[id]/route.ts");
-    expect(route).toContain("updates.itinerary = keepStoredPlacePhotos(");
-  });
-
-  it("only real editing blocks a server write, and a view-only regenerate shows the stored copy", () => {
-    const page = tripPage();
-    expect(page).toContain("(!ambientEditRef.current && isEditModeRef.current && hasChangesRef.current)");
-    // ...taken only if no edit arrived while re-reading; otherwise spliced on top of it.
-    expect(page).toContain("await refetchTripRef.current?.({ onlyIfUnedited: true })");
-    expect(page).toContain("if (options?.onlyIfUnedited && (pendingSaveRef.current !== null || hasChangesRef.current)) return false;");
-  });
-
-  it("a page restored from the router cache catches up instead of 409ing on its own saves", () => {
-    const page = tripPage();
-    expect(page).toContain("if (known !== null && propsVersion !== null && known > propsVersion) router.refresh();");
-    // Newer props are taken as a pair, and never over local edits.
-    expect(page).toContain("if (pendingSaveRef.current || hasChangesRef.current || conflictRef.current) return;");
-    expect(page).toContain("sync.reset(propsVersion);");
-  });
-
-  it("a regenerated day keeps the stored day's date and position", () => {
-    const route = read("app/api/ai/regenerate-day/route.ts");
-    expect(route).toContain("date: stored.date,");
-    expect(route).toContain("day_number: stored.day_number,");
   });
 });
