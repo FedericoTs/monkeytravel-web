@@ -7,12 +7,14 @@ export interface FakeQuery {
   table: string;
   op: "select" | "insert" | "update" | "upsert" | "delete" | "rpc";
   value?: unknown;
+  /** What `.select()` named, when it was called. */
+  columns?: string;
   filters: Array<[op: "eq" | "neq" | "is" | "not" | "in" | "lt" | "lte" | "gt" | "gte" | "like" | "ilike", column: string, value: unknown]>;
   /** How the query was awaited: a single row, or the whole list. */
   end: "single" | "maybeSingle" | "list";
 }
 
-export type FakeAnswer = (q: FakeQuery) => { data: unknown; error: unknown };
+export type FakeAnswer = (q: FakeQuery) => { data: unknown; error: unknown; count?: number | null };
 
 /** The value a query filtered `column` on with `.eq()`. */
 export const eqOf = (q: FakeQuery, column: string): unknown => q.filters.find(([op, c]) => op === "eq" && c === column)?.[2];
@@ -27,7 +29,7 @@ export function fakeSupabase(answer: FakeAnswer = () => ({ data: null, error: nu
       return answer(q);
     };
     const chain: Record<string, unknown> = {
-      select: () => chain,
+      select: (columns?: string) => ((q.columns = columns), chain),
       insert: (v: unknown) => ((q.op = "insert"), (q.value = v), chain),
       update: (v: unknown) => ((q.op = "update"), (q.value = v), chain),
       upsert: (v: unknown) => ((q.op = "upsert"), (q.value = v), chain),

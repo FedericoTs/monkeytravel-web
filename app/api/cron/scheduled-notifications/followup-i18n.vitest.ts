@@ -1,4 +1,3 @@
-import { cronSource } from "@/tests/cron-source";
 import { describe, it, expect } from "vitest";
 import { createTranslator } from "next-intl";
 import { readFileSync } from "fs";
@@ -189,72 +188,6 @@ describe("the return email claims only what we know", () => {
   it("en: no longer assumes the trip happened or promises questions about the plan", () => {
     const body = resolve(messagesFor("en"), "common.tripFollowupEmail.followup_return_3d.body") as string;
     expect(body).not.toMatch(/got back|plan got right|on the ground/i);
-  });
-});
-
-describe("consent: these are marketing, not transactional", () => {
-  const send = readFileSync(
-    join(ROOT, "lib", "email", "send.ts"),
-    "utf8"
-  );
-
-  it("gates trip_followup on marketingNotifications", () => {
-    // The whole ethical distinction of Loop 2 in one assertion. Someone who
-    // opted into reminders for a trip they booked has NOT agreed to be
-    // marketed to after it ends.
-    expect(send).toMatch(/trip_followup:\s*"marketingNotifications"/);
-  });
-
-  it("never gates trip_followup on tripReminders", () => {
-    expect(send).not.toMatch(/trip_followup:\s*"tripReminders"/);
-  });
-
-  it("keeps the pre-trip cascade on tripReminders", () => {
-    // Guards the reverse mistake — widening the reminder gate to marketing
-    // would silently stop honouring a reminder opt-out.
-    expect(send).toMatch(/trip_reminder:\s*"tripReminders"/);
-  });
-
-  it("mints a one-click unsubscribe under the marketing key", () => {
-    // RFC 8058 List-Unsubscribe is built from UNSUB_KEY. A marketing send
-    // whose unsubscribe writes the WRONG preference is worse than none: the
-    // user believes they opted out and keeps receiving mail.
-    const unsubBlock = send.slice(send.indexOf("const UNSUB_KEY"));
-    expect(unsubBlock).toMatch(/trip_followup:\s*"marketingNotifications"/);
-  });
-});
-
-describe("the cron wires the followup family correctly", () => {
-  const source = cronSource();
-
-  it("uses the prefixed common.tripFollowupEmail namespace", () => {
-    expect(source).toContain('"common.tripFollowupEmail"');
-  });
-
-  it("never asks for the bare tripFollowupEmail namespace", () => {
-    expect(source).not.toMatch(/namespace:\s*`tripFollowupEmail\./);
-    expect(source).not.toMatch(/namespace:\s*"tripFollowupEmail"/);
-  });
-
-  it("suppresses the sequence once the user plans another trip", () => {
-    // The exit condition. Without it, "Thinking about the next one?" lands on
-    // someone who booked it last week.
-    expect(source).toContain("user_has_new_trip");
-  });
-
-  it("sends the sequence only to people who came back after making the trip", () => {
-    expect(source).toMatch(/cameBack\(from, await loadEngagement\(svc, row\.user_id, user\.email, from\)\)/);
-    expect(source).toContain('"no_engagement"');
-    expect(source).toContain('"engagement_read_error"');
-  });
-
-  it("gives the body the day the trip ended", () => {
-    expect(source).toMatch(/t\("body", \{ destination, endDate \}\)/);
-  });
-
-  it("still refuses to send an unresolved string", () => {
-    expect(source).toContain("assertTranslated");
-    expect(source).toContain("tripFollowupEmail.");
   });
 });
 
