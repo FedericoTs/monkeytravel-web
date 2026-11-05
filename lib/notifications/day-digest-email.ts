@@ -21,6 +21,8 @@ import { type SlotRow, type TripEmailRow, assertTranslated, persistOutcome } fro
  * is one template parameterised by day number. Same `common.` mounting rule.
  */
 const DIGEST_NS = "common.tripDayDigestEmail";
+// A guest said they're going and gave their address, as in the plan email.
+const GUEST_FOOTER_NS = "common.participantPlanEmail";
 
 /**
  * Render + dispatch one in-trip day digest.
@@ -82,7 +84,7 @@ export async function dispatchDayDigest(
     tr: Awaited<ReturnType<typeof getTranslations>>,
     ctaUrl: string,
     idemSuffix: string,
-    guestUnsubscribeUrl?: string,
+    guest?: { unsubscribeUrl: string; footerCopy: { reason: string; link: string } },
     groupSendUrl?: string,
   ): Promise<Awaited<ReturnType<typeof dispatchEmail>> | { ok: false; status: "failed"; error: string; i18n: true }> => {
     const heading = tr("heading", { day });
@@ -111,12 +113,12 @@ export async function dispatchDayDigest(
         : [];
     const template: EmailTemplate = {
       id: "trip_day_digest",
-      props: { day, destination, heading, intro, blocks, emptyLine, andMore, ctaLabel, tripUrl: ctaUrl, locale: loc, groupSend },
+      props: { day, destination, heading, intro, blocks, emptyLine, andMore, ctaLabel, tripUrl: ctaUrl, locale: loc, groupSend, footerCopy: guest?.footerCopy },
     };
     return dispatchEmail({
       recipientEmail: email,
       recipientUserId: userId,
-      guestUnsubscribeUrl,
+      guestUnsubscribeUrl: guest?.unsubscribeUrl,
       idempotencyKey: `${template.id}:${row.trip_id}:${row.slot}${idemSuffix}`,
       locale: loc,
       template,
@@ -176,6 +178,8 @@ export async function dispatchDayDigest(
       if (recipients.length > 0) {
         const partLocale = resolveLocale(trip.trip_locale);
         const partT = await getTranslations({ locale: partLocale, namespace: DIGEST_NS });
+        const guestT = await getTranslations({ locale: partLocale, namespace: GUEST_FOOTER_NS });
+        const footerCopy = { reason: guestT("footerReason"), link: guestT("footerLink") };
         const shareUrl = `${APP_URL}/shared/${trip.share_token}?slot=${row.slot}`;
         let sent = 0, skipped = 0, failed = 0;
         for (const r of recipients) {
@@ -193,7 +197,8 @@ export async function dispatchDayDigest(
               continue;
             }
           }
-          const pr = await sendDigest(r.email, r.userId, partLocale, partT, shareUrl, `:${r.key}`, guestUnsub);
+          const guest = guestUnsub ? { unsubscribeUrl: guestUnsub, footerCopy } : undefined;
+          const pr = await sendDigest(r.email, r.userId, partLocale, partT, shareUrl, `:${r.key}`, guest);
           if (pr.ok && pr.status === "sent") sent++;
           else if (pr.ok) skipped++;
           else failed++;

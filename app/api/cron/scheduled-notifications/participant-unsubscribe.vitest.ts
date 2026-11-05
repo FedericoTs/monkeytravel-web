@@ -145,6 +145,13 @@ describe("digest fan-out to participants", () => {
     // The owner and a signed-in participant unsubscribe through their accounts.
     expect(owner).toMatchObject({ recipientUserId: OWNER, guestUnsubscribeUrl: undefined });
     expect(cy).toMatchObject({ recipientUserId: MEMBER, guestUnsubscribeUrl: undefined });
+
+    // Only a guest's footer says why they got this without an account.
+    const footer = (call: (typeof calls)[number]) => (call.template as { props: { footerCopy?: { reason: string } } }).props.footerCopy;
+    expect(footer(ana)?.reason).toMatch(/you said you're going/i);
+    expect(footer(bo)?.reason).toMatch(/you said you're going/i);
+    expect(footer(owner)).toBeUndefined();
+    expect(footer(cy)).toBeUndefined();
   });
 
   it("never emails the share link to someone who said they're going only on the public page", async () => {
