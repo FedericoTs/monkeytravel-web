@@ -105,6 +105,7 @@ import { GET, POST, DELETE } from "./route";
 import { DELETE as UNPUBLISH } from "../publish/route";
 import { logFunnelEventServer } from "@/lib/analytics/funnel-events";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { purgeTripCard } from "@/lib/seo/trip-card-cache";
 
 const ctx = { params: Promise.resolve({ id: TRIP }) } as never;
 const req = (method = "GET") => new NextRequest(`https://monkeytravel.app/api/trips/${TRIP}/share`, { method });
@@ -186,6 +187,13 @@ describe("stopping sharing a trip on Explore", () => {
     expect(updates).toEqual([{ share_token: null, shared_at: null, visibility: "private", submitted_to_trending_at: null }]);
   });
 
+  it("drops the trip's cached card, once it's done", async () => {
+    await DELETE(req("DELETE"), ctx);
+    expect(purgeTripCard).not.toHaveBeenCalled();
+    for (const task of afterTasks) await task();
+    expect(purgeTripCard).toHaveBeenCalledWith(TRIP);
+  });
+
   it("sharing it again does not report it as listed", async () => {
     await DELETE(req("DELETE"), ctx);
     expect((await POST(req("POST"), ctx)).status).toBe(200);
@@ -200,6 +208,15 @@ describe("stopping sharing a trip on Explore", () => {
 });
 
 describe("unpublishing a listed trip", () => {
+  it("drops the trip's cached card, once it's done", async () => {
+    await UNPUBLISH(new NextRequest(`https://monkeytravel.app/api/trips/${TRIP}/publish`, { method: "DELETE" }), {
+      params: Promise.resolve({ id: TRIP }),
+    });
+    expect(purgeTripCard).not.toHaveBeenCalled();
+    for (const task of afterTasks) await task();
+    expect(purgeTripCard).toHaveBeenCalledWith(TRIP);
+  });
+
   it("keeps it shared under a new token, and the status hands out that token", async () => {
     const res = await UNPUBLISH(new NextRequest(`https://monkeytravel.app/api/trips/${TRIP}/publish`, { method: "DELETE" }), {
       params: Promise.resolve({ id: TRIP }),
