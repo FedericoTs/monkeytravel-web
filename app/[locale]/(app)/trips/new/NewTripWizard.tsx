@@ -29,7 +29,6 @@ export interface PrefilledTripShape {
   budget: BudgetTier | null;
   vibes: string[];
 }
-import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { GeneratedItinerary, TripAnchor, TripVibe, SeasonalContext, BudgetTier, TripPace } from "@/types";
 import type { Diet } from "@/lib/trips/diet";
@@ -216,14 +215,8 @@ import ResultDatesNotice from "@/components/wizard/ResultDatesNotice";
 import { anonymousShare } from "@/lib/wizard/anonymous-share";
 import { seasonalVibeSeed } from "@/lib/wizard/seasonal-vibes";
 import { safeSet } from "@/lib/safe-storage";
-import {
-  insertTrip as persistInsertTrip,
-  updateTrip as persistUpdateTrip,
-  deleteTrip as persistDeleteTrip,
-  attachCoverImage as persistAttachCoverImage,
-  type TripFormState as PersistTripFormState,
-  type PersistInput,
-} from "@/lib/trips/persistTrip";
+import type { TripFormState as PersistTripFormState } from "@/lib/trips/persistTrip";
+import { newWizardMountId, wizardTripWrites } from "@/lib/trips/wizard-trip-writes";
 import { newTripTitle } from "@/lib/trips/title";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
@@ -823,54 +816,8 @@ export default function NewTripPage({
     locale,
   });
 
-  // One id per wizard MOUNT, written into every trip this mount inserts, so a
-  // duplicate insert can be diagnosed: different mount ids mean a remount
-  // (reload/second tab, where a fresh insert is correct); the same mount id
-  // means the saved-trip ref was lost inside one mount (a real bug).
-  //
-  // useRef, not useState: it must never trigger a render, and it must survive
-  // every re-render of this very large component without changing.
-  const wizardMountIdRef = useRef<string | null>(null);
-  if (wizardMountIdRef.current === null) {
-    wizardMountIdRef.current =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        // Older Safari has crypto but not randomUUID. A collision here costs a
-        // slightly ambiguous diagnostic, nothing user-facing, so a cheap
-        // fallback beats pulling in a dependency.
-        : `m_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
-  }
-
-  const autoSaveTrip = useCallback(async (input: PersistInput) => {
-    const supabase = createClient();
-    // Local session read, not a network getUser(): the RPC enforces
-    // auth.uid() under RLS regardless, and a network pre-check would turn any
-    // auth hiccup into a hard failure of the save that nobody could see. The
-    // error names its cause so Sentry can group it.
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) throw new Error("auto-save: no client session");
-    return persistInsertTrip(supabase, input, session.user.id, {
-      arm: "auto",
-      mountId: wizardMountIdRef.current,
-    });
-  }, []);
-
-  const autoUpdateTrip = useCallback(async (tripId: string, input: PersistInput) => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Not authenticated");
-    return persistUpdateTrip(supabase, tripId, input, user.id);
-  }, []);
-
-  const autoDeleteTrip = useCallback(async (tripId: string) => {
-    const supabase = createClient();
-    return persistDeleteTrip(supabase, tripId);
-  }, []);
-
-  const autoAttachCoverImage = useCallback(async (tripId: string, dest: string) => {
-    const supabase = createClient();
-    return persistAttachCoverImage(supabase, tripId, dest);
-  }, []);
+  // What this mount writes to the database (lib/trips/wizard-trip-writes.ts).
+  const [tripWrites] = useState(() => wizardTripWrites(newWizardMountId()));
 
   // A trip just inserted, by either save. The report runs once per trip (a
   // login-return remount can insert the same row again); the rest every time.
@@ -1031,10 +978,10 @@ export default function NewTripPage({
     adoptedTripId,
     replaceTripId: sameTrip.replaceTripId,
     formState: autoSaveFormState,
-    saveTrip: autoSaveTrip,
-    updateTrip: autoUpdateTrip,
-    deleteTrip: autoDeleteTrip,
-    attachCoverImage: autoAttachCoverImage,
+    saveTrip: tripWrites.saveTrip,
+    updateTrip: tripWrites.updateTrip,
+    deleteTrip: tripWrites.deleteTrip,
+    attachCoverImage: tripWrites.attachCoverImage,
     onPersisted: handlePersisted,
     onError: reportAutoSaveFailure,
     onSkipped: reportAutoSaveSkipped,
@@ -1586,7 +1533,6 @@ export default function NewTripPage({
       // goes through the per-request client (RLS will re-verify the session
       // on the wire).
       const user = authUser;
-      const supabase = createClient();
 
       if (!user) {
         // This is the auth wall; generating needs no account (up to the
@@ -1618,13 +1564,11 @@ export default function NewTripPage({
       // arm's: one builder, so neither arm can drop a field the other stores.
       // The insert_trip_dedup RPC inside it makes a double save reuse the
       // first row. The cover follows once the row exists, as for auto-save.
-      const { tripId: savedId } = await persistInsertTrip(
-        supabase,
+      const { tripId: savedId } = await tripWrites.saveTripManually(
         { itinerary: generatedItinerary, formState: autoSaveFormState },
         user.id,
-        { arm: "manual", mountId: wizardMountIdRef.current },
       );
-      void autoAttachCoverImage(savedId, autoSaveFormState.destination);
+      void tripWrites.attachCoverImage(savedId, autoSaveFormState.destination);
       tripInserted(savedId, tripSpanDays(startDate, endDate), "Trip Save");
 
       // Go straight to the trip. The share ask waits until the user has
