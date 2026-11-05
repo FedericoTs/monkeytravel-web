@@ -1,4 +1,4 @@
-import type { EnhancedCostAnalytics } from "@/app/api/admin/costs/route";
+import type { EnhancedCostAnalytics } from "@/lib/admin/costs/types";
 
 export function DailyTrendChart({ data }: { data: EnhancedCostAnalytics["dailyTrend"] }) {
   const maxCost = Math.max(...data.map(d => d.cost), 0.01);

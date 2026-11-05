@@ -1,4 +1,4 @@
-import type { EnhancedCostAnalytics } from "@/app/api/admin/costs/route";
+import type { EnhancedCostAnalytics } from "@/lib/admin/costs/types";
 import { formatApiName } from "./format";
 
 export function CircuitBreakerPanel({ breakers }: { breakers: EnhancedCostAnalytics["circuitBreakers"] }) {
