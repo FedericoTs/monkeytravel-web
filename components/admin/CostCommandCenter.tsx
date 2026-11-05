@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import type { EnhancedCostAnalytics } from "@/app/api/admin/costs/route";
+import type { EnhancedCostAnalytics } from "@/lib/admin/costs/types";
 import { MetricCard } from "@/components/admin/costs/MetricCard";
 import { CircuitBreakerPanel } from "@/components/admin/costs/CircuitBreakerPanel";
 import { PerformancePanel } from "@/components/admin/costs/PerformancePanel";

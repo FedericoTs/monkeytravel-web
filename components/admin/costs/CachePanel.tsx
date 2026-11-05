@@ -1,4 +1,4 @@
-import type { EnhancedCostAnalytics } from "@/app/api/admin/costs/route";
+import type { EnhancedCostAnalytics } from "@/lib/admin/costs/types";
 
 export function CachePanel({ cache }: { cache: EnhancedCostAnalytics["cache"] }) {
   const circumference = 2 * Math.PI * 40;

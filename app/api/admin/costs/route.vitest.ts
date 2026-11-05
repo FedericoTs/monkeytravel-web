@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeSupabase, type FakeQuery } from "@/tests/fake-supabase";
-import type { EnhancedCostAnalytics } from "./route";
+import type { EnhancedCostAnalytics } from "@/lib/admin/costs/types";
 
 /**
  * The Costs tab's numbers cover what it says they cover. The real route runs over

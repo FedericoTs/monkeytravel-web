@@ -1,4 +1,4 @@
-import type { EnhancedCostAnalytics } from "@/app/api/admin/costs/route";
+import type { EnhancedCostAnalytics } from "@/lib/admin/costs/types";
 
 export function ApiBreakdownTable({ apis }: { apis: EnhancedCostAnalytics["byApi"] }) {
   if (apis.length === 0) {
