@@ -10,15 +10,23 @@ import { useTodayActions } from "./useTodayActions";
  */
 
 let onChanged: (() => void) | null = null;
+const opened: unknown[][] = [];
+const listened: unknown[][] = [];
 vi.mock("@/lib/supabase/client", () => {
   const channel = {
-    on: (_type: string, _filter: unknown, handler: () => void) => {
+    on: (type: string, filter: unknown, handler: () => void) => {
+      listened.push([type, filter]);
       onChanged = handler;
       return channel;
     },
     subscribe: () => channel,
   };
-  return { createClient: () => ({ channel: () => channel, removeChannel: () => undefined }) };
+  return {
+    createClient: () => ({
+      channel: (...args: unknown[]) => (opened.push(args), channel),
+      removeChannel: () => undefined,
+    }),
+  };
 });
 
 const reads: string[] = [];
@@ -26,6 +34,8 @@ const reads: string[] = [];
 beforeEach(() => {
   vi.useFakeTimers();
   reads.length = 0;
+  opened.length = 0;
+  listened.length = 0;
   onChanged = null;
   vi.stubGlobal(
     "fetch",
@@ -42,6 +52,15 @@ afterEach(() => {
 });
 
 describe("useTodayActions", () => {
+  it("listens for the trip's change event on its private channel", async () => {
+    renderHook(() => useTodayActions("/api/shared/token-1", "trip-1", true));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(opened).toEqual([["trip-today:trip-1", { config: { private: true } }]]);
+    expect(listened).toEqual([["broadcast", { event: "changed" }]]);
+  });
+
   it("refreshes the chips and the expenses on a change, at most once per gap", async () => {
     const alsoRefresh = vi.fn(async () => undefined);
     renderHook(() => useTodayActions("/api/shared/token-1", "trip-1", true, alsoRefresh));

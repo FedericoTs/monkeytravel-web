@@ -14,6 +14,7 @@ let signedIn: { id: string } | null = { id: "mate-1" };
 let member = true;
 let log: FakeQuery[] = [];
 const announced: string[] = [];
+const sent: unknown[][] = [];
 
 vi.mock("next/server", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/server")>()),
@@ -47,7 +48,12 @@ vi.mock("@/lib/supabase/admin", () => ({
     log = fake.log;
     return {
       ...fake.client,
-      channel: (topic: string) => ({ httpSend: async () => void announced.push(topic) }),
+      channel: (topic: string, options: unknown) => ({
+        httpSend: async (event: string, payload: unknown) => {
+          announced.push(topic);
+          sent.push([topic, options, event, payload]);
+        },
+      }),
     };
   },
 }));
@@ -64,6 +70,7 @@ beforeEach(() => {
   signedIn = { id: "mate-1" };
   member = true;
   announced.length = 0;
+  sent.length = 0;
   log = [];
 });
 
@@ -92,6 +99,17 @@ describe("Today's member routes", () => {
       actor_name: "Luca",
     });
     expect(announced).toEqual(["trip-today:trip-1"]);
+  });
+
+  it("announce a tap on the private channel, with no data in it", async () => {
+    await tap(post("today-action", { action_type: "done", day_number: 1 }), ctx);
+    expect(sent).toEqual([["trip-today:trip-1", { config: { private: true } }, "changed", {}]]);
+  });
+
+  it("announce nothing when the tap is refused", async () => {
+    const res = await tap(post("today-action", { action_type: "not-a-chip", day_number: 1 }), ctx);
+    expect(res.status).toBe(400);
+    expect(announced).toEqual([]);
   });
 
   it("write a member's payment by account and tell everyone's Today", async () => {
