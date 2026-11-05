@@ -432,7 +432,7 @@ describe("the sharer opening their own link", { timeout: 20_000 }, () => {
   it("publishes the strip's height, so the cookie banner sits above it", async () => {
     show();
     await waitFor(() => expect(strip()).not.toBeNull());
-    expect(spies.cssVarHeight).toHaveBeenCalledWith(expect.anything(), "--mt-bottom-bar-h");
+    expect(spies.cssVarHeight).toHaveBeenLastCalledWith(expect.anything(), "--mt-bottom-bar-h", true);
     expect(screen.getByTestId("trip-bottom-bar").contains(strip())).toBe(true);
   });
 

@@ -135,7 +135,7 @@ export function SharedTripEndAsk({
   // banner can sit ABOVE it instead of on it (hooks/useCssVarHeight, the same
   // mechanism as the wizard footer).
   const bottomBarRef = useRef<HTMLDivElement | null>(null);
-  useCssVarHeight(bottomBarRef, "--mt-bottom-bar-h");
+  useCssVarHeight(bottomBarRef, "--mt-bottom-bar-h", ownerPending || !participantsEnabled);
 
   if (ownerPending) {
     return (
