@@ -42,6 +42,7 @@
     "generating": "Gerando...",
     "errorTitle": "Hmm, algo deu errado",
     "errorRetry": "Tentar de novo",
+    "errorModelOutage": "Nosso gerador de listas de bagagem está fora do ar agora. O problema é nosso, não seu. Tente novamente um pouco mais tarde.",
     "rateLimitMessage": "Você atingiu o limite gratuito por hora. Cadastre-se para continuar gerando listas.",
     "resultTitle": "Sua lista de bagagem para {destination}",
     "essentialBadge": "Essencial",

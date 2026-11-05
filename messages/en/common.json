@@ -1780,6 +1780,7 @@
         "tooManyDays": "Trips can have at most {max} days.",
         "applyFailed": "Couldn't apply the change. Please try again.",
         "undoFailed": "Couldn't undo the change. Please try again.",
+        "modelOutage": "Our AI is down right now. That's on our side, not yours. Please try again a little later.",
         "undoOutdated": "Your trip has changed since then, so this can't be undone here."
       },
       "undoActions": {

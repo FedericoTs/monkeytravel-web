@@ -1780,6 +1780,7 @@
         "tooManyDays": "Un viaggio può avere al massimo {max} giorni.",
         "applyFailed": "Non è stato possibile applicare la modifica. Riprova.",
         "undoFailed": "Non è stato possibile annullare la modifica. Riprova.",
+        "modelOutage": "La nostra IA al momento non è disponibile. Il problema è nostro, non tuo. Riprova un po' più tardi.",
         "undoOutdated": "Il viaggio è cambiato da allora, quindi non si può annullare da qui."
       },
       "undoActions": {

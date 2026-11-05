@@ -1,3 +1,5 @@
+import { MODEL_OUTAGE_CODE } from "@/lib/ai/model-outage";
+
 /**
  * What the trip assistant panel says when a request fails, as a message key
  * under common.ai.assistant.errors and its values. The routes' own error
@@ -11,7 +13,8 @@ export type AssistantErrorKey =
   | "datesOwnerOnly"
   | "outdated"
   | "locked"
-  | "tooManyDays";
+  | "tooManyDays"
+  | "modelOutage";
 
 /** The `code` values the assistant routes send with an error. */
 export const ASSISTANT_ERROR_CODES = {
@@ -45,6 +48,8 @@ export function assistantErrorMessage(
       const names = Array.isArray(b.names) ? b.names.filter((n) => typeof n === "string").slice(0, 3) : [];
       return { key: "locked", values: { names: names.join(", ") } };
     }
+    case MODEL_OUTAGE_CODE:
+      return { key: "modelOutage" };
     case ASSISTANT_ERROR_CODES.tooManyDays:
       return typeof b.max === "number" ? { key: "tooManyDays", values: { max: b.max } } : null;
   }

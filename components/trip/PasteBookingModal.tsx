@@ -185,6 +185,7 @@ function PasteBookingModalInner({
   runItineraryWrite,
 }: PasteBookingModalProps) {
   const t = useTranslations("common.addFromEmail");
+  const tAssistant = useTranslations("common.ai.assistant");
   const tButtons = useTranslations("common.buttons");
   const { addToast } = useToast();
 
@@ -254,6 +255,8 @@ function PasteBookingModalInner({
           setErrorMessage(t("errorNoBooking"));
         } else if (data.error === "too_short") {
           setErrorMessage(t("errorTooShort"));
+        } else if (data.error === "model_outage") {
+          setErrorMessage(tAssistant("errors.modelOutage"));
         } else {
           setErrorMessage(t("errorParseFailed"));
         }
@@ -271,7 +274,7 @@ function PasteBookingModalInner({
     } finally {
       setIsParsing(false);
     }
-  }, [emailBody, t, tripId]);
+  }, [emailBody, t, tAssistant, tripId]);
 
   // Lift any field of the preview (the user is allowed to correct
   // Gemini's extraction before confirming).

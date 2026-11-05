@@ -69,6 +69,13 @@ describe("the concierge's answer", () => {
     expect(await screen.findByText(words.errorGeneric)).toBeTruthy();
   });
 
+  it("says the AI is down, instead of asking for another try, when the model is out of service", async () => {
+    answersWith([{ type: "error", code: "MODEL_OUTAGE" }]);
+    await ask();
+    expect(await screen.findByText(itCommon.ai.assistant.errors.modelOutage)).toBeTruthy();
+    expect(screen.queryByText(words.errorGeneric)).toBeNull();
+  });
+
   it("says when the day's limit is reached", async () => {
     vi.stubGlobal(
       "fetch",

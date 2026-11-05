@@ -11,6 +11,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { MODEL_OUTAGE_CODE, MODEL_OUTAGE_MESSAGE } from "@/lib/ai/model-outage";
 
 // ============================================================================
 // Types
@@ -124,6 +125,9 @@ export const errors = {
   /** 503 Service Unavailable (API disabled) */
   serviceUnavailable: (message = "Service temporarily unavailable") =>
     apiError(message, { status: 503 }),
+
+  /** The model is out of service, so no try can work for now (lib/ai/model-outage). */
+  modelOutage: () => apiError(MODEL_OUTAGE_MESSAGE, { status: 503, code: MODEL_OUTAGE_CODE }),
 };
 
 // ============================================================================

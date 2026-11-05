@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isModelOutOfCredit } from "./model-outage";
+import { isModelOutageResponse, isModelOutOfCredit, MODEL_OUTAGE_CODE } from "./model-outage";
 
 /** What Google's refusal looks like by the time it reaches each generation route. */
 const ANSWER = `{"error":{"code":402,"message":"Your prepayment credits are depleted. Please go to AI Studio to manage your project and billing.","status":"RESOURCE_EXHAUSTED"}}`;
@@ -24,5 +24,20 @@ describe("a model out of credit", () => {
     ["no error at all", undefined],
   ])("isn't confused with %s", (_name, error) => {
     expect(isModelOutOfCredit(error)).toBe(false);
+  });
+});
+
+describe("a failed AI response", () => {
+  it("says the model is out of service with the code", () => {
+    expect(isModelOutageResponse({ error: "unavailable", code: MODEL_OUTAGE_CODE })).toBe(true);
+  });
+
+  it.each([
+    ["another code", { code: "RATE_LIMIT" }],
+    ["no code", { error: "unavailable" }],
+    ["no body", null],
+    ["nothing", undefined],
+  ])("doesn't say so with %s", (_name, body) => {
+    expect(isModelOutageResponse(body)).toBe(false);
   });
 });

@@ -259,6 +259,29 @@ describe("trip-page assistant: free-form edits", () => {
     expect(json.pendingChange).toBeNull();
   });
 
+  it("says the model is out of service when both the engine and the chat are refused", async () => {
+    const refusal = new Error(`{"error":{"code":402,"message":"Your prepayment credits are depleted."}}`);
+    proposeTripEdits.mockRejectedValue(refusal);
+    chatCalls.mockImplementation(() => {
+      throw refusal;
+    });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { status, json } = await send("add a museum");
+    expect(status).toBe(503);
+    expect(json.code).toBe("MODEL_OUTAGE");
+  });
+
+  it("keeps its own failure when the chat fails for another reason", async () => {
+    proposeTripEdits.mockRejectedValue(new Error("model overloaded"));
+    chatCalls.mockImplementation(() => {
+      throw new Error("model overloaded");
+    });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { status, json } = await send("add a museum");
+    expect(status).toBe(500);
+    expect(json.code).not.toBe("MODEL_OUTAGE");
+  });
+
   // "Add 7 more days" must add them, not only say so.
   const howthDay4: ItineraryDay = {
     day_number: 4,

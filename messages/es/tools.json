@@ -42,6 +42,7 @@
     "generating": "Generando...",
     "errorTitle": "Algo salió mal",
     "errorRetry": "Reintentar",
+    "errorModelOutage": "Nuestro generador de listas de equipaje no está disponible en este momento. El problema es nuestro, no tuyo. Vuelve a intentarlo un poco más tarde.",
     "rateLimitMessage": "Has alcanzado el límite gratuito por hora. Regístrate para seguir generando listas.",
     "resultTitle": "Tu lista para {destination}",
     "essentialBadge": "Esencial",

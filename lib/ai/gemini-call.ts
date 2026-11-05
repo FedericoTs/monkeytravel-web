@@ -38,6 +38,18 @@ export const MAX_RETRIES = 1;
 export type Attempt<T> = { value: T } | { unusable: true } | { failed: unknown };
 
 /**
+ * The error for a model call that kept failing, with the model's own words: Sentry
+ * sees why (403 key banned, 429 quota, 503 outage) and a route can tell a refusal
+ * no try can fix (lib/ai/model-outage.ts). `cause` keeps the original stack.
+ */
+export function modelUnavailable(what: string, error: unknown): Error {
+  const root = error instanceof Error ? error.message : String(error ?? "unknown");
+  return new Error(`Failed to ${what}: AI service unavailable (root: ${root.slice(0, 200)})`, {
+    cause: error instanceof Error ? error : undefined,
+  });
+}
+
+/**
  * Runs a model call's attempts. An unusable answer is asked for again at once,
  * a failed call after a pause (a second longer for each retry); at most
  * MAX_RETRIES retries. Each attempt logs and reports itself; this logs the

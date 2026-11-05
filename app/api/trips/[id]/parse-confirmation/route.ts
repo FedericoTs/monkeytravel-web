@@ -115,10 +115,11 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     if (isParseError(result)) {
       // Return as 200 with an error tag (see file header) — UI keys on
       // result.error for messaging. We intentionally do NOT increment
-      // the usage counter for 'too_short' (we never called Gemini) but
-      // DO increment for 'parse_failed' / 'no_booking_found' (Gemini
-      // call did happen and incurred cost).
-      if (result.error !== "too_short") {
+      // the usage counter for 'too_short' (we never called Gemini) or
+      // 'model_outage' (Gemini refused it) but DO increment for
+      // 'parse_failed' / 'no_booking_found' (Gemini call did happen and
+      // incurred cost).
+      if (result.error !== "too_short" && result.error !== "model_outage") {
         // Fire and forget — never let a usage-increment failure break the
         // user-facing response.
         void incrementUsage(user.id, "aiAssistantMessages").catch((err) => {

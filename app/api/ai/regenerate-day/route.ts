@@ -34,6 +34,7 @@ import { getTripDestination } from "@/lib/trips/destination";
 import { dietsFrom } from "@/lib/trips/diet";
 import { placesToEatCheck } from "@/lib/places/places-to-eat";
 import { casUpdateItinerary, type CasOutcome } from "@/lib/trips/itinerary-cas";
+import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 import { isTripVibe, type ItineraryDay, type TripVibe, type BudgetTier } from "@/types";
 
 const MAX_INSTRUCTIONS_LEN = 500;
@@ -198,6 +199,7 @@ async function regenerateDay(request: NextRequest, geminiCost: GeminiCostMeter) 
         metadata: { user_id: user.id, trip_id: tripId, day_number: dayNumber },
       });
       // Do NOT touch the DB — bail out cleanly so the existing day stays intact.
+      if (isModelOutOfCredit(geminiError)) return errors.modelOutage();
       return errors.internal(
         "Failed to regenerate day. Please try again.",
         "Day Regeneration"

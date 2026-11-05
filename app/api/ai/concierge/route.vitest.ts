@@ -10,6 +10,7 @@ import { NextRequest } from "next/server";
  */
 
 let streamReply = "";
+let streamRefusal: string | null = null;
 let followUps: (string | Error)[] = [];
 const followUpRequests: { contents: { role: string; parts: { text: string }[] }[] }[] = [];
 const streamRequests: { contents: { role: string; parts: { text: string }[] }[] }[] = [];
@@ -20,6 +21,7 @@ vi.mock("@/lib/ai/genai-compat", () => ({
       return {
         generateContentStream: async (req: (typeof streamRequests)[number]) => {
           streamRequests.push(req);
+          if (streamRefusal) throw new Error(streamRefusal);
           const text = streamReply;
           return {
             stream: (async function* () {
@@ -115,15 +117,17 @@ async function ask(question: string) {
   );
   let answer = "";
   let proposal: Record<string, unknown> | null = null;
+  const events: Record<string, unknown>[] = [];
   for (const frame of (await res.text()).split("\n\n")) {
     const t = frame.trim();
     if (!t.startsWith("data:")) continue;
     const ev = JSON.parse(t.slice(5));
     if (ev.type === "chunk") answer += ev.text;
     if (ev.type === "proposal") proposal = ev.proposal;
+    if (ev.type === "error") events.push(ev);
   }
   await new Promise((r) => setTimeout(r, 0));
-  return { answer: answer.trim(), proposal: proposal as { type?: string; dayNumber?: number; oldActivity?: { name?: string } } | null };
+  return { answer: answer.trim(), events, proposal: proposal as { type?: string; dayNumber?: number; oldActivity?: { name?: string } } | null };
 }
 
 const removal = (fields: Record<string, unknown>) => `<<<PROPOSAL>>>${JSON.stringify({ type: "remove", ...fields })}`;
@@ -131,6 +135,7 @@ const removal = (fields: Record<string, unknown>) => `<<<PROPOSAL>>>${JSON.strin
 beforeEach(() => {
   vi.stubEnv("GOOGLE_AI_API_KEY", "test-key");
   streamReply = "";
+  streamRefusal = null;
   followUps = [];
   followUpRequests.length = 0;
   streamRequests.length = 0;
@@ -195,6 +200,16 @@ describe("concierge proposals", () => {
     const { proposal } = await ask("sì");
     expect(proposal).toMatchObject({ type: "remove", oldActivity: { name: "Restaurace Mlejnice" } });
     expect(followUpRequests[0].contents.at(-1)!.parts[0].text).toContain("agrees to a change offered earlier");
+  });
+
+  it.each([
+    ["says the model is out of service", `{"error":{"code":402,"message":"Your prepayment credits are depleted."}}`, { type: "error", code: "MODEL_OUTAGE" }],
+    ["says only that it failed for anything else", "503 model overloaded", { type: "error" }],
+  ])("a stream the model refuses %s", async (_name, refusal, event) => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    streamRefusal = refusal;
+    const { events } = await ask("Where do we eat?");
+    expect(events).toEqual([event]);
   });
 
   it("keeps the answer when the follow-up fails", async () => {

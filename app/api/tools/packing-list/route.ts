@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { logApiCall } from "@/lib/api-gateway";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
+import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 import {
   generatePackingList,
   type PackingCategoryId,
@@ -209,6 +210,7 @@ export async function POST(request: NextRequest) {
       error: message,
       metadata: { user_id: user?.id ?? "anonymous", is_anonymous: isAnonymous },
     });
+    if (isModelOutOfCredit(err)) return errors.modelOutage();
     return errors.serviceUnavailable(
       "Could not generate the packing list right now. Try again in a moment."
     );

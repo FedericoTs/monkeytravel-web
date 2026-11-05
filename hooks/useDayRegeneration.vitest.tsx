@@ -114,6 +114,7 @@ describe("useDayRegeneration", () => {
   it.each([
     ["the monthly limit", json(429, { error: { message: "limit" } }), "detail.regenerateDay.limit"],
     ["a busy trip", json(409, { error: "busy" }), "detail.regenerateDay.busy"],
+    ["the model out of service", json(503, { error: "unavailable", code: "MODEL_OUTAGE" }), "errors.modelOutage"],
     ["an error without JSON", json(500, "<html>"), 'detail.regenerateDay.failed {"number":2}'],
     ["no day in the answer", json(200, { data: {} }), 'detail.regenerateDay.failed {"number":2}'],
     ["a request that did not get through", async () => Promise.reject(new TypeError("Failed to fetch")), 'detail.regenerateDay.failed {"number":2}'],

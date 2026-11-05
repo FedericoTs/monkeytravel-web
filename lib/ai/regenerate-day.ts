@@ -21,6 +21,7 @@ import {
 } from "@/lib/ai/trip-prompt";
 import {
   withRetries,
+  modelUnavailable,
   type Attempt,
   MAX_RETRIES,
   genAI,
@@ -79,7 +80,7 @@ function regenerateSingleDayInternal(
   return withRetries((retryCount) => dayAttempt(params, retryCount), {
     retrying: "day regeneration",
     gaveUp: "Failed to regenerate day after retries",
-    unavailable: () => new Error("Failed to regenerate day: AI service unavailable"),
+    unavailable: (error) => modelUnavailable("regenerate day", error),
   });
 }
 

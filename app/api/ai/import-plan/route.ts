@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       await logApiCall({
         apiName: "gemini",
         endpoint: "/api/ai/import-plan",
-        status: extracted.error === "extract_failed" ? 503 : 400,
+        status: extracted.error === "extract_failed" || extracted.error === "model_outage" ? 503 : 400,
         responseTimeMs: durationMs,
         cacheHit: false,
         costUsd: geminiCost.usd,
@@ -128,6 +128,7 @@ export async function POST(request: NextRequest) {
         metadata: { user_id: user?.id ?? "anonymous", is_anonymous: isAnonymous },
       });
 
+      if (extracted.error === "model_outage") return errors.modelOutage();
       if (extracted.error === "too_short") {
         return errors.badRequest("Paste a bit more — we couldn't find a plan in that.", { reason: "too_short" });
       }
