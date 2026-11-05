@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import ShareButton from "./ShareButton";
 import { forgetShareStatus } from "@/lib/trips/share-status";
 
@@ -9,14 +9,17 @@ vi.mock("next-intl", () => ({
 }));
 vi.mock("@/components/collaboration/CollaboratorAvatars", () => ({ CollaboratorAvatars: () => null }));
 vi.mock("@/lib/analytics", () => ({ trackTripShared: vi.fn() }));
+const addToast = vi.fn();
+vi.mock("@/components/ui/Toast", () => ({ useToast: () => ({ addToast }) }));
 // The modal has its own tests; here it only reports whether it is open, on which tab, the Explore state and the link.
 vi.mock("./ShareAndInviteModal", () => ({
-  default: ({ isOpen, initialTab, isInTrending, exploreEnabled, shareUrl, onClose, onRequestPublish, onStopSharing }: { isOpen: boolean; initialTab: string; isInTrending: boolean; exploreEnabled?: boolean; shareUrl: string; onClose: () => void; onRequestPublish?: () => void; onStopSharing: () => void }) =>
+  default: ({ isOpen, initialTab, isInTrending, exploreEnabled, shareUrl, onClose, onRequestPublish, onEnableSharing, onStopSharing }: { isOpen: boolean; initialTab: string; isInTrending: boolean; exploreEnabled?: boolean; shareUrl: string; onClose: () => void; onRequestPublish?: () => void; onEnableSharing: () => void; onStopSharing: () => void }) =>
     isOpen ? (
       <div role="dialog" data-tab={initialTab} data-trending={String(isInTrending)} data-explore={String(exploreEnabled)} data-url={shareUrl}>
         <button onClick={onClose}>close</button>
         <button onClick={onRequestPublish}>list in explore</button>
         <button onClick={onStopSharing}>stop sharing</button>
+        <button onClick={onEnableSharing}>enable sharing</button>
       </div>
     ) : null,
 }));
@@ -138,5 +141,60 @@ describe("ShareButton share link", () => {
     shareUrl = "https://x/shared/new-token";
     fireEvent.click(screen.getByRole("button", { name: "shared" }));
     await waitFor(() => expect(screen.getByRole("dialog").getAttribute("data-url")).toBe("https://x/shared/new-token"));
+  });
+});
+
+describe("ShareButton when sharing can't be changed", () => {
+  const open = async () => {
+    render(<ShareButton tripId="trip-1" tripTitle="Lisbon" variant="modal" autoOpen />);
+    await act(async () => {});
+  };
+  /** Status reads answer as usual; a POST or DELETE on the share link answers with `write`. */
+  const writesAnswer = (write: () => Promise<unknown>) =>
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((_url: string, init?: RequestInit) =>
+        init?.method ? write() : Promise.resolve({ ok: true, json: async () => ({ isShared: false, shareUrl: null, collaborators: [] }) })
+      )
+    );
+  const click = (name: string) =>
+    act(async () => {
+      fireEvent.click(screen.getByRole("button", { name }));
+    });
+
+  beforeEach(() => {
+    addToast.mockClear();
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  it.each([
+    ["the server refuses", async () => ({ ok: false, status: 500, json: async () => ({}) })],
+    ["the connection drops", async () => Promise.reject(new TypeError("Failed to fetch"))],
+  ])("says the link wasn't created when %s", async (_name, write) => {
+    writesAnswer(write);
+    await open();
+    await click("enable sharing");
+    expect(addToast).toHaveBeenCalledWith("enableFailed", "error");
+    expect(screen.getByRole("dialog").getAttribute("data-url")).toBeFalsy();
+  });
+
+  it.each([
+    ["the server refuses", async () => ({ ok: false, status: 500, json: async () => ({}) })],
+    ["the connection drops", async () => Promise.reject(new TypeError("Failed to fetch"))],
+  ])("says sharing didn't stop when %s, and stays open", async (_name, write) => {
+    writesAnswer(write);
+    await open();
+    await click("stop sharing");
+    expect(addToast).toHaveBeenCalledWith("stopFailed", "error");
+    expect(screen.queryByRole("dialog")).not.toBeNull();
+  });
+
+  it("says nothing when it worked", async () => {
+    writesAnswer(async () => ({ ok: true, json: async () => ({ shareUrl: "https://x/s/1" }) }));
+    await open();
+    await click("enable sharing");
+    await click("stop sharing");
+    expect(addToast).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });

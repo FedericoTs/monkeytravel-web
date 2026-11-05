@@ -1074,6 +1074,8 @@
     }
   },
   "shareButton": {
+    "enableFailed": "Non è stato possibile creare il link di condivisione. Riprova.",
+    "stopFailed": "Non è stato possibile interrompere la condivisione: il tuo link è ancora attivo. Riprova.",
     "share": "Condividi",
     "shared": "Condiviso"
   },
@@ -2293,6 +2295,11 @@
       "five": "5 giorni",
       "week": "1 settimana",
       "tenPlus": "10+ giorni"
+    },
+    "loadFailed": {
+      "title": "Non siamo riusciti a caricare gli itinerari",
+      "body": "Controlla la connessione e riprova.",
+      "retry": "Riprova"
     },
     "empty": {
       "title": "Nessun itinerario trovato",

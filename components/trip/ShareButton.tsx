@@ -10,6 +10,7 @@ import { trackTripShared } from "@/lib/analytics";
 import { fetchShareStatus, forgetShareStatus } from "@/lib/trips/share-status";
 import type { TripCollaborator } from "@/types";
 import { Spinner } from "@/components/ui/Spinner";
+import { useToast } from "@/components/ui/Toast";
 
 interface ShareButtonProps {
   tripId: string;
@@ -37,6 +38,7 @@ export default function ShareButton({
   canManageSharing = true,
 }: ShareButtonProps) {
   const t = useTranslations("common.shareButton");
+  const { addToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(autoOpen);
   const [isShared, setIsShared] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -117,14 +119,14 @@ export default function ShareButton({
       });
       forgetShareStatus(tripId);
 
-      if (response.ok) {
-        const data = await response.json();
-        setIsShared(true);
-        setShareUrl(data.shareUrl);
-        trackTripShared({ tripId, shareMethod: "link" });
-      }
+      if (!response.ok) throw new Error(`share link: ${response.status}`);
+      const data = await response.json();
+      setIsShared(true);
+      setShareUrl(data.shareUrl);
+      trackTripShared({ tripId, shareMethod: "link" });
     } catch (error) {
       console.error("Error creating share link:", error);
+      addToast(t("enableFailed"), "error");
     } finally {
       setIsLoading(false);
     }
@@ -138,15 +140,15 @@ export default function ShareButton({
       });
       forgetShareStatus(tripId);
 
-      if (response.ok) {
-        setIsShared(false);
-        setShareUrl(null);
-        // Stopping sharing also takes the trip off Explore.
-        setIsInTrending(false);
-        setIsModalOpen(false);
-      }
+      if (!response.ok) throw new Error(`stop sharing: ${response.status}`);
+      setIsShared(false);
+      setShareUrl(null);
+      // Stopping sharing also takes the trip off Explore.
+      setIsInTrending(false);
+      setIsModalOpen(false);
     } catch (error) {
       console.error("Error revoking share:", error);
+      addToast(t("stopFailed"), "error");
     } finally {
       setIsLoading(false);
     }
