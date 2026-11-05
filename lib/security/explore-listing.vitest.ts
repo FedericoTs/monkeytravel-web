@@ -49,7 +49,7 @@ describe("Explore listing", () => {
   });
 
   it("the share window lists a trip through the publish modal", () => {
-    const modal = read("components/trip/ShareAndInviteModal.tsx");
+    const modal = read("hooks/useShareLink.ts");
     expect(modal).not.toContain("submit-trending");
     expect(modal).toContain("onRequestPublish?.()");
     expect(read("components/trip/ShareButton.tsx")).toMatch(/<PublishTripModal\b/);

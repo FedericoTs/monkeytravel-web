@@ -79,6 +79,8 @@ Add to these; do not start a parallel version.
 | Product analytics | `lib/posthog/` (events, `useFlag`), `lib/analytics.ts` |
 | Email | `lib/email/`; scheduled ones `app/api/cron/scheduled-notifications/route.ts`, `lib/notifications/` |
 | Anonymous writes on a shared trip | `lib/participants/request.ts` (`readParticipantWrite`) |
+| The share window | `components/trip/ShareAndInviteModal.tsx`; its tabs `ShareLinkTab.tsx`, `InviteTab.tsx`; their state `hooks/useShareLink.ts`, `hooks/useTripInvites.ts` |
+| A trip's days on its page | `components/trip/TripDayList.tsx` |
 | Translations | `messages/{en,es,it,pt}/*.json`, locales in `lib/i18n/routing-config.ts` |
 
 ## Tests

@@ -1,26 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useChanged } from "@/hooks/useChanged";
-import { TrendingUp, Globe, Copy, Check, Mail, Share2, Eye, UserPlus } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
+import { Eye, Share2, UserPlus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import {
-  trackShareModalOpened,
-  trackTripShared,
-  trackReferralLinkClicked,
-} from "@/lib/analytics";
-import { useToast } from "@/components/ui/Toast";
+import { trackShareModalOpened } from "@/lib/analytics";
 import BottomSheet from "@/components/ui/BottomSheet";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
 import { useIsPhone } from "@/hooks/useMediaQuery";
-import { openExternal } from "@/lib/native/external-link";
-import { shareFile } from "@/lib/native/share";
-import { captureTripCardShared } from "@/lib/posthog/events";
 import InviteTab from "@/components/trip/InviteTab";
+import ShareLinkTab from "@/components/trip/ShareLinkTab";
+import { useShareLink } from "@/hooks/useShareLink";
 import { useTripInvites } from "@/hooks/useTripInvites";
-import { tripCardPath } from "@/lib/seo/og-image";
-import { defaultShareFraming, framedShareUrl, shareTokenFromUrl, type ShareFraming } from "@/lib/trips/crew-share";
 
 type TabType = "share" | "invite";
 
@@ -61,178 +52,25 @@ interface ShareAndInviteModalProps {
   onRequestPublish?: () => void;
 }
 
-export default function ShareAndInviteModal({
-  isOpen,
-  onClose,
-  tripId,
-  tripTitle,
-  shareUrl,
-  tripIntent,
-  isShared,
-  isInTrending = false,
-  onStopSharing,
-  onEnableSharing,
-  onTrendingChange,
-  isLoading,
-  initialTab = "share",
-  canManageSharing = true,
-  exploreEnabled = true,
-  onRequestPublish,
-}: ShareAndInviteModalProps) {
+/** The two tabs, on a phone and on a desktop. */
+function ShareTabButtons({
+  activeTab,
+  onChange,
+  memberCount,
+  className = "",
+}: {
+  activeTab: TabType;
+  onChange: (tab: TabType) => void;
+  /** Everyone on the trip, the owner included. */
+  memberCount: number;
+  className?: string;
+}) {
   const t = useTranslations("common");
-  const locale = useLocale();
-  // Helper to access share translations with proper prefix
-  const ts = (key: string, params?: Record<string, string | number>) => t(`share.${key}`, params);
-  const tb = (key: string) => t(`buttons.${key}`);
-  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
-  const [copied, setCopied] = useState(false);
-  const [imageBusy, setImageBusy] = useState<"story" | "square" | null>(null);
-  // Share framing: which link the owner hands out. Defaults from
-  // the trip's intent (lib/trips/crew-share.ts); the owner can flip it.
-  // Re-derived when the modal is reused for another trip.
-  const [framing, setFraming] = useState<ShareFraming>(() => defaultShareFraming(tripIntent));
-  const tripChanged = useChanged(tripId);
-  const intentChanged = useChanged(tripIntent);
-  if (tripChanged || intentChanged) setFraming(defaultShareFraming(tripIntent));
-  const framedUrl = framedShareUrl(shareUrl, framing) ?? shareUrl;
-  const crew = framing === "crew";
-  const [showStopConfirm, setShowStopConfirm] = useState(false);
-  const [trendingEnabled, setTrendingEnabled] = useState(isInTrending);
-  const [trendingLoading, setTrendingLoading] = useState(false);
-  const isMobile = useIsPhone();
-
-  // Toast notifications
-  const { addToast } = useToast();
-
-  const invites = useTripInvites(tripId);
-  const { collaborators, reopen: reopenInvites } = invites;
-
-  // Reset state when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      setActiveTab(initialTab);
-      setCopied(false);
-      setShowStopConfirm(false);
-      setTrendingEnabled(isInTrending);
-
-      // Track modal opened
-      trackShareModalOpened({
-        tripId,
-        tripDestination: tripTitle,
-      });
-
-      reopenInvites();
-    }
-  }, [isOpen, initialTab, isInTrending, tripId, tripTitle, reopenInvites]);
-
-  // The desktop dialog's Escape, scroll lock, focus and Tab. On mobile the
-  // BottomSheet is the dialog and does all of this itself.
-  const { panelRef } = useModalBehavior({ isOpen: isOpen && !isMobile, onClose });
-
-  // Handle trending toggle
-  const handleTrendingToggle = async () => {
-    if (trendingLoading) return;
-    // Listing goes through the publish flow, so its checks apply here too.
-    if (!trendingEnabled) {
-      onRequestPublish?.();
-      return;
-    }
-
-    setTrendingLoading(true);
-    try {
-      const response = await fetch(`/api/trips/${tripId}/publish`, { method: "DELETE" });
-
-      if (response.ok) {
-        setTrendingEnabled(false);
-        onTrendingChange?.(false);
-      } else {
-        addToast(ts("explore.unlistFailed"), "error");
-      }
-    } catch (error) {
-      console.error("Failed to update trending status:", error);
-      addToast(ts("explore.unlistFailed"), "error");
-    } finally {
-      setTrendingLoading(false);
-    }
-  };
-
-  // Copy share URL
-  const handleCopyShareUrl = async () => {
-    try {
-      await navigator.clipboard.writeText(framedUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      addToast(ts("toast.viewOnlyCopied"), "success");
-      trackTripShared({ tripId, shareMethod: "link" });
-      trackReferralLinkClicked({ code: tripId, medium: "copy" });
-    } catch (error) {
-      console.error("Failed to copy:", error);
-      addToast(ts("toast.copyFailed"), "error");
-    }
-  };
-
-  // Social sharing. openExternal() opens @capacitor/browser in the app (the
-  // iOS web view swallows window.open "_blank") and window.open on the web.
-  const handleShareTwitter = () => {
-    const text = encodeURIComponent(ts(crew ? "socialText.twitterCrew" : "socialText.twitterShare", { tripTitle }));
-    const url = encodeURIComponent(framedUrl);
-    void openExternal(`https://twitter.com/intent/tweet?text=${text}&url=${url}`);
-    trackTripShared({ tripId, shareMethod: "social" });
-  };
-
-  const handleShareWhatsApp = () => {
-    const text = encodeURIComponent(`${ts(crew ? "socialText.whatsappCrew" : "socialText.whatsappShare", { tripTitle })}\n${framedUrl}`);
-    void openExternal(`https://wa.me/?text=${text}`);
-    trackTripShared({ tripId, shareMethod: "social" });
-  };
-
-  const handleShareEmail = () => {
-    const subject = encodeURIComponent(ts(crew ? "socialText.emailSubjectCrew" : "socialText.emailSubject", { tripTitle }));
-    const body = encodeURIComponent(`${ts(crew ? "socialText.emailBodyCrew" : "socialText.emailBody")}\n\n${framedUrl}`);
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
-    trackTripShared({ tripId, shareMethod: "email" });
-  };
-
-  // The trip as a picture (app/api/og/trip): the OS share sheet when the
-  // browser will take a file, otherwise a download.
-  const shareToken = shareTokenFromUrl(shareUrl);
-  const handleShareImage = async (format: "story" | "square") => {
-    if (!shareToken || imageBusy) return;
-    setImageBusy(format);
-    try {
-      const res = await fetch(tripCardPath({ token: shareToken }, { format, locale }));
-      if (!res.ok) throw new Error(`card ${res.status}`);
-      const blob = await res.blob();
-      const stem = tripTitle.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "").toLowerCase() || "trip";
-      const outcome = await shareFile(new File([blob], `${stem}-${format}.png`, { type: "image/png" }), { title: tripTitle });
-      if (outcome === "cancelled") return;
-      const method = outcome === "shared" ? "native_share" : "download";
-      trackTripShared({ tripId, shareMethod: "image" });
-      void captureTripCardShared({ trip_id: tripId, format, method });
-      // The first-party count: the PostHog event fires only with analytics consent.
-      void fetch("/api/funnel-event", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event_type: "trip_card_shared", trip_id: tripId, format, method }),
-        keepalive: true,
-      }).catch(() => {});
-    } catch (error) {
-      console.error("Failed to share the trip image:", error);
-      addToast(ts("image.failed"), "error");
-    } finally {
-      setImageBusy(null);
-    }
-  };
-
-  if (!isOpen) return null;
-
-  const hasCollaborators = collaborators.length > 1; // More than just owner
-
-  // Tab buttons component (reused in both mobile and desktop)
-  const TabButtons = ({ className = "" }: { className?: string }) => (
+  const ts = (key: string) => t(`share.${key}`);
+  return (
     <div className={cn("flex gap-2", className)}>
       <button
-        onClick={() => setActiveTab("share")}
+        onClick={() => onChange("share")}
         className={cn(
           "flex-1 flex flex-col items-center gap-1 px-4 py-3 rounded-xl border-2 transition-all",
           activeTab === "share"
@@ -252,7 +90,7 @@ export default function ShareAndInviteModal({
         <span className="text-xs text-slate-500">{ts("invite.anyoneCanView")}</span>
       </button>
       <button
-        onClick={() => setActiveTab("invite")}
+        onClick={() => onChange("invite")}
         className={cn(
           "flex-1 flex flex-col items-center gap-1 px-4 py-3 rounded-xl border-2 transition-all",
           activeTab === "invite"
@@ -265,9 +103,9 @@ export default function ShareAndInviteModal({
           activeTab === "invite" ? "bg-[var(--primary)]" : "bg-blue-100"
         )}>
           <UserPlus className={cn("w-4 h-4", activeTab === "invite" ? "text-white" : "text-[var(--primary-ink)]")} />
-          {hasCollaborators && (
+          {memberCount > 1 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 text-[10px] font-bold bg-amber-400 text-amber-900 rounded-full flex items-center justify-center">
-              {collaborators.length - 1}
+              {memberCount - 1}
             </span>
           )}
         </div>
@@ -278,262 +116,84 @@ export default function ShareAndInviteModal({
       </button>
     </div>
   );
+}
 
-  // Content component (reused in both mobile and desktop)
-  const ModalContent = () => (
-    <>
-      {activeTab === "share" ? (
-        // SHARE TAB - View Only
-        <div className="space-y-6">
-                {/* Context hint */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg">
-                  <Eye className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                  <p className="text-xs text-slate-600">
-                    <span className="font-medium">{ts("invite.viewOnlyLabel")}:</span> {ts("invite.viewOnlyHint")}
-                  </p>
-                </div>
+export default function ShareAndInviteModal({
+  isOpen,
+  onClose,
+  tripId,
+  tripTitle,
+  shareUrl,
+  tripIntent,
+  isShared,
+  isInTrending = false,
+  onStopSharing,
+  onEnableSharing,
+  onTrendingChange,
+  isLoading,
+  initialTab = "share",
+  canManageSharing = true,
+  exploreEnabled = true,
+  onRequestPublish,
+}: ShareAndInviteModalProps) {
+  const t = useTranslations("common");
+  const ts = (key: string) => t(`share.${key}`);
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
+  const isMobile = useIsPhone();
+  const link = useShareLink({ tripId, tripTitle, shareUrl, tripIntent, isInTrending, onTrendingChange, onRequestPublish });
+  const invites = useTripInvites(tripId);
+  const { reopen: reopenLink } = link;
+  const { collaborators, reopen: reopenInvites } = invites;
 
-                {/* Not shared and not ours to share: say who can. */}
-                {!isShared && !canManageSharing && (
-                  <p className="text-sm text-slate-600 text-center py-4">
-                    {ts("invite.ownerOnly")}
-                  </p>
-                )}
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab);
+      reopenLink(isInTrending);
 
-                {/* Enable sharing if not shared */}
-                {!isShared && canManageSharing && (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-slate-600 mb-4">
-                      {ts("invite.enableSharing")}
-                    </p>
-                    <button
-                      onClick={onEnableSharing}
-                      disabled={isLoading}
-                      className="px-6 py-2.5 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
-                    >
-                      {isLoading ? ts("invite.enabling") : ts("invite.enableSharingButton")}
-                    </button>
-                  </div>
-                )}
+      // Track modal opened
+      trackShareModalOpened({
+        tripId,
+        tripDestination: tripTitle,
+      });
 
-                {/* Share URL */}
-                {isShared && (
-                  <>
-                    <div>
-                      {/* Share framing (2026-09-18): the crew ask opens the
-                          recipient page on the vote, the plain link on the
-                          itinerary. Group-intent trips default to the ask
-                          (lib/trips/crew-share.ts, defaultShareFraming). */}
-                      <div
-                        role="radiogroup"
-                        aria-label={ts("framing.label")}
-                        className="mb-3 grid grid-cols-2 gap-2"
-                      >
-                        {(["crew", "plain"] as const).map((option) => (
-                          <button
-                            key={option}
-                            type="button"
-                            role="radio"
-                            aria-checked={framing === option}
-                            data-testid={`share-framing-${option}`}
-                            onClick={() => setFraming(option)}
-                            className={cn(
-                              "rounded-lg border px-3 py-2 text-left text-sm font-medium transition-colors",
-                              framing === option
-                                ? "border-[var(--primary)] bg-[var(--primary)]/5 text-slate-900"
-                                : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                            )}
-                          >
-                            {ts(`framing.${option}`)}
-                          </button>
-                        ))}
-                      </div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        {ts("invite.publicLink")}
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          aria-label={ts("invite.publicLink")}
-                          type="text"
-                          value={framedUrl}
-                          readOnly
-                          className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 truncate"
-                        />
-                        <button
-                          onClick={handleCopyShareUrl}
-                          className={cn(
-                            "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                            copied
-                              ? "bg-green-100 text-green-700"
-                              : "bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90"
-                          )}
-                        >
-                          {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                          {copied ? tb("copied") : tb("copy")}
-                        </button>
-                      </div>
-                      <p className="mt-2 text-xs text-slate-500">
-                        {crew ? ts("framing.crewHint") : ts("framing.plainHint")}
-                      </p>
-                    </div>
+      reopenInvites();
+    }
+  }, [isOpen, initialTab, isInTrending, tripId, tripTitle, reopenLink, reopenInvites]);
 
-                    {/* Social Share */}
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        {ts("shareVia")}
-                      </label>
-                      {/* Bug-bounty 2026-05-24 P2: icon-only social share
-                          buttons previously had no accessible name —
-                          screen-reader users heard "button" with no
-                          context. Added aria-label + title. */}
-                      {/* Crew Loop 2026-07: WhatsApp FIRST — it's where trip
-                          crews actually live (IT/ES/PT markets especially);
-                          Twitter and email follow. */}
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={handleShareWhatsApp}
-                          aria-label={ts("a11y.whatsapp")}
-                          title={ts("a11y.whatsapp")}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
-                        >
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={handleShareTwitter}
-                          aria-label={ts("a11y.twitter")}
-                          title={ts("a11y.twitter")}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
-                        >
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={handleShareEmail}
-                          aria-label={ts("a11y.email")}
-                          title={ts("a11y.email")}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
-                        >
-                          <Mail className="w-5 h-5" aria-hidden="true" />
-                        </button>
-                      </div>
-                    </div>
+  // The desktop dialog's Escape, scroll lock, focus and Tab. On mobile the
+  // BottomSheet is the dialog and does all of this itself.
+  const { panelRef } = useModalBehavior({ isOpen: isOpen && !isMobile, onClose });
 
-                    {/* The trip as a picture, for stories, chats and feeds. */}
-                    {shareToken && (
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
-                          {ts("image.label")}
-                        </label>
-                        <div className="flex items-center gap-3">
-                          {(["story", "square"] as const).map((format) => (
-                            <button
-                              key={format}
-                              type="button"
-                              onClick={() => handleShareImage(format)}
-                              disabled={imageBusy !== null}
-                              data-testid={`share-image-${format}`}
-                              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                            >
-                              <Share2 className="w-4 h-4" aria-hidden="true" />
-                              {imageBusy === format ? ts("image.preparing") : ts(`image.${format}`)}
-                            </button>
-                          ))}
-                        </div>
-                        <p className="mt-2 text-xs text-slate-500">{ts("image.hint")}</p>
-                      </div>
-                    )}
+  if (!isOpen) return null;
 
-                    {/* Listing in Explore and stopping the link: owner only. */}
-                    {canManageSharing && (
-                    <>
-                    {/* Submit to Trending */}
-                    {exploreEnabled && (
-                    <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-100">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                            {trendingEnabled ? <Globe className="w-5 h-5 text-white" /> : <TrendingUp className="w-5 h-5 text-white" />}
-                          </div>
-                          <div>
-                            <p id="explore-switch-label" className="text-sm font-semibold text-slate-900">
-                              {trendingEnabled ? ts("explore.listedOn") : ts("explore.submitTo")}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              {trendingEnabled ? ts("explore.visibleInGallery") : ts("explore.letOthersDiscover")}
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={handleTrendingToggle}
-                          disabled={trendingLoading}
-                          role="switch"
-                          aria-checked={trendingEnabled}
-                          aria-labelledby="explore-switch-label"
-                          className={cn(
-                            "relative w-12 h-7 rounded-full transition-colors",
-                            trendingEnabled ? "bg-gradient-to-r from-amber-500 to-orange-500" : "bg-slate-200",
-                            trendingLoading && "opacity-50 cursor-not-allowed"
-                          )}
-                        >
-                          <span className={cn("absolute left-0 top-1 w-5 h-5 bg-white rounded-full shadow transition-transform", trendingEnabled ? "translate-x-6" : "translate-x-1")} />
-                        </button>
-                      </div>
-                    </div>
-                    )}
-
-                    {/* Stop Sharing */}
-                    <div className="border-t border-slate-200 pt-4">
-                      {!showStopConfirm ? (
-                        <button onClick={() => setShowStopConfirm(true)} className="text-sm text-red-600 hover:text-red-700 font-medium">
-                          {ts("stopSharing.button")}
-                        </button>
-                      ) : (
-                        <div className="bg-red-50 rounded-lg p-4">
-                          <p className="text-sm text-red-800 mb-3">
-                            {ts("stopSharing.confirmMessage")}
-                          </p>
-                          <div className="flex items-center gap-2">
-                            <button onClick={() => setShowStopConfirm(false)} className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white hover:bg-slate-100 rounded-lg transition-colors border border-slate-200">
-                              {tb("cancel")}
-                            </button>
-                            <button onClick={onStopSharing} disabled={isLoading} className="px-3 py-1.5 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50">
-                              {isLoading ? ts("stopSharing.stopping") : ts("stopSharing.stop")}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    </>
-                    )}
-                  </>
-                )}
-              </div>
-            ) : (
-              <InviteTab tripId={tripId} tripTitle={tripTitle} invites={invites} />
-      )}
-    </>
+  const tabs = (className?: string) => (
+    <ShareTabButtons activeTab={activeTab} onChange={setActiveTab} memberCount={collaborators.length} className={className} />
   );
+  const content =
+    activeTab === "share" ? (
+      <ShareLinkTab
+        link={link}
+        isShared={isShared}
+        canManageSharing={canManageSharing}
+        exploreEnabled={exploreEnabled}
+        isLoading={isLoading}
+        onEnableSharing={onEnableSharing}
+        onStopSharing={onStopSharing}
+      />
+    ) : (
+      <InviteTab tripId={tripId} tripTitle={tripTitle} invites={invites} />
+    );
 
   // Mobile: Use BottomSheet for better UX
-  //
-  // TabButtons and ModalContent are functions defined inside this component,
-  // so they are called (`{TabButtons({})}`, `{ModalContent()}`), not rendered
-  // as `<TabButtons />`: as components they would be a new type on every
-  // render, remounting the subtree and dropping the email input's focus (and
-  // the iOS keyboard) on each keystroke.
   if (isMobile) {
     return (
       <BottomSheet isOpen={isOpen} onClose={onClose} title={ts("titleWithInvite")}>
         <div className="px-4 pb-6">
           {/* Tabs */}
-          <div className="border-b border-slate-200 mb-4">
-            {TabButtons({})}
-          </div>
+          <div className="border-b border-slate-200 mb-4">{tabs()}</div>
           {/* Content */}
-          {ModalContent()}
+          {content}
         </div>
       </BottomSheet>
     );
@@ -554,20 +214,11 @@ export default function ShareAndInviteModal({
         aria-hidden="true"
       />
 
-      {/* Modal.
-          2026-05-31 P1 fix: the positioning container sits ON TOP of the
-          backdrop in DOM order — clicks in the dark area around the modal
-          panel were landing here (no handler) instead of the backdrop, so
-          the modal stayed open. Mirror the backdrop's onClick here; the
-          inner panel's stopPropagation below prevents real form clicks
-          from bubbling and accidentally closing the modal.
-
-          2026-05-30 P1 mobile fix: `min-h-screen` (100vh) over-counts on
-          iOS Safari by the URL bar + home indicator strip, so the
-          centered modal's bottom CTA could land below the visible
-          viewport. Switch to `min-h-dvh` + safe-area padding. (Mirror of
-          the same fix on BaseModal — this modal predates BaseModal
-          adoption so we patch it locally.) */}
+      {/* Modal. The positioning container sits on top of the backdrop, so a
+          click in the dark area around the panel lands here and closes too; the
+          panel stops its own clicks from bubbling up. min-h-dvh with safe-area
+          padding: min-h-screen (100vh) over-counts on iOS Safari by the URL bar
+          and home indicator, which can put the bottom button out of view. */}
       <div
         className="relative min-h-screen min-h-dvh flex items-center justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
         onClick={onClose}
@@ -578,13 +229,11 @@ export default function ShareAndInviteModal({
           className="relative bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden outline-none"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Close button.
-              Bug-bounty 2026-05-24 P2: previously icon-only with no
-              accessible name. */}
+          {/* Close button */}
           <button
             onClick={onClose}
             aria-label={ts("a11y.close")}
-            title={tb("close")}
+            title={t("buttons.close")}
             className="absolute top-4 right-4 z-10 text-slate-500 hover:text-slate-600 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -605,13 +254,11 @@ export default function ShareAndInviteModal({
             </div>
 
             {/* Tabs */}
-            {TabButtons({ className: "px-6" })}
+            {tabs("px-6")}
           </div>
 
           {/* Content */}
-          <div className="p-6 max-h-[60vh] overflow-y-auto">
-            {ModalContent()}
-          </div>
+          <div className="p-6 max-h-[60vh] overflow-y-auto">{content}</div>
         </div>
       </div>
     </div>
