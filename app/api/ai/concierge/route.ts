@@ -9,8 +9,8 @@
  *   2. Today-aware: when the current date falls inside the trip window,
  *      today's activities and day number are in the prompt, so the traveller
  *      can ask "what's nearby for lunch?" without restating context.
- *   3. One row per turn instead of a thread (persistConciergeTurn); the last
- *      few are replayed as its memory.
+ *   3. One row per turn instead of a thread; the last few are replayed as its
+ *      memory (lib/ai/concierge-trip.ts, lib/ai/concierge-answer.ts).
  *
  * Quota: shares aiAssistantMessages with the planning assistant. One
  * concierge ask = one assistant message.
@@ -21,209 +21,39 @@
  */
 
 import { NextRequest } from "next/server";
+import { conciergeAnswerStream, conciergePrompt } from "@/lib/ai/concierge-answer";
+import { buildTripContext, loadConciergeMemory, loadConciergeTrip, loadDayProgress, resolveTodaySlice } from "@/lib/ai/concierge-trip";
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
-import { logCacheMetrics } from "@/lib/ai/cache-metrics";
+import { tripLocale } from "@/lib/ai/language";
 import { getModelForPurpose, thinkingConfigFor } from "@/lib/ai/model-router";
-import { geminiCostUsd } from "@/lib/ai/gemini-cost";
+import { recordAiOutcome } from "@/lib/ai/observability";
+import { checkApiAccess } from "@/lib/api-gateway";
 import { getAuthenticatedUser } from "@/lib/api/auth";
+import { readJsonBody } from "@/lib/api/json-body";
 import { errors } from "@/lib/api/response-wrapper";
 import { checkUsageLimit, incrementUsage } from "@/lib/usage-limits";
-import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
-import { recordAiOutcome } from "@/lib/ai/observability";
-import { createAdminClient } from "@/lib/supabase/admin";
-import type { ItineraryDay, TripMeta } from "@/types";
-import { getTripDestination } from "@/lib/trips/destination";
-import {
-  PROPOSAL_MARKER,
-  emittableLength,
-  splitAnswerAndProposal,
-  resolveConciergeProposal,
-  proposalOwed,
-  proposalRequest,
-  requestedProposalJson,
-  type ConciergeProposal,
-} from "@/lib/ai/concierge-proposal";
-import { noProposalNote, replyLanguage } from "@/lib/ai/assistant/honesty";
-import { LANGUAGE_NAMES, tripLocale } from "@/lib/ai/language";
-import { CONCIERGE_SURFACE } from "@/lib/ai/conversations";
-import { logReadError } from "@/lib/supabase/log-read-error";
-import { readJsonBody } from "@/lib/api/json-body";
-
-/**
- * Persist a Concierge Q&A turn to `ai_conversations`.
- *
- * The F4 v1 spec called for "no persistence" (the chat UI is single-turn,
- * not threaded). But that left us paying Gemini for answers we couldn't
- * see — a June 2026 incident (7 questions over 17 min, all lost
- * when the trip got deleted) made the cost concrete. We now log every
- * turn so we can:
- *   - audit which questions drive the most quota usage
- *   - mine common asks for FAQ / canned-answer surfaces
- *   - reconstruct user sessions when a trip later disappears
- *
- * One row per turn (Q + A pair) — simpler than maintaining a thread —
- * marked `context.surface` so the trip assistant, which keeps its threads in
- * the same table, never reads it (lib/ai/conversations.ts).
- *
- * Fire-and-forget. Never blocks the user's answer.
- */
-async function persistConciergeTurn(input: {
-  userId: string;
-  tripId: string;
-  question: string;
-  answer: string;
-  model: string;
-  isLiveTrip: boolean;
-  dayNumber: number | null;
-  proposalType?: string | null;
-}): Promise<void> {
-  try {
-    const supabase = createAdminClient();
-    const now = new Date().toISOString();
-    const { error } = await supabase.from("ai_conversations").insert({
-      user_id: input.userId,
-      trip_id: input.tripId,
-      messages: [
-        {
-          role: "user",
-          content: input.question,
-          timestamp: now,
-        },
-        {
-          role: "assistant",
-          content: input.answer,
-          model: input.model,
-          timestamp: now,
-        },
-      ],
-      context: {
-        surface: CONCIERGE_SURFACE,
-        is_live_trip: input.isLiveTrip,
-        day_number: input.dayNumber,
-        // P2 Stage B: which edit type (if any) this turn proposed — feeds
-        // the "% of concierge proposals applied" success metric.
-        ...(input.proposalType ? { proposal_type: input.proposalType } : {}),
-      },
-    });
-    if (error) {
-      console.error("[concierge] persist turn failed", error);
-    }
-  } catch (err) {
-    // Never let a logging path break the user-facing answer.
-    console.error("[concierge] persist turn threw", err);
-  }
-}
+import type { ItineraryDay } from "@/types";
 
 const MAX_QUESTION_LENGTH = 800;
 // The answer plus one proposal line, with room to spare: a cut answer loses
 // the proposal, which comes last.
 const MAX_RESPONSE_TOKENS = 1024;
 
-/**
- * Per-process trip-context cache.
- *
- * Concierge users typically fire 2-3 follow-up questions in a row about the
- * same open trip. Each request previously triggered a fresh Supabase SELECT
- * of the full itinerary JSONB — a noticeable share of DB load on heavy days
- * and pure waste, since the trip rarely changes mid-conversation.
- *
- * We key by `${userId}|${tripId}` so collaborators on a shared trip don't
- * leak each other's RLS view (RLS still ran for the cached row when we
- * first fetched it for that user). 60s TTL is short enough that "Modifica
- * Viaggio" edits become visible quickly, long enough to catch the realistic
- * follow-up window.
- *
- * In-process Map. No cross-instance coherence — that's fine: stale reads
- * are at worst 60s old and the next instance will warm its own cache.
- */
-type TripRow = {
-  id: string;
-  title?: string;
-  // The canonical destination lives in trip_meta.destination — there is NO
-  // trips.destination column (it was migrated away). getTripDestination()
-  // reads it with a title-strip fallback. Selecting a `destination` column
-  // here previously 500'd every authenticated request (42703).
-  trip_meta?: TripMeta | null;
-  start_date: string;
-  end_date: string;
-  itinerary?: unknown;
-  /** Currency source for sanitized proposal activities. */
-  budget?: { currency?: string } | null;
-};
-
-const TRIP_CACHE_TTL_MS = 60_000;
-const tripContextCache = new Map<
-  string,
-  { row: TripRow; expiresAt: number }
->();
-
-function getCachedTrip(
-  userId: string,
-  tripId: string,
-  itineraryVersion: number
-): TripRow | null {
-  // itineraryVersion in the key: an applied proposal bumps the client
-  // counter, so post-edit questions miss the stale pre-edit entry.
-  const key = `${userId}|${tripId}|${itineraryVersion}`;
-  const entry = tripContextCache.get(key);
-  if (!entry) return null;
-  if (Date.now() > entry.expiresAt) {
-    tripContextCache.delete(key);
-    return null;
-  }
-  return entry.row;
-}
-
-function setCachedTrip(
-  userId: string,
-  tripId: string,
-  itineraryVersion: number,
-  row: TripRow
-): void {
-  const key = `${userId}|${tripId}|${itineraryVersion}`;
-  tripContextCache.set(key, {
-    row,
-    expiresAt: Date.now() + TRIP_CACHE_TTL_MS,
-  });
-}
-
-const SYSTEM_PROMPT = `You are MonkeyTravel's in-trip Concierge — a real-time travel companion for a SPECIFIC saved trip the user has open right now.
-
-RULES:
-1. Answer the user's question concisely and practically. Maximum 4 short paragraphs unless they ask for more.
-2. The user's saved itinerary is provided as JSON below — reference SPECIFIC activities/days when relevant. Don't pretend you don't know the plan.
-3. When the user asks you to CHANGE the plan (swap, drop, add, shorten, move something), answer AND attach ONE edit proposal using the EDIT PROPOSAL protocol below. The user confirms before anything is applied — NEVER claim a change has already been made.
-4. When TODAY'S CONTEXT is provided, prioritize answers grounded in today's activities, their completion status, and the day number. The user is likely physically on the trip.
-5. Never invent venues, opening hours, prices, or coordinates. If asked something the itinerary doesn't cover, say "I don't have that in your plan — want me to suggest options?" and offer 2-3 generic ideas tied to the destination.
-6. Match the user's language: respond in the same language they wrote in.
-7. No emojis. No markdown headers. Plain prose with at most a short bullet list when listing 3+ items.
-
-EDIT PROPOSAL protocol:
-- Only when the user's message asks for a concrete change. Questions get answers, not proposals.
-- Write your conversational answer first (explain what you suggest and why, in their language).
-- Then output, as the VERY LAST line: ${PROPOSAL_MARKER} followed on the same line by minified JSON:
-  {"type":"replace"|"add"|"remove"|"adjust_duration"|"shift_days","dayNumber":<n>,"targetActivityId":"<the activity's id from the itinerary JSON>","newActivity":{"name":"...","type":"restaurant|attraction|activity|nature","description":"1-2 sentences","location":"neighborhood","address":"street address if known","start_time":"HH:MM","duration_minutes":<n>,"estimated_cost":{"amount":<n>,"currency":"<trip currency>","tier":"budget"|"moderate"|"premium"}},"newDuration":<minutes>,"shiftByDays":<1-7>,"reason":"one short sentence"}
-- Field rules: every type has dayNumber. replace → targetActivityId + newActivity. add → newActivity. remove → targetActivityId. adjust_duration → targetActivityId + newDuration. shift_days → dayNumber (the FIRST day to push later) + shiftByDays.
-- shift_days is for schedule disruptions ("our flight got cancelled, push everything from tomorrow back a day"): EVERY day from dayNumber to the end of the trip moves later by shiftByDays and the trip's end date extends. Never propose it when any affected day contains a "locked": true activity.
-- Use the EXACT activity id from the itinerary JSON. Only propose real venues you are confident exist. Never target an activity marked "locked": true — those are the traveller's fixed plans.
-- At most ONE proposal per reply. Nothing may follow the JSON.`;
-
 interface ConciergeRequestBody {
   tripId?: string;
   question?: string;
   /**
-   * The user's LOCAL calendar date (YYYY-MM-DD). Stage A fix: the server
-   * previously resolved "today" from its own UTC clock, which is off by one
-   * for evening users in the Americas — precisely the "we're behind schedule
-   * tonight" moment the concierge exists for. Client clock wins; server UTC
-   * stays as the fallback for older clients.
+   * The traveller's LOCAL calendar date (YYYY-MM-DD). The server's UTC clock is
+   * off by one for evening users in the Americas, precisely the "we're behind
+   * schedule tonight" moment the concierge exists for. Server UTC stays as the
+   * fallback.
    */
   clientToday?: string;
   /**
    * Client-side edit counter. Bumped after every applied proposal and mixed
-   * into the trip-context cache key, so a follow-up question after an apply
-   * can never be answered from the pre-edit cached row. (In-process cache
-   * invalidation from the /apply route can't work — different lambda.)
+   * into the trip memo's key, so a follow-up question after an apply can never
+   * be answered from the pre-edit row. (Invalidating the memo from the /apply
+   * route can't work: a different lambda.)
    */
   itineraryVersion?: number;
 }
@@ -239,150 +69,40 @@ export async function POST(request: NextRequest) {
     // chew through the body-parsing layer either.
     const access = await checkApiAccess("gemini");
     if (!access.allowed) {
-      return errors.serviceUnavailable(
-        access.message || "AI is currently unavailable"
-      );
+      return errors.serviceUnavailable(access.message || "AI is currently unavailable");
     }
 
     const { body, invalidBody } = await readJsonBody<ConciergeRequestBody>(request);
     if (invalidBody) return invalidBody;
 
     const tripId = typeof body.tripId === "string" ? body.tripId : null;
-    const question =
-      typeof body.question === "string" ? body.question.trim() : "";
+    const question = typeof body.question === "string" ? body.question.trim() : "";
     const clientToday =
-      typeof body.clientToday === "string" &&
-      /^\d{4}-\d{2}-\d{2}$/.test(body.clientToday)
-        ? body.clientToday
-        : null;
+      typeof body.clientToday === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.clientToday) ? body.clientToday : null;
     const itineraryVersion =
-      typeof body.itineraryVersion === "number" &&
-      Number.isFinite(body.itineraryVersion)
+      typeof body.itineraryVersion === "number" && Number.isFinite(body.itineraryVersion)
         ? Math.max(0, Math.floor(body.itineraryVersion))
         : 0;
     if (!tripId) return errors.badRequest("tripId is required");
     if (!question) return errors.badRequest("question is required");
     if (question.length > MAX_QUESTION_LENGTH) {
-      return errors.badRequest(
-        `question too long (max ${MAX_QUESTION_LENGTH} chars)`
-      );
+      return errors.badRequest(`question too long (max ${MAX_QUESTION_LENGTH} chars)`);
     }
 
     // Quota check — share the assistant bucket so we don't introduce a
     // separate counter the user has to track. 20/day on free tier.
-    const usage = await checkUsageLimit(
-      user.id,
-      "aiAssistantMessages",
-      user.email
-    );
+    const usage = await checkUsageLimit(user.id, "aiAssistantMessages", user.email);
     if (!usage.allowed) {
-      return errors.forbidden(
-        usage.message ||
-          "Daily AI limit reached. Try again tomorrow or upgrade.",
-        "USAGE_LIMIT_REACHED"
-      );
+      return errors.forbidden(usage.message || "Daily AI limit reached. Try again tomorrow or upgrade.", "USAGE_LIMIT_REACHED");
     }
 
-    // Load the trip — owner OR collaborator (RLS handles that filter).
-    // We pull only the fields the prompt needs to keep tokens down.
-    //
-    // 60s per-process memo: same (user, trip) follow-ups (the common case)
-    // skip the SELECT entirely. RLS still ran for this user on the first
-    // fetch, so caching the row is safe — we only serve it back to the
-    // same userId. See `getCachedTrip` / `setCachedTrip` above.
-    let trip = getCachedTrip(user.id, tripId, itineraryVersion);
-    if (!trip) {
-      const { data: row, error: tripErr } = await supabase
-        .from("trips")
-        .select("id, title, start_date, end_date, itinerary, trip_meta, budget")
-        .eq("id", tripId)
-        .maybeSingle();
-      if (tripErr) {
-        console.error("[concierge] trip load failed", tripErr);
-        return errors.internal("Failed to load trip context", "concierge");
-      }
-      if (!row) {
-        return errors.notFound(
-          "Trip not found or you don't have access to it"
-        );
-      }
-      trip = row as TripRow;
-      setCachedTrip(user.id, tripId, itineraryVersion, trip);
-    }
+    const { trip, errorResponse: tripRefused } = await loadConciergeTrip(supabase, user.id, tripId, itineraryVersion);
+    if (tripRefused) return tripRefused;
 
-    const itinerary = Array.isArray(trip.itinerary)
-      ? (trip.itinerary as ItineraryDay[])
-      : [];
-
-    // Resolve today's day-in-trip if we're inside the trip window. The
-    // client's local date wins (Stage A — see ConciergeRequestBody).
-    const todaySlice = resolveTodaySlice(
-      String(trip.start_date),
-      String(trip.end_date),
-      itinerary,
-      clientToday
-    );
-
-    // Stage A: today's completion state from activity_timelines, so "what's
-    // left today?" and "we're behind" have ground truth. Best-effort — an
-    // empty map degrades to the pre-P2 behavior, never blocks the answer.
-    let completionByActivityId = new Map<string, string>();
-    if (todaySlice) {
-      try {
-        const { data: timelineRows } = logReadError("concierge: activity progress", await supabase
-          .from("activity_timelines")
-          .select("activity_id, status")
-          .eq("trip_id", tripId)
-          .eq("day_number", todaySlice.dayNumber));
-        completionByActivityId = new Map(
-          (timelineRows ?? []).map((r) => [String(r.activity_id), String(r.status)])
-        );
-      } catch (err) {
-        console.warn("[concierge] timeline fetch failed (non-fatal)", err);
-      }
-    }
-
-    // Stage A: multi-turn memory. Replay the last few persisted turns so
-    // "make it shorter" after "propose a dinner spot" resolves. The user_id
-    // and trip_id filters scope it to this user's own concierge turns.
-    let historyTurns: { question: string; answer: string }[] = [];
-    try {
-      const admin = createAdminClient();
-      const { data: convRows } = logReadError("concierge: history", await admin
-        .from("ai_conversations")
-        .select("messages")
-        .eq("user_id", user.id)
-        .eq("trip_id", tripId)
-        .eq("context->>surface", CONCIERGE_SURFACE)
-        .order("created_at", { ascending: false })
-        .limit(3));
-      historyTurns = (convRows ?? [])
-        .map((r) => {
-          const msgs = r.messages as { role?: string; content?: string }[] | null;
-          const q = msgs?.find((m) => m.role === "user")?.content;
-          const a = msgs?.find((m) => m.role === "assistant")?.content;
-          return q && a ? { question: q, answer: a } : null;
-        })
-        .filter((t): t is { question: string; answer: string } => t !== null)
-        .reverse(); // oldest first for the prompt
-    } catch (err) {
-      console.warn("[concierge] history fetch failed (non-fatal)", err);
-    }
-
-    const tripContext = buildTripContext(trip, todaySlice, completionByActivityId);
-    const tripCurrency =
-      (trip.budget as { currency?: string } | null)?.currency || "USD";
-    const tripLanguage = tripLocale(trip.trip_meta);
-    // The traveller's language, named when it shows: in the question, or for a
-    // reply of a word or two ("ok", "si aggiungi") in their earlier questions,
-    // else the trip's. Left to the model, Italian questions were answered in
-    // English, and the English answers replayed below kept the next ones so.
-    const writesIn =
-      replyLanguage(question) ??
-      (question.split(/\s+/).length <= 3
-        ? (replyLanguage(historyTurns.map((t) => t.question).join(" ")) ?? tripLanguage ?? undefined)
-        : undefined);
-    const languageRule = writesIn ? `\n\nAnswer in ${LANGUAGE_NAMES[writesIn]}.` : "";
+    const itinerary = Array.isArray(trip.itinerary) ? (trip.itinerary as ItineraryDay[]) : [];
+    const todaySlice = resolveTodaySlice(String(trip.start_date), String(trip.end_date), itinerary, clientToday);
+    const progress = todaySlice ? await loadDayProgress(supabase, tripId, todaySlice.dayNumber) : new Map<string, string>();
+    const memory = await loadConciergeMemory(user.id, tripId);
 
     // Call Gemini. Routed via model-router → concierge maps to
     // gemini-2.5-flash, not flash-lite, which struggles with multi-day
@@ -391,9 +111,8 @@ export async function POST(request: NextRequest) {
     if (!apiKey) {
       return errors.serviceUnavailable("AI not configured");
     }
-    const genAI = new GoogleGenerativeAI(apiKey);
     const conciergeModel = getModelForPurpose("concierge");
-    const model = genAI.getGenerativeModel({
+    const model = new GoogleGenerativeAI(apiKey).getGenerativeModel({
       model: conciergeModel,
       generationConfig: {
         temperature: 0.6, // some warmth but mostly factual
@@ -403,239 +122,31 @@ export async function POST(request: NextRequest) {
         thinkingConfig: thinkingConfigFor(conciergeModel),
       },
     });
+    const tripLanguage = tripLocale(trip.trip_meta);
 
-    const promptContents = [
-      { role: "user" as const, parts: [{ text: SYSTEM_PROMPT }] },
-      {
-        role: "model" as const,
-        parts: [
-          {
-            text: "Understood. I'll answer concisely, ground in the itinerary, and only ever PROPOSE edits for the user to confirm.",
-          },
-        ],
-      },
-      // Stage A multi-turn: prior Q&A pairs as real chat turns so follow-ups
-      // ("make it cheaper", "the second one") resolve against them.
-      ...historyTurns.flatMap((t) => [
-        { role: "user" as const, parts: [{ text: t.question }] },
-        { role: "model" as const, parts: [{ text: t.answer }] },
-      ]),
-      {
-        role: "user" as const,
-        parts: [
-          {
-            text: `TRIP CONTEXT (JSON):\n${tripContext}\n\nUSER QUESTION:\n${question}${languageRule}`,
-          },
-        ],
-      },
-    ];
-
-    // An answer owed a proposal it came without (proposalOwed) gets one more
-    // call for the proposal line alone. When a change it handed over still
-    // can't be attached, a note says so: the words are already on screen.
-    const settleProposal = async (
-      answer: string
-    ): Promise<{ proposal: ConciergeProposal | null; note: string | null; costUsd: number }> => {
-      const owed = proposalOwed(question, answer);
-      if (!owed) return { proposal: null, note: null, costUsd: 0 };
-      let proposal: ConciergeProposal | null = null;
-      let none = false;
-      let costUsd = 0;
-      try {
-        const result = await model.generateContent({
-          contents: [
-            ...promptContents,
-            { role: "model" as const, parts: [{ text: answer }] },
-            { role: "user" as const, parts: [{ text: proposalRequest(owed) }] },
-          ],
-        });
-        logCacheMetrics("ai.concierge.proposal", result.response.usageMetadata, conciergeModel);
-        costUsd = geminiCostUsd(conciergeModel, result.response.usageMetadata);
-        const json = requestedProposalJson(result.response.text());
-        none = json === "none";
-        proposal = json && json !== "none" ? resolveConciergeProposal(json, itinerary, tripCurrency) : null;
-      } catch (err) {
-        console.warn("[concierge] proposal follow-up failed", err);
-      }
-      const note =
-        !proposal && !none && owed === "promised"
-          ? noProposalNote(replyLanguage(answer) ?? tripLanguage ?? undefined)
-          : null;
-      return { proposal, note, costUsd };
-    };
-
-    // Gemini's chunked output, piped as SSE events. Perceived latency drops from
-    // ~3s to ~200ms for the first token.
-    //
-    // Side-effect work that must happen regardless of stream outcome.
-    // We fire the usage bump + observability BEFORE streaming starts
-    // so client disconnects mid-stream don't leak the cost-cap accounting.
+    // Before streaming starts, so a client disconnecting mid-stream doesn't leak
+    // the cost-cap accounting.
     void incrementUsage(user.id, "aiAssistantMessages").catch((err) => {
       console.error("[concierge] usage increment failed", err);
     });
 
-    const stream = new ReadableStream<Uint8Array>({
-      async start(controller) {
-        const encoder = new TextEncoder();
-        const emit = (payload: Record<string, unknown>) => {
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)
-          );
-        };
-
-        // Server-side accumulation so we can persist the full answer
-        // alongside the question after the stream completes. The client
-        // also accumulates for display — this is the audit copy.
-        //
-        // P2 Stage B holdback: everything after the proposal marker is
-        // machine-readable JSON that must NOT reach the client as answer
-        // text. `emittableLength` tells us how much of the accumulated
-        // buffer is safe to flush (it also withholds a trailing partial
-        // marker split across chunk boundaries).
-        let accumulated = "";
-        let emitted = 0;
-        // What the answer cost, from its tokens (lib/ai/gemini-cost.ts).
-        let costUsd = 0;
-        try {
-          const result = await model.generateContentStream({
-            contents: promptContents,
-          });
-          for await (const chunk of result.stream) {
-            const text = chunk.text();
-            if (text) {
-              accumulated += text;
-              const safe = emittableLength(accumulated);
-              if (safe > emitted) {
-                emit({ type: "chunk", text: accumulated.slice(emitted, safe) });
-                emitted = safe;
-              }
-            }
-          }
-
-          // Stream complete — split answer from proposal, resolve the
-          // proposal against the STORED itinerary (ids only — the model
-          // can never smuggle a fabricated oldActivity to /apply), and
-          // flush any answer text the holdback was still sitting on.
-          const { answer: finalAnswer, proposalJson } =
-            splitAnswerAndProposal(accumulated);
-          if (finalAnswer.length > emitted) {
-            emit({ type: "chunk", text: finalAnswer.slice(emitted) });
-          }
-          let proposal: ConciergeProposal | null = null;
-          if (proposalJson) {
-            proposal = resolveConciergeProposal(
-              proposalJson,
-              itinerary,
-              tripCurrency
-            );
-            if (proposal) {
-              emit({ type: "proposal", proposal });
-            }
-          }
-
-          // Wire prompt-cache hit-rate monitoring. The SDK exposes the
-          // aggregated final response (with usageMetadata) on
-          // `result.response` once the stream is fully consumed —
-          // best-effort, never block the user's "done" event on it.
-          try {
-            const finalResponse = await result.response;
-            logCacheMetrics("ai.concierge.stream", finalResponse.usageMetadata, conciergeModel);
-            costUsd = geminiCostUsd(conciergeModel, finalResponse.usageMetadata);
-          } catch {
-            /* usageMetadata is best-effort — don't fail the request */
-          }
-
-          let answerText = finalAnswer;
-          if (!proposal) {
-            const settled = await settleProposal(finalAnswer);
-            costUsd += settled.costUsd;
-            proposal = settled.proposal;
-            if (proposal) {
-              emit({ type: "proposal", proposal });
-            } else if (settled.note) {
-              emit({ type: "chunk", text: `\n\n${settled.note}` });
-              answerText = `${finalAnswer}\n\n${settled.note}`;
-            }
-          }
-
-          emit({
-            type: "done",
-            isLiveTrip: todaySlice !== null,
-            dayNumber: todaySlice?.dayNumber ?? null,
-          });
-
-          // Success path observability — DB log + Sentry breadcrumb.
-          // Done in start() so it sees the final duration.
-          void logApiCall({
-            apiName: "gemini",
-            endpoint: "/api/ai/concierge",
-            status: 200,
-            responseTimeMs: Date.now() - startTime,
-            cacheHit: false,
-            costUsd,
-            exactCost: true,
-            metadata: {
-              user_id: user.id,
-              trip_id: tripId,
-              is_live_trip: todaySlice !== null,
-            },
-          }).catch(() => {});
-
-          void recordAiOutcome({
-            endpoint: "assistant",
-            outcome: "success",
-            model: conciergeModel,
-            durationMs: Date.now() - startTime,
-            userId: user.id,
-            metadata: {
-              subroute: "concierge",
-              is_live_trip: todaySlice !== null,
-            },
-          });
-
-          // Persist the Q&A pair. Fire-and-forget. Trim before writing
-          // so we don't store the streaming-artifact trailing whitespace
-          // that the client also strips.
-          void persistConciergeTurn({
-            userId: user.id,
-            tripId,
-            question,
-            // Persist only the conversational answer — the proposal JSON
-            // is machine-payload, not something history replay should
-            // feed back into the prompt as prose.
-            answer: answerText,
-            model: conciergeModel,
-            isLiveTrip: todaySlice !== null,
-            dayNumber: todaySlice?.dayNumber ?? null,
-            proposalType: proposal?.type ?? null,
-          });
-        } catch (err) {
-          console.error("[concierge] streaming Gemini call failed", err);
-          emit({ type: "error" });
-
-          void recordAiOutcome({
-            endpoint: "assistant",
-            outcome: "failure",
-            model: conciergeModel,
-            durationMs: Date.now() - startTime,
-            error: err,
-            userId: user.id,
-            metadata: { subroute: "concierge" },
-          });
-
-          void logApiCall({
-            apiName: "gemini",
-            endpoint: "/api/ai/concierge",
-            status: 500,
-            responseTimeMs: Date.now() - startTime,
-            cacheHit: false,
-            costUsd: 0,
-            error: err instanceof Error ? err.message : "unknown",
-          }).catch(() => {});
-        } finally {
-          controller.close();
-        }
-      },
+    const stream = conciergeAnswerStream({
+      model,
+      modelName: conciergeModel,
+      contents: conciergePrompt({
+        question,
+        memory,
+        tripContext: buildTripContext(trip, todaySlice, progress),
+        tripLanguage,
+      }),
+      question,
+      itinerary,
+      tripCurrency: (trip.budget as { currency?: string } | null)?.currency || "USD",
+      tripLanguage,
+      todaySlice,
+      userId: user.id,
+      tripId,
+      startTime,
     });
 
     return new Response(stream, {
@@ -661,117 +172,4 @@ export async function POST(request: NextRequest) {
 
     return errors.internal("Concierge failed", "concierge");
   }
-}
-
-/**
- * Resolve today's day-in-trip slice. Returns null when the current
- * date is before the trip starts or after it ends — we still answer
- * questions, but skip the "today" framing in the prompt.
- *
- * Date math uses local-day comparison via toLocaleDateString-style
- * UTC midnight, which is what the trip dates were stored as.
- */
-function resolveTodaySlice(
-  startDate: string,
-  endDate: string,
-  itinerary: ItineraryDay[],
-  clientToday?: string | null
-): { dayNumber: number; activities: ItineraryDay["activities"] } | null {
-  // Prefer the client's LOCAL date (Stage A fix — server UTC is tomorrow
-  // for evening users in the Americas); fall back to server UTC.
-  let today: number;
-  const m = clientToday ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(clientToday) : null;
-  if (m) {
-    today = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-  } else {
-    const now = new Date();
-    today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-  }
-  const start = new Date(startDate);
-  const startUtc = Date.UTC(
-    start.getUTCFullYear(),
-    start.getUTCMonth(),
-    start.getUTCDate()
-  );
-  const end = new Date(endDate);
-  const endUtc = Date.UTC(
-    end.getUTCFullYear(),
-    end.getUTCMonth(),
-    end.getUTCDate()
-  );
-  if (today < startUtc || today > endUtc) return null;
-
-  const diffDays = Math.floor((today - startUtc) / (24 * 60 * 60 * 1000));
-  const dayNumber = diffDays + 1; // 1-indexed
-  const day = itinerary.find((d) => d.day_number === dayNumber);
-  if (!day) return { dayNumber, activities: [] };
-  return { dayNumber, activities: day.activities ?? [] };
-}
-
-/**
- * Build a compact JSON-string context for the prompt. We deliberately
- * strip metadata fields the model doesn't need (timestamps, IDs, image
- * URLs) so we don't burn tokens for noise.
- */
-function buildTripContext(
-  trip: {
-    title?: string;
-    trip_meta?: TripMeta | null;
-    start_date?: string;
-    end_date?: string;
-    itinerary?: unknown;
-  },
-  todaySlice: {
-    dayNumber: number;
-    activities: ItineraryDay["activities"];
-  } | null,
-  completionByActivityId: Map<string, string> = new Map()
-): string {
-  // Stage A/B: ids + start_time + locked are now in the context — ids are
-  // what the edit-proposal protocol targets, and locked tells the model
-  // which activities are the traveller's own fixed plans (rule: never touch).
-  const days = Array.isArray(trip.itinerary)
-    ? (trip.itinerary as ItineraryDay[]).map((d) => ({
-        day_number: d.day_number,
-        date: d.date,
-        activities: (d.activities ?? []).map((a) => ({
-          id: a.id,
-          time_slot: a.time_slot,
-          start_time: a.start_time,
-          name: a.name,
-          type: a.type,
-          location: a.location || a.address || undefined,
-          duration_minutes: a.duration_minutes,
-          ...((a as { locked?: boolean }).locked === true ? { locked: true } : {}),
-        })),
-      }))
-    : [];
-
-  const out: Record<string, unknown> = {
-    title: trip.title,
-    destination: getTripDestination({ title: trip.title, trip_meta: trip.trip_meta }),
-    start_date: trip.start_date,
-    end_date: trip.end_date,
-    total_days: days.length,
-    itinerary: days,
-  };
-  if (todaySlice) {
-    out.today = {
-      day_number: todaySlice.dayNumber,
-      activities: todaySlice.activities.map((a) => ({
-        id: a.id,
-        time_slot: a.time_slot,
-        start_time: a.start_time,
-        name: a.name,
-        type: a.type,
-        location: a.location || a.address || undefined,
-        // "completed" | "skipped" — absent means not started yet. This is
-        // what makes "are we still on track?" answerable with ground truth.
-        ...(a.id && completionByActivityId.has(a.id)
-          ? { status: completionByActivityId.get(a.id) }
-          : {}),
-      })),
-    };
-  }
-  return JSON.stringify(out);
 }
