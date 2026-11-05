@@ -235,10 +235,11 @@ export default function ProfileCompletionModal({
         <div className="space-y-5">
           {/* Display Name */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="profile-display-name" className="block text-sm font-medium text-slate-700 mb-2">
               {t("fields.displayName")} <span className="text-red-500">*</span>
             </label>
             <input
+              id="profile-display-name"
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
@@ -271,10 +272,11 @@ export default function ProfileCompletionModal({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="profile-home-city" className="block text-sm font-medium text-slate-700 mb-2">
                 {t("fields.homeCity")}
               </label>
               <input
+                id="profile-home-city"
                 type="text"
                 value={homeCity}
                 onChange={(e) => setHomeCity(e.target.value)}
@@ -316,11 +318,12 @@ export default function ProfileCompletionModal({
 
           {/* Bio */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="profile-bio" className="block text-sm font-medium text-slate-700 mb-2">
               {t("fields.bio")}
             </label>
             <div className="relative">
               <textarea
+                id="profile-bio"
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 focus:bg-white transition-all outline-none resize-none"

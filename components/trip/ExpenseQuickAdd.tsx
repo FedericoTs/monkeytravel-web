@@ -83,6 +83,7 @@ export default function ExpenseQuickAdd({ onAdd, busy, variant = "inline", class
         data-testid="expense-amount"
         autoFocus
         aria-invalid={invalid}
+        aria-label={t("today.expenses.amountPlaceholder")}
         placeholder={t("today.expenses.amountPlaceholder")}
         className="min-h-[40px] w-28 rounded-lg border border-slate-300 px-3 text-sm focus:border-[var(--primary)] focus:outline-none"
       />

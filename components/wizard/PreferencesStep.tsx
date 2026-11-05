@@ -251,10 +251,11 @@ export default function PreferencesStep({
 
             {/* Special Requirements */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="trip-requirements" className="block text-sm font-medium text-slate-700 mb-2">
                 {t("requirements.title")} <span className="font-normal text-slate-500">({t("requirements.hint").split(" - ")[0]})</span>
               </label>
               <textarea
+                id="trip-requirements"
                 value={requirements}
                 onChange={(e) => setRequirements(e.target.value.slice(0, REQUIREMENTS_MAX))}
                 placeholder={t("requirements.placeholder")}

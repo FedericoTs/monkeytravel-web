@@ -425,10 +425,11 @@ export default function AccessCodesManager() {
             <form onSubmit={handleCreateCode} className="p-6 space-y-4">
               {/* Code */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor="access-code-code" className="block text-sm font-medium text-slate-700 mb-1">
                   Code (optional - auto-generated if blank)
                 </label>
                 <input
+                  id="access-code-code"
                   type="text"
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
@@ -440,10 +441,11 @@ export default function AccessCodesManager() {
 
               {/* Display Name */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor="access-code-name" className="block text-sm font-medium text-slate-700 mb-1">
                   Display Name
                 </label>
                 <input
+                  id="access-code-name"
                   type="text"
                   value={formData.display_name}
                   onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
@@ -455,10 +457,11 @@ export default function AccessCodesManager() {
               {/* Limits */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label htmlFor="access-code-max-uses" className="block text-sm font-medium text-slate-700 mb-1">
                     Max Uses (blank = ∞)
                   </label>
                   <input
+                    id="access-code-max-uses"
                     type="number"
                     value={formData.max_uses}
                     onChange={(e) => setFormData({ ...formData, max_uses: e.target.value })}
@@ -488,10 +491,11 @@ export default function AccessCodesManager() {
                 </h4>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs text-slate-500 mb-1">
+                    <label htmlFor="access-code-generations" className="block text-xs text-slate-500 mb-1">
                       Generations
                     </label>
                     <input
+                      id="access-code-generations"
                       type="number"
                       value={formData.ai_generations_limit}
                       onChange={(e) => setFormData({ ...formData, ai_generations_limit: e.target.value })}
@@ -501,10 +505,11 @@ export default function AccessCodesManager() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-500 mb-1">
+                    <label htmlFor="access-code-regenerations" className="block text-xs text-slate-500 mb-1">
                       Regenerations
                     </label>
                     <input
+                      id="access-code-regenerations"
                       type="number"
                       value={formData.ai_regenerations_limit}
                       onChange={(e) => setFormData({ ...formData, ai_regenerations_limit: e.target.value })}
@@ -514,10 +519,11 @@ export default function AccessCodesManager() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-500 mb-1">
+                    <label htmlFor="access-code-ai-chat" className="block text-xs text-slate-500 mb-1">
                       AI Chat
                     </label>
                     <input
+                      id="access-code-ai-chat"
                       type="number"
                       value={formData.ai_assistant_limit}
                       onChange={(e) => setFormData({ ...formData, ai_assistant_limit: e.target.value })}
@@ -531,10 +537,11 @@ export default function AccessCodesManager() {
 
               {/* Notes */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor="access-code-notes" className="block text-sm font-medium text-slate-700 mb-1">
                   Notes (internal)
                 </label>
                 <textarea
+                  id="access-code-notes"
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="e.g., For Twitter influencers..."

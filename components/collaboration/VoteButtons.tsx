@@ -161,6 +161,11 @@ export default function VoteButtons({
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
+              aria-label={
+                pendingVote === "concerns"
+                  ? t("concernsPlaceholder")
+                  : t("noPlaceholder")
+              }
               placeholder={
                 pendingVote === "concerns"
                   ? t("concernsPlaceholder")

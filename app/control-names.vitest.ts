@@ -7,9 +7,10 @@ import ts from "typescript";
 /**
  * Every button and link can be named by a screen reader: one holding only an icon
  * is announced as "button" with nothing to say what it does. It takes an aria-label
- * (or title), or text a reader can see. So does every form field: an aria-label, a
- * <label> around it or pointing at it, or at least a placeholder. A label beside a
- * field that doesn't point at it names nothing. Read from the source, so a new one is
+ * (or title), or text a reader can see. So does every form field: an aria-label, or a
+ * <label> around it or pointing at it. A placeholder is no name, since it goes away
+ * when someone types, and a label beside a field that doesn't point at it names
+ * nothing. Read from the source, so a new one is
  * caught here whichever page it is on. A spread of props, or a child this can't read,
  * gets the benefit of the doubt.
  */
@@ -76,7 +77,7 @@ function unnamedControls(file: string, text: string): string[] {
       el.attributes.properties.some((p) => ts.isJsxSpreadAttribute(p)) ||
       type === "hidden" ||
       type === "file" ||
-      ["aria-label", "aria-labelledby", "title", "placeholder"].some((a) => attribute(el, a)) ||
+      ["aria-label", "aria-labelledby", "title"].some((a) => attribute(el, a)) ||
       (id !== undefined && labelled.has(id));
     if (!named) found.push(`${file}:${lineOf(el)}`);
   };
@@ -114,6 +115,7 @@ describe("every button, link and form field has a name", () => {
     ["an svg alone", `<button><svg><path /></svg></button>`],
     ["a link holding only an icon", `<a href="/x"><svg /></a>`],
     ["a field with nothing", `<input value={v} />`],
+    ["a field with only a placeholder", `<input placeholder="Name" />`],
     ["a select with nothing", `<select value={v}><option>A</option></select>`],
     ["a label beside a field, pointing at nothing", `<div><label>Name</label><input value={v} /></div>`],
     ["a label pointing at another field", `<div><label htmlFor="a">Name</label><input id="b" /></div>`],
@@ -126,7 +128,6 @@ describe("every button, link and form field has a name", () => {
   it.each([
     ["an aria-label", `<button aria-label="Close"><X /></button>`],
     ["a field's aria-label", `<input aria-label="Name" />`],
-    ["a field's placeholder", `<input placeholder="Name" />`],
     ["a field inside its label", `<label>Name <input value={v} /></label>`],
     ["a label pointing at its field", `<div><label htmlFor="a">Name</label><input id="a" /></div>`],
     ["a hidden field", `<input type="hidden" value={v} />`],
