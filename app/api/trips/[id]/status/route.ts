@@ -3,65 +3,8 @@ import { getAuthenticatedUser, verifyTripOwnership } from '@/lib/api/auth';
 import { errors, apiSuccess } from '@/lib/api/response-wrapper';
 import type { TripRouteContext } from '@/lib/api/route-context';
 import type { TripStatus } from '@/types';
-import {
-  isValidStatusTransition,
-  calculateTripStatus,
-} from '@/lib/trips/status';
+import { isValidStatusTransition } from '@/lib/trips/status';
 import { readJsonBody } from "@/lib/api/json-body";
-
-/**
- * GET /api/trips/[id]/status
- * Get current trip status and check if auto-update is needed
- */
-export async function GET(request: NextRequest, context: TripRouteContext) {
-  try {
-    const { id } = await context.params;
-    const { user, supabase, errorResponse } = await getAuthenticatedUser();
-    if (errorResponse) return errorResponse;
-
-    // Fetch trip with ownership verification
-    const { trip, errorResponse: tripError } = await verifyTripOwnership(
-      supabase,
-      id,
-      user.id,
-      'id, status, start_date, end_date, is_archived'
-    );
-    if (tripError) return tripError;
-
-    // Calculate if status should be auto-updated
-    const calculatedStatus = calculateTripStatus(
-      trip.status as TripStatus,
-      trip.start_date as string,
-      trip.end_date as string
-    );
-
-    // Auto-update if needed. The answer says updated only when the write
-    // landed; otherwise the stored status stands and the next read retries.
-    let updated = false;
-    if (calculatedStatus !== trip.status) {
-      const { error: updateError } = await supabase
-        .from('trips')
-        .update({ status: calculatedStatus, updated_at: new Date().toISOString() })
-        .eq('id', id);
-
-      if (updateError) {
-        console.error('[Trip Status] Error auto-updating:', updateError);
-      } else {
-        updated = true;
-      }
-    }
-
-    return apiSuccess({
-      status: updated ? calculatedStatus : trip.status,
-      previousStatus: updated ? trip.status : null,
-      wasAutoUpdated: updated,
-      isArchived: trip.is_archived,
-    });
-  } catch (error) {
-    console.error('[Trip Status] Unexpected error in GET:', error);
-    return errors.internal('Internal server error', 'Trip Status');
-  }
-}
 
 /**
  * PATCH /api/trips/[id]/status

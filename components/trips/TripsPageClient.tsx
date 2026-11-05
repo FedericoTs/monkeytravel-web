@@ -3,6 +3,8 @@
 import { useState, useMemo, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useNow } from "@/hooks/useNow";
+import { shownTripStatus, tripTimeline } from "@/lib/trips/status";
+import { toLocalISODate } from "@/lib/utils/date-local";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/lib/i18n/routing";
@@ -57,10 +59,11 @@ interface TripsPageClientProps {
   lifetimeConversions: number;
   blogTips?: BlogTip[];
   /**
-   * The server's clock (ISO). The first render and hydration sort trips into
-   * happening now / upcoming / past by it, so no card moves after load.
+   * The visitor's day as the server reckons it (YYYY-MM-DD). The first render
+   * and hydration sort trips into happening now / upcoming / past by it, so no
+   * card moves after load.
    */
-  serverNow?: string;
+  serverToday?: string;
 }
 
 type SortOption = "newest" | "oldest" | "upcoming" | "alphabetical";
@@ -100,7 +103,7 @@ function TripSection({ title, trips, icon, emptyText, renderTripCard }: {
   );
 }
 
-export default function TripsPageClient({ trips, sharedTrips = [], displayName, lifetimeConversions, blogTips = [], serverNow }: TripsPageClientProps) {
+export default function TripsPageClient({ trips, sharedTrips = [], displayName, lifetimeConversions, blogTips = [], serverToday }: TripsPageClientProps) {
   const t = useTranslations('common.trips');
   const tRoles = useTranslations('common.roles');
   const tNav = useTranslations('common.navigation');
@@ -216,23 +219,28 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
     }
   };
 
-  // Separate active and archived trips
-  const activeTrips = useMemo(() => trips.filter(t => !t.is_archived), [trips]);
-  const archivedTrips = useMemo(() => trips.filter(t => t.is_archived), [trips]);
-
-  // The server's clock until mount, then the browser's (hooks/useNow.ts).
+  // The server's day until mount, then the browser's (hooks/useNow.ts).
   // Server render and hydration share the server's value, so their buckets
   // match (no React error #418) and the cards are in their final sections
   // from the first paint instead of moving there after hydration.
   const clientNow = useNow();
-  const serverNowDate = useMemo(() => (serverNow ? new Date(serverNow) : null), [serverNow]);
-  const now = clientNow ?? serverNowDate;
+  const today = clientNow ? toLocalISODate(clientNow) : serverToday ?? null;
+
+  // Each trip with the status its dates give it, for the pill and the filter.
+  const shownTrips = useMemo(
+    () => (today ? trips.map(t => ({ ...t, status: shownTripStatus(t.status, t.start_date, t.end_date, today) })) : trips),
+    [trips, today]
+  );
+
+  // Separate active and archived trips
+  const activeTrips = useMemo(() => shownTrips.filter(t => !t.is_archived), [shownTrips]);
+  const archivedTrips = useMemo(() => shownTrips.filter(t => t.is_archived), [shownTrips]);
 
   // Calculate trip statistics (only for active, non-archived trips).
   //
   // Time-bucket counts (upcoming/past/active) are null only without any clock
-  // (no serverNow), and the render path then emits a `—` placeholder on both
-  // sides. Server and hydration otherwise count with the same server `now`.
+  // (no serverToday), and the render path then emits a `—` placeholder on both
+  // sides. Server and hydration otherwise count with the same server day.
   //
   // Why null + render placeholder instead of `0` + suppressHydrationWarning:
   // empirically (fiber inspection in the browser),
@@ -242,7 +250,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
   // node ("—") on both sides is the only bulletproof fix that doesn't
   // depend on React's hydration timing heuristics changing under us.
   const stats = useMemo(() => {
-    if (!now) {
+    if (!today) {
       return {
         total: activeTrips.length,
         upcoming: null,
@@ -252,13 +260,10 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
         archived: archivedTrips.length,
       };
     }
-    const upcoming = activeTrips.filter(t => new Date(t.start_date) > now).length;
-    const past = activeTrips.filter(t => new Date(t.end_date) < now).length;
-    const active = activeTrips.filter(t => {
-      const start = new Date(t.start_date);
-      const end = new Date(t.end_date);
-      return start <= now && end >= now;
-    }).length;
+    const timelines = activeTrips.map(t => tripTimeline(t.start_date, t.end_date, today));
+    const upcoming = timelines.filter(when => when === "upcoming").length;
+    const past = timelines.filter(when => when === "past").length;
+    const active = timelines.filter(when => when === "current").length;
 
     // Count unique destinations (extract from title)
     const destinations = new Set(activeTrips.map(t => t.title.replace(/ Trip$/, "")));
@@ -271,7 +276,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
       destinations: destinations.size,
       archived: archivedTrips.length,
     };
-  }, [activeTrips, archivedTrips, now]);
+  }, [activeTrips, archivedTrips, today]);
 
   // Filter and sort trips (only non-archived trips)
   const filteredTrips = useMemo(() => {
@@ -311,26 +316,25 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
     return result;
   }, [activeTrips, searchQuery, sortBy, filterStatus]);
 
-  // Group trips by timeline with the `now` from above. Only without any clock
-  // (no serverNow) does everything start in `past`, identically on both sides.
+  // Group trips by timeline with the `today` from above. Only without any clock
+  // (no serverToday) does everything start in `past`, identically on both sides.
   const groupedTrips = useMemo(() => {
     const upcoming: Trip[] = [];
     const current: Trip[] = [];
     const past: Trip[] = [];
 
-    if (!now) {
+    if (!today) {
       // Pre-hydration: lump everything into "past" (stable across SSR/client).
       filteredTrips.forEach(trip => past.push(trip));
       return { upcoming, current, past };
     }
 
     filteredTrips.forEach(trip => {
-      const start = new Date(trip.start_date);
-      const end = new Date(trip.end_date);
+      const when = tripTimeline(trip.start_date, trip.end_date, today);
 
-      if (start > now) {
+      if (when === "upcoming") {
         upcoming.push(trip);
-      } else if (end < now) {
+      } else if (when === "past") {
         past.push(trip);
       } else {
         current.push(trip);
@@ -338,7 +342,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
     });
 
     return { upcoming, current, past };
-  }, [filteredTrips, now]);
+  }, [filteredTrips, today]);
 
   // Get translated status label - "completed" displays as "Memories"
   const getStatusLabel = useCallback((status: string) => {
@@ -482,7 +486,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
               </div>
               <div className="text-xl sm:text-2xl font-bold text-slate-900">
                 {/* `null` placeholder pre-mount → renders as the em-dash. After
-                    useNow() populates `now`, the memo emits the real count and
+                    useNow() populates `today`, the memo emits the real count and
                     this re-renders. Both SSR and first client paint produce the
                     same character — hydration cannot mismatch. */}
                 {stats.upcoming ?? "—"}
