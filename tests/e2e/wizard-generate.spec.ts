@@ -142,6 +142,13 @@ test.describe("wizard: planning a trip", () => {
     await expect(accountWall).toHaveCount(0);
     await page.getByRole("button", { name: /Save Trip/ }).first().click();
     await expect(accountWall.first()).toBeVisible({ timeout: 5_000 });
+    // The plan stays readable behind the box: on a phone the box sits at the
+    // bottom, with the top of the screen left to the plan.
+    const viewport = page.viewportSize()!;
+    if (viewport.width < 640) {
+      const box = await accountWall.first().getByRole("heading", { name: "Keep this plan" }).boundingBox();
+      expect(box!.y).toBeGreaterThan(viewport.height * 0.25);
+    }
 
     // One row per stage, each with the trip's shape; the dwell heartbeat on
     // step 1 depends on time and is left out. No `abandoned`: the planner
