@@ -37,6 +37,28 @@ vi.mock("@/components/explore/TripEngagementSection", () => ({ default: () => nu
 vi.mock("@/lib/places/refreshItineraryPhotos", () => ({ refreshTripItinerary: async (x: unknown) => x }));
 vi.mock("@/lib/explore/flag", () => ({ isExploreUgcEnabled: () => false }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ has: () => false }) }));
+// What the service role reads of the invites sent for this trip, and what it asked for.
+const invites = vi.hoisted(() => ({
+  rows: [] as Array<Record<string, unknown>>,
+  error: null as { message: string } | null,
+  asked: {} as Record<string, unknown>,
+}));
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({
+    from: (table: string) => {
+      invites.asked = { table };
+      const chain = {
+        select: () => chain,
+        eq: (column: string, value: unknown) => {
+          invites.asked[column] = value;
+          return chain;
+        },
+        then: (resolve: (value: unknown) => unknown) => resolve({ data: invites.error ? null : invites.rows, error: invites.error }),
+      };
+      return chain;
+    },
+  }),
+}));
 
 type World = {
   user: string | null;
@@ -368,5 +390,63 @@ describe("non-members", () => {
     world.visibility = "public";
     world.publicSlug = null;
     expect(await visit()).toEqual({ notFound: true });
+  });
+});
+
+describe("a signed-in visitor who is not on a private trip", () => {
+  const STRANGER = "stranger-1";
+  const inviteRow = (over: Record<string, unknown> = {}) => ({
+    token: "invite-token",
+    is_active: true,
+    expires_at: "2099-01-01T00:00:00Z",
+    max_uses: 1,
+    use_count: 0,
+    ...over,
+  });
+  const open = async (locale = "en") => {
+    const { default: TripPage } = await import("./page");
+    return TripPage({ params: Promise.resolve({ id: TRIP, locale }) });
+  };
+
+  beforeEach(() => {
+    world = { user: STRANGER, collaborators: {}, shareToken: null, visibility: "private" };
+    authAnswered = Promise.resolve();
+    invites.rows = [];
+    invites.error = null;
+    invites.asked = {};
+  });
+
+  it("goes to the invite emailed to their own address", async () => {
+    invites.rows = [inviteRow()];
+    await expect(open()).rejects.toMatchObject({ url: "/invite/invite-token" });
+    expect(invites.asked).toMatchObject({ table: "trip_invites", trip_id: TRIP, recipient_email: "a@test.local" });
+  });
+
+  it("keeps the page's language on the way", async () => {
+    invites.rows = [inviteRow()];
+    await expect(open("it")).rejects.toMatchObject({ url: "/it/invite/invite-token" });
+  });
+
+  it("takes a usable one when an older invite is dead", async () => {
+    invites.rows = [inviteRow({ token: "old", expires_at: "2020-01-01T00:00:00Z" }), inviteRow()];
+    await expect(open()).rejects.toMatchObject({ url: "/invite/invite-token" });
+  });
+
+  it.each([
+    ["none waiting", []],
+    ["one that's expired", [inviteRow({ expires_at: "2020-01-01T00:00:00Z" })]],
+    ["one that's used up", [inviteRow({ use_count: 1 })]],
+    ["one that's been revoked", [inviteRow({ is_active: false })]],
+  ])("sees that the trip isn't available with %s", async (_name, rows) => {
+    invites.rows = rows;
+    await expect(open()).rejects.toBeInstanceOf(NotFound);
+  });
+
+  it("sees that the trip isn't available when the invites can't be read", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    invites.error = { message: "read failed" };
+    await expect(open()).rejects.toBeInstanceOf(NotFound);
+    expect(logged).toHaveBeenCalled();
+    logged.mockRestore();
   });
 });
