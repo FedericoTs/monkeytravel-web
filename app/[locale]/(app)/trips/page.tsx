@@ -6,6 +6,7 @@ import { getAllFrontmatter, tOr } from "@/lib/blog/api";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { TRIP_CARD_COLUMNS } from "@/lib/trips/columns";
+import { logReadError } from "@/lib/supabase/log-read-error";
 import { isValidTimeZone, todayInTimeZone } from "@/lib/trip/live";
 
 // Locale-aware <title>.
@@ -62,12 +63,15 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
   const [tripsResult, profileResult, sharedResult] =
     await (early && user.id === claimedId ? early : listsFor(user.id));
 
+  // To the error page, which offers a retry: "No trips yet" would tell someone
+  // their trips are gone.
+  if (tripsResult.error) throw tripsResult.error;
   const { data: trips } = tripsResult;
   type SharedRow = {
     role: string;
     trips: { id: string; title: string; start_date: string; end_date: string; cover_image_url: string | null; deleted_at: string | null } | null;
   };
-  const sharedTrips = ((sharedResult.data ?? []) as unknown as SharedRow[])
+  const sharedTrips = ((logReadError("my trips: shared", sharedResult).data ?? []) as unknown as SharedRow[])
     .filter((row) => row.trips && !row.trips.deleted_at)
     .map((row) => ({
       id: row.trips!.id,
@@ -103,7 +107,7 @@ export default async function TripsPage({ params }: { params: Promise<{ locale: 
   // This page only changes what happens when someone deliberately navigates
   // to their trip list, and trapping them there was never the intent.
 
-  const { data: profile } = profileResult;
+  const { data: profile } = logReadError("my trips: profile", profileResult);
 
   const displayName = profile?.display_name || user.email?.split("@")[0] || "Traveler";
   const lifetimeConversions = profile?.lifetime_referral_conversions || 0;
