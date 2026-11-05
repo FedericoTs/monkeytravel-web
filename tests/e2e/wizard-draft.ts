@@ -44,6 +44,16 @@ export async function restoreDraft(page: Page) {
   await expect(page.getByRole("heading", { level: 1, name: "Paris, France" })).toBeVisible({ timeout: 30_000 });
 }
 
+/** New dates for the plan on screen, through the result view's dialog. */
+export async function changeDates(page: Page, start: string, end: string) {
+  await page.getByRole("button", { name: "Change dates" }).first().click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Start").fill(start);
+  await dialog.getByLabel("End").fill(end);
+  await dialog.getByRole("button", { name: "Change dates" }).click();
+  await expect(dialog).toHaveCount(0);
+}
+
 /** The draft the wizard keeps, as it stands now. */
 export async function storedDraft(page: Page): Promise<{
   startDate: string;

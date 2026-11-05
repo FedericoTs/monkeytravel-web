@@ -42,7 +42,7 @@ function renderPanel(props: {
   onPlanElsewhere?: (place: string) => void;
 }) {
   const onApplyEdits = vi.fn(props.onApplyEdits ?? (() => "edit-1"));
-  render(
+  const { unmount } = render(
     <AnonAssistantPanel
       destination="Lisbon, Portugal"
       tripTitle="Lisbon"
@@ -52,7 +52,7 @@ function renderPanel(props: {
       onPlanElsewhere={props.onPlanElsewhere}
     />
   );
-  return { onApplyEdits };
+  return { onApplyEdits, unmount };
 }
 
 async function ask(text = "make day 2 slower") {
@@ -102,6 +102,19 @@ describe("with Undo on offer", () => {
     await ask("and day 3");
     await waitFor(() => expect(screen.getAllByText("assistant.updatedDay")).toHaveLength(2));
     expect(screen.getAllByRole("button", { name: "assistant.undo" })).toHaveLength(1);
+  });
+});
+
+describe("an answer for a panel that has gone", () => {
+  it("changes nothing", async () => {
+    let answer: (r: Response) => void = () => {};
+    fetchMock.mockImplementationOnce(() => new Promise<Response>((resolve) => (answer = resolve)));
+    const { onApplyEdits, unmount } = renderPanel({ onUndoEdits: () => true });
+    await ask();
+    unmount();
+    answer(new Response(JSON.stringify(reply(2)), { status: 200 }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(onApplyEdits).not.toHaveBeenCalled();
   });
 });
 
