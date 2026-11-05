@@ -218,10 +218,11 @@ export default function AccessControl() {
         <div className="p-6 space-y-6">
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="maintenance-title" className="block text-sm font-medium text-slate-700 mb-2">
               Maintenance Page Title
             </label>
             <input
+              id="maintenance-title"
               type="text"
               value={maintenanceTitle}
               onChange={(e) => setMaintenanceTitle(e.target.value)}
@@ -232,10 +233,11 @@ export default function AccessControl() {
 
           {/* Message */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="maintenance-message" className="block text-sm font-medium text-slate-700 mb-2">
               Message to Users
             </label>
             <textarea
+              id="maintenance-message"
               value={maintenanceMessage}
               onChange={(e) => setMaintenanceMessage(e.target.value)}
               rows={4}
@@ -249,10 +251,11 @@ export default function AccessControl() {
 
           {/* Allowed Emails */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="maintenance-bypass-emails" className="block text-sm font-medium text-slate-700 mb-2">
               Bypass Emails (Optional)
             </label>
             <textarea
+              id="maintenance-bypass-emails"
               value={allowedEmails}
               onChange={(e) => setAllowedEmails(e.target.value)}
               rows={3}

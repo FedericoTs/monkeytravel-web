@@ -11,6 +11,7 @@ import { shownTripStatus } from "@/lib/trips/status";
 import { toLocalISODate } from "@/lib/utils/date-local";
 import { hasCoordinates } from "@/lib/trips/has-coordinates";
 import { withFoundPhotos } from "@/lib/trips/keep-place-photos";
+import { useItineraryCopies } from "@/hooks/useItineraryCopies";
 import { useKeptTripPhotos } from "@/hooks/useKeptTripPhotos";
 import { useKeptTripPlacesToEat } from "@/hooks/useKeptTripPlacesToEat";
 import { useEditShortcuts } from "@/hooks/useEditShortcuts";
@@ -61,7 +62,6 @@ import { useToast } from "@/components/ui/Toast";
 import { trackTripViewed } from "@/lib/analytics";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import {
-  ensureActivityIdsStable,
   deleteActivity,
   updateActivity,
   addActivity,
@@ -282,15 +282,7 @@ export default function TripDetailClient({
   const [isEditMode, setIsEditMode] = useState(false);
   // Today mode shows only outside the editor, on a live trip.
   const showToday = dayState.isLive && todayMode && !isEditMode;
-  // One copy for both states, with ids derived from the stored trip for any
-  // activity stored without one. Random ids would differ between the two
-  // states and between mounts, so the page would look edited on its first
-  // render (a phantom autosave, or a false conflict on a router-cache
-  // restore). For solo owners the effect after ambientEdit stores them once.
-  const [initialItinerary] = useState(() => ensureActivityIdsStable(trip.itinerary, trip.id));
-  const [editedItinerary, setEditedItinerary] = useState<ItineraryDay[]>(() =>
-    JSON.parse(JSON.stringify(initialItinerary))
-  );
+  const { initialItinerary, editedItinerary, setEditedItinerary } = useItineraryCopies(trip);
 
   // The day-regeneration dialog: which day, and what the traveller wants it to
   // be about, so a regeneration can be steered instead of rerolled blind.
@@ -637,7 +629,7 @@ export default function TripDetailClient({
     });
     // A solo owner's edits save themselves; edit mode has a Save button.
     addToast(t(ambientEdit ? "detail.routeOptimized" : "detail.routeOptimizedSave"), "success");
-  }, [pushUndo, addToast, ambientEdit, t]);
+  }, [pushUndo, addToast, ambientEdit, t, setEditedItinerary]);
 
   // Edit handlers (with undo support). Moves between days come from
   // useItineraryMoves further down, after handleFocusDayCard, which it uses to
@@ -646,14 +638,14 @@ export default function TripDetailClient({
   const handleActivityDelete = useCallback((activityId: string) => {
     pushUndo("Delete activity");
     setEditedItinerary((prev) => deleteActivity(prev, activityId));
-  }, [pushUndo]);
+  }, [pushUndo, setEditedItinerary]);
 
   const handleActivityUpdate = useCallback(
     (activityId: string, updates: Partial<Activity>) => {
       pushUndo("Update activity");
       setEditedItinerary((prev) => updateActivity(prev, activityId, updates));
     },
-    [pushUndo]
+    [pushUndo, setEditedItinerary]
   );
 
   // The plan's first real map point, near which an added activity without
@@ -674,7 +666,7 @@ export default function TripDetailClient({
       });
       setEditedItinerary((prev) => addActivity(prev, dayIndex, added));
     },
-    [editedItinerary, destination, trip.budget?.currency, pushUndo, destinationCoords]
+    [editedItinerary, destination, trip.budget?.currency, pushUndo, destinationCoords, setEditedItinerary]
   );
 
   // Drag-and-drop (within a day and across days) is useItineraryMoves, below
@@ -703,7 +695,7 @@ export default function TripDetailClient({
 
       console.log(`[Photo Capture] Captured Places photo for activity ${activityId}`);
     },
-    [setSavedItinerary, canEdit, trip.id]
+    [setSavedItinerary, canEdit, trip.id, setEditedItinerary]
   );
 
   const { regeneratingActivityId, handleActivityRegenerate } = useActivityRegeneration({

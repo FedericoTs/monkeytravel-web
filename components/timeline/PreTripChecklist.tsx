@@ -158,6 +158,7 @@ export default function PreTripChecklist({
                     value={newItemText}
                     onChange={(e) => setNewItemText(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleAddItem()}
+                    aria-label={t("addPlaceholder")}
                     placeholder={t("addPlaceholder")}
                     className="
                       flex-1 px-3 py-2 rounded-lg

@@ -263,10 +263,11 @@ export default function PromptEditor() {
 
               {/* Prompt Text Editor */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label htmlFor="prompt-text" className="block text-sm font-medium text-slate-700 mb-2">
                   Prompt Text
                 </label>
                 <textarea
+                  id="prompt-text"
                   value={editedText}
                   onChange={(e) => setEditedText(e.target.value)}
                   rows={20}

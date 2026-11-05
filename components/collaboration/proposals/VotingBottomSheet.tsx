@@ -465,6 +465,7 @@ export function VotingBottomSheet({
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
+                aria-label={t('commentPlaceholder')}
                 placeholder={t('commentPlaceholder')}
                 className="w-full p-4 border border-gray-200 rounded-xl text-sm
                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500

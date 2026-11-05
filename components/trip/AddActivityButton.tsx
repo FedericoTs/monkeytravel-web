@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useId, useState, useRef, useEffect } from "react";
 import { Plus, Search, X, MapPin, Loader2 } from "lucide-react";
 import { Activity } from "@/types";
 import { useActivitySearch, type ActivitySearchResult } from "@/hooks/useActivitySearch";
@@ -32,6 +32,8 @@ export default function AddActivityButton({
   const t = useTranslations("common.addActivity");
   const tTrip = useTranslations("common.trip");
   const tCommon = useTranslations("common");
+  // One of these per day on the page, so each form's ids are its own.
+  const formId = useId();
   const [isExpanded, setIsExpanded] = useState(false);
   const {
     query: searchQuery,
@@ -144,10 +146,11 @@ export default function AddActivityButton({
         /* Custom Activity Form */
         <form onSubmit={handleCustomSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor={`${formId}-name`} className="block text-sm font-medium text-slate-700 mb-1">
               {t("activityNameRequired")}
             </label>
             <input
+              id={`${formId}-name`}
               type="text"
               value={customActivity.name}
               onChange={(e) => setCustomActivity({ ...customActivity, name: e.target.value })}
@@ -194,10 +197,11 @@ export default function AddActivityButton({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor={`${formId}-description`} className="block text-sm font-medium text-slate-700 mb-1">
               {t("descriptionOptional")}
             </label>
             <textarea
+              id={`${formId}-description`}
               value={customActivity.description}
               onChange={(e) => setCustomActivity({ ...customActivity, description: e.target.value })}
               placeholder={t("descriptionPlaceholder")}
@@ -234,6 +238,7 @@ export default function AddActivityButton({
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
+              aria-label={t("searchPlaceholder", { destination })}
               placeholder={t("searchPlaceholder", { destination })}
               className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
             />
