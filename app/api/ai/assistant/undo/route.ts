@@ -63,13 +63,11 @@ export async function POST(request: NextRequest) {
         itinerary: previousItinerary,
         // Only the owner's undo restores the end date: an editor's change never
         // moved it (adding days is owner-only in /apply).
-        ...(restoreEndDate && assistantRole === "owner" ? { end_date: restoreEndDate } : {}),
-        updated_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
       })
       .eq("id", tripId);
     // Only while the trip is as the change left it: putting the old copy back
     // over a later save would wipe that save.
-    if (typeof expectedVersion === "number") write = write.eq("itinerary_version", expectedVersion);
     const { data: written, error: updateError } = await write.select("id");
 
     if (updateError) {

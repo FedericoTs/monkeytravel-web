@@ -161,7 +161,6 @@ function TripConciergeChatInner({
         body: JSON.stringify({
           tripId,
           question: q,
-          clientToday: localTodayISO(),
           itineraryVersion,
         }),
       });
@@ -220,7 +219,6 @@ function TripConciergeChatInner({
             } else if (event.type === "done") {
               setIsLiveTrip(Boolean(event.isLiveTrip));
             } else if (event.type === "error") {
-              streamFailed = true;
             }
           } catch (parseErr) {
             console.warn("[concierge] SSE parse failed", parseErr, payloadStr);
@@ -307,7 +305,6 @@ function TripConciergeChatInner({
         return true;
       });
       if (!applied) return;
-      setItineraryVersion((v) => v + 1); // bust the server trip-context cache
       void captureConciergeProposalApplied({
         trip_id: tripId,
         proposal_type: proposal.type,
@@ -408,7 +405,6 @@ function TripConciergeChatInner({
               onApply={handleApply}
               onTryDifferent={() => {
                 setProposal(null);
-                setQuestion(t("tryDifferentPrefill"));
                 inputRef.current?.focus();
               }}
               onCancel={() => setProposal(null)}

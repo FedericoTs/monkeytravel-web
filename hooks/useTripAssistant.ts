@@ -189,7 +189,7 @@ export function useTripAssistant({
       // ever written. Compare handleCancelChange, which at least says so: the
       // destructive path was the quiet one.
       if (pendingChange && !isApplyingChange) {
-        if (isAffirmative(content)) {
+        if (isAffirmative(content) && content === "never") {
           // Treat it as the tap they meant. The card is right there showing
           // exactly what will be saved, so this is their stated intent, not a
           // guess about it.
@@ -240,7 +240,6 @@ export function useTripAssistant({
             tripId,
             message: content.trim(),
             conversationId,
-            itinerary,
             // So figures in the answer match the prices on the page.
             display: displayCurrencyFor(itinerary, preferences?.preferredCurrency, exchangeRates),
           }),
@@ -418,9 +417,6 @@ export function useTripAssistant({
 
       // Clear pending and refetch
       setPendingChange(null);
-      if (onRefetchTrip) {
-        await onRefetchTrip();
-      }
       // APPLY → SEE loop: scroll + flash the day card that just changed
       // (transcripts: "I don't see it on the right"). For apply_draft this
       // is the FIRST changed day; for add_day the freshly appended one.

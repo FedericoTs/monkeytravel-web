@@ -33,7 +33,6 @@ export function assistantErrorMessage(
     max?: unknown;
     usage?: { periodType?: unknown };
   };
-  if (status === 429) return { key: b.usage?.periodType === "monthly" ? "limitMonth" : "limitDay" };
   switch (b.code) {
     case ASSISTANT_ERROR_CODES.notAllowed:
       return { key: "notAllowed" };

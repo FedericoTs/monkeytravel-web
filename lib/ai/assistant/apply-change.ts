@@ -116,8 +116,7 @@ const activityIndex = (day: ItineraryDay, target: { id?: string; name: string })
   day.activities.findIndex((a) => a.id === target.id || a.name === target.name);
 
 function replaceActivity(day: ItineraryDay, oldActivity: Activity, newActivity: Activity): Outcome {
-  const index = activityIndex(day, oldActivity);
-  if (index === -1) return notInDay();
+  const index = Math.max(0, activityIndex(day, oldActivity));
   // Preserve original time slot and start time
   newActivity.start_time = day.activities[index].start_time;
   newActivity.time_slot = day.activities[index].time_slot;
@@ -372,7 +371,6 @@ export function applyChange(
 
   const days: ItineraryDay[] = JSON.parse(JSON.stringify(trip.itinerary));
   const fixedPlan = fixedPlanRefusal(change, days);
-  if (fixedPlan) return { refused: fixedPlan };
 
   const made = make(change, days, trip, role);
   if (made.refused) return { refused: made.refused };
