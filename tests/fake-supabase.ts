@@ -10,6 +10,9 @@ export interface FakeQuery {
   /** What `.select()` named, when it was called. */
   columns?: string;
   filters: Array<[op: "eq" | "neq" | "is" | "not" | "in" | "lt" | "lte" | "gt" | "gte" | "like" | "ilike", column: string, value: unknown]>;
+  /** What `.limit()` and `.order()` asked for. */
+  limitTo?: number;
+  orderBy?: string[];
   /** How the query was awaited: a single row, or the whole list. */
   end: "single" | "maybeSingle" | "list";
 }
@@ -46,8 +49,8 @@ export function fakeSupabase(answer: FakeAnswer = () => ({ data: null, error: nu
       like: (c: string, v: unknown) => (q.filters.push(["like", c, v]), chain),
       ilike: (c: string, v: unknown) => (q.filters.push(["ilike", c, v]), chain),
       or: () => chain,
-      order: () => chain,
-      limit: () => chain,
+      order: (c: string) => ((q.orderBy = [...(q.orderBy ?? []), c]), chain),
+      limit: (n: number) => ((q.limitTo = n), chain),
       single: async () => done("single"),
       maybeSingle: async () => done("maybeSingle"),
       then: (resolve: (r: unknown) => unknown, reject?: (e: unknown) => unknown) =>

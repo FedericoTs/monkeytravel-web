@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchActivationFunnel, type ActivationFunnelStats } from "@/lib/admin/activation-funnel";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { PAGE_ROWS, readAllRows, readWholeTable } from "@/lib/supabase/read-all-rows";
 
 // Cohort retention data for matrix visualization
 export interface CohortData {
@@ -168,6 +169,9 @@ export interface AdminStats {
 // side by side while GA4 still exists. Kept in one place because the API and
 // the panel label must never disagree about what the number covers.
 const ACQUISITION_WINDOW_DAYS = 28;
+// A plan comes from the streaming route, or from the JSON one as its fallback.
+const PLAN_ENDPOINTS = new Set(["/api/ai/generate", "/api/ai/generate/stream"]);
+type GeminiLog = { id: string; cost_usd: number | null; endpoint: string | null; response_status: number | null; cache_hit: boolean | null };
 
 export async function GET() {
   try {
@@ -194,18 +198,16 @@ export async function GET() {
       // AI usage counts
       supabase.rpc("get_ai_usage_metrics"),
       // AI conversations count
-      supabase.from("ai_conversations").select("id", { count: "exact" }),
+      supabase.from("ai_conversations").select("id", { count: "exact", head: true }),
       // Subscriber counts
       supabase.rpc("get_subscriber_metrics"),
       // Users with trips
-      supabase.from("trips").select("user_id").then((res) => {
+      readWholeTable<{ id: string; user_id: string | null }>(supabase, "trips", "id, user_id").then((res) => {
         const uniqueUsers = new Set(res.data?.map((t) => t.user_id) || []);
         return { count: uniqueUsers.size };
       }),
       // Trip by status
-      supabase
-        .from("trips")
-        .select("status")
+      readWholeTable<{ id: string; status: string }>(supabase, "trips", "id, status")
         .then((res) => {
           const counts: Record<string, number> = {};
           res.data?.forEach((t) => {
@@ -214,9 +216,7 @@ export async function GET() {
           return { data: counts };
         }),
       // AI by action
-      supabase
-        .from("ai_usage")
-        .select("action")
+      readWholeTable<{ id: string; action: string }>(supabase, "ai_usage", "id, action")
         .then((res) => {
           const counts: Record<string, number> = {};
           res.data?.forEach((a) => {
@@ -225,9 +225,7 @@ export async function GET() {
           return { data: counts };
         }),
       // AI by model
-      supabase
-        .from("ai_usage")
-        .select("model_id")
+      readWholeTable<{ id: string; model_id: string }>(supabase, "ai_usage", "id, model_id")
         .then((res) => {
           const counts: Record<string, number> = {};
           res.data?.forEach((a) => {
@@ -236,9 +234,11 @@ export async function GET() {
           return { data: counts };
         }),
       // AI tokens total (from ai_usage table)
-      supabase
-        .from("ai_usage")
-        .select("input_tokens, output_tokens, cost_cents")
+      readWholeTable<{ id: string; input_tokens: number | null; output_tokens: number | null; cost_cents: number | string | null }>(
+        supabase,
+        "ai_usage",
+        "id, input_tokens, output_tokens, cost_cents"
+      )
         .then((res) => {
           let inputTokens = 0;
           let outputTokens = 0;
@@ -251,18 +251,26 @@ export async function GET() {
           return { data: { inputTokens, outputTokens, costCents } };
         }),
       // Generation costs from api_request_logs (trip generation + regeneration)
-      supabase
-        .from("api_request_logs")
-        .select("cost_usd, endpoint")
-        .eq("api_name", "gemini")
+      readAllRows<GeminiLog>((last) => {
+        const logs = supabase
+          .from("api_request_logs")
+          .select("id, cost_usd, endpoint, response_status, cache_hit")
+          .eq("api_name", "gemini");
+        return (last ? logs.gte("id", last.id) : logs).order("id").limit(PAGE_ROWS) as unknown as PromiseLike<{
+          data: GeminiLog[] | null;
+          error: { message: string } | null;
+        }>;
+      })
         .then((res) => {
           let totalCostUsd = 0;
           let generateCount = 0;
           let regenerateCount = 0;
           res.data?.forEach((r) => {
             totalCostUsd += Number(r.cost_usd) || 0;
-            if (r.endpoint === "/api/ai/generate") generateCount++;
-            if (r.endpoint === "/api/ai/regenerate-activity") regenerateCount++;
+            // What the model made: not a refused call, and not one the cache answered.
+            const made = (r.response_status ?? 0) < 400 && !r.cache_hit;
+            if (made && PLAN_ENDPOINTS.has(r.endpoint ?? "")) generateCount++;
+            if (made && r.endpoint === "/api/ai/regenerate-activity") regenerateCount++;
           });
           return { data: { totalCostUsd, generateCount, regenerateCount } };
         }),
@@ -270,9 +278,7 @@ export async function GET() {
       // and only fall back to the title-strip when meta is absent. Old
       // code derived destinations from `title.replace(/ Trip$/, "")` which
       // missed every renamed trip and broke for non-English titles.
-      supabase
-        .from("trips")
-        .select("title, trip_meta")
+      readWholeTable<{ id: string; title: string; trip_meta: unknown }>(supabase, "trips", "id, title, trip_meta")
         .then((res) => {
           const counts: Record<string, number> = {};
           res.data?.forEach((t) => {
@@ -610,7 +616,7 @@ async function fetchActivation(
     const d7AgoIso = new Date(Date.now() - 7 * 86_400_000).toISOString();
 
     // multiTripUsers + the trip-owner set (reused for at-risk exclusion).
-    const tripOwnersRes = await supabase.from("trips").select("user_id");
+    const tripOwnersRes = await readWholeTable<{ id: string; user_id: string | null }>(supabase, "trips", "id, user_id");
     if (tripOwnersRes.error) throw tripOwnersRes.error;
     const tripOwners = tripOwnersRes.data ?? [];
     const counts = new Map<string, number>();
@@ -626,17 +632,15 @@ async function fetchActivation(
     // atRiskUsers: signed up >7d ago, never created a trip, and no tracked
     // activity in the last 7 days. Uses the activity proxy (last_sign_in_at is
     // never synced, so the old NULL-aware sign-in filter flagged everyone).
-    const dormantRes = await supabase
-      .from("users")
-      .select("id")
-      .lt("created_at", d7AgoIso);
-    if (dormantRes.error) throw dormantRes.error;
+    const usersRes = await readWholeTable<{ id: string; created_at: string }>(supabase, "users", "id, created_at");
+    if (usersRes.error) throw usersRes.error;
+    const dormant = (usersRes.data ?? []).filter((u) => u.created_at < d7AgoIso);
 
     const tripOwnerSet = new Set(
       tripOwners.map((t) => t.user_id).filter((id): id is string => !!id),
     );
     let atRiskUsers = 0;
-    (dormantRes.data ?? []).forEach((u) => {
+    dormant.forEach((u) => {
       if (!tripOwnerSet.has(u.id) && !activeUserIds7d.has(u.id)) atRiskUsers++;
     });
 
@@ -788,6 +792,8 @@ async function fetchRecentActivity(supabase: SupabaseClient) {
 // Activity-proxy: per-user activity timestamps from signals we actually record
 // (trips, AI conversations, banana transactions). Replaces the never-synced
 // users.last_sign_in_at for every "active" computation in this route.
+type ActivityRow = { id: string; user_id: string | null; created_at: string };
+
 async function fetchActivityByUser(supabase: SupabaseClient): Promise<Map<string, number[]>> {
   const m = new Map<string, number[]>();
   const add = (uid?: string | null, iso?: string | null) => {
@@ -799,9 +805,9 @@ async function fetchActivityByUser(supabase: SupabaseClient): Promise<Map<string
     else m.set(uid, [t]);
   };
   const [tripsRes, aiRes, bananaRes] = await Promise.all([
-    supabase.from("trips").select("user_id, created_at"),
-    supabase.from("ai_conversations").select("user_id, created_at"),
-    supabase.from("banana_transactions").select("user_id, created_at"),
+    readWholeTable<ActivityRow>(supabase, "trips", "id, user_id, created_at"),
+    readWholeTable<ActivityRow>(supabase, "ai_conversations", "id, user_id, created_at"),
+    readWholeTable<ActivityRow>(supabase, "banana_transactions", "id, user_id, created_at"),
   ]);
   (logReadError("admin stats: trip activity", tripsRes).data ?? []).forEach((r) => add(r.user_id, r.created_at));
   (logReadError("admin stats: AI activity", aiRes).data ?? []).forEach((r) => add(r.user_id, r.created_at));
@@ -815,10 +821,10 @@ async function fetchCohortRetention(
   activityByUser: Map<string, number[]>,
 ): Promise<CohortData[]> {
   // Get all users with their signup dates (activity comes from activityByUser)
-  const { data: users } = logReadError("admin stats: cohort users", await supabase
-    .from("users")
-    .select("id, created_at")
-    .order("created_at", { ascending: true }));
+  const { data: users } = logReadError(
+    "admin stats: cohort users",
+    await readWholeTable<{ id: string; created_at: string }>(supabase, "users", "id, created_at")
+  );
 
   if (!users || users.length === 0) return [];
 
@@ -1167,10 +1173,10 @@ async function fetchGeoMetrics(
 
 // Fetch daily user registration trend for the last 90 days
 async function fetchUserTrend(supabase: SupabaseClient): Promise<AdminStats["userTrend"]> {
-  const { data: users } = logReadError("admin stats: user trend", await supabase
-    .from("users")
-    .select("created_at")
-    .order("created_at", { ascending: true }));
+  const { data: users } = logReadError(
+    "admin stats: user trend",
+    await readWholeTable<{ id: string; created_at: string }>(supabase, "users", "id, created_at")
+  );
 
   if (!users || users.length === 0) {
     return {
@@ -1206,8 +1212,8 @@ async function fetchUserTrend(supabase: SupabaseClient): Promise<AdminStats["use
   cumulative = usersBeforeWindow;
 
   // Iterate through each day in the 90-day window
-  for (let d = new Date(day90Ago); d <= now; d.setDate(d.getDate() + 1)) {
-    const dateStr = d.toISOString().split("T")[0];
+  for (let d = day90Ago.getTime(); d <= now.getTime(); d += 86_400_000) {
+    const dateStr = new Date(d).toISOString().split("T")[0];
     const count = countsByDate.get(dateStr) || 0;
     cumulative += count;
     daily.push({ date: dateStr, count, cumulative });
