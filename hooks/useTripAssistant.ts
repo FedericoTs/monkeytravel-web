@@ -124,7 +124,6 @@ export function useTripAssistant({
   const [error, setError] = useState<string | null>(null);
   const [usageInfo, setUsageInfo] = useState<{
     remainingRequests: number;
-    model: string;
   } | null>(null);
 
   // Enhanced state for new features
@@ -302,7 +301,6 @@ export function useTripAssistant({
           // The route emits `usage.remaining` (not `remainingRequests`); the
           // old key left the header request-count pill permanently blank.
           remainingRequests: data.usage?.remaining ?? 0,
-          model: data.model || "unknown",
         });
 
       } catch (err) {

@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 import { getAuthenticatedUser } from "@/lib/api/auth";
-import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
+import { GoogleGenerativeAI, type UsageMetadata } from "@/lib/ai/genai-compat";
 import { detectStructuralIntent } from "@/lib/ai/assistant/structural";
-import { classifyTask, selectModel } from "@/lib/ai/config";
+import { getModelForPurpose } from "@/lib/ai/model-router";
 import { recordTurnUsage } from "@/lib/ai/assistant/turn-usage";
 import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 import { recordAiOutcome } from "@/lib/ai/observability";
@@ -138,11 +138,6 @@ export async function POST(request: NextRequest) {
     // The days a draft did not cover stay as they are, and the reply must say so.
     const unmappedDayNumbers = prepared.unmapped ?? [];
 
-    // Classify and select model
-    const contextLength = JSON.stringify(tripContext).length;
-    const classification = classifyTask(message, contextLength);
-    const modelConfig = selectModel(classification);
-
     // What the user is told comes from what the server prepared, never from the
     // model's own claim. A prepared change waits for the user's confirm: nothing
     // is saved here.
@@ -168,11 +163,12 @@ export async function POST(request: NextRequest) {
     const engineReply = tripEdits && (engineEdited || !actionTaken) ? tripEdits.reply : null;
 
     let parsedResponse: StructuredAssistantResponse;
-    let responseText = "";
+    const chatModel = getModelForPurpose("assistant-chat");
+    let chatUsage: UsageMetadata | undefined;
     if (engineReply !== null) {
       parsedResponse = { summary: engineReply, cards: [] };
     } else {
-      ({ reply: parsedResponse, text: responseText } = await askChatModel(genAI, modelConfig.id, fullPrompt));
+      ({ reply: parsedResponse, usage: chatUsage } = await askChatModel(genAI, chatModel, fullPrompt));
     }
 
     // Nothing was saved on this turn, and the reply may not say otherwise:
@@ -188,8 +184,7 @@ export async function POST(request: NextRequest) {
       tripId,
       action: actionTaken?.type,
       engine: tripEdits?.meta ?? null,
-      chatModel: modelConfig,
-      chat: engineReply === null ? { prompt: fullPrompt, text: responseText } : null,
+      chat: engineReply === null ? { model: chatModel, usage: chatUsage } : null,
     });
 
     const reply = assistantMessage(parsedResponse, honesty);
@@ -205,8 +200,6 @@ export async function POST(request: NextRequest) {
     const responsePayload = {
       message: reply,
       conversationId: conversation.id,
-      model: modelConfig.name,
-      complexity: classification.complexity,
       pendingChange,
       usage: {
         ...spent,

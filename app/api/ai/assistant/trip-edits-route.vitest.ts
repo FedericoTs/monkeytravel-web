@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import type { ItineraryDay } from "@/types";
+import { getModelForPurpose } from "@/lib/ai/model-router";
 
 /**
  * The trip page's assistant hands free-form edits to the wizard's edit engine
@@ -21,10 +22,10 @@ const chatCalls = vi.fn();
 let chatReply = '{"summary": "Which day should it go on?", "cards": []}';
 vi.mock("@/lib/ai/genai-compat", () => ({
   GoogleGenerativeAI: class {
-    getGenerativeModel() {
+    getGenerativeModel({ model }: { model: string }) {
       return {
         generateContent: async (prompt: unknown) => {
-          chatCalls(prompt);
+          chatCalls(prompt, model);
           return { response: { text: () => chatReply, usageMetadata: {} } };
         },
       };
@@ -136,7 +137,7 @@ const wigwamDay3: ItineraryDay = {
     { ...act("edit-3-1-wigwam", "Wigwam", "22:00", "evening"), type: "nightlife" },
   ] as ItineraryDay["activities"],
 };
-const meta = { model: "gemini-2.5-flash", costUsd: 0.002, generationTimeMs: 1200 };
+const meta = { model: "engine-model", costUsd: 0.002, generationTimeMs: 1200 };
 const savedAssistantMessage = () => {
   const update = calls.filter((c) => c.table === "ai_conversations" && c.op === "update").at(-1);
   const msgs = (update?.value as { messages: Array<Record<string, unknown>> }).messages;
@@ -192,7 +193,7 @@ describe("trip-page assistant: free-form edits", () => {
     // Nothing is written before Apply, and the history records a pending change.
     expect(calls.some((c) => c.table === "trips" && c.op === "update")).toBe(false);
     expect(savedAssistantMessage().action).toMatchObject({ type: "apply_draft", pending: true, applied: false, dayCount: 1 });
-    expect(recordUsage).toHaveBeenCalledWith(expect.objectContaining({ modelId: "gemini-2.5-flash", costCents: 0.2 }));
+    expect(recordUsage).toHaveBeenCalledWith(expect.objectContaining({ modelId: "engine-model", costCents: 0.2 }));
   });
 
   // The note follows the answer: put first, it would read "Not saved yet: …
@@ -254,6 +255,17 @@ describe("trip-page assistant: free-form edits", () => {
     const { json } = await send("What time does the Guinness Storehouse open?");
     expect(chatCalls).toHaveBeenCalledTimes(1);
     expect(json.message.content).toBe("It opens at 9:30.");
+  });
+
+  it("asks one chat model, whatever words the message uses", async () => {
+    proposeTripEdits.mockRejectedValue(new Error("model overloaded"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    for (const message of ["What time does it open?", "Replan the entire trip", "Suggest a museum"]) {
+      await send(message);
+    }
+    const models = chatCalls.mock.calls.map((call) => call[1]);
+    expect(models).toEqual(Array(3).fill(getModelForPurpose("assistant-chat")));
+    expect(recordUsage).toHaveBeenCalledWith(expect.objectContaining({ modelId: getModelForPurpose("assistant-chat") }));
   });
 
   it("falls back to the chat when the engine fails", async () => {
