@@ -162,9 +162,10 @@ export default function SaveTripModal({
     }
 
     if (!isAuthenticated) {
-      // Store pending action and redirect to login
+      // Store pending action and go to sign up, as the button says. The form
+      // links to sign in for someone who has an account.
       await storePendingSave();
-      router.push(`/auth/login?redirect=${encodeURIComponent(returnPath)}`);
+      router.push(`/auth/signup?redirect=${encodeURIComponent(returnPath)}`);
       return;
     }
 

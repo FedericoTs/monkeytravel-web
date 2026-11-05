@@ -263,7 +263,7 @@ function InlineProposalCardComponent({
         <div className="flex items-center justify-between mt-3 text-xs">
           <div className="flex items-center gap-2 text-gray-500">
             {proposal.proposer?.avatar_url ? (
-              <Image
+              <img
                 src={proposal.proposer.avatar_url}
                 alt={proposal.proposer.display_name}
                 width={18}
