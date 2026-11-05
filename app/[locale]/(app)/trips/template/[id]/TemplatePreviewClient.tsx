@@ -12,6 +12,8 @@ import TripPackingEssentials from "@/components/trip/TripPackingEssentials";
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
 import SaveTripModal from "@/components/ui/SaveTripModal";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useSharedTripSave } from "@/hooks/useSharedTripVisit";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { useCurrency } from "@/lib/locale";
@@ -80,7 +82,12 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showMap, setShowMap] = useState(true);
   const [viewMode, setViewMode] = useState<"timeline" | "cards">("cards");
-  const [showSaveModal, setShowSaveModal] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const { showSaveModal, setShowSaveModal, resumedStartDate } = useSharedTripSave({
+    templateId: template.id,
+    viewer: user,
+    viewerLoading: authLoading,
+  });
 
   // Track template view for discovery analytics
   useEffect(() => {
@@ -369,6 +376,7 @@ export default function TemplatePreviewClient({ template }: TemplatePreviewClien
         tripDestination={template.destination}
         tripCountryCode={template.countryCode}
         durationDays={template.durationDays}
+        initialStartDate={resumedStartDate}
       />
 
       {/* Mobile Bottom Navigation */}

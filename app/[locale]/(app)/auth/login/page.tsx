@@ -330,7 +330,7 @@ function LoginForm() {
         <p className="text-slate-600">
           {t("noAccount")}{" "}
           <Link
-            href="/auth/signup"
+            href={hasDestination ? `/auth/signup?redirect=${encodeURIComponent(redirect)}` : "/auth/signup"}
             className="text-[var(--primary-ink)] font-medium hover:underline"
           >
             {t("signUpLink")}

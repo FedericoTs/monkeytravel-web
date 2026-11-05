@@ -85,11 +85,13 @@ export function useSharedTripVisit({
  * this trip: the dialog stored what it was doing before sending the visitor away.
  */
 export function useSharedTripSave({
+  templateId,
   shareToken,
   publicSlug,
   viewer,
   viewerLoading,
 }: {
+  templateId?: string;
   shareToken?: string;
   publicSlug?: string;
   viewer: unknown;
@@ -103,7 +105,11 @@ export function useSharedTripSave({
     let cancelled = false;
     void getPending().then(async (pending) => {
       if (cancelled || !pending) return;
-      const ours = shareToken ? pending.shareToken === shareToken : !!publicSlug && pending.publicSlug === publicSlug;
+      const ours = templateId
+        ? pending.templateId === templateId
+        : shareToken
+          ? pending.shareToken === shareToken
+          : !!publicSlug && pending.publicSlug === publicSlug;
       if (!ours) return;
       await clearPending();
       setResumedStartDate(pending.startDate);
@@ -112,7 +118,7 @@ export function useSharedTripSave({
     return () => {
       cancelled = true;
     };
-  }, [viewerLoading, viewer, shareToken, publicSlug, getPending, clearPending]);
+  }, [viewerLoading, viewer, templateId, shareToken, publicSlug, getPending, clearPending]);
   return { showSaveModal, setShowSaveModal, resumedStartDate };
 }
 
