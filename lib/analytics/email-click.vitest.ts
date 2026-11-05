@@ -9,7 +9,7 @@ import { emailClickFromUrl, trackEmailClick } from "./email-click";
 import { reminderCtaUrl } from "@/lib/email/reminder-cta";
 import { daySendUrl } from "@/lib/trips/day-link";
 
-const TRIP = "77e96874-2985-4867-8472-d97c1f148b65";
+const TRIP = crypto.randomUUID();
 const PHONE_UA =
   "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
 
