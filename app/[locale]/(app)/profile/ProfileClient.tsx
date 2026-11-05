@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useId } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect, useId } from "react";
 import { Link, useRouter } from "@/lib/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
-import { shownErrorText } from "@/lib/utils/shown-error";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
 import { useToast } from "@/components/ui/Toast";
 import DeleteAccountModal from "@/components/profile/DeleteAccountModal";
@@ -185,11 +184,24 @@ function EditableField({
   );
 }
 
-// Common languages for travelers
+// Common languages for travelers: stored by their English names, shown in the
+// page's language.
 const LANGUAGES = [
-  "English", "Spanish", "French", "German", "Italian",
-  "Portuguese", "Chinese", "Japanese", "Korean", "Arabic",
-  "Hindi", "Russian", "Dutch", "Swedish", "Greek"
+  { name: "english", code: "en" },
+  { name: "spanish", code: "es" },
+  { name: "french", code: "fr" },
+  { name: "german", code: "de" },
+  { name: "italian", code: "it" },
+  { name: "portuguese", code: "pt" },
+  { name: "chinese", code: "zh" },
+  { name: "japanese", code: "ja" },
+  { name: "korean", code: "ko" },
+  { name: "arabic", code: "ar" },
+  { name: "hindi", code: "hi" },
+  { name: "russian", code: "ru" },
+  { name: "dutch", code: "nl" },
+  { name: "swedish", code: "sv" },
+  { name: "greek", code: "el" },
 ];
 
 // What /api/profile/avatar takes.
@@ -201,6 +213,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
   const t = useTranslations("common");
   // Locale-aware date formatting ("Membro dal agosto 2025", not "August").
   const locale = useLocale();
+  const languageNames = useMemo(() => new Intl.DisplayNames([locale], { type: "language" }), [locale]);
   const { addToast } = useToast();
   const [profile, setProfile] = useState(initialProfile);
   const [betaAccess, setBetaAccess] = useState(initialBetaAccess);
@@ -386,8 +399,8 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
       const response = await fetch("/api/profile/export");
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to export data");
+        addToast(t(response.status === 429 ? "dataExport.rateLimited" : "dataExport.error"), "error");
+        return;
       }
 
       // Get the filename from the Content-Disposition header
@@ -410,7 +423,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
       setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (error) {
       console.error("Data export error:", error);
-      addToast(shownErrorText(error, t("dataExport.error")), "error");
+      addToast(t("dataExport.error"), "error");
     } finally {
       setIsExporting(false);
     }
@@ -616,14 +629,15 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                 <div className="flex flex-wrap gap-2">
                   {LANGUAGES.map((lang) => {
                     const currentLangs = Array.isArray(profile.languages) ? profile.languages : [];
-                    const isSelected = currentLangs.includes(lang.toLowerCase());
+                    const isSelected = currentLangs.includes(lang.name);
+                    const label = languageNames.of(lang.code) ?? lang.name;
                     return (
                       <button
-                        key={lang}
+                        key={lang.name}
                         onClick={() => {
                           const newLangs = isSelected
-                            ? currentLangs.filter((l) => l !== lang.toLowerCase())
-                            : [...currentLangs, lang.toLowerCase()];
+                            ? currentLangs.filter((l) => l !== lang.name)
+                            : [...currentLangs, lang.name];
                           updateField("languages", newLangs);
                         }}
                         className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${
@@ -632,7 +646,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                             : "border-slate-200 text-slate-600 hover:border-[var(--primary)] hover:text-[var(--primary-ink)]"
                         }`}
                       >
-                        {lang}
+                        {label.charAt(0).toLocaleUpperCase(locale) + label.slice(1)}
                       </button>
                     );
                   })}
@@ -835,21 +849,24 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                     if (!response.ok) throw new Error("Failed to fetch referral code");
                     const data = await response.json();
                     const shareUrl = `${window.location.origin}/join/${data.code}`;
-                    const shareText = `Join me on MonkeyTravel and get a FREE AI-powered trip! 🌴✈️`;
 
                     // Try native share first
                     if (navigator.share) {
                       await navigator.share({
-                        title: "Join MonkeyTravel",
-                        text: shareText,
+                        title: t("profile.referralShare.title"),
+                        text: t("profile.referralShare.text"),
                         url: shareUrl,
                       });
                     } else {
                       // Fallback to clipboard
                       await navigator.clipboard.writeText(shareUrl);
+                      addToast(t("profile.referralShare.copied"), "success");
                     }
                   } catch (error) {
+                    // Closing the share sheet isn't a failure.
+                    if (error instanceof Error && error.name === "AbortError") return;
                     console.error("Share error:", error);
+                    addToast(t("profile.referralShare.failed"), "error");
                   }
                 }}
               />

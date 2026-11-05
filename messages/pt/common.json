@@ -498,7 +498,7 @@
     "total": "Total",
     "destinations": "Destinos",
     "showing": "Mostrando:",
-    "tripsCount": "viagens",
+    "tripsCount": "{count, plural, one {# viagem} other {# viagens}}",
     "noUpcomingTrips": "Nenhuma viagem próxima planejada. Comece a planejar sua próxima aventura!",
     "signOut": "Sair",
     "hi": "Olá",
@@ -2067,6 +2067,12 @@
     "includes": "Inclui: Perfil, viagens, conversas, preferências"
   },
   "profile": {
+    "referralShare": {
+      "title": "Junte-se ao MonkeyTravel",
+      "text": "Junte-se a mim no MonkeyTravel e ganhe uma viagem GRÁTIS criada com IA! 🌴✈️",
+      "copied": "Link de convite copiado",
+      "failed": "Não foi possível obter seu link de convite. Tente novamente."
+    },
     "avatarTooLarge": "Essa foto tem mais de 5 MB. Escolha uma menor.",
     "avatarWrongType": "Escolha uma foto JPEG, PNG, WebP ou GIF.",
     "avatarFailed": "Não foi possível enviar a foto. Tente novamente.",
