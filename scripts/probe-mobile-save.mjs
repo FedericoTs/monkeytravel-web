@@ -3,25 +3,13 @@
  *
  * WHY
  * ---
- * Measured 2026-09-03 over 30 days, sessions that reached `result`:
- *
- *     desktop   115 clicked save -> 78 ended up with a trip   67.8% [58.8-75.7]
- *     mobile     74 clicked save -> 29 ended up with a trip   39.2% [28.9-50.6]
- *
- * A 28.6-point gap, p=0.000106, non-overlapping intervals. Click rates are
- * IDENTICAL (20.5% desktop / 22.1% mobile) — mobile planners want to keep
- * their trip just as much, and then don't get one. 45 of them a month.
- *
- * It is not the stranded-account bug: signup -> got-in runs 85-94% weekly and
- * `confirmed_never_signed_in` is 1-4/week, far too small. So the loss happens
- * BEFORE an account exists, somewhere between the tap and a submitted email.
- * The server-side auth steps that would localise it (`auth_modal_shown`,
- * `otp_requested`) only went live 2026-09-02 and need ~2 weeks of mobile
- * volume.
- *
- * This looks at the surface directly instead of waiting: drive the real
- * wizard at 375x812, tap the Save in the fixed bottom bar, and record exactly
- * what appears — and whether anything about it is broken.
+ * A signed-out planner on a phone who taps Save can lose the trip BEFORE an
+ * account exists, somewhere between the tap and a submitted email. The
+ * server-side auth steps that localise it (`auth_modal_shown`, `otp_requested`)
+ * need enough mobile volume to say anything, so this looks at the surface
+ * directly: drive the real wizard at 390x844 (iPhone 13), tap the Save in the
+ * fixed bottom bar, and record exactly what appears — and whether anything
+ * about it is broken.
  *
  *   BASE_URL=http://localhost:3001 node scripts/probe-mobile-save.mjs
  */

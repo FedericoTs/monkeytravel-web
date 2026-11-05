@@ -1,16 +1,15 @@
 /**
  * GSC sitemaps — what Google last read from us, and (optionally) a (re)submit.
  *
- * URL Inspection on 2026-09-12 returned "URL is unknown to Google" for URLs
- * that ARE in sitemap.xml and answer 200 with a self-canonical (/destinations,
- * /blog/seoul-5-day-itinerary, /blog/visa-free-destinations-by-passport, …).
- * The only way to see whether Google has processed the sitemap since those
- * were added is sitemaps.list: lastDownloaded, errors/warnings, and per-type
- * submitted vs indexed counts. The same call showed that only sitemap.xml had
- * ever been submitted: sitemap-trips.xml and sitemap-creators.xml (the UGC
- * pages, ~430 URLs) were unknown to Search Console. sitemaps.submit queues a
- * fetch; Google retired the anonymous ping endpoint in 2023, so this is the
- * supported way to tell it about a sitemap.
+ * URL Inspection can return "URL is unknown to Google" for URLs that ARE in
+ * sitemap.xml and answer 200 with a self-canonical. The only way to see
+ * whether Google has processed the sitemap since those were added is
+ * sitemaps.list: lastDownloaded, errors/warnings, and per-type submitted vs
+ * indexed counts. It also shows which sitemaps Search Console knows about:
+ * sitemap-trips.xml and sitemap-creators.xml (the UGC pages) stay unknown to
+ * it until submitted. sitemaps.submit queues a fetch; Google retired the
+ * anonymous ping endpoint, so this is the supported way to tell it about a
+ * sitemap.
  *
  *   npx tsx scripts/gsc-sitemaps.mts                    # list (read-only scope)
  *   npx tsx scripts/gsc-sitemaps.mts --submit           # list, then submit the

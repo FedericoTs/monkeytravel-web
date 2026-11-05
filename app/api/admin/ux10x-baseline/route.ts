@@ -38,7 +38,7 @@ export interface Ux10xBaseline {
     aiConversations: number;
   };
   daily: Ux10xDailyRow[];
-  // The frozen reference baseline (2026-06-01 .. 2026-07-02) from the plan, so
+  // The frozen reference baseline from the plan (its window is in `label`), so
   // the card can render "now vs baseline" without another query. Static by
   // design — this is the line the whole initiative is measured against.
   frozenBaseline: {

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 /**
- * Source guards for the 2026-09-23 lockdown. Each database change closes a
+ * Source guards for the database lockdown. Each database change closes a
  * table or function to the signed-in user's own client; each code change
  * below moves the one legitimate writer to the service role first. If a
  * writer drifts back to the user's client, the write fails with 42501 and

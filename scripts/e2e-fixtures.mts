@@ -3,12 +3,11 @@
  *
  * WHY THIS EXISTS
  * ---------------
- * The collaborative surfaces have almost no production data (measured
- * 2026-08-20: 346 trips but ONE trip_collaborators row, zero activity votes,
- * zero proposals, zero expense splits, zero payment handles). So the code paths
- * that the public.users lockdown touched — collaborator lists, vote
- * attribution, Settle Up — cannot be exercised against real data at all. They
- * have to be manufactured.
+ * The collaborative surfaces have almost no production data (next to no
+ * trip_collaborators rows, activity votes, proposals, expense splits or
+ * payment handles). So the code paths that the public.users lockdown touched —
+ * collaborator lists, vote attribution, Settle Up — cannot be exercised
+ * against real data at all. They have to be manufactured.
  *
  * That matters because every one of those paths fails SILENTLY under a wrong
  * RLS policy: a denied read returns zero rows and a denied PostgREST embed
@@ -26,8 +25,8 @@
  *     `+test`), so the fixtures never reach the Resend marketing audience.
  *     `.local` is also non-routable, so nothing is deliverable even by mistake.
  *   - email_confirm: true, so Supabase sends no confirmation mail.
- *   - show_on_leaderboard is forced false — the real leaderboard has 447
- *     opt-ins and fixtures must not appear in it.
+ *   - show_on_leaderboard is forced false — fixtures must not appear on the
+ *     real leaderboard.
  *   - every notification_settings flag is false, marketingNotifications
  *     explicitly so.
  *   - the trip stays visibility='private' (the column default), so it cannot

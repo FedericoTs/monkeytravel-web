@@ -3,15 +3,14 @@ import { render, screen } from "@testing-library/react";
 import TrafficOverview from "./TrafficOverview";
 
 /**
- * The engaged-sessions line exists to correct a 5x overstatement, so the one
+ * The engaged-sessions line exists to correct an overstatement, so the one
  * thing it must never do is invent a number of its own.
  *
- * `session_engagement` is forward-only from 2026-09-02. Days before that have
- * no value, and rendering them as 0 would draw a collapse that is an artefact
- * of when measurement started rather than anything that happened to the
- * traffic — the same class of artefact that has already cost this dashboard
- * credibility twice (four analytics RPCs silently past the statement timeout,
- * rendering confident zeros).
+ * `session_engagement` is forward-only: days before the beacon existed have no
+ * value, and rendering them as 0 would draw a collapse that is an artefact of
+ * when measurement started rather than anything that happened to the
+ * traffic — the same class of artefact as an analytics RPC silently past the
+ * statement timeout rendering a confident zero.
  */
 
 const day = (date: string, views: number, uniqueVisitors: number, engagedSessions?: number) => ({

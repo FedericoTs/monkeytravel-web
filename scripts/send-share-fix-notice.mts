@@ -1,7 +1,6 @@
 /**
- * One-off notice (2026-09-25): tell the owners of shared trips that sharing
- * no longer locks them out of their trip (#183/#184/#185). Approved by
- * Federico on 2026-09-25.
+ * One-off notice: tell the owners of shared trips that sharing no longer locks
+ * them out of their trip (#183/#184/#185).
  *
  * Recipients: owners of live trips that have a share link, real accounts only.
  * Language: the owner's most recent shared trip (trip_meta.locale), else
@@ -12,9 +11,8 @@
  * bounce/complaint list, and idempotency — one send per user, ever. Re-running
  * only reaches the owners not sent yet. Every attempt lands in email_log.
  *
- * DONE 2026-09-25: sent to 83 owners (50 at 16:10 UTC, 33 at 19:40 UTC), all
- * delivered. Sending is now closed, because the audience is computed at run
- * time: every re-run would email whoever has shared a trip since, about a
+ * Sending is closed: the notice went out, and the audience is computed at run
+ * time, so every re-run would email whoever has shared a trip since, about a
  * bug they never had. The dry run still works, as a record.
  *
  *   npx tsx scripts/send-share-fix-notice.mts                    # dry run

@@ -2,7 +2,6 @@
  * A signed-out planner who shares and then signs in must end up with ONE trip:
  * the one they shared, claimed, not a second auto-saved copy.
  *
- * Activation item #2 (2026-09-02): 56 signed-out shares in 30 days, 0 claims.
  * This probe walks the loop the way a planner does, on the real site:
  *
  *   1. signed out: generate, "Share this trip", the link + "Keep this trip" row

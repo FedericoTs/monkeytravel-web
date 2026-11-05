@@ -2,21 +2,14 @@
  * A pasted prompt must be refused by the CLIENT, before it costs a round-trip.
  *
  * validateTripParams (lib/trips/request-validation.ts) rejects a destination
- * over 100 characters, and the wizard's own gate mirrored every other rule in
- * that function except this one. So a prompt pasted into the destination box
- * passed step 1, fired a `generating` row, and bounced back with an
- * untranslated "Destination name too long" behind a Retry button that resent
- * the identical text.
+ * over 100 characters, so the wizard's own gate has to enforce the same bound,
+ * like every other rule in that function. Without it a prompt pasted into the
+ * destination box passes step 1, fires a `generating` row, and bounces back
+ * with an untranslated "Destination name too long" behind a Retry button that
+ * resends the identical text.
  *
- * Measured over the 30 days to 2026-09-02:
- *
- *   destination <= 60 chars   907 sessions   98.5% reached a result
- *   destination 61-100 chars   19 sessions  100.0% reached a result
- *   destination  > 100 chars   12 sessions   33.3% reached a result
- *
- * That is also why the bound is 100 and not the friendlier-sounding 60 the
- * original spec suggested: 61-100 works perfectly and warning there would nag
- * 19 succeeding sessions a month.
+ * The bound is 100 and not the friendlier-sounding 60: destinations of 61-100
+ * characters generate fine, and warning there would nag sessions that succeed.
  *
  * Costs NO generation: the whole point is that nothing is sent.
  *

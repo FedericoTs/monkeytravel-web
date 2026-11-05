@@ -3,12 +3,8 @@
  *
  * WHY
  * ---
- * Measured 2026-09-01: of 95 users who signed up since 2026-07-01 and never
- * created a trip, 41 have no authenticated page views at all. 40 of those 41
- * had `user_confirmation_requested`, 21 have `email_confirmed_at` SET, and only
- * 4 ever produced a `login` event. Twenty users therefore clicked the
- * confirmation link — Supabase would not have stamped email_confirmed_at
- * otherwise — and still never got a session.
+ * A user can click the confirmation link — Supabase stamps email_confirmed_at
+ * only once they have — and still never get a session.
  *
  * The suspected mechanism is PKCE. lib/supabase/client.ts uses
  * createBrowserClient from @supabase/ssr, whose confirmation links carry a

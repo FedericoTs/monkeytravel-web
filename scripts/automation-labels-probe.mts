@@ -10,8 +10,8 @@
  *
  * What it proves
  *   - the label table has rows, and every reason is a rule the function has
- *   - 2026-09-01 (the Cittadella sweep) is labelled as legacy_sweep, hundreds
- *     of sessions
+ *   - the sweep day (SWEEP_DAY) is labelled as legacy_sweep, hundreds of
+ *     sessions
  *   - the view excludes them: view count < raw is_bot=false count on that day
  *     by thousands
  *   - no session labelled by a rule that requires "never engaged" ever fired

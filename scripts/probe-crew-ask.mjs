@@ -3,17 +3,11 @@
  *
  * WHY
  * ---
- * Measured 2026-09-03 over 30 days: 531 wizard sessions answered "with
- * friends" at step 1 against 225 solo, and 477 of the group sessions generated
- * a trip. Across 449 live trips, ALL TIME: 3 collaborator rows, 6 invites, 0
- * activity votes, 0 proposals. The single multiplayer feature anyone uses is
- * the one needing no account — `anonymous_activity_votes`, 51 rows.
- *
- * Group-intent planners are not the reluctant ones: they save at 12.4% vs
- * solo's 9.6%. They were simply never given a way to include anybody, because
- * every group feature sat behind a sign-up — and the wizard's own "Ask your
- * crew to vote" button was HIDDEN for a signed-out planner with nothing saved,
- * since its only destination was the auth wall.
+ * Group-intent planners are not the reluctant ones; what stops them is a
+ * sign-up wall in front of every group feature. Voting is the group feature
+ * that needs no account (`anonymous_activity_votes`). So the wizard's own
+ * "Ask your crew to vote" button has to be offered to a signed-out planner with
+ * nothing saved, and its destination cannot be the auth wall.
  *
  * WHAT THIS ASSERTS
  * -----------------

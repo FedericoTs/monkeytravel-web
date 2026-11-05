@@ -33,8 +33,8 @@ import type { VisaStatus } from "./types";
 
 /**
  * Passports we build pages for, ordered by measured share of Search Console
- * impressions over the 90 days to 2026-08-23. The comment on each line is that
- * share, so the next person can see why the list stops where it does.
+ * impressions. The comment on each line is that share, so the next person can
+ * see why the list stops where it does.
  */
 export const PASSPORT_PAGE_CODES = [
   "US", // 35.3%

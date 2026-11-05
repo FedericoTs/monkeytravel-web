@@ -1,11 +1,10 @@
 /**
  * A signed-in generation must become a trip row without anyone clicking Save.
  *
- * Activation priority #3 (2026-09-02): six signed-in users in 30 days reached
- * a rendered itinerary and no save was ever attempted. This probe does what
- * they did — sign in, one-tap a destination, continue, generate — and then
- * asks the database, not the UI, whether the trip exists. It also asserts the
- * consent-free funnel row `saved` was written and no `save_failed` was.
+ * This probe does what a signed-in user does — sign in, one-tap a destination,
+ * continue, generate — and then asks the database, not the UI, whether the
+ * trip exists. It also asserts the consent-free funnel row `saved` was written
+ * and no `save_failed` was.
  *
  * Costs one real generation (~30s, ~$0.002). Creates and deletes its own
  * account and trip; each cleanup step is isolated so neither can skip the other.
