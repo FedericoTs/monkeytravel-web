@@ -239,10 +239,11 @@ export default function PackingListClient({ locale }: Props) {
       <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm">
         <div className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="packing-destination" className="block text-sm font-medium text-slate-700 mb-2">
               {t("destinationLabel")}
             </label>
             <input
+              id="packing-destination"
               type="text"
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
@@ -545,6 +546,7 @@ export default function PackingListClient({ locale }: Props) {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  aria-label={t("emailPlaceholder")}
                   placeholder={t("emailPlaceholder")}
                   className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-base focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none"
                   disabled={emailSending}

@@ -562,6 +562,7 @@ export default function AnonAssistantPanel({
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          aria-label={t("assistant.placeholder")}
           placeholder={t("assistant.placeholder")}
           maxLength={1500}
           className="min-w-0 flex-1 rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-900 focus:border-[var(--primary)] focus:outline-none"

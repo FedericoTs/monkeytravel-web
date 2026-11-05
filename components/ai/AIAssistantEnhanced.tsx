@@ -473,6 +473,7 @@ export default function AIAssistantEnhanced({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
+                aria-label={t("placeholder")}
                 placeholder={t("placeholder")}
                 rows={1}
                 disabled={isLoading || isApplyingChange}

@@ -209,6 +209,7 @@ export default function BookingDrawer({
               type="text"
               value={originCity}
               onChange={(e) => setOriginCity(e.target.value)}
+              aria-label={t("enterCityOrAirport")}
               placeholder={t("enterCityOrAirport")}
               className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent outline-none"
               autoFocus

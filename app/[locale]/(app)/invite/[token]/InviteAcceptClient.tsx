@@ -456,6 +456,7 @@ export default function InviteAcceptClient({
               <div className="flex gap-2">
                 <input
                   type="email"
+                  aria-label={t("enterYourEmail")}
                   placeholder={t("enterYourEmail")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}

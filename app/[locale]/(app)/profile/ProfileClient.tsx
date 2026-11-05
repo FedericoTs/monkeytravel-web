@@ -146,15 +146,17 @@ function EditableField({
   maxLength?: number;
   disabled?: boolean;
 }) {
+  const fieldId = useId();
   const baseClasses =
     "w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-[var(--foreground)] placeholder-slate-400 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 focus:bg-white transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed";
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-slate-600">{label}</label>
+      <label htmlFor={fieldId} className="block text-sm font-medium text-slate-600">{label}</label>
       {type === "textarea" ? (
         <div className="relative">
           <textarea
+            id={fieldId}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
@@ -171,6 +173,7 @@ function EditableField({
         </div>
       ) : (
         <input
+          id={fieldId}
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}

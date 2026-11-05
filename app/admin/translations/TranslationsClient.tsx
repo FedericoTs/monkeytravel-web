@@ -226,6 +226,7 @@ export default function TranslationsClient() {
             <div className="flex-1">
               <input
                 type="text"
+                aria-label="Search keys or values..."
                 placeholder="Search keys or values..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

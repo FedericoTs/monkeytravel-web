@@ -66,6 +66,7 @@ export default function EmailSubscribe({ variant = 'hero', source, className = '
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                aria-label={t('placeholder')}
                 placeholder={t('placeholder')}
                 className="w-full px-5 py-4 rounded-xl border-2 border-gray-200 bg-white text-[var(--foreground)] placeholder:text-gray-400 focus:outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--primary)]/10 transition-all"
                 disabled={status === 'loading' || status === 'success'}
@@ -117,6 +118,7 @@ export default function EmailSubscribe({ variant = 'hero', source, className = '
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                aria-label={t('placeholder')}
                 placeholder={t('placeholder')}
                 className="w-full px-5 py-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/55 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent transition-all"
                 disabled={status === 'loading' || status === 'success'}
@@ -164,6 +166,7 @@ export default function EmailSubscribe({ variant = 'hero', source, className = '
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        aria-label={t('placeholder')}
         placeholder={t('placeholder')}
         className="flex-1 md:w-80 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/55 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
         disabled={status === 'loading' || status === 'success'}

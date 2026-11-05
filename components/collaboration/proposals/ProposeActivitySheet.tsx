@@ -261,6 +261,7 @@ export function ProposeActivitySheet({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
+                aria-label={t("searchPlaceholder", { destination })}
                 placeholder={t("searchPlaceholder", { destination })}
                 className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg
                            focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent"
@@ -325,10 +326,11 @@ export function ProposeActivitySheet({
         {step === 'custom' && (
           <div className="p-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="propose-name" className="block text-sm font-medium text-slate-700 mb-1">
                 {t("form.nameLabel")} *
               </label>
               <input
+                id="propose-name"
                 type="text"
                 value={customActivity.name}
                 onChange={(e) => setCustomActivity({ ...customActivity, name: e.target.value })}
@@ -376,10 +378,11 @@ export function ProposeActivitySheet({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="propose-description" className="block text-sm font-medium text-slate-700 mb-1">
                 {t("form.descriptionLabel")}
               </label>
               <textarea
+                id="propose-description"
                 value={customActivity.description}
                 onChange={(e) => setCustomActivity({ ...customActivity, description: e.target.value })}
                 placeholder={t("form.descriptionPlaceholder")}
@@ -434,10 +437,11 @@ export function ProposeActivitySheet({
 
             {/* Proposal Note */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label htmlFor="propose-note" className="block text-sm font-medium text-slate-700 mb-1">
                 {t("preview.noteLabel")}
               </label>
               <textarea
+                id="propose-note"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder={t("preview.notePlaceholder")}

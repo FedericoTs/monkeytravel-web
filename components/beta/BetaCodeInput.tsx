@@ -118,6 +118,7 @@ export default function BetaCodeInput({
         <div className="flex gap-2">
           <input
             type="text"
+            aria-label={t("placeholderCompact")}
             placeholder={t("placeholderCompact")}
             value={code}
             onChange={(e) => {
@@ -156,6 +157,7 @@ export default function BetaCodeInput({
         <div className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
+            aria-label={t("placeholderInline")}
             placeholder={t("placeholderInline")}
             value={code}
             onChange={(e) => {
@@ -238,6 +240,7 @@ export default function BetaCodeInput({
         <div className="flex gap-3">
           <input
             type="text"
+            aria-label={t("placeholder")}
             placeholder={t("placeholder")}
             value={code}
             onChange={(e) => {
