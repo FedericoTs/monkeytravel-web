@@ -11,6 +11,8 @@ import {
 } from "@/lib/analytics";
 import { identifyUser, type PostHogUserProperties } from "@/lib/posthog";
 import { safeGet, safeSet } from "@/lib/safe-storage";
+import { isSupportedLanguage } from "@/lib/ai/language";
+import { logWriteError } from "@/lib/supabase/log-write-error";
 
 const SESSION_STORAGE_KEY = "mt_last_visit";
 const SESSION_COUNT_KEY = "mt_session_count";
@@ -121,6 +123,14 @@ export default function SessionTracker() {
         return;
       }
       const { data: userData } = userRead;
+
+      // The language someone uses the app in is the one to write to them in,
+      // whichever way they signed in. The column's default is English.
+      const language = document.documentElement.lang;
+      if (userData && isSupportedLanguage(language) && userData.preferred_language !== language) {
+        logWriteError("session: preferred language", await supabase.from("users").update({ preferred_language: language }).eq("id", user.id));
+      }
+
       const { count: tripsCount } = tripsRead;
       const { count: activeTripsCount } = activeTripsRead;
       const { data: betaAccess } = betaRead;

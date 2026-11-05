@@ -16,8 +16,13 @@ const analytics = vi.hoisted(() => ({
 }));
 const posthog = vi.hoisted(() => ({ identifyUser: vi.fn() }));
 let refusing: string | null = null;
+const updates: FakeQuery[] = [];
 
 const answer = (q: FakeQuery): { data: unknown; error: unknown; count?: number } => {
+  if (q.op === "update") {
+    updates.push(q);
+    return { data: null, error: null };
+  }
   if (q.table === refusing) return { data: null, error: { code: "57014", message: "timeout" } };
   if (q.table === "users") {
     return {
@@ -43,12 +48,48 @@ const { default: SessionTracker } = await import("./SessionTracker");
 
 beforeEach(() => {
   refusing = null;
+  updates.length = 0;
+  document.documentElement.lang = "";
   vi.clearAllMocks();
   window.requestIdleCallback = ((callback: IdleRequestCallback) => {
     callback({} as IdleDeadline);
     return 1;
   }) as typeof window.requestIdleCallback;
   window.cancelIdleCallback = () => {};
+});
+
+describe("the language a person uses the app in", () => {
+  const seen = async () => {
+    render(<SessionTracker />);
+    await vi.waitFor(() => expect(posthog.identifyUser).toHaveBeenCalled());
+  };
+
+  it("is remembered when it isn't the stored one", async () => {
+    document.documentElement.lang = "pt";
+    await seen();
+    expect(updates).toHaveLength(1);
+    expect(updates[0]).toMatchObject({ table: "users", value: { preferred_language: "pt" } });
+  });
+
+  it("writes nothing when it is the stored one", async () => {
+    document.documentElement.lang = "it";
+    await seen();
+    expect(updates).toHaveLength(0);
+  });
+
+  it("writes nothing for a language the column doesn't take", async () => {
+    document.documentElement.lang = "de";
+    await seen();
+    expect(updates).toHaveLength(0);
+  });
+
+  it("writes nothing when the profile couldn't be read", async () => {
+    document.documentElement.lang = "pt";
+    refusing = "users";
+    render(<SessionTracker />);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(updates).toHaveLength(0);
+  });
 });
 
 describe("SessionTracker", () => {

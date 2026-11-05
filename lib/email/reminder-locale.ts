@@ -60,6 +60,18 @@ export function resolveLocale(raw: string | null | undefined): ReminderLocale {
 }
 
 /**
+ * The language of an email about a trip. English in preferred_language may only
+ * be the column's default, so the trip's own language decides then.
+ */
+export function tripEmailLocale(
+  preferred: string | null | undefined,
+  tripLocale: string | null | undefined
+): ReminderLocale {
+  const stated = resolveLocale(preferred);
+  return stated === "en" ? resolveLocale(tripLocale) : stated;
+}
+
+/**
  * A trip date as day and month in the recipient's locale: "October 10",
  * "10 de octubre", "10 ottobre", "10 de outubro". Empty when unreadable.
  * Formatted in UTC, the zone a date-only string is parsed in.

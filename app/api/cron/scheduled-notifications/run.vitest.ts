@@ -636,6 +636,15 @@ describe("the copy", () => {
     ["morning_of", 0],
   ] as const;
 
+  it("writes in the trip's language when the account only holds the default", async () => {
+    recipient = { email: "owner@example.com", preferred_language: "en" };
+    const [slot, days] = reminderSlots[0];
+    trips = [trip("a", { title: "Lisbon Trip", start_date: daysFromNow(days), end_date: daysFromNow(days + 3), trip_locale: "it" })];
+    rows = [due("row-a", "a", slot)];
+    await run();
+    expect(sends()[0].locale).toBe("it");
+  });
+
   describe.each(["en", "es", "it", "pt"])("in %s", (language) => {
     beforeEach(() => {
       recipient = { email: "owner@example.com", preferred_language: language };

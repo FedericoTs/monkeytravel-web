@@ -5,7 +5,7 @@ import { isTripNotificationsEnabled } from "@/lib/notifications/scheduling";
 import { parseDigestDay, digestStaleReason } from "@/lib/notifications/digest";
 import { prioritizeDueRows, rateLimitWindowStart, staleReason } from "@/lib/notifications/queue";
 import { stillPencilled } from "@/lib/trips/pencilled-dates";
-import { resolveLocale } from "@/lib/email/reminder-locale";
+import { tripEmailLocale } from "@/lib/email/reminder-locale";
 import { retryTransient } from "@/lib/notifications/retry";
 import { domesticTripVerdict } from "@/lib/notifications/domestic-trip";
 import {
@@ -48,8 +48,8 @@ import { dispatchDayDigest } from "@/lib/notifications/day-digest-email";
  * (or of its twin copies) was sent today; see rateLimitWindowStart.
  *
  * Localisation: the route lives outside [locale]/, so request-bound next-intl
- * helpers have no locale. The recipient's preferred_language is resolved
- * explicitly and passed to `getTranslations({ locale, namespace })`, as the
+ * helpers have no locale. The email's language is resolved explicitly
+ * (tripEmailLocale) and passed to `getTranslations({ locale, namespace })`, as the
  * static page builders do.
  *
  * Failure mode: a failing row is flipped to 'failed' with `last_error`.
@@ -566,7 +566,7 @@ async function processRow(
   }
 
   // 2d. The traveller's language, whichever email this row is.
-  const locale = resolveLocale(user.preferred_language);
+  const locale = tripEmailLocale(user.preferred_language, trip.trip_locale);
 
   // In-trip day digest: its content is tomorrow's plan pulled straight from
   // this trip's itinerary, its copy is one namespace (not per-slot), and its
