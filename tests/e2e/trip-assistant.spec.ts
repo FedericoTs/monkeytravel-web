@@ -125,6 +125,8 @@ async function answerConcierge(page: Page, ...streams: unknown[][]) {
 }
 
 const dayList = (page: Page, day: number) => page.getByTestId(`day-drop-list-${day}`);
+// The toast's: the page's own Undo, for its edits, stays disabled here.
+const undoButton = (page: Page) => page.getByRole("button", { name: "Undo", exact: true, disabled: false });
 
 async function openTrip(page: Page, tripId: string) {
   // The share prompt and the assistant's first open are timed overlays.
@@ -234,7 +236,7 @@ test.describe("asking the AI on the trip page", () => {
       await expect(page.getByText("Not in your trip yet")).toHaveCount(0);
       await expect(page.getByText("Not saved yet: tap Save to my trip.")).toHaveCount(0);
 
-      await page.getByRole("button", { name: "Undo", exact: true }).click();
+      await undoButton(page).click();
       await expect.poll(storedNames, { timeout: 30_000 }).toEqual(AS_STORED);
       await expect(dayList(page, 1)).toContainText(CATHEDRAL);
       await expect(page.getByText("Change undone successfully!")).toBeVisible();
@@ -252,7 +254,7 @@ test.describe("asking the AI on the trip page", () => {
       expect((await storedRow()).itinerary.map((d) => d.day_number)).toEqual([1, 2, 3]);
       await expect(dayList(page, 3)).toContainText(GARDEN);
 
-      await page.getByRole("button", { name: "Undo", exact: true }).click();
+      await undoButton(page).click();
       await expect.poll(async () => (await storedRow()).end_date, { timeout: 30_000 }).toBe(iso(41));
       expect(await storedNames()).toEqual(AS_STORED);
       await expect(dayList(page, 3)).toHaveCount(0);
@@ -312,7 +314,7 @@ test.describe("asking the AI on the trip page", () => {
       const { error } = await admin.from("trips").update({ itinerary: moved }).eq("id", tripId);
       if (error) throw error;
 
-      await page.getByRole("button", { name: "Undo", exact: true }).click();
+      await undoButton(page).click();
       await expect(page.getByText("Your trip has changed since then, so this can't be undone here.")).toBeVisible();
       expect(await storedNames()).toEqual([GARDEN, LUNCH, "Bridge walk at dusk"]);
     });

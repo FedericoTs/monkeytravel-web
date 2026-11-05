@@ -92,7 +92,8 @@ jobs:
             tests/e2e/regenerate-day.spec.ts \
             tests/e2e/share-window.spec.ts \
             tests/e2e/silent-write-failures.spec.ts \
-            tests/e2e/trip-assistant.spec.ts \n            tests/e2e/trip-status.spec.ts \
+            tests/e2e/trip-assistant.spec.ts \
+            tests/e2e/trip-status.spec.ts \
             tests/e2e/wizard-signed-in-save.spec.ts
         env:
           BASE_URL: http://localhost:3000
