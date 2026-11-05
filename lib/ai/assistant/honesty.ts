@@ -60,7 +60,15 @@ const PT_FUTURES = words(
   "atualizarei|adicionarei|acrescentarei|ajustarei|mudarei|alterarei|moverei|removerei|retirarei|substituirei|agendarei|incluirei|modificarei|encurtarei|prolongarei|trocarei|criarei|gerarei|refarei"
 );
 
+// Where a sentence can start, for a claim that opens with its verb.
+const SENTENCE_START = `(?:^|[.!?:]\\s+|\\n\\s*)`;
+
 const CLAIM_PATTERNS: RegExp[] = [
+  // With no subject, as a terser model writes: "Added a gelato stop to Day 2".
+  new RegExp(`${SENTENCE_START}${words("added|updated|removed|replaced|moved|changed|swapped|deleted|rescheduled|shifted")}\\s+(?:an?|the|your(?!\\s+mind)|some|one|two|three|\\d+)${end}`, "iu"),
+  new RegExp(`${SENTENCE_START}${words("añadid[oa]s?|agregad[oa]s?|actualizad[oa]s?|eliminad[oa]s?|quitad[oa]s?|reemplazad[oa]s?|sustituid[oa]s?|cambiad[oa]s?|movid[oa]s?")}\\s+(?:una?|el|la|los|las|tus?|\\d+)${end}`, "iu"),
+  new RegExp(`${SENTENCE_START}${words("aggiunt[oaie]|aggiornat[oaie]|rimoss[oaie]|eliminat[oaie]|tolt[oaie]|sostituit[oaie]|spostat[oaie]|cambiat[oaie]")}\\s+(?:(?:un[oa]?|il|lo|la|i|gli|le|\\d+)${end}|(?:l|un)['’])`, "iu"),
+  new RegExp(`${SENTENCE_START}${words("adicionad[oa]s?|acrescentad[oa]s?|atualizad[oa]s?|removid[oa]s?|retirad[oa]s?|substituíd[oa]s?|trocad[oa]s?|mudad[oa]s?|movid[oa]s?")}\\s+(?:uma?|o|a|os|as|seus?|suas?|\\d+)${end}`, "iu"),
   // English
   new RegExp(`${start}(?:has|have)\\s+been\\s+(?:now\\s+|also\\s+|successfully\\s+)?${EN_VERBS}${end}`, "iu"),
   new RegExp(`${start}(?:i|we)(?:['’]ve|\\s+have)\\s+(?:now\\s+|also\\s+|just\\s+|already\\s+|successfully\\s+)?${EN_VERBS}${end}`, "iu"),

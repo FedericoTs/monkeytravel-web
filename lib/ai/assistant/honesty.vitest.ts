@@ -113,6 +113,22 @@ const honest = [
   "Revisei o seu plano e está equilibrado.",
 ];
 
+// As a terser model writes them: the verb first, with nobody doing it.
+const terseClaims = [
+  "Added a gelato stop to Day 2.",
+  "Moved the museum to the morning.",
+  "Sure! Replaced your dinner with a cheaper place.",
+  "Done: removed the walking tour from Day 3.",
+  "Happy to help\nSwapped 2 activities on Day 1.",
+  "Añadido un café al día 2.",
+  "Cambiada la cena del día 3.",
+  "Aggiunta una gelateria al giorno 2.",
+  "Aggiunto l'Uffizi al giorno 2.",
+  "Spostato il museo alla mattina.",
+  "Adicionada uma parada para sorvete no dia 2.",
+  "Movido o museu para a manhã.",
+];
+
 describe("claimsItineraryChange", () => {
   it.each(productionClaims)("catches a production false claim: %s", (text) => {
     expect(claimsItineraryChange(text)).toBe(true);
@@ -126,8 +142,26 @@ describe("claimsItineraryChange", () => {
     expect(claimsItineraryChange(text)).toBe(true);
   });
 
+  it.each(terseClaims)("catches a claim with no subject: %s", (text) => {
+    expect(claimsItineraryChange(text)).toBe(true);
+  });
+
   it.each(promises)("catches a promise: %s", (text) => {
     expect(claimsItineraryChange(text)).toBe(true);
+  });
+
+  it.each([
+    "Added bonus: the market is open on Sundays.",
+    "Changed your mind? Just tell me.",
+    "Updated prices are on the museum's website.",
+    "Moved by the view? Stay for the sunset.",
+    "The museum moved the entrance to the side street.",
+    "They added a second tram line last year.",
+    "Cambiado de sitio en 1990, el mercado sigue abierto.",
+    "Aggiunto alla lista UNESCO nel 1980, merita una visita.",
+    "Removido em 1950, o portão original está no museu.",
+  ])("leaves an answer that only starts like one alone: %s", (text) => {
+    expect(claimsItineraryChange(text)).toBe(false);
   });
 
   it.each(honest)("leaves an honest reply alone: %s", (text) => {

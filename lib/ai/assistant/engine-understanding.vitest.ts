@@ -123,12 +123,32 @@ describe("takenOut", () => {
     expect(composeReply({ ...base, reply: "Here's day 2 with the Jameson tour.", takenOut: ["Guinness Storehouse"] })).toBe(
       "Here's day 2 with the Jameson tour. (This change takes out: Guinness Storehouse.)"
     );
-    expect(composeReply({ ...base, reply: "Swapped the Guinness Storehouse for Jameson.", takenOut: ["Guinness Storehouse"] })).toBe(
+    expect(composeReply({ ...base, autoApplied: true, reply: "Swapped the Guinness Storehouse for Jameson.", takenOut: ["Guinness Storehouse"] })).toBe(
       "Swapped the Guinness Storehouse for Jameson."
     );
     expect(asksToRemove("take out all restaurants")).toBe(true);
     expect(asksToRemove("quita todos los restaurantes")).toBe(true);
     expect(asksToRemove("add a Jameson whiskey distillery tour")).toBe(false);
+  });
+});
+
+describe("a terse claim on a change waiting for Apply", () => {
+  const base = { lockedDays: [], lengthRefused: false, locale: "en", currentDays: 2, edits: [edit(2, ["Jameson Distillery Bow St."])] };
+
+  it("says it isn't applied yet, as it does for a longer one", () => {
+    expect(composeReply({ ...base, reply: "Added a Jameson tour to Day 2." })).toMatch(/^Not applied yet: .* Added a Jameson tour to Day 2\.$/);
+    expect(composeReply({ ...base, reply: "I've added a Jameson tour to Day 2." })).toMatch(/^Not applied yet: .* I've added a Jameson tour to Day 2\.$/);
+  });
+
+  it("is left as it is once the change is applied", () => {
+    expect(composeReply({ ...base, autoApplied: true, reply: "Added a Jameson tour to Day 2." })).toBe("Added a Jameson tour to Day 2.");
+  });
+});
+
+describe("a terse claim with nothing prepared", () => {
+  it("gives way to the truth", () => {
+    const reply = composeReply({ lockedDays: [], lengthRefused: false, locale: "en", currentDays: 2, edits: [], reply: "Added a Jameson tour to Day 2." });
+    expect(reply).not.toContain("Added a Jameson");
   });
 });
 
