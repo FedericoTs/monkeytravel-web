@@ -66,14 +66,6 @@ vi.mock("@/lib/images/activity", () => ({ fetchActivityImages: async () => [] })
 vi.mock("@/lib/activity-bank", () => ({ isActivityBankPopulated: async () => true, populateActivityBank: async () => ({}) }));
 vi.mock("@/lib/ai/observability", () => ({ recordAiOutcome: async () => {} }));
 vi.mock("@/lib/ai/known-places", () => ({ knownPlacesFor: async () => [], knownPlacesUsed: () => 0 }));
-vi.mock("@/lib/maps-grounding", () => ({
-  canGroundDestination: () => false,
-  generateItineraryWithMapsGrounding: async () => {
-    throw new Error("not used");
-  },
-  isMapsGroundingAvailable: () => false,
-  getMapsGroundingCost: () => 0,
-}));
 
 const { POST: postJson } = await import("./route");
 const { POST: postStream } = await import("./stream/route");

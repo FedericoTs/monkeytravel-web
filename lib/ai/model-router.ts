@@ -18,7 +18,6 @@
  *   email-parser                | gemini-2.5-flash-lite  | Structured extraction, low temp
  *   trip-title                  | gemini-2.5-flash-lite  | One-shot string, cheapest
  *   activity-bank               | gemini-2.5-flash       | Batch list generation
- *   maps-grounding              | gemini-2.5-flash       | Needs grounding model support
  *   assistant-optimize          | gemini-2.5-flash       | A pasted multi-day draft mapped onto the trip
  *   assistant-edits             | gemini-2.5-flash       | The assistant's edit engine (wizard + trip page)
  *   assistant-chat              | gemini-2.5-flash       | The trip assistant's reply when the engine gave none
@@ -40,7 +39,6 @@ export type GeminiPurpose =
   | "email-parser"
   | "trip-title"
   | "activity-bank"
-  | "maps-grounding"
   | "assistant-optimize"
   | "assistant-edits"
   | "assistant-chat"
@@ -76,7 +74,6 @@ const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
   "email-parser": "gemini-2.5-flash-lite",
   "trip-title": "gemini-2.5-flash-lite",
   "activity-bank": "gemini-2.5-flash",
-  "maps-grounding": "gemini-2.5-flash",
   "assistant-optimize": "gemini-2.5-flash",
   "assistant-edits": "gemini-2.5-flash",
   "assistant-chat": "gemini-2.5-flash",
@@ -149,18 +146,4 @@ export function thinkingConfigFor(model: GeminiModelId, budget = 0): ThinkingCon
   }
   if (budget > 0) return { thinkingLevel: ThinkingLevel.LOW };
   return { thinkingLevel: model === "gemini-3.8-flash" ? ThinkingLevel.LOW : ThinkingLevel.MINIMAL };
-}
-
-/**
- * Build a URL-safe Gemini REST endpoint for a given purpose.
- * Used by the maps-grounding path which still calls the REST API
- * directly (the SDK doesn't expose grounding tools at the time of
- * writing).
- */
-export function getModelEndpointForPurpose(
-  purpose: GeminiPurpose,
-  method: "generateContent" | "streamGenerateContent" = "generateContent"
-): string {
-  const model = getModelForPurpose(purpose);
-  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:${method}`;
 }
