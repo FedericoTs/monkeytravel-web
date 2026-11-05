@@ -2,7 +2,7 @@ import { deriveTimezoneFromItinerary } from "@/lib/trip/timezone";
 import { NextRequest } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
-import { recordAnonymousGeneration } from "@/lib/anonymous/rate-limit";
+import { recordAnonymousGeneration, refundAnonymousGeneration } from "@/lib/anonymous/rate-limit";
 import { generateItinerary } from "@/lib/gemini";
 import { validateTripParams } from "@/lib/trips/request-validation";
 import { MAX_TRIP_DAYS, MAX_TRIP_DAYS_MULTI } from "@/lib/trips/request-limits";
@@ -65,7 +65,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
   try {
     // Who is asking and with what body: an anonymous visitor over a cap, or a
     // body that is not JSON, is refused (lib/ai/generation-caller.ts).
-    const caller = await readGenerationCaller(request);
+    const caller = await readGenerationCaller(request, generationId);
     if ("refused" in caller) return caller.refused;
     const { supabase, user, isAnonymous, body, access, profilePreferences, userLanguage } = caller;
     console.log(`[AI Generate] User language: ${userLanguage} (anonymous=${isAnonymous})`);
@@ -366,8 +366,9 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
         };
       } else {
         // Anonymous path: bump the cookie counter so the visitor can't
-        // burn unlimited generations without ever signing up.
-        await recordAnonymousGeneration();
+        // burn unlimited generations without ever signing up. A try the
+        // stream already counted is not counted again.
+        await recordAnonymousGeneration(generationId ?? undefined);
       }
     }
 
@@ -398,6 +399,10 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
     });
   } catch (error) {
     console.error("[AI Generate] Generation error:", error);
+
+    // A try the stream counted before failing brought no plan, so it costs
+    // nothing. Only this response can still change the cookie.
+    if (generationId) await refundAnonymousGeneration(generationId).catch(() => {});
 
     // Log error using centralized gateway. Attempts the model answered before
     // the failure (a retried parse error) were billed all the same.

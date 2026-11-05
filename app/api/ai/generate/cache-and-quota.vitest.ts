@@ -20,6 +20,7 @@ vi.mock("@vercel/functions", () => ({ waitUntil: (p: Promise<unknown>) => void P
 vi.mock("@/lib/anonymous/rate-limit", () => ({
   checkAnonymousRateLimit: async () => ({ allowed: true, used: 0, limit: 5, resetAt: Date.now() + 60_000 }),
   recordAnonymousGeneration: async () => {},
+  refundAnonymousGeneration: async () => {},
 }));
 vi.mock("@/lib/ai/user-context", () => ({
   loadUserContext: async () => ({ profilePreferences: {}, userLanguage: "en" }),

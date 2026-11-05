@@ -64,6 +64,50 @@ describe("cookieQuota", () => {
     expect(await quota.check()).toMatchObject({ allowed: true, used: 0 });
   });
 
+  it("counts a use with an id once, and lets it through at the limit under that id alone", async () => {
+    await quota.record("a");
+    await quota.record("b");
+    await quota.record("b");
+    expect(JSON.parse(jar.get("q")!)).toMatchObject({ used: 2, lastUse: "b" });
+    expect(await quota.check("b")).toMatchObject({ allowed: true, used: 2 });
+    expect(await quota.check("a")).toMatchObject({ allowed: false });
+    expect(await quota.check()).toMatchObject({ allowed: false });
+  });
+
+  it("gives back only the use counted last under that id", async () => {
+    await quota.record("a");
+    await quota.refund("other");
+    expect(JSON.parse(jar.get("q")!)).toMatchObject({ used: 1, lastUse: "a" });
+    await quota.refund("a");
+    const state = JSON.parse(jar.get("q")!);
+    expect(state.used).toBe(0);
+    expect(state.lastUse).toBeUndefined();
+    await quota.refund("a");
+    expect(JSON.parse(jar.get("q")!).used).toBe(0);
+  });
+
+  it("a refund keeps the window, and does nothing once it has expired or without a cookie", async () => {
+    await quota.refund("a");
+    expect(jar.has("q")).toBe(false);
+    await quota.record("a");
+    const { resetAt } = JSON.parse(jar.get("q")!);
+    vi.advanceTimersByTime(HOUR);
+    await quota.record("b");
+    await quota.refund("b");
+    expect(JSON.parse(jar.get("q")!)).toMatchObject({ used: 1, resetAt });
+    await quota.record("c");
+    vi.advanceTimersByTime(25 * HOUR);
+    await quota.refund("c");
+    expect(JSON.parse(jar.get("q")!)).toMatchObject({ used: 2, resetAt });
+  });
+
+  it("an expired window does not count a known id as already counted", async () => {
+    await quota.record("a");
+    vi.advanceTimersByTime(25 * HOUR);
+    await quota.record("a");
+    expect(JSON.parse(jar.get("q")!)).toMatchObject({ used: 1, lastUse: "a" });
+  });
+
   it("keeps the counter in an httpOnly cookie that lives as long as the window", async () => {
     await quota.record();
     expect(lastSet).toMatchObject({ name: "q", httpOnly: true, sameSite: "lax", path: "/", maxAge: 24 * 60 * 60 });
