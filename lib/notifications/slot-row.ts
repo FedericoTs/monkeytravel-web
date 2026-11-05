@@ -68,6 +68,7 @@ export type TripEmailRow = {
   created_at: string;
   reminders_muted: boolean | null;
   status: string | null;
+  is_archived: boolean | null;
   deleted_at: string | null;
   itinerary: unknown;
   weather_note: string | null;

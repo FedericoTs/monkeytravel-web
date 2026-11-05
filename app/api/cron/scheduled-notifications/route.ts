@@ -292,7 +292,7 @@ async function processRow(
   const { data: tripRow, error: tripErr } = await svc
     .from("trips")
     .select(
-      "id, title, start_date, end_date, created_at, reminders_muted, status, deleted_at, itinerary, share_token, shared_at, " +
+      "id, title, start_date, end_date, created_at, reminders_muted, status, is_archived, deleted_at, itinerary, share_token, shared_at, " +
         "weather_note:trip_meta->>weather_note, " +
         "highlights:trip_meta->highlights, " +
         "packing_suggestions:trip_meta->packing_suggestions, " +
@@ -348,6 +348,13 @@ async function processRow(
   // see; gating on 'confirmed' would silence most legitimate reminders.
   if (trip.status === "cancelled") {
     await persistOutcome(svc, row.id, "suppressed", "trip_cancelled");
+    return "skipped";
+  }
+
+  // An archived trip has been put away. Rows not yet due wait, so a trip
+  // restored in time gets the rest of its mail.
+  if (trip.is_archived) {
+    await persistOutcome(svc, row.id, "suppressed", "trip_archived");
     return "skipped";
   }
 
