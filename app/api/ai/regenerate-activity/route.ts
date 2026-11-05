@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { DEFAULT_LANGUAGE, tripLocale } from "@/lib/ai/language";
 import { readLocaleCookie } from "@/lib/ai/user-context";
 import { getAuthenticatedUser } from "@/lib/api/auth";
-import { regenerateSingleActivity } from "@/lib/gemini";
+import { regenerateSingleActivity } from "@/lib/ai/regenerate-activity";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { findActivityById, getAllActivityNames } from "@/lib/utils/activity-id";

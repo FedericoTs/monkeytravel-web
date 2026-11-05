@@ -10,7 +10,7 @@ import type { ItineraryDay } from "@/types";
  */
 
 const regenerateSingleDay = vi.fn();
-vi.mock("@/lib/gemini", () => ({ regenerateSingleDay: (input: unknown) => regenerateSingleDay(input) }));
+vi.mock("@/lib/ai/regenerate-day", () => ({ regenerateSingleDay: (input: unknown) => regenerateSingleDay(input) }));
 vi.mock("@/lib/places/places-to-eat", () => ({ placesToEatCheck: () => null }));
 
 const { prepareAddDay } = await import("./add-day");

@@ -32,7 +32,7 @@ vi.mock("@/lib/ai/genai-compat", () => ({
   },
 }));
 vi.mock("@/lib/ai/cache-metrics", () => ({ logCacheMetrics: vi.fn() }));
-vi.mock("@/lib/gemini", () => ({ regenerateSingleDay: vi.fn() }));
+vi.mock("@/lib/ai/regenerate-day", () => ({ regenerateSingleDay: vi.fn() }));
 vi.mock("@/lib/trip/coordinate-fallback", () => ({ validateAndFixCoordinates: (days: unknown) => days }));
 vi.mock("@/lib/activity-bank", () => ({
   populateActivityBank: vi.fn(async () => {}),
@@ -284,7 +284,7 @@ describe("trip-page assistant: free-form edits", () => {
   });
 
   it("sends 'add a day' to the engine, and to the one-day handler only when the engine fails", async () => {
-    const gemini = await import("@/lib/gemini");
+    const gemini = await import("@/lib/ai/regenerate-day");
     const regenerateSingleDay = vi.mocked(gemini.regenerateSingleDay);
     regenerateSingleDay.mockReset();
     proposeTripEdits.mockResolvedValue({ reply: "Here's Day 4 in Howth.", revisedDays: [howthDay4], tripLength: 4, summary: "", meta });
@@ -301,7 +301,7 @@ describe("trip-page assistant: free-form edits", () => {
   });
 
   it("keeps a failure's own text on the server: the log has it, the response and the model do not", async () => {
-    const gemini = await import("@/lib/gemini");
+    const gemini = await import("@/lib/ai/regenerate-day");
     const regenerateSingleDay = vi.mocked(gemini.regenerateSingleDay);
     regenerateSingleDay.mockReset();
     regenerateSingleDay.mockRejectedValue(new Error("upstream 503 from models/internal-name"));
