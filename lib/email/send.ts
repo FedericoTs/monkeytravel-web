@@ -52,11 +52,6 @@ import FinishTripEmail, {
   finishTripSubject,
   type FinishTripEmailProps,
 } from "./templates/FinishTrip";
-import ShareFixNoticeEmail, {
-  shareFixNoticeText,
-  shareFixSubject,
-  type ShareFixNoticeProps,
-} from "./templates/ShareFixNotice";
 import ParticipantPlanEmail, {
   participantPlanEmailText,
   participantPlanSubject,
@@ -73,7 +68,6 @@ export type EmailTemplate =
   | { id: "trip_day_digest"; props: TripDayDigestEmailProps }
   | { id: "finish_trip"; props: FinishTripEmailProps }
   | { id: "feedback_outreach"; props: FeedbackOutreachEmailProps }
-  | { id: "share_fix_notice"; props: ShareFixNoticeProps }
   | { id: "participant_plan"; props: ParticipantPlanEmailProps };
 
 /** Stable outcome shape. */
@@ -208,10 +202,6 @@ export const NOTIFICATION_SETTING_KEY: Record<EmailTemplate["id"], string | null
   // marketingNotifications so an in-app marketing opt-out always suppresses
   // it. NOT transactional: the recipient didn't trigger this send.
   feedback_outreach: "marketingNotifications",
-  // One-off notice to owners of shared trips that sharing no longer locks
-  // them out. About their own trips, but they didn't trigger it: same gate
-  // as feedback_outreach.
-  share_fix_notice: "marketingNotifications",
   // Asked for: sent when someone gives their address on a share link, to
   // that address. Its footer link stops this trip's emails to it.
   participant_plan: null,
@@ -232,7 +222,6 @@ const UNSUB_KEY: Record<EmailTemplate["id"], UnsubKey | null> = {
   trip_day_digest: "tripReminders",
   finish_trip: "marketingNotifications",
   feedback_outreach: "marketingNotifications",
-  share_fix_notice: "marketingNotifications",
   participant_plan: null, // the sender passes the guest link
 };
 
@@ -780,12 +769,6 @@ async function renderTemplate(
         template.props.locale,
         template.props.firstName
       );
-      return { html, text, subject };
-    }
-    case "share_fix_notice": {
-      const html = await render(ShareFixNoticeEmail(template.props));
-      const text = shareFixNoticeText(template.props);
-      const subject = shareFixSubject(template.props.locale);
       return { html, text, subject };
     }
     case "participant_plan": {
