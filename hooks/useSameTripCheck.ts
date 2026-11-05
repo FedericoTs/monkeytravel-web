@@ -3,10 +3,14 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { findRecentTwin, type RecentTwin } from "@/lib/trips/recent-twin";
+import { savedTripOf } from "@/lib/wizard/draft-saved-check";
+import type { GeneratedItinerary } from "@/types";
 
 export interface SameTripCheck {
-  /** The trip this account already saved for the same place and dates. */
+  /** The trip this account already saved for the same place and dates, with another plan. */
   twin: RecentTwin | null;
+  /** The saved trip that already holds this very plan: nothing to ask, nothing to save. */
+  holdingTripId: string | null;
   /** Auto-save waits: the check is out, or the planner hasn't answered it. */
   awaiting: boolean;
   /** The saved trip the planner chose to update with this plan. */
@@ -25,11 +29,15 @@ export interface SameTripCheck {
  *
  * `trip` is null while there is nothing to check (signed out, already saved,
  * no plan coming). The check starts with the generation, so it is answered
- * before the plan shows; `hasPlan` says whether it has.
+ * before the plan shows; `plan` is the plan once it has.
+ *
+ * The trip found can be this very plan: signing in with a code reloads the page,
+ * and the page before it can save the plan on the way out. That is the save
+ * coming back, not a second trip to ask about.
  */
 export function useSameTripCheck(
   trip: { destination: string; startDate: string; endDate: string } | null,
-  hasPlan: boolean
+  plan: GeneratedItinerary | null
 ): SameTripCheck {
   const key =
     trip && trip.destination && trip.startDate && trip.endDate
@@ -57,10 +65,38 @@ export function useSameTripCheck(
     };
   }, [key]);
 
-  const twin = key !== null && result?.key === key ? result.twin : null;
+  const found = key !== null && result?.key === key ? result.twin : null;
+  const foundId = found?.id ?? null;
+
+  const [holder, setHolder] = useState<{ plan: GeneratedItinerary; foundId: string; tripId: string | null } | null>(null);
+  useEffect(() => {
+    if (!foundId || !plan) return;
+    let current = true;
+    void (async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const tripId = session?.user ? await savedTripOf(supabase, session.user.id, plan) : null;
+      if (current) setHolder({ plan, foundId, tripId });
+    })().catch(() => {
+      if (current) setHolder({ plan, foundId, tripId: null });
+    });
+    return () => {
+      current = false;
+    };
+  }, [foundId, plan]);
+  const holderKnown = holder !== null && holder.plan === plan && holder.foundId === foundId;
+  // Nothing is asked until this is known.
+  const checkingHolder = foundId !== null && plan !== null && !holderKnown;
+  const holdingTripId = holderKnown && holder.tripId === foundId ? foundId : null;
+  const twin = checkingHolder || holdingTripId ? null : found;
+
   return {
     twin,
-    awaiting: key !== null && hasPlan && (result?.key !== key || (twin !== null && choice?.key !== key)),
+    holdingTripId,
+    awaiting:
+      key !== null &&
+      plan !== null &&
+      (result?.key !== key || checkingHolder || (twin !== null && choice?.key !== key)),
     replaceTripId: key !== null && choice?.key === key ? choice.replaceTripId : null,
     choose: (replaceTripId) => {
       if (key) setChoice({ key, replaceTripId });

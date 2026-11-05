@@ -399,6 +399,27 @@ describe("the auto-save, signed in", () => {
     expect(now().isUnsaved).toBe(false);
   });
 
+  it("takes a trip the page before it saved this plan to: no write, and the save is reported", async () => {
+    const { now, rerender } = show({ planHeldBy: "held-1" });
+    await settle();
+    expect(writes.saveTrip).not.toHaveBeenCalled();
+    expect(writes.updateTrip).not.toHaveBeenCalled();
+    expect(now().savedTripId).toBe("held-1");
+    expect(now().isUnsaved).toBe(false);
+    expect(reportTripSaved).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ tripId: "held-1", durationDays: 3, destination: "Paris, France" }),
+      "Auto-save"
+    );
+    expect(clearDraft).toHaveBeenCalledTimes(1);
+
+    // The check goes quiet once the trip is saved; nothing happens again.
+    rerender({ planHeldBy: null });
+    await settle();
+    expect(writes.saveTrip).not.toHaveBeenCalled();
+    expect(now().savedTripId).toBe("held-1");
+    expect(reportTripSaved).toHaveBeenCalledTimes(1);
+  });
+
   it("updates the trip the planner chose to replace, instead of inserting", async () => {
     const { now } = show({ replaceTripId: "older-1" });
     await settle();
