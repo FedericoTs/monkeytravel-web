@@ -1,13 +1,13 @@
 /**
  * A suppressed reminder row must be revivable; a sent one must never be revived.
  *
- * The 2026-08-27 manual hold suppressed 670 rows and nothing in the product
- * could undo it: enqueue_trip_notifications deletes only `pending` rows before
- * re-inserting, while the unique index on (trip_id, slot) covers every status,
- * so `ON CONFLICT DO NOTHING` silently dropped the whole cascade for 129 trips
- * / 106 users. The RPC now revives a SUPPRESSED row on conflict instead.
+ * enqueue_trip_notifications deletes only `pending` rows before re-inserting,
+ * while the unique index on (trip_id, slot) covers every status, so a plain
+ * `ON CONFLICT DO NOTHING` would silently drop the whole cascade for a trip
+ * whose rows were suppressed (by a manual hold, say), and nothing in the
+ * product could undo it. The RPC revives a SUPPRESSED row on conflict instead.
  *
- * The dangerous half of that change is the guard: revive `suppressed`, never
+ * The dangerous half of that is the guard: revive `suppressed`, never
  * `sent`. Without it a date change would mail the same reminder twice. This
  * probe asserts both directions against the real database.
  *

@@ -17,18 +17,14 @@ const defaultLocale = "en";
 // stale one — Google learns to ignore the signal entirely. Bump only when the
 // content actually changes.
 //
-// That principle is right, but until 2026-08-25 the VALUES had rotted, which
-// broke it in the opposite direction: the homepage declared 2026-04-30 while
-// 26 commits had touched homepage-rendered files since (hero refresh, the CLS
-// fix, the "30 seconds" copy change). Two consequences, the second worse than
-// the first:
-//   1. Google was told our best-converting page had not changed in four months.
+// The opposite failure is a value that falls behind its content. It has two
+// consequences, the second worse than the first:
+//   1. Google is told the page has not changed when it has.
 //   2. `scripts/indexnow-submit.mts --since N` FILTERS ON LASTMOD, so the
-//      homepage and every landing page were silently excluded from every
-//      IndexNow submission we ran.
-// `sitemap-lastmod.vitest.ts` now fails the suite when any constant below
-// falls behind the newest commit touching the files it covers, so the rot
-// cannot recur silently. Update the constant AND the path list together when
+//      page is silently excluded from every IndexNow submission.
+// `sitemap-lastmod.vitest.ts` fails the suite when any constant below falls
+// behind the newest commit touching the files it covers, so the rot cannot
+// happen silently. Update the constant AND the path list together when
 // content moves.
 const LASTMOD_HOMEPAGE = "2026-10-28";
 const LASTMOD_LANDING = "2026-11-02";
@@ -37,12 +33,10 @@ const LASTMOD_EXPLORE = "2026-10-28";
 const LASTMOD_DESTINATIONS = "2026-10-03";
 const LASTMOD_LEGAL = "2026-10-03";
 
-// The pt locale shipped 2026-06-09 (commit 988c1f6 — 29 destinations + 65 blog
-// posts). pt pages must NEVER carry an en/es/it date that PRE-DATES the pt
-// content's existence — that was a real bug (pt URLs claiming 2026-04-15, two
-// months before they existed; Google discounts pre-creation dates). `ptAware`
-// clamps any base date up to the pt ship date for pt URLs only; en/es/it keep
-// their honest dates untouched.
+// The pt content only exists from LASTMOD_PT_CONTENT on. pt pages must NEVER
+// carry an en/es/it date that PRE-DATES that (Google discounts pre-creation
+// dates). `ptAware` clamps any base date up to LASTMOD_PT_CONTENT for pt URLs
+// only; en/es/it keep their honest dates untouched.
 // TODO (proper fix): derive ALL of these from per-item content-stored dates,
 // the way the blog already does via frontmatter `updatedAt`. fs mtime is
 // unreliable on Vercel (git checkout resets it to build time).
@@ -129,23 +123,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const seoLandingPaths = ['/free-ai-trip-planner', '/group-trip-planner', '/weekend-trip-planner', '/ai-itinerary-generator', '/family-trip-planner', '/budget-trip-planner', '/solo-trip-planner', '/backpacker', '/multi-city-trip-planner'];
 
   // Free tools (× 3 locales). Listed alongside SEO landing pages since
-  // they have similar discovery characteristics and lifetime cadence.
-  // **2026-05-25**: added so /tools/* URLs are crawlable from day one
-  // (the pages exist but were orphaned — only the nav + footer + home
-  // section make them discoverable to humans; this makes them
-  // discoverable to Googlebot too).
+  // they have similar discovery characteristics and lifetime cadence. Only
+  // the nav + footer + home section link to /tools/*, which makes them
+  // discoverable to humans; this makes them discoverable to Googlebot too.
   const toolPaths = ['/tools', '/tools/packing-list', '/tools/visa-checker'];
 
-  // **2026-05-29 (/explore Week 3)**: /explore is the freshest-content
-  // page on the site (community UGC feed) and was completely absent
-  // from the sitemap. PRIORITY_INDEX + daily changefreq signals high
+  // /explore is the freshest-content page on the site (community UGC
+  // feed), so it is listed. PRIORITY_INDEX + daily changefreq signals high
   // crawl value. /saved is noindexed by design (personal list) — don't
   // include. We deliberately do NOT enumerate every filter combination
   // (e.g. /explore?budget=premium) to concentrate PageRank on a single
   // canonical entry-point rather than diluting it across N facets.
   const explorePaths = ['/explore'];
 
-  // **2026-08-03**: "<competitor> alternative" comparison pages. Bottom-funnel
+  // "<competitor> alternative" comparison pages. Bottom-funnel
   // branded search is the one SERP class a young domain can realistically win
   // — the incumbent never writes the page, so we compete against other small
   // sites rather than against their brand authority. Derived from the
@@ -153,10 +144,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // sitemap. Monthly cadence: claims are re-verified, not rewritten.
   const comparePaths = competitorSlugs().map((slug) => `/compare/${slug}`);
 
-  // **2026-08-25**: per-passport "where can I actually go" pages. Derived from
-  // the shortlist in lib/visa/passport-pages.ts so adding a passport never
-  // means editing the sitemap. That list is 20 passports chosen from measured
-  // Search Console audience, NOT all 199 — see that file for why.
+  // Per-passport "where can I actually go" pages. Derived from the shortlist
+  // in lib/visa/passport-pages.ts so adding a passport never means editing the
+  // sitemap. The shortlist is chosen from measured Search Console audience,
+  // NOT all 199 passports — see that file for why.
   //
   // Weekly, not monthly: the underlying matrix is refreshed nightly from
   // upstream, so the content genuinely can change between crawls.

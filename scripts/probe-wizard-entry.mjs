@@ -1,7 +1,7 @@
 /**
  * /trips/new step 1 — entry-experience probe (real browser, real account).
  *
- * MODE=before  documents the defects a cold visitor met before 2026-09-02.
+ * MODE=before  documents the defects a cold visitor meets on the old step 1.
  * MODE=after   asserts the editorial entry fixed each one, and that the
  *              ?step1=classic holdout still renders the old step 1.
  *

@@ -2,19 +2,15 @@
  * A question-only conversation with the anonymous assistant must end with an
  * offer — and that offer must include the plan itself, not just an account ask.
  *
- * The bridge used to live inside the edit-preview card, gated on
- * `editState === "applied"`, so a session that only ASKED questions was never
- * offered anything. Measured over the 30 days to 2026-09-02 by joining
- * anon_assistant_logs to wizard_step_events on session_id:
- *
- *   edit proposed  70 sessions  saw a bridge   57.1% clicked Save
- *   Q&A only       50 sessions  saw NOTHING    34.0% clicked Save
+ * The bridge must not live only inside the edit-preview card, which is gated
+ * on `editState === "applied"`: a session that only ASKED questions would
+ * never be offered anything.
  *
  * This drives the Q&A-only half specifically: generate signed out, ask one
  * question that is NOT an edit request, and assert the bridge appears in
  * qa_only mode carrying the share affordance (a deliverable needing no
- * account) alongside the save ask. Also asserts the value banner no longer
- * advertises the AI assistant as a post-save unlock while the assistant is
+ * account) alongside the save ask. Also asserts the value banner does not
+ * advertise the AI assistant as a post-save unlock while the assistant is
  * live on the same screen.
  *
  * Costs one generation plus one assistant reply. Section 6 mints ONE real

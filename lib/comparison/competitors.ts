@@ -68,21 +68,19 @@ const YES_NO = (
 
 /* ------------------------------------------------------------------ */
 /* Wanderlog                                                           */
-/* Claims re-verified hands-on 2026-08-18. Wanderlog CHANGED since the    */
-/* July teardown: creating a trip no longer requires an account (the      */
-/* signup modal now offers "Salta e registrati piu tardi" and skipping    */
-/* lands you in a real planner). Sharing is still gated - the Condividi   */
-/* wall has no skip. Two claims were corrected in this pass; see          */
-/* docs/WANDERLOG_TEARDOWN_2026_07.md for the older, now-partly-stale run.*/
+/* Claims verified hands-on; the date is `researchedAt` below. Creating a */
+/* trip does not require an account (the signup modal offers "Salta e     */
+/* registrati piu tardi" and skipping lands you in a real planner).       */
+/* Sharing is gated - the Condividi wall has no skip. See                 */
+/* docs/WANDERLOG_TEARDOWN_2026_07.md for the older, partly stale run.    */
 /* ------------------------------------------------------------------ */
 
 const wanderlog: Competitor = {
   slug: "wanderlog-alternative",
   name: "Wanderlog",
-  // Bumped to 2026-08-18 only AFTER re-walking the competitor's real flow and
-  // correcting the two claims that pass proved false. The field is rendered to
-  // visitors as "when we checked", so it may never run ahead of the evidence:
-  // it sat at 2026-07-03 until this verification existed to justify moving it.
+  // Bump only AFTER re-walking the competitor's real flow and correcting any
+  // claim that pass proves false. The field is rendered to visitors as "when
+  // we checked", so it may never run ahead of the evidence.
   researchedAt: "2026-08-18",
   sourceDoc: "docs/WANDERLOG_TEARDOWN_2026_07.md",
 
@@ -176,12 +174,11 @@ const wanderlog: Competitor = {
         pt: "Montado à mão, lugar por lugar",
       }
     ),
-    // them:true since 2026-08-18. This said false and was CORRECT in July, when
-    // an account was required before any trip. Wanderlog has since softened it:
-    // the signup modal carries "Salta e registrati piu tardi" and skipping
-    // really does open a working planner. Verified by doing it. Kept as a
-    // parity row rather than deleted - a table that only lists wins is an
-    // advert, and the honest row is what makes the losing rows believable.
+    // them:true: no account is required before a trip. Wanderlog's signup
+    // modal carries "Salta e registrati piu tardi" and skipping really does
+    // open a working planner. Verified by doing it. Kept as a parity row
+    // rather than deleted - a table that only lists wins is an advert, and
+    // the honest row is what makes the losing rows believable.
     YES_NO(true, true, {
       en: "Try it without creating an account",
       es: "Pruébalo sin crear cuenta",
@@ -214,18 +211,18 @@ const wanderlog: Competitor = {
       it: "Il gruppo vota le attività — senza account",
       pt: "O grupo vota nas atividades — sem conta",
     }),
-    // Added 2026-08-18 with the anonymous share loop. Deliberately placed
-    // directly after the voting row so the three no-account rows read as one
-    // escalating block: try it -> share it -> your group votes on it. That
-    // sequence is the whole crew loop, and the account wall blocks all three.
-    // "the trip itself" distinguishes this from the "Try it without creating
-    // an account" row above, which is about generating rather than sending.
-    // `them: false` verified hands-on 2026-08-18, NOT inferred: created a trip
-    // anonymously (skipping the soft signup modal), then clicked Condividi on
-    // it. That raised "Registrati per salvare le modifiche" with Facebook /
-    // Google / email and NO skip affordance, and produced no link. The create
-    // wall bends; the share wall does not. This is the one gate that still
-    // holds, which is precisely why it is the row worth having.
+    // The anonymous share loop's row. Deliberately placed directly after the
+    // voting row so the three no-account rows read as one escalating block:
+    // try it -> share it -> your group votes on it. That sequence is the whole
+    // crew loop, and the account wall blocks all three. "the trip itself"
+    // distinguishes this from the "Try it without creating an account" row
+    // above, which is about generating rather than sending.
+    // `them: false` is verified hands-on (see `researchedAt`), NOT inferred:
+    // create a trip anonymously (skipping the soft signup modal), then click
+    // Condividi on it. That raises "Registrati per salvare le modifiche" with
+    // Facebook / Google / email and NO skip affordance, and produces no link.
+    // The create wall bends; the share wall does not. This is the one gate that
+    // still holds, which is precisely why it is the row worth having.
     YES_NO(true, false, {
       en: "Share the trip itself — no account needed to send the link",
       es: "Comparte el viaje — sin cuenta para enviar el enlace",

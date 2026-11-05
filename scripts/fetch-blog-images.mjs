@@ -34,9 +34,9 @@ const BLOG_QUERIES = {
   // 2027 planning pillars
   "2027-travel-calendar": "hand placing pins on world map travel planning",
   "best-places-to-travel-2027": "total solar eclipse sky",
-  // 2026-07-12 — GSC audit: standalone August month page (April-resurrection playbook)
+  // Standalone August month page
   "where-to-go-in-august": "Dolomites alpine lake mountains summer",
-  // 2026-07-06 — multi-city content wave
+  // Multi-city content
   "most-planned-destinations-2026": "traveler planning trip map passport notebook",
   "japan-golden-route-itinerary": "Fushimi Inari shrine torii gates Kyoto",
   "greek-island-hopping-itinerary": "Santorini Oia caldera white houses sunset",
@@ -131,10 +131,8 @@ const BLOG_QUERIES = {
   "chatgpt-vs-ai-trip-planners": "AI chatbot travel planning smartphone map comparison",
   "solo-female-travel-safety-guide-2026": "solo woman traveler backpack scenic overlook confident",
 
-  // Phase 12 - 3 pillars from the 2026-05-06 consolidation. Originally
-  // missed by the script — live audit 2026-05-28 caught all 3 returning
-  // 404 in prod across en/it/es MDX. JPGs were hand-downloaded; adding
-  // entries here so any future re-run keeps them in sync.
+  // Phase 12 - 3 pillars from the consolidation. JPGs were hand-downloaded;
+  // the entries are here so any future re-run keeps them in sync.
   "2026-travel-calendar": "passport world map travel planning year calendar",
   "honeymoon-planning-guide": "romantic couple sunset honeymoon tropical beach",
   "spring-summer-travel-guide": "summer beach turquoise water ocean vacation",

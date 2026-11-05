@@ -51,12 +51,11 @@ const SURFACES = ["background", "background-alt", "background-warm", "background
 /**
  * Only the teal still holds the accessible-ink contract.
  *
- * --primary-ink was folded back to the brand coral on 2026-08-26 (product
- * decision — see the block above its definition in globals.css). It therefore
- * no longer clears AA, and asserting that it does would just be a red test
- * describing a world we chose to leave. The coral's real, failing numbers are
- * pinned in their own describe block below instead, so the cost stays visible
- * and nobody can later claim it passes.
+ * --primary-ink is the brand coral (a product decision — see the block above
+ * its definition in globals.css). It therefore does not clear AA, and
+ * asserting that it does would just be a red test. The coral's real, failing
+ * numbers are pinned in their own describe block below instead, so the cost
+ * stays visible and nobody can later claim it passes.
  */
 const INKS = [
   { ink: "secondary-ink", bright: "secondary", label: "teal" },
@@ -104,7 +103,7 @@ describe.each(INKS)("--$ink stays legible", ({ ink, bright, label }) => {
 });
 
 /**
- * --primary-ink is the brand coral again (2026-08-26).
+ * --primary-ink is the brand coral.
  *
  * These assertions are the opposite shape of the teal ones on purpose: they
  * pin a KNOWN failure so it stays a deliberate, visible decision rather than

@@ -7,10 +7,10 @@
  * account is marked confirmed and you never get a session. You are stranded:
  * the account exists, you cannot get in, and nothing tells you why.
  *
- * As of 2026-09-02 there are 28 such accounts all-time. This targets the 8 who
- * signed up within 30 days and whose address has never bounced — recent enough
- * that the intent is still live, and deliverable enough not to hurt the domain
- * reputation the trip reminders depend on.
+ * This targets only the stranded accounts that signed up within 30 days and
+ * whose address has never bounced — recent enough that the intent is still
+ * live, and deliverable enough not to hurt the domain reputation the trip
+ * reminders depend on.
  *
  * WHY THE COPY IS WRITTEN HERE rather than reusing the magiclink template:
  * that template says "Didn't try to sign in? You can safely ignore this email."

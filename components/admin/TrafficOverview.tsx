@@ -8,7 +8,7 @@ interface TrafficData {
     date: string;
     views: number;
     uniqueVisitors: number;
-    /** Absent for days before the engagement beacon existed (2026-09-02). */
+    /** Absent for days before the engagement beacon existed. */
     engagedSessions?: number;
   }[];
   bySection: { section: string; count: number }[];

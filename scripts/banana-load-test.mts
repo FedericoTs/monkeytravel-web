@@ -2,12 +2,11 @@
  * Banana economy load + idempotency regression test.
  *
  * Why this exists:
- *   2026-05-31 we discovered the gamification reward loop had been silently
- *   broken for weeks — THREE stacked DB issues (UUID coercion crash, missing
- *   CHECK allowlist entries, no UNIQUE index for idempotency) meant ~zero
- *   bananas had been credited via `add_bananas` since the gamification path
- *   shipped. Every layer above the DB was happy. The bugs only surfaced when
- *   a user reported "I have 4 trips and 0 bananas".
+ *   The gamification reward loop can break silently below the app: stacked DB
+ *   issues (a UUID coercion crash, missing CHECK allowlist entries, no UNIQUE
+ *   index for idempotency) can leave `add_bananas` crediting nothing while
+ *   every layer above the DB looks happy. Only a user noticing their balance
+ *   would surface it.
  *
  *   This script catches that class of regression by exercising the real RPC
  *   end-to-end against the real schema and verifying both ledger sums and

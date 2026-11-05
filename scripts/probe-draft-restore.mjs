@@ -2,16 +2,15 @@
  * A signed-out itinerary must survive EVERY path into an account — not just
  * the Save modal.
  *
- * Until 2026-09-02 the wizard auto-restored the localStorage draft only when
- * `pendingTripGeneration` was set, and that flag is written in exactly four
- * places, all inside AuthPromptModal. So a planner who generated signed-out
- * and then signed in through the header, the login page or a magic link came
- * back to a blank wizard with their itinerary sitting unread beside it.
- * Measured: of 96 signed-out result sessions in 30 days that end with a
- * signed-in user on the same session cookie, 13 finished with no trip at all.
+ * The wizard must auto-restore the localStorage draft whether or not
+ * `pendingTripGeneration` is set. That flag is written in exactly four places,
+ * all inside AuthPromptModal, so a planner who generated signed-out and then
+ * signed in through the header, the login page or a magic link has no flag, and
+ * without the restore comes back to a blank wizard with their itinerary
+ * sitting unread beside it.
  *
  * Two passes:
- *   A. the path that was broken — sign in via /auth/login, never touching
+ *   A. the path with no flag — sign in via /auth/login, never touching
  *      Save, with pendingTripGeneration provably absent.
  *   B. the legacy Save-modal path — same draft, with the flag seeded exactly
  *      as AuthPromptModal writes it. Seeded rather than driven through the

@@ -2,14 +2,11 @@
  * Detect drift between production RLS and the committed baseline.
  *
  * WHY THIS EXISTS
- * The 2026-08-19 audit found six tables that anyone could write with the public
- * anon key, and 8 of the 10 offending policies existed in production and in NO
- * migration. Across the database there were ~130 live policies against 89
- * declared, and only 34 of 88 migrations touched RLS at all. So most of this
- * database's authorization was config that no code review ever saw, and a table
- * could be opened from the Supabase UI with no diff, no history and no alarm.
+ * A policy created in production can exist in NO migration, so authorization
+ * is config that no code review ever sees: a table could be opened to the
+ * public anon key from the Supabase UI with no diff, no history and no alarm.
  *
- * Fixing the six instances did not fix that. This does: it pins the whole
+ * Fixing individual policies does not fix that. This does: it pins the whole
  * authorization surface in git and fails when production stops matching.
  *
  * Usage:

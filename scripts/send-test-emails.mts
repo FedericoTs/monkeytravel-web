@@ -151,10 +151,9 @@ const SAMPLE_TRIP = {
   destination: "Paris",
   dates: "Sep 12 – Sep 15",
   /**
-   * Enrichment copied verbatim from a REAL production trip row (read
-   * 2026-08-27) rather than invented. Hand-written sample data flatters the
-   * design; real generated copy is longer, less tidy, and occasionally
-   * missing a field.
+   * Enrichment copied verbatim from a REAL production trip row rather than
+   * invented. Hand-written sample data flatters the design; real generated
+   * copy is longer, less tidy, and occasionally missing a field.
    */
   context: {
     weatherNote:
@@ -200,12 +199,10 @@ const contextLabels = commonMessages.emailContext;
  * Block CONTENT stays English in this fixture across every locale, and that
  * is not just a shortcut — it matches what those users actually receive.
  *
- * An earlier version of this comment said the fixture was English "because
- * the generator writes trip content in the user's language, so in production
- * a Spanish user's blocks are Spanish". That was wrong. The generator uses
- * whatever preferred_language held AT GENERATION TIME, and that column was
- * 'en' for every user until the 2026-08-27 repair. All 57 trips belonging to
- * the 63 now-non-English users predate it.
+ * The generator writes trip content in whatever preferred_language held AT
+ * GENERATION TIME, not in the user's language today, and that column was 'en'
+ * for every user until it was repaired. Every trip generated before the repair
+ * has English block content, whatever its owner's language is now.
  *
  * So an es/it preview here — Spanish headings over English block content — is
  * an accurate preview, not a limitation of the fixture. See

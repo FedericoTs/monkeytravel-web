@@ -1,12 +1,11 @@
 /**
  * The save-click-to-account step must leave a consent-free trail.
  *
- * Measured over the 30 days to 2026-09-02: 186 sessions clicked Save while
- * signed out, 87 ended signed in, 77 reached `saved` — and the 99 that never
- * signed in left NO trace of why. The only steps their sessions carried were
- * pre-auth ones, so "closed the modal without typing an address", "asked for a
- * link that never arrived" and "opened the link and still got nothing" — three
- * different problems with three different fixes — were one number.
+ * A session that clicks Save while signed out and never signs in would
+ * otherwise leave NO trace of why. The only steps it carries are pre-auth
+ * ones, so "closed the modal without typing an address", "asked for a link
+ * that never arrived" and "opened the link and still got nothing" — three
+ * different problems with three different fixes — would be one number.
  *
  * Three steps split it, and this proves each one is actually written:
  *

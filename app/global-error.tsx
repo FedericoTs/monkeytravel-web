@@ -25,8 +25,7 @@ interface GlobalErrorProps {
  * Symptom: a user loaded the page on deploy A, deploy B replaces the
  * hashed chunk filenames, and a later client-side navigation tries to
  * fetch the now-404 chunk → "ChunkLoadError: Failed to load chunk
- * /_next/static/chunks/0bcf7l1lc1d6v.js". Live-caught 2026-05-31 on
- * /it/trips/new mid-deploy. Hard refresh resolves immediately.
+ * /_next/static/chunks/0bcf7l1lc1d6v.js". Hard refresh resolves immediately.
  *
  * We can't call reset() — it just re-renders the same broken tree.
  * Hard-reload instead, gated by sessionStorage so a genuinely broken

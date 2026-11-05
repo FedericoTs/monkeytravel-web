@@ -12,16 +12,10 @@
  * and the API returns a 500 whose message ("Database error deleting user")
  * names no constraint, so the logs do not say which table did it.
  *
- * It has now happened twice. A pass on 2026-08-04 fixed four such keys and
- * measured 0 accounts affected, so it was filed as latent. By 2026-08-31 six
- * more existed that the pass never covered, one it DID fix was NO ACTION
- * again, and:
- *
- *   total accounts                     495
- *   accounts that could not be deleted 284   (283 of them real)
- *
- * Nothing was watching, because the only symptom is a real person hitting a
- * 500 at the moment they are trying to leave. This is the watcher.
+ * It recurs: a new foreign key into auth.users defaults to NO ACTION, and a
+ * key that was fixed can revert to it. Nothing else watches for this, because
+ * the only symptom is a real person hitting a 500 at the moment they are
+ * trying to leave. This is the watcher.
  *
  * WHAT IT CHECKS
  *   1. No FK into auth.users is on NO ACTION or RESTRICT. Any is a FAIL.

@@ -1,19 +1,11 @@
 /**
  * Does a long trip come back with all the days the user asked for?
  *
- * Measured on production 2026-09-01 across 428 saved trips: 93 (21.7%) hold
- * FEWER days than their own date range, 0 hold more — strictly one-directional,
- * so it is truncation, not noise. It scales with length:
- *
- *     7 days   6% short
- *     8 days  26%
- *     9 days  32%
- *    10 days  70%    <- the "10 days" one-tap preset
- *    14 days  90%    <- the "2 weeks" one-tap preset
- *
- * Two of the wizard's five duration presets therefore fail most of the time,
- * and the result header still shows the full requested date range beside the
- * smaller day count, so nobody notices.
+ * A generation can come back with FEWER days than its own date range, never
+ * more — strictly one-directional, so it is truncation, not noise — and the
+ * longer the trip, the likelier the shortfall. The result header still shows
+ * the full requested date range beside the smaller day count, so nobody
+ * notices. DAYS sets the length to ask for.
  *
  * Runs AUTHENTICATED on purpose: the 40/IP/day anon backstop is gated on
  * isAnonymous, so a signed-in request measures the generator rather than the

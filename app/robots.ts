@@ -15,17 +15,15 @@ import { SITE_URL } from "@/lib/seo/canonical";
 // added (anything user-specific, auth-gated, or transactional), include it
 // here so it doesn't leak into Google's index via internal links.
 //
-// 2026-06-01: GSC reported "Indexed, though blocked by robots.txt" on
-// monkeytravel.app. Root cause: pages with `<meta name="robots" content=
-// "noindex">` were ALSO listed here, so Google saw the URL via inbound
-// links/sitemap but couldn't crawl to read the noindex meta — they got
-// stuck "indexed" forever. Fixed by removing the path-level disallow for
-// surfaces that already noindex at the page level:
+// Surfaces that already noindex at the page level are NOT disallowed here.
+// A path-level disallow on a page with `<meta name="robots" content=
+// "noindex">` means Google sees the URL via inbound links/sitemap but can't
+// crawl to read the noindex meta, so it stays "Indexed, though blocked by
+// robots.txt" forever. Left crawlable:
 //   - /shared/<token>          (page.tsx: robots.index = false)
 //   - /trips/<id>              (TripDetailClient + page.tsx: noindex)
 //   - /saved                   (page-level noindex)
-//   - /profile, /profile/*     (page-level noindex)
-// Google will now crawl → see noindex → drop from index. Keep `/api/`,
+// Google crawls them → sees noindex → drops them from the index. Keep `/api/`,
 // `/auth/`, `/admin/`, `/oauth/`, `/onboarding`, `/welcome`, `/unsubscribe`,
 // `/invite/<token>`, `/join/<token>` blocked — those are write endpoints
 // or one-time tokens we don't want Google fetching even for noindex.
@@ -69,9 +67,8 @@ const ALLOW_PATHS = [
 // Build locale-aware patterns. Default locale (en) lives at the un-prefixed
 // root, so `/auth/*` covers it; every non-default locale gets its own prefix
 // (`/es/auth/*`, `/it/auth/*`, `/pt/auth/*`, …). Derived from the canonical
-// `locales` array so a newly-added locale is covered automatically — the pt
-// launch (2026-06-15) shipped before this was generalised and briefly left
-// /pt/api, /pt/auth, /pt/admin crawlable.
+// `locales` array so a newly-added locale is covered automatically, never
+// leaving its /api, /auth and /admin crawlable.
 function expandLocales(path: string): string[] {
   return locales.map((l) => (l === defaultLocale ? path : `/${l}${path}`));
 }

@@ -3,13 +3,11 @@
  *
  * WHY THIS SHAPE
  * --------------
- * On 2026-09-01 all SEVEN geo metrics timed out together in production (Sentry
- * JAVASCRIPT-NEXTJS-2C..2J, every one pg_code 57014) on the very release that
- * had just made four of them faster. Measuring each query alone could not have
- * predicted it: individually they ran 3.5-7.8s, but app/api/admin/stats/route.ts
- * fires them in ONE Promise.all against a cluster with max_parallel_workers = 2
- * and work_mem = 2184kB, so most lost their parallel worker and every sort
- * spilled. The set failed, not any member of it.
+ * The geo metrics can all time out together (pg_code 57014) even when each one
+ * is fast alone: app/api/admin/stats/route.ts fires them in ONE Promise.all
+ * against a cluster with max_parallel_workers = 2 and work_mem = 2184kB, so
+ * most lose their parallel worker and every sort spills. Measuring each query
+ * alone cannot predict it. The set fails, not any member of it.
  *
  * So this probe does not time queries one at a time. It fires the exact same
  * concurrent batch the route fires, through PostgREST (which connects as
@@ -17,8 +15,7 @@
  * of them errors or comes back empty.
  *
  * An empty result is a failure here, not a pass: `(x.data || [])` turning a
- * timeout into [] is precisely how this dashboard rendered confident zeros for
- * months while activation decisions were made from that screen.
+ * timeout into [] is precisely how a dashboard renders confident zeros.
  *
  *   node scripts/probe-admin-geo-metrics.mjs
  */

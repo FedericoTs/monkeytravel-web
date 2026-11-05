@@ -8,14 +8,10 @@ import { execFileSync } from "node:child_process";
  *
  * Hardcoding them is deliberate — see the comment in sitemap.ts. An inaccurate
  * lastmod is worse than a stale one, so we don't want a build stamping "today"
- * on every URL. But the values still have to be MAINTAINED, and until
- * 2026-08-25 they were not: the homepage declared 2026-04-30 while 26 commits
- * had touched homepage-rendered files since.
- *
- * That failure was invisible in two places at once. Google was told our
- * best-converting page hadn't changed in four months, and
- * `scripts/indexnow-submit.mts --since N` filters on lastmod, so the homepage
- * was silently dropped from every IndexNow submission.
+ * on every URL. But the values still have to be MAINTAINED: one that falls
+ * behind its content is invisible in two places at once. Google is told the
+ * page has not changed, and `scripts/indexnow-submit.mts --since N` filters on
+ * lastmod, so the page is silently dropped from every IndexNow submission.
  *
  * This reads the constants out of sitemap.ts as TEXT rather than importing it.
  * sitemap.ts is a Next route module whose default export Next owns, and it

@@ -107,9 +107,9 @@ export interface AdminStats {
         uniqueVisitors: number;
         /**
          * Sessions that kept a page visible past the engagement threshold.
-         * OPTIONAL on purpose: session_engagement is forward-only from
-         * 2026-09-02, so earlier days have no value and MUST render as absent.
-         * A 0 here would draw a collapse that never happened.
+         * OPTIONAL on purpose: session_engagement is forward-only (no rows for
+         * days before the beacon existed), so those days have no value and MUST
+         * render as absent. A 0 here would draw a collapse that never happened.
          */
         engagedSessions?: number;
       }[];
@@ -1120,8 +1120,8 @@ async function fetchGeoMetrics(
   // Process daily traffic trend.
   //
   // The engaged series is merged by date and deliberately left UNDEFINED for
-  // days the beacon did not cover. Defaulting it to 0 would draw a cliff on
-  // 2026-09-02 that is an artefact of when measurement started, not of
+  // days the beacon did not cover. Defaulting it to 0 would draw a cliff at the
+  // first covered day, an artefact of when measurement started, not of
   // anything that happened to the traffic.
   const engagedByDate = new Map<string, number>(
     (engagedDailyResult.data || []).map((e: { date: string; engaged_sessions: number }) => [
