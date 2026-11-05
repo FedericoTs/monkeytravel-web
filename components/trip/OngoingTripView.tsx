@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNow } from "@/hooks/useNow";
 import dynamic from "next/dynamic";
 import { useTranslations, useLocale } from "next-intl";
@@ -59,8 +59,8 @@ export default function OngoingTripView({
   const t = useTranslations("trips");
   const locale = useLocale();
   const [activeTab, setActiveTab] = useState<ViewTab>("today");
-  // For Full Plan tab - auto-select today's day initially
-  const [fullPlanSelectedDay, setFullPlanSelectedDay] = useState<number | null>(null);
+  // The Full Plan tab's choice: a day, null for all of them, undefined until one is made.
+  const [fullPlanChoice, setFullPlanChoice] = useState<number | null | undefined>(undefined);
 
   // Ensure activity IDs
   const displayItinerary = useMemo(() => ensureActivityIds(itinerary), [itinerary]);
@@ -93,12 +93,8 @@ export default function OngoingTripView({
     return Math.max(1, Math.min(diffDays, displayItinerary.length));
   }, [startDate, displayItinerary.length, now]);
 
-  // Auto-select today's day in Full Plan tab on first switch
-  useEffect(() => {
-    if (activeTab === "full" && fullPlanSelectedDay === null) {
-      setFullPlanSelectedDay(currentDayNumber);
-    }
-  }, [activeTab, fullPlanSelectedDay, currentDayNumber]);
+  // The Full Plan tab opens on today's day.
+  const fullPlanSelectedDay = fullPlanChoice === undefined ? currentDayNumber : fullPlanChoice;
 
   // Get today's activities
   const todayActivities = useMemo(() => {
@@ -376,7 +372,7 @@ export default function OngoingTripView({
             <DaySlider
               days={displayItinerary}
               selectedDay={fullPlanSelectedDay}
-              onSelectDay={setFullPlanSelectedDay}
+              onSelectDay={setFullPlanChoice}
               className="mb-6"
             />
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useChanged } from "./useChanged";
 
 /**
  * The trip hero's cover photo: the one stored on the trip, else one the hero
@@ -24,9 +25,7 @@ export function useTripCover({
     storedUrl
   );
   // Re-seed whenever the inbound trip changes (route param flip etc.).
-  useEffect(() => {
-    setCoverImageUrl(storedUrl);
-  }, [storedUrl, tripId]);
+  if (useChanged(`${tripId}:${storedUrl}`)) setCoverImageUrl(storedUrl);
   // Persist a freshly-resolved cover image back to the trip row so later
   // visits skip the Google Places fetch (cost and reliability). Only the
   // owner persists it. Fire-and-forget — if the PATCH fails the in-memory

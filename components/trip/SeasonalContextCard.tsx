@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations, useLocale as useNextIntlLocale } from "next-intl";
 import { sentryException } from "@/lib/observability/sentry";
 import { SeasonalContext } from "@/types";
@@ -64,10 +64,7 @@ export default function SeasonalContextCard({
   coordinates,
   className = "",
 }: SeasonalContextCardProps) {
-  const [seasonalContext, setSeasonalContext] = useState<SeasonalContext | null>(null);
-  const [vibeSuggestions, setVibeSuggestions] = useState<SeasonalVibeSuggestion[]>([]);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [weatherLoading, setWeatherLoading] = useState(false);
 
   // Get user's temperature preference (Celsius or Fahrenheit)
@@ -84,11 +81,11 @@ export default function SeasonalContextCard({
   // on cleanup, then short-circuit any post-cleanup setState via a cancelled
   // flag (covers the window between the response arriving and aborted being
   // observable).
+  const hasWeatherRange = Boolean(coordinates && startDate && endDate);
+  if (!hasWeatherRange && weatherData) setWeatherData(null);
+
   useEffect(() => {
-    if (!coordinates || !startDate || !endDate) {
-      setWeatherData(null);
-      return;
-    }
+    if (!coordinates || !startDate || !endDate) return;
     // Partial years ("0201-10-30") and reversed ranges are what the date
     // fields report mid-edit. They are not a forecast request: skip them and
     // keep whatever is on screen, so the card does not flicker while someone
@@ -142,14 +139,11 @@ export default function SeasonalContextCard({
     };
   }, [coordinates, startDate, endDate]);
 
-  useEffect(() => {
-    if (!destination || !startDate) {
-      setSeasonalContext(null);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
+  const { seasonalContext, vibeSuggestions } = useMemo<{
+    seasonalContext: SeasonalContext | null;
+    vibeSuggestions: SeasonalVibeSuggestion[];
+  }>(() => {
+    if (!destination || !startDate) return { seasonalContext: null, vibeSuggestions: [] };
 
     // Build seasonal context with latitude for accurate hemisphere detection.
     // endDate keeps the holidays to the ones inside the trip.
@@ -159,7 +153,6 @@ export default function SeasonalContextCard({
       coordinates?.latitude, // Pass latitude for correct hemisphere (fixes Southern Hemisphere bug)
       endDate || undefined
     );
-    setSeasonalContext(context);
 
     // Get vibe suggestions based on season and holidays.
     // Parse YYYY-MM-DD as local: `new Date(iso)` is UTC midnight, which west
@@ -175,20 +168,8 @@ export default function SeasonalContextCard({
       context.holidays,
       month
     );
-    setVibeSuggestions(suggestions);
-
-    setIsLoading(false);
+    return { seasonalContext: context, vibeSuggestions: suggestions };
   }, [destination, startDate, endDate, coordinates]);
-
-  if (isLoading) {
-    return (
-      <div className={`animate-pulse rounded-xl bg-slate-100 p-4 ${className}`}>
-        <div className="h-4 bg-slate-200 rounded w-1/3 mb-3"></div>
-        <div className="h-3 bg-slate-200 rounded w-2/3 mb-2"></div>
-        <div className="h-3 bg-slate-200 rounded w-1/2"></div>
-      </div>
-    );
-  }
 
   if (!seasonalContext || !destination || !startDate) {
     return null;

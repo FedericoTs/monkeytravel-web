@@ -55,10 +55,7 @@ export default function TravelAdvisoryBanner({
   useEffect(() => {
     const ctrl = new AbortController();
     const cleaned = country.trim();
-    if (!cleaned) {
-      setLoaded(true);
-      return;
-    }
+    if (!cleaned) return;
     fetch(`/api/advisories/${encodeURIComponent(cleaned)}`, {
       signal: ctrl.signal,
     })

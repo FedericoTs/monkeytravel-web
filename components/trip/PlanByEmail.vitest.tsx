@@ -119,6 +119,24 @@ describe("PlanByEmail", () => {
     expect(bodies).toEqual([]);
   });
 
+  it("takes the account's address when it arrives after the first render, unless they typed", () => {
+    const shareToken = `token-${++token}`;
+    const ask = (defaultEmail?: string) => (
+      <NextIntlClientProvider locale="en" messages={{ common: enCommon }}>
+        <PlanByEmail shareToken={shareToken} source="crew_ask" defaultEmail={defaultEmail} />
+      </NextIntlClientProvider>
+    );
+    const field = () => screen.getByLabelText(copy.emailLabel) as HTMLInputElement;
+    const view = render(ask());
+    expect(field().value).toBe("");
+    view.rerender(ask("me@example.com"));
+    expect(field().value).toBe("me@example.com");
+
+    fireEvent.change(field(), { target: { value: "other@example.com" } });
+    view.rerender(ask("me2@example.com"));
+    expect(field().value).toBe("other@example.com");
+  });
+
   it("fills in a signed-in viewer's address for them to confirm", () => {
     renderAsk({ defaultEmail: "me@example.com" });
     expect((screen.getByLabelText(copy.emailLabel) as HTMLInputElement).value).toBe("me@example.com");
