@@ -84,7 +84,7 @@ describe("saving from the public trip page", () => {
     open({ publicSlug: SLUG });
     fireEvent.click(screen.getByText("signUpToSave"));
     await waitFor(() => expect(state.pushed).toHaveLength(1));
-    expect(state.pushed[0]).toBe(`/auth/login?redirect=${encodeURIComponent(`/trip/${SLUG}`)}`);
+    expect(state.pushed[0]).toBe(`/auth/signup?redirect=${encodeURIComponent(`/trip/${SLUG}`)}`);
     const pending = JSON.parse(state.stored[0][1]);
     expect(pending.publicSlug).toBe(SLUG);
     expect(pending.shareToken).toBeUndefined();
@@ -106,7 +106,7 @@ describe("saving from a shared link is unchanged", () => {
     open({ shareToken: TOKEN });
     fireEvent.click(screen.getByText("signUpToSave"));
     await waitFor(() => expect(state.pushed).toHaveLength(1));
-    expect(state.pushed[0]).toBe(`/auth/login?redirect=${encodeURIComponent(`/shared/${TOKEN}`)}`);
+    expect(state.pushed[0]).toBe(`/auth/signup?redirect=${encodeURIComponent(`/shared/${TOKEN}`)}`);
   });
 });
 
