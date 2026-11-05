@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import type { Activity, GeneratedItinerary } from "@/types";
 import type { AssistantDayEdit } from "@/lib/trips/day-edit-merge";
@@ -46,7 +46,12 @@ function show(initial: GeneratedItinerary | null = plan(), startDate = "2026-12-
   return { noteEditApplied, now: () => hook.result.current };
 }
 
+// An edit scrolls to its day on a timer, which must not outlive the test's document.
+beforeEach(() => {
+  vi.useFakeTimers();
+});
 afterEach(() => {
+  vi.clearAllTimers();
   vi.useRealTimers();
   document.body.innerHTML = "";
 });
@@ -146,7 +151,6 @@ describe("showing what changed", () => {
   }
 
   it("scrolls to the first changed day and rings it for a moment", () => {
-    vi.useFakeTimers();
     const first = dayOnPage(1);
     const second = dayOnPage(2);
     const { now } = show();
@@ -163,7 +167,6 @@ describe("showing what changed", () => {
   });
 
   it("a reply that only changes the length scrolls to the new last day", () => {
-    vi.useFakeTimers();
     const last = dayOnPage(3);
     const { now } = show();
     act(() => {
