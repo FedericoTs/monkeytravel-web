@@ -81,6 +81,13 @@ function offendingReads(file: string, src = read(file)): string[] {
       // An embedded trips(*) from another table selects every trips column too.
       if (selectTexts(first).some(embedsStarOrToken)) found.push(`${file}: .select(${first?.getText(sf).slice(0, 60)})`);
     }
+    // The helper that reads a whole table, given a client and a table by name.
+    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === "readWholeTable") {
+      const [, table, fields] = node.arguments;
+      if (table && ts.isStringLiteralLike(table) && table.text === "trips" && selectTexts(fields).some(asksForStarOrToken)) {
+        found.push(`${file}: readWholeTable(trips, ${fields?.getText(sf).slice(0, 60) ?? ""})`);
+      }
+    }
     // The shared ownership and access checks select through the caller's client.
     if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && /^verifyTrip(Ownership|Access)$/.test(node.expression.text)) {
       const fields = node.arguments[3];
@@ -101,8 +108,8 @@ const SERVICE_ROLE_READS = [
   "app/api/trips/duplicate/route.ts",
   "app/api/trips/[id]/view/route.ts",
   "app/api/cron/scheduled-notifications/route.ts",
-  "app/api/admin/growth/route.ts",
-  "app/api/admin/stats/route.ts",
+  "lib/admin/growth/rows.ts",
+  "lib/admin/stats/direct.ts",
   "lib/trips/share-token.ts",
 ].map((p) => path.normalize(p));
 
@@ -163,6 +170,10 @@ describe("a trip's share_token is readable by its owner and members only", () =>
     expect(flagged(`a.from("trip_collaborators").select("role, trips(*)");`)).toBe(1);
     expect(flagged(`verifyTripAccess(s, id, uid, "id, user_id, share_token");`)).toBe(1);
     expect(flagged(`verifyTripOwnership(s, id, uid, "*");`)).toBe(1);
+    expect(flagged(`readWholeTable(db, "trips", "id, share_token");`)).toBe(1);
+    expect(flagged(`readWholeTable<Row>(db, "trips", "*");`)).toBe(1);
+    expect(flagged(`readWholeTable(db, "trips", "id, user_id");`)).toBe(0);
+    expect(flagged(`readWholeTable(db, "users", "id, share_token");`)).toBe(0);
     expect(flagged(`a.from("trips").select(TRIP_COLUMNS).eq("id", i); // not select("*")`)).toBe(0);
     expect(flagged(`a.from("trips").select("id", { count: "exact", head: true });`)).toBe(0);
     expect(flagged(`a.from("trip_collaborators").select(\`role, trips(\${TRIP_COLUMNS})\`);`)).toBe(0);
