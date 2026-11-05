@@ -43,6 +43,9 @@ export interface BaseModalProps {
   /** When true, drops BaseModal's default p-6 padding wrappers so children
    *  can render edge-to-edge (e.g. full-bleed gradient headers). */
   noPadding?: boolean;
+  /** The page stays readable behind the panel: a light backdrop with no blur,
+   *  and on a phone the panel sits at the bottom. */
+  seeThrough?: boolean;
   /** Optional aria-label for the dialog itself (used when no title is
    *  rendered but the modal still needs an accessible name). */
   ariaLabel?: string;
@@ -89,6 +92,7 @@ export default function BaseModal({
   className = "",
   animation = "scale",
   noPadding = false,
+  seeThrough = false,
   ariaLabel,
 }: BaseModalProps) {
   const t = useTranslations("common.buttons");
@@ -133,7 +137,7 @@ export default function BaseModal({
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className={`fixed inset-0 transition-opacity ${seeThrough ? "bg-black/25" : "bg-black/50 backdrop-blur-sm"}`}
         onClick={handleBackdropClick}
         aria-hidden="true"
       />
@@ -149,7 +153,7 @@ export default function BaseModal({
           Safari's URL bar and home indicator. It stays as the fallback
           where dvh isn't supported. */}
       <div
-        className="relative min-h-screen min-h-dvh flex items-center justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]"
+        className={`relative min-h-screen min-h-dvh flex ${seeThrough ? "items-end sm:items-center" : "items-center"} justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]`}
         onClick={handleBackdropClick}
       >
         {/* Modal panel */}
