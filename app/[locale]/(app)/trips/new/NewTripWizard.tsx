@@ -829,7 +829,7 @@ export default function NewTripPage({
       (generating || generatedItinerary)
       ? { destination, startDate, endDate }
       : null,
-    Boolean(generatedItinerary)
+    generatedItinerary
   );
   const awaitingTwinChoice = sameTrip.awaiting;
   const chooseTwin = (replaceId: string | null) => {
@@ -847,6 +847,7 @@ export default function NewTripPage({
     setSavedTripId,
     deferAutoSave,
     adoptedTripId,
+    planHeldBy: sameTrip.holdingTripId,
     awaitingTwinChoice,
     replaceTripId: sameTrip.replaceTripId,
     draftAutoRestored,

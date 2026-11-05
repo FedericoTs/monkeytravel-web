@@ -42,6 +42,7 @@ export function useWizardSave({
   setSavedTripId,
   deferAutoSave,
   adoptedTripId,
+  planHeldBy = null,
   awaitingTwinChoice,
   replaceTripId,
   draftAutoRestored,
@@ -60,6 +61,8 @@ export function useWizardSave({
   /** A shared plan's claim has not reported yet (hooks/usePendingClaim.ts). */
   deferAutoSave: boolean;
   adoptedTripId: string | null;
+  /** The trip the page before this one saved this plan to (hooks/useSameTripCheck.ts). */
+  planHeldBy?: string | null;
   /** The same trip is already saved, and the planner has not chosen (hooks/useSameTripCheck.ts). */
   awaitingTwinChoice: boolean;
   replaceTripId: string | null;
@@ -179,7 +182,7 @@ export function useWizardSave({
     enabled: autoSaveEnabled,
     deferred: deferAutoSave || awaitingTwinChoice,
     deferredReason: deferAutoSave ? "pending_claim" : "pending_choice",
-    adoptedTripId,
+    adoptedTripId: adoptedTripId ?? planHeldBy,
     replaceTripId,
     formState: autoSaveFormState,
     saveTrip: tripWrites.saveTrip,
@@ -190,6 +193,12 @@ export function useWizardSave({
     onError: reportAutoSaveFailure,
     onSkipped: reportAutoSaveSkipped,
   });
+
+  // The save the page before this one couldn't report: it was reloading.
+  useEffect(() => {
+    if (planHeldBy) tripInserted(planHeldBy, tripSpanDays(startDate, endDate), "Auto-save");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planHeldBy]);
 
   // Mirror the auto-save trip id into the existing savedTripId state so the
   // Sticky Bottom Bar and the post-save redirects read it from one place.
