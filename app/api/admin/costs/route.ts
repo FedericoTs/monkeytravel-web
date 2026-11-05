@@ -4,6 +4,7 @@ import { API_COSTS } from "@/lib/api-gateway/config";
 import { circuitBreakerManager } from "@/lib/api-gateway";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { PAGE_ROWS, readAllRows, readWholeTable } from "@/lib/supabase/read-all-rows";
 
 /**
  * Enhanced Cost Analytics API
@@ -158,6 +159,22 @@ function calculatePercentile(values: number[], percentile: number): number {
   return sorted[Math.max(0, index)];
 }
 
+const LOG_COLUMNS =
+  "id, api_name, endpoint, cost_usd, cache_hit, timestamp, response_status, response_time_ms, user_id, error_message";
+type LogRow = {
+  id: string;
+  api_name: string | null;
+  endpoint: string | null;
+  cost_usd: number | null;
+  cache_hit: boolean | null;
+  timestamp: string | null;
+  response_status: number | null;
+  response_time_ms: number | null;
+  user_id: string | null;
+  error_message: string | null;
+};
+type SpendRow = { calls: number; usd: number };
+
 export async function GET() {
   try {
     const { errorResponse } = await getAuthenticatedAdmin();
@@ -176,10 +193,7 @@ export async function GET() {
     // Fetch all data in parallel
     const [
       allLogsResult,
-      allCostsResult,
-      todayLogsResult,
-      last7DaysLogsResult,
-      last30DaysLogsResult,
+      spendResult,
       recentLogsResult,
       geocodeCacheResult,
       distanceCacheResult,
@@ -187,80 +201,43 @@ export async function GET() {
       activitiesCacheResult,
       userStatsResult,
     ] = await Promise.all([
-      // Heavy multi-column logs for the in-JS breakdowns below. SCOPED to the
-      // last 30 days + a hard row cap so this never pulls the entire (growing)
-      // table into memory and OOMs the function. The derived breakdowns (byApi,
-      // byUser, trends, percentiles, recent perf) are a rolling 30-day window.
-      supabase
-        .from("api_request_logs")
-        .select("id, api_name, endpoint, cost_usd, cache_hit, timestamp, response_status, response_time_ms, error_message, user_id")
-        .gte("timestamp", day30Ago)
-        .order("timestamp", { ascending: false })
-        .limit(100000),
+      // Every call of the last 30 days, test calls aside, for the breakdowns,
+      // the trends and the 30-day, 7-day and today totals. Newest first by
+      // timestamp, which is indexed; a batch of logs can share one.
+      readAllRows<LogRow>((last) => {
+        const logs = supabase
+          .from("api_request_logs")
+          .select(LOG_COLUMNS)
+          .gte("timestamp", day30Ago)
+          .is("request_params->>probe", null);
+        return (last ? logs.lte("timestamp", last.timestamp as string) : logs)
+          .order("timestamp", { ascending: false })
+          .order("id")
+          .limit(PAGE_ROWS) as unknown as PromiseLike<{ data: LogRow[] | null; error: { message: string } | null }>;
+      }),
 
-      // Light all-time cost column only — for the all-time Total Cost / request
-      // count headline without pulling every column of every row. (A SQL sum()
-      // RPC would be lighter still; deferred to a migration.)
-      supabase
-        .from("api_request_logs")
-        .select("cost_usd"),
-
-      // Today's logs
-      supabase
-        .from("api_request_logs")
-        .select("cost_usd, response_status")
-        .gte("timestamp", todayStart),
-
-      // Last 7 days logs
-      supabase
-        .from("api_request_logs")
-        .select("cost_usd")
-        .gte("timestamp", day7Ago),
-
-      // Last 30 days logs
-      supabase
-        .from("api_request_logs")
-        .select("cost_usd")
-        .gte("timestamp", day30Ago),
+      // The all-time total is a sum in the database, over a table too big to read.
+      supabase.rpc("api_spend_by_unit", { p_from: new Date(0).toISOString(), p_to: now.toISOString() }),
 
       // Recent logs for activity feed (last 50)
       supabase
         .from("api_request_logs")
-        .select("id, api_name, endpoint, cost_usd, cache_hit, timestamp, response_status, response_time_ms, error_message")
+        .select(LOG_COLUMNS)
         .order("timestamp", { ascending: false })
         .limit(50),
 
-      // Geocode cache stats
-      supabase
-        .from("geocode_cache")
-        .select("hit_count"),
-
-      // Distance cache stats
-      supabase
-        .from("distance_cache")
-        .select("hit_count"),
-
-      // Places cache stats
-      supabase
-        .from("google_places_cache")
-        .select("hit_count, cache_type"),
-
-      // Activities cache stats
-      supabase
-        .from("destination_activity_cache")
-        .select("hit_count"),
+      // Cache stats
+      readWholeTable<{ id: string; hit_count: number | null }>(supabase, "geocode_cache", "id, hit_count"),
+      readWholeTable<{ id: string; hit_count: number | null }>(supabase, "distance_cache", "id, hit_count"),
+      readWholeTable<{ id: string; hit_count: number | null }>(supabase, "google_places_cache", "id, hit_count"),
+      readWholeTable<{ id: string; hit_count: number | null }>(supabase, "destination_activity_cache", "id, hit_count"),
 
       // Get user data for cost attribution
-      supabase
-        .from("users")
-        .select("id, email"),
+      readWholeTable<{ id: string; email: string | null }>(supabase, "users", "id, email"),
     ]);
 
     const allLogs = logReadError("admin costs: 30-day logs", allLogsResult).data || [];
-    const allCosts = logReadError("admin costs: all-time costs", allCostsResult).data || [];
-    const todayLogs = logReadError("admin costs: today's logs", todayLogsResult).data || [];
-    const last7DaysLogs = logReadError("admin costs: 7-day costs", last7DaysLogsResult).data || [];
-    const last30DaysLogs = logReadError("admin costs: 30-day costs", last30DaysLogsResult).data || [];
+    const spend = (logReadError("admin costs: all-time spend", spendResult).data || []) as SpendRow[];
     const recentLogs = logReadError("admin costs: recent logs", recentLogsResult).data || [];
     const geocodeCache = logReadError("admin costs: geocode cache", geocodeCacheResult).data || [];
     const distanceCache = logReadError("admin costs: distance cache", distanceCacheResult).data || [];
@@ -269,15 +246,18 @@ export async function GET() {
     const users = logReadError("admin costs: users", userStatsResult).data || [];
 
     // Create user lookup map
-    const userMap = new Map(users.map(u => [u.id, u.email]));
+    const userMap = new Map(users.map(u => [u.id, u.email ?? undefined]));
 
-    // Summary metrics. Totals (cost + request count) are ALL-TIME from the
-    // light cost-only query; the breakdowns below use the 30-day allLogs.
-    const totalCostUsd = allCosts.reduce((sum, log) => sum + (Number(log.cost_usd) || 0), 0);
-    const totalRequestsAllTime = allCosts.length;
-    const todayCostUsd = todayLogs.reduce((sum, log) => sum + (Number(log.cost_usd) || 0), 0);
-    const last7DaysCostUsd = last7DaysLogs.reduce((sum, log) => sum + (Number(log.cost_usd) || 0), 0);
-    const last30DaysCostUsd = last30DaysLogs.reduce((sum, log) => sum + (Number(log.cost_usd) || 0), 0);
+    // Summary metrics. Totals (cost + request count) are ALL-TIME from the sum in
+    // the database; everything else uses the 30-day allLogs.
+    const costOf = (logs: LogRow[]) => logs.reduce((sum, log) => sum + (Number(log.cost_usd) || 0), 0);
+    const since = (iso: string) => allLogs.filter((log) => log.timestamp && new Date(log.timestamp).getTime() >= new Date(iso).getTime());
+    const todayLogs = since(todayStart);
+    const totalCostUsd = spend.reduce((sum, row) => sum + (Number(row.usd) || 0), 0);
+    const totalRequestsAllTime = spend.reduce((sum, row) => sum + (Number(row.calls) || 0), 0);
+    const todayCostUsd = costOf(todayLogs);
+    const last7DaysCostUsd = costOf(since(day7Ago));
+    const last30DaysCostUsd = costOf(allLogs);
     const avgCostPerRequest = totalRequestsAllTime > 0 ? totalCostUsd / totalRequestsAllTime : 0;
 
     // Project monthly cost based on last 7 days
