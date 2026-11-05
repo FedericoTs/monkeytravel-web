@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useId } from "react";
+import { useState, useEffect, useId, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Gift, Copy, Check, X, Mail, Users, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -19,7 +19,21 @@ interface ReferralModalProps {
   onClose: () => void;
 }
 
+async function readReferralCode(): Promise<{ code: string; stats: ReferralStats }> {
+  const response = await fetch("/api/referral/code");
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to get referral code");
+  }
+  return data;
+}
+
 export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
+  return isOpen ? <OpenReferralModal onClose={onClose} /> : null;
+}
+
+/** Mounted while open, so every opening starts fresh and reads the code again. */
+function OpenReferralModal({ onClose }: Pick<ReferralModalProps, "onClose">) {
   const t = useTranslations("common.referral");
   const tButtons = useTranslations("common.buttons");
   const titleId = useId();
@@ -33,32 +47,22 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
 
   const referralUrl = code ? `${typeof window !== "undefined" ? window.location.origin : ""}/join/${code}` : "";
 
-  // Fetch referral code on mount
-  useEffect(() => {
-    if (isOpen) {
-      fetchReferralCode();
-    }
-  }, [isOpen]);
+  const loadReferralCode = useCallback(() => {
+    readReferralCode()
+      .then((data) => {
+        setCode(data.code);
+        setStats(data.stats);
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Something went wrong"))
+      .finally(() => setIsLoading(false));
+  }, []);
 
-  const fetchReferralCode = async () => {
+  useEffect(loadReferralCode, [loadReferralCode]);
+
+  const handleTryAgain = () => {
     setIsLoading(true);
     setError(null);
-
-    try {
-      const response = await fetch("/api/referral/code");
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to get referral code");
-      }
-
-      setCode(data.code);
-      setStats(data.stats);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setIsLoading(false);
-    }
+    loadReferralCode();
   };
 
   const handleCopy = async () => {
@@ -89,10 +93,10 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
   };
 
   // Escape, focus in and back, Tab kept inside; no scroll lock for this modal.
-  const { panelRef } = useModalBehavior({ isOpen, onClose, lockScroll: false });
+  const { panelRef } = useModalBehavior({ isOpen: true, onClose, lockScroll: false });
 
-  // Don't render on server or if not open
-  if (!mounted || !isOpen) return null;
+  // Don't render on server
+  if (!mounted) return null;
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] overflow-y-auto">
@@ -157,7 +161,7 @@ export default function ReferralModal({ isOpen, onClose }: ReferralModalProps) {
               <div className="text-center py-8">
                 <p className="text-red-600 mb-4">{error}</p>
                 <button
-                  onClick={fetchReferralCode}
+                  onClick={handleTryAgain}
                   className="text-[var(--primary-ink)] hover:underline font-medium"
                 >
                   {t("tryAgain")}

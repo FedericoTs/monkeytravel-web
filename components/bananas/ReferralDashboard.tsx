@@ -17,6 +17,12 @@ interface ReferralDashboardProps {
   className?: string;
 }
 
+async function readDashboard(): Promise<BananasDashboardResponse> {
+  const response = await fetch("/api/bananas");
+  if (!response.ok) throw new Error("Failed to fetch dashboard data");
+  return response.json();
+}
+
 export default function ReferralDashboard({
   initialData,
   onShare,
@@ -28,24 +34,12 @@ export default function ReferralDashboard({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!initialData) {
-      fetchDashboardData();
-    }
+    if (initialData) return;
+    readDashboard()
+      .then(setData)
+      .catch((err) => setError(err instanceof Error ? err.message : "An error occurred"))
+      .finally(() => setLoading(false));
   }, [initialData]);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("/api/bananas");
-      if (!response.ok) throw new Error("Failed to fetch dashboard data");
-      const dashboardData = await response.json();
-      setData(dashboardData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
