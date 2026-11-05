@@ -26,6 +26,7 @@ import {
   type GeminiPurpose,
   type GeminiModelId,
 } from "./model-router";
+import { isModelOutOfCredit } from "./model-outage";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -102,6 +103,8 @@ export async function generateContentResilient(
         `[${opts.label}] attempt ${i + 1}/${plan.length} on ${modelId} failed:`,
         err instanceof Error ? err.message : err
       );
+      // Out of credit, every model refuses alike (lib/ai/model-outage.ts).
+      if (isModelOutOfCredit(err)) break;
     }
   }
   throw lastError instanceof Error

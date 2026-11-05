@@ -4,6 +4,7 @@
  */
 
 import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
+import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 
 export const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -54,7 +55,8 @@ export function modelUnavailable(what: string, error: unknown): Error {
  * a failed call after a pause (a second longer for each retry); at most
  * MAX_RETRIES retries. Each attempt logs and reports itself; this logs the
  * retries and, when none is left, throws `gaveUp` (an unusable answer) or
- * `unavailable(error)` (a failed call).
+ * `unavailable(error)` (a failed call). A model out of credit isn't asked again:
+ * no try can work (lib/ai/model-outage.ts).
  */
 export async function withRetries<T>(
   attempt: (retryCount: number) => Promise<Attempt<T>>,
@@ -65,7 +67,7 @@ export async function withRetries<T>(
     if ("value" in outcome) return outcome.value;
     const last = retryCount >= MAX_RETRIES;
     if ("failed" in outcome) {
-      if (last) throw call.unavailable(outcome.failed);
+      if (last || isModelOutOfCredit(outcome.failed)) throw call.unavailable(outcome.failed);
       console.log(`Retrying after API error (attempt ${retryCount + 2})...`);
       await new Promise((resolve) => setTimeout(resolve, 1000 * (retryCount + 1)));
     } else {
