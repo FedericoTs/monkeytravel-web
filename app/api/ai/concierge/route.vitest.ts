@@ -170,6 +170,15 @@ describe("concierge proposals", () => {
     expect(persisted[0].messages[1].content).toBe(answer);
   });
 
+  it("adds no note when the change it handed over turns out to be none", async () => {
+    streamReply = "Ecco la proposta per rimuovere Restaurace Mlejnice dal Giorno 2.";
+    followUps = ["NONE"];
+    const { answer, proposal } = await ask("ok");
+    expect(followUpRequests).toHaveLength(1);
+    expect(proposal).toBeNull();
+    expect(answer).toBe("Ecco la proposta per rimuovere Restaurace Mlejnice dal Giorno 2.");
+  });
+
   it("adds nothing when the follow-up finds no change to propose", async () => {
     streamReply = "Certo, posso aggiungere una gita in battello: partono vicino al Ponte Carlo.";
     followUps = ["NONE"];
