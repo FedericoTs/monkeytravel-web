@@ -1,7 +1,7 @@
 import { tripCardUrl } from "@/lib/seo/og-image";
 import { cache } from "react";
 import { cookies, headers } from "next/headers";
-import { createClient, signedInUserId } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -24,6 +24,8 @@ import {
 } from "@/lib/seo/structured-data";
 import { publicTripAlternates } from "@/lib/seo/public-trip";
 import { logReadError } from "@/lib/supabase/log-read-error";
+import { signedInUser } from "@/lib/participants/request";
+import { emailedInviteToken } from "@/lib/invites/emailed-invite";
 
 interface PageProps {
   params: Promise<{ locale: string; token: string }>;
@@ -59,11 +61,13 @@ const getSharedTrip = cache(async (token: string) => {
 /**
  * Who is looking: the owner sees "Who's going", and owner or collaborator get
  * the way back to the editor (/trips/[id], which always opens for members).
+ * Someone invited by email and not in yet gets their invite, the way in.
  * getUser() is a local no-op without a session cookie, so anonymous viewers
  * pay nothing. Never throws: neither telemetry nor the render depend on it.
  */
 async function resolveViewer(tripId: string, ownerId: string | null) {
-  const viewerUserId = await signedInUserId();
+  const viewer = await signedInUser();
+  const viewerUserId = viewer?.id ?? null;
   const isOwner = viewerUserId !== null && viewerUserId === ownerId;
   let isMember = isOwner;
   if (viewerUserId && !isOwner) {
@@ -80,7 +84,8 @@ async function resolveViewer(tripId: string, ownerId: string | null) {
       isMember = false;
     }
   }
-  return { isOwner, isMember, viewerUserId };
+  const inviteToken = viewer && !isMember ? await emailedInviteToken(tripId, viewer.email ?? undefined).catch(() => null) : null;
+  return { isOwner, isMember, viewerUserId, inviteToken };
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -166,7 +171,7 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
   // the current URLs, see lib/places/refreshItineraryPhotos.ts), so it runs
   // alongside.
   const rawItinerary = (trip.itinerary as ItineraryDay[]) || [];
-  const [itinerary, { isOwner, isMember, viewerUserId }] = await Promise.all([
+  const [itinerary, { isOwner, isMember, viewerUserId, inviteToken }] = await Promise.all([
     refreshTripItinerary(rawItinerary, getTripDestination(trip)),
     resolveViewer(trip.id as string, (trip.user_id as string | null) ?? null),
   ]);
@@ -270,6 +275,7 @@ export default async function SharedTripPage({ params, searchParams }: PageProps
         viewSource="shared"
         isOwner={isOwner}
         editorHref={isMember ? `/trips/${trip.id}` : undefined}
+        inviteHref={inviteToken ? `/invite/${inviteToken}` : undefined}
         liveState={computeTripDayState({
           startDate: trip.start_date,
           endDate: trip.end_date,

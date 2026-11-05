@@ -114,11 +114,32 @@ interface SharedTripViewProps {
    * editor, since members also reach this view through their own share link.
    */
   editorHref?: string;
+  /** Set when the viewer was invited by email and isn't in yet: their invite. */
+  inviteHref?: string;
   /** Server-computed live day-state. Refined on the client with the viewer tz. */
   liveState?: TripDayState;
 }
 
-export default function SharedTripView({ trip, shareToken, publicPage, dateRange, coverImageUrl, engagementSlot, viewSource, isOwner = false, editorHref, liveState }: SharedTripViewProps) {
+/** What this viewer can do that others can't, above the plan. */
+function ViewerBar({ name, note, href, cta }: { name: string; note: string; href: string; cta: string }) {
+  return (
+    <div
+      data-testid={`${name}-bar`}
+      className="mb-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p className="text-sm text-slate-700">{note}</p>
+      <Link
+        href={href}
+        data-testid={`${name}-link`}
+        className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+      >
+        {cta}
+      </Link>
+    </div>
+  );
+}
+
+export default function SharedTripView({ trip, shareToken, publicPage, dateRange, coverImageUrl, engagementSlot, viewSource, isOwner = false, editorHref, inviteHref, liveState }: SharedTripViewProps) {
   const t = useTranslations('common');
   // A live trip opens on Today, for every viewer.
   const fallbackDayState = useMemo<TripDayState>(
@@ -271,19 +292,10 @@ export default function SharedTripView({ trip, shareToken, publicPage, dateRange
 
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
         {editorHref && (
-          <div
-            data-testid="member-edit-bar"
-            className="mb-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <p className="text-sm text-slate-700">{t("share.memberEdit.note")}</p>
-            <Link
-              href={editorHref}
-              data-testid="member-edit-link"
-              className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
-            >
-              {t("share.memberEdit.cta")}
-            </Link>
-          </div>
+          <ViewerBar name="member-edit" note={t("share.memberEdit.note")} href={editorHref} cta={t("share.memberEdit.cta")} />
+        )}
+        {inviteHref && (
+          <ViewerBar name="invited-join" note={t("share.invitedJoin.note")} href={inviteHref} cta={t("share.invitedJoin.cta")} />
         )}
         <SharedTripTopAsk
           participantsEnabled={participantsEnabled}

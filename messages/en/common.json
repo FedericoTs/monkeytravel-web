@@ -1402,6 +1402,10 @@
       "note": "You're seeing what people with the link see.",
       "cta": "Edit this trip"
     },
+    "invitedJoin": {
+      "note": "You have an invitation to this trip.",
+      "cta": "Join this trip"
+    },
     "inviteEmail": {
       "sendTo": "Send to (optional)",
       "leaveBlank": "Leave blank for a shareable link.",

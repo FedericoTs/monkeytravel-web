@@ -1402,6 +1402,10 @@
       "note": "Stai vedendo quello che vede chi ha il link.",
       "cta": "Modifica questo viaggio"
     },
+    "invitedJoin": {
+      "note": "Hai un invito per questo viaggio.",
+      "cta": "Unisciti a questo viaggio"
+    },
     "inviteEmail": {
       "sendTo": "Invia a (facoltativo)",
       "leaveBlank": "Lascia vuoto per avere un link da condividere.",

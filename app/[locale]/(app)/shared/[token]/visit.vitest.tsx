@@ -535,6 +535,18 @@ describe("a member of the trip", { timeout: 20_000 }, () => {
   });
 });
 
+describe("someone invited by email who isn't in yet", { timeout: 20_000 }, () => {
+  it("is offered their invite, and without one sees no such bar", async () => {
+    show({ inviteHref: "/invite/invite-1" });
+    await settled();
+    expect(within(screen.getByTestId("invited-join-bar")).getByTestId("invited-join-link").getAttribute("href")).toBe("/invite/invite-1");
+    cleanup();
+    show();
+    await settled();
+    expect(screen.queryByTestId("invited-join-bar")).toBeNull();
+  });
+});
+
 describe("the top of the page", { timeout: 20_000 }, () => {
   it("names a crew ask to the participants bar, and passes on the trip", async () => {
     state.params = new URLSearchParams("vote=1");
