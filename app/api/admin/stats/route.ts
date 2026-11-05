@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchActivationFunnel, type ActivationFunnelStats } from "@/lib/admin/activation-funnel";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logReadError } from "@/lib/supabase/log-read-error";
-import { PAGE_ROWS, readAllRows, readWholeTable } from "@/lib/supabase/read-all-rows";
+import { readWholeTable } from "@/lib/supabase/read-all-rows";
 
 // Cohort retention data for matrix visualization
 export interface CohortData {
@@ -251,16 +251,9 @@ export async function GET() {
           return { data: { inputTokens, outputTokens, costCents } };
         }),
       // Generation costs from api_request_logs (trip generation + regeneration)
-      readAllRows<GeminiLog>((last) => {
-        const logs = supabase
-          .from("api_request_logs")
-          .select("id, cost_usd, endpoint, response_status, cache_hit")
-          .eq("api_name", "gemini");
-        return (last ? logs.gte("id", last.id) : logs).order("id").limit(PAGE_ROWS) as unknown as PromiseLike<{
-          data: GeminiLog[] | null;
-          error: { message: string } | null;
-        }>;
-      })
+      readWholeTable<GeminiLog>(supabase, "api_request_logs", "id, cost_usd, endpoint, response_status, cache_hit", (logs) =>
+        logs.eq("api_name", "gemini")
+      )
         .then((res) => {
           let totalCostUsd = 0;
           let generateCount = 0;

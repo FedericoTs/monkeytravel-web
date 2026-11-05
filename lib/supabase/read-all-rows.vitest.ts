@@ -73,6 +73,17 @@ describe("readAllRows", () => {
 });
 
 describe("readWholeTable", () => {
+  it("reads only the part it's narrowed to, on every page", async () => {
+    const rows = numbered(PAGE_ROWS + 2);
+    const db = fakeSupabase((q) => {
+      const from = q.filters.find(([op, column]) => op === "gte" && column === "id")?.[2];
+      return { data: rows.filter((row) => !from || row.id >= (from as string)).slice(0, q.limitTo), error: null };
+    });
+    await readWholeTable<Row>(db.client as never, "users", "id, at", (part) => part.eq("kind", "real"));
+    expect(db.log).toHaveLength(3);
+    for (const query of db.log) expect(query.filters).toContainEqual(["eq", "kind", "real"]);
+  });
+
   it("goes through the table by id, asking on from the last row", async () => {
     const rows = numbered(PAGE_ROWS + 2);
     const db = fakeSupabase((q) => {
