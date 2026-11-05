@@ -42,14 +42,20 @@ export async function readAllRows<T extends { id: string }>(
   }
 }
 
-/** Every row of a table, by id. `columns` must include `id`. */
+type SelectedRows = ReturnType<ReturnType<SupabaseClient["from"]>["select"]>;
+
+/**
+ * Every row of a table, by id, or of the part `narrow` filters it to. `columns` must
+ * include `id`.
+ */
 export function readWholeTable<T extends { id: string }>(
   db: SupabaseClient,
   table: string,
-  columns: string
+  columns: string,
+  narrow: (rows: SelectedRows) => SelectedRows = (rows) => rows
 ): Promise<RowsResult<T>> {
   return readAllRows<T>((last) => {
-    const rows = db.from(table).select(columns);
+    const rows = narrow(db.from(table).select(columns));
     return (last ? rows.gte("id", last.id) : rows).order("id").limit(PAGE_ROWS) as unknown as PromiseLike<RowsResult<T>>;
   });
 }

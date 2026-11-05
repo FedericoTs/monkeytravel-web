@@ -22,6 +22,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { dispatchEmail, type SendOutcome } from "@/lib/email/send";
 import { normalizeEmailLocale } from "@/lib/email/copy";
 import { buildFeedbackUrl } from "@/lib/feedback/token";
+import { readWholeTable } from "@/lib/supabase/read-all-rows";
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 200;
@@ -120,23 +121,21 @@ export async function POST(request: Request) {
 
   // 1. Engaged cohort = users who own ≥1 trip. Pull distinct owner ids from
   //    trips (owner column is `trips.user_id`).
-  const { data: tripRows, error: tripsErr } = await admin
-    .from("trips")
-    .select("user_id");
+  const { data: tripRows, error: tripsErr } = await readWholeTable<{ id: string; user_id: string | null }>(
+    admin,
+    "trips",
+    "id, user_id"
+  );
   if (tripsErr) {
     console.error("[Feedback Outreach] trips query failed:", tripsErr.message);
     return errors.internal("Failed to load engaged cohort", "Feedback Outreach");
   }
 
-  const ownerIds = [
-    ...new Set(
-      (tripRows ?? [])
-        .map((r) => (r as { user_id: string | null }).user_id)
-        .filter((id): id is string => typeof id === "string" && id.length > 0)
-    ),
-  ];
+  const ownerIds = new Set(
+    (tripRows ?? []).map((r) => r.user_id).filter((id): id is string => typeof id === "string" && id.length > 0)
+  );
 
-  if (ownerIds.length === 0) {
+  if (ownerIds.size === 0) {
     return apiSuccess({
       dryRun,
       cohortSize: 0,
@@ -144,12 +143,14 @@ export async function POST(request: Request) {
     });
   }
 
-  // 2. Load those users with email + opt-out fields.
-  const { data: usersData, error: usersErr } = await admin
-    .from("users")
-    .select("id, email, display_name, preferred_language, notification_settings")
-    .in("id", ownerIds)
-    .not("email", "is", null);
+  // 2. Load those users with email + opt-out fields. Picked out here, since hundreds
+  //    of ids won't fit in a request's URL.
+  const { data: usersData, error: usersErr } = await readWholeTable<EngagedUser>(
+    admin,
+    "users",
+    "id, email, display_name, preferred_language, notification_settings",
+    (rows) => rows.not("email", "is", null)
+  );
   if (usersErr) {
     console.error("[Feedback Outreach] users query failed:", usersErr.message);
     return errors.internal("Failed to load engaged users", "Feedback Outreach");
@@ -157,7 +158,8 @@ export async function POST(request: Request) {
 
   // 3. Pre-filter marketing/email opt-outs so the dry-run count is honest.
   //    (dispatchEmail re-checks this authoritatively on the real send.)
-  const eligible = ((usersData ?? []) as EngagedUser[]).filter((u) => {
+  const eligible = (usersData ?? []).filter((u) => {
+    if (!ownerIds.has(u.id)) return false;
     if (!u.email || typeof u.email !== "string") return false;
     const ns = (u.notification_settings ?? {}) as Record<string, unknown>;
     if (ns.marketingNotifications === false) return false;

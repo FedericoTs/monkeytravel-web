@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { Resend } from "resend";
 import { isMarketingOptedOut } from "@/lib/email/preferences";
 import { refuseUnlessCron } from "@/lib/api/cron-auth";
+import { readWholeTable } from "@/lib/supabase/read-all-rows";
 
 /**
  * Weekly cron — incremental sync of new Supabase users into the Resend
@@ -50,6 +51,14 @@ import { refuseUnlessCron } from "@/lib/api/cron-auth";
  * Manual trigger:
  *   curl -H "Authorization: Bearer $CRON_SECRET" /api/cron/sync-resend-audience
  */
+
+type AudienceUser = {
+  id: string;
+  email: string | null;
+  display_name: string | null;
+  preferred_language: string | null;
+  notification_settings: Record<string, unknown> | null;
+};
 
 // Contact creation stops after this; vercel.json gives the function 300 s.
 const CREATE_BUDGET_MS = 240_000;
@@ -103,10 +112,12 @@ export async function GET(request: NextRequest) {
   const svc = createAdminClient();
 
   // Step 1: pull Supabase user list + waitlist subscribers.
-  const { data: users, error: usersErr } = await svc
-    .from("users")
-    .select("id, email, display_name, preferred_language, notification_settings")
-    .not("email", "is", null);
+  const { data: users, error: usersErr } = await readWholeTable<AudienceUser>(
+    svc,
+    "users",
+    "id, email, display_name, preferred_language, notification_settings",
+    (rows) => rows.not("email", "is", null)
+  );
   if (usersErr) {
     console.error("[sync-resend-audience] users query failed:", usersErr);
     return NextResponse.json(
@@ -115,9 +126,11 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const { data: subs, error: subsErr } = await svc
-    .from("email_subscribers")
-    .select("email, unsubscribed_at");
+  const { data: subs, error: subsErr } = await readWholeTable<{ id: string; email: string | null; unsubscribed_at: string | null }>(
+    svc,
+    "email_subscribers",
+    "id, email, unsubscribed_at"
+  );
   if (subsErr) {
     console.error("[sync-resend-audience] subscribers query failed:", subsErr);
     return NextResponse.json(
