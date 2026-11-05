@@ -19,6 +19,7 @@ describe("assistantErrorMessage", () => {
     expect(assistantErrorMessage(403, { code: "DATES_OWNER_ONLY" })).toEqual({ key: "datesOwnerOnly" });
     expect(assistantErrorMessage(404, { code: "OUTDATED" })).toEqual({ key: "outdated" });
     expect(assistantErrorMessage(400, { code: "TOO_MANY_DAYS", max: 14 })).toEqual({ key: "tooManyDays", values: { max: 14 } });
+    expect(assistantErrorMessage(503, { code: "MODEL_OUTAGE" })).toEqual({ key: "modelOutage" });
   });
 
   it("names up to three fixed plans", () => {
@@ -36,7 +37,7 @@ describe("assistantErrorMessage", () => {
   });
 
   it("every message key exists in all four languages", () => {
-    const keys = ["limitDay", "limitMonth", "notAllowed", "datesOwnerOnly", "outdated", "locked", "tooManyDays", "applyFailed", "undoFailed", "undoOutdated"];
+    const keys = ["limitDay", "limitMonth", "notAllowed", "datesOwnerOnly", "outdated", "locked", "tooManyDays", "applyFailed", "undoFailed", "undoOutdated", "modelOutage"];
     for (const locale of ["en", "es", "it", "pt"]) {
       const assistant = JSON.parse(readFileSync(`messages/${locale}/common.json`, "utf8")).ai.assistant;
       for (const key of keys) expect(assistant.errors?.[key], `${locale} errors.${key}`).toBeTruthy();

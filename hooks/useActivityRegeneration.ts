@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useToast } from "@/components/ui/Toast";
 import { trackActivityRegenerated } from "@/lib/analytics";
 import { replaceActivity } from "@/lib/utils/activity-id";
+import { isModelOutageResponse } from "@/lib/ai/model-outage";
 import type { ItineraryDay } from "@/types";
 
 /**
@@ -30,6 +31,7 @@ export function useActivityRegeneration({
   setSaveError: (message: string | null) => void;
 }) {
   const t = useTranslations("trips");
+  const tAssistant = useTranslations("common.ai.assistant");
   const { addToast } = useToast();
   const [regeneratingActivityId, setRegeneratingActivityId] = useState<string | null>(null);
 
@@ -49,9 +51,12 @@ export function useActivityRegeneration({
           }),
         });
 
-        const data = response.ok ? await response.json() : null;
-        if (!data?.activity) {
-          throw Object.assign(new Error("Failed to regenerate activity"), { status: response.status });
+        const data = await response.json().catch(() => null);
+        if (!response.ok || !data?.activity) {
+          throw Object.assign(new Error("Failed to regenerate activity"), {
+            status: response.status,
+            modelOutage: isModelOutageResponse(data),
+          });
         }
         // Undo is offered for a change that happened: a failed attempt leaves
         // nothing to undo, and the redo stack as it was.
@@ -69,15 +74,19 @@ export function useActivityRegeneration({
         });
       } catch (error) {
         console.error("Error regenerating activity:", error);
-        const status = (error as { status?: number } | null)?.status;
-        const msg = status === 429 ? t("detail.activityRegenerateLimit") : t("detail.activityRegenerateFailed");
+        const { status, modelOutage } = (error ?? {}) as { status?: number; modelOutage?: boolean };
+        const msg = modelOutage
+          ? tAssistant("errors.modelOutage")
+          : status === 429
+            ? t("detail.activityRegenerateLimit")
+            : t("detail.activityRegenerateFailed");
         setSaveError(msg);
         addToast(msg, "error");
       } finally {
         setRegeneratingActivityId(null);
       }
     },
-    [tripId, destination, itinerary, pushUndo, t, setSaveError, addToast, setItinerary]
+    [tripId, destination, itinerary, pushUndo, t, tAssistant, setSaveError, addToast, setItinerary]
   );
 
   return { regeneratingActivityId, handleActivityRegenerate };

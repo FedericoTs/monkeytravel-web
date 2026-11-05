@@ -15,6 +15,7 @@ import { planCurrency } from "@/lib/ai/assistant/plan-costs";
 import { getLanguageInstruction } from "@/lib/ai/trip-prompt";
 import {
   withRetries,
+  modelUnavailable,
   type Attempt,
   genAI,
   withTimeout,
@@ -76,7 +77,7 @@ function regenerateSingleActivityInternal(
   return withRetries((retryCount) => activityAttempt(params, retryCount), {
     retrying: "activity regeneration",
     gaveUp: "Failed to regenerate activity after retries",
-    unavailable: () => new Error("Failed to regenerate activity: AI service unavailable"),
+    unavailable: (error) => modelUnavailable("regenerate activity", error),
   });
 }
 

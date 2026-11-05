@@ -25,6 +25,7 @@
 import { GoogleGenerativeAI, SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { getModelForPurpose } from "@/lib/ai/model-router";
 import { recordGeminiUsage } from "@/lib/ai/gemini-cost";
+import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 import type { RawImportedAnchor } from "./anchor-import-core";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
@@ -59,6 +60,7 @@ export interface ExtractedPlan {
 export type PlanExtractError =
   | { error: "too_short" }
   | { error: "extract_failed" }
+  | { error: "model_outage" }
   | { error: "nothing_found" };
 
 export type PlanExtractResult = ExtractedPlan | PlanExtractError;
@@ -200,7 +202,7 @@ export async function extractPlan(
     raw = result.response.text();
   } catch (err) {
     console.error("[anchor-import] Gemini call failed:", err);
-    return { error: "extract_failed" };
+    return { error: isModelOutOfCredit(err) ? "model_outage" : "extract_failed" };
   }
 
   let parsed: Record<string, unknown>;

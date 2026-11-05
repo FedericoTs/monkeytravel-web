@@ -21,6 +21,7 @@ import { capture } from "@/lib/posthog/events";
 import { useLocale as useLocalePrefs } from "@/lib/locale";
 import { displayCurrencyFor } from "@/lib/ai/assistant/plan-costs";
 import { placeLabel, type TripPlace } from "@/lib/ai/assistant/elsewhere";
+import { isModelOutageResponse } from "@/lib/ai/model-outage";
 import type { Activity, ItineraryDay } from "@/types";
 
 interface AnonEdit {
@@ -102,6 +103,7 @@ export default function AnonAssistantPanel({
   shareSlot,
 }: AnonAssistantPanelProps) {
   const t = useTranslations("trips");
+  const tAssistant = useTranslations("common.ai.assistant");
   const locale = useLocale();
   const { setPreferredCurrency, preferences, exchangeRates } = useLocalePrefs();
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -191,10 +193,13 @@ export default function AnonAssistantPanel({
             ? t("assistant.limitDailyAnon")
             : res.status === 429 && reason === "daily_user"
               ? t("assistant.limitDailyUser")
-              : res.status >= 500
-                ? t("assistant.errorBig")
-                : t("assistant.errorMsg")
+              : isModelOutageResponse(data)
+                ? tAssistant("errors.modelOutage")
+                : res.status >= 500
+                  ? t("assistant.errorBig")
+                  : t("assistant.errorMsg")
         );
+        setInput(q);
         return;
       }
       const payload = data?.data ?? data ?? {};
@@ -251,7 +256,10 @@ export default function AnonAssistantPanel({
         setError(t("assistant.errorMsg"));
       }
     } catch {
-      if (!asking.signal.aborted) setError(t("assistant.errorMsg"));
+      if (!asking.signal.aborted) {
+        setError(t("assistant.errorMsg"));
+        setInput(q);
+      }
     } finally {
       setLoading(false);
     }

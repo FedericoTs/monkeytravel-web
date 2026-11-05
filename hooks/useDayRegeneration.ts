@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useToast } from "@/components/ui/Toast";
 import { ensureActivityIds } from "@/lib/utils/activity-id";
 import { readItineraryVersion } from "@/lib/trips/itinerary-sync";
+import { isModelOutageResponse } from "@/lib/ai/model-outage";
 import type { ItineraryDay } from "@/types";
 
 /**
@@ -32,6 +33,7 @@ export function useDayRegeneration({
   setSaveError: (message: string | null) => void;
 }) {
   const t = useTranslations("trips");
+  const tAssistant = useTranslations("common.ai.assistant");
   const { addToast } = useToast();
   // Tracks which day_number is currently being replaced.
   const [regeneratingDayNumber, setRegeneratingDayNumber] = useState<number | null>(null);
@@ -55,15 +57,17 @@ export function useDayRegeneration({
 
           if (!response.ok) {
             let msg = "Failed to regenerate day";
+            let modelOutage = false;
             try {
               const errBody = await response.json();
               if (errBody?.error?.message) msg = errBody.error.message;
               else if (typeof errBody?.error === "string") msg = errBody.error;
+              modelOutage = isModelOutageResponse(errBody);
             } catch {
               /* ignore parse error */
             }
             // The server's text is English; the status picks the message shown.
-            throw Object.assign(new Error(msg), { status: response.status });
+            throw Object.assign(new Error(msg), { status: response.status, modelOutage });
           }
 
           const data = await response.json();
@@ -87,9 +91,10 @@ export function useDayRegeneration({
         addToast(t('detail.regenerateDay.done', { number: dayNumber }), "success");
       } catch (error) {
         console.error("Error regenerating day:", error);
-        const status = (error as { status?: number } | null)?.status;
-        const msg =
-          status === 429
+        const { status, modelOutage } = (error ?? {}) as { status?: number; modelOutage?: boolean };
+        const msg = modelOutage
+          ? tAssistant("errors.modelOutage")
+          : status === 429
             ? t('detail.regenerateDay.limit')
             : status === 409
               ? t('detail.regenerateDay.busy')
@@ -100,7 +105,7 @@ export function useDayRegeneration({
         setRegeneratingDayNumber(null);
       }
     },
-    [pushUndo, runItineraryWrite, addToast, t, tripId, adoptDayWrite, setSaveError, setRenderEpoch]
+    [pushUndo, runItineraryWrite, addToast, t, tAssistant, tripId, adoptDayWrite, setSaveError, setRenderEpoch]
   );
 
   return { regeneratingDayNumber, handleDayRegenerate };

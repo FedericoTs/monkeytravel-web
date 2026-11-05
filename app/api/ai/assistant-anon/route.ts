@@ -22,6 +22,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { signedInUserId } from "@/lib/supabase/server";
 import type { ItineraryDay } from "@/types";
 import { readJsonBody } from "@/lib/api/json-body";
+import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 
 // Fire-and-forget observability write (anon_assistant_logs, service-role
 // only). The anon assistant is the highest-traffic AI surface; without this
@@ -250,6 +251,7 @@ export async function POST(request: NextRequest) {
       error: err instanceof Error ? err.message : "unknown",
       userId: userId ?? undefined,
     }).catch(() => undefined));
+    if (isModelOutOfCredit(err)) return errors.modelOutage();
     // The panel shows its own localized text for a 500 (big multi-day asks
     // are the ones that fail, so it suggests one or two days at a time).
     return errors.internal("Assistant request failed.", "assistant-anon");

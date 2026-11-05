@@ -19,6 +19,7 @@ import { logApiCall } from "@/lib/api-gateway";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ItineraryDay } from "@/types";
 import type { Content, GoogleGenerativeAI } from "@/lib/ai/genai-compat";
+import { isModelOutOfCredit, MODEL_OUTAGE_CODE } from "@/lib/ai/model-outage";
 
 type ConciergeModel = ReturnType<GoogleGenerativeAI["getGenerativeModel"]>;
 
@@ -319,7 +320,7 @@ export function conciergeAnswerStream({
         });
       } catch (err) {
         console.error("[concierge] streaming Gemini call failed", err);
-        emit({ type: "error" });
+        emit(isModelOutOfCredit(err) ? { type: "error", code: MODEL_OUTAGE_CODE } : { type: "error" });
 
         void recordAiOutcome({
           endpoint: "assistant",

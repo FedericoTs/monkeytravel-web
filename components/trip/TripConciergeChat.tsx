@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { assistantErrorMessage } from "@/lib/ai/assistant/error-message";
+import { isModelOutageResponse } from "@/lib/ai/model-outage";
 import { Compass, Send, Sparkles, Loader2 } from "lucide-react";
 import BaseModal from "@/components/ui/BaseModal";
 import { useToast } from "@/components/ui/Toast";
@@ -191,6 +192,7 @@ function TripConciergeChatInner({
       let buffer = "";
       let accumulated = "";
       let streamFailed = false;
+      let modelOutage = false;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -211,7 +213,7 @@ function TripConciergeChatInner({
               | { type: "chunk"; text: string }
               | { type: "proposal"; proposal: PendingChange }
               | { type: "done"; isLiveTrip: boolean; dayNumber: number | null }
-              | { type: "error" };
+              | { type: "error"; code?: string };
             if (event.type === "chunk") {
               accumulated += event.text;
               setAnswer(accumulated);
@@ -221,6 +223,7 @@ function TripConciergeChatInner({
               setIsLiveTrip(Boolean(event.isLiveTrip));
             } else if (event.type === "error") {
               streamFailed = true;
+              modelOutage = isModelOutageResponse(event);
             }
           } catch (parseErr) {
             console.warn("[concierge] SSE parse failed", parseErr, payloadStr);
@@ -229,7 +232,7 @@ function TripConciergeChatInner({
       }
 
       if (streamFailed) {
-        setAnswer(t("errorGeneric"));
+        setAnswer(modelOutage ? tAssistant("errors.modelOutage") : t("errorGeneric"));
         void captureConciergeError({
           trip_id: tripId,
           error_type: "stream_parse",
@@ -261,7 +264,7 @@ function TripConciergeChatInner({
     } finally {
       setLoading(false);
     }
-  }, [loading, question, tripId, itineraryVersion, t, addToast, isLiveTrip, handleProposalShown]);
+  }, [loading, question, tripId, itineraryVersion, t, tAssistant, addToast, isLiveTrip, handleProposalShown]);
 
   /**
    * Apply the pending proposal via the EXISTING confirm-then-apply endpoint.

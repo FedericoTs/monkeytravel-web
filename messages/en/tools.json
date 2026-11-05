@@ -42,6 +42,7 @@
     "generating": "Generating...",
     "errorTitle": "Hmm, that didn't work",
     "errorRetry": "Try again",
+    "errorModelOutage": "Our packing list maker is down right now. That's on our side, not yours. Please try again a little later.",
     "rateLimitMessage": "You've hit the free hourly limit. Sign up to keep generating lists.",
     "resultTitle": "Your {destination} packing list",
     "essentialBadge": "Essential",

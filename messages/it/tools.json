@@ -42,6 +42,7 @@
     "generating": "Generazione...",
     "errorTitle": "Qualcosa è andato storto",
     "errorRetry": "Riprova",
+    "errorModelOutage": "Il nostro generatore di liste per la valigia al momento non è disponibile. Il problema è nostro, non tuo. Riprova un po' più tardi.",
     "rateLimitMessage": "Hai raggiunto il limite orario gratuito. Registrati per continuare a generare liste.",
     "resultTitle": "La tua lista per {destination}",
     "essentialBadge": "Essenziale",

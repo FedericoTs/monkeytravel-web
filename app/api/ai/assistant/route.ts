@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from "@/lib/ai/genai-compat";
 import { detectStructuralIntent } from "@/lib/ai/assistant/structural";
 import { classifyTask, selectModel } from "@/lib/ai/config";
 import { recordTurnUsage } from "@/lib/ai/assistant/turn-usage";
+import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { getTripDestination } from "@/lib/trips/destination";
 import {
@@ -224,6 +225,7 @@ export async function POST(request: NextRequest) {
       error,
     });
 
+    if (isModelOutOfCredit(error)) return errors.modelOutage();
     return errors.internal("Failed to process request", "AI Assistant");
   }
 }

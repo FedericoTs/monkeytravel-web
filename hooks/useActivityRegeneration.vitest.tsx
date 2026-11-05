@@ -102,9 +102,19 @@ describe("useActivityRegeneration", () => {
     expect(props.setItinerary).not.toHaveBeenCalled();
   });
 
+  it("says the AI is down when the model is out of service, and changes nothing", async () => {
+    const { props, regenerate } = setup(json(503, { error: "unavailable", code: "MODEL_OUTAGE" }));
+    await regenerate();
+    expect(props.setSaveError).toHaveBeenCalledWith("errors.modelOutage");
+    expect(addToast).toHaveBeenCalledWith("errors.modelOutage", "error");
+    expect(props.pushUndo).not.toHaveBeenCalled();
+    expect(props.setItinerary).not.toHaveBeenCalled();
+  });
+
   it.each([
     ["no suggestion came back", json(200, {})],
     ["the server failed", json(500, { error: "boom" })],
+    ["the server failed, whatever it sent", json(500, { activity: { name: "Walk" } })],
     ["the request did not get through", async () => Promise.reject(new TypeError("Failed to fetch"))],
   ])("says it failed when %s, and changes nothing", async (_, answer) => {
     const { props, view, regenerate } = setup(answer as () => Promise<Response>);

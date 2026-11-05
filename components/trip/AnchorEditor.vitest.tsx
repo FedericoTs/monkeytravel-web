@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import itTrips from "@/messages/it/trips.json";
+import itCommon from "@/messages/it/common.json";
 import type { TripAnchor } from "@/types";
 import AnchorEditor from "./AnchorEditor";
 
@@ -24,7 +25,7 @@ function answers(status: number, body: unknown) {
 /** Pastes a plan and returns what the editor says about it. */
 async function pasted() {
   render(
-    <NextIntlClientProvider locale="it" messages={{ trips: itTrips }}>
+    <NextIntlClientProvider locale="it" messages={{ trips: itTrips, common: itCommon }}>
       <AnchorEditor anchors={[anchor]} onChange={vi.fn()} startDate="2027-05-10" endDate="2027-05-12" destination="Paris" />
     </NextIntlClientProvider>
   );
@@ -47,6 +48,7 @@ describe("a pasted plan the server won't read", () => {
     ["no dated plans in it", 400, { error: "We couldn't find any", reason: "nothing_found" }, words.nothingFound],
     ["today's free imports used", 429, { error: "You've used your free plan imports", code: "RATE_LIMIT" }, words.limit],
     ["the model failing", 503, { error: "Couldn't read that plan right now" }, words.error],
+    ["the model out of service", 503, { error: "unavailable", code: "MODEL_OUTAGE" }, itCommon.ai.assistant.errors.modelOutage],
     ["anything else refused", 400, { error: "startDate and endDate must be valid ISO dates" }, words.error],
   ])("%s", async (_name, status, body, expected) => {
     answers(status, body);

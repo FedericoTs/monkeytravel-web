@@ -105,6 +105,33 @@ describe("with Undo on offer", () => {
   });
 });
 
+describe("a question that fails", () => {
+  const box = () => screen.getByPlaceholderText("assistant.placeholder") as HTMLInputElement;
+
+  it.each([
+    ["the model out of service", 503, { error: "unavailable", code: "MODEL_OUTAGE" }, "errors.modelOutage"],
+    ["the model failing", 500, { error: "Assistant request failed." }, "assistant.errorBig"],
+    ["a refusal", 400, { error: "Invalid assistant payload" }, "assistant.errorMsg"],
+    ["today's limit", 429, { error: "limit", reason: "daily_anon" }, "assistant.limitDailyAnon"],
+  ])("on %s, says which and puts the question back in the box", async (_name, status, body, words) => {
+    fetchMock.mockImplementationOnce(async () => new Response(JSON.stringify(body), { status }));
+    renderPanel({ onUndoEdits: () => true });
+    await ask("make day 2 slower");
+    expect(await screen.findByText(words)).toBeTruthy();
+    expect(box().value).toBe("make day 2 slower");
+  });
+
+  it("on a dropped connection, too", async () => {
+    fetchMock.mockImplementationOnce(async () => {
+      throw new TypeError("Load failed");
+    });
+    renderPanel({ onUndoEdits: () => true });
+    await ask("make day 2 slower");
+    expect(await screen.findByText("assistant.errorMsg")).toBeTruthy();
+    expect(box().value).toBe("make day 2 slower");
+  });
+});
+
 describe("an answer for a panel that has gone", () => {
   it("changes nothing", async () => {
     let answer: (r: Response) => void = () => {};

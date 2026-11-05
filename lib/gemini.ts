@@ -13,6 +13,7 @@ import { buildStaticChatHistory, buildUserPrompt, type BuildPromptOptions } from
 import {
   AI_REQUEST_TIMEOUT_MS,
   withRetries,
+  modelUnavailable,
   type Attempt,
   genAI,
   withTimeout,
@@ -73,20 +74,7 @@ function generateItineraryInternal(
   return withRetries((retryCount) => itineraryAttempt(params, options, retryCount), {
     retrying: "generation",
     gaveUp: "Failed to generate valid itinerary after retries",
-    // Surface the underlying error so Sentry sees WHY we failed (403
-    // key-banned, 429 quota, 503 outage, etc.). Preserve `cause` so the
-    // original stack survives.
-    unavailable: (error) => {
-      const rootMsg =
-        error instanceof Error ? error.message : String(error ?? "unknown");
-      const wrapped = new Error(
-        `Failed to generate itinerary: AI service unavailable (root: ${rootMsg.slice(0, 200)})`
-      );
-      if (error instanceof Error) {
-        (wrapped as Error & { cause?: unknown }).cause = error;
-      }
-      return wrapped;
-    },
+    unavailable: (error) => modelUnavailable("generate itinerary", error),
   });
 }
 

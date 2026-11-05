@@ -1,6 +1,7 @@
 /** @vitest-environment node */
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { ItineraryDay, TripCreationParams } from "@/types";
+import { isModelOutOfCredit } from "./ai/model-outage";
 
 /**
  * A model call is retried once: an answer that cannot be used is asked for
@@ -107,6 +108,16 @@ describe("a model call's retries", () => {
       "Gemini API error during day regeneration:",
       expect.objectContaining({ message: "Day regeneration timed out after 50s" })
     );
+  });
+
+  it("keeps the model's words, which is how a route tells a refusal no try can fix", async () => {
+    quiet();
+    vi.useFakeTimers();
+    const refusal = `{"error":{"code":402,"message":"Your prepayment credits are depleted."}}`;
+    model.answers.push(fails(refusal), fails(refusal));
+    const day = regenerateDay().catch((error: Error) => error);
+    await vi.runAllTimersAsync();
+    expect(isModelOutOfCredit(await day)).toBe(true);
   });
 
   it("says the service is unavailable after a second failed call", async () => {

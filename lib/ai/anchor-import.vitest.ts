@@ -96,6 +96,12 @@ describe("extractPlan — response handling degrades, never throws", () => {
     expect(r).toEqual({ error: "extract_failed" });
   });
 
+  it("says so when the model is out of service", async () => {
+    generateContent.mockRejectedValueOnce(new Error(`{"error":{"code":402,"message":"Your prepayment credits are depleted."}}`));
+    const r = await extractPlan(PLAN, OPTS);
+    expect(r).toEqual({ error: "model_outage" });
+  });
+
   it("maps non-JSON output to extract_failed", async () => {
     generateContent.mockResolvedValueOnce({
       response: { text: () => "Sure! Here is your plan: ..." },

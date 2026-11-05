@@ -14,6 +14,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { readJsonBody } from "@/lib/api/json-body";
 import { requireRow } from "@/lib/api/require-row";
+import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -197,6 +198,7 @@ export async function POST(request: NextRequest) {
       error,
     });
 
+    if (isModelOutOfCredit(error)) return errors.modelOutage();
     return errors.internal("Failed to regenerate activity. Please try again.", "Activity Regeneration");
   }
 }

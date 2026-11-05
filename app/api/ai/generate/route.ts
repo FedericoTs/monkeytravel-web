@@ -40,7 +40,7 @@ import { isRealPoint } from "@/lib/trip/placeholder-point";
 import type { TripAnchor } from "@/types";
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 import { tripSpanDays } from "@/lib/dates/iso-date";
-import { isModelOutOfCredit, MODEL_OUTAGE_MESSAGE } from "@/lib/ai/model-outage";
+import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 
 // Feature flag: Enable Maps Grounding for cost-effective generation
 // Set USE_MAPS_GROUNDING=true in .env to enable (59% cost savings)
@@ -426,7 +426,7 @@ async function generate(request: NextRequest, geminiCost: GeminiCostMeter) {
       error,
     });
 
-    if (isModelOutOfCredit(error)) return errors.serviceUnavailable(MODEL_OUTAGE_MESSAGE);
+    if (isModelOutOfCredit(error)) return errors.modelOutage();
     return errors.internal("Failed to generate itinerary. Please try again.", "AI Generate");
   }
 }

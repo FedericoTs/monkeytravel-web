@@ -23,6 +23,7 @@
 
 import { GoogleGenerativeAI, SchemaType, type ResponseSchema } from "@/lib/ai/genai-compat";
 import { getModelForPurpose } from "@/lib/ai/model-router";
+import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
@@ -57,6 +58,7 @@ export type ParsedBooking = {
 export type ParseError =
   | { error: "too_short" }
   | { error: "parse_failed" }
+  | { error: "model_outage" }
   | { error: "no_booking_found" };
 
 export type ParseResult = ParsedBooking | ParseError;
@@ -253,7 +255,7 @@ export async function extractBooking(emailBody: string): Promise<ParseResult> {
     text = result.response.text();
   } catch (err) {
     console.error("[email-parse/extract] Gemini call failed:", err);
-    return { error: "parse_failed" };
+    return { error: isModelOutOfCredit(err) ? "model_outage" : "parse_failed" };
   }
 
   let parsed: Record<string, unknown>;

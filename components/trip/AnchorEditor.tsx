@@ -17,6 +17,7 @@ import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { AnchorSlot, AnchorType, TripAnchor } from "@/types";
 import { addIsoDaysOrThrow } from "@/lib/dates/iso-date";
+import { isModelOutageResponse } from "@/lib/ai/model-outage";
 import { captureAnchorPanelOpened, capturePlanImported } from "@/lib/posthog/events";
 
 // Mirrors lib/ai/anchors-core.MAX_ANCHORS (kept local so the solver module
@@ -75,6 +76,7 @@ export default function AnchorEditor({
 }: AnchorEditorProps) {
   // Message files are namespaced per-file (i18n.ts): trips.json → "trips".
   const t = useTranslations("trips");
+  const tAssistant = useTranslations("common.ai.assistant");
   const locale = useLocale();
   const [expanded, setExpanded] = useState(anchors.length > 0);
   const [draft, setDraft] = useState<{
@@ -206,15 +208,17 @@ export default function AnchorEditor({
         // Keep the pasted text on screen — retyping a plan is exactly the
         // work this feature exists to save. The server's own text is English.
         setImportError(
-          t(
-            res.status === 429
-              ? "wizard.anchors.import.limit"
-              : data?.reason === "too_short"
-                ? "wizard.anchors.import.tooShort"
-                : data?.reason === "nothing_found"
-                  ? "wizard.anchors.import.nothingFound"
-                  : "wizard.anchors.import.error"
-          )
+          isModelOutageResponse(data)
+            ? tAssistant("errors.modelOutage")
+            : t(
+                res.status === 429
+                  ? "wizard.anchors.import.limit"
+                  : data?.reason === "too_short"
+                    ? "wizard.anchors.import.tooShort"
+                    : data?.reason === "nothing_found"
+                      ? "wizard.anchors.import.nothingFound"
+                      : "wizard.anchors.import.error"
+              )
         );
         return;
       }
