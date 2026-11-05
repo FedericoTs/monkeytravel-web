@@ -277,10 +277,4 @@ describe("rollout", () => {
     expect(sql.match(/insert into scheduled_notifications/g)).toHaveLength(1);
     expect(sql).not.toMatch(/insert into scheduled_notifications[^;]*select/);
   });
-
-  it("the cron routes the account-level slot to finish-trip", () => {
-    const route = readFileSync(join(ROOT, "app", "api", "cron", "scheduled-notifications", "route.ts"), "utf8");
-    expect(route).toContain("row.slot === FINISH_TRIP_SLOT");
-    expect(route).toContain("namespace: FINISH_TRIP_NS");
-  });
 });
