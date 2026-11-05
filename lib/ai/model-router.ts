@@ -21,6 +21,7 @@
  *   maps-grounding              | gemini-2.5-flash       | Needs grounding model support
  *   assistant-optimize          | gemini-2.5-flash       | A pasted multi-day draft mapped onto the trip
  *   assistant-edits             | gemini-2.5-flash       | The assistant's edit engine (wizard + trip page)
+ *   assistant-chat              | gemini-2.5-flash       | The trip assistant's reply when the engine gave none
  *
  * Env override:
  *   GEMINI_MODEL_OVERRIDE — when set, ALL purposes resolve to that model.
@@ -42,6 +43,7 @@ export type GeminiPurpose =
   | "maps-grounding"
   | "assistant-optimize"
   | "assistant-edits"
+  | "assistant-chat"
   | "anchor-import";
 
 export type GeminiModelId =
@@ -77,6 +79,7 @@ const PURPOSE_TO_MODEL: Record<GeminiPurpose, GeminiModelId> = {
   "maps-grounding": "gemini-2.5-flash",
   "assistant-optimize": "gemini-2.5-flash",
   "assistant-edits": "gemini-2.5-flash",
+  "assistant-chat": "gemini-2.5-flash",
   // Paste-a-plan import (docs/CONSTRAINT_PLANNER_PLAN.md F2): pasted text →
   // a small array of dated commitments. Same shape of work as email-parser,
   // and responseSchema carries the contract, so the cheapest tier is enough.
