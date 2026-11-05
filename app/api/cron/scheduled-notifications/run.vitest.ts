@@ -61,6 +61,8 @@ type Trip = Record<string, unknown> & { id: string };
 let rows: Row[];
 let trips: Trip[];
 let recipient: { email: string | null; preferred_language: string };
+/** The account as the auth admin read gives it. */
+let account: Record<string, unknown>;
 let cameBack: boolean;
 let invites: number;
 /** Refuses the queries it names, with this message. */
@@ -173,7 +175,7 @@ function answer(q: FakeQuery) {
 async function run(headers: Record<string, string> = { authorization: `Bearer ${CRON_SECRET}` }) {
   client = {
     ...fakeSupabase(answer).client,
-    auth: { admin: { getUserById: async () => ({ data: { user: { last_sign_in_at: null } }, error: null }) } },
+    auth: { admin: { getUserById: async () => ({ data: { user: account }, error: null }) } },
   };
   const res = await GET(new NextRequest("https://monkeytravel.app/api/cron/scheduled-notifications", { headers }));
   return { status: res.status, body: (await res.json()) as Record<string, unknown> };
@@ -198,6 +200,7 @@ beforeEach(() => {
   queries = [];
   queued = 0;
   recipient = { email: "owner@example.com", preferred_language: "en" };
+  account = { last_sign_in_at: null };
   cameBack = false;
   invites = 0;
   refuse = () => null;
@@ -519,6 +522,40 @@ describe("twin copies of one trip", () => {
     refuse = (q) => (q.table === "trips" && q.end === "list" && q.columns !== "id" ? "read failed" : null);
     await run();
     expect(sends()).toHaveLength(1);
+  });
+});
+
+describe("the account-level email to someone with no trip yet", () => {
+  const FINISH_TRIP = "finish_trip_1d";
+
+  beforeEach(() => {
+    account = { email: "new@example.com", email_confirmed_at: hoursAgo(24), user_metadata: { locale: "it" } };
+    rows = [due("row-new", null, FINISH_TRIP)];
+  });
+
+  it("is sent with no trip to read, in the account's language, and recorded", async () => {
+    expect((await run()).body).toMatchObject({ sent: 1, skipped: 0, failed: 0 });
+    expect(sends()).toHaveLength(1);
+    expect(sends()[0]).toMatchObject({
+      recipientEmail: "new@example.com",
+      locale: "it",
+      template: { id: "finish_trip", props: { heading: messages("it").finishTripEmail.heading } },
+    });
+    expect(row("row-new").status).toBe("sent");
+  });
+
+  it("is suppressed once the account has a trip, and says why", async () => {
+    trips = [trip("a")];
+    expect((await run()).body).toMatchObject({ sent: 0, skipped: 1 });
+    expect(sends()).toEqual([]);
+    expect(row("row-new")).toMatchObject({ status: "suppressed", skipped_reason: "user_has_trip" });
+  });
+
+  it("fails the row when it can't tell whether the account has a trip", async () => {
+    refuse = (q) => (q.table === "trip_participants" ? "read failed" : null);
+    expect((await run()).body).toMatchObject({ sent: 0, failed: 1 });
+    expect(sends()).toEqual([]);
+    expect(row("row-new")).toMatchObject({ status: "failed", skipped_reason: "trip_read_error" });
   });
 });
 
