@@ -15,10 +15,12 @@ let browserCookie: string | undefined;
 let collaborators: string[] = [];
 let existingAction: { actor_user_id: string | null; actor_cookie_id: string | null } | null = null;
 let log: FakeQuery[] = [];
+const afterTasks: Array<() => unknown> = [];
+const sent: unknown[][] = [];
 
 vi.mock("next/server", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/server")>()),
-  after: () => {},
+  after: (task: () => unknown) => void afterTasks.push(task),
 }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => (browserCookie ? { value: browserCookie } : undefined), set: () => {} }),
@@ -45,7 +47,12 @@ vi.mock("@/lib/supabase/admin", () => ({
       return { data: null, error: null };
     });
     log = fake.log;
-    return fake.client;
+    return {
+      ...fake.client,
+      channel: (topic: string, options: unknown) => ({
+        httpSend: async (event: string, payload: unknown) => void sent.push([topic, options, event, payload]),
+      }),
+    };
   },
 }));
 
@@ -66,9 +73,24 @@ beforeEach(() => {
   browserCookie = "browser-cookie-1";
   collaborators = [];
   existingAction = null;
+  afterTasks.length = 0;
+  sent.length = 0;
 });
 
 describe("POST /api/shared/[token]/today-action", () => {
+  it("announces a tap on the trip's private channel, with no data in it", async () => {
+    await tap({ action_type: "running_late", day_number: 1 });
+    for (const task of afterTasks) await task();
+    expect(sent).toEqual([["trip-today:trip-1", { config: { private: true } }, "changed", {}]]);
+  });
+
+  it("announces nothing when the tap is refused", async () => {
+    const res = await tap({ action_type: "not-a-chip", day_number: 1 });
+    expect(res.status).toBe(400);
+    for (const task of afterTasks) await task();
+    expect(sent).toEqual([]);
+  });
+
   it("stores a collaborator's tap under their account and profile name", async () => {
     signedIn = { id: "mate-1" };
     collaborators = ["mate-1"];

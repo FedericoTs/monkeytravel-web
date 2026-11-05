@@ -32,18 +32,6 @@ describe("trip_today_actions has no public read path", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("the Today hook listens to the broadcast both routes send after each change", () => {
-    const hook = read("lib/today/useTodayActions.ts");
-    expect(hook).toMatch(/\.channel\(todayChannel\(tripId\), TODAY_CHANNEL_OPTIONS\)/);
-    expect(hook).toMatch(/\.on\("broadcast", \{ event: TODAY_CHANGED_EVENT \}/);
-    expect(read("lib/today/write.ts")).toMatch(
-      /admin\.channel\(todayChannel\(tripId\), TODAY_CHANNEL_OPTIONS\)\.httpSend\(TODAY_CHANGED_EVENT, \{\}\)/,
-    );
-    for (const route of ["app/api/shared/[token]/today-action/route.ts", "app/api/trips/[id]/today/today-action/route.ts"]) {
-      expect(read(route), route).toContain("announceTodayChange(admin, trip.id);");
-    }
-  });
-
   it("the migration closes the table and takes it out of realtime", () => {
     const sql = read("supabase/migrations/20261001220000_close_trip_today_actions_read.sql");
     expect(sql).toContain('drop policy if exists "Anyone can read today actions" on public.trip_today_actions;');
@@ -70,10 +58,6 @@ describe("trip_today_actions has no public read path", () => {
  * or the private channel, never reaches a private listener.
  */
 describe("Today's live channel takes sends from the server only", () => {
-  it("the screen and the server both use the private channel", () => {
-    expect(read("lib/today/actions.ts")).toContain("export const TODAY_CHANNEL_OPTIONS = { config: { private: true } };");
-  });
-
   it("clients may listen on Today topics, and no migration lets them send", () => {
     const sql = read("supabase/migrations/20261002200000_today_channel_private.sql");
     expect(sql).toMatch(/for select\s+to anon, authenticated\s+using \(realtime\.topic\(\) like 'trip-today:%'/);
