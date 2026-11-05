@@ -13,7 +13,6 @@
  * Returns: { up: number, down: number, myVote: 'up'|'down'|null }
  */
 import { NextRequest } from "next/server";
-import { cookies } from "next/headers";
 import { nanoid } from "nanoid";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -24,9 +23,7 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { InviteTokenRouteContext } from "@/lib/api/route-context";
 import { readSharedTrip } from "@/lib/trips/shared-trip";
-import { isUuid } from "@/lib/utils/uuid";
-import { PARTICIPANT_COOKIE } from "@/lib/participants/shared";
-import { isCookielessScript, participantCookieId, setParticipantCookie } from "@/lib/participants/request";
+import { participantCookieId, readParticipantWrite, setParticipantCookie } from "@/lib/participants/request";
 
 // Cookie-reset abuse guard: an attacker who curls in a loop with no cookie
 // would get a fresh voter id minted on every request and ballot-stuff. We
@@ -43,29 +40,12 @@ interface VoteRequestBody {
 
 export async function POST(request: NextRequest, context: InviteTokenRouteContext) {
   try {
-    const { token } = await context.params;
-
-    if (!token || !isUuid(token)) {
-      return errors.badRequest("Invalid share token");
-    }
-
     // Per-IP rate limit (20 votes/min). Honest voters cast a handful of
     // votes per session — this only bites scripted ballot-stuffers who
     // curl in a loop with no cookie to mint a fresh voter id every call.
-    const { allowed } = await voteLimiter.check(request);
-    if (!allowed) {
-      return errors.rateLimit("Too many votes. Please slow down.");
-    }
-
-    const existingCookie = (await cookies()).get(PARTICIPANT_COOKIE)?.value;
-    if (isCookielessScript(request, existingCookie)) {
-      return errors.badRequest("Invalid request");
-    }
-
-    const body = (await request.json().catch(() => null)) as VoteRequestBody | null;
-    if (!body || typeof body !== "object") {
-      return errors.badRequest("Invalid request body");
-    }
+    const write = await readParticipantWrite<VoteRequestBody>(request, context, voteLimiter, "Too many votes. Please slow down.");
+    if (write.errorResponse) return write.errorResponse;
+    const { token, body, cookieStore, existingCookie } = write;
 
     const { activity_id, vote_type, display_name, comment } = body;
 
@@ -95,7 +75,6 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     if (errorResponse) return errorResponse;
 
     // Read or mint the voter cookie.
-    const cookieStore = await cookies();
     const { cookieId: voterCookieId, issued: issuedCookie } = participantCookieId(existingCookie);
 
     let userId: string | null = null;
