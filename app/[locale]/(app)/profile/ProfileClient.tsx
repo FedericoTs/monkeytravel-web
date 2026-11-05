@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useRef, useEffect, useId } from "react";
 import { Link, useRouter } from "@/lib/i18n/routing";
-import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { shownErrorText } from "@/lib/utils/shown-error";
 import MobileBottomNav from "@/components/ui/MobileBottomNav";
@@ -193,6 +192,10 @@ const LANGUAGES = [
   "Hindi", "Russian", "Dutch", "Swedish", "Greek"
 ];
 
+// What /api/profile/avatar takes.
+const AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
+
 export default function ProfileClient({ profile: initialProfile, stats, betaAccess: initialBetaAccess, canUsePassword }: ProfileClientProps) {
   const router = useRouter();
   const t = useTranslations("common");
@@ -226,6 +229,16 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
 
   // Handle avatar upload
   const handleAvatarUpload = useCallback(async (file: File) => {
+    const refusal = !AVATAR_TYPES.includes(file.type)
+      ? "profile.avatarWrongType"
+      : file.size > AVATAR_MAX_BYTES
+        ? "profile.avatarTooLarge"
+        : null;
+    if (refusal) {
+      addToast(t(refusal), "error");
+      return;
+    }
+
     setUploadingAvatar(true);
     setSaveStatus("saving");
 
@@ -249,12 +262,13 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
       setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (error) {
       console.error("Avatar upload error:", error);
+      addToast(t("profile.avatarFailed"), "error");
       setSaveStatus("error");
       setTimeout(() => setSaveStatus("idle"), 3000);
     } finally {
       setUploadingAvatar(false);
     }
-  }, []);
+  }, [addToast, t]);
 
   // Handle file selection
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -475,7 +489,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
             <div className="relative group">
               <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] shadow-lg shadow-[var(--primary)]/20">
                 {profile.avatar_url ? (
-                  <Image
+                  <img
                     src={profile.avatar_url}
                     alt={profile.display_name}
                     width={96}
@@ -510,7 +524,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif"
+                accept={AVATAR_TYPES.join(",")}
                 onChange={handleFileSelect}
                 className="hidden"
               />
