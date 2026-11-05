@@ -498,7 +498,7 @@
     "total": "Total",
     "destinations": "Destinations",
     "showing": "Showing:",
-    "tripsCount": "trips",
+    "tripsCount": "{count, plural, one {# trip} other {# trips}}",
     "noUpcomingTrips": "No upcoming trips planned. Start planning your next adventure!",
     "signOut": "Sign out",
     "hi": "Hi",
@@ -2065,6 +2065,12 @@
     "includes": "Includes: Profile, trips, conversations, preferences"
   },
   "profile": {
+    "referralShare": {
+      "title": "Join MonkeyTravel",
+      "text": "Join me on MonkeyTravel and get a FREE AI-powered trip! 🌴✈️",
+      "copied": "Invite link copied",
+      "failed": "Couldn't get your invite link. Please try again."
+    },
     "avatarTooLarge": "That photo is over 5 MB. Please choose a smaller one.",
     "avatarWrongType": "Please choose a JPEG, PNG, WebP or GIF photo.",
     "avatarFailed": "Your photo couldn't be uploaded. Please try again.",

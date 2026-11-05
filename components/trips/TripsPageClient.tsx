@@ -720,7 +720,7 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
                 </button>
               </span>
             )}
-            <span className="text-sm text-slate-500">({filteredTrips.length} {t('tripsCount')})</span>
+            <span className="text-sm text-slate-500">({t('tripsCount', { count: filteredTrips.length })})</span>
           </div>
         )}
 
