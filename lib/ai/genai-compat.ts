@@ -104,11 +104,19 @@ function toContents(request: GenerateContentRequest): Content[] {
 }
 
 function toConfig(
+  model: string,
   generationConfig: GenerationConfig | undefined,
   systemInstruction: string | Content | undefined
 ): GenerateContentConfig | undefined {
   if (!generationConfig && !systemInstruction) return undefined;
-  return { ...(generationConfig ?? {}), ...(systemInstruction ? { systemInstruction } : {}) };
+  const config: GenerationConfig = { ...(generationConfig ?? {}) };
+  // Later models ignore sampling, and Google says a later generation will refuse it.
+  if (!model.startsWith("gemini-2.5-")) {
+    delete config.temperature;
+    delete config.topP;
+    delete config.topK;
+  }
+  return { ...config, ...(systemInstruction ? { systemInstruction } : {}) };
 }
 
 /** Turns the SDK's chunk generator into the old {stream, response} pair. */
@@ -163,6 +171,7 @@ export class GenerativeModel {
 
   private config(override?: GenerationConfig, systemInstruction?: string | Content) {
     return toConfig(
+      this.params.model,
       override ? { ...(this.params.generationConfig ?? {}), ...override } : this.params.generationConfig,
       systemInstruction ?? this.params.systemInstruction
     );

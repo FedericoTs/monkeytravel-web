@@ -74,8 +74,8 @@ export function logCacheMetrics(
     totalTokenCount?: number;
   },
   /** Model id: prices the response, and the materiality gate's miss.
-   *  Optional: callers that omit it fall back to the flash tier. */
-  model: string = "gemini-2.5-flash"
+   *  Optional: callers that omit it fall back to the main model's price. */
+  model: string = "gemini-3.5-flash-lite"
 ) {
   if (!usageMetadata) return;
 

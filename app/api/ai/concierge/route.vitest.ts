@@ -16,7 +16,8 @@ let followUps: (string | Error)[] = [];
 const followUpRequests: { contents: { role: string; parts: { text: string }[] }[] }[] = [];
 const streamRequests: { contents: { role: string; parts: { text: string }[] }[] }[] = [];
 
-vi.mock("@/lib/ai/genai-compat", () => ({
+vi.mock("@/lib/ai/genai-compat", async (original) => ({
+  ...(await original<typeof import("@/lib/ai/genai-compat")>()),
   GoogleGenerativeAI: class {
     getGenerativeModel() {
       return {

@@ -8,7 +8,8 @@ import type { ItineraryDay } from "@/types";
  * runtime-error feed shows failures, not recoveries.
  */
 
-vi.mock("@/lib/ai/genai-compat", () => ({
+vi.mock("@/lib/ai/genai-compat", async (original) => ({
+  ...(await original<typeof import("@/lib/ai/genai-compat")>()),
   GoogleGenerativeAI: class {
     getGenerativeModel() {
       return {

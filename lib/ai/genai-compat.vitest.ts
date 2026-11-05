@@ -47,11 +47,21 @@ describe("GoogleGenerativeAI compatibility layer", () => {
     expect(result.response.candidates?.[0]?.finishReason).toBe("STOP");
   });
 
+  it("drops sampling for the models that ignore it, and only those", async () => {
+    const generationConfig = { temperature: 0.4, topP: 0.9, topK: 40, maxOutputTokens: 100 };
+    await new GoogleGenerativeAI("key").getGenerativeModel({ model: "gemini-3.5-flash-lite", generationConfig }).generateContent("plan a day");
+    expect(generateContent.mock.calls.at(-1)?.[0].config).toEqual({ maxOutputTokens: 100 });
+    await new GoogleGenerativeAI("key").getGenerativeModel({ model: "gemini-2.5-flash-lite", generationConfig }).generateContent("plan a day");
+    expect(generateContent.mock.calls.at(-1)?.[0].config).toEqual(generationConfig);
+    // Whoever passed the settings keeps them.
+    expect(generationConfig.temperature).toBe(0.4);
+  });
+
   it("passes explicit contents through, with a per-call config override", async () => {
-    const model = new GoogleGenerativeAI("key").getGenerativeModel({ model: "m", generationConfig: { temperature: 1 } });
+    const model = new GoogleGenerativeAI("key").getGenerativeModel({ model: "gemini-2.5-flash-lite", generationConfig: { temperature: 1 } });
     const contents = [{ role: "user", parts: [{ text: "a" }] }, { role: "model", parts: [{ text: "b" }] }];
     await model.generateContent({ contents, generationConfig: { temperature: 0.2 } });
-    expect(generateContent.mock.calls[0][0]).toEqual({ model: "m", contents, config: { temperature: 0.2 } });
+    expect(generateContent.mock.calls[0][0]).toEqual({ model: "gemini-2.5-flash-lite", contents, config: { temperature: 0.2 } });
   });
 
   it("answers an empty string, not a throw, when the model returned no text", async () => {
@@ -63,10 +73,10 @@ describe("GoogleGenerativeAI compatibility layer", () => {
   });
 
   it("a chat keeps its history and sends messages the way the SDK expects", async () => {
-    const model = new GoogleGenerativeAI("key").getGenerativeModel({ model: "m", generationConfig: { topK: 40 } });
+    const model = new GoogleGenerativeAI("key").getGenerativeModel({ model: "gemini-2.5-flash-lite", generationConfig: { topK: 40 } });
     const history = [{ role: "user", parts: [{ text: "system prompt" }] }, { role: "model", parts: [{ text: "ok" }] }];
     const chat = model.startChat({ history });
-    expect(create).toHaveBeenCalledWith({ model: "m", history, config: { topK: 40 } });
+    expect(create).toHaveBeenCalledWith({ model: "gemini-2.5-flash-lite", history, config: { topK: 40 } });
     const result = await chat.sendMessage("hi");
     expect(sendMessage).toHaveBeenCalledWith({ message: "hi" });
     expect(result.response.text()).toBe("hello");

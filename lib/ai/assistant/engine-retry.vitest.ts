@@ -61,7 +61,7 @@ describe("assistTrip on an overloaded model", () => {
   it("answers from the sibling model after a 503", async () => {
     generateContent.mockRejectedValueOnce(overloaded()).mockResolvedValueOnce(answer());
     const out = await run();
-    expect(modelsAsked).toEqual(["gemini-2.5-flash", "gemini-2.5-flash-lite"]);
+    expect(modelsAsked).toEqual(["gemini-3.5-flash-lite", "gemini-2.5-flash-lite"]);
     expect(out.meta.model).toBe("gemini-2.5-flash-lite");
   });
 
