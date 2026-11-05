@@ -2,11 +2,9 @@
  * Real weather for the trip-reminder emails.
  *
  * Replaces trip_meta.weather_note, which was model-generated prose that read
- * like data and was not. Measured across 279 trips: Kyoto in September came
- * out as BOTH "10-18°C" and "27-32°C" on different trips, Tokyo in November
- * ("20-35°C") was hotter than Tokyo in September ("8-18°C"), and six
- * round-number buckets covered 229 of them. We emailed a user "10-18°C" for
- * Los Angeles on 1 September; the forecast for that day was 22-31°C.
+ * like data and was not: Kyoto in September came out as BOTH "10-18°C" and
+ * "27-32°C" on different trips, and Tokyo in November ("20-35°C") was hotter
+ * than Tokyo in September ("8-18°C").
  *
  * WHY FORECAST AND NOT THE ARCHIVE
  * --------------------------------
@@ -212,7 +210,6 @@ export async function getTripForecast(
  * next-intl (the same reason trip-context.ts takes its labels as arguments).
  * The CALLER translates; the rule about which message and which numbers lives
  * here, once, so the cron and scripts/audit-queued-emails.mts cannot drift.
- * They already drifted once on the subject rule — inside an hour.
  *
  * Two messages rather than one with a conditional clause: "rain on 0 of 5
  * days" is a worse sentence than "no rain expected", and assembling that by
@@ -256,14 +253,13 @@ export function tripLengthDays(
  * Which HEADING the weather block should carry.
  *
  * This exists because a forecast usually cannot see the whole trip, and the
- * default heading claims otherwise. Measured over the queued backlog:
+ * default heading claims otherwise. The slot offset decides it:
  *
- *   pack_early_14d   120 of 122 rows cover only PART of the trip — a median
- *                    of 29% of it, as little as 10% — because the slot fires
- *                    14 days out and the horizon reaches 16. Under a heading
- *                    reading "Weather while you're there", a three-day sample
- *                    was about to describe a ten-day trip.
- *   weather_3d       124 of 146 cover the whole trip, median 100%.
+ *   pack_early_14d   usually covers only PART of the trip, because the slot
+ *                    fires 14 days out and the horizon reaches 16. Under a
+ *                    heading reading "Weather while you're there", a
+ *                    three-day sample would describe a ten-day trip.
+ *   weather_3d       usually covers the whole trip.
  *
  * The numbers were never wrong; the scope was. So a partial window says so in
  * the heading, and the line beneath it is unchanged.

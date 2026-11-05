@@ -24,7 +24,7 @@ import { POSTS } from "./tag-taxonomy";
  *   3. Nothing. A post with no trip in it (a comparison, a passport index, a
  *      stats report) returns an EMPTY prefill and the CTA stays a bare
  *      /trips/new. Same discipline as the destination CTA, which is absent on
- *      67 of 84 posts because those posts genuinely aren't about a place.
+ *      most posts because those posts genuinely aren't about a place.
  *
  * The destination is NOT resolved here: it comes from
  * getPrimaryDestinationFromTags, which already matches localized tags against
@@ -32,10 +32,10 @@ import { POSTS } from "./tag-taxonomy";
  *
  * WHY SO LITTLE IS DERIVED
  * The blanket rule is the failure mode this codebase has already paid for
- * once: keyword-matched landing links put /free-ai-trip-planner on 80 of 84
- * posts and carried almost no signal. So concepts map to a prefill only where
+ * once: keyword-matched landing links put /free-ai-trip-planner on nearly every
+ * post and carried almost no signal. So concepts map to a prefill only where
  * the concept IS the article's subject. `city-guide` is deliberately NOT
- * mapped to the `urban` vibe even though it would fire on 13 posts — a Paris
+ * mapped to the `urban` vibe even though it would fire on many posts — a Paris
  * vs Barcelona comparison is tagged city-guide and is not a request for a
  * nightlife trip. Being wrong on the reader's behalf is worse than being empty.
  */
@@ -90,7 +90,8 @@ const CONCEPT_TO_VIBE: Record<string, PrefillVibe> = {
  * "travel somewhere cheap" (cheapest-destinations-in-europe) and "money
  * admin while travelling" (group-trip-budget-how-to-split-costs). Reading a
  * guide to splitting a restaurant bill is not a request for a shoestring trip,
- * so a bare has-the-concept test set the tier wrongly on 4 of 9 posts.
+ * so a bare has-the-concept test set the tier wrongly on a good share of the
+ * posts carrying it.
  *
  * Leading-concept is not an invented ordering: landingPagesForPost already
  * treats concept order as most-significant-first when ranking planner links.

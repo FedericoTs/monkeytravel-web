@@ -307,7 +307,7 @@ function SignupForm() {
       // here, because this screen only renders after we have just created that
       // exact account. What the silence actually hid was the auth rate limit:
       // the user pressed a button, nothing happened, and no message explained
-      // why. 36 of 181 email signups (19.9%) never confirmed.
+      // why.
       const msg = err instanceof Error ? err.message : "";
       setResendError(
         /rate|429|too many/i.test(msg)

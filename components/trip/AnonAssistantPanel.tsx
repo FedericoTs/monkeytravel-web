@@ -492,9 +492,7 @@ export default function AnonAssistantPanel({
           {/* One bridge, below the whole conversation, for BOTH halves.
               It used to live inside the edit card and fire only on
               editState === "applied", so a session that just ASKED questions
-              was never offered anything at all. Measured 30 days to 2026-09-02:
-              70 sessions proposed an edit and clicked Save 57.1% of the time;
-              50 asked questions only, saw nothing, and clicked Save 34.0%.
+              was never offered anything at all.
               The share slot comes first deliberately — a link is a deliverable
               they can keep with no account, and #93's keep-it nudge rides on
               it; the save ask is the secondary path, not the only one. */}

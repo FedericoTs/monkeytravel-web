@@ -182,10 +182,10 @@ export default function StartOverModal({
         )}
 
         {/* Reason picker — required.
-            Why this exists: a 2026-06-07 incident showed
-            us we had zero visibility into WHY a freshly-generated trip
-            got discarded. Knowing whether it's destination vs dates vs
-            suggestion quality directly maps to where to invest. */}
+            Why this exists: without it there is no visibility into WHY a
+            freshly-generated trip got discarded. Knowing whether it's
+            destination vs dates vs suggestion quality directly maps to
+            where to invest. */}
         <div>
           <label
             htmlFor="start-over-reason"
@@ -211,9 +211,9 @@ export default function StartOverModal({
           </select>
         </div>
 
-        {/* "Wrong dates" was the top reason for starting over (16 of 40 in
-            60 days): the plan was fine, only the dates were not. Say that
-            the dates can change and the plan can stay. */}
+        {/* "Wrong dates" is a common reason for starting over: the plan was
+            fine, only the dates were not. Say that the dates can change and
+            the plan can stay. */}
         {reason === "wrong_dates" && onChangeDatesInstead && (
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
             <p className="text-sm text-slate-700">{t("changeDatesHint")}</p>

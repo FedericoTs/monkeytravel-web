@@ -11,9 +11,9 @@
  * WHY IT DOES NOT BREAK LEGITIMATE IMAGES
  * Redirects to hosts that ARE allowlisted still follow normally — only
  * off-allowlist and internal targets are refused. Measured against the real
- * traffic before writing this: images.pexels.com (4,274 of the stored image
- * URLs) and images.unsplash.com both answer 200 with no redirect at all, and
- * lib/img/proxyUrl.ts only ever routes those two hosts through the proxy.
+ * traffic before writing this: images.pexels.com and images.unsplash.com both
+ * answer 200 with no redirect at all, and lib/img/proxyUrl.ts only ever routes
+ * those two hosts through the proxy.
  */
 
 export interface SafeImageFetchInit extends Omit<RequestInit, "redirect"> {

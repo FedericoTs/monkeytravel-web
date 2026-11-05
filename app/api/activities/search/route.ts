@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     // Only authed users can opt into the Google Places Text Search fallback
     // ($0.032/req — 11× autocomplete). Anonymous callers are capped to the
-    // local activity_index MV (444 curated rows, $0/req). This caps cost
+    // local activity_index MV (curated rows, $0/req). This caps cost
     // exposure to the authed-user count, not the public visitor count.
     const {
       data: { user },

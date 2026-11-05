@@ -355,7 +355,7 @@ export async function GET() {
     const neverCreatedTrip = totalUsers - usersWithTripsCount;
 
     // Activity-proxy "active" signals. public.users.last_sign_in_at is never
-    // synced from auth.users (NULL for ~100% of users), which silently zeroed
+    // synced from auth.users (always NULL), which silently zeroed
     // activeLast30Days, retention, at-risk and the cohort matrix. Derive
     // "active" from signals we DO record: trips, AI conversations, bananas.
     // (DAU/WAU/MAU still come from the get_engagement_metrics RPC and need a
@@ -685,9 +685,8 @@ async function fetchUserMetricsDirect(supabase: SupabaseClient) {
 
 async function fetchTripMetricsDirect(supabase: SupabaseClient) {
   // `.is("deleted_at", null)` is not decoration. Without it this counted
-  // tombstones as trips: 417 reported against 394 live, a 5.8% overstatement
-  // sitting on the dashboard. get_trip_metrics() filters the same way, so
-  // the RPC path and this fallback cannot disagree.
+  // tombstones as trips and overstated the dashboard total. get_trip_metrics()
+  // filters the same way, so the RPC path and this fallback cannot disagree.
   const { data: trips } = logReadError("admin stats: trips", await supabase
     .from("trips")
     .select("id, created_at, share_token")
@@ -974,10 +973,10 @@ async function fetchGeoMetrics(
   ] = await Promise.all([
     // Total / 7d / 30d page views.
     //
-    // These were three count(*) scans over page_views. Measured uncontended on
-    // production at 673,909 rows: the all-time count alone took 7,047ms -- at
-    // the 8s statement_timeout on its own -- and the 7-day count 2,668ms, both
-    // inside this same Promise.all. They now read the daily rollup.
+    // These were three count(*) scans over page_views, each taking seconds
+    // uncontended: the all-time count alone came close to the 8s
+    // statement_timeout, and all of them ran inside this same Promise.all.
+    // They now read the daily rollup.
     //
     // The 7d/30d windows are CALENDAR days now, not rolling 168/720-hour
     // windows; a daily rollup has no sub-day resolution. The all-time total is
@@ -1005,23 +1004,16 @@ async function fetchGeoMetrics(
     // Conversion funnel
     supabase.rpc("get_conversion_funnel"),
 
-    // Engaged sessions per day. Sits beside uniqueVisitors because 81% of the
-    // sessions counted there never keep a page visible for four seconds, and
-    // the two groups reach the wizard at 14.7% vs 1.3% — the raw line
-    // overstates plausible prospects by roughly 5x.
+    // Engaged sessions per day. Sits beside uniqueVisitors because most of the
+    // sessions counted there never keep a page visible for four seconds and
+    // rarely reach the wizard, so the raw line overstates plausible prospects.
     supabase.rpc("get_engaged_sessions_daily"),
   ]);
 
   // A metric reading zero must never be indistinguishable from a failed query.
   //
   // Every consumer below reads `(x.data || [])`, so a timed-out RPC silently
-  // became an empty array and the dashboard rendered "no traffic". That is how
-  // four analytics RPCs sat past the 8s statement_timeout unnoticed while
-  // activation decisions were being made from this screen:
-  //   get_page_views_by_section  25,499 ms
-  //   get_page_views_daily_trend 23,523 ms
-  //   get_page_views_by_country  15,035 ms
-  //   get_page_views_by_city     14,337 ms
+  // became an empty array and the dashboard rendered "no traffic".
   // PostgREST connects as `authenticator`, which carries statement_timeout=8s,
   // so no amount of global timeout helps.
   //
@@ -1066,7 +1058,7 @@ async function fetchGeoMetrics(
   // Pre-aggregation adds a failure mode the live queries never had: if the
   // nightly pg_cron job stops, every geo number keeps rendering at full
   // confidence while quietly ageing. Same class of bug as a timed-out query
-  // returning [] -- which is what this dashboard did for months.
+  // returning [].
   //
   // The job runs daily at 02:40 UTC and rebuilds 3 days each time, so one
   // missed night self-heals and is not worth alarming about. Two consecutive

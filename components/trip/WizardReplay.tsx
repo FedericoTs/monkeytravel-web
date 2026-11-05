@@ -9,9 +9,9 @@ import { sentryReady } from "@/lib/observability/sentry";
  * (assuming sessionRecording consent is granted — gated upstream in
  * instrumentation-client.ts, which fetches the recorder).
  *
- * The wizard funnel currently drops 96% of users between step 1 and step 2 with
- * no actionable signal. Capturing 100% of consented wizard sessions gives us
- * the rage-clicks, dead-clicks, and form errors needed to find the real cause.
+ * The wizard funnel loses users between step 1 and step 2 with no actionable
+ * signal. Capturing 100% of consented wizard sessions gives us the
+ * rage-clicks, dead-clicks, and form errors needed to find the real cause.
  *
  * Outside the wizard, replay still captures only on errors
  * (replaysOnErrorSampleRate: 1.0), keeping replay storage bounded.

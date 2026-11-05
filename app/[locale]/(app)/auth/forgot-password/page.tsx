@@ -52,9 +52,8 @@ function ForgotPasswordForm() {
     // to its "Could not authenticate" branch, and bounced to /auth/login.
     // The fragment survived the bounce, the browser client silently
     // consumed it, and the user ended up *logged in but never asked for a
-    // new password*. Their password was therefore never changed: 13 users
-    // requested a reset and auth.audit_log_entries recorded zero
-    // `user_modified` events. They then hit "incorrect password" forever.
+    // new password*. Their password was therefore never changed, and the next
+    // login failed with "incorrect password".
     //
     // /auth/reset-password is a client page, so its browser client parses
     // the fragment (detectSessionInUrl) into the @supabase/ssr cookie

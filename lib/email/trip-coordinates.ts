@@ -3,12 +3,12 @@
  *
  * The forecast lookup needs a lat/lng. trips has no coordinate column, but
  * activities carry one: `itinerary[].activities[].coordinates = {lat, lng}`.
- * Measured over the trips with queued reminders, 100% have at least one.
+ * In practice every trip with queued reminders has at least one.
  *
  * WHY THE MEDIAN OF DAY ONE, AND NOT THE FIRST ACTIVITY
  * ----------------------------------------------------
  * These coordinates are model-generated, and the model sometimes invents one.
- * Measured across the 146 trips holding a queued weather email:
+ * Seen in practice on trips holding a queued weather email:
  *
  *   "Taipei Trip" day 1 — Elephant Mountain at 27.767,121.570. The longitude
  *   is right; the latitude is not. It sits 300km away in mainland China while
@@ -23,7 +23,7 @@
  *
  * WHAT THIS STILL CANNOT CATCH
  * ----------------------------
- * One trip in that same set — "edinburgh, highland, ardvasar & edinburgh" —
+ * Another trip — "edinburgh, highland, ardvasar & edinburgh" —
  * has EVERY coordinate at ~48.0,10.0, in Bavaria. The Royal Mile, Dunkeld and
  * Glencoe are all placed in southern Germany. Nothing derived from the
  * coordinates can detect that, because they agree with each other. It needs

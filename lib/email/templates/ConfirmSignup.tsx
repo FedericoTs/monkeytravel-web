@@ -33,9 +33,8 @@ export interface ConfirmSignupEmailProps {
    * browser that may not be the one they signed up in.
    *
    * This template is what NEW addresses receive (the save modal calls
-   * signInWithOtp with shouldCreateUser: true), so before this it was exactly
-   * the people being lost who got no code: magic-link sign-ups reached a
-   * session 63.0% of the time against Google's 99.0%, n=142, p=1.8e-9.
+   * signInWithOtp with shouldCreateUser: true), so they are exactly the
+   * people lost to the link's app switch, and the ones who need a code.
    *
    * Optional because the dashboard-template rendering path has no token.
    */

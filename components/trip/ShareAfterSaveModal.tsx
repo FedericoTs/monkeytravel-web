@@ -102,9 +102,8 @@ export default function ShareAfterSaveModal({
   // --- Mint-in-place (C3) ---------------------------------------------------
   // The primary CTA used to router.push('/trips/{id}?share=invite') — it sent
   // the user to ANOTHER page and asked them to act again, so the link was not
-  // created until they did. Measured: 9 people clicked invite in 60 days, but
-  // only 7 have ever minted a link, all time. The click was intent and we
-  // dropped it on a page transition. Now the click IS the mint.
+  // created until they did. The click was intent and we dropped it on a page
+  // transition. Now the click IS the mint.
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isMinting, setIsMinting] = useState(false);
   const [mintFailed, setMintFailed] = useState(false);
@@ -559,9 +558,8 @@ export default function ShareAfterSaveModal({
                 {/* Publish-to-Explore, as an opt-OUT tick rather than the
                     button-into-a-second-modal it used to be. That chain cost
                     two clicks and a form at the exact moment the user wants
-                    to be done, and it showed: 261 trips produced 14 public
-                    ones from 5 publishers. The tick rides along with an exit
-                    the user was already taking.
+                    to be done, so it rarely got used. The tick rides along
+                    with an exit the user was already taking.
 
                     Pre-ticked only for unanchored trips (see isAnchored), and
                     only ever acted on from the two buttons below — never from

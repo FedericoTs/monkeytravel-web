@@ -4,9 +4,9 @@
  *
  * WHY THIS EXISTS
  *
- * DEP0169 was the single loudest line in production: 201 occurrences in 24h,
- * spread across nearly every route. It is not a bug and nothing is broken — but
- * it drowned the real errors in the runtime logs, which is its own hazard.
+ * DEP0169 was the single loudest line in production, spread across nearly
+ * every route. It is not a bug and nothing is broken — but it drowned the real
+ * errors in the runtime logs, which is its own hazard.
  *
  * The source is not ours. Traced to:
  *

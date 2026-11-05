@@ -16,11 +16,11 @@ export interface AuthError {
    * the failure. Currently only `email_not_confirmed`, which the login page
    * uses to show a resend button.
    *
-   * Why it exists: 36 of 181 email signups (19.9%) never confirmed. Every one
-   * of them had a confirmation email SENT, never signed in, and holds zero
-   * trips. Telling them "check your inbox" is a dead end when the message is
-   * weeks old and the link has expired, and the only resend button in the app
-   * lived on the signup success screen — gone the moment they navigated away.
+   * Why it exists: someone who signed up by email and never confirmed has had
+   * a confirmation email SENT and has never signed in. Telling them "check
+   * your inbox" is a dead end when the message is weeks old and the link has
+   * expired, and the only resend button in the app lived on the signup success
+   * screen — gone the moment they navigated away.
    */
   code?: 'email_not_confirmed';
 }

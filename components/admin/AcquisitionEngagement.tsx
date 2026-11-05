@@ -113,7 +113,8 @@ export default function AcquisitionEngagement({ acquisition, engagement }: Acqui
               );
             })}
             {/* The intent signal is the point of this panel: it is the one
-                acquisition question GA4 cannot answer at a 3% consent rate. */}
+                acquisition question GA4 cannot answer, because most visitors
+                do not consent to analytics. */}
             <p className="text-[11px] text-slate-400 pt-1 leading-snug">
               &ldquo;To wizard&rdquo; is the share of arrivals that reached /trips/new in the same
               session. Hidden below 30 sessions, where the percentage says nothing.

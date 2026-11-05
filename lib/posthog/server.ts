@@ -40,9 +40,8 @@ export function getServerPostHog(): PostHog | null {
  * common case — `captureLLMGeneration({...}).catch(() => {})` in
  * `lib/gemini.ts`) would see the function terminate as soon as the API
  * route returns its Response, killing the in-flight flush and dropping
- * the event silently. We confirmed this was happening: zero
- * `$ai_generation` events made it to PostHog in the last 30 days despite
- * 9 call sites in `lib/gemini.ts`.
+ * the event silently. We confirmed this was happening: no `$ai_generation`
+ * events made it to PostHog despite the call sites in `lib/gemini.ts`.
  *
  * Outside Vercel (local dev, tests, non-Vercel hosts), `process.env.VERCEL`
  * is unset and we simply `await ph.flush()` as before.

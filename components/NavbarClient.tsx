@@ -38,9 +38,9 @@ export default function NavbarClient({ navLinks }: NavbarClientProps) {
   // placeholder pills for ~1s on first paint — they looked broken to
   // every fresh visitor. We instead default-render the logged-out CTAs
   // and let the AuthProvider swap us to the logged-in state if a user
-  // resolves. The ~75% of visitors who ARE logged out see the right
-  // thing instantly; the ~25% who are logged in briefly see "Sign In"
-  // before the swap — much less wrong than empty pills.
+  // resolves. Visitors who ARE logged out see the right thing instantly;
+  // the ones who are logged in briefly see "Sign In" before the swap —
+  // much less wrong than empty pills.
   //
   // Task #181: auth state now comes from the single AuthProvider mounted
   // in app/[locale]/layout.tsx — no per-component getUser() / listener.

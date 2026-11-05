@@ -27,13 +27,12 @@ import { buildAlternates, SITE_URL } from "@/lib/seo/canonical";
  *
  * This is NOT the passport-index blog post. That post ranks for generic
  * ranking queries ("henley passport index 2026") which Google answers in the
- * SERP and Henley owns — 355,819 impressions, 263 clicks. These pages target
- * the per-passport intent that currently lands on it by mistake ("us passport
- * visa-free countries", "argentine passport visa free countries"), where the
- * answer is a ~198-row table specific to one passport and cannot be compressed
- * into a snippet.
+ * SERP and Henley owns. These pages target the per-passport intent that
+ * currently lands on it by mistake ("us passport visa-free countries",
+ * "argentine passport visa free countries"), where the answer is a ~198-row
+ * table specific to one passport and cannot be compressed into a snippet.
  *
- * Only the 20 passports with measured Search Console demand get a page — see
+ * Only the passports with Search Console demand get a page — see
  * lib/visa/passport-pages.ts for why the list stops there.
  */
 

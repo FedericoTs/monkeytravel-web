@@ -6,19 +6,19 @@ import { tagKeyForSlug } from "./tag-alternates";
  *
  * WHY THIS REPLACES THE KEYWORD MATCHING
  * getLandingPagesForBlogPost scored English keyword lists against the post slug
- * plus its tags. Two problems, both measured:
+ * plus its tags. Two problems:
  *
  *  1. The distribution was degenerate. /free-ai-trip-planner listed "travel",
- *     "trip" and "itinerary" as keywords, so it matched 80 of 84 posts, and
- *     /ai-itinerary-generator matched 53. Meanwhile /group-trip-planner got 9,
- *     /budget-trip-planner 9, /solo-trip-planner 4, and /multi-city-trip-planner
- *     and /family-trip-planner got NONE. A link on 95% of pages carries almost
+ *     "trip" and "itinerary" as keywords, so it matched nearly every post, and
+ *     /ai-itinerary-generator matched most of the rest. Meanwhile the trip-type
+ *     pages got a handful of links each, and /multi-city-trip-planner and
+ *     /family-trip-planner got NONE. A link on nearly every page carries almost
  *     no topical signal, while the pages that could actually rank for a specific
  *     commercial query had nothing pointing at them.
  *
  *  2. The keywords are English, but tags are localized. it/es/pt therefore
- *     matched on the slug alone and produced ~20% fewer links (142/133/131 vs
- *     168), on exactly the locales that need the help most.
+ *     matched on the slug alone and produced fewer links than en, on exactly
+ *     the locales that need the help most.
  *
  * Mapping the TAXONOMY CONCEPT instead fixes both: concepts are assigned per
  * post in lib/blog/tag-taxonomy.ts and are language-independent, so every locale
@@ -64,11 +64,10 @@ const CONCEPT_TO_LANDING: Record<string, LandingPageLink> = {
 /**
  * The two pages that describe the product generally rather than a trip type.
  *
- * They stay eligible everywhere — they are the best-converting surfaces
- * (/free-ai-trip-planner generated on 50% of its sessions), so removing the CTA
- * from most posts would trade a real conversion surface for a marginal SEO
- * gain. They are ranked LAST instead, so the specific page always takes the
- * primary slot when one applies.
+ * They stay eligible everywhere — they are the best-converting surfaces, so
+ * removing the CTA from most posts would trade a real conversion surface for a
+ * marginal SEO gain. They are ranked LAST instead, so the specific page always
+ * takes the primary slot when one applies.
  */
 const GENERIC = new Set(["/ai-itinerary-generator", "/free-ai-trip-planner"]);
 

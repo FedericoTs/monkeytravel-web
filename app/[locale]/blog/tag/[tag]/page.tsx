@@ -55,8 +55,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Tags are LOCALIZED, so the equivalent archive in another locale lives at a
   // different slug: /blog/tag/europe is /it/blog/tag/europa. This used to test
   // the same slug in every locale, which linked only the handful spelled
-  // identically across languages (`asia`) and left 71 of 80 sitemap tag URLs
-  // hreflang-isolated — some of them asymmetric, which Google discards outright.
+  // identically across languages (`asia`) and left the rest hreflang-isolated,
+  // some of them asymmetric, which Google discards outright.
   // lib/blog/tag-alternates.ts reads the taxonomy backwards to get the right
   // slug per locale. Unknown slugs fall back to the old same-slug behaviour.
   const alternates = tagAlternateSlugs(tag, locale);

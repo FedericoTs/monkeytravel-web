@@ -17,13 +17,11 @@ import type { Destination } from "@/lib/destinations/types";
  *   where-to-go-in-october   → NONE   (section did not render)
  *   monsoon-season-...       → tokyo, bangkok, bali
  *
- * So three of the four highest-traffic seasonal posts rendered no destination
- * section at all, and the fourth matched Tokyo — off-topic for a monsoon
- * article — purely because the post carries an "asia" tag and Tokyo's keyword
- * list contains "asia".
+ * So three of those four posts rendered no destination section at all, and
+ * the fourth matched Tokyo — off-topic for a monsoon article — purely because
+ * the post carries an "asia" tag and Tokyo's keyword list contains "asia".
  *
- * These posts are ~975 organic sessions/month between them, against
- * /destinations/[slug] earning 66 clicks per QUARTER across 75 URLs. The
+ * These posts draw far more organic traffic than /destinations/[slug]. The
  * destination pages hold real, four-language, hand-written day plans that
  * almost nobody reaches; the traffic is here. This map is the join.
  *

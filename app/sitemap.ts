@@ -146,8 +146,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Per-passport "where can I actually go" pages. Derived from the shortlist
   // in lib/visa/passport-pages.ts so adding a passport never means editing the
-  // sitemap. The shortlist is chosen from measured Search Console audience,
-  // NOT all 199 passports — see that file for why.
+  // sitemap. The shortlist is chosen from Search Console audience, NOT all 199
+  // passports — see that file for why.
   //
   // Weekly, not monthly: the underlying matrix is refreshed nightly from
   // upstream, so the content genuinely can change between crawls.

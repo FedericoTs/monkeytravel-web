@@ -18,7 +18,7 @@ import type { Metadata } from "next";
 // referrer cookie is usually absent, and this click would then have become the
 // user's recorded acquisition source. An organic Google visitor would have been
 // filed as "hostelworld". Verified harmless in practice only because
-// users.acquisition_source is NULL for all 478 users; see AcquisitionCapture.
+// users.acquisition_source is NULL for every user; see AcquisitionCapture.
 // Hostelworld wedge landing page. The exact social-proof asset that
 // would convert this segment was already built (/explore feed +
 // TripCard) but had no link from /backpacker — closing the loop.
@@ -213,14 +213,11 @@ export default async function BackpackerLandingPage({
   ];
 
   // Social-proof stats (30-day Hostelworld clicks). Render the block
-  // whenever the API responds — including the early-traffic window where
-  // counts are small. Previously gated at clicks30d >= 10, which kept the
-  // counter invisible for weeks after launch despite Task #133 wiring it
-  // in (Day-6 audit caught the regression: no number ever reached the
-  // DOM). The "don't show zero" intent is preserved at a lower bar — we
-  // only hide if EVERY counter is genuinely zero, so we never advertise
-  // "0 backpackers". Any non-zero signal is worth showing as proof the
-  // funnel is live.
+  // whenever the API responds, even while counts are small; a higher gate
+  // would keep the counter invisible. The "don't show zero" intent is kept at
+  // a low bar — we only hide if EVERY counter is genuinely zero, so we never
+  // advertise "0 backpackers". Any non-zero signal is worth showing as proof
+  // the funnel is live.
   const stats = await fetchHostelworldStats();
   const showStatsBlock =
     stats !== null &&
@@ -315,7 +312,7 @@ export default async function BackpackerLandingPage({
         <LandingWhatIs namespace="backpacker" />
 
         {/* ============== SOCIAL PROOF (live Hostelworld clicks) ============== */}
-        {/* Render only when stats are meaningful (≥10 clicks in 30d) — see
+        {/* Render only when a counter is non-zero — see
             fetchHostelworldStats for "don't show zero" rationale.
             Numbers come straight from public.hostelworld_clicks. The
             Hostelworld partnership manager can quote this internally

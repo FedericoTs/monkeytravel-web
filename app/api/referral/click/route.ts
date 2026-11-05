@@ -54,12 +54,11 @@ export async function POST(request: NextRequest) {
     // Record the click event with the SERVICE client.
     //
     // This endpoint is called by ANONYMOUS visitors, and referral_events has
-    // no INSERT policy and no grant to anon — so this insert has always
-    // returned 42501 and the whole table holds 5 rows. Because the error is
-    // logged and swallowed (click tracking is best-effort) nothing ever
-    // surfaced; it just showed up as a steady drip of
+    // no INSERT policy and no grant to anon — so an insert with their client
+    // is refused with 42501. Because the error is logged and swallowed (click
+    // tracking is best-effort), the only symptom is a steady drip of
     // "[Referral Click] Error recording event: permission denied" in the
-    // runtime logs from real traffic.
+    // runtime logs.
     //
     // Writing server-side rather than granting anon INSERT keeps the table
     // closed to the public: an anon grant would let anyone forge click events

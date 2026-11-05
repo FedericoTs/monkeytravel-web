@@ -178,7 +178,7 @@ export async function GET() {
     // /api/admin/stats commit 8acd2eb — without it, every count below
     // (trips, trip_collaborators, banana_transactions, ai_conversations,
     // referral_codes, etc.) silently under-reports to the admin's own
-    // RLS slice (-55% to -83% measured per the audit).
+    // RLS slice.
     const supabase = createAdminClient();
 
     const now = new Date();
@@ -297,7 +297,7 @@ export async function GET() {
 
     // ---- Activity-proxy retention signals -----------------------------------
     // public.users.last_sign_in_at is a denormalized mirror of auth.users that
-    // is currently never synced (NULL for ~100% of users), which silently
+    // is currently never synced (always NULL), which silently
     // zeroed every retention / aha-moment metric. Derive two signals from data
     // we DO record (trips, AI conversations, banana transactions; plus
     // last_sign_in_at when present, so this auto-upgrades once sign-in tracking
@@ -441,7 +441,7 @@ export async function GET() {
     const shareRate = usersWithTrips > 0 ? Math.round((usersWhoShared / usersWithTrips) * 100) : 0;
 
     // 2. REACH - How far shares travel.
-    // trip_views is never written (0 rows); the real reach signal is anonymous
+    // trip_views is never written; the real reach signal is anonymous
     // engagement on shared trips, so use distinct anonymous voters as "reach".
     const anonymousEngagers = new Set(anonVotes.map(v => v.voter_cookie_id).filter(Boolean)).size;
     const sharedTripsWithEngagement = new Set(anonVotes.map(v => v.trip_id).filter(Boolean)).size;

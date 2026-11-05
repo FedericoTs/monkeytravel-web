@@ -23,11 +23,9 @@
  * regular browser the click is allowed through — the <a> navigates
  * natively and middle-click / modifier-click semantics are preserved.
  *
- * Day-4 bug fix: original implementation had no analytics call, so the
- * day-2 anchor→button swap silently killed PostHog click attribution
- * for every CTA migrated through this component (notably iVisa affiliate
- * clicks — 20% commission, 365-day cookie). The PostHog capture fires
- * on every click regardless of platform.
+ * Every CTA migrated through this component keeps its PostHog click
+ * attribution (notably iVisa affiliate clicks — 20% commission, 365-day
+ * cookie): the PostHog capture fires on every click regardless of platform.
  *
  * Usage from a Server Component:
  *   <ExternalLinkButton

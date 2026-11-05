@@ -2,11 +2,11 @@
  * The controlled tag vocabulary for the blog.
  *
  * WHY IT EXISTS
- * Tags used to be authored free-form per post, which produced 276-296 distinct
- * tags per locale across 84 posts, 84-88% of them appearing exactly ONCE. A
+ * Tags used to be authored free-form per post, which produced a long tail of
+ * distinct tags per locale, most of them appearing exactly ONCE. A
  * singleton tag is dead weight twice over: it can never match a related post
  * (that needs two posts to share it) and its archive page is noindexed as thin
- * (TAG_MIN_POSTS_FOR_INDEX = 5). Only 4-8 tag pages per locale cleared that bar.
+ * (TAG_MIN_POSTS_FOR_INDEX = 5). Very few tag pages per locale cleared that bar.
  *
  * The styles were also mixed: short conceptual tags ("outono", "sazonal")
  * alongside long-tail keyword tags ("viagens outono 2026", "viajar em outubro").

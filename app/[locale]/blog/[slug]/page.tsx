@@ -93,8 +93,7 @@ export async function generateMetadata({
   return {
     // `absolute` opts out of the root "%s | MonkeyTravel" template
     // (app/layout.tsx). On an article the brand suffix buys nothing and costs
-    // 15 of the ~60 characters Google renders — 277 of 284 blog titles were
-    // truncating because nobody budgeted for it. Product pages keep the suffix.
+    // 15 of the ~60 characters Google renders. Product pages keep the suffix.
     title: { absolute: title },
     description,
     // Optional-chained: a post without an seo: frontmatter block must degrade
@@ -237,9 +236,9 @@ export default async function BlogDetailPage({ params }: PageProps) {
     ? []
     : getDestinationsForBlogPost(slug, frontmatter.tags, 3);
   // Concept-based, not keyword-based: see lib/blog/landing-page-links.ts.
-  // The keyword version put /free-ai-trip-planner on 80 of 84 posts and left
-  // /multi-city-trip-planner with none, and matched ~20% worse on it/es/pt
-  // because its keywords are English while tags are localized.
+  // The keyword version put /free-ai-trip-planner on nearly every post and left
+  // /multi-city-trip-planner with none, and matched worse on it/es/pt because
+  // its keywords are English while tags are localized.
   const relatedLandingPages = landingPagesForPost(slug, 3);
   const loc = locale as Locale;
   const primaryDestination = getPrimaryDestinationFromTags(frontmatter.tags, locale);

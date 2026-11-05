@@ -8,55 +8,53 @@ import type { VisaStatus } from "./types";
  * Per-passport "where can I actually go" pages.
  *
  * WHY THIS EXISTS, AND WHY IT IS NOT THE PASSPORT-INDEX POST
- * /blog/passport-power-index-2026 draws 355,819 impressions and 263 clicks
- * (0.07%, position 9.3). Every one of its top 30 queries is a generic ranking
- * query — "henley passport index 2026", "passport ranking 2026", "top 10
- * weakest passport" — which Henley owns and which Google answers in the SERP.
- * No amount of on-page work converts those.
+ * /blog/passport-power-index-2026 serves generic ranking queries —
+ * "henley passport index 2026", "passport ranking 2026", "top 10 weakest
+ * passport" — which Henley owns and which Google answers in the SERP. No
+ * amount of on-page work converts those.
  *
  * The adjacent intent is different and unserved: "us passport visa-free
  * countries", "argentine passport visa free countries", "2026 henley passport
  * index japan ranking visa-free". Those are PER-PASSPORT, they currently land
- * on the generic ranking article at position 8-10, and a SERP snippet cannot
- * answer them because the answer is a ~199-row table specific to one passport.
+ * on the generic ranking article, and a SERP snippet cannot answer them
+ * because the answer is a ~199-row table specific to one passport.
  *
  * WHY A SHORTLIST AND NOT ALL 199
  * 199 passports x 4 locales is 796 pages of table data, which is precisely the
  * shape Google's scaled-content-abuse policy targets — and this site was
  * audited against the 2026 spam update. The shortlist below is drawn from
- * MEASURED audience: the top 20 countries in Search Console account for ~80%
- * of all impressions. Every page here has demonstrated demand behind it.
+ * audience that Search Console already shows, so every page here has
+ * demonstrated demand behind it.
  *
  * Add a passport when the data says people from there are finding us, not to
  * fill out the map.
  */
 
 /**
- * Passports we build pages for, ordered by measured share of Search Console
- * impressions. The comment on each line is that share, so the next person can
- * see why the list stops where it does.
+ * Passports we build pages for, ordered by Search Console demand, highest
+ * first. The list stops where the demand does.
  */
 export const PASSPORT_PAGE_CODES = [
-  "US", // 35.3%
-  "IN", // 4.7%
-  "NL", // 4.6%
-  "IT", // 4.6%
-  "GB", // 4.5%
-  "ES", // 4.1%
-  "DE", // 4.0%
-  "CA", // 2.6%
-  "BR", // 2.0%
-  "AU", // 2.0%
-  "MX", // 1.8%
-  "JP", // 1.3%
-  "SG", // 1.3%
-  "KR", // 1.2%
-  "PH", // 1.0%
-  "FR", // 1.0%
-  "MY", // 1.0%
-  "AE", // 0.9%
-  "ID", // 0.9%
-  "PK", // 0.8%
+  "US",
+  "IN",
+  "NL",
+  "IT",
+  "GB",
+  "ES",
+  "DE",
+  "CA",
+  "BR",
+  "AU",
+  "MX",
+  "JP",
+  "SG",
+  "KR",
+  "PH",
+  "FR",
+  "MY",
+  "AE",
+  "ID",
+  "PK",
 ] as const;
 
 export type PassportCode = (typeof PASSPORT_PAGE_CODES)[number];

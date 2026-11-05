@@ -3,9 +3,9 @@
  *
  * WHY THIS EXISTS
  * /blog/tag/[tag] already handles a tag that no longer resolves: it serves a
- * 308 to the locale's /blog index rather than a 404, which was the fix for ~347
- * indexed tag URLs breaking in April. That is the right default for the ~250
- * thin, noindexed tags this pass retires per locale — they were never in the
+ * 308 to the locale's /blog index rather than a 404, which was the fix for
+ * indexed tag URLs breaking. That is the right default for the thin,
+ * noindexed tags this pass retires per locale — they were never in the
  * sitemap and carry nothing worth preserving.
  *
  * But seven retired slugs were INDEXED (>= TAG_MIN_POSTS_FOR_INDEX posts, so in
