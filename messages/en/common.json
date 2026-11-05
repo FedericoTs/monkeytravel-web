@@ -99,6 +99,7 @@
   },
   "a11y": {
     "dismiss": "Dismiss",
+    "inviteLink": "Invite link",
     "clearSearch": "Clear search",
     "clearFilter": "Clear filter",
     "changePhoto": "Change profile photo",

@@ -287,6 +287,7 @@ function EditableActivityCard({
           <div className="hidden sm:flex flex-shrink-0 text-center w-16 flex-col">
             {isEditing ? (
               <input
+                aria-label={tc("activity.startTime")}
                 type="time"
                 value={editValues.start_time}
                 onChange={(e) => setEditValues({ ...editValues, start_time: e.target.value })}
@@ -299,6 +300,7 @@ function EditableActivityCard({
             )}
             {isEditing ? (
               <input
+                aria-label={tc("addActivity.duration")}
                 type="number"
                 value={editValues.duration_minutes}
                 onChange={(e) => setEditValues({ ...editValues, duration_minutes: parseInt(e.target.value) || 0 })}
@@ -330,6 +332,7 @@ function EditableActivityCard({
               {isEditing ? (
                 <>
                   <input
+                    aria-label={tc("activity.startTime")}
                     type="time"
                     value={editValues.start_time}
                     onChange={(e) => setEditValues({ ...editValues, start_time: e.target.value })}
@@ -337,6 +340,7 @@ function EditableActivityCard({
                   />
                   <span className="text-slate-500">·</span>
                   <input
+                    aria-label={tc("addActivity.duration")}
                     type="number"
                     value={editValues.duration_minutes}
                     onChange={(e) => setEditValues({ ...editValues, duration_minutes: parseInt(e.target.value) || 0 })}
@@ -365,6 +369,7 @@ function EditableActivityCard({
                 <div className="flex items-center gap-2 flex-wrap">
                   {isEditing ? (
                     <input
+                      aria-label={tc("addActivity.activityName")}
                       type="text"
                       value={editValues.name}
                       onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
@@ -393,6 +398,7 @@ function EditableActivityCard({
 
                 {isEditing ? (
                   <textarea
+                    aria-label={tc("addActivity.descriptionOptional")}
                     value={editValues.description}
                     onChange={(e) => setEditValues({ ...editValues, description: e.target.value })}
                     className="text-slate-600 mt-1 text-sm border border-slate-200 rounded px-2 py-1 w-full resize-none"

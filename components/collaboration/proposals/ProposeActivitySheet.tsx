@@ -343,6 +343,7 @@ export function ProposeActivitySheet({
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">{t("form.typeLabel")}</label>
                 <select
+                  aria-label={t("form.typeLabel")}
                   value={customActivity.type}
                   onChange={(e) => setCustomActivity({ ...customActivity, type: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg
@@ -359,6 +360,7 @@ export function ProposeActivitySheet({
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">{t("form.durationLabel")}</label>
                 <select
+                  aria-label={t("form.durationLabel")}
                   value={customActivity.duration}
                   onChange={(e) => setCustomActivity({ ...customActivity, duration: Number(e.target.value) })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg

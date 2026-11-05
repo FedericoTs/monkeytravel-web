@@ -99,6 +99,7 @@
   },
   "a11y": {
     "dismiss": "Dispensar",
+    "inviteLink": "Link de convite",
     "clearSearch": "Limpar a busca",
     "clearFilter": "Remover o filtro",
     "changePhoto": "Alterar foto do perfil",

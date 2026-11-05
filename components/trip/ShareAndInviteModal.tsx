@@ -537,6 +537,7 @@ export default function ShareAndInviteModal({
                       </label>
                       <div className="flex items-center gap-2">
                         <input
+                          aria-label={ts("invite.publicLink")}
                           type="text"
                           value={framedUrl}
                           readOnly
@@ -831,6 +832,7 @@ export default function ShareAndInviteModal({
                     {!emailOutcome && <div className="mb-3" />}
                     <div className="flex items-center gap-2">
                       <input
+                        aria-label={t("a11y.inviteLink")}
                         type="text"
                         value={inviteUrl}
                         readOnly

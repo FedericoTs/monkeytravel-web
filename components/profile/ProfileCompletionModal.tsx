@@ -256,6 +256,7 @@ export default function ProfileCompletionModal({
                 {t("fields.homeCountry")}
               </label>
               <select
+                aria-label={t("fields.homeCountry")}
                 value={homeCountry}
                 onChange={(e) => setHomeCountry(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-900 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 focus:bg-white transition-all outline-none appearance-none"

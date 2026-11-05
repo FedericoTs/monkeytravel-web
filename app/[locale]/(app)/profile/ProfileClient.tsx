@@ -765,6 +765,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                   <div className="flex-1">
                     <label className="block text-xs text-slate-500 mb-1">{t("profile.travelPrefs.wakeUpTime")}</label>
                     <select
+                      aria-label={t("profile.travelPrefs.wakeUpTime")}
                       value={profile.notification_settings.quietHoursEnd || 8}
                       onChange={(e) =>
                         updateSettings("notification_settings", { quietHoursEnd: parseInt(e.target.value) })
@@ -782,6 +783,7 @@ export default function ProfileClient({ profile: initialProfile, stats, betaAcce
                   <div className="flex-1">
                     <label className="block text-xs text-slate-500 mb-1">{t("profile.travelPrefs.windDownTime")}</label>
                     <select
+                      aria-label={t("profile.travelPrefs.windDownTime")}
                       value={profile.notification_settings.quietHoursStart || 22}
                       onChange={(e) =>
                         updateSettings("notification_settings", { quietHoursStart: parseInt(e.target.value) })

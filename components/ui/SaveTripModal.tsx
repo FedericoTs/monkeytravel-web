@@ -323,6 +323,7 @@ export default function SaveTripModal({
               </div>
 
               <input
+                aria-label={t("start")}
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
