@@ -190,6 +190,7 @@ import { useClaimedTrip } from "@/hooks/useClaimedTrip";
 import { usePendingClaim } from "@/hooks/usePendingClaim";
 import { useUnsavedPlan } from "@/hooks/useUnsavedPlan";
 import { useAssistantEdits } from "@/hooks/useAssistantEdits";
+import { useChangeDates } from "@/hooks/useChangeDates";
 import { useWizardFunnel, WIZARD_STEP_NAMES } from "@/hooks/useWizardFunnel";
 import { useGenerationLeft } from "@/hooks/useGenerationLeft";
 import { useGenerationProgress } from "@/hooks/useGenerationProgress";
@@ -228,8 +229,6 @@ import { ensureActivityIds } from "@/lib/utils/activity-id";
 import AiDisclaimer from "@/components/trip/AiDisclaimer";
 import { useTravelDistances } from "@/hooks/useTravelDistances";
 import { useMultiCityRoute } from "@/hooks/useMultiCityRoute";
-import { planDateChange, moveItineraryDates, extraDaysAsk, extraDaysFrom } from "@/lib/trips/change-dates";
-import { withDays } from "@/lib/trips/plan-days";
 
 // Upper bound for the wizard start date (see lib/dates/iso-date.ts).
 const MAX_TRIP_START_DATE = maxTripStartDate();
@@ -598,24 +597,26 @@ export default function NewTripPage({
   // A full regenerate replaces the assistant's edits, so it asks first instead
   // of silently discarding them.
   const [confirmRegenerate, setConfirmRegenerate] = useState(false);
-  // Changing the dates on the result, instead of starting over
-  // (lib/trips/change-dates.ts). `datesNotice` reports a longer trip whose
-  // extra days could not be planned.
-  const [showChangeDates, setShowChangeDates] = useState(false);
-  const [planningExtraDays, setPlanningExtraDays] = useState(false);
-  const [datesNotice, setDatesNotice] = useState<string | null>(null);
-  const extraDaysRequest = useRef<AbortController | null>(null);
+  // Changing the dates on the result, instead of starting over (hooks/useChangeDates.ts).
+  const { showChangeDates, setShowChangeDates, planningExtraDays, datesNotice, forgetDatesChange, changeDates } = useChangeDates({
+    plan: generatedItinerary,
+    onPlan: setGeneratedItinerary,
+    onDates: (start, end) => {
+      setStartDate(start);
+      setEndDate(end);
+      // The traveller chose these dates, so they are not pencilled in.
+      setFlexibleDates(false);
+      setDatesPencilled(false);
+    },
+  });
   // A plan that replaces this one (every generation, restore and tray swap)
   // takes with it what was about this one: the dates note, the extra days still
   // being planned, and the assistant's chat, which starts again (planNumber).
   const [planNumber, setPlanNumber] = useState(0);
   const forgetPlan = useCallback(() => {
-    extraDaysRequest.current?.abort();
-    extraDaysRequest.current = null;
-    setPlanningExtraDays(false);
-    setDatesNotice(null);
+    forgetDatesChange();
     setPlanNumber((n) => n + 1);
-  }, []);
+  }, [forgetDatesChange]);
 
   // Pre-fill the SHAPE of the trip (length, budget, vibes) from a blog CTA, so
   // a reader arriving from "3-day Paris itinerary" doesn't have to retype the
@@ -1684,67 +1685,6 @@ export default function NewTripPage({
     autoSave.savedTripId,
   ]);
 
-  // New dates for the generated trip, from the hero's date chip or from Start
-  // Over's "wrong dates" (often dates "I'm flexible" pencilled in), so wrong
-  // dates don't cost the whole plan. The plan moves with the dates; a shorter
-  // trip keeps its first days; a longer one gets its new days from the
-  // assistant (only the new days: the ones already planned stay exactly as
-  // they are).
-  const handleChangeDates = async (start: string, end: string) => {
-    const itinerary = generatedItinerary;
-    if (!itinerary) return;
-    const current = itinerary.days.length;
-    const change = planDateChange(current, start, end, effectiveMaxTripDays);
-    if (change.kind === "invalid") return;
-    setShowChangeDates(false);
-    setDatesNotice(null);
-    const keep = Math.min(current, change.length);
-    const moved = moveItineraryDates(itinerary.days, start, keep);
-    setGeneratedItinerary((prev) => (prev ? withDays(prev, moveItineraryDates(prev.days, start, keep)) : prev));
-    setStartDate(start);
-    setEndDate(addIsoDaysOrThrow(start, keep - 1));
-    // The traveller chose these dates, so they are not pencilled in.
-    setFlexibleDates(false);
-    setDatesPencilled(false);
-    posthog?.capture("wizard_dates_changed", { from_days: current, to_days: change.length, kind: change.kind });
-    if (change.kind !== "longer") return;
-
-    const request = new AbortController();
-    extraDaysRequest.current = request;
-    setPlanningExtraDays(true);
-    try {
-      const res = await fetch("/api/ai/assistant-anon", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: request.signal,
-        body: JSON.stringify(
-          extraDaysAsk({
-            itinerary,
-            moved,
-            start,
-            current,
-            length: change.length,
-            tripTitle: newTripTitle(itinerary.destination.name, locale),
-            locale,
-          })
-        ),
-      });
-      const reply = await res.json().catch(() => ({}));
-      if (request.signal.aborted) return;
-      const { planned, newDays } = extraDaysFrom(reply, current, change.length);
-      if (res.ok && planned > current && newDays.length > 0) {
-        applyEdits(newDays, planned);
-        if (planned < change.length) setDatesNotice(t("wizard.changeDates.partlyPlanned", { count: planned }));
-      } else {
-        setDatesNotice(t("wizard.changeDates.extraFailed", { count: current }));
-      }
-    } catch {
-      if (!request.signal.aborted) setDatesNotice(t("wizard.changeDates.extraFailed", { count: current }));
-    } finally {
-      if (!request.signal.aborted) setPlanningExtraDays(false);
-    }
-  };
-
   // Flip the result view to an earlier generation from the session tray.
   // Refreshes the currently displayed trip into the stack first (so applied
   // assistant edits survive the swap), then puts the clicked plan back with
@@ -1805,7 +1745,7 @@ export default function NewTripPage({
           maxDays={effectiveMaxTripDays}
           minDate={localTodayISO()}
           maxStartDate={MAX_TRIP_START_DATE}
-          onConfirm={(start, end) => void handleChangeDates(start, end)}
+          onConfirm={(start, end) => void changeDates(start, end, { maxDays: effectiveMaxTripDays, applyEdits })}
         />
 
         {/* A full regenerate replaces the assistant's edits: ask first. */}
