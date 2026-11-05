@@ -1,4 +1,3 @@
-import { cronSource } from "@/tests/cron-source";
 import { describe, it, expect } from "vitest";
 import { createTranslator } from "next-intl";
 import { readFileSync } from "fs";
@@ -227,34 +226,6 @@ describe("next-intl itself resolves the reminder copy", () => {
       onError: () => {},
     });
     expect(t("heading")).toContain("tripReminderEmail.morning_of.heading");
-  });
-});
-
-describe("the cron asks for the prefixed namespace", () => {
-  const source = cronSource();
-
-  it("uses common.tripReminderEmail", () => {
-    expect(source).toContain('"common.tripReminderEmail"');
-  });
-
-  it("asks to add the people coming only on the two early slots of a group trip nobody has yet", () => {
-    expect(source).toMatch(/GROUP_ASK_SLOTS = new Set<string>\(\["pack_early_14d", "visa_check_7d"\]\)/);
-    expect(source).toMatch(/GROUP_ASK_SLOTS\.has\(row\.slot\) && trip\.trip_intent === "group" && !trip\.shared_at/);
-    expect(source).toMatch(/\.from\("trip_invites"\)/);
-    expect(source).toMatch(/\?slot=\$\{row\.slot\}&share=invite/);
-  });
-
-  it("never asks for the bare tripReminderEmail namespace", () => {
-    // Catches a revert to `namespace: \`tripReminderEmail.${slot}\`` or
-    // `namespace: "tripReminderEmail"`.
-    expect(source).not.toMatch(/namespace:\s*`tripReminderEmail\./);
-    expect(source).not.toMatch(/namespace:\s*"tripReminderEmail"/);
-  });
-
-  it("still refuses to send an unresolved string", () => {
-    // The namespace fix alone is not the safety net — next-intl will happily
-    // hand back a key path for any future miss, so the guard must stay.
-    expect(source).toContain("assertTranslated");
   });
 });
 

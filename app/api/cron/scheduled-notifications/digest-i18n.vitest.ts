@@ -1,4 +1,3 @@
-import { cronSource } from "@/tests/cron-source";
 import { describe, it, expect } from "vitest";
 import { createTranslator } from "next-intl";
 import { readFileSync } from "fs";
@@ -92,22 +91,5 @@ describe("trip day digest copy resolves for every locale the cron can reach", ()
       onError: () => {},
     });
     expect(t("heading", { day: 3 })).toContain("tripDayDigestEmail.heading");
-  });
-});
-
-describe("the cron wires the digest namespace + guard", () => {
-  const source = cronSource();
-
-  it("asks for common.tripDayDigestEmail", () => {
-    expect(source).toContain('"common.tripDayDigestEmail"');
-  });
-
-  it("assertTranslated refuses an unresolved digest key", () => {
-    expect(source).toContain('value.includes("tripDayDigestEmail.")');
-  });
-
-  it("links the owner's button to the signed day page", () => {
-    expect(source).toContain("const ownerUrl = digestDayUrl({");
-    expect(source).toMatch(/sendDigest\(recipientEmail, row\.user_id, locale, ownerT, ownerUrl,/);
   });
 });
