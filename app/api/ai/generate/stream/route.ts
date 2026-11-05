@@ -35,6 +35,7 @@ import { PartsError, writeInParts, writesInParts } from "@/lib/ai/plan-in-parts"
 import { generationIdOf, generationOwner, keepGeneration } from "@/lib/ai/generation-result";
 import { knownPlacesFor, knownPlacesUsed, type KnownPlace } from "@/lib/ai/known-places";
 import { tripSpanDays } from "@/lib/dates/iso-date";
+import { isModelOutOfCredit, MODEL_OUTAGE_MESSAGE } from "@/lib/ai/model-outage";
 
 // Allow the function to run long enough for slow generations. Vercel
 // Pro plan default is 60s; this bumps it. Hobby plan caps at 60 so this
@@ -478,7 +479,7 @@ export async function POST(request: NextRequest) {
       yield {
         type: "error",
         data: {
-          error: "Generation failed. Please try again.",
+          error: isModelOutOfCredit(err) ? MODEL_OUTAGE_MESSAGE : "Generation failed. Please try again.",
           code: "upstream",
         },
       };

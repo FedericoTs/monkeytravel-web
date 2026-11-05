@@ -61,6 +61,7 @@ vi.mock("@/lib/ai/multi-city", () => ({
 
 const { POST } = await import("./route");
 const { findGeneration } = await import("@/lib/ai/generation-result");
+const { MODEL_OUTAGE_MESSAGE } = await import("@/lib/ai/model-outage");
 const { GENERATION_ID_HEADER, newGenerationId } = await import("@/lib/ai/generation-id");
 
 const itinerary = {
@@ -143,5 +144,26 @@ describe("a finished generation", () => {
     expect((await post({ [GENERATION_ID_HEADER]: id })).status).toBe(500);
     expect(logged.find((row) => row.status === 500)?.metadata).toEqual({ generation_id: id });
     expect(await findGeneration(id, "s1")).toBeNull();
+  });
+
+  it("because the model's credit ran out says the planner is unavailable, not to try again", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    multiCity = async () => {
+      throw new Error(`Failed to generate itinerary: AI service unavailable (root: {"error":{"code":402,"message":"Your prepayment credits are depleted."}})`);
+    };
+    const res = await post({});
+    expect(res.status).toBe(503);
+    expect((await res.json()).error).toBe(MODEL_OUTAGE_MESSAGE);
+    expect(logged.find((row) => row.status === 500)?.error).toContain("prepayment credits");
+  });
+
+  it("for any other reason answers as before, and tells nothing of the model", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    multiCity = async () => {
+      throw new Error("model overloaded");
+    };
+    const res = await post({});
+    expect(res.status).toBe(500);
+    expect((await res.json()).error).toBe("Failed to generate itinerary. Please try again.");
   });
 });

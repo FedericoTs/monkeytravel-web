@@ -1,5 +1,5 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
-import { stubGeneration, stubPlan } from "./generation-stub";
+import { stubGeneration, stubPlan, stubPlannerOutage } from "./generation-stub";
 
 /**
  * A signed-out planner goes from a one-tap destination to a generated trip:
@@ -50,8 +50,8 @@ async function browserDate(page: Page, days: number): Promise<string> {
   }, days);
 }
 
-/** Plans the trip `pick` starts, with `mustDo` as its one wish, and returns the place. */
-async function planPick(page: Page, pick: Locator, mustDo: string): Promise<string> {
+/** Asks for the trip `pick` starts, with `mustDo` as its one wish, and returns the place. */
+async function askForPick(page: Page, pick: Locator, mustDo: string): Promise<string> {
   const place = (await pick.getAttribute("aria-label"))?.match(/^Start a trip to (.+) — /)?.[1];
   expect(place, "the pick names its place").toBeTruthy();
   await pick.click();
@@ -67,8 +67,14 @@ async function planPick(page: Page, pick: Locator, mustDo: string): Promise<stri
   await wish.fill(mustDo);
   await wish.press("Enter");
   await generate.click();
-  await expect(page.getByRole("heading", { level: 1, name: place! })).toBeVisible({ timeout: 30_000 });
   return place!;
+}
+
+/** Plans the trip `pick` starts, with `mustDo` as its one wish, and returns the place. */
+async function planPick(page: Page, pick: Locator, mustDo: string): Promise<string> {
+  const place = await askForPick(page, pick, mustDo);
+  await expect(page.getByRole("heading", { level: 1, name: place })).toBeVisible({ timeout: 30_000 });
+  return place;
 }
 
 /** The draft the wizard keeps for the way back from signing in. */
@@ -227,6 +233,31 @@ test.describe("wizard: planning a trip", () => {
     await expect(withFriends).toHaveAttribute("aria-pressed", "false");
     await planPick(page, picks.nth(1), "Sunset at the viewpoint");
     await expect.poll(() => groupSizes).toEqual(["group", "unspecified"]);
+  });
+});
+
+test.describe("wizard: with the planner out of service", () => {
+  test("says so, offers ready-made trips, and a later try still plans the trip", async ({ page }) => {
+    await isolate(page);
+    await stubPlannerOutage(page);
+
+    await page.goto("/trips/new");
+    const essentialOnly = page.getByRole("button", { name: /essential only/i });
+    await essentialOnly
+      .waitFor({ state: "visible", timeout: 4_000 })
+      .then(() => essentialOnly.click())
+      .catch(() => {});
+
+    const place = await askForPick(page, page.getByRole("group", { name: "Popular right now" }).getByRole("button").nth(0), "Lunch at the market");
+    await expect(page.getByText(/Our trip planner is down right now/)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText("temporarily unavailable")).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Or browse ready-made trips" })).toHaveAttribute("href", /\/templates$/);
+
+    // The planner is back: the answers are still there, and the try works.
+    await stubGeneration(page);
+    await page.getByRole("button", { name: "Try Again" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: place })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/Our trip planner is down right now/)).toHaveCount(0);
   });
 });
 

@@ -1,12 +1,18 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
+import type { ReactNode } from "react";
 import enTrips from "@/messages/en/trips.json";
 import esTrips from "@/messages/es/trips.json";
 import itTrips from "@/messages/it/trips.json";
 import ptTrips from "@/messages/pt/trips.json";
 import type { ValidationFix } from "@/lib/wizard/generation-failure";
+import { MODEL_OUTAGE_MESSAGE } from "@/lib/ai/model-outage";
 import GenerationErrorNotice from "./GenerationErrorNotice";
+
+vi.mock("@/lib/i18n/routing", () => ({
+  Link: ({ href, children }: { href: string; children: ReactNode }) => <a href={href}>{children}</a>,
+}));
 
 afterEach(cleanup);
 
@@ -28,6 +34,20 @@ function said(locale: Locale, fix: ValidationFix): string {
   unmount();
   return text;
 }
+
+describe("the planner out of service", () => {
+  it.each(Object.keys(TRIPS) as Locale[])("is said in %s, with no English from the server", (locale) => {
+    const { container, unmount } = render(
+      <NextIntlClientProvider locale={locale} messages={{ trips: TRIPS[locale] }} onError={() => {}}>
+        <GenerationErrorNotice error={MODEL_OUTAGE_MESSAGE} errorFix={null} effectiveMaxTripDays={14} onAction={vi.fn()} />
+      </NextIntlClientProvider>
+    );
+    expect(container.querySelector("p")?.textContent).toBe(TRIPS[locale].generation.errorUnavailable);
+    expect(container.querySelector("a")?.textContent).toBe(TRIPS[locale].generation.browseTemplates);
+    expect(container.textContent).not.toContain(MODEL_OUTAGE_MESSAGE);
+    unmount();
+  });
+});
 
 describe("a refused generation's notice", () => {
   it("says what to change, for every fix in every language", () => {
