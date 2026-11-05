@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useChanged } from "@/hooks/useChanged";
-import { TrendingUp, Globe, Users, Copy, Check, Mail, Share2, Eye, UserPlus } from "lucide-react";
+import { TrendingUp, Globe, Copy, Check, Mail, Share2, Eye, UserPlus } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
@@ -10,21 +10,17 @@ import {
   trackTripShared,
   trackReferralLinkClicked,
 } from "@/lib/analytics";
-import { RoleSelector } from "@/components/collaboration/RoleSelector";
-import { CollaboratorRow } from "@/components/collaboration/CollaboratorRow";
 import { useToast } from "@/components/ui/Toast";
 import BottomSheet from "@/components/ui/BottomSheet";
 import { useModalBehavior } from "@/hooks/useModalBehavior";
 import { useIsPhone } from "@/hooks/useMediaQuery";
-import { useAuth } from "@/components/auth/AuthProvider";
 import { openExternal } from "@/lib/native/external-link";
 import { shareFile } from "@/lib/native/share";
 import { captureTripCardShared } from "@/lib/posthog/events";
-import CoPlannerInvites from "@/components/trip/CoPlannerInvites";
+import InviteTab from "@/components/trip/InviteTab";
+import { useTripInvites } from "@/hooks/useTripInvites";
 import { tripCardPath } from "@/lib/seo/og-image";
 import { defaultShareFraming, framedShareUrl, shareTokenFromUrl, type ShareFraming } from "@/lib/trips/crew-share";
-import type { TripCollaborator, CollaboratorRole } from "@/types";
-import { Spinner } from "@/components/ui/Spinner";
 
 type TabType = "share" | "invite";
 
@@ -108,44 +104,8 @@ export default function ShareAndInviteModal({
   // Toast notifications
   const { addToast } = useToast();
 
-  // Invite state. Editor by default: an invite to plan together is the one
-  // people accept; a voter or viewer invite rarely is.
-  const [selectedRole, setSelectedRole] = useState<Exclude<CollaboratorRole, "owner">>("editor");
-  // The role, email and single-link controls sit behind "More invite
-  // options", under the named co-planner invites.
-  const [showMoreInviteOptions, setShowMoreInviteOptions] = useState(false);
-  const [collaborators, setCollaborators] = useState<TripCollaborator[]>([]);
-  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
-  const [inviteCopied, setInviteCopied] = useState(false);
-  const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);
-  const [isLoadingCollaborators, setIsLoadingCollaborators] = useState(false);
-
-  // Email-invite state. Empty recipient = legacy shareable-link path.
-  // Filled = single-recipient invite via the new /api/trips/[id]/invites
-  // recipientEmail parameter (see app/api/trips/[id]/invites/route.ts).
-  const [emailRecipient, setEmailRecipient] = useState("");
-  const [emailMessage, setEmailMessage] = useState("");
-  const [emailOutcome, setEmailOutcome] = useState<string | null>(null);
-
-  // Current user from AuthContext: `canManage` compares it with the owner,
-  // which shows the role dropdown and the remove button.
-  const { user: authUser } = useAuth();
-  const currentUserId = authUser?.id ?? null;
-
-  const fetchCollaborators = useCallback(async () => {
-    setIsLoadingCollaborators(true);
-    try {
-      const response = await fetch(`/api/trips/${tripId}/collaborators`);
-      if (response.ok) {
-        const data = await response.json();
-        setCollaborators(data.collaborators || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch collaborators:", error);
-    } finally {
-      setIsLoadingCollaborators(false);
-    }
-  }, [tripId]);
+  const invites = useTripInvites(tripId);
+  const { collaborators, reopen: reopenInvites } = invites;
 
   // Reset state when modal opens
   useEffect(() => {
@@ -154,8 +114,6 @@ export default function ShareAndInviteModal({
       setCopied(false);
       setShowStopConfirm(false);
       setTrendingEnabled(isInTrending);
-      setInviteUrl(null);
-      setInviteCopied(false);
 
       // Track modal opened
       trackShareModalOpened({
@@ -163,10 +121,9 @@ export default function ShareAndInviteModal({
         tripDestination: tripTitle,
       });
 
-      // Fetch collaborators
-      fetchCollaborators();
+      reopenInvites();
     }
-  }, [isOpen, initialTab, isInTrending, tripId, tripTitle, fetchCollaborators]);
+  }, [isOpen, initialTab, isInTrending, tripId, tripTitle, reopenInvites]);
 
   // The desktop dialog's Escape, scroll lock, focus and Tab. On mobile the
   // BottomSheet is the dialog and does all of this itself.
@@ -264,147 +221,6 @@ export default function ShareAndInviteModal({
       addToast(ts("image.failed"), "error");
     } finally {
       setImageBusy(null);
-    }
-  };
-
-  // Generate invite link
-  const handleGenerateInvite = async () => {
-    setIsGeneratingInvite(true);
-    setEmailOutcome(null);
-
-    // Build the request body. When emailRecipient is set, the server-side
-    // path forces single-use, sends an email (or skip-logs it if Resend
-    // isn't configured), and returns emailOutcome on the response. Empty
-    // recipient = legacy shareable-link behavior.
-    const trimmedEmail = emailRecipient.trim();
-    const trimmedMessage = emailMessage.trim();
-    const body: Record<string, unknown> = { role: selectedRole };
-    if (trimmedEmail) body.recipientEmail = trimmedEmail;
-    if (trimmedMessage) body.message = trimmedMessage;
-
-    try {
-      const response = await fetch(`/api/trips/${tripId}/invites`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setInviteUrl(data.invite.inviteUrl);
-        if (data.emailOutcome) {
-          setEmailOutcome(data.emailOutcome);
-          if (data.emailOutcome === "sent") {
-            addToast(ts("inviteEmail.toastSent", { email: trimmedEmail }), "success");
-          } else if (data.emailOutcome === "skipped_no_key") {
-            addToast(ts("inviteEmail.toastNoKey"), "info");
-          } else if (data.emailOutcome === "skipped_suppressed") {
-            addToast(ts("inviteEmail.toastSuppressed"), "warning");
-          } else if (data.emailOutcome === "failed") {
-            addToast(ts("inviteEmail.toastFailed"), "warning");
-          } else {
-            addToast(ts("toast.inviteCreated"), "success");
-          }
-        } else {
-          addToast(ts("toast.inviteCreated"), "success");
-        }
-        // Reset the email fields after a successful send so the user
-        // can either invite someone else or use the link they got back.
-        setEmailRecipient("");
-        setEmailMessage("");
-      } else {
-        const error = await response.json();
-        console.error("Failed to generate invite:", error);
-        // The route explains in English for its logs; with an address typed, a 400 is that address.
-        addToast(ts(response.status === 400 && trimmedEmail ? "toast.inviteEmailInvalid" : "toast.inviteCreateFailed"), "error");
-      }
-    } catch (error) {
-      console.error("Failed to generate invite:", error);
-      addToast(ts("toast.networkError"), "error");
-    } finally {
-      setIsGeneratingInvite(false);
-    }
-  };
-
-  // Copy invite URL with fallback for older browsers
-  const handleCopyInviteUrl = async () => {
-    if (!inviteUrl) return;
-    try {
-      // Try modern clipboard API first
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(inviteUrl);
-      } else {
-        // Fallback for non-secure contexts or older browsers
-        const textArea = document.createElement("textarea");
-        textArea.value = inviteUrl;
-        textArea.style.position = "fixed";
-        textArea.style.left = "-999999px";
-        textArea.style.top = "-999999px";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        document.execCommand("copy");
-        textArea.remove();
-      }
-      setInviteCopied(true);
-      setTimeout(() => setInviteCopied(false), 2000);
-      addToast(ts("toast.collaborationCopied"), "success");
-    } catch (error) {
-      console.error("Failed to copy:", error);
-      addToast(ts("toast.copyFailed"), "error");
-    }
-  };
-
-  // Removing someone or lowering their role switches off the trip's open
-  // invite links on the server, so the link on screen no longer works: clear
-  // it and say so.
-  const noteInvitesReset = (count: number | undefined) => {
-    if (!count) return;
-    setInviteUrl(null);
-    addToast(ts("toast.linksReset"), "info");
-  };
-
-  // Update collaborator role
-  const handleRoleChange = async (userId: string, newRole: CollaboratorRole) => {
-    try {
-      const response = await fetch(`/api/trips/${tripId}/collaborators/${userId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: newRole }),
-      });
-
-      if (response.ok) {
-        const data = (await response.json().catch(() => null)) as { invitesReset?: number } | null;
-        await fetchCollaborators();
-        addToast(ts("toast.roleUpdated", { role: t(`roles.${newRole}.label`) }), "success");
-        noteInvitesReset(data?.invitesReset);
-      } else {
-        addToast(ts("toast.roleUpdateFailed"), "error");
-      }
-    } catch (error) {
-      console.error("Failed to update role:", error);
-      addToast(ts("toast.roleUpdateFailed"), "error");
-    }
-  };
-
-  // Remove collaborator
-  const handleRemoveCollaborator = async (userId: string) => {
-    try {
-      const response = await fetch(`/api/trips/${tripId}/collaborators/${userId}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        const data = (await response.json().catch(() => null)) as { invitesReset?: number } | null;
-        await fetchCollaborators();
-        addToast(ts("toast.memberRemoved"), "success");
-        noteInvitesReset(data?.invitesReset);
-      } else {
-        addToast(ts("toast.memberRemoveFailed"), "error");
-      }
-    } catch (error) {
-      console.error("Failed to remove collaborator:", error);
-      addToast(ts("toast.memberRemoveFailed"), "error");
     }
   };
 
@@ -696,199 +512,7 @@ export default function ShareAndInviteModal({
                 )}
               </div>
             ) : (
-              // INVITE TAB - Collaboration
-              <div className="space-y-6">
-                <CoPlannerInvites tripId={tripId} tripTitle={tripTitle} surface="invite_tab" />
-
-                <button
-                  type="button"
-                  onClick={() => setShowMoreInviteOptions((open) => !open)}
-                  aria-expanded={showMoreInviteOptions}
-                  className="text-sm font-medium text-slate-700 underline-offset-2 hover:text-slate-900 hover:underline"
-                >
-                  {ts("coplanners.moreOptions")}
-                </button>
-
-                {showMoreInviteOptions && (
-                <>
-                {/* Context hint */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-100">
-                  <UserPlus className="w-4 h-4 text-[var(--primary-ink)] flex-shrink-0" />
-                  <p className="text-xs text-blue-700">
-                    <span className="font-medium">{ts("invite.collaborateLabel")}:</span> {ts("invite.collaborateHint")}
-                  </p>
-                </div>
-
-                {/* Role Selection */}
-                <RoleSelector
-                  selectedRole={selectedRole}
-                  onRoleChange={setSelectedRole}
-                  disabled={isGeneratingInvite}
-                />
-
-                {/* Optional email invite fields — leave blank for a
-                    shareable-link invite (legacy behavior). Filling
-                    these turns it into a single-recipient email send
-                    via the /api/trips/[id]/invites recipientEmail param. */}
-                <div className="space-y-3">
-                  <div>
-                    <label
-                      htmlFor="invite-email"
-                      className="block text-sm font-medium text-slate-700 mb-1.5"
-                    >
-                      {ts("inviteEmail.sendTo")}
-                    </label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        id="invite-email"
-                        type="email"
-                        autoComplete="off"
-                        placeholder="friend@example.com"
-                        value={emailRecipient}
-                        onChange={(e) => setEmailRecipient(e.target.value)}
-                        disabled={isGeneratingInvite}
-                        className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors"
-                      />
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {ts("inviteEmail.leaveBlank")}
-                    </p>
-                  </div>
-                  {emailRecipient.trim() && (
-                    <div>
-                      <label
-                        htmlFor="invite-message"
-                        className="block text-sm font-medium text-slate-700 mb-1.5"
-                      >
-                        {ts("inviteEmail.noteLabel")}
-                      </label>
-                      <textarea
-                        id="invite-message"
-                        rows={3}
-                        maxLength={500}
-                        placeholder={ts("inviteEmail.notePlaceholder")}
-                        value={emailMessage}
-                        onChange={(e) => setEmailMessage(e.target.value)}
-                        disabled={isGeneratingInvite}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-colors resize-none"
-                      />
-                      <p className="text-xs text-slate-500 mt-1 text-right">
-                        {emailMessage.length}/500
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Generate Invite */}
-                {!inviteUrl ? (
-                  <button
-                    onClick={handleGenerateInvite}
-                    disabled={isGeneratingInvite}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[var(--primary)] text-white rounded-xl font-medium hover:bg-[var(--primary)]/90 transition-colors disabled:opacity-50"
-                  >
-                    {isGeneratingInvite ? (
-                      <>
-                        <Spinner className="w-5 h-5" />
-                        {ts("invite.generating")}
-                      </>
-                    ) : emailRecipient.trim() ? (
-                      <>
-                        <Mail className="w-5 h-5" />
-                        {ts("inviteEmail.send")}
-                      </>
-                    ) : (
-                      <>
-                        <Users className="w-5 h-5" />
-                        {ts("invite.generateLink")}
-                      </>
-                    )}
-                  </button>
-                ) : (
-                  <div className="p-4 bg-green-50 rounded-xl border border-green-200">
-                    <p className="text-sm font-medium text-green-800 mb-1">
-                      {ts("invite.inviteCreated")}
-                    </p>
-                    {emailOutcome === "sent" && (
-                      <p className="text-xs text-green-700 mb-3">
-                        {ts("inviteEmail.outcomeSent")}
-                      </p>
-                    )}
-                    {emailOutcome === "skipped_no_key" && (
-                      <p className="text-xs text-amber-700 mb-3">
-                        {ts("inviteEmail.outcomeNoKey")}
-                      </p>
-                    )}
-                    {emailOutcome === "skipped_suppressed" && (
-                      <p className="text-xs text-orange-700 mb-3">
-                        {ts("inviteEmail.outcomeSuppressed")}
-                      </p>
-                    )}
-                    {emailOutcome === "failed" && (
-                      <p className="text-xs text-red-700 mb-3">
-                        {ts("inviteEmail.outcomeFailed")}
-                      </p>
-                    )}
-                    {!emailOutcome && <div className="mb-3" />}
-                    <div className="flex items-center gap-2">
-                      <input
-                        aria-label={t("a11y.inviteLink")}
-                        type="text"
-                        value={inviteUrl}
-                        readOnly
-                        className="flex-1 px-3 py-2 border border-green-200 rounded-lg text-sm bg-white text-slate-600 truncate"
-                      />
-                      <button
-                        onClick={handleCopyInviteUrl}
-                        className={cn(
-                          "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                          inviteCopied
-                            ? "bg-green-600 text-white"
-                            : "bg-green-500 text-white hover:bg-green-600"
-                        )}
-                      >
-                        {inviteCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                        {inviteCopied ? tb("copied") : tb("copy")}
-                      </button>
-                    </div>
-                    <button
-                      onClick={() => setInviteUrl(null)}
-                      className="mt-3 text-sm text-green-700 hover:text-green-800 font-medium"
-                    >
-                      {ts("invite.generateAnother")}
-                    </button>
-                  </div>
-                )}
-                </>
-                )}
-
-                {/* Current Collaborators */}
-                {collaborators.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium text-slate-700 mb-3">
-                      {ts("invite.teamMembers", { count: collaborators.length })}
-                    </h4>
-                    {isLoadingCollaborators ? (
-                      <div className="flex items-center justify-center py-8">
-                        <Spinner className="w-6 h-6 text-slate-500" />
-                      </div>
-                    ) : (
-                      <div className="space-y-1 max-h-64 overflow-y-auto">
-                        {collaborators.map((collaborator) => (
-                          <CollaboratorRow
-                            key={collaborator.id}
-                            collaborator={collaborator}
-                            isCurrentUser={collaborator.user_id === currentUserId}
-                            canManage={collaborators[0]?.user_id === currentUserId} // First is owner
-                            onRoleChange={handleRoleChange}
-                            onRemove={handleRemoveCollaborator}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-          )}
-        </div>
+              <InviteTab tripId={tripId} tripTitle={tripTitle} invites={invites} />
       )}
     </>
   );
