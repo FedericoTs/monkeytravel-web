@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
  * events and recordings. Our own tables never held those copies.
  */
 
-const remove = vi.fn<(args: { email: string; audienceId: string }) => Promise<{ error: { name: string; message: string } | null }>>(
+const remove = vi.fn<(args: { email: string; audienceId?: string }) => Promise<{ error: { name: string; message: string } | null }>>(
   async () => ({ error: null }),
 );
 vi.mock("resend", () => ({
@@ -48,7 +48,8 @@ async function erase() {
 describe("eraseElsewhere", () => {
   it("removes the Resend contact and the PostHog person", async () => {
     await expect(erase()).resolves.toEqual({ resendContact: "removed", posthogPerson: "removed" });
-    expect(remove).toHaveBeenCalledWith({ email: USER.email, audienceId: "aud_1" });
+    // With an audienceId, Resend only takes the contact out of that audience and keeps the address.
+    expect(remove).toHaveBeenCalledWith({ email: USER.email });
 
     const [url, init] = fetchMock.mock.calls[0];
     // The private API is on the app host, not the ingestion host.
@@ -67,8 +68,14 @@ describe("eraseElsewhere", () => {
     await expect(erase()).resolves.toEqual({ resendContact: "absent", posthogPerson: "absent" });
   });
 
-  it("skips a service whose keys are not set", async () => {
+  it("removes the contact without an audience set", async () => {
     vi.stubEnv("RESEND_AUDIENCE_ID", "");
+    await expect(erase()).resolves.toMatchObject({ resendContact: "removed" });
+    expect(remove).toHaveBeenCalledWith({ email: USER.email });
+  });
+
+  it("skips a service whose keys are not set", async () => {
+    vi.stubEnv("RESEND_API_KEY", "");
     vi.stubEnv("POSTHOG_PERSONAL_API_KEY", "");
     await expect(erase()).resolves.toEqual({ resendContact: "skipped", posthogPerson: "skipped" });
     expect(remove).not.toHaveBeenCalled();

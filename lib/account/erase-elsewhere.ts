@@ -27,10 +27,11 @@ export async function eraseElsewhere(user: { id: string; email: string }): Promi
 
 async function removeResendContact(email: string): Promise<EraseOutcome> {
   const apiKey = process.env.RESEND_API_KEY;
-  const audienceId = process.env.RESEND_AUDIENCE_ID;
-  if (!apiKey || !audienceId) return "skipped";
+  if (!apiKey) return "skipped";
   try {
-    const { error } = await new Resend(apiKey).contacts.remove({ email, audienceId });
+    // Without an audienceId: with one, Resend only takes the contact out of that
+    // audience, reports it deleted, and keeps the address.
+    const { error } = await new Resend(apiKey).contacts.remove({ email });
     if (!error) return "removed";
     if (error.name === "not_found") return "absent";
     console.error("[Account erase] Resend contact removal failed:", error.message);
