@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
-import { logApiCall } from "@/lib/api-gateway";
+import { blockedCall, checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { withinAnonDailyLimit } from "@/lib/ai/anon-daily-limit";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { isModelOutOfCredit } from "@/lib/ai/model-outage";
 import {
@@ -10,6 +11,7 @@ import {
 } from "@/lib/ai/packing-list";
 import { createClient } from "@/lib/supabase/server";
 import { readJsonBody } from "@/lib/api/json-body";
+import { createRateLimiter } from "@/lib/api/rate-limit";
 import { tripSpanDays } from "@/lib/dates/iso-date";
 
 /**
@@ -33,39 +35,13 @@ import { tripSpanDays } from "@/lib/dates/iso-date";
  *   { "list": { categories: [...], contextNote: "..." } }
  *
  * Response 400: validation error
- * Response 429: rate-limit hit (basic per-IP cap)
- * Response 503: AI failure
+ * Response 429: rate-limit hit (per network signed out, per account signed in)
+ * Response 503: AI failure, or Gemini's kill switch or daily limit said no
  */
 
-// Per-process in-memory rate limit. Good enough for an anonymous tool
-// where we just want to slow down obvious abuse, not enforce a strict
-// per-user quota. Vercel functions can warm-start so this isn't
-// perfect — if abuse becomes a problem, swap for a Redis bucket.
-const ipBuckets = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const RATE_LIMIT_PER_IP = 10; // 10 lists per hour per IP
-
-function clientIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-    req.headers.get("x-real-ip") ||
-    "unknown"
-  );
-}
-
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
-  const now = Date.now();
-  const bucket = ipBuckets.get(ip);
-  if (!bucket || bucket.resetAt < now) {
-    ipBuckets.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return { allowed: true, remaining: RATE_LIMIT_PER_IP - 1 };
-  }
-  if (bucket.count >= RATE_LIMIT_PER_IP) {
-    return { allowed: false, remaining: 0 };
-  }
-  bucket.count += 1;
-  return { allowed: true, remaining: RATE_LIMIT_PER_IP - bucket.count };
-}
+const HOUR_MS = 60 * 60 * 1000;
+const anonLimiter = createRateLimiter("packing-list", 10, HOUR_MS);
+const accountLimiter = createRateLimiter("packing-list-account", 40, HOUR_MS);
 
 const VALID_STYLES = ["city", "beach", "adventure", "business", "wellness", "mixed"];
 // Every app locale, or its users get 400s.
@@ -90,25 +66,20 @@ function safeTranslate(
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  const ip = clientIp(request);
 
-  // Auth is optional — we just read it for usage tracking.
+  // Auth is optional: it picks the allowance, and goes in the usage log.
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   const isAnonymous = user === null;
 
-  // Anonymous rate-limit; authed users skip (they're already on the
-  // hook for their account quota elsewhere).
-  if (isAnonymous) {
-    const limit = checkRateLimit(ip);
-    if (!limit.allowed) {
-      return errors.rateLimit(
-        "Free hourly limit reached. Sign up to keep using the Packing List Generator.",
-        { signupUrl: "/auth/signup" }
-      );
-    }
+  const { allowed } = await (user ? accountLimiter.check(request, user.id) : anonLimiter.check(request));
+  if (!allowed) {
+    return errors.rateLimit(
+      "Free hourly limit reached. Sign up to keep using the Packing List Generator.",
+      { signupUrl: "/auth/signup" }
+    );
   }
 
   const { body, invalidBody } = await readJsonBody<Record<string, unknown>>(request);
@@ -120,7 +91,7 @@ export async function POST(request: NextRequest) {
   const travelStyle =
     typeof body.travelStyle === "string" ? body.travelStyle : "city";
   const activities = Array.isArray(body.activities)
-    ? body.activities.filter((a): a is string => typeof a === "string").slice(0, 12)
+    ? body.activities.filter((a): a is string => typeof a === "string").slice(0, 12).map((a) => a.slice(0, 60))
     : [];
   const locale = typeof body.locale === "string" ? body.locale : "en";
 
@@ -145,6 +116,23 @@ export async function POST(request: NextRequest) {
   if (!VALID_LOCALES.includes(locale)) {
     return errors.badRequest(
       `locale must be one of: ${VALID_LOCALES.join(", ")}`
+    );
+  }
+
+  const access = await checkApiAccess("gemini");
+  if (!access.allowed) {
+    return blockedCall(access, {
+      apiName: "gemini",
+      endpoint: "/api/tools/packing-list",
+      startTime,
+      metadata: { user_id: user?.id ?? "anonymous", is_anonymous: isAnonymous },
+      disabled: "The packing list tool is currently disabled",
+    });
+  }
+  if (isAnonymous && !(await withinAnonDailyLimit())) {
+    return errors.rateLimit(
+      "Free daily limit reached. Sign up to keep using the Packing List Generator.",
+      { signupUrl: "/auth/signup" }
     );
   }
 
