@@ -1,7 +1,8 @@
 /**
  * "Here's the plan": sent once per trip to an address someone gives on the
  * trip's share link (lib/participants/plan-email.ts). It hands them the link,
- * so the plan is in their inbox and not only in the chat it was sent to.
+ * so the plan is in their inbox and not only in the chat it was sent to. A kept
+ * plan's link goes out in the same email (lib/plans/kept-plan-email.ts).
  *
  * String props only, like TripDayDigest: the sender passes translated copy.
  */
@@ -20,12 +21,12 @@ export interface ParticipantPlanEmailProps {
   /** The daily-plan line, only while those emails go to participants. */
   digestLine?: string;
   ctaLabel: string;
-  /** The share link the email was given on. */
+  /** The link to the plan. */
   planUrl: string;
-  /** Why they get this, and the label of the link that stops it. */
+  /** Why they get this, and the label of the footer's link. */
   footerReason: string;
   footerLink: string;
-  /** Their link that stops this trip's emails. */
+  /** The footer's link: what stops this trip's emails, or the privacy policy when nothing follows. */
   unsubscribeUrl?: string;
   locale?: EmailLocale;
 }

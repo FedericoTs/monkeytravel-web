@@ -83,7 +83,19 @@
       "linkHint": "Kept for 30 days. The link opens this plan on any device, and anyone you send it to can see it.",
       "headerNudge": "{count, plural, one {# day} other {# days}} planned — kept for 30 days",
       "mobileNudge": "{count, plural, one {# day} other {# days}} planned — kept for 30 days on a private link",
-      "gone": "That plan's link has expired. Plans are kept for 30 days after they were last opened."
+      "gone": "That plan's link has expired. Plans are kept for 30 days after they were last opened.",
+      "emailAction": "Email me this plan",
+      "emailPill": "Email it",
+      "emailOffer": "Not ready for an account? We can email you the link to this plan.",
+      "emailNote": "No account needed. We'll only send this one email.",
+      "emailLabel": "Your email",
+      "emailPlaceholder": "you@example.com",
+      "emailSend": "Send",
+      "emailSending": "Sending…",
+      "emailSent": "Sent to {email}. The link opens this plan on any device.",
+      "emailInvalid": "That address doesn't look right. Check it and try again.",
+      "emailLimited": "Too many emails for now. Try again later, or copy the link instead.",
+      "emailFailed": "That didn't send. Try again, or copy the link instead."
     },
     "draftRecovery": {
       "title": "Unsaved trip found",
