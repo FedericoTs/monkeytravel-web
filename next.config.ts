@@ -188,9 +188,14 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         headers: securityHeaders,
       },
-      // Signed day links (/day/<trip>/<date>?k=...) carry their key in the URL:
-      // never send it on as a Referer, never index the page.
-      ...['/day/:path*', '/:locale(es|it|pt)/day/:path*'].map((source) => ({
+      // Signed links (/day/<trip>/<date>?k=..., /feedback/<token>) carry their
+      // key in the URL: never send it on as a Referer, never index the page.
+      ...[
+        '/day/:path*',
+        '/:locale(es|it|pt)/day/:path*',
+        '/feedback/:path*',
+        '/:locale(es|it|pt)/feedback/:path*',
+      ].map((source) => ({
         source,
         headers: [
           { key: 'Referrer-Policy', value: 'no-referrer' },

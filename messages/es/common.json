@@ -47,6 +47,34 @@
     "q7_maybe": "Quizá",
     "q7_no": "No, la web me vale"
   },
+  "didYouGo": {
+    "title": "¿Fuiste?",
+    "yesTitle": "Nos alegra que fueras",
+    "noTitle": "Gracias por contárnoslo",
+    "noted": "Hemos anotado tu respuesta.",
+    "yesQuestion": "¿Hubo algo mal en el plan?",
+    "noQuestion": "¿Qué lo impidió?",
+    "reason_none": "No, estuvo bien",
+    "reason_closed": "Un sitio estaba cerrado",
+    "reason_packed": "Los días estaban demasiado llenos",
+    "reason_times": "Los horarios o las distancias no cuadraban",
+    "reason_other": "Otra cosa",
+    "reason_changed": "Cambiaron mis planes",
+    "reason_elsewhere": "Fui a otro sitio",
+    "reason_later": "Todavía pienso ir, más adelante",
+    "reason_plan": "El plan no era el adecuado",
+    "noteLabel": "¿Algo que añadir? (opcional)",
+    "send": "Enviar",
+    "sending": "Enviando...",
+    "error": "No hemos podido guardarlo. Inténtalo de nuevo.",
+    "tryAgain": "Reintentar",
+    "thanksTitle": "Gracias",
+    "thanksBody": "Esto nos ayuda a hacer mejores planes.",
+    "nextTrip": "Planea tu próximo viaje",
+    "moreLink": "¿Tienes un minuto más? Ayúdanos a mejorar MonkeyTravel",
+    "disclosure": "Usamos tus respuestas para mejorar MonkeyTravel. Consulta nuestra",
+    "privacyPolicy": "Política de privacidad"
+  },
   "navigation": {
     "features": "Características",
     "howItWorks": "Cómo Funciona",
@@ -2626,9 +2654,10 @@
   },
   "tripFollowupEmail": {
     "followup_return_3d": {
-      "heading": "¿Qué tal {destination}?",
-      "body": "Tu viaje terminó el {endDate}. Nos encantaría un minuto de tu opinión sincera: cómo usas MonkeyTravel y qué casi te hizo dejarlo. Es la forma más rápida de que mejoremos.",
-      "cta": "Cuéntanos tu experiencia"
+      "heading": "¿Al final fuiste a {destination}?",
+      "body": "Tu viaje estaba previsto hasta el {endDate}. Con un toque nos dices si el plan llegó a usarse, y así lo mejoramos.",
+      "cta": "Sí, fui",
+      "ctaNo": "No, no fui"
     },
     "followup_next_21d": {
       "heading": "¿Pensando en el próximo?",

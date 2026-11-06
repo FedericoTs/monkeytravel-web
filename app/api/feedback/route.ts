@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { verifyFeedbackToken } from "@/lib/feedback/token";
+import { isWentAnswer, isWentReason } from "@/lib/feedback/went";
 import { readJsonBody } from "@/lib/api/json-body";
 
 /**
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
   // no session), else the logged-in user. A present-but-invalid/expired token
   // is rejected rather than silently falling back to an anonymous row.
   let tokenUserId: string | null = null;
+  let tokenTripId: string | null = null;
   let viaToken = false;
   if (typeof body.token === "string" && body.token) {
     const v = verifyFeedbackToken(body.token);
@@ -65,6 +67,7 @@ export async function POST(request: NextRequest) {
       return errors.badRequest("This feedback link is invalid or has expired.");
     }
     tokenUserId = v.userId;
+    tokenTripId = v.tripId ?? null;
     viaToken = true;
   }
   const effectiveUserId = tokenUserId ?? user?.id ?? null;
@@ -110,12 +113,22 @@ export async function POST(request: NextRequest) {
     typeof body.pretrip_content === "string" ? body.pretrip_content : "";
   const pretripContent = WOULD.includes(pretripRaw as never) ? pretripRaw : null;
 
+  // "Did you go?" (lib/feedback/went.ts) is about the trip the signed link names.
+  const went = tokenTripId && isWentAnswer(body.went) ? body.went : null;
+
   // Only set keys that were actually answered — an `extra` full of nulls makes
   // every later `->>` query ambiguous about "unanswered" vs "answered nothing".
   const extra: Record<string, string> = {};
   if (foundVia) extra.found_via = foundVia;
   if (pretripContent) extra.pretrip_content = pretripContent;
   if (mobileApp) extra.mobile_app = mobileApp;
+  if (went && tokenTripId) {
+    extra.trip_id = tokenTripId;
+    extra.went = went;
+    if (isWentReason(went, body.went_reason)) extra.went_reason = body.went_reason;
+    const note = clean(body.went_note, 500);
+    if (note) extra.went_note = note;
+  }
 
   // Don't persist empty rows — require at least one substantive answer.
   if (
@@ -126,6 +139,7 @@ export async function POST(request: NextRequest) {
     !foundVia &&
     !pretripContent &&
     !mobileApp &&
+    !went &&
     !(openToChat && contactEmail)
   ) {
     return apiSuccess({ saved: false });
