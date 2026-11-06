@@ -235,6 +235,9 @@ export interface LocalDestinationPrediction {
 
 type CuratedPlace = { id: string; name: string; country: string; latitude: number | null; longitude: number | null };
 
+const placeKey = (p: { mainText: string; secondaryText?: string }) =>
+  `${p.mainText.toLowerCase()}|${(p.secondaryText || "").toLowerCase()}`;
+
 function toPrediction(dest: CuratedPlace): LocalDestinationPrediction {
   const countryCode = getCountryCode(dest.country);
   return {
@@ -338,12 +341,7 @@ export async function POST(request: NextRequest) {
           if (geoErr) {
             console.warn("[Destinations Search] geo_cities RPC error:", geoErr.message);
           } else if (Array.isArray(geo)) {
-            const seen = new Set(
-              predictions.map(
-                (p) =>
-                  `${p.mainText.toLowerCase()}|${(p.secondaryText || "").toLowerCase()}`
-              )
-            );
+            const seen = new Set(predictions.map(placeKey));
             for (const g of geo as Array<{
               id: number;
               name: string;
@@ -395,8 +393,10 @@ export async function POST(request: NextRequest) {
           .select("id, name, country, latitude, longitude")
           .order("rating", { ascending: false })
       );
-      const close = closeMatches(searchTerm, (curated ?? []) as CuratedPlace[], normalizeForGeo);
-      predictions.unshift(...close.map(toPrediction));
+      const close = closeMatches(searchTerm, (curated ?? []) as CuratedPlace[], normalizeForGeo).map(toPrediction);
+      const kept = new Set(close.map(placeKey));
+      const others = predictions.filter((p) => !kept.has(placeKey(p)));
+      predictions.splice(0, predictions.length, ...close, ...others);
       predictions.length = Math.min(predictions.length, limit);
     }
 
