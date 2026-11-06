@@ -1,3 +1,5 @@
+import type { CreditEstimate } from "@/lib/ops/gemini-credit";
+
 export interface EnhancedCostAnalytics {
   // Summary metrics
   summary: {
@@ -107,6 +109,9 @@ export interface EnhancedCostAnalytics {
     cacheHit: boolean;
     error?: string;
   }[];
+
+  // What's left of the prepaid Gemini credit, once a balance has been typed
+  credit: CreditEstimate | null;
 
   // Timestamp
   generatedAt: string;

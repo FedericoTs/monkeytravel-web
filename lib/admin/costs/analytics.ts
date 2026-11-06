@@ -289,6 +289,7 @@ export function computeCostAnalytics(rows: CostRows, breakers: Record<string, Ci
     hourlyTrend: hourlyTrendOf(rows, now),
     topEndpoints: topEndpointsOf(rows),
     recentActivity: recentActivityOf(rows),
+    credit: rows.credit,
     generatedAt: now.toISOString(),
   };
 }

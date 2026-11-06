@@ -86,6 +86,7 @@ describe("the hourly engine check", () => {
     expect(s.alerts).toHaveLength(1);
     expect(s.alerts[0].lines[0]).toContain("credits");
     expect(s.alerts[0].lines[0]).toContain("https://aistudio.google.com/billing");
+    expect(s.alerts[0].lines[0]).toContain("Costs tab");
   });
 
   it("gives the cause first when people are failing too", async () => {

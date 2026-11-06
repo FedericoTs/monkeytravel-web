@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeSupabase, type FakeQuery } from "@/tests/fake-supabase";
 import type { EnhancedCostAnalytics } from "@/lib/admin/costs/types";
+import { saveCreditReading } from "@/lib/ops/gemini-credit";
 
 /**
  * The Costs tab's numbers cover what it says they cover. The real route runs over
@@ -110,6 +111,7 @@ beforeEach(() => {
   s.thisMonth = [];
   s.lastMonth = [];
   s.lastWeek = [];
+  delete (globalThis as { __geminiCreditReading?: unknown }).__geminiCreditReading;
   s.placesCache = [];
   s.users = [];
   s.log = [];
@@ -205,6 +207,16 @@ describe("the month's estimate", () => {
     const daysLeft = (Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, 1) - NOW) / (24 * 3_600_000);
     expect(body.summary.lastMonthCostUsd).toBe(40);
     expect(body.summary.projectedMonthlyCost).toBeCloseTo(3 + daysLeft, 1);
+  });
+});
+
+describe("the Gemini credit", () => {
+  it("is estimated once a balance is typed, and not before", async () => {
+    expect((await costs()).body.credit).toBeNull();
+    await saveCreditReading({ usd: 50, at: hoursAgo(2) });
+    s.lastWeek = [{ api_name: "gemini", unit_usd: 0.01, calls: 700, usd: 7 }];
+    const { body } = await costs();
+    expect(body.credit).toMatchObject({ usd: 43, perDayUsd: 1, lasts: "about 43 days", low: false });
   });
 });
 

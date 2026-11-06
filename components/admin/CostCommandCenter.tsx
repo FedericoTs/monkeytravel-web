@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { EnhancedCostAnalytics } from "@/lib/admin/costs/types";
 import { MetricCard } from "@/components/admin/costs/MetricCard";
+import { GeminiCreditPanel } from "@/components/admin/costs/GeminiCreditPanel";
 import { CircuitBreakerPanel } from "@/components/admin/costs/CircuitBreakerPanel";
 import { PerformancePanel } from "@/components/admin/costs/PerformancePanel";
 import { CachePanel } from "@/components/admin/costs/CachePanel";
@@ -209,6 +210,8 @@ export default function CostCommandCenter() {
           color="success"
         />
       </div>
+
+      <GeminiCreditPanel credit={data.credit} onSaved={fetchData} />
 
       {/* System Health & Performance Row */}
       <div className="grid lg:grid-cols-3 gap-6">

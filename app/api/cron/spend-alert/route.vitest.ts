@@ -21,6 +21,10 @@ vi.mock("@supabase/supabase-js", () => ({
     },
   }),
 }));
+const readCreditEstimate = vi.fn<() => Promise<unknown>>(async () => null);
+vi.mock("@/lib/ops/gemini-credit", () => ({
+  readCreditEstimate: () => readCreditEstimate(),
+}));
 vi.mock("@/lib/ops/alert", () => ({
   sendOpsAlert: (subject: string, lines: string[]) => sendOpsAlert(subject, lines),
 }));
@@ -54,10 +58,65 @@ beforeEach(() => {
   vi.setSystemTime(new Date("2026-10-12T06:20:00Z"));
   rpc.mockReset();
   sendOpsAlert.mockClear();
+  readCreditEstimate.mockReset();
+  readCreditEstimate.mockResolvedValue(null);
 });
 
 afterEach(() => {
   vi.useRealTimers();
+});
+
+describe("the Gemini credit", () => {
+  const credit = {
+    reading: { usd: 50, at: "2026-11-05T15:00:00.000Z" },
+    spentUsd: 41.8,
+    usd: 8.2,
+    perDayUsd: 1.4,
+    lasts: "about 5 days",
+    low: true,
+  };
+
+  it("emails when it's running low: how much, how long, and what to do", async () => {
+    serve([], []);
+    readCreditEstimate.mockResolvedValue(credit);
+    const { status, body } = await run();
+    expect(status).toBe(200);
+    expect(body.creditAlerted).toBe(true);
+    expect(sendOpsAlert).toHaveBeenCalledTimes(1);
+    const [subject, lines] = sendOpsAlert.mock.calls[0];
+    expect(subject).toContain("Gemini credit");
+    expect(subject).toContain("$8.20");
+    const text = lines.join("\n");
+    expect(text).toContain("about 5 days");
+    expect(text).toContain("$50.00");
+    expect(text).toContain("2026-11-05");
+    expect(text).toContain("$41.80");
+    expect(text).toContain("https://aistudio.google.com/billing");
+    expect(text).toContain("Costs tab");
+  });
+
+  it("leaves the days out when it can't tell", async () => {
+    serve([], []);
+    readCreditEstimate.mockResolvedValue({ ...credit, usd: 0, lasts: null });
+    await run();
+    expect(sendOpsAlert.mock.calls[0][1].join("\n")).not.toContain("pace");
+  });
+
+  it("stays quiet with plenty left, and with no balance typed", async () => {
+    serve([], []);
+    readCreditEstimate.mockResolvedValue({ ...credit, usd: 40, lasts: "about 28 days", low: false });
+    expect((await run()).body.creditAlerted).toBe(false);
+    readCreditEstimate.mockResolvedValue(null);
+    expect((await run()).body.creditAlerted).toBe(false);
+    expect(sendOpsAlert).not.toHaveBeenCalled();
+  });
+
+  it("sends both emails on a day that needs both", async () => {
+    serve([], [group("gemini", 0.5, 41)]);
+    readCreditEstimate.mockResolvedValue(credit);
+    await run();
+    expect(sendOpsAlert).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("spend alert", () => {
