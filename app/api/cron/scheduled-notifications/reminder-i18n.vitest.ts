@@ -7,8 +7,7 @@ import {
   resolveLocale,
   formatDateRange,
   formatDayMonth,
-  type ReminderLocale,
-} from "@/lib/email/reminder-locale";
+  type ReminderLocale, tripEmailLocale } from "@/lib/email/reminder-locale";
 
 /**
  * Guards the trip-reminder email copy against the bug that shipped it broken
@@ -271,6 +270,17 @@ describe("locale routing reaches every locale the app supports", () => {
     expect(resolveLocale("pt_PT")).toBe("pt");
     expect(resolveLocale("ES-419")).toBe("es");
     expect(resolveLocale(" it ")).toBe("it");
+  });
+
+  it("writes about a trip in the trip's language when the stored English may only be the default", () => {
+    expect(tripEmailLocale("en", "it")).toBe("it");
+    expect(tripEmailLocale(null, "pt")).toBe("pt");
+    // Someone who has another language keeps it.
+    expect(tripEmailLocale("es", "en")).toBe("es");
+    expect(tripEmailLocale("es", "it")).toBe("es");
+    // Nothing to go on.
+    expect(tripEmailLocale("en", null)).toBe("en");
+    expect(tripEmailLocale(null, undefined)).toBe("en");
   });
 
   it("falls back to English for null, empty and unsupported values", () => {
