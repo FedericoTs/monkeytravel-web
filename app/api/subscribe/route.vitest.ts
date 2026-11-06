@@ -73,7 +73,7 @@ describe("joining the waitlist", () => {
       source: "footer",
       metadata: { userAgent: "Mozilla/5.0", referer: "https://monkeytravel.app/waitlist", timestamp: expect.any(String) },
     });
-    expect(await res.json()).toEqual({ message: "Successfully joined the waitlist!", id: "sub-1" });
+    expect(await res.json()).toEqual({ message: "Successfully joined the waitlist!" });
   });
 
   it("marks a row as from the website when no source is given", async () => {
@@ -108,12 +108,12 @@ describe("what it refuses", () => {
     expect((await subscribe({ email: "person@mail.example.com" }, "198.51.100.2")).status).toBe(201);
   });
 
-  it.skip("refuses an oversized address, writing nothing", async () => {
+  it("refuses an oversized address, writing nothing", async () => {
     expect((await subscribe({ email: `${"a".repeat(1_000_000)}@mail.example.com` })).status).toBe(400);
     expect(service.log).toEqual([]);
   });
 
-  it.skip("refuses a source that isn't a short piece of text, writing nothing", async () => {
+  it("refuses a source that isn't a short piece of text, writing nothing", async () => {
     expect((await subscribe({ email: "person@mail.example.com", source: "x".repeat(1_000_000) })).status).toBe(400);
     expect((await subscribe({ email: "person@mail.example.com", source: { any: "object" } })).status).toBe(400);
     expect(service.log).toEqual([]);
@@ -133,12 +133,12 @@ describe("an address already on the list", () => {
     expect(service.log.map((q) => q.op)).toEqual(["insert"]);
   });
 
-  it.skip("answers the same as a new address, so nobody can test who's on the list", async () => {
+  it("answers the same as a new address, so nobody can test who's on the list", async () => {
     const fresh = await (await subscribe({ email: "new@mail.example.com" })).json();
     s.insert = { data: null, error: { code: "23505", message: "duplicate key" } };
     const repeat = await subscribe({ email: "person@mail.example.com" });
     expect(repeat.status).toBe(201);
-    expect((await repeat.json()).message).toBe(fresh.message);
+    expect(await repeat.json()).toEqual(fresh);
   });
 });
 
