@@ -47,6 +47,34 @@
     "q7_maybe": "Talvez",
     "q7_no": "Não, o site resolve"
   },
+  "didYouGo": {
+    "title": "Você foi?",
+    "yesTitle": "Que bom que você foi",
+    "noTitle": "Obrigado por nos contar",
+    "noted": "Anotamos sua resposta.",
+    "yesQuestion": "Algo estava errado no plano?",
+    "noQuestion": "O que atrapalhou?",
+    "reason_none": "Não, estava bom",
+    "reason_closed": "Um lugar estava fechado",
+    "reason_packed": "Os dias estavam cheios demais",
+    "reason_times": "Horários ou distâncias não batiam",
+    "reason_other": "Outra coisa",
+    "reason_changed": "Meus planos mudaram",
+    "reason_elsewhere": "Fui para outro lugar",
+    "reason_later": "Ainda vou, mais para frente",
+    "reason_plan": "O plano não era o certo",
+    "noteLabel": "Algo a acrescentar? (opcional)",
+    "send": "Enviar",
+    "sending": "Enviando...",
+    "error": "Não conseguimos salvar. Tente de novo.",
+    "tryAgain": "Tentar de novo",
+    "thanksTitle": "Obrigado",
+    "thanksBody": "Isso nos ajuda a criar planos melhores.",
+    "nextTrip": "Planeje sua próxima viagem",
+    "moreLink": "Tem mais um minuto? Ajude a melhorar o MonkeyTravel",
+    "disclosure": "Usamos suas respostas para melhorar o MonkeyTravel. Veja nossa",
+    "privacyPolicy": "Política de Privacidade"
+  },
   "navigation": {
     "features": "Recursos",
     "howItWorks": "Como Funciona",
@@ -2626,9 +2654,10 @@
   },
   "tripFollowupEmail": {
     "followup_return_3d": {
-      "heading": "Como foi {destination}?",
-      "body": "Sua viagem terminou em {endDate}. Adoraríamos um minuto da sua opinião sincera: como você usa o MonkeyTravel e o que quase te fez parar. É o jeito mais rápido de a gente melhorar.",
-      "cta": "Conte como foi"
+      "heading": "Você acabou indo para {destination}?",
+      "body": "Sua viagem estava prevista até {endDate}. Com um toque você nos diz se o plano foi usado, e é assim que a gente melhora.",
+      "cta": "Sim, fui",
+      "ctaNo": "Não fui"
     },
     "followup_next_21d": {
       "heading": "Pensando na próxima?",

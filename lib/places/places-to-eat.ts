@@ -1,12 +1,16 @@
 /**
- * A diet trip's places to eat, looked up on Google Maps once the trip is kept:
- * on its owner's first open (app/api/trips/[id]/places-to-eat), and in a day
- * regenerated or added by the assistant. The model names them from memory, and
- * the small places a diet sends it to close and move more often than the sights
- * it knows. In place of one Maps has as closed, or doesn't have, the model
- * offers a few others, and the first Maps has open takes its place. When none
- * is, a closed place leaves the plan, and one Maps doesn't have stays, marked
- * unverified: not finding a small place is no proof it's gone.
+ * A kept trip's places to eat, looked up on Google Maps: on its owner's first
+ * open (app/api/trips/[id]/places-to-eat), and on a diet trip in a day regenerated
+ * or added by the assistant. The model names them from memory, and they close and
+ * move more often than the sights it knows. In place of one Maps has as closed,
+ * the model offers a few others, and the first Maps has open takes its place.
+ * When none is, the closed place leaves the plan.
+ *
+ * A diet trip is held to more, because the small places a diet sends the model
+ * to are the ones it invents: one Maps doesn't have is treated like a closed one,
+ * except that with no open place found it stays, marked unverified. Not finding a
+ * small place is no proof it's gone. On a trip with no diet it stays as it is:
+ * Maps answers too many real places under another name for that to be a signal.
  *
  * Nothing Google answers is kept or shown: the lookup only decides which of
  * the model's places stay.
@@ -189,8 +193,10 @@ async function searchPlaces(textQuery: string, near: Point | null): Promise<Foun
 
 export interface PlacesToEatOptions {
   destination: string;
-  /** The trip's diets; no check without one. */
+  /** The trip's diets; no check without one, unless `withoutDiet`. */
   dietary: string[];
+  /** A kept trip is checked with no diet too, for closed places only. */
+  withoutDiet?: boolean;
   budgetTier: BudgetTier;
   travelStyle?: "classic" | "backpacker";
   language?: SupportedLanguage;
@@ -232,12 +238,13 @@ export interface PlacesToEatCheck {
 }
 
 /**
- * The check for one plan, or null when there is nothing to check: no diet, no
- * Google key, or PLACES_TO_EAT_CHECK set to "false".
+ * The check for one plan, or null when there is nothing to check: no diet (unless
+ * `withoutDiet`), no Google key, or PLACES_TO_EAT_CHECK set to "false".
  */
 export function placesToEatCheck(opts: PlacesToEatOptions): PlacesToEatCheck | null {
   const key = process.env.GOOGLE_PLACES_API_KEY || "";
-  if (!key || process.env.PLACES_TO_EAT_CHECK === "false" || opts.dietary.length === 0) return null;
+  const hasDiet = opts.dietary.length > 0;
+  if (!key || process.env.PLACES_TO_EAT_CHECK === "false" || (!hasDiet && !opts.withoutDiet)) return null;
 
   const searches = new Map<string, Promise<FoundPlace[] | null>>();
   const areaOf = (day: DayInPlan) => (typeof day.city === "string" && day.city ? day.city : opts.destination);
@@ -316,6 +323,7 @@ export function placesToEatCheck(opts: PlacesToEatOptions): PlacesToEatCheck | n
             const status = placeStatus(activity, places);
             if (status === "open") return;
             result[status]++;
+            if (status === "missing" && !hasDiet) return;
             bad.push({ day, activity, area, status });
           }),
         ),

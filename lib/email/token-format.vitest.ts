@@ -60,4 +60,15 @@ describe("signed email link tokens", () => {
       expect(verifyFeedbackToken(token)).toEqual({ ok: true, userId: u });
     }
   });
+
+  it("a feedback token can name a trip, and only the secret's holder can change which", () => {
+    const u = USERS[0];
+    const payload = { u, t: "fb", e: NOW_S + 30 * 86400, r: "trip-1" };
+    const token = spell(payload);
+    expect(signFeedbackToken(u, 30, "trip-1")).toBe(token);
+    expect(verifyFeedbackToken(token)).toEqual({ ok: true, userId: u, tripId: "trip-1" });
+
+    const moved = b64url(Buffer.from(JSON.stringify({ ...payload, r: "trip-2" }), "utf8"));
+    expect(verifyFeedbackToken(`${moved}.${token.split(".")[1]}`)).toEqual({ ok: false, reason: "signature" });
+  });
 });

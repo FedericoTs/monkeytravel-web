@@ -83,6 +83,7 @@ jobs:
           npx playwright test --project=chromium --workers=1 --reporter=list,html,json \
             tests/e2e/key-flows.spec.ts \
             tests/e2e/move-between-days.spec.ts \
+            tests/e2e/offline-trip.spec.ts \
             tests/e2e/participants.spec.ts \
             tests/e2e/today.spec.ts \
             tests/e2e/crew-consensus-writes.spec.ts \

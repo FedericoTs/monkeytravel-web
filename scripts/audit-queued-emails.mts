@@ -407,10 +407,10 @@ async function main() {
 
     const tripUrl = `${APP}/trips/${trip.id}?slot=${row.slot}`;
     // The SHARED builders, not copies — the same ones the cron uses, so this
-    // audit vets the URL that will actually ship (Phase 4.3: return → feedback;
+    // audit vets the URL that will actually ship (return → the answer links;
     // the day-before and departure-day reminders → trip day 1, signed).
     const ctaUrl = isFollowup(row.slot)
-      ? FC.postTripCtaUrl(row.slot, { tripUrl, appUrl: APP, userId: row.user_id, locale })
+      ? FC.postTripCtaUrl(row.slot, { tripUrl, appUrl: APP, userId: row.user_id, locale, tripId: trip.id })
       : RC.reminderCtaUrl(row.slot, { appUrl: APP, locale, tripId: trip.id, startDate: trip.start_date });
 
     const props: any = isFollowup(row.slot)

@@ -25,6 +25,11 @@ describe("page-view classifier", () => {
     expect(classifyPageViewRequest(req("/it/trips/new", { ...NAVIGATION, accept: "text/html" }))).toBe("counted");
   });
 
+  it("counts the return email's answer page, whose token is in the query, not a survey link's token path", () => {
+    expect(classifyPageViewRequest(req("/es/feedback/went", NAVIGATION))).toBe("counted");
+    expect(classifyPageViewRequest(req("/feedback/abc.def", NAVIGATION))).toBe("skip:path");
+  });
+
   it("counts a client that sends no fetch metadata (curl, older engines)", () => {
     expect(classifyPageViewRequest(req("/tools"))).toBe("counted");
   });

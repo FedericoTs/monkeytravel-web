@@ -16,13 +16,14 @@ const limiter = createRateLimiter("places-to-eat", 6, 60 * 60_000);
 const ENDPOINT = "/api/trips/[id]/places-to-eat";
 
 /**
- * A kept diet trip's places to eat, looked up on Google Maps when its owner
- * first opens it (hooks/useKeptTripPlacesToEat.ts): one closed is replaced by
- * an open one or left out, one Maps doesn't have is marked unverified
- * (lib/places/places-to-eat.ts). Once per trip, stamped in trip_meta. The
- * answer lists the changes stored, for the page to make on its own copy.
- * Owner-only. With Gemini's kill switch or daily limit saying no, the check
- * waits: it asks the model for places instead of closed ones, and stays due.
+ * A kept trip's places to eat, looked up on Google Maps when its owner first
+ * opens it (hooks/useKeptTripPlacesToEat.ts): one closed is replaced by an open
+ * one or left out, and on a diet trip one Maps doesn't have is treated much the
+ * same (lib/places/places-to-eat.ts). Once per trip, stamped in trip_meta. The
+ * answer lists the changes stored, for the page to make on its own copy, and
+ * what the page says of them. Owner-only. With Gemini's kill switch or daily
+ * limit saying no, the check waits: it asks the model for places instead of
+ * closed ones, and stays due.
  */
 export async function POST(
   request: NextRequest,
@@ -52,7 +53,7 @@ export async function POST(
     );
     const diets = keptTripDiets(trip.trip_meta, (owner as { preferences?: unknown } | null)?.preferences);
     const today = new Date().toISOString().slice(0, 10);
-    if (!placesToEatCheckDue({ endDate: trip.end_date as string | null, meta: trip.trip_meta }, diets, today)) {
+    if (!placesToEatCheckDue({ endDate: trip.end_date as string | null, meta: trip.trip_meta }, today)) {
       return apiSuccess({ status: "none" });
     }
 
@@ -86,6 +87,7 @@ export async function POST(
       captureServerEvent(user.id, "places_to_eat_checked", {
         trip_id: tripId,
         stored: outcome.status === "checked",
+        has_diet: diets.length > 0,
         checked: result.checked,
         closed: result.closed,
         missing: result.missing,
@@ -116,6 +118,7 @@ export async function POST(
       changes: outcome.changes,
       fromVersion: outcome.fromVersion,
       itineraryVersion: outcome.itineraryVersion,
+      note: outcome.note,
     });
   } catch (error) {
     console.error("[PlacesToEat] Error:", error);

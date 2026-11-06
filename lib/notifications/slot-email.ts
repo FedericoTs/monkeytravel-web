@@ -16,7 +16,7 @@ import {
 } from "@/lib/email/trip-forecast";
 import { tripStartCoordinate } from "@/lib/email/trip-coordinates";
 import { verifyRenderedEmail, blockingDefects, summarizeDefects } from "@/lib/email/verify-render";
-import { postTripCtaUrl } from "@/lib/email/followup-cta";
+import { didNotGoUrl, postTripCtaUrl } from "@/lib/email/followup-cta";
 import { reminderCtaUrl } from "@/lib/email/reminder-cta";
 import { resolveLocale, formatDateRange, formatDayMonth } from "@/lib/email/reminder-locale";
 import {
@@ -124,11 +124,12 @@ export async function sendSlotEmail(
 
   // Where the CTA points: reminderCtaUrl (the trip, or day 1 without sign-in
   // the day before and the morning of departure) and postTripCtaUrl (return →
-  // feedback survey, later slots → wizard), shared with the audit script so it
-  // vets what ships. `slot`, not `utm_source`: a utm_* param on an internal
+  // the answer "yes, I went", later slots → wizard), shared with the audit script
+  // so it vets what ships. `slot`, not `utm_source`: a utm_* param on an internal
   // link overwrites the stored acquisition source.
+  const followupLinks = { tripUrl, appUrl: APP_URL, userId: row.user_id, locale, tripId: trip.id };
   const ctaUrl = followup
-    ? postTripCtaUrl(row.slot as TripFollowupSlot, { tripUrl, appUrl: APP_URL, userId: row.user_id, locale })
+    ? postTripCtaUrl(row.slot as TripFollowupSlot, followupLinks)
     : reminderCtaUrl(row.slot as TripReminderSlot, { appUrl: APP_URL, locale, tripId: trip.id, startDate: trip.start_date });
 
   // Resolve the copy BEFORE handing it to the mailer, so an unresolved key
@@ -154,6 +155,9 @@ export async function sendSlotEmail(
   // slot ("Open your trip" vs "Plan your next trip"), so its cta lives
   // inside the slot. Hence two different lookups, not an inconsistency.
   const ctaLabel = followup ? t("cta") : ctaT("cta");
+  // The return email asks "did you go?", so it has a button for each answer.
+  const noUrl = row.slot === "followup_return_3d" ? didNotGoUrl(followupLinks) : null;
+  const secondCta = noUrl ? { label: t("ctaNo"), url: noUrl } : undefined;
   // Only terminal slots promise "this is the last one", and only they
   // render it. Resolved here so assertTranslated can vet it too.
   const finalNote =
@@ -261,6 +265,7 @@ export async function sendSlotEmail(
     heading,
     body,
     ctaLabel,
+    ...(secondCta ? { secondCtaLabel: secondCta.label } : {}),
     ...(finalNote ? { finalNote } : {}),
     ...(groupAsk ? { groupAskText: groupAsk.text, groupAskLabel: groupAsk.label } : {}),
   });
@@ -290,6 +295,7 @@ export async function sendSlotEmail(
           body,
           ctaLabel,
           ctaUrl,
+          secondCta,
           finalNote,
           contextBlocks,
         },
@@ -336,7 +342,7 @@ export async function sendSlotEmail(
           html,
           destination,
           // The real CTA target: the trip or its day 1 for reminders, the
-          // feedback survey for followup_return_3d, the wizard after it.
+          // answer link for followup_return_3d, the wizard after it.
           ctaUrl,
           contextBlocks,
           // This trip's own enrichment values — the corpus containment is
