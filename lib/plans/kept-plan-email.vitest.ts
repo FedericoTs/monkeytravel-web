@@ -180,7 +180,7 @@ describe("placeForEmail", () => {
   });
 
   it("names nothing for what reads like a link or an address", () => {
-    for (const text of ["evil.com", "visit www.evil.net now", "https://evil.example", "a/b", "me@evil.example", "go to evil.co today"]) {
+    for (const text of ["evil.com", "visit www.evil.net now", "https://evil.example", "a/b", "me@example.com", "go to evil.co today"]) {
       expect(placeForEmail(text), text).toBeNull();
     }
   });
