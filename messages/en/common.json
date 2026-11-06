@@ -1029,7 +1029,7 @@
     "cityBadge": "City",
     "popularDestinations": "Popular destinations",
     "typeToSearch": "Type 3+ chars to search",
-    "fromCuratedList": "From our curated list",
+    "placeSources": "Places from OpenStreetMap and GeoNames",
     "noResultsExciting": "Great pick — we plan trips anywhere",
     "noResultsSupported": "Tap below to keep going. We don't limit destinations — any city, town, or village works.",
     "continueWith": "Continue with {destination} →",

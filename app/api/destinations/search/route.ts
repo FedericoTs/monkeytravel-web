@@ -16,6 +16,8 @@ import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { readJsonBody } from "@/lib/api/json-body";
 import { ilikeSearchTerm } from "@/lib/api/postgrest-filter";
 import { flagEmoji } from "@/lib/utils/flag-emoji";
+import { closeMatches } from "@/lib/destinations/close-matches";
+import { logReadError } from "@/lib/supabase/log-read-error";
 
 // Country name to ISO code mapping
 const countryToCode: Record<string, string> = {
@@ -231,6 +233,29 @@ export interface LocalDestinationPrediction {
   source: "local"; // Always "local" for this endpoint
 }
 
+type CuratedPlace = { id: string; name: string; country: string; latitude: number | null; longitude: number | null };
+
+function toPrediction(dest: CuratedPlace): LocalDestinationPrediction {
+  const countryCode = getCountryCode(dest.country);
+  return {
+    placeId: `local_${dest.id}`,
+    mainText: dest.name,
+    secondaryText: dest.country,
+    fullText: `${dest.name}, ${dest.country}`,
+    countryCode,
+    flag: flagEmoji(countryCode),
+    types: ["(cities)"],
+    coordinates:
+      dest.latitude && dest.longitude
+        ? {
+            latitude: dest.latitude,
+            longitude: dest.longitude,
+          }
+        : undefined,
+    source: "local" as const,
+  };
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { body, invalidBody } = await readJsonBody(request);
@@ -268,28 +293,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Transform to PlacePrediction format
-    const predictions: LocalDestinationPrediction[] = (destinations || []).map(
-      (dest) => {
-        const countryCode = getCountryCode(dest.country);
-        return {
-          placeId: `local_${dest.id}`,
-          mainText: dest.name,
-          secondaryText: dest.country,
-          fullText: `${dest.name}, ${dest.country}`,
-          countryCode,
-          flag: flagEmoji(countryCode),
-          types: ["(cities)"],
-          coordinates:
-            dest.latitude && dest.longitude
-              ? {
-                  latitude: dest.latitude,
-                  longitude: dest.longitude,
-                }
-              : undefined,
-          source: "local" as const,
-        };
-      }
-    );
+    const predictions: LocalDestinationPrediction[] = (destinations || []).map(toPrediction);
 
     // Sort by relevance: exact name matches first, then starts-with, then contains
     predictions.sort((a, b) => {
@@ -375,6 +379,25 @@ export async function POST(request: NextRequest) {
           );
         }
       }
+    }
+
+    // A misspelling of a curated place ("KUALUMPUR", "Tailand"), when nothing
+    // curated matched and nothing has the very name typed. It goes first: the
+    // list is short, and it's what people mean more often than a small town with
+    // similar letters.
+    const nothingCurated = !destinations?.length;
+    const namedExactly = predictions.some((p) => normalizeForGeo(p.mainText) === normalizeForGeo(searchTerm));
+    if (nothingCurated && !namedExactly && searchTerm.length >= 5) {
+      const { data: curated } = logReadError(
+        "destinations search: curated list",
+        await supabase
+          .from("destinations")
+          .select("id, name, country, latitude, longitude")
+          .order("rating", { ascending: false })
+      );
+      const close = closeMatches(searchTerm, (curated ?? []) as CuratedPlace[], normalizeForGeo);
+      predictions.unshift(...close.map(toPrediction));
+      predictions.length = Math.min(predictions.length, limit);
     }
 
     // FALLBACK PATH — when both the curated DB and geo_cities have nothing,
