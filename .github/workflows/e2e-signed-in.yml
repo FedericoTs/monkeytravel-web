@@ -81,6 +81,7 @@ jobs:
         run: |
           export KEY_FLOWS_TRIP_ID=$(node -p 'require("./.auth/e2e-fixtures.json").tripId')
           npx playwright test --project=chromium --workers=1 --reporter=list,html,json \
+            tests/e2e/waiting-room.spec.ts \
             tests/e2e/key-flows.spec.ts \
             tests/e2e/move-between-days.spec.ts \
             tests/e2e/offline-trip.spec.ts \
