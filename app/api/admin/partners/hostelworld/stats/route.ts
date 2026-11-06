@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 
 /**
@@ -37,9 +37,7 @@ export async function GET() {
   if (!url || !key) {
     return NextResponse.json({ error: "Server not configured" }, { status: 500 });
   }
-  const svc = createServiceClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const svc = createAdminClient();
 
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 

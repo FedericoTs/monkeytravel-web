@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { logReadError } from "@/lib/supabase/log-read-error";
 
 /**
@@ -30,9 +30,7 @@ export async function GET() {
     );
   }
 
-  const supabase = createServiceClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const supabase = createAdminClient();
 
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 

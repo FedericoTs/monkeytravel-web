@@ -10,7 +10,7 @@
  */
 
 import crypto from "crypto";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { GeneratedItinerary } from "@/types";
 import { tripSpanDays } from "@/lib/dates/iso-date";
@@ -45,9 +45,7 @@ function getServiceClient(): SupabaseClient {
       "[ai/cache] missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY",
     );
   }
-  _cachedServiceClient = createServiceClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  _cachedServiceClient = createAdminClient();
   return _cachedServiceClient;
 }
 

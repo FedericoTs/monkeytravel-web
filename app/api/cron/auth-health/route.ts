@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { recoveryLooksBroken, type RecoveryHealth } from "@/lib/ops/auth-health";
 import { sendOpsAlert } from "@/lib/ops/alert";
 import { refuseUnlessCron } from "@/lib/api/cron-auth";
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Service credentials missing" }, { status: 500 });
   }
 
-  const db = createServiceClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  const db = createAdminClient();
   const { data, error } = await db.rpc("auth_recovery_health", { p_days: WINDOW_DAYS });
   if (error) {
     console.error("[cron/auth-health] read failed:", error.message);

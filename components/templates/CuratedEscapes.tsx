@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Sparkles } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
-import { createClient } from "@supabase/supabase-js";
+import { createAnonClient } from "@/lib/supabase/anon";
 import { proxyImageUrl } from "@/lib/img/proxyUrl";
 import { countryName, templateText } from "@/lib/templates/text";
 import { SeeAllCard, TemplateCard, type TemplateTrip } from "./TemplateCard";
@@ -13,7 +13,7 @@ async function fetchTemplates(limit: number, locale: string): Promise<TemplateTr
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!url || !key) return [];
-    const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+    const supabase = createAnonClient();
     const { data, error } = await supabase
       .from("trips")
       .select(`

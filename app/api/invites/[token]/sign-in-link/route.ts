@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createAnonClient } from "@/lib/supabase/anon";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { buildAuthCallbackUrl, normalizeAuthLocale } from "@/lib/auth/callback-url";
@@ -51,9 +52,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     }
 
     // Only a usable invite (active, unexpired, not used up) comes back here.
-    const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      auth: { persistSession: false },
-    });
+    const admin = createAdminClient();
     const { data: rows, error: inviteError } = await admin.rpc("get_invite_by_token", { p_token: token });
     if (inviteError) {
       console.error("[invite sign-in link] invite read failed:", inviteError);
@@ -68,9 +67,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
 
     // The anon client, as a browser would call it: the auth email goes out
     // through our send-email hook like every other sign-in link.
-    const auth = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+    const auth = createAnonClient();
     const { error } = await auth.auth.signInWithOtp({
       email: invite.recipient_email,
       options: {
