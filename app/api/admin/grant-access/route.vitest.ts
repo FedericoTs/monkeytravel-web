@@ -222,6 +222,11 @@ describe("what it refuses", () => {
     expect(writes()).toEqual([]);
   });
 
+  it("takes a code with one use left", async () => {
+    s.code = { ...CODE, max_uses: 3, current_uses: 2 };
+    expect((await post(GRANT)).status).toBe(200);
+  });
+
   it("leaves the count to the access row's trigger, so a grant is one use, not two", async () => {
     await post(GRANT);
     expect(writes().map((q) => q.table)).toEqual(["admin_grant_early_access"]);
