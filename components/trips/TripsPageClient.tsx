@@ -18,6 +18,8 @@ import BlogTipsSection, { type BlogTip } from "@/components/blog/BlogTipsSection
 import ReferralModal from "@/components/referral/ReferralModal";
 import TripActionModal from "@/components/trips/TripActionModal";
 import TripCard, { type Trip } from "@/components/trips/TripCard";
+import WaitingRoom from "@/components/trips/WaitingRoom";
+import type { WaitingRoomTrip } from "@/lib/trips/waiting-room";
 
 // Client-only import — the banner's localStorage-driven `isDismissed`
 // state means the SSR + first-paint render emits a placeholder, then
@@ -64,6 +66,8 @@ interface TripsPageClientProps {
    * card moves after load.
    */
   serverToday?: string;
+  /** The trip the home is about, when there is one (lib/trips/waiting-room.ts). */
+  waitingRoom?: { trip: WaitingRoomTrip; holdout: boolean } | null;
 }
 
 type SortOption = "newest" | "oldest" | "upcoming" | "alphabetical";
@@ -103,7 +107,7 @@ function TripSection({ title, trips, icon, emptyText, renderTripCard }: {
   );
 }
 
-export default function TripsPageClient({ trips, sharedTrips = [], displayName, lifetimeConversions, blogTips = [], serverToday }: TripsPageClientProps) {
+export default function TripsPageClient({ trips, sharedTrips = [], displayName, lifetimeConversions, blogTips = [], waitingRoom, serverToday }: TripsPageClientProps) {
   const t = useTranslations('common.trips');
   const tRoles = useTranslations('common.roles');
   const tNav = useTranslations('common.navigation');
@@ -460,6 +464,8 @@ export default function TripsPageClient({ trips, sharedTrips = [], displayName, 
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+        {waitingRoom && today && <WaitingRoom trip={waitingRoom.trip} holdout={waitingRoom.holdout} today={today} />}
+
         {/* Stats Cards */}
         {activeTrips.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">

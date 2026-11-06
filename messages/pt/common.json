@@ -47,6 +47,22 @@
     "q7_maybe": "Talvez",
     "q7_no": "Não, o site resolve"
   },
+  "waitingRoom": {
+    "daysToGo": "{count, plural, one {dia para a viagem} other {dias para a viagem}}",
+    "dayOf": "Dia {day} de {total}",
+    "whileYouWait": "Enquanto espera",
+    "worthSorting": "Vale resolver agora",
+    "beforeYouGo": "Antes de ir",
+    "today": "Hoje",
+    "datesLabel": "Datas a escolher",
+    "datesNote": "Estas datas são provisórias até você escolher as suas.",
+    "setDates": "Escolha suas datas",
+    "dayOneStarts": "O primeiro dia começa com {place}.",
+    "lookThrough": "Reveja seu plano",
+    "packingList": "Ver seu plano e a bagagem",
+    "openDayOne": "Abrir seu plano",
+    "openToday": "Abrir o plano de hoje"
+  },
   "navigation": {
     "features": "Recursos",
     "howItWorks": "Como Funciona",

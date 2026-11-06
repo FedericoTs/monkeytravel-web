@@ -123,7 +123,7 @@ Tailwind `slate-400` is **not** a body-text colour (2.63:1 on white). Use
 Minimal-functional. Transitions that aid comprehension; nothing decorative.
 Respect `prefers-reduced-motion`.
 
-## The signed-in home (decided, not yet built)
+## The signed-in home
 
 Preview: **The Waiting Room** — https://claude.ai/code/artifact/46971aec-cfb4-4e10-9a52-f8a7aeff876b
 
