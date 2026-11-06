@@ -5,13 +5,13 @@ import { isUuid } from "@/lib/utils/uuid";
 
 /**
  * Clicks on the trip emails, whose links carry `?slot=`: a queue slot of
- * app/api/cron/scheduled-notifications, or participant_plan. The middleware
+ * app/api/cron/scheduled-notifications, participant_plan or kept_plan. The middleware
  * records each counted view carrying a known slot as funnel_events
  * `email_clicked`, before any sign-in or share-link redirect.
  */
 
 const EMAIL_SLOT_RE =
-  /^(?:pack_early_14d|visa_check_7d|weather_3d|confirm_1d|morning_of|followup_(?:return_3d|next_21d|final_45d|dormant)|in_trip_day_(?:[2-9]|1\d|2[01])|finish_trip_1d|participant_plan)$/;
+  /^(?:pack_early_14d|visa_check_7d|weather_3d|confirm_1d|morning_of|followup_(?:return_3d|next_21d|final_45d|dormant)|in_trip_day_(?:[2-9]|1\d|2[01])|finish_trip_1d|participant_plan|kept_plan)$/;
 
 
 export interface EmailClick {

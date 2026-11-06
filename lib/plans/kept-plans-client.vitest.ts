@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  emailKeptPlan,
   forgetKeptPlan,
   keptPlanLink,
   keptPlansSnapshot,
@@ -71,6 +72,36 @@ describe("the private link", () => {
     expect(keptTokenFromHash("")).toBeNull();
     expect(keptTokenFromHash("#plan=short")).toBeNull();
     expect(keptTokenFromHash("#other=1")).toBeNull();
+  });
+});
+
+describe("emailKeptPlan", () => {
+  const answering = (status: number) => vi.fn().mockResolvedValue(new Response(status === 204 ? null : "{}", { status }));
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("asks for this plan's link for this address, in this language", async () => {
+    const fetchMock = answering(200);
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await emailKeptPlan(TOKEN, "ana@example.com", "it")).toBe("sent");
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe(`/api/plans/${TOKEN}/email`);
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body)).toEqual({ email: "ana@example.com", locale: "it" });
+  });
+
+  it.each([
+    [400, "invalid"],
+    [429, "limited"],
+    [404, "failed"],
+    [500, "failed"],
+  ])("reads a %i as %s", async (status, outcome) => {
+    vi.stubGlobal("fetch", answering(status));
+    expect(await emailKeptPlan(TOKEN, "ana@example.com", "en")).toBe(outcome);
+  });
+
+  it("reads no connection as a failed send", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("offline")));
+    expect(await emailKeptPlan(TOKEN, "ana@example.com", "en")).toBe("failed");
   });
 });
 

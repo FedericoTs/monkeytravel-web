@@ -641,6 +641,8 @@ export interface AuthPromptDismissedEvent {
   location: AuthPromptLocation;
   /** Did the user type any email before bailing? */
   had_email_entered: boolean;
+  /** The box's X, or anywhere outside it (Escape counts as outside). */
+  how: "close_button" | "outside";
 }
 
 // Auth-wall captures race a router.push or window.location change, so they
