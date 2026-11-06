@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { blockedCall, checkApiAccess, logApiCall } from "@/lib/api-gateway";
 import { getAuthenticatedUser, verifyTripOwnership } from "@/lib/api/auth";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
@@ -12,18 +13,22 @@ import { keptTripDiets } from "@/lib/trips/diet";
 // this is a page retrying in a loop.
 const limiter = createRateLimiter("places-to-eat", 6, 60 * 60_000);
 
+const ENDPOINT = "/api/trips/[id]/places-to-eat";
+
 /**
  * A kept diet trip's places to eat, looked up on Google Maps when its owner
  * first opens it (hooks/useKeptTripPlacesToEat.ts): one closed is replaced by
  * an open one or left out, one Maps doesn't have is marked unverified
  * (lib/places/places-to-eat.ts). Once per trip, stamped in trip_meta. The
  * answer lists the changes stored, for the page to make on its own copy.
- * Owner-only.
+ * Owner-only. With Gemini's kill switch or daily limit saying no, the check
+ * waits: it asks the model for places instead of closed ones, and stays due.
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { id: tripId } = await params;
     const { user, supabase, errorResponse } = await getAuthenticatedUser();
@@ -49,6 +54,17 @@ export async function POST(
     const today = new Date().toISOString().slice(0, 10);
     if (!placesToEatCheckDue({ endDate: trip.end_date as string | null, meta: trip.trip_meta }, diets, today)) {
       return apiSuccess({ status: "none" });
+    }
+
+    const access = await checkApiAccess("gemini");
+    if (!access.allowed) {
+      return blockedCall(access, {
+        apiName: "gemini",
+        endpoint: ENDPOINT,
+        startTime,
+        metadata: { user_id: user.id, trip_id: tripId },
+        disabled: "Checking places to eat is currently disabled",
+      });
     }
 
     const outcome = await checkKeptTripPlacesToEat(
@@ -79,6 +95,19 @@ export async function POST(
         unanswered: result.unanswered,
         cost_usd: result.costUsd,
       }).catch(() => {});
+      if (result.costUsd > 0) {
+        await logApiCall({
+          apiName: "gemini",
+          endpoint: ENDPOINT,
+          status: 200,
+          responseTimeMs: Date.now() - startTime,
+          cacheHit: false,
+          costUsd: result.costUsd,
+          exactCost: true,
+          userId: user.id,
+          metadata: { trip_id: tripId, replaced: result.replaced },
+        });
+      }
     }
 
     if (outcome.status !== "checked") return apiSuccess({ status: "none" });

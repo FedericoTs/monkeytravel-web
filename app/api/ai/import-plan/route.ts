@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
-import { logApiCall } from "@/lib/api-gateway";
+import { blockedCall, checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { withinAnonDailyLimit } from "@/lib/ai/anon-daily-limit";
 import { GeminiCostMeter } from "@/lib/ai/gemini-cost";
 import { recordAiOutcome } from "@/lib/ai/observability";
 import { checkExtractRateLimit, recordExtract } from "@/lib/anonymous/rate-limit-extract";
@@ -9,6 +10,11 @@ import { extractPlan, isPlanExtractError } from "@/lib/ai/anchor-import";
 import { normalizeImportedAnchors } from "@/lib/ai/anchor-import-core";
 import { MAX_ANCHORED_TRIP_DAYS, assertISODate, inclusiveDaySpan } from "@/lib/ai/anchors-core";
 import { readJsonBody } from "@/lib/api/json-body";
+import { createRateLimiter } from "@/lib/api/rate-limit";
+
+// Per account, or per network for someone signed out, since the cookie budget
+// resets with the cookie.
+const limiter = createRateLimiter("import-plan", 40, 24 * 60 * 60 * 1000);
 
 /**
  * POST /api/ai/import-plan
@@ -46,8 +52,8 @@ import { readJsonBody } from "@/lib/api/json-body";
  *
  * Response 400: bad body / bad dates / range too long, or too little or nothing
  *               plan-like in the text (carries `reason`: "too_short", "nothing_found")
- * Response 429: anonymous extraction budget exhausted
- * Response 503: Gemini failed
+ * Response 429: anonymous extraction budget exhausted, or too many imports today
+ * Response 503: Gemini failed, or its kill switch or daily limit said no
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -69,6 +75,11 @@ export async function POST(request: NextRequest) {
           { usage: limit, signupUrl: "/auth/signup" }
         );
       }
+    }
+
+    const { allowed } = await limiter.check(request, user?.id);
+    if (!allowed) {
+      return errors.rateLimit("You've imported a lot of plans today. Try again tomorrow.");
     }
 
     const { body, invalidBody } = await readJsonBody<Record<string, unknown>>(request);
@@ -105,6 +116,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const access = await checkApiAccess("gemini");
+    if (!access.allowed) {
+      return blockedCall(access, {
+        apiName: "gemini",
+        endpoint: "/api/ai/import-plan",
+        startTime,
+        metadata: { user_id: user?.id ?? "anonymous", is_anonymous: isAnonymous },
+        disabled: "Importing a plan is currently disabled",
+      });
+    }
+    if (isAnonymous && !(await withinAnonDailyLimit())) {
+      return errors.rateLimit("We've reached today's limit for free imports. Sign up to keep going — it's free.", {
+        signupUrl: "/auth/signup",
+      });
+    }
+
     const extracted = await geminiCost.run(() =>
       extractPlan(text, {
         startDate,
@@ -134,7 +161,8 @@ export async function POST(request: NextRequest) {
       }
       if (extracted.error === "nothing_found") {
         // Not a server error: the request was well-formed, the content just
-        // had no plan in it.
+        // had no plan in it. The model still read it, so it counts.
+        if (isAnonymous) await recordExtract();
         return errors.badRequest(
           "We couldn't find any dated plans in that text. Try including days or dates.",
           { reason: "nothing_found" }

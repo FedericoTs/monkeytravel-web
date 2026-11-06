@@ -64,7 +64,7 @@ export async function readGenerationCaller(
     isAnonymous
       ? anonGenIpLimiter.check(request).catch(() => ({ allowed: true, remaining: 0 }))
       : Promise.resolve(null),
-    isAnonymous ? withinAnonDailyLimit(request) : Promise.resolve(true),
+    isAnonymous ? withinAnonDailyLimit() : Promise.resolve(true),
   ]);
 
   if (isAnonymous && anonLimit && !anonLimit.allowed) {
