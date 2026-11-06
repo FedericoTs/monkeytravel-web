@@ -5,7 +5,8 @@ import { NextRequest } from "next/server";
 /**
  * A Wikimedia photo comes from Commons, by the file name in the URL's credit, with
  * a cache header the CDN keeps for a year. A stored copy stands in when Commons
- * can't serve it. Failing is never cached for long, and only a known file is fetched.
+ * can't serve it, and otherwise it asks again: Commons limits a burst of fresh photos
+ * for a moment. Failing is never cached for long, and only a known file is fetched.
  */
 
 const s = vi.hoisted(() => ({ downloads: [] as string[], stored: true, allowed: true }));
@@ -47,9 +48,12 @@ beforeEach(() => {
   answers(200);
   vi.stubGlobal("fetch", commons);
   vi.spyOn(console, "error").mockImplementation(() => {});
+  // The waits between attempts pass quickly.
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"], shouldAdvanceTime: true, advanceTimeDelta: 500 });
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -124,6 +128,70 @@ describe("GET /api/images/wikimedia/[file]", () => {
     expect(res.status).toBe(503);
     expect(res.headers.get("cache-control")).toBe("no-store");
     expect(console.error).toHaveBeenCalled();
+  });
+
+  describe("when Commons limits a burst and nothing is stored", () => {
+    const limited = () => new Response("no", { status: 429, headers: { "content-type": "text/plain" } });
+    const served = () => new Response(JPEG, { status: 200, headers: { "content-type": "image/jpeg" } });
+
+    beforeEach(() => {
+      s.stored = false;
+    });
+
+    it("asks again after a moment, and the CDN keeps the photo", async () => {
+      commons.mockReset();
+      commons.mockResolvedValueOnce(limited()).mockResolvedValueOnce(served());
+      const res = await get(`${ID}-500.jpg`);
+      expect(res.status).toBe(200);
+      expect(res.headers.get("cache-control")).toContain("s-maxage=31536000");
+      expect(new Uint8Array(await res.arrayBuffer())).toEqual(JPEG);
+      expect(commons).toHaveBeenCalledTimes(2);
+      expect(console.error).not.toHaveBeenCalled();
+    });
+
+    it("gives it a third try, further apart", async () => {
+      const waits = vi.spyOn(globalThis, "setTimeout");
+      commons.mockReset();
+      commons.mockResolvedValueOnce(limited()).mockResolvedValueOnce(limited()).mockResolvedValueOnce(served());
+      expect((await get(`${ID}-500.jpg`)).status).toBe(200);
+      expect(commons).toHaveBeenCalledTimes(3);
+      expect(waits.mock.calls.map((call) => call[1])).toEqual([700, 2000]);
+    });
+
+    it("asks again after a connection that failed", async () => {
+      commons.mockReset();
+      commons.mockRejectedValueOnce(new Error("reset")).mockResolvedValueOnce(served());
+      expect((await get(`${ID}-500.jpg`)).status).toBe(200);
+    });
+
+    it("stops after three tries, and the logs say what Commons answered", async () => {
+      commons.mockReset();
+      commons.mockImplementation(async () => limited());
+      const res = await get(`${ID}-500.jpg`);
+      expect(res.status).toBe(503);
+      expect(commons).toHaveBeenCalledTimes(3);
+      expect(s.downloads).toEqual([`wikimedia/${ID}-500.jpg`]);
+      expect(vi.mocked(console.error).mock.calls[0][0]).toContain("429");
+    });
+
+    it("doesn't ask again when Commons doesn't have the file", async () => {
+      answers(404);
+      expect((await get(`${ID}-500.jpg`)).status).toBe(404);
+      expect(commons).toHaveBeenCalledTimes(1);
+    });
+
+    it("doesn't ask at all with another file's name", async () => {
+      expect((await get(`${ID}-500.jpg`, "?f=Some+other+photo.jpg")).status).toBe(404);
+      expect(commons).not.toHaveBeenCalled();
+    });
+  });
+
+  it("answers from a stored copy at once when Commons limits a burst, without asking again", async () => {
+    commons.mockReset();
+    commons.mockImplementation(async () => new Response("no", { status: 429 }));
+    const res = await get(`${ID}-500.jpg`);
+    expect(res.status).toBe(200);
+    expect(commons).toHaveBeenCalledTimes(1);
   });
 
   it("stops one address asking for too many, before asking Commons", async () => {
