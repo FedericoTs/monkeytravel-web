@@ -41,7 +41,8 @@
     "title": "Dia {day}",
     "planned": "{time} de atividades",
     "ofBudget": "de ~{time}",
-    "overpacked": "Dia cheio"
+    "overpacked": "Dia cheio",
+    "lighten": "Deixar este dia mais leve"
   },
   "wizard": {
     "changeDates": {

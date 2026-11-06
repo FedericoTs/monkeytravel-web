@@ -60,6 +60,7 @@ const show = (props: Partial<Props> = {}) =>
       travelLoading={false}
       handleSaveTrip={vi.fn()}
       loading={false}
+      onAskAssistant={vi.fn()}
       {...props}
     />
   );
@@ -73,6 +74,37 @@ afterEach(() => {
 });
 
 describe("the plan on the result page", () => {
+  describe("a packed day", () => {
+    const stop = (id: string) => ({ id, name: id, duration_minutes: 130 });
+    const packed = {
+      ...itinerary,
+      days: [
+        { day_number: 1, activities: [stop("a1"), stop("a2")] },
+        { day_number: 2, activities: [stop("b1"), stop("b2"), stop("b3"), stop("b4"), stop("b5")] },
+      ],
+    } as unknown as GeneratedItinerary;
+
+    it("says so on that day only, under its own heading", () => {
+      show({ generatedItinerary: packed });
+      const notes = screen.getAllByText("daySummary.overpacked");
+      expect(notes).toHaveLength(1);
+      expect(document.getElementById("day-2")!.contains(notes[0])).toBe(true);
+    });
+
+    it("asks the assistant to lighten that day", () => {
+      const onAskAssistant = vi.fn();
+      show({ generatedItinerary: packed, onAskAssistant });
+      fireEvent.click(screen.getByRole("button", { name: "daySummary.lighten" }));
+      expect(onAskAssistant).toHaveBeenCalledTimes(1);
+      expect(onAskAssistant.mock.calls[0][0]).toContain("Day 2 has 5 stops and about 11 hours planned");
+    });
+
+    it("judges by the trip's pace", () => {
+      show({ generatedItinerary: packed, pace: "active" });
+      expect(screen.queryByText("daySummary.overpacked")).toBeNull();
+    });
+  });
+
   it("offers a day with at least two stops its route in Google Maps", () => {
     const twoStops = {
       ...itinerary,

@@ -73,6 +73,15 @@ export function isOverpacked(
   return planned > budget.maxActivityMinutes * 1.25 || count >= budget.targetActivities + 2;
 }
 
+/** What the assistant is asked when someone presses to lighten a packed day. */
+export function lightenDayRequest(
+  dayNumber: number,
+  activities: ReadonlyArray<{ duration_minutes?: number | null }> | null | undefined
+): string {
+  const hours = Math.round(sumPlannedMinutes(activities) / 60);
+  return `Day ${dayNumber} has ${activities?.length ?? 0} stops and about ${hours} hours planned, which feels packed. Make it more relaxed.`;
+}
+
 /**
  * Human sentence quantifying a pace for generation prompts, e.g.
  * "aim for ~4 activities/day and keep each day's total activity time under 8h".
