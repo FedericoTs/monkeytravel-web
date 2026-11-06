@@ -272,6 +272,8 @@ const reminderJobs: Job[] = REMINDER_SLOTS.map((slot) => {
 
 const followupJobs: Job[] = FOLLOWUP_SLOTS.map((slot) => {
   const isTerminal = TERMINAL_FOLLOWUP_SLOTS.has(slot);
+  const links = { tripUrl: `${APP}/trips/SAMPLE`, appUrl: APP, userId: "sample-user", locale: L, tripId: "SAMPLE" };
+  const noUrl = slot === "followup_return_3d" ? FollowupCta.didNotGoUrl(links) : null;
   const props = {
     slot,
     destination: DEST,
@@ -279,8 +281,9 @@ const followupJobs: Job[] = FOLLOWUP_SLOTS.map((slot) => {
     body: fill(followupCopy[slot].body),
     // Per-slot here, unlike the reminders.
     ctaLabel: followupCopy[slot].cta,
-    // The SHARED builder, not a copy (Phase 4.3: return → feedback survey).
-    ctaUrl: FollowupCta.postTripCtaUrl(slot, { tripUrl: `${APP}/trips/SAMPLE`, appUrl: APP, userId: "sample-user", locale: L }),
+    // The SHARED builders, not copies (return → the answer links).
+    ctaUrl: FollowupCta.postTripCtaUrl(slot, links),
+    secondCta: noUrl ? { label: followupCopy.followup_return_3d.ctaNo, url: noUrl } : undefined,
     finalNote: isTerminal ? followupCopy.finalNote : undefined,
     locale: L,
     contextBlocks: ctxFor(slot),

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   PACE_BUDGETS,
   isOverpacked,
+  lightenDayRequest,
   normalizePace,
   paceBudgetPromptClause,
   sumPlannedMinutes,
@@ -21,6 +22,18 @@ describe("normalizePace", () => {
 
   it('maps the legacy "packed" value to active', () => {
     expect(normalizePace("packed")).toBe("active");
+  });
+});
+
+describe("lightenDayRequest", () => {
+  it("names the day, its stops and its hours", () => {
+    expect(lightenDayRequest(3, acts(120, 200, 340))).toBe(
+      "Day 3 has 3 stops and about 11 hours planned, which feels packed. Make it more relaxed."
+    );
+  });
+
+  it("copes with a day that has no activities", () => {
+    expect(lightenDayRequest(1, undefined)).toContain("Day 1 has 0 stops and about 0 hours");
   });
 });
 

@@ -60,6 +60,42 @@ async function ask(text = "make day 2 slower") {
   fireEvent.click(screen.getByRole("button", { name: "assistant.ask" }));
 }
 
+describe("a question put from elsewhere on the page", () => {
+  const panel = (asked: { id: number; message: string } | null) => (
+    <AnonAssistantPanel destination="Lisbon, Portugal" tripTitle="Lisbon" days={days} onApplyEdits={() => "edit-1"} onUndoEdits={() => true} asked={asked} />
+  );
+  const asks = () => fetchMock.mock.calls.map(([, init]) => JSON.parse(init.body).message as string);
+
+  it("is asked here, once per id", async () => {
+    const { rerender } = render(panel(null));
+    expect(asks()).toEqual([]);
+
+    rerender(panel({ id: 1, message: "Lighten day 2" }));
+    await waitFor(() => expect(asks()).toEqual(["Lighten day 2"]));
+    await screen.findByText("assistant.updatedDay");
+
+    rerender(panel({ id: 1, message: "Lighten day 2" }));
+    expect(asks()).toEqual(["Lighten day 2"]);
+
+    rerender(panel({ id: 2, message: "Lighten day 3" }));
+    await waitFor(() => expect(asks()).toEqual(["Lighten day 2", "Lighten day 3"]));
+  });
+
+  it("isn't asked again when the panel appears with one already there, for a new plan", () => {
+    render(panel({ id: 1, message: "Lighten day 2" }));
+    expect(asks()).toEqual([]);
+  });
+
+  it("brings the panel into view", async () => {
+    const scrolled = vi.fn();
+    const { rerender, container } = render(panel(null));
+    (container.querySelector("section") as HTMLElement).scrollIntoView = scrolled;
+    rerender(panel({ id: 1, message: "Lighten day 2" }));
+    await waitFor(() => expect(scrolled).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(asks()).toEqual(["Lighten day 2"]));
+  });
+});
+
 describe("with Undo on offer", () => {
   it("applies an edit as soon as it arrives, and tells the server so", async () => {
     const { onApplyEdits } = renderPanel({ onUndoEdits: () => true });

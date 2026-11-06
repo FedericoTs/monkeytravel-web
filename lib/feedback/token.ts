@@ -16,6 +16,7 @@
  */
 
 import { createHmac, timingSafeEqual } from "crypto";
+import type { WentAnswer } from "./went";
 
 const DEFAULT_TTL_DAYS = 30;
 const PURPOSE = "fb" as const;
@@ -24,6 +25,7 @@ interface FeedbackPayload {
   u: string; // user_id
   t: typeof PURPOSE; // purpose tag — prevents cross-use with unsubscribe tokens
   e: number; // unix seconds expiry
+  r?: string; // trip id, on a link that asks about one trip
 }
 
 function getSecret(): string {
@@ -44,12 +46,14 @@ function getSecret(): string {
  */
 export function signFeedbackToken(
   userId: string,
-  ttlDays: number = DEFAULT_TTL_DAYS
+  ttlDays: number = DEFAULT_TTL_DAYS,
+  tripId?: string
 ): string {
   const payload: FeedbackPayload = {
     u: userId,
     t: PURPOSE,
     e: Math.floor(Date.now() / 1000) + ttlDays * 86400,
+    ...(tripId ? { r: tripId } : {}),
   };
   const payloadB64 = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
   const hmacB64 = createHmac("sha256", getSecret()).update(payloadB64).digest("base64url");
@@ -59,6 +63,8 @@ export function signFeedbackToken(
 export interface FeedbackVerifyResult {
   ok: boolean;
   userId?: string;
+  /** The trip the link asks about, when it asks about one. */
+  tripId?: string;
   reason?: "format" | "signature" | "expired" | "secret_missing";
 }
 
@@ -119,22 +125,49 @@ export function verifyFeedbackToken(token: string): FeedbackVerifyResult {
     return { ok: false, reason: "expired" };
   }
 
-  return { ok: true, userId: payload.u };
+  return {
+    ok: true,
+    userId: payload.u,
+    ...(typeof payload.r === "string" ? { tripId: payload.r } : {}),
+  };
 }
 
 /**
- * Build the absolute feedback-link URL for an outreach email. Locale-prefixes
- * the path for non-default locales (next-intl localePrefix: "as-needed" — the
- * default "en" has no prefix).
+ * Where the feedback pages live. Locale-prefixes the path for non-default
+ * locales (next-intl localePrefix: "as-needed" — the default "en" has no prefix).
  */
+function feedbackRoot(locale: string, appUrl?: string): string {
+  const base =
+    appUrl ?? (process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app");
+  const prefix = locale && locale !== "en" ? `/${locale}` : "";
+  return `${base}${prefix}/feedback`;
+}
+
+/** Build the absolute feedback-link URL for an outreach email. */
 export function buildFeedbackUrl(
   userId: string,
   locale: string = "en",
   appUrl?: string
 ): string {
-  const base =
-    appUrl ?? (process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app");
-  const token = signFeedbackToken(userId);
-  const prefix = locale && locale !== "en" ? `/${locale}` : "";
-  return `${base}${prefix}/feedback/${token}`;
+  return `${feedbackRoot(locale, appUrl)}/${signFeedbackToken(userId)}`;
+}
+
+/**
+ * A one-tap answer to the return email's "did you go?". The token names the
+ * trip. `slot` records the click, and the token stays out of the path so the
+ * page view counts (a path with a dot doesn't, see isPageViewPath).
+ */
+export function buildWentUrl(
+  userId: string,
+  tripId: string,
+  answer: WentAnswer,
+  locale: string = "en",
+  appUrl?: string
+): string {
+  const query = new URLSearchParams({
+    t: signFeedbackToken(userId, DEFAULT_TTL_DAYS, tripId),
+    answer,
+    slot: "followup_return_3d",
+  });
+  return `${feedbackRoot(locale, appUrl)}/went?${query}`;
 }

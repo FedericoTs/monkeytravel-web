@@ -143,6 +143,7 @@ import {
 } from "@/lib/wizard/entry-state";
 import {
   type AuthPromptLocation,
+  captureRefineSuggestionClicked,
   captureWizardFirstRunViewed,
   captureWizardOneTapStart,
 } from "@/lib/posthog/events";
@@ -361,6 +362,8 @@ export default function NewTripPage({
   // the map (mobile screen real estate) and pick Cards or Timeline.
   const [showMap, setShowMap] = useState(true);
   const [resultViewMode, setResultViewMode] = useState<"cards" | "timeline">("cards");
+  // A question put to the assistant from the plan itself (a packed day's button).
+  const [assistantAsked, setAssistantAsked] = useState<{ id: number; message: string } | null>(null);
   // The timeline's travel legs: estimated from coordinates, no API call.
   const { travelData, isLoading: travelLoading } = useTravelDistances(generatedItinerary?.days);
   // The plan as it streams in, for GenerationProgress (hooks/useGenerationProgress.ts).
@@ -1551,6 +1554,7 @@ export default function NewTripPage({
               onApplyEdits={applyEdits}
               onUndoEdits={undoEdits}
               onPlanElsewhere={handlePlanElsewhere}
+              asked={assistantAsked}
               // Post-edit save bridge. Only offered while the
               // trip is unsaved AND the manual save arm owns persistence —
               // when the auto-save arm is active the edit is already being
@@ -1587,6 +1591,10 @@ export default function NewTripPage({
             travelLoading={travelLoading}
             handleSaveTrip={handleSaveTrip}
             loading={loading}
+            onAskAssistant={(message) => {
+              void captureRefineSuggestionClicked({ source: "packedDay", derived: true });
+              setAssistantAsked((last) => ({ id: (last?.id ?? 0) + 1, message }));
+            }}
           />
 
           <AiDisclaimer title={t("wizard.result.aiVerifiedTitle")} className="mt-10">

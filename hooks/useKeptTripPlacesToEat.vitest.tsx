@@ -14,11 +14,11 @@ const CHANGES = [{ day: 1, name: "Arkhe", to: null }];
 
 const fetchMock = vi.fn();
 const adoptDayWrite = vi.fn(async () => {});
-const runItineraryWrite = vi.fn(async <T,>(task: () => Promise<T>) => task());
+const runItineraryWrite = vi.fn(async (task: () => Promise<unknown>) => task());
 
 const answer = (body: unknown, ok = true) => fetchMock.mockResolvedValue({ ok, json: async () => body });
 const open = (due = true, tripId = "t1") =>
-  renderHook((props: { due: boolean; tripId: string }) => useKeptTripPlacesToEat({ ...props, runItineraryWrite, adoptDayWrite }), {
+  renderHook((props: { due: boolean; tripId: string }) => useKeptTripPlacesToEat({ ...props, runItineraryWrite: runItineraryWrite as never, adoptDayWrite }), {
     initialProps: { due, tripId },
   });
 
@@ -103,7 +103,7 @@ describe("useKeptTripPlacesToEat", () => {
   it("a request that can't be made is handled, so it's nobody's error", () => {
     const failed = Promise.reject(new TypeError("offline"));
     const handled = vi.spyOn(failed, "catch");
-    runItineraryWrite.mockReturnValueOnce(failed as never);
+    runItineraryWrite.mockReturnValueOnce(failed);
     open();
     expect(handled).toHaveBeenCalledTimes(1);
   });
