@@ -3,8 +3,8 @@ import { readdirSync, readFileSync } from "fs";
 import { join } from "path";
 
 /**
- * Raw page views are kept 120 days for people and 7 days for everything the
- * human view leaves out; wizard step events are kept 180 days, their step-1
+ * Raw page views are kept 90 days for people and 7 days for everything the
+ * human view leaves out; wizard step events are kept 90 days, their step-1
  * heartbeats 14, and the purged tables are vacuumed right after the purge. The
  * nightly purge's idea of "not human" must stay the complement of
  * page_views_human: if the view changes, change the purge too.
@@ -21,8 +21,8 @@ describe("page view retention", () => {
   const purge = latest(/create or replace function public\.purge_old_analytics_rows/i);
   const view = latest(/create or replace view public\.page_views_human/i);
 
-  it("keeps human page views 120 days and the rest 7", () => {
-    expect(purge).toContain("select id from public.page_views where created_at < now() - interval '120 days'");
+  it("keeps human page views 90 days and the rest 7", () => {
+    expect(purge).toContain("select id from public.page_views where created_at < now() - interval '90 days'");
     expect(purge).toContain("p.created_at < now() - interval '7 days'");
     expect(purge).not.toContain("p.created_at < now() - interval '14 days'");
   });
@@ -44,9 +44,9 @@ describe("page view retention", () => {
 describe("wizard step event retention", () => {
   const purge = latest(/create or replace function public\.purge_old_analytics_rows/i);
 
-  it("deletes rows older than 180 days in batches and reports the count", () => {
+  it("deletes rows older than 90 days in batches and reports the count", () => {
     expect(purge).toContain(
-      "delete from public.wizard_step_events where id in ( select id from public.wizard_step_events where created_at < now() - interval '180 days' order by created_at limit 20000 );",
+      "delete from public.wizard_step_events where id in ( select id from public.wizard_step_events where created_at < now() - interval '90 days' order by created_at limit 6000 );",
     );
     expect(purge).toContain("wizard_events_deleted bigint");
     expect(purge).toContain("wizard_events_deleted := v_wiz + v_hb;");
@@ -72,8 +72,8 @@ describe("API call retention", () => {
   const purge = latest(/create or replace function public\.purge_old_analytics_rows/i);
   const rollup = latest(/create or replace function public\.refresh_api_cost_daily/i);
 
-  it("keeps raw calls 90 days", () => {
-    expect(purge).toContain("select id from public.api_request_logs where timestamp < now() - interval '90 days'");
+  it("keeps raw calls 65 days, so the Costs tab can read the whole of last month", () => {
+    expect(purge).toContain("select id from public.api_request_logs where timestamp < now() - interval '65 days'");
   });
 
   it("sums every day into api_cost_daily before the purge runs", () => {
@@ -105,14 +105,28 @@ describe("label and consent retention", () => {
   const purge = latest(/create or replace function public\.purge_old_analytics_rows/i);
 
   it("drops a session label once nothing it hides can still be read", () => {
-    expect(purge).toContain("where x.day < current_date - 14 and (x.day < current_date - 180 or (not exists");
+    expect(purge).toContain("where x.day < current_date - 14 and (x.day < current_date - 90 or (not exists");
     expect(purge).toContain("select 1 from public.wizard_step_events w where w.session_id = x.session_id");
     expect(purge).toContain("select 1 from public.trip_views v where v.session_id = x.session_id and v.viewed_on = x.day");
   });
 
-  it("keeps consent decisions 13 months and banner impressions 90 days", () => {
+  it("keeps consent decisions 13 months and banner impressions 30 days", () => {
     expect(purge).toContain(
-      "where (event in ('shown', 'minimized') and created_at < now() - interval '90 days') or created_at < now() - interval '395 days'",
+      "where (event in ('shown', 'minimized') and created_at < now() - interval '30 days') or created_at < now() - interval '395 days'",
     );
+  });
+});
+
+describe("how much one night's purge deletes", () => {
+  const purge = latest(/create or replace function public\.purge_old_analytics_rows/i);
+
+  // The purge is one statement under a 2-minute limit, and a timeout undoes all of it.
+  it.each([
+    ["page views", "order by created_at limit 6000 ); get diagnostics v_pv = row_count;"],
+    ["API calls", "order by timestamp limit 6000 ); get diagnostics v_api = row_count;"],
+    ["wizard events", "order by created_at limit 6000 ); get diagnostics v_wiz = row_count;"],
+    ["consent events", "order by created_at limit 6000 ); get diagnostics v_ce = row_count;"],
+  ])("drains %s in small batches", (_name, batch) => {
+    expect(purge).toContain(batch);
   });
 });
