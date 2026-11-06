@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentProps, ComponentType } from "react";
+import { useEffect, useState, type ComponentProps, type ComponentType } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import type AnonymousShareButton from "@/components/trip/AnonymousShareButton";
@@ -42,6 +42,16 @@ function CheckIcon() {
   );
 }
 
+function MoreIcon() {
+  return (
+    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="5" cy="12" r="1.75" />
+      <circle cx="12" cy="12" r="1.75" />
+      <circle cx="19" cy="12" r="1.75" />
+    </svg>
+  );
+}
+
 function CrewIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -53,7 +63,8 @@ function CrewIcon() {
 /**
  * The result view's actions: the sticky header on wider screens, the bottom
  * bar on phones. Both carry Start Over, Regenerate, the save state and Save,
- * and the way to share the plan before or after saving it.
+ * and the way to share the plan before or after saving it. The phone bar is one
+ * row, so the plan keeps the screen: the state and Save, with the rest behind More.
  */
 export default function ResultActionBars({
   generatedItinerary,
@@ -105,7 +116,17 @@ export default function ResultActionBars({
   RegenerateButton: ComponentType<RegenerateButtonProps>;
 }) {
   const t = useTranslations("trips");
+  const tButtons = useTranslations("common.buttons");
   const router = useRouter();
+  const [moreOpen, setMoreOpen] = useState(false);
+  useEffect(() => {
+    if (!moreOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMoreOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [moreOpen]);
   // Unsaved-state pill (both save arms); a kept plan's link instead.
   const unsavedPill =
     isUnsaved && !autoSaving && (keptPlan ? <KeptLinkPill token={keptPlan.token} /> : <NotSavedPill />);
@@ -221,60 +242,85 @@ export default function ResultActionBars({
         </div>
       </div>
 
+      {moreOpen && (
+        <div
+          data-more-backdrop
+          aria-hidden="true"
+          className="fixed inset-0 z-40 bg-black/20 sm:hidden"
+          onClick={() => setMoreOpen(false)}
+        />
+      )}
+
       {/* Mobile Sticky Bottom Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 px-4 py-3 sm:hidden pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-        {/* Phone save motivation — the desktop ValuePropositionBanner is
-            hidden sm:block, so without this the phone gets a bare Save button
-            with no "why". A compact free/benefit line at the always-visible
-            save moment. Hides once the trip is saved. */}
-        {!savedTripId && !autoSaving && (
-          <p className="mb-2 flex items-center justify-center gap-1.5 text-[11px] font-medium text-emerald-600">
-            <CheckIcon />
-            {t(keptPlan ? "wizard.kept.mobileNudge" : "wizard.result.mobileSaveNudge", {
-              count: generatedItinerary.days.length,
-            })}
-          </p>
+        {moreOpen && (
+          <div id="result-more" className="mb-3 flex flex-col gap-2 border-b border-slate-100 pb-3">
+            {/* Hides once the trip is saved. */}
+            {!savedTripId && !autoSaving && (
+              <p className="flex items-center justify-center gap-1.5 text-xs font-medium text-emerald-700">
+                <CheckIcon />
+                {t(keptPlan ? "wizard.kept.mobileNudge" : "wizard.result.mobileSaveNudge", {
+                  count: generatedItinerary.days.length,
+                })}
+              </p>
+            )}
+            {/* Ask your crew to vote, before saving (the peak share-intent
+                moment). A SIGNED-OUT planner gets the share button: the
+                onSave() route would put them straight into the auth wall the
+                anonymous share exists to remove. isAuthenticated is tri-state,
+                so only an explicit `false` swaps: `null` means still resolving
+                and must not flash a share button at someone who turns out to
+                be signed in. */}
+            {!savedTripId && !autoSaving && (isAuthenticated === false ? (
+              <ShareButton {...share} />
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setMoreOpen(false);
+                  onSave();
+                }}
+                className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl font-semibold border border-[var(--secondary)] text-[var(--secondary-ink)] hover:bg-[var(--secondary)]/5 transition-colors"
+              >
+                <CrewIcon />
+                {t("wizard.result.shareForVotes")}
+              </button>
+            ))}
+            <RegenerateButton
+              onRegenerate={() => {
+                setMoreOpen(false);
+                requestRegenerate();
+              }}
+              isRegenerating={regenerating}
+              variant="default"
+              className="w-full justify-center"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setMoreOpen(false);
+                onStartOver();
+              }}
+              className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-slate-100 font-medium text-slate-700 transition-colors hover:bg-slate-200"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              {t("wizard.result.startOver")}
+            </button>
+          </div>
         )}
-        {/* Ask your crew to vote — full-width above the save row. Shown
-            pre-save (the peak share-intent moment).
-
-            A SIGNED-OUT planner gets the share button: the onSave() route
-            would put them straight into the auth wall the anonymous share
-            exists to remove. Everyone else keeps the save route.
-            isAuthenticated is tri-state, so only an explicit `false` swaps —
-            `null` means still resolving and must not flash a share button at
-            someone who turns out to be signed in. */}
-        {!savedTripId && !autoSaving && (isAuthenticated === false ? (
-          <ShareButton {...share} className="mb-2" />
-        ) : (
-          <button
-            type="button"
-            onClick={() => onSave()}
-            className="mb-2 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold border border-[var(--secondary)] text-[var(--secondary-ink)] hover:bg-[var(--secondary)]/5 transition-colors"
-          >
-            <CrewIcon />
-            {t("wizard.result.shareForVotes")}
-          </button>
-        ))}
         <div className="flex items-center gap-2">
-          {/* Start Over: an icon, so it carries its name */}
           <button
             type="button"
-            onClick={onStartOver}
-            aria-label={t("wizard.result.startOver")}
-            className="flex items-center justify-center w-12 h-12 rounded-xl bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-600 transition-colors flex-shrink-0"
+            onClick={() => setMoreOpen((open) => !open)}
+            aria-expanded={moreOpen}
+            aria-controls="result-more"
+            className="flex h-12 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-slate-100 px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <MoreIcon />
+            {tButtons("more")}
           </button>
-
-          <RegenerateButton
-            onRegenerate={requestRegenerate}
-            isRegenerating={regenerating}
-            variant="icon-only"
-            className="flex-shrink-0"
-          />
 
           {unsavedPill}
 

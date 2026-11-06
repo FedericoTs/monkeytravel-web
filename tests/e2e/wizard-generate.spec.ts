@@ -278,7 +278,8 @@ test.describe("wizard: planning a trip on a phone", () => {
 
     const picks = page.getByRole("group", { name: "Popular right now" }).getByRole("button");
     await planPick(page, picks.nth(0), "Lunch at the market");
-    // The header's Start Over is hidden at this width: this is the bar's icon.
+    // The header's Start Over is hidden at this width: this one is behind the bar's More.
+    await page.locator('button[aria-controls="result-more"]').click();
     await page.getByRole("button", { name: "Start Over" }).click();
     await page.getByLabel("What didn't work?").selectOption("wrong_destination");
     await page.getByRole("button", { name: "Start Fresh" }).click();
