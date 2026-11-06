@@ -1,12 +1,16 @@
 /**
- * A diet trip's places to eat, looked up on Google Maps once the trip is kept:
- * on its owner's first open (app/api/trips/[id]/places-to-eat), and in a day
- * regenerated or added by the assistant. The model names them from memory, and
- * the small places a diet sends it to close and move more often than the sights
- * it knows. In place of one Maps has as closed, or doesn't have, the model
- * offers a few others, and the first Maps has open takes its place. When none
- * is, a closed place leaves the plan, and one Maps doesn't have stays, marked
- * unverified: not finding a small place is no proof it's gone.
+ * A kept trip's places to eat, looked up on Google Maps: on its owner's first
+ * open (app/api/trips/[id]/places-to-eat), and on a diet trip in a day regenerated
+ * or added by the assistant. The model names them from memory, and they close and
+ * move more often than the sights it knows. In place of one Maps has as closed,
+ * the model offers a few others, and the first Maps has open takes its place.
+ * When none is, the closed place leaves the plan.
+ *
+ * A diet trip is held to more, because the small places a diet sends the model
+ * to are the ones it invents: one Maps doesn't have is treated like a closed one,
+ * except that with no open place found it stays, marked unverified. Not finding a
+ * small place is no proof it's gone. On a trip with no diet it stays as it is:
+ * Maps answers too many real places under another name for that to be a signal.
  *
  * Nothing Google answers is kept or shown: the lookup only decides which of
  * the model's places stay.
@@ -143,13 +147,15 @@ export function nameAgreement(activity: Named, google: string): 0 | 1 | 2 {
 /** Whether two of the plan's names are one place: "Ao 26 - Vegan Food Project" and "Vegan lunch at Ao 26". */
 const samePlace = (a: string, b: string) => nameAgreement({ name: a }, b) === 2 || nameAgreement({ name: b }, a) === 2;
 
+export type PlaceStatus = "open" | "closed" | "missing";
+
 /**
  * What Maps says of an activity's place, from what a search for it found:
  * open, closed, or missing (no place to eat by that name near it). Of a
  * chain's branches, only one near the activity's point counts: another open
  * across town doesn't open the one the plan sends the traveller to.
  */
-export function placeStatus(activity: Named, places: FoundPlace[]): "open" | "closed" | "missing" {
+export function placeStatus(activity: Named, places: FoundPlace[]): PlaceStatus {
   const point = pointOf(activity);
   /** Metres from the activity's point; null when either has none. */
   const metres = (p: FoundPlace) =>
@@ -187,10 +193,33 @@ async function searchPlaces(textQuery: string, near: Point | null): Promise<Foun
   }
 }
 
+/** Whether a place to eat Google found has a name that is one word of the plan's, or the plan's one word of its. */
+const partlyNamed = (activity: Named, { displayName, types }: FoundPlace) => {
+  const google = displayName?.text ?? "";
+  if (!(types ?? []).some((t) => EATS.test(t))) return false;
+  return nameAgreement(activity, google) === 1 || nameAgreement({ name: google }, activity.name) === 1;
+};
+
+/**
+ * What Maps says of a named place to eat with no point to go by. Null when the
+ * search failed, or when Google's name is only partly the plan's: with no point
+ * it may be the place ("Trattoria Da Enzo" for "Da Enzo al 29", "Lokál Dlouhá"
+ * for "Lokál") or another, so Maps hasn't said either way.
+ */
+export async function lookUpPlaceToEat(name: string, where: string): Promise<PlaceStatus | null> {
+  const places = await searchPlaces([searchName(name), where].filter(Boolean).join(", "), null);
+  if (!places) return null;
+  const activity = { name, location: where };
+  const status = placeStatus(activity, places);
+  return status === "missing" && places.some((place) => partlyNamed(activity, place)) ? null : status;
+}
+
 export interface PlacesToEatOptions {
   destination: string;
-  /** The trip's diets; no check without one. */
+  /** The trip's diets; no check without one, unless `withoutDiet`. */
   dietary: string[];
+  /** A kept trip is checked with no diet too, for closed places only. */
+  withoutDiet?: boolean;
   budgetTier: BudgetTier;
   travelStyle?: "classic" | "backpacker";
   language?: SupportedLanguage;
@@ -232,12 +261,13 @@ export interface PlacesToEatCheck {
 }
 
 /**
- * The check for one plan, or null when there is nothing to check: no diet, no
- * Google key, or PLACES_TO_EAT_CHECK set to "false".
+ * The check for one plan, or null when there is nothing to check: no diet (unless
+ * `withoutDiet`), no Google key, or PLACES_TO_EAT_CHECK set to "false".
  */
 export function placesToEatCheck(opts: PlacesToEatOptions): PlacesToEatCheck | null {
   const key = process.env.GOOGLE_PLACES_API_KEY || "";
-  if (!key || process.env.PLACES_TO_EAT_CHECK === "false" || opts.dietary.length === 0) return null;
+  const hasDiet = opts.dietary.length > 0;
+  if (!key || process.env.PLACES_TO_EAT_CHECK === "false" || (!hasDiet && !opts.withoutDiet)) return null;
 
   const searches = new Map<string, Promise<FoundPlace[] | null>>();
   const areaOf = (day: DayInPlan) => (typeof day.city === "string" && day.city ? day.city : opts.destination);
@@ -316,6 +346,7 @@ export function placesToEatCheck(opts: PlacesToEatOptions): PlacesToEatCheck | n
             const status = placeStatus(activity, places);
             if (status === "open") return;
             result[status]++;
+            if (status === "missing" && !hasDiet) return;
             bad.push({ day, activity, area, status });
           }),
         ),

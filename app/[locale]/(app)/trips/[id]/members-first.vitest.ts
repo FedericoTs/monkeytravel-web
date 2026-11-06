@@ -296,20 +296,19 @@ describe("the byline the owner would publish with", () => {
   });
 });
 
-describe("the owner's first open of a kept diet trip", () => {
+describe("the owner's first open of a kept trip", () => {
   // The page says when the trip's places to eat are due a check (lib/places/kept-trip.ts).
   beforeEach(() => {
     world.endDate = "2099-01-10";
   });
 
-  it("is due for the owner of a trip planned for a diet, or whose profile has one", async () => {
+  it("is due for the owner, with or without a diet", async () => {
     world.user = OWNER;
     world.tripMeta = { dietary: ["vegan"] };
     await visit();
     expect(lastPlacesToEatDue).toBe(true);
 
     world.tripMeta = {};
-    world.preferences = { dietaryPreferences: ["halal"] };
     await visit();
     expect(lastPlacesToEatDue).toBe(true);
   });
@@ -318,7 +317,6 @@ describe("the owner's first open of a kept diet trip", () => {
     world.tripMeta = { dietary: ["vegan"] };
     world.user = "mate-1";
     world.collaborators = { "mate-1": "editor" };
-    world.preferences = { dietaryPreferences: ["vegan"] };
     await visit();
     expect(lastPlacesToEatDue).toBe(false);
 
@@ -329,12 +327,6 @@ describe("the owner's first open of a kept diet trip", () => {
 
     world.tripMeta = { dietary: ["vegan"] };
     world.endDate = "2020-01-10";
-    await visit();
-    expect(lastPlacesToEatDue).toBe(false);
-  });
-
-  it("is not due for a trip with no diet", async () => {
-    world.user = OWNER;
     await visit();
     expect(lastPlacesToEatDue).toBe(false);
   });

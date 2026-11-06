@@ -107,5 +107,6 @@ describe("what the page gets", () => {
 
   it("keeps a title that's only the word Trip", () => {
     expect(waitingRoomTrip({ ...base, title: "Trip" }, null).title).toBe("Trip");
+    expect(waitingRoomTrip({ ...base, title: " Trip" }, null).title).toBe(" Trip");
   });
 });

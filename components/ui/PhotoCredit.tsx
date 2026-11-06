@@ -26,7 +26,7 @@ export function PhotoCredit({ src, className = "bottom-2 right-2" }: { src: stri
       target="_blank"
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
-      className={`absolute z-10 max-w-[60%] truncate rounded bg-black/40 px-1.5 py-0.5 text-[10px] leading-tight text-white/90 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white ${className}`}
+      className={`absolute z-10 min-h-0! min-w-0! max-w-[60%] truncate rounded bg-black/40 px-1.5 py-0.5 text-[10px] leading-tight text-white/90 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white ${className}`}
     >
       {text(credit)}
     </a>

@@ -96,13 +96,13 @@ describe("what sits under it", () => {
 
   it("days out with no first stop: just the way in", () => {
     show({ firstStop: null }, "2026-12-03");
-    expect(text()).toContain(words.beforeYouGo);
+    expect(text()).not.toContain(words.beforeYouGo);
     expect(text()).not.toContain("Day one starts");
+    expect(screen.getByRole("link").textContent).toBe(words.openDayOne);
   });
 
   it("under way: which day it is, with no countdown", () => {
     show({}, "2026-12-08");
-    expect(text()).toContain(words.today);
     expect(text()).toContain("Day 2 of 5");
     expect(text()).not.toContain("to go");
     expect(screen.getByRole("link").textContent).toBe(words.openToday);
@@ -111,6 +111,7 @@ describe("what sits under it", () => {
   it("with nothing to say, still offers the way in", () => {
     show({ highlights: [], packing: [], firstStop: null });
     expect(screen.queryByRole("list")).toBeNull();
+    expect(text()).not.toContain(words.whileYouWait);
     expect(screen.getByRole("link").textContent).toBe(words.lookThrough);
   });
 });

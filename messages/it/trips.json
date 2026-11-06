@@ -37,11 +37,16 @@
     "keepPlanPrompt": "Questo piano esiste solo in questo browser.",
     "keepPlanButton": "Tieni questo viaggio, gratis"
   },
+  "placesChecked": {
+    "checked": "{count, plural, one {# posto dove mangiare controllato} other {# posti dove mangiare controllati}} su Google Maps, {date}.",
+    "changed": "{count, plural, one {Ne abbiamo cambiato # che non era aperto.} other {Ne abbiamo cambiati # che non erano aperti.}}"
+  },
   "daySummary": {
     "title": "Giorno {day}",
     "planned": "{time} di attività",
     "ofBudget": "su ~{time}",
-    "overpacked": "Giornata piena"
+    "overpacked": "Giornata piena",
+    "lighten": "Alleggerisci questa giornata"
   },
   "wizard": {
     "changeDates": {

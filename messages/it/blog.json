@@ -49,7 +49,8 @@
     "inlineAiCta": {
       "title": "Salta la pianificazione, parti subito",
       "description": "Scegli una destinazione e ottieni un itinerario giorno per giorno in 30 secondi. Gratis, senza carta di credito.",
-      "button": "Pianifica il mio viaggio"
+      "button": "Pianifica il mio viaggio",
+      "check": "Hai già un piano? Controllalo gratis"
     },
     "planThisCta": {
       "title": "Pronto a pianificare il tuo viaggio a {city}?",

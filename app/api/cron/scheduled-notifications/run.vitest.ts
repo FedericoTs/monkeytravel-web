@@ -12,6 +12,7 @@ import TripReminderEmail, {
   type TripReminderEmailProps,
 } from "@/lib/email/templates/TripReminder";
 import { verifyDayLink } from "@/lib/trips/day-link";
+import { verifyFeedbackToken } from "@/lib/feedback/token";
 
 /**
  * What stands between this cron and a bad send to real people. The route and what
@@ -23,13 +24,16 @@ import { verifyDayLink } from "@/lib/trips/day-link";
 const dispatchEmail = vi.fn();
 vi.mock("@/lib/email/send", () => ({ dispatchEmail: (options: unknown) => dispatchEmail(options) }));
 
-const copy = vi.hoisted(() => ({ missing: false }));
+const copy = vi.hoisted(() => ({ missing: false, noSecondAnswer: false }));
 vi.mock("next-intl/server", async () => {
   const { createTranslator } = await import("next-intl");
   const fs = await import("fs");
   const path = await import("path");
-  const common = (locale: string) =>
-    JSON.parse(fs.readFileSync(path.join(process.cwd(), "messages", locale, "common.json"), "utf8"));
+  const common = (locale: string) => {
+    const all = JSON.parse(fs.readFileSync(path.join(process.cwd(), "messages", locale, "common.json"), "utf8"));
+    if (copy.noSecondAnswer) delete all.tripFollowupEmail.followup_return_3d.ctaNo;
+    return all;
+  };
   return {
     // With no copy, next-intl hands back the key path instead of throwing, as it does for a real miss.
     getTranslations: async ({ locale, namespace }: { locale: string; namespace: string }) =>
@@ -205,6 +209,7 @@ beforeEach(() => {
   invites = 0;
   refuse = () => null;
   copy.missing = false;
+  copy.noSecondAnswer = false;
   vi.stubEnv("CRON_SECRET", CRON_SECRET);
   vi.stubEnv("NEXT_PUBLIC_TRIP_NOTIFICATIONS_ENABLED", "true");
   vi.stubEnv("TRIP_NOTIFICATIONS_SEND_CAP", "");
@@ -570,6 +575,43 @@ describe("the post-trip follow-ups", () => {
     await run();
     expect(sends().map((s) => s.template.id)).toEqual(["trip_followup"]);
     expect(row("row-a").status).toBe("sent");
+  });
+
+  it("the return email asks 'did you go?' about this trip, with a button for each answer", async () => {
+    cameBack = true;
+    trips = [finished()];
+    rows = [due("row-a", "a", "followup_return_3d")];
+    await run();
+    const { ctaUrl, ctaLabel, secondCta } = sends()[0].template.props as unknown as {
+      ctaUrl: string;
+      ctaLabel: string;
+      secondCta: { label: string; url: string };
+    };
+    const words = messages("en").tripFollowupEmail.followup_return_3d;
+    expect([ctaLabel, secondCta.label]).toEqual([words.cta, words.ctaNo]);
+    const links = [new URL(ctaUrl), new URL(secondCta.url)];
+    expect(links.map((url) => url.searchParams.get("answer"))).toEqual(["yes", "no"]);
+    for (const url of links) {
+      expect(verifyFeedbackToken(url.searchParams.get("t")!)).toEqual({ ok: true, userId: OWNER, tripId: "a" });
+    }
+  });
+
+  it("the later ones have one button", async () => {
+    cameBack = true;
+    trips = [finished({ start_date: daysFromNow(-27), end_date: daysFromNow(-24) })];
+    rows = [due("row-a", "a", "followup_next_21d")];
+    await run();
+    expect(sends()[0].template.props.secondCta).toBeUndefined();
+  });
+
+  it("a return email whose second answer has no words isn't sent", async () => {
+    cameBack = true;
+    copy.noSecondAnswer = true;
+    trips = [finished()];
+    rows = [due("row-a", "a", "followup_return_3d")];
+    await run();
+    expect(sends()).toEqual([]);
+    expect(row("row-a")).toMatchObject({ status: "failed", skipped_reason: "i18n_load_error" });
   });
 
   it("not to someone who never did", async () => {

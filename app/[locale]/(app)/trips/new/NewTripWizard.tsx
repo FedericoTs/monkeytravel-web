@@ -28,6 +28,8 @@ export interface PrefilledTripShape {
   days: number | null;
   budget: BudgetTier | null;
   vibes: string[];
+  /** Places to keep, from Check my plan's "fix it". */
+  mustDos: string[];
 }
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { GeneratedItinerary, TripAnchor, TripVibe, SeasonalContext, BudgetTier, TripPace } from "@/types";
@@ -143,6 +145,7 @@ import {
 } from "@/lib/wizard/entry-state";
 import {
   type AuthPromptLocation,
+  captureRefineSuggestionClicked,
   captureWizardFirstRunViewed,
   captureWizardOneTapStart,
 } from "@/lib/posthog/events";
@@ -258,6 +261,9 @@ function seasonalPopular(month: number, limit = 6): SeasonalPopular[] {
 
 // Free-text ?destination= fallback (page.tsx resolves known slugs): capitalized,
 // coords filled in by autocomplete on confirm.
+/** Where a link that fills in the trip's shape came from. */
+const prefillSource = (from: string | null | undefined) => (from === "trip" || from === "check" ? from : "article");
+
 function capitalizeFreeText(param: string | null | undefined): string {
   const trimmed = (param ?? "").trim().slice(0, 120);
   return trimmed ? trimmed.charAt(0).toUpperCase() + trimmed.slice(1) : "";
@@ -361,6 +367,8 @@ export default function NewTripPage({
   // the map (mobile screen real estate) and pick Cards or Timeline.
   const [showMap, setShowMap] = useState(true);
   const [resultViewMode, setResultViewMode] = useState<"cards" | "timeline">("cards");
+  // A question put to the assistant from the plan itself (a packed day's button).
+  const [assistantAsked, setAssistantAsked] = useState<{ id: number; message: string } | null>(null);
   // The timeline's travel legs: estimated from coordinates, no API call.
   const { travelData, isLoading: travelLoading } = useTravelDistances(generatedItinerary?.days);
   // The plan as it streams in, for GenerationProgress (hooks/useGenerationProgress.ts).
@@ -581,11 +589,12 @@ export default function NewTripPage({
   // never typed.
   useEffect(() => {
     if (!prefilledTripShape) return;
-    const { days, budget, vibes } = prefilledTripShape;
-    if (!days && !budget && vibes.length === 0) return;
+    const { days, budget, vibes, mustDos: mustDosToKeep } = prefilledTripShape;
+    if (!days && !budget && vibes.length === 0 && mustDosToKeep.length === 0) return;
 
     if (budget) setBudgetTier(budget);
     if (vibes.length > 0) setSelectedVibes(vibes as TripVibe[]);
+    if (mustDosToKeep.length > 0) setMustDos(mustDosToKeep);
 
     // Dates: the wizard gates step 1 on a real start+end, and `days` alone
     // can't produce one. Resolve it exactly the way the "I'm flexible" button
@@ -612,8 +621,9 @@ export default function NewTripPage({
       prefilled_vibes: vibes,
       has_destination: Boolean(prefilledDestination || searchParams?.get("destination")),
       multi_city: Boolean(isMultiDeeplink),
-      // A public trip page's "plan one like this" carries its length too.
-      from: searchParams?.get("from") === "trip" ? "trip" : "article",
+      // A public trip page's "plan one like this" carries its length too, and
+      // Check my plan's "fix it" the places worth keeping.
+      from: prefillSource(searchParams?.get("from")),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1551,6 +1561,7 @@ export default function NewTripPage({
               onApplyEdits={applyEdits}
               onUndoEdits={undoEdits}
               onPlanElsewhere={handlePlanElsewhere}
+              asked={assistantAsked}
               // Post-edit save bridge. Only offered while the
               // trip is unsaved AND the manual save arm owns persistence —
               // when the auto-save arm is active the edit is already being
@@ -1587,6 +1598,10 @@ export default function NewTripPage({
             travelLoading={travelLoading}
             handleSaveTrip={handleSaveTrip}
             loading={loading}
+            onAskAssistant={(message) => {
+              void captureRefineSuggestionClicked({ source: "packedDay", derived: true });
+              setAssistantAsked((last) => ({ id: (last?.id ?? 0) + 1, message }));
+            }}
           />
 
           <AiDisclaimer title={t("wizard.result.aiVerifiedTitle")} className="mt-10">

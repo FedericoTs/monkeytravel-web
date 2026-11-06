@@ -14,7 +14,7 @@ const CARD_LINK =
 /** What's useful at this distance from departure, from what the plan already holds. */
 function stageCard(trip: WaitingRoomTrip, stage: WaitingStage, t: ReturnType<typeof useTranslations>) {
   if (stage === "during") {
-    return { label: t("today"), lines: [], cta: t("openToday"), href: `/trips/${trip.id}` };
+    return { label: "", lines: [], cta: t("openToday"), href: `/trips/${trip.id}` };
   }
   if (stage === "days") {
     return {
@@ -72,13 +72,15 @@ export default function WaitingRoom({ trip, today, holdout = false }: { trip: Wa
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
         {card.lines.length > 0 && (
-          <ul className="flex flex-col gap-1 text-sm text-slate-700">
-            {card.lines.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
+          <>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
+            <ul className="flex flex-col gap-1 text-sm text-slate-700">
+              {card.lines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </>
         )}
         <Link
           href={card.href}

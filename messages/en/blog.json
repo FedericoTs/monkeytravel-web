@@ -49,7 +49,8 @@
     "inlineAiCta": {
       "title": "Skip the planning, start the trip",
       "description": "Drop a destination, get a day-by-day itinerary in 30 seconds. Free, no credit card.",
-      "button": "Plan my trip"
+      "button": "Plan my trip",
+      "check": "Already have a plan? Check it for free"
     },
     "planThisCta": {
       "title": "Ready to plan your {city} trip?",

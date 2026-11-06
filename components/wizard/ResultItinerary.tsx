@@ -6,12 +6,14 @@ import { useTranslations } from "next-intl";
 import DayHeader, { DayBudget } from "@/components/trip/DayHeader";
 import { DayRouteLink } from "@/components/trip/DayRouteLink";
 import { DayTimeline } from "@/components/trip/DayTimeline";
+import { PackedDayNote } from "@/components/trip/PackedDayNote";
 import { MapToggle, ViewModeToggle } from "@/components/trip/ViewControls";
 import { ResultBookingLinks, ResultPacking, ResultStats } from "@/components/wizard/ResultSections";
 import type { DayTravelData } from "@/hooks/useTravelDistances";
 import { useCurrency } from "@/lib/locale";
 import { activityDomId } from "@/lib/trip/activity-dom-id";
 import { dayBudgetLabel, showsDayBudget } from "@/lib/trip/day-budget";
+import { lightenDayRequest } from "@/lib/trip/pace";
 import type { GeneratedItinerary } from "@/types";
 
 // The card's loading box, sized like the live card so a slow chunk shows a
@@ -71,6 +73,7 @@ export default function ResultItinerary({
   travelLoading,
   handleSaveTrip,
   loading,
+  onAskAssistant,
 }: {
   generatedItinerary: GeneratedItinerary;
   /** "City, Country", for the map. */
@@ -86,6 +89,8 @@ export default function ResultItinerary({
   handleSaveTrip: () => void;
   /** The manual save is under way. */
   loading: boolean;
+  /** Puts a question to the assistant above the plan. */
+  onAskAssistant: (message: string) => void;
 }) {
   const t = useTranslations("trips");
   const { convert: convertCurrency, format: formatCurrency } = useCurrency();
@@ -130,6 +135,12 @@ export default function ResultItinerary({
                 )}
               </DayHeader>
               <DayRouteLink activities={day.activities} surface="result" className="-mt-2 mb-2" />
+              <PackedDayNote
+                activities={day.activities}
+                pace={pace}
+                onLighten={() => onAskAssistant(lightenDayRequest(day.day_number, day.activities))}
+                className="mb-3"
+              />
 
               {/* Activities — Cards or Timeline view */}
               {resultViewMode === "cards" ? (

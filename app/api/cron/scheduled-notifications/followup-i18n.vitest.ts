@@ -174,14 +174,18 @@ describe("next-intl itself renders the followup copy", () => {
 
 /**
  * The return email said "You got back a few days ago" to people we had no sign
- * went at all, and promised questions about the plan that its survey does not
- * ask. It now states when the trip ended and what the survey is about.
+ * went at all, and promised questions about the plan that its survey did not
+ * ask. It now states when the trip was due to end and asks whether they went.
  */
 describe("the return email claims only what we know", () => {
   for (const locale of LOCALES) {
-    it(`${locale}: says when the trip ended`, () => {
-      const body = resolve(messagesFor(locale), "common.tripFollowupEmail.followup_return_3d.body");
-      expect(body).toContain("{endDate}");
+    it(`${locale}: says when the trip was due to end, and has a button for each answer`, () => {
+      const words = resolve(messagesFor(locale), "common.tripFollowupEmail.followup_return_3d") as Record<string, string>;
+      expect(words.body).toContain("{endDate}");
+      expect(words.heading).toContain("{destination}");
+      expect(words.cta).toBeTruthy();
+      expect(words.ctaNo).toBeTruthy();
+      expect(words.ctaNo).not.toBe(words.cta);
     });
   }
 

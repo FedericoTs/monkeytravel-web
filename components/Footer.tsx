@@ -33,6 +33,7 @@ export default async function Footer() {
       // give both tools a footer-wide backlink.
       { label: t('packingList'), href: '/tools/packing-list' },
       { label: t('visaChecker'), href: '/tools/visa-checker' },
+      { label: t('checkPlan'), href: '/tools/check-my-plan' },
       { label: t('features'), href: '/#features' },
       { label: t('howItWorks'), href: '/#how-it-works' },
       { label: t('joinWaitlist'), href: '/#hero' },

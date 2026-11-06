@@ -49,7 +49,7 @@
       },
       "offlineAccess": {
         "title": "Acesso Offline",
-        "description": "Baixe seu roteiro gerado para o seu dispositivo. Acesse seus planos dia a dia mesmo sem conexão com a internet durante a viagem."
+        "description": "Salve sua viagem e abra uma vez, e ela fica no seu dispositivo. Seu plano dia a dia funciona sem conexão, de graça."
       },
       "exportShare": {
         "title": "Exportar e Compartilhar",
@@ -70,7 +70,7 @@
       },
       "step3": {
         "title": "Personalize e Exporte",
-        "description": "Ajuste seu roteiro, exporte em PDF, compartilhe com amigos ou baixe para acesso offline. Sua viagem perfeita, pronta para começar."
+        "description": "Ajuste seu roteiro, exporte em PDF ou compartilhe com amigos. Salve e abra uma vez, e ele também funciona offline. Sua viagem perfeita, pronta para começar."
       }
     }
   },
@@ -123,7 +123,7 @@
       },
       "exportFormats": {
         "question": "Posso exportar ou compartilhar meu roteiro?",
-        "answer": "Com certeza. Você pode exportar seu roteiro gerado em PDF, compartilhá-lo por meio de um link exclusivo com companheiros de viagem ou sincronizá-lo com o seu calendário. Você também pode baixá-lo para acesso offline durante a viagem."
+        "answer": "Com certeza. Você pode exportar seu roteiro gerado em PDF, compartilhá-lo por meio de um link exclusivo com companheiros de viagem ou sincronizá-lo com o seu calendário. Uma viagem salva que você abriu uma vez também fica legível offline durante a viagem."
       },
       "isFree": {
         "question": "O gerador de roteiros com AI é grátis?",
