@@ -149,10 +149,6 @@ export default function ResultActionBars({
 
   return (
     <>
-      {showPlanEmail && keptPlan && (
-        <EmailPlanCard key={keptPlan.token} token={keptPlan.token} offered={planEmail !== "asked"} onClose={closePlanEmail} />
-      )}
-
       {/* Enhanced Sticky Header - Desktop */}
       <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200 hidden sm:block">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -371,6 +367,11 @@ export default function ResultActionBars({
           <WizardSaveButton placement="bar" autoSave={autoSave} onSave={onSave} saving={saving} />
         </div>
       </div>
+
+      {/* After the bars, so it paints over them where they meet on a short screen. */}
+      {showPlanEmail && keptPlan && (
+        <EmailPlanCard key={keptPlan.token} token={keptPlan.token} offered={planEmail !== "asked"} onClose={closePlanEmail} />
+      )}
     </>
   );
 }
