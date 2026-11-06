@@ -28,7 +28,7 @@
  */
 
 import { NextRequest } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { errors } from "@/lib/api/response-wrapper";
@@ -93,9 +93,7 @@ export async function POST(request: NextRequest) {
       console.error("[hostelworld_click] missing service-role env, dropping click");
       return new Response(null, { status: 204 });
     }
-    const svc = createClient(url, key, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+    const svc = createAdminClient();
 
     const row = {
       trip_id: isValidUuid(body.tripId) ? body.tripId : null,

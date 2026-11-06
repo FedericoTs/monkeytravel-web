@@ -2,7 +2,7 @@ import { tripCardUrl } from "@/lib/seo/og-image";
 import { getTripDestination } from "@/lib/trips/destination";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getTranslations } from "next-intl/server";
 import { setRequestLocale } from "next-intl/server";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
@@ -36,10 +36,7 @@ interface UnnamedLabels {
 async function getInviteData(token: string, unnamed: UnnamedLabels) {
   // Use admin client for public invite preview (bypasses RLS)
   // This is safe because we only expose limited preview data
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = createAdminClient();
   // SECURITY (task #170): anonymous lookups go through the
   // get_invite_by_token SECURITY DEFINER RPC, NOT a direct table select.
   // The trip_invites table no longer has a public-read RLS policy — the
@@ -203,10 +200,7 @@ async function viewerOnTrip(tripId: string): Promise<boolean | null> {
   }
   if (!userId) return null;
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = createAdminClient();
   const [tripRead, collaboratorRead] = await Promise.all([
     supabase.from("trips").select("user_id").eq("id", tripId).maybeSingle(),
     supabase

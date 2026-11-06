@@ -1,5 +1,5 @@
 import "server-only";
-import { createClient } from "@supabase/supabase-js";
+import { createAnonClient } from "@/lib/supabase/anon";
 
 /**
  * Homepage destination leaderboard — what people actually plan here, and the
@@ -66,9 +66,7 @@ export async function getDestinationLeaderboard(limit: number): Promise<Leaderbo
   // the caller renders nothing when this is empty.
   if (!url || !key) return [];
 
-  const supabase = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const supabase = createAnonClient();
 
   const { data, error } = await supabase.rpc("get_destination_leaderboard", {
     p_limit: limit,

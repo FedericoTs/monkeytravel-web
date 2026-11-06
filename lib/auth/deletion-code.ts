@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createAnonClient } from "@/lib/supabase/anon";
 import {
   OTP_VERIFY_TYPES,
   classifyOtpError,
@@ -60,11 +60,7 @@ export async function verifyDeletionCode(
 // A client that keeps no session, so redeeming the code never touches the
 // visitor's own cookies. The session it opens is removed with the account.
 const verifyWithSupabase: VerifyCode = async ({ email, token, type }) => {
-  const client = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { auth: { persistSession: false, autoRefreshToken: false } },
-  );
+  const client = createAnonClient();
   const { data, error } = await client.auth.verifyOtp({ email, token, type });
   return {
     userId: data?.user?.id ?? null,

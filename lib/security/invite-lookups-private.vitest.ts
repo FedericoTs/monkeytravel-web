@@ -39,16 +39,14 @@ describe("invite lookups run on the service role", () => {
     );
   });
 
-  it("every call goes through a client built with the service-role key", () => {
+  it("every call goes through the service-role client", () => {
     for (const file of callers) {
       const src = read(file);
       const receivers = new Set([...src.matchAll(CALL)].map((m) => m[1]));
       expect(receivers.size, file).toBeGreaterThan(0);
+      expect(src, file).toContain(`import { createAdminClient } from "@/lib/supabase/admin";`);
       for (const name of receivers) {
-        const serviceClient = new RegExp(
-          `const ${name} = \\w+\\(\\s*process\\.env\\.NEXT_PUBLIC_SUPABASE_URL!,\\s*process\\.env\\.SUPABASE_SERVICE_ROLE_KEY!`
-        );
-        expect(src, `${file}: ${name}`).toMatch(serviceClient);
+        expect(src, `${file}: ${name}`).toMatch(new RegExp(`const ${name} = createAdminClient\\(\\)`));
       }
     }
   });

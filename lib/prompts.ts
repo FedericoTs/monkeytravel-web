@@ -1,17 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-
-// Server-side Supabase client for prompts.
-// Fallbacks keep `next build` from throwing "supabaseUrl is required" when it
-// evaluates this module during page-data collection in an env that lacks the
-// Supabase vars (e.g. Vercel Preview builds). Real values are always present at
-// runtime; the placeholders are only ever held during the build, never queried.
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
-const supabaseKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "placeholder-key";
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // In-memory cache for prompts (refreshes every 5 minutes)
 const promptCache: Map<string, { text: string; timestamp: number }> = new Map();
@@ -107,7 +94,7 @@ export async function getPrompt(name: PromptName): Promise<string> {
   }
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await createAdminClient()
       .from("ai_prompts")
       .select("prompt_text, is_active")
       .eq("name", name)

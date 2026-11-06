@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { timeoutFetch } from '@/lib/supabase/timeout-fetch'
 
 // Fallbacks keep `next build` from throwing "supabaseUrl is required" when this
 // module is evaluated in an env that lacks the Supabase vars (e.g. Vercel Preview
@@ -6,4 +7,4 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co"
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key"
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, { global: { fetch: timeoutFetch } })

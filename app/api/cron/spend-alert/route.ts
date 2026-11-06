@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { summarizeSpend, type SpendGroup } from "@/lib/ops/spend";
 import { sendOpsAlert } from "@/lib/ops/alert";
 import { readCreditEstimate, type CreditEstimate } from "@/lib/ops/gemini-credit";
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
   const now = new Date();
   const from = new Date(now.getTime() - DAY_MS);
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const db = createServiceClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  const db = createAdminClient();
   const [month, last24h, today, limits] = await Promise.all([
     db
       .from("api_cost_daily")

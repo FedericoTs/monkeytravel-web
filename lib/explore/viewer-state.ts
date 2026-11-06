@@ -1,7 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { logReadError } from "@/lib/supabase/log-read-error";
 
 const SAVER_COOKIE = "mt_saver_cookie";
@@ -56,9 +56,7 @@ export async function getTripViewerState(
       const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
       if (url && key) {
-        const svc = createServiceClient(url, key, {
-          auth: { persistSession: false, autoRefreshToken: false },
-        });
+        const svc = createAdminClient();
         const { count } = logReadError("explore: guest save", await svc
           .from("trip_saves")
           .select("id", { head: true, count: "exact" })

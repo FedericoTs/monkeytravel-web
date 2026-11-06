@@ -43,8 +43,8 @@ const db = vi.hoisted(() => ({
   rpcErrors: {} as Record<string, { message: string }>,
   tables: {} as Record<string, unknown>,
 }));
-vi.mock("@supabase/supabase-js", () => ({
-  createClient: () => ({
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({
     rpc: async (name: string) =>
       db.rpcErrors[name] ? { data: null, error: db.rpcErrors[name] } : { data: db.rpc[name] ?? [], error: null },
     from: (table: string) => {

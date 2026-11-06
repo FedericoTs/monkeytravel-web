@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   auditAccountDeletion,
   BLOCKER_REMEDY,
@@ -61,9 +61,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const db = createServiceClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const db = createAdminClient();
 
   const result = await auditAccountDeletion(db);
 

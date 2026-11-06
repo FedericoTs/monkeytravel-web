@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getAuthenticatedUser } from "@/lib/api/auth";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { captureServerEvent } from "@/lib/posthog/server";
@@ -29,10 +29,7 @@ export async function GET(request: NextRequest, context: InviteTokenRouteContext
     }
 
     // Use admin client for public access to invite details
-    const supabaseAdmin = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabaseAdmin = createAdminClient();
 
     // SECURITY (task #170): use the get_invite_by_token SECURITY DEFINER
     // RPC instead of a direct `.from('trip_invites').select()`. The old
@@ -243,10 +240,7 @@ export async function POST(request: NextRequest, context: InviteTokenRouteContex
     if (errorResponse) return errors.unauthorized("Authentication required");
 
     // Use admin client for invite operations
-    const supabaseAdmin = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabaseAdmin = createAdminClient();
 
     // Read-only precheck via the same SECURITY DEFINER RPC as GET.
     // We need recipient_email to enforce RECIPIENT_MISMATCH before

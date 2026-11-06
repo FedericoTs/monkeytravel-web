@@ -15,8 +15,8 @@ const TOKEN = "invite-token-1";
 let preview: { data: unknown; error: { message: string } | null };
 const accept = vi.fn(async () => ({ data: { is_owner: true, trip_id: "trip-1" }, error: null }));
 
-vi.mock("@supabase/supabase-js", () => ({
-  createClient: () => ({
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({
     rpc: async (name: string) => (name === "get_invite_by_token" ? preview : accept()),
   }),
 }));
