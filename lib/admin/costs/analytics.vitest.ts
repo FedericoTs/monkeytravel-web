@@ -25,6 +25,9 @@ const analytics = (rows: Partial<CostRows>, breakers = {}) =>
     {
       logs: [],
       spend: [],
+      thisMonth: [],
+      lastMonth: [],
+      lastWeek: [],
       recentLogs: [],
       caches: { geocode: [], distance: [], places: [], activities: [] },
       users: [],
@@ -64,8 +67,43 @@ describe("the summary", () => {
       todayRequests: 1,
       last7DaysCostUsd: 3,
       last30DaysCostUsd: 7,
-      projectedMonthlyCost: 12.86,
+      projectedMonthlyCost: 0,
+      lastMonthCostUsd: 0,
     });
+  });
+
+  it("estimates the month after Google's free calls, not the last week at list price", () => {
+    const photos = (calls: number) => ({ api_name: "google_places_photo", unit_usd: 0.007, calls, usd: calls * 0.007 });
+    const gemini = (usd: number) => ({ api_name: "gemini", unit_usd: 0.02, calls: usd / 0.02, usd });
+    const { summary } = analytics({
+      // 25.5 days are left at noon on the 5th: 2,550 more photos at 100 a day, 5.10 more of Gemini.
+      thisMonth: [photos(1000), gemini(2)],
+      lastWeek: [photos(700), gemini(1.4)],
+      lastMonth: [photos(13_762), gemini(38.83)],
+      logs: [call({ cost_usd: 64, timestamp: hoursAgo(24) })],
+    });
+    expect(summary.last7DaysCostUsd).toBe(64);
+    expect(summary.projectedMonthlyCost).toBe(24.95);
+    expect(summary.lastMonthCostUsd).toBe(128.16);
+  });
+
+  it("counts the days left to the end of a December too", () => {
+    const gemini = (usd: number) => ({ api_name: "gemini", unit_usd: 0.02, calls: usd / 0.02, usd });
+    const summary = computeCostAnalytics(
+      {
+        logs: [],
+        spend: [],
+        thisMonth: [],
+        lastMonth: [],
+        lastWeek: [gemini(7)],
+        recentLogs: [],
+        caches: { geocode: [], distance: [], places: [], activities: [] },
+        users: [],
+      },
+      {},
+      new Date("2026-12-31T00:00:00.000Z")
+    ).summary;
+    expect(summary.projectedMonthlyCost).toBe(1);
   });
 
   it("reads sums the database answers as text, and costs that are missing", () => {
