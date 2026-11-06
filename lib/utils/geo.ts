@@ -1,49 +1,14 @@
 /**
- * Geo Utilities for Activity-Based Hotel Filtering
- *
- * These utilities help calculate the optimal hotel search location
- * based on the geographic distribution of trip activities.
+ * Where to put a new activity, from the places the day already has.
  */
 
-import type { Activity, ItineraryDay } from '@/types';
-import {
-  calculateHaversineDistance,
-  toRadians as toRad,
-} from '@/lib/math/distance';
+import type { Activity } from '@/types';
+import { toRadians as toRad } from '@/lib/math/distance';
 import { isRealPoint } from '@/lib/trip/placeholder-point';
 
 export interface Coordinates {
   lat: number;
   lng: number;
-}
-
-export interface GeoCenter {
-  center: Coordinates;
-  radius: number; // in kilometers
-  activityCount: number;
-  coverage: number; // percentage of activities with coordinates
-}
-
-/**
- * Extract all coordinates from an itinerary
- */
-export function extractActivityCoordinates(
-  itinerary: ItineraryDay[]
-): Coordinates[] {
-  const coordinates: Coordinates[] = [];
-
-  for (const day of itinerary) {
-    for (const activity of day.activities) {
-      if (isRealPoint(activity.coordinates)) {
-        coordinates.push({
-          lat: activity.coordinates.lat,
-          lng: activity.coordinates.lng,
-        });
-      }
-    }
-  }
-
-  return coordinates;
 }
 
 /**
@@ -60,98 +25,6 @@ export function calculateCentroid(coordinates: Coordinates[]): Coordinates | nul
     lat: sumLat / coordinates.length,
     lng: sumLng / coordinates.length,
   };
-}
-
-/**
- * Calculate the distance between two coordinates using Haversine formula
- * Returns distance in kilometers
- * @deprecated Use calculateHaversineDistance from '@/lib/math/distance' for new code
- */
-export function calculateDistance(
-  coord1: Coordinates,
-  coord2: Coordinates
-): number {
-  return calculateHaversineDistance(coord1, coord2, 'km');
-}
-
-// Re-export toRadians for any legacy imports
-export { toRad as toRadians };
-
-/**
- * Calculate the optimal search radius to cover all activities
- * Returns radius in kilometers, with a minimum of 2km and maximum of 15km
- */
-export function calculateOptimalRadius(
-  centroid: Coordinates,
-  coordinates: Coordinates[]
-): number {
-  if (coordinates.length === 0) return 5; // Default 5km
-
-  const distances = coordinates.map((c) => calculateDistance(centroid, c));
-  const maxDistance = Math.max(...distances);
-
-  // Add 20% buffer for hotel options slightly outside activity zone
-  const radius = maxDistance * 1.2;
-
-  // Clamp between 2km minimum (walking distance) and 15km maximum
-  return Math.max(2, Math.min(15, radius));
-}
-
-/**
- * Get the optimal hotel search center from an itinerary
- * Returns centroid, optimal radius, and coverage statistics
- */
-export function getHotelSearchCenter(itinerary: ItineraryDay[]): GeoCenter | null {
-  // Count total activities
-  let totalActivities = 0;
-  for (const day of itinerary) {
-    totalActivities += day.activities.length;
-  }
-
-  if (totalActivities === 0) return null;
-
-  // Extract coordinates
-  const coordinates = extractActivityCoordinates(itinerary);
-
-  if (coordinates.length === 0) {
-    return null; // No coordinates available, fall back to city search
-  }
-
-  // Calculate centroid
-  const centroid = calculateCentroid(coordinates);
-  if (!centroid) return null;
-
-  // Calculate optimal radius
-  const radius = calculateOptimalRadius(centroid, coordinates);
-
-  return {
-    center: centroid,
-    radius,
-    activityCount: coordinates.length,
-    coverage: (coordinates.length / totalActivities) * 100,
-  };
-}
-
-/**
- * Get a human-readable proximity description
- */
-export function getProximityLabel(km: number): {
-  label: string;
-  color: string;
-} {
-  if (km < 0.5) {
-    return { label: 'Walking distance', color: 'text-green-600' };
-  }
-  if (km < 2) {
-    return { label: 'Very close', color: 'text-green-500' };
-  }
-  if (km < 5) {
-    return { label: 'Nearby', color: 'text-blue-500' };
-  }
-  if (km < 10) {
-    return { label: 'Short commute', color: 'text-yellow-600' };
-  }
-  return { label: 'Further away', color: 'text-orange-500' };
 }
 
 /**

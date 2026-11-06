@@ -70,7 +70,6 @@ See individual script headers for usage. Highlights:
 
 - `backup-vercel-project.sh` — snapshot env + project config
 - `audit-gemini-costs.mjs` — Gemini API spend audit
-- `test-ai-costs.ts` — AI provider cost dry-run
 - `capture-app-screens.ts` — Playwright-based marketing screenshots
 - `refresh-visa-data.mjs` — nightly visa-matrix refresh (also runs via cron)
 - `render-video.ts` — Remotion render

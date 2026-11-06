@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { Activity, ItineraryDay } from "@/types";
 import { isRealPoint, PLACEHOLDER_POINT } from "./placeholder-point";
 import { hasCoordinates } from "@/lib/trips/has-coordinates";
-import { extractActivityCoordinates, getCoordinatesForNewActivity } from "@/lib/utils/geo";
+import { getCoordinatesForNewActivity } from "@/lib/utils/geo";
 import { generateTouristAttractionSchema } from "@/lib/seo/structured-data";
 
 // Where an activity the model gave no coordinates ends up, spread a little.
@@ -38,10 +38,6 @@ describe("activities at the placeholder point", () => {
   it("don't put a trip on the map by themselves", () => {
     expect(hasCoordinates([day([activity("Lunch at Handi", placeholder)])])).toBe(false);
     expect(hasCoordinates(days)).toBe(true);
-  });
-
-  it("are left out of the trip's points", () => {
-    expect(extractActivityCoordinates(days)).toEqual(jaipur);
   });
 
   it("don't pull an activity added to the day towards Europe", () => {

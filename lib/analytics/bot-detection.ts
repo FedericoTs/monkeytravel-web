@@ -161,7 +161,3 @@ export function isAnalyticsBot(userAgent: string | null | undefined): boolean {
   const ua = userAgent.toLowerCase();
   return BOT_SIGNATURES.some((sig) => ua.includes(sig));
 }
-
-/** Exported for the SQL backfill and for tests to assert coverage. */
-export const BOT_SIGNATURE_LIST = BOT_SIGNATURES;
-
