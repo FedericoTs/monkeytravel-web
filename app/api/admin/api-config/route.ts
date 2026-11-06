@@ -2,12 +2,12 @@
  * API Configuration Admin Endpoint
  *
  * GET - Retrieve all API configurations
- * PATCH - Update API configuration (enable/disable, change block mode)
+ * PATCH - Update API configuration (enable/disable, change block mode, daily limit)
+ * POST - Stop every API at once
  */
 
 import { NextRequest } from "next/server";
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
-import { invalidateConfigCache } from "@/lib/api-gateway";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { readJsonBody } from "@/lib/api/json-body";
 
@@ -21,9 +21,6 @@ export interface ApiConfig {
   category: string;
   cost_per_request: number;
   daily_limit: number | null;
-  monthly_limit: number | null;
-  current_daily_count: number;
-  current_monthly_count: number;
   updated_at: string;
 }
 
@@ -67,10 +64,14 @@ export async function PATCH(request: NextRequest) {
     // Parse request body
     const { body, invalidBody } = await readJsonBody(request);
     if (invalidBody) return invalidBody;
-    const { api_name, enabled, block_mode, daily_limit, monthly_limit } = body;
+    const { api_name, enabled, block_mode, daily_limit } = body;
 
     if (!api_name) {
       return errors.badRequest("api_name is required");
+    }
+
+    if (daily_limit !== undefined && daily_limit !== null && !(Number.isSafeInteger(daily_limit) && daily_limit >= 0)) {
+      return errors.badRequest("daily_limit must be a whole number, 0 or more, or null");
     }
 
     // Build update object
@@ -87,12 +88,8 @@ export async function PATCH(request: NextRequest) {
       updates.block_mode = block_mode;
     }
 
-    if (typeof daily_limit === "number" || daily_limit === null) {
+    if (daily_limit !== undefined) {
       updates.daily_limit = daily_limit;
-    }
-
-    if (typeof monthly_limit === "number" || monthly_limit === null) {
-      updates.monthly_limit = monthly_limit;
     }
 
     // Update the API config
@@ -108,9 +105,6 @@ export async function PATCH(request: NextRequest) {
       return errors.internal("Failed to update API configuration", "Admin ApiConfig");
     }
 
-    // Invalidate the config cache so changes take effect immediately
-    invalidateConfigCache();
-
     console.log(`[Admin ApiConfig] Updated ${api_name}:`, updates);
 
     return apiSuccess({
@@ -125,8 +119,9 @@ export async function PATCH(request: NextRequest) {
 }
 
 /**
- * POST /api/admin/api-config/reset-counters
- * Reset daily/monthly counters (for testing)
+ * POST /api/admin/api-config
+ * Stop every API at once. There's no way back in one step on purpose: some paid
+ * APIs are off for good reasons, so each goes back on by its own switch.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -135,61 +130,8 @@ export async function POST(request: NextRequest) {
 
     const { body, invalidBody } = await readJsonBody(request);
     if (invalidBody) return invalidBody;
-    const { action, api_name } = body;
 
-    if (action === "reset_daily") {
-      const { error } = await supabase
-        .from("api_config")
-        .update({
-          current_daily_count: 0,
-          last_reset_daily: new Date().toISOString(),
-        })
-        .eq("api_name", api_name || "");
-
-      if (error) {
-        return errors.internal("Failed to reset daily counter", "Admin ApiConfig");
-      }
-
-      invalidateConfigCache();
-      return apiSuccess({ success: true, message: "Daily counter reset" });
-    }
-
-    if (action === "reset_monthly") {
-      const { error } = await supabase
-        .from("api_config")
-        .update({
-          current_monthly_count: 0,
-          last_reset_monthly: new Date().toISOString(),
-        })
-        .eq("api_name", api_name || "");
-
-      if (error) {
-        return errors.internal("Failed to reset monthly counter", "Admin ApiConfig");
-      }
-
-      invalidateConfigCache();
-      return apiSuccess({ success: true, message: "Monthly counter reset" });
-    }
-
-    if (action === "enable_all") {
-      const { error } = await supabase
-        .from("api_config")
-        .update({
-          enabled: true,
-          block_mode: "none",
-          updated_at: new Date().toISOString(),
-          updated_by: user.id,
-        });
-
-      if (error) {
-        return errors.internal("Failed to enable all APIs", "Admin ApiConfig");
-      }
-
-      invalidateConfigCache();
-      return apiSuccess({ success: true, message: "All APIs enabled" });
-    }
-
-    if (action === "disable_all") {
+    if (body.action === "disable_all") {
       const { error } = await supabase
         .from("api_config")
         .update({
@@ -197,13 +139,15 @@ export async function POST(request: NextRequest) {
           block_mode: "block_calls",
           updated_at: new Date().toISOString(),
           updated_by: user.id,
-        });
+        })
+        // PostgREST refuses an update with no filter.
+        .neq("api_name", "");
 
       if (error) {
+        console.error("[Admin ApiConfig] Failed to disable all:", error);
         return errors.internal("Failed to disable all APIs", "Admin ApiConfig");
       }
 
-      invalidateConfigCache();
       return apiSuccess({ success: true, message: "All APIs disabled" });
     }
 

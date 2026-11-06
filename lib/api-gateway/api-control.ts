@@ -387,13 +387,3 @@ export async function getAllApiConfigs(): Promise<ApiConfigEntry[]> {
   return fetchAllApiConfigs();
 }
 
-/**
- * Force refresh the config cache
- * @deprecated No longer needed - we always fetch fresh from database
- * Kept for backwards compatibility with existing callers
- */
-export function invalidateConfigCache(): void {
-  // No-op: cache has been removed for reliability
-  // This function is kept for backwards compatibility
-  console.log("[ApiControl] invalidateConfigCache called (no-op - caching removed)");
-}
