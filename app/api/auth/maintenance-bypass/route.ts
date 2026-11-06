@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin } from "@/lib/admin";
 import { apiSuccess } from "@/lib/api/response-wrapper";
 import { logReadError } from "@/lib/supabase/log-read-error";
@@ -34,7 +35,8 @@ export async function GET() {
   if (isAdmin(user.email)) return apiSuccess({ bypass: true });
 
   try {
-    const { data: config } = logReadError("maintenance bypass: allowed emails", await supabase
+    // The service role: the list isn't readable with a visitor's own session.
+    const { data: config } = logReadError("maintenance bypass: allowed emails", await createAdminClient()
       .from("site_config")
       .select("allowed_emails")
       .eq("id", 1)
