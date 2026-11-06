@@ -2,6 +2,7 @@
 
 import { DAY_COLORS } from "@/lib/map/day-colors";
 import { useChanged } from "@/hooks/useChanged";
+import { useIsPhone } from "@/hooks/useMediaQuery";
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import {
@@ -69,6 +70,10 @@ interface TripMapProps {
    */
   showRoutes?: boolean;
 }
+
+// Room around the pins. On a phone the day buttons sit along the bottom, so the pins stay above them.
+const FIT_PADDING = { top: 50, right: 50, bottom: 50, left: 50 };
+const FIT_PADDING_PHONE = { ...FIT_PADDING, bottom: 100 };
 
 const mapContainerStyle = {
   width: "100%",
@@ -172,6 +177,7 @@ function TripMapInner({
   }
   const selectedDay = selectedDayInternal;
   const t = useTranslations("common.map");
+  const fitPadding = useIsPhone() ? FIT_PADDING_PHONE : FIT_PADDING;
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [zoom, setZoom] = useState<number | null>(null);
   const [selectedActivity, setSelectedActivity] = useState<MapActivity | null>(
@@ -305,14 +311,9 @@ function TripMapInner({
     });
 
     if (hasValidLocations) {
-      map.fitBounds(bounds, {
-        top: 50,
-        right: 50,
-        bottom: 50,
-        left: 50,
-      });
+      map.fitBounds(bounds, fitPadding);
     }
-  }, [map, activities]);
+  }, [map, activities, fitPadding]);
 
   const onLoad = useCallback((map: google.maps.Map) => {
     setMap(map);
@@ -472,8 +473,8 @@ function TripMapInner({
         </div>
       ) : null}
 
-      {/* Day Legend - compact on mobile, detailed on desktop */}
-      <div className="absolute bottom-3 left-3 right-3 sm:bottom-auto sm:top-4 sm:left-auto sm:right-4 z-10 bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1.5 sm:p-2 shadow-md max-w-[calc(100%-1.5rem)] sm:max-w-none">
+      {/* Day Legend - compact on mobile, above Google's logo and terms, which must stay visible; detailed on desktop */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-max sm:translate-x-0 sm:bottom-auto sm:top-4 sm:left-auto sm:right-4 z-10 bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1.5 sm:p-2 shadow-md max-w-[calc(100%-1.5rem)] sm:max-w-none">
         <div className="text-xs font-medium text-slate-700 mb-1.5 hidden sm:block">{t("days")}</div>
         <div className="flex flex-wrap gap-1 justify-center sm:justify-start">
           {days.map((day) => {
@@ -499,10 +500,10 @@ function TripMapInner({
                     target.forEach((a) => {
                       if (a.resolvedLocation) bounds.extend(a.resolvedLocation);
                     });
-                    map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+                    map.fitBounds(bounds, fitPadding);
                   }
                 }}
-                className={`w-6 h-6 sm:w-6 sm:h-6 rounded-full text-white text-[10px] sm:text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 active:scale-95 ${
+                className={`w-6 h-6 min-h-0! min-w-0! pointer-coarse:w-8 pointer-coarse:h-8 rounded-full text-white text-[10px] sm:text-xs font-bold flex items-center justify-center transition-transform hover:scale-110 active:scale-95 ${
                   isActive ? "ring-2 ring-offset-1 ring-slate-900" : ""
                 }`}
                 style={{
