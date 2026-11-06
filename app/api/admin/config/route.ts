@@ -1,8 +1,12 @@
 import { NextRequest } from "next/server";
+import { dangerouslyDeleteByTag } from "@vercel/functions";
 import { getAuthenticatedAdmin } from "@/lib/api/auth";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { readJsonBody } from "@/lib/api/json-body";
+
+/** The CDN tag on the public config, so a change can drop the kept copy. */
+const SITE_CONFIG_TAG = "site-config";
 
 export interface SiteConfig {
   id: number;
@@ -40,9 +44,8 @@ export async function GET() {
     }
 
     // Public response: only expose maintenance info, never allowed_emails.
-    // Cache at the edge: maintenance toggles are rare and a 60s lag is
-    // perfectly fine. Without this header every visitor's first request
-    // re-queries Supabase, a top contributor to function GB-Hours.
+    // Cache at the edge: maintenance toggles are rare, and PATCH drops the kept
+    // copy. Without this header every visitor's first request re-queries Supabase.
     return apiSuccess(
       {
         maintenance_mode: data.maintenance_mode,
@@ -52,8 +55,8 @@ export async function GET() {
       },
       {
         headers: {
-          "Cache-Control":
-            "public, s-maxage=60, stale-while-revalidate=300",
+          "Cache-Control": "public, s-maxage=600, stale-while-revalidate=3600",
+          "Vercel-Cache-Tag": SITE_CONFIG_TAG,
         },
       },
     );
@@ -121,6 +124,10 @@ export async function PATCH(request: NextRequest) {
       console.error("[Admin Config] Error updating site config:", error);
       return errors.internal("Failed to update site config", "Admin Config");
     }
+
+    await dangerouslyDeleteByTag(SITE_CONFIG_TAG).catch((err: unknown) => {
+      console.error("[Admin Config] CDN copy not dropped:", err);
+    });
 
     // Log the action
     console.log(`[Admin Config] Site config updated by ${user.email}:`, {

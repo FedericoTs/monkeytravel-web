@@ -23,16 +23,10 @@ interface MaintenanceWrapperProps {
  * /api/admin/config request per navigation, forever, for every visitor. The
  * config cannot differ per path, so all but the first were redundant.
  *
- * The route already sets `Cache-Control: public, s-maxage=60,
- * stale-while-revalidate=300`, and that IS working — measured on production,
- * repeat requests return `X-Vercel-Cache: HIT` with a rising `Age`, so they are
- * served from the edge without invoking the function or touching Supabase. So
- * this is not the serverless-cost fix it looks like; the waste was a redundant
- * network request per navigation, not a redundant function invocation.
- *
- * TTL matches the route's own s-maxage, so the freshness guarantee is
- * unchanged: a maintenance toggle is still picked up within ~60s of the next
- * navigation, exactly as before.
+ * The CDN keeps the route's answer, so repeat requests are served from the edge
+ * without invoking the function or touching Supabase; this saves the network
+ * request per navigation. Changing the config drops the CDN's copy, so a
+ * maintenance toggle is picked up within this TTL of the next navigation.
  */
 const CONFIG_TTL_MS = 60_000;
 let cachedConfig: SiteConfig | null = null;
