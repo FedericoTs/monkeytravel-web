@@ -41,7 +41,8 @@
     "title": "Day {day}",
     "planned": "{time} planned",
     "ofBudget": "of ~{time}",
-    "overpacked": "Packed day"
+    "overpacked": "Packed day",
+    "lighten": "Lighten this day"
   },
   "wizard": {
     "changeDates": {
@@ -496,6 +497,7 @@
     "planWithFriends": "Plan with friends"
   },
   "day": {
+    "route": "Open this day in Google Maps",
     "label": "Day {number}",
     "todayBadge": "TODAY",
     "morning": "Morning",

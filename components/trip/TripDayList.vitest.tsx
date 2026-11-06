@@ -190,6 +190,21 @@ afterEach(() => {
   seen.mounts.count = 0;
 });
 
+describe("a day's route in Google Maps", () => {
+  it("is offered on each day with at least two stops", () => {
+    show();
+    const links = screen.getAllByRole("link", { name: "trips.day.route" });
+    expect(links).toHaveLength(2);
+    expect(links[0].getAttribute("href")).toContain("origin=a1");
+    expect(links[1].getAttribute("href")).toContain("origin=c1");
+  });
+
+  it("makes way while the trip is being edited", () => {
+    show(editing);
+    expect(screen.queryByRole("link", { name: "trips.day.route" })).toBeNull();
+  });
+});
+
 describe("which days show", () => {
   it("says there is no plan when there are no days, whatever a drag holds", () => {
     moves.preview = threeDays();

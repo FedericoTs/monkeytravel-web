@@ -71,6 +71,11 @@ interface AnonAssistantPanelProps {
    * SharedTripView's engagementSlot.
    */
   shareSlot?: React.ReactNode;
+  /**
+   * A question put from elsewhere on the page, asked here once per `id`. One
+   * already there when the panel appears is another plan's, and isn't asked.
+   */
+  asked?: { id: number; message: string } | null;
 }
 
 interface Msg {
@@ -101,6 +106,7 @@ export default function AnonAssistantPanel({
   onPlanElsewhere,
   onRequestSave,
   shareSlot,
+  asked,
 }: AnonAssistantPanelProps) {
   const t = useTranslations("trips");
   const tAssistant = useTranslations("common.ai.assistant");
@@ -265,6 +271,16 @@ export default function AnonAssistantPanel({
     }
   };
 
+  const panelRef = useRef<HTMLElement | null>(null);
+  const askedId = useRef(asked?.id ?? null);
+  useEffect(() => {
+    if (!asked || asked.id === askedId.current) return;
+    askedId.current = asked.id;
+    panelRef.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    void ask(asked.message);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [asked]);
+
   // Suggestions derived from THIS itinerary, falling back to the static chips.
   //
   // Generic chips ("Make day 1 more relaxed") read the same whatever was
@@ -312,7 +328,7 @@ export default function AnonAssistantPanel({
         }));
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
+    <section ref={panelRef} className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
       <div className="flex items-start gap-3">
         <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary-ink)]">
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

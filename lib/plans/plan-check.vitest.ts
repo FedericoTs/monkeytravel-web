@@ -66,16 +66,17 @@ describe("what gets looked up", () => {
 
 describe("the report", () => {
   it("says what Maps said of each place, and counts it", async () => {
-    const said = { "Da Enzo": "open", Closed: "closed", Unknown: "missing" } as const;
+    const said = { "Da Enzo": "open", Closed: "closed", "Also closed": "closed", Unknown: "missing" } as const;
     answer = (name) => said[name as keyof typeof said] ?? null;
-    const report = await checkPlan(planOf([stop("Da Enzo"), stop("Closed"), stop("Unknown"), stop("Search failed")]), { lookUp: true });
+    const report = await checkPlan(planOf([stop("Da Enzo"), stop("Closed"), stop("Also closed"), stop("Unknown"), stop("Search failed")]), { lookUp: true });
     expect(report.days[0].stops).toEqual([
       { name: "Da Enzo", status: "open" },
       { name: "Closed", status: "closed" },
+      { name: "Also closed", status: "closed" },
       { name: "Unknown", status: "missing" },
       { name: "Search failed", status: null },
     ]);
-    expect(report).toMatchObject({ destination: "Rome", looked: 3, closed: 1, missing: 1 });
+    expect(report).toMatchObject({ destination: "Rome", looked: 4, closed: 2, missing: 1 });
   });
 
   it("leaves hotels and transfers off the day's stops", async () => {

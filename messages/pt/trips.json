@@ -41,7 +41,8 @@
     "title": "Dia {day}",
     "planned": "{time} de atividades",
     "ofBudget": "de ~{time}",
-    "overpacked": "Dia cheio"
+    "overpacked": "Dia cheio",
+    "lighten": "Deixar este dia mais leve"
   },
   "wizard": {
     "changeDates": {
@@ -496,6 +497,7 @@
     "planWithFriends": "Planejar com amigos"
   },
   "day": {
+    "route": "Abrir este dia no Google Maps",
     "label": "Dia {number}",
     "todayBadge": "HOJE",
     "morning": "Manhã",

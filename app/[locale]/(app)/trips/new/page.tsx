@@ -1,8 +1,7 @@
-import type { BudgetTier } from "@/types";
 import { getDestinationBySlug } from "@/lib/destinations/data";
 import { createClientWithViewer } from "@/lib/supabase/server";
 import type { Locale } from "@/lib/destinations/types";
-import NewTripWizard, { type PrefilledDestination } from "./NewTripWizard";
+import NewTripWizard, { type PrefilledDestination, type PrefilledTripShape } from "./NewTripWizard";
 import { MAX_TRIP_DAYS, MUST_DOS_MAX, MUST_DO_MAX_LENGTH } from "@/lib/trips/request-limits";
 
 /**
@@ -44,23 +43,6 @@ function one(v: string | string[] | undefined): string | undefined {
   return Array.isArray(v) ? v[0] : v;
 }
 
-/**
- * Trip shape carried in from a blog CTA (see lib/blog/trip-prefill.ts).
- *
- * Validated HERE rather than in the client wizard for the same reason the
- * destination slug is: a bad value should resolve to "no prefill", never to a
- * wizard holding a 400-day trip or a budget tier that isn't one of the three.
- * Anything unrecognized is dropped silently — the reader typed none of this,
- * so there is nothing to report to them.
- */
-export interface PrefilledTripShape {
-  days: number | null;
-  budget: BudgetTier | null;
-  vibes: string[];
-  /** Places to keep, from Check my plan's "fix it". */
-  mustDos: string[];
-}
-
 /** The 6 vibes step 2 actually renders. Legacy vibe values are not accepted. */
 const PREFILLABLE_VIBES = new Set([
   "adventure",
@@ -71,6 +53,15 @@ const PREFILLABLE_VIBES = new Set([
   "urban",
 ]);
 
+/**
+ * Trip shape carried in from a blog CTA (see lib/blog/trip-prefill.ts).
+ *
+ * Validated HERE rather than in the client wizard for the same reason the
+ * destination slug is: a bad value should resolve to "no prefill", never to a
+ * wizard holding a 400-day trip or a budget tier that isn't one of the three.
+ * Anything unrecognized is dropped silently — the reader typed none of this,
+ * so there is nothing to report to them.
+ */
 function parseTripShape(sp: SearchParams): PrefilledTripShape {
   const rawDays = one(sp.days);
   const parsedDays = rawDays ? Number.parseInt(rawDays, 10) : Number.NaN;

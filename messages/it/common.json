@@ -47,6 +47,34 @@
     "q7_maybe": "Forse",
     "q7_no": "No, il sito va bene"
   },
+  "didYouGo": {
+    "title": "Hai fatto il viaggio?",
+    "yesTitle": "Che bello",
+    "noTitle": "Grazie per avercelo detto",
+    "noted": "Abbiamo segnato la tua risposta.",
+    "yesQuestion": "Qualcosa non andava nel piano?",
+    "noQuestion": "Cosa te l’ha impedito?",
+    "reason_none": "No, andava bene",
+    "reason_closed": "Un posto era chiuso",
+    "reason_packed": "Le giornate erano troppo piene",
+    "reason_times": "Orari o distanze non tornavano",
+    "reason_other": "Altro",
+    "reason_changed": "I miei piani sono cambiati",
+    "reason_elsewhere": "Ho scelto un’altra meta",
+    "reason_later": "Ci andrò più avanti",
+    "reason_plan": "Il piano non era quello giusto",
+    "noteLabel": "Vuoi aggiungere qualcosa? (facoltativo)",
+    "send": "Invia",
+    "sending": "Invio...",
+    "error": "Non siamo riusciti a salvarlo. Riprova.",
+    "tryAgain": "Riprova",
+    "thanksTitle": "Grazie",
+    "thanksBody": "Ci aiuta a creare piani migliori.",
+    "nextTrip": "Pianifica il prossimo viaggio",
+    "moreLink": "Hai un altro minuto? Aiutaci a migliorare MonkeyTravel",
+    "disclosure": "Usiamo le tue risposte per migliorare MonkeyTravel. Leggi la nostra",
+    "privacyPolicy": "Informativa sulla privacy"
+  },
   "navigation": {
     "features": "Funzionalità",
     "howItWorks": "Come Funziona",
@@ -2627,9 +2655,10 @@
   },
   "tripFollowupEmail": {
     "followup_return_3d": {
-      "heading": "Com’è andata a {destination}?",
-      "body": "Il tuo viaggio è finito il {endDate}. Ci farebbe piacere un minuto del tuo parere sincero: come usi MonkeyTravel e cosa ti ha quasi fatto smettere. È il modo più rapido per migliorare.",
-      "cta": "Lascia un feedback"
+      "heading": "Alla fine hai fatto il viaggio a {destination}?",
+      "body": "Il viaggio doveva finire il {endDate}. Con un tocco ci dici se il piano è servito: è così che lo miglioriamo.",
+      "cta": "Sì, l’ho fatto",
+      "ctaNo": "No, non l’ho fatto"
     },
     "followup_next_21d": {
       "heading": "Stai pensando al prossimo?",
@@ -2769,6 +2798,7 @@
     }
   },
   "tripDayDigestEmail": {
+    "mapsCta": "Apri il percorso di domani in Google Maps",
     "heading": "Domani: Giorno {day}",
     "intro": "Ecco com'è fatto il tuo domani.",
     "cta": "Vedi il piano di domani",

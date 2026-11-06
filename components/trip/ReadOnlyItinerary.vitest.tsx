@@ -70,6 +70,14 @@ describe("ReadOnlyItinerary", () => {
     expect(screen.getByText("Title 2")).toBeTruthy();
   });
 
+  it("offers a day with at least two stops its route in Google Maps", () => {
+    show();
+    const links = screen.getAllByRole("link", { name: "day.route" });
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute("href")).toContain("origin=Sight%20a1%2C%20Lisbon");
+    expect(links[0].getAttribute("href")).toContain("destination=Sight%20a2%2C%20Lisbon");
+  });
+
   it("shows only the picked day", () => {
     show({ picked: 2 });
     expect(screen.getAllByTestId("card").map((c) => c.textContent)).toEqual(["Sight b1"]);
