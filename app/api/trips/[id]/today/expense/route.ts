@@ -14,8 +14,7 @@ import { createRateLimiter } from "@/lib/api/rate-limit";
 import type { TripRouteContext } from "@/lib/api/route-context";
 import { isLiveTripParticipantsEnabled } from "@/lib/participants/flag";
 import { browserGuestCookie } from "@/lib/today/actor";
-import { expensesSnapshot } from "@/lib/expenses/snapshot";
-import { writeTripExpense, type TripExpenseBody } from "@/lib/expenses/write";
+import { ledgerAfterWrite, writeTripExpense, type TripExpenseBody } from "@/lib/expenses/write";
 import { announceTodayChange } from "@/lib/today/write";
 
 const memberTripLimiter = createRateLimiter("expense-member-trip", 15, 60_000);
@@ -41,7 +40,7 @@ export async function POST(request: NextRequest, context: TripRouteContext) {
     const failed = await writeTripExpense(admin, trip, { user, cookieId }, body);
     if (failed) return failed;
     announceTodayChange(admin, trip.id);
-    return apiSuccess(await expensesSnapshot(admin, trip.id, trip.user_id, user.id, cookieId ?? undefined));
+    return apiSuccess(await ledgerAfterWrite(admin, trip.id, trip.user_id, user.id, cookieId ?? undefined));
   } catch (error) {
     console.error("[expense member] Unexpected error:", error);
     return errors.internal("Internal server error", "Expense");

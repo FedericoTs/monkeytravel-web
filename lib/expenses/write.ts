@@ -9,6 +9,7 @@ import type { TodayRequester } from "@/lib/today/write";
 import { expenseCohort, tripRoster } from "@/lib/trips/roster";
 import { centsToAmount, normalizeCurrency, parseAmountToCents, parseExpenseCategory, splitEquallyCents } from "./shared";
 import { logWriteError } from "@/lib/supabase/log-write-error";
+import { expensesSnapshot, type ExpensesSnapshot } from "./snapshot";
 import { isUuid } from "@/lib/utils/uuid";
 
 /**
@@ -26,6 +27,22 @@ export interface TripExpenseBody {
   category?: unknown;
   undo?: unknown;
   expense_id?: unknown;
+}
+
+/**
+ * The ledger to answer a write with. The write went through, so a read that
+ * fails is no failure: trying again would add the payment twice. With no ledger in
+ * the answer the page keeps what it shows until the change's ping makes it read.
+ */
+export async function ledgerAfterWrite(
+  ...args: Parameters<typeof expensesSnapshot>
+): Promise<ExpensesSnapshot | Record<string, never>> {
+  try {
+    return await expensesSnapshot(...args);
+  } catch (err) {
+    console.error("[expense] read after a write failed:", err);
+    return {};
+  }
 }
 
 /** Adds or removes a payment. Returns the error to answer with, or null once the change is written. */
@@ -55,7 +72,10 @@ export async function writeTripExpense(
       return errors.internal("Could not remove the expense", "Expense");
     }
     const by = { userId: (row?.created_by as string | null) ?? null, cookieId: (row?.created_by_cookie_id as string | null) ?? null };
-    if (row && (isOwner || isTodayActor(actor, by))) {
+    if (row && !isOwner && !isTodayActor(actor, by)) {
+      return errors.forbidden("Only who added a payment or the trip's owner can remove it");
+    }
+    if (row) {
       const { error } = await admin.from("trip_expenses").delete().eq("id", expenseId);
       if (error) {
         console.error("[expense] undo failed:", error);

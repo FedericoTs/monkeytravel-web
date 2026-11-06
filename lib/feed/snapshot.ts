@@ -37,7 +37,11 @@ export async function feedSnapshot(
   const [{ data: parts, error: pErr }, actions, { expenses }] = await Promise.all([
     admin.from("trip_participants").select("id, display_name, joined_at").eq("trip_id", trip.id).is("left_at", null),
     todayActionsSnapshot(admin, trip.id, viewerCookieId, viewerUserId),
-    expensesSnapshot(admin, trip.id, trip.user_id, viewerUserId, viewerCookieId),
+    // The feed's other sources are still worth showing without the payments.
+    expensesSnapshot(admin, trip.id, trip.user_id, viewerUserId, viewerCookieId).catch((err) => {
+      console.error("[feed] expenses read failed:", err);
+      return { expenses: [] };
+    }),
   ]);
 
   // 1. Participant joins — named only ("someone is going" is noise, not signal).

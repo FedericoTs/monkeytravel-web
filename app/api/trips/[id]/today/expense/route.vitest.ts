@@ -334,11 +334,17 @@ describe("when the database fails", () => {
     expect(s.events).toEqual([]);
   });
 
-  it.skip("doesn't answer an empty ledger when reading it back failed, which wipes what the page shows", async () => {
+  it("doesn't answer an empty ledger when reading it back failed, which wipes what the page shows", async () => {
     existingPayment();
     s.ledgerRead = REFUSED;
     const res = await send({ amount: "10" });
-    expect(await res.json()).not.toHaveProperty("expenses", []);
+    expect(await res.json()).not.toHaveProperty("expenses");
+  });
+
+  it("still answers success then, since the payment was saved and trying again would add it twice", async () => {
+    existingPayment();
+    s.ledgerRead = REFUSED;
+    expect((await send({ amount: "10" })).status).toBe(200);
   });
 });
 
@@ -396,7 +402,7 @@ describe("undoing a payment", () => {
     expect(s.pings).toEqual([]);
   });
 
-  it.skip("answers 403, not success, to someone undoing another member's payment", async () => {
+  it("answers 403, not success, to someone undoing another member's payment", async () => {
     existingPayment({ created_by: "mate-2", paid_by_user_id: "mate-2" });
     s.signedIn = MATE;
     expect((await undo()).status).toBe(403);
