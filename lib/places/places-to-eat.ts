@@ -193,10 +193,25 @@ async function searchPlaces(textQuery: string, near: Point | null): Promise<Foun
   }
 }
 
-/** What Maps says of a named place to eat with no point to go by; null when the search failed. */
+/** Whether a place to eat Google found has a name that is one word of the plan's, or the plan's one word of its. */
+const partlyNamed = (activity: Named, { displayName, types }: FoundPlace) => {
+  const google = displayName?.text ?? "";
+  if (!(types ?? []).some((t) => EATS.test(t))) return false;
+  return nameAgreement(activity, google) === 1 || nameAgreement({ name: google }, activity.name) === 1;
+};
+
+/**
+ * What Maps says of a named place to eat with no point to go by. Null when the
+ * search failed, or when Google's name is only partly the plan's: with no point
+ * it may be the place ("Trattoria Da Enzo" for "Da Enzo al 29", "Lokál Dlouhá"
+ * for "Lokál") or another, so Maps hasn't said either way.
+ */
 export async function lookUpPlaceToEat(name: string, where: string): Promise<PlaceStatus | null> {
   const places = await searchPlaces([searchName(name), where].filter(Boolean).join(", "), null);
-  return places ? placeStatus({ name, location: where }, places) : null;
+  if (!places) return null;
+  const activity = { name, location: where };
+  const status = placeStatus(activity, places);
+  return status === "missing" && places.some((place) => partlyNamed(activity, place)) ? null : status;
 }
 
 export interface PlacesToEatOptions {

@@ -16,7 +16,7 @@ const AT_ONCE = 3;
 
 export interface CheckedStop {
   name: string;
-  /** What Maps says; null for a stop that wasn't looked up. */
+  /** What Maps says; null for a stop that wasn't looked up, or that Maps can't tell. */
   status: PlaceStatus | null;
 }
 
@@ -34,9 +34,13 @@ export interface PlanReport {
   closed: number;
   missing: number;
   packedDays: number;
-  /** Places the wizard could keep if the plan is built here: every real stop but the closed ones. */
+  /** Places the wizard could keep if the plan is built here: every stop but those closed or not found. */
   keep: string[];
 }
+
+/** Where to search: "old town" means little to Google without the trip's place. */
+const searchArea = ({ where }: PastedStop, destination: string) =>
+  where.toLowerCase().includes(destination.toLowerCase()) ? where : [where, destination].filter(Boolean).join(", ");
 
 /** A hotel or a transfer is how the day works, not what fills it. */
 const isVisit = ({ type }: PastedStop) => type !== "transport" && type !== "lodging";
@@ -58,7 +62,7 @@ export async function checkPlan(plan: PastedPlan, { lookUp }: { lookUp: boolean 
         .slice(0, MAX_PLACE_LOOKUPS)
     : [];
   const statuses = await inTurns(
-    places.map((stop) => () => lookUpPlaceToEat(stop.name, stop.where || plan.destination)),
+    places.map((stop) => () => lookUpPlaceToEat(stop.name, searchArea(stop, plan.destination))),
   );
   const found = new Map(places.map((stop, i) => [stop, statuses[i]]));
 
@@ -81,6 +85,6 @@ export async function checkPlan(plan: PastedPlan, { lookUp }: { lookUp: boolean 
     closed: stops.filter((stop) => stop.status === "closed").length,
     missing: stops.filter((stop) => stop.status === "missing").length,
     packedDays: days.filter((day) => day.packed).length,
-    keep: [...new Set(stops.filter((stop) => stop.status !== "closed").map((stop) => stop.name.slice(0, MUST_DO_MAX_LENGTH)))].slice(0, MUST_DOS_MAX),
+    keep: [...new Set(stops.filter((stop) => stop.status !== "closed" && stop.status !== "missing").map((stop) => stop.name.slice(0, MUST_DO_MAX_LENGTH)))].slice(0, MUST_DOS_MAX),
   };
 }

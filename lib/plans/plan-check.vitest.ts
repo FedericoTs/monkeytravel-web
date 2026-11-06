@@ -43,9 +43,19 @@ describe("what gets looked up", () => {
   it("near where the plan puts it, or in the trip's place when it doesn't say", async () => {
     await checkPlan(planOf([stop("Da Enzo", "restaurant", "Trastevere"), stop("Roscioli", "restaurant", "")]), { lookUp: true });
     expect(lookups).toEqual([
-      ["Da Enzo", "Trastevere"],
+      ["Da Enzo", "Trastevere, Rome"],
       ["Roscioli", "Rome"],
     ]);
+  });
+
+  it("without saying the trip's place twice", async () => {
+    await checkPlan(planOf([stop("Da Enzo", "restaurant", "Trastevere, rome"), stop("Roscioli", "restaurant", "Rome")]), { lookUp: true });
+    expect(lookups.map(([, where]) => where)).toEqual(["Trastevere, rome", "Rome"]);
+  });
+
+  it("with what it has when the plan names no trip's place", async () => {
+    await checkPlan({ destination: "", days: [{ label: "", stops: [stop("Da Enzo", "restaurant", "Trastevere"), stop("Roscioli", "restaurant", "")] }] }, { lookUp: true });
+    expect(lookups.map(([, where]) => where)).toEqual(["Trastevere", ""]);
   });
 
   it("stops at the limit across the whole plan", async () => {
@@ -110,6 +120,18 @@ describe("the places a fixed plan keeps", () => {
     answer = (name) => (name === "Closed" ? "closed" : "open");
     const report = await checkPlan(planOf([stop("Da Enzo"), stop("Closed"), stop("Colosseum", "landmark")], [stop("Da Enzo")]), { lookUp: true });
     expect(report.keep).toEqual(["Da Enzo", "Colosseum"]);
+  });
+
+  it("not the ones Maps can't find, so a made-up place stays out of the new plan", async () => {
+    answer = (name) => (name === "Made up" ? "missing" : "open");
+    const report = await checkPlan(planOf([stop("Da Enzo"), stop("Made up")]), { lookUp: true });
+    expect(report.keep).toEqual(["Da Enzo"]);
+  });
+
+  it("the ones Maps couldn't tell", async () => {
+    answer = () => null;
+    const report = await checkPlan(planOf([stop("Trattoria Da Enzo al 29")]), { lookUp: true });
+    expect(report.keep).toEqual(["Trattoria Da Enzo al 29"]);
   });
 
   it("no more than the wizard takes", async () => {
