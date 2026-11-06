@@ -86,7 +86,7 @@
     },
     {
       "path": "/api/cron/spend-alert",
-      "schedule": "20 6 * * *"
+      "schedule": "20 * * * *"
     },
     {
       "path": "/api/cron/auth-health",
