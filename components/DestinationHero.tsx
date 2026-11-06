@@ -271,7 +271,7 @@ export default function DestinationHero({
                 href={commonsPage(coverCredit.file)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="absolute top-2 right-2 z-10 max-w-[70%] truncate rounded bg-black/30 px-1.5 py-0.5 text-[10px] leading-tight text-white/80 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                className="absolute top-2 right-2 z-10 min-h-0! min-w-0! max-w-[70%] truncate rounded bg-black/30 px-1.5 py-0.5 text-[10px] leading-tight text-white/80 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 {creditText(coverCredit)}
               </a>
