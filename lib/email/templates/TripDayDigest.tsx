@@ -14,7 +14,7 @@
  * pre-trip enrichment.
  */
 
-import { Button, Heading, Section, Text } from "@react-email/components";
+import { Button, Heading, Link, Section, Text } from "@react-email/components";
 import { EmailLayout } from "./_layout";
 import { tripReminderSubject } from "./TripReminder";
 import { ContextBlocks, contextBlocksText } from "./_context-blocks";
@@ -61,6 +61,8 @@ export interface TripDayDigestEmailProps {
    * button. Pre-translated; the cron decides when it applies.
    */
   groupSend?: { text: string; label: string; url: string };
+  /** Tomorrow's stops as directions in Google Maps, for a day with at least two. */
+  maps?: { label: string; url: string };
 }
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://monkeytravel.app";
@@ -78,6 +80,7 @@ export default function TripDayDigestEmail({
   locale = "en",
   groupSend,
   footerCopy,
+  maps,
 }: TripDayDigestEmailProps) {
   const preview = `📅 ${tripReminderSubject({ heading, destination })}`;
   const hasPlan = (blocks?.length ?? 0) > 0;
@@ -109,6 +112,13 @@ export default function TripDayDigestEmail({
         <Button href={tripUrl} style={button}>
           {ctaLabel}
         </Button>
+        {maps ? (
+          <Text style={mapsText}>
+            <Link href={maps.url} style={mapsLink}>
+              {maps.label}
+            </Link>
+          </Text>
+        ) : null}
       </Section>
 
       {groupSend ? (
@@ -142,6 +152,7 @@ export function tripDayDigestEmailText(props: TripDayDigestEmailProps): string {
     ...(hasPlan && props.andMore ? [props.andMore] : []),
     "",
     `${props.ctaLabel}: ${props.tripUrl}`,
+    ...(props.maps ? [`${props.maps.label}: ${props.maps.url}`] : []),
     ...(props.groupSend ? ["", props.groupSend.text, `${props.groupSend.label}: ${props.groupSend.url}`] : []),
     "",
     "—",
@@ -158,6 +169,16 @@ const moreText: React.CSSProperties = {
   fontSize: "14px",
   color: "#888888",
   margin: "4px 0 0",
+};
+
+const mapsText: React.CSSProperties = {
+  fontSize: "14px",
+  margin: "16px 0 0",
+};
+
+const mapsLink: React.CSSProperties = {
+  color: "#00786F",
+  textDecoration: "underline",
 };
 
 // The group box matches TripReminder's group ask.

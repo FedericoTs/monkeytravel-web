@@ -21,6 +21,7 @@ import { useLocale, useTranslations } from "next-intl";
 import type { Activity, ItineraryDay } from "@/types";
 import type { TripDayState } from "@/lib/trip/live";
 import ActivityCard from "@/components/ActivityCard";
+import { DayRouteLink } from "@/components/trip/DayRouteLink";
 import TodayPacking from "@/components/trip/TodayPacking";
 import TodayExpenses from "@/components/trip/TodayExpenses";
 import TodayFeed from "@/components/trip/TodayFeed";
@@ -245,6 +246,7 @@ export default function TodayView({
       </div>
       <p className="text-sm text-slate-600 mb-1 capitalize">{dateLabel}</p>
       {dayState.timeZoneSource === "viewer" && <p className="text-xs text-slate-400 mb-3">{t("today.deviceTzNote")}</p>}
+      <DayRouteLink activities={activities} surface="today" className="mb-2" />
 
       {/* The condition only: the note's figures are model-invented (lib/trips/weather-note). */}
       {weather && (

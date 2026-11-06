@@ -17,6 +17,7 @@ import { activityDomId } from "@/lib/trip/activity-dom-id";
 import { useIsPhone } from "@/hooks/useMediaQuery";
 import { ActivityCardDetails, ActivityKindIcon } from "@/components/trip/ActivityCardParts";
 import { formatDuration } from "@/lib/datetime/duration";
+import { placeMapsUrl, placeSearchUrl } from "@/lib/trips/maps-links";
 
 interface ActivityCardProps {
   activity: Activity;
@@ -73,11 +74,8 @@ function ActivityCard({
   };
 
   // Generate URLs
-  const mapSearchQuery = encodeURIComponent(
-    `${activity.name} ${activity.address || activity.location}`
-  );
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${mapSearchQuery}`;
-  const googleSearchUrl = `https://www.google.com/search?q=${mapSearchQuery}`;
+  const googleMapsUrl = placeMapsUrl(activity);
+  const googleSearchUrl = placeSearchUrl(activity);
 
   // Trips saved before types were normalised still say "foodie" for a dinner.
   const kind = normalizeActivityType(activity.type, activity.name);
