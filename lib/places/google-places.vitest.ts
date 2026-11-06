@@ -7,10 +7,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * Google bills a call it answered, not one it refused or never answered.
  */
 
+// The module reads the key at import time, and imports are hoisted.
+vi.hoisted(() => {
+  process.env.GOOGLE_PLACES_API_KEY = "test-key";
+});
+
 const logApiCall = vi.fn(async (_row: unknown) => undefined);
 vi.mock("@/lib/api-gateway", () => ({ logApiCall: (row: unknown) => logApiCall(row) }));
+const access = vi.fn(async (_api: string) => ({ allowed: true }));
+vi.mock("@/lib/api-gateway/api-control", () => ({ checkApiAccess: (api: string) => access(api) }));
 
-const { textSearch } = await import("./google-places");
+const { fetchPlacePhotos, textSearch } = await import("./google-places");
 
 const PAID_MASK = "places.displayName,places.businessStatus,places.location,places.types";
 let fetchMock: ReturnType<typeof vi.fn>;
@@ -22,9 +29,34 @@ beforeEach(() => {
   fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
   logApiCall.mockClear();
+  access.mockReset();
+  access.mockResolvedValue({ allowed: true });
 });
 afterEach(() => {
   vi.unstubAllGlobals();
+});
+
+describe("a refused call", () => {
+  it("doesn't ask Google for a search, and counts it against search", async () => {
+    access.mockResolvedValue({ allowed: false });
+    expect(await textSearch({ textQuery: "Prado" }, PAID_MASK, "test")).toBeNull();
+    expect(access).toHaveBeenCalledWith("google_places_search");
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(logApiCall).not.toHaveBeenCalled();
+  });
+
+  it("doesn't ask Google for details, and counts it against details", async () => {
+    access.mockResolvedValue({ allowed: false });
+    expect(await fetchPlacePhotos("ChIJplace")).toBeNull();
+    expect(access).toHaveBeenCalledWith("google_places_details");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("asks Google once it's allowed", async () => {
+    answer(200, { places: [] });
+    await textSearch({ textQuery: "Prado" }, PAID_MASK, "test");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("a Text Search", () => {

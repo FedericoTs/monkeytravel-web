@@ -8,6 +8,7 @@ import { fetchPlacePhotos, pickPlacePhoto, type PlacePhoto } from "@/lib/places/
 import { curatedFor, readActivityTypeHint } from "@/lib/images/curated";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { logApiCall } from "@/lib/api-gateway";
+import { checkApiAccess } from "@/lib/api-gateway/api-control";
 import { PLACE_PHOTO_USD_PER_CALL } from "@/lib/api-gateway/places-sku";
 import {
   InFlight,
@@ -171,6 +172,14 @@ export async function GET(request: NextRequest) {
   // same URL still fetches the photo. og=1 marks the OG card renderer: its
   // fetch sends a library user-agent, but the card is a human share preview.
   if (searchParams.get("og") !== "1" && isAnalyticsBot(request.headers.get("user-agent"))) {
+    return new Response(null, {
+      status: 307,
+      headers: { Location: curatedFallbackForName(name ?? ref!, typeHint), "Cache-Control": "no-store" },
+    });
+  }
+
+  // Past the kill switch or today's limit, a curated image costs nothing.
+  if (!(await checkApiAccess("google_places_photo")).allowed) {
     return new Response(null, {
       status: 307,
       headers: { Location: curatedFallbackForName(name ?? ref!, typeHint), "Cache-Control": "no-store" },

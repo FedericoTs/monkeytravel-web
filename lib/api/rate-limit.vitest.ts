@@ -58,3 +58,21 @@ describe("createRateLimiter with Redis", () => {
     expect(await (await limiter(3, 60_000)).check(request)).toEqual({ allowed: true, remaining: 2 });
   });
 });
+
+describe("checkKey", () => {
+  it("counts under the key given, with no request to take an address from", async () => {
+    evalMock.mockResolvedValue(3);
+    const l = await limiter(3, 60_000);
+    expect(await l.checkKey("2026-11-06")).toEqual({ allowed: true, remaining: 0 });
+    expect(evalMock.mock.calls[0][1]).toEqual(["ratelimit:test-ns:2026-11-06"]);
+    evalMock.mockResolvedValue(4);
+    expect((await l.checkKey("2026-11-06")).allowed).toBe(false);
+  });
+
+  it("is what check counts under when it's given a key", async () => {
+    evalMock.mockResolvedValue(1);
+    const l = await limiter(3, 60_000);
+    await l.check(request, "2026-11-06");
+    expect(evalMock.mock.calls[0][1]).toEqual(["ratelimit:test-ns:2026-11-06"]);
+  });
+});

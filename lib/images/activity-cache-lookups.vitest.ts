@@ -451,8 +451,9 @@ describe("enrichment (paid lookups)", () => {
   it("still looks the whole trip up in one request", async () => {
     const result = await run(trip(), { maxPaidLookups: 8 });
     // Paid calls still log a row each as they are made (8 inserts), and the
-    // misses still read and write their own cache rows (5).
-    expect(result.roundTrips).toEqual({ cacheLookups: 1, configReads: 0, logInserts: 9, hitCountWrites: 1, total: 16 });
+    // misses still read and write their own cache rows (5). Paid calls ask their
+    // switch first, and those that start together share the read (4).
+    expect(result.roundTrips).toEqual({ cacheLookups: 1, configReads: 4, logInserts: 9, hitCountWrites: 1, total: 20 });
   });
 });
 

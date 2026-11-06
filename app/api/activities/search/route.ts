@@ -19,6 +19,7 @@
 import { NextRequest } from "next/server";
 import { waitUntil } from "@vercel/functions";
 import { logApiCall } from "@/lib/api-gateway";
+import { checkApiAccess } from "@/lib/api-gateway/api-control";
 import { placesCostForCall } from "@/lib/api-gateway/places-sku";
 import { createClient } from "@/lib/supabase/server";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
@@ -250,6 +251,7 @@ async function searchGooglePlaces(
     console.warn("[Activity Search] Google Places API key not configured");
     return [];
   }
+  if (!(await checkApiAccess("google_places_search")).allowed) return [];
 
   try {
     // Build search query combining destination and user query

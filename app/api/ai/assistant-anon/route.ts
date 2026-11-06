@@ -14,6 +14,7 @@ import { z } from "zod";
 import { errors, apiSuccess } from "@/lib/api/response-wrapper";
 import { createRateLimiter } from "@/lib/api/rate-limit";
 import { checkApiAccess, logApiCall } from "@/lib/api-gateway";
+import { withinAnonDailyLimit } from "@/lib/ai/anon-daily-limit";
 import { assistTrip } from "@/lib/ai/assistant/engine";
 import { MAX_TRIP_DAYS_MULTI } from "@/lib/ai/assistant/structural";
 import { placeLabel } from "@/lib/ai/assistant/elsewhere";
@@ -172,6 +173,10 @@ export async function POST(request: NextRequest) {
     if (!burstOk.allowed) {
       limited("burst");
       return errors.rateLimit("Too many messages in a minute.", { reason: "burst" });
+    }
+    if (!(await withinAnonDailyLimit(request))) {
+      limited("daily limit (everyone)");
+      return errors.rateLimit("Daily assistant limit reached (everyone).", { reason: "daily_anon" });
     }
   }
 
